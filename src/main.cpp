@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file $FILENAME$
+ *   file main.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
  *   philippe.faist@bluewin.ch
@@ -21,14 +21,15 @@
  ***************************************************************************/
 
 
-#include "klatexformula.h"
 #include <kapplication.h>
 #include <kaboutdata.h>
 #include <kcmdlineargs.h>
 #include <klocale.h>
 
+#include "klatexformula.h"
+
 static const char description[] =
-    I18N_NOOP("A KDE KPart Application");
+    I18N_NOOP("KLatexFormula -- Easily get an image from a LaTeX equation");
 
 static const char version[] = "2.0";
 
@@ -41,7 +42,7 @@ static KCmdLineOptions options[] =
 int main(int argc, char **argv)
 {
     KAboutData about("klatexformula", I18N_NOOP("KLatexFormula"), version, description,
-		     KAboutData::License_GPL, "(C) 2007 Philippe Faist", 0, 0, "philippe.faist@bluewin.ch");
+		     KAboutData::License_GPL, "(C) 2005 Philippe Faist", 0, 0, "philippe.faist@bluewin.ch");
     about.addAuthor( "Philippe Faist", 0, "philippe.faist@bluewin.ch" );
     KCmdLineArgs::init(argc, argv, &about);
     KCmdLineArgs::addCmdLineOptions( options );

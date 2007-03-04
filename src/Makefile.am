@@ -21,7 +21,7 @@ KDE_ICON = AUTO
 bin_PROGRAMS = klatexformula
 
 # the application source, library search path, and link libraries
-klatexformula_SOURCES = main.cpp klatexformula.cpp
+klatexformula_SOURCES = main.cpp
 klatexformula_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 klatexformula_LDADD = $(LIB_KDEUI)
 
@@ -31,5 +31,6 @@ shelldesktop_DATA = klatexformula.desktop
 
 # this is where the shell's XML-GUI resource file goes
 shellrcdir   = $(kde_datadir)/klatexformula
-shellrc_DATA = klatexformulaui.rc
 
+
+SUBDIRS = klfbackend
