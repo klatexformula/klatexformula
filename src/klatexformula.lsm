@@ -1,0 +1,16 @@
+Begin3
+Title:          KLatexFormula -- Some description
+Version:        2.0
+Entered-date:   
+Description:    
+Keywords:       KDE Qt
+Author:         Philippe Faist <philippe.faist@bluewin.ch>
+Maintained-by:  Philippe Faist <philippe.faist@bluewin.ch>
+Home-page:      
+Alternate-site: 
+Primary-site:   ftp://ftp.kde.org/pub/kde/unstable/apps/utils
+                xxxxxx  klatexformula-2.0.tar.gz
+                xxx     klatexformula-2.0.lsm
+Platform:       Linux. Needs KDE
+Copying-policy: GPL
+End
