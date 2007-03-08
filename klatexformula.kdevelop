@@ -17,11 +17,15 @@
   </general>
   <kdevautoproject>
     <general>
-      <activetarget>src/klatexformula</activetarget>
+      <activetarget>src/klfbackend/libklfbackend.a</activetarget>
       <useconfiguration>debug</useconfiguration>
     </general>
     <run>
       <mainprogram>src/klatexformula</mainprogram>
+      <directoryradio>executable</directoryradio>
+      <runarguments>
+        <klatexformula/>
+      </runarguments>
     </run>
     <configurations>
       <optimized>
@@ -40,6 +44,12 @@
         <cxxflags>-O0 -g3</cxxflags>
       </debug>
     </configurations>
+    <make>
+      <envvars>
+        <envvar value="1" name="WANT_AUTOCONF_2_5" />
+        <envvar value="1" name="WANT_AUTOMAKE_1_6" />
+      </envvars>
+    </make>
   </kdevautoproject>
   <kdevfileview>
     <groups>
@@ -48,7 +58,14 @@
       <group pattern="*.png" name="Icons" />
       <group pattern="*.po;*.ts" name="Translations" />
       <group pattern="*" name="Others" />
+      <hidenonprojectfiles>false</hidenonprojectfiles>
+      <hidenonlocation>false</hidenonlocation>
     </groups>
+    <tree>
+      <showvcsfields>false</showvcsfields>
+      <hidenonprojectfiles>false</hidenonprojectfiles>
+      <hidepatterns>*.o,*.lo,CVS</hidepatterns>
+    </tree>
   </kdevfileview>
   <kdevdoctreeview>
     <ignoretocs>
@@ -118,4 +135,19 @@
     <YEAR>2007</YEAR>
     <dest>/home/philippe/programs/kde/klatexformula</dest>
   </substmap>
+  <kdevcppsupport>
+    <references/>
+    <codecompletion>
+      <includeGlobalFunctions>true</includeGlobalFunctions>
+      <includeTypes>true</includeTypes>
+      <includeEnums>true</includeEnums>
+      <includeTypedefs>false</includeTypedefs>
+      <automaticCodeCompletion>true</automaticCodeCompletion>
+      <automaticArgumentsHint>true</automaticArgumentsHint>
+      <automaticHeaderCompletion>true</automaticHeaderCompletion>
+      <codeCompletionDelay>250</codeCompletionDelay>
+      <argumentsHintDelay>400</argumentsHintDelay>
+      <headerCompletionDelay>250</headerCompletionDelay>
+    </codecompletion>
+  </kdevcppsupport>
 </kdevelop>

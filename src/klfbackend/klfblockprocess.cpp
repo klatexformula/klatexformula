@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file $FILENAME$
+ *   file klfblockprocess.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
  *   philippe.faist@bluewin.ch
@@ -20,34 +20,65 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <qprocess.h>
+#include <qapplication.h>
+#include <qeventloop.h>
 
-#ifndef _KLATEXFORMULA_H_
-#define _KLATEXFORMULA_H_
+#include "klfblockprocess.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include <kmainwindow.h>
-
-/**
- * @short Application Main Window
- * @author Philippe Faist <philippe.faist@bluewin.ch>
- * @version 2.0
- */
-class KLatexFormula : public KMainWindow
+KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)
 {
-    Q_OBJECT
-public:
-    /**
-     * Default Constructor
-     */
-    KLatexFormula();
+  connect(this, SIGNAL(wroteToStdin()), this, SLOT(ourProcGotOurStdinData()));
+  connect(this, SIGNAL(processExited()), this, SLOT(ourProcExited()));
+}
 
-    /**
-     * Default Destructor
-     */
-    virtual ~KLatexFormula();
-};
 
-#endif // _KLATEXFORMULA_H_
+KLFBlockProcess::~KLFBlockProcess()
+{
+}
+
+void KLFBlockProcess::ourProcGotOurStdinData()
+{
+  closeStdin();
+}
+
+void KLFBlockProcess::ourProcExited()
+{
+  _runstatus = 1; // exited
+}
+
+bool KLFBlockProcess::startProcess(QStringList cmd, QCString str, QStringList *env)
+{
+  return startProcess(cmd, QByteArray().duplicate(str.data(), str.length()), env);
+}
+
+bool KLFBlockProcess::startProcess(QStringList cmd, QStringList *env)
+{
+  return startProcess(cmd, QByteArray(), env);
+}
+
+bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStringList *env)
+{
+  _runstatus = 0;
+
+  setArguments(cmd);
+
+  if (! start(env) )
+    return false;
+
+  writeToStdin(stdindata);
+  // slot ourProcGotOutStdinData() should be called, which closes input
+
+  while (_runstatus == 0) {
+    qApp->eventLoop()->processEvents(QEventLoop::ExcludeUserInput);
+  }
+
+  if (_runstatus < 0) { // some error occurred somewhere
+    return false;
+  }
+
+  return true;
+}
+
+
+#include "klfblockprocess.moc"

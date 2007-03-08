@@ -1,8 +1,8 @@
 # set the include path for X, qt and KDE
-INCLUDES = $(all_includes)
+INCLUDES = -I$(top_srcdir)/src/klfbackend $(all_includes)
 
 # these are the headers for your project
-noinst_HEADERS = klatexformula.h
+
 
 # let automoc handle all of the meta source files (moc)
 METASOURCES = AUTO
@@ -23,14 +23,15 @@ bin_PROGRAMS = klatexformula
 # the application source, library search path, and link libraries
 klatexformula_SOURCES = main.cpp
 klatexformula_LDFLAGS = $(KDE_RPATH) $(all_libraries)
-klatexformula_LDADD = $(LIB_KDEUI)
+klatexformula_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \
+	$(LIB_KDEUI)
 
 # this is where the desktop file will go 
-shelldesktopdir   = $(kde_appsdir)/Utilities
+shelldesktopdir = $(kde_appsdir)/Utilities
 shelldesktop_DATA = klatexformula.desktop
 
 # this is where the shell's XML-GUI resource file goes
-shellrcdir   = $(kde_datadir)/klatexformula
+shellrcdir = $(kde_datadir)/klatexformula
 
 
 SUBDIRS = klfbackend

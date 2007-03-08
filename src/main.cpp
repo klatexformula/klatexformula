@@ -20,13 +20,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <qfile.h>
+#include <qclipboard.h>
+#include <qdragobject.h>
 
 #include <kapplication.h>
 #include <kaboutdata.h>
 #include <kcmdlineargs.h>
 #include <klocale.h>
 
-#include "klatexformula.h"
+#include <klfbackend.h>
 
 static const char description[] =
     I18N_NOOP("KLatexFormula -- Easily get an image from a LaTeX equation");
@@ -41,33 +44,67 @@ static KCmdLineOptions options[] =
 
 int main(int argc, char **argv)
 {
-    KAboutData about("klatexformula", I18N_NOOP("KLatexFormula"), version, description,
-		     KAboutData::License_GPL, "(C) 2005 Philippe Faist", 0, 0, "philippe.faist@bluewin.ch");
-    about.addAuthor( "Philippe Faist", 0, "philippe.faist@bluewin.ch" );
-    KCmdLineArgs::init(argc, argv, &about);
-    KCmdLineArgs::addCmdLineOptions( options );
-    KApplication app;
-    KLatexFormula *mainWin = 0;
+  KAboutData about("klatexformula", I18N_NOOP("KLatexFormula"), version, description,
+		   KAboutData::License_GPL, "(C) 2005 Philippe Faist", 0, 0, "philippe.faist@bluewin.ch");
+  about.addAuthor( "Philippe Faist", 0, "philippe.faist@bluewin.ch" );
+  KCmdLineArgs::init(argc, argv, &about);
+  KCmdLineArgs::addCmdLineOptions( options );
+  KApplication app;
+  //    KLatexFormula *mainWin = 0;
+  
+  if (app.isRestored()) {
+    //        RESTORE(KLatexFormula);
+  }
+  else {
+    // no session.. just start up normally
+    KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
+    
+    /** @todo do something with the command line args here */
+    
+    //        mainWin = new KLatexFormula();
+    //        app.setMainWidget( mainWin );
+    //        mainWin->show();
 
-    if (app.isRestored())
-    {
-        RESTORE(KLatexFormula);
+    KLFBackend::klfInput in;
+    KLFBackend::klfSettings settings;
+    settings.tempdir = "/tmp";
+    settings.klfclspath = "/home/philippe/junk";
+    settings.latexexec = "latex";
+    settings.dvipsexec = "dvips";
+    settings.gsexec = "gs";
+    settings.epstopdfexec = "epstopdf";
+
+    in.latex = "a + b = c \\Rightarrow a = c - b";
+    in.mathmode = "<<~$ ... $~>>";
+    in.preamble = "\\usepackage[T1]{fontenc}\n";
+    in.fg_color = qRgb(255, 255, 255); // white
+    in.bg_color = qRgba(0, 0, 80, 255); // dark blue
+    in.dpi = 300;
+
+    KLFBackend::klfOutput out = KLFBackend::getLatexFormula(in, settings);
+
+    if (out.status) {
+      printf("ERROR: %d: %s\n", out.status, out.errorstr.ascii());
+      return 0;
     }
-    else
+    out.result.save("/home/philippe/junk/klf_success.png", "PNG");
+
     {
-        // no session.. just start up normally
-        KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
-
-        /// @todo do something with the command line args here
-
-        mainWin = new KLatexFormula();
-        app.setMainWidget( mainWin );
-        mainWin->show();
-
-        args->clear();
+      QFile f("/home/philippe/junk/klf_success.eps");
+      f.open(IO_WriteOnly);
+      f.writeBlock(out.epsdata);
     }
-
-    // mainWin has WDestructiveClose flag by default, so it will delete itself.
-    return app.exec();
+    {
+      QFile f("/home/philippe/junk/klf_success.pdf");
+      f.open(IO_WriteOnly);
+      f.writeBlock(out.pdfdata);
+    }
+    args->clear();
+  }
+  
+  return 0; // more radical
+  
+  // mainWin has WDestructiveClose flag by default, so it will delete itself.
+  return app.exec();
 }
 
