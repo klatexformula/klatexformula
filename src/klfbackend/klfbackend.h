@@ -34,6 +34,17 @@
  * our core functionality of transforming LaTeX code into graphics.
  */
 
+
+/** \mainpage
+ * <center>
+ * <div style="width: 60%; text-align: justify; font-weight: bold">This documentation is the API
+ * documentation for the KLatexFormula library backend that
+ * you may want to use in your programs. It is a GPL-licensed library based on QT 3 that
+ * converts a LaTeX equation given as text into graphics, specifically PNG, EPS or PDF.<br><br>
+ * All the core functionality is based in the class \ref KLFBackend .
+ *</div></center>
+ */
+
 //! The main engine for KLatexFormula
 /** The main engine for KLatexFormula, providing core functionality
  * of transforming LaTeX code into graphics.
@@ -120,7 +131,7 @@ public:
    *   settings.epstopdfexec = "epstopdf";
    *
    *   KLFBackend::klfInput input;
-   *   input.latex = "\int_{\Sigma}\!(\vec{\nabla}\times\vec u)\,d\vec S = \oint_C \vec{u}\cdot d\vec r";
+   *   input.latex = "\\int_{\\Sigma}\\!(\\vec{\\nabla}\\times\\vec u)\\,d\\vec S = \\oint_C \\vec{u}\\cdot d\\vec r";
    *   input.mathmode = "\\[ ... \\]";
    *   input.preamble = "\\usepackage{somerequiredpackage}\n";
    *   input.fg_color = qRgb(255, 128, 128); // light blue

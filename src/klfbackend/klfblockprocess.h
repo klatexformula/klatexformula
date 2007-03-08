@@ -23,6 +23,10 @@
 #ifndef KLFBLOCKPROCESS_H
 #define KLFBLOCKPROCESS_H
 
+//! Defines the KLFBlockProcess class
+/** \file
+ * Defines the KLFBlockProcess class */
+
 #include <qprocess.h>
 #include <qstring.h>
 #include <qcstring.h>

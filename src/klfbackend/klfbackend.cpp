@@ -136,6 +136,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       return res;
     }
     if (proc.exitStatus() != 0) {
+      cleanup(tempfname);
       res.status = 1;
       res.errorstr = TRANSLATE("<p><b>LaTeX</b> reported an error (exit status %1). Here is full stderr output:</p>\n"
 			       "<pre>\n%2</pre><p>And Stdout output:</p><pre>\n%3</pre>\n")
@@ -320,6 +321,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   }
 
+  // clean up our mess
   cleanup(tempfname);
 
 
