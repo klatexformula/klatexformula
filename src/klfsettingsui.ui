@@ -1,0 +1,266 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>KLFSettingsUI</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>KLFSettingsUI</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>409</width>
+            <height>364</height>
+        </rect>
+    </property>
+    <property name="minimumSize">
+        <size>
+            <width>350</width>
+            <height>0</height>
+        </size>
+    </property>
+    <property name="caption">
+        <string>KLatexFormula - Settings</string>
+    </property>
+    <property name="sizeGripEnabled">
+        <bool>true</bool>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout12</cstring>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <property name="margin">
+                    <number>4</number>
+                </property>
+                <property name="spacing">
+                    <number>1</number>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>lblTempDir</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Temporary directory:</string>
+                    </property>
+                </widget>
+                <widget class="KURLRequester">
+                    <property name="name">
+                        <cstring>kurlTempDir</cstring>
+                    </property>
+                </widget>
+            </vbox>
+        </widget>
+        <widget class="QGroupBox">
+            <property name="name">
+                <cstring>gbxPaths</cstring>
+            </property>
+            <property name="title">
+                <string>System executables</string>
+            </property>
+            <grid>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel" row="0" column="0">
+                    <property name="name">
+                        <cstring>lblLatex</cstring>
+                    </property>
+                    <property name="minimumSize">
+                        <size>
+                            <width>100</width>
+                            <height>0</height>
+                        </size>
+                    </property>
+                    <property name="text">
+                        <string>latex :</string>
+                    </property>
+                </widget>
+                <widget class="KURLRequester" row="0" column="1">
+                    <property name="name">
+                        <cstring>kurlLatex</cstring>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="1" column="0">
+                    <property name="name">
+                        <cstring>lblDvips</cstring>
+                    </property>
+                    <property name="text">
+                        <string>dvips :</string>
+                    </property>
+                </widget>
+                <widget class="KURLRequester" row="1" column="1">
+                    <property name="name">
+                        <cstring>kurlDvips</cstring>
+                    </property>
+                </widget>
+                <widget class="KURLRequester" row="2" column="1">
+                    <property name="name">
+                        <cstring>kurlGs</cstring>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="2" column="0">
+                    <property name="name">
+                        <cstring>lblGs</cstring>
+                    </property>
+                    <property name="text">
+                        <string>gs :</string>
+                    </property>
+                </widget>
+                <widget class="QLabel" row="4" column="0">
+                    <property name="name">
+                        <cstring>lblEpstopdf</cstring>
+                    </property>
+                    <property name="text">
+                        <string>epstopdf :</string>
+                    </property>
+                </widget>
+                <widget class="KURLRequester" row="4" column="1">
+                    <property name="name">
+                        <cstring>kurlEpstopdf</cstring>
+                    </property>
+                </widget>
+                <widget class="QCheckBox" row="3" column="0" rowspan="1" colspan="2">
+                    <property name="name">
+                        <cstring>chkEpstopdf</cstring>
+                    </property>
+                    <property name="text">
+                        <string>H&amp;ave epstopdf</string>
+                    </property>
+                    <property name="accel">
+                        <string>Alt+A</string>
+                    </property>
+                    <property name="checked">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </grid>
+        </widget>
+        <spacer>
+            <property name="name">
+                <cstring>spcv</cstring>
+            </property>
+            <property name="orientation">
+                <enum>Vertical</enum>
+            </property>
+            <property name="sizeType">
+                <enum>Expanding</enum>
+            </property>
+            <property name="sizeHint">
+                <size>
+                    <width>20</width>
+                    <height>40</height>
+                </size>
+            </property>
+        </spacer>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>lytButtons</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <spacer>
+                    <property name="name">
+                        <cstring>spch</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>390</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>btnOk</cstring>
+                    </property>
+                    <property name="text">
+                        <string>&amp;OK</string>
+                    </property>
+                    <property name="accel">
+                        <string>Ctrl+Return, Alt+O</string>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>true</bool>
+                    </property>
+                    <property name="default">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>btnCancel</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Ca&amp;ncel</string>
+                    </property>
+                    <property name="accel">
+                        <string>Alt+N</string>
+                    </property>
+                    <property name="autoDefault">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>btnOk</sender>
+        <signal>clicked()</signal>
+        <receiver>KLFSettingsUI</receiver>
+        <slot>accept()</slot>
+    </connection>
+    <connection>
+        <sender>btnCancel</sender>
+        <signal>clicked()</signal>
+        <receiver>KLFSettingsUI</receiver>
+        <slot>reject()</slot>
+    </connection>
+    <connection>
+        <sender>chkEpstopdf</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>lblEpstopdf</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>chkEpstopdf</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>kurlEpstopdf</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+</connections>
+<layoutdefaults spacing="6" margin="11"/>
+<includehints>
+    <includehint>kurlrequester.h</includehint>
+    <includehint>klineedit.h</includehint>
+    <includehint>kpushbutton.h</includehint>
+    <includehint>kurlrequester.h</includehint>
+    <includehint>klineedit.h</includehint>
+    <includehint>kpushbutton.h</includehint>
+    <includehint>kurlrequester.h</includehint>
+    <includehint>klineedit.h</includehint>
+    <includehint>kpushbutton.h</includehint>
+    <includehint>kurlrequester.h</includehint>
+    <includehint>klineedit.h</includehint>
+    <includehint>kpushbutton.h</includehint>
+    <includehint>kurlrequester.h</includehint>
+    <includehint>klineedit.h</includehint>
+    <includehint>kpushbutton.h</includehint>
+</includehints>
+</UI>

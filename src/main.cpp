@@ -29,12 +29,20 @@
 #include <kcmdlineargs.h>
 #include <klocale.h>
 
-#include <klfbackend.h>
+#include "klfmainwin.h"
+
+extern const char version[];
+extern const int version_maj, version_min, version_release;
+
 
 static const char description[] =
     I18N_NOOP("KLatexFormula -- Easily get an image from a LaTeX equation");
 
-static const char version[] = "2.0";
+// not static so we can get this value from other modules in the project
+const char version[] = "2.0.0";
+const int version_maj = 2;
+const int version_min = 0;
+const int version_release = 0;
 
 static KCmdLineOptions options[] =
 {
@@ -50,59 +58,28 @@ int main(int argc, char **argv)
   KCmdLineArgs::init(argc, argv, &about);
   KCmdLineArgs::addCmdLineOptions( options );
   KApplication app;
-  //    KLatexFormula *mainWin = 0;
+
+  fprintf(stderr, "KLatexFormula Version %d.%d.%d by Philippe Faist (c) 2005\n"
+	  "Licensed under the terms of the GNU Public License GPL\n\n",
+	  version_maj, version_min, version_release);
   
   if (app.isRestored()) {
-    //        RESTORE(KLatexFormula);
+    RESTORE(KLFMainWin);
   }
   else {
+    KLFMainWin *mainWin = 0;
+
     // no session.. just start up normally
     KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
     
-    /** @todo do something with the command line args here */
+    /** \todo do something with the command line args here */
     
-    //        mainWin = new KLatexFormula();
-    //        app.setMainWidget( mainWin );
-    //        mainWin->show();
+    mainWin = new KLFMainWin();
+    app.setMainWidget(mainWin);
+    mainWin->show();
 
-    KLFBackend::klfInput in;
-    KLFBackend::klfSettings settings;
-    settings.tempdir = "/tmp";
-    settings.klfclspath = "/home/philippe/junk";
-    settings.latexexec = "latex";
-    settings.dvipsexec = "dvips";
-    settings.gsexec = "gs";
-    settings.epstopdfexec = "epstopdf";
-
-    in.latex = "a + b = c \\Rightarrow a = c - b";
-    in.mathmode = "<<~$ ... $~>>";
-    in.preamble = "\\usepackage[T1]{fontenc}\n";
-    in.fg_color = qRgb(255, 255, 255); // white
-    in.bg_color = qRgba(0, 0, 80, 255); // dark blue
-    in.dpi = 300;
-
-    KLFBackend::klfOutput out = KLFBackend::getLatexFormula(in, settings);
-
-    if (out.status) {
-      printf("ERROR: %d: %s\n", out.status, out.errorstr.ascii());
-      return 0;
-    }
-    out.result.save("/home/philippe/junk/klf_success.png", "PNG");
-
-    {
-      QFile f("/home/philippe/junk/klf_success.eps");
-      f.open(IO_WriteOnly);
-      f.writeBlock(out.epsdata);
-    }
-    {
-      QFile f("/home/philippe/junk/klf_success.pdf");
-      f.open(IO_WriteOnly);
-      f.writeBlock(out.pdfdata);
-    }
     args->clear();
   }
-  
-  return 0; // more radical
   
   // mainWin has WDestructiveClose flag by default, so it will delete itself.
   return app.exec();

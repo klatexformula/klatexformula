@@ -14,10 +14,13 @@
     </keywords>
     <versioncontrol>kdevcvsservice</versioncontrol>
     <ignoreparts/>
+    <projectdirectory>.</projectdirectory>
+    <absoluteprojectpath>false</absoluteprojectpath>
+    <description/>
   </general>
   <kdevautoproject>
     <general>
-      <activetarget>src/klfbackend/libklfbackend.a</activetarget>
+      <activetarget>src/klatexformula</activetarget>
       <useconfiguration>debug</useconfiguration>
     </general>
     <run>
@@ -36,12 +39,21 @@
         <cxxflags>-O2 -g0</cxxflags>
       </optimized>
       <debug>
-        <configargs>--enable-debug=full</configargs>
+        <configargs>--enable-debug=full --prefix=$HOME/.kde</configargs>
         <builddir>debug</builddir>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevg77options</f77compiler>
         <cxxflags>-O0 -g3</cxxflags>
+        <envvars/>
+        <topsourcedir/>
+        <cppflags/>
+        <ldflags/>
+        <ccompilerbinary/>
+        <cxxcompilerbinary/>
+        <f77compilerbinary/>
+        <cflags/>
+        <f77flags/>
       </debug>
     </configurations>
     <make>
@@ -50,6 +62,10 @@
         <envvar value="1" name="WANT_AUTOMAKE_1_6" />
       </envvars>
     </make>
+    <subclassing>
+      <subclass uifile="/src/klfhistorybrowserui.ui" sourcefile="/src/klfhistorybrowser.cpp" />
+      <subclass uifile="/src/klfhistorybrowserui.ui" sourcefile="/src/klfhistorybrowser.h" />
+    </subclassing>
   </kdevautoproject>
   <kdevfileview>
     <groups>
@@ -106,7 +122,20 @@
   <kdevdebugger>
     <general>
       <dbgshell>libtool</dbgshell>
+      <programargs/>
+      <gdbpath/>
+      <configGdbScript/>
+      <runShellScript/>
+      <runGdbScript/>
+      <breakonloadinglibs>true</breakonloadinglibs>
+      <separatetty>false</separatetty>
+      <floatingtoolbar>false</floatingtoolbar>
     </general>
+    <display>
+      <staticmembers>false</staticmembers>
+      <demanglenames>true</demanglenames>
+      <outputradix>10</outputradix>
+    </display>
   </kdevdebugger>
   <kdevfilecreate>
     <filetypes/>
@@ -149,5 +178,24 @@
       <argumentsHintDelay>400</argumentsHintDelay>
       <headerCompletionDelay>250</headerCompletionDelay>
     </codecompletion>
+    <qt>
+      <used>false</used>
+      <version>3</version>
+      <root>/usr/lib/qt3</root>
+    </qt>
+    <creategettersetter>
+      <prefixGet/>
+      <prefixSet>set</prefixSet>
+      <prefixVariable>m_,_</prefixVariable>
+      <parameterName>theValue</parameterName>
+      <inlineGet>true</inlineGet>
+      <inlineSet>true</inlineSet>
+    </creategettersetter>
   </kdevcppsupport>
+  <cppsupportpart>
+    <filetemplates>
+      <interfacesuffix>.h</interfacesuffix>
+      <implementationsuffix>.cpp</implementationsuffix>
+    </filetemplates>
+  </cppsupportpart>
 </kdevelop>

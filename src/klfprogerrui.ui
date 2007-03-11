@@ -1,0 +1,78 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>KLFProgErrUI</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>KLFProgErrUI</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>562</width>
+            <height>364</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>Error</string>
+    </property>
+    <property name="modal">
+        <bool>true</bool>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <property name="margin">
+            <number>0</number>
+        </property>
+        <property name="spacing">
+            <number>1</number>
+        </property>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>lbl</cstring>
+            </property>
+            <property name="minimumSize">
+                <size>
+                    <width>0</width>
+                    <height>30</height>
+                </size>
+            </property>
+            <property name="font">
+                <font>
+                    <pointsize>12</pointsize>
+                    <italic>1</italic>
+                </font>
+            </property>
+            <property name="text">
+                <string>An error occured!</string>
+            </property>
+            <property name="alignment">
+                <set>AlignCenter</set>
+            </property>
+        </widget>
+        <widget class="QTextBrowser">
+            <property name="name">
+                <cstring>txtError</cstring>
+            </property>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>btnOK</cstring>
+            </property>
+            <property name="text">
+                <string>OK</string>
+            </property>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>btnOK</sender>
+        <signal>clicked()</signal>
+        <receiver>KLFProgErrUI</receiver>
+        <slot>accept()</slot>
+    </connection>
+</connections>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>
