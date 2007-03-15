@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfdata.cpp
+ *   file klfstylemanager.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
  *   philippe.faist@bluewin.ch
@@ -20,36 +20,72 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "klfdata.h"
+#ifndef KLFSTYLEMANAGER_H
+#define KLFSTYLEMANAGER_H
+
+#include <qdragobject.h>
+#include <qevent.h>
+#include <qlistbox.h>
+
+#include <kpopupmenu.h>
+
+#include <klfdata.h>
+#include <klfstylemanagerui.h>
 
 
-
-Q_UINT32 KLFData::KLFHistoryItem::MaxId = 1;
-
-
-QDataStream& operator<<(QDataStream& stream, const KLFData::KLFStyle& style)
+class KLFStyleDrag : public QDragObject
 {
-  return stream << style.name << (Q_UINT32)style.fg_color << (Q_UINT32)style.bg_color
-		<< style.mathmode << style.preamble << (Q_UINT16)style.dpi;
-}
-QDataStream& operator>>(QDataStream& stream, KLFData::KLFStyle& style)
-{
-  Q_UINT32 fg, bg;
-  Q_UINT16 dpi;
-  stream >> style.name;
-  stream >> fg >> bg >> style.mathmode >> style.preamble >> dpi;
-  style.fg_color = fg;
-  style.bg_color = bg;
-  style.dpi = dpi;
-  return stream;
-}
+  Q_OBJECT
+public:
+  KLFStyleDrag(KLFData::KLFStyle sty, QWidget *parent = 0);
 
-QDataStream& operator<<(QDataStream& stream, const KLFData::KLFHistoryItem& item)
-{
-  return stream << item.id << item.datetime << item.latex << item.preview << item.style;
-}
+  const char *format(int index) const;
 
-QDataStream& operator>>(QDataStream& stream, KLFData::KLFHistoryItem& item)
+  QByteArray encodedData(const char *format) const;
+
+  static bool canDecode(const QMimeSource *source);
+  static bool decode(const QMimeSource *source, KLFData::KLFStyle& sty);
+private:
+  KLFData::KLFStyle _sty;
+};
+
+class KLFStyleManager : public KLFStyleManagerUI
 {
-  return stream >> item.id >> item.datetime >> item.latex >> item.preview >> item.style;
-}
+  Q_OBJECT
+public:
+  KLFStyleManager(KLFData::KLFStyleList *ptr, QWidget *parent = 0);
+  ~KLFStyleManager();
+
+  bool eventFilter(QObject *obj, QEvent *event);
+
+signals:
+
+  void refreshStyles();
+
+public slots:
+
+  void stylesChanged();
+
+  void slotDelete();
+  void slotMoveUp();
+  void slotMoveDown();
+  void slotRename();
+
+  void refreshActionsEnabledState();
+
+protected:
+
+  enum { PopupIdDelete = 1001, PopupIdMoveUp, PopupIdMoveDown, PopupIdRename };
+
+private:
+  KLFData::KLFStyleList *_styptr;
+
+  KPopupMenu *mActionsPopup;
+
+  QPoint _drag_init_pos;
+  QListBoxItem *_drag_item;
+  /*  QListBoxItem *mDropIndicatorItem; */
+};
+
+#endif
+

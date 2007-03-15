@@ -1,6 +1,15 @@
 #MIN_CONFIG(3.2.0)
 
-AM_INIT_AUTOMAKE(klatexformula, 2.0)
+# to change version, modify following files:
+# src/main.cpp
+# configure.in.in (this file)
+# doc/en/index.docbook
+# klatexformula.kdevelop
+# src/klatexformula.lsm
+# Doxyfile
+# #  -- not existent ./klatexformula.kdevelop.spec
+
+AM_INIT_AUTOMAKE(klatexformula, 2.0.0-alpha1)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 

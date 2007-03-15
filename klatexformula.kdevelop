@@ -3,7 +3,7 @@
   <general>
     <author>Philippe Faist</author>
     <email>philippe.faist@bluewin.ch</email>
-    <version>2.0</version>
+    <version>2.0.0-alpha1</version>
     <projectmanagement>KDevKDEAutoProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
@@ -16,7 +16,7 @@
     <ignoreparts/>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
+    <description></description>
   </general>
   <kdevautoproject>
     <general>
@@ -65,6 +65,8 @@
     <subclassing>
       <subclass uifile="/src/klfhistorybrowserui.ui" sourcefile="/src/klfhistorybrowser.cpp" />
       <subclass uifile="/src/klfhistorybrowserui.ui" sourcefile="/src/klfhistorybrowser.h" />
+      <subclass uifile="/src/klfstylemanagerui.ui" sourcefile="/src/klfstylemanager.cpp" />
+      <subclass uifile="/src/klfstylemanagerui.ui" sourcefile="/src/klfstylemanager.h" />
     </subclassing>
   </kdevautoproject>
   <kdevfileview>
@@ -122,11 +124,11 @@
   <kdevdebugger>
     <general>
       <dbgshell>libtool</dbgshell>
-      <programargs/>
-      <gdbpath/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <programargs></programargs>
+      <gdbpath></gdbpath>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
@@ -160,7 +162,7 @@
     <EMAIL>philippe.faist@bluewin.ch</EMAIL>
     <LICENSE>GPL</LICENSE>
     <LICENSEFILE>COPYING</LICENSEFILE>
-    <VERSION>2.0</VERSION>
+    <VERSION>2.0.0-alpha1</VERSION>
     <YEAR>2007</YEAR>
     <dest>/home/philippe/programs/kde/klatexformula</dest>
   </substmap>
@@ -184,7 +186,7 @@
       <root>/usr/lib/qt3</root>
     </qt>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>

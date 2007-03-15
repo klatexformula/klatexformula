@@ -68,7 +68,7 @@
                 <cstring>lstHistory</cstring>
             </property>
             <property name="selectionMode">
-                <enum>Multi</enum>
+                <enum>Extended</enum>
             </property>
             <property name="showSortIndicator">
                 <bool>true</bool>

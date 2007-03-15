@@ -1,0 +1,69 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>KLFStyleManagerUI</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>KLFStyleManagerUI</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>210</width>
+            <height>276</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>KLatexFormula - Style Manager</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <property name="margin">
+            <number>6</number>
+        </property>
+        <property name="spacing">
+            <number>3</number>
+        </property>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>lbl</cstring>
+            </property>
+            <property name="text">
+                <string>Styles</string>
+            </property>
+            <property name="alignment">
+                <set>AlignCenter</set>
+            </property>
+        </widget>
+        <widget class="QListBox">
+            <property name="name">
+                <cstring>lstStyles</cstring>
+            </property>
+            <property name="acceptDrops">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>btnActions</cstring>
+            </property>
+            <property name="text">
+                <string>&amp;Actions</string>
+            </property>
+            <property name="accel">
+                <string>Alt+A</string>
+            </property>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>btnClose</cstring>
+            </property>
+            <property name="text">
+                <string>Close</string>
+            </property>
+        </widget>
+    </vbox>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

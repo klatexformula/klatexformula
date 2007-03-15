@@ -58,8 +58,6 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
 
   setModal(false);
 
-  //  setWFlags( (getWFlags() & ~WType_Dialog) );
-
   _allowrestore = _allowdelete = false;
 
   connect(lstHistory, SIGNAL(contextMenuRequested(QListViewItem *, const QPoint&, int)),
@@ -71,6 +69,10 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
 
   connect(lstHistory, SIGNAL(currentChanged(QListViewItem*)), this, SLOT(slotRefreshButtonsEnabled()));
   connect(lstHistory, SIGNAL(selectionChanged()), this, SLOT(slotRefreshButtonsEnabled()));
+  connect(lstHistory, SIGNAL(doubleClicked(QListViewItem*, const QPoint&, int)),
+	  this, SLOT(slotRestoreAll(QListViewItem*)));
+  connect(lstHistory, SIGNAL(returnPressed(QListViewItem*)),
+	  this, SLOT(slotRestoreAll(QListViewItem*)));
 }
 
 KLFHistoryBrowser::~KLFHistoryBrowser()

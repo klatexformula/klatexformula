@@ -22,8 +22,8 @@ bin_PROGRAMS = klatexformula
 
 # the application source, library search path, and link libraries
 klatexformula_SOURCES = main.cpp klfmainwinui.ui klfhistorybrowserui.ui \
-			klfmainwin.cpp klfsettingsui.ui klfsettings.cpp klfprogerrui.ui klfdata.cpp \
-	klfhistorybrowser.cpp
+	klfmainwin.cpp klfsettingsui.ui klfsettings.cpp klfprogerrui.ui klfdata.cpp \
+	klfhistorybrowser.cpp klfstylemanagerui.ui klfstylemanager.cpp
 klatexformula_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 klatexformula_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \
 	$(LIB_KDEUI) $(LIB_KIO)
@@ -33,4 +33,5 @@ shelldesktopdir = $(kde_appsdir)/Utilities
 shelldesktop_DATA = klatexformula.desktop
 
 SUBDIRS = klfbackend pics
-noinst_HEADERS = klfmainwin.h klfsettings.h klfdata.h klfhistorybrowser.h
+noinst_HEADERS = klfmainwin.h klfsettings.h klfdata.h klfhistorybrowser.h \
+	klfstylemanager.h

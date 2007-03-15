@@ -35,6 +35,7 @@
 
 class KLFMainWinUI;
 class KLFHistoryBrowser;
+class KLFStyleManager;
 
 
 class KLFProgErr : public KLFProgErrUI {
@@ -63,6 +64,10 @@ public:
 
   KLFData::KLFStyle currentStyle() const;
 
+signals:
+
+  void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
+
 public slots:
 
   void slotEvaluate();
@@ -78,6 +83,7 @@ public slots:
 
   void slotLoadStyle(int stylenum);
   void slotSaveStyle();
+  void slotStyleManager();
   void slotSettings();
 
   void refreshStylePopupMenus();

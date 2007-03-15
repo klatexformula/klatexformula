@@ -53,6 +53,7 @@
 #include "klfhistorybrowser.h"
 #include "klfsettings.h"
 #include "klfmainwin.h"
+#include "klfstylemanager.h"
 
 
 
@@ -100,7 +101,8 @@ Q_INT32 KLFOldHistoryElement::max_id;
 
 QDataStream& operator<<(QDataStream& str, const KLFOldHistContext& c)
 {
-  return str << (Q_INT8)c.changecolors << c.fgcolor << c.bgcolor << (Q_INT8)c.bgtransparent << (Q_INT32)c.imgborderoffset << (Q_INT32)c.imgdpi
+  return str << (Q_INT8)c.changecolors << c.fgcolor << c.bgcolor << (Q_INT8)c.bgtransparent
+	     << (Q_INT32)c.imgborderoffset << (Q_INT32)c.imgdpi
 	     << (Q_INT8)c.latexmathmode << c.latexmathmodedelimiters << c.latexpreamble;
 
 }
@@ -278,6 +280,8 @@ void KLFMainWin::refreshStylePopupMenus()
   for (uint i = 0; i < _styles.size(); ++i) {
     mStyleMenu->insertItem(_styles[i].name, i);
   }
+  mStyleMenu->insertSeparator();
+  mStyleMenu->insertItem(i18n("Manage Styles"), this, SLOT(slotStyleManager()), 0 /* accel */, 100001 /* id */);
 }
 void KLFMainWin::loadStyles()
 {
@@ -673,6 +677,9 @@ KLFData::KLFStyle KLFMainWin::currentStyle() const
 
 void KLFMainWin::slotLoadStyle(int n)
 {
+  if (n < 0 || n >= (int)_styles.size())
+    return; // let's not try to load an inexistant style... this is useful for special items in menu too
+
   uint fg = _styles[n].fg_color;
   uint bg = _styles[n].bg_color;
   mMainWidget->kccFg->setColor(QColor(qRed(fg), qGreen(fg), qBlue(fg)));
@@ -696,19 +703,27 @@ void KLFMainWin::slotSaveStyle()
     return;
   }
 
-  /*  sty.name = name;
-      sty.fg_color = mMainWidget->kccFg->color().rgb();
-      QColor bgc = mMainWidget->kccBg->color();
-      sty.bg_color = qRgba(bgc.red(), bgc.green(), bgc.blue(), mMainWidget->chkBgTransparent->isChecked() ? 0 : 255 );
-      sty.mathmode = (mMainWidget->chkMathMode->isChecked() ? mMainWidget->cbxMathMode->currentText() : "...");
-      sty.preamble = mMainWidget->txePreamble->text();
-      sty.dpi = mMainWidget->spnDPI->value(); */
   sty = currentStyle();
   sty.name = name;
 
   _styles.append(sty);
+
+  emit stylesChanged();
+
   refreshStylePopupMenus();
 }
+
+void KLFMainWin::slotStyleManager()
+{
+  static KLFStyleManager *dlg = 0;
+  if (dlg == 0) {
+    dlg = new KLFStyleManager(&_styles, this);
+    connect(dlg, SIGNAL(refreshStyles()), this, SLOT(refreshStylePopupMenus()));
+    connect(this, SIGNAL(stylesChanged()), dlg, SLOT(stylesChanged()));
+  }
+  dlg->show();
+}
+
 
 void KLFMainWin::slotSettings()
 {
@@ -723,13 +738,36 @@ void KLFMainWin::slotSettings()
 
 void KLFMainWin::saveProperties(KConfig *cfg)
 {
+  saveStyles();
+  saveHistory();
+
+  cfg->writeEntry("txeLatex", mMainWidget->txeLatex->text());
+  cfg->writeEntry("kccFg", mMainWidget->kccFg->color());
+  cfg->writeEntry("chkBgTransparent", (bool)mMainWidget->chkBgTransparent->isChecked());
+  cfg->writeEntry("kccBg", mMainWidget->kccBg->color());
+  cfg->writeEntry("chkMathMode", (bool)mMainWidget->chkMathMode->isChecked());
+  cfg->writeEntry("cbxMathMode", mMainWidget->cbxMathMode->currentText());
+  cfg->writeEntry("txePreamble", mMainWidget->txePreamble->text());
+  cfg->writeEntry("spnDPI", (int)mMainWidget->spnDPI->value());
+
   KMainWindow::saveProperties(cfg);
 }
 void KLFMainWin::readProperties(KConfig *cfg)
 {
+  loadStyles();
+  loadHistory();
+
+  mMainWidget->txeLatex->setText(cfg->readEntry("txeLatex", ""));
+  mMainWidget->kccFg->setColor(cfg->readColorEntry("kccFg"));
+  mMainWidget->chkBgTransparent->setChecked(cfg->readBoolEntry("chkBgTransparent", true));
+  mMainWidget->kccBg->setColor(cfg->readColorEntry("kccBg"));
+  mMainWidget->chkMathMode->setChecked(cfg->readBoolEntry("chkMathMode", true));
+  mMainWidget->cbxMathMode->setCurrentText(cfg->readEntry("cbxMathMode"));
+  mMainWidget->txePreamble->setText(cfg->readEntry("txePreamble", ""));
+  mMainWidget->spnDPI->setValue(cfg->readNumEntry("spnDPI", 1200));
+
   KMainWindow::readProperties(cfg);
 }
-
 
 
 
