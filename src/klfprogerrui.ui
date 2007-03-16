@@ -58,17 +58,23 @@
         </widget>
         <widget class="QPushButton">
             <property name="name">
-                <cstring>btnOK</cstring>
+                <cstring>btnClose</cstring>
             </property>
             <property name="text">
-                <string>OK</string>
+                <string>Close</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Close dialog</string>
+            </property>
+            <property name="whatsThis" stdset="0">
+                <string>Close dialog</string>
             </property>
         </widget>
     </vbox>
 </widget>
 <connections>
     <connection>
-        <sender>btnOK</sender>
+        <sender>btnClose</sender>
         <signal>clicked()</signal>
         <receiver>KLFProgErrUI</receiver>
         <slot>accept()</slot>

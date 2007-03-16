@@ -10,8 +10,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>861</width>
-            <height>330</height>
+            <width>933</width>
+            <height>360</height>
         </rect>
     </property>
     <property name="caption">
@@ -474,6 +474,9 @@
                                     <width>32767</width>
                                     <height>60</height>
                                 </size>
+                            </property>
+                            <property name="wordWrap">
+                                <enum>NoWrap</enum>
                             </property>
                         </widget>
                         <widget class="QCheckBox" row="0" column="0">

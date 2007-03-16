@@ -22,9 +22,11 @@
 
 #include <qpushbutton.h>
 
+#include <kapplication.h>
 #include <kpopupmenu.h>
 #include <kmessagebox.h>
 #include <klocale.h>
+#include <kstandarddirs.h>
 
 #include "klfhistorybrowser.h"
 
@@ -57,6 +59,14 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
   historyChanged();
 
   setModal(false);
+  
+  btnRestoreAll->setIconSet(QPixmap(locate("appdata", "pics/restoreall.png")));
+  btnRestoreLatex->setIconSet(QPixmap(locate("appdata", "pics/restore.png")));
+  btnClose->setIconSet(QPixmap(locate("appdata", "pics/closehide.png")));
+  btnDelete->setIconSet(QPixmap(locate("appdata", "pics/delete.png")));
+  
+  lstHistory->setSortColumn(0);
+  lstHistory->setSortOrder(Descending);
 
   _allowrestore = _allowdelete = false;
 
@@ -122,10 +132,14 @@ void KLFHistoryBrowser::slotContextMenu(QListViewItem */*item*/, const QPoint &p
 {
   KPopupMenu *menu = new KPopupMenu(this);
   menu->insertTitle(i18n("Actions"));
-  int idr1 = menu->insertItem(i18n("Restore latex formula and style"), this, SLOT(slotRestoreAll()));
-  int idr2 = menu->insertItem(i18n("Restore latex formula only"), this, SLOT(slotRestoreLatex()));
+  int idr1 = menu->insertItem(QIconSet(locate("appdata", "pics/restoreall.png")), i18n("Restore latex formula and style"),
+			      this, SLOT(slotRestoreAll()));
+  int idr2 = menu->insertItem(QIconSet(locate("appdata", "pics/restore.png")), i18n("Restore latex formula only"),
+			      this, SLOT(slotRestoreLatex()));
   menu->insertSeparator();
-  int iddel = menu->insertItem(i18n("Delete from history"), this, SLOT(slotDelete()));
+  int iddel = menu->insertItem(QIconSet(locate("appdata", "pics/delete.png")), i18n("Delete from history"),
+			       this, SLOT(slotDelete()));
+
 
   menu->setItemEnabled(idr1, _allowrestore);
   menu->setItemEnabled(idr2, _allowrestore);

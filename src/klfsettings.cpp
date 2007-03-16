@@ -22,11 +22,9 @@
 
 #include <qdialog.h>
 #include <qcheckbox.h>
+
 #include <kurlrequester.h>
 #include <kstandarddirs.h>
-#include <kglobal.h>
-
-
 #include <klfbackend.h>
 
 #include "klfsettings.h"
@@ -43,22 +41,15 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, QWidget* parent)
   kurlGs->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
   kurlEpstopdf->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
 
-  /* This is a bad place for initialization direclty. initialize to _ptr instead.
-     kurlTempDir->setURL(KGlobal::instance()->dirs()->findResourceDir("tmp", "/"));
-     kurlLatex->setURL(KStandardDirs::findExe("latex"));
-     kurlDvips->setURL(KStandardDirs::findExe("dvips"));
-     kurlGs->setURL(KStandardDirs::findExe("gs"));
-     QString s;
-     kurlEpstopdf->setURL(s = KStandardDirs::findExe("epstopdf"));
-     chkEpstopdf->setChecked(!s.isEmpty());
-  */
-
   kurlTempDir->setURL(_ptr->tempdir);
   kurlLatex->setURL(_ptr->latexexec);
   kurlDvips->setURL(_ptr->dvipsexec);
   kurlGs->setURL(_ptr->gsexec);
   kurlEpstopdf->setURL(_ptr->epstopdfexec);
   chkEpstopdf->setChecked( ! _ptr->epstopdfexec.isEmpty() );
+  
+  btnCancel->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
+  btnOk->setIconSet(QIconSet(locate("appdata", "pics/ok.png")));
 
   QSize m = minimumSize();
   m.setWidth(m.width()>500 ? m.width() : 500);

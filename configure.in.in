@@ -13,3 +13,34 @@ AM_INIT_AUTOMAKE(klatexformula, 2.0.0-alpha1)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 
+AC_ARG_VAR(LATEX_EXEC, [The latex executable, with absolute path if latex is not in \$PATH])
+AC_ARG_VAR(DVIPS_EXEC, [The dvips executable, with absolute path if dvips is not in \$PATH])
+AC_ARG_VAR(GS_EXEC, [The gs executable, with absolute path if gs is not in \$PATH])
+AC_ARG_VAR(EPSTOPDF_EXEC, [The epstopdf executable, with absolute path if epstopdf is not in \$PATH])
+
+AC_PATH_PROG(LATEX_EXEC, latex, false)
+if test "$LATEX_EXEC" = "false"; then
+   AC_MSG_ERROR([*** latex not found ! You need this ! ***])
+fi
+
+AC_PATH_PROG(DVIPS_EXEC, dvips, false)
+if test "$DVIPS_EXEC" = "false"; then
+   AC_MSG_ERROR([*** program dvips not found ! You need this ! ***])
+fi
+
+AC_PATH_PROG(GS_EXEC, gs, false)
+if test "$GS_EXEC" = "false"; then
+   AC_MSG_WARN([********])
+   AC_MSG_WARN([*** program gs not found ! *** ])
+   AC_MSG_WARN([If gs executable name is different, please change KLatexFormula ])
+   AC_MSG_WARN([settings once compiled and executed. !])
+   AC_MSG_WARN([********])
+fi
+
+AC_PATH_PROG(EPSTOPDF_EXEC, epstopdf, false)
+if test "$EPSTOPDF_EXEC" = "false"; then
+  AC_MSG_WARN([*** program epstopdf not found ! *** ])
+  AC_MSG_WARN([PDF support will be deactivated. To enable, give epstopdf executable path ])
+  AC_MSG_WARN([to KLatexFormula settings dialog once compiled and exectued.])
+fi
+

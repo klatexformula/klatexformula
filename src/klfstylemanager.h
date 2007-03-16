@@ -72,6 +72,7 @@ public slots:
   void slotRename();
 
   void refreshActionsEnabledState();
+  void showActionsContextMenu(QListBoxItem *item, const QPoint& pos);
 
 protected:
 

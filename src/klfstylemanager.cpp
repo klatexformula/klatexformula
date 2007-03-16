@@ -88,6 +88,9 @@ KLFStyleManager::KLFStyleManager(KLFData::KLFStyleList *stydata, QWidget *parent
 {
   lstStyles->installEventFilter(this);
 
+  btnActions->setIconSet(QIconSet(locate("appdata", "pics/actions.png")));
+  btnClose->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
+
   _styptr = stydata;
 
   _drag_item = 0;
@@ -117,6 +120,8 @@ KLFStyleManager::KLFStyleManager(KLFData::KLFStyleList *stydata, QWidget *parent
   connect(lstStyles, SIGNAL(highlighted(int)), this, SLOT(refreshActionsEnabledState()));
   connect(lstStyles, SIGNAL(selected(int)), this, SLOT(refreshActionsEnabledState()));
   connect(lstStyles, SIGNAL(currentChanged(QListBoxItem *)), this, SLOT(refreshActionsEnabledState()));
+  connect(lstStyles, SIGNAL(contextMenuRequested(QListBoxItem *, const QPoint&)),
+	  this, SLOT(showActionsContextMenu(QListBoxItem *, const QPoint&)));
 }
 
 KLFStyleManager::~KLFStyleManager()
@@ -139,6 +144,11 @@ void KLFStyleManager::refreshActionsEnabledState()
     mActionsPopup->setItemEnabled(PopupIdMoveUp, false);
     mActionsPopup->setItemEnabled(PopupIdMoveDown, false);
   }
+}
+
+void KLFStyleManager::showActionsContextMenu(QListBoxItem */*item*/, const QPoint& pos)
+{
+  mActionsPopup->popup(pos);
 }
 
 void KLFStyleManager::slotDelete()

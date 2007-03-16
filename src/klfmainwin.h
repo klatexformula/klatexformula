@@ -86,12 +86,16 @@ public slots:
   void slotStyleManager();
   void slotSettings();
 
+  void refreshSyntaxHighlighting();
+
   void refreshStylePopupMenus();
   void loadStyles();
   void loadHistory();
   void saveStyles();
   void saveHistory();
   void restoreFromHistory(KLFData::KLFHistoryItem h, bool restorestyle);
+  void saveSettings();
+  void loadSettings();
 
 protected:
   KLFMainWinUI *mMainWidget;

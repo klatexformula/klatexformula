@@ -151,6 +151,8 @@ typedef QValueList<KLFOldHistoryElement> KLFOldHistory;
 KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : KLFProgErrUI(parent)
 {
   txtError->setText(errtext);
+
+  btnClose->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
 }
 
 KLFProgErr::~KLFProgErr()
@@ -172,18 +174,7 @@ KLFMainWin::KLFMainWin()
 {
   mMainWidget = new KLFMainWinUI(this);
 
-  KConfig *cfg = kapp->config();
-
-  cfg->setGroup("BackendSettings");
-
-  _settings.klfclspath = locate("appdata", "klatexformula.cls");
-  _settings.klfclspath = _settings.klfclspath.left(_settings.klfclspath.findRev('/'));
-
-  _settings.tempdir = cfg->readEntry("tempdir", KGlobal::instance()->dirs()->findResourceDir("tmp", "/"));
-  _settings.latexexec = cfg->readEntry("latexexec", KStandardDirs::findExe("latex"));
-  _settings.dvipsexec = cfg->readEntry("dvipsexec", KStandardDirs::findExe("dvips"));
-  _settings.gsexec = cfg->readEntry("gsexec", KStandardDirs::findExe("gs"));
-  _settings.epstopdfexec = cfg->readEntry("gsexec", KStandardDirs::findExe("epstopdf"));
+  loadSettings();
 
   _output.status = 0;
   _output.errorstr = QString();
@@ -205,13 +196,15 @@ KLFMainWin::KLFMainWin()
 
   // setup mMainWidget UI correctly
 
+  mMainWidget->btnQuit->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
   mMainWidget->btnClear->setPixmap(locate("appdata", "pics/clear.png"));
-  //  mMainWidget->btnClear->setFixedSize(mMainWidget->btnClear->pixmap()->size() + QSize(4, 4));
   mMainWidget->btnExpand->setPixmap(locate("appdata", "pics/switchexpanded.png"));
-  //  mMainWidget->btnClear->setFixedSize(mMainWidget->btnExpand->pixmap()->size() + QSize(4, 4));
   mMainWidget->btnEvaluate->setIconSet(QPixmap(locate("appdata", "pics/evaluate.png")));
   mMainWidget->btnEvaluate->setText(i18n("Evaluate"));
   mMainWidget->btnHistory->setPixmap(locate("appdata", "pics/history.png"));
+  mMainWidget->btnLoadStyle->setIconSet(QPixmap(locate("appdata", "pics/loadstyle.png")));
+  mMainWidget->btnSaveStyle->setIconSet(QPixmap(locate("appdata", "pics/savestyle.png")));
+  mMainWidget->btnSettings->setIconSet(QPixmap(locate("appdata", "pics/settings.png")));
 
   QFont font = mMainWidget->btnDrag->font();
   font.setPointSize(font.pointSize()-2);
@@ -252,6 +245,8 @@ KLFMainWin::KLFMainWin()
   connect(mStyleMenu, SIGNAL(activated(int)), this, SLOT(slotLoadStyle(int)));
   connect(mMainWidget->btnSaveStyle, SIGNAL(clicked()), this, SLOT(slotSaveStyle()));
 
+  connect(mMainWidget->txeLatex, SIGNAL(textChanged()), this, SLOT(refreshSyntaxHighlighting()));
+
   connect(mHistoryBrowser, SIGNAL(restoreFromHistory(KLFData::KLFHistoryItem, bool)),
 	  this, SLOT(restoreFromHistory(KLFData::KLFHistoryItem, bool)));
   connect(mHistoryBrowser, SIGNAL(refreshHistoryBrowserShownState(bool)),
@@ -261,6 +256,7 @@ KLFMainWin::KLFMainWin()
 
 KLFMainWin::~KLFMainWin()
 {
+  saveSettings();
   saveStyles();
   saveHistory();
 
@@ -268,6 +264,41 @@ KLFMainWin::~KLFMainWin()
     delete mStyleMenu;
   if (mHistoryBrowser)
     delete mHistoryBrowser; // we aren't its parent
+}
+
+
+void KLFMainWin::loadSettings()
+{
+  KConfig *cfg = kapp->config();
+
+  cfg->setGroup("BackendSettings");
+
+  _settings.klfclspath = locate("appdata", "klatexformula.cls");
+  _settings.klfclspath = _settings.klfclspath.left(_settings.klfclspath.findRev('/'));
+
+  _settings.tempdir = cfg->readEntry("tempdir", KGlobal::instance()->dirs()->findResourceDir("tmp", "/"));
+  _settings.latexexec = cfg->readEntry("latexexec", KStandardDirs::findExe("latex"));
+  _settings.dvipsexec = cfg->readEntry("dvipsexec", KStandardDirs::findExe("dvips"));
+  _settings.gsexec = cfg->readEntry("gsexec", KStandardDirs::findExe("gs"));
+  _settings.epstopdfexec = cfg->readEntry("epstopdfexec", KStandardDirs::findExe("epstopdf"));
+}
+
+void KLFMainWin::saveSettings()
+{
+  KConfig *cfg = kapp->config();
+
+  cfg->setGroup("BackendSettings");
+
+  cfg->writeEntry("tempdir", _settings.tempdir);
+  cfg->writeEntry("latexexec", _settings.latexexec);
+  cfg->writeEntry("dvipsexec", _settings.dvipsexec);
+  cfg->writeEntry("gsexec", _settings.gsexec);
+  cfg->writeEntry("epstopdfexec", _settings.epstopdfexec);
+}
+
+void KLFMainWin::refreshSyntaxHighlighting()
+{
+  QString text = mMainWidget->txeLatex->text();
 }
 
 void KLFMainWin::refreshStylePopupMenus()
@@ -281,7 +312,8 @@ void KLFMainWin::refreshStylePopupMenus()
     mStyleMenu->insertItem(_styles[i].name, i);
   }
   mStyleMenu->insertSeparator();
-  mStyleMenu->insertItem(i18n("Manage Styles"), this, SLOT(slotStyleManager()), 0 /* accel */, 100001 /* id */);
+  mStyleMenu->insertItem(QIconSet(locate("appdata", "pics/managestyles.png")), i18n("Manage Styles"),
+			 this, SLOT(slotStyleManager()), 0 /* accel */, 100001 /* id */);
 }
 void KLFMainWin::loadStyles()
 {

@@ -59,9 +59,9 @@ int main(int argc, char **argv)
   KCmdLineArgs::addCmdLineOptions( options );
   KApplication app;
 
-  fprintf(stderr, "KLatexFormula Version %d.%d.%d by Philippe Faist (c) 2005\n"
+  fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005\n"
 	  "Licensed under the terms of the GNU Public License GPL\n\n",
-	  version_maj, version_min, version_release);
+	  version);
   
   if (app.isRestored()) {
     RESTORE(KLFMainWin);
