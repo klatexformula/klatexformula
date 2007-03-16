@@ -70,9 +70,6 @@
                     <property name="resizePolicy">
                         <enum>AutoOne</enum>
                     </property>
-                    <property name="textFormat">
-                        <enum>PlainText</enum>
-                    </property>
                     <property name="autoFormatting">
                         <set>AutoNone</set>
                     </property>

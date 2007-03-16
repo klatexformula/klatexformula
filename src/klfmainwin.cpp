@@ -20,6 +20,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <stack>
+
 #include <qcombobox.h>
 #include <qlineedit.h>
 #include <qtextedit.h>
@@ -32,6 +34,7 @@
 #include <qfont.h>
 #include <qclipboard.h>
 #include <qdragobject.h>
+#include <qsyntaxhighlighter.h>
 
 #include <kapplication.h>
 #include <kmainwindow.h>
@@ -143,6 +146,114 @@ typedef QValueList<KLFOldHistoryElement> KLFOldHistory;
 
 
 
+KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
+  : QSyntaxHighlighter(textedit), cKeyword(0, 0, 220), cComment(127, 0, 0),
+    cParenMatch(127, 200, 220), cParenMismatch(255, 127, 255)
+{
+  _caretpara = 0;
+  _caretpos = 0;
+}
+
+void KLFLatexSyntaxHighlighter::setCaretPos(int para, int pos)
+{
+  _caretpara = para;
+  _caretpos = pos;
+}
+
+void KLFLatexSyntaxHighlighter::parseEverything()
+{
+  printf("DEBUG: parseEverything()\n");
+  QString text;
+  int para = 0;
+  uint i = 0;
+  QValueList<uint> paralens; // the length of each paragraph
+  std::stack<ParenItem> parens; // the parens that we'll meet
+
+  _rulestoapply.clear();
+  uint k;
+  while (para < textEdit()->paragraphs()) {
+    text = textEdit()->text(para);
+    i = 0;
+    paralens.append(text.length());
+
+    for (i = 0; i < text.length(); ++i) {
+      if (text[i] == '\\') {
+	++i;
+	k = 0;
+	if (i >= text.length()) continue;
+	if ( (text[i] >= 'a' && text[i+k] <= 'z') || (text[i+k] >= 'A' && text[i+k] <= 'Z') )
+	  while (i+k < text.length() && ( (text[i+k] >= 'a' && text[i+k] <= 'z') || (text[i+k] >= 'A' && text[i+k] <= 'Z') ))
+	    ++k;
+	else
+	  k = 1;
+	_rulestoapply.append(ColorRule(para, i-1, k+1, cKeyword));
+      }
+      if (text[i] == '{' || text[i] == '(' || text[i] == '[') {
+	parens.push(ParenItem(para, i, (_caretpos == i && (int)_caretpara == para), text[i].latin1()));
+      }
+      if (text[i] == '}' || text[i] == ')' || text[i] == ']') {
+	ParenItem p;
+	if (!parens.empty()) {
+	  p = parens.top();
+	  parens.pop();
+	} else {
+	  p = ParenItem(0, 0, false, '!'); // simulate an item
+	}
+	QColor col = cParenMatch;
+	if ((text[i] == '}' && p.ch != '{') ||
+	    (text[i] == ')' && p.ch != '(') ||
+	    (text[i] == ']' && p.ch != '[')) {
+	  col = cParenMismatch;
+	}
+	printf("Other paren: para/pos=%d/%d char='%c' hi=%s; thisparen: para/pos=%d/%d char='%c'; caret: para/pos=%d/%d\n",
+	       p.para, p.pos, p.ch, p.highlight?"true":"false", para, i, text[i].latin1(), _caretpara, _caretpos);
+	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)
+	if (p.highlight || (_caretpos == i+1 && (int)_caretpara == para)) {
+	  printf("Will add rule for this paren.\n");
+	  if (p.para != para) {
+	    k = p.para;
+	    _rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, col));
+	    while (++k < (uint)para) {
+	      _rulestoapply.append(ColorRule(k, 0, paralens[k], col)); // fill paragraph with color
+	    }
+	    _rulestoapply.append(ColorRule(para, 0, i+1, col));
+	  } else {
+	    _rulestoapply.append(ColorRule(para, p.pos, i-p.pos+1, col));
+	  }
+	}
+      }
+    }
+
+    ++para;
+  }
+}
+
+
+int KLFLatexSyntaxHighlighter::highlightParagraph(const QString& text, int endstatelastpara)
+{
+  if (endstatelastpara == -2) {
+    // first paragraph: parse everything
+    _paracount = 0;
+    parseEverything();
+  }
+
+  setFormat(0, text.length(), QColor(0,0,0));
+
+  for (uint k = 0; k < _rulestoapply.size(); ++k) {
+    if (_rulestoapply[k].para == _paracount) {
+      // apply rule
+      setFormat(_rulestoapply[k].pos, _rulestoapply[k].len, _rulestoapply[k].color);
+    }
+  }
+
+  _paracount++;
+
+  return 0;
+}
+
+
+
+
 
 
 
@@ -184,8 +295,7 @@ KLFMainWin::KLFMainWin()
   _output.pdfdata = QByteArray();
 
 
-
-  mHistoryBrowser = new KLFHistoryBrowser(&_history, 0); // no parent, to prevent it from hiding us.
+  mHistoryBrowser = new KLFHistoryBrowser(&_history, 0); // no parent, to prevent this dialog from hiding our own window
 
 
   // load styles
@@ -217,6 +327,10 @@ KLFMainWin::KLFMainWin()
   mMainWidget->txePreamble->setFont(font);
 
   mMainWidget->frmOutput->setEnabled(false);
+
+  mHighlighter = new KLFLatexSyntaxHighlighter(mMainWidget->txeLatex);
+  connect(mMainWidget->txeLatex, SIGNAL(cursorPositionChanged(int, int)),
+	  this, SLOT(refreshCaretPosition(int, int)));
 
   _shrinkedsize = mMainWidget->frmMain->sizeHint() + QSize(3, 3);
   _expandedsize.setWidth(mMainWidget->frmMain->sizeHint().width() + mMainWidget->frmDetails->sizeHint().width() + 3);
@@ -298,7 +412,13 @@ void KLFMainWin::saveSettings()
 
 void KLFMainWin::refreshSyntaxHighlighting()
 {
-  QString text = mMainWidget->txeLatex->text();
+  mHighlighter->rehighlight();
+}
+
+void KLFMainWin::refreshCaretPosition(int para, int pos)
+{
+  mHighlighter->setCaretPos(para, pos);
+  refreshSyntaxHighlighting();
 }
 
 void KLFMainWin::refreshStylePopupMenus()
@@ -574,7 +694,19 @@ void KLFMainWin::slotEvaluate()
 
 void KLFMainWin::slotClear()
 {
-  mMainWidget->txeLatex->setText("");
+  //  mMainWidget->txeLatex->setText("");
+  printf("DEBUG: CLEAR() is junk function!\n");
+  QString s = mMainWidget->txeLatex->text();
+  printf("DEBUG: Current text is {\n\033[7m%s\033[0m\n}\n", s.latin1());
+
+  //  mMainWidget->txeLatex->setText("<qt>"+s+"</qt>");
+  //  mMainWidget->txeLatex->insertAt("</font>}", 0, 5); // first ending, of course!
+  //  mMainWidget->txeLatex->insertAt("{some text <b>Bold</b> text; <font color=red>", 0, 1);
+  mMainWidget->txeLatex->append("<font color=red>some text</font><span style=\"background-color: blue\">something</span>");
+
+  s = mMainWidget->txeLatex->text();
+  printf("DEBUG: Now Current text is {\n\033[7m%s\033[0m\n}\n", s.latin1());
+  printf("DEBUG: End of junk\n");
 }
 
 void KLFMainWin::slotHistory(bool showhist)

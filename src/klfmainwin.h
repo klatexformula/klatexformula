@@ -23,6 +23,9 @@
 #ifndef KLFMAINWIN_H
 #define KLFMAINWIN_H
 
+#include <qvaluelist.h>
+#include <qsyntaxhighlighter.h>
+
 #include <kmainwindow.h>
 #include <kpopupmenu.h>
 
@@ -47,6 +50,53 @@ public:
   static void showError(QWidget *parent, QString text);
 
 };
+
+
+
+
+
+class KLFLatexSyntaxHighlighter : public QSyntaxHighlighter
+{
+public:
+  KLFLatexSyntaxHighlighter(QTextEdit *textedit);
+
+  void setCaretPos(int para, int pos);
+
+  virtual int highlightParagraph(const QString& text, int endstatelastpara);
+
+  QColor cKeyword;
+  QColor cComment;
+  QColor cParenMatch;
+  QColor cParenMismatch;
+
+private:
+
+  int _paracount;
+
+  uint _caretpara, _caretpos;
+
+  struct ColorRule {
+    ColorRule(int pa = -1, int ps = -1, int l = 0, QColor c = QColor()) : para(pa), pos(ps), len(l), color(c) { }
+    int para;
+    int pos;
+    int len;
+    QColor color;
+  };
+
+  struct ParenItem {
+    ParenItem(int pa = -1, int ps = -1, bool h = false, char c = 0) : para(pa), pos(ps), highlight(h), ch(c) { }
+    int para;
+    int pos;
+    bool highlight;
+    char ch;
+  };
+
+  QValueList<ColorRule> _rulestoapply;
+
+  void parseEverything();
+
+};
+
 
 
 /**
@@ -87,6 +137,7 @@ public slots:
   void slotSettings();
 
   void refreshSyntaxHighlighting();
+  void refreshCaretPosition(int para, int pos);
 
   void refreshStylePopupMenus();
   void loadStyles();
@@ -102,6 +153,8 @@ protected:
   KLFHistoryBrowser *mHistoryBrowser;
 
   KPopupMenu *mStyleMenu;
+
+  KLFLatexSyntaxHighlighter *mHighlighter;
 
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
 
