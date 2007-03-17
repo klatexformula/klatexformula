@@ -24,16 +24,19 @@
 #include <qcheckbox.h>
 
 #include <kurlrequester.h>
+#include <kcolorcombo.h>
 #include <kstandarddirs.h>
 #include <klfbackend.h>
 
+#include "klfmainwin.h"
 #include "klfsettings.h"
 
 
-KLFSettings::KLFSettings(KLFBackend::klfSettings *p, QWidget* parent)
+KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *sh, QWidget* parent)
     : KLFSettingsUI(parent, 0, false, 0)
 {
   _ptr = p;
+  _synthighlighterptr = sh;
 
   kurlTempDir->setMode(KFile::Directory|KFile::ExistingOnly|KFile::LocalOnly);
   kurlLatex->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
@@ -47,6 +50,12 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, QWidget* parent)
   kurlGs->setURL(_ptr->gsexec);
   kurlEpstopdf->setURL(_ptr->epstopdfexec);
   chkEpstopdf->setChecked( ! _ptr->epstopdfexec.isEmpty() );
+
+  chkSHEnabled->setChecked(_synthighlighterptr->enabled);
+  kccSHKeyword->setColor(_synthighlighterptr->cKeyword);
+  kccSHComment->setColor(_synthighlighterptr->cComment);
+  kccSHParenMatch->setColor(_synthighlighterptr->cParenMatch);
+  kccSHParenMismatch->setColor(_synthighlighterptr->cParenMismatch);
   
   btnCancel->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
   btnOk->setIconSet(QIconSet(locate("appdata", "pics/ok.png")));
@@ -74,6 +83,12 @@ void KLFSettings::accept()
   if (chkEpstopdf->isChecked()) {
     _ptr->epstopdfexec = kurlEpstopdf->url();
   }
+
+  _synthighlighterptr->enabled = chkSHEnabled->isChecked();
+  _synthighlighterptr->cKeyword = kccSHKeyword->color();
+  _synthighlighterptr->cComment = kccSHComment->color();
+  _synthighlighterptr->cParenMatch = kccSHParenMatch->color();
+  _synthighlighterptr->cParenMismatch = kccSHParenMismatch->color();
 
   // and exit dialog
   QDialog::accept();

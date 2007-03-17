@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>409</width>
-            <height>364</height>
+            <width>527</width>
+            <height>488</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -28,137 +28,254 @@
         <property name="name">
             <cstring>unnamed</cstring>
         </property>
-        <widget class="QLayoutWidget">
+        <widget class="QTabWidget">
             <property name="name">
-                <cstring>layout12</cstring>
+                <cstring>tabs</cstring>
             </property>
-            <vbox>
+            <widget class="QWidget">
                 <property name="name">
-                    <cstring>unnamed</cstring>
+                    <cstring>tab</cstring>
                 </property>
-                <property name="margin">
-                    <number>4</number>
-                </property>
-                <property name="spacing">
-                    <number>1</number>
-                </property>
-                <widget class="QLabel">
+                <attribute name="title">
+                    <string>System E&amp;xecutables and paths</string>
+                </attribute>
+                <grid>
                     <property name="name">
-                        <cstring>lblTempDir</cstring>
+                        <cstring>unnamed</cstring>
                     </property>
-                    <property name="text">
-                        <string>Temporary directory:</string>
-                    </property>
-                </widget>
-                <widget class="KURLRequester">
-                    <property name="name">
-                        <cstring>kurlTempDir</cstring>
-                    </property>
-                </widget>
-            </vbox>
-        </widget>
-        <widget class="QGroupBox">
-            <property name="name">
-                <cstring>gbxPaths</cstring>
-            </property>
-            <property name="title">
-                <string>System executables</string>
-            </property>
-            <grid>
+                    <spacer row="6" column="1">
+                        <property name="name">
+                            <cstring>spcv</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Vertical</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>50</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="KURLRequester" row="1" column="1">
+                        <property name="name">
+                            <cstring>kurlLatex</cstring>
+                        </property>
+                    </widget>
+                    <widget class="KURLRequester" row="5" column="1">
+                        <property name="name">
+                            <cstring>kurlEpstopdf</cstring>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="5" column="0">
+                        <property name="name">
+                            <cstring>lblEpstopdf</cstring>
+                        </property>
+                        <property name="text">
+                            <string>epstopdf :</string>
+                        </property>
+                    </widget>
+                    <widget class="KURLRequester" row="3" column="1">
+                        <property name="name">
+                            <cstring>kurlGs</cstring>
+                        </property>
+                    </widget>
+                    <widget class="QCheckBox" row="4" column="0" rowspan="1" colspan="2">
+                        <property name="name">
+                            <cstring>chkEpstopdf</cstring>
+                        </property>
+                        <property name="text">
+                            <string>H&amp;ave epstopdf</string>
+                        </property>
+                        <property name="accel">
+                            <string>Alt+A</string>
+                        </property>
+                        <property name="checked">
+                            <bool>true</bool>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="0">
+                        <property name="name">
+                            <cstring>lblGs</cstring>
+                        </property>
+                        <property name="text">
+                            <string>gs :</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="2" column="0">
+                        <property name="name">
+                            <cstring>lblDvips</cstring>
+                        </property>
+                        <property name="text">
+                            <string>dvips :</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="1" column="0">
+                        <property name="name">
+                            <cstring>lblLatex</cstring>
+                        </property>
+                        <property name="minimumSize">
+                            <size>
+                                <width>100</width>
+                                <height>0</height>
+                            </size>
+                        </property>
+                        <property name="text">
+                            <string>latex :</string>
+                        </property>
+                    </widget>
+                    <widget class="KURLRequester" row="2" column="1">
+                        <property name="name">
+                            <cstring>kurlDvips</cstring>
+                        </property>
+                    </widget>
+                    <widget class="QLayoutWidget" row="0" column="0" rowspan="1" colspan="2">
+                        <property name="name">
+                            <cstring>layout12</cstring>
+                        </property>
+                        <vbox>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <property name="margin">
+                                <number>4</number>
+                            </property>
+                            <property name="spacing">
+                                <number>1</number>
+                            </property>
+                            <widget class="QLabel">
+                                <property name="name">
+                                    <cstring>lblTempDir</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Temporary directory:</string>
+                                </property>
+                            </widget>
+                            <widget class="KURLRequester">
+                                <property name="name">
+                                    <cstring>kurlTempDir</cstring>
+                                </property>
+                            </widget>
+                        </vbox>
+                    </widget>
+                </grid>
+            </widget>
+            <widget class="QWidget">
                 <property name="name">
-                    <cstring>unnamed</cstring>
+                    <cstring>tab</cstring>
                 </property>
-                <widget class="QLabel" row="0" column="0">
+                <attribute name="title">
+                    <string>Syntax highlighting</string>
+                </attribute>
+                <vbox>
                     <property name="name">
-                        <cstring>lblLatex</cstring>
+                        <cstring>unnamed</cstring>
                     </property>
-                    <property name="minimumSize">
-                        <size>
-                            <width>100</width>
-                            <height>0</height>
-                        </size>
-                    </property>
-                    <property name="text">
-                        <string>latex :</string>
-                    </property>
-                </widget>
-                <widget class="KURLRequester" row="0" column="1">
-                    <property name="name">
-                        <cstring>kurlLatex</cstring>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="1" column="0">
-                    <property name="name">
-                        <cstring>lblDvips</cstring>
-                    </property>
-                    <property name="text">
-                        <string>dvips :</string>
-                    </property>
-                </widget>
-                <widget class="KURLRequester" row="1" column="1">
-                    <property name="name">
-                        <cstring>kurlDvips</cstring>
-                    </property>
-                </widget>
-                <widget class="KURLRequester" row="2" column="1">
-                    <property name="name">
-                        <cstring>kurlGs</cstring>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="2" column="0">
-                    <property name="name">
-                        <cstring>lblGs</cstring>
-                    </property>
-                    <property name="text">
-                        <string>gs :</string>
-                    </property>
-                </widget>
-                <widget class="QLabel" row="4" column="0">
-                    <property name="name">
-                        <cstring>lblEpstopdf</cstring>
-                    </property>
-                    <property name="text">
-                        <string>epstopdf :</string>
-                    </property>
-                </widget>
-                <widget class="KURLRequester" row="4" column="1">
-                    <property name="name">
-                        <cstring>kurlEpstopdf</cstring>
-                    </property>
-                </widget>
-                <widget class="QCheckBox" row="3" column="0" rowspan="1" colspan="2">
-                    <property name="name">
-                        <cstring>chkEpstopdf</cstring>
-                    </property>
-                    <property name="text">
-                        <string>H&amp;ave epstopdf</string>
-                    </property>
-                    <property name="accel">
-                        <string>Alt+A</string>
-                    </property>
-                    <property name="checked">
-                        <bool>true</bool>
-                    </property>
-                </widget>
-            </grid>
+                    <widget class="QCheckBox">
+                        <property name="name">
+                            <cstring>chkSHEnabled</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Ena&amp;ble syntax highlighting</string>
+                        </property>
+                        <property name="accel">
+                            <string>Alt+B</string>
+                        </property>
+                        <property name="checked">
+                            <bool>true</bool>
+                        </property>
+                    </widget>
+                    <widget class="QFrame">
+                        <property name="name">
+                            <cstring>frmSHColors</cstring>
+                        </property>
+                        <property name="frameShape">
+                            <enum>StyledPanel</enum>
+                        </property>
+                        <property name="frameShadow">
+                            <enum>Raised</enum>
+                        </property>
+                        <grid>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <widget class="KColorCombo" row="2" column="1">
+                                <property name="name">
+                                    <cstring>kccSHParenMatch</cstring>
+                                </property>
+                            </widget>
+                            <widget class="KColorCombo" row="1" column="1">
+                                <property name="name">
+                                    <cstring>kccSHComment</cstring>
+                                </property>
+                            </widget>
+                            <widget class="KColorCombo" row="0" column="1">
+                                <property name="name">
+                                    <cstring>kccSHKeyword</cstring>
+                                </property>
+                            </widget>
+                            <widget class="QLabel" row="0" column="0">
+                                <property name="name">
+                                    <cstring>lblSHKeyword</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Keyword color:</string>
+                                </property>
+                            </widget>
+                            <widget class="QLabel" row="1" column="0">
+                                <property name="name">
+                                    <cstring>lblSHComment</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Comment color:</string>
+                                </property>
+                            </widget>
+                            <widget class="QLabel" row="2" column="0">
+                                <property name="name">
+                                    <cstring>lblSHParenMatch</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Paren match color:</string>
+                                </property>
+                            </widget>
+                            <widget class="QLabel" row="3" column="0">
+                                <property name="name">
+                                    <cstring>lblSHParenMismatch</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Paren mismatch color:</string>
+                                </property>
+                            </widget>
+                            <widget class="KColorCombo" row="3" column="1">
+                                <property name="name">
+                                    <cstring>kccSHParenMismatch</cstring>
+                                </property>
+                            </widget>
+                        </grid>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer3</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Vertical</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>40</height>
+                            </size>
+                        </property>
+                    </spacer>
+                </vbox>
+            </widget>
         </widget>
-        <spacer>
-            <property name="name">
-                <cstring>spcv</cstring>
-            </property>
-            <property name="orientation">
-                <enum>Vertical</enum>
-            </property>
-            <property name="sizeType">
-                <enum>Expanding</enum>
-            </property>
-            <property name="sizeHint">
-                <size>
-                    <width>20</width>
-                    <height>40</height>
-                </size>
-            </property>
-        </spacer>
         <widget class="QLayoutWidget">
             <property name="name">
                 <cstring>lytButtons</cstring>
@@ -244,6 +361,12 @@
         <receiver>kurlEpstopdf</receiver>
         <slot>setEnabled(bool)</slot>
     </connection>
+    <connection>
+        <sender>chkSHEnabled</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>frmSHColors</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
 </connections>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
@@ -262,5 +385,9 @@
     <includehint>kurlrequester.h</includehint>
     <includehint>klineedit.h</includehint>
     <includehint>kpushbutton.h</includehint>
+    <includehint>kcolorcombo.h</includehint>
+    <includehint>kcolorcombo.h</includehint>
+    <includehint>kcolorcombo.h</includehint>
+    <includehint>kcolorcombo.h</includehint>
 </includehints>
 </UI>

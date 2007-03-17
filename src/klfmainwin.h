@@ -59,10 +59,13 @@ class KLFLatexSyntaxHighlighter : public QSyntaxHighlighter
 {
 public:
   KLFLatexSyntaxHighlighter(QTextEdit *textedit);
+  virtual ~KLFLatexSyntaxHighlighter();
 
   void setCaretPos(int para, int pos);
 
   virtual int highlightParagraph(const QString& text, int endstatelastpara);
+
+  bool enabled;
 
   QColor cKeyword;
   QColor cComment;

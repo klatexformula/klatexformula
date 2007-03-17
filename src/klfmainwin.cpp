@@ -147,11 +147,40 @@ typedef QValueList<KLFOldHistoryElement> KLFOldHistory;
 
 
 KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
-  : QSyntaxHighlighter(textedit), cKeyword(0, 0, 220), cComment(127, 0, 0),
-    cParenMatch(127, 200, 220), cParenMismatch(255, 127, 255)
+  : QSyntaxHighlighter(textedit),
+    cKeyword(0, 0, 160),
+    cComment(127, 0, 0),
+    cParenMatch(137, 217, 171),
+    cParenMismatch(223, 64, 138)
+    /*    cKeyword(0, 0, 220),
+	  cComment(127, 0, 0),
+	  cParenMatch(127, 200, 220),
+	  cParenMismatch(255, 127, 255) */
 {
+
+  KConfig *cfg = kapp->config();
+  cfg->setGroup("SyntaxHighlighting");
+  
+  cKeyword = cfg->readColorEntry("keyword", & cKeyword);
+  cComment = cfg->readColorEntry("comment", & cComment);
+  cParenMatch = cfg->readColorEntry("parenmatch", & cParenMatch);
+  cParenMismatch = cfg->readColorEntry("parenmismatch", & cParenMismatch);
+
   _caretpara = 0;
   _caretpos = 0;
+}
+
+KLFLatexSyntaxHighlighter::~KLFLatexSyntaxHighlighter()
+{
+  // write config
+  KConfig *cfg = kapp->config();
+  cfg->setGroup("SyntaxHighlighting");
+
+  cfg->writeEntry("keyword", cKeyword);
+  cfg->writeEntry("comment", cComment);
+  cfg->writeEntry("parenmatch", cParenMatch);
+  cfg->writeEntry("parenmismatch", cParenMismatch);
+
 }
 
 void KLFLatexSyntaxHighlighter::setCaretPos(int para, int pos)
@@ -162,7 +191,7 @@ void KLFLatexSyntaxHighlighter::setCaretPos(int para, int pos)
 
 void KLFLatexSyntaxHighlighter::parseEverything()
 {
-  printf("DEBUG: parseEverything()\n");
+  //  printf("DEBUG: parseEverything()\n");
   QString text;
   int para = 0;
   uint i = 0;
@@ -187,6 +216,14 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	else
 	  k = 1;
 	_rulestoapply.append(ColorRule(para, i-1, k+1, cKeyword));
+	i += k-1;
+      }
+      if (text[i] == '%') {
+	k = 0;
+	while (i+k < text.length())
+	  ++k;
+	_rulestoapply.append(ColorRule(para, i, k, cComment));
+	i += k;
       }
       if (text[i] == '{' || text[i] == '(' || text[i] == '[') {
 	parens.push(ParenItem(para, i, (_caretpos == i && (int)_caretpara == para), text[i].latin1()));
@@ -205,11 +242,10 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	    (text[i] == ']' && p.ch != '[')) {
 	  col = cParenMismatch;
 	}
-	printf("Other paren: para/pos=%d/%d char='%c' hi=%s; thisparen: para/pos=%d/%d char='%c'; caret: para/pos=%d/%d\n",
-	       p.para, p.pos, p.ch, p.highlight?"true":"false", para, i, text[i].latin1(), _caretpara, _caretpos);
+	//	printf("Other paren: para/pos=%d/%d char='%c' hi=%s; thisparen: para/pos=%d/%d char='%c'; caret: para/pos=%d/%d\n", p.para, p.pos, p.ch, p.highlight?"true":"false", para, i, text[i].latin1(), _caretpara, _caretpos);
 	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)
 	if (p.highlight || (_caretpos == i+1 && (int)_caretpara == para)) {
-	  printf("Will add rule for this paren.\n");
+	  //	  printf("Will add rule for this paren.\n");
 	  if (p.para != para) {
 	    k = p.para;
 	    _rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, col));
@@ -231,6 +267,9 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 
 int KLFLatexSyntaxHighlighter::highlightParagraph(const QString& text, int endstatelastpara)
 {
+  if (!enabled)
+    return 0; // forget everything about synt highlight if we don't want it.
+
   if (endstatelastpara == -2) {
     // first paragraph: parse everything
     _paracount = 0;
@@ -329,6 +368,7 @@ KLFMainWin::KLFMainWin()
   mMainWidget->frmOutput->setEnabled(false);
 
   mHighlighter = new KLFLatexSyntaxHighlighter(mMainWidget->txeLatex);
+
   connect(mMainWidget->txeLatex, SIGNAL(cursorPositionChanged(int, int)),
 	  this, SLOT(refreshCaretPosition(int, int)));
 
@@ -378,6 +418,8 @@ KLFMainWin::~KLFMainWin()
     delete mStyleMenu;
   if (mHistoryBrowser)
     delete mHistoryBrowser; // we aren't its parent
+  if (mHighlighter)
+    delete mHighlighter;
 }
 
 
@@ -563,10 +605,6 @@ void KLFMainWin::loadHistory()
 	    h.style.dpi = old_hist[i].context.imgdpi;
 	    // old_hist[i].context.imgborderoffset is dropped because the concept is obsolete
 
-	    // 	    printf("DEBUG: Appended item id=%d, latex='%s', previewsize=%dx%d, style/mathmode='%s'\n"
-	    // 		   "\tfrom item latexmathmode=%d, latexmathmodedelimiters='%s'\n", h.id, h.latex.ascii(), h.preview.width(), h.preview.height(),
-	    // 		   h.style.mathmode.ascii(), (int)old_hist[i].context.latexmathmode, old_hist[i].context.latexmathmodedelimiters.ascii());
-
 	    _history.append(h);
 	  }
 
@@ -694,19 +732,7 @@ void KLFMainWin::slotEvaluate()
 
 void KLFMainWin::slotClear()
 {
-  //  mMainWidget->txeLatex->setText("");
-  printf("DEBUG: CLEAR() is junk function!\n");
-  QString s = mMainWidget->txeLatex->text();
-  printf("DEBUG: Current text is {\n\033[7m%s\033[0m\n}\n", s.latin1());
-
-  //  mMainWidget->txeLatex->setText("<qt>"+s+"</qt>");
-  //  mMainWidget->txeLatex->insertAt("</font>}", 0, 5); // first ending, of course!
-  //  mMainWidget->txeLatex->insertAt("{some text <b>Bold</b> text; <font color=red>", 0, 1);
-  mMainWidget->txeLatex->append("<font color=red>some text</font><span style=\"background-color: blue\">something</span>");
-
-  s = mMainWidget->txeLatex->text();
-  printf("DEBUG: Now Current text is {\n\033[7m%s\033[0m\n}\n", s.latin1());
-  printf("DEBUG: End of junk\n");
+  mMainWidget->txeLatex->setText("");
 }
 
 void KLFMainWin::slotHistory(bool showhist)
@@ -893,7 +919,7 @@ void KLFMainWin::slotSettings()
 {
   static KLFSettings *dlg = 0;
   if (dlg == 0) {
-    dlg = new KLFSettings(&_settings, this);
+    dlg = new KLFSettings(&_settings, mHighlighter, this);
   }
 
   dlg->show();

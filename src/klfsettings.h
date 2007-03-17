@@ -29,12 +29,14 @@
 
 #include "klfsettingsui.h"
 
+class KLFLatexSyntaxHighlighter;
+
 class KLFSettings : public KLFSettingsUI
 {
   Q_OBJECT
 
 public:
-  KLFSettings(KLFBackend::klfSettings *ptr, QWidget* parent = 0);
+  KLFSettings(KLFBackend::klfSettings *ptr, KLFLatexSyntaxHighlighter *sh, QWidget* parent = 0);
   ~KLFSettings();
 
 public slots:
@@ -42,6 +44,8 @@ public slots:
 protected:
 
   KLFBackend::klfSettings *_ptr;
+
+  KLFLatexSyntaxHighlighter *_synthighlighterptr;
 
 protected slots:
 
