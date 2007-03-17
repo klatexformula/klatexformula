@@ -148,6 +148,7 @@ typedef QValueList<KLFOldHistoryElement> KLFOldHistory;
 
 KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
   : QSyntaxHighlighter(textedit),
+    enabled(true),
     cKeyword(0, 0, 160),
     cComment(127, 0, 0),
     cParenMatch(137, 217, 171),
@@ -160,7 +161,8 @@ KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
 
   KConfig *cfg = kapp->config();
   cfg->setGroup("SyntaxHighlighting");
-  
+
+  enabled = cfg->readBoolEntry("enabled", enabled);
   cKeyword = cfg->readColorEntry("keyword", & cKeyword);
   cComment = cfg->readColorEntry("comment", & cComment);
   cParenMatch = cfg->readColorEntry("parenmatch", & cParenMatch);
@@ -176,6 +178,7 @@ KLFLatexSyntaxHighlighter::~KLFLatexSyntaxHighlighter()
   KConfig *cfg = kapp->config();
   cfg->setGroup("SyntaxHighlighting");
 
+  cfg->writeEntry("enabled", enabled);
   cfg->writeEntry("keyword", cKeyword);
   cfg->writeEntry("comment", cComment);
   cfg->writeEntry("parenmatch", cParenMatch);
