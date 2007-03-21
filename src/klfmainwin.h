@@ -65,7 +65,9 @@ public:
 
   virtual int highlightParagraph(const QString& text, int endstatelastpara);
 
-  bool enabled;
+  enum { Enabled = 0x01,
+	 HighlightParensOnly = 0x02 };
+  uint config;
 
   QColor cKeyword;
   QColor cComment;
@@ -154,6 +156,7 @@ public slots:
 protected:
   KLFMainWinUI *mMainWidget;
   KLFHistoryBrowser *mHistoryBrowser;
+  KLFStyleManager *mStyleManager;
 
   KPopupMenu *mStyleMenu;
 

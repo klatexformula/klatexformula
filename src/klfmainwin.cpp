@@ -35,6 +35,7 @@
 #include <qclipboard.h>
 #include <qdragobject.h>
 #include <qsyntaxhighlighter.h>
+#include <qtooltip.h>
 
 #include <kapplication.h>
 #include <kmainwindow.h>
@@ -66,6 +67,7 @@
 
 
 // KLatexFormula version
+extern const char version[];
 extern const int version_maj, version_min;
 
 
@@ -102,13 +104,6 @@ struct KLFOldHistoryElement {
 
 Q_INT32 KLFOldHistoryElement::max_id;
 
-QDataStream& operator<<(QDataStream& str, const KLFOldHistContext& c)
-{
-  return str << (Q_INT8)c.changecolors << c.fgcolor << c.bgcolor << (Q_INT8)c.bgtransparent
-	     << (Q_INT32)c.imgborderoffset << (Q_INT32)c.imgdpi
-	     << (Q_INT8)c.latexmathmode << c.latexmathmodedelimiters << c.latexpreamble;
-
-}
 QDataStream& operator>>(QDataStream& str, KLFOldHistContext& c)
 {
   Q_INT8 i_changecolors, i_bgtransparent, i_latexmathmode;
@@ -122,11 +117,6 @@ QDataStream& operator>>(QDataStream& str, KLFOldHistContext& c)
   c.imgdpi = i_imgdpi;
 
   return str;
-}
-
-QDataStream& operator<<(QDataStream& str, const KLFOldHistoryElement& item)
-{
-  return str << item.id << item.tm << item.preview << item.latexstring << item.context;
 }
 QDataStream& operator>>(QDataStream& str, KLFOldHistoryElement& item)
 {
@@ -148,11 +138,11 @@ typedef QValueList<KLFOldHistoryElement> KLFOldHistory;
 
 KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
   : QSyntaxHighlighter(textedit),
-    enabled(true),
-    cKeyword(0, 0, 160),
-    cComment(127, 0, 0),
-    cParenMatch(137, 217, 171),
-    cParenMismatch(223, 64, 138)
+    config(Enabled),
+    cKeyword(0, 0, 128),
+    cComment(128, 0, 0),
+    cParenMatch(0, 128, 128),
+    cParenMismatch(255, 0, 255)
     /*    cKeyword(0, 0, 220),
 	  cComment(127, 0, 0),
 	  cParenMatch(127, 200, 220),
@@ -162,7 +152,7 @@ KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
   KConfig *cfg = kapp->config();
   cfg->setGroup("SyntaxHighlighting");
 
-  enabled = cfg->readBoolEntry("enabled", enabled);
+  config = cfg->readUnsignedNumEntry("configflags", config);
   cKeyword = cfg->readColorEntry("keyword", & cKeyword);
   cComment = cfg->readColorEntry("comment", & cComment);
   cParenMatch = cfg->readColorEntry("parenmatch", & cParenMatch);
@@ -178,7 +168,7 @@ KLFLatexSyntaxHighlighter::~KLFLatexSyntaxHighlighter()
   KConfig *cfg = kapp->config();
   cfg->setGroup("SyntaxHighlighting");
 
-  cfg->writeEntry("enabled", enabled);
+  cfg->writeEntry("configflags", config);
   cfg->writeEntry("keyword", cKeyword);
   cfg->writeEntry("comment", cComment);
   cfg->writeEntry("parenmatch", cParenMatch);
@@ -194,7 +184,6 @@ void KLFLatexSyntaxHighlighter::setCaretPos(int para, int pos)
 
 void KLFLatexSyntaxHighlighter::parseEverything()
 {
-  //  printf("DEBUG: parseEverything()\n");
   QString text;
   int para = 0;
   uint i = 0;
@@ -245,19 +234,23 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	    (text[i] == ']' && p.ch != '[')) {
 	  col = cParenMismatch;
 	}
-	//	printf("Other paren: para/pos=%d/%d char='%c' hi=%s; thisparen: para/pos=%d/%d char='%c'; caret: para/pos=%d/%d\n", p.para, p.pos, p.ch, p.highlight?"true":"false", para, i, text[i].latin1(), _caretpara, _caretpos);
 	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)
 	if (p.highlight || (_caretpos == i+1 && (int)_caretpara == para)) {
-	  //	  printf("Will add rule for this paren.\n");
-	  if (p.para != para) {
-	    k = p.para;
-	    _rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, col));
-	    while (++k < (uint)para) {
-	      _rulestoapply.append(ColorRule(k, 0, paralens[k], col)); // fill paragraph with color
+	  if ((config & HighlightParensOnly) == 0) {
+	    if (p.para != para) {
+	      k = p.para;
+	      _rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, col));
+	      while (++k < (uint)para) {
+		_rulestoapply.append(ColorRule(k, 0, paralens[k], col)); // fill paragraph with color
+	      }
+	      _rulestoapply.append(ColorRule(para, 0, i+1, col));
+	    } else {
+	      _rulestoapply.append(ColorRule(para, p.pos, i-p.pos+1, col));
 	    }
-	    _rulestoapply.append(ColorRule(para, 0, i+1, col));
 	  } else {
-	    _rulestoapply.append(ColorRule(para, p.pos, i-p.pos+1, col));
+	    if (p.ch != '!') // simulated item for first pos
+	      _rulestoapply.append(ColorRule(p.para, p.pos, 1, col));
+	    _rulestoapply.append(ColorRule(para, i, 1, col));
 	  }
 	}
       }
@@ -265,12 +258,28 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 
     ++para;
   }
+
+  while ( ! parens.empty() ) {
+    // if we have unclosed parens
+    ParenItem p = parens.top();
+    parens.pop();
+    if (_caretpara == (uint)p.para && _caretpos == (uint)p.pos) {
+      if ( (config & HighlightParensOnly) != 0 )
+	_rulestoapply.append(ColorRule(p.para, p.pos, 1, cParenMismatch));
+      else {
+	_rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, cParenMismatch));
+	for (k = p.para+1; (int)k < para; ++k) {
+	  _rulestoapply.append(ColorRule(k, 0, paralens[k], cParenMismatch));
+	}
+      }
+    }
+  }
 }
 
 
 int KLFLatexSyntaxHighlighter::highlightParagraph(const QString& text, int endstatelastpara)
 {
-  if (!enabled)
+  if (config & Enabled == 0)
     return 0; // forget everything about synt highlight if we don't want it.
 
   if (endstatelastpara == -2) {
@@ -348,6 +357,8 @@ KLFMainWin::KLFMainWin()
 
   // setup mMainWidget UI correctly
 
+  QToolTip::add(mMainWidget->lblPromptMain, i18n("KLatexFormula %1").arg(QString("")+version));
+
   mMainWidget->btnQuit->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
   mMainWidget->btnClear->setPixmap(locate("appdata", "pics/clear.png"));
   mMainWidget->btnExpand->setPixmap(locate("appdata", "pics/switchexpanded.png"));
@@ -389,6 +400,20 @@ KLFMainWin::KLFMainWin()
 
   setFixedSize(_shrinkedsize);
 
+  // Create our style manager
+  mStyleManager = new KLFStyleManager(&_styles, this);
+  connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(refreshStylePopupMenus()));
+  connect(this, SIGNAL(stylesChanged()), mStyleManager, SLOT(stylesChanged()));
+
+
+  // find style with name "default" (if existant) and set it
+  for (uint kl = 0; kl < _styles.size(); ++kl) {
+    if (_styles[kl].name.lower() == "default") {
+      slotLoadStyle(kl);
+      break;
+    }
+  }
+
 
   connect(mMainWidget->btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
   connect(mMainWidget->btnEvaluate, SIGNAL(clicked()), this, SLOT(slotEvaluate()));
@@ -408,6 +433,10 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(restoreFromHistory(KLFData::KLFHistoryItem, bool)));
   connect(mHistoryBrowser, SIGNAL(refreshHistoryBrowserShownState(bool)),
 	  this, SLOT(slotHistoryButtonRefreshState(bool)));
+
+
+  connect(this, SIGNAL(stylesChanged()), this, SLOT(saveStyles()));
+  connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(saveStyles()));
 }
 
 
@@ -668,6 +697,7 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 	slotEvaluate();
 	return true;
       }
+      mHighlighter->rehighlight();
     }
   }
   if (obj == mMainWidget->lblOutput) {
@@ -730,6 +760,10 @@ void KLFMainWin::slotEvaluate()
   }
 
   mMainWidget->btnEvaluate->setEnabled(true); // re-enable our button
+
+  // and save our history and styles
+  saveHistory();
+  saveStyles();
 
 }
 
@@ -904,17 +938,22 @@ void KLFMainWin::slotSaveStyle()
   emit stylesChanged();
 
   refreshStylePopupMenus();
+
+  // auto-save our history & style list
+  saveHistory();
+  saveStyles();
 }
 
 void KLFMainWin::slotStyleManager()
 {
-  static KLFStyleManager *dlg = 0;
-  if (dlg == 0) {
-    dlg = new KLFStyleManager(&_styles, this);
-    connect(dlg, SIGNAL(refreshStyles()), this, SLOT(refreshStylePopupMenus()));
-    connect(this, SIGNAL(stylesChanged()), dlg, SLOT(stylesChanged()));
-  }
-  dlg->show();
+  //  static KLFStyleManager *dlg = 0;
+  //  if (dlg == 0) {
+  //    dlg = new KLFStyleManager(&_styles, this);
+  //    connect(dlg, SIGNAL(refreshStyles()), this, SLOT(refreshStylePopupMenus()));
+  //    connect(this, SIGNAL(stylesChanged()), dlg, SLOT(stylesChanged()));
+  //  }
+  //  dlg->show();
+  mStyleManager->show();
 }
 
 

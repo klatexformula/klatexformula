@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>527</width>
-            <height>488</height>
+            <width>520</width>
+            <height>481</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -168,7 +168,7 @@
                     <cstring>tab</cstring>
                 </property>
                 <attribute name="title">
-                    <string>Syntax highlighting</string>
+                    <string>S&amp;yntax highlighting</string>
                 </attribute>
                 <vbox>
                     <property name="name">
@@ -202,7 +202,7 @@
                             <property name="name">
                                 <cstring>unnamed</cstring>
                             </property>
-                            <widget class="KColorCombo" row="2" column="1">
+                            <widget class="KColorCombo" row="3" column="1">
                                 <property name="name">
                                     <cstring>kccSHParenMatch</cstring>
                                 </property>
@@ -233,7 +233,7 @@
                                     <string>Comment color:</string>
                                 </property>
                             </widget>
-                            <widget class="QLabel" row="2" column="0">
+                            <widget class="QLabel" row="3" column="0">
                                 <property name="name">
                                     <cstring>lblSHParenMatch</cstring>
                                 </property>
@@ -241,7 +241,7 @@
                                     <string>Paren match color:</string>
                                 </property>
                             </widget>
-                            <widget class="QLabel" row="3" column="0">
+                            <widget class="QLabel" row="4" column="0">
                                 <property name="name">
                                     <cstring>lblSHParenMismatch</cstring>
                                 </property>
@@ -249,9 +249,20 @@
                                     <string>Paren mismatch color:</string>
                                 </property>
                             </widget>
-                            <widget class="KColorCombo" row="3" column="1">
+                            <widget class="KColorCombo" row="4" column="1">
                                 <property name="name">
                                     <cstring>kccSHParenMismatch</cstring>
+                                </property>
+                            </widget>
+                            <widget class="QCheckBox" row="2" column="0" rowspan="1" colspan="2">
+                                <property name="name">
+                                    <cstring>chkSHHighlightParensOnly</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Highlight parens only, not whole expression</string>
+                                </property>
+                                <property name="accel">
+                                    <string></string>
                                 </property>
                             </widget>
                         </grid>

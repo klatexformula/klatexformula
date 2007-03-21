@@ -51,9 +51,10 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *
   kurlEpstopdf->setURL(_ptr->epstopdfexec);
   chkEpstopdf->setChecked( ! _ptr->epstopdfexec.isEmpty() );
 
-  chkSHEnabled->setChecked(_synthighlighterptr->enabled);
+  chkSHEnabled->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::Enabled);
   kccSHKeyword->setColor(_synthighlighterptr->cKeyword);
   kccSHComment->setColor(_synthighlighterptr->cComment);
+  chkSHHighlightParensOnly->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::HighlightParensOnly);
   kccSHParenMatch->setColor(_synthighlighterptr->cParenMatch);
   kccSHParenMismatch->setColor(_synthighlighterptr->cParenMismatch);
   
@@ -84,7 +85,15 @@ void KLFSettings::accept()
     _ptr->epstopdfexec = kurlEpstopdf->url();
   }
 
-  _synthighlighterptr->enabled = chkSHEnabled->isChecked();
+  if (chkSHEnabled->isChecked())
+    _synthighlighterptr->config |= KLFLatexSyntaxHighlighter::Enabled;
+  else
+    _synthighlighterptr->config &= ~KLFLatexSyntaxHighlighter::Enabled;
+  if (chkSHHighlightParensOnly->isChecked())
+    _synthighlighterptr->config |= KLFLatexSyntaxHighlighter::HighlightParensOnly;
+  else
+    _synthighlighterptr->config &= ~KLFLatexSyntaxHighlighter::HighlightParensOnly;
+
   _synthighlighterptr->cKeyword = kccSHKeyword->color();
   _synthighlighterptr->cComment = kccSHComment->color();
   _synthighlighterptr->cParenMatch = kccSHParenMatch->color();
