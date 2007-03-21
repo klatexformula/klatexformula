@@ -7,9 +7,9 @@
 # klatexformula.kdevelop
 # src/klatexformula.lsm
 # Doxyfile
-# #  -- not existent ./klatexformula.kdevelop.spec
+# #  -- not yet existent ./klatexformula.kdevelop.spec
 
-AM_INIT_AUTOMAKE(klatexformula, 2.0.0-alpha1)
+AM_INIT_AUTOMAKE(klatexformula, 2.0.0-alpha3)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 

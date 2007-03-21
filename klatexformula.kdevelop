@@ -3,7 +3,7 @@
   <general>
     <author>Philippe Faist</author>
     <email>philippe.faist@bluewin.ch</email>
-    <version>2.0.0-alpha1</version>
+    <version>2.0.0-alpha3</version>
     <projectmanagement>KDevKDEAutoProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
@@ -162,7 +162,7 @@
     <EMAIL>philippe.faist@bluewin.ch</EMAIL>
     <LICENSE>GPL</LICENSE>
     <LICENSEFILE>COPYING</LICENSEFILE>
-    <VERSION>2.0.0-alpha1</VERSION>
+    <VERSION>2.0.0-alpha3</VERSION>
     <YEAR>2007</YEAR>
     <dest>/home/philippe/programs/kde/klatexformula</dest>
   </substmap>
