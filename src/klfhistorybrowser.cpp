@@ -212,7 +212,6 @@ void KLFHistoryBrowser::slotClose()
 
 void KLFHistoryBrowser::closeEvent(QCloseEvent *e)
 {
-  //  hide();
   e->accept();
   emit refreshHistoryBrowserShownState(false);
 }

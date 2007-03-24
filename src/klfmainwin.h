@@ -38,6 +38,7 @@
 
 class KLFMainWinUI;
 class KLFHistoryBrowser;
+class KLFLatexSymbols;
 class KLFStyleManager;
 
 
@@ -119,6 +120,8 @@ public:
 
   KLFData::KLFStyle currentStyle() const;
 
+  KLFBackend::klfSettings backendSettings() const { return _settings; }
+
 signals:
 
   void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
@@ -129,6 +132,8 @@ public slots:
   void slotClear();
   void slotHistory(bool showhist);
   void slotHistoryButtonRefreshState(bool on);
+  void slotSymbols(bool showsymbs);
+  void slotSymbolsButtonRefreshState(bool on);
   void slotExpandOrShrink();
   void slotQuit();
 
@@ -150,12 +155,14 @@ public slots:
   void saveStyles();
   void saveHistory();
   void restoreFromHistory(KLFData::KLFHistoryItem h, bool restorestyle);
+  void insertSymbol(QString symb);
   void saveSettings();
   void loadSettings();
 
 protected:
   KLFMainWinUI *mMainWidget;
   KLFHistoryBrowser *mHistoryBrowser;
+  KLFLatexSymbols *mLatexSymbols;
   KLFStyleManager *mStyleManager;
 
   KPopupMenu *mStyleMenu;

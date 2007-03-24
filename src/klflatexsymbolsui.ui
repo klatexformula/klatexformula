@@ -1,0 +1,69 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>KLFLatexSymbolsUI</class>
+<widget class="QDialog">
+    <property name="name">
+        <cstring>KLFLatexSymbolsUI</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>568</width>
+            <height>394</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>KLatexFormula - LaTeX symbols</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <property name="margin">
+            <number>6</number>
+        </property>
+        <property name="spacing">
+            <number>1</number>
+        </property>
+        <widget class="QTabWidget">
+            <property name="name">
+                <cstring>mTabs</cstring>
+            </property>
+            <property name="tabPosition">
+                <enum>Bottom</enum>
+            </property>
+            <property name="tabShape">
+                <enum>Triangular</enum>
+            </property>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>tab</cstring>
+                </property>
+                <attribute name="title">
+                    <string>Some title</string>
+                </attribute>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <property name="margin">
+                        <number>0</number>
+                    </property>
+                    <property name="spacing">
+                        <number>0</number>
+                    </property>
+                </hbox>
+            </widget>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>btnClose</cstring>
+            </property>
+            <property name="text">
+                <string>Close</string>
+            </property>
+        </widget>
+    </vbox>
+</widget>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>

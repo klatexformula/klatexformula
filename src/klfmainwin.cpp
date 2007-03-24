@@ -55,6 +55,7 @@
 #include "klfdata.h"
 #include "klfmainwinui.h"
 #include "klfhistorybrowser.h"
+#include "klflatexsymbols.h"
 #include "klfsettings.h"
 #include "klfmainwin.h"
 #include "klfstylemanager.h"
@@ -302,12 +303,7 @@ int KLFLatexSyntaxHighlighter::highlightParagraph(const QString& text, int endst
   return 0;
 }
 
-
-
-
-
-
-
+// ------------------------------------------------------------------------
 
 
 KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : KLFProgErrUI(parent)
@@ -326,6 +322,9 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
   KLFProgErr dlg(parent, errtext);
   dlg.exec();
 }
+
+// ----------------------------------------------------------------------------
+
 
 
 
@@ -348,6 +347,7 @@ KLFMainWin::KLFMainWin()
 
   mHistoryBrowser = new KLFHistoryBrowser(&_history, 0); // no parent, to prevent this dialog from hiding our own window
 
+  mLatexSymbols = new KLFLatexSymbols(this);
 
   // load styles
   loadStyles();
@@ -365,6 +365,7 @@ KLFMainWin::KLFMainWin()
   mMainWidget->btnEvaluate->setIconSet(QPixmap(locate("appdata", "pics/evaluate.png")));
   mMainWidget->btnEvaluate->setText(i18n("Evaluate"));
   mMainWidget->btnHistory->setPixmap(locate("appdata", "pics/history.png"));
+  mMainWidget->btnSymbols->setPixmap(locate("appdata", "pics/symbols.png"));
   mMainWidget->btnLoadStyle->setIconSet(QPixmap(locate("appdata", "pics/loadstyle.png")));
   mMainWidget->btnSaveStyle->setIconSet(QPixmap(locate("appdata", "pics/savestyle.png")));
   mMainWidget->btnSettings->setIconSet(QPixmap(locate("appdata", "pics/settings.png")));
@@ -417,6 +418,7 @@ KLFMainWin::KLFMainWin()
 
   connect(mMainWidget->btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
   connect(mMainWidget->btnEvaluate, SIGNAL(clicked()), this, SLOT(slotEvaluate()));
+  connect(mMainWidget->btnSymbols, SIGNAL(toggled(bool)), this, SLOT(slotSymbols(bool)));
   connect(mMainWidget->btnHistory, SIGNAL(toggled(bool)), this, SLOT(slotHistory(bool)));
   connect(mMainWidget->btnExpand, SIGNAL(clicked()), this, SLOT(slotExpandOrShrink()));
   connect(mMainWidget->btnCopy, SIGNAL(clicked()), this, SLOT(slotCopy()));
@@ -433,7 +435,9 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(restoreFromHistory(KLFData::KLFHistoryItem, bool)));
   connect(mHistoryBrowser, SIGNAL(refreshHistoryBrowserShownState(bool)),
 	  this, SLOT(slotHistoryButtonRefreshState(bool)));
-
+  connect(mLatexSymbols, SIGNAL(insertSymbol(QString)), this, SLOT(insertSymbol(QString)));
+  connect(mLatexSymbols, SIGNAL(refreshSymbolBrowserShownState(bool)),
+	  this, SLOT(slotSymbolsButtonRefreshState(bool)));
 
   connect(this, SIGNAL(stylesChanged()), this, SLOT(saveStyles()));
   connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(saveStyles()));
@@ -448,6 +452,8 @@ KLFMainWin::~KLFMainWin()
 
   if (mStyleMenu)
     delete mStyleMenu;
+  if (mLatexSymbols)
+    delete mLatexSymbols;
   if (mHistoryBrowser)
     delete mHistoryBrowser; // we aren't its parent
   if (mHighlighter)
@@ -678,14 +684,25 @@ void KLFMainWin::restoreFromHistory(KLFData::KLFHistoryItem h, bool restorestyle
     mMainWidget->txePreamble->setText(h.style.preamble);
     mMainWidget->spnDPI->setValue(h.style.dpi);
   }
-
+  
   mMainWidget->lblOutput->setPixmap(h.preview);
   mMainWidget->frmOutput->setEnabled(false);
 }
-
+ 
 void KLFMainWin::slotHistoryButtonRefreshState(bool on)
 {
   mMainWidget->btnHistory->setOn(on);
+}
+
+
+void KLFMainWin::insertSymbol(QString s)
+{
+  mMainWidget->txeLatex->insert(s);
+}
+
+void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
+{
+  mMainWidget->btnSymbols->setOn(on);
 }
 
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
@@ -775,6 +792,11 @@ void KLFMainWin::slotClear()
 void KLFMainWin::slotHistory(bool showhist)
 {
   mHistoryBrowser->setShown(showhist);
+}
+
+void KLFMainWin::slotSymbols(bool showsymbs)
+{
+  mLatexSymbols->setShown(showsymbs);
 }
 
 void KLFMainWin::slotExpandOrShrink()

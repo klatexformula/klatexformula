@@ -67,6 +67,8 @@
       <subclass uifile="/src/klfhistorybrowserui.ui" sourcefile="/src/klfhistorybrowser.h" />
       <subclass uifile="/src/klfstylemanagerui.ui" sourcefile="/src/klfstylemanager.cpp" />
       <subclass uifile="/src/klfstylemanagerui.ui" sourcefile="/src/klfstylemanager.h" />
+      <subclass uifile="/src/klflatexsymbolsui.ui" sourcefile="/src/klflatexsymbols.cpp" />
+      <subclass uifile="/src/klflatexsymbolsui.ui" sourcefile="/src/klflatexsymbols.h" />
     </subclassing>
   </kdevautoproject>
   <kdevfileview>

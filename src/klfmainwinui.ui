@@ -10,8 +10,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>933</width>
-            <height>360</height>
+            <width>897</width>
+            <height>354</height>
         </rect>
     </property>
     <property name="caption">
@@ -84,17 +84,11 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>lytButtons</cstring>
+                        <cstring>layout4</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>4</number>
                         </property>
                         <widget class="QPushButton">
                             <property name="name">
@@ -143,6 +137,28 @@
                             <property name="whatsThis" stdset="0">
                                 <string>Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</string>
                                 <comment>whatsthistext</comment>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>btnSymbols</cstring>
+                            </property>
+                            <property name="text">
+                                <string>S</string>
+                            </property>
+                            <property name="accel">
+                                <string></string>
+                            </property>
+                            <property name="toggleButton">
+                                <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Show Latex Symbols palette</string>
+                                <comment>tooltip</comment>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</string>
+                                <comment>whatsthis text</comment>
                             </property>
                         </widget>
                         <widget class="QPushButton">
