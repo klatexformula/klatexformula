@@ -26,17 +26,20 @@
 #include <kurlrequester.h>
 #include <kcolorcombo.h>
 #include <kstandarddirs.h>
+#include <kfontrequester.h>
+
 #include <klfbackend.h>
 
 #include "klfmainwin.h"
 #include "klfsettings.h"
 
 
-KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *sh, QWidget* parent)
+KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *sh, KLFMainWin* parent)
     : KLFSettingsUI(parent, 0, false, 0)
 {
   _ptr = p;
   _synthighlighterptr = sh;
+  _mainwin = parent;
 
   kurlTempDir->setMode(KFile::Directory|KFile::ExistingOnly|KFile::LocalOnly);
   kurlLatex->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
@@ -57,6 +60,8 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *
   chkSHHighlightParensOnly->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::HighlightParensOnly);
   kccSHParenMatch->setColor(_synthighlighterptr->cParenMatch);
   kccSHParenMismatch->setColor(_synthighlighterptr->cParenMismatch);
+
+  kfontAppearFont->setFont(_mainwin->txeLatexFont());
   
   btnCancel->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
   btnOk->setIconSet(QIconSet(locate("appdata", "pics/ok.png")));
@@ -98,6 +103,11 @@ void KLFSettings::accept()
   _synthighlighterptr->cComment = kccSHComment->color();
   _synthighlighterptr->cParenMatch = kccSHParenMatch->color();
   _synthighlighterptr->cParenMismatch = kccSHParenMismatch->color();
+
+  _mainwin->setTxeLatexFont(kfontAppearFont->font());
+
+
+  _mainwin->saveSettings();
 
   // and exit dialog
   QDialog::accept();

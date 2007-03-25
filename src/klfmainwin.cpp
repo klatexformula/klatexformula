@@ -36,6 +36,7 @@
 #include <qdragobject.h>
 #include <qsyntaxhighlighter.h>
 #include <qtooltip.h>
+#include <qtimer.h>
 
 #include <kapplication.h>
 #include <kmainwindow.h>
@@ -356,6 +357,8 @@ KLFMainWin::KLFMainWin()
   loadHistory();
 
   // setup mMainWidget UI correctly
+  KConfig *cfg = kapp->config();
+  cfg->setGroup("Appearance");
 
   QToolTip::add(mMainWidget->lblPromptMain, i18n("KLatexFormula %1").arg(QString("")+version));
 
@@ -370,7 +373,10 @@ KLFMainWin::KLFMainWin()
   mMainWidget->btnSaveStyle->setIconSet(QPixmap(locate("appdata", "pics/savestyle.png")));
   mMainWidget->btnSettings->setIconSet(QPixmap(locate("appdata", "pics/settings.png")));
 
-  QFont font = mMainWidget->btnDrag->font();
+  QFont font = mMainWidget->txeLatex->font();
+  mMainWidget->txeLatex->setFont(cfg->readFontEntry("latexeditfont", &font));
+
+  font = mMainWidget->btnDrag->font();
   font.setPointSize(font.pointSize()-2);
   mMainWidget->btnDrag->setFont(font);
   mMainWidget->btnCopy->setFont(font);
@@ -416,6 +422,13 @@ KLFMainWin::KLFMainWin()
   }
 
 
+  // For systematical syntax highlighting
+  // make sure syntax highlighting is up-to-date at all times
+  QTimer *synthighlighttimer = new QTimer(this);
+  synthighlighttimer->start(200);
+  connect(synthighlighttimer, SIGNAL(timeout()), this, SLOT(refreshSyntaxHighlighting()));
+
+
   connect(mMainWidget->btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
   connect(mMainWidget->btnEvaluate, SIGNAL(clicked()), this, SLOT(slotEvaluate()));
   connect(mMainWidget->btnSymbols, SIGNAL(toggled(bool)), this, SLOT(slotSymbols(bool)));
@@ -429,7 +442,7 @@ KLFMainWin::KLFMainWin()
   connect(mStyleMenu, SIGNAL(activated(int)), this, SLOT(slotLoadStyle(int)));
   connect(mMainWidget->btnSaveStyle, SIGNAL(clicked()), this, SLOT(slotSaveStyle()));
 
-  connect(mMainWidget->txeLatex, SIGNAL(textChanged()), this, SLOT(refreshSyntaxHighlighting()));
+  //  connect(mMainWidget->txeLatex, SIGNAL(textChanged()), this, SLOT(refreshSyntaxHighlighting()));
 
   connect(mHistoryBrowser, SIGNAL(restoreFromHistory(KLFData::KLFHistoryItem, bool)),
 	  this, SLOT(restoreFromHistory(KLFData::KLFHistoryItem, bool)));
@@ -488,16 +501,23 @@ void KLFMainWin::saveSettings()
   cfg->writeEntry("dvipsexec", _settings.dvipsexec);
   cfg->writeEntry("gsexec", _settings.gsexec);
   cfg->writeEntry("epstopdfexec", _settings.epstopdfexec);
+
+  cfg->setGroup("Appearance");
+  cfg->writeEntry("latexeditfont", mMainWidget->txeLatex->font());
+
 }
 
 void KLFMainWin::refreshSyntaxHighlighting()
 {
+  int pa, po;
+  mMainWidget->txeLatex->getCursorPosition(&pa, &po);
+  mHighlighter->setCaretPos(pa, po);
   mHighlighter->rehighlight();
 }
 
-void KLFMainWin::refreshCaretPosition(int para, int pos)
+void KLFMainWin::refreshCaretPosition(int /*para*/, int /*pos*/)
 {
-  mHighlighter->setCaretPos(para, pos);
+  //  mHighlighter->setCaretPos(para, pos); // will automatically refresh
   refreshSyntaxHighlighting();
 }
 
@@ -546,7 +566,7 @@ void KLFMainWin::loadStyles()
 
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate a few default styles
-    KLFData::KLFStyle s1 = { i18n("default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 1200 };
+    KLFData::KLFStyle s1 = { i18n("default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "\\usepackage{amssymb,amsmath}\n", 1200 };
     _styles.append(s1);
     /*
      KLFData::KLFStyle s2 = { i18n("small, white bg"), qRgb(0, 0, 0), qRgba(255, 255, 255, 255), "\\[ ... \\]", "", 150 };
@@ -714,7 +734,6 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 	slotEvaluate();
 	return true;
       }
-      mHighlighter->rehighlight();
     }
   }
   if (obj == mMainWidget->lblOutput) {

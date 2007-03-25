@@ -259,10 +259,10 @@
                                     <cstring>chkSHHighlightParensOnly</cstring>
                                 </property>
                                 <property name="text">
-                                    <string>Highlight parens only, not whole expression</string>
+                                    <string>Highlight p&amp;arens only, not whole expression</string>
                                 </property>
                                 <property name="accel">
-                                    <string></string>
+                                    <string>Alt+A</string>
                                 </property>
                             </widget>
                         </grid>
@@ -270,6 +270,63 @@
                     <spacer>
                         <property name="name">
                             <cstring>spacer3</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Vertical</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>40</height>
+                            </size>
+                        </property>
+                    </spacer>
+                </vbox>
+            </widget>
+            <widget class="QWidget">
+                <property name="name">
+                    <cstring>TabPage</cstring>
+                </property>
+                <attribute name="title">
+                    <string>&amp;Appearance</string>
+                </attribute>
+                <vbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QGroupBox">
+                        <property name="name">
+                            <cstring>gbxAppearFont</cstring>
+                        </property>
+                        <property name="frameShape">
+                            <enum>Box</enum>
+                        </property>
+                        <property name="frameShadow">
+                            <enum>Sunken</enum>
+                        </property>
+                        <property name="lineWidth">
+                            <number>1</number>
+                        </property>
+                        <property name="title">
+                            <string>LaTeX code editor font</string>
+                        </property>
+                        <hbox>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <widget class="KFontRequester">
+                                <property name="name">
+                                    <cstring>kfontAppearFont</cstring>
+                                </property>
+                            </widget>
+                        </hbox>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer4</cstring>
                         </property>
                         <property name="orientation">
                             <enum>Vertical</enum>
@@ -400,5 +457,6 @@
     <includehint>kcolorcombo.h</includehint>
     <includehint>kcolorcombo.h</includehint>
     <includehint>kcolorcombo.h</includehint>
+    <includehint>kfontrequester.h</includehint>
 </includehints>
 </UI>

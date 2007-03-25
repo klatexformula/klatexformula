@@ -149,8 +149,42 @@ public:
 
 
 
+
+
+class KLFLatexSymbolsViewItem : public QIconViewItem
+{
+public:
+
+  enum { RTTI = 1988 };
+
+  KLFLatexSymbolsViewItem(QIconView *view, QString ltx, QPixmap pix)
+    : QIconViewItem(view, "", pix), _latex(ltx)
+  {
+  }
+
+  virtual int rtti() const { return RTTI; }
+
+  QString latex() const { return _latex; }
+
+protected:
+  QString _latex;
+};
+
+
+
+
+
+
+
+
 KLFLatexSymbolsCache *KLFLatexSymbols::mCache = 0;
 int KLFLatexSymbols::mCacheRefCounter = 0;
+
+
+
+
+
+
 
 
 KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
@@ -221,14 +255,13 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
     QVBoxLayout *lyt = new QVBoxLayout(w);
     QIconView *icv = new QIconView(w);
     icv->setResizeMode(QIconView::Adjust);
+    icv->setSpacing(15);
     QFont font = icv->font();
     font.setPointSize(font.pointSize()-2);
     icv->setFont(font);
     const QStringList& sl = it.data();
     for (uint k = 0; k < sl.size(); k++) {
-      QIconViewItem *itm = new QIconViewItem(icv);
-      itm->setText(sl[k]);
-      itm->setPixmap(mCache->getPixmap(sl[k]));
+      (void) new KLFLatexSymbolsViewItem(icv, sl[k], mCache->getPixmap(sl[k]));
     }
 
     lyt->addWidget(icv);
@@ -265,7 +298,11 @@ KLFLatexSymbols::~KLFLatexSymbols()
 
 void KLFLatexSymbols::slotNeedsInsert(QIconViewItem *item)
 {
-  emit insertSymbol(item->text());
+  if (item->rtti() != KLFLatexSymbolsViewItem::RTTI)
+    return;
+  KLFLatexSymbolsViewItem *klfitem = (KLFLatexSymbolsViewItem *) item;
+
+  emit insertSymbol(klfitem->latex());
 }
 
 

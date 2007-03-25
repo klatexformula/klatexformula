@@ -25,18 +25,20 @@
 
 #include <qvaluelist.h>
 #include <qsyntaxhighlighter.h>
+#include <qfont.h>
 
 #include <kmainwindow.h>
 #include <kpopupmenu.h>
+#include <ktextedit.h>
 
 #include <klfbackend.h>
 
 #include <klfdata.h>
-//#include <klfhistorybrowser.h>
+#include <klfmainwinui.h>
 #include <klfprogerrui.h>
 
 
-class KLFMainWinUI;
+//class KLFMainWinUI;
 class KLFHistoryBrowser;
 class KLFLatexSymbols;
 class KLFStyleManager;
@@ -105,6 +107,9 @@ private:
 
 
 
+
+
+
 /**
  * KLatexFormula Main Window
  * @author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
@@ -121,6 +126,8 @@ public:
   KLFData::KLFStyle currentStyle() const;
 
   KLFBackend::klfSettings backendSettings() const { return _settings; }
+
+  QFont txeLatexFont() const { return mMainWidget->font(); }
 
 signals:
 
@@ -158,6 +165,8 @@ public slots:
   void insertSymbol(QString symb);
   void saveSettings();
   void loadSettings();
+
+  void setTxeLatexFont(QFont f) { mMainWidget->txeLatex->setFont(f); }
 
 protected:
   KLFMainWinUI *mMainWidget;

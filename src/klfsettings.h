@@ -30,13 +30,14 @@
 #include "klfsettingsui.h"
 
 class KLFLatexSyntaxHighlighter;
+class KLFMainWin;
 
 class KLFSettings : public KLFSettingsUI
 {
   Q_OBJECT
 
 public:
-  KLFSettings(KLFBackend::klfSettings *ptr, KLFLatexSyntaxHighlighter *sh, QWidget* parent = 0);
+  KLFSettings(KLFBackend::klfSettings *ptr, KLFLatexSyntaxHighlighter *sh, KLFMainWin* parent = 0);
   ~KLFSettings();
 
 public slots:
@@ -51,6 +52,9 @@ protected slots:
 
   virtual void accept();
 
+private:
+
+  KLFMainWin *_mainwin;
 };
 
 #endif
