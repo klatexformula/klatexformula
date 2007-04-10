@@ -10,8 +10,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>897</width>
-            <height>354</height>
+            <width>933</width>
+            <height>360</height>
         </rect>
     </property>
     <property name="caption">
@@ -74,7 +74,7 @@
                         <set>AutoNone</set>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Enter your LaTeX formula here</string>
+                        <string>&lt;p&gt;Enter your LaTeX formula here.&lt;/p&gt;&lt;p&gt;You may insert keywords using LaTeX comments, for future history searches:&lt;br&gt;&lt;tt&gt;% keyword(s)&lt;br&gt;&lt;i&gt;formula&lt;/i&gt;&lt;/p&gt;</string>
                         <comment>tooltip</comment>
                     </property>
                     <property name="whatsThis" stdset="0">
@@ -253,7 +253,7 @@
                                 <string></string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>The resulting image</string>
+                                <string>The resulting image will be displayed here</string>
                                 <comment>tooltip</comment>
                             </property>
                             <property name="whatsThis" stdset="0">
@@ -403,6 +403,9 @@
                                     <blue>0</blue>
                                 </color>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Choose the resulting text color</string>
+                            </property>
                         </widget>
                         <widget class="QCheckBox" row="1" column="0" rowspan="1" colspan="2">
                             <property name="name">
@@ -416,6 +419,9 @@
                             </property>
                             <property name="checked">
                                 <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Check this if you want your formula to have a transparent background</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="2" column="0">
@@ -443,6 +449,9 @@
                                     <horstretch>0</horstretch>
                                     <verstretch>0</verstretch>
                                 </sizepolicy>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Choose the resulting background color</string>
                             </property>
                         </widget>
                     </grid>
@@ -500,6 +509,9 @@
                             <property name="wordWrap">
                                 <enum>NoWrap</enum>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Edit the LaTeX preamble. This is typically \usepackage{...} directives</string>
+                            </property>
                         </widget>
                         <widget class="QCheckBox" row="0" column="0">
                             <property name="name">
@@ -513,6 +525,9 @@
                             </property>
                             <property name="checked">
                                 <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Check this to use a LaTeX math mode</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="1" column="0">
@@ -578,6 +593,9 @@
                             </property>
                             <property name="value">
                                 <number>1200</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Select the resolution of the resulting image</string>
                             </property>
                         </widget>
                     </grid>
@@ -658,6 +676,28 @@
         <slot>setEnabled(bool)</slot>
     </connection>
 </connections>
+<tabstops>
+    <tabstop>txeLatex</tabstop>
+    <tabstop>btnClear</tabstop>
+    <tabstop>btnEvaluate</tabstop>
+    <tabstop>btnSymbols</tabstop>
+    <tabstop>btnHistory</tabstop>
+    <tabstop>btnExpand</tabstop>
+    <tabstop>kccFg</tabstop>
+    <tabstop>chkBgTransparent</tabstop>
+    <tabstop>kccBg</tabstop>
+    <tabstop>chkMathMode</tabstop>
+    <tabstop>cbxMathMode</tabstop>
+    <tabstop>txePreamble</tabstop>
+    <tabstop>spnDPI</tabstop>
+    <tabstop>btnLoadStyle</tabstop>
+    <tabstop>btnSaveStyle</tabstop>
+    <tabstop>btnSettings</tabstop>
+    <tabstop>btnDrag</tabstop>
+    <tabstop>btnCopy</tabstop>
+    <tabstop>btnSave</tabstop>
+    <tabstop>btnQuit</tabstop>
+</tabstops>
 <layoutdefaults spacing="2" margin="3"/>
 <includehints>
     <includehint>ktextedit.h</includehint>

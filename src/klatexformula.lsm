@@ -1,6 +1,6 @@
 Begin3
 Title:          KLatexFormula -- Easily create an image from a LaTeX equation that you can save, copy or drag-and-drop
-Version:        2.0.0-alpha3
+Version:        2.0.0-alpha4
 Entered-date:
 Description:    Generate an image (e.g. PNG) from a LaTeX equation using a nice GUI. Support for Copy-Paste, Save as image/pdf/ps and drag-and-drop.
 Keywords:       KDE Qt LaTeX Equation Formula KLatexFormula

@@ -18,7 +18,7 @@ KDE_ICON = AUTO
 #########################################################################
 # this is the program that gets installed.  it's name is used for all
 # of the other Makefile.am variables
-bin_PROGRAMS = klatexformula
+bin_PROGRAMS = klatexformula klatexformula_cmdl
 
 # the application source, library search path, and link libraries
 klatexformula_SOURCES = main.cpp klfmainwinui.ui klfhistorybrowserui.ui \
@@ -40,3 +40,7 @@ ourdata_DATA = latex_symbols
 SUBDIRS = klfbackend pics
 noinst_HEADERS = klfmainwin.h klfsettings.h klfdata.h klfhistorybrowser.h \
 		klfstylemanager.h klflatexsymbols.h
+klatexformula_cmdl_LDFLAGS = $(KDE_RPATH) $(all_libraries)
+klatexformula_cmdl_SOURCES = klfcmdl_main.cpp
+klatexformula_cmdl_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \
+	$(LIB_KDECORE)

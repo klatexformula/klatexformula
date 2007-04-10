@@ -28,8 +28,12 @@
 
 KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)
 {
+#ifdef KLFBACKEND_QT4
+  connect(this, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ourProcExited()));
+#else
   connect(this, SIGNAL(wroteToStdin()), this, SLOT(ourProcGotOurStdinData()));
   connect(this, SIGNAL(processExited()), this, SLOT(ourProcExited()));
+#endif
 }
 
 
@@ -39,38 +43,62 @@ KLFBlockProcess::~KLFBlockProcess()
 
 void KLFBlockProcess::ourProcGotOurStdinData()
 {
+#ifndef KLFBACKEND_QT4
   closeStdin();
+#endif
 }
 
 void KLFBlockProcess::ourProcExited()
 {
   _runstatus = 1; // exited
 }
-
-bool KLFBlockProcess::startProcess(QStringList cmd, QCString str, QStringList *env)
+#ifndef KLFBACKEND_QT4
+bool KLFBlockProcess::startProcess(QStringList cmd, QCString str, QStringList env)
 {
   return startProcess(cmd, QByteArray().duplicate(str.data(), str.length()), env);
 }
-
-bool KLFBlockProcess::startProcess(QStringList cmd, QStringList *env)
+#endif
+bool KLFBlockProcess::startProcess(QStringList cmd, QStringList env)
 {
   return startProcess(cmd, QByteArray(), env);
 }
 
-bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStringList *env)
+bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStringList env)
 {
   _runstatus = 0;
 
-  setArguments(cmd);
+#ifdef KLFBACKEND_QT4
+  if (env.size() > 0)
+    setEnvironment(env);
 
-  if (! start(env) )
+  QString program = cmd.front();
+  QStringList args = cmd;
+  args.erase(args.begin());
+  start(program, args);
+  if ( ! waitForStarted() )
+    return false;
+
+  write(stdindata.constData(), stdindata.size());
+  closeWriteChannel();
+#else
+  setArguments(cmd);
+  QStringList *e = &env;
+  if (e->size() == 0)
+    e = 0;
+
+  if (! start(e) )
     return false;
 
   writeToStdin(stdindata);
   // slot ourProcGotOutStdinData() should be called, which closes input
+#endif
 
   while (_runstatus == 0) {
+#ifdef KLFBACKEND_QT4
+    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+#else
     qApp->eventLoop()->processEvents(QEventLoop::ExcludeUserInput);
+#endif
   }
 
   if (_runstatus < 0) { // some error occurred somewhere
@@ -79,6 +107,3 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 
   return true;
 }
-
-
-#include "klfblockprocess.moc"

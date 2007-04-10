@@ -26,6 +26,9 @@
 
 #include <qwidget.h>
 #include <qlistview.h>
+#include <qevent.h>
+
+#include <kpopupmenu.h>
 
 #include <klfdata.h>
 #include <klfhistorybrowserui.h>
@@ -48,12 +51,16 @@ protected:
 };
 
 
+// -------------------------------------------
+
 class KLFHistoryBrowser : public KLFHistoryBrowserUI
 {
   Q_OBJECT
 public:
   KLFHistoryBrowser(KLFData::KLFHistoryList *histptr, QWidget *parent);
   ~KLFHistoryBrowser();
+
+  bool eventFilter(QObject *obj, QEvent *e);
 
 signals:
   void restoreFromHistory(KLFData::KLFHistoryItem h, bool restorestyle);
@@ -70,8 +77,18 @@ public slots:
   void slotRestoreAll(QListViewItem *i = 0);
   void slotRestoreLatex(QListViewItem *i = 0);
   void slotDelete(QListViewItem *i = 0);
+  void slotDisplayTaggedOnly();
+  void slotDisplayTaggedOnly(bool display);
   void slotClose();
   void slotRefreshButtonsEnabled();
+  // search
+  void slotSearchClear();
+  void slotSearchFind(const QString& text);
+  void slotSearchFindNext();
+
+protected slots:
+
+  void resetLneSearchColor();
 
 protected:
 
@@ -82,7 +99,18 @@ private:
   bool _allowrestore;
   bool _allowdelete;
 
+  bool _displaytaggedonly;
+
   KLFData::KLFHistoryList *_histptr;
+
+  KLFHistoryListViewItem *itemForId(uint id);
+
+  KPopupMenu *mConfigMenu;
+
+  uint _search_k; // we're focusing on the k-th history item (decreases at each F3 key press [reverse search, remember!])
+  QString _search_str; // the previous search string
+
+  QColor _dflt_lineedit_bgcol;
 };
 
 #endif

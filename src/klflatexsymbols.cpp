@@ -29,6 +29,12 @@
 #include <qprogressdialog.h>
 #include <qlayout.h>
 #include <qpushbutton.h>
+#include <qmap.h>
+#include <qvaluelist.h>
+#include <qpair.h>
+#include <qwidgetstack.h>
+#include <qlineedit.h>
+#include <qtooltip.h>
 
 #include <kmessagebox.h>
 #include <kstandarddirs.h>
@@ -80,10 +86,13 @@ public:
     return 0;
   }
 
-  QPixmap getPixmap(const QString& latex)
+  QPixmap getPixmap(const QString& latex, bool fromcacheonly = true)
   {
     if (cache.contains(latex))
       return cache[latex];
+
+    if (fromcacheonly) // if we weren't able to load it from cache, show failed icon
+      return QPixmap(locate("appdata", "pics/badsym.png"));
 
     KLFBackend::klfInput in;
     in.latex = latex;
@@ -94,6 +103,10 @@ public:
     in.dpi = 150;
 
     backendsettings.epstopdfexec = ""; // don't waste time making PDF, we don't need it
+    backendsettings.tborderoffset = backendsettings.tborderoffset >= 1 ? backendsettings.tborderoffset : 1;
+    backendsettings.rborderoffset = backendsettings.rborderoffset >= 3 ? backendsettings.rborderoffset : 3;
+    backendsettings.bborderoffset = backendsettings.bborderoffset >= 1 ? backendsettings.bborderoffset : 1;
+    backendsettings.lborderoffset = backendsettings.lborderoffset >= 1 ? backendsettings.lborderoffset : 1;
 
     KLFBackend::klfOutput out = KLFBackend::getLatexFormula(in, backendsettings);
 
@@ -118,13 +131,12 @@ public:
     }
 
     for (uint i = 0; i < list.size(); ++i) {
-      getPixmap(list[i]);
+      getPixmap(list[i], false);
       if (userfeedback) {
 	if (pdlg->wasCanceled()) {
 	  delete pdlg;
 	  return 1;
 	}
-
 	pdlg->setProgress(i);
 	kapp->processEvents();
       }
@@ -226,54 +238,90 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
       l.clear();
       heading = stream.readLine();
 
-      while ( ! (s = stream.readLine()).isEmpty() ) {
+      while ( ! heading.isEmpty() && ! (s = stream.readLine()).isEmpty() ) {
 	l.append(s);
       }
-      if (!heading.isEmpty())
-	_symbols[heading] = l;
+      if ( ! heading.isEmpty() )
+	_symbols.append(QPair<QString,QStringList>(heading, l));
     } while ( ! heading.isNull() ) ;
     // all symbols are now in _symbols.
   }
 
+  /*
+   // debug: dump symbol list
+   printf("DEBUG: symbols:\n");
+   for (uint klj = 0; klj < _symbols.size(); ++klj) {
+   printf("\t%s\n", _symbols[klj].first.ascii());
+   QStringList sl = _symbols[klj].second;
+   for (uint kl = 0; kl < sl.size(); ++kl) {
+   printf("\t\t%s\n", sl[kl].ascii());
+   }
+   }
+  */
+
   // pre-cache all our symbols
   QStringList alllist;
-  for (QMap<QString,QStringList>::const_iterator it = _symbols.begin(); it != _symbols.end(); ++it) {
-    alllist += it.data();
+  for (QValueList<QPair<QString,QStringList> >::const_iterator it = _symbols.begin(); it != _symbols.end(); ++it) {
+    alllist += (*it).second;
   }
   mCache->precacheList(alllist, true, this);
 
   // create our UI
   // clear our Tab Widget
-  QWidget *w;
-  while ((w = mTabs->currentPage()) != 0) {
-    mTabs->removePage(w);
-    delete w;
-  }
-  for (QMap<QString,QStringList>::const_iterator it = _symbols.begin(); it != _symbols.end(); ++it) {
+  cbxCategory->clear();
+  QVBoxLayout *lytstk = new QVBoxLayout(frmStackContainer);
+  stkViews = new QWidgetStack(frmStackContainer);
+  lytstk->addWidget(stkViews);
+
+  mViews.clear();
+
+  uint index = 0;
+  for (index = 0; index < _symbols.size(); ++index) {
     // insert a tab page and an icon view
-    QWidget *w = new QWidget(mTabs);
+    QWidget *w = new QWidget(stkViews);
     QVBoxLayout *lyt = new QVBoxLayout(w);
     QIconView *icv = new QIconView(w);
     icv->setResizeMode(QIconView::Adjust);
+    icv->setGridX(25);
+    icv->setGridY(25);
+    icv->setAutoArrange(true);
     icv->setSpacing(15);
+    icv->setItemsMovable(false);
+    QString tooltip = i18n("Click an item to view its LaTeX code. Double-click inserts the symbol.");
+    QToolTip::add(icv, tooltip);
+    QToolTip::add(icv->viewport(), tooltip);
     QFont font = icv->font();
     font.setPointSize(font.pointSize()-2);
     icv->setFont(font);
-    const QStringList& sl = it.data();
+    const QStringList& sl = _symbols[index].second;
     for (uint k = 0; k < sl.size(); k++) {
-      (void) new KLFLatexSymbolsViewItem(icv, sl[k], mCache->getPixmap(sl[k]));
+      KLFLatexSymbolsViewItem *item = new KLFLatexSymbolsViewItem(icv, sl[k], mCache->getPixmap(sl[k]));
+      item->setDragEnabled(false);
+      item->setDropEnabled(false);
+      item->setRenameEnabled(false);
+      item->setSelectable(false);
     }
 
     lyt->addWidget(icv);
-    mTabs->addTab(w, it.key());
+    stkViews->addWidget(w, index);
+    cbxCategory->insertItem(_symbols[index].first, index);
 
+    connect(icv, SIGNAL(clicked(QIconViewItem *)), this, SLOT(slotDisplayItem(QIconViewItem *)));
+    connect(icv, SIGNAL(selectionChanged(QIconViewItem *)), this, SLOT(slotDisplayItem(QIconViewItem *)));
     connect(icv, SIGNAL(doubleClicked(QIconViewItem *)), this, SLOT(slotNeedsInsert(QIconViewItem *)));
+
+    mViews.append(icv);
   }
+  slotShowCategory(0);
+  connect(cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));
+  connect(btnInsert, SIGNAL(clicked()), this, SLOT(slotInsertCurrentDisplay()));
   // all ok.
 
-  // Finish setting up UI
 
+  // Finish setting up UI
+  btnInsert->setPixmap(QPixmap(locate("appdata", "pics/insertsymb.png")));
   btnClose->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
+  lneDisplay->setPaletteBackgroundColor(lneDisplay->palette().active().background());
 
   connect(btnClose, SIGNAL(clicked()), this, SLOT(slotClose()));
 }
@@ -298,6 +346,8 @@ KLFLatexSymbols::~KLFLatexSymbols()
 
 void KLFLatexSymbols::slotNeedsInsert(QIconViewItem *item)
 {
+  if (!item)
+    return;
   if (item->rtti() != KLFLatexSymbolsViewItem::RTTI)
     return;
   KLFLatexSymbolsViewItem *klfitem = (KLFLatexSymbolsViewItem *) item;
@@ -305,6 +355,56 @@ void KLFLatexSymbols::slotNeedsInsert(QIconViewItem *item)
   emit insertSymbol(klfitem->latex());
 }
 
+
+#define KLF_SYM_ITEM_WIDTH 50
+#define KLF_SYM_ITEM_HEIGHT 40
+void KLFLatexSymbols::slotShowCategory(int c)
+{
+  // called by combobox
+  stkViews->raiseWidget(c);
+
+  /* ** This doesn't work as expected
+   const uint KLF_SYM_ITEM_WIDTH = 50;
+   const uint KLF_SYM_ITEM_HEIGHT = 40;
+   for (uint i = 0; i < mViews.size(); ++i) {
+   QIconViewItem *it = mViews[i]->firstItem();
+   int k = 0;
+   int y = 4 + KLF_SYM_ITEM_HEIGHT;
+   int maxh = 0;
+   while (it) {
+   it->move(k*KLF_SYM_ITEM_WIDTH, y - it->height());
+   k++;
+   if (it->height() > maxh)
+   maxh = it->height();
+   if ((k+1)*KLF_SYM_ITEM_WIDTH >= mViews[i]->contentsWidth()) {
+   // reset line
+   y += maxh + 10;
+   maxh = 0;
+   k = 0;
+   }
+   it = it->nextItem();
+   }
+   mViews[i]->update();
+   }
+  */
+}
+
+void KLFLatexSymbols::slotDisplayItem(QIconViewItem *item)
+{
+  if (!item)
+    return;
+
+  if (item->rtti() != KLFLatexSymbolsViewItem::RTTI)
+    return;
+  KLFLatexSymbolsViewItem *klfitem = (KLFLatexSymbolsViewItem *) item;
+  
+  lneDisplay->setText(klfitem->latex());
+}
+
+void KLFLatexSymbols::slotInsertCurrentDisplay()
+{
+  emit insertSymbol(lneDisplay->text());
+}
 
 void KLFLatexSymbols::slotClose()
 {

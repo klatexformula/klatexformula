@@ -23,11 +23,13 @@
 #ifndef KLFLATEXSYMBOLS_H
 #define KLFLATEXSYMBOLS_H
 
-#include <qmap.h>
+#include <qvaluelist.h>
+#include <qpair.h>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qevent.h>
 #include <qiconview.h>
+#include <qwidgetstack.h>
 
 #include <klflatexsymbolsui.h>
 
@@ -55,19 +57,24 @@ public slots:
 protected slots:
 
   void slotNeedsInsert(QIconViewItem *item);
+  void slotDisplayItem(QIconViewItem *item);
+  void slotInsertCurrentDisplay();
+  void slotShowCategory(int cat);
 
 protected:
 
   KLFMainWin *_mainwin;
 
+  QWidgetStack *stkViews;
+
   static KLFLatexSymbolsCache *mCache;
   static int mCacheRefCounter;
 
-  QMap<QString,QStringList> _symbols;
+  QValueList<QPair<QString,QStringList> > _symbols;
+
+  QValueList<QIconView *> mViews;
 
   void closeEvent(QCloseEvent *ev);
-
-  //  QValueList<QIconView*> mIconViews;
 
 };
 

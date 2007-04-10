@@ -29,7 +29,12 @@
 
 #include <qprocess.h>
 #include <qstring.h>
+#ifdef KLFBACKEND_QT4
+#include <QByteArray>
+#else
 #include <qcstring.h>
+#include <qmemarray.h>
+#endif
 
 //! A QProcess subclass for code-blocking process execution
 /** A Code-blocking (but not GUI-blocking) process executor
@@ -52,8 +57,41 @@ class KLFBlockProcess : public QProcess
 {
   Q_OBJECT
 public:
+  /** Normal constructor, like QProcess constructor */
   KLFBlockProcess(QObject *parent = 0);
+  /** Normal destructor */
   ~KLFBlockProcess();
+
+  /** Returns all standard error output as a QByteArray. This function is to standardize the
+   * readStderr() and readAllStandardError() functions in QT 3 or QT 4 respectively */
+  QByteArray getAllStderr() {
+#ifdef KLFBACKEND_QT4
+    return readAllStandardError();
+#else
+    return readStderr();
+#endif
+  }
+
+  /** Returns all standard output as a QByteArray. This function is to standardize the
+   * readStdout() and readAllStandardOutput() functions in QT 3 or QT 4 respectively */
+  QByteArray getAllStdout() {
+#ifdef KLFBACKEND_QT4
+    return readAllStandardOutput();
+#else
+    return readStdout();
+#endif
+  }
+
+#ifdef KLFBACKEND_QT4
+  /** Tweak here to change new QT4 api to old QT3 api */
+  bool normalExit() const {
+    return QProcess::exitStatus() == NormalExit;
+  }
+  /** Tweak here to change new QT4 api to old QT3 api */
+  int exitStatus() const {
+    return exitCode();
+  }
+#endif
 
 
 public slots:
@@ -66,16 +104,29 @@ public slots:
    *
    * \returns TRUE upon success, FALSE upon failure.
    */
-  bool startProcess(QStringList cmd, QByteArray stdindata, QStringList *env = 0);
+  bool startProcess(QStringList cmd, QByteArray stdindata, QStringList env = QStringList());
+#ifndef KLFBACKEND_QT4
   /** Convenient function if you want to pass string input to program
-   * This mostly truncates the last '\0' because programs don't like it. */
-  bool startProcess(QStringList cmd, QCString str, QStringList *env = 0);
+   * This mostly truncates the last '\\0' because programs don't like it.
+   *
+   * \warning this function is only available with QT 3. */
+  bool startProcess(QStringList cmd, QCString str, QStringList env = QStringList());
+#endif
   /** Convenient function to be used in the case where program doesn't
    * expect stdin data or if you chose to directly close stdin without writing
    * anything to it. */
-  bool startProcess(QStringList cmd, QStringList *env = 0);
+  bool startProcess(QStringList cmd, QStringList env = QStringList());
 
-
+#ifdef KLFBACKEND_QT4
+  /** Same as getAllStderr(), except result is returned here as QString. */
+  QString readStderrString() {
+    return QString::fromLocal8Bit(getAllStderr());
+  }
+  /** Same as getAllStdout(), except result is returned here as QString. */
+  QString readStdoutString() {
+    return QString::fromLocal8Bit(getAllStdout());
+  }
+#else
   /** Like QProcess::readStdout(), except returns a QString instead of a QByteArray */
   QString readStdoutString() {
     QCString sstdout = "";
@@ -84,7 +135,6 @@ public slots:
       sstdout = QCString(stdout.data(), stdout.size());
     return QString(sstdout);
   }
-
   /** Like QProcess::readStderr(), except returns a QString instead of a QByteArray */
   QString readStderrString() {
     QCString sstderr = "";
@@ -93,6 +143,7 @@ public slots:
       sstderr = QCString(stderr.data(), stderr.size());
     return QString(sstderr);
   }
+#endif
 
 
 private slots:

@@ -39,27 +39,28 @@ static const char description[] =
     I18N_NOOP("KLatexFormula -- Easily get an image from a LaTeX equation");
 
 // not static so we can get this value from other modules in the project
-const char version[] = "2.0.0-alpha3";
+const char version[] = "2.0.0-alpha4";
 const int version_maj = 2;
 const int version_min = 0;
 const int version_release = 0;
 
 static KCmdLineOptions options[] =
 {
-//    { "+[URL]", I18N_NOOP( "Document to open" ), 0 },
-    KCmdLineLastOption
+  KCmdLineLastOption
 };
 
 int main(int argc, char **argv)
 {
   KAboutData about("klatexformula", I18N_NOOP("KLatexFormula"), version, description,
-		   KAboutData::License_GPL, "(C) 2005 Philippe Faist", 0, 0, "philippe.faist@bluewin.ch");
+		   KAboutData::License_GPL, "(C) 2005-2007 Philippe Faist", 0, 0, "philippe.faist@bluewin.ch");
   about.addAuthor( "Philippe Faist", 0, "philippe.faist@bluewin.ch" );
   KCmdLineArgs::init(argc, argv, &about);
   KCmdLineArgs::addCmdLineOptions( options );
+
   KApplication app;
 
-  fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005\n"
+
+  fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2007\n"
 	  "Licensed under the terms of the GNU Public License GPL\n\n",
 	  version);
   
@@ -67,18 +68,17 @@ int main(int argc, char **argv)
     RESTORE(KLFMainWin);
   }
   else {
-    KLFMainWin *mainWin = 0;
-
     // no session.. just start up normally
-    KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
-    
-    /** \todo do something with the command line args here */
-    
+
+    KLFMainWin *mainWin = 0;    
     mainWin = new KLFMainWin();
     app.setMainWidget(mainWin);
     mainWin->show();
 
+    KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
+    /* nothing to do with options */
     args->clear();
+
   }
   
   // mainWin has WDestructiveClose flag by default, so it will delete itself.

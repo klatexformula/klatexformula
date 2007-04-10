@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>568</width>
-            <height>394</height>
+            <width>563</width>
+            <height>453</height>
         </rect>
     </property>
     <property name="caption">
@@ -23,47 +23,111 @@
             <number>6</number>
         </property>
         <property name="spacing">
-            <number>1</number>
+            <number>5</number>
         </property>
-        <widget class="QTabWidget">
+        <widget class="QFrame">
             <property name="name">
-                <cstring>mTabs</cstring>
+                <cstring>frmMain</cstring>
             </property>
-            <property name="tabPosition">
-                <enum>Bottom</enum>
+            <property name="frameShape">
+                <enum>Box</enum>
             </property>
-            <property name="tabShape">
-                <enum>Triangular</enum>
+            <property name="frameShadow">
+                <enum>Sunken</enum>
             </property>
-            <widget class="QWidget">
+            <property name="lineWidth">
+                <number>1</number>
+            </property>
+            <vbox>
                 <property name="name">
-                    <cstring>tab</cstring>
+                    <cstring>unnamed</cstring>
                 </property>
-                <attribute name="title">
-                    <string>Some title</string>
-                </attribute>
-                <hbox>
+                <property name="margin">
+                    <number>5</number>
+                </property>
+                <property name="spacing">
+                    <number>3</number>
+                </property>
+                <widget class="QFrame">
                     <property name="name">
-                        <cstring>unnamed</cstring>
+                        <cstring>frmStackContainer</cstring>
                     </property>
-                    <property name="margin">
+                    <property name="frameShape">
+                        <enum>NoFrame</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Plain</enum>
+                    </property>
+                    <property name="lineWidth">
                         <number>0</number>
                     </property>
-                    <property name="spacing">
-                        <number>0</number>
+                </widget>
+                <widget class="QComboBox">
+                    <property name="name">
+                        <cstring>cbxCategory</cstring>
                     </property>
-                </hbox>
-            </widget>
+                    <property name="toolTip" stdset="0">
+                        <string>Choose symbol category</string>
+                    </property>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout7</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>2</number>
+                        </property>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>lneDisplay</cstring>
+                            </property>
+                            <property name="readOnly">
+                                <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>This is the selected symbol's LaTeX code</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>btnInsert</cstring>
+                            </property>
+                            <property name="text">
+                                <string>I&amp;nsert</string>
+                            </property>
+                            <property name="accel">
+                                <string>Alt+N</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Insert the selected symbol in KLatexFormula editor</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+            </vbox>
         </widget>
         <widget class="QPushButton">
             <property name="name">
                 <cstring>btnClose</cstring>
             </property>
             <property name="text">
-                <string>Close</string>
+                <string>Cl&amp;ose</string>
+            </property>
+            <property name="accel">
+                <string>Alt+O</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Close this dialog</string>
             </property>
         </widget>
     </vbox>
 </widget>
-<layoutdefaults spacing="6" margin="11"/>
+<layoutdefaults spacing="2" margin="0"/>
 </UI>

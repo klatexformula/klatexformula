@@ -25,6 +25,9 @@
 //#include <iostream>
 
 #include <qregexp.h>
+#include <qfile.h>
+#include <qdatetime.h>
+#include <qtextstream.h>
 
 #include "klfblockprocess.h"
 #include "klfbackend.h"
@@ -38,12 +41,30 @@ KLFBackend::KLFBackend()
 }
 
 
+// Utility function
+QString progErrorMsg(QString progname, int exitstatus, QString stderr, QString stdout)
+{
+  if (stderr.isEmpty())
+    return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stdout output:</p>\n"
+		     "<pre>\n%3</pre>")
+      .arg(progname).arg(exitstatus).arg(stdout);
+  if (stdout.isEmpty())
+    return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
+		     "<pre>\n%3</pre>")
+      .arg(progname).arg(exitstatus).arg(stderr);
+
+  return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
+		   "<pre>\n%3</pre><p>And here is full stdout output:</p><pre>\n%4</pre>")
+    .arg(progname).arg(exitstatus).arg(stderr).arg(stdout);
+}
+
+
 KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& settings)
 {
   klfOutput res;
   res.status = 0;
   res.errorstr = QString();
-  res.result = QPixmap();
+  res.result = QImage();
   res.pngdata = QByteArray();
   res.epsdata = QByteArray();
   res.pdfdata = QByteArray();
@@ -60,7 +81,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     + QDateTime::currentDateTime().toString("hh-mm-ss");
 
 
-  if (in.latex.simplifyWhiteSpace().isEmpty()) {
+#ifdef KLFBACKEND_QT4
+  QString latexsimplified = in.latex.trimmed();
+#else
+  QString latexsimplified = in.latex.simplifyWhiteSpace();
+#endif
+  if (latexsimplified.isEmpty()) {
     res.errorstr = TRANSLATE("You must specify a LaTeX formula!");
     res.status = -1;
     return res;
@@ -77,7 +103,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   {
     QFile file(tempfname+".tex");
+#ifdef KLFBACKEND_QT4
+    bool r = file.open(QIODevice::WriteOnly);
+#else
     bool r = file.open(IO_WriteOnly);
+#endif
     if ( ! r ) {
       res.status = -3;
       res.errorstr = TRANSLATE("Can't open file for writing: '%1'!").arg(tempfname+".tex");
@@ -122,7 +152,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     args << settings.latexexec << tempfname+".tex";
 
-    bool r = proc.startProcess(args, &env);
+    bool r = proc.startProcess(args, env);
 
 
     if (!r) {
@@ -138,9 +168,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     if (proc.exitStatus() != 0) {
       cleanup(tempfname);
       res.status = 1;
-      res.errorstr = TRANSLATE("<p><b>LaTeX</b> reported an error (exit status %1). Here is full stderr output:</p>\n"
-			       "<pre>\n%2</pre><p>And Stdout output:</p><pre>\n%3</pre>\n")
-	.arg(proc.exitStatus()).arg(proc.readStderrString()).arg(proc.readStdoutString());
+      res.errorstr = progErrorMsg("LaTeX", proc.exitStatus(), proc.readStderrString(), proc.readStdoutString());
       return res;
     }
 
@@ -172,9 +200,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     if ( proc.exitStatus() != 0) {
       res.status = 2;
-      res.errorstr = TRANSLATE("<p><b>dvips</b> reported an error (exit status %1). Here is full stderr output:</p>\n"
-			       "<pre>\n%2</pre><p>And Stdout output:</p><pre>\n%3</pre>\n")
-	.arg(proc.exitStatus()).arg(proc.readStderrString()).arg(proc.readStdoutString());
+      res.errorstr = progErrorMsg("dvips", proc.exitStatus(), proc.readStderrString(), proc.readStdoutString());
       return res;
     }
     if (!QFile::exists(tempfname + ".eps")) {
@@ -186,13 +212,42 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // add some space on bounding-box to avoid some too tight bounding box bugs
     // read eps file
     QFile epsfile(tempfname+".eps");
+#ifdef KLFBACKEND_QT4
+    r = epsfile.open(QIODevice::ReadOnly);
+#else
     r = epsfile.open(IO_ReadOnly);
+#endif
     if ( ! r ) {
       res.status = -10;
       res.errorstr = TRANSLATE("Can't read file '%1'!\n").arg(tempfname+".eps");
       return res;
     }
     QByteArray epscontent = epsfile.readAll();
+#ifdef KLFBACKEND_QT4
+    int i = epscontent.indexOf("%%BoundingBox: ");
+    if ( i == -1 ) {
+      res.status = -11;
+      res.errorstr = TRANSLATE("File '%1' does not contain line \"%%BoundingBox: ... \" !").arg(tempfname+".eps");
+    }
+    int ax, ay, bx, by;
+    char temp[250];
+    int k = i;
+    i += strlen("%%BoundingBox:");
+    int n = sscanf(epscontent.constData()+i, "%d %d %d %d", &ax, &ay, &bx, &by);
+    if ( n != 4 ) {
+      res.status = -12;
+      res.errorstr = TRANSLATE("file %1: Line %%BoundingBox: can't read values!\n").arg(tempfname+".eps");
+      return res;
+    }
+    sprintf(temp, "%%%%BoundingBox: %d %d %d %d", ax-settings.lborderoffset, ay-settings.bborderoffset,
+	    bx+settings.rborderoffset, by+settings.tborderoffset); // grow bbox by settings.?borderoffset points
+    QString chunk = QString::fromLocal8Bit(epscontent.constData()+k);
+    QRegExp rx("^%%BoundingBox: [0-9]+ [0-9]+ [0-9]+ [0-9]+");
+    (void) rx.indexIn(chunk);
+    int l = rx.matchedLength();
+    epscontent.replace(k, l, temp);
+    res.epsdata = epscontent;
+#else
     QCString epscontent_s(epscontent.data(), epscontent.size());
     // process file data and transform it
     int i = epscontent_s.find("%%BoundingBox: ");
@@ -210,18 +265,28 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       res.errorstr = TRANSLATE("file %1: Line %%BoundingBox: can't read values!\n").arg(tempfname+".eps");
       return res;
     }
-    sprintf(temp, "%%%%BoundingBox: %d %d %d %d", ax-1, ay-1, bx+1, by+1); // grow bbox by 1 point
+    sprintf(temp, "%%%%BoundingBox: %d %d %d %d", ax-settings.lborderoffset, ay-settings.bborderoffset,
+	    bx+settings.rborderoffset, by+settings.tborderoffset); // grow bbox by settings.?borderoffset points
     epscontent_s.replace(QRegExp("%%BoundingBox: [0-9]+ [0-9]+ [0-9]+ [0-9]+"), temp);
+    res.epsdata.duplicate(epscontent_s.data(), epscontent_s.length());
+#endif
     // write content back to second file
     QFile epsgoodfile(tempfname+"-good.eps");
+#ifdef KLFBACKEND_QT4
+    r = epsgoodfile.open(QIODevice::WriteOnly);
+#else
     r = epsgoodfile.open(IO_WriteOnly);
+#endif
     if ( ! r ) {
       res.status = -13;
       res.errorstr = TRANSLATE("Can't write to file '%1'!\n").arg(tempfname+"-good.eps");
       return res;
     }
-    res.epsdata.duplicate(epscontent_s.data(), epscontent_s.length());
+#ifdef KLFBACKEND_QT4
+    epsgoodfile.write(res.epsdata);
+#else
     epsgoodfile.writeBlock(res.epsdata);
+#endif
     // res.epsdata is now set.
 
   } // end of block "make EPS"
@@ -252,9 +317,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     if ( proc.exitStatus() != 0) {
       res.status = 3;
-      res.errorstr = TRANSLATE("<p><b>gs</b> reported an error (exit status %1). Here is full stderr output:</p>\n"
-			       "<pre>\n%2</pre><p>And Stdout output:</p><pre>\n%3</pre>\n")
-	.arg(proc.exitStatus()).arg(proc.readStderrString()).arg(proc.readStdoutString());
+      res.errorstr = progErrorMsg("gs", proc.exitStatus(), proc.readStderrString(), proc.readStdoutString());
       return res;
     }
     if (!QFile::exists(tempfname + ".png")) {
@@ -265,7 +328,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // get and save PNG to memory
     QFile pngfile(tempfname+".png");
+#ifdef KLFBACKEND_QT4
+    r = pngfile.open(QIODevice::ReadOnly);
+#else
     r = pngfile.open(IO_ReadOnly);
+#endif
     if ( ! r ) {
       res.status = -10;
       res.errorstr = TRANSLATE("Unable to read file %1!\n").arg(tempfname+".png");
@@ -298,9 +365,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     if ( proc.exitStatus() != 0) {
       res.status = 4;
-      res.errorstr = TRANSLATE("<p><b>epstopdf</b> reported an error (exit status %1). Here is full stderr output:</p>\n"
-			       "<pre>\n%2</pre><p>And Stdout output:</p><pre>\n%3</pre>\n")
-	.arg(proc.exitStatus()).arg(proc.readStderrString()).arg(proc.readStdoutString());
+      res.errorstr = progErrorMsg("epstopdf", proc.exitStatus(), proc.readStderrString(), proc.readStdoutString());
       return res;
     }
     if (!QFile::exists(tempfname + ".pdf")) {
@@ -311,7 +376,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // get and save PDF to memory
     QFile pdffile(tempfname+".pdf");
+#ifdef KLFBACKEND_QT4
+    r = pdffile.open(QIODevice::ReadOnly);
+#else
     r = pdffile.open(IO_ReadOnly);
+#endif
     if ( ! r ) {
       res.status = -14;
       res.errorstr = TRANSLATE("Unable to read file %1!\n").arg(tempfname+".pdf");

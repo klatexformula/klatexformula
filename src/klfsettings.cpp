@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file 
+ *   file klfsettings.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
  *   philippe.faist@bluewin.ch
@@ -22,6 +22,7 @@
 
 #include <qdialog.h>
 #include <qcheckbox.h>
+#include <qspinbox.h>
 
 #include <kurlrequester.h>
 #include <kcolorcombo.h>
@@ -53,6 +54,10 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *
   kurlGs->setURL(_ptr->gsexec);
   kurlEpstopdf->setURL(_ptr->epstopdfexec);
   chkEpstopdf->setChecked( ! _ptr->epstopdfexec.isEmpty() );
+  spnLBorderOffset->setValue( _ptr->lborderoffset );
+  spnTBorderOffset->setValue( _ptr->tborderoffset );
+  spnRBorderOffset->setValue( _ptr->rborderoffset );
+  spnBBorderOffset->setValue( _ptr->bborderoffset );
 
   chkSHEnabled->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::Enabled);
   kccSHKeyword->setColor(_synthighlighterptr->cKeyword);
@@ -76,7 +81,7 @@ KLFSettings::~KLFSettings()
 }
 
 
-/* SPECIALIZATION */
+
 void KLFSettings::accept()
 {
   // apply settings here
@@ -89,6 +94,10 @@ void KLFSettings::accept()
   if (chkEpstopdf->isChecked()) {
     _ptr->epstopdfexec = kurlEpstopdf->url();
   }
+  _ptr->lborderoffset = spnLBorderOffset->value();
+  _ptr->tborderoffset = spnTBorderOffset->value();
+  _ptr->rborderoffset = spnRBorderOffset->value();
+  _ptr->bborderoffset = spnBBorderOffset->value();
 
   if (chkSHEnabled->isChecked())
     _synthighlighterptr->config |= KLFLatexSyntaxHighlighter::Enabled;

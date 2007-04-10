@@ -340,7 +340,7 @@ KLFMainWin::KLFMainWin()
 
   _output.status = 0;
   _output.errorstr = QString();
-  _output.result = QPixmap();
+  _output.result = QImage();
   _output.pngdata = QByteArray();
   _output.epsdata = QByteArray();
   _output.pdfdata = QByteArray();
@@ -387,6 +387,9 @@ KLFMainWin::KLFMainWin()
   mMainWidget->txePreamble->setFont(font);
 
   mMainWidget->frmOutput->setEnabled(false);
+
+  mMainWidget->txeLatex->setHScrollBarMode(QScrollView::Auto);
+  mMainWidget->txeLatex->setVScrollBarMode(QScrollView::Auto);
 
   mHighlighter = new KLFLatexSyntaxHighlighter(mMainWidget->txeLatex);
 
@@ -488,6 +491,11 @@ void KLFMainWin::loadSettings()
   _settings.dvipsexec = cfg->readEntry("dvipsexec", KStandardDirs::findExe("dvips"));
   _settings.gsexec = cfg->readEntry("gsexec", KStandardDirs::findExe("gs"));
   _settings.epstopdfexec = cfg->readEntry("epstopdfexec", KStandardDirs::findExe("epstopdf"));
+
+  _settings.lborderoffset = cfg->readNumEntry("lborderoffset", 1);
+  _settings.tborderoffset = cfg->readNumEntry("tborderoffset", 1);
+  _settings.rborderoffset = cfg->readNumEntry("rborderoffset", 4);
+  _settings.bborderoffset = cfg->readNumEntry("bborderoffset", 1);
 }
 
 void KLFMainWin::saveSettings()
@@ -501,6 +509,10 @@ void KLFMainWin::saveSettings()
   cfg->writeEntry("dvipsexec", _settings.dvipsexec);
   cfg->writeEntry("gsexec", _settings.gsexec);
   cfg->writeEntry("epstopdfexec", _settings.epstopdfexec);
+  cfg->writeEntry("lborderoffset", _settings.lborderoffset);
+  cfg->writeEntry("tborderoffset", _settings.tborderoffset);
+  cfg->writeEntry("rborderoffset", _settings.rborderoffset);
+  cfg->writeEntry("bborderoffset", _settings.bborderoffset);
 
   cfg->setGroup("Appearance");
   cfg->writeEntry("latexeditfont", mMainWidget->txeLatex->font());
@@ -784,7 +796,7 @@ void KLFMainWin::slotEvaluate()
   if (_output.status == 0) {
     // ALL OK
 
-    QPixmap sc = _output.result.convertToImage().smoothScale(QSize(250, 50), QImage::ScaleMin);
+    QPixmap sc = _output.result.smoothScale(QSize(250, 50), QImage::ScaleMin);
     mMainWidget->lblOutput->setPixmap(sc);
 
     mMainWidget->frmOutput->setEnabled(true);
@@ -793,6 +805,12 @@ void KLFMainWin::slotEvaluate()
     hi.style = currentStyle();
 
     mHistoryBrowser->addToHistory(hi);
+
+    QSize goodsize = _output.result.size();
+    if (goodsize.height() > 300 || goodsize.width() > 500)
+      goodsize = QSize(500, 300);
+    QMimeSourceFactory::defaultFactory()->setImage( "klfoutput", _output.result.smoothScale(goodsize, QImage::ScaleMin) );
+    QToolTip::add(mMainWidget->lblOutput, QString("<qt><img src=\"klfoutput\"></qt>"));
   }
 
   mMainWidget->btnEvaluate->setEnabled(true); // re-enable our button
@@ -838,17 +856,16 @@ void KLFMainWin::slotQuit()
 
 void KLFMainWin::slotDrag()
 {
-  QImage res = _output.result.convertToImage();
-  QImageDrag *drag = new QImageDrag(res, this);
+  QImageDrag *drag = new QImageDrag(_output.result, this);
   //  drag->setImage(res);
   QPixmap p;
-  p = res.smoothScale(QSize(200, 100), QImage::ScaleMin);
+  p = _output.result.smoothScale(QSize(200, 100), QImage::ScaleMin);
   drag->setPixmap(p, QPoint(20, 10));
   drag->dragCopy();
 }
 void KLFMainWin::slotCopy()
 {
-  kapp->clipboard()->setImage(_output.result.convertToImage(), QClipboard::Clipboard);
+  kapp->clipboard()->setImage(_output.result, QClipboard::Clipboard);
 }
 void KLFMainWin::slotSave()
 {
@@ -1011,6 +1028,7 @@ void KLFMainWin::slotSettings()
 
 void KLFMainWin::saveProperties(KConfig *cfg)
 {
+  saveSettings();
   saveStyles();
   saveHistory();
 
@@ -1027,6 +1045,7 @@ void KLFMainWin::saveProperties(KConfig *cfg)
 }
 void KLFMainWin::readProperties(KConfig *cfg)
 {
+  loadSettings();
   loadStyles();
   loadHistory();
 

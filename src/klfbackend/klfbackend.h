@@ -24,8 +24,12 @@
 #define KLFBACKEND_H
 
 #include <qstring.h>
+#ifdef KLFBACKEND_QT4
+#include <QByteArray>
+#else
 #include <qmemarray.h>
-#include <qpixmap.h>
+#endif
+#include <qimage.h>
 
 
 //! Definition of class \ref KLFBackend
@@ -39,9 +43,14 @@
  * <center>
  * <div style="width: 60%; text-align: justify; font-weight: bold">This documentation is the API
  * documentation for the KLatexFormula library backend that
- * you may want to use in your programs. It is a GPL-licensed library based on QT 3 that
+ * you may want to use in your programs. It is a GPL-licensed library based on QT 3 or QT 4 that
  * converts a LaTeX equation given as text into graphics, specifically PNG, EPS or PDF.<br><br>
- * All the core functionality is based in the class \ref KLFBackend .
+ * All the core functionality is based in the class \ref KLFBackend .<br><br>
+ * This library will compile indifferently on QT 3 and QT 4 with the same source code.
+ * The base API is the same, although QT3-specific functions were removed in QT 4-compatible
+ * code (cf. KLFBlockProcess::startProcess(QStringList cmd, QCString str, QStringList env = QStringList()) ).
+ * To compile with QT4, you need to add KLFBACKEND_QT4 to your defines, ie. pass option -DKLFBACKEND_QT4 to gcc.<br><br>
+ * On QT 3, this library has been tested to work in non-GUI applications (ie. FALSE in QApplication constructor).
  *</div></center>
  */
 
@@ -69,6 +78,10 @@ public:
     QString gsexec; /**< the gs executable, path incl. if not in $PATH */
     QString epstopdfexec; /**< the epstopdf executable, path incl. if not in $PATH. This isn't mandatory to get PNG so
 			   * you may leave this to Null or Empty string to drop PDF support in KLFBackend. */
+    int tborderoffset; /**< The number of postscript points to add to top side of the resulting EPS boundingbox */
+    int rborderoffset; /**< The number of postscript points to add to right side of the resulting EPS boundingbox */
+    int bborderoffset; /**< The number of postscript points to add to bottom side of the resulting EPS boundingbox */
+    int lborderoffset; /**< The number of postscript points to add to left side of the resulting EPS boundingbox */
   };
 
   //! Specific input to KLFBackend::getLatexFormula()
@@ -95,7 +108,7 @@ public:
 
   //! KLFBackend::getLatexFormula() result
   /** This struct contains data that is returned from getLatexFormula(). This includes error handling information,
-   * the resulting image (as a QPixmap) as well as data for PNG, (E)PS and PDF files */
+   * the resulting image (as a QImage) as well as data for PNG, (E)PS and PDF files */
   struct klfOutput {
     int status; /**< An integer describing the status of the request. A zero value means success for everything.
 		 * A positive value (status>0) means that a program (latex, dvips, ...) returned a non-zero code and
@@ -104,7 +117,7 @@ public:
     QString errorstr; /**< An explicit error string. If status is positive (ie. latex/dvips/... error) then this text
 		       * is HTML-formatted suitable for a QTextBrowser. */
 
-    QPixmap result; /**< The actual result image. */
+    QImage result; /**< The actual result image. */
     QByteArray pngdata; /**< the data for a png file (exact content) */
     QByteArray epsdata; /**< data for an (eps-)postscript file */
     QByteArray pdfdata; /**< data for a pdf file, if \ref klfSettings::epstopdfexec is non-empty. */
@@ -121,7 +134,7 @@ public:
    * Usage example:
    * \code
    *   ...
-   *   // these may be declared at some more global scope
+   *   // these could have been declared at some more global scope
    *   KLFBackend::klfSettings settings;
    *   settings.tempdir = "/tmp";
    *   settings.klfclspath = "/opt/kde3/share/apps/klatexformula/";
@@ -129,6 +142,10 @@ public:
    *   settings.dvipsexec = "dvips";
    *   settings.gsexec = "gs";
    *   settings.epstopdfexec = "epstopdf";
+   *   settings.lborderoffset = 1;
+   *   settings.tborderoffset = 1;
+   *   settings.rborderoffset = 3;
+   *   settings.bborderoffset = 1;
    *
    *   KLFBackend::klfInput input;
    *   input.latex = "\\int_{\\Sigma}\\!(\\vec{\\nabla}\\times\\vec u)\\,d\\vec S = \\oint_C \\vec{u}\\cdot d\\vec r";
@@ -140,9 +157,14 @@ public:
    *
    *   KLFBackend::klfOutput out = KLFBackend::getLatexFormula(input, settings);
    *
-   *   myLabel->setPixmap(out.result);
+   *   myLabel->setPixmap(QPixmap(out.result));
    *
    *   // write contents of 'out.pdfdata' to a file to get a PDF file (for example)
+   *   {
+   *     QFile fpdf(fname);
+   *     fpdf.open(IO_WriteOnly | IO_Raw);
+   *     fpdf.writeBlock(*dataptr);
+   *   }
    *   ...
    * \endcode
    */

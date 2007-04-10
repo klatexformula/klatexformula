@@ -27,6 +27,7 @@
 #include <qdatastream.h>
 #include <qvaluelist.h>
 #include <qpushbutton.h>
+#include <qtooltip.h>
 
 #include <klocale.h>
 #include <kmessagebox.h>
@@ -108,6 +109,11 @@ KLFStyleManager::KLFStyleManager(KLFData::KLFStyleList *stydata, QWidget *parent
   mActionsPopup->insertItem(i18n("Rename style"), this, SLOT(slotRename()), 0, PopupIdRename);
 
   btnActions->setPopup(mActionsPopup);
+
+  QString tmsg = i18n("Drag and drop styles to move them. Right-click for actions menu.");
+  QToolTip::add(lstStyles, tmsg);
+  QToolTip::add(lstStyles->viewport(), tmsg);
+
 
   // populate style list
   stylesChanged();

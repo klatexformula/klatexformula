@@ -127,7 +127,7 @@ public:
 
   KLFBackend::klfSettings backendSettings() const { return _settings; }
 
-  QFont txeLatexFont() const { return mMainWidget->font(); }
+  QFont txeLatexFont() const { return mMainWidget->txeLatex->font(); }
 
 signals:
 

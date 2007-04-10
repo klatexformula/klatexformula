@@ -63,6 +63,9 @@
             <property name="text">
                 <string>Close</string>
             </property>
+            <property name="default">
+                <bool>true</bool>
+            </property>
             <property name="toolTip" stdset="0">
                 <string>Close dialog</string>
             </property>

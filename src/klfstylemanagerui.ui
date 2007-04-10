@@ -54,6 +54,9 @@
             <property name="accel">
                 <string>Alt+A</string>
             </property>
+            <property name="toolTip" stdset="0">
+                <string>Choose an action</string>
+            </property>
         </widget>
         <widget class="QPushButton">
             <property name="name">
@@ -61,6 +64,9 @@
             </property>
             <property name="text">
                 <string>Close</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Close window</string>
             </property>
         </widget>
     </vbox>

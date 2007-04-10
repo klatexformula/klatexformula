@@ -2,14 +2,15 @@
 
 # to change version, modify following files:
 # src/main.cpp
+# src/klfcmdl_main.cpp
 # configure.in.in (this file)
 # doc/en/index.docbook
 # klatexformula.kdevelop
 # src/klatexformula.lsm
 # Doxyfile
-# #  -- not yet existent ./klatexformula.kdevelop.spec
+# #  -- not yet existent ./klatexformula.spec
 
-AM_INIT_AUTOMAKE(klatexformula, 2.0.0-alpha3)
+AM_INIT_AUTOMAKE(klatexformula, 2.0.0-alpha4)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 
@@ -40,7 +41,7 @@ fi
 AC_PATH_PROG(EPSTOPDF_EXEC, epstopdf, false)
 if test "$EPSTOPDF_EXEC" = "false"; then
   AC_MSG_WARN([*** program epstopdf not found ! *** ])
-  AC_MSG_WARN([PDF support will be deactivated. To enable, give epstopdf executable path ])
+  AC_MSG_WARN([PDF support will be deactivated. To enable, enter epstopdf executable path ])
   AC_MSG_WARN([to KLatexFormula settings dialog once compiled and exectued.])
 fi
 
