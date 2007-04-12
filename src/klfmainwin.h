@@ -117,6 +117,9 @@ private:
 class KLFMainWin : public KMainWindow
 {
   Q_OBJECT
+
+  friend class KLFSettings;
+
 public:
   KLFMainWin();
   virtual ~KLFMainWin();
@@ -155,6 +158,8 @@ public slots:
 
   void refreshSyntaxHighlighting();
   void refreshCaretPosition(int para, int pos);
+  void refreshPreambleSyntaxHighlighting();
+  void refreshPreambleCaretPosition(int para, int pos);
 
   void refreshStylePopupMenus();
   void loadStyles();
@@ -177,10 +182,13 @@ protected:
   KPopupMenu *mStyleMenu;
 
   KLFLatexSyntaxHighlighter *mHighlighter;
+  KLFLatexSyntaxHighlighter *mPreambleHighlighter;
 
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
 
   KLFBackend::klfOutput _output; // output from KLFBackend
+
+  QSize _preview_tooltip_maxsize;
 
   KLFData::KLFHistoryList _history;
   KLFData::KLFStyleList _styles;

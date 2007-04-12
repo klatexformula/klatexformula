@@ -42,6 +42,11 @@ public:
 
 public slots:
 
+  void reset();
+  void show();
+
+  void setDefaultPaths();
+
 protected:
 
   KLFBackend::klfSettings *_ptr;

@@ -48,6 +48,34 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *
   kurlGs->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
   kurlEpstopdf->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
 
+  reset();
+  
+  btnCancel->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
+  btnOk->setIconSet(QIconSet(locate("appdata", "pics/ok.png")));
+
+  btnPathsReset->setIconSet(QIconSet(locate("appdata", "pics/resetdefaults.png")));
+
+  connect(btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
+
+  QSize m = minimumSize();
+  m.setWidth(m.width()>500 ? m.width() : 500);
+  setMinimumSize(m);
+}
+
+KLFSettings::~KLFSettings()
+{
+}
+
+void KLFSettings::show()
+{
+  reset();
+  KLFSettingsUI::show();
+}
+
+
+void KLFSettings::reset()
+{
+
   kurlTempDir->setURL(_ptr->tempdir);
   kurlLatex->setURL(_ptr->latexexec);
   kurlDvips->setURL(_ptr->dvipsexec);
@@ -67,19 +95,24 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *
   kccSHParenMismatch->setColor(_synthighlighterptr->cParenMismatch);
 
   kfontAppearFont->setFont(_mainwin->txeLatexFont());
-  
-  btnCancel->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
-  btnOk->setIconSet(QIconSet(locate("appdata", "pics/ok.png")));
 
-  QSize m = minimumSize();
-  m.setWidth(m.width()>500 ? m.width() : 500);
-  setMinimumSize(m);
+  chkPreviewMaxSize->setChecked(_mainwin->_preview_tooltip_maxsize.width() != 0 || _mainwin->_preview_tooltip_maxsize.height() != 0);
+  spnPreviewMaxWidth->setValue(_mainwin->_preview_tooltip_maxsize.width());
+  spnPreviewMaxHeight->setValue(_mainwin->_preview_tooltip_maxsize.height());
+
 }
 
-KLFSettings::~KLFSettings()
+
+void KLFSettings::setDefaultPaths()
 {
+  kurlTempDir->setURL(KGlobal::instance()->dirs()->findResourceDir("tmp", "/"));
+  kurlLatex->setURL(KStandardDirs::findExe("latex"));
+  kurlDvips->setURL(KStandardDirs::findExe("dvips"));
+  kurlGs->setURL(KStandardDirs::findExe("gs"));
+  QString epstopdf = KStandardDirs::findExe("epstopdf");
+  kurlEpstopdf->setURL(epstopdf);
+  chkEpstopdf->setChecked( ! epstopdf.isEmpty() );
 }
-
 
 
 void KLFSettings::accept()
@@ -115,6 +148,10 @@ void KLFSettings::accept()
 
   _mainwin->setTxeLatexFont(kfontAppearFont->font());
 
+  if (chkPreviewMaxSize->isChecked())
+    _mainwin->_preview_tooltip_maxsize = QSize(spnPreviewMaxWidth->value(), spnPreviewMaxHeight->value());
+  else
+    _mainwin->_preview_tooltip_maxsize = QSize(0,0);
 
   _mainwin->saveSettings();
 

@@ -375,6 +375,8 @@ KLFMainWin::KLFMainWin()
 
   QFont font = mMainWidget->txeLatex->font();
   mMainWidget->txeLatex->setFont(cfg->readFontEntry("latexeditfont", &font));
+  QSize ds(500, 350);
+  _preview_tooltip_maxsize = cfg->readSizeEntry("previewtooltipmaxsize", &ds);
 
   font = mMainWidget->btnDrag->font();
   font.setPointSize(font.pointSize()-2);
@@ -392,9 +394,12 @@ KLFMainWin::KLFMainWin()
   mMainWidget->txeLatex->setVScrollBarMode(QScrollView::Auto);
 
   mHighlighter = new KLFLatexSyntaxHighlighter(mMainWidget->txeLatex);
+  mPreambleHighlighter = new KLFLatexSyntaxHighlighter(mMainWidget->txePreamble);
 
   connect(mMainWidget->txeLatex, SIGNAL(cursorPositionChanged(int, int)),
 	  this, SLOT(refreshCaretPosition(int, int)));
+  connect(mMainWidget->txePreamble, SIGNAL(cursorPositionChanged(int, int)),
+	  this, SLOT(refreshPreambleCaretPosition(int, int)));
 
   _shrinkedsize = mMainWidget->frmMain->sizeHint() + QSize(3, 3);
   _expandedsize.setWidth(mMainWidget->frmMain->sizeHint().width() + mMainWidget->frmDetails->sizeHint().width() + 3);
@@ -430,6 +435,7 @@ KLFMainWin::KLFMainWin()
   QTimer *synthighlighttimer = new QTimer(this);
   synthighlighttimer->start(200);
   connect(synthighlighttimer, SIGNAL(timeout()), this, SLOT(refreshSyntaxHighlighting()));
+  connect(synthighlighttimer, SIGNAL(timeout()), this, SLOT(refreshPreambleSyntaxHighlighting()));
 
 
   connect(mMainWidget->btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
@@ -472,6 +478,8 @@ KLFMainWin::~KLFMainWin()
     delete mLatexSymbols;
   if (mHistoryBrowser)
     delete mHistoryBrowser; // we aren't its parent
+  if (mPreambleHighlighter)
+    delete mPreambleHighlighter;
   if (mHighlighter)
     delete mHighlighter;
 }
@@ -496,6 +504,7 @@ void KLFMainWin::loadSettings()
   _settings.tborderoffset = cfg->readNumEntry("tborderoffset", 1);
   _settings.rborderoffset = cfg->readNumEntry("rborderoffset", 4);
   _settings.bborderoffset = cfg->readNumEntry("bborderoffset", 1);
+
 }
 
 void KLFMainWin::saveSettings()
@@ -516,6 +525,7 @@ void KLFMainWin::saveSettings()
 
   cfg->setGroup("Appearance");
   cfg->writeEntry("latexeditfont", mMainWidget->txeLatex->font());
+  cfg->writeEntry("previewtooltipmaxsize", _preview_tooltip_maxsize);
 
 }
 
@@ -531,6 +541,20 @@ void KLFMainWin::refreshCaretPosition(int /*para*/, int /*pos*/)
 {
   //  mHighlighter->setCaretPos(para, pos); // will automatically refresh
   refreshSyntaxHighlighting();
+}
+
+void KLFMainWin::refreshPreambleSyntaxHighlighting()
+{
+  int pa, po;
+  mMainWidget->txePreamble->getCursorPosition(&pa, &po);
+  mPreambleHighlighter->setCaretPos(pa, po);
+  mPreambleHighlighter->rehighlight();
+}
+
+void KLFMainWin::refreshPreambleCaretPosition(int /*para*/, int /*pos*/)
+{
+  //  mHighlighter->setCaretPos(para, pos); // will automatically refresh
+  refreshPreambleSyntaxHighlighting();
 }
 
 void KLFMainWin::refreshStylePopupMenus()
@@ -578,7 +602,7 @@ void KLFMainWin::loadStyles()
 
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate a few default styles
-    KLFData::KLFStyle s1 = { i18n("default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "\\usepackage{amssymb,amsmath}\n", 1200 };
+    KLFData::KLFStyle s1 = { i18n("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "\\usepackage{amssymb,amsmath}\n", 1200 };
     _styles.append(s1);
     /*
      KLFData::KLFStyle s2 = { i18n("small, white bg"), qRgb(0, 0, 0), qRgba(255, 255, 255, 255), "\\[ ... \\]", "", 150 };
@@ -785,7 +809,7 @@ void KLFMainWin::slotEvaluate()
   _output = KLFBackend::getLatexFormula(input, _settings);
 
   if (_output.status < 0) {
-    KMessageBox::error(this, i18n("Error"), i18n("Error: %1").arg(_output.errorstr));
+    KMessageBox::error(this, i18n("Error: %1").arg(_output.errorstr), i18n("Error"));
     mMainWidget->lblOutput->setText("");
     mMainWidget->frmOutput->setEnabled(false);
   }
@@ -807,9 +831,14 @@ void KLFMainWin::slotEvaluate()
     mHistoryBrowser->addToHistory(hi);
 
     QSize goodsize = _output.result.size();
-    if (goodsize.height() > 300 || goodsize.width() > 500)
-      goodsize = QSize(500, 300);
-    QMimeSourceFactory::defaultFactory()->setImage( "klfoutput", _output.result.smoothScale(goodsize, QImage::ScaleMin) );
+    QImage img = _output.result;
+    if (_preview_tooltip_maxsize != QSize(0,0) &&
+	( img.width() > _preview_tooltip_maxsize.width() ||
+	  img.height() > _preview_tooltip_maxsize.height() ) ) {
+      img = _output.result.smoothScale(_preview_tooltip_maxsize, QImage::ScaleMin);
+    }
+
+    QMimeSourceFactory::defaultFactory()->setImage( "klfoutput", img );
     QToolTip::add(mMainWidget->lblOutput, QString("<qt><img src=\"klfoutput\"></qt>"));
   }
 
@@ -824,6 +853,7 @@ void KLFMainWin::slotEvaluate()
 void KLFMainWin::slotClear()
 {
   mMainWidget->txeLatex->setText("");
+  mMainWidget->txeLatex->setFocus();
 }
 
 void KLFMainWin::slotHistory(bool showhist)
@@ -988,10 +1018,32 @@ void KLFMainWin::slotSaveStyle()
     return;
   }
 
+  // check to see if style exists already
+  int found_i = -1;
+  for (uint kl = 0; found_i == -1 && kl < _styles.size(); ++kl) {
+    if (_styles[kl].name.stripWhiteSpace() == name.stripWhiteSpace()) {
+      found_i = kl;
+      // style exists already
+      int r = KMessageBox::questionYesNoCancel(this, i18n("Style name already exists. Do you want to overwrite?"),  i18n("Style name exists"));
+      switch (r) {
+      case KMessageBox::No:
+	slotSaveStyle(); // recurse, ask for new name.
+	return; // and stop this function execution of course!
+      case KMessageBox::Yes:
+	break; // continue normally
+      default:
+	return;	// forget everything; "Cancel"
+      }
+    }
+  }
+
   sty = currentStyle();
   sty.name = name;
 
-  _styles.append(sty);
+  if (found_i == -1)
+    _styles.append(sty);
+  else
+    _styles[found_i] = sty;
 
   emit stylesChanged();
 
@@ -1004,13 +1056,6 @@ void KLFMainWin::slotSaveStyle()
 
 void KLFMainWin::slotStyleManager()
 {
-  //  static KLFStyleManager *dlg = 0;
-  //  if (dlg == 0) {
-  //    dlg = new KLFStyleManager(&_styles, this);
-  //    connect(dlg, SIGNAL(refreshStyles()), this, SLOT(refreshStylePopupMenus()));
-  //    connect(this, SIGNAL(stylesChanged()), dlg, SLOT(stylesChanged()));
-  //  }
-  //  dlg->show();
   mStyleManager->show();
 }
 

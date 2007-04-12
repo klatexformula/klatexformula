@@ -84,7 +84,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 #ifdef KLFBACKEND_QT4
   QString latexsimplified = in.latex.trimmed();
 #else
-  QString latexsimplified = in.latex.simplifyWhiteSpace();
+  QString latexsimplified = in.latex.stripWhiteSpace();
 #endif
   if (latexsimplified.isEmpty()) {
     res.errorstr = TRANSLATE("You must specify a LaTeX formula!");

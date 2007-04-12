@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>520</width>
-            <height>481</height>
+            <width>491</width>
+            <height>485</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -56,16 +56,22 @@
                         <property name="checked">
                             <bool>true</bool>
                         </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Whether to enable coloring your LaTeX code or not</string>
+                        </property>
                     </widget>
                     <widget class="QFrame">
                         <property name="name">
                             <cstring>frmSHColors</cstring>
                         </property>
                         <property name="frameShape">
-                            <enum>StyledPanel</enum>
+                            <enum>Box</enum>
                         </property>
                         <property name="frameShadow">
-                            <enum>Raised</enum>
+                            <enum>Sunken</enum>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Changes affect directly LaTeX formula editor.&lt;br&gt;You need to restart KLatexFormula to affect the preamble editor</string>
                         </property>
                         <grid>
                             <property name="name">
@@ -160,6 +166,123 @@
                                 <property name="name">
                                     <cstring>kfontAppearFont</cstring>
                                 </property>
+                            </widget>
+                        </hbox>
+                    </widget>
+                    <widget class="QGroupBox">
+                        <property name="name">
+                            <cstring>gbxPreviewTooltip</cstring>
+                        </property>
+                        <property name="frameShape">
+                            <enum>Box</enum>
+                        </property>
+                        <property name="frameShadow">
+                            <enum>Sunken</enum>
+                        </property>
+                        <property name="title">
+                            <string>Preview Tooltip on LaTeX formula display</string>
+                        </property>
+                        <hbox>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <widget class="QCheckBox">
+                                <property name="name">
+                                    <cstring>chkPreviewMaxSize</cstring>
+                                </property>
+                                <property name="sizePolicy">
+                                    <sizepolicy>
+                                        <hsizetype>7</hsizetype>
+                                        <vsizetype>0</vsizetype>
+                                        <horstretch>0</horstretch>
+                                        <verstretch>0</verstretch>
+                                    </sizepolicy>
+                                </property>
+                                <property name="text">
+                                    <string>Maximum size (width x height) :</string>
+                                </property>
+                                <property name="checked">
+                                    <bool>true</bool>
+                                </property>
+                            </widget>
+                            <widget class="QLayoutWidget">
+                                <property name="name">
+                                    <cstring>layout7</cstring>
+                                </property>
+                                <hbox>
+                                    <property name="name">
+                                        <cstring>unnamed</cstring>
+                                    </property>
+                                    <property name="margin">
+                                        <number>0</number>
+                                    </property>
+                                    <property name="spacing">
+                                        <number>3</number>
+                                    </property>
+                                    <widget class="QSpinBox">
+                                        <property name="name">
+                                            <cstring>spnPreviewMaxWidth</cstring>
+                                        </property>
+                                        <property name="sizePolicy">
+                                            <sizepolicy>
+                                                <hsizetype>5</hsizetype>
+                                                <vsizetype>0</vsizetype>
+                                                <horstretch>3</horstretch>
+                                                <verstretch>0</verstretch>
+                                            </sizepolicy>
+                                        </property>
+                                        <property name="maxValue">
+                                            <number>1000</number>
+                                        </property>
+                                        <property name="minValue">
+                                            <number>10</number>
+                                        </property>
+                                        <property name="value">
+                                            <number>500</number>
+                                        </property>
+                                    </widget>
+                                    <widget class="QLabel">
+                                        <property name="name">
+                                            <cstring>lblPreviewX</cstring>
+                                        </property>
+                                        <property name="sizePolicy">
+                                            <sizepolicy>
+                                                <hsizetype>5</hsizetype>
+                                                <vsizetype>5</vsizetype>
+                                                <horstretch>1</horstretch>
+                                                <verstretch>0</verstretch>
+                                            </sizepolicy>
+                                        </property>
+                                        <property name="text">
+                                            <string>x</string>
+                                        </property>
+                                        <property name="alignment">
+                                            <set>AlignCenter</set>
+                                        </property>
+                                    </widget>
+                                    <widget class="QSpinBox">
+                                        <property name="name">
+                                            <cstring>spnPreviewMaxHeight</cstring>
+                                        </property>
+                                        <property name="sizePolicy">
+                                            <sizepolicy>
+                                                <hsizetype>5</hsizetype>
+                                                <vsizetype>0</vsizetype>
+                                                <horstretch>3</horstretch>
+                                                <verstretch>0</verstretch>
+                                            </sizepolicy>
+                                        </property>
+                                        <property name="maxValue">
+                                            <number>1000</number>
+                                        </property>
+                                        <property name="minValue">
+                                            <number>10</number>
+                                        </property>
+                                        <property name="value">
+                                            <number>350</number>
+                                        </property>
+                                    </widget>
+                                </hbox>
                             </widget>
                         </hbox>
                     </widget>
@@ -294,7 +417,7 @@
                             <cstring>kurlEpstopdf</cstring>
                         </property>
                     </widget>
-                    <spacer row="6" column="1">
+                    <spacer row="7" column="1">
                         <property name="name">
                             <cstring>spcv</cstring>
                         </property>
@@ -307,10 +430,45 @@
                         <property name="sizeHint">
                             <size>
                                 <width>20</width>
-                                <height>140</height>
+                                <height>100</height>
                             </size>
                         </property>
                     </spacer>
+                    <widget class="QLayoutWidget" row="6" column="0" rowspan="1" colspan="2">
+                        <property name="name">
+                            <cstring>layout8</cstring>
+                        </property>
+                        <hbox>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <spacer>
+                                <property name="name">
+                                    <cstring>spcHbtnresetdflts</cstring>
+                                </property>
+                                <property name="orientation">
+                                    <enum>Horizontal</enum>
+                                </property>
+                                <property name="sizeType">
+                                    <enum>Expanding</enum>
+                                </property>
+                                <property name="sizeHint">
+                                    <size>
+                                        <width>350</width>
+                                        <height>20</height>
+                                    </size>
+                                </property>
+                            </spacer>
+                            <widget class="QPushButton">
+                                <property name="name">
+                                    <cstring>btnPathsReset</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Reset defaults</string>
+                                </property>
+                            </widget>
+                        </hbox>
+                    </widget>
                 </grid>
             </widget>
             <widget class="QWidget">
@@ -626,6 +784,24 @@
         <sender>chkSHEnabled</sender>
         <signal>toggled(bool)</signal>
         <receiver>frmSHColors</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>chkPreviewMaxSize</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>spnPreviewMaxWidth</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>chkPreviewMaxSize</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>spnPreviewMaxHeight</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>chkPreviewMaxSize</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>lblPreviewX</receiver>
         <slot>setEnabled(bool)</slot>
     </connection>
 </connections>

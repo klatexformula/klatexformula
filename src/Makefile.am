@@ -35,7 +35,7 @@ shelldesktop_DATA = klatexformula.desktop
 
 # our data
 ourdatadir = $(kde_datadir)/klatexformula
-ourdata_DATA = latex_symbols
+ourdata_DATA = latex_symbols symbolspixmapcache
 
 SUBDIRS = klfbackend pics
 noinst_HEADERS = klfmainwin.h klfsettings.h klfdata.h klfhistorybrowser.h \
