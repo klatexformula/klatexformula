@@ -33,7 +33,7 @@
 
 extern const char version[];
 extern const int version_maj, version_min, version_release;
-
+extern KAboutData *klfaboutdata;
 
 static const char description[] =
     I18N_NOOP("KLatexFormula -- Easily get an image from a LaTeX equation");
@@ -43,6 +43,8 @@ const char version[] = "2.0.0-alpha4";
 const int version_maj = 2;
 const int version_min = 0;
 const int version_release = 0;
+
+KAboutData *klfaboutdata = 0;
 
 static KCmdLineOptions options[] =
 {
@@ -57,8 +59,9 @@ int main(int argc, char **argv)
   KCmdLineArgs::init(argc, argv, &about);
   KCmdLineArgs::addCmdLineOptions( options );
 
-  KApplication app;
+  klfaboutdata = &about;
 
+  KApplication app;
 
   fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2007\n"
 	  "Licensed under the terms of the GNU Public License GPL\n\n",

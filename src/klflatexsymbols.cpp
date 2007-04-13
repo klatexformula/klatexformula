@@ -344,6 +344,12 @@ KLFLatexSymbols::~KLFLatexSymbols()
 }
 
 
+void KLFLatexSymbols::reject()
+{
+  // reimplemeneted to stop ESC from brutally closing the dialog.
+  // see comment in same function in klfhistorybrowser.cpp for details.
+}
+
 void KLFLatexSymbols::slotNeedsInsert(QIconViewItem *item)
 {
   if (!item)

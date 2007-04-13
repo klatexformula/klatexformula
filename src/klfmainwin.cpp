@@ -50,6 +50,8 @@
 #include <kstandarddirs.h>
 #include <kfiledialog.h>
 #include <kinputdialog.h>
+#include <khelpmenu.h>
+#include <kaboutdata.h>
 
 #include <klfbackend.h>
 
@@ -72,6 +74,8 @@
 extern const char version[];
 extern const int version_maj, version_min;
 
+// KLatexFormula "About" Data
+extern KAboutData *klfaboutdata;
 
 
 /* This is for backwards compatibility with older versions than 2.0.0
@@ -372,6 +376,8 @@ KLFMainWin::KLFMainWin()
   mMainWidget->btnLoadStyle->setIconSet(QPixmap(locate("appdata", "pics/loadstyle.png")));
   mMainWidget->btnSaveStyle->setIconSet(QPixmap(locate("appdata", "pics/savestyle.png")));
   mMainWidget->btnSettings->setIconSet(QPixmap(locate("appdata", "pics/settings.png")));
+  mMainWidget->btnHelp->setIconSet(QPixmap(locate("appdata", "pics/help.png")));
+  mMainWidget->btnHelp->setText("");
 
   QFont font = mMainWidget->txeLatex->font();
   mMainWidget->txeLatex->setFont(cfg->readFontEntry("latexeditfont", &font));
@@ -405,6 +411,8 @@ KLFMainWin::KLFMainWin()
   _expandedsize.setWidth(mMainWidget->frmMain->sizeHint().width() + mMainWidget->frmDetails->sizeHint().width() + 3);
   _expandedsize.setHeight(mMainWidget->frmMain->sizeHint().height() + 3);
 
+  KHelpMenu *helpMenu = new KHelpMenu(this, klfaboutdata);
+  mMainWidget->btnHelp->setPopup(helpMenu->menu());
 
   mMainWidget->frmDetails->hide();
 
@@ -825,10 +833,12 @@ void KLFMainWin::slotEvaluate()
 
     mMainWidget->frmOutput->setEnabled(true);
 
-    KLFData::KLFHistoryItem hi = { KLFData::KLFHistoryItem::MaxId++, QDateTime::currentDateTime(), input.latex, sc, KLFData::KLFStyle() };
+    KLFData::KLFHistoryItem hi = { KLFData::KLFHistoryItem::MaxId++, QDateTime::currentDateTime(), input.latex, sc,
+				   KLFData::KLFStyle() };
     hi.style = currentStyle();
 
-    mHistoryBrowser->addToHistory(hi);
+    if ( ! (_history.last() == hi) )
+      mHistoryBrowser->addToHistory(hi);
 
     QSize goodsize = _output.result.size();
     QImage img = _output.result;

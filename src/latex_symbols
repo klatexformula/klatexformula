@@ -292,6 +292,8 @@ Arrow Symbols - May require package {amssymb,amsmath}
 \nleftrightarrow
 \nLeftrightarrow
 \leadsto
+\xleftarrow[xyz]{abc}
+\xrightarrow[xyz]{abc}
 
 Miscellaneous Symbols - May require package {amssymb,amsmath}
 \ldots
@@ -522,5 +524,37 @@ Math Alphabets - May require package {amsfonts}
 \mathfrak{X}
 \mathfrak{Y}
 \mathfrak{Z}
-
+\boldsymbol{A}
+\boldsymbol{B}
+\boldsymbol{C}
+\boldsymbol{D}
+\boldsymbol{E}
+\boldsymbol{F}
+\boldsymbol{G}
+\boldsymbol{H}
+\boldsymbol{I}
+\boldsymbol{J}
+\boldsymbol{K}
+\boldsymbol{L}
+\boldsymbol{M}
+\boldsymbol{N}
+\boldsymbol{O}
+\boldsymbol{P}
+\boldsymbol{Q}
+\boldsymbol{R}
+\boldsymbol{S}
+\boldsymbol{T}
+\boldsymbol{U}
+\boldsymbol{V}
+\boldsymbol{W}
+\boldsymbol{X}
+\boldsymbol{Y}
+\boldsymbol{Z}
+\boldsymbol{\Phi}
+\boldsymbol{\varepsilon}
+\boldsymbol{\nabla}
+\boldsymbol{\infty}
+\boldsymbol{\Rightarrow}
+\boldsymbol{[BoldSymbol]}
+\text{Regular text}
 

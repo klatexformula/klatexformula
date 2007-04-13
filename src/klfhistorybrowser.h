@@ -92,6 +92,7 @@ protected slots:
 
 protected:
 
+  void reject();
   void closeEvent(QCloseEvent *e);
 
 private:

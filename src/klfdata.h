@@ -70,5 +70,9 @@ QDataStream& operator>>(QDataStream& stream, KLFData::KLFStyle& style);
 QDataStream& operator<<(QDataStream& stream, const KLFData::KLFHistoryItem& item);
 QDataStream& operator>>(QDataStream& stream, KLFData::KLFHistoryItem& item);
 
+// exact matches, style included, but excluding ID and datetime
+bool operator==(const KLFData::KLFHistoryItem& a, const KLFData::KLFHistoryItem& b);
+// exact matches
+bool operator==(const KLFData::KLFStyle& a, const KLFData::KLFStyle& b);
 
 #endif

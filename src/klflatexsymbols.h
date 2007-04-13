@@ -63,6 +63,8 @@ protected slots:
 
 protected:
 
+  void reject();
+
   KLFMainWin *_mainwin;
 
   QWidgetStack *stkViews;

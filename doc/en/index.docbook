@@ -184,17 +184,19 @@ then displayed. You can then:
 <itemizedlist>
 <listitem>
 <para>Drag the image (click on the image or on the &quot;DRAG&quot; button, keep button pressed and drag
-your formula where you want)</para>
+your formula wherever you want)</para>
 </listitem>
 <listitem>
 <para>Copy the image to clipboard (click the &quot;COPY&quot; button and then paste the image in another application)</para>
 </listitem>
 <listitem>
-<para>Save the image as a picture (click the &quot;SAVE&quot; button and choose the filename as well as file image format)</para>
+<para>Save the image as a picture (click the &quot;SAVE&quot; button and choose the filename as well as file image format).
+A variety of image formats are available, such as all Qt-supported types (PNG, JPEG, PNM, BMP, ...) as well as Encapsulated
+PostScript (EPS) and Adobe Portable Document Format (PDF). </para>
 </listitem>
 </itemizedlist>
 
-<para>Note that the image is scaled to fit in the display area. If you drag, copy or do anything to that image,
+<para>Note that the displayed image is scaled to fit in the display area. If you drag, copy or do anything to that image,
 it's of course the full-sized image you'll get. If the image gets too small,
 it may become unreadable in the small display area, then keep your mouse on it, and a tooltip
 will appear with a larger image. Check out the <link linkend="screenshots">Screenshots</link>.</para>
@@ -225,7 +227,7 @@ known <guiicon><inlinemediaobject>
 	  <textobject>
 	    <phrase>[LaTeX]</phrase>
 	  </textobject>
-</inlinemediaobject></guiicon> symbols you can insert in your equation. See section <link linkend="using-tools-latexsymbols">LaTeX Symbols</link>.
+</inlinemediaobject></guiicon> symbols you can insert in your equation. See section <link linkend="using-latexsymbols">LaTeX Symbols</link>.
 </para>
 
 <para>The &quot;<guiicon><inlinemediaobject>
@@ -237,7 +239,7 @@ known <guiicon><inlinemediaobject>
 	  </textobject>
 </inlinemediaobject></guiicon>&quot; button will open a window displaying the
 equations you evaluated previously, so you can recall them again to modify and enhance them.
-See section <link linkend="using-tools-historybrowser">History Browser</link>.
+See section <link linkend="using-historybrowser">History Browser</link>.
 </para>
 
 </sect1>
@@ -324,7 +326,7 @@ your styles. See section <link linkend="styles-manager">Style Manager</link> for
 </para>
 </sect2>
 <sect2 id="styles-manager">
-<title>Style Manager</title>
+<title>The Style Manager</title>
 <para>The style manager is a small helper dialog that can be accessed in the &quot;<guiicon><inlinemediaobject>
 	  <imageobject>
 	    <imagedata fileref="loadstyle.png" format="PNG"/>
@@ -346,14 +348,10 @@ select the &quot;<guiicon><inlinemediaobject>
 </sect2>
 </sect1>
 
-<sect1 id="using-tools">
-<title>Extra tools</title>
-<para>These helper tools were developed to make &klatexformula; more useful and more convenient.
-</para>
+<sect1 id="using-historybrowser">
+<title>The history browser</title>
 
-<sect2 id="using-tools-historybrowser">
-<title>A history browser</title>
-<sect3 id="historybrowser-usage">
+<sect2 id="historybrowser-usage">
 <title>Using the history browser</title>
 <para>This tool can be accessed through the &quot;<guiicon><inlinemediaobject>
 	  <imageobject>
@@ -392,7 +390,6 @@ style. To delete an item or several items, select the unwanted item(s) and hit t
 </inlinemediaobject></guiicon>&nbsp;Delete item(s)&quot; button. Note that these actions may be selected in the
 context menu by right-clicking in the list.
 </para>
-
 <para>You may choose to display all previous equations, or only those that are &quot;tagged&quot;. This is done by
 selecting the &quot;<guiicon><inlinemediaobject>
 	  <imageobject>
@@ -404,31 +401,110 @@ selecting the &quot;<guiicon><inlinemediaobject>
 </inlinemediaobject></guiicon>&quot; button. See section <link linkend="historybrowser-tagging">Tagging Equations</link>
 for more information about tagged equations.
 </para>
-
-<para>At the top of the window there is a search facility, that will search through all the entries for matching text.
+<para>At the top of the window there is a search facility, that will search through all the displayed entries for matching text.
 Start typing a search text and the first match will automatically be selected. To advance to next match, press F3 (Note that the F3
 key will only work while the text field has focus). If the search bar is colored in green, then a match was found; if it turns to red,
 then the search failed. You may clear the search bar with &quot;<guiicon><inlinemediaobject>
 	  <imageobject>
-	    <imagedata fileref="clear.png" format="PNG"/>
+	    <imagedata fileref="clearright.png" format="PNG"/>
 	  </imageobject>
 	  <textobject>
-	    <phrase>[Clear]</phrase>
+	    <phrase>[Clear Search Icon]</phrase>
 	  </textobject>
 </inlinemediaobject></guiicon>&quot;.</para>
+</sect2>
 
-<sect3 id="historybrowser-tagging">
+<sect2 id="historybrowser-tagging">
 <title>Tagging Equations</title>
-
-</sect3>
-
+<para>You may add keywords to your equations, in the purpose of easing a future search process should you once need to
+restore the formula.</para>
+<para>A &quot;tagged&quot; equation is here defined to be an equation, the first line of which is a LaTeX comment (line starting
+with a %-sign) containing one or several keywords.</para>
+<para>To set keywords to an equation, you need to add a line at the beginning of your equation, with a %-sign and a few keywords,
+this before evaluating your formula. Then the equation will be saved to history with the given keywords. See the
+<link linkend="screenshots">Screenshots</link> section for an example.
+</para>
 </sect2>
 
-<sect2 id="using-tools-latexsymbols">
-<title>A LaTeX symbols palette</title>
-<para></para>
-</sect2>
+</sect1>
 
+<sect1 id="using-latexsymbols">
+<title>The LaTeX symbols palette</title>
+<para>This tool can be invoked with the &quot;<guiicon><inlinemediaobject>
+	  <imageobject>
+	    <imagedata fileref="symbols.png" format="PNG"/>
+	  </imageobject>
+	  <textobject>
+	    <phrase>[Symbols Icon]</phrase>
+	  </textobject>
+</inlinemediaobject></guiicon>&quot; button in shrinked mode.</para>
+<para>This tool displays a list of LaTeX symbols, by category. Choose a category in the list right under the symbol palette.
+</para>
+<para>To view the LaTeX code for a symbol, click the symbol and the code will appear below the category chooser. You can then
+click the &quot;<guiicon><inlinemediaobject>
+	  <imageobject>
+	    <imagedata fileref="insertsymb.png" format="PNG"/>
+	  </imageobject>
+	  <textobject>
+	    <phrase>[Insert Symbol Icon]</phrase>
+	  </textobject>
+</inlinemediaobject></guiicon>&quot; button to insert the symbol in the equation editor. The same effect is obtained if you
+double-click the symbol.</para>
+<para>Depending on the symbol you choose, you may need to include one or more additional LaTeX packages. If you get a LaTeX error
+complaining about an undefined control sequence, insert the \usepackage{xyz} directive in the preamble (in expanded mode) where
+xyz is the necessary package.</para>
+
+</sect1>
+
+<sect1 id="using-settings">
+<title>KLatexFormula settings</title>
+
+<para>The settings can be accessed with the &quot;<guiicon><inlinemediaobject>
+	  <imageobject>
+	    <imagedata fileref="settings.png" format="PNG"/>
+	  </imageobject>
+	  <textobject>
+	    <phrase>[Settings Icon]</phrase>
+	  </textobject>
+</inlinemediaobject></guiicon>&nbsp;Settings&quot; button in expanded mode.</para>
+<para>Each Tab page is described here individually.</para>
+<sect2 id="settings-appearance">
+<title>Appearance</title>
+<para>This part lets you fine-tune the syntax highlighter applyable in the equation editor field and
+the preamble editor field. You can select the colors you want for each setting. Note that, due to Qt library
+restrictions, only text color is supported and you can't change the character background color. Also note that
+for internal (buggy, I admit) reasons, that settings apply immediately on the equation editor, but that you need
+to restart KLatexFormula to apply settings to the preamble editor.</para>
+<para>You can select, if you want, a specific font you want to use to edit your equations.</para>
+<para>Last part of this tab page is the maximum size of the tooltip that is displayed when you keep your mouse
+on the equation image display (see <link linkend="screenshots">Screenshots</link>). You can disable image resizing
+in the tooltip, but it is very highly recommended to set a maximum size, this to avoid having a huge tooltip filling
+your screen when displaying a 1200-dpi image.</para>
+</sect2>
+<sect2 id="settings-system">
+<title>System Executables and Paths</title>
+<para>Normally you shouldn't need to touch anything here. These settings should be changed only if &klatexformula;
+was unable to detect one of these programs, even if they're installed.</para>
+<para>The temporary directory should be set to a simple (write-accessible) directory in which you don't care
+if &klatexformula; creates a few files temporarily. Usually &quot;/tmp&quot; or &quot;/tmp/kde-&lt;user&gt;&quot; is
+more than sufficient.</para>
+<para>The default values for the required executables are determined by searching $PATH for the executables
+"latex", "dvips", "gs", and "epstopdf". In 99% of the cases these values should be correct.</para>
+<para>If you don't have epstopdf, it doesn't matter: only saving to PDF will be deactivated. The other three executables,
+however, are mandatory. See also <link linkend="requirements">System Requirements</link>.</para>
+<para>If you messed up here and you're a newbie, try &quot;Reset defaults&quot;. It should undo what you goofed.</para>
+<para>Note that if these executables are in $PATH, you don't even need to specify the absolute path. A setting of
+&quot;dvips&quot; for dvips executable (for example) is perfectly valid.</para>
+</sect2>
+<sect2 id="settings-advanced">
+<title>Advanced Settings</title>
+<para>Here you can choose the margins you wish to have around your equation image.</para>
+<para>To understand exactly the meaning of this, you should know that in the background, KLFBackend (see
+<link linkend="klfbackend">Developer information</link>) uses dvips to create EPS, which then is directly edited
+by KLFBackend to change the line &quot;%%BoundingBox: A B C D&quot; into &quot;%%BoundingBox: A-leftOffset B-bottomOffset C+topOffset D+rightOffset&quot;, where the offsets are the values entered in this settings dialog.</para>
+<para>If you're evaluating some symbols (specifically &quot;\int&quot;), you may need to change the settings here to avoid
+the symbol being truncated on the right.</para>
+</sect2>
 
 </sect1>
 
@@ -436,10 +512,94 @@ then the search failed. You may clear the search bar with &quot;<guiicon><inline
 
 <chapter id="developer-guide">
 <title>Developer's guide to &klatexformula;</title>
+<sect1 id="klfbackend">
+<title>KLFBackend - the backend utility</title>
+<para>One of the great innovations of version 2 of KLatexFormula is its new architecture. What was before in
+one monolithical object is now divided into three parts:</para>
+<itemizedlist>
+<listitem><para>KLFBackend (library) - the backend work. The base work is done here. This is a library that doesn't need KDE
+to compile - it will compile with Qt 3 or Qt 4 and run in console or gui mode. This library mostly provides one function
+that is KLFBackend::getLatexFormula(...) that gives you an image from a latex string. It handles &quot;latex&quot;,
+&quot;dvips&quot;, &quot;gs&quot;, as well as &quot;epstopdf&quot; in the background, in a completely transparent way.
+For more information, you should look at the KLFBackend doxygen api documentation, which you can generate from the Doxyfile
+provided in the source tarball of &klatexformula;.</para></listitem>
+<listitem><para>klatexformula_cmdl (executable) - the command-line interface to KLFBackend.
+This isn't a mountain. It translates command-line options to parameters to KLFBackend and prints result to stdout
+or file. Check out &quot;klatexformula_cmdl --help&quot; for info or have a look at the source code (file
+src/klfcmdl_main.cpp).</para></listitem>
+<listitem><para>klatexformula (executable) - the big graphical interface, integrated to &kde;, providing syntax highlighting,
+a history browser, a latex symbol palette, drag and drop, copy/paste, save to disk, etc.</para></listitem>
+</itemizedlist>
+<para>If you're interested to use the KLFBackend functionality in your applications, feel free to link to the library, include
+the header, et voil&agrave;!</para>
+</sect1>
+<sect1 id="latex_symbols">
+<title>Tweaking the latex_symbols file</title>
+<para>In case you want to re-arrange the symbols in the latex symbols palette, it's pretty simple.
+You need to edit the latex_symbols file in $KDEDIR/share/apps/klatexformula/ and you can rearrange symbols
+as you want. Alternatively you may edit the file in the extracted sources, then &quot;make install&quot; again.
+In each case, when you restart &klatexformula;, the application will automatically generate the symbol previews
+for each new symbol (depending on the number of symbols to generate, this can be slow).</para>
+<para>&klatexformula; uses a caching system, so that only new symbol previews are generated, the older ones were saved
+to a file from which they are restored.</para>
+<para>The latex_symbols file format is pretty simple:</para>
+<para><inlinemediaobject>
+	  <imageobject>
+	    <imagedata fileref="demo_latex_symbols.png" format="PNG"/>
+	  </imageobject>
+	  <textobject>
+	    <phrase>[ latex_symbols skeleton ]</phrase>
+	  </textobject>
+</inlinemediaobject></para>
+<para>It is of course important not to insert empty lines in the middle of a section since empty lines are used
+to detect the end of a category.</para>
+</sect1>
 </chapter>
 
 <chapter id="screenshots">
-<title>Screenshots and comments</title>
+<title>Screenshots</title>
+
+<para>Usage example for &klatexformula;
+<screenshot>
+<screeninfo>Example</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="screenshot_notag.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+      <phrase>[ Screenshot ]</phrase>
+    </textobject>
+  </mediaobject>
+</screenshot>
+</para>
+
+<para>&klatexformula; in expanded mode
+<screenshot>
+<screeninfo>Expanded mode</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="screenshot_expanded.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+      <phrase>[ Screenshot ]</phrase>
+    </textobject>
+  </mediaobject>
+</screenshot>
+</para>
+
+<para>Tagged equation example
+<screenshot>
+<screeninfo>Tagged equation example</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="screenshot_withtag.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+      <phrase>[ Screenshot ]</phrase>
+    </textobject>
+  </mediaobject>
+</screenshot>
+</para>
 
 <para>If the equation image gets too small on the display area, keeping
 your mouse on the image will display a tooltip with larger image.
@@ -450,7 +610,63 @@ your mouse on the image will display a tooltip with larger image.
       <imagedata fileref="screenshot_displaytooltip.png" format="PNG"/>
     </imageobject>
     <textobject>
-      <phrase>[ Display tooltip ]</phrase>
+      <phrase>[ Screenshot ]</phrase>
+    </textobject>
+  </mediaobject>
+</screenshot>
+</para>
+
+<para>You can also use &klatexformula; to render regular text. Simply un-check the &quot;Use Math Mode&quot; checkbox.
+<screenshot>
+<screeninfo>Regular text rendering</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="screenshot_text.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+      <phrase>[ Screenshot ]</phrase>
+    </textobject>
+  </mediaobject>
+</screenshot>
+</para>
+
+<para>The History Browser
+<screenshot>
+<screeninfo>The History Browser</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="screenshot_history.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+      <phrase>[ Screenshot ]</phrase>
+    </textobject>
+  </mediaobject>
+</screenshot>
+</para>
+
+<para>The Latex Symbol Palette
+<screenshot>
+<screeninfo>The Latex Symbol Palette</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="screenshot_latexsymbols.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+      <phrase>[ Screenshot ]</phrase>
+    </textobject>
+  </mediaobject>
+</screenshot>
+</para>
+
+<para>KLatexFormula's settings dialog
+<screenshot>
+<screeninfo>KLatexFormula's settings dialog</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="screenshot_settings.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+      <phrase>[ Screenshot ]</phrase>
     </textobject>
   </mediaobject>
 </screenshot>
@@ -459,11 +675,11 @@ your mouse on the image will display a tooltip with larger image.
 
 </chapter>
 
-
+<!--
 <chapter id="faq">
 <title>Questions and Answers</title>
 
-<!-- (OPTIONAL but recommended) This chapter should include all of the silly
+< !- - (OPTIONAL but recommended) This chapter should include all of the silly
 (and not-so-silly) newbie questions that fill up your mailbox. This chapter
 should be reserved for BRIEF questions and answers! If one question uses more
 than a page or so then it should probably be part of the
@@ -471,10 +687,10 @@ than a page or so then it should probably be part of the
 cross-reference questions to the parts of your documentation that answer them.
 This is also a great place to provide pointers to other FAQ's if your users
 must do some complicated configuration on other programs in order for your
-application work. -->
+application work. - - >
 
-&reporting.bugs;
-&updating.documentation;
+< !- - &reporting.bugs; - - >
+< !- - &updating.documentation; - - >
 
 <qandaset id="faqlist">
 <qandaentry>
@@ -497,6 +713,7 @@ installed.</para>
 </qandaentry>
 </qandaset>
 </chapter>
+-->
 
 <chapter id="credits">
 
@@ -550,8 +767,12 @@ Documentation copyright 2007 Philippe Faist <email>philippe.faist@bluewin.ch</em
 <!-- This first entity contains boiler plate for applications that are
 part of KDE CVS.  You should remove it if you are releasing your
 application --> 
+<!-- &install.intro.documentation; -->
 
-&install.intro.documentation;
+<para>&klatexformula; is hosted as a project on sourceforge.net; access the homepage at
+<ulink url="http://klatexformula.sourceforge.net">klatexformula.sourceforge.net</ulink> or go directly to the
+<ulink url="http://sourceforge.net/project/showfiles.php?group_id=174270">downloads</ulink>.
+</para>
 
 </sect1>
 
@@ -570,23 +791,36 @@ information here.
 -->
 
 <para>
-In order to successfully use &klatexformula;, you need &kde; 1.1. Foobar.lib is
-required in order to support the advanced &klatexformula; features. &klatexformula; uses
-about 5 megs of memory to run, but this may vary depending on your
-platform and configuration.
+In order to successfully use &klatexformula;, you need &kde; 3.1, as well as LaTeX and ghostscript (gs).
+</para>
+
+<para>&klatexformula; should compile on &kde; 3.1 with Qt 3.3. These are standards on distributions with a KDE
+desktop. Remember that if you're compiling from source, the developer packages are needed, not only the runtime libraries.
 </para>
 
 <para>
-All required libraries as well as &klatexformula; itself can be found
-on <ulink url="ftp://ftp.klatexformula.org">The &klatexformula; home page</ulink>.
+Latex is usually shipped with your distribution. Try browsing your distribution packets if it's not installed by default.
+Otherwise you may have a look on <ulink url="http://www.latex-project.org">www.latex-project.org</ulink>. Same for dvips; check
+out <ulink url="http://www.radicaleye.com">www.radicaleye.com</ulink>
 </para>
 
-<!-- For a list of updates, you may refer to the application web site
-or the ChangeLog file, or ... -->
-<para>
-You can find a list of changes at <ulink
-url="http://apps.kde.org/klatexformula">http://apps.kde.org/klatexformula</ulink>.
+<para>gs (ghostscript) is the base package for viewing and manipulating PS, so it is most likely already installed on your
+system. If it isn't, check again your distribution packages. You may want to check out
+<ulink url="http://www.gnu.org/software/ghostscript/ghostscript.html">www.gnu.org/software/ghostscript/ghostscript.html</ulink>
+if you really want to compile it from source.
 </para>
+
+<para>Note: in previous versions of KLatexFormula, ImageMagick++ was required. This dependency is now dropped since we use
+gs (ghostscript) with png16m or pngalpha device to convert PS to PNG.</para>
+
+<para>Note for developers: the backend, KLFBackend, only needs Qt 3 or Qt 4 to compile. latex, dvips, gs are still needed, epstopdf
+is recommended, but &kde; is needed only for klatexformula_cmdl and klatexformula. For now, the organisation is pretty
+poor inside the klatexfromula package, so that if you don't have KDE, then the configure script fails and you can't
+do anything, even if you just want to compile KLFBackend... Well for now, copy the klfbackend/* sources somewhere
+else and create a QT project-file for the library, which you can then compile. Or if you find another workaround
+to compile the library, go for it. Don't forget, if you use Qt 4, to use -DKLFBACKEND_QT4 with gcc, to
+#define KLFBACKEND_QT4, so that the minor code changes for Qt 4 are taken into account. </para>
+
 </sect1>
 
 <sect1 id="compilation">
@@ -597,14 +831,6 @@ url="http://apps.kde.org/klatexformula">http://apps.kde.org/klatexformula</ulink
 <!-- special handling, remove it, and replace with your own text. -->
 
 &install.compile.documentation;
-
-</sect1>
-
-<sect1 id="configuration">
-<title>Configuration</title>
-
-<para>Don't forget to tell your system to start the <filename>dtd</filename>
-dicer-toaster daemon first, or &klatexformula; won't work !</para>
 
 </sect1>
 

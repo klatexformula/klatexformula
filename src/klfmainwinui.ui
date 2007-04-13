@@ -11,7 +11,7 @@
             <x>0</x>
             <y>0</y>
             <width>933</width>
-            <height>360</height>
+            <height>330</height>
         </rect>
     </property>
     <property name="caption">
@@ -602,7 +602,7 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>lytDetailButtons</cstring>
+                        <cstring>layout5</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -611,6 +611,14 @@
                         <widget class="QPushButton">
                             <property name="name">
                                 <cstring>btnLoadStyle</cstring>
+                            </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>1</hsizetype>
+                                    <vsizetype>0</vsizetype>
+                                    <horstretch>1</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
                             </property>
                             <property name="text">
                                 <string>&amp;Load Style</string>
@@ -626,6 +634,14 @@
                             <property name="name">
                                 <cstring>btnSaveStyle</cstring>
                             </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>1</hsizetype>
+                                    <vsizetype>0</vsizetype>
+                                    <horstretch>1</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
                             <property name="text">
                                 <string>Save Style</string>
                             </property>
@@ -640,11 +656,33 @@
                             <property name="name">
                                 <cstring>btnSettings</cstring>
                             </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>1</hsizetype>
+                                    <vsizetype>0</vsizetype>
+                                    <horstretch>1</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
                             <property name="text">
                                 <string>Setti&amp;ngs...</string>
                             </property>
                             <property name="accel">
                                 <string>Alt+N</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Edit KLatexFormula settings</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>btnHelp</cstring>
+                            </property>
+                            <property name="text">
+                                <string>?</string>
+                            </property>
+                            <property name="accel">
+                                <string></string>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Edit KLatexFormula settings</string>

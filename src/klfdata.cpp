@@ -53,3 +53,23 @@ QDataStream& operator>>(QDataStream& stream, KLFData::KLFHistoryItem& item)
 {
   return stream >> item.id >> item.datetime >> item.latex >> item.preview >> item.style;
 }
+
+bool operator==(const KLFData::KLFStyle& a, const KLFData::KLFStyle& b)
+{
+  return a.name == b.name &&
+    a.fg_color == b.fg_color &&
+    a.bg_color == b.bg_color &&
+    a.mathmode == b.mathmode &&
+    a.preamble == b.preamble &&
+    a.dpi == b.dpi;
+}
+
+bool operator==(const KLFData::KLFHistoryItem& a, const KLFData::KLFHistoryItem& b)
+{
+  return
+    //    a.id == b.id &&   // don't compare IDs since they should be different.
+    //    a.datetime == b.datetime &&   // same for datetime
+    a.latex == b.latex &&
+    //    a.preview == b.preview && // don't compare preview: it's unnecessary
+    a.style == b.style;
+}

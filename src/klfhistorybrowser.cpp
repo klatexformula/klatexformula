@@ -138,6 +138,14 @@ KLFHistoryBrowser::~KLFHistoryBrowser()
 }
 
 
+void KLFHistoryBrowser::reject()
+{
+  // this is called when "ESC" is pressed.
+  // ignore event. We don't want to quit unless user selects "Close" and accept(),
+  // possibly the user selects "X" on the window title bar. In this last case, it works even
+  // with this reimplementation of reject() (Qt seems to call hide()).
+}
+
 bool KLFHistoryBrowser::eventFilter(QObject *obj, QEvent *ev)
 {
   if (obj == lneSearch) {
@@ -148,8 +156,11 @@ bool KLFHistoryBrowser::eventFilter(QObject *obj, QEvent *ev)
 	return true;
       }
       if (kev->key() == Key_Escape) { // abort search
+	_search_str = QString("\024\015\077\073\017__badstr__THIS_###_WONT_BE FOUND\033\025\074\057");
 	_search_k = 0;
-	slotSearchFindNext(); // reset search
+	slotSearchFindNext();
+	lneSearch->setText(""); // reset search
+	resetLneSearchColor();
       }
     }
   }
