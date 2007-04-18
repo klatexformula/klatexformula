@@ -196,6 +196,11 @@ protected:
   QSize _shrinkedsize;
   QSize _expandedsize;
 
+  // these are needed because of session management. Obviously KDE logout closes all dialogs
+  // before saveProperties().
+  bool _historyBrowserIsShown;
+  bool _latexSymbolsIsShown;
+
   void saveProperties(KConfig *cfg);
   void readProperties(KConfig *cfg);
 };

@@ -350,6 +350,9 @@ KLFMainWin::KLFMainWin()
   _output.pdfdata = QByteArray();
 
 
+  _historyBrowserIsShown = false;
+  _latexSymbolsIsShown = false;
+
   mHistoryBrowser = new KLFHistoryBrowser(&_history, 0); // no parent, to prevent this dialog from hiding our own window
 
   mLatexSymbols = new KLFLatexSymbols(this);
@@ -471,6 +474,7 @@ KLFMainWin::KLFMainWin()
 
   connect(this, SIGNAL(stylesChanged()), this, SLOT(saveStyles()));
   connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(saveStyles()));
+
 }
 
 
@@ -756,6 +760,11 @@ void KLFMainWin::restoreFromHistory(KLFData::KLFHistoryItem h, bool restorestyle
 void KLFMainWin::slotHistoryButtonRefreshState(bool on)
 {
   mMainWidget->btnHistory->setOn(on);
+  if (kapp->sessionSaving()) {
+    // if we're saving the session, remember that history browser is on
+  } else {
+    _historyBrowserIsShown = on;
+  }
 }
 
 
@@ -767,6 +776,11 @@ void KLFMainWin::insertSymbol(QString s)
 void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
 {
   mMainWidget->btnSymbols->setOn(on);
+  if (kapp->sessionSaving()) {
+    // if we're saving the session, remember that latex symbols is on
+  } else {
+    _latexSymbolsIsShown = on;
+  }
 }
 
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
@@ -869,11 +883,13 @@ void KLFMainWin::slotClear()
 void KLFMainWin::slotHistory(bool showhist)
 {
   mHistoryBrowser->setShown(showhist);
+  slotHistoryButtonRefreshState(showhist);
 }
 
 void KLFMainWin::slotSymbols(bool showsymbs)
 {
   mLatexSymbols->setShown(showsymbs);
+  slotSymbolsButtonRefreshState(showsymbs);
 }
 
 void KLFMainWin::slotExpandOrShrink()
@@ -1096,6 +1112,17 @@ void KLFMainWin::saveProperties(KConfig *cfg)
   cfg->writeEntry("txePreamble", mMainWidget->txePreamble->text());
   cfg->writeEntry("spnDPI", (int)mMainWidget->spnDPI->value());
 
+  cfg->writeEntry("displayExpandedMode", (bool)mMainWidget->frmDetails->isVisible());
+
+  cfg->writeEntry("displayHistoryBrowserVisible", _historyBrowserIsShown);
+  cfg->writeEntry("displayLatexSymbolsVisible", _latexSymbolsIsShown);
+  cfg->writeEntry("displayHistoryBrowserGeometry", mHistoryBrowser->geometry());
+  // DEBUG -->
+  //  cfg->writeEntry("displayHistoryBrowserGeometryPos", mHistoryBrowser->pos());
+  //  cfg->writeEntry("displayHistoryBrowserGeometrySize", mHistoryBrowser->size());
+  // <--
+  cfg->writeEntry("displayLatexSymbolsGeometry", mLatexSymbols->frameGeometry());
+
   KMainWindow::saveProperties(cfg);
 }
 void KLFMainWin::readProperties(KConfig *cfg)
@@ -1113,9 +1140,41 @@ void KLFMainWin::readProperties(KConfig *cfg)
   mMainWidget->txePreamble->setText(cfg->readEntry("txePreamble", ""));
   mMainWidget->spnDPI->setValue(cfg->readNumEntry("spnDPI", 1200));
 
+  mMainWidget->frmDetails->setShown(cfg->readBoolEntry("displayExpandedMode", false));
+
+  // history browser geometry
+  bool hb_vis = false;
+  QRect hb_r = mHistoryBrowser->geometry();
+  hb_vis = cfg->readBoolEntry("displayHistoryBrowserVisible", hb_vis);
+  hb_r = cfg->readRectEntry("displayHistoryBrowserGeometry", &hb_r);
+  slotHistory(hb_vis);
+  mHistoryBrowser->setGeometry(hb_r);
+  // latex symbols geometry
+  bool ls_vis = false;
+  QRect ls_r = mLatexSymbols->geometry();
+  ls_vis = cfg->readBoolEntry("displayLatexSymbolsVisible", ls_vis);
+  ls_r = cfg->readRectEntry("displayLatexSymbolsGeometry", &ls_r);
+  slotSymbols(ls_vis);
+  mLatexSymbols->setGeometry(ls_r);
+
+  /*  QPoint hb_pos = mHistoryBrowser->pos();
+      QSize hb_size = mHistoryBrowser->size();
+      bool hb_vis = false;
+      hb_vis = cfg->readBoolEntry("displayHistoryBrowserVisible", hb_vis);
+      hb_pos = cfg->readPointEntry("displayHistoryBrowserGeometryPos", &hb_pos);
+      hb_size = cfg->readSizeEntry("displayHistoryBrowserGeometrySize", &hb_size);
+      mHistoryBrowser->move(hb_pos);
+      mHistoryBrowser->resize(hb_size);
+      if (hb_vis) {
+      mHistoryBrowser->show();
+      mHistoryBrowser->resize(hb_size);
+      mHistoryBrowser->move(hb_pos);
+      }
+      // same for latexsymbols
+      */
+
   KMainWindow::readProperties(cfg);
 }
-
 
 
 

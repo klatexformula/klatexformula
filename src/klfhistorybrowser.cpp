@@ -143,7 +143,7 @@ void KLFHistoryBrowser::reject()
   // this is called when "ESC" is pressed.
   // ignore event. We don't want to quit unless user selects "Close" and accept(),
   // possibly the user selects "X" on the window title bar. In this last case, it works even
-  // with this reimplementation of reject() (Qt seems to call hide()).
+  // with this reimplementation of reject() (Qt calls hide()).
 }
 
 bool KLFHistoryBrowser::eventFilter(QObject *obj, QEvent *ev)
