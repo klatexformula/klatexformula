@@ -1,0 +1,22 @@
+KLatexFormula - README file
+
+INSTALLATION
+
+* To install KLatexFormula with graphical user interface under KDE (complete), then all you need to
+do is run configure, make and make install, for example like this:
+prompt> confgure
+prompt> make
+prompt> make install             OR             promt # make install    [as superuser]
+
+* If you have KDE, but you would like to compile only the base library (klfbackend), you can run
+prompt> configure --disable-klatexformula
+instead of 'configure' [TODO]
+
+* If you only have Qt and you would like to compile only the base library (klfbackend), you can use the
+Qt project file in the src/klfbackend directory:
+prompt> cd src/klfbackend/
+prompt/src/klfbackend> qmake
+prompt/src/klfbackend> make
+prompt/src/klfbackend> make install
+[TODO]
+

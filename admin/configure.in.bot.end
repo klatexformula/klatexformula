@@ -16,6 +16,11 @@ if test -n "$kde_libs_prefix" -a -n "$given_prefix"; then
   fi
 fi
 
+if test "x$KLF_CONFIGURE_WARNINGS" != "x"; then
+  echo "$KLF_CONFIGURE_WARNINGS"
+  echo
+fi
+
 if test x$GXX = "xyes" -a x$kde_have_gcc_visibility = "xyes" -a x$kde_cv_val_qt_gcc_visibility_patched = "xno"; then
   echo ""
   echo "Your GCC supports symbol visibility, but the patch for Qt supporting visibility"

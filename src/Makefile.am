@@ -7,18 +7,20 @@ INCLUDES = -I$(top_srcdir)/src/klfbackend $(all_includes)
 # let automoc handle all of the meta source files (moc)
 METASOURCES = AUTO
 
+KDE_ICON = AUTO
+
 messages: rc.cpp
 	$(EXTRACTRC) `find . -name \*.ui -o -name \*.rc` > rc.cpp
 	$(XGETTEXT) *.cpp -o $(podir)/klatexformula.pot
-
-KDE_ICON = AUTO
 
 #########################################################################
 # APPLICATION SECTION
 #########################################################################
 # this is the program that gets installed.  it's name is used for all
 # of the other Makefile.am variables
+if KLF_ENABLE_GUI
 bin_PROGRAMS = klatexformula klatexformula_cmdl
+endif
 
 # the application source, library search path, and link libraries
 klatexformula_SOURCES = main.cpp klfmainwinui.ui klfhistorybrowserui.ui \
@@ -29,18 +31,28 @@ klatexformula_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 klatexformula_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \
 	$(LIB_KDEUI) $(LIB_KIO)
 
-# this is where the desktop file will go 
-shelldesktopdir = $(kde_appsdir)/Utilities
-shelldesktop_DATA = klatexformula.desktop
-
-# our data
-ourdatadir = $(kde_datadir)/klatexformula
-ourdata_DATA = latex_symbols symbolspixmapcache klatexformula.cls
-
-SUBDIRS = klfbackend pics
 noinst_HEADERS = klfmainwin.h klfsettings.h klfdata.h klfhistorybrowser.h \
 		klfstylemanager.h klflatexsymbols.h
 klatexformula_cmdl_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 klatexformula_cmdl_SOURCES = klfcmdl_main.cpp
 klatexformula_cmdl_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \
 	$(LIB_KDECORE)
+
+
+# this is where the desktop file will go 
+if KLF_ENABLE_GUI
+shelldesktopdir = $(kde_appsdir)/Utilities
+shelldesktop_DATA = klatexformula.desktop
+endif
+
+# our data
+if KLF_ENABLE_GUI
+ourdatadir = $(kde_datadir)/klatexformula
+ourdata_DATA = latex_symbols symbolspixmapcache klatexformula.cls
+else
+ourdatadir = $(kde_datadir)/klatexformula
+ourdata_DATA = klatexformula.cls
+endif
+
+
+SUBDIRS = klfbackend pics
