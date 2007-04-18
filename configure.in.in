@@ -7,6 +7,7 @@
 # doc/en/index.docbook
 # klatexformula.kdevelop
 # src/klatexformula.lsm
+# src/klfbackend/klfbackend.pro
 # Doxyfile
 # #  -- not yet existent ./klatexformula.spec
 
