@@ -10,7 +10,7 @@
 # Doxyfile
 # #  -- not yet existent ./klatexformula.spec
 
-#AM_INIT_AUTOMAKE(klatexformula, 2.0.0-alpha4)
+AM_INIT_AUTOMAKE(klatexformula, 2.0.0-alpha4)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 
