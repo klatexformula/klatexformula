@@ -3,4 +3,5 @@
 
 KDE_LANG = en
 KDE_DOCS = klatexformula
+
 SUBDIRS = $(AUTODIRS)  
