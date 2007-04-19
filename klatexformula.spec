@@ -45,6 +45,8 @@ rm -rf %{buildroot}
 %{kde_path}/share/applnk/Utilities/*
 %{kde_path}/share/icons/*/*/*/*
 %{kde_path}/share/doc/HTML/*/*
+%{kde_path}/include/*
+%{kde_path}/lib/*
 #%{kde_path}/*
 
 %changelog
