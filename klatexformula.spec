@@ -3,7 +3,7 @@
 Name: klatexformula
 %define kde_path /opt/kde3
 Version: 2.0.0alpha4
-Release: 00
+Release: openSUSE101
 Vendor: Philippe Faist
 Summary: A KDE Application to easily create an image from a LaTeX equation that you can save, copy or drag-and-drop
 Group: Application/Utilities

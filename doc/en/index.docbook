@@ -526,7 +526,7 @@ provided in the source tarball of &klatexformula;.</para></listitem>
 <listitem><para>klatexformula_cmdl (executable) - the command-line interface to KLFBackend.
 This isn't a mountain. It translates command-line options to parameters to KLFBackend and prints result to stdout
 or file. Check out &quot;klatexformula_cmdl --help&quot; for info or have a look at the source code (file
-src/klfcmdl_main.cpp).</para></listitem>
+src/klfcmdl_main.cpp). Note that klatexformula_cmdl needs full KDE, although it can run without X.</para></listitem>
 <listitem><para>klatexformula (executable) - the big graphical interface, integrated to &kde;, providing syntax highlighting,
 a history browser, a latex symbol palette, drag and drop, copy/paste, save to disk, etc.</para></listitem>
 </itemizedlist>
@@ -814,12 +814,9 @@ if you really want to compile it from source.
 gs (ghostscript) with png16m or pngalpha device to convert PS to PNG.</para>
 
 <para>Note for developers: the backend, KLFBackend, only needs Qt 3 or Qt 4 to compile. latex, dvips, gs are still needed, epstopdf
-is recommended, but &kde; is needed only for klatexformula_cmdl and klatexformula. For now, the organisation is pretty
-poor inside the klatexfromula package, so that if you don't have KDE, then the configure script fails and you can't
-do anything, even if you just want to compile KLFBackend... Well for now, copy the klfbackend/* sources somewhere
-else and create a QT project-file for the library, which you can then compile. Or if you find another workaround
-to compile the library, go for it. Don't forget, if you use Qt 4, to use -DKLFBACKEND_QT4 with gcc, to
-#define KLFBACKEND_QT4, so that the minor code changes for Qt 4 are taken into account. </para>
+is recommended, but &kde; is needed only for klatexformula_cmdl and klatexformula. See section <link linkend="compilation-backend">Compiling
+the KLFBackend library only</link> for more information.
+</para>
 
 </sect1>
 
@@ -831,6 +828,22 @@ to compile the library, go for it. Don't forget, if you use Qt 4, to use -DKLFBA
 <!-- special handling, remove it, and replace with your own text. -->
 
 &install.compile.documentation;
+
+</sect1>
+
+<sect1 id="compilation-backend">
+<title>Compiling and installing the KLFBackend library only</title>
+<para>If you want to install the full KLatexFormula package with user interface, then skip this section. This
+section is about compiling the backend library only, this if you have KDE or not.</para>
+<itemizedlist>
+<listitem><para>WITH KDE: If you have KDE, then run configure with './configure --disable-klatexformula', then make and make install.
+That should be enough to compile and install KLFBackend in a KDE environment.</para></listitem>
+<listitem><para>WITHOUT KDE: If you only have Qt, then forget the configure script. Go to directory 'src/klfbackend/' and check
+out the first few lines of 'klfbackend.pro'. Set, if necessary, correct values to the variables USE_QT4, INSTALLDIR, and LIBRARY_TYPE.
+Then you can run 'qmake', 'make' and 'make install'. Note you MUST specify QT major version (3 or 4) in variable USE_QT4 in klfbackend.pro
+(which defaults to Qt 3). The library is installed by default in /usr/local/lib and is called libklfbackend-qt3.a or libklfbackend-qt4.a</para>
+</listitem>
+</itemizedlist>
 
 </sect1>
 
