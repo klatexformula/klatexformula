@@ -1,22 +1,39 @@
 KLatexFormula - README file
 
+
+DESCRIPTION
+
+This KDE application is especially designed for generating an image
+(e.g. PNG) from a LaTeX equation, this using a nice GUI. Support for
+Copy-Paste, Save as image/pdf/ps and drag-and-drop is included. In
+addition to supporting a whole GUI-based user interface, this package
+includes the library KLFBackend to integrate KLatexFormula functionality
+into your programs.
+
+
 INSTALLATION
 
 * To install KLatexFormula with graphical user interface under KDE (complete), then all you need to
 do is run configure, make and make install, for example like this:
 prompt> confgure
 prompt> make
-prompt> make install             OR             promt # make install    [as superuser]
+promt # make install    -- you may need to be root
 
 * If you have KDE, but you would like to compile only the base library (klfbackend), you can run
 prompt> configure --disable-klatexformula
-instead of 'configure' [TODO]
+instead of 'configure'. Then 'make' and 'make install' as usual.
 
 * If you only have Qt and you would like to compile only the base library (klfbackend), you can use the
 Qt project file in the src/klfbackend directory:
 prompt> cd src/klfbackend/
+prompt/src/klfbackend> vi klfbackend.pro    [or your favorite editor] -- set the first variables of the file correctly
 prompt/src/klfbackend> qmake
 prompt/src/klfbackend> make
-prompt/src/klfbackend> make install
-[TODO]
+prompt/src/klfbackend # make install         -- you may need to be root
+
+
+HELP & DOCUMENTATION
+
+If you have trouble compiling KLatexFormula, check out the documentation on the KLatexFormula website
+at klatexformula.sourceforge.net. Please report bugs and errors to the author.
 
