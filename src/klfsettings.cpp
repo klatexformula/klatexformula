@@ -93,10 +93,13 @@ void KLFSettings::reset()
   chkSHHighlightParensOnly->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::HighlightParensOnly);
   kccSHParenMatch->setColor(_synthighlighterptr->cParenMatch);
   kccSHParenMismatch->setColor(_synthighlighterptr->cParenMismatch);
+  chkSHHighlightLonelyParen->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::HighlightLonelyParen);
+  kccSHLonelyParen->setColor(_synthighlighterptr->cLonelyParen);
 
   kfontAppearFont->setFont(_mainwin->txeLatexFont());
 
-  chkPreviewMaxSize->setChecked(_mainwin->_preview_tooltip_maxsize.width() != 0 || _mainwin->_preview_tooltip_maxsize.height() != 0);
+  chkPreviewMaxSize->setChecked(_mainwin->_preview_tooltip_maxsize.width() != 0
+				|| _mainwin->_preview_tooltip_maxsize.height() != 0);
   spnPreviewMaxWidth->setValue(_mainwin->_preview_tooltip_maxsize.width());
   spnPreviewMaxHeight->setValue(_mainwin->_preview_tooltip_maxsize.height());
 
@@ -140,11 +143,16 @@ void KLFSettings::accept()
     _synthighlighterptr->config |= KLFLatexSyntaxHighlighter::HighlightParensOnly;
   else
     _synthighlighterptr->config &= ~KLFLatexSyntaxHighlighter::HighlightParensOnly;
+  if (chkSHHighlightLonelyParen->isChecked())
+    _synthighlighterptr->config |= KLFLatexSyntaxHighlighter::HighlightLonelyParen;
+  else
+    _synthighlighterptr->config &= ~KLFLatexSyntaxHighlighter::HighlightLonelyParen;
 
   _synthighlighterptr->cKeyword = kccSHKeyword->color();
   _synthighlighterptr->cComment = kccSHComment->color();
   _synthighlighterptr->cParenMatch = kccSHParenMatch->color();
   _synthighlighterptr->cParenMismatch = kccSHParenMismatch->color();
+  _synthighlighterptr->cLonelyParen = kccSHLonelyParen->color();
 
   _mainwin->setTxeLatexFont(kfontAppearFont->font());
 

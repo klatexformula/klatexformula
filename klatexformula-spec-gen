@@ -4,19 +4,25 @@
 
 # Spec file for KLatexFormula
 
+SPECFILE="klatexformula.spec"
+
 if [ "x$1" = "x" ]; then
-  echo >&2 "Error: Usage: $0 DISTRUBUTION"
+  echo >&2 "Error: Usage: $0 DISTRUBUTION [Package-requirements]"
+  echo >&2 "  Package requirements default to 'qt3 >= 3.1.0, kdelibs3 >= 3.1.0, te_latex, gs'"
+  echo >&2 "  Output is written to $SPECFILE."
+  echo >&2
   exit 255
 fi
 
 VERSION=`cat VERSION`;
 DISTRIBUTION=$1
+PACKAGEREQ=${2-"qt3 >= 3.1.0, kdelibs3 >= 3.1.0, te_latex, gs"}
 
-if [ -e klatexformula.spec ] ; then
-  cp klatexformula.spec klatexformula.spec.old
+if [ -e $SPECFILE ] ; then
+  cp $SPECFILE $SPECFILE.old
 fi
 
-cat >klatexformula.spec <<EOSPEC
+cat >$SPECFILE <<EOSPEC
 # Spec file for KLatexFormula
 Name: klatexformula
 %define kde_path /opt/kde3
@@ -29,7 +35,7 @@ Packager: Philippe Faist
 %define install_dir %{_tmppath}/%{name}-root
 BuildRoot:  %{install_dir}
 Source: klatexformula-%{version}.tar.gz
-Requires: qt3 >= 3.1.0, kdelibs3 >= 3.1.0, te_latex, gs
+Requires: $PACKAGEREQ
 License: GPL
 
 
@@ -73,5 +79,5 @@ rm -rf %{buildroot}
 
 EOSPEC
 
-echo "Done."
+echo "Generated file $SPECFILE"
 

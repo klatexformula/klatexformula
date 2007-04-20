@@ -69,13 +69,15 @@ public:
   virtual int highlightParagraph(const QString& text, int endstatelastpara);
 
   enum { Enabled = 0x01,
-	 HighlightParensOnly = 0x02 };
+	 HighlightParensOnly = 0x02,
+	 HighlightLonelyParen = 0x04 };
   uint config;
 
   QColor cKeyword;
   QColor cComment;
   QColor cParenMatch;
   QColor cParenMismatch;
+  QColor cLonelyParen;
 
 private:
 

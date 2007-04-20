@@ -10,9 +10,9 @@
 # src/klatexformula.lsm
 # src/klfbackend/klfbackend.pro
 # Doxyfile
-# klatexformula.spec
+#   [ No longer:  klatexformula.spec ]
 
-AM_INIT_AUTOMAKE(klatexformula, 2.0.0alpha4)
+AM_INIT_AUTOMAKE(klatexformula, 2.0.0alpha5)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 
@@ -53,6 +53,6 @@ if test "$EPSTOPDF_EXEC" = "false"; then
 fi
 
 
-AC_ARG_ENABLE(klatexformula, AC_HELP_STRING([--disable-klatexformula], [disable graphical user interface. With this option, you will only
-	build the base library.]), [klfgui=${enableval}], [klfgui=yes])
+AC_ARG_ENABLE(klatexformula, AC_HELP_STRING([--disable-klatexformula], [disable graphical user interface.
+	With this option, you will only	build the base library.]), [klfgui=${enableval}], [klfgui=yes])
 AM_CONDITIONAL(KLF_ENABLE_GUI, test "x$klfgui" = "xyes")

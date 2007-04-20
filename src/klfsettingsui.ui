@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>491</width>
-            <height>485</height>
+            <width>546</width>
+            <height>615</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -77,16 +77,6 @@
                             <property name="name">
                                 <cstring>unnamed</cstring>
                             </property>
-                            <widget class="KColorCombo" row="3" column="1">
-                                <property name="name">
-                                    <cstring>kccSHParenMatch</cstring>
-                                </property>
-                            </widget>
-                            <widget class="KColorCombo" row="1" column="1">
-                                <property name="name">
-                                    <cstring>kccSHComment</cstring>
-                                </property>
-                            </widget>
                             <widget class="KColorCombo" row="0" column="1">
                                 <property name="name">
                                     <cstring>kccSHKeyword</cstring>
@@ -100,6 +90,11 @@
                                     <string>Keyword color:</string>
                                 </property>
                             </widget>
+                            <widget class="KColorCombo" row="1" column="1">
+                                <property name="name">
+                                    <cstring>kccSHComment</cstring>
+                                </property>
+                            </widget>
                             <widget class="QLabel" row="1" column="0">
                                 <property name="name">
                                     <cstring>lblSHComment</cstring>
@@ -108,12 +103,28 @@
                                     <string>Comment color:</string>
                                 </property>
                             </widget>
+                            <widget class="QCheckBox" row="2" column="0" rowspan="1" colspan="2">
+                                <property name="name">
+                                    <cstring>chkSHHighlightParensOnly</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Highlight p&amp;arens only, not whole expression</string>
+                                </property>
+                                <property name="accel">
+                                    <string>Alt+A</string>
+                                </property>
+                            </widget>
                             <widget class="QLabel" row="3" column="0">
                                 <property name="name">
                                     <cstring>lblSHParenMatch</cstring>
                                 </property>
                                 <property name="text">
                                     <string>Paren match color:</string>
+                                </property>
+                            </widget>
+                            <widget class="KColorCombo" row="3" column="1">
+                                <property name="name">
+                                    <cstring>kccSHParenMatch</cstring>
                                 </property>
                             </widget>
                             <widget class="QLabel" row="4" column="0">
@@ -129,15 +140,28 @@
                                     <cstring>kccSHParenMismatch</cstring>
                                 </property>
                             </widget>
-                            <widget class="QCheckBox" row="2" column="0" rowspan="1" colspan="2">
+                            <widget class="QCheckBox" row="5" column="0" rowspan="1" colspan="2">
                                 <property name="name">
-                                    <cstring>chkSHHighlightParensOnly</cstring>
+                                    <cstring>chkSHHighlightLonelyParen</cstring>
                                 </property>
                                 <property name="text">
-                                    <string>Highlight p&amp;arens only, not whole expression</string>
+                                    <string>Highlight parens that aren't closed</string>
                                 </property>
                                 <property name="accel">
-                                    <string>Alt+A</string>
+                                    <string></string>
+                                </property>
+                            </widget>
+                            <widget class="KColorCombo" row="6" column="1">
+                                <property name="name">
+                                    <cstring>kccSHLonelyParen</cstring>
+                                </property>
+                            </widget>
+                            <widget class="QLabel" row="6" column="0">
+                                <property name="name">
+                                    <cstring>lblSHLonelyParen</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>Lonely paren color:</string>
                                 </property>
                             </widget>
                         </grid>
@@ -299,7 +323,7 @@
                         <property name="sizeHint">
                             <size>
                                 <width>20</width>
-                                <height>30</height>
+                                <height>70</height>
                             </size>
                         </property>
                     </spacer>
@@ -804,6 +828,18 @@
         <receiver>lblPreviewX</receiver>
         <slot>setEnabled(bool)</slot>
     </connection>
+    <connection>
+        <sender>chkSHHighlightLonelyParen</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>lblSHLonelyParen</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>chkSHHighlightLonelyParen</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>kccSHLonelyParen</receiver>
+        <slot>setEnabled(bool)</slot>
+    </connection>
 </connections>
 <tabstops>
     <tabstop>tabs</tabstop>
@@ -826,6 +862,7 @@
 </tabstops>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
+    <includehint>kcolorcombo.h</includehint>
     <includehint>kcolorcombo.h</includehint>
     <includehint>kcolorcombo.h</includehint>
     <includehint>kcolorcombo.h</includehint>

@@ -144,15 +144,12 @@ typedef QValueList<KLFOldHistoryElement> KLFOldHistory;
 
 KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
   : QSyntaxHighlighter(textedit),
-    config(Enabled),
+    config(Enabled|HighlightLonelyParen),
     cKeyword(0, 0, 128),
     cComment(128, 0, 0),
     cParenMatch(0, 128, 128),
-    cParenMismatch(255, 0, 255)
-    /*    cKeyword(0, 0, 220),
-	  cComment(127, 0, 0),
-	  cParenMatch(127, 200, 220),
-	  cParenMismatch(255, 127, 255) */
+    cParenMismatch(255, 0, 255),
+    cLonelyParen(255, 0, 255)
 {
 
   KConfig *cfg = kapp->config();
@@ -163,6 +160,7 @@ KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
   cComment = cfg->readColorEntry("comment", & cComment);
   cParenMatch = cfg->readColorEntry("parenmatch", & cParenMatch);
   cParenMismatch = cfg->readColorEntry("parenmismatch", & cParenMismatch);
+  cLonelyParen = cfg->readColorEntry("lonelyparen", & cLonelyParen);
 
   _caretpara = 0;
   _caretpos = 0;
@@ -179,6 +177,7 @@ KLFLatexSyntaxHighlighter::~KLFLatexSyntaxHighlighter()
   cfg->writeEntry("comment", cComment);
   cfg->writeEntry("parenmatch", cParenMatch);
   cfg->writeEntry("parenmismatch", cParenMismatch);
+  cfg->writeEntry("lonelyparen", cLonelyParen);
 
 }
 
@@ -233,6 +232,8 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	  parens.pop();
 	} else {
 	  p = ParenItem(0, 0, false, '!'); // simulate an item
+	  if (config & HighlightLonelyParen)
+	    _rulestoapply.append(ColorRule(para, i, 1, cLonelyParen));
 	}
 	QColor col = cParenMatch;
 	if ((text[i] == '}' && p.ch != '{') ||
@@ -277,6 +278,10 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	for (k = p.para+1; (int)k < para; ++k) {
 	  _rulestoapply.append(ColorRule(k, 0, paralens[k], cParenMismatch));
 	}
+      }
+    } else { // not on caret positions
+      if (config & HighlightLonelyParen) {
+	_rulestoapply.append(ColorRule(p.para, p.pos, 1, cLonelyParen));
       }
     }
   }
