@@ -209,6 +209,9 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
     mCache->backendsettings = mw->backendSettings();
 
     QString s = locate("appdata", "symbolspixmapcache");
+    if (s.isEmpty()) {
+      s = locate("appdata", "symbolspicampcache_base");
+    }
     if (!s.isEmpty()) {
       QFile f(s);
       f.open(IO_ReadOnly);

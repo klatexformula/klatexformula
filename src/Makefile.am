@@ -48,7 +48,7 @@ endif
 # our data
 if KLF_ENABLE_GUI
 ourdatadir = $(kde_datadir)/klatexformula
-ourdata_DATA = latex_symbols symbolspixmapcache klatexformula.cls
+ourdata_DATA = latex_symbols symbolspixmapcache_base klatexformula.cls
 else
 ourdatadir = $(kde_datadir)/klatexformula
 ourdata_DATA = klatexformula.cls
