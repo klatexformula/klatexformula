@@ -76,7 +76,7 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
   KConfig *cfg = kapp->config();
 
   cfg->setGroup("HistoryBrowser");
-  _displaytaggedonly = cfg->readBoolEntry("displaytaggedonly", true);
+  _displaytaggedonly = cfg->readBoolEntry("displaytaggedonly", false);
 
   historyChanged();
 

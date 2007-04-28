@@ -290,7 +290,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 
 int KLFLatexSyntaxHighlighter::highlightParagraph(const QString& text, int endstatelastpara)
 {
-  if (config & Enabled == 0)
+  if ( ( config & Enabled ) == 0)
     return 0; // forget everything about synt highlight if we don't want it.
 
   if (endstatelastpara == -2) {
@@ -1122,11 +1122,7 @@ void KLFMainWin::saveProperties(KConfig *cfg)
   cfg->writeEntry("displayHistoryBrowserVisible", _historyBrowserIsShown);
   cfg->writeEntry("displayLatexSymbolsVisible", _latexSymbolsIsShown);
   cfg->writeEntry("displayHistoryBrowserGeometry", mHistoryBrowser->geometry());
-  // DEBUG -->
-  //  cfg->writeEntry("displayHistoryBrowserGeometryPos", mHistoryBrowser->pos());
-  //  cfg->writeEntry("displayHistoryBrowserGeometrySize", mHistoryBrowser->size());
-  // <--
-  cfg->writeEntry("displayLatexSymbolsGeometry", mLatexSymbols->frameGeometry());
+  cfg->writeEntry("displayLatexSymbolsGeometry", mLatexSymbols->geometry());
 
   KMainWindow::saveProperties(cfg);
 }
@@ -1162,21 +1158,6 @@ void KLFMainWin::readProperties(KConfig *cfg)
   slotSymbols(ls_vis);
   mLatexSymbols->setGeometry(ls_r);
 
-  /*  QPoint hb_pos = mHistoryBrowser->pos();
-      QSize hb_size = mHistoryBrowser->size();
-      bool hb_vis = false;
-      hb_vis = cfg->readBoolEntry("displayHistoryBrowserVisible", hb_vis);
-      hb_pos = cfg->readPointEntry("displayHistoryBrowserGeometryPos", &hb_pos);
-      hb_size = cfg->readSizeEntry("displayHistoryBrowserGeometrySize", &hb_size);
-      mHistoryBrowser->move(hb_pos);
-      mHistoryBrowser->resize(hb_size);
-      if (hb_vis) {
-      mHistoryBrowser->show();
-      mHistoryBrowser->resize(hb_size);
-      mHistoryBrowser->move(hb_pos);
-      }
-      // same for latexsymbols
-      */
 
   KMainWindow::readProperties(cfg);
 }

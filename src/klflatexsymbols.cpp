@@ -210,7 +210,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 
     QString s = locate("appdata", "symbolspixmapcache");
     if (s.isEmpty()) {
-      s = locate("appdata", "symbolspicampcache_base");
+      s = locate("appdata", "symbolspixmapcache_base");
     }
     if (!s.isEmpty()) {
       QFile f(s);
