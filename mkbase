@@ -1,2 +1,2 @@
 #!/bin/sh
-make -f admin/Makefile.common
+make -f admin/Makefile.common "$@"
