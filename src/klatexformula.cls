@@ -2,14 +2,15 @@
 
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{klatexformula}
-              [2005/02/23 v1.0
+              [2007/05/04 v1.1
  Philippe's special Latex document class for KLatexFormula]
 
 \setlength\paperheight{200mm}
 \setlength\paperwidth{270mm}
 
 %%%% PAGE MARGINS
-\usepackage[left=0cm,top=0cm,right=0cm,bottom=0cm,nohead,nofoot]{geometry}
+% This is unnecessary as of version KLFV2.0 / klatexformula.clsV1.1
+%\usepackage[left=0cm,top=0cm,right=0cm,bottom=0cm,nohead,nofoot]{geometry}
 
 \input{size12.clo}
 
