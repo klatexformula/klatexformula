@@ -22,7 +22,7 @@
 static const char description[] =
     I18N_NOOP("KLatexFormula Command-line interface -- Easily get an image from a LaTeX equation");
 
-static const char version[] = "2.0.0";
+static const char version[] = "2.0.1";
 
 
 static KCmdLineOptions options[] =

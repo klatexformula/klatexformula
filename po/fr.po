@@ -1,0 +1,1161 @@
+# translation of fr.po to French
+# This file is put in the public domain.
+#
+# Philippe Faist <philippe.faist@bluewin.ch>, 2007.
+msgid ""
+msgstr ""
+"Project-Id-Version: fr\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-08-06 10:46-0400\n"
+"PO-Revision-Date: 2007-08-16 11:37-0400\n"
+"Last-Translator: Philippe Faist <philippe.faist@bluewin.ch>\n"
+"Language-Team: French\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.2\n"
+
+#: _translatorinfo.cpp:1
+msgid ""
+"_: NAME OF TRANSLATORS\n"
+"Your names"
+msgstr "Philippe Faist"
+
+#: _translatorinfo.cpp:3
+msgid ""
+"_: EMAIL OF TRANSLATORS\n"
+"Your emails"
+msgstr "Philippe Faist <philippe.faist@bluewin.ch>"
+
+#: klfcmdl_main.cpp:23
+msgid ""
+"KLatexFormula Command-line interface -- Easily get an image from a LaTeX "
+"equation"
+msgstr "Interface ligne de commande de KLatexFormula - Obtenez facilement une image d'une équation LaTeX"
+
+#: klfcmdl_main.cpp:31
+msgid "An input file to parse, '-' for standard input."
+msgstr "Fichier d'entrée à lire, '-' pour l'entrée standard stdin."
+
+#: klfcmdl_main.cpp:33
+msgid ""
+"A File to write to or '-' for standard output. Format is guessed by "
+"extention and defaults to PNG."
+msgstr "Fichier de sortie ou '-' pour la sortie standard. Le format est deviné à partir de l'extension, sinon PNG par défaut."
+
+#: klfcmdl_main.cpp:35
+msgid ""
+"A foreground color. Format #FFFFFF. (Don't forget to escape \\# from the "
+"shell!)"
+msgstr "Couleur à appliquer. Format #FFFFFF. (Ne pas oublier de protéger le \\# du shell bash !)"
+
+#: klfcmdl_main.cpp:37
+msgid "A background color. Format #FFFFFF or '-' for transparent."
+msgstr "Couleur d'arrière-plan. Format #FFFFFF ou '-' pour transparent."
+
+#: klfcmdl_main.cpp:39
+msgid "DPI (dots per inch) pixelisation to use."
+msgstr "DPI (dots per inch) résolution du rendu d'image en points par pouce."
+
+#: klfcmdl_main.cpp:41
+msgid ""
+"Use given math mode. <arg> must contain '...' to be replaced by the latex "
+"string."
+msgstr "Spécifiez le mode mathématique LaTeX. '...' doit figurer dans <arg> et sera remplacé par le code LaTeX en entrée."
+
+#: klfcmdl_main.cpp:43
+msgid ""
+"Some arbitrary LaTeX code to be inserted after \\documentclass{} and before "
+"\\begin{document}. This may typically be \\usepackage{xyz} directives."
+msgstr "Code LaTeX arbitraire à insérer entre les directives \\documentclass{} et \\begin{document}, typiquement des instructions \\usepackage{xyz}."
+
+#: klfcmdl_main.cpp:47
+msgid ""
+"Print as little as possible on standard error. Error messages won't be "
+"printed. Errors will be reported with exit status."
+msgstr "Afficher le moins possible en sortie d'erreur stderr. Les messages d'erreur ne seront pas affichés, les erreurs sont signalées par le code de retour du programme."
+
+#: klfcmdl_main.cpp:50
+msgid ""
+"A writable temporary directory. If empty, a suitable directory (like /tmp) "
+"will be used."
+msgstr "Un dossier temporaire avec accès en écriture. Par défaut, un dossier adéquat comme /tmp sera utilisé."
+
+#: klfcmdl_main.cpp:51
+msgid ""
+"Path and file name to 'latex' executable. If 'latex' is installed normally "
+"and is accessible in $PATH, you don't need to specify any path here."
+msgstr "Chemin d'accès et nom de fichier pour le programme 'latex'. Si 'latex' est installé normalement et accessible dans $PATH, ne spécifiez rien ici."
+
+#: klfcmdl_main.cpp:53
+msgid ""
+"Path and file name to 'dvips' executable. If 'dvips' is installed normally "
+"and is accessible in $PATH, you don't need to specify any path here."
+msgstr "Chemin d'accès et nom de fichier pour le programme 'dvips'. Si 'dvips' est installé normalement et accessible dans $PATH, ne spécifiez rien ici."
+
+#: klfcmdl_main.cpp:55
+msgid ""
+"Path and file name to 'gs' executable. If 'gs' is installed normally and is "
+"accessible in $PATH, you don't need to specify any path here."
+msgstr "Chemin d'accès et nom de fichier pour le programme 'gs'. Si 'gs' est installé normalement et accessible dans $PATH, ne spécifiez rien ici."
+
+#: klfcmdl_main.cpp:57
+msgid ""
+"Path and file name to 'epstopdf' executable. If 'epstopdf' is installed "
+"normally and is accessible in $PATH, you don't need to specify any path "
+"here. If this argument is set to empty, PDF will not be available."
+msgstr "Chemin d'accès et nom de fichier pour le programme 'epstopdf'. Si 'epstopdf' est installé normalement et accessible dans $PATH, ne spécifiez rien ici."
+
+#: klfcmdl_main.cpp:60
+msgid ""
+"A left border offset for image (Postscript points). Default value "
+"recommended."
+msgstr "Un espace à gauche (bordure) pour l'mage, en points Postscript. Valeur par défaut recommandée."
+
+#: klfcmdl_main.cpp:61
+msgid "A top border offset for image (Postscript points). Default value recommended."
+msgstr "Un espace en haut (bordure) pour l'mage, en points Postscript. Valeur par défaut recommandée."
+
+#: klfcmdl_main.cpp:62
+msgid ""
+"A right border offset for image (Postscript points). Default value "
+"recommended."
+msgstr "Un espace à droite (bordure) pour l'mage, en points Postscript. Valeur par défaut recommandée."
+
+#: klfcmdl_main.cpp:63
+msgid ""
+"A bottom border offset for image (Postscript points). Default value "
+"recommended."
+msgstr "Un espace en bas (bordure) pour l'mage en points Postscript. Valeur par défaut recommandée."
+
+#: klfcmdl_main.cpp:72
+msgid "KLatexFormula Cmdline interface"
+msgstr "Interface Line de Commande KLatexFormula"
+
+#: klfhistorybrowser.cpp:95
+msgid "Right click for context menu, double-click to restore LaTeX formula."
+msgstr "Bouton droit pour menu, double-clic pour rappeller la formule LaTeX."
+
+#: klfhistorybrowser.cpp:107
+msgid "Configure display"
+msgstr "Configurer l'affichage"
+
+#: klfhistorybrowser.cpp:108   **** TAG ****
+msgid "Only display tagged items"
+msgstr "Afficher seulement les éléments marqués"
+
+#: klfhistorybrowser.cpp:225
+msgid "Actions"
+msgstr "Actions"
+
+#: klfhistorybrowser.cpp:226
+msgid "Restore latex formula and style"
+msgstr "Rétablir la formule et le style"
+
+#: klfhistorybrowser.cpp:228
+msgid "Restore latex formula only"
+msgstr "Rétablir la formule"
+
+#: klfhistorybrowser.cpp:231
+msgid "Delete from history"
+msgstr "Supprimer de l'historique"
+
+#: klfhistorybrowser.cpp:267
+msgid "Are you sure you want to delete selected item(s) from history?"
+msgstr "Etes-vous sûr de vouloir effacer les éléments sélectionnés ?"
+
+#: klfhistorybrowser.cpp:268
+msgid "delete from history?"
+msgstr "effacer de l'historique ?"
+
+#: klflatexsymbols.cpp:128
+msgid "Please wait while generating symbol previews ... "
+msgstr "Patientez svp. pendant la génération des miniatures des symboles ..."
+
+#: klflatexsymbols.cpp:230
+msgid "Error reading latex symbols file! Check your installation!"
+msgstr "Erreur pendant la lecture du fichier de symboles latex ! Vérifiez votre installation !"
+
+#: klflatexsymbols.cpp:293
+msgid "Click an item to view its LaTeX code. Double-click inserts the symbol."
+msgstr "Sélectionnez un élément pour voir son code LaTeX. Double-clic pour insérer ce symbole."
+
+#: klfmainwin.cpp:376
+msgid "KLatexFormula %1"
+msgstr "KLatexFormula %1"
+
+#: klfmainwin.cpp:382
+msgid "Evaluate"
+msgstr "Evaluer"
+
+#: klfmainwin.cpp:598
+msgid "Available Styles"
+msgstr "Styles disponibles"
+
+#: klfmainwin.cpp:603
+msgid "Manage Styles"
+msgstr "Gérer les styles"
+
+#: klfmainwin.cpp:612
+msgid "Error: Unable to load your style list!"
+msgstr "Erreur : Impossible de lire la liste de styles !"
+
+#: klfmainwin.cpp:619
+msgid "Error: Style file is incorrect or corrupt!\n"
+msgstr "Erreur : Le fichier de styles est illisible ou corrompu !\n"
+
+#: klfmainwin.cpp:625
+msgid ""
+"The style file found was created by a more recent version of KLatexFormula.\n"
+"The process of style loading may fail."
+msgstr "Le fichier de styles trouvé a été généré par une version postérieure de KLatexFormula.\n Sa lecture peut échouer."
+
+#: klfmainwin.cpp:626
+msgid "Load styles"
+msgstr "Chargement des styles"
+
+#: klfmainwin.cpp:657
+msgid "Error: Unable to make local file for saving styles!\n"
+msgstr "Erreur : impossible de créer un fichier local pour la sauvegarde des styles !\n"
+
+#: klfmainwin.cpp:662
+msgid "Error: Unable to write to styles file!\n"
+msgstr "Erreur : Impossible d'écrire dans le fichier de styles !\n"
+
+#: klfmainwin.cpp:677
+msgid "Unable to load your formula history list!"
+msgstr "Impossible de lire l'historique de formules !"
+
+#: klfmainwin.cpp:683
+msgid "Error: History file is incorrect or corrupt!\n"
+msgstr "Erreur : Le fichier d'historique est illisible ou corrompu !\n"
+
+#: klfmainwin.cpp:689
+msgid ""
+"The history file found was created by a more recent version of "
+"KLatexFormula.\n"
+"The process of history loading may fail."
+msgstr "Le fichier d'historique a été généré par une version postérieure de KLatexFormula.\n Sa lecture peut échouer."
+
+#: klfmainwin.cpp:690
+msgid "Load history"
+msgstr "Chargement de l'historique"
+
+#: klfmainwin.cpp:701
+msgid ""
+"KLatexFormula has detected a history file from an older version of "
+"KLatexFormula.\n"
+"Do you wish to import those items?"
+msgstr ""
+"KLatexFormula a décelé un fichier d'historique datant d'une version antérieure de KLatexFormula.\n"
+"Aimeriez-vous importer ces éléments ?"
+
+#: klfmainwin.cpp:702
+msgid "Import old history?"
+msgstr "Importer vieil historique ?"
+
+#: klfmainwin.cpp:706
+msgid "Unable to load your old formula history list!"
+msgstr "Impossible de lire l'ancien fichier d'historique !"
+
+#: klfmainwin.cpp:724
+msgid "[old style import]"
+msgstr "[ancien style importé]"
+
+#: klfmainwin.cpp:749
+msgid "Error: Unable to make local file for saving history!\n"
+msgstr "Erreur : Impossible de créer un fichier local pour la sauvegarde de l'historique !\n"
+
+#: klfmainwin.cpp:754
+msgid "Error: Unable to write to history file!\n"
+msgstr "Erreur : Impossible d'écrire dans le fichier d'historique !\n"
+
+#: klfmainwin.cpp:854
+msgid "Error: %1"
+msgstr "Erreur : %1"
+
+#: klfmainwin.cpp:966
+msgid "Save Image Formula"
+msgstr "Enregistrer l'image"
+
+#: klfmainwin.cpp:981
+msgid "Specified file exists. Overwrite?"
+msgstr "Ce fichier existe déjà. Ecraser ?"
+
+#: klfmainwin.cpp:981
+msgid "Overwrite?"
+msgstr "Ecraser ?"
+
+#: klfmainwin.cpp:1009
+msgid "Sorry, format `%1' is not available."
+msgstr "Le format `%1' n'est malheureusement pas disponible."
+
+#: klfmainwin.cpp:1009
+msgid "No %1"
+msgstr "Pas de %1"
+
+#: klfmainwin.cpp:1028
+msgid "[ no name ]"
+msgstr "[ sans nom ]"
+
+#: klfmainwin.cpp:1062
+msgid "Enter name"
+msgstr "Saisissez le nom"
+
+#: klfmainwin.cpp:1062
+msgid "Enter new style name: "
+msgstr "Saisissez le nom du nouveau style : "
+
+#: klfmainwin.cpp:1062
+msgid "New Style"
+msgstr "Nouveau Style"
+
+#: klfmainwin.cpp:1073
+msgid "Style name already exists. Do you want to overwrite?"
+msgstr "Ce nom de style existe déjà. Ecraser ?"
+
+#: klfmainwin.cpp:1073
+msgid "Style name exists"
+msgstr "Nom de style existe déjà"
+
+#: klfstylemanager.cpp:105
+msgid "Style Management Actions"
+msgstr "Gestion des Styles"
+
+#: klfstylemanager.cpp:106
+msgid "Delete Style"
+msgstr "Supprimer le style"
+
+#: klfstylemanager.cpp:107
+msgid "Move up"
+msgstr "Déplacer vers le haut"
+
+#: klfstylemanager.cpp:108
+msgid "Move down"
+msgstr "Déplacer vers le bas"
+
+#: klfstylemanager.cpp:109 klfstylemanager.cpp:180
+msgid "Rename style"
+msgstr "Renommer le style"
+
+#: klfstylemanager.cpp:113
+msgid "Drag and drop styles to move them. Right-click for actions menu."
+msgstr "Glissez les styles pour les déplacer. Clic du bouton droit pour un menu."
+
+#: klfstylemanager.cpp:164
+msgid "Are you sure you want to erase selected style?"
+msgstr "Etes-vous sûr de vouloir écraser le style sélectionné ?"
+
+#: klfstylemanager.cpp:165
+msgid "Erase style?"
+msgstr "Supprimer le style ?"
+
+#: klfstylemanager.cpp:180
+msgid "Enter new style name:"
+msgstr "Saississez le nouveau nom du style :"
+
+#: main.cpp:39
+msgid "KLatexFormula -- Easily get an image from a LaTeX equation"
+msgstr "KLatexFormula - Obtenez une image facilement d'une équation LaTeX"
+
+#: main.cpp:56
+msgid "KLatexFormula"
+msgstr "KLatexFormula"
+
+#. i18n: file ./klfmainwinui.ui line 18
+#: rc.cpp:3
+#, no-c-format
+msgid "KLFMainWinUI"
+msgstr "KLFMainWinUI"
+
+#. i18n: file ./klfmainwinui.ui line 52
+#: rc.cpp:6
+#, no-c-format
+msgid "Enter <i>LaTeX</i> expression:"
+msgstr "Saississez l'expression <i>LaTeX</i> :"
+
+#. i18n: file ./klfmainwinui.ui line 77
+#: rc.cpp:9
+#, no-c-format
+msgid ""
+"<p>Enter your LaTeX formula here.</p><p>You may insert keywords using LaTeX "
+"comments, for future history searches:<br><tt>% keyword(s)<br><i>formula</"
+"i></p>"
+msgstr ""
+"<p>Saississez l'équation LaTeX ici.</p> "
+"<p>Vous pouvez insérer des mots-clef en utilisant des commentaires LaTeX, pour une recherche future dans l'historique, comme ceci :<br> "
+"<tt>% mots-clef<br><i>formule</i></tt></p>"
+
+#. i18n: file ./klfmainwinui.ui line 81
+#: rc.cpp:12
+#, no-c-format
+msgid ""
+"Enter your <i>LaTeX</i> formula here. Then, by clicking the <i>Evaluate</i> "
+"button, you'll get the result you are waiting for."
+msgstr "Saississez votre formula <i>LaTeX</i> ici. Ensuite, en cliquant le bouton <i>Evaluer</i>, vous obtenez le résultat attendu."
+
+#. i18n: file ./klfmainwinui.ui line 101
+#: rc.cpp:16
+#, no-c-format
+msgid "Ctrl+C"
+msgstr "Ctrl+C"
+
+#. i18n: file ./klfmainwinui.ui line 104
+#: rc.cpp:19
+#, no-c-format
+msgid "Clear the above field"
+msgstr "Vider le champ ci-dessus"
+
+#. i18n: file ./klfmainwinui.ui line 108
+#: rc.cpp:22
+#, no-c-format
+msgid "Clicking this button is a utility to clear the LaTeX code entry field above"
+msgstr "Petit bouton utile pour effacer complètement le champ principal ci-dessus"
+
+#. i18n: file ./klfmainwinui.ui line 125
+#: rc.cpp:25
+#, no-c-format
+msgid "Ev&aluate"
+msgstr "Ev&aluer"
+
+#. i18n: file ./klfmainwinui.ui line 128
+#. i18n: file ./klfsettingsui.ui line 114
+#. i18n: file ./klfsettingsui.ui line 425
+#. i18n: file ./klfstylemanagerui.ui line 55
+#: rc.cpp:28 rc.cpp:301 rc.cpp:347 rc.cpp:410
+#, no-c-format
+msgid "Alt+A"
+msgstr "Alt+A"
+
+#. i18n: file ./klfmainwinui.ui line 134
+#: rc.cpp:31
+#, no-c-format
+msgid "Evaluate LaTeX Expression [Shift-Enter]"
+msgstr "Evaluer l'expression LaTeX [Shift-Entrée]"
+
+#. i18n: file ./klfmainwinui.ui line 138
+#: rc.cpp:34
+#, no-c-format
+msgid ""
+"Render the above <i>LaTeX</i> formula as an image, which will be displayed "
+"in the label below."
+msgstr "Créer l'image à partir de l'équation <i>LaTeX</i> ci-dessus, qui sera affichée ci-dessous."
+
+#. i18n: file ./klfmainwinui.ui line 147
+#: rc.cpp:37
+#, no-c-format
+msgid "S"
+msgstr "S"
+
+#. i18n: file ./klfmainwinui.ui line 156
+#: rc.cpp:41
+#, no-c-format
+msgid "Show Latex Symbols palette"
+msgstr "Afficher la palette de symboles LaTeX"
+
+#. i18n: file ./klfmainwinui.ui line 160
+#: rc.cpp:44
+#, no-c-format
+msgid ""
+"Clicking this button opens a dialog allowing you to view and select LaTeX "
+"symbols the codes of which you may not know by heart."
+msgstr "Ce bouton ouvre une fenêtre qui affiche une palette de symboles LaTeX dont les codes auront peut-être échappé de votre mémoire."
+
+#. i18n: file ./klfmainwinui.ui line 169
+#: rc.cpp:47
+#, no-c-format
+msgid "H"
+msgstr "H"
+
+#. i18n: file ./klfmainwinui.ui line 172
+#: rc.cpp:50
+#, no-c-format
+msgid "Ctrl+H"
+msgstr "Ctrl+H"
+
+#. i18n: file ./klfmainwinui.ui line 178
+#: rc.cpp:53
+#, no-c-format
+msgid "Show History"
+msgstr "Afficher l'historique"
+
+#. i18n: file ./klfmainwinui.ui line 182
+#: rc.cpp:56
+#, no-c-format
+msgid ""
+"Clicking this button opens a dialog allowing you to view previously entered "
+"formulas."
+msgstr "Ce bouton ouvre une fenêtre qui permet d'explorer les formules déjà saisies."
+
+#. i18n: file ./klfmainwinui.ui line 191
+#: rc.cpp:59
+#, no-c-format
+msgid "F"
+msgstr "F"
+
+#. i18n: file ./klfmainwinui.ui line 194
+#: rc.cpp:62
+#, no-c-format
+msgid "Ctrl+E, Ctrl+Space"
+msgstr "Ctrl+E, Ctrl+Espace"
+
+#. i18n: file ./klfmainwinui.ui line 197
+#: rc.cpp:65
+#, no-c-format
+msgid "Toggle shrinked/expanded mode"
+msgstr "Passer en mode étendu / en mode simple."
+
+#. i18n: file ./klfmainwinui.ui line 201
+#: rc.cpp:68
+#, no-c-format
+msgid ""
+"Switches to expanded mode or back to shrinked mode. In expanded mode you get "
+"to choose more options."
+msgstr "Passer en mode étendu si vous êtes en mode simple, et vice versa. En mode étendu, vous avez plus d'options à manipuler."
+
+#. i18n: file ./klfmainwinui.ui line 262
+#: rc.cpp:72
+#, no-c-format
+msgid "The resulting image will be displayed here"
+msgstr "L'image finale sera affichée ici."
+
+#. i18n: file ./klfmainwinui.ui line 266
+#: rc.cpp:75
+#, no-c-format
+msgid "Here you can see the image you get after evaluating your LaTeX code."
+msgstr "Ici sera affichée l'image rendue de votre équation LaTeX."
+
+#. i18n: file ./klfmainwinui.ui line 289
+#: rc.cpp:78
+#, no-c-format
+msgid "DRAG"
+msgstr "GLISSER"
+
+#. i18n: file ./klfmainwinui.ui line 292
+#: rc.cpp:81
+#, no-c-format
+msgid ""
+"Click and keep mouse button pressed to drag your formula to an other "
+"application"
+msgstr "Cliquez et gardez appuyé pour « glisser » la formule vers une autre application"
+
+#. i18n: file ./klfmainwinui.ui line 300
+#: rc.cpp:84
+#, no-c-format
+msgid "COP&Y"
+msgstr "COPIER"
+
+#. i18n: file ./klfmainwinui.ui line 303
+#. i18n: file ./klfhistorybrowserui.ui line 188
+#. i18n: file ./klfsettingsui.ui line 54
+#: rc.cpp:87 rc.cpp:246 rc.cpp:283
+#, no-c-format
+msgid "Alt+Y"
+msgstr "Alt+Y"
+
+#. i18n: file ./klfmainwinui.ui line 306
+#: rc.cpp:90
+#, no-c-format
+msgid "Copy formula to clipboard"
+msgstr "Copier la formule"
+
+#. i18n: file ./klfmainwinui.ui line 314
+#: rc.cpp:93
+#, no-c-format
+msgid "SAVE"
+msgstr "ENREGISTRER"
+
+#. i18n: file ./klfmainwinui.ui line 317
+#: rc.cpp:96
+#, no-c-format
+msgid "Save formula to disk"
+msgstr "Enregistrer la formule sur le disque dur"
+
+#. i18n: file ./klfmainwinui.ui line 349
+#: rc.cpp:102
+#, no-c-format
+msgid "Alt+Q"
+msgstr "Alt+Q"
+
+#. i18n: file ./klfmainwinui.ui line 352
+#: rc.cpp:105
+#, no-c-format
+msgid "Quit KLatexFormula"
+msgstr "Quitter KLatexFormula"
+
+#. i18n: file ./klfmainwinui.ui line 356
+#: rc.cpp:108
+#, no-c-format
+msgid "Exit KLatexFormula"
+msgstr "Quitter KLatexFormula"
+
+#. i18n: file ./klfmainwinui.ui line 390
+#: rc.cpp:111
+#, no-c-format
+msgid "Colors"
+msgstr "Couleurs"
+
+#. i18n: file ./klfmainwinui.ui line 407
+#: rc.cpp:114
+#, no-c-format
+msgid "Foreground color:"
+msgstr "Couleur à appliquer : "
+
+#. i18n: file ./klfmainwinui.ui line 430
+#: rc.cpp:117
+#, no-c-format
+msgid "Choose the resulting text color"
+msgstr "Choisissez la couleur d'avant-plan à appliquer à l'équation."
+
+#. i18n: file ./klfmainwinui.ui line 438
+#: rc.cpp:120
+#, no-c-format
+msgid "&Use transparent background"
+msgstr "&Utiliser un fond transparent"
+
+#. i18n: file ./klfmainwinui.ui line 441
+#. i18n: file ./klfhistorybrowserui.ui line 163
+#: rc.cpp:123 rc.cpp:237
+#, no-c-format
+msgid "Alt+U"
+msgstr "Alt+U"
+
+#. i18n: file ./klfmainwinui.ui line 447
+#: rc.cpp:126
+#, no-c-format
+msgid "Check this if you want your formula to have a transparent background"
+msgstr "Cochez ici pour obtenir une image finale avec un fond transparent"
+
+#. i18n: file ./klfmainwinui.ui line 458
+#: rc.cpp:129
+#, no-c-format
+msgid "Background color:"
+msgstr "Couleur de fond :"
+
+#. i18n: file ./klfmainwinui.ui line 477
+#: rc.cpp:132
+#, no-c-format
+msgid "Choose the resulting background color"
+msgstr "Choisissez la couleur d'arrière-plan à utiliser."
+
+#. i18n: file ./klfmainwinui.ui line 496
+#: rc.cpp:135
+#, no-c-format
+msgid "LaTeX && Image settings"
+msgstr "LaTeX et options de l'image"
+
+#. i18n: file ./klfmainwinui.ui line 536
+#: rc.cpp:138
+#, no-c-format
+msgid "Edit the LaTeX preamble. This is typically \\usepackage{...} directives"
+msgstr "Editez le préambule LaTeX. Insérez ici typiquement les instructions \\usepackage{} nécessaires."
+
+#. i18n: file ./klfmainwinui.ui line 544
+#: rc.cpp:141
+#, no-c-format
+msgid "Use Math mode:"
+msgstr "Utiliser le mode mathématique LaTeX :"
+
+#. i18n: file ./klfmainwinui.ui line 553
+#: rc.cpp:145
+#, no-c-format
+msgid "Check this to use a LaTeX math mode"
+msgstr "Cochez ici pour utiliser le mode mathématique de LaTeX pour le rendu des formules."
+
+#. i18n: file ./klfmainwinui.ui line 561
+#: rc.cpp:148
+#, no-c-format
+msgid "Edit LaTeX preamble:"
+msgstr "Editer le préambule LaTeX :"
+
+#. i18n: file ./klfmainwinui.ui line 572
+#: rc.cpp:151
+#, no-c-format
+msgid "DPI Resolution:"
+msgstr "Résolution DPI :"
+
+#. i18n: file ./klfmainwinui.ui line 590
+#: rc.cpp:154
+#, no-c-format
+msgid "\\\\[ ... \\\\]"
+msgstr "\\\\[ ... \\\\]"
+
+#. i18n: file ./klfmainwinui.ui line 591
+#: rc.cpp:157
+#, no-c-format
+msgid "$ ... $"
+msgstr "$ ... $"
+
+#. i18n: file ./klfmainwinui.ui line 592
+#: rc.cpp:160
+#, no-c-format
+msgid "\\\\begin{eqnarray*} ... \\\\end{eqnarray*}"
+msgstr "\\\\begin{eqnarray*} ... \\\\end{eqnarray*}"
+
+#. i18n: file ./klfmainwinui.ui line 596
+#: rc.cpp:163
+#, no-c-format
+msgid "Which LaTeX math mode you want"
+msgstr "Le mode mathématique de LaTeX vous désirez"
+
+#. i18n: file ./klfmainwinui.ui line 600
+#: rc.cpp:166
+#, no-c-format
+msgid ""
+"This lets you choose between different available LaTeX math modes. You may "
+"choose one in the list or add your own. If you add your own math mode, make "
+"sure the string contains '...' which will be replaced by formula at "
+"evaluation."
+msgstr "Ce champ vous permet de choisir entre les différents modes « math » de LaTeX. Vous pouvez en choisir un déjà dans la liste ou en rajouter un à vous, auquel cas n'oubliez pas de mettre '...' qui sera remplacé par l'équation à évaluer."
+
+#. i18n: file ./klfmainwinui.ui line 621
+#: rc.cpp:169
+#, no-c-format
+msgid "Select the resolution of the resulting image"
+msgstr "Saississez la résolution DPI du rendu de l'image finale."
+
+#. i18n: file ./klfmainwinui.ui line 647
+#: rc.cpp:172
+#, no-c-format
+msgid "&Load Style"
+msgstr "Charger un Style"
+
+#. i18n: file ./klfmainwinui.ui line 650
+#: rc.cpp:175
+#, no-c-format
+msgid "Alt+L"
+msgstr "Alt+L"
+
+#. i18n: file ./klfmainwinui.ui line 653
+#: rc.cpp:178
+#, no-c-format
+msgid "Load a previously saved style"
+msgstr "Charger un style sauvegardé précédemment"
+
+#. i18n: file ./klfmainwinui.ui line 669
+#: rc.cpp:181
+#, no-c-format
+msgid "Save Style"
+msgstr "Enregistrer le style"
+
+#. i18n: file ./klfmainwinui.ui line 675
+#: rc.cpp:185
+#, no-c-format
+msgid "Save current style (colors, etc.)"
+msgstr "Enregistrer le style actuel (couleurs, etc.)"
+
+#. i18n: file ./klfmainwinui.ui line 691
+#: rc.cpp:188
+#, no-c-format
+msgid "Setti&ngs..."
+msgstr "Configuration ..."
+
+#. i18n: file ./klfmainwinui.ui line 694
+#. i18n: file ./klfhistorybrowserui.ui line 235
+#. i18n: file ./klfsettingsui.ui line 772
+#. i18n: file ./klflatexsymbolsui.ui line 106
+#: rc.cpp:191 rc.cpp:262 rc.cpp:383 rc.cpp:434
+#, no-c-format
+msgid "Alt+N"
+msgstr "Alt+N"
+
+#. i18n: file ./klfmainwinui.ui line 697
+#. i18n: file ./klfmainwinui.ui line 711
+#: rc.cpp:194 rc.cpp:201
+#, no-c-format
+msgid "Edit KLatexFormula settings"
+msgstr "Modifier la configuration de KLatexFormula"
+
+#. i18n: file ./klfmainwinui.ui line 705
+#: rc.cpp:197
+#, no-c-format
+msgid "?"
+msgstr "?"
+
+#. i18n: file ./klfhistorybrowserui.ui line 18
+#: rc.cpp:204
+#, no-c-format
+msgid "KLatexFormula History Browser"
+msgstr "Historique de Formules KLatexFormula"
+
+#. i18n: file ./klfhistorybrowserui.ui line 67
+#: rc.cpp:207
+#, no-c-format
+msgid "Search:"
+msgstr "Recherche :"
+
+#. i18n: file ./klfhistorybrowserui.ui line 70
+#. i18n: file ./klfhistorybrowserui.ui line 92
+#: rc.cpp:210 rc.cpp:222
+#, no-c-format
+msgid "Incremental search within history items. Find next with F3 key."
+msgstr "Recherche dans la liste de formules. Trouvez l'occurrence suivante avec la touche F3."
+
+#. i18n: file ./klfhistorybrowserui.ui line 73
+#. i18n: file ./klfhistorybrowserui.ui line 95
+#: rc.cpp:213 rc.cpp:225
+#, no-c-format
+msgid ""
+"If you insert keywords as LaTeX comments in your formulas ('<tt>%keyword</"
+"tt><i>[newline]</i>') then you can search for those formulas here."
+msgstr "Si vous avez « marqué » vos formules avec des mots-clefs, alors vous pouvez les rechercher en saisissant votre mot-clef ici."
+
+#. i18n: file ./klfhistorybrowserui.ui line 81
+#: rc.cpp:216
+#, no-c-format
+msgid "Clr>"
+msgstr "X>"
+
+#. i18n: file ./klfhistorybrowserui.ui line 84
+#: rc.cpp:219
+#, no-c-format
+msgid "Clear Search bar"
+msgstr "Effacer la barre de recherche"
+
+#. i18n: file ./klfhistorybrowserui.ui line 103
+#: rc.cpp:228
+#, no-c-format
+msgid "Preview"
+msgstr "Miniature"
+
+#. i18n: file ./klfhistorybrowserui.ui line 114
+#: rc.cpp:231
+#, no-c-format
+msgid "LaTeX formula"
+msgstr "Formule LaTeX"
+
+#. i18n: file ./klfhistorybrowserui.ui line 160
+#: rc.cpp:234
+#, no-c-format
+msgid "Restore Form&ula and style"
+msgstr "Rétablir la formule et le style"
+
+#. i18n: file ./klfhistorybrowserui.ui line 166
+#: rc.cpp:240
+#, no-c-format
+msgid "Restore current selected formula to KLatexFormula editor, with style"
+msgstr "Rétablir la formule sélectionnée dans l'éditeur de formules, avec le style."
+
+#. i18n: file ./klfhistorybrowserui.ui line 185
+#: rc.cpp:243
+#, no-c-format
+msgid "Restore Formula onl&y"
+msgstr "Rétablir la formule"
+
+#. i18n: file ./klfhistorybrowserui.ui line 191
+#: rc.cpp:249
+#, no-c-format
+msgid "Restore LaTeX code only and keep the current style"
+msgstr "Rétablir la formule seulement et garder le style actuel"
+
+#. i18n: file ./klfhistorybrowserui.ui line 210
+#: rc.cpp:252
+#, no-c-format
+msgid "Delete item(s)"
+msgstr "Effacer les éléments sélectionnés"
+
+#. i18n: file ./klfhistorybrowserui.ui line 216
+#: rc.cpp:256
+#, no-c-format
+msgid "Delete de selected history items"
+msgstr "Effacer les éléments sélectionnés"
+
+#. i18n: file ./klfhistorybrowserui.ui line 232
+#: rc.cpp:259
+#, no-c-format
+msgid "Co&nfig"
+msgstr "Configuration"
+
+#. i18n: file ./klfhistorybrowserui.ui line 251
+#. i18n: file ./klflatexsymbolsui.ui line 121
+#: rc.cpp:265 rc.cpp:440
+#, no-c-format
+msgid "Cl&ose"
+msgstr "Fermer"
+
+#. i18n: file ./klfhistorybrowserui.ui line 254
+#. i18n: file ./klflatexsymbolsui.ui line 124
+#: rc.cpp:268 rc.cpp:443
+#, no-c-format
+msgid "Alt+O"
+msgstr "Alt+O"
+
+#. i18n: file ./klfhistorybrowserui.ui line 257
+#: rc.cpp:271
+#, no-c-format
+msgid "Close this window"
+msgstr "Fermer cette fenêtre"
+
+#. i18n: file ./klfsettingsui.ui line 22
+#: rc.cpp:274
+#, no-c-format
+msgid "KLatexFormula - Settings"
+msgstr "KLatexFormula - Configuration"
+
+#. i18n: file ./klfsettingsui.ui line 40
+#: rc.cpp:277
+#, no-c-format
+msgid "&Appearance"
+msgstr "&Apparence"
+
+#. i18n: file ./klfsettingsui.ui line 51
+#: rc.cpp:280
+#, no-c-format
+msgid "Enable s&yntax highlighting"
+msgstr "Activer les couleurs syntaxiques"
+
+#. i18n: file ./klfsettingsui.ui line 60
+#: rc.cpp:286
+#, no-c-format
+msgid "Whether to enable coloring your LaTeX code or not"
+msgstr "Activer ou non les couleurs dans l'éditeur de formules LaTeX."
+
+#. i18n: file ./klfsettingsui.ui line 74
+#: rc.cpp:289
+#, no-c-format
+msgid ""
+"Changes affect directly LaTeX formula editor.<br>You need to restart "
+"KLatexFormula to affect the preamble editor"
+msgstr "Les changements ici n'affectent que l'éditeur de formules.<br>Vous devez redémarrer KLatexFormula pour mettre à jour l'éditeur de préambule."
+
+#. i18n: file ./klfsettingsui.ui line 90
+#: rc.cpp:292
+#, no-c-format
+msgid "Keyword color:"
+msgstr "Mot-clef LaTeX :"
+
+#. i18n: file ./klfsettingsui.ui line 103
+#: rc.cpp:295
+#, no-c-format
+msgid "Comment color:"
+msgstr "Commentaire LaTeX :"
+
+#. i18n: file ./klfsettingsui.ui line 111
+#: rc.cpp:298
+#, no-c-format
+msgid "Highlight p&arens only, not whole expression"
+msgstr "Colorier les parenthèses, pas toute l'expression"
+
+#. i18n: file ./klfsettingsui.ui line 122
+#: rc.cpp:304
+#, no-c-format
+msgid "Paren match color:"
+msgstr "Fermeture parenthèse :"
+
+#. i18n: file ./klfsettingsui.ui line 135
+#: rc.cpp:307
+#, no-c-format
+msgid "Paren mismatch color:"
+msgstr "Fermeture mauvaise parenthèse :"
+
+#. i18n: file ./klfsettingsui.ui line 148
+#: rc.cpp:310
+#, no-c-format
+msgid "Highlight parens that aren't closed"
+msgstr "Colorier les parenthèses non fermées"
+
+#. i18n: file ./klfsettingsui.ui line 164
+#: rc.cpp:314
+#, no-c-format
+msgid "Lonely paren color:"
+msgstr "Parenthèse non fermée :"
+
+#. i18n: file ./klfsettingsui.ui line 183
+#: rc.cpp:317
+#, no-c-format
+msgid "LaTeX code editor font"
+msgstr "Police de l'éditeur de code LaTeX"
+
+#. i18n: file ./klfsettingsui.ui line 207
+#: rc.cpp:320
+#, no-c-format
+msgid "Preview Tooltip on LaTeX formula display"
+msgstr "Agrandissement de l'image (visionnement « tooltip »)"
+
+#. i18n: file ./klfsettingsui.ui line 226
+#: rc.cpp:323
+#, no-c-format
+msgid "Maximum size (width x height) :"
+msgstr "Taille maximale (largeur x hauteur)"
+
+#. i18n: file ./klfsettingsui.ui line 281
+#: rc.cpp:326
+#, no-c-format
+msgid "x"
+msgstr "x"
+
+#. i18n: file ./klfsettingsui.ui line 337
+#: rc.cpp:329
+#, no-c-format
+msgid "System E&xecutables and paths"
+msgstr "Exécutables et chemins d'accès"
+
+#. i18n: file ./klfsettingsui.ui line 362
+#: rc.cpp:332
+#, no-c-format
+msgid "Temporary directory:"
+msgstr "Dossier temporaire :"
+
+#. i18n: file ./klfsettingsui.ui line 388
+#: rc.cpp:335
+#, no-c-format
+msgid "latex :"
+msgstr "latex :"
+
+#. i18n: file ./klfsettingsui.ui line 396
+#: rc.cpp:338
+#, no-c-format
+msgid "dvips :"
+msgstr "dvips :"
+
+#. i18n: file ./klfsettingsui.ui line 409
+#: rc.cpp:341
+#, no-c-format
+msgid "gs :"
+msgstr "gs :"
+
+#. i18n: file ./klfsettingsui.ui line 422
+#: rc.cpp:344
+#, no-c-format
+msgid "H&ave epstopdf"
+msgstr "J'ai epstopdf"
+
+#. i18n: file ./klfsettingsui.ui line 436
+#: rc.cpp:350
+#, no-c-format
+msgid "epstopdf :"
+msgstr "epstopdf :"
+
+#. i18n: file ./klfsettingsui.ui line 491
+#: rc.cpp:353
+#, no-c-format
+msgid "Reset defaults"
+msgstr "Restaurer options par défaut"
+
+#. i18n: file ./klfsettingsui.ui line 503
+#: rc.cpp:356
+#, no-c-format
+msgid "Advanced &settings"
+msgstr "Config. Avancée"
+
+#. i18n: file ./klfsettingsui.ui line 514
+#: rc.cpp:359
+#, no-c-format
+msgid "Expand EPS BoundingBox"
+msgstr "Agrandir la « BoundingBox EPS »"
+
+#. i18n: file ./klfsettingsui.ui line 541
+#: rc.cpp:362
+#, no-c-format
+msgid "Left (Postscript points):"
+msgstr "A gauche (points postscript) :"
+
+#. i18n: file ./klfsettingsui.ui line 586
+#: rc.cpp:365
+#, no-c-format
+msgid "Top (Postscript points):"
+msgstr "En haut (points postscript) :"
+
+#. i18n: file ./klfsettingsui.ui line 631
+#: rc.cpp:368
+#, no-c-format
+msgid "Right (Postscript points):"
+msgstr "A droite (points postscript) :"
+
+#. i18n: file ./klfsettingsui.ui line 676
+#: rc.cpp:371
+#, no-c-format
+msgid "Bottom (Postscript points):"
+msgstr "En bas (points postscript) :"
+
+#. i18n: file ./klfsettingsui.ui line 755
+#: rc.cpp:377
+#, no-c-format
+msgid "Ctrl+Return, Alt+O"
+msgstr "Ctrl+Entree, Alt+O"
+
+#. i18n: file ./klfsettingsui.ui line 769
+#: rc.cpp:380
+#, no-c-format
+msgid "Ca&ncel"
+msgstr "Annuler"
+
+#. i18n: file ./klfprogerrui.ui line 48
+#: rc.cpp:389
+#, no-c-format
+msgid "An error occured!"
+msgstr "Une erreur est survenue !"
+
+#. i18n: file ./klfprogerrui.ui line 70
+#. i18n: file ./klfprogerrui.ui line 73
+#: rc.cpp:395 rc.cpp:398
+#, no-c-format
+msgid "Close dialog"
+msgstr "Fermer la fenêtre"
+
+#. i18n: file ./klfstylemanagerui.ui line 16
+#: rc.cpp:401
+#, no-c-format
+msgid "KLatexFormula - Style Manager"
+msgstr "KLatexFormula - Gestion des Styles"
+
+#. i18n: file ./klfstylemanagerui.ui line 33
+#: rc.cpp:404
+#, no-c-format
+msgid "Styles"
+msgstr "Styles"
+
+#. i18n: file ./klfstylemanagerui.ui line 52
+#: rc.cpp:407
+#, no-c-format
+msgid "&Actions"
+msgstr "&Actions"
+
+#. i18n: file ./klfstylemanagerui.ui line 58
+#: rc.cpp:413
+#, no-c-format
+msgid "Choose an action"
+msgstr "Choisissez une action"
+
+#. i18n: file ./klfstylemanagerui.ui line 69
+#: rc.cpp:419
+#, no-c-format
+msgid "Close window"
+msgstr "Fermer la fenêtre"
+
+#. i18n: file ./klflatexsymbolsui.ui line 16
+#: rc.cpp:422
+#, no-c-format
+msgid "KLatexFormula - LaTeX symbols"
+msgstr "KLatexFormula - Symboles LaTeX"
+
+#. i18n: file ./klflatexsymbolsui.ui line 70
+#: rc.cpp:425
+#, no-c-format
+msgid "Choose symbol category"
+msgstr "Choisissez la catégorie"
+
+#. i18n: file ./klflatexsymbolsui.ui line 95
+#: rc.cpp:428
+#, no-c-format
+msgid "This is the selected symbol's LaTeX code"
+msgstr "Ici s'affiche le code du symbole sélectionné"
+
+#. i18n: file ./klflatexsymbolsui.ui line 103
+#: rc.cpp:431
+#, no-c-format
+msgid "I&nsert"
+msgstr "I&nsérer"
+
+#. i18n: file ./klflatexsymbolsui.ui line 109
+#: rc.cpp:437
+#, no-c-format
+msgid "Insert the selected symbol in KLatexFormula editor"
+msgstr "Insérer le symbole sélectionné dans l'éditeur de formule."
+
+#. i18n: file ./klflatexsymbolsui.ui line 127
+#: rc.cpp:446
+#, no-c-format
+msgid "Close this dialog"
+msgstr "Fermer cette fenêtre."
+

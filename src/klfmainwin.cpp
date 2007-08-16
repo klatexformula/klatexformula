@@ -27,6 +27,7 @@
 #include <qtextedit.h>
 #include <qlabel.h>
 #include <qcheckbox.h>
+#include <qlayout.h>
 #include <qimage.h>
 #include <qpushbutton.h>
 #include <qtextbrowser.h>
@@ -416,13 +417,27 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(refreshPreambleCaretPosition(int, int)));
 
   _shrinkedsize = mMainWidget->frmMain->sizeHint() + QSize(3, 3);
-  _expandedsize.setWidth(mMainWidget->frmMain->sizeHint().width() + mMainWidget->frmDetails->sizeHint().width() + 3);
+  _expandedsize.setWidth(mMainWidget->frmMain->sizeHint().width()
+			 + mMainWidget->frmDetails->sizeHint().width() + 3);
   _expandedsize.setHeight(mMainWidget->frmMain->sizeHint().height() + 3);
+
+  cfg->setGroup("Appearance");
+  int w, h;
+  mMainWidget->lblOutput->setFixedSize(w = cfg->readNumEntry("lbloutputfixedwidth", 280),
+				       h = cfg->readNumEntry("lbloutputfixedheight", 100));
+
+  mMainWidget->frmOutput->layout()->invalidate();
+
+  // write default values to config
+  cfg->writeEntry("lbloutputfixedwidth", w);
+  cfg->writeEntry("lbloutputfixedheight", h);
 
   KHelpMenu *helpMenu = new KHelpMenu(this, klfaboutdata);
   mMainWidget->btnHelp->setPopup(helpMenu->menu());
 
   mMainWidget->frmDetails->hide();
+
+  mMainWidget->frmOutput->setFixedHeight(mMainWidget->frmOutput->minimumSizeHint().height());
 
   setCentralWidget(mMainWidget);
 
@@ -935,15 +950,16 @@ void KLFMainWin::slotSave()
 
   for (QStringList::iterator it = formats.begin(); it != formats.end(); ++it) {
     if (!filterformat.isEmpty()) filterformat += "\n";
-    filterformat += "*."+(*it).lower()+"|"+(*it).lower()+" Image";
+    filterformat += i18n("*.%1|%2 Image").arg((*it).lower()).arg((*it).lower());
+    //  filterformat += "*."+(*it).lower()+"|"+(*it).lower()+" Image";
   }
 
-  filterformat = "*.eps|EPS PostScript\n"+filterformat;
-  filterformat = "*.pdf|PDF Portable Document Format\n"+filterformat;
+  filterformat = i18n("*.eps|EPS PostScript\n")+filterformat;
+  filterformat = i18n("*.pdf|PDF Portable Document Format\n")+filterformat;
 
-  filterformat = "*.jpg|Standard JPEG Image\n"+filterformat;
-  filterformat = "*.png|Standard PNG Image\n"+filterformat;
-  
+  filterformat = i18n("*.jpg|Standard JPEG Image\n")+filterformat;
+  filterformat = i18n("*.png|Standard PNG Image\n")+filterformat;
+
   QString fname, format;
   {
     KFileDialog dlg(":klatexformulasave", filterformat, this, "filedialog", true);

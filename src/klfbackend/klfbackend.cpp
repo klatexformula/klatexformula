@@ -115,7 +115,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     QTextStream stream(&file);
     stream << "\\documentclass{klatexformula}\n"
-	   << "\\usepackage[usenames]{color}\n"
+	   << "\\usepackage[dvips]{color}\n"
 	   << in.preamble << "\n"
 	   << "\\begin{document}\n"
 	   << QString("\\definecolor{klffgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.fg_color)/255.0)
@@ -148,9 +148,15 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       }
     }
     if (!texinputsset) {
-      env << "TEXINPUTS="+settings.klfclspath+":.";
+      env << "TEXINPUTS="+settings.klfclspath+":.:";
     }
     args << settings.latexexec << tempfname+".tex";
+
+    /* printf("DEBUG: New environment:\n");
+       for (uint jkl = 0; jkl < env.size(); ++jkl) {
+       printf("DEBUG:\t%s\n", env[jkl].ascii());
+       }
+    */
 
     bool r = proc.startProcess(args, env);
 

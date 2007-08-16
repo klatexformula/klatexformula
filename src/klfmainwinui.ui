@@ -10,8 +10,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>933</width>
-            <height>330</height>
+            <width>877</width>
+            <height>354</height>
         </rect>
     </property>
     <property name="caption">
@@ -62,9 +62,9 @@
                     <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>5</hsizetype>
-                            <vsizetype>5</vsizetype>
+                            <vsizetype>1</vsizetype>
                             <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
+                            <verstretch>1</verstretch>
                         </sizepolicy>
                     </property>
                     <property name="resizePolicy">
@@ -210,9 +210,9 @@
                     <property name="sizePolicy">
                         <sizepolicy>
                             <hsizetype>7</hsizetype>
-                            <vsizetype>7</vsizetype>
+                            <vsizetype>5</vsizetype>
                             <horstretch>0</horstretch>
-                            <verstretch>1</verstretch>
+                            <verstretch>0</verstretch>
                         </sizepolicy>
                     </property>
                     <property name="frameShape">
@@ -232,7 +232,7 @@
                             <property name="sizePolicy">
                                 <sizepolicy>
                                     <hsizetype>7</hsizetype>
-                                    <vsizetype>7</vsizetype>
+                                    <vsizetype>0</vsizetype>
                                     <horstretch>0</horstretch>
                                     <verstretch>0</verstretch>
                                 </sizepolicy>
@@ -240,7 +240,13 @@
                             <property name="minimumSize">
                                 <size>
                                     <width>280</width>
-                                    <height>0</height>
+                                    <height>50</height>
+                                </size>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>280</width>
+                                    <height>50</height>
                                 </size>
                             </property>
                             <property name="frameShape">
@@ -263,7 +269,7 @@
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>lytOutputButtons</cstring>
+                                <cstring>layout4</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -273,7 +279,7 @@
                                     <number>0</number>
                                 </property>
                                 <property name="spacing">
-                                    <number>0</number>
+                                    <number>1</number>
                                 </property>
                                 <widget class="QPushButton">
                                     <property name="name">
@@ -311,6 +317,23 @@
                                         <string>Save formula to disk</string>
                                     </property>
                                 </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer1</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>40</height>
+                                        </size>
+                                    </property>
+                                </spacer>
                             </vbox>
                         </widget>
                     </hbox>
