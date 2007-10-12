@@ -39,7 +39,7 @@ static const char description[] =
     I18N_NOOP("KLatexFormula -- Easily get an image from a LaTeX equation");
 
 // not static so we can get this value from other modules in the project
-const char version[] = "2.0.2";
+const char version[] = "2.0.2alpha0";
 const int version_maj = 2;
 const int version_min = 0;
 const int version_release = 2;
