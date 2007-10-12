@@ -16,7 +16,7 @@ LIBRARY_TYPE = staticlib
 #LIBRARY_TYPE = dll
 
 # Are we using Qt4? Please set here to "true" if you're compiling with
-# Qt >= 4.0. Leave to "false" if Qt == 3.x
+# Qt >= 4.0 , leave to "false" if Qt is 3.x
 USE_QT4 = false
 
 # ------------------------------------------------------
@@ -54,7 +54,7 @@ TEMPLATE = lib
 INCLUDEPATH += .
 CONFIG += qt warn_on release $$LIBRARY_TYPE
 DESTDIR = .
-VERSION = 2.0.1
+VERSION = 2.0.2
 contains(USE_QT4, false) {
   TARGET = klfbackend-qt3
 }

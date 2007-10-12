@@ -44,6 +44,9 @@ KLFBackend::KLFBackend()
 // Utility function
 QString progErrorMsg(QString progname, int exitstatus, QString stderr, QString stdout)
 {
+  QString msghtml = stdout;
+  msghtml.replace("&", "&amp;");
+  msghtml.replace("<", "&lt;");
   if (stderr.isEmpty())
     return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stdout output:</p>\n"
 		     "<pre>\n%3</pre>")

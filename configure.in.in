@@ -2,16 +2,16 @@
 
 # to change version, modify following files: (!! No hyphen in 2.0.0-alpha4 !! Use 2.0.0alpha4 instead (RPM issues))
 # ./VERSION
-# ./src/main.cpp
+# ./src/main.cpp   [ 2 occurrences ]
 # ./src/klfcmdl_main.cpp
 # ./configure.in.in (this file)
-# ./doc/en/index.docbook
-# ./klatexformula.kdevelop
+# ./doc/*/index.docbook
+# ./klatexformula.kdevelop   [ 2 occurrences ]
 # ./src/klatexformula.lsm
 # ./src/klfbackend/klfbackend.pro
 # ./Doxyfile
 
-AM_INIT_AUTOMAKE(klatexformula, 2.0.1)
+AM_INIT_AUTOMAKE(klatexformula, 2.0.2)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 
