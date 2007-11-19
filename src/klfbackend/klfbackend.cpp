@@ -44,21 +44,30 @@ KLFBackend::KLFBackend()
 // Utility function
 QString progErrorMsg(QString progname, int exitstatus, QString stderr, QString stdout)
 {
-  QString msghtml = stdout;
-  msghtml.replace("&", "&amp;");
-  msghtml.replace("<", "&lt;");
+  QString stdouthtml = stdout;
+  QString stderrhtml = stderr;
+  stdouthtml.replace("&", "&amp;");
+  stdouthtml.replace("<", "&lt;");
+  stdouthtml.replace(">", "&gt;");
+  stderrhtml.replace("&", "&amp;");
+  stderrhtml.replace("<", "&lt;");
+  stderrhtml.replace(">", "&gt;");
+
+  if (stderr.isEmpty() && stdout.isEmpty())
+    return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). No Output was generated.</p>")
+	.arg(progname).arg(exitstatus);
   if (stderr.isEmpty())
     return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stdout output:</p>\n"
 		     "<pre>\n%3</pre>")
-      .arg(progname).arg(exitstatus).arg(stdout);
+      .arg(progname).arg(exitstatus).arg(stdouthtml);
   if (stdout.isEmpty())
     return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
 		     "<pre>\n%3</pre>")
-      .arg(progname).arg(exitstatus).arg(stderr);
+      .arg(progname).arg(exitstatus).arg(stderrhtml);
 
   return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
 		   "<pre>\n%3</pre><p>And here is full stdout output:</p><pre>\n%4</pre>")
-    .arg(progname).arg(exitstatus).arg(stderr).arg(stdout);
+    .arg(progname).arg(exitstatus).arg(stderrhtml).arg(stdouthtml);
 }
 
 
@@ -248,6 +257,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       res.errorstr = TRANSLATE("file %1: Line %%BoundingBox: can't read values!\n").arg(tempfname+".eps");
       return res;
     }
+    // Don't forget: '%' in printf has special meaning
     sprintf(temp, "%%%%BoundingBox: %d %d %d %d", ax-settings.lborderoffset, ay-settings.bborderoffset,
 	    bx+settings.rborderoffset, by+settings.tborderoffset); // grow bbox by settings.?borderoffset points
     QString chunk = QString::fromLocal8Bit(epscontent.constData()+k);

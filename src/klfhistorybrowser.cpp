@@ -35,8 +35,10 @@
 #include <kstandarddirs.h>
 #include <kconfig.h>
 
+#include "klfconfig.h"
 #include "klfhistorybrowser.h"
 
+extern KLFConfig klfconfig;
 
 #define CONFIGMENU_DISPLAYTAGGEDONLY_ID 9336 /* some arbitrary number */
 
@@ -73,11 +75,6 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
   _search_str = QString("");
   _search_k = 0;
 
-  KConfig *cfg = kapp->config();
-
-  cfg->setGroup("HistoryBrowser");
-  _displaytaggedonly = cfg->readBoolEntry("displaytaggedonly", false);
-
   historyChanged();
 
 
@@ -106,7 +103,7 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
   mConfigMenu->setCheckable(true);
   mConfigMenu->insertTitle(i18n("Configure display"), 1000, 0);
   mConfigMenu->insertItem(i18n("Only display tagged items"), this, SLOT(slotDisplayTaggedOnly()), 0, CONFIGMENU_DISPLAYTAGGEDONLY_ID);
-  mConfigMenu->setItemChecked(CONFIGMENU_DISPLAYTAGGEDONLY_ID, _displaytaggedonly);
+  mConfigMenu->setItemChecked(CONFIGMENU_DISPLAYTAGGEDONLY_ID, klfconfig.HistoryBrowser.displayTaggedOnly);
 
   btnConfig->setPopup(mConfigMenu);
 
@@ -179,7 +176,7 @@ void KLFHistoryBrowser::historyChanged()
   lstHistory->clear();
   for (uint i = 0; i < _histptr->size(); ++i) {
     // display if [ "show all" OR "this one is tagged" ]
-    if (_displaytaggedonly == false || is_tagged(_histptr->operator[](i).latex)) {
+    if (klfconfig.HistoryBrowser.displayTaggedOnly == false || is_tagged(_histptr->operator[](i).latex)) {
       (void) new KLFHistoryListViewItem(lstHistory, _histptr->operator[](i), i);
     }
   }
@@ -189,7 +186,7 @@ void KLFHistoryBrowser::historyChanged()
 void KLFHistoryBrowser::addToHistory(KLFData::KLFHistoryItem h)
 {
   _histptr->append(h);
-  if (_displaytaggedonly == false || is_tagged(h.latex)) {
+  if (klfconfig.HistoryBrowser.displayTaggedOnly == false || is_tagged(h.latex)) {
     (void) new KLFHistoryListViewItem(lstHistory, h, _histptr->size()-1);
   }
 }
@@ -298,17 +295,15 @@ void KLFHistoryBrowser::slotDelete(QListViewItem *it)
 
 void KLFHistoryBrowser::slotDisplayTaggedOnly()
 {
-  slotDisplayTaggedOnly(!_displaytaggedonly);
+  slotDisplayTaggedOnly( ! klfconfig.HistoryBrowser.displayTaggedOnly );
 }
 void KLFHistoryBrowser::slotDisplayTaggedOnly(bool display)
 {
-  _displaytaggedonly = display;
+  klfconfig.HistoryBrowser.displayTaggedOnly = display;
   mConfigMenu->setItemChecked(CONFIGMENU_DISPLAYTAGGEDONLY_ID, display);
   historyChanged(); // force a complete refresh
   // save setting
-  KConfig *cfg = kapp->config();
-  cfg->setGroup("HistoryBrowser");
-  cfg->writeEntry("displaytaggedonly", display);
+  klfconfig.writeToConfig();
 }
 
 void KLFHistoryBrowser::slotClose()

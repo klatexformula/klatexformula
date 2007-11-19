@@ -32,27 +32,47 @@
 #include "klfmainwin.h"
 
 extern const char version[];
-extern const int version_maj, version_min, version_release;
+extern int version_maj, version_min, version_release;
 extern KAboutData *klfaboutdata;
+
+
+
+// not static so we can get this value from other modules in the project
+const char version[] = "2.0.2alpha0";
+int version_maj = -1;
+int version_min = -1;
+int version_release = -1;
+
+KAboutData *klfaboutdata = 0;
+
+
 
 static const char description[] =
     I18N_NOOP("KLatexFormula -- Easily get an image from a LaTeX equation");
 
-// not static so we can get this value from other modules in the project
-const char version[] = "2.0.2alpha0";
-const int version_maj = 2;
-const int version_min = 0;
-const int version_release = 2;
 
-KAboutData *klfaboutdata = 0;
+
+// 'extern' declaration in klfmainwin.h
+KLFConfig klfconfig;
+
+
 
 static KCmdLineOptions options[] =
 {
   KCmdLineLastOption
 };
 
+
+
+// our Main Routine
+
 int main(int argc, char **argv)
 {
+  // first thing : setup version_maj/min/release correctly
+  sscanf(version, "%d.%d.%d", &version_maj, &version_min, &version_release);
+
+  // then KDE Stuff
+
   KAboutData about("klatexformula", I18N_NOOP("KLatexFormula"), version, description,
 		   KAboutData::License_GPL, "(C) 2005-2007 Philippe Faist", 0, 0, "philippe.faist@bluewin.ch");
   about.addAuthor( "Philippe Faist", 0, "philippe.faist@bluewin.ch" );
@@ -67,6 +87,11 @@ int main(int argc, char **argv)
 	  "Licensed under the terms of the GNU Public License GPL\n\n",
 	  version);
   
+  // now load config
+  klfconfig.loadDefaults(); // must be called before 'readFromConfig'
+  klfconfig.readFromConfig(app.config());
+  
+
   if (app.isRestored()) {
     RESTORE(KLFMainWin);
   }

@@ -33,6 +33,7 @@
 
 #include <klfbackend.h>
 
+#include <klfconfig.h>
 #include <klfdata.h>
 #include <klfmainwinui.h>
 #include <klfprogerrui.h>
@@ -42,6 +43,11 @@
 class KLFHistoryBrowser;
 class KLFLatexSymbols;
 class KLFStyleManager;
+
+
+
+// defined in main.cpp
+extern KLFConfig klfconfig;
 
 
 class KLFProgErr : public KLFProgErrUI {
@@ -71,13 +77,6 @@ public:
   enum { Enabled = 0x01,
 	 HighlightParensOnly = 0x02,
 	 HighlightLonelyParen = 0x04 };
-  uint config;
-
-  QColor cKeyword;
-  QColor cComment;
-  QColor cParenMatch;
-  QColor cParenMismatch;
-  QColor cLonelyParen;
 
 private:
 
@@ -189,8 +188,6 @@ protected:
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
 
   KLFBackend::klfOutput _output; // output from KLFBackend
-
-  QSize _preview_tooltip_maxsize;
 
   KLFData::KLFHistoryList _history;
   KLFData::KLFStyleList _styles;

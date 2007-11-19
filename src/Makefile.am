@@ -24,15 +24,15 @@ endif
 
 # the application source, library search path, and link libraries
 klatexformula_SOURCES = main.cpp klfmainwinui.ui klfhistorybrowserui.ui \
-	klfmainwin.cpp klfsettingsui.ui klfsettings.cpp klfprogerrui.ui klfdata.cpp \
-	klfhistorybrowser.cpp klfstylemanagerui.ui klfstylemanager.cpp klflatexsymbolsui.ui \
-	klflatexsymbols.cpp
+		klfmainwin.cpp klfsettingsui.ui klfsettings.cpp klfprogerrui.ui klfdata.cpp \
+		klfhistorybrowser.cpp klfstylemanagerui.ui klfstylemanager.cpp klflatexsymbolsui.ui \
+		klflatexsymbols.cpp klfconfig.cpp
 klatexformula_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 klatexformula_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \
 	$(LIB_KDEUI) $(LIB_KIO)
 
 noinst_HEADERS = klfmainwin.h klfsettings.h klfdata.h klfhistorybrowser.h \
-		klfstylemanager.h klflatexsymbols.h
+			klfstylemanager.h klflatexsymbols.h klfconfig.h
 klatexformula_cmdl_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 klatexformula_cmdl_SOURCES = klfcmdl_main.cpp
 klatexformula_cmdl_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \

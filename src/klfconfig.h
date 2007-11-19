@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file 
+ *   file klfconfig.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
  *   philippe.faist@bluewin.ch
@@ -20,45 +20,71 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef KLFSETTINGS_H
-#define KLFSETTINGS_H
+#ifndef KLFCONFIG_H
+#define KLFCONFIG_H
 
-#include <qdialog.h>
+#include <qstring.h>
+#include <qfont.h>
+#include <qsize.h>
+#include <qcolor.h>
 
-#include <klfbackend.h>
+#include <kconfig.h>
 
-#include "klfsettingsui.h"
-
-class KLFLatexSyntaxHighlighter;
-class KLFMainWin;
-
-class KLFSettings : public KLFSettingsUI
-{
-  Q_OBJECT
-
+class KLFConfig {
 public:
-  KLFSettings(KLFBackend::klfSettings *ptr, KLFMainWin* parent = 0);
-  ~KLFSettings();
 
-public slots:
+  // this doesn't do anything. It actually leaves every entry with undefined values.
+  // This is why it's important to call loadDefaults() quickly after building an instance
+  // of KLFConfig. readFromConfig() isn't enough, beacause it assumes the default values
+  // are already stored in the current fields.
+  KLFConfig();
 
-  void reset();
-  void show();
+  struct {
 
-  void setDefaultPaths();
+    unsigned int configFlags;
+    QColor colorKeyword;
+    QColor colorComment;
+    QColor colorParenMatch;
+    QColor colorParenMismatch;
+    QColor colorLonelyParen;
 
-protected:
+  } SyntaxHighlighter;
 
-  KLFBackend::klfSettings *_ptr;
+  struct {
 
-protected slots:
+    QFont latexEditFont;
+    QSize previewTooltipMaxSize;
+    QSize labelOutputFixedSize;
 
-  virtual void accept();
+  } Appearance;
 
-private:
+  struct {
 
-  KLFMainWin *_mainwin;
+    QString tempDir;
+    QString execLatex;
+    QString execDvips;
+    QString execGs;
+    QString execEpstopdf;
+    int lborderoffset;
+    int tborderoffset;
+    int rborderoffset;
+    int bborderoffset;
+
+  } BackendSettings;
+
+  struct {
+
+    bool displayTaggedOnly;
+
+  } HistoryBrowser;
+
+  // call loadDefaults() before anything, at the beginning.
+  void loadDefaults();
+  // cfg defaults to kapp->config()
+  int readFromConfig(KConfig *cfg = 0);
+
+  int writeToConfig(KConfig *cfg = 0);
+
 };
 
 #endif
-

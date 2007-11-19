@@ -100,8 +100,6 @@ private:
   bool _allowrestore;
   bool _allowdelete;
 
-  bool _displaytaggedonly;
-
   KLFData::KLFHistoryList *_histptr;
 
   KLFHistoryListViewItem *itemForId(uint id);

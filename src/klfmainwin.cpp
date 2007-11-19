@@ -144,42 +144,14 @@ typedef QValueList<KLFOldHistoryElement> KLFOldHistory;
 
 
 KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
-  : QSyntaxHighlighter(textedit),
-    config(Enabled|HighlightLonelyParen),
-    cKeyword(0, 0, 128),
-    cComment(128, 0, 0),
-    cParenMatch(0, 128, 128),
-    cParenMismatch(255, 0, 255),
-    cLonelyParen(255, 0, 255)
+  : QSyntaxHighlighter(textedit)
 {
-
-  KConfig *cfg = kapp->config();
-  cfg->setGroup("SyntaxHighlighting");
-
-  config = cfg->readUnsignedNumEntry("configflags", config);
-  cKeyword = cfg->readColorEntry("keyword", & cKeyword);
-  cComment = cfg->readColorEntry("comment", & cComment);
-  cParenMatch = cfg->readColorEntry("parenmatch", & cParenMatch);
-  cParenMismatch = cfg->readColorEntry("parenmismatch", & cParenMismatch);
-  cLonelyParen = cfg->readColorEntry("lonelyparen", & cLonelyParen);
-
   _caretpara = 0;
   _caretpos = 0;
 }
 
 KLFLatexSyntaxHighlighter::~KLFLatexSyntaxHighlighter()
 {
-  // write config
-  KConfig *cfg = kapp->config();
-  cfg->setGroup("SyntaxHighlighting");
-
-  cfg->writeEntry("configflags", config);
-  cfg->writeEntry("keyword", cKeyword);
-  cfg->writeEntry("comment", cComment);
-  cfg->writeEntry("parenmatch", cParenMatch);
-  cfg->writeEntry("parenmismatch", cParenMismatch);
-  cfg->writeEntry("lonelyparen", cLonelyParen);
-
 }
 
 void KLFLatexSyntaxHighlighter::setCaretPos(int para, int pos)
@@ -213,14 +185,14 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	    ++k;
 	else
 	  k = 1;
-	_rulestoapply.append(ColorRule(para, i-1, k+1, cKeyword));
+	_rulestoapply.append(ColorRule(para, i-1, k+1, klfconfig.SyntaxHighlighter.colorKeyword));
 	i += k-1;
       }
       if (text[i] == '%') {
 	k = 0;
 	while (i+k < text.length())
 	  ++k;
-	_rulestoapply.append(ColorRule(para, i, k, cComment));
+	_rulestoapply.append(ColorRule(para, i, k, klfconfig.SyntaxHighlighter.colorComment));
 	i += k;
       }
       if (text[i] == '{' || text[i] == '(' || text[i] == '[') {
@@ -233,18 +205,18 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	  parens.pop();
 	} else {
 	  p = ParenItem(0, 0, false, '!'); // simulate an item
-	  if (config & HighlightLonelyParen)
-	    _rulestoapply.append(ColorRule(para, i, 1, cLonelyParen));
+	  if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen)
+	    _rulestoapply.append(ColorRule(para, i, 1, klfconfig.SyntaxHighlighter.colorLonelyParen));
 	}
-	QColor col = cParenMatch;
+	QColor col = klfconfig.SyntaxHighlighter.colorParenMatch;
 	if ((text[i] == '}' && p.ch != '{') ||
 	    (text[i] == ')' && p.ch != '(') ||
 	    (text[i] == ']' && p.ch != '[')) {
-	  col = cParenMismatch;
+	  col = klfconfig.SyntaxHighlighter.colorParenMismatch;
 	}
 	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)
 	if (p.highlight || (_caretpos == i+1 && (int)_caretpara == para)) {
-	  if ((config & HighlightParensOnly) == 0) {
+	  if ((klfconfig.SyntaxHighlighter.configFlags & HighlightParensOnly) == 0) {
 	    if (p.para != para) {
 	      k = p.para;
 	      _rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, col));
@@ -272,17 +244,17 @@ void KLFLatexSyntaxHighlighter::parseEverything()
     ParenItem p = parens.top();
     parens.pop();
     if (_caretpara == (uint)p.para && _caretpos == (uint)p.pos) {
-      if ( (config & HighlightParensOnly) != 0 )
-	_rulestoapply.append(ColorRule(p.para, p.pos, 1, cParenMismatch));
+      if ( (klfconfig.SyntaxHighlighter.configFlags & HighlightParensOnly) != 0 )
+	_rulestoapply.append(ColorRule(p.para, p.pos, 1, klfconfig.SyntaxHighlighter.colorParenMismatch));
       else {
-	_rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, cParenMismatch));
+	_rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, klfconfig.SyntaxHighlighter.colorParenMismatch));
 	for (k = p.para+1; (int)k < para; ++k) {
-	  _rulestoapply.append(ColorRule(k, 0, paralens[k], cParenMismatch));
+	  _rulestoapply.append(ColorRule(k, 0, paralens[k], klfconfig.SyntaxHighlighter.colorParenMismatch));
 	}
       }
     } else { // not on caret positions
-      if (config & HighlightLonelyParen) {
-	_rulestoapply.append(ColorRule(p.para, p.pos, 1, cLonelyParen));
+      if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen) {
+	_rulestoapply.append(ColorRule(p.para, p.pos, 1, klfconfig.SyntaxHighlighter.colorLonelyParen));
       }
     }
   }
@@ -291,7 +263,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 
 int KLFLatexSyntaxHighlighter::highlightParagraph(const QString& text, int endstatelastpara)
 {
-  if ( ( config & Enabled ) == 0)
+  if ( ( klfconfig.SyntaxHighlighter.configFlags & Enabled ) == 0)
     return 0; // forget everything about synt highlight if we don't want it.
 
   if (endstatelastpara == -2) {
@@ -370,8 +342,6 @@ KLFMainWin::KLFMainWin()
   loadHistory();
 
   // setup mMainWidget UI correctly
-  KConfig *cfg = kapp->config();
-  cfg->setGroup("Appearance");
 
   QToolTip::add(mMainWidget->lblPromptMain, i18n("KLatexFormula %1").arg(QString("")+version));
 
@@ -388,12 +358,9 @@ KLFMainWin::KLFMainWin()
   mMainWidget->btnHelp->setIconSet(QPixmap(locate("appdata", "pics/help.png")));
   mMainWidget->btnHelp->setText("");
 
-  QFont font = mMainWidget->txeLatex->font();
-  mMainWidget->txeLatex->setFont(cfg->readFontEntry("latexeditfont", &font));
-  QSize ds(500, 350);
-  _preview_tooltip_maxsize = cfg->readSizeEntry("previewtooltipmaxsize", &ds);
+  mMainWidget->txeLatex->setFont(klfconfig.Appearance.latexEditFont);
 
-  font = mMainWidget->btnDrag->font();
+  QFont font = mMainWidget->btnDrag->font();
   font.setPointSize(font.pointSize()-2);
   mMainWidget->btnDrag->setFont(font);
   mMainWidget->btnCopy->setFont(font);
@@ -421,16 +388,9 @@ KLFMainWin::KLFMainWin()
 			 + mMainWidget->frmDetails->sizeHint().width() + 3);
   _expandedsize.setHeight(mMainWidget->frmMain->sizeHint().height() + 3);
 
-  cfg->setGroup("Appearance");
-  int w, h;
-  mMainWidget->lblOutput->setFixedSize(w = cfg->readNumEntry("lbloutputfixedwidth", 280),
-				       h = cfg->readNumEntry("lbloutputfixedheight", 100));
+  mMainWidget->lblOutput->setFixedSize(klfconfig.Appearance.labelOutputFixedSize);
 
   mMainWidget->frmOutput->layout()->invalidate();
-
-  // write default values to config
-  cfg->writeEntry("lbloutputfixedwidth", w);
-  cfg->writeEntry("lbloutputfixedheight", h);
 
   KHelpMenu *helpMenu = new KHelpMenu(this, klfaboutdata);
   mMainWidget->btnHelp->setPopup(helpMenu->menu());
@@ -519,46 +479,25 @@ KLFMainWin::~KLFMainWin()
 
 void KLFMainWin::loadSettings()
 {
-  KConfig *cfg = kapp->config();
-
-  cfg->setGroup("BackendSettings");
-
   _settings.klfclspath = locate("appdata", "klatexformula.cls");
   _settings.klfclspath = _settings.klfclspath.left(_settings.klfclspath.findRev('/'));
 
-  _settings.tempdir = cfg->readEntry("tempdir", KGlobal::instance()->dirs()->findResourceDir("tmp", "/"));
-  _settings.latexexec = cfg->readEntry("latexexec", KStandardDirs::findExe("latex"));
-  _settings.dvipsexec = cfg->readEntry("dvipsexec", KStandardDirs::findExe("dvips"));
-  _settings.gsexec = cfg->readEntry("gsexec", KStandardDirs::findExe("gs"));
-  _settings.epstopdfexec = cfg->readEntry("epstopdfexec", KStandardDirs::findExe("epstopdf"));
+  _settings.tempdir = klfconfig.BackendSettings.tempDir;
+  _settings.latexexec = klfconfig.BackendSettings.execLatex;
+  _settings.dvipsexec = klfconfig.BackendSettings.execDvips;
+  _settings.gsexec = klfconfig.BackendSettings.execGs;
+  _settings.epstopdfexec = klfconfig.BackendSettings.execEpstopdf;
 
-  _settings.lborderoffset = cfg->readNumEntry("lborderoffset", 1);
-  _settings.tborderoffset = cfg->readNumEntry("tborderoffset", 1);
-  _settings.rborderoffset = cfg->readNumEntry("rborderoffset", 4);
-  _settings.bborderoffset = cfg->readNumEntry("bborderoffset", 1);
+  _settings.lborderoffset = klfconfig.BackendSettings.lborderoffset;
+  _settings.tborderoffset = klfconfig.BackendSettings.tborderoffset;
+  _settings.rborderoffset = klfconfig.BackendSettings.rborderoffset;
+  _settings.bborderoffset = klfconfig.BackendSettings.bborderoffset;
 
 }
 
 void KLFMainWin::saveSettings()
 {
-  KConfig *cfg = kapp->config();
-
-  cfg->setGroup("BackendSettings");
-
-  cfg->writeEntry("tempdir", _settings.tempdir);
-  cfg->writeEntry("latexexec", _settings.latexexec);
-  cfg->writeEntry("dvipsexec", _settings.dvipsexec);
-  cfg->writeEntry("gsexec", _settings.gsexec);
-  cfg->writeEntry("epstopdfexec", _settings.epstopdfexec);
-  cfg->writeEntry("lborderoffset", _settings.lborderoffset);
-  cfg->writeEntry("tborderoffset", _settings.tborderoffset);
-  cfg->writeEntry("rborderoffset", _settings.rborderoffset);
-  cfg->writeEntry("bborderoffset", _settings.bborderoffset);
-
-  cfg->setGroup("Appearance");
-  cfg->writeEntry("latexeditfont", mMainWidget->txeLatex->font());
-  cfg->writeEntry("previewtooltipmaxsize", _preview_tooltip_maxsize);
-
+  klfconfig.writeToConfig();
 }
 
 void KLFMainWin::refreshSyntaxHighlighting()
@@ -876,10 +815,10 @@ void KLFMainWin::slotEvaluate()
 
     QSize goodsize = _output.result.size();
     QImage img = _output.result;
-    if (_preview_tooltip_maxsize != QSize(0,0) &&
-	( img.width() > _preview_tooltip_maxsize.width() ||
-	  img.height() > _preview_tooltip_maxsize.height() ) ) {
-      img = _output.result.smoothScale(_preview_tooltip_maxsize, QImage::ScaleMin);
+    if ( klfconfig.Appearance.previewTooltipMaxSize != QSize(0, 0) && // QSize(0,0) meaning no resize
+	 ( img.width() > klfconfig.Appearance.previewTooltipMaxSize.width() ||
+	   img.height() > klfconfig.Appearance.previewTooltipMaxSize.height() ) ) {
+      img = _output.result.smoothScale(klfconfig.Appearance.previewTooltipMaxSize, QImage::ScaleMin);
     }
 
     QMimeSourceFactory::defaultFactory()->setImage( "klfoutput", img );
@@ -1111,7 +1050,7 @@ void KLFMainWin::slotSettings()
 {
   static KLFSettings *dlg = 0;
   if (dlg == 0) {
-    dlg = new KLFSettings(&_settings, mHighlighter, this);
+    dlg = new KLFSettings(&_settings, this);
   }
 
   dlg->show();

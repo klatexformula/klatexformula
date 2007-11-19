@@ -35,11 +35,10 @@
 #include "klfsettings.h"
 
 
-KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFLatexSyntaxHighlighter *sh, KLFMainWin* parent)
+KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFMainWin* parent)
     : KLFSettingsUI(parent, 0, false, 0)
 {
   _ptr = p;
-  _synthighlighterptr = sh;
   _mainwin = parent;
 
   kurlTempDir->setMode(KFile::Directory|KFile::ExistingOnly|KFile::LocalOnly);
@@ -87,21 +86,21 @@ void KLFSettings::reset()
   spnRBorderOffset->setValue( _ptr->rborderoffset );
   spnBBorderOffset->setValue( _ptr->bborderoffset );
 
-  chkSHEnabled->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::Enabled);
-  kccSHKeyword->setColor(_synthighlighterptr->cKeyword);
-  kccSHComment->setColor(_synthighlighterptr->cComment);
-  chkSHHighlightParensOnly->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::HighlightParensOnly);
-  kccSHParenMatch->setColor(_synthighlighterptr->cParenMatch);
-  kccSHParenMismatch->setColor(_synthighlighterptr->cParenMismatch);
-  chkSHHighlightLonelyParen->setChecked(_synthighlighterptr->config & KLFLatexSyntaxHighlighter::HighlightLonelyParen);
-  kccSHLonelyParen->setColor(_synthighlighterptr->cLonelyParen);
+  chkSHEnabled->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::Enabled);
+  kccSHKeyword->setColor(klfconfig.SyntaxHighlighter.colorKeyword);
+  kccSHComment->setColor(klfconfig.SyntaxHighlighter.colorComment);
+  chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::HighlightParensOnly);
+  kccSHParenMatch->setColor(klfconfig.SyntaxHighlighter.colorParenMatch);
+  kccSHParenMismatch->setColor(klfconfig.SyntaxHighlighter.colorParenMismatch);
+  chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::HighlightLonelyParen);
+  kccSHLonelyParen->setColor(klfconfig.SyntaxHighlighter.colorLonelyParen);
 
-  kfontAppearFont->setFont(_mainwin->txeLatexFont());
+  kfontAppearFont->setFont(klfconfig.Appearance.latexEditFont);
 
-  chkPreviewMaxSize->setChecked(_mainwin->_preview_tooltip_maxsize.width() != 0
-				|| _mainwin->_preview_tooltip_maxsize.height() != 0);
-  spnPreviewMaxWidth->setValue(_mainwin->_preview_tooltip_maxsize.width());
-  spnPreviewMaxHeight->setValue(_mainwin->_preview_tooltip_maxsize.height());
+  chkPreviewMaxSize->setChecked(klfconfig.Appearance.previewTooltipMaxSize.width() != 0
+				|| klfconfig.Appearance.previewTooltipMaxSize.height() != 0);
+  spnPreviewMaxWidth->setValue(klfconfig.Appearance.previewTooltipMaxSize.width());
+  spnPreviewMaxHeight->setValue(klfconfig.Appearance.previewTooltipMaxSize.height());
 
 }
 
@@ -136,32 +135,34 @@ void KLFSettings::accept()
   _ptr->bborderoffset = spnBBorderOffset->value();
 
   if (chkSHEnabled->isChecked())
-    _synthighlighterptr->config |= KLFLatexSyntaxHighlighter::Enabled;
+    klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::Enabled;
   else
-    _synthighlighterptr->config &= ~KLFLatexSyntaxHighlighter::Enabled;
+    klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::Enabled;
   if (chkSHHighlightParensOnly->isChecked())
-    _synthighlighterptr->config |= KLFLatexSyntaxHighlighter::HighlightParensOnly;
+    klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::HighlightParensOnly;
   else
-    _synthighlighterptr->config &= ~KLFLatexSyntaxHighlighter::HighlightParensOnly;
+    klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightParensOnly;
   if (chkSHHighlightLonelyParen->isChecked())
-    _synthighlighterptr->config |= KLFLatexSyntaxHighlighter::HighlightLonelyParen;
+    klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::HighlightLonelyParen;
   else
-    _synthighlighterptr->config &= ~KLFLatexSyntaxHighlighter::HighlightLonelyParen;
+    klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightLonelyParen;
 
-  _synthighlighterptr->cKeyword = kccSHKeyword->color();
-  _synthighlighterptr->cComment = kccSHComment->color();
-  _synthighlighterptr->cParenMatch = kccSHParenMatch->color();
-  _synthighlighterptr->cParenMismatch = kccSHParenMismatch->color();
-  _synthighlighterptr->cLonelyParen = kccSHLonelyParen->color();
+  klfconfig.SyntaxHighlighter.colorKeyword = kccSHKeyword->color();
+  klfconfig.SyntaxHighlighter.colorComment = kccSHComment->color();
+  klfconfig.SyntaxHighlighter.colorParenMatch = kccSHParenMatch->color();
+  klfconfig.SyntaxHighlighter.colorParenMismatch = kccSHParenMismatch->color();
+  klfconfig.SyntaxHighlighter.colorLonelyParen = kccSHLonelyParen->color();
 
+  klfconfig.Appearance.latexEditFont = kfontAppearFont->font();
   _mainwin->setTxeLatexFont(kfontAppearFont->font());
 
   if (chkPreviewMaxSize->isChecked())
-    _mainwin->_preview_tooltip_maxsize = QSize(spnPreviewMaxWidth->value(), spnPreviewMaxHeight->value());
+    klfconfig.Appearance.previewTooltipMaxSize = QSize(spnPreviewMaxWidth->value(), spnPreviewMaxHeight->value());
   else
-    _mainwin->_preview_tooltip_maxsize = QSize(0,0);
+    klfconfig.Appearance.previewTooltipMaxSize = QSize(0,0);
 
   _mainwin->saveSettings();
+  klfconfig.writeToConfig();
 
   // and exit dialog
   QDialog::accept();

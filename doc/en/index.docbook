@@ -472,9 +472,7 @@ xyz is the necessary package.</para>
 <title>Appearance</title>
 <para>This part lets you fine-tune the syntax highlighter applyable in the equation editor field and
 the preamble editor field. You can select the colors you want for each setting. Note that, due to Qt library
-restrictions, only text color is supported and you can't change the character background color. Also note that
-for internal (buggy, I admit) reasons, that settings apply immediately on the equation editor, but that you need
-to restart KLatexFormula to apply settings to the preamble editor.</para>
+restrictions, only text color is supported and you can't change the character background color.</para>
 <para>You can select, if you want, a specific font you want to use to edit your equations.</para>
 <para>Last part of this tab page is the maximum size of the tooltip that is displayed when you keep your mouse
 on the equation image display (see <link linkend="screenshots">Screenshots</link>). You can disable image resizing
