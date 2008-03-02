@@ -10,8 +10,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>773</width>
-            <height>475</height>
+            <width>791</width>
+            <height>464</height>
         </rect>
     </property>
     <property name="caption">
@@ -95,6 +95,20 @@
                         <string>If you insert keywords as LaTeX comments in your formulas ('&lt;tt&gt;%keyword&lt;/tt&gt;&lt;i&gt;[newline]&lt;/i&gt;') then you can search for those formulas here.</string>
                     </property>
                 </widget>
+                <widget class="QToolButton">
+                    <property name="name">
+                        <cstring>btnFindNext</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Find Next</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Find Next [F3]</string>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>Find Next occurrence of search string</string>
+                    </property>
+                </widget>
             </hbox>
         </widget>
         <widget class="QListView">
@@ -135,7 +149,7 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout12</cstring>
+                <cstring>layout2</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -143,7 +157,7 @@
                 </property>
                 <widget class="QPushButton">
                     <property name="name">
-                        <cstring>btnRestoreAll</cstring>
+                        <cstring>btnRestore</cstring>
                     </property>
                     <property name="enabled">
                         <bool>false</bool>
@@ -157,38 +171,13 @@
                         </sizepolicy>
                     </property>
                     <property name="text">
-                        <string>Restore Form&amp;ula and style</string>
+                        <string>Restore Form&amp;ula</string>
                     </property>
                     <property name="accel">
                         <string>Alt+U</string>
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Restore current selected formula to KLatexFormula editor, with style</string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>btnRestoreLatex</cstring>
-                    </property>
-                    <property name="enabled">
-                        <bool>false</bool>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>1</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>1</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="text">
-                        <string>Restore Formula onl&amp;y</string>
-                    </property>
-                    <property name="accel">
-                        <string>Alt+Y</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Restore LaTeX code only and keep the current style</string>
                     </property>
                 </widget>
                 <widget class="QPushButton">
@@ -214,6 +203,20 @@
                     </property>
                     <property name="toolTip" stdset="0">
                         <string>Delete de selected history items</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>btnImport</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
+                    </property>
+                    <property name="text">
+                        <string>Import/Export</string>
+                    </property>
+                    <property name="accel">
+                        <string></string>
                     </property>
                 </widget>
                 <widget class="QPushButton">
@@ -264,8 +267,7 @@
 <tabstops>
     <tabstop>lneSearch</tabstop>
     <tabstop>lstHistory</tabstop>
-    <tabstop>btnRestoreAll</tabstop>
-    <tabstop>btnRestoreLatex</tabstop>
+    <tabstop>btnRestore</tabstop>
     <tabstop>btnDelete</tabstop>
     <tabstop>btnClose</tabstop>
 </tabstops>

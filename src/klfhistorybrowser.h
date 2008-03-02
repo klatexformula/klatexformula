@@ -79,6 +79,8 @@ public slots:
   void slotDelete(QListViewItem *i = 0);
   void slotDisplayTaggedOnly();
   void slotDisplayTaggedOnly(bool display);
+  void slotDisplayNoDuplicates();
+  void slotDisplayNoDuplicates(bool display);
   void slotClose();
   void slotRefreshButtonsEnabled();
   // search
@@ -104,6 +106,7 @@ private:
 
   KLFHistoryListViewItem *itemForId(uint id);
 
+  KPopupMenu *mRestoreMenu;
   KPopupMenu *mConfigMenu;
 
   uint _search_k; // we're focusing on the k-th history item (decreases at each F3 key press [reverse search, remember!])

@@ -196,7 +196,11 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	i += k;
       }
       if (text[i] == '{' || text[i] == '(' || text[i] == '[') {
-	parens.push(ParenItem(para, i, (_caretpos == i && (int)_caretpara == para), text[i].latin1()));
+	bool l = false;
+	if (i >= 5 && text.mid(i-5, 5) == "\\left") {
+	  l = true;
+	}
+	parens.push(ParenItem(para, i, (_caretpos == i && (int)_caretpara == para), text[i].latin1(), l));
       }
       if (text[i] == '}' || text[i] == ')' || text[i] == ']') {
 	ParenItem p;
@@ -209,9 +213,11 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	    _rulestoapply.append(ColorRule(para, i, 1, klfconfig.SyntaxHighlighter.colorLonelyParen));
 	}
 	QColor col = klfconfig.SyntaxHighlighter.colorParenMatch;
+	bool l = ( i >= 6 && text.mid(i-6, 6) == "\\right" );
 	if ((text[i] == '}' && p.ch != '{') ||
 	    (text[i] == ')' && p.ch != '(') ||
-	    (text[i] == ']' && p.ch != '[')) {
+	    (text[i] == ']' && p.ch != '[') ||
+	    (l != p.left) ) {
 	  col = klfconfig.SyntaxHighlighter.colorParenMismatch;
 	}
 	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)

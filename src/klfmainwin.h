@@ -93,11 +93,12 @@ private:
   };
 
   struct ParenItem {
-    ParenItem(int pa = -1, int ps = -1, bool h = false, char c = 0) : para(pa), pos(ps), highlight(h), ch(c) { }
+    ParenItem(int pa = -1, int ps = -1, bool h = false, char c = 0, bool l = false) : para(pa), pos(ps), highlight(h), ch(c), left(l) { }
     int para;
     int pos;
     bool highlight;
     char ch;
+    bool left; // if it's \left( instead of (
   };
 
   QValueList<ColorRule> _rulestoapply;

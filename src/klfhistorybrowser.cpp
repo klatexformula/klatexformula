@@ -41,6 +41,7 @@
 extern KLFConfig klfconfig;
 
 #define CONFIGMENU_DISPLAYTAGGEDONLY_ID 9336 /* some arbitrary number */
+#define CONFIGMENU_NODUPLICATES_ID 9337
 
 KLFHistoryListViewItem::KLFHistoryListViewItem(QListView *v, KLFData::KLFHistoryItem h, int index) : QListViewItem(v)
 {
@@ -77,16 +78,15 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
 
   historyChanged();
 
-
   setModal(false);
-  
-  btnRestoreAll->setIconSet(QPixmap(locate("appdata", "pics/restoreall.png")));
-  btnRestoreLatex->setIconSet(QPixmap(locate("appdata", "pics/restore.png")));
+
+  btnRestore->setIconSet(QPixmap(locate("appdata", "pics/restore.png")));
   btnClose->setIconSet(QPixmap(locate("appdata", "pics/closehide.png")));
   btnDelete->setIconSet(QPixmap(locate("appdata", "pics/delete.png")));
   btnConfig->setIconSet(QPixmap(locate("appdata", "pics/settings.png")));
+  btnFindNext->setIconSet(QPixmap(locate("appdata", "pics/findnext.png")));
   btnConfig->setText("");
-  
+
   btnSearchClear->setPixmap(QPixmap(locate("appdata", "pics/clearright.png")));
 
   QString msg = i18n("Right click for context menu, double-click to restore LaTeX formula.");
@@ -99,18 +99,22 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
 
   _allowrestore = _allowdelete = false;
 
+  mRestoreMenu = new KPopupMenu(this);
+  mRestoreMenu->insertItem(QIconSet(locate("appdata", "pics/restoreall.png")), i18n("Restore Formula with Style"), this, SLOT(slotRestoreAll()));
+  mRestoreMenu->insertItem(QIconSet(locate("appdata", "pics/restore.png")), i18n("Restore Formula Only"), this, SLOT(slotRestoreLatex()));
+  btnRestore->setPopup(mRestoreMenu);
+  
   mConfigMenu = new KPopupMenu(this);
   mConfigMenu->setCheckable(true);
   mConfigMenu->insertTitle(i18n("Configure display"), 1000, 0);
   mConfigMenu->insertItem(i18n("Only display tagged items"), this, SLOT(slotDisplayTaggedOnly()), 0, CONFIGMENU_DISPLAYTAGGEDONLY_ID);
   mConfigMenu->setItemChecked(CONFIGMENU_DISPLAYTAGGEDONLY_ID, klfconfig.HistoryBrowser.displayTaggedOnly);
-
+  mConfigMenu->insertItem(i18n("Don't display duplicate items"), this, SLOT(slotDisplayNoDuplicates()), 0, CONFIGMENU_NODUPLICATES_ID);
+  mConfigMenu->setItemChecked(CONFIGMENU_NODUPLICATES_ID, klfconfig.HistoryBrowser.displayTaggedOnly);
   btnConfig->setPopup(mConfigMenu);
 
   connect(lstHistory, SIGNAL(contextMenuRequested(QListViewItem *, const QPoint&, int)),
 	  this, SLOT(slotContextMenu(QListViewItem*, const QPoint&, int)));
-  connect(btnRestoreAll, SIGNAL(clicked()), this, SLOT(slotRestoreAll()));
-  connect(btnRestoreLatex, SIGNAL(clicked()), this, SLOT(slotRestoreLatex()));
   connect(btnDelete, SIGNAL(clicked()), this, SLOT(slotDelete()));
   connect(btnClose, SIGNAL(clicked()), this, SLOT(slotClose()));
 
@@ -124,6 +128,7 @@ KLFHistoryBrowser::KLFHistoryBrowser(KLFData::KLFHistoryList *ptr, QWidget* pare
   connect(btnSearchClear, SIGNAL(clicked()), this, SLOT(slotSearchClear()));
   connect(lneSearch, SIGNAL(textChanged(const QString&)), this, SLOT(slotSearchFind(const QString&)));
   connect(lneSearch, SIGNAL(lostFocus()), this, SLOT(resetLneSearchColor()));
+  connect(btnFindNext, SIGNAL(clicked()), this, SLOT(slotSearchFindNext()));
 
   lneSearch->installEventFilter(this);
 
@@ -209,8 +214,7 @@ void KLFHistoryBrowser::slotRefreshButtonsEnabled()
     ++it;
   }
 
-  btnRestoreAll->setEnabled(_allowrestore);
-  btnRestoreLatex->setEnabled(_allowrestore);
+  btnRestore->setEnabled(_allowrestore);
   btnDelete->setEnabled(_allowdelete);
 
 }
@@ -305,6 +309,15 @@ void KLFHistoryBrowser::slotDisplayTaggedOnly(bool display)
   // save setting
   klfconfig.writeToConfig();
 }
+void KLFHistoryBrowser::slotDisplayNoDuplicates()
+{
+  slotDisplayNoDuplicates( false /*** TODO !! */ );
+}
+void KLFHistoryBrowser::slotDisplayNoDuplicates(bool display)
+{
+  KMessageBox::information(this, i18n("Not yet Implemented!"), i18n("Not Yet Implemented!"));
+}
+
 
 void KLFHistoryBrowser::slotClose()
 {
