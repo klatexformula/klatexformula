@@ -2,7 +2,7 @@
  *   file klfmainwin.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
- *   philippe.faist@bluewin.ch
+ *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -40,14 +40,10 @@
 
 
 //class KLFMainWinUI;
-class KLFHistoryBrowser;
+class KLFLibraryBrowser;
 class KLFLatexSymbols;
 class KLFStyleManager;
 
-
-
-// defined in main.cpp
-extern KLFConfig klfconfig;
 
 
 class KLFProgErr : public KLFProgErrUI {
@@ -137,13 +133,14 @@ public:
 signals:
 
   void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
+  void libraryAllChanged();
 
 public slots:
 
   void slotEvaluate();
   void slotClear();
-  void slotHistory(bool showhist);
-  void slotHistoryButtonRefreshState(bool on);
+  void slotLibrary(bool showhist);
+  void slotLibraryButtonRefreshState(bool on);
   void slotSymbols(bool showsymbs);
   void slotSymbolsButtonRefreshState(bool on);
   void slotExpandOrShrink();
@@ -165,10 +162,10 @@ public slots:
 
   void refreshStylePopupMenus();
   void loadStyles();
-  void loadHistory();
+  void loadLibrary();
   void saveStyles();
-  void saveHistory();
-  void restoreFromHistory(KLFData::KLFHistoryItem h, bool restorestyle);
+  void saveLibrary();
+  void restoreFromLibrary(KLFData::KLFLibraryItem h, bool restorestyle);
   void insertSymbol(QString symb);
   void saveSettings();
   void loadSettings();
@@ -177,7 +174,7 @@ public slots:
 
 protected:
   KLFMainWinUI *mMainWidget;
-  KLFHistoryBrowser *mHistoryBrowser;
+  KLFLibraryBrowser *mLibraryBrowser;
   KLFLatexSymbols *mLatexSymbols;
   KLFStyleManager *mStyleManager;
 
@@ -190,15 +187,16 @@ protected:
 
   KLFBackend::klfOutput _output; // output from KLFBackend
 
-  KLFData::KLFHistoryList _history;
+  KLFData::KLFLibrary _library;
+  KLFData::KLFLibraryResourceList _libresources;
   KLFData::KLFStyleList _styles;
 
   QSize _shrinkedsize;
   QSize _expandedsize;
 
-  // these are needed because of session management. Obviously KDE logout closes all dialogs
+  // these are needed because of session management. It seems like KDE logout closes all dialogs
   // before saveProperties().
-  bool _historyBrowserIsShown;
+  bool _libraryBrowserIsShown;
   bool _latexSymbolsIsShown;
 
   void saveProperties(KConfig *cfg);

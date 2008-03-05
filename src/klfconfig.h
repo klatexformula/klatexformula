@@ -2,7 +2,7 @@
  *   file klfconfig.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
- *   philippe.faist@bluewin.ch
+ *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,6 +29,7 @@
 #include <qcolor.h>
 
 #include <kconfig.h>
+
 
 class KLFConfig {
 public:
@@ -75,8 +76,11 @@ public:
   struct {
 
     bool displayTaggedOnly;
+    bool displayNoDuplicates;
+    QColor colorFound;
+    QColor colorNotFound;
 
-  } HistoryBrowser;
+  } LibraryBrowser;
 
   // call loadDefaults() before anything, at the beginning.
   void loadDefaults();
@@ -86,5 +90,11 @@ public:
   int writeToConfig(KConfig *cfg = 0);
 
 };
+
+
+
+// defined in main.cpp
+extern KLFConfig klfconfig;
+
 
 #endif

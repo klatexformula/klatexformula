@@ -2,7 +2,7 @@
  *   file klfconfig.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
- *   philippe.faist@bluewin.ch
+ *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -59,7 +59,10 @@ void KLFConfig::loadDefaults()
   BackendSettings.rborderoffset = 1;
   BackendSettings.bborderoffset = 1;
 
-  HistoryBrowser.displayTaggedOnly = false;
+  LibraryBrowser.displayTaggedOnly = false;
+  LibraryBrowser.displayNoDuplicates = false;
+  LibraryBrowser.colorFound = QColor(128, 255, 128);
+  LibraryBrowser.colorNotFound = QColor(255, 128, 128);
 }
 
 int KLFConfig::readFromConfig(KConfig *cfg)
@@ -103,9 +106,12 @@ int KLFConfig::readFromConfig(KConfig *cfg)
   BackendSettings.bborderoffset = cfg->readNumEntry("bborderoffset", BackendSettings.bborderoffset);
 
 
-  cfg->setGroup("HistoryBrowser");
+  cfg->setGroup("LibraryBrowser");
 
-  HistoryBrowser.displayTaggedOnly = cfg->readBoolEntry("displaytaggedonly", HistoryBrowser.displayTaggedOnly);
+  LibraryBrowser.displayTaggedOnly = cfg->readBoolEntry("displaytaggedonly", LibraryBrowser.displayTaggedOnly);
+  LibraryBrowser.displayNoDuplicates = cfg->readBoolEntry("displaynoduplicates", LibraryBrowser.displayNoDuplicates);
+  LibraryBrowser.colorFound = cfg->readColorEntry("colorfound", & LibraryBrowser.colorFound);
+  LibraryBrowser.colorNotFound = cfg->readColorEntry("colornotfound", & LibraryBrowser.colorNotFound);
 
   return 0;
 }
@@ -145,9 +151,12 @@ int KLFConfig::writeToConfig(KConfig *cfg)
   cfg->writeEntry("bborderoffset", BackendSettings.bborderoffset);
 
 
-  cfg->setGroup("HistoryBrowser");
+  cfg->setGroup("LibraryBrowser");
 
-  cfg->writeEntry("displaytaggedonly", HistoryBrowser.displayTaggedOnly);
+  cfg->writeEntry("displaytaggedonly", LibraryBrowser.displayTaggedOnly);
+  cfg->writeEntry("displaynoduplicates", LibraryBrowser.displayNoDuplicates);
+  cfg->writeEntry("colorfound", LibraryBrowser.colorFound);
+  cfg->writeEntry("colornotfound", LibraryBrowser.colorNotFound);
 
   return 0;
 }

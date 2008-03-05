@@ -2,7 +2,7 @@
  *   file klfdata.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
- *   philippe.faist@bluewin.ch
+ *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,9 +27,10 @@
 #include <qvaluelist.h>
 #include <qdatastream.h>
 #include <qpixmap.h>
+#include <qmap.h>
 
-/** Data for KLatexFormula
- * \author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
+/** Data structures for KLatexFormula
+ * \author Philippe Faist &lt;philippe.faist at bluewin.ch&gt;
  */
 class KLFData {
 public:
@@ -43,20 +44,42 @@ public:
     int dpi;
   };
 
-  struct KLFHistoryItem {
+  typedef uint KLFLibraryResourceId;
+  enum {  LibResource_History = 0, LibResource_Archive = 1,
+    // user resources must be in the following range:
+    LibResourceUSERMIN = 50,
+    LibResourceUSERMAX = 999
+  };
+
+  struct KLFLibraryResource {
+    Q_UINT32 id;
+    QString name;
+  };
+
+  struct KLFLibraryItem {
     Q_UINT32 id;
     static Q_UINT32 MaxId;
 
     QDateTime datetime;
-    QString latex;
+    QString latex; // this contains also information of category (first line, %: ...) and tags (first/second line, after category: % ...)
     QPixmap preview;
+
+    QString category;
+    QString tags;
+
     KLFStyle style;
   };
 
+  static QString categoryFromLatex(const QString& latex);
+  static QString tagsFromLatex(const QString& latex);
+  static QString stripCategoryTagsFromLatex(const QString& latex);
+
+  static QString prettyPrintStyle(const KLFStyle& sty);
 
   typedef QValueList<KLFStyle> KLFStyleList;
-  typedef QValueList<KLFHistoryItem> KLFHistoryList;
-
+  typedef QValueList<KLFLibraryItem> KLFLibraryList;
+  typedef QValueList<KLFLibraryResource> KLFLibraryResourceList;
+  typedef QMap<KLFLibraryResource, KLFLibraryList> KLFLibrary;
 
 private:
 
@@ -67,12 +90,20 @@ private:
 QDataStream& operator<<(QDataStream& stream, const KLFData::KLFStyle& style);
 QDataStream& operator>>(QDataStream& stream, KLFData::KLFStyle& style);
 
-QDataStream& operator<<(QDataStream& stream, const KLFData::KLFHistoryItem& item);
-QDataStream& operator>>(QDataStream& stream, KLFData::KLFHistoryItem& item);
+// it is important to note that the >> operator imports in a compatible way to KLF 2.0
+QDataStream& operator<<(QDataStream& stream, const KLFData::KLFLibraryItem& item);
+QDataStream& operator>>(QDataStream& stream, KLFData::KLFLibraryItem& item);
+
+QDataStream& operator<<(QDataStream& stream, const KLFData::KLFLibraryResource& item);
+QDataStream& operator>>(QDataStream& stream, KLFData::KLFLibraryResource& item);
 
 // exact matches, style included, but excluding ID and datetime
-bool operator==(const KLFData::KLFHistoryItem& a, const KLFData::KLFHistoryItem& b);
+bool operator==(const KLFData::KLFLibraryItem& a, const KLFData::KLFLibraryItem& b);
 // exact matches
 bool operator==(const KLFData::KLFStyle& a, const KLFData::KLFStyle& b);
+
+// is needed for QMap : these operators compare ID only.
+bool operator<(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b);
+bool operator==(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b);
 
 #endif

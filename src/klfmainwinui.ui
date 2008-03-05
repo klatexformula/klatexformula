@@ -10,8 +10,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>877</width>
-            <height>354</height>
+            <width>937</width>
+            <height>442</height>
         </rect>
     </property>
     <property name="caption">
@@ -74,7 +74,7 @@
                         <set>AutoNone</set>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>&lt;p&gt;Enter your LaTeX formula here.&lt;/p&gt;&lt;p&gt;You may insert keywords using LaTeX comments, for future history searches:&lt;br&gt;&lt;tt&gt;% keyword(s)&lt;br&gt;&lt;i&gt;formula&lt;/i&gt;&lt;/p&gt;</string>
+                        <string>Enter your LaTeX formula here.</string>
                         <comment>tooltip</comment>
                     </property>
                     <property name="whatsThis" stdset="0">
@@ -163,13 +163,13 @@
                         </widget>
                         <widget class="QPushButton">
                             <property name="name">
-                                <cstring>btnHistory</cstring>
+                                <cstring>btnLibrary</cstring>
                             </property>
                             <property name="text">
-                                <string>H</string>
+                                <string>L</string>
                             </property>
                             <property name="accel">
-                                <string>Ctrl+H</string>
+                                <string></string>
                             </property>
                             <property name="toggleButton">
                                 <bool>true</bool>
@@ -742,7 +742,7 @@
     <tabstop>btnClear</tabstop>
     <tabstop>btnEvaluate</tabstop>
     <tabstop>btnSymbols</tabstop>
-    <tabstop>btnHistory</tabstop>
+    <tabstop>btnLibrary</tabstop>
     <tabstop>btnExpand</tabstop>
     <tabstop>kccFg</tabstop>
     <tabstop>chkBgTransparent</tabstop>

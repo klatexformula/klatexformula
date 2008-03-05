@@ -2,7 +2,7 @@
  *   file klfdata.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
- *   philippe.faist@bluewin.ch
+ *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,11 +20,93 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <klocale.h>
+
 #include "klfdata.h"
 
 
 
-Q_UINT32 KLFData::KLFHistoryItem::MaxId = 1;
+Q_UINT32 KLFData::KLFLibraryItem::MaxId = 1;
+
+
+
+// static method
+QString KLFData::categoryFromLatex(const QString& latex)
+{
+  QString s = latex.section('\n', 0, 0, QString::SectionSkipEmpty);
+  if (s[0] == '%' && s[1] == ':') {
+    return s.mid(2).stripWhiteSpace();
+  }
+  return QString::null;
+}
+// static method
+QString KLFData::tagsFromLatex(const QString& latex)
+{
+  QString s = latex.section('\n', 0, 0, QString::SectionSkipEmpty);
+  if (s[0] == '%' && s[1] == ':') {
+    // category is s.mid(2);
+    s = latex.section('\n', 1, 1, QString::SectionSkipEmpty);
+  }
+  if (s[0] == '%') {
+    return s.mid(1).stripWhiteSpace();
+  }
+  return QString::null;
+}
+
+QString KLFData::stripCategoryTagsFromLatex(const QString& latex)
+{
+  uint k = 0;
+  while (k < latex.length() && latex[k].isSpace())
+    ++k;
+  if (k == latex.length()) return "";
+  if (latex[k] == '%') {
+    ++k;
+    if (k == latex.length()) return "";
+    //strip category and/or tag:
+    if (latex[k] == ':') {
+      // strip category
+      while (k < latex.length() && latex[k] != '\n')
+	++k;
+      ++k;
+      if (k >= latex.length()) return "";
+      if (latex[k] != '%') {
+	// there isn't any tags, just category; return rest of string
+	return latex.mid(k);
+      }
+      ++k;
+      if (k >= latex.length()) return "";
+    }
+    // strip tag:
+    while (k < latex.length() && latex[k] != '\n')
+      ++k;
+    ++k;
+    if (k >= latex.length()) return "";
+  }
+  // k is the beginnnig of the latex string
+  return latex.mid(k);
+}
+
+
+// static method
+QString KLFData::prettyPrintStyle(const KLFStyle& sty)
+{
+  QString s = "";
+  if (sty.name != QString::null)
+    s = i18n("<b>Style Name</b>: %1<br>").arg(sty.name);
+  return s + i18n("<b>Math Mode</b>: %1<br>"
+		  "<b>DPI Resolution</b>: %2<br>"
+		  "<b>Foreground Color</b>: <font color=\"%3\">%4</font><br>"
+		  "<b>Background is Transparent</b>: %5<br>"
+		  "<b>Background Color</b>: <font color=\"%6\">%7</font><br>"
+		  "<b>LaTeX Preamble:</b><br><pre>%8</pre>")
+      .arg(sty.mathmode)
+      .arg(sty.dpi)
+      .arg(QColor(sty.fg_color).name()).arg(QColor(sty.fg_color).name())
+      .arg( (qAlpha(sty.bg_color) != 255) ? i18n("YES") : i18n("NO") )
+      .arg(QColor(sty.bg_color).name()).arg(QColor(sty.bg_color).name())
+      .arg(sty.preamble)    ;
+}
+
 
 
 QDataStream& operator<<(QDataStream& stream, const KLFData::KLFStyle& style)
@@ -44,15 +126,32 @@ QDataStream& operator>>(QDataStream& stream, KLFData::KLFStyle& style)
   return stream;
 }
 
-QDataStream& operator<<(QDataStream& stream, const KLFData::KLFHistoryItem& item)
+QDataStream& operator<<(QDataStream& stream, const KLFData::KLFLibraryItem& item)
 {
-  return stream << item.id << item.datetime << item.latex << item.preview << item.style;
+  return stream << item.id << item.datetime
+      << item.latex // category and tags are included.
+      << item.preview << item.style;
 }
 
-QDataStream& operator>>(QDataStream& stream, KLFData::KLFHistoryItem& item)
+// it is important to note that the >> operator imports in a compatible way to KLF 2.0
+QDataStream& operator>>(QDataStream& stream, KLFData::KLFLibraryItem& item)
 {
-  return stream >> item.id >> item.datetime >> item.latex >> item.preview >> item.style;
+  stream >> item.id >> item.datetime >> item.latex >> item.preview >> item.style;
+  item.category = KLFData::categoryFromLatex(item.latex);
+  item.tags = KLFData::tagsFromLatex(item.latex);
+  return stream;
 }
+
+
+QDataStream& operator<<(QDataStream& stream, const KLFData::KLFLibraryResource& item)
+{
+  return stream << item.id << item.name;
+}
+QDataStream& operator>>(QDataStream& stream, KLFData::KLFLibraryResource& item)
+{
+  return stream >> item.id >> item.name;
+}
+
 
 bool operator==(const KLFData::KLFStyle& a, const KLFData::KLFStyle& b)
 {
@@ -64,12 +163,27 @@ bool operator==(const KLFData::KLFStyle& a, const KLFData::KLFStyle& b)
     a.dpi == b.dpi;
 }
 
-bool operator==(const KLFData::KLFHistoryItem& a, const KLFData::KLFHistoryItem& b)
+bool operator==(const KLFData::KLFLibraryItem& a, const KLFData::KLFLibraryItem& b)
 {
   return
     //    a.id == b.id &&   // don't compare IDs since they should be different.
     //    a.datetime == b.datetime &&   // same for datetime
     a.latex == b.latex &&
+    /* the following is unnecessary since category/tags information is contained in .latex
+      a.category == b.category &&
+      a.tags == b.tags &&
+    */
     //    a.preview == b.preview && // don't compare preview: it's unnecessary
     a.style == b.style;
+}
+
+
+
+bool operator<(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b)
+{
+  return a.id < b.id;
+}
+bool operator==(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b)
+{
+  return a.id == b.id;
 }
