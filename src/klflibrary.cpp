@@ -73,9 +73,9 @@ void KLFLibraryListCategoryViewItem::setup_category_item()
 {
   QString c;
   if (_issubcategory) {
-    c = _category != "" ? (_category.section('/', -1)) : "[ No Category ]";
+    c = _category != "" ? (_category.section('/', -1)) : i18n("[ No Category ]");
   } else {
-    c = _category != "" ? _category : "[ No Category ]";
+    c = _category != "" ? _category : i18n("[ No Category ]");
   }
   setText(0, c);
 }
