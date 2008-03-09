@@ -42,6 +42,7 @@ public:
   /** Subcategory when showing in multi-depth tree view: subcategory must contain full category path (ie.
    * "Physics/Relativity/Minkowski World") */
   KLFLibraryListCategoryViewItem(QString subcategory, KLFLibraryListCategoryViewItem *parent);
+
   virtual ~KLFLibraryListCategoryViewItem();
 
   virtual int rtti() const { return RTTI; }
@@ -50,6 +51,9 @@ public:
 
 protected:
   QString _category;
+  bool _issubcategory;
+private:
+  void setup_category_item();
 };
 
 class KLFLibraryListViewItem : public QListViewItem
@@ -67,6 +71,9 @@ public:
 
   void updateLibraryItem(const KLFData::KLFLibraryItem& item);
   void updateIndex(int newindex) { _ind = newindex; }
+
+  /** A reimplementation of QListViewItem's function to compare with another item (we compare index() 's) */
+  virtual int compare(QListViewItem *i, int col, bool ascending) const;
 
 protected:
   KLFData::KLFLibraryItem _item;
@@ -152,7 +159,7 @@ protected:
 
   bool is_duplicate_of_previous(uint indexInList);
 
-  KLFLibraryListCategoryViewItem *itemForCategory(const QString& category, bool createifneeded);
+  KLFLibraryListCategoryViewItem *itemForCategory(const QString& category, bool createifneeded = true);
   KLFLibraryListViewItem *itemForId(uint id);
 
   uint _search_k; // we're focusing on the k-th history item (decreases at each F3 key press [reverse search, remember!])

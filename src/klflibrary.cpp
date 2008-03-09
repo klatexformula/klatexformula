@@ -30,6 +30,8 @@
 #include <qcombobox.h>
 #include <qlayout.h>
 #include <qiconset.h>
+#include <qtimer.h>
+#include <qregexp.h>
 
 #include <klineedit.h>
 #include <klocale.h>
@@ -56,14 +58,26 @@ void dump_library_list(const KLFData::KLFLibraryList& list, const char *comment)
 
 
 
-
 KLFLibraryListCategoryViewItem::KLFLibraryListCategoryViewItem(QListView *parent, QString category)
-  : QListViewItem(parent, (category != "" ? category : "[ No Category ]")) , _category(category)
+  : QListViewItem(parent, "") , _category(category), _issubcategory(false)
 {
+   setup_category_item();
 }
 KLFLibraryListCategoryViewItem::KLFLibraryListCategoryViewItem(QString subcategory, KLFLibraryListCategoryViewItem *parent)
-  : QListViewItem(parent, (subcategory != "" ? (subcategory.section('/', -1)) : "[ No Category ]")) , _category(subcategory)
+  : QListViewItem(parent, "") , _category(subcategory), _issubcategory(true)
 {
+   setup_category_item();
+}
+
+void KLFLibraryListCategoryViewItem::setup_category_item()
+{
+  QString c;
+  if (_issubcategory) {
+    c = _category != "" ? (_category.section('/', -1)) : "[ No Category ]";
+  } else {
+    c = _category != "" ? _category : "[ No Category ]";
+  }
+  setText(0, c);
 }
 
 KLFLibraryListCategoryViewItem::~KLFLibraryListCategoryViewItem()
@@ -74,23 +88,26 @@ KLFLibraryListViewItem::KLFLibraryListViewItem(QListViewItem *v, KLFData::KLFLib
   : QListViewItem(v)
 {
   _ind = index;
-
   updateLibraryItem(item);
 }
 KLFLibraryListViewItem::KLFLibraryListViewItem(QListView *v, KLFData::KLFLibraryItem item, int index)
   : QListViewItem(v)
 {
-  _item = item;
   _ind = index;
-
-  setPixmap(0, _item.preview);
-  QString l = _item.latex;
-  l.replace("\n", "\t");
-  setText(1, l);
+  updateLibraryItem(item);
 }
 
 KLFLibraryListViewItem::~KLFLibraryListViewItem()
 {
+}
+
+int KLFLibraryListViewItem::compare(QListViewItem *i, int /*col*/, bool ascending) const
+{
+  if (i->rtti() != KLFLibraryListViewItem::RTTI)
+    return 1; // we come after any other item type (ie. categories)
+  KLFLibraryListViewItem *item = (KLFLibraryListViewItem*) i;
+  int k = ascending ? -1 : 1; // negative if ascending
+  return k*(_ind - item->_ind);
 }
 
 void KLFLibraryListViewItem::updateLibraryItem(const KLFData::KLFLibraryItem& item)
@@ -142,7 +159,7 @@ KLFLibraryListManager::KLFLibraryListManager(QListView *lview, KLFLibraryBrowser
   QString msg = i18n("Right click for context menu, double-click to restore LaTeX formula.");
   QToolTip::add(_listView, msg);
   QToolTip::add(_listView->viewport(), msg);
-  _listView->setSorting(-1);
+  _listView->setSorting(0, true); // first column in ascending order
 
 
   connect(_listView, SIGNAL(contextMenuRequested(QListViewItem *, const QPoint&, int)),
@@ -212,19 +229,21 @@ QString KLFLibraryListManager::getSelectedInfo_latex() const
 QString KLFLibraryListManager::getSelectedInfo_category(int *canedit) const
 {
   QValueList<QListViewItem*> list = get_selected_items(_listView, KLFLibraryListViewItem::RTTI);
-  QString cat = QString::null;
+  QString cat = "";
+  QString ret = cat;
   *canedit = 0;
   uint k;
   for (k = 0; k < list.size(); ++k) {
+    QString thiscat = ((KLFLibraryListViewItem*)list[k])->libraryItem().category;
     if (k == 0)
-      cat = ((KLFLibraryListViewItem*)list[0])->libraryItem().category;
-    if ( ((KLFLibraryListViewItem*)list[0])->libraryItem().category != cat ) {
-      return i18n("[ Multiple Items Selected ]");
+      ret = cat = thiscat;
+    else if ( thiscat != cat ) {
+      ret = "";
     }
   }
   if (list.size() > 0)
     *canedit = 1;
-  return cat;
+  return ret;
 }
 QString KLFLibraryListManager::getSelectedInfo_tags(int *canedit) const
 {
@@ -264,7 +283,7 @@ bool KLFLibraryListManager::updateSelectedInfo_tags(const QString& tags)
 }
 bool KLFLibraryListManager::updateSelectedInfo(uint which, const QString& category, const QString& tags)
 {
-  dump_library_list(*_libItems, "update:before");
+  //  dump_library_list(*_libItems, "update:before");
   QValueList<QListViewItem*> list = get_selected_items(_listView, KLFLibraryListViewItem::RTTI);
   for (uint k = 0; k < list.size(); ++k) {
     QString l;
@@ -292,18 +311,25 @@ bool KLFLibraryListManager::updateSelectedInfo(uint which, const QString& catego
     lref.category = newcat;
     lref.tags = newtags;
 
-    KLFLibraryListCategoryViewItem *citem = itemForCategory(lref.category, true);
+    KLFLibraryListCategoryViewItem *citem = 0;
+    if (_flags & ShowCategories) {
+      citem = itemForCategory(lref.category, true);
+    }
     KLFLibraryListViewItem *item = itemForId(lref.id);
     item->updateLibraryItem(lref);
-    if (citem != item->parent() && item->parent() != 0) {
+
+    if (citem != 0 && citem != item->parent() && item->parent() != 0) {
       item->parent()->takeItem(item);
       citem->insertItem(item);
     }
+
+    _listView->ensureItemVisible(item);
   }
-  dump_library_list(*_libItems, "updatecategory:after");
+  //  dump_library_list(*_libItems, "updatecategory:after");
   //  _parent->emitLibraryChanged();
   //..
   //  KMessageBox::information(_parent, i18n("New Category: %1 !").arg(newcat));
+  
   return true;
 }
 
@@ -331,7 +357,7 @@ void KLFLibraryListManager::slotContextMenu(QListViewItem */*item*/, const QPoin
 				     this, SLOT(slotCopyToResource(int)));
     copytomenu->setItemParameter(idk, k);
   }
-  menu->insertItem(i18n("Copy to ..."), copytomenu);
+  int idcp = menu->insertItem(i18n("Copy to ..."), copytomenu);
 
   KPopupMenu *movetomenu = new KPopupMenu;
   movetomenu->insertTitle(i18n("Move To Resource:"));
@@ -342,13 +368,15 @@ void KLFLibraryListManager::slotContextMenu(QListViewItem */*item*/, const QPoin
 				     this, SLOT(slotMoveToResource(int)));
     movetomenu->setItemParameter(idk, k);
   }
-  menu->insertItem(i18n("Move to ..."), movetomenu);
+  int idmv = menu->insertItem(i18n("Move to ..."), movetomenu);
 
-  /* needed ? what's the sense ? */
+  // Needed for when user pops up a menu without selection (ie. very short list, free white space under)
   bool canre = canRestore(), candel = canDelete();
   menu->setItemEnabled(idr1, canre);
   menu->setItemEnabled(idr2, canre);
   menu->setItemEnabled(iddel, candel);
+  menu->setItemEnabled(idcp, canre);
+  menu->setItemEnabled(idmv, canre && candel);
 
   menu->popup(p);
 }
@@ -358,9 +386,7 @@ void KLFLibraryListManager::slotRestoreAll(QListViewItem *it)
 {
   if (it == 0)
     it = _listView->currentItem();
-  if (it == 0)
-    return;
-  if (it->rtti() != KLFLibraryListViewItem::RTTI)
+  if (it == 0 || it->rtti() != KLFLibraryListViewItem::RTTI)
     return;
 
   emit restoreFromLibrary( ((KLFLibraryListViewItem*)it)->libraryItem(), true);
@@ -370,9 +396,7 @@ void KLFLibraryListManager::slotRestoreLatex(QListViewItem *it)
 {
   if (it == 0)
     it = _listView->currentItem();
-  if (it == 0)
-    return;
-  if (it->rtti() != KLFLibraryListViewItem::RTTI)
+  if (it == 0 || it->rtti() != KLFLibraryListViewItem::RTTI)
     return;
 
   emit restoreFromLibrary( ((KLFLibraryListViewItem*)it)->libraryItem(), false);
@@ -385,11 +409,14 @@ void KLFLibraryListManager::slotDelete(QListViewItem *it)
     // get selection
     QValueList<QListViewItem*> list = get_selected_items(_listView, KLFLibraryListViewItem::RTTI);
 
-    int r = KMessageBox::questionYesNo(_parent, i18n("Are you sure you want to delete %1 selected item(s) from library?").arg(list.size()),
-				       i18n("delete from Library?"));
-    if (r != KMessageBox::Yes)
-      return;
+    if (!_dont_emit_libchg) { // not only don't emit, but also don't ask questions
+      int r = KMessageBox::questionYesNo(_parent, i18n("Are you sure you want to delete %1 selected item(s) from library?").arg(list.size()),
+					i18n("delete from Library?"));
+      if (r != KMessageBox::Yes)
+	return;
+    }
 
+//DEBUG    printf("libitems->size=%d\n", _libItems->size());
     // delete items.
     for (k = 0; k < list.size(); ++k) {
       // find item with good ID
@@ -397,42 +424,23 @@ void KLFLibraryListManager::slotDelete(QListViewItem *it)
       uint j;
       for (j = 0; j < _libItems->size() && _libItems->operator[](j).id != ((KLFLibraryListViewItem*)list[k])->libraryItem().id; ++j);
       if (j >= _libItems->size()) {
-	fprintf(stderr, "ERROR: NASTY: Can't find index for deletion!!!\n");
-	return;
+	fprintf(stderr, "ERROR: NASTY: Can't find index for deletion!!! item-id=%d\n", _libItems->operator[](j).id);
+      } else {
+//DEBUG	printf("Erasing Item k=%d which reports an index of %d and is position j=%d in libItems\n", k, ((KLFLibraryListViewItem*)list[k])->index(), j);
+	_libItems->erase(_libItems->at(j));
+	delete list[k];
       }
-      _libItems->erase(_libItems->at(j));
-      delete list[k];
     }
+//DEBUG    printf("libitems->size=%d\n", _libItems->size());
 
     // we need to re-update the index() for each item
     for (k = 0; k < _libItems->size(); ++k) {
-      itemForId(_libItems->operator[](k).id)->updateIndex(k);
+      KLFLibraryListViewItem *itm = itemForId(_libItems->operator[](k).id);
+      if (itm != 0) {
+	itm->updateIndex(k);
+      }
     }
 
-    //     // get selection. For that, iterate all items and check their selection state.
-    //     QListViewItemIterator iter(_listView);
-    // 
-    //     while (iter.current()) {
-    //       if (iter.current()->rtti() != KLFLibraryListViewItem::RTTI) {
-    // 	++iter;
-    // 	continue;
-    //       }
-    //       if (iter.current()->isSelected()) {
-    // 	uint k;
-    // 	ulong id = ((KLFLibraryListViewItem*)iter.current())->libraryItem().id;
-    // 	for (k = 0; k < _libItems->size() && _libItems->operator[](k).id != id; ++k);
-    // 	if (k == _libItems->size()) {
-    // 	  fprintf(stderr, "ERROR: NASTY: Can't find index for deletion!!!\n");
-    // 	  return;
-    // 	}
-    // 	_libItems->erase(_libItems->at(k));
-    // 	QListViewItem *ptr = iter.current();
-    // 	++iter;
-    // 	delete ptr;
-    //       } else {
-    // 	++iter;
-    //       }
-    //     }
   } else {
     _libItems->erase(_libItems->at( ((KLFLibraryListViewItem*)it)->index() ));
     delete it;
@@ -470,7 +478,7 @@ void KLFLibraryListManager::slotMoveToResource(int ind)
 {
   _dont_emit_libchg = true;
   slotCopyToResource(ind);
-  slotDelete();
+  slotDelete(); // _dont_emit_libchg = true  also tells slotDelete to forget about asking questions to user like "Are you sure?"
   _dont_emit_libchg = false;
   _parent->emitLibraryChanged();
 }
@@ -484,6 +492,9 @@ bool KLFLibraryListManager::slotSearchFind(const QString& s)
 bool KLFLibraryListManager::slotSearchFindNext()
 {
   QString s = _search_str;
+
+  if (s.isEmpty())
+    return false;
 
   // search _libItems for occurence
   bool found = false;
@@ -541,7 +552,7 @@ void KLFLibraryListManager::slotCompleteRefresh()
   for (i = 0; i < mCategoryItems.size(); ++i) {
     cattreestatus[mCategoryItems[i]->category()] = mCategoryItems[i]->isOpen();
   }
-  
+
   _listView->clear();
   mCategoryItems.clear();
   for (i = 0; i < _libItems->size(); ++i) {
@@ -561,10 +572,14 @@ void KLFLibraryListManager::slotCompleteRefresh()
       mCategoryItems[i]->setOpen(mit.data());
     } else {
       // expand all categories by default if less than 6 categories
-      mCategoryItems[i]->setOpen(mCategoryItems.size() < 6);
+      bool showopen = (_flags & ShowCategoriesDeepTree) ? (mCategoryItems[i]->parent()==0) : (mCategoryItems.size() < 6);
+      mCategoryItems[i]->setOpen(showopen);
     }
   }
+  //   _listView->setSorting(0, true); // column zero ascending
+  //   _listView->sort();
 
+  //  dump_library_list(*_libItems, "slotCompleteRefresh() done");
 }
 bool KLFLibraryListManager::is_duplicate_of_previous(uint indexInList)
 {
@@ -576,8 +591,12 @@ bool KLFLibraryListManager::is_duplicate_of_previous(uint indexInList)
   return false;
 }
 
-KLFLibraryListCategoryViewItem *KLFLibraryListManager::itemForCategory(const QString& cat, bool createifneeded = true)
+KLFLibraryListCategoryViewItem *KLFLibraryListManager::itemForCategory(const QString& cat, bool createifneeded)
 {
+  //   if (_flags & ShowCategories == 0) {
+  //     fprintf(stderr, "ERROR: CALL TO itemForCategory(%s, %d) IN NO-CATEGORY MODE !\n", (const char*)cat.local8Bit(), createifneeded);
+  //     return 0;
+  //   }
   KLFLibraryListCategoryViewItem *parentitem, *c;
   for (uint k = 0; k < mCategoryItems.size(); ++k) {
     if (mCategoryItems[k]->category() == cat) {
@@ -588,14 +607,16 @@ KLFLibraryListCategoryViewItem *KLFLibraryListManager::itemForCategory(const QSt
     int k;
     if ((k = cat.find('/')) != -1) {
       parentitem = itemForCategory(cat.left(k));
+      //      printf("Creating catitem with other catitem as parent, this category=%s, parentcat=%s\n", (const char*)cat.local8Bit(), (const char*)parentitem->category().local8Bit());
       c = new KLFLibraryListCategoryViewItem( cat, parentitem );
       mCategoryItems.append(c);
       return c;
     }
   }
+  // Note: this is executed if EITHER _flags&ShowCategoriesDeepTree is false
+  //          OR _flgas&ShowCategoriesDeepTree is true but cat.find('/')==-1
   if (createifneeded) {
-    // Note: this is executed if EITHER _flags&ShowCategoriesDeepTree is false
-    //          OR _flgas&ShowCategoriesDeepTree is true but cat.find('/')==-1
+    //    printf("Creating catitem with listview as parent cat=%s\n", (const char*)cat.local8Bit());
     c = new KLFLibraryListCategoryViewItem( _listView, cat );
     mCategoryItems.append(c);
     return c;
@@ -630,9 +651,9 @@ enum { CONFIGMENU_DISPLAYTAGGEDONLY_ID = 1840, CONFIGMENU_NODUPLICATES_ID = 1841
   
   
 KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData::KLFLibraryResourceList *reslistptr, KLFMainWin *parent)
-  : KLFLibraryBrowserUI(0, 0, false) // no parent window, so we don't cover it
+  : KLFLibraryBrowserUI(0, 0, Qt::WStyle_Customize|Qt::WStyle_DialogBorder|Qt::WStyle_Title
+			|Qt::WStyle_SysMenu|Qt::WStyle_Minimize)
 {
-  setModal(false);
 
   btnRestore->setIconSet(QPixmap(locate("appdata", "pics/restore.png")));
   btnClose->setIconSet(QPixmap(locate("appdata", "pics/closehide.png")));
@@ -671,6 +692,12 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
 
   mConfigMenu->setItemChecked(CONFIGMENU_DISPLAYTAGGEDONLY_ID, klfconfig.LibraryBrowser.displayTaggedOnly);
   mConfigMenu->setItemChecked(CONFIGMENU_NODUPLICATES_ID, klfconfig.LibraryBrowser.displayNoDuplicates);
+  
+  // syntax highlighter for latex preview
+  KLFLatexSyntaxHighlighter *syntax = new KLFLatexSyntaxHighlighter(txtPreviewLatex, this);
+  QTimer *synttimer = new QTimer(this);
+  synttimer->start(500);
+  connect(synttimer, SIGNAL(timeout()), syntax, SLOT(refreshAll()));
 
   connect(btnDelete, SIGNAL(clicked()), this, SLOT(slotDelete()));
   connect(btnClose, SIGNAL(clicked()), this, SLOT(slotClose()));
@@ -688,6 +715,8 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
   connect(cbxTags->lineEdit(), SIGNAL(returnPressed()), this, SLOT(slotUpdateEditedTags()));
   
   connect(parent, SIGNAL(libraryAllChanged()), this, SLOT(slotCompleteRefresh()));
+  
+  
 
   lneSearch->installEventFilter(this);
 
@@ -710,7 +739,6 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
   tabResources->setTabPosition(QTabWidget::Top);
   tabResources->setTabShape(QTabWidget::Triangular);
 
-
   if (_libresptr->size() == 0) {
     fprintf(stderr, "KLFLibraryBrowser: RESOURCE LIST IS EMPTY! EXPECT A CRASH AT ANY MOMENT !!\n");
   }
@@ -724,7 +752,10 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
     lstview->setRootIsDecorated(true);
     lstview->setSelectionMode(QListView::Extended);
     tabResources->addTab(lstview, _libresptr->operator[](k).name);
-    
+
+    // the default flags
+    flags = KLFLibraryListManager::ShowCategories | KLFLibraryListManager::ShowCategoriesDeepTree;
+    // specific flags for specific resources
     if (_libresptr->operator[](k).id == KLFData::LibResource_History) {
       flags = KLFLibraryListManager::NoFlags;
     } else if (_libresptr->operator[](k).id == KLFData::LibResource_Archive) {
@@ -751,14 +782,14 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
 void KLFLibraryBrowser::slotTabResourcesSelected(QWidget *cur)
 {
   uint k;
+  _currentList = 0;
   for (k = 0; k < mLists.size(); ++k) {
     if (QString::number(mLists[k]->myResource().id) == cur->name()) {
       _currentList = mLists[k];
-      return;
     }
   }
-  _currentList = 0;
   slotRefreshButtonsEnabled();
+  slotRefreshPreview();
 }
 
 void KLFLibraryBrowser::reject()
@@ -828,12 +859,37 @@ void KLFLibraryBrowser::slotCompleteRefresh()
 
 void KLFLibraryBrowser::slotUpdateEditedCategory()
 {
-  _currentList->updateSelectedInfo_category(cbxCategory->currentText());
+  QString c = cbxCategory->currentText();
+  // purify c
+  c = c.stripWhiteSpace();
+  if (!c.isEmpty()) {
+    QStringList sections = QStringList::split("/", c, false); // no empty sections
+    uint k;
+    for (k = 0; k < sections.size(); ++k) {
+      //      printf("Section %d: '%s'\n", k, (const char*)sections[k].local8Bit());
+      sections[k] = sections[k].simplifyWhiteSpace();
+      if (sections[k].isEmpty()) {
+	sections.erase(sections.at(k));
+	--k;
+      }
+    }
+    c = sections.join("/");
+      //     c = c.replace(QRegExp("/+"), "/");
+      //     if (c[0] == '/') c = c.mid(1);
+      //     if (c[c.length()-1] == '/') c = c.left(c.length()-1);
+  } else {
+    // c is empty
+    c = QString::null; // force to being NULL
+  }
+  _currentList->updateSelectedInfo_category(c);
+  slotRefreshPreview();
 }
 
 void KLFLibraryBrowser::slotUpdateEditedTags()
 {
+  // tags don't need to be purified.
   _currentList->updateSelectedInfo_tags(cbxTags->currentText());
+  slotRefreshPreview();
 }
 
 void KLFLibraryBrowser::slotRefreshPreview()
@@ -852,12 +908,15 @@ void KLFLibraryBrowser::slotRefreshPreview()
   // populate comboboxes
   KLFData::KLFLibraryResource curres = _currentList->myResource();
   QStringList categories;
+  uint j;
   uint k;
-  KLFData::KLFLibraryList l = _libptr->operator[](curres);
-  for (k = 0; k < l.size(); ++k) {
-    QString c = l[k].category;
-    if (!c.isEmpty() && categories.find(c) == categories.end())
-      categories.append(c);
+  for (j = 0; j < _libresptr->size(); ++j) {
+    KLFData::KLFLibraryList l = _libptr->operator[](_libresptr->operator[](j));
+    for (k = 0; k < l.size(); ++k) {
+      QString c = l[k].category;
+      if (!c.isEmpty() && categories.find(c) == categories.end())
+	categories.append(c);
+    }
   }
   categories.sort();
   cbxCategory->clear();
@@ -945,6 +1004,10 @@ void KLFLibraryBrowser::slotSearchFind(const QString& s)
   if (!_currentList)
     return;
   bool res = _currentList->slotSearchFind(s);
+  if (s.isEmpty()) {
+    resetLneSearchColor();
+    return;
+  }
   if (res) {
     lneSearch->setPaletteBackgroundColor(klfconfig.LibraryBrowser.colorFound /*QColor(128, 255, 128)*/);
   } else {

@@ -1,8 +1,6 @@
 <!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>KLFLibraryBrowserUI</class>
-<comment>KLatexFormula History Browser</comment>
-<author>Philippe Faist philippe.faist at bluewin.ch</author>
-<widget class="QDialog">
+<widget class="QWidget">
     <property name="name">
         <cstring>KLFLibraryBrowserUI</cstring>
     </property>
@@ -10,15 +8,12 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>888</width>
-            <height>570</height>
+            <width>1024</width>
+            <height>599</height>
         </rect>
     </property>
     <property name="caption">
         <string>KLatexFormula Library</string>
-    </property>
-    <property name="sizeGripEnabled">
-        <bool>false</bool>
     </property>
     <vbox>
         <property name="name">
@@ -180,7 +175,7 @@
                         <cstring>unnamed</cstring>
                     </property>
                     <property name="margin">
-                        <number>5</number>
+                        <number>1</number>
                     </property>
                     <property name="spacing">
                         <number>0</number>
@@ -437,7 +432,7 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout2</cstring>
+                <cstring>layout2_3</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -552,12 +547,6 @@
         </widget>
     </vbox>
 </widget>
-<tabstops>
-    <tabstop>lneSearch</tabstop>
-    <tabstop>btnRestore</tabstop>
-    <tabstop>btnDelete</tabstop>
-    <tabstop>btnClose</tabstop>
-</tabstops>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
     <includehint>klineedit.h</includehint>

@@ -143,8 +143,8 @@ typedef QValueList<KLFOldHistoryElement> KLFOldHistory;
 
 
 
-KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit)
-  : QSyntaxHighlighter(textedit)
+KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent)
+  : QObject(parent), QSyntaxHighlighter(textedit)
 {
   _caretpara = 0;
   _caretpos = 0;
@@ -158,6 +158,14 @@ void KLFLatexSyntaxHighlighter::setCaretPos(int para, int pos)
 {
   _caretpara = para;
   _caretpos = pos;
+}
+
+void KLFLatexSyntaxHighlighter::refreshAll()
+{
+  int pa, po;
+  textEdit()->getCursorPosition(&pa, &po);
+  setCaretPos(pa, po);
+  rehighlight();
 }
 
 void KLFLatexSyntaxHighlighter::parseEverything()
@@ -453,7 +461,7 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(restoreFromLibrary(KLFData::KLFLibraryItem, bool)));
   connect(mLibraryBrowser, SIGNAL(refreshLibraryBrowserShownState(bool)),
 	  this, SLOT(slotLibraryButtonRefreshState(bool)));
-  connect(mLatexSymbols, SIGNAL(insertSymbol(QString)), this, SLOT(insertSymbol(QString)));
+  connect(mLatexSymbols, SIGNAL(insertSymbol(QString,QString)), this, SLOT(insertSymbol(QString,QString)));
   connect(mLatexSymbols, SIGNAL(refreshSymbolBrowserShownState(bool)),
 	  this, SLOT(slotSymbolsButtonRefreshState(bool)));
 
@@ -507,10 +515,11 @@ void KLFMainWin::saveSettings()
 
 void KLFMainWin::refreshSyntaxHighlighting()
 {
-  int pa, po;
-  mMainWidget->txeLatex->getCursorPosition(&pa, &po);
-  mHighlighter->setCaretPos(pa, po);
-  mHighlighter->rehighlight();
+  //   int pa, po;
+  //   mMainWidget->txeLatex->getCursorPosition(&pa, &po);
+  //   mHighlighter->setCaretPos(pa, po);
+  //   mHighlighter->rehighlight();
+  mHighlighter->refreshAll();
 }
 
 void KLFMainWin::refreshCaretPosition(int /*para*/, int /*pos*/)
@@ -521,10 +530,11 @@ void KLFMainWin::refreshCaretPosition(int /*para*/, int /*pos*/)
 
 void KLFMainWin::refreshPreambleSyntaxHighlighting()
 {
-  int pa, po;
-  mMainWidget->txePreamble->getCursorPosition(&pa, &po);
-  mPreambleHighlighter->setCaretPos(pa, po);
-  mPreambleHighlighter->rehighlight();
+  //   int pa, po;
+  //   mMainWidget->txePreamble->getCursorPosition(&pa, &po);
+  //   mPreambleHighlighter->setCaretPos(pa, po);
+  //   mPreambleHighlighter->rehighlight();
+  mPreambleHighlighter->refreshAll();
 }
 
 void KLFMainWin::refreshPreambleCaretPosition(int /*para*/, int /*pos*/)
@@ -774,9 +784,21 @@ void KLFMainWin::slotLibraryButtonRefreshState(bool on)
 }
 
 
-void KLFMainWin::insertSymbol(QString s)
+void KLFMainWin::insertSymbol(QString s, QString xtrapreamble)
 {
   mMainWidget->txeLatex->insert(s);
+  // see if we need to insert the xtrapreamble
+  QStringList cmds = QStringList::split("%%", xtrapreamble);
+  uint k;
+  QString preambletext = mMainWidget->txePreamble->text();
+  for (k = 0; k < cmds.size(); ++k) {
+    if (preambletext.find(cmds[k]) == -1) {
+      if (preambletext[preambletext.length()-1] != '\n')
+	preambletext += "\n";
+      preambletext += cmds[k];
+    }
+  }
+  mMainWidget->txePreamble->setText(preambletext);
 }
 
 void KLFMainWin::slotSymbolsButtonRefreshState(bool on)

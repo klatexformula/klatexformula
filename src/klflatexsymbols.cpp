@@ -86,18 +86,22 @@ public:
     return 0;
   }
 
-  QPixmap getPixmap(const QString& latex, bool fromcacheonly = true)
+  QPixmap getPixmap(const QString& symentrylatex, bool fromcacheonly = true)
   {
-    if (cache.contains(latex))
-      return cache[latex];
+    if (cache.contains(symentrylatex))
+      return cache[symentrylatex];
 
     if (fromcacheonly) // if we weren't able to load it from cache, show failed icon
       return QPixmap(locate("appdata", "pics/badsym.png"));
 
+    // parse symentrylatex
+    QString xtrapreamble = KLFLatexSymbols::xtrapreamble(symentrylatex);
+    QString latex = KLFLatexSymbols::latexsym(symentrylatex);
+
     KLFBackend::klfInput in;
     in.latex = latex;
     in.mathmode = "\\[ ... \\]";
-    in.preamble = "\\usepackage{amssymb,amsmath}";
+    in.preamble = xtrapreamble+"\n";
     in.fg_color = qRgb(0,0,0);
     in.bg_color = qRgba(255,255,255,0); // transparent Bg
     in.dpi = 150;
@@ -111,11 +115,12 @@ public:
     KLFBackend::klfOutput out = KLFBackend::getLatexFormula(in, backendsettings);
 
     if (out.status != 0) {
-      fprintf(stderr, "ERROR: Can't generate preview for symbol %s !\n\tError: %s\n", latex.latin1(), out.errorstr.latin1());
+      fprintf(stderr, "ERROR: Can't generate preview for symbol %s !\n\tError: %s\n", (const char*)symentrylatex.local8Bit(),
+	      (const char*)out.errorstr.local8Bit());
       return QPixmap();
     }
 
-    cache[latex] = out.result;
+    cache[symentrylatex] = out.result;
 
     return out.result;
   }
@@ -170,16 +175,19 @@ public:
   enum { RTTI = 1988 };
 
   KLFLatexSymbolsViewItem(QIconView *view, QString ltx, QPixmap pix)
-    : QIconViewItem(view, "", pix), _latex(ltx)
+    : QIconViewItem(view, "", pix), _latexsym(KLFLatexSymbols::latexsym(ltx)),
+      _xtrapreamble(KLFLatexSymbols::xtrapreamble(ltx))
   {
   }
 
   virtual int rtti() const { return RTTI; }
 
-  QString latex() const { return _latex; }
+  QString latexsym() const { return _latexsym; }
+  QString xtrapreamble() const { return _xtrapreamble; }
 
 protected:
-  QString _latex;
+  QString _latexsym;
+  QString _xtrapreamble;
 };
 
 
@@ -325,6 +333,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
   btnInsert->setPixmap(QPixmap(locate("appdata", "pics/insertsymb.png")));
   btnClose->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
   lneDisplay->setPaletteBackgroundColor(lneDisplay->palette().active().background());
+  lneDisplayXtrapreamble->setPaletteBackgroundColor(lneDisplayXtrapreamble->palette().active().background());
 
   connect(btnClose, SIGNAL(clicked()), this, SLOT(slotClose()));
 }
@@ -346,6 +355,32 @@ KLFLatexSymbols::~KLFLatexSymbols()
   }
 }
 
+// static method
+QString KLFLatexSymbols::xtrapreamble(const QString& symentry)
+{
+  // parse symentry
+  // it should be in the form:              *EXTRAPREAMBLE*\latexsymbol
+  // or, if no extra preamble is needed:    \latexsymbol
+  // if a literal '*' is needed at the beginning, start with a space.
+  // EXTRAPREAMBLE should contain a list of Latex commands that should be inserted into preamble
+  // if they are not there yet; separate commands with '%%'
+  if (symentry[0] == '*' && symentry.find('*', 1) != -1) {
+    return symentry.section('*', 0, 0, QString::SectionSkipEmpty);
+  }
+  return "";
+}
+// static method
+QString KLFLatexSymbols::latexsym(const QString& symentry)
+{
+  // see xtrapreamble() for comment on symentry format
+  int ii;
+  if (symentry[0] == '*' && (ii=symentry.find('*', 1)) != -1) {
+    return symentry.mid(ii+1);
+  }
+  return symentry;
+}
+
+
 
 void KLFLatexSymbols::reject()
 {
@@ -361,7 +396,7 @@ void KLFLatexSymbols::slotNeedsInsert(QIconViewItem *item)
     return;
   KLFLatexSymbolsViewItem *klfitem = (KLFLatexSymbolsViewItem *) item;
 
-  emit insertSymbol(klfitem->latex());
+  emit insertSymbol(klfitem->latexsym(), klfitem->xtrapreamble());
 }
 
 
@@ -402,17 +437,18 @@ void KLFLatexSymbols::slotDisplayItem(QIconViewItem *item)
 {
   if (!item)
     return;
-
   if (item->rtti() != KLFLatexSymbolsViewItem::RTTI)
     return;
+
   KLFLatexSymbolsViewItem *klfitem = (KLFLatexSymbolsViewItem *) item;
-  
-  lneDisplay->setText(klfitem->latex());
+
+  lneDisplay->setText(klfitem->latexsym());
+  lneDisplayXtrapreamble->setText(klfitem->xtrapreamble());
 }
 
 void KLFLatexSymbols::slotInsertCurrentDisplay()
 {
-  emit insertSymbol(lneDisplay->text());
+  emit insertSymbol(lneDisplay->text(), lneDisplayXtrapreamble->text());
 }
 
 void KLFLatexSymbols::slotClose()

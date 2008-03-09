@@ -45,9 +45,12 @@ public:
   KLFLatexSymbols(KLFMainWin* parent);
   ~KLFLatexSymbols();
 
+  static QString xtrapreamble(const QString& symentry);
+  static QString latexsym(const QString& symentry);
+
 signals:
 
-  void insertSymbol(QString symb);
+  void insertSymbol(QString symblatex, QString xtrapreamble);
   void refreshSymbolBrowserShownState(bool);
 
 public slots:

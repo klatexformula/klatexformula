@@ -60,10 +60,11 @@ public:
 
 
 
-class KLFLatexSyntaxHighlighter : public QSyntaxHighlighter
+class KLFLatexSyntaxHighlighter : public QObject, public QSyntaxHighlighter
 {
+  Q_OBJECT
 public:
-  KLFLatexSyntaxHighlighter(QTextEdit *textedit);
+  KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent = 0);
   virtual ~KLFLatexSyntaxHighlighter();
 
   void setCaretPos(int para, int pos);
@@ -73,6 +74,9 @@ public:
   enum { Enabled = 0x01,
 	 HighlightParensOnly = 0x02,
 	 HighlightLonelyParen = 0x04 };
+
+public slots:
+  void refreshAll();
 
 private:
 
@@ -166,7 +170,7 @@ public slots:
   void saveStyles();
   void saveLibrary();
   void restoreFromLibrary(KLFData::KLFLibraryItem h, bool restorestyle);
-  void insertSymbol(QString symb);
+  void insertSymbol(QString symb, QString xtrapreamble);
   void saveSettings();
   void loadSettings();
 
