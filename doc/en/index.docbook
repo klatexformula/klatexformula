@@ -51,7 +51,7 @@ Please respect the format of the date (YYYY-MM-DD) and of the version
 (V.MM.LL), it could be used by automation scripts.
 Do NOT change these in the translation. -->
 <date>2007-04-12</date>
-<releaseinfo>2.1.0alpha0</releaseinfo>
+<releaseinfo>2.1.0alpha1</releaseinfo>
 
 <!-- Abstract about this handbook -->
 
