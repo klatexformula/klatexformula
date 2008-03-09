@@ -47,7 +47,7 @@ void KLFConfig::loadDefaults()
 
   Appearance.latexEditFont = QApplication::font();
   Appearance.previewTooltipMaxSize = QSize(500, 350);
-  Appearance.labelOutputFixedSize = QSize(280, 100);
+  Appearance.labelOutputFixedSize = QSize(280, 80);
 
   BackendSettings.tempDir = KGlobal::instance()->dirs()->findResourceDir("tmp", "/");
   BackendSettings.execLatex = KStandardDirs::findExe("latex");
@@ -134,8 +134,8 @@ int KLFConfig::writeToConfig(KConfig *cfg)
   cfg->setGroup("Appearance");
 
   cfg->writeEntry("latexeditfont", Appearance.latexEditFont);
-  cfg->writeEntry("previewtooltipmaxsize", & Appearance.previewTooltipMaxSize);
-  cfg->writeEntry("lbloutputfixedsize", & Appearance.labelOutputFixedSize);
+  cfg->writeEntry("previewtooltipmaxsize", Appearance.previewTooltipMaxSize);
+  cfg->writeEntry("lbloutputfixedsize", Appearance.labelOutputFixedSize);
 
 
   cfg->setGroup("BackendSettings");
