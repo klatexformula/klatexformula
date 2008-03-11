@@ -653,8 +653,8 @@ void KLFMainWin::loadLibrary()
 
 	stream >> KLFData::KLFLibraryItem::MaxId >> _libresources >> _library;
   
-	} // format corrupt
-      } // open file ok
+      } // format corrupt
+    } // open file ok
   }
   else {
     /* IMPORT PRE-2.1 HISTORY >>>>>>>> */
@@ -700,7 +700,7 @@ void KLFMainWin::loadLibrary()
 	    QDataStream stream(&fh);
   
 	    KLFOldHistory old_hist;
-	    
+
 	    stream >> KLFOldHistoryElement::max_id >> old_hist;
   
 	    // now convert old history to new history
@@ -1021,7 +1021,10 @@ void KLFMainWin::slotSave()
       return;
     }
     QFile fsav(fname);
-    fsav.open(IO_WriteOnly | IO_Raw);
+    if ( ! fsav.open(IO_WriteOnly | IO_Raw) ) {
+      KMessageBox::error(this, i18n("Error: Can't write to file %1!").arg(fname));
+      return;
+    }
     //    for (int k = 0; k < dataptr->size(); ++k) fsav.putch(dataptr->at(k));
     fsav.writeBlock(*dataptr);
   } else {

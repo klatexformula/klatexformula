@@ -32,17 +32,24 @@
 #include <qiconset.h>
 #include <qtimer.h>
 #include <qregexp.h>
+#include <qfile.h>
+#include <qdatastream.h>
 
 #include <klineedit.h>
 #include <klocale.h>
 #include <kstandarddirs.h>
 #include <kmessagebox.h>
+#include <kfiledialog.h>
 
 #include "klfconfig.h"
 #include "klfdata.h"
 #include "klfmainwin.h"
 #include "klflibrary.h"
 
+
+// KLatexFormula version
+extern const char version[];
+extern const int version_maj, version_min;
 
 
 
@@ -264,10 +271,11 @@ QString KLFLibraryListManager::getSelectedInfo_style() const
   KLFData::KLFStyle sty;
   uint k;
   for (k = 0; k < list.size(); ++k) {
+    KLFData::KLFStyle thisstyle = ((KLFLibraryListViewItem*)list[k])->libraryItem().style;
     if (k == 0) {
-      sty = ((KLFLibraryListViewItem*)list[0])->libraryItem().style;
+      sty = thisstyle;
     }
-    if ( ! ( ((KLFLibraryListViewItem*)list[0])->libraryItem().style == sty ) ) {
+    if ( ! ( thisstyle == sty ) ) {
       return i18n("[ Different Styles ]");
     }
   }
@@ -331,6 +339,17 @@ bool KLFLibraryListManager::updateSelectedInfo(uint which, const QString& catego
   //  KMessageBox::information(_parent, i18n("New Category: %1 !").arg(newcat));
   
   return true;
+}
+
+KLFData::KLFLibraryList KLFLibraryListManager::getSelectedLibraryItems() const
+{
+  QValueList<QListViewItem*> list = get_selected_items(_listView, KLFLibraryListViewItem::RTTI);
+  KLFData::KLFLibraryList liblist;
+  uint k;
+  for (k = 0; k < list.size(); ++k) {
+    liblist.append(((KLFLibraryListViewItem*)list[k])->libraryItem());
+  }
+  return liblist;
 }
 
 void KLFLibraryListManager::slotContextMenu(QListViewItem */*item*/, const QPoint &p, int /*column*/)
@@ -647,9 +666,10 @@ KLFLibraryListViewItem *KLFLibraryListManager::itemForId(uint reqid)
 
 // ------------------------------------------------------------------------
 
-enum { CONFIGMENU_DISPLAYTAGGEDONLY_ID = 1840, CONFIGMENU_NODUPLICATES_ID = 1841 };
-  
-  
+int CONFIGMENU_DISPLAYTAGGEDONLY_ID = -1, CONFIGMENU_NODUPLICATES_ID = -1;
+int IMPORTEXPORTMENU_IMPORT_ID = -1, IMPORTEXPORTMENU_IMPORTTOCURRENTRESOURCE_ID = -1, IMPORTEXPORTMENU_EXPORT_LIBRARY_ID = -1,
+    IMPORTEXPORTMENU_EXPORT_RESOURCE_ID = -1, IMPORTEXPORTMENU_EXPORT_SELECTION_ID = -1;
+
 KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData::KLFLibraryResourceList *reslistptr, KLFMainWin *parent)
   : KLFLibraryBrowserUI(0, 0, Qt::WStyle_Customize|Qt::WStyle_DialogBorder|Qt::WStyle_Title
 			|Qt::WStyle_SysMenu|Qt::WStyle_Minimize)
@@ -671,8 +691,8 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
   lyt->setAutoAdd(true);
   // setup tab bar and mLists
   tabResources = 0;
+  mImportExportMenu = mConfigMenu = mRestoreMenu = 0;
   setupResourcesListsAndTabs();
-
 
   _allowrestore = _allowdelete = false;
 
@@ -683,13 +703,31 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
 
   mConfigMenu = new KPopupMenu(this);
   mConfigMenu->setCheckable(true);
-  mConfigMenu->insertTitle(i18n("Configure display"), 1000, 0);
-  mConfigMenu->insertItem(i18n("Only display tagged items"), this, SLOT(slotDisplayTaggedOnly()), 0, CONFIGMENU_DISPLAYTAGGEDONLY_ID);
+  mConfigMenu->insertTitle(i18n("Configure display"), -1, 0);
+  CONFIGMENU_DISPLAYTAGGEDONLY_ID =
+      mConfigMenu->insertItem(i18n("Only display tagged items"), this, SLOT(slotDisplayTaggedOnly()), 0, CONFIGMENU_DISPLAYTAGGEDONLY_ID);
   mConfigMenu->setItemChecked(CONFIGMENU_DISPLAYTAGGEDONLY_ID, klfconfig.LibraryBrowser.displayTaggedOnly);
-  mConfigMenu->insertItem(i18n("Don't display duplicate items"), this, SLOT(slotDisplayNoDuplicates()), 0, CONFIGMENU_NODUPLICATES_ID);
+  CONFIGMENU_NODUPLICATES_ID =
+      mConfigMenu->insertItem(i18n("Don't display duplicate items"), this, SLOT(slotDisplayNoDuplicates()), 0, CONFIGMENU_NODUPLICATES_ID);
   mConfigMenu->setItemChecked(CONFIGMENU_NODUPLICATES_ID, klfconfig.LibraryBrowser.displayTaggedOnly);
   btnConfig->setPopup(mConfigMenu);
 
+  mImportExportMenu = new KPopupMenu(this);
+  mImportExportMenu->insertTitle(i18n("Import"), -1);
+  IMPORTEXPORTMENU_IMPORT_ID =
+      mImportExportMenu->insertItem(i18n("Import ..."), this, SLOT(slotImport()), 0/*accel*/, IMPORTEXPORTMENU_IMPORT_ID);
+  IMPORTEXPORTMENU_IMPORTTOCURRENTRESOURCE_ID =
+      mImportExportMenu->insertItem(i18n("Import Into Current Resource ..."), this, SLOT(slotImportToCurrentResource()), 0,
+				    IMPORTEXPORTMENU_IMPORTTOCURRENTRESOURCE_ID);
+  mImportExportMenu->insertTitle(i18n("Export"), -1);
+  IMPORTEXPORTMENU_EXPORT_LIBRARY_ID =
+      mImportExportMenu->insertItem(i18n("Export Whole Library ..."), this, SLOT(slotExportLibrary()), 0, IMPORTEXPORTMENU_EXPORT_LIBRARY_ID);
+  IMPORTEXPORTMENU_EXPORT_RESOURCE_ID =
+      mImportExportMenu->insertItem(i18n("Export Resource [] ..."), this, SLOT(slotExportResource()), 0, IMPORTEXPORTMENU_EXPORT_RESOURCE_ID);
+  IMPORTEXPORTMENU_EXPORT_SELECTION_ID =
+      mImportExportMenu->insertItem(i18n("Export Current Selection ..."), this, SLOT(slotExportSelection()), 0, IMPORTEXPORTMENU_EXPORT_SELECTION_ID);
+  btnImportExport->setPopup(mImportExportMenu);
+  
   mConfigMenu->setItemChecked(CONFIGMENU_DISPLAYTAGGEDONLY_ID, klfconfig.LibraryBrowser.displayTaggedOnly);
   mConfigMenu->setItemChecked(CONFIGMENU_NODUPLICATES_ID, klfconfig.LibraryBrowser.displayNoDuplicates);
   
@@ -722,8 +760,9 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
 
   _dflt_lineedit_bgcol = lneSearch->paletteBackgroundColor();
 
-  slotRefreshButtonsEnabled();
-  slotRefreshPreview();
+  slotSelectionChanged(); // toggle by the way refreshbuttonsenabled() and refreshpreview()
+  //   slotRefreshButtonsEnabled();
+  //   slotRefreshPreview();
 }
 KLFLibraryBrowser::~KLFLibraryBrowser()
 {
@@ -766,8 +805,7 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
 //    connect(manager, SIGNAL(libraryChanged()), this, SIGNAL(libraryChanged()));
     connect(manager, SIGNAL(restoreFromLibrary(KLFData::KLFLibraryItem, bool)),
 	    this, SIGNAL(restoreFromLibrary(KLFData::KLFLibraryItem, bool)));
-    connect(manager, SIGNAL(selectionChanged()), this, SLOT(slotRefreshButtonsEnabled()));
-    connect(manager, SIGNAL(selectionChanged()), this, SLOT(slotRefreshPreview()));
+    connect(manager, SIGNAL(selectionChanged()), this, SLOT(slotSelectionChanged()));
 
     mLists.append(manager);
   }
@@ -788,6 +826,16 @@ void KLFLibraryBrowser::slotTabResourcesSelected(QWidget *cur)
       _currentList = mLists[k];
     }
   }
+
+  if (mImportExportMenu) {
+    mImportExportMenu->setItemEnabled(IMPORTEXPORTMENU_IMPORTTOCURRENTRESOURCE_ID, _currentList != 0);
+    mImportExportMenu->setItemEnabled(IMPORTEXPORTMENU_EXPORT_SELECTION_ID, _currentList != 0 && _currentList->getSelectedInfo_hasselection());
+    mImportExportMenu->setItemEnabled(IMPORTEXPORTMENU_EXPORT_RESOURCE_ID, _currentList != 0);
+
+    mImportExportMenu->changeItem(IMPORTEXPORTMENU_EXPORT_RESOURCE_ID, i18n("Export Resource [ %1 ] ...")
+				  .arg(_currentList ? _currentList->myResource().name : i18n("<none>")));
+  }
+
   slotRefreshButtonsEnabled();
   slotRefreshPreview();
 }
@@ -855,6 +903,15 @@ void KLFLibraryBrowser::slotCompleteRefresh()
 {
   setupResourcesListsAndTabs();
   emitLibraryChanged();
+}
+
+void KLFLibraryBrowser::slotSelectionChanged()
+{
+  slotRefreshButtonsEnabled();
+  slotRefreshPreview();
+  if (mImportExportMenu)
+    mImportExportMenu->setItemEnabled(IMPORTEXPORTMENU_EXPORT_SELECTION_ID,
+				      _currentList != 0 && _currentList->getSelectedInfo_hasselection());
 }
 
 void KLFLibraryBrowser::slotUpdateEditedCategory()
@@ -1039,6 +1096,180 @@ void KLFLibraryBrowser::resetLneSearchColor()
 }
 
 
+void KLFLibraryBrowser::slotImport(bool keepResources)
+{
+  if (_currentList == 0 && ! keepResources) {
+    fprintf(stderr, "ERROR: Can't insert into current resource: currentList is zero\n");
+    return;
+  }
+
+  KLFData::KLFLibrary imp_lib = KLFData::KLFLibrary();
+  KLFData::KLFLibraryResourceList imp_reslist = KLFData::KLFLibraryResourceList();
+
+  static QString filterformat = i18n("*.klf|KLatexFormula Library Files\n"
+				     "*|All Files");
+
+  QString fname, format;
+  {
+    KFileDialog dlg(":klatexformulalibexport", filterformat, this, "filedialog", true);
+    dlg.setOperationMode( KFileDialog::Opening );
+    dlg.setCaption(i18n("Import Library Resource"));
+    dlg.exec();
+    fname = dlg.selectedFile();
+  }
+
+  if (fname.isEmpty())
+    return;
+
+
+  if ( ! fname.isEmpty() ) {
+    QFile fimp(fname);
+    if ( ! fimp.open(IO_ReadOnly | IO_Raw) ) {
+      KMessageBox::error(this, i18n("Unable to open library file %1!").arg(fname), i18n("Error"));
+    } else {
+      QDataStream stream(&fimp);
+      QString s1;
+      stream >> s1;
+      if (s1 != "KLATEXFORMULA_LIBRARY_EXPORT") {
+	KMessageBox::error(this, i18n("Error: Library file %1 is incorrect or corrupt!\n").arg(fname), i18n("Error"));
+      } else {
+	Q_INT16 vmaj, vmin;
+	stream >> vmaj >> vmin;
+
+	if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
+	  KMessageBox::information(this, i18n("This library file was created by a more recent version of KLatexFormula.\n"
+					      "The process of library importing may fail."),  i18n("Import Library Items"));
+	}
+
+	stream >> imp_reslist >> imp_lib;
+
+      } // format corrupt
+    } // open file ok
+  }
+
+  KLFData::KLFLibraryResource curres;
+  if (!keepResources)
+    curres = _currentList->myResource();
+
+  uint k, j;
+  for (k = 0; k < imp_reslist.size(); ++k) {
+    KLFData::KLFLibraryResource res = imp_reslist[k];
+    if (keepResources && _libresptr->find(res) == _libresptr->end()) {
+      // insert resource
+      // but make sure ID isn't used already
+      uint l;
+      bool hassameid = false;
+      uint maxid = 0;
+      for (l = 0; l < _libresptr->size(); ++l) {
+	if (l == 0 || maxid < _libresptr->operator[](l).id)
+	  maxid = _libresptr->operator[](l).id;
+	if (_libresptr->operator[](l).id == res.id)
+	  hassameid = true;
+      }
+      if (l != _libresptr->size())
+	res.id = maxid+1;
+      // and insert resource
+      _libresptr->append(res);
+    }
+    if (!keepResources)
+      res = curres;
+    for (j = 0; j < imp_lib[imp_reslist[k]].size(); ++j) {
+      KLFData::KLFLibraryItem item = imp_lib[imp_reslist[k]][j];
+      // readjust item id
+      item.id = KLFData::KLFLibraryItem::MaxId++;
+      _libptr->operator[](res).append(item);
+    }
+  }
+  emitLibraryChanged();
+}
+void KLFLibraryBrowser::slotImportToCurrentResource()
+{
+  slotImport(false); // import to current resource
+}
+void KLFLibraryBrowser::slotExportLibrary()
+{
+  slotExportSpecific(*_libresptr, *_libptr);
+}
+void KLFLibraryBrowser::slotExportResource()
+{
+  if (!_currentList) {
+    fprintf(stderr, "Hey! No resource selected! What are you expecting to export!!?!\n");
+    return;
+  }
+
+  // the resource we're saving
+  KLFData::KLFLibraryResource res = _currentList->myResource();
+
+  // make KLFData::KLFLibraryResourceList for Resources with names and ids
+  KLFData::KLFLibraryResourceList reslist;
+  reslist.append(res);
+  KLFData::KLFLibrary lib;
+  lib[res] = _libptr->operator[](res); // create single resource and fill it
+
+  slotExportSpecific(reslist, lib);
+}
+void KLFLibraryBrowser::slotExportSelection()
+{
+  if (!_currentList) {
+    fprintf(stderr, "Hey ! No resource selected ! Where do you think you can get a selection from ?\n");
+    return;
+  }
+
+  // the current resource we're saving items from
+  KLFData::KLFLibraryResource res = _currentList->myResource();
+
+  KLFData::KLFLibrary lib;
+  KLFData::KLFLibraryResourceList reslist;
+  reslist.append(res);
+
+  lib[res] = _currentList->getSelectedLibraryItems();
+
+  slotExportSpecific(reslist, lib);
+}
+
+void KLFLibraryBrowser::slotExportSpecific(KLFData::KLFLibraryResourceList reslist, KLFData::KLFLibrary library)
+{
+  static QString filterformat = i18n("*.klf|KLatexFormula Library Files\n"
+				     "*|All Files");
+
+  QString fname, format;
+  {
+    KFileDialog dlg(":klatexformulalibexport", filterformat, this, "filedialog", true);
+    dlg.setOperationMode( KFileDialog::Saving );
+    dlg.setCaption(i18n("Export"));
+    dlg.exec();
+    fname = dlg.selectedFile();
+  }
+
+  if (fname.isEmpty())
+    return;
+
+  if (QFile::exists(fname)) {
+    int res = KMessageBox::questionYesNoCancel(this, i18n("Specified file exists. Overwrite?"), i18n("Overwrite?"));
+    if (res == KMessageBox::No) {
+      slotExportResource(); // recurse
+      // and quit
+      return;
+    }
+    if (res == KMessageBox::Cancel) {
+      // quit directly
+      return;
+    }
+    // if res == KMessageBox::Yes, we may continue ...
+  }
+
+  QFile fsav(fname);
+  if ( ! fsav.open(IO_WriteOnly | IO_Raw) ) {
+    KMessageBox::error(this, i18n("Error: Can't write to file %1!").arg(fname));
+    return;
+  }
+
+  QDataStream stream(&fsav);
+
+  stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (Q_INT16)version_maj << (Q_INT16)version_min
+      << reslist << library;
+
+}
 
 
 #include "klflibrary.moc"

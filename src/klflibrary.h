@@ -32,6 +32,7 @@
 #include <klfdata.h>
 #include <klflibrarybrowserui.h>
 
+
 class KLFLibraryListCategoryViewItem : public QListViewItem
 {
 public:
@@ -122,6 +123,9 @@ public:
   enum { UpdateCategory = 0x01, UpdateTags = 0x02 };
   bool updateSelectedInfo(uint which, const QString& category, const QString& tags);
 
+  KLFData::KLFLibraryList getSelectedLibraryItems() const;
+
+
 signals:
   void restoreFromLibrary(KLFData::KLFLibraryItem h, bool restorestyle);
   void selectionChanged();
@@ -203,9 +207,9 @@ public slots:
   void slotRefreshButtonsEnabled();
   void slotTabResourcesSelected(QWidget *selected);
   void slotCompleteRefresh();
+  // when selection has changed
+  void slotSelectionChanged();
   // preview
-//  void slotCategoryEdited(const QString& newtext);
-//  void slotTagsEdited(const QString& newtags);
   void slotUpdateEditedCategory();
   void slotUpdateEditedTags();
   void slotRefreshPreview();
@@ -217,6 +221,14 @@ public slots:
   void slotSearchClear();
   void slotSearchFind(const QString& text);
   void slotSearchFindNext();
+  // import/export actions
+  void slotImport(bool keepResources = true); // will restore each item into its given resource in file if keepResources is true
+  void slotImportToCurrentResource();
+  void slotExportLibrary();
+  void slotExportResource();
+  void slotExportSelection();
+  //   internal use mostly, prompt user for filename:
+  void slotExportSpecific(KLFData::KLFLibraryResourceList reslist, KLFData::KLFLibrary library);
 
 protected slots:
   // internal use
@@ -237,6 +249,8 @@ protected:
 
   KPopupMenu *mRestoreMenu;
   KPopupMenu *mConfigMenu;
+
+  KPopupMenu *mImportExportMenu;
 
   // search bar default bg color
   QColor _dflt_lineedit_bgcol;

@@ -490,10 +490,7 @@
                 </widget>
                 <widget class="QPushButton">
                     <property name="name">
-                        <cstring>btnImport</cstring>
-                    </property>
-                    <property name="enabled">
-                        <bool>false</bool>
+                        <cstring>btnImportExport</cstring>
                     </property>
                     <property name="text">
                         <string>Import/Export</string>
