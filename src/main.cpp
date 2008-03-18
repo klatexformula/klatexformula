@@ -29,6 +29,7 @@
 #include <kcmdlineargs.h>
 #include <klocale.h>
 
+#include "klfconfig.h"
 #include "klfmainwin.h"
 
 extern const char version[];
@@ -38,7 +39,7 @@ extern KAboutData *klfaboutdata;
 
 
 // not static so we can get this value from other modules in the project
-const char version[] = "2.1.0alpha3";
+const char version[] = "2.1.0alpha4";
 int version_maj = -1;
 int version_min = -1;
 int version_release = -1;
@@ -50,10 +51,6 @@ KAboutData *klfaboutdata = 0;
 static const char description[] =
     I18N_NOOP("KLatexFormula -- Easily get an image from a LaTeX equation");
 
-
-
-// 'extern' declaration in klfmainwin.h
-KLFConfig klfconfig;
 
 
 

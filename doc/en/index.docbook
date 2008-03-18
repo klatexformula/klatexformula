@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.1.2-Based Variant V1.1//EN" "dtd/kdex.dtd" [
-  <!ENTITY klatexformula "<application>KLatexFormula 2.1.0alpha3</application>">
+  <!ENTITY klatexformula "<application>KLatexFormula 2.1.0alpha4</application>">
   <!ENTITY kappname "&klatexformula;"><!-- Do *not* replace kappname-->
   <!ENTITY package "nopackage"><!-- kdebase, kdeadmin, etc -->
   <!ENTITY % addindex "IGNORE">
@@ -51,7 +51,7 @@ Please respect the format of the date (YYYY-MM-DD) and of the version
 (V.MM.LL), it could be used by automation scripts.
 Do NOT change these in the translation. -->
 <date>2007-04-12</date>
-<releaseinfo>2.1.0alpha3</releaseinfo>
+<releaseinfo>2.1.0alpha4</releaseinfo>
 
 <!-- Abstract about this handbook -->
 

@@ -26,6 +26,7 @@
 #include <qstring.h>
 #include <qlistview.h>
 #include <qtabwidget.h>
+#include <qlayout.h>
 
 #include <kpopupmenu.h>
 
@@ -206,6 +207,7 @@ public slots:
   void slotClose();
   void slotRefreshButtonsEnabled();
   void slotTabResourcesSelected(QWidget *selected);
+  // Now by this we mean a COMPLETE refresh (tab widget is recreated, ...) !
   void slotCompleteRefresh();
   // when selection has changed
   void slotSelectionChanged();
@@ -229,6 +231,10 @@ public slots:
   void slotExportSelection();
   //   internal use mostly, prompt user for filename:
   void slotExportSpecific(KLFData::KLFLibraryResourceList reslist, KLFData::KLFLibrary library);
+  // resource management
+  void slotAddResource();
+  void slotRenameResource();
+  void slotDeleteResource();
 
 protected slots:
   // internal use
@@ -242,7 +248,10 @@ protected:
   QValueList<KLFLibraryListManager*> mLists;
   KLFLibraryListManager *_currentList;
 
+  QBoxLayout *mFrameResourcesLayout;
   QTabWidget *tabResources;
+  QPushButton *btnManageResources;
+  KPopupMenu *mManageResourcesMenu;
 
   bool _allowrestore;
   bool _allowdelete;

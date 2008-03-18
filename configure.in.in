@@ -11,7 +11,7 @@
 # ./src/klfbackend/klfbackend.pro
 # ./Doxyfile
 
-AM_INIT_AUTOMAKE(klatexformula, 2.1.0alpha3)
+AM_INIT_AUTOMAKE(klatexformula, 2.1.0alpha4)
 AC_C_BIGENDIAN
 AC_CHECK_KDEMAXPATHLEN
 

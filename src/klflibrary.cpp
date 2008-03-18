@@ -40,6 +40,7 @@
 #include <kstandarddirs.h>
 #include <kmessagebox.h>
 #include <kfiledialog.h>
+#include <kinputdialog.h>
 
 #include "klfconfig.h"
 #include "klfdata.h"
@@ -337,7 +338,7 @@ bool KLFLibraryListManager::updateSelectedInfo(uint which, const QString& catego
   //  _parent->emitLibraryChanged();
   //..
   //  KMessageBox::information(_parent, i18n("New Category: %1 !").arg(newcat));
-  
+
   return true;
 }
 
@@ -669,6 +670,7 @@ KLFLibraryListViewItem *KLFLibraryListManager::itemForId(uint reqid)
 int CONFIGMENU_DISPLAYTAGGEDONLY_ID = -1, CONFIGMENU_NODUPLICATES_ID = -1;
 int IMPORTEXPORTMENU_IMPORT_ID = -1, IMPORTEXPORTMENU_IMPORTTOCURRENTRESOURCE_ID = -1, IMPORTEXPORTMENU_EXPORT_LIBRARY_ID = -1,
     IMPORTEXPORTMENU_EXPORT_RESOURCE_ID = -1, IMPORTEXPORTMENU_EXPORT_SELECTION_ID = -1;
+int MANAGERESOURCESMENU_ADD_ID = -1, MANAGERESOURCESMENU_DELETE_ID = -1, MANAGERESOURCESMENU_RENAME_ID = -1;
 
 KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData::KLFLibraryResourceList *reslistptr, KLFMainWin *parent)
   : KLFLibraryBrowserUI(0, 0, Qt::WStyle_Customize|Qt::WStyle_DialogBorder|Qt::WStyle_Title
@@ -687,10 +689,11 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
   _libptr = wholelistptr;
   _libresptr = reslistptr;
 
-  QVBoxLayout *lyt = new QVBoxLayout(frmList);
-  lyt->setAutoAdd(true);
   // setup tab bar and mLists
   tabResources = 0;
+  mFrameResourcesLayout = 0;
+  btnManageResources = 0;
+  mManageResourcesMenu = 0;
   mImportExportMenu = mConfigMenu = mRestoreMenu = 0;
   setupResourcesListsAndTabs();
 
@@ -769,20 +772,55 @@ KLFLibraryBrowser::~KLFLibraryBrowser()
 }
 void KLFLibraryBrowser::setupResourcesListsAndTabs()
 {
+  // clear our lists
+  uint k;
+  for (k = 0; k < mLists.size(); ++k)
+    delete mLists[k];
   mLists.clear();
 
-  if (tabResources)
+  if (mFrameResourcesLayout) {
+    delete mFrameResourcesLayout;
+  }
+  if (btnManageResources)
+    delete btnManageResources;
+  if (tabResources) {
     delete tabResources;
+  }
+
+  mFrameResourcesLayout = new QVBoxLayout(frmList);
+  mFrameResourcesLayout->setMargin(2);
 
   tabResources = new QTabWidget(frmList);
   tabResources->setTabPosition(QTabWidget::Top);
   tabResources->setTabShape(QTabWidget::Triangular);
 
+  mFrameResourcesLayout->addWidget(tabResources);
+
+  if (mManageResourcesMenu == 0) {
+    // create menu if needed
+    mManageResourcesMenu = new KPopupMenu(this);
+    mManageResourcesMenu->insertTitle(i18n("Manage Resources"), -1);
+    MANAGERESOURCESMENU_ADD_ID =
+	mManageResourcesMenu->insertItem(i18n("Add Resource ..."), this, SLOT(slotAddResource()), 0, MANAGERESOURCESMENU_ADD_ID);
+    MANAGERESOURCESMENU_RENAME_ID =
+	mManageResourcesMenu->insertItem(i18n("Rename Resource ..."), this, SLOT(slotRenameResource()), 0, MANAGERESOURCESMENU_RENAME_ID);
+    MANAGERESOURCESMENU_DELETE_ID =
+	mManageResourcesMenu->insertItem(i18n("Delete Resource"), this, SLOT(slotDeleteResource()), 0, MANAGERESOURCESMENU_DELETE_ID);
+  }
+
+  btnManageResources = new QPushButton(i18n("Resources"), tabResources);
+  QFont ff = btnManageResources->font();
+  ff.setPointSize(ff.pointSize()-3);
+  btnManageResources->setFont(ff);
+  btnManageResources->setPopup(mManageResourcesMenu);
+  btnManageResources->setPaletteBackgroundColor(QColor(128, 150, 150));
+  tabResources->setCornerWidget(btnManageResources, Qt::TopRight);
+
   if (_libresptr->size() == 0) {
     fprintf(stderr, "KLFLibraryBrowser: RESOURCE LIST IS EMPTY! EXPECT A CRASH AT ANY MOMENT !!\n");
   }
 
-  uint k, flags;
+  uint flags;
   for (k = 0; k < _libresptr->size(); ++k) {
     QListView *lstview = new QListView(tabResources);
     lstview->addColumn(i18n("Preview"), 320);
@@ -809,6 +847,10 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
 
     mLists.append(manager);
   }
+
+  // it seems like objects created after the initial show() have to be shown manually...
+  tabResources->show();
+
   emitLibraryChanged();
 
   connect(tabResources, SIGNAL(currentChanged(QWidget *)), this, SLOT(slotTabResourcesSelected(QWidget *)));
@@ -834,6 +876,14 @@ void KLFLibraryBrowser::slotTabResourcesSelected(QWidget *cur)
 
     mImportExportMenu->changeItem(IMPORTEXPORTMENU_EXPORT_RESOURCE_ID, i18n("Export Resource [ %1 ] ...")
 				  .arg(_currentList ? _currentList->myResource().name : i18n("<none>")));
+  }
+  if (mManageResourcesMenu) {
+    if (_currentList) {
+      int id = _currentList->myResource().id;
+      mManageResourcesMenu->setItemEnabled(MANAGERESOURCESMENU_DELETE_ID, KLFData::LibResourceUSERMIN <= id && id <= KLFData::LibResourceUSERMAX);
+    } else {
+      mManageResourcesMenu->setItemEnabled(MANAGERESOURCESMENU_DELETE_ID, false);
+    }
   }
 
   slotRefreshButtonsEnabled();
@@ -901,6 +951,7 @@ void KLFLibraryBrowser::addToHistory(KLFData::KLFLibraryItem h)
 
 void KLFLibraryBrowser::slotCompleteRefresh()
 {
+  // Now by this we mean a COMPLETE refresh !
   setupResourcesListsAndTabs();
   emitLibraryChanged();
 }
@@ -1151,28 +1202,59 @@ void KLFLibraryBrowser::slotImport(bool keepResources)
   if (!keepResources)
     curres = _currentList->myResource();
 
-  uint k, j;
+  uint k, j, l;
   for (k = 0; k < imp_reslist.size(); ++k) {
     KLFData::KLFLibraryResource res = imp_reslist[k];
-    if (keepResources && _libresptr->find(res) == _libresptr->end()) {
-      // insert resource
-      // but make sure ID isn't used already
-      uint l;
-      bool hassameid = false;
-      uint maxid = 0;
-      for (l = 0; l < _libresptr->size(); ++l) {
-	if (l == 0 || maxid < _libresptr->operator[](l).id)
-	  maxid = _libresptr->operator[](l).id;
-	if (_libresptr->operator[](l).id == res.id)
-	  hassameid = true;
+    if (keepResources) { // we're keeping resources
+      if (KLFData::LibResourceUSERMIN <= res.id && res.id <= KLFData::LibResourceUSERMAX) {
+	// this is a USER RESOURCE
+	uint l;
+	for (l = 0; l < _libresptr->size() && ! resources_equal_for_import(_libresptr->operator[](l), res) ; ++l)
+	  ;
+	// if l >= size => not found
+	if (l >= _libresptr->size()) {
+	  // resource doesn't exist yet -> insert resource with a free ID
+	  uint maxid = KLFData::LibResourceUSERMIN;
+	  for (l = 0; l < _libresptr->size(); ++l) {
+	    uint thisID = _libresptr->operator[](l).id;
+	    if (thisID < KLFData::LibResourceUSERMIN || thisID > KLFData::LibResourceUSERMAX)
+	      continue;
+	    if (l == 0 || maxid < thisID)
+	      maxid = thisID;
+	  }
+	  res.id = maxid+1;
+
+	  if (res.id >= KLFData::LibResourceUSERMIN && res.id <= KLFData::LibResourceUSERMAX) {
+	    // and insert resource
+	    _libresptr->append(res);
+	  } else {
+	    fprintf(stderr, "ERROR: Can't find good resource ID!\n");
+	    continue;
+	  }
+	} else {
+	  // USER RESOURCE, but already existing
+	  // found exact or near match (fine-tuning of matches done in resources_equal_for_import)
+	  // make sure res is the exact local resource
+	  res = _libresptr->operator[](l);
+	}
+      } else {
+	// system resource (ie. Not user resource)
+	// ignore name and use same ID (for translation issues)
+	for (l = 0; l < _libresptr->size() && _libresptr->operator[](l).id != res.id; ++l)
+	  ;
+	if (l >= _libresptr->size()) {
+	  // resource doesn't exist, create it
+	  _libresptr->append(res);
+	  // and keep res as it is
+	} else {
+	  // using system resource, make sure res is the same as ours
+	  res = _libresptr->operator[](l); // has same ID, adapting to local name.
+	}
       }
-      if (l != _libresptr->size())
-	res.id = maxid+1;
-      // and insert resource
-      _libresptr->append(res);
-    }
-    if (!keepResources)
+    } else {
+      // we're not keeping resources
       res = curres;
+    }
     for (j = 0; j < imp_lib[imp_reslist[k]].size(); ++j) {
       KLFData::KLFLibraryItem item = imp_lib[imp_reslist[k]][j];
       // readjust item id
@@ -1180,7 +1262,8 @@ void KLFLibraryBrowser::slotImport(bool keepResources)
       _libptr->operator[](res).append(item);
     }
   }
-  emitLibraryChanged();
+  // and do a complete refresh (resources may have changed)
+  slotCompleteRefresh();
 }
 void KLFLibraryBrowser::slotImportToCurrentResource()
 {
@@ -1269,6 +1352,92 @@ void KLFLibraryBrowser::slotExportSpecific(KLFData::KLFLibraryResourceList resli
   stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (Q_INT16)version_maj << (Q_INT16)version_min
       << reslist << library;
 
+}
+
+void KLFLibraryBrowser::slotAddResource()
+{
+  bool ok;
+  QString rname = KInputDialog::getText(i18n("New Resource"), i18n("Please Enter New Resource Name"), i18n("New Resource"),
+					&ok, this);
+  rname = rname.stripWhiteSpace();
+  if ( ! ok || rname.isEmpty() )
+    return;
+
+  Q_UINT32 ourid = KLFData::LibResourceUSERMIN; // determine a good ID:
+  uint k;
+  for (k = 0; ourid < KLFData::LibResourceUSERMAX && k < _libresptr->size(); ++k) {
+    if (ourid == _libresptr->operator[](k).id) {
+      ourid++;
+      k = 0; // restart a complete check from first item
+    }
+  }
+  if (ourid == KLFData::LibResourceUSERMAX) {
+    fprintf(stderr, "ERROR: Can't find a good ID !\n");
+    return;
+  }
+
+  KLFData::KLFLibraryResource res = { ourid, rname };
+
+  _libresptr->append(res);
+  _libptr->operator[](res) = KLFData::KLFLibraryList();
+
+  // and do a thorough refresh
+  slotCompleteRefresh();
+}
+void KLFLibraryBrowser::slotRenameResource()
+{
+  // no current resource selected
+  if (!_currentList)
+    return;
+
+  bool ok;
+  QString rname = KInputDialog::getText(i18n("Rename Resource"), i18n("Please Enter New Resource Name"), _currentList->myResource().name,
+					&ok, this);
+  rname = rname.stripWhiteSpace();
+  if ( ! ok || rname.isEmpty() )
+    return;
+
+  KLFData::KLFLibraryResource res = _currentList->myResource();
+  KLFData::KLFLibraryResource newres = res;  newres.name = rname;
+
+  KLFData::KLFLibraryResourceList::iterator it = _libresptr->find(res);
+  KLFData::KLFLibrary::iterator libit = _libptr->find(res);
+  if (it == _libresptr->end() || libit == _libptr->end()) {
+    fprintf(stderr, "ERROR: Can't find items in library !\n");
+    return;
+  }
+  *it = newres;
+  KLFData::KLFLibraryList l = *libit;
+  _libptr->erase(libit);
+  _libptr->operator[](newres) = l;
+
+  // and do a thorough refresh
+  slotCompleteRefresh();
+}
+void KLFLibraryBrowser::slotDeleteResource()
+{
+  if ( ! _currentList )
+    return;
+  KLFData::KLFLibraryResource r = _currentList->myResource();
+  if (r.id < KLFData::LibResourceUSERMIN || r.id > KLFData::LibResourceUSERMAX)
+    return;
+
+  uint k;
+  for (k = 0; k < _libresptr->size() && _libresptr->operator[](k).id != r.id; ++k)
+    ;
+  if (k >= _libresptr->size())
+    return;
+
+  if (KMessageBox::questionYesNo(this, i18n("<qt>Are you sure you want to delete resource <b>%1</b> with all its contents?</qt>").arg(r.name),
+				 i18n("Delete Resource")) == KMessageBox::Yes) {
+
+    _libresptr->erase(_libresptr->at(k));
+    _libptr->remove(r);
+
+    // and do complete refresh
+    slotCompleteRefresh();
+
+  }
 }
 
 

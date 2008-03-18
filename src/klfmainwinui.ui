@@ -10,8 +10,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>865</width>
-            <height>385</height>
+            <width>861</width>
+            <height>376</height>
         </rect>
     </property>
     <property name="caption">
@@ -262,10 +262,10 @@
                                 </size>
                             </property>
                             <property name="frameShape">
-                                <enum>Panel</enum>
+                                <enum>NoFrame</enum>
                             </property>
                             <property name="frameShadow">
-                                <enum>Raised</enum>
+                                <enum>Plain</enum>
                             </property>
                             <property name="text">
                                 <string></string>

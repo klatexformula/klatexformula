@@ -95,9 +95,9 @@ QString KLFData::prettyPrintStyle(const KLFStyle& sty)
     s = i18n("<b>Style Name</b>: %1<br>").arg(sty.name);
   return s + i18n("<b>Math Mode</b>: %1<br>"
 		  "<b>DPI Resolution</b>: %2<br>"
-		  "<b>Foreground Color</b>: <font color=\"%3\">%4</font><br>"
+		  "<b>Foreground Color</b>: %3 <font color=\"%4\"><b>[SAMPLE]</b></font><br>"
 		  "<b>Background is Transparent</b>: %5<br>"
-		  "<b>Background Color</b>: <font color=\"%6\">%7</font><br>"
+		  "<b>Background Color</b>: %6 <font color=\"%7\"><b>[SAMPLE]</b></font><br>"
 		  "<b>LaTeX Preamble:</b><br><pre>%8</pre>")
       .arg(sty.mathmode)
       .arg(sty.dpi)
@@ -173,7 +173,7 @@ bool operator==(const KLFData::KLFLibraryItem& a, const KLFData::KLFLibraryItem&
       a.category == b.category &&
       a.tags == b.tags &&
     */
-    //    a.preview == b.preview && // don't compare preview: it's unnecessary
+    //    a.preview == b.preview && // don't compare preview: it's unnecessary and overkill
     a.style == b.style;
 }
 
@@ -186,4 +186,9 @@ bool operator<(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryRes
 bool operator==(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b)
 {
   return a.id == b.id;
+}
+
+bool resources_equal_for_import(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b)
+{
+  return a.name == b.name;
 }

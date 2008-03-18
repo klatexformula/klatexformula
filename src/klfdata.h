@@ -44,11 +44,12 @@ public:
     int dpi;
   };
 
-  typedef uint KLFLibraryResourceId;
+  //   typedef uint KLFLibraryResourceId;
+  // THESE VALUES MUST NOT CHANGE FROM ONE VERSION TO ANOTHER OF KLATEXFORMULA :
   enum {  LibResource_History = 0, LibResource_Archive = 1,
     // user resources must be in the following range:
-    LibResourceUSERMIN = 50,
-    LibResourceUSERMAX = 999
+    LibResourceUSERMIN = 100,
+    LibResourceUSERMAX = 99999
   };
 
   struct KLFLibraryResource {
@@ -105,5 +106,7 @@ bool operator==(const KLFData::KLFStyle& a, const KLFData::KLFStyle& b);
 // is needed for QMap : these operators compare ID only.
 bool operator<(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b);
 bool operator==(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b);
+// name comparision
+bool resources_equal_for_import(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b);
 
 #endif

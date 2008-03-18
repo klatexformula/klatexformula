@@ -30,6 +30,10 @@
 
 #include "klfconfig.h"
 
+// global variable to access our config
+// remember to initialize it in main.cpp !
+KLFConfig klfconfig;
+
 
 KLFConfig::KLFConfig()
 {
