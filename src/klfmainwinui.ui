@@ -10,8 +10,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>861</width>
-            <height>376</height>
+            <width>913</width>
+            <height>424</height>
         </rect>
     </property>
     <property name="caption">
@@ -181,11 +181,11 @@
                                 <bool>true</bool>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Show History</string>
+                                <string>Show Library</string>
                                 <comment>tooltip</comment>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Clicking this button opens a dialog allowing you to view previously entered formulas.</string>
+                                <string>Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</string>
                                 <comment>whatsthis text</comment>
                             </property>
                         </widget>

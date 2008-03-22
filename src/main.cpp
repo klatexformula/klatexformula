@@ -140,6 +140,9 @@ int main(int argc, char **argv)
     if ( ! (s = args->getOption("preamble")).isEmpty() )
       mainWin->mMainWidget->txePreamble->setText(s);
 
+    if (args->isSet("evaluate"))
+      mainWin->slotEvaluate();
+
     args->clear();
 
   }
