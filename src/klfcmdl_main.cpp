@@ -22,7 +22,7 @@
 static const char description[] =
     I18N_NOOP("KLatexFormula Command-line interface -- Easily get an image from a LaTeX equation");
 
-static const char version[] = "2.1.0alpha4";
+static const char version[] = "2.1.0alpha5";
 
 
 static KCmdLineOptions options[] =
@@ -41,7 +41,7 @@ static KCmdLineOptions options[] =
   { "mathmode <arg>", I18N_NOOP( "Use given math mode. <arg> must contain '...' to be replaced by the latex string." ), " \\[ ... \\] " },
   { "p", 0, 0 },
   { "preamble <arg>", I18N_NOOP( "Some arbitrary LaTeX code to be inserted after \\documentclass{} and before \\begin{document}. "
-  "This may typically be \\usepackage{xyz} directives." ), "\\usepackage{amssymb,amsmath}" },
+    "This may typically be \\usepackage{xyz} directives." ), "\\usepackage{amssymb,amsmath}" },
 
   { "q", 0, 0 },
   { "quiet", I18N_NOOP( "Print as little as possible on standard error. Error messages won't be printed. "
@@ -126,7 +126,6 @@ int main(int argc, char **argv)
 
   args->clear();
 
-
   KLFBackend::klfOutput klfout;
 
   klfout = KLFBackend::getLatexFormula(klfin, settings);
@@ -153,6 +152,9 @@ int main(int argc, char **argv)
     else
       format = output.mid(l+1).upper();
 
+    if (format == "JPG")
+      format = "JPEG"; // Qt wants 'JPEG' and not 'JPG'
+
     QByteArray *dataptr;
     if (format == "PS" || format == "EPS") {
       dataptr = &klfout.epsdata;
@@ -163,7 +165,7 @@ int main(int argc, char **argv)
     } else {
       dataptr = 0;
     }
-    
+
     if (dataptr) {
       if (dataptr->size() == 0) {
 	if (!quiet)
@@ -178,6 +180,6 @@ int main(int argc, char **argv)
     }
 
   }
-  
+
   return 0;
 }

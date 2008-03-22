@@ -26,9 +26,14 @@
 #include <qvaluelist.h>
 #include <qsyntaxhighlighter.h>
 #include <qfont.h>
+#include <qcheckbox.h>
 
 #include <kmainwindow.h>
 #include <kpopupmenu.h>
+#include <ktextedit.h>
+#include <kcolorcombo.h>
+#include <kcombobox.h>
+#include <knuminput.h>
 #include <ktextedit.h>
 
 #include <klfbackend.h>
@@ -121,6 +126,7 @@ class KLFMainWin : public KMainWindow
   Q_OBJECT
 
   friend class KLFSettings;
+  friend int main(int argc, char **argv); // this should be more elegant...
 
 public:
   KLFMainWin();
@@ -149,6 +155,8 @@ public slots:
   void slotSymbolsButtonRefreshState(bool on);
   void slotExpandOrShrink();
   void slotQuit();
+
+  bool loadNamedStyle(const QString& sty);
 
   void slotDrag();
   void slotCopy();

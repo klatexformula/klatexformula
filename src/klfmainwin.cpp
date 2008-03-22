@@ -378,7 +378,6 @@ KLFMainWin::KLFMainWin()
   mMainWidget->btnDrag->setFont(font);
   mMainWidget->btnCopy->setFont(font);
   mMainWidget->btnSave->setFont(font);
-
   font = mMainWidget->txePreamble->font();
   font.setPointSize(font.pointSize()-2);
   mMainWidget->txePreamble->setFont(font);
@@ -424,15 +423,9 @@ KLFMainWin::KLFMainWin()
   connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(refreshStylePopupMenus()));
   connect(this, SIGNAL(stylesChanged()), mStyleManager, SLOT(stylesChanged()));
 
-
-  // find style with name "default" (if existant) and set it
-  for (uint kl = 0; kl < _styles.size(); ++kl) {
-    if (_styles[kl].name.lower() == "default") {
-      slotLoadStyle(kl);
-      break;
-    }
-  }
-
+  // load style "default" or "Default" if one of them exists
+  loadNamedStyle("default");
+  loadNamedStyle("Default");
 
   // For systematical syntax highlighting
   // make sure syntax highlighting is up-to-date at all times
@@ -489,6 +482,18 @@ KLFMainWin::~KLFMainWin()
     delete mHighlighter;
 }
 
+
+bool KLFMainWin::loadNamedStyle(const QString& sty)
+{
+  // find style with name sty (if existant) and set it
+  for (uint kl = 0; kl < _styles.size(); ++kl) {
+    if (_styles[kl].name == sty) {
+      slotLoadStyle(kl);
+      return true;
+    }
+  }
+  return false;
+}
 
 void KLFMainWin::loadSettings()
 {
