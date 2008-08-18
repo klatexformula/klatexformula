@@ -353,6 +353,8 @@ Miscellaneous Symbols
 *\usepackage{amssymb,amsmath}*\eth
 *\usepackage{amssymb,amsmath}*\diagup
 *\usepackage{amssymb,amsmath}*\diagdown
+*\DeclareSymbolFont{mylaplacian}{OT1}{txr}{m}{it}\DeclareMathSymbol{\laplacian}{\mathalpha}{mylaplacian}{"01}*\laplacian
+*\DeclareSymbolFont{myvarlaplacian}{OT1}{txr}{m}{sl}\DeclareMathSymbol{\varlaplacian}{\mathalpha}{myvarlaplacian}{"01}*\varlaplacian
 
 Delimiters
 *\usepackage{amssymb,amsmath}*\vert
