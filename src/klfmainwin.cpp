@@ -875,7 +875,7 @@ void KLFMainWin::slotEvaluate()
   if (_output.status == 0) {
     // ALL OK
 
-    QPixmap sc = _output.result.smoothScale(QSize(250, 50), QImage::ScaleMin);
+    QPixmap sc = _output.result.smoothScale(mMainWidget->lblOutput->size(), QImage::ScaleMin);
     mMainWidget->lblOutput->setPixmap(sc);
 
     mMainWidget->frmOutput->setEnabled(true);

@@ -40,7 +40,7 @@ extern KAboutData *klfaboutdata;
 
 
 // not static so we can get this value from other modules in the project
-const char version[] = "2.1.0";
+const char version[] = "2.1.1";
 int version_maj = -1;
 int version_min = -1;
 int version_release = -1;
