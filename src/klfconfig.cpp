@@ -92,8 +92,8 @@ int KLFConfig::readFromConfig(KConfig *cfg)
   Appearance.labelOutputFixedSize = cfg->readSizeEntry("lbloutputfixedsize", & n );
   if (Appearance.labelOutputFixedSize == n) {
     Appearance.labelOutputFixedSize =
-      QSize( cfg->readNumEntry("lbloutputfixedwidth", Appearance.labelOutputFixedSize.width()) ,
-	     cfg->readNumEntry("lbloutputfixedheight", Appearance.labelOutputFixedSize.height()) );
+      QSize( cfg->readNumEntry("lbloutputfixedwidth", 280) ,
+	     cfg->readNumEntry("lbloutputfixedheight", 100) );
   }
 
 
