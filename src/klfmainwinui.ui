@@ -10,7 +10,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>913</width>
+            <width>914</width>
             <height>424</height>
         </rect>
     </property>
@@ -253,12 +253,6 @@
                                 <size>
                                     <width>280</width>
                                     <height>75</height>
-                                </size>
-                            </property>
-                            <property name="maximumSize">
-                                <size>
-                                    <width>280</width>
-                                    <height>50</height>
                                 </size>
                             </property>
                             <property name="frameShape">
