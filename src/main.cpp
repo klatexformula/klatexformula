@@ -20,8 +20,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-// $Id$
-
+// $Id: main.cpp,v 1.26 2008/12/03 21:48:32 philippe Exp $
+// $Author$
+// $Date$
+// $Name$
+// $Log$
+// $RCSfile$
+// $Revision$
+// $Source$
 #include <qfile.h>
 #include <qclipboard.h>
 #include <qdragobject.h>
