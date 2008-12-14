@@ -1,87 +1,92 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>KLFProgErrUI</class>
-<widget class="QDialog">
-    <property name="name">
-        <cstring>KLFProgErrUI</cstring>
-    </property>
-    <property name="geometry">
-        <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>562</width>
-            <height>367</height>
-        </rect>
-    </property>
-    <property name="caption">
-        <string>Error</string>
-    </property>
-    <property name="modal">
-        <bool>true</bool>
-    </property>
-    <vbox>
-        <property name="name">
-            <cstring>unnamed</cstring>
-        </property>
-        <property name="margin">
-            <number>0</number>
-        </property>
-        <property name="spacing">
-            <number>1</number>
-        </property>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>lbl</cstring>
-            </property>
-            <property name="minimumSize">
-                <size>
-                    <width>0</width>
-                    <height>30</height>
-                </size>
-            </property>
-            <property name="font">
-                <font>
-                    <pointsize>12</pointsize>
-                    <italic>1</italic>
-                </font>
-            </property>
-            <property name="text">
-                <string>An error occured!</string>
-            </property>
-            <property name="alignment">
-                <set>AlignCenter</set>
-            </property>
-        </widget>
-        <widget class="QTextBrowser">
-            <property name="name">
-                <cstring>txtError</cstring>
-            </property>
-        </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>btnClose</cstring>
-            </property>
-            <property name="text">
-                <string>Close</string>
-            </property>
-            <property name="default">
-                <bool>true</bool>
-            </property>
-            <property name="toolTip" stdset="0">
-                <string>Close dialog</string>
-            </property>
-            <property name="whatsThis" stdset="0">
-                <string>Close dialog</string>
-            </property>
-        </widget>
-    </vbox>
-</widget>
-<connections>
-    <connection>
-        <sender>btnClose</sender>
-        <signal>clicked()</signal>
-        <receiver>KLFProgErrUI</receiver>
-        <slot>accept()</slot>
-    </connection>
-</connections>
-<layoutdefaults spacing="6" margin="11"/>
-</UI>
+<ui version="4.0" >
+ <class>KLFProgErrUI</class>
+ <widget class="QDialog" name="KLFProgErrUI" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>562</width>
+    <height>367</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Error</string>
+  </property>
+  <property name="modal" >
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" >
+   <item>
+    <widget class="QLabel" name="lbl" >
+     <property name="minimumSize" >
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
+     </property>
+     <property name="font" >
+      <font>
+       <pointsize>12</pointsize>
+       <italic>true</italic>
+      </font>
+     </property>
+     <property name="text" >
+      <string>An error occured!</string>
+     </property>
+     <property name="alignment" >
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTextBrowser" name="textBrowser" />
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnClose" >
+     <property name="toolTip" >
+      <string>Close dialog</string>
+     </property>
+     <property name="whatsThis" >
+      <string>Close dialog</string>
+     </property>
+     <property name="text" >
+      <string>Close</string>
+     </property>
+     <property name="icon" >
+      <iconset resource="klfres.qrc" >
+       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+     </property>
+     <property name="default" >
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11" />
+ <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
+ <resources>
+  <include location="klfres.qrc" />
+ </resources>
+ <connections>
+  <connection>
+   <sender>btnClose</sender>
+   <signal>clicked()</signal>
+   <receiver>KLFProgErrUI</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

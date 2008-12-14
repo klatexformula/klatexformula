@@ -1010,7 +1010,7 @@ void KLFLibraryBrowser::slotRefreshPreview()
     lblStylePreview->setText("");
     tbxPreview->setCurrentIndex(0);
 
-    frmPreview->setEnabled(false);
+    wPreview->setEnabled(false);
     return;
   }
   // populate comboboxes

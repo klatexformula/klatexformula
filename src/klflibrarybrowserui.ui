@@ -1,551 +1,492 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>KLFLibraryBrowserUI</class>
-<widget class="QWidget">
-    <property name="name">
-        <cstring>KLFLibraryBrowserUI</cstring>
-    </property>
-    <property name="geometry">
+<ui version="4.0" >
+ <class>KLFLibraryBrowserUI</class>
+ <widget class="QWidget" name="KLFLibraryBrowserUI" >
+  <property name="windowModality" >
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>831</width>
+    <height>595</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>KLatexFormula Library</string>
+  </property>
+  <property name="windowIcon" >
+   <iconset>
+    <normaloff>:/pix/pics/library.png</normaloff>:/pix/pics/library.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2" >
+   <item>
+    <widget class="QFrame" name="frame" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="frameShape" >
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="lineWidth" >
+      <number>1</number>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout" >
+      <item>
+       <widget class="QLabel" name="lblSearch" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip" >
+         <string>Incremental search within history items. Find next with F3 key.</string>
+        </property>
+        <property name="whatsThis" >
+         <string>If you insert keywords as LaTeX comments in your formulas ('&lt;tt>%keyword&lt;/tt>&lt;i>[newline]&lt;/i>') then you can search for those formulas here.</string>
+        </property>
+        <property name="text" >
+         <string>Search:</string>
+        </property>
+        <property name="wordWrap" >
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnSearchClear" >
+        <property name="toolTip" >
+         <string>Clear Search bar</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="klfres.qrc" >
+          <normaloff>:/pics/clearright.png</normaloff>:/pics/clearright.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip" >
+         <string>Incremental search within history items. Find next with F3 key.</string>
+        </property>
+        <property name="whatsThis" >
+         <string>If you insert keywords as LaTeX comments in your formulas ('&lt;tt>%keyword&lt;/tt>&lt;i>[newline]&lt;/i>') then you can search for those formulas here.</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnFindNext" >
+        <property name="toolTip" >
+         <string>Find Next [F3]</string>
+        </property>
+        <property name="whatsThis" >
+         <string>Find Next occurrence of search string</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="klfres.qrc" >
+          <normaloff>:/pics/findnext.png</normaloff>:/pics/findnext.png</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSplitter" name="splitter" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QFrame" name="frmList" >
+      <property name="sizePolicy" >
+       <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape" >
+       <enum>QFrame::Panel</enum>
+      </property>
+      <property name="frameShadow" >
+       <enum>QFrame::Sunken</enum>
+      </property>
+     </widget>
+     <widget class="QToolBox" name="wPreview" >
+      <property name="font" >
+       <font>
+        <pointsize>8</pointsize>
+       </font>
+      </property>
+      <property name="frameShape" >
+       <enum>QFrame::Panel</enum>
+      </property>
+      <property name="frameShadow" >
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <property name="currentIndex" >
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tabPreview" >
+       <property name="geometry" >
         <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>1024</width>
-            <height>599</height>
+         <x>0</x>
+         <y>0</y>
+         <width>249</width>
+         <height>411</height>
         </rect>
-    </property>
-    <property name="caption">
-        <string>KLatexFormula Library</string>
-    </property>
-    <vbox>
-        <property name="name">
-            <cstring>unnamed</cstring>
+       </property>
+       <attribute name="label" >
+        <string>Preview and Tags</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout" >
+        <item>
+         <widget class="QLabel" name="lblPreview" >
+          <property name="minimumSize" >
+           <size>
+            <width>0</width>
+            <height>80</height>
+           </size>
+          </property>
+          <property name="pixmap" >
+           <pixmap>:/pix/pics/nopreview.png</pixmap>
+          </property>
+          <property name="alignment" >
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="wordWrap" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="txtPreviewLatex" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="tabChangesFocus" >
+           <bool>true</bool>
+          </property>
+          <property name="undoRedoEnabled" >
+           <bool>false</bool>
+          </property>
+          <property name="readOnly" >
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblCategory" >
+          <property name="text" >
+           <string>Category:</string>
+          </property>
+          <property name="wordWrap" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="cbxCategory" >
+          <property name="editable" >
+           <bool>true</bool>
+          </property>
+          <property name="autoCompletion" >
+           <bool>true</bool>
+          </property>
+          <property name="duplicatesEnabled" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" >
+          <item>
+           <spacer name="spacer2_2" >
+            <property name="orientation" >
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType" >
+             <enum>QSizePolicy::Expanding</enum>
+            </property>
+            <property name="sizeHint" stdset="0" >
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnUpdateCategory" >
+            <property name="text" >
+             <string>Update Category</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblTags" >
+          <property name="text" >
+           <string>Name / Tags:</string>
+          </property>
+          <property name="wordWrap" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="cbxTags" >
+          <property name="editable" >
+           <bool>true</bool>
+          </property>
+          <property name="autoCompletion" >
+           <bool>true</bool>
+          </property>
+          <property name="duplicatesEnabled" >
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" >
+          <item>
+           <spacer name="spacer2" >
+            <property name="orientation" >
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType" >
+             <enum>QSizePolicy::Expanding</enum>
+            </property>
+            <property name="sizeHint" stdset="0" >
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnUpdateTags" >
+            <property name="text" >
+             <string>Update Tags</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="verticalSpacer" >
+          <property name="orientation" >
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0" >
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabStyle" >
+       <property name="geometry" >
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>249</width>
+         <height>411</height>
+        </rect>
+       </property>
+       <attribute name="label" >
+        <string>Style</string>
+       </attribute>
+       <layout class="QVBoxLayout" >
+        <property name="spacing" >
+         <number>3</number>
         </property>
-        <property name="margin">
-            <number>5</number>
+        <property name="margin" >
+         <number>6</number>
         </property>
-        <property name="spacing">
-            <number>3</number>
+        <item>
+         <widget class="QLabel" name="lblStylePreview" >
+          <property name="text" >
+           <string>[Style]</string>
+          </property>
+          <property name="alignment" >
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+          <property name="wordWrap" >
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frmButtons" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="frameShape" >
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth" >
+      <number>0</number>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2" >
+      <property name="spacing" >
+       <number>6</number>
+      </property>
+      <property name="margin" >
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="btnRestore" >
+        <property name="enabled" >
+         <bool>false</bool>
         </property>
-        <widget class="QFrame">
-            <property name="name">
-                <cstring>frmExtra</cstring>
-            </property>
-            <property name="sizePolicy">
-                <sizepolicy>
-                    <hsizetype>5</hsizetype>
-                    <vsizetype>0</vsizetype>
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                </sizepolicy>
-            </property>
-            <property name="frameShape">
-                <enum>Box</enum>
-            </property>
-            <property name="frameShadow">
-                <enum>Sunken</enum>
-            </property>
-            <property name="lineWidth">
-                <number>1</number>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>6</number>
-                </property>
-                <property name="spacing">
-                    <number>3</number>
-                </property>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>lblSearch</cstring>
-                    </property>
-                    <property name="minimumSize">
-                        <size>
-                            <width>100</width>
-                            <height>0</height>
-                        </size>
-                    </property>
-                    <property name="text">
-                        <string>Search:</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Incremental search within history items. Find next with F3 key.</string>
-                    </property>
-                    <property name="whatsThis" stdset="0">
-                        <string>If you insert keywords as LaTeX comments in your formulas ('&lt;tt&gt;%keyword&lt;/tt&gt;&lt;i&gt;[newline]&lt;/i&gt;') then you can search for those formulas here.</string>
-                    </property>
-                </widget>
-                <widget class="QToolButton">
-                    <property name="name">
-                        <cstring>btnSearchClear</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Clr&gt;</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Clear Search bar</string>
-                    </property>
-                </widget>
-                <widget class="KLineEdit">
-                    <property name="name">
-                        <cstring>lneSearch</cstring>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Incremental search within history items. Find next with F3 key.</string>
-                    </property>
-                    <property name="whatsThis" stdset="0">
-                        <string>If you insert keywords as LaTeX comments in your formulas ('&lt;tt&gt;%keyword&lt;/tt&gt;&lt;i&gt;[newline]&lt;/i&gt;') then you can search for those formulas here.</string>
-                    </property>
-                </widget>
-                <widget class="QToolButton">
-                    <property name="name">
-                        <cstring>btnFindNext</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Find Next</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Find Next [F3]</string>
-                    </property>
-                    <property name="whatsThis" stdset="0">
-                        <string>Find Next occurrence of search string</string>
-                    </property>
-                </widget>
-            </hbox>
-        </widget>
-        <widget class="QSplitter">
-            <property name="name">
-                <cstring>splList</cstring>
-            </property>
-            <property name="orientation">
-                <enum>Horizontal</enum>
-            </property>
-            <widget class="QFrame">
-                <property name="name">
-                    <cstring>frmList</cstring>
-                </property>
-                <property name="sizePolicy">
-                    <sizepolicy>
-                        <hsizetype>7</hsizetype>
-                        <vsizetype>5</vsizetype>
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                    </sizepolicy>
-                </property>
-                <property name="frameShape">
-                    <enum>NoFrame</enum>
-                </property>
-                <property name="frameShadow">
-                    <enum>Plain</enum>
-                </property>
-                <property name="lineWidth">
-                    <number>0</number>
-                </property>
-            </widget>
-            <widget class="QFrame">
-                <property name="name">
-                    <cstring>frmPreview</cstring>
-                </property>
-                <property name="sizePolicy">
-                    <sizepolicy>
-                        <hsizetype>5</hsizetype>
-                        <vsizetype>5</vsizetype>
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                    </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                    <size>
-                        <width>280</width>
-                        <height>0</height>
-                    </size>
-                </property>
-                <property name="frameShape">
-                    <enum>Box</enum>
-                </property>
-                <property name="frameShadow">
-                    <enum>Sunken</enum>
-                </property>
-                <property name="lineWidth">
-                    <number>1</number>
-                </property>
-                <vbox>
-                    <property name="name">
-                        <cstring>unnamed</cstring>
-                    </property>
-                    <property name="margin">
-                        <number>1</number>
-                    </property>
-                    <property name="spacing">
-                        <number>0</number>
-                    </property>
-                    <widget class="QToolBox">
-                        <property name="name">
-                            <cstring>tbxPreview</cstring>
-                        </property>
-                        <property name="font">
-                            <font>
-                                <pointsize>8</pointsize>
-                            </font>
-                        </property>
-                        <property name="currentIndex">
-                            <number>0</number>
-                        </property>
-                        <widget class="QWidget">
-                            <property name="name">
-                                <cstring>tabPreview</cstring>
-                            </property>
-                            <property name="backgroundMode">
-                                <enum>PaletteBackground</enum>
-                            </property>
-                            <attribute name="label">
-                                <string>Preview and Tags</string>
-                            </attribute>
-                            <vbox>
-                                <property name="name">
-                                    <cstring>unnamed</cstring>
-                                </property>
-                                <property name="margin">
-                                    <number>3</number>
-                                </property>
-                                <property name="spacing">
-                                    <number>3</number>
-                                </property>
-                                <widget class="QLabel">
-                                    <property name="name">
-                                        <cstring>lblPreview</cstring>
-                                    </property>
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>0</width>
-                                            <height>80</height>
-                                        </size>
-                                    </property>
-                                    <property name="text">
-                                        <string>[ Preview ]</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignCenter</set>
-                                    </property>
-                                </widget>
-                                <widget class="QTextEdit">
-                                    <property name="name">
-                                        <cstring>txtPreviewLatex</cstring>
-                                    </property>
-                                    <property name="sizePolicy">
-                                        <sizepolicy>
-                                            <hsizetype>7</hsizetype>
-                                            <vsizetype>5</vsizetype>
-                                            <horstretch>0</horstretch>
-                                            <verstretch>0</verstretch>
-                                        </sizepolicy>
-                                    </property>
-                                    <property name="readOnly">
-                                        <bool>true</bool>
-                                    </property>
-                                    <property name="undoRedoEnabled">
-                                        <bool>false</bool>
-                                    </property>
-                                    <property name="tabChangesFocus">
-                                        <bool>true</bool>
-                                    </property>
-                                    <property name="autoFormatting">
-                                        <set>AutoNone</set>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel">
-                                    <property name="name">
-                                        <cstring>lblCategory</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>Category:</string>
-                                    </property>
-                                </widget>
-                                <widget class="QComboBox">
-                                    <property name="name">
-                                        <cstring>cbxCategory</cstring>
-                                    </property>
-                                    <property name="editable">
-                                        <bool>true</bool>
-                                    </property>
-                                    <property name="sizeLimit">
-                                        <number>12</number>
-                                    </property>
-                                    <property name="autoCompletion">
-                                        <bool>true</bool>
-                                    </property>
-                                    <property name="duplicatesEnabled">
-                                        <bool>false</bool>
-                                    </property>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout2_2</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer2_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>40</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>btnUpdateCategory</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Update Category</string>
-                                            </property>
-                                        </widget>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLabel">
-                                    <property name="name">
-                                        <cstring>lblTags</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>Name / Tags:</string>
-                                    </property>
-                                </widget>
-                                <widget class="QComboBox">
-                                    <property name="name">
-                                        <cstring>cbxTags</cstring>
-                                    </property>
-                                    <property name="editable">
-                                        <bool>true</bool>
-                                    </property>
-                                    <property name="sizeLimit">
-                                        <number>12</number>
-                                    </property>
-                                    <property name="autoCompletion">
-                                        <bool>true</bool>
-                                    </property>
-                                    <property name="duplicatesEnabled">
-                                        <bool>false</bool>
-                                    </property>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout2</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>40</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>btnUpdateTags</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Update Tags</string>
-                                            </property>
-                                        </widget>
-                                    </hbox>
-                                </widget>
-                                <spacer>
-                                    <property name="name">
-                                        <cstring>spcPreviewTags</cstring>
-                                    </property>
-                                    <property name="orientation">
-                                        <enum>Vertical</enum>
-                                    </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>20</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                            </vbox>
-                        </widget>
-                        <widget class="QWidget">
-                            <property name="name">
-                                <cstring>tabStyle</cstring>
-                            </property>
-                            <property name="backgroundMode">
-                                <enum>PaletteBackground</enum>
-                            </property>
-                            <attribute name="label">
-                                <string>Style</string>
-                            </attribute>
-                            <vbox>
-                                <property name="name">
-                                    <cstring>unnamed</cstring>
-                                </property>
-                                <property name="margin">
-                                    <number>6</number>
-                                </property>
-                                <property name="spacing">
-                                    <number>3</number>
-                                </property>
-                                <widget class="QLabel">
-                                    <property name="name">
-                                        <cstring>lblStylePreview</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>[Style]</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>WordBreak|AlignTop|AlignLeft</set>
-                                    </property>
-                                </widget>
-                            </vbox>
-                        </widget>
-                    </widget>
-                </vbox>
-            </widget>
-        </widget>
-        <widget class="QLayoutWidget">
-            <property name="name">
-                <cstring>layout2_3</cstring>
-            </property>
-            <hbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>btnRestore</cstring>
-                    </property>
-                    <property name="enabled">
-                        <bool>false</bool>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>1</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>1</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="text">
-                        <string>Restore Form&amp;ula</string>
-                    </property>
-                    <property name="accel">
-                        <string>Alt+U</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Restore current selected formula to KLatexFormula editor, with style</string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>btnDelete</cstring>
-                    </property>
-                    <property name="enabled">
-                        <bool>false</bool>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>1</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>1</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="text">
-                        <string>Delete item(s)</string>
-                    </property>
-                    <property name="accel">
-                        <string></string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Delete de selected history items</string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>btnImportExport</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Import/Export</string>
-                    </property>
-                    <property name="accel">
-                        <string></string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>btnConfig</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>1</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="text">
-                        <string>Co&amp;nfig</string>
-                    </property>
-                    <property name="accel">
-                        <string>Alt+N</string>
-                    </property>
-                </widget>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>btnClose</cstring>
-                    </property>
-                    <property name="sizePolicy">
-                        <sizepolicy>
-                            <hsizetype>1</hsizetype>
-                            <vsizetype>0</vsizetype>
-                            <horstretch>1</horstretch>
-                            <verstretch>0</verstretch>
-                        </sizepolicy>
-                    </property>
-                    <property name="text">
-                        <string>Cl&amp;ose</string>
-                    </property>
-                    <property name="accel">
-                        <string>Alt+O</string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Close this window</string>
-                    </property>
-                </widget>
-            </hbox>
-        </widget>
-    </vbox>
-</widget>
-<layoutdefaults spacing="6" margin="11"/>
-<includehints>
-    <includehint>klineedit.h</includehint>
-</includehints>
-</UI>
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Preferred" hsizetype="Minimum" >
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip" >
+         <string>Restore current selected formula to KLatexFormula editor, with style</string>
+        </property>
+        <property name="text" >
+         <string>Restore Form&amp;ula</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="klfres.qrc" >
+          <normaloff>:/pics/restore.png</normaloff>:/pics/restore.png</iconset>
+        </property>
+        <property name="shortcut" >
+         <string>Alt+U</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnDelete" >
+        <property name="enabled" >
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Preferred" hsizetype="Minimum" >
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip" >
+         <string>Delete de selected history items</string>
+        </property>
+        <property name="text" >
+         <string>Delete item(s)</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="klfres.qrc" >
+          <normaloff>:/pics/delete.png</normaloff>:/pics/delete.png</iconset>
+        </property>
+        <property name="shortcut" >
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnImportExport" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Preferred" hsizetype="Minimum" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text" >
+         <string>Import/Export</string>
+        </property>
+        <property name="shortcut" >
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnConfig" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Preferred" hsizetype="Minimum" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="icon" >
+         <iconset resource="klfres.qrc" >
+          <normaloff>:/pics/settings.png</normaloff>:/pics/settings.png</iconset>
+        </property>
+        <property name="shortcut" >
+         <string>Alt+N</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnClose" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Preferred" hsizetype="Minimum" >
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip" >
+         <string>Close this window</string>
+        </property>
+        <property name="text" >
+         <string>Cl&amp;ose</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="klfres.qrc" >
+          <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+        </property>
+        <property name="shortcut" >
+         <string>Alt+O</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+     <zorder>btnClose</zorder>
+     <zorder></zorder>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11" />
+ <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
+ <includes>
+  <include location="local" >klineedit.h</include>
+ </includes>
+ <resources>
+  <include location="klfres.qrc" />
+ </resources>
+ <connections/>
+</ui>

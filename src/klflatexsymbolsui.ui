@@ -1,144 +1,220 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>KLFLatexSymbolsUI</class>
-<widget class="QDialog">
-    <property name="name">
-        <cstring>KLFLatexSymbolsUI</cstring>
-    </property>
-    <property name="geometry">
-        <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>564</width>
-            <height>499</height>
-        </rect>
-    </property>
-    <property name="caption">
-        <string>KLatexFormula - LaTeX symbols</string>
-    </property>
-    <vbox>
-        <property name="name">
-            <cstring>unnamed</cstring>
+<ui version="4.0" >
+ <class>KLFLatexSymbolsUI</class>
+ <widget class="QDialog" name="KLFLatexSymbolsUI" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>564</width>
+    <height>499</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>KLatexFormula - LaTeX symbols</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <property name="spacing" >
+    <number>3</number>
+   </property>
+   <property name="margin" >
+    <number>5</number>
+   </property>
+   <item>
+    <widget class="Q3Frame" name="frmMain" >
+     <property name="frameShape" >
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="lineWidth" >
+      <number>1</number>
+     </property>
+     <layout class="QVBoxLayout" >
+      <property name="spacing" >
+       <number>3</number>
+      </property>
+      <property name="margin" >
+       <number>5</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="frmStackContainer" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Expanding" hsizetype="Preferred" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="margin">
-            <number>5</number>
+        <property name="frameShape" >
+         <enum>QFrame::NoFrame</enum>
         </property>
-        <property name="spacing">
-            <number>3</number>
+        <property name="frameShadow" >
+         <enum>QFrame::Plain</enum>
         </property>
-        <widget class="QFrame">
-            <property name="name">
-                <cstring>frmMain</cstring>
-            </property>
-            <property name="frameShape">
-                <enum>Box</enum>
-            </property>
-            <property name="frameShadow">
-                <enum>Sunken</enum>
-            </property>
-            <property name="lineWidth">
-                <number>1</number>
-            </property>
-            <vbox>
-                <property name="name">
-                    <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>5</number>
-                </property>
-                <property name="spacing">
-                    <number>3</number>
-                </property>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>frmStackContainer</cstring>
-                    </property>
-                    <property name="frameShape">
-                        <enum>NoFrame</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Plain</enum>
-                    </property>
-                    <property name="lineWidth">
-                        <number>0</number>
-                    </property>
-                </widget>
-                <widget class="QComboBox">
-                    <property name="name">
-                        <cstring>cbxCategory</cstring>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Choose symbol category</string>
-                    </property>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout2</cstring>
-                    </property>
-                    <grid>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <property name="margin">
-                            <number>0</number>
-                        </property>
-                        <property name="spacing">
-                            <number>2</number>
-                        </property>
-                        <widget class="QPushButton" row="0" column="1">
-                            <property name="name">
-                                <cstring>btnInsert</cstring>
-                            </property>
-                            <property name="text">
-                                <string>I&amp;nsert</string>
-                            </property>
-                            <property name="accel">
-                                <string>Alt+N</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Insert the selected symbol in KLatexFormula editor</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="0" column="0">
-                            <property name="name">
-                                <cstring>lneDisplay</cstring>
-                            </property>
-                            <property name="readOnly">
-                                <bool>true</bool>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>This is the selected symbol's LaTeX code</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit" row="1" column="0" rowspan="1" colspan="2">
-                            <property name="name">
-                                <cstring>lneDisplayXtrapreamble</cstring>
-                            </property>
-                            <property name="readOnly">
-                                <bool>true</bool>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>This is the packages you need to include to insert this symbol</string>
-                            </property>
-                        </widget>
-                    </grid>
-                </widget>
-            </vbox>
-        </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>btnClose</cstring>
-            </property>
-            <property name="text">
-                <string>Cl&amp;ose</string>
-            </property>
-            <property name="accel">
-                <string>Alt+O</string>
-            </property>
-            <property name="toolTip" stdset="0">
-                <string>Close this dialog</string>
-            </property>
-        </widget>
-    </vbox>
-</widget>
-<layoutdefaults spacing="2" margin="0"/>
-</UI>
+        <property name="lineWidth" >
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cbxCategory" >
+        <property name="toolTip" >
+         <string>Choose symbol category</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" >
+        <property name="margin" >
+         <number>0</number>
+        </property>
+        <property name="spacing" >
+         <number>2</number>
+        </property>
+        <item row="0" column="1" >
+         <widget class="QPushButton" name="btnInsert" >
+          <property name="toolTip" >
+           <string>Insert the selected symbol in KLatexFormula editor</string>
+          </property>
+          <property name="icon" >
+           <iconset resource="klfres.qrc" >
+            <normaloff>:/pics/insertsymb.png</normaloff>:/pics/insertsymb.png</iconset>
+          </property>
+          <property name="shortcut" >
+           <string>Alt+N</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" >
+         <widget class="QLineEdit" name="lneDisplay" >
+          <property name="palette" >
+           <palette>
+            <active>
+             <colorrole role="Base" >
+              <brush brushstyle="SolidPattern" >
+               <color alpha="255" >
+                <red>225</red>
+                <green>225</green>
+                <blue>240</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="Base" >
+              <brush brushstyle="SolidPattern" >
+               <color alpha="255" >
+                <red>225</red>
+                <green>225</green>
+                <blue>240</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="Base" >
+              <brush brushstyle="SolidPattern" >
+               <color alpha="255" >
+                <red>225</red>
+                <green>225</green>
+                <blue>240</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
+          <property name="toolTip" >
+           <string>This is the selected symbol's LaTeX code</string>
+          </property>
+          <property name="readOnly" >
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2" >
+         <widget class="QLineEdit" name="lneDisplayXtrapreamble" >
+          <property name="palette" >
+           <palette>
+            <active>
+             <colorrole role="Base" >
+              <brush brushstyle="SolidPattern" >
+               <color alpha="255" >
+                <red>225</red>
+                <green>225</green>
+                <blue>240</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </active>
+            <inactive>
+             <colorrole role="Base" >
+              <brush brushstyle="SolidPattern" >
+               <color alpha="255" >
+                <red>225</red>
+                <green>225</green>
+                <blue>240</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </inactive>
+            <disabled>
+             <colorrole role="Base" >
+              <brush brushstyle="SolidPattern" >
+               <color alpha="255" >
+                <red>225</red>
+                <green>225</green>
+                <blue>240</blue>
+               </color>
+              </brush>
+             </colorrole>
+            </disabled>
+           </palette>
+          </property>
+          <property name="toolTip" >
+           <string>This is the packages you need to include to insert this symbol</string>
+          </property>
+          <property name="readOnly" >
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnClose" >
+     <property name="toolTip" >
+      <string>Close this dialog</string>
+     </property>
+     <property name="text" >
+      <string>Cl&amp;ose</string>
+     </property>
+     <property name="icon" >
+      <iconset resource="klfres.qrc" >
+       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+     </property>
+     <property name="shortcut" >
+      <string>Alt+O</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="2" margin="0" />
+ <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
+ <customwidgets>
+  <customwidget>
+   <class>Q3Frame</class>
+   <extends>QFrame</extends>
+   <header>Qt3Support/Q3Frame</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="klfres.qrc" />
+ </resources>
+ <connections/>
+</ui>

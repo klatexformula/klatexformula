@@ -1,75 +1,89 @@
-<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
-<class>KLFStyleManagerUI</class>
-<widget class="QDialog">
-    <property name="name">
-        <cstring>KLFStyleManagerUI</cstring>
-    </property>
-    <property name="geometry">
-        <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>210</width>
-            <height>276</height>
-        </rect>
-    </property>
-    <property name="caption">
-        <string>KLatexFormula - Style Manager</string>
-    </property>
-    <vbox>
-        <property name="name">
-            <cstring>unnamed</cstring>
-        </property>
-        <property name="margin">
-            <number>6</number>
-        </property>
-        <property name="spacing">
-            <number>3</number>
-        </property>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>lbl</cstring>
-            </property>
-            <property name="text">
-                <string>Styles</string>
-            </property>
-            <property name="alignment">
-                <set>AlignCenter</set>
-            </property>
-        </widget>
-        <widget class="QListBox">
-            <property name="name">
-                <cstring>lstStyles</cstring>
-            </property>
-            <property name="acceptDrops">
-                <bool>true</bool>
-            </property>
-        </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>btnActions</cstring>
-            </property>
-            <property name="text">
-                <string>&amp;Actions</string>
-            </property>
-            <property name="accel">
-                <string>Alt+A</string>
-            </property>
-            <property name="toolTip" stdset="0">
-                <string>Choose an action</string>
-            </property>
-        </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>btnClose</cstring>
-            </property>
-            <property name="text">
-                <string>Close</string>
-            </property>
-            <property name="toolTip" stdset="0">
-                <string>Close window</string>
-            </property>
-        </widget>
-    </vbox>
-</widget>
-<layoutdefaults spacing="6" margin="11"/>
-</UI>
+<ui version="4.0" >
+ <class>KLFStyleManagerUI</class>
+ <widget class="QDialog" name="KLFStyleManagerUI" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>327</width>
+    <height>378</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>KLatexFormula - Style Manager</string>
+  </property>
+  <property name="windowIcon" >
+   <iconset>
+    <normaloff>:/pix/pics/managestyles.png</normaloff>:/pix/pics/managestyles.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" >
+   <item>
+    <widget class="QLabel" name="lbl" >
+     <property name="text" >
+      <string>Manage Styles</string>
+     </property>
+     <property name="alignment" >
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QListWidget" name="lstStyles" />
+   </item>
+   <item>
+    <widget class="Q3ListBox" name="lstStyles2" >
+     <property name="acceptDrops" >
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnActions" >
+     <property name="toolTip" >
+      <string>Choose an action</string>
+     </property>
+     <property name="text" >
+      <string>&amp;Actions</string>
+     </property>
+     <property name="icon" >
+      <iconset resource="klfres.qrc" >
+       <normaloff>:/pics/actions.png</normaloff>:/pics/actions.png</iconset>
+     </property>
+     <property name="shortcut" >
+      <string>Alt+A</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnClose" >
+     <property name="toolTip" >
+      <string>Close window</string>
+     </property>
+     <property name="text" >
+      <string>Close</string>
+     </property>
+     <property name="icon" >
+      <iconset resource="klfres.qrc" >
+       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11" />
+ <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
+ <customwidgets>
+  <customwidget>
+   <class>Q3ListBox</class>
+   <extends>Q3Frame</extends>
+   <header>q3listbox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="klfres.qrc" />
+ </resources>
+ <connections/>
+</ui>

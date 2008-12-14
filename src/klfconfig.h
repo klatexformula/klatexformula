@@ -40,6 +40,8 @@ public:
   // are already stored in the current fields.
   KLFConfig();
 
+  QString homeconfigdir;
+
   struct {
 
     unsigned int configFlags;
@@ -56,8 +58,9 @@ public:
     QFont latexEditFont;
     QSize previewTooltipMaxSize;
     QSize labelOutputFixedSize;
+    QString lastSaveDir;
 
-  } Appearance;
+  } UI;
 
   struct {
 
@@ -86,6 +89,8 @@ public:
   void loadDefaults();
   // cfg defaults to kapp->config()
   int readFromConfig(KConfig *cfg = 0);
+
+  int ensureHomeConfigDir();
 
   int writeToConfig(KConfig *cfg = 0);
 

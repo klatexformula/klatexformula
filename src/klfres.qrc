@@ -1,0 +1,32 @@
+<RCC>
+  <qresource>
+    <file>pics/symbols.png</file>
+    <file>pics/actions.png</file>
+    <file>pics/badsym.png</file>
+    <file>pics/restoreall.png</file>
+    <file>pics/clearright.png</file>
+    <file>pics/loadstyle.png</file>
+    <file>pics/restore.png</file>
+    <file>pics/nopreview.png</file>
+    <file>pics/settings.png</file>
+    <file>pics/closehide.png</file>
+    <file>pics/delete.png</file>
+    <file>pics/findnext.png</file>
+    <file>pics/help.png</file>
+    <file>pics/resetdefaults.png</file>
+    <file>pics/ok.png</file>
+    <file>pics/insertsymb.png</file>
+    <file>pics/managestyles.png</file>
+    <file>pics/savestyle.png</file>
+    <file>pics/clear.png</file>
+    <file>pics/evaluate.png</file>
+    <file>pics/library.png</file>
+    <file>pics/switchshrinked.png</file>
+    <file>pics/switchexpanded.png</file>
+  </qresource>
+  <qresource prefix="/pics" >
+    <file>hi32-app-klatexformula.png</file>
+    <file>hi64-app-klatexformula.png</file>
+    <file>hi16-app-klatexformula.png</file>
+  </qresource>
+</RCC>

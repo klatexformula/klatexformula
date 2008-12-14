@@ -20,7 +20,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-// $Id: main.cpp,v 1.27 2008/12/03 21:49:21 philippe Exp $
+// $Id: main.cpp,v 1.28 2008/12/07 17:30:07 philippe Exp $
 
 #include <qfile.h>
 #include <qclipboard.h>
@@ -42,7 +42,7 @@ extern KAboutData *klfaboutdata;
 
 
 // not static so we can get this value from other modules in the project
-const char version[] = "2.1.1";
+const char version[] = "3.0.0alpha0";
 int version_maj = -1;
 int version_min = -1;
 int version_release = -1;

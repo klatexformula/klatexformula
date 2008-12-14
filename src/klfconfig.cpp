@@ -21,12 +21,7 @@
  ***************************************************************************/
 
 
-#include <qapplication.h>
-
-#include <kapplication.h>
-#include <kstandarddirs.h>
-#include <kconfig.h>
-#include <kglobal.h>
+#include <QApplication>
 
 #include "klfconfig.h"
 
@@ -42,6 +37,8 @@ KLFConfig::KLFConfig()
 
 void KLFConfig::loadDefaults()
 {
+  homeConfigDir = QDir::homePath() + "/.klatexformula";
+  
   SyntaxHighlighter.configFlags = 0x05;
   SyntaxHighlighter.colorKeyword = QColor(0, 0, 128);
   SyntaxHighlighter.colorComment = QColor(128, 0, 0);
@@ -49,9 +46,10 @@ void KLFConfig::loadDefaults()
   SyntaxHighlighter.colorParenMismatch = QColor(255, 0, 255);
   SyntaxHighlighter.colorLonelyParen = QColor(255, 0, 255);
 
-  Appearance.latexEditFont = QApplication::font();
-  Appearance.previewTooltipMaxSize = QSize(500, 350);
-  Appearance.labelOutputFixedSize = QSize(280, 80);
+  UI.latexEditFont = QApplication::font();
+  UI.previewTooltipMaxSize = QSize(500, 350);
+  UI.labelOutputFixedSize = QSize(280, 80);
+  UI.lastSaveDir = QDir::homePath();
 
   BackendSettings.tempDir = KGlobal::instance()->dirs()->findResourceDir("tmp", "/");
   BackendSettings.execLatex = KStandardDirs::findExe("latex");
@@ -74,7 +72,7 @@ int KLFConfig::readFromConfig(KConfig *cfg)
   if ( ! cfg )
     cfg = kapp->config();
 
-  cfg->setGroup("SyntaxHighlighting"); // -ing. NOT an error.
+  cfg->setGroup("SyntaxHighlighting"); // -ing.klfconfig.homeConfigDir + "/styles"; NOT an error.
 
   SyntaxHighlighter.configFlags = cfg->readUnsignedNumEntry("configflags", SyntaxHighlighter.configFlags);
   SyntaxHighlighter.colorKeyword = cfg->readColorEntry("keyword", & SyntaxHighlighter.colorKeyword);
@@ -84,17 +82,18 @@ int KLFConfig::readFromConfig(KConfig *cfg)
   SyntaxHighlighter.colorLonelyParen = cfg->readColorEntry("lonelyparen", & SyntaxHighlighter.colorLonelyParen);
 
 
-  cfg->setGroup("Appearance");
+  cfg->setGroup("UI");
 
-  Appearance.latexEditFont = cfg->readFontEntry("latexeditfont", & Appearance.latexEditFont);
-  Appearance.previewTooltipMaxSize = cfg->readSizeEntry("previewtooltipmaxsize", & Appearance.previewTooltipMaxSize);
+  UI.latexEditFont = cfg->readFontEntry("latexeditfont", & UI.latexEditFont);
+  UI.previewTooltipMaxSize = cfg->readSizeEntry("previewtooltipmaxsize", & UI.previewTooltipMaxSize);
   QSize n(1, 1);
-  Appearance.labelOutputFixedSize = cfg->readSizeEntry("lbloutputfixedsize", & n );
-  if (Appearance.labelOutputFixedSize == n) {
-    Appearance.labelOutputFixedSize =
+  UI.labelOutputFixedSize = cfg->readSizeEntry("lbloutputfixedsize", & n );
+  if (UI.labelOutputFixedSize == n) {
+    UI.labelOutputFixedSize =
       QSize( cfg->readNumEntry("lbloutputfixedwidth", 280) ,
 	     cfg->readNumEntry("lbloutputfixedheight", 100) );
   }
+  UI.lastSaveDir = ......;
 
 
   cfg->setGroup("BackendSettings");
@@ -120,6 +119,21 @@ int KLFConfig::readFromConfig(KConfig *cfg)
   return 0;
 }
 
+int KLFConfig::ensureHomeConfigDir()
+{
+  if ( QDir(homeConfigDir).exists() )
+    return 0;
+
+  bool r = QDir("/").mkpath(homeConfigDir);
+  if ( ! r ) {
+    QMessageBox::critical(0, tr("Error"), tr("Can't make local config directory `%1' !").arg(homeConfigDir));
+    return -1;
+  }
+  return 0;
+}
+
+
+
 int KLFConfig::writeToConfig(KConfig *cfg)
 {
   if ( ! cfg )
@@ -135,11 +149,12 @@ int KLFConfig::writeToConfig(KConfig *cfg)
   cfg->writeEntry("lonelyparen", SyntaxHighlighter.colorLonelyParen);
 
 
-  cfg->setGroup("Appearance");
+  cfg->setGroup("UI");
 
-  cfg->writeEntry("latexeditfont", Appearance.latexEditFont);
-  cfg->writeEntry("previewtooltipmaxsize", Appearance.previewTooltipMaxSize);
-  cfg->writeEntry("lbloutputfixedsize", Appearance.labelOutputFixedSize);
+  cfg->writeEntry("latexeditfont", UI.latexEditFont);
+  cfg->writeEntry("previewtooltipmaxsize", UI.previewTooltipMaxSize);
+  cfg->writeEntry("lbloutputfixedsize", UI.labelOutputFixedSize);
+  cfg->writeEntry("lastSaveDir", UI.lastSaveDir);
 
 
   cfg->setGroup("BackendSettings");

@@ -23,18 +23,13 @@
 #ifndef KLFMAINWIN_H
 #define KLFMAINWIN_H
 
-#include <qvaluelist.h>
-#include <qsyntaxhighlighter.h>
-#include <qfont.h>
-#include <qcheckbox.h>
-
-#include <kmainwindow.h>
-#include <kpopupmenu.h>
-#include <ktextedit.h>
-#include <kcolorcombo.h>
-#include <kcombobox.h>
-#include <knuminput.h>
-#include <ktextedit.h>
+#include <QValueList>
+#include <QSyntaxHighlighter>
+#include <QFont>
+#include <QCheckBOx>
+#include <QMenu>
+#include <QTextEdit>
+#include <QWidget>
 
 #include <klfbackend.h>
 
@@ -65,16 +60,16 @@ public:
 
 
 
-class KLFLatexSyntaxHighlighter : public QObject, public QSyntaxHighlighter
+class KLFLatexSyntaxHighlighter : public QSyntaxHighlighter
 {
   Q_OBJECT
 public:
-  KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent = 0);
+  KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent);
   virtual ~KLFLatexSyntaxHighlighter();
 
   void setCaretPos(int para, int pos);
 
-  virtual int highlightParagraph(const QString& text, int endstatelastpara);
+  virtual int highlightBlock(const QString& text);
 
   enum { Enabled = 0x01,
 	 HighlightParensOnly = 0x02,
@@ -84,6 +79,8 @@ public slots:
   void refreshAll();
 
 private:
+
+  QTextEdit _textedit;
 
   int _paracount;
 
@@ -121,13 +118,9 @@ private:
  * KLatexFormula Main Window
  * @author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
 */
-class KLFMainWin : public KMainWindow
+class KLFMainWin : public KLFMainWinUI
 {
   Q_OBJECT
-
-  friend class KLFSettings;
-  friend int main(int argc, char **argv); // this should be more elegant...
-
 public:
   KLFMainWin();
   virtual ~KLFMainWin();
@@ -138,7 +131,7 @@ public:
 
   KLFBackend::klfSettings backendSettings() const { return _settings; }
 
-  QFont txeLatexFont() const { return mMainWidget->txeLatex->font(); }
+  QFont txtLatexFont() const { return txtLatex->font(); }
 
 signals:
 
@@ -163,14 +156,10 @@ public slots:
   void slotSave();
 
   void slotLoadStyle(int stylenum);
+  void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
   void slotSaveStyle();
   void slotStyleManager();
   void slotSettings();
-
-  void refreshSyntaxHighlighting();
-  void refreshCaretPosition(int para, int pos);
-  void refreshPreambleSyntaxHighlighting();
-  void refreshPreambleCaretPosition(int para, int pos);
 
   void refreshStylePopupMenus();
   void loadStyles();
@@ -182,15 +171,14 @@ public slots:
   void saveSettings();
   void loadSettings();
 
-  void setTxeLatexFont(QFont f) { mMainWidget->txeLatex->setFont(f); }
+  void setTxtLatexFont(const QFont& f) { txtLatex->setFont(f); }
 
 protected:
-  KLFMainWinUI *mMainWidget;
   KLFLibraryBrowser *mLibraryBrowser;
   KLFLatexSymbols *mLatexSymbols;
   KLFStyleManager *mStyleManager;
 
-  KPopupMenu *mStyleMenu;
+  QMenu *mStyleMenu;
 
   KLFLatexSyntaxHighlighter *mHighlighter;
   KLFLatexSyntaxHighlighter *mPreambleHighlighter;
@@ -206,13 +194,6 @@ protected:
   QSize _shrinkedsize;
   QSize _expandedsize;
 
-  // these are needed because of session management. It seems like KDE logout closes all dialogs
-  // before saveProperties().
-  bool _libraryBrowserIsShown;
-  bool _latexSymbolsIsShown;
-
-  void saveProperties(KConfig *cfg);
-  void readProperties(KConfig *cfg);
 };
 
 #endif
