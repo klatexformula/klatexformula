@@ -7,29 +7,32 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>842</width>
-    <height>431</height>
+    <width>848</width>
+    <height>429</height>
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>KLatexFormula</string>
+   <string comment="window title" >KLatexFormula</string>
   </property>
   <property name="windowIcon" >
    <iconset>
     <normaloff>:/pix/hi16-app-klatexformula.png</normaloff>:/pix/hi16-app-klatexformula.png</iconset>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout" >
+  <layout class="QHBoxLayout" name="horizontalLayout_2" >
    <property name="spacing" >
-    <number>1</number>
-   </property>
-   <property name="sizeConstraint" >
-    <enum>QLayout::SetMinAndMaxSize</enum>
+    <number>2</number>
    </property>
    <property name="margin" >
     <number>2</number>
    </property>
    <item>
     <widget class="QFrame" name="frmMain" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="frameShape" >
       <enum>QFrame::Panel</enum>
      </property>
@@ -37,22 +40,28 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2" >
+      <property name="spacing" >
+       <number>4</number>
+      </property>
+      <property name="margin" >
+       <number>4</number>
+      </property>
       <item>
        <widget class="QLabel" name="lblPromptMain" >
-        <property name="minimumSize" >
-         <size>
-          <width>0</width>
-          <height>26</height>
-         </size>
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
         <property name="text" >
-         <string>Enter &lt;i>LaTeX&lt;/i> expression:</string>
+         <string>Enter LaTeX expression:</string>
         </property>
         <property name="alignment" >
          <set>Qt::AlignCenter</set>
         </property>
         <property name="wordWrap" >
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="buddy" >
          <cstring>txtLatex</cstring>
@@ -73,6 +82,9 @@
         <property name="undoRedoEnabled" >
          <bool>true</bool>
         </property>
+        <property name="lineWrapMode" >
+         <enum>QTextEdit::WidgetWidth</enum>
+        </property>
         <property name="readOnly" >
          <bool>false</bool>
         </property>
@@ -82,7 +94,7 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" >
+       <layout class="QHBoxLayout" name="lyt" >
         <property name="spacing" >
          <number>2</number>
         </property>
@@ -361,7 +373,13 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="frame" >
+    <widget class="QFrame" name="frmDetails" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="frameShape" >
       <enum>QFrame::Panel</enum>
      </property>
@@ -370,7 +388,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout" >
       <property name="spacing" >
-       <number>11</number>
+       <number>4</number>
       </property>
       <property name="margin" >
        <number>3</number>
@@ -550,7 +568,7 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" >
+       <layout class="QHBoxLayout" name="horizontalLayout" >
         <property name="spacing" >
          <number>2</number>
         </property>
@@ -654,7 +672,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="2" margin="3" />
- <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
  <customwidgets>
   <customwidget>
    <class>KLFColorChooser</class>
@@ -678,15 +695,6 @@
   <tabstop>btnSave</tabstop>
   <tabstop>btnQuit</tabstop>
  </tabstops>
- <includes>
-  <include location="local" >ktextedit.h</include>
-  <include location="local" >kcolorcombo.h</include>
-  <include location="local" >kcolorcombo.h</include>
-  <include location="local" >ktextedit.h</include>
-  <include location="local" >kcombobox.h</include>
-  <include location="local" >klineedit.h</include>
-  <include location="local" >knuminput.h</include>
- </includes>
  <resources>
   <include location="klfres.qrc" />
  </resources>
@@ -720,6 +728,38 @@
     <hint type="destinationlabel" >
      <x>624</x>
      <y>120</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkMathMode</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cbxMathMode</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>523</x>
+     <y>189</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>559</x>
+     <y>200</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnQuit</sender>
+   <signal>clicked()</signal>
+   <receiver>KLFMainWinUI</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>83</x>
+     <y>407</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>-1</x>
+     <y>393</y>
     </hint>
    </hints>
   </connection>

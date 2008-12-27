@@ -1,8 +1,8 @@
 /***************************************************************************
- *   file 
+ *   file klfcolorchooser.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2007 by Philippe Faist
- *   philippe.faist@bluewin.ch
+ *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,46 +20,42 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef KLFSETTINGS_H
-#define KLFSETTINGS_H
+#ifndef KLFCOLORCHOOSER_H
+#define KLFCOLORCHOOSER_H
 
-#include <QDialog>
+#include <QPushButton>
+#include <QColor>
 
-#include <klfbackend.h>
 
-#include <ui_klfsettingsui.h>
-
-class KLFLatexSyntaxHighlighter;
-class KLFMainWin;
-
-class KLFSettings : public QDialog, private Ui::KLFSettingsUI
+class KLFColorChooser : public QPushButton
 {
   Q_OBJECT
 
+  Q_PROPERTY(QSize showSize READ showSize WRITE setShowSize)
+  Q_PROPERTY(QColor color READ color WRITE setColor USER true)
+
 public:
-  KLFSettings(KLFBackend::klfSettings *ptr, KLFMainWin* parent = 0);
-  ~KLFSettings();
+  KLFColorChooser(QWidget *parent);
+  ~KLFColorChooser();
+
+  QSize showSize() const { return _size; }
+  QColor color() const;
 
 public slots:
+  void setColor(const QColor& color);
+  void setShowSize(const QSize& size) { _size = size; }
 
-  void reset();
-  void show();
-
-  void setDefaultPaths();
-
-protected:
-
-  KLFBackend::klfSettings *_ptr;
-
-protected slots:
-
-  virtual void accept();
-  void slotChangeAppearFont();
+  void requestColor();
 
 private:
+  QColor _color;
+  QPixmap _pix;
 
-  KLFMainWin *_mainwin;
+  QSize _size;
+
+  void _setpix();
+
 };
 
-#endif
 
+#endif

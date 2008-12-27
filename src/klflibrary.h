@@ -23,31 +23,32 @@
 #ifndef KLFLIBRARY_H
 #define KLFLIBRARY_H
 
-#include <qstring.h>
-#include <qlistview.h>
-#include <qtabwidget.h>
-#include <qlayout.h>
+#include <QString>
+#include <QListWidget>
+#include <QTabWidget>
+#include <QGridLayout>
+#include <QMenu>
+#include <QPalette>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
-#include <kpopupmenu.h>
 
 #include <klfdata.h>
-#include <klflibrarybrowserui.h>
+#include <ui_klflibrarybrowserui.h>
 
 
-class KLFLibraryListCategoryViewItem : public QListViewItem
+class KLFLibraryListCategoryViewItem : public QTreeWidgetItem
 {
 public:
-  enum { RTTI = 1500 };
+  enum { Type = 1500 };
   /** A Root Category when showing in single-depth tree or in multi-depth tree. In either case, we need the
    * full category string here. */
-  KLFLibraryListCategoryViewItem(QListView *parent, QString category);
+  KLFLibraryListCategoryViewItem(QTreeWidget *parent, QString category);
   /** Subcategory when showing in multi-depth tree view: subcategory must contain full category path (ie.
    * "Physics/Relativity/Minkowski World") */
   KLFLibraryListCategoryViewItem(QString subcategory, KLFLibraryListCategoryViewItem *parent);
 
   virtual ~KLFLibraryListCategoryViewItem();
-
-  virtual int rtti() const { return RTTI; }
 
   QString category() const { return _category; }
 
@@ -58,15 +59,16 @@ private:
   void setup_category_item();
 };
 
-class KLFLibraryListViewItem : public QListViewItem
+class KLFLibraryListViewItem : public QTreeWidgetItem
 {
 public:
-  enum { RTTI = 1501 };
-  KLFLibraryListViewItem(QListViewItem *parent, KLFData::KLFLibraryItem item, int ind);
-  KLFLibraryListViewItem(QListView *parent, KLFData::KLFLibraryItem item, int ind);
+  enum { Type = 1501 };
+
+  KLFLibraryListViewItem(QTreeWidgetItem *parent, KLFData::KLFLibraryItem item, int ind);
+  KLFLibraryListViewItem(QTreeWidget *parent, KLFData::KLFLibraryItem item, int ind);
   virtual ~KLFLibraryListViewItem();
 
-  virtual int rtti() const { return RTTI; }
+  virtual QSize sizeHint(int column) const;
 
   KLFData::KLFLibraryItem libraryItem() const { return _item; }
   int index() const { return _ind; }
@@ -74,16 +76,13 @@ public:
   void updateLibraryItem(const KLFData::KLFLibraryItem& item);
   void updateIndex(int newindex) { _ind = newindex; }
 
-  /** A reimplementation of QListViewItem's function to compare with another item (we compare index() 's) */
-  virtual int compare(QListViewItem *i, int col, bool ascending) const;
-
 protected:
   KLFData::KLFLibraryItem _item;
   int _ind;
 };
 
 
-QValueList<QListViewItem*> get_selected_items(QListView *lview, int givenRTTI = -1);
+QList<QTreeWidgetItem*> get_selected_items(QTreeWidget *w, int givenType);
 
 
 // ------------------------------------------------------------------------
@@ -100,7 +99,7 @@ public:
     ShowCategoriesDeepTree = 0x02,
     DefaultFlags = ShowCategories|ShowCategoriesDeepTree
   };
-  KLFLibraryListManager(QListView *lview, KLFLibraryBrowser *parent, KLFData::KLFLibraryResource myresource,
+  KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrowser *parent, KLFData::KLFLibraryResource myresource,
 			KLFData::KLFLibrary *wholelibrary, KLFData::KLFLibraryResourceList *resptr,
 			uint flags = DefaultFlags);
   virtual ~KLFLibraryListManager();
@@ -130,14 +129,14 @@ public:
 signals:
   void restoreFromLibrary(KLFData::KLFLibraryItem h, bool restorestyle);
   void selectionChanged();
-//  void libraryChanged();
+  //  void libraryChanged();
 
 public slots:
 
-  void slotContextMenu(QListViewItem *item, const QPoint &p, int column);
-  void slotRestoreAll(QListViewItem *i = 0);
-  void slotRestoreLatex(QListViewItem *i = 0);
-  void slotDelete(QListViewItem *i = 0);
+  //  void slotContextMenu(QListViewItem *item, const QPoint &p, int column);
+  void slotRestoreAll(QTreeWidgetItem *i = 0);
+  void slotRestoreLatex(QTreeWidgetItem *i = 0);
+  void slotDelete(QTreeWidgetItem *i = 0);
   void slotCopyToResource(int indexInList);
   void slotMoveToResource(int indexInList);
   // search
@@ -149,7 +148,7 @@ public slots:
 
 protected:
   KLFLibraryBrowser *_parent;
-  QListView *_listView;
+  QTreeWidget *_listView;
 
   KLFData::KLFLibrary *_fulllibraryptr;
   KLFData::KLFLibraryResourceList *_reslistptr;
@@ -160,7 +159,7 @@ protected:
 
   uint _flags;
 
-  QValueList<KLFLibraryListCategoryViewItem*> mCategoryItems;
+  QList<KLFLibraryListCategoryViewItem*> mCategoryItems;
 
   bool is_duplicate_of_previous(uint indexInList);
 
@@ -181,7 +180,7 @@ protected:
 
 class KLFMainWin;
 
-class KLFLibraryBrowser : public KLFLibraryBrowserUI
+class KLFLibraryBrowser : public QWidget, private Ui::KLFLibraryBrowserUI
 {
   Q_OBJECT
 public:
@@ -216,9 +215,9 @@ public slots:
   void slotUpdateEditedTags();
   void slotRefreshPreview();
   // button actions
-  void slotRestoreAll(QListViewItem *i = 0);
-  void slotRestoreLatex(QListViewItem *i = 0);
-  void slotDelete(QListViewItem *i = 0);
+  void slotRestoreAll(QTreeWidgetItem *i = 0);
+  void slotRestoreLatex(QTreeWidgetItem *i = 0);
+  void slotDelete(QTreeWidgetItem *i = 0);
   // search
   void slotSearchClear();
   void slotSearchFind(const QString& text);
@@ -245,29 +244,40 @@ protected:
   KLFData::KLFLibrary *_libptr;
   KLFData::KLFLibraryResourceList *_libresptr;
 
-  QValueList<KLFLibraryListManager*> mLists;
+  QList<KLFLibraryListManager*> mLists;
   KLFLibraryListManager *_currentList;
 
-  QBoxLayout *mFrameResourcesLayout;
+  QGridLayout *mFrameResourcesLayout;
   QTabWidget *tabResources;
   QPushButton *btnManageResources;
-  KPopupMenu *mManageResourcesMenu;
+  QMenu *mManageResourcesMenu;
 
   bool _allowrestore;
   bool _allowdelete;
 
-  KPopupMenu *mRestoreMenu;
-  KPopupMenu *mConfigMenu;
+  QMenu *mRestoreMenu;
+  QMenu *mConfigMenu;
 
-  KPopupMenu *mImportExportMenu;
+  QMenu *mImportExportMenu;
 
-  // search bar default bg color
-  QColor _dflt_lineedit_bgcol;
+  // search bar default palette
+  QPalette _dflt_lineedit_pal;
 
   void reject();
   void closeEvent(QCloseEvent *e);
 
   void setupResourcesListsAndTabs();
+
+  QAction *CONFIGMENU_DISPLAYTAGGEDONLY;
+  QAction *CONFIGMENU_NODUPLICATES;
+  QAction *IMPORTEXPORTMENU_IMPORT;
+  QAction *IMPORTEXPORTMENU_IMPORTTOCURRENTRESOURCE;
+  QAction *IMPORTEXPORTMENU_EXPORT_LIBRARY;
+  QAction *IMPORTEXPORTMENU_EXPORT_RESOURCE;
+  QAction *IMPORTEXPORTMENU_EXPORT_SELECTION;
+  QAction *MANAGERESOURCESMENU_ADD;
+  QAction *MANAGERESOURCESMENU_DELETE;
+  QAction *MANAGERESOURCESMENU_RENAME;
 };
 
 

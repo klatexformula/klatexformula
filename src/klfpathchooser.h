@@ -1,8 +1,8 @@
 /***************************************************************************
- *   file 
+ *   file klfpathchooser.h
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2007 by Philippe Faist
- *   philippe.faist@bluewin.ch
+ *   Copyright (C) 2008 by Philippe Faist
+ *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,46 +20,50 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef KLFSETTINGS_H
-#define KLFSETTINGS_H
 
-#include <QDialog>
+#ifndef KLFPATHCHOOSER_H
+#define KLFPATHCHOOSER_H
 
-#include <klfbackend.h>
+#include <QFrame>
+#include <QPushButton>
+#include <QLineEdit>
 
-#include <ui_klfsettingsui.h>
 
-class KLFLatexSyntaxHighlighter;
-class KLFMainWin;
-
-class KLFSettings : public QDialog, private Ui::KLFSettingsUI
+class KLFPathChooser : public QFrame
 {
   Q_OBJECT
 
+  Q_PROPERTY(int mode READ mode WRITE setMode)
+  Q_PROPERTY(QString caption READ caption WRITE setCaption)
+  Q_PROPERTY(QString filter READ filter WRITE setFilter)
+  Q_PROPERTY(QString path READ path WRITE setPath USER true)
+
 public:
-  KLFSettings(KLFBackend::klfSettings *ptr, KLFMainWin* parent = 0);
-  ~KLFSettings();
+  KLFPathChooser(QWidget *parent);
+  ~KLFPathChooser();
+
+  int mode() const { return _mode; }
+  QString caption() const { return _caption; }
+  QString filter() const { return _filter; }
+  QString path() const;
 
 public slots:
+  void setMode(int mode);
+  void setCaption(const QString& caption);
+  void setFilter(const QString& filter);
+  void setPath(const QString& path);
 
-  void reset();
-  void show();
-
-  void setDefaultPaths();
-
-protected:
-
-  KLFBackend::klfSettings *_ptr;
-
-protected slots:
-
-  virtual void accept();
-  void slotChangeAppearFont();
+  void requestBrowse();
 
 private:
+  int _mode;
+  QString _caption;
+  QString _filter;
 
-  KLFMainWin *_mainwin;
+  QLineEdit *txtPath;
+  QPushButton *btnBrowse;
+
+  QString _selectedfilter;
 };
 
 #endif
-

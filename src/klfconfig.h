@@ -23,12 +23,11 @@
 #ifndef KLFCONFIG_H
 #define KLFCONFIG_H
 
-#include <qstring.h>
-#include <qfont.h>
-#include <qsize.h>
-#include <qcolor.h>
-
-#include <kconfig.h>
+#include <QString>
+#include <QFont>
+#include <QSize>
+#include <QColor>
+#include <QSettings>
 
 
 class KLFConfig {
@@ -40,7 +39,8 @@ public:
   // are already stored in the current fields.
   KLFConfig();
 
-  QString homeconfigdir;
+  QString homeConfigDir;
+  QString homeConfigSettingsFile;
 
   struct {
 
@@ -88,11 +88,11 @@ public:
   // call loadDefaults() before anything, at the beginning.
   void loadDefaults();
   // cfg defaults to kapp->config()
-  int readFromConfig(KConfig *cfg = 0);
+  int readFromConfig();
 
   int ensureHomeConfigDir();
 
-  int writeToConfig(KConfig *cfg = 0);
+  int writeToConfig();
 
 };
 

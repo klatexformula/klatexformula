@@ -20,14 +20,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <qdialog.h>
-#include <qcheckbox.h>
-#include <qspinbox.h>
+#include <QDialog>
+#include <QCheckBox>
+#include <QSpinBox>
+#include <QLineEdit>
+#include <QFontDialog>
 
-#include <kurlrequester.h>
-#include <kcolorcombo.h>
-#include <kstandarddirs.h>
-#include <kfontrequester.h>
+#include <klfcolorchooser.h>
+#include <klfpathchooser.h>
 
 #include <klfbackend.h>
 
@@ -36,29 +36,17 @@
 
 
 KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFMainWin* parent)
-    : KLFSettingsUI(parent, 0, false, 0)
+  : QDialog(parent), KLFSettingsUI()
 {
+  setupUi(this);
+
   _ptr = p;
   _mainwin = parent;
 
-  kurlTempDir->setMode(KFile::Directory|KFile::ExistingOnly|KFile::LocalOnly);
-  kurlLatex->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
-  kurlDvips->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
-  kurlGs->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
-  kurlEpstopdf->setMode(KFile::File|KFile::ExistingOnly|KFile::LocalOnly);
-
   reset();
-  
-  btnCancel->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
-  btnOk->setIconSet(QIconSet(locate("appdata", "pics/ok.png")));
-
-  btnPathsReset->setIconSet(QIconSet(locate("appdata", "pics/resetdefaults.png")));
 
   connect(btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
 
-  QSize m = minimumSize();
-  m.setWidth(m.width()>500 ? m.width() : 500);
-  setMinimumSize(m);
 }
 
 KLFSettings::~KLFSettings()
@@ -68,73 +56,71 @@ KLFSettings::~KLFSettings()
 void KLFSettings::show()
 {
   reset();
-  KLFSettingsUI::show();
+  QDialog::show();
 }
 
 
 void KLFSettings::reset()
 {
 
-  kurlTempDir->setURL(_ptr->tempdir);
-  kurlLatex->setURL(_ptr->latexexec);
-  kurlDvips->setURL(_ptr->dvipsexec);
-  kurlGs->setURL(_ptr->gsexec);
-  kurlEpstopdf->setURL(_ptr->epstopdfexec);
+  pathTempDir->setPath(_ptr->tempdir);
+  pathLatex->setPath(_ptr->latexexec);
+  pathDvips->setPath(_ptr->dvipsexec);
+  pathGs->setPath(_ptr->gsexec);
+  pathEpstopdf->setPath(_ptr->epstopdfexec);
   chkEpstopdf->setChecked( ! _ptr->epstopdfexec.isEmpty() );
   spnLBorderOffset->setValue( _ptr->lborderoffset );
   spnTBorderOffset->setValue( _ptr->tborderoffset );
   spnRBorderOffset->setValue( _ptr->rborderoffset );
   spnBBorderOffset->setValue( _ptr->bborderoffset );
 
-  chkSHEnabled->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::Enabled);
-  kccSHKeyword->setColor(klfconfig.SyntaxHighlighter.colorKeyword);
-  kccSHComment->setColor(klfconfig.SyntaxHighlighter.colorComment);
+  gbxSH->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::Enabled);
+  colSHKeyword->setColor(klfconfig.SyntaxHighlighter.colorKeyword);
+  colSHComment->setColor(klfconfig.SyntaxHighlighter.colorComment);
   chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::HighlightParensOnly);
-  kccSHParenMatch->setColor(klfconfig.SyntaxHighlighter.colorParenMatch);
-  kccSHParenMismatch->setColor(klfconfig.SyntaxHighlighter.colorParenMismatch);
+  colSHParenMatch->setColor(klfconfig.SyntaxHighlighter.colorParenMatch);
+  colSHParenMismatch->setColor(klfconfig.SyntaxHighlighter.colorParenMismatch);
   chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::HighlightLonelyParen);
-  kccSHLonelyParen->setColor(klfconfig.SyntaxHighlighter.colorLonelyParen);
+  colSHLonelyParen->setColor(klfconfig.SyntaxHighlighter.colorLonelyParen);
 
-  kfontAppearFont->setFont(klfconfig.Appearance.latexEditFont);
+  btnAppearFont->setFont(klfconfig.UI.latexEditFont);
+  connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeAppearFont()));
 
-  chkPreviewMaxSize->setChecked(klfconfig.Appearance.previewTooltipMaxSize.width() != 0
-				|| klfconfig.Appearance.previewTooltipMaxSize.height() != 0);
-  spnPreviewMaxWidth->setValue(klfconfig.Appearance.previewTooltipMaxSize.width());
-  spnPreviewMaxHeight->setValue(klfconfig.Appearance.previewTooltipMaxSize.height());
+  spnPreviewMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
+  spnPreviewMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
 
 }
 
 
 void KLFSettings::setDefaultPaths()
 {
-  kurlTempDir->setURL(KGlobal::instance()->dirs()->findResourceDir("tmp", "/"));
-  kurlLatex->setURL(KStandardDirs::findExe("latex"));
-  kurlDvips->setURL(KStandardDirs::findExe("dvips"));
-  kurlGs->setURL(KStandardDirs::findExe("gs"));
-  QString epstopdf = KStandardDirs::findExe("epstopdf");
-  kurlEpstopdf->setURL(epstopdf);
-  chkEpstopdf->setChecked( ! epstopdf.isEmpty() );
+  // ...
 }
 
+
+void KLFSettings::slotChangeAppearFont()
+{
+  btnAppearFont->setFont(QFontDialog::getFont(0, btnAppearFont->font(), this));
+}
 
 void KLFSettings::accept()
 {
   // apply settings here
 
-  _ptr->tempdir = kurlTempDir->url();
-  _ptr->latexexec = kurlLatex->url();
-  _ptr->dvipsexec = kurlDvips->url();
-  _ptr->gsexec = kurlGs->url();
+  _ptr->tempdir = pathTempDir->path();
+  _ptr->latexexec = pathLatex->path();
+  _ptr->dvipsexec = pathDvips->path();
+  _ptr->gsexec = pathGs->path();
   _ptr->epstopdfexec = QString();
   if (chkEpstopdf->isChecked()) {
-    _ptr->epstopdfexec = kurlEpstopdf->url();
+    _ptr->epstopdfexec = pathEpstopdf->path();
   }
   _ptr->lborderoffset = spnLBorderOffset->value();
   _ptr->tborderoffset = spnTBorderOffset->value();
   _ptr->rborderoffset = spnRBorderOffset->value();
   _ptr->bborderoffset = spnBBorderOffset->value();
 
-  if (chkSHEnabled->isChecked())
+  if (gbxSH->isChecked())
     klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::Enabled;
   else
     klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::Enabled;
@@ -147,19 +133,16 @@ void KLFSettings::accept()
   else
     klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightLonelyParen;
 
-  klfconfig.SyntaxHighlighter.colorKeyword = kccSHKeyword->color();
-  klfconfig.SyntaxHighlighter.colorComment = kccSHComment->color();
-  klfconfig.SyntaxHighlighter.colorParenMatch = kccSHParenMatch->color();
-  klfconfig.SyntaxHighlighter.colorParenMismatch = kccSHParenMismatch->color();
-  klfconfig.SyntaxHighlighter.colorLonelyParen = kccSHLonelyParen->color();
+  klfconfig.SyntaxHighlighter.colorKeyword = colSHKeyword->color();
+  klfconfig.SyntaxHighlighter.colorComment = colSHComment->color();
+  klfconfig.SyntaxHighlighter.colorParenMatch = colSHParenMatch->color();
+  klfconfig.SyntaxHighlighter.colorParenMismatch = colSHParenMismatch->color();
+  klfconfig.SyntaxHighlighter.colorLonelyParen = colSHLonelyParen->color();
 
-  klfconfig.Appearance.latexEditFont = kfontAppearFont->font();
-  _mainwin->setTxeLatexFont(kfontAppearFont->font());
+  klfconfig.UI.latexEditFont = btnAppearFont->font();
+  _mainwin->setTxtLatexFont(btnAppearFont->font());
 
-  if (chkPreviewMaxSize->isChecked())
-    klfconfig.Appearance.previewTooltipMaxSize = QSize(spnPreviewMaxWidth->value(), spnPreviewMaxHeight->value());
-  else
-    klfconfig.Appearance.previewTooltipMaxSize = QSize(0,0);
+  klfconfig.UI.previewTooltipMaxSize = QSize(spnPreviewMaxWidth->value(), spnPreviewMaxHeight->value());
 
   _mainwin->saveSettings();
   klfconfig.writeToConfig();
@@ -168,7 +151,4 @@ void KLFSettings::accept()
   QDialog::accept();
 }
 
-
-
-#include "klfsettings.moc"
 

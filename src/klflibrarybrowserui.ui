@@ -1,4 +1,5 @@
 <ui version="4.0" >
+ <author>Ph. Faist</author>
  <class>KLFLibraryBrowserUI</class>
  <widget class="QWidget" name="KLFLibraryBrowserUI" >
   <property name="windowModality" >
@@ -9,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>831</width>
-    <height>595</height>
+    <height>589</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -72,7 +73,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit" >
+       <widget class="QLineEdit" name="txtSearch" >
         <property name="sizePolicy" >
          <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
           <horstretch>0</horstretch>
@@ -143,8 +144,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>249</width>
-         <height>411</height>
+         <width>274</width>
+         <height>407</height>
         </rect>
        </property>
        <attribute name="label" >
@@ -309,8 +310,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>249</width>
-         <height>411</height>
+         <width>274</width>
+         <height>409</height>
         </rect>
        </property>
        <attribute name="label" >
@@ -474,17 +475,12 @@
        </widget>
       </item>
      </layout>
-     <zorder>btnClose</zorder>
-     <zorder></zorder>
     </widget>
    </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
- <includes>
-  <include location="local" >klineedit.h</include>
- </includes>
+ <includes/>
  <resources>
   <include location="klfres.qrc" />
  </resources>

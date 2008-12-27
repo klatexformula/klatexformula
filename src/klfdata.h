@@ -23,11 +23,11 @@
 #ifndef KLFDATA_H
 #define KLFDATA_H
 
-#include <qdatetime.h>
-#include <qvaluelist.h>
-#include <qdatastream.h>
-#include <qpixmap.h>
-#include <qmap.h>
+#include <QDateTime>
+#include <QList>
+#include <QDataStream>
+#include <QPixmap>
+#include <QMap>
 
 /** Data structures for KLatexFormula
  * \author Philippe Faist &lt;philippe.faist at bluewin.ch&gt;
@@ -44,7 +44,6 @@ public:
     int dpi;
   };
 
-  //   typedef uint KLFLibraryResourceId;
   // THESE VALUES MUST NOT CHANGE FROM ONE VERSION TO ANOTHER OF KLATEXFORMULA :
   enum {  LibResource_History = 0, LibResource_Archive = 1,
     // user resources must be in the following range:
@@ -53,13 +52,13 @@ public:
   };
 
   struct KLFLibraryResource {
-    Q_UINT32 id;
+    quint32 id;
     QString name;
   };
 
   struct KLFLibraryItem {
-    Q_UINT32 id;
-    static Q_UINT32 MaxId;
+    quint32 id;
+    static quint32 MaxId;
 
     QDateTime datetime;
     QString latex; // this contains also information of category (first line, %: ...) and tags (first/second line, after category: % ...)
@@ -77,9 +76,9 @@ public:
 
   static QString prettyPrintStyle(const KLFStyle& sty);
 
-  typedef QValueList<KLFStyle> KLFStyleList;
-  typedef QValueList<KLFLibraryItem> KLFLibraryList;
-  typedef QValueList<KLFLibraryResource> KLFLibraryResourceList;
+  typedef QList<KLFStyle> KLFStyleList;
+  typedef QList<KLFLibraryItem> KLFLibraryList;
+  typedef QList<KLFLibraryResource> KLFLibraryResourceList;
   typedef QMap<KLFLibraryResource, KLFLibraryList> KLFLibrary;
 
 private:

@@ -1,24 +1,31 @@
 <ui version="4.0" >
+ <author>Ph. Faist</author>
  <class>KLFStyleManagerUI</class>
- <widget class="QDialog" name="KLFStyleManagerUI" >
+ <widget class="QWidget" name="KLFStyleManagerUI" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>327</width>
-    <height>378</height>
+    <width>301</width>
+    <height>285</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>KLatexFormula - Style Manager</string>
   </property>
   <property name="windowIcon" >
-   <iconset>
-    <normaloff>:/pix/pics/managestyles.png</normaloff>:/pix/pics/managestyles.png</iconset>
+   <iconset resource="klfres.qrc" >
+    <normaloff>:/pics/managestyles.png</normaloff>:/pics/managestyles.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <item>
     <widget class="QLabel" name="lbl" >
+     <property name="font" >
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text" >
       <string>Manage Styles</string>
      </property>
@@ -31,12 +38,39 @@
     </widget>
    </item>
    <item>
-    <widget class="QListWidget" name="lstStyles" />
-   </item>
-   <item>
-    <widget class="Q3ListBox" name="lstStyles2" >
+    <widget class="QListWidget" name="lstStyles" >
+     <property name="contextMenuPolicy" >
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="acceptDrops" >
       <bool>true</bool>
+     </property>
+     <property name="toolTip" >
+      <string>Drag and drop styles to move them. Right-click for actions menu.</string>
+     </property>
+     <property name="tabKeyNavigation" >
+      <bool>true</bool>
+     </property>
+     <property name="showDropIndicator" stdset="0" >
+      <bool>true</bool>
+     </property>
+     <property name="dragEnabled" >
+      <bool>true</bool>
+     </property>
+     <property name="dragDropMode" >
+      <enum>QAbstractItemView::NoDragDrop</enum>
+     </property>
+     <property name="selectionMode" >
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior" >
+      <enum>QAbstractItemView::SelectItems</enum>
+     </property>
+     <property name="currentRow" >
+      <number>-1</number>
+     </property>
+     <property name="sortingEnabled" >
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -74,14 +108,7 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
- <customwidgets>
-  <customwidget>
-   <class>Q3ListBox</class>
-   <extends>Q3Frame</extends>
-   <header>q3listbox.h</header>
-  </customwidget>
- </customwidgets>
+ <includes/>
  <resources>
   <include location="klfres.qrc" />
  </resources>

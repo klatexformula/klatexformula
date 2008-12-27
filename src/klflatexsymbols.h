@@ -23,34 +23,71 @@
 #ifndef KLFLATEXSYMBOLS_H
 #define KLFLATEXSYMBOLS_H
 
-#include <qvaluelist.h>
-#include <qpair.h>
-#include <qstring.h>
-#include <qstringlist.h>
-#include <qevent.h>
-#include <qiconview.h>
-#include <qwidgetstack.h>
+#include <QList>
+#include <QString>
+#include <QStringList>
+#include <QEvent>
+#include <QStackedWidget>
+#include <QScrollArea>
 
-#include <klflatexsymbolsui.h>
+#include <ui_klflatexsymbolsui.h>
 
 class KLFMainWin;
 
 
 class KLFLatexSymbolsCache; // see klflatexsymbols.cpp
 
-class KLFLatexSymbols : public KLFLatexSymbolsUI
+struct KLFLatexSymbol {
+  KLFLatexSymbol(const QString& symentry);
+  KLFLatexSymbol(const QString& s, const QStringList& p) : symbol(s), preamble(p) { }
+
+  QString symbol;
+  QStringList preamble;
+
+  //  QString symentry();
+};
+
+class KLFLatexSymbolsView : public QScrollArea
+{
+  Q_OBJECT
+public:
+  KLFLatexSymbolsView(const QString& category, QWidget *parent);
+
+  void setSymbolList(const QList<KLFLatexSymbol>& symbols);
+
+signals:
+  void symbolActivated(const KLFLatexSymbol& symb);
+
+public slots:
+  void buildDisplay();
+  void recalcLayout();
+
+protected slots:
+  void slotSymbolActivated();
+
+protected:
+  QString _category;
+  QList<KLFLatexSymbol> _symbols;
+
+private:
+  QFrame *mFrame;
+  QGridLayout *mLayout;
+  QList<QWidget*> mSymbols;
+};
+
+
+class KLFLatexSymbols : public QDialog, private Ui::KLFLatexSymbolsUI
 {
   Q_OBJECT
 public:
   KLFLatexSymbols(KLFMainWin* parent);
   ~KLFLatexSymbols();
 
-  static QString xtrapreamble(const QString& symentry);
-  static QString latexsym(const QString& symentry);
+  static KLFLatexSymbolsCache *cache() { return mCache; }
 
 signals:
 
-  void insertSymbol(QString symblatex, QString xtrapreamble);
+  void insertSymbol(const KLFLatexSymbol& symb);
   void refreshSymbolBrowserShownState(bool);
 
 public slots:
@@ -59,9 +96,6 @@ public slots:
 
 protected slots:
 
-  void slotNeedsInsert(QIconViewItem *item);
-  void slotDisplayItem(QIconViewItem *item);
-  void slotInsertCurrentDisplay();
   void slotShowCategory(int cat);
 
 protected:
@@ -70,17 +104,14 @@ protected:
 
   KLFMainWin *_mainwin;
 
-  QWidgetStack *stkViews;
+  QStackedWidget *stkViews;
 
   static KLFLatexSymbolsCache *mCache;
   static int mCacheRefCounter;
 
-  QValueList<QPair<QString,QStringList> > _symbols;
-
-  QValueList<QIconView *> mViews;
+  QList<KLFLatexSymbolsView *> mViews;
 
   void closeEvent(QCloseEvent *ev);
-
 };
 
 #endif

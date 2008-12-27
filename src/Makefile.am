@@ -29,16 +29,16 @@ bin_PROGRAMS = klatexformula klatexformula_cmdl
 endif
 
 # the application source, library search path, and link libraries
-klatexformula_SOURCES = klfconfig.cpp klfdata.cpp \
+klatexformula_SOURCES = klfcolorchooser.cpp klfconfig.cpp klfdata.cpp \
 	klflatexsymbols.cpp klflatexsymbolsui.ui klflibrary.cpp klflibrarybrowserui.ui \
-	klfmainwin.cpp klfmainwinui.ui klfprogerrui.ui klfsettings.cpp klfsettingsui.ui \
-	klfstylemanager.cpp klfstylemanagerui.ui main.cpp
+	klfmainwin.cpp klfmainwinui.ui klfpathchooser.cpp klfprogerrui.ui klfsettings.cpp \
+	klfsettingsui.ui klfstylemanager.cpp klfstylemanagerui.ui main.cpp
 klatexformula_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 klatexformula_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \
 	$(LIB_KDEUI) $(LIB_KIO)
 
-noinst_HEADERS = klfconfig.h klfdata.h klflatexsymbols.h \
-	klflibrary.h klfmainwin.h klfsettings.h klfstylemanager.h
+noinst_HEADERS = klfcolorchooser.h klfconfig.h klfdata.h klflatexsymbols.h \
+	klflibrary.h klfmainwin.h klfpathchooser.h klfsettings.h klfstylemanager.h
 klatexformula_cmdl_LDFLAGS = $(KDE_RPATH) $(all_libraries)
 klatexformula_cmdl_SOURCES = klfcmdl_main.cpp
 klatexformula_cmdl_LDADD = $(top_builddir)/src/klfbackend/libklfbackend.a \

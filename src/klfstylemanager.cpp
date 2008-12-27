@@ -22,75 +22,22 @@
 
 #include <string.h>
 
-#include <qapplication.h>
-#include <qmemarray.h>
-#include <qdatastream.h>
-#include <qvaluelist.h>
-#include <qpushbutton.h>
-#include <qtooltip.h>
-
-#include <klocale.h>
-#include <kmessagebox.h>
-#include <kinputdialog.h>
-#include <kstandarddirs.h>
+#include <QApplication>
+#include <QList>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QInputDialog>
+#include <QDrag>
+#include <QMimeData>
 
 #include "klfstylemanager.h"
 
 
-KLFStyleDrag::KLFStyleDrag(KLFData::KLFStyle sty, QWidget *parent)
-  : QDragObject(parent)
-{
-  _sty = sty;
-}
-
-const char *KLFStyleDrag::format(int index) const
-{
-  switch (index) {
-  case 0:
-    return "application/x-klatexformula-style";
-  default:
-    return 0;
-  }
-}
-
-QByteArray KLFStyleDrag::encodedData(const char *format) const
-{
-  QByteArray data;
-  if (!strcmp(format, "application/x-klatexformula-style")) {
-    QDataStream str(data, IO_WriteOnly);
-    str << _sty;
-  }
-  return data;
-}
-
-bool KLFStyleDrag::canDecode(const QMimeSource *source)
-{
-  return source->provides("application/x-klatexformula-style");
-}
-
-bool KLFStyleDrag::decode(const QMimeSource *src, KLFData::KLFStyle& sty)
-{
-  QByteArray data = src->encodedData("application/x-klatexformula-style");
-  QDataStream str(data, IO_ReadOnly);
-  str >> sty;
-  return true;
-}
-
-
-
-
-
-// ------------------------------------
-
-
 
 KLFStyleManager::KLFStyleManager(KLFData::KLFStyleList *stydata, QWidget *parent)
-  : KLFStyleManagerUI(parent, 0, false, 0)
+  : QWidget(parent, Qt::Dialog), KLFStyleManagerUI()
 {
-  lstStyles->installEventFilter(this);
-
-  btnActions->setIconSet(QIconSet(locate("appdata", "pics/actions.png")));
-  btnClose->setIconSet(QIconSet(locate("appdata", "pics/closehide.png")));
+  setupUi(this);
 
   _styptr = stydata;
 
@@ -98,22 +45,14 @@ KLFStyleManager::KLFStyleManager(KLFData::KLFStyleList *stydata, QWidget *parent
   _drag_init_pos = QPoint(-1,-1);
   /*  mDropIndicatorItem = 0; */
 
-  mActionsPopup = new KPopupMenu(this);
+  mActionsPopup = new QMenu(this);
 
-  mActionsPopup->clear();
+  actPopupDelete = mActionsPopup->addAction(tr("Delete Style"), this, SLOT(slotDelete()));
+  actPopupMoveUp = mActionsPopup->addAction(tr("Move up"), this, SLOT(slotMoveUp()));
+  actPopupMoveDown = mActionsPopup->addAction(tr("Move down"), this, SLOT(slotMoveDown()));
+  actPopupRename = mActionsPopup->addAction(tr("Rename style"), this, SLOT(slotRename()));
 
-  mActionsPopup->insertTitle(i18n("Style Management Actions"), 100000);
-  mActionsPopup->insertItem(i18n("Delete Style"), this, SLOT(slotDelete()), 0, PopupIdDelete);
-  mActionsPopup->insertItem(i18n("Move up"), this, SLOT(slotMoveUp()), 0, PopupIdMoveUp);
-  mActionsPopup->insertItem(i18n("Move down"), this, SLOT(slotMoveDown()), 0, PopupIdMoveDown);
-  mActionsPopup->insertItem(i18n("Rename style"), this, SLOT(slotRename()), 0, PopupIdRename);
-
-  btnActions->setPopup(mActionsPopup);
-
-  QString tmsg = i18n("Drag and drop styles to move them. Right-click for actions menu.");
-  QToolTip::add(lstStyles, tmsg);
-  QToolTip::add(lstStyles->viewport(), tmsg);
-
+  btnActions->setMenu(mActionsPopup);
 
   // populate style list
   stylesChanged();
@@ -123,11 +62,11 @@ KLFStyleManager::KLFStyleManager(KLFData::KLFStyleList *stydata, QWidget *parent
 
   connect(btnClose, SIGNAL(clicked()), this, SLOT(hide()));
 
-  connect(lstStyles, SIGNAL(highlighted(int)), this, SLOT(refreshActionsEnabledState()));
-  connect(lstStyles, SIGNAL(selected(int)), this, SLOT(refreshActionsEnabledState()));
-  connect(lstStyles, SIGNAL(currentChanged(QListBoxItem *)), this, SLOT(refreshActionsEnabledState()));
-  connect(lstStyles, SIGNAL(contextMenuRequested(QListBoxItem *, const QPoint&)),
-	  this, SLOT(showActionsContextMenu(QListBoxItem *, const QPoint&)));
+  connect(lstStyles, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)),
+	  this, SLOT(refreshActionsEnabledState()));
+  connect(lstStyles, SIGNAL(itemSelectionChanged()), this, SLOT(refreshActionsEnabledState()));
+  connect(lstStyles, SIGNAL(customContextMenuRequested(const QPoint&)),
+	  this, SLOT(showActionsContextMenu(const QPoint&)));
 }
 
 KLFStyleManager::~KLFStyleManager()
@@ -136,35 +75,38 @@ KLFStyleManager::~KLFStyleManager()
 
 void KLFStyleManager::refreshActionsEnabledState()
 {
-  if (lstStyles->selectedItem() != 0) {
-    lstStyles->setCurrentItem(lstStyles->index(lstStyles->selectedItem()));
+  QList<QListWidgetItem*> selection = lstStyles->selectedItems();
+  if (selection.size() > 0) {
+    lstStyles->setCurrentItem(selection[0]);
   }
-  if (lstStyles->currentItem() != -1) {
-    mActionsPopup->setItemEnabled(PopupIdDelete, true);
-    mActionsPopup->setItemEnabled(PopupIdRename, true);
-    mActionsPopup->setItemEnabled(PopupIdMoveUp, lstStyles->currentItem() > 0);
-    mActionsPopup->setItemEnabled(PopupIdMoveDown, lstStyles->currentItem() < ((int)lstStyles->count()-1));
+  QListWidgetItem *cur = lstStyles->currentItem();
+  if (cur != 0) {
+    actPopupDelete->setEnabled(true);
+    actPopupRename->setEnabled(true);
+    int row = lstStyles->row(cur);
+    actPopupMoveUp->setEnabled(row > 0);
+    actPopupMoveDown->setEnabled(row < lstStyles->count());
   } else {
-    mActionsPopup->setItemEnabled(PopupIdDelete, false);
-    mActionsPopup->setItemEnabled(PopupIdRename, false);
-    mActionsPopup->setItemEnabled(PopupIdMoveUp, false);
-    mActionsPopup->setItemEnabled(PopupIdMoveDown, false);
+    actPopupDelete->setEnabled(false);
+    actPopupRename->setEnabled(false);
+    actPopupMoveUp->setEnabled(false);
+    actPopupMoveDown->setEnabled(false);
   }
 }
 
-void KLFStyleManager::showActionsContextMenu(QListBoxItem */*item*/, const QPoint& pos)
+void KLFStyleManager::showActionsContextMenu(const QPoint& pos)
 {
-  mActionsPopup->popup(pos);
+  mActionsPopup->exec(pos);
 }
 
 void KLFStyleManager::slotDelete()
 {
-  int ind = lstStyles->currentItem();
-  if ( ind >= 0 &&
-       KMessageBox::questionYesNo(this, i18n("Are you sure you want to erase selected style?"),
-				  i18n("Erase style?")) == KMessageBox::Yes ) {
-    delete lstStyles->item(ind);
-    _styptr->erase(_styptr->at(ind));
+  QListWidgetItem *cur = lstStyles->currentItem();
+  if ( cur != 0 &&
+       QMessageBox::question(this, tr("Erase style?"), tr("Are you sure you want to erase selected style?"),
+			     QMessageBox::Yes|QMessageBox::No, QMessageBox::No) == QMessageBox::Yes ) {
+    _styptr->removeAt(lstStyles->row(cur));
+    delete cur;
   }
 
   emit refreshStyles();
@@ -173,20 +115,19 @@ void KLFStyleManager::slotDelete()
 
 void KLFStyleManager::slotRename()
 {
-  int ind = lstStyles->currentItem();
-  if (ind < 0)
+  QListWidgetItem *cur = lstStyles->currentItem();
+  if (cur == 0)
     return;
 
-  QString newname = KInputDialog::getText(i18n("Enter new style name:"), i18n("Rename style"), _styptr->operator[](ind).name, 0, this);
+  int ind = lstStyles->row(cur);
+
+  QString newname = QInputDialog::getText(this, tr("Rename style"), tr("Enter new style name:"), QLineEdit::Normal,
+					  _styptr->at(ind).name);
 
   if (!newname.isEmpty()) {
     _styptr->operator[](ind).name = newname;
-    delete lstStyles->item(ind);
-    lstStyles->insertItem(newname, ind);
+    cur->setText(newname);
   }
-
-  lstStyles->setSelected(ind, true);
-  lstStyles->setCurrentItem(ind);
 
   emit refreshStyles();
   refreshActionsEnabledState();
@@ -194,20 +135,21 @@ void KLFStyleManager::slotRename()
 
 void KLFStyleManager::slotMoveUp()
 {
-  int ind = lstStyles->currentItem();
+  QListWidgetItem *cur = lstStyles->currentItem();
+  if (cur == 0)
+    return;
+
+  int ind = lstStyles->row(cur);
   if (ind < 1)
     return;
 
-  KLFData::KLFStyle s = _styptr->operator[](ind);
-  _styptr->operator[](ind) = _styptr->operator[](ind-1);
+  KLFData::KLFStyle s = _styptr->at(ind);
+  _styptr->operator[](ind) = _styptr->at(ind-1);
   _styptr->operator[](ind-1) = s;
 
-  QListBoxItem *it;
-  lstStyles->takeItem(it = lstStyles->item(ind));
-  lstStyles->insertItem(it, ind-1);
-  lstStyles->setSelected(ind, false);
-  lstStyles->setSelected(ind-1, true);
-  lstStyles->setCurrentItem(ind-1);
+  lstStyles->item(ind-1)->setText(_styptr->at(ind-1).name);
+  lstStyles->item(ind)->setText(_styptr->at(ind).name);
+  lstStyles->setCurrentItem(lstStyles->item(ind-1), QItemSelectionModel::Select);
 
   emit refreshStyles();
   refreshActionsEnabledState();
@@ -215,126 +157,36 @@ void KLFStyleManager::slotMoveUp()
 
 void KLFStyleManager::slotMoveDown()
 {
-  int ind = lstStyles->currentItem();
-  if (ind < 0 || ind >= ((int)lstStyles->count()-1))
+  QListWidgetItem *cur = lstStyles->currentItem();
+  if (cur == 0)
     return;
 
-  KLFData::KLFStyle s = _styptr->operator[](ind);
-  _styptr->operator[](ind) = _styptr->operator[](ind+1);
+  int ind = lstStyles->row(cur);
+  if (ind >= lstStyles->count()-1)
+    return;
+
+  KLFData::KLFStyle s = _styptr->at(ind);
+  _styptr->operator[](ind) = _styptr->at(ind+1);
   _styptr->operator[](ind+1) = s;
 
-  QListBoxItem *it;
-  lstStyles->takeItem(it = lstStyles->item(ind));
-  lstStyles->insertItem(it, ind+1);
-  lstStyles->setSelected(ind, false);
-  lstStyles->setSelected(ind+1, true);
-  lstStyles->setCurrentItem(ind+1);
+  lstStyles->item(ind+1)->setText(_styptr->at(ind+1).name);
+  lstStyles->item(ind)->setText(_styptr->at(ind).name);
+  lstStyles->setCurrentItem(lstStyles->item(ind+1), QItemSelectionModel::Select);
 
   emit refreshStyles();
   refreshActionsEnabledState();
 }
 
 
-bool KLFStyleManager::eventFilter(QObject *obj, QEvent *event)
-{
-  if (obj == lstStyles) { // style list received an event
-    if (event->type() == QEvent::Enter) {
-      refreshActionsEnabledState();
-      // don't return, let our parent process stuff
-    }
-    else if (event->type() == QEvent::DragEnter) {
-      QDragEnterEvent *drevent = (QDragEnterEvent *) event;
-      if (KLFStyleDrag::canDecode(drevent)) {
-	drevent->accept(true);
-	return true;
-      }
-      /* mDropIndicatorItem = new QListBoxPixmap(lstStyles, QPixmap(locate("appdata", "pics/hbar.png")));
-	 mDropIndicatorItem->setSelectable(false); */
-    }
-    else if (event->type() == QEvent::DragMove) {
-      /*      if (mDropIndicatorItem == 0) { // create our indicator
-	      mDropIndicatorItem = new QListBoxPixmap(lstStyles, QPixmap(locate("appdata", "pics/hbar.png")));
-	      mDropIndicatorItem->setSelectable(false);
-	      }
-	      QDragMoveEvent *drmev = (QDragMoveEvent *) event;
-	      QListBoxItem *it = lstStyles->itemAt(drmev->pos());
-	      int i = lstStyles->index(it);
-	      if (mDropIndicatorItem && lstStyles->index(mDropIndicatorItem) != -1)
-	      lstStyles->takeItem(mDropIndicatorItem);
-	      if (mDropIndicatorItem)
-	      lstStyles->insertItem(mDropIndicatorItem, i);
-	      lstStyles->triggerUpdate(true);
-	      return true;
-      */
-    }
-    else if (event->type() == QEvent::Drop) {
-      QDropEvent *dropevent = (QDropEvent *) event;
-      KLFData::KLFStyle sty;
-      if (KLFStyleDrag::decode(dropevent, sty)) {
-	QListBoxItem *it = lstStyles->itemAt(dropevent->pos());
-	// 'it' should be 'mDropIndicatorItem'
-
-	int i = lstStyles->index(it);
-	// if i==-1, keep it at i==-1 so insert goes to end
-	if (i >= 0) {
-	  _styptr->insert(_styptr->at(i), sty);
-	  lstStyles->insertItem(sty.name, i);
-	} else {
-	  _styptr->append(sty);
-	  lstStyles->insertItem(sty.name, -1);
-	}
-	emit refreshStyles();
-      }
-      /*      if (mDropIndicatorItem) delete mDropIndicatorItem;
-	      mDropIndicatorItem = 0; */
-      return true;
-    }
-    else if (event->type() == QEvent::MouseButtonPress) {
-      QMouseEvent *me = (QMouseEvent *) event;
-      if (me->button() == LeftButton) {
-	_drag_init_pos = me->pos();
-	_drag_item = lstStyles->itemAt(_drag_init_pos);
-	if (lstStyles->itemAt(_drag_init_pos) == 0) {
-	  _drag_init_pos = QPoint(-1,-1);
-	  _drag_item = 0;
-	}
-	lstStyles->setCurrentItem(_drag_item);
-	return true;
-      }
-    }
-    else if (event->type() == QEvent::MouseMove && _drag_init_pos.x() != -1 && _drag_item != 0) {
-      QMouseEvent *me = (QMouseEvent *) event;
-      if ( (me->state() & LeftButton) == LeftButton &&
-	   (me->pos() - _drag_init_pos).manhattanLength() > QApplication::startDragDistance() &&
-	   lstStyles->currentItem() != -1) {
-	KLFStyleDrag *dr = new KLFStyleDrag(_styptr->operator[](lstStyles->currentItem()), this);
-	dr->drag();
-	if (dr->target() == lstStyles || dr->target() == this) {
-	  int ind = lstStyles->index(_drag_item);
-	  if (ind >= 0) {
-	    lstStyles->removeItem(ind);
-	    _styptr->erase(_styptr->at(ind));
-	    emit refreshStyles();
-	  }
-	}
-	me->accept();
-	return true;
-      }
-    }
-  }
-  return KLFStyleManagerUI::eventFilter(obj, event);
-}
-
 
 void KLFStyleManager::stylesChanged()
 {
   lstStyles->clear();
-  for (uint i = 0; i < _styptr->size(); ++i) {
-    lstStyles->insertItem(_styptr->operator[](i).name);
+  for (int i = 0; i < _styptr->size(); ++i) {
+    lstStyles->addItem(_styptr->at(i).name);
   }
 }
 
 
 
-#include "klfstylemanager.moc"
 

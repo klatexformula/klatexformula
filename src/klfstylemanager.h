@@ -23,40 +23,20 @@
 #ifndef KLFSTYLEMANAGER_H
 #define KLFSTYLEMANAGER_H
 
-#include <qdragobject.h>
-#include <qevent.h>
-#include <qlistbox.h>
-
-#include <kpopupmenu.h>
+#include <QWidget>
+#include <QMenu>
+#include <QListWidget>
 
 #include <klfdata.h>
-#include <klfstylemanagerui.h>
+#include <ui_klfstylemanagerui.h>
 
 
-class KLFStyleDrag : public QDragObject
+class KLFStyleManager : public QWidget, private Ui::KLFStyleManagerUI
 {
   Q_OBJECT
 public:
-  KLFStyleDrag(KLFData::KLFStyle sty, QWidget *parent = 0);
-
-  const char *format(int index) const;
-
-  QByteArray encodedData(const char *format) const;
-
-  static bool canDecode(const QMimeSource *source);
-  static bool decode(const QMimeSource *source, KLFData::KLFStyle& sty);
-private:
-  KLFData::KLFStyle _sty;
-};
-
-class KLFStyleManager : public KLFStyleManagerUI
-{
-  Q_OBJECT
-public:
-  KLFStyleManager(KLFData::KLFStyleList *ptr, QWidget *parent = 0);
+  KLFStyleManager(KLFData::KLFStyleList *ptr, QWidget *parent);
   ~KLFStyleManager();
-
-  bool eventFilter(QObject *obj, QEvent *event);
 
 signals:
 
@@ -72,19 +52,21 @@ public slots:
   void slotRename();
 
   void refreshActionsEnabledState();
-  void showActionsContextMenu(QListBoxItem *item, const QPoint& pos);
-
-protected:
-
-  enum { PopupIdDelete = 1001, PopupIdMoveUp, PopupIdMoveDown, PopupIdRename };
+  void showActionsContextMenu(const QPoint& pos);
 
 private:
   KLFData::KLFStyleList *_styptr;
 
-  KPopupMenu *mActionsPopup;
+  QMenu *mActionsPopup;
+
+  QAction *actPopupDelete;
+  QAction *actPopupMoveUp;
+  QAction *actPopupMoveDown;
+  QAction *actPopupRename;
+
 
   QPoint _drag_init_pos;
-  QListBoxItem *_drag_item;
+  QListWidgetItem *_drag_item;
   /*  QListBoxItem *mDropIndicatorItem; */
 };
 

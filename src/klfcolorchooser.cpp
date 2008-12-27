@@ -1,8 +1,8 @@
 /***************************************************************************
- *   file 
+ *   file klfcolorchooser.cpp
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2007 by Philippe Faist
- *   philippe.faist@bluewin.ch
+ *   Copyright (C) 2008 by Philippe Faist
+ *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,46 +20,55 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef KLFSETTINGS_H
-#define KLFSETTINGS_H
+#include <QColorDialog>
 
-#include <QDialog>
+#include "klfcolorchooser.h"
 
-#include <klfbackend.h>
-
-#include <ui_klfsettingsui.h>
-
-class KLFLatexSyntaxHighlighter;
-class KLFMainWin;
-
-class KLFSettings : public QDialog, private Ui::KLFSettingsUI
+KLFColorChooser::KLFColorChooser(QWidget *parent)
+  : QPushButton(parent), _color(0,0,0), _pix(), _size(50, 20)
 {
-  Q_OBJECT
+  _setpix();
 
-public:
-  KLFSettings(KLFBackend::klfSettings *ptr, KLFMainWin* parent = 0);
-  ~KLFSettings();
+  connect(this, SIGNAL(clicked()), this, SLOT(requestColor()));
+}
 
-public slots:
 
-  void reset();
-  void show();
+KLFColorChooser::~KLFColorChooser()
+{
+}
 
-  void setDefaultPaths();
 
-protected:
+QColor KLFColorChooser::color() const
+{
+  return _color;
+}
 
-  KLFBackend::klfSettings *_ptr;
+void KLFColorChooser::setColor(const QColor& col)
+{
+  if ( ! col.isValid() )
+    return;
 
-protected slots:
+  _color = col;
+  _setpix();
+}
 
-  virtual void accept();
-  void slotChangeAppearFont();
+void KLFColorChooser::requestColor()
+{
+  QColor col = QColorDialog::getColor(_color, this);
+  if ( ! col.isValid() )
+    return;
 
-private:
+  setColor(col);
+}
 
-  KLFMainWin *_mainwin;
-};
+void KLFColorChooser::_setpix()
+{
+  _pix = QPixmap(_size);
+  _pix.fill(_color);
 
-#endif
+  setIconSize(_pix.size());
+  setIcon(_pix);
+}
+
+
 

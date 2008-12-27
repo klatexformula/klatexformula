@@ -1,12 +1,16 @@
 <ui version="4.0" >
+ <author>Ph. Faist</author>
  <class>KLFSettingsUI</class>
  <widget class="QDialog" name="KLFSettingsUI" >
+  <property name="windowModality" >
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
     <width>525</width>
-    <height>629</height>
+    <height>617</height>
    </rect>
   </property>
   <property name="minimumSize" >
@@ -21,17 +25,17 @@
   <property name="sizeGripEnabled" >
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2" >
+  <layout class="QVBoxLayout" name="verticalLayout_4" >
    <item>
     <widget class="QTabWidget" name="tabs" >
      <property name="currentIndex" >
-      <number>0</number>
+      <number>1</number>
      </property>
-     <widget class="QWidget" name="tab" >
+     <widget class="QWidget" name="tabAppearance" >
       <attribute name="title" >
        <string>&amp;Appearance</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout" >
+      <layout class="QVBoxLayout" name="verticalLayout_2" >
        <item>
         <widget class="QGroupBox" name="gbxSH" >
          <property name="title" >
@@ -149,24 +153,17 @@
          <property name="title" >
           <string>LaTeX editor font</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout" >
+         <layout class="QVBoxLayout" name="verticalLayout" >
           <item>
-           <widget class="QFontComboBox" name="fntEditorFont" />
-          </item>
-          <item>
-           <widget class="QSpinBox" name="spnEditorFontSize" />
-          </item>
-          <item>
-           <widget class="QCheckBox" name="chkEditorFontBold" >
-            <property name="text" >
-             <string>Bold</string>
+           <widget class="QPushButton" name="btnAppearFont" >
+            <property name="font" >
+             <font>
+              <family>Courier New</family>
+              <pointsize>9</pointsize>
+             </font>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="chkEditorFontItalic" >
             <property name="text" >
-             <string>Italic</string>
+             <string>LaTeX editor font sample - click to change</string>
             </property>
            </widget>
           </item>
@@ -257,7 +254,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab" >
+     <widget class="QWidget" name="tabPaths" >
       <attribute name="title" >
        <string>System E&amp;xecutables and paths</string>
       </attribute>
@@ -345,19 +342,6 @@
          </property>
         </spacer>
        </item>
-       <item row="5" column="0" >
-        <widget class="QCheckBox" name="chkEpstopdf" >
-         <property name="text" >
-          <string>Have epstopdf :</string>
-         </property>
-         <property name="shortcut" >
-          <string>Alt+A</string>
-         </property>
-         <property name="checked" >
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="6" column="1" >
         <layout class="QHBoxLayout" name="horizontalLayout_3" >
          <item>
@@ -389,9 +373,22 @@
          </item>
         </layout>
        </item>
+       <item row="5" column="0" >
+        <widget class="QCheckBox" name="chkEpstopdf" >
+         <property name="text" >
+          <string>Have epstopdf :</string>
+         </property>
+         <property name="shortcut" >
+          <string>Alt+A</string>
+         </property>
+         <property name="checked" >
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="TabPage" >
+     <widget class="QWidget" name="tabAdvanced" >
       <attribute name="title" >
        <string>Advanced &amp;settings</string>
       </attribute>
@@ -573,9 +570,10 @@
     </widget>
    </item>
   </layout>
+  <zorder>btns</zorder>
+  <zorder>tabs</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
  <customwidgets>
   <customwidget>
    <class>KLFColorChooser</class>
@@ -585,35 +583,12 @@
   <customwidget>
    <class>KLFPathChooser</class>
    <extends>QLineEdit</extends>
-   <header>klfdirchooser.h</header>
+   <header>klfpathchooser.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>chkSHHighlightParensOnly</tabstop>
  </tabstops>
- <includes>
-  <include location="local" >kcolorcombo.h</include>
-  <include location="local" >kcolorcombo.h</include>
-  <include location="local" >kcolorcombo.h</include>
-  <include location="local" >kcolorcombo.h</include>
-  <include location="local" >kcolorcombo.h</include>
-  <include location="local" >kfontrequester.h</include>
-  <include location="local" >kurlrequester.h</include>
-  <include location="local" >klineedit.h</include>
-  <include location="local" >kpushbutton.h</include>
-  <include location="local" >kurlrequester.h</include>
-  <include location="local" >klineedit.h</include>
-  <include location="local" >kpushbutton.h</include>
-  <include location="local" >kurlrequester.h</include>
-  <include location="local" >klineedit.h</include>
-  <include location="local" >kpushbutton.h</include>
-  <include location="local" >kurlrequester.h</include>
-  <include location="local" >klineedit.h</include>
-  <include location="local" >kpushbutton.h</include>
-  <include location="local" >kurlrequester.h</include>
-  <include location="local" >klineedit.h</include>
-  <include location="local" >kpushbutton.h</include>
- </includes>
  <resources>
   <include location="klfres.qrc" />
  </resources>
@@ -625,12 +600,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>42</x>
-     <y>272</y>
+     <x>64</x>
+     <y>313</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>42</x>
-     <y>307</y>
+     <x>64</x>
+     <y>355</y>
     </hint>
    </hints>
   </connection>
@@ -641,8 +616,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>459</x>
-     <y>743</y>
+     <x>468</x>
+     <y>607</y>
     </hint>
     <hint type="destinationlabel" >
      <x>616</x>
@@ -657,8 +632,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>390</x>
-     <y>743</y>
+     <x>399</x>
+     <y>607</y>
     </hint>
     <hint type="destinationlabel" >
      <x>618</x>
@@ -757,8 +732,8 @@
      <y>64</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>260</x>
-     <y>285</y>
+     <x>282</x>
+     <y>313</y>
     </hint>
    </hints>
   </connection>
@@ -775,6 +750,22 @@
     <hint type="destinationlabel" >
      <x>353</x>
      <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkEpstopdf</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>pathEpstopdf</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>127</x>
+     <y>199</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>228</x>
+     <y>206</y>
     </hint>
    </hints>
   </connection>

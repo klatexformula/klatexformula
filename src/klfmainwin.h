@@ -23,10 +23,10 @@
 #ifndef KLFMAINWIN_H
 #define KLFMAINWIN_H
 
-#include <QValueList>
+#include <QList>
 #include <QSyntaxHighlighter>
 #include <QFont>
-#include <QCheckBOx>
+#include <QCheckBox>
 #include <QMenu>
 #include <QTextEdit>
 #include <QWidget>
@@ -35,8 +35,9 @@
 
 #include <klfconfig.h>
 #include <klfdata.h>
-#include <klfmainwinui.h>
-#include <klfprogerrui.h>
+#include <klflatexsymbols.h>
+#include <ui_klfmainwinui.h>
+#include <ui_klfprogerrui.h>
 
 
 //class KLFMainWinUI;
@@ -46,7 +47,7 @@ class KLFStyleManager;
 
 
 
-class KLFProgErr : public KLFProgErrUI {
+class KLFProgErr : public QDialog, private Ui::KLFProgErrUI {
   Q_OBJECT
 public:
   KLFProgErr(QWidget *parent, QString errtext);
@@ -69,7 +70,7 @@ public:
 
   void setCaretPos(int para, int pos);
 
-  virtual int highlightBlock(const QString& text);
+  virtual void highlightBlock(const QString& text);
 
   enum { Enabled = 0x01,
 	 HighlightParensOnly = 0x02,
@@ -80,7 +81,7 @@ public slots:
 
 private:
 
-  QTextEdit _textedit;
+  QTextEdit *_textedit;
 
   int _paracount;
 
@@ -103,7 +104,7 @@ private:
     bool left; // if it's \left( instead of (
   };
 
-  QValueList<ColorRule> _rulestoapply;
+  QList<ColorRule> _rulestoapply;
 
   void parseEverything();
 
@@ -118,7 +119,7 @@ private:
  * KLatexFormula Main Window
  * @author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
 */
-class KLFMainWin : public KLFMainWinUI
+class KLFMainWin : public QWidget, private Ui::KLFMainWinUI
 {
   Q_OBJECT
 public:
@@ -147,7 +148,6 @@ public slots:
   void slotSymbols(bool showsymbs);
   void slotSymbolsButtonRefreshState(bool on);
   void slotExpandOrShrink();
-  void slotQuit();
 
   bool loadNamedStyle(const QString& sty);
 
@@ -167,7 +167,7 @@ public slots:
   void saveStyles();
   void saveLibrary();
   void restoreFromLibrary(KLFData::KLFLibraryItem h, bool restorestyle);
-  void insertSymbol(QString symb, QString xtrapreamble);
+  void insertSymbol(const KLFLatexSymbol& symbol);
   void saveSettings();
   void loadSettings();
 

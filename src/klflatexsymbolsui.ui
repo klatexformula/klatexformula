@@ -1,16 +1,20 @@
 <ui version="4.0" >
+ <author>Ph. Faist</author>
  <class>KLFLatexSymbolsUI</class>
  <widget class="QDialog" name="KLFLatexSymbolsUI" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>564</width>
-    <height>499</height>
+    <width>500</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>KLatexFormula - LaTeX symbols</string>
+  </property>
+  <property name="sizeGripEnabled" >
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" >
    <property name="spacing" >
@@ -20,7 +24,7 @@
     <number>5</number>
    </property>
    <item>
-    <widget class="Q3Frame" name="frmMain" >
+    <widget class="QFrame" name="frmMain" >
      <property name="frameShape" >
       <enum>QFrame::Box</enum>
      </property>
@@ -73,6 +77,9 @@
         </property>
         <item row="0" column="1" >
          <widget class="QPushButton" name="btnInsert" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
           <property name="toolTip" >
            <string>Insert the selected symbol in KLatexFormula editor</string>
           </property>
@@ -204,15 +211,7 @@
   </layout>
  </widget>
  <layoutdefault spacing="2" margin="0" />
- <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
- <customwidgets>
-  <customwidget>
-   <class>Q3Frame</class>
-   <extends>QFrame</extends>
-   <header>Qt3Support/Q3Frame</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
+ <includes/>
  <resources>
   <include location="klfres.qrc" />
  </resources>

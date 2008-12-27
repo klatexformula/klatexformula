@@ -20,13 +20,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <klocale.h>
+#include <QString>
+#include <QObject>
 
 #include "klfdata.h"
 
 
 
-Q_UINT32 KLFData::KLFLibraryItem::MaxId = 1;
+quint32 KLFData::KLFLibraryItem::MaxId = 1;
 
 
 
@@ -35,7 +36,7 @@ QString KLFData::categoryFromLatex(const QString& latex)
 {
   QString s = latex.section('\n', 0, 0, QString::SectionSkipEmpty);
   if (s[0] == '%' && s[1] == ':') {
-    return s.mid(2).stripWhiteSpace();
+    return s.mid(2).trimmed();
   }
   return QString::null;
 }
@@ -48,14 +49,14 @@ QString KLFData::tagsFromLatex(const QString& latex)
     s = latex.section('\n', 1, 1, QString::SectionSkipEmpty);
   }
   if (s[0] == '%') {
-    return s.mid(1).stripWhiteSpace();
+    return s.mid(1).trimmed();
   }
   return QString::null;
 }
 
 QString KLFData::stripCategoryTagsFromLatex(const QString& latex)
 {
-  uint k = 0;
+  int k = 0;
   while (k < latex.length() && latex[k].isSpace())
     ++k;
   if (k == latex.length()) return "";
@@ -92,32 +93,33 @@ QString KLFData::prettyPrintStyle(const KLFStyle& sty)
 {
   QString s = "";
   if (sty.name != QString::null)
-    s = i18n("<b>Style Name</b>: %1<br>").arg(sty.name);
-  return s + i18n("<b>Math Mode</b>: %1<br>"
-		  "<b>DPI Resolution</b>: %2<br>"
-		  "<b>Foreground Color</b>: %3 <font color=\"%4\"><b>[SAMPLE]</b></font><br>"
-		  "<b>Background is Transparent</b>: %5<br>"
-		  "<b>Background Color</b>: %6 <font color=\"%7\"><b>[SAMPLE]</b></font><br>"
-		  "<b>LaTeX Preamble:</b><br><pre>%8</pre>")
-      .arg(sty.mathmode)
-      .arg(sty.dpi)
-      .arg(QColor(sty.fg_color).name()).arg(QColor(sty.fg_color).name())
-      .arg( (qAlpha(sty.bg_color) != 255) ? i18n("YES") : i18n("NO") )
-      .arg(QColor(sty.bg_color).name()).arg(QColor(sty.bg_color).name())
-      .arg(sty.preamble)    ;
+    s = QObject::tr("<b>Style Name</b>: %1<br>").arg(sty.name);
+  return s + QObject::tr("<b>Math Mode</b>: %1<br>"
+			 "<b>DPI Resolution</b>: %2<br>"
+			 "<b>Foreground Color</b>: %3 <font color=\"%4\"><b>[SAMPLE]</b></font><br>"
+			 "<b>Background is Transparent</b>: %5<br>"
+			 "<b>Background Color</b>: %6 <font color=\"%7\"><b>[SAMPLE]</b></font><br>"
+			 "<b>LaTeX Preamble:</b><br><pre>%8</pre>")
+    .arg(sty.mathmode)
+    .arg(sty.dpi)
+    .arg(QColor(sty.fg_color).name()).arg(QColor(sty.fg_color).name())
+    .arg( (qAlpha(sty.bg_color) != 255) ? QObject::tr("YES") : QObject::tr("NO") )
+    .arg(QColor(sty.bg_color).name()).arg(QColor(sty.bg_color).name())
+    .arg(sty.preamble)
+    ;
 }
 
 
 
 QDataStream& operator<<(QDataStream& stream, const KLFData::KLFStyle& style)
 {
-  return stream << style.name << (Q_UINT32)style.fg_color << (Q_UINT32)style.bg_color
-		<< style.mathmode << style.preamble << (Q_UINT16)style.dpi;
+  return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
+		<< style.mathmode << style.preamble << (quint16)style.dpi;
 }
 QDataStream& operator>>(QDataStream& stream, KLFData::KLFStyle& style)
 {
-  Q_UINT32 fg, bg;
-  Q_UINT16 dpi;
+  quint32 fg, bg;
+  quint16 dpi;
   stream >> style.name;
   stream >> fg >> bg >> style.mathmode >> style.preamble >> dpi;
   style.fg_color = fg;

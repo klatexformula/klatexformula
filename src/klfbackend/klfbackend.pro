@@ -15,9 +15,9 @@ INSTALLDIR = /usr/local
 LIBRARY_TYPE = staticlib
 #LIBRARY_TYPE = dll
 
-# Are we using Qt4? Please set here to "true" if you're compiling with
-# Qt >= 4.0 , leave to "false" if Qt is 3.x
-USE_QT4 = false
+# Are we using Qt4? Please leave this setting to "true" if you're compiling with
+# Qt 4 , or set to "false" if you're using Qt 3.x
+USE_QT4 = true
 
 # ------------------------------------------------------
 
@@ -54,12 +54,12 @@ TEMPLATE = lib
 INCLUDEPATH += .
 CONFIG += qt warn_on release $$LIBRARY_TYPE
 DESTDIR = .
-VERSION = 2.1.1
+VERSION = 3.0.0alpha0
 contains(USE_QT4, false) {
   TARGET = klfbackend-qt3
 }
 contains(USE_QT4, true) {
-  TARGET = klfbackend-qt4
+  TARGET = klfbackend
   DEFINES += KLFBACKEND_QT4
 }
 

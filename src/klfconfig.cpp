@@ -22,6 +22,9 @@
 
 
 #include <QApplication>
+#include <QMessageBox>
+#include <QObject>
+#include <QDir>
 
 #include "klfconfig.h"
 
@@ -38,6 +41,7 @@ KLFConfig::KLFConfig()
 void KLFConfig::loadDefaults()
 {
   homeConfigDir = QDir::homePath() + "/.klatexformula";
+  homeConfigSettingsFile = homeConfigDir + "/config";
   
   SyntaxHighlighter.configFlags = 0x05;
   SyntaxHighlighter.colorKeyword = QColor(0, 0, 128);
@@ -48,14 +52,14 @@ void KLFConfig::loadDefaults()
 
   UI.latexEditFont = QApplication::font();
   UI.previewTooltipMaxSize = QSize(500, 350);
-  UI.labelOutputFixedSize = QSize(280, 80);
+  UI.labelOutputFixedSize = QSize(280, 100);
   UI.lastSaveDir = QDir::homePath();
 
-  BackendSettings.tempDir = KGlobal::instance()->dirs()->findResourceDir("tmp", "/");
-  BackendSettings.execLatex = KStandardDirs::findExe("latex");
-  BackendSettings.execDvips = KStandardDirs::findExe("dvips");
-  BackendSettings.execGs = KStandardDirs::findExe("gs");
-  BackendSettings.execEpstopdf = KStandardDirs::findExe("epstopdf");
+  BackendSettings.tempDir = QDir::tempPath();
+  BackendSettings.execLatex = "latex";
+  BackendSettings.execDvips = "dvips";
+  BackendSettings.execGs = "gs";
+  BackendSettings.execEpstopdf = "epstopdf";
   BackendSettings.lborderoffset = 1;
   BackendSettings.tborderoffset = 1;
   BackendSettings.rborderoffset = 1;
@@ -67,57 +71,6 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.colorNotFound = QColor(255, 128, 128);
 }
 
-int KLFConfig::readFromConfig(KConfig *cfg)
-{
-  if ( ! cfg )
-    cfg = kapp->config();
-
-  cfg->setGroup("SyntaxHighlighting"); // -ing.klfconfig.homeConfigDir + "/styles"; NOT an error.
-
-  SyntaxHighlighter.configFlags = cfg->readUnsignedNumEntry("configflags", SyntaxHighlighter.configFlags);
-  SyntaxHighlighter.colorKeyword = cfg->readColorEntry("keyword", & SyntaxHighlighter.colorKeyword);
-  SyntaxHighlighter.colorComment = cfg->readColorEntry("comment", & SyntaxHighlighter.colorComment);
-  SyntaxHighlighter.colorParenMatch = cfg->readColorEntry("parenmatch", & SyntaxHighlighter.colorParenMatch);
-  SyntaxHighlighter.colorParenMismatch = cfg->readColorEntry("parenmismatch", & SyntaxHighlighter.colorParenMismatch);
-  SyntaxHighlighter.colorLonelyParen = cfg->readColorEntry("lonelyparen", & SyntaxHighlighter.colorLonelyParen);
-
-
-  cfg->setGroup("UI");
-
-  UI.latexEditFont = cfg->readFontEntry("latexeditfont", & UI.latexEditFont);
-  UI.previewTooltipMaxSize = cfg->readSizeEntry("previewtooltipmaxsize", & UI.previewTooltipMaxSize);
-  QSize n(1, 1);
-  UI.labelOutputFixedSize = cfg->readSizeEntry("lbloutputfixedsize", & n );
-  if (UI.labelOutputFixedSize == n) {
-    UI.labelOutputFixedSize =
-      QSize( cfg->readNumEntry("lbloutputfixedwidth", 280) ,
-	     cfg->readNumEntry("lbloutputfixedheight", 100) );
-  }
-  UI.lastSaveDir = ......;
-
-
-  cfg->setGroup("BackendSettings");
-
-  BackendSettings.tempDir = cfg->readEntry("tempdir", BackendSettings.tempDir);
-  BackendSettings.execLatex = cfg->readEntry("latexexec", BackendSettings.execLatex);
-  BackendSettings.execDvips = cfg->readEntry("dvipsexec", BackendSettings.execDvips);
-  BackendSettings.execGs = cfg->readEntry("gsexec", BackendSettings.execGs);
-  BackendSettings.execEpstopdf = cfg->readEntry("epstopdfexec", BackendSettings.execEpstopdf);
-  BackendSettings.lborderoffset = cfg->readNumEntry("lborderoffset", BackendSettings.lborderoffset);
-  BackendSettings.tborderoffset = cfg->readNumEntry("tborderoffset", BackendSettings.tborderoffset);
-  BackendSettings.rborderoffset = cfg->readNumEntry("rborderoffset", BackendSettings.rborderoffset);
-  BackendSettings.bborderoffset = cfg->readNumEntry("bborderoffset", BackendSettings.bborderoffset);
-
-
-  cfg->setGroup("LibraryBrowser");
-
-  LibraryBrowser.displayTaggedOnly = cfg->readBoolEntry("displaytaggedonly", LibraryBrowser.displayTaggedOnly);
-  LibraryBrowser.displayNoDuplicates = cfg->readBoolEntry("displaynoduplicates", LibraryBrowser.displayNoDuplicates);
-  LibraryBrowser.colorFound = cfg->readColorEntry("colorfound", & LibraryBrowser.colorFound);
-  LibraryBrowser.colorNotFound = cfg->readColorEntry("colornotfound", & LibraryBrowser.colorNotFound);
-
-  return 0;
-}
 
 int KLFConfig::ensureHomeConfigDir()
 {
@@ -126,56 +79,96 @@ int KLFConfig::ensureHomeConfigDir()
 
   bool r = QDir("/").mkpath(homeConfigDir);
   if ( ! r ) {
-    QMessageBox::critical(0, tr("Error"), tr("Can't make local config directory `%1' !").arg(homeConfigDir));
+    QMessageBox::critical(0, QObject::tr("Error"),
+			  QObject::tr("Can't make local config directory `%1' !").arg(homeConfigDir));
     return -1;
   }
   return 0;
 }
 
-
-
-int KLFConfig::writeToConfig(KConfig *cfg)
+int KLFConfig::readFromConfig()
 {
-  if ( ! cfg )
-    cfg = kapp->config();
+  ensureHomeConfigDir();
+  QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
-  cfg->setGroup("SyntaxHighlighting");
+  s.beginGroup("SyntaxHighlighter");
+  SyntaxHighlighter.configFlags = s.value("configflags", SyntaxHighlighter.configFlags).toUInt();
+  SyntaxHighlighter.colorKeyword = s.value("keyword", SyntaxHighlighter.colorKeyword).value<QColor>();
+  SyntaxHighlighter.colorComment = s.value("comment", SyntaxHighlighter.colorComment).value<QColor>();
+  SyntaxHighlighter.colorParenMatch = s.value("parenmatch", SyntaxHighlighter.colorParenMatch).value<QColor>();
+  SyntaxHighlighter.colorParenMismatch = s.value("parenmismatch", SyntaxHighlighter.colorParenMismatch).value<QColor>();
+  SyntaxHighlighter.colorLonelyParen = s.value("lonelyparen", SyntaxHighlighter.colorLonelyParen).value<QColor>();
+  s.endGroup();
 
-  cfg->writeEntry("configflags", SyntaxHighlighter.configFlags);
-  cfg->writeEntry("keyword", SyntaxHighlighter.colorKeyword);
-  cfg->writeEntry("comment", SyntaxHighlighter.colorComment);
-  cfg->writeEntry("parenmatch", SyntaxHighlighter.colorParenMatch);
-  cfg->writeEntry("parenmismatch", SyntaxHighlighter.colorParenMismatch);
-  cfg->writeEntry("lonelyparen", SyntaxHighlighter.colorLonelyParen);
+  s.beginGroup("UI");
+  UI.latexEditFont = s.value("latexeditfont", UI.latexEditFont).value<QFont>();
+  UI.previewTooltipMaxSize = s.value("previewtooltipmaxsize", UI.previewTooltipMaxSize).toSize();
+  UI.labelOutputFixedSize = s.value("lbloutputfixedsize", UI.labelOutputFixedSize ).toSize();
+  UI.lastSaveDir = s.value("lastsavedir", UI.lastSaveDir).toString();
+  s.endGroup();
+
+  s.beginGroup("BackendSettings");
+  BackendSettings.tempDir = s.value("tempdir", BackendSettings.tempDir).toString();
+  BackendSettings.execLatex = s.value("latexexec", BackendSettings.execLatex).toString();
+  BackendSettings.execDvips = s.value("dvipsexec", BackendSettings.execDvips).toString();
+  BackendSettings.execGs = s.value("gsexec", BackendSettings.execGs).toString();
+  BackendSettings.execEpstopdf = s.value("epstopdfexec", BackendSettings.execEpstopdf).toString();
+  BackendSettings.lborderoffset = s.value("lborderoffset", BackendSettings.lborderoffset).toInt();
+  BackendSettings.tborderoffset = s.value("tborderoffset", BackendSettings.tborderoffset).toInt();
+  BackendSettings.rborderoffset = s.value("rborderoffset", BackendSettings.rborderoffset).toInt();
+  BackendSettings.bborderoffset = s.value("bborderoffset", BackendSettings.bborderoffset).toInt();
+  s.endGroup();
+
+  s.beginGroup("LibraryBrowser");
+  LibraryBrowser.displayTaggedOnly = s.value("displaytaggedonly", LibraryBrowser.displayTaggedOnly).toBool();
+  LibraryBrowser.displayNoDuplicates = s.value("displaynoduplicates", LibraryBrowser.displayNoDuplicates).toBool();
+  LibraryBrowser.colorFound = s.value("colorfound", LibraryBrowser.colorFound).value<QColor>();
+  LibraryBrowser.colorNotFound = s.value("colornotfound", LibraryBrowser.colorNotFound).value<QColor>();
+  s.endGroup();
+
+  return 0;
+}
 
 
-  cfg->setGroup("UI");
+int KLFConfig::writeToConfig()
+{
+  ensureHomeConfigDir();
+  QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
-  cfg->writeEntry("latexeditfont", UI.latexEditFont);
-  cfg->writeEntry("previewtooltipmaxsize", UI.previewTooltipMaxSize);
-  cfg->writeEntry("lbloutputfixedsize", UI.labelOutputFixedSize);
-  cfg->writeEntry("lastSaveDir", UI.lastSaveDir);
+  s.beginGroup("SyntaxHighlighting");
+  s.setValue("configflags", SyntaxHighlighter.configFlags);
+  s.setValue("keyword", SyntaxHighlighter.colorKeyword);
+  s.setValue("comment", SyntaxHighlighter.colorComment);
+  s.setValue("parenmatch", SyntaxHighlighter.colorParenMatch);
+  s.setValue("parenmismatch", SyntaxHighlighter.colorParenMismatch);
+  s.setValue("lonelyparen", SyntaxHighlighter.colorLonelyParen);
+  s.endGroup();
 
+  s.beginGroup("UI");
+  s.setValue("latexeditfont", UI.latexEditFont);
+  s.setValue("previewtooltipmaxsize", UI.previewTooltipMaxSize);
+  s.setValue("lbloutputfixedsize", UI.labelOutputFixedSize);
+  s.setValue("lastSaveDir", UI.lastSaveDir);
+  s.endGroup();
 
-  cfg->setGroup("BackendSettings");
+  s.beginGroup("BackendSettings");
+  s.setValue("tempdir", BackendSettings.tempDir);
+  s.setValue("latexexec", BackendSettings.execLatex);
+  s.setValue("dvipsexec", BackendSettings.execDvips);
+  s.setValue("gsexec", BackendSettings.execGs);
+  s.setValue("epstopdfexec", BackendSettings.execEpstopdf);
+  s.setValue("lborderoffset", BackendSettings.lborderoffset);
+  s.setValue("tborderoffset", BackendSettings.tborderoffset);
+  s.setValue("rborderoffset", BackendSettings.rborderoffset);
+  s.setValue("bborderoffset", BackendSettings.bborderoffset);
+  s.endGroup();
 
-  cfg->writeEntry("tempdir", BackendSettings.tempDir);
-  cfg->writeEntry("latexexec", BackendSettings.execLatex);
-  cfg->writeEntry("dvipsexec", BackendSettings.execDvips);
-  cfg->writeEntry("gsexec", BackendSettings.execGs);
-  cfg->writeEntry("epstopdfexec", BackendSettings.execEpstopdf);
-  cfg->writeEntry("lborderoffset", BackendSettings.lborderoffset);
-  cfg->writeEntry("tborderoffset", BackendSettings.tborderoffset);
-  cfg->writeEntry("rborderoffset", BackendSettings.rborderoffset);
-  cfg->writeEntry("bborderoffset", BackendSettings.bborderoffset);
-
-
-  cfg->setGroup("LibraryBrowser");
-
-  cfg->writeEntry("displaytaggedonly", LibraryBrowser.displayTaggedOnly);
-  cfg->writeEntry("displaynoduplicates", LibraryBrowser.displayNoDuplicates);
-  cfg->writeEntry("colorfound", LibraryBrowser.colorFound);
-  cfg->writeEntry("colornotfound", LibraryBrowser.colorNotFound);
+  s.beginGroup("LibraryBrowser");
+  s.setValue("displaytaggedonly", LibraryBrowser.displayTaggedOnly);
+  s.setValue("displaynoduplicates", LibraryBrowser.displayNoDuplicates);
+  s.setValue("colorfound", LibraryBrowser.colorFound);
+  s.setValue("colornotfound", LibraryBrowser.colorNotFound);
+  s.endGroup();
 
   return 0;
 }

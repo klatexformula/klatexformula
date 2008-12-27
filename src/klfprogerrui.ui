@@ -1,4 +1,5 @@
 <ui version="4.0" >
+ <author>Ph. Faist</author>
  <class>KLFProgErrUI</class>
  <widget class="QDialog" name="KLFProgErrUI" >
   <property name="geometry" >
@@ -6,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>562</width>
-    <height>367</height>
+    <height>361</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -18,16 +19,23 @@
   <layout class="QVBoxLayout" name="verticalLayout" >
    <item>
     <widget class="QLabel" name="lbl" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="minimumSize" >
       <size>
        <width>0</width>
-       <height>30</height>
+       <height>20</height>
       </size>
      </property>
      <property name="font" >
       <font>
-       <pointsize>12</pointsize>
-       <italic>true</italic>
+       <weight>75</weight>
+       <italic>false</italic>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text" >
@@ -42,7 +50,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QTextBrowser" name="textBrowser" />
+    <widget class="QTextBrowser" name="txtError" />
    </item>
    <item>
     <widget class="QPushButton" name="btnClose" >
@@ -67,7 +75,7 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- <pixmapfunction>qPixmapFromMimeSource</pixmapfunction>
+ <includes/>
  <resources>
   <include location="klfres.qrc" />
  </resources>
