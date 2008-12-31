@@ -28,6 +28,7 @@
 #include <QSize>
 #include <QColor>
 #include <QSettings>
+#include <QTextCharFormat>
 
 
 class KLFConfig {
@@ -44,23 +45,27 @@ public:
 
   struct {
 
-    unsigned int configFlags;
-    QColor colorKeyword;
-    QColor colorComment;
-    QColor colorParenMatch;
-    QColor colorParenMismatch;
-    QColor colorLonelyParen;
-
-  } SyntaxHighlighter;
-
-  struct {
-
     QFont latexEditFont;
+    QFont preambleEditFont;
     QSize previewTooltipMaxSize;
     QSize labelOutputFixedSize;
     QString lastSaveDir;
+    int symbolsPerLine;
+    QList<QColor> userColorList;
+    int maxUserColors;
 
   } UI;
+
+  struct {
+
+    unsigned int configFlags;
+    QTextCharFormat fmtKeyword;
+    QTextCharFormat fmtComment;
+    QTextCharFormat fmtParenMatch;
+    QTextCharFormat fmtParenMismatch;
+    QTextCharFormat fmtLonelyParen;
+
+  } SyntaxHighlighter;
 
   struct {
 

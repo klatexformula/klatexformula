@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>831</width>
-    <height>589</height>
+    <width>917</width>
+    <height>636</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -89,6 +89,20 @@
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="btnFindPrev" >
+        <property name="toolTip" >
+         <string>Find Previous [Shift-F3]</string>
+        </property>
+        <property name="whatsThis" >
+         <string>Find Previous occurrence of search string</string>
+        </property>
+        <property name="icon" >
+         <iconset resource="klfres.qrc" >
+          <normaloff>:/pics/findprev.png</normaloff>:/pics/findprev.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QToolButton" name="btnFindNext" >
         <property name="toolTip" >
          <string>Find Next [F3]</string>
@@ -144,8 +158,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>274</width>
-         <height>407</height>
+         <width>299</width>
+         <height>450</height>
         </rect>
        </property>
        <attribute name="label" >
@@ -156,7 +170,7 @@
          <widget class="QLabel" name="lblPreview" >
           <property name="minimumSize" >
            <size>
-            <width>0</width>
+            <width>280</width>
             <height>80</height>
            </size>
           </property>
@@ -310,8 +324,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>274</width>
-         <height>409</height>
+         <width>299</width>
+         <height>403</height>
         </rect>
        </property>
        <attribute name="label" >
@@ -480,7 +494,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- <includes/>
  <resources>
   <include location="klfres.qrc" />
  </resources>

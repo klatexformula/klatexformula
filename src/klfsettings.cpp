@@ -35,6 +35,11 @@
 #include "klfsettings.h"
 
 
+#define REG_SH_TEXTFORMATENSEMBLE(x) \
+  _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
+					   colSH##x, colSH##x##Bg , chkSH##x##B , chkSH##x##I ) );
+
+
 KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFMainWin* parent)
   : QDialog(parent), KLFSettingsUI()
 {
@@ -45,8 +50,29 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFMainWin* parent)
 
   reset();
 
+  btns->clear();
+
+  QPushButton *b;
+  b = new QPushButton(QIcon(":/pics/closehide.png"), tr("Cancel"), btns);
+  btns->addButton(b, QDialogButtonBox::RejectRole);
+  connect(b, SIGNAL(clicked()), this, SLOT(reject()));
+  b = new QPushButton(QIcon(":/pics/apply.png"), tr("Apply"), btns);
+  btns->addButton(b, QDialogButtonBox::ApplyRole);
+  connect(b, SIGNAL(clicked()), this, SLOT(apply()));
+  b = new QPushButton(QIcon(":/pics/ok.png"), tr("OK"), btns);
+  btns->addButton(b, QDialogButtonBox::AcceptRole);
+  connect(b, SIGNAL(clicked()), this, SLOT(accept()));
+
   connect(btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
 
+  connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
+  connect(btnAppearPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
+
+  REG_SH_TEXTFORMATENSEMBLE(Keyword);
+  REG_SH_TEXTFORMATENSEMBLE(Comment);
+  REG_SH_TEXTFORMATENSEMBLE(ParenMatch);
+  REG_SH_TEXTFORMATENSEMBLE(ParenMismatch);
+  REG_SH_TEXTFORMATENSEMBLE(LonelyParen);
 }
 
 KLFSettings::~KLFSettings()
@@ -62,7 +88,6 @@ void KLFSettings::show()
 
 void KLFSettings::reset()
 {
-
   pathTempDir->setPath(_ptr->tempdir);
   pathLatex->setPath(_ptr->latexexec);
   pathDvips->setPath(_ptr->dvipsexec);
@@ -74,20 +99,41 @@ void KLFSettings::reset()
   spnRBorderOffset->setValue( _ptr->rborderoffset );
   spnBBorderOffset->setValue( _ptr->bborderoffset );
 
-  gbxSH->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::Enabled);
-  colSHKeyword->setColor(klfconfig.SyntaxHighlighter.colorKeyword);
-  colSHComment->setColor(klfconfig.SyntaxHighlighter.colorComment);
-  chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::HighlightParensOnly);
-  colSHParenMatch->setColor(klfconfig.SyntaxHighlighter.colorParenMatch);
-  colSHParenMismatch->setColor(klfconfig.SyntaxHighlighter.colorParenMismatch);
-  chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.configFlags & KLFLatexSyntaxHighlighter::HighlightLonelyParen);
-  colSHLonelyParen->setColor(klfconfig.SyntaxHighlighter.colorLonelyParen);
+  chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.configFlags
+			  &  KLFLatexSyntaxHighlighter::Enabled);
+  chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.configFlags
+				       &  KLFLatexSyntaxHighlighter::HighlightParensOnly);
+  chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.configFlags
+					&  KLFLatexSyntaxHighlighter::HighlightLonelyParen);
+
+  int k;
+  for (k = 0; k < _textformats.size(); ++k) {
+    if (_textformats[k].fmt->hasProperty(QTextFormat::ForegroundBrush))
+      _textformats[k].fg->setColor(_textformats[k].fmt->foreground().color());
+    else
+      _textformats[k].fg->setColor(QColor());
+    if (_textformats[k].fmt->hasProperty(QTextFormat::BackgroundBrush))
+      _textformats[k].bg->setColor(_textformats[k].fmt->background().color());
+    else
+      _textformats[k].bg->setColor(QColor());
+    if (_textformats[k].fmt->hasProperty(QTextFormat::FontWeight))
+      _textformats[k].chkB->setChecked(_textformats[k].fmt->fontWeight() > 60);
+    else
+      _textformats[k].chkB->setCheckState(Qt::PartiallyChecked);
+    if (_textformats[k].fmt->hasProperty(QTextFormat::FontItalic))
+      _textformats[k].chkI->setChecked(_textformats[k].fmt->fontItalic());
+    else
+      _textformats[k].chkI->setCheckState(Qt::PartiallyChecked);
+  }
 
   btnAppearFont->setFont(klfconfig.UI.latexEditFont);
-  connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeAppearFont()));
+  btnAppearPreambleFont->setFont(klfconfig.UI.preambleEditFont);
 
-  spnPreviewMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
-  spnPreviewMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
+  spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize.width());
+  spnPreviewHeight->setValue(klfconfig.UI.labelOutputFixedSize.height());
+
+  spnTooltipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
+  spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
 
 }
 
@@ -98,12 +144,15 @@ void KLFSettings::setDefaultPaths()
 }
 
 
-void KLFSettings::slotChangeAppearFont()
+void KLFSettings::slotChangeFont()
 {
-  btnAppearFont->setFont(QFontDialog::getFont(0, btnAppearFont->font(), this));
+  QWidget *w = dynamic_cast<QWidget*>(sender());
+  if ( w == 0 )
+    return;
+  w->setFont(QFontDialog::getFont(0, w->font(), this));
 }
 
-void KLFSettings::accept()
+void KLFSettings::apply()
 {
   // apply settings here
 
@@ -120,7 +169,7 @@ void KLFSettings::accept()
   _ptr->rborderoffset = spnRBorderOffset->value();
   _ptr->bborderoffset = spnBBorderOffset->value();
 
-  if (gbxSH->isChecked())
+  if (chkSHEnable->isChecked())
     klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::Enabled;
   else
     klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::Enabled;
@@ -133,20 +182,48 @@ void KLFSettings::accept()
   else
     klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightLonelyParen;
 
-  klfconfig.SyntaxHighlighter.colorKeyword = colSHKeyword->color();
-  klfconfig.SyntaxHighlighter.colorComment = colSHComment->color();
-  klfconfig.SyntaxHighlighter.colorParenMatch = colSHParenMatch->color();
-  klfconfig.SyntaxHighlighter.colorParenMismatch = colSHParenMismatch->color();
-  klfconfig.SyntaxHighlighter.colorLonelyParen = colSHLonelyParen->color();
+  int k;
+  for (k = 0; k < _textformats.size(); ++k) {
+    QColor c = _textformats[k].fg->color();
+    if (c.isValid())
+      _textformats[k].fmt->setForeground(c);
+    else
+      _textformats[k].fmt->clearForeground();
+    c = _textformats[k].bg->color();
+    if (c.isValid())
+      _textformats[k].fmt->setBackground(c);
+    else
+      _textformats[k].fmt->clearBackground();
+    Qt::CheckState b = _textformats[k].chkB->checkState();
+    if (b == Qt::PartiallyChecked)
+      _textformats[k].fmt->clearProperty(QTextFormat::FontWeight);
+    else if (b == Qt::Checked)
+      _textformats[k].fmt->setFontWeight(QFont::Bold);
+    else
+      _textformats[k].fmt->setFontWeight(QFont::Normal);
+    Qt::CheckState it = _textformats[k].chkI->checkState();
+    if (it == Qt::PartiallyChecked)
+      _textformats[k].fmt->clearProperty(QTextFormat::FontItalic);
+    else
+      _textformats[k].fmt->setFontItalic( it == Qt::Checked );
+  }
 
   klfconfig.UI.latexEditFont = btnAppearFont->font();
-  _mainwin->setTxtLatexFont(btnAppearFont->font());
+  _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
+  klfconfig.UI.preambleEditFont = btnAppearPreambleFont->font();
+  _mainwin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
 
-  klfconfig.UI.previewTooltipMaxSize = QSize(spnPreviewMaxWidth->value(), spnPreviewMaxHeight->value());
+  klfconfig.UI.labelOutputFixedSize = QSize(spnPreviewWidth->value(), spnPreviewHeight->value());
+
+  klfconfig.UI.previewTooltipMaxSize = QSize(spnTooltipMaxWidth->value(), spnTooltipMaxHeight->value());
 
   _mainwin->saveSettings();
-  klfconfig.writeToConfig();
+}
 
+void KLFSettings::accept()
+{
+  // apply settings
+  apply();
   // and exit dialog
   QDialog::accept();
 }

@@ -33,6 +33,7 @@ class KLFPathChooser : public QFrame
 {
   Q_OBJECT
 
+  // mode: 0=open, 1=save, 2=choose dir
   Q_PROPERTY(int mode READ mode WRITE setMode)
   Q_PROPERTY(QString caption READ caption WRITE setCaption)
   Q_PROPERTY(QString filter READ filter WRITE setFilter)

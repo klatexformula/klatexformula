@@ -68,7 +68,7 @@ public:
   KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent);
   virtual ~KLFLatexSyntaxHighlighter();
 
-  void setCaretPos(int para, int pos);
+  void setCaretPos(int position);
 
   virtual void highlightBlock(const QString& text);
 
@@ -83,30 +83,32 @@ private:
 
   QTextEdit *_textedit;
 
-  int _paracount;
+  int _caretpos;
 
-  uint _caretpara, _caretpos;
+  enum Format { FNormal = 0, FKeyWord, FComment, FParenMatch, FParenMismatch, FLonelyParen };
 
-  struct ColorRule {
-    ColorRule(int pa = -1, int ps = -1, int l = 0, QColor c = QColor()) : para(pa), pos(ps), len(l), color(c) { }
-    int para;
+  struct FormatRule {
+    FormatRule(int ps = -1, int l = 0, Format f = FNormal)
+      : pos(ps), len(l), format(f) { }
     int pos;
     int len;
-    QColor color;
+    Format format;
   };
 
   struct ParenItem {
-    ParenItem(int pa = -1, int ps = -1, bool h = false, char c = 0, bool l = false) : para(pa), pos(ps), highlight(h), ch(c), left(l) { }
-    int para;
+    ParenItem(int ps = -1, bool h = false, char c = 0, bool l = false)
+      : pos(ps), highlight(h), ch(c), left(l) { }
     int pos;
     bool highlight;
     char ch;
     bool left; // if it's \left( instead of (
   };
 
-  QList<ColorRule> _rulestoapply;
+  QList<FormatRule> _rulestoapply;
 
   void parseEverything();
+
+  QTextCharFormat charfmtForFormat(Format f);
 
 };
 
@@ -132,7 +134,8 @@ public:
 
   KLFBackend::klfSettings backendSettings() const { return _settings; }
 
-  QFont txtLatexFont() const { return txtLatex->font(); }
+  virtual QFont txtLatexFont() const { return txtLatex->font(); }
+  virtual QFont txtPreambleFont() const { return txtPreamble->font(); }
 
 signals:
 
@@ -153,7 +156,7 @@ public slots:
 
   void slotDrag();
   void slotCopy();
-  void slotSave();
+  void slotSave(const QString& suggestedFname = QString::null);
 
   void slotLoadStyle(int stylenum);
   void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
@@ -172,6 +175,7 @@ public slots:
   void loadSettings();
 
   void setTxtLatexFont(const QFont& f) { txtLatex->setFont(f); }
+  void setTxtPreambleFont(const QFont& f) { txtPreamble->setFont(f); }
 
 protected:
   KLFLibraryBrowser *mLibraryBrowser;
@@ -186,6 +190,7 @@ protected:
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
 
   KLFBackend::klfOutput _output; // output from KLFBackend
+  KLFBackend::klfInput _lastrun_input; // input that generated _output
 
   KLFData::KLFLibrary _library;
   KLFData::KLFLibraryResourceList _libresources;
@@ -194,6 +199,8 @@ protected:
   QSize _shrinkedsize;
   QSize _expandedsize;
 
+  void closeEvent(QCloseEvent *e);
+  void hideEvent(QHideEvent *e);
 };
 
 #endif

@@ -113,7 +113,7 @@ public:
     // artificially set a lower version, so as to not handicap anyone who would like to read us with an old version of KLF
     stream.setVersion(QDataStream::Qt_3_3);
     stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE") << (qint16)version_maj << (qint16)version_min
-	   << stream.version() << cache;
+	   << (qint16)stream.version() << cache;
     return 0;
   }
 
@@ -203,7 +203,15 @@ KLFLatexSymbolsView::KLFLatexSymbolsView(const QString& category, QWidget *paren
   : QScrollArea(parent), _category(category)
 {
   mFrame = new QFrame(this);
-  mLayout = new QGridLayout(mFrame);
+
+  setWidgetResizable(true);
+
+  //  mFrame->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
+
+  mFrame->setFrameShadow(QFrame::Sunken);
+  mFrame->setFrameShape(QFrame::Box);
+
+  mLayout = 0;
 
   setWidget(mFrame);
 }
@@ -215,28 +223,32 @@ void KLFLatexSymbolsView::setSymbolList(const QList<KLFLatexSymbol>& symbols)
 
 void KLFLatexSymbolsView::buildDisplay()
 {
+  mLayout = new QGridLayout(mFrame);
   int i;
+  int n = klfconfig.UI.symbolsPerLine;
   for (i = 0; i < _symbols.size(); ++i) {
     QPushButton *btn = new QPushButton(mFrame);
+    btn->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
+    mLayout->addWidget(btn, i/n, i%n, 1, 1);
     QPixmap p = KLFLatexSymbols::cache()->getPixmap(_symbols[i]);
     btn->setIconSize(p.size());
     btn->setIcon(p);
     btn->setProperty("symbol", (unsigned int) i);
+    btn->setToolTip(_symbols[i].symbol);
     connect(btn, SIGNAL(clicked()), this, SLOT(slotSymbolActivated()));
     mSymbols.append(btn);
   }
 
-  recalcLayout();
+  mLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Fixed, QSizePolicy::Expanding), (i/n)*n+1, 1);
 }
 
 void KLFLatexSymbolsView::recalcLayout()
 {
-  int n = 1 + mFrame->width() / 40;
-  int i;
-  for (i = 0; i < mSymbols.size(); ++i) {
-    mLayout->removeWidget(mSymbols[i]);
-    mLayout->addWidget(mSymbols[i], i/n, i%n);
-  }
+  //   int n = 1 + mFrame->width() / 40;
+  //   int i;
+  //   for (i = 0; i < mSymbols.size(); ++i) {
+  //     mLayout->addWidget(mSymbols[i], i/n, i%n, 1, 1);
+  //   }
 }
 
 
@@ -286,7 +298,7 @@ void KLFLatexSymbolsView::slotSymbolActivated()
 
 
 KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
-  : QDialog(mw), Ui::KLFLatexSymbolsUI()
+  : QWidget(mw, Qt::Window), KLFLatexSymbolsUI()
 {
   setupUi(this);
 
@@ -298,23 +310,18 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 
     QString s = klfconfig.homeConfigDir + "/symbolspixmapcache";
     if ( ! QFile::exists(s) ) {
-      s = ":/data/symbolspixmapcache_base";
+      QFile::copy(":/data/symbolspixmapcache_base", s);
+      QFile::setPermissions(s, QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
     }
     
-    {
-      QFile f(s);
-      f.open(QIODevice::ReadOnly);
-      QDataStream ds(&f);
-      int r = mCache->loadCache(ds);
-      if (r != 0)
-	qCritical() << tr("Warning: KLFLatexSymbols: error reading cache file ! code=%1\n").arg(r);
-      f.close();
+    QFile f(s);
+    if ( ! f.open(QIODevice::ReadOnly) ) {
+      qCritical() << tr("Warning: failed to open file `%1'!").arg(s);
     }
-    // and save the loaded/generated cache to file immediately...
-    QFile fw(s);
-    fw.open(QIODevice::WriteOnly);
-    QDataStream dsw(&fw);
-    mCache->saveCache(dsw);
+    QDataStream ds(&f);
+    int r = mCache->loadCache(ds);
+    if (r != 0)
+      qCritical() << tr("Warning: KLFLatexSymbols: error reading cache file ! code=%1").arg(r);
   }
   mCacheRefCounter++;
 
@@ -331,7 +338,8 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
   {
     QString fn = klfconfig.homeConfigDir + "/latex_symbols";
     if ( ! QFile::exists(fn) ) {
-      fn = ":/data/latex_symbols";
+      QFile::copy(":/data/latex_symbols", fn);
+      QFile::setPermissions(fn, QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
     }
     QFile f(fn);
     if ( ! f.open(QIODevice::ReadOnly) ) {
@@ -356,6 +364,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
       if ( ! heading.isEmpty() ) {
 	KLFLatexSymbolsView *view = new KLFLatexSymbolsView(heading, stkViews);
 	view->setSymbolList(l);
+	connect(view, SIGNAL(symbolActivated(const KLFLatexSymbol&)), this, SIGNAL(insertSymbol(const KLFLatexSymbol&)));
 	mViews.append(view);
 	stkViews->addWidget(view);
 	cbxCategory->addItem(heading);
@@ -374,7 +383,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
   slotShowCategory(0);
 
   connect(cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));
-  connect(btnClose, SIGNAL(clicked()), this, SLOT(slotClose()));
+  connect(btnClose, SIGNAL(clicked()), this, SLOT(close()));
 }
 
 KLFLatexSymbols::~KLFLatexSymbols()
@@ -384,22 +393,17 @@ KLFLatexSymbols::~KLFLatexSymbols()
     QString s = klfconfig.homeConfigDir + "/symbolspixmapcache";
 
     QFile f(s);
-    f.open(QIODevice::WriteOnly);
-    QDataStream ds(&f);
-    mCache->saveCache(ds);
-
+    if ( ! f.open(QIODevice::WriteOnly) ) {
+      qWarning() << tr("Can't save cache to file `%1'!").arg(s);
+    } else {
+      QDataStream ds(&f);
+      mCache->saveCache(ds);
+    }
     delete mCache;
     mCache = 0;
   }
 }
 
-
-
-void KLFLatexSymbols::reject()
-{
-  // reimplemeneted to stop ESC from brutally closing the dialog.
-  // see comment in same function in klfhistorybrowser.cpp for details.
-}
 
 // void KLFLatexSymbols::slotNeedsInsert(QIconViewItem *item)
 // {
@@ -432,12 +436,6 @@ void KLFLatexSymbols::slotShowCategory(int c)
 //   lneDisplayXtrapreamble->setText(klfitem->xtrapreamble());
 // }
 
-
-void KLFLatexSymbols::slotClose()
-{
-  hide();
-  emit refreshSymbolBrowserShownState(false);
-}
 
 void KLFLatexSymbols::closeEvent(QCloseEvent *e)
 {

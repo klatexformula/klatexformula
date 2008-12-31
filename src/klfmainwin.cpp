@@ -41,8 +41,8 @@
 #include <QKeyEvent>
 #include <QMimeData>
 #include <QImageWriter>
-#include <QDebug>
 #include <QInputDialog>
+#include <QCloseEvent>
 
 #include <klfbackend.h>
 
@@ -74,7 +74,6 @@ KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObjec
 {
   setDocument(textedit->document());
 
-  _caretpara = 0;
   _caretpos = 0;
 }
 
@@ -82,34 +81,37 @@ KLFLatexSyntaxHighlighter::~KLFLatexSyntaxHighlighter()
 {
 }
 
-void KLFLatexSyntaxHighlighter::setCaretPos(int para, int pos)
+void KLFLatexSyntaxHighlighter::setCaretPos(int position)
 {
-  _caretpara = para;
-  _caretpos = pos;
+  _caretpos = position;
 }
 
 void KLFLatexSyntaxHighlighter::refreshAll()
 {
-  int pa, po;
-  //...  _textedit->getCursorPosition(&pa, &po);
-  //...  setCaretPos(pa, po);
   rehighlight();
 }
 
 void KLFLatexSyntaxHighlighter::parseEverything()
 {
-  /*  QString text;
-  int para = 0;
-  uint i = 0;
-  QValueList<uint> paralens; // the length of each paragraph
+  QString text;
+  int i = 0;
+  int blockpos;
+  QList<uint> blocklens; // the length of each block
   std::stack<ParenItem> parens; // the parens that we'll meet
 
+  QTextBlock block = document()->firstBlock();
+  
   _rulestoapply.clear();
-  uint k;
-  while (para < textEdit()->paragraphs()) {
-    text = textEdit()->text(para);
+  int k;
+  while (block.isValid()) {
+    text = block.text();
     i = 0;
-    paralens.append(text.length());
+    blockpos = block.position();
+    blocklens.append(block.length());
+
+    while (text.length() < block.length()) {
+      text += "\n";
+    }
 
     for (i = 0; i < text.length(); ++i) {
       if (text[i] == '\\') {
@@ -121,14 +123,14 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	    ++k;
 	else
 	  k = 1;
-	_rulestoapply.append(ColorRule(para, i-1, k+1, klfconfig.SyntaxHighlighter.colorKeyword));
+	_rulestoapply.append(FormatRule(blockpos+i-1, k+1, FKeyWord));
 	i += k-1;
       }
       if (text[i] == '%') {
 	k = 0;
-	while (i+k < text.length())
+	while (i+k < text.length() && text[i+k] != '\n')
 	  ++k;
-	_rulestoapply.append(ColorRule(para, i, k, klfconfig.SyntaxHighlighter.colorComment));
+	_rulestoapply.append(FormatRule(blockpos+i, k, FComment));
 	i += k;
       }
       if (text[i] == '{' || text[i] == '(' || text[i] == '[') {
@@ -136,7 +138,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	if (i >= 5 && text.mid(i-5, 5) == "\\left") {
 	  l = true;
 	}
-	parens.push(ParenItem(para, i, (_caretpos == i && (int)_caretpara == para), text[i].latin1(), l));
+	parens.push(ParenItem(blockpos+i, (_caretpos == blockpos+i), text[i].toAscii(), l));
       }
       if (text[i] == '}' || text[i] == ')' || text[i] == ']') {
 	ParenItem p;
@@ -144,88 +146,107 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	  p = parens.top();
 	  parens.pop();
 	} else {
-	  p = ParenItem(0, 0, false, '!'); // simulate an item
+	  p = ParenItem(0, false, '!'); // simulate an item
 	  if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen)
-	    _rulestoapply.append(ColorRule(para, i, 1, klfconfig.SyntaxHighlighter.colorLonelyParen));
+	    _rulestoapply.append(FormatRule(blockpos+i, 1, FLonelyParen));
 	}
-	QColor col = klfconfig.SyntaxHighlighter.colorParenMatch;
+	Format col = FParenMatch;
 	bool l = ( i >= 6 && text.mid(i-6, 6) == "\\right" );
 	if ((text[i] == '}' && p.ch != '{') ||
 	    (text[i] == ')' && p.ch != '(') ||
 	    (text[i] == ']' && p.ch != '[') ||
 	    (l != p.left) ) {
-	  col = klfconfig.SyntaxHighlighter.colorParenMismatch;
+	  col = FParenMismatch;
 	}
 	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)
-	if (p.highlight || (_caretpos == i+1 && (int)_caretpara == para)) {
+	if (p.highlight || (_caretpos == blockpos+i+1)) {
 	  if ((klfconfig.SyntaxHighlighter.configFlags & HighlightParensOnly) == 0) {
-	    if (p.para != para) {
-	      k = p.para;
-	      _rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, col));
-	      while (++k < (uint)para) {
-		_rulestoapply.append(ColorRule(k, 0, paralens[k], col)); // fill paragraph with color
-	      }
-	      _rulestoapply.append(ColorRule(para, 0, i+1, col));
-	    } else {
-	      _rulestoapply.append(ColorRule(para, p.pos, i-p.pos+1, col));
-	    }
+	    _rulestoapply.append(FormatRule(p.pos, blockpos+i+1-p.pos, col));
 	  } else {
 	    if (p.ch != '!') // simulated item for first pos
-	      _rulestoapply.append(ColorRule(p.para, p.pos, 1, col));
-	    _rulestoapply.append(ColorRule(para, i, 1, col));
+	      _rulestoapply.append(FormatRule(p.pos, 1, col));
+	    _rulestoapply.append(FormatRule(blockpos+i, 1, col));
 	  }
 	}
       }
     }
 
-    ++para;
+    block = block.next();
   }
 
+  QTextBlock lastblock = document()->lastBlock();
+
   while ( ! parens.empty() ) {
-    // if we have unclosed parens
+    // for each unclosed paren left
     ParenItem p = parens.top();
     parens.pop();
-    if (_caretpara == (uint)p.para && _caretpos == (uint)p.pos) {
+    if (_caretpos == p.pos) {
       if ( (klfconfig.SyntaxHighlighter.configFlags & HighlightParensOnly) != 0 )
-	_rulestoapply.append(ColorRule(p.para, p.pos, 1, klfconfig.SyntaxHighlighter.colorParenMismatch));
-      else {
-	_rulestoapply.append(ColorRule(p.para, p.pos, paralens[p.para]-p.pos, klfconfig.SyntaxHighlighter.colorParenMismatch));
-	for (k = p.para+1; (int)k < para; ++k) {
-	  _rulestoapply.append(ColorRule(k, 0, paralens[k], klfconfig.SyntaxHighlighter.colorParenMismatch));
-	}
-      }
+	_rulestoapply.append(FormatRule(p.pos, 1, FParenMismatch));
+      else
+	_rulestoapply.append(FormatRule(p.pos, lastblock.position()+lastblock.length()-p.pos, FParenMismatch));
     } else { // not on caret positions
-      if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen) {
-	_rulestoapply.append(ColorRule(p.para, p.pos, 1, klfconfig.SyntaxHighlighter.colorLonelyParen));
-      }
+      if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen)
+	_rulestoapply.append(FormatRule(p.pos, 1, FLonelyParen));
     }
   }
-  */
+}
+
+QTextCharFormat KLFLatexSyntaxHighlighter::charfmtForFormat(Format f)
+{
+  switch (f) {
+  case FNormal:
+    return QTextCharFormat();
+  case FKeyWord:
+    return klfconfig.SyntaxHighlighter.fmtKeyword;
+  case FComment:
+    return klfconfig.SyntaxHighlighter.fmtComment;
+  case FParenMatch:
+    return klfconfig.SyntaxHighlighter.fmtParenMatch;
+  case FParenMismatch:
+    return klfconfig.SyntaxHighlighter.fmtParenMismatch;
+  case FLonelyParen:
+    return klfconfig.SyntaxHighlighter.fmtLonelyParen;
+  default:
+    return QTextCharFormat();
+  };
 }
 
 
 void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
 {
-  /*  if ( ( klfconfig.SyntaxHighlighter.configFlags & Enabled ) == 0)
-      return 0; // forget everything about synt highlight if we don't want it.
-      
-      if (endstatelastpara == -2) {
-      // first paragraph: parse everything
-      _paracount = 0;
-      parseEverything();
-      }
-      
-      setFormat(0, text.length(), QColor(0,0,0));
-      
-      for (uint k = 0; k < _rulestoapply.size(); ++k) {
-      if (_rulestoapply[k].para == _paracount) {
-      // apply rule
-      setFormat(_rulestoapply[k].pos, _rulestoapply[k].len, _rulestoapply[k].color);
-      }
-      }
-      
-      _paracount++;
-  */
+  //  printf("-- HIGHLIGHTBLOCK --:\n%s\n", (const char*)text.toLocal8Bit());
+
+  if ( ( klfconfig.SyntaxHighlighter.configFlags & Enabled ) == 0)
+    return; // forget everything about synt highlight if we don't want it.
+
+  QTextBlock block = currentBlock();
+
+  //  printf("\t -- block/position=%d\n", block.position());
+
+  if (block.position() == 0) {
+    setCaretPos(_textedit->textCursor().position());
+    parseEverything();
+  }
+
+  setFormat(0, text.length(), QColor(0,0,0));
+
+  for (int k = 0; k < _rulestoapply.size(); ++k) {
+    int start = _rulestoapply[k].pos - block.position();
+    int len = _rulestoapply[k].len;
+    
+    if (start < 0) {
+      len += start; // +, start being negative
+      start = 0;
+    }
+    if (start > text.length())
+      continue;
+    if (len > text.length() - start)
+      len = text.length() - start;
+    // apply rule
+    setFormat(start, len, charfmtForFormat(_rulestoapply[k].format));
+  }
+  
   return;
 }
 
@@ -286,6 +307,7 @@ KLFMainWin::KLFMainWin()
   lblPromptMain->setToolTip(tr("KLatexFormula %1").arg(QString::fromUtf8(version)));
 
   txtLatex->setFont(klfconfig.UI.latexEditFont);
+  txtPreamble->setFont(klfconfig.UI.preambleEditFont);
 
   frmOutput->setEnabled(false);
 
@@ -419,6 +441,18 @@ void KLFMainWin::loadSettings()
 
 void KLFMainWin::saveSettings()
 {
+  klfconfig.BackendSettings.tempDir = _settings.tempdir;
+  klfconfig.BackendSettings.execLatex = _settings.latexexec;
+  klfconfig.BackendSettings.execDvips = _settings.dvipsexec;
+  klfconfig.BackendSettings.execGs = _settings.gsexec;
+  klfconfig.BackendSettings.execEpstopdf = _settings.epstopdfexec;
+  klfconfig.BackendSettings.lborderoffset = _settings.lborderoffset;
+  klfconfig.BackendSettings.tborderoffset = _settings.tborderoffset;
+  klfconfig.BackendSettings.rborderoffset = _settings.rborderoffset;
+  klfconfig.BackendSettings.bborderoffset = _settings.bborderoffset;
+
+  klfconfig.UI.userColorList = KLFColorChooser::colorList();
+
   klfconfig.writeToConfig();
 }
 
@@ -631,7 +665,6 @@ void KLFMainWin::saveLibrary()
 
 void KLFMainWin::restoreFromLibrary(KLFData::KLFLibraryItem j, bool restorestyle)
 {
-  printf("DEBUG: Restore from library ...\n");
   txtLatex->setPlainText(j.latex);
   if (restorestyle) {
     colFg->setColor(QColor(qRed(j.style.fg_color), qGreen(j.style.fg_color), qBlue(j.style.fg_color)));
@@ -646,6 +679,8 @@ void KLFMainWin::restoreFromLibrary(KLFData::KLFLibraryItem j, bool restorestyle
 
   lblOutput->setPixmap(j.preview);
   frmOutput->setEnabled(false);
+  activateWindow();
+  raise();
 }
  
 void KLFMainWin::slotLibraryButtonRefreshState(bool on)
@@ -707,6 +742,14 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 }
 
 
+void KLFMainWin::hideEvent(QHideEvent *e)
+{
+  if (e->spontaneous())
+    return;
+  qApp->quit();
+}
+
+
 void KLFMainWin::slotEvaluate()
 {
   // KLFBackend input
@@ -735,6 +778,7 @@ void KLFMainWin::slotEvaluate()
 
   // and GO !
   _output = KLFBackend::getLatexFormula(input, _settings);
+  _lastrun_input = input;
 
   if (_output.status < 0) {
     QMessageBox::critical(this, tr("Error"), _output.errorstr);
@@ -770,8 +814,15 @@ void KLFMainWin::slotEvaluate()
       img = _output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     }
 
+    QString tempTooltipImg = klfconfig.BackendSettings.tempDir+"/klatexformula_lastrun.png";
+    {
+      bool res = img.save(tempTooltipImg, "PNG");
+      if ( ! res ) {
+	fprintf(stderr, "WARNING: Failed open for Tooltip Temp Image!\n%s\n", tempTooltipImg.toLocal8Bit().constData());
+      }
+    }
     //    QMimeSourceFactory::defaultFactory()->setImage( "klfoutput", img );
-    lblOutput->setToolTip(QString("<qt><img src=\":/pics/badsym.png\"></qt>"));
+    lblOutput->setToolTip(QString("<qt><img src=\"%1\"></qt>").arg(tempTooltipImg));
   }
 
   btnEvaluate->setEnabled(true); // re-enable our button
@@ -830,36 +881,114 @@ void KLFMainWin::slotCopy()
 {
   QApplication::clipboard()->setImage(_output.result, QClipboard::Clipboard);
 }
-void KLFMainWin::slotSave()
+
+void KLFMainWin::slotSave(const QString& suggestfname)
 {
-  QString filterformat = "";
+  // application-long persistent selectedfilter
+  static QString selectedfilter;
+
+  QStringList formatlist, filterformatlist;
+  QMap<QString,QString> formatsByFilterName;
   QList<QByteArray> formats = QImageWriter::supportedImageFormats();
 
   for (QList<QByteArray>::iterator it = formats.begin(); it != formats.end(); ++it) {
-    if ( ! filterformat.isEmpty() ) filterformat += ";;";
-    filterformat += tr("%1 Image (*.%2)").arg(QString((*it).toLower())).arg(QString((*it).toLower()));
+    QString f = (*it).toLower();
+    if (f == "jpg" || f == "jpeg" || f == "png" || f == "pdf" || f == "eps")
+      continue;
+    QString s = tr("%1 Image (*.%2)").arg(f).arg(f);
+    filterformatlist << s;
+    formatlist.push_back(f);
+    formatsByFilterName[s] = f;
   }
 
-  filterformat = tr("EPS PostScript (*.eps)")+";;"+filterformat;
-  filterformat = tr("PDF Portable Document Format (*.pdf)")+";;"+filterformat;
-  filterformat = tr("Standard JPEG Image (*.jpg *.jpeg)")+";;"+filterformat;
-  QString selectedfilter = tr("Standard PNG Image (*.png)");
-  filterformat = selectedfilter+";;"+filterformat;
+  QString s;
+  s = tr("EPS PostScript (*.eps)");
+  filterformatlist.push_front(s);
+  formatlist.push_front("eps");
+  formatsByFilterName[s] = "eps";
+  s = tr("PDF Portable Document Format (*.pdf)");
+  filterformatlist.push_front(s);
+  formatlist.push_front("pdf");
+  formatsByFilterName[s] = "pdf";
+  s = tr("Standard JPEG Image (*.jpg *.jpeg)");
+  filterformatlist.push_front(s);
+  formatlist.push_front("jpeg");
+  formatlist.push_front("jpg");
+  formatsByFilterName[s] = "jpeg";
+  selectedfilter = s = tr("Standard PNG Image (*.png)");
+  filterformatlist.push_front(s);
+  formatlist.push_front("png");
+  formatsByFilterName[s] = "png";
 
+  QString filterformat = filterformatlist.join(";;");
   QString fname, format;
-  QString s = QFileDialog::getSaveFileName(this, tr("Save Image Formula"), klfconfig.UI.lastSaveDir, filterformat,
-					   &selectedfilter);
-
-  qDebug() << "s = " << s << "\nformat = " << selectedfilter;
-  return;
-
-  //  KLFConfig.UI.lastSaveDir = ..............;
-  //  format = ......................;
+  QString suggestion = suggestfname;
+  if (suggestion.isEmpty())
+    suggestion = klfconfig.UI.lastSaveDir;
+  fname = QFileDialog::getSaveFileName(this, tr("Save Image Formula"), suggestion, filterformat, &selectedfilter);
 
   if (fname.isEmpty())
     return;
 
-  // The Qt dialog already asks user to confirm overwriting existing files
+  QFileInfo fi(fname);
+  klfconfig.UI.lastSaveDir = fi.absolutePath();
+  if ( fi.suffix().length() == 0 ) {
+    // get format and suffix from selected filter
+    if ( ! formatsByFilterName.contains(selectedfilter) ) {
+      fprintf(stderr, "ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n", selectedfilter.toLocal8Bit().constData());
+      format = "png";
+    } else {
+      format = formatsByFilterName[selectedfilter];
+    }
+    fname += "."+format;
+    // !! : fname has changed, potentially the file could exist, user would not have been warned.
+    if (QFile::exists(fname)) {
+      int r = QMessageBox::warning(this, tr("File Exists"), tr("The file <b>%1</b> already exists.\nOverwrite?").arg(fname),
+				   QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::No);
+      if (r == QMessageBox::Yes) {
+	// will continue in this function.
+      } else if (r == QMessageBox::No) {
+	// re-prompt for file name & save (by recursion), and return
+	slotSave(fname);
+	return;
+      } else {
+	// cancel
+	return;
+      }
+    }
+  }
+  fi.setFile(fname);
+  int index = formatlist.indexOf(fi.suffix());
+  if ( index < 0 ) {
+    // select PNG by default if suffix is not recognized
+    QMessageBox msgbox(this);
+    msgbox.setIcon(QMessageBox::Warning);
+    msgbox.setWindowTitle(tr("Extension not recognized"));
+    msgbox.setText(tr("Extension <b>%1</b> not recognized.").arg(fi.suffix()));
+    msgbox.setInformativeText(tr("Press \"Change\" to change the file name, or \"Use PNG\" to save as PNG."));
+    QPushButton *png = new QPushButton(tr("Use PNG"), &msgbox);
+    msgbox.addButton(png, QMessageBox::AcceptRole);
+    QPushButton *chg  = new QPushButton(tr("Change ..."), &msgbox);
+    msgbox.addButton(chg, QMessageBox::ActionRole);
+    QPushButton *cancel = new QPushButton(tr("Cancel"), &msgbox);
+    msgbox.addButton(cancel, QMessageBox::RejectRole);
+    msgbox.setDefaultButton(chg);
+    msgbox.setEscapeButton(cancel);
+    msgbox.exec();
+    if (msgbox.clickedButton() == png) {
+      format = "png";
+    } else if (msgbox.clickedButton() == cancel) {
+      return;
+    } else {
+      // re-prompt for file name & save (by recursion), and return
+      slotSave(fname);
+      return;
+    }
+  } else {
+    format = formatlist[index];
+  }
+
+  // The Qt dialog, or us, already asked user to confirm overwriting existing files
 
   QByteArray *dataptr = 0;
   if (format == "ps" || format == "eps") {
@@ -867,8 +996,9 @@ void KLFMainWin::slotSave()
   } else if (format == "pdf") {
     dataptr = &_output.pdfdata;
   } else if (format == "png") {
-    dataptr = 0;
+    // we want to add meta-info in PNG image...
     //dataptr = &_output.pngdata;
+    dataptr = 0;
   } else {
     dataptr = 0;
   }
@@ -888,7 +1018,27 @@ void KLFMainWin::slotSave()
   } else {
     // add text information for latex formula, style, etc.
     // with QImageWriter
-    _output.result.save(fname, format.toUpper().toLocal8Bit().constData());
+    QImageWriter writer(fname, format.toUpper().toLatin1());
+    writer.setQuality(90);
+    writer.setText("Application", tr("Created with KLatexFormula version %1").arg(QString::fromAscii(version)));
+    writer.setText("AppVersion", QString::fromLatin1("KLF ")+version);
+    writer.setText("InputLatex", _lastrun_input.latex);
+    writer.setText("InputMathMode", _lastrun_input.mathmode);
+    writer.setText("InputPreamble", _lastrun_input.preamble);
+    writer.setText("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(_lastrun_input.fg_color))
+		   .arg(qGreen(_lastrun_input.fg_color)).arg(qBlue(_lastrun_input.fg_color)));
+    writer.setText("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(_lastrun_input.bg_color))
+		   .arg(qGreen(_lastrun_input.bg_color)).arg(qBlue(_lastrun_input.bg_color))
+		   .arg(qAlpha(_lastrun_input.bg_color)));
+    writer.setText("InputDPI", QString::number(_lastrun_input.dpi));
+
+    //    _output.result.save(fname, format.toUpper().toLocal8Bit().constData());
+
+    bool res = writer.write(_output.result);
+    if ( ! res ) {
+      QMessageBox::critical(this, tr("Error"), writer.errorString());
+      return;
+    }
   }
 
 }
@@ -996,6 +1146,12 @@ void KLFMainWin::slotSettings()
   }
 
   dlg->show();
+}
+
+
+void KLFMainWin::closeEvent(QCloseEvent *event)
+{
+  event->accept();
 }
 
 

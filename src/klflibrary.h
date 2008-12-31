@@ -64,8 +64,9 @@ class KLFLibraryListViewItem : public QTreeWidgetItem
 public:
   enum { Type = 1501 };
 
-  KLFLibraryListViewItem(QTreeWidgetItem *parent, KLFData::KLFLibraryItem item, int ind);
-  KLFLibraryListViewItem(QTreeWidget *parent, KLFData::KLFLibraryItem item, int ind);
+  KLFLibraryListViewItem(QTreeWidgetItem *parent, const KLFData::KLFLibraryItem& item, int ind);
+  KLFLibraryListViewItem(QTreeWidget *parent, const KLFData::KLFLibraryItem& item, int ind);
+  KLFLibraryListViewItem(const KLFData::KLFLibraryItem& item, int ind);
   virtual ~KLFLibraryListViewItem();
 
   virtual QSize sizeHint(int column) const;
@@ -129,19 +130,23 @@ public:
 signals:
   void restoreFromLibrary(KLFData::KLFLibraryItem h, bool restorestyle);
   void selectionChanged();
-  //  void libraryChanged();
 
 public slots:
 
-  //  void slotContextMenu(QListViewItem *item, const QPoint &p, int column);
-  void slotRestoreAll(QTreeWidgetItem *i = 0);
-  void slotRestoreLatex(QTreeWidgetItem *i = 0);
-  void slotDelete(QTreeWidgetItem *i = 0);
-  void slotCopyToResource(int indexInList);
-  void slotMoveToResource(int indexInList);
+  void slotContextMenu(const QPoint &p);
+  void slotRestoreAll();
+  void slotRestoreLatex();
+  void slotDelete();
+  // dont ask confirmation and update library at end:
+  void slotDelete(const QList<uint>& toDeleteIds);
+  void slotCopyToResource(bool move = false);
+  void slotMoveToResource();
+  void slotCopyMoveToResource(uint resourceId, bool move = false);
   // search
   bool slotSearchFind(const QString& text);
-  bool slotSearchFindNext();
+  bool slotSearchFindNext(int direction = 1);
+  bool slotSearchFindPrev();
+  void slotSearchAbort();
 
   // complete refresh, typically connected to libraryChanged() of parent object
   void slotCompleteRefresh();
@@ -205,7 +210,7 @@ public slots:
   void slotDisplayNoDuplicates(bool display);
   void slotClose();
   void slotRefreshButtonsEnabled();
-  void slotTabResourcesSelected(QWidget *selected);
+  void slotTabResourcesSelected(int selected);
   // Now by this we mean a COMPLETE refresh (tab widget is recreated, ...) !
   void slotCompleteRefresh();
   // when selection has changed
@@ -221,7 +226,8 @@ public slots:
   // search
   void slotSearchClear();
   void slotSearchFind(const QString& text);
-  void slotSearchFindNext();
+  void slotSearchFindNext(int direction = 1);
+  void slotSearchFindPrev();
   // import/export actions
   void slotImport(bool keepResources = true); // will restore each item into its given resource in file if keepResources is true
   void slotImportToCurrentResource();
@@ -263,7 +269,6 @@ protected:
   // search bar default palette
   QPalette _dflt_lineedit_pal;
 
-  void reject();
   void closeEvent(QCloseEvent *e);
 
   void setupResourcesListsAndTabs();

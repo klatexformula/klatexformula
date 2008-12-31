@@ -85,7 +85,7 @@ void KLFStyleManager::refreshActionsEnabledState()
     actPopupRename->setEnabled(true);
     int row = lstStyles->row(cur);
     actPopupMoveUp->setEnabled(row > 0);
-    actPopupMoveDown->setEnabled(row < lstStyles->count());
+    actPopupMoveDown->setEnabled(row < lstStyles->count()-1);
   } else {
     actPopupDelete->setEnabled(false);
     actPopupRename->setEnabled(false);

@@ -37,6 +37,7 @@
 #include <QInputDialog>
 #include <QCloseEvent>
 #include <QKeyEvent>
+#include <QDebug>
 
 #include "klfconfig.h"
 #include "klfdata.h"
@@ -64,12 +65,12 @@ void dump_library_list(const KLFData::KLFLibraryList& list, const char *comment)
 
 
 KLFLibraryListCategoryViewItem::KLFLibraryListCategoryViewItem(QTreeWidget *parent, QString category)
-  : QTreeWidgetItem(parent, QStringList("")) , _category(category), _issubcategory(false)
+  : QTreeWidgetItem(parent, QStringList(""), Type) , _category(category), _issubcategory(false)
 {
    setup_category_item();
 }
 KLFLibraryListCategoryViewItem::KLFLibraryListCategoryViewItem(QString subcategory, KLFLibraryListCategoryViewItem *parent)
-  : QTreeWidgetItem(parent, QStringList("")) , _category(subcategory), _issubcategory(true)
+  : QTreeWidgetItem(parent, QStringList(""), Type) , _category(subcategory), _issubcategory(true)
 {
    setup_category_item();
 }
@@ -89,14 +90,21 @@ KLFLibraryListCategoryViewItem::~KLFLibraryListCategoryViewItem()
 {
 }
 
-KLFLibraryListViewItem::KLFLibraryListViewItem(QTreeWidgetItem *v, KLFData::KLFLibraryItem item, int index)
-  : QTreeWidgetItem(v)
+KLFLibraryListViewItem::KLFLibraryListViewItem(QTreeWidgetItem *v, const KLFData::KLFLibraryItem& item, int index)
+  : QTreeWidgetItem(v, Type)
 {
   _ind = index;
   updateLibraryItem(item);
 }
-KLFLibraryListViewItem::KLFLibraryListViewItem(QTreeWidget *v, KLFData::KLFLibraryItem item, int index)
-  : QTreeWidgetItem(v)
+KLFLibraryListViewItem::KLFLibraryListViewItem(QTreeWidget *v, const KLFData::KLFLibraryItem& item, int index)
+  : QTreeWidgetItem(v, Type)
+{
+  _ind = index;
+  updateLibraryItem(item);
+}
+
+KLFLibraryListViewItem::KLFLibraryListViewItem(const KLFData::KLFLibraryItem& item, int index)
+  : QTreeWidgetItem(Type)
 {
   _ind = index;
   updateLibraryItem(item);
@@ -125,8 +133,7 @@ QSize KLFLibraryListViewItem::sizeHint(int column) const
 void KLFLibraryListViewItem::updateLibraryItem(const KLFData::KLFLibraryItem& item)
 {
   _item = item;
-  setText(0, "");
-  setBackground(0, QBrush(_item.preview));
+  setIcon(0, _item.preview);
   QString l = _item.latex;
   l.replace("\n", "\t");
   setText(1, l);
@@ -183,15 +190,15 @@ KLFLibraryListManager::KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrows
 
   _listView->setSortingEnabled(false); // no sorting
 
-  //  connect(_listView, SIGNAL(contextMenuRequested(QListViewItem *, const QPoint&, int)),
-  //	  this, SLOT(slotContextMenu(QListViewItem*, const QPoint&, int)));
+  connect(_listView, SIGNAL(customContextMenuRequested(const QPoint&)),
+	  this, SLOT(slotContextMenu(const QPoint&)));
 
   connect(_listView, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)), this, SIGNAL(selectionChanged()));
   connect(_listView, SIGNAL(itemSelectionChanged()), this, SIGNAL(selectionChanged()));
   connect(_listView, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),
-	  this, SLOT(slotRestoreAll(QTreeWidgetItem*)));
-  connect(_listView, SIGNAL(itemActivated(QTreeWidgetItem *, int)),
-	  this, SLOT(slotRestoreAll(QTreeWidgetItem*)));
+	  this, SLOT(slotRestoreAll()));
+  //  connect(_listView, SIGNAL(itemActivated(QTreeWidgetItem *, int)),
+  //          this, SLOT(slotRestoreAll(QTreeWidgetItem*)));
 
   connect(parent, SIGNAL(libraryChanged()), this, SLOT(slotCompleteRefresh()));
 }
@@ -343,7 +350,7 @@ bool KLFLibraryListManager::updateSelectedInfo(uint which, const QString& catego
     QTreeWidgetItem *p = item->parent();
     if (citem != 0 && citem != p && p != 0) {
       p->takeChild(p->indexOfChild(item));
-      citem->insertChild(-1, item);
+      citem->addChild(item);
     }
 
     _listView->scrollToItem(item);
@@ -367,119 +374,123 @@ KLFData::KLFLibraryList KLFLibraryListManager::getSelectedLibraryItems() const
   return liblist;
 }
 
-// void KLFLibraryListManager::slotContextMenu(QTreeWidgetItem */*item*/, int /*column*/)
-// {
-//   KPopupMenu *menu = new KPopupMenu(_parent);
-//   menu->setCheckable(true);
-//   menu->insertTitle(i18n("Actions"));
-//   int idr1 = menu->insertItem(QIconSet(locate("appdata", "pics/restoreall.png")), i18n("Restore latex formula and style"),
-// 			      this, SLOT(slotRestoreAll()));
-//   int idr2 = menu->insertItem(QIconSet(locate("appdata", "pics/restore.png")), i18n("Restore latex formula only"),
-// 			      this, SLOT(slotRestoreLatex()));
-//   menu->insertSeparator();
-//   int iddel = menu->insertItem(QIconSet(locate("appdata", "pics/delete.png")), i18n("Delete from library"),
-// 			       this, SLOT(slotDelete()));
-//   menu->insertSeparator();
-
-//   KPopupMenu *copytomenu = new KPopupMenu;
-//   copytomenu->insertTitle(i18n("Copy To Resource:"));
-//   uint k;
-//   for (k = 0; k < _reslistptr->size(); ++k) {
-//     if (_reslistptr->operator[](k).id == _myresource.id)
-//       continue;
-//     int idk = copytomenu->insertItem(QIconSet(locate("appdata", "pics/copytores.png")), _reslistptr->operator[](k).name,
-// 				     this, SLOT(slotCopyToResource(int)));
-//     copytomenu->setItemParameter(idk, k);
-//   }
-//   int idcp = menu->insertItem(i18n("Copy to ..."), copytomenu);
-
-//   KPopupMenu *movetomenu = new KPopupMenu;
-//   movetomenu->insertTitle(i18n("Move To Resource:"));
-//   for (k = 0; k < _reslistptr->size(); ++k) {
-//     if (_reslistptr->operator[](k).id == _myresource.id)
-//       continue;
-//     int idk = movetomenu->insertItem(QIconSet(locate("appdata", "pics/movetores.png")), _reslistptr->operator[](k).name,
-// 				     this, SLOT(slotMoveToResource(int)));
-//     movetomenu->setItemParameter(idk, k);
-//   }
-//   int idmv = menu->insertItem(i18n("Move to ..."), movetomenu);
-
-//   // Needed for when user pops up a menu without selection (ie. very short list, free white space under)
-//   bool canre = canRestore(), candel = canDelete();
-//   menu->setItemEnabled(idr1, canre);
-//   menu->setItemEnabled(idr2, canre);
-//   menu->setItemEnabled(iddel, candel);
-//   menu->setItemEnabled(idcp, canre);
-//   menu->setItemEnabled(idmv, canre && candel);
-
-//   menu->popup(p);
-// }
-
-
-void KLFLibraryListManager::slotRestoreAll(QTreeWidgetItem *it)
+void KLFLibraryListManager::slotContextMenu(const QPoint& pos)
 {
-  if (it == 0)
-    it = _listView->currentItem();
+  QMenu *menu = new QMenu(_parent);
+  QAction *a1 = menu->addAction(QIcon(":/pics/restoreall.png"), tr("Restore latex formula and style"),
+				this, SLOT(slotRestoreAll()));
+  QAction *a2 = menu->addAction(QIcon(":/pics/restore.png"), tr("Restore latex formula only"),
+				this, SLOT(slotRestoreLatex()));
+  menu->addSeparator();
+  QAction *adel = menu->addAction(QIcon(":/pics/delete.png"), tr("Delete from library"),
+				  this, SLOT(slotDelete()));
+  menu->addSeparator();
+
+  QMenu *copytomenu = new QMenu;
+  QMenu *movetomenu = new QMenu;
+  int k;
+  QAction *acopy, *amove;
+  for (k = 0; k < _reslistptr->size(); ++k) {
+    if (_reslistptr->at(k).id == _myresource.id)
+      continue;
+    acopy = copytomenu->addAction(_reslistptr->at(k).name, this, SLOT(slotCopyToResource()));
+    acopy->setProperty("resourceId", (uint)_reslistptr->at(k).id);
+    amove = movetomenu->addAction(_reslistptr->at(k).name, this, SLOT(slotMoveToResource()));
+    amove->setProperty("resourceId", (uint)_reslistptr->at(k).id);
+  }
+  QAction *acopyto = menu->addMenu(copytomenu);
+  acopyto->setText(tr("Copy to"));
+  acopyto->setIcon(QIcon(":/pics/copy.png"));
+  QAction *amoveto = menu->addMenu(movetomenu);
+  amoveto->setText(tr("Move to"));
+  amoveto->setIcon(QIcon(":/pics/move.png"));
+
+  menu->addSeparator();
+
+  /*QAction *arefresh =*/ menu->addAction(QIcon(":/pics/refresh.png"), tr("Refresh"),
+					  this, SLOT(slotCompleteRefresh()));
+
+  // Needed for when user pops up a menu without selection (ie. short list, free white space under)
+  bool canre = canRestore(), candel = canDelete();
+  a1->setEnabled(canre);
+  a2->setEnabled(canre);
+  adel->setEnabled(candel);
+  acopyto->setEnabled(canre);
+  amoveto->setEnabled(canre);
+
+  menu->popup(_listView->mapToGlobal(pos));
+}
+
+
+void KLFLibraryListManager::slotRestoreAll()
+{
+  QTreeWidgetItem *it = _listView->currentItem();
   if (it == 0 || it->type() != KLFLibraryListViewItem::Type)
     return;
 
   emit restoreFromLibrary( ((KLFLibraryListViewItem*)it)->libraryItem(), true);
 }
 
-void KLFLibraryListManager::slotRestoreLatex(QTreeWidgetItem *it)
+void KLFLibraryListManager::slotRestoreLatex()
 {
-  if (it == 0)
-    it = _listView->currentItem();
+  QTreeWidgetItem *it = _listView->currentItem();
   if (it == 0 || it->type() != KLFLibraryListViewItem::Type)
     return;
 
   emit restoreFromLibrary( ((KLFLibraryListViewItem*)it)->libraryItem(), false);
 }
 
-void KLFLibraryListManager::slotDelete(QTreeWidgetItem *it)
+void KLFLibraryListManager::slotDelete()
 {
-  if (it == 0) {
-    int k;
-    // get selection
-    QList<QTreeWidgetItem*> list = get_selected_items(_listView, KLFLibraryListViewItem::Type);
-
-    if (!_dont_emit_libchg) { // not only don't emit, but also don't ask questions
-      int r = QMessageBox::question(_parent, tr("delete from Library?"),
-				    tr("Are you sure you want to delete %1 selected item(s) from library?").arg(list.size()),
-				    QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
-      if (r != QMessageBox::Yes)
-	return;
-    }
-
-//DEBUG    printf("libitems->size=%d\n", _libItems->size());
-    // delete items.
-    for (k = 0; k < list.size(); ++k) {
-      // find item with good ID
-      // can't use index() because we're deleting the items and indexes change!
-      int j;
-      for (j = 0; j < _libItems->size() && _libItems->operator[](j).id != ((KLFLibraryListViewItem*)list[k])->libraryItem().id; ++j);
-      if (j >= _libItems->size()) {
-	fprintf(stderr, "ERROR: NASTY: Can't find index for deletion!!! item-id=%d\n", _libItems->operator[](j).id);
-      } else {
-//DEBUG	printf("Erasing Item k=%d which reports an index of %d and is position j=%d in libItems\n", k, ((KLFLibraryListViewItem*)list[k])->index(), j);
-	_libItems->removeAt(j);
-	delete list[k];
-      }
-    }
-//DEBUG    printf("libitems->size=%d\n", _libItems->size());
-
-    // we need to re-update the index() for each item
-    for (k = 0; k < _libItems->size(); ++k) {
-      KLFLibraryListViewItem *itm = itemForId(_libItems->operator[](k).id);
-      if (itm != 0) {
-	itm->updateIndex(k);
-      }
-    }
-
-  } else {
-    _libItems->removeAt( ((KLFLibraryListViewItem*)it)->index() );
-    delete it;
+  int k;
+  // get selection
+  QList<QTreeWidgetItem*> list = get_selected_items(_listView, KLFLibraryListViewItem::Type);
+  
+  if (!_dont_emit_libchg) { // not only don't emit, but also don't ask questions
+    int r = QMessageBox::question(_parent, tr("delete from Library?"),
+				  tr("Are you sure you want to delete %1 selected item(s) from library?").arg(list.size()),
+				  QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
+    if (r != QMessageBox::Yes)
+      return;
   }
+
+  QList<uint> deleteIds;
+
+  for (k = 0; k < list.size(); ++k) {
+    deleteIds.append((dynamic_cast<KLFLibraryListViewItem*>(list[k]))->libraryItem().id);
+  }
+
+  slotDelete(deleteIds);
+}
+
+void KLFLibraryListManager::slotDelete(const QList<uint>& deleteIds)
+{
+  int k, j;
+  // delete items.
+  KLFLibraryListViewItem *itm;
+  for (k = 0; k < deleteIds.size(); ++k) {
+    // find item with good ID
+    itm = itemForId(deleteIds[k]);
+    if (itm == 0) {
+      fprintf(stderr, "ERROR: Can't find item with id `%u'!\n", (uint)deleteIds[k]);
+      continue;
+    }
+    for (j = 0; j < _libItems->size() && _libItems->at(j).id != deleteIds[k]; ++j);
+    if (j >= _libItems->size()) {
+      fprintf(stderr, "ERROR: Can't determine index of library item with id `%u'!\n", (uint)deleteIds[k]);
+      continue;
+    }
+    itm->setHidden(true);
+    _libItems->removeAt(j);
+  }
+  // we need to re-update the index() for each item
+  for (k = 0; k < _libItems->size(); ++k) {
+    KLFLibraryListViewItem *itm = itemForId(_libItems->at(k).id);
+    if (itm != 0) {
+      itm->updateIndex(k);
+    }
+  }
+  
   if (!_dont_emit_libchg) {
     _am_libchg_originator = true;
     _parent->emitLibraryChanged();
@@ -487,63 +498,82 @@ void KLFLibraryListManager::slotDelete(QTreeWidgetItem *it)
   }
 }
 
-void KLFLibraryListManager::slotCopyToResource(int ind)
+void KLFLibraryListManager::slotCopyToResource(bool move)
 {
+  QVariant v = sender()->property("resourceId");
+  if ( ! v.isValid() || ! v.canConvert(QVariant::UInt) )
+    return;
+  uint rid = v.toUInt();
+  slotCopyMoveToResource(rid, move);
+}
+void KLFLibraryListManager::slotMoveToResource()
+{
+  slotCopyToResource(true);
+}
+void KLFLibraryListManager::slotCopyMoveToResource(uint rid, bool move)
+{
+  int ind;
+  for (ind = 0; ind < _reslistptr->size() && _reslistptr->at(ind).id != rid; ++ind);
+  if (ind >= _reslistptr->size()) {
+    fprintf(stderr, "ERROR: Can't find resource id `%d'!\n", rid);
+    return;
+  }
+
   QList<QTreeWidgetItem*> selected = get_selected_items(_listView, KLFLibraryListViewItem::Type);
 
-  KLFData::KLFLibraryResource new_resource = _reslistptr->operator[](ind);
+  KLFData::KLFLibraryResource new_resource = _reslistptr->at(ind);
+
+  QList<uint> deleteIds;
 
   for (int i = 0; i < selected.size(); ++i) {
     int k;
     ulong id = ((KLFLibraryListViewItem*)selected[i])->libraryItem().id;
-    for (k = 0; k < _libItems->size() && _libItems->operator[](k).id != id; ++k);
+    for (k = 0; k < _libItems->size() && _libItems->at(k).id != id; ++k);
     if (k == _libItems->size()) {
-      fprintf(stderr, "ERROR: NASTY: Can't find index for deletion!!!\n");
+      fprintf(stderr, "ERROR: NASTY: Can't find index!!!\n");
     } else {
-      _fulllibraryptr->operator[](new_resource).append(_libItems->operator[](k));
+      _fulllibraryptr->operator[](new_resource).append(_libItems->at(k));
+      if (move) {
+	// if a move is requested, add this id to the list to delete
+	deleteIds.append(id);
+      }
     }
   }
-  if (!_dont_emit_libchg) {
-    _am_libchg_originator = true;
-    _parent->emitLibraryChanged();
-    _am_libchg_originator = false;
+
+  if (move) {
+    slotDelete(deleteIds);
+  } else {
+    if (!_dont_emit_libchg) {
+      _am_libchg_originator = true;
+      _parent->emitLibraryChanged();
+      _am_libchg_originator = false;
+    }
   }
 }
-void KLFLibraryListManager::slotMoveToResource(int ind)
-{
-  _dont_emit_libchg = true;
-  slotCopyToResource(ind);
-  slotDelete(); // _dont_emit_libchg = true  also tells slotDelete to forget about asking questions to user like "Are you sure?"
-  _dont_emit_libchg = false;
-  _parent->emitLibraryChanged();
-}
-
 bool KLFLibraryListManager::slotSearchFind(const QString& s)
 {
   _search_str = s;
   _search_k = _libItems->size();
   return slotSearchFindNext();
 }
-bool KLFLibraryListManager::slotSearchFindNext()
+bool KLFLibraryListManager::slotSearchFindNext(int direction)
 {
   QString s = _search_str;
 
   if (s.isEmpty())
     return false;
 
+  if (direction == 0)
+    direction = 1;
+
   // search _libItems for occurence
   bool found = false;
   int k;
-  for (k = _search_k-1; !found && k >= 0; --k) { // reverse search, find most recent first
-    int i = _libItems->operator[](k).latex.indexOf(s, 0, Qt::CaseInsensitive); // case insensitive search
+  for (k = _search_k-direction; !found && k >= 0 && k < _libItems->size(); k -= direction) { // search in given direction
+    int i = _libItems->at(k).latex.indexOf(s, 0, Qt::CaseInsensitive); // case insensitive search
     if (i != -1) {
-      KLFLibraryListViewItem *item = itemForId(_libItems->operator[](k).id);
+      KLFLibraryListViewItem *item = itemForId(_libItems->at(k).id);
       if (item != 0) {
-	// unselect all items
-	QList<QTreeWidgetItem*> l = _listView->selectedItems();
-	for (int j = 0; j < l.size(); ++j) {
-	  l[j]->setSelected(false);
-	}
 	// we found our item
 	// 'item' points to our item
 	_listView->scrollToItem(item);
@@ -556,24 +586,43 @@ bool KLFLibraryListManager::slotSearchFindNext()
   if (found) {
     _search_k = k;
   } else {
-    _search_k = _libItems->size(); // restart from end next search
+    if (direction > 0)
+      _search_k = _libItems->size(); // restart from end next search
+    else
+      _search_k = -1; // restart from beginning if reverse search is on
 
-    // unselect all items
-    QList<QTreeWidgetItem*> l = _listView->selectedItems();
-    for (int j = 0; j < l.size(); ++j) {
-      l[j]->setSelected(false);
-    }
+//     // unselect all items
+//     QList<QTreeWidgetItem*> l = _listView->selectedItems();
+//     for (int j = 0; j < l.size(); ++j) {
+//       l[j]->setSelected(false);
+//     }
     
     KLFLibraryListViewItem *item = (KLFLibraryListViewItem*) _listView->topLevelItem(0);
     if (item) {
       // small tweaks that work ok
       _listView->scrollToItem(item);
       _listView->setCurrentItem(item, QItemSelectionModel::Clear);
+      item->setSelected(false);
     }
   }
   return found;
 }
-
+bool KLFLibraryListManager::slotSearchFindPrev()
+{
+  return slotSearchFindNext(-1);
+}
+void KLFLibraryListManager::slotSearchAbort()
+{
+  // show top of list, no selection
+  KLFLibraryListViewItem *item = (KLFLibraryListViewItem*) _listView->topLevelItem(0);
+  if (item) {
+    // small tweaks that work ok
+    _listView->scrollToItem(item);
+    _listView->setCurrentItem(item, QItemSelectionModel::Clear);
+    item->setSelected(false);
+  }
+  _search_k = _libItems->size();
+}
 
 void KLFLibraryListManager::slotCompleteRefresh()
 {
@@ -589,15 +638,23 @@ void KLFLibraryListManager::slotCompleteRefresh()
 
   _listView->clear();
   mCategoryItems.clear();
+  KLFLibraryListViewItem *itm;
   for (i = 0; i < _libItems->size(); ++i) {
     // display if [  !("dont display duplicates" AND isduplicate) AND [ "show all" OR "this one is tagged" ]  ]
     // [equivalent to] display if  [  (!"dont display duplicates" OR !isduplicate) AND [ "show all" OR "this one is tagged" ]  ]
     if ( (klfconfig.LibraryBrowser.displayNoDuplicates == false || is_duplicate_of_previous(i) == false) &&
-	(klfconfig.LibraryBrowser.displayTaggedOnly == false || _libItems->operator[](i).tags != "")  ) {
-      if (_flags & ShowCategories)
-	(void) new KLFLibraryListViewItem(itemForCategory(_libItems->operator[](i).category, true), _libItems->operator[](i), i);
-      else
-	(void) new KLFLibraryListViewItem(_listView, _libItems->operator[](i), i);
+	 (klfconfig.LibraryBrowser.displayTaggedOnly == false || _libItems->operator[](i).tags != "")  ) {
+      itm = new KLFLibraryListViewItem(_libItems->operator[](i), i);
+      if (_flags & ShowCategories) {
+	QTreeWidgetItem *catitem = itemForCategory(_libItems->operator[](i).category, true);
+	if (catitem != 0) {
+	  catitem->insertChild(0, itm);
+	} else {
+	  _listView->insertTopLevelItem(0, itm);
+	}
+      } else {
+	_listView->insertTopLevelItem(0, itm);
+      }
     }
   }
   for (i = 0; i < mCategoryItems.size(); ++i) {
@@ -669,7 +726,7 @@ KLFLibraryListViewItem *KLFLibraryListManager::itemForId(uint reqid)
       ++it;
       continue;
     }
-  item = (KLFLibraryListViewItem *)(*it);
+  item = dynamic_cast<KLFLibraryListViewItem*>(*it);
   if (item && item->libraryItem().id == reqid)
       return item;
     ++it;
@@ -683,7 +740,7 @@ KLFLibraryListViewItem *KLFLibraryListManager::itemForId(uint reqid)
 
 
 KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData::KLFLibraryResourceList *reslistptr, KLFMainWin *parent)
-  : QWidget(0), KLFLibraryBrowserUI()
+  : QWidget(parent, Qt::Window), KLFLibraryBrowserUI()
 {
   setupUi(this);
 
@@ -744,6 +801,7 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
   connect(txtSearch, SIGNAL(textChanged(const QString&)), this, SLOT(slotSearchFind(const QString&)));
   connect(txtSearch, SIGNAL(lostFocus()), this, SLOT(resetLneSearchColor()));
   connect(btnFindNext, SIGNAL(clicked()), this, SLOT(slotSearchFindNext()));
+  connect(btnFindPrev, SIGNAL(clicked()), this, SLOT(slotSearchFindPrev()));
   
   connect(btnUpdateCategory, SIGNAL(clicked()), this, SLOT(slotUpdateEditedCategory()));
   connect(btnUpdateTags, SIGNAL(clicked()), this, SLOT(slotUpdateEditedTags()));
@@ -813,8 +871,10 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
     lstview->setHeaderLabels(QStringList() << tr("Preview") << tr("Latex Code"));
     lstview->setColumnWidth(0, 320);
     lstview->setColumnWidth(1, 800);
-    lstview->setProperty("resourceId", QString::number(_libresptr->operator[](k).id));
+    lstview->setIconSize(klfconfig.UI.labelOutputFixedSize);
+    lstview->setProperty("resourceId", (unsigned int)_libresptr->operator[](k).id);
     lstview->setSelectionMode(QTreeWidget::ExtendedSelection);
+    lstview->setContextMenuPolicy(Qt::CustomContextMenu);
     tabResources->addTab(lstview, _libresptr->operator[](k).name);
 
     // the default flags
@@ -839,14 +899,16 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
 
   emitLibraryChanged();
 
-  connect(tabResources, SIGNAL(currentChanged(QWidget *)), this, SLOT(slotTabResourcesSelected(QWidget *)));
+  connect(tabResources, SIGNAL(currentChanged(int)), this, SLOT(slotTabResourcesSelected(int)));
   _currentList = 0;
   tabResources->setCurrentIndex(0);
+  slotTabResourcesSelected(0);
 }
 
 
-void KLFLibraryBrowser::slotTabResourcesSelected(QWidget *cur)
+void KLFLibraryBrowser::slotTabResourcesSelected(int selected)
 {
+  QWidget *cur = tabResources->widget(selected);
   int k;
   _currentList = 0;
   for (k = 0; k < mLists.size(); ++k) {
@@ -875,14 +937,6 @@ void KLFLibraryBrowser::slotTabResourcesSelected(QWidget *cur)
   slotRefreshPreview();
 }
 
-void KLFLibraryBrowser::reject()
-{
-  // this is called when "ESC" is pressed.
-  // ignore event. We don't want to quit unless user selects "Close" and accept(),
-  // possibly the user selects "X" on the window title bar. In this last case, it works even
-  // with this reimplementation of reject() (Qt calls hide()).
-}
-
 void KLFLibraryBrowser::closeEvent(QCloseEvent *e)
 {
   e->accept();
@@ -902,13 +956,14 @@ bool KLFLibraryBrowser::eventFilter(QObject *obj, QEvent *ev)
       QKeyEvent *kev = (QKeyEvent*)ev;
       if (_currentList) {
 	if (kev->key() == Qt::Key_F3) { // find next
-	  slotSearchFindNext();
+	  if (QApplication::keyboardModifiers() & Qt::ShiftModifier)
+	    slotSearchFindPrev();
+	  else
+	    slotSearchFindNext();
 	  return true;
 	}
 	if (kev->key() == Qt::Key_Escape) { // abort search
-	  // > WOW, THIS IS SO UGLY ! ... ain't there a better way ??
-	  _currentList->slotSearchFind(QString("\024\015\077\073\017__badstr__THIS_###_WONT_BE FOUND\033\025\074\057"));
-	  slotSearchFindNext();
+	  _currentList->slotSearchAbort();
 	  txtSearch->setText(""); // reset search
 	  resetLneSearchColor();
 	}
@@ -1108,7 +1163,7 @@ void KLFLibraryBrowser::slotSearchFind(const QString& s)
   }
   txtSearch->setPalette(pal);
 }
-void KLFLibraryBrowser::slotSearchFindNext()
+void KLFLibraryBrowser::slotSearchFindNext(int direction)
 {
   QString s = txtSearch->text();
 
@@ -1119,7 +1174,7 @@ void KLFLibraryBrowser::slotSearchFindNext()
 
   if (!_currentList)
     return;
-  bool res = _currentList->slotSearchFindNext();
+  bool res = _currentList->slotSearchFindNext(direction);
 
   QPalette pal = txtSearch->palette();
   if (res) {
@@ -1128,6 +1183,10 @@ void KLFLibraryBrowser::slotSearchFindNext()
     pal.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorNotFound);
   }
   txtSearch->setPalette(pal);
+}
+void KLFLibraryBrowser::slotSearchFindPrev()
+{
+  slotSearchFindNext(-1);
 }
 
 void KLFLibraryBrowser::resetLneSearchColor()

@@ -6,6 +6,8 @@ TEMPLATE = app
 TARGET = klatexformula
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
+CONFIG += qt debug
+QT = core gui
 
 DEFINES += KLFBACKEND_QT4
 LIBS += -Lklfbackend -lklfbackend

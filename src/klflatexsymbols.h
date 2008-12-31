@@ -76,7 +76,7 @@ private:
 };
 
 
-class KLFLatexSymbols : public QDialog, private Ui::KLFLatexSymbolsUI
+class KLFLatexSymbols : public QWidget, private Ui::KLFLatexSymbolsUI
 {
   Q_OBJECT
 public:
@@ -92,15 +92,9 @@ signals:
 
 public slots:
 
-  void slotClose();
-
-protected slots:
-
   void slotShowCategory(int cat);
 
 protected:
-
-  void reject();
 
   KLFMainWin *_mainwin;
 

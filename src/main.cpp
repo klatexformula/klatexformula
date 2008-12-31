@@ -19,7 +19,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-// $Id: main.cpp,v 1.29 2008/12/14 01:52:37 philippe Exp $
+// $Id: main.cpp,v 1.30 2008/12/27 02:14:54 philippe Exp $
 
 
 #include <QApplication>
@@ -61,9 +61,10 @@ int main(int argc, char **argv)
   klfconfig.loadDefaults(); // must be called before 'readFromConfig'
   klfconfig.readFromConfig();
 
-  KLFMainWin *mainWin = 0;
-  mainWin = new KLFMainWin();
-  mainWin->show();
+  KLFColorChooser::setColorList(klfconfig.UI.userColorList);
+
+  KLFMainWin mainWin;
+  mainWin.show();
 
   return app.exec();
 }

@@ -48,6 +48,9 @@
      <property name="toolTip" >
       <string>Drag and drop styles to move them. Right-click for actions menu.</string>
      </property>
+     <property name="editTriggers" >
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
      <property name="tabKeyNavigation" >
       <bool>true</bool>
      </property>
@@ -58,13 +61,7 @@
       <bool>true</bool>
      </property>
      <property name="dragDropMode" >
-      <enum>QAbstractItemView::NoDragDrop</enum>
-     </property>
-     <property name="selectionMode" >
-      <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior" >
-      <enum>QAbstractItemView::SelectItems</enum>
+      <enum>QAbstractItemView::InternalMove</enum>
      </property>
      <property name="currentRow" >
       <number>-1</number>
@@ -108,7 +105,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- <includes/>
  <resources>
   <include location="klfres.qrc" />
  </resources>

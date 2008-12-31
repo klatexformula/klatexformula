@@ -30,7 +30,7 @@
 
 
 KLFPathChooser::KLFPathChooser(QWidget *parent)
-  : QFrame(parent)
+  : QFrame(parent), _mode(0), _caption(), _filter()
 {
   setFrameShape(QFrame::Box);
   setFrameShadow(QFrame::Raised);
@@ -67,6 +67,8 @@ void KLFPathChooser::requestBrowse()
   if (_mode == 1) {
     // save
     s = QFileDialog::getSaveFileName(this, _caption, txtPath->text(), _filter, &_selectedfilter);
+  } else if (_mode == 2) {
+    s = QFileDialog::getExistingDirectory(this, _caption, txtPath->text(), 0/*options*/);
   } else {
     // open
     s = QFileDialog::getOpenFileName(this, _caption, txtPath->text(), _filter, &_selectedfilter);

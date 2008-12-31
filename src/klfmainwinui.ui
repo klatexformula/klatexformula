@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>848</width>
-    <height>429</height>
+    <height>435</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -525,6 +525,12 @@
          </item>
          <item row="2" column="0" colspan="3" >
           <widget class="QTextEdit" name="txtPreamble" >
+           <property name="sizePolicy" >
+            <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font" >
             <font>
              <pointsize>8</pointsize>
@@ -664,9 +670,6 @@
        </layout>
       </item>
      </layout>
-     <zorder></zorder>
-     <zorder>gbxColors</zorder>
-     <zorder>gbxLatexImage</zorder>
     </widget>
    </item>
   </layout>

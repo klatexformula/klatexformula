@@ -24,6 +24,7 @@
 #define KLFSETTINGS_H
 
 #include <QDialog>
+#include <QTextCharFormat>
 
 #include <klfbackend.h>
 
@@ -45,6 +46,8 @@ public slots:
   void reset();
   void show();
 
+  void apply();
+
   void setDefaultPaths();
 
 protected:
@@ -54,11 +57,24 @@ protected:
 protected slots:
 
   virtual void accept();
-  void slotChangeAppearFont();
+  virtual void slotChangeFont();
 
 private:
 
   KLFMainWin *_mainwin;
+
+  struct TextFormatEnsemble {
+    TextFormatEnsemble(QTextCharFormat *format,
+		       KLFColorChooser *foreground, KLFColorChooser *background,
+		       QCheckBox *chkBold, QCheckBox *chkItalic)
+      : fmt(format), fg(foreground), bg(background), chkB(chkBold), chkI(chkItalic) { }
+    QTextCharFormat *fmt;
+    KLFColorChooser *fg;
+    KLFColorChooser *bg;
+    QCheckBox *chkB;
+    QCheckBox *chkI;
+  };
+  QList<TextFormatEnsemble> _textformats;
 };
 
 #endif

@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>pics/findprev.png</file>
     <file>pics/symbols.png</file>
     <file>pics/actions.png</file>
     <file>pics/badsym.png</file>
@@ -15,6 +16,7 @@
     <file>pics/help.png</file>
     <file>pics/resetdefaults.png</file>
     <file>pics/ok.png</file>
+    <file>pics/apply.png</file>
     <file>pics/insertsymb.png</file>
     <file>pics/managestyles.png</file>
     <file>pics/savestyle.png</file>
@@ -23,16 +25,19 @@
     <file>pics/library.png</file>
     <file>pics/switchshrinked.png</file>
     <file>pics/switchexpanded.png</file>
+    <file>pics/copy.png</file>
+    <file>pics/move.png</file>
+    <file>pics/refresh.png</file>
   </qresource>
   <qresource prefix="/pics" >
     <file>hi32-app-klatexformula.png</file>
     <file>hi64-app-klatexformula.png</file>
     <file>hi16-app-klatexformula.png</file>
   </qresource>
-  <qresource prefix="/latex">
+  <qresource prefix="/latex" >
     <file>klatexformula.cls</file>
   </qresource>
-  <qresource prefix="/data">
+  <qresource prefix="/data" >
     <file>latex_symbols</file>
     <file>symbolspixmapcache_base</file>
   </qresource>
