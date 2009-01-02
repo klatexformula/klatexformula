@@ -34,6 +34,28 @@ KLFConfig klfconfig;
 
 
 
+QString search_path(const QString& prog)
+{
+  static const QString PATH = getenv("PATH");
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+  static const char pathsep = ';';
+#else
+  static const char pathsep = ':';
+#endif
+  static const QStringList paths = PATH.split(pathsep, QString::KeepEmptyParts);
+  QString test;
+  int k;
+  for (k = 0; k < paths.size(); ++k) {
+    test = paths[k] + "/" + prog;
+    if (QFileInfo(test).isExecutable()) {
+      return test;
+    }
+  }
+  return QString::null;
+}
+
+
+
 void settings_write_QTextCharFormat(QSettings& s, const QString& basename, const QTextCharFormat& charfmt)
 {
   //   s.setValue(basename+"_font", charfmt.font());
@@ -119,10 +141,14 @@ void KLFConfig::loadDefaults()
   SyntaxHighlighter.fmtLonelyParen.setFontWeight(QFont::Bold);
 
   BackendSettings.tempDir = QDir::tempPath();
-  BackendSettings.execLatex = "latex";
-  BackendSettings.execDvips = "dvips";
-  BackendSettings.execGs = "gs";
-  BackendSettings.execEpstopdf = "epstopdf";
+  BackendSettings.execLatex = search_path("latex");
+  if (BackendSettings.execLatex.isNull()) BackendSettings.execLatex = "latex";
+  BackendSettings.execDvips = search_path("dvips");
+  if (BackendSettings.execDvips.isNull()) BackendSettings.execDvips = "dvips";
+  BackendSettings.execGs = search_path("gs");
+  if (BackendSettings.execGs.isNull()) BackendSettings.execGs = "gs";
+  BackendSettings.execEpstopdf = search_path("epstopdf");
+  if (BackendSettings.execEpstopdf.isNull()) BackendSettings.execEpstopdf = "";
   BackendSettings.lborderoffset = 1;
   BackendSettings.tborderoffset = 1;
   BackendSettings.rborderoffset = 1;

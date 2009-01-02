@@ -20,11 +20,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <stdlib.h>
+
 #include <QDialog>
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QFontDialog>
+#include <QString>
+#include <QMessageBox>
+#include <QFileInfo>
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
@@ -138,9 +143,38 @@ void KLFSettings::reset()
 }
 
 
+
+bool KLFSettings::setDefaultFor(const QString& prog, bool required, KLFPathChooser *destination)
+{
+  QString progpath = search_path(prog);
+  if (progpath.isNull()) {
+    if (QFileInfo(destination->path()).isExecutable()) {
+      // field already has a valid value, don't touch it and don't complain
+      return true;
+    }
+    if ( ! required )
+      return false;
+    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find `%1' executable !").arg(prog), QMessageBox::Ok);
+    msgbox.setInformativeText(tr("Please check your installation and specify the path"
+				 " to `%1' executable manually if it is not installed"
+				 " in $PATH.").arg(prog));
+    msgbox.setDefaultButton(QMessageBox::Ok);
+    msgbox.setEscapeButton(QMessageBox::Ok);
+    msgbox.exec();
+    return false;
+  }
+
+  destination->setPath(progpath);
+  return true;
+}
+
 void KLFSettings::setDefaultPaths()
 {
-  // ...
+  setDefaultFor("latex", true, pathLatex);
+  setDefaultFor("dvips", true, pathDvips);
+  setDefaultFor("gs", true, pathGs);
+  bool r = setDefaultFor("epstopdf", false, pathEpstopdf);
+  chkEpstopdf->setChecked(r);
 }
 
 

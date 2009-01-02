@@ -75,6 +75,8 @@ private:
     QCheckBox *chkI;
   };
   QList<TextFormatEnsemble> _textformats;
+
+  bool setDefaultFor(const QString& prog, bool required, KLFPathChooser *destination);
 };
 
 #endif

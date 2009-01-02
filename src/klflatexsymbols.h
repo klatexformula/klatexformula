@@ -72,6 +72,7 @@ protected:
 private:
   QFrame *mFrame;
   QGridLayout *mLayout;
+  QSpacerItem *mSpacerItem;
   QList<QWidget*> mSymbols;
 };
 
@@ -106,6 +107,7 @@ protected:
   QList<KLFLatexSymbolsView *> mViews;
 
   void closeEvent(QCloseEvent *ev);
+  void showEvent(QShowEvent *ev);
 };
 
 #endif

@@ -110,7 +110,7 @@ void KLFColorChooser::_makemenu()
 {
   if (mMenu) {
     setMenu(0);
-    delete mMenu;
+    mMenu->deleteLater();
   }
 
   QSize menuIconSize = QSize(16,16);

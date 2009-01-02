@@ -485,32 +485,6 @@ Math Alphabets
 *\usepackage{amsfonts}*\mathbb{X}
 *\usepackage{amsfonts}*\mathbb{Y}
 *\usepackage{amsfonts}*\mathbb{Z}
-*\usepackage{bbm}*\mathbbm{A}
-*\usepackage{bbm}*\mathbbm{B}
-*\usepackage{bbm}*\mathbbm{C}
-*\usepackage{bbm}*\mathbbm{D}
-*\usepackage{bbm}*\mathbbm{E}
-*\usepackage{bbm}*\mathbbm{F}
-*\usepackage{bbm}*\mathbbm{G}
-*\usepackage{bbm}*\mathbbm{H}
-*\usepackage{bbm}*\mathbbm{I}
-*\usepackage{bbm}*\mathbbm{J}
-*\usepackage{bbm}*\mathbbm{K}
-*\usepackage{bbm}*\mathbbm{L}
-*\usepackage{bbm}*\mathbbm{M}
-*\usepackage{bbm}*\mathbbm{N}
-*\usepackage{bbm}*\mathbbm{O}
-*\usepackage{bbm}*\mathbbm{P}
-*\usepackage{bbm}*\mathbbm{Q}
-*\usepackage{bbm}*\mathbbm{R}
-*\usepackage{bbm}*\mathbbm{S}
-*\usepackage{bbm}*\mathbbm{T}
-*\usepackage{bbm}*\mathbbm{U}
-*\usepackage{bbm}*\mathbbm{V}
-*\usepackage{bbm}*\mathbbm{W}
-*\usepackage{bbm}*\mathbbm{X}
-*\usepackage{bbm}*\mathbbm{Y}
-*\usepackage{bbm}*\mathbbm{Z}
 \mathbf{A}
 \mathbf{B}
 \mathbf{C}
@@ -537,6 +511,32 @@ Math Alphabets
 \mathbf{X}
 \mathbf{Y}
 \mathbf{Z}
+*\usepackage{bbm}*\mathbbm{A}
+*\usepackage{bbm}*\mathbbm{B}
+*\usepackage{bbm}*\mathbbm{C}
+*\usepackage{bbm}*\mathbbm{D}
+*\usepackage{bbm}*\mathbbm{E}
+*\usepackage{bbm}*\mathbbm{F}
+*\usepackage{bbm}*\mathbbm{G}
+*\usepackage{bbm}*\mathbbm{H}
+*\usepackage{bbm}*\mathbbm{I}
+*\usepackage{bbm}*\mathbbm{J}
+*\usepackage{bbm}*\mathbbm{K}
+*\usepackage{bbm}*\mathbbm{L}
+*\usepackage{bbm}*\mathbbm{M}
+*\usepackage{bbm}*\mathbbm{N}
+*\usepackage{bbm}*\mathbbm{O}
+*\usepackage{bbm}*\mathbbm{P}
+*\usepackage{bbm}*\mathbbm{Q}
+*\usepackage{bbm}*\mathbbm{R}
+*\usepackage{bbm}*\mathbbm{S}
+*\usepackage{bbm}*\mathbbm{T}
+*\usepackage{bbm}*\mathbbm{U}
+*\usepackage{bbm}*\mathbbm{V}
+*\usepackage{bbm}*\mathbbm{W}
+*\usepackage{bbm}*\mathbbm{X}
+*\usepackage{bbm}*\mathbbm{Y}
+*\usepackage{bbm}*\mathbbm{Z}
 *\usepackage{amsfonts}*\mathfrak{A}
 *\usepackage{amsfonts}*\mathfrak{B}
 *\usepackage{amsfonts}*\mathfrak{C}
@@ -631,7 +631,7 @@ Math Alphabets
 *\usepackage{amssymb,amsmath}*\boldsymbol{\Omega}
 *\usepackage{amssymb,amsmath}*\boldsymbol{\nabla}
 *\usepackage{amssymb,amsmath}*\boldsymbol{\infty}
-*\usepackage{amssymb,amsmath}*\boldsymbol{[sym]}
+*\usepackage{amssymb,amsmath}*\boldsymbol{[bold\ sym.]}
 *\usepackage{amssymb,amsmath}*\text{[Regular text]}
 
 Math Accents

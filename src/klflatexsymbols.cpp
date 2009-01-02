@@ -32,9 +32,10 @@
 #include <QStackedWidget>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QScrollBar>
 #include <QApplication>
-#include <QDebug>
 #include <QCloseEvent>
+#include <QDebug>
 
 #include <klfbackend.h>
 
@@ -207,11 +208,11 @@ KLFLatexSymbolsView::KLFLatexSymbolsView(const QString& category, QWidget *paren
   setWidgetResizable(true);
 
   //  mFrame->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-
   mFrame->setFrameShadow(QFrame::Sunken);
   mFrame->setFrameShape(QFrame::Box);
 
   mLayout = 0;
+  mSpacerItem = 0;
 
   setWidget(mFrame);
 }
@@ -225,30 +226,63 @@ void KLFLatexSymbolsView::buildDisplay()
 {
   mLayout = new QGridLayout(mFrame);
   int i;
-  int n = klfconfig.UI.symbolsPerLine;
   for (i = 0; i < _symbols.size(); ++i) {
     QPushButton *btn = new QPushButton(mFrame);
     btn->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
-    mLayout->addWidget(btn, i/n, i%n, 1, 1);
     QPixmap p = KLFLatexSymbols::cache()->getPixmap(_symbols[i]);
     btn->setIconSize(p.size());
     btn->setIcon(p);
     btn->setProperty("symbol", (unsigned int) i);
+    btn->setProperty("gridpos", QPoint(-1,-1));
+    btn->setProperty("gridcolspan", -1);
+    btn->setProperty("myWidth", p.width() + 4);
     btn->setToolTip(_symbols[i].symbol);
     connect(btn, SIGNAL(clicked()), this, SLOT(slotSymbolActivated()));
     mSymbols.append(btn);
   }
-
-  mLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Fixed, QSizePolicy::Expanding), (i/n)*n+1, 1);
+  mSpacerItem = new QSpacerItem(1, 1, QSizePolicy::Fixed, QSizePolicy::Expanding);
+  recalcLayout();
 }
 
 void KLFLatexSymbolsView::recalcLayout()
 {
-  //   int n = 1 + mFrame->width() / 40;
-  //   int i;
-  //   for (i = 0; i < mSymbols.size(); ++i) {
-  //     mLayout->addWidget(mSymbols[i], i/n, i%n, 1, 1);
-  //   }
+  int row = 0, col = 0, colspan;
+  int n = klfconfig.UI.symbolsPerLine;
+  int quantawidth = 55; // hard-coded here
+  //  printf("DEBUG: n=%d, quantawidth=%d\n", n, quantawidth);
+  int i;
+  // now add them all again as needed
+  for (i = 0; i < mSymbols.size(); ++i) {
+    colspan = 1 + mSymbols[i]->property("myWidth").toInt() / quantawidth;
+    if (colspan < 1)
+      colspan = 1;
+    //    printf("DEBUG: %d: width is %d, colspan is %d\n", i, mSymbols[i]->property("myWidth").toInt(), colspan);
+
+    if (colspan > n)
+      colspan = n;
+    if (col + colspan > n) {
+      row++;
+      col = 0;
+    }
+    if (mSymbols[i]->property("gridpos") != QPoint(row, col) ||
+	mSymbols[i]->property("gridcolspan") != colspan) {
+      //      printf("DEBUG: %d: setting to (%d,%d)+(1,%d)\n", i, row, col, colspan);
+      mSymbols[i]->setProperty("gridpos", QPoint(row, col));
+      mSymbols[i]->setProperty("gridcolspan", colspan);
+      mLayout->removeWidget(mSymbols[i]);
+      mLayout->addWidget(mSymbols[i], row, col, 1, colspan);
+    }
+    col += colspan;
+    if (col >= n) {
+      row++;
+      col = 0;
+    }
+  }
+  // remove spacer and add it again
+  mLayout->removeItem(mSpacerItem);
+  mLayout->addItem(mSpacerItem, row+1, 0);
+
+  setMinimumWidth(mFrame->sizeHint().width() + verticalScrollBar()->width() + 2);
 }
 
 
@@ -443,6 +477,14 @@ void KLFLatexSymbols::closeEvent(QCloseEvent *e)
   emit refreshSymbolBrowserShownState(false);
 }
 
+void KLFLatexSymbols::showEvent(QShowEvent *e)
+{
+  //  int k;
+  //  for (k = 0; k < mViews.size(); ++k) {
+  //    mViews[k]->recalcLayout();
+  //  }
+  QWidget::showEvent(e);
+}
 
 
 

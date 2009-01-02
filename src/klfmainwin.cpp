@@ -194,22 +194,31 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 
 QTextCharFormat KLFLatexSyntaxHighlighter::charfmtForFormat(Format f)
 {
+  QTextCharFormat fmt;
   switch (f) {
   case FNormal:
-    return QTextCharFormat();
+    fmt = QTextCharFormat();
+    break;
   case FKeyWord:
-    return klfconfig.SyntaxHighlighter.fmtKeyword;
+    fmt = klfconfig.SyntaxHighlighter.fmtKeyword;
+    break;
   case FComment:
-    return klfconfig.SyntaxHighlighter.fmtComment;
+    fmt = klfconfig.SyntaxHighlighter.fmtComment;
+    break;
   case FParenMatch:
-    return klfconfig.SyntaxHighlighter.fmtParenMatch;
+    fmt = klfconfig.SyntaxHighlighter.fmtParenMatch;
+    break;
   case FParenMismatch:
-    return klfconfig.SyntaxHighlighter.fmtParenMismatch;
+    fmt = klfconfig.SyntaxHighlighter.fmtParenMismatch;
+    break;
   case FLonelyParen:
-    return klfconfig.SyntaxHighlighter.fmtLonelyParen;
+    fmt = klfconfig.SyntaxHighlighter.fmtLonelyParen;
+    break;
   default:
-    return QTextCharFormat();
+    fmt = QTextCharFormat();
+    break;
   };
+  return fmt;
 }
 
 
@@ -229,9 +238,15 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
     parseEverything();
   }
 
-  setFormat(0, text.length(), QColor(0,0,0));
+  QList<FormatRule> blockfmtrules;
+  QVector<QTextCharFormat> charformats;
 
-  for (int k = 0; k < _rulestoapply.size(); ++k) {
+  charformats.resize(text.length());
+
+  blockfmtrules.append(FormatRule(0, text.length(), FNormal));
+
+  int k, j;
+  for (k = 0; k < _rulestoapply.size(); ++k) {
     int start = _rulestoapply[k].pos - block.position();
     int len = _rulestoapply[k].len;
     
@@ -244,7 +259,16 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
     if (len > text.length() - start)
       len = text.length() - start;
     // apply rule
-    setFormat(start, len, charfmtForFormat(_rulestoapply[k].format));
+    blockfmtrules.append(FormatRule(start, len, _rulestoapply[k].format));
+  }
+
+  for (k = 0; k < blockfmtrules.size(); ++k) {
+    for (j = blockfmtrules[k].pos; j < blockfmtrules[k].end(); ++j) {
+      charformats[j].merge(charfmtForFormat(blockfmtrules[k].format));
+    }
+  }
+  for (j = 0; j < charformats.size(); ++j) {
+    setFormat(j, 1, charformats[j]);
   }
   
   return;
@@ -709,6 +733,9 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
     }
   }
   txtPreamble->setPlainText(preambletext);
+  activateWindow();
+  raise();
+  txtLatex->setFocus();
 }
 
 void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
@@ -874,7 +901,9 @@ void KLFMainWin::slotDrag()
   drag->setMimeData(mime);
   QImage img;
   img = _output.result.scaled(QSize(200, 100), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-  drag->setPixmap(QPixmap::fromImage(img));
+  QPixmap p = QPixmap::fromImage(img);
+  drag->setPixmap(p);
+  drag->setHotSpot(QPoint(p.width()/2, p.height()));
   drag->exec();
 }
 void KLFMainWin::slotCopy()

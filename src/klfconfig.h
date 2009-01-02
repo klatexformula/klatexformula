@@ -101,10 +101,14 @@ public:
 
 };
 
+// utility function
+QString search_path(const QString& prog);
+
 
 
 // defined in main.cpp
 extern KLFConfig klfconfig;
+
 
 
 #endif

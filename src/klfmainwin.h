@@ -93,6 +93,7 @@ private:
     int pos;
     int len;
     Format format;
+    int end() const { return pos + len; }
   };
 
   struct ParenItem {
