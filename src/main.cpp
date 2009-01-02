@@ -19,7 +19,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-// $Id: main.cpp,v 1.30 2008/12/27 02:14:54 philippe Exp $
 
 
 #include <QApplication>
@@ -53,7 +52,7 @@ int main(int argc, char **argv)
 
   app.setFont(QFont("Nimbus Sans L", 10));
 
-  fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2008\n"
+  fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
 	  "Licensed under the terms of the GNU Public License GPL\n\n",
 	  version);
 

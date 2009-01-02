@@ -364,12 +364,12 @@ KLFMainWin::KLFMainWin()
   // Create our style manager
   mStyleManager = new KLFStyleManager(&_styles, this);
   connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(refreshStylePopupMenus()));
-  connect(this, SIGNAL(stylesChanged()), mStyleManager, SLOT(stylesChanged()));
+  connect(this, SIGNAL(stylesChanged()), mStyleManager, SLOT(slotRefresh()));
 
   connect(this, SIGNAL(stylesChanged()), this, SLOT(saveStyles()));
   connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(saveStyles()));
 
-  // load style "default" or "Default" if one of them exists
+  // load style "default" or "Default" (or translation) if one of them exists
   loadNamedStyle("default");
   loadNamedStyle("Default");
   loadNamedStyle(tr("default"));
@@ -378,9 +378,9 @@ KLFMainWin::KLFMainWin()
   // For systematical syntax highlighting
   // make sure syntax highlighting is up-to-date at all times
   QTimer *synthighlighttimer = new QTimer(this);
-  synthighlighttimer->start(250);
   connect(synthighlighttimer, SIGNAL(timeout()), mHighlighter, SLOT(refreshAll()));
   connect(synthighlighttimer, SIGNAL(timeout()), mPreambleHighlighter, SLOT(refreshAll()));
+  synthighlighttimer->start(250);
 
 
   // -- MAJOR SIGNAL/SLOT CONNECTIONS --
@@ -727,7 +727,8 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   QString preambletext = txtPreamble->toPlainText();
   for (k = 0; k < cmds.size(); ++k) {
     if (preambletext.indexOf(cmds[k]) == -1) {
-      if (preambletext[preambletext.length()-1] != '\n')
+      if (preambletext.length() > 0 &&
+	  preambletext[preambletext.length()-1] != '\n')
 	preambletext += "\n";
       preambletext += cmds[k];
     }
@@ -830,8 +831,10 @@ void KLFMainWin::slotEvaluate()
 				   KLFData::KLFStyle() };
     jj.style = currentStyle();
 
-    if ( ! (_library[_libresources[0]].last() == jj) )
+    if ( _library[_libresources[0]].size() == 0 ||
+	 ! (_library[_libresources[0]].last() == jj) ) {
       mLibraryBrowser->addToHistory(jj);
+    }
 
     QSize goodsize = _output.result.size();
     QImage img = _output.result;

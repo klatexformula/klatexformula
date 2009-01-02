@@ -42,6 +42,7 @@ struct KLFLatexSymbol {
   KLFLatexSymbol(const QString& s, const QStringList& p) : symbol(s), preamble(p) { }
 
   QString symbol;
+  bool textmode;
   QStringList preamble;
 
   //  QString symentry();

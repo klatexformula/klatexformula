@@ -370,10 +370,11 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 
   // read our config
   {
-    QString fn = klfconfig.homeConfigDir + "/latex_symbols";
+    QString fn = klfconfig.homeConfigDir + "/latexsymbols.xml";
     if ( ! QFile::exists(fn) ) {
-      QFile::copy(":/data/latex_symbols", fn);
-      QFile::setPermissions(fn, QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
+      //      QFile::copy(":/data/latexsymbols.xml", fn);
+      //      QFile::setPermissions(fn, QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
+      fn = ":/data/latexsymbols.xml";
     }
     QFile f(fn);
     if ( ! f.open(QIODevice::ReadOnly) ) {

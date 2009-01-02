@@ -188,7 +188,20 @@ KLFLibraryListManager::KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrows
   _search_str = QString("");
   _search_k = 0;
 
+  _listView->setHeaderLabels(QStringList() << tr("Preview") << tr("Latex Code"));
+  _listView->setColumnWidth(0, 320);
+  _listView->setColumnWidth(1, 800);
+  _listView->setIconSize(klfconfig.UI.labelOutputFixedSize);
+  _listView->setSelectionMode(QTreeWidget::ExtendedSelection);
+  _listView->setSelectionBehavior(QAbstractItemView::SelectRows);
+  _listView->setContextMenuPolicy(Qt::CustomContextMenu);
+  _listView->setAllColumnsShowFocus(true);
   _listView->setSortingEnabled(false); // no sorting
+  _listView->setAutoScroll(false);
+  _listView->setDragDropMode(QAbstractItemView::NoDragDrop);
+  _listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  _listView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  _listView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
   connect(_listView, SIGNAL(customContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotContextMenu(const QPoint&)));
@@ -667,8 +680,6 @@ void KLFLibraryListManager::slotCompleteRefresh()
       mCategoryItems[i]->setExpanded(showopen);
     }
   }
-  //   _listView->setSorting(0, true); // column zero ascending
-  //   _listView->sort();
 
   //  dump_library_list(*_libItems, "slotCompleteRefresh() done");
 }
@@ -794,6 +805,8 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
   synttimer->start(500);
   connect(synttimer, SIGNAL(timeout()), syntax, SLOT(refreshAll()));
 
+  txtPreviewLatex->setFont(klfconfig.UI.preambleEditFont);
+
   connect(btnDelete, SIGNAL(clicked()), this, SLOT(slotDelete()));
   connect(btnClose, SIGNAL(clicked()), this, SLOT(slotClose()));
 
@@ -868,13 +881,7 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
   uint flags;
   for (k = 0; k < _libresptr->size(); ++k) {
     QTreeWidget *lstview = new QTreeWidget(tabResources);
-    lstview->setHeaderLabels(QStringList() << tr("Preview") << tr("Latex Code"));
-    lstview->setColumnWidth(0, 320);
-    lstview->setColumnWidth(1, 800);
-    lstview->setIconSize(klfconfig.UI.labelOutputFixedSize);
     lstview->setProperty("resourceId", (unsigned int)_libresptr->operator[](k).id);
-    lstview->setSelectionMode(QTreeWidget::ExtendedSelection);
-    lstview->setContextMenuPolicy(Qt::CustomContextMenu);
     tabResources->addTab(lstview, _libresptr->operator[](k).name);
 
     // the default flags

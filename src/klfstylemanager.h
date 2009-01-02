@@ -26,9 +26,32 @@
 #include <QWidget>
 #include <QMenu>
 #include <QListWidget>
+#include <QStringListModel>
 
 #include <klfdata.h>
 #include <ui_klfstylemanagerui.h>
+
+
+class KLFStyleListModel : public QStringListModel
+{
+  Q_OBJECT
+public:
+  KLFStyleListModel(QObject *parent = 0) : QStringListModel(parent) { }
+  virtual ~KLFStyleListModel() { }
+
+  virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+
+  virtual QString styleName(int row) const;
+  virtual void setStyleName(int row, const QString& newname);
+
+  Qt::DropActions supportedDropActions() const;
+  QStringList mimeTypes() const;
+  QMimeData *mimeData(const QModelIndexList& indexes) const;
+  bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+
+signals:
+  void internalMoveCompleted(int prevrow, int newrow);
+};
 
 
 class KLFStyleManager : public QWidget, private Ui::KLFStyleManagerUI
@@ -39,12 +62,11 @@ public:
   ~KLFStyleManager();
 
 signals:
-
   void refreshStyles();
 
 public slots:
 
-  void stylesChanged();
+  void slotRefresh();
 
   void slotDelete();
   void slotMoveUp();
@@ -53,6 +75,9 @@ public slots:
 
   void refreshActionsEnabledState();
   void showActionsContextMenu(const QPoint& pos);
+
+protected slots:
+  void slotModelMoveCompleted(int previouspos, int newpos);
 
 private:
   KLFData::KLFStyleList *_styptr;
@@ -64,10 +89,13 @@ private:
   QAction *actPopupMoveDown;
   QAction *actPopupRename;
 
+  KLFStyleListModel *mStyleListModel;
 
   QPoint _drag_init_pos;
   QListWidgetItem *_drag_item;
   /*  QListBoxItem *mDropIndicatorItem; */
+
+  int currentRow();
 };
 
 #endif
