@@ -37,6 +37,9 @@
 #include <QCloseEvent>
 #include <QDebug>
 
+#include <QDomDocument>
+#include <QDomElement>
+
 #include <klfbackend.h>
 
 #include "klfmainwin.h"
@@ -66,9 +69,91 @@ KLFLatexSymbol::KLFLatexSymbol(const QString& symentry)
     symbol = symentry;
   }
 
+  textmode = false;
+
   preamble = xtra.split("%%");
+
+  bbexpand = BBOffset(1, 1, 1, 1);
 }
 
+KLFLatexSymbol::KLFLatexSymbol(const QDomElement& e)
+  : symbol(), preamble(), textmode(false), bbexpand()
+{
+  // preamble
+  QDomNodeList preamblelinelist = e.elementsByTagName("preambleline");
+  int k;
+  for (k = 0; k < preamblelinelist.size(); ++k) {
+    preamble.append(preamblelinelist.at(k).toElement().text());
+  }
+  QDomNodeList usepackagelist = e.elementsByTagName("usepackage");
+  for (k = 0; k < usepackagelist.size(); ++k) {
+    QString package = usepackagelist.at(k).toElement().attribute("name");
+    if (package[0] == '[' || package[0] == '{')
+      preamble.append(QString::fromAscii("\\usepackage%1").arg(package));
+    else
+      preamble.append(QString::fromAscii("\\usepackage{%1}").arg(package));
+  }
+  // textmode
+  if (e.attribute("textmode") == "true")
+    textmode = true;
+  else
+    textmode = false;
+
+  // bb offset
+  QDomNodeList bblist = e.elementsByTagName("bb");
+  if (bblist.size() > 1) {
+    fprintf(stderr, "WARNING: Expected at most single <bb expand=\"..\"/> item!\n");
+  }
+  if (bblist.size()) {
+    sscanf(bblist.at(0).toElement().attribute("expand").toLatin1().constData(), "%d,%d,%d,%d",
+	   &bbexpand.t, &bbexpand.r, &bbexpand.b, &bbexpand.l);
+  }
+
+  // latex code
+  QDomNodeList latexlist = e.elementsByTagName("latex");
+  if (latexlist.size() != 1) {
+    fprintf(stderr, "WARNING: Expected single <latex>...</latex> in symbol entry!\n");
+  }
+  if (latexlist.size() == 0)
+    return;
+  symbol = latexlist.at(0).toElement().text();
+
+}
+
+bool operator<(const KLFLatexSymbol& a, const KLFLatexSymbol& b)
+{
+  if (a.symbol != b.symbol)
+    return a.symbol < b.symbol;
+  if (a.textmode != b.textmode)
+    return a.textmode < b.textmode;
+  if (a.preamble.size() != b.preamble.size())
+    return a.preamble.size() < b.preamble.size();
+  int k;
+  for (k = 0; k < a.preamble.size(); ++k)
+    if (a.preamble[k] != b.preamble[k])
+      return a.preamble[k] < b.preamble[k];
+  // a and b seem to be equal
+  return false;
+}
+
+QDataStream& operator<<(QDataStream& stream, const KLFLatexSymbol& s)
+{
+  return stream << s.symbol << s.preamble << (quint8)s.textmode << (qint16)s.bbexpand.t
+		<< (qint16)s.bbexpand.r << (qint16)s.bbexpand.b << (qint16)s.bbexpand.l;
+}
+
+QDataStream& operator>>(QDataStream& stream, KLFLatexSymbol& s)
+{
+  quint8 textmode;
+  struct { qint16 t, r, b, l; } readbbexpand;
+  stream >> s.symbol >> s.preamble >> textmode >> readbbexpand.t >> readbbexpand.r >> readbbexpand.b >> readbbexpand.l;
+  s.bbexpand.t = readbbexpand.t;
+  s.bbexpand.r = readbbexpand.r;
+  s.bbexpand.b = readbbexpand.b;
+  s.bbexpand.l = readbbexpand.l;
+  s.textmode = textmode;
+  return stream;
+}
 
 
 
@@ -76,7 +161,7 @@ class KLFLatexSymbolsCache
 {
 public:
 
-  enum { Ok = 0, BadHeader, TooRecentVersion };
+  enum { Ok = 0, BadHeader, BadVersion };
 
   KLFLatexSymbolsCache()
   {
@@ -92,18 +177,13 @@ public:
     qint16 vmaj, vmin;
     stream >> vmaj >> vmin;
 
-    if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
-      return TooRecentVersion;
+    if (vmaj != version_maj || vmin != version_min) {
+      return BadVersion;
     }
-    if (vmaj <= 2) { // KLF 2.x with Qt3
-      // Qt3-compatible stream input
-      stream.setVersion(QDataStream::Qt_3_3);
-    } else {
-      // KLF 3.x, we saved the stream version, read it now
-      qint16 version;
-      stream >> version;
-      stream.setVersion(version);
-    }
+    // KLF 3.x, we saved the stream version, read it now
+    qint16 version;
+    stream >> version;
+    stream.setVersion(version);
 
     stream >> cache;
     return 0;
@@ -120,25 +200,25 @@ public:
 
   QPixmap getPixmap(const KLFLatexSymbol& sym, bool fromcacheonly = true)
   {
-    if (cache.contains(sym.symbol))
-      return cache[sym.symbol];
+    if (cache.contains(sym))
+      return cache[sym];
 
     if (fromcacheonly) // if we weren't able to load it from cache, show failed icon
       return QPixmap(":/pics/badsym.png");
 
     KLFBackend::klfInput in;
     in.latex = sym.symbol;
-    in.mathmode = "\\[ ... \\]";
+    in.mathmode = sym.textmode ? "..." : "\\[ ... \\]";
     in.preamble = sym.preamble.join("\n")+"\n";
     in.fg_color = qRgb(0,0,0);
     in.bg_color = qRgba(255,255,255,0); // transparent Bg
     in.dpi = 150;
 
     backendsettings.epstopdfexec = ""; // don't waste time making PDF, we don't need it
-    backendsettings.tborderoffset = backendsettings.tborderoffset >= 1 ? backendsettings.tborderoffset : 1;
-    backendsettings.rborderoffset = backendsettings.rborderoffset >= 3 ? backendsettings.rborderoffset : 3;
-    backendsettings.bborderoffset = backendsettings.bborderoffset >= 1 ? backendsettings.bborderoffset : 1;
-    backendsettings.lborderoffset = backendsettings.lborderoffset >= 1 ? backendsettings.lborderoffset : 1;
+    backendsettings.tborderoffset = sym.bbexpand.t;
+    backendsettings.rborderoffset = sym.bbexpand.r;
+    backendsettings.bborderoffset = sym.bbexpand.b;
+    backendsettings.lborderoffset = sym.bbexpand.l;
 
     KLFBackend::klfOutput out = KLFBackend::getLatexFormula(in, backendsettings);
 
@@ -149,7 +229,7 @@ public:
     }
 
     QPixmap pix = QPixmap::fromImage(out.result);
-    cache[sym.symbol] = pix;
+    cache[sym] = pix;
 
     return pix;
   }
@@ -185,7 +265,7 @@ public:
 
   KLFBackend::klfSettings backendsettings;
 
-  QMap<QString,QPixmap> cache;
+  QMap<KLFLatexSymbol,QPixmap> cache;
 
 };
 
@@ -376,27 +456,45 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
       //      QFile::setPermissions(fn, QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
       fn = ":/data/latexsymbols.xml";
     }
-    QFile f(fn);
-    if ( ! f.open(QIODevice::ReadOnly) ) {
-      qCritical() << tr("Can't open file `%1' !!").arg(fn);
+    QFile file(fn);
+    if ( ! file.open(QIODevice::ReadOnly) ) {
+      fprintf(stderr, "Error: Can't open latex symbols XML file `%s'!\n", fn.toLocal8Bit().constData());
     }
 
-    // read all symbols
-    QTextStream stream(&f);
-    QString heading;
-    QList<KLFLatexSymbol> l;
-    QString s;
+    QDomDocument doc("latexsymbols");
+    doc.setContent(&file);
+    file.close();
 
-    do {
-      l.clear();
-      heading = stream.readLine();
-
-      while ( ! heading.isEmpty() && ! (s = stream.readLine()).isEmpty() ) {
-	KLFLatexSymbol sym(s);
-	l.append(sym);
-	allsymbols.append(sym);
-      }
-      if ( ! heading.isEmpty() ) {
+    QDomElement root = doc.documentElement();
+    if (root.nodeName() != "latexsymbollist") {
+      fprintf(stderr, "Error parsing XML for latex symbols from file `%s'!\n", fn.toLocal8Bit().constData());
+    } else {
+      QDomNode n;
+      for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+	QDomElement e = n.toElement(); // try to convert the node to an element.
+	if ( e.isNull() || e.nodeType() != QDomNode::ElementNode )
+	  continue;
+	if ( e.nodeName() != "category" ) {
+	  fprintf(stderr, "WARNING in parsing XML : ignoring unexpected tag `%s'!\n", e.nodeName().toLocal8Bit().constData());
+	  continue;
+	}
+	// read category
+	QString heading = e.attribute("name");
+	QList<KLFLatexSymbol> l;
+	QDomNode esym;
+	for (esym = e.firstChild(); ! esym.isNull(); esym = esym.nextSibling() ) {
+	  if ( esym.isNull() || esym.nodeType() != QDomNode::ElementNode )
+	    continue;
+	  if ( esym.nodeName() != "sym" ) {
+	    fprintf(stderr, "WARNING in parsing XML : ignoring unexpected tag `%s' in category `%s'!\n",
+		    esym.nodeName().toLocal8Bit().constData(), heading.toLocal8Bit().constData());
+	    continue;
+	  }
+	  KLFLatexSymbol sym(esym.toElement());
+	  l.append(sym);
+	  allsymbols.append(sym);
+	}
+	// and add this category
 	KLFLatexSymbolsView *view = new KLFLatexSymbolsView(heading, stkViews);
 	view->setSymbolList(l);
 	connect(view, SIGNAL(symbolActivated(const KLFLatexSymbol&)), this, SIGNAL(insertSymbol(const KLFLatexSymbol&)));
@@ -404,7 +502,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 	stkViews->addWidget(view);
 	cbxCategory->addItem(heading);
       }
-    } while ( ! heading.isNull() ) ;
+    }
   }
 
   // pre-cache all our symbols

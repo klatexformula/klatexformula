@@ -29,6 +29,7 @@
 #include <QEvent>
 #include <QStackedWidget>
 #include <QScrollArea>
+#include <QDomElement>
 
 #include <ui_klflatexsymbolsui.h>
 
@@ -38,12 +39,18 @@ class KLFMainWin;
 class KLFLatexSymbolsCache; // see klflatexsymbols.cpp
 
 struct KLFLatexSymbol {
+  KLFLatexSymbol() : symbol(), preamble(), textmode(false) { }
+  KLFLatexSymbol(const QString& s, const QStringList& p, bool txtmod) : symbol(s), preamble(p), textmode(txtmod) { }
   KLFLatexSymbol(const QString& symentry);
-  KLFLatexSymbol(const QString& s, const QStringList& p) : symbol(s), preamble(p) { }
+  KLFLatexSymbol(const QDomElement& e);
 
   QString symbol;
-  bool textmode;
   QStringList preamble;
+  bool textmode;
+  struct BBOffset {
+    BBOffset(int top = 0, int ri = 0, int bo = 0, int le = 0) : t(top), r(ri), b(bo), l(le) { }
+    int t, r, b, l;
+  } bbexpand;
 
   //  QString symentry();
 };

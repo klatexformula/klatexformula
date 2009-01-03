@@ -38,7 +38,7 @@
     <file>klatexformula.cls</file>
   </qresource>
   <qresource prefix="/data" >
-    <file>latex_symbols</file>
+    <file>latexsymbols.xml</file>
     <file>symbolspixmapcache_base</file>
   </qresource>
 </RCC>

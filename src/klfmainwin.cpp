@@ -113,25 +113,28 @@ void KLFLatexSyntaxHighlighter::parseEverything()
       text += "\n";
     }
 
-    for (i = 0; i < text.length(); ++i) {
+    i = 0;
+    while ( i < text.length() ) {
       if (text[i] == '\\') {
 	++i;
 	k = 0;
-	if (i >= text.length()) continue;
-	if ( (text[i] >= 'a' && text[i+k] <= 'z') || (text[i+k] >= 'A' && text[i+k] <= 'Z') )
-	  while (i+k < text.length() && ( (text[i+k] >= 'a' && text[i+k] <= 'z') || (text[i+k] >= 'A' && text[i+k] <= 'Z') ))
-	    ++k;
-	else
+	if (i >= text.length())
+	  continue;
+	while (i+k < text.length() && ( (text[i+k] >= 'a' && text[i+k] <= 'z') || (text[i+k] >= 'A' && text[i+k] <= 'Z') ))
+	  ++k;
+	if (k == 0 && i+1 < text.length())
 	  k = 1;
 	_rulestoapply.append(FormatRule(blockpos+i-1, k+1, FKeyWord));
-	i += k-1;
+	i += k;
+	continue;
       }
       if (text[i] == '%') {
 	k = 0;
 	while (i+k < text.length() && text[i+k] != '\n')
 	  ++k;
 	_rulestoapply.append(FormatRule(blockpos+i, k, FComment));
-	i += k;
+	i += k + 1;
+	continue;
       }
       if (text[i] == '{' || text[i] == '(' || text[i] == '[') {
 	bool l = false;
@@ -169,6 +172,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	  }
 	}
       }
+      ++i;
     }
 
     block = block.next();
@@ -720,20 +724,33 @@ void KLFMainWin::slotLibraryButtonRefreshState(bool on)
 
 void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
 {
-  txtLatex->insertPlainText(s.symbol);
+  QTextCursor c1(txtLatex->document());
+  c1.beginEditBlock();
+  c1.setPosition(txtLatex->textCursor().position());
+  c1.insertText(s.symbol+"\n");
+  c1.deletePreviousChar(); // small hack
+  c1.endEditBlock();
   // see if we need to insert the xtrapreamble
   QStringList cmds = s.preamble;
   int k;
   QString preambletext = txtPreamble->toPlainText();
+  QString addtext;
+  QTextCursor c = txtPreamble->textCursor();
+  c.beginEditBlock();
+  c.movePosition(QTextCursor::End);
   for (k = 0; k < cmds.size(); ++k) {
     if (preambletext.indexOf(cmds[k]) == -1) {
+      addtext = "";
       if (preambletext.length() > 0 &&
 	  preambletext[preambletext.length()-1] != '\n')
-	preambletext += "\n";
-      preambletext += cmds[k];
+	addtext = "\n";
+      addtext += cmds[k];
+      c.insertText(addtext);
+      preambletext += addtext;
     }
   }
-  txtPreamble->setPlainText(preambletext);
+  c.endEditBlock();
+  //  txtPreamble->setPlainText(preambletext);
   activateWindow();
   raise();
   txtLatex->setFocus();
