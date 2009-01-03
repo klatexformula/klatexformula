@@ -206,13 +206,15 @@ public:
     if (fromcacheonly) // if we weren't able to load it from cache, show failed icon
       return QPixmap(":/pics/badsym.png");
 
+    const float mag = 4.0;
+
     KLFBackend::klfInput in;
     in.latex = sym.symbol;
     in.mathmode = sym.textmode ? "..." : "\\[ ... \\]";
     in.preamble = sym.preamble.join("\n")+"\n";
     in.fg_color = qRgb(0,0,0);
     in.bg_color = qRgba(255,255,255,0); // transparent Bg
-    in.dpi = 150;
+    in.dpi = mag * 150;
 
     backendsettings.epstopdfexec = ""; // don't waste time making PDF, we don't need it
     backendsettings.tborderoffset = sym.bbexpand.t;
@@ -228,7 +230,9 @@ public:
       return QPixmap(":/pics/badsym.png");
     }
 
-    QPixmap pix = QPixmap::fromImage(out.result);
+    QImage scaled = out.result.scaled((int)(out.result.width() / mag), (int)(out.result.height() / mag),
+				      Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    QPixmap pix = QPixmap::fromImage(scaled);
     cache[sym] = pix;
 
     return pix;

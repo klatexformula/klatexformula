@@ -728,7 +728,7 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   c1.beginEditBlock();
   c1.setPosition(txtLatex->textCursor().position());
   c1.insertText(s.symbol+"\n");
-  c1.deletePreviousChar(); // small hack
+  c1.deletePreviousChar(); // small hack for forcing a separate undo command when two symbols are inserted
   c1.endEditBlock();
   // see if we need to insert the xtrapreamble
   QStringList cmds = s.preamble;
@@ -750,7 +750,7 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
     }
   }
   c.endEditBlock();
-  //  txtPreamble->setPlainText(preambletext);
+
   activateWindow();
   raise();
   txtLatex->setFocus();
