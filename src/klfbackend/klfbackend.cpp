@@ -32,9 +32,6 @@
 #include "klfblockprocess.h"
 #include "klfbackend.h"
 
-/** This may change in the future to provide translated error strings */
-#define TRANSLATE(x) QString(x)
-
 
 KLFBackend::KLFBackend()
 {
@@ -42,10 +39,10 @@ KLFBackend::KLFBackend()
 
 
 // Utility function
-QString progErrorMsg(QString progname, int exitstatus, QString stderr, QString stdout)
+QString progErrorMsg(QString progname, int exitstatus, QString stderrstr, QString stdoutstr)
 {
-  QString stdouthtml = stdout;
-  QString stderrhtml = stderr;
+  QString stdouthtml = stdoutstr;
+  QString stderrhtml = stderrstr;
   stdouthtml.replace("&", "&amp;");
   stdouthtml.replace("<", "&lt;");
   stdouthtml.replace(">", "&gt;");
@@ -53,20 +50,20 @@ QString progErrorMsg(QString progname, int exitstatus, QString stderr, QString s
   stderrhtml.replace("<", "&lt;");
   stderrhtml.replace(">", "&gt;");
 
-  if (stderr.isEmpty() && stdout.isEmpty())
-    return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). No Output was generated.</p>")
+  if (stderrstr.isEmpty() && stdoutstr.isEmpty())
+    return QObject::tr("<p><b>%1</b> reported an error (exit status %2). No Output was generated.</p>")
 	.arg(progname).arg(exitstatus);
-  if (stderr.isEmpty())
-    return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stdout output:</p>\n"
-		     "<pre>\n%3</pre>")
+  if (stderrstr.isEmpty())
+    return QObject::tr("<p><b>%1</b> reported an error (exit status %2). Here is full stdout output:</p>\n"
+		       "<pre>\n%3</pre>")
       .arg(progname).arg(exitstatus).arg(stdouthtml);
-  if (stdout.isEmpty())
-    return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
-		     "<pre>\n%3</pre>")
+  if (stdoutstr.isEmpty())
+    return QObject::tr("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
+		       "<pre>\n%3</pre>")
       .arg(progname).arg(exitstatus).arg(stderrhtml);
-
-  return TRANSLATE("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
-		   "<pre>\n%3</pre><p>And here is full stdout output:</p><pre>\n%4</pre>")
+  
+  return QObject::tr("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
+		     "<pre>\n%3</pre><p>And here is full stdout output:</p><pre>\n%4</pre>")
     .arg(progname).arg(exitstatus).arg(stderrhtml).arg(stdouthtml);
 }
 
@@ -99,7 +96,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   QString latexsimplified = in.latex.stripWhiteSpace();
 #endif
   if (latexsimplified.isEmpty()) {
-    res.errorstr = TRANSLATE("You must specify a LaTeX formula!");
+    res.errorstr = QObject::tr("You must specify a LaTeX formula!");
     res.status = -1;
     return res;
   }
@@ -107,7 +104,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   QString latexin;
   if (in.mathmode.contains("...") == 0) {
     res.status = -2;
-    res.errorstr = TRANSLATE("The math mode string doesn't contain '...'!");
+    res.errorstr = QObject::tr("The math mode string doesn't contain '...'!");
     return res;
   }
   latexin = in.mathmode;
@@ -122,7 +119,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 #endif
     if ( ! r ) {
       res.status = -3;
-      res.errorstr = TRANSLATE("Can't open file for writing: '%1'!").arg(tempfname+".tex");
+      res.errorstr = QObject::tr("Can't open file for writing: '%1'!").arg(tempfname+".tex");
       return res;
     }
     QTextStream stream(&file);
@@ -175,12 +172,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     if (!r) {
       res.status = -4;
-      res.errorstr = TRANSLATE("Unable to start Latex!");
+      res.errorstr = QObject::tr("Unable to start Latex!");
       return res;
     }
     if (!proc.normalExit()) {
       res.status = -5;
-      res.errorstr = TRANSLATE("Latex was killed!");
+      res.errorstr = QObject::tr("Latex was killed!");
       return res;
     }
     if (proc.exitStatus() != 0) {
@@ -192,7 +189,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     if (!QFile::exists(tempfname + ".dvi")) {
       res.status = -6;
-      res.errorstr = TRANSLATE("DVI file didn't appear after having called Latex!");
+      res.errorstr = QObject::tr("DVI file didn't appear after having called Latex!");
       return res;
     }
 
@@ -208,12 +205,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     if ( ! r ) {
       res.status = -7;
-      res.errorstr = TRANSLATE("Unable to start dvips!\n");
+      res.errorstr = QObject::tr("Unable to start dvips!\n");
       return res;
     }
     if ( !proc.normalExit() ) {
       res.status = -8;
-      res.errorstr = TRANSLATE("Dvips was mercilessly killed!\n");
+      res.errorstr = QObject::tr("Dvips was mercilessly killed!\n");
       return res;
     }
     if ( proc.exitStatus() != 0) {
@@ -223,7 +220,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     if (!QFile::exists(tempfname + ".eps")) {
       res.status = -9;
-      res.errorstr = TRANSLATE("EPS file didn't appear after dvips call!\n");
+      res.errorstr = QObject::tr("EPS file didn't appear after dvips call!\n");
       return res;
     }
 
@@ -237,7 +234,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 #endif
     if ( ! r ) {
       res.status = -10;
-      res.errorstr = TRANSLATE("Can't read file '%1'!\n").arg(tempfname+".eps");
+      res.errorstr = QObject::tr("Can't read file '%1'!\n").arg(tempfname+".eps");
       return res;
     }
     QByteArray epscontent = epsfile.readAll();
@@ -245,7 +242,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     int i = epscontent.indexOf("%%BoundingBox: ");
     if ( i == -1 ) {
       res.status = -11;
-      res.errorstr = TRANSLATE("File '%1' does not contain line \"%%BoundingBox: ... \" !").arg(tempfname+".eps");
+      res.errorstr = QObject::tr("File '%1' does not contain line \"%%BoundingBox: ... \" !").arg(tempfname+".eps");
     }
     int ax, ay, bx, by;
     char temp[250];
@@ -254,7 +251,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     int n = sscanf(epscontent.constData()+i, "%d %d %d %d", &ax, &ay, &bx, &by);
     if ( n != 4 ) {
       res.status = -12;
-      res.errorstr = TRANSLATE("file %1: Line %%BoundingBox: can't read values!\n").arg(tempfname+".eps");
+      res.errorstr = QObject::tr("file %1: Line %%BoundingBox: can't read values!\n").arg(tempfname+".eps");
       return res;
     }
     // Don't forget: '%' in printf has special meaning
@@ -272,7 +269,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     int i = epscontent_s.find("%%BoundingBox: ");
     if ( i == -1 ) {
       res.status = -11;
-      res.errorstr = TRANSLATE("File '%1' does not contain line \"%%BoundingBox: ... \" !").arg(tempfname+".eps");
+      res.errorstr = QObject::tr("File '%1' does not contain line \"%%BoundingBox: ... \" !").arg(tempfname+".eps");
       return res;
     }
     int ax, ay, bx, by;
@@ -281,7 +278,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     int n = sscanf((const char*)epscontent_s+i, "%d %d %d %d", &ax, &ay, &bx, &by);
     if ( n != 4 ) {
       res.status = -12;
-      res.errorstr = TRANSLATE("file %1: Line %%BoundingBox: can't read values!\n").arg(tempfname+".eps");
+      res.errorstr = QObject::tr("file %1: Line %%BoundingBox: can't read values!\n").arg(tempfname+".eps");
       return res;
     }
     sprintf(temp, "%%%%BoundingBox: %d %d %d %d", ax-settings.lborderoffset, ay-settings.bborderoffset,
@@ -298,7 +295,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 #endif
     if ( ! r ) {
       res.status = -13;
-      res.errorstr = TRANSLATE("Can't write to file '%1'!\n").arg(tempfname+"-good.eps");
+      res.errorstr = QObject::tr("Can't write to file '%1'!\n").arg(tempfname+"-good.eps");
       return res;
     }
 #ifdef KLFBACKEND_QT4
@@ -326,12 +323,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   
     if ( ! r ) {
       res.status = -7;
-      res.errorstr = TRANSLATE("Unable to start gs!\n");
+      res.errorstr = QObject::tr("Unable to start gs!\n");
       return res;
     }
     if ( !proc.normalExit() ) {
       res.status = -8;
-      res.errorstr = TRANSLATE("gs died abnormally!\n");
+      res.errorstr = QObject::tr("gs died abnormally!\n");
       return res;
     }
     if ( proc.exitStatus() != 0) {
@@ -341,7 +338,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     if (!QFile::exists(tempfname + ".png")) {
       res.status = -9;
-      res.errorstr = TRANSLATE("PNG file didn't appear after call to gs!\n");
+      res.errorstr = QObject::tr("PNG file didn't appear after call to gs!\n");
       return res;
     }
 
@@ -354,7 +351,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 #endif
     if ( ! r ) {
       res.status = -10;
-      res.errorstr = TRANSLATE("Unable to read file %1!\n").arg(tempfname+".png");
+      res.errorstr = QObject::tr("Unable to read file %1!\n").arg(tempfname+".png");
       return res;
     }
     res.pngdata = pngfile.readAll();
@@ -374,12 +371,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     if ( ! r ) {
       res.status = -11;
-      res.errorstr = TRANSLATE("Unable to start epstopdf!\n");
+      res.errorstr = QObject::tr("Unable to start epstopdf!\n");
       return res;
     }
     if ( !proc.normalExit() ) {
       res.status = -12;
-      res.errorstr = TRANSLATE("epstopdf died nastily!\n");
+      res.errorstr = QObject::tr("epstopdf died nastily!\n");
       return res;
     }
     if ( proc.exitStatus() != 0) {
@@ -389,7 +386,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     if (!QFile::exists(tempfname + ".pdf")) {
       res.status = -13;
-      res.errorstr = TRANSLATE("PDF file didn't appear after call to epstopdf!\n");
+      res.errorstr = QObject::tr("PDF file didn't appear after call to epstopdf!\n");
       return res;
     }
 
@@ -402,7 +399,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 #endif
     if ( ! r ) {
       res.status = -14;
-      res.errorstr = TRANSLATE("Unable to read file %1!\n").arg(tempfname+".pdf");
+      res.errorstr = QObject::tr("Unable to read file %1!\n").arg(tempfname+".pdf");
       return res;
     }
     res.pdfdata = pdffile.readAll();

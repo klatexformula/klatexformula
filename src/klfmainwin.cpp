@@ -164,11 +164,11 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)
 	if (p.highlight || (_caretpos == blockpos+i+1)) {
 	  if ((klfconfig.SyntaxHighlighter.configFlags & HighlightParensOnly) == 0) {
-	    _rulestoapply.append(FormatRule(p.pos, blockpos+i+1-p.pos, col));
+	    _rulestoapply.append(FormatRule(p.pos, blockpos+i+1-p.pos, col, true));
 	  } else {
 	    if (p.ch != '!') // simulated item for first pos
 	      _rulestoapply.append(FormatRule(p.pos, 1, col));
-	    _rulestoapply.append(FormatRule(blockpos+i, 1, col));
+	    _rulestoapply.append(FormatRule(blockpos+i, 1, col, true));
 	  }
 	}
       }
@@ -186,9 +186,9 @@ void KLFLatexSyntaxHighlighter::parseEverything()
     parens.pop();
     if (_caretpos == p.pos) {
       if ( (klfconfig.SyntaxHighlighter.configFlags & HighlightParensOnly) != 0 )
-	_rulestoapply.append(FormatRule(p.pos, 1, FParenMismatch));
+	_rulestoapply.append(FormatRule(p.pos, 1, FParenMismatch, true));
       else
-	_rulestoapply.append(FormatRule(p.pos, lastblock.position()+lastblock.length()-p.pos, FParenMismatch));
+	_rulestoapply.append(FormatRule(p.pos, lastblock.position()+lastblock.length()-p.pos, FParenMismatch, true));
     } else { // not on caret positions
       if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen)
 	_rulestoapply.append(FormatRule(p.pos, 1, FLonelyParen));
@@ -263,12 +263,14 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
     if (len > text.length() - start)
       len = text.length() - start;
     // apply rule
-    blockfmtrules.append(FormatRule(start, len, _rulestoapply[k].format));
+    blockfmtrules.append(FormatRule(start, len, _rulestoapply[k].format, _rulestoapply[k].onlyIfFocus));
   }
 
+  bool hasfocus = _textedit->hasFocus();
   for (k = 0; k < blockfmtrules.size(); ++k) {
     for (j = blockfmtrules[k].pos; j < blockfmtrules[k].end(); ++j) {
-      charformats[j].merge(charfmtForFormat(blockfmtrules[k].format));
+      if ( ! blockfmtrules[k].onlyIfFocus || hasfocus )
+	charformats[j].merge(charfmtForFormat(blockfmtrules[k].format));
     }
   }
   for (j = 0; j < charformats.size(); ++j) {

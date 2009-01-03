@@ -45,6 +45,7 @@ public:
 
   struct {
 
+    QFont applicationFont;
     QFont latexEditFont;
     QFont preambleEditFont;
     QSize previewTooltipMaxSize;

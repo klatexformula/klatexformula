@@ -88,12 +88,13 @@ private:
   enum Format { FNormal = 0, FKeyWord, FComment, FParenMatch, FParenMismatch, FLonelyParen };
 
   struct FormatRule {
-    FormatRule(int ps = -1, int l = 0, Format f = FNormal)
-      : pos(ps), len(l), format(f) { }
+    FormatRule(int ps = -1, int l = 0, Format f = FNormal, bool needsfocus = false)
+      : pos(ps), len(l), format(f), onlyIfFocus(needsfocus) { }
     int pos;
     int len;
-    Format format;
     int end() const { return pos + len; }
+    Format format;
+    bool onlyIfFocus;
   };
 
   struct ParenItem {

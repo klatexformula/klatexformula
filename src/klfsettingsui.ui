@@ -37,6 +37,13 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2" >
        <item>
+        <widget class="QPushButton" name="btnAppFont" >
+         <property name="text" >
+          <string>Application Font - click to change</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="gbxEditorFont" >
          <property name="title" >
           <string>LaTeX editor fonts</string>
@@ -223,7 +230,7 @@
      </widget>
      <widget class="QWidget" name="tab" >
       <attribute name="title" >
-       <string>Syntax Highlighting</string>
+       <string>&amp;Syntax Highlighting</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_6" >
        <item>
@@ -245,7 +252,7 @@
           <item>
            <widget class="QCheckBox" name="chkSHHighlightParensOnly" >
             <property name="text" >
-             <string>Highlight p&amp;arens only, not whole expression</string>
+             <string>Highlight parens only, not whole expression</string>
             </property>
             <property name="shortcut" >
              <string>Alt+A</string>
@@ -849,6 +856,9 @@
          <property name="wordWrap" >
           <bool>false</bool>
          </property>
+         <property name="buddy" >
+          <cstring>pathDvips</cstring>
+         </property>
         </widget>
        </item>
        <item row="2" column="1" >
@@ -874,6 +884,9 @@
          </property>
          <property name="wordWrap" >
           <bool>false</bool>
+         </property>
+         <property name="buddy" >
+          <cstring>pathGs</cstring>
          </property>
         </widget>
        </item>
@@ -973,7 +986,7 @@
      </widget>
      <widget class="QWidget" name="tabAdvanced" >
       <attribute name="title" >
-       <string>Advanced &amp;settings</string>
+       <string>A&amp;dvanced settings</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3" >
        <item>
@@ -1167,6 +1180,51 @@
    <header>klfpathchooser.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabs</tabstop>
+  <tabstop>btnAppFont</tabstop>
+  <tabstop>btnAppearFont</tabstop>
+  <tabstop>btnAppearPreambleFont</tabstop>
+  <tabstop>spnPreviewWidth</tabstop>
+  <tabstop>spnPreviewHeight</tabstop>
+  <tabstop>spnTooltipMaxWidth</tabstop>
+  <tabstop>spnTooltipMaxHeight</tabstop>
+  <tabstop>chkSHEnable</tabstop>
+  <tabstop>chkSHHighlightParensOnly</tabstop>
+  <tabstop>chkSHHighlightLonelyParen</tabstop>
+  <tabstop>colSHKeyword</tabstop>
+  <tabstop>colSHKeywordBg</tabstop>
+  <tabstop>chkSHKeywordB</tabstop>
+  <tabstop>chkSHKeywordI</tabstop>
+  <tabstop>colSHComment</tabstop>
+  <tabstop>colSHCommentBg</tabstop>
+  <tabstop>chkSHCommentB</tabstop>
+  <tabstop>chkSHCommentI</tabstop>
+  <tabstop>colSHParenMatch</tabstop>
+  <tabstop>colSHParenMatchBg</tabstop>
+  <tabstop>chkSHParenMatchB</tabstop>
+  <tabstop>chkSHParenMatchI</tabstop>
+  <tabstop>colSHParenMismatch</tabstop>
+  <tabstop>colSHParenMismatchBg</tabstop>
+  <tabstop>chkSHParenMismatchB</tabstop>
+  <tabstop>chkSHParenMismatchI</tabstop>
+  <tabstop>colSHLonelyParen</tabstop>
+  <tabstop>colSHLonelyParenBg</tabstop>
+  <tabstop>chkSHLonelyParenB</tabstop>
+  <tabstop>chkSHLonelyParenI</tabstop>
+  <tabstop>pathTempDir</tabstop>
+  <tabstop>pathLatex</tabstop>
+  <tabstop>pathDvips</tabstop>
+  <tabstop>pathGs</tabstop>
+  <tabstop>chkEpstopdf</tabstop>
+  <tabstop>pathEpstopdf</tabstop>
+  <tabstop>btnPathsReset</tabstop>
+  <tabstop>spnLBorderOffset</tabstop>
+  <tabstop>spnTBorderOffset</tabstop>
+  <tabstop>spnRBorderOffset</tabstop>
+  <tabstop>spnBBorderOffset</tabstop>
+  <tabstop>btns</tabstop>
+ </tabstops>
  <resources>
   <include location="klfres.qrc" />
  </resources>

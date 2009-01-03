@@ -54,10 +54,13 @@
          <string>If you insert keywords as LaTeX comments in your formulas ('&lt;tt>%keyword&lt;/tt>&lt;i>[newline]&lt;/i>') then you can search for those formulas here.</string>
         </property>
         <property name="text" >
-         <string>Search:</string>
+         <string>&amp;Search:</string>
         </property>
         <property name="wordWrap" >
          <bool>false</bool>
+        </property>
+        <property name="buddy" >
+         <cstring>txtSearch</cstring>
         </property>
        </widget>
       </item>
@@ -207,10 +210,13 @@
         <item>
          <widget class="QLabel" name="lblCategory" >
           <property name="text" >
-           <string>Category:</string>
+           <string>&amp;Category:</string>
           </property>
           <property name="wordWrap" >
            <bool>false</bool>
+          </property>
+          <property name="buddy" >
+           <cstring>cbxCategory</cstring>
           </property>
          </widget>
         </item>
@@ -257,10 +263,13 @@
         <item>
          <widget class="QLabel" name="lblTags" >
           <property name="text" >
-           <string>Name / Tags:</string>
+           <string>Name / &amp;Tags:</string>
           </property>
           <property name="wordWrap" >
            <bool>false</bool>
+          </property>
+          <property name="buddy" >
+           <cstring>cbxTags</cstring>
           </property>
          </widget>
         </item>
@@ -325,7 +334,7 @@
          <x>0</x>
          <y>0</y>
          <width>299</width>
-         <height>403</height>
+         <height>450</height>
         </rect>
        </property>
        <attribute name="label" >
@@ -395,7 +404,7 @@
          <string>Restore current selected formula to KLatexFormula editor, with style</string>
         </property>
         <property name="text" >
-         <string>Restore Form&amp;ula</string>
+         <string>&amp;Restore Formula</string>
         </property>
         <property name="icon" >
          <iconset resource="klfres.qrc" >
@@ -421,7 +430,7 @@
          <string>Delete de selected history items</string>
         </property>
         <property name="text" >
-         <string>Delete item(s)</string>
+         <string>&amp;Delete item(s)</string>
         </property>
         <property name="icon" >
          <iconset resource="klfres.qrc" >
@@ -441,7 +450,7 @@
          </sizepolicy>
         </property>
         <property name="text" >
-         <string>Import/Export</string>
+         <string>&amp;Import/Export</string>
         </property>
         <property name="shortcut" >
          <string/>
@@ -477,7 +486,7 @@
          <string>Close this window</string>
         </property>
         <property name="text" >
-         <string>Cl&amp;ose</string>
+         <string>Close</string>
         </property>
         <property name="icon" >
          <iconset resource="klfres.qrc" >
@@ -494,6 +503,22 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
+ <tabstops>
+  <tabstop>btnSearchClear</tabstop>
+  <tabstop>txtSearch</tabstop>
+  <tabstop>btnFindNext</tabstop>
+  <tabstop>btnFindPrev</tabstop>
+  <tabstop>txtPreviewLatex</tabstop>
+  <tabstop>cbxCategory</tabstop>
+  <tabstop>btnUpdateCategory</tabstop>
+  <tabstop>cbxTags</tabstop>
+  <tabstop>btnUpdateTags</tabstop>
+  <tabstop>btnRestore</tabstop>
+  <tabstop>btnDelete</tabstop>
+  <tabstop>btnImportExport</tabstop>
+  <tabstop>btnConfig</tabstop>
+  <tabstop>btnClose</tabstop>
+ </tabstops>
  <resources>
   <include location="klfres.qrc" />
  </resources>

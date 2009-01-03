@@ -22,6 +22,7 @@
 
 
 #include <QApplication>
+#include <QTranslator>
 
 #include "klfconfig.h"
 #include "klfmainwin.h"
@@ -48,17 +49,26 @@ int main(int argc, char **argv)
   // first thing : setup version_maj/min/release correctly
   sscanf(version, "%d.%d.%d", &version_maj, &version_min, &version_release);
 
-  QApplication app(argc, argv);
-
-  app.setFont(QFont("Nimbus Sans L", 10));
-
   fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
 	  "Licensed under the terms of the GNU Public License GPL\n\n",
 	  version);
 
+  QApplication app(argc, argv);
+
   // now load config
   klfconfig.loadDefaults(); // must be called before 'readFromConfig'
   klfconfig.readFromConfig();
+
+  QTranslator translator;
+  QString lc = QLocale::system().name();
+  QString fn = "klf_"+lc;
+  if (translator.load(fn, ":/i18n/")) {
+    app.installTranslator(&translator);
+  } else if (translator.load(fn, klfconfig.homeConfigDir+"/i18n")) {
+    app.installTranslator(&translator);
+  }
+
+  app.setFont(klfconfig.UI.applicationFont);
 
   KLFColorChooser::setColorList(klfconfig.UI.userColorList);
 

@@ -55,7 +55,7 @@
          </sizepolicy>
         </property>
         <property name="text" >
-         <string>Enter LaTeX expression:</string>
+         <string>Enter &amp;LaTeX expression:</string>
         </property>
         <property name="alignment" >
          <set>Qt::AlignCenter</set>
@@ -139,7 +139,7 @@
            <string comment="whatsthistext" >Render the above &lt;i>LaTeX&lt;/i> formula as an image, which will be displayed in the label below.</string>
           </property>
           <property name="text" >
-           <string>Ev&amp;aluate</string>
+           <string>&amp;Evaluate</string>
           </property>
           <property name="icon" >
            <iconset resource="klfres.qrc" >
@@ -259,7 +259,7 @@
             <string>Click and keep mouse button pressed to drag your formula to an other application</string>
            </property>
            <property name="text" >
-            <string>DRAG</string>
+            <string>&amp;DRAG</string>
            </property>
           </widget>
          </item>
@@ -274,7 +274,7 @@
             <string>Copy formula to clipboard</string>
            </property>
            <property name="text" >
-            <string>COP&amp;Y</string>
+            <string>&amp;COPY</string>
            </property>
            <property name="shortcut" >
             <string>Alt+Y</string>
@@ -292,7 +292,7 @@
             <string>Save formula to disk</string>
            </property>
            <property name="text" >
-            <string>SAVE</string>
+            <string>&amp;SAVE</string>
            </property>
           </widget>
          </item>
@@ -358,14 +358,14 @@
          <string comment="whatsthis" >Exit KLatexFormula</string>
         </property>
         <property name="text" >
-         <string>&amp;Quit</string>
+         <string>Quit</string>
         </property>
         <property name="icon" >
          <iconset resource="klfres.qrc" >
           <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
         </property>
         <property name="shortcut" >
-         <string>Alt+Q</string>
+         <string>Ctrl+Q</string>
         </property>
        </widget>
       </item>
@@ -411,10 +411,13 @@
          <item row="0" column="0" >
           <widget class="QLabel" name="lblFg" >
            <property name="text" >
-            <string>Foreground color:</string>
+            <string>&amp;Foreground color:</string>
            </property>
            <property name="wordWrap" >
             <bool>false</bool>
+           </property>
+           <property name="buddy" >
+            <cstring>colFg</cstring>
            </property>
           </widget>
          </item>
@@ -427,7 +430,7 @@
             <string>Check this if you want your formula to have a transparent background</string>
            </property>
            <property name="text" >
-            <string>&amp;Use transparent background</string>
+            <string>Use &amp;transparent background</string>
            </property>
            <property name="shortcut" >
             <string>Alt+U</string>
@@ -443,10 +446,13 @@
             <bool>false</bool>
            </property>
            <property name="text" >
-            <string>Background color:</string>
+            <string>&amp;Background color:</string>
            </property>
            <property name="wordWrap" >
             <bool>false</bool>
+           </property>
+           <property name="buddy" >
+            <cstring>colBg</cstring>
            </property>
           </widget>
          </item>
@@ -475,7 +481,7 @@
             <string>Check this to use a LaTeX math mode</string>
            </property>
            <property name="text" >
-            <string>Use Math mode:</string>
+            <string>Use &amp;Math mode:</string>
            </property>
            <property name="shortcut" >
             <string/>
@@ -510,7 +516,7 @@
          <item row="1" column="0" colspan="3" >
           <widget class="QLabel" name="lblPreamble" >
            <property name="text" >
-            <string>Edit LaTeX preamble:</string>
+            <string>Edit LaTeX &amp;preamble:</string>
            </property>
            <property name="alignment" >
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -544,7 +550,7 @@
          <item row="3" column="0" >
           <widget class="QLabel" name="lblDPI" >
            <property name="text" >
-            <string>DPI Resolution:</string>
+            <string>DPI &amp;Resolution:</string>
            </property>
            <property name="wordWrap" >
             <bool>false</bool>
@@ -590,7 +596,7 @@
            <string>Load a previously saved style</string>
           </property>
           <property name="text" >
-           <string>&amp;Load Style</string>
+           <string>Load St&amp;yle</string>
           </property>
           <property name="icon" >
            <iconset resource="klfres.qrc" >
@@ -613,7 +619,7 @@
            <string>Save current style (colors, etc.)</string>
           </property>
           <property name="text" >
-           <string>Save Style</string>
+           <string>Sa&amp;ve Style</string>
           </property>
           <property name="icon" >
            <iconset resource="klfres.qrc" >
@@ -636,7 +642,7 @@
            <string>Edit KLatexFormula settings</string>
           </property>
           <property name="text" >
-           <string>Setti&amp;ngs...</string>
+           <string>Settings...</string>
           </property>
           <property name="icon" >
            <iconset resource="klfres.qrc" >
@@ -663,7 +669,7 @@
             <normaloff>:/pics/help.png</normaloff>:/pics/help.png</iconset>
           </property>
           <property name="shortcut" >
-           <string/>
+           <string>F1</string>
           </property>
          </widget>
         </item>
@@ -683,20 +689,27 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>txtLatex</tabstop>
   <tabstop>btnClear</tabstop>
   <tabstop>btnEvaluate</tabstop>
   <tabstop>btnSymbols</tabstop>
   <tabstop>btnLibrary</tabstop>
   <tabstop>btnExpand</tabstop>
-  <tabstop>chkBgTransparent</tabstop>
-  <tabstop>chkMathMode</tabstop>
-  <tabstop>btnLoadStyle</tabstop>
-  <tabstop>btnSaveStyle</tabstop>
-  <tabstop>btnSettings</tabstop>
   <tabstop>btnDrag</tabstop>
   <tabstop>btnCopy</tabstop>
   <tabstop>btnSave</tabstop>
   <tabstop>btnQuit</tabstop>
+  <tabstop>colFg</tabstop>
+  <tabstop>chkBgTransparent</tabstop>
+  <tabstop>colBg</tabstop>
+  <tabstop>chkMathMode</tabstop>
+  <tabstop>cbxMathMode</tabstop>
+  <tabstop>txtPreamble</tabstop>
+  <tabstop>spnDPI</tabstop>
+  <tabstop>btnLoadStyle</tabstop>
+  <tabstop>btnSaveStyle</tabstop>
+  <tabstop>btnSettings</tabstop>
+  <tabstop>btnHelp</tabstop>
  </tabstops>
  <resources>
   <include location="klfres.qrc" />

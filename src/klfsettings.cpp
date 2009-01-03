@@ -70,6 +70,7 @@ KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFMainWin* parent)
 
   connect(btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
 
+  connect(btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
   connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
   connect(btnAppearPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
 
@@ -131,6 +132,7 @@ void KLFSettings::reset()
       _textformats[k].chkI->setCheckState(Qt::PartiallyChecked);
   }
 
+  btnAppFont->setFont(klfconfig.UI.applicationFont);
   btnAppearFont->setFont(klfconfig.UI.latexEditFont);
   btnAppearPreambleFont->setFont(klfconfig.UI.preambleEditFont);
 
@@ -242,6 +244,8 @@ void KLFSettings::apply()
       _textformats[k].fmt->setFontItalic( it == Qt::Checked );
   }
 
+  klfconfig.UI.applicationFont = btnAppFont->font();
+  qApp->setFont(klfconfig.UI.applicationFont);
   klfconfig.UI.latexEditFont = btnAppearFont->font();
   _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
   klfconfig.UI.preambleEditFont = btnAppearPreambleFont->font();

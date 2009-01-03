@@ -73,14 +73,14 @@
       <string>Close this dialog</string>
      </property>
      <property name="text" >
-      <string>Cl&amp;ose</string>
+      <string>&amp;Close</string>
      </property>
      <property name="icon" >
       <iconset resource="klfres.qrc" >
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
      </property>
      <property name="shortcut" >
-      <string>Alt+O</string>
+      <string>Alt+C</string>
      </property>
     </widget>
    </item>

@@ -4,6 +4,7 @@
 
 TEMPLATE = app
 TARGET = klatexformula
+DESTDIR = ..
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
 CONFIG += qt debug
@@ -39,3 +40,5 @@ SOURCES += klfcolorchooser.cpp \
            klfstylemanager.cpp \
            main.cpp
 RESOURCES += klfres.qrc
+
+TRANSLATIONS += i18n/klf_fr.ts

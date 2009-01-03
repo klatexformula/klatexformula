@@ -107,6 +107,7 @@ void KLFConfig::loadDefaults()
   homeConfigDir = QDir::homePath() + "/.klatexformula";
   homeConfigSettingsFile = homeConfigDir + "/config";
   
+  UI.applicationFont = QApplication::font();
   UI.latexEditFont = QApplication::font();
   UI.preambleEditFont = QApplication::font();
   UI.previewTooltipMaxSize = QSize(500, 350);
@@ -181,6 +182,7 @@ int KLFConfig::readFromConfig()
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
   s.beginGroup("UI");
+  UI.applicationFont = s.value("applicationfont", UI.applicationFont).value<QFont>();
   UI.latexEditFont = s.value("latexeditfont", UI.latexEditFont).value<QFont>();
   UI.preambleEditFont = s.value("preambleeditfont", UI.preambleEditFont).value<QFont>();
   UI.previewTooltipMaxSize = s.value("previewtooltipmaxsize", UI.previewTooltipMaxSize).toSize();
@@ -229,6 +231,7 @@ int KLFConfig::writeToConfig()
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
   s.beginGroup("UI");
+  s.setValue("applicationfont", UI.applicationFont);
   s.setValue("latexeditfont", UI.latexEditFont);
   s.setValue("preambleeditfont", UI.preambleEditFont);
   s.setValue("previewtooltipmaxsize", UI.previewTooltipMaxSize);
