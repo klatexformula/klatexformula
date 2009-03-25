@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = subdirs
-CONFIG += ordered
+CONFIG += ordered release
 
 SUBDIRS = src/klfbackend \
 	  src

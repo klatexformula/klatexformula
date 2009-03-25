@@ -60,7 +60,7 @@ KLFLatexSymbol::KLFLatexSymbol(const QString& symentry)
   // EXTRAPREAMBLE should contain a list of Latex commands that should be inserted into preamble
   // if they are not there yet; separate commands with '%%'
 
-  int ii;
+  int ii = 0;
   QString xtra = "";
   if (symentry[0] == '*' && (ii=symentry.indexOf('*', 1)) != -1) {
     symbol = symentry.mid(ii+1);

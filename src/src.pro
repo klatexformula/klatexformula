@@ -7,11 +7,11 @@ TARGET = klatexformula
 DESTDIR = ..
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
-CONFIG += qt debug
+CONFIG += qt release
 QT = core gui xml
 
 DEFINES += KLFBACKEND_QT4
-LIBS += -Lklfbackend -lklfbackend
+LIBS += -Lklfbackend -Lklfbackend/release -lklfbackend
 
 # Input
 HEADERS += klfcolorchooser.h \

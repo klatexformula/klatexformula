@@ -32,6 +32,16 @@
 #include "klfblockprocess.h"
 #include "klfbackend.h"
 
+#if  defined (_POSIX_) || defined (__USE_POSIX)
+  extern char **environ;
+#else
+  _CRTIMP extern char **_environ;
+#  define environ _environ
+#endif
+
+
+
+
 
 KLFBackend::KLFBackend()
 {
@@ -142,7 +152,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     KLFBlockProcess proc;
     QStringList args;
     QStringList env;
-    extern char **environ;
 
     proc.setWorkingDirectory(settings.tempdir);
     bool texinputsset = false;

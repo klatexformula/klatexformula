@@ -171,7 +171,7 @@ protected:
   KLFLibraryListCategoryViewItem *itemForCategory(const QString& category, bool createifneeded = true);
   KLFLibraryListViewItem *itemForId(uint id);
 
-  uint _search_k; // we're focusing on the k-th history item (decreases at each F3 key press [reverse search, remember!])
+  int _search_k; // we're focusing on the k-th history item (decreases at each F3 key press [reverse search, remember!])
   QString _search_str; // the previous search string
 
   bool _am_libchg_originator; // flag to know if WE are the one who emitted the libraryChanged() signal
