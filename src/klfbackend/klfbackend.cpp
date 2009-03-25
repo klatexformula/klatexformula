@@ -374,7 +374,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // if we have epstopdf functionality, then we'll take advantage of it to generate pdf:
     KLFBlockProcess proc;
     QStringList args;
-    args << settings.epstopdfexec << (tempfname+"-good.eps") << "-o" << (tempfname+".pdf");
+    args << settings.epstopdfexec << (tempfname+"-good.eps") << ("--outfile="+tempfname+".pdf");
 
     bool r = proc.startProcess(args);
 
