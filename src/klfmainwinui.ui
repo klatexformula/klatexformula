@@ -15,8 +15,8 @@
    <string comment="window title" >KLatexFormula</string>
   </property>
   <property name="windowIcon" >
-   <iconset>
-    <normaloff>:/pix/hi16-app-klatexformula.png</normaloff>:/pix/hi16-app-klatexformula.png</iconset>
+   <iconset resource="klfres.qrc" >
+    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2" >
    <property name="spacing" >
@@ -34,7 +34,7 @@
       </sizepolicy>
      </property>
      <property name="frameShape" >
-      <enum>QFrame::Panel</enum>
+      <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="frameShadow" >
       <enum>QFrame::Raised</enum>
@@ -233,7 +233,7 @@
       <item>
        <widget class="QFrame" name="frmOutput" >
         <property name="frameShape" >
-         <enum>QFrame::Panel</enum>
+         <enum>QFrame::StyledPanel</enum>
         </property>
         <property name="frameShadow" >
          <enum>QFrame::Sunken</enum>
@@ -381,7 +381,7 @@
       </sizepolicy>
      </property>
      <property name="frameShape" >
-      <enum>QFrame::Panel</enum>
+      <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="frameShadow" >
       <enum>QFrame::Raised</enum>

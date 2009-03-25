@@ -22,6 +22,10 @@
   <property name="windowTitle" >
    <string>KLatexFormula - Settings</string>
   </property>
+  <property name="windowIcon" >
+   <iconset resource="klfres.qrc" >
+    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
+  </property>
   <property name="sizeGripEnabled" >
    <bool>true</bool>
   </property>

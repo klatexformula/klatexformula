@@ -13,6 +13,10 @@
   <property name="windowTitle" >
    <string>KLatexFormula - LaTeX symbols</string>
   </property>
+  <property name="windowIcon" >
+   <iconset resource="klfres.qrc" >
+    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
+  </property>
   <layout class="QVBoxLayout" >
    <property name="spacing" >
     <number>3</number>

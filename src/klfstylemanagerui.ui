@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon" >
    <iconset resource="klfres.qrc" >
-    <normaloff>:/pics/managestyles.png</normaloff>:/pics/managestyles.png</iconset>
+    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <item>

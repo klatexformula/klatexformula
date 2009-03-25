@@ -17,8 +17,8 @@
    <string>KLatexFormula Library</string>
   </property>
   <property name="windowIcon" >
-   <iconset>
-    <normaloff>:/pix/pics/library.png</normaloff>:/pix/pics/library.png</iconset>
+   <iconset resource="klfres.qrc" >
+    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" >
    <item>
@@ -30,7 +30,7 @@
       </sizepolicy>
      </property>
      <property name="frameShape" >
-      <enum>QFrame::Box</enum>
+      <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="frameShadow" >
       <enum>QFrame::Sunken</enum>
@@ -135,7 +135,7 @@
        </sizepolicy>
       </property>
       <property name="frameShape" >
-       <enum>QFrame::Panel</enum>
+       <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="frameShadow" >
        <enum>QFrame::Sunken</enum>
@@ -148,7 +148,7 @@
        </font>
       </property>
       <property name="frameShape" >
-       <enum>QFrame::Panel</enum>
+       <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="frameShadow" >
        <enum>QFrame::Sunken</enum>
@@ -161,8 +161,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>299</width>
-         <height>450</height>
+         <width>292</width>
+         <height>470</height>
         </rect>
        </property>
        <attribute name="label" >
@@ -333,8 +333,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>299</width>
-         <height>450</height>
+         <width>96</width>
+         <height>31</height>
         </rect>
        </property>
        <attribute name="label" >
