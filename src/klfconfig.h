@@ -103,7 +103,7 @@ public:
 };
 
 // utility function
-QString search_path(const QString& prog);
+QString search_path(const QString& prog, const QString& extra_path = "");
 
 
 

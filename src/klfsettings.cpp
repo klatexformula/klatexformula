@@ -44,6 +44,12 @@
   _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
 					   colSH##x, colSH##x##Bg , chkSH##x##B , chkSH##x##I ) );
 
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+static QString standard_extra_paths = "C:\\Miktex_2.7;C:\\Miktex_2.6;C:\\Miktex;C:\\Program Files\\Ghostscript";
+#else
+static QString standard_extra_paths = "";
+#endif
+
 
 KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFMainWin* parent)
   : QDialog(parent), KLFSettingsUI()
@@ -148,7 +154,7 @@ void KLFSettings::reset()
 
 bool KLFSettings::setDefaultFor(const QString& prog, bool required, KLFPathChooser *destination)
 {
-  QString progpath = search_path(prog);
+  QString progpath = search_path(prog, standard_extra_paths);
   if (progpath.isNull()) {
     if (QFileInfo(destination->path()).isExecutable()) {
       // field already has a valid value, don't touch it and don't complain

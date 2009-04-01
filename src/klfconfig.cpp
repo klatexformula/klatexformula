@@ -34,7 +34,7 @@ KLFConfig klfconfig;
 
 
 
-QString search_path(const QString& prog)
+QString search_path(const QString& prog, const QString& extra_path)
 {
   static const QString PATH = getenv("PATH");
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
@@ -42,7 +42,9 @@ QString search_path(const QString& prog)
 #else
   static const char pathsep = ':';
 #endif
-  static const QStringList paths = PATH.split(pathsep, QString::KeepEmptyParts);
+  QString path = PATH + pathsep + extra_path;
+
+  static const QStringList paths = path.split(pathsep, QString::KeepEmptyParts);
   QString test;
   int k;
   for (k = 0; k < paths.size(); ++k) {
