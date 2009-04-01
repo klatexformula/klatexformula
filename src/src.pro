@@ -7,7 +7,9 @@ TARGET = klatexformula
 DESTDIR = ..
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
-CONFIG += qt release
+CONFIG += qt
+#CONFIG += debug
+CONFIG += release
 QT = core gui xml
 
 DEFINES += KLFBACKEND_QT4

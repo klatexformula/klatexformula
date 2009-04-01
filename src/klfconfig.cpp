@@ -36,50 +36,33 @@ KLFConfig klfconfig;
 
 
 // negative limit means "no limit"
-static QStringList __search_find_test(const QStringList& pathlist, int level, int limit)
+static QStringList __search_find_test(const QString& root, const QStringList& pathlist, int level, int limit)
 {
   if (limit == 0)
     return QStringList();
 
-  // DEBUG -->
-  QString Debugstr; QTextStream Debugstream(&Debugstr);
-  char indent[] = "                                                          ";
-  indent[2*level] = '\0'; // <--
-
-  static QRegExp driveregexp("^[A-Za-z]:$");
   QStringList newpathlist = pathlist;
-  if (level == 0 && driveregexp.exactMatch(pathlist[0])) {
-    // first item of pathlist is a drive -> start at level 1
-    level = 1;
-  }
   // our level: levelpathlist contains items in pathlist from 0 to level-1 inclusive.
   QStringList levelpathlist;
   int k;
-  for (k = 0; k < level; ++k) { levelpathlist << pathlist[k]; }
+  for (k = 0; k < level; ++k) { levelpathlist << newpathlist[k]; }
   // the dir/file at our level:
-  QString flpath = levelpathlist.join("/");
-  if (flpath.isEmpty()) flpath = "/";
-  Debugstream << indent << "__search_find_test(..., "<<level<<") : our flpath is `"<<flpath.toLocal8Bit().constData()<<"', our level entry is `"<<pathlist[level]<<"'";
+  QString flpath = root+levelpathlist.join("/");
   QFileInfo flinfo(flpath);
   if (flinfo.isDir()) {
-    Debugstream << indent << "->we're DIRECTORY !\n";
     QDir d(flpath);
     QStringList entries = d.entryList(QStringList()<<pathlist[level]);
     QStringList hitlist;
     for (k = 0; k < entries.size(); ++k) {
       newpathlist[level] = entries[k];
-      Debugstream << indent << "->testing entry `"<<entries[k].toLocal8Bit().constData()<<"' ...\n";
-      hitlist << __search_find_test(newpathlist, level+1, limit - hitlist.size());
-      Debugstream << indent << "->got "<< hitlist.size() <<" hits\n";
+      hitlist << __search_find_test(root, newpathlist, level+1, limit - hitlist.size());
       if (limit >= 0 && hitlist.size() >= limit) // reached limit
 	break;
     }
-    Debugstream.flush();
-    //    QMessageBox::information(0, QObject::tr("DEBUG"), Debugstr);
     return hitlist;
   }
   if (flinfo.exists()) {
-    return QStringList() << pathlist.join("/");
+    return QStringList() << root+pathlist.join("/");
   }
   return QStringList();
 }
@@ -89,7 +72,14 @@ QStringList search_find(const QString& wildcard_expression, int limit)
 {
   QString expr = QDir::fromNativeSeparators(wildcard_expression);
   QStringList pathlist = expr.split("/", QString::SkipEmptyParts);
-  return __search_find_test(pathlist, 0, limit);
+  QString root = "/";
+  static QRegExp driveregexp("^[A-Za-z]:$");
+  if (driveregexp.exactMatch(pathlist[0])) {
+    // WIN System with X: drive letter
+    root = pathlist[0];
+    pathlist.pop_front();
+  }
+  return __search_find_test(root, pathlist, 0, limit);
 }
 
 // smart search PATH that will interpret wildcards in PATH+extra_path and return the first matching executable
