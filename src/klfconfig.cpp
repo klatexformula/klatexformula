@@ -20,11 +20,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <iostream>
 
 #include <QApplication>
 #include <QMessageBox>
 #include <QObject>
 #include <QDir>
+#include <QTextStream>
 
 #include "klfconfig.h"
 
@@ -33,7 +35,64 @@
 KLFConfig klfconfig;
 
 
+// negative limit means "no limit"
+static QStringList __search_find_test(const QStringList& pathlist, int level, int limit)
+{
+  if (limit == 0)
+    return QStringList();
 
+  // DEBUG -->
+  QString Debugstr; QTextStream Debugstream(&Debugstr);
+  char indent[] = "                                                          ";
+  indent[2*level] = '\0'; // <--
+
+  static QRegExp driveregexp("^[A-Za-z]:$");
+  QStringList newpathlist = pathlist;
+  if (level == 0 && driveregexp.exactMatch(pathlist[0])) {
+    // first item of pathlist is a drive -> start at level 1
+    level = 1;
+  }
+  // our level: levelpathlist contains items in pathlist from 0 to level-1 inclusive.
+  QStringList levelpathlist;
+  int k;
+  for (k = 0; k < level; ++k) { levelpathlist << pathlist[k]; }
+  // the dir/file at our level:
+  QString flpath = levelpathlist.join("/");
+  if (flpath.isEmpty()) flpath = "/";
+  Debugstream << indent << "__search_find_test(..., "<<level<<") : our flpath is `"<<flpath.toLocal8Bit().constData()<<"', our level entry is `"<<pathlist[level]<<"'";
+  QFileInfo flinfo(flpath);
+  if (flinfo.isDir()) {
+    Debugstream << indent << "->we're DIRECTORY !\n";
+    QDir d(flpath);
+    QStringList entries = d.entryList(QStringList()<<pathlist[level]);
+    QStringList hitlist;
+    for (k = 0; k < entries.size(); ++k) {
+      newpathlist[level] = entries[k];
+      Debugstream << indent << "->testing entry `"<<entries[k].toLocal8Bit().constData()<<"' ...\n";
+      hitlist << __search_find_test(newpathlist, level+1, limit - hitlist.size());
+      Debugstream << indent << "->got "<< hitlist.size() <<" hits\n";
+      if (limit >= 0 && hitlist.size() >= limit) // reached limit
+	break;
+    }
+    Debugstream.flush();
+    //    QMessageBox::information(0, QObject::tr("DEBUG"), Debugstr);
+    return hitlist;
+  }
+  if (flinfo.exists()) {
+    return QStringList() << pathlist.join("/");
+  }
+  return QStringList();
+}
+
+// returns at most limit results matching wildcard_expression (which is given as absolute path with wildcards)
+QStringList search_find(const QString& wildcard_expression, int limit)
+{
+  QString expr = QDir::fromNativeSeparators(wildcard_expression);
+  QStringList pathlist = expr.split("/", QString::SkipEmptyParts);
+  return __search_find_test(pathlist, 0, limit);
+}
+
+// smart search PATH that will interpret wildcards in PATH+extra_path and return the first matching executable
 QString search_path(const QString& prog, const QString& extra_path)
 {
   static const QString PATH = getenv("PATH");
@@ -42,15 +101,19 @@ QString search_path(const QString& prog, const QString& extra_path)
 #else
   static const char pathsep = ':';
 #endif
-  QString path = PATH + pathsep + extra_path;
+  QString path = PATH;
+  if (!extra_path.isEmpty())
+    path += pathsep + extra_path;
 
-  static const QStringList paths = path.split(pathsep, QString::KeepEmptyParts);
+  const QStringList paths = path.split(pathsep, QString::KeepEmptyParts);
   QString test;
-  int k;
+  int k, j;
   for (k = 0; k < paths.size(); ++k) {
-    test = paths[k] + "/" + prog;
-    if (QFileInfo(test).isExecutable()) {
-      return test;
+    QStringList hits = search_find(paths[k]+"/"+prog);
+    for (j = 0; j < hits.size(); ++j) {
+      if ( QFileInfo(hits[j]).isExecutable() ) {
+	return hits[j];
+      }
     }
   }
   return QString::null;
@@ -60,10 +123,6 @@ QString search_path(const QString& prog, const QString& extra_path)
 
 void settings_write_QTextCharFormat(QSettings& s, const QString& basename, const QTextCharFormat& charfmt)
 {
-  //   s.setValue(basename+"_font", charfmt.font());
-  //   s.setValue(basename+"_bg", charfmt.color());
-  //   "_fg";
-  //   "_outline";
   s.setValue(basename+"_charformat", charfmt);
 }
 QTextCharFormat settings_read_QTextCharFormat(QSettings& s, const QString& basename, const QTextCharFormat& dflt)
@@ -143,15 +202,7 @@ void KLFConfig::loadDefaults()
   SyntaxHighlighter.fmtLonelyParen.setForeground(QColor(255, 0, 255));
   SyntaxHighlighter.fmtLonelyParen.setFontWeight(QFont::Bold);
 
-  BackendSettings.tempDir = QDir::tempPath();
-  BackendSettings.execLatex = search_path("latex");
-  if (BackendSettings.execLatex.isNull()) BackendSettings.execLatex = "latex";
-  BackendSettings.execDvips = search_path("dvips");
-  if (BackendSettings.execDvips.isNull()) BackendSettings.execDvips = "dvips";
-  BackendSettings.execGs = search_path("gs");
-  if (BackendSettings.execGs.isNull()) BackendSettings.execGs = "gs";
-  BackendSettings.execEpstopdf = search_path("epstopdf");
-  if (BackendSettings.execEpstopdf.isNull()) BackendSettings.execEpstopdf = "";
+  loadDefaultBackendPaths(this);
   BackendSettings.lborderoffset = 1;
   BackendSettings.tborderoffset = 1;
   BackendSettings.rborderoffset = 1;
@@ -163,6 +214,35 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.colorNotFound = QColor(255, 128, 128);
 }
 
+
+
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+#  define PROG_LATEX "latex.exe"
+#  define PROG_DVIPS "dvips.exe"
+#  define PROG_GS "gswin32c.exe"
+#  define PROG_EPSTOPDF "epstopdf.exe"
+static QString standard_extra_paths = "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
+#else
+#  define PROG_LATEX "latex"
+#  define PROG_DVIPS "dvips"
+#  define PROG_GS "gs"
+#  define PROG_EPSTOPDF "epstopdf"
+static QString standard_extra_paths = "";
+#endif
+
+
+void KLFConfig::loadDefaultBackendPaths(KLFConfig *c)
+{
+  c->BackendSettings.tempDir = QDir::tempPath();
+  c->BackendSettings.execLatex = search_path(PROG_LATEX, standard_extra_paths);
+  if (c->BackendSettings.execLatex.isNull()) c->BackendSettings.execLatex = PROG_LATEX;
+  c->BackendSettings.execDvips = search_path(PROG_DVIPS, standard_extra_paths);
+  if (c->BackendSettings.execDvips.isNull()) c->BackendSettings.execDvips = PROG_DVIPS;
+  c->BackendSettings.execGs = search_path(PROG_GS, standard_extra_paths);
+  if (c->BackendSettings.execGs.isNull()) c->BackendSettings.execGs = PROG_GS;
+  c->BackendSettings.execEpstopdf = search_path(PROG_EPSTOPDF, standard_extra_paths);
+  if (c->BackendSettings.execEpstopdf.isNull()) c->BackendSettings.execEpstopdf = "";
+}
 
 int KLFConfig::ensureHomeConfigDir()
 {

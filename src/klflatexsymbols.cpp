@@ -214,7 +214,7 @@ public:
     in.preamble = sym.preamble.join("\n")+"\n";
     in.fg_color = qRgb(0,0,0);
     in.bg_color = qRgba(255,255,255,0); // transparent Bg
-    in.dpi = mag * 150;
+    in.dpi = (int)(mag * 150);
 
     backendsettings.epstopdfexec = ""; // don't waste time making PDF, we don't need it
     backendsettings.tborderoffset = sym.bbexpand.t;

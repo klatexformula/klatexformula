@@ -81,6 +81,7 @@ public:
     int bborderoffset;
 
   } BackendSettings;
+  static void loadDefaultBackendPaths(KLFConfig *c);
 
   struct {
 
@@ -102,7 +103,8 @@ public:
 
 };
 
-// utility function
+// utility functions
+QStringList search_find(const QString& wildcard_expression, int limit = -1);
 QString search_path(const QString& prog, const QString& extra_path = "");
 
 

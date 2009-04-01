@@ -506,14 +506,21 @@ void KLFMainWin::refreshStylePopupMenus()
 
 QString kdelocate(const char *fname)
 {
+  QString candidate;
+
   QStringList env = QProcess::systemEnvironment();
   QStringList kdehome = env.filter(QRegExp("^KDEHOME="));
   if (kdehome.size() == 0) {
-    return QString("~/.kde/share/apps/klatexformula/") + QString::fromLocal8Bit(fname);
+    candidate = QString("~/.kde/share/apps/klatexformula/") + QString::fromLocal8Bit(fname);
+  } else {
+    QString kdehomeval = kdehome[0];
+    kdehomeval.replace(QRegExp("^KDEHOME="), "");
+    candidate = kdehomeval + "/share/apps/klatexformula/" + QString::fromLocal8Bit(fname);
   }
-  QString kdehomeval = kdehome[0];
-  kdehomeval.replace(QRegExp("^KDEHOME="), "");
-  return kdehomeval + "/share/apps/klatexformula/" + QString::fromLocal8Bit(fname);
+  if (QFile::exists(candidate)) {
+    return candidate;
+  }
+  return QString::null;
 }
 
 void KLFMainWin::loadStyles()
@@ -582,7 +589,6 @@ void KLFMainWin::saveStyles()
     return;
   }
   QDataStream stream(&f);
-  // artificially set a lower version, so as to not handicap anyone who would like to read us with an old version of KLF
   stream.setVersion(QDataStream::Qt_3_3);
   stream << QString("KLATEXFORMULA_STYLE_LIST") << (qint16)version_maj << (qint16)version_min << (qint16)stream.version() << _styles;
 }
@@ -597,50 +603,21 @@ void KLFMainWin::loadLibrary()
   KLFData::KLFLibraryResource archive = { KLFData::LibResource_Archive, tr("Archive") };
   _libresources.append(archive);
 
+  // Locate a good library file.
 
+  // the default library file
   QString fname = klfconfig.homeConfigDir + "/library";
+  // if unexistant, try to load
   if ( ! QFile::exists(fname) ) {
-    // TODO ! HERE get correct path from KDE
-    fname = QDir::homePath() + "/.kde/share/apps/klatexformula/library";
+    // try KDE KLF version
+    fname = kdelocate("library");
   }
-  if ( QFile::exists(fname) ) {
-    QFile flib(fname);
-    if ( ! flib.open(QIODevice::ReadOnly) ) {
-      QMessageBox::critical(this, tr("Error"), tr("Unable to open library file!"));
-    } else {
-      QDataStream stream(&flib);
-      QString s1;
-      stream >> s1;
-      if (s1 != "KLATEXFORMULA_LIBRARY") {
-	QMessageBox::critical(this, tr("Error"), tr("Error: Library file is incorrect or corrupt!\n"));
-      } else {
-	qint16 vmaj, vmin;
-	stream >> vmaj >> vmin;
-
-	if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
-	  QMessageBox::warning(this, tr("Load Library"),
-			       tr("The library file found was created by a more recent version of KLatexFormula.\n"
-				  "The process of library loading may fail.")
-			      );
-	}
-	
-	if (vmaj <= 2) {
-	  stream.setVersion(QDataStream::Qt_3_3);
-	} else {
-	  qint16 version;
-	  stream >> version;
-	  stream.setVersion(version);
-	}
-
-	stream >> KLFData::KLFLibraryItem::MaxId >> _libresources >> _library;
-  
-      } // format corrupt
-    } // open file ok
-  }
-  else {
-    /* IMPORT PRE-2.1 HISTORY >>>>>>>> */
-    QString fname = kdelocate("history");
+  if ( ! QFile::exists(fname) ) {
+    // next resort: try post-2.0, pre-2.1 "history"
+    fname = kdelocate("history");
+    // in which case we need a different treatment...
     if ( ! fname.isEmpty() ) {
+      /* IMPORT PRE-2.1 HISTORY >>>>>>>> */
       QFile fhist(fname);
       if ( ! fhist.open(QIODevice::ReadOnly) ) {
 	QMessageBox::critical(this, tr("Error"), tr("Unable to load your formula history list!"));
@@ -653,26 +630,67 @@ void KLFMainWin::loadLibrary()
 	} else {
 	  qint16 vmaj, vmin;
 	  stream >> vmaj >> vmin;
-  
+	  
 	  if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
 	    QMessageBox::information(this, tr("Load History"),
 				     tr("The history file found was created by a more recent version of KLatexFormula.\n"
 					"The process of history loading may fail."));
 	  }
-
+	  
 	  stream.setVersion(QDataStream::Qt_3_3);
-
+	  
 	  KLFData::KLFLibraryList history;
-  
+	  
 	  stream >> KLFData::KLFLibraryItem::MaxId >> history;
-
+	  
 	  _library[_libresources[0]] = history;
-  
+	  
 	} // format corrupt
       } // open file ok
-    } // file exists
-    /* <<<<<< END IMPORT PRE-2.1 HISTORY */
+      /* <<<<<< END IMPORT PRE-2.1 HISTORY */
+      emit libraryAllChanged();
+      return;
+    }
   }
+  if ( ! QFile::exists(fname) ) {
+    // as last resort we load our default library stored in a resource
+    fname = ":/data/defaultlibrary";
+  }
+
+  // LOAD LIBRARY
+  
+  QFile flib(fname);
+  if ( ! flib.open(QIODevice::ReadOnly) ) {
+    QMessageBox::critical(this, tr("Error"), tr("Unable to open library file!"));
+  } else {
+    QDataStream stream(&flib);
+    QString s1;
+    stream >> s1;
+    if (s1 != "KLATEXFORMULA_LIBRARY") {
+      QMessageBox::critical(this, tr("Error"), tr("Error: Library file is incorrect or corrupt!\n"));
+    } else {
+      qint16 vmaj, vmin;
+      stream >> vmaj >> vmin;
+      
+      if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
+	QMessageBox::warning(this, tr("Load Library"),
+			     tr("The library file found was created by a more recent version of KLatexFormula.\n"
+				"The process of library loading may fail.")
+			     );
+      }
+      
+      if (vmaj <= 2) {
+	stream.setVersion(QDataStream::Qt_3_3);
+      } else {
+	qint16 version;
+	stream >> version;
+	stream.setVersion(version);
+      }
+      
+      stream >> KLFData::KLFLibraryItem::MaxId >> _libresources >> _library;
+      
+    } // format corrupt
+  } // open file ok
 
   emit libraryAllChanged();
 }
@@ -687,7 +705,6 @@ void KLFMainWin::saveLibrary()
     return;
   }
   QDataStream stream(&f);
-  // artificially set a lower version, so as to not handicap anyone who would like to read us with an old version of KLF
   stream.setVersion(QDataStream::Qt_3_3);
   stream << QString("KLATEXFORMULA_LIBRARY") << (qint16)version_maj << (qint16)version_min << (qint16)stream.version()
 	 << KLFData::KLFLibraryItem::MaxId << _libresources << _library;

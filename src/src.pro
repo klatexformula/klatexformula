@@ -41,4 +41,6 @@ SOURCES += klfcolorchooser.cpp \
            main.cpp
 RESOURCES += klfres.qrc
 
+RC_FILE = klatexformula.rc
+
 TRANSLATIONS += i18n/klf_fr.ts

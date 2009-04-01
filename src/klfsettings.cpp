@@ -45,8 +45,16 @@
 					   colSH##x, colSH##x##Bg , chkSH##x##B , chkSH##x##I ) );
 
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-static QString standard_extra_paths = "C:\\Miktex_2.7;C:\\Miktex_2.6;C:\\Miktex;C:\\Program Files\\Ghostscript";
+#  define PROG_LATEX "latex.exe"
+#  define PROG_DVIPS "dvips.exe"
+#  define PROG_GS "gswin32c.exe"
+#  define PROG_EPSTOPDF "epstopdf.exe"
+static QString standard_extra_paths = "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
 #else
+#  define PROG_LATEX "latex"
+#  define PROG_DVIPS "dvips"
+#  define PROG_GS "gs"
+#  define PROG_EPSTOPDF "epstopdf"
 static QString standard_extra_paths = "";
 #endif
 
@@ -178,10 +186,10 @@ bool KLFSettings::setDefaultFor(const QString& prog, bool required, KLFPathChoos
 
 void KLFSettings::setDefaultPaths()
 {
-  setDefaultFor("latex", true, pathLatex);
-  setDefaultFor("dvips", true, pathDvips);
-  setDefaultFor("gs", true, pathGs);
-  bool r = setDefaultFor("epstopdf", false, pathEpstopdf);
+  setDefaultFor(PROG_LATEX, true, pathLatex);
+  setDefaultFor(PROG_DVIPS, true, pathDvips);
+  setDefaultFor(PROG_GS, true, pathGs);
+  bool r = setDefaultFor(PROG_EPSTOPDF, false, pathEpstopdf);
   chkEpstopdf->setChecked(r);
 }
 
