@@ -62,7 +62,7 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
     return hitlist;
   }
   if (flinfo.exists()) {
-    return QStringList() << root+pathlist.join("/");
+    return QStringList() << QDir::toNativeSeparators(root+pathlist.join("/"));
   }
   return QStringList();
 }
@@ -76,7 +76,7 @@ QStringList search_find(const QString& wildcard_expression, int limit)
   static QRegExp driveregexp("^[A-Za-z]:$");
   if (driveregexp.exactMatch(pathlist[0])) {
     // WIN System with X: drive letter
-    root = pathlist[0];
+    root = pathlist[0]+"/";
     pathlist.pop_front();
   }
   return __search_find_test(root, pathlist, 0, limit);

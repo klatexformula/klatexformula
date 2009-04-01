@@ -845,7 +845,11 @@ void KLFMainWin::slotEvaluate()
   _lastrun_input = input;
 
   if (_output.status < 0) {
-    QMessageBox::critical(this, tr("Error"), _output.errorstr);
+    QString comment = "";
+    if (_output.status == -4) {
+      comment = "\n"+tr("Are you sure you configured your system paths correctly in the settings dialog ?");
+    }
+    QMessageBox::critical(this, tr("Error"), _output.errorstr+comment);
     lblOutput->setText("");
     lblOutput->setPixmap(QPixmap());
     frmOutput->setEnabled(false);

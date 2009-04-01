@@ -76,7 +76,7 @@ private:
   };
   QList<TextFormatEnsemble> _textformats;
 
-  bool setDefaultFor(const QString& prog, bool required, KLFPathChooser *destination);
+  bool setDefaultFor(const QString& guessprog, bool required, KLFPathChooser *destination);
 };
 
 #endif

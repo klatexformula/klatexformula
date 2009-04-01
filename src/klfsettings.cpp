@@ -160,9 +160,9 @@ void KLFSettings::reset()
 
 
 
-bool KLFSettings::setDefaultFor(const QString& prog, bool required, KLFPathChooser *destination)
+bool KLFSettings::setDefaultFor(const QString& guessedprog, bool required, KLFPathChooser *destination)
 {
-  QString progpath = search_path(prog, standard_extra_paths);
+  QString progpath = guessedprog;
   if (progpath.isNull()) {
     if (QFileInfo(destination->path()).isExecutable()) {
       // field already has a valid value, don't touch it and don't complain
@@ -186,10 +186,14 @@ bool KLFSettings::setDefaultFor(const QString& prog, bool required, KLFPathChoos
 
 void KLFSettings::setDefaultPaths()
 {
-  setDefaultFor(PROG_LATEX, true, pathLatex);
-  setDefaultFor(PROG_DVIPS, true, pathDvips);
-  setDefaultFor(PROG_GS, true, pathGs);
-  bool r = setDefaultFor(PROG_EPSTOPDF, false, pathEpstopdf);
+  KLFConfig tempobject;
+  tempobject.loadDefaultBackendPaths();
+  if ( ! QFileInfo(pathTempDir->path()).isDir() )
+    pathTempDir->setPath(tempobject.BackendSettings.tempDir);
+  setDefaultFor(tempobject.execLatex, true, execLatex);
+  setDefaultFor(tempobject.execDvips, true, execDvips);
+  setDefaultFor(tempobject.execGs, true, execGs);
+  bool r = setDefaultFor(tempobject.execEpstopdf, false, execEpstopdf);
   chkEpstopdf->setChecked(r);
 }
 
