@@ -57,9 +57,11 @@ KLFPixmapButton::KLFPixmapButton(const QPixmap& pix, QWidget *parent)
 {
   setText(QString());
   setIcon(QIcon());
+}
 
-  // no square buttons on Mac OS X
-  setMinimumSize(50, 30);
+QSize KLFPixmapButton::minimumSizeHint() const
+{
+  return sizeHint();
 }
 
 QSize KLFPixmapButton::sizeHint() const
@@ -80,7 +82,7 @@ QSize KLFPixmapButton::sizeHint() const
     w += style()->pixelMetric(QStyle::PM_MenuButtonIndicator, &opt, this);
 
   return (style()->sizeFromContents(QStyle::CT_PushButton, &opt, QSize(w, h), this).
-	  expandedTo(QApplication::globalStrut()));
+	  expandedTo(QApplication::globalStrut()).expandedTo(QSize(50, 30))); // (50,30) is minimum non-square buttons on Qt/Mac
 }
 
 void KLFPixmapButton::paintEvent(QPaintEvent *event)
@@ -568,6 +570,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
   slotShowCategory(0);
 
   connect(cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));
+  connect(cbxCategory, SIGNAL(activated(int)), this, SLOT(slotShowCategory(int)));
   connect(btnClose, SIGNAL(clicked()), this, SLOT(close()));
 }
 

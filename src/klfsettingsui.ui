@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>567</width>
-    <height>619</height>
+    <height>616</height>
    </rect>
   </property>
   <property name="minimumSize" >
@@ -1240,12 +1240,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>119</x>
-     <y>224</y>
+     <x>125</x>
+     <y>198</y>
     </hint>
     <hint type="destinationlabel" >
-     <x>190</x>
-     <y>228</y>
+     <x>196</x>
+     <y>199</y>
     </hint>
    </hints>
   </connection>
@@ -1272,8 +1272,8 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>93</x>
-     <y>71</y>
+     <x>99</x>
+     <y>66</y>
     </hint>
     <hint type="destinationlabel" >
      <x>99</x>

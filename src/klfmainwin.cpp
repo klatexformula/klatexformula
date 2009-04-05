@@ -47,6 +47,7 @@
 
 #include <klfbackend.h>
 
+#include <ui_klfaboutdialogui.h>
 #include <ui_klfmainwinui.h>
 
 #include "klfdata.h"
@@ -305,9 +306,6 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
 
 
 
-
-
-
 KLFMainWin::KLFMainWin()
   : QWidget(0, Qt::Window), KLFMainWinUI()
 {
@@ -411,6 +409,14 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(insertSymbol(const KLFLatexSymbol&)));
   connect(mLatexSymbols, SIGNAL(refreshSymbolBrowserShownState(bool)),
 	  this, SLOT(slotSymbolsButtonRefreshState(bool)));
+
+  // our help dialog
+
+  QDialog *aboutDialog = new QDialog(this);
+  Ui::KLFAboutDialogUI *aboutDialogUI = new Ui::KLFAboutDialogUI;
+  aboutDialogUI->setupUi(aboutDialog);
+
+  connect(btnHelp, SIGNAL(clicked()), aboutDialog, SLOT(show()));
 
 }
 
@@ -971,6 +977,9 @@ void KLFMainWin::slotExpandOrShrink()
 
 void KLFMainWin::slotDrag()
 {
+  if ( _output.result.isNull() )
+    return;
+
   QDrag *drag = new QDrag(this);
   QMimeData *mime = new QMimeData;
   mime->setImageData(_output.result);
@@ -979,6 +988,7 @@ void KLFMainWin::slotDrag()
   img = _output.result.scaled(QSize(200, 100), Qt::KeepAspectRatio, Qt::SmoothTransformation);
   QPixmap p = QPixmap::fromImage(img);
   drag->setPixmap(p);
+  drag->setDragCursor(p, Qt::MoveAction);
   drag->setHotSpot(QPoint(p.width()/2, p.height()));
   drag->exec();
 }

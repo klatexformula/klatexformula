@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>pics/helpdialogbg.png</file>
     <file>pics/findprev.png</file>
     <file>pics/symbols.png</file>
     <file>pics/actions.png</file>

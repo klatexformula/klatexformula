@@ -817,7 +817,9 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
   connect(btnFindPrev, SIGNAL(clicked()), this, SLOT(slotSearchFindPrev()));
   
   connect(btnUpdateCategory, SIGNAL(clicked()), this, SLOT(slotUpdateEditedCategory()));
+  connect(cbxCategory->lineEdit(), SIGNAL(returnPressed()), btnUpdateCategory, SLOT(animateClick()));
   connect(btnUpdateTags, SIGNAL(clicked()), this, SLOT(slotUpdateEditedTags()));
+  connect(cbxTags->lineEdit(), SIGNAL(returnPressed()), btnUpdateTags, SLOT(animateClick()));
   
   connect(parent, SIGNAL(libraryAllChanged()), this, SLOT(slotCompleteRefresh()));
 

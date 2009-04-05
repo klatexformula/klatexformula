@@ -6,12 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>562</width>
-    <height>361</height>
+    <width>811</width>
+    <height>423</height>
    </rect>
   </property>
   <property name="windowTitle" >
    <string>Error</string>
+  </property>
+  <property name="styleSheet" >
+   <string notr="true" >QDialog {
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0.5, y2:1, stop:0 rgba(128, 128, 128, 255), stop:1 rgba(128, 128, 200, 255));
+}
+QLabel {
+	color: white;
+	font-weight: bold;
+}
+QAbstractScrollArea {
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(255, 220, 200, 255), stop:1 rgba(255, 255, 255, 255));
+	background-clip: padding;
+	border-radius: 3px;
+	border: 2px solid rgb(128, 0, 0);
+}</string>
   </property>
   <property name="modal" >
    <bool>true</bool>
@@ -31,13 +46,6 @@
        <height>20</height>
       </size>
      </property>
-     <property name="font" >
-      <font>
-       <weight>75</weight>
-       <italic>false</italic>
-       <bold>true</bold>
-      </font>
-     </property>
      <property name="text" >
       <string>An error occured!</string>
      </property>
@@ -50,7 +58,18 @@
     </widget>
    </item>
    <item>
-    <widget class="QTextBrowser" name="txtError" />
+    <widget class="QTextBrowser" name="txtError" >
+     <property name="styleSheet" >
+      <string notr="true" />
+     </property>
+     <property name="html" >
+      <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Nimbus Sans L'; font-size:10pt; font-weight:400; font-style:normal;">
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;/p>&lt;/body>&lt;/html></string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="btnClose" >
@@ -75,7 +94,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11" />
- <includes/>
  <resources>
   <include location="klfres.qrc" />
  </resources>
@@ -87,8 +105,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel" >
-     <x>20</x>
-     <y>20</y>
+     <x>24</x>
+     <y>404</y>
     </hint>
     <hint type="destinationlabel" >
      <x>20</x>

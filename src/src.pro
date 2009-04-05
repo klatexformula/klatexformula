@@ -31,7 +31,8 @@ FORMS += klflatexsymbolsui.ui \
          klfmainwinui.ui \
          klfprogerrui.ui \
          klfsettingsui.ui \
-         klfstylemanagerui.ui
+         klfstylemanagerui.ui \
+	 klfaboutdialogui.ui
 SOURCES += klfcolorchooser.cpp \
            klfconfig.cpp \
            klfdata.cpp \

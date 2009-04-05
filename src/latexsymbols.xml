@@ -80,10 +80,10 @@
     <sym><latex>\bigvee</latex></sym>
     <sym><latex>\biguplus</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\int</latex></sym>
-    <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iint  </latex></sym>
-    <sym><usepackage name="amsmath"/><bb expand="1,5,1,1"/><latex>\iiint  </latex></sym>
-    <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iiiint  </latex></sym>
-    <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\idotsint  </latex></sym>
+    <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iint</latex></sym>
+    <sym><usepackage name="amsmath"/><bb expand="1,5,1,1"/><latex>\iiint</latex></sym>
+    <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iiiint</latex></sym>
+    <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\idotsint</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\oint</latex></sym>
     <sym><bb expand="1,4,1,1"/><usepackage name="wasysym"/><latex>\varoint</latex></sym>
     <sym><bb expand="1,4,1,1"/><usepackage name="esint"/><latex>\dotsint</latex></sym>

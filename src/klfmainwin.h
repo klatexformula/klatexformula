@@ -48,7 +48,8 @@ class KLFStyleManager;
 
 
 
-class KLFProgErr : public QDialog, private Ui::KLFProgErrUI {
+class KLFProgErr : public QDialog, private Ui::KLFProgErrUI
+{
   Q_OBJECT
 public:
   KLFProgErr(QWidget *parent, QString errtext);
@@ -57,8 +58,6 @@ public:
   static void showError(QWidget *parent, QString text);
 
 };
-
-
 
 
 

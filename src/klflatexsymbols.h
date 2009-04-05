@@ -70,6 +70,7 @@ public:
   KLFPixmapButton(const QPixmap& pix, QWidget *parent = 0);
   virtual ~KLFPixmapButton() { }
 
+  virtual QSize minimumSizeHint() const;
   virtual QSize sizeHint() const;
 
   virtual QPixmap pixmap() const { return _pix; }

@@ -161,8 +161,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>292</width>
-         <height>470</height>
+         <width>288</width>
+         <height>480</height>
         </rect>
        </property>
        <attribute name="label" >
@@ -333,8 +333,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>96</width>
-         <height>31</height>
+         <width>288</width>
+         <height>480</height>
         </rect>
        </property>
        <attribute name="label" >
@@ -357,6 +357,9 @@
           </property>
           <property name="wordWrap" >
            <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags" >
+           <set>Qt::TextBrowserInteraction</set>
           </property>
          </widget>
         </item>
