@@ -36,6 +36,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDebug>
+#include <QPainter>
 
 #include <QDomDocument>
 #include <QDomElement>
@@ -48,7 +49,54 @@
 
 extern int version_maj, version_min;
 
+// ------------------
 
+
+KLFPixmapButton::KLFPixmapButton(const QPixmap& pix, QWidget *parent)
+  : QPushButton(parent), _pix(pix), _pixmargin(2), _xalignfactor(0.5f), _yalignfactor(0.5f)
+{
+  setText(QString());
+  setIcon(QIcon());
+
+  // no square buttons on Mac OS X
+  setMinimumSize(50, 30);
+}
+
+QSize KLFPixmapButton::sizeHint() const
+{
+  // inspired by QPushButton::sizeHint() in qpushbutton.cpp
+
+  ensurePolished();
+
+  int w = 0, h = 0;
+  QStyleOptionButton opt;
+  initStyleOption(&opt);
+
+  // calculate contents size...
+  w = _pix.width() + _pixmargin;
+  h = _pix.height() + _pixmargin;
+
+  if (menu())
+    w += style()->pixelMetric(QStyle::PM_MenuButtonIndicator, &opt, this);
+
+  return (style()->sizeFromContents(QStyle::CT_PushButton, &opt, QSize(w, h), this).
+	  expandedTo(QApplication::globalStrut()));
+}
+
+void KLFPixmapButton::paintEvent(QPaintEvent *event)
+{
+  QPushButton::paintEvent(event);
+  QPainter p(this);
+  p.setClipRect(event->rect());
+  p.drawPixmap(QPointF( _xalignfactor*(width()-(2*_pixmargin+_pix.width())) + _pixmargin,
+			_yalignfactor*(height()-(2*_pixmargin+_pix.height())) + _pixmargin ),
+	       _pix);
+}
+
+
+
+
+// ------------------
 
 
 KLFLatexSymbol::KLFLatexSymbol(const QString& symentry)
@@ -311,11 +359,11 @@ void KLFLatexSymbolsView::buildDisplay()
   mLayout = new QGridLayout(mFrame);
   int i;
   for (i = 0; i < _symbols.size(); ++i) {
-    QPushButton *btn = new QPushButton(mFrame);
-    btn->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
     QPixmap p = KLFLatexSymbols::cache()->getPixmap(_symbols[i]);
-    btn->setIconSize(p.size());
-    btn->setIcon(p);
+    KLFPixmapButton *btn = new KLFPixmapButton(p, mFrame);
+    btn->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
+    //    btn->setIconSize(p.size());
+    //    btn->setIcon(p);
     btn->setProperty("symbol", (unsigned int) i);
     btn->setProperty("gridpos", QPoint(-1,-1));
     btn->setProperty("gridcolspan", -1);

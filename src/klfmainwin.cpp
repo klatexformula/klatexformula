@@ -43,6 +43,7 @@
 #include <QImageWriter>
 #include <QInputDialog>
 #include <QCloseEvent>
+#include <QTemporaryFile>
 
 #include <klfbackend.h>
 
@@ -321,6 +322,8 @@ KLFMainWin::KLFMainWin()
   _output.epsdata = QByteArray();
   _output.pdfdata = QByteArray();
 
+  mLastRunTempPNGFile = 0;
+
   // load styless
   loadStyles();
   // load library
@@ -351,9 +354,7 @@ KLFMainWin::KLFMainWin()
 
   lblOutput->setFixedSize(klfconfig.UI.labelOutputFixedSize);
 
-  _shrinkedsize = frmMain->sizeHint() + QSize(3, 3);
-  _expandedsize.setWidth(frmMain->sizeHint().width() + frmDetails->sizeHint().width() + 3);
-  _expandedsize.setHeight(frmMain->sizeHint().height() + 3);
+  refreshWindowSizes();
 
   //  ..............
   //  KHelpMenu *helpMenu = new KHelpMenu(this, klfaboutdata);
@@ -365,7 +366,7 @@ KLFMainWin::KLFMainWin()
   txtLatex->installEventFilter(this);
 
   setFixedSize(_shrinkedsize);
-  //  adjustSize();
+  // adjustSize();
 
   // Create our style manager
   mStyleManager = new KLFStyleManager(&_styles, this);
@@ -433,6 +434,24 @@ KLFMainWin::~KLFMainWin()
 }
 
 
+void KLFMainWin::refreshWindowSizes()
+{
+  bool curstate_shown = frmDetails->isVisible();
+  frmDetails->show();
+  _shrinkedsize = frmMain->sizeHint() + QSize(3, 3);
+  _expandedsize.setWidth(frmMain->sizeHint().width() + frmDetails->sizeHint().width() + 3);
+  _expandedsize.setHeight(frmMain->sizeHint().height() + 3);
+  if (curstate_shown) {
+    setFixedSize(_expandedsize);
+    frmDetails->show();
+  } else {
+    setFixedSize(_shrinkedsize);
+    frmDetails->hide();
+  }
+  updateGeometry();
+}
+
+
 bool KLFMainWin::loadNamedStyle(const QString& sty)
 {
   // find style with name sty (if existant) and set it
@@ -455,8 +474,9 @@ void KLFMainWin::loadSettings()
   QString clsname = _settings.tempdir + "/klatexformula.cls";
   if ( ! QFile::exists(clsname) ) {
     bool r = QFile::copy(":/latex/klatexformula.cls", clsname);
+    QFile::setPermissions(clsname, QFile::ReadOwner|QFile::WriteOwner|QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
     if ( ! r ) {
-      QMessageBox::critical(this, tr("Error"), tr("Can't install klatexformula.cls to temporary directory !"));
+      QMessageBox::critical(this, tr("Error"), tr("Can't install klatexformula.cls to temporary directory `%s' !").arg(_settings.tempdir));
       ::exit(255);
     }
   }
@@ -569,7 +589,8 @@ void KLFMainWin::loadStyles()
 
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
-    KLFData::KLFStyle s1 = { tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "\\usepackage{amssymb,amsmath}\n", 1200 };
+    KLFData::KLFStyle s1 = { tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]",
+			     "", 1200 };
     _styles.append(s1);
   }
 
@@ -861,7 +882,11 @@ void KLFMainWin::slotEvaluate()
   if (_output.status == 0) {
     // ALL OK
 
-    QPixmap sc = QPixmap::fromImage(_output.result.scaled(lblOutput->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    QPixmap sc;
+    if (_output.result.width() > lblOutput->width() || _output.result.height() > lblOutput->height())
+      sc = QPixmap::fromImage(_output.result.scaled(lblOutput->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    else
+      sc = QPixmap::fromImage(_output.result);
     lblOutput->setPixmap(sc);
 
     frmOutput->setEnabled(true);
@@ -884,15 +909,23 @@ void KLFMainWin::slotEvaluate()
       img = _output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     }
 
-    QString tempTooltipImg = klfconfig.BackendSettings.tempDir+"/klatexformula_lastrun.png";
-    {
-      bool res = img.save(tempTooltipImg, "PNG");
+    if (mLastRunTempPNGFile) {
+      delete mLastRunTempPNGFile;
+    }
+    mLastRunTempPNGFile = new QTemporaryFile(klfconfig.BackendSettings.tempDir+"/klf_lastruntemp_XXXXXX.png", this);
+    if ( ! mLastRunTempPNGFile->open() ) {
+      fprintf(stderr, "WARNING: Failed open for Tooltip Temp Image!\n%s\n", mLastRunTempPNGFile->fileTemplate().toLocal8Bit().constData());
+      delete mLastRunTempPNGFile;
+    } else {
+      mLastRunTempPNGFile->setAutoRemove(true);
+      bool res = img.save(mLastRunTempPNGFile, "PNG");
       if ( ! res ) {
-	fprintf(stderr, "WARNING: Failed open for Tooltip Temp Image!\n%s\n", tempTooltipImg.toLocal8Bit().constData());
+	fprintf(stderr, "WARNING: Failed write to Tooltip temp image to temporary file `%s' !\n",
+		mLastRunTempPNGFile->fileTemplate().toLocal8Bit().constData());
+      } else {
+	lblOutput->setToolTip(QString("<qt><img src=\"%1\"></qt>").arg(mLastRunTempPNGFile->fileName()));
       }
     }
-    //    QMimeSourceFactory::defaultFactory()->setImage( "klfoutput", img );
-    lblOutput->setToolTip(QString("<qt><img src=\"%1\"></qt>").arg(tempTooltipImg));
   }
 
   btnEvaluate->setEnabled(true); // re-enable our button

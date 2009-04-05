@@ -30,6 +30,7 @@
 #include <QMenu>
 #include <QTextEdit>
 #include <QWidget>
+#include <QTemporaryFile>
 
 #include <klfbackend.h>
 
@@ -166,6 +167,8 @@ public slots:
   void slotStyleManager();
   void slotSettings();
 
+  void refreshWindowSizes();
+
   void refreshStylePopupMenus();
   void loadStyles();
   void loadLibrary();
@@ -193,6 +196,8 @@ protected:
 
   KLFBackend::klfOutput _output; // output from KLFBackend
   KLFBackend::klfInput _lastrun_input; // input that generated _output
+
+  QTemporaryFile *mLastRunTempPNGFile;
 
   KLFData::KLFLibrary _library;
   KLFData::KLFLibraryResourceList _libresources;

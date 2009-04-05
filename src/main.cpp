@@ -35,7 +35,7 @@ extern int version_maj, version_min, version_release;
 
 
 // not static so we can get this value from other modules in the project
-const char version[] = "3.0.0alpha0";
+const char version[] = KLF_VERSION_STRING;
 int version_maj = -1;
 int version_min = -1;
 int version_release = -1;

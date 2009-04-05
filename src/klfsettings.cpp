@@ -37,6 +37,7 @@
 #include <klfbackend.h>
 
 #include "klfmainwin.h"
+#include "klfconfig.h"
 #include "klfsettings.h"
 
 
@@ -160,7 +161,7 @@ void KLFSettings::reset()
 
 
 
-bool KLFSettings::setDefaultFor(const QString& guessedprog, bool required, KLFPathChooser *destination)
+bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedprog, bool required, KLFPathChooser *destination)
 {
   QString progpath = guessedprog;
   if (progpath.isNull()) {
@@ -170,10 +171,10 @@ bool KLFSettings::setDefaultFor(const QString& guessedprog, bool required, KLFPa
     }
     if ( ! required )
       return false;
-    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find `%1' executable !").arg(prog), QMessageBox::Ok);
+    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find %1 executable !").arg(progname), QMessageBox::Ok);
     msgbox.setInformativeText(tr("Please check your installation and specify the path"
-				 " to `%1' executable manually if it is not installed"
-				 " in $PATH.").arg(prog));
+				 " to %1 executable manually if it is not installed"
+				 " in $PATH.").arg(progname));
     msgbox.setDefaultButton(QMessageBox::Ok);
     msgbox.setEscapeButton(QMessageBox::Ok);
     msgbox.exec();
@@ -187,13 +188,13 @@ bool KLFSettings::setDefaultFor(const QString& guessedprog, bool required, KLFPa
 void KLFSettings::setDefaultPaths()
 {
   KLFConfig tempobject;
-  tempobject.loadDefaultBackendPaths();
+  KLFConfig::loadDefaultBackendPaths(&tempobject);
   if ( ! QFileInfo(pathTempDir->path()).isDir() )
     pathTempDir->setPath(tempobject.BackendSettings.tempDir);
-  setDefaultFor(tempobject.execLatex, true, execLatex);
-  setDefaultFor(tempobject.execDvips, true, execDvips);
-  setDefaultFor(tempobject.execGs, true, execGs);
-  bool r = setDefaultFor(tempobject.execEpstopdf, false, execEpstopdf);
+  setDefaultFor("latex", tempobject.BackendSettings.execLatex, true, pathLatex);
+  setDefaultFor("dvips", tempobject.BackendSettings.execDvips, true, pathDvips);
+  setDefaultFor("gs", tempobject.BackendSettings.execGs, true, pathGs);
+  bool r = setDefaultFor("epstopdf", tempobject.BackendSettings.execEpstopdf, false, pathEpstopdf);
   chkEpstopdf->setChecked(r);
 }
 
@@ -268,6 +269,8 @@ void KLFSettings::apply()
   _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
   klfconfig.UI.preambleEditFont = btnAppearPreambleFont->font();
   _mainwin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
+  // recalculate window sizes etc.
+  _mainwin->refreshWindowSizes();
 
   klfconfig.UI.labelOutputFixedSize = QSize(spnPreviewWidth->value(), spnPreviewHeight->value());
 

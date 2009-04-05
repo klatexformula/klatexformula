@@ -54,6 +54,63 @@
  *</div></center>
  */
 
+//! No Error.
+#define KLFERR_NOERROR 0
+
+//! No LaTeX formula is specified (empty string)
+#define KLFERR_MISSINGLATEXFORMULA -1
+//! The \c "..." is missing in math mode string
+#define KLFERR_MISSINGMATHMODETHREEDOTS -2
+//! Error while opening .tex file for writing
+#define KLFERR_TEXWRITEFAIL -3
+//! Error while launching the given \c latex program
+#define KLFERR_NOLATEXPROG -4
+//! \c latex program did not exit properly (program killed) (see also \ref KLFERR_PROGERR_LATEX)
+#define KLFERR_LATEXNONORMALEXIT -5
+//! No .dvi file appeared after runnig \c latex program
+#define KLFERR_NODVIFILE -6
+//! Error while launching the given \c dvips program
+#define KLFERR_NODVIPSPROG -7
+//! \c dvips program did not exit properly (program killed) (see also \ref KLFERR_PROGERR_DVIPS)
+#define KLFERR_DVIPSNONORMALEXIT -8
+//! no .eps file appeared after running \c dvips program
+#define KLFERR_NOEPSFILE -9
+//! Error while opening .eps file for reading
+#define KLFERR_EPSREADFAIL -10
+//! Error while searching file for <tt>%%BoundingBox</tt> instruction in EPS
+#define KLFERR_NOEPSBBOX -11
+//! Error while parsing value for <tt>%%BoundingBox</tt> instruction in EPS
+#define KLFERR_BADEPSBBOX -12
+//! Error while opening <tt>...-good.eps</tt> file for writing
+#define KLFERR_EPSWRITEFAIL -13
+//! Error while launching the given \c gs program
+#define KLFERR_NOGSPROG -14
+//! \c gs program did not exit properly (program killed) (see also \ref KLFERR_PROGERR_GS)
+#define KLFERR_GSNONORMALEXIT -15
+//! No .png file appeared after running \c gs program
+#define KLFERR_NOPNGFILE -16
+//! Error while opening .png file for reading
+#define KLFERR_PNGREADFAIL -17
+//! Error while launching the given \c epstopdf program (if given)
+#define KLFERR_NOEPSTOPDFPROG -18
+//! \c epstopdf program did not exit properly (program killed) (see also \ref KLFERR_PROGERR_EPSTOPDF)
+#define KLFERR_EPSTOPDFNONORMALEXIT -19
+//! No .pdf file appeared after running \c epstopdf program
+#define KLFERR_NOPDFFILE -20
+//! Error while opening .pdf file for reading
+#define KLFERR_PDFREADFAIL -21
+
+//! \c latex exited with a non-zero status
+#define KLFERR_PROGERR_LATEX 1
+//! \c dvips exited with a non-zero status
+#define KLFERR_PROGERR_DVIPS 2
+//! \c gs exited with a non-zero status
+#define KLFERR_PROGERR_GS 3
+//! \c epstopdf exited with non-zero status (if \c epstopdf is to be used)
+#define KLFERR_PROGERR_EPSTOPDF 4
+
+
+
 //! The main engine for KLatexFormula
 /** The main engine for KLatexFormula, providing core functionality
  * of transforming LaTeX code into graphics.
@@ -77,7 +134,9 @@ public:
     QString dvipsexec; /**< the dvips executable, path incl. if not in $PATH */
     QString gsexec; /**< the gs executable, path incl. if not in $PATH */
     QString epstopdfexec; /**< the epstopdf executable, path incl. if not in $PATH. This isn't mandatory to get PNG so
-			   * you may leave this to Null or Empty string to drop PDF support in KLFBackend. */
+			   * you may leave this to Null or Empty string to instruct getLatexFormula() to NOT attempt to
+			   * generate PDF. If, though, you do specify an epstopdf executable here, epstopdf errors will
+			   * be reported as real errors. */
     int tborderoffset; /**< The number of postscript points to add to top side of the resulting EPS boundingbox */
     int rborderoffset; /**< The number of postscript points to add to right side of the resulting EPS boundingbox */
     int bborderoffset; /**< The number of postscript points to add to bottom side of the resulting EPS boundingbox */
@@ -103,22 +162,35 @@ public:
 			     *   value will be considered as 255.
 			     * \warning (E)PS and PDF formats can't handle transparency.  */
     int dpi; /**< The dots per inch resolution to use to render the image. This is directly passed to the <tt>-r</tt>
-	      * option of ghostscript */
+	      * option of the \c gs program. */
   };
 
   //! KLFBackend::getLatexFormula() result
   /** This struct contains data that is returned from getLatexFormula(). This includes error handling information,
    * the resulting image (as a QImage) as well as data for PNG, (E)PS and PDF files */
   struct klfOutput {
-    int status; /**< An integer describing the status of the request. A zero value means success for everything.
-		 * A positive value (status>0) means that a program (latex, dvips, ...) returned a non-zero code and
-		 * the stderr/stdout are transmitted to \ref errorstr. In that case, errorstr is formatted in HTML suitable
-		 * to be used in a QTextBrowser */
-    QString errorstr; /**< An explicit error string. If status is positive (ie. latex/dvips/... error) then this text
-		       * is HTML-formatted suitable for a QTextBrowser. */
+    /** \brief A code describing the status of the request.
+     *
+     * A zero value means success for everything. A positive value means that a program (latex, dvips, ...)
+     * returned a non-zero exit code. A negative
+     * status indicates an other error.
+     *
+     * \c status will be exactly one of the KLFERR_* constants.
+     *
+     * In every case where status is non-zero, a suitable human-readable error string will be provided in
+     * the \ref errorstr field. If status is zero, \ref errorstr will be empty.  */
+    int status;
+    /** \brief An explicit error string.
+     *
+     * If \ref status is positive (ie. latex/dvips/gs/epstopdf error) then this text is HTML-formatted
+     * suitable for a QTextBrowser. Otherwise, the message is a simple plain text sentence. It contains
+     * an empty (actually null) string if status is zero.
+     *
+     * This string is Qt-Translated with QObject::tr() using \c "KLFBackend" as comment. */
+    QString errorstr;
 
-    QImage result; /**< The actual result image. */
-    QByteArray pngdata; /**< the data for a png file (exact content) */
+    QImage result; /**< The actual resulting image. */
+    QByteArray pngdata; /**< the data for a png file (exact \c gs output content) */
     QByteArray epsdata; /**< data for an (eps-)postscript file */
     QByteArray pdfdata; /**< data for a pdf file, if \ref klfSettings::epstopdfexec is non-empty. */
   };
@@ -129,7 +201,8 @@ public:
    * object filled with your input and settings, and you will get output in \ref klfOutput.
    *
    * If an error occurs, klfOutput::status is non-zero and klfOutput::errorstr contains an explicit
-   * (NOT locale translated) error in human-readable form.
+   * error in human-readable form. The latter is Qt-Translated with QObject::tr() with "KLFBackend"
+   * comment.
    *
    * Usage example:
    * \code
@@ -157,6 +230,12 @@ public:
    *
    *   KLFBackend::klfOutput out = KLFBackend::getLatexFormula(input, settings);
    *
+   *   if (out.status != 0) {
+   *     // an error occurred. an appropriate error string is in out.errorstr
+   *     display_error_to_user(out.errorstr);
+   *     return;
+   *   }
+   *
    *   myLabel->setPixmap(QPixmap(out.result));
    *
    *   // write contents of 'out.pdfdata' to a file to get a PDF file (for example)
@@ -178,5 +257,8 @@ private:
   static void cleanup(QString tempfname);
 
 };
+
+
+
 
 #endif

@@ -867,7 +867,7 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
 
   btnManageResources = new QPushButton(tr("Resources"), tabResources);
   QFont ff = btnManageResources->font();
-  ff.setPointSize(ff.pointSize()-3);
+  ff.setPointSize(ff.pointSize()-1);
   btnManageResources->setFont(ff);
   btnManageResources->setMenu(mManageResourcesMenu);
   QPalette pal = btnManageResources->palette();

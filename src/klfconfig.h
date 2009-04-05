@@ -81,6 +81,7 @@ public:
     int bborderoffset;
 
   } BackendSettings;
+
   static void loadDefaultBackendPaths(KLFConfig *c);
 
   struct {

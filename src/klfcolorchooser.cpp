@@ -24,6 +24,9 @@
 #include <QMenu>
 #include <QPainter>
 #include <QColorDialog>
+#include <QPaintEvent>
+#include <QStyle>
+#include <QStyleOptionButton>
 
 #include "klfconfig.h"
 #include "klfcolorchooser.h"
@@ -48,6 +51,7 @@ KLFColorList *KLFColorChooser::_colorlist = NULL;
 
 KLFColorChooser::KLFColorChooser(QWidget *parent)
   : QPushButton(parent), _color(0,0,0), _pix(), _allowdefaultstate(false), _autoadd(true), _size(120, 20),
+    _xalignfactor(0.5f), _yalignfactor(0.5f),
     mMenu(0)
 {
   ensureColorListInstance();
@@ -65,6 +69,27 @@ KLFColorChooser::~KLFColorChooser()
 QColor KLFColorChooser::color() const
 {
   return _color;
+}
+
+QSize KLFColorChooser::sizeHint() const
+{
+  // inspired by QPushButton::sizeHint() in qpushbutton.cpp
+
+  ensurePolished();
+
+  int w = 0, h = 0;
+  QStyleOptionButton opt;
+  initStyleOption(&opt);
+
+  // calculate contents size...
+  w = _pix.width()+4;
+  h = _pix.height()+2;
+
+  if (menu())
+    w += style()->pixelMetric(QStyle::PM_MenuButtonIndicator, &opt, this);
+
+  return (style()->sizeFromContents(QStyle::CT_PushButton, &opt, QSize(w, h), this).
+	  expandedTo(QApplication::globalStrut()));
 }
 
 void KLFColorChooser::setColor(const QColor& col)
@@ -122,12 +147,14 @@ void KLFColorChooser::_makemenu()
     mMenu->addSeparator();
   }
 
-  int k;
+  int n, k, nk;
   ensureColorListInstance();
-  for (k = 0; k < _colorlist->list.size(); ++k) {
-    QAction *a = mMenu->addAction(QIcon(colorPixmap(_colorlist->list[k], menuIconSize)), _colorlist->list[k].name(),
+  n = _colorlist->list.size();
+  for (k = 0; k < n; ++k) {
+    nk = n - k - 1;
+    QAction *a = mMenu->addAction(QIcon(colorPixmap(_colorlist->list[nk], menuIconSize)), _colorlist->list[nk].name(),
 				  this, SLOT(setSenderPropertyColor()));
-    a->setProperty("setColor", QVariant(_colorlist->list[k]));
+    a->setProperty("setColor", QVariant(_colorlist->list[nk]));
   }
   if (k > 0)
     mMenu->addSeparator();
@@ -137,12 +164,21 @@ void KLFColorChooser::_makemenu()
   setMenu(mMenu);
 }
 
+void KLFColorChooser::paintEvent(QPaintEvent *e)
+{
+  QPushButton::paintEvent(e);
+  QPainter p(this);
+  p.setClipRect(e->rect());
+  p.drawPixmap(QPointF(_xalignfactor*(width()-_pix.width()), _yalignfactor*(height()-_pix.height())), _pix);
+}
+
 void KLFColorChooser::_setpix()
 {
   //  if (_color.isValid()) {
   _pix = colorPixmap(_color, _size);
-  setIconSize(_pix.size());
-  setIcon(_pix);
+  // DON'T setIcon() because we draw ourselves ! see paintEvent() !
+  //  setIconSize(_pix.size());
+  //  setIcon(_pix);
   setText("");
   //  } else {
   //    _pix = QPixmap();
@@ -159,6 +195,7 @@ QPixmap KLFColorChooser::colorPixmap(const QColor& color, const QSize& size)
   if (color.isValid()) {
     pix.fill(color);
   } else {
+    // draw "transparent"-representing pixmap
     pix.fill(QColor(127,127,127,80));
     QPainter p(&pix);
     p.setPen(QPen(QColor(255,0,0), 2));

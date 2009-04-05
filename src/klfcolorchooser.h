@@ -27,7 +27,7 @@
 #include <QColor>
 #include <QApplication>
 #include <QList>
-
+#include <QEvent>
 
 class KLFColorList : public QObject
 {
@@ -54,6 +54,9 @@ class KLFColorChooser : public QPushButton
   Q_PROPERTY(bool allowDefaultState READ allowDefaultState WRITE setAllowDefaultState)
   Q_PROPERTY(bool autoAddToList READ autoAddToList WRITE setAutoAddToList)
   Q_PROPERTY(QColor color READ color WRITE setColor USER true)
+  Q_PROPERTY(float pixXAlignFactor READ pixXAlignFactor WRITE setPixXAlignFactor)
+  Q_PROPERTY(float pixYAlignFactor READ pixYAlignFactor WRITE setPixYAlignFactor)
+
 
 public:
   KLFColorChooser(QWidget *parent);
@@ -63,6 +66,10 @@ public:
   bool allowDefaultState() const { return _allowdefaultstate; }
   bool autoAddToList() const { return _autoadd; }
   QColor color() const;
+  float pixXAlignFactor() const { return _xalignfactor; }
+  float pixYAlignFactor() const { return _yalignfactor; }
+
+  virtual QSize sizeHint() const;
 
   static void ensureColorListInstance();
   static void setColorList(const QList<QColor>& colorlist);
@@ -73,6 +80,8 @@ public slots:
   void setAllowDefaultState(bool allow);
   void setAutoAddToList(bool autoadd) { _autoadd = autoadd; }
   void setShowSize(const QSize& size) { _size = size; }
+  void setPixXAlignFactor(float xalignfactor) { _xalignfactor = xalignfactor; }
+  void setPixYAlignFactor(float yalignfactor) { _yalignfactor = yalignfactor; }
   void setDefaultColor();
 
   void requestColor();
@@ -81,6 +90,9 @@ protected slots:
   void setSenderPropertyColor();
   void _makemenu();
 
+protected:
+  void paintEvent(QPaintEvent *event);
+
 private:
   QColor _color;
   QPixmap _pix;
@@ -88,6 +100,7 @@ private:
   bool _allowdefaultstate;
   bool _autoadd;
   QSize _size;
+  float _xalignfactor, _yalignfactor;
 
   QMenu *mMenu;
 

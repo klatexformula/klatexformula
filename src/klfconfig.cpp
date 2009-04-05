@@ -27,6 +27,8 @@
 #include <QObject>
 #include <QDir>
 #include <QTextStream>
+#include <QFont>
+#include <QFontDatabase>
 
 #include "klfconfig.h"
 
@@ -153,14 +155,37 @@ KLFConfig::KLFConfig()
 }
 
 
+#define KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, f)		\
+  if (!found_fcode && fdb.isFixedPitch(f)) {				\
+    fcode = QFont(f, 10);						\
+    found_fcode = true;							\
+  }
+
 void KLFConfig::loadDefaults()
 {
   homeConfigDir = QDir::homePath() + "/.klatexformula";
   homeConfigSettingsFile = homeConfigDir + "/config";
-  
-  UI.applicationFont = QApplication::font();
-  UI.latexEditFont = QApplication::font();
-  UI.preambleEditFont = QApplication::font();
+
+  QFont f = QApplication::font();
+  f.setPixelSize(15); // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
+
+  QFontDatabase fdb;
+  QFont fcode;
+  bool found_fcode = false;
+  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier 10 Pitch");
+  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "ETL Fixed");
+  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier New");
+  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Efont Fixed");
+  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Adobe Courier");
+  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier");
+  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Misc Fixed");
+  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace");
+  if ( ! found_fcode )
+    fcode = f;
+
+  UI.applicationFont = f;
+  UI.latexEditFont = fcode;
+  UI.preambleEditFont = fcode;
   UI.previewTooltipMaxSize = QSize(500, 350);
   UI.labelOutputFixedSize = QSize(280, 90);
   UI.lastSaveDir = QDir::homePath();
