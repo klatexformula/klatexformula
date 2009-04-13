@@ -477,17 +477,6 @@ void KLFMainWin::loadSettings()
   _settings.dvipsexec = klfconfig.BackendSettings.execDvips;
   _settings.gsexec = klfconfig.BackendSettings.execGs;
   _settings.epstopdfexec = klfconfig.BackendSettings.execEpstopdf;
-  QString clsname = _settings.tempdir + "/klatexformula.cls";
-  if ( ! QFile::exists(clsname) ) {
-    bool r = QFile::copy(":/latex/klatexformula.cls", clsname);
-    QFile::setPermissions(clsname, QFile::ReadOwner|QFile::WriteOwner|QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
-    if ( ! r ) {
-      QMessageBox::critical(this, tr("Error"), tr("Can't install klatexformula.cls to temporary directory `%s' !").arg(_settings.tempdir));
-      ::exit(255);
-    }
-  }
-  _settings.klfclspath = clsname;
-  _settings.klfclspath = _settings.klfclspath.left(_settings.klfclspath.lastIndexOf('/'));
 
   _settings.lborderoffset = klfconfig.BackendSettings.lborderoffset;
   _settings.tborderoffset = klfconfig.BackendSettings.tborderoffset;
@@ -728,7 +717,8 @@ void KLFMainWin::saveLibrary()
   QString s = klfconfig.homeConfigDir + "/library";
   QFile f(s);
   if ( ! f.open(QIODevice::WriteOnly) ) {
-    QMessageBox::critical(this, tr("Error"), tr("Error: Unable to write to library file!\n%1").arg(s));
+    QMessageBox::critical(this, tr("Error"), tr("Error: Unable to write to library file!\n%1")
+			  .arg(QDir::toNativeSeparators(s)));
     return;
   }
   QDataStream stream(&f);

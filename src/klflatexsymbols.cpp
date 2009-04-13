@@ -215,7 +215,10 @@ public:
 
   KLFLatexSymbolsCache()
   {
+    flag_modified = false;
   }
+
+  bool cacheNeedsSave() const { return flag_modified; }
 
   int loadCache(QDataStream& stream)
   {
@@ -236,6 +239,8 @@ public:
     stream.setVersion(version);
 
     stream >> cache;
+
+    flag_modified = false;
     return 0;
   }
 
@@ -245,6 +250,7 @@ public:
     stream.setVersion(QDataStream::Qt_3_3);
     stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE") << (qint16)version_maj << (qint16)version_min
 	   << (qint16)stream.version() << cache;
+    flag_modified = false;
     return 0;
   }
 
@@ -279,6 +285,8 @@ public:
 	.arg(sym.symbol).arg(out.status).arg(out.errorstr);
       return QPixmap(":/pics/badsym.png");
     }
+
+    flag_modified = true;
 
     QImage scaled = out.result.scaled((int)(out.result.width() / mag), (int)(out.result.height() / mag),
 				      Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
@@ -320,6 +328,8 @@ public:
   KLFBackend::klfSettings backendsettings;
 
   QMap<KLFLatexSymbol,QPixmap> cache;
+
+  bool flag_modified;
 
 };
 
@@ -580,12 +590,14 @@ KLFLatexSymbols::~KLFLatexSymbols()
   if (mCacheRefCounter <= 0) {
     QString s = klfconfig.homeConfigDir + "/symbolspixmapcache";
 
-    QFile f(s);
-    if ( ! f.open(QIODevice::WriteOnly) ) {
-      qWarning() << tr("Can't save cache to file `%1'!").arg(s);
-    } else {
-      QDataStream ds(&f);
-      mCache->saveCache(ds);
+    if (mCache->cacheNeedsSave()) {
+      QFile f(s);
+      if ( ! f.open(QIODevice::WriteOnly) ) {
+	qWarning() << tr("Can't save cache to file `%1'!").arg(s);
+      } else {
+	QDataStream ds(&f);
+	mCache->saveCache(ds);
+      }
     }
     delete mCache;
     mCache = 0;

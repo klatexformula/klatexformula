@@ -88,7 +88,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   res.pdfdata = QByteArray();
 
   // PROCEDURE:
-  // - generate LaTeX-file (documentclass klatexformula.cls)
+  // - generate LaTeX-file
   // - latex --> get DVI file
   // - dvips -E file.dvi it to get an EPS file
   // - Run gs:	gs -dNOPAUSE -dSAFER -dEPSCrop -r600 -dTextAlphaBits=4 -dGraphicsAlphaBits=4
@@ -132,10 +132,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       return res;
     }
     QTextStream stream(&file);
-    stream << "\\documentclass{klatexformula}\n"
+    stream << "\\documentclass{article}\n"
 	   << "\\usepackage[dvips]{color}\n"
 	   << in.preamble << "\n"
 	   << "\\begin{document}\n"
+	   << "\\thispagestyle{empty}\n"
 	   << QString("\\definecolor{klffgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.fg_color)/255.0)
       .arg(qGreen(in.fg_color)/255.0).arg(qBlue(in.fg_color)/255.0)
 	   << QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.bg_color)/255.0)
@@ -146,37 +147,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   }
 
   { // execute latex
-    // we need klatexformula.cls, which is in path settings.klfclspath
 
     KLFBlockProcess proc;
     QStringList args;
     QStringList env;
 
     proc.setWorkingDirectory(settings.tempdir);
-    bool texinputsset = false;
-    for (int i = 0; environ && environ[i] != NULL; ++i) {
-      if (!strncmp(environ[i], "TEXINPUTS=", strlen("TEXINPUTS="))) {
-	QString s = environ[i];
-	s.insert(strlen("TEXINPUTS="), settings.klfclspath+":");
-	texinputsset = true;
-	env << s;
-      } else {
-	env << environ[i];
-      }
-    }
-    if (!texinputsset) {
-      env << "TEXINPUTS="+settings.klfclspath+":.:";
-    }
     args << settings.latexexec << tempfname+".tex";
-
-    /* printf("DEBUG: New environment:\n");
-       for (uint jkl = 0; jkl < env.size(); ++jkl) {
-       printf("DEBUG:\t%s\n", env[jkl].ascii());
-       }
-    */
-
     bool r = proc.startProcess(args, env);
-
 
     if (!r) {
       res.status = KLFERR_NOLATEXPROG;

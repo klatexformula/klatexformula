@@ -126,10 +126,13 @@ public:
 
   //! General settings for KLFBackend::getLatexFormula()
   /** Some global settings to pass on when calling getLatexFormula(). In this struct you specify some system
-   * settings, like a temp directory and some paths */
+   * settings, like a temp directory and some paths
+   *
+   * \note the \c klfclspath field was removed, because we no longer use klatexformula.cls.
+   * */
   struct klfSettings {
     QString tempdir; /**< A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
-    QString klfclspath; /**< location of the 'klatexformula.cls' file: just the directory, don't include filename here */
+
     QString latexexec; /**< the latex executable, path incl. if not in $PATH */
     QString dvipsexec; /**< the dvips executable, path incl. if not in $PATH */
     QString gsexec; /**< the gs executable, path incl. if not in $PATH */
@@ -210,21 +213,20 @@ public:
    *   // these could have been declared at some more global scope
    *   KLFBackend::klfSettings settings;
    *   settings.tempdir = "/tmp";
-   *   settings.klfclspath = "/opt/kde3/share/apps/klatexformula/";
    *   settings.latexexec = "latex";
    *   settings.dvipsexec = "dvips";
    *   settings.gsexec = "gs";
    *   settings.epstopdfexec = "epstopdf";
    *   settings.lborderoffset = 1;
    *   settings.tborderoffset = 1;
-   *   settings.rborderoffset = 3;
+   *   settings.rborderoffset = 1;
    *   settings.bborderoffset = 1;
    *
    *   KLFBackend::klfInput input;
    *   input.latex = "\\int_{\\Sigma}\\!(\\vec{\\nabla}\\times\\vec u)\\,d\\vec S = \\oint_C \\vec{u}\\cdot d\\vec r";
    *   input.mathmode = "\\[ ... \\]";
    *   input.preamble = "\\usepackage{somerequiredpackage}\n";
-   *   input.fg_color = qRgb(255, 128, 128); // light blue
+   *   input.fg_color = qRgb(255, 128, 128); // pink
    *   input.bg_color = qRgba(0, 0, 80, 255); // dark blue, opaque
    *   input.dpi = 300;
    *

@@ -35,9 +35,6 @@
     <file>hi64-app-klatexformula.png</file>
     <file>hi16-app-klatexformula.png</file>
   </qresource>
-  <qresource prefix="/latex" >
-    <file>klatexformula.cls</file>
-  </qresource>
   <qresource prefix="/data" >
     <file>latexsymbols.xml</file>
     <file>symbolspixmapcache_base</file>

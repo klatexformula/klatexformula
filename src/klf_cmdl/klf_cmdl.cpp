@@ -145,7 +145,6 @@ int main(int argc, char *argv[])
   input.bg_color = qRgba(255,255,255,0);
   input.dpi = 1200;
   settings.tempdir = QDir::tempPath();
-  settings.klfclspath = QDir::tempPath();
   settings.latexexec = "latex";
   settings.dvipsexec = "dvips";
   settings.gsexec = "gs";
@@ -298,8 +297,6 @@ int main(int argc, char *argv[])
   // ----------------------------------------------------------------------
   // NOW WE HAVE COLLECTED ALL THE INFORMATION NEEDED TO RUN KLFBACKEND
   // ----------------------------------------------------------------------
-  if ( ! QFile::exists(settings.klfclspath+"/klatexformula.cls") )
-    QFile::copy(":/data/klatexformula.cls", settings.klfclspath+"/klatexformula.cls");
 
   output = KLFBackend::getLatexFormula(input, settings);
 
