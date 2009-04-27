@@ -10,7 +10,8 @@ TARGET = klatexformula
 DESTDIR = ..
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
-CONFIG += qt release
+CONFIG += qt debug
+ #release
 QT = core gui xml
 
 DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\"
@@ -25,14 +26,17 @@ HEADERS += klfcolorchooser.h \
            klfmainwin.h \
            klfpathchooser.h \
            klfsettings.h \
-           klfstylemanager.h
+           klfstylemanager.h \
+	   qtcolortriangle.h
 FORMS += klflatexsymbolsui.ui \
          klflibrarybrowserui.ui \
          klfmainwinui.ui \
          klfprogerrui.ui \
          klfsettingsui.ui \
          klfstylemanagerui.ui \
-	 klfaboutdialogui.ui
+	 klfaboutdialogui.ui \
+	 klfcolorchoosewidgetui.ui \
+	 klfcolordialogui.ui
 SOURCES += klfcolorchooser.cpp \
            klfconfig.cpp \
            klfdata.cpp \
@@ -42,7 +46,8 @@ SOURCES += klfcolorchooser.cpp \
            klfpathchooser.cpp \
            klfsettings.cpp \
            klfstylemanager.cpp \
-           main.cpp
+           main.cpp \
+	   qtcolortriangle.cpp
 RESOURCES += klfres.qrc
 
 RC_FILE = klatexformula.rc

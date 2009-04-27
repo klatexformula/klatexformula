@@ -1,5 +1,10 @@
 <RCC>
   <qresource>
+    <file>pics/rightarrow.png</file>
+    <file>pics/colorsliders.png</file>
+    <file>pics/named.png</file>
+    <file>pics/huepane.png</file>
+    <file>pics/colortriangle.png</file>
     <file>pics/helpdialogbg.png</file>
     <file>pics/findprev.png</file>
     <file>pics/symbols.png</file>

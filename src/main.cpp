@@ -55,6 +55,8 @@ int main(int argc, char **argv)
 
   QApplication app(argc, argv);
 
+  QColor::setAllowX11ColorNames(true);
+
   // now load config
   klfconfig.loadDefaults(); // must be called before 'readFromConfig'
   klfconfig.readFromConfig();
@@ -71,6 +73,10 @@ int main(int argc, char **argv)
   app.setFont(klfconfig.UI.applicationFont);
 
   KLFColorChooser::setColorList(klfconfig.UI.userColorList);
+
+  // TESTING PURPOSES
+  //  QWidget *wtest = new KLFColorChooseWidget;
+  //  wtest->show();
 
   KLFMainWin mainWin;
   mainWin.show();
