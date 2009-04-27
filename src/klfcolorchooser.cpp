@@ -69,7 +69,7 @@ void KLFColorChooseWidgetPane::paintEvent(QPaintEvent */*e*/)
   }
   p.drawImage(0, 0, _img);
   // draw crosshairs
-  QColor hairscol = _color.value() > 50 ? Qt::black : Qt::white;
+  QColor hairscol = qGray(_color.rgb()) > 80 ? Qt::black : Qt::white;
   if ( ! _colorcomponent.isEmpty() && _colorcomponent != "fix" ) {
     p.setPen(QPen(hairscol, 1.f, Qt::DotLine));
     x = valueA()/xfac;
@@ -401,6 +401,7 @@ void KLFColorChooseWidget::fillPalette(QList<QColor> colorlist, QWidget *w)
     lyt->insertGridFlowWidget(sq);
     sq->show();
   }
+  w->adjustSize();
 }
 
 void KLFColorChooseWidget::setCurrentToCustomColor()

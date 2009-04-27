@@ -201,6 +201,8 @@ void KLFConfig::loadDefaults()
   UI.userColorList.append(QColor(0,255,255));
   UI.userColorList.append(QColor(85,0,127));
   UI.userColorList.append(QColor(128,255,255));
+  UI.colorChooseWidgetRecent = QList<QColor>();
+  UI.colorChooseWidgetCustom = QList<QColor>();
   UI.maxUserColors = 12;
 
   SyntaxHighlighter.configFlags = 0x05;
@@ -287,6 +289,8 @@ int KLFConfig::readFromConfig()
   UI.lastSaveDir = s.value("lastsavedir", UI.lastSaveDir).toString();
   UI.symbolsPerLine = s.value("symbolsperline", UI.symbolsPerLine).toInt();
   UI.userColorList = settings_read_list(s, "usercolorlist", UI.userColorList);
+  UI.colorChooseWidgetRecent = settings_read_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent);
+  UI.colorChooseWidgetCustom = settings_read_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom);
   UI.maxUserColors = s.value("maxusercolors", UI.maxUserColors).toInt();
   s.endGroup();
 
@@ -336,6 +340,8 @@ int KLFConfig::writeToConfig()
   s.setValue("lastSaveDir", UI.lastSaveDir);
   s.setValue("symbolsperline", UI.symbolsPerLine);
   settings_write_list(s, "usercolorlist", UI.userColorList);
+  settings_write_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent);
+  settings_write_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom);
   s.setValue("maxusercolors", UI.maxUserColors);
   s.endGroup();
 

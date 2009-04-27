@@ -109,6 +109,7 @@ public:
     : QGridLayout(parent), _ncols(columns),
       _currow(0), _curcol(0)
   {
+    addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, _ncols);
   }
   virtual ~KLFGridFlowLayout() { }
 
@@ -243,9 +244,14 @@ public:
 
   QColor color() const { return _color; }
 
-  static QList<QColor> _recentcolors;
-  static QList<QColor> _standardcolors;
-  static QList<QColor> _customcolors;
+  static void setRecentCustomColors(QList<QColor> recentcolors,
+				    QList<QColor> customcolors) {
+    _recentcolors = recentcolors;
+    _customcolors = customcolors;
+  }
+  static void addRecentColor(const QColor& col) { _recentcolors.append(col); }
+  static QList<QColor> recentColors() { return _recentcolors; }
+  static QList<QColor> customColors() { return _customcolors; }
 
 signals:
   void colorChanged(const QColor& color);
@@ -266,6 +272,10 @@ private:
   QList<QObject*> _connectedColorChoosers;
 
   void fillPalette(QList<QColor> colorlist, QWidget *w);
+
+  static QList<QColor> _recentcolors;
+  static QList<QColor> _standardcolors;
+  static QList<QColor> _customcolors;
 };
 
 
@@ -290,7 +300,7 @@ public:
     if ( r != QDialog::Accepted )
       return QColor();
     QColor color = dlg.mColorChooseWidget->color();
-    KLFColorChooseWidget::_recentcolors.append(color);
+    KLFColorChooseWidget::addRecentColor(color);
     return color;
   }
 };

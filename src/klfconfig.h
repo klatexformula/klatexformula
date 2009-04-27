@@ -53,6 +53,8 @@ public:
     QString lastSaveDir;
     int symbolsPerLine;
     QList<QColor> userColorList;
+    QList<QColor> colorChooseWidgetRecent;
+    QList<QColor> colorChooseWidgetCustom;
     int maxUserColors;
 
   } UI;

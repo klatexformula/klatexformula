@@ -497,6 +497,8 @@ void KLFMainWin::saveSettings()
   klfconfig.BackendSettings.bborderoffset = _settings.bborderoffset;
 
   klfconfig.UI.userColorList = KLFColorChooser::colorList();
+  klfconfig.UI.colorChooseWidgetRecent = KLFColorChooseWidget::recentColors();
+  klfconfig.UI.colorChooseWidgetCustom = KLFColorChooseWidget::customColors();
 
   klfconfig.writeToConfig();
 }
