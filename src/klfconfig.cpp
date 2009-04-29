@@ -167,7 +167,9 @@ void KLFConfig::loadDefaults()
   homeConfigSettingsFile = homeConfigDir + "/config";
 
   QFont f = QApplication::font();
+#ifdef Q_WS_X11
   f.setPixelSize(15); // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
+#endif
 
   QFontDatabase fdb;
   QFont fcode;
@@ -250,7 +252,7 @@ static QString standard_extra_paths = "";
 
 void KLFConfig::loadDefaultBackendPaths(KLFConfig *c)
 {
-  c->BackendSettings.tempDir = QDir::tempPath();
+  c->BackendSettings.tempDir = QDir::fromNativeSeparators(QDir::tempPath());
   c->BackendSettings.execLatex = search_path(PROG_LATEX, standard_extra_paths);
   if (c->BackendSettings.execLatex.isNull()) c->BackendSettings.execLatex = PROG_LATEX;
   c->BackendSettings.execDvips = search_path(PROG_DVIPS, standard_extra_paths);

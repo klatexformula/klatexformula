@@ -30,6 +30,7 @@
 #include <QString>
 #include <QMessageBox>
 #include <QFileInfo>
+#include <QDir>
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
@@ -109,7 +110,7 @@ void KLFSettings::show()
 
 void KLFSettings::reset()
 {
-  pathTempDir->setPath(_ptr->tempdir);
+  pathTempDir->setPath(QDir::toNativeSeparators(_ptr->tempdir));
   pathLatex->setPath(_ptr->latexexec);
   pathDvips->setPath(_ptr->dvipsexec);
   pathGs->setPath(_ptr->gsexec);
@@ -190,7 +191,7 @@ void KLFSettings::setDefaultPaths()
   KLFConfig tempobject;
   KLFConfig::loadDefaultBackendPaths(&tempobject);
   if ( ! QFileInfo(pathTempDir->path()).isDir() )
-    pathTempDir->setPath(tempobject.BackendSettings.tempDir);
+    pathTempDir->setPath(QDir::toNativeSeparators(tempobject.BackendSettings.tempDir));
   setDefaultFor("latex", tempobject.BackendSettings.execLatex, true, pathLatex);
   setDefaultFor("dvips", tempobject.BackendSettings.execDvips, true, pathDvips);
   setDefaultFor("gs", tempobject.BackendSettings.execGs, true, pathGs);
@@ -211,7 +212,7 @@ void KLFSettings::apply()
 {
   // apply settings here
 
-  _ptr->tempdir = pathTempDir->path();
+  _ptr->tempdir = QDir::fromNativeSeparators(pathTempDir->path());
   _ptr->latexexec = pathLatex->path();
   _ptr->dvipsexec = pathDvips->path();
   _ptr->gsexec = pathGs->path();

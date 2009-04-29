@@ -22,11 +22,11 @@
 
 #include <stdlib.h>
 
-
 #include <qregexp.h>
 #include <qfile.h>
 #include <qdatetime.h>
 #include <qtextstream.h>
+#include <qdir.h>
 
 #include "klfblockprocess.h"
 #include "klfbackend.h"
@@ -153,7 +153,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     QStringList env;
 
     proc.setWorkingDirectory(settings.tempdir);
-    args << settings.latexexec << tempfname+".tex";
+
+    args << settings.latexexec << QDir::toNativeSeparators(tempfname+".tex");
+
     bool r = proc.startProcess(args, env);
 
     if (!r) {
@@ -185,7 +187,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     KLFBlockProcess proc;
     QStringList args;
-    args << settings.dvipsexec << "-E" << (tempfname+".dvi") << "-o" << (tempfname+".eps");
+    args << settings.dvipsexec << "-E" << QDir::toNativeSeparators(tempfname+".dvi")
+         << "-o" << QDir::toNativeSeparators(tempfname+".eps");
 
     bool r = proc.startProcess(args);
 
@@ -308,7 +311,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     } else {
       args << "-sDEVICE=pngalpha";
     }
-    args << "-sOutputFile="+tempfname+".png" << "-q" << "-dBATCH" << (tempfname+"-good.eps");
+    args << "-sOutputFile="+QDir::toNativeSeparators(tempfname+".png") << "-q" << "-dBATCH"
+         << QDir::toNativeSeparators(tempfname+"-good.eps");
 
     bool r = proc.startProcess(args);
   
@@ -357,7 +361,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // if we have epstopdf functionality, then we'll take advantage of it to generate pdf:
     KLFBlockProcess proc;
     QStringList args;
-    args << settings.epstopdfexec << (tempfname+"-good.eps") << ("--outfile="+tempfname+".pdf");
+    args << settings.epstopdfexec << (tempfname+"-good.eps") << ("--outfile="+QDir::toNativeSeparators(tempfname+".pdf"));
 
     bool r = proc.startProcess(args);
 
