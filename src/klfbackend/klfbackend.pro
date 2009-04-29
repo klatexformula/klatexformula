@@ -54,7 +54,7 @@ TEMPLATE = lib
 INCLUDEPATH += .
 CONFIG += qt warn_on release $$LIBRARY_TYPE
 DESTDIR = .
-VERSION = 3.0.0alpha0
+VERSION = 3.0.0
 contains(USE_QT4, false) {
   TARGET = klfbackend-qt3
 }
