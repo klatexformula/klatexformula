@@ -8,8 +8,8 @@
 # Easily accessible settings - change these if you wish
 
 # Installation directory. Library will be installed in
-# $$INSTALLDIR/lib, headers in $$INSTALLDIR/include
-INSTALLDIR = /usr/local
+# $$INSTALLPREFIX/lib, headers in $$INSTALLPREFIX/include
+INSTALLPREFIX = /usr
 
 # Are we building a static or a shared library ? (comment '#' the wrong one)
 LIBRARY_TYPE = staticlib
@@ -34,7 +34,7 @@ contains(USE_QT4, false) {
 contains(USE_QT4, true) {
   message("We are compiling KLFBackend with QT4, in directory")
 }
-message("$$INSTALLDIR    [libraries $$INSTALLDIR/lib, includes $$INSTALLDIR/include]")
+message("$$INSTALLPREFIX    [libraries $$INSTALLPREFIX/lib, includes $$INSTALLPREFIX/include]")
 contains(LIBRARY_TYPE, dll) {
   message("We are building a SHARED library")
 }
@@ -66,8 +66,8 @@ contains(USE_QT4, true) {
 HEADERS += klfbackend.h klfblockprocess.h
 SOURCES += klfbackend.cpp klfblockprocess.cpp
 
-target.path = $$INSTALLDIR/lib
-includes.path = $$INSTALLDIR/include
+target.path = $$INSTALLPREFIX/lib
+includes.path = $$INSTALLPREFIX/include
 includes.files = $$HEADERS
 INSTALLS += target includes
 

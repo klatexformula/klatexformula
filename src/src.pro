@@ -4,6 +4,7 @@
 
 VERSION = 3.0.1
 
+INSTALLPREFIX=/usr
 
 TEMPLATE = app
 TARGET = klatexformula
@@ -52,4 +53,7 @@ RESOURCES += klfres.qrc
 RC_FILE = klatexformula.rc
 
 TRANSLATIONS += i18n/klf_fr.ts
+
+target.path = $$INSTALLPREFIX/bin
+INSTALLS += target
 
