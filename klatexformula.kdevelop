@@ -3,7 +3,7 @@
   <general>
     <author>Philippe Faist</author>
     <email>philippe.faist@bluewin.ch</email>
-    <version>1</version>
+    <version>3.0.1</version>
     <projectmanagement>KDevTrollProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
@@ -29,6 +29,7 @@
     <tree>
       <hidepatterns>*.o,*.lo,CVS</hidepatterns>
       <hidenonprojectfiles>false</hidenonprojectfiles>
+      <showvcsfields>false</showvcsfields>
     </tree>
   </kdevfileview>
   <kdevdoctreeview>
@@ -195,4 +196,33 @@
     <recursivewhencommitremove>true</recursivewhencommitremove>
     <revertoptions>-C</revertoptions>
   </kdevcvsservice>
+  <dist>
+    <custom>false</custom>
+    <bzip>false</bzip>
+    <archname>%n-%v</archname>
+    <appname>klatexformula</appname>
+    <version>3.0.1</version>
+    <release></release>
+    <vendor></vendor>
+    <licence>GPL</licence>
+    <summary></summary>
+    <group></group>
+    <packager>Philippe Faist</packager>
+    <description></description>
+    <changelog></changelog>
+    <devpackage>false</devpackage>
+    <docspackage>false</docspackage>
+    <appicon>false</appicon>
+    <arch>0</arch>
+    <genHTML>false</genHTML>
+    <useRPM>false</useRPM>
+    <ftpkde>false</ftpkde>
+    <appskde>false</appskde>
+    <url></url>
+  </dist>
+  <ctagspart>
+    <customArguments></customArguments>
+    <customTagfilePath>/home/philippe/programs/kde/klatexformula/tags</customTagfilePath>
+    <activeTagsFiles/>
+  </ctagspart>
 </kdevelop>
