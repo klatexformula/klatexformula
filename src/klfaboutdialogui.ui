@@ -97,13 +97,13 @@ QLabel[aboutText=true] {
          <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
 &lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
 p, li { white-space: pre-wrap; }
-&lt;/style>&lt;/head>&lt;body style=" font-family:'Lucida Grande'; font-size:13pt; font-weight:400; font-style:normal;">
-&lt;p style=" margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;">About KLatexFormula&lt;/p>
-&lt;p align="justify" style=" margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">KLatexFormula was written by Philippe Faist, currently (2009) studying physics in Switzerland. First released in 2006 written in KDE3 environment, the program has seen many improvements and restructuring since then, leading to the current Qt 4 version.&lt;/p>
-&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:medium; font-weight:600;">&lt;span style=" font-size:medium;">Author&lt;/span>&lt;/p>
-&lt;p style=" margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Philippe Faist, philippe.faist@bluewin.ch&lt;/p>
-&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:medium; font-weight:600;">&lt;span style=" font-size:medium;">KLatexFormula On the Web&lt;/span>&lt;/p>
-&lt;p style=" margin-top:14px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;a href="http://klatexformula.sourceforge.net/">&lt;span style=" text-decoration: underline; color:#0000ff;">http://klatexformula.sourceforge.net/&lt;/span>&lt;/a>&lt;/p>&lt;/body>&lt;/html></string>
+&lt;/style>&lt;/head>&lt;body style="font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:large; font-weight:600;">&lt;span style=" font-size:large;">About KLatexFormula&lt;/span>&lt;/p>
+&lt;p align="justify" style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">KLatexFormula was written by Philippe Faist, currently (2009) studying physics in Switzerland. First released in 2006 written in KDE3 environment, the program has seen many improvements and restructuring since then, leading to the current Qt 4 version.&lt;/p>
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;">Author&lt;/p>
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Philippe Faist, philippe.faist@bluewin.ch&lt;/p>
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;">KLatexFormula On the Web&lt;/p>
+&lt;p style=" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;a href="http://klatexformula.sourceforge.net/">&lt;span style=" text-decoration: underline; color:#0000bf;">http://klatexformula.sourceforge.net/&lt;/span>&lt;/a>&lt;/p>&lt;/body>&lt;/html></string>
         </property>
         <property name="textFormat" >
          <enum>Qt::RichText</enum>

@@ -369,7 +369,9 @@ void KLFLatexSymbolsView::setSymbolList(const QList<KLFLatexSymbol>& symbols)
 
 void KLFLatexSymbolsView::buildDisplay()
 {
+#ifdef Q_WS_MAC
   QStyle *myStyle = new QPlastiqueStyle;
+#endif
   mLayout = new QGridLayout(mFrame);
   int i;
   for (i = 0; i < _symbols.size(); ++i) {

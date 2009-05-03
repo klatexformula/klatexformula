@@ -35,11 +35,22 @@
 
 
 
+#define MAX_RECENT_COLORS 128
+
+
+
+// ------------------------------------------------------------------------------------
+
+
 class KLFColorList : public QObject
 {
   Q_OBJECT
+
+  Q_PROPERTY(int maxSize READ maxSize WRITE setMaxSize)
 public:
-  KLFColorList() : QObject(qApp) { }
+  KLFColorList(int maxsize) : QObject(qApp) { _maxsize = maxsize; }
+
+  int maxSize() const { return _maxsize; }
 
   QList<QColor> list;
 
@@ -47,10 +58,14 @@ signals:
   void listChanged();
 
 public slots:
+  void setMaxSize(int maxsize) { _maxsize = maxsize; }
   void addColor(const QColor& color);
+  void removeColor(const QColor& color);
   void notifyListChanged() { emit listChanged(); }
-};
 
+private:
+  int _maxsize;
+};
 
 
 // ------------------------------------------------------------------------------------
@@ -62,11 +77,7 @@ class KLFColorClickSquare : public QWidget
 
   Q_PROPERTY(QColor color READ color WRITE setColor USER true)
 public:
-  KLFColorClickSquare(QColor color = Qt::white, int size = 16, QWidget *parent = 0)
-    : QWidget(parent), _color(color), _size(size)
-  {
-    setFixedSize(_size, _size);
-  }
+  KLFColorClickSquare(QColor color = Qt::white, int size = 16, bool removable = true, QWidget *parent = 0);
 
   virtual QSize sizeHint() { return QSize(_size, _size); }
 
@@ -75,6 +86,8 @@ public:
 signals:
   void activated();
   void colorActivated(const QColor& color);
+  void wantRemove();
+  void wantRemoveColor(const QColor& color);
 
 public slots:
   void setColor(const QColor& col) { _color = col; }
@@ -84,19 +97,18 @@ public slots:
   }
 
 protected:
-  void paintEvent(QPaintEvent */*event*/)
-  {
-    QPainter p(this);
-    p.fillRect(0, 0, width(), height(), QBrush(_color));
-  }
-  void mousePressEvent(QMouseEvent */*event*/)
-  {
-    activate();
-  }
+  void paintEvent(QPaintEvent *event);
+  void keyPressEvent(QKeyEvent *event);
+  void mousePressEvent(QMouseEvent *event);
+  void contextMenuEvent(QContextMenuEvent *event);
 
 private:
   QColor _color;
   int _size;
+  bool _removable;
+
+private slots:
+  void internalWantRemove();
 };
 
 // ------------------------------------------------------------------------------------
@@ -105,36 +117,14 @@ class KLFGridFlowLayout : public QGridLayout
 {
   Q_OBJECT
 public:
-  KLFGridFlowLayout(int columns, QWidget *parent)
-    : QGridLayout(parent), _ncols(columns),
-      _currow(0), _curcol(0)
-  {
-    addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Fixed), 0, _ncols);
-  }
+  KLFGridFlowLayout(int columns, QWidget *parent);
   virtual ~KLFGridFlowLayout() { }
 
   virtual int ncolumns() const { return _ncols; }
 
-  virtual void insertGridFlowWidget(QWidget *w, Qt::Alignment align = 0)
-  {
-    mGridFlowWidgets.append(w);
-    QGridLayout::addWidget(w, _currow, _curcol, align);
-    _curcol++;
-    if (_curcol >= _ncols) {
-      _curcol = 0;
-      _currow++;
-    }
-  }
+  virtual void insertGridFlowWidget(QWidget *w, Qt::Alignment align = 0);
 
-  void clearAll()
-  {
-    int k;
-    for (k = 0; k < mGridFlowWidgets.size(); ++k) {
-      delete mGridFlowWidgets[k];
-    }
-    mGridFlowWidgets.clear();
-    _currow = _curcol = 0;
-  }
+  void clearAll();
 
 protected:
   QList<QWidget*> mGridFlowWidgets;
@@ -244,14 +234,18 @@ public:
 
   QColor color() const { return _color; }
 
+  static void ensureColorListsInstance();
   static void setRecentCustomColors(QList<QColor> recentcolors,
 				    QList<QColor> customcolors) {
-    _recentcolors = recentcolors;
-    _customcolors = customcolors;
+    ensureColorListsInstance();
+    _recentcolors->list = recentcolors;
+    _recentcolors->notifyListChanged();
+    _customcolors->list = customcolors;
+    _customcolors->notifyListChanged();
   }
-  static void addRecentColor(const QColor& col) { _recentcolors.append(col); }
-  static QList<QColor> recentColors() { return _recentcolors; }
-  static QList<QColor> customColors() { return _customcolors; }
+  static void addRecentColor(const QColor& col);
+  static QList<QColor> recentColors() { ensureColorListsInstance(); return _recentcolors->list; }
+  static QList<QColor> customColors() { ensureColorListsInstance(); return _customcolors->list; }
 
 signals:
   void colorChanged(const QColor& color);
@@ -260,6 +254,9 @@ public slots:
   void setColor(const QColor& color);
   void setCurrentToCustomColor();
   void updatePalettes();
+  void updatePaletteRecent();
+  void updatePaletteStandard();
+  void updatePaletteCustom();
 
 protected slots:
   virtual void internalColorChanged(const QColor& newcolor);
@@ -271,11 +268,11 @@ private:
 
   QList<QObject*> _connectedColorChoosers;
 
-  void fillPalette(QList<QColor> colorlist, QWidget *w);
+  void fillPalette(KLFColorList *colorlist, QWidget *w);
 
-  static QList<QColor> _recentcolors;
-  static QList<QColor> _standardcolors;
-  static QList<QColor> _customcolors;
+  static KLFColorList *_recentcolors;
+  static KLFColorList *_standardcolors;
+  static KLFColorList *_customcolors;
 };
 
 
@@ -292,18 +289,11 @@ public:
     setupUi(this);
   }
 
-  static QColor getColor(QColor startwith = Qt::black, QWidget *parent = 0)
-  {
-    KLFColorDialog dlg(parent);
-    dlg.mColorChooseWidget->setColor(startwith);
-    int r = dlg.exec();
-    if ( r != QDialog::Accepted )
-      return QColor();
-    QColor color = dlg.mColorChooseWidget->color();
-    KLFColorChooseWidget::addRecentColor(color);
-    return color;
-  }
+  static QColor getColor(QColor startwith = Qt::black, QWidget *parent = 0);
 };
+
+
+
 
 // ------------------------------------------------------------------------------------
 
