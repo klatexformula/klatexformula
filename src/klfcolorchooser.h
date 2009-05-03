@@ -307,6 +307,8 @@ public:
 
 // ------------------------------------------------------------------------------------
 
+class QStyle;
+
 class KLFColorChooser : public QPushButton
 {
   Q_OBJECT
@@ -370,6 +372,7 @@ private:
   QPixmap colorPixmap(const QColor& color, const QSize& size);
 
   static KLFColorList *_colorlist;
+  static QStyle *mReplaceButtonStyle;
 };
 
 

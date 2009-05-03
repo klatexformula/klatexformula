@@ -26,6 +26,7 @@
 #include <QColorDialog>
 #include <QPaintEvent>
 #include <QStyle>
+#include <QPlastiqueStyle>
 #include <QStyleOptionButton>
 
 #include "klfconfig.h"
@@ -438,6 +439,8 @@ void KLFColorList::addColor(const QColor& color)
 // static
 KLFColorList *KLFColorChooser::_colorlist = NULL;
 
+QStyle *KLFColorChooser::mReplaceButtonStyle = NULL;
+
 KLFColorChooser::KLFColorChooser(QWidget *parent)
   : QPushButton(parent), _color(0,0,0,255), _pix(), _allowdefaultstate(false), _autoadd(true), _size(120, 20),
     _xalignfactor(0.5f), _yalignfactor(0.5f),
@@ -447,6 +450,12 @@ KLFColorChooser::KLFColorChooser(QWidget *parent)
   connect(_colorlist, SIGNAL(listChanged()), this, SLOT(_makemenu()));
   _makemenu();
   _setpix();
+
+#ifdef Q_WS_MAC
+  if ( mReplaceButtonStyle == NULL )
+    mReplaceButtonStyle = new QPlastiqueStyle;
+  setStyle(mReplaceButtonStyle);
+#endif
 }
 
 

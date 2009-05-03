@@ -31,7 +31,7 @@
 #include "klfblockprocess.h"
 #include "klfbackend.h"
 
-#if  defined (_POSIX_) || defined (__USE_POSIX)
+#if defined (Q_WS_MAC) || defined (_POSIX_) || defined (__USE_POSIX)
   extern char **environ;
 #else
   _CRTIMP extern char **_environ;

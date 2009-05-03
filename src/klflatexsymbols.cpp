@@ -37,6 +37,7 @@
 #include <QCloseEvent>
 #include <QDebug>
 #include <QPainter>
+#include <QPlastiqueStyle>
 
 #include <QDomDocument>
 #include <QDomElement>
@@ -368,11 +369,16 @@ void KLFLatexSymbolsView::setSymbolList(const QList<KLFLatexSymbol>& symbols)
 
 void KLFLatexSymbolsView::buildDisplay()
 {
+  QStyle *myStyle = new QPlastiqueStyle;
   mLayout = new QGridLayout(mFrame);
   int i;
   for (i = 0; i < _symbols.size(); ++i) {
     QPixmap p = KLFLatexSymbols::cache()->getPixmap(_symbols[i]);
     KLFPixmapButton *btn = new KLFPixmapButton(p, mFrame);
+#ifdef Q_WS_MAC
+    btn->setStyle(myStyle);
+    btn->setStyleSheet("background-color: rgb(206, 207, 233);");
+#endif
     btn->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
     //    btn->setIconSize(p.size());
     //    btn->setIcon(p);

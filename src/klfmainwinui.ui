@@ -98,9 +98,6 @@
         <property name="spacing" >
          <number>2</number>
         </property>
-        <property name="margin" >
-         <number>0</number>
-        </property>
         <item>
          <widget class="QPushButton" name="btnClear" >
           <property name="sizePolicy" >
@@ -250,11 +247,6 @@
          </property>
          <item row="0" column="1" >
           <widget class="QPushButton" name="btnDrag" >
-           <property name="font" >
-            <font>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
            <property name="toolTip" >
             <string>Click and keep mouse button pressed to drag your formula to an other application</string>
            </property>
@@ -265,11 +257,6 @@
          </item>
          <item row="1" column="1" >
           <widget class="QPushButton" name="btnCopy" >
-           <property name="font" >
-            <font>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
            <property name="toolTip" >
             <string>Copy formula to clipboard</string>
            </property>
@@ -283,11 +270,6 @@
          </item>
          <item row="2" column="1" >
           <widget class="QPushButton" name="btnSave" >
-           <property name="font" >
-            <font>
-             <pointsize>8</pointsize>
-            </font>
-           </property>
            <property name="toolTip" >
             <string>Save formula to disk</string>
            </property>
