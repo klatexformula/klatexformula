@@ -20,6 +20,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <stdio.h>
+
 #include <QAction>
 #include <QMenu>
 #include <QStylePainter>
@@ -485,9 +487,10 @@ void KLFColorChooseWidget::internalColorNameSet(const QString& n)
   QString name = n;
   static QRegExp rx("\\#?[0-9A-Za-z]{6}");
   if (!rx.exactMatch(name)) {
-    printf("Name %s not valid. waiting ...\n", name.toLocal8Bit().constData());
+    txtHex->setStyleSheet("background-color: rgb(255,128,128)");
     return;
   }
+  txtHex->setStyleSheet("");
   if (name[0] != QLatin1Char('#'))
     name = "#"+name;
   QColor color(name);

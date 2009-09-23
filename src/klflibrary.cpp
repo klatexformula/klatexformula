@@ -20,6 +20,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <stdio.h>
+
 #include <QTabWidget>
 #include <QPushButton>
 #include <QLabel>
@@ -488,7 +490,7 @@ void KLFLibraryListManager::slotDelete(const QList<uint>& deleteIds)
       fprintf(stderr, "ERROR: Can't find item with id `%u'!\n", (uint)deleteIds[k]);
       continue;
     }
-    for (j = 0; j < _libItems->size() && _libItems->at(j).id != deleteIds[k]; ++j);
+    for (j = 0; j < _libItems->size() && _libItems->at(j).id != deleteIds[k]; ++j) ;
     if (j >= _libItems->size()) {
       fprintf(stderr, "ERROR: Can't determine index of library item with id `%u'!\n", (uint)deleteIds[k]);
       continue;
@@ -526,7 +528,7 @@ void KLFLibraryListManager::slotMoveToResource()
 void KLFLibraryListManager::slotCopyMoveToResource(uint rid, bool move)
 {
   int ind;
-  for (ind = 0; ind < _reslistptr->size() && _reslistptr->at(ind).id != rid; ++ind);
+  for (ind = 0; ind < _reslistptr->size() && _reslistptr->at(ind).id != rid; ++ind) ;
   if (ind >= _reslistptr->size()) {
     fprintf(stderr, "ERROR: Can't find resource id `%d'!\n", rid);
     return;
@@ -541,7 +543,7 @@ void KLFLibraryListManager::slotCopyMoveToResource(uint rid, bool move)
   for (int i = 0; i < selected.size(); ++i) {
     int k;
     ulong id = ((KLFLibraryListViewItem*)selected[i])->libraryItem().id;
-    for (k = 0; k < _libItems->size() && _libItems->at(k).id != id; ++k);
+    for (k = 0; k < _libItems->size() && _libItems->at(k).id != id; ++k) ;
     if (k == _libItems->size()) {
       fprintf(stderr, "ERROR: NASTY: Can't find index!!!\n");
     } else {
@@ -751,7 +753,7 @@ KLFLibraryListViewItem *KLFLibraryListManager::itemForId(uint reqid)
 
 
 KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData::KLFLibraryResourceList *reslistptr, KLFMainWin *parent)
-  : QWidget(/*parent*/ 0 , Qt::Tool), KLFLibraryBrowserUI()
+  : QWidget(/*parent*/ 0 , /*Qt::Tool*/ 0), KLFLibraryBrowserUI()
 {
   setupUi(this);
 

@@ -157,7 +157,7 @@ KLFConfig::KLFConfig()
 
 #define KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, f)		\
   if (!found_fcode && fdb.isFixedPitch(f)) {				\
-    fcode = QFont(f, 10);						\
+    fcode = QFont(f, 11);						\
     found_fcode = true;							\
   }
 
@@ -166,60 +166,62 @@ void KLFConfig::loadDefaults()
   homeConfigDir = QDir::homePath() + "/.klatexformula";
   homeConfigSettingsFile = homeConfigDir + "/config";
 
-  QFont f = QApplication::font();
+  if (qApp->inherits("QApplication")) {
+    QFont f = QApplication::font();
 #ifdef Q_WS_X11
-  f.setPixelSize(15); // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
+    f.setPixelSize(15); // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
 #endif
 
-  QFontDatabase fdb;
-  QFont fcode;
-  bool found_fcode = false;
-  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier 10 Pitch");
-  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "ETL Fixed");
-  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier New");
-  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Efont Fixed");
-  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Adobe Courier");
-  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier");
-  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Misc Fixed");
-  KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace");
-  if ( ! found_fcode )
-    fcode = f;
+    QFontDatabase fdb;
+    QFont fcode;
+    bool found_fcode = false;
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier 10 Pitch");
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "ETL Fixed");
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier New");
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Efont Fixed");
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Adobe Courier");
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier");
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Misc Fixed");
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace");
+    if ( ! found_fcode )
+      fcode = f;
 
-  UI.applicationFont = f;
-  UI.latexEditFont = fcode;
-  UI.preambleEditFont = fcode;
-  UI.previewTooltipMaxSize = QSize(500, 350);
-  UI.labelOutputFixedSize = QSize(280, 90);
-  UI.lastSaveDir = QDir::homePath();
-  UI.symbolsPerLine = 6;
-  UI.userColorList = QList<QColor>();
-  UI.userColorList.append(QColor(0,0,0));
-  UI.userColorList.append(QColor(255,255,255));
-  UI.userColorList.append(QColor(170,0,0));
-  UI.userColorList.append(QColor(0,0,128));
-  UI.userColorList.append(QColor(0,0,255));
-  UI.userColorList.append(QColor(0,85,0));
-  UI.userColorList.append(QColor(255,85,0));
-  UI.userColorList.append(QColor(0,255,255));
-  UI.userColorList.append(QColor(85,0,127));
-  UI.userColorList.append(QColor(128,255,255));
-  UI.colorChooseWidgetRecent = QList<QColor>();
-  UI.colorChooseWidgetCustom = QList<QColor>();
-  UI.maxUserColors = 12;
+    UI.applicationFont = f;
+    UI.latexEditFont = fcode;
+    UI.preambleEditFont = fcode;
+    UI.previewTooltipMaxSize = QSize(500, 350);
+    UI.labelOutputFixedSize = QSize(280, 90);
+    UI.lastSaveDir = QDir::homePath();
+    UI.symbolsPerLine = 6;
+    UI.userColorList = QList<QColor>();
+    UI.userColorList.append(QColor(0,0,0));
+    UI.userColorList.append(QColor(255,255,255));
+    UI.userColorList.append(QColor(170,0,0));
+    UI.userColorList.append(QColor(0,0,128));
+    UI.userColorList.append(QColor(0,0,255));
+    UI.userColorList.append(QColor(0,85,0));
+    UI.userColorList.append(QColor(255,85,0));
+    UI.userColorList.append(QColor(0,255,255));
+    UI.userColorList.append(QColor(85,0,127));
+    UI.userColorList.append(QColor(128,255,255));
+    UI.colorChooseWidgetRecent = QList<QColor>();
+    UI.colorChooseWidgetCustom = QList<QColor>();
+    UI.maxUserColors = 12;
 
-  SyntaxHighlighter.configFlags = 0x05;
-  SyntaxHighlighter.fmtKeyword = QTextCharFormat();
-  SyntaxHighlighter.fmtKeyword.setForeground(QColor(0, 0, 128));
-  SyntaxHighlighter.fmtComment = QTextCharFormat();
-  SyntaxHighlighter.fmtComment.setForeground(QColor(180, 0, 0));
-  SyntaxHighlighter.fmtComment.setFontItalic(true);
-  SyntaxHighlighter.fmtParenMatch = QTextCharFormat();
-  SyntaxHighlighter.fmtParenMatch.setBackground(QColor(180, 238, 180));
-  SyntaxHighlighter.fmtParenMismatch = QTextCharFormat();
-  SyntaxHighlighter.fmtParenMismatch.setBackground(QColor(255, 20, 147));
-  SyntaxHighlighter.fmtLonelyParen = QTextCharFormat();
-  SyntaxHighlighter.fmtLonelyParen.setForeground(QColor(255, 0, 255));
-  SyntaxHighlighter.fmtLonelyParen.setFontWeight(QFont::Bold);
+    SyntaxHighlighter.configFlags = 0x05;
+    SyntaxHighlighter.fmtKeyword = QTextCharFormat();
+    SyntaxHighlighter.fmtKeyword.setForeground(QColor(0, 0, 128));
+    SyntaxHighlighter.fmtComment = QTextCharFormat();
+    SyntaxHighlighter.fmtComment.setForeground(QColor(180, 0, 0));
+    SyntaxHighlighter.fmtComment.setFontItalic(true);
+    SyntaxHighlighter.fmtParenMatch = QTextCharFormat();
+    SyntaxHighlighter.fmtParenMatch.setBackground(QColor(180, 238, 180));
+    SyntaxHighlighter.fmtParenMismatch = QTextCharFormat();
+    SyntaxHighlighter.fmtParenMismatch.setBackground(QColor(255, 20, 147));
+    SyntaxHighlighter.fmtLonelyParen = QTextCharFormat();
+    SyntaxHighlighter.fmtLonelyParen.setForeground(QColor(255, 0, 255));
+    SyntaxHighlighter.fmtLonelyParen.setFontWeight(QFont::Bold);
+  }
 
   loadDefaultBackendPaths(this);
   BackendSettings.lborderoffset = 1;

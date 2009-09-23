@@ -38,7 +38,7 @@ class KLFSettings : public QDialog, private Ui::KLFSettingsUI
   Q_OBJECT
 
 public:
-  KLFSettings(KLFBackend::klfSettings *ptr, KLFMainWin* parent = 0);
+  KLFSettings(KLFMainWin* parent = 0);
   ~KLFSettings();
 
 public slots:
@@ -51,8 +51,6 @@ public slots:
   void setDefaultPaths();
 
 protected:
-
-  KLFBackend::klfSettings *_ptr;
 
 protected slots:
 
@@ -76,7 +74,8 @@ private:
   };
   QList<TextFormatEnsemble> _textformats;
 
-  bool setDefaultFor(const QString& progname, const QString& guessprog, bool required, KLFPathChooser *destination);
+  bool setDefaultFor(const QString& progname, const QString& guessprog, bool required,
+		     KLFPathChooser *destination);
 };
 
 #endif

@@ -41,7 +41,6 @@
 #include "klfconfig.h"
 #include "klfsettings.h"
 
-
 #define REG_SH_TEXTFORMATENSEMBLE(x) \
   _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
 					   colSH##x, colSH##x##Bg , chkSH##x##B , chkSH##x##I ) );
@@ -51,7 +50,8 @@
 #  define PROG_DVIPS "dvips.exe"
 #  define PROG_GS "gswin32c.exe"
 #  define PROG_EPSTOPDF "epstopdf.exe"
-static QString standard_extra_paths = "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
+static QString standard_extra_paths =
+  "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
 #else
 #  define PROG_LATEX "latex"
 #  define PROG_DVIPS "dvips"
@@ -61,12 +61,11 @@ static QString standard_extra_paths = "";
 #endif
 
 
-KLFSettings::KLFSettings(KLFBackend::klfSettings *p, KLFMainWin* parent)
+KLFSettings::KLFSettings(KLFMainWin* parent)
   : QDialog(parent), KLFSettingsUI()
 {
   setupUi(this);
 
-  _ptr = p;
   _mainwin = parent;
 
   reset();
@@ -110,16 +109,18 @@ void KLFSettings::show()
 
 void KLFSettings::reset()
 {
-  pathTempDir->setPath(QDir::toNativeSeparators(_ptr->tempdir));
-  pathLatex->setPath(_ptr->latexexec);
-  pathDvips->setPath(_ptr->dvipsexec);
-  pathGs->setPath(_ptr->gsexec);
-  pathEpstopdf->setPath(_ptr->epstopdfexec);
-  chkEpstopdf->setChecked( ! _ptr->epstopdfexec.isEmpty() );
-  spnLBorderOffset->setValue( _ptr->lborderoffset );
-  spnTBorderOffset->setValue( _ptr->tborderoffset );
-  spnRBorderOffset->setValue( _ptr->rborderoffset );
-  spnBBorderOffset->setValue( _ptr->bborderoffset );
+  KLFBackend::klfSettings s = _mainwin->currentSettings();
+
+  pathTempDir->setPath(QDir::toNativeSeparators(s.tempdir));
+  pathLatex->setPath(s.latexexec);
+  pathDvips->setPath(s.dvipsexec);
+  pathGs->setPath(s.gsexec);
+  pathEpstopdf->setPath(s.epstopdfexec);
+  chkEpstopdf->setChecked( ! s.epstopdfexec.isEmpty() );
+  spnLBorderOffset->setValue( s.lborderoffset );
+  spnTBorderOffset->setValue( s.tborderoffset );
+  spnRBorderOffset->setValue( s.rborderoffset );
+  spnBBorderOffset->setValue( s.bborderoffset );
 
   chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.configFlags
 			  &  KLFLatexSyntaxHighlighter::Enabled);
@@ -162,7 +163,8 @@ void KLFSettings::reset()
 
 
 
-bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedprog, bool required, KLFPathChooser *destination)
+bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedprog, bool required,
+				KLFPathChooser *destination)
 {
   QString progpath = guessedprog;
   if (progpath.isNull()) {
@@ -172,7 +174,8 @@ bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedp
     }
     if ( ! required )
       return false;
-    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find %1 executable !").arg(progname), QMessageBox::Ok);
+    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find %1 executable !").arg(progname),
+		       QMessageBox::Ok);
     msgbox.setInformativeText(tr("Please check your installation and specify the path"
 				 " to %1 executable manually if it is not installed"
 				 " in $PATH.").arg(progname));
@@ -212,18 +215,23 @@ void KLFSettings::apply()
 {
   // apply settings here
 
-  _ptr->tempdir = QDir::fromNativeSeparators(pathTempDir->path());
-  _ptr->latexexec = pathLatex->path();
-  _ptr->dvipsexec = pathDvips->path();
-  _ptr->gsexec = pathGs->path();
-  _ptr->epstopdfexec = QString();
+  // create a temporary settings object
+  KLFBackend::klfSettings s;
+
+  s.tempdir = QDir::fromNativeSeparators(pathTempDir->path());
+  s.latexexec = pathLatex->path();
+  s.dvipsexec = pathDvips->path();
+  s.gsexec = pathGs->path();
+  s.epstopdfexec = QString();
   if (chkEpstopdf->isChecked()) {
-    _ptr->epstopdfexec = pathEpstopdf->path();
+    s.epstopdfexec = pathEpstopdf->path();
   }
-  _ptr->lborderoffset = spnLBorderOffset->value();
-  _ptr->tborderoffset = spnTBorderOffset->value();
-  _ptr->rborderoffset = spnRBorderOffset->value();
-  _ptr->bborderoffset = spnBBorderOffset->value();
+  s.lborderoffset = spnLBorderOffset->value();
+  s.tborderoffset = spnTBorderOffset->value();
+  s.rborderoffset = spnRBorderOffset->value();
+  s.bborderoffset = spnBBorderOffset->value();
+
+  _mainwin->applySettings(s);
 
   if (chkSHEnable->isChecked())
     klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::Enabled;

@@ -20,6 +20,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <stdio.h>
+
 #include <QFile>
 #include <QTextStream>
 #include <QScrollArea>
@@ -484,7 +486,7 @@ void KLFLatexSymbolsView::slotSymbolActivated()
 
 
 KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
-  : QWidget(/*mw*/ 0 , Qt::Tool), KLFLatexSymbolsUI()
+  : QWidget(/*mw*/ 0 , /*Qt::Tool*/ 0), KLFLatexSymbolsUI()
 {
   setupUi(this);
 

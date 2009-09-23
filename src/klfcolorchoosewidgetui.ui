@@ -1,68 +1,69 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>KLFColorChooseWidgetUI</class>
- <widget class="QWidget" name="KLFColorChooseWidgetUI" >
-  <property name="geometry" >
+ <widget class="QWidget" name="KLFColorChooseWidgetUI">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>387</width>
-    <height>324</height>
+    <width>334</width>
+    <height>294</height>
    </rect>
   </property>
-  <property name="contextMenuPolicy" >
+  <property name="contextMenuPolicy">
    <enum>Qt::NoContextMenu</enum>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Choose Color</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_4" >
-   <property name="margin" >
+  <layout class="QGridLayout" name="gridLayout_4">
+   <property name="margin">
     <number>0</number>
    </property>
-   <property name="spacing" >
+   <property name="spacing">
     <number>3</number>
    </property>
-   <item row="0" column="0" colspan="2" >
-    <widget class="QTabWidget" name="mPaneTabs" >
-     <property name="tabPosition" >
+   <item row="0" column="0" colspan="2">
+    <widget class="QTabWidget" name="mPaneTabs">
+     <property name="tabPosition">
       <enum>QTabWidget::West</enum>
      </property>
-     <property name="currentIndex" >
-      <number>0</number>
+     <property name="currentIndex">
+      <number>2</number>
      </property>
-     <widget class="QWidget" name="mHSVTab" >
-      <attribute name="title" >
-       <string/>
-      </attribute>
-      <attribute name="icon" >
-       <iconset resource="klfres.qrc" >
+     <widget class="QWidget" name="mHSVTab">
+      <attribute name="icon">
+       <iconset resource="klfres.qrc">
         <normaloff>:/pics/huepane.png</normaloff>:/pics/huepane.png</iconset>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_3" >
-       <item row="0" column="0" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mHueSatPane" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+      <attribute name="title">
+       <string/>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="KLFColorChooseWidgetPane" name="mHueSatPane" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>128</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>128</width>
            <height>128</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Hue+Sat</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -71,30 +72,30 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mValPane" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
+       <item row="0" column="1">
+        <widget class="KLFColorChooseWidgetPane" name="mValPane" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>20</width>
            <height>128</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>20</width>
            <height>128</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Fix+Val</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -103,30 +104,30 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0" colspan="2" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mAlphaPane" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="1" column="0" colspan="2">
+        <widget class="KLFColorChooseWidgetPane" name="mAlphaPane" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>20</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>16777215</width>
            <height>20</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Alpha+Fix</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -137,36 +138,36 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="mTriangleTab" >
-      <property name="minimumSize" >
+     <widget class="QWidget" name="mTriangleTab">
+      <property name="minimumSize">
        <size>
         <width>160</width>
         <height>160</height>
        </size>
       </property>
-      <attribute name="title" >
-       <string/>
-      </attribute>
-      <attribute name="icon" >
-       <iconset resource="klfres.qrc" >
+      <attribute name="icon">
+       <iconset resource="klfres.qrc">
         <normaloff>:/pics/colortriangle.png</normaloff>:/pics/colortriangle.png</iconset>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout" >
-       <property name="sizeConstraint" >
+      <attribute name="title">
+       <string/>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="sizeConstraint">
         <enum>QLayout::SetMinimumSize</enum>
        </property>
-       <property name="margin" >
+       <property name="margin">
         <number>0</number>
        </property>
        <item>
-        <widget class="QtColorTriangle" native="1" name="mColorTriangle" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+        <widget class="QtColorTriangle" name="mColorTriangle" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>160</width>
            <height>160</height>
@@ -176,82 +177,82 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="mNamedTab" >
-      <attribute name="title" >
-       <string/>
-      </attribute>
-      <attribute name="icon" >
-       <iconset resource="klfres.qrc" >
+     <widget class="QWidget" name="mNamedTab">
+      <attribute name="icon">
+       <iconset resource="klfres.qrc">
         <normaloff>:/pics/named.png</normaloff>:/pics/named.png</iconset>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout" >
-       <property name="horizontalSpacing" >
+      <attribute name="title">
+       <string/>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="horizontalSpacing">
         <number>3</number>
        </property>
-       <property name="verticalSpacing" >
+       <property name="verticalSpacing">
         <number>5</number>
        </property>
-       <item row="0" column="0" colspan="2" >
-        <widget class="QListWidget" name="lstNames" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+       <item row="0" column="0" colspan="2">
+        <widget class="QListWidget" name="lstNames">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
         </widget>
        </item>
-       <item row="1" column="0" >
-        <widget class="QLabel" name="lblHex" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="1" column="0">
+        <widget class="QLabel" name="lblHex">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="text" >
+         <property name="text">
           <string>Hex:</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1" >
-        <widget class="QLineEdit" name="txtHex" />
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="txtHex"/>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="mSlidersTab" >
-      <attribute name="title" >
-       <string/>
-      </attribute>
-      <attribute name="icon" >
-       <iconset resource="klfres.qrc" >
+     <widget class="QWidget" name="mSlidersTab">
+      <attribute name="icon">
+       <iconset resource="klfres.qrc">
         <normaloff>:/pics/colorsliders.png</normaloff>:/pics/colorsliders.png</iconset>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_5" >
-       <item row="0" column="7" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mHueSlider" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+      <attribute name="title">
+       <string/>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="0" column="7">
+        <widget class="KLFColorChooseWidgetPane" name="mHueSlider" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>15</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>16777215</width>
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Hue+Fix</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -260,30 +261,30 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="7" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mSatSlider" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="1" column="7">
+        <widget class="KLFColorChooseWidgetPane" name="mSatSlider" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>15</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>16777215</width>
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Sat+Fix</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -292,30 +293,30 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="7" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mValSlider" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="2" column="7">
+        <widget class="KLFColorChooseWidgetPane" name="mValSlider" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>15</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>16777215</width>
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Val+Fix</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -324,30 +325,30 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="7" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mRedSlider" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="3" column="7">
+        <widget class="KLFColorChooseWidgetPane" name="mRedSlider" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>15</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>16777215</width>
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Red+Fix</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -356,30 +357,30 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="7" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mGreenSlider" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="4" column="7">
+        <widget class="KLFColorChooseWidgetPane" name="mGreenSlider" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>15</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>16777215</width>
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Green+Fix</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -388,30 +389,30 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="7" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mBlueSlider" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="5" column="7">
+        <widget class="KLFColorChooseWidgetPane" name="mBlueSlider" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>15</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>16777215</width>
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Blue+Fix</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -420,30 +421,30 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="7" >
-        <widget class="KLFColorChooseWidgetPane" native="1" name="mAlphaSlider" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="6" column="7">
+        <widget class="KLFColorChooseWidgetPane" name="mAlphaSlider" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>128</width>
            <height>15</height>
           </size>
          </property>
-         <property name="maximumSize" >
+         <property name="maximumSize">
           <size>
            <width>16777215</width>
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0" >
+         <property name="paneType" stdset="0">
           <string>Alpha+Fix</string>
          </property>
-         <property name="color" stdset="0" >
+         <property name="color" stdset="0">
           <color>
            <red>0</red>
            <green>0</green>
@@ -452,135 +453,135 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="6" >
-        <widget class="QLabel" name="label_14" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="6" column="6">
+        <widget class="QLabel" name="label_14">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>0</width>
            <height>15</height>
           </size>
          </property>
-         <property name="text" >
+         <property name="text">
           <string>Alpha:</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="6" >
-        <widget class="QLabel" name="label_12" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="1" column="6">
+        <widget class="QLabel" name="label_12">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>0</width>
            <height>15</height>
           </size>
          </property>
-         <property name="text" >
+         <property name="text">
           <string>Sat.:</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="6" >
-        <widget class="QLabel" name="label_11" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="0" column="6">
+        <widget class="QLabel" name="label_11">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>0</width>
            <height>15</height>
           </size>
          </property>
-         <property name="text" >
+         <property name="text">
           <string>Hue:</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="6" >
-        <widget class="QLabel" name="label_10" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="4" column="6">
+        <widget class="QLabel" name="label_10">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>0</width>
            <height>15</height>
           </size>
          </property>
-         <property name="text" >
+         <property name="text">
           <string>Green:</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="6" >
-        <widget class="QLabel" name="label_9" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="5" column="6">
+        <widget class="QLabel" name="label_9">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>0</width>
            <height>15</height>
           </size>
          </property>
-         <property name="text" >
+         <property name="text">
           <string>Blue:</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="6" >
-        <widget class="QLabel" name="label_15" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="2" column="6">
+        <widget class="QLabel" name="label_15">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>0</width>
            <height>15</height>
           </size>
          </property>
-         <property name="text" >
+         <property name="text">
           <string>Val.:</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="6" >
-        <widget class="QLabel" name="label_13" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <item row="3" column="6">
+        <widget class="QLabel" name="label_13">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize" >
+         <property name="minimumSize">
           <size>
            <width>0</width>
            <height>15</height>
           </size>
          </property>
-         <property name="text" >
+         <property name="text">
           <string>Red:</string>
          </property>
         </widget>
@@ -589,394 +590,394 @@
      </widget>
     </widget>
    </item>
-   <item row="0" column="2" >
-    <layout class="QGridLayout" name="gridLayout_2" >
-     <property name="sizeConstraint" >
+   <item row="0" column="2">
+    <layout class="QGridLayout" name="gridLayout_2">
+     <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
      </property>
-     <item row="0" column="0" >
-      <widget class="QLabel" name="label" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Hue:</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1" colspan="2" >
-      <widget class="KLFColorComponentSpinBox" name="spnHue" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
+     <item row="0" column="1" colspan="2">
+      <widget class="KLFColorComponentSpinBox" name="spnHue">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="wrapping" >
+       <property name="wrapping">
         <bool>true</bool>
        </property>
-       <property name="accelerated" >
+       <property name="accelerated">
         <bool>true</bool>
        </property>
-       <property name="maximum" >
+       <property name="maximum">
         <number>255</number>
        </property>
-       <property name="singleStep" >
+       <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0" >
+       <property name="color" stdset="0">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
        </property>
-       <property name="colorComponent" stdset="0" >
+       <property name="colorComponent" stdset="0">
         <string>Hue</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0" >
-      <widget class="QLabel" name="label_3" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Saturation:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1" colspan="2" >
-      <widget class="KLFColorComponentSpinBox" name="spnSat" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
+     <item row="1" column="1" colspan="2">
+      <widget class="KLFColorComponentSpinBox" name="spnSat">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="maximum" >
+       <property name="maximum">
         <number>255</number>
        </property>
-       <property name="singleStep" >
+       <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0" >
+       <property name="color" stdset="0">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
        </property>
-       <property name="colorComponent" stdset="0" >
+       <property name="colorComponent" stdset="0">
         <string>Sat</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1" colspan="2" >
-      <widget class="KLFColorComponentSpinBox" name="spnVal" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
+     <item row="2" column="1" colspan="2">
+      <widget class="KLFColorComponentSpinBox" name="spnVal">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="maximum" >
+       <property name="maximum">
         <number>255</number>
        </property>
-       <property name="singleStep" >
+       <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0" >
+       <property name="color" stdset="0">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
        </property>
-       <property name="colorComponent" stdset="0" >
+       <property name="colorComponent" stdset="0">
         <string>Val</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="0" >
-      <widget class="QLabel" name="label_5" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Red:</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1" colspan="2" >
-      <widget class="KLFColorComponentSpinBox" name="spnRed" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
+     <item row="3" column="1" colspan="2">
+      <widget class="KLFColorComponentSpinBox" name="spnRed">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="maximum" >
+       <property name="maximum">
         <number>255</number>
        </property>
-       <property name="singleStep" >
+       <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0" >
+       <property name="color" stdset="0">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
        </property>
-       <property name="colorComponent" stdset="0" >
+       <property name="colorComponent" stdset="0">
         <string>Red</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="0" >
-      <widget class="QLabel" name="label_6" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Green:</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1" colspan="2" >
-      <widget class="KLFColorComponentSpinBox" name="spnGreen" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
+     <item row="4" column="1" colspan="2">
+      <widget class="KLFColorComponentSpinBox" name="spnGreen">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="maximum" >
+       <property name="maximum">
         <number>255</number>
        </property>
-       <property name="singleStep" >
+       <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0" >
+       <property name="color" stdset="0">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
        </property>
-       <property name="colorComponent" stdset="0" >
+       <property name="colorComponent" stdset="0">
         <string>Green</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="0" >
-      <widget class="QLabel" name="label_7" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Blue:</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="1" colspan="2" >
-      <widget class="KLFColorComponentSpinBox" name="spnBlue" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
+     <item row="5" column="1" colspan="2">
+      <widget class="KLFColorComponentSpinBox" name="spnBlue">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="maximum" >
+       <property name="maximum">
         <number>255</number>
        </property>
-       <property name="singleStep" >
+       <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0" >
+       <property name="color" stdset="0">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
        </property>
-       <property name="colorComponent" stdset="0" >
+       <property name="colorComponent" stdset="0">
         <string>Blue</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0" >
-      <widget class="QLabel" name="label_4" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Value:</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="0" >
-      <widget class="QLabel" name="label_8" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="text" >
+       <property name="text">
         <string>Alpha:</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="1" colspan="2" >
-      <widget class="KLFColorComponentSpinBox" name="spnAlpha" >
-       <property name="sizePolicy" >
-        <sizepolicy vsizetype="Minimum" hsizetype="Minimum" >
+     <item row="6" column="1" colspan="2">
+      <widget class="KLFColorComponentSpinBox" name="spnAlpha">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize" >
+       <property name="minimumSize">
         <size>
          <width>0</width>
          <height>15</height>
         </size>
        </property>
-       <property name="maximum" >
+       <property name="maximum">
         <number>255</number>
        </property>
-       <property name="singleStep" >
+       <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0" >
+       <property name="color" stdset="0">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
        </property>
-       <property name="colorComponent" stdset="0" >
+       <property name="colorComponent" stdset="0">
         <string>Alpha</string>
        </property>
       </widget>
      </item>
     </layout>
    </item>
-   <item row="1" column="0" >
-    <widget class="KLFColorChooseWidgetPane" native="1" name="mDisplayColor" >
-     <property name="minimumSize" >
+   <item row="1" column="0">
+    <widget class="KLFColorChooseWidgetPane" name="mDisplayColor" native="true">
+     <property name="minimumSize">
       <size>
        <width>64</width>
        <height>64</height>
       </size>
      </property>
-     <property name="maximumSize" >
+     <property name="maximumSize">
       <size>
        <width>128</width>
        <height>128</height>
       </size>
      </property>
-     <property name="paneType" stdset="0" >
+     <property name="paneType" stdset="0">
       <string>Fix+Fix</string>
      </property>
-     <property name="color" stdset="0" >
+     <property name="color" stdset="0">
       <color>
        <red>0</red>
        <green>0</green>
@@ -985,52 +986,52 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1" colspan="2" >
-    <widget class="QTabWidget" name="mTabs" >
-     <property name="minimumSize" >
+   <item row="1" column="1" colspan="2">
+    <widget class="QTabWidget" name="mTabs">
+     <property name="minimumSize">
       <size>
        <width>0</width>
        <height>120</height>
       </size>
      </property>
-     <property name="tabPosition" >
+     <property name="tabPosition">
       <enum>QTabWidget::South</enum>
      </property>
-     <property name="currentIndex" >
+     <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="mRecentTab" >
-      <attribute name="title" >
+     <widget class="QWidget" name="mRecentTab">
+      <attribute name="title">
        <string>Recent</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_3" >
-       <property name="spacing" >
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="spacing">
         <number>1</number>
        </property>
-       <property name="margin" >
+       <property name="margin">
         <number>0</number>
        </property>
        <item>
-        <widget class="QScrollArea" name="mRecentColorsPaletteScroll" >
-         <property name="frameShape" >
+        <widget class="QScrollArea" name="mRecentColorsPaletteScroll">
+         <property name="frameShape">
           <enum>QFrame::NoFrame</enum>
          </property>
-         <property name="frameShadow" >
+         <property name="frameShadow">
           <enum>QFrame::Plain</enum>
          </property>
-         <property name="lineWidth" >
+         <property name="lineWidth">
           <number>0</number>
          </property>
-         <property name="widgetResizable" >
+         <property name="widgetResizable">
           <bool>true</bool>
          </property>
-         <widget class="QWidget" name="mRecentColorsPalette" >
-          <property name="geometry" >
+         <widget class="QWidget" name="mRecentColorsPalette">
+          <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
-            <height>91</height>
+            <width>223</width>
+            <height>97</height>
            </rect>
           </property>
          </widget>
@@ -1038,38 +1039,38 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="mStandardTab" >
-      <attribute name="title" >
+     <widget class="QWidget" name="mStandardTab">
+      <attribute name="title">
        <string>Standard</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_2" >
-       <property name="spacing" >
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="spacing">
         <number>1</number>
        </property>
-       <property name="margin" >
+       <property name="margin">
         <number>0</number>
        </property>
        <item>
-        <widget class="QScrollArea" name="mStandardColorsPaletteScroll" >
-         <property name="frameShape" >
+        <widget class="QScrollArea" name="mStandardColorsPaletteScroll">
+         <property name="frameShape">
           <enum>QFrame::NoFrame</enum>
          </property>
-         <property name="frameShadow" >
+         <property name="frameShadow">
           <enum>QFrame::Plain</enum>
          </property>
-         <property name="lineWidth" >
+         <property name="lineWidth">
           <number>0</number>
          </property>
-         <property name="widgetResizable" >
+         <property name="widgetResizable">
           <bool>true</bool>
          </property>
-         <widget class="QWidget" name="mStandardColorsPalette" >
-          <property name="geometry" >
+         <widget class="QWidget" name="mStandardColorsPalette">
+          <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>258</width>
-            <height>91</height>
+            <width>100</width>
+            <height>30</height>
            </rect>
           </property>
          </widget>
@@ -1077,52 +1078,52 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="mCustomTab" >
-      <attribute name="title" >
+     <widget class="QWidget" name="mCustomTab">
+      <attribute name="title">
        <string>Custom</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout" >
-       <property name="spacing" >
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
         <number>1</number>
        </property>
-       <property name="margin" >
+       <property name="margin">
         <number>0</number>
        </property>
        <item>
-        <widget class="QToolButton" name="btnAddCustomColor" >
-         <property name="sizePolicy" >
-          <sizepolicy vsizetype="Preferred" hsizetype="Fixed" >
+        <widget class="QToolButton" name="btnAddCustomColor">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="icon" >
-          <iconset resource="klfres.qrc" >
+         <property name="icon">
+          <iconset resource="klfres.qrc">
            <normaloff>:/pics/rightarrow.png</normaloff>:/pics/rightarrow.png</iconset>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QScrollArea" name="mCustomColorsPaletteScroll" >
-         <property name="frameShape" >
+        <widget class="QScrollArea" name="mCustomColorsPaletteScroll">
+         <property name="frameShape">
           <enum>QFrame::NoFrame</enum>
          </property>
-         <property name="frameShadow" >
+         <property name="frameShadow">
           <enum>QFrame::Plain</enum>
          </property>
-         <property name="lineWidth" >
+         <property name="lineWidth">
           <number>0</number>
          </property>
-         <property name="widgetResizable" >
+         <property name="widgetResizable">
           <bool>true</bool>
          </property>
-         <widget class="QWidget" name="mCustomColorsPalette" >
-          <property name="geometry" >
+         <widget class="QWidget" name="mCustomColorsPalette">
+          <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>231</width>
-            <height>91</height>
+            <width>100</width>
+            <height>30</height>
            </rect>
           </property>
          </widget>
@@ -1143,17 +1144,17 @@
   <customwidget>
    <class>KLFColorChooseWidgetPane</class>
    <extends>QWidget</extends>
-   <header location="global" >QWidget</header>
+   <header location="global">QWidget</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>KLFColorComponentSpinBox</class>
    <extends>QSpinBox</extends>
-   <header location="global" >QWidget</header>
+   <header location="global">QWidget</header>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="klfres.qrc" />
+  <include location="klfres.qrc"/>
  </resources>
  <connections/>
 </ui>

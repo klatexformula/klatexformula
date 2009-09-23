@@ -20,6 +20,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <stdio.h>
+
 #include <stack>
 
 #include <QComboBox>
@@ -482,19 +484,24 @@ void KLFMainWin::loadSettings()
   _settings.tborderoffset = klfconfig.BackendSettings.tborderoffset;
   _settings.rborderoffset = klfconfig.BackendSettings.rborderoffset;
   _settings.bborderoffset = klfconfig.BackendSettings.bborderoffset;
+
+  _settings_altered = false;
 }
 
 void KLFMainWin::saveSettings()
 {
-  klfconfig.BackendSettings.tempDir = _settings.tempdir;
-  klfconfig.BackendSettings.execLatex = _settings.latexexec;
-  klfconfig.BackendSettings.execDvips = _settings.dvipsexec;
-  klfconfig.BackendSettings.execGs = _settings.gsexec;
-  klfconfig.BackendSettings.execEpstopdf = _settings.epstopdfexec;
-  klfconfig.BackendSettings.lborderoffset = _settings.lborderoffset;
-  klfconfig.BackendSettings.tborderoffset = _settings.tborderoffset;
-  klfconfig.BackendSettings.rborderoffset = _settings.rborderoffset;
-  klfconfig.BackendSettings.bborderoffset = _settings.bborderoffset;
+  if ( ! _settings_altered ) {
+    // don't save altered settings
+    klfconfig.BackendSettings.tempDir = _settings.tempdir;
+    klfconfig.BackendSettings.execLatex = _settings.latexexec;
+    klfconfig.BackendSettings.execDvips = _settings.dvipsexec;
+    klfconfig.BackendSettings.execGs = _settings.gsexec;
+    klfconfig.BackendSettings.execEpstopdf = _settings.epstopdfexec;
+    klfconfig.BackendSettings.lborderoffset = _settings.lborderoffset;
+    klfconfig.BackendSettings.tborderoffset = _settings.tborderoffset;
+    klfconfig.BackendSettings.rborderoffset = _settings.rborderoffset;
+    klfconfig.BackendSettings.bborderoffset = _settings.bborderoffset;
+  }
 
   klfconfig.UI.userColorList = KLFColorChooser::colorList();
   klfconfig.UI.colorChooseWidgetRecent = KLFColorChooseWidget::recentColors();
@@ -833,6 +840,47 @@ void KLFMainWin::hideEvent(QHideEvent *e)
 }
 
 
+void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
+{
+  _settings_altered = true;
+  switch (which) {
+  case altersetting_LBorderOffset:
+    _settings.lborderoffset = ivalue; break;
+  case altersetting_TBorderOffset:
+    _settings.tborderoffset = ivalue; break;
+  case altersetting_RBorderOffset:
+    _settings.rborderoffset = ivalue; break;
+  case altersetting_BBorderOffset:
+    _settings.bborderoffset = ivalue; break;
+  default:
+    break;
+  }
+}
+void KLFMainWin::alterSetting(altersetting_which which, QString svalue)
+{
+  _settings_altered = true;
+  switch (which) {
+  case altersetting_TempDir:
+    _settings.tempdir = svalue; break;
+  case altersetting_Latex:
+    _settings.latexexec = svalue; break;
+  case altersetting_Dvips:
+    _settings.dvipsexec = svalue; break;
+  case altersetting_Gs:
+    _settings.gsexec = svalue; break;
+  case altersetting_Epstopdf:
+    _settings.epstopdfexec = svalue; break;
+  default:
+    break;
+  }
+}
+void KLFMainWin::applySettings(const KLFBackend::klfSettings& s)
+{
+  _settings = s;
+  _settings_altered = false;
+}
+
+
 void KLFMainWin::slotEvaluate()
 {
   // KLFBackend input
@@ -974,6 +1022,35 @@ void KLFMainWin::slotExpandOrShrink()
   }
 }
 
+void KLFMainWin::slotSetLatex(const QString& latex)
+{
+  txtLatex->setPlainText(latex);
+}
+
+void KLFMainWin::slotSetMathMode(const QString& mathmode)
+{
+  chkMathMode->setChecked(mathmode.simplified() != "...");
+  if (mathmode.simplified() != "...")
+    cbxMathMode->setEditText(mathmode);
+}
+
+void KLFMainWin::slotSetPreamble(const QString& preamble)
+{
+  txtPreamble->setPlainText(preamble);
+}
+
+void KLFMainWin::slotSetFgColor(const QColor& fg)
+{
+  colFg->setColor(fg);
+}
+
+void KLFMainWin::slotSetBgColor(const QColor& bg)
+{
+  colBg->setColor(bg);
+}
+
+
+
 void KLFMainWin::slotDrag()
 {
   if ( _output.result.isNull() )
@@ -1057,7 +1134,8 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     fname += "."+format;
     // !! : fname has changed, potentially the file could exist, user would not have been warned.
     if (QFile::exists(fname)) {
-      int r = QMessageBox::warning(this, tr("File Exists"), tr("The file <b>%1</b> already exists.\nOverwrite?").arg(fname),
+      int r = QMessageBox::warning(this, tr("File Exists"),
+				   tr("The file <b>%1</b> already exists.\nOverwrite?").arg(fname),
 				   QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::No);
       if (r == QMessageBox::Yes) {
 	// will continue in this function.
@@ -1256,7 +1334,7 @@ void KLFMainWin::slotSettings()
 {
   static KLFSettings *dlg = 0;
   if (dlg == 0) {
-    dlg = new KLFSettings(&_settings, this);
+    dlg = new KLFSettings(this);
   }
 
   dlg->show();

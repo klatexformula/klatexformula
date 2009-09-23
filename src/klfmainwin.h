@@ -23,6 +23,8 @@
 #ifndef KLFMAINWIN_H
 #define KLFMAINWIN_H
 
+#include <stdio.h>
+
 #include <QList>
 #include <QSyntaxHighlighter>
 #include <QFont>
@@ -121,8 +123,8 @@ private:
 
 /**
  * KLatexFormula Main Window
- * @author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
-*/
+ * \author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
+ */
 class KLFMainWin : public QWidget, private Ui::KLFMainWinUI
 {
   Q_OBJECT
@@ -139,6 +141,24 @@ public:
   virtual QFont txtLatexFont() const { return txtLatex->font(); }
   virtual QFont txtPreambleFont() const { return txtPreamble->font(); }
 
+  KLFBackend::klfSettings currentSettings() const { return _settings; }
+
+  void applySettings(const KLFBackend::klfSettings& s);
+
+  KLFBackend::klfOutput currentKLFBackendOutput() const { return _output; }
+
+  enum altersetting_which { altersetting_LBorderOffset = 100,
+			    altersetting_TBorderOffset,
+			    altersetting_RBorderOffset,
+			    altersetting_BBorderOffset,
+			    altersetting_TempDir,
+			    altersetting_Latex,
+			    altersetting_Dvips,
+			    altersetting_Gs,
+			    altersetting_Epstopdf };
+  void alterSetting(altersetting_which, int ivalue);
+  void alterSetting(altersetting_which, QString svalue);
+
 signals:
 
   void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
@@ -153,6 +173,11 @@ public slots:
   void slotSymbols(bool showsymbs);
   void slotSymbolsButtonRefreshState(bool on);
   void slotExpandOrShrink();
+  void slotSetLatex(const QString& latex);
+  void slotSetMathMode(const QString& mathmode);
+  void slotSetPreamble(const QString& preamble);
+  void slotSetFgColor(const QColor& fgcolor);
+  void slotSetBgColor(const QColor& bgcolor);
 
   bool loadNamedStyle(const QString& sty);
 
@@ -192,6 +217,7 @@ protected:
   KLFLatexSyntaxHighlighter *mPreambleHighlighter;
 
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
+  bool _settings_altered;
 
   KLFBackend::klfOutput _output; // output from KLFBackend
   KLFBackend::klfInput _lastrun_input; // input that generated _output
