@@ -27,6 +27,7 @@
 # ------------------------------------------------------------------
 # To change the value of a variable, pass it in qmake command line:
 #  > qmake-qt4  QMAKE=qmake-qt4  INSTALLPREFIX=/usr/local
+# Note that the KLF_ prefix must be omitted.
 # ------------------------------------------------------------------
 
 
@@ -100,3 +101,5 @@ isEmpty(BACKEND_ONLY) {
 message(Will build the following subdirs: $$SUBDIRS)
 message(With the following options:)
 system($$QMAKE -query | egrep '^KLF_')
+message(Please look at the top of klatexformula.pro file for more information on options.)
+
