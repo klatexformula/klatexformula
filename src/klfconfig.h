@@ -56,6 +56,8 @@ public:
     QList<QColor> colorChooseWidgetRecent;
     QList<QColor> colorChooseWidgetCustom;
     int maxUserColors;
+    bool enableToolTipPreview;
+    bool enableRealTimePreview;
 
   } UI;
 

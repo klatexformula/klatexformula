@@ -263,6 +263,10 @@ public:
    *   }
    *   ...
    * \endcode
+   *
+   * \note This function is safe for threads; it locks a mutex at the beginning and unlocks it at the end; so if a
+   *   call to this function is issued while a first call is already being processed in another thread, the second
+   *   waits for the first call to finish.
    */
   static klfOutput getLatexFormula(const klfInput& in, const klfSettings& settings);
 

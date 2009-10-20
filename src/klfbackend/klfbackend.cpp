@@ -32,13 +32,13 @@
 #include "klfblockprocess.h"
 #include "klfbackend.h"
 
-#if defined (Q_WS_MAC) || defined (_POSIX_) || defined (__USE_POSIX)
+/*#if defined (Q_WS_MAC) || defined (_POSIX_) || defined (__USE_POSIX)
   extern char **environ;
-#else
+  #else
   _CRTIMP extern char **_environ;
-#  define environ _environ
-#endif
-
+  #  define environ _environ
+  #endif
+*/
 
 void __klf_debug_time_print(QString str)
 {

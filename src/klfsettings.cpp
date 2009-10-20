@@ -153,9 +153,11 @@ void KLFSettings::reset()
   btnAppearFont->setFont(klfconfig.UI.latexEditFont);
   btnAppearPreambleFont->setFont(klfconfig.UI.preambleEditFont);
 
+  chkEnableRealTimePreview->setChecked(klfconfig.UI.enableRealTimePreview);
   spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize.width());
   spnPreviewHeight->setValue(klfconfig.UI.labelOutputFixedSize.height());
 
+  chkEnableToolTipPreview->setChecked(klfconfig.UI.enableToolTipPreview);
   spnTooltipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
   spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
 
@@ -282,8 +284,10 @@ void KLFSettings::apply()
   _mainwin->refreshWindowSizes();
 
   klfconfig.UI.labelOutputFixedSize = QSize(spnPreviewWidth->value(), spnPreviewHeight->value());
+  klfconfig.UI.enableRealTimePreview = chkEnableRealTimePreview->isChecked();
 
   klfconfig.UI.previewTooltipMaxSize = QSize(spnTooltipMaxWidth->value(), spnTooltipMaxHeight->value());
+  klfconfig.UI.enableToolTipPreview = chkEnableToolTipPreview->isChecked();
 
   _mainwin->saveSettings();
 }

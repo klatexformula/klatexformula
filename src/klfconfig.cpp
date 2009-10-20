@@ -207,6 +207,8 @@ void KLFConfig::loadDefaults()
     UI.colorChooseWidgetRecent = QList<QColor>();
     UI.colorChooseWidgetCustom = QList<QColor>();
     UI.maxUserColors = 12;
+    UI.enableToolTipPreview = true;
+    UI.enableRealTimePreview = true;
 
     SyntaxHighlighter.configFlags = 0x05;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
@@ -296,6 +298,8 @@ int KLFConfig::readFromConfig()
   UI.colorChooseWidgetRecent = settings_read_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent);
   UI.colorChooseWidgetCustom = settings_read_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom);
   UI.maxUserColors = s.value("maxusercolors", UI.maxUserColors).toInt();
+  UI.enableToolTipPreview = s.value("enabletooltippreview", UI.enableToolTipPreview).toBool();
+  UI.enableRealTimePreview = s.value("enablerealtimepreview", UI.enableRealTimePreview).toBool();
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -347,6 +351,8 @@ int KLFConfig::writeToConfig()
   settings_write_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent);
   settings_write_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom);
   s.setValue("maxusercolors", UI.maxUserColors);
+  s.setValue("enabletooltippreview", UI.enableToolTipPreview);
+  s.setValue("enablerealtimepreview", UI.enableRealTimePreview);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");

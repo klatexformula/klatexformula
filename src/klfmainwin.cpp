@@ -554,7 +554,10 @@ KLFMainWin::KLFMainWin()
   connect(mPreviewBuilderThread, SIGNAL(previewAvailable(const QImage&, bool)),
 	  this, SLOT(showRealTimePreview(const QImage&, bool)), Qt::QueuedConnection);
 
-  mPreviewBuilderThread->start();
+  if (klfconfig.UI.enableRealTimePreview) {
+    mPreviewBuilderThread->start();
+  }
+
   _evaloutput_uptodate = false;
 }
 
@@ -651,6 +654,24 @@ void KLFMainWin::saveSettings()
 
   mPreviewBuilderThread->settingsChanged(_settings, klfconfig.UI.labelOutputFixedSize.width(),
 					 klfconfig.UI.labelOutputFixedSize.height());
+
+  if (klfconfig.UI.enableRealTimePreview) {
+    if ( ! mPreviewBuilderThread->isRunning() ) {
+      delete mPreviewBuilderThread;
+      mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(), _settings,
+							  klfconfig.UI.labelOutputFixedSize.width(),
+							  klfconfig.UI.labelOutputFixedSize.height());
+      mPreviewBuilderThread->start();
+    }
+  } else {
+    if ( mPreviewBuilderThread->isRunning() ) {
+      delete mPreviewBuilderThread;
+      // do NOT leave a NULL mPreviewBuilderThread !
+      mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(), _settings,
+							  klfconfig.UI.labelOutputFixedSize.width(),
+							  klfconfig.UI.labelOutputFixedSize.height());
+    }
+  }
 }
 
 void KLFMainWin::refreshStylePopupMenus()
@@ -1155,7 +1176,8 @@ void KLFMainWin::slotEvaluate()
 	delete mLastRunTempPNGFile;
 	mLastRunTempPNGFile = 0;
       } else {
-	lblOutput->setToolTip(QString("<qt><img src=\"%1\"></qt>").arg(mLastRunTempPNGFile->fileName()));
+	if (klfconfig.UI.enableToolTipPreview)
+	  lblOutput->setToolTip(QString("<qt><img src=\"%1\"></qt>").arg(mLastRunTempPNGFile->fileName()));
       }
     }
   }

@@ -28,6 +28,7 @@
 #include <QApplication>
 #include <QTranslator>
 #include <QFileInfo>
+#include <QResource>
 
 #include <klfbackend.h>
 
@@ -38,6 +39,7 @@
 #define EXIT_ERR_FILEINPUT 100
 #define EXIT_ERR_FILESAVE 101
 #define EXIT_ERR_OPT 102
+
 
 
 // copy these lines into other files to access these variables
@@ -242,6 +244,9 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 		     "  * When run in interactive mode, the newly evaluated equation is appended to\n"
 		     "    KLatexFormula's history.\n"
 		     "  * When not run in interactive mode, no X11 server is needed.\n"
+		     "  * Additional translation files and/or data can be provided to klatexformula by specifying\n"
+		     "    a list of Qt rcc files to import in the KLF_RESOURCES environment variable. Separate the\n"
+		     "    file names with ':' on unix/mac, or ';' on windows.\n"
 		     "  * Please report any bugs and malfunctions to the author.\n"
 		     "\n"
 		     "Have a lot of fun!\n"
@@ -249,6 +254,18 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 		     // comment
 		     "Command-line help instructions")
   ;
+
+
+// EXTERNAL INTERACTION STUFF:
+
+const char * KLF_RESOURCES_ENVNAM = "KLF_RESOURCES";
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+const char * PATH_ENVVAR_SEP =  ";";
+#else
+const char * PATH_ENVVAR_SEP =  ":";
+#endif
+
+
 
 
 // UTILITY FUNCTIONS
@@ -370,6 +387,33 @@ void main_save(KLFBackend::klfOutput klfoutput, const QString& f_output, QString
   return;
 }
 
+void main_load_extra_resources()
+{
+  char *klf_resources = getenv(KLF_RESOURCES_ENVNAM);
+  if (klf_resources == NULL)
+    return;
+  QString rccfilelist = klf_resources;
+  QStringList rccfiles = rccfilelist.split(PATH_ENVVAR_SEP);
+  for (int j = 0; j < rccfiles.size(); ++j) {
+    bool res = QResource::registerResource(rccfiles[j]);
+    if (!res)
+      fprintf(stderr, "Failed to register resource `%s'.\n", rccfiles[j].toLocal8Bit().constData());
+  }
+}
+
+void main_load_translations(QCoreApplication *app)
+{
+  QTranslator *translator = new QTranslator(app);
+  QString lc = QLocale::system().name();
+  QString fn = "klf_"+lc;
+  if (translator->load(fn, ":/i18n/")) {
+    app->installTranslator(translator);
+  } else if (translator->load(fn, klfconfig.homeConfigDir+"/i18n")) {
+    app->installTranslator(translator);
+  } else {
+    fprintf(stderr, "There is no translation for language %s.\n", lc.toLocal8Bit().constData());
+  }
+}
 
 
 // OUR MAIN FUNCTION
@@ -385,6 +429,8 @@ int main(int argc, char **argv)
   if ( opt_interactive ) {
     QApplication app(qt_argc, qt_argv);
 
+    main_load_extra_resources();
+
     if ( ! opt_quiet )
       fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
@@ -394,14 +440,7 @@ int main(int argc, char **argv)
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'
     klfconfig.readFromConfig();
 
-    QTranslator translator;
-    QString lc = QLocale::system().name();
-    QString fn = "klf_"+lc;
-    if (translator.load(fn, ":/i18n/")) {
-      app.installTranslator(&translator);
-    } else if (translator.load(fn, klfconfig.homeConfigDir+"/i18n")) {
-      app.installTranslator(&translator);
-    }
+    main_load_translations(&app);
 
     app.setFont(klfconfig.UI.applicationFont);
 
@@ -490,18 +529,13 @@ int main(int argc, char **argv)
     // NON-INTERACTIVE (BATCH MODE, no X11)
     QCoreApplication app(qt_argc, qt_argv);
 
-    QTranslator translator;
-    QString lc = QLocale::system().name();
-    QString fn = "klf_"+lc;
-    if (translator.load(fn, ":/i18n/")) {
-      app.installTranslator(&translator);
-    } else if (translator.load(fn, klfconfig.homeConfigDir+"/i18n")) {
-      app.installTranslator(&translator);
-    }
+    main_load_extra_resources();
 
     // now load default config (for default paths etc.)
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'
     klfconfig.readFromConfig();
+
+    main_load_translations(&app);
 
     // error handling
     if (opt_error.has_error) {
