@@ -328,6 +328,9 @@ public:
   static void setColorList(const QList<QColor>& colorlist);
   static QList<QColor> colorList();
 
+signals:
+  void colorChanged(const QColor& newcolor);
+
 public slots:
   void setColor(const QColor& color);
   void setAllowDefaultState(bool allow);

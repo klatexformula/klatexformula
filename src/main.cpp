@@ -85,7 +85,8 @@ bool opt_version_requested = false;
 int qt_argc;
 char *qt_argv[1024];
 
-
+// We will occasionally need to strdup some strings to keep persistent copies. Save these copies
+// in this array, so that we can free() them in main_exit().
 char *opt_strdup_free_list[64] = { NULL };
 int opt_strdup_free_list_n = 0;
 
@@ -254,14 +255,23 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 
 void main_parse_options(int argc, char *argv[]);
 
-void main_exit(int code = 0)
+/** Free some memory we have persistently allocated */
+void main_cleanup()
 {
+  // free strdup()'ed strings
   while (--opt_strdup_free_list_n >= 0)
     free(opt_strdup_free_list[opt_strdup_free_list_n]);
+}
 
+/** Perform clean-up and ::exit() */
+void main_exit(int code = 0)
+{
+  main_cleanup();
   exit(code);
 }
 
+/** Determine from where to get input (direct input, from file, stdin) and read latex code;
+ * return the latex code as QString */
 QString main_get_input(char *input, char *latexinput)
 {
   if (latexinput != NULL && strlen(latexinput) != 0) {
@@ -303,6 +313,8 @@ QString main_get_input(char *input, char *latexinput)
   return QString::null;
 }
 
+/** Saves a klfbackend result (KLFBackend::klfOutput) to a file or stdout with given format.
+ * format is guessed if not provided, and defaults to PNG. */
 void main_save(KLFBackend::klfOutput klfoutput, const QString& f_output, QString format)
 {
   // determine format first
@@ -467,7 +479,11 @@ int main(int argc, char **argv)
       // warning: ignoring --format option
     }
 
-    main_exit( app.exec() );
+    int r = app.exec();
+    main_cleanup();
+    // and exit.
+    // DO NOT CALL ::exit() as this prevents KLFMainWin's destructor from being called.
+    return r;
 
   } else {
 
@@ -525,7 +541,8 @@ int main(int argc, char **argv)
     if ( (opt_input == NULL || !strlen(opt_input)) &&
 	 (opt_latexinput == NULL || !strlen(opt_latexinput)) ) {
       // read from stdin by default
-      opt_input = "-";
+      opt_input = strdup("-");
+      opt_strdup_free_list[opt_strdup_free_list_n++] = opt_input;
     }
 
     input.latex = main_get_input(opt_input, opt_latexinput);
@@ -542,11 +559,17 @@ int main(int argc, char **argv)
       input.preamble = "";
     }
 
-    if ( ! opt_fgcolor ) opt_fgcolor = "#000000";
+    if ( ! opt_fgcolor ) {
+      opt_fgcolor = strdup("#000000");
+      opt_strdup_free_list[opt_strdup_free_list_n++] = opt_fgcolor;
+    }
     QColor fgcolor;
     fgcolor.setNamedColor(opt_fgcolor);
     input.fg_color = fgcolor.rgb();
-    if ( ! opt_bgcolor ) opt_bgcolor = "-";
+    if ( ! opt_bgcolor ) {
+      opt_bgcolor = strdup("-");
+      opt_strdup_free_list[opt_strdup_free_list_n++] = opt_bgcolor;
+    }
     QColor bgcolor;
     if (!strcmp(opt_bgcolor, "-"))
       bgcolor.setRgb(255, 255, 255, 0); // white transparent

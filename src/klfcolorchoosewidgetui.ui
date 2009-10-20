@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>334</width>
+    <width>363</width>
     <height>294</height>
    </rect>
   </property>
@@ -29,7 +29,7 @@
       <enum>QTabWidget::West</enum>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="mHSVTab">
       <attribute name="icon">
@@ -1030,8 +1030,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>223</width>
-            <height>97</height>
+            <width>245</width>
+            <height>89</height>
            </rect>
           </property>
          </widget>

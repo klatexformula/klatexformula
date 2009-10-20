@@ -101,5 +101,7 @@ isEmpty(BACKEND_ONLY) {
 message(Will build the following subdirs: $$SUBDIRS)
 message(With the following options:)
 system($$QMAKE -query | egrep '^KLF_')
+message(You may now run `make\' or re-run qmake with other options to adjust above settings.)
+message(NOTE: option names for qmake command line do NOT take the leading KLF_ prefix.)
 message(Please look at the top of klatexformula.pro file for more information on options.)
 

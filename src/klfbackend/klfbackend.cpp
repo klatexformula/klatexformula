@@ -40,6 +40,19 @@
 #endif
 
 
+void __klf_debug_time_print(QString str)
+{
+#ifdef KLF_DEBUG_TIME_PRINT
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+#ifdef KLFBACKEND_QT4
+  const char *ptr = str.toLocal8Bit().constData();
+#else
+  const char *ptr = str.local8Bit().data();
+#endif
+  fprintf(stderr, "%03ld.%06ld : %s\n", tv.tv_sec % 1000, tv.tv_usec, ptr);
+#endif
+}
 
 
 
@@ -80,6 +93,11 @@ QString progErrorMsg(QString progname, int exitstatus, QString stderrstr, QStrin
 
 KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& settings)
 {
+  // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
+  QMutexLocker mutexlocker(&__mutex);
+
+  klf_debug_time_print("KLFBackend::getLatexFormula() called.\n");
+  
   klfOutput res;
   res.status = KLFERR_NOERROR;
   res.errorstr = QString();
@@ -98,7 +116,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   QString tempfname = settings.tempdir + "/klatexformulatmp2-"
     + QDateTime::currentDateTime().toString("hh-mm-ss");
-
 
 #ifdef KLFBACKEND_QT4
   QString latexsimplified = in.latex.trimmed();
@@ -157,7 +174,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     args << settings.latexexec << QDir::toNativeSeparators(tempfname+".tex");
 
+    klf_debug_time_print("KLFBackend::getLatexFormula: about to exec latex...\n");
     bool r = proc.startProcess(args, env);
+    klf_debug_time_print("KLFBackend::getLatexFormula: latex returned.\n");
 
     if (!r) {
       res.status = KLFERR_NOLATEXPROG;
@@ -191,7 +210,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << settings.dvipsexec << "-E" << QDir::toNativeSeparators(tempfname+".dvi")
          << "-o" << QDir::toNativeSeparators(tempfname+".eps");
 
+    klf_debug_time_print("KLFBackend::getLatexFormula: about to dvips...\n");
     bool r = proc.startProcess(args);
+    klf_debug_time_print("KLFBackend::getLatexFormula: dvips returned.\n");
 
     if ( ! r ) {
       res.status = KLFERR_NODVIPSPROG;
@@ -300,6 +321,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 #endif
     // res.epsdata is now set.
 
+    klf_debug_time_print("KLFBackend::getLatexFormula: eps bbox set.\n");    
+
   } // end of block "make EPS"
 
   { // run 'gs' to get png
@@ -315,7 +338,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << "-sOutputFile="+QDir::toNativeSeparators(tempfname+".png") << "-q" << "-dBATCH"
          << QDir::toNativeSeparators(tempfname+"-good.eps");
 
+    klf_debug_time_print("KLFBackend::getLatexFormula: about to gs...\n");    
     bool r = proc.startProcess(args);
+    klf_debug_time_print("KLFBackend::getLatexFormula: gs returned.\n");    
   
     if ( ! r ) {
       res.status = KLFERR_NOGSPROG;
@@ -364,7 +389,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     QStringList args;
     args << settings.epstopdfexec << (tempfname+"-good.eps") << ("--outfile="+QDir::toNativeSeparators(tempfname+".pdf"));
 
+    klf_debug_time_print("KLFBackend::getLatexFormula: about to epstopdf...\n");    
     bool r = proc.startProcess(args);
+    klf_debug_time_print("KLFBackend::getLatexFormula: epstopdf returned.\n");    
 
     if ( ! r ) {
       res.status = KLFERR_NOEPSTOPDFPROG;
@@ -407,6 +434,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   // clean up our mess
   cleanup(tempfname);
 
+  klf_debug_time_print("KLFBackend::getLatexFormula: end of function.\n");    
 
   return res;
 }
@@ -425,3 +453,15 @@ void KLFBackend::cleanup(QString tempfname)
   if (QFile::exists(tempfname+".pdf")) QFile::remove(tempfname+".pdf");
 }
 
+// static private mutex object
+QMutex KLFBackend::__mutex;
+
+bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b)
+{
+  return a.latex == b.latex &&
+    a.mathmode == b.mathmode &&
+    a.preamble == b.preamble &&
+    a.fg_color == b.fg_color &&
+    a.bg_color == b.bg_color &&
+    a.dpi == b.dpi;
+}

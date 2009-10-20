@@ -33,6 +33,9 @@
 #include <QTextEdit>
 #include <QWidget>
 #include <QTemporaryFile>
+#include <QThread>
+#include <QMutex>
+#include <QWaitCondition>
 
 #include <klfbackend.h>
 
@@ -117,7 +120,38 @@ private:
 };
 
 
+/**
+ * A helper that runs in a different thread that generates previews in real-time as user types text, without
+ * blocking the GUI.
+ */
+class KLFPreviewBuilderThread : public QThread
+{
+  Q_OBJECT
 
+public:
+  KLFPreviewBuilderThread(QObject *parent, KLFBackend::klfInput input, KLFBackend::klfSettings settings,
+			  int labelwidth, int labelheight);
+  virtual ~KLFPreviewBuilderThread();
+  void run();
+
+signals:
+  void previewAvailable(const QImage& preview, bool latexerror);
+
+public slots:
+  bool inputChanged(const KLFBackend::klfInput& input);
+  void settingsChanged(const KLFBackend::klfSettings& settings, int labelwidth, int labelheight);
+
+protected:
+  KLFBackend::klfInput _input;
+  KLFBackend::klfSettings _settings;
+  int _lwidth, _lheight;
+
+  QMutex _mutex;
+  QWaitCondition _condnewinfoavail;
+
+  bool _hasnewinfo;
+  bool _abort;
+};
 
 
 
@@ -206,6 +240,10 @@ public slots:
   void setTxtLatexFont(const QFont& f) { txtLatex->setFont(f); }
   void setTxtPreambleFont(const QFont& f) { txtPreamble->setFont(f); }
 
+  void showRealTimePreview(const QImage& preview, bool latexerror);
+
+  void updatePreviewBuilderThreadInput();
+
 protected:
   KLFLibraryBrowser *mLibraryBrowser;
   KLFLatexSymbols *mLatexSymbols;
@@ -224,12 +262,20 @@ protected:
 
   QTemporaryFile *mLastRunTempPNGFile;
 
+  /** If TRUE, then the output contained in _output is up-to-date, meaning that we favor displaying
+   * _output.result instead of the image given by mPreviewBuilderThread. */
+  bool _evaloutput_uptodate;
+  /** The Thread that will create real-time previews of formulas. */
+  KLFPreviewBuilderThread *mPreviewBuilderThread;
+
   KLFData::KLFLibrary _library;
   KLFData::KLFLibraryResourceList _libresources;
   KLFData::KLFStyleList _styles;
 
   QSize _shrinkedsize;
   QSize _expandedsize;
+
+  KLFBackend::klfInput collectInput();
 
   void closeEvent(QCloseEvent *e);
   void hideEvent(QHideEvent *e);

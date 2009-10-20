@@ -117,21 +117,11 @@ void KLFLatexSyntaxHighlighter::parseEverything()
       text += "\n";
     }
 
+    static QRegExp bsleft("^\\\\left(?!\\w)");
+    static QRegExp bsright("^\\\\right(?!\\w)");
+
     i = 0;
     while ( i < text.length() ) {
-      if (text[i] == '\\') {
-	++i;
-	k = 0;
-	if (i >= text.length())
-	  continue;
-	while (i+k < text.length() && ( (text[i+k] >= 'a' && text[i+k] <= 'z') || (text[i+k] >= 'A' && text[i+k] <= 'Z') ))
-	  ++k;
-	if (k == 0 && i+1 < text.length())
-	  k = 1;
-	_rulestoapply.append(FormatRule(blockpos+i-1, k+1, FKeyWord));
-	i += k;
-	continue;
-      }
       if (text[i] == '%') {
 	k = 0;
 	while (i+k < text.length() && text[i+k] != '\n')
@@ -140,14 +130,21 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	i += k + 1;
 	continue;
       }
-      if (text[i] == '{' || text[i] == '(' || text[i] == '[') {
-	bool l = false;
-	if (i >= 5 && text.mid(i-5, 5) == "\\left") {
-	  l = true;
-	}
+      if (bsleft.indexIn(text.mid(i)) != -1 ||
+	  text[i] == '{' || text[i] == '(' || text[i] == '[') {
+	bool l = (text.mid(i, 5) == "\\left");
+	if (l)
+	  i += 5;
+	if (i == text.length()) // ignore a \left with no following character
+	  continue;
+	if (text.mid(i,2) == "\\{")
+	  ++i; // focus on the '{' sign, not the \\ sign
 	parens.push(ParenItem(blockpos+i, (_caretpos == blockpos+i), text[i].toAscii(), l));
+	if (i > 0 && text[i-1] == '\\') {
+	  --i; // allow the next-next if-block for keywords to highlight this "\\{"
+	}
       }
-      if (text[i] == '}' || text[i] == ')' || text[i] == ']') {
+      if (bsright.indexIn(text.mid(i)) != -1 || text[i] == '}' || text[i] == ')' || text[i] == ']') {
 	ParenItem p;
 	if (!parens.empty()) {
 	  p = parens.top();
@@ -158,8 +155,17 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	    _rulestoapply.append(FormatRule(blockpos+i, 1, FLonelyParen));
 	}
 	Format col = FParenMatch;
-	bool l = ( i >= 6 && text.mid(i-6, 6) == "\\right" );
-	if ((text[i] == '}' && p.ch != '{') ||
+	bool l = ( text.mid(i, 6) == "\\right" );
+	if (l)
+	  i += 6;
+	if (i == text.length()) // ignore a \right with no following character
+	  continue;
+	if (text.mid(i,2) == "\\}")
+	  ++i; // focus on the '}' sign, not the \\ sign
+	if ( (l && text[i] == '.' && p.left) || (l && p.ch == '.' && p.left) ) {
+	  // special case with \left( blablabla \right.  or  \left. blablabla \right)
+	  col = FParenMatch;
+	} else if ((text[i] == '}' && p.ch != '{') ||
 	    (text[i] == ')' && p.ch != '(') ||
 	    (text[i] == ']' && p.ch != '[') ||
 	    (l != p.left) ) {
@@ -175,7 +181,25 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	    _rulestoapply.append(FormatRule(blockpos+i, 1, col, true));
 	  }
 	}
+	if (i > 0 && text[i-1] == '\\') {
+	  --i; // allow the next if-block for keywords to highlight this "\\}"
+	}
       }
+
+      if (text[i] == '\\') {
+	++i;
+	k = 0;
+	if (i >= text.length())
+	  continue;
+	while (i+k < text.length() && ( (text[i+k] >= 'a' && text[i+k] <= 'z') || (text[i+k] >= 'A' && text[i+k] <= 'Z') ))
+	  ++k;
+	if (k == 0 && i+1 < text.length())
+	  k = 1;
+	_rulestoapply.append(FormatRule(blockpos+i-1, k+1, FKeyWord));
+	i += k;
+	continue;
+      }
+
       ++i;
     }
 
@@ -304,6 +328,100 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
   dlg.exec();
 }
 
+
+
+
+// ----------------------------------------------------------------------------
+
+KLFPreviewBuilderThread::KLFPreviewBuilderThread(QObject *parent, KLFBackend::klfInput input,
+						 KLFBackend::klfSettings settings, int labelwidth, int labelheight)
+  : QThread(parent), _input(input), _settings(settings), _lwidth(labelwidth), _lheight(labelheight),
+    _hasnewinfo(false), _abort(false)
+{
+}
+KLFPreviewBuilderThread::~KLFPreviewBuilderThread()
+{
+  _mutex.lock();
+  _abort = true;
+  _condnewinfoavail.wakeOne();
+  _mutex.unlock();
+  printf("Waiting for thread to finish...\n");
+  wait();
+}
+
+void KLFPreviewBuilderThread::run()
+{
+  KLFBackend::klfInput input;
+  KLFBackend::klfSettings settings;
+  KLFBackend::klfOutput output;
+  QImage img;
+  int lwid, lhgt;
+
+  for (;;) {
+    if (_abort)
+      return;
+    // fetch info
+    _mutex.lock();
+    input = _input;
+    settings = _settings;
+    settings.epstopdfexec = "";
+    lwid = _lwidth;
+    lhgt = _lheight;
+    _hasnewinfo = false;
+    _mutex.unlock();
+    // render equation
+    //  no performance improvement noticed with lower DPI:
+    //    // force 240 DPI (we're only a preview...)
+    //    input.dpi = 240;
+
+    if ( ! input.latex.isEmpty() ) {
+      // and GO!
+      output = KLFBackend::getLatexFormula(input, settings);
+      img = output.result;
+      if (output.status == 0) {
+	if (img.width() > lwid || img.height() > lhgt)
+	  img = img.scaled(QSize(lwid, lhgt), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      } else {
+	img = QImage();
+      }
+
+      emit previewAvailable(img, output.status != 0);
+    }
+    if (_abort)
+      return;
+    if (_hasnewinfo)
+      continue;
+    _mutex.lock();
+    _condnewinfoavail.wait(&_mutex);
+    _mutex.unlock();
+  }
+}
+bool KLFPreviewBuilderThread::inputChanged(const KLFBackend::klfInput& input)
+{
+  QMutexLocker mutexlocker(&_mutex);
+  if (_input == input) {
+    return false;
+  }
+  _input = input;
+  _hasnewinfo = true;
+  _condnewinfoavail.wakeOne();
+  return true;
+}
+void KLFPreviewBuilderThread::settingsChanged(const KLFBackend::klfSettings& settings,
+					      int lwidth, int lheight)
+{
+  _mutex.lock();
+  _settings = settings;
+  if (lwidth > 0) _lwidth = lwidth;
+  if (lheight > 0) _lheight = lheight;
+  _hasnewinfo = true;
+  _condnewinfoavail.wakeOne();
+  _mutex.unlock();
+}
+
+
+
+
 // ----------------------------------------------------------------------------
 
 
@@ -389,7 +507,6 @@ KLFMainWin::KLFMainWin()
   connect(synthighlighttimer, SIGNAL(timeout()), mPreambleHighlighter, SLOT(refreshAll()));
   synthighlighttimer->start(250);
 
-
   // -- MAJOR SIGNAL/SLOT CONNECTIONS --
 
   connect(btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
@@ -420,11 +537,32 @@ KLFMainWin::KLFMainWin()
 
   connect(btnHelp, SIGNAL(clicked()), aboutDialog, SLOT(show()));
 
+  // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
+
+  mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(), _settings,
+						      klfconfig.UI.labelOutputFixedSize.width(),
+						      klfconfig.UI.labelOutputFixedSize.height());
+
+  connect(txtLatex, SIGNAL(textChanged()), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+  connect(cbxMathMode, SIGNAL(editTextChanged(const QString&)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+  connect(chkMathMode, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+  connect(colFg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+  connect(chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+  connect(colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+
+  qRegisterMetaType<QImage>("QImage");
+  connect(mPreviewBuilderThread, SIGNAL(previewAvailable(const QImage&, bool)),
+	  this, SLOT(showRealTimePreview(const QImage&, bool)), Qt::QueuedConnection);
+
+  mPreviewBuilderThread->start();
+  _evaloutput_uptodate = false;
 }
 
 
 KLFMainWin::~KLFMainWin()
 {
+  printf("KLFMainWin::~KLFMainWin(): destroying...\n");
+
   saveSettings();
   saveStyles();
   saveLibrary();
@@ -439,6 +577,8 @@ KLFMainWin::~KLFMainWin()
     delete mPreambleHighlighter;
   if (mHighlighter)
     delete mHighlighter;
+  if (mPreviewBuilderThread)
+    delete mPreviewBuilderThread;
 }
 
 
@@ -508,6 +648,9 @@ void KLFMainWin::saveSettings()
   klfconfig.UI.colorChooseWidgetCustom = KLFColorChooseWidget::customColors();
 
   klfconfig.writeToConfig();
+
+  mPreviewBuilderThread->settingsChanged(_settings, klfconfig.UI.labelOutputFixedSize.width(),
+					 klfconfig.UI.labelOutputFixedSize.height());
 }
 
 void KLFMainWin::refreshStylePopupMenus()
@@ -881,13 +1024,33 @@ void KLFMainWin::applySettings(const KLFBackend::klfSettings& s)
 }
 
 
-void KLFMainWin::slotEvaluate()
+void KLFMainWin::updatePreviewBuilderThreadInput()
+{
+  bool reallyinputchanged = mPreviewBuilderThread->inputChanged(collectInput());
+  if (reallyinputchanged) {
+    printf("Input changed...\n");
+    _evaloutput_uptodate = false;
+  }
+}
+
+void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
+{
+  if (_evaloutput_uptodate)
+    return;
+  if (latexerror) {
+    lblOutput->setStyleSheet("background-color: rgb(255, 220, 220)");
+    return;
+  } else {
+    lblOutput->setStyleSheet("");
+  }
+  lblOutput->setPixmap(QPixmap::fromImage(preview));
+  lblOutput->setEnabled(false);
+}
+
+KLFBackend::klfInput KLFMainWin::collectInput()
 {
   // KLFBackend input
   KLFBackend::klfInput input;
-
-  btnEvaluate->setEnabled(false); // don't allow user to click us while we're not done, and
-  //				     additionally this gives visual feedback to the user
 
   input.latex = txtLatex->toPlainText();
   if (chkMathMode->isChecked()) {
@@ -906,6 +1069,19 @@ void KLFMainWin::slotEvaluate()
     input.bg_color = qRgba(255, 255, 255, 0);
 
   input.dpi = spnDPI->value();
+
+  return input;
+}
+
+void KLFMainWin::slotEvaluate()
+{
+  // KLFBackend input
+  KLFBackend::klfInput input;
+
+  btnEvaluate->setEnabled(false); // don't allow user to click us while we're not done, and
+  //				     additionally this gives visual feedback to the user
+
+  input = collectInput();
 
   // and GO !
   _output = KLFBackend::getLatexFormula(input, _settings);
@@ -927,6 +1103,7 @@ void KLFMainWin::slotEvaluate()
   }
   if (_output.status == 0) {
     // ALL OK
+    _evaloutput_uptodate = true;
 
     QPixmap sc;
     if (_output.result.width() > lblOutput->width() || _output.result.height() > lblOutput->height())
@@ -934,6 +1111,7 @@ void KLFMainWin::slotEvaluate()
     else
       sc = QPixmap::fromImage(_output.result);
     lblOutput->setPixmap(sc);
+    lblOutput->setEnabled(true);
 
     frmOutput->setEnabled(true);
 
@@ -961,6 +1139,7 @@ void KLFMainWin::slotEvaluate()
     mLastRunTempPNGFile = new QTemporaryFile(/*QDir::toNativeSeparators(klfconfig.BackendSettings.tempDir
                                                                       +"/klf_lastruntemp_XXXXXX.png"),*/
                                              this);
+
     if ( ! mLastRunTempPNGFile->open() ) {
       fprintf(stderr, "WARNING: Failed open for Tooltip Temp Image!\n%s\n", mLastRunTempPNGFile->fileTemplate().toLocal8Bit().constData());
       QMessageBox::critical(this, tr("Error"), tr("Failed open for ToolTip Temp Image!\n%1").arg(mLastRunTempPNGFile->fileTemplate()));

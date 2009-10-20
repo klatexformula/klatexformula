@@ -670,12 +670,16 @@ void KLFColorChooser::setColor(const QColor& col)
   if ( ! _allowdefaultstate && ! col.isValid() )
     return;
 
+  if (_color == col)
+    return;
+
   _color = col;
   _setpix();
 
   if (_autoadd && _color.isValid()) {
     _colorlist->addColor(_color);
   }
+  emit colorChanged(_color);
 }
 
 void KLFColorChooser::setDefaultColor()

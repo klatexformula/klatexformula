@@ -30,6 +30,21 @@
 #include <qmemarray.h>
 #endif
 #include <qimage.h>
+#include <qmutex.h>
+
+
+// DEBUG WITH TIME PRINTING FOR TIMING OPERATIONS
+#define KLF_DEBUG_TIME_PRINT
+
+#ifdef KLF_DEBUG_TIME_PRINT
+#include <sys/time.h>
+// FOR DEBUGGING: Print Debug message with precise current time
+void __klf_debug_time_print(QString str);
+#define klf_debug_time_print(x) __klf_debug_time_print(x)
+#else
+#define klf_debug_time_print(x)
+#endif
+
 
 
 //! Definition of class \ref KLFBackend
@@ -258,7 +273,12 @@ private:
 
   static void cleanup(QString tempfname);
 
+  static QMutex __mutex;
 };
+
+
+/** Compare two inputs for equality */
+bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b);
 
 
 
