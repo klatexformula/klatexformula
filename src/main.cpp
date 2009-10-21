@@ -25,6 +25,8 @@
 #include <unistd.h>
 #include <getopt.h>
 
+#include <signal.h>
+
 #include <QApplication>
 #include <QTranslator>
 #include <QFileInfo>
@@ -267,6 +269,18 @@ const char * PATH_ENVVAR_SEP =  ":";
 
 
 
+void signal_act(int sig)
+{
+  if (sig == SIGINT) {
+    if (qApp != NULL) {
+      qApp->quit();
+    } else {
+      ::exit(128);
+    }
+  }
+}
+
+
 
 // UTILITY FUNCTIONS
 
@@ -411,7 +425,7 @@ void main_load_translations(QCoreApplication *app)
   } else if (translator->load(fn, klfconfig.homeConfigDir+"/i18n")) {
     app->installTranslator(translator);
   } else {
-    fprintf(stderr, "There is no translation for language %s.\n", lc.toLocal8Bit().constData());
+    //    fprintf(stderr, "There is no translation for language %s.\n", lc.toLocal8Bit().constData());
   }
 }
 
@@ -422,6 +436,9 @@ int main(int argc, char **argv)
 {
   // first thing : setup version_maj/min/release correctly
   sscanf(version, "%d.%d.%d", &version_maj, &version_min, &version_release);
+
+  // signal acting -- catch SIGINT to exit gracefully
+  signal(SIGINT, signal_act);
 
   // parse command-line options
   main_parse_options(argc, argv);

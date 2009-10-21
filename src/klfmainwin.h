@@ -154,6 +154,24 @@ protected:
 };
 
 
+/*
+ // librarysave in seperate thread
+ class KLFLibrarySingleSaverThread : public QThread
+ { Q_OBJECT
+ public:
+ KLFLibrarySingleSaverThread(QObject *parent, KLFData::KLFLibraryResourceList libresources,
+ KLFData::KLFLibrary library, QString filename);
+ virtual ~KLFLibrarySingleSaverThread();
+ void run();
+ signals:
+ void msgError(const QString& error);
+ protected:
+ QString _fname;
+ KLFData::KLFLibraryResourceList _libresources;
+ KLFData::KLFLibrary _library;
+ };
+*/
+
 
 /**
  * KLatexFormula Main Window
@@ -243,6 +261,8 @@ public slots:
   void showRealTimePreview(const QImage& preview, bool latexerror);
 
   void updatePreviewBuilderThreadInput();
+
+  void displayError(const QString& errormsg);
 
 protected:
   KLFLibraryBrowser *mLibraryBrowser;

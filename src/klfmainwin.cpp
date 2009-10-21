@@ -46,6 +46,8 @@
 #include <QInputDialog>
 #include <QCloseEvent>
 #include <QTemporaryFile>
+#include <QByteArray>
+#include <QBuffer>
 
 #include <klfbackend.h>
 
@@ -330,6 +332,52 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
 
 
 
+
+/*
+  
+ // ----------------------------------------------------------------------------
+ 
+ KLFLibrarySingleSaverThread::KLFLibrarySingleSaverThread(QObject *parent,
+ KLFData::KLFLibraryResourceList libresources,
+ KLFData::KLFLibrary library, QString filename)
+ : QThread(parent), _fname(filename)
+ {
+ klf_debug_time_print("Prepare library data...\n");
+ // make full DEEP COPIES of libresources and library
+ _libresources = libresources; // BAD
+ _library = library; // BAD
+
+ QBuffer buf(&_data);
+ QDataStream stream(&buf);
+ stream.setVersion(QDataStream::Qt_3_3);
+ // write KLF-3.0-compatible stream
+ stream << QString("KLATEXFORMULA_LIBRARY") << (qint16)3 << (qint16)0 << (qint16)stream.version()
+ << KLFData::KLFLibraryItem::MaxId << _libresources << _library;
+
+ klf_debug_time_print("Library data ready..\n");
+
+ connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+  
+ start();
+ }
+
+ KLFLibrarySingleSaverThread::~KLFLibrarySingleSaverThread()
+ {
+ wait();
+ }
+
+ void KLFLibrarySingleSaverThread::run() {
+ klf_debug_time_print("About to write library...\n");
+ QFile f(_fname);
+ if ( ! f.open(QIODevice::WriteOnly) ) {
+ emit msgError(tr("Error: Unable to write to library file!\n%1").arg(QDir::toNativeSeparators(_fname)));
+ return;
+ }
+ f.write(_data);
+ klf_debug_time_print("Library written.\n");
+ return;
+ }
+*/
 
 // ----------------------------------------------------------------------------
 
@@ -886,18 +934,25 @@ void KLFMainWin::loadLibrary()
 
 void KLFMainWin::saveLibrary()
 {
+  // librarysave
   klfconfig.ensureHomeConfigDir();
   QString s = klfconfig.homeConfigDir + "/library";
   QFile f(s);
   if ( ! f.open(QIODevice::WriteOnly) ) {
-    QMessageBox::critical(this, tr("Error"), tr("Error: Unable to write to library file!\n%1")
-			  .arg(QDir::toNativeSeparators(s)));
+    QMessageBox::critical(this, tr("Error"), tr("Error: Unable to write to library file `%1'!")
+			   .arg(QDir::toNativeSeparators(s)));
     return;
   }
   QDataStream stream(&f);
   stream.setVersion(QDataStream::Qt_3_3);
-  stream << QString("KLATEXFORMULA_LIBRARY") << (qint16)version_maj << (qint16)version_min << (qint16)stream.version()
+  // write KLF-3.0-compatible stream
+  stream << QString("KLATEXFORMULA_LIBRARY") << (qint16)3 << (qint16)0 << (qint16)stream.version()
 	 << KLFData::KLFLibraryItem::MaxId << _libresources << _library;
+
+  /*  KLFLibrarySingleSaverThread * librarysaver  =
+      new KLFLibrarySingleSaverThread(this, _libresources, _library, s);
+      connect(librarysaver, SIGNAL(msgError(const QString&)), this, SLOT(displayError(const QString&))); */
+
 }
 
 void KLFMainWin::restoreFromLibrary(KLFData::KLFLibraryItem j, bool restorestyle)
@@ -1044,6 +1099,11 @@ void KLFMainWin::applySettings(const KLFBackend::klfSettings& s)
   _settings_altered = false;
 }
 
+void KLFMainWin::displayError(const QString& error)
+{
+  QMessageBox::critical(this, tr("Error"), error);
+}
+
 
 void KLFMainWin::updatePreviewBuilderThreadInput()
 {
@@ -1185,8 +1245,8 @@ void KLFMainWin::slotEvaluate()
   btnEvaluate->setEnabled(true); // re-enable our button
 
   // and save our history and styles
-  saveLibrary();
-  saveStyles();
+  //  saveLibrary(); // save library is time-consuming. do it only on program close.
+  //  saveStyles();
 
 }
 
