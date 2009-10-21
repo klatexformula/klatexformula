@@ -200,7 +200,7 @@ KLFLibraryListManager::KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrows
   _listView->setAllColumnsShowFocus(true);
   _listView->setSortingEnabled(false); // no sorting
   _listView->setAutoScroll(false);
-  _listView->setDragDropMode(QAbstractItemView::NoDragDrop);
+  _listView->setDragDropMode(QAbstractItemView::DragOnly);
   _listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
   _listView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   _listView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);

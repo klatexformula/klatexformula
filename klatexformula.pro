@@ -52,7 +52,10 @@ isEmpty(BACKEND_INSTALLPREFIX) {
 }
 isEmpty(BACKEND_LIBDIR) {
   BACKEND_LIBDIR = lib
-  contains($$system(uname -m), 64) {
+  unix:contains($$system(uname -m), 64) {
+    BACKEND_LIBDIR = lib64
+  }
+  macx:contains($$system(uname -m), 64) {
     BACKEND_LIBDIR = lib64
   }
 }
@@ -68,18 +71,21 @@ isEmpty(ICONTHEME) {
 }
 
 
-# -- Test for $$QMAKE
-contains(BACKEND_USE_QT4, false) {
-  # using Qt3 -- 'system' succeeds if return value == 1
-  system(which $$QMAKE >/dev/null) {
-    error(qmake program `$$QMAKE\' not found !)
+#win32 {
+#} else {
+  # -- Test for $$QMAKE
+  contains(BACKEND_USE_QT4, false) {
+    # using Qt3 -- 'system' succeeds if return value == 1
+    system($$QMAKE -version) {
+      error(qmake program `$$QMAKE\' not found !)
+    }
+  } else {
+    # using Qt4 -- 'system' succeeds if zero return value
+    !system($$QMAKE -version) {
+      error(qmake program `$$QMAKE\' not found !)
+    }
   }
-} else {
-  # using Qt4 -- 'system' succeeds if zero return value
-  !system(which $$QMAKE >/dev/null) {
-    error(qmake program `$$QMAKE\' not found !)
-  }
-}
+#}
 
 
 # -- Store KLF configuration into QMake environment variables
@@ -99,8 +105,9 @@ isEmpty(BACKEND_ONLY) {
 }
 
 message(Will build the following subdirs: $$SUBDIRS)
-message(With the following options:)
-system($$QMAKE -query | egrep '^KLF_')
+message(With the following options: (only those beginning with KLF_ are relevant:))
+!win32:system($$QMAKE -query | egrep '^KLF_')
+win32:system($$QMAKE -query)
 message(You may now run `make\' or re-run qmake with other options to adjust above settings.)
 message(NOTE: option names for qmake command line do NOT take the leading KLF_ prefix.)
 message(Please look at the top of klatexformula.pro file for more information on options.)

@@ -1055,6 +1055,12 @@ void KLFMainWin::hideEvent(QHideEvent *e)
 {
   if (e->spontaneous())
     return;
+  if (mLibraryBrowser)
+    mLibraryBrowser->hide();
+  if (mLatexSymbols)
+    mLatexSymbols->hide();
+  if (mStyleManager)
+    mStyleManager->hide();
   qApp->quit();
 }
 
@@ -1238,6 +1244,8 @@ void KLFMainWin::slotEvaluate()
       } else {
 	if (klfconfig.UI.enableToolTipPreview)
 	  lblOutput->setToolTip(QString("<qt><img src=\"%1\"></qt>").arg(mLastRunTempPNGFile->fileName()));
+	else
+	  lblOutput->setToolTip(QString(""));
       }
     }
   }
