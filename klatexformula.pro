@@ -31,7 +31,7 @@
 # ------------------------------------------------------------------
 
 
-VERSION = 3.0.2
+VERSION = 3.1.0alpha0
 
 TEMPLATE = subdirs
 CONFIG += ordered release
