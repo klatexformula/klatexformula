@@ -196,6 +196,8 @@ public:
 
   void emitLibraryChanged();
 
+  bool importLibraryFileSeparateResources(const QString& fname, const QString& baseresource);
+
 signals:
   void libraryChanged();
   void restoreFromLibrary(KLFData::KLFLibraryItem j, bool restorestyle);
@@ -229,8 +231,10 @@ public slots:
   void slotSearchFindNext(int direction = 1);
   void slotSearchFindPrev();
   // import/export actions
-  void slotImport(bool keepResources = true); // will restore each item into its given resource in file if keepResources is true
+  // will restore each item into its given resource in file if keepResources is true
+  void slotImport(bool keepResources = true);
   void slotImportToCurrentResource();
+  void slotImportToSeparateResources();
   void slotExportLibrary();
   void slotExportResource();
   void slotExportSelection();
@@ -280,9 +284,13 @@ protected:
   QAction *IMPORTEXPORTMENU_EXPORT_LIBRARY;
   QAction *IMPORTEXPORTMENU_EXPORT_RESOURCE;
   QAction *IMPORTEXPORTMENU_EXPORT_SELECTION;
+  QAction *IMPORTEXPORTMENU_IMPORTTOSEPARATERESOURCE;
   QAction *MANAGERESOURCESMENU_ADD;
   QAction *MANAGERESOURCESMENU_DELETE;
   QAction *MANAGERESOURCESMENU_RENAME;
+
+  quint32 getNewResourceId();
+  bool loadLibraryFile(const QString& fname, KLFData::KLFLibraryResourceList *res, KLFData::KLFLibrary *lib);
 };
 
 

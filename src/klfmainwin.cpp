@@ -1099,6 +1099,15 @@ void KLFMainWin::alterSetting(altersetting_which which, QString svalue)
     break;
   }
 }
+
+
+bool KLFMainWin::importLibraryFileSeparateResources(const QString& fname, const QString& basername)
+{
+  return mLibraryBrowser->importLibraryFileSeparateResources(fname, basername);
+}
+
+
+
 void KLFMainWin::applySettings(const KLFBackend::klfSettings& s)
 {
   _settings = s;

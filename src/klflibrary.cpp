@@ -749,6 +749,7 @@ KLFLibraryListViewItem *KLFLibraryListManager::itemForId(uint reqid)
 
 
 
+
 // ------------------------------------------------------------------------
 
 
@@ -791,6 +792,8 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
     mImportExportMenu->addAction(tr("Import ..."), this, SLOT(slotImport()));
   IMPORTEXPORTMENU_IMPORTTOCURRENTRESOURCE =
     mImportExportMenu->addAction(tr("Import Into Current Resource ..."), this, SLOT(slotImportToCurrentResource()));
+  IMPORTEXPORTMENU_IMPORTTOSEPARATERESOURCE =
+    mImportExportMenu->addAction(tr("Import Into Separate Resources ..."), this, SLOT(slotImportToSeparateResources()));
   mImportExportMenu->addSeparator();
   IMPORTEXPORTMENU_EXPORT_LIBRARY =
     mImportExportMenu->addAction(tr("Export Whole Library ..."), this, SLOT(slotExportLibrary()));
@@ -991,6 +994,43 @@ void KLFLibraryBrowser::emitLibraryChanged()
   //   for (k = 0; k < mLists.size(); ++k) {
   //     mLists[k]->slotCompleteRefresh();
   //   }
+}
+
+bool KLFLibraryBrowser::importLibraryFileSeparateResources(const QString& fname, const QString& baseresource)
+{
+  // importsep
+
+  // import library
+
+  KLFData::KLFLibraryResourceList imp_reslist;
+  KLFData::KLFLibrary imp_lib;
+
+  bool res = loadLibraryFile(fname, &imp_reslist, &imp_lib);
+  if ( ! res )
+    return false;
+
+  int k, j;
+  for (k = 0; k < imp_reslist.size(); ++k) {
+    // create a new resource for this imported resource
+    quint32 ourid = getNewResourceId();
+    if (ourid == 0)
+      return false;
+    KLFData::KLFLibraryResource res = { ourid, baseresource + imp_reslist[k].name };
+    _libresptr->append(res);
+    _libptr->operator[](res) = KLFData::KLFLibraryList();
+
+    for (j = 0; j < imp_lib[imp_reslist[k]].size(); ++j) {
+      KLFData::KLFLibraryItem item = imp_lib[imp_reslist[k]][j];
+      // readjust item id
+      item.id = KLFData::KLFLibraryItem::MaxId++;
+      _libptr->operator[](res).append(item);
+    }
+  }
+
+  // and do a thorough refresh
+  slotCompleteRefresh();
+
+  return true;
 }
 
 
@@ -1221,35 +1261,9 @@ void KLFLibraryBrowser::slotImport(bool keepResources)
   if (fname.isEmpty())
     return;
 
-  QFile fimp(fname);
-  if ( ! fimp.open(QIODevice::ReadOnly) ) {
-    QMessageBox::critical(this, tr("Error"), tr("Unable to open library file %1!").arg(fname));
-  } else {
-    QDataStream stream(&fimp);
-    QString s1;
-    stream >> s1;
-    if (s1 != "KLATEXFORMULA_LIBRARY_EXPORT") {
-      QMessageBox::critical(this, tr("Error"), tr("Error: Library file `%1' is incorrect or corrupt!\n").arg(fname));
-    } else {
-      qint16 vmaj, vmin;
-      stream >> vmaj >> vmin;
-
-      // ATTENTION: vmaj and vmin correspond to the compatibility version.
-      // for example in KLF 3 we write vmaj=2 and vmin=1 because klf3 is
-      // compatible with KLF 2.1 format.
-
-      if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
-	QMessageBox::information(this, tr("Import Library Items"),
-				 tr("This library file was created by a more recent version of KLatexFormula.\n"
-				    "The process of library importing may fail."));
-      }
-
-      // Qt3-compatible stream input
-      stream.setVersion(QDataStream::Qt_3_3);
-
-      stream >> imp_reslist >> imp_lib;
-    } // format corrupt
-  } // open file ok
+  bool result = loadLibraryFile(fname, &imp_reslist, &imp_lib);
+  if ( ! result )
+    return;
 
   KLFData::KLFLibraryResource curres;
   if (!keepResources)
@@ -1322,6 +1336,16 @@ void KLFLibraryBrowser::slotImportToCurrentResource()
 {
   slotImport(false); // import to current resource
 }
+void KLFLibraryBrowser::slotImportToSeparateResources()
+{
+  QString fname = QFileDialog::getOpenFileName(this, tr("Import Library Resource"), QString(),
+					       tr("KLatexFormula Library Files (*.klf);;All Files (*)"));
+  if (fname.isEmpty())
+    return;
+
+  importLibraryFileSeparateResources(fname, QFileInfo(fname).baseName() + ":");
+}
+
 void KLFLibraryBrowser::slotExportLibrary()
 {
   slotExportSpecific(*_libresptr, *_libptr);
@@ -1398,6 +1422,7 @@ void KLFLibraryBrowser::slotExportSpecific(KLFData::KLFLibraryResourceList resli
 	 << reslist << library;
 }
 
+
 void KLFLibraryBrowser::slotAddResource()
 {
   bool ok;
@@ -1407,18 +1432,9 @@ void KLFLibraryBrowser::slotAddResource()
   if ( ! ok || rname.isEmpty() )
     return;
 
-  quint32 ourid = KLFData::LibResourceUSERMIN; // determine a good ID:
-  int k;
-  for (k = 0; ourid < KLFData::LibResourceUSERMAX && k < _libresptr->size(); ++k) {
-    if (ourid == _libresptr->operator[](k).id) {
-      ourid++;
-      k = 0; // restart a complete check from first item
-    }
-  }
-  if (ourid == KLFData::LibResourceUSERMAX) {
-    fprintf(stderr, "ERROR: Can't find a good ID !\n");
+  quint32 ourid = getNewResourceId();
+  if (ourid == 0)
     return;
-  }
 
   KLFData::KLFLibraryResource res = { ourid, rname };
 
@@ -1487,3 +1503,60 @@ void KLFLibraryBrowser::slotDeleteResource()
   }
 }
 
+
+
+
+quint32 KLFLibraryBrowser::getNewResourceId()
+{
+  quint32 ourid = KLFData::LibResourceUSERMIN; // determine a good ID:
+  int k;
+  for (k = 0; ourid < KLFData::LibResourceUSERMAX && k < _libresptr->size(); ++k) {
+    if (ourid == _libresptr->operator[](k).id) {
+      ourid++;
+      k = 0; // restart a complete check from first item
+    }
+  }
+  if (ourid == KLFData::LibResourceUSERMAX) {
+    fprintf(stderr, "ERROR: Can't find a good ID !\n");
+    return 0;
+  }
+
+  return ourid;
+}
+
+bool KLFLibraryBrowser::loadLibraryFile(const QString& fname, KLFData::KLFLibraryResourceList *imp_reslist,
+					KLFData::KLFLibrary *imp_lib)
+{
+  QFile fimp(fname);
+  if ( ! fimp.open(QIODevice::ReadOnly) ) {
+    QMessageBox::critical(this, tr("Error"), tr("Unable to open library file %1!").arg(fname));
+    return false;
+  } else {
+    QDataStream stream(&fimp);
+    QString s1;
+    stream >> s1;
+    if (s1 != "KLATEXFORMULA_LIBRARY_EXPORT") {
+      QMessageBox::critical(this, tr("Error"), tr("Error: Library file `%1' is incorrect or corrupt!\n").arg(fname));
+      return false;
+    } else {
+      qint16 vmaj, vmin;
+      stream >> vmaj >> vmin;
+
+      // ATTENTION: vmaj and vmin correspond to the compatibility version.
+      // for example in KLF 3 we write vmaj=2 and vmin=1 because klf3 is
+      // compatible with KLF 2.1 format.
+
+      if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
+	QMessageBox::information(this, tr("Import Library Items"),
+				 tr("This library file was created by a more recent version of KLatexFormula.\n"
+				    "The process of library importing may fail."));
+      }
+
+      // Qt3-compatible stream input
+      stream.setVersion(QDataStream::Qt_3_3);
+
+      stream >> *imp_reslist >> *imp_lib;
+    } // format corrupt
+  } // open file ok
+  return true;
+}

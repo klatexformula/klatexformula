@@ -30,6 +30,7 @@
 #include <QApplication>
 #include <QTranslator>
 #include <QFileInfo>
+#include <QDir>
 #include <QResource>
 
 #include <klfbackend.h>
@@ -86,6 +87,8 @@ char *opt_epstopdf;
 bool opt_help_requested = false;
 bool opt_version_requested = false;
 
+char **klf_args;
+
 int qt_argc;
 char *qt_argv[1024];
 
@@ -94,7 +97,6 @@ char *qt_argv[1024];
 char *opt_strdup_free_list[64] = { NULL };
 int opt_strdup_free_list_n = 0;
 
-#define OPT_ERR_XTRA_ARG -32768
 
 static struct { bool has_error; int retcode; } opt_error;
 
@@ -178,6 +180,10 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 		     "       klatexformula --interactive|-I [OPTIONS]\n"
 		     "           Opens the GUI and performs actions required by [OPTIONS]\n"
 		     "\n"
+		     "       If additional filename arguments are passed to the command line, they are\n"
+		     "       interpreted as .klf files to load into the library in separate resources\n"
+		     "       (only in interactive mode).\n"
+		     "\n"
 		     "OPTIONS may be one or many of:\n"
 		     "  -I|--interactive\n"
 		     "      Runs KLatexFormula in interactive mode with a full-featured graphical user\n"
@@ -247,8 +253,9 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 		     "    KLatexFormula's history.\n"
 		     "  * When not run in interactive mode, no X11 server is needed.\n"
 		     "  * Additional translation files and/or data can be provided to klatexformula by specifying\n"
-		     "    a list of Qt rcc files to import in the KLF_RESOURCES environment variable. Separate the\n"
-		     "    file names with ':' on unix/mac, or ';' on windows.\n"
+		     "    a list of Qt rcc files or directories containing such files to import in the KLF_RESOURCES\n"
+		     "    environment variable. Separate the file names with ':' on unix/mac, or ';' on windows. The\n"
+		     "    default paths can be included with an empty section ('::') or leading or trailing ':'.\n"
 		     "  * Please report any bugs and malfunctions to the author.\n"
 		     "\n"
 		     "Have a lot of fun!\n"
@@ -263,8 +270,13 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 const char * KLF_RESOURCES_ENVNAM = "KLF_RESOURCES";
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
 const char * PATH_ENVVAR_SEP =  ";";
-#else
+const char * klfresources_default_rel = "/rccresources/";
+#elsif defined(Q_WS_MAC)
 const char * PATH_ENVVAR_SEP =  ":";
+const char * klfresources_default_rel = "/../Resources/rccresources/";
+#else // unix-like system
+const char * PATH_ENVVAR_SEP = ":";
+const char * klfresources_default_rel = "/../share/klatexformula/rccresources/";
 #endif
 
 
@@ -283,6 +295,7 @@ void signal_act(int sig)
 
 
 // UTILITY FUNCTIONS
+
 
 void main_parse_options(int argc, char *argv[]);
 
@@ -403,15 +416,53 @@ void main_save(KLFBackend::klfOutput klfoutput, const QString& f_output, QString
 
 void main_load_extra_resources()
 {
+  // this function is called with running Q[Core]Application and klfconfig all set up.
+
   char *klf_resources = getenv(KLF_RESOURCES_ENVNAM);
-  if (klf_resources == NULL)
-    return;
-  QString rccfilelist = klf_resources;
-  QStringList rccfiles = rccfilelist.split(PATH_ENVVAR_SEP);
-  for (int j = 0; j < rccfiles.size(); ++j) {
-    bool res = QResource::registerResource(rccfiles[j]);
-    if (!res)
-      fprintf(stderr, "Failed to register resource `%s'.\n", rccfiles[j].toLocal8Bit().constData());
+  QString defaultrccpath = QCoreApplication::applicationDirPath() + klfresources_default_rel + PATH_ENVVAR_SEP
+      + klfconfig.homeConfigDir + "/rccresources";
+  QString rccfilepath;
+  if (klf_resources == NULL) {
+    rccfilepath = "";
+  } else {
+    rccfilepath = klf_resources;
+  }
+  printf("Rcc file list is \"%s\"\n", rccfilepath.toLocal8Bit().constData());
+  QStringList defaultsplitrccpath = defaultrccpath.split(PATH_ENVVAR_SEP, QString::SkipEmptyParts);
+  QStringList rccfiles = rccfilepath.split(PATH_ENVVAR_SEP, QString::KeepEmptyParts);
+  int j, k;
+  for (QStringList::iterator it = rccfiles.begin(); it != rccfiles.end(); ++it) {
+    if ((*it).isEmpty()) {
+      it = rccfiles.erase(it, it+1);
+      for (j = 0; j < defaultsplitrccpath.size(); ++j) {
+	it = rccfiles.insert(it, defaultsplitrccpath[j]) + 1;
+      }
+      --it; // we already point to the next entry, compensate the ++it in for
+    }
+  }
+  for (j = 0; j < rccfiles.size(); ++j) {
+    QFileInfo fi(rccfiles[j]);
+    if (fi.isDir()) {
+      QDir dir(rccfiles[j]);
+      QFileInfoList files = dir.entryInfoList(QStringList()<<"*.rcc", QDir::Files);
+      for (k = 0; k < files.size(); ++k) {
+	bool res = QResource::registerResource(files[k].absoluteFilePath());
+	if (!res) {
+	  if ( ! opt_quiet )
+	    fprintf(stderr, "Failed to register resource `%s'.\n", rccfiles[j].toLocal8Bit().constData());
+	} else if ( ! opt_quiet ) {
+	  fprintf(stderr, "Loaded resource file %s.\n", files[k].absoluteFilePath().toLocal8Bit().constData());
+	}
+      }
+    } else if (fi.isFile() && fi.suffix() == "rcc") {
+      bool res = QResource::registerResource(rccfiles[j]);
+      if (!res) {
+	if ( ! opt_quiet )
+	  fprintf(stderr, "Failed to register resource `%s'.\n", rccfiles[j].toLocal8Bit().constData());
+      } else if ( ! opt_quiet ) {
+	fprintf(stderr, "Loaded resource file %s.\n", rccfiles[j].toLocal8Bit().constData());
+      }
+    }
   }
 }
 
@@ -420,10 +471,13 @@ void main_load_translations(QCoreApplication *app)
   QTranslator *translator = new QTranslator(app);
   QString lc = QLocale::system().name();
   QString fn = "klf_"+lc;
+  //  printf("DEBUG: Looking for translation to %s\n", lc.toLocal8Bit().constData());
   if (translator->load(fn, ":/i18n/")) {
     app->installTranslator(translator);
+    //    printf("DEBUG: Loaded translation to %s from resource.\n", lc.toLocal8Bit().constData());
   } else if (translator->load(fn, klfconfig.homeConfigDir+"/i18n")) {
     app->installTranslator(translator);
+    //    printf("DEBUG: Loaded translation to %s from home dir.\n", lc.toLocal8Bit().constData());
   } else {
     //    fprintf(stderr, "There is no translation for language %s.\n", lc.toLocal8Bit().constData());
   }
@@ -443,10 +497,14 @@ int main(int argc, char **argv)
   // parse command-line options
   main_parse_options(argc, argv);
 
+  // error handling
+  if (opt_error.has_error) {
+    fprintf(stderr, "Error while parsing command-line arguments.\n");
+    main_exit(EXIT_ERR_OPT);
+  }
+
   if ( opt_interactive ) {
     QApplication app(qt_argc, qt_argv);
-
-    main_load_extra_resources();
 
     if ( ! opt_quiet )
       fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
@@ -456,6 +514,8 @@ int main(int argc, char **argv)
     // now load default config
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'
     klfconfig.readFromConfig();
+
+    main_load_extra_resources();
 
     main_load_translations(&app);
 
@@ -535,6 +595,16 @@ int main(int argc, char **argv)
       // warning: ignoring --format option
     }
 
+    // IMPORT .klf files passed as arguments
+    int k;
+    bool imported = false;
+    for (k = 0; klf_args[k] != NULL; ++k) {
+      mainWin.importLibraryFileSeparateResources(klf_args[k], QFileInfo(klf_args[k]).baseName() + ":");
+      imported = true;
+    }
+    if (imported)
+      mainWin.slotLibrary(true);
+
     int r = app.exec();
     main_cleanup();
     // and exit.
@@ -546,24 +616,13 @@ int main(int argc, char **argv)
     // NON-INTERACTIVE (BATCH MODE, no X11)
     QCoreApplication app(qt_argc, qt_argv);
 
-    main_load_extra_resources();
-
     // now load default config (for default paths etc.)
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'
     klfconfig.readFromConfig();
 
-    main_load_translations(&app);
+    main_load_extra_resources();
 
-    // error handling
-    if (opt_error.has_error) {
-      if (opt_error.retcode == OPT_ERR_XTRA_ARG) {
-	fprintf(stderr, "%s", QObject::tr("Error: extra argument given.\n").toLocal8Bit().constData());
-      } else {
-	fprintf(stderr, "%s", QObject::tr("Error while parsing command-line arguments (got `0%1')\n")
-		.arg(opt_error.retcode, 0, 8).toLocal8Bit().constData());
-      }
-      main_exit(EXIT_ERR_OPT);
-    }
+    main_load_translations(&app);
 
     // show version number ?
     if ( opt_version_requested ) {
@@ -583,6 +642,9 @@ int main(int argc, char **argv)
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      version);
   
+    if ( klf_args[0] != NULL && ! opt_quiet ) {
+      fprintf(stderr, "Warning: ignoring extra command-line arguments\n");
+    }
 
     // now process required actions.
     KLFBackend::klfInput input;
@@ -787,11 +849,8 @@ void main_parse_options(int argc, char *argv[])
 
   qt_argv[qt_argc] = NULL;
 
-  if (optind < argc) {
-    // got unexpected input
-    opt_error.has_error = true;
-    opt_error.retcode = OPT_ERR_XTRA_ARG;
-  }
+  // possibly pointing on NULL if no extra arguments
+  klf_args = & argv[optind];
 
   if (opt_help_requested || opt_version_requested || opt_error.has_error)
     opt_interactive = 0;

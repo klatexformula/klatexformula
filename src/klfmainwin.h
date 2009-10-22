@@ -211,6 +211,8 @@ public:
   void alterSetting(altersetting_which, int ivalue);
   void alterSetting(altersetting_which, QString svalue);
 
+  bool importLibraryFileSeparateResources(const QString& fname, const QString& basername);
+
 signals:
 
   void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
