@@ -271,12 +271,14 @@ const char * KLF_RESOURCES_ENVNAM = "KLF_RESOURCES";
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
 const char * PATH_ENVVAR_SEP =  ";";
 const char * klfresources_default_rel = "/rccresources/";
-#elsif defined(Q_WS_MAC)
+#else
+# if defined(Q_WS_MAC)
 const char * PATH_ENVVAR_SEP =  ":";
 const char * klfresources_default_rel = "/../Resources/rccresources/";
-#else // unix-like system
+# else // unix-like system
 const char * PATH_ENVVAR_SEP = ":";
 const char * klfresources_default_rel = "/../share/klatexformula/rccresources/";
+# endif
 #endif
 
 
