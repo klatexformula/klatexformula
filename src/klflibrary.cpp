@@ -754,9 +754,10 @@ KLFLibraryListViewItem *KLFLibraryListManager::itemForId(uint reqid)
 
 
 KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData::KLFLibraryResourceList *reslistptr, KLFMainWin *parent)
-  : QWidget(/*parent*/ 0 , /*Qt::Tool*/ 0), KLFLibraryBrowserUI()
+  : QWidget(parent /* 0 */ , Qt::Window /*Qt::Tool*/ /* 0 */), KLFLibraryBrowserUI()
 {
   setupUi(this);
+  setObjectName("KLFLibraryBrowser");
 
   _libptr = wholelistptr;
   _libresptr = reslistptr;

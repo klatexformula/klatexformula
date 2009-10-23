@@ -136,6 +136,7 @@ KLFStyleManager::KLFStyleManager(KLFData::KLFStyleList *stydata, QWidget *parent
   : QWidget(parent, Qt::Dialog), KLFStyleManagerUI()
 {
   setupUi(this);
+  setObjectName("KLFStyleManager");
 
   _styptr = stydata;
 

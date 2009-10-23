@@ -607,6 +607,8 @@ KLFMainWin::KLFMainWin()
   }
 
   _evaloutput_uptodate = false;
+
+  _ignore_hide_event = false;
 }
 
 
@@ -1055,6 +1057,10 @@ void KLFMainWin::hideEvent(QHideEvent *e)
 {
   if (e->spontaneous())
     return;
+
+  if (_ignore_hide_event)
+    return;
+
   if (mLibraryBrowser)
     mLibraryBrowser->hide();
   if (mLatexSymbols)
@@ -1207,6 +1213,7 @@ void KLFMainWin::slotEvaluate()
     else
       sc = QPixmap::fromImage(_output.result);
     lblOutput->setPixmap(sc);
+    lblOutput->setStyleSheet("");
     lblOutput->setEnabled(true);
 
     frmOutput->setEnabled(true);
@@ -1317,16 +1324,66 @@ void KLFMainWin::slotSetPreamble(const QString& preamble)
   txtPreamble->setPlainText(preamble);
 }
 
+void KLFMainWin::slotSetDPI(int DPI)
+{
+  spnDPI->setValue(DPI);
+}
+
 void KLFMainWin::slotSetFgColor(const QColor& fg)
 {
   colFg->setColor(fg);
 }
-
+void KLFMainWin::slotSetFgColor(const QString& s)
+{
+  QColor fgcolor;
+  fgcolor.setNamedColor(s);
+  slotSetFgColor(fgcolor);
+}
 void KLFMainWin::slotSetBgColor(const QColor& bg)
 {
   colBg->setColor(bg);
 }
+void KLFMainWin::slotSetBgColor(const QString& s)
+{
+  QColor bgcolor;
+  if (s == "-")
+    bgcolor.setRgb(255, 255, 255, 0); // white transparent
+  else
+    bgcolor.setNamedColor(s);
+  slotSetBgColor(bgcolor);
+}
 
+// function imported from main.cpp
+extern void main_save(KLFBackend::klfOutput klfoutput, const QString& f_output, QString format);
+
+void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& format)
+{
+  if ( txtLatex->toPlainText().isEmpty() )
+    return;
+
+  slotEvaluate();
+
+  if ( ! output.isEmpty() ) {
+    if ( _output.result.isNull() ) {
+      QMessageBox::critical(this, tr("Error"), tr("There is no image to save."));
+    } else {
+      main_save(_output, output, format.trimmed().toUpper());
+    }
+  }
+
+}
+
+void KLFMainWin::importCmdlKLFFiles(const QStringList& files)
+{
+  int k;
+  bool imported = false;
+  for (k = 0; k < files.size(); ++k) {
+    importLibraryFileSeparateResources(files[k], QFileInfo(files[k]).baseName() + ":");
+    imported = true;
+  }
+  if (imported)
+    slotLibrary(true);
+}
 
 
 void KLFMainWin::slotDrag()

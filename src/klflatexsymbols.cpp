@@ -234,6 +234,7 @@ public:
     stream >> vmaj >> vmin;
 
     if (vmaj != version_maj || vmin != version_min) {
+      // since this is just cache, we can require EXACT version
       return BadVersion;
     }
     // KLF 3.x, we saved the stream version, read it now
@@ -249,7 +250,6 @@ public:
 
   int saveCache(QDataStream& stream)
   {
-    // artificially set a lower version, so as to not handicap anyone who would like to read us with an old version of KLF
     stream.setVersion(QDataStream::Qt_3_3);
     stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE") << (qint16)version_maj << (qint16)version_min
 	   << (qint16)stream.version() << cache;
@@ -486,9 +486,11 @@ void KLFLatexSymbolsView::slotSymbolActivated()
 
 
 KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
-  : QWidget(/*mw*/ 0 , /*Qt::Tool*/ 0), KLFLatexSymbolsUI()
+  : QWidget(mw /*0*/ , /*Qt::Tool*/ Qt::Window /*0*/), KLFLatexSymbolsUI()
 {
   setupUi(this);
+  setObjectName("KLFLatexSymbols");
+
 
   _mainwin = mw;
 

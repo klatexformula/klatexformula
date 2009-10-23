@@ -37,6 +37,7 @@
 
 #include "klfconfig.h"
 #include "klfmainwin.h"
+#include "klfdbus.h"
 
 // Program Exit Error Codes
 #define EXIT_ERR_FILEINPUT 100
@@ -283,6 +284,14 @@ const char * klfresources_default_rel = "/../share/klatexformula/rccresources/";
 
 
 
+#if defined(KLF_USE_DBUS)
+#define KLF_MAYBE_DBUS(x, command)  if (x) { command; } else
+#else
+#define KLF_MAYBE_DBUS(x, command)
+#endif
+
+
+
 void signal_act(int sig)
 {
   if (sig == SIGINT) {
@@ -508,6 +517,56 @@ int main(int argc, char **argv)
   if ( opt_interactive ) {
     QApplication app(qt_argc, qt_argv);
 
+#if defined(KLF_USE_DBUS)
+    // see if an instance of KLatexFormula is running...
+    KLFDBusAppInterface *iface = new KLFDBusAppInterface("org.klatexformula.KLatexFormula", "/MainApplication",
+                           QDBusConnection::sessionBus(), &app);
+    if (iface->isValid()) {
+      iface->raiseWindow();
+      // load everything via DBus
+      QString latex = main_get_input(opt_input, opt_latexinput);
+      if ( ! latex.isNull() )
+	iface->setInputData("latex", latex);
+      if ( opt_fgcolor != NULL )
+	iface->setInputData("fgcolor", opt_fgcolor);
+      if ( opt_bgcolor != NULL )
+	iface->setInputData("bgcolor", opt_bgcolor);
+      if ( opt_dpi > 0 )
+	iface->setInputData("dpi", QString::null, opt_dpi);
+      if (opt_mathmode != NULL)
+	iface->setInputData("mathmode", QString::fromLocal8Bit(opt_mathmode));
+      if (opt_preamble != NULL)
+	iface->setInputData("preamble", QString::fromLocal8Bit(opt_preamble));
+      if (opt_lborderoffset != -1)
+	iface->setAlterSetting_i(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
+      if (opt_tborderoffset != -1)
+	iface->setAlterSetting_i(KLFMainWin::altersetting_TBorderOffset, opt_tborderoffset);
+      if (opt_rborderoffset != -1)
+	iface->setAlterSetting_i(KLFMainWin::altersetting_RBorderOffset, opt_rborderoffset);
+      if (opt_bborderoffset != -1)
+	iface->setAlterSetting_i(KLFMainWin::altersetting_BBorderOffset, opt_bborderoffset);
+      if (opt_tempdir != NULL)
+	iface->setAlterSetting_s(KLFMainWin::altersetting_TempDir, QString::fromLocal8Bit(opt_tempdir));
+      if (opt_latex != NULL)
+	iface->setAlterSetting_s(KLFMainWin::altersetting_Latex, QString::fromLocal8Bit(opt_latex));
+      if (opt_dvips != NULL)
+	iface->setAlterSetting_s(KLFMainWin::altersetting_Dvips, QString::fromLocal8Bit(opt_dvips));
+      if (opt_gs != NULL)
+	iface->setAlterSetting_s(KLFMainWin::altersetting_Gs, QString::fromLocal8Bit(opt_gs));
+      if (opt_epstopdf != NULL)
+	iface->setAlterSetting_s(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
+      // will actually save only if output is non empty.
+      iface->evaluateAndSave(QString::fromLocal8Bit(opt_output), QString::fromLocal8Bit(opt_format));
+      // and import KLF files if wanted
+      QStringList flist;
+      for (int k = 0; klf_args[k] != NULL; ++k)
+	flist << QString::fromLocal8Bit(klf_args[k]);
+      iface->importCmdlKLFFiles(flist);
+      main_cleanup();
+      return 0;
+    }
+#endif
+
     if ( ! opt_quiet )
       fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
@@ -531,6 +590,15 @@ int main(int argc, char **argv)
     KLFMainWin mainWin;
     mainWin.show();
 
+#if defined(KLF_USE_DBUS)
+    new KLFDBusAppAdaptor(&app, &mainWin);
+    QDBusConnection dbusconn = QDBusConnection::sessionBus();
+    dbusconn.registerService("org.klatexformula.KLatexFormula");
+    dbusconn.registerObject("/MainApplication", &app);
+    dbusconn.registerObject("/MainWindow/KLFMainWin", &mainWin, QDBusConnection::ExportAllContents
+			    | QDBusConnection::ExportChildObjects);
+#endif
+
     // parse command-line given actions
 
     QString latex = main_get_input(opt_input, opt_latexinput);
@@ -538,29 +606,20 @@ int main(int argc, char **argv)
       mainWin.slotSetLatex(latex);
 
     if ( opt_fgcolor != NULL ) {
-      QColor fgcolor;
-      fgcolor.setNamedColor(opt_fgcolor);
-      mainWin.slotSetFgColor(fgcolor);
+      mainWin.slotSetFgColor(QString::fromLocal8Bit(opt_fgcolor));
     }
     if ( opt_bgcolor != NULL ) {
-      QColor bgcolor;
-      if (!strcmp(opt_bgcolor, "-"))
-	bgcolor.setRgb(255, 255, 255, 0); // white transparent
-      else
-	bgcolor.setNamedColor(opt_bgcolor);
-      mainWin.slotSetBgColor(bgcolor);
+      mainWin.slotSetBgColor(QString::fromLocal8Bit(opt_bgcolor));
     }
-
+    if ( opt_dpi > 0 ) {
+      mainWin.slotSetDPI(opt_dpi);
+    }
     if (opt_mathmode != NULL) {
-      QString mathmode = QString::fromLocal8Bit(opt_mathmode);
-      mainWin.slotSetMathMode(mathmode);
+      mainWin.slotSetMathMode(QString::fromLocal8Bit(opt_mathmode));
     }
-
     if (opt_preamble != NULL) {
-      QString preamble = QString::fromLocal8Bit(opt_preamble);
-      mainWin.slotSetPreamble(preamble);
+      mainWin.slotSetPreamble(QString::fromLocal8Bit(opt_preamble));
     }
-
     if (opt_lborderoffset != -1)
       mainWin.alterSetting(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
     if (opt_tborderoffset != -1)
@@ -580,32 +639,16 @@ int main(int argc, char **argv)
     if (opt_epstopdf != NULL)
       mainWin.alterSetting(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
 
-    if ( ! latex.trimmed().isEmpty() )
-      mainWin.slotEvaluate();
+    // will actually save only if output is non empty.
+    mainWin.slotEvaluateAndSave(QString::fromLocal8Bit(opt_output),
+				QString::fromLocal8Bit(opt_format));
 
-    if ( opt_output != NULL ) {
-      KLFBackend::klfOutput o = mainWin.currentKLFBackendOutput();
-      if ( o.result.isNull() ) {
-	if ( ! opt_quiet )
-	  fprintf(stderr, "%s", QObject::tr("There's no image to save!").toLocal8Bit().constData());
-      } else {
-	QString output = QString::fromLocal8Bit(opt_output);
-	QString format = QString::fromLocal8Bit(opt_format).trimmed().toUpper();
-	main_save(o, output, format);
-      }
-    } else {
-      // warning: ignoring --format option
-    }
 
     // IMPORT .klf files passed as arguments
-    int k;
-    bool imported = false;
-    for (k = 0; klf_args[k] != NULL; ++k) {
-      mainWin.importLibraryFileSeparateResources(klf_args[k], QFileInfo(klf_args[k]).baseName() + ":");
-      imported = true;
-    }
-    if (imported)
-      mainWin.slotLibrary(true);
+    QStringList flist;
+    for (int k = 0; klf_args[k] != NULL; ++k)
+      flist << QString::fromLocal8Bit(klf_args[k]);
+    mainWin.importCmdlKLFFiles(flist);
 
     int r = app.exec();
     main_cleanup();

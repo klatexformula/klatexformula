@@ -8,8 +8,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>739</width>
-    <height>345</height>
+    <width>831</width>
+    <height>397</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
    <iconset resource="klfres.qrc">
     <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2">
+  <layout class="QHBoxLayout" name="lyt_KLFMainWinUI">
    <property name="spacing">
     <number>2</number>
    </property>
@@ -40,7 +40,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <layout class="QVBoxLayout" name="lyt_frmMain">
       <property name="spacing">
        <number>4</number>
       </property>
@@ -95,7 +95,7 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="lyt">
+       <layout class="QHBoxLayout" name="lytMiddle">
         <property name="spacing">
          <number>2</number>
         </property>
@@ -236,7 +236,7 @@
         <property name="frameShadow">
          <enum>QFrame::Sunken</enum>
         </property>
-        <layout class="QGridLayout" name="gridLayout_3">
+        <layout class="QGridLayout" name="lyt_frmOutput">
          <property name="horizontalSpacing">
           <number>6</number>
          </property>
@@ -280,7 +280,7 @@
           </widget>
          </item>
          <item row="3" column="1">
-          <spacer name="spacer1">
+          <spacer name="spcOutputButtons">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -369,7 +369,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="lyt_frmDetails">
       <property name="spacing">
        <number>4</number>
       </property>
@@ -381,7 +381,7 @@
         <property name="title">
          <string>Colors</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_2">
+        <layout class="QGridLayout" name="lyt_gbxColors">
          <property name="topMargin">
           <number>0</number>
          </property>
@@ -454,7 +454,7 @@
         <property name="title">
          <string>Latex &amp;&amp; Image Settings</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout">
+        <layout class="QGridLayout" name="lyt_gbxLatexImage">
          <property name="topMargin">
           <number>7</number>
          </property>
@@ -563,7 +563,7 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QHBoxLayout" name="lytStyleSettingsButtons">
         <property name="spacing">
          <number>2</number>
         </property>

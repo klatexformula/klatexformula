@@ -17,7 +17,7 @@ DESTDIR = ..
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
 CONFIG += qt release
-QT = core gui xml
+QT = core gui xml dbus
 
 DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\"
 LIBS += -Lklfbackend -Lklfbackend/release -lklfbackend
@@ -33,6 +33,7 @@ HEADERS += klfcolorchooser.h \
            klfsettings.h \
            klfstylemanager.h \
 	   qtcolortriangle.h
+!win32:HEADERS +=	klfdbus.h
 FORMS += klflatexsymbolsui.ui \
          klflibrarybrowserui.ui \
          klfmainwinui.ui \
@@ -53,7 +54,10 @@ SOURCES += klfcolorchooser.cpp \
            klfstylemanager.cpp \
            main.cpp \
 	   qtcolortriangle.cpp
+!win32: SOURCES +=	klfdbus.cpp
 RESOURCES += klfres.qrc
+
+!win32: DEFINES += KLF_USE_DBUS
 
 # For Mac OS X
 ICON = klficon.icns

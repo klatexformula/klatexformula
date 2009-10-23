@@ -230,8 +230,16 @@ public slots:
   void slotSetLatex(const QString& latex);
   void slotSetMathMode(const QString& mathmode);
   void slotSetPreamble(const QString& preamble);
+  void slotSetDPI(int DPI);
   void slotSetFgColor(const QColor& fgcolor);
+  void slotSetFgColor(const QString& fgcolor);
   void slotSetBgColor(const QColor& bgcolor);
+  void slotSetBgColor(const QString& bgcolor);
+
+  // will actually save only if output non empty.
+  void slotEvaluateAndSave(const QString& output, const QString& format);
+
+  void importCmdlKLFFiles(const QStringList& files);
 
   bool loadNamedStyle(const QString& sty);
 
@@ -265,6 +273,10 @@ public slots:
   void updatePreviewBuilderThreadInput();
 
   void displayError(const QString& errormsg);
+
+  void setQuitOnHide(bool quitonhide = true) {
+    _ignore_hide_event = ! quitonhide;
+  }
 
 protected:
   KLFLibraryBrowser *mLibraryBrowser;
@@ -301,6 +313,8 @@ protected:
 
   void closeEvent(QCloseEvent *e);
   void hideEvent(QHideEvent *e);
+
+  bool _ignore_hide_event;
 };
 
 #endif
