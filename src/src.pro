@@ -17,7 +17,8 @@ DESTDIR = ..
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
 CONFIG += qt release
-QT = core gui xml dbus
+QT = core gui xml
+!win32: QT += dbus
 
 DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\"
 LIBS += -Lklfbackend -Lklfbackend/release -lklfbackend
