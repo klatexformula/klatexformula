@@ -486,7 +486,13 @@ void KLFLatexSymbolsView::slotSymbolActivated()
 
 
 KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
-  : QWidget(mw /*0*/ , /*Qt::Tool*/ Qt::Window /*0*/), KLFLatexSymbolsUI()
+  : QWidget(
+#if defined(Q_OS_WIN32)
+	    0 /* mw */
+#else
+	    mw /* 0 */
+#endif
+	    , /*Qt::Tool*/ Qt::Window /*0*/), KLFLatexSymbolsUI()
 {
   setupUi(this);
   setObjectName("KLFLatexSymbols");
