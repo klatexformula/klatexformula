@@ -121,6 +121,9 @@ void KLFColorChooseWidgetPane::setPaneType(const QString& panetype)
 void KLFColorChooseWidgetPane::paintEvent(QPaintEvent */*e*/)
 {
   QPainter p(this);
+  // background: a checker grid to distinguish transparency
+  p.fillRect(0,0,width(),height(), QBrush(QPixmap(":/pics/checker.png")));
+  // then prepare an image for our gradients
   int x;
   int y;
   _img = QImage(width(), height(), QImage::Format_ARGB32);

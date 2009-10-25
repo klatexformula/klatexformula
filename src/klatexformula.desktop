@@ -1,9 +1,16 @@
 [Desktop Entry]
+X-SuSE-translate=true
+Categories=Office;
 Encoding=UTF-8
 Name=KLatexFormula
-Exec=klatexformula
-Icon=klatexformula
-Type=Application
 Comment=Get an image from a LaTeX Equation
 Comment[fr]=Obtenez une image à partir d'une équation LaTeX
-Categories=Qt;Utility;Office
+GenericName=KLatexFormula
+MimeType=application/x-klatexformula;
+Exec=klatexformula %F
+Icon=klatexformula
+Type=Application
+Terminal=false
+X-KDE-StartupNotify=true
+X-KDE-AuthorizeAction=shell_access
+

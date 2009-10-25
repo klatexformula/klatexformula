@@ -254,29 +254,36 @@ static QString standard_extra_paths = "";
 #endif
 
 
-void KLFConfig::loadDefaultBackendPaths(KLFConfig *c)
+void KLFConfig::loadDefaultBackendPaths(KLFConfig *c, bool allowempty)
 {
   c->BackendSettings.tempDir = QDir::fromNativeSeparators(QDir::tempPath());
   c->BackendSettings.execLatex = search_path(PROG_LATEX, standard_extra_paths);
-  if (c->BackendSettings.execLatex.isNull()) c->BackendSettings.execLatex = PROG_LATEX;
+  if (!allowempty && c->BackendSettings.execLatex.isNull()) c->BackendSettings.execLatex = PROG_LATEX;
   c->BackendSettings.execDvips = search_path(PROG_DVIPS, standard_extra_paths);
-  if (c->BackendSettings.execDvips.isNull()) c->BackendSettings.execDvips = PROG_DVIPS;
+  if (!allowempty && c->BackendSettings.execDvips.isNull()) c->BackendSettings.execDvips = PROG_DVIPS;
   c->BackendSettings.execGs = search_path(PROG_GS, standard_extra_paths);
-  if (c->BackendSettings.execGs.isNull()) c->BackendSettings.execGs = PROG_GS;
+  if (!allowempty && c->BackendSettings.execGs.isNull()) c->BackendSettings.execGs = PROG_GS;
   c->BackendSettings.execEpstopdf = search_path(PROG_EPSTOPDF, standard_extra_paths);
-  if (c->BackendSettings.execEpstopdf.isNull()) c->BackendSettings.execEpstopdf = "";
+  if (!allowempty && c->BackendSettings.execEpstopdf.isNull()) c->BackendSettings.execEpstopdf = "";
 }
 
 int KLFConfig::ensureHomeConfigDir()
 {
-  if ( QDir(homeConfigDir).exists() )
-    return 0;
-
-  bool r = QDir("/").mkpath(homeConfigDir);
-  if ( ! r ) {
-    QMessageBox::critical(0, QObject::tr("Error"),
-			  QObject::tr("Can't make local config directory `%1' !").arg(homeConfigDir));
-    return -1;
+  if ( ! QDir(homeConfigDir).exists() ) {
+    bool r = QDir("/").mkpath(homeConfigDir);
+    if ( ! r ) {
+      QMessageBox::critical(0, QObject::tr("Error"),
+			    QObject::tr("Can't make local config directory `%1' !").arg(homeConfigDir));
+      return -1;
+    }
+  }
+  if ( ! QDir(homeConfigDir + "/rccresources").exists() ) {
+    bool r = QDir("/").mkpath(homeConfigDir + "/rccresources");
+    if ( ! r ) {
+      QMessageBox::critical(0, QObject::tr("Error"),
+			    QObject::tr("Can't make local config directory `%1' !").arg(homeConfigDir));
+      return -1;
+    }
   }
   return 0;
 }

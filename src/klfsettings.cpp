@@ -31,6 +31,7 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDir>
+#include <QFileDialog>
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
@@ -84,6 +85,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
   connect(btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
+  connect(btnImportExtensionFile, SIGNAL(clicked()), this, SLOT(importExtensionFile()));
 
   connect(btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
   connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
@@ -169,7 +171,7 @@ bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedp
 				KLFPathChooser *destination)
 {
   QString progpath = guessedprog;
-  if (progpath.isNull()) {
+  if (progpath.isEmpty()) {
     if (QFileInfo(destination->path()).isExecutable()) {
       // field already has a valid value, don't touch it and don't complain
       return true;
@@ -194,7 +196,7 @@ bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedp
 void KLFSettings::setDefaultPaths()
 {
   KLFConfig tempobject;
-  KLFConfig::loadDefaultBackendPaths(&tempobject);
+  KLFConfig::loadDefaultBackendPaths(&tempobject, true);
   if ( ! QFileInfo(pathTempDir->path()).isDir() )
     pathTempDir->setPath(QDir::toNativeSeparators(tempobject.BackendSettings.tempDir));
   setDefaultFor("latex", tempobject.BackendSettings.execLatex, true, pathLatex);
@@ -203,7 +205,22 @@ void KLFSettings::setDefaultPaths()
   bool r = setDefaultFor("epstopdf", tempobject.BackendSettings.execEpstopdf, false, pathEpstopdf);
   chkEpstopdf->setChecked(r);
 }
-
+void KLFSettings::importExtensionFile()
+{
+  QStringList efnames = QFileDialog::getOpenFileNames(this, tr("Please select extension file(s) to import"),
+						      QString(), "Qt Resource Files (*.rcc)");
+  int i;
+  QString destination = klfconfig.homeConfigDir + "/rccresources/";
+  for (i = 0; i < efnames.size(); ++i) {
+    bool r = QFile::copy(efnames[i], destination + QFileInfo(efnames[i]).fileName());
+    if ( ! r ) {
+      QMessageBox::critical(this, tr("Error"), tr("Import of extension file %1 failed.").arg(efnames[i]));
+    }
+  }
+  if (i > 0) {
+    QMessageBox::information(this, tr("Import"), tr("Please restart KLatexFormula for changes to take effect."));
+  }
+}
 
 void KLFSettings::slotChangeFont()
 {

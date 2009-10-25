@@ -49,6 +49,7 @@ public slots:
   void apply();
 
   void setDefaultPaths();
+  void importExtensionFile();
 
 protected:
 

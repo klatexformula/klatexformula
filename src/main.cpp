@@ -438,7 +438,7 @@ void main_load_extra_resources()
   } else {
     rccfilepath = klf_resources;
   }
-  printf("Rcc file list is \"%s\"\n", rccfilepath.toLocal8Bit().constData());
+  //  printf("DEBUG: Rcc file list is \"%s\"\n", rccfilepath.toLocal8Bit().constData());
   QStringList defaultsplitrccpath = defaultrccpath.split(PATH_ENVVAR_SEP, QString::SkipEmptyParts);
   QStringList rccfiles = rccfilepath.split(PATH_ENVVAR_SEP, QString::KeepEmptyParts);
   int j, k;

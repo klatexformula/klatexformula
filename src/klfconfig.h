@@ -86,7 +86,7 @@ public:
 
   } BackendSettings;
 
-  static void loadDefaultBackendPaths(KLFConfig *c);
+  static void loadDefaultBackendPaths(KLFConfig *c, bool allowempty = false);
 
   struct {
 

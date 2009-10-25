@@ -1178,6 +1178,22 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="gbxExtension">
+         <property name="title">
+          <string>Import Extension</string>
+         </property>
+         <layout class="QVBoxLayout" name="lyt_gbxExtension">
+          <item>
+           <widget class="QPushButton" name="btnImportExtensionFile">
+            <property name="text">
+             <string>Import Extension File ...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="spacer4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
