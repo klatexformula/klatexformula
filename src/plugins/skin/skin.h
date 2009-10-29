@@ -36,7 +36,7 @@ public:
   SkinConfigObject(QWidget *skinconfigwidget);
   virtual ~SkinConfigObject() { }
 
-  QString currentSkin() { return cbxSkin->currentText(); }
+  QString currentSkin() { return cbxSkin->itemData(cbxSkin->currentIndex()).toString(); }
   QString currentStyleSheet() { return txtStyleSheet->toPlainText(); }
 
 public slots:

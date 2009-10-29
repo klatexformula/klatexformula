@@ -509,16 +509,21 @@ void main_load_translations(QCoreApplication *app)
 
 void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 {
+  // first step: copy all resource-located plugin libraries to our local config
+  // directory because we can only load filesystem-located plugins.
   QDir resplugdir(":/plugins");
   QStringList resplugins = resplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
   int k;
   for (k = 0; k < resplugins.size(); ++k) {
-    if ( ! QFile::exists( klfconfig.homeConfigDirPlugins + "/" + resplugins[k] ) ) {
+    QString resfn = resplugdir.absoluteFilePath(resplugins[k]);
+    QString locfn = klfconfig.homeConfigDirPlugins + "/" + resplugins[k];
+    if ( ! QFile::exists( locfn ) ) {
       // copy plugin to local plugin dir
-      bool res = QFile::copy( resplugdir.absoluteFilePath(resplugins[k]) ,
-			      klfconfig.homeConfigDirPlugins + "/" + resplugins[k] );
+      bool res = QFile::copy( resfn , locfn );
       if ( ! res ) {
 	qWarning("Unable to copy plugin to local directory!");
+      } else {
+	qDebug("Copied plugin %s to local directory %s.", qPrintable(resfn), qPrintable(locfn));
       }
     }
   }
@@ -558,8 +563,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 
 	  // if we are configured to load this plugin, load it.
 	  if ( klfconfig.Plugins.pluginConfig[nm]["__loadenabled"].toBool() ) {
-	    KLFPluginConfigAccess c = klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::Read
-								      | KLFPluginConfigAccess::Write);
+	    KLFPluginConfigAccess c = klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::ReadWrite);
 	    pluginInstance->initialize(app, mainWin, &c);
 	    pluginInfo.instance = pluginInstance;
 	  } else {

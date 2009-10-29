@@ -389,7 +389,7 @@ void KLFSettings::apply()
     klfconfig.Plugins.pluginConfig[name]["__loadenabled"] = loadenable;
 
     if (klf_plugins[j].instance != NULL) {
-      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::Write);
+      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::ReadWrite);
       klf_plugins[j].instance->saveConfig(mPluginConfigWidgets[name], &pconfa);
     }
 

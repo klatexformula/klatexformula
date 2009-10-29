@@ -122,3 +122,12 @@ QLineEdit[searchState="not-found"] {
 QLabel#lblPreview, QLabel#lblOutput {
     background-color: #151515;
 }
+QScrollBar {
+    background-color: inherit;
+}
+QToolBox::tab {
+    background-color: #202040;
+}
+QTabBar {
+    background-color: #101030;
+}

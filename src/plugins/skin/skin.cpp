@@ -25,6 +25,8 @@
 #include <QtUiTools/QtUiTools>
 
 #include <klfmainwin.h>
+#include <klflibrary.h>
+#include <klflatexsymbols.h>
 #include <klfconfig.h>
 
 #include "skin.h"
@@ -112,6 +114,8 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
   QVariant ss = config->readValue("stylesheet");
   QString stylesheet = ss.toString();
   _mainwin->setStyleSheet(stylesheet);
+  _mainwin->libraryBrowserWidget()->setStyleSheet(stylesheet);
+  _mainwin->latexSymbolsWidget()->setStyleSheet(stylesheet);
 }
 
 QWidget * SkinPlugin::createConfigWidget(QWidget *parent)
@@ -153,7 +157,7 @@ void SkinPlugin::saveConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
   config->writeValue("skin", QVariant(skin));
   config->writeValue("stylesheet", QVariant(stylesheet));
 
-  _mainwin->setStyleSheet(stylesheet);
+  applySkin(config);
 }
 
 

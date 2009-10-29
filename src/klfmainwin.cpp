@@ -1024,6 +1024,8 @@ void KLFMainWin::hideEvent(QHideEvent *e)
     mLatexSymbols->hide();
   if (mStyleManager)
     mStyleManager->hide();
+  if (mSettingsDialog)
+    mSettingsDialog->hide();
   qApp->quit();
 }
 

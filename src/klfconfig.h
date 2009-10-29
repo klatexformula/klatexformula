@@ -70,7 +70,7 @@ class KLF_EXPORT KLFPluginConfigAccess
   QString _pluginname;
   uint _amode;
 public:
-  enum AccessMode { Read = 0x01, Write = 0x02 };
+  enum AccessMode { Read = 0x01, Write = 0x02, ReadWrite = Read|Write };
   KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName, uint accessmode = Read | Write);
   KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
     : _config(other._config), _pluginname(other._pluginname), _amode(other._amode) { }
