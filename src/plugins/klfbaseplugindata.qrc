@@ -1,0 +1,17 @@
+<RCC>
+  <qresource prefix="/plugindata">
+    <file>skin/skinconfigwidget.ui</file>
+    <file>skin/stylesheets/blue.qss</file>
+    <file>skin/stylesheets/galaxy.qss</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_ch.png</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_c.png</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_cp.png</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_ih.png</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_i.png</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_ip.png</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_uh.png</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_u.png</file>
+    <file>skin/stylesheets/pics/galaxy_checkbox_up.png</file>
+    <file>skin/stylesheets/pics/galaxy_down.png</file>
+  </qresource>
+</RCC>
