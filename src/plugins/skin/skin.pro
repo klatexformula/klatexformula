@@ -14,3 +14,6 @@ DESTDIR = ..
 # Input
 HEADERS += skin.h
 SOURCES += skin.cpp
+
+# Pre-process forms for klfmainwin.h (FIXME, THIS IS UGLY !)
+FORMS += ../../klfmainwinui.ui

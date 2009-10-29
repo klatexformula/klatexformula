@@ -52,6 +52,7 @@
 #include <klfbackend.h>
 
 #include <ui_klfaboutdialogui.h>
+#include <ui_klfprogerrui.h>
 #include <ui_klfmainwinui.h>
 
 #include "klfdata.h"
@@ -313,15 +314,17 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
 
 // ------------------------------------------------------------------------
 
-KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent), KLFProgErrUI()
+KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
 {
-  setupUi(this);
+  mUI = new Ui::KLFProgErrUI;
+  mUI->setupUi(this);
 
-  txtError->setText(errtext);
+  mUI->txtError->setText(errtext);
 }
 
 KLFProgErr::~KLFProgErr()
 {
+  delete mUI;
 }
 
 void KLFProgErr::showError(QWidget *parent, QString errtext)

@@ -43,7 +43,6 @@
 #include <klfdata.h>
 #include <klflatexsymbols.h>
 #include <ui_klfmainwinui.h>
-#include <ui_klfprogerrui.h>
 
 
 class KLFLibraryBrowser;
@@ -51,8 +50,11 @@ class KLFLatexSymbols;
 class KLFStyleManager;
 class KLFSettings;
 
+namespace Ui {
+  class KLFProgErrUI;
+}
 
-class KLFProgErr : public QDialog, private Ui::KLFProgErrUI
+class KLFProgErr : public QDialog
 {
   Q_OBJECT
 public:
@@ -61,6 +63,8 @@ public:
 
   static void showError(QWidget *parent, QString text);
 
+private:
+  Ui::KLFProgErrUI *mUI;
 };
 
 
