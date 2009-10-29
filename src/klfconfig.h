@@ -32,11 +32,39 @@
 #include <QTextCharFormat>
 #include <QMap>
 
+#ifndef KLF_DECL_EXPORT
+#  ifdef Q_OS_WIN
+#    define KLF_DECL_EXPORT __declspec(dllexport)
+#  else //#  elif defined(QT_VISIBILITY_AVAILABLE)
+#    define KLF_DECL_EXPORT __attribute__((visibility("default")))
+#  endif
+#  ifndef KLF_DECL_EXPORT
+#    define KLF_DECL_EXPORT
+#  endif
+#endif
+#ifndef KLF_DECL_IMPORT
+#  if defined(Q_OS_WIN)
+#    define KLF_DECL_IMPORT __declspec(dllimport)
+#  else
+#    define KLF_DECL_IMPORT
+#  endif
+#endif
+
+#if defined(Q_OS_WIN)
+#  if defined(KLF_SRC_BUILD)
+#    define KLF_EXPORT KLF_DECL_EXPORT
+#  else
+#    define KLF_EXPORT KLF_DECL_IMPORT
+#  endif
+#else
+#  define KLF_EXPORT KLF_DECL_EXPORT
+#endif
+
 
 class KLFConfig;
 
 // Utility class to access plugin configuration
-class Q_CORE_EXPORT KLFPluginConfigAccess
+class KLF_EXPORT KLFPluginConfigAccess
 {
   KLFConfig *_config;
   QString _pluginname;

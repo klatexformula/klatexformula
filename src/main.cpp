@@ -275,7 +275,9 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
 const char * PATH_ENVVAR_SEP =  ";";
 const char * klfresources_default_rel = "/rccresources/";
+#define KLF_DLL_EXT "*.dll"
 #else
+#define KLF_DLL_EXT "*.so"
 # if defined(Q_WS_MAC)
 const char * PATH_ENVVAR_SEP =  ":";
 const char * klfresources_default_rel = "/../Resources/rccresources/";
@@ -513,7 +515,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       continue;
 
     QDir thisplugdir(pluginsdirs[i]);
-    QStringList plugins = thisplugdir.entryList(QStringList() << "*.so", QDir::Files);
+    QStringList plugins = thisplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
     KLFPluginGenericInterface * pluginInstance;
     for (j = 0; j < plugins.size(); ++j) {
       QTemporaryFile *f = QTemporaryFile::createLocalFile(thisplugdir.absoluteFilePath(plugins[j]));
