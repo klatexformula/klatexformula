@@ -377,12 +377,15 @@ void KLFSettings::apply()
   klfconfig.UI.previewTooltipMaxSize = QSize(spnTooltipMaxWidth->value(), spnTooltipMaxHeight->value());
   klfconfig.UI.enableToolTipPreview = chkEnableToolTipPreview->isChecked();
 
-  // save plugin to-load config
+  // save plugin config
+  bool warnneedrestart = false;
   QTreeWidgetItemIterator it(lstPlugins);
   while (*it) {
     int j = (*it)->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
     QString name = (*it)->data(0, KLFSETTINGS_ROLE_PLUGNAME).toString();
     bool loadenable = ( (*it)->checkState(0) == Qt::Checked ) ;
+    if (loadenable != klfconfig.Plugins.pluginConfig[name]["__loadenabled"])
+      warnneedrestart = true;
     klfconfig.Plugins.pluginConfig[name]["__loadenabled"] = loadenable;
 
     if (klf_plugins[j].instance != NULL) {
@@ -391,6 +394,10 @@ void KLFSettings::apply()
     }
 
     ++it;
+  }
+  if (warnneedrestart) {
+    QMessageBox::information(this, tr("Restart KLatexFormula"),
+			     tr("You need to restart KLatexFormula for your changes to take effect."));
   }
 
   _mainwin->saveSettings();
