@@ -162,7 +162,7 @@ protected:
  * KLatexFormula Main Window
  * \author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
  */
-class KLFMainWin : public QWidget, private Ui::KLFMainWinUI
+class KLF_EXPORT KLFMainWin : public QWidget, private Ui::KLFMainWinUI
 {
   Q_OBJECT
 public:
@@ -205,6 +205,8 @@ public:
   QMenu * styleMenu() { return mStyleMenu; }
   KLFLatexSyntaxHighlighter * syntaxHighlighter() { return mHighlighter; }
   KLFLatexSyntaxHighlighter * preambleSyntaxHighlighter() { return mPreambleHighlighter; }
+
+  KLFConfig * klfConfig() { return & klfconfig; }
 
 signals:
 

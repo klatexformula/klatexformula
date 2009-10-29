@@ -22,7 +22,7 @@ QT = core gui xml
 	QT += dbus
 }
 
-DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\" KLF_SRC_BUILD=
+DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\" KLF_SRC_BUILD
 LIBS += -Lklfbackend -Lklfbackend/release -lklfbackend
 
 # Input

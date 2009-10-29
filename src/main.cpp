@@ -552,7 +552,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
 	    // create default plugin configuration if non-existant
 	    klfconfig.Plugins.pluginConfig[nm] = QMap<QString, QVariant>();
-	    klfconfig.Plugins.pluginConfig[nm]["__loadenabled"] = true; // load plugin by default
+	    // ask plugin whether it's supposed to be loaded by default
+	    klfconfig.Plugins.pluginConfig[nm]["__loadenabled"] = pluginInstance->pluginDefaultLoadEnable();
 	  }
 
 	  KLFPluginInfo pluginInfo;
@@ -563,8 +564,9 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 
 	  // if we are configured to load this plugin, load it.
 	  if ( klfconfig.Plugins.pluginConfig[nm]["__loadenabled"].toBool() ) {
-	    KLFPluginConfigAccess c = klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::ReadWrite);
-	    pluginInstance->initialize(app, mainWin, &c);
+	    KLFPluginConfigAccess * c
+	      = new KLFPluginConfigAccess(klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::ReadWrite));
+	    pluginInstance->initialize(app, mainWin, c);
 	    pluginInfo.instance = pluginInstance;
 	  } else {
 	    // if we aren't configured to load it, then discard it, but keep info with NULL instance

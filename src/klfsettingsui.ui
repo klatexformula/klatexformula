@@ -1190,11 +1190,21 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="gbxExtension">
+        <widget class="QGroupBox" name="gbxExtensionFile">
          <property name="title">
           <string>Import Extension</string>
          </property>
          <layout class="QVBoxLayout" name="lyt_gbxExtension">
+          <item>
+           <widget class="QLabel" name="lblImportExtensionFile">
+            <property name="text">
+             <string>Extensions to KLatexFormula (translations, plugins) published and distrubuted in Qt Resource Files (*.rcc) can be imported into KLatexFormula using the button below.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QPushButton" name="btnImportExtensionFile">
             <property name="text">

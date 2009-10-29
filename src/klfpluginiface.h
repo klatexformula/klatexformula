@@ -43,6 +43,7 @@ public:
   virtual QString pluginName() const = 0;
   virtual QString pluginTitle() const = 0;
   virtual QString pluginDescription() const = 0;
+  virtual bool pluginDefaultLoadEnable() const = 0;
 
   virtual void initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *config) = 0;
 

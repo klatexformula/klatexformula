@@ -445,6 +445,14 @@ int KLFConfig::writeToConfig()
 
 
 
+
+KLFPluginConfigAccess::KLFPluginConfigAccess()
+{
+  _config = NULL;
+  _pluginname = QString::null;
+  _amode = 0;
+}
+
 KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName,
 					     uint accessMode)
 {
@@ -458,6 +466,8 @@ KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QStr
 
 QVariant KLFPluginConfigAccess::readValue(const QString& key)
 {
+  if ( _config == NULL )
+    fprintf(stderr, "KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
   if ( (_amode & Read) == 0 ) {
     fprintf(stderr, "KLFPluginConfigAccess::readValue: Warning: Read mode not set!\n");
     return QVariant();
@@ -470,7 +480,8 @@ QVariant KLFPluginConfigAccess::readValue(const QString& key)
 
 void KLFPluginConfigAccess::writeValue(const QString& key, const QVariant& value)
 {
-
+  if ( _config == NULL )
+    fprintf(stderr, "KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
   if ( (_amode & Write) == 0 ) {
     fprintf(stderr, "KLFPluginConfigAccess::writeValue: Warning: Write mode not set!\n");
     return;

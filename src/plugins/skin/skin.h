@@ -26,32 +26,45 @@
 #include <QtGui>
 
 #include <klfpluginiface.h>
-//#include <klfconfig.h>
+#include <klfconfig.h>
 
 
 class SkinConfigObject : public QObject
 {
   Q_OBJECT
 public:
-  SkinConfigObject(QWidget *skinconfigwidget);
+  SkinConfigObject(QWidget *skinconfigwidget, KLFPluginConfigAccess *conf);
   virtual ~SkinConfigObject() { }
 
-  QString currentSkin() { return cbxSkin->itemData(cbxSkin->currentIndex()).toString(); }
+  QString currentSkin() { return _skins[cbxSkin->itemData(cbxSkin->currentIndex()).toInt()].name; }
   QString currentStyleSheet() { return txtStyleSheet->toPlainText(); }
 
 public slots:
   void load(QString skin, QString stylesheet);
   void skinSelected(int index);
   void stylesheetChanged();
+  void saveCustom();
 
 private:
+  struct Skin {
+    Skin(bool b, const QString& nm, const QString& ttl, const QString& ssheet)
+      : builtin(b), name(nm), title(ttl), stylesheet(ssheet)  {  }
+    Skin(const Skin& o) : builtin(o.builtin), name(o.name), title(o.title), stylesheet(o.stylesheet) { }
+    ~Skin() { }
+
+    bool builtin;
+    QString name;
+    QString title;
+    QString stylesheet;
+  };
+  QList<Skin> _skins;
+
   QWidget *_skinconfigwidget;
 
   QComboBox *cbxSkin;
   QTextEdit *txtStyleSheet;
 
-  QStringList _skinlist;
-
+  KLFPluginConfigAccess *config;
 };
 
 class SkinPlugin : public QObject, public KLFPluginGenericInterface
@@ -64,6 +77,7 @@ public:
   virtual QString pluginName() const { return "skin"; }
   virtual QString pluginTitle() const { return tr("Skin"); }
   virtual QString pluginDescription() const { return tr("Personalize the look of KLatexFormula"); }
+  virtual bool pluginDefaultLoadEnable() const { return false; }
 
   virtual void initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *config);
 
@@ -75,6 +89,8 @@ public:
 
 protected:
   KLFMainWin *_mainwin;
+
+  KLFPluginConfigAccess *_config;
 };
 
 

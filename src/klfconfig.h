@@ -32,22 +32,19 @@
 #include <QTextCharFormat>
 #include <QMap>
 
-#ifndef KLF_DECL_EXPORT
-#  ifdef Q_OS_WIN
-#    define KLF_DECL_EXPORT __declspec(dllexport)
-#  else //#  elif defined(QT_VISIBILITY_AVAILABLE)
-#    define KLF_DECL_EXPORT __attribute__((visibility("default")))
-#  endif
-#  ifndef KLF_DECL_EXPORT
-#    define KLF_DECL_EXPORT
-#  endif
+#ifdef Q_OS_WIN
+#  define KLF_DECL_EXPORT __declspec(dllexport)
+#else //#  elif defined(QT_VISIBILITY_AVAILABLE)
+#  define KLF_DECL_EXPORT __attribute__((visibility("default")))
 #endif
-#ifndef KLF_DECL_IMPORT
-#  if defined(Q_OS_WIN)
-#    define KLF_DECL_IMPORT __declspec(dllimport)
-#  else
-#    define KLF_DECL_IMPORT
-#  endif
+#ifndef KLF_DECL_EXPORT
+#  define KLF_DECL_EXPORT
+#endif
+
+#if defined(Q_OS_WIN)
+#  define KLF_DECL_IMPORT __declspec(dllimport)
+#else
+#  define KLF_DECL_IMPORT
 #endif
 
 #if defined(Q_OS_WIN)
@@ -71,6 +68,7 @@ class KLF_EXPORT KLFPluginConfigAccess
   uint _amode;
 public:
   enum AccessMode { Read = 0x01, Write = 0x02, ReadWrite = Read|Write };
+  KLFPluginConfigAccess();
   KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName, uint accessmode = Read | Write);
   KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
     : _config(other._config), _pluginname(other._pluginname), _amode(other._amode) { }
@@ -179,7 +177,6 @@ QString search_path(const QString& prog, const QString& extra_path = "");
 
 
 
-// defined in main.cpp
 extern KLFConfig klfconfig;
 
 
