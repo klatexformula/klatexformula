@@ -34,6 +34,7 @@
 #include <QResource>
 #include <QProcess>
 #include <QPluginLoader>
+#include <QMessageBox>
 
 #include <klfbackend.h>
 
@@ -518,6 +519,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     QStringList plugins = thisplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
     KLFPluginGenericInterface * pluginInstance;
     for (j = 0; j < plugins.size(); ++j) {
+      QMessageBox::information(0, "", QString("Attempt to load plugin %1...\n").arg(plugins[j]));
       QTemporaryFile *f = QTemporaryFile::createLocalFile(thisplugdir.absoluteFilePath(plugins[j]));
       f->setParent(app);
       f->setAutoRemove(true);
@@ -528,8 +530,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	if (pluginInstance) {
 	  // plugin file successfully loaded.
 	  QString nm = pluginInstance->pluginName();
-	  printf("Successfully loaded plugin library %s (%s)\n", qPrintable(nm),
-		 qPrintable(pluginInstance->pluginDescription()));
+	  QMessageBox::information(0, "", QString("Successfully loaded plugin library %1 (%2)\n").arg(nm)
+				   .arg(pluginInstance->pluginDescription()));
 
 	  if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
 	    // create default plugin configuration if non-existant
@@ -558,12 +560,17 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  klf_plugins.push_back(pluginInfo);
 	}
       } else {
-	fprintf(stderr, "Plugin load error: %s\n",
-		pluginLoader.errorString().toLocal8Bit().constData());
+	QMessageBox::warning(0, "", QString("Plugin load error: %1\n").arg(pluginLoader.errorString()));
       }
     }
   }
 }
+
+void main_unload_plugins()
+{
+  .........
+}
+
 
 
 // OUR MAIN FUNCTION
