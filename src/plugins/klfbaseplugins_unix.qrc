@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/plugins">
+    <file>libskin.so</file>
+  </qresource>
+</RCC>

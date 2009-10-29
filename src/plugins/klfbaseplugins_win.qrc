@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/plugins">
+    <file>skin.dll</file>
+  </qresource>
+</RCC>
