@@ -192,6 +192,7 @@ void KLFSettings::initPluginControls()
   delete w;
 
   int j;
+  int n_pluginconfigpages = 0;
   QTreeWidgetItem *litem;
   for (j = 0; j < klf_plugins.size(); ++j) {
     QString name = klf_plugins[j].name;
@@ -200,7 +201,9 @@ void KLFSettings::initPluginControls()
     KLFPluginGenericInterface *instance = klf_plugins[j].instance;
     
     litem = new QTreeWidgetItem(lstPlugins);
-    litem->setCheckState(0, klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ? Qt::Checked : Qt::Unchecked);
+    litem->setCheckState(0,
+			 klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
+			 Qt::Checked : Qt::Unchecked);
     litem->setText(1, title);
     litem->setText(2, description);
     
@@ -212,9 +215,10 @@ void KLFSettings::initPluginControls()
       tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , title );
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::Read);
       instance->loadConfig(mPluginConfigWidgets[name], &pconfa);
+      n_pluginconfigpages++;
     }
   }
-  if (j == 0) {
+  if (n_pluginconfigpages == 0) {
     QLabel * lbl;
     lbl = new QLabel(tr("No Plugins have been loaded. Please install and enable individual plugins "
 			"before trying to configure them."), tbxPluginsConfig);

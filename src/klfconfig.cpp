@@ -169,6 +169,10 @@ void KLFConfig::loadDefaults()
 {
   homeConfigDir = QDir::homePath() + "/.klatexformula";
   homeConfigSettingsFile = homeConfigDir + "/config";
+  homeConfigDirRCCResources = homeConfigDir + "/rccresources";
+  homeConfigDirPlugins = homeConfigDir + "/plugins";
+  homeConfigDirI18n = homeConfigDir + "/i18n";
+
 
   if (qApp->inherits("QApplication")) {
     QFont f = QApplication::font();
@@ -273,24 +277,32 @@ void KLFConfig::loadDefaultBackendPaths(KLFConfig *c, bool allowempty)
   if (!allowempty && c->BackendSettings.execEpstopdf.isNull()) c->BackendSettings.execEpstopdf = "";
 }
 
+
+int ensureDir(QString dir)
+{
+  if ( ! QDir(dir).exists() ) {
+    bool r = QDir("/").mkpath(dir);
+    if ( ! r ) {
+      QMessageBox::critical(0, QObject::tr("Error"),
+			    QObject::tr("Can't make local config directory `%1' !").arg(dir));
+      return -1;
+    }
+  }
+  return 0;
+}
+
+
 int KLFConfig::ensureHomeConfigDir()
 {
-  if ( ! QDir(homeConfigDir).exists() ) {
-    bool r = QDir("/").mkpath(homeConfigDir);
-    if ( ! r ) {
-      QMessageBox::critical(0, QObject::tr("Error"),
-			    QObject::tr("Can't make local config directory `%1' !").arg(homeConfigDir));
-      return -1;
-    }
-  }
-  if ( ! QDir(homeConfigDir + "/rccresources").exists() ) {
-    bool r = QDir("/").mkpath(homeConfigDir + "/rccresources");
-    if ( ! r ) {
-      QMessageBox::critical(0, QObject::tr("Error"),
-			    QObject::tr("Can't make local config directory `%1' !").arg(homeConfigDir));
-      return -1;
-    }
-  }
+  if ( ensureDir(homeConfigDir) )
+    return -1;
+  if ( ensureDir(homeConfigDirRCCResources) )
+    return -1;
+  if ( ensureDir(homeConfigDirPlugins) )
+    return -1;
+  if ( ensureDir(homeConfigDirI18n) )
+    return -1;
+
   return 0;
 }
 

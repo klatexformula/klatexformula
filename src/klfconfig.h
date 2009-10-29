@@ -92,6 +92,9 @@ public:
 
   QString homeConfigDir;
   QString homeConfigSettingsFile;
+  QString homeConfigDirRCCResources;
+  QString homeConfigDirPlugins;
+  QString homeConfigDirI18n;
 
   struct {
 

@@ -28,6 +28,7 @@
 #include <signal.h>
 
 #include <QApplication>
+#include <QDebug>
 #include <QTranslator>
 #include <QFileInfo>
 #include <QDir>
@@ -324,7 +325,7 @@ void main_cleanup()
 }
 
 /** Perform clean-up and ::exit() */
-void main_exit(int code = 0)
+void main_exit(int code)
 {
   main_cleanup();
   exit(code);
@@ -442,8 +443,8 @@ void main_load_extra_resources()
     klf_resources = klf_resources_l[0].replace(rgx, "");
   }
 
-  QString defaultrccpath = QCoreApplication::applicationDirPath() + klfresources_default_rel + PATH_ENVVAR_SEP
-      + klfconfig.homeConfigDir + "/rccresources";
+  QString defaultrccpath = QCoreApplication::applicationDirPath() + klfresources_default_rel
+    + PATH_ENVVAR_SEP + klfconfig.homeConfigDirRCCResources;
   QString rccfilepath;
   if ( klf_resources.isNull() ) {
     rccfilepath = "";
@@ -498,7 +499,7 @@ void main_load_translations(QCoreApplication *app)
   if (translator->load(fn, ":/i18n/")) {
     app->installTranslator(translator);
     //    printf("DEBUG: Loaded translation to %s from resource.\n", lc.toLocal8Bit().constData());
-  } else if (translator->load(fn, klfconfig.homeConfigDir+"/i18n")) {
+  } else if (translator->load(fn, klfconfig.homeConfigDirI18n)) {
     app->installTranslator(translator);
     //    printf("DEBUG: Loaded translation to %s from home dir.\n", lc.toLocal8Bit().constData());
   } else {
@@ -508,9 +509,23 @@ void main_load_translations(QCoreApplication *app)
 
 void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 {
+  QDir resplugdir(":/plugins");
+  QStringList resplugins = resplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
+  int k;
+  for (k = 0; k < resplugins.size(); ++k) {
+    if ( ! QFile::exists( klfconfig.homeConfigDirPlugins + "/" + resplugins[k] ) ) {
+      // copy plugin to local plugin dir
+      bool res = QFile::copy( resplugdir.absoluteFilePath(resplugins[k]) ,
+			      klfconfig.homeConfigDirPlugins + "/" + resplugins[k] );
+      if ( ! res ) {
+	qWarning("Unable to copy plugin to local directory!");
+      }
+    }
+  }
+
   int i, j;
   QStringList pluginsdirs;
-  pluginsdirs << ":/plugins" << klfconfig.homeConfigDir + "/plugins" ;
+  pluginsdirs << klfconfig.homeConfigDirPlugins ;
   for (i = 0; i < pluginsdirs.size(); ++i) {
     if ( ! QFileInfo(pluginsdirs[i]).isDir() )
       continue;
@@ -519,19 +534,15 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     QStringList plugins = thisplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
     KLFPluginGenericInterface * pluginInstance;
     for (j = 0; j < plugins.size(); ++j) {
-      QMessageBox::information(0, "", QString("Attempt to load plugin %1...\n").arg(plugins[j]));
-      QTemporaryFile *f = QTemporaryFile::createLocalFile(thisplugdir.absoluteFilePath(plugins[j]));
-      f->setParent(app);
-      f->setAutoRemove(true);
-      QPluginLoader pluginLoader(f->fileName(), app);
+      QPluginLoader pluginLoader(thisplugdir.absoluteFilePath(plugins[j]), app);
       QObject *pluginInstObject = pluginLoader.instance();
       if (pluginInstObject) {
 	pluginInstance = qobject_cast<KLFPluginGenericInterface *>(pluginInstObject);
 	if (pluginInstance) {
 	  // plugin file successfully loaded.
 	  QString nm = pluginInstance->pluginName();
-	  QMessageBox::information(0, "", QString("Successfully loaded plugin library %1 (%2)\n").arg(nm)
-				   .arg(pluginInstance->pluginDescription()));
+	  qDebug("Successfully loaded plugin library %s (%s)\n", qPrintable(nm),
+		 qPrintable(pluginInstance->pluginDescription()));
 
 	  if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
 	    // create default plugin configuration if non-existant
@@ -566,10 +577,6 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
   }
 }
 
-void main_unload_plugins()
-{
-  .........
-}
 
 
 
