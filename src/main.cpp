@@ -32,12 +32,15 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QResource>
+#include <QProcess>
+#include <QPluginLoader>
 
 #include <klfbackend.h>
 
 #include "klfconfig.h"
 #include "klfmainwin.h"
 #include "klfdbus.h"
+#include "klfpluginiface.h"
 
 // Program Exit Error Codes
 #define EXIT_ERR_FILEINPUT 100
@@ -268,7 +271,7 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 
 // EXTERNAL INTERACTION STUFF:
 
-const char * KLF_RESOURCES_ENVNAM = "KLF_RESOURCES";
+#define KLF_RESOURCES_ENVNAM "KLF_RESOURCES"
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
 const char * PATH_ENVVAR_SEP =  ";";
 const char * klfresources_default_rel = "/rccresources/";
@@ -283,14 +286,7 @@ const char * klfresources_default_rel = "/../share/klatexformula/rccresources/";
 #endif
 
 
-
-#if defined(KLF_USE_DBUS)
-#define KLF_MAYBE_DBUS(x, command)  if (x) { command; } else
-#else
-#define KLF_MAYBE_DBUS(x, command)
-#endif
-
-
+// TRAP SIGINT SIGNAL AND EXIT GRACEFULLY
 
 void signal_act(int sig)
 {
@@ -302,6 +298,12 @@ void signal_act(int sig)
     }
   }
 }
+
+
+
+// DEFINE GLOBAL PLUGIN POINTERS
+
+QList<KLFPluginInfo> klf_plugins ;
 
 
 
@@ -429,11 +431,18 @@ void main_load_extra_resources()
 {
   // this function is called with running Q[Core]Application and klfconfig all set up.
 
-  char *klf_resources = getenv(KLF_RESOURCES_ENVNAM);
+  QStringList env = QProcess::systemEnvironment();
+  QRegExp rgx("^" KLF_RESOURCES_ENVNAM "=");
+  QStringList klf_resources_l = env.filter(rgx);
+  QString klf_resources = QString::null;
+  if (klf_resources_l.size() > 0) {
+    klf_resources = klf_resources_l[0].replace(rgx, "");
+  }
+
   QString defaultrccpath = QCoreApplication::applicationDirPath() + klfresources_default_rel + PATH_ENVVAR_SEP
       + klfconfig.homeConfigDir + "/rccresources";
   QString rccfilepath;
-  if (klf_resources == NULL) {
+  if ( klf_resources.isNull() ) {
     rccfilepath = "";
   } else {
     rccfilepath = klf_resources;
@@ -491,6 +500,66 @@ void main_load_translations(QCoreApplication *app)
     //    printf("DEBUG: Loaded translation to %s from home dir.\n", lc.toLocal8Bit().constData());
   } else {
     //    fprintf(stderr, "There is no translation for language %s.\n", lc.toLocal8Bit().constData());
+  }
+}
+
+void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
+{
+  int i, j;
+  QStringList pluginsdirs;
+  pluginsdirs << ":/plugins" << klfconfig.homeConfigDir + "/plugins" ;
+  for (i = 0; i < pluginsdirs.size(); ++i) {
+    if ( ! QFileInfo(pluginsdirs[i]).isDir() )
+      continue;
+
+    QDir thisplugdir(pluginsdirs[i]);
+    QStringList plugins = thisplugdir.entryList(QStringList() << "*.so", QDir::Files);
+    KLFPluginGenericInterface * pluginInstance;
+    for (j = 0; j < plugins.size(); ++j) {
+      QTemporaryFile *f = QTemporaryFile::createLocalFile(thisplugdir.absoluteFilePath(plugins[j]));
+      f->setParent(app);
+      f->setAutoRemove(true);
+      QPluginLoader pluginLoader(f->fileName(), app);
+      QObject *pluginInstObject = pluginLoader.instance();
+      if (pluginInstObject) {
+	pluginInstance = qobject_cast<KLFPluginGenericInterface *>(pluginInstObject);
+	if (pluginInstance) {
+	  // plugin file successfully loaded.
+	  QString nm = pluginInstance->pluginName();
+	  printf("Successfully loaded plugin library %s (%s)\n", qPrintable(nm),
+		 qPrintable(pluginInstance->pluginDescription()));
+
+	  if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
+	    // create default plugin configuration if non-existant
+	    klfconfig.Plugins.pluginConfig[nm] = QMap<QString, QVariant>();
+	    klfconfig.Plugins.pluginConfig[nm]["__loadenabled"] = true; // load plugin by default
+	  }
+
+	  KLFPluginInfo pluginInfo;
+	  pluginInfo.name = nm;
+	  pluginInfo.title = pluginInstance->pluginTitle();
+	  pluginInfo.description = pluginInstance->pluginDescription();
+	  pluginInfo.instance = NULL;
+
+	  // if we are configured to load this plugin, load it.
+	  if ( klfconfig.Plugins.pluginConfig[nm]["__loadenabled"].toBool() ) {
+	    KLFPluginConfigAccess c = klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::Read
+								      | KLFPluginConfigAccess::Write);
+	    pluginInstance->initialize(app, mainWin, &c);
+	    pluginInfo.instance = pluginInstance;
+	  } else {
+	    // if we aren't configured to load it, then discard it, but keep info with NULL instance
+	    // for settings dialog.
+	    delete pluginInstance;
+	  }
+
+	  klf_plugins.push_back(pluginInfo);
+	}
+      } else {
+	fprintf(stderr, "Plugin load error: %s\n",
+		pluginLoader.errorString().toLocal8Bit().constData());
+      }
+    }
   }
 }
 
@@ -590,6 +659,8 @@ int main(int argc, char **argv)
     KLFMainWin mainWin;
     mainWin.show();
 
+    main_load_plugins(&app, &mainWin);
+
 #if defined(KLF_USE_DBUS)
     new KLFDBusAppAdaptor(&app, &mainWin);
     QDBusConnection dbusconn = QDBusConnection::sessionBus();
@@ -660,6 +731,8 @@ int main(int argc, char **argv)
 
     // NON-INTERACTIVE (BATCH MODE, no X11)
     QCoreApplication app(qt_argc, qt_argv);
+
+    qRegisterMetaType< QMap<QString,bool> >("QMap<QString,bool>");
 
     // now load default config (for default paths etc.)
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'

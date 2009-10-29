@@ -55,6 +55,8 @@ protected:
 
 protected slots:
 
+  void initPluginControls();
+
   virtual void accept();
   virtual void slotChangeFont();
 
@@ -74,6 +76,9 @@ private:
     QCheckBox *chkI;
   };
   QList<TextFormatEnsemble> _textformats;
+
+  bool _pluginstuffloaded;
+  QMap<QString,QWidget*> mPluginConfigWidgets;
 
   bool setDefaultFor(const QString& progname, const QString& guessprog, bool required,
 		     KLFPathChooser *destination);

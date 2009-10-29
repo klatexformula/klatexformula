@@ -46,11 +46,10 @@
 #include <ui_klfprogerrui.h>
 
 
-//class KLFMainWinUI;
 class KLFLibraryBrowser;
 class KLFLatexSymbols;
 class KLFStyleManager;
-
+class KLFSettings;
 
 
 class KLFProgErr : public QDialog, private Ui::KLFProgErrUI
@@ -154,24 +153,6 @@ protected:
 };
 
 
-/*
- // librarysave in seperate thread
- class KLFLibrarySingleSaverThread : public QThread
- { Q_OBJECT
- public:
- KLFLibrarySingleSaverThread(QObject *parent, KLFData::KLFLibraryResourceList libresources,
- KLFData::KLFLibrary library, QString filename);
- virtual ~KLFLibrarySingleSaverThread();
- void run();
- signals:
- void msgError(const QString& error);
- protected:
- QString _fname;
- KLFData::KLFLibraryResourceList _libresources;
- KLFData::KLFLibrary _library;
- };
-*/
-
 
 /**
  * KLatexFormula Main Window
@@ -212,6 +193,14 @@ public:
   void alterSetting(altersetting_which, QString svalue);
 
   bool importLibraryFileSeparateResources(const QString& fname, const QString& basername);
+
+  KLFLibraryBrowser * libraryBrowserWidget() { return mLibraryBrowser; }
+  KLFLatexSymbols * latexSymbolsWidget() { return mLatexSymbols; }
+  KLFStyleManager * styleManagerWidget() { return mStyleManager; }
+  KLFSettings * settingsDialog() { return mSettingsDialog; }
+  QMenu * styleMenu() { return mStyleMenu; }
+  KLFLatexSyntaxHighlighter * syntaxHighlighter() { return mHighlighter; }
+  KLFLatexSyntaxHighlighter * preambleSyntaxHighlighter() { return mPreambleHighlighter; }
 
 signals:
 
@@ -282,6 +271,7 @@ protected:
   KLFLibraryBrowser *mLibraryBrowser;
   KLFLatexSymbols *mLatexSymbols;
   KLFStyleManager *mStyleManager;
+  KLFSettings *mSettingsDialog;
 
   QMenu *mStyleMenu;
 
@@ -316,5 +306,25 @@ protected:
 
   bool _ignore_hide_event;
 };
+
+
+
+// SOME DEFINITIONS FOR PLUGINS
+
+class KLFPluginGenericInterface;
+
+struct KLFPluginInfo
+{
+  QString name;
+  QString title;
+  QString description;
+
+  KLFPluginGenericInterface * instance;
+};
+
+// defined in main.cpp
+extern QList<KLFPluginInfo> klf_plugins;
+
+
 
 #endif

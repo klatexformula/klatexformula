@@ -40,7 +40,13 @@
 
 #include "klfmainwin.h"
 #include "klfconfig.h"
+#include "klfpluginiface.h"
 #include "klfsettings.h"
+
+
+#define KLFSETTINGS_ROLE_PLUGNAME (Qt::UserRole + 5300)
+#define KLFSETTINGS_ROLE_PLUGINDEX (KLFSETTINGS_ROLE_PLUGNAME + 1)
+
 
 #define REG_SH_TEXTFORMATENSEMBLE(x) \
   _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
@@ -60,6 +66,8 @@ static QString standard_extra_paths =
 #  define PROG_EPSTOPDF "epstopdf"
 static QString standard_extra_paths = "";
 #endif
+
+
 
 
 KLFSettings::KLFSettings(KLFMainWin* parent)
@@ -96,6 +104,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   REG_SH_TEXTFORMATENSEMBLE(ParenMatch);
   REG_SH_TEXTFORMATENSEMBLE(ParenMismatch);
   REG_SH_TEXTFORMATENSEMBLE(LonelyParen);
+
+  // dont load plugin data here as this dialog is created BEFORE plugins are loaded
+  _pluginstuffloaded = false;
 }
 
 KLFSettings::~KLFSettings()
@@ -105,6 +116,7 @@ KLFSettings::~KLFSettings()
 void KLFSettings::show()
 {
   reset();
+  initPluginControls();
   QDialog::show();
 }
 
@@ -152,8 +164,11 @@ void KLFSettings::reset()
   }
 
   btnAppFont->setFont(klfconfig.UI.applicationFont);
+  btnAppFont->setProperty("selectedFont", QVariant(klfconfig.UI.applicationFont));
   btnAppearFont->setFont(klfconfig.UI.latexEditFont);
+  btnAppearFont->setProperty("selectedFont", QVariant(klfconfig.UI.latexEditFont));
   btnAppearPreambleFont->setFont(klfconfig.UI.preambleEditFont);
+  btnAppearPreambleFont->setProperty("selectedFont", QVariant(klfconfig.UI.preambleEditFont));
 
   chkEnableRealTimePreview->setChecked(klfconfig.UI.enableRealTimePreview);
   spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize.width());
@@ -162,7 +177,54 @@ void KLFSettings::reset()
   chkEnableToolTipPreview->setChecked(klfconfig.UI.enableToolTipPreview);
   spnTooltipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
   spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
+}
 
+
+void KLFSettings::initPluginControls()
+{
+  if ( _pluginstuffloaded ) {
+    return;
+  }
+
+  // remove default Qt Designer Page
+  QWidget * w = tbxPluginsConfig->widget(tbxPluginsConfig->currentIndex());
+  tbxPluginsConfig->removeItem(tbxPluginsConfig->currentIndex());
+  delete w;
+
+  int j;
+  QTreeWidgetItem *litem;
+  for (j = 0; j < klf_plugins.size(); ++j) {
+    QString name = klf_plugins[j].name;
+    QString title = klf_plugins[j].title;
+    QString description = klf_plugins[j].description;
+    KLFPluginGenericInterface *instance = klf_plugins[j].instance;
+    
+    litem = new QTreeWidgetItem(lstPlugins);
+    litem->setCheckState(0, klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ? Qt::Checked : Qt::Unchecked);
+    litem->setText(1, title);
+    litem->setText(2, description);
+    
+    litem->setData(0, KLFSETTINGS_ROLE_PLUGNAME, name);
+    litem->setData(0, KLFSETTINGS_ROLE_PLUGINDEX, j);
+
+    if ( instance != NULL ) {
+      mPluginConfigWidgets[name] = instance->createConfigWidget( NULL );
+      tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , title );
+      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::Read);
+      instance->loadConfig(mPluginConfigWidgets[name], &pconfa);
+    }
+  }
+  if (j == 0) {
+    QLabel * lbl;
+    lbl = new QLabel(tr("No Plugins have been loaded. Please install and enable individual plugins "
+			"before trying to configure them."), tbxPluginsConfig);
+    lbl->hide();
+    lbl->setWordWrap(true);
+    lbl->setMargin(20);
+    tbxPluginsConfig->addItem(lbl, tr("No Plugins Loaded"));
+  }
+
+  _pluginstuffloaded = true;
 }
 
 
@@ -218,7 +280,10 @@ void KLFSettings::importExtensionFile()
     }
   }
   if (i > 0) {
-    QMessageBox::information(this, tr("Import"), tr("Please restart KLatexFormula for changes to take effect."));
+    QMessageBox::information(this, tr("Import"),
+			     tr("Please restart KLatexFormula for changes to take effect.\n"
+				"In order to uninstall an extension, you need to manually remove"
+				"the corresponding file in directory %1.").arg(destination));
   }
 }
 
@@ -227,7 +292,9 @@ void KLFSettings::slotChangeFont()
   QWidget *w = dynamic_cast<QWidget*>(sender());
   if ( w == 0 )
     return;
-  w->setFont(QFontDialog::getFont(0, w->font(), this));
+  QFont fnt = QFontDialog::getFont(0, w->property("selectedFont").value<QFont>(), this);
+  w->setFont(fnt);
+  w->setProperty("selectedFont", QVariant(fnt));
 }
 
 void KLFSettings::apply()
@@ -291,11 +358,11 @@ void KLFSettings::apply()
       _textformats[k].fmt->setFontItalic( it == Qt::Checked );
   }
 
-  klfconfig.UI.applicationFont = btnAppFont->font();
+  klfconfig.UI.applicationFont = btnAppFont->property("selectedFont").value<QFont>();
   qApp->setFont(klfconfig.UI.applicationFont);
-  klfconfig.UI.latexEditFont = btnAppearFont->font();
+  klfconfig.UI.latexEditFont = btnAppearFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
-  klfconfig.UI.preambleEditFont = btnAppearPreambleFont->font();
+  klfconfig.UI.preambleEditFont = btnAppearPreambleFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
   // recalculate window sizes etc.
   _mainwin->refreshWindowSizes();
@@ -305,6 +372,22 @@ void KLFSettings::apply()
 
   klfconfig.UI.previewTooltipMaxSize = QSize(spnTooltipMaxWidth->value(), spnTooltipMaxHeight->value());
   klfconfig.UI.enableToolTipPreview = chkEnableToolTipPreview->isChecked();
+
+  // save plugin to-load config
+  QTreeWidgetItemIterator it(lstPlugins);
+  while (*it) {
+    int j = (*it)->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
+    QString name = (*it)->data(0, KLFSETTINGS_ROLE_PLUGNAME).toString();
+    bool loadenable = ( (*it)->checkState(0) == Qt::Checked ) ;
+    klfconfig.Plugins.pluginConfig[name]["__loadenabled"] = loadenable;
+
+    if (klf_plugins[j].instance != NULL) {
+      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::Write);
+      klf_plugins[j].instance->saveConfig(mPluginConfigWidgets[name], &pconfa);
+    }
+
+    ++it;
+  }
 
   _mainwin->saveSettings();
 }

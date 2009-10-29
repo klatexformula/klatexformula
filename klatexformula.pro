@@ -101,7 +101,7 @@ system($$QMAKE -set KLF_INSTALLPREFIX '$$INSTALLPREFIX')
 
 SUBDIRS = src/klfbackend
 isEmpty(BACKEND_ONLY) {
-  SUBDIRS += src
+  SUBDIRS += src src/plugins
 }
 
 message(Will build the following subdirs: $$SUBDIRS)

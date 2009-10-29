@@ -250,7 +250,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="spacer3">
+        <spacer name="spcAppearance">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -810,7 +810,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer">
+        <spacer name="spc_SH">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -975,7 +975,7 @@
         </widget>
        </item>
        <item row="5" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <layout class="QHBoxLayout" name="lyt_resetdefaults">
          <item>
           <spacer name="spcHbtnresetdflts">
            <property name="orientation">
@@ -1118,6 +1118,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="minimum">
+             <number>-50</number>
+            </property>
             <property name="maximum">
              <number>50</number>
             </property>
@@ -1133,6 +1136,9 @@
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>-50</number>
             </property>
             <property name="maximum">
              <number>50</number>
@@ -1150,6 +1156,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="minimum">
+             <number>-50</number>
+            </property>
             <property name="maximum">
              <number>50</number>
             </property>
@@ -1165,6 +1174,9 @@
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>-50</number>
             </property>
             <property name="maximum">
              <number>50</number>
@@ -1194,7 +1206,57 @@
         </widget>
        </item>
        <item>
-        <spacer name="spacer4">
+        <widget class="QGroupBox" name="gbxPlugins">
+         <property name="title">
+          <string>Plugins</string>
+         </property>
+         <layout class="QGridLayout" name="lyt_gbxPlugins">
+          <property name="margin">
+           <number>2</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QTreeWidget" name="lstPlugins">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="itemsExpandable">
+             <bool>false</bool>
+            </property>
+            <column>
+             <property name="text">
+              <string>Load</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Name</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Description</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblNoteRestart">
+         <property name="text">
+          <string>Note: KLatexFormula needs to be restarted for changes to plugin loading or extension importing to be applied.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="spc_Advanced">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -1208,6 +1270,33 @@
           </size>
          </property>
         </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabPluginsConfig">
+      <attribute name="title">
+       <string>Plugin Configuration</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="0" column="0">
+        <widget class="QToolBox" name="tbxPluginsConfig">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="pageDummy">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>539</width>
+            <height>491</height>
+           </rect>
+          </property>
+          <attribute name="label">
+           <string>Page 1</string>
+          </attribute>
+         </widget>
+        </widget>
        </item>
       </layout>
      </widget>

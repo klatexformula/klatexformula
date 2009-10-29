@@ -23,12 +23,34 @@
 #ifndef KLFCONFIG_H
 #define KLFCONFIG_H
 
+#include <qglobal.h>
 #include <QString>
 #include <QFont>
 #include <QSize>
 #include <QColor>
 #include <QSettings>
 #include <QTextCharFormat>
+#include <QMap>
+
+
+class KLFConfig;
+
+// Utility class to access plugin configuration
+class Q_CORE_EXPORT KLFPluginConfigAccess
+{
+  KLFConfig *_config;
+  QString _pluginname;
+  uint _amode;
+public:
+  enum AccessMode { Read = 0x01, Write = 0x02 };
+  KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName, uint accessmode = Read | Write);
+  KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
+    : _config(other._config), _pluginname(other._pluginname), _amode(other._amode) { }
+  virtual ~KLFPluginConfigAccess() { }
+
+  virtual QVariant readValue(const QString& key);
+  virtual void writeValue(const QString& key, const QVariant& value);
+};
 
 
 class KLFConfig {
@@ -97,6 +119,15 @@ public:
 
   } LibraryBrowser;
 
+  struct {
+
+    QMap<QString, QMap<QString, QVariant> > pluginConfig;
+
+  } Plugins;
+
+  KLFPluginConfigAccess getPluginConfigAccess(const QString& name, uint amode)
+  { return KLFPluginConfigAccess(this, name, amode); }
+
   // call loadDefaults() before anything, at the beginning.
   void loadDefaults();
   // cfg defaults to kapp->config()
@@ -108,6 +139,9 @@ public:
 
 };
 
+
+
+
 // utility functions
 QStringList search_find(const QString& wildcard_expression, int limit = -1);
 QString search_path(const QString& prog, const QString& extra_path = "");
@@ -116,6 +150,7 @@ QString search_path(const QString& prog, const QString& extra_path = "");
 
 // defined in main.cpp
 extern KLFConfig klfconfig;
+
 
 
 

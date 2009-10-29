@@ -1216,10 +1216,13 @@ void KLFLibraryBrowser::slotSearchFind(const QString& s)
   QPalette pal = txtSearch->palette();
   if (res) {
     pal.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorFound);
+    txtSearch->setProperty("searchState", QString("found"));
   } else {
     pal.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorNotFound);
+    txtSearch->setProperty("searchState", QString("not-found"));
   }
   txtSearch->setPalette(pal);
+  txtSearch->setStyleSheet(txtSearch->styleSheet());
 }
 void KLFLibraryBrowser::slotSearchFindNext(int direction)
 {
@@ -1237,10 +1240,13 @@ void KLFLibraryBrowser::slotSearchFindNext(int direction)
   QPalette pal = txtSearch->palette();
   if (res) {
     pal.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorFound);
+    txtSearch->setProperty("searchState", QString("found"));
   } else {
     pal.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorNotFound);
+    txtSearch->setProperty("searchState", QString("not-found"));
   }
   txtSearch->setPalette(pal);
+  txtSearch->setStyleSheet(txtSearch->styleSheet());
 }
 void KLFLibraryBrowser::slotSearchFindPrev()
 {
@@ -1249,6 +1255,8 @@ void KLFLibraryBrowser::slotSearchFindPrev()
 
 void KLFLibraryBrowser::resetLneSearchColor()
 {
+  txtSearch->setProperty("searchState", QString());
+  txtSearch->setStyleSheet(txtSearch->styleSheet());
   txtSearch->setPalette(_dflt_lineedit_pal);
 }
 

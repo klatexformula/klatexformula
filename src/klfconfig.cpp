@@ -29,6 +29,10 @@
 #include <QTextStream>
 #include <QFont>
 #include <QFontDatabase>
+#include <QMap>
+#include <QString>
+
+#include <klfmainwin.h>
 
 #include "klfconfig.h"
 
@@ -235,6 +239,8 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.displayNoDuplicates = false;
   LibraryBrowser.colorFound = QColor(128, 255, 128);
   LibraryBrowser.colorNotFound = QColor(255, 128, 128);
+
+  Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }
 
 
@@ -337,6 +343,24 @@ int KLFConfig::readFromConfig()
   LibraryBrowser.colorNotFound = s.value("colornotfound", LibraryBrowser.colorNotFound).value<QColor>();
   s.endGroup();
 
+  // Special treatment for Plugins.pluginConfig
+  s.beginGroup("Plugins/Config");
+  QStringList pluginList = s.childGroups();
+  s.endGroup();
+  int j;
+  for (j = 0; j < pluginList.size(); ++j) {
+    QString name = pluginList[j];
+    s.beginGroup( QString("Plugins/Config/%1").arg(name) );
+    QMap<QString,QVariant> thispluginconfig;
+    QStringList plconfkeys = s.childKeys();
+    int k;
+    for (k = 0; k < plconfkeys.size(); ++k) {
+      thispluginconfig[plconfkeys[k]] = s.value(plconfkeys[k]);
+    }
+    klfconfig.Plugins.pluginConfig[name] = thispluginconfig;
+    s.endGroup();
+  }
+
   return 0;
 }
 
@@ -390,7 +414,55 @@ int KLFConfig::writeToConfig()
   s.setValue("colornotfound", LibraryBrowser.colorNotFound);
   s.endGroup();
 
+  // Special treatment for Plugins.pluginConfig
+  QMap< QString, QMap<QString,QVariant> >::const_iterator it;
+  for (it = Plugins.pluginConfig.begin(); it != Plugins.pluginConfig.end(); ++it) {
+    s.beginGroup( QString("Plugins/Config/%1").arg(it.key()) );
+    QMap<QString,QVariant> thispluginconfig = it.value();
+    QMap<QString,QVariant>::const_iterator pcit;
+    for (pcit = thispluginconfig.begin(); pcit != thispluginconfig.end(); ++pcit) {
+      s.setValue(pcit.key(), pcit.value());
+    }
+    s.endGroup();
+  }
+
   s.sync();
 
   return 0;
 }
+
+
+
+KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName,
+					     uint accessMode)
+{
+  _config = configObject;
+  _pluginname = pluginName;
+  _amode = accessMode;
+}
+
+
+
+
+QVariant KLFPluginConfigAccess::readValue(const QString& key)
+{
+  if ( (_amode & Read) == 0 ) {
+    fprintf(stderr, "KLFPluginConfigAccess::readValue: Warning: Read mode not set!\n");
+    return QVariant();
+  }
+  if ( ! _config->Plugins.pluginConfig[_pluginname].contains(key) )
+    return QVariant();
+
+  return _config->Plugins.pluginConfig[_pluginname][key];
+}
+
+void KLFPluginConfigAccess::writeValue(const QString& key, const QVariant& value)
+{
+
+  if ( (_amode & Write) == 0 ) {
+    fprintf(stderr, "KLFPluginConfigAccess::writeValue: Warning: Write mode not set!\n");
+    return;
+  }
+  _config->Plugins.pluginConfig[_pluginname][key] = value;
+}
+

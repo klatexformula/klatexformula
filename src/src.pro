@@ -33,6 +33,7 @@ HEADERS += klfcolorchooser.h \
            klfpathchooser.h \
            klfsettings.h \
            klfstylemanager.h \
+	   klfpluginiface.h \
 	   qtcolortriangle.h
 !win32:HEADERS +=	klfdbus.h
 FORMS += klflatexsymbolsui.ui \
@@ -56,7 +57,7 @@ SOURCES += klfcolorchooser.cpp \
            main.cpp \
 	   qtcolortriangle.cpp
 !win32: SOURCES +=	klfdbus.cpp
-RESOURCES += klfres.qrc
+RESOURCES += klfres.qrc plugins/klfbaseplugins.qrc
 
 !win32: DEFINES += KLF_USE_DBUS
 
