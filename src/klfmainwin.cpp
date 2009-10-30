@@ -349,7 +349,6 @@ KLFPreviewBuilderThread::~KLFPreviewBuilderThread()
   _abort = true;
   _condnewinfoavail.wakeOne();
   _mutex.unlock();
-  printf("Waiting for thread to finish...\n");
   wait();
 }
 
@@ -574,7 +573,7 @@ KLFMainWin::KLFMainWin()
 
 KLFMainWin::~KLFMainWin()
 {
-  printf("KLFMainWin::~KLFMainWin(): destroying...\n");
+  //  printf("DEBUG: KLFMainWin::~KLFMainWin(): destroying...\n");
 
   saveSettings();
   saveStyles();
@@ -1089,7 +1088,6 @@ void KLFMainWin::updatePreviewBuilderThreadInput()
 {
   bool reallyinputchanged = mPreviewBuilderThread->inputChanged(collectInput());
   if (reallyinputchanged) {
-    printf("Input changed...\n");
     _evaloutput_uptodate = false;
   }
 }
@@ -1203,17 +1201,20 @@ void KLFMainWin::slotEvaluate()
                                              this);
 
     if ( ! mLastRunTempPNGFile->open() ) {
-      fprintf(stderr, "WARNING: Failed open for Tooltip Temp Image!\n%s\n", mLastRunTempPNGFile->fileTemplate().toLocal8Bit().constData());
-      QMessageBox::critical(this, tr("Error"), tr("Failed open for ToolTip Temp Image!\n%1").arg(mLastRunTempPNGFile->fileTemplate()));
+      qWarning("WARNING: Failed open for Tooltip Temp Image!\n%s\n",
+	       qPrintable(mLastRunTempPNGFile->fileTemplate()));
+      QMessageBox::critical(this, tr("Error"), tr("Failed open for ToolTip Temp Image!\n%1")
+			    .arg(mLastRunTempPNGFile->fileTemplate()));
       delete mLastRunTempPNGFile;
       mLastRunTempPNGFile = 0;
     } else {
       mLastRunTempPNGFile->setAutoRemove(true);
       bool res = img.save(mLastRunTempPNGFile, "PNG");
       if ( ! res ) {
-        QMessageBox::critical(this, tr("Error"), tr("Failed write to ToolTip Temp Image file %1!").arg(mLastRunTempPNGFile->fileName()));
-	fprintf(stderr, "WARNING: Failed write to Tooltip temp image to temporary file `%s' !\n",
-		mLastRunTempPNGFile->fileTemplate().toLocal8Bit().constData());
+        QMessageBox::critical(this, tr("Error"), tr("Failed write to ToolTip Temp Image file %1!")
+			      .arg(mLastRunTempPNGFile->fileName()));
+	qWarning("WARNING: Failed write to Tooltip temp image to temporary file `%s' !\n",
+		 qPrintable(mLastRunTempPNGFile->fileTemplate()));
 	delete mLastRunTempPNGFile;
 	mLastRunTempPNGFile = 0;
       } else {
@@ -1420,7 +1421,7 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   if ( fi.suffix().length() == 0 ) {
     // get format and suffix from selected filter
     if ( ! formatsByFilterName.contains(selectedfilter) ) {
-      fprintf(stderr, "ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n", selectedfilter.toLocal8Bit().constData());
+      qWarning("ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n", qPrintable(selectedfilter));
       format = "png";
     } else {
       format = formatsByFilterName[selectedfilter];

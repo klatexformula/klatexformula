@@ -287,6 +287,13 @@ int ensureDir(QString dir)
 			    QObject::tr("Can't make local config directory `%1' !").arg(dir));
       return -1;
     }
+    // set permissions to "rwx------"
+    r = QFile::setPermissions(dir, QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|
+			      QFile::ReadUser|QFile::WriteUser|QFile::ExeUser);
+    if ( ! r ) {
+      qWarning("Can't set permissions to local config directory `%s' !", qPrintable(dir));
+      return -1;
+    }
   }
   return 0;
 }

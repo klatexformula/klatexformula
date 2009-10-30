@@ -523,6 +523,9 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       if ( ! res ) {
 	qWarning("Unable to copy plugin to local directory!");
       } else {
+	QFile::setPermissions(locfn, QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|
+			      QFile::ReadUser|QFile::WriteUser|QFile::ExeUser|
+			      QFile::ReadGroup|QFile::ExeGroup|QFile::ReadOther|QFile::ExeOther);
 	qDebug("Copied plugin %s to local directory %s.", qPrintable(resfn), qPrintable(locfn));
       }
     }
