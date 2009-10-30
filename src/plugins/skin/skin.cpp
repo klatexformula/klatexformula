@@ -52,13 +52,18 @@ void SkinConfigObject::load(QString skin, QString stylesheet)
   cbxSkin->clear();
   _skins.clear();
 
-  QDir stylesheetdir(":/plugindata/skin/stylesheets/");
-  QStringList skinlist = stylesheetdir.entryList(QStringList() << "*.qss", QDir::Files);
+  QStringList stylesheetsdirs;
+  stylesheetsdirs << ":/plugindata/skin/stylesheets/" << config->homeConfigDir() + "/plugins/skin/stylesheets";
+
+  int j;
   int k;
   int indf = -1;
-  for (k = 0; k < skinlist.size(); ++k) {
-    QString skintitle = QFileInfo(skinlist[k]).baseName();
-
+  for (j = 0; j < stylesheetsdirs.size(); ++j) {
+    QDir stylesheetdir(stylesheetsdirs[j]);
+    QStringList skinlist = stylesheetdir.entryList(QStringList() << "*.qss", QDir::Files);
+    for (k = 0; k < skinlist.size(); ++k) {
+      QString skintitle = QFileInfo(skinlist[k]).baseName();
+      
     QFile f(stylesheetdir.absoluteFilePath(skinlist[k]));
     f.open(QIODevice::ReadOnly);
     QByteArray stylesheetdata = f.readAll();
@@ -70,6 +75,7 @@ void SkinConfigObject::load(QString skin, QString stylesheet)
     if (skinlist[k] == skin)
       indf = _skins.size()-1;
     cbxSkin->addItem(skintitle, QVariant(_skins.size()-1));
+    }
   }
   QList<QVariant> customskins
     = config->readValue("CustomSkins").value<QList<QVariant> >() ;

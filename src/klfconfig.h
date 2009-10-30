@@ -74,6 +74,9 @@ public:
     : _config(other._config), _pluginname(other._pluginname), _amode(other._amode) { }
   virtual ~KLFPluginConfigAccess() { }
 
+  /** \note this method can be used even if accessmode doesn't have \c Read flag */
+  virtual QString homeConfigDir() const;
+
   virtual QVariant readValue(const QString& key);
   virtual void writeValue(const QString& key, const QVariant& value);
 };
