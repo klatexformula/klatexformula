@@ -66,7 +66,7 @@ SOURCES += klfcolorchooser.cpp \
 RESOURCES += klfres.qrc plugins/klfbaseplugindata.qrc
 win32: RESOURCES += plugins/klfbaseplugins_win.qrc
 unix: RESOURCES += plugins/klfbaseplugins_unix.qrc
-macx: RESOURCES += plugins/klfbaseplugins_unix.qrc
+macx: RESOURCES += plugins/klfbaseplugins_mac.qrc
 
 !win32 {
 	DEFINES += KLF_USE_DBUS

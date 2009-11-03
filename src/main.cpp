@@ -279,11 +279,12 @@ const char * PATH_ENVVAR_SEP =  ";";
 const char * klfresources_default_rel = "/rccresources/";
 #define KLF_DLL_EXT "*.dll"
 #else
-#define KLF_DLL_EXT "*.so"
 # if defined(Q_WS_MAC)
+#define KLF_DLL_EXT "*.dylib"
 const char * PATH_ENVVAR_SEP =  ":";
 const char * klfresources_default_rel = "/../Resources/rccresources/";
 # else // unix-like system
+#define KLF_DLL_EXT "*.so"
 const char * PATH_ENVVAR_SEP = ":";
 const char * klfresources_default_rel = "/../share/klatexformula/rccresources/";
 # endif
@@ -571,10 +572,13 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	      = new KLFPluginConfigAccess(klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::ReadWrite));
 	    pluginInstance->initialize(app, mainWin, c);
 	    pluginInfo.instance = pluginInstance;
+	    qDebug("\tPlugin %s loaded.\n", qPrintable(nm));
 	  } else {
 	    // if we aren't configured to load it, then discard it, but keep info with NULL instance
 	    // for settings dialog.
+	    pluginInfo.instance = NULL;
 	    delete pluginInstance;
+	    qDebug("\tPlugin %s NOT loaded.\n", qPrintable(nm));
 	  }
 
 	  klf_plugins.push_back(pluginInfo);

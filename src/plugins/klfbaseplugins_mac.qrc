@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/plugins">
+    <file>libskin.dylib</file>
+  </qresource>
+</RCC>
