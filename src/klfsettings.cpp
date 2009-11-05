@@ -32,6 +32,8 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QFileDialog>
+#include <QWhatsThis>
+#include <QResource>
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
@@ -186,6 +188,8 @@ void KLFSettings::initPluginControls()
     return;
   }
 
+  lstPlugins->setColumnWidth(0, 200);
+
   // remove default Qt Designer Page
   QWidget * w = tbxPluginsConfig->widget(tbxPluginsConfig->currentIndex());
   tbxPluginsConfig->removeItem(tbxPluginsConfig->currentIndex());
@@ -204,17 +208,17 @@ void KLFSettings::initPluginControls()
     litem->setCheckState(0,
 			 klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
 			 Qt::Checked : Qt::Unchecked);
-    litem->setText(1, title);
-    litem->setText(2, description);
+    litem->setText(0, title);
+    litem->setText(1, description);
     
     litem->setData(0, KLFSETTINGS_ROLE_PLUGNAME, name);
     litem->setData(0, KLFSETTINGS_ROLE_PLUGINDEX, j);
 
     if ( instance != NULL ) {
       mPluginConfigWidgets[name] = instance->createConfigWidget( NULL );
-      tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , title );
+      tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::Read);
-      instance->loadConfig(mPluginConfigWidgets[name], &pconfa);
+      instance->loadFromConfig(mPluginConfigWidgets[name], &pconfa);
       n_pluginconfigpages++;
     }
   }
@@ -278,16 +282,23 @@ void KLFSettings::importExtensionFile()
   int i;
   QString destination = klfconfig.homeConfigDir + "/rccresources/";
   for (i = 0; i < efnames.size(); ++i) {
-    bool r = QFile::copy(efnames[i], destination + QFileInfo(efnames[i]).fileName());
-    if ( ! r ) {
+    // try registering resource to see its content
+    QResource::registerResource(efnames[i], ":/__klfsettings_proberesource/");
+    QFile infofile = QFile(":/__klfsettings_proberesource/rccinfo/info.xml");
+
+    QResource::unregisterResource(efnames[i], ":/__klfsettings_proberesource/");
+    /*
+      bool r = QFile::copy(efnames[i], destination + QFileInfo(efnames[i]).fileName());
+      if ( ! r ) {
       QMessageBox::critical(this, tr("Error"), tr("Import of extension file %1 failed.").arg(efnames[i]));
-    }
+      }
+    */
   }
   if (i > 0) {
     QMessageBox::information(this, tr("Import"),
 			     tr("Please restart KLatexFormula for changes to take effect.\n"
-				"In order to uninstall an extension, you need to manually remove"
-				"the corresponding file in directory %1.").arg(destination));
+				"In order to uninstall an extension, you need to manually remove "
+				"the corresponding file in directory: %1").arg(destination));
   }
 }
 
@@ -390,7 +401,7 @@ void KLFSettings::apply()
 
     if (klf_plugins[j].instance != NULL) {
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::ReadWrite);
-      klf_plugins[j].instance->saveConfig(mPluginConfigWidgets[name], &pconfa);
+      klf_plugins[j].instance->saveToConfig(mPluginConfigWidgets[name], &pconfa);
     }
 
     ++it;
@@ -412,3 +423,7 @@ void KLFSettings::accept()
 }
 
 
+void KLFSettings::help()
+{
+  QWhatsThis::enterWhatsThisMode();
+}

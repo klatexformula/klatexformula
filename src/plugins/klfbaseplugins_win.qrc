@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/plugins">
     <file>skin.dll</file>
+    <file>libsystrayicon.dll</file>
   </qresource>
 </RCC>

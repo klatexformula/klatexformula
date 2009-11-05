@@ -37,12 +37,8 @@ KLFDBusAppAdaptor::~KLFDBusAppAdaptor()
 void KLFDBusAppAdaptor::raiseWindow()
 {
   _mainwin->setWindowState(_mainwin->windowState() & ~Qt::WindowMinimized);
-  QRect g = _mainwin->frameGeometry();
-  _mainwin->setQuitOnHide(false);
-  _mainwin->hide();
-  _mainwin->setQuitOnHide(true);
-  _mainwin->setGeometry(g);
-  _mainwin->show();
+  _mainwin->raise();
+  _mainwin->activateWindow();
 }
 
 Q_NOREPLY void KLFDBusAppAdaptor::quit()

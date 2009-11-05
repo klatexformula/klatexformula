@@ -33,21 +33,17 @@
 
 
 
-SkinConfigObject::SkinConfigObject(QWidget *skinconfigwidget, KLFPluginConfigAccess *conf)
-  : QObject(skinconfigwidget), _skinconfigwidget(skinconfigwidget), config(conf)
+SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
+  : QWidget(parent), config(conf)
 {
-  setObjectName("SkinConfigObject");
-
-  cbxSkin = _skinconfigwidget->findChild<QComboBox*>("cbxSkin");
-  txtStyleSheet = _skinconfigwidget->findChild<QTextEdit*>("txtStyleSheet");
-  QPushButton *btnSaveCustom = _skinconfigwidget->findChild<QPushButton*>("btnSaveCustom");
+  setupUi(this);
 
   connect(cbxSkin, SIGNAL(activated(int)), this, SLOT(skinSelected(int)));
   connect(txtStyleSheet, SIGNAL(textChanged()), this, SLOT(stylesheetChanged()));
   connect(btnSaveCustom, SIGNAL(clicked()), this, SLOT(saveCustom()));
 }
 
-void SkinConfigObject::load(QString skin, QString stylesheet)
+void SkinConfigWidget::load(QString skin, QString stylesheet)
 {
   cbxSkin->clear();
   _skins.clear();
@@ -80,7 +76,7 @@ void SkinConfigObject::load(QString skin, QString stylesheet)
   QList<QVariant> customskins
     = config->readValue("CustomSkins").value<QList<QVariant> >() ;
   for (k = 0; k < customskins.size(); ++k) {
-    printf("%d...\n", k);
+    //    printf("%d...\n", k);
     QList<QVariant> vthiscustomskin = customskins[k].value<QList<QVariant> >();
     Skin sk(false, vthiscustomskin[0].toString(), vthiscustomskin[1].toString(),
 		  vthiscustomskin[2].toString());
@@ -105,7 +101,7 @@ void SkinConfigObject::load(QString skin, QString stylesheet)
   }
 }
 
-void SkinConfigObject::skinSelected(int index)
+void SkinConfigWidget::skinSelected(int index)
 {
   if (index < 0 || index >= cbxSkin->count()-1)
     return;
@@ -117,15 +113,15 @@ void SkinConfigObject::skinSelected(int index)
   txtStyleSheet->blockSignals(false);
 }
 
-void SkinConfigObject::stylesheetChanged()
+void SkinConfigWidget::stylesheetChanged()
 {
   cbxSkin->setCurrentIndex(cbxSkin->count()-1);
 }
 
-void SkinConfigObject::saveCustom()
+void SkinConfigWidget::saveCustom()
 {
   bool ok;
-  QString name = QInputDialog::getText(_skinconfigwidget, tr("Skin Name"), tr("Please enter skin name:"),
+  QString name = QInputDialog::getText(this, tr("Skin Name"), tr("Please enter skin name:"),
 				       QLineEdit::Normal, tr("[New Skin Name]"), &ok);
   if (!ok)
     return;
@@ -182,36 +178,29 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
 
 QWidget * SkinPlugin::createConfigWidget(QWidget *parent)
 {
-  QUiLoader loader;
-  QFile file(":/plugindata/skin/skinconfigwidget.ui");
-  file.open(QFile::ReadOnly);
-  QWidget *w = loader.load(&file, parent);
-  file.close();
-
+  QWidget *w = new SkinConfigWidget(parent, _config);
   w->setProperty("SkinConfigWidget", true);
-
-  (void) new SkinConfigObject(w, _config);
   return w;
 }
 
-void SkinPlugin::loadConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
+void SkinPlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
 {
   if (confwidget->property("SkinConfigWidget").toBool() != true) {
     fprintf(stderr, "Error: bad config widget given !!\n");
     return;
   }
-  SkinConfigObject * o = confwidget->findChild<SkinConfigObject*>("SkinConfigObject");
+  SkinConfigWidget * o = qobject_cast<SkinConfigWidget*>(confwidget);
   o->load(config->readValue("skin").toString(),
 	  config->readValue("stylesheet").toString());
 }
-void SkinPlugin::saveConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
+void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
 {
   if (confwidget->property("SkinConfigWidget").toBool() != true) {
     fprintf(stderr, "Error: bad config widget given !!\n");
     return;
   }
 
-  SkinConfigObject * o = confwidget->findChild<SkinConfigObject*>("SkinConfigObject");
+  SkinConfigWidget * o = qobject_cast<SkinConfigWidget*>(confwidget);
 
   QString skin = o->currentSkin();
   QString stylesheet = o->currentStyleSheet();

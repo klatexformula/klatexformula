@@ -545,12 +545,15 @@ KLFMainWin::KLFMainWin()
   connect(txtLatex, SIGNAL(textChanged()), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
   connect(cbxMathMode, SIGNAL(editTextChanged(const QString&)), this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
-  connect(chkMathMode, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
-  connect(colFg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
-  connect(chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
-  connect(colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+  connect(chkMathMode, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
+	  Qt::QueuedConnection);
+  connect(colFg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
+	  Qt::QueuedConnection);
+  connect(chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
+	  Qt::QueuedConnection);
+  connect(colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
+	  Qt::QueuedConnection);
 
-  qRegisterMetaType<QImage>("QImage");
   connect(mPreviewBuilderThread, SIGNAL(previewAvailable(const QImage&, bool)),
 	  this, SLOT(showRealTimePreview(const QImage&, bool)), Qt::QueuedConnection);
 
@@ -915,7 +918,7 @@ void KLFMainWin::saveLibrary()
 
 void KLFMainWin::restoreFromLibrary(KLFData::KLFLibraryItem j, bool restorestyle)
 {
-  txtLatex->setPlainText(j.latex);
+  slotSetLatex(j.latex); // to preserve text edit undo history...
   if (restorestyle) {
     colFg->setColor(QColor(qRed(j.style.fg_color), qGreen(j.style.fg_color), qBlue(j.style.fg_color)));
     colBg->setColor(QColor(qRed(j.style.bg_color), qGreen(j.style.bg_color), qBlue(j.style.bg_color)));
@@ -923,7 +926,7 @@ void KLFMainWin::restoreFromLibrary(KLFData::KLFLibraryItem j, bool restorestyle
     chkMathMode->setChecked(j.style.mathmode.simplified() != "...");
     if (j.style.mathmode.simplified() != "...")
       cbxMathMode->setEditText(j.style.mathmode);
-    txtPreamble->setPlainText(j.style.preamble);
+    slotSetPreamble(j.style.preamble); // to preserve text edit undo/redo
     spnDPI->setValue(j.style.dpi);
   }
 
@@ -988,6 +991,25 @@ void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
   //   }
 }
 
+void KLFMainWin::setQuitOnHide(bool quitonhide)
+{
+  _ignore_hide_event = ! quitonhide;
+}
+
+void KLFMainWin::quit()
+{
+  if (mLibraryBrowser)
+    mLibraryBrowser->hide();
+  if (mLatexSymbols)
+    mLatexSymbols->hide();
+  if (mStyleManager)
+    mStyleManager->hide();
+  if (mSettingsDialog)
+    mSettingsDialog->hide();
+  qApp->quit();
+}
+
+
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 {
   if (obj == txtLatex) {
@@ -1017,15 +1039,7 @@ void KLFMainWin::hideEvent(QHideEvent *e)
   if (_ignore_hide_event)
     return;
 
-  if (mLibraryBrowser)
-    mLibraryBrowser->hide();
-  if (mLatexSymbols)
-    mLatexSymbols->hide();
-  if (mStyleManager)
-    mStyleManager->hide();
-  if (mSettingsDialog)
-    mSettingsDialog->hide();
-  qApp->quit();
+  quit();
 }
 
 
@@ -1269,7 +1283,12 @@ void KLFMainWin::slotExpandOrShrink()
 
 void KLFMainWin::slotSetLatex(const QString& latex)
 {
-  txtLatex->setPlainText(latex);
+  QTextCursor cur = txtLatex->textCursor();
+  cur.beginEditBlock();
+  cur.select(QTextCursor::Document);
+  cur.removeSelectedText();
+  cur.insertText(latex);
+  cur.endEditBlock();
 }
 
 void KLFMainWin::slotSetMathMode(const QString& mathmode)
@@ -1281,7 +1300,12 @@ void KLFMainWin::slotSetMathMode(const QString& mathmode)
 
 void KLFMainWin::slotSetPreamble(const QString& preamble)
 {
-  txtPreamble->setPlainText(preamble);
+  QTextCursor cur = txtPreamble->textCursor();
+  cur.beginEditBlock();
+  cur.select(QTextCursor::Document);
+  cur.removeSelectedText();
+  cur.insertText(preamble);
+  cur.endEditBlock();
 }
 
 void KLFMainWin::slotSetDPI(int DPI)

@@ -49,8 +49,8 @@ public:
 
   virtual QWidget * createConfigWidget(QWidget *parent) = 0;
 
-  virtual void loadConfig(QWidget *configWidget, KLFPluginConfigAccess *config) = 0;
-  virtual void saveConfig(QWidget *configWidget, KLFPluginConfigAccess *config) = 0;
+  virtual void loadFromConfig(QWidget *configWidget, KLFPluginConfigAccess *config) = 0;
+  virtual void saveToConfig(QWidget *configWidget, KLFPluginConfigAccess *config) = 0;
 
 };
 

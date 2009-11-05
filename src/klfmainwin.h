@@ -269,9 +269,9 @@ public slots:
 
   void displayError(const QString& errormsg);
 
-  void setQuitOnHide(bool quitonhide = true) {
-    _ignore_hide_event = ! quitonhide;
-  }
+  void quit();
+
+  void setQuitOnHide(bool quitonhide = true);
 
 protected:
   KLFLibraryBrowser *mLibraryBrowser;

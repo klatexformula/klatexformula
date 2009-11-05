@@ -3,4 +3,5 @@
 TEMPLATE = subdirs
 CONFIG += ordered release
 
-SUBDIRS = skin
+SUBDIRS = skin systrayicon
+

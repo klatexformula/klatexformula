@@ -99,9 +99,15 @@ system($$QMAKE -set KLF_BACKEND_USE_QT4 '$$BACKEND_USE_QT4')
 system($$QMAKE -set KLF_ICONTHEME '$$ICONTHEME')
 system($$QMAKE -set KLF_INSTALLPREFIX '$$INSTALLPREFIX')
 
+
+# We compile KLatexFormula base source files (src/src.pro) BEFORE plugins so that the plugins can
+# fully access any classes/methods/functions/ui_*.h files/... defined by base package; however
+# we compile the final klatexformula binary (src/main.pro) AFTER the plugins so that the plugins
+# themselves can be included into the binary through Qt Resources.
+
 SUBDIRS = src/klfbackend
 isEmpty(BACKEND_ONLY) {
-  SUBDIRS += src/plugins src
+  SUBDIRS += src/src.pro src/plugins src/main.pro
 }
 
 message(Will build the following subdirs: $$SUBDIRS)

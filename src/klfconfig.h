@@ -32,6 +32,7 @@
 #include <QTextCharFormat>
 #include <QMap>
 
+/*
 #ifdef Q_OS_WIN
 #  define KLF_DECL_EXPORT __declspec(dllexport)
 #else //#  elif defined(QT_VISIBILITY_AVAILABLE)
@@ -55,6 +56,15 @@
 #  endif
 #else
 #  define KLF_EXPORT KLF_DECL_EXPORT
+#endif
+*/
+/*
+#ifndef KLF_EXPORT
+#define KLF_EXPORT __attribute__((visbility("default")))
+#endif 
+*/
+#ifndef KLF_EXPORT
+#define KLF_EXPORT
 #endif
 
 

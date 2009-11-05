@@ -444,6 +444,7 @@ void main_load_extra_resources()
     klf_resources = klf_resources_l[0].replace(rgx, "");
   }
 
+  // Find global system-wide klatexformula rccresources dir
   QString defaultrccpath = QCoreApplication::applicationDirPath() + klfresources_default_rel
     + PATH_ENVVAR_SEP + klfconfig.homeConfigDirRCCResources;
   QString rccfilepath;
@@ -491,20 +492,103 @@ void main_load_extra_resources()
   }
 }
 
+struct KLFI18nFile
+{
+  QString fpath;
+  QString name;
+  QString locale;
+  // how specific the locale is (e.g. ""->0 , "fr"->1, "fr_CH"->2 )
+  int locale_specificity;
+
+  KLFI18nFile(QDir d, QString fn) {
+    int firstunderscore = fn.indexOf('_');
+    int endbasename = fn.endsWith(".qm") ? fn.length() - 3 : fn.length() ;
+    if (firstunderscore == -1)
+      firstunderscore = endbasename; // no locale part if no underscore
+    // ---
+    fpath = d.absoluteFilePath(fn);
+    name = fn.mid(0, firstunderscore);
+    locale = fn.mid(firstunderscore+1, endbasename-(firstunderscore+1));
+    locale_specificity = (locale.split('_', QString::SkipEmptyParts)).size() ;
+  }
+};
+
 void main_load_translations(QCoreApplication *app)
 {
-  QTranslator *translator = new QTranslator(app);
+  // load all translations. Translations are files found in the form
+  //   :/i18n/<name>_<locale>.qm   or   homeconfig/i18n/<name>_<locale>.qm
+  //
+
+  // we will find all possible .qm files and store them in this structure for easy access
+  // structure is indexed by name, then locale specificity
+  QMap<QString, QMap<int, QList<KLFI18nFile> > > i18nFiles;
+  // a list of names. this is redundant for  i18nFiles.keys()
+  QSet<QString> names;
+
+  QStringList i18ndirlist = QStringList() << ":/i18n" << klfconfig.homeConfigDirI18n ;
+  int j, k;
+  for (j = 0; j < i18ndirlist.size(); ++j) {
+    // explore this directory; we expect a list of *.qm files
+    QDir i18ndir(i18ndirlist[j]);
+    QStringList files = i18ndir.entryList(QStringList() << QString::fromLatin1("*.qm"), QDir::Files);
+    for (k = 0; k < files.size(); ++k) {
+      KLFI18nFile i18nfile(i18ndir, files[k]);
+      //      qDebug("Found i18n file %s (name=%s,locale=%s,lc-spcif.=%d)", qPrintable(i18nfile.fpath),
+      //	     qPrintable(i18nfile.name), qPrintable(i18nfile.locale), i18nfile.locale_specificity);
+      i18nFiles[i18nfile.name][i18nfile.locale_specificity] << i18nfile;
+      names << i18nfile.name;
+    }
+  }
+
+  // get locale
   QString lc = QLocale::system().name();
-  QString fn = "klf_"+lc;
-  //  printf("DEBUG: Looking for translation to %s\n", lc.toLocal8Bit().constData());
-  if (translator->load(fn, ":/i18n/")) {
-    app->installTranslator(translator);
-    //    printf("DEBUG: Loaded translation to %s from resource.\n", lc.toLocal8Bit().constData());
-  } else if (translator->load(fn, klfconfig.homeConfigDirI18n)) {
-    app->installTranslator(translator);
-    //    printf("DEBUG: Loaded translation to %s from home dir.\n", lc.toLocal8Bit().constData());
-  } else {
-    //    fprintf(stderr, "There is no translation for language %s.\n", lc.toLocal8Bit().constData());
+  QStringList lcparts = lc.split("_");
+
+  //  qDebug("Required locale is %s", qPrintable(lc));
+
+  // a list of translation files to load (absolute paths)
+  QStringList translationsToLoad;
+
+  // now, load a suitable translator for each encountered name.
+  for (QSet<QString>::const_iterator it = names.begin(); it != names.end(); ++it) {
+    QString name = *it;
+    QMap< int, QList<KLFI18nFile> > translations = i18nFiles[name];
+    int specificity = lcparts.size();  // start with maximum specificity for required locale
+    while (specificity >= 0) {
+      // try to load a translation matching this specificity and locale
+      QString testlocale = QStringList(lcparts.mid(0, specificity)).join("_");
+      //      qDebug("Testing locale string %s...", qPrintable(testlocale));
+      // search list:
+      QList<KLFI18nFile> list = translations[specificity];
+      for (j = 0; j < list.size(); ++j) {
+	if (list[j].locale == testlocale) {
+	  //	  qDebug("Found translation file.");
+	  // got matching translation file ! Load it !
+	  translationsToLoad << list[j].fpath;
+	  // and stop searching translation files for this name (break while condition);
+	  specificity = -1;
+	}
+      }
+      // If we didn't find a suitable translation, try less specific locale name
+      specificity--;
+    }
+  }
+  // now we have a full list of translation files to load stored in  translationsToLoad .
+
+  // Load Translations:
+  for (j = 0; j < translationsToLoad.size(); ++j) {
+    // load this translator
+    qDebug("Loading translator %s for %s", qPrintable(translationsToLoad[j]), qPrintable(lc));
+    QTranslator *translator = new QTranslator(app);
+    QFileInfo fi(translationsToLoad[j]);
+    //    qDebug("translator->load(\"%s\", \"%s\", \"_\", \"%s\")", qPrintable(fi.completeBaseName()),
+    //	   qPrintable(fi.absolutePath()),  qPrintable("."+fi.suffix()));
+    bool res = translator->load(fi.completeBaseName(), fi.absolutePath(), "_", "."+fi.suffix());
+    if ( res ) {
+      app->installTranslator(translator);
+    } else {
+      qWarning("Failed to load translator %s.\n", qPrintable(translationsToLoad[j]));
+    }
   }
 }
 
@@ -550,7 +634,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	if (pluginInstance) {
 	  // plugin file successfully loaded.
 	  QString nm = pluginInstance->pluginName();
-	  qDebug("Successfully loaded plugin library %s (%s)\n", qPrintable(nm),
+	  qDebug("Successfully loaded plugin library %s (%s)", qPrintable(nm),
 		 qPrintable(pluginInstance->pluginDescription()));
 
 	  if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
@@ -572,13 +656,13 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	      = new KLFPluginConfigAccess(klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::ReadWrite));
 	    pluginInstance->initialize(app, mainWin, c);
 	    pluginInfo.instance = pluginInstance;
-	    qDebug("\tPlugin %s loaded.\n", qPrintable(nm));
+	    qDebug("\tPlugin %s loaded.", qPrintable(nm));
 	  } else {
 	    // if we aren't configured to load it, then discard it, but keep info with NULL instance
 	    // for settings dialog.
 	    pluginInfo.instance = NULL;
 	    delete pluginInstance;
-	    qDebug("\tPlugin %s NOT loaded.\n", qPrintable(nm));
+	    qDebug("\tPlugin %s NOT loaded.", qPrintable(nm));
 	  }
 
 	  klf_plugins.push_back(pluginInfo);
@@ -614,6 +698,8 @@ int main(int argc, char **argv)
 
   if ( opt_interactive ) {
     QApplication app(qt_argc, qt_argv);
+
+    qRegisterMetaType< QImage >("QImage");
 
 #if defined(KLF_USE_DBUS)
     // see if an instance of KLatexFormula is running...
@@ -761,7 +847,7 @@ int main(int argc, char **argv)
     // NON-INTERACTIVE (BATCH MODE, no X11)
     QCoreApplication app(qt_argc, qt_argv);
 
-    qRegisterMetaType< QMap<QString,bool> >("QMap<QString,bool>");
+    qRegisterMetaType< QImage >("QImage");
 
     // now load default config (for default paths etc.)
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'

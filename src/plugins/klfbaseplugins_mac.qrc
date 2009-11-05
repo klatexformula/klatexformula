@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/plugins">
     <file>libskin.dylib</file>
+    <file>libsystrayicon.dylib</file>
   </qresource>
 </RCC>

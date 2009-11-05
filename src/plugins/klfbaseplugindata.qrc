@@ -1,6 +1,5 @@
 <RCC>
   <qresource prefix="/plugindata">
-    <file>skin/skinconfigwidget.ui</file>
     <file>skin/stylesheets/blue.qss</file>
     <file>skin/stylesheets/default.qss</file>
     <file>skin/stylesheets/galaxy.qss</file>

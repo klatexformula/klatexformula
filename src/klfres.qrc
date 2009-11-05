@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>pics/bullet22.png</file>
     <file>pics/checker.png</file>
     <file>pics/rightarrow.png</file>
     <file>pics/colorsliders.png</file>

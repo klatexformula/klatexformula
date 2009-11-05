@@ -28,13 +28,14 @@
 #include <klfpluginiface.h>
 #include <klfconfig.h>
 
+#include <ui_skinconfigwidget.h>
 
-class SkinConfigObject : public QObject
+class SkinConfigWidget : public QWidget, public Ui::SkinConfigWidget
 {
   Q_OBJECT
 public:
-  SkinConfigObject(QWidget *skinconfigwidget, KLFPluginConfigAccess *conf);
-  virtual ~SkinConfigObject() { }
+  SkinConfigWidget(QWidget *skinconfigwidget, KLFPluginConfigAccess *conf);
+  virtual ~SkinConfigWidget() { }
 
   QString currentSkin() { return _skins[cbxSkin->itemData(cbxSkin->currentIndex()).toInt()].name; }
   QString currentStyleSheet() { return txtStyleSheet->toPlainText(); }
@@ -59,11 +60,6 @@ private:
   };
   QList<Skin> _skins;
 
-  QWidget *_skinconfigwidget;
-
-  QComboBox *cbxSkin;
-  QTextEdit *txtStyleSheet;
-
   KLFPluginConfigAccess *config;
 };
 
@@ -82,8 +78,8 @@ public:
   virtual void initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *config);
 
   virtual QWidget * createConfigWidget(QWidget *parent);
-  virtual void loadConfig(QWidget *confwidget, KLFPluginConfigAccess *config);
-  virtual void saveConfig(QWidget *confwidget, KLFPluginConfigAccess *config);
+  virtual void loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *config);
+  virtual void saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config);
 
   virtual void applySkin(KLFPluginConfigAccess *config);
 
