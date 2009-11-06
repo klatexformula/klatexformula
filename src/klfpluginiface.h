@@ -40,10 +40,21 @@ class KLFPluginGenericInterface
 public:
   virtual ~KLFPluginGenericInterface() { }
 
-  virtual QString pluginName() const = 0;
-  virtual QString pluginTitle() const = 0;
-  virtual QString pluginDescription() const = 0;
-  virtual bool pluginDefaultLoadEnable() const = 0;
+  enum PluginInfo {
+    PluginName,
+    PluginTitle,
+    PluginAuthor,
+    PluginDescription,
+    PluginDefaultEnable
+  };
+
+  virtual QVariant pluginInfo(PluginInfo which) const = 0;
+
+  inline QString pluginName() const { return pluginInfo(PluginName).toString(); }
+  inline QString pluginTitle() const { return pluginInfo(PluginTitle).toString(); }
+  inline QString pluginAuthor() const { return pluginInfo(PluginAuthor).toString(); }
+  inline QString pluginDescription() const { return pluginInfo(PluginDescription).toString(); }
+  inline bool pluginDefaultLoadEnable() const { return pluginInfo(PluginDefaultEnable).toBool(); }
 
   virtual void initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *config) = 0;
 

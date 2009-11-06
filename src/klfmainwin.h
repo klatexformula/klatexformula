@@ -208,6 +208,15 @@ public:
 
   KLFConfig * klfConfig() { return & klfconfig; }
 
+  enum KLFWindowsEnum {
+    MainWin = 0x01,
+    LatexSymbols = 0x02,
+    LibraryBrowser = 0x04,
+    SettingsDialog = 0x08,
+    StyleManager = 0x10
+  };
+  uint currentWindowShownStatus();
+
 signals:
 
   void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
@@ -269,9 +278,11 @@ public slots:
 
   void displayError(const QString& errormsg);
 
-  void quit();
+  void setWindowShownStatus(uint windowshownflags, bool setMainWinToo = false);
 
-  void setQuitOnHide(bool quitonhide = true);
+  void setQuitOnClose(bool quitOnClose);
+
+  void quit();
 
 protected:
   KLFLibraryBrowser *mLibraryBrowser;
@@ -307,10 +318,16 @@ protected:
 
   KLFBackend::klfInput collectInput();
 
+  bool event(QEvent *e);
   void closeEvent(QCloseEvent *e);
   void hideEvent(QHideEvent *e);
+  void showEvent(QShowEvent *e);
 
-  bool _ignore_hide_event;
+  bool _ignore_close_event;
+
+  int _lastwindowshownstatus;
+  QMap<int, QRect> _lastwindowgeometries;
+  int _savedwindowshownstatus;
 };
 
 
@@ -322,6 +339,7 @@ class KLFPluginGenericInterface;
 struct KLFPluginInfo
 {
   QString name;
+  QString author;
   QString title;
   QString description;
 
@@ -332,5 +350,33 @@ struct KLFPluginInfo
 extern QList<KLFPluginInfo> klf_plugins;
 
 
+// SOME DECLARATIONS FOR ADD-ONS
+// all definitions are in main.cpp
+
+struct KLFAddOnInfo
+{
+  /** Builds empty add-on */
+  KLFAddOnInfo() : islocal(false), isfresh(false) { }
+  /** Reads RCC file \c rccfpath and parses its rccinfo/info.xml, etc.
+   * sets all fields to correct values and \ref isfresh to \c FALSE . */
+  KLFAddOnInfo(QString rccfpath);
+
+  QString dir;
+  QString fname;
+  QString fpath; // grosso modo: absdir(dir) + "/" + fname
+  bool islocal; // local file: can be removed (e.g. not in a global path /usr/share/... )
+
+  QString title;
+  QString author;
+  QString description;
+
+  /** Fresh file: add-on imported during this execution; ie. KLatexFormula needs to be restarted
+   * for this add-on to take effect. The constructor sets this value to \c FALSE, set it manually
+   * to \c TRUE if needed (e.g. in KLFSettings). */
+  bool isfresh;
+};
+
+extern QList<KLFAddOnInfo> klf_addons;
+extern bool klf_addons_canimport;
 
 #endif

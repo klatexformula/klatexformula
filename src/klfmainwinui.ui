@@ -744,24 +744,8 @@
      <y>189</y>
     </hint>
     <hint type="destinationlabel">
-     <x>559</x>
-     <y>200</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnQuit</sender>
-   <signal>clicked()</signal>
-   <receiver>KLFMainWinUI</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>83</x>
-     <y>407</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>393</y>
+     <x>815</x>
+     <y>196</y>
     </hint>
    </hints>
   </connection>

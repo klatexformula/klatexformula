@@ -159,9 +159,9 @@ KLFConfig::KLFConfig()
 }
 
 
-#define KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, f)		\
+#define KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, f, fps)	\
   if (!found_fcode && fdb.isFixedPitch(f)) {				\
-    fcode = QFont(f, 11);						\
+    fcode = QFont(f, fps);						\
     found_fcode = true;							\
   }
 
@@ -183,14 +183,15 @@ void KLFConfig::loadDefaults()
     QFontDatabase fdb;
     QFont fcode;
     bool found_fcode = false;
-    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier 10 Pitch");
-    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "ETL Fixed");
-    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier New");
-    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Efont Fixed");
-    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Adobe Courier");
-    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier");
-    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Misc Fixed");
-    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace");
+    int ps = 11;
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier 10 Pitch", ps);
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "ETL Fixed", ps);
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier New", ps);
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Efont Fixed", ps);
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Adobe Courier", ps);
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier", ps);
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Misc Fixed", ps);
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace", ps);
     if ( ! found_fcode )
       fcode = f;
 

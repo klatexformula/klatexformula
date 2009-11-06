@@ -307,7 +307,7 @@ void signal_act(int sig)
 
 
 // DEFINE GLOBAL PLUGIN POINTERS
-
+// declarations in klfmainwin.h
 QList<KLFPluginInfo> klf_plugins ;
 
 
@@ -444,6 +444,8 @@ void main_load_extra_resources()
     klf_resources = klf_resources_l[0].replace(rgx, "");
   }
 
+  bool klfsettings_can_import = false;
+
   // Find global system-wide klatexformula rccresources dir
   QString defaultrccpath = QCoreApplication::applicationDirPath() + klfresources_default_rel
     + PATH_ENVVAR_SEP + klfconfig.homeConfigDirRCCResources;
@@ -459,37 +461,43 @@ void main_load_extra_resources()
   int j, k;
   for (QStringList::iterator it = rccfiles.begin(); it != rccfiles.end(); ++it) {
     if ((*it).isEmpty()) {
+      // empty split section: meaning that we want default paths at this point
       it = rccfiles.erase(it, it+1);
       for (j = 0; j < defaultsplitrccpath.size(); ++j) {
 	it = rccfiles.insert(it, defaultsplitrccpath[j]) + 1;
       }
+      // having the default paths added, it is safe for klfsettings to import add-ons to ~/.klf.../rccresources/
+      klfsettings_can_import = true;
       --it; // we already point to the next entry, compensate the ++it in for
     }
   }
+  QStringList rccfilesToLoad;
   for (j = 0; j < rccfiles.size(); ++j) {
     QFileInfo fi(rccfiles[j]);
     if (fi.isDir()) {
       QDir dir(rccfiles[j]);
       QFileInfoList files = dir.entryInfoList(QStringList()<<"*.rcc", QDir::Files);
       for (k = 0; k < files.size(); ++k) {
-	bool res = QResource::registerResource(files[k].absoluteFilePath());
-	if (!res) {
-	  if ( ! opt_quiet )
-	    fprintf(stderr, "Failed to register resource `%s'.\n", rccfiles[j].toLocal8Bit().constData());
-	} else if ( ! opt_quiet ) {
-	  fprintf(stderr, "Loaded resource file %s.\n", files[k].absoluteFilePath().toLocal8Bit().constData());
-	}
+	rccfilesToLoad << files[k].absoluteFilePath();
       }
     } else if (fi.isFile() && fi.suffix() == "rcc") {
-      bool res = QResource::registerResource(rccfiles[j]);
-      if (!res) {
-	if ( ! opt_quiet )
-	  fprintf(stderr, "Failed to register resource `%s'.\n", rccfiles[j].toLocal8Bit().constData());
-      } else if ( ! opt_quiet ) {
-	fprintf(stderr, "Loaded resource file %s.\n", rccfiles[j].toLocal8Bit().constData());
-      }
+      rccfilesToLoad << fi.absoluteFilePath();
     }
   }
+  for (j = 0; j < rccfilesToLoad.size(); ++j) {
+    KLFAddOnInfo addoninfo(rccfilesToLoad[j]);
+    bool res = QResource::registerResource(addoninfo.fpath);
+    if ( res ) {
+      // resource registered.
+      klf_addons.append(addoninfo);
+    } else {
+      if ( ! opt_quiet )
+	fprintf(stderr, "Failed to register resource `%s'.\n", rccfiles[j].toLocal8Bit().constData());
+    }
+  }
+
+  // set the global "can-import" flag
+  klf_addons_canimport = klfsettings_can_import;
 }
 
 struct KLFI18nFile
@@ -648,6 +656,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  pluginInfo.name = nm;
 	  pluginInfo.title = pluginInstance->pluginTitle();
 	  pluginInfo.description = pluginInstance->pluginDescription();
+	  pluginInfo.author = pluginInstance->pluginAuthor();
 	  pluginInfo.instance = NULL;
 
 	  // if we are configured to load this plugin, load it.

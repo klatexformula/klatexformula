@@ -36,6 +36,9 @@ KLFDBusAppAdaptor::~KLFDBusAppAdaptor()
 
 void KLFDBusAppAdaptor::raiseWindow()
 {
+  if ( ! _mainwin->isVisible() )
+    _mainwin->show();
+
   _mainwin->setWindowState(_mainwin->windowState() & ~Qt::WindowMinimized);
   _mainwin->raise();
   _mainwin->activateWindow();

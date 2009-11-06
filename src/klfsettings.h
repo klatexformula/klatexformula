@@ -51,13 +51,17 @@ public slots:
   void help();
 
   void setDefaultPaths();
-  void importExtensionFile();
+  void importAddOn();
+  void removeAddOn();
 
 protected:
 
 protected slots:
 
   void initPluginControls();
+  void refreshPluginSelected();
+  void refreshAddOnList();
+  void refreshAddOnSelected();
 
   virtual void accept();
   virtual void slotChangeFont();

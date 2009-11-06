@@ -554,10 +554,10 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
       QDomNode n;
       for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
 	QDomElement e = n.toElement(); // try to convert the node to an element.
-	if ( e.isNull() || e.nodeType() != QDomNode::ElementNode )
+	if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
 	  continue;
 	if ( e.nodeName() != "category" ) {
-	  fprintf(stderr, "WARNING in parsing XML : ignoring unexpected tag `%s'!\n", e.nodeName().toLocal8Bit().constData());
+	  qWarning("WARNING in parsing XML : ignoring unexpected tag `%s'!\n", qPrintable(e.nodeName()));
 	  continue;
 	}
 	// read category

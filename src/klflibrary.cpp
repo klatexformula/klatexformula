@@ -753,7 +753,8 @@ KLFLibraryListViewItem *KLFLibraryListManager::itemForId(uint reqid)
 // ------------------------------------------------------------------------
 
 
-KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData::KLFLibraryResourceList *reslistptr, KLFMainWin *parent)
+KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData::KLFLibraryResourceList *reslistptr,
+				     KLFMainWin *parent)
   : QWidget(
 #if defined(Q_OS_WIN32)
 	    0 /* parent */

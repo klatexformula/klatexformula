@@ -70,10 +70,17 @@ class SkinPlugin : public QObject, public KLFPluginGenericInterface
 public:
   virtual ~SkinPlugin() { }
 
-  virtual QString pluginName() const { return "skin"; }
-  virtual QString pluginTitle() const { return tr("Skin"); }
-  virtual QString pluginDescription() const { return tr("Personalize the look of KLatexFormula"); }
-  virtual bool pluginDefaultLoadEnable() const { return false; }
+  virtual QVariant pluginInfo(PluginInfo which) const {
+    switch (which) {
+    case PluginName: return QString("skin");
+    case PluginAuthor: return QString("Philippe Faist <philippe.faist")+QString("@bluewin.ch>");
+    case PluginTitle: return tr("Skin");
+    case PluginDescription: return tr("Personalize the look of KLatexFormula");
+    case PluginDefaultEnable: return false;
+    default:
+      return QVariant();
+    }
+  }
 
   virtual void initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *config);
 

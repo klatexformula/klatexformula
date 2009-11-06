@@ -49,6 +49,8 @@
 #define KLFSETTINGS_ROLE_PLUGNAME (Qt::UserRole + 5300)
 #define KLFSETTINGS_ROLE_PLUGINDEX (KLFSETTINGS_ROLE_PLUGNAME + 1)
 
+#define KLFSETTINGS_ROLE_ADDONINDEX (Qt::UserRole + 5400)
+
 
 #define REG_SH_TEXTFORMATENSEMBLE(x) \
   _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
@@ -95,7 +97,11 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
   connect(btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
-  connect(btnImportExtensionFile, SIGNAL(clicked()), this, SLOT(importExtensionFile()));
+
+  connect(lstPlugins, SIGNAL(itemSelectionChanged()), this, SLOT(refreshPluginSelected()));
+  connect(lstAddOns, SIGNAL(itemSelectionChanged()), this, SLOT(refreshAddOnSelected()));
+  connect(btnImportAddOn, SIGNAL(clicked()), this, SLOT(importAddOn()));
+  connect(btnRemoveAddOn, SIGNAL(clicked()), this, SLOT(removeAddOn()));
 
   connect(btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
   connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
@@ -106,6 +112,12 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   REG_SH_TEXTFORMATENSEMBLE(ParenMatch);
   REG_SH_TEXTFORMATENSEMBLE(ParenMismatch);
   REG_SH_TEXTFORMATENSEMBLE(LonelyParen);
+
+  btnImportAddOn->setEnabled(klf_addons_canimport);
+  btnRemoveAddOn->setEnabled(klf_addons_canimport);
+    
+  refreshAddOnList();
+  refreshAddOnSelected();
 
   // dont load plugin data here as this dialog is created BEFORE plugins are loaded
   _pluginstuffloaded = false;
@@ -188,7 +200,7 @@ void KLFSettings::initPluginControls()
     return;
   }
 
-  lstPlugins->setColumnWidth(0, 200);
+  lstPlugins->setColumnWidth(0, 185);
 
   // remove default Qt Designer Page
   QWidget * w = tbxPluginsConfig->widget(tbxPluginsConfig->currentIndex());
@@ -209,7 +221,6 @@ void KLFSettings::initPluginControls()
 			 klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
 			 Qt::Checked : Qt::Unchecked);
     litem->setText(0, title);
-    litem->setText(1, description);
     
     litem->setData(0, KLFSETTINGS_ROLE_PLUGNAME, name);
     litem->setData(0, KLFSETTINGS_ROLE_PLUGINDEX, j);
@@ -233,6 +244,30 @@ void KLFSettings::initPluginControls()
   }
 
   _pluginstuffloaded = true;
+}
+
+void KLFSettings::refreshPluginSelected()
+{
+  QList<QTreeWidgetItem*> sel = lstPlugins->selectedItems();
+  if (sel.size() != 1) {
+    lblPluginInfo->setText("");
+    return;
+  }
+  int k = sel[0]->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
+  if (k < 0 || k >= klf_plugins.size()) {
+    lblPluginInfo->setText("");
+    return;
+  }
+
+  lblPluginInfo->setText(tr("<p style=\"-qt-block-indent:0; text-indent:0px;\">"
+			    "<tt><span style=\"font-style: italic; font-weight: 600;\">"
+			    "Plugin Information</span></tt><br />\n"
+			    "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
+			    "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
+			    "<tt>Description:</tt><br />\n"
+			    "<span style=\"font-weight: 600;\">%3</span>")
+			 .arg(Qt::escape(klf_plugins[k].title)).arg(Qt::escape(klf_plugins[k].author))
+			 .arg(Qt::escape(klf_plugins[k].description)));
 }
 
 
@@ -275,31 +310,134 @@ void KLFSettings::setDefaultPaths()
   bool r = setDefaultFor("epstopdf", tempobject.BackendSettings.execEpstopdf, false, pathEpstopdf);
   chkEpstopdf->setChecked(r);
 }
-void KLFSettings::importExtensionFile()
+
+
+void KLFSettings::refreshAddOnList()
 {
-  QStringList efnames = QFileDialog::getOpenFileNames(this, tr("Please select extension file(s) to import"),
+  lstAddOns->clear();
+  lstAddOns->setColumnWidth(0, 160);
+
+  // explore all addons
+  int k;
+  for (k = 0; k < klf_addons.size(); ++k) {
+    QTreeWidgetItem *item = new QTreeWidgetItem(lstAddOns);
+    item->setData(0, KLFSETTINGS_ROLE_ADDONINDEX, QVariant((int)k));
+
+    item->setText(0, klf_addons[k].title);
+    item->setText(1, klf_addons[k].description);
+
+    if (klf_addons[k].isfresh) {
+      item->setBackground(0, QColor(200, 255, 200));
+      item->setBackground(1, QColor(200, 255, 200));
+    } else if (klf_addons[k].islocal) {
+      item->setBackground(0, QColor(200, 200, 255));
+      item->setBackground(1, QColor(200, 200, 255));
+    }
+  }
+}
+
+void KLFSettings::refreshAddOnSelected()
+{
+  QList<QTreeWidgetItem*> sel = lstAddOns->selectedItems();
+  if (sel.size() != 1) {
+    lblAddOnInfo->setText("");
+    btnRemoveAddOn->setEnabled(false);
+    return;
+  }
+  int k = sel[0]->data(0, KLFSETTINGS_ROLE_ADDONINDEX).toInt();
+  if (k < 0 || k >= klf_addons.size()) {
+    lblAddOnInfo->setText("");
+    btnRemoveAddOn->setEnabled(false);
+    return;
+  }
+
+  // enable remove button only if this addon is "local", i.e. precisely removable
+  btnRemoveAddOn->setEnabled(klf_addons[k].islocal);
+
+  lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent:0; text-indent:0px;\">"
+			   "<tt><span style=\"font-style: italic; font-weight: 600;\">"
+			   "Add-On Information</span></tt><br />\n"
+			   "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
+			   "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
+			   "<tt>Description:</tt><br />\n"
+			   "<span style=\"font-weight: 600;\">%3</span><br />\n"
+			   "<tt>File Name:</tt> %4").arg(Qt::escape(klf_addons[k].title))
+			.arg(Qt::escape(klf_addons[k].author)).arg(Qt::escape(klf_addons[k].description))
+			.arg(Qt::escape(klf_addons[k].fname)));
+
+}
+
+
+void KLFSettings::importAddOn()
+{
+  QStringList efnames = QFileDialog::getOpenFileNames(this, tr("Please select add-on file(s) to import"),
 						      QString(), "Qt Resource Files (*.rcc)");
   int i;
   QString destination = klfconfig.homeConfigDir + "/rccresources/";
   for (i = 0; i < efnames.size(); ++i) {
-    // try registering resource to see its content
-    QResource::registerResource(efnames[i], ":/__klfsettings_proberesource/");
-    QFile infofile = QFile(":/__klfsettings_proberesource/rccinfo/info.xml");
-
-    QResource::unregisterResource(efnames[i], ":/__klfsettings_proberesource/");
-    /*
-      bool r = QFile::copy(efnames[i], destination + QFileInfo(efnames[i]).fileName());
-      if ( ! r ) {
-      QMessageBox::critical(this, tr("Error"), tr("Import of extension file %1 failed.").arg(efnames[i]));
+    QString destfpath = destination + QFileInfo(efnames[i]).fileName();
+    if ( QFile::exists(destfpath) ) {
+      QMessageBox::critical(this, tr("Error"), tr("An Add-On with the same file name has already been imported."));
+    } else {
+      bool r = QFile::copy(efnames[i], destfpath);
+      if ( r ) {
+	// import succeeded, show the add-on as fresh.
+	KLFAddOnInfo addoninfo(destfpath);
+	addoninfo.isfresh = true;
+	klf_addons.append(addoninfo);
+	refreshAddOnList();
+      } else {
+	QMessageBox::critical(this, tr("Error"), tr("Import of add-on file %1 failed.").arg(efnames[i]));
       }
-    */
+    }
   }
+  // display message to user to restart KLatexFormula, if needed
   if (i > 0) {
-    QMessageBox::information(this, tr("Import"),
-			     tr("Please restart KLatexFormula for changes to take effect.\n"
-				"In order to uninstall an extension, you need to manually remove "
-				"the corresponding file in directory: %1").arg(destination));
+    QMessageBox::information(this, tr("Import"), tr("Please restart KLatexFormula for changes to take effect."));
   }
+}
+
+void KLFSettings::removeAddOn()
+{
+  QList<QTreeWidgetItem*> sel = lstAddOns->selectedItems();
+  if (sel.size() != 1) {
+    qWarning("Expected single add-on selection for removal !");
+    return;
+  }
+
+  int k = sel[0]->data(0, KLFSETTINGS_ROLE_ADDONINDEX).toInt();
+  if (k < 0 || k >= klf_addons.size()) {
+    // what's going on ???
+    return;
+  }
+
+  QMessageBox confirmdlg(this);
+  confirmdlg.setIcon(QMessageBox::Warning);
+  confirmdlg.setWindowTitle(tr("Remove Add-On?"));
+  confirmdlg.setText(tr("<qt>Are you sure you want to remove Add-On <i>%1</i>?</qt>").arg(klf_addons[k].title));
+  confirmdlg.setDetailedText(tr("The Add-On File %1 will be removed from disk.").arg(klf_addons[k].fpath));
+  confirmdlg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+  confirmdlg.setEscapeButton(QMessageBox::Cancel);
+  confirmdlg.setDefaultButton(QMessageBox::Cancel);
+
+  int confirmation = confirmdlg.exec();
+  if (confirmation != QMessageBox::Yes) {
+    // action cancelled by user
+    return;
+  }
+
+  bool r = QFile::remove(klf_addons[k].fpath);
+  if ( r ) {
+    QMessageBox::information(this, tr("Import"), tr("Please restart KLatexFormula for changes to take effect."));
+  } else {
+    qWarning("Failed to remove add-on '%s'", qPrintable(klf_addons[k].fpath));
+    QMessageBox::critical(this, tr("Error"), tr("Failed to remove Add-On."));
+  }
+
+  klf_addons.removeAt(k);
+
+  refreshAddOnList();
+  refreshAddOnSelected();
 }
 
 void KLFSettings::slotChangeFont()

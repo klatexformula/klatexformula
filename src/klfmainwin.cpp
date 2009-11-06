@@ -48,6 +48,9 @@
 #include <QTemporaryFile>
 #include <QByteArray>
 #include <QBuffer>
+#include <QResource>
+#include <QDomDocument>
+#include <QDomElement>
 
 #include <klfbackend.h>
 
@@ -66,6 +69,26 @@
 
 #define min_i(x,y) ( (x)<(y) ? (x) : (y) )
 
+#define DEBUG_GEOM_ARGS(g) g.topLeft().x(), g.topLeft().y(), g.size().width(), g.size().height()
+
+static QRect klf_get_window_geometry(QWidget *w)
+{
+  // return QRect(w->pos(), w->size());
+  QRect g = w->frameGeometry();
+  //  qDebug("got %p geometry g=(%d,%d)+(%d,%d)", (void*)w, DEBUG_GEOM_ARGS(g));
+  return g;
+}
+
+static void klf_set_window_geometry(QWidget *w, QRect g)
+{
+  if ( ! g.isValid() )
+    return;
+
+  //  qDebug("Setting geometry for %p to (%d,%d)+(%d,%d)", (void*)w, DEBUG_GEOM_ARGS(g));
+
+  // w->resize(g.size()); w->move(g.pos())
+  w->setGeometry(g);
+}
 
 
 
@@ -519,6 +542,8 @@ KLFMainWin::KLFMainWin()
   connect(btnSettings, SIGNAL(clicked()), this, SLOT(slotSettings()));
   connect(btnSaveStyle, SIGNAL(clicked()), this, SLOT(slotSaveStyle()));
 
+  connect(btnQuit, SIGNAL(clicked()), this, SLOT(quit()));
+
   connect(mLibraryBrowser, SIGNAL(restoreFromLibrary(KLFData::KLFLibraryItem, bool)),
 	  this, SLOT(restoreFromLibrary(KLFData::KLFLibraryItem, bool)));
   connect(mLibraryBrowser, SIGNAL(refreshLibraryBrowserShownState(bool)),
@@ -527,6 +552,7 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(insertSymbol(const KLFLatexSymbol&)));
   connect(mLatexSymbols, SIGNAL(refreshSymbolBrowserShownState(bool)),
 	  this, SLOT(slotSymbolsButtonRefreshState(bool)));
+
 
   // our help dialog
 
@@ -566,11 +592,21 @@ KLFMainWin::KLFMainWin()
   mSettingsDialog = new KLFSettings(this);
 
 
+  // INSTALL SOME EVENT FILTERS... FOR show/hide EVENTS
+
+  mLibraryBrowser->installEventFilter(this);
+  mLatexSymbols->installEventFilter(this);
+  mStyleManager->installEventFilter(this);
+  mSettingsDialog->installEventFilter(this);
+
+
   // INTERNAL FLAGS
 
   _evaloutput_uptodate = false;
 
-  _ignore_hide_event = false;
+  _lastwindowshownstatus = 0;
+  _savedwindowshownstatus = 0;
+  _ignore_close_event = false;
 }
 
 
@@ -588,6 +624,9 @@ KLFMainWin::~KLFMainWin()
     delete mLatexSymbols;
   if (mLibraryBrowser)
     delete mLibraryBrowser; // we aren't its parent
+  if (mSettingsDialog)
+    delete mSettingsDialog;
+
   if (mPreambleHighlighter)
     delete mPreambleHighlighter;
   if (mHighlighter)
@@ -984,20 +1023,19 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
 void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
 {
   btnSymbols->setChecked(on);
-  //   if (...................kapp->sessionSaving()) {
-  //     // if we're saving the session, remember that latex symbols is on
-  //   } else {
-  //     _latexSymbolsIsShown = on;
-  //   }
 }
 
-void KLFMainWin::setQuitOnHide(bool quitonhide)
+
+void KLFMainWin::setQuitOnClose(bool quitOnClose)
 {
-  _ignore_hide_event = ! quitonhide;
+  _ignore_close_event = ! quitOnClose;
 }
+
 
 void KLFMainWin::quit()
 {
+  hide();
+
   if (mLibraryBrowser)
     mLibraryBrowser->hide();
   if (mLatexSymbols)
@@ -1009,9 +1047,16 @@ void KLFMainWin::quit()
   qApp->quit();
 }
 
+bool KLFMainWin::event(QEvent *e)
+{
+  //  qDebug("Event: e->type() == %d", (int)e->type());
+  return QWidget::event(e);
+}
+
 
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 {
+  //  qDebug("eventFilter, e->type()==%d", (int)e->type());
   if (obj == txtLatex) {
     if (e->type() == QEvent::KeyPress) {
       QKeyEvent *ke = (QKeyEvent*) e;
@@ -1027,19 +1072,84 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
       slotDrag();
     }
   }
+  // ----
+  if ( e->type() == QEvent::Hide || e->type() == QEvent::Show ) {
+    // shown/hidden windows: save/restore geometry
+    QWidget *sh_widgets[] = { mLibraryBrowser, mLatexSymbols, mSettingsDialog, mStyleManager, NULL };
+    int sh_enum[] = { LibraryBrowser, LatexSymbols, SettingsDialog, StyleManager, -1 };
+    int k;
+    for (k = 0; sh_widgets[k] != NULL && sh_enum[k] >= 0; ++k) {
+      if (obj == sh_widgets[k] && e->type() == QEvent::Hide && !((QHideEvent*)e)->spontaneous()) {
+	if (_lastwindowshownstatus & sh_enum[k])
+	  _lastwindowgeometries[sh_enum[k]] = klf_get_window_geometry(sh_widgets[k]);
+	_lastwindowshownstatus &= ~sh_enum[k];
+      }
+      // -
+      if (obj == sh_widgets[k] && e->type() == QEvent::Show && !((QShowEvent*)e)->spontaneous()) {
+	_lastwindowshownstatus |= sh_enum[k];
+	klf_set_window_geometry(sh_widgets[k], _lastwindowgeometries[sh_enum[k]]);
+      }
+    }
+  }
+  // ----
   return QWidget::eventFilter(obj, e);
+}
+
+
+uint KLFMainWin::currentWindowShownStatus()
+{
+  uint flags = 0;
+
+  flags |= isVisible();
+
+  if (mLibraryBrowser && mLibraryBrowser->isVisible())
+    flags |= LibraryBrowser;
+  if (mLatexSymbols && mLatexSymbols->isVisible())
+    flags |= LatexSymbols;
+  if (mStyleManager && mStyleManager->isVisible())
+    flags |= StyleManager;
+  if (mSettingsDialog && mSettingsDialog->isVisible())
+    flags |= SettingsDialog;
+
+  return flags;
+}
+
+void KLFMainWin::setWindowShownStatus(uint fl, bool metoo)
+{
+  if (metoo)
+    setVisible(fl);
+
+  if (mLibraryBrowser)
+    mLibraryBrowser->setVisible(fl & LibraryBrowser);
+  if (mLatexSymbols)
+    mLatexSymbols->setVisible(fl & LatexSymbols);
+  if (mStyleManager)
+    mStyleManager->setVisible(fl & StyleManager);
+  if (mSettingsDialog)
+    mSettingsDialog->setVisible(fl & SettingsDialog);
 }
 
 
 void KLFMainWin::hideEvent(QHideEvent *e)
 {
-  if (e->spontaneous())
-    return;
+  if ( ! e->spontaneous() ) {
+    _savedwindowshownstatus = currentWindowShownStatus();
+    _lastwindowgeometries[MainWin] = klf_get_window_geometry(this);
+    setWindowShownStatus(0); // hide all windows
+  }
 
-  if (_ignore_hide_event)
-    return;
+  QWidget::hideEvent(e);
+}
 
-  quit();
+void KLFMainWin::showEvent(QShowEvent *e)
+{
+  if ( ! e->spontaneous() ) {
+    // restore shown windows ...
+    klf_set_window_geometry(this, _lastwindowgeometries[MainWin]);
+    setWindowShownStatus(_savedwindowshownstatus);
+  }
+
+  QWidget::showEvent(e);
 }
 
 
@@ -1657,73 +1767,83 @@ void KLFMainWin::slotSettings()
 
 void KLFMainWin::closeEvent(QCloseEvent *event)
 {
+  if (_ignore_close_event) {
+    // simple hide, not close
+    hide();
+
+    event->ignore();
+    return;
+  }
+
   event->accept();
+  quit();
 }
 
 
 
 
+// -----------------------------------------------------------------
 
-//.......................................
-/*
-void KLFMainWin::saveProperties(KConfig *cfg)
+
+
+// DEFINE ADD-ON UTILITIES
+// declarations in klfmainwin.
+
+QList<KLFAddOnInfo> klf_addons;
+bool klf_addons_canimport = false;
+
+KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
 {
-  saveSettings();
-  saveStyles();
-  saveLibrary();
+  QFileInfo fi(rccfpath);
+  
+  fname = fi.fileName();
+  dir = fi.absolutePath();
+  fpath = fi.absoluteFilePath();
 
-  cfg->writeEntry("txeLatex", mMainWidget->txeLatex->text());
-  cfg->writeEntry("kccFg", mMainWidget->kccFg->color());
-  cfg->writeEntry("chkBgTransparent", (bool)mMainWidget->chkBgTransparent->isChecked());
-  cfg->writeEntry("kccBg", mMainWidget->kccBg->color());
-  cfg->writeEntry("chkMathMode", (bool)mMainWidget->chkMathMode->isChecked());
-  cfg->writeEntry("cbxMathMode", mMainWidget->cbxMathMode->currentText());
-  cfg->writeEntry("txePreamble", mMainWidget->txePreamble->text());
-  cfg->writeEntry("spnDPI", (int)mMainWidget->spnDPI->value());
+  islocal = fi.isWritable() || QFileInfo(dir).isWritable();
 
-  cfg->writeEntry("displayExpandedMode", (bool)mMainWidget->frmDetails->isVisible());
+  isfresh = false;
 
-  cfg->writeEntry("displayLibraryBrowserVisible", _libraryBrowserIsShown);
-  cfg->writeEntry("displayLatexSymbolsVisible", _latexSymbolsIsShown);
-  cfg->writeEntry("displayLibraryBrowserGeometry", mLibraryBrowser->geometry());
-  cfg->writeEntry("displayLatexSymbolsGeometry", mLatexSymbols->geometry());
+  QByteArray rccinfodata;
+  
+  { // try registering resource to see its content
+    const char * temproot = ":/__klfaddoninfo_temp_resource";
+    QResource::registerResource(fpath, temproot);
+    QFile infofile(temproot+QString::fromLatin1("/rccinfo/info.xml"));
+    infofile.open(QIODevice::ReadOnly);
+    rccinfodata = infofile.readAll();
+    QResource::unregisterResource(fpath, temproot);
+  }
+  // parse resource's rccinfo/info.xml file
+  QDomDocument xmldoc;
+  xmldoc.setContent(rccinfodata);
 
-  KMainWindow::saveProperties(cfg);
+  // and explore the document
+  QDomElement xmlroot = xmldoc.documentElement();
+  if (xmlroot.nodeName() != "rccinfo") {
+    qWarning("Add-on file `%s' has invalid XML information.", qPrintable(rccfpath));
+    title = QObject::tr("(Name Not Provided)", "[KLFAddOnInfo: add-on information XML data is invalid]");
+    description = QObject::tr("(Invalid XML Data Provided By Add-On)",
+			      "[KLFAddOnInfo: add-on information XML data is invalid]");
+    author = QObject::tr("(No Author Provided)",
+			 "[KLFAddOnInfo: add-on information XML data is invalid]");
+    return;
+  }
+  QDomNode n;
+  for (n = xmlroot.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+    QDomElement e = n.toElement();
+    if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
+      continue;
+    if ( e.nodeName() == "title" ) {
+      title = e.text().trimmed();
+    }
+    if ( e.nodeName() == "description" ) {
+      description = e.text().trimmed();
+    }
+    if ( e.nodeName() == "author" ) {
+      author = e.text().trimmed();
+    }
+  }
+
 }
-void KLFMainWin::readProperties(KConfig *cfg)
-{
-  loadSettings();
-  loadStyles();
-  loadLibrary();
-
-  mMainWidget->txeLatex->setText(cfg->readEntry("txeLatex", ""));
-  mMainWidget->kccFg->setColor(cfg->readColorEntry("kccFg"));
-  mMainWidget->chkBgTransparent->setChecked(cfg->readBoolEntry("chkBgTransparent", true));
-  mMainWidget->kccBg->setColor(cfg->readColorEntry("kccBg"));
-  mMainWidget->chkMathMode->setChecked(cfg->readBoolEntry("chkMathMode", true));
-  mMainWidget->cbxMathMode->setCurrentText(cfg->readEntry("cbxMathMode"));
-  mMainWidget->txePreamble->setText(cfg->readEntry("txePreamble", ""));
-  mMainWidget->spnDPI->setValue(cfg->readNumEntry("spnDPI", 1200));
-
-  mMainWidget->frmDetails->setShown(cfg->readBoolEntry("displayExpandedMode", false));
-
-  // history browser geometry
-  bool hb_vis = false;
-  QRect hb_r = mLibraryBrowser->geometry();
-  hb_vis = cfg->readBoolEntry("displayLibraryBrowserVisible", hb_vis);
-  hb_r = cfg->readRectEntry("displayLibraryBrowserGeometry", &hb_r);
-  slotLibrary(hb_vis);
-  mLibraryBrowser->setGeometry(hb_r);
-  // latex symbols geometry
-  bool ls_vis = false;
-  QRect ls_r = mLatexSymbols->geometry();
-  ls_vis = cfg->readBoolEntry("displayLatexSymbolsVisible", ls_vis);
-  ls_r = cfg->readRectEntry("displayLatexSymbolsGeometry", &ls_r);
-  slotSymbols(ls_vis);
-  mLatexSymbols->setGeometry(ls_r);
-
-
-  KMainWindow::readProperties(cfg);
-}
-*/
 
