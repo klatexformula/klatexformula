@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = lib
-CONFIG += plugin qt release
+CONFIG += plugin qt release dll
 QT += gui core xml
 DEFINES += KLFBACKEND_QT4
 DEPENDPATH += .

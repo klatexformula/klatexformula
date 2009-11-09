@@ -25,12 +25,12 @@ QT = core gui xml
 }
 
 DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\" KLF_SRC_BUILD
-LIBS += -Wl,-export-dynamic  -Lklfbackend -Lklfbackend/release -lklfbackend -L. -lklfsrc
+LIBS += -Wl,-export-dynamic  -Lklfbackend -Lklfbackend/release -lklfbackend -L. -Lrelease -lklfsrc
 
 SOURCES += main.cpp
 
 RESOURCES += klfres.qrc plugins/klfbaseplugindata.qrc
-win32: RESOURCES += plugins/klfbaseplugins_win.qrc
+#win32: RESOURCES += plugins/klfbaseplugins_win.qrc
 unix: RESOURCES += plugins/klfbaseplugins_unix.qrc
 macx: RESOURCES += plugins/klfbaseplugins_mac.qrc
 
