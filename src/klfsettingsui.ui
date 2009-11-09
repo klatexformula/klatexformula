@@ -1210,6 +1210,9 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
           <property name="indentation">
            <number>0</number>
           </property>
@@ -1319,6 +1322,9 @@
              </property>
              <property name="showDropIndicator" stdset="0">
               <bool>false</bool>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
              </property>
              <property name="indentation">
               <number>10</number>

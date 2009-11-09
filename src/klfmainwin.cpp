@@ -1220,13 +1220,19 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
 {
   if (_evaloutput_uptodate)
     return;
+
+  QPalette pal = lblOutput->palette();
+  QPalette::ColorRole bgrole = QPalette::Window;
   if (latexerror) {
-    lblOutput->setStyleSheet("background-color: rgb(255, 220, 220)");
-    return;
+    pal.setColor(bgrole, QColor(255, 200, 200));
+    lblOutput->setProperty("realTimeLatexError", true);
   } else {
-    lblOutput->setStyleSheet("");
+    pal.setColor(bgrole, palette().color(bgrole));
+    lblOutput->setProperty("realTimeLatexError", false);
+    lblOutput->setPixmap(QPixmap::fromImage(preview));
   }
-  lblOutput->setPixmap(QPixmap::fromImage(preview));
+  lblOutput->setStyleSheet(lblOutput->styleSheet()); // force style sheet refresh
+  lblOutput->setPalette(pal);
   lblOutput->setEnabled(false);
 }
 
@@ -1295,6 +1301,7 @@ void KLFMainWin::slotEvaluate()
       sc = QPixmap::fromImage(_output.result);
     lblOutput->setPixmap(sc);
     lblOutput->setStyleSheet("");
+    lblOutput->setProperty("realTimeLatexError", false);
     lblOutput->setEnabled(true);
 
     frmOutput->setEnabled(true);

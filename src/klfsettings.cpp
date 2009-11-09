@@ -259,15 +259,16 @@ void KLFSettings::refreshPluginSelected()
     return;
   }
 
-  lblPluginInfo->setText(tr("<p style=\"-qt-block-indent:0; text-indent:0px;\">"
+  lblPluginInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px;\">"
 			    "<tt><span style=\"font-style: italic; font-weight: 600;\">"
 			    "Plugin Information</span></tt><br />\n"
 			    "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
 			    "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
 			    "<tt>Description:</tt><br />\n"
-			    "<span style=\"font-weight: 600;\">%3</span>")
+			    "<span style=\"font-weight: 600;\">%3</span><br />\n")
 			 .arg(Qt::escape(klf_plugins[k].title)).arg(Qt::escape(klf_plugins[k].author))
-			 .arg(Qt::escape(klf_plugins[k].description)));
+			 .arg(Qt::escape(klf_plugins[k].description))
+			 );
 }
 
 
@@ -354,16 +355,21 @@ void KLFSettings::refreshAddOnSelected()
   // enable remove button only if this addon is "local", i.e. precisely removable
   btnRemoveAddOn->setEnabled(klf_addons[k].islocal);
 
-  lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent:0; text-indent:0px;\">"
+  lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px;\">"
 			   "<tt><span style=\"font-style: italic; font-weight: 600;\">"
 			   "Add-On Information</span></tt><br />\n"
 			   "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
 			   "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
 			   "<tt>Description:</tt><br />\n"
 			   "<span style=\"font-weight: 600;\">%3</span><br />\n"
-			   "<tt>File Name:</tt> %4").arg(Qt::escape(klf_addons[k].title))
+			   "<tt>File Name:</tt> %4<br />\n"
+			   "<tt><i>%5</i></tt>").arg(Qt::escape(klf_addons[k].title))
 			.arg(Qt::escape(klf_addons[k].author)).arg(Qt::escape(klf_addons[k].description))
-			.arg(Qt::escape(klf_addons[k].fname)));
+			.arg(Qt::escape(klf_addons[k].fname))
+			.arg( klf_addons[k].islocal ?
+			      tr("Add-On installed locally") :
+			      tr("Add-On installed globally on system") )
+			);
 
 }
 

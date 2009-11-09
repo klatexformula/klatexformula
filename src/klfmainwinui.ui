@@ -318,6 +318,9 @@
            <property name="whatsThis">
             <string comment="whatsthis">Here you can see the image you get after evaluating your LaTeX code.</string>
            </property>
+           <property name="autoFillBackground">
+            <bool>true</bool>
+           </property>
            <property name="frameShape">
             <enum>QFrame::NoFrame</enum>
            </property>
