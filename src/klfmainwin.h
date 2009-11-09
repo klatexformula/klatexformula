@@ -343,6 +343,8 @@ struct KLFPluginInfo
   QString title;
   QString description;
 
+  QString fpath;
+
   KLFPluginGenericInterface * instance;
 };
 

@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>567</width>
-    <height>616</height>
+    <width>590</width>
+    <height>620</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -1298,8 +1298,8 @@
          <property name="title">
           <string>Plugin Loading</string>
          </property>
-         <layout class="QGridLayout" name="lyt_gbxPlugins">
-          <item row="0" column="0">
+         <layout class="QVBoxLayout" name="lyt_Plugins">
+          <item>
            <widget class="QSplitter" name="splitterPlugins">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -1367,6 +1367,19 @@
               <bool>true</bool>
              </property>
             </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnRemovePlugin">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Remove Plugin</string>
+            </property>
            </widget>
           </item>
          </layout>

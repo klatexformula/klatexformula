@@ -53,6 +53,7 @@ public slots:
   void setDefaultPaths();
   void importAddOn();
   void removeAddOn();
+  void removePlugin();
 
 protected:
 

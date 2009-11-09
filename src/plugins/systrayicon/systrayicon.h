@@ -51,7 +51,7 @@ public:
   virtual QVariant pluginInfo(PluginInfo which) const {
     switch (which) {
     case PluginName: return QString("systrayicon");
-    case PluginAuthor: return "Philippe Faist <philippe.f"+QString("aist@bluewin.c")+"h";
+    case PluginAuthor: return "Philippe Faist <philippe.f"+QString("aist@bluewin.c")+"h>";
     case PluginTitle: return tr("System Tray Icon");
     case PluginDescription: return tr("Dock KLatexFormula into system tray");
     case PluginDefaultEnable: return false;

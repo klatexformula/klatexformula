@@ -635,7 +635,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     QStringList plugins = thisplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
     KLFPluginGenericInterface * pluginInstance;
     for (j = 0; j < plugins.size(); ++j) {
-      QPluginLoader pluginLoader(thisplugdir.absoluteFilePath(plugins[j]), app);
+      QString pluginpath = thisplugdir.absoluteFilePath(plugins[j]);
+      QPluginLoader pluginLoader(pluginpath, app);
       QObject *pluginInstObject = pluginLoader.instance();
       if (pluginInstObject) {
 	pluginInstance = qobject_cast<KLFPluginGenericInterface *>(pluginInstObject);
@@ -657,6 +658,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  pluginInfo.title = pluginInstance->pluginTitle();
 	  pluginInfo.description = pluginInstance->pluginDescription();
 	  pluginInfo.author = pluginInstance->pluginAuthor();
+	  pluginInfo.fpath = pluginpath;
 	  pluginInfo.instance = NULL;
 
 	  // if we are configured to load this plugin, load it.
@@ -667,8 +669,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	    pluginInfo.instance = pluginInstance;
 	    qDebug("\tPlugin %s loaded.", qPrintable(nm));
 	  } else {
-	    // if we aren't configured to load it, then discard it, but keep info with NULL instance
-	    // for settings dialog.
+	    // if we aren't configured to load it, then discard it, but keep info with NULL instance,
+	    // so that user can configure to load or not this plugin in the settings dialog.
 	    pluginInfo.instance = NULL;
 	    delete pluginInstance;
 	    qDebug("\tPlugin %s NOT loaded.", qPrintable(nm));

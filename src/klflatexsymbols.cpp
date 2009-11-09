@@ -301,16 +301,19 @@ public:
 
   int precacheList(const QList<KLFLatexSymbol>& list, bool userfeedback, QWidget *parent = 0)
   {
-    QProgressDialog *pdlg;
+    QProgressDialog *pdlg = NULL;
 
     if (userfeedback) {
-      pdlg = new QProgressDialog(QObject::tr("Please wait while generating symbol previews ... "), QObject::tr("Cancel"),
-				 0, list.size()-1, parent);
+      pdlg = new QProgressDialog(QObject::tr("Please wait while generating symbol previews ... "),
+				 QObject::tr("Skip"), 0, list.size()-1, parent);
+      pdlg->setWindowModality(Qt::WindowModal);
       pdlg->setValue(0);
     }
 
     for (int i = 0; i < list.size(); ++i) {
       if (userfeedback) {
+	// get events for cancel button (for example)
+	qApp->processEvents(QEventLoop::AllEvents, 50);
 	if (pdlg->wasCanceled()) {
 	  delete pdlg;
 	  return 1;
@@ -509,7 +512,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
       QFile::copy(":/data/symbolspixmapcache_base", s);
       QFile::setPermissions(s, QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
     }
-    
+
     QFile f(s);
     if ( ! f.open(QIODevice::ReadOnly) ) {
       qCritical() << tr("Warning: failed to open file `%1'!").arg(s);
