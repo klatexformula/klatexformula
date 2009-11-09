@@ -25,7 +25,7 @@ QT = core gui xml
 }
 
 DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\" KLF_SRC_BUILD
-LIBS += -Wl,-export-dynamic  -Lklfbackend -Lklfbackend/release -lklfbackend -L. -Lrelease -lklfsrc
+LIBS += -Wl,-export-dynamic  -L. -Lrelease -lklfsrc  -Lklfbackend -Lklfbackend/release -lklfbackend
 
 SOURCES += main.cpp
 
