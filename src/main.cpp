@@ -297,6 +297,7 @@ const char * klfresources_default_rel = "/../share/klatexformula/rccresources/";
 void signal_act(int sig)
 {
   if (sig == SIGINT) {
+    fprintf(stderr, "Interrupt\n");
     if (qApp != NULL) {
       qApp->quit();
     } else {

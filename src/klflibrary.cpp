@@ -53,18 +53,21 @@ extern const char version[];
 extern const int version_maj, version_min;
 
 
-
-void dump_library_list(const KLFData::KLFLibraryList& list, const char *comment)
+/*
+static void dump_library_list(const KLFData::KLFLibraryList& list, const char *comment)
 {
+  // needless to say this is a DEBUG function ...
+
   int k;
   printf("\n----------- LIBRARY RESOURCE [ %s ] ---------------\n", comment);
   for (k = 0; k < list.size(); ++k) {
-    printf("#%03d: CAT='%s' TAGS='%s' LATEX='%s'\n", k, list[k].category.toLocal8Bit().data(), list[k].tags.toLocal8Bit().data(),
+    printf("#%03d: CAT='%s' TAGS='%s' LATEX='%s'\n", k, list[k].category.toLocal8Bit().data(),
+	   list[k].tags.toLocal8Bit().data(),
 	   list[k].latex.toLocal8Bit().data());
   }
   printf("---------------------------------------------------\n");
 }
-
+*/
 
 
 KLFLibraryListCategoryViewItem::KLFLibraryListCategoryViewItem(QTreeWidget *parent, QString category)
@@ -92,6 +95,8 @@ void KLFLibraryListCategoryViewItem::setup_category_item()
 KLFLibraryListCategoryViewItem::~KLFLibraryListCategoryViewItem()
 {
 }
+
+// -------------
 
 KLFLibraryListViewItem::KLFLibraryListViewItem(QTreeWidgetItem *v, const KLFData::KLFLibraryItem& item, int index)
   : QTreeWidgetItem(v, Type)
@@ -124,22 +129,45 @@ QSize KLFLibraryListViewItem::sizeHint(int column) const
   return QTreeWidgetItem::sizeHint(column);
 }
 
-// int KLFLibraryListViewItem::compare(QListViewItem *i, int /*col*/, bool ascending) const
-// {
-//   if (i->rtti() != KLFLibraryListViewItem::RTTI)
-//     return 1; // we come after any other item type (ie. categories)
-//   KLFLibraryListViewItem *item = (KLFLibraryListViewItem*) i;
-//   int k = ascending ? -1 : 1; // negative if ascending
-//   return k*(_ind - item->_ind);
-// }
+void KLFLibraryListViewItem::setShowTagsHideLatex(bool on)
+{
+  _showtagshidelatex = on;
+  updateLibraryItem(_item);
+
+  QFont f = font(0);
+  QFont f2 = f;
+  f2.setPointSize(f2.pointSize() + 1);
+  f2.setStyle(QFont::StyleItalic);
+  setFont(1, on ? f2 : f);
+}
 
 void KLFLibraryListViewItem::updateLibraryItem(const KLFData::KLFLibraryItem& item)
 {
   _item = item;
   setIcon(0, _item.preview);
-  QString l = _item.latex;
-  l.replace("\n", "\t");
-  setText(1, l);
+
+  if (_showtagshidelatex) {
+    // show tags in second column
+    setText(1, _item.tags);
+  } else {
+    // show latex in second column
+
+    QString l = _item.latex;
+    // remove any category/item comments in item
+    while (l.startsWith("\n"))
+      l.remove(0, 1);
+    if (l.startsWith("%:"))
+      l.remove(0, l.indexOf("\n")+1);
+    while (l.startsWith("\n"))
+      l.remove(0, 1);
+    if (l.startsWith("%"))
+      l.remove(0, l.indexOf("\n")+1);
+    while (l.startsWith("\n"))
+    l.remove(0, 1);
+    
+    l.replace("\n", "\t");
+    setText(1, l);
+  }
 }
 
 
@@ -156,33 +184,20 @@ QList<QTreeWidgetItem*> get_selected_items(QTreeWidget *w, int givenType)
       filtered.append(l[i]);
   }
   return filtered;
-//   QValueList<QListViewItem*> selected_list;
-//   // get selection. For that, iterate all items and check their selection state.
-//   QListViewItemIterator iter(lview);
-
-//   while (iter.current()) {
-//     if (givenRTTI >= 0 && iter.current()->rtti() != givenRTTI) {
-//       ++iter;
-//       continue;
-//     }
-//     if (iter.current()->isSelected()) {
-//       selected_list.append(iter.current());
-//       ++iter;
-//     } else {
-//       ++iter;
-//     }
-//   }
-//   return selected_list;
 }
 
 
 
 // ------------------------------------------------------------------------
 
-KLFLibraryListManager::KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrowser *parent, KLFData::KLFLibraryResource myresource,
-					     KLFData::KLFLibrary *wholelibrary, KLFData::KLFLibraryResourceList *reslstptr, uint flags)
+KLFLibraryListManager::KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrowser *parent,
+					     KLFData::KLFLibraryResource myresource,
+					     KLFData::KLFLibrary *wholelibrary,
+					     KLFData::KLFLibraryResourceList *reslstptr,
+					     uint flags)
   : QObject(parent), _parent(parent), _listView(lview), _fulllibraryptr(wholelibrary),
-    _reslistptr(reslstptr), _myresource(myresource), _flags(flags), _am_libchg_originator(false), _dont_emit_libchg(false)
+    _reslistptr(reslstptr), _myresource(myresource), _flags(flags), _am_libchg_originator(false),
+    _dont_emit_libchg(false)
 {
   setObjectName("librarylistmanager");
 
@@ -191,8 +206,20 @@ KLFLibraryListManager::KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrows
   _search_str = QString("");
   _search_k = 0;
 
-  _listView->setHeaderLabels(QStringList() << tr("Preview") << tr("Latex Code"));
-  _listView->setColumnWidth(0, 320);
+  int Nindents = 2;
+  if (flags & ShowCategories)
+    Nindents = 3;
+  if (flags & ShowCategoriesDeepTree)
+    Nindents = 4;
+
+  QStringList labels;
+  labels = QStringList() << tr("Preview") << tr("Latex Code");
+  if (flags & ShowTagsHideLatex)
+    labels = QStringList() << tr("Preview") << tr("Tags");
+
+  _listView->setHeaderLabels(labels);
+  _listView->setIndentation(15);
+  _listView->setColumnWidth(0, Nindents*_listView->indentation() + klfconfig.UI.labelOutputFixedSize.width());
   _listView->setColumnWidth(1, 800);
   _listView->setIconSize(klfconfig.UI.labelOutputFixedSize);
   _listView->setSelectionMode(QTreeWidget::ExtendedSelection);
@@ -210,7 +237,7 @@ KLFLibraryListManager::KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrows
 	  this, SLOT(slotContextMenu(const QPoint&)));
 
   connect(_listView, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)), this, SIGNAL(selectionChanged()));
-  connect(_listView, SIGNAL(itemSelectionChanged()), this, SIGNAL(selectionChanged()));
+  connect(_listView, SIGNAL(itemSelectionChanged()), this, SLOT(slotSelectionChanged()));
   connect(_listView, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),
 	  this, SLOT(slotRestoreAll()));
   //  connect(_listView, SIGNAL(itemActivated(QTreeWidgetItem *, int)),
@@ -640,6 +667,44 @@ void KLFLibraryListManager::slotSearchAbort()
   _search_k = _libItems->size();
 }
 
+static void categoryitem_select_child_klfitems(QTreeWidget *listView, QTreeWidgetItem *item)
+{
+  // unselect the category item
+  item->setSelected(false);
+  // but select all its children
+  int k;
+  QTreeWidgetItem *child;
+  QTreeWidgetItem *p;
+  for (k = 0; k < item->childCount(); ++k) {
+    child = item->child(k);
+    if (child->type() == KLFLibraryListViewItem::Type) {
+      child->setSelected(true);
+      for (p = child->parent(); p != NULL && p != listView->invisibleRootItem(); p = p->parent())
+	p->setExpanded(true);
+    }
+    if (child->type() == KLFLibraryListCategoryViewItem::Type)
+      categoryitem_select_child_klfitems(listView, child);
+  }
+}
+
+void KLFLibraryListManager::slotSelectionChanged()
+{
+  // adjust selection if needed
+  // while doing so ensure that listview will not emit any signals
+  _listView->blockSignals(true);
+  QList<QTreeWidgetItem*> selitems = _listView->selectedItems();
+  int j;
+  for (j = 0; j < selitems.size(); ++j) {
+    if (selitems[j]->type() == KLFLibraryListCategoryViewItem::Type) {
+      categoryitem_select_child_klfitems(_listView, selitems[j]);
+    }
+  }
+  _listView->blockSignals(false);
+  emit selectionChanged();
+}
+
+
+
 void KLFLibraryListManager::slotCompleteRefresh()
 {
   if (_am_libchg_originator)
@@ -671,6 +736,8 @@ void KLFLibraryListManager::slotCompleteRefresh()
       } else {
 	_listView->insertTopLevelItem(0, itm);
       }
+      if (_flags & ShowTagsHideLatex)
+	itm->setShowTagsHideLatex(true);
     }
   }
   for (i = 0; i < mCategoryItems.size(); ++i) {
@@ -906,9 +973,12 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
     if (_libresptr->operator[](k).id == KLFData::LibResource_History) {
       flags = KLFLibraryListManager::NoFlags;
     } else if (_libresptr->operator[](k).id == KLFData::LibResource_Archive) {
-      flags = KLFLibraryListManager::ShowCategories | KLFLibraryListManager::ShowCategoriesDeepTree;
+      flags = KLFLibraryListManager::ShowCategories
+	|  KLFLibraryListManager::ShowCategoriesDeepTree
+	|  KLFLibraryListManager::ShowTagsHideLatex ;
     }
-    KLFLibraryListManager *manager = new KLFLibraryListManager(lstview, this, _libresptr->operator[](k), _libptr, _libresptr, flags);
+    KLFLibraryListManager *manager = new KLFLibraryListManager(lstview, this, _libresptr->operator[](k),
+							       _libptr, _libresptr, flags);
 
     connect(manager, SIGNAL(restoreFromLibrary(KLFData::KLFLibraryItem, bool)),
 	    this, SIGNAL(restoreFromLibrary(KLFData::KLFLibraryItem, bool)));

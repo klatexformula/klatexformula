@@ -72,6 +72,8 @@ public:
 
   virtual QSize sizeHint(int column) const;
 
+  void setShowTagsHideLatex(bool showtagshidelatex);
+
   KLFData::KLFLibraryItem libraryItem() const { return _item; }
   int index() const { return _ind; }
 
@@ -81,6 +83,8 @@ public:
 protected:
   KLFData::KLFLibraryItem _item;
   int _ind;
+
+  bool _showtagshidelatex;
 };
 
 
@@ -96,9 +100,11 @@ class KLFLibraryListManager : public QObject
 {
   Q_OBJECT
 public:
-  enum Flags { NoFlags = 0x00,
+  enum Flags {
+    NoFlags = 0x00,
     ShowCategories = 0x01,
     ShowCategoriesDeepTree = 0x02,
+    ShowTagsHideLatex = 0x04,
     DefaultFlags = ShowCategories|ShowCategoriesDeepTree
   };
   KLFLibraryListManager(QTreeWidget *lview, KLFLibraryBrowser *parent, KLFData::KLFLibraryResource myresource,
@@ -148,6 +154,8 @@ public slots:
   bool slotSearchFindNext(int direction = 1);
   bool slotSearchFindPrev();
   void slotSearchAbort();
+
+  void slotSelectionChanged();
 
   // complete refresh, typically connected to libraryChanged() of parent object
   void slotCompleteRefresh();
