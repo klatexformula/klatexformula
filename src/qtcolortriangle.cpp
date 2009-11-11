@@ -1,3 +1,12 @@
+/*
+ * This file was very Slightly modified by Philippe Faist for KLatexFormula. (april 2009)
+ * In order for integration into KLatexFormula, this code is relicensed
+ * to **GPL Version 2.1 or higher** as described in the footnote to the GPL
+ * compatibility table found at
+ *   http://www.gnu.org/licenses/gpl-faq.html#compat-matrix-footnote-7
+ *
+ */
+
 /****************************************************************************
 **
 ** This file is part of a Qt Solutions component.
@@ -286,7 +295,7 @@ void QtColorTriangle::mouseMoveEvent(QMouseEvent *e)
 
 	if (curHue != h) {
 	    newColor = true;
-	    curColor.setHsv(curHue, s, v);
+	    curColor.setHsv(curHue, s, v, curColor.alpha());
 	}
 
 	double cx = (double) contentsRect().center().x();
@@ -321,13 +330,13 @@ void QtColorTriangle::mouseMoveEvent(QMouseEvent *e)
 	    // saturation and value.
 	    int h,s,v;
 	    col.getHsv(&h, &s, &v);
-	    curColor.setHsv(curHue, s, v);
+	    curColor.setHsv(curHue, s, v, curColor.alpha());
 	    newColor = true;
 	}
     }
 
     if (newColor)
-	emit colorChanged(curColor);
+	internalSetNewColor(curColor);
 
     update();
 }
@@ -370,7 +379,7 @@ void QtColorTriangle::mousePressEvent(QMouseEvent *e)
 
 	if (h != curHue) {
 	    newColor = true;
-	    curColor.setHsv(curHue, s, v);
+	    curColor.setHsv(curHue, s, v, curColor.alpha());
 	}
 
 	double cx = (double) contentsRect().center().x();
@@ -386,7 +395,7 @@ void QtColorTriangle::mousePressEvent(QMouseEvent *e)
 			 cy - (sin(a) * (outerRadius - (outerRadius / 10.0))));
 
 	selectorPos = pointFromColor(curColor);
-	emit colorChanged(curColor);
+	internalSetNewColor(curColor);
     } else {
 	selMode = SelectingSatValue;
 
@@ -404,13 +413,15 @@ void QtColorTriangle::mousePressEvent(QMouseEvent *e)
 	selectorPos = movePointToTriangle(depos.x(), depos.y(), aa, bb, cc);
 	QColor col = colorFromPoint(selectorPos);
 	if (col != curColor) {
+	    int tempalpha = curColor.alpha();
 	    curColor = col;
+	    curColor.setAlpha(tempalpha);
 	    newColor = true;
 	}
     }
 
     if (newColor)
-	emit colorChanged(curColor);
+	internalSetNewColor(curColor);
 
     update();
 }
@@ -588,6 +599,14 @@ void QtColorTriangle::paintEvent(QPaintEvent *e)
     // Blit
     p.drawPixmap(contentsRect().topLeft(), pix);
 }
+
+
+void QtColorTriangle::internalSetNewColor(const QColor& color)
+{
+  emit colorChanged(color);
+}
+
+
 
 /*! \internal
 
@@ -835,7 +854,7 @@ void QtColorTriangle::setColor(const QColor &col)
     selectorPos = pointFromColor(curColor);
     update();
 
-    emit colorChanged(curColor);
+    internalSetNewColor(curColor);
 }
 
 /*! \internal

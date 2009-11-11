@@ -1,10 +1,15 @@
+/*
+ * This file was very Slightly modified by Philippe Faist for KLatexFormula. (april 2009)
+ * In order for integration into KLatexFormula, this code is relicensed
+ * to **GPL Version 2.1 or higher** as described in the footnote to the GPL
+ * compatibility table found at
+ *   http://www.gnu.org/licenses/gpl-faq.html#compat-matrix-footnote-7
+ *
+ */
+
 /****************************************************************************
 **
 ** This file is part of a Qt Solutions component.
-**
-** >> Very Slightly modified by Philippe Faist for KLatexFormula. (april 2009)
-** >> the modifications are shown specifically by a comment.
-** 
 ** Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
 ** 
 ** Contact:  Qt Software Information (qt-info@nokia.com)
@@ -75,7 +80,6 @@ class QT_QTCOLORTRIANGLE_EXPORT QtColorTriangle : public QWidget
 {
     Q_OBJECT
 
-    /* The following line was added by Philippe Faist in april 2009 to help in KLatexFormula integration */
     Q_PROPERTY(QColor color READ color WRITE setColor)
 
 public:
@@ -103,6 +107,8 @@ protected:
     void resizeEvent(QResizeEvent *);
     void drawTrigon(QImage *p, const QPointF &a, const QPointF &b,
 		    const QPointF &c, const QColor &color);
+
+  void internalSetNewColor(const QColor& color);
 
 private:
     double radiusAt(const QPointF &pos, const QRect &rect) const;

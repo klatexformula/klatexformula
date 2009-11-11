@@ -1,4 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
+<!-- Latex Symbol List for KLatexFormula symbol palette -->
+<!-- $Id$ -->
 <latexsymbollist version="1.0" >
   <category name="Relation Symbols">
     <sym><latex>\pm</latex></sym>
