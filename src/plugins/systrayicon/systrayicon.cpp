@@ -35,6 +35,12 @@ SysTrayIconConfigWidget::SysTrayIconConfigWidget(QWidget *parent)
   : QWidget(parent)
 {
   setupUi(this);
+
+#ifdef Q_WS_X11
+  connect(chkSysTrayOn, SIGNAL(toggled(bool)), chkRestoreOnHover, SLOT(setEnabled(bool)));
+#else
+  chkRestoreOnHover->hide();
+#endif
 }
 
 
@@ -52,6 +58,8 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin, K
   _systrayicon = new QSystemTrayIcon(QIcon(":/pics/hi32-app-klatexformula.png"), mainWin);
   _systrayicon->setToolTip("KLatexFormula");
   _systrayicon->setContextMenu(menu);
+
+  _systrayicon->installEventFilter(this);
 
   connect(_systrayicon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 	  this, SLOT(slotSysTrayActivated(QSystemTrayIcon::ActivationReason)));
@@ -73,6 +81,18 @@ void SysTrayIconPlugin::apply()
 
 }
 
+bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
+{
+  if (obj == _systrayicon && e->type() == QEvent::ToolTip) {
+    // works on X11 only
+    if (_config->readValue("restoreonhover").toBool()) {
+      restore();
+    }
+  }
+  return false;
+}
+
+
 QWidget * SysTrayIconPlugin::createConfigWidget(QWidget *parent)
 {
   return new SysTrayIconConfigWidget(parent);
@@ -82,14 +102,17 @@ void SysTrayIconPlugin::loadFromConfig(QWidget *confqwidget, KLFPluginConfigAcce
 {
   SysTrayIconConfigWidget *confwidget = qobject_cast<SysTrayIconConfigWidget*>(confqwidget);
   bool systrayon = config->readValue("systrayon").toBool();
+  bool restoreonhover = config->readValue("restoreonhover").toBool();
   confwidget->chkSysTrayOn->setChecked(systrayon);
+  confwidget->chkRestoreOnHover->setChecked(restoreonhover);
 }
 void SysTrayIconPlugin::saveToConfig(QWidget *confqwidget, KLFPluginConfigAccess *config)
 {
   SysTrayIconConfigWidget *confwidget = qobject_cast<SysTrayIconConfigWidget*>(confqwidget);
   bool systrayon = confwidget->chkSysTrayOn->isChecked();
+  bool restoreonhover = confwidget->chkRestoreOnHover->isChecked();
   config->writeValue("systrayon", systrayon);
-
+  config->writeValue("restoreonhover", restoreonhover);
   apply();
 }
 

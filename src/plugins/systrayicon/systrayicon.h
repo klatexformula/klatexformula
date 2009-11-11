@@ -67,6 +67,8 @@ public:
 
   virtual void apply();
 
+  virtual bool eventFilter(QObject *obj, QEvent *e);
+
 signals:
 
   void setLatexText(const QString& text);
