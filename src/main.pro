@@ -43,7 +43,7 @@ ICON = klficon.icns
 # For Windows
 RC_FILE = klatexformula.rc
 
-TRANSLATIONS += i18n/klf_fr.ts
+#TRANSLATIONS += i18n/klf_fr.ts
 
 # INSTALLS are UNIX-only.anyway
 unix {

@@ -1037,7 +1037,7 @@
              <string/>
             </property>
             <property name="path" stdset="0">
-             <string>/tmp/</string>
+             <string notr="true">/tmp/</string>
             </property>
            </widget>
           </item>
@@ -1066,7 +1066,7 @@
              <string/>
             </property>
             <property name="path" stdset="0">
-             <string>latex</string>
+             <string notr="true">latex</string>
             </property>
            </widget>
           </item>
@@ -1095,7 +1095,7 @@
              <string/>
             </property>
             <property name="path" stdset="0">
-             <string>dvips</string>
+             <string notr="true">dvips</string>
             </property>
            </widget>
           </item>
@@ -1124,7 +1124,7 @@
              <string/>
             </property>
             <property name="path" stdset="0">
-             <string>gs</string>
+             <string notr="true">gs</string>
             </property>
            </widget>
           </item>
@@ -1153,7 +1153,7 @@
              <string/>
             </property>
             <property name="path" stdset="0">
-             <string>epstopdf</string>
+             <string notr="true">epstopdf</string>
             </property>
            </widget>
           </item>
@@ -1408,8 +1408,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>539</width>
-            <height>491</height>
+            <width>562</width>
+            <height>495</height>
            </rect>
           </property>
           <attribute name="label">

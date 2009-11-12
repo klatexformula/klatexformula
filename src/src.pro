@@ -66,4 +66,4 @@ SOURCES += klfcolorchooser.cpp \
 	SOURCES +=	klfdbus.cpp
 }
 
-TRANSLATIONS += i18n/klf_fr.ts
+#TRANSLATIONS += i18n/klf_fr.ts

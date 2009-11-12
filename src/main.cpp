@@ -162,9 +162,8 @@ static struct option klfcmdl_optlist[] = {
 static char klfcmdl_optstring[] = "Ii:l:o:F:f:b:X:m:p:qhVQ";
 // help text
 static struct { const char *source; const char *comment; }  klfopt_helptext =
-  QT_TRANSLATE_NOOP3(// context
-		     "QObject",
-		     // source text
+  // QT_TRANSLATE_NOOP3(Context, Text, Comment)
+  QT_TRANSLATE_NOOP3("QObject",
 		     "\n"
 		     "KLatexFormula by Philippe Faist\n"
 		     "\n"
@@ -257,7 +256,6 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 		     "\n"
 		     "Have a lot of fun!\n"
 		     "\n",
-		     // comment
 		     "Command-line help instructions")
   ;
 
@@ -360,7 +358,7 @@ QString main_get_input(char *input, char *latexinput)
   if (latexinput != NULL && strlen(latexinput) != 0) {
     if (input != NULL && strlen(input) != 0) {
       if ( ! opt_quiet ) {
-	fprintf(stderr, "%s", QObject::tr("Warning: Ignoring --input when --latexinput is given.\n")
+	fprintf(stderr, "%s", QObject::tr("Warning: Ignoring --input since --latexinput is given.\n")
 		.toLocal8Bit().constData());
       }
     }

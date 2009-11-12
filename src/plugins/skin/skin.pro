@@ -12,6 +12,9 @@ DEPENDPATH += .
 INCLUDEPATH += . ../.. ../../klfbackend
 DESTDIR = ..
 
+
+#TRANSLATIONS += ../../i18n/klf_fr.ts
+
 # Input
 HEADERS += skin.h
 SOURCES += skin.cpp
