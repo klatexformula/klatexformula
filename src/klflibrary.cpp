@@ -136,7 +136,7 @@ void KLFLibraryListViewItem::setShowTagsHideLatex(bool on)
 
   QFont f = font(0);
   QFont f2 = f;
-  f2.setPointSize(f2.pointSize() + 1);
+  f2.setPointSize(QFontInfo(f2).pointSize() + 1);
   f2.setStyle(QFont::StyleItalic);
   setFont(1, on ? f2 : f);
 }
@@ -523,7 +523,7 @@ void KLFLibraryListManager::slotDelete(const QList<uint>& deleteIds)
       fprintf(stderr, "ERROR: Can't determine index of library item with id `%u'!\n", (uint)deleteIds[k]);
       continue;
     }
-    itm->setHidden(true);
+    delete itm; // instead of itm->setHidden(true);
     _libItems->removeAt(j);
   }
   // we need to re-update the index() for each item
@@ -915,6 +915,8 @@ KLFLibraryBrowser::~KLFLibraryBrowser()
 }
 void KLFLibraryBrowser::setupResourcesListsAndTabs()
 {
+  _currentList = 0;
+
   // clear our lists
   int k;
   for (k = 0; k < mLists.size(); ++k)
@@ -950,7 +952,7 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
 
   btnManageResources = new QPushButton(tr("Resources"), tabResources);
   QFont ff = btnManageResources->font();
-  ff.setPointSize(ff.pointSize()-1);
+  ff.setPointSize(QFontInfo(ff).pointSize()-2);
   btnManageResources->setFont(ff);
   btnManageResources->setMenu(mManageResourcesMenu);
   QPalette pal = btnManageResources->palette();
@@ -993,7 +995,7 @@ void KLFLibraryBrowser::setupResourcesListsAndTabs()
   emitLibraryChanged();
 
   connect(tabResources, SIGNAL(currentChanged(int)), this, SLOT(slotTabResourcesSelected(int)));
-  _currentList = 0;
+
   tabResources->setCurrentIndex(0);
   slotTabResourcesSelected(0);
 }
@@ -1069,10 +1071,7 @@ bool KLFLibraryBrowser::eventFilter(QObject *obj, QEvent *ev)
 void KLFLibraryBrowser::emitLibraryChanged()
 {
   emit libraryChanged();
-  //   int k;
-  //   for (k = 0; k < mLists.size(); ++k) {
-  //     mLists[k]->slotCompleteRefresh();
-  //   }
+  slotRefreshButtonsEnabled();
 }
 
 bool KLFLibraryBrowser::importLibraryFileSeparateResources(const QString& fname, const QString& baseresource)

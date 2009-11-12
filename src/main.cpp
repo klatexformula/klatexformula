@@ -186,6 +186,8 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 		     "           Performs actions required by [OPTIONS], and exits\n"
 		     "       klatexformula --interactive|-I [OPTIONS]\n"
 		     "           Opens the GUI and performs actions required by [OPTIONS]\n"
+		     "       klatexformula filename1.klf [ filename2.klf ... ]\n"
+		     "           Opens the GUI and imports the given .klf file(s) into the library.\n"
 		     "\n"
 		     "       If additional filename arguments are passed to the command line, they are\n"
 		     "       interpreted as .klf files to load into the library in separate resources\n"
@@ -305,6 +307,40 @@ void signal_act(int sig)
     }
   }
 }
+
+
+// DEBUG, WARNING AND FATAL MESSAGES HANDLER
+
+// in the future I may add some option to redirect debug output to file...
+static FILE *klf_qt_msg_fp = NULL;
+
+void klf_qt_message(QtMsgType type, const char *msg)
+{
+  if (opt_quiet)
+    return;
+
+  FILE *fout = stderr;
+  if (klf_qt_msg_fp != NULL)  fout = klf_qt_msg_fp;
+
+  switch (type) {
+  case QtDebugMsg:
+    fprintf(fout, "Debug: %s\n", msg);
+    break;
+  case QtWarningMsg:
+    fprintf(fout, "Warning: %s\n", msg);
+    break;
+  case QtCriticalMsg:
+    fprintf(fout, "Critical: %s\n", msg);
+    break;
+  case QtFatalMsg:
+    fprintf(fout, "Fatal: %s\n", msg);
+    abort();
+  default:
+    fprintf(fout, "?????: %s\n", msg);
+    break;
+  }
+}
+
 
 
 
@@ -696,6 +732,8 @@ int main(int argc, char **argv)
 {
   // first thing : setup version_maj/min/release correctly
   sscanf(version, "%d.%d.%d", &version_maj, &version_min, &version_release);
+
+  qInstallMsgHandler(klf_qt_message);
 
   // signal acting -- catch SIGINT to exit gracefully
   signal(SIGINT, signal_act);
