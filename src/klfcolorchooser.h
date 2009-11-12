@@ -34,6 +34,7 @@
 #include <QGridLayout>
 #include <QPainter>
 
+#include <klfdefs.h>
 
 
 #define MAX_RECENT_COLORS 128
@@ -43,7 +44,7 @@
 // ------------------------------------------------------------------------------------
 
 
-class KLFColorList : public QObject
+class KLF_EXPORT KLFColorList : public QObject
 {
   Q_OBJECT
 
@@ -72,7 +73,7 @@ private:
 // ------------------------------------------------------------------------------------
 
 
-class KLFColorClickSquare : public QWidget
+class KLF_EXPORT KLFColorClickSquare : public QWidget
 {
   Q_OBJECT
 
@@ -114,7 +115,7 @@ private slots:
 
 // ------------------------------------------------------------------------------------
 
-class KLFGridFlowLayout : public QGridLayout
+class KLF_EXPORT KLFGridFlowLayout : public QGridLayout
 {
   Q_OBJECT
 public:
@@ -136,7 +137,7 @@ protected:
 
 // ------------------------------------------------------------------------------------
 
-class KLFColorComponentsEditorBase
+class KLF_EXPORT KLFColorComponentsEditorBase
 {
 public:
 
@@ -162,7 +163,7 @@ protected:
 
 // ------------------------------------------------------------------------------------
 
-class KLFColorComponentSpinBox : public QSpinBox, public KLFColorComponentsEditorBase
+class KLF_EXPORT KLFColorComponentSpinBox : public QSpinBox, public KLFColorComponentsEditorBase
 {
   Q_OBJECT
 
@@ -190,7 +191,7 @@ private slots:
 
 // ------------------------------------------------------------------------------------
 
-class KLFColorChooseWidgetPane : public QWidget, public KLFColorComponentsEditorBase
+class KLF_EXPORT KLFColorChooseWidgetPane : public QWidget, public KLFColorComponentsEditorBase
 {
   Q_OBJECT
   Q_PROPERTY(QString paneType READ paneType WRITE setPaneType);
@@ -221,9 +222,10 @@ private:
 
 // ------------------------------------------------------------------------------------
 
+// this is ugly, but true: include ui_***.h _here_.
 #include <ui_klfcolorchoosewidgetui.h>
 
-class KLFColorChooseWidget : public QWidget, public Ui::KLFColorChooseWidgetUI
+class KLF_EXPORT KLFColorChooseWidget : public QWidget, public Ui::KLFColorChooseWidgetUI
 {
   Q_OBJECT
 
@@ -279,9 +281,10 @@ private:
 
 // ------------------------------------------------------------------------------------
 
+// this is ugly, but true: include ui_***.h _here_.
 #include <ui_klfcolordialogui.h>
 
-class KLFColorDialog : public QDialog, public Ui::KLFColorDialogUI
+class KLF_EXPORT KLFColorDialog : public QDialog, public Ui::KLFColorDialogUI
 {
   Q_OBJECT
 public:
@@ -300,7 +303,7 @@ public:
 
 class QStyle;
 
-class KLFColorChooser : public QPushButton
+class KLF_EXPORT KLFColorChooser : public QPushButton
 {
   Q_OBJECT
 

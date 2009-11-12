@@ -17,7 +17,8 @@ TEMPLATE = app
 TARGET = klatexformula
 DESTDIR = ..
 DEPENDPATH += . klfbackend
-POST_TARGETDEPS += libklfsrc.a
+win32:POST_TARGETDEPS += release/libklfsrc.a
+!win32:POST_TARGETDEPS += libklfsrc.a
 INCLUDEPATH += . klfbackend
 CONFIG += qt release
 QT = core gui xml
@@ -26,13 +27,13 @@ QT = core gui xml
 	DEFINES += KLF_USE_DBUS
 }
 
-DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\" KLF_SRC_BUILD
+DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\"
 LIBS += -Wl,-export-dynamic  -L. -Lrelease -lklfsrc  -Lklfbackend -Lklfbackend/release -lklfbackend
 
 SOURCES += main.cpp
 
 RESOURCES += klfres.qrc plugins/klfbaseplugindata.qrc
-#win32: RESOURCES += plugins/klfbaseplugins_win.qrc
+win32: RESOURCES += plugins/klfbaseplugins_win.qrc
 unix: RESOURCES += plugins/klfbaseplugins_unix.qrc
 macx: RESOURCES += plugins/klfbaseplugins_mac.qrc
 

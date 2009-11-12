@@ -33,41 +33,7 @@
 #include <QTextCharFormat>
 #include <QMap>
 
-/*
-#ifdef Q_OS_WIN
-#  define KLF_DECL_EXPORT __declspec(dllexport)
-#else //#  elif defined(QT_VISIBILITY_AVAILABLE)
-#  define KLF_DECL_EXPORT __attribute__((visibility("default")))
-#endif
-#ifndef KLF_DECL_EXPORT
-#  define KLF_DECL_EXPORT
-#endif
-
-#if defined(Q_OS_WIN)
-#  define KLF_DECL_IMPORT __declspec(dllimport)
-#else
-#  define KLF_DECL_IMPORT
-#endif
-
-#if defined(Q_OS_WIN)
-#  if defined(KLF_SRC_BUILD)
-#    define KLF_EXPORT KLF_DECL_EXPORT
-#  else
-#    define KLF_EXPORT KLF_DECL_IMPORT
-#  endif
-#else
-#  define KLF_EXPORT KLF_DECL_EXPORT
-#endif
-*/
-/*
-#ifndef KLF_EXPORT
-#define KLF_EXPORT __attribute__((visbility("default")))
-#endif 
-*/
-#ifndef KLF_EXPORT
-#define KLF_EXPORT
-#endif
-
+#include <klfbackend.h>
 
 class KLFConfig;
 
@@ -93,7 +59,7 @@ public:
 };
 
 
-class KLFConfig {
+class KLF_EXPORT KLFConfig {
 public:
 
   // this doesn't do anything. It actually leaves every entry with undefined values.
@@ -186,12 +152,12 @@ public:
 
 
 // utility functions
-QStringList search_find(const QString& wildcard_expression, int limit = -1);
-QString search_path(const QString& prog, const QString& extra_path = "");
+KLF_EXPORT QStringList search_find(const QString& wildcard_expression, int limit = -1);
+KLF_EXPORT QString search_path(const QString& prog, const QString& extra_path = "");
 
 
 
-extern KLFConfig klfconfig;
+KLF_EXPORT extern KLFConfig klfconfig;
 
 
 

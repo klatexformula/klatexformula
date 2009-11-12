@@ -9,12 +9,14 @@ include(../VERSION.pri)
 # ---
 
 
+SHAREDORSTATIC = $$[KLF_SRCLIB_SHAREDORSTATIC]
+
 TEMPLATE = lib
 TARGET = klfsrc
 DESTDIR = .
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
-CONFIG += qt release staticlib
+CONFIG += qt release $$SHAREDORSTATIC
 QT = core gui xml
 !win32 {
 	QT += dbus
@@ -35,7 +37,8 @@ HEADERS += klfcolorchooser.h \
            klfsettings.h \
            klfstylemanager.h \
 	   klfpluginiface.h \
-	   qtcolortriangle.h
+	   qtcolortriangle.h \
+	   klfmain.h
 !win32 {
 	HEADERS +=	klfdbus.h
 }
@@ -57,7 +60,8 @@ SOURCES += klfcolorchooser.cpp \
            klfpathchooser.cpp \
            klfsettings.cpp \
            klfstylemanager.cpp \
-	   qtcolortriangle.cpp
+	   qtcolortriangle.cpp \
+	   klfmain.cpp
 !win32 {
 	SOURCES +=	klfdbus.cpp
 }

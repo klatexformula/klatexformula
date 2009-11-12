@@ -50,6 +50,11 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin, K
   _mainwin = mainWin;
   _config = rwconfig;
 
+  // set default value: Enable System Tray by default (but see plugin definition: don't
+  // load plugin by default)
+  if (_config->readValue("systrayon").isNull())
+    _config->writeValue("systrayon", true);
+
   QMenu *menu = new QMenu(mainWin);
   menu->addAction(tr("Minimize"), this, SLOT(minimize()));
   menu->addAction(tr("Restore"), this, SLOT(restore()));

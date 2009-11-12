@@ -132,7 +132,7 @@ void KLFColorChooseWidgetPane::paintEvent(QPaintEvent */*e*/)
   double yfac = (double)valueBMax() / (_img.height()-1);
   for (x = 0; x < _img.width(); ++x) {
     for (y = 0; y < _img.height(); ++y) {
-      _img.setPixel(x, y, colorFromValues(_color, xfac*x, yfac*y).rgba());
+      _img.setPixel(x, y, colorFromValues(_color, (int)(xfac*x), (int)(yfac*y)).rgba());
     }
   }
   p.drawImage(0, 0, _img);
@@ -140,13 +140,13 @@ void KLFColorChooseWidgetPane::paintEvent(QPaintEvent */*e*/)
   QColor hairscol = qGray(_color.rgb()) > 80 ? Qt::black : Qt::white;
   if ( ! _colorcomponent.isEmpty() && _colorcomponent != "fix" ) {
     p.setPen(QPen(hairscol, 1.f, Qt::DotLine));
-    x = valueA()/xfac;
+    x = (int)(valueA()/xfac);
     if (x < 0) x = 0; if (x >= width()) x = width()-1;
     p.drawLine(x, 0, x, height());
   }
   if ( ! _colorcomponent_b.isEmpty() && _colorcomponent_b != "fix" ) {
     p.setPen(QPen(hairscol, 1.f, Qt::DotLine));
-    y = valueB()/yfac;
+    y = (int)(valueB()/yfac);
     if (y < 0) y = 0; if (y >= height()) y = height()-1;
     p.drawLine(0, y, width(), y);
   }
@@ -158,7 +158,7 @@ void KLFColorChooseWidgetPane::mousePressEvent(QMouseEvent *e)
   int x = e->pos().x();
   int y = e->pos().y();
 
-  setColor(colorFromValues(_color, x*xfac, y*yfac));
+  setColor(colorFromValues(_color, (int)(x*xfac), (int)(y*yfac)));
 }
 void KLFColorChooseWidgetPane::mouseMoveEvent(QMouseEvent *e)
 {
@@ -169,7 +169,7 @@ void KLFColorChooseWidgetPane::mouseMoveEvent(QMouseEvent *e)
   if (x < 0) x = 0; if (x >= width()) x = width()-1;
   if (y < 0) y = 0; if (y >= height()) y = height()-1;
 
-  setColor(colorFromValues(_color, x*xfac, y*yfac));
+  setColor(colorFromValues(_color, (int)(x*xfac), (int)(y*yfac)));
 }
 
 

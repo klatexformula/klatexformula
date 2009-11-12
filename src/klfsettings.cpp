@@ -41,6 +41,7 @@
 
 #include <klfbackend.h>
 
+#include "klfmain.h"
 #include "klfmainwin.h"
 #include "klfconfig.h"
 #include "klfpluginiface.h"

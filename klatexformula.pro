@@ -22,6 +22,10 @@
 #   'true' or 'false'. This variable exists because I'm lazy and don't want to
 #   parse the contents of $$QT_VERSION. Note: We MUST be using Qt4 if we're building
 #   the GUI too. Defaults to Qt4 ('true').
+# SRCLIB_SHAREDORSTATIC
+#   'staticlib' (default) or 'dll' for static or shared library. This library is supposed
+#   to be internal, non-installed and static is the default. However it is possible to
+#   build a dll for e.g. plugins on windows issues.
 # INSTALLPREFIX
 #   prefix to install GUI application, desktop files, icons, etc. Defaults to /usr
 # ICONTHEME
@@ -68,26 +72,26 @@ isEmpty(BACKEND_SHAREDORSTATIC) {
 isEmpty(BACKEND_USE_QT4) {
   BACKEND_USE_QT4 = true
 }
+isEmpty(SRCLIB_SHAREDORSTATIC) {
+  SRCLIB_SHAREDORSTATIC = staticlib
+}
 isEmpty(ICONTHEME) {
   ICONTHEME = hicolor
 }
 
 
-#win32 {
-#} else {
-  # -- Test for $$QMAKE
-  contains(BACKEND_USE_QT4, false) {
-    # using Qt3 -- 'system' succeeds if return value == 1
-    system($$QMAKE -version) {
-      error(qmake program `$$QMAKE\' not found !)
-    }
-  } else {
-    # using Qt4 -- 'system' succeeds if zero return value
-    !system($$QMAKE -version) {
-      error(qmake program `$$QMAKE\' not found !)
-    }
+# -- Test for $$QMAKE
+contains(BACKEND_USE_QT4, false) {
+  # using Qt3 -- 'system' succeeds if return value == 1
+  system($$QMAKE -version) {
+    error(qmake program `$$QMAKE\' not found !)
   }
-#}
+} else {
+  # using Qt4 -- 'system' succeeds if zero return value
+  !system($$QMAKE -version) {
+    error(qmake program `$$QMAKE\' not found !)
+  }
+}
 
 
 # -- Store KLF configuration into QMake environment variables
@@ -100,6 +104,7 @@ system($$QMAKE -set KLF_BACKEND_SHAREDORSTATIC '$$BACKEND_SHAREDORSTATIC')
 system($$QMAKE -set KLF_BACKEND_USE_QT4 '$$BACKEND_USE_QT4')
 system($$QMAKE -set KLF_ICONTHEME '$$ICONTHEME')
 system($$QMAKE -set KLF_INSTALLPREFIX '$$INSTALLPREFIX')
+system($$QMAKE -set KLF_SRCLIB_SHAREDORSTATIC '$$SRCLIB_SHAREDORSTATIC')
 
 
 # We compile KLatexFormula base source files (src/src.pro) BEFORE plugins so that the plugins can
@@ -109,8 +114,7 @@ system($$QMAKE -set KLF_INSTALLPREFIX '$$INSTALLPREFIX')
 
 SUBDIRS = src/klfbackend
 isEmpty(BACKEND_ONLY) {
-  !win32:  SUBDIRS += src/src.pro src/plugins src/main.pro
-  win32:  SUBDIRS += src/src.pro src/main.pro src/plugins
+    SUBDIRS += src/src.pro src/plugins src/main.pro
 }
 
 message(Will build the following subdirs: $$SUBDIRS)

@@ -12,6 +12,8 @@ DEPENDPATH += .
 INCLUDEPATH += . ../.. ../../klfbackend
 DESTDIR = ..
 
+win32:LIBS += -L../../release -L../.. -lklfsrc -L../../klfbackend/release -L../../klfbackend -lklfbackend
+
 # Input
 HEADERS += systrayicon.h
 SOURCES += systrayicon.cpp

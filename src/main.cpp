@@ -40,6 +40,7 @@
 
 #include <klfbackend.h>
 
+#include "klfmain.h"
 #include "klfconfig.h"
 #include "klfmainwin.h"
 #include "klfdbus.h"
@@ -49,19 +50,6 @@
 #define EXIT_ERR_FILEINPUT 100
 #define EXIT_ERR_FILESAVE 101
 #define EXIT_ERR_OPT 102
-
-
-
-// copy these lines into other files to access these variables
-extern const char version[];
-extern int version_maj, version_min, version_release;
-
-
-// not static so we can get this value from other modules in the project
-const char version[] = KLF_VERSION_STRING;
-int version_maj = -1;
-int version_min = -1;
-int version_release = -1;
 
 
 // COMMAND-LINE-OPTION SPECIFIC DEFINITIONS
@@ -344,11 +332,6 @@ void klf_qt_message(QtMsgType type, const char *msg)
 
 
 
-// DEFINE GLOBAL PLUGIN POINTERS
-// declarations in klfmainwin.h
-QList<KLFPluginInfo> klf_plugins ;
-
-
 
 // UTILITY FUNCTIONS
 
@@ -417,57 +400,7 @@ QString main_get_input(char *input, char *latexinput)
  * format is guessed if not provided, and defaults to PNG. */
 void main_save(KLFBackend::klfOutput klfoutput, const QString& f_output, QString format)
 {
-  // determine format first
-  if (format.isEmpty()) {
-    QFileInfo fi(f_output);
-    if ( ! fi.suffix().isEmpty() )
-      format = fi.suffix();
-    else
-      format = "PNG";
-  }
-  format = format.trimmed().toUpper();
-  // got format. choose output now and prepare write
-  QFile fout;
-  if (f_output.isEmpty() || f_output == "-") {
-    if ( ! fout.open(stdout, QIODevice::WriteOnly) ) {
-      if ( ! opt_quiet )
-	fprintf(stderr, "%s", QObject::tr("Unable to open stderr for write! Error: %1\n")
-		.arg(fout.error()).toLocal8Bit().constData());
-      main_exit(EXIT_ERR_FILESAVE);
-    }
-  } else {
-    fout.setFileName(f_output);
-    if ( ! fout.open(QIODevice::WriteOnly) ) {
-      if ( ! opt_quiet )
-	fprintf(stderr, "%s", QObject::tr("Unable to write to file `%1'! Error: %2\n")
-		.arg(f_output).arg(fout.error()).toLocal8Bit().constData());
-      main_exit(EXIT_ERR_FILESAVE);
-    }
-  }
-  // now choose correct data source and write to fout
-  if (format == "PNG") {
-    fout.write(klfoutput.pngdata);
-  } else if (format == "EPS" || format == "PS") {
-    fout.write(klfoutput.epsdata);
-  } else if (format == "PDF") {
-    if (klfoutput.pdfdata.isEmpty()) {
-      if ( ! opt_quiet )
-	fprintf(stderr, "%s", QObject::tr("PDF format is not available!\n").toLocal8Bit().constData());
-      main_exit(EXIT_ERR_FILESAVE);
-    }
-    fout.write(klfoutput.pdfdata);
-  } else {
-    bool res = klfoutput.result.save(&fout, format.toLatin1());
-    if ( ! res ) {
-      if ( ! opt_quiet ) {
-	fprintf(stderr, "%s", QObject::tr("Unable to save image to file `%1' in format `%2'!\n")
-		.arg(f_output).arg(format).toLocal8Bit().constData());
-      }
-      main_exit(EXIT_ERR_FILESAVE);
-    }
-  }
-
-  return;
+  KLFBackend::saveOutputToFile(klfoutput, f_output, format);
 }
 
 void main_load_extra_resources()
@@ -754,8 +687,9 @@ int main(int argc, char **argv)
 
 #if defined(KLF_USE_DBUS)
     // see if an instance of KLatexFormula is running...
-    KLFDBusAppInterface *iface = new KLFDBusAppInterface("org.klatexformula.KLatexFormula", "/MainApplication",
-                           QDBusConnection::sessionBus(), &app);
+    KLFDBusAppInterface *iface
+      = new KLFDBusAppInterface("org.klatexformula.KLatexFormula", "/MainApplication",
+				QDBusConnection::sessionBus(), &app);
     if (iface->isValid()) {
       iface->raiseWindow();
       // load everything via DBus

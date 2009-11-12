@@ -1,0 +1,107 @@
+/***************************************************************************
+ *   file klfmain.cpp
+ *   This file is part of the KLatexFormula Project.
+ *   Copyright (C) 2009 by Philippe Faist
+ *   philippe.faist at bluewin.ch
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+/* $Id$ */
+
+#include "klfmain.h"
+
+#include <QString>
+#include <QList>
+#include <QObject>
+#include <QDomDocument>
+#include <QFile>
+#include <QFileInfo>
+#include <QResource>
+
+#include <klfpluginiface.h>
+
+
+// not static so we can get this value from other modules in the project
+char version[] = KLF_VERSION_STRING;
+int version_maj = -1;
+int version_min = -1;
+int version_release = -1;
+
+
+
+QList<KLFPluginInfo> klf_plugins;
+
+
+
+QList<KLFAddOnInfo> klf_addons;
+bool klf_addons_canimport = false;
+
+
+KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
+{
+  QFileInfo fi(rccfpath);
+  
+  fname = fi.fileName();
+  dir = fi.absolutePath();
+  fpath = fi.absoluteFilePath();
+
+  islocal = fi.isWritable() || QFileInfo(dir).isWritable();
+
+  isfresh = false;
+
+  QByteArray rccinfodata;
+  
+  { // try registering resource to see its content
+    const char * temproot = ":/__klfaddoninfo_temp_resource";
+    QResource::registerResource(fpath, temproot);
+    QFile infofile(temproot+QString::fromLatin1("/rccinfo/info.xml"));
+    infofile.open(QIODevice::ReadOnly);
+    rccinfodata = infofile.readAll();
+    QResource::unregisterResource(fpath, temproot);
+  }
+  // parse resource's rccinfo/info.xml file
+  QDomDocument xmldoc;
+  xmldoc.setContent(rccinfodata);
+
+  // and explore the document
+  QDomElement xmlroot = xmldoc.documentElement();
+  if (xmlroot.nodeName() != "rccinfo") {
+    qWarning("Add-on file `%s' has invalid XML information.", qPrintable(rccfpath));
+    title = QObject::tr("(Name Not Provided)", "[KLFAddOnInfo: add-on information XML data is invalid]");
+    description = QObject::tr("(Invalid XML Data Provided By Add-On)",
+			      "[KLFAddOnInfo: add-on information XML data is invalid]");
+    author = QObject::tr("(No Author Provided)",
+			 "[KLFAddOnInfo: add-on information XML data is invalid]");
+    return;
+  }
+  QDomNode n;
+  for (n = xmlroot.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+    QDomElement e = n.toElement();
+    if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
+      continue;
+    if ( e.nodeName() == "title" ) {
+      title = e.text().trimmed();
+    }
+    if ( e.nodeName() == "description" ) {
+      description = e.text().trimmed();
+    }
+    if ( e.nodeName() == "author" ) {
+      author = e.text().trimmed();
+    }
+  }
+
+}
+

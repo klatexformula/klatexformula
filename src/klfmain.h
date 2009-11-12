@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfpluginiface.h
+ *   file klfmain.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2009 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,53 +21,73 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFPLUGINIFACE_H
-#define KLFPLUGINIFACE_H
+#ifndef KLFMAIN_H
+#define KLFMAIN_H
 
-#include <QObject>
 #include <QString>
-#include <QVariant>
+#include <QList>
 
-#include <qapplication.h>
-
-
-class KLFMainWin;
-class KLFPluginConfigAccess;
+#include <klfdefs.h>
 
 
-/** Generic interface to access (almost all!) the internals of KLatexFormula
- */
-class KLFPluginGenericInterface
+// SOME DECLARATIONS FOR ADD-ONS
+
+class KLF_EXPORT KLFAddOnInfo
 {
 public:
-  virtual ~KLFPluginGenericInterface() { }
+  /** Builds empty add-on */
+  KLFAddOnInfo() : islocal(false), isfresh(false) { }
+  /** Reads RCC file \c rccfpath and parses its rccinfo/info.xml, etc.
+   * sets all fields to correct values and \ref isfresh to \c FALSE . */
+  KLFAddOnInfo(QString rccfpath);
 
-  enum PluginInfo {
-    PluginName,
-    PluginTitle,
-    PluginAuthor,
-    PluginDescription,
-    PluginDefaultEnable
-  };
+  QString dir;
+  QString fname;
+  QString fpath; // grosso modo: absdir(dir) + "/" + fname
+  bool islocal; // local file: can be removed (e.g. not in a global path /usr/share/... )
 
-  virtual QVariant pluginInfo(PluginInfo which) const = 0;
+  QString title;
+  QString author;
+  QString description;
 
-  inline QString pluginName() const { return pluginInfo(PluginName).toString(); }
-  inline QString pluginTitle() const { return pluginInfo(PluginTitle).toString(); }
-  inline QString pluginAuthor() const { return pluginInfo(PluginAuthor).toString(); }
-  inline QString pluginDescription() const { return pluginInfo(PluginDescription).toString(); }
-  inline bool pluginDefaultLoadEnable() const { return pluginInfo(PluginDefaultEnable).toBool(); }
-
-  virtual void initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *config) = 0;
-
-  virtual QWidget * createConfigWidget(QWidget *parent) = 0;
-
-  virtual void loadFromConfig(QWidget *configWidget, KLFPluginConfigAccess *config) = 0;
-  virtual void saveToConfig(QWidget *configWidget, KLFPluginConfigAccess *config) = 0;
-
+  /** Fresh file: add-on imported during this execution; ie. KLatexFormula needs to be restarted
+   * for this add-on to take effect. The constructor sets this value to \c FALSE, set it manually
+   * to \c TRUE if needed (e.g. in KLFSettings). */
+  bool isfresh;
 };
 
-Q_DECLARE_INTERFACE(KLFPluginGenericInterface,
-		    "org.klatexformula.KLatexFormula.Plugin.GenericInterface/1.0");
+KLF_EXPORT extern QList<KLFAddOnInfo> klf_addons;
+KLF_EXPORT extern bool klf_addons_canimport;
 
-#endif
+
+
+// SOME DEFINITIONS FOR PLUGINS
+
+class KLFPluginGenericInterface;
+
+struct KLFPluginInfo
+{
+  QString name;
+  QString author;
+  QString title;
+  QString description;
+
+  QString fpath;
+
+  KLFPluginGenericInterface * instance;
+};
+
+
+KLF_EXPORT extern QList<KLFPluginInfo> klf_plugins;
+
+
+
+// VERSION INFORMATION
+
+KLF_EXPORT extern char version[];
+KLF_EXPORT extern int version_maj, version_min, version_release;
+
+
+
+
+#endif 

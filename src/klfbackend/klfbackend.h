@@ -33,18 +33,7 @@
 #include <qimage.h>
 #include <qmutex.h>
 
-
-// DEBUG WITH TIME PRINTING FOR TIMING OPERATIONS
-//#define KLF_DEBUG_TIME_PRINT
-
-#ifdef KLF_DEBUG_TIME_PRINT
-#include <sys/time.h>
-// FOR DEBUGGING: Print Debug message with precise current time
-void __klf_debug_time_print(QString str);
-#define klf_debug_time_print(x) __klf_debug_time_print(x)
-#else
-#define klf_debug_time_print(x)
-#endif
+#include <klfdefs.h>
 
 
 
@@ -136,7 +125,7 @@ void __klf_debug_time_print(QString str);
  *
  * \author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
  */
-class KLFBackend
+class KLF_EXPORT KLFBackend
 {
 public:
 
@@ -271,6 +260,27 @@ public:
    */
   static klfOutput getLatexFormula(const klfInput& in, const klfSettings& settings);
 
+  /** \brief Save the output to image file
+   *
+   * This function can be used to write output obtained with the \ref getLatexFormula() function, to a file
+   * named \c fileName with format \c format.
+   *
+   * \param output the data to save (e.g. as returned by \ref getLatexFormula() )
+   * \param fileName the file name to save to. If empty or equal to \c "-" then standard output is used.
+   * \param format the format to use to save to fileName
+   *
+   * If \c format is an empty string, then format is guessed from filename extension; if no extension is
+   * found then format defaults to PNG.
+   *
+   * \c fileName 's extension is NOT adjusted if it does not match an explicitely given format, for example
+   * \code saveOutputToFile(output, "myfile.jpg", "PDF"); \endcode
+   * will output PDF data to the file \c "myfile.jpg".
+   *
+   * \return TRUE if success or FALSE if failure.
+   *
+   * qWarning()s are emitted in case of failure.
+   */
+  static bool saveOutputToFile(const klfOutput& output, const QString& fileName, const QString& format = QString());
 
 
 private:
@@ -283,7 +293,7 @@ private:
 
 
 /** Compare two inputs for equality */
-bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b);
+bool KLF_EXPORT operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b);
 
 
 

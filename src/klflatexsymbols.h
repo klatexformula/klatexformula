@@ -32,6 +32,8 @@
 #include <QScrollArea>
 #include <QDomElement>
 
+#include <klfdefs.h>
+
 #include <ui_klflatexsymbolsui.h>
 
 class KLFMainWin;
@@ -39,7 +41,7 @@ class KLFMainWin;
 
 class KLFLatexSymbolsCache; // see klflatexsymbols.cpp
 
-struct KLFLatexSymbol {
+struct KLF_EXPORT KLFLatexSymbol {
   KLFLatexSymbol() : symbol(), preamble(), textmode(false) { }
   KLFLatexSymbol(const QString& s, const QStringList& p, bool txtmod) : symbol(s), preamble(p), textmode(txtmod) { }
   KLFLatexSymbol(const QString& symentry);
@@ -59,7 +61,7 @@ struct KLFLatexSymbol {
 
 
 
-class KLFPixmapButton : public QPushButton
+class KLF_EXPORT KLFPixmapButton : public QPushButton
 {
   Q_OBJECT
 public:
@@ -96,7 +98,7 @@ private:
 
 
 
-class KLFLatexSymbolsView : public QScrollArea
+class KLF_EXPORT KLFLatexSymbolsView : public QScrollArea
 {
   Q_OBJECT
 public:
@@ -126,7 +128,7 @@ private:
 };
 
 
-class KLFLatexSymbols : public QWidget, private Ui::KLFLatexSymbolsUI
+class KLF_EXPORT KLFLatexSymbols : public QWidget, private Ui::KLFLatexSymbolsUI
 {
   Q_OBJECT
 public:

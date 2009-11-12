@@ -75,7 +75,11 @@
 static QRect klf_get_window_geometry(QWidget *w)
 {
   // return QRect(w->pos(), w->size());
+#ifdef Q_WS_WIN
+  QRect g = w->geometry();
+#else
   QRect g = w->frameGeometry();
+#endif
   //  qDebug("got %p geometry g=(%d,%d)+(%d,%d)", (void*)w, DEBUG_GEOM_ARGS(g));
   return g;
 }
@@ -1455,9 +1459,6 @@ void KLFMainWin::slotSetBgColor(const QString& s)
   slotSetBgColor(bgcolor);
 }
 
-// function imported from main.cpp
-extern void main_save(KLFBackend::klfOutput klfoutput, const QString& f_output, QString format);
-
 void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& format)
 {
   if ( txtLatex->toPlainText().isEmpty() )
@@ -1469,7 +1470,7 @@ void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& forma
     if ( _output.result.isNull() ) {
       QMessageBox::critical(this, tr("Error"), tr("There is no image to save."));
     } else {
-      main_save(_output, output, format.trimmed().toUpper());
+      KLFBackend::saveOutputToFile(_output, output, format.trimmed().toUpper());
     }
   }
 
@@ -1788,70 +1789,4 @@ void KLFMainWin::closeEvent(QCloseEvent *event)
 }
 
 
-
-
-// -----------------------------------------------------------------
-
-
-
-// DEFINE ADD-ON UTILITIES
-// declarations in klfmainwin.
-
-QList<KLFAddOnInfo> klf_addons;
-bool klf_addons_canimport = false;
-
-KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
-{
-  QFileInfo fi(rccfpath);
-  
-  fname = fi.fileName();
-  dir = fi.absolutePath();
-  fpath = fi.absoluteFilePath();
-
-  islocal = fi.isWritable() || QFileInfo(dir).isWritable();
-
-  isfresh = false;
-
-  QByteArray rccinfodata;
-  
-  { // try registering resource to see its content
-    const char * temproot = ":/__klfaddoninfo_temp_resource";
-    QResource::registerResource(fpath, temproot);
-    QFile infofile(temproot+QString::fromLatin1("/rccinfo/info.xml"));
-    infofile.open(QIODevice::ReadOnly);
-    rccinfodata = infofile.readAll();
-    QResource::unregisterResource(fpath, temproot);
-  }
-  // parse resource's rccinfo/info.xml file
-  QDomDocument xmldoc;
-  xmldoc.setContent(rccinfodata);
-
-  // and explore the document
-  QDomElement xmlroot = xmldoc.documentElement();
-  if (xmlroot.nodeName() != "rccinfo") {
-    qWarning("Add-on file `%s' has invalid XML information.", qPrintable(rccfpath));
-    title = QObject::tr("(Name Not Provided)", "[KLFAddOnInfo: add-on information XML data is invalid]");
-    description = QObject::tr("(Invalid XML Data Provided By Add-On)",
-			      "[KLFAddOnInfo: add-on information XML data is invalid]");
-    author = QObject::tr("(No Author Provided)",
-			 "[KLFAddOnInfo: add-on information XML data is invalid]");
-    return;
-  }
-  QDomNode n;
-  for (n = xmlroot.firstChild(); ! n.isNull(); n = n.nextSibling()) {
-    QDomElement e = n.toElement();
-    if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
-      continue;
-    if ( e.nodeName() == "title" ) {
-      title = e.text().trimmed();
-    }
-    if ( e.nodeName() == "description" ) {
-      description = e.text().trimmed();
-    }
-    if ( e.nodeName() == "author" ) {
-      author = e.text().trimmed();
-    }
-  }
-
-}
 

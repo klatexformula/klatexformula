@@ -37,6 +37,8 @@
 #include <qmemarray.h>
 #endif
 
+#include <klfdefs.h>
+
 //! A QProcess subclass for code-blocking process execution
 /** A Code-blocking (but not GUI-blocking) process executor
  *
@@ -54,7 +56,7 @@
  *
  * \author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
  */
-class KLFBlockProcess : public QProcess
+class KLF_EXPORT KLFBlockProcess : public QProcess
 {
   Q_OBJECT
 public:

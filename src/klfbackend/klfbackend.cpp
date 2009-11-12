@@ -29,17 +29,13 @@
 #include <qdatetime.h>
 #include <qtextstream.h>
 #include <qdir.h>
+#include <qdebug.h>
 
 #include "klfblockprocess.h"
 #include "klfbackend.h"
 
-/*#if defined (Q_WS_MAC) || defined (_POSIX_) || defined (__USE_POSIX)
-  extern char **environ;
-  #else
-  _CRTIMP extern char **_environ;
-  #  define environ _environ
-  #endif
-*/
+
+// declared in klfdefs.h
 
 void __klf_debug_time_print(QString str)
 {
@@ -51,11 +47,13 @@ void __klf_debug_time_print(QString str)
 #else
   const char *ptr = str.local8Bit().data();
 #endif
-  fprintf(stderr, "%03ld.%06ld : %s\n", tv.tv_sec % 1000, tv.tv_usec, ptr);
+  qDebug("%03ld.%06ld : %s\n", tv.tv_sec % 1000, tv.tv_usec, ptr);
 #endif
 }
 
 
+
+// ---------------------------------
 
 KLFBackend::KLFBackend()
 {
@@ -268,7 +266,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	.arg(tempfname+".eps");
       return res;
     }
-    // Don't forget: '%' in printf has special meaning
+    // Don't forget: '%' in printf has special meaning (!)
     sprintf(temp, "%%%%BoundingBox: %d %d %d %d", ax-settings.lborderoffset, ay-settings.bborderoffset,
 	    bx+settings.rborderoffset, by+settings.tborderoffset); // grow bbox by settings.?borderoffset points
     QString chunk = QString::fromLocal8Bit(epscontent.constData()+k);
@@ -454,10 +452,67 @@ void KLFBackend::cleanup(QString tempfname)
   if (QFile::exists(tempfname+".pdf")) QFile::remove(tempfname+".pdf");
 }
 
+
+bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fileName, const QString& fmt)
+{
+  QString format = fmt;
+  // determine format first
+  if (format.isEmpty()) {
+    QFileInfo fi(fileName);
+    if ( ! fi.suffix().isEmpty() )
+      format = fi.suffix();
+    else
+      format = "PNG";
+  }
+  format = format.trimmed().toUpper();
+  // got format. choose output now and prepare write
+  QFile fout;
+  if (fileName.isEmpty() || fileName == "-") {
+    if ( ! fout.open(stdout, QIODevice::WriteOnly) ) {
+      qWarning("%s", qPrintable(QObject::tr("Unable to open stderr for write! Error: %1\n",
+					    /*comment:*/"KLFBackend::saveOutputToFile")
+				.arg(fout.error())));
+      return false;
+    }
+  } else {
+    fout.setFileName(fileName);
+    if ( ! fout.open(QIODevice::WriteOnly) ) {
+      qWarning("%s", qPrintable(QObject::tr("Unable to write to file `%1'! Error: %2\n",
+					    /*comment:*/"KLFBackend::saveOutputToFile")
+				.arg(fileName).arg(fout.error())));
+      return false;
+    }
+  }
+  // now choose correct data source and write to fout
+  if (format == "PNG") {
+    fout.write(klfoutput.pngdata);
+  } else if (format == "EPS" || format == "PS") {
+    fout.write(klfoutput.epsdata);
+  } else if (format == "PDF") {
+    if (klfoutput.pdfdata.isEmpty()) {
+      qWarning("%s", qPrintable(QObject::tr("PDF format is not available!\n",
+					    /*comment:*/"KLFBackend::saveOutputToFile")));
+      return false;
+    }
+    fout.write(klfoutput.pdfdata);
+  } else {
+    bool res = klfoutput.result.save(&fout, format.toLatin1());
+    if ( ! res ) {
+      qWarning("%s", qPrintable(QObject::tr("Unable to save image to file `%1' in format `%2'!\n",
+					    /*comment:*/"KLFBackend::saveOutputToFile")
+				.arg(fileName).arg(format)));
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
 // static private mutex object
 QMutex KLFBackend::__mutex;
 
-bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b)
+KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b)
 {
   return a.latex == b.latex &&
     a.mathmode == b.mathmode &&
@@ -466,3 +521,4 @@ bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b)
     a.bg_color == b.bg_color &&
     a.dpi == b.dpi;
 }
+
