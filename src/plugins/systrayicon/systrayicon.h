@@ -31,6 +31,8 @@
 #include <klfconfig.h>
 
 #include <ui_systrayiconconfigwidget.h>
+#include <ui_systraymainiconifybuttons.h>
+
 
 class SysTrayIconConfigWidget : public QWidget, public Ui::SysTrayIconConfigWidget
 {
@@ -41,6 +43,14 @@ public:
 
 };
 
+
+
+class SysTrayMainIconifyButtons : public QWidget, public Ui::SysTrayMainIconifyButtons
+{
+  Q_OBJECT
+public:
+  SysTrayMainIconifyButtons(QWidget *parent);
+};
 
 class SysTrayIconPlugin : public QObject, public KLFPluginGenericInterface
 {
@@ -80,13 +90,16 @@ public slots:
   void minimize();
   void slotSysTrayActivated(QSystemTrayIcon::ActivationReason);
   // menu entry
-  void latexFromClipboard();
+  void latexFromClipboard(QClipboard::Mode mode = QClipboard::Clipboard);
+  void latexFromClipboardSelection() { latexFromClipboard(QClipboard::Selection); }
 
 protected:
   KLFMainWin *_mainwin;
   KLFPluginConfigAccess *_config;
 
   QSystemTrayIcon *_systrayicon;
+
+  SysTrayMainIconifyButtons *_mainButtonBar;
 };
 
 

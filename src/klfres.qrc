@@ -1,5 +1,8 @@
 <RCC>
   <qresource>
+    <file>pics/save.png</file>
+    <file>pics/new.png</file>
+    <file>pics/iconify.png</file>
     <file>pics/bullet22.png</file>
     <file>pics/checker.png</file>
     <file>pics/rightarrow.png</file>
@@ -34,6 +37,7 @@
     <file>pics/switchshrinked.png</file>
     <file>pics/switchexpanded.png</file>
     <file>pics/copy.png</file>
+    <file>pics/paste.png</file>
     <file>pics/move.png</file>
     <file>pics/refresh.png</file>
   </qresource>

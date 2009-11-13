@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SysTrayMainIconifyButtons</class>
+ <widget class="QWidget" name="SysTrayMainIconifyButtons">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>379</width>
+    <height>29</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string/>
+  </property>
+  <layout class="QHBoxLayout" name="lyt_SysTrayMainIconifyButtons">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMinimumSize</enum>
+   </property>
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QPushButton" name="btnIconify">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Minimize Window to System Tray</string>
+     </property>
+     <property name="whatsThis">
+      <string>This button minimizes KLatexFormula's main window to the system tray, without quitting.</string>
+     </property>
+     <property name="text">
+      <string>Iconify</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../klfres.qrc">
+       <normaloff>:/pics/iconify.png</normaloff>:/pics/iconify.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnQuit">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Quit KLatexFormula [Ctrl+Q]</string>
+     </property>
+     <property name="whatsThis">
+      <string>This button quits KLatexFormula, instead of minimizing the window to the system tray.</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../../klfres.qrc">
+       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+     </property>
+     <property name="shortcut">
+      <string>Ctrl+Q</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../klfres.qrc"/>
+ </resources>
+ <connections/>
+</ui>

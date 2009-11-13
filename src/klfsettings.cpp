@@ -266,15 +266,22 @@ void KLFSettings::refreshPluginSelected()
   }
 
   btnRemovePlugin->setEnabled(true);
+  int smallpointsize = QFontInfo(font()).pointSize() - 1;
   lblPluginInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;\">"
 			    "<tt><span style=\"font-style: italic; font-weight: 600;\">"
 			    "Plugin Information</span></tt><br />\n"
 			    "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
 			    "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
 			    "<tt>Description:</tt></p>\n"
-			    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;\">%3</p>\n")
+			    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;"
+			    "   margin-bottom: 0px;\">%3</p>\n"
+			    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
+			    "<tt>File Location:</tt> <span style=\"font-size: %4pt;\">%5</span>\n")
 			 .arg(Qt::escape(klf_plugins[k].title)).arg(Qt::escape(klf_plugins[k].author))
 			 .arg(Qt::escape(klf_plugins[k].description))
+			 .arg(smallpointsize)
+			 .arg(Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_plugins[k].fpath)
+								  .canonicalFilePath())))
 			 );
 }
 
@@ -408,18 +415,24 @@ void KLFSettings::refreshAddOnSelected()
   // enable remove button only if this addon is "local", i.e. precisely removable
   btnRemoveAddOn->setEnabled(klf_addons[k].islocal);
 
+  int smallpointsize = QFontInfo(font()).pointSize() - 1;
   lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">"
 			   "<tt><span style=\"font-style: italic; font-weight: 600;\">"
 			   "Add-On Information</span></tt><br />\n"
 			   "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
 			   "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
 			   "<tt>Description:</tt></p>\n"
-			    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;\">%3</p>\n"
+			    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;"
+			   "   margin-bottom: 0px;\">%3</p>\n"
 			   "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\"\n"
-			   "<tt>File Name:</tt> %4<br />\n"
-			   "<tt><i>%5</i></tt>").arg(Qt::escape(klf_addons[k].title))
+			   "<tt>File Name:</tt> <span style=\"font-size: %5pt;\">%4</span><br />\n"
+			   "<tt>File Location:</tt> <span style=\"font-size: %5pt;\">%6</span><br />\n"
+			   "<tt><i>%7</i></tt>").arg(Qt::escape(klf_addons[k].title))
 			.arg(Qt::escape(klf_addons[k].author)).arg(Qt::escape(klf_addons[k].description))
 			.arg(Qt::escape(klf_addons[k].fname))
+			.arg(smallpointsize)
+			.arg(Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_addons[k].dir)
+								 .canonicalFilePath()) + QDir::separator()))
 			.arg( klf_addons[k].islocal ?
 			      tr("Add-On installed locally") :
 			      tr("Add-On installed globally on system") )

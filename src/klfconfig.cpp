@@ -498,6 +498,23 @@ QVariant KLFPluginConfigAccess::readValue(const QString& key)
   return _config->Plugins.pluginConfig[_pluginname][key];
 }
 
+QVariant KLFPluginConfigAccess::makeDefaultValue(const QString& key, const QVariant& defaultValue)
+{
+  if ( _config == NULL ) {
+    fprintf(stderr, "KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
+    return QVariant();
+  }
+  if ( (_amode & Write) == 0 ) {
+    fprintf(stderr, "KLFPluginConfigAccess::writeValue: Warning: Write mode not set!\n");
+    return QVariant();
+  }
+
+  if (_config->Plugins.pluginConfig[_pluginname].contains(key))
+    return _config->Plugins.pluginConfig[_pluginname][key];
+
+  // assign the value into the plugin config, and return it
+  return ( _config->Plugins.pluginConfig[_pluginname][key] = defaultValue );
+}
 void KLFPluginConfigAccess::writeValue(const QString& key, const QVariant& value)
 {
   if ( _config == NULL ) {

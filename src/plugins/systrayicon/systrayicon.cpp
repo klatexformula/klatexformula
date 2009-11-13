@@ -32,14 +32,19 @@
 #include "systrayicon.h"
 
 
+SysTrayMainIconifyButtons::SysTrayMainIconifyButtons(QWidget *parent) : QWidget(parent)
+{
+  setupUi(this);
+  btnQuit->setShortcut(QKeySequence(tr("Ctrl+Q", "SysTrayMainIconifyButtons->Quit")));
+}
+
+
 SysTrayIconConfigWidget::SysTrayIconConfigWidget(QWidget *parent)
   : QWidget(parent)
 {
   setupUi(this);
 
-#ifdef Q_WS_X11
-  connect(chkSysTrayOn, SIGNAL(toggled(bool)), chkRestoreOnHover, SLOT(setEnabled(bool)));
-#else
+#if !defined(Q_WS_X11)
   chkRestoreOnHover->hide();
 #endif
 }
@@ -47,18 +52,25 @@ SysTrayIconConfigWidget::SysTrayIconConfigWidget(QWidget *parent)
 
 void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
 {
+  _mainButtonBar = NULL;
+
   _mainwin = mainWin;
   _config = rwconfig;
 
   // set default value: Enable System Tray by default (but see plugin definition: don't
   // load plugin by default)
-  if (_config->readValue("systrayon").isNull())
-    _config->writeValue("systrayon", true);
+  _config->makeDefaultValue("systrayon", true);
+  _config->makeDefaultValue("replacequitbutton", true);
 
   QMenu *menu = new QMenu(mainWin);
   menu->addAction(tr("Minimize"), this, SLOT(minimize()));
   menu->addAction(tr("Restore"), this, SLOT(restore()));
-  menu->addAction(tr("Paste From Clipboard"), this, SLOT(latexFromClipboard()));
+  menu->addAction(QIcon(":/pics/paste.png"), tr("Paste From Clipboard"),
+		  this, SLOT(latexFromClipboard()));
+#ifdef Q_WS_X11
+  menu->addAction(QIcon(":/pics/paste.png"), tr("Paste From Mouse Selection"),
+		  this, SLOT(latexFromClipboardSelection()));
+#endif
   menu->addAction(QIcon(":/pics/closehide.png"), tr("Quit"), mainWin, SLOT(quit()));
 
   _systrayicon = new QSystemTrayIcon(QIcon(":/pics/hi32-app-klatexformula.png"), mainWin);
@@ -85,6 +97,25 @@ void SysTrayIconPlugin::apply()
     _mainwin->setQuitOnClose(true);
   }
 
+  // replace main window's quit button by a close button or restore quit button if option was unchecked.
+
+  QFrame *mainFrmMain = _mainwin->findChild<QFrame*>("frmMain");
+  QPushButton *mainBtnQuit = _mainwin->findChild<QPushButton*>("btnQuit");
+
+  if ( systrayon && _mainButtonBar == NULL ) {
+    _mainButtonBar = new SysTrayMainIconifyButtons(mainFrmMain);
+    mainFrmMain->layout()->addWidget(_mainButtonBar);
+    connect(_mainButtonBar->btnIconify, SIGNAL(clicked()), this, SLOT(minimize()));
+    connect(_mainButtonBar->btnQuit, SIGNAL(clicked()), _mainwin, SLOT(quit()));
+  }
+  if ( systrayon && _config->readValue("replacequitbutton").toBool() == true) {
+    mainBtnQuit->hide();
+    _mainButtonBar->show();
+  } else if (_mainButtonBar != NULL) {
+    _mainButtonBar->hide();
+    mainBtnQuit->show();
+  }
+
 }
 
 bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
@@ -109,24 +140,28 @@ void SysTrayIconPlugin::loadFromConfig(QWidget *confqwidget, KLFPluginConfigAcce
   SysTrayIconConfigWidget *confwidget = qobject_cast<SysTrayIconConfigWidget*>(confqwidget);
   bool systrayon = config->readValue("systrayon").toBool();
   bool restoreonhover = config->readValue("restoreonhover").toBool();
+  bool replacequitbutton = config->readValue("replacequitbutton").toBool();
   confwidget->chkSysTrayOn->setChecked(systrayon);
   confwidget->chkRestoreOnHover->setChecked(restoreonhover);
+  confwidget->chkReplaceQuitButton->setChecked(replacequitbutton);
 }
 void SysTrayIconPlugin::saveToConfig(QWidget *confqwidget, KLFPluginConfigAccess *config)
 {
   SysTrayIconConfigWidget *confwidget = qobject_cast<SysTrayIconConfigWidget*>(confqwidget);
   bool systrayon = confwidget->chkSysTrayOn->isChecked();
   bool restoreonhover = confwidget->chkRestoreOnHover->isChecked();
+  bool replacequitbutton = confwidget->chkReplaceQuitButton->isChecked();
   config->writeValue("systrayon", systrayon);
   config->writeValue("restoreonhover", restoreonhover);
+  config->writeValue("replacequitbutton", replacequitbutton);
   apply();
 }
 
 
-void SysTrayIconPlugin::latexFromClipboard()
+void SysTrayIconPlugin::latexFromClipboard(QClipboard::Mode mode)
 {
   restore();
-  QString cliptext = QApplication::clipboard()->text();
+  QString cliptext = QApplication::clipboard()->text(mode);
   _mainwin->slotSetLatex(cliptext);
 }
 
@@ -134,13 +169,15 @@ void SysTrayIconPlugin::latexFromClipboard()
 void SysTrayIconPlugin::restore()
 {
   _mainwin->show();
-  
+  _mainwin->raise();
+  _mainwin->activateWindow();
 }
 
 void SysTrayIconPlugin::minimize()
 {
   _mainwin->hide();
 }
+
 void SysTrayIconPlugin::slotSysTrayActivated(QSystemTrayIcon::ActivationReason reason)
 {
   if (reason == QSystemTrayIcon::Trigger) {
@@ -154,6 +191,13 @@ void SysTrayIconPlugin::slotSysTrayActivated(QSystemTrayIcon::ActivationReason r
 	_mainwin->activateWindow();
       }
     }
+  }
+  if (reason == QSystemTrayIcon::DoubleClick) {
+    latexFromClipboard();
+  }
+  if (reason == QSystemTrayIcon::MiddleClick) {
+    // paste mouse selection
+    latexFromClipboard(QClipboard::Selection);
   }
 }
 

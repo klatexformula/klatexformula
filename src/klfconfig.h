@@ -37,7 +37,8 @@
 
 class KLFConfig;
 
-// Utility class to access plugin configuration
+/** \brief Utility class for plugins to access their configuration space in KLFConfig
+ */
 class KLF_EXPORT KLFPluginConfigAccess
 {
   KLFConfig *_config;
@@ -51,10 +52,23 @@ public:
     : _config(other._config), _pluginname(other._pluginname), _amode(other._amode) { }
   virtual ~KLFPluginConfigAccess() { }
 
+  virtual uint accessMode() const { return _amode; }
+
   /** \note this method can be used even if accessmode doesn't have \c Read flag */
   virtual QString homeConfigDir() const;
 
   virtual QVariant readValue(const QString& key);
+  /** \brief write the value if inexistant in config
+   *
+   * equivalent to
+   * \code if (readValue(key).isNull()) writeValue(key, defaultValue); \endcode
+   * except that only the \c Write flag is needed for makeDefaultValue().
+   *
+   * \return the value this key has after this function call, ie. \c defaultValue if no
+   *   existing value was found, or the existing value if one already exists. A null QVariant
+   *   is returned upon error (e.g. accessMode() doesn't have the Write flag set).
+   */
+  virtual QVariant makeDefaultValue(const QString& key, const QVariant& defaultValue);
   virtual void writeValue(const QString& key, const QVariant& value);
 };
 

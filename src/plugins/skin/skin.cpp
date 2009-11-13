@@ -42,6 +42,7 @@ SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
   connect(cbxSkin, SIGNAL(activated(int)), this, SLOT(skinSelected(int)));
   connect(txtStyleSheet, SIGNAL(textChanged()), this, SLOT(stylesheetChanged()));
   connect(btnSaveCustom, SIGNAL(clicked()), this, SLOT(saveCustom()));
+  connect(btnDeleteSkin, SIGNAL(clicked()), this, SLOT(deleteCustom()));
 }
 
 void SkinConfigWidget::load(QString skin, QString stylesheet)
@@ -112,6 +113,8 @@ void SkinConfigWidget::skinSelected(int index)
   txtStyleSheet->blockSignals(true);
   txtStyleSheet->setPlainText(_skins[k].stylesheet);
   txtStyleSheet->blockSignals(false);
+
+  btnDeleteSkin->setEnabled( ! _skins[k].builtin );
 }
 
 void SkinConfigWidget::stylesheetChanged()
@@ -130,7 +133,32 @@ void SkinConfigWidget::saveCustom()
   _skins.push_back(Skin(false, name, name, txtStyleSheet->toPlainText()));
   cbxSkin->insertItem(cbxSkin->count()-1, name, _skins.size()-1);
   cbxSkin->setCurrentIndex(cbxSkin->count()-2);
-  
+
+  saveCustomSkins();
+}
+
+void SkinConfigWidget::deleteCustom()
+{
+  int index = cbxSkin->currentIndex();
+  int k = cbxSkin->itemData(index).toInt();
+  int confirmation
+    = QMessageBox::warning(this, tr("Delete skin?", "[[confirmation messagebox title]]"),
+			   tr("Are you sure you want to delete the skin named `%1' ?").arg(_skins[k].name),
+			   QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
+  if (confirmation != QMessageBox::Yes) {
+    return;
+  }
+
+  _skins.removeAt(k);
+
+  cbxSkin->removeItem(index);
+  cbxSkin->setCurrentIndex(cbxSkin->count()-1);
+
+  saveCustomSkins();
+}
+
+void SkinConfigWidget::saveCustomSkins()
+{
   QList<QVariant> customskins;
   int k;
   for (k = 0; k < _skins.size(); ++k) {

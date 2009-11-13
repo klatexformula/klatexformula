@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>523</width>
-    <height>390</height>
+    <width>516</width>
+    <height>371</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string/>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -21,7 +21,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -36,16 +36,53 @@
    </item>
    <item row="1" column="0">
     <widget class="QCheckBox" name="chkRestoreOnHover">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
      <property name="text">
       <string>Restore Windows upon mouse hover</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QCheckBox" name="chkReplaceQuitButton">
+     <property name="text">
+      <string>Replace main window's quit button by an iconify and quit button bar</string>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>chkSysTrayOn</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>chkRestoreOnHover</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>172</x>
+     <y>13</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>190</x>
+     <y>52</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkSysTrayOn</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>chkReplaceQuitButton</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>125</x>
+     <y>17</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>142</x>
+     <y>83</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

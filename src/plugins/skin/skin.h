@@ -45,6 +45,7 @@ public slots:
   void load(QString skin, QString stylesheet);
   void skinSelected(int index);
   void stylesheetChanged();
+  void deleteCustom();
   void saveCustom();
 
 private:
@@ -62,6 +63,8 @@ private:
   QList<Skin> _skins;
 
   KLFPluginConfigAccess *config;
+
+  void saveCustomSkins();
 };
 
 class SkinPlugin : public QObject, public KLFPluginGenericInterface

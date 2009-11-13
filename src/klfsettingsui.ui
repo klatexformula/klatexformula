@@ -1197,15 +1197,24 @@
       <attribute name="title">
        <string>Add-Ons</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_6">
-       <item row="0" column="0">
+      <layout class="QVBoxLayout" name="lyt_tabAddOns">
+       <item>
         <widget class="QSplitter" name="splitterAddOns">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>7</verstretch>
+          </sizepolicy>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
+         <property name="handleWidth">
+          <number>4</number>
+         </property>
          <widget class="QTreeWidget" name="lstAddOns">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>1</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -1222,10 +1231,10 @@
            </property>
           </column>
          </widget>
-         <widget class="QLabel" name="lblAddOnInfo">
+         <widget class="QGroupBox" name="gbxAddOnInfo">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>2</horstretch>
+            <horstretch>6</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
@@ -1235,25 +1244,68 @@
             <height>0</height>
            </size>
           </property>
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
+          <property name="title">
+           <string>Add-On Information</string>
           </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
+          <layout class="QVBoxLayout" name="lyt_gbxAddOnInfo">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetMinimumSize</enum>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QScrollArea" name="scrAddOnInfo">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
+             <property name="midLineWidth">
+              <number>0</number>
+             </property>
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+             </property>
+             <widget class="QWidget" name="scrAddOnInfoContents">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>211</width>
+                <height>156</height>
+               </rect>
+              </property>
+              <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
+               <item>
+                <widget class="QLabel" name="lblAddOnInfo">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item>
         <layout class="QHBoxLayout" name="lytAddOnActions">
          <item>
           <widget class="QPushButton" name="btnImportAddOn">
@@ -1283,30 +1335,35 @@
          </item>
         </layout>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="lblNoteRestart">
-         <property name="text">
-          <string>Note: KLatexFormula needs to be restarted for changes to plugin loading or add-on importing/removing to be applied.</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
+       <item>
         <widget class="QGroupBox" name="gbxPlugins">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>10</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>Plugin Loading</string>
          </property>
-         <layout class="QVBoxLayout" name="lyt_Plugins">
+         <layout class="QVBoxLayout" name="lyt_gbxPlugins">
           <item>
            <widget class="QSplitter" name="splitterPlugins">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
+            <property name="handleWidth">
+             <number>4</number>
+            </property>
             <widget class="QTreeWidget" name="lstPlugins">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>1</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -1338,10 +1395,10 @@
               </property>
              </column>
             </widget>
-            <widget class="QLabel" name="lblPluginInfo">
+            <widget class="QGroupBox" name="gbxPluginInfo">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>2</horstretch>
+               <horstretch>6</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
@@ -1351,21 +1408,64 @@
                <height>0</height>
               </size>
              </property>
-             <property name="frameShape">
-              <enum>QFrame::Panel</enum>
+             <property name="title">
+              <string>Plugin Information</string>
              </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-             </property>
-             <property name="wordWrap">
-              <bool>true</bool>
-             </property>
+             <layout class="QVBoxLayout" name="lyt_gbxPluginInfo">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinimumSize</enum>
+              </property>
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QScrollArea" name="scrPluginInfo">
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Plain</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>0</number>
+                </property>
+                <property name="midLineWidth">
+                 <number>0</number>
+                </property>
+                <property name="widgetResizable">
+                 <bool>true</bool>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                </property>
+                <widget class="QWidget" name="scrPluginInfoContents">
+                 <property name="geometry">
+                  <rect>
+                   <x>0</x>
+                   <y>0</y>
+                   <width>204</width>
+                   <height>162</height>
+                  </rect>
+                 </property>
+                 <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
+                  <item>
+                   <widget class="QLabel" name="lblPluginInfo">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                    </property>
+                    <property name="wordWrap">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </widget>
           </item>
@@ -1383,6 +1483,16 @@
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblNoteRestart">
+         <property name="text">
+          <string>Note: KLatexFormula needs to be restarted for changes to plugin loading or add-on importing/removing to be applied.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
       </layout>
@@ -1413,7 +1523,7 @@
            </rect>
           </property>
           <attribute name="label">
-           <string>Page 1</string>
+           <string notr="true">Dummy Page</string>
           </attribute>
          </widget>
         </widget>

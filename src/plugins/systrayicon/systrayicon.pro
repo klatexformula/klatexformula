@@ -20,5 +20,5 @@ win32:LIBS += -L../../release -L../.. -lklfsrc -L../../klfbackend/release -L../.
 # Input
 HEADERS += systrayicon.h
 SOURCES += systrayicon.cpp
-FORMS += systrayiconconfigwidget.ui
+FORMS += systrayiconconfigwidget.ui systraymainiconifybuttons.ui
 
