@@ -307,6 +307,9 @@ public:
     if (userfeedback) {
       pdlg = new QProgressDialog(QObject::tr("Please wait while generating symbol previews ... "),
 				 QObject::tr("Skip"), 0, list.size()-1, parent);
+      // TODO: we should do a first pass to see which symbols are missing, then
+      // on a second pass generate those symbols with a progress dialog...
+      //  pdlg->setMinimumDuration(15000);
       pdlg->setWindowModality(Qt::WindowModal);
       pdlg->setValue(0);
     }
@@ -619,6 +622,7 @@ KLFLatexSymbols::~KLFLatexSymbols()
       } else {
 	QDataStream ds(&f);
 	mCache->saveCache(ds);
+	qDebug("Saved cache to file %s.", qPrintable(s));
       }
     }
     delete mCache;

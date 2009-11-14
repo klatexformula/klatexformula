@@ -61,9 +61,6 @@ isEmpty(BACKEND_LIBDIR) {
   unix:contains($$system(uname -m), 64) {
     BACKEND_LIBDIR = lib64
   }
-  macx:contains($$system(uname -m), 64) {
-    BACKEND_LIBDIR = lib64
-  }
 }
 isEmpty(BACKEND_SHAREDORSTATIC) {
   # may be staticlib or dll

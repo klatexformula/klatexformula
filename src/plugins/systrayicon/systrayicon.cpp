@@ -180,6 +180,12 @@ void SysTrayIconPlugin::minimize()
 
 void SysTrayIconPlugin::slotSysTrayActivated(QSystemTrayIcon::ActivationReason reason)
 {
+#ifdef Q_WS_MAC
+  // on mac simple clic gives the menu; don't automatically activate window.
+  if (reason == QSystemTrayIcon::Trigger)
+    return;
+#endif
+
   if (reason == QSystemTrayIcon::Trigger) {
     if ( ! _mainwin->isVisible() ) {
       _mainwin->show();

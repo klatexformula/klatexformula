@@ -99,20 +99,20 @@ KLFLibraryListCategoryViewItem::~KLFLibraryListCategoryViewItem()
 // -------------
 
 KLFLibraryListViewItem::KLFLibraryListViewItem(QTreeWidgetItem *v, const KLFData::KLFLibraryItem& item, int index)
-  : QTreeWidgetItem(v, Type)
+  : QTreeWidgetItem(v, Type), _showtagshidelatex(false)
 {
   _ind = index;
   updateLibraryItem(item);
 }
 KLFLibraryListViewItem::KLFLibraryListViewItem(QTreeWidget *v, const KLFData::KLFLibraryItem& item, int index)
-  : QTreeWidgetItem(v, Type)
+  : QTreeWidgetItem(v, Type), _showtagshidelatex(false)
 {
   _ind = index;
   updateLibraryItem(item);
 }
 
 KLFLibraryListViewItem::KLFLibraryListViewItem(const KLFData::KLFLibraryItem& item, int index)
-  : QTreeWidgetItem(Type)
+  : QTreeWidgetItem(Type), _showtagshidelatex(false)
 {
   _ind = index;
   updateLibraryItem(item);
@@ -491,7 +491,8 @@ void KLFLibraryListManager::slotDelete()
   
   if (!_dont_emit_libchg) { // not only don't emit, but also don't ask questions
     int r = QMessageBox::question(_parent, tr("delete from Library?"),
-				  tr("Are you sure you want to delete %1 selected item(s) from library?").arg(list.size()),
+				  tr("Are you sure you want to delete %n selected item(s) from library?",
+				     "[[confirmation message box]]", list.size()),
 				  QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
     if (r != QMessageBox::Yes)
       return;

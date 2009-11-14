@@ -505,6 +505,9 @@ KLFMainWin::KLFMainWin()
 
   lblOutput->setFixedSize(klfconfig.UI.labelOutputFixedSize);
 
+  // save default palette for restoring later on
+  lblOutput->setProperty("defaultPalette", lblOutput->palette());
+
   refreshWindowSizes();
 
   frmDetails->hide();
@@ -524,10 +527,10 @@ KLFMainWin::KLFMainWin()
   connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(saveStyles()));
 
   // load style "default" or "Default" (or translation) if one of them exists
-  loadNamedStyle("default");
-  loadNamedStyle("Default");
-  loadNamedStyle(tr("default"));
   loadNamedStyle(tr("Default"));
+  loadNamedStyle(tr("default"));
+  loadNamedStyle("Default");
+  loadNamedStyle("default");
 
   // For systematical syntax highlighting
   // make sure syntax highlighting is up-to-date at all times
@@ -666,6 +669,8 @@ bool KLFMainWin::loadNamedStyle(const QString& sty)
   // find style with name sty (if existant) and set it
   for (int kl = 0; kl < _styles.size(); ++kl) {
     if (_styles[kl].name == sty) {
+      qDebug("Found style named %s, preamble is:\n%s",
+	     qPrintable(sty), qPrintable(_styles[kl].preamble));
       slotLoadStyle(kl);
       return true;
     }
@@ -1007,6 +1012,7 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   QString preambletext = txtPreamble->toPlainText();
   QString addtext;
   QTextCursor c = txtPreamble->textCursor();
+  qDebug("Begin preamble edit: preamble text is %s", qPrintable(txtPreamble->toPlainText()));
   c.beginEditBlock();
   c.movePosition(QTextCursor::End);
   for (k = 0; k < cmds.size(); ++k) {
@@ -1021,6 +1027,8 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
     }
   }
   c.endEditBlock();
+
+  qDebug("End preamble edit; premable text is %s", qPrintable(txtPreamble->toPlainText()));
 
   activateWindow();
   raise();
@@ -1234,7 +1242,8 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
     pal.setColor(bgrole, QColor(255, 200, 200));
     lblOutput->setProperty("realTimeLatexError", true);
   } else {
-    pal.setColor(bgrole, palette().color(bgrole));
+    // restore previously saved default palette
+    pal = lblOutput->property("defaultPalette").value<QPalette>();
     lblOutput->setProperty("realTimeLatexError", false);
     lblOutput->setPixmap(QPixmap::fromImage(preview));
   }
@@ -1424,6 +1433,7 @@ void KLFMainWin::slotSetMathMode(const QString& mathmode)
 
 void KLFMainWin::slotSetPreamble(const QString& preamble)
 {
+  qDebug("Want to set preamble to %s", qPrintable(preamble));
   QTextCursor cur = txtPreamble->textCursor();
   cur.beginEditBlock();
   cur.select(QTextCursor::Document);
@@ -1715,14 +1725,16 @@ void KLFMainWin::slotLoadStyle(int n)
     chkMathMode->setChecked(true);
     cbxMathMode->setEditText(_styles[n].mathmode);
   }
-  txtPreamble->setPlainText(_styles[n].preamble);
+  qDebug("Want to set preamble to %s", qPrintable(_styles[n].preamble));
+  slotSetPreamble(_styles[n].preamble);
   spnDPI->setValue(_styles[n].dpi);
 }
 void KLFMainWin::slotSaveStyle()
 {
   KLFData::KLFStyle sty;
 
-  QString name = QInputDialog::getText(this, tr("Enter Style Name"), tr("Enter new style name:"));
+  QString name = QInputDialog::getText(this, tr("Enter Style Name"),
+				       tr("Enter new style name:"));
   if (name.isEmpty()) {
     return;
   }
@@ -1733,7 +1745,8 @@ void KLFMainWin::slotSaveStyle()
     if (_styles[kl].name.trimmed() == name.trimmed()) {
       found_i = kl;
       // style exists already
-      int r = QMessageBox::question(this, tr("Overwrite Style"), tr("Style name already exists. Do you want to overwrite?"),
+      int r = QMessageBox::question(this, tr("Overwrite Style"),
+				    tr("Style name already exists. Do you want to overwrite?"),
 				    QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::No);
       switch (r) {
       case QMessageBox::No:

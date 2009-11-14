@@ -98,6 +98,12 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   btns->addButton(b, QDialogButtonBox::AcceptRole);
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
+  // set some smaller fonts for small titles
+  QFont f = lblSHForeground->font();
+  f.setPointSize(QFontInfo(f).pointSize() - 1);
+  lblSHForeground->setFont(f);
+  lblSHBackground->setFont(f);
+
   connect(btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
 
   connect(lstPlugins, SIGNAL(itemSelectionChanged()), this, SLOT(refreshPluginSelected()));

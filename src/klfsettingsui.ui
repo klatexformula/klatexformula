@@ -1,12 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
+<ui version="4.0" >
  <author>Ph. Faist</author>
  <class>KLFSettingsUI</class>
- <widget class="QDialog" name="KLFSettingsUI">
-  <property name="windowModality">
+ <widget class="QDialog" name="KLFSettingsUI" >
+  <property name="windowModality" >
    <enum>Qt::NonModal</enum>
   </property>
-  <property name="geometry">
+  <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
@@ -14,68 +13,68 @@
     <height>620</height>
    </rect>
   </property>
-  <property name="minimumSize">
+  <property name="minimumSize" >
    <size>
     <width>350</width>
     <height>0</height>
    </size>
   </property>
-  <property name="windowTitle">
+  <property name="windowTitle" >
    <string>KLatexFormula - Settings</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="klfres.qrc">
+  <property name="windowIcon" >
+   <iconset resource="klfres.qrc" >
     <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
-  <property name="sizeGripEnabled">
+  <property name="sizeGripEnabled" >
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
+  <layout class="QVBoxLayout" name="verticalLayout_4" >
    <item>
-    <widget class="QTabWidget" name="tabs">
-     <property name="currentIndex">
+    <widget class="QTabWidget" name="tabs" >
+     <property name="currentIndex" >
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tabAppearance">
-      <attribute name="title">
+     <widget class="QWidget" name="tabAppearance" >
+      <attribute name="title" >
        <string>&amp;Appearance</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="verticalLayout_2" >
        <item>
-        <widget class="QPushButton" name="btnAppFont">
-         <property name="text">
+        <widget class="QPushButton" name="btnAppFont" >
+         <property name="text" >
           <string>Application Font - click to change</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="gbxEditorFont">
-         <property name="title">
+        <widget class="QGroupBox" name="gbxEditorFont" >
+         <property name="title" >
           <string>LaTeX editor fonts</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QVBoxLayout" name="verticalLayout" >
           <item>
-           <widget class="QPushButton" name="btnAppearFont">
-            <property name="font">
+           <widget class="QPushButton" name="btnAppearFont" >
+            <property name="font" >
              <font>
               <family>Courier New</family>
               <pointsize>9</pointsize>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>Main editor font sample - click to change</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnAppearPreambleFont">
-            <property name="font">
+           <widget class="QPushButton" name="btnAppearPreambleFont" >
+            <property name="font" >
              <font>
               <family>Courier New</family>
               <pointsize>9</pointsize>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>Preamble editor font sample - click to change</string>
             </property>
            </widget>
@@ -84,81 +83,81 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="gbxPreview">
-         <property name="title">
+        <widget class="QGroupBox" name="gbxPreview" >
+         <property name="title" >
           <string>Preview</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_4">
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="spnPreviewWidth">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <layout class="QGridLayout" name="gridLayout_4" >
+          <item row="1" column="1" >
+           <widget class="QSpinBox" name="spnPreviewWidth" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
+            <property name="minimum" >
              <number>10</number>
             </property>
-            <property name="maximum">
+            <property name="maximum" >
              <number>1000</number>
             </property>
-            <property name="value">
+            <property name="value" >
              <number>500</number>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="lblPreviewX_2">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <item row="1" column="2" >
+           <widget class="QLabel" name="lblPreviewX_2" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>x</string>
             </property>
-            <property name="alignment">
+            <property name="alignment" >
              <set>Qt::AlignCenter</set>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QSpinBox" name="spnPreviewHeight">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <item row="1" column="3" >
+           <widget class="QSpinBox" name="spnPreviewHeight" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
+            <property name="minimum" >
              <number>10</number>
             </property>
-            <property name="maximum">
+            <property name="maximum" >
              <number>1000</number>
             </property>
-            <property name="value">
+            <property name="value" >
              <number>350</number>
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="4">
-           <widget class="QCheckBox" name="chkEnableRealTimePreview">
-            <property name="text">
+          <item row="0" column="0" colspan="4" >
+           <widget class="QCheckBox" name="chkEnableRealTimePreview" >
+            <property name="text" >
              <string>Preview formulas as you type</string>
             </property>
-            <property name="checked">
+            <property name="checked" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblPreviewSizePrompt">
-            <property name="text">
+          <item row="1" column="0" >
+           <widget class="QLabel" name="lblPreviewSizePrompt" >
+            <property name="text" >
              <string>Preview size:</string>
             </property>
            </widget>
@@ -167,81 +166,81 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="gbxTooltipSize">
-         <property name="title">
+        <widget class="QGroupBox" name="gbxTooltipSize" >
+         <property name="title" >
           <string>Tooltip Preview</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_5">
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblToolTipPreviewSizePrompt">
-            <property name="text">
+         <layout class="QGridLayout" name="gridLayout_5" >
+          <item row="1" column="0" >
+           <widget class="QLabel" name="lblToolTipPreviewSizePrompt" >
+            <property name="text" >
              <string>Max size:</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="spnTooltipMaxWidth">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <item row="1" column="1" >
+           <widget class="QSpinBox" name="spnTooltipMaxWidth" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
+            <property name="minimum" >
              <number>10</number>
             </property>
-            <property name="maximum">
+            <property name="maximum" >
              <number>2000</number>
             </property>
-            <property name="value">
+            <property name="value" >
              <number>500</number>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="lblPreviewX">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <item row="1" column="2" >
+           <widget class="QLabel" name="lblPreviewX" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>x</string>
             </property>
-            <property name="alignment">
+            <property name="alignment" >
              <set>Qt::AlignCenter</set>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QSpinBox" name="spnTooltipMaxHeight">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <item row="1" column="3" >
+           <widget class="QSpinBox" name="spnTooltipMaxHeight" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
+            <property name="minimum" >
              <number>10</number>
             </property>
-            <property name="maximum">
+            <property name="maximum" >
              <number>2000</number>
             </property>
-            <property name="value">
+            <property name="value" >
              <number>350</number>
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="4">
-           <widget class="QCheckBox" name="chkEnableToolTipPreview">
-            <property name="text">
+          <item row="0" column="0" colspan="4" >
+           <widget class="QCheckBox" name="chkEnableToolTipPreview" >
+            <property name="text" >
              <string>Show bigger preview in a tooltip on mouse hover</string>
             </property>
-            <property name="checked">
+            <property name="checked" >
              <bool>true</bool>
             </property>
            </widget>
@@ -250,14 +249,14 @@
         </widget>
        </item>
        <item>
-        <spacer name="spcAppearance">
-         <property name="orientation">
+        <spacer name="spcAppearance" >
+         <property name="orientation" >
           <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeType">
+         <property name="sizeType" >
           <enum>QSizePolicy::Expanding</enum>
          </property>
-         <property name="sizeHint" stdset="0">
+         <property name="sizeHint" stdset="0" >
           <size>
            <width>20</width>
            <height>70</height>
@@ -267,43 +266,43 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabSyntaxHighlighting">
-      <attribute name="title">
+     <widget class="QWidget" name="tabSyntaxHighlighting" >
+      <attribute name="title" >
        <string>&amp;Syntax Highlighting</string>
       </attribute>
-      <layout class="QVBoxLayout" name="lyt_tabSyntaxHighlighting">
+      <layout class="QVBoxLayout" name="lyt_tabSyntaxHighlighting" >
        <item>
-        <widget class="QCheckBox" name="chkSHEnable">
-         <property name="text">
+        <widget class="QCheckBox" name="chkSHEnable" >
+         <property name="text" >
           <string>Globally enable syntax highlighting</string>
          </property>
-         <property name="checked">
+         <property name="checked" >
           <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="gbxSHOptions">
-         <property name="title">
+        <widget class="QGroupBox" name="gbxSHOptions" >
+         <property name="title" >
           <string>Options</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
+         <layout class="QVBoxLayout" name="verticalLayout_5" >
           <item>
-           <widget class="QCheckBox" name="chkSHHighlightParensOnly">
-            <property name="text">
+           <widget class="QCheckBox" name="chkSHHighlightParensOnly" >
+            <property name="text" >
              <string>Highlight parens only, not whole expression</string>
             </property>
-            <property name="shortcut">
+            <property name="shortcut" >
              <string>Alt+A</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="chkSHHighlightLonelyParen">
-            <property name="text">
+           <widget class="QCheckBox" name="chkSHHighlightLonelyParen" >
+            <property name="text" >
              <string>Highlight parens that aren't closed</string>
             </property>
-            <property name="shortcut">
+            <property name="shortcut" >
              <string/>
             </property>
            </widget>
@@ -312,72 +311,62 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="gbxSHColors">
-         <property name="title">
+        <widget class="QGroupBox" name="gbxSHColors" >
+         <property name="title" >
           <string>Colors</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="1">
-           <widget class="QLabel" name="lblSHForeground">
-            <property name="maximumSize">
+         <layout class="QGridLayout" name="gridLayout" >
+          <item row="0" column="1" >
+           <widget class="QLabel" name="lblSHForeground" >
+            <property name="maximumSize" >
              <size>
               <width>16777215</width>
               <height>15</height>
              </size>
             </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
+            <property name="text" >
              <string>Foreground</string>
             </property>
-            <property name="alignment">
+            <property name="alignment" >
              <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="lblSHBackground">
-            <property name="maximumSize">
+          <item row="0" column="2" >
+           <widget class="QLabel" name="lblSHBackground" >
+            <property name="maximumSize" >
              <size>
               <width>16777215</width>
               <height>15</height>
              </size>
             </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
-            </property>
-            <property name="text">
+            <property name="text" >
              <string>Background</string>
             </property>
-            <property name="alignment">
+            <property name="alignment" >
              <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblSHKeyword">
-            <property name="text">
+          <item row="1" column="0" >
+           <widget class="QLabel" name="lblSHKeyword" >
+            <property name="text" >
              <string>Keyword color:</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>colSHKeyword</cstring>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="KLFColorChooser" name="colSHKeyword">
-            <property name="allowDefaultState" stdset="0">
+          <item row="1" column="1" >
+           <widget class="KLFColorChooser" name="colSHKeyword" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -385,12 +374,12 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="KLFColorChooser" name="colSHKeywordBg">
-            <property name="allowDefaultState" stdset="0">
+          <item row="1" column="2" >
+           <widget class="KLFColorChooser" name="colSHKeywordBg" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -398,68 +387,68 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QCheckBox" name="chkSHKeywordB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="1" column="3" >
+           <widget class="QCheckBox" name="chkSHKeywordB" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="1" column="4">
-           <widget class="QCheckBox" name="chkSHKeywordI">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="1" column="4" >
+           <widget class="QCheckBox" name="chkSHKeywordI" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <italic>true</italic>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lblSHComment">
-            <property name="text">
+          <item row="2" column="0" >
+           <widget class="QLabel" name="lblSHComment" >
+            <property name="text" >
              <string>Comment color:</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>colSHComment</cstring>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="KLFColorChooser" name="colSHComment">
-            <property name="allowDefaultState" stdset="0">
+          <item row="2" column="1" >
+           <widget class="KLFColorChooser" name="colSHComment" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -467,12 +456,12 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="2">
-           <widget class="KLFColorChooser" name="colSHCommentBg">
-            <property name="allowDefaultState" stdset="0">
+          <item row="2" column="2" >
+           <widget class="KLFColorChooser" name="colSHCommentBg" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -480,68 +469,68 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="3">
-           <widget class="QCheckBox" name="chkSHCommentB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="2" column="3" >
+           <widget class="QCheckBox" name="chkSHCommentB" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="2" column="4">
-           <widget class="QCheckBox" name="chkSHCommentI">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="2" column="4" >
+           <widget class="QCheckBox" name="chkSHCommentI" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <italic>true</italic>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="lblSHParenMatch">
-            <property name="text">
+          <item row="4" column="0" >
+           <widget class="QLabel" name="lblSHParenMatch" >
+            <property name="text" >
              <string>Paren match color:</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>colSHParenMatch</cstring>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="KLFColorChooser" name="colSHParenMatch">
-            <property name="allowDefaultState" stdset="0">
+          <item row="4" column="1" >
+           <widget class="KLFColorChooser" name="colSHParenMatch" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -549,12 +538,12 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="2">
-           <widget class="KLFColorChooser" name="colSHParenMatchBg">
-            <property name="allowDefaultState" stdset="0">
+          <item row="4" column="2" >
+           <widget class="KLFColorChooser" name="colSHParenMatchBg" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -562,68 +551,68 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="3">
-           <widget class="QCheckBox" name="chkSHParenMatchB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="4" column="3" >
+           <widget class="QCheckBox" name="chkSHParenMatchB" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="4" column="4">
-           <widget class="QCheckBox" name="chkSHParenMatchI">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="4" column="4" >
+           <widget class="QCheckBox" name="chkSHParenMatchI" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <italic>true</italic>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="lblSHParenMismatch">
-            <property name="text">
+          <item row="5" column="0" >
+           <widget class="QLabel" name="lblSHParenMismatch" >
+            <property name="text" >
              <string>Paren mismatch color:</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>colSHParenMismatch</cstring>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
-           <widget class="KLFColorChooser" name="colSHParenMismatch">
-            <property name="allowDefaultState" stdset="0">
+          <item row="5" column="1" >
+           <widget class="KLFColorChooser" name="colSHParenMismatch" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -631,12 +620,12 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="2">
-           <widget class="KLFColorChooser" name="colSHParenMismatchBg">
-            <property name="allowDefaultState" stdset="0">
+          <item row="5" column="2" >
+           <widget class="KLFColorChooser" name="colSHParenMismatchBg" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -644,68 +633,68 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="3">
-           <widget class="QCheckBox" name="chkSHParenMismatchB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="5" column="3" >
+           <widget class="QCheckBox" name="chkSHParenMismatchB" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="5" column="4">
-           <widget class="QCheckBox" name="chkSHParenMismatchI">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="5" column="4" >
+           <widget class="QCheckBox" name="chkSHParenMismatchI" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <italic>true</italic>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="lblSHLonelyParen">
-            <property name="text">
+          <item row="7" column="0" >
+           <widget class="QLabel" name="lblSHLonelyParen" >
+            <property name="text" >
              <string>Lonely paren color:</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>colSHLonelyParen</cstring>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
-           <widget class="KLFColorChooser" name="colSHLonelyParen">
-            <property name="allowDefaultState" stdset="0">
+          <item row="7" column="1" >
+           <widget class="KLFColorChooser" name="colSHLonelyParen" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -713,12 +702,12 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="2">
-           <widget class="KLFColorChooser" name="colSHLonelyParenBg">
-            <property name="allowDefaultState" stdset="0">
+          <item row="7" column="2" >
+           <widget class="KLFColorChooser" name="colSHLonelyParenBg" >
+            <property name="allowDefaultState" stdset="0" >
              <bool>true</bool>
             </property>
-            <property name="showSize" stdset="0">
+            <property name="showSize" stdset="0" >
              <size>
               <width>50</width>
               <height>16</height>
@@ -726,83 +715,83 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="3">
-           <widget class="QCheckBox" name="chkSHLonelyParenB">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="7" column="3" >
+           <widget class="QCheckBox" name="chkSHLonelyParenB" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="7" column="4">
-           <widget class="QCheckBox" name="chkSHLonelyParenI">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="7" column="4" >
+           <widget class="QCheckBox" name="chkSHLonelyParenI" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <italic>true</italic>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string/>
             </property>
-            <property name="tristate">
+            <property name="tristate" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="0" column="3">
-           <widget class="QLabel" name="lblSHBold">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="0" column="3" >
+           <widget class="QLabel" name="lblSHBold" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>B</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="4">
-           <widget class="QLabel" name="lblSHItalic">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <item row="0" column="4" >
+           <widget class="QLabel" name="lblSHItalic" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Fixed" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
+            <property name="font" >
              <font>
               <italic>true</italic>
              </font>
             </property>
-            <property name="text">
-             <string>I  </string>
+            <property name="text" >
+             <string comment="Note two trailing spaces (ie. &quot;I&lt;space>&lt;space>&quot;) (workaround for nice layout)" >I  </string>
             </property>
            </widget>
           </item>
@@ -810,11 +799,11 @@
         </widget>
        </item>
        <item>
-        <spacer name="spc_SH">
-         <property name="orientation">
+        <spacer name="spc_SH" >
+         <property name="orientation" >
           <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeHint" stdset="0">
+         <property name="sizeHint" stdset="0" >
           <size>
            <width>20</width>
            <height>87</height>
@@ -824,20 +813,20 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabAdvanced">
-      <attribute name="title">
+     <widget class="QWidget" name="tabAdvanced" >
+      <attribute name="title" >
        <string>A&amp;dvanced</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="2" column="1">
-        <spacer name="spc_Advanced">
-         <property name="orientation">
+      <layout class="QGridLayout" name="gridLayout_2" >
+       <item row="2" column="1" >
+        <spacer name="spc_Advanced" >
+         <property name="orientation" >
           <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeType">
+         <property name="sizeType" >
           <enum>QSizePolicy::Expanding</enum>
          </property>
-         <property name="sizeHint" stdset="0">
+         <property name="sizeHint" stdset="0" >
           <size>
            <width>20</width>
            <height>100</height>
@@ -845,160 +834,160 @@
          </property>
         </spacer>
        </item>
-       <item row="1" column="0" colspan="2">
-        <widget class="QGroupBox" name="gbxEPSBoundingBox">
-         <property name="title">
+       <item row="1" column="0" colspan="2" >
+        <widget class="QGroupBox" name="gbxEPSBoundingBox" >
+         <property name="title" >
           <string>Expand EPS BoundingBox</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_3">
-          <item row="4" column="0">
-           <widget class="QLabel" name="lblBBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <layout class="QGridLayout" name="gridLayout_3" >
+          <item row="4" column="0" >
+           <widget class="QLabel" name="lblBBorderOffset" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>Bottom (Postscript points):</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>spnBBorderOffset</cstring>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lblRBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <item row="3" column="0" >
+           <widget class="QLabel" name="lblRBorderOffset" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>Right (Postscript points):</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>spnRBorderOffset</cstring>
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="lblLBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <item row="0" column="0" >
+           <widget class="QLabel" name="lblLBorderOffset" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>Left (Postscript points):</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>spnLBorderOffset</cstring>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lblTBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <item row="2" column="0" >
+           <widget class="QLabel" name="lblTBorderOffset" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
               <horstretch>3</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>Top (Postscript points):</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>spnTBorderOffset</cstring>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="spnLBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <item row="0" column="1" >
+           <widget class="QSpinBox" name="spnLBorderOffset" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
+            <property name="minimum" >
              <number>-50</number>
             </property>
-            <property name="maximum">
+            <property name="maximum" >
              <number>50</number>
             </property>
-            <property name="value">
+            <property name="value" >
              <number>1</number>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="spnTBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <item row="2" column="1" >
+           <widget class="QSpinBox" name="spnTBorderOffset" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
+            <property name="minimum" >
              <number>-50</number>
             </property>
-            <property name="maximum">
+            <property name="maximum" >
              <number>50</number>
             </property>
-            <property name="value">
+            <property name="value" >
              <number>1</number>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QSpinBox" name="spnRBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <item row="3" column="1" >
+           <widget class="QSpinBox" name="spnRBorderOffset" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
+            <property name="minimum" >
              <number>-50</number>
             </property>
-            <property name="maximum">
+            <property name="maximum" >
              <number>50</number>
             </property>
-            <property name="value">
+            <property name="value" >
              <number>1</number>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QSpinBox" name="spnBBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <item row="4" column="1" >
+           <widget class="QSpinBox" name="spnBBorderOffset" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimum">
+            <property name="minimum" >
              <number>-50</number>
             </property>
-            <property name="maximum">
+            <property name="maximum" >
              <number>50</number>
             </property>
-            <property name="value">
+            <property name="value" >
              <number>1</number>
             </property>
            </widget>
@@ -1006,168 +995,168 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QGroupBox" name="gbxExecPaths">
-         <property name="title">
+       <item row="0" column="0" colspan="2" >
+        <widget class="QGroupBox" name="gbxExecPaths" >
+         <property name="title" >
           <string>System Executables And Paths</string>
          </property>
-         <layout class="QGridLayout" name="lyt_gbxExecPaths">
-          <item row="0" column="0">
-           <widget class="QLabel" name="lblTempDir">
-            <property name="text">
+         <layout class="QGridLayout" name="lyt_gbxExecPaths" >
+          <item row="0" column="0" >
+           <widget class="QLabel" name="lblTempDir" >
+            <property name="text" >
              <string>Temporary directory:</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>pathTempDir</cstring>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="KLFPathChooser" name="pathTempDir">
-            <property name="caption" stdset="0">
+          <item row="0" column="1" >
+           <widget class="KLFPathChooser" name="pathTempDir" >
+            <property name="caption" stdset="0" >
              <string>Choose temporary directory</string>
             </property>
-            <property name="mode" stdset="0">
+            <property name="mode" stdset="0" >
              <number>2</number>
             </property>
-            <property name="filter" stdset="0">
+            <property name="filter" stdset="0" >
              <string/>
             </property>
-            <property name="path" stdset="0">
-             <string notr="true">/tmp/</string>
+            <property name="path" stdset="0" >
+             <string>/tmp/</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblLatex">
-            <property name="text">
+          <item row="1" column="0" >
+           <widget class="QLabel" name="lblLatex" >
+            <property name="text" >
              <string>latex :</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>pathLatex</cstring>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="KLFPathChooser" name="pathLatex">
-            <property name="mode" stdset="0">
+          <item row="1" column="1" >
+           <widget class="KLFPathChooser" name="pathLatex" >
+            <property name="mode" stdset="0" >
              <number>0</number>
             </property>
-            <property name="caption" stdset="0">
+            <property name="caption" stdset="0" >
              <string>Choose latex executable</string>
             </property>
-            <property name="filter" stdset="0">
+            <property name="filter" stdset="0" >
              <string/>
             </property>
-            <property name="path" stdset="0">
-             <string notr="true">latex</string>
+            <property name="path" stdset="0" >
+             <string>latex</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lblDvips">
-            <property name="text">
+          <item row="2" column="0" >
+           <widget class="QLabel" name="lblDvips" >
+            <property name="text" >
              <string>dvips :</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>pathDvips</cstring>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="KLFPathChooser" name="pathDvips">
-            <property name="mode" stdset="0">
+          <item row="2" column="1" >
+           <widget class="KLFPathChooser" name="pathDvips" >
+            <property name="mode" stdset="0" >
              <number>0</number>
             </property>
-            <property name="caption" stdset="0">
+            <property name="caption" stdset="0" >
              <string>Choose dvips executable</string>
             </property>
-            <property name="filter" stdset="0">
+            <property name="filter" stdset="0" >
              <string/>
             </property>
-            <property name="path" stdset="0">
-             <string notr="true">dvips</string>
+            <property name="path" stdset="0" >
+             <string>dvips</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lblGs">
-            <property name="text">
+          <item row="3" column="0" >
+           <widget class="QLabel" name="lblGs" >
+            <property name="text" >
              <string>gs :</string>
             </property>
-            <property name="wordWrap">
+            <property name="wordWrap" >
              <bool>false</bool>
             </property>
-            <property name="buddy">
+            <property name="buddy" >
              <cstring>pathGs</cstring>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="KLFPathChooser" name="pathGs">
-            <property name="mode" stdset="0">
+          <item row="3" column="1" >
+           <widget class="KLFPathChooser" name="pathGs" >
+            <property name="mode" stdset="0" >
              <number>0</number>
             </property>
-            <property name="caption" stdset="0">
+            <property name="caption" stdset="0" >
              <string>Choose ghostscript executable</string>
             </property>
-            <property name="filter" stdset="0">
+            <property name="filter" stdset="0" >
              <string/>
             </property>
-            <property name="path" stdset="0">
-             <string notr="true">gs</string>
+            <property name="path" stdset="0" >
+             <string>gs</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QCheckBox" name="chkEpstopdf">
-            <property name="text">
+          <item row="4" column="0" >
+           <widget class="QCheckBox" name="chkEpstopdf" >
+            <property name="text" >
              <string>Have epstopdf :</string>
             </property>
-            <property name="shortcut">
+            <property name="shortcut" >
              <string>Alt+A</string>
             </property>
-            <property name="checked">
+            <property name="checked" >
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="KLFPathChooser" name="pathEpstopdf">
-            <property name="mode" stdset="0">
+          <item row="4" column="1" >
+           <widget class="KLFPathChooser" name="pathEpstopdf" >
+            <property name="mode" stdset="0" >
              <number>0</number>
             </property>
-            <property name="caption" stdset="0">
+            <property name="caption" stdset="0" >
              <string>Choose epstopdf executable</string>
             </property>
-            <property name="filter" stdset="0">
+            <property name="filter" stdset="0" >
              <string/>
             </property>
-            <property name="path" stdset="0">
-             <string notr="true">epstopdf</string>
+            <property name="path" stdset="0" >
+             <string>epstopdf</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
-           <layout class="QHBoxLayout" name="lyt_resetdefaults">
+          <item row="5" column="1" >
+           <layout class="QHBoxLayout" name="lyt_resetdefaults" >
             <item>
-             <spacer name="spcHbtnresetdflts">
-              <property name="orientation">
+             <spacer name="spcHbtnresetdflts" >
+              <property name="orientation" >
                <enum>Qt::Horizontal</enum>
               </property>
-              <property name="sizeType">
+              <property name="sizeType" >
                <enum>QSizePolicy::Expanding</enum>
               </property>
-              <property name="sizeHint" stdset="0">
+              <property name="sizeHint" stdset="0" >
                <size>
                 <width>357</width>
                 <height>28</height>
@@ -1176,12 +1165,12 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="btnPathsReset">
-              <property name="text">
+             <widget class="QPushButton" name="btnPathsReset" >
+              <property name="text" >
                <string>Reset defaults</string>
               </property>
-              <property name="icon">
-               <iconset resource="klfres.qrc">
+              <property name="icon" >
+               <iconset resource="klfres.qrc" >
                 <normaloff>:/pics/resetdefaults.png</normaloff>:/pics/resetdefaults.png</iconset>
               </property>
              </widget>
@@ -1193,106 +1182,106 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabAddOns">
-      <attribute name="title">
+     <widget class="QWidget" name="tabAddOns" >
+      <attribute name="title" >
        <string>Add-Ons</string>
       </attribute>
-      <layout class="QVBoxLayout" name="lyt_tabAddOns">
+      <layout class="QVBoxLayout" name="lyt_tabAddOns" >
        <item>
-        <widget class="QSplitter" name="splitterAddOns">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <widget class="QSplitter" name="splitterAddOns" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
            <horstretch>0</horstretch>
            <verstretch>7</verstretch>
           </sizepolicy>
          </property>
-         <property name="orientation">
+         <property name="orientation" >
           <enum>Qt::Horizontal</enum>
          </property>
-         <property name="handleWidth">
+         <property name="handleWidth" >
           <number>4</number>
          </property>
-         <widget class="QTreeWidget" name="lstAddOns">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <widget class="QTreeWidget" name="lstAddOns" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
             <horstretch>1</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="selectionMode">
+          <property name="selectionMode" >
            <enum>QAbstractItemView::SingleSelection</enum>
           </property>
-          <property name="indentation">
+          <property name="indentation" >
            <number>0</number>
           </property>
           <column>
-           <property name="text">
+           <property name="text" >
             <string>Installed Add-Ons</string>
            </property>
           </column>
          </widget>
-         <widget class="QGroupBox" name="gbxAddOnInfo">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <widget class="QGroupBox" name="gbxAddOnInfo" >
+          <property name="sizePolicy" >
+           <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
             <horstretch>6</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="minimumSize">
+          <property name="minimumSize" >
            <size>
             <width>200</width>
             <height>0</height>
            </size>
           </property>
-          <property name="title">
+          <property name="title" >
            <string>Add-On Information</string>
           </property>
-          <layout class="QVBoxLayout" name="lyt_gbxAddOnInfo">
-           <property name="sizeConstraint">
+          <layout class="QVBoxLayout" name="lyt_gbxAddOnInfo" >
+           <property name="sizeConstraint" >
             <enum>QLayout::SetMinimumSize</enum>
            </property>
-           <property name="margin">
+           <property name="margin" >
             <number>0</number>
            </property>
            <item>
-            <widget class="QScrollArea" name="scrAddOnInfo">
-             <property name="frameShape">
+            <widget class="QScrollArea" name="scrAddOnInfo" >
+             <property name="frameShape" >
               <enum>QFrame::NoFrame</enum>
              </property>
-             <property name="frameShadow">
+             <property name="frameShadow" >
               <enum>QFrame::Plain</enum>
              </property>
-             <property name="lineWidth">
+             <property name="lineWidth" >
               <number>0</number>
              </property>
-             <property name="midLineWidth">
+             <property name="midLineWidth" >
               <number>0</number>
              </property>
-             <property name="widgetResizable">
+             <property name="widgetResizable" >
               <bool>true</bool>
              </property>
-             <property name="alignment">
+             <property name="alignment" >
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
              </property>
-             <widget class="QWidget" name="scrAddOnInfoContents">
-              <property name="geometry">
+             <widget class="QWidget" name="scrAddOnInfoContents" >
+              <property name="geometry" >
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>211</width>
-                <height>156</height>
+                <width>333</width>
+                <height>144</height>
                </rect>
               </property>
-              <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
+              <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents" >
                <item>
-                <widget class="QLabel" name="lblAddOnInfo">
-                 <property name="text">
+                <widget class="QLabel" name="lblAddOnInfo" >
+                 <property name="text" >
                   <string/>
                  </property>
-                 <property name="alignment">
+                 <property name="alignment" >
                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                  </property>
-                 <property name="wordWrap">
+                 <property name="wordWrap" >
                   <bool>true</bool>
                  </property>
                 </widget>
@@ -1306,29 +1295,29 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="lytAddOnActions">
+        <layout class="QHBoxLayout" name="lytAddOnActions" >
          <item>
-          <widget class="QPushButton" name="btnImportAddOn">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <widget class="QPushButton" name="btnImportAddOn" >
+           <property name="sizePolicy" >
+            <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
              <horstretch>1</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="text">
+           <property name="text" >
             <string>Import Add-On File ...</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btnRemoveAddOn">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <widget class="QPushButton" name="btnRemoveAddOn" >
+           <property name="sizePolicy" >
+            <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
              <horstretch>1</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="text">
+           <property name="text" >
             <string>Remove Add-On</string>
            </property>
           </widget>
@@ -1336,127 +1325,127 @@
         </layout>
        </item>
        <item>
-        <widget class="QGroupBox" name="gbxPlugins">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <widget class="QGroupBox" name="gbxPlugins" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Preferred" hsizetype="Expanding" >
            <horstretch>0</horstretch>
            <verstretch>10</verstretch>
           </sizepolicy>
          </property>
-         <property name="title">
+         <property name="title" >
           <string>Plugin Loading</string>
          </property>
-         <layout class="QVBoxLayout" name="lyt_gbxPlugins">
+         <layout class="QVBoxLayout" name="lyt_gbxPlugins" >
           <item>
-           <widget class="QSplitter" name="splitterPlugins">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <widget class="QSplitter" name="splitterPlugins" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Expanding" hsizetype="Expanding" >
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="orientation">
+            <property name="orientation" >
              <enum>Qt::Horizontal</enum>
             </property>
-            <property name="handleWidth">
+            <property name="handleWidth" >
              <number>4</number>
             </property>
-            <widget class="QTreeWidget" name="lstPlugins">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <widget class="QTreeWidget" name="lstPlugins" >
+             <property name="sizePolicy" >
+              <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
                <horstretch>1</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="minimumSize">
+             <property name="minimumSize" >
               <size>
                <width>0</width>
                <height>80</height>
               </size>
              </property>
-             <property name="editTriggers">
+             <property name="editTriggers" >
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
-             <property name="showDropIndicator" stdset="0">
+             <property name="showDropIndicator" stdset="0" >
               <bool>false</bool>
              </property>
-             <property name="selectionMode">
+             <property name="selectionMode" >
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
-             <property name="indentation">
+             <property name="indentation" >
               <number>10</number>
              </property>
-             <property name="itemsExpandable">
+             <property name="itemsExpandable" >
               <bool>false</bool>
              </property>
              <column>
-              <property name="text">
+              <property name="text" >
                <string>Name</string>
               </property>
              </column>
             </widget>
-            <widget class="QGroupBox" name="gbxPluginInfo">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <widget class="QGroupBox" name="gbxPluginInfo" >
+             <property name="sizePolicy" >
+              <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
                <horstretch>6</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="minimumSize">
+             <property name="minimumSize" >
               <size>
                <width>200</width>
                <height>0</height>
               </size>
              </property>
-             <property name="title">
+             <property name="title" >
               <string>Plugin Information</string>
              </property>
-             <layout class="QVBoxLayout" name="lyt_gbxPluginInfo">
-              <property name="sizeConstraint">
+             <layout class="QVBoxLayout" name="lyt_gbxPluginInfo" >
+              <property name="sizeConstraint" >
                <enum>QLayout::SetMinimumSize</enum>
               </property>
-              <property name="margin">
+              <property name="margin" >
                <number>0</number>
               </property>
               <item>
-               <widget class="QScrollArea" name="scrPluginInfo">
-                <property name="frameShape">
+               <widget class="QScrollArea" name="scrPluginInfo" >
+                <property name="frameShape" >
                  <enum>QFrame::NoFrame</enum>
                 </property>
-                <property name="frameShadow">
+                <property name="frameShadow" >
                  <enum>QFrame::Plain</enum>
                 </property>
-                <property name="lineWidth">
+                <property name="lineWidth" >
                  <number>0</number>
                 </property>
-                <property name="midLineWidth">
+                <property name="midLineWidth" >
                  <number>0</number>
                 </property>
-                <property name="widgetResizable">
+                <property name="widgetResizable" >
                  <bool>true</bool>
                 </property>
-                <property name="alignment">
+                <property name="alignment" >
                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                 </property>
-                <widget class="QWidget" name="scrPluginInfoContents">
-                 <property name="geometry">
+                <widget class="QWidget" name="scrPluginInfoContents" >
+                 <property name="geometry" >
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>204</width>
-                   <height>162</height>
+                   <width>314</width>
+                   <height>153</height>
                   </rect>
                  </property>
-                 <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
+                 <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents" >
                   <item>
-                   <widget class="QLabel" name="lblPluginInfo">
-                    <property name="text">
+                   <widget class="QLabel" name="lblPluginInfo" >
+                    <property name="text" >
                      <string/>
                     </property>
-                    <property name="alignment">
+                    <property name="alignment" >
                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                     </property>
-                    <property name="wordWrap">
+                    <property name="wordWrap" >
                      <bool>true</bool>
                     </property>
                    </widget>
@@ -1470,14 +1459,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btnRemovePlugin">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <widget class="QPushButton" name="btnRemovePlugin" >
+            <property name="sizePolicy" >
+             <sizepolicy vsizetype="Fixed" hsizetype="Minimum" >
               <horstretch>1</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
+            <property name="text" >
              <string>Remove Plugin</string>
             </property>
            </widget>
@@ -1486,44 +1475,44 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="lblNoteRestart">
-         <property name="text">
+        <widget class="QLabel" name="lblNoteRestart" >
+         <property name="text" >
           <string>Note: KLatexFormula needs to be restarted for changes to plugin loading or add-on importing/removing to be applied.</string>
          </property>
-         <property name="wordWrap">
+         <property name="wordWrap" >
           <bool>true</bool>
          </property>
         </widget>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabPlugins">
-      <attribute name="title">
+     <widget class="QWidget" name="tabPlugins" >
+      <attribute name="title" >
        <string>Plugins</string>
       </attribute>
-      <layout class="QGridLayout" name="lyt_tabPlugins">
-       <item row="0" column="0">
-        <widget class="QToolBox" name="tbxPluginsConfig">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+      <layout class="QGridLayout" name="lyt_tabPlugins" >
+       <item row="0" column="0" >
+        <widget class="QToolBox" name="tbxPluginsConfig" >
+         <property name="sizePolicy" >
+          <sizepolicy vsizetype="Expanding" hsizetype="Preferred" >
            <horstretch>0</horstretch>
            <verstretch>2</verstretch>
           </sizepolicy>
          </property>
-         <property name="currentIndex">
+         <property name="currentIndex" >
           <number>0</number>
          </property>
-         <widget class="QWidget" name="pageDummy">
-          <property name="geometry">
+         <widget class="QWidget" name="pageDummy" >
+          <property name="geometry" >
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>562</width>
-            <height>495</height>
+            <width>520</width>
+            <height>474</height>
            </rect>
           </property>
-          <attribute name="label">
-           <string notr="true">Dummy Page</string>
+          <attribute name="label" >
+           <string>Dummy Page</string>
           </attribute>
          </widget>
         </widget>
@@ -1533,15 +1522,15 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="btns">
-     <property name="standardButtons">
+    <widget class="QDialogButtonBox" name="btns" >
+     <property name="standardButtons" >
       <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Help|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
- <layoutdefault spacing="6" margin="11"/>
+ <layoutdefault spacing="6" margin="11" />
  <customwidgets>
   <customwidget>
    <class>KLFColorChooser</class>
@@ -1593,7 +1582,7 @@
   <tabstop>btns</tabstop>
  </tabstops>
  <resources>
-  <include location="klfres.qrc"/>
+  <include location="klfres.qrc" />
  </resources>
  <connections>
   <connection>
@@ -1602,11 +1591,11 @@
    <receiver>pathEpstopdf</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>141</x>
      <y>236</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>212</x>
      <y>238</y>
     </hint>
@@ -1618,11 +1607,11 @@
    <receiver>gbxSHOptions</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>67</x>
      <y>64</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>73</x>
      <y>101</y>
     </hint>
@@ -1634,11 +1623,11 @@
    <receiver>gbxSHColors</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="sourcelabel" >
      <x>107</x>
      <y>65</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destinationlabel" >
      <x>99</x>
      <y>207</y>
     </hint>

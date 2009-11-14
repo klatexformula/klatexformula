@@ -666,6 +666,9 @@ int main(int argc, char **argv)
 
   qInstallMsgHandler(klf_qt_message);
 
+  for (uint jjj = 0; jjj < argc; ++jjj)
+    qDebug("arg: %s", argv[jjj]);
+
   // signal acting -- catch SIGINT to exit gracefully
   signal(SIGINT, signal_act);
 
@@ -787,6 +790,7 @@ int main(int argc, char **argv)
       mainWin.slotSetMathMode(QString::fromLocal8Bit(opt_mathmode));
     }
     if (opt_preamble != NULL) {
+      qDebug("opt_preamble != NULL, gui mode, preamble=%s", opt_preamble);
       mainWin.slotSetPreamble(QString::fromLocal8Bit(opt_preamble));
     }
     if (opt_lborderoffset != -1)
@@ -1014,6 +1018,13 @@ void main_parse_options(int argc, char *argv[])
       opt_mathmode = arg;
       break;
     case OPT_PREAMBLE:
+#if defined(Q_WS_MAC)
+      // NASTY WORKAROUND FOR a misterious -psn_0_**** option passed to the application
+      // when opened using the apple 'open' command-line utility, and thus when the
+      // application is launched via an icon..
+      if ( !strncmp(arg, "sn_0", 4) )
+	break;
+#endif
       opt_preamble = arg;
       break;
     case OPT_QUIET:
