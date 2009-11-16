@@ -125,13 +125,47 @@ void SkinConfigWidget::stylesheetChanged()
 void SkinConfigWidget::saveCustom()
 {
   bool ok;
-  QString name = QInputDialog::getText(this, tr("Skin Name"), tr("Please enter skin name:"),
+  QString title = QInputDialog::getText(this, tr("Skin Name"), tr("Please enter skin name:"),
 				       QLineEdit::Normal, tr("[New Skin Name]"), &ok);
   if (!ok)
     return;
 
-  _skins.push_back(Skin(false, name, name, txtStyleSheet->toPlainText()));
-  cbxSkin->insertItem(cbxSkin->count()-1, name, _skins.size()-1);
+  Skin newskin(false, title, title, txtStyleSheet->toPlainText());
+
+  int k;
+  for (k = 0; k < _skins.size(); ++k) {
+    if (_skins[k].title == title) {
+      if (_skins[k].builtin) {
+	QMessageBox::critical(this, tr("Error"), tr("Can't overwrite a built-in skin. Please choose another name."));
+	// recurse to re-ask for a new title
+	saveCustom();
+	return;
+      } else {
+	int confirmation = 
+	  QMessageBox::question(this, tr("Overwrite skin?"), tr("You are about to overwrite skin %1. Are you sure?")
+				.arg(title), QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::Cancel);
+	if ( confirmation == QMessageBox::Cancel )
+	  return;
+	if ( confirmation == QMessageBox::Yes ) {
+	  // overwrite the other skin
+	  _skins[k] = newskin;
+	  int index = cbxSkin->findData(k);
+	  if ( index >= 0 )
+	    cbxSkin->setCurrentIndex(index);
+	  return;
+	} else {
+	  // not sure
+	  // ask for new name: recurse current function
+	  saveCustom();
+	  return;
+	}
+      }
+    }
+  }
+  // skin not already existing
+
+  _skins.push_back(newskin);
+  cbxSkin->insertItem(cbxSkin->count()-1, title, _skins.size()-1);
   cbxSkin->setCurrentIndex(cbxSkin->count()-2);
 
   saveCustomSkins();

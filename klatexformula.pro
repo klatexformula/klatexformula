@@ -9,6 +9,8 @@
 # --------------------------------------------------------------------
 # QMAKE
 #   qmake program (in $PATH or with explicit path). Defaults to 'qmake'
+# RCC
+#   rcc program (in $PATH or with explicit path). Defaults to 'rcc'
 # BACKEND_ONLY
 #   if non-empty, will build only the backend library (and thus not the GUI program)
 # BACKEND_INSTALLPREFIX
@@ -47,6 +49,9 @@ CONFIG += ordered release
 
 isEmpty(QMAKE) {
   QMAKE = qmake
+}
+isEmpty(RCC) {
+  RCC = rcc
 }
 isEmpty(INSTALLPREFIX) {
   INSTALLPREFIX=/usr
@@ -94,6 +99,7 @@ contains(BACKEND_USE_QT4, false) {
 # -- Store KLF configuration into QMake environment variables
 
 system($$QMAKE -set KLF_QMAKE '$$QMAKE')
+system($$QMAKE -set KLF_RCC '$$RCC')
 system($$QMAKE -set KLF_BACKEND_ONLY '$$BACKEND_ONLY')
 system($$QMAKE -set KLF_BACKEND_INSTALLPREFIX '$$BACKEND_INSTALLPREFIX')
 system($$QMAKE -set KLF_BACKEND_LIBDIR '$$BACKEND_LIBDIR')

@@ -669,8 +669,6 @@ bool KLFMainWin::loadNamedStyle(const QString& sty)
   // find style with name sty (if existant) and set it
   for (int kl = 0; kl < _styles.size(); ++kl) {
     if (_styles[kl].name == sty) {
-      qDebug("Found style named %s, preamble is:\n%s",
-	     qPrintable(sty), qPrintable(_styles[kl].preamble));
       slotLoadStyle(kl);
       return true;
     }
@@ -1433,7 +1431,6 @@ void KLFMainWin::slotSetMathMode(const QString& mathmode)
 
 void KLFMainWin::slotSetPreamble(const QString& preamble)
 {
-  qDebug("Want to set preamble to %s", qPrintable(preamble));
   QTextCursor cur = txtPreamble->textCursor();
   cur.beginEditBlock();
   cur.select(QTextCursor::Document);
@@ -1725,7 +1722,6 @@ void KLFMainWin::slotLoadStyle(int n)
     chkMathMode->setChecked(true);
     cbxMathMode->setEditText(_styles[n].mathmode);
   }
-  qDebug("Want to set preamble to %s", qPrintable(_styles[n].preamble));
   slotSetPreamble(_styles[n].preamble);
   spnDPI->setValue(_styles[n].dpi);
 }

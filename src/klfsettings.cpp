@@ -110,7 +110,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   connect(lstAddOns, SIGNAL(itemSelectionChanged()), this, SLOT(refreshAddOnSelected()));
   connect(btnImportAddOn, SIGNAL(clicked()), this, SLOT(importAddOn()));
   connect(btnRemoveAddOn, SIGNAL(clicked()), this, SLOT(removeAddOn()));
-  connect(btnRemovePlugin, SIGNAL(clicked()), this, SLOT(removePlugin()));
+  //  connect(btnRemovePlugin, SIGNAL(clicked()), this, SLOT(removePlugin()));
 
   connect(btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
   connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
@@ -260,18 +260,18 @@ void KLFSettings::refreshPluginSelected()
 {
   QList<QTreeWidgetItem*> sel = lstPlugins->selectedItems();
   if (sel.size() != 1) {
-    btnRemovePlugin->setEnabled(false);
+    //    btnRemovePlugin->setEnabled(false);
     lblPluginInfo->setText("");
     return;
   }
   int k = sel[0]->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
   if (k < 0 || k >= klf_plugins.size()) {
-    btnRemovePlugin->setEnabled(false);
+    //    btnRemovePlugin->setEnabled(false);
     lblPluginInfo->setText("");
     return;
   }
 
-  btnRemovePlugin->setEnabled(true);
+  //  btnRemovePlugin->setEnabled(true);
   int smallpointsize = QFontInfo(font()).pointSize() - 1;
   lblPluginInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;\">"
 			    "<tt><span style=\"font-style: italic; font-weight: 600;\">"
@@ -293,12 +293,16 @@ void KLFSettings::refreshPluginSelected()
 
 void KLFSettings::removePlugin()
 {
+  // THIS FUNCTION IS NO LONGER USED. PLUGINS ARE AUTOMATICALLY REMOVED WHEN THE CORRESPONDING
+  // ADD-ON IS REMOVED. THIS FUNCTION IS KEPT IN CASE I CHANGE SOMETHING IN THE FUTURE.
+
   QList<QTreeWidgetItem*> sel = lstPlugins->selectedItems();
   if (sel.size() != 1) {
     qWarning("KLFSettings::removePlugin: No Selection or many selection");
     return;
   }
-  int k = sel[0]->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
+  QTreeWidgetItem * selectedItem = sel[0];
+  int k = selectedItem->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
   if (k < 0 || k >= klf_plugins.size()) {
     qWarning("KLFSettings::removePlugin: Error: What's going on?? k=%d > klf_plugins.size=%d", k, klf_plugins.size());
     return;
@@ -328,6 +332,8 @@ void KLFSettings::removePlugin()
 				"<li>If this plugin was privided in an add-on, you need to remove the corresponding "
 				"add-on too or the plugin will be automatically re-installed."
 				"</p>"));
+    // remove plugin list item
+    delete selectedItem;
   } else {
     qWarning("Failed to remove plugin '%s'", qPrintable(klf_plugins[k].fpath));
     QMessageBox::critical(this, tr("Error"), tr("Failed to remove Plugin."));
@@ -337,6 +343,34 @@ void KLFSettings::removePlugin()
   refreshAddOnSelected();
 }
 
+void KLFSettings::removePlugin(const QString& fname)
+{
+  int k;
+  for (k = 0; k < klf_plugins.size() && klf_plugins[k].fname != fname; ++k)
+    ;
+  if (k < 0 || k >= klf_plugins.size()) {
+    qWarning("KLFSettings::removePlugin: internal error: didn't find plugin name %s", qPrintable(fname));
+    return;
+  }
+
+  bool r = QFile::remove(klf_plugins[k].fpath);
+
+  if ( r ) {
+    // find corresponding tree widget item
+    QTreeWidgetItemIterator it(lstPlugins);
+    while (*it) {
+      if ( (*it)->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt() == k ) {
+	// remove plugin list item
+	delete (*it);
+	break;
+      }
+      ++it;
+    }
+  } else {
+    qWarning("Failed to remove plugin '%s'", qPrintable(klf_plugins[k].fpath));
+    QMessageBox::critical(this, tr("Error"), tr("Failed to remove Plugin %1.").arg(klf_plugins[k].title));
+  }
+}
 
 
 bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedprog, bool required,
@@ -430,7 +464,7 @@ void KLFSettings::refreshAddOnSelected()
 			   "<tt>Description:</tt></p>\n"
 			    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;"
 			   "   margin-bottom: 0px;\">%3</p>\n"
-			   "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\"\n"
+			   "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
 			   "<tt>File Name:</tt> <span style=\"font-size: %5pt;\">%4</span><br />\n"
 			   "<tt>File Location:</tt> <span style=\"font-size: %5pt;\">%6</span><br />\n"
 			   "<tt><i>%7</i></tt>").arg(Qt::escape(klf_addons[k].title))
@@ -506,12 +540,19 @@ void KLFSettings::removeAddOn()
   }
 
   bool r = QFile::remove(klf_addons[k].fpath);
+  // remove all corresponding plugins too
+  int j;
   if ( r ) {
     QMessageBox::information(this, tr("Remove Add-On"), tr("Please restart KLatexFormula for changes to take effect."));
   } else {
     qWarning("Failed to remove add-on '%s'", qPrintable(klf_addons[k].fpath));
     QMessageBox::critical(this, tr("Error"), tr("Failed to remove Add-On."));
+    return;
   }
+
+  // remove all corresponding plug-ins
+  for (j = 0; j < klf_addons[k].plugins.size(); ++j)
+    removePlugin(klf_addons[k].plugins[j]);
 
   klf_addons.removeAt(k);
 

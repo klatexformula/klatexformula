@@ -260,25 +260,21 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
   ;
 
 
-// EXTERNAL INTERACTION STUFF:
+// EXTERNAL COMMUNICATION STUFF
 
 #define KLF_RESOURCES_ENVNAM "KLF_RESOURCES"
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
 const char * PATH_ENVVAR_SEP =  ";";
 const char * klfresources_default_rel = "/rccresources/";
-#define KLF_DLL_EXT "*.dll"
 #else
 # if defined(Q_WS_MAC)
-#define KLF_DLL_EXT "*.dylib"
 const char * PATH_ENVVAR_SEP =  ":";
 const char * klfresources_default_rel = "/../Resources/rccresources/";
 # else // unix-like system
-#define KLF_DLL_EXT "*.so"
 const char * PATH_ENVVAR_SEP = ":";
 const char * klfresources_default_rel = "/../share/klatexformula/rccresources/";
 # endif
 #endif
-
 
 // TRAP SIGINT SIGNAL AND EXIT GRACEFULLY
 
@@ -455,13 +451,13 @@ void main_load_extra_resources()
   }
   for (j = 0; j < rccfilesToLoad.size(); ++j) {
     KLFAddOnInfo addoninfo(rccfilesToLoad[j]);
+    qDebug("Registering resource %s", qPrintable(addoninfo.fpath));
     bool res = QResource::registerResource(addoninfo.fpath);
     if ( res ) {
       // resource registered.
       klf_addons.append(addoninfo);
     } else {
-      if ( ! opt_quiet )
-	fprintf(stderr, "Failed to register resource `%s'.\n", rccfiles[j].toLocal8Bit().constData());
+      qWarning("Failed to register resource `%s'.\n", qPrintable(rccfiles[j]));
     }
   }
 
@@ -569,17 +565,38 @@ void main_load_translations(QCoreApplication *app)
   }
 }
 
+static int main_find_addon_providing(const QString& plugin)
+{
+  int k;
+  for (k = 0; k < klf_addons.size(); ++k) {
+    if ( klf_addons[k].plugins.indexOf(plugin) != -1 )
+      return k;
+  }
+  return -1;
+}
+
 void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 {
   // first step: copy all resource-located plugin libraries to our local config
   // directory because we can only load filesystem-located plugins.
   QDir resplugdir(":/plugins");
   QStringList resplugins = resplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
-  int k;
+  int k, j;
   for (k = 0; k < resplugins.size(); ++k) {
     QString resfn = resplugdir.absoluteFilePath(resplugins[k]);
     QString locfn = klfconfig.homeConfigDirPlugins + "/" + resplugins[k];
-    if ( ! QFile::exists( locfn ) ) {
+    QDateTime installedplugin_dt = QFileInfo(locfn).lastModified();
+    QDateTime resourceplugin_dt;
+    j = main_find_addon_providing(resplugins[k]);
+    if (j >= 0)
+      resourceplugin_dt = QFileInfo(klf_addons[j].fpath).lastModified();
+    qDebug("Comparing resource datetime (%s) with installed plugin datetime (%s)",
+	   qPrintable(resourceplugin_dt.toString()), qPrintable(installedplugin_dt.toString()));
+    if (  ! QFile::exists( locfn ) ||
+	  installedplugin_dt.isNull() ||
+	  ( !resourceplugin_dt.isNull() && resourceplugin_dt > installedplugin_dt )  ) {
+      // remove old version if exists
+      if (QFile::exists(locfn)) QFile::remove(locfn);
       // copy plugin to local plugin dir
       bool res = QFile::copy( resfn , locfn );
       if ( ! res ) {
@@ -593,7 +610,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     }
   }
 
-  int i, j;
+  int i;
   QStringList pluginsdirs;
   pluginsdirs << klfconfig.homeConfigDirPlugins ;
   for (i = 0; i < pluginsdirs.size(); ++i) {
@@ -604,7 +621,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     QStringList plugins = thisplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
     KLFPluginGenericInterface * pluginInstance;
     for (j = 0; j < plugins.size(); ++j) {
-      QString pluginpath = thisplugdir.absoluteFilePath(plugins[j]);
+      QString pluginfname = plugins[j];
+      QString pluginpath = thisplugdir.absoluteFilePath(pluginfname);
       QPluginLoader pluginLoader(pluginpath, app);
       QObject *pluginInstObject = pluginLoader.instance();
       if (pluginInstObject) {
@@ -627,6 +645,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  pluginInfo.title = pluginInstance->pluginTitle();
 	  pluginInfo.description = pluginInstance->pluginDescription();
 	  pluginInfo.author = pluginInstance->pluginAuthor();
+	  pluginInfo.fname = pluginfname;
 	  pluginInfo.fpath = pluginpath;
 	  pluginInfo.instance = NULL;
 
@@ -666,8 +685,9 @@ int main(int argc, char **argv)
 
   qInstallMsgHandler(klf_qt_message);
 
-  for (uint jjj = 0; jjj < argc; ++jjj)
-    qDebug("arg: %s", argv[jjj]);
+  //  // DEBUG: command-line arguments
+  //  for (int jjj = 0; jjj < argc; ++jjj)
+  //    qDebug("arg: %s", argv[jjj]);
 
   // signal acting -- catch SIGINT to exit gracefully
   signal(SIGINT, signal_act);
@@ -1019,10 +1039,10 @@ void main_parse_options(int argc, char *argv[])
       break;
     case OPT_PREAMBLE:
 #if defined(Q_WS_MAC)
-      // NASTY WORKAROUND FOR a misterious -psn_0_**** option passed to the application
+      // NASTY WORKAROUND FOR a mysterious -psn_**** option passed to the application
       // when opened using the apple 'open' command-line utility, and thus when the
       // application is launched via an icon..
-      if ( !strncmp(arg, "sn_0", 4) )
+      if ( !strncmp(arg, "sn_", 3) )
 	break;
 #endif
       opt_preamble = arg;

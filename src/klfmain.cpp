@@ -30,6 +30,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QResource>
+#include <QDir>
 
 #include <klfpluginiface.h>
 
@@ -63,13 +64,16 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
   isfresh = false;
 
   QByteArray rccinfodata;
-  
+  QStringList pluginlist;
   { // try registering resource to see its content
     const char * temproot = ":/__klfaddoninfo_temp_resource";
     QResource::registerResource(fpath, temproot);
     QFile infofile(temproot+QString::fromLatin1("/rccinfo/info.xml"));
     infofile.open(QIODevice::ReadOnly);
     rccinfodata = infofile.readAll();
+    // read plugin list
+    QDir plugdir(temproot+QString::fromLatin1("/plugins/"));
+    this->plugins = plugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
     QResource::unregisterResource(fpath, temproot);
   }
   // parse resource's rccinfo/info.xml file
@@ -80,11 +84,11 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
   QDomElement xmlroot = xmldoc.documentElement();
   if (xmlroot.nodeName() != "rccinfo") {
     qWarning("Add-on file `%s' has invalid XML information.", qPrintable(rccfpath));
-    title = QObject::tr("(Name Not Provided)", "[KLFAddOnInfo: add-on information XML data is invalid]");
-    description = QObject::tr("(Invalid XML Data Provided By Add-On)",
-			      "[KLFAddOnInfo: add-on information XML data is invalid]");
-    author = QObject::tr("(No Author Provided)",
-			 "[KLFAddOnInfo: add-on information XML data is invalid]");
+    this->title = QObject::tr("(Name Not Provided)", "[KLFAddOnInfo: add-on information XML data is invalid]");
+    this->description = QObject::tr("(Invalid XML Data Provided By Add-On)",
+				    "[KLFAddOnInfo: add-on information XML data is invalid]");
+    this->author = QObject::tr("(No Author Provided)",
+			       "[KLFAddOnInfo: add-on information XML data is invalid]");
     return;
   }
   QDomNode n;
@@ -93,13 +97,13 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
     if ( e.nodeName() == "title" ) {
-      title = e.text().trimmed();
+      this->title = e.text().trimmed();
     }
     if ( e.nodeName() == "description" ) {
-      description = e.text().trimmed();
+      this->description = e.text().trimmed();
     }
     if ( e.nodeName() == "author" ) {
-      author = e.text().trimmed();
+      this->author = e.text().trimmed();
     }
   }
 

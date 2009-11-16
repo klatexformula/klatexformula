@@ -26,8 +26,22 @@
 
 #include <QString>
 #include <QList>
+#include <QStringList>
 
 #include <klfdefs.h>
+
+
+
+
+// SOME DEFINITIONS
+
+#if defined(Q_WS_WIN)
+#define KLF_DLL_EXT "*.dll"
+#elif defined(Q_WS_MAC)
+#define KLF_DLL_EXT "*.dylib"
+#else
+#define KLF_DLL_EXT "*.so"
+#endif
 
 
 // SOME DECLARATIONS FOR ADD-ONS
@@ -49,6 +63,8 @@ public:
   QString title;
   QString author;
   QString description;
+
+  QStringList plugins; // list of plugins provided by this add-on (list of files :/plugins/*.so|.dylib|.dll)
 
   /** Fresh file: add-on imported during this execution; ie. KLatexFormula needs to be restarted
    * for this add-on to take effect. The constructor sets this value to \c FALSE, set it manually
@@ -73,6 +89,7 @@ struct KLFPluginInfo
   QString description;
 
   QString fpath;
+  QString fname;
 
   KLFPluginGenericInterface * instance;
 };

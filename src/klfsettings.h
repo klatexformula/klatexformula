@@ -55,6 +55,8 @@ public slots:
   void importAddOn();
   void removeAddOn();
   void removePlugin();
+  /** \warning This method provides NO USER CONFIRMATION and NO AFTER-OPERATION REFRESH */
+  void removePlugin(const QString& fname);
 
 protected:
 
