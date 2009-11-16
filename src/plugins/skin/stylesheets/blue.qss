@@ -9,3 +9,6 @@ QScrollBar {
 	background-color: none;
 }
 
+#KLFMainWinUI {
+	qproperty-widgetStyle: Plastique;
+}

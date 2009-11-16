@@ -52,6 +52,8 @@
 #include <QResource>
 #include <QDomDocument>
 #include <QDomElement>
+#include <QStyle>
+#include <QStyleFactory>
 
 #include <klfbackend.h>
 
@@ -1038,6 +1040,31 @@ void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
   btnSymbols->setChecked(on);
 }
 
+void KLFMainWin::setWidgetStyle(const QString& qtstyle)
+{
+  qDebug("setWidgetStyle(\"%s\")", qPrintable(qtstyle));
+  if (_widgetstyle == qtstyle) {
+    qDebug("This style is already applied.");
+    return;
+  }
+  QStringList stylelist = QStyleFactory::keys();
+  if (stylelist.indexOf(qtstyle) == -1) {
+    qWarning("Bad Style: %s. List of possible styles are:", qPrintable(qtstyle));
+    int k;
+    for (k = 0; k < stylelist.size(); ++k)
+      qWarning("\t%s", qPrintable(stylelist[k]));
+    return;
+  }
+  qDebug("Setting the style %s. are we visible?=%d", qPrintable(qtstyle), (int)QWidget::isVisible());
+  QStyle *s = QStyleFactory::create(qtstyle);
+  qDebug("Got style ptr=%p", (void*)s);
+  if ( ! s ) {
+    qWarning("Can't instantiate style %s!", qPrintable(qtstyle));
+    return;
+  }
+  _widgetstyle = qtstyle;
+  qApp->setStyle( s );
+}
 
 void KLFMainWin::setQuitOnClose(bool quitOnClose)
 {

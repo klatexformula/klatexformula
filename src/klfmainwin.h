@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 
+#include <QObject>
 #include <QList>
 #include <QSyntaxHighlighter>
 #include <QFont>
@@ -166,6 +167,8 @@ protected:
 class KLF_EXPORT KLFMainWin : public QWidget, private Ui::KLFMainWinUI
 {
   Q_OBJECT
+  Q_PROPERTY(QString widgetStyle READ widgetStyle WRITE setWidgetStyle)
+
 public:
   KLFMainWin();
   virtual ~KLFMainWin();
@@ -217,6 +220,8 @@ public:
     StyleManager = 0x10
   };
   uint currentWindowShownStatus();
+
+  QString widgetStyle() const { return _widgetstyle; }
 
 signals:
 
@@ -281,6 +286,8 @@ public slots:
 
   void setWindowShownStatus(uint windowshownflags, bool setMainWinToo = false);
 
+  void setWidgetStyle(const QString& qtstyle);
+
   void setQuitOnClose(bool quitOnClose);
 
   void quit();
@@ -329,6 +336,8 @@ protected:
   int _lastwindowshownstatus;
   QMap<int, QRect> _lastwindowgeometries;
   int _savedwindowshownstatus;
+
+  QString _widgetstyle;
 };
 
 #endif
