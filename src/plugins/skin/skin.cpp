@@ -218,13 +218,11 @@ void SkinPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin, KLFPlugi
 
   // ensure reasonable non-empty value in config
   if ( rwconfig->readValue("stylesheet").isNull() ) {
-    rwconfig->writeValue("stylesheet",
-			 QString("QWidget {\n"
-				 "  background-color: rgb(128, 128, 255);\n"
-				 "  selection-background-color: rgb(0, 0, 64);\n"
-				 "  selection-color: rgb(128, 128, 255);\n"
-				 "  color: rgb(255, 255, 255);\n"
-				 "}"));
+    QString stylesheet;
+    QFile f(":/plugindata/skin/stylesheets/default.qss");
+    f.open(QIODevice::ReadOnly);
+    stylesheet = QString::fromUtf8(f.readAll());
+    rwconfig->writeValue("stylesheet", stylesheet);
   }
 
   applySkin(rwconfig);

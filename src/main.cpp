@@ -590,8 +590,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     j = main_find_addon_providing(resplugins[k]);
     if (j >= 0)
       resourceplugin_dt = QFileInfo(klf_addons[j].fpath).lastModified();
-    qDebug("Comparing resource datetime (%s) with installed plugin datetime (%s)",
-	   qPrintable(resourceplugin_dt.toString()), qPrintable(installedplugin_dt.toString()));
+    //    qDebug("Comparing resource datetime (%s) with installed plugin datetime (%s)",
+    //	   qPrintable(resourceplugin_dt.toString()), qPrintable(installedplugin_dt.toString()));
     if (  ! QFile::exists( locfn ) ||
 	  installedplugin_dt.isNull() ||
 	  ( !resourceplugin_dt.isNull() && resourceplugin_dt > installedplugin_dt )  ) {
