@@ -12,6 +12,8 @@ DEPENDPATH += .
 INCLUDEPATH += . ../.. ../../klfbackend
 DESTDIR = ..
 
+win32:LIBS += -L../../klfbackend/release -lklfbackend -L../../release -lklfsrc
+macx:LIBS += -L../../klfbackend -lklfbackend -L../.. -lklfsrc
 
 #TRANSLATIONS += ../../i18n/klf_fr.ts
 
