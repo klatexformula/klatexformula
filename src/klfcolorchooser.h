@@ -291,6 +291,7 @@ public:
   KLFColorDialog(QWidget *parent = 0) : QDialog(parent)
   {
     setupUi(this);
+    setObjectName("KLFColorDialog");
   }
 
   static QColor getColor(QColor startwith = Qt::black, QWidget *parent = 0);

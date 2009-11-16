@@ -383,6 +383,7 @@ KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)
   : QWidget(parent)
 {
   setupUi(this);
+  setObjectName("KLFColorChooseWidget");
 
   ensureColorListsInstance();
 

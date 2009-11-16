@@ -80,6 +80,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   : QDialog(parent), KLFSettingsUI()
 {
   setupUi(this);
+  setObjectName("KLFSettings");
 
   _mainwin = parent;
 

@@ -348,6 +348,7 @@ KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
 {
   mUI = new Ui::KLFProgErrUI;
   mUI->setupUi(this);
+  setObjectName("KLFProgErr");
 
   mUI->txtError->setText(errtext);
 }
@@ -465,6 +466,7 @@ KLFMainWin::KLFMainWin()
   : QWidget(0, Qt::Window), KLFMainWinUI()
 {
   setupUi(this);
+  setObjectName("KLFMainWin");
 
   loadSettings();
 
@@ -1045,6 +1047,11 @@ void KLFMainWin::setWidgetStyle(const QString& qtstyle)
   qDebug("setWidgetStyle(\"%s\")", qPrintable(qtstyle));
   if (_widgetstyle == qtstyle) {
     qDebug("This style is already applied.");
+    return;
+  }
+  if (qtstyle.isNull()) {
+    // setting a null style resets internal widgetstyle name...
+    _widgetstyle = QString::null;
     return;
   }
   QStringList stylelist = QStyleFactory::keys();

@@ -96,6 +96,8 @@ public:
 
 protected:
   KLFMainWin *_mainwin;
+  QApplication *_app;
+  QStyle *_defaultstyle;
 
   KLFPluginConfigAccess *_config;
 };

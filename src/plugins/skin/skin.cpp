@@ -210,9 +210,14 @@ void SkinConfigWidget::saveCustomSkins()
 // --------------------------------------------------------------------------------
 
 
-void SkinPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
+void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
 {
   _mainwin = mainWin;
+  _app = app;
+  //  _defaultstyle = NULL;
+  _defaultstyle = app->style();
+  // aggressively take possession of this style object
+  _defaultstyle->setParent(this);
 
   _config = rwconfig;
 
@@ -232,6 +237,14 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
 {
   QVariant ss = config->readValue("stylesheet");
   QString stylesheet = ss.toString();
+
+  if (_app->style() != _defaultstyle) {
+    _app->setStyle(_defaultstyle);
+    _defaultstyle->setParent(this); // but aggressively keep possession of style
+    _mainwin->setWidgetStyle(QString::null); // and refresh mainwin's idea of application's style
+  }
+  // set style sheet to whole application (doesn't work...)
+  //  _app->setStyleSheet(stylesheet);
   _mainwin->setStyleSheet(stylesheet);
   _mainwin->libraryBrowserWidget()->setStyleSheet(stylesheet);
   _mainwin->latexSymbolsWidget()->setStyleSheet(stylesheet);
