@@ -99,6 +99,25 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   btns->addButton(b, QDialogButtonBox::AcceptRole);
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
+  // application language : populate combo box
+  cbxLocale->addItem( tr("English Default", "[[first item of language graphical choice box]]") ,
+		      QVariant(QString::null) );
+  int k;
+  for (k = 0; k < klf_avail_translations.size(); ++k) {
+    QLocale lc(klf_avail_translations[k]);
+    QString s;
+    if ( klf_avail_translations[k].indexOf("_") != -1 ) {
+      // has country information in locale
+      s = tr("%1 (%2)", "[[%1=Language (%2=Country)]]")
+	.arg(QLocale::languageToString(lc.language()))
+	.arg(QLocale::countryToString(lc.country()));
+    } else {
+      s = tr("%1", "[[%1=Language, no country is specified]]").arg(QLocale::languageToString(lc.language()));
+    }
+    cbxLocale->addItem( s, // + QString("  [%3]").arg(klf_avail_translations[k]) ,
+			QVariant(klf_avail_translations[k]) );
+  }
+
   // set some smaller fonts for small titles
   QFont f = lblSHForeground->font();
   f.setPointSize(QFontInfo(f).pointSize() - 1);
@@ -148,7 +167,14 @@ void KLFSettings::show()
 
 void KLFSettings::reset()
 {
+  int k;
   KLFBackend::klfSettings s = _mainwin->currentSettings();
+
+  k = cbxLocale->findData(klfconfig.UI.locale);
+  if (k == -1) {
+    k = 0;
+  }
+  cbxLocale->setCurrentIndex(k);
 
   pathTempDir->setPath(QDir::toNativeSeparators(s.tempdir));
   pathLatex->setPath(s.latexexec);
@@ -168,7 +194,6 @@ void KLFSettings::reset()
   chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.configFlags
 					&  KLFLatexSyntaxHighlighter::HighlightLonelyParen);
 
-  int k;
   for (k = 0; k < _textformats.size(); ++k) {
     if (_textformats[k].fmt->hasProperty(QTextFormat::ForegroundBrush))
       _textformats[k].fg->setColor(_textformats[k].fmt->foreground().color());
@@ -573,6 +598,7 @@ void KLFSettings::slotChangeFont()
 
 void KLFSettings::apply()
 {
+  int k;
   // apply settings here
 
   // create a temporary settings object
@@ -606,7 +632,6 @@ void KLFSettings::apply()
   else
     klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightLonelyParen;
 
-  int k;
   for (k = 0; k < _textformats.size(); ++k) {
     QColor c = _textformats[k].fg->color();
     if (c.isValid())
@@ -632,6 +657,24 @@ void KLFSettings::apply()
       _textformats[k].fmt->setFontItalic( it == Qt::Checked );
   }
 
+  // language settings
+  QString localename = cbxLocale->itemData(cbxLocale->currentIndex()).toString();
+  bool localechanged =  (  klfconfig.UI.locale != localename  ) ;
+  klfconfig.UI.locale = localename;
+  if (localechanged) {
+    QMessageBox::information(this, tr("Language changed"),
+			     tr("You need to restart KLatexFormula for your new language settings to take effect."));
+  }
+  //  klf_main_do_the_change_of_locale_and_load_translators(...);
+  //  QList<QWidget*> uilist;
+  //  uilist << _mainwin << _mainwin->libraryBrowserWidget() << _mainwin->latexSymbolsWidget()
+  //	 << _mainwin->styleManagerWidget() << this ;
+  //  for (k = 0; k < uilist.size(); ++k) {
+  //    uilist[k]->retranlsateUi(uilist[k]);
+  //  }
+
+
+  // font settings
   klfconfig.UI.applicationFont = btnAppFont->property("selectedFont").value<QFont>();
   qApp->setFont(klfconfig.UI.applicationFont);
   klfconfig.UI.latexEditFont = btnAppearFont->property("selectedFont").value<QFont>();

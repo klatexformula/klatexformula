@@ -32,6 +32,7 @@
 #include <QFontDatabase>
 #include <QMap>
 #include <QString>
+#include <QLocale>
 
 #include <klfmainwin.h>
 
@@ -174,7 +175,6 @@ void KLFConfig::loadDefaults()
   homeConfigDirPlugins = homeConfigDir + "/plugins";
   homeConfigDirI18n = homeConfigDir + "/i18n";
 
-
   if (qApp->inherits("QApplication")) {
     QFont f = QApplication::font();
 #ifdef Q_WS_X11
@@ -196,6 +196,7 @@ void KLFConfig::loadDefaults()
     if ( ! found_fcode )
       fcode = f;
 
+    UI.locale = QLocale::system().name();
     UI.applicationFont = f;
     UI.latexEditFont = fcode;
     UI.preambleEditFont = fcode;
@@ -321,6 +322,7 @@ int KLFConfig::readFromConfig()
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
   s.beginGroup("UI");
+  UI.locale = s.value("locale", UI.locale).toString();
   UI.applicationFont = s.value("applicationfont", UI.applicationFont).value<QFont>();
   UI.latexEditFont = s.value("latexeditfont", UI.latexEditFont).value<QFont>();
   UI.preambleEditFont = s.value("preambleeditfont", UI.preambleEditFont).value<QFont>();
@@ -392,6 +394,7 @@ int KLFConfig::writeToConfig()
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
   s.beginGroup("UI");
+  s.setValue("locale", UI.locale);
   s.setValue("applicationfont", UI.applicationFont);
   s.setValue("latexeditfont", UI.latexEditFont);
   s.setValue("preambleeditfont", UI.preambleEditFont);

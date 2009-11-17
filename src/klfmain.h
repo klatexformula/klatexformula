@@ -106,5 +106,8 @@ KLF_EXPORT extern int version_maj, version_min, version_release;
 
 
 
+KLF_EXPORT extern QStringList klf_avail_translations;
+
+
 
 #endif 

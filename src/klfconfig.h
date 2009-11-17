@@ -90,6 +90,7 @@ public:
 
   struct {
 
+    QString locale;
     QFont applicationFont;
     QFont latexEditFont;
     QFont preambleEditFont;

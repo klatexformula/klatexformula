@@ -499,6 +499,18 @@ KLFMainWin::KLFMainWin()
 
   frmOutput->setEnabled(false);
 
+  QMenu *DPIPresets = new QMenu(this);
+  QAction *a;
+  a = DPIPresets->addAction(tr("High Resolution (1200)"), this, SLOT(slotPresetDPISender()));
+  a->setData(1200);
+  a = DPIPresets->addAction(tr("Good Resolution (600)"), this, SLOT(slotPresetDPISender()));
+  a->setData(600);
+  a = DPIPresets->addAction(tr("Medium Resolution (300)"), this, SLOT(slotPresetDPISender()));
+  a->setData(300);
+  a = DPIPresets->addAction(tr("Low Resolution (150)"), this, SLOT(slotPresetDPISender()));
+  a->setData(150);
+  btnDPIPresets->setMenu(DPIPresets);
+
   mHighlighter = new KLFLatexSyntaxHighlighter(txtLatex, this);
   mPreambleHighlighter = new KLFLatexSyntaxHighlighter(txtPreamble, this);
 
@@ -823,7 +835,7 @@ void KLFMainWin::loadStyles()
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
     KLFData::KLFStyle s1 = { tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]",
-			     "", 1200 };
+			     "", 600 };
     _styles.append(s1);
   }
 
@@ -1714,6 +1726,16 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     }
   }
 
+}
+
+
+
+void KLFMainWin::slotPresetDPISender()
+{
+  QAction *a = qobject_cast<QAction*>(sender());
+  if (a) {
+    slotSetDPI(a->data().toInt());
+  }
 }
 
 

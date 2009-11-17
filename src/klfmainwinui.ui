@@ -9,7 +9,7 @@
     <x>0</x>
     <y>0</y>
     <width>831</width>
-    <height>397</height>
+    <height>399</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -550,20 +550,37 @@
           </widget>
          </item>
          <item row="3" column="1" colspan="2">
-          <widget class="QSpinBox" name="spnDPI">
-           <property name="minimum">
-            <number>10</number>
-           </property>
-           <property name="maximum">
-            <number>10000</number>
-           </property>
-           <property name="singleStep">
-            <number>50</number>
-           </property>
-           <property name="value">
-            <number>1200</number>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="lyt_DPIInput">
+           <item>
+            <widget class="QPushButton" name="btnDPIPresets">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Presets</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spnDPI">
+             <property name="minimum">
+              <number>10</number>
+             </property>
+             <property name="maximum">
+              <number>10000</number>
+             </property>
+             <property name="singleStep">
+              <number>50</number>
+             </property>
+             <property name="value">
+              <number>1200</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -694,7 +711,6 @@
   <tabstop>chkMathMode</tabstop>
   <tabstop>cbxMathMode</tabstop>
   <tabstop>txtPreamble</tabstop>
-  <tabstop>spnDPI</tabstop>
   <tabstop>btnLoadStyle</tabstop>
   <tabstop>btnSaveStyle</tabstop>
   <tabstop>btnSettings</tabstop>

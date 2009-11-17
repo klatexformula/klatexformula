@@ -257,6 +257,7 @@ public slots:
   void slotCopy();
   void slotSave(const QString& suggestedFname = QString::null);
 
+  void slotPresetDPISender();
   void slotLoadStyle(int stylenum);
   void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
   void slotSaveStyle();

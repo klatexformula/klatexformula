@@ -465,6 +465,8 @@ void main_load_extra_resources()
   klf_addons_canimport = klfsettings_can_import;
 }
 
+
+
 struct KLFI18nFile
 {
   QString fpath;
@@ -483,8 +485,12 @@ struct KLFI18nFile
     name = fn.mid(0, firstunderscore);
     locale = fn.mid(firstunderscore+1, endbasename-(firstunderscore+1));
     locale_specificity = (locale.split('_', QString::SkipEmptyParts)).size() ;
+
+    if (klf_avail_translations.indexOf(locale) == -1)
+      klf_avail_translations.append(locale);
   }
 };
+
 
 void main_load_translations(QCoreApplication *app)
 {
@@ -514,7 +520,9 @@ void main_load_translations(QCoreApplication *app)
   }
 
   // get locale
-  QString lc = QLocale::system().name();
+  QString lc = klfconfig.UI.locale;
+  if (lc.isEmpty())
+    lc = "en_US";
   QStringList lcparts = lc.split("_");
 
   //  qDebug("Required locale is %s", qPrintable(lc));
@@ -564,6 +572,7 @@ void main_load_translations(QCoreApplication *app)
     }
   }
 }
+
 
 static int main_find_addon_providing(const QString& plugin)
 {

@@ -34,6 +34,9 @@
 
 #include <klfpluginiface.h>
 
+// a list of locale names available for KLatexFormula
+QStringList klf_avail_translations;
+
 
 // not static so we can get this value from other modules in the project
 char version[] = KLF_VERSION_STRING;
@@ -108,4 +111,6 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
   }
 
 }
+
+
 
