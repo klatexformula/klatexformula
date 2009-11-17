@@ -99,24 +99,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   btns->addButton(b, QDialogButtonBox::AcceptRole);
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
-  // application language : populate combo box
-  cbxLocale->addItem( tr("English Default", "[[first item of language graphical choice box]]") ,
-		      QVariant(QString::null) );
-  int k;
-  for (k = 0; k < klf_avail_translations.size(); ++k) {
-    QLocale lc(klf_avail_translations[k]);
-    QString s;
-    if ( klf_avail_translations[k].indexOf("_") != -1 ) {
-      // has country information in locale
-      s = tr("%1 (%2)", "[[%1=Language (%2=Country)]]")
-	.arg(QLocale::languageToString(lc.language()))
-	.arg(QLocale::countryToString(lc.country()));
-    } else {
-      s = tr("%1", "[[%1=Language, no country is specified]]").arg(QLocale::languageToString(lc.language()));
-    }
-    cbxLocale->addItem( s, // + QString("  [%3]").arg(klf_avail_translations[k]) ,
-			QVariant(klf_avail_translations[k]) );
-  }
+  populateLocaleCombo();
 
   // set some smaller fonts for small titles
   QFont f = lblSHForeground->font();
@@ -155,6 +138,30 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 
 KLFSettings::~KLFSettings()
 {
+}
+
+void KLFSettings::populateLocaleCombo()
+{
+  cbxLocale->clear();
+  // application language : populate combo box
+  cbxLocale->addItem( tr("English Default", "[[first item of language graphical choice box]]") ,
+		      QVariant(QString::null) );
+  int k;
+  for (k = 0; k < klf_avail_translations.size(); ++k) {
+    QLocale lc(klf_avail_translations[k]);
+    QString s;
+    if ( klf_avail_translations[k].indexOf("_") != -1 ) {
+      // has country information in locale
+      s = tr("%1 (%2)", "[[%1=Language (%2=Country)]]")
+	.arg(QLocale::languageToString(lc.language()))
+	.arg(QLocale::countryToString(lc.country()));
+    } else {
+      s = tr("%1", "[[%1=Language, no country is specified]]").arg(QLocale::languageToString(lc.language()));
+    }
+    cbxLocale->addItem( s, // + QString("  [%3]").arg(klf_avail_translations[k]) ,
+			QVariant(klf_avail_translations[k]) );
+  }
+
 }
 
 void KLFSettings::show()
@@ -523,6 +530,18 @@ void KLFSettings::importAddOn()
 	// import succeeded, show the add-on as fresh.
 	KLFAddOnInfo addoninfo(destfpath);
 	addoninfo.isfresh = true;
+	// if we have new translations, add them to our translation combo box
+	int k;
+	bool changed = false;
+	for (k = 0; k < addoninfo.translations.size(); ++k) {
+	  KLFI18nFile i18nfile(addoninfo.translations[k]);
+	  if ( cbxLocale->findData(i18nfile.locale) == -1 ) {
+	    klf_avail_translations.append(i18nfile.locale);
+	    changed = true;
+	  }
+	}
+	if (changed)
+	  populateLocaleCombo();
 	klf_addons.append(addoninfo);
 	refreshAddOnList();
       } else {

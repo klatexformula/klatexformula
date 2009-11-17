@@ -62,6 +62,8 @@ protected:
 
 protected slots:
 
+  void populateLocaleCombo();
+
   void initPluginControls();
   void refreshPluginSelected();
   void refreshAddOnList();

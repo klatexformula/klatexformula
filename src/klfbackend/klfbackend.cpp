@@ -42,12 +42,14 @@ void __klf_debug_time_print(QString str)
 #ifdef KLF_DEBUG_TIME_PRINT
   struct timeval tv;
   gettimeofday(&tv, NULL);
+  qDebug("%03ld.%06ld : %s", tv.tv_sec % 1000, tv.tv_usec,
 #ifdef KLFBACKEND_QT4
-  const char *ptr = str.toLocal8Bit().constData();
+	 qPrintable(str)
 #else
-  const char *ptr = str.local8Bit().data();
+	 str.local8Bit().data()
 #endif
-  qDebug("%03ld.%06ld : %s\n", tv.tv_sec % 1000, tv.tv_usec, ptr);
+
+	 );
 #endif
 }
 

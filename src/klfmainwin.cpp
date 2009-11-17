@@ -973,6 +973,7 @@ void KLFMainWin::saveLibrary()
 			   .arg(QDir::toNativeSeparators(s)));
     return;
   }
+
   QDataStream stream(&f);
   stream.setVersion(QDataStream::Qt_3_3);
   // write KLF-3.0-compatible stream

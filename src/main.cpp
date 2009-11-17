@@ -467,31 +467,6 @@ void main_load_extra_resources()
 
 
 
-struct KLFI18nFile
-{
-  QString fpath;
-  QString name;
-  QString locale;
-  // how specific the locale is (e.g. ""->0 , "fr"->1, "fr_CH"->2 )
-  int locale_specificity;
-
-  KLFI18nFile(QDir d, QString fn) {
-    int firstunderscore = fn.indexOf('_');
-    int endbasename = fn.endsWith(".qm") ? fn.length() - 3 : fn.length() ;
-    if (firstunderscore == -1)
-      firstunderscore = endbasename; // no locale part if no underscore
-    // ---
-    fpath = d.absoluteFilePath(fn);
-    name = fn.mid(0, firstunderscore);
-    locale = fn.mid(firstunderscore+1, endbasename-(firstunderscore+1));
-    locale_specificity = (locale.split('_', QString::SkipEmptyParts)).size() ;
-
-    if (klf_avail_translations.indexOf(locale) == -1)
-      klf_avail_translations.append(locale);
-  }
-};
-
-
 void main_load_translations(QCoreApplication *app)
 {
   // load all translations. Translations are files found in the form
@@ -511,11 +486,15 @@ void main_load_translations(QCoreApplication *app)
     QDir i18ndir(i18ndirlist[j]);
     QStringList files = i18ndir.entryList(QStringList() << QString::fromLatin1("*.qm"), QDir::Files);
     for (k = 0; k < files.size(); ++k) {
-      KLFI18nFile i18nfile(i18ndir, files[k]);
+      KLFI18nFile i18nfile(i18ndir.absoluteFilePath(files[k]));
       //      qDebug("Found i18n file %s (name=%s,locale=%s,lc-spcif.=%d)", qPrintable(i18nfile.fpath),
       //	     qPrintable(i18nfile.name), qPrintable(i18nfile.locale), i18nfile.locale_specificity);
       i18nFiles[i18nfile.name][i18nfile.locale_specificity] << i18nfile;
       names << i18nfile.name;
+
+      // if this locale is not yet registered, remember it:
+      if (klf_avail_translations.indexOf(i18nfile.locale) == -1)
+	klf_avail_translations.append(i18nfile.locale);
     }
   }
 

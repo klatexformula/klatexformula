@@ -64,7 +64,14 @@ public:
   QString author;
   QString description;
 
-  QStringList plugins; // list of plugins provided by this add-on (list of files :/plugins/*.so|.dylib|.dll)
+  /** The list of plugins provided by this add-on (list of files \c ":/plugins/<b></b>*.so").
+   * This list stores full file names without the path (e.g. \c "libskin.so") . (Replace
+   * of course \c ".so" by \c ".dll" and \c ".dylib" for windows and mac respectively). */
+  QStringList plugins;
+
+  /** The list of translation files provided by this add-on (list of files \c ":/i18n/<b></b>*.qm")
+   * This list stores full file names without the path (e.g. \c "klf_fr.qm") */
+  QStringList translations;
 
   /** Fresh file: add-on imported during this execution; ie. KLatexFormula needs to be restarted
    * for this add-on to take effect. The constructor sets this value to \c FALSE, set it manually
@@ -108,6 +115,20 @@ KLF_EXPORT extern int version_maj, version_min, version_release;
 
 KLF_EXPORT extern QStringList klf_avail_translations;
 
+
+/** \brief Small structure to store information for a translation file (.qm) */
+class KLF_EXPORT KLFI18nFile
+{
+public:
+  QString fpath;
+  QString name;
+  QString locale;
+  // how specific the locale is (e.g. ""->0 , "fr"->1, "fr_CH"->2 )
+  int locale_specificity;
+
+  /** Initialize this structure to the translation file \c filepath. */
+  KLFI18nFile(QString filepath);
+};
 
 
 #endif 

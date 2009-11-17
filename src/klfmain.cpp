@@ -77,6 +77,10 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
     // read plugin list
     QDir plugdir(temproot+QString::fromLatin1("/plugins/"));
     this->plugins = plugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
+    // read translation list
+    QDir i18ndir(temproot+QString::fromLatin1("/i18n/"));
+    this->translations = i18ndir.entryList(QStringList() << "*.qm", QDir::Files);
+    // finished reading this resource, un-register it.
     QResource::unregisterResource(fpath, temproot);
   }
   // parse resource's rccinfo/info.xml file
@@ -114,3 +118,20 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath)
 
 
 
+
+KLFI18nFile::KLFI18nFile(QString filepath)
+{
+  QFileInfo fi(filepath);
+  QString fn = fi.fileName();
+  QDir d = fi.absoluteDir();
+
+  int firstunderscore = fn.indexOf('_');
+  int endbasename = fn.endsWith(".qm") ? fn.length() - 3 : fn.length() ;
+  if (firstunderscore == -1)
+    firstunderscore = endbasename; // no locale part if no underscore
+  // ---
+  fpath = d.absoluteFilePath(fn);
+  name = fn.mid(0, firstunderscore);
+  locale = fn.mid(firstunderscore+1, endbasename-(firstunderscore+1));
+  locale_specificity = (locale.split('_', QString::SkipEmptyParts)).size() ;
+}
