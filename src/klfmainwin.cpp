@@ -864,7 +864,8 @@ void KLFMainWin::saveStyles()
   }
   QDataStream stream(&f);
   stream.setVersion(QDataStream::Qt_3_3);
-  stream << QString("KLATEXFORMULA_STYLE_LIST") << (qint16)version_maj << (qint16)version_min
+  // we write KLF-3.0-compatible stream
+  stream << QString("KLATEXFORMULA_STYLE_LIST") << (qint16)3 << (qint16)0
 	 << (qint16)stream.version() << _styles;
 }
 

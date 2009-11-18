@@ -3,7 +3,7 @@
   <general>
     <author>Philippe Faist</author>
     <email>philippe.faist@bluewin.ch</email>
-    <version>3.1.0</version>
+    <version>3.1.1</version>
     <projectmanagement>KDevTrollProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
@@ -201,7 +201,7 @@
     <bzip>false</bzip>
     <archname>%n-%v</archname>
     <appname>klatexformula</appname>
-    <version>3.1.0</version>
+    <version>3.1.1</version>
     <release/>
     <vendor/>
     <licence>GPL</licence>

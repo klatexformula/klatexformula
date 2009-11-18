@@ -488,8 +488,18 @@ void KLFLatexSymbolsView::slotSymbolActivated()
 
 
 
-
-
+// returns -1 if file open read or the code returned by cache->loadCache(),
+// that is KLFLatexSymbolsCache::{Ok,BadHeader,BadVersion}
+int klf_load_cache(KLFLatexSymbolsCache *cache, const QString& fname)
+{
+  QFile f(fname);
+  if ( ! f.open(QIODevice::ReadOnly) ) {
+    return -1;
+  }
+  QDataStream ds(&f);
+  int r = cache->loadCache(ds);
+  return r;
+}
 
 
 KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
@@ -511,20 +521,19 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
     mCache = new KLFLatexSymbolsCache;
     mCache->backendsettings = mw->backendSettings();
 
-    QString s = klfconfig.homeConfigDir + "/symbolspixmapcache";
-    if ( ! QFile::exists(s) ) {
-      QFile::copy(":/data/symbolspixmapcache_base", s);
-      QFile::setPermissions(s, QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
+    QStringList cachefiles
+      = QStringList() << klfconfig.homeConfigDir + "/symbolspixmapcache"
+		      << ":/data/symbolspixmapcache_base" ;
+    int k;
+    bool ok = false;
+    for (k = 0; k < cachefiles.size(); ++k) {
+      ok = (  klf_load_cache(mCache, cachefiles[k]) == KLFLatexSymbolsCache::Ok  ) ;
+      if (ok)
+	break;
     }
-
-    QFile f(s);
-    if ( ! f.open(QIODevice::ReadOnly) ) {
-      qCritical() << tr("Warning: failed to open file `%1'!").arg(s);
+    if ( ! ok ) {
+      qWarning() << tr("Warning: KLFLatexSymbols: error finding and reading cache file!");
     }
-    QDataStream ds(&f);
-    int r = mCache->loadCache(ds);
-    if (r != 0)
-      qCritical() << tr("Warning: KLFLatexSymbols: error reading cache file ! code=%1").arg(r);
   }
   mCacheRefCounter++;
 
@@ -541,8 +550,6 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
   {
     QString fn = klfconfig.homeConfigDir + "/latexsymbols.xml";
     if ( ! QFile::exists(fn) ) {
-      //      QFile::copy(":/data/latexsymbols.xml", fn);
-      //      QFile::setPermissions(fn, QFile::ReadUser|QFile::WriteUser|QFile::ReadGroup|QFile::ReadOther);
       fn = ":/data/latexsymbols.xml";
     }
     QFile file(fn);

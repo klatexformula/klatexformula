@@ -335,9 +335,17 @@ void main_parse_options(int argc, char *argv[]);
 /** Free some memory we have persistently allocated */
 void main_cleanup()
 {
+  // FIXME: under windows, we have a proliferation of qt_temp.XXXXXX files
+  //   in local plugin directory, what's going on?
+  QDir pdir(klfconfig.homeConfigDirPlugins);
+  QStringList qttempfiles = pdir.entryList(QStringList() << "qt_temp.??????", QDir::Files);
+  foreach(QString s, qttempfiles) {
+    QFile::remove(pdir.absoluteFilePath(s));
+  }
   // free strdup()'ed strings
   while (--opt_strdup_free_list_n >= 0)
     free(opt_strdup_free_list[opt_strdup_free_list_n]);
+
 }
 
 /** Perform clean-up and ::exit() */
@@ -647,8 +655,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  } else {
 	    // if we aren't configured to load it, then discard it, but keep info with NULL instance,
 	    // so that user can configure to load or not this plugin in the settings dialog.
-	    pluginInfo.instance = NULL;
 	    delete pluginInstance;
+	    pluginInfo.instance = NULL;
 	    qDebug("\tPlugin %s NOT loaded.", qPrintable(nm));
 	  }
 
