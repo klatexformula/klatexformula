@@ -30,10 +30,12 @@
 #include <QPixmap>
 #include <QMap>
 
+#include <klfdefs.h>
+
 /** Data structures for KLatexFormula
  * \author Philippe Faist &lt;philippe.faist at bluewin.ch&gt;
  */
-class KLFData {
+class KLF_EXPORT KLFData {
 public:
 
   struct KLFStyle {
@@ -62,7 +64,9 @@ public:
     static quint32 MaxId;
 
     QDateTime datetime;
-    QString latex; // this contains also information of category (first line, %: ...) and tags (first/second line, after category: % ...)
+    /** \note \c latex contains also information of category (first line, %: ...) and
+     * tags (first/second line, after category: % ...) */
+    QString latex;
     QPixmap preview;
 
     QString category;

@@ -220,6 +220,7 @@ void KLFConfig::loadDefaults()
     UI.maxUserColors = 12;
     UI.enableToolTipPreview = true;
     UI.enableRealTimePreview = true;
+    UI.autosaveLibraryMin = 5;
 
     SyntaxHighlighter.configFlags = 0x05;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
@@ -336,6 +337,7 @@ int KLFConfig::readFromConfig()
   UI.maxUserColors = s.value("maxusercolors", UI.maxUserColors).toInt();
   UI.enableToolTipPreview = s.value("enabletooltippreview", UI.enableToolTipPreview).toBool();
   UI.enableRealTimePreview = s.value("enablerealtimepreview", UI.enableRealTimePreview).toBool();
+  UI.autosaveLibraryMin = s.value("autosavelibrarymin", UI.autosaveLibraryMin).toInt();
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -408,6 +410,7 @@ int KLFConfig::writeToConfig()
   s.setValue("maxusercolors", UI.maxUserColors);
   s.setValue("enabletooltippreview", UI.enableToolTipPreview);
   s.setValue("enablerealtimepreview", UI.enableRealTimePreview);
+  s.setValue("autosavelibrarymin", UI.autosaveLibraryMin);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");

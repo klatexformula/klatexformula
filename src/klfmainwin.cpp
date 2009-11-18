@@ -479,6 +479,9 @@ KLFMainWin::KLFMainWin()
 
   mLastRunTempPNGFile = 0;
 
+  mLibraryAutoSaveTimer = new QTimer(this);
+  connect(mLibraryAutoSaveTimer, SIGNAL(timeout()), this, SLOT(saveLibrary()));
+
   // load styless
   loadStyles();
   // load library
@@ -633,6 +636,11 @@ KLFMainWin::KLFMainWin()
   _lastwindowshownstatus = 0;
   _savedwindowshownstatus = 0;
   _ignore_close_event = false;
+
+  // Start AutoSave Timer if requested
+  if (klfconfig.UI.autosaveLibraryMin > 0) {
+    mLibraryAutoSaveTimer->start(1000 * 60 * klfconfig.UI.autosaveLibraryMin);
+  }
 }
 
 
@@ -962,11 +970,19 @@ void KLFMainWin::loadLibrary()
   emit libraryAllChanged();
 }
 
+
 void KLFMainWin::saveLibrary()
 {
   // librarysave
   klfconfig.ensureHomeConfigDir();
   QString s = klfconfig.homeConfigDir + "/library";
+  QString s_last_backup = s + ".last_backup";
+  if (QFile::exists(s)) {
+    if (QFile::exists(s_last_backup))
+      QFile::remove(s_last_backup);
+    QFile::copy(s, s_last_backup);
+  }
+
   QFile f(s);
   if ( ! f.open(QIODevice::WriteOnly) ) {
     QMessageBox::critical(this, tr("Error"), tr("Error: Unable to write to library file `%1'!")

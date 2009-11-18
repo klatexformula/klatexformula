@@ -194,7 +194,7 @@ protected:
 
 class KLFMainWin;
 
-class KLFLibraryBrowser : public QWidget, private Ui::KLFLibraryBrowserUI
+class KLF_EXPORT KLFLibraryBrowser : public QWidget, private Ui::KLFLibraryBrowserUI
 {
   Q_OBJECT
 public:

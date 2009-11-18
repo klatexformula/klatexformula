@@ -56,7 +56,7 @@ namespace Ui {
   class KLFProgErrUI;
 }
 
-class KLFProgErr : public QDialog
+class KLF_EXPORT KLFProgErr : public QDialog
 {
   Q_OBJECT
 public:
@@ -71,7 +71,7 @@ private:
 
 
 
-class KLFLatexSyntaxHighlighter : public QSyntaxHighlighter
+class KLF_EXPORT KLFLatexSyntaxHighlighter : public QSyntaxHighlighter
 {
   Q_OBJECT
 public:
@@ -129,7 +129,7 @@ private:
  * A helper that runs in a different thread that generates previews in real-time as user types text, without
  * blocking the GUI.
  */
-class KLFPreviewBuilderThread : public QThread
+class KLF_EXPORT KLFPreviewBuilderThread : public QThread
 {
   Q_OBJECT
 
@@ -199,8 +199,6 @@ public:
 			    altersetting_Epstopdf };
   void alterSetting(altersetting_which, int ivalue);
   void alterSetting(altersetting_which, QString svalue);
-
-  bool importLibraryFileSeparateResources(const QString& fname, const QString& basername);
 
   KLFLibraryBrowser * libraryBrowserWidget() { return mLibraryBrowser; }
   KLFLatexSymbols * latexSymbolsWidget() { return mLatexSymbols; }
@@ -276,6 +274,8 @@ public slots:
   void saveSettings();
   void loadSettings();
 
+  void setWidgetStyle(const QString& qtstyle);
+
   void setTxtLatexFont(const QFont& f) { txtLatex->setFont(f); }
   void setTxtPreambleFont(const QFont& f) { txtPreamble->setFont(f); }
 
@@ -287,7 +287,7 @@ public slots:
 
   void setWindowShownStatus(uint windowshownflags, bool setMainWinToo = false);
 
-  void setWidgetStyle(const QString& qtstyle);
+  bool importLibraryFileSeparateResources(const QString& fname, const QString& basername);
 
   void setQuitOnClose(bool quitOnClose);
 
@@ -303,6 +303,8 @@ protected:
 
   KLFLatexSyntaxHighlighter *mHighlighter;
   KLFLatexSyntaxHighlighter *mPreambleHighlighter;
+
+  QTimer *mLibraryAutoSaveTimer;
 
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
   bool _settings_altered;

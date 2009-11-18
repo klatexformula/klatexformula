@@ -104,6 +104,7 @@ public:
     int maxUserColors;
     bool enableToolTipPreview;
     bool enableRealTimePreview;
+    int autosaveLibraryMin;
 
   } UI;
 

@@ -152,19 +152,7 @@ void KLFLibraryListViewItem::updateLibraryItem(const KLFData::KLFLibraryItem& it
   } else {
     // show latex in second column
 
-    QString l = _item.latex;
-    // remove any category/item comments in item
-    while (l.startsWith("\n"))
-      l.remove(0, 1);
-    if (l.startsWith("%:"))
-      l.remove(0, l.indexOf("\n")+1);
-    while (l.startsWith("\n"))
-      l.remove(0, 1);
-    if (l.startsWith("%"))
-      l.remove(0, l.indexOf("\n")+1);
-    while (l.startsWith("\n"))
-    l.remove(0, 1);
-    
+    QString l = KLFData::stripCategoryTagsFromLatex(_item.latex);    // remove any category/item comments in item
     l.replace("\n", "\t");
     setText(1, l);
   }

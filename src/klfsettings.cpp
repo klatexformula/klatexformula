@@ -306,9 +306,7 @@ void KLFSettings::refreshPluginSelected()
 
   //  btnRemovePlugin->setEnabled(true);
   int smallpointsize = QFontInfo(font()).pointSize() - 1;
-  lblPluginInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;\">"
-			    "<tt><span style=\"font-style: italic; font-weight: 600;\">"
-			    "Plugin Information</span></tt><br />\n"
+  lblPluginInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;\">\n"
 			    "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
 			    "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
 			    "<tt>Description:</tt></p>\n"
@@ -489,9 +487,7 @@ void KLFSettings::refreshAddOnSelected()
   btnRemoveAddOn->setEnabled(klf_addons[k].islocal);
 
   int smallpointsize = QFontInfo(font()).pointSize() - 1;
-  lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">"
-			   "<tt><span style=\"font-style: italic; font-weight: 600;\">"
-			   "Add-On Information</span></tt><br />\n"
+  lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
 			   "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
 			   "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
 			   "<tt>Description:</tt></p>\n"

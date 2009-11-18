@@ -30,7 +30,7 @@
   <property name="sizeGripEnabled">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
+  <layout class="QVBoxLayout" name="lyt_KLFSettings">
    <item>
     <widget class="QTabWidget" name="tabs">
      <property name="currentIndex">
@@ -1322,6 +1322,9 @@
                  <property name="wordWrap">
                   <bool>true</bool>
                  </property>
+                 <property name="textInteractionFlags">
+                  <set>Qt::TextBrowserInteraction</set>
+                 </property>
                 </widget>
                </item>
               </layout>
@@ -1485,6 +1488,9 @@
                     </property>
                     <property name="wordWrap">
                      <bool>true</bool>
+                    </property>
+                    <property name="textInteractionFlags">
+                     <set>Qt::TextBrowserInteraction</set>
                     </property>
                    </widget>
                   </item>
