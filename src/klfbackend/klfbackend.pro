@@ -36,8 +36,8 @@ SOURCES += klfbackend.cpp klfblockprocess.cpp
 
 #TRANSLATIONS += ../i18n/klf_fr.ts
 
-target.path = $$INSTALLPREFIX/$$LIBDIRNAME
 includes.path = $$INSTALLPREFIX/include
 includes.files = $$HEADERS
+target.path = $$INSTALLPREFIX/$$LIBDIRNAME
 INSTALLS += target includes
 

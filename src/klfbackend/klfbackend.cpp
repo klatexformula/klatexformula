@@ -29,7 +29,10 @@
 #include <qdatetime.h>
 #include <qtextstream.h>
 #include <qdir.h>
+
+#ifdef KLFBACKEND_QT4
 #include <qdebug.h>
+#endif
 
 #include "klfblockprocess.h"
 #include "klfbackend.h"
@@ -39,7 +42,6 @@
 
 void __klf_debug_time_print(QString str)
 {
-#ifdef KLF_DEBUG_TIME_PRINT
   struct timeval tv;
   gettimeofday(&tv, NULL);
   qDebug("%03ld.%06ld : %s", tv.tv_sec % 1000, tv.tv_usec,
@@ -50,9 +52,13 @@ void __klf_debug_time_print(QString str)
 #endif
 
 	 );
-#endif
 }
 
+#ifdef KLFBACKEND_QT4
+#define NATIVESEPARATORS(x) QDir::toNativeSeparators(x)
+#else
+#define NATIVESEPARATORS(x) QDir::convertSeparators(x)
+#endif
 
 
 // ---------------------------------
@@ -173,7 +179,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     proc.setWorkingDirectory(settings.tempdir);
 
-    args << settings.latexexec << QDir::toNativeSeparators(tempfname+".tex");
+    args << settings.latexexec << NATIVESEPARATORS(tempfname+".tex");
 
     klf_debug_time_print("KLFBackend::getLatexFormula: about to exec latex...\n");
     bool r = proc.startProcess(args, env);
@@ -208,8 +214,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     KLFBlockProcess proc;
     QStringList args;
-    args << settings.dvipsexec << "-E" << QDir::toNativeSeparators(tempfname+".dvi")
-         << "-o" << QDir::toNativeSeparators(tempfname+".eps");
+    args << settings.dvipsexec << "-E" << NATIVESEPARATORS(tempfname+".dvi")
+         << "-o" << NATIVESEPARATORS(tempfname+".eps");
 
     klf_debug_time_print("KLFBackend::getLatexFormula: about to dvips...\n");
     bool r = proc.startProcess(args);
@@ -336,8 +342,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     } else {
       args << "-sDEVICE=pngalpha";
     }
-    args << "-sOutputFile="+QDir::toNativeSeparators(tempfname+".png") << "-q" << "-dBATCH"
-         << QDir::toNativeSeparators(tempfname+"-good.eps");
+    args << "-sOutputFile="+NATIVESEPARATORS(tempfname+".png") << "-q" << "-dBATCH"
+         << NATIVESEPARATORS(tempfname+"-good.eps");
 
     klf_debug_time_print("KLFBackend::getLatexFormula: about to gs...\n");    
     bool r = proc.startProcess(args);
@@ -388,7 +394,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // if we have epstopdf functionality, then we'll take advantage of it to generate pdf:
     KLFBlockProcess proc;
     QStringList args;
-    args << settings.epstopdfexec << (tempfname+"-good.eps") << ("--outfile="+QDir::toNativeSeparators(tempfname+".pdf"));
+    args << settings.epstopdfexec << (tempfname+"-good.eps") << ("--outfile="+NATIVESEPARATORS(tempfname+".pdf"));
 
     klf_debug_time_print("KLFBackend::getLatexFormula: about to epstopdf...\n");    
     bool r = proc.startProcess(args);
@@ -454,6 +460,21 @@ void KLFBackend::cleanup(QString tempfname)
   if (QFile::exists(tempfname+".pdf")) QFile::remove(tempfname+".pdf");
 }
 
+#ifndef KLFBACKEND_QT4
+#define suffix extension
+#define WRITEONLY IO_WriteOnly
+#define OPENSTDOUT WRITEONLY, stdout
+#define qPrintable(x) (x).local8Bit().data()
+#define trimmed stripWhiteSpace
+#define toUpper upper
+#define setFileName setName
+#define error errorString
+#define toLatin1 latin1
+#define write writeBlock
+#else
+#define WRITEONLY QIODevice::WriteOnly
+#define OPENSTDOUT stdout, WRITEONLY
+#endif
 
 bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fileName, const QString& fmt)
 {
@@ -470,17 +491,17 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
   // got format. choose output now and prepare write
   QFile fout;
   if (fileName.isEmpty() || fileName == "-") {
-    if ( ! fout.open(stdout, QIODevice::WriteOnly) ) {
+    if ( ! fout.open(OPENSTDOUT) ) {
       qWarning("%s", qPrintable(QObject::tr("Unable to open stderr for write! Error: %1\n",
-					    /*comment:*/"KLFBackend::saveOutputToFile")
+					    "KLFBackend::saveOutputToFile")
 				.arg(fout.error())));
       return false;
     }
   } else {
     fout.setFileName(fileName);
-    if ( ! fout.open(QIODevice::WriteOnly) ) {
+    if ( ! fout.open(WRITEONLY) ) {
       qWarning("%s", qPrintable(QObject::tr("Unable to write to file `%1'! Error: %2\n",
-					    /*comment:*/"KLFBackend::saveOutputToFile")
+					    "KLFBackend::saveOutputToFile")
 				.arg(fileName).arg(fout.error())));
       return false;
     }
@@ -493,7 +514,7 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
   } else if (format == "PDF") {
     if (klfoutput.pdfdata.isEmpty()) {
       qWarning("%s", qPrintable(QObject::tr("PDF format is not available!\n",
-					    /*comment:*/"KLFBackend::saveOutputToFile")));
+					    "KLFBackend::saveOutputToFile")));
       return false;
     }
     fout.write(klfoutput.pdfdata);
@@ -501,7 +522,7 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
     bool res = klfoutput.result.save(&fout, format.toLatin1());
     if ( ! res ) {
       qWarning("%s", qPrintable(QObject::tr("Unable to save image to file `%1' in format `%2'!\n",
-					    /*comment:*/"KLFBackend::saveOutputToFile")
+					    "KLFBackend::saveOutputToFile")
 				.arg(fileName).arg(format)));
       return false;
     }

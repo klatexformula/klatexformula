@@ -91,7 +91,7 @@ contains(BACKEND_USE_QT4, false) {
 } else {
   # using Qt4 -- 'system' succeeds if zero return value
   !system($$QMAKE -version) {
-    error(qmake program `$$QMAKE\' not found !)
+    error("qmake program `$$QMAKE' not found ! If you're using Qt3, please set BACKEND_USE_QT4 option to false.")
   }
 }
 
