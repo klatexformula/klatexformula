@@ -117,7 +117,7 @@ system($$QMAKE -set KLF_SRCLIB_SHAREDORSTATIC '$$SRCLIB_SHAREDORSTATIC')
 
 SUBDIRS = src/klfbackend
 isEmpty(BACKEND_ONLY) {
-    SUBDIRS += src/src.pro src/plugins src/main.pro
+    SUBDIRS += src/src.pro src/main.pro src/plugins
 }
 
 message(Will build the following subdirs: $$SUBDIRS)
