@@ -29,7 +29,7 @@ contains(USE_QT4, true) {
   TARGET = klfbackend
   DEFINES += KLFBACKEND_QT4
 }
-DEFINES += KLF_SRC_BUILD KLF_DEBUG_TIME_PRINT
+DEFINES += KLF_SRC_BUILD
 
 HEADERS += klfbackend.h klfblockprocess.h
 SOURCES += klfbackend.cpp klfblockprocess.cpp

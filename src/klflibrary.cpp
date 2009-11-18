@@ -633,7 +633,7 @@ bool KLFLibraryListManager::slotSearchFindNext(int direction)
     if (item) {
       // small tweaks that work ok
       _listView->scrollToItem(item);
-      _listView->setCurrentItem(item, QItemSelectionModel::Clear);
+      //      _listView->setCurrentItem(item, QItemSelectionModel::Clear);
       item->setSelected(false);
     }
   }
@@ -648,10 +648,13 @@ void KLFLibraryListManager::slotSearchAbort()
   // show top of list, no selection
   KLFLibraryListViewItem *item = (KLFLibraryListViewItem*) _listView->topLevelItem(0);
   if (item) {
-    // small tweaks that work ok
+    // abort search : unselect all, scroll to top
+    // unselect all items
+    QList<QTreeWidgetItem*> l = _listView->selectedItems();
+    for (int j = 0; j < l.size(); ++j) {
+      l[j]->setSelected(false);
+    }
     _listView->scrollToItem(item);
-    _listView->setCurrentItem(item, QItemSelectionModel::Clear);
-    item->setSelected(false);
   }
   _search_k = _libItems->size();
 }
@@ -1276,13 +1279,17 @@ void KLFLibraryBrowser::slotSearchFind(const QString& s)
   QPalette pal = txtSearch->palette();
   if (res) {
     pal.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorFound);
+    pal.setColor(QPalette::Window, klfconfig.LibraryBrowser.colorFound);
+    pal.setColor(txtSearch->backgroundRole(), klfconfig.LibraryBrowser.colorFound);
     txtSearch->setProperty("searchState", QString("found"));
   } else {
     pal.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorNotFound);
+    pal.setColor(QPalette::Window, klfconfig.LibraryBrowser.colorNotFound);
+    pal.setColor(txtSearch->backgroundRole(), klfconfig.LibraryBrowser.colorNotFound);
     txtSearch->setProperty("searchState", QString("not-found"));
   }
-  txtSearch->setPalette(pal);
   txtSearch->setStyleSheet(txtSearch->styleSheet());
+  txtSearch->setPalette(pal);
 }
 void KLFLibraryBrowser::slotSearchFindNext(int direction)
 {
@@ -1305,8 +1312,8 @@ void KLFLibraryBrowser::slotSearchFindNext(int direction)
     pal.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorNotFound);
     txtSearch->setProperty("searchState", QString("not-found"));
   }
-  txtSearch->setPalette(pal);
   txtSearch->setStyleSheet(txtSearch->styleSheet());
+  txtSearch->setPalette(pal);
 }
 void KLFLibraryBrowser::slotSearchFindPrev()
 {
