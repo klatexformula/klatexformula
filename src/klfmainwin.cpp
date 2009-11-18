@@ -1043,7 +1043,7 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   QString preambletext = txtPreamble->toPlainText();
   QString addtext;
   QTextCursor c = txtPreamble->textCursor();
-  qDebug("Begin preamble edit: preamble text is %s", qPrintable(txtPreamble->toPlainText()));
+  //  qDebug("Begin preamble edit: preamble text is %s", qPrintable(txtPreamble->toPlainText()));
   c.beginEditBlock();
   c.movePosition(QTextCursor::End);
   for (k = 0; k < cmds.size(); ++k) {
@@ -1059,7 +1059,7 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   }
   c.endEditBlock();
 
-  qDebug("End preamble edit; premable text is %s", qPrintable(txtPreamble->toPlainText()));
+  //  qDebug("End preamble edit; premable text is %s", qPrintable(txtPreamble->toPlainText()));
 
   activateWindow();
   raise();
@@ -1073,9 +1073,9 @@ void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
 
 void KLFMainWin::setWidgetStyle(const QString& qtstyle)
 {
-  qDebug("setWidgetStyle(\"%s\")", qPrintable(qtstyle));
+  //  qDebug("setWidgetStyle(\"%s\")", qPrintable(qtstyle));
   if (_widgetstyle == qtstyle) {
-    qDebug("This style is already applied.");
+    //    qDebug("This style is already applied.");
     return;
   }
   if (qtstyle.isNull()) {
@@ -1091,9 +1091,9 @@ void KLFMainWin::setWidgetStyle(const QString& qtstyle)
       qWarning("\t%s", qPrintable(stylelist[k]));
     return;
   }
-  qDebug("Setting the style %s. are we visible?=%d", qPrintable(qtstyle), (int)QWidget::isVisible());
+  //  qDebug("Setting the style %s. are we visible?=%d", qPrintable(qtstyle), (int)QWidget::isVisible());
   QStyle *s = QStyleFactory::create(qtstyle);
-  qDebug("Got style ptr=%p", (void*)s);
+  //  qDebug("Got style ptr=%p", (void*)s);
   if ( ! s ) {
     qWarning("Can't instantiate style %s!", qPrintable(qtstyle));
     return;
