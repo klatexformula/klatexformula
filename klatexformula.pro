@@ -16,8 +16,9 @@
 # BACKEND_INSTALLPREFIX
 #   prefix where to install the backend library with 'make install'. Defaults to
 #   contents of INSTALLPREFIX
-# BACKEND_LIBDIR
-#   'lib' or 'lib64'. Defaults to 'lib', or 'lib64' if (uname -m) contains '64'
+# BACKEND_INSTALLLIBDIR
+#   '/usr/lib' or '/usr/lib64'. Defaults to "$BACKEND_INSTALLPREFIX/lib", or
+#   "$BACKEND_INSTALLPREFIX/lib64" if (uname -m) contains '64'
 # BACKEND_SHAREDORSTATIC
 #   'staticlib' or 'dll' for static or shared library. Defaults to 'staticlib'
 # BACKEND_USE_QT4
@@ -61,10 +62,10 @@ isEmpty(INSTALLPREFIX) {
 isEmpty(BACKEND_INSTALLPREFIX) {
   BACKEND_INSTALLPREFIX = $$INSTALLPREFIX
 }
-isEmpty(BACKEND_LIBDIR) {
-  BACKEND_LIBDIR = lib
+isEmpty(BACKEND_INSTALLLIBDIR) {
+  BACKEND_INSTALLLIBDIR = "$$BACKEND_INSTALLPREFIX/lib"
   unix:contains($$system(uname -m), 64) {
-    BACKEND_LIBDIR = lib64
+    BACKEND_INSTALLLIBDIR = "$$BACKEND_INSTALLPREFIX/lib64"
   }
 }
 isEmpty(BACKEND_SHAREDORSTATIC) {
@@ -102,7 +103,7 @@ system($$QMAKE -set KLF_QMAKE '$$QMAKE')
 system($$QMAKE -set KLF_RCC '$$RCC')
 system($$QMAKE -set KLF_BACKEND_ONLY '$$BACKEND_ONLY')
 system($$QMAKE -set KLF_BACKEND_INSTALLPREFIX '$$BACKEND_INSTALLPREFIX')
-system($$QMAKE -set KLF_BACKEND_LIBDIR '$$BACKEND_LIBDIR')
+system($$QMAKE -set KLF_BACKEND_INSTALLLIBDIR '$$BACKEND_INSTALLLIBDIR')
 system($$QMAKE -set KLF_BACKEND_SHAREDORSTATIC '$$BACKEND_SHAREDORSTATIC')
 system($$QMAKE -set KLF_BACKEND_USE_QT4 '$$BACKEND_USE_QT4')
 system($$QMAKE -set KLF_ICONTHEME '$$ICONTHEME')

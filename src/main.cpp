@@ -546,7 +546,7 @@ void main_load_translations(QCoreApplication *app)
   // Load Translations:
   for (j = 0; j < translationsToLoad.size(); ++j) {
     // load this translator
-    qDebug("Loading translator %s for %s", qPrintable(translationsToLoad[j]), qPrintable(lc));
+    //    qDebug("Loading translator %s for %s", qPrintable(translationsToLoad[j]), qPrintable(lc));
     QTranslator *translator = new QTranslator(app);
     QFileInfo fi(translationsToLoad[j]);
     //    qDebug("translator->load(\"%s\", \"%s\", \"_\", \"%s\")", qPrintable(fi.completeBaseName()),

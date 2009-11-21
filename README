@@ -1,47 +1,27 @@
 KLatexFormula - README file
 
-
-****************************************
-WARNING! THIS DOCUMENT IS FROM KLATEXFORMULA VERSION 2.1.1 AND HAS
-NOT BEEN UPDATED! MOST OF IT IS WRONG!
-****************************************
-
-
-
-
 DESCRIPTION
 
-This KDE application is especially designed for generating an image
-(e.g. PNG) from a LaTeX equation, this using a nice GUI. Support for
-Copy-Paste, Save as image/pdf/ps and drag-and-drop is included. In
-addition to supporting a whole GUI-based user interface, this package
-includes the library KLFBackend to integrate KLatexFormula functionality
-into your programs.
-
+This application provides an easy-to-use graphical user interface
+for generating images from LaTeX equations. These images can be
+dragged and dropped or copied and pasted into external applications
+(presentations, text documents, graphics...), or can be saved to
+disk in a variety of formats (PNG, JPG, BMP, EPS, PDF, etc.). In
+addition to the graphical user interface, a command-line interface
+and a C++ library is provided to perform the same job.
 
 INSTALLATION
 
-* To install KLatexFormula with graphical user interface under KDE (complete), then all you need to
-do is run configure, make and make install, for example like this:
-prompt> confgure
-prompt> make
-promt # make install    -- you may need to be root
-
-* If you have KDE, but you would like to compile only the base library (klfbackend), you can run
-prompt> configure --disable-klatexformula
-instead of 'configure'. Then 'make' and 'make install' as usual.
-
-* If you only have Qt and you would like to compile only the base library (klfbackend), you can use the
-Qt project file in the src/klfbackend directory:
-prompt> cd src/klfbackend/
-prompt/src/klfbackend> vi klfbackend.pro    [or your favorite editor] -- set the first variables of the file correctly
-prompt/src/klfbackend> qmake
-prompt/src/klfbackend> make
-prompt/src/klfbackend # make install         -- you may need to be root
-
+Installation instructions can be found at
+  http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
 
 HELP & DOCUMENTATION
 
-If you have trouble compiling KLatexFormula, check out the documentation on the KLatexFormula website
-at klatexformula.sourceforge.net. Please report bugs and errors to the author.
+Documentation can be found on the KLatexFormula Wiki at
+  http://klatexformula.sourceforge.net/klfwiki/
 
+REPORTING BUGS AND PROVIDING FEEDBACK
+
+Please report bugs and suggest features and improvements on the "Feedback"
+page of the wiki at
+  http://klatexformula.sourceforge.net/klfwiki/index.php/Feedback

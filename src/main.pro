@@ -50,20 +50,20 @@ RC_FILE = klatexformula.rc
 
 # INSTALLS are UNIX-only.anyway
 unix {
-  klfcmdl.extra = ln -sf \"$$INSTALLPREFIX/bin/klatexformula\" \"$$INSTALLPREFIX/bin/klatexformula_cmdl\"
+  klfcmdl.extra = ln -sf \"$$INSTALLPREFIX/bin/klatexformula\" \"$(INSTALL_ROOT)$$INSTALLPREFIX/bin/klatexformula_cmdl\"
   klfcmdl.path = $$INSTALLPREFIX/bin
   target.path = $$INSTALLPREFIX/bin
   desktopfile.files = klatexformula.desktop
   desktopfile.path = $$INSTALLPREFIX/share/applications
-  icon16.extra = install -m 644 -p  hi16-app-klatexformula.png $$INSTALLPREFIX/share/icons/$$ICONTHEME/16x16/apps/klatexformula.png
+  icon16.extra = install -m 644 -p  hi16-app-klatexformula.png "$(INSTALL_ROOT)$$INSTALLPREFIX/share/icons/$$ICONTHEME/16x16/apps/klatexformula.png"
   icon16.path = $$INSTALLPREFIX/share/icons/$$ICONTHEME/16x16/apps
-  icon32.extra = install -m 644 -p  hi32-app-klatexformula.png $$INSTALLPREFIX/share/icons/$$ICONTHEME/32x32/apps/klatexformula.png
+  icon32.extra = install -m 644 -p  hi32-app-klatexformula.png "$(INSTALL_ROOT)$$INSTALLPREFIX/share/icons/$$ICONTHEME/32x32/apps/klatexformula.png"
   icon32.path = $$INSTALLPREFIX/share/icons/$$ICONTHEME/32x32/apps
-  icon64.extra = install -m 644 -p  hi64-app-klatexformula.png $$INSTALLPREFIX/share/icons/$$ICONTHEME/64x64/apps/klatexformula.png
+  icon64.extra = install -m 644 -p  hi64-app-klatexformula.png "$(INSTALL_ROOT)$$INSTALLPREFIX/share/icons/$$ICONTHEME/64x64/apps/klatexformula.png"
   icon64.path = $$INSTALLPREFIX/share/icons/$$ICONTHEME/64x64/apps
-  icon128.extra = install -m 644 -p hi128-app-klatexformula.png $$INSTALLPREFIX/share/icons/$$ICONTHEME/128x128/apps/klatexformula.png
+  icon128.extra = install -m 644 -p hi128-app-klatexformula.png "$(INSTALL_ROOT)$$INSTALLPREFIX/share/icons/$$ICONTHEME/128x128/apps/klatexformula.png"
   icon128.path = $$INSTALLPREFIX/share/icons/$$ICONTHEME/128x128/apps
-  baseplugins.extra = $$[KLF_RCC] -binary -o plugins/klfbaseplugins.rcc $$PLUGINSRESFILE && install -m 644 -p plugins/klfbaseplugins.rcc $$INSTALLPREFIX/share/klatexformula/rccresources/klfbaseplugins.rcc
+  baseplugins.extra = $$[KLF_RCC] -binary -o plugins/klfbaseplugins.rcc $$PLUGINSRESFILE && install -m 644 -p plugins/klfbaseplugins.rcc "$(INSTALL_ROOT)$$INSTALLPREFIX/share/klatexformula/rccresources/klfbaseplugins.rcc"
   baseplugins.path = $$INSTALLPREFIX/share/klatexformula/rccresources
   INSTALLS += target klfcmdl desktopfile icon16 icon32 icon64 icon128 baseplugins
 }
