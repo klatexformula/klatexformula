@@ -490,7 +490,8 @@ KLFMainWin::KLFMainWin()
   //  _libraryBrowserIsShown = false;
   //  _latexSymbolsIsShown = false;
 
-  mLibraryBrowser = new KLFLibraryBrowser(&_library, &_libresources, this); // Don't pass NULL here
+  // Don't pass NULL here as widget parent
+  mLibraryBrowser = new KLFLibraryBrowser(&_library, &_libresources, this);
 
   mLatexSymbols = new KLFLatexSymbols(this);
 

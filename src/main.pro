@@ -50,7 +50,7 @@ RC_FILE = klatexformula.rc
 
 # INSTALLS are UNIX-only.anyway
 unix {
-  klfcmdl.extra = ln -sf \"$$INSTALLPREFIX/bin/klatexformula\" \"$(INSTALL_ROOT)$$INSTALLPREFIX/bin/klatexformula_cmdl\"
+  klfcmdl.extra = ln -sf \"klatexformula\" \"$(INSTALL_ROOT)$$INSTALLPREFIX/bin/klatexformula_cmdl\"
   klfcmdl.path = $$INSTALLPREFIX/bin
   target.path = $$INSTALLPREFIX/bin
   desktopfile.files = klatexformula.desktop
