@@ -380,6 +380,10 @@ void KLFLatexSymbolsView::buildDisplay()
 {
 #ifdef Q_WS_MAC
   QStyle *myStyle = new QPlastiqueStyle;
+  QPalette pal = palette();
+  pal.setColor(QPalette::Window, QColor(206,207,233));
+  pal.setColor(QPalette::Base, QColor(206,207,233));
+  pal.setColor(QPalette::Button, QColor(206,207,233));
 #endif
   mLayout = new QGridLayout(mFrame);
   int i;
@@ -388,11 +392,9 @@ void KLFLatexSymbolsView::buildDisplay()
     KLFPixmapButton *btn = new KLFPixmapButton(p, mFrame);
 #ifdef Q_WS_MAC
     btn->setStyle(myStyle);
-    btn->setStyleSheet("background-color: rgb(206, 207, 233);");
+    btn->setPalette(pal);
 #endif
     btn->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
-    //    btn->setIconSize(p.size());
-    //    btn->setIcon(p);
     btn->setProperty("symbol", (unsigned int) i);
     btn->setProperty("gridpos", QPoint(-1,-1));
     btn->setProperty("gridcolspan", -1);

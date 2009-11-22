@@ -77,7 +77,7 @@
 static QRect klf_get_window_geometry(QWidget *w)
 {
   // return QRect(w->pos(), w->size());
-#ifdef Q_WS_WIN
+#if !defined(Q_WS_X11)
   QRect g = w->geometry();
 #else
   QRect g = w->frameGeometry();

@@ -699,6 +699,7 @@ int main(int argc, char **argv)
 
   if ( opt_interactive ) {
     QApplication app(qt_argc, qt_argv);
+    qDebug("Library paths are %s", qPrintable(QCoreApplication::libraryPaths().join("\n")));
 
     qRegisterMetaType< QImage >("QImage");
 
