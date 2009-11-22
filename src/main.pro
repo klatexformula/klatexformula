@@ -48,7 +48,7 @@ RC_FILE = klatexformula.rc
 
 #TRANSLATIONS += i18n/klf_fr.ts
 
-# INSTALLS are UNIX-only.anyway
+# INSTALLS are UNIX-only, anyway
 unix {
   klfcmdl.extra = ln -sf \"klatexformula\" \"$(INSTALL_ROOT)$$INSTALLPREFIX/bin/klatexformula_cmdl\"
   klfcmdl.path = $$INSTALLPREFIX/bin
