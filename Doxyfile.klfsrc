@@ -4,7 +4,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = KLFBackend
+PROJECT_NAME           = KLatexFormula Source API
 PROJECT_NUMBER         = 3.1.2
 OUTPUT_DIRECTORY       = apidoc/klfsrc
 CREATE_SUBDIRS         = NO

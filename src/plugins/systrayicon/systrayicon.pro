@@ -14,10 +14,6 @@ DESTDIR = ..
 
 macx|win32:LIBS += -L../../release -L../.. -lklfsrc -L../../klfbackend/release -L../../klfbackend -lklfbackend
 
-message(LIBS IS $$LIBS)
-
-#TRANSLATIONS += ../../i18n/klf_fr.ts
-
 # Input
 HEADERS += systrayicon.h
 SOURCES += systrayicon.cpp
