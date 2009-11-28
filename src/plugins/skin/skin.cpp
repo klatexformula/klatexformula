@@ -241,7 +241,7 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
   if (_app->style() != _defaultstyle) {
     _app->setStyle(_defaultstyle);
     _defaultstyle->setParent(this); // but aggressively keep possession of style
-    _mainwin->setWidgetStyle(QString::null); // and refresh mainwin's idea of application's style
+    _mainwin->setProperty("widgetStyle", QVariant(QString::null)); // and refresh mainwin's idea of application's style
   }
   // set style sheet to whole application (doesn't work...)
   //  _app->setStyleSheet(stylesheet);

@@ -1,5 +1,11 @@
 KLatexFormula - README file
 
+
+KLatexFormula is an easy-to-use graphical application for generating
+images (that you can drag and drop, copy and paste or save to disk) from
+LaTeX equations.
+
+
 DESCRIPTION
 
 This application provides an easy-to-use graphical user interface
@@ -10,15 +16,18 @@ disk in a variety of formats (PNG, JPG, BMP, EPS, PDF, etc.). In
 addition to the graphical user interface, a command-line interface
 and a C++ library is provided to perform the same job.
 
+
 INSTALLATION
 
 Installation instructions can be found at
   http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
 
+
 HELP & DOCUMENTATION
 
 Documentation can be found on the KLatexFormula Wiki at
   http://klatexformula.sourceforge.net/klfwiki/
+
 
 REPORTING BUGS AND PROVIDING FEEDBACK
 

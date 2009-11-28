@@ -14,6 +14,9 @@ DESTDIR = ..
 
 macx|win32:LIBS += -L../../release -L../.. -lklfsrc -L../../klfbackend/release -L../../klfbackend -lklfbackend
 
+QMAKE_LFLAGS -= -Wl,--no-undefined
+
+
 # Input
 HEADERS += systrayicon.h
 SOURCES += systrayicon.cpp
