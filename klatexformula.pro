@@ -64,8 +64,11 @@ isEmpty(BACKEND_INSTALLPREFIX) {
 }
 isEmpty(BACKEND_INSTALLLIBDIR) {
   BACKEND_INSTALLLIBDIR = "$$BACKEND_INSTALLPREFIX/lib"
-  unix:contains($$system(uname -m), 64) {
+  unix {
+    MACHINE = $$system(uname -m)
+    contains(MACHINE, 64) {
     BACKEND_INSTALLLIBDIR = "$$BACKEND_INSTALLPREFIX/lib64"
+    }
   }
 }
 isEmpty(BACKEND_SHAREDORSTATIC) {

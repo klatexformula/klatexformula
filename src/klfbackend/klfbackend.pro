@@ -31,7 +31,7 @@ contains(USE_QT4, true) {
 }
 DEFINES += KLF_SRC_BUILD
 
-HEADERS += klfbackend.h klfblockprocess.h
+HEADERS += klfbackend.h klfblockprocess.h klfdefs.h
 SOURCES += klfbackend.cpp klfblockprocess.cpp
 
 #TRANSLATIONS += ../i18n/klf_fr.ts

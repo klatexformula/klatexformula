@@ -1406,8 +1406,8 @@ void KLFMainWin::slotEvaluate()
     if (mLastRunTempPNGFile) {
       delete mLastRunTempPNGFile;
     }
-    mLastRunTempPNGFile = new QTemporaryFile(/*QDir::toNativeSeparators(klfconfig.BackendSettings.tempDir
-                                                                      +"/klf_lastruntemp_XXXXXX.png"),*/
+    mLastRunTempPNGFile = new QTemporaryFile(QDir::toNativeSeparators(klfconfig.BackendSettings.tempDir
+                                                                      +"/klf_lastruntemp_XXXXXX.png"),
                                              this);
 
     if ( ! mLastRunTempPNGFile->open() ) {
