@@ -38,7 +38,8 @@ HEADERS += klfcolorchooser.h \
            klfstylemanager.h \
 	   klfpluginiface.h \
 	   qtcolortriangle.h \
-	   klfmain.h
+	   klfmain.h \
+	   klfdisplaylabel.h
 !win32 {
 	HEADERS +=	klfdbus.h
 }
@@ -61,7 +62,8 @@ SOURCES += klfcolorchooser.cpp \
            klfsettings.cpp \
            klfstylemanager.cpp \
 	   qtcolortriangle.cpp \
-	   klfmain.cpp
+	   klfmain.cpp \
+	   klfdisplaylabel.cpp
 !win32 {
 	SOURCES +=	klfdbus.cpp
 }

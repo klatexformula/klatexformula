@@ -299,7 +299,7 @@
           </spacer>
          </item>
          <item row="0" column="0" rowspan="4">
-          <widget class="QLabel" name="lblOutput">
+          <widget class="KLFDisplayLabel" name="lblOutput">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -692,6 +692,11 @@
    <class>KLFColorChooser</class>
    <extends>QPushButton</extends>
    <header>klfcolorchooser.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KLFDisplayLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">klfdisplaylabel.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

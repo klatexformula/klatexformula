@@ -34,7 +34,6 @@
 #include <QMenu>
 #include <QTextEdit>
 #include <QWidget>
-#include <QTemporaryFile>
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
@@ -311,8 +310,6 @@ protected:
 
   KLFBackend::klfOutput _output; // output from KLFBackend
   KLFBackend::klfInput _lastrun_input; // input that generated _output
-
-  QTemporaryFile *mLastRunTempPNGFile;
 
   /** If TRUE, then the output contained in _output is up-to-date, meaning that we favor displaying
    * _output.result instead of the image given by mPreviewBuilderThread. */

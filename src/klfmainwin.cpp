@@ -477,8 +477,6 @@ KLFMainWin::KLFMainWin()
   _output.epsdata = QByteArray();
   _output.pdfdata = QByteArray();
 
-  mLastRunTempPNGFile = 0;
-
   mLibraryAutoSaveTimer = new QTimer(this);
   connect(mLibraryAutoSaveTimer, SIGNAL(timeout()), this, SLOT(saveLibrary()));
 
@@ -523,16 +521,14 @@ KLFMainWin::KLFMainWin()
   connect(txtPreamble, SIGNAL(cursorPositionChanged()),
 	  mPreambleHighlighter, SLOT(refreshAll()));
 
-  lblOutput->setFixedSize(klfconfig.UI.labelOutputFixedSize);
+  lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
 
-  // save default palette for restoring later on
-  lblOutput->setProperty("defaultPalette", lblOutput->palette());
+  connect(lblOutput, SIGNAL(labelDrag()), this, SLOT(slotDrag()));
 
   refreshWindowSizes();
 
   frmDetails->hide();
 
-  lblOutput->installEventFilter(this);
   txtLatex->installEventFilter(this);
 
   setFixedSize(_shrinkedsize);
@@ -1014,7 +1010,7 @@ void KLFMainWin::restoreFromLibrary(KLFData::KLFLibraryItem j, bool restorestyle
     spnDPI->setValue(j.style.dpi);
   }
 
-  lblOutput->setPixmap(j.preview);
+  lblOutput->display(j.preview.toImage(), j.preview.toImage(), false);
   frmOutput->setEnabled(false);
   activateWindow();
   raise();
@@ -1143,11 +1139,6 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 	slotEvaluate();
 	return true;
       }
-    }
-  }
-  if (obj == lblOutput) {
-    if (e->type() == QEvent::MouseMove) {
-      slotDrag();
     }
   }
   // ----
@@ -1299,20 +1290,11 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
   if (_evaloutput_uptodate)
     return;
 
-  QPalette pal = lblOutput->palette();
-  QPalette::ColorRole bgrole = QPalette::Window;
-  if (latexerror) {
-    pal.setColor(bgrole, QColor(255, 200, 200));
-    lblOutput->setProperty("realTimeLatexError", true);
-  } else {
-    // restore previously saved default palette
-    pal = lblOutput->property("defaultPalette").value<QPalette>();
-    lblOutput->setProperty("realTimeLatexError", false);
-    lblOutput->setPixmap(QPixmap::fromImage(preview));
-  }
-  lblOutput->setStyleSheet(lblOutput->styleSheet()); // force style sheet refresh
-  lblOutput->setPalette(pal);
-  lblOutput->setEnabled(false);
+  if (latexerror)
+    lblOutput->displayError(/*labelenabled:*/false);
+  else
+    lblOutput->display(preview, preview, false);
+
 }
 
 KLFBackend::klfInput KLFMainWin::collectInput()
@@ -1361,8 +1343,7 @@ void KLFMainWin::slotEvaluate()
       comment = "\n"+tr("Are you sure you configured your system paths correctly in the settings dialog ?");
     }
     QMessageBox::critical(this, tr("Error"), _output.errorstr+comment);
-    lblOutput->setText("");
-    lblOutput->setPixmap(QPixmap());
+    lblOutput->displayClear();
     frmOutput->setEnabled(false);
   }
   if (_output.status > 0) {
@@ -1374,15 +1355,25 @@ void KLFMainWin::slotEvaluate()
     _evaloutput_uptodate = true;
 
     QPixmap sc;
-    if (_output.result.width() > lblOutput->width() || _output.result.height() > lblOutput->height())
-      sc = QPixmap::fromImage(_output.result.scaled(lblOutput->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    // scale to view size (klfconfig.UI.labelOutputFixedSize)
+    QSize fsize = klfconfig.UI.labelOutputFixedSize;
+    if (_output.result.width() > fsize.width() || _output.result.height() > fsize.height())
+      sc = QPixmap::fromImage(_output.result.scaled(fsize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     else
       sc = QPixmap::fromImage(_output.result);
-    lblOutput->setPixmap(sc);
-    lblOutput->setStyleSheet("");
-    lblOutput->setProperty("realTimeLatexError", false);
-    lblOutput->setEnabled(true);
 
+    QSize goodsize = _output.result.size();
+    QImage tooltipimg = QImage();
+    if (klfconfig.UI.enableToolTipPreview) {
+      tooltipimg = _output.result;
+      if ( klfconfig.UI.previewTooltipMaxSize != QSize(0, 0) && // QSize(0,0) meaning no resize
+	   ( tooltipimg.width() > klfconfig.UI.previewTooltipMaxSize.width() ||
+	     tooltipimg.height() > klfconfig.UI.previewTooltipMaxSize.height() ) ) {
+	tooltipimg =
+	  _output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      }
+    }
+    lblOutput->display(sc.toImage(), tooltipimg, true);
     frmOutput->setEnabled(true);
 
     KLFData::KLFLibraryItem jj = { KLFData::KLFLibraryItem::MaxId++, QDateTime::currentDateTime(), input.latex, sc,
@@ -1394,47 +1385,8 @@ void KLFMainWin::slotEvaluate()
 	 ! (_library[_libresources[0]].last() == jj) ) {
       mLibraryBrowser->addToHistory(jj);
     }
-
-    QSize goodsize = _output.result.size();
-    QImage img = _output.result;
-    if ( klfconfig.UI.previewTooltipMaxSize != QSize(0, 0) && // QSize(0,0) meaning no resize
-	 ( img.width() > klfconfig.UI.previewTooltipMaxSize.width() ||
-	   img.height() > klfconfig.UI.previewTooltipMaxSize.height() ) ) {
-      img = _output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
-
-    if (mLastRunTempPNGFile) {
-      delete mLastRunTempPNGFile;
-    }
-    mLastRunTempPNGFile = new QTemporaryFile(QDir::toNativeSeparators(klfconfig.BackendSettings.tempDir
-                                                                      +"/klf_lastruntemp_XXXXXX.png"),
-                                             this);
-
-    if ( ! mLastRunTempPNGFile->open() ) {
-      qWarning("WARNING: Failed open for Tooltip Temp Image!\n%s\n",
-	       qPrintable(mLastRunTempPNGFile->fileTemplate()));
-      QMessageBox::critical(this, tr("Error"), tr("Failed open for ToolTip Temp Image!\n%1")
-			    .arg(mLastRunTempPNGFile->fileTemplate()));
-      delete mLastRunTempPNGFile;
-      mLastRunTempPNGFile = 0;
-    } else {
-      mLastRunTempPNGFile->setAutoRemove(true);
-      bool res = img.save(mLastRunTempPNGFile, "PNG");
-      if ( ! res ) {
-        QMessageBox::critical(this, tr("Error"), tr("Failed write to ToolTip Temp Image file %1!")
-			      .arg(mLastRunTempPNGFile->fileName()));
-	qWarning("WARNING: Failed write to Tooltip temp image to temporary file `%s' !\n",
-		 qPrintable(mLastRunTempPNGFile->fileTemplate()));
-	delete mLastRunTempPNGFile;
-	mLastRunTempPNGFile = 0;
-      } else {
-	if (klfconfig.UI.enableToolTipPreview)
-	  lblOutput->setToolTip(QString("<qt><img src=\"%1\"></qt>").arg(mLastRunTempPNGFile->fileName()));
-	else
-	  lblOutput->setToolTip(QString(""));
-      }
-    }
   }
+
 
   btnEvaluate->setEnabled(true); // re-enable our button
 
