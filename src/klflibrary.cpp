@@ -283,7 +283,7 @@ QString KLFLibraryListManager::getSelectedInfo_latex() const
   if (list.size() == 1) {
     return ((KLFLibraryListViewItem*)list[0])->libraryItem().latex;
   }
-  return list.size() == 0 ? tr("[ No Item Selected ]") : tr("[ Multiple Items Selected ]");
+  return list.size() == 0 ? tr("[ No Item Selected ]") : tr("[ %1 Items Selected ]").arg(list.size());
 }
 QString KLFLibraryListManager::getSelectedInfo_category(int *canedit) const
 {
@@ -825,6 +825,7 @@ KLFLibraryBrowser::KLFLibraryBrowser(KLFData::KLFLibrary *wholelistptr, KLFData:
 {
   setupUi(this);
   setObjectName("KLFLibraryBrowser");
+  setAttribute(Qt::WA_StyledBackground);
 
   _libptr = wholelistptr;
   _libresptr = reslistptr;

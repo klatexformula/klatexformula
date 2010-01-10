@@ -21,11 +21,11 @@
     <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">QFrame[wantsStyledBgImage=true] {
+   <string notr="true">QFrame#frmAboutArea {
 	background-image: url(:/pics/helpdialogbg.png);
 	background-clip: padding;
 }
-QLabel[aboutText=true] {
+QLabel#lblAbout {
 	border: 1px solid black;
 	color: rgb(0, 0, 0);
 	background-color: rgba(255, 255, 255, 180);
@@ -66,9 +66,6 @@ QLabel[aboutText=true] {
      </property>
      <property name="midLineWidth">
       <number>0</number>
-     </property>
-     <property name="wantsStyledBgImage" stdset="0">
-      <bool>true</bool>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <property name="spacing">
@@ -125,9 +122,6 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="textInteractionFlags">
          <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-        </property>
-        <property name="aboutText" stdset="0">
-         <bool>true</bool>
         </property>
        </widget>
       </item>

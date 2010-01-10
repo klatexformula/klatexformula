@@ -23,7 +23,6 @@
 
 #include <QtCore>
 #include <QtGui>
-#include <QtUiTools/QtUiTools>
 
 #include <klfmainwin.h>
 #include <klflibrary.h>
@@ -245,9 +244,22 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
   }
   // set style sheet to whole application (doesn't work...)
   //  _app->setStyleSheet(stylesheet);
-  _mainwin->setStyleSheet(stylesheet);
-  _mainwin->libraryBrowserWidget()->setStyleSheet(stylesheet);
-  _mainwin->latexSymbolsWidget()->setStyleSheet(stylesheet);
+
+  // set top-level widgets' klfTopLevelWidget property to TRUE, and
+  // apply our style sheet to all top-level widgets
+  QWidgetList toplevelwidgets = _app->topLevelWidgets();
+  int k;
+  for (k = 0; k < toplevelwidgets.size(); ++k) {
+    QWidget *w = toplevelwidgets[k];
+    w->setProperty("klfTopLevelWidget", QVariant(true));
+    w->setAttribute(Qt::WA_StyledBackground);
+    w->setStyleSheet(stylesheet);
+  }
+
+  // previously, I'd do:
+  //  _mainwin->setStyleSheet(stylesheet);
+  //  _mainwin->libraryBrowserWidget()->setStyleSheet(stylesheet);
+  //  _mainwin->latexSymbolsWidget()->setStyleSheet(stylesheet);
 }
 
 QWidget * SkinPlugin::createConfigWidget(QWidget *parent)

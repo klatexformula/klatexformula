@@ -357,13 +357,18 @@ int KLFLatexSymbols::mCacheRefCounter = 0;
 KLFLatexSymbolsView::KLFLatexSymbolsView(const QString& category, QWidget *parent)
   : QScrollArea(parent), _category(category)
 {
-  mFrame = new QFrame(this);
+  mFrame = new QWidget(this);
 
   setWidgetResizable(true);
 
   //  mFrame->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding));
-  mFrame->setFrameShadow(QFrame::Sunken);
-  mFrame->setFrameShape(QFrame::Box);
+  //  mFrame->setFrameShadow(QFrame::Sunken);
+  //  mFrame->setFrameShape(QFrame::Box);
+  mFrame->setObjectName("frmSymbolList");
+  //   mFrame->setFrameShadow(QFrame::Plain);
+  //   mFrame->setFrameShape(QFrame::NoFrame);
+  //   mFrame->setMidLineWidth(0);
+  //   mFrame->setLineWidth(0);
 
   mLayout = 0;
   mSpacerItem = 0;
@@ -515,7 +520,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 {
   setupUi(this);
   setObjectName("KLFLatexSymbols");
-
+  setAttribute(Qt::WA_StyledBackground);
 
   _mainwin = mw;
 

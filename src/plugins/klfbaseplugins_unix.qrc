@@ -7,7 +7,27 @@
     <file>libsystrayicon.so</file>
   </qresource>
   <qresource prefix="/plugindata">
+<!-- default (empty) theme -->
     <file>skin/stylesheets/default.qss</file>
+<!-- flat theme -->
+    <file>skin/stylesheets/flat.qss</file>
+    <file>skin/stylesheets/pics/bg_flat.jpg</file>
+    <file>skin/stylesheets/pics/flat-branch-closed.png</file>
+    <file>skin/stylesheets/pics/flat-branch-open.png</file>
+    <file>skin/stylesheets/pics/flat-arrow-down.png</file>
+    <file>skin/stylesheets/pics/flat-arrow-up.png</file>
+    <file>skin/stylesheets/pics/flat-chk-u.png</file>
+    <file>skin/stylesheets/pics/flat-chk-uh.png</file>
+    <file>skin/stylesheets/pics/flat-chk-up.png</file>
+    <file>skin/stylesheets/pics/flat-chk-c.png</file>
+    <file>skin/stylesheets/pics/flat-chk-ch.png</file>
+    <file>skin/stylesheets/pics/flat-chk-cp.png</file>
+    <file>skin/stylesheets/pics/flat-chk-i.png</file>
+    <file>skin/stylesheets/pics/flat-chk-ih.png</file>
+    <file>skin/stylesheets/pics/flat-chk-ip.png</file>
+
+
+
 <!--    <file>skin/stylesheets/blue.qss</file>
     <file>skin/stylesheets/galaxy.qss</file>
     <file>skin/stylesheets/darkblue.qss</file>

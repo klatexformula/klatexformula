@@ -121,7 +121,7 @@ protected:
   QList<KLFLatexSymbol> _symbols;
 
 private:
-  QFrame *mFrame;
+  QWidget *mFrame;
   QGridLayout *mLayout;
   QSpacerItem *mSpacerItem;
   QList<QWidget*> mSymbols;

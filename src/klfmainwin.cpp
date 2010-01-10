@@ -467,6 +467,7 @@ KLFMainWin::KLFMainWin()
 {
   setupUi(this);
   setObjectName("KLFMainWin");
+  setAttribute(Qt::WA_StyledBackground);
 
   loadSettings();
 
@@ -585,6 +586,7 @@ KLFMainWin::KLFMainWin()
   QDialog *aboutDialog = new QDialog(this);
   Ui::KLFAboutDialogUI *aboutDialogUI = new Ui::KLFAboutDialogUI;
   aboutDialogUI->setupUi(aboutDialog);
+  aboutDialog->setObjectName("KLFAboutDialog");
 
   connect(btnHelp, SIGNAL(clicked()), aboutDialog, SLOT(show()));
 
@@ -736,6 +738,8 @@ void KLFMainWin::saveSettings()
 
   mPreviewBuilderThread->settingsChanged(_settings, klfconfig.UI.labelOutputFixedSize.width(),
 					 klfconfig.UI.labelOutputFixedSize.height());
+
+  lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
 
   if (klfconfig.UI.enableRealTimePreview) {
     if ( ! mPreviewBuilderThread->isRunning() ) {
@@ -1515,14 +1519,39 @@ void KLFMainWin::importCmdlKLFFiles(const QStringList& files)
 }
 
 
+QMimeData * KLFMainWin::resultToMimeData()
+{
+  if ( _output.result.isNull() )
+    return NULL;
+  
+  QTemporaryFile *tempfile =
+    new QTemporaryFile( klfconfig.BackendSettings.tempDir+"/klf_copy_temp_XXXXXX.png",
+			this );
+  tempfile->open();
+  tempfile->write(_output.pngdata);
+  tempfile->close();
+
+  QMimeData *mime = new QMimeData;
+  QByteArray urilist = (QUrl::fromLocalFile(tempfile->fileName()).toString()+QLatin1String("\n")).toLatin1();
+  mime->setData("image/png", _output.pngdata);
+  mime->setData("text/x-moz-url", urilist);
+  mime->setData("text/uri-list", urilist);
+
+  //  mime->setData("application/x-kde-urilist", urilist);
+  // Don't use setImageData(), because it will pollute the clipboard with lots of ugly bitmap formats...
+  //  mime->setImageData(_output.result);
+
+  return mime;
+}
+
+
 void KLFMainWin::slotDrag()
 {
   if ( _output.result.isNull() )
     return;
 
   QDrag *drag = new QDrag(this);
-  QMimeData *mime = new QMimeData;
-  mime->setImageData(_output.result);
+  QMimeData *mime = resultToMimeData();
   drag->setMimeData(mime);
   QImage img;
   img = _output.result.scaled(QSize(200, 100), Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -1534,7 +1563,7 @@ void KLFMainWin::slotDrag()
 }
 void KLFMainWin::slotCopy()
 {
-  QApplication::clipboard()->setImage(_output.result, QClipboard::Clipboard);
+  QApplication::clipboard()->setMimeData(resultToMimeData(), QClipboard::Clipboard);
 }
 
 void KLFMainWin::slotSave(const QString& suggestfname)

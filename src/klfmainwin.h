@@ -34,6 +34,7 @@
 #include <QMenu>
 #include <QTextEdit>
 #include <QWidget>
+#include <QMimeData>
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
@@ -199,6 +200,8 @@ public:
   void alterSetting(altersetting_which, int ivalue);
   void alterSetting(altersetting_which, QString svalue);
 
+  QMimeData * resultToMimeData();
+  
   KLFLibraryBrowser * libraryBrowserWidget() { return mLibraryBrowser; }
   KLFLatexSymbols * latexSymbolsWidget() { return mLatexSymbols; }
   KLFStyleManager * styleManagerWidget() { return mStyleManager; }
