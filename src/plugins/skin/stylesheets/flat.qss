@@ -1,0 +1,249 @@
+/* Flat Minimal Theme */
+
+#KLFMainWin {
+	qproperty-widgetStyle: Plastique;
+}
+
+#KLFMainWin, #KLFSettings, #KLFLibraryBrowser, #KLFLatexSymbols,
+  #KLFStyleManager, QMenu, QDialog, QComboBox QAbstractItemView,
+  QWidget[klfTopLevelWidget=true]
+{
+	background: rgb(211, 211, 211,255)
+	    url(:/plugindata/skin/stylesheets/pics/bg_flat.jpg);
+	background-repeat: no-repeat;
+	background-position: top left;
+}
+/* repeat about dialog information, which seems to be forgotten.
+   May this be a Qt bug ? */
+QFrame#frmAboutArea {
+	background-image: url(:/pics/helpdialogbg.png);
+	background-clip: padding;
+}
+QLabel#lblAbout {
+	border: 1px solid black;
+	color: rgb(0, 0, 0);
+	background-color: rgba(255, 255, 255, 180);
+}
+QPushButton, QToolButton {
+	background-color: rgb(255,255,255,50);
+	selection-background-color: rgb(255,255,255,100);
+}
+QPushButton:on, QToolButton:on {
+	background-color: rgb(0,0,0,30);
+	selection-background-color: rgb(0,0,0,0);
+}
+QToolButton:hover {
+	background-color: rgb(255,255,255,100);
+}
+QTextEdit {
+	color: black;
+	background-color: rgb(0,0,0,30);
+	selection-background-color: rgb(0,0,0,50);
+	selection-color: black;
+}
+QTabWidget { background-color: rgb(0,0,0,15); }
+QTabBar { background-color: rgb(0,0,0,20); }
+QScrollArea, QScrollArea > #qt_scrollarea_viewport > QWidget {
+	background-color: rgb(255,255,255,0);
+	selection-background-color: rgb(0,0,0,50);
+}
+QAbstractItemView {
+	color: black;
+	background-color: rgb(255,255,255,0);
+	selection-color: black;
+	selection-background-color: rgb(128,128,128,128);
+}
+QTreeView {
+	color: black;
+	selection-color: black;
+	selection-background-color: rgb(128,128,128,128);
+}
+/* for checkable items, qt bug --> need an opaque bg col */
+QTreeView#lstPlugins {
+	background-color: rgb(204, 204, 204);
+}
+QTreeView::branch:has-children:!has-siblings:closed,
+  QTreeView::branch:closed:has-children:has-siblings {
+	border-image: none;
+	image: url(:/plugindata/skin/stylesheets/pics/flat-branch-closed.png);
+}
+QTreeView::branch:open:has-children:!has-siblings,
+  QTreeView::branch:open:has-children:has-siblings  {
+	border-image: none;
+	image: url(:/plugindata/skin/stylesheets/pics/flat-branch-open.png);
+}
+QHeaderView, QHeaderView::section {
+	background-color: rgb(169, 169, 169);
+}
+QMenu::item {
+	color: black;
+	selection-color: black;
+	selection-background-color: rgb(0,0,0,80);
+}
+QMenu::item:disabled {
+	color: rgb(180,180,180, 255);
+}
+QMenu::item:selected {
+	background-color: rgb(0,0,0,80);
+}
+QLineEdit[searchState="found"] {
+    background-color: rgb(128,255,128,128);
+}
+QLineEdit[searchState="not-found"] {
+    background-color: rgb(255,128,128,128);
+}
+QLabel#lblPreview, QLabel#lblOutput {
+    background-color: transparent;
+}
+QLineEdit {
+	color: black;
+	background-color: rgb(0,0,0,30);
+	selection-color: black;
+	selection-background-color: rgb(0,0,0,50);
+	border: 1px solid rgb(0,0,0,50);
+	border-radius: 2px;
+}
+
+QComboBox[editable=false] {
+	color: black;
+	background-color: rgb(255,255,255,50);
+	selection-color: black;
+	selection-background-color: rgb(255,255,255,100	);
+	border: 1px solid rgb(0,0,0,50);
+	border-radius: 3px;
+	padding-left: 4px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-right: 16px;
+}
+QComboBox[editable=false]:hover {
+	background-color: rgb(255,255,255,100);
+}
+QComboBox[editable=false]:on {
+	background-color: rgb(255,255,255,20);
+}
+QComboBox[editable=true] {
+	color: black;
+	background-color: rgb(0,0,0,30);
+	selection-color: black;
+	selection-background-color: rgb(0,0,0,50);
+	border: 1px solid rgb(0,0,0,50);
+	border-radius: 2px;
+	padding-left: 2px;
+	padding-right: 16px;
+}
+QComboBox::drop-down {
+	subcontrol-origin: border;
+	subcontrol-position: top right;
+	width: 15px;
+	padding-left: 2px;
+	background-color: rgb(0,0,0,50);
+	border: 1px solid rgb(255,255,255,50);
+	border-radius: 0;
+}
+QComboBox::drop-down:hover {
+	background-color: rgb(0,0,0,20);
+}
+QComboBox::drop-down:on {
+	background-color: rgb(0,0,0,70);
+}
+QComboBox::down-arrow {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-arrow-down.png);
+	width: 12px;
+}
+/* now corrections to previous rules for non-editable combos */
+QComboBox[editable=false]::drop-down {
+	background-color: rgb(255,255,255,50);
+	border-color: transparent transparent
+	                              transparent rgb(0,0,0,50);
+	margin: 1px;
+}
+QComboBox QAbstractItemView {
+	border: 1px solid darkgray;
+	color: black;
+	selection-color: black;
+	selection-background-color: rgb(0,0,0,50);
+}
+
+QSpinBox {
+	border: 1px solid rgb(128, 128, 128);
+	border-radius: 2px;
+	padding-right: 14px;
+	padding-left: 4px;
+	color: black;
+	background-color: rgb(0,0,0,30);
+	selection-color: black;
+	selection-background-color: rgb(0,0,0,50);
+}
+QSpinBox::up-button {
+	margin-top: 1px;
+	margin-right: 1px;
+	border: 1px solid rgb(255,255,255,50);
+	background-color: rgb(0,0,0,50);
+}
+QSpinBox::up-button:pressed { border-color: rgb(0,0,0,80); }
+QSpinBox::up-button:hover:!off:!disabled {
+	background-color: rgb(255,255,255,20);
+}
+QSpinBox::up-arrow {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-arrow-up.png);
+	width: 12px;
+	height: 12px;
+}
+QSpinBox::up-arrow:disabled, QSpinBox::up-arrow:off {
+    image: none;
+}
+QSpinBox::down-button {
+	margin-bottom: 1px;
+	margin-right: 1px;
+	border: 1px solid rgb(255,255,255,50);
+	background-color: rgb(0,0,0,50);
+}
+QSpinBox::down-button:pressed { border-color: rgb(0,0,0,80); }
+QSpinBox::down-button:hover:!off:!disabled {
+	background-color: rgb(255,255,255,20);
+}
+QSpinBox::down-arrow {
+	image: url(:plugindata/skin/stylesheets/pics/flat-arrow-down.png);
+	width: 12px;
+	height: 12px;
+}
+QSpinBox::down-arrow:disabled, QSpinBox::down-arrow:off {
+	image: none;
+}
+QCheckBox::indicator:unchecked {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-u.png);
+}
+QCheckBox::indicator:unchecked:hover {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-uh.png);
+}
+QCheckBox::indicator:unchecked:pressed {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-up.png);
+}
+QCheckBox::indicator:checked {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-c.png);
+}
+QCheckBox::indicator:checked:hover {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-ch.png);
+}
+QCheckBox::indicator:checked:pressed {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-cp.png);
+}
+QCheckBox::indicator:indeterminate {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-i.png);
+}
+QCheckBox::indicator:indeterminate:hover {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-ih.png);
+}
+QCheckBox::indicator:indeterminate:pressed {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-ip.png);
+}
+
+QToolTip {
+	padding: -2px 4px -2px 4px;
+	background-color: rgb(174, 174, 174);
+	color: black;
+	border: 1px solid rgb(80,80,80);
+	border-radius: 2px;
+	opacity: 255;
+}
