@@ -310,12 +310,31 @@ void klf_qt_message(QtMsgType type, const char *msg)
     break;
   case QtWarningMsg:
     fprintf(fout, "Warning: %s\n", msg);
+#ifdef Q_WS_WIN
+    QMessageBox::warning(0, QObject::tr("Warning", "[[KLF's Qt Message Handler: dialog title]]"),
+			 QObject::tr("KLatexFormula System Warning:\n%1",
+				     "[[KLF's Qt Message Handler: dialog text]]")
+			 .arg(QString::fromLocal8Bit(msg)));
+#endif
     break;
   case QtCriticalMsg:
     fprintf(fout, "Critical: %s\n", msg);
+#ifdef Q_WS_WIN
+    QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
+			  QObject::tr("KLatexFormula System Error:\n%1",
+				      "[[KLF's Qt Message Handler: dialog text]]")
+			  .arg(QString::fromLocal8Bit(msg)));
+#endif
     break;
   case QtFatalMsg:
     fprintf(fout, "Fatal: %s\n", msg);
+#ifdef Q_WS_WIN
+    QMessageBox::critical(0, QObject::tr("FATAL ERROR",
+					 "[[KLF's Qt Message Handler: dialog title]]"),
+			  QObject::tr("KLatexFormula System FATAL ERROR:\n%1",
+				      "[[KLF's Qt Message Handler: dialog text]]")
+			  .arg(QString::fromLocal8Bit(msg)));
+#endif
     abort();
   default:
     fprintf(fout, "?????: %s\n", msg);

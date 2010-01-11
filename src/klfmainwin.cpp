@@ -1524,16 +1524,27 @@ QMimeData * KLFMainWin::resultToMimeData()
   if ( _output.result.isNull() )
     return NULL;
   
-  QTemporaryFile *tempfile =
-    new QTemporaryFile( klfconfig.BackendSettings.tempDir+"/klf_copy_temp_XXXXXX.png",
-			this );
-  tempfile->open();
-  tempfile->write(_output.pngdata);
-  tempfile->close();
+  QString templ = klfconfig.BackendSettings.tempDir+"/klf_mime_temp_XXXXXX.png";
+
+  QMessageBox::information(this, tr("info"), templ);
+
+  QTemporaryFile *tempfile = new QTemporaryFile(templ, this);
+  QString tempfilename;
+  if (tempfile->open() == false) {
+    qWarning("Can't open temp png file for mimetype text/uri-list: template is %s",
+	     qPrintable(templ));
+    return NULL;
+  } else {
+    tempfilename = tempfile->fileName();
+    tempfile->write(_output.pngdata);
+    tempfile->close();
+  }
 
   QMimeData *mime = new QMimeData;
-  QByteArray urilist = (QUrl::fromLocalFile(tempfile->fileName()).toString()+QLatin1String("\n")).toLatin1();
+  QByteArray urilist = (QUrl::fromLocalFile(tempfilename).toString()+QLatin1String("\n")).toLatin1();
+  qWarning("DEBUG: urilist parts: tempfile->fileName is '%s'\nQUrl.toString is '%s'\nurilist is '%s'\n", qPrintable(tempfilename), qPrintable(QUrl::fromLocalFile(tempfilename).toString()), urilist.constData());
   mime->setData("image/png", _output.pngdata);
+  mime->setData("image/",);
   mime->setData("text/x-moz-url", urilist);
   mime->setData("text/uri-list", urilist);
 
