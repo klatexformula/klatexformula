@@ -34,11 +34,14 @@ class KLFDisplayLabel : public QLabel
   Q_OBJECT
 
   Q_PROPERTY(QSize labelFixedSize READ labelFixedSize WRITE setLabelFixedSize)
+  Q_PROPERTY(QString bigPreviewText READ bigPreviewText)
 public:
   KLFDisplayLabel(QWidget *parent);
   virtual ~KLFDisplayLabel();
 
   QSize labelFixedSize() const { return pLabelFixedSize; }
+
+  QString bigPreviewText() const { return _bigPreviewText; }
 
 signals:
   void labelDrag();
@@ -60,6 +63,8 @@ private:
 
   QPalette pDefaultPalette;
   QPalette pErrorPalette;
+
+  QString _bigPreviewText;
 
   void set_error(bool error_on);
 };

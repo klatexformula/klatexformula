@@ -42,6 +42,8 @@ public:
   KLFSettings(KLFMainWin* parent = 0);
   ~KLFSettings();
 
+  bool eventFilter(QObject *object, QEvent *event);
+
 public slots:
 
   void reset();

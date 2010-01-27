@@ -1,6 +1,7 @@
 <RCC>
   <qresource>
     <file>pics/save.png</file>
+    <file>pics/showpreview.png</file>
     <file>pics/new.png</file>
     <file>pics/iconify.png</file>
     <file>pics/bullet22.png</file>

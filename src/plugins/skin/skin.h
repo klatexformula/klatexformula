@@ -41,6 +41,8 @@ public:
   QString currentSkin() { return _skins[cbxSkin->itemData(cbxSkin->currentIndex()).toInt()].name; }
   QString currentStyleSheet() { return txtStyleSheet->toPlainText(); }
 
+  bool getModifiedAndReset() { int m = _modified; _modified = false; return m; }
+
 public slots:
   void load(QString skin, QString stylesheet);
   void skinSelected(int index);
@@ -63,6 +65,8 @@ private:
   QList<Skin> _skins;
 
   KLFPluginConfigAccess *config;
+
+  bool _modified;
 
   void saveCustomSkins();
 };

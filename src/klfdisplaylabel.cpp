@@ -27,6 +27,7 @@
 #include <QMessageBox>
 #include <QVariant>
 
+#include "klfconfig.h"
 #include "klfdisplaylabel.h"
 
 
@@ -73,6 +74,10 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
     delete mTooltipFile;
     mTooltipFile = 0;
   }
+  // no big preview by default
+  _bigPreviewText = "";
+  // but if one is given then prepare it (prepare it even if "enableToolTipPreview" is false,
+  // because we will need it for the "showBigPreview" button)
   if ( ! tooltipimage.isNull() ) {
     mTooltipFile = new QTemporaryFile(this);
     if ( ! mTooltipFile->open() ) {
@@ -91,12 +96,16 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
 	delete mTooltipFile;
 	mTooltipFile = 0;
       } else {
-	setToolTip(QString("<qt><img src=\"%1\"></qt>").arg(mTooltipFile->fileName()));
+	_bigPreviewText = QString("<img src=\"%1\">").arg(mTooltipFile->fileName());
       }
     }
+  }
+  if (klfconfig.UI.enableToolTipPreview) {
+    setToolTip(QString("<p>%1</p>").arg(_bigPreviewText));
   } else {
     setToolTip(QString(""));
   }
+
   setEnabled(labelenabled);
 }
 

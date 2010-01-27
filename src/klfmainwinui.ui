@@ -77,6 +77,9 @@
         <property name="acceptDrops">
          <bool>true</bool>
         </property>
+        <property name="toolTip">
+         <string>Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.</string>
+        </property>
         <property name="autoFormatting">
          <set>QTextEdit::AutoNone</set>
         </property>
@@ -134,7 +137,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string comment="tooltip">Evaluate LaTeX Expression [Shift-Enter]</string>
+           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</string>
           </property>
           <property name="whatsThis">
            <string comment="whatsthistext">Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</string>
@@ -147,7 +150,7 @@
             <normaloff>:/pics/evaluate.png</normaloff>:/pics/evaluate.png</iconset>
           </property>
           <property name="shortcut">
-           <string>Alt+A</string>
+           <string notr="true">Shift+Return, Ctrl+Return</string>
           </property>
           <property name="default">
            <bool>true</bool>
@@ -163,7 +166,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string comment="tooltip">Show Latex Symbols palette</string>
+           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette&lt;/p&gt;</string>
           </property>
           <property name="whatsThis">
            <string comment="whatsthis text">Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</string>
@@ -215,7 +218,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string comment="tooltip">Toggle shrinked/expanded mode</string>
+           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode&lt;/p&gt;</string>
           </property>
           <property name="whatsThis">
            <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
@@ -244,7 +247,7 @@
           <number>6</number>
          </property>
          <property name="verticalSpacing">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="margin">
           <number>1</number>
@@ -293,12 +296,12 @@
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
-             <height>40</height>
+             <height>5</height>
             </size>
            </property>
           </spacer>
          </item>
-         <item row="0" column="0" rowspan="4">
+         <item row="0" column="0" rowspan="5">
           <widget class="KLFDisplayLabel" name="lblOutput">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -333,6 +336,51 @@
            <property name="wordWrap">
             <bool>false</bool>
            </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QWidget" name="wForBigPreviewButton" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="margin">
+             <number>0</number>
+            </property>
+            <item>
+             <spacer name="spcPreviewButton">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>41</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnShowBigPreview">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="klfres.qrc">
+                <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
         </layout>

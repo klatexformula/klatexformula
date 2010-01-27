@@ -286,6 +286,7 @@ public:
 private:
   KLFBackend();
 
+  friend struct cleanup_caller;
   static void cleanup(QString tempfname);
 
   static QMutex __mutex;
@@ -294,8 +295,6 @@ private:
 
 /** Compare two inputs for equality */
 bool KLF_EXPORT operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b);
-
-
 
 
 #endif

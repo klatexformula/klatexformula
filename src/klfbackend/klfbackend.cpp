@@ -99,6 +99,14 @@ QString progErrorMsg(QString progname, int exitstatus, QString stderrstr, QStrin
 }
 
 
+struct cleanup_caller {
+  QString tempfname;
+  cleanup_caller(QString fn) : tempfname(fn) { }
+  ~cleanup_caller() {
+    KLFBackend::cleanup(tempfname);
+  }
+};
+
 KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& settings)
 {
   // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
@@ -124,6 +132,10 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   QString tempfname = settings.tempdir + "/klatexformulatmp2-"
     + QDateTime::currentDateTime().toString("hh-mm-ss");
+
+  // upon destruction (on stack) of this object, cleanup() will be
+  // automatically called as wanted
+  cleanup_caller cleanupcallerinstance(tempfname);
 
 #ifdef KLFBACKEND_QT4
   QString latexsimplified = in.latex.trimmed();
@@ -197,7 +209,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       return res;
     }
     if (proc.exitStatus() != 0) {
-      cleanup(tempfname);
       res.status = KLFERR_PROGERR_LATEX;
       res.errorstr = progErrorMsg("LaTeX", proc.exitStatus(), proc.readStderrString(), proc.readStdoutString());
       return res;
@@ -439,9 +450,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   }
 
-  // clean up our mess
-  cleanup(tempfname);
-
   klf_debug_time_print("KLFBackend::getLatexFormula: end of function.\n");    
 
   return res;
@@ -460,6 +468,21 @@ void KLFBackend::cleanup(QString tempfname)
   if (QFile::exists(tempfname+".png")) QFile::remove(tempfname+".png");
   if (QFile::exists(tempfname+".pdf")) QFile::remove(tempfname+".pdf");
 }
+
+// static private mutex object
+QMutex KLFBackend::__mutex;
+
+KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b)
+{
+  return a.latex == b.latex &&
+    a.mathmode == b.mathmode &&
+    a.preamble == b.preamble &&
+    a.fg_color == b.fg_color &&
+    a.bg_color == b.bg_color &&
+    a.dpi == b.dpi;
+}
+
+
 
 #ifndef KLFBACKEND_QT4
 #define suffix extension
@@ -532,17 +555,5 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
   return true;
 }
 
-
-// static private mutex object
-QMutex KLFBackend::__mutex;
-
-KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b)
-{
-  return a.latex == b.latex &&
-    a.mathmode == b.mathmode &&
-    a.preamble == b.preamble &&
-    a.fg_color == b.fg_color &&
-    a.bg_color == b.bg_color &&
-    a.dpi == b.dpi;
-}
+// warning from here on: nasty macros are defined for the previous function.
 

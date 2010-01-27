@@ -25,6 +25,7 @@
 #include <QtGui>
 
 #include <klfmainwin.h>
+#include <klfsettings.h>
 #include <klflibrary.h>
 #include <klflatexsymbols.h>
 #include <klfconfig.h>
@@ -34,7 +35,7 @@
 
 
 SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
-  : QWidget(parent), config(conf)
+  : QWidget(parent), config(conf), _modified(false)
 {
   setupUi(this);
 
@@ -107,6 +108,8 @@ void SkinConfigWidget::skinSelected(int index)
   if (index < 0 || index >= cbxSkin->count()-1)
     return;
 
+  _modified = true;
+
   int k = cbxSkin->itemData(index).toInt();
 
   txtStyleSheet->blockSignals(true);
@@ -118,6 +121,7 @@ void SkinConfigWidget::skinSelected(int index)
 
 void SkinConfigWidget::stylesheetChanged()
 {
+  _modified = true;
   cbxSkin->setCurrentIndex(cbxSkin->count()-1);
 }
 
@@ -232,8 +236,10 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
   applySkin(rwconfig);
 }
 
+
 void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
 {
+  qDebug("Applying skin!");
   QVariant ss = config->readValue("stylesheet");
   QString stylesheet = ss.toString();
 
@@ -254,6 +260,15 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
     w->setProperty("klfTopLevelWidget", QVariant(true));
     w->setAttribute(Qt::WA_StyledBackground);
     w->setStyleSheet(stylesheet);
+  }
+  // BUG? tab widget in settings dialog is always un-skinned after an "apply"...?
+  KLFSettings *settingsDialog = _mainwin->findChild<KLFSettings*>();
+  if (settingsDialog) {
+    QTabWidget * tabs = settingsDialog->findChild<QTabWidget*>("tabs");
+    if (tabs) {
+      qDebug("Setting stylesheet to tabs");
+      tabs->setStyleSheet(stylesheet);
+    }
   }
 
   // previously, I'd do:
@@ -278,6 +293,8 @@ void SkinPlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *conf
   SkinConfigWidget * o = qobject_cast<SkinConfigWidget*>(confwidget);
   o->load(config->readValue("skin").toString(),
 	  config->readValue("stylesheet").toString());
+  // reset modified status
+  o->getModifiedAndReset();
 }
 void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
 {
@@ -294,7 +311,8 @@ void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config
   config->writeValue("skin", QVariant(skin));
   config->writeValue("stylesheet", QVariant(stylesheet));
 
-  applySkin(config);
+  if ( o->getModifiedAndReset() )
+    applySkin(config);
 }
 
 

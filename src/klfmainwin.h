@@ -257,6 +257,10 @@ public slots:
   void slotCopy();
   void slotSave(const QString& suggestedFname = QString::null);
 
+  void slotActivateEditor();
+
+  void slotShowBigPreview();
+
   void slotPresetDPISender();
   void slotLoadStyle(int stylenum);
   void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
@@ -275,6 +279,8 @@ public slots:
   void insertSymbol(const KLFLatexSymbol& symbol);
   void saveSettings();
   void loadSettings();
+
+  void showAbout();
 
   void setWidgetStyle(const QString& qtstyle);
 

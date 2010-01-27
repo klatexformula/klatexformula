@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>KLFAboutDialogUI</class>
- <widget class="QDialog" name="KLFAboutDialogUI">
+ <class>KLFAboutDialog</class>
+ <widget class="QDialog" name="KLFAboutDialog">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -21,11 +21,11 @@
     <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">QFrame#frmAboutArea {
+   <string notr="true">QDialog#KLFAboutDialog .QFrame#frmAboutArea {
 	background-image: url(:/pics/helpdialogbg.png);
 	background-clip: padding;
 }
-QLabel#lblAbout {
+QDialog#KLFAboutDialog .QLabel#lblAbout {
 	border: 1px solid black;
 	color: rgb(0, 0, 0);
 	background-color: rgba(255, 255, 255, 180);
@@ -210,7 +210,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>btnOK</sender>
    <signal>clicked()</signal>
-   <receiver>KLFAboutDialogUI</receiver>
+   <receiver>KLFAboutDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">

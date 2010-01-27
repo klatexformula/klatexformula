@@ -37,6 +37,7 @@
 #include <QProcess>
 #include <QPluginLoader>
 #include <QMessageBox>
+#include <QLibraryInfo>
 
 #include <klfbackend.h>
 
@@ -494,6 +495,7 @@ void main_load_extra_resources()
 
 
 
+
 void main_load_translations(QCoreApplication *app)
 {
   // load all translations. Translations are files found in the form
@@ -506,7 +508,9 @@ void main_load_translations(QCoreApplication *app)
   // a list of names. this is redundant for  i18nFiles.keys()
   QSet<QString> names;
 
-  QStringList i18ndirlist = QStringList() << ":/i18n" << klfconfig.homeConfigDirI18n ;
+  QStringList i18ndirlist
+    = QStringList() << ":/i18n" << klfconfig.homeConfigDirI18n
+		    << QLibraryInfo::location(QLibraryInfo::TranslationsPath);
   int j, k;
   for (j = 0; j < i18ndirlist.size(); ++j) {
     // explore this directory; we expect a list of *.qm files
@@ -519,9 +523,7 @@ void main_load_translations(QCoreApplication *app)
       i18nFiles[i18nfile.name][i18nfile.locale_specificity] << i18nfile;
       names << i18nfile.name;
 
-      // if this locale is not yet registered, remember it:
-      if (klf_avail_translations.indexOf(i18nfile.locale) == -1)
-	klf_avail_translations.append(i18nfile.locale);
+      klf_add_avail_translation(i18nfile);
     }
   }
 

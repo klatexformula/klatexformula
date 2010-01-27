@@ -113,10 +113,34 @@ KLF_EXPORT extern int version_maj, version_min, version_release;
 
 
 
-KLF_EXPORT extern QStringList klf_avail_translations;
+
+/** \brief Small minimalist structure to store basic information about
+ * available translations.
+ *
+ * Intended for settings dialog to read.
+ *
+ * To manage translation files, see \ref KLFI18nFile.
+ */
+struct KLFTranslationInfo {
+  QString localename;
+  QString translatedname;
+  /** \brief TRUE if the translatedname was provided by translator itself
+   *
+   * and FALSE if the name was guessed. */
+  bool hasnicetranslatedname;
+};
+
+KLF_EXPORT extern QList<KLFTranslationInfo> klf_avail_translations;
 
 
-/** \brief Small structure to store information for a translation file (.qm) */
+/** \brief Small structure to store information for a translation file (.qm)
+ *
+ * Intented as (temporary) helper to manage translation files. Used e.g.
+ * in main.cpp: \ref main_load_translations().
+ *
+ * To see a list of available translations accessible within the whole
+ * program, see \ref KLFTranslationInfo and \ref klf_avail_translations.
+ */
 class KLF_EXPORT KLFI18nFile
 {
 public:
@@ -129,6 +153,11 @@ public:
   /** Initialize this structure to the translation file \c filepath. */
   KLFI18nFile(QString filepath);
 };
+
+
+
+KLF_EXPORT void klf_add_avail_translation(KLFI18nFile i18nfile);
+
 
 
 #endif 

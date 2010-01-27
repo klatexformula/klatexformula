@@ -35,6 +35,8 @@
 #include <QFileDialog>
 #include <QWhatsThis>
 #include <QResource>
+#include <QEvent>
+#include <QMouseEvent>
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
@@ -115,6 +117,11 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   connect(btnRemoveAddOn, SIGNAL(clicked()), this, SLOT(removeAddOn()));
   //  connect(btnRemovePlugin, SIGNAL(clicked()), this, SLOT(removePlugin()));
 
+  lstPlugins->installEventFilter(this);
+  lstPlugins->viewport()->installEventFilter(this);
+  lstAddOns->installEventFilter(this);
+  lstAddOns->viewport()->installEventFilter(this);
+
   connect(btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
   connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
   connect(btnAppearPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
@@ -148,18 +155,8 @@ void KLFSettings::populateLocaleCombo()
 		      QVariant(QString::null) );
   int k;
   for (k = 0; k < klf_avail_translations.size(); ++k) {
-    QLocale lc(klf_avail_translations[k]);
-    QString s;
-    if ( klf_avail_translations[k].indexOf("_") != -1 ) {
-      // has country information in locale
-      s = tr("%1 (%2)", "[[%1=Language (%2=Country)]]")
-	.arg(QLocale::languageToString(lc.language()))
-	.arg(QLocale::countryToString(lc.country()));
-    } else {
-      s = tr("%1", "[[%1=Language, no country is specified]]").arg(QLocale::languageToString(lc.language()));
-    }
-    cbxLocale->addItem( s, // + QString("  [%3]").arg(klf_avail_translations[k]) ,
-			QVariant(klf_avail_translations[k]) );
+    KLFTranslationInfo ti = klf_avail_translations[k];
+    cbxLocale->addItem( ti.translatedname, QVariant(ti.localename) );
   }
 
 }
@@ -171,6 +168,44 @@ void KLFSettings::show()
   QDialog::show();
 }
 
+
+static bool treeMaybeUnselect(QTreeWidget *tree, QEvent *event)
+{
+  // tree is non-NULL as ensured by caller.
+
+  if (event->type() != QEvent::MouseButtonPress)
+    return false;
+  QMouseEvent * e = (QMouseEvent*) event;
+  if (e->button() != Qt::LeftButton)
+    return false;
+  QTreeWidgetItem *itemAtClick = tree->itemAt(e->pos());
+  if ( itemAtClick ) {
+    // user clicked on an item, let Qt handle the event and select item etc.
+    return false;
+  }
+  // user clicked out of an item, change Qt's default behavior and un-select all items.
+  QList<QTreeWidgetItem*> selitems = tree->selectedItems();
+  int k;
+  for (k = 0; k < selitems.size(); ++k) {
+    selitems[k]->setSelected(false);
+  }
+  return true;
+}
+
+bool KLFSettings::eventFilter(QObject *object, QEvent *event)
+{
+  // test for one the the treeWidgets
+  QTreeWidget * tree = NULL;
+  if (object == lstPlugins || object == lstPlugins->viewport())
+    tree = lstPlugins;;
+  if (object == lstAddOns || object == lstAddOns->viewport())
+    tree = lstAddOns;
+  
+  if ( tree )
+    if ( treeMaybeUnselect(tree, event) )
+      return true;
+  return QDialog::eventFilter(object, event);
+}
 
 void KLFSettings::reset()
 {
@@ -458,13 +493,16 @@ void KLFSettings::refreshAddOnList()
     item->setText(0, klf_addons[k].title);
     item->setText(1, klf_addons[k].description);
 
+    // set background color to indicate if status is fresh,
+    // and/or if plugin is installed locally
     if (klf_addons[k].isfresh) {
       item->setBackground(0, QColor(200, 255, 200));
       item->setBackground(1, QColor(200, 255, 200));
-    } else if (klf_addons[k].islocal) {
-      item->setBackground(0, QColor(200, 200, 255));
-      item->setBackground(1, QColor(200, 200, 255));
-    }
+    } /* // color locally installed plug-ins  [ don't, it's unaesthetic ! ]
+	 else if (klf_addons[k].islocal) {
+	 item->setBackground(0, QColor(200, 200, 255));
+	 item->setBackground(1, QColor(200, 200, 255));
+	 } */
   }
 }
 
@@ -532,7 +570,7 @@ void KLFSettings::importAddOn()
 	for (k = 0; k < addoninfo.translations.size(); ++k) {
 	  KLFI18nFile i18nfile(addoninfo.translations[k]);
 	  if ( cbxLocale->findData(i18nfile.locale) == -1 ) {
-	    klf_avail_translations.append(i18nfile.locale);
+	    klf_add_avail_translation(i18nfile);
 	    changed = true;
 	  }
 	}
@@ -744,3 +782,7 @@ void KLFSettings::help()
 {
   QWhatsThis::enterWhatsThisMode();
 }
+
+
+
+

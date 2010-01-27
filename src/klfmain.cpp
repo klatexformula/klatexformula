@@ -31,11 +31,12 @@
 #include <QFileInfo>
 #include <QResource>
 #include <QDir>
+#include <QTranslator>
 
 #include <klfpluginiface.h>
 
 // a list of locale names available for KLatexFormula
-QStringList klf_avail_translations;
+QList<KLFTranslationInfo> klf_avail_translations;
 
 
 // not static so we can get this value from other modules in the project
@@ -135,3 +136,60 @@ KLFI18nFile::KLFI18nFile(QString filepath)
   locale = fn.mid(firstunderscore+1, endbasename-(firstunderscore+1));
   locale_specificity = (locale.split('_', QString::SkipEmptyParts)).size() ;
 }
+
+
+
+
+void klf_add_avail_translation(KLFI18nFile i18nfile)
+{
+  qDebug("Want to add avail translation: %s [%s]", qPrintable(i18nfile.fpath), qPrintable(i18nfile.locale));
+  // Check if this locale is registered, and if it has a nice translated name.
+  bool needsRegistration = true;
+  bool needsNiceName = true;
+  int alreadyRegisteredIndex = -1;
+
+  int kk;
+  for (kk = 0; kk < klf_avail_translations.size(); ++kk) {
+    if (klf_avail_translations[kk].localename == i18nfile.locale) {
+      needsRegistration = false;
+      alreadyRegisteredIndex = kk;
+      needsNiceName = ! klf_avail_translations[kk].hasnicetranslatedname;
+    }
+  }
+  if ( ! needsRegistration && ! needsNiceName ) {
+    // needs nothing more !
+    return;
+  }
+
+  // needs something (registration and/or nice name)
+  QTranslator translator;
+  QFileInfo fi(i18nfile.fpath);
+  translator.load(fi.completeBaseName(), fi.absolutePath(), "_", "."+fi.suffix());
+  KLFTranslationInfo ti;
+  ti.localename = i18nfile.locale;
+  struct klf_qtTrNoop3 { const char *source; const char *comment; };
+  klf_qtTrNoop3 lang
+    = QT_TRANSLATE_NOOP3("QObject", "English (US)",
+			 "[[The Language (possibly with Country) you are translating to, e.g. `Deutsch']]");
+  ti.translatedname = translator.translate("QObject", lang.source, lang.comment);
+  ti.hasnicetranslatedname = true;
+  if (ti.translatedname == "English" || ti.translatedname.isEmpty()) {
+    QLocale lc(i18nfile.locale);
+    QString s;
+    if ( i18nfile.locale.indexOf("_") != -1 ) {
+      // has country information in locale
+      s = QString("%1 (%2)").arg(QLocale::languageToString(lc.language()))
+	.arg(QLocale::countryToString(lc.country()));
+    } else {
+      s = QString("%1").arg(QLocale::languageToString(lc.language()));
+    }
+    ti.translatedname = s;
+    ti.hasnicetranslatedname = false;
+  }
+  if (needsRegistration)
+    klf_avail_translations.append(ti);
+  else if (needsNiceName && ti.hasnicetranslatedname)
+    klf_avail_translations[alreadyRegisteredIndex] = ti;
+}
+
+

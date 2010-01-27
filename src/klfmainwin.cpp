@@ -39,6 +39,9 @@
 #include <QTimer>
 #include <QApplication>
 #include <QMessageBox>
+#include <QShortcut>
+#include <QToolTip>
+#include <QWhatsThis>
 #include <QProcess>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -526,6 +529,14 @@ KLFMainWin::KLFMainWin()
 
   connect(lblOutput, SIGNAL(labelDrag()), this, SLOT(slotDrag()));
 
+  connect(btnShowBigPreview, SIGNAL(clicked()),
+	  this, SLOT(slotShowBigPreview()));
+
+  int h;
+  h = btnDrag->sizeHint().height();  btnDrag->setFixedHeight(h - 5);
+  h = btnCopy->sizeHint().height();  btnCopy->setFixedHeight(h - 5);
+  h = btnSave->sizeHint().height();  btnSave->setFixedHeight(h - 5);
+
   refreshWindowSizes();
 
   frmDetails->hide();
@@ -533,7 +544,14 @@ KLFMainWin::KLFMainWin()
   txtLatex->installEventFilter(this);
 
   setFixedSize(_shrinkedsize);
-  // adjustSize();
+
+  // Shortcut for activating editor
+  //  QShortcut *editorActivatorShortcut = 
+  new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotActivateEditor()),
+		SLOT(slotActivateEditor()), Qt::ApplicationShortcut);
+  // shortcut for big preview
+  new QShortcut(QKeySequence(Qt::Key_F2), this, SLOT(slotShowBigPreview()),
+		SLOT(slotShowBigPreview()), Qt::WindowShortcut);
 
   // Create our style manager
   mStyleManager = new KLFStyleManager(&_styles, this);
@@ -581,14 +599,8 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(slotSymbolsButtonRefreshState(bool)));
 
 
-  // our help dialog
-
-  QDialog *aboutDialog = new QDialog(this);
-  Ui::KLFAboutDialogUI *aboutDialogUI = new Ui::KLFAboutDialogUI;
-  aboutDialogUI->setupUi(aboutDialog);
-  aboutDialog->setObjectName("KLFAboutDialog");
-
-  connect(btnHelp, SIGNAL(clicked()), aboutDialog, SLOT(show()));
+  // our help/about dialog
+  connect(btnHelp, SIGNAL(clicked()), this, SLOT(showAbout()));
 
   // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
 
@@ -1073,6 +1085,19 @@ void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
   btnSymbols->setChecked(on);
 }
 
+void KLFMainWin::showAbout()
+{
+  QDialog *aboutDialog = new QDialog(this);
+  Ui::KLFAboutDialog *aboutDialogUI = new Ui::KLFAboutDialog;
+  aboutDialogUI->setupUi(aboutDialog);
+  aboutDialog->setObjectName("KLFAboutDialog");
+  aboutDialog->setStyleSheet(aboutDialog->styleSheet());
+
+  aboutDialog->show();
+}
+
+
+
 void KLFMainWin::setWidgetStyle(const QString& qtstyle)
 {
   //  qDebug("setWidgetStyle(\"%s\")", qPrintable(qtstyle));
@@ -1145,6 +1170,7 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
       }
     }
   }
+
   // ----
   if ( e->type() == QEvent::Hide || e->type() == QEvent::Show ) {
     // shown/hidden windows: save/restore geometry
@@ -1367,15 +1393,12 @@ void KLFMainWin::slotEvaluate()
       sc = QPixmap::fromImage(_output.result);
 
     QSize goodsize = _output.result.size();
-    QImage tooltipimg = QImage();
-    if (klfconfig.UI.enableToolTipPreview) {
-      tooltipimg = _output.result;
-      if ( klfconfig.UI.previewTooltipMaxSize != QSize(0, 0) && // QSize(0,0) meaning no resize
-	   ( tooltipimg.width() > klfconfig.UI.previewTooltipMaxSize.width() ||
-	     tooltipimg.height() > klfconfig.UI.previewTooltipMaxSize.height() ) ) {
-	tooltipimg =
-	  _output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-      }
+    QImage tooltipimg = _output.result;
+    if ( klfconfig.UI.previewTooltipMaxSize != QSize(0, 0) && // QSize(0,0) meaning no resize
+	 ( tooltipimg.width() > klfconfig.UI.previewTooltipMaxSize.width() ||
+	   tooltipimg.height() > klfconfig.UI.previewTooltipMaxSize.height() ) ) {
+      tooltipimg =
+	_output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     }
     lblOutput->display(sc.toImage(), tooltipimg, true);
     frmOutput->setEnabled(true);
@@ -1526,8 +1549,6 @@ QMimeData * KLFMainWin::resultToMimeData()
   
   QString templ = klfconfig.BackendSettings.tempDir+"/klf_mime_temp_XXXXXX.png";
 
-  QMessageBox::information(this, tr("info"), templ);
-
   QTemporaryFile *tempfile = new QTemporaryFile(templ, this);
   QString tempfilename;
   if (tempfile->open() == false) {
@@ -1542,9 +1563,7 @@ QMimeData * KLFMainWin::resultToMimeData()
 
   QMimeData *mime = new QMimeData;
   QByteArray urilist = (QUrl::fromLocalFile(tempfilename).toString()+QLatin1String("\n")).toLatin1();
-  qWarning("DEBUG: urilist parts: tempfile->fileName is '%s'\nQUrl.toString is '%s'\nurilist is '%s'\n", qPrintable(tempfilename), qPrintable(QUrl::fromLocalFile(tempfilename).toString()), urilist.constData());
   mime->setData("image/png", _output.pngdata);
-  mime->setData("image/",);
   mime->setData("text/x-moz-url", urilist);
   mime->setData("text/uri-list", urilist);
 
@@ -1737,6 +1756,27 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     }
   }
 
+}
+
+
+void KLFMainWin::slotActivateEditor()
+{
+  raise();
+  activateWindow();
+  txtLatex->setFocus();
+}
+
+void KLFMainWin::slotShowBigPreview()
+{
+  if ( ! btnShowBigPreview->isEnabled() )
+    return;
+
+  QString text =
+    tr("<p>%1</p><p align=\"right\" style=\"font-size: 7pt; font-style: italic;\">"
+       "This preview can be opened with the <strong>F2</strong> key. Hit "
+       "<strong>Esc</strong> to close.</p>")
+    .arg(lblOutput->bigPreviewText());
+  QWhatsThis::showText(btnEvaluate->pos(), text, lblOutput);
 }
 
 
