@@ -142,7 +142,11 @@ KLFI18nFile::KLFI18nFile(QString filepath)
 
 void klf_add_avail_translation(KLFI18nFile i18nfile)
 {
-  qDebug("Want to add avail translation: %s [%s]", qPrintable(i18nfile.fpath), qPrintable(i18nfile.locale));
+  if (i18nfile.name == "qt") {
+    // ignore Qt's translations as available languages
+    return;
+  }
+
   // Check if this locale is registered, and if it has a nice translated name.
   bool needsRegistration = true;
   bool needsNiceName = true;

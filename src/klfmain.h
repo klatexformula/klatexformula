@@ -145,9 +145,11 @@ class KLF_EXPORT KLFI18nFile
 {
 public:
   QString fpath;
+  /** \brief Translation file base name (e.g. 'klf' for klf_fr.qm) */
   QString name;
+  /** \brief Locale Name (e.g. "fr" or "fr_CH") */
   QString locale;
-  // how specific the locale is (e.g. ""->0 , "fr"->1, "fr_CH"->2 )
+  /** \brief  how specific the locale is (e.g. ""->0 , "fr"->1, "fr_CH"->2 ) */
   int locale_specificity;
 
   /** Initialize this structure to the translation file \c filepath. */

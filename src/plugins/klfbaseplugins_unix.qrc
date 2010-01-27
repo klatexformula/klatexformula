@@ -25,21 +25,12 @@
     <file>skin/stylesheets/pics/flat-chk-i.png</file>
     <file>skin/stylesheets/pics/flat-chk-ih.png</file>
     <file>skin/stylesheets/pics/flat-chk-ip.png</file>
-
-
-
-<!--    <file>skin/stylesheets/blue.qss</file>
+<!-- papyrus theme -->
+    <file>skin/stylesheets/papyrus.qss</file>
+    <file>skin/stylesheets/pics/bg_papyrus.jpg</file>
+<!-- galaxy theme -->
     <file>skin/stylesheets/galaxy.qss</file>
-    <file>skin/stylesheets/darkblue.qss</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_ch.png</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_c.png</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_cp.png</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_ih.png</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_i.png</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_ip.png</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_uh.png</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_u.png</file>
-    <file>skin/stylesheets/pics/galaxy_checkbox_up.png</file>
-    <file>skin/stylesheets/pics/galaxy_down.png</file> -->
+    <file>skin/stylesheets/pics/bg_galaxy.jpg</file>
+
   </qresource>
 </RCC>

@@ -1,133 +1,256 @@
+/* Galaxy Theme */
+/* Background image from NASA's "image of the day" at
+    http://www.nasa.gov/images/content/190590main_GPN-2000-000895.jpg
+*/
+
+#KLFMainWin {
+	qproperty-widgetStyle: Plastique;
+}
+
 QWidget {
-    color: white;
-    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(5, 5, 15, 255));
-    selection-background-color: rgb(89, 78, 78);
-    selection-color: rgb(255, 255, 255);
-}
-QPushButton {
-	color: white;
-	font-weight: bold;
-	font-family: "Serif", "Times";
-	border: 1px solid #864444;
-	border-radius: 6px;
-	background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 235, 235, 103), stop:0.35 rgba(255, 188, 188, 90), stop:0.4 rgba(255, 162, 162, 90), stop:0.425 rgba(255, 132, 132, 100), stop:0.44 rgba(252, 128, 128, 90), stop:1 rgba(255, 255, 255, 0));
-}
-QPushButton:checked {
-	background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 235, 235, 206), stop:0.35 rgba(255, 188, 188, 180), stop:0.4 rgba(255, 162, 162, 180), stop:0.425 rgba(255, 132, 132, 200), stop:0.44 rgba(252, 128, 128, 180), stop:1 rgba(252, 128, 128, 180));
-}
-QSpinBox, QComboBox, QTextEdit {
-	background-color:  rgba(0,0,0,50);
-}
-QFrame {
-	border: 1px solid #202040;
+	color: rgb(200,200,200);
+	selection-color: rgb(200,200,200);
 }
 QLabel {
-	border: none;
+	selection-background-color: rgb(255,255,255,50);
 }
-QGroupBox {
-     border: 2px solid #404060;
-     border-radius: 5px;
-     margin-top: 1ex; /* leave space at the top for the title */
-	padding-top: 1.5ex;
- }
- QGroupBox::title {
-     subcontrol-origin: margin;
-     subcontrol-position: top center; /* position at the top center */
-     padding: 0 8px;
- }
+
+#KLFMainWin, #KLFSettings, #KLFLibraryBrowser, #KLFLatexSymbols,
+  #KLFStyleManager, QMenu, QDialog, QComboBox QAbstractItemView,
+  QWidget[klfTopLevelWidget=true]
+{
+	background: url(:/plugindata/skin/stylesheets/pics/bg_galaxy.jpg) no-repeat;
+}
+QPushButton, QToolButton {
+	background-color: rgb(255,255,255,50);
+	selection-background-color: rgb(255,255,255,100);
+}
+QPushButton:on, QToolButton:on {
+	background-color: rgb(0,0,0,30);
+	selection-background-color: rgb(0,0,0,0);
+}
+QToolButton:hover {
+	background-color: rgb(255,255,255,100);
+}
 QTextEdit {
-	border: 2px solid #864444;
-	border-radius: 6px;
+	color: white;
+	background-color: rgb(255,255,255,30);
+	selection-background-color: rgb(255,255,255,50);
+	selection-color: white;
 }
-QComboBox {
-    border: solid;
-    border-width: 1px;
-    border-color: #864444;
-    border-radius: 3px;
-    margin: 2px;
-    padding: 3px;
+QTabWidget { background-color: rgb(0,0,0,15); }
+QTabBar { background-color: rgb(120,120,120,40); }
+QScrollArea, QScrollArea > #qt_scrollarea_viewport > QWidget {
+	background-color: rgb(255,255,255,0);
+	selection-background-color: rgb(0,0,0,50);
 }
-QComboBox::down-arrow {
-    image: url(:/plugindata/skin/stylesheets/pics/galaxy_down.png);
+QAbstractItemView {
+	color: rgb(200,200,200);
+	background-color: rgb(255,255,255,50);
+	selection-color: rgb(200,200,200);
+	selection-background-color: rgb(128,128,128,128);
 }
- QComboBox::drop-down {
-     subcontrol-origin: padding;
-     subcontrol-position: center right;
-     width: 15px;
 
-     border-left-width: 1px;
-     border-left-color: gray;
-     border-left-style: dotted; /* just a single line */
-     border-top-right-radius: 3px; /* same radius as the QComboBox */
-     border-bottom-right-radius: 3px;
+/* for checkable items, qt bug --> need an opaque bg col */
+QTreeView#lstPlugins {
+	background-image: url(:/plugindata/skin/stylesheets/pics/bg_galaxy.jpg);
 }
-QComboBox QAbstractItemView {
-     background-color: black;
-    border: 1px solid #864444;
+QTreeView::branch:has-children:!has-siblings:closed,
+  QTreeView::branch:closed:has-children:has-siblings {
+	border-image: none;
+	image: url(:/plugindata/skin/stylesheets/pics/flat-branch-closed.png);
 }
-QCheckBox::indicator:unchecked {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_u.png);
- }
-
- QCheckBox::indicator:unchecked:hover {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_uh.png);
- }
-
- QCheckBox::indicator:unchecked:pressed {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_up.png);
- }
-
- QCheckBox::indicator:checked {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_c.png);
- }
-
- QCheckBox::indicator:checked:hover {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_ch.png);
- }
-
- QCheckBox::indicator:checked:pressed {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_cp.png);
- }
-
- QCheckBox::indicator:indeterminate {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_i.png);
- }
-
- QCheckBox::indicator:indeterminate:hover {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_ih.png);
- }
-
- QCheckBox::indicator:indeterminate:pressed {
-     image: url(:/plugindata/skin/stylesheets/pics/galaxy_checkbox_ip.png);
- }
-QSpinBox {
-    border: 1px solid #864444;
-    border-radius: 3px;
+QTreeView::branch:open:has-children:!has-siblings,
+  QTreeView::branch:open:has-children:has-siblings  {
+	border-image: none;
+	image: url(:/plugindata/skin/stylesheets/pics/flat-branch-open.png);
 }
-QSpinBox:up-arrow, QSpinBox:down-arrow {
-    border: none;
+QHeaderView, QHeaderView::section {
+	color: white;
+	background-color: black;
 }
-QListView, QTreeView {
-    background-color: #303030;
+QMenu::item {
+	color: white;
+	selection-color: white;
+	selection-background-color: rgb(255,255,255,80);
 }
-QLineEdit {
-    background-color: #202020;
+QMenu::item:disabled {
+	color: rgb(180,180,180, 255);
+}
+QMenu::item:selected {
+	background-color: rgb(255,255,255,80);
 }
 QLineEdit[searchState="found"] {
-    background-color: #005000;
+    background-color: rgb(128,255,128,220);
 }
 QLineEdit[searchState="not-found"] {
-    background-color: #500000;
+    background-color: rgb(255,128,128,220);
 }
-QLabel#lblPreview, QLabel#lblOutput {
-    background-color: #151515;
+QLabel#lblPreview, KLFDisplayLabel[realTimeLatexError=false] {
+    background-color: rgb(255,255,255,128);
 }
+KLFDisplayLabel[realTimeLatexError=true] {
+    background-color: rgb(255,128,128,128);
+    border: 2px solid rgb(255,0,0,128);
+}
+QLineEdit {
+	color: white;
+	background-color: rgb(255,255,255,30);
+	selection-color: white;
+	selection-background-color: rgb(255,255,255,50);
+	border: 1px solid rgb(255,255,255,50);
+	border-radius: 2px;
+}
+
+QComboBox[editable=false] {
+	color: white;
+	background-color: rgb(255,255,255,50);
+	selection-color: white;
+	selection-background-color: rgb(255,255,255,100	);
+	border: 1px solid rgb(255,255,255,50);
+	border-radius: 3px;
+	padding-left: 4px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-right: 16px;
+}
+QComboBox[editable=false]:hover {
+	background-color: rgb(255,255,255,100);
+}
+QComboBox[editable=false]:on {
+	background-color: rgb(255,255,255,20);
+}
+QComboBox[editable=true] {
+	color: white;
+	background-color: rgb(255,255,255,30);
+	selection-color: white;
+	selection-background-color: rgb(255,255,255,50);
+	border: 1px solid rgb(255,255,255,50);
+	border-radius: 2px;
+	padding-left: 2px;
+	padding-right: 16px;
+}
+QComboBox::drop-down {
+	subcontrol-origin: border;
+	subcontrol-position: top right;
+	width: 15px;
+	padding-left: 2px;
+	background-color: rgb(255,255,255,50);
+	border: 1px solid rgb(255,255,255,50);
+	border-radius: 0;
+}
+QComboBox::drop-down:hover {
+	background-color: rgb(255,255,255,20);
+}
+QComboBox::drop-down:on {
+	background-color: rgb(255,255,255,70);
+}
+QComboBox::down-arrow {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-arrow-down.png);
+	width: 12px;
+}
+/* now corrections to previous rules for non-editable combos */
+QComboBox[editable=false]::drop-down {
+	background-color: rgb(255,255,255,50);
+	border-color: transparent transparent
+	                              transparent rgb(0,0,0,50);
+	margin: 1px;
+}
+QComboBox QAbstractItemView {
+	border: 1px solid darkgray;
+	color: white;
+	selection-color: white;
+	selection-background-color: rgb(255,255,255,50);
+}
+
+QSpinBox {
+	border: 1px solid rgb(128, 128, 128);
+	border-radius: 2px;
+	padding-right: 14px;
+	padding-left: 4px;
+	color: white;
+	background-color: rgb(255,255,255,30);
+	selection-color: white;
+	selection-background-color: rgb(255,255,255,50);
+}
+QSpinBox::up-button {
+	margin-top: 1px;
+	margin-right: 1px;
+	border: 1px solid rgb(255,255,255,50);
+	background-color: rgb(255,255,255,50);
+}
+QSpinBox::up-button:pressed { border-color: rgb(255,255,255,80); }
+QSpinBox::up-button:hover:!off:!disabled {
+	background-color: rgb(255,255,255,20);
+}
+QSpinBox::up-arrow {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-arrow-up.png);
+	width: 12px;
+	height: 12px;
+}
+QSpinBox::up-arrow:disabled, QSpinBox::up-arrow:off {
+    image: none;
+}
+QSpinBox::down-button {
+	margin-bottom: 1px;
+	margin-right: 1px;
+	border: 1px solid rgb(255,255,255,50);
+	background-color: rgb(255,255,255,50);
+}
+QSpinBox::down-button:pressed { border-color: rgb(255,255,255,80); }
+QSpinBox::down-button:hover:!off:!disabled {
+	background-color: rgb(255,255,255,20);
+}
+QSpinBox::down-arrow {
+	image: url(:plugindata/skin/stylesheets/pics/flat-arrow-down.png);
+	width: 12px;
+	height: 12px;
+}
+QSpinBox::down-arrow:disabled, QSpinBox::down-arrow:off {
+	image: none;
+}
+QCheckBox::indicator:unchecked {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-u.png);
+}
+QCheckBox::indicator:unchecked:hover {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-uh.png);
+}
+QCheckBox::indicator:unchecked:pressed {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-up.png);
+}
+QCheckBox::indicator:checked {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-c.png);
+}
+QCheckBox::indicator:checked:hover {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-ch.png);
+}
+QCheckBox::indicator:checked:pressed {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-cp.png);
+}
+QCheckBox::indicator:indeterminate {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-i.png);
+}
+QCheckBox::indicator:indeterminate:hover {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-ih.png);
+}
+QCheckBox::indicator:indeterminate:pressed {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-ip.png);
+}
+
+#KLFLatexSymbols KLFPixmapButton {
+	background-color: rgb(128,128,128,220);
+	selection-background-color: rgb(200,200,200,220);
+}
+
 QScrollBar {
-    background-color: inherit;
+	color: black
 }
-QToolBox::tab {
-    background-color: #202040;
-}
-QTabBar {
-    background-color: #101030;
+
+QToolTip {
+	padding: -2px 4px -2px 4px;
+	background-color: rgb(70, 70, 70);
+	color: white;
+	border: 1px solid rgb(80,80,80);
+	border-radius: 2px;
+	opacity: 255;
 }
