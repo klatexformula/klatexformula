@@ -1564,8 +1564,11 @@ QMimeData * KLFMainWin::resultToMimeData()
   QMimeData *mime = new QMimeData;
   QByteArray urilist = (QUrl::fromLocalFile(tempfilename).toString()+QLatin1String("\n")).toLatin1();
   mime->setData("image/png", _output.pngdata);
+  mime->setData("application/pdf", _output.pdfdata);
   mime->setData("text/x-moz-url", urilist);
   mime->setData("text/uri-list", urilist);
+  mime->setData("application/x-klf-filename",
+		QDir::toNativeSeparators(tempfilename).toUtf8());
 
   //  mime->setData("application/x-kde-urilist", urilist);
   // Don't use setImageData(), because it will pollute the clipboard with lots of ugly bitmap formats...
@@ -1594,11 +1597,14 @@ void KLFMainWin::slotDrag()
 void KLFMainWin::slotCopy()
 {
   //  QApplication::clipboard()->setMimeData(resultToMimeData(), QClipboard::Clipboard);
-  extern void winClipboardCopy(HWND h, const char *type, const char *data, int size);
+  extern void winClipboardCopy(HWND h, const QStringList& wintypes, const QList<QByteArray>& datalist);
 
   QMimeData *mime = resultToMimeData();
-  QByteArray data = mime->data("image/png");
-  winClipboardCopy(winId(), "PNG", data.constData(), data.size());
+  QByteArray datapng = mime->data("image/png");
+  QByteArray filename = mime->data("application/x-klf-filename");
+  winClipboardCopy(winId(),
+		   QStringList() << "PNG" << "FileName",
+		   QList<QByteArray>() << datapng << filename);
 }
 
 void KLFMainWin::slotSave(const QString& suggestfname)
