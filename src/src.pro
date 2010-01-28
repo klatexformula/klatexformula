@@ -63,7 +63,8 @@ SOURCES += klfcolorchooser.cpp \
            klfstylemanager.cpp \
 	   qtcolortriangle.cpp \
 	   klfmain.cpp \
-	   klfdisplaylabel.cpp
+	   klfdisplaylabel.cpp \
+	   klfwinclipboard.cpp
 !win32 {
 	SOURCES +=	klfdbus.cpp
 }

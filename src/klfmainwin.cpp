@@ -1593,7 +1593,12 @@ void KLFMainWin::slotDrag()
 }
 void KLFMainWin::slotCopy()
 {
-  QApplication::clipboard()->setMimeData(resultToMimeData(), QClipboard::Clipboard);
+  //  QApplication::clipboard()->setMimeData(resultToMimeData(), QClipboard::Clipboard);
+  extern void winClipboardCopy(HWND h, const char *type, const char *data, int size);
+
+  QMimeData *mime = resultToMimeData();
+  QByteArray data = mime->data("image/png");
+  winClipboardCopy(winId(), "PNG", data.constData(), data.size());
 }
 
 void KLFMainWin::slotSave(const QString& suggestfname)

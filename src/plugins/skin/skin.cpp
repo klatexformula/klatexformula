@@ -261,6 +261,7 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
     w->setAttribute(Qt::WA_StyledBackground);
     w->setStyleSheet(stylesheet);
   }
+#ifndef Q_WS_WIN
   // BUG? tab widget in settings dialog is always un-skinned after an "apply"...?
   KLFSettings *settingsDialog = _mainwin->findChild<KLFSettings*>();
   if (settingsDialog) {
@@ -270,6 +271,7 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
       tabs->setStyleSheet(stylesheet);
     }
   }
+#endif
 
   // previously, I'd do:
   //  _mainwin->setStyleSheet(stylesheet);

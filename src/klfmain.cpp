@@ -32,6 +32,7 @@
 #include <QResource>
 #include <QDir>
 #include <QTranslator>
+#include <QLibraryInfo>
 
 #include <klfpluginiface.h>
 
@@ -142,8 +143,13 @@ KLFI18nFile::KLFI18nFile(QString filepath)
 
 void klf_add_avail_translation(KLFI18nFile i18nfile)
 {
-  if (i18nfile.name == "qt") {
-    // ignore Qt's translations as available languages
+  QFileInfo fi(i18nfile.fpath);
+
+  if ( fi.canonicalPath() ==
+       QFileInfo(QLibraryInfo::location(QLibraryInfo::TranslationsPath)).canonicalFilePath()
+       || i18nfile.name == "qt" ) {
+    // ignore Qt's translations as available languages (identified as being in Qt's
+    // translation path or as a locally named qt_XX.qm
     return;
   }
 
@@ -167,7 +173,6 @@ void klf_add_avail_translation(KLFI18nFile i18nfile)
 
   // needs something (registration and/or nice name)
   QTranslator translator;
-  QFileInfo fi(i18nfile.fpath);
   translator.load(fi.completeBaseName(), fi.absolutePath(), "_", "."+fi.suffix());
   KLFTranslationInfo ti;
   ti.localename = i18nfile.locale;

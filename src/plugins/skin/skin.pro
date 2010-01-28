@@ -21,3 +21,5 @@ macx:LIBS += -L../../klfbackend -lklfbackend -L../.. -lklfsrc
 HEADERS += skin.h
 SOURCES += skin.cpp
 FORMS += skinconfigwidget.ui
+
+
