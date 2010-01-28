@@ -32,6 +32,7 @@ HEADERS += klfcolorchooser.h \
            klfdata.h \
            klflatexsymbols.h \
            klflibrary.h \
+	   klfmime.h \
            klfmainwin.h \
            klfpathchooser.h \
            klfsettings.h \
@@ -57,14 +58,17 @@ SOURCES += klfcolorchooser.cpp \
            klfdata.cpp \
            klflatexsymbols.cpp \
            klflibrary.cpp \
+	   klfmime.cpp \
            klfmainwin.cpp \
            klfpathchooser.cpp \
            klfsettings.cpp \
            klfstylemanager.cpp \
 	   qtcolortriangle.cpp \
 	   klfmain.cpp \
-	   klfdisplaylabel.cpp \
-	   klfwinclipboard.cpp
+	   klfdisplaylabel.cpp
+win32 {
+	SOURCES +=      klfwinclipboard.cpp
+}
 !win32 {
 	SOURCES +=	klfdbus.cpp
 }

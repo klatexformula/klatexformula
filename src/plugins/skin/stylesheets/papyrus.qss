@@ -49,7 +49,7 @@ QTreeView {
 }
 /* for checkable items, qt bug --> need an opaque bg col */
 QTreeView#lstPlugins {
-	background-color: rgb(190, 179, 156);
+	background: url(:/plugindata/skin/stylesheets/pics/bg_papyrus.jpg) no-repeat;
 }
 QTreeView::branch:has-children:!has-siblings:closed,
   QTreeView::branch:closed:has-children:has-siblings {

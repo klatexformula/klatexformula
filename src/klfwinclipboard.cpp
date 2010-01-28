@@ -8,7 +8,7 @@
 #include <windows.h>
 
 
-void winClipboardCopy(HWND h, const QStringList& wintypes, const QList<QByteArray>& datalist)
+void klfWinClipboardCopy(HWND h, const QStringList& wintypes, const QList<QByteArray>& datalist)
 {
   if (wintypes.size() != datalist.size()) {
     qWarning("win: Need same list sizes for wintypes and datalist! (got %d and %d resp.)",

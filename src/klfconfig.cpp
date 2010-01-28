@@ -200,7 +200,7 @@ void KLFConfig::loadDefaults()
     UI.applicationFont = f;
     UI.latexEditFont = fcode;
     UI.preambleEditFont = fcode;
-    UI.previewTooltipMaxSize = QSize(500, 350);
+    UI.previewTooltipMaxSize = QSize(800, 600);
     UI.labelOutputFixedSize = QSize(280, 90);
     UI.lastSaveDir = QDir::homePath();
     UI.symbolsPerLine = 6;
@@ -218,7 +218,7 @@ void KLFConfig::loadDefaults()
     UI.colorChooseWidgetRecent = QList<QColor>();
     UI.colorChooseWidgetCustom = QList<QColor>();
     UI.maxUserColors = 12;
-    UI.enableToolTipPreview = true;
+    UI.enableToolTipPreview = false;
     UI.enableRealTimePreview = true;
     UI.autosaveLibraryMin = 5;
 

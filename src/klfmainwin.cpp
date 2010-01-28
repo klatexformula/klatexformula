@@ -68,8 +68,10 @@
 #include "klflibrary.h"
 #include "klflatexsymbols.h"
 #include "klfsettings.h"
+#include "klfmain.h"
 #include "klfmainwin.h"
 #include "klfstylemanager.h"
+#include "klfmime.h"
 
 
 
@@ -79,13 +81,11 @@
 
 static QRect klf_get_window_geometry(QWidget *w)
 {
-  // return QRect(w->pos(), w->size());
-#if !defined(Q_WS_X11)
-  QRect g = w->geometry();
-#else
+#if defined(Q_WS_X11)
   QRect g = w->frameGeometry();
+#else
+  QRect g = w->geometry();
 #endif
-  //  qDebug("got %p geometry g=(%d,%d)+(%d,%d)", (void*)w, DEBUG_GEOM_ARGS(g));
   return g;
 }
 
@@ -94,17 +94,12 @@ static void klf_set_window_geometry(QWidget *w, QRect g)
   if ( ! g.isValid() )
     return;
 
-  //  qDebug("Setting geometry for %p to (%d,%d)+(%d,%d)", (void*)w, DEBUG_GEOM_ARGS(g));
-
-  // w->resize(g.size()); w->move(g.pos())
   w->setGeometry(g);
 }
 
 
 
-// KLatexFormula version
-extern const char version[];
-extern const int version_maj, version_min;
+
 
 
 
@@ -1546,35 +1541,20 @@ QMimeData * KLFMainWin::resultToMimeData()
 {
   if ( _output.result.isNull() )
     return NULL;
-  
-  QString templ = klfconfig.BackendSettings.tempDir+"/klf_mime_temp_XXXXXX.png";
 
-  QTemporaryFile *tempfile = new QTemporaryFile(templ, this);
-  QString tempfilename;
-  if (tempfile->open() == false) {
-    qWarning("Can't open temp png file for mimetype text/uri-list: template is %s",
-	     qPrintable(templ));
-    return NULL;
-  } else {
-    tempfilename = tempfile->fileName();
-    tempfile->write(_output.pngdata);
-    tempfile->close();
+  // klf export profile to use (for now, use first = default)
+  KLFMimeExportProfile p = KLFMimeExportProfile::exportProfileList() [0];
+  QStringList mimetypes = p.mimeTypes();
+
+  QMimeData *mimedata = new QMimeData;
+  int k;
+  for (k = 0; k < mimetypes.size(); ++k) {
+    QString mimetype = mimetypes[k];
+    QByteArray data = KLFMimeExporter::mimeExporterLookup(mimetype)->data(mimetype, _output);
+    mimedata->setData(mimetype, data);
   }
 
-  QMimeData *mime = new QMimeData;
-  QByteArray urilist = (QUrl::fromLocalFile(tempfilename).toString()+QLatin1String("\n")).toLatin1();
-  mime->setData("image/png", _output.pngdata);
-  mime->setData("application/pdf", _output.pdfdata);
-  mime->setData("text/x-moz-url", urilist);
-  mime->setData("text/uri-list", urilist);
-  mime->setData("application/x-klf-filename",
-		QDir::toNativeSeparators(tempfilename).toUtf8());
-
-  //  mime->setData("application/x-kde-urilist", urilist);
-  // Don't use setImageData(), because it will pollute the clipboard with lots of ugly bitmap formats...
-  //  mime->setImageData(_output.result);
-
-  return mime;
+  return mimedata;
 }
 
 
@@ -1596,15 +1576,29 @@ void KLFMainWin::slotDrag()
 }
 void KLFMainWin::slotCopy()
 {
-  //  QApplication::clipboard()->setMimeData(resultToMimeData(), QClipboard::Clipboard);
-  extern void winClipboardCopy(HWND h, const QStringList& wintypes, const QList<QByteArray>& datalist);
+#ifdef Q_WS_WIN
+  extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes, const QList<QByteArray>& datalist);
 
-  QMimeData *mime = resultToMimeData();
-  QByteArray datapng = mime->data("image/png");
-  QByteArray filename = mime->data("application/x-klf-filename");
-  winClipboardCopy(winId(),
-		   QStringList() << "PNG" << "FileName",
-		   QList<QByteArray>() << datapng << filename);
+  // klf export profile to use (for now, use first = default)
+  KLFMimeExportProfile p = KLFMimeExportProfile::exportProfileList() [0];
+
+  QStringList wintypes;
+  QList<QByteArray> datalist;
+
+  int k;
+  for (k = 0; k < p.mimeTypes.size(); ++k) {
+    QString mimetype = p.mimeTypes[k];
+    QByteArray data = KLFMimeExporter::mimeExporterLookup(mimetype)->data(mimetype, _output);
+    wintypes << p.respectiveWinTypes[k];
+    datalist << data;
+  }
+
+  klfWinClipboardCopy(winId(), wintypes, datalist);
+
+#else
+  QMimeData *mimedata = resultToMimeData();
+  QApplication::clipboard()->setMimeData(mimedata, QClipboard::Clipboard);
+#endif
 }
 
 void KLFMainWin::slotSave(const QString& suggestfname)
