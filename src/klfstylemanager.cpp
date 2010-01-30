@@ -133,7 +133,7 @@ bool KLFStyleListModel::dropMimeData(const QMimeData *mdata, Qt::DropAction acti
 
 
 
-KLFStyleManager::KLFStyleManager(KLFData::KLFStyleList *stydata, QWidget *parent)
+KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
   : QWidget(parent, Qt::Dialog), KLFStyleManagerUI()
 {
   setupUi(this);
@@ -280,7 +280,7 @@ void KLFStyleManager::slotMoveDown()
 
 void KLFStyleManager::slotModelMoveCompleted(int prev, int newpos)
 {
-  KLFData::KLFStyle sty = _styptr->takeAt(prev);
+  KLFStyle sty = _styptr->takeAt(prev);
   _styptr->insert(newpos, sty);
 
   QModelIndex i = mStyleListModel->index(newpos);

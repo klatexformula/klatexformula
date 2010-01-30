@@ -32,20 +32,59 @@
 
 #include <klfdefs.h>
 
+
+
+/** \brief A Formula Style (collection of properties)
+ *
+ * Structure containing forground color, bg color, mathmode, preamble, etc.
+ */
+struct KLFStyle {
+  KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
+	   unsigned long bgcol = qRgba(255,255,255,0),
+	   const QString& mmode = QString(),
+	   const QString& pre = QString(),
+	   int dotsperinch = -1)
+    : name(nm), fg_color(fgcol), bg_color(bgcol), mathmode(mmode), preamble(pre),
+      dpi(dotsperinch) { }
+  KLFStyle(const KLFStyle& o)
+    : name(o.name), fg_color(o.fg_color), bg_color(o.bg_color), mathmode(o.mathmode),
+      preamble(o.preamble), dpi(o.dpi) { }
+
+  QString name; // this may not always be set, it's only important in saved style list.
+  unsigned long fg_color;
+  unsigned long bg_color;
+  QString mathmode;
+  QString preamble;
+  int dpi;
+
+  const KLFStyle& operator=(const KLFString& other) {
+    name = o.name; fg_color = o.fg_color; bg_color = o.bg_color; mathmode = o.mathmode;
+    preamble = o.preamble; dpi = o.dpi;
+    return *this;
+  }
+};
+
+
+Q_DECLARE_METATYPE(MyStruct)
+  ;
+
+static QString prettyPrintStyle(const KLFStyle& sty);
+
+typedef QList<KLFStyle> KLFStyleList;
+
+QDataStream& operator<<(QDataStream& stream, const KLFStyle& style);
+QDataStream& operator>>(QDataStream& stream, KLFStyle& style);
+// exact matches
+bool operator==(const KLFStyle& a, const KLFStyle& b);
+
+
+
+
 /** Data structures for KLatexFormula
  * \author Philippe Faist &lt;philippe.faist at bluewin.ch&gt;
  */
 class KLF_EXPORT KLFData {
 public:
-
-  struct KLFStyle {
-    QString name; // this may not always be set, it's only important in saved style list.
-    unsigned long fg_color;
-    unsigned long bg_color;
-    QString mathmode;
-    QString preamble;
-    int dpi;
-  };
 
   // THESE VALUES MUST NOT CHANGE FROM ONE VERSION TO ANOTHER OF KLATEXFORMULA :
   enum {  LibResource_History = 0, LibResource_Archive = 1,
@@ -79,9 +118,6 @@ public:
   static QString tagsFromLatex(const QString& latex);
   static QString stripCategoryTagsFromLatex(const QString& latex);
 
-  static QString prettyPrintStyle(const KLFStyle& sty);
-
-  typedef QList<KLFStyle> KLFStyleList;
   typedef QList<KLFLibraryItem> KLFLibraryList;
   typedef QList<KLFLibraryResource> KLFLibraryResourceList;
   typedef QMap<KLFLibraryResource, KLFLibraryList> KLFLibrary;
@@ -92,8 +128,6 @@ private:
 };
 
 
-QDataStream& operator<<(QDataStream& stream, const KLFData::KLFStyle& style);
-QDataStream& operator>>(QDataStream& stream, KLFData::KLFStyle& style);
 
 // it is important to note that the >> operator imports in a compatible way to KLF 2.0
 QDataStream& operator<<(QDataStream& stream, const KLFData::KLFLibraryItem& item);
@@ -104,8 +138,6 @@ QDataStream& operator>>(QDataStream& stream, KLFData::KLFLibraryResource& item);
 
 // exact matches, style included, but excluding ID and datetime
 bool operator==(const KLFData::KLFLibraryItem& a, const KLFData::KLFLibraryItem& b);
-// exact matches
-bool operator==(const KLFData::KLFStyle& a, const KLFData::KLFStyle& b);
 
 // is needed for QMap : these operators compare ID only.
 bool operator<(const KLFData::KLFLibraryResource a, const KLFData::KLFLibraryResource b);

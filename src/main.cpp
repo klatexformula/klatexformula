@@ -41,6 +41,7 @@
 
 #include <klfbackend.h>
 
+#include "klfdata.h"
 #include "klfmain.h"
 #include "klfconfig.h"
 #include "klfmainwin.h"
@@ -723,6 +724,8 @@ int main(int argc, char **argv)
     qDebug("Library paths are %s", qPrintable(QCoreApplication::libraryPaths().join("\n")));
 
     qRegisterMetaType< QImage >("QImage");
+    qRegisterMetaType< KLFStyle >();
+    qRegisterMetaTypeStreamOperators< KLFStyle >();
 
 #if defined(KLF_USE_DBUS)
     // see if an instance of KLatexFormula is running...
@@ -873,6 +876,9 @@ int main(int argc, char **argv)
     QCoreApplication app(qt_argc, qt_argv);
 
     qRegisterMetaType< QImage >("QImage");
+    qRegisterMetaType< KLFStyle >();
+    qRegisterMetaTypeStreamOperators< KLFStyle >();
+
 
     // now load default config (for default paths etc.)
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'

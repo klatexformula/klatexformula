@@ -215,7 +215,7 @@ QByteArray KLFMimeExporterImage::data(const QString& key, const KLFBackend::klfO
   if (key == "application/pdf")
     return klfoutput.pdfdata;
 
-  // rely on qt's image saving routines
+  // rely on qt's image saving routines for other formats
 
   if ( ! imageFormats.contains(key) )
     return QByteArray();

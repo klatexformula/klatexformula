@@ -52,6 +52,8 @@ class KLFLatexSymbols;
 class KLFStyleManager;
 class KLFSettings;
 
+
+
 namespace Ui {
   class KLFProgErrUI;
 }
@@ -175,7 +177,7 @@ public:
 
   bool eventFilter(QObject *obj, QEvent *event);
 
-  KLFData::KLFStyle currentStyle() const;
+  KLFStyle currentStyle() const;
 
   KLFBackend::klfSettings backendSettings() const { return _settings; }
 
@@ -328,7 +330,7 @@ protected:
 
   KLFData::KLFLibrary _library;
   KLFData::KLFLibraryResourceList _libresources;
-  KLFData::KLFStyleList _styles;
+  KLFStyleList _styles;
 
   QSize _shrinkedsize;
   QSize _expandedsize;

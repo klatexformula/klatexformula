@@ -59,7 +59,7 @@ class KLFStyleManager : public QWidget, private Ui::KLFStyleManagerUI
 {
   Q_OBJECT
 public:
-  KLFStyleManager(KLFData::KLFStyleList *ptr, QWidget *parent);
+  KLFStyleManager(KLFStyleList *ptr, QWidget *parent);
   ~KLFStyleManager();
 
 signals:
@@ -81,7 +81,7 @@ protected slots:
   void slotModelMoveCompleted(int previouspos, int newpos);
 
 private:
-  KLFData::KLFStyleList *_styptr;
+  KLFStyleList *_styptr;
 
   QMenu *mActionsPopup;
 
@@ -94,7 +94,6 @@ private:
 
   QPoint _drag_init_pos;
   QListWidgetItem *_drag_item;
-  /*  QListBoxItem *mDropIndicatorItem; */
 
   int currentRow();
 };

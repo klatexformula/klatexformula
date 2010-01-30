@@ -806,7 +806,7 @@ QString kdelocate(const char *fname)
 
 void KLFMainWin::loadStyles()
 {
-  _styles = KLFData::KLFStyleList(); // empty list to start with
+  _styles = KLFStyleList(); // empty list to start with
   QString styfname = klfconfig.homeConfigDir + "/styles";
   if ( ! QFile::exists(styfname) ) {
     // try KDE version (for KLF 2.x)
@@ -850,8 +850,8 @@ void KLFMainWin::loadStyles()
 
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
-    KLFData::KLFStyle s1 = { tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]",
-			     "", 600 };
+    KLFStyle s1 = { tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]",
+		    "", 600 };
     _styles.append(s1);
   }
 
@@ -1400,7 +1400,7 @@ void KLFMainWin::slotEvaluate()
 
     KLFData::KLFLibraryItem jj = { KLFData::KLFLibraryItem::MaxId++, QDateTime::currentDateTime(), input.latex, sc,
 				   KLFData::categoryFromLatex(input.latex), KLFData::tagsFromLatex(input.latex),
-				   KLFData::KLFStyle() };
+				   KLFStyle() };
     jj.style = currentStyle();
 
     if ( _library[_libresources[0]].size() == 0 ||
@@ -1795,9 +1795,9 @@ void KLFMainWin::slotPresetDPISender()
 }
 
 
-KLFData::KLFStyle KLFMainWin::currentStyle() const
+KLFStyle KLFMainWin::currentStyle() const
 {
-  KLFData::KLFStyle sty;
+  KLFStyle sty;
 
   sty.name = QString::null;
   sty.fg_color = colFg->color().rgb();
@@ -1839,7 +1839,7 @@ void KLFMainWin::slotLoadStyle(int n)
 }
 void KLFMainWin::slotSaveStyle()
 {
-  KLFData::KLFStyle sty;
+  KLFStyle sty;
 
   QString name = QInputDialog::getText(this, tr("Enter Style Name"),
 				       tr("Enter new style name:"));
