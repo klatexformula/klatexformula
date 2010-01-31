@@ -26,6 +26,7 @@
 #define KLFPOBJ_H
 
 #include <QVariant>
+#include <QByteArray>
 #include <QDataStream>
 #include <QVector>
 #include <QList>
@@ -76,6 +77,13 @@ public:
   void setAllProperties(QMap<QString, QVariant> propValues);
   
 
+  /** \brief Saves all the properties in binary form.
+   */
+  QByteArray allPropertiesToByteArray() const;
+
+  /** \brief Loads all properties saved by \ref allPropertiesToBinaryForm()
+   */
+  void setAllPropertiesFromByteArray(const QByteArray& data);
 
 protected:
   // shortcuts for the corresponding static methods

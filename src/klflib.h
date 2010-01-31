@@ -25,14 +25,16 @@
 #define KLFLIB_H
 
 #include <QImage>
+#include <QMap>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 
-// KLFStyle
-#include <klfdata.h>
+#include <klfdata.h>  // KLFStyle
 #include <klfpobj.h>
 
 /** \brief An entry (single formula) in the library
  */
-class KLFLibEntry : public KLFPropertizedObject {
+class KLF_EXPORT KLFLibEntry : public KLFPropertizedObject {
 public:
   /** \note The numeric IDs don't have to be preserved from one version of KLF to
    * another, since they are nowhere stored. Properties are always stored by name
@@ -42,7 +44,7 @@ public:
 		      Preview, //!< An Image Preview of equation (scaled down QImage)
 		      Category, //!< The Category to which eq. belongs (path-style string)
 		      Tags, //!< Tags about the equation (string)
-		      Style, //!< KLFStyle style used
+		      Style //!< KLFStyle style used
   };
 
   KLFLibEntry(const QString& latex = QString(), const QDateTime& dt = QDateTime(),
@@ -71,25 +73,65 @@ private:
 };
 
 
-class KLFLibResourceEngine {
+class KLF_EXPORT KLFLibResourceEngine : public QObject
+{
+  Q_OBJECT
 public:
+  typedef int entryId;
+
+  struct KLFLibEntryWithId {
+    entryId id;
+    KLFLibEntry data;
+  };
+
   KLFLibResourceEngine();
+  virtual ~KLFLibResourceEngine();
 
-  KLFLibEntry entryAt(int n) = 0;
-  int numberOfEntries() = 0;
-  QList<KLFLibEntry> allEntries() = 0;
+  virtual KLFLibEntry entry(entryId id) = 0;
+  virtual QList<KLFLibEntryWithId> allEntries() = 0;
 
-  void insertEntry(const KLFLibEntry& entry) = 0;
-  void deleteEntry(int n) = 0;
-
+  virtual entryId insertEntry(const KLFLibEntry& entry) = 0;
+  virtual bool deleteEntry(const entryId& id) = 0;
 };
 
-class KLFLibDataFileEngine {
-	// implementation for data files
+
+/** Library Resource engine implementation for an (abstract) database (using Qt
+ * SQL interfaces) */
+class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceEngine
+{
+public:
+  KLFLibDBEngine(QSqlDatabase db_connection = QSqlDatabase());
+  virtual ~KLFLibDBEngine();
+
+  /** True if one has supplied a valid database in the constructor or with a
+   * \ref setDatabse() call. */
+  bool validDatabase() const;
+  /** supply an open database. */
+  void setDatabase(QSqlDatabase db_connection);
+
+  virtual KLFLibEntry entry(entryId id);
+  virtual QList<KLFLibEntryWithId> allEntries();
+
+  virtual entryId insertEntry(const KLFLibEntry& entry);
+  virtual bool deleteEntry(const entryId& id);
+
+  static bool initFreshDatabase(QSqlDatabase db);
+
+private:
+  QSqlDatabase pDB;
+
+  QMap<int,int> detectEntryColumns(const QSqlQuery& q);
+  KLFLibEntry readEntry(const QSqlQuery& q, QMap<int,int> columns);
 };
 
-class KLFLibSqliteEngine {
-	// implementation for sqlite database
+
+
+
+
+
+class KLFLibLegacyLibraryEngine : public KLFLibResourceEngine
+{
+  // ..........
 };
 
 #endif

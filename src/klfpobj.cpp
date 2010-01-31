@@ -151,6 +151,24 @@ void KLFPropertizedObject::setAllProperties(QMap<QString, QVariant> propValues)
 }
 
 
+QByteArray KLFPropertizedObject::allPropertiesToByteArray() const
+{
+  QByteArray data;
+  {
+    QDataString stream(&data, QIODevice::WriteOnly);
+    stream << *this;
+    // force close of buffer in destroying stream
+  }
+  return data;
+}
+
+void KLFPropertizedObject::setAllPropertiesFromByteArray(const QByteArray& data)
+{
+  QDataString stream(&data, QIODevice::ReadOnly);
+  stream >> *this;
+}
+
+
 
 
 
