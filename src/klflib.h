@@ -29,7 +29,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-#include <klfdata.h>  // KLFStyle
+#include <klfdata.h>  // for KLFStyle and legacy library
 #include <klfpobj.h>
 
 /** \brief An entry (single formula) in the library
@@ -39,12 +39,13 @@ public:
   /** \note The numeric IDs don't have to be preserved from one version of KLF to
    * another, since they are nowhere stored. Properties are always stored by name
    * when dealing in scopes larger than the running application (saved files, etc.). */
-  enum PropertyType { Latex, //!< The Latex Code of the equation
-		      DateTime, //!< The Date/Time at which the equation was evaluated
-		      Preview, //!< An Image Preview of equation (scaled down QImage)
-		      Category, //!< The Category to which eq. belongs (path-style string)
-		      Tags, //!< Tags about the equation (string)
-		      Style //!< KLFStyle style used
+  enum PropertyId {
+    Latex, //!< The Latex Code of the equation
+    DateTime, //!< The Date/Time at which the equation was evaluated
+    Preview, //!< An Image Preview of equation (scaled down QImage)
+    Category, //!< The Category to which eq. belongs (path-style string)
+    Tags, //!< Tags about the equation (string)
+    Style //!< KLFStyle style used
   };
 
   KLFLibEntry(const QString& latex = QString(), const QDateTime& dt = QDateTime(),

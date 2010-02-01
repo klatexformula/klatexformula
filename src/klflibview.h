@@ -24,8 +24,72 @@
 #ifndef KLFLIBVIEW_H
 #define KLFLIBVIEW_H
 
-class KLFLibModel {
+#include <QAbstractItemModel>
+
+#include <klflib.h>
+
+
+/** \brief Model for Item-Views displaying a library resource's contents
+ *
+ * The Model can morph into different forms, for simulating various common & useful
+ * displays (chronological list (history), category/tags tree (archive), maybe icons
+ * in the future, ...).
+ *
+ */
+class KLFLibModel : public QAbstractItemModel {
+  Q_OBJECT
+public:
+  KLFLibModel(KLFLibResourceEngine *resource, QObject *parent = NULL);
+  virtual ~KLFLibModel();
+
+  /** For example use
+   * \code
+   *  model->data(index, model->entryItemRole(KLFLibEntry::Latex)).toString()
+   * \endcode
+   * to get LaTeX string for model index \c index.
+   */
+  static inline int entryItemRole(int propertyId) { return Qt::UserRole+800+propertyId; }
+  
+  void setResource(KLFLibResourceEngine *resource);
+
+  enum FlavorFlags {
+    LinearList = 0x0001,
+    CategoryTree = 0x0002,
+    DisplayTypeMask = 0x000f,
+
+    SortByDate = 0x0100,
+    SortByLatex = 0x0200,
+    SortByTags = 0x0400,
+    SortMask = 0x0f00
+  };
+  void setFlavorFlags(uint flags, uint modify_mask = 0xffffffff);
+  uint flavorFlags() const;
+
+
+  QVariant data(const QModelIndex& index, int role) const;
+  Qt::ItemFlags flags(const QModelIndex& index) const;
+  QVariant headerData(int section, Qt::Orientation orientation,
+		      int role = Qt::DisplayRole) const;
+  QModelIndex index(int row, int column,
+		    const QModelIndex &parent = QModelIndex()) const;
+  QModelIndex parent(const QModelIndex &index) const;
+  int rowCount(const QModelIndex &parent = QModelIndex()) const;
+  int columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+
+private:
+
+  typedef QMap<KLFLibEntryResourceEngine::entryId, KLFLibEntry> EntryCache;
+
+  KLFLibResourceEngine *pResource;
+
+  unsigned int pFlavorFlags;
+  EntryCache pEntryCache;
+
+  void updateEntryCacheSetupModel();
 
 };
+
+
 
 #endif

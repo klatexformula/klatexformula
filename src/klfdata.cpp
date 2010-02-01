@@ -89,8 +89,9 @@ QString KLFData::stripCategoryTagsFromLatex(const QString& latex)
 }
 
 
-// static method
-QString KLFData::prettyPrintStyle(const KLFStyle& sty)
+
+
+QString prettyPrintStyle(const KLFStyle& sty)
 {
   QString s = "";
   if (sty.name != QString::null)

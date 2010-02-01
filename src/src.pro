@@ -32,6 +32,8 @@ HEADERS += klfcolorchooser.h \
            klfdata.h \
            klflatexsymbols.h \
            klflibrary.h \
+	   klflib.h \
+	   klflibview.h \
 	   klfmime.h \
            klfmainwin.h \
            klfpathchooser.h \
@@ -58,6 +60,8 @@ SOURCES += klfcolorchooser.cpp \
            klfdata.cpp \
            klflatexsymbols.cpp \
            klflibrary.cpp \
+	   klflib.cpp \
+	   klflibview.cpp \
 	   klfmime.cpp \
            klfmainwin.cpp \
            klfpathchooser.cpp \

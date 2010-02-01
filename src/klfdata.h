@@ -57,7 +57,7 @@ struct KLFStyle {
   QString preamble;
   int dpi;
 
-  const KLFStyle& operator=(const KLFString& other) {
+  const KLFStyle& operator=(const KLFStyle& o) {
     name = o.name; fg_color = o.fg_color; bg_color = o.bg_color; mathmode = o.mathmode;
     preamble = o.preamble; dpi = o.dpi;
     return *this;
@@ -65,10 +65,10 @@ struct KLFStyle {
 };
 
 
-Q_DECLARE_METATYPE(MyStruct)
+Q_DECLARE_METATYPE(KLFStyle)
   ;
 
-static QString prettyPrintStyle(const KLFStyle& sty);
+QString prettyPrintStyle(const KLFStyle& sty);
 
 typedef QList<KLFStyle> KLFStyleList;
 
