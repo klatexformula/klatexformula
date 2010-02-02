@@ -320,10 +320,10 @@ QString KLFLibraryListManager::getSelectedInfo_style() const
   if (list.size() == 0) {
     return tr("[ No Items Selected ]");
   }
-  KLFData::KLFStyle sty;
+  KLFStyle sty;
   int k;
   for (k = 0; k < list.size(); ++k) {
-    KLFData::KLFStyle thisstyle = ((KLFLibraryListViewItem*)list[k])->libraryItem().style;
+    KLFStyle thisstyle = ((KLFLibraryListViewItem*)list[k])->libraryItem().style;
     if (k == 0) {
       sty = thisstyle;
     }
@@ -331,7 +331,7 @@ QString KLFLibraryListManager::getSelectedInfo_style() const
       return tr("[ Different Styles ]");
     }
   }
-  return KLFData::prettyPrintStyle(sty);
+  return prettyPrintStyle(sty);
 }
 bool KLFLibraryListManager::updateSelectedInfo_category(const QString& newcat)
 {

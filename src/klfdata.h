@@ -29,6 +29,7 @@
 #include <QDataStream>
 #include <QPixmap>
 #include <QMap>
+#include <QMetaType>
 
 #include <klfdefs.h>
 

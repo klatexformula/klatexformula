@@ -79,7 +79,7 @@ public:
 
 private:
 
-  typedef QMap<KLFLibEntryResourceEngine::entryId, KLFLibEntry> EntryCache;
+  typedef QList<KLFLibResourceEngine::KLFLibEntryWithId> EntryCache;
 
   KLFLibResourceEngine *pResource;
 
@@ -88,6 +88,7 @@ private:
 
   void updateEntryCacheSetupModel();
 
+  int cacheFindEntry(KLFLibResourceEngine::entryId id) const;
 };
 
 

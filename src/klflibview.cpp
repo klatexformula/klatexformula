@@ -21,11 +21,15 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <QDebug>
+#include <QAbstractItemModel>
+#include <QModelIndex>
+
 #include "klflibview.h"
 
 
 KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, QObject *parent)
-  : QObject(parent)
+  : QAbstractItemModel(parent)
 {
   setResource(engine);
 }
@@ -37,6 +41,7 @@ KLFLibModel::~KLFLibModel()
 void KLFLibModel::setResource(KLFLibResourceEngine *resource)
 {
   pResource = resource;
+  updateEntryCacheSetupModel();
 }
 
 
@@ -51,13 +56,14 @@ uint KLFLibModel::flavorFlags() const
 
 QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 {
-  KLFLibResourceEntry::entryId id = index.internalId();
+  KLFLibResourceEngine::entryId id = index.internalId();
 
   // index not valid
-  if ( ! index.isValid()  ||  ! pEntryCache.contains(id) )
+  int ind = cacheFindEntry(id);
+  if ( ! index.isValid()  ||  ind == -1 )
     return QVariant();
 
-  KLFLibEntry entry = pEntryCache[id];
+  KLFLibEntry entry = pEntryCache[ind].entry;
 
   if (role == Qt::DisplayRole)
     role = entryItemRole(KLFLibEntry::Latex);
@@ -73,7 +79,7 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
   if (role == entryItemRole(KLFLibEntry::Tags))
     return entry.tags();
   if (role == entryItemRole(KLFLibEntry::Style))
-    return entry.style();
+    return QVariant::fromValue(entry.style());
 
   // default
   return QVariant();
@@ -91,8 +97,9 @@ QVariant KLFLibModel::headerData(int section, Qt::Orientation orientation, int r
 QModelIndex KLFLibModel::index(int row, int column,
 			       const QModelIndex &parent) const
 {
-  if (pEntryCache.contains(row))
-    return createIndex(row, 0, row);
+  if (row >= 0 && row < pEntryCache.size()) {
+    return createIndex(row, 0, pEntryCache[row].id);
+  }
   return QModelIndex();
 }
 QModelIndex KLFLibModel::parent(const QModelIndex &index) const
@@ -109,18 +116,43 @@ int KLFLibModel::columnCount(const QModelIndex &parent) const
 }
 
 
-void KLFLibModel::updateCacheListSetupModel()
+void KLFLibModel::updateEntryCacheSetupModel()
 {
-  QList<KLFLibEntryWithId> all = pResource->allEntries();
-  int k;
-  // clear cache
-  pEntryCache = EntryCache();
-  // walk full list and populate cache
-  for (k = 0; k < all.size(); ++k) {
-    pEntryCache[all.id] = all.entry;
-  }
+  pEntryCache = pResource->allEntries();
 }
 
+int KLFLibModel::cacheFindEntry(KLFLibResourceEngine::entryId id) const
+{
+  int k;
+  for (k = 0; k < pEntryCache.size(); ++k)
+    if (pEntryCache[k].id == id)
+      return k;
+  return -1;
+}
+
+
+#include <QMessageBox>
+#include <QSqlDatabase>
+#include <QListView>
+
+void klf___temp___test_newlib()
+{
+  QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+  db.setDatabaseName("/home/philippe/temp/klf_sqlite_test");
+  if (!db.open()) {
+    QMessageBox::critical(0, "Cannot open database",
+			  "Unable to establish a database connection.",
+			  QMessageBox::Ok);
+    return;
+  }
+  
+  KLFLibDBEngine *engine = new KLFLibDBEngine(db);
+  KLFLibModel *model = new KLFLibModel(engine);
+
+  QListView *view = new QListView(0);
+  view->setModel(model);
+  view->show();
+}
 
 
 

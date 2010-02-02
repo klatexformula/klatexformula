@@ -850,8 +850,7 @@ void KLFMainWin::loadStyles()
 
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
-    KLFStyle s1 = { tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]",
-		    "", 600 };
+    KLFStyle s1(tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 600);
     _styles.append(s1);
   }
 

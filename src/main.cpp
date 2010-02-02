@@ -38,6 +38,7 @@
 #include <QPluginLoader>
 #include <QMessageBox>
 #include <QLibraryInfo>
+#include <QMetaType>
 
 #include <klfbackend.h>
 
@@ -725,7 +726,7 @@ int main(int argc, char **argv)
 
     qRegisterMetaType< QImage >("QImage");
     qRegisterMetaType< KLFStyle >();
-    qRegisterMetaTypeStreamOperators< KLFStyle >();
+    qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
 
 #if defined(KLF_USE_DBUS)
     // see if an instance of KLatexFormula is running...
@@ -797,6 +798,12 @@ int main(int argc, char **argv)
 
     KLFColorChooseWidget::setRecentCustomColors(klfconfig.UI.colorChooseWidgetRecent,
 						klfconfig.UI.colorChooseWidgetCustom);
+
+    //    // DEBUG ------------------------
+    //    void klf___temp___test_newlib();
+    //    klf___temp___test_newlib();
+    //    // DEBUG ------------------------
+
 
     KLFMainWin mainWin;
     mainWin.show();
@@ -877,7 +884,7 @@ int main(int argc, char **argv)
 
     qRegisterMetaType< QImage >("QImage");
     qRegisterMetaType< KLFStyle >();
-    qRegisterMetaTypeStreamOperators< KLFStyle >();
+    qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
 
 
     // now load default config (for default paths etc.)

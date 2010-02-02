@@ -22,6 +22,8 @@
 /* $Id$ */
 
 #include <QDebug>
+#include <QByteArray>
+#include <QDataStream>
 
 #include "klfpobj.h"
 
@@ -155,7 +157,7 @@ QByteArray KLFPropertizedObject::allPropertiesToByteArray() const
 {
   QByteArray data;
   {
-    QDataString stream(&data, QIODevice::WriteOnly);
+    QDataStream stream(&data, QIODevice::WriteOnly);
     stream << *this;
     // force close of buffer in destroying stream
   }
@@ -164,7 +166,7 @@ QByteArray KLFPropertizedObject::allPropertiesToByteArray() const
 
 void KLFPropertizedObject::setAllPropertiesFromByteArray(const QByteArray& data)
 {
-  QDataString stream(&data, QIODevice::ReadOnly);
+  QDataStream stream(data);
   stream >> *this;
 }
 
@@ -322,7 +324,6 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
   if (pRegisteredPropertiesMaxId.contains(propNameSpace)) {
     propMaxId = pRegisteredPropertiesMaxId[propNameSpace];
   }
-  int k;
   if (propId == -1) {
     // propMaxId is maximum ID already used, so +1 gives a free ID.
     propId = propMaxId + 1;
@@ -334,7 +335,8 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
       propMaxId = propId;
   }
   if ( propList.keys(propId).size() > 0 ) {
-    qWarning("Property ID `%d' in property name space `%s' is already registered!");
+    qWarning("Property ID `%d' in property name space `%s' is already registered!", propId,
+	     qPrintable(propNameSpace));
     return -1;
   }
   // make sure property name is valid and unique
@@ -361,6 +363,7 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
 QDataStream& operator<<(QDataStream& stream, const KLFPropertizedObject& obj)
 {
   stream << obj.allProperties();
+  return stream;
 }
 QDataStream& operator>>(QDataStream& stream, KLFPropertizedObject& obj)
 {

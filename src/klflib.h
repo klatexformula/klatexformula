@@ -66,11 +66,11 @@ public:
   void setPreview(const QImage& img) { setProperty(Preview, img); }
   void setCategory(const QString& s) { setProperty(Category, s); }
   void setTags(const QString& s) { setProperty(Tags, s); }
-  void setStyle(const KLFStyle& style) { setProperty(Style, style); }
+  void setStyle(const KLFStyle& style) { setProperty(Style, QVariant::fromValue(style)); }
 
 private:
 
-  static void initRegisteredProperties();
+  void initRegisteredProperties();
 };
 
 
@@ -82,10 +82,10 @@ public:
 
   struct KLFLibEntryWithId {
     entryId id;
-    KLFLibEntry data;
+    KLFLibEntry entry;
   };
 
-  KLFLibResourceEngine();
+  KLFLibResourceEngine(QObject *parent = NULL);
   virtual ~KLFLibResourceEngine();
 
   virtual KLFLibEntry entry(entryId id) = 0;

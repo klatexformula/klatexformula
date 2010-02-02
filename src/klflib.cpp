@@ -21,17 +21,24 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <QBuffer>
+#include <QByteArray>
+#include <QDataStream>
+#include <QSqlRecord>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+
 #include "klflib.h"
 
 
-KLFLibEntry::KLFLibEntry(const QString& latex = QString(), const QDateTime& dt = QDateTime(),
-			 const QImage& preview = QImage(), const QString& category = QString(),
-			 const QString& tags = QString(), const KLFStyle& style = KLFStyle())
+KLFLibEntry::KLFLibEntry(const QString& latex, const QDateTime& dt, const QImage& preview,
+			 const QString& category, const QString& tags, const KLFStyle& style)
   : KLFPropertizedObject("KLFLibEntry")
 {
   initRegisteredProperties();
   setLatex(latex);
-  setDatetime(dt);
+  setDateTime(dt);
   setPreview(preview);
   setCategory(category);
   setTags(tags);
@@ -49,7 +56,7 @@ KLFLibEntry::~KLFLibEntry()
 
 
 
-// private, static
+// private
 void KLFLibEntry::initRegisteredProperties()
 {
   static bool first_run = true;
@@ -65,6 +72,17 @@ void KLFLibEntry::initRegisteredProperties()
   registerBuiltInProperty(Style, "Style");
 }
 
+
+// ---------------------------------------------------
+
+
+KLFLibResourceEngine::KLFLibResourceEngine(QObject *parent)
+  : QObject(parent)
+{
+}
+KLFLibResourceEngine::~KLFLibResourceEngine()
+{
+}
 
 
 
@@ -97,7 +115,7 @@ template<class T>
 static T metatype_from_data(const QByteArray& data)
 {
   T object;
-  QDataStream stream(&data, QIODevice::ReadOnly);
+  QDataStream stream(data);
   stream >> object;
   return object;
 }
@@ -117,6 +135,10 @@ KLFLibDBEngine::KLFLibDBEngine(QSqlDatabase db)
   setDatabase(db);
 }
 
+KLFLibDBEngine::~KLFLibDBEngine()
+{
+}
+
 bool KLFLibDBEngine::validDatabase() const
 {
   return pDB.isOpen();
@@ -134,7 +156,6 @@ QMap<int,int> KLFLibDBEngine::detectEntryColumns(const QSqlQuery& q)
 {
   const QSqlRecord rec = q.record();
   QMap<int,int> cols;
-  cols.resize();
   cols[KLFLibEntry::Latex] = rec.indexOf("Latex");
   cols[KLFLibEntry::DateTime] = rec.indexOf("DateTime");
   cols[KLFLibEntry::Preview] = rec.indexOf("Preview");
@@ -150,7 +171,8 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, QMap<int,int> col)
   KLFLibEntry entry;
   entry.setLatex(q.value(col[KLFLibEntry::Latex]).toString());
   entry.setDateTime(QDateTime::fromTime_t(q.value(col[KLFLibEntry::DateTime]).toInt()));
-  entry.setPreview(QImage().loadFromData(q.value(col[KLFLibEntry::Latex]).toByteArray()));
+  QImage img; img.loadFromData(q.value(col[KLFLibEntry::Latex]).toByteArray());
+  entry.setPreview(img);
   entry.setCategory(q.value(col[KLFLibEntry::Category]).toString());
   entry.setTags(q.value(col[KLFLibEntry::Tags]).toString());
   entry.setStyle(metatype_from_data<KLFStyle>(q.value(col[KLFLibEntry::Style]).toByteArray()));
@@ -172,7 +194,7 @@ KLFLibEntry KLFLibDBEngine::entry(entryId id)
     return KLFLibEntry();
   }
   if (q.size() != 1) {
-    qWarning("KLFLibDBEngine::entry: %d results returned for id %d!", q.size());
+    qWarning("KLFLibDBEngine::entry: %d results returned for id %d!", q.size(), id);
     return KLFLibEntry();
   }
 
@@ -181,11 +203,10 @@ KLFLibEntry KLFLibDBEngine::entry(entryId id)
 }
 
 
-QList<KLFLibEntryWithId> KLFLibDBEngine::allEntries()
+QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
 {
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("SELECT * FROM klfentries");
-  q.addBindValue(id);
   q.setForwardOnly(true);
   q.exec();
 
@@ -196,7 +217,7 @@ QList<KLFLibEntryWithId> KLFLibDBEngine::allEntries()
   while (q.next()) {
     KLFLibEntryWithId e;
     e.id = q.value(colId).toInt();
-    e.entry = readEntry(q);
+    e.entry = readEntry(q, cols);
     entryList << e;
   }
 
@@ -204,14 +225,14 @@ QList<KLFLibEntryWithId> KLFLibDBEngine::allEntries()
 }
 
 
-entryId KLFLibDBEngine::insertEntry(const KLFLibEntry& entry)
+KLFLibResourceEngine::entryId KLFLibDBEngine::insertEntry(const KLFLibEntry& entry)
 {
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO klfentries (Latex,DateTime,Preview,Category,Tags,Style) "
 	    " VALUES (?,?,?,?,?,?)");
   q.addBindValue(entry.latex());
   q.addBindValue(entry.dateTime().toTime_t());
-  q.addBindValue(image_data(entry.preview()));
+  q.addBindValue(image_data(entry.preview(), "PNG"));
   q.addBindValue(entry.category());
   q.addBindValue(entry.tags());
   q.addBindValue(metatype_to_data(entry.style()));

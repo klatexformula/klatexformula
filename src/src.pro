@@ -17,7 +17,7 @@ DESTDIR = .
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
 CONFIG += qt release $$SHAREDORSTATIC
-QT = core gui xml
+QT = core gui xml sql
 !win32 {
 	QT += dbus
 	DEFINES += KLF_USE_DBUS
@@ -30,6 +30,7 @@ LIBS += -Lklfbackend -Lklfbackend/release -lklfbackend
 HEADERS += klfcolorchooser.h \
            klfconfig.h \
            klfdata.h \
+	   klfpobj.h \
            klflatexsymbols.h \
            klflibrary.h \
 	   klflib.h \
@@ -58,6 +59,7 @@ FORMS += klflatexsymbolsui.ui \
 SOURCES += klfcolorchooser.cpp \
            klfconfig.cpp \
            klfdata.cpp \
+	   klfpobj.cpp \
            klflatexsymbols.cpp \
            klflibrary.cpp \
 	   klflib.cpp \

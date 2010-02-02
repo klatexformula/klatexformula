@@ -23,6 +23,7 @@
 
 #include <QString>
 #include <QObject>
+#include <QDataStream>
 
 #include "klfdata.h"
 
@@ -113,12 +114,12 @@ QString prettyPrintStyle(const KLFStyle& sty)
 
 
 
-QDataStream& operator<<(QDataStream& stream, const KLFData::KLFStyle& style)
+QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 {
   return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
 		<< style.mathmode << style.preamble << (quint16)style.dpi;
 }
-QDataStream& operator>>(QDataStream& stream, KLFData::KLFStyle& style)
+QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
 {
   quint32 fg, bg;
   quint16 dpi;
@@ -157,7 +158,7 @@ QDataStream& operator>>(QDataStream& stream, KLFData::KLFLibraryResource& item)
 }
 
 
-bool operator==(const KLFData::KLFStyle& a, const KLFData::KLFStyle& b)
+bool operator==(const KLFStyle& a, const KLFStyle& b)
 {
   return a.name == b.name &&
     a.fg_color == b.fg_color &&
