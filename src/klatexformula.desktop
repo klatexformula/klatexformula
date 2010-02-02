@@ -2,8 +2,8 @@
 Categories=Qt;Office;
 Encoding=UTF-8
 Name=KLatexFormula
-Comment=Get an image from a LaTeX Equation
-Comment[fr]=Obtenez une image à partir d'une équation LaTeX
+Comment=Generate images from LaTeX equations
+Comment[fr]=Générez une image d'une équation LaTeX
 GenericName=KLatexFormula
 MimeType=application/x-klatexformula;
 Exec=klatexformula %F
