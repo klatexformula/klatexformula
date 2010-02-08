@@ -25,6 +25,7 @@
 #define KLFLIBVIEW_H
 
 #include <QAbstractItemModel>
+#include <QAbstractItemDelegate>
 
 #include <klflib.h>
 
@@ -36,59 +37,183 @@
  * in the future, ...).
  *
  */
-class KLFLibModel : public QAbstractItemModel {
+class KLFLibModel : public QAbstractItemModel
+{
   Q_OBJECT
 public:
-  KLFLibModel(KLFLibResourceEngine *resource, QObject *parent = NULL);
+  KLFLibModel(KLFLibResourceEngine *resource, uint flavorFlags = LinearList|GroupSubCategories,
+	      QObject *parent = NULL);
   virtual ~KLFLibModel();
+
+  enum ItemKind { EntryKind, CategoryLabelKind };
+  enum {
+    ItemKindItemRole = Qt::UserRole+800,
+    EntryContentsTypeItemRole,
+    CategoryLabelItemRole,
+    FullCategoryPathItemRole
+  };
 
   /** For example use
    * \code
-   *  model->data(index, model->entryItemRole(KLFLibEntry::Latex)).toString()
+   *  model->data(index, KLFLibModel::entryItemRole(KLFLibEntry::Latex)).toString()
    * \endcode
    * to get LaTeX string for model index \c index.
    */
-  static inline int entryItemRole(int propertyId) { return Qt::UserRole+800+propertyId; }
+  static inline int entryItemRole(int propertyId) { return Qt::UserRole+810+propertyId; }
   
-  void setResource(KLFLibResourceEngine *resource);
+  virtual void setResource(KLFLibResourceEngine *resource);
 
-  enum FlavorFlags {
+  enum FlavorFlag {
     LinearList = 0x0001,
     CategoryTree = 0x0002,
     DisplayTypeMask = 0x000f,
 
-    SortByDate = 0x0100,
-    SortByLatex = 0x0200,
-    SortByTags = 0x0400,
-    SortMask = 0x0f00
+    GroupSubCategories = 0x1000
   };
-  void setFlavorFlags(uint flags, uint modify_mask = 0xffffffff);
-  uint flavorFlags() const;
+  /** sets the flavor flags given by \c flags. Only flags masked by \c modify_mask
+   * are affected. Examples:
+   * \code
+   *  // Display type set to LinearList. GroupSubCategories is unchanged.
+   *  m->setFlavorFlags(KLFLibModel::LinearList, KLFLibModel::DisplayTypeMask);
+   *  // Set, and respectively unset the group sub-categories flag (no change to other flags)
+   *  m->setFlavorFlags(KLFLibModel::GroupSubCategories, KLFLibModel::GroupSubCategories);
+   *  m->setFlavorFlags(0, KLFLibModel::GroupSubCategories);
+   * \endcode  */
+  virtual void setFlavorFlags(uint flags, uint modify_mask = 0xffffffff);
+  virtual uint flavorFlags() const;
+  inline uint displayType() const { return flavorFlags() & DisplayTypeMask; }
 
+  virtual QVariant data(const QModelIndex& index, int role) const;
+  virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+  virtual bool hasChildren(const QModelIndex &parent) const;
+  virtual QVariant headerData(int section, Qt::Orientation orientation,
+			      int role = Qt::DisplayRole) const;
+  virtual bool hasIndex(int row, int column,
+			const QModelIndex &parent = QModelIndex()) const;
+  virtual QModelIndex index(int row, int column,
+			    const QModelIndex &parent = QModelIndex()) const;
+  virtual QModelIndex parent(const QModelIndex &index) const;
+  virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
+  virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
-  QVariant data(const QModelIndex& index, int role) const;
-  Qt::ItemFlags flags(const QModelIndex& index) const;
-  QVariant headerData(int section, Qt::Orientation orientation,
-		      int role = Qt::DisplayRole) const;
-  QModelIndex index(int row, int column,
-		    const QModelIndex &parent = QModelIndex()) const;
-  QModelIndex parent(const QModelIndex &index) const;
-  int rowCount(const QModelIndex &parent = QModelIndex()) const;
-  int columnCount(const QModelIndex &parent = QModelIndex()) const;
-
+  virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 
 private:
-
-  typedef QList<KLFLibResourceEngine::KLFLibEntryWithId> EntryCache;
 
   KLFLibResourceEngine *pResource;
 
   unsigned int pFlavorFlags;
+
+  int entryContentsType(int column) const;
+
+  typedef qint32 IndexType;
+  struct NodeId {
+    NodeId(ItemKind k = EntryKind, IndexType i = -1) : kind(k), index(i)  { }
+    bool valid() const { return index >= 0; }
+    ItemKind kind;
+    IndexType index;
+  };
+  struct Node {
+    Node() : parent(NodeId()), children(QList<NodeId>()) { }
+    NodeId parent;
+    QList<NodeId> children;
+    virtual int nodeKind() const = 0;
+  };
+  struct EntryNode : public Node {
+    EntryNode() : entryid(-1), entry() { }
+    virtual int nodeKind() const { return EntryKind; }
+    KLFLibResourceEngine::entryId entryid;
+    KLFLibEntry entry;
+  };
+  struct CategoryLabelNode : public Node {
+    CategoryLabelNode() : categoryLabel(), fullCategoryPath()  { }
+    virtual int nodeKind() const { return CategoryLabelKind; }
+    //! The last element in \ref fullCategoryPath eg. "General Relativity"
+    QString categoryLabel;
+    //! The full category path of this category eg. "Physics/General Relativity"
+    QString fullCategoryPath;
+  };
+  /** QVector is used since the QModelIndex s uses pointer to individual
+   * nodes */
+  typedef QVector<EntryNode> EntryCache;
+  /** QVector is used since the QModelIndex s uses pointer to individual
+   * nodes */
+  typedef QVector<CategoryLabelNode> CategoryLabelCache;
+
   EntryCache pEntryCache;
+  CategoryLabelCache pCategoryLabelCache;
 
-  void updateEntryCacheSetupModel();
+  /** If row is negative, it will be looked up automatically. */
+  QModelIndex createIndexFromId(NodeId nodeid, int row, int column) const;
+  /** If row is negative, it will be looked up automatically. */
+  QModelIndex createIndexFromPtr(Node *node, int row, int column) const;
+  Node * getNodeForIndex(const QModelIndex& index) const;
+  Node * getNode(NodeId nodeid) const;
+  NodeId getNodeId(Node *node) const;
+  /** get the row of \c nodeid in its parent. if you already have a pointer to the 
+   * \ref Node with id \c nodeid, pass it to \c node pointer (slight optimization).
+   * Otherwise pass NULL pointer and getNodeRow() will figure out the pointer with
+   * a call to getNode().  */
+  int getNodeRow(NodeId nodeid, Node *node = NULL) const;
 
-  int cacheFindEntry(KLFLibResourceEngine::entryId id) const;
+  void updateCacheSetupModel();
+
+  IndexType cacheFindCategoryLabel(QString category, bool createIfNotExists = false);
+
+  void dumpNodeTree(Node *node, int indent = 0) const;
+
+  class KLFLibModelSorter
+  {
+  public:
+    KLFLibModelSorter(KLFLibModel *m, int entry_prop, Qt::SortOrder sort_order, bool groupcategories)
+      : model(m), entryProp(entry_prop), sortOrderFactor( (sort_order == Qt::AscendingOrder) ? -1 : 1),
+	groupCategories(groupcategories) { }
+    bool operator()(const NodeId& a, const NodeId& b);
+  private:
+    KLFLibModel *model;
+    int entryProp;
+    int sortOrderFactor;
+    bool groupCategories;
+  };
+  QString nodeValue(Node *ptr, int entryProperty);
+  void sortCategory(CategoryLabelNode *categoryPtr, int column, Qt::SortOrder order);
+
+  int lastSortColumn;
+  Qt::SortOrder lastSortOrder;
+
+};
+
+
+
+class KLF_EXPORT KLFLibViewDelegate : public QAbstractItemDelegate
+{
+  Q_OBJECT
+public:
+  KLFLibViewDelegate(QObject *parent);
+  virtual ~KLFLibViewDelegate();
+
+  virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem& option,
+				const QModelIndex& index) const;
+  virtual bool editorEvent(QEvent *event,QAbstractItemModel *model, const QStyleOptionViewItem& option,
+			   const QModelIndex& index);
+  virtual void paint(QPainter *painter, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+  virtual void setEditorData(QWidget *editor, const QModelIndex& index) const;
+  virtual void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex& index) const;
+  virtual QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const;
+  virtual void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem& option,
+				    const QModelIndex& index) const;
+
+protected:
+  virtual void paintEntry(QPainter *painter, const QStyleOptionViewItem& option,
+			  const QModelIndex& index) const;
+  virtual void paintCategoryLabel(QPainter *painter, const QStyleOptionViewItem& option,
+				  const QModelIndex& index) const;
+
+private:
+  /** Temporary variable paint() sets for subcalls to paintEntry() and paintCategoryLabel() */
+  mutable QRect innerRectText, innerRectImage;
+  /** Temporary variable paint() sets for subcalls to paintEntry() and paintCategoryLabel() */
+  mutable bool isselected;
 };
 
 

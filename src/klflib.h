@@ -78,7 +78,7 @@ class KLF_EXPORT KLFLibResourceEngine : public QObject
 {
   Q_OBJECT
 public:
-  typedef int entryId;
+  typedef qint32 entryId;
 
   struct KLFLibEntryWithId {
     entryId id;

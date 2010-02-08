@@ -171,7 +171,7 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, QMap<int,int> col)
   KLFLibEntry entry;
   entry.setLatex(q.value(col[KLFLibEntry::Latex]).toString());
   entry.setDateTime(QDateTime::fromTime_t(q.value(col[KLFLibEntry::DateTime]).toInt()));
-  QImage img; img.loadFromData(q.value(col[KLFLibEntry::Latex]).toByteArray());
+  QImage img; img.loadFromData(q.value(col[KLFLibEntry::Preview]).toByteArray());
   entry.setPreview(img);
   entry.setCategory(q.value(col[KLFLibEntry::Category]).toString());
   entry.setTags(q.value(col[KLFLibEntry::Tags]).toString());
@@ -232,10 +232,10 @@ KLFLibResourceEngine::entryId KLFLibDBEngine::insertEntry(const KLFLibEntry& ent
 	    " VALUES (?,?,?,?,?,?)");
   q.addBindValue(entry.latex());
   q.addBindValue(entry.dateTime().toTime_t());
-  q.addBindValue(image_data(entry.preview(), "PNG"));
+  q.addBindValue(QVariant::fromValue<QByteArray>(image_data(entry.preview(), "PNG")));
   q.addBindValue(entry.category());
   q.addBindValue(entry.tags());
-  q.addBindValue(metatype_to_data(entry.style()));
+  q.addBindValue(QVariant::fromValue<QByteArray>(metatype_to_data(entry.style())));
   q.exec();
 
   QVariant v_id = q.lastInsertId();

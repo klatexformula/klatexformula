@@ -85,10 +85,7 @@ public:
    */
   void setAllPropertiesFromByteArray(const QByteArray& data);
 
-protected:
-  // shortcuts for the corresponding static methods
-  void registerBuiltInProperty(int propId, const QString& name) const;
-  int registerProperty(const QString& propertyName) const;
+
   int propertyMaxId() const;
   bool propertyIdRegistered(int propId) const;
   bool propertyNameRegistered(const QString& propertyName) const;
@@ -97,6 +94,11 @@ protected:
   QList<int> registeredPropertyIdList() const;
   QStringList registeredPropertyNameList() const;
   QMap<QString, int> registeredProperties() const;
+
+protected:
+  // shortcuts for the corresponding static methods
+  void registerBuiltInProperty(int propId, const QString& name) const;
+  int registerProperty(const QString& propertyName) const;
 
   /** \note If property name space does not exist, it is created. */
   static void registerBuiltInProperty(const QString& propNameSpace, int propId,
