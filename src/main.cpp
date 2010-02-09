@@ -43,6 +43,7 @@
 #include <klfbackend.h>
 
 #include "klfdata.h"
+#include "klflib.h"
 #include "klfmain.h"
 #include "klfconfig.h"
 #include "klfmainwin.h"
@@ -727,6 +728,8 @@ int main(int argc, char **argv)
     qRegisterMetaType< QImage >("QImage");
     qRegisterMetaType< KLFStyle >();
     qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
+    qRegisterMetaType< KLFLibEntry >();
+    qRegisterMetaTypeStreamOperators< KLFLibEntry >("KLFLibEntry");
 
 #if defined(KLF_USE_DBUS)
     // see if an instance of KLatexFormula is running...
@@ -799,10 +802,10 @@ int main(int argc, char **argv)
     KLFColorChooseWidget::setRecentCustomColors(klfconfig.UI.colorChooseWidgetRecent,
 						klfconfig.UI.colorChooseWidgetCustom);
 
-    //    // DEBUG ------------------------
-    //    void klf___temp___test_newlib();
-    //    klf___temp___test_newlib();
-    //    // DEBUG ------------------------
+    // DEBUG ------------------------
+    void klf___temp___test_newlib();
+    klf___temp___test_newlib();
+    // DEBUG ------------------------
 
 
     KLFMainWin mainWin;
@@ -885,6 +888,8 @@ int main(int argc, char **argv)
     qRegisterMetaType< QImage >("QImage");
     qRegisterMetaType< KLFStyle >();
     qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
+    qRegisterMetaType< KLFLibEntry >();
+    qRegisterMetaTypeStreamOperators< KLFLibEntry >("KLFLibEntry");
 
 
     // now load default config (for default paths etc.)

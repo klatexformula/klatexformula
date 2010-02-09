@@ -29,6 +29,7 @@
 #include <QModelIndex>
 #include <QPainter>
 #include <QStyle>
+#include <QVBoxLayout>
 
 #include "klflibview.h"
 
@@ -38,6 +39,81 @@ const T& passingDebug(const T& t, QDebug& dbg)
   dbg << " : " << t;
   return t;
 }
+
+
+
+// -------------------------------------------------------
+
+void KLFAbstractLibView::updateView()
+{
+  updateResourceView();
+}
+
+
+
+// -------------------------------------------------------
+
+QList<KLFAbstractLibViewFactory*> KLFAbstractLibViewFactory::pRegisteredFactories =
+	 QList<KLFAbstractLibViewFactory*>();
+
+
+KLFAbstractLibViewFactory::KLFAbstractLibViewFactory(QObject *parent)
+  : QObject(parent)
+{
+  registerFactory(this);
+}
+KLFAbstractLibViewFactory::~KLFAbstractLibViewFactory()
+{
+  unRegisterFactory(this);
+}
+
+
+
+
+KLFAbstractLibViewFactory *KLFAbstractLibViewFactory::findFactoryFor(const QString& viewTypeIdentifier)
+{
+  if (viewTypeIdentifier.isEmpty()) {
+    if (pRegisteredFactories.size() > 0)
+      return pRegisteredFactories[0]; // first registered factory is default
+    return NULL;
+  }
+  int k;
+  // walk registered factories, and return the first that supports this scheme.
+  for (k = 0; k < pRegisteredFactories.size(); ++k) {
+    if (pRegisteredFactories[k]->viewTypeIdentifier() == viewTypeIdentifier)
+      return pRegisteredFactories[k];
+  }
+  // no factory found
+  return NULL;
+}
+
+
+void KLFAbstractLibViewFactory::registerFactory(KLFAbstractLibViewFactory *factory)
+{
+  // WARNING: THIS FUNCTION MAY BE CALLED FROM CONSTRUCTOR
+  if (pRegisteredFactories.indexOf(factory) != -1)
+    return;
+  pRegisteredFactories.append(factory);
+}
+
+void KLFAbstractLibViewFactory::unRegisterFactory(KLFAbstractLibViewFactory *factory)
+{
+  if (pRegisteredFactories.indexOf(factory) == -1)
+    return;
+  pRegisteredFactories.removeAll(factory);
+}
+
+
+
+
+
+
+
+
+// -------------------------------------------------------
+
+
+
 
 
 KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject *parent)
@@ -81,8 +157,6 @@ uint KLFLibModel::flavorFlags() const
 
 QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 {
-  qDebug()<<"data("<<index<<","<<role<<")";
-
   Node *p = getNodeForIndex(index);
   if (p == NULL)
     return QVariant();
@@ -95,9 +169,10 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
     EntryNode *ep = (EntryNode*) p;
     KLFLibEntry *entry = & ep->entry;
 
-    if (role == EntryContentsTypeItemRole) {
-      return entryContentsType(index.column());
-    }
+    if (role == EntryContentsTypeItemRole)
+      return entryColumnContentsPropertyId(index.column());
+    if (role == FullEntryItemRole)
+      return QVariant::fromValue(*entry);
 
     if (role == entryItemRole(KLFLibEntry::Latex))
       return entry->latex();
@@ -130,7 +205,6 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 }
 Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
 {
-  qDebug() << "flags("<<index<<")";
   const Node * p = getNodeForIndex(index);
   if (p == NULL)
     return 0;
@@ -142,7 +216,6 @@ Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
 }
 bool KLFLibModel::hasChildren(const QModelIndex &parent) const
 {
-  qDebug() << "hasChildren("<<parent<<")";
   const Node * p = getNodeForIndex(parent);
   if (p == NULL) {
     // invalid index -> interpret as root node
@@ -154,10 +227,10 @@ bool KLFLibModel::hasChildren(const QModelIndex &parent) const
 QVariant KLFLibModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (role == Qt::FontRole) {
-    return QFont("Magic:the Gathering", 12);
+    return qApp->font();
   }
   if (role == Qt::SizeHintRole && orientation == Qt::Horizontal) {
-    switch (entryContentsType(section)) {
+    switch (entryColumnContentsPropertyId(section)) {
     case KLFLibEntry::Preview:
       return QSize(280,30);
     case KLFLibEntry::Latex:
@@ -171,7 +244,7 @@ QVariant KLFLibModel::headerData(int section, Qt::Orientation orientation, int r
   }
   if (role == Qt::DisplayRole) {
     if (orientation == Qt::Horizontal)
-      return KLFLibEntry().propertyNameForId(entryContentsType(section));
+      return KLFLibEntry().propertyNameForId(entryColumnContentsPropertyId(section));
     return QString("-");
   }
   return QVariant();
@@ -209,12 +282,50 @@ int KLFLibModel::rowCount(const QModelIndex &parent) const
   if (p == NULL)
     p = pCategoryLabelCache.data() ; // ROOT NODE (index 0 in category label cache)
 
-  return passingDebug( p->children.size() , qDebug() << "rowCount("<<parent<<")" );
+  return p->children.size();
 }
+
 int KLFLibModel::columnCount(const QModelIndex & /*parent*/) const
 {
-  return 4;
+  return 5;
 }
+int KLFLibModel::entryColumnContentsPropertyId(int column) const
+{
+  // WARNING: ANY CHANGES MADE HERE MUST BE REPEATED IN THE NEXT FUNCTION
+  switch (column) {
+  case 0:
+    return KLFLibEntry::Preview;
+  case 1:
+    return KLFLibEntry::Tags;
+  case 2:
+    return KLFLibEntry::Category;
+  case 3:
+    return KLFLibEntry::Latex;
+  case 4:
+    return KLFLibEntry::DateTime;
+  default:
+    return -1;
+  }
+}
+int KLFLibModel::columnForEntryPropertyId(int entryPropertyId) const
+{
+  // WARNING: ANY CHANGES MADE HERE MUST BE REPEATED IN THE PREVIOUS FUNCTION
+  switch (entryPropertyId) {
+  case KLFLibEntry::Preview:
+    return 0;
+  case KLFLibEntry::Tags:
+    return 1;
+  case KLFLibEntry::Category:
+    return 2;
+  case KLFLibEntry::Latex:
+    return 3;
+  case KLFLibEntry::DateTime:
+    return 4;
+  default:
+    return -1;
+  }
+}
+
 
 
 QString KLFLibModel::nodeValue(Node *ptr, int entryProperty)
@@ -222,8 +333,14 @@ QString KLFLibModel::nodeValue(Node *ptr, int entryProperty)
   if (ptr == NULL)
     return QString();
   int kind = ptr->nodeKind();
-  if (kind == EntryKind)
-    return ((EntryNode*)ptr)->entry.property(entryProperty).toString();
+  if (kind == EntryKind) {
+    EntryNode *eptr = (EntryNode*)ptr;
+    if (entryProperty == KLFLibEntry::DateTime) {
+      return eptr->entry.property(KLFLibEntry::DateTime).toDateTime().toString("yyyy-MM-dd+hh:mm:ss.zzz");
+    } else {
+      return ((EntryNode*)ptr)->entry.property(entryProperty).toString();
+    }
+  }
   if (kind == CategoryLabelKind)
     return ((CategoryLabelNode*)ptr)->categoryLabel;
 
@@ -272,7 +389,7 @@ void KLFLibModel::sortCategory(CategoryLabelNode *category, int column, Qt::Sort
   // display type, call this function on root category node)
 
   KLFLibModelSorter s =
-    KLFLibModelSorter(this, entryContentsType(column), order, pFlavorFlags & GroupSubCategories);
+    KLFLibModelSorter(this, entryColumnContentsPropertyId(column), order, pFlavorFlags & GroupSubCategories);
 
   qSort(category->children.begin(), category->children.end(), s);
 
@@ -390,7 +507,7 @@ QModelIndex KLFLibModel::createIndexFromPtr(Node *n, int row, int column) const
   
 void KLFLibModel::updateCacheSetupModel()
 {
-  qDebug("updateCacheSetupModel(); pFlavorFlags=%#010x", (uint)pFlavorFlags);
+  //  qDebug("updateCacheSetupModel(); pFlavorFlags=%#010x", (uint)pFlavorFlags);
   // clear cache first
   pEntryCache.clear();
   pCategoryLabelCache.clear();
@@ -419,8 +536,6 @@ void KLFLibModel::updateCacheSetupModel()
     } else if (displayType() == CategoryTree) {
       // create category label node (creating the full tree if needed)
       IndexType catindex = cacheFindCategoryLabel(e.entry.category(), true);
-      qDebug()<<"catindex="<<catindex<<" for category "<< e.entry.category() << "; full tree is";
-      dumpNodeTree(pCategoryLabelCache.data()+0);
       pCategoryLabelCache[catindex].children.append(entryindex);
       pEntryCache[entryindex.index].parent = NodeId(CategoryLabelKind, catindex);
     } else {
@@ -428,7 +543,7 @@ void KLFLibModel::updateCacheSetupModel()
     }
   }
 
-  dumpNodeTree(pCategoryLabelCache.data()+0); // DEBUG
+  //  dumpNodeTree(pCategoryLabelCache.data()+0); // DEBUG
 
   emit dataChanged(QModelIndex(), QModelIndex());
 }
@@ -437,12 +552,12 @@ KLFLibModel::IndexType KLFLibModel::cacheFindCategoryLabel(QString category, boo
   // fix category: remove any double-/ to avoid empty sections. (goal: ensure that join(split(c))==c )
   category = category.split('/', QString::SkipEmptyParts).join("/");
   
-  qDebug() << "cacheFindCategoryLabel(category="<<category<<", createIfNotExists="<<createIfNotExists<<")";
+  //  qDebug() << "cacheFindCategoryLabel(category="<<category<<", createIfNotExists="<<createIfNotExists<<")";
 
   int i;
   for (i = 0; i < pCategoryLabelCache.size(); ++i)
     if (pCategoryLabelCache[i].fullCategoryPath == category)
-      return passingDebug(i , qDebug()<<"\t\tFound on first pass");
+      return i;
   if (category.isEmpty() || category == "/")
     return 0; // index of root category label
 
@@ -482,23 +597,6 @@ KLFLibModel::IndexType KLFLibModel::cacheFindCategoryLabel(QString category, boo
   return 0;
 }
 
-
-int KLFLibModel::entryContentsType(int column) const
-{
-  // .... TODO ........ depends on flavor flags ...
-  switch (column) {
-  case 0:
-    return KLFLibEntry::Preview;
-  case 1:
-    return KLFLibEntry::Tags;
-  case 2:
-    return KLFLibEntry::Category;
-  case 3:
-    return KLFLibEntry::Latex;
-  default:
-    return -1;
-  }
-}
 
 
 void KLFLibModel::dumpNodeTree(Node *node, int indent) const
@@ -639,6 +737,12 @@ void KLFLibViewDelegate::paintEntry(QPainter *painter, const QStyleOptionViewIte
     painter->drawText( innerRectText, Qt::AlignLeft|Qt::AlignVCenter,
 		       index.data(KLFLibModel::entryItemRole(KLFLibEntry::Tags)).toString() );
     break;
+  case KLFLibEntry::DateTime:
+    // paint DateTime String
+    painter->drawText( innerRectText, Qt::AlignLeft|Qt::AlignVCenter,
+		       index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime()
+		       .toString(Qt::DefaultLocaleLongDate) );
+    break;
   default:
     qDebug("Got contents type %d !", index.data(KLFLibModel::EntryContentsTypeItemRole).toInt());
     // nothing to show !
@@ -674,6 +778,10 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
     case KLFLibEntry::Tags: prop = (prop > 0) ? prop : KLFLibEntry::Tags;
       return QFontMetrics(qApp->font())
 	.size(0, index.data(KLFLibModel::entryItemRole(prop)).toString())+QSize(4,2);
+    case KLFLibEntry::DateTime:
+      return QFontMetrics(qApp->font())
+	.size(0, index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime()
+	      .toString(Qt::DefaultLocaleLongDate) )+QSize(4,2);
     case KLFLibEntry::Preview:
       return index.data(KLFLibModel::entryItemRole(KLFLibEntry::Preview)).value<QImage>().size()+QSize(4,4);
     default:
@@ -694,21 +802,119 @@ void KLFLibViewDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptio
 
 
 
+// -------------------------------------------------------
+
+QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEntryWithId& e)
+{
+  return dbg << "KLFLibEntry(id="<<e.id<<";"<<e.entry.category()<<","<<e.entry.tags()<<","<<e.entry.latex()<<")";
+}
+
+
+
+KLFLibDefaultView::KLFLibDefaultView(QWidget *parent)
+  : KLFAbstractLibView(parent)
+{
+  pModel = NULL;
+
+  QVBoxLayout *lyt = new QVBoxLayout(this);
+  lyt->setMargin(0);
+  lyt->setSpacing(0);
+  pTreeView = new QTreeView(this);
+  pTreeView->setItemDelegate(new KLFLibViewDelegate(this));
+  pTreeView->setSelectionBehavior(QAbstractItemView::SelectRows);
+  pTreeView->setSortingEnabled(true);
+  lyt->addWidget(pTreeView);
+
+  // connect selection changed signals etc.
+}
+KLFLibDefaultView::~KLFLibDefaultView()
+{
+}
+
+void KLFLibDefaultView::updateResourceView()
+{
+  KLFLibResourceEngine *resource = resourceEngine();
+  if (resource == NULL) {
+    pModel = NULL;
+    pTreeView->setModel(NULL);
+  }
+
+  //  qDebug() << "KLFLibDefaultView::updateResourceView: All items:\n"<<resource->allEntries();
+
+  pModel = new KLFLibModel(resource, KLFLibModel::CategoryTree|KLFLibModel::GroupSubCategories, this);
+  pTreeView->setModel(pModel);
+  // get informed about selections
+  QItemSelectionModel *s = pTreeView->selectionModel();
+  connect(s, SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
+	  this, SLOT(slotViewSelectionChanged(const QItemSelection&, const QItemSelection&)));
+
+  // select some columns to show
+  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Preview), false);
+  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Latex), true);
+  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Tags), false);
+  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Category), true);
+  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::DateTime), true);
+
+  // optimize column sizes
+  int k;
+  for (k = 0; k < pModel->columnCount(); ++k)
+    pTreeView->resizeColumnToContents(k);
+
+}
+
+void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
+						 const QItemSelection& /*deselected*/)
+{
+  qDebug("Selection changed");
+  QModelIndexList selectedindexes = pTreeView->selectionModel()->selectedIndexes();
+  QList<KLFLibEntry> elist;
+  // fill the entry list with our selected entries
+  int k;
+  for (k = 0; k < selectedindexes.size(); ++k) {
+    // ...... TODO ...... : HANDLE FULL CATEGORY SELECTIONS WHEN USER SELECTS A CATEGORY LABEL
+    if (selectedindexes[k].column() != 0)
+      continue;
+    if ( selectedindexes[k].data(KLFLibModel::ItemKindItemRole) != KLFLibModel::EntryKind )
+      continue;
+    qDebug() << "selection list: adding item [latex="<<selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>().latex()<<"]";
+    elist << selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
+  }
+
+  emit entriesSelected(elist);
+}
+
+
+
+
+// ------------
+
+KLFAbstractLibView * KLFLibDefaultViewFactory::createLibView(QWidget *parent,
+							     KLFLibResourceEngine *resourceEngine)
+{
+  KLFLibDefaultView *view = new KLFLibDefaultView(parent);
+  view->setResourceEngine(resourceEngine);
+  return view;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 // -------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -720,20 +926,11 @@ void KLFLibViewDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptio
 #include <QTableView>
 
 #include <klfbackend.h>
+#include <klflibbrowser.h>
+
 
 void klf___temp___test_newlib()
 {
-  QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-  db.setDatabaseName("/home/philippe/temp/klf_sqlite_test");
-  if (!db.open()) {
-    QMessageBox::critical(0, "Cannot open database",
-			  "Unable to establish a database connection.",
-			  QMessageBox::Ok);
-    return;
-  }
-  
-  KLFLibDBEngine *engine = new KLFLibDBEngine(db);
-
   /*
   KLFBackend::klfInput input;
   input.latex = "a+b=c";
@@ -759,15 +956,34 @@ void klf___temp___test_newlib()
 			 input.preamble, input.dpi));
   engine->insertEntry(e);
   */
-  KLFLibModel *model = new KLFLibModel(engine);
 
-  model->setFlavorFlags(KLFLibModel::LinearList, KLFLibModel::DisplayTypeMask);
-  // model->setFlavorFlags(KLFLibModel::CategoryTree, KLFLibModel::DisplayTypeMask);
+  // initialize and register some factories
+  (void)new KLFLibDBEngineFactory(qApp);
+  (void)new KLFLibDefaultViewFactory(qApp);
 
+  /*
+    QUrl url("klf+sqlite:///home/philippe/temp/klf_sqlite_test");
+    KLFAbstractLibEngineFactory *factory = KLFAbstractLibEngineFactory::findFactoryFor(url.scheme());
+    qDebug("%s: Got factory: %p", qPrintable(url.toString()), factory);
+    KLFLibResourceEngine * resource = factory->openResource(url);
+    qDebug("%s: Got resource: %p", qPrintable(url.toString()), resource);
+    
+    qDebug()<<"All entries: "<< resource->allEntries();
+    
+    KLFAbstractLibViewFactory *viewfactory =
+    KLFAbstractLibViewFactory::findFactoryFor(resource->suggestedViewTypeIdentifier());
+    qDebug("Got view factory: %p", viewfactory);
+    KLFAbstractLibView * view = viewfactory->createLibView(NULL, resource);
+    qDebug("Got view: %p", view);
+    
+    view->resize(800,600);
+    view->show();*/
+  KLFLibBrowser * w = new KLFLibBrowser(NULL);
+  w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_sqlite_test")));
 
-  QAbstractItemView *view;
-  KLFLibViewDelegate *delegate;
+  w->show();
 
+  /*
   view = new QTableView(0);
   delegate = new KLFLibViewDelegate(view);
   view->setModel(model);
@@ -808,7 +1024,7 @@ void klf___temp___test_newlib()
   ((QListView*)view)->setSpacing(15);
   view->show();
   view->resize(800,600);
-
+  */
 }
 
 

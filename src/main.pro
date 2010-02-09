@@ -20,7 +20,8 @@ DEPENDPATH += . klfbackend
 win32:POST_TARGETDEPS += release/libklfsrc.a
 !win32:POST_TARGETDEPS += libklfsrc.a
 INCLUDEPATH += . klfbackend
-CONFIG += qt release
+CONFIG += qt debug
+# release
 QT = core gui xml sql
 !win32 {
 	QT += dbus

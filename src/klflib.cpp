@@ -24,6 +24,7 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QDataStream>
+#include <QMessageBox>
 #include <QSqlRecord>
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -76,8 +77,8 @@ void KLFLibEntry::initRegisteredProperties()
 // ---------------------------------------------------
 
 
-KLFLibResourceEngine::KLFLibResourceEngine(QObject *parent)
-  : QObject(parent)
+KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, QObject *parent)
+  : QObject(parent), pUrl(url)
 {
 }
 KLFLibResourceEngine::~KLFLibResourceEngine()
@@ -87,6 +88,78 @@ KLFLibResourceEngine::~KLFLibResourceEngine()
 
 
 // ---------------------------------------------------
+
+
+QList<KLFAbstractLibEngineFactory*> KLFAbstractLibEngineFactory::pRegisteredFactories =
+	 QList<KLFAbstractLibEngineFactory*>();
+
+KLFAbstractLibEngineFactory::KLFAbstractLibEngineFactory(QObject *parent)
+  : QObject(parent)
+{
+  registerFactory(this);
+}
+KLFAbstractLibEngineFactory::~KLFAbstractLibEngineFactory()
+{
+  unRegisterFactory(this);
+}
+
+bool KLFAbstractLibEngineFactory::canCreateResource() const
+{
+  return false;
+}
+
+QWidget * KLFAbstractLibEngineFactory::createPromptParametersWidget(QWidget */*parent*/,
+								    Parameters /*defaultparameters*/)
+{
+  return NULL;
+}
+KLFAbstractLibEngineFactory::Parameters
+/* */ KLFAbstractLibEngineFactory::retrieveParametersFromWidget(QWidget */*parent*/)
+{
+  return KLFAbstractLibEngineFactory::Parameters();
+}
+KLFLibResourceEngine *KLFAbstractLibEngineFactory::createResource(const QUrl& /*resourceurl*/,
+								  KLFAbstractLibEngineFactory::Parameters
+								  /*param*/)
+{
+  return NULL;
+}
+
+
+
+
+KLFAbstractLibEngineFactory *KLFAbstractLibEngineFactory::findFactoryFor(const QString& urlScheme)
+{
+  int k;
+  // walk registered factories, and return the first that supports this scheme.
+  for (k = 0; k < pRegisteredFactories.size(); ++k) {
+    if (pRegisteredFactories[k]->supportedSchemes().contains(urlScheme))
+      return pRegisteredFactories[k];
+  }
+  // no factory found
+  return NULL;
+}
+
+
+void KLFAbstractLibEngineFactory::registerFactory(KLFAbstractLibEngineFactory *factory)
+{
+  if (pRegisteredFactories.indexOf(factory) != -1)
+    return;
+  pRegisteredFactories.append(factory);
+}
+
+void KLFAbstractLibEngineFactory::unRegisterFactory(KLFAbstractLibEngineFactory *factory)
+{
+  if (pRegisteredFactories.indexOf(factory) == -1)
+    return;
+  pRegisteredFactories.removeAll(factory);
+}
+
+
+
+
+// ---------------------------------------------------
+
 
 
 static QByteArray image_data(const QImage& img, const char *format)
@@ -122,21 +195,42 @@ static T metatype_from_data(const QByteArray& data)
 
 
 
-// ---------------------------------------------------
 
 
+// static
+KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
+{
+  QSqlDatabase db;
+  if (url.scheme() == "klf+sqlite") {
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(url.path());
+  } else {
+    qWarning("KLFLibDBEngine::KLFLibDBEngine: bad url scheme in URL\n\t%s",
+	     qPrintable(url.toString()));
+    return NULL;
+  }
 
+  if (!db.open()) {
+    QMessageBox::critical(0, tr("Error"),
+			  tr("Unable to open library file %1 (engine: %2).")
+			  .arg(url.path(), db.driverName()), QMessageBox::Ok);
+    return NULL;
+  }
 
+  return new KLFLibDBEngine(db, url, parent);
+}
 
-
-
-KLFLibDBEngine::KLFLibDBEngine(QSqlDatabase db)
+// private
+KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QUrl& url, QObject *parent)
+  : KLFLibResourceEngine(url, parent)
 {
   setDatabase(db);
 }
 
 KLFLibDBEngine::~KLFLibDBEngine()
 {
+  pDB.close();
+  QSqlDatabase::removeDatabase(pDB.connectionName());
 }
 
 bool KLFLibDBEngine::validDatabase() const
@@ -183,6 +277,9 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, QMap<int,int> col)
 
 KLFLibEntry KLFLibDBEngine::entry(entryId id)
 {
+  if ( ! validDatabase() )
+    return KLFLibEntry();
+
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("SELECT * FROM klfentries WHERE id = ?");
   q.addBindValue(id);
@@ -205,6 +302,9 @@ KLFLibEntry KLFLibDBEngine::entry(entryId id)
 
 QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
 {
+  if ( ! validDatabase() )
+    return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
+
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("SELECT * FROM klfentries");
   q.setForwardOnly(true);
@@ -227,6 +327,9 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
 
 KLFLibResourceEngine::entryId KLFLibDBEngine::insertEntry(const KLFLibEntry& entry)
 {
+  if ( ! validDatabase() )
+    return -1;
+
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO klfentries (Latex,DateTime,Preview,Category,Tags,Style) "
 	    " VALUES (?,?,?,?,?,?)");
@@ -246,6 +349,9 @@ KLFLibResourceEngine::entryId KLFLibDBEngine::insertEntry(const KLFLibEntry& ent
 
 bool KLFLibDBEngine::deleteEntry(const entryId& id)
 {
+  if ( ! validDatabase() )
+    return false;
+
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("DELETE FROM klfentries WHERE id = ?");
   q.addBindValue(id);
@@ -261,6 +367,9 @@ bool KLFLibDBEngine::deleteEntry(const entryId& id)
 // static
 bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 {
+  if ( ! db.isOpen() )
+    return false;
+
   QStringList sql;
   sql << "DROP TABLE klfentries"
       << "CREATE TABLE klfentries (id INTEGER PRIMARY KEY, Latex TEXT, DateTime INTEGER, "
@@ -278,3 +387,23 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 
   return true;
 }
+
+
+// ------------------------------------
+
+KLFLibDBEngineFactory::KLFLibDBEngineFactory(QObject *parent)
+  : KLFAbstractLibEngineFactory(parent)
+{
+}
+
+QStringList KLFLibDBEngineFactory::supportedSchemes() const
+{
+  return QStringList() << QLatin1String("klf+sqlite");
+}
+
+KLFLibResourceEngine *KLFLibDBEngineFactory::openResource(const QUrl& location, QObject *parent)
+{
+  return KLFLibDBEngine::openUrl(location, parent);
+}
+
+

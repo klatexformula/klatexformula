@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>pics/importexport.png</file>
     <file>pics/save.png</file>
     <file>pics/showpreview.png</file>
     <file>pics/new.png</file>

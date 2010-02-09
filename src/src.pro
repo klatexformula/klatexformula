@@ -16,7 +16,8 @@ TARGET = klfsrc
 DESTDIR = .
 DEPENDPATH += . klfbackend
 INCLUDEPATH += . klfbackend
-CONFIG += qt release $$SHAREDORSTATIC
+CONFIG += qt $$SHAREDORSTATIC debug
+# release
 QT = core gui xml sql
 !win32 {
 	QT += dbus
@@ -35,6 +36,8 @@ HEADERS += klfcolorchooser.h \
            klflibrary.h \
 	   klflib.h \
 	   klflibview.h \
+	   klflibentryeditor.h \
+	   klflibbrowser.h \
 	   klfmime.h \
            klfmainwin.h \
            klfpathchooser.h \
@@ -49,6 +52,8 @@ HEADERS += klfcolorchooser.h \
 }
 FORMS += klflatexsymbolsui.ui \
          klflibrarybrowserui.ui \
+	 klflibbrowser.ui \
+	 klflibentryeditor.ui \
          klfmainwinui.ui \
          klfprogerrui.ui \
          klfsettingsui.ui \
@@ -64,6 +69,8 @@ SOURCES += klfcolorchooser.cpp \
            klflibrary.cpp \
 	   klflib.cpp \
 	   klflibview.cpp \
+	   klflibentryeditor.cpp \
+	   klflibbrowser.cpp \
 	   klfmime.cpp \
            klfmainwin.cpp \
            klfpathchooser.cpp \

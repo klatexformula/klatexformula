@@ -26,6 +26,7 @@
 
 #include <QImage>
 #include <QMap>
+#include <QUrl>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
@@ -54,25 +55,27 @@ public:
   KLFLibEntry(const KLFLibEntry& copy);
   virtual ~KLFLibEntry();
 
-  QString latex() const { return property(Latex).toString(); }
-  QDateTime dateTime() const { return property(DateTime).toDateTime(); }
-  QImage preview() const { return property(Preview).value<QImage>(); }
-  QString category() const { return property(Category).toString(); }
-  QString tags() const { return property(Tags).toString(); }
-  KLFStyle style() const { return property(Style).value<KLFStyle>(); }
+  inline QString latex() const { return property(Latex).toString(); }
+  inline QDateTime dateTime() const { return property(DateTime).toDateTime(); }
+  inline QImage preview() const { return property(Preview).value<QImage>(); }
+  inline QString category() const { return property(Category).toString(); }
+  inline QString tags() const { return property(Tags).toString(); }
+  inline KLFStyle style() const { return property(Style).value<KLFStyle>(); }
 
-  void setLatex(const QString& latex) { setProperty(Latex, latex); }
-  void setDateTime(const QDateTime& dt) { setProperty(DateTime, dt); }
-  void setPreview(const QImage& img) { setProperty(Preview, img); }
-  void setCategory(const QString& s) { setProperty(Category, s); }
-  void setTags(const QString& s) { setProperty(Tags, s); }
-  void setStyle(const KLFStyle& style) { setProperty(Style, QVariant::fromValue(style)); }
+  inline void setLatex(const QString& latex) { setProperty(Latex, latex); }
+  inline void setDateTime(const QDateTime& dt) { setProperty(DateTime, dt); }
+  inline void setPreview(const QImage& img) { setProperty(Preview, img); }
+  inline void setCategory(const QString& s) { setProperty(Category, s); }
+  inline void setTags(const QString& s) { setProperty(Tags, s); }
+  inline void setStyle(const KLFStyle& style) { setProperty(Style, QVariant::fromValue(style)); }
 
 private:
 
   void initRegisteredProperties();
 };
 
+Q_DECLARE_METATYPE(KLFLibEntry)
+  ;
 
 class KLF_EXPORT KLFLibResourceEngine : public QObject
 {
@@ -85,23 +88,88 @@ public:
     KLFLibEntry entry;
   };
 
-  KLFLibResourceEngine(QObject *parent = NULL);
+  KLFLibResourceEngine(const QUrl& url, QObject *parent = NULL);
   virtual ~KLFLibResourceEngine();
+
+  virtual QUrl url() const { return pUrl; }
+
+  /** Suggested library view widget to view this resource with optimal user experience :-) .
+   * Return QString() for default view. */
+  virtual QString suggestedViewTypeIdentifier() const { return QString(); }
 
   virtual KLFLibEntry entry(entryId id) = 0;
   virtual QList<KLFLibEntryWithId> allEntries() = 0;
 
   virtual entryId insertEntry(const KLFLibEntry& entry) = 0;
   virtual bool deleteEntry(const entryId& id) = 0;
+
+protected:
+
+  QUrl pUrl;
 };
+
+
+
+/** An abstract factory class for opening resources identified by their URL.
+ */
+class KLF_EXPORT KLFAbstractLibEngineFactory : public QObject
+{
+  Q_OBJECT
+public:
+  typedef QMap<QString,QVariant> Parameters;
+
+  /** Constructs an engine factory and automatically regisers it. */
+  KLFAbstractLibEngineFactory(QObject *parent = NULL);
+  /** Destroys this engine factory and unregisters it. */
+  virtual ~KLFAbstractLibEngineFactory();
+
+  /** Should return a list of supported URL schemes this factory can open */
+  virtual QStringList supportedSchemes() const = 0;
+
+  /** Create a library engine that opens resource stored at \c location. The resource
+   * engine should be constructed as a child of object \c parent. */
+  virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL) = 0;
+
+  /** \returns whether this factory can be used to create new resources (eg. a new library
+   * sqlite resource, etc.) */
+  virtual bool canCreateResource() const;
+  /** create a widget that will prompt to user the different settings for the new resource
+   * that is about to be created.  Do not reimplement this function if canCreateResource()
+   * returns false. */
+  virtual QWidget * createPromptParametersWidget(QWidget *parent,
+						 Parameters defaultparameters = Parameters());
+  /** get the parameters edited by user, that are stored in \c widget GUI. */
+  virtual Parameters retrieveParametersFromWidget(QWidget *widget);
+  /** Actuall create the new resource, with the given settings. Save the resource to location
+   * \c newResourceUrl */
+  virtual KLFLibResourceEngine *createResource(const QUrl& newResourceUrl, Parameters parameters);
+
+  /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
+   * factory exists (ie. has been registered). */
+  static KLFAbstractLibEngineFactory *findFactoryFor(const QString& urlScheme);
+
+private:
+  static void registerFactory(KLFAbstractLibEngineFactory *factory);
+  static void unRegisterFactory(KLFAbstractLibEngineFactory *factory);
+
+  static QList<KLFAbstractLibEngineFactory*> pRegisteredFactories;
+};
+
+
 
 
 /** Library Resource engine implementation for an (abstract) database (using Qt
  * SQL interfaces) */
 class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceEngine
 {
+  Q_OBJECT
 public:
-  KLFLibDBEngine(QSqlDatabase db_connection = QSqlDatabase());
+  /** Use this function as a constructor. Creates a KLFLibDBEngine object,
+   * with QObject parent \c parent, opening the database at location \c url.
+   * Returns NULL if opening the database failed.
+   *
+   * A non-NULL returned object was successfully connected to database. */
+  static KLFLibDBEngine * openUrl(const QUrl& url, QObject *parent = NULL);
   virtual ~KLFLibDBEngine();
 
   /** True if one has supplied a valid database in the constructor or with a
@@ -119,21 +187,38 @@ public:
   static bool initFreshDatabase(QSqlDatabase db);
 
 private:
+  KLFLibDBEngine(const QSqlDatabase& db, const QUrl& url, QObject *parent = NULL);
+
   QSqlDatabase pDB;
 
   QMap<int,int> detectEntryColumns(const QSqlQuery& q);
   KLFLibEntry readEntry(const QSqlQuery& q, QMap<int,int> columns);
 };
 
-
-
-
-
-
-class KLFLibLegacyLibraryEngine : public KLFLibResourceEngine
+/** The associated factory to the KLFLibDBEngine engine. */
+class KLF_EXPORT KLFLibDBEngineFactory : public KLFAbstractLibEngineFactory
 {
-  // ..........
+  Q_OBJECT
+public:
+  KLFLibDBEngineFactory(QObject *parent = NULL);
+  virtual ~KLFLibDBEngineFactory() { }
+
+  /** Should return a list of supported URL schemes this factory can open */
+  virtual QStringList supportedSchemes() const;
+
+  /** Create a library engine that opens resource stored at \c location */
+  virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL);
+
 };
+
+
+// class KLF_EXPORT KLFLibLegacyLibraryEngine : public KLFLibResourceEngine
+// {
+//   // ..........
+// };
+
+
+
 
 #endif
 

@@ -26,8 +26,82 @@
 
 #include <QAbstractItemModel>
 #include <QAbstractItemDelegate>
+#include <QWidget>
+#include <QTreeView>
 
+#include <klfdefs.h>
 #include <klflib.h>
+
+
+class KLF_EXPORT KLFAbstractLibView : public QWidget
+{
+  Q_OBJECT
+public:
+  KLFAbstractLibView(QWidget *parent) : QWidget(parent), pResourceEngine(NULL) {  }
+  virtual ~KLFAbstractLibView() { }
+
+  virtual KLFLibResourceEngine * resourceEngine() const { return pResourceEngine; }
+
+  virtual void setResourceEngine(KLFLibResourceEngine *resource) {
+    pResourceEngine = resource;
+    updateResourceView();
+  }
+
+signals:
+  virtual void entriesSelected(const QList<KLFLibEntry>& entries);
+
+public slots:
+  virtual void updateView();
+
+protected:
+  virtual void updateResourceView() = 0;
+
+private:
+  KLFLibResourceEngine *pResourceEngine;
+};
+
+
+// -----------------
+
+class KLF_EXPORT KLFAbstractLibViewFactory : public QObject
+{
+  Q_OBJECT
+public:
+  KLFAbstractLibViewFactory(QObject *parent = NULL);
+  virtual ~KLFAbstractLibViewFactory();
+
+  /** An identifier for this view type (eg. "LibModel+CategoryTree" or whatever)  */
+  virtual QString viewTypeIdentifier() const = 0;
+  /** A translated string to be shown to user (in a choice box for ex.)
+   * (eg. <tt>tr("Tree View")</tt>) */
+  virtual QString viewTypeTitle() const = 0;
+
+  /** \returns Whether this factory can create its view widget for the given engine.
+   *
+   * This function may return false, for example if this widget factory creates a specialized
+   * widgets that can only work with a given engine. */
+  virtual bool canCreateLibView(KLFLibResourceEngine *engine) = 0;
+
+  /** Create a library view with the given widget \c parent. The view should reflect the contents
+   * given by the resource engine \c resourceEngine . */
+  virtual KLFAbstractLibView * createLibView(QWidget *parent, KLFLibResourceEngine *resourceEngine) = 0;
+
+
+  /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
+   * factory exists (ie. has been registered). */
+  static KLFAbstractLibViewFactory *findFactoryFor(const QString& viewTypeIdentifier);
+
+private:
+  static void registerFactory(KLFAbstractLibViewFactory *factory);
+  static void unRegisterFactory(KLFAbstractLibViewFactory *factory);
+
+  static QList<KLFAbstractLibViewFactory*> pRegisteredFactories;
+
+};
+
+
+
+// -----------------
 
 
 /** \brief Model for Item-Views displaying a library resource's contents
@@ -37,7 +111,7 @@
  * in the future, ...).
  *
  */
-class KLFLibModel : public QAbstractItemModel
+class KLF_EXPORT KLFLibModel : public QAbstractItemModel
 {
   Q_OBJECT
 public:
@@ -49,6 +123,7 @@ public:
   enum {
     ItemKindItemRole = Qt::UserRole+800,
     EntryContentsTypeItemRole,
+    FullEntryItemRole,
     CategoryLabelItemRole,
     FullCategoryPathItemRole
   };
@@ -98,13 +173,14 @@ public:
 
   virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 
+  virtual int entryColumnContentsPropertyId(int column) const;
+  virtual int columnForEntryPropertyId(int entryPropertyId) const;
+
 private:
 
   KLFLibResourceEngine *pResource;
 
   unsigned int pFlavorFlags;
-
-  int entryContentsType(int column) const;
 
   typedef qint32 IndexType;
   struct NodeId {
@@ -162,7 +238,7 @@ private:
 
   void dumpNodeTree(Node *node, int indent = 0) const;
 
-  class KLFLibModelSorter
+  class KLF_EXPORT KLFLibModelSorter
   {
   public:
     KLFLibModelSorter(KLFLibModel *m, int entry_prop, Qt::SortOrder sort_order, bool groupcategories)
@@ -183,7 +259,7 @@ private:
 
 };
 
-
+// -----------------
 
 class KLF_EXPORT KLFLibViewDelegate : public QAbstractItemDelegate
 {
@@ -216,6 +292,41 @@ private:
   mutable bool isselected;
 };
 
+// -----------------
+
+class KLF_EXPORT KLFLibDefaultView : public KLFAbstractLibView
+{
+  Q_OBJECT
+public:
+  KLFLibDefaultView(QWidget *parent);
+  virtual ~KLFLibDefaultView();
+
+protected:
+  virtual void updateResourceView();
+
+protected slots:
+  void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
+
+private:
+  QTreeView *pTreeView;
+  KLFLibModel *pModel;
+};
+
+// -----------------
+
+class KLF_EXPORT KLFLibDefaultViewFactory : public KLFAbstractLibViewFactory
+{
+  Q_OBJECT
+public:
+  KLFLibDefaultViewFactory(QObject *parent = NULL) : KLFAbstractLibViewFactory(parent) { }
+
+  virtual QString viewTypeIdentifier() const { return "default"; }
+  virtual QString viewTypeTitle() const { return tr("Default View"); }
+
+  virtual bool canCreateLibView(KLFLibResourceEngine */*engine*/) { return true; }
+
+  virtual KLFAbstractLibView * createLibView(QWidget *parent, KLFLibResourceEngine *resourceEngine);
+};
 
 
 #endif
