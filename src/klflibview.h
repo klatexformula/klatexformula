@@ -47,11 +47,18 @@ public:
     updateResourceView();
   }
 
+  virtual QList<KLFLibEntry> selectedEntries() const = 0;
+
 signals:
   virtual void entriesSelected(const QList<KLFLibEntry>& entries);
 
 public slots:
   virtual void updateView();
+  virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
+  bool writeEntryCategory(const QString& category)
+  { return writeEntryProperty(KLFLibEntry::Category, category); }
+  bool writeEntryTags(const QString& tags)
+  { return writeEntryProperty(KLFLibEntry::Tags, tags); }
 
 protected:
   virtual void updateResourceView() = 0;
@@ -175,6 +182,8 @@ public:
 
   virtual int entryColumnContentsPropertyId(int column) const;
   virtual int columnForEntryPropertyId(int entryPropertyId) const;
+
+  virtual bool changeEntry(const QModelIndexList& items, int property, const QVariant& value);
 
 private:
 
@@ -301,8 +310,11 @@ public:
   KLFLibDefaultView(QWidget *parent);
   virtual ~KLFLibDefaultView();
 
+  virtual QList<KLFLibEntry> selectedEntries() const;
+
 protected:
   virtual void updateResourceView();
+  virtual bool writeEntryProperty(int property, const QVariant& value);
 
 protected slots:
   void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);

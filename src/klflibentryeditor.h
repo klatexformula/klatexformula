@@ -37,6 +37,8 @@ public:
   KLFLibEntryEditor(QWidget *parent = NULL);
   virtual ~KLFLibEntryEditor();
 
+  void addCategorySuggestion(const QString& category);
+
 signals:
 
   void categoryChanged(const QString& newCategory);
@@ -49,6 +51,11 @@ public slots:
   /** Handles the selection of multiple items properly by displaying
    * [Multiple items selected] whenever needed. */
   void displayEntries(const QList<KLFLibEntry>& entries);
+
+protected slots:
+
+  void slotUpdateCategory();
+  void slotUpdateTags();
 
 private:
   Ui::KLFLibEntryEditor *pUi;

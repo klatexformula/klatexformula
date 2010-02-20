@@ -21,6 +21,8 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <QMessageBox>
+
 #include <klflibbrowser.h>
 
 #include <ui_klflibbrowser.h>
@@ -33,6 +35,11 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pUi = new Ui::KLFLibBrowser;
   pUi->setupUi(this);
   pUi->tabResources->clear();
+
+  connect(pUi->wEntryEditor, SIGNAL(categoryChanged(const QString&)),
+	  this, SLOT(slotCategoryChanged(const QString&)));
+  connect(pUi->wEntryEditor, SIGNAL(tagsChanged(const QString&)),
+	  this, SLOT(slotTagsChanged(const QString&)));
 }
 
 
@@ -117,5 +124,31 @@ void KLFLibBrowser::slotEntriesSelected(const QList<KLFLibEntry>& entries)
   pUi->wEntryEditor->displayEntries(entries);
 }
 
+void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
+{
+  QWidget *w = pUi->tabResources->currentWidget();
+  KLFAbstractLibView *wview = qobject_cast<KLFAbstractLibView*>(w);
+  if (wview == NULL) {
+    qWarning("Current view is not a KLFAbstractLibView!");
+    return;
+  }
+  bool r = wview->writeEntryProperty(KLFLibEntry::Category, newcategory);
+  if ( ! r )
+    QMessageBox::warning(this, tr("Error"),
+			 tr("Failed to write category information!"));
+}
+void KLFLibBrowser::slotTagsChanged(const QString& newtags)
+{
+  QWidget *w = pUi->tabResources->currentWidget();
+  KLFAbstractLibView *wview = qobject_cast<KLFAbstractLibView*>(w);
+  if (wview == NULL) {
+    qWarning("Current view is not a KLFAbstractLibView!");
+    return;
+  }
+  bool r = wview->writeEntryProperty(KLFLibEntry::Tags, newtags);
+  if ( ! r )
+    QMessageBox::warning(this, tr("Error"),
+			 tr("Failed to write tags information!"));
+}
 
 

@@ -326,10 +326,36 @@ int KLFLibModel::columnForEntryPropertyId(int entryPropertyId) const
   }
 }
 
-
+bool KLFLibModel::changeEntry(const QModelIndexList& indexlist, int propId, const QVariant& value)
+{
+  QList<KLFLibResourceEngine::entryId> idList;
+  int k;
+  QList<EntryNode*> nodePtrs;
+  // walk all indexes and get their IDs
+  for (k = 0; k < indexlist.size(); ++k) {
+    Node *ptr = getNodeForIndex(indexlist[k]);
+    if ( ptr == NULL )
+      continue;
+    if (ptr->nodeKind() != EntryKind)
+      continue;
+    EntryNode *n = (EntryNode*)ptr;
+    if ( nodePtrs.contains(n) ) // duplicate, probably for another column
+      continue;
+    nodePtrs << n;
+    idList << n->entryid;
+  }
+  if ( pResource->changeEntry(idList, QList<int>() << propId, QList<QVariant>() << value) ) {
+    for (k = 0; k < nodePtrs.size(); ++k)
+      nodePtrs[k]->entry.setProperty(propId, value);
+    emit dataChanged(QModelIndex(), QModelIndex());
+    return true;
+  }
+  return false;
+}
 
 QString KLFLibModel::nodeValue(Node *ptr, int entryProperty)
 {
+  // return an internal string representation of the value of the property 'entryProperty' in node ptr.
   if (ptr == NULL)
     return QString();
   int kind = ptr->nodeKind();
@@ -831,6 +857,24 @@ KLFLibDefaultView::~KLFLibDefaultView()
 {
 }
 
+QList<KLFLibEntry> KLFLibDefaultView::selectedEntries() const
+{
+  QModelIndexList selectedindexes = pTreeView->selectionModel()->selectedIndexes();
+  QList<KLFLibEntry> elist;
+  // fill the entry list with our selected entries
+  int k;
+  for (k = 0; k < selectedindexes.size(); ++k) {
+    // ...... TODO ...... : HANDLE FULL CATEGORY SELECTIONS WHEN USER SELECTS A CATEGORY LABEL
+    if (selectedindexes[k].column() != 0)
+      continue;
+    if ( selectedindexes[k].data(KLFLibModel::ItemKindItemRole) != KLFLibModel::EntryKind )
+      continue;
+    qDebug() << "selection list: adding item [latex="<<selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>().latex()<<"]";
+    elist << selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
+  }
+  return elist;
+}
+
 void KLFLibDefaultView::updateResourceView()
 {
   KLFLibResourceEngine *resource = resourceEngine();
@@ -862,25 +906,17 @@ void KLFLibDefaultView::updateResourceView()
 
 }
 
+bool KLFLibDefaultView::writeEntryProperty(int property, const QVariant& value)
+{
+  return pModel->changeEntry(pTreeView->selectionModel()->selectedIndexes(), property, value);
+}
+
 void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
 						 const QItemSelection& /*deselected*/)
 {
   qDebug("Selection changed");
-  QModelIndexList selectedindexes = pTreeView->selectionModel()->selectedIndexes();
-  QList<KLFLibEntry> elist;
-  // fill the entry list with our selected entries
-  int k;
-  for (k = 0; k < selectedindexes.size(); ++k) {
-    // ...... TODO ...... : HANDLE FULL CATEGORY SELECTIONS WHEN USER SELECTS A CATEGORY LABEL
-    if (selectedindexes[k].column() != 0)
-      continue;
-    if ( selectedindexes[k].data(KLFLibModel::ItemKindItemRole) != KLFLibModel::EntryKind )
-      continue;
-    qDebug() << "selection list: adding item [latex="<<selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>().latex()<<"]";
-    elist << selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
-  }
 
-  emit entriesSelected(elist);
+  emit entriesSelected(selectedEntries());
 }
 
 
@@ -979,6 +1015,7 @@ void klf___temp___test_newlib()
     view->resize(800,600);
     view->show();*/
   KLFLibBrowser * w = new KLFLibBrowser(NULL);
+  w->setAttribute(Qt::WA_DeleteOnClose, true);
   w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_sqlite_test")));
 
   w->show();

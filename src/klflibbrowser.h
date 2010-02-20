@@ -49,6 +49,8 @@ public slots:
 protected slots:
 
   void slotEntriesSelected(const QList<KLFLibEntry>& entries);
+  void slotCategoryChanged(const QString& newcategory);
+  void slotTagsChanged(const QString& newtags);
 
 protected:
   KLFAbstractLibView * findOpenUrl(const QUrl& url);

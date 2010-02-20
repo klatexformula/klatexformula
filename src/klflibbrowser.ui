@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>917</width>
-    <height>636</height>
+    <width>909</width>
+    <height>630</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,6 +22,45 @@
     <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="QSplitter" name="splitViewsEditor">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QFrame" name="frmViews">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <layout class="QVBoxLayout" name="lyt_frmViews">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QTabWidget" name="tabResources">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab_dummy">
+          <attribute name="title">
+           <string notr="true">Dummy Tab (that will be deleted at execution)</string>
+          </attribute>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="KLFLibEntryEditor" name="wEntryEditor" native="true"/>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QFrame" name="frmSearch">
      <property name="sizePolicy">
@@ -115,45 +154,6 @@
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QSplitter" name="splitViewsEditor">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <widget class="QFrame" name="frmViews">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>1</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Sunken</enum>
-      </property>
-      <layout class="QVBoxLayout" name="lyt_frmViews">
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QTabWidget" name="tabResources">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <widget class="QWidget" name="tab_dummy">
-          <attribute name="title">
-           <string notr="true">Dummy Tab (that will be deleted at execution)</string>
-          </attribute>
-         </widget>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="KLFLibEntryEditor" name="wEntryEditor" native="true"/>
     </widget>
    </item>
    <item row="2" column="0">
@@ -293,12 +293,9 @@
     </widget>
    </item>
   </layout>
+  <zorder>splitViewsEditor</zorder>
   <zorder>frmSearch</zorder>
   <zorder>frmButtons</zorder>
-  <zorder>splitter</zorder>
-  <zorder>wEntryEditor</zorder>
-  <zorder>listView</zorder>
-  <zorder>tabResources</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

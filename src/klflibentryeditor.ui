@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>308</width>
-    <height>634</height>
+    <width>303</width>
+    <height>628</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -106,12 +106,12 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>302</width>
-         <height>253</height>
+         <width>297</width>
+         <height>250</height>
         </rect>
        </property>
        <property name="autoFillBackground">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <attribute name="label">
         <string>Category and Tags</string>
@@ -243,12 +243,12 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>302</width>
-         <height>253</height>
+         <width>149</width>
+         <height>65</height>
         </rect>
        </property>
        <property name="autoFillBackground">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <attribute name="label">
         <string>Style</string>

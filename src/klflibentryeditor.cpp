@@ -32,6 +32,8 @@
 #include "klflibentryeditor.h"
 
 
+
+
 KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
   : QWidget(parent)
 {
@@ -45,7 +47,10 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
   // still respecting their minimum sizes...)
   pUi->splitEntryEditor->setSizes(QList<int>() << 100 << 1000);
 
-  // connect signals & stuff.......... TODO ...........
+  connect(pUi->btnUpdateCategory, SIGNAL(clicked()),
+	  this, SLOT(slotUpdateCategory()));
+  connect(pUi->btnUpdateTags, SIGNAL(clicked()),
+	  this, SLOT(slotUpdateTags()));
 }
 KLFLibEntryEditor::~KLFLibEntryEditor()
 {
@@ -114,4 +119,11 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     pUi->lblStylePreview->setText(tr("[ Different Styles ]"));
 }
 
-
+void KLFLibEntryEditor::slotUpdateCategory()
+{
+  emit categoryChanged(pUi->cbxCategory->currentText());
+}
+void KLFLibEntryEditor::slotUpdateTags()
+{
+  emit tagsChanged(pUi->cbxTags->currentText());
+}

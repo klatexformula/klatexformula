@@ -80,6 +80,8 @@ Q_DECLARE_METATYPE(KLFLibEntry)
 class KLF_EXPORT KLFLibResourceEngine : public QObject
 {
   Q_OBJECT
+
+  Q_PROPERTY(QUrl url READ url)
 public:
   typedef qint32 entryId;
 
@@ -101,7 +103,9 @@ public:
   virtual QList<KLFLibEntryWithId> allEntries() = 0;
 
   virtual entryId insertEntry(const KLFLibEntry& entry) = 0;
-  virtual bool deleteEntry(const entryId& id) = 0;
+  virtual bool changeEntry(const QList<entryId>& idlist, const QList<int>& properties,
+			   const QList<QVariant>& values) = 0;
+  virtual bool deleteEntry(entryId id) = 0;
 
 protected:
 
@@ -163,6 +167,9 @@ private:
 class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceEngine
 {
   Q_OBJECT
+
+  Q_PROPERTY(bool autoDisconnectDB READ autoDisconnectDB) ;
+  Q_PROPERTY(QString dataTableName READ dataTableName)
 public:
   /** Use this function as a constructor. Creates a KLFLibDBEngine object,
    * with QObject parent \c parent, opening the database at location \c url.
@@ -170,6 +177,8 @@ public:
    *
    * A non-NULL returned object was successfully connected to database. */
   static KLFLibDBEngine * openUrl(const QUrl& url, QObject *parent = NULL);
+  /** Simple destructor. Disconnects the database if the autoDisconnectDB() property was
+   * set. */
   virtual ~KLFLibDBEngine();
 
   /** True if one has supplied a valid database in the constructor or with a
@@ -178,21 +187,34 @@ public:
   /** supply an open database. */
   void setDatabase(QSqlDatabase db_connection);
 
+  virtual bool autoDisconnectDB() const { return pAutoDisconnectDB; }
+  virtual QString dataTableName() const { return pDataTableName; }
+
   virtual KLFLibEntry entry(entryId id);
   virtual QList<KLFLibEntryWithId> allEntries();
 
-  virtual entryId insertEntry(const KLFLibEntry& entry);
-  virtual bool deleteEntry(const entryId& id);
+public slots:
 
-  static bool initFreshDatabase(QSqlDatabase db);
+  virtual entryId insertEntry(const KLFLibEntry& entry);
+  virtual bool changeEntry(const QList<entryId>& idlist, const QList<int>& properties,
+			   const QList<QVariant>& values);
+  virtual bool deleteEntry(entryId id);
+
+  /*  static bool initFreshDatabase(QSqlDatabase db); */
 
 private:
-  KLFLibDBEngine(const QSqlDatabase& db, const QUrl& url, QObject *parent = NULL);
+  KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
+		 bool autoDisconnectDB, const QUrl& url, QObject *parent = NULL);
 
   QSqlDatabase pDB;
+  
+  bool pAutoDisconnectDB;
+  QString pDataTableName;
 
   QMap<int,int> detectEntryColumns(const QSqlQuery& q);
   KLFLibEntry readEntry(const QSqlQuery& q, QMap<int,int> columns);
+
+  QVariant convertVariantToDBData(const QVariant& value) const;
 };
 
 /** The associated factory to the KLFLibDBEngine engine. */
@@ -208,7 +230,6 @@ public:
 
   /** Create a library engine that opens resource stored at \c location */
   virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL);
-
 };
 
 
