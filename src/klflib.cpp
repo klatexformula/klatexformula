@@ -439,7 +439,7 @@ bool KLFLibDBEngine::deleteEntry(entryId id)
   return true;  // no error
 }
 
-
+/*
 // static
 bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 {
@@ -468,6 +468,7 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 
   return true;
 }
+*/
 
 
 // ------------------------------------

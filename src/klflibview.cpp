@@ -49,7 +49,10 @@ void KLFAbstractLibView::updateView()
   updateResourceView();
 }
 
-
+void KLFAbstractLibView::wantMoreCategorySuggestions()
+{
+  emit moreCategorySuggestions(getCategorySuggestions());
+}
 
 // -------------------------------------------------------
 
@@ -326,6 +329,21 @@ int KLFLibModel::columnForEntryPropertyId(int entryPropertyId) const
   }
 }
 
+
+QStringList KLFLibModel::categoryList() const
+{
+  QStringList catlist;
+  // walk category tree and collect all categories
+  int k;
+
+  // skip root category (hence k=1 instead of k=0)
+  for (k = 1; k < pCategoryLabelCache.size(); ++k) {
+    catlist << pCategoryLabelCache[k].fullCategoryPath;
+  }
+  return catlist;
+}
+
+
 bool KLFLibModel::changeEntry(const QModelIndexList& indexlist, int propId, const QVariant& value)
 {
   QList<KLFLibResourceEngine::entryId> idList;
@@ -345,9 +363,9 @@ bool KLFLibModel::changeEntry(const QModelIndexList& indexlist, int propId, cons
     idList << n->entryid;
   }
   if ( pResource->changeEntry(idList, QList<int>() << propId, QList<QVariant>() << value) ) {
-    for (k = 0; k < nodePtrs.size(); ++k)
-      nodePtrs[k]->entry.setProperty(propId, value);
-    emit dataChanged(QModelIndex(), QModelIndex());
+    //    for (k = 0; k < nodePtrs.size(); ++k)
+    //      nodePtrs[k]->entry.setProperty(propId, value);
+    updateCacheSetupModel();
     return true;
   }
   return false;
@@ -533,7 +551,18 @@ QModelIndex KLFLibModel::createIndexFromPtr(Node *n, int row, int column) const
   
 void KLFLibModel::updateCacheSetupModel()
 {
+  int k;
   //  qDebug("updateCacheSetupModel(); pFlavorFlags=%#010x", (uint)pFlavorFlags);
+
+  emit layoutAboutToBeChanged();
+
+  // save persistent indexes
+  QModelIndexList persistentIndexes = persistentIndexList();
+  QList<NodeId> persistentIndexIds;
+  for (k = 0; k < persistentIndexes.size(); ++k) {
+    persistentIndexIds << getNodeId(getNodeForIndex(persistentIndexes[k]));
+  }
+
   // clear cache first
   pEntryCache.clear();
   pCategoryLabelCache.clear();
@@ -545,7 +574,6 @@ void KLFLibModel::updateCacheSetupModel()
   pCategoryLabelCache.append(root);
 
   QList<KLFLibResourceEngine::KLFLibEntryWithId> everything = pResource->allEntries();
-  int k;
   NodeId entryindex;
   entryindex.kind = EntryKind;
   for (k = 0; k < everything.size(); ++k) {
@@ -569,9 +597,16 @@ void KLFLibModel::updateCacheSetupModel()
     }
   }
 
+  QModelIndexList newPersistentIndexes;
+  for (k = 0; k < persistentIndexIds.size(); ++k)
+    newPersistentIndexes << createIndexFromId(persistentIndexIds[k], -1, persistentIndexes[k].column());
+
+  changePersistentIndexList(persistentIndexes, newPersistentIndexes);
+
   //  dumpNodeTree(pCategoryLabelCache.data()+0); // DEBUG
 
-  emit dataChanged(QModelIndex(), QModelIndex());
+  emit dataChanged(QModelIndex(),QModelIndex());
+  emit layoutChanged();
 }
 KLFLibModel::IndexType KLFLibModel::cacheFindCategoryLabel(QString category, bool createIfNotExists)
 {
@@ -848,6 +883,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent)
   pTreeView = new QTreeView(this);
   pTreeView->setItemDelegate(new KLFLibViewDelegate(this));
   pTreeView->setSelectionBehavior(QAbstractItemView::SelectRows);
+  pTreeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
   pTreeView->setSortingEnabled(true);
   lyt->addWidget(pTreeView);
 
@@ -904,6 +940,12 @@ void KLFLibDefaultView::updateResourceView()
   for (k = 0; k < pModel->columnCount(); ++k)
     pTreeView->resizeColumnToContents(k);
 
+  wantMoreCategorySuggestions();
+}
+
+QStringList KLFLibDefaultView::getCategorySuggestions()
+{
+  return pModel->categoryList();
 }
 
 bool KLFLibDefaultView::writeEntryProperty(int property, const QVariant& value)

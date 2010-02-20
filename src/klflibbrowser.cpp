@@ -21,6 +21,7 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <QDebug>
 #include <QMessageBox>
 
 #include <klflibbrowser.h>
@@ -91,6 +92,12 @@ bool KLFLibBrowser::openResource(const QUrl& url)
   // get informed about selection changes
   connect(view, SIGNAL(entriesSelected(const QList<KLFLibEntry>& )),
 	  this, SLOT(slotEntriesSelected(const QList<KLFLibEntry>& )));
+  // and of new category suggestions
+  connect(view, SIGNAL(moreCategorySuggestions(const QStringList&)),
+	  this, SLOT(slotAddCategorySuggestions(const QStringList&)));
+
+  // get more category completions
+  view->wantMoreCategorySuggestions();
 
   pUi->tabResources->addTab(view, urlToResourceTitle(url));
   pLibViews.append(view);
@@ -122,6 +129,10 @@ void KLFLibBrowser::slotEntriesSelected(const QList<KLFLibEntry>& entries)
     return;
 
   pUi->wEntryEditor->displayEntries(entries);
+}
+void KLFLibBrowser::slotAddCategorySuggestions(const QStringList& catlist)
+{
+  pUi->wEntryEditor->addCategorySuggestions(catlist);
 }
 
 void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)

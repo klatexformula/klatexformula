@@ -25,6 +25,7 @@
 #define KLFLIBENTRYEDITOR_H
 
 #include <QWidget>
+#include <QComboBox>
 
 #include <klflib.h>
 
@@ -37,7 +38,9 @@ public:
   KLFLibEntryEditor(QWidget *parent = NULL);
   virtual ~KLFLibEntryEditor();
 
-  void addCategorySuggestion(const QString& category);
+  void addCategorySuggestions(const QStringList& categorylist);
+
+  virtual bool eventFilter(QObject *object, QEvent *event);
 
 signals:
 
@@ -54,8 +57,12 @@ public slots:
 
 protected slots:
 
+  void slotUpdateFromCbx(QComboBox *cbx);
   void slotUpdateCategory();
   void slotUpdateTags();
+
+  void slotCbxSaveCurrentCompletion(QComboBox *cbx);
+  void slotCbxCleanUpCompletions(QComboBox *cbx);
 
 private:
   Ui::KLFLibEntryEditor *pUi;

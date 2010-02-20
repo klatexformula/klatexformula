@@ -23,6 +23,9 @@
 
 
 #include <QWidget>
+#include <QComboBox>
+#include <QEvent>
+#include <QKeyEvent>
 #include <QPixmap>
 
 #include "klfdata.h"
@@ -43,6 +46,22 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
 
   pUi->lblPreview->setFixedSize(klfconfig.UI.labelOutputFixedSize);
 
+  pUi->cbxCategory->setInsertPolicy(QComboBox::InsertAlphabetically);
+  pUi->cbxCategory->setDuplicatesEnabled(false);
+  pUi->cbxTags->setInsertPolicy(QComboBox::InsertAlphabetically);
+  pUi->cbxTags->setDuplicatesEnabled(false);
+
+  pUi->cbxCategory->installEventFilter(this);
+  pUi->cbxTags->installEventFilter(this);
+
+  pUi->cbxCategory->addItem("");
+  pUi->cbxTags->addItem("");
+
+  connect(pUi->cbxCategory, SIGNAL(activated(int)),
+	  this, SLOT(slotUpdateCategory()));
+  connect(pUi->cbxTags, SIGNAL(activated(int)),
+	  this, SLOT(slotUpdateTags()));
+
   // preview and latexpreview should be as small as possible (while
   // still respecting their minimum sizes...)
   pUi->splitEntryEditor->setSizes(QList<int>() << 100 << 1000);
@@ -55,6 +74,28 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
 KLFLibEntryEditor::~KLFLibEntryEditor()
 {
   delete pUi;
+}
+
+bool KLFLibEntryEditor::eventFilter(QObject *object, QEvent *event)
+{
+  if (object == pUi->cbxCategory || object == pUi->cbxTags) {
+    QComboBox *cbx = qobject_cast<QComboBox*>(object);
+    if (event->type() == QEvent::KeyPress) {
+      QKeyEvent *ke = (QKeyEvent*) event;
+      if (ke->key() == Qt::Key_Return || ke->key() == Qt::Key_Enter) {
+	slotUpdateFromCbx(cbx);
+	return true;
+      }
+    }
+  }
+
+  return QWidget::eventFilter(object, event);
+}
+
+void KLFLibEntryEditor::addCategorySuggestions(const QStringList& categorylist)
+{
+  pUi->cbxCategory->addItems(categorylist);
+  slotCbxCleanUpCompletions(pUi->cbxCategory);
 }
 
 
@@ -119,11 +160,55 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     pUi->lblStylePreview->setText(tr("[ Different Styles ]"));
 }
 
+void KLFLibEntryEditor::slotUpdateFromCbx(QComboBox *cbx)
+{
+  if (cbx == pUi->cbxCategory)
+    slotUpdateCategory();
+  else if (cbx == pUi->cbxTags)
+    slotUpdateTags();
+  else
+    qWarning("KLFLibEntryEditor::slotUpdateFromCbx: Couldn't find combo box=%p", (void*)cbx);
+}
+
 void KLFLibEntryEditor::slotUpdateCategory()
 {
   emit categoryChanged(pUi->cbxCategory->currentText());
+  slotCbxSaveCurrentCompletion(pUi->cbxCategory);
 }
 void KLFLibEntryEditor::slotUpdateTags()
 {
   emit tagsChanged(pUi->cbxTags->currentText());
+  slotCbxSaveCurrentCompletion(pUi->cbxTags);
+}
+
+void KLFLibEntryEditor::slotCbxSaveCurrentCompletion(QComboBox *cbx)
+{
+  cbx->addItem(cbx->currentText());
+  slotCbxCleanUpCompletions(cbx);
+}
+
+void KLFLibEntryEditor::slotCbxCleanUpCompletions(QComboBox *cbx)
+{
+  cbx->blockSignals(true);
+  QString bkp_edittext = cbx->currentText();
+
+  QStringList items;
+  QStringList uitems;
+  int k;
+  for (k = 0; k < cbx->count(); ++k) {
+    items << cbx->itemText(k);
+  }
+  items.sort();
+  // unique items now
+  for (k = 0; k < items.size(); ++k) {
+    if ( ! uitems.contains(items[k]) )
+      uitems << items[k];
+  }
+  // remove all items
+  while (cbx->count())
+    cbx->removeItem(0);
+  cbx->addItems(uitems);
+
+  cbx->setEditText(bkp_edittext);
+  cbx->blockSignals(false);
 }

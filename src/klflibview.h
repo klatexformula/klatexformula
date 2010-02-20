@@ -50,7 +50,10 @@ public:
   virtual QList<KLFLibEntry> selectedEntries() const = 0;
 
 signals:
-  virtual void entriesSelected(const QList<KLFLibEntry>& entries);
+  void entriesSelected(const QList<KLFLibEntry>& entries);
+  /** Subclasses should emit this signal with lists of categories they come accross,
+   * so that the editor can suggest these as completions upon editing category */
+  void moreCategorySuggestions(const QStringList& categorylist);
 
 public slots:
   virtual void updateView();
@@ -60,8 +63,14 @@ public slots:
   bool writeEntryTags(const QString& tags)
   { return writeEntryProperty(KLFLibEntry::Tags, tags); }
 
+  /** Called by the owner of the view. This function fetches category suggestions
+   * (by calling the virtual getCategorySuggestions() reimplemented by subclasses)
+   * and emits the signal moreCategorySuggestions(). */
+  virtual void wantMoreCategorySuggestions();
+
 protected:
   virtual void updateResourceView() = 0;
+  virtual QStringList getCategorySuggestions() = 0;
 
 private:
   KLFLibResourceEngine *pResourceEngine;
@@ -182,6 +191,10 @@ public:
 
   virtual int entryColumnContentsPropertyId(int column) const;
   virtual int columnForEntryPropertyId(int entryPropertyId) const;
+
+  virtual QStringList categoryList() const;
+
+public slots:
 
   virtual bool changeEntry(const QModelIndexList& items, int property, const QVariant& value);
 
@@ -312,9 +325,12 @@ public:
 
   virtual QList<KLFLibEntry> selectedEntries() const;
 
+public slots:
+  virtual bool writeEntryProperty(int property, const QVariant& value);
+
 protected:
   virtual void updateResourceView();
-  virtual bool writeEntryProperty(int property, const QVariant& value);
+  virtual QStringList getCategorySuggestions();
 
 protected slots:
   void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
