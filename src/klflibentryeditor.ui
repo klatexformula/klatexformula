@@ -30,7 +30,7 @@
        <enum>QFrame::Plain</enum>
       </property>
       <layout class="QGridLayout" name="lyt_frmPreviews">
-       <item row="0" column="0">
+       <item row="0" column="1">
         <widget class="QLabel" name="lblPreview">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -55,7 +55,7 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="1" column="0" colspan="3">
         <widget class="QTextEdit" name="txtPreviewLatex">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -79,6 +79,32 @@
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item row="0" column="0">
+        <spacer name="hspc1">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>1</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="2">
+        <spacer name="hspc2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>1</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -117,6 +143,9 @@
         <string>Category and Tags</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>2</number>
+        </property>
         <item>
          <widget class="QLabel" name="lblCategory">
           <property name="text">
@@ -169,6 +198,13 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="Line" name="line">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="lblTags">
@@ -243,8 +279,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>149</width>
-         <height>65</height>
+         <width>297</width>
+         <height>250</height>
         </rect>
        </property>
        <property name="autoFillBackground">

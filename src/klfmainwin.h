@@ -28,7 +28,6 @@
 
 #include <QObject>
 #include <QList>
-#include <QSyntaxHighlighter>
 #include <QFont>
 #include <QCheckBox>
 #include <QMenu>
@@ -44,6 +43,8 @@
 #include <klfconfig.h>
 #include <klfdata.h>
 #include <klflatexsymbols.h>
+#include <klflatexsyntaxhighlighter.h>
+
 #include <ui_klfmainwinui.h>
 
 
@@ -71,60 +72,6 @@ private:
   Ui::KLFProgErrUI *mUI;
 };
 
-
-
-class KLF_EXPORT KLFLatexSyntaxHighlighter : public QSyntaxHighlighter
-{
-  Q_OBJECT
-public:
-  KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent);
-  virtual ~KLFLatexSyntaxHighlighter();
-
-  void setCaretPos(int position);
-
-  virtual void highlightBlock(const QString& text);
-
-  enum { Enabled = 0x01,
-	 HighlightParensOnly = 0x02,
-	 HighlightLonelyParen = 0x04 };
-
-public slots:
-  void refreshAll();
-
-private:
-
-  QTextEdit *_textedit;
-
-  int _caretpos;
-
-  enum Format { FNormal = 0, FKeyWord, FComment, FParenMatch, FParenMismatch, FLonelyParen };
-
-  struct FormatRule {
-    FormatRule(int ps = -1, int l = 0, Format f = FNormal, bool needsfocus = false)
-      : pos(ps), len(l), format(f), onlyIfFocus(needsfocus) { }
-    int pos;
-    int len;
-    int end() const { return pos + len; }
-    Format format;
-    bool onlyIfFocus;
-  };
-
-  struct ParenItem {
-    ParenItem(int ps = -1, bool h = false, char c = 0, bool l = false)
-      : pos(ps), highlight(h), ch(c), left(l) { }
-    int pos;
-    bool highlight;
-    char ch;
-    bool left; // if it's \left( instead of (
-  };
-
-  QList<FormatRule> _rulestoapply;
-
-  void parseEverything();
-
-  QTextCharFormat charfmtForFormat(Format f);
-
-};
 
 
 /**

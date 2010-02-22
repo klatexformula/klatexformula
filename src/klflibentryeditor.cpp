@@ -31,8 +31,10 @@
 #include "klfdata.h"
 #include "klfconfig.h"
 #include "klflib.h"
+
 #include <ui_klflibentryeditor.h>
 #include "klflibentryeditor.h"
+
 
 
 
@@ -43,6 +45,8 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
   pUi = new Ui::KLFLibEntryEditor;
   pUi->setupUi(this);
   setAutoFillBackground(false);
+
+  pCurrentStyle = KLFStyle();
 
   pUi->lblPreview->setFixedSize(klfconfig.UI.labelOutputFixedSize);
 
@@ -70,6 +74,20 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
 	  this, SLOT(slotUpdateCategory()));
   connect(pUi->btnUpdateTags, SIGNAL(clicked()),
 	  this, SLOT(slotUpdateTags()));
+
+
+  // setup latex preview text browser with syntax highlighter
+
+  pUi->txtPreviewLatex->setFont(klfconfig.UI.preambleEditFont);
+
+  pHighlighter = new KLFLatexSyntaxHighlighter(pUi->txtPreviewLatex, this);
+  connect(pUi->txtPreviewLatex, SIGNAL(cursorPositionChanged()),
+	  pHighlighter, SLOT(refreshAll()));
+
+  // --
+
+  connect(pUi->btnRestoreStyle, SIGNAL(clicked()), this, SLOT(slotRestoreStyle()));
+
 }
 KLFLibEntryEditor::~KLFLibEntryEditor()
 {
@@ -114,6 +132,12 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     pUi->cbxCategory->setEditText(tr("[ No Item Selected ]"));
     pUi->cbxTags->setEditText(tr("[ No Item Selected ]"));
     pUi->lblStylePreview->setText(tr("[ No Item Selected ]"));
+    pUi->cbxCategory->setEnabled(false);
+    pUi->btnUpdateCategory->setEnabled(false);
+    pUi->cbxTags->setEnabled(false);
+    pUi->btnUpdateTags->setEnabled(false);
+    pUi->btnRestoreStyle->setEnabled(false);
+    pCurrentStyle = KLFStyle();
     return;
   }
   if (entrylist.size() == 1) {
@@ -124,7 +148,13 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     pUi->txtPreviewLatex->setText(e.latex());
     pUi->cbxCategory->setEditText(e.category());
     pUi->cbxTags->setEditText(e.tags());
-    pUi->lblStylePreview->setText(prettyPrintStyle(e.style()));
+    pCurrentStyle = e.style();
+    pUi->lblStylePreview->setText(prettyPrintStyle(pCurrentStyle));
+    pUi->cbxCategory->setEnabled(true);
+    pUi->btnUpdateCategory->setEnabled(true);
+    pUi->cbxTags->setEnabled(true);
+    pUi->btnUpdateTags->setEnabled(true);
+    pUi->btnRestoreStyle->setEnabled(true);
     return;
   }
   // multiple items selected
@@ -154,10 +184,20 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     }
   }
   pUi->cbxCategory->setEditText(cat);
-  if ( allsamestyle )
+  if ( allsamestyle ) {
+    pCurrentStyle = style;
     pUi->lblStylePreview->setText(prettyPrintStyle(style));
-  else
+    pUi->btnRestoreStyle->setEnabled(true);
+  } else {
+    pCurrentStyle = KLFStyle();
     pUi->lblStylePreview->setText(tr("[ Different Styles ]"));
+    pUi->btnRestoreStyle->setEnabled(false);
+  }
+
+  pUi->cbxCategory->setEnabled(true);
+  pUi->btnUpdateCategory->setEnabled(true);
+  pUi->cbxTags->setEnabled(false);
+  pUi->btnUpdateTags->setEnabled(false);
 }
 
 void KLFLibEntryEditor::slotUpdateFromCbx(QComboBox *cbx)
@@ -179,6 +219,11 @@ void KLFLibEntryEditor::slotUpdateTags()
 {
   emit tagsChanged(pUi->cbxTags->currentText());
   slotCbxSaveCurrentCompletion(pUi->cbxTags);
+}
+
+void KLFLibEntryEditor::slotRestoreStyle()
+{
+  emit restoreStyle(pCurrentStyle);
 }
 
 void KLFLibEntryEditor::slotCbxSaveCurrentCompletion(QComboBox *cbx)

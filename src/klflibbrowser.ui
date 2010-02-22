@@ -79,6 +79,12 @@
       <number>1</number>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="topMargin">
+       <number>1</number>
+      </property>
+      <property name="bottomMargin">
+       <number>1</number>
+      </property>
       <item>
        <widget class="QLabel" name="lblSearch">
         <property name="sizePolicy">
@@ -118,10 +124,10 @@
          </sizepolicy>
         </property>
         <property name="toolTip">
-         <string>Incremental search within history items. Find next with F3 key.</string>
+         <string>Incremental search within history items. Find next with F3 or Ctrl-S key.</string>
         </property>
         <property name="whatsThis">
-         <string>Incremental search within history items. Find next with F3 key.</string>
+         <string>Incremental search within history items. Find next with F3 or Ctrl-S key.</string>
         </property>
        </widget>
       </item>
@@ -250,23 +256,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnConfig">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="icon">
-         <iconset resource="klfres.qrc">
-          <normaloff>:/pics/settings.png</normaloff>:/pics/settings.png</iconset>
-        </property>
-        <property name="shortcut">
-         <string>Alt+N</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="btnClose">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -293,9 +282,6 @@
     </widget>
    </item>
   </layout>
-  <zorder>splitViewsEditor</zorder>
-  <zorder>frmSearch</zorder>
-  <zorder>frmButtons</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -314,7 +300,6 @@
   <tabstop>btnRestore</tabstop>
   <tabstop>btnDelete</tabstop>
   <tabstop>btnImportExport</tabstop>
-  <tabstop>btnConfig</tabstop>
   <tabstop>btnClose</tabstop>
  </tabstops>
  <resources>

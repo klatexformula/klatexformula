@@ -31,6 +31,8 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
+#include "klfmain.h" // KLF_DB_VERSION
+#include "klflib_p.h"
 #include "klflib.h"
 
 
@@ -79,14 +81,32 @@ void KLFLibEntry::initRegisteredProperties()
 
 
 KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, QObject *parent)
-  : QObject(parent), pUrl(url)
+  : QObject(parent), KLFPropertizedObject("KLFLibResourceEngine"), pUrl(url)
 {
+  initRegisteredProperties();
 }
 KLFLibResourceEngine::~KLFLibResourceEngine()
 {
 }
 
+void KLFLibResourceEngine::initRegisteredProperties()
+{
+  static bool first_run = true;
+  if ( ! first_run )
+    return;
+  first_run = false;
 
+  registerBuiltInProperty(PropTitle, "Title");
+}
+
+KLFLibResourceEngine::entryId KLFLibResourceEngine::insertEntry(const KLFLibEntry& entry)
+{
+  QList<entryId> ids = insertEntries(KLFLibEntryList() << entry);
+  if (ids.size() == 0)
+    return -1;
+
+  return ids[0];
+}
 
 // ---------------------------------------------------
 
@@ -109,18 +129,17 @@ bool KLFAbstractLibEngineFactory::canCreateResource() const
   return false;
 }
 
-QWidget * KLFAbstractLibEngineFactory::createPromptParametersWidget(QWidget */*parent*/,
-								    Parameters /*defaultparameters*/)
+QWidget * KLFAbstractLibEngineFactory::createPromptCreateParametersWidget(QWidget */*parent*/,
+									  Parameters /*defaultparameters*/)
 {
   return NULL;
 }
 KLFAbstractLibEngineFactory::Parameters
-/* */ KLFAbstractLibEngineFactory::retrieveParametersFromWidget(QWidget */*parent*/)
+/* */ KLFAbstractLibEngineFactory::retrieveCreateParametersFromWidget(QWidget */*parent*/)
 {
   return KLFAbstractLibEngineFactory::Parameters();
 }
-KLFLibResourceEngine *KLFAbstractLibEngineFactory::createResource(const QUrl& /*resourceurl*/,
-								  KLFAbstractLibEngineFactory::Parameters
+KLFLibResourceEngine *KLFAbstractLibEngineFactory::createResource(KLFAbstractLibEngineFactory::Parameters
 								  /*param*/)
 {
   return NULL;
@@ -203,7 +222,7 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 {
   QSqlDatabase db;
   if (url.scheme() == "klf+sqlite") {
-    db = QSqlDatabase::addDatabase("QSQLITE");
+    db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
     db.setDatabaseName(url.path());
   } else {
     qWarning("KLFLibDBEngine::KLFLibDBEngine: bad url scheme in URL\n\t%s",
@@ -231,6 +250,16 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
   : KLFLibResourceEngine(url, parent), pAutoDisconnectDB(autodisconnect), pDataTableName(tablename)
 {
   setDatabase(db);
+  // read resource properties from database
+  QSqlQuery q = QSqlQuery(pDB);
+  q.prepare("SELECT name,value FROM klf_properties");
+  q.exec();
+  while (q.next()) {
+    QString propname = q.value(0).toString();
+    QVariant propvalue = q.value(1);
+    qDebug()<<"Setting property `"<<propname<<"' to `"<<propvalue<<"'";
+    KLFPropertizedObject::setProperty(propname, propvalue);
+  }
 }
 
 KLFLibDBEngine::~KLFLibDBEngine()
@@ -239,6 +268,13 @@ KLFLibDBEngine::~KLFLibDBEngine()
     pDB.close();
     QSqlDatabase::removeDatabase(pDB.connectionName());
   }
+}
+
+bool KLFLibDBEngine::canModify() const
+{
+  /** \todo TODO: check if file is writable (SQLITE3), if permissions on the database
+   * are granted (MySQL, PgSQL, etc.) */
+  return true;
 }
 
 bool KLFLibDBEngine::validDatabase() const
@@ -251,6 +287,42 @@ void KLFLibDBEngine::setDatabase(QSqlDatabase db)
   pDB = db;
 }
 
+// private
+bool KLFLibDBEngine::setResourceProperty(int propId, const QVariant& value)
+{
+  QString propName = propertyNameForId(propId);
+  if ( propName.isEmpty() )
+    return false;
+
+  {
+    QSqlQuery q;
+    q.prepare("DELETE FROM klf_properties WHERE name = ?");
+    q.bindValue(0, propName);
+    if ( ! q.exec() || q.lastError().isValid() ) {
+      qWarning()<<"KLFLibDBEngine::setRes.Property("<<propId<<","<<value<<"): can't DELETE!\n\t"
+		<<q.lastError().text()<<"\n\tSQL="<<q.lastQuery();
+      return false;
+    }
+  }
+  {
+    QSqlQuery q;
+    q.prepare("INSERT INTO klf_properties (name,value) VALUES (?,?)");
+    q.bindValue(0, propName);
+    q.bindValue(1, value);
+    if ( ! q.exec() || q.lastError().isValid() ) {
+      qWarning()<<"KLFLibDBEngine::setRes.Property("<<propId<<","<<value<<"): can't INSERT!\n\t"
+		<<q.lastError().text()<<"\n\tSQL="<<q.lastQuery();
+      return false;
+    }
+  }
+  KLFPropertizedObject::setProperty(propId, value);
+  return true;
+}
+
+bool KLFLibDBEngine::setTitle(const QString& title)
+{
+  return setResourceProperty(PropTitle, title);
+}
 
 
 // private
@@ -289,7 +361,7 @@ KLFLibEntry KLFLibDBEngine::entry(entryId id)
     return KLFLibEntry();
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT * FROM klfentries WHERE id = ?");
+  q.prepare("SELECT * FROM "+pDataTableName+" WHERE id = ?");
   q.addBindValue(id);
   q.exec();
   q.next();
@@ -316,7 +388,7 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
     return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT * FROM klfentries");
+  q.prepare("SELECT * FROM "+pDataTableName);
   q.setForwardOnly(true);
   q.exec();
 
@@ -330,7 +402,6 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
     e.entry = readEntry(q, cols);
     entryList << e;
   }
-  q.finish();
 
   return entryList;
 }
@@ -344,44 +415,63 @@ QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
   if (data.type() == QVariant::Image)
     data = QVariant::fromValue<QByteArray>(image_data(data.value<QImage>(), "PNG"));
   if (data.type() == QVariant::nameToType("KLFStyle"))
-    data = QVariant::fromValue<QByteArray>(metatype_to_data(data.toByteArray()));
+    data = QVariant::fromValue<QByteArray>(metatype_to_data(data.value<KLFStyle>()));
   return data;
 }
 
-KLFLibResourceEngine::entryId KLFLibDBEngine::insertEntry(const KLFLibEntry& entry)
+QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibEntryList& entrylist)
 {
-  int k;
+  int k, j;
   if ( ! validDatabase() )
-    return -1;
+    return QList<entryId>();
+  if ( entrylist.size() == 0 )
+    return QList<entryId>();
 
-  QList<int> propids = entry.registeredPropertyIdList();
+  KLFLibEntry e; // dummy object to test for properties
+  QList<int> propids = e.registeredPropertyIdList();
   QStringList props;
   QStringList questionmarks;
   for (k = 0; k < propids.size(); ++k) {
-    props << entry.propertyNameForId(propids[k]);
+    props << e.propertyNameForId(propids[k]);
     questionmarks << "?";
   }
 
-  QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("INSERT INTO klfentries (" + props.join(",") + ") "
-	    " VALUES (" + questionmarks.join(",") + ")");
-  for (k = 0; k < propids.size(); ++k) {
-    QVariant data = convertVariantToDBData(entry.property(propids[k]));
-    // and add a corresponding bind value for sql query
-    q.addBindValue(data);
-  }
-  q.exec();
-  q.finish();
+  QList<entryId> insertedIds;
 
-  QVariant v_id = q.lastInsertId();
-  if ( ! v_id.isValid() )
-    return -1;
-  return v_id.toInt();
+  QSqlQuery q = QSqlQuery(pDB);
+  q.prepare("INSERT INTO " + pDataTableName + " (" + props.join(",") + ") "
+	    " VALUES (" + questionmarks.join(",") + ")");
+  qDebug()<<"INSERT query: "<<q.lastQuery();
+  // now loop all entries, and exec the query with appropriate bound values
+  for (j = 0; j < entrylist.size(); ++j) {
+    qDebug()<<"New entry to insert.";
+    for (k = 0; k < propids.size(); ++k) {
+      QVariant data = convertVariantToDBData(entrylist[j].property(propids[k]));
+      // and add a corresponding bind value for sql query
+      qDebug()<<"Binding value "<<k<<": "<<data;
+      q.bindValue(k, data);
+    }
+    // and exec the query with these bound values
+    bool r = q.exec();
+    if ( ! r || q.lastError().isValid() ) {
+      qWarning()<<"INSERT failed! SQL Error: "<<q.lastError().text()<<"\n\tSQL="<<q.lastQuery();
+      insertedIds << -1;
+    } else {
+      QVariant v_id = q.lastInsertId();
+      if ( ! v_id.isValid() )
+	insertedIds << -2;
+      else
+	insertedIds << v_id.toInt();
+    }
+  }
+
+  emit dataChanged();
+  return insertedIds;
 }
 
 
-bool KLFLibDBEngine::changeEntry(const QList<entryId>& idlist, const QList<int>& properties,
-				 const QList<QVariant>& values)
+bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
+				   const QList<QVariant>& values)
 {
   if ( ! validDatabase() )
     return false;
@@ -390,6 +480,9 @@ bool KLFLibDBEngine::changeEntry(const QList<entryId>& idlist, const QList<int>&
     qWarning("KLFLibDBEngine::changeEntry(): properties' and values' sizes mismatch!");
     return false;
   }
+
+  if ( idlist.size() == 0 )
+    return true; // no items to change
 
   KLFLibEntry e; // dummy 
   QStringList updatepairs;
@@ -401,7 +494,7 @@ bool KLFLibDBEngine::changeEntry(const QList<entryId>& idlist, const QList<int>&
   for (k = 0; k < idlist.size(); ++k) questionmarks_ids << "?";
   // prepare query
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("UPDATE klfentries SET " + updatepairs.join(", ") + "  WHERE id IN (" +
+  q.prepare("UPDATE " + pDataTableName + " SET " + updatepairs.join(", ") + "  WHERE id IN (" +
 	    questionmarks_ids.join(", ") + ")");
   for (k = 0; k < properties.size(); ++k) {
     q.addBindValue(convertVariantToDBData(values[k]));
@@ -409,7 +502,6 @@ bool KLFLibDBEngine::changeEntry(const QList<entryId>& idlist, const QList<int>&
   for (k = 0; k < idlist.size(); ++k)
     q.addBindValue(idlist[k]);
   bool r = q.exec();
-  q.finish();
 
   qDebug() << "UPDATE: SQL="<<q.lastQuery()<<"; boundvalues="<<q.boundValues().values();
   if ( !r || q.lastError().isValid() ) {
@@ -418,20 +510,30 @@ bool KLFLibDBEngine::changeEntry(const QList<entryId>& idlist, const QList<int>&
   }
 
   qDebug() << "Wrote Entry change to ids "<<idlist;
-
+  emit dataChanged();
   return true;
 }
 
-bool KLFLibDBEngine::deleteEntry(entryId id)
+bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
 {
   if ( ! validDatabase() )
     return false;
+  if (idlist.size() == 0)
+    return true; // nothing to do
+
+  int k;
+  QStringList qmarks_ids;
+  for (k = 0; k < idlist.size(); ++k)
+    qmarks_ids << "?";
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("DELETE FROM klfentries WHERE id = ?");
-  q.addBindValue(id);
+  q.prepare("DELETE FROM "+pDataTableName+" WHERE id IN ("+qmarks_ids.join(", ")+")");
+  for (k = 0; k < idlist.size(); ++k)
+    q.addBindValue(idlist[k]);
   bool r = q.exec();
   q.finish();
+
+  emit dataChanged();
 
   if ( !r || q.lastError().isValid())
     return false;   // an error was set
@@ -439,7 +541,7 @@ bool KLFLibDBEngine::deleteEntry(entryId id)
   return true;  // no error
 }
 
-/*
+
 // static
 bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 {
@@ -447,14 +549,15 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
     return false;
 
   QStringList sql;
-  sql << "DROP TABLE klfentries";
   // the CREATE TABLE statements should be adapted to the database type (sqlite, mysql, pgsql) since
   // syntax is different...
   sql << "CREATE TABLE klfentries (id INTEGER PRIMARY KEY, Latex TEXT, DateTime INTEGER, "
     "       Preview BLOB, Category TEXT, Tags TEXT, Style BLOB)";
-  sql << "CREATE TABLE klf_metainfo (id INTEGER PRIMARY KEY, propName TEXT, propValue BLOB)";
-  sql << "INSERT INTO klf_metainfo (propName, propValue) VALUES ('klf_version', '" KLF_VERSION_STRING "')";
-  sql << "INSERT INTO klf_metainfo (propName, propValue) VALUES ('klf_dbversion', '" KLF_DB_VERSION "')";
+  sql << "CREATE TABLE klf_properties (id INTEGER PRIMARY KEY, name TEXT, value BLOB)";
+  sql << "CREATE TABLE klf_dbmetainfo (id INTEGER PRIMARY KEY, name TEXT, value BLOB)";
+  sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_version', '" KLF_VERSION_STRING "')";
+  sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_dbversion', '"+
+    QString::number(KLF_DB_VERSION)+"')";
 
   int k;
   for (k = 0; k < sql.size(); ++k) {
@@ -468,10 +571,11 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 
   return true;
 }
-*/
+
 
 
 // ------------------------------------
+
 
 KLFLibDBEngineFactory::KLFLibDBEngineFactory(QObject *parent)
   : KLFAbstractLibEngineFactory(parent)
@@ -488,4 +592,21 @@ KLFLibResourceEngine *KLFLibDBEngineFactory::openResource(const QUrl& location, 
   return KLFLibDBEngine::openUrl(location, parent);
 }
 
-
+QWidget * KLFLibDBEngineFactory::createPromptUrlWidget(QWidget *parent, const QString& scheme,
+						       QUrl defaultlocation)
+{
+  if (scheme == QLatin1String("klf+sqlite")) {
+    KLFLibSqliteOpenWidget *w = new KLFLibSqliteOpenWidget(parent);
+    w->setUrl(defaultlocation);
+    return w;
+  }
+  return NULL;
+}
+QUrl KLFLibDBEngineFactory::retrieveUrlFromWidget(QWidget *widget)
+{
+  if (widget == NULL || !widget->inherits("KLFLibSqliteOpenWidget")) {
+    qWarning("KLFLibDBEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
+    return QUrl();
+  }
+  return qobject_cast<KLFLibSqliteOpenWidget*>(widget)->url();
+}

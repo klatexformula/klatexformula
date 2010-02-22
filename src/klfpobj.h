@@ -48,6 +48,10 @@ public:
   virtual void setProperty(const QString& propname, const QVariant& value);
   virtual void setProperty(int propId, const QVariant& value);
 
+  /** Like \c setProperty(), except the property name \c propname is registered
+   * if it is not registered. */
+  virtual void loadProperty(const QString& propname, const QVariant& value);
+
   /** \brief A list of properties that have been set.
    *
    * \returns list of the IDs of all properties that have been set on this object.

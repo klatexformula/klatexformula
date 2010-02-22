@@ -1,7 +1,7 @@
 /***************************************************************************
- *   file klfdefs.h
+ *   file klflib_p.h
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2009 by Philippe Faist
+ *   Copyright (C) 2010 by Philippe Faist
  *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,41 +21,51 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFDEFS_H_
-#define KLFDEFS_H_
+/** \file
+ * This header contains (in principle private) auxiliary classes for
+ * library routines defined in klflib.cpp */
 
-#include <QString>
+#ifndef KLFLIB_P_H
+#define KLFLIB_P_H
 
+#include <QUrl>
+#include <QWidget>
+#include <QTextEdit>
+#include <QFileDialog>
+#include <QPushButton>
 
-// EXPORTING SYMBOLS TO PLUGINS ...
-#if defined(Q_OS_WIN)
-#  if defined(KLF_SRC_BUILD)
-#    define KLF_EXPORT __declspec(dllexport)
-#  else
-#    define KLF_EXPORT __declspec(dllimport)
-#  endif
-#else
-#  define KLF_EXPORT __attribute__((visibility("default")))
-#endif
+#include <ui_klflibsqliteopenwidget.h>
 
 
+class KLFLibSqliteOpenWidget : public QWidget, private Ui::KLFLibSqliteOpenWidget
+{
+  Q_OBJECT
+public:
+  KLFLibSqliteOpenWidget(QWidget *parent) : QWidget(parent)
+  {
+    setupUi(this);
+  }
+  virtual ~KLFLibSqliteOpenWidget() { }
 
-// DEBUG WITH TIME PRINTING FOR TIMING OPERATIONS
+  void setUrl(const QUrl& url) {
+    txtFile->setText(url.path());
+  }
+  QUrl url() const { return QUrl::fromLocalFile(txtFile->text()); }
 
-#ifdef KLF_DEBUG_TIME_PRINT
-#include <sys/time.h>
-// FOR DEBUGGING: Print Debug message with precise current time
-KLF_EXPORT void __klf_debug_time_print(QString str);
-#define klf_debug_time_print(x) __klf_debug_time_print(x)
-#else
-/** \brief Print debug message with precise current time
- *
- * This function outputs something like:
- * <pre></pre>
- * and can be used to print debug messages and locate time-consuming
- * instructions for example. */
-#define klf_debug_time_print(x)
-#endif
+signals:
+  void readyToOpen(bool ready);
+
+private slots:
+  void btnBrowse_clicked() {
+    QString name = QFileDialog::getOpenFileName(this);
+    if ( ! name.isEmpty() )
+      txtFile->setText(name);
+  }
+  void txtFile_textChanged(const QString& text)
+  {
+    emit readyToOpen(QFile::exists(text));
+  }
+};
 
 
 

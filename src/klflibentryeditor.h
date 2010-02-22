@@ -27,7 +27,9 @@
 #include <QWidget>
 #include <QComboBox>
 
+#include <klflatexsyntaxhighlighter.h>
 #include <klflib.h>
+
 
 namespace Ui { class KLFLibEntryEditor; }
 
@@ -46,6 +48,7 @@ signals:
 
   void categoryChanged(const QString& newCategory);
   void tagsChanged(const QString& newTags);
+  void restoreStyle(const KLFStyle& style);
 
 public slots:
 
@@ -60,12 +63,17 @@ protected slots:
   void slotUpdateFromCbx(QComboBox *cbx);
   void slotUpdateCategory();
   void slotUpdateTags();
+  void slotRestoreStyle();
 
   void slotCbxSaveCurrentCompletion(QComboBox *cbx);
   void slotCbxCleanUpCompletions(QComboBox *cbx);
 
 private:
   Ui::KLFLibEntryEditor *pUi;
+
+  KLFStyle pCurrentStyle;
+
+  KLFLatexSyntaxHighlighter *pHighlighter;
 };
 
 

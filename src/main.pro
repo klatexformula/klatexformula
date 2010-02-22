@@ -41,7 +41,6 @@ win32: PLUGINSRESFILE = plugins/klfbaseplugins_win.qrc
 unix:!macx: PLUGINSRESFILE = plugins/klfbaseplugins_unix.qrc
 macx: PLUGINSRESFILE = plugins/klfbaseplugins_mac.qrc
 
-RESOURCES += $$PLUGINSRESFILE
 
 # For Mac OS X
 ICON = klficon.icns
@@ -66,8 +65,7 @@ unix {
   icon64.path = $$INSTALLPREFIX/share/icons/$$ICONTHEME/64x64/apps
   icon128.extra = install -m 644 -p hi128-app-klatexformula.png "$(INSTALL_ROOT)$$INSTALLPREFIX/share/icons/$$ICONTHEME/128x128/apps/klatexformula.png"
   icon128.path = $$INSTALLPREFIX/share/icons/$$ICONTHEME/128x128/apps
-  #  baseplugins.extra = $$[KLF_RCC] -binary -o plugins/klfbaseplugins.rcc $$PLUGINSRESFILE && install -m 644 -p plugins/klfbaseplugins.rcc "$(INSTALL_ROOT)$$INSTALLPREFIX/share/klatexformula/rccresources/klfbaseplugins.rcc"
-  #  baseplugins.path = $$INSTALLPREFIX/share/klatexformula/rccresources
-  INSTALLS += target klfcmdl desktopfile icon16 icon32 icon64 icon128
-  # baseplugins
+  baseplugins.extra = $$[KLF_RCC] -binary -o plugins/klfbaseplugins.rcc $$PLUGINSRESFILE && install -m 644 -p plugins/klfbaseplugins.rcc "$(INSTALL_ROOT)$$INSTALLPREFIX/share/klatexformula/rccresources/klfbaseplugins.rcc"
+  baseplugins.path = $$INSTALLPREFIX/share/klatexformula/rccresources
+  INSTALLS += target klfcmdl desktopfile icon16 icon32 icon64 icon128 baseplugins
 }

@@ -32,44 +32,67 @@
 #include <klfdefs.h>
 #include <klflib.h>
 
+namespace KLFLib {
+  enum RestoreMode {
+    RestoreLatex = 0x0001,
+    RestoreStyle = 0x0002,
+
+    RestoreLatexAndStyle = RestoreLatex|RestoreStyle
+  };
+};
+
 
 class KLF_EXPORT KLFAbstractLibView : public QWidget
 {
   Q_OBJECT
 public:
-  KLFAbstractLibView(QWidget *parent) : QWidget(parent), pResourceEngine(NULL) {  }
+  KLFAbstractLibView(QWidget *parent);
   virtual ~KLFAbstractLibView() { }
 
   virtual KLFLibResourceEngine * resourceEngine() const { return pResourceEngine; }
 
-  virtual void setResourceEngine(KLFLibResourceEngine *resource) {
-    pResourceEngine = resource;
-    updateResourceView();
-  }
+  virtual void setResourceEngine(KLFLibResourceEngine *resource);
 
-  virtual QList<KLFLibEntry> selectedEntries() const = 0;
+  virtual KLFLibEntryList selectedEntries() const = 0;
 
 signals:
-  void entriesSelected(const QList<KLFLibEntry>& entries);
+  void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
+  void requestRestoreStyle(const KLFStyle& style);
+
+  void entriesSelected(const KLFLibEntryList& entries);
   /** Subclasses should emit this signal with lists of categories they come accross,
    * so that the editor can suggest these as completions upon editing category */
   void moreCategorySuggestions(const QStringList& categorylist);
 
 public slots:
   virtual void updateView();
+  virtual void updateResourceView() = 0;
+  virtual void updateResourceData() = 0;
   virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
   bool writeEntryCategory(const QString& category)
   { return writeEntryProperty(KLFLibEntry::Category, category); }
   bool writeEntryTags(const QString& tags)
   { return writeEntryProperty(KLFLibEntry::Tags, tags); }
+  virtual bool deleteSelected(bool requireConfirm = true) = 0;
+  virtual bool insertEntries(const KLFLibEntryList& entries) = 0;
+  bool insertEntry(const KLFLibEntry& entry) { return insertEntries(KLFLibEntryList() << entry); }
+
+  virtual bool searchFind(const QString& queryString, bool forward = true) = 0;
+  virtual bool searchFindNext(bool forward) = 0;
+  virtual void searchAbort() = 0;
+
+  virtual void restore(uint restoreFlags = KLFLib::RestoreLatexAndStyle) = 0;
+  void restoreWithStyle() { restore(KLFLib::RestoreLatexAndStyle); }
+  void restoreLatexOnly() { restore(KLFLib::RestoreLatex); }
 
   /** Called by the owner of the view. This function fetches category suggestions
    * (by calling the virtual getCategorySuggestions() reimplemented by subclasses)
-   * and emits the signal moreCategorySuggestions(). */
+   * and emits the signal moreCategorySuggestions().
+   *
+   * Subclasses need not reimplement this function. */
   virtual void wantMoreCategorySuggestions();
 
 protected:
-  virtual void updateResourceView() = 0;
   virtual QStringList getCategorySuggestions() = 0;
 
 private:
@@ -154,6 +177,8 @@ public:
   
   virtual void setResource(KLFLibResourceEngine *resource);
 
+  virtual KLFLibResourceEngine * resource() { return pResource; }
+
   enum FlavorFlag {
     LinearList = 0x0001,
     CategoryTree = 0x0002,
@@ -194,9 +219,16 @@ public:
 
   virtual QStringList categoryList() const;
 
+  virtual void updateData();
+
 public slots:
 
-  virtual bool changeEntry(const QModelIndexList& items, int property, const QVariant& value);
+  virtual QModelIndex searchFind(const QString& queryString, bool forward = true);
+  virtual QModelIndex searchFindNext(bool forward);
+
+  virtual bool changeEntries(const QModelIndexList& items, int property, const QVariant& value);
+  virtual bool insertEntries(const KLFLibEntryList& entries);
+  virtual bool deleteEntries(const QModelIndexList& items);
 
 private:
 
@@ -210,6 +242,11 @@ private:
     bool valid() const { return index >= 0; }
     ItemKind kind;
     IndexType index;
+  };
+  struct PersistentId {
+    ItemKind kind;
+    KLFLibResourceEngine::entryId entry_id;
+    QString categorylabel_fullpath;
   };
   struct Node {
     Node() : parent(NodeId()), children(QList<NodeId>()) { }
@@ -253,6 +290,7 @@ private:
    * Otherwise pass NULL pointer and getNodeRow() will figure out the pointer with
    * a call to getNode().  */
   int getNodeRow(NodeId nodeid, Node *node = NULL) const;
+  inline int getNodeRow(Node * node) const { return getNodeRow(getNodeId(node), node); }
 
   void updateCacheSetupModel();
 
@@ -279,6 +317,31 @@ private:
   int lastSortColumn;
   Qt::SortOrder lastSortOrder;
 
+  /** Walks the whole tree returning all the nodes one after the other, in the following order:
+   * if \c n has children, first child is returned; otherwise next sibling is returned.
+   *
+   * This function returns all nodes in the order they would be displayed in a tree view.
+   *
+   * Returns \c NULL after last node. Returns first node in tree if \c NULL is given as
+   * paremeter. */
+  Node * nextNode(Node *n);
+  /** Same as \ref nextNode() but the walk is performed in the opposite direction.
+   *
+   * This function returns all nodes in the inverse order they would be displayed in a tree view. In
+   * particular, it returns a parent node after having explored its children. */
+  Node * prevNode(Node *n);
+  /** Returns the last node in tree defined by node \c n.
+   *
+   * If \c n has children, returns last child of the last child of the last child etc. If \c n does
+   * not have children, it is itself returned.
+   *
+   * If \c NULL is given, the root node is assumed. */
+  Node * lastNode(Node *n);
+
+  QList<KLFLibResourceEngine::entryId> entryIdList(const QModelIndexList& indexlist) const;
+  
+  QString pSearchString;
+  Node *pSearchCurNode;
 };
 
 // -----------------
@@ -301,6 +364,8 @@ public:
   virtual void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem& option,
 				    const QModelIndex& index) const;
 
+  virtual void setSearchString(const QString& s) { pSearchString = s; }
+
 protected:
   virtual void paintEntry(QPainter *painter, const QStyleOptionViewItem& option,
 			  const QModelIndex& index) const;
@@ -312,6 +377,8 @@ private:
   mutable QRect innerRectText, innerRectImage;
   /** Temporary variable paint() sets for subcalls to paintEntry() and paintCategoryLabel() */
   mutable bool isselected;
+
+  QString pSearchString;
 };
 
 // -----------------
@@ -323,21 +390,37 @@ public:
   KLFLibDefaultView(QWidget *parent);
   virtual ~KLFLibDefaultView();
 
-  virtual QList<KLFLibEntry> selectedEntries() const;
+  virtual KLFLibEntryList selectedEntries() const;
 
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
+  virtual bool deleteSelected(bool requireConfirmation = true);
+  virtual bool insertEntries(const KLFLibEntryList& entries);
+
+  virtual bool searchFind(const QString& queryString, bool forward = true);
+  virtual bool searchFindNext(bool forward);
+  virtual void searchAbort();
+
+  virtual void restore(uint restoreflags = KLFLib::RestoreLatexAndStyle);
 
 protected:
   virtual void updateResourceView();
+  virtual void updateResourceData();
   virtual QStringList getCategorySuggestions();
 
 protected slots:
   void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
+  void slotEntryDoubleClicked(const QModelIndex& index);
 
 private:
   QTreeView *pTreeView;
+  KLFLibViewDelegate *pDelegate;
   KLFLibModel *pModel;
+
+  QModelIndexList selectedEntryIndexes() const;
+
+private slots:
+  void searchFound(const QModelIndex& i);
 };
 
 // -----------------

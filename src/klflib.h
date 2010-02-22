@@ -77,11 +77,12 @@ private:
 Q_DECLARE_METATYPE(KLFLibEntry)
   ;
 
-class KLF_EXPORT KLFLibResourceEngine : public QObject
+typedef QList<KLFLibEntry> KLFLibEntryList;
+
+
+class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObject
 {
   Q_OBJECT
-
-  Q_PROPERTY(QUrl url READ url)
 public:
   typedef qint32 entryId;
 
@@ -90,10 +91,22 @@ public:
     KLFLibEntry entry;
   };
 
+  enum { PropTitle = 0 };
+
   KLFLibResourceEngine(const QUrl& url, QObject *parent = NULL);
   virtual ~KLFLibResourceEngine();
 
   virtual QUrl url() const { return pUrl; }
+  virtual QString title() const { return KLFPropertizedObject::property(PropTitle).toString(); }
+
+  /** Subclasses should store the title and set property PropTitle to the set title. Return
+   * value TRUE indicates success. This function may return FALSE if changing the title is
+   * not permitted, or the new title is not acceptable (for some given standard...). */
+  virtual bool setTitle(const QString& title) = 0;
+
+  /** Subclasses should return TRUE here if, in principle, it is possible to modify the
+   * resource's data. Return for ex. false when opening a read-only file. */
+  virtual bool canModify() const = 0;
 
   /** Suggested library view widget to view this resource with optimal user experience :-) .
    * Return QString() for default view. */
@@ -102,14 +115,21 @@ public:
   virtual KLFLibEntry entry(entryId id) = 0;
   virtual QList<KLFLibEntryWithId> allEntries() = 0;
 
-  virtual entryId insertEntry(const KLFLibEntry& entry) = 0;
-  virtual bool changeEntry(const QList<entryId>& idlist, const QList<int>& properties,
+  /** Simply calls the list version. */
+  entryId insertEntry(const KLFLibEntry& entry);
+  virtual QList<entryId> insertEntries(const KLFLibEntryList& entrylist) = 0;
+  virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
 			   const QList<QVariant>& values) = 0;
-  virtual bool deleteEntry(entryId id) = 0;
+  virtual bool deleteEntries(const QList<entryId>& idlist) = 0;
+
+signals:
+  void dataChanged();
 
 protected:
-
   QUrl pUrl;
+
+private:
+  void initRegisteredProperties();
 };
 
 
@@ -130,6 +150,16 @@ public:
   /** Should return a list of supported URL schemes this factory can open */
   virtual QStringList supportedSchemes() const = 0;
 
+  /** create a widget that will prompt to user to open a resource of given \c scheme.
+   * It could be a file selection widget, or a text entry for a hostname or etc. The
+   * widget should be initialized to \c defaultlocation if the latter is non-empty. */
+  virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
+					  QUrl defaultlocation = QUrl()) = 0;
+
+  /** get the url edited by user, that are stored in \c widget GUI. \c widget is a
+   * QWidget returned by \ref createPrompUrlWidget()*/
+  virtual QUrl retrieveUrlFromWidget(QWidget *widget) = 0;
+
   /** Create a library engine that opens resource stored at \c location. The resource
    * engine should be constructed as a child of object \c parent. */
   virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL) = 0;
@@ -139,14 +169,15 @@ public:
   virtual bool canCreateResource() const;
   /** create a widget that will prompt to user the different settings for the new resource
    * that is about to be created.  Do not reimplement this function if canCreateResource()
-   * returns false. */
-  virtual QWidget * createPromptParametersWidget(QWidget *parent,
-						 Parameters defaultparameters = Parameters());
+   * returns false. Information to which URL to store the resource should be included
+   * in these parameters! */
+  virtual QWidget * createPromptCreateParametersWidget(QWidget *parent,
+						    Parameters defaultparameters = Parameters());
   /** get the parameters edited by user, that are stored in \c widget GUI. */
-  virtual Parameters retrieveParametersFromWidget(QWidget *widget);
-  /** Actuall create the new resource, with the given settings. Save the resource to location
-   * \c newResourceUrl */
-  virtual KLFLibResourceEngine *createResource(const QUrl& newResourceUrl, Parameters parameters);
+  virtual Parameters retrieveCreateParametersFromWidget(QWidget *widget);
+  /** Actually create the new resource, with the given settings. Open the resource and return
+   * the KLFLibResourceEngine object. */
+  virtual KLFLibResourceEngine *createResource(Parameters parameters);
 
   /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
    * factory exists (ie. has been registered). */
@@ -158,6 +189,7 @@ private:
 
   static QList<KLFAbstractLibEngineFactory*> pRegisteredFactories;
 };
+
 
 
 
@@ -181,11 +213,15 @@ public:
    * set. */
   virtual ~KLFLibDBEngine();
 
+  bool canModify() const;
+
   /** True if one has supplied a valid database in the constructor or with a
    * \ref setDatabse() call. */
   bool validDatabase() const;
   /** supply an open database. */
   void setDatabase(QSqlDatabase db_connection);
+
+  virtual bool setTitle(const QString& title);
 
   virtual bool autoDisconnectDB() const { return pAutoDisconnectDB; }
   virtual QString dataTableName() const { return pDataTableName; }
@@ -195,12 +231,12 @@ public:
 
 public slots:
 
-  virtual entryId insertEntry(const KLFLibEntry& entry);
-  virtual bool changeEntry(const QList<entryId>& idlist, const QList<int>& properties,
+  virtual QList<entryId> insertEntries(const KLFLibEntryList& entries);
+  virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
 			   const QList<QVariant>& values);
-  virtual bool deleteEntry(entryId id);
+  virtual bool deleteEntries(const QList<entryId>& idlist);
 
-  /*  static bool initFreshDatabase(QSqlDatabase db); */
+  static bool initFreshDatabase(QSqlDatabase db);
 
 private:
   KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
@@ -215,6 +251,8 @@ private:
   KLFLibEntry readEntry(const QSqlQuery& q, QMap<int,int> columns);
 
   QVariant convertVariantToDBData(const QVariant& value) const;
+
+  bool setResourceProperty(int propId, const QVariant& value);
 };
 
 /** The associated factory to the KLFLibDBEngine engine. */
@@ -227,6 +265,10 @@ public:
 
   /** Should return a list of supported URL schemes this factory can open */
   virtual QStringList supportedSchemes() const;
+
+  virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
+					  QUrl defaultlocation = QUrl());
+  virtual QUrl retrieveUrlFromWidget(QWidget *widget);
 
   /** Create a library engine that opens resource stored at \c location */
   virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL);

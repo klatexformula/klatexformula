@@ -40,7 +40,17 @@ public:
   KLFLibBrowser(QWidget *parent = NULL);
   virtual ~KLFLibBrowser();
 
-  static QString urlToResourceTitle(const QUrl& url);
+  virtual bool eventFilter(QObject *object, QEvent *event);
+
+  QList<QUrl> openedUrls() const;
+
+  /** \note Mind that KLFLibBrowser deletes the views and their corresponding
+   * engines upon destruction. */
+  KLFLibResourceEngine * getOpenResource(const QUrl& url);
+
+signals:
+  void requestRestore(const KLFLibEntry& entry, uint restore_flags);
+  void requestRestoreStyle(const KLFStyle& style);
 
 public slots:
   bool openResource(const QUrl& url);
@@ -48,18 +58,53 @@ public slots:
 
 protected slots:
 
-  void slotEntriesSelected(const QList<KLFLibEntry>& entries);
+  void slotRestoreWithStyle();
+  void slotRestoreLatexOnly();
+  void slotDeleteSelected();
+
+  void slotTabResourceShown(int tabIndex);
+  void slotShowTabContextMenu(const QPoint& pos);
+
+  void slotEntriesSelected(const KLFLibEntryList& entries);
   void slotAddCategorySuggestions(const QStringList& catlist);
+  void slotShowContextMenu(const QPoint& pos);
 
   void slotCategoryChanged(const QString& newcategory);
   void slotTagsChanged(const QString& newtags);
 
+  void slotSearchClear();
+  void slotSearchFind(const QString& searchText) { slotSearchFind(searchText, true); }
+  void slotSearchFind(const QString& searchText, bool forward);
+  void slotSearchClearOrNext();
+  void slotSearchFindNext(bool forward = true);
+  void slotSearchFindPrev();
+  void slotSearchAbort();
+
+  /** \note important data is defined in sender's custom properties (a QAction) */
+  void slotCopyToResource();
+  /** \note important data is defined in sender's custom properties (a QAction) */
+  void slotMoveToResource();
+  /** common code to slotCopyToResource() and slotMoveToResource() */
+  void slotCopyMoveToResource(QObject *sender, bool move);
+  void slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstractLibView *source, bool move);
+
 protected:
   KLFAbstractLibView * findOpenUrl(const QUrl& url);
+  KLFAbstractLibView * curView();
 
 private:
   Ui::KLFLibBrowser *pUi;
   QList<KLFAbstractLibView*> pLibViews;
+
+  QMenu *pResourceMenu;
+
+  QString pSearchText;
+  QString pLastSearchText;
+
+private slots:
+  void updateSearchFound(bool found);
+  void slotSearchFocusIn();
+  void slotSearchFocusOut();
 };
 
 

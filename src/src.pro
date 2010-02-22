@@ -32,9 +32,11 @@ HEADERS += klfcolorchooser.h \
            klfconfig.h \
            klfdata.h \
 	   klfpobj.h \
+	   klflatexsyntaxhighlighter.h \
            klflatexsymbols.h \
            klflibrary.h \
 	   klflib.h \
+	   klflib_p.h \
 	   klflibview.h \
 	   klflibentryeditor.h \
 	   klflibbrowser.h \
@@ -60,11 +62,14 @@ FORMS += klflatexsymbolsui.ui \
          klfstylemanagerui.ui \
 	 klfaboutdialogui.ui \
 	 klfcolorchoosewidgetui.ui \
-	 klfcolordialogui.ui
+	 klfcolordialogui.ui \
+	 klflibopenresourcedlg.ui \
+	 klflibsqliteopenwidget.ui
 SOURCES += klfcolorchooser.cpp \
            klfconfig.cpp \
            klfdata.cpp \
 	   klfpobj.cpp \
+	   klflatexsyntaxhighlighter.cpp \
            klflatexsymbols.cpp \
            klflibrary.cpp \
 	   klflib.cpp \
