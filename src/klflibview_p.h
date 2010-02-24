@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klflib_p.h
+ *   file klflibview_p.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2010 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,58 +21,15 @@
  ***************************************************************************/
 /* $Id$ */
 
+
 /** \file
  * This header contains (in principle private) auxiliary classes for
- * library routines defined in klflib.cpp */
-
-#ifndef KLFLIB_P_H
-#define KLFLIB_P_H
-
-#include <QUrl>
-#include <QWidget>
-#include <QTextEdit>
-#include <QFileDialog>
-#include <QPushButton>
-
-#include <ui_klflibsqliteopenwidget.h>
+ * library routines defined in klflibview.cpp */
 
 
-class KLFLibSqliteOpenWidget : public QWidget, private Ui::KLFLibSqliteOpenWidget
-{
-  Q_OBJECT
-public:
-  KLFLibSqliteOpenWidget(QWidget *parent) : QWidget(parent)
-  {
-    setupUi(this);
-  }
-  virtual ~KLFLibSqliteOpenWidget() { }
+#ifndef KLFLIBVIEW_P_H
+#define KLFLIBVIEW_P_H
 
-  void setUrl(const QUrl& url) {
-    txtFile->setText(url.path());
-  }
-  QUrl url() const {
-    QUrl url = QUrl::fromLocalFile(txtFile->text());
-    url.setScheme("klf+sqlite");
-    return url;
-  }
-
-signals:
-  void readyToOpen(bool ready);
-
-private slots:
-  void on_btnBrowse_clicked() {
-    QString filter = tr("KLatexFormula Library Resource Files (*.klf.db);;All Files (*)");
-    static QString selectedFilter;
-    QString name = QFileDialog::getOpenFileName(this, tr("Select Library Resource File"),
-						QDir::homePath(), filter, &selectedFilter);
-    if ( ! name.isEmpty() )
-      txtFile->setText(name);
-  }
-  void on_txtFile_textChanged(const QString& text)
-  {
-    emit readyToOpen(QFile::exists(text));
-  }
-};
 
 
 

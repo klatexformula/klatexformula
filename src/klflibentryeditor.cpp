@@ -124,8 +124,6 @@ void KLFLibEntryEditor::displayEntry(const KLFLibEntry& entry)
 
 void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
 {
-  // ...... TODO ........... : UPDATE WHETHER BUTTONS ARE ENABLED
-
   if (entrylist.size() == 0) {
     pUi->lblPreview->setPixmap(QPixmap(":/pics/nopreview.png"));
     pUi->txtPreviewLatex->setText(tr("[ No Item Selected ]"));

@@ -87,7 +87,6 @@
 
     Use setColor() and color() to set and get the current color.
 
-    \img colortriangle.png
 */
 
 /*! \fn QtColorTriangle::colorChanged(const QColor &color)
@@ -190,7 +189,7 @@ void QtColorTriangle::polish()
     update();
 }
 
-/*! \reimp
+/*! (reimplemented)
  */
 QSize QtColorTriangle::sizeHint() const
 {
@@ -529,7 +528,7 @@ void QtColorTriangle::resizeEvent(QResizeEvent *)
     update();
 }
 
-/*! \reimp
+/*! (reimplemented)
 
 First copies a background image of the hue donut and its
     background color onto the frame, then draws the color triangle,

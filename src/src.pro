@@ -38,8 +38,10 @@ HEADERS += klfcolorchooser.h \
 	   klflib.h \
 	   klflib_p.h \
 	   klflibview.h \
+	   klflibview_p.h \
 	   klflibentryeditor.h \
 	   klflibbrowser.h \
+	   klflibbrowser_p.h \
 	   klfmime.h \
            klfmainwin.h \
            klfpathchooser.h \
@@ -56,6 +58,7 @@ FORMS += klflatexsymbolsui.ui \
          klflibrarybrowserui.ui \
 	 klflibbrowser.ui \
 	 klflibentryeditor.ui \
+	 klflibrespropeditor.ui \
          klfmainwinui.ui \
          klfprogerrui.ui \
          klfsettingsui.ui \

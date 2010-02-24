@@ -34,6 +34,12 @@
 #include <klfpobj.h>
 
 /** \brief An entry (single formula) in the library
+ *
+ * Stores Latex code, Date/Time of evaluation, A preview image, A Category String,
+ * A Tags String, and a Style in a KLFPropertizedObject-based object.
+ *
+ * This object can be used as a normal value (ie. it has copy constructor, assignment
+ * operator and default constructor).
  */
 class KLF_EXPORT KLFLibEntry : public KLFPropertizedObject {
 public:
@@ -80,6 +86,54 @@ Q_DECLARE_METATYPE(KLFLibEntry)
 typedef QList<KLFLibEntry> KLFLibEntryList;
 
 
+/** \brief An abstract resource engine
+ *
+ * This class is the base of all resource types. Subclasses (e.g. KLFLibDBEngine) implement
+ * the actual access to the data, while this class defines the base API that will be used
+ * by e.g. the library browser (through a KLFAbstractLibView subclass) to access the data.
+ *
+ * Subclasses may choose to implement various features specified by the \ref ResourceFeature
+ * enum. The supported features must be passed (binary OR-ed) to the constructor.
+ *
+ * Resources have properties (stored in a KLFPropertizedObject structure, NOT in regular QObject
+ * properties) that ARE STORED IN THE RESOURCE DATA ITSELF. Built-in properties are listed
+ * in the \ref ResourceProperty enum.
+ *
+ * <b>Note on URL</b>. The URL is not a resource property as it is not stored in the resource
+ * itself. However the resource engine instance knows about the url it is manipulating
+ * (because subclasses pass the relevant url as parameter in the constructor). However, the
+ * URL itself blindly stored and reprovided when requested; it is not used by
+ * KLFLibResourceEngine itself. Small exception: in the constructor, some query items are
+ * recognized and stripped from the URL. See below.
+ *
+ * <b>Read-Only Mode</b>. The read-only mode differs from the locked property in that the
+ * mode is activated by the accessor only and is NOT stored in the resource data eg. on disk
+ * (in contrast to the locked property). It is up to SUBCLASSES to enforce this flag and
+ * prevent data from being modified if isReadOnly() is TRUE.<br>
+ * <b>Preventing READ-ONLY</b>. Subclasses may prevent read-only mode by not specifying
+ * the FeatureReadOnly in the constructor. In this case the default implementation of
+ * \ref setReadOnly() will return FALSE without doing anything. Also in this case, any
+ * occurrence of the query item "klfReadOnly" in the URL is stripped and ignored.
+ *
+ * <b>Query Items in URL</b>. The URL may contain Query Items e.g.
+ * <tt>scheme://klf.server.dom/path/to/location<b>?klfReadOnly=true</b></tt>. Here is a
+ * list of recognized (universal) query items. Subclasses may choose to recognize more query
+ * items, but these listed here are detected in the KLFLibResourceEngine constructor and
+ * the appropriate flags are set (eg. \ref isReadOnly()):
+ * - <tt>klfReadOnly=<i>{</i>true<i>|</i>false<i>}</i></tt> If provided, sets the read-only
+ *   flag to the given value. If not provided, the flag defaults to false (flag is directly
+ *   set, bypassing the setReadOnly() function).
+ * .
+ * Note that [only] recognized query items are stripped from the \ref url() as they are parsed.
+ *
+ * <b>NOTES FOR SUBCLASSES</b><br>
+ * - Subclasses must deal with the properties and implement them as they are meant to. For
+ *   example, if a resource is \ref locked(), then \ref canModify() must return FALSE and
+ *   any attempt to modify the resource must fail.
+ * - See also docs for \ref setTitle(), \ref setLocked().
+ * - The \ref resourcePropertyChanged() signal must be emitted by subclasses when they change
+ *   any resource property.
+ */
 class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObject
 {
   Q_OBJECT
@@ -91,22 +145,53 @@ public:
     KLFLibEntry entry;
   };
 
-  enum { PropTitle = 0 };
+  /** List of built-in KLFPropertizedObject-properties. */
+  enum ResourceProperty { PropTitle = 0, PropLocked };
 
-  KLFLibResourceEngine(const QUrl& url, QObject *parent = NULL);
+  enum ResourceFeature {
+    FeatureReadOnly = 0x0001,
+    FeatureLocked = 0x0002,
+    FeatureSaveAs = 0x0004
+  };
+
+  KLFLibResourceEngine(const QUrl& url, uint supportedfeatureflags, QObject *parent = NULL);
   virtual ~KLFLibResourceEngine();
 
-  virtual QUrl url() const { return pUrl; }
-  virtual QString title() const { return KLFPropertizedObject::property(PropTitle).toString(); }
+  //! List of features supported by this resource engine
+  /** Use this function to probe whether this resource instance supports a specific
+   * feature. For example a property editor widget might want to know if this resource
+   * supportes the \ref FeatureLocked feature, to enable or disable the corresponding
+   * check box.
+   *
+   * Do not reimplement in subclasses, simply pass the feature flags to the constructor.
+   * */
+  virtual uint supportedFeatureFlags() const { return pFeatureFlags; }
 
-  /** Subclasses should store the title and set property PropTitle to the set title. Return
-   * value TRUE indicates success. This function may return FALSE if changing the title is
-   * not permitted, or the new title is not acceptable (for some given standard...). */
-  virtual bool setTitle(const QString& title) = 0;
+  virtual QUrl url() const { return pUrl; }
+  virtual bool isReadOnly() const { return pReadOnly; }
+
+  //! The human-set title of this resource
+  /** See \ref setTitle(). */
+  virtual QString title() const { return KLFPropertizedObject::property(PropTitle).toString(); }
+  //! Is this resource is locked?
+  /** If the resource is locked (property \ref PropLocked), no changes can be in principle made.
+   *
+   * \note It is up to subclasses of KLFLibResourceEngine to enforce that locked resources are
+   *   not modified and that \ref canModify() returns FALSE. */
+  virtual bool locked() const { return KLFPropertizedObject::property(PropLocked).toBool(); }
 
   /** Subclasses should return TRUE here if, in principle, it is possible to modify the
-   * resource's data. Return for ex. false when opening a read-only file. */
-  virtual bool canModify() const = 0;
+   * resource's data. Return for ex. false when opening a read-only file.
+   *
+   * \warning subclasses should call the base implementation to e.g. take into account
+   * the \ref locked() property. If the base implementation returns FALSE, then the
+   * subclasses should also return FALSE. */
+  virtual bool canModify() const;
+
+  /** This function should be used instead of \ref canModify() to test whether the
+   * Locked property can be modified, to prevent a set locked property from preventing
+   * itself from being unset (!) */
+  virtual bool canUnLock() const;
 
   /** Suggested library view widget to view this resource with optimal user experience :-) .
    * Return QString() for default view. */
@@ -115,21 +200,67 @@ public:
   virtual KLFLibEntry entry(entryId id) = 0;
   virtual QList<KLFLibEntryWithId> allEntries() = 0;
 
-  /** Simply calls the list version. */
-  entryId insertEntry(const KLFLibEntry& entry);
+signals:
+  void resourcePropertyChanged(int propId);
+  void dataChanged();
+
+public slots:
+
+  /** Store the title and set property PropTitle to the set title. Return
+   * value TRUE indicates success. This function may return FALSE if changing the title is
+   * not permitted, or the new title is not acceptable (for some given standard...).
+   *
+   * Subclasses should store the new value in the resource data (e.g. on disk), set the
+   * PropLocked KLFPropertizedObject-based property, then emit resourcePropertyChanged().   */
+  virtual bool setTitle(const QString& title) = 0;
+
+  //! Set the resource to be locked
+  /** See \ref locked() for more doc.
+   *
+   * If you wish to implement resource locking, this function should be reimplemented to
+   * lock or unlock the resource. If the feature is globally not supported, you can leave
+   * the default implementation return FALSE.
+   *
+   * The function may return FALSE for failure or if the operation is not permitted in
+   * a special case.
+   *
+   * Subclasses should store the new value in the resource data (e.g. on disk), set the
+   * PropLocked KLFPropertizedObject-based property, then emit resourcePropertyChanged()
+   * and return TRUE for success.
+   */
+  virtual bool setLocked(bool locked);
+
+  //! Set the resource to be read-only or not
+  /** The base implementation sets the read-only flag to \c readonly (this is then returned
+   * by \ref isReadOnly()) if the \ref FeatureReadOnly was given to the constructor; does
+   * nothing and returns FALSE otherwise.
+   */
+  virtual bool setReadOnly(bool readonly);
+
+  //! (shortcut for the list version)
+  /** This function is already implemented as shortcut for calling the list version. Subclasses
+   * need in principle NOT reimplement this function. */
+  virtual entryId insertEntry(const KLFLibEntry& entry);
+
   virtual QList<entryId> insertEntries(const KLFLibEntryList& entrylist) = 0;
   virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
 			   const QList<QVariant>& values) = 0;
   virtual bool deleteEntries(const QList<entryId>& idlist) = 0;
 
-signals:
-  void dataChanged();
+  /** If the \ref FeatureSaveAs is supported (passed to the constructor), reimplement this
+   * function to save the resource data in the new path specified by \c newPath.
+   * The \c newPath is garanteed to have same schema as the previous url. */
+  virtual bool saveAs(const QUrl& newPath);
 
 protected:
-  QUrl pUrl;
+
 
 private:
   void initRegisteredProperties();
+
+  QUrl pUrl;
+  bool pFeatureFlags;
+  bool pReadOnly;
 };
 
 
@@ -147,8 +278,14 @@ public:
   /** Destroys this engine factory and unregisters it. */
   virtual ~KLFAbstractLibEngineFactory();
 
-  /** Should return a list of supported URL schemes this factory can open */
+  /** Should return a list of supported URL schemes this factory can open.
+   * Two factories should NOT provide common scheme names, or bugs like one factory
+   * being be shadowed by the other may appear. */
   virtual QStringList supportedSchemes() const = 0;
+
+  /** Should return a human (short) description of the given scheme (which is one
+   * returned by \ref supportedSchemes()) */
+  virtual QString schemeTitle(const QString& scheme) const = 0;
 
   /** create a widget that will prompt to user to open a resource of given \c scheme.
    * It could be a file selection widget, or a text entry for a hostname or etc. The
@@ -157,7 +294,7 @@ public:
 					  QUrl defaultlocation = QUrl()) = 0;
 
   /** get the url edited by user, that are stored in \c widget GUI. \c widget is a
-   * QWidget returned by \ref createPrompUrlWidget()*/
+   * QWidget returned by \ref createPromptUrlWidget()*/
   virtual QUrl retrieveUrlFromWidget(QWidget *widget) = 0;
 
   /** Create a library engine that opens resource stored at \c location. The resource
@@ -183,6 +320,12 @@ public:
    * factory exists (ie. has been registered). */
   static KLFAbstractLibEngineFactory *findFactoryFor(const QString& urlScheme);
 
+  /** Returns a combined list of all schemes all factories support. ie. returns a list of
+   * all schemes we're capable of opening. */
+  static QStringList allSupportedSchemes();
+  /** Returns the full list of installed factories. */
+  static QList<KLFAbstractLibEngineFactory*> allFactories() { return pRegisteredFactories; }
+
 private:
   static void registerFactory(KLFAbstractLibEngineFactory *factory);
   static void unRegisterFactory(KLFAbstractLibEngineFactory *factory);
@@ -195,7 +338,8 @@ private:
 
 
 /** Library Resource engine implementation for an (abstract) database (using Qt
- * SQL interfaces) */
+ * SQL interfaces)
+ */
 class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceEngine
 {
   Q_OBJECT
@@ -207,7 +351,8 @@ public:
    * with QObject parent \c parent, opening the database at location \c url.
    * Returns NULL if opening the database failed.
    *
-   * A non-NULL returned object was successfully connected to database. */
+   * A non-NULL returned object was successfully connected to database.
+   * */
   static KLFLibDBEngine * openUrl(const QUrl& url, QObject *parent = NULL);
   /** Simple destructor. Disconnects the database if the autoDisconnectDB() property was
    * set. */
@@ -216,12 +361,10 @@ public:
   bool canModify() const;
 
   /** True if one has supplied a valid database in the constructor or with a
-   * \ref setDatabse() call. */
+   * \ref setDatabase() call. */
   bool validDatabase() const;
   /** supply an open database. */
   void setDatabase(QSqlDatabase db_connection);
-
-  virtual bool setTitle(const QString& title);
 
   virtual bool autoDisconnectDB() const { return pAutoDisconnectDB; }
   virtual QString dataTableName() const { return pDataTableName; }
@@ -230,6 +373,9 @@ public:
   virtual QList<KLFLibEntryWithId> allEntries();
 
 public slots:
+
+  virtual bool setTitle(const QString& title);
+  virtual bool setLocked(bool locked);
 
   virtual QList<entryId> insertEntries(const KLFLibEntryList& entries);
   virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
@@ -265,6 +411,7 @@ public:
 
   /** Should return a list of supported URL schemes this factory can open */
   virtual QStringList supportedSchemes() const;
+  virtual QString schemeTitle(const QString& scheme) const ;
 
   virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
 					  QUrl defaultlocation = QUrl());

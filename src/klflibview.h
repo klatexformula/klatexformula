@@ -27,6 +27,7 @@
 #include <QAbstractItemModel>
 #include <QAbstractItemDelegate>
 #include <QWidget>
+#include <QDialog>
 #include <QTreeView>
 
 #include <klfdefs.h>
@@ -67,6 +68,7 @@ signals:
 public slots:
   virtual void updateView();
   virtual void updateResourceView() = 0;
+  virtual void updateResourceProp() = 0;
   virtual void updateResourceData() = 0;
   virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
   bool writeEntryCategory(const QString& category)
@@ -405,6 +407,7 @@ public slots:
 
 protected:
   virtual void updateResourceView();
+  virtual void updateResourceProp();
   virtual void updateResourceData();
   virtual QStringList getCategorySuggestions();
 
@@ -437,6 +440,61 @@ public:
   virtual bool canCreateLibView(KLFLibResourceEngine */*engine*/) { return true; }
 
   virtual KLFAbstractLibView * createLibView(QWidget *parent, KLFLibResourceEngine *resourceEngine);
+};
+
+
+
+// -----------------
+
+namespace Ui {
+  class KLFLibOpenResourceDlg;
+  class KLFLibResPropEditor;
+};
+
+class KLF_EXPORT KLFLibOpenResourceDlg : public QDialog
+{
+  Q_OBJECT
+public:
+  KLFLibOpenResourceDlg(const QUrl& defaultlocation = QUrl(), QWidget *parent = 0);
+  virtual ~KLFLibOpenResourceDlg();
+
+  virtual QUrl url() const;
+
+  static QUrl queryOpenResource(const QUrl& defaultlocation = QUrl(), QWidget *parent = 0);
+
+private:
+  Ui::KLFLibOpenResourceDlg *pUi;
+};
+
+
+class KLFLibResPropEditor : public QWidget
+{
+  Q_OBJECT
+public:
+  KLFLibResPropEditor(KLFLibResourceEngine *resource, QWidget *parent = 0);
+  virtual ~KLFLibResPropEditor();
+
+public slots:
+  bool apply();
+
+private:
+  KLFLibResourceEngine *pResource;
+  Ui::KLFLibResPropEditor *pUi;
+};
+
+class KLFLibResPropEditorDlg : public QDialog
+{
+  Q_OBJECT
+public:
+  KLFLibResPropEditorDlg(KLFLibResourceEngine *resource, QWidget *parent = 0);
+  virtual ~KLFLibResPropEditorDlg();
+
+public slots:
+  void applyAndClose();
+  void cancelAndClose();
+
+private:
+  KLFLibResPropEditor *pEditor;
 };
 
 

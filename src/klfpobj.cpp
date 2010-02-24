@@ -61,6 +61,12 @@ QVariant KLFPropertizedObject::property(int propId) const
 }
 
 
+void KLFPropertizedObject::propertyValueChanged(int , const QVariant& ,
+						const QVariant& )
+{
+  // do nothing. Subclasses may implement thier own behavior.
+}
+
 void KLFPropertizedObject::setProperty(const QString& propname, const QVariant& value)
 {
   if ( ! propertyNameRegistered(propname) ) {
@@ -74,7 +80,9 @@ void KLFPropertizedObject::setProperty(int propId, const QVariant& value)
 {
   if (propId >= 0 && propId < pProperties.size()) {
     // all ok, set this property
+    QVariant oldvalue = pProperties[propId];
     pProperties[propId] = value;
+    propertyValueChanged(propId, oldvalue, value);
     return;
   }
   if (propId < 0) {
@@ -92,18 +100,21 @@ void KLFPropertizedObject::setProperty(int propId, const QVariant& value)
     qWarning("%s/setProperty(id=%d): invalid property id.", qPrintable(pPropNameSpace), propId);
     return;
   }
+  QVariant oldvalue = pProperties[propId];
   pProperties[propId] = value;
+  propertyValueChanged(propId, oldvalue, value);
 }
-void KLFPropertizedObject::loadProperty(const QString& propname, const QVariant& value)
+int KLFPropertizedObject::loadProperty(const QString& propname, const QVariant& value)
 {
   int propId = propertyIdForName(propname);
   if ( propId < 0 ) {
     // register property
     propId = registerProperty(propname);
     if (propId < 0)
-      return;
+      return -1;
   }
   setProperty(propId, value);
+  return propId;
 }
 
 QList<int> KLFPropertizedObject::propertyIdList() const
@@ -337,8 +348,12 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
       propMaxId = propId;
   }
   if ( propList.keys(propId).size() > 0 ) {
-    qWarning("Property ID `%d' in property name space `%s' is already registered!", propId,
-	     qPrintable(propNameSpace));
+    QString oldPropName = propList.keys(propId).at(0);
+    if (propName == oldPropName)
+      return propId; // already registered, return that property ID
+    qWarning("Property ID `%d' in property name space `%s' is already registered with conflicting names!"
+	     "\told=`%s', new=`%s'", propId, qPrintable(propNameSpace), qPrintable(oldPropName),
+	     qPrintable(propName));
     return -1;
   }
   // make sure property name is valid and unique

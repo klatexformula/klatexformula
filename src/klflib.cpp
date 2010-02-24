@@ -80,10 +80,20 @@ void KLFLibEntry::initRegisteredProperties()
 // ---------------------------------------------------
 
 
-KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, QObject *parent)
-  : QObject(parent), KLFPropertizedObject("KLFLibResourceEngine"), pUrl(url)
+KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, uint featureflags,
+					   QObject *parent)
+  : QObject(parent), KLFPropertizedObject("KLFLibResourceEngine"), pUrl(url),
+    pFeatureFlags(featureflags), pReadOnly(false)
 {
   initRegisteredProperties();
+
+  QStringList rdonly = pUrl.allQueryItemValues("klfReadOnly");
+  if (rdonly.size() && rdonly.last() == "true") {
+    if (pFeatureFlags & FeatureReadOnly)
+      pReadOnly = true;
+  }
+  pUrl.removeAllQueryItems("klfReadOnly");
+
 }
 KLFLibResourceEngine::~KLFLibResourceEngine()
 {
@@ -97,7 +107,36 @@ void KLFLibResourceEngine::initRegisteredProperties()
   first_run = false;
 
   registerBuiltInProperty(PropTitle, "Title");
+  registerBuiltInProperty(PropLocked, "Locked");
 }
+
+bool KLFLibResourceEngine::canModify() const
+{
+  return !isReadOnly() && !locked();
+}
+bool KLFLibResourceEngine::canUnLock() const
+{
+  // shoud contain the same condition as canModify(), without
+  // the locked() term.
+  return !isReadOnly();
+}
+
+bool KLFLibResourceEngine::setLocked(bool)
+{
+  // not permitted by default. Subclasses must reimplement
+  // to support this feature.
+  return false;
+}
+
+bool KLFLibResourceEngine::setReadOnly(bool readonly)
+{
+  if ( !(pFeatureFlags & FeatureReadOnly) )
+    return false;
+
+  pReadOnly = readonly;
+  return true;
+}
+
 
 KLFLibResourceEngine::entryId KLFLibResourceEngine::insertEntry(const KLFLibEntry& entry)
 {
@@ -107,6 +146,15 @@ KLFLibResourceEngine::entryId KLFLibResourceEngine::insertEntry(const KLFLibEntr
 
   return ids[0];
 }
+
+bool KLFLibResourceEngine::saveAs(const QUrl&)
+{
+  // not permitted by default. Subclasses must reimplement
+  // to support this feature.
+  return false;
+}
+
+
 
 // ---------------------------------------------------
 
@@ -160,6 +208,15 @@ KLFAbstractLibEngineFactory *KLFAbstractLibEngineFactory::findFactoryFor(const Q
   return NULL;
 }
 
+QStringList KLFAbstractLibEngineFactory::allSupportedSchemes()
+{
+  QStringList schemes;
+  int k;
+  for (k = 0; k < pRegisteredFactories.size(); ++k) {
+    schemes << pRegisteredFactories[k]->supportedSchemes();
+  }
+  return schemes;
+}
 
 void KLFAbstractLibEngineFactory::registerFactory(KLFAbstractLibEngineFactory *factory)
 {
@@ -247,7 +304,8 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 // private
 KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autodisconnect,
 			       const QUrl& url, QObject *parent)
-  : KLFLibResourceEngine(url, parent), pAutoDisconnectDB(autodisconnect), pDataTableName(tablename)
+  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureLocked, parent),
+    pAutoDisconnectDB(autodisconnect), pDataTableName(tablename)
 {
   setDatabase(db);
   // read resource properties from database
@@ -272,6 +330,9 @@ KLFLibDBEngine::~KLFLibDBEngine()
 
 bool KLFLibDBEngine::canModify() const
 {
+  if ( !KLFLibResourceEngine::canModify() )
+    return false;
+
   /** \todo TODO: check if file is writable (SQLITE3), if permissions on the database
    * are granted (MySQL, PgSQL, etc.) */
   return true;
@@ -290,22 +351,32 @@ void KLFLibDBEngine::setDatabase(QSqlDatabase db)
 // private
 bool KLFLibDBEngine::setResourceProperty(int propId, const QVariant& value)
 {
+  if ( !canModify() ) {
+    // exception: un-lock resource (!)
+    if ( canUnLock() && locked() && propId == PropLocked && value.toBool() == false ) {
+      // go on...
+    } else {
+      return false;
+    }
+  }
+
   QString propName = propertyNameForId(propId);
   if ( propName.isEmpty() )
     return false;
 
   {
-    QSqlQuery q;
+    QSqlQuery q = QSqlQuery(pDB);
     q.prepare("DELETE FROM klf_properties WHERE name = ?");
-    q.bindValue(0, propName);
-    if ( ! q.exec() || q.lastError().isValid() ) {
+    q.addBindValue(propName);
+    bool r = q.exec();
+    if ( !r || q.lastError().isValid() ) {
       qWarning()<<"KLFLibDBEngine::setRes.Property("<<propId<<","<<value<<"): can't DELETE!\n\t"
 		<<q.lastError().text()<<"\n\tSQL="<<q.lastQuery();
       return false;
     }
   }
   {
-    QSqlQuery q;
+    QSqlQuery q = QSqlQuery(pDB);
     q.prepare("INSERT INTO klf_properties (name,value) VALUES (?,?)");
     q.bindValue(0, propName);
     q.bindValue(1, value);
@@ -316,6 +387,7 @@ bool KLFLibDBEngine::setResourceProperty(int propId, const QVariant& value)
     }
   }
   KLFPropertizedObject::setProperty(propId, value);
+  emit resourcePropertyChanged(propId);
   return true;
 }
 
@@ -323,6 +395,11 @@ bool KLFLibDBEngine::setTitle(const QString& title)
 {
   return setResourceProperty(PropTitle, title);
 }
+bool KLFLibDBEngine::setLocked(bool locked)
+{
+  return setResourceProperty(PropLocked, locked);
+}
+
 
 
 // private
@@ -427,6 +504,9 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
   if ( entrylist.size() == 0 )
     return QList<entryId>();
 
+  if ( !canModify() )
+    return QList<entryId>();
+
   KLFLibEntry e; // dummy object to test for properties
   QList<int> propids = e.registeredPropertyIdList();
   QStringList props;
@@ -475,6 +555,8 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
 {
   if ( ! validDatabase() )
     return false;
+  if ( ! canModify() )
+    return false;
 
   if ( properties.size() != values.size() ) {
     qWarning("KLFLibDBEngine::changeEntry(): properties' and values' sizes mismatch!");
@@ -520,6 +602,8 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
     return false;
   if (idlist.size() == 0)
     return true; // nothing to do
+  if ( ! canModify() )
+    return false;
 
   int k;
   QStringList qmarks_ids;
@@ -586,6 +670,14 @@ QStringList KLFLibDBEngineFactory::supportedSchemes() const
 {
   return QStringList() << QLatin1String("klf+sqlite");
 }
+
+QString KLFLibDBEngineFactory::schemeTitle(const QString& scheme) const
+{
+  if (scheme == QLatin1String("klf+sqlite"))
+    return tr("Local Library File");
+  return QString();
+}
+
 
 KLFLibResourceEngine *KLFLibDBEngineFactory::openResource(const QUrl& location, QObject *parent)
 {

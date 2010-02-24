@@ -31,8 +31,17 @@
 #include <QPainter>
 #include <QStyle>
 #include <QVBoxLayout>
+#include <QStackedWidget>
+#include <QComboBox>
+
+
+#include <ui_klflibopenresourcedlg.h>
+#include <ui_klflibrespropeditor.h>
 
 #include "klflibview.h"
+
+#include "klflibview_p.h"
+
 
 template<class T>
 const T& passingDebug(const T& t, QDebug& dbg)
@@ -503,7 +512,7 @@ bool KLFLibModel::insertEntries(const KLFLibEntryList& entries)
   QList<KLFLibResourceEngine::entryId> list = pResource->insertEntries(entries);
   updateCacheSetupModel();
 
-  if ( list.contains(-1) )
+  if ( list.size() == 0 || list.contains(-1) )
     return false; // error for at least one entry
   return true;
 }
@@ -1138,6 +1147,10 @@ void KLFLibDefaultView::updateResourceData()
 {
   pModel->updateData();
 }
+void KLFLibDefaultView::updateResourceProp()
+{
+  // nothing to do
+}
 
 QStringList KLFLibDefaultView::getCategorySuggestions()
 {
@@ -1192,16 +1205,19 @@ bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
   searchFound(i);
   return i.isValid();
 }
+
 bool KLFLibDefaultView::searchFindNext(bool forward)
 {
   QModelIndex i = pModel->searchFindNext(forward);
   searchFound(i);
   return i.isValid();
 }
+
 void KLFLibDefaultView::searchAbort()
 {
   pDelegate->setSearchString(QString());
-  searchFound(QModelIndex());
+  // don't un-select the found index...
+  //  searchFound(QModelIndex());
 }
 
 // private
@@ -1215,6 +1231,7 @@ void KLFLibDefaultView::searchFound(const QModelIndex& i)
     return;
   }
   pTreeView->scrollTo(i, QAbstractItemView::EnsureVisible);
+  pTreeView->expand(i);
   // select the item
   pTreeView->selectionModel()->setCurrentIndex(i, QItemSelectionModel::ClearAndSelect);
 }
@@ -1266,7 +1283,184 @@ KLFAbstractLibView * KLFLibDefaultViewFactory::createLibView(QWidget *parent,
 
 
 
+// ------------
 
+
+KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidget *parent)
+  : QDialog(parent)
+{
+  pUi = new Ui::KLFLibOpenResourceDlg;
+  pUi->setupUi(this);
+
+  // add a widget for all supported schemes
+  QStringList schemeList = KLFAbstractLibEngineFactory::allSupportedSchemes();
+  int k;
+  for (k = 0; k < schemeList.size(); ++k) {
+    KLFAbstractLibEngineFactory *factory
+      = KLFAbstractLibEngineFactory::findFactoryFor(schemeList[k]);
+    QWidget *openWidget = factory->createPromptUrlWidget(pUi->stkOpenWidgets, schemeList[k],
+							 defaultlocation);
+    pUi->stkOpenWidgets->insertWidget(k, openWidget);
+    pUi->cbxType->insertItem(k, factory->schemeTitle(schemeList[k]),
+			     QVariant::fromValue(schemeList[k]));
+  }
+
+  QString defaultscheme = defaultlocation.scheme();
+  if (defaultscheme.isEmpty()) {
+    pUi->cbxType->setCurrentIndex(0);
+    pUi->stkOpenWidgets->setCurrentIndex(0);
+  } else {
+    pUi->cbxType->setCurrentIndex(k = schemeList.indexOf(defaultscheme));
+    pUi->stkOpenWidgets->setCurrentIndex(k);
+  }
+}
+
+KLFLibOpenResourceDlg::~KLFLibOpenResourceDlg()
+{
+  delete pUi;
+}
+
+
+QUrl KLFLibOpenResourceDlg::url() const
+{
+  int k = pUi->cbxType->currentIndex();
+  QString scheme = pUi->cbxType->itemData(k).toString();
+  KLFAbstractLibEngineFactory *factory
+    = KLFAbstractLibEngineFactory::findFactoryFor(scheme);
+  QUrl url = factory->retrieveUrlFromWidget(pUi->stkOpenWidgets->widget(k));
+  if (pUi->chkReadOnly->isChecked())
+    url.addQueryItem("klfReadOnly", "true");
+  qDebug()<<"Got URL: "<<url;
+  return url;
+}
+
+QUrl KLFLibOpenResourceDlg::queryOpenResource(const QUrl& defaultlocation, QWidget *parent)
+{
+  KLFLibOpenResourceDlg dlg(defaultlocation, parent);
+  int result = dlg.exec();
+  if (result != QDialog::Accepted)
+    return QUrl();
+  QUrl url = dlg.url();
+  return url;
+}
+
+
+// ---------------------
+
+
+KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *parent)
+  : QWidget(parent)
+{
+  pUi = new Ui::KLFLibResPropEditor;
+  pUi->setupUi(this);
+
+  QPalette pal = pUi->txtUrl->palette();
+  pal.setColor(QPalette::Base, pal.color(QPalette::Window));
+  pal.setColor(QPalette::Background, pal.color(QPalette::Window));
+  pUi->txtUrl->setPalette(pal);
+
+  if (res == NULL)
+    qWarning("KLFLibResPropEditor: NULL Resource! Expect CRASH!");
+
+  pResource = res;
+
+  pUi->txtTitle->setText(res->title());
+  pUi->txtUrl->setText(res->url().toString());
+  pUi->chkLocked->setChecked(res->locked());
+
+  if ( !(res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureLocked) ) {
+    pUi->chkLocked->setEnabled(false);
+  }
+
+  pUi->frmAdvanced->setShown(pUi->btnAdvanced->isChecked());
+}
+
+KLFLibResPropEditor::~KLFLibResPropEditor()
+{
+  delete pUi;
+}
+
+bool KLFLibResPropEditor::apply()
+{
+  bool res = true;
+
+  bool lockmodified = (pResource->locked() != pUi->chkLocked->isChecked());
+  bool wantunlock = lockmodified && !pUi->chkLocked->isChecked();
+  bool wantlock = lockmodified && !wantunlock;
+  bool titlemodified = (pResource->title() != pUi->txtTitle->text());
+
+  if ( pResource->locked() && pUi->chkLocked->isChecked() ) {
+    // no intent to modify locked state of locked resource
+    if (titlemodified) {
+      QMessageBox::critical(this, tr("Error"), tr("Can't rename a locked resource!"));
+      return false;
+    } else {
+      return true; // nothing to apply
+    }
+  }
+  if (wantunlock) {
+    if ( ! pResource->setLocked(false) ) { // unlock resource before other modifications
+      res = false;
+      QMessageBox::critical(this, tr("Error"), tr("Failed to unlock resource."));
+    }
+  }
+
+  if ( titlemodified && ! pResource->setTitle(pUi->txtTitle->text()) ) {
+    res = false;
+    QMessageBox::critical(this, tr("Error"), tr("Failed to rename resource."));
+  }
+
+  if (wantlock) {
+    if ( ! pResource->setLocked(true) ) { // unlock resource before other modifications
+      res = false;
+      QMessageBox::critical(this, tr("Error"), tr("Failed to lock resource."));
+    }
+  }
+
+  return res;
+}
+
+// --
+
+KLFLibResPropEditorDlg::KLFLibResPropEditorDlg(KLFLibResourceEngine *resource, QWidget *parent)
+  : QDialog(parent)
+{
+  QVBoxLayout *lyt = new QVBoxLayout(this);
+
+  pEditor = new KLFLibResPropEditor(resource, this);
+  lyt->addWidget(pEditor);
+
+  QDialogButtonBox *btns = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Apply|
+						QDialogButtonBox::Cancel, Qt::Horizontal, this);
+  lyt->addWidget(btns);
+
+  connect(btns->button(QDialogButtonBox::Ok), SIGNAL(clicked()),
+	  this, SLOT(applyAndClose()));
+  connect(btns->button(QDialogButtonBox::Apply), SIGNAL(clicked()),
+	  pEditor, SLOT(apply()));
+  connect(btns->button(QDialogButtonBox::Cancel), SIGNAL(clicked()),
+	  this, SLOT(cancelAndClose()));
+  
+  setModal(false);
+  setWindowTitle(pEditor->windowTitle());
+  setAttribute(Qt::WA_DeleteOnClose, true);
+}
+
+KLFLibResPropEditorDlg::~KLFLibResPropEditorDlg()
+{
+}
+
+void KLFLibResPropEditorDlg::applyAndClose()
+{
+  if (pEditor->apply()) {
+    accept();
+  }
+}
+
+void KLFLibResPropEditorDlg::cancelAndClose()
+{
+  reject();
+}
 
 
 
@@ -1323,7 +1517,8 @@ void klf___temp___test_newlib()
     view->show();*/
   KLFLibBrowser * w = new KLFLibBrowser(NULL);
   w->setAttribute(Qt::WA_DeleteOnClose, true);
-  w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_sqlite_test")));
+  w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_sqlite_test")),
+		  KLFLibBrowser::NoCloseRoleFlag);
   w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_another_resource.klf.db")));
 
   w->show();

@@ -35,17 +35,17 @@
        </sizepolicy>
       </property>
       <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+       <enum>QFrame::NoFrame</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Sunken</enum>
+       <enum>QFrame::Plain</enum>
       </property>
       <layout class="QVBoxLayout" name="lyt_frmViews">
        <property name="margin">
         <number>0</number>
        </property>
        <item>
-        <widget class="QTabWidget" name="tabResources">
+        <widget class="KLFLibBrowserTabWidget" name="tabResources">
          <property name="currentIndex">
           <number>0</number>
          </property>
@@ -291,6 +291,12 @@
    <header location="global">klflibentryeditor.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>KLFLibBrowserTabWidget</class>
+   <extends>QTabWidget</extends>
+   <header location="global">QTabWidget</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>btnSearchClear</tabstop>
@@ -305,5 +311,22 @@
  <resources>
   <include location="klfres.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>btnClose</sender>
+   <signal>clicked()</signal>
+   <receiver>KLFLibBrowser</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>692</x>
+     <y>613</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>676</x>
+     <y>627</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

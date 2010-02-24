@@ -43,14 +43,6 @@ public:
 
   virtual QVariant property(const QString& propname) const;
   virtual QVariant property(int propId) const;
-  /** Sets the given property to \c value. If propname is not registered,
-   * this function fails. */
-  virtual void setProperty(const QString& propname, const QVariant& value);
-  virtual void setProperty(int propId, const QVariant& value);
-
-  /** Like \c setProperty(), except the property name \c propname is registered
-   * if it is not registered. */
-  virtual void loadProperty(const QString& propname, const QVariant& value);
 
   /** \brief A list of properties that have been set.
    *
@@ -85,7 +77,7 @@ public:
    */
   QByteArray allPropertiesToByteArray() const;
 
-  /** \brief Loads all properties saved by \ref allPropertiesToBinaryForm()
+  /** \brief Loads all properties saved by \ref allPropertiesToByteArray()
    */
   void setAllPropertiesFromByteArray(const QByteArray& data);
 
@@ -100,6 +92,31 @@ public:
   QMap<QString, int> registeredProperties() const;
 
 protected:
+
+  /** This method is called whenever the value of a given property changes.
+   *
+   * Subclasses may reimplement to watch the properties for changes. The base
+   * implementation does nothing.
+   *
+   * \param propId the property ID that changed
+   * \param oldValue the previous value of the property
+   * \param newValue the new value of the property
+   */
+  virtual void propertyValueChanged(int propId, const QVariant& oldvalue,
+				    const QVariant& newValue);
+
+
+  /** Sets the given property to \c value. If propname is not registered,
+   * this function fails. */
+  virtual void setProperty(const QString& propname, const QVariant& value);
+  virtual void setProperty(int propId, const QVariant& value);
+
+  /** Like \c setProperty(), except the property name \c propname is registered
+   * if it is not registered.
+   *
+   * \returns The property ID that was set or -1 for failure. */
+  virtual int loadProperty(const QString& propname, const QVariant& value);
+
   // shortcuts for the corresponding static methods
   void registerBuiltInProperty(int propId, const QString& name) const;
   int registerProperty(const QString& propertyName) const;

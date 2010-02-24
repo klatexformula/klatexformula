@@ -768,6 +768,7 @@
   <category name="Text Mode LaTeX Special Characters">
     <sym textmode="true"><latex>\$</latex></sym>
     <sym textmode="true"><latex>\%</latex></sym>
+    <sym textmode="true"><usepackage name="textcomp"/><latex>\textperthousand</latex></sym>
     <sym textmode="true"><latex>\_</latex></sym>
     <sym textmode="true"><latex>\{</latex></sym>
     <sym textmode="true"><latex>\}</latex></sym>

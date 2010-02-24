@@ -11,7 +11,17 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Open Library Resource</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="klfres.qrc">
+    <normaloff>:/pics/hi64-app-klatexformula.png</normaloff>:/pics/hi64-app-klatexformula.png</iconset>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" colspan="2">
@@ -29,7 +39,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Open Resource</string>
+      <string>Open Library Resource</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -47,7 +57,7 @@
     <widget class="QComboBox" name="cbxType"/>
    </item>
    <item row="4" column="0" colspan="2">
-    <widget class="QDialogButtonBox" name="btnBox">
+    <widget class="QDialogButtonBox" name="btnBar">
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Open</set>
      </property>
@@ -67,6 +77,57 @@
    </item>
   </layout>
  </widget>
- <resources/>
- <connections/>
+ <resources>
+  <include location="klfres.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>cbxType</sender>
+   <signal>activated(int)</signal>
+   <receiver>stkOpenWidgets</receiver>
+   <slot>setCurrentIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>474</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>529</x>
+     <y>73</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnBar</sender>
+   <signal>accepted()</signal>
+   <receiver>KLFLibOpenResourceDlg</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>405</x>
+     <y>355</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>461</x>
+     <y>343</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnBar</sender>
+   <signal>rejected()</signal>
+   <receiver>KLFLibOpenResourceDlg</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>458</x>
+     <y>365</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>497</x>
+     <y>380</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
