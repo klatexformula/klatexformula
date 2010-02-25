@@ -269,9 +269,13 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   resource->setParent(this);
 
   // now create appropriate view for this resource
+  QString viewtypeident = "default"; //resource->suggestedViewTypeIdentifier();
+  if (viewtypeident.isEmpty())
+    viewtypeident = KLFAbstractLibViewFactory::defaultViewTypeIdentifier();
   KLFAbstractLibViewFactory *viewfactory =
-    KLFAbstractLibViewFactory::findFactoryFor(resource->suggestedViewTypeIdentifier());
-  KLFAbstractLibView * view = viewfactory->createLibView(pUi->tabResources, resource);
+    KLFAbstractLibViewFactory::findFactoryFor(viewtypeident);
+  KLFAbstractLibView * view =
+    viewfactory->createLibView(viewtypeident, pUi->tabResources, resource);
 
   // get informed about selection changes
   connect(view, SIGNAL(entriesSelected(const KLFLibEntryList& )),
@@ -544,9 +548,6 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 				  view, SLOT(deleteSelected()));
   menu->addSeparator();
 
-
-  /// \todo SELECT ALL ...............TODO....................
-
   QMenu *copytomenu = new QMenu;
   QMenu *movetomenu = new QMenu;
   int k;
@@ -581,6 +582,15 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   adel->setEnabled(canmod && selected.size());
   acopyto->setEnabled(cancopy);
   amoveto->setEnabled(cancopy && canmod);
+
+  // add view's own actions
+
+  QList<QAction*> viewActions = view->addContextMenuActions(pos);
+  if (viewActions.size())
+    menu->addSeparator(); // separate view's menu items from ours
+  for (k = 0; k < viewActions.size(); ++k) {
+    menu->addAction(viewActions[k]);
+  }
 
   menu->popup(view->mapToGlobal(pos));
 }
@@ -770,7 +780,7 @@ void KLFLibBrowser::slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstract
 
 void KLFLibBrowser::updateSearchFound(bool found)
 {
-  qDebug("updateSearchFound(%d)", found);
+  //  qDebug("updateSearchFound(%d)", found);
   QPalette pal;
   if (found) {
     pal = pUi->txtSearch->property("paletteFound").value<QPalette>();

@@ -31,6 +31,9 @@
 #include <QDialog>
 #include <QAbstractButton>
 #include <QTreeView>
+#include <QItemSelectionModel>
+#include <QTextDocument>
+#include <QTextCharFormat>
 
 #include <klfdefs.h>
 #include <klflib.h>
@@ -44,7 +47,11 @@ namespace KLFLib {
   };
 };
 
-
+//! A view widget to display a library resource's contents
+/** A base API for a widget that will display a KLFLibResourceEngine's contents.
+ * For example one could create a QTreeView and display the contents in there
+ * (that's what KLFLibDefaultView does...).
+ */
 class KLF_EXPORT KLFAbstractLibView : public QWidget
 {
   Q_OBJECT
@@ -57,6 +64,16 @@ public:
   virtual void setResourceEngine(KLFLibResourceEngine *resource);
 
   virtual KLFLibEntryList selectedEntries() const = 0;
+
+  /** Subclasses may add items to the context menu by returning them in this function.
+   * \param pos is the position relative to widget where the menu was requested.
+   *
+   * \note The view itself does not handle context menus. This function is provided
+   *   for whichever class uses this view to add these actions when that class creates
+   *   a context menu.
+   *
+   * The default implementation returns an empty list. */
+  virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
 signals:
   void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
@@ -110,31 +127,44 @@ class KLF_EXPORT KLFAbstractLibViewFactory : public QObject
 {
   Q_OBJECT
 public:
-  KLFAbstractLibViewFactory(QObject *parent = NULL);
+  KLFAbstractLibViewFactory(const QStringList& viewTypeIdentifiers, QObject *parent = NULL);
   virtual ~KLFAbstractLibViewFactory();
 
-  /** An identifier for this view type (eg. "LibModel+CategoryTree" or whatever)  */
-  virtual QString viewTypeIdentifier() const = 0;
-  /** A translated string to be shown to user (in a choice box for ex.)
-   * (eg. <tt>tr("Tree View")</tt>) */
-  virtual QString viewTypeTitle() const = 0;
+  /** A list of view type identifiers that this factory can create.
+   *
+   * Individual view widget types are identified by their "view type identifiers". They
+   * are not meant to be human-readable (eg. "LibModel+CategoryTree" or whatever)  */
+  virtual QStringList viewTypeIdentifiers() { return pViewTypeIdentifiers; }
 
-  /** \returns Whether this factory can create its view widget for the given engine.
+  /** A translated string to be shown to user (in a choice box for ex.) for
+   * the given view widget type. (eg. <tt>tr("Tree View")</tt>) */
+  virtual QString viewTypeTitle(const QString& viewTypeIdent) const = 0;
+
+  /** \returns Whether this factory can create the given view widget for the given engine.
    *
    * This function may return false, for example if this widget factory creates a specialized
-   * widgets that can only work with a given engine. */
-  virtual bool canCreateLibView(KLFLibResourceEngine *engine) = 0;
+   * kind of widget that can only work with a given engine. */
+  virtual bool canCreateLibView(const QString& viewTypeIdent, KLFLibResourceEngine *engine) = 0;
 
   /** Create a library view with the given widget \c parent. The view should reflect the contents
    * given by the resource engine \c resourceEngine . */
-  virtual KLFAbstractLibView * createLibView(QWidget *parent, KLFLibResourceEngine *resourceEngine) = 0;
+  virtual KLFAbstractLibView * createLibView(const QString& viewTypeIdent, QWidget *parent,
+					     KLFLibResourceEngine *resourceEngine) = 0;
 
+
+  /** Returns the default view type identifier. Create this view if you don't have any idea
+   * which view you prefer.
+   *
+   * This actually returns the first view type identifier of the first registered factory. */
+  static QString defaultViewTypeIdentifier();
 
   /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
    * factory exists (ie. has been registered). */
   static KLFAbstractLibViewFactory *findFactoryFor(const QString& viewTypeIdentifier);
 
 private:
+  QStringList pViewTypeIdentifiers;
+
   static void registerFactory(KLFAbstractLibViewFactory *factory);
   static void unRegisterFactory(KLFAbstractLibViewFactory *factory);
 
@@ -158,6 +188,14 @@ class KLF_EXPORT KLFLibModel : public QAbstractItemModel
 {
   Q_OBJECT
 public:
+  enum FlavorFlag {
+    LinearList = 0x0001,
+    CategoryTree = 0x0002,
+    DisplayTypeMask = 0x000f,
+
+    GroupSubCategories = 0x1000
+  };
+
   KLFLibModel(KLFLibResourceEngine *resource, uint flavorFlags = LinearList|GroupSubCategories,
 	      QObject *parent = NULL);
   virtual ~KLFLibModel();
@@ -183,13 +221,6 @@ public:
 
   virtual KLFLibResourceEngine * resource() { return pResource; }
 
-  enum FlavorFlag {
-    LinearList = 0x0001,
-    CategoryTree = 0x0002,
-    DisplayTypeMask = 0x000f,
-
-    GroupSubCategories = 0x1000
-  };
   /** sets the flavor flags given by \c flags. Only flags masked by \c modify_mask
    * are affected. Examples:
    * \code
@@ -220,6 +251,8 @@ public:
 
   virtual int entryColumnContentsPropertyId(int column) const;
   virtual int columnForEntryPropertyId(int entryPropertyId) const;
+
+  virtual bool isDesendantOf(const QModelIndex& child, const QModelIndex& ancestor);
 
   virtual QStringList categoryList() const;
 
@@ -369,20 +402,43 @@ public:
 				    const QModelIndex& index) const;
 
   virtual void setSearchString(const QString& s) { pSearchString = s; }
+  virtual void setSearchIndex(const QModelIndex& index) { pSearchIndex = index; }
+  virtual void setSelectionModel(QItemSelectionModel *sm) { pSelModel = sm; }
 
 protected:
-  virtual void paintEntry(QPainter *painter, const QStyleOptionViewItem& option,
-			  const QModelIndex& index) const;
-  virtual void paintCategoryLabel(QPainter *painter, const QStyleOptionViewItem& option,
-				  const QModelIndex& index) const;
+  struct PaintPrivate {
+    QPainter *p;
+    const QStyleOptionViewItem *option;
+    bool isselected;
+    QRect innerRectText;
+    QRect innerRectImage;
+  };
+
+  virtual void paintEntry(PaintPrivate *p, const QModelIndex& index) const;
+  virtual void paintCategoryLabel(PaintPrivate *p, const QModelIndex& index) const;
+
+  enum { PTF_HighlightSearch = 0x0001,
+	 PTF_HighlightSearchCurrent = 0x0002,
+	 PTF_SelUnderline = 0x0004
+  };
+  virtual void paintText(PaintPrivate *p, const QString& text, uint flags = PTF_HighlightSearch) const;
+
+  virtual bool indexHasSelectedChild(const QModelIndex& index) const;
 
 private:
-  /** Temporary variable paint() sets for subcalls to paintEntry() and paintCategoryLabel() */
-  mutable QRect innerRectText, innerRectImage;
-  /** Temporary variable paint() sets for subcalls to paintEntry() and paintCategoryLabel() */
-  mutable bool isselected;
-
   QString pSearchString;
+  QModelIndex pSearchIndex;
+  QItemSelectionModel *pSelModel;
+
+  struct ColorRegion {
+    ColorRegion(QTextCharFormat f = QTextCharFormat(), int s = -1, int l = 0)
+      : fmt(f), start(s), len(l) { }
+    QTextCharFormat fmt; int start; int len;
+    bool operator<(const ColorRegion& other) const {
+      return start < other.start;
+    }
+  };
+  friend QDebug& operator<<(QDebug&, const ColorRegion&);
 };
 
 // -----------------
@@ -391,12 +447,16 @@ class KLF_EXPORT KLFLibDefaultView : public KLFAbstractLibView
 {
   Q_OBJECT
 public:
-  KLFLibDefaultView(QWidget *parent);
+  enum ViewType { CategoryTreeView, ListTreeView, IconView };
+  KLFLibDefaultView(QWidget *parent, ViewType viewtype = CategoryTreeView);
   virtual ~KLFLibDefaultView();
 
   virtual bool event(QEvent *e);
+  virtual bool eventFilter(QObject *o, QEvent *e);
 
   virtual KLFLibEntryList selectedEntries() const;
+
+  virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
@@ -410,22 +470,6 @@ public slots:
   virtual void restore(uint restoreflags = KLFLib::RestoreLatexAndStyle);
 
 protected:
-  class MoreSelectionEvent : public QEvent
-  {
-  public:
-    MoreSelectionEvent(const QItemSelection& s)
-      : QEvent((Type)getType()), sel(s) { }
-
-    QItemSelection sel;
-
-    static inline int getType() {
-      static int t = -1;
-      if (t == -1)
-	return (t = registerEventType());
-      return t;
-    }
-  };
-
   virtual void updateResourceView();
   virtual void updateResourceProp();
   virtual void updateResourceData();
@@ -433,14 +477,26 @@ protected:
 
 protected slots:
   void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
-  QItemSelection fixSelection(const QItemSelection& selected, bool isbasesel = true);
+  QItemSelection fixSelection(const QModelIndexList& selected);
   void slotViewItemClicked(const QModelIndex& index);
   void slotEntryDoubleClicked(const QModelIndex& index);
 
+  void slotShowColumnSenderAction(bool showCol);
+
 private:
-  QTreeView *pTreeView;
+  ViewType pViewType;
+  QAbstractItemView *pView;
+  //  QListView *pListView;
+  //  QTreeView *pTreeView;
   KLFLibViewDelegate *pDelegate;
   KLFLibModel *pModel;
+
+  QList<QAction*> pShowColumnActions;
+
+  /** Needed for workaround a Qt bug/feature when fixing selection for mouse events */
+  bool pStateMousePress;
+  QItemSelection pDeferSelect;
+  QItemSelection pDeferDeselect;
 
   QModelIndexList selectedEntryIndexes() const;
 
@@ -454,14 +510,16 @@ class KLF_EXPORT KLFLibDefaultViewFactory : public KLFAbstractLibViewFactory
 {
   Q_OBJECT
 public:
-  KLFLibDefaultViewFactory(QObject *parent = NULL) : KLFAbstractLibViewFactory(parent) { }
+  KLFLibDefaultViewFactory(QObject *parent = NULL);
+  virtual ~KLFLibDefaultViewFactory() { }
 
-  virtual QString viewTypeIdentifier() const { return "default"; }
-  virtual QString viewTypeTitle() const { return tr("Default View"); }
+  virtual QString viewTypeTitle(const QString& viewTypeIdent) const;
 
-  virtual bool canCreateLibView(KLFLibResourceEngine */*engine*/) { return true; }
+  virtual bool canCreateLibView(const QString& /*viewTypeIdent*/,
+				KLFLibResourceEngine */*engine*/) { return true; }
 
-  virtual KLFAbstractLibView * createLibView(QWidget *parent, KLFLibResourceEngine *resourceEngine);
+  virtual KLFAbstractLibView * createLibView(const QString& viewTypeIdent, QWidget *parent,
+					     KLFLibResourceEngine *resourceEngine);
 };
 
 

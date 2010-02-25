@@ -468,7 +468,7 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, QMap<int,int> col)
   // and actually read the result and return it
   KLFLibEntry entry;
   entry.setLatex(q.value(col[KLFLibEntry::Latex]).toString());
-  entry.setDateTime(QDateTime::fromTime_t(q.value(col[KLFLibEntry::DateTime]).toInt()));
+  entry.setDateTime(QDateTime::fromString(q.value(col[KLFLibEntry::DateTime]).toString(), Qt::ISODate));
   QImage img; img.loadFromData(q.value(col[KLFLibEntry::Preview]).toByteArray());
   entry.setPreview(img);
   entry.setCategory(q.value(col[KLFLibEntry::Category]).toString());
@@ -538,6 +538,8 @@ QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
   // setup data in proper format if needed
   if (data.type() == QVariant::Image)
     data = QVariant::fromValue<QByteArray>(image_data(data.value<QImage>(), "PNG"));
+  if (data.type() == QVariant::DateTime)
+    data = data.value<QDateTime>().toString(Qt::ISODate);
   if (data.type() == QVariant::nameToType("KLFStyle"))
     data = QVariant::fromValue<QByteArray>(metatype_to_data(data.value<KLFStyle>()));
   return data;

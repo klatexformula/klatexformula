@@ -21,6 +21,8 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <stack>
+
 #include <QApplication>
 #include <QDebug>
 #include <QImage>
@@ -33,7 +35,10 @@
 #include <QVBoxLayout>
 #include <QStackedWidget>
 #include <QComboBox>
-
+#include <QTextDocument>
+#include <QTextCursor>
+#include <QTextCharFormat>
+#include <QListView>
 
 #include <ui_klflibopenresourcedlg.h>
 #include <ui_klflibrespropeditor.h>
@@ -78,6 +83,12 @@ void KLFAbstractLibView::wantMoreCategorySuggestions()
   emit moreCategorySuggestions(getCategorySuggestions());
 }
 
+QList<QAction*> KLFAbstractLibView::addContextMenuActions(const QPoint&)
+{
+  return QList<QAction*>();
+}
+
+
 
 // -------------------------------------------------------
 
@@ -85,8 +96,9 @@ QList<KLFAbstractLibViewFactory*> KLFAbstractLibViewFactory::pRegisteredFactorie
 	 QList<KLFAbstractLibViewFactory*>();
 
 
-KLFAbstractLibViewFactory::KLFAbstractLibViewFactory(QObject *parent)
-  : QObject(parent)
+KLFAbstractLibViewFactory::KLFAbstractLibViewFactory(const QStringList& viewTypeIdentifiers,
+						     QObject *parent)
+  : QObject(parent), pViewTypeIdentifiers(viewTypeIdentifiers)
 {
   registerFactory(this);
 }
@@ -96,6 +108,12 @@ KLFAbstractLibViewFactory::~KLFAbstractLibViewFactory()
 }
 
 
+QString KLFAbstractLibViewFactory::defaultViewTypeIdentifier()
+{
+  if (pRegisteredFactories.size() > 0)
+    return pRegisteredFactories[0]->pViewTypeIdentifiers.first();
+  return QString();
+}
 
 KLFAbstractLibViewFactory *KLFAbstractLibViewFactory::findFactoryFor(const QString& viewTypeIdentifier)
 {
@@ -107,7 +125,7 @@ KLFAbstractLibViewFactory *KLFAbstractLibViewFactory::findFactoryFor(const QStri
   int k;
   // walk registered factories, and return the first that supports this scheme.
   for (k = 0; k < pRegisteredFactories.size(); ++k) {
-    if (pRegisteredFactories[k]->viewTypeIdentifier() == viewTypeIdentifier)
+    if (pRegisteredFactories[k]->viewTypeIdentifiers().contains(viewTypeIdentifier))
       return pRegisteredFactories[k];
   }
   // no factory found
@@ -117,8 +135,16 @@ KLFAbstractLibViewFactory *KLFAbstractLibViewFactory::findFactoryFor(const QStri
 
 void KLFAbstractLibViewFactory::registerFactory(KLFAbstractLibViewFactory *factory)
 {
-  // WARNING: THIS FUNCTION MAY BE CALLED FROM CONSTRUCTOR
-  if (pRegisteredFactories.indexOf(factory) != -1)
+  if (factory == NULL) {
+    qWarning("KLFAbstractLibViewFactory::registerFactory: Attempt to register NULL factory!");
+    return;
+  }
+  // WARNING: THIS FUNCTION IS CALLED FROM CONSTRUCTOR. NO VIRTUAL METHOD CALLS!
+  if (factory->pViewTypeIdentifiers.size() == 0) {
+    qWarning("KLFAbstractLibViewFactory::registerFactory: factory must provide at least one view type!");
+    return;
+  }
+  if (pRegisteredFactories.indexOf(factory) != -1) // already registered
     return;
   pRegisteredFactories.append(factory);
 }
@@ -196,6 +222,9 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
     EntryNode *ep = (EntryNode*) p;
     KLFLibEntry *entry = & ep->entry;
 
+    if (role == Qt::ToolTipRole) // current contents
+      role = entryItemRole(entryColumnContentsPropertyId(index.column()));
+
     if (role == EntryContentsTypeItemRole)
       return entryColumnContentsPropertyId(index.column());
     if (role == FullEntryItemRole)
@@ -219,6 +248,8 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
   else if (p->nodeKind() == CategoryLabelKind) {
     // --- GET CATEGORY LABEL DATA ---
     CategoryLabelNode *cp = (CategoryLabelNode*) p;
+    if (role == Qt::ToolTipRole)
+      return cp->fullCategoryPath;
     if (role == CategoryLabelItemRole)
       return cp->categoryLabel;
     if (role == FullCategoryPathItemRole)
@@ -235,8 +266,10 @@ Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
   const Node * p = getNodeForIndex(index);
   if (p == NULL)
     return 0;
-  if (p->nodeKind() == EntryKind || p->nodeKind() == CategoryLabelKind)
+  if (p->nodeKind() == EntryKind)
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+  if (p->nodeKind() == CategoryLabelKind)
+    return Qt::ItemIsEnabled;
 
   // by default (should never happen)
   return 0;
@@ -353,6 +386,14 @@ int KLFLibModel::columnForEntryPropertyId(int entryPropertyId) const
   }
 }
 
+
+bool KLFLibModel::isDesendantOf(const QModelIndex& child, const QModelIndex& ancestor)
+{
+  if (!child.isValid())
+    return false;
+
+  return child.parent() == ancestor || isDesendantOf(child.parent(), ancestor);
+}
 
 QStringList KLFLibModel::categoryList() const
 {
@@ -538,6 +579,9 @@ QString KLFLibModel::nodeValue(Node *ptr, int entryProperty)
     return QString();
   int kind = ptr->nodeKind();
   if (kind == EntryKind) {
+    if (entryProperty == KLFLibEntry::Preview)
+      entryProperty = KLFLibEntry::DateTime; // user friendliness. sort by date when selecting preview.
+
     EntryNode *eptr = (EntryNode*)ptr;
     if (entryProperty == KLFLibEntry::DateTime) {
       return eptr->entry.property(KLFLibEntry::DateTime).toDateTime().toString("yyyy-MM-dd+hh:mm:ss.zzz");
@@ -893,20 +937,22 @@ void KLFLibModel::dumpNodeTree(Node *node, int indent) const
 
 
 KLFLibViewDelegate::KLFLibViewDelegate(QObject *parent)
-  : QAbstractItemDelegate(parent)
+  : QAbstractItemDelegate(parent), pSelModel(NULL)
 {
 }
 KLFLibViewDelegate::~KLFLibViewDelegate()
 {
 }
 
-QWidget * KLFLibViewDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem& option,
-					    const QModelIndex& index) const
+QWidget * KLFLibViewDelegate::createEditor(QWidget */*parent*/,
+					   const QStyleOptionViewItem& /*option*/,
+					   const QModelIndex& /*index*/) const
 {
   return 0;
 }
-bool KLFLibViewDelegate::editorEvent(QEvent *event,QAbstractItemModel *model,
-				      const QStyleOptionViewItem& option, const QModelIndex& index)
+bool KLFLibViewDelegate::editorEvent(QEvent */*event*/, QAbstractItemModel */*model*/,
+				     const QStyleOptionViewItem& /*option*/,
+				     const QModelIndex& /*index*/)
 {
   return false;
 }
@@ -925,16 +971,19 @@ static QImage transparentify_image(const QImage& img, qreal factor)
 void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& option,
 			       const QModelIndex& index) const
 {
-  innerRectImage = QRect(option.rect.topLeft()+QPoint(2,2), option.rect.size()-QSize(4,4));
-  innerRectText = QRect(option.rect.topLeft()+QPoint(4,2), option.rect.size()-QSize(8,4));
+  PaintPrivate pp;
+  pp.p = painter;
+  pp.option = &option;
+  pp.innerRectImage = QRect(option.rect.topLeft()+QPoint(2,2), option.rect.size()-QSize(4,4));
+  pp.innerRectText = QRect(option.rect.topLeft()+QPoint(4,2), option.rect.size()-QSize(8,4));
 
   QPen pen = painter->pen();
-  isselected = (option.state & QStyle::State_Selected);
+  pp.isselected = (option.state & QStyle::State_Selected);
   QPalette::ColorGroup cg = option.state & QStyle::State_Enabled
     ? QPalette::Normal : QPalette::Disabled;
   if (cg == QPalette::Normal && !(option.state & QStyle::State_Active))
     cg = QPalette::Inactive;
-  if (isselected) {
+  if (pp.isselected) {
     painter->fillRect(option.rect, option.palette.brush(cg, QPalette::Highlight));
     painter->setPen(option.palette.color(cg, QPalette::HighlightedText));
   } else {
@@ -943,9 +992,9 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
 
   int kind = index.data(KLFLibModel::ItemKindItemRole).toInt();
   if (kind == KLFLibModel::EntryKind)
-    paintEntry(painter, option, index);
+    paintEntry(&pp, index);
   else if (kind == KLFLibModel::CategoryLabelKind)
-    paintCategoryLabel(painter, option, index);
+    paintCategoryLabel(&pp, index);
 
   if (option.state & QStyle::State_HasFocus) {
     QStyleOptionFocusRect o;
@@ -964,67 +1013,162 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
     style->drawPrimitive(QStyle::PE_FrameFocusRect, &o, painter, w);
   } 
 }
-void KLFLibViewDelegate::paintEntry(QPainter *painter, const QStyleOptionViewItem& option,
-				    const QModelIndex& index) const
+void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) const
 {
+  uint fl = PTF_HighlightSearch;
+  if (index.parent() == pSearchIndex.parent() && index.row() == pSearchIndex.row())
+    fl |= PTF_HighlightSearchCurrent;
+
   switch (index.data(KLFLibModel::EntryContentsTypeItemRole).toInt()) {
   case KLFLibEntry::Latex:
     // paint Latex String
-    painter->drawText( innerRectText, Qt::AlignLeft|Qt::AlignVCenter,
-		       index.data(KLFLibModel::entryItemRole(KLFLibEntry::Latex)).toString() );
+    paintText(p, index.data(KLFLibModel::entryItemRole(KLFLibEntry::Latex)).toString(), fl);
     break;
   case KLFLibEntry::Preview:
     // paint Latex Equation
     {
       QImage img = index.data(KLFLibModel::entryItemRole(KLFLibEntry::Preview)).value<QImage>();
-      QImage img2 = img.scaled(innerRectImage.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-      if (isselected)
+      QImage img2 = img.scaled(p->innerRectImage.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      if (p->isselected)
 	img2 = transparentify_image(img2, 0.85);
-      QPoint pos = innerRectImage.topLeft() + QPoint(0, (innerRectImage.height()-img2.height()) / 2);
-      painter->drawImage(pos, img2);
+      QPoint pos = p->innerRectImage.topLeft() + QPoint(0, (p->innerRectImage.height()-img2.height()) / 2);
+      p->p->drawImage(pos, img2);
       break;
     }
   case KLFLibEntry::Category:
     // paint Category String
-    painter->drawText( innerRectText, Qt::AlignLeft|Qt::AlignVCenter,
-		       index.data(KLFLibModel::entryItemRole(KLFLibEntry::Category)).toString() );
+    paintText(p, index.data(KLFLibModel::entryItemRole(KLFLibEntry::Category)).toString(), fl);
     break;
   case KLFLibEntry::Tags:
     // paint Tags String
-    painter->drawText( innerRectText, Qt::AlignLeft|Qt::AlignVCenter,
-		       index.data(KLFLibModel::entryItemRole(KLFLibEntry::Tags)).toString() );
+    paintText(p, index.data(KLFLibModel::entryItemRole(KLFLibEntry::Tags)).toString(), fl);
     break;
   case KLFLibEntry::DateTime:
     // paint DateTime String
-    painter->drawText( innerRectText, Qt::AlignLeft|Qt::AlignVCenter,
-		       index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime()
-		       .toString(Qt::DefaultLocaleLongDate) );
+    paintText(p, index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime()
+	      .toString(Qt::DefaultLocaleLongDate), fl);
     break;
   default:
-    qDebug("Got contents type %d !", index.data(KLFLibModel::EntryContentsTypeItemRole).toInt());
+    qDebug("KLFLibViewDelegate::paintEntry(): Got bad contents type %d !",
+	   index.data(KLFLibModel::EntryContentsTypeItemRole).toInt());
     // nothing to show !
-    painter->fillRect(option.rect, QColor(128,0,0));
+    //    painter->fillRect(option.rect, QColor(128,0,0));
   }
 }
-void KLFLibViewDelegate::paintCategoryLabel(QPainter *painter, const QStyleOptionViewItem& option,
-					    const QModelIndex& index) const
+void KLFLibViewDelegate::paintCategoryLabel(PaintPrivate *p, const QModelIndex& index) const
 {
   if (index.column() > 0)  // paint only on first column
     return;
 
+  //  qDebug()<<"index="<<index<<"; pSearchIndex="<<pSearchIndex;
+
+  uint fl = PTF_HighlightSearch;
+  if (index.parent() == pSearchIndex.parent() && index.row() == pSearchIndex.row())
+    fl |= PTF_HighlightSearchCurrent;
+  if (1) //indexHasSelectedChild(index))
+    fl |= PTF_SelUnderline;
+
   // paint Category Label
-  painter->drawText( innerRectText, Qt::AlignLeft|Qt::AlignVCenter,
-		     index.data(KLFLibModel::CategoryLabelItemRole).toString() );
+  paintText(p, index.data(KLFLibModel::CategoryLabelItemRole).toString(), fl);
 }
 
-void KLFLibViewDelegate::setEditorData(QWidget *editor, const QModelIndex& index) const
+QDebug& operator<<(QDebug& d, const KLFLibViewDelegate::ColorRegion& c)
+{
+  return d << "ColorRegion["<<c.start<<"->+"<<c.len<<"]";
+}
+
+void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint flags) const
+{
+  if ( pSearchString.isEmpty() || !(flags&PTF_HighlightSearch) ||
+       text.indexOf(pSearchString, 0, Qt::CaseInsensitive) == -1 ) {
+    // no formatting required, use fast method.
+    p->p->drawText(p->innerRectText, Qt::AlignLeft|Qt::AlignVCenter, text);
+  } else {
+    // formatting required.
+    // build a list of regions to highlight
+    QList<ColorRegion> c;
+    QTextCharFormat f_highlight;
+    if (flags & PTF_HighlightSearchCurrent)
+      f_highlight.setBackground(QColor(0,255,0,80));
+    f_highlight.setForeground(QColor(128,0,0));
+    f_highlight.setFontItalic(true);
+    f_highlight.setFontWeight(QFont::Bold);
+    int i = -1, ci, j;
+    if (!pSearchString.isEmpty()) {
+      while ((i = text.indexOf(pSearchString, i+1, Qt::CaseInsensitive)) != -1)
+	c << ColorRegion(f_highlight, i, pSearchString.length());
+    }
+    qSort(c);
+    //    qDebug()<<"searchstr="<<pSearchString<<"; label "<<text<<": c is "<<c;
+    QTextDocument textDocument;
+    textDocument.setDefaultFont(qApp->font());
+    QTextCursor cur(&textDocument);
+    QList<ColorRegion> appliedfmts;
+    for (i = ci = 0; i < text.length(); ++i) {
+      //      qDebug()<<"Processing char "<<text[i]<<"; i="<<i<<"; ci="<<ci;
+      if (ci >= c.size() && appliedfmts.size() == 0) {
+	// insert all remaining text (no more formatting needed)
+	cur.insertText(Qt::escape(text.mid(i)), QTextCharFormat());
+	break;
+      }
+      while (ci < c.size() && c[ci].start == i) {
+	appliedfmts.append(c[ci]);
+	++ci;
+      }
+      QTextCharFormat f;
+      for (j = 0; j < appliedfmts.size(); ++j) {
+	if (i >= appliedfmts[j].start + appliedfmts[j].len) {
+	  // this format no longer applies
+	  appliedfmts.removeAt(j);
+	  --j;
+	  continue;
+	}
+	f.merge(appliedfmts[j].fmt);
+      }
+      cur.insertText(Qt::escape(text[i]), f);
+    }
+
+    //     QString html = 
+    //       "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\""
+    //       " \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    //       "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+    //       "p, li { white-space: nowrap; }\n"
+    //       "</style></head><body style=\"\">\n"
+    //       "<p style=\"margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; "
+    //       "-qt-block-indent:0; text-indent:0px;\">"+Qt::escape(text)+"</p></body></html>";
+    //     textDocument.setHtml(html);
+    QSizeF s = textDocument.size();
+    if (s.width() > p->innerRectText.width()) { // sorry, too large
+      s.setWidth(p->innerRectText.width());
+      // draw small arrow indicating more text
+      QColor c = p->option->palette.color(QPalette::Text);
+      c.setAlpha(80);
+      p->p->save();
+      p->p->translate(p->innerRectText.right(), p->innerRectText.bottom()-2);
+      p->p->setPen(c);
+      p->p->drawLine(0, 0, -16, 0);
+      p->p->drawLine(0, 0, -2, +2);
+      p->p->restore();
+    }
+    p->p->save();
+    p->p->setClipRect(p->innerRectText);
+    p->p->translate(p->innerRectText.topLeft());
+    p->p->translate( -4, 0 ); // some offset because of qt's rich text drawing ..?
+    p->p->translate( QPointF( 0, //p->innerRectText.width() - s.width(),
+			      p->innerRectText.height() - s.height()) / 2.f );
+    textDocument.drawContents(p->p);
+    p->p->restore();
+  }
+}
+
+void KLFLibViewDelegate::setEditorData(QWidget */*editor*/, const QModelIndex& /*index*/) const
 {
 }
-void KLFLibViewDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
-				       const QModelIndex& index) const
+void KLFLibViewDelegate::setModelData(QWidget */*editor*/, QAbstractItemModel */*model*/,
+				      const QModelIndex& /*index*/) const
 {
 }
-QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
+QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& /*option*/, const QModelIndex& index) const
 {
   int kind = index.data(KLFLibModel::ItemKindItemRole).toInt();
   if (kind == KLFLibModel::EntryKind) {
@@ -1052,10 +1196,29 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
     return QSize();
   }
 }
-void KLFLibViewDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem& option,
-				    const QModelIndex& index) const
+void KLFLibViewDelegate::updateEditorGeometry(QWidget */*editor*/,
+					      const QStyleOptionViewItem& /*option*/,
+					      const QModelIndex& /*index*/) const
 {
 }
+
+
+
+bool KLFLibViewDelegate::indexHasSelectedChild(const QModelIndex& index) const
+{
+  // simple, dumb way: walk selection list.
+  int k;
+  QModelIndexList sel = pSelModel->selectedIndexes();
+  KLFLibModel *model = (KLFLibModel*)index.model();
+  for (k = 0; k < sel.size(); ++k) {
+    if (model->isDesendantOf(sel[k], index)) {
+      // this selected item is child of our index
+      return true;
+    }
+  }
+  return false;
+}
+
 
 
 
@@ -1069,25 +1232,48 @@ QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEntryWithId& e
 
 
 
-KLFLibDefaultView::KLFLibDefaultView(QWidget *parent)
-  : KLFAbstractLibView(parent)
+KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
+  : KLFAbstractLibView(parent), pViewType(view)
 {
   pModel = NULL;
+
+  pStateMousePress = false;
 
   QVBoxLayout *lyt = new QVBoxLayout(this);
   lyt->setMargin(0);
   lyt->setSpacing(0);
-  pTreeView = new QTreeView(this);
   pDelegate = new KLFLibViewDelegate(this);
-  pTreeView->setItemDelegate(pDelegate);
-  pTreeView->setSelectionBehavior(QAbstractItemView::SelectRows);
-  pTreeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-  //  pTreeView->setSelectionMode(QAbstractItemView::MultiSelection);
-  pTreeView->setSortingEnabled(true);
-  pTreeView->setIndentation(16);
-  lyt->addWidget(pTreeView);
 
-  connect(pTreeView, SIGNAL(doubleClicked(const QModelIndex&)),
+  QTreeView *treeView = NULL;
+  QListView *listView = NULL;
+  switch (pViewType) {
+  case IconView:
+    listView = new QListView(this);
+    listView->setViewMode(QListView::IconMode);
+    listView->setSpacing(15);
+    listView->setResizeMode(QListView::Adjust);
+    pView = listView;
+    break;
+  case CategoryTreeView:
+  case ListTreeView:
+  default:
+    treeView = new QTreeView(this);
+    treeView->setSortingEnabled(true);
+    treeView->setIndentation(16);
+    pView = treeView;
+    break;
+  };
+
+  lyt->addWidget(pView);
+
+  pView->setSelectionBehavior(QAbstractItemView::SelectRows);
+  pView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  pView->setItemDelegate(pDelegate);
+  pView->viewport()->installEventFilter(this);
+
+  connect(pView, SIGNAL(clicked(const QModelIndex&)),
+	  this, SLOT(slotViewItemClicked(const QModelIndex&)));
+  connect(pView, SIGNAL(doubleClicked(const QModelIndex&)),
 	  this, SLOT(slotEntryDoubleClicked(const QModelIndex&)));
 }
 KLFLibDefaultView::~KLFLibDefaultView()
@@ -1096,17 +1282,12 @@ KLFLibDefaultView::~KLFLibDefaultView()
 
 bool KLFLibDefaultView::event(QEvent *event)
 {
-  if (event->type() == MoreSelectionEvent::getType()) {
-    // select more items
-    MoreSelectionEvent *s = (MoreSelectionEvent*)event;
-    pTreeView->selectionModel()->select(s->sel, QItemSelectionModel::Select);
-    qDebug()<<"Need to select the following items: "<<s->sel;
-    s->accept();
-    return true;
-  }
   return KLFAbstractLibView::event(event);
 }
-
+bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
+{
+  return KLFAbstractLibView::eventFilter(object, event);
+}
 
 KLFLibEntryList KLFLibDefaultView::selectedEntries() const
 {
@@ -1123,38 +1304,73 @@ KLFLibEntryList KLFLibDefaultView::selectedEntries() const
   return elist;
 }
 
+QList<QAction*> KLFLibDefaultView::addContextMenuActions(const QPoint& /*pos*/)
+{
+  /// \todo SELECT ALL ...............TODO....................
+
+  return pShowColumnActions;
+}
+
+
 void KLFLibDefaultView::updateResourceView()
 {
+  int k;
   KLFLibResourceEngine *resource = resourceEngine();
   if (resource == NULL) {
     pModel = NULL;
-    pTreeView->setModel(NULL);
+    pView->setModel(NULL);
+    for (k = 0; k < pShowColumnActions.size(); ++k)
+      delete pShowColumnActions[k];
+    pShowColumnActions.clear();
   }
 
   //  qDebug() << "KLFLibDefaultView::updateResourceView: All items:\n"<<resource->allEntries();
-
-  pModel = new KLFLibModel(resource, KLFLibModel::CategoryTree|KLFLibModel::GroupSubCategories, this);
-  pTreeView->setModel(pModel);
+  uint model_flavor = 0;
+  switch (pViewType) {
+  case IconView:
+  case ListTreeView:
+    model_flavor = KLFLibModel::LinearList;
+    break;
+  case CategoryTreeView:
+  default:
+    model_flavor = KLFLibModel::CategoryTree;
+    break;
+  };
+  pModel = new KLFLibModel(resource, model_flavor|KLFLibModel::GroupSubCategories, this);
+  pView->setModel(pModel);
   // get informed about selections
-  QItemSelectionModel *s = pTreeView->selectionModel();
+  QItemSelectionModel *s = pView->selectionModel();
   connect(s, SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
 	  this, SLOT(slotViewSelectionChanged(const QItemSelection&, const QItemSelection&)));
-  connect(pTreeView, SIGNAL(clicked(const QModelIndex&)),
-	  this, SLOT(slotViewItemClicked(const QModelIndex&)));
 
-  // select some columns to show
-  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Preview), false);
-  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Latex), true);
-  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Tags), false);
-  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Category), true);
-  pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::DateTime), true);
+  // delegate wants to know more about selections...
+  pDelegate->setSelectionModel(s);
 
-  // optimize column sizes
-  int k;
-  for (k = 0; k < pModel->columnCount(); ++k)
-    pTreeView->resizeColumnToContents(k);
-
-  pTreeView->setColumnWidth(0, 35+pTreeView->columnWidth(0));
+  if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
+    QTreeView *treeView = qobject_cast<QTreeView*>(pView);
+    // select some columns to show
+    treeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Preview), false);
+    treeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Latex), true);
+    treeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Tags), false);
+    treeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Category), true);
+    treeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::DateTime), true);
+    // optimize column sizes
+    for (k = 0; k < pModel->columnCount(); ++k)
+      treeView->resizeColumnToContents(k);
+    treeView->setColumnWidth(0, 35+treeView->columnWidth(0));
+    // and provide a menu to show/hide these columns
+    int col;
+    for (col = 0; col < pModel->columnCount(); ++col) {
+      QString title = pModel->headerData(col, Qt::Horizontal, Qt::DisplayRole).toString();
+      QAction *a;
+      a = new QAction(title, this);
+      a->setProperty("klfModelColumn", col);
+      a->setCheckable(true);
+      a->setChecked(!treeView->isColumnHidden(col));
+      connect(a, SIGNAL(toggled(bool)), this, SLOT(slotShowColumnSenderAction(bool)));
+      pShowColumnActions << a;
+    }
+  }
 
   wantMoreCategorySuggestions();
 }
@@ -1216,8 +1432,8 @@ void KLFLibDefaultView::restore(uint restoreflags)
 
 bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
 {
-  pDelegate->setSearchString(queryString);
   QModelIndex i = pModel->searchFind(queryString, forward);
+  pDelegate->setSearchString(queryString);
   searchFound(i);
   return i.isValid();
 }
@@ -1232,6 +1448,8 @@ bool KLFLibDefaultView::searchFindNext(bool forward)
 void KLFLibDefaultView::searchAbort()
 {
   pDelegate->setSearchString(QString());
+  pView->repaint(); // repaint widget to update search underline
+
   // don't un-select the found index...
   //  searchFound(QModelIndex());
 }
@@ -1239,95 +1457,102 @@ void KLFLibDefaultView::searchAbort()
 // private
 void KLFLibDefaultView::searchFound(const QModelIndex& i)
 {
-  if (!i.isValid()) {
-    pTreeView->scrollTo(QModelIndex(), QAbstractItemView::PositionAtTop);
+  pDelegate->setSearchIndex(i);
+  if ( ! i.isValid() ) {
+    pView->scrollTo(QModelIndex(), QAbstractItemView::PositionAtTop);
     // unselect all
-    //    pTreeView->selectionModel()->select(QItemSelection(), QItemSelectionModel::Clear);
-    pTreeView->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::Clear);
+    pView->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::Clear);
     return;
   }
-  pTreeView->scrollTo(i, QAbstractItemView::EnsureVisible);
-  pTreeView->expand(i);
+  pView->scrollTo(i, QAbstractItemView::EnsureVisible);
+  if (pViewType == CategoryTreeView) {
+    // if tree view, expand item
+    qobject_cast<QTreeView*>(pView)->expand(i);
+  }
   // select the item
-  pTreeView->selectionModel()->setCurrentIndex(i, QItemSelectionModel::ClearAndSelect);
+  pView->selectionModel()->setCurrentIndex(i,
+					   QItemSelectionModel::ClearAndSelect|
+					   QItemSelectionModel::Rows);
+  pView->repaint();
 }
 
 
-void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& selected,
-						 const QItemSelection& deselected)
+void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
+						 const QItemSelection& /*deselected*/)
 {
-  qDebug()<<"******************";
-  qDebug()<<"KLFLibD.View::slotViewSel.Ch.(): sel="<<selected<<"; desel="<<deselected<<"";
-
-  if (!selected.isEmpty()) {
-    QItemSelection sel;
-    sel = fixSelection(selected);
-    if (!sel.isEmpty())
-      qApp->postEvent(this, new MoreSelectionEvent(sel), -10);
-    //    if (!sel.isEmpty()) {
-    //      pTreeView->selectionModel()->select(sel, QItemSelectionModel::Select);
-    //      return; // we will be called again right now for updated selection.
-    //    }
-  }
-  if (!deselected.isEmpty()) {
-    //    pTreeView->selectionModel()->select(deselected, QItemSelectionModel::Select);
-  }
   emit entriesSelected(selectedEntries());
 }
 
-QItemSelection KLFLibDefaultView::fixSelection(const QItemSelection& sel, bool isbasesel)
+QItemSelection KLFLibDefaultView::fixSelection(const QModelIndexList& selidx)
 {
   // Callers of this function garantee that no signals will be emitted upon changing the
   // selection.
 
-  //  qDebug()<<"KLFLibDef.View::fixSelection("<<sel<<",isbasesel="<<isbasesel<<")";
+  //  qDebug()<<"KLFLibDef.View::fixSelection("<<selidx<<",isbasesel="<<isbasesel<<")";
 
+  QModelIndexList moreselidx;
   QItemSelection moresel;
 
-  QModelIndexList selidx = sel.indexes();
-  int k;
+  int k, j;
   for (k = 0; k < selidx.size(); ++k) {
+    //    qDebug()<<"testing "<<k<<"th index "<<selidx[k];
     if (selidx[k].isValid() &&
 	selidx[k].data(KLFLibModel::ItemKindItemRole).toInt() == KLFLibModel::CategoryLabelKind &&
 	selidx[k].column() == 0) {
+      //      qDebug()<<"is a category!";
       // a category is selected -> select all its children
       const QAbstractItemModel *model = selidx[k].model();
       int nrows = model->rowCount(selidx[k]);
       int ncols = model->columnCount(selidx[k]);
-      pTreeView->expand(selidx[k]);
-      moresel.append(QItemSelectionRange(selidx[k].child(0, 0), selidx[k].child(nrows-1, ncols-1)));
+      if (pViewType == CategoryTreeView) {
+	// if tree view, expand item
+	qobject_cast<QTreeView*>(pView)->expand(selidx[k]);
+      }
+      for (j = 0; j < nrows; ++j) {
+	switch (selidx[k].child(j,0).data(KLFLibModel::ItemKindItemRole).toInt()) {
+	case KLFLibModel::CategoryLabelKind:
+	  moreselidx.append(selidx[k].child(j,0));
+	  // no break; proceed to entrykind->
+	case KLFLibModel::EntryKind:
+	  moresel.append(QItemSelectionRange(selidx[k].child(j, 0),
+					     selidx[k].child(j, ncols-1)));
+	  break;
+	default: ;
+	}
+	
+      }
+      //      moresel.append(QItemSelectionRange(selidx[k].child(0, 0), selidx[k].child(nrows-1, ncols-1)));
       //      pTreeView->selectionModel()->select(QItemSelection(selidx[k].child(0,0),
       //							 selidx[k].child(nrows-1,ncols-1)),
       //					  QItemSelectionModel::Select);
     }
   }
 
-  if (moresel.isEmpty())
+  //  qDebug()<<"moresel is "<<moresel;
+
+  if (moresel.isEmpty()) {
+    //    qDebug()<<"No moresel.";
     return QItemSelection();
+  }
 
-  return moresel;
-  /*
-  if (isbasesel)
-    return fixSelection(moresel, false);
+  //  return moresel;
 
-  QItemSelection s = sel;
-  QItemSelection morefixed = fixSelection(moresel, false);
-  qDebug()<<"## before merge: selection is "<<s;
-  qDebug()<<"more="<<moresel<<"; more/fixed="<<morefixed;
+  QItemSelection s = moresel;
+  QItemSelection morefixed = fixSelection(moreselidx);
+  //  qDebug()<<"## before merge: selection is "<<s;
+  //  qDebug()<<"more="<<moresel<<"; more/fixed="<<morefixed;
   s.merge(morefixed, QItemSelectionModel::Select);
-  qDebug()<<"merged: selection is "<<s;
+  //  qDebug()<<"merged: selection is "<<s;
   return s;
-  */
+
 }
 
 void KLFLibDefaultView::slotViewItemClicked(const QModelIndex& index)
 {
-  /*
-    QItemSelection s;
-    s.append(QItemSelectionRange(index));
-    QItemSelection fixed = fixSelection(s);
-    pTreeView->selectionModel()->select(fixed, QItemSelectionModel::Select);
-  */
+  if (index.column() != 0)
+    return;
+  QItemSelection fixed = fixSelection( QModelIndexList() << index);
+  pView->selectionModel()->select(fixed, QItemSelectionModel::Select);
 }
 void KLFLibDefaultView::slotEntryDoubleClicked(const QModelIndex& index)
 {
@@ -1337,12 +1562,24 @@ void KLFLibDefaultView::slotEntryDoubleClicked(const QModelIndex& index)
 		      KLFLib::RestoreLatex|KLFLib::RestoreStyle);
 }
 
+void KLFLibDefaultView::slotShowColumnSenderAction(bool showCol)
+{
+  QObject *a = sender();
+  if (a == NULL)
+    return;
+
+  if ( ! pView->inherits("QTreeView") )
+    return;
+  int colNo = a->property("klfModelColumn").toInt();
+  qobject_cast<QTreeView*>(pView)->setColumnHidden(colNo, !showCol);
+}
+
 
 
 
 QModelIndexList KLFLibDefaultView::selectedEntryIndexes() const
 {
-  QModelIndexList selection = pTreeView->selectionModel()->selectedIndexes();
+  QModelIndexList selection = pView->selectionModel()->selectedIndexes();
   QModelIndexList entryindexes;
   int k;
   // walk selection and strip all non-zero column number indexes
@@ -1358,10 +1595,41 @@ QModelIndexList KLFLibDefaultView::selectedEntryIndexes() const
 
 // ------------
 
-KLFAbstractLibView * KLFLibDefaultViewFactory::createLibView(QWidget *parent,
+static QStringList defaultViewTypeIds = QStringList()<<"default"<<"default+list"<<"default+icons";
+
+
+KLFLibDefaultViewFactory::KLFLibDefaultViewFactory(QObject *parent)
+  : KLFAbstractLibViewFactory(defaultViewTypeIds, parent)
+{
+}
+
+
+QString KLFLibDefaultViewFactory::viewTypeTitle(const QString& viewTypeIdent) const
+{
+  if (viewTypeIdent == "default")
+    return tr("Category Tree View");
+  if (viewTypeIdent == "default+list")
+    return tr("List View");
+  if (viewTypeIdent == "default+icons")
+    return tr("Icon View");
+
+  return QString();
+}
+
+
+KLFAbstractLibView * KLFLibDefaultViewFactory::createLibView(const QString& viewTypeIdent,
+							     QWidget *parent,
 							     KLFLibResourceEngine *resourceEngine)
 {
-  KLFLibDefaultView *view = new KLFLibDefaultView(parent);
+  KLFLibDefaultView::ViewType v = KLFLibDefaultView::CategoryTreeView;
+  if (viewTypeIdent == "default")
+    v = KLFLibDefaultView::CategoryTreeView;
+  else if (viewTypeIdent == "default+list")
+    v = KLFLibDefaultView::ListTreeView;
+  else if (viewTypeIdent == "default+icons")
+    v = KLFLibDefaultView::IconView;
+
+  KLFLibDefaultView *view = new KLFLibDefaultView(parent, v);
   view->setResourceEngine(resourceEngine);
   return view;
 }
@@ -1774,13 +2042,13 @@ void klf___temp___test_newlib()
   settings.tborderoffset = 1;
   settings.rborderoffset = 1;
   settings.bborderoffset = 1;
-  KLFBackend::klfOutput output = KLFBackend::getLatexFormula(input,settings);
-  QImage preview = output.result.scaled(350, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-  KLFLibEntry e(input.latex,QDateTime(),preview,"Junk/Random Chars",input.latex[9]+QString("-")+input.latex[12],
-		KLFStyle(QString(), input.fg_color, input.bg_color, input.mathmode,
-			 input.preamble, input.dpi));
-  w->getOpenResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_another_resource.klf.db")))
-    ->insertEntry(e);
+  //  KLFBackend::klfOutput output = KLFBackend::getLatexFormula(input,settings);
+  //  QImage preview = output.result.scaled(350, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  //  KLFLibEntry e(input.latex,QDateTime::currentDateTime(),preview,"Junk/Random Chars",input.latex[9]+QString("-")+input.latex[12],
+  //  		KLFStyle(QString(), input.fg_color, input.bg_color, input.mathmode,
+  //			 input.preamble, input.dpi));
+  //  w->getOpenResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_sqlite_test")))
+  //    ->insertEntry(e);
 
 
   /*

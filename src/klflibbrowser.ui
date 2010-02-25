@@ -124,10 +124,10 @@
          </sizepolicy>
         </property>
         <property name="toolTip">
-         <string>Incremental search within history items. Find next with F3 or Ctrl-S key.</string>
+         <string>Incremental search within this library resource. Find next with F3 or Ctrl-S key.</string>
         </property>
         <property name="whatsThis">
-         <string>Incremental search within history items. Find next with F3 or Ctrl-S key.</string>
+         <string>Incremental search within this library resource. Find next with F3 or Ctrl-S key.</string>
         </property>
        </widget>
       </item>
