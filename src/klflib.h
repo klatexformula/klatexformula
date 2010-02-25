@@ -259,7 +259,7 @@ private:
   void initRegisteredProperties();
 
   QUrl pUrl;
-  bool pFeatureFlags;
+  uint pFeatureFlags;
   bool pReadOnly;
 };
 
@@ -271,6 +271,12 @@ class KLF_EXPORT KLFAbstractLibEngineFactory : public QObject
 {
   Q_OBJECT
 public:
+  /** A generalized way of passing arbitrary parameters for creating
+   * new resources.
+   *
+   * Some parameters have special meaning to the system; see
+   * \ref retrieveCreateParametersFromWidget().
+   */
   typedef QMap<QString,QVariant> Parameters;
 
   /** Constructs an engine factory and automatically regisers it. */
@@ -289,13 +295,16 @@ public:
 
   /** create a widget that will prompt to user to open a resource of given \c scheme.
    * It could be a file selection widget, or a text entry for a hostname or etc. The
-   * widget should be initialized to \c defaultlocation if the latter is non-empty. */
+   * widget should be initialized to \c defaultlocation if the latter is non-empty.
+   *
+   * The widget should have a <tt>readyToOpen(bool isReady)</tt> signal that is emitted
+   * to synchronize the enabled state of the "open" button. */
   virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
 					  QUrl defaultlocation = QUrl()) = 0;
 
   /** get the url edited by user, that are stored in \c widget GUI. \c widget is a
-   * QWidget returned by \ref createPromptUrlWidget()*/
-  virtual QUrl retrieveUrlFromWidget(QWidget *widget) = 0;
+   * QWidget returned by \ref createPromptUrlWidget(). */
+  virtual QUrl retrieveUrlFromWidget(const QString& scheme, QWidget *widget) = 0;
 
   /** Create a library engine that opens resource stored at \c location. The resource
    * engine should be constructed as a child of object \c parent. */
@@ -303,18 +312,29 @@ public:
 
   /** \returns whether this factory can be used to create new resources (eg. a new library
    * sqlite resource, etc.) */
-  virtual bool canCreateResource() const;
+  virtual bool canCreateResource(const QString& scheme) const;
   /** create a widget that will prompt to user the different settings for the new resource
    * that is about to be created.  Do not reimplement this function if canCreateResource()
    * returns false. Information to which URL to store the resource should be included
    * in these parameters! */
-  virtual QWidget * createPromptCreateParametersWidget(QWidget *parent,
-						    Parameters defaultparameters = Parameters());
-  /** get the parameters edited by user, that are stored in \c widget GUI. */
-  virtual Parameters retrieveCreateParametersFromWidget(QWidget *widget);
+  virtual QWidget *createPromptCreateParametersWidget(QWidget *parent, const QString& scheme,
+						      const Parameters& defaultparameters = Parameters());
+  /** get the parameters edited by user, that are stored in \c widget GUI.
+   *
+   * Some special parameters are recognized by the system:
+   * <tt>param["retry"]=true</tt> will cause the dialog not to exit but re-prompt user to
+   * possibly change his input (could result from user clicking "No" in a "Overwrite?"
+   * dialog presented in a reimplementation of this function).
+   * <tt>param["cancel"]=true</tt> will cause the `create resource' process to be cancelled.
+   *
+   * If an empty Parameters() is returned, it is also interpreted as a cancel operation.
+   * */
+  virtual Parameters retrieveCreateParametersFromWidget(const QString& scheme, QWidget *widget);
   /** Actually create the new resource, with the given settings. Open the resource and return
    * the KLFLibResourceEngine object. */
-  virtual KLFLibResourceEngine *createResource(Parameters parameters);
+  virtual KLFLibResourceEngine *createResource(const QString& scheme, const Parameters& parameters,
+					       QObject *parent = NULL);
+
 
   /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
    * factory exists (ie. has been registered). */
@@ -354,6 +374,20 @@ public:
    * A non-NULL returned object was successfully connected to database.
    * */
   static KLFLibDBEngine * openUrl(const QUrl& url, QObject *parent = NULL);
+  /** Use this function as a constructor. Creates a KLFLibDBEngine object,
+   * with QObject parent \c parent, creating a fresh, empty SQLITE database
+   * stored in file \c fileName.
+   *
+   * Returns NULL if opening the database failed.
+   *
+   * \param datatablename defaults to \c "klfentries" if an empty string is given.
+   *
+   * A non-NULL returned object was successfully connected to database.
+   * */
+  static KLFLibDBEngine * createSqlite(const QString& fileName, const QString& datatablename,
+				       QObject *parent = NULL);
+
+
   /** Simple destructor. Disconnects the database if the autoDisconnectDB() property was
    * set. */
   virtual ~KLFLibDBEngine();
@@ -382,7 +416,7 @@ public slots:
 			   const QList<QVariant>& values);
   virtual bool deleteEntries(const QList<entryId>& idlist);
 
-  static bool initFreshDatabase(QSqlDatabase db);
+  static bool initFreshDatabase(QSqlDatabase db, const QString& datatablename);
 
 private:
   KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
@@ -415,10 +449,22 @@ public:
 
   virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
 					  QUrl defaultlocation = QUrl());
-  virtual QUrl retrieveUrlFromWidget(QWidget *widget);
+  virtual QUrl retrieveUrlFromWidget(const QString& scheme, QWidget *widget);
 
   /** Create a library engine that opens resource stored at \c location */
   virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL);
+
+
+  virtual bool canCreateResource(const QString& /*scheme*/) const { return true; }
+
+  virtual QWidget * createPromptCreateParametersWidget(QWidget *parent, const QString& scheme,
+						       const Parameters& defaultparameters = Parameters());
+
+  virtual Parameters retrieveCreateParametersFromWidget(const QString& scheme, QWidget *widget);
+
+  virtual KLFLibResourceEngine *createResource(const QString& scheme, const Parameters& parameters,
+					       QObject *parent = NULL);
+
 };
 
 

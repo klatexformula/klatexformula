@@ -37,20 +37,21 @@
 #include <ui_klflibsqliteopenwidget.h>
 
 
-class KLFLibSqliteOpenWidget : public QWidget, private Ui::KLFLibSqliteOpenWidget
+class KLFLibSqliteOpenWidget : public QWidget, protected Ui::KLFLibSqliteOpenWidget
 {
   Q_OBJECT
 public:
   KLFLibSqliteOpenWidget(QWidget *parent) : QWidget(parent)
   {
     setupUi(this);
+    setProperty("readyToOpen", false);
   }
   virtual ~KLFLibSqliteOpenWidget() { }
 
-  void setUrl(const QUrl& url) {
+  virtual void setUrl(const QUrl& url) {
     txtFile->setText(url.path());
   }
-  QUrl url() const {
+  virtual QUrl url() const {
     QUrl url = QUrl::fromLocalFile(txtFile->text());
     url.setScheme("klf+sqlite");
     return url;
@@ -59,8 +60,9 @@ public:
 signals:
   void readyToOpen(bool ready);
 
-private slots:
-  void on_btnBrowse_clicked() {
+protected slots:
+  virtual void on_btnBrowse_clicked()
+  {
     QString filter = tr("KLatexFormula Library Resource Files (*.klf.db);;All Files (*)");
     static QString selectedFilter;
     QString name = QFileDialog::getOpenFileName(this, tr("Select Library Resource File"),
@@ -68,12 +70,48 @@ private slots:
     if ( ! name.isEmpty() )
       txtFile->setText(name);
   }
-  void on_txtFile_textChanged(const QString& text)
+  virtual void on_txtFile_textChanged(const QString& text)
   {
-    emit readyToOpen(QFile::exists(text));
+    emit readyToOpen(QFileInfo(text).isFile());
   }
+
 };
 
+// ---
+
+class KLFLibSqliteCreateWidget : public KLFLibSqliteOpenWidget
+{
+  Q_OBJECT
+public:
+  KLFLibSqliteCreateWidget(QWidget *parent) : KLFLibSqliteOpenWidget(parent)
+  {
+    /// \todo ...TODO.....: Add option to change main table name
+    setProperty("readyToCreate", false);
+  }
+  virtual ~KLFLibSqliteCreateWidget() { }
+
+  QString fileName() const {
+    return txtFile->text();
+  }
+
+signals:
+  void readyToCreate(bool ready);
+
+protected slots:
+  virtual void on_btnBrowse_clicked()
+  {
+    QString filter = tr("KLatexFormula Library Resource Files (*.klf.db);;All Files (*)");
+    static QString selectedFilter;
+    QString name = QFileDialog::getSaveFileName(this, tr("Select Library Resource File"),
+						QDir::homePath(), filter, &selectedFilter);
+    if ( ! name.isEmpty() )
+      txtFile->setText(name);
+  }
+  virtual void on_txtFile_textChanged(const QString& text)
+  {
+    emit readyToCreate(QFileInfo(text).absoluteDir().exists());
+  }
+};
 
 
 #endif

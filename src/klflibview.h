@@ -26,8 +26,10 @@
 
 #include <QAbstractItemModel>
 #include <QAbstractItemDelegate>
+#include <QEvent>
 #include <QWidget>
 #include <QDialog>
+#include <QAbstractButton>
 #include <QTreeView>
 
 #include <klfdefs.h>
@@ -392,6 +394,8 @@ public:
   KLFLibDefaultView(QWidget *parent);
   virtual ~KLFLibDefaultView();
 
+  virtual bool event(QEvent *e);
+
   virtual KLFLibEntryList selectedEntries() const;
 
 public slots:
@@ -406,6 +410,22 @@ public slots:
   virtual void restore(uint restoreflags = KLFLib::RestoreLatexAndStyle);
 
 protected:
+  class MoreSelectionEvent : public QEvent
+  {
+  public:
+    MoreSelectionEvent(const QItemSelection& s)
+      : QEvent((Type)getType()), sel(s) { }
+
+    QItemSelection sel;
+
+    static inline int getType() {
+      static int t = -1;
+      if (t == -1)
+	return (t = registerEventType());
+      return t;
+    }
+  };
+
   virtual void updateResourceView();
   virtual void updateResourceProp();
   virtual void updateResourceData();
@@ -413,6 +433,8 @@ protected:
 
 protected slots:
   void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
+  QItemSelection fixSelection(const QItemSelection& selected, bool isbasesel = true);
+  void slotViewItemClicked(const QModelIndex& index);
   void slotEntryDoubleClicked(const QModelIndex& index);
 
 private:
@@ -448,6 +470,7 @@ public:
 
 namespace Ui {
   class KLFLibOpenResourceDlg;
+  class KLFLibCreateResourceDlg;
   class KLFLibResPropEditor;
 };
 
@@ -462,10 +485,53 @@ public:
 
   static QUrl queryOpenResource(const QUrl& defaultlocation = QUrl(), QWidget *parent = 0);
 
+protected slots:
+
+  virtual void updateReadyToOpenFromSender(bool isready);
+  virtual void updateReadyToOpen();
+
 private:
   Ui::KLFLibOpenResourceDlg *pUi;
+  QAbstractButton *btnGo;
 };
 
+// --
+
+
+class KLF_EXPORT KLFLibCreateResourceDlg : public QDialog
+{
+  Q_OBJECT
+public:
+  typedef KLFAbstractLibEngineFactory::Parameters Parameters;
+
+  KLFLibCreateResourceDlg(QWidget *parent = 0);
+  virtual ~KLFLibCreateResourceDlg();
+
+  /** An additional parameter <tt>p["klfScheme"] = QString(...scheme...)</tt> is
+   * set in the return value to reflect the chosen scheme. */
+  virtual Parameters getCreateParameters() const;
+
+  static KLFLibResourceEngine *createResource(QObject *resourceParent, QWidget *parent = 0);
+
+public slots:
+
+  virtual void accept();
+  virtual void reject();
+
+protected slots:
+
+  virtual void updateReadyToCreateFromSender(bool isready);
+  virtual void updateReadyToCreate();
+
+private:
+  Ui::KLFLibOpenResourceDlg *pUi;
+  QAbstractButton *btnGo;
+
+  Parameters pParam;
+};
+
+
+// --
 
 class KLFLibResPropEditor : public QWidget
 {

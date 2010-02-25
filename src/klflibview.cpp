@@ -1082,6 +1082,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent)
   pTreeView->setItemDelegate(pDelegate);
   pTreeView->setSelectionBehavior(QAbstractItemView::SelectRows);
   pTreeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  //  pTreeView->setSelectionMode(QAbstractItemView::MultiSelection);
   pTreeView->setSortingEnabled(true);
   pTreeView->setIndentation(16);
   lyt->addWidget(pTreeView);
@@ -1093,6 +1094,20 @@ KLFLibDefaultView::~KLFLibDefaultView()
 {
 }
 
+bool KLFLibDefaultView::event(QEvent *event)
+{
+  if (event->type() == MoreSelectionEvent::getType()) {
+    // select more items
+    MoreSelectionEvent *s = (MoreSelectionEvent*)event;
+    pTreeView->selectionModel()->select(s->sel, QItemSelectionModel::Select);
+    qDebug()<<"Need to select the following items: "<<s->sel;
+    s->accept();
+    return true;
+  }
+  return KLFAbstractLibView::event(event);
+}
+
+
 KLFLibEntryList KLFLibDefaultView::selectedEntries() const
 {
   QModelIndexList selectedindexes = selectedEntryIndexes();
@@ -1100,7 +1115,6 @@ KLFLibEntryList KLFLibDefaultView::selectedEntries() const
   // fill the entry list with our selected entries
   int k;
   for (k = 0; k < selectedindexes.size(); ++k) {
-    // ...... TODO ...... : HANDLE FULL CATEGORY SELECTIONS WHEN USER SELECTS A CATEGORY LABEL
     if ( selectedindexes[k].data(KLFLibModel::ItemKindItemRole) != KLFLibModel::EntryKind )
       continue;
     //    qDebug() << "selection list: adding item [latex="<<selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>().latex()<<"]";
@@ -1125,6 +1139,8 @@ void KLFLibDefaultView::updateResourceView()
   QItemSelectionModel *s = pTreeView->selectionModel();
   connect(s, SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
 	  this, SLOT(slotViewSelectionChanged(const QItemSelection&, const QItemSelection&)));
+  connect(pTreeView, SIGNAL(clicked(const QModelIndex&)),
+	  this, SLOT(slotViewItemClicked(const QModelIndex&)));
 
   // select some columns to show
   pTreeView->setColumnHidden(pModel->columnForEntryPropertyId(KLFLibEntry::Preview), false);
@@ -1237,13 +1253,82 @@ void KLFLibDefaultView::searchFound(const QModelIndex& i)
 }
 
 
-void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
-						 const QItemSelection& /*deselected*/)
+void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& selected,
+						 const QItemSelection& deselected)
 {
-  //  qDebug("Selection changed");
+  qDebug()<<"******************";
+  qDebug()<<"KLFLibD.View::slotViewSel.Ch.(): sel="<<selected<<"; desel="<<deselected<<"";
+
+  if (!selected.isEmpty()) {
+    QItemSelection sel;
+    sel = fixSelection(selected);
+    if (!sel.isEmpty())
+      qApp->postEvent(this, new MoreSelectionEvent(sel), -10);
+    //    if (!sel.isEmpty()) {
+    //      pTreeView->selectionModel()->select(sel, QItemSelectionModel::Select);
+    //      return; // we will be called again right now for updated selection.
+    //    }
+  }
+  if (!deselected.isEmpty()) {
+    //    pTreeView->selectionModel()->select(deselected, QItemSelectionModel::Select);
+  }
   emit entriesSelected(selectedEntries());
 }
 
+QItemSelection KLFLibDefaultView::fixSelection(const QItemSelection& sel, bool isbasesel)
+{
+  // Callers of this function garantee that no signals will be emitted upon changing the
+  // selection.
+
+  //  qDebug()<<"KLFLibDef.View::fixSelection("<<sel<<",isbasesel="<<isbasesel<<")";
+
+  QItemSelection moresel;
+
+  QModelIndexList selidx = sel.indexes();
+  int k;
+  for (k = 0; k < selidx.size(); ++k) {
+    if (selidx[k].isValid() &&
+	selidx[k].data(KLFLibModel::ItemKindItemRole).toInt() == KLFLibModel::CategoryLabelKind &&
+	selidx[k].column() == 0) {
+      // a category is selected -> select all its children
+      const QAbstractItemModel *model = selidx[k].model();
+      int nrows = model->rowCount(selidx[k]);
+      int ncols = model->columnCount(selidx[k]);
+      pTreeView->expand(selidx[k]);
+      moresel.append(QItemSelectionRange(selidx[k].child(0, 0), selidx[k].child(nrows-1, ncols-1)));
+      //      pTreeView->selectionModel()->select(QItemSelection(selidx[k].child(0,0),
+      //							 selidx[k].child(nrows-1,ncols-1)),
+      //					  QItemSelectionModel::Select);
+    }
+  }
+
+  if (moresel.isEmpty())
+    return QItemSelection();
+
+  return moresel;
+  /*
+  if (isbasesel)
+    return fixSelection(moresel, false);
+
+  QItemSelection s = sel;
+  QItemSelection morefixed = fixSelection(moresel, false);
+  qDebug()<<"## before merge: selection is "<<s;
+  qDebug()<<"more="<<moresel<<"; more/fixed="<<morefixed;
+  s.merge(morefixed, QItemSelectionModel::Select);
+  qDebug()<<"merged: selection is "<<s;
+  return s;
+  */
+}
+
+void KLFLibDefaultView::slotViewItemClicked(const QModelIndex& index)
+{
+  /*
+    QItemSelection s;
+    s.append(QItemSelectionRange(index));
+    QItemSelection fixed = fixSelection(s);
+    pTreeView->selectionModel()->select(fixed, QItemSelectionModel::Select);
+  */
+}
 void KLFLibDefaultView::slotEntryDoubleClicked(const QModelIndex& index)
 {
   if (index.data(KLFLibModel::ItemKindItemRole).toInt() != KLFLibModel::EntryKind)
@@ -1303,6 +1388,8 @@ KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidge
     pUi->stkOpenWidgets->insertWidget(k, openWidget);
     pUi->cbxType->insertItem(k, factory->schemeTitle(schemeList[k]),
 			     QVariant::fromValue(schemeList[k]));
+
+    connect(openWidget, SIGNAL(readyToOpen(bool)), this, SLOT(updateReadyToOpenFromSender(bool)));
   }
 
   QString defaultscheme = defaultlocation.scheme();
@@ -1313,6 +1400,11 @@ KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidge
     pUi->cbxType->setCurrentIndex(k = schemeList.indexOf(defaultscheme));
     pUi->stkOpenWidgets->setCurrentIndex(k);
   }
+
+  btnGo = pUi->btnBar->button(QDialogButtonBox::Open);
+
+  connect(pUi->cbxType, SIGNAL(activated(int)), this, SLOT(updateReadyToOpen()));
+  updateReadyToOpen();
 }
 
 KLFLibOpenResourceDlg::~KLFLibOpenResourceDlg()
@@ -1320,20 +1412,41 @@ KLFLibOpenResourceDlg::~KLFLibOpenResourceDlg()
   delete pUi;
 }
 
-
+    
 QUrl KLFLibOpenResourceDlg::url() const
 {
   int k = pUi->cbxType->currentIndex();
   QString scheme = pUi->cbxType->itemData(k).toString();
   KLFAbstractLibEngineFactory *factory
     = KLFAbstractLibEngineFactory::findFactoryFor(scheme);
-  QUrl url = factory->retrieveUrlFromWidget(pUi->stkOpenWidgets->widget(k));
+  QUrl url = factory->retrieveUrlFromWidget(scheme, pUi->stkOpenWidgets->widget(k));
+  if (url.isEmpty()) {
+    // empty url means cancel open
+    return QUrl();
+  }
   if (pUi->chkReadOnly->isChecked())
     url.addQueryItem("klfReadOnly", "true");
   qDebug()<<"Got URL: "<<url;
   return url;
 }
+ 
+void KLFLibOpenResourceDlg::updateReadyToOpenFromSender(bool isready)
+{
+  QObject *w = sender();
+  w->setProperty("readyToOpen", isready);
+  updateReadyToOpen();
+}
+void KLFLibOpenResourceDlg::updateReadyToOpen()
+{
+  QWidget *w = pUi->stkOpenWidgets->currentWidget();
+  if (w == NULL) return;
+  QVariant v = w->property("readyToOpen");
+  // and update button enabled
+  btnGo->setEnabled(!v.isValid() || v.toBool());
+}
 
+
+// static
 QUrl KLFLibOpenResourceDlg::queryOpenResource(const QUrl& defaultlocation, QWidget *parent)
 {
   KLFLibOpenResourceDlg dlg(defaultlocation, parent);
@@ -1342,6 +1455,123 @@ QUrl KLFLibOpenResourceDlg::queryOpenResource(const QUrl& defaultlocation, QWidg
     return QUrl();
   QUrl url = dlg.url();
   return url;
+}
+
+
+
+// ---------------------
+
+
+KLFLibCreateResourceDlg::KLFLibCreateResourceDlg(QWidget *parent)
+  : QDialog(parent)
+{
+  pUi = new Ui::KLFLibOpenResourceDlg;
+  pUi->setupUi(this);
+
+  pUi->lblMain->setText(tr("Create New Library Resource", "[[dialog title]]"));
+  setWindowTitle(tr("Create New Library Resource", "[[dialog title]]"));
+  pUi->chkReadOnly->hide();
+
+  pUi->btnBar->setStandardButtons(QDialogButtonBox::Save|QDialogButtonBox::Cancel);
+  btnGo = pUi->btnBar->button(QDialogButtonBox::Save);
+
+  // add a widget for all supported schemes
+  QStringList schemeList = KLFAbstractLibEngineFactory::allSupportedSchemes();
+  int k;
+  for (k = 0; k < schemeList.size(); ++k) {
+    KLFAbstractLibEngineFactory *factory
+      = KLFAbstractLibEngineFactory::findFactoryFor(schemeList[k]);
+    QWidget *createResWidget =
+      factory->createPromptCreateParametersWidget(pUi->stkOpenWidgets, schemeList[k],
+						  Parameters());
+    pUi->stkOpenWidgets->insertWidget(k, createResWidget);
+    pUi->cbxType->insertItem(k, factory->schemeTitle(schemeList[k]),
+			     QVariant::fromValue(schemeList[k]));
+
+    connect(createResWidget, SIGNAL(readyToCreate(bool)),
+	    this, SLOT(updateReadyToCreateFromSender(bool)));
+  }
+
+
+  pUi->cbxType->setCurrentIndex(0);
+  pUi->stkOpenWidgets->setCurrentIndex(0);
+
+  connect(pUi->cbxType, SIGNAL(activated(int)), this, SLOT(updateReadyToCreate()));
+  updateReadyToCreate();
+}
+KLFLibCreateResourceDlg::~KLFLibCreateResourceDlg()
+{
+  delete pUi;
+}
+
+KLFAbstractLibEngineFactory::Parameters KLFLibCreateResourceDlg::getCreateParameters() const
+{
+  int k = pUi->cbxType->currentIndex();
+  QString scheme = pUi->cbxType->itemData(k).toString();
+  KLFAbstractLibEngineFactory *factory
+    = KLFAbstractLibEngineFactory::findFactoryFor(scheme);
+  Parameters p = factory->retrieveCreateParametersFromWidget(scheme, pUi->stkOpenWidgets->widget(k));
+  p["klfScheme"] = scheme;
+  return p;
+}
+
+
+void KLFLibCreateResourceDlg::accept()
+{
+  const Parameters p = getCreateParameters();
+  if (p == Parameters() || p["cancel"].toBool() == true) {
+    QDialog::reject();
+    return;
+  }
+  if (p["retry"].toBool() == true)
+    return; // ignore accept, reprompt user
+
+  // then by default accept the event
+  // set internal parameter cache to the given parameters, they
+  // will be recycled by createResource() instead of being re-queried
+  pParam = p;
+  QDialog::accept();
+}
+void KLFLibCreateResourceDlg::reject()
+{
+  QDialog::reject();
+}
+ 
+void KLFLibCreateResourceDlg::updateReadyToCreateFromSender(bool isready)
+{
+  QObject *w = sender();
+  w->setProperty("readyToCreate", isready);
+  updateReadyToCreate();
+}
+void KLFLibCreateResourceDlg::updateReadyToCreate()
+{
+  QWidget *w = pUi->stkOpenWidgets->currentWidget();
+  if (w == NULL) return;
+  QVariant v = w->property("readyToCreate");
+  // and update button enabled
+  btnGo->setEnabled(!v.isValid() || v.toBool());
+}
+
+
+// static
+KLFLibResourceEngine *KLFLibCreateResourceDlg::createResource(QObject *resourceParent, QWidget *parent)
+{
+  KLFLibCreateResourceDlg dlg(parent);
+  int result = dlg.exec();
+  if (result != QDialog::Accepted)
+    return NULL;
+
+  Parameters p = dlg.pParam; // we have access to this private member
+  QString scheme = p["klfScheme"].toString();
+
+  KLFAbstractLibEngineFactory * factory = KLFAbstractLibEngineFactory::findFactoryFor(scheme);
+  if (factory == NULL) {
+    qWarning()<<"Couldn't find factory for scheme "<<scheme<<" ?!?";
+    return NULL;
+  }
+
+  KLFLibResourceEngine *resource = factory->createResource(scheme, p, resourceParent);
+  return resource;
 }
 
 
@@ -1368,6 +1598,7 @@ KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *par
   pUi->txtUrl->setText(res->url().toString());
   pUi->chkLocked->setChecked(res->locked());
 
+  qDebug()<<"res->supp.F.Flags()="<<res->supportedFeatureFlags();
   if ( !(res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureLocked) ) {
     pUi->chkLocked->setEnabled(false);
   }

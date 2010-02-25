@@ -87,6 +87,9 @@ KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, uint featureflags,
 {
   initRegisteredProperties();
 
+  //  qDebug()<<"KLFLibResourceEngine::KLFLibResourceEngine("<<url<<","<<pFeatureFlags<<","
+  //	  <<parent<<")";
+
   QStringList rdonly = pUrl.allQueryItemValues("klfReadOnly");
   if (rdonly.size() && rdonly.last() == "true") {
     if (pFeatureFlags & FeatureReadOnly)
@@ -172,23 +175,26 @@ KLFAbstractLibEngineFactory::~KLFAbstractLibEngineFactory()
   unRegisterFactory(this);
 }
 
-bool KLFAbstractLibEngineFactory::canCreateResource() const
+bool KLFAbstractLibEngineFactory::canCreateResource(const QString& /*scheme*/) const
 {
   return false;
 }
 
 QWidget * KLFAbstractLibEngineFactory::createPromptCreateParametersWidget(QWidget */*parent*/,
-									  Parameters /*defaultparameters*/)
+									  const QString& /*scheme*/,
+									  const Parameters& /*par*/)
 {
   return NULL;
 }
 KLFAbstractLibEngineFactory::Parameters
-/* */ KLFAbstractLibEngineFactory::retrieveCreateParametersFromWidget(QWidget */*parent*/)
+/* */ KLFAbstractLibEngineFactory::retrieveCreateParametersFromWidget(const QString& /*scheme*/,
+								      QWidget */*parent*/)
 {
-  return KLFAbstractLibEngineFactory::Parameters();
+  return Parameters();
 }
-KLFLibResourceEngine *KLFAbstractLibEngineFactory::createResource(KLFAbstractLibEngineFactory::Parameters
-								  /*param*/)
+KLFLibResourceEngine *KLFAbstractLibEngineFactory::createResource(const QString& /*scheme*/,
+								  const Parameters& /*param*/,
+								  QObject */*parent*/)
 {
   return NULL;
 }
@@ -287,14 +293,55 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
     return NULL;
   }
 
-  QString datatablename = url.encodedQueryItemValue("dataTableName");
+  QString datatablename = url.queryItemValue("dataTableName");
   if (datatablename.isEmpty())
     datatablename = "klfentries";
 
-  if (!db.open()) {
+  if ( !db.open() || db.lastError().isValid() ) {
     QMessageBox::critical(0, tr("Error"),
-			  tr("Unable to open library file %1 (engine: %2).")
-			  .arg(url.path(), db.driverName()), QMessageBox::Ok);
+			  tr("Unable to open library file %1 (engine: %2).\nError: %3")
+			  .arg(url.path(), db.driverName(), db.lastError().text()), QMessageBox::Ok);
+    return NULL;
+  }
+
+  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, parent);
+}
+
+// static
+KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QString& dtablename,
+					      QObject *parent)
+{
+  QString datatablename = dtablename;
+  bool r;
+
+  if (QFile::exists(fileName)) {
+    // fail; we want to _CREATE_ a database. use openUrl() to open an existing DB.
+    return NULL;
+  }
+  QUrl url = QUrl::fromLocalFile(fileName);
+  url.setScheme("klf+sqlite");
+
+  if (datatablename.isEmpty())
+    datatablename = "klfentries";
+  else
+    url.addQueryItem("dataTableName", datatablename);
+
+  QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
+  db.setDatabaseName(url.path());
+
+  r = db.open(); // go open (here create) the DB
+  if ( !r || db.lastError().isValid() ) {
+    QMessageBox::critical(0, tr("Error"),
+			  tr("Unable to create library file %1 (SQLITE database):\n"
+			     "%2")
+			  .arg(url.path(), db.lastError().text()), QMessageBox::Ok);
+    return NULL;
+  }
+
+  r = initFreshDatabase(db, datatablename);
+  if ( !r ) {
+    QMessageBox::critical(0, tr("Error"),
+			  tr("Unable to initialize the SQLITE database file %1!").arg(url.path()));
     return NULL;
   }
 
@@ -438,7 +485,7 @@ KLFLibEntry KLFLibDBEngine::entry(entryId id)
     return KLFLibEntry();
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT * FROM "+pDataTableName+" WHERE id = ?");
+  q.prepare("SELECT * FROM `"+pDataTableName+"` WHERE id = ?");
   q.addBindValue(id);
   q.exec();
   q.next();
@@ -465,7 +512,7 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
     return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT * FROM "+pDataTableName);
+  q.prepare("SELECT * FROM `"+pDataTableName+"`");
   q.setForwardOnly(true);
   q.exec();
 
@@ -519,7 +566,7 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
   QList<entryId> insertedIds;
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("INSERT INTO " + pDataTableName + " (" + props.join(",") + ") "
+  q.prepare("INSERT INTO `" + pDataTableName + "` (" + props.join(",") + ") "
 	    " VALUES (" + questionmarks.join(",") + ")");
   qDebug()<<"INSERT query: "<<q.lastQuery();
   // now loop all entries, and exec the query with appropriate bound values
@@ -576,7 +623,7 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
   for (k = 0; k < idlist.size(); ++k) questionmarks_ids << "?";
   // prepare query
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("UPDATE " + pDataTableName + " SET " + updatepairs.join(", ") + "  WHERE id IN (" +
+  q.prepare("UPDATE `"+pDataTableName+"` SET " + updatepairs.join(", ") + "  WHERE id IN (" +
 	    questionmarks_ids.join(", ") + ")");
   for (k = 0; k < properties.size(); ++k) {
     q.addBindValue(convertVariantToDBData(values[k]));
@@ -611,7 +658,7 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
     qmarks_ids << "?";
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("DELETE FROM "+pDataTableName+" WHERE id IN ("+qmarks_ids.join(", ")+")");
+  q.prepare("DELETE FROM `"+pDataTableName+"` WHERE id IN ("+qmarks_ids.join(", ")+")");
   for (k = 0; k < idlist.size(); ++k)
     q.addBindValue(idlist[k]);
   bool r = q.exec();
@@ -627,7 +674,7 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
 
 
 // static
-bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
+bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& datatablename)
 {
   if ( ! db.isOpen() )
     return false;
@@ -635,9 +682,11 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
   QStringList sql;
   // the CREATE TABLE statements should be adapted to the database type (sqlite, mysql, pgsql) since
   // syntax is different...
-  sql << "CREATE TABLE klfentries (id INTEGER PRIMARY KEY, Latex TEXT, DateTime INTEGER, "
+  sql << "CREATE TABLE `"+datatablename+"` (id INTEGER PRIMARY KEY, Latex TEXT, DateTime INTEGER, "
     "       Preview BLOB, Category TEXT, Tags TEXT, Style BLOB)";
   sql << "CREATE TABLE klf_properties (id INTEGER PRIMARY KEY, name TEXT, value BLOB)";
+  sql << "INSERT INTO klf_properties (name, value) VALUES ('Title', 'New Resource')";
+  sql << "INSERT INTO klf_properties (name, value) VALUES ('Locked', 'false')";
   sql << "CREATE TABLE klf_dbmetainfo (id INTEGER PRIMARY KEY, name TEXT, value BLOB)";
   sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_version', '" KLF_VERSION_STRING "')";
   sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_dbversion', '"+
@@ -645,12 +694,14 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 
   int k;
   for (k = 0; k < sql.size(); ++k) {
-    QSqlQuery query(sql[k], db);
-    if (query.lastError().isValid()) {
-      qWarning("initFreshDatabase(): SQL Error: %s\nSQL=%s", qPrintable(query.lastError().text()),
-	       qPrintable(sql[k]));
+    QSqlQuery query(db);
+    query.prepare(sql[k]);
+    bool r = query.exec();
+    if ( !r || query.lastError().isValid() ) {
+      qWarning()<<"initFreshDatabase(): SQL Error: "<<query.lastError().text()<<"\n"
+		<<"SQL="<<sql[k];
+      return false;
     }
-    return false;
   }
 
   return true;
@@ -694,11 +745,88 @@ QWidget * KLFLibDBEngineFactory::createPromptUrlWidget(QWidget *parent, const QS
   }
   return NULL;
 }
-QUrl KLFLibDBEngineFactory::retrieveUrlFromWidget(QWidget *widget)
+
+QUrl KLFLibDBEngineFactory::retrieveUrlFromWidget(const QString& scheme, QWidget *widget)
 {
-  if (widget == NULL || !widget->inherits("KLFLibSqliteOpenWidget")) {
-    qWarning("KLFLibDBEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
+  if (scheme == "klf+sqlite") {
+    if (widget == NULL || !widget->inherits("KLFLibSqliteOpenWidget")) {
+      qWarning("KLFLibDBEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
+      return QUrl();
+    }
+    return qobject_cast<KLFLibSqliteOpenWidget*>(widget)->url();
+  } else {
+    qWarning()<<"Bad scheme: "<<scheme;
     return QUrl();
   }
-  return qobject_cast<KLFLibSqliteOpenWidget*>(widget)->url();
+}
+
+
+QWidget *KLFLibDBEngineFactory::createPromptCreateParametersWidget(QWidget *parent,
+								   const QString& scheme,
+								   const Parameters& defaultparameters)
+{
+  if (scheme == QLatin1String("klf+sqlite")) {
+    KLFLibSqliteCreateWidget *w = new KLFLibSqliteCreateWidget(parent);
+    w->setUrl(defaultparameters["Url"].toUrl());
+    return w;
+  }
+  return NULL;
+}
+
+KLFAbstractLibEngineFactory::Parameters
+/* */ KLFLibDBEngineFactory::retrieveCreateParametersFromWidget(const QString& scheme,
+								QWidget *widget)
+{
+  if (scheme == QLatin1String("klf+sqlite")) {
+    if (widget == NULL || !widget->inherits("KLFLibSqliteCreateWidget")) {
+      qWarning("KLFLibDBEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
+      return Parameters();
+    }
+    KLFLibSqliteCreateWidget *w = qobject_cast<KLFLibSqliteCreateWidget*>(widget);
+    Parameters p;
+    QString filename = w->fileName();
+    if (QFile::exists(filename)) {
+      QMessageBox::StandardButton result =
+	QMessageBox::warning(widget, tr("Overwrite?"),
+			     tr("The specified file already exists. Overwrite it?"),
+			     QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel,
+			     QMessageBox::No);
+      if (result == QMessageBox::No) {
+	p["retry"] = true;
+	return p;
+      } else if (result == QMessageBox::Cancel) {
+	return Parameters();
+      }
+      // remove the previous file, because otherwise KLFLibDBEngine will fail.
+      bool r = QFile::remove(filename);
+      if ( !r ) {
+	QMessageBox::critical(widget, tr("Error"), tr("Failed to overwrite the file %1.")
+			      .arg(filename));
+	return Parameters();
+      }
+    }
+
+    p["Filename"] = w->fileName();
+    p["Url"] = w->url();
+    return p;
+  }
+
+  return Parameters();
+}
+
+KLFLibResourceEngine *KLFLibDBEngineFactory::createResource(const QString& scheme,
+							    const Parameters& parameters,
+							    QObject *parent)
+{
+  if (scheme == QLatin1String("klf+sqlite")) {
+    if ( !parameters.contains("Filename") || !parameters.contains("Url") ) {
+      qWarning()
+	<<"KLFLibDBEngineFactory::createResource: bad parameters. They do not contain `Filename' or\n"
+	"`Url': "<<parameters;
+      return NULL;
+    }
+    return KLFLibDBEngine::createSqlite(parameters["Filename"].toString(),
+					parameters["dataTableName"].toString(), parent);
+  }
+  return NULL;
 }

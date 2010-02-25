@@ -91,6 +91,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   // SEARCH
 
   pUi->txtSearch->installEventFilter(this);
+  connect(pUi->btnSearchClear, SIGNAL(clicked()), this, SLOT(slotSearchClear()));
   connect(pUi->txtSearch, SIGNAL(textChanged(const QString&)),
 	  this, SLOT(slotSearchFind(const QString&)));
   connect(pUi->btnFindNext, SIGNAL(clicked()), this, SLOT(slotSearchFindNext()));
@@ -210,6 +211,15 @@ KLFAbstractLibView * KLFLibBrowser::findOpenUrl(const QUrl& url)
       return pLibViews[k];
   return NULL;
 }
+KLFAbstractLibView * KLFLibBrowser::findOpenResource(KLFLibResourceEngine *resource)
+{
+  int k;
+  for (k = 0; k < pLibViews.size(); ++k)
+    if (pLibViews[k]->resourceEngine() == resource)
+      return pLibViews[k];
+  return NULL;
+}
+
 KLFAbstractLibView * KLFLibBrowser::curView()
 {
   return qobject_cast<KLFAbstractLibView*>(pUi->tabResources->currentWidget());
@@ -224,7 +234,8 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags)
 {
   KLFAbstractLibView * openview = findOpenUrl(url);
   if (openview != NULL) {
-    qDebug("This resource is already open.");
+    qDebug("KLFLibBrowser::openResource(%s,%u): This resource is already open.",
+	   qPrintable(url.toString()), resourceRoleFlags);
     pUi->tabResources->setCurrentWidget(openview);
     updateResourceRoleFlags(openview, resourceRoleFlags);
     return true;
@@ -236,6 +247,26 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags)
   KLFLibResourceEngine * resource = factory->openResource(url, this);
   if ( resource == NULL )
     return false;
+
+  // go on opening resource with our sister function
+  return openResource(resource, resourceRoleFlags);
+}
+bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags)
+{
+  if (resource == NULL) {
+    qWarning("KLFLibBrowser::openResource(***NULL***,%u) !", resourceRoleFlags);
+    return false;
+  }
+  KLFAbstractLibView * openview = findOpenResource(resource);
+  if (openview != NULL) {
+    qDebug("KLFLibBrowser::openResource(%p,%u): This resource is already open.",
+	   resource, resourceRoleFlags);
+    pUi->tabResources->setCurrentWidget(openview);
+    updateResourceRoleFlags(openview, resourceRoleFlags);
+    return true;
+  }
+
+  resource->setParent(this);
 
   // now create appropriate view for this resource
   KLFAbstractLibViewFactory *viewfactory =
@@ -272,6 +303,7 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags)
   updateResourceRoleFlags(view, resourceRoleFlags);
   return true;
 }
+
 bool KLFLibBrowser::closeResource(const QUrl& url)
 {
   KLFAbstractLibView * w = findOpenUrl(url);
@@ -288,10 +320,11 @@ void KLFLibBrowser::updateResourceRoleFlags(KLFAbstractLibView *view, uint resro
 }
 
 
-void KLFLibBrowser::slotTabResourceShown(int /*tabIndex*/)
+void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 {
-  KLFAbstractLibView * view = curView();
-  if (view == NULL)
+  KLFAbstractLibView * view =
+    qobject_cast<KLFAbstractLibView*>(pUi->tabResources->widget(tabIndex));
+  if (view == NULL || tabIndex < 0)
     return;
 
   // refresh selection-related displays
@@ -399,8 +432,11 @@ bool KLFLibBrowser::slotResourceOpen()
 
 bool KLFLibBrowser::slotResourceNew()
 {
-  
-  return false;
+  KLFLibResourceEngine *resource = KLFLibCreateResourceDlg::createResource(this, this);
+  if (resource == NULL)
+    return false;
+
+  return openResource(resource);
 }
 
 bool KLFLibBrowser::slotResourceSaveAs()
@@ -481,9 +517,6 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
 
 void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 {
-  if (sender() != pUi->tabResources->currentWidget())
-    return;
-
   pUi->wEntryEditor->displayEntries(entries);
 
   pUi->btnDelete->setEnabled(entries.size() > 0);
@@ -510,6 +543,9 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   QAction *adel = menu->addAction(QIcon(":/pics/delete.png"), tr("Delete from library"),
 				  view, SLOT(deleteSelected()));
   menu->addSeparator();
+
+
+  /// \todo SELECT ALL ...............TODO....................
 
   QMenu *copytomenu = new QMenu;
   QMenu *movetomenu = new QMenu;

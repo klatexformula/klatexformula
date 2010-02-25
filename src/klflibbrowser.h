@@ -64,6 +64,16 @@ public slots:
    * Resource flags are updated in both cases.
    */
   bool openResource(const QUrl& url, uint resourceRoleFlags = 0x0);
+
+  /** Overloaded member, provided for convenience.
+   *
+   * Opens a previously (independently) open \c resource and displays it in the library.
+   *
+   * \warning this library browser takes ownership of the resource and will delete it
+   *   when done using it.
+   */
+  bool openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags = 0x0);
+
   bool closeResource(const QUrl& url);
 
 protected slots:
@@ -113,6 +123,7 @@ protected slots:
 
 protected:
   KLFAbstractLibView * findOpenUrl(const QUrl& url);
+  KLFAbstractLibView * findOpenResource(KLFLibResourceEngine *resource);
   KLFAbstractLibView * curView();
   KLFAbstractLibView * viewForTabIndex(int tab);
 
