@@ -28,12 +28,12 @@
 #include <QKeyEvent>
 #include <QShortcut>
 #include <QMessageBox>
+#include <QSignalMapper>
 
 #include "klfconfig.h"
 #include "klflibbrowser_p.h"
 #include <ui_klflibbrowser.h>
 #include "klflibbrowser.h"
-
 
 
 
@@ -52,9 +52,11 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pAProperties = pResourceMenu->addAction(tr("Properties..."),
 					  this, SLOT(slotResourceProperties()));
   pASaveAs = pResourceMenu->addAction(tr("Save As..."), this, SLOT(slotResourceSaveAs()));
+  pAViewType = pResourceMenu->addAction(tr("View Type"));
   pResourceMenu->addSeparator();
   pANew = pResourceMenu->addAction(tr("New..."), this, SLOT(slotResourceNew()));
   pAOpen = pResourceMenu->addAction(tr("Open..."), this, SLOT(slotResourceOpen()));
+  
 
   slotRefreshResourceActionsEnabled();
 
@@ -188,31 +190,31 @@ QList<QUrl> KLFLibBrowser::openUrls() const
   QList<QUrl> urls;
   int k;
   for (k = 0; k < pLibViews.size(); ++k)
-    urls << pLibViews[k]->resourceEngine()->url();
+    urls << pLibViews[k]->url();
 
   return urls;
 }
 
 KLFLibResourceEngine * KLFLibBrowser::getOpenResource(const QUrl& url)
 {
-  KLFAbstractLibView * view = findOpenUrl(url);
-  if (view == NULL)
+  KLFLibBrowserViewContainer * viewc = findOpenUrl(url);
+  if (viewc == NULL)
     return NULL;
-  return view->resourceEngine();
+  return viewc->resourceEngine();
 }
 
 
-KLFAbstractLibView * KLFLibBrowser::findOpenUrl(const QUrl& url)
+KLFLibBrowserViewContainer * KLFLibBrowser::findOpenUrl(const QUrl& url)
 {
   int k;
   for (k = 0; k < pLibViews.size(); ++k)
     // don't compare the urls with removed query items because query items may be
     // important as to which part of the resource is displayed (for ex.)
-    if (pLibViews[k]->resourceEngine()->url() == url)
+    if (pLibViews[k]->url() == url)
       return pLibViews[k];
   return NULL;
 }
-KLFAbstractLibView * KLFLibBrowser::findOpenResource(KLFLibResourceEngine *resource)
+KLFLibBrowserViewContainer * KLFLibBrowser::findOpenResource(KLFLibResourceEngine *resource)
 {
   int k;
   for (k = 0; k < pLibViews.size(); ++k)
@@ -221,19 +223,27 @@ KLFAbstractLibView * KLFLibBrowser::findOpenResource(KLFLibResourceEngine *resou
   return NULL;
 }
 
-KLFAbstractLibView * KLFLibBrowser::curView()
+KLFLibBrowserViewContainer * KLFLibBrowser::curView()
 {
-  return qobject_cast<KLFAbstractLibView*>(pUi->tabResources->currentWidget());
+  return qobject_cast<KLFLibBrowserViewContainer*>(pUi->tabResources->currentWidget());
 }
-KLFAbstractLibView * KLFLibBrowser::viewForTabIndex(int tab)
+KLFAbstractLibView * KLFLibBrowser::curLibView()
 {
-  return qobject_cast<KLFAbstractLibView*>(pUi->tabResources->widget(tab));
+  KLFLibBrowserViewContainer *v = curView();
+  if (v == NULL)
+    return NULL;
+  return v->view();
+}
+KLFLibBrowserViewContainer * KLFLibBrowser::viewForTabIndex(int tab)
+{
+  return qobject_cast<KLFLibBrowserViewContainer*>(pUi->tabResources->widget(tab));
 }
 
 
-bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags)
+bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
+				 const QString& viewTypeIdentifier)
 {
-  KLFAbstractLibView * openview = findOpenUrl(url);
+  KLFLibBrowserViewContainer * openview = findOpenUrl(url);
   if (openview != NULL) {
     qDebug("KLFLibBrowser::openResource(%s,%u): This resource is already open.",
 	   qPrintable(url.toString()), resourceRoleFlags);
@@ -242,7 +252,7 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags)
     return true;
   }
 
-  KLFAbstractLibEngineFactory * factory = KLFAbstractLibEngineFactory::findFactoryFor(url.scheme());
+  KLFLibEngineFactory * factory = KLFLibEngineFactory::findFactoryFor(url.scheme());
   if ( factory == NULL )
     return false;
   KLFLibResourceEngine * resource = factory->openResource(url, this);
@@ -250,15 +260,17 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags)
     return false;
 
   // go on opening resource with our sister function
-  return openResource(resource, resourceRoleFlags);
+  return openResource(resource, resourceRoleFlags, viewTypeIdentifier);
 }
-bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags)
+bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags,
+				 const QString& viewTypeIdentifier)
 {
   if (resource == NULL) {
-    qWarning("KLFLibBrowser::openResource(***NULL***,%u) !", resourceRoleFlags);
+    qWarning("KLFLibBrowser::openResource(***NULL***,%u,%s) !", resourceRoleFlags,
+	     qPrintable(viewTypeIdentifier));
     return false;
   }
-  KLFAbstractLibView * openview = findOpenResource(resource);
+  KLFLibBrowserViewContainer * openview = findOpenResource(resource);
   if (openview != NULL) {
     qDebug("KLFLibBrowser::openResource(%p,%u): This resource is already open.",
 	   resource, resourceRoleFlags);
@@ -270,48 +282,63 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   resource->setParent(this);
 
   // now create appropriate view for this resource
-  QString viewtypeident = "default"; //resource->suggestedViewTypeIdentifier();
+  QString viewtypeident = viewTypeIdentifier;
   if (viewtypeident.isEmpty())
-    viewtypeident = KLFAbstractLibViewFactory::defaultViewTypeIdentifier();
-  KLFAbstractLibViewFactory *viewfactory =
-    KLFAbstractLibViewFactory::findFactoryFor(viewtypeident);
-  KLFAbstractLibView * view =
-    viewfactory->createLibView(viewtypeident, pUi->tabResources, resource);
+    viewtypeident = resource->suggestedViewTypeIdentifier();
+  if (viewtypeident.isEmpty())
+    viewtypeident = KLFLibViewFactory::defaultViewTypeIdentifier();
+  KLFLibViewFactory *viewfactory =
+    KLFLibViewFactory::findFactoryFor(viewtypeident);
+  if (viewfactory == NULL) {
+    qWarning()<<"KLFLibBrowser::openResource: can't find view factory for view type identifier "
+	      <<viewtypeident<<"!";
+    return false;
+  }
+  if ( ! viewfactory->canCreateLibView(viewtypeident, resource) ) {
+    qDebug()<<"KLFLibBrowser::openResource: incompatible view type identifier "<<viewtypeident
+	    <<"for resource "<<resource->url()<<".";
+    return false; // incompatible view type identifier
+  }
+  KLFLibBrowserViewContainer *viewc = new KLFLibBrowserViewContainer(resource, pUi->tabResources);
+  bool r = viewc->openView(viewtypeident);
+  if (!r) {
+    qWarning()<<"KLFLibBrowser::openResource: can't create view! viewtypeident="<<viewtypeident<<".";
+    return false;
+  }
 
   // get informed about selection changes
-  connect(view, SIGNAL(entriesSelected(const KLFLibEntryList& )),
+  connect(viewc, SIGNAL(entriesSelected(const KLFLibEntryList& )),
 	  this, SLOT(slotEntriesSelected(const KLFLibEntryList& )));
   // and of new category suggestions
-  connect(view, SIGNAL(moreCategorySuggestions(const QStringList&)),
+  connect(viewc, SIGNAL(moreCategorySuggestions(const QStringList&)),
 	  this, SLOT(slotAddCategorySuggestions(const QStringList&)));
 
-  connect(view, SIGNAL(requestRestore(const KLFLibEntry&, uint)),
+  connect(viewc, SIGNAL(requestRestore(const KLFLibEntry&, uint)),
 	  this, SIGNAL(requestRestore(const KLFLibEntry&, uint)));
-  connect(view, SIGNAL(requestRestoreStyle(const KLFStyle&)),
+  connect(viewc, SIGNAL(requestRestoreStyle(const KLFStyle&)),
 	  this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
 
   connect(resource, SIGNAL(resourcePropertyChanged(int)),
 	  this, SLOT(slotResourcePropertyChanged(int)));
 
   // get more category completions
-  view->wantMoreCategorySuggestions();
+  viewc->view()->wantMoreCategorySuggestions();
 
   // supply a context menu to view
-  view->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(view, SIGNAL(customContextMenuRequested(const QPoint&)),
+  connect(viewc, SIGNAL(viewContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotShowContextMenu(const QPoint&)));
 
-  pUi->tabResources->addTab(view, resource->title());
-  pUi->tabResources->setCurrentWidget(view);
-  pLibViews.append(view);
+  pUi->tabResources->addTab(viewc, resource->title());
+  pUi->tabResources->setCurrentWidget(viewc);
+  pLibViews.append(viewc);
   setStyleSheet(styleSheet());
-  updateResourceRoleFlags(view, resourceRoleFlags);
+  updateResourceRoleFlags(viewc, resourceRoleFlags);
   return true;
 }
 
 bool KLFLibBrowser::closeResource(const QUrl& url)
 {
-  KLFAbstractLibView * w = findOpenUrl(url);
+  KLFLibBrowserViewContainer * w = findOpenUrl(url);
   if (w == NULL)
     return false;
 
@@ -319,7 +346,7 @@ bool KLFLibBrowser::closeResource(const QUrl& url)
 }
 
 
-void KLFLibBrowser::updateResourceRoleFlags(KLFAbstractLibView *view, uint resroleflags)
+void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *view, uint resroleflags)
 {
   view->setProperty("resourceRoleFlags", resroleflags);
 }
@@ -327,13 +354,33 @@ void KLFLibBrowser::updateResourceRoleFlags(KLFAbstractLibView *view, uint resro
 
 void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 {
-  KLFAbstractLibView * view =
-    qobject_cast<KLFAbstractLibView*>(pUi->tabResources->widget(tabIndex));
-  if (view == NULL || tabIndex < 0)
+  KLFLibBrowserViewContainer * viewc =
+    qobject_cast<KLFLibBrowserViewContainer*>(pUi->tabResources->widget(tabIndex));
+  if (viewc == NULL || tabIndex < 0)
     return;
 
+  // set up view type menu appropriately
+  QStringList vtypes = viewc->supportedViewTypeIdentifiers();
+  int k;
+  QMenu *menu = new QMenu(this);
+  QSignalMapper *signalmapper = new QSignalMapper(menu);
+  for (k = 0; k < vtypes.size(); ++k) {
+    KLFLibViewFactory *factory =
+      KLFLibViewFactory::findFactoryFor(vtypes[k]);
+    QAction *a = menu->addAction(factory->viewTypeTitle(vtypes[k]), signalmapper, SLOT(map()));
+    signalmapper->setMapping(a, vtypes[k]);
+  }
+  connect(signalmapper, SIGNAL(mapped(const QString&)), viewc, SLOT(openView(const QString&)));
+  // and replace the old menu with the new one.
+  QMenu *oldmenu = pAViewType->menu();
+  if (oldmenu != NULL) {
+    pAViewType->setMenu(0);
+    delete oldmenu;
+  }
+  pAViewType->setMenu(menu);
+
   // refresh selection-related displays
-  slotEntriesSelected(view->selectedEntries());
+  slotEntriesSelected(viewc->view()->selectedEntries());
   slotRefreshResourceActionsEnabled();
 }
 
@@ -349,7 +396,7 @@ void KLFLibBrowser::slotShowTabContextMenu(const QPoint& pos)
 void KLFLibBrowser::slotResourceRename()
 {
   int tab = pUi->tabResources->currentIndex();
-  KLFAbstractLibView * view = curView();
+  KLFLibBrowserViewContainer * view = curView();
   if (tab < 0 || view == NULL)
     return;
 
@@ -380,13 +427,13 @@ void KLFLibBrowser::slotResourceRenameFinished()
     qWarning("KLFLibBrowser::slotResourceRenameFinished: no sender!");
   }
   QUrl url = editor->property("tabURL").toUrl();
-  KLFAbstractLibView * view = findOpenUrl(url);
+  KLFLibBrowserViewContainer * view = findOpenUrl(url);
   view->resourceEngine()->setTitle(editor->property("text").toString());
 
   editor->deleteLater();
 }
 
-bool KLFLibBrowser::slotResourceClose(KLFAbstractLibView *view)
+bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
 {
   if (view == NULL)
     view = curView();
@@ -413,7 +460,7 @@ bool KLFLibBrowser::slotResourceClose(KLFAbstractLibView *view)
 }
 void KLFLibBrowser::slotResourceProperties()
 {
-  KLFAbstractLibView *view = curView();
+  KLFLibBrowserViewContainer *view = curView();
   if (view == NULL) {
     qWarning("KLFLibBrowser::slotResourceProperties: NULL View!");
     return;
@@ -461,7 +508,7 @@ void KLFLibBrowser::slotResourcePropertyChanged(int propId)
   slotRefreshResourceActionsEnabled();
 
   if (propId == KLFLibResourceEngine::PropTitle) {
-    KLFAbstractLibView *view = findOpenUrl(resource->url());
+    KLFLibBrowserViewContainer *view = findOpenUrl(resource->url());
     if (view == NULL) {
       qWarning()<<"KLFLibBrowser::slotResourcePropertyChanged: can't find view for url "
 		<<resource->url()<<"!";
@@ -473,7 +520,7 @@ void KLFLibBrowser::slotResourcePropertyChanged(int propId)
 
 void KLFLibBrowser::slotRestoreWithStyle()
 {
-  KLFAbstractLibView * view = curView();
+  KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
   view->restoreWithStyle();
@@ -481,7 +528,7 @@ void KLFLibBrowser::slotRestoreWithStyle()
 
 void KLFLibBrowser::slotRestoreLatexOnly()
 {
-  KLFAbstractLibView * view = curView();
+  KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
   view->restoreLatexOnly();
@@ -489,7 +536,7 @@ void KLFLibBrowser::slotRestoreLatexOnly()
 
 void KLFLibBrowser::slotDeleteSelected()
 {
-  KLFAbstractLibView * view = curView();
+  KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
   view->deleteSelected();
@@ -502,7 +549,7 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
   bool cansaveas = false;
   uint resrolefl = 0;
 
-  KLFAbstractLibView * view = curView();
+  KLFLibBrowserViewContainer * view = curView();
   if ( view != NULL ) {
     master = true;
     canmodify = view->resourceEngine()->canModify();
@@ -534,8 +581,8 @@ void KLFLibBrowser::slotAddCategorySuggestions(const QStringList& catlist)
 
 void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 {
-  KLFAbstractLibView *view = curView();
-  if (view == NULL)
+  KLFAbstractLibView * view = curLibView();
+  if ( view == NULL )
     return;
 
   QMenu *menu = new QMenu(view);
@@ -554,7 +601,7 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   int k;
   QAction *acopy, *amove;
   for (k = 0; k < pLibViews.size(); ++k) {
-    if (pLibViews[k] == view) // skip this view
+    if (pLibViews[k]->url() == view->resourceEngine()->url()) // skip this view
       continue;
     KLFLibResourceEngine *res = pLibViews[k]->resourceEngine();
     acopy = copytomenu->addAction(res->title(), this, SLOT(slotCopyToResource()));
@@ -573,6 +620,9 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   amoveto->setText(tr("Move to"));
   amoveto->setIcon(QIcon(":/pics/move.png"));
 
+  menu->addSeparator();
+  menu->addMenu(pResourceMenu);
+
   // Needed for when user pops up a menu without selection (ie. short list, free white space under)
   KLFLibEntryList selected = view->selectedEntries();
   bool cancopy = (selected.size() > 0);
@@ -590,6 +640,7 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   if (viewActions.size())
     menu->addSeparator(); // separate view's menu items from ours
   for (k = 0; k < viewActions.size(); ++k) {
+    qDebug()<<"Added action "<<k<<": "<<viewActions[k];
     menu->addAction(viewActions[k]);
   }
 
@@ -601,11 +652,14 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
 {
   QWidget *w = pUi->tabResources->currentWidget();
-  KLFAbstractLibView *wview = qobject_cast<KLFAbstractLibView*>(w);
-  if (wview == NULL) {
-    qWarning("Current view is not a KLFAbstractLibView!");
+  KLFLibBrowserViewContainer *wviewc = qobject_cast<KLFLibBrowserViewContainer*>(w);
+  if (wviewc == NULL) {
+    qWarning("Current view is not a KLFLibBrowserViewContainer!");
     return;
   }
+  KLFAbstractLibView * wview = wviewc->view();
+  if ( wview == NULL )
+    return;
   bool r = wview->writeEntryProperty(KLFLibEntry::Category, newcategory);
   if ( ! r )
     QMessageBox::warning(this, tr("Error"),
@@ -614,11 +668,14 @@ void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
 void KLFLibBrowser::slotTagsChanged(const QString& newtags)
 {
   QWidget *w = pUi->tabResources->currentWidget();
-  KLFAbstractLibView *wview = qobject_cast<KLFAbstractLibView*>(w);
-  if (wview == NULL) {
-    qWarning("Current view is not a KLFAbstractLibView!");
+  KLFLibBrowserViewContainer *wviewc = qobject_cast<KLFLibBrowserViewContainer*>(w);
+  if (wviewc == NULL) {
+    qWarning("Current view is not a KLFLibBrowserViewContainer!");
     return;
   }
+  KLFAbstractLibView * wview = wviewc->view();
+  if ( wview == NULL )
+    return;
   bool r = wview->writeEntryProperty(KLFLibEntry::Tags, newtags);
   if ( ! r )
     QMessageBox::warning(this, tr("Error"),
@@ -658,8 +715,8 @@ void KLFLibBrowser::slotSearchClearOrNext()
 
 void KLFLibBrowser::slotSearchFind(const QString& text, bool forward)
 {
-  KLFAbstractLibView * view = curView();
-  if ( ! view ) {
+  KLFAbstractLibView * view = curLibView();
+  if (view == NULL) {
     qWarning("KLFLibBrowser: No Current View!");
     return;
   }
@@ -674,8 +731,8 @@ void KLFLibBrowser::slotSearchFind(const QString& text, bool forward)
 
 void KLFLibBrowser::slotSearchFindNext(bool forward)
 {
-  KLFAbstractLibView * view = curView();
-  if ( ! view ) {
+  KLFAbstractLibView * view = curLibView();
+  if (view == NULL) {
     qWarning("KLFLibBrowser: No Current View!");
     return;
   }
@@ -716,8 +773,8 @@ void KLFLibBrowser::slotSearchAbort()
     return;
   }
 
-  KLFAbstractLibView * view = curView();
-  if ( ! view ) {
+  KLFAbstractLibView * view = curLibView();
+  if (view == NULL) {
     qWarning("KLFLibBrowser: No Current View!");
     return;
   }
@@ -747,16 +804,17 @@ void KLFLibBrowser::slotCopyMoveToResource(QObject *action, bool move)
 	      <<action->metaObject()->className()<<"'; expected QAction with 'resourceUrl' property set.";
     return;
   }
-  KLFAbstractLibView *sourceView = curView();
+  KLFAbstractLibView *sourceView = curLibView();
   if (sourceView == NULL) {
     qWarning()<<"KLFLibBrowser::slotCopyMoveToResource(): source view is NULL!";
     return;
   }
-  KLFAbstractLibView *destView = findOpenUrl(destUrl);
-  if (destView == NULL) {
+  KLFLibBrowserViewContainer *destViewC = findOpenUrl(destUrl);
+  if (destViewC == NULL || destViewC->view() == NULL) {
     qWarning()<<"KLFLibBrowser::slotCopyMoveToResource(): can't find dest view url for URL="<<destUrl<<" !";
     return;
   }
+  KLFAbstractLibView *destView = destViewC->view();
   // now do the copy/move:
   slotCopyMoveToResource(destView, sourceView, move);
 }

@@ -95,6 +95,13 @@ typedef QList<KLFLibEntry> KLFLibEntryList;
  * Subclasses may choose to implement various features specified by the \ref ResourceFeature
  * enum. The supported features must be passed (binary OR-ed) to the constructor.
  *
+ * Library entries are communicated with KLFLibEntry objects. Each entry in the resource must
+ * be attributed a numerical ID (unique within the resource, not necessarily globally unique
+ * among all open resources). Entries are queried by calling \ref allEntries() to get all the
+ * entries with their IDs, or \ref entry() if a specific entry (whose ID is already known) is
+ * requested. IDs are attributed by the resource engine subclasses, depending of course on the
+ * backend (eg. a database backend storage could use the ID in the database table).
+ *
  * Resources have properties (stored in a KLFPropertizedObject structure, NOT in regular QObject
  * properties) that ARE STORED IN THE RESOURCE DATA ITSELF. Built-in properties are listed
  * in the \ref ResourceProperty enum.
@@ -267,7 +274,7 @@ private:
 
 /** An abstract factory class for opening resources identified by their URL.
  */
-class KLF_EXPORT KLFAbstractLibEngineFactory : public QObject
+class KLF_EXPORT KLFLibEngineFactory : public QObject
 {
   Q_OBJECT
 public:
@@ -280,9 +287,9 @@ public:
   typedef QMap<QString,QVariant> Parameters;
 
   /** Constructs an engine factory and automatically regisers it. */
-  KLFAbstractLibEngineFactory(QObject *parent = NULL);
+  KLFLibEngineFactory(QObject *parent = NULL);
   /** Destroys this engine factory and unregisters it. */
-  virtual ~KLFAbstractLibEngineFactory();
+  virtual ~KLFLibEngineFactory();
 
   /** Should return a list of supported URL schemes this factory can open.
    * Two factories should NOT provide common scheme names, or bugs like one factory
@@ -338,19 +345,19 @@ public:
 
   /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
    * factory exists (ie. has been registered). */
-  static KLFAbstractLibEngineFactory *findFactoryFor(const QString& urlScheme);
+  static KLFLibEngineFactory *findFactoryFor(const QString& urlScheme);
 
   /** Returns a combined list of all schemes all factories support. ie. returns a list of
    * all schemes we're capable of opening. */
   static QStringList allSupportedSchemes();
   /** Returns the full list of installed factories. */
-  static QList<KLFAbstractLibEngineFactory*> allFactories() { return pRegisteredFactories; }
+  static QList<KLFLibEngineFactory*> allFactories() { return pRegisteredFactories; }
 
 private:
-  static void registerFactory(KLFAbstractLibEngineFactory *factory);
-  static void unRegisterFactory(KLFAbstractLibEngineFactory *factory);
+  static void registerFactory(KLFLibEngineFactory *factory);
+  static void unRegisterFactory(KLFLibEngineFactory *factory);
 
-  static QList<KLFAbstractLibEngineFactory*> pRegisteredFactories;
+  static QList<KLFLibEngineFactory*> pRegisteredFactories;
 };
 
 
@@ -370,6 +377,10 @@ public:
   /** Use this function as a constructor. Creates a KLFLibDBEngine object,
    * with QObject parent \c parent, opening the database at location \c url.
    * Returns NULL if opening the database failed.
+   *
+   * Url may contain following query strings:
+   * - <tt>dataTableName=<i>tablename</i></tt> to specify the data table name
+   *   in the DB
    *
    * A non-NULL returned object was successfully connected to database.
    * */
@@ -436,7 +447,7 @@ private:
 };
 
 /** The associated factory to the KLFLibDBEngine engine. */
-class KLF_EXPORT KLFLibDBEngineFactory : public KLFAbstractLibEngineFactory
+class KLF_EXPORT KLFLibDBEngineFactory : public KLFLibEngineFactory
 {
   Q_OBJECT
 public:

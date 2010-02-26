@@ -39,6 +39,8 @@
 #include <QTextCursor>
 #include <QTextCharFormat>
 #include <QListView>
+#include <QMenu>
+#include <QAction>
 
 #include <ui_klflibopenresourcedlg.h>
 #include <ui_klflibrespropeditor.h>
@@ -92,30 +94,30 @@ QList<QAction*> KLFAbstractLibView::addContextMenuActions(const QPoint&)
 
 // -------------------------------------------------------
 
-QList<KLFAbstractLibViewFactory*> KLFAbstractLibViewFactory::pRegisteredFactories =
-	 QList<KLFAbstractLibViewFactory*>();
+QList<KLFLibViewFactory*> KLFLibViewFactory::pRegisteredFactories =
+	 QList<KLFLibViewFactory*>();
 
 
-KLFAbstractLibViewFactory::KLFAbstractLibViewFactory(const QStringList& viewTypeIdentifiers,
+KLFLibViewFactory::KLFLibViewFactory(const QStringList& viewTypeIdentifiers,
 						     QObject *parent)
   : QObject(parent), pViewTypeIdentifiers(viewTypeIdentifiers)
 {
   registerFactory(this);
 }
-KLFAbstractLibViewFactory::~KLFAbstractLibViewFactory()
+KLFLibViewFactory::~KLFLibViewFactory()
 {
   unRegisterFactory(this);
 }
 
 
-QString KLFAbstractLibViewFactory::defaultViewTypeIdentifier()
+QString KLFLibViewFactory::defaultViewTypeIdentifier()
 {
   if (pRegisteredFactories.size() > 0)
     return pRegisteredFactories[0]->pViewTypeIdentifiers.first();
   return QString();
 }
 
-KLFAbstractLibViewFactory *KLFAbstractLibViewFactory::findFactoryFor(const QString& viewTypeIdentifier)
+KLFLibViewFactory *KLFLibViewFactory::findFactoryFor(const QString& viewTypeIdentifier)
 {
   if (viewTypeIdentifier.isEmpty()) {
     if (pRegisteredFactories.size() > 0)
@@ -132,7 +134,7 @@ KLFAbstractLibViewFactory *KLFAbstractLibViewFactory::findFactoryFor(const QStri
   return NULL;
 }
 
-QStringList KLFAbstractLibViewFactory::allSupportedViewTypeIdentifiers()
+QStringList KLFLibViewFactory::allSupportedViewTypeIdentifiers()
 {
   QStringList list;
   int k;
@@ -142,15 +144,15 @@ QStringList KLFAbstractLibViewFactory::allSupportedViewTypeIdentifiers()
 }
 
 
-void KLFAbstractLibViewFactory::registerFactory(KLFAbstractLibViewFactory *factory)
+void KLFLibViewFactory::registerFactory(KLFLibViewFactory *factory)
 {
   if (factory == NULL) {
-    qWarning("KLFAbstractLibViewFactory::registerFactory: Attempt to register NULL factory!");
+    qWarning("KLFLibViewFactory::registerFactory: Attempt to register NULL factory!");
     return;
   }
   // WARNING: THIS FUNCTION IS CALLED FROM CONSTRUCTOR. NO VIRTUAL METHOD CALLS!
   if (factory->pViewTypeIdentifiers.size() == 0) {
-    qWarning("KLFAbstractLibViewFactory::registerFactory: factory must provide at least one view type!");
+    qWarning("KLFLibViewFactory::registerFactory: factory must provide at least one view type!");
     return;
   }
   if (pRegisteredFactories.indexOf(factory) != -1) // already registered
@@ -158,7 +160,7 @@ void KLFAbstractLibViewFactory::registerFactory(KLFAbstractLibViewFactory *facto
   pRegisteredFactories.append(factory);
 }
 
-void KLFAbstractLibViewFactory::unRegisterFactory(KLFAbstractLibViewFactory *factory)
+void KLFLibViewFactory::unRegisterFactory(KLFLibViewFactory *factory)
 {
   if (pRegisteredFactories.indexOf(factory) == -1)
     return;
@@ -225,6 +227,13 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 
   if (role == ItemKindItemRole)
     return (int)p->nodeKind();
+
+  if (role >= ViewUserDataRoleBegin && role <= ViewUserDataRoleEnd) {
+    // view data
+    if (p->viewUserData.contains(role))
+      return p->viewUserData[role];
+    return QVariant();
+  }
 
   if (p->nodeKind() == EntryKind) {
     // --- GET ENTRY DATA ---
@@ -393,6 +402,18 @@ int KLFLibModel::columnForEntryPropertyId(int entryPropertyId) const
   default:
     return -1;
   }
+}
+
+bool KLFLibModel::setViewUserData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if ( ! index.isValid() )
+    return false;
+  Node *node = getNodeForIndex(index);
+  if (role >= ViewUserDataRoleBegin && role <= ViewUserDataRoleEnd) {
+    node->viewUserData[role] = value;
+    return true;
+  }
+  return false;
 }
 
 
@@ -1074,8 +1095,15 @@ void KLFLibViewDelegate::paintCategoryLabel(PaintPrivate *p, const QModelIndex& 
   uint fl = PTF_HighlightSearch;
   if (index.parent() == pSearchIndex.parent() && index.row() == pSearchIndex.row())
     fl |= PTF_HighlightSearchCurrent;
-  if (1) //indexHasSelectedChild(index))
+  if ( ! index.data(KLFLibDefaultView::ViewUserDataExpandedRole).toBool() &&
+       indexHasSelectedDescendant(index) ) {
+    // not expanded, and has selected child
     fl |= PTF_SelUnderline;
+  }
+  //   if ( sizeHint(*p->option, index).width() > p->option->rect.width() ) {
+  //     // force rich text edit to handle too-wide texts
+  //     fl |= PTF_ForceRichTextRender;
+  //   }
 
   // paint Category Label
   paintText(p, index.data(KLFLibModel::CategoryLabelItemRole).toString(), fl);
@@ -1088,9 +1116,16 @@ QDebug& operator<<(QDebug& d, const KLFLibViewDelegate::ColorRegion& c)
 
 void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint flags) const
 {
-  if ( pSearchString.isEmpty() || !(flags&PTF_HighlightSearch) ||
-       text.indexOf(pSearchString, 0, Qt::CaseInsensitive) == -1 ) {
+  int drawnTextWidth;
+  int drawnBaseLineY;
+  if ( (pSearchString.isEmpty() || !(flags&PTF_HighlightSearch) ||
+	text.indexOf(pSearchString, 0, Qt::CaseInsensitive) == -1) &&
+       !(flags & PTF_SelUnderline) &&
+       !(flags & PTF_ForceRichTextRender) ) {
     // no formatting required, use fast method.
+    QSize s = QFontMetrics(p->option->font).size(0, text);
+    drawnTextWidth = s.width();
+    drawnBaseLineY = (int)(p->innerRectText.bottom() - 0.5f*(p->innerRectText.height()-s.height()));
     p->p->drawText(p->innerRectText, Qt::AlignLeft|Qt::AlignVCenter, text);
   } else {
     // formatting required.
@@ -1110,7 +1145,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
     qSort(c);
     //    qDebug()<<"searchstr="<<pSearchString<<"; label "<<text<<": c is "<<c;
     QTextDocument textDocument;
-    textDocument.setDefaultFont(qApp->font());
+    textDocument.setDefaultFont(p->option->font);
     QTextCursor cur(&textDocument);
     QList<ColorRegion> appliedfmts;
     for (i = ci = 0; i < text.length(); ++i) {
@@ -1137,35 +1172,54 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
       cur.insertText(Qt::escape(text[i]), f);
     }
 
-    //     QString html = 
-    //       "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\""
-    //       " \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-    //       "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-    //       "p, li { white-space: nowrap; }\n"
-    //       "</style></head><body style=\"\">\n"
-    //       "<p style=\"margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; "
-    //       "-qt-block-indent:0; text-indent:0px;\">"+Qt::escape(text)+"</p></body></html>";
-    //     textDocument.setHtml(html);
     QSizeF s = textDocument.size();
-    if (s.width() > p->innerRectText.width()) { // sorry, too large
-      s.setWidth(p->innerRectText.width());
-      // draw small arrow indicating more text
-      QColor c = p->option->palette.color(QPalette::Text);
-      c.setAlpha(80);
-      p->p->save();
-      p->p->translate(p->innerRectText.right(), p->innerRectText.bottom()-2);
-      p->p->setPen(c);
-      p->p->drawLine(0, 0, -16, 0);
-      p->p->drawLine(0, 0, -2, +2);
-      p->p->restore();
+    QRectF textRect = p->innerRectText;
+    // note: setLeft changes width, not right.
+    textRect.setLeft(textRect.left()-4); // some offset because of qt's rich text drawing ..?
+    // textRect is now correct
+    // draw a selection underline, if needed
+    if (flags & PTF_SelUnderline) {
+       QColor h1 = p->option->palette.color(QPalette::Highlight);
+       QColor h2 = h1;
+       h1.setAlpha(0);
+       h2.setAlpha(220);
+       QLinearGradient gr(0.f, 0.f, 0.f, 1.f);
+       gr.setCoordinateMode(QGradient::ObjectBoundingMode);
+       gr.setColorAt(0.f, h1);
+       gr.setColorAt(1.f, h2);
+       QBrush selbrush(gr);
+       p->p->save();
+       //       p->p->setClipRect(p->option->rect);
+       p->p->fillRect(QRectF(textRect.left(), textRect.bottom()-10,
+			     textRect.width(), 10), selbrush);
+       p->p->restore();
+    }
+    // check the text size
+    drawnTextWidth = s.width();
+    if (s.width() > textRect.width()) { // sorry, too large
+      s.setWidth(textRect.width());
     }
     p->p->save();
-    p->p->setClipRect(p->innerRectText);
-    p->p->translate(p->innerRectText.topLeft());
-    p->p->translate( -4, 0 ); // some offset because of qt's rich text drawing ..?
-    p->p->translate( QPointF( 0, //p->innerRectText.width() - s.width(),
-			      p->innerRectText.height() - s.height()) / 2.f );
+    p->p->setClipRect(textRect);
+    p->p->translate(textRect.topLeft());
+    p->p->translate( QPointF( 0, //textRect.width() - s.width(),
+			      textRect.height() - s.height()) / 2.f );
     textDocument.drawContents(p->p);
+    p->p->restore();
+    drawnBaseLineY = (int)(textRect.bottom() - (textRect.height() - s.height()) / 2.f);
+  }
+
+  // draw arrow if text too large
+
+  if (drawnTextWidth > p->innerRectText.width()) {
+    // draw small arrow indicating more text
+    QColor c = p->option->palette.color(QPalette::Text);
+    //      c.setAlpha(80);
+    p->p->save();
+    p->p->translate(p->option->rect.right()-2, drawnBaseLineY-2);
+    p->p->setPen(c);
+    p->p->drawLine(0, 0, -16, 0);
+    p->p->drawLine(0, 0, -2, +2);
     p->p->restore();
   }
 }
@@ -1177,7 +1231,7 @@ void KLFLibViewDelegate::setModelData(QWidget */*editor*/, QAbstractItemModel */
 				      const QModelIndex& /*index*/) const
 {
 }
-QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& /*option*/, const QModelIndex& index) const
+QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   int kind = index.data(KLFLibModel::ItemKindItemRole).toInt();
   if (kind == KLFLibModel::EntryKind) {
@@ -1186,10 +1240,10 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& /*option*/, const
     case KLFLibEntry::Latex: prop = KLFLibEntry::Latex;
     case KLFLibEntry::Category: prop = (prop > 0) ? prop : KLFLibEntry::Category;
     case KLFLibEntry::Tags: prop = (prop > 0) ? prop : KLFLibEntry::Tags;
-      return QFontMetrics(qApp->font())
+      return QFontMetrics(option.font)
 	.size(0, index.data(KLFLibModel::entryItemRole(prop)).toString())+QSize(4,2);
     case KLFLibEntry::DateTime:
-      return QFontMetrics(qApp->font())
+      return QFontMetrics(option.font)
 	.size(0, index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime()
 	      .toString(Qt::DefaultLocaleLongDate) )+QSize(4,2);
     case KLFLibEntry::Preview:
@@ -1198,7 +1252,7 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& /*option*/, const
       return QSize();
     }
   } else if (kind == KLFLibModel::CategoryLabelKind) {
-    return QFontMetrics(qApp->font())
+    return QFontMetrics(option.font)
       .size(0, index.data(KLFLibModel::CategoryLabelItemRole).toString())+QSize(4,2);
   } else {
     qWarning("KLFLibItemViewDelegate::sizeHint(): Bad Item kind: %d\n", kind);
@@ -1213,7 +1267,7 @@ void KLFLibViewDelegate::updateEditorGeometry(QWidget */*editor*/,
 
 
 
-bool KLFLibViewDelegate::indexHasSelectedChild(const QModelIndex& index) const
+bool KLFLibViewDelegate::indexHasSelectedDescendant(const QModelIndex& index) const
 {
   // simple, dumb way: walk selection list.
   int k;
@@ -1260,6 +1314,8 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     listView = new QListView(this);
     listView->setViewMode(QListView::IconMode);
     listView->setSpacing(15);
+    listView->setMovement(QListView::Free);
+    listView->setFlow(QListView::LeftToRight);
     listView->setResizeMode(QListView::Adjust);
     pView = listView;
     break;
@@ -1269,6 +1325,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     treeView = new QTreeView(this);
     treeView->setSortingEnabled(true);
     treeView->setIndentation(16);
+    treeView->setAllColumnsShowFocus(true);
     pView = treeView;
     break;
   };
@@ -1277,6 +1334,10 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 
   pView->setSelectionBehavior(QAbstractItemView::SelectRows);
   pView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  pView->setDragEnabled(true);
+  pView->setDragDropMode(QAbstractItemView::DragDrop);
+  pView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+  pView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   pView->setItemDelegate(pDelegate);
   pView->viewport()->installEventFilter(this);
 
@@ -1284,6 +1345,10 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 	  this, SLOT(slotViewItemClicked(const QModelIndex&)));
   connect(pView, SIGNAL(doubleClicked(const QModelIndex&)),
 	  this, SLOT(slotEntryDoubleClicked(const QModelIndex&)));
+  connect(pView, SIGNAL(expanded(const QModelIndex&)),
+	  this, SLOT(slotExpanded(const QModelIndex&)));
+  connect(pView, SIGNAL(collapsed(const QModelIndex&)),
+	  this, SLOT(slotCollapsed(const QModelIndex&)));
 }
 KLFLibDefaultView::~KLFLibDefaultView()
 {
@@ -1315,9 +1380,10 @@ KLFLibEntryList KLFLibDefaultView::selectedEntries() const
 
 QList<QAction*> KLFLibDefaultView::addContextMenuActions(const QPoint& /*pos*/)
 {
-  /// \todo SELECT ALL ...............TODO....................
+  QAction *selectAllAction = new QAction(tr("Select All"), this);
+  connect(selectAllAction, SIGNAL(activated()), this, SLOT(slotSelectAll()));
 
-  return pShowColumnActions;
+  return QList<QAction*>() << selectAllAction << pShowColumnActions;
 }
 
 
@@ -1369,6 +1435,7 @@ void KLFLibDefaultView::updateResourceView()
     treeView->setColumnWidth(0, 35+treeView->columnWidth(0));
     // and provide a menu to show/hide these columns
     int col;
+    QMenu *colMenu = new QMenu(this);
     for (col = 0; col < pModel->columnCount(); ++col) {
       QString title = pModel->headerData(col, Qt::Horizontal, Qt::DisplayRole).toString();
       QAction *a;
@@ -1377,8 +1444,11 @@ void KLFLibDefaultView::updateResourceView()
       a->setCheckable(true);
       a->setChecked(!treeView->isColumnHidden(col));
       connect(a, SIGNAL(toggled(bool)), this, SLOT(slotShowColumnSenderAction(bool)));
-      pShowColumnActions << a;
+      colMenu->addAction(a);
     }
+    QAction *menuAction = new QAction(tr("Show/Hide Columns"), this);
+    menuAction->setMenu(colMenu);
+    pShowColumnActions << menuAction;
     // expand root items if they contain little number of children
     for (k = 0; k < pModel->rowCount(QModelIndex()); ++k) {
       QModelIndex i = pModel->index(k, 0, QModelIndex());
@@ -1444,6 +1514,22 @@ void KLFLibDefaultView::restore(uint restoreflags)
   emit requestRestore(e, restoreflags);
 }
 
+void KLFLibDefaultView::slotSelectAll(const QModelIndex& parent)
+{
+  int k;
+  QModelIndex topLeft = pModel->index(0, 0, parent);
+  QModelIndex bottomRight = pModel->index(pModel->rowCount(parent)-1,
+					  pModel->columnCount(parent)-1, parent);
+  pView->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
+  if ( ! pModel->hasChildren(parent) )
+    return;
+  for (k = 0; k < pModel->rowCount(parent); ++k) {
+    QModelIndex child = pModel->index(k, 0, parent);
+    slotSelectAll(child);
+  }
+}
+
+
 
 bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
 {
@@ -1463,7 +1549,7 @@ bool KLFLibDefaultView::searchFindNext(bool forward)
 void KLFLibDefaultView::searchAbort()
 {
   pDelegate->setSearchString(QString());
-  pView->repaint(); // repaint widget to update search underline
+  pView->viewport()->update(); // repaint widget to update search underline
 
   // don't un-select the found index...
   //  searchFound(QModelIndex());
@@ -1488,13 +1574,31 @@ void KLFLibDefaultView::searchFound(const QModelIndex& i)
   pView->selectionModel()->setCurrentIndex(i,
 					   QItemSelectionModel::ClearAndSelect|
 					   QItemSelectionModel::Rows);
-  pView->repaint();
+  pView->update(i);
 }
 
 
 void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
 						 const QItemSelection& /*deselected*/)
 {
+  /* delete ok on next SVN version. ID=$Id$
+  // repaint selected entries (automatical) but also repaint their parents
+      QList<QItemSelectionRange> repaintranges;
+      repaintranges << selected << deselected;
+      int k, j;
+      for (k = 0; k < repaintranges.size(); ++k) {
+      QModelIndexList il = repaintranges[k].indexes();
+      for (j = 0; j < il.size(); ++j) {
+      if (il[j].column() == 0) {
+      QModelIndex par = il[j];
+      while ((par = pModel->parent(par)).isValid()) {
+      pView->update(par);
+      }
+      }
+      }
+      } */
+  pView->viewport()->update();
+  
   emit entriesSelected(selectedEntries());
 }
 
@@ -1577,6 +1681,15 @@ void KLFLibDefaultView::slotEntryDoubleClicked(const QModelIndex& index)
 		      KLFLib::RestoreLatex|KLFLib::RestoreStyle);
 }
 
+void KLFLibDefaultView::slotExpanded(const QModelIndex& index)
+{
+  pModel->setViewUserData(index, true, ViewUserDataExpandedRole);
+}
+void KLFLibDefaultView::slotCollapsed(const QModelIndex& index)
+{
+  pModel->setViewUserData(index, false, ViewUserDataExpandedRole);
+}
+
 void KLFLibDefaultView::slotShowColumnSenderAction(bool showCol)
 {
   QObject *a = sender();
@@ -1614,7 +1727,7 @@ static QStringList defaultViewTypeIds = QStringList()<<"default"<<"default+list"
 
 
 KLFLibDefaultViewFactory::KLFLibDefaultViewFactory(QObject *parent)
-  : KLFAbstractLibViewFactory(defaultViewTypeIds, parent)
+  : KLFLibViewFactory(defaultViewTypeIds, parent)
 {
 }
 
@@ -1661,11 +1774,11 @@ KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidge
   pUi->setupUi(this);
 
   // add a widget for all supported schemes
-  QStringList schemeList = KLFAbstractLibEngineFactory::allSupportedSchemes();
+  QStringList schemeList = KLFLibEngineFactory::allSupportedSchemes();
   int k;
   for (k = 0; k < schemeList.size(); ++k) {
-    KLFAbstractLibEngineFactory *factory
-      = KLFAbstractLibEngineFactory::findFactoryFor(schemeList[k]);
+    KLFLibEngineFactory *factory
+      = KLFLibEngineFactory::findFactoryFor(schemeList[k]);
     QWidget *openWidget = factory->createPromptUrlWidget(pUi->stkOpenWidgets, schemeList[k],
 							 defaultlocation);
     pUi->stkOpenWidgets->insertWidget(k, openWidget);
@@ -1700,8 +1813,8 @@ QUrl KLFLibOpenResourceDlg::url() const
 {
   int k = pUi->cbxType->currentIndex();
   QString scheme = pUi->cbxType->itemData(k).toString();
-  KLFAbstractLibEngineFactory *factory
-    = KLFAbstractLibEngineFactory::findFactoryFor(scheme);
+  KLFLibEngineFactory *factory
+    = KLFLibEngineFactory::findFactoryFor(scheme);
   QUrl url = factory->retrieveUrlFromWidget(scheme, pUi->stkOpenWidgets->widget(k));
   if (url.isEmpty()) {
     // empty url means cancel open
@@ -1759,11 +1872,11 @@ KLFLibCreateResourceDlg::KLFLibCreateResourceDlg(QWidget *parent)
   btnGo = pUi->btnBar->button(QDialogButtonBox::Save);
 
   // add a widget for all supported schemes
-  QStringList schemeList = KLFAbstractLibEngineFactory::allSupportedSchemes();
+  QStringList schemeList = KLFLibEngineFactory::allSupportedSchemes();
   int k;
   for (k = 0; k < schemeList.size(); ++k) {
-    KLFAbstractLibEngineFactory *factory
-      = KLFAbstractLibEngineFactory::findFactoryFor(schemeList[k]);
+    KLFLibEngineFactory *factory
+      = KLFLibEngineFactory::findFactoryFor(schemeList[k]);
     QWidget *createResWidget =
       factory->createPromptCreateParametersWidget(pUi->stkOpenWidgets, schemeList[k],
 						  Parameters());
@@ -1787,12 +1900,12 @@ KLFLibCreateResourceDlg::~KLFLibCreateResourceDlg()
   delete pUi;
 }
 
-KLFAbstractLibEngineFactory::Parameters KLFLibCreateResourceDlg::getCreateParameters() const
+KLFLibEngineFactory::Parameters KLFLibCreateResourceDlg::getCreateParameters() const
 {
   int k = pUi->cbxType->currentIndex();
   QString scheme = pUi->cbxType->itemData(k).toString();
-  KLFAbstractLibEngineFactory *factory
-    = KLFAbstractLibEngineFactory::findFactoryFor(scheme);
+  KLFLibEngineFactory *factory
+    = KLFLibEngineFactory::findFactoryFor(scheme);
   Parameters p = factory->retrieveCreateParametersFromWidget(scheme, pUi->stkOpenWidgets->widget(k));
   p["klfScheme"] = scheme;
   return p;
@@ -1847,7 +1960,7 @@ KLFLibResourceEngine *KLFLibCreateResourceDlg::createResource(QObject *resourceP
   Parameters p = dlg.pParam; // we have access to this private member
   QString scheme = p["klfScheme"].toString();
 
-  KLFAbstractLibEngineFactory * factory = KLFAbstractLibEngineFactory::findFactoryFor(scheme);
+  KLFLibEngineFactory * factory = KLFLibEngineFactory::findFactoryFor(scheme);
   if (factory == NULL) {
     qWarning()<<"Couldn't find factory for scheme "<<scheme<<" ?!?";
     return NULL;
@@ -2014,15 +2127,15 @@ void klf___temp___test_newlib()
 
   /*
     QUrl url("klf+sqlite:///home/philippe/temp/klf_sqlite_test");
-    KLFAbstractLibEngineFactory *factory = KLFAbstractLibEngineFactory::findFactoryFor(url.scheme());
+    KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(url.scheme());
     qDebug("%s: Got factory: %p", qPrintable(url.toString()), factory);
     KLFLibResourceEngine * resource = factory->openResource(url);
     qDebug("%s: Got resource: %p", qPrintable(url.toString()), resource);
     
     qDebug()<<"All entries: "<< resource->allEntries();
     
-    KLFAbstractLibViewFactory *viewfactory =
-    KLFAbstractLibViewFactory::findFactoryFor(resource->suggestedViewTypeIdentifier());
+    KLFLibViewFactory *viewfactory =
+    KLFLibViewFactory::findFactoryFor(resource->suggestedViewTypeIdentifier());
     qDebug("Got view factory: %p", viewfactory);
     KLFAbstractLibView * view = viewfactory->createLibView(NULL, resource);
     qDebug("Got view: %p", view);

@@ -33,6 +33,9 @@
 
 namespace Ui { class KLFLibBrowser; }
 
+class KLFLibBrowserViewContainer;
+
+
 class KLFLibBrowser : public QWidget
 {
   Q_OBJECT
@@ -62,8 +65,13 @@ public slots:
    * If the \c url is already open, then the appropriate tab is raised.
    *
    * Resource flags are updated in both cases.
+   *
+   * If an empty \c viewTypeIdentifier is given, the view type identifier suggested by
+   * the resource itself is taken. If the latter is empty, then the default view type
+   * identifier (\ref KLFLibViewFactory::defaultViewTypeIdentifier) is considered.
    */
-  bool openResource(const QUrl& url, uint resourceRoleFlags = 0x0);
+  bool openResource(const QUrl& url, uint resourceRoleFlags = 0x0,
+		    const QString& viewTypeIdentifier = QString());
 
   /** Overloaded member, provided for convenience.
    *
@@ -72,7 +80,8 @@ public slots:
    * \warning this library browser takes ownership of the resource and will delete it
    *   when done using it.
    */
-  bool openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags = 0x0);
+  bool openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags = 0x0,
+		    const QString& viewTypeIdentifier = QString());
 
   bool closeResource(const QUrl& url);
 
@@ -89,7 +98,7 @@ protected slots:
 
   void slotResourceRename();
   void slotResourceRenameFinished();
-  bool slotResourceClose(KLFAbstractLibView *view = NULL);
+  bool slotResourceClose(KLFLibBrowserViewContainer *view = NULL);
   void slotResourceProperties();
   bool slotResourceOpen();
   bool slotResourceNew();
@@ -122,14 +131,15 @@ protected slots:
   void slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstractLibView *source, bool move);
 
 protected:
-  KLFAbstractLibView * findOpenUrl(const QUrl& url);
-  KLFAbstractLibView * findOpenResource(KLFLibResourceEngine *resource);
-  KLFAbstractLibView * curView();
-  KLFAbstractLibView * viewForTabIndex(int tab);
+  KLFLibBrowserViewContainer * findOpenUrl(const QUrl& url);
+  KLFLibBrowserViewContainer * findOpenResource(KLFLibResourceEngine *resource);
+  KLFLibBrowserViewContainer * curView();
+  KLFAbstractLibView * curLibView();
+  KLFLibBrowserViewContainer * viewForTabIndex(int tab);
 
 private:
   Ui::KLFLibBrowser *pUi;
-  QList<KLFAbstractLibView*> pLibViews;
+  QList<KLFLibBrowserViewContainer*> pLibViews;
 
   QMenu *pResourceMenu;
   QAction *pARename;
@@ -138,6 +148,7 @@ private:
   QAction *pASaveAs;
   QAction *pANew;
   QAction *pAOpen;
+  QAction *pAViewType;
 
   QString pSearchText;
   QString pLastSearchText;
@@ -147,7 +158,7 @@ private slots:
   void slotSearchFocusIn();
   void slotSearchFocusOut();
 
-  void updateResourceRoleFlags(KLFAbstractLibView *view, uint flags);
+  void updateResourceRoleFlags(KLFLibBrowserViewContainer *view, uint flags);
 };
 
 

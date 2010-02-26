@@ -162,37 +162,37 @@ bool KLFLibResourceEngine::saveAs(const QUrl&)
 // ---------------------------------------------------
 
 
-QList<KLFAbstractLibEngineFactory*> KLFAbstractLibEngineFactory::pRegisteredFactories =
-	 QList<KLFAbstractLibEngineFactory*>();
+QList<KLFLibEngineFactory*> KLFLibEngineFactory::pRegisteredFactories =
+	 QList<KLFLibEngineFactory*>();
 
-KLFAbstractLibEngineFactory::KLFAbstractLibEngineFactory(QObject *parent)
+KLFLibEngineFactory::KLFLibEngineFactory(QObject *parent)
   : QObject(parent)
 {
   registerFactory(this);
 }
-KLFAbstractLibEngineFactory::~KLFAbstractLibEngineFactory()
+KLFLibEngineFactory::~KLFLibEngineFactory()
 {
   unRegisterFactory(this);
 }
 
-bool KLFAbstractLibEngineFactory::canCreateResource(const QString& /*scheme*/) const
+bool KLFLibEngineFactory::canCreateResource(const QString& /*scheme*/) const
 {
   return false;
 }
 
-QWidget * KLFAbstractLibEngineFactory::createPromptCreateParametersWidget(QWidget */*parent*/,
+QWidget * KLFLibEngineFactory::createPromptCreateParametersWidget(QWidget */*parent*/,
 									  const QString& /*scheme*/,
 									  const Parameters& /*par*/)
 {
   return NULL;
 }
-KLFAbstractLibEngineFactory::Parameters
-/* */ KLFAbstractLibEngineFactory::retrieveCreateParametersFromWidget(const QString& /*scheme*/,
+KLFLibEngineFactory::Parameters
+/* */ KLFLibEngineFactory::retrieveCreateParametersFromWidget(const QString& /*scheme*/,
 								      QWidget */*parent*/)
 {
   return Parameters();
 }
-KLFLibResourceEngine *KLFAbstractLibEngineFactory::createResource(const QString& /*scheme*/,
+KLFLibResourceEngine *KLFLibEngineFactory::createResource(const QString& /*scheme*/,
 								  const Parameters& /*param*/,
 								  QObject */*parent*/)
 {
@@ -202,7 +202,7 @@ KLFLibResourceEngine *KLFAbstractLibEngineFactory::createResource(const QString&
 
 
 
-KLFAbstractLibEngineFactory *KLFAbstractLibEngineFactory::findFactoryFor(const QString& urlScheme)
+KLFLibEngineFactory *KLFLibEngineFactory::findFactoryFor(const QString& urlScheme)
 {
   int k;
   // walk registered factories, and return the first that supports this scheme.
@@ -214,7 +214,7 @@ KLFAbstractLibEngineFactory *KLFAbstractLibEngineFactory::findFactoryFor(const Q
   return NULL;
 }
 
-QStringList KLFAbstractLibEngineFactory::allSupportedSchemes()
+QStringList KLFLibEngineFactory::allSupportedSchemes()
 {
   QStringList schemes;
   int k;
@@ -224,14 +224,14 @@ QStringList KLFAbstractLibEngineFactory::allSupportedSchemes()
   return schemes;
 }
 
-void KLFAbstractLibEngineFactory::registerFactory(KLFAbstractLibEngineFactory *factory)
+void KLFLibEngineFactory::registerFactory(KLFLibEngineFactory *factory)
 {
   if (pRegisteredFactories.indexOf(factory) != -1)
     return;
   pRegisteredFactories.append(factory);
 }
 
-void KLFAbstractLibEngineFactory::unRegisterFactory(KLFAbstractLibEngineFactory *factory)
+void KLFLibEngineFactory::unRegisterFactory(KLFLibEngineFactory *factory)
 {
   if (pRegisteredFactories.indexOf(factory) == -1)
     return;
@@ -715,7 +715,7 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& datatable
 
 
 KLFLibDBEngineFactory::KLFLibDBEngineFactory(QObject *parent)
-  : KLFAbstractLibEngineFactory(parent)
+  : KLFLibEngineFactory(parent)
 {
 }
 
@@ -775,7 +775,7 @@ QWidget *KLFLibDBEngineFactory::createPromptCreateParametersWidget(QWidget *pare
   return NULL;
 }
 
-KLFAbstractLibEngineFactory::Parameters
+KLFLibEngineFactory::Parameters
 /* */ KLFLibDBEngineFactory::retrieveCreateParametersFromWidget(const QString& scheme,
 								QWidget *widget)
 {
@@ -787,7 +787,7 @@ KLFAbstractLibEngineFactory::Parameters
     KLFLibSqliteCreateWidget *w = qobject_cast<KLFLibSqliteCreateWidget*>(widget);
     Parameters p;
     QString filename = w->fileName();
-    if (QFile::exists(filename)) {
+    if (QFile::exists(filename) && !w->confirmedOverwrite()) {
       QMessageBox::StandardButton result =
 	QMessageBox::warning(widget, tr("Overwrite?"),
 			     tr("The specified file already exists. Overwrite it?"),

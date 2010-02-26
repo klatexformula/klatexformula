@@ -37,6 +37,7 @@
 #include <ui_klflibsqliteopenwidget.h>
 
 
+/** \internal */
 class KLFLibSqliteOpenWidget : public QWidget, protected Ui::KLFLibSqliteOpenWidget
 {
   Q_OBJECT
@@ -79,6 +80,7 @@ protected slots:
 
 // ---
 
+/** \internal */
 class KLFLibSqliteCreateWidget : public KLFLibSqliteOpenWidget
 {
   Q_OBJECT
@@ -86,6 +88,7 @@ public:
   KLFLibSqliteCreateWidget(QWidget *parent) : KLFLibSqliteOpenWidget(parent)
   {
     /// \todo ...TODO.....: Add option to change main table name
+    pConfirmedOverwrite = false;
     setProperty("readyToCreate", false);
   }
   virtual ~KLFLibSqliteCreateWidget() { }
@@ -93,6 +96,8 @@ public:
   QString fileName() const {
     return txtFile->text();
   }
+
+  bool confirmedOverwrite() const { return pConfirmedOverwrite; }
 
 signals:
   void readyToCreate(bool ready);
@@ -104,13 +109,19 @@ protected slots:
     static QString selectedFilter;
     QString name = QFileDialog::getSaveFileName(this, tr("Select Library Resource File"),
 						QDir::homePath(), filter, &selectedFilter);
-    if ( ! name.isEmpty() )
+    if ( ! name.isEmpty() ) {
+      pConfirmedOverwrite = true;
       txtFile->setText(name);
+    }
   }
   virtual void on_txtFile_textChanged(const QString& text)
   {
+    pConfirmedOverwrite = false;
     emit readyToCreate(QFileInfo(text).absoluteDir().exists());
   }
+
+protected:
+  bool pConfirmedOverwrite;
 };
 
 

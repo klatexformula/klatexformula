@@ -36,7 +36,7 @@
 
 #include "klflibview.h"
 
-
+/** \internal */
 class KLFLibBrowserViewContainer : public QStackedWidget
 {
   Q_OBJECT
@@ -45,32 +45,91 @@ public:
     : QStackedWidget(parent), pResource(resource)
   {
     // find OK view type identifiers
-    QStringList allViewTypeIdents = KLFAbstractLibViewFactory::allSupportedViewTypeIdentifiers();
+    QStringList allViewTypeIdents = KLFLibViewFactory::allSupportedViewTypeIdentifiers();
     int k;
     for (k = 0; k < allViewTypeIdents.size(); ++k) {
-      KLFAbstractLibViewFactory *factory =
-	KLFAbstractLibViewFactory::findFactoryFor(allViewTypeIdents[k]);
+      KLFLibViewFactory *factory =
+	KLFLibViewFactory::findFactoryFor(allViewTypeIdents[k]);
       if (factory->canCreateLibView(allViewTypeIdents[k], pResource))
 	pOkViewTypeIdents << allViewTypeIdents[k];
     }
+
+    connect(this, SIGNAL(currentChanged(int)), this, SLOT(slotCurrentChanged(int)));
   }
   virtual ~KLFLibBrowserViewContainer()
   {
   }
 
+  QUrl url() const { return pResource->url(); }
+  KLFLibResourceEngine * resourceEngine() { return pResource; }
+
   KLFAbstractLibView * view() { return qobject_cast<KLFAbstractLibView*>(currentWidget()); }
+
   
   QStringList supportedViewTypeIdentifiers() const { return pOkViewTypeIdents; }
+
+public slots:
+  bool openView(const QString& viewTypeIdent) {
+    if (pOpenViewTypeIdents.contains(viewTypeIdent)) {
+      setCurrentIndex(pOpenViewTypeIdents[viewTypeIdent]);
+      return true;
+    }
+    // instanciate view
+    KLFLibViewFactory *factory =
+	KLFLibViewFactory::findFactoryFor(viewTypeIdent);
+    KLFAbstractLibView *v = factory->createLibView(viewTypeIdent, this, pResource);
+    if (v == NULL) {
+      return false;
+    }
+    v->setContextMenuPolicy(Qt::CustomContextMenu);
+    // get informed about selection changes
+    connect(v, SIGNAL(entriesSelected(const KLFLibEntryList& )),
+	    this, SIGNAL(entriesSelected(const KLFLibEntryList& )));
+    // and of new category suggestions
+    connect(v, SIGNAL(moreCategorySuggestions(const QStringList&)),
+	    this, SIGNAL(moreCategorySuggestions(const QStringList&)));
+    // and of restore actions
+    connect(v, SIGNAL(requestRestore(const KLFLibEntry&, uint)),
+	    this, SIGNAL(requestRestore(const KLFLibEntry&, uint)));
+    connect(v, SIGNAL(requestRestoreStyle(const KLFStyle&)),
+	    this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
+    connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
+	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
+
+    int index = addWidget(v);
+    pOpenViewTypeIdents[viewTypeIdent] = index;
+    setCurrentIndex(index);
+    return true;
+  }
+
+
+signals:
+  void viewContextMenuRequested(const QPoint& pos);
+
+  void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
+  void requestRestoreStyle(const KLFStyle& style);
+
+  void entriesSelected(const KLFLibEntryList& entries);
+  void moreCategorySuggestions(const QStringList& categorylist);
+
+protected slots:
+  void slotCurrentChanged(int /*index*/) {
+    KLFAbstractLibView *v = view();
+    if (v == NULL) return;
+    emit entriesSelected(v->selectedEntries());
+  }
 
 protected:
   QStringList pOkViewTypeIdents;
   KLFLibResourceEngine *pResource;
+
+  QMap<QString,int> pOpenViewTypeIdents;
 };
 
 
 // ---
 
-
+/** \internal */
 class KLFLibBrowserTabWidget : public QTabWidget
 {
   Q_OBJECT
@@ -80,29 +139,6 @@ public:
     setUsesScrollButtons(false);
   }
   virtual ~KLFLibBrowserTabWidget() { }
-
-  /** Returns the current KLFAbstractLibView widget at index \c index.
-   * The tab widget at the given index MUST be a KLFLibBrowserViewContainer.
-   * \code
-   *  KLFAbstractLibView *view = tabs->viewWidget(index);
-   *  // equivalent in idea to
-   *  KLFAbstractLibView *view = ((KLFLibBrowserViewContainer*)tabs->widget(index))->view();
-   * \endcode
-   * \param index the tab index. If index is -1, returns NULL. If index is
-   *   -2, returns the current widget
-   * \note Returns NULL if the respective tab widget is not a KLFLibBrowserViewContainer. */
-  KLFAbstractLibView *viewWidget(int index = -2) {
-    QWidget *w = NULL;
-    if (index == -1) return NULL;
-    if (index == -2)
-      w = currentWidget();
-    else
-      w = widget(index);
-    KLFLibBrowserViewContainer *v = qobject_cast<KLFLibBrowserViewContainer*>(w);
-    if (v == NULL)
-      return NULL;
-    return v->view();
-  }
 
   /** Returns the tab index at position \c pos relative to tab widget. */
   int getTabAtPoint(const QPoint& pos) {

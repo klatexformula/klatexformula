@@ -123,12 +123,12 @@ private:
 
 // -----------------
 
-class KLF_EXPORT KLFAbstractLibViewFactory : public QObject
+class KLF_EXPORT KLFLibViewFactory : public QObject
 {
   Q_OBJECT
 public:
-  KLFAbstractLibViewFactory(const QStringList& viewTypeIdentifiers, QObject *parent = NULL);
-  virtual ~KLFAbstractLibViewFactory();
+  KLFLibViewFactory(const QStringList& viewTypeIdentifiers, QObject *parent = NULL);
+  virtual ~KLFLibViewFactory();
 
   /** A list of view type identifiers that this factory can create.
    *
@@ -159,21 +159,21 @@ public:
 
   /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
    * factory exists (ie. has been registered). */
-  static KLFAbstractLibViewFactory *findFactoryFor(const QString& viewTypeIdentifier);
+  static KLFLibViewFactory *findFactoryFor(const QString& viewTypeIdentifier);
 
   /** Returns a combined list of all view type identifiers that the installed factories support.
    * ie. returns a list of all view type idents. we're capable of creating. */
   static QStringList allSupportedViewTypeIdentifiers();
   /** Returns the full list of installed factories. */
-  static QList<KLFAbstractLibViewFactory*> allFactories() { return pRegisteredFactories; }
+  static QList<KLFLibViewFactory*> allFactories() { return pRegisteredFactories; }
 
 private:
   QStringList pViewTypeIdentifiers;
 
-  static void registerFactory(KLFAbstractLibViewFactory *factory);
-  static void unRegisterFactory(KLFAbstractLibViewFactory *factory);
+  static void registerFactory(KLFLibViewFactory *factory);
+  static void unRegisterFactory(KLFLibViewFactory *factory);
 
-  static QList<KLFAbstractLibViewFactory*> pRegisteredFactories;
+  static QList<KLFLibViewFactory*> pRegisteredFactories;
 
 };
 
@@ -211,7 +211,10 @@ public:
     EntryContentsTypeItemRole,
     FullEntryItemRole,
     CategoryLabelItemRole,
-    FullCategoryPathItemRole
+    FullCategoryPathItemRole,
+
+    ViewUserDataRoleBegin = Qt::UserRole+12000,
+    ViewUserDataRoleEnd = Qt::UserRole+12100
   };
 
   /** For example use
@@ -251,6 +254,9 @@ public:
   virtual QModelIndex parent(const QModelIndex &index) const;
   virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
   virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+  /** \note does NOT emit dataChanged(). */
+  virtual bool setViewUserData(const QModelIndex & index, const QVariant & value, int role);
 
   virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 
@@ -294,6 +300,7 @@ private:
     Node() : parent(NodeId()), children(QList<NodeId>()) { }
     NodeId parent;
     QList<NodeId> children;
+    QMap<int,QVariant> viewUserData;
     virtual int nodeKind() const = 0;
   };
   struct EntryNode : public Node {
@@ -424,11 +431,12 @@ protected:
 
   enum { PTF_HighlightSearch = 0x0001,
 	 PTF_HighlightSearchCurrent = 0x0002,
-	 PTF_SelUnderline = 0x0004
+	 PTF_SelUnderline = 0x0004,
+	 PTF_ForceRichTextRender = 0x0008
   };
   virtual void paintText(PaintPrivate *p, const QString& text, uint flags = PTF_HighlightSearch) const;
 
-  virtual bool indexHasSelectedChild(const QModelIndex& index) const;
+  virtual bool indexHasSelectedDescendant(const QModelIndex& index) const;
 
 private:
   QString pSearchString;
@@ -463,6 +471,8 @@ public:
 
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
+  enum { ViewUserDataExpandedRole = KLFLibModel::ViewUserDataRoleBegin };
+
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
   virtual bool deleteSelected(bool requireConfirmation = true);
@@ -473,6 +483,8 @@ public slots:
   virtual void searchAbort();
 
   virtual void restore(uint restoreflags = KLFLib::RestoreLatexAndStyle);
+
+  void slotSelectAll(const QModelIndex& parent = QModelIndex());
 
 protected:
   virtual void updateResourceView();
@@ -485,6 +497,9 @@ protected slots:
   QItemSelection fixSelection(const QModelIndexList& selected);
   void slotViewItemClicked(const QModelIndex& index);
   void slotEntryDoubleClicked(const QModelIndex& index);
+
+  void slotExpanded(const QModelIndex& index);
+  void slotCollapsed(const QModelIndex& index);
 
   void slotShowColumnSenderAction(bool showCol);
 
@@ -511,7 +526,7 @@ private slots:
 
 // -----------------
 
-class KLF_EXPORT KLFLibDefaultViewFactory : public KLFAbstractLibViewFactory
+class KLF_EXPORT KLFLibDefaultViewFactory : public KLFLibViewFactory
 {
   Q_OBJECT
 public:
@@ -565,7 +580,7 @@ class KLF_EXPORT KLFLibCreateResourceDlg : public QDialog
 {
   Q_OBJECT
 public:
-  typedef KLFAbstractLibEngineFactory::Parameters Parameters;
+  typedef KLFLibEngineFactory::Parameters Parameters;
 
   KLFLibCreateResourceDlg(QWidget *parent = 0);
   virtual ~KLFLibCreateResourceDlg();
