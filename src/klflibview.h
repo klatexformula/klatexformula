@@ -151,7 +151,6 @@ public:
   virtual KLFAbstractLibView * createLibView(const QString& viewTypeIdent, QWidget *parent,
 					     KLFLibResourceEngine *resourceEngine) = 0;
 
-
   /** Returns the default view type identifier. Create this view if you don't have any idea
    * which view you prefer.
    *
@@ -161,6 +160,12 @@ public:
   /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
    * factory exists (ie. has been registered). */
   static KLFAbstractLibViewFactory *findFactoryFor(const QString& viewTypeIdentifier);
+
+  /** Returns a combined list of all view type identifiers that the installed factories support.
+   * ie. returns a list of all view type idents. we're capable of creating. */
+  static QStringList allSupportedViewTypeIdentifiers();
+  /** Returns the full list of installed factories. */
+  static QList<KLFAbstractLibViewFactory*> allFactories() { return pRegisteredFactories; }
 
 private:
   QStringList pViewTypeIdentifiers;

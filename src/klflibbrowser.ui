@@ -51,7 +51,7 @@
          </property>
          <widget class="QWidget" name="tab_dummy">
           <attribute name="title">
-           <string notr="true">Dummy Tab (that will be deleted at execution)</string>
+           <string notr="true" extracomment="[[don't translate]]">Dummy Tab (that will be deleted at execution)</string>
           </attribute>
          </widget>
         </widget>

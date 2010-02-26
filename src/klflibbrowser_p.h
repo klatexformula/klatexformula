@@ -30,26 +30,45 @@
 #define KLFLIBBROWSER_P_H
 
 #include <QWidget>
+#include <QStackedWidget>
 #include <QTabBar>
 #include <QTabWidget>
 
-/*
+#include "klflibview.h"
+
+
 class KLFLibBrowserViewContainer : public QStackedWidget
 {
   Q_OBJECT
 public:
   KLFLibBrowserViewContainer(KLFLibResourceEngine *resource, QTabWidget *parent)
+    : QStackedWidget(parent), pResource(resource)
   {
+    // find OK view type identifiers
+    QStringList allViewTypeIdents = KLFAbstractLibViewFactory::allSupportedViewTypeIdentifiers();
+    int k;
+    for (k = 0; k < allViewTypeIdents.size(); ++k) {
+      KLFAbstractLibViewFactory *factory =
+	KLFAbstractLibViewFactory::findFactoryFor(allViewTypeIdents[k]);
+      if (factory->canCreateLibView(allViewTypeIdents[k], pResource))
+	pOkViewTypeIdents << allViewTypeIdents[k];
+    }
   }
   virtual ~KLFLibBrowserViewContainer()
   {
   }
 
+  KLFAbstractLibView * view() { return qobject_cast<KLFAbstractLibView*>(currentWidget()); }
   
+  QStringList supportedViewTypeIdentifiers() const { return pOkViewTypeIdents; }
 
 protected:
+  QStringList pOkViewTypeIdents;
+  KLFLibResourceEngine *pResource;
+};
 
-};*/
+
+// ---
 
 
 class KLFLibBrowserTabWidget : public QTabWidget
@@ -61,6 +80,29 @@ public:
     setUsesScrollButtons(false);
   }
   virtual ~KLFLibBrowserTabWidget() { }
+
+  /** Returns the current KLFAbstractLibView widget at index \c index.
+   * The tab widget at the given index MUST be a KLFLibBrowserViewContainer.
+   * \code
+   *  KLFAbstractLibView *view = tabs->viewWidget(index);
+   *  // equivalent in idea to
+   *  KLFAbstractLibView *view = ((KLFLibBrowserViewContainer*)tabs->widget(index))->view();
+   * \endcode
+   * \param index the tab index. If index is -1, returns NULL. If index is
+   *   -2, returns the current widget
+   * \note Returns NULL if the respective tab widget is not a KLFLibBrowserViewContainer. */
+  KLFAbstractLibView *viewWidget(int index = -2) {
+    QWidget *w = NULL;
+    if (index == -1) return NULL;
+    if (index == -2)
+      w = currentWidget();
+    else
+      w = widget(index);
+    KLFLibBrowserViewContainer *v = qobject_cast<KLFLibBrowserViewContainer*>(w);
+    if (v == NULL)
+      return NULL;
+    return v->view();
+  }
 
   /** Returns the tab index at position \c pos relative to tab widget. */
   int getTabAtPoint(const QPoint& pos) {

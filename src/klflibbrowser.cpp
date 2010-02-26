@@ -46,6 +46,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pUi->tabResources->setContextMenuPolicy(Qt::CustomContextMenu);
 
   pResourceMenu = new QMenu(pUi->tabResources);
+  pResourceMenu->setTitle(tr("Resource Actions"));
   pARename = pResourceMenu->addAction(tr("Rename"), this, SLOT(slotResourceRename()));
   pAClose = pResourceMenu->addAction(tr("Close"), this, SLOT(slotResourceClose()));
   pAProperties = pResourceMenu->addAction(tr("Properties..."),

@@ -132,6 +132,15 @@ KLFAbstractLibViewFactory *KLFAbstractLibViewFactory::findFactoryFor(const QStri
   return NULL;
 }
 
+QStringList KLFAbstractLibViewFactory::allSupportedViewTypeIdentifiers()
+{
+  QStringList list;
+  int k;
+  for (k = 0; k < pRegisteredFactories.size(); ++k)
+    list << pRegisteredFactories[k]->viewTypeIdentifiers();
+  return list;
+}
+
 
 void KLFAbstractLibViewFactory::registerFactory(KLFAbstractLibViewFactory *factory)
 {
@@ -1369,6 +1378,12 @@ void KLFLibDefaultView::updateResourceView()
       a->setChecked(!treeView->isColumnHidden(col));
       connect(a, SIGNAL(toggled(bool)), this, SLOT(slotShowColumnSenderAction(bool)));
       pShowColumnActions << a;
+    }
+    // expand root items if they contain little number of children
+    for (k = 0; k < pModel->rowCount(QModelIndex()); ++k) {
+      QModelIndex i = pModel->index(k, 0, QModelIndex());
+      if (pModel->rowCount(i) < 6)
+	treeView->expand(i);
     }
   }
 
