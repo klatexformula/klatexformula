@@ -318,6 +318,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(requestRestoreStyle(const KLFStyle&)),
 	  this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
 
+  connect(resource, SIGNAL(dataChanged()),
+	  this, SLOT(slotResourceDataChanged()));
   connect(resource, SIGNAL(resourcePropertyChanged(int)),
 	  this, SLOT(slotResourcePropertyChanged(int)));
 
@@ -328,8 +330,9 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(viewContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotShowContextMenu(const QPoint&)));
 
-  pUi->tabResources->addTab(viewc, resource->title());
+  int i = pUi->tabResources->addTab(viewc, resource->title());
   pUi->tabResources->setCurrentWidget(viewc);
+  pUi->tabResources->refreshTabReadOnly(i, !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
   pLibViews.append(viewc);
   setStyleSheet(styleSheet());
   updateResourceRoleFlags(viewc, resourceRoleFlags);
@@ -402,7 +405,7 @@ void KLFLibBrowser::slotResourceRename()
 
   qDebug()<<"Rename!";
 
-  if ( ! view->resourceEngine()->canModify() )
+  if ( ! view->resourceEngine()->canModifyProp(KLFLibResourceEngine::PropTitle) )
     return;
 
   QLineEdit * editor = new QLineEdit(pUi->tabResources);
@@ -496,7 +499,25 @@ bool KLFLibBrowser::slotResourceSaveAs()
   return false;
 }
 
+void KLFLibBrowser::slotResourceDataChanged()
+{
+  KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
+  if (resource == NULL) {
+    qWarning("KLFLibBrowser::slotResourcePropertyChanged: NULL sender or not resource!");
+    return;
+  }
 
+  slotRefreshResourceActionsEnabled();
+
+  KLFLibBrowserViewContainer *view = findOpenUrl(resource->url());
+  if (view == NULL) {
+    qWarning()<<"KLFLibBrowser::slotResourcePropertyChanged: can't find view for url "
+	      <<resource->url()<<"!";
+    return;
+  }
+
+  slotEntriesSelected(view->view()->selectedEntries());
+}
 void KLFLibBrowser::slotResourcePropertyChanged(int propId)
 {
   KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
@@ -507,14 +528,18 @@ void KLFLibBrowser::slotResourcePropertyChanged(int propId)
 
   slotRefreshResourceActionsEnabled();
 
+  KLFLibBrowserViewContainer *view = findOpenUrl(resource->url());
+  if (view == NULL) {
+    qWarning()<<"KLFLibBrowser::slotResourcePropertyChanged: can't find view for url "
+	      <<resource->url()<<"!";
+    return;
+  }
   if (propId == KLFLibResourceEngine::PropTitle) {
-    KLFLibBrowserViewContainer *view = findOpenUrl(resource->url());
-    if (view == NULL) {
-      qWarning()<<"KLFLibBrowser::slotResourcePropertyChanged: can't find view for url "
-		<<resource->url()<<"!";
-      return;
-    }
     pUi->tabResources->setTabText(pUi->tabResources->indexOf(view), resource->title());
+  }
+  if (propId == KLFLibResourceEngine::PropLocked) {
+    pUi->tabResources->refreshTabReadOnly(pUi->tabResources->indexOf(view),
+					  !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
   }
 }
 
@@ -545,19 +570,19 @@ void KLFLibBrowser::slotDeleteSelected()
 void KLFLibBrowser::slotRefreshResourceActionsEnabled()
 {
   bool master = false;
-  bool canmodify = false;
+  bool canrename = false;
   bool cansaveas = false;
   uint resrolefl = 0;
 
   KLFLibBrowserViewContainer * view = curView();
   if ( view != NULL ) {
     master = true;
-    canmodify = view->resourceEngine()->canModify();
+    canrename = view->resourceEngine()->canModifyProp(KLFLibResourceEngine::PropTitle);
     cansaveas = (view->resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSaveAs);
     resrolefl = view->property("resourceRoleFlags").toUInt();
   }
 
-  pARename->setEnabled(canmodify);
+  pARename->setEnabled(canrename);
   pAClose->setEnabled(master && !(resrolefl & NoCloseRoleFlag));
   pAProperties->setEnabled(master);
   pASaveAs->setEnabled(master && cansaveas);
@@ -608,7 +633,7 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
     acopy->setProperty("resourceUrl", res->url());
     amove = movetomenu->addAction(res->title(), this, SLOT(slotMoveToResource()));
     amove->setProperty("resourceUrl", res->url());
-    if (!res->canModify()) {
+    if (!res->canModifyData(KLFLibResourceEngine::InsertData)) {
       acopy->setEnabled(false);
       amove->setEnabled(false);
     }
@@ -627,12 +652,12 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   KLFLibEntryList selected = view->selectedEntries();
   bool cancopy = (selected.size() > 0);
   bool canre = (selected.size() == 1);
-  bool canmod = view->resourceEngine()->canModify();
+  bool candel = view->resourceEngine()->canModifyData(KLFLibResourceEngine::DeleteData);
   a1->setEnabled(canre);
   a2->setEnabled(canre);
-  adel->setEnabled(canmod && selected.size());
+  adel->setEnabled(candel && selected.size());
   acopyto->setEnabled(cancopy);
-  amoveto->setEnabled(cancopy && canmod);
+  amoveto->setEnabled(cancopy && candel);
 
   // add view's own actions
 

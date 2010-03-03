@@ -105,6 +105,8 @@ protected slots:
   bool slotResourceSaveAs();
 
   /** sender is used to find resource engine emitter. */
+  void slotResourceDataChanged();
+  /** sender is used to find resource engine emitter. */
   void slotResourcePropertyChanged(int propId);
 
   void slotEntriesSelected(const KLFLibEntryList& entries);

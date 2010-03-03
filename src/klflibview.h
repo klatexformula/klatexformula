@@ -26,6 +26,7 @@
 
 #include <QAbstractItemModel>
 #include <QAbstractItemDelegate>
+#include <QMimeData>
 #include <QEvent>
 #include <QWidget>
 #include <QDialog>
@@ -213,8 +214,8 @@ public:
     CategoryLabelItemRole,
     FullCategoryPathItemRole,
 
-    ViewUserDataRoleBegin = Qt::UserRole+12000,
-    ViewUserDataRoleEnd = Qt::UserRole+12100
+    //    ViewUserDataRoleBegin = Qt::UserRole+12000,
+    //    ViewUserDataRoleEnd = Qt::UserRole+12100
   };
 
   /** For example use
@@ -255,8 +256,19 @@ public:
   virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
   virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
-  /** \note does NOT emit dataChanged(). */
-  virtual bool setViewUserData(const QModelIndex & index, const QVariant & value, int role);
+  virtual Qt::DropActions supportedDropActions() const;
+
+  virtual QStringList mimeTypes() const;
+  virtual QMimeData *mimeData(const QModelIndexList& indexes) const;
+
+  virtual bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row,
+			    int column, const QModelIndex& parent);
+
+  enum { DropWillCategorize = 0x0001, DropWillMove = 0x0002 };
+  virtual uint dropFlags(QDragMoveEvent *event);
+
+  //  /** \note does NOT emit dataChanged(). */
+  //  virtual bool setViewUserData(const QModelIndex & index, const QVariant & value, int role);
 
   virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 
@@ -290,6 +302,12 @@ private:
     bool valid() const { return index >= 0; }
     ItemKind kind;
     IndexType index;
+    bool operator==(const NodeId& other) const {
+      return kind == other.kind && index == other.index;
+    }
+    bool operator!=(const NodeId& other) const {
+      return !(operator==(other));
+    }
   };
   struct PersistentId {
     ItemKind kind;
@@ -300,7 +318,7 @@ private:
     Node() : parent(NodeId()), children(QList<NodeId>()) { }
     NodeId parent;
     QList<NodeId> children;
-    QMap<int,QVariant> viewUserData;
+    //    QMap<int,QVariant> viewUserData;
     virtual int nodeKind() const = 0;
   };
   struct EntryNode : public Node {
@@ -331,6 +349,7 @@ private:
   QModelIndex createIndexFromId(NodeId nodeid, int row, int column) const;
   /** If row is negative, it will be looked up automatically. */
   QModelIndex createIndexFromPtr(Node *node, int row, int column) const;
+  /** Returns NULL upon invalid index. */
   Node * getNodeForIndex(const QModelIndex& index) const;
   Node * getNode(NodeId nodeid) const;
   NodeId getNodeId(Node *node) const;
@@ -391,6 +410,8 @@ private:
   
   QString pSearchString;
   Node *pSearchCurNode;
+
+  bool dropCanInternal(const QMimeData *data);
 };
 
 // -----------------
@@ -416,6 +437,9 @@ public:
   virtual void setSearchString(const QString& s) { pSearchString = s; }
   virtual void setSearchIndex(const QModelIndex& index) { pSearchIndex = index; }
   virtual void setSelectionModel(QItemSelectionModel *sm) { pSelModel = sm; }
+  virtual void setIndexExpanded(const QModelIndex& index, bool isexpanded) {
+    pExpandedIndexes[QPersistentModelIndex(index)] = isexpanded;
+  }
 
 protected:
   struct PaintPrivate {
@@ -442,6 +466,8 @@ private:
   QString pSearchString;
   QModelIndex pSearchIndex;
   QItemSelectionModel *pSelModel;
+
+  QMap<QPersistentModelIndex, bool> pExpandedIndexes;
 
   struct ColorRegion {
     ColorRegion(QTextCharFormat f = QTextCharFormat(), int s = -1, int l = 0)
@@ -471,7 +497,7 @@ public:
 
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
-  enum { ViewUserDataExpandedRole = KLFLibModel::ViewUserDataRoleBegin };
+  //  enum { ViewUserDataExpandedRole = KLFLibModel::ViewUserDataRoleBegin };
 
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
@@ -620,6 +646,9 @@ public:
 
 public slots:
   bool apply();
+
+protected slots:
+  void slotResourcePropertyChanged(int propId);
 
 private:
   KLFLibResourceEngine *pResource;

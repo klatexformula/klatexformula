@@ -730,6 +730,9 @@ int main(int argc, char **argv)
     qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
     qRegisterMetaType< KLFLibEntry >();
     qRegisterMetaTypeStreamOperators< KLFLibEntry >("KLFLibEntry");
+    qRegisterMetaType< KLFLibResourceEngine::KLFLibEntryWithId >();
+    qRegisterMetaTypeStreamOperators< KLFLibResourceEngine::KLFLibEntryWithId >
+      /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
 
 #if defined(KLF_USE_DBUS)
     // see if an instance of KLatexFormula is running...
@@ -890,6 +893,9 @@ int main(int argc, char **argv)
     qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
     qRegisterMetaType< KLFLibEntry >();
     qRegisterMetaTypeStreamOperators< KLFLibEntry >("KLFLibEntry");
+    qRegisterMetaType< KLFLibResourceEngine::KLFLibEntryWithId >();
+    qRegisterMetaTypeStreamOperators< KLFLibResourceEngine::KLFLibEntryWithId >
+      /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
 
 
     // now load default config (for default paths etc.)

@@ -25,9 +25,11 @@
 #ifndef KLFPOBJ_H
 #define KLFPOBJ_H
 
+#include <QDebug>
 #include <QVariant>
 #include <QByteArray>
 #include <QDataStream>
+#include <QTextStream>
 #include <QVector>
 #include <QList>
 #include <QMap>
@@ -49,14 +51,20 @@ public:
    * \returns list of the IDs of all properties that have been set on this object.
    *   values of these properties are NOT included.
    *
+   * More exactly: returns all propertie IDs that have a valid (see \ref QVariant::isValid())
+   * value in this object.
+   *
    * \warning the IDs may not be conserved between two instances or versions of
-   *   KLatexFormula */
+   *   KLatexFormula
+   */
   QList<int> propertyIdList() const;
 
   /** \brief A list of properties that have been set.
    *
+   * Similar to \ref propertyIdList() but returns property names.
+   *
    * \returns list of the names of all properties that have been set on this object.
-   *   values of these properties are NOT included. */
+   *   values of these properties are not included in the list... */
   QStringList propertyNameList() const;
 
   /** \brief Returns all properties that have been set.
@@ -80,6 +88,18 @@ public:
   /** \brief Loads all properties saved by \ref allPropertiesToByteArray()
    */
   void setAllPropertiesFromByteArray(const QByteArray& data);
+
+  /** \brief Flags for tuning the \ref toString() method.
+   */
+  enum ToStringFlag {
+    ToStringUseHtml = 0x0001, //!< Encapsulates output in an HTML &lt;table&gt; and escapes strings.
+    ToStringUseHtmlDiv = 0x0002, //!< Uses &lt;div&gt; with CSS classes instead of a table (HTML only)
+    ToStringQuoteValues = 0x0004, //!< Ensures that non-html output is machine parsable.
+    ToStringAllProperties = 0x0008 //!< Include also all non-explicitely-set properties
+  };
+  /** \brief Formats the property contents in a (human and parsable) string
+   */
+  virtual QString toString(uint toStringFlags = 0) const;
 
 
   int propertyMaxId() const;
@@ -167,6 +187,10 @@ private:
 
 QDataStream& operator<<(QDataStream& stream, const KLFPropertizedObject& obj);
 QDataStream& operator>>(QDataStream& stream, KLFPropertizedObject& obj);
+
+QTextStream& operator<<(QTextStream& stream, const KLFPropertizedObject& obj);
+
+QDebug& operator<<(QDebug& stream, const KLFPropertizedObject& obj);
 
 
 

@@ -58,5 +58,12 @@ KLF_EXPORT void __klf_debug_time_print(QString str);
 #endif
 
 
+// SIMPLE TEST FOR ONE-TIME-RUN FUNCTIONS
+
+#define KLF_FUNC_SINGLE_RUN \
+  { static bool first_run = true;  if ( ! first_run )  return; first_run = false; }
+
+
+
 
 #endif

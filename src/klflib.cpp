@@ -63,11 +63,8 @@ KLFLibEntry::~KLFLibEntry()
 // private
 void KLFLibEntry::initRegisteredProperties()
 {
-  static bool first_run = true;
-  if ( ! first_run )
-    return;
-  first_run = false;
-
+  KLF_FUNC_SINGLE_RUN ;
+  
   registerBuiltInProperty(Latex, "Latex");
   registerBuiltInProperty(DateTime, "DateTime");
   registerBuiltInProperty(Preview, "Preview");
@@ -104,31 +101,41 @@ KLFLibResourceEngine::~KLFLibResourceEngine()
 
 void KLFLibResourceEngine::initRegisteredProperties()
 {
-  static bool first_run = true;
-  if ( ! first_run )
-    return;
-  first_run = false;
+  KLF_FUNC_SINGLE_RUN
 
   registerBuiltInProperty(PropTitle, "Title");
   registerBuiltInProperty(PropLocked, "Locked");
 }
 
-bool KLFLibResourceEngine::canModify() const
+bool KLFLibResourceEngine::canModifyData(ModifyType /*modifytype*/) const
 {
   return !isReadOnly() && !locked();
 }
-bool KLFLibResourceEngine::canUnLock() const
+bool KLFLibResourceEngine::canModifyProp(int propId) const
 {
-  // shoud contain the same condition as canModify(), without
-  // the locked() term.
-  return !isReadOnly();
+  if (propId == PropLocked)
+    return !isReadOnly() && (pFeatureFlags & FeatureLocked);
+
+  return !isReadOnly() && !locked();
 }
 
-bool KLFLibResourceEngine::setLocked(bool)
+bool KLFLibResourceEngine::setTitle(const QString& title)
 {
-  // not permitted by default. Subclasses must reimplement
-  // to support this feature.
+  return setResourceProperty(PropTitle, title);
+}
+bool KLFLibResourceEngine::setLocked(bool setlocked)
+{
+  // if locked feature is supported, setResourceProperty().
+  // immediately return FALSE otherwise.
+  if (pFeatureFlags & FeatureLocked) {
+    return setResourceProperty(PropLocked, setlocked);
+  }
   return false;
+}
+
+bool KLFLibResourceEngine::setViewType(const QString& viewType)
+{
+  return setResourceProperty(PropViewType, viewType);
 }
 
 bool KLFLibResourceEngine::setReadOnly(bool readonly)
@@ -157,6 +164,36 @@ bool KLFLibResourceEngine::saveAs(const QUrl&)
   return false;
 }
 
+bool KLFLibResourceEngine::setResourceProperty(int propId, const QVariant& value)
+{
+  if ( ! KLFPropertizedObject::propertyIdRegistered(propId) )
+    return false;
+
+  if ( !canModifyProp(propId) ) {
+    return false;
+  }
+
+  bool result = saveResourceProperty(propId, value);
+  if (!result) // operation not permitted or failed
+    return false;
+
+  // operation succeeded: set KLFPropertizedObject-based property.
+  KLFPropertizedObject::setProperty(propId, value);
+  emit resourcePropertyChanged(propId);
+  return true;
+}
+
+
+// -----
+
+QDataStream& operator<<(QDataStream& stream, const KLFLibResourceEngine::KLFLibEntryWithId& entrywid)
+{
+  return stream << entrywid.id << entrywid.entry;
+}
+QDataStream& operator>>(QDataStream& stream, KLFLibResourceEngine::KLFLibEntryWithId& entrywid)
+{
+  return stream >> entrywid.id >> entrywid.entry;
+}
 
 
 // ---------------------------------------------------
@@ -351,9 +388,10 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
 // private
 KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autodisconnect,
 			       const QUrl& url, QObject *parent)
-  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureLocked, parent),
-    pAutoDisconnectDB(autodisconnect), pDataTableName(tablename)
+  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureLocked, parent), pAutoDisconnectDB(autodisconnect)
 {
+  pDataTableName = "t_"+tablename;
+
   setDatabase(db);
   // read resource properties from database
   QSqlQuery q = QSqlQuery(pDB);
@@ -375,9 +413,9 @@ KLFLibDBEngine::~KLFLibDBEngine()
   }
 }
 
-bool KLFLibDBEngine::canModify() const
+bool KLFLibDBEngine::canModifyData(ModifyType mt) const
 {
-  if ( !KLFLibResourceEngine::canModify() )
+  if ( !KLFLibResourceEngine::canModifyData(mt) )
     return false;
 
   /** \todo TODO: check if file is writable (SQLITE3), if permissions on the database
@@ -385,28 +423,24 @@ bool KLFLibDBEngine::canModify() const
   return true;
 }
 
+bool KLFLibDBEngine::canModifyProp(int propId) const
+{
+  return KLFLibResourceEngine::canModifyProp(propId);
+}
+
 bool KLFLibDBEngine::validDatabase() const
 {
   return pDB.isOpen();
 }
 
-void KLFLibDBEngine::setDatabase(QSqlDatabase db)
+void KLFLibDBEngine::setDatabase(const QSqlDatabase& db)
 {
   pDB = db;
 }
 
 // private
-bool KLFLibDBEngine::setResourceProperty(int propId, const QVariant& value)
+bool KLFLibDBEngine::saveResourceProperty(int propId, const QVariant& value)
 {
-  if ( !canModify() ) {
-    // exception: un-lock resource (!)
-    if ( canUnLock() && locked() && propId == PropLocked && value.toBool() == false ) {
-      // go on...
-    } else {
-      return false;
-    }
-  }
-
   QString propName = propertyNameForId(propId);
   if ( propName.isEmpty() )
     return false;
@@ -438,14 +472,6 @@ bool KLFLibDBEngine::setResourceProperty(int propId, const QVariant& value)
   return true;
 }
 
-bool KLFLibDBEngine::setTitle(const QString& title)
-{
-  return setResourceProperty(PropTitle, title);
-}
-bool KLFLibDBEngine::setLocked(bool locked)
-{
-  return setResourceProperty(PropLocked, locked);
-}
 
 
 
@@ -487,15 +513,20 @@ KLFLibEntry KLFLibDBEngine::entry(entryId id)
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("SELECT * FROM `"+pDataTableName+"` WHERE id = ?");
   q.addBindValue(id);
-  q.exec();
-  q.next();
+  bool r = q.exec();
 
-  if (q.size() == 0) {
-    qWarning("KLFLibDBEngine::entry: id=%d cannot be found!", id);
+  if ( !r || q.lastError().isValid() || q.size() == 0) {
+    qWarning("KLFLibDBEngine::entry: id=%d cannot be found!\n"
+	     "SQL Error (?): %s", id, qPrintable(q.lastError().text()));
     return KLFLibEntry();
   }
-  if (q.size() != 1) {
-    qWarning("KLFLibDBEngine::entry: %d results returned for id %d!", q.size(), id);
+  //   if (q.size() != 1) {
+  //     qWarning("KLFLibDBEngine::entry: %d results returned for id %d!", q.size(), id);
+  //     return KLFLibEntry();
+  //   }
+  if ( ! q.next() ) {
+    qWarning("KLFLibDBEngine::entry(): no entry available!\n"
+	     "SQL=\"%s\" (?=%d)", qPrintable(q.lastQuery()), id);
     return KLFLibEntry();
   }
 
@@ -553,7 +584,7 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
   if ( entrylist.size() == 0 )
     return QList<entryId>();
 
-  if ( !canModify() )
+  if ( !canModifyData(InsertData) )
     return QList<entryId>();
 
   KLFLibEntry e; // dummy object to test for properties
@@ -604,7 +635,7 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
 {
   if ( ! validDatabase() )
     return false;
-  if ( ! canModify() )
+  if ( ! canModifyData(ChangeData) )
     return false;
 
   if ( properties.size() != values.size() ) {
@@ -651,7 +682,7 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
     return false;
   if (idlist.size() == 0)
     return true; // nothing to do
-  if ( ! canModify() )
+  if ( ! canModifyData(DeleteData) )
     return false;
 
   int k;
@@ -676,15 +707,16 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
 
 
 // static
-bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& datatablename)
+bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)
 {
+  QString datatablename = "t_"+dtname;
   if ( ! db.isOpen() )
     return false;
 
   QStringList sql;
   // the CREATE TABLE statements should be adapted to the database type (sqlite, mysql, pgsql) since
   // syntax is different...
-  sql << "CREATE TABLE `"+datatablename+"` (id INTEGER PRIMARY KEY, Latex TEXT, DateTime INTEGER, "
+  sql << "CREATE TABLE `"+datatablename+"` (id INTEGER PRIMARY KEY, Latex TEXT, DateTime TEXT, "
     "       Preview BLOB, Category TEXT, Tags TEXT, Style BLOB)";
   sql << "CREATE TABLE klf_properties (id INTEGER PRIMARY KEY, name TEXT, value BLOB)";
   sql << "INSERT INTO klf_properties (name, value) VALUES ('Title', 'New Resource')";

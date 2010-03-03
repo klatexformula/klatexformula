@@ -24,6 +24,8 @@
 #include <QDebug>
 #include <QByteArray>
 #include <QDataStream>
+#include <QTextStream>
+#include <QTextDocument>  // Qt::escape()
 
 #include "klfpobj.h"
 
@@ -185,20 +187,80 @@ void KLFPropertizedObject::setAllPropertiesFromByteArray(const QByteArray& data)
 
 
 
-
-
-
-
-//  ----  PROTECTED  ----
-
-void KLFPropertizedObject::registerBuiltInProperty(int propId, const QString& name) const
+QString KLFPropertizedObject::toString(uint toStringFlags) const
 {
-  registerBuiltInProperty(pPropNameSpace, propId, name);
+  QString s;
+
+  int k;
+  QList<int> props;
+  bool html = (toStringFlags & ToStringUseHtml);
+  bool quote = (toStringFlags & ToStringQuoteValues);
+  bool allprops = (toStringFlags & ToStringAllProperties);
+  bool usehtmldiv = (toStringFlags & ToStringUseHtmlDiv);
+
+  if (allprops)
+    props = registeredPropertyIdList();
+  else
+    props = propertyIdList();
+
+  if (html) {
+    if (usehtmldiv) {
+      s = QString("<div class=\"klfpobj_entry\">\n<div class=\"klfpobj_name\">%2</div>\n")
+	.arg(Qt::escape(pPropNameSpace));
+    } else {
+      s = QString("<table class=\"klfpobj_tentry\">\n"
+		  "<tr colspan=\"2\" class=\"klfpobj_tname\"><th>%1</th></tr>\n")
+	.arg(Qt::escape(pPropNameSpace));
+    }
+  } else {
+    s = QString("%1\n").arg(pPropNameSpace);
+  }
+
+  for (k = 0; k < props.size(); ++k) {
+    QString pname = propertyNameForId(props[k]);
+    QVariant vval = property(props[k]);
+    bool isnull = !vval.isValid();
+    bool canstring = vval.canConvert(QVariant::String);
+    QString value = vval.toString();
+    if (html) {
+      if (usehtmldiv)
+	s += QString("<div class=\"klfpobj_prop_%1\"><div class=\"klfpobj_propname\">%2</div>: "
+		     "<div class=\"klfpobj_propvalue\">%3</div></div>\n")
+	  .arg(pname, pname, Qt::escape(value));
+      else
+	s += QString("  <tr class=\"klfpobj_tprop_%1\"><td class=\"klfpobj_tpropname\">%2</td>"
+		     "<td class=\"klfpobj_tpropvalue\">%3</td></tr>\n")
+	  .arg(pname, pname, Qt::escape(value));
+    } else {
+      if (quote) {
+	if (!isnull && canstring) {
+	  value.replace("\\", "\\\\");
+	  value.replace("\"", "\\\"");
+	  value = '"' + value + '"';
+	} else if (!isnull) {
+	  value = QString("[%1]").arg(vval.typeName());
+	} else {
+	  // true null
+	  value = "NULL";
+	}
+      }
+      s += QString("%1: %2\n").arg(propertyNameForId(props[k]), value);
+    }
+  }
+  s += "\n";
+  if (html) {
+    if (usehtmldiv) {
+      s += "</div>\n";
+    } else {
+      s += "</table>\n";
+    }
+  }
+  
+  return s;
 }
-int KLFPropertizedObject::registerProperty(const QString& propName) const
-{
-  return registerProperty(pPropNameSpace, propName);
-}
+
+
+
 int KLFPropertizedObject::propertyMaxId() const
 {
   return propertyMaxId(pPropNameSpace);
@@ -232,6 +294,16 @@ QMap<QString, int> KLFPropertizedObject::registeredProperties() const
   return registeredProperties(pPropNameSpace);
 }
 
+// ----  PROTECTED  ----
+
+void KLFPropertizedObject::registerBuiltInProperty(int propId, const QString& name) const
+{
+  registerBuiltInProperty(pPropNameSpace, propId, name);
+}
+int KLFPropertizedObject::registerProperty(const QString& propName) const
+{
+  return registerProperty(pPropNameSpace, propName);
+}
 
 //  ----  STATIC PROTECTED  ----
 
@@ -390,4 +462,17 @@ QDataStream& operator>>(QDataStream& stream, KLFPropertizedObject& obj)
   return stream;
 }
 
+
+QTextStream& operator<<(QTextStream& stream, const KLFPropertizedObject& obj)
+{
+  return stream << obj.toString();
+}
+
+
+
+QDebug& operator<<(QDebug& stream, const KLFPropertizedObject& obj)
+{
+  stream << obj.allProperties();
+  return stream;
+}
 

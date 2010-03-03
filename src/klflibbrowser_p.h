@@ -33,6 +33,8 @@
 #include <QStackedWidget>
 #include <QTabBar>
 #include <QTabWidget>
+#include <QEvent>
+#include <QDragMoveEvent>
 
 #include "klflibview.h"
 
@@ -127,7 +129,8 @@ protected:
 };
 
 
-// ---
+// ------------------------
+
 
 /** \internal */
 class KLFLibBrowserTabWidget : public QTabWidget
@@ -137,25 +140,67 @@ public:
   KLFLibBrowserTabWidget(QWidget *parent) : QTabWidget(parent)
   {
     setUsesScrollButtons(false);
+    pTabBar = new QTabBar(this);
+    pTabBar->setAcceptDrops(true);
+    pTabBar->installEventFilter(this);
+    setTabBar(pTabBar);
+
+    setProperty("normalColor", QVariant::fromValue(QColor(0,0,0)));
+    setProperty("readOnlyColor", QVariant::fromValue(QColor(80,80,120)));
   }
   virtual ~KLFLibBrowserTabWidget() { }
 
   /** Returns the tab index at position \c pos relative to tab widget. */
   int getTabAtPoint(const QPoint& pos) {
-    QTabBar *tbar = tabBar();
-    QPoint tabbarpos = tbar->mapFromGlobal(mapToGlobal(pos));
-    return tbar->tabAt(tabbarpos);
+    QPoint tabbarpos = pTabBar->mapFromGlobal(mapToGlobal(pos));
+    return pTabBar->tabAt(tabbarpos);
   }
 
   /** Returns the rectangle, relative to tab widget, occupied by tab in the tab bar. */
   QRect getTabRect(int tab) {
-    QTabBar *tbar = tabBar();
-    QRect tabbarrect = tbar->tabRect(tab);
-    return QRect(mapFromGlobal(tbar->mapToGlobal(tabbarrect.topLeft())),
+    QRect tabbarrect = pTabBar->tabRect(tab);
+    return QRect(mapFromGlobal(pTabBar->mapToGlobal(tabbarrect.topLeft())),
 		 tabbarrect.size());
   }
 
+  bool eventFilter(QObject *object, QEvent *event)
+  {
+    if (object == pTabBar && event->type() == QEvent::DragEnter) {
+      QDragEnterEvent *de = (QDragEnterEvent*)event;
+      de->accept();
+      return true;
+    }
+    if (object == pTabBar && event->type() == QEvent::DragMove) {
+      // ignore event, but raise the underlying tab.
+      QDragMoveEvent *de = (QDragMoveEvent*)event;
+      QPoint pos = de->pos();
+      de->ignore();
+      int index = getTabAtPoint(pos);
+      if (index >= 0)
+	setCurrentIndex(index);
+      return true;
+    }
+    return QTabWidget::eventFilter(object, event);
+  }
+
+
+public slots:
+
+  void refreshTabReadOnly(int tabindex, bool readonly) {
+    if (readonly)
+      pTabBar->setTabTextColor(tabindex, property("readOnlyColor").value<QColor>());
+    else
+      pTabBar->setTabTextColor(tabindex, property("normalColor").value<QColor>());
+  }
+
 protected:
+
+  void tabInserted(int index) {
+    return QTabWidget::tabInserted(index);
+  }
+
+private:
+  QTabBar *pTabBar;
 };
 
 

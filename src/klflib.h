@@ -27,6 +27,7 @@
 #include <QImage>
 #include <QMap>
 #include <QUrl>
+#include <QDataStream>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
@@ -102,9 +103,19 @@ typedef QList<KLFLibEntry> KLFLibEntryList;
  * requested. IDs are attributed by the resource engine subclasses, depending of course on the
  * backend (eg. a database backend storage could use the ID in the database table).
  *
+ * \warning I may want to change the API for this class in a future version of KLatexFormula,
+ *   to perform more specific entry querying, and to avoid all items having to be pre-loaded.
+ *   To ensure this simple API will remain available after such a rewrite, subclass the
+ *   \ref KLFLibResourceSimpleEngine class instead: for now, it is functionless, but in the
+ *   future it will (if I actually do the API change) provide an interface between the new
+ *   API (in the background) while continuing to provide the current API for subclassing.
+ *
  * Resources have properties (stored in a KLFPropertizedObject structure, NOT in regular QObject
  * properties) that ARE STORED IN THE RESOURCE DATA ITSELF. Built-in properties are listed
  * in the \ref ResourceProperty enum.
+ *
+ * The view used to display this resource is stored in the "ViewType" resource property (and
+ * thus should be stored in the backend data like other properties).
  *
  * <b>Note on URL</b>. The URL is not a resource property as it is not stored in the resource
  * itself. However the resource engine instance knows about the url it is manipulating
@@ -131,15 +142,22 @@ typedef QList<KLFLibEntry> KLFLibEntryList;
  *   flag to the given value. If not provided, the flag defaults to false (flag is directly
  *   set, bypassing the setReadOnly() function).
  * .
- * Note that [only] recognized query items are stripped from the \ref url() as they are parsed.
+ * Note that recognized query items (and <i>only</i> the recognized query items) are stripped
+ * from the \ref url() as they are parsed.
  *
  * <b>NOTES FOR SUBCLASSES</b><br>
- * - Subclasses must deal with the properties and implement them as they are meant to. For
- *   example, if a resource is \ref locked(), then \ref canModify() must return FALSE and
+ * - Subclasses must deal with the properties and implement them as they are meant to, and
+ *   as they have been documented in their respective functions (see \ref locked(), \ref title()).
+ *   For example, if a resource is \ref locked(), then \ref canModify() must return FALSE and
  *   any attempt to modify the resource must fail.
- * - See also docs for \ref setTitle(), \ref setLocked().
- * - The \ref resourcePropertyChanged() signal must be emitted by subclasses when they change
- *   any resource property.
+ * - Subclasses must reimplement \ref saveResourceProperty() to save the new property value
+ *   to the backend data, or return FALSE to cancel the resource change. Calls to
+ *   \ref setLocked(), \ref setTitle() or setViewType() all call in turn \ref setResourceProperty(),
+ *   the default implementation of which is usually sufficient, which calls in turn
+ *   \ref saveResourceProperty().
+ * - See also docs for \ref setResourceProperty() and \ref saveResourceProperty().
+ * - The \ref resourcePropertyChanged() is emitted in the default implementation of
+ *   \ref setResourceProperty().
  */
 class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObject
 {
@@ -148,12 +166,14 @@ public:
   typedef qint32 entryId;
 
   struct KLFLibEntryWithId {
+    KLFLibEntryWithId(entryId i = -1, const KLFLibEntry& e = KLFLibEntry())
+      : id(i), entry(e) { }
     entryId id;
     KLFLibEntry entry;
   };
 
   /** List of built-in KLFPropertizedObject-properties. */
-  enum ResourceProperty { PropTitle = 0, PropLocked };
+  enum ResourceProperty { PropTitle = 0, PropLocked, PropViewType };
 
   enum ResourceFeature {
     FeatureReadOnly = 0x0001,
@@ -181,30 +201,44 @@ public:
   /** See \ref setTitle(). */
   virtual QString title() const { return KLFPropertizedObject::property(PropTitle).toString(); }
   //! Is this resource is locked?
-  /** If the resource is locked (property \ref PropLocked), no changes can be in principle made.
+  /** If the resource is locked (property \ref PropLocked), no changes can be in principle made,
+   * except <tt>setLocked(false)</tt> (of course...).
    *
-   * \note It is up to subclasses of KLFLibResourceEngine to enforce that locked resources are
-   *   not modified and that \ref canModify() returns FALSE. */
+   * The default implementation has some limited support for the locked property: see
+   * \ref setLocked(). */
   virtual bool locked() const { return KLFPropertizedObject::property(PropLocked).toBool(); }
 
-  /** Subclasses should return TRUE here if, in principle, it is possible to modify the
-   * resource's data. Return for ex. false when opening a read-only file.
+  //! The (last) View Type used to display this resource
+  virtual QString viewType() const { return KLFPropertizedObject::property(PropViewType).toString(); }
+
+  enum ModifyType { AllActionsData, InsertData, ChangeData, DeleteData };
+  /** Subclasses should return TRUE here if it is possible to modify the resource's data in
+   * the way described by \c modifytype. Return for ex. false when opening a read-only file.
    *
    * \warning subclasses should call the base implementation to e.g. take into account
    * the \ref locked() property. If the base implementation returns FALSE, then the
    * subclasses should also return FALSE. */
-  virtual bool canModify() const;
+  virtual bool canModifyData(ModifyType modifytype) const;
 
-  /** This function should be used instead of \ref canModify() to test whether the
-   * Locked property can be modified, to prevent a set locked property from preventing
-   * itself from being unset (!) */
-  virtual bool canUnLock() const;
+  /** Subclasses should return TRUE here if it is possible to modify the resource's property
+   * identified by \c propId. Return for ex. false when opening a read-only file.
+   *
+   * \warning subclasses should call the base implementation to e.g. take into account
+   * the \ref locked() property and \ref isReadOnly() state. If the base implementation
+   * returns FALSE, then the subclasses should also return FALSE.
+   *
+   * \note The base implementation returns TRUE if the resource is locked but if \c propId is
+   * \ref PropLocked (to be able to un-lock the resource!) */
+  virtual bool canModifyProp(int propId) const;
 
   /** Suggested library view widget to view this resource with optimal user experience :-) .
    * Return QString() for default view. */
   virtual QString suggestedViewTypeIdentifier() const { return QString(); }
 
+  /** Returns the entry corresponding to ID \c id, or an empty KLFLibEntry() if the \c id
+   * is not valid. */
   virtual KLFLibEntry entry(entryId id) = 0;
+  /** Returns all the entries in this library resource, with their corresponding IDs. */
   virtual QList<KLFLibEntryWithId> allEntries() = 0;
 
 signals:
@@ -213,34 +247,50 @@ signals:
 
 public slots:
 
-  /** Store the title and set property PropTitle to the set title. Return
-   * value TRUE indicates success. This function may return FALSE if changing the title is
-   * not permitted, or the new title is not acceptable (for some given standard...).
+  //! set a new resource title for this library resource
+  /** Stores the new resource title. The title is a human string to display eg. in the
+   * tabs of the \ref KLFLibBrowser library browser.
    *
-   * Subclasses should store the new value in the resource data (e.g. on disk), set the
-   * PropLocked KLFPropertizedObject-based property, then emit resourcePropertyChanged().   */
-  virtual bool setTitle(const QString& title) = 0;
+   * This function calls directly \ref setResourceProperty().
+   *
+   * The default implementation should suffice; subclass \ref savePropertyResource()
+   * for actually saving the new value into the resource backend data, and for more control
+   * over setting properties, or possibly subclass \ref setPropertyResource() for even more
+   * control.
+   *  */
+  virtual bool setTitle(const QString& title);
 
   //! Set the resource to be locked
   /** See \ref locked() for more doc.
    *
-   * If you wish to implement resource locking, this function should be reimplemented to
-   * lock or unlock the resource. If the feature is globally not supported, you can leave
-   * the default implementation return FALSE.
+   * If the feature flags do not contain \ref FeatureLocked, then this function returns
+   * immediately FALSE. Otherwise, this function calls \ref setResourceProperty() with
+   * arguments \ref PropLocked and the new value.
    *
-   * The function may return FALSE for failure or if the operation is not permitted in
-   * a special case.
    *
-   * Subclasses should store the new value in the resource data (e.g. on disk), set the
-   * PropLocked KLFPropertizedObject-based property, then emit resourcePropertyChanged()
-   * and return TRUE for success.
+   * The default implementation should suffice; subclass \ref savePropertyResource()
+   * for actually saving the new value into the resource backend data, and for more control
+   * over setting properties, or possibly subclass \ref setPropertyResource() for even more
+   * control.
    */
   virtual bool setLocked(bool locked);
 
+  /** Store the given view type in the ViewType property.
+   *
+   * Calls directly \ref setResourceProperty().
+   *
+   * The default implementation should suffice; subclass \ref savePropertyResource()
+   * for actually saving the new value into the resource backend data, and for more control
+   * over setting properties, or possibly subclass \ref setPropertyResource() for even more
+   * control.
+   * */
+  virtual bool setViewType(const QString& viewType);
+
   //! Set the resource to be read-only or not
-  /** The base implementation sets the read-only flag to \c readonly (this is then returned
-   * by \ref isReadOnly()) if the \ref FeatureReadOnly was given to the constructor; does
-   * nothing and returns FALSE otherwise.
+  /** If the \ref FeatureReadOnly was given to the constructor, The base implementation sets
+   * the read-only flag to \c readonly (this is then returned by \ref isReadOnly()). The
+   * base implementation does nothing and returns FALSE if the feature \ref FeatureReadOnly is
+   * not supported.
    */
   virtual bool setReadOnly(bool readonly);
 
@@ -249,9 +299,49 @@ public slots:
    * need in principle NOT reimplement this function. */
   virtual entryId insertEntry(const KLFLibEntry& entry);
 
+  //! Insert new entries in this resource.
+  /** Inserts the given library entries (given as a \ref KLFLibEntry list) into this resource
+   * and returns a list of the IDs that were attributed to the new entries (in the same
+   * order as the given list). An individual ID of -1 means failure for that specific entry;
+   * an empty list returned means a general failure, except if \c entrylist is empty.
+   *
+   * This function should be reimplemented by subclasses to actually save the new entries.
+   * The reimplementation should make sure that the operation is permitted (eg. by checking
+   * that \ref canModifyData(InsertData) is true, and should behave as described above.
+   *
+   * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
+   * code.
+   */
   virtual QList<entryId> insertEntries(const KLFLibEntryList& entrylist) = 0;
+  //! Change some entries in this resource.
+  /** The entries specified by the ids \c idlist are modified. The properties given
+   * in \c properties (which should be KLFLibEntry property IDs) are to be set to the respective
+   * value in \c values for all the given entries in \c idlist. \c properties and \c values must
+   * obviously be of same size.
+   *
+   * A return value of TRUE indicates general success and FALSE indicates a failure.
+   *
+   * This function should be reimplemented by subclasses to actually save the modified entries.
+   * The reimplementation should make sure that the operation is permitted (eg. by checking
+   * that \ref canModifyData(ChangeData) is true, and should behave as described above.
+   *
+   * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
+   * code.
+   */
   virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
 			   const QList<QVariant>& values) = 0;
+  //! Delete some entries in this resource.
+  /** The entries specified by the ids \c idlist are deleted.
+   *
+   * A return value of TRUE indicates general success and FALSE indicates a failure.
+   *
+   * This function should be reimplemented by subclasses to actually delete the entries.
+   * The reimplementation should make sure that the operation is permitted (eg. by checking
+   * that \ref canModify(DeleteData) is true, and should behave as described above.
+   *
+   * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
+   * code.
+   */
   virtual bool deleteEntries(const QList<entryId>& idlist) = 0;
 
   /** If the \ref FeatureSaveAs is supported (passed to the constructor), reimplement this
@@ -261,6 +351,28 @@ public slots:
 
 protected:
 
+  //! Save a resource property to the backend resource data.
+  /** Subclasses should reimplement this function to save the value of the given resource
+   * property to the knew given value.
+   *
+   * If the new value is inacceptable, or if the operation is not permitted, the subclass
+   * should return FALSE, in which case the resource property will not be changed.
+   *
+   */
+  virtual bool saveResourceProperty(int propId, const QVariant& value) = 0;
+
+  /** Set a resource property to the given value. This function calls in turn:
+   * - \ref canModifyProp() to check whether the property can be modified
+   * - \ref saveResourceProperty() to check whether the operation is permitted (the value
+   *   is acceptable, or any other check the subclass would want to perform) and to save
+   *   the given value to the backend data;
+   * - \ref KLFPropertizedObject::setProperty() to save the property locally;
+   * - emits \ref resourcePropertyChanged() to notify other classes of the property change.
+   *
+   * \note This function fails immediately if \c propId is not a valid registered
+   *   property ID, or if canModifyProp() returns FALSE.
+   * */
+  virtual bool setResourceProperty(int propId, const QVariant& value);
 
 private:
   void initRegisteredProperties();
@@ -268,6 +380,43 @@ private:
   QUrl pUrl;
   uint pFeatureFlags;
   bool pReadOnly;
+};
+
+
+Q_DECLARE_METATYPE(KLFLibResourceEngine::KLFLibEntryWithId)
+  ;
+
+
+QDataStream& operator<<(QDataStream& stream, const KLFLibResourceEngine::KLFLibEntryWithId& entrywid);
+QDataStream& operator>>(QDataStream& stream, KLFLibResourceEngine::KLFLibEntryWithId& entrywid);
+
+
+/** \brief Provides a simple API for reading library resources.
+ *
+ * Right now already KLFLibResourceEngine requires a simple API subclassing for reading
+ * resources. However in the future I may wish to change that API for providing more specific
+ * entry querying (by category / by any property type / ....) to avoid full caching of all
+ * entries (which is for ex. not useful when displaying a huge library resource in a category
+ * tree). In the event of an API modification, this class will still provide the simple
+ * approach with \ref allEntries() and \ref entry().
+ *
+ */
+class KLF_EXPORT KLFLibResourceSimpleEngine : public KLFLibResourceEngine
+{
+  Q_OBJECT
+public:
+  KLFLibResourceSimpleEngine(const QUrl& url, uint supportedfeatureflags, QObject *parent = NULL)
+    : KLFLibResourceEngine(url, supportedfeatureflags, parent)
+  {
+  }
+  virtual ~KLFLibResourceSimpleEngine() { }
+
+  /** Returns the entry corresponding to ID \c id, or an empty KLFLibEntry() if the \c id
+   * is not valid. */
+  virtual KLFLibEntry entry(entryId id) = 0;
+  /** Returns all the entries in this library resource, with their corresponding IDs. */
+  virtual QList<KLFLibEntryWithId> allEntries() = 0;
+
 };
 
 
@@ -392,6 +541,7 @@ public:
    * Returns NULL if opening the database failed.
    *
    * \param datatablename defaults to \c "klfentries" if an empty string is given.
+   *  \c datatablename should NOT contain a leading \c "t_" prefix.
    *
    * A non-NULL returned object was successfully connected to database.
    * */
@@ -403,47 +553,50 @@ public:
    * set. */
   virtual ~KLFLibDBEngine();
 
-  bool canModify() const;
+  virtual bool canModifyData(ModifyType modifytype) const;
+  virtual bool canModifyProp(int propid) const;
 
   /** True if one has supplied a valid database in the constructor or with a
    * \ref setDatabase() call. */
-  bool validDatabase() const;
+  virtual bool validDatabase() const;
   /** supply an open database. */
-  void setDatabase(QSqlDatabase db_connection);
+  virtual void setDatabase(const QSqlDatabase& db_connection);
 
   virtual bool autoDisconnectDB() const { return pAutoDisconnectDB; }
-  virtual QString dataTableName() const { return pDataTableName; }
+  /** Returns the data table name, WITHOUT the leading \c "t_" prefix. */
+  virtual QString dataTableName() const { return pDataTableName.mid(2); }
 
   virtual KLFLibEntry entry(entryId id);
   virtual QList<KLFLibEntryWithId> allEntries();
 
-public slots:
+  /** Initializes a fresh database. \c datatablename should NOT contain the leading
+   * \c "t_" prefix. */
+  static bool initFreshDatabase(QSqlDatabase db, const QString& datatablename);
 
-  virtual bool setTitle(const QString& title);
-  virtual bool setLocked(bool locked);
+public slots:
 
   virtual QList<entryId> insertEntries(const KLFLibEntryList& entries);
   virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
 			   const QList<QVariant>& values);
   virtual bool deleteEntries(const QList<entryId>& idlist);
 
-  static bool initFreshDatabase(QSqlDatabase db, const QString& datatablename);
+protected:
+  virtual bool saveResourceProperty(int propId, const QVariant& value);
 
 private:
+  /** \note \c tablename does NOT contain a leading \c "t_" prefix. */
   KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
 		 bool autoDisconnectDB, const QUrl& url, QObject *parent = NULL);
 
   QSqlDatabase pDB;
   
   bool pAutoDisconnectDB;
-  QString pDataTableName;
+  QString pDataTableName; ///< \note WITH leading \c "t_" prefix.
 
   QMap<int,int> detectEntryColumns(const QSqlQuery& q);
   KLFLibEntry readEntry(const QSqlQuery& q, QMap<int,int> columns);
 
   QVariant convertVariantToDBData(const QVariant& value) const;
-
-  bool setResourceProperty(int propId, const QVariant& value);
 };
 
 /** The associated factory to the KLFLibDBEngine engine. */

@@ -27,6 +27,7 @@
 #include <QDebug>
 #include <QImage>
 #include <QString>
+#include <QDataStream>
 #include <QMessageBox>
 #include <QAbstractItemModel>
 #include <QModelIndex>
@@ -41,6 +42,10 @@
 #include <QListView>
 #include <QMenu>
 #include <QAction>
+#include <QEvent>
+#include <QDropEvent>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
 
 #include <ui_klflibopenresourcedlg.h>
 #include <ui_klflibrespropeditor.h>
@@ -228,12 +233,12 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
   if (role == ItemKindItemRole)
     return (int)p->nodeKind();
 
-  if (role >= ViewUserDataRoleBegin && role <= ViewUserDataRoleEnd) {
-    // view data
-    if (p->viewUserData.contains(role))
-      return p->viewUserData[role];
-    return QVariant();
-  }
+  //  if (role >= ViewUserDataRoleBegin && role <= ViewUserDataRoleEnd) {
+  //    // view data
+  //    if (p->viewUserData.contains(role))
+  //      return p->viewUserData[role];
+  //    return QVariant();
+  //  }
 
   if (p->nodeKind() == EntryKind) {
     // --- GET ENTRY DATA ---
@@ -281,13 +286,21 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 }
 Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
 {
+  Qt::ItemFlags flagdropenabled = 0;
+  if (pResource->canModifyData(KLFLibResourceEngine::InsertData) ||
+      pResource->canModifyData(KLFLibResourceEngine::ChangeData))
+    flagdropenabled = Qt::ItemIsDropEnabled;
+
+  if (!index.isValid())
+    return flagdropenabled;
+
   const Node * p = getNodeForIndex(index);
   if (p == NULL)
-    return 0;
+    return 0; // ?!!?
   if (p->nodeKind() == EntryKind)
-    return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+    return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled;
   if (p->nodeKind() == CategoryLabelKind)
-    return Qt::ItemIsEnabled;
+    return Qt::ItemIsEnabled | flagdropenabled;
 
   // by default (should never happen)
   return 0;
@@ -404,17 +417,262 @@ int KLFLibModel::columnForEntryPropertyId(int entryPropertyId) const
   }
 }
 
-bool KLFLibModel::setViewUserData(const QModelIndex& index, const QVariant& value, int role)
+
+Qt::DropActions KLFLibModel::supportedDropActions() const
 {
-  if ( ! index.isValid() )
-    return false;
-  Node *node = getNodeForIndex(index);
-  if (role >= ViewUserDataRoleBegin && role <= ViewUserDataRoleEnd) {
-    node->viewUserData[role] = value;
-    return true;
+  return Qt::CopyAction|Qt::MoveAction;
+}
+
+QStringList KLFLibModel::mimeTypes() const
+{
+  return QStringList() << "application/x-klf-internal-lib-move-entries"
+		       << "application/x-klf-libentries" << "text/html" << "text/plain";
+}
+QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
+{
+  /** \page appxMimeLib Appendix: KLF's Own Mime Formats for Library Entries
+   *
+   * \section appxMimeLib_elist The application/x-klf-libentries data format
+   *
+   * Is basically a Qt-\ref QDataStream saved data of a \ref KLFLibEntryList (ie. a
+   * \ref QList<KLFLibEntry>), saved with Qt \ref QDataStream version \ref QDataStream::Qt_4_4.
+   *
+   * There is also a property map for including arbitrary parameters to the list (eg.
+   * originating URL, etc.), stored in a \ref QVariantMap. Standard properties as of now:
+   *  - \c "Url" (type QUrl) : originating URL
+   *
+   * Example code:
+   * \code
+   *  KLFLibEntryList entries = ...;
+   *  QByteArray data;
+   *  QDataStream stream(&data, QIODevice::WriteOnly);
+   *  stream << QVariantMap() << data;
+   *  // now data contains the exact data for the application/x-klf-libentries mimetype.
+   * \endcode
+   * Other example: see the source code of \ref KLFLibModel::mimeData() in \ref klfview.cpp .
+   *
+   * \section appxMimeLib_internal The INTERNAL <tt>application/x-klf-internal-lib-move-entries</tt>
+   * * Used for internal move within the same resource only.
+   * * Basic difference with <tt>application/x-klf-libentries</tt>: the latter contains
+   *   only the IDs of the entries (for reference for deletion for example) and the url
+   *   of the open resource for identification.
+   * * Internal Format: \ref QDataStream, stream version \ref QDataStream::Qt_4_4, in the
+   *   following order:
+   *   \code stream << QVariantMap(<i>property-map</i>)
+   *        << QList<KLFLibResourceEngine::entryId>(<i>entry-id-list</i>);
+   *   \endcode
+   * * The <tt><i>property-map</i></tt> contains properties relative to the mime data, such
+   *   as the originating URL (in property \c "Url" of type QUrl)
+   * .
+   */
+
+  // in the future, this will serve when dragging a category label, to redifine the index
+  // list as containing all the child entries.
+  QModelIndexList indexes = indlist;
+
+  // get all entries
+  KLFLibEntryList entries;
+  QList<KLFLibResourceEngine::entryId> entryids;
+  QList<NodeId> entriesnodeids;
+  int k;
+  for (k = 0; k < indexes.size(); ++k) {
+    Node *n = getNodeForIndex(indexes[k]);
+    if (n == NULL)
+      continue;
+    if (n->nodeKind() != EntryKind)
+      continue;
+    NodeId nid = getNodeId(n);
+    if (entriesnodeids.contains(nid))
+      continue; // skip duplicates (for ex. for other model column indexes)
+    EntryNode *en = (EntryNode*)n;
+    entries << pResource->entry(en->entryid);
+    entryids << en->entryid;
+    entriesnodeids << nid;
+  }
+
+
+  QMimeData *mime = new QMimeData;
+  QByteArray data;
+  QByteArray internalmovedata;
+  QByteArray htmldata;
+  QByteArray textdata;
+
+  // prepare the data for filling in the mime object
+  {
+    // application/x-klf-libentries
+    QDataStream str(&data, QIODevice::WriteOnly);
+    QVariantMap vprop;
+    vprop["Url"] = QUrl(pResource->url());
+    str.setVersion(QDataStream::Qt_4_4);
+    // now dump the list in the bytearray
+    str << vprop << entries;
+
+    // application/x-klf-internal-lib-move-entries
+    QDataStream imstr(&internalmovedata, QIODevice::WriteOnly);
+    imstr.setVersion(QDataStream::Qt_4_4);
+    imstr << vprop << entryids;
+  }
+  {
+    QTextStream htmlstr(&htmldata, QIODevice::WriteOnly);
+    QTextStream textstr(&textdata, QIODevice::WriteOnly);
+    // a header for HTML
+    htmlstr << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
+	    << "<html>\n"
+	    << "  <head>\n"
+      	    << "    <title>KLatexFormula Library Entry List</title>\n"
+      // 	    << "    <style>\n"
+      // 	    << "      div.klfpobj_entry { margin-bottom: 15px; }\n"
+      // 	    << "      div.klfpobj_name { font-weight: bold; }\n"
+      // 	    << "      div.klfpobj_propname { display: inline; }\n"
+      // 	    << "      div.klfpobj_propvalue { display: inline; font-style: italic;\n"
+      //	    << "        padding-left: 10px; }\n"
+      // 	    << "    </style>\n"
+	    << "  </head>\n"
+	    << "\n"
+	    << "  <body>\n"
+	    << "\n";
+
+    // a header for text
+    textstr << " *** KLFLibEntryList ***\n\n";
+    // now dump the data in the appropriate streams
+
+    KLFLibEntry de; // dummy entry for property querying
+    QList<int> entryprops = de.registeredPropertyIdList();
+    for (k = 0; k < entries.size(); ++k) {
+      htmlstr << entries[k].toString(KLFLibEntry::ToStringUseHtml);
+      textstr << entries[k].toString(/*KLFLibEntry::ToStringQuoteValues*/);
+    }
+    // HTML footer
+    htmlstr << "\n"
+	    << "  </body>\n"
+	    << "</html>\n";
+  }
+
+  // and set the data
+  mime->setData("application/x-klf-libentries", data);
+  mime->setData("application/x-klf-internal-lib-move-entries", internalmovedata);
+  mime->setData("text/html", htmldata);
+  mime->setData("text/plain", textdata);
+  return mime;
+}
+
+// private
+bool KLFLibModel::dropCanInternal(const QMimeData *mimedata)
+{
+  if (mimedata->hasFormat("application/x-klf-internal-lib-move-entries") &&
+      pResource->canModifyData(KLFLibResourceEngine::ChangeData)) {
+    QByteArray imdata = mimedata->data("application/x-klf-internal-lib-move-entries");
+    QDataStream imstr(imdata);
+    imstr.setVersion(QDataStream::Qt_4_4);
+    QVariantMap vprop;
+    imstr >> vprop;
+    QUrl xurl = vprop.value("Url").toUrl();
+    return (xurl == pResource->url());
   }
   return false;
 }
+
+bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action, int row,
+			       int column, const QModelIndex& parent)
+{
+  qDebug() << "Drop data: action="<<action<<" row="<<row<<" col="<<column
+	   << " parent="<<parent;
+
+  if (action == Qt::IgnoreAction)
+    return true;
+  if (action != Qt::CopyAction)
+    return false;
+
+  if ( ! (mimedata->hasFormat("application/x-klf-internal-lib-move-entries") &&
+	  pResource->canModifyData(KLFLibResourceEngine::ChangeData)) &&
+       ! (mimedata->hasFormat("application/x-klf-libentries") &&
+	  pResource->canModifyData(KLFLibResourceEngine::InsertData)) ) {
+    // cannot (change items with application/x-klf-internal-lib-move-entries) AND
+    // cannot (insert items with application/x-klf-libentries)
+    return false;
+  }
+
+  if (column > 0)
+    return false;
+
+  // imdata, imstr : "internal move" ; ldata, lstr : "entry _l_ist"
+  bool useinternalmove = dropCanInternal(mimedata);
+  if (useinternalmove) {
+    qDebug() << "Dropping application/x-klf-internal-lib-move-entries";
+    if ( !(pFlavorFlags & CategoryTree) )
+      return false;
+
+    QByteArray imdata = mimedata->data("application/x-klf-internal-lib-move-entries");
+    QDataStream imstr(imdata);
+    imstr.setVersion(QDataStream::Qt_4_4);
+    QList<KLFLibResourceEngine::entryId> idlist;
+    QVariantMap vprop;
+    imstr >> vprop >> idlist;
+    // get the category we moved to
+    Node *pn = getNodeForIndex(parent);
+    if (pn == NULL) {
+      pn = pCategoryLabelCache.data()+0; // root node
+    }
+    if (pn->nodeKind() != CategoryLabelKind) {
+      qWarning()<<"Dropped in a non-category index! (kind="<<pn->nodeKind()<<")";
+      return false;
+    }
+    CategoryLabelNode *cn = (CategoryLabelNode*) pn;
+    // move, not copy: change the selected entries to the new category.
+    QString newcategory = cn->fullCategoryPath;
+    bool r = pResource->changeEntries(idlist, QList<int>() << KLFLibEntry::Category,
+				      QList<QVariant>() << QVariant(newcategory));
+    qDebug()<<"Accepted drop of type application/x-klf-internal-lib-move-entries. Res="<<r<<"\n"
+	    <<"ID list is "<<idlist<<" new category is "<<newcategory;
+    if (!r) {
+      return false;
+    }
+    // dataChanged() is emitted in changeEntries()
+    return true;
+  }
+
+  qDebug()<<"Dropping entry list.";
+  QByteArray ldata = mimedata->data("application/x-klf-libentries");
+  QDataStream lstr(ldata);
+  lstr.setVersion(QDataStream::Qt_4_4);
+  KLFLibEntryList elist;
+  QVariantMap vprop;
+  lstr >> vprop >> elist;
+  if ( elist.isEmpty() )
+    return true;
+
+  // insert list, regardless of parent (no category change)
+  QList<KLFLibResourceEngine::entryId> idlist = pResource->insertEntries(elist);
+  qDebug()<<"Dropped entry list "<<elist<<". result="<<idlist;
+  if (idlist.isEmpty() || idlist.contains(-1))
+    return false;
+
+  // dataChanged() is emitted in insertEntries()
+  return true;
+}
+
+uint KLFLibModel::dropFlags(QDragMoveEvent *event)
+{
+  const QMimeData *mdata = event->mimeData();
+  uint fl = 0x0000;
+  if (dropCanInternal(mdata))
+    fl |= DropWillMove|DropWillCategorize;
+
+  return fl;
+}
+
+
+// bool KLFLibModel::setViewUserData(const QModelIndex& index, const QVariant& value, int role)
+// {
+//   if ( ! index.isValid() )
+//     return false;
+//   Node *node = getNodeForIndex(index);
+//   if (role >= ViewUserDataRoleBegin && role <= ViewUserDataRoleEnd) {
+//     node->viewUserData[role] = value;
+//     return true;
+//   }
+//   return false;
+// }
 
 
 bool KLFLibModel::isDesendantOf(const QModelIndex& child, const QModelIndex& ancestor)
@@ -528,7 +786,7 @@ KLFLibModel::Node * KLFLibModel::prevNode(Node *n)
 KLFLibModel::Node * KLFLibModel::lastNode(Node *n)
 {
   if (n == NULL)
-    n = pCategoryLabelCache.data()+0;
+    n = pCategoryLabelCache.data()+0; // root category
 
   if (n->children.size() == 0)
     return n; // no children: n is itself the "last node"
@@ -546,9 +804,9 @@ QList<KLFLibResourceEngine::entryId> KLFLibModel::entryIdList(const QModelIndexL
   QList<EntryNode*> nodePtrs;
   // walk all indexes and get their IDs
   for (k = 0; k < indexlist.size(); ++k) {
-    Node *ptr = getNodeForIndex(indexlist[k]);
+    const Node *ptr = getNodeForIndex(indexlist[k]);
     if ( ptr == NULL )
-      continue;
+      ptr = pCategoryLabelCache.data()+0; // root node
     if (ptr->nodeKind() != EntryKind)
       continue;
     EntryNode *n = (EntryNode*)ptr;
@@ -874,9 +1132,11 @@ void KLFLibModel::updateCacheSetupModel()
   changePersistentIndexList(persistentIndexes, newPersistentIndexes);
 
   //  dumpNodeTree(pCategoryLabelCache.data()+0); // DEBUG
-
   emit dataChanged(QModelIndex(),QModelIndex());
   emit layoutChanged();
+
+  // and sort
+  sort(lastSortColumn, lastSortOrder);
 }
 KLFLibModel::IndexType KLFLibModel::cacheFindCategoryLabel(QString category, bool createIfNotExists)
 {
@@ -1095,7 +1355,7 @@ void KLFLibViewDelegate::paintCategoryLabel(PaintPrivate *p, const QModelIndex& 
   uint fl = PTF_HighlightSearch;
   if (index.parent() == pSearchIndex.parent() && index.row() == pSearchIndex.row())
     fl |= PTF_HighlightSearchCurrent;
-  if ( ! index.data(KLFLibDefaultView::ViewUserDataExpandedRole).toBool() &&
+  if ( (!pExpandedIndexes.contains(index) || !pExpandedIndexes.value(index)) &&
        indexHasSelectedDescendant(index) ) {
     // not expanded, and has selected child
     fl |= PTF_SelUnderline;
@@ -1336,10 +1596,12 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   pView->setSelectionMode(QAbstractItemView::ExtendedSelection);
   pView->setDragEnabled(true);
   pView->setDragDropMode(QAbstractItemView::DragDrop);
+  pView->setDragDropOverwriteMode(false);
   pView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
   pView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   pView->setItemDelegate(pDelegate);
   pView->viewport()->installEventFilter(this);
+  pView->installEventFilter(this);
 
   connect(pView, SIGNAL(clicked(const QModelIndex&)),
 	  this, SLOT(slotViewItemClicked(const QModelIndex&)));
@@ -1360,6 +1622,49 @@ bool KLFLibDefaultView::event(QEvent *event)
 }
 bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
 {
+  if (object == pView->viewport()) {
+    /// \todo TODO .... drag action for view .........
+    if (event->type() == QEvent::DragEnter) {
+      static bool recursion_protection = false;
+      if (recursion_protection) return false;
+      recursion_protection = true;
+      QDragEnterEvent *de = (QDragEnterEvent*) event;
+      // decide whether to accept the drop
+      ........ pModel->acceptsDrop(de); ......
+      // decide whether to show drop indicator or not.
+      uint fl = pModel->dropFlags(de);
+      bool showdropindic = (fl & KLFLibModel::DropWillCategorize);
+      pView->setDropIndicatorShown(showdropindic);
+      qDebug()<<"Show drop indicator :" << showdropindic;
+      // and FAKE a QDragMoveEvent to the item view.
+      QDragEnterEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
+				de->keyboardModifiers());
+      qApp->sendEvent(pView->viewport(), &fakeevent);
+      recursion_protection = false;
+      return true;
+    }
+    if (event->type() == QEvent::DragMove) {
+      static bool recursion_protection = false;
+      if (recursion_protection) return false;
+      recursion_protection = true;
+      QDragMoveEvent *de = (QDragMoveEvent*) event;
+      uint fl = pModel->dropFlags(de);
+      // check proposed actions
+      if (fl & KLFLibModel::DropWillMove) {
+	de->setDropAction(Qt::MoveAction);
+	de->accept();
+      } else {
+	de->setDropAction(Qt::CopyAction);
+	de->accept();
+      }
+      // and FAKE a QDragMoveEvent to the item view.
+      QDragMoveEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
+			       de->keyboardModifiers());
+      qApp->sendEvent(pView->viewport(), &fakeevent);
+      recursion_protection = false;
+      return true;
+    }
+  }
   return KLFAbstractLibView::eventFilter(object, event);
 }
 
@@ -1683,11 +1988,13 @@ void KLFLibDefaultView::slotEntryDoubleClicked(const QModelIndex& index)
 
 void KLFLibDefaultView::slotExpanded(const QModelIndex& index)
 {
-  pModel->setViewUserData(index, true, ViewUserDataExpandedRole);
+  //  qDebug()<<"expanded: "<<index;
+  pDelegate->setIndexExpanded(index, true);
 }
 void KLFLibDefaultView::slotCollapsed(const QModelIndex& index)
 {
-  pModel->setViewUserData(index, false, ViewUserDataExpandedRole);
+  //  qDebug()<<"collapsed: "<<index;
+  pDelegate->setIndexExpanded(index, false);
 }
 
 void KLFLibDefaultView::slotShowColumnSenderAction(bool showCol)
@@ -1990,16 +2297,11 @@ KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *par
 
   pResource = res;
 
-  pUi->txtTitle->setText(res->title());
-  pUi->txtUrl->setText(res->url().toString());
-  pUi->chkLocked->setChecked(res->locked());
-
-  qDebug()<<"res->supp.F.Flags()="<<res->supportedFeatureFlags();
-  if ( !(res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureLocked) ) {
-    pUi->chkLocked->setEnabled(false);
-  }
+  connect(pResource, SIGNAL(resourcePropertyChanged(int)),
+	  this, SLOT(slotResourcePropertyChanged(int)));
 
   pUi->frmAdvanced->setShown(pUi->btnAdvanced->isChecked());
+  slotResourcePropertyChanged(-1);
 }
 
 KLFLibResPropEditor::~KLFLibResPropEditor()
@@ -2047,7 +2349,21 @@ bool KLFLibResPropEditor::apply()
   return res;
 }
 
-// --
+
+void KLFLibResPropEditor::slotResourcePropertyChanged(int /*propId*/)
+{
+  // perform full update
+
+  pUi->txtTitle->setText(pResource->title());
+  pUi->txtTitle->setEnabled(pResource->canModifyProp(KLFLibResourceEngine::PropTitle));
+  pUi->txtUrl->setText(pResource->url().toString());
+  pUi->chkLocked->setChecked(pResource->locked());
+  pUi->chkLocked->setEnabled(pResource->canModifyProp(KLFLibResourceEngine::PropLocked));
+}
+
+
+// -------------
+
 
 KLFLibResPropEditorDlg::KLFLibResPropEditorDlg(KLFLibResourceEngine *resource, QWidget *parent)
   : QDialog(parent)
