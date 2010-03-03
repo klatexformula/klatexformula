@@ -1154,7 +1154,8 @@ void KLFMainWin::slotEvaluate()
 	 ( tooltipimg.width() > klfconfig.UI.previewTooltipMaxSize.width() ||
 	   tooltipimg.height() > klfconfig.UI.previewTooltipMaxSize.height() ) ) {
       tooltipimg =
-	_output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	_output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio,
+			      Qt::SmoothTransformation);
     }
     lblOutput->display(sc.toImage(), tooltipimg, true);
     frmOutput->setEnabled(true);

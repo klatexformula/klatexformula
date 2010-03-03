@@ -50,6 +50,7 @@
 #include <ui_klflibopenresourcedlg.h>
 #include <ui_klflibrespropeditor.h>
 
+#include "klfconfig.h"
 #include "klflibview.h"
 
 #include "klflibview_p.h"
@@ -287,8 +288,9 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
 {
   Qt::ItemFlags flagdropenabled = 0;
-  if (pResource->canModifyData(KLFLibResourceEngine::InsertData) ||
-      pResource->canModifyData(KLFLibResourceEngine::ChangeData))
+  if ( index.column() == 0 &&
+       (pResource->canModifyData(KLFLibResourceEngine::InsertData) ||
+	pResource->canModifyData(KLFLibResourceEngine::ChangeData)) )
     flagdropenabled = Qt::ItemIsDropEnabled;
 
   if (!index.isValid())
@@ -654,11 +656,74 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
 uint KLFLibModel::dropFlags(QDragMoveEvent *event)
 {
   const QMimeData *mdata = event->mimeData();
-  uint fl = 0x0000;
-  if (dropCanInternal(mdata))
-    fl |= DropWillMove|DropWillCategorize;
+  if (dropCanInternal(mdata)) {
+    if ( !(pFlavorFlags & CategoryTree) ) {
+      return 0; // will NOT accept an internal move not in a category tree
+    }
+    if (pResource->canModifyData(KLFLibResourceEngine::ChangeData))
+      return DropWillAccept|DropWillMove|DropWillCategorize;
+    return 0;
+  }
+  if (pResource->canModifyData(KLFLibResourceEngine::InsertData))
+    return DropWillAccept;
+  return 0;
+}
 
-  return fl;
+QImage KLFLibModel::dragImage(const QModelIndexList& indexes)
+{
+  if (indexes.isEmpty())
+    return QImage();
+
+  const int MAX = 5;
+  const QSize s1 = 0.8*klfconfig.UI.labelOutputFixedSize;
+  const QPointF delta(18.0, 20.0);
+  QList<QImage> previewlist;
+  QList<NodeId> alreadydone;
+  int k, j;
+  int iS = indexes.size();
+  int n = qMin(1+MAX, iS);
+  for (j = 0, k = 0; k < iS && j < n; ++k) {
+    Node *n = getNodeForIndex(indexes[iS-k-1]); // reverse order
+    if (n == NULL || n->nodeKind() != EntryKind)
+      continue;
+    NodeId nid = getNodeId(n);
+    if (alreadydone.contains(nid))
+      continue;
+    alreadydone << nid;
+    previewlist << ((EntryNode*)n)->entry.preview().scaled(s1, Qt::KeepAspectRatio,
+							   Qt::SmoothTransformation);
+    ++j;
+  }
+  if (previewlist.isEmpty())
+    return QImage();
+
+  int N = qMin(MAX, previewlist.size());
+  QSize s2 = (s1 + (N-1)*pointToSizeF(delta)).toSize();
+  QImage image(s2, QImage::Format_ARGB32_Premultiplied);
+  image.fill(qRgba(0,0,0,0));
+  {
+    QPainter p(&image);
+    //    p.setOpacity(0.5);
+    QPointF P(0,0);
+    QPointF lastimgbr;
+    for (k = 0; k < N; ++k) {
+      // and add this image
+      QImage i = transparentify_image(previewlist[k], 0.7);
+      p.drawImage(P, i);
+      // p.drawRect(QRectF(P, s1));
+      lastimgbr = P+sizeToPointF(i.size());
+      P += delta;
+    }
+    if (k == MAX) {
+      p.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+      p.setPen(QPen(QColor(0,0,0),2.0));
+      QPointF br = lastimgbr;
+      p.drawPoint(br - QPointF(5,5));
+      p.drawPoint(br - QPointF(10,5));
+      p.drawPoint(br - QPointF(15,5));
+    }
+  }
+  return image;
 }
 
 
@@ -1246,18 +1311,6 @@ bool KLFLibViewDelegate::editorEvent(QEvent */*event*/, QAbstractItemModel */*mo
 {
   return false;
 }
-static QImage transparentify_image(const QImage& img, qreal factor)
-{
-  QImage img2 = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-  int k, j;
-  for (k = 0; k < img.height(); ++k) {
-    for (j = 0; j < img.width(); ++j) {
-      QRgb c = img2.pixel(j, k);
-      img2.setPixel(j, k, qRgba(qRed(c),qGreen(c),qBlue(c),(int)(factor*qAlpha(c))));
-    }
-  }
-  return img2;
-}
 void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& option,
 			       const QModelIndex& index) const
 {
@@ -1266,6 +1319,8 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
   pp.option = &option;
   pp.innerRectImage = QRect(option.rect.topLeft()+QPoint(2,2), option.rect.size()-QSize(4,4));
   pp.innerRectText = QRect(option.rect.topLeft()+QPoint(4,2), option.rect.size()-QSize(8,4));
+
+  painter->save();
 
   QPen pen = painter->pen();
   pp.isselected = (option.state & QStyle::State_Selected);
@@ -1301,7 +1356,9 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
       w = v3->widget;
     QStyle *style = w ? w->style() : QApplication::style();
     style->drawPrimitive(QStyle::PE_FrameFocusRect, &o, painter, w);
-  } 
+  }
+
+  painter->restore();
 }
 void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) const
 {
@@ -1560,7 +1617,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 {
   pModel = NULL;
 
-  pStateMousePress = false;
+  pEventFilterNoRecurse = false;
 
   QVBoxLayout *lyt = new QVBoxLayout(this);
   lyt->setMargin(0);
@@ -1571,7 +1628,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   QListView *listView = NULL;
   switch (pViewType) {
   case IconView:
-    listView = new QListView(this);
+    listView = new KLFLibDefListView(this);
     listView->setViewMode(QListView::IconMode);
     listView->setSpacing(15);
     listView->setMovement(QListView::Free);
@@ -1582,7 +1639,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   case CategoryTreeView:
   case ListTreeView:
   default:
-    treeView = new QTreeView(this);
+    treeView = new KLFLibDefTreeView(this);
     treeView->setSortingEnabled(true);
     treeView->setIndentation(16);
     treeView->setAllColumnsShowFocus(true);
@@ -1602,6 +1659,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   pView->setItemDelegate(pDelegate);
   pView->viewport()->installEventFilter(this);
   pView->installEventFilter(this);
+  installEventFilter(this);
 
   connect(pView, SIGNAL(clicked(const QModelIndex&)),
 	  this, SLOT(slotViewItemClicked(const QModelIndex&)));
@@ -1622,46 +1680,50 @@ bool KLFLibDefaultView::event(QEvent *event)
 }
 bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
 {
-  if (object == pView->viewport()) {
-    /// \todo TODO .... drag action for view .........
+  if (object == this || object == pView->viewport() || object == pView) {
     if (event->type() == QEvent::DragEnter) {
-      static bool recursion_protection = false;
-      if (recursion_protection) return false;
-      recursion_protection = true;
+      if (pEventFilterNoRecurse) return false;
+      pEventFilterNoRecurse = true;
       QDragEnterEvent *de = (QDragEnterEvent*) event;
-      // decide whether to accept the drop
-      ........ pModel->acceptsDrop(de); ......
-      // decide whether to show drop indicator or not.
       uint fl = pModel->dropFlags(de);
+      // decide whether to show drop indicator or not.
       bool showdropindic = (fl & KLFLibModel::DropWillCategorize);
       pView->setDropIndicatorShown(showdropindic);
-      qDebug()<<"Show drop indicator :" << showdropindic;
-      // and FAKE a QDragMoveEvent to the item view.
-      QDragEnterEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
-				de->keyboardModifiers());
-      qApp->sendEvent(pView->viewport(), &fakeevent);
-      recursion_protection = false;
+      // decide whether to accept the drop or to ignore it
+      if ( !(fl & KLFLibModel::DropWillAccept) ) {
+	de->ignore();
+      } else {
+	// and FAKE a QDragMoveEvent to the item view.
+	QDragEnterEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
+				  de->keyboardModifiers());
+	qApp->sendEvent(pView->viewport(), &fakeevent);
+      }
+      pEventFilterNoRecurse = false;
       return true;
     }
     if (event->type() == QEvent::DragMove) {
-      static bool recursion_protection = false;
-      if (recursion_protection) return false;
-      recursion_protection = true;
+      if (pEventFilterNoRecurse) return false;
+      pEventFilterNoRecurse = true;
       QDragMoveEvent *de = (QDragMoveEvent*) event;
       uint fl = pModel->dropFlags(de);
-      // check proposed actions
-      if (fl & KLFLibModel::DropWillMove) {
-	de->setDropAction(Qt::MoveAction);
-	de->accept();
+      // decide whether to accept the drop or to ignore it
+      if ( !(fl & KLFLibModel::DropWillAccept) ) {
+	de->ignore();
       } else {
-	de->setDropAction(Qt::CopyAction);
-	de->accept();
+	// check proposed actions
+	if (fl & KLFLibModel::DropWillMove) {
+	  de->setDropAction(Qt::MoveAction);
+	  de->accept();
+	} else {
+	  de->setDropAction(Qt::CopyAction);
+	  de->accept();
+	}
+	// and FAKE a QDragMoveEvent to the item view.
+	QDragMoveEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
+				 de->keyboardModifiers());
+	qApp->sendEvent(pView->viewport(), &fakeevent);
       }
-      // and FAKE a QDragMoveEvent to the item view.
-      QDragMoveEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
-			       de->keyboardModifiers());
-      qApp->sendEvent(pView->viewport(), &fakeevent);
-      recursion_protection = false;
+      pEventFilterNoRecurse = false;
       return true;
     }
   }

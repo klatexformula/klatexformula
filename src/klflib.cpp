@@ -236,6 +236,23 @@ KLFLibResourceEngine *KLFLibEngineFactory::createResource(const QString& /*schem
   return NULL;
 }
 
+bool KLFLibEngineFactory::canResourceSaveAs(const QString& /*scheme*/) const
+{
+  return false;
+}
+QWidget *KLFLibEngineFactory::createPromptSaveAsWidget(QWidget */*parent*/,
+						       const QString& /*scheme*/,
+						       const QUrl& /*defaultUrl*/)
+{
+  return NULL;
+}
+QUrl KLFLibEngineFactory::retrieveSaveAsUrlFromWidget(const QString& /*scheme*/,
+						      QWidget */*widget*/)
+{
+  return QUrl();
+}
+
+
 
 
 
@@ -400,7 +417,7 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
   while (q.next()) {
     QString propname = q.value(0).toString();
     QVariant propvalue = q.value(1);
-    qDebug()<<"Setting property `"<<propname<<"' to `"<<propvalue<<"'";
+    //    qDebug()<<"Setting property `"<<propname<<"' to `"<<propvalue<<"'";
     KLFPropertizedObject::setProperty(propname, propvalue);
   }
 }
@@ -601,14 +618,14 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO `" + pDataTableName + "` (" + props.join(",") + ") "
 	    " VALUES (" + questionmarks.join(",") + ")");
-  qDebug()<<"INSERT query: "<<q.lastQuery();
+  //  qDebug()<<"INSERT query: "<<q.lastQuery();
   // now loop all entries, and exec the query with appropriate bound values
   for (j = 0; j < entrylist.size(); ++j) {
-    qDebug()<<"New entry to insert.";
+    //    qDebug()<<"New entry to insert.";
     for (k = 0; k < propids.size(); ++k) {
       QVariant data = convertVariantToDBData(entrylist[j].property(propids[k]));
       // and add a corresponding bind value for sql query
-      qDebug()<<"Binding value "<<k<<": "<<data;
+      //      qDebug()<<"Binding value "<<k<<": "<<data;
       q.bindValue(k, data);
     }
     // and exec the query with these bound values
@@ -665,13 +682,13 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
     q.addBindValue(idlist[k]);
   bool r = q.exec();
 
-  qDebug() << "UPDATE: SQL="<<q.lastQuery()<<"; boundvalues="<<q.boundValues().values();
+  //  qDebug() << "UPDATE: SQL="<<q.lastQuery()<<"; boundvalues="<<q.boundValues().values();
   if ( !r || q.lastError().isValid() ) {
     qWarning() << "SQL UPDATE Error: "<<q.lastError();
     return false;
   }
 
-  qDebug() << "Wrote Entry change to ids "<<idlist;
+  //  qDebug() << "Wrote Entry change to ids "<<idlist;
   emit dataChanged();
   return true;
 }
@@ -705,6 +722,18 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
   return true;  // no error
 }
 
+bool KLFLibDBEngine::saveAs(const QUrl& newPath)
+{
+  if (newPath.scheme() != "klf+sqlite") {
+    qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Bad scheme!";
+    return false;
+  }
+  if (!newPath.host().isEmpty()) {
+    qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Expected empty host!";
+    return false;
+  }
+  return QFile::copy(url().path(), newPath.path());
+}
 
 // static
 bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)

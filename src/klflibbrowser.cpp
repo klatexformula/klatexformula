@@ -497,6 +497,12 @@ bool KLFLibBrowser::slotResourceNew()
 bool KLFLibBrowser::slotResourceSaveAs()
 {
   return false;
+  // YET TO BE IMPLEMENTED... using the factories to get a save as... widget..
+  //   KLFLibBrowserViewContainer *view = curView();
+  //   if (view == NULL) {
+  //     qWarning("KLFLibBrowser::slotResourceProperties: NULL View!");
+  //     return false;
+  //   }
 }
 
 void KLFLibBrowser::slotResourceDataChanged()

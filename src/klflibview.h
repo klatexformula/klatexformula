@@ -264,8 +264,12 @@ public:
   virtual bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row,
 			    int column, const QModelIndex& parent);
 
-  enum { DropWillCategorize = 0x0001, DropWillMove = 0x0002 };
+  enum { DropWillAccept = 0x0001,
+	 DropWillCategorize = 0x0002,
+	 DropWillMove = 0x0004 };
   virtual uint dropFlags(QDragMoveEvent *event);
+
+  virtual QImage dragImage(const QModelIndexList& indexes);
 
   //  /** \note does NOT emit dataChanged(). */
   //  virtual bool setViewUserData(const QModelIndex & index, const QVariant & value, int role);
@@ -414,7 +418,9 @@ private:
   bool dropCanInternal(const QMimeData *data);
 };
 
+
 // -----------------
+
 
 class KLF_EXPORT KLFLibViewDelegate : public QAbstractItemDelegate
 {
@@ -539,10 +545,7 @@ private:
 
   QList<QAction*> pShowColumnActions;
 
-  /** Needed for workaround a Qt bug/feature when fixing selection for mouse events */
-  bool pStateMousePress;
-  QItemSelection pDeferSelect;
-  QItemSelection pDeferDeselect;
+  bool pEventFilterNoRecurse;
 
   QModelIndexList selectedEntryIndexes() const;
 

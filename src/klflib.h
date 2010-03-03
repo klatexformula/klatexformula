@@ -346,7 +346,8 @@ public slots:
 
   /** If the \ref FeatureSaveAs is supported (passed to the constructor), reimplement this
    * function to save the resource data in the new path specified by \c newPath.
-   * The \c newPath is garanteed to have same schema as the previous url. */
+   * The \c newPath is garanteed to have same schema as the previous url.
+   * */
   virtual bool saveAs(const QUrl& newPath);
 
 protected:
@@ -492,6 +493,12 @@ public:
 					       QObject *parent = NULL);
 
 
+  virtual bool canResourceSaveAs(const QString& scheme) const;
+  virtual QWidget *createPromptSaveAsWidget(QWidget *parent, const QString& scheme,
+					    const QUrl& defaultUrl);
+  virtual QUrl retrieveSaveAsUrlFromWidget(const QString& scheme, QWidget *widget);
+
+
   /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
    * factory exists (ie. has been registered). */
   static KLFLibEngineFactory *findFactoryFor(const QString& urlScheme);
@@ -579,6 +586,7 @@ public slots:
   virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
 			   const QList<QVariant>& values);
   virtual bool deleteEntries(const QList<entryId>& idlist);
+  virtual bool saveAs(const QUrl& newPath);
 
 protected:
   virtual bool saveResourceProperty(int propId, const QVariant& value);
