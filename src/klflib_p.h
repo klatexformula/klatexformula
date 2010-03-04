@@ -36,6 +36,8 @@
 
 #include <ui_klflibsqliteopenwidget.h>
 
+#include "klflib.h"
+
 
 /** \internal */
 class KLFLibSqliteOpenWidget : public QWidget, protected Ui::KLFLibSqliteOpenWidget
@@ -46,6 +48,7 @@ public:
   {
     setupUi(this);
     setProperty("readyToOpen", false);
+    updateTables();
   }
   virtual ~KLFLibSqliteOpenWidget() { }
 
@@ -55,11 +58,26 @@ public:
   virtual QUrl url() const {
     QUrl url = QUrl::fromLocalFile(txtFile->text());
     url.setScheme("klf+sqlite");
+    int tindex = cbxTable->currentIndex();
+    if (tindex > 0) {
+      QString datatablename = cbxTable->itemData(tindex).toString();
+      url.addQueryItem("dataTableName", datatablename);
+    } else {
+      url.addQueryItem("dataTableName", "klfentries");
+    }
     return url;
   }
 
 signals:
   void readyToOpen(bool ready);
+
+protected:
+  virtual bool isReadyToOpen(const QString& text = QString()) const
+  {
+    QString t = text.isNull() ? txtFile->text() : text;
+    return QFileInfo(t).isFile();
+  }
+
 
 protected slots:
   virtual void on_btnBrowse_clicked()
@@ -73,7 +91,31 @@ protected slots:
   }
   virtual void on_txtFile_textChanged(const QString& text)
   {
-    emit readyToOpen(QFileInfo(text).isFile());
+    bool ready = isReadyToOpen(text);
+    if (ready != property("readyToOpen").toBool()) {
+      // ready to open state changes
+      setProperty("readyToOpen", ready);
+      emit readyToOpen(ready);
+    }
+    updateTables();
+  }
+  virtual void updateTables()
+  {
+    // clear combo box
+    while (cbxTable->count() > 1)
+      cbxTable->removeItem(1);
+    if (!property("readyToOpen").toBool()) {
+      cbxTable->setEnabled(false);
+      return;
+    }
+    cbxTable->setEnabled(true);
+    // get tables
+    QStringList datatables = KLFLibDBEngine::getDataTableNames(url());
+    // and populate combo
+    int k;
+    for (k = 0; k < datatables.size(); ++k) {
+      cbxTable->addItem(datatables[k], QVariant::fromValue(datatables[k]));
+    }
   }
 
 };

@@ -580,6 +580,10 @@ public:
    * \c "t_" prefix. */
   static bool initFreshDatabase(QSqlDatabase db, const QString& datatablename);
 
+  /** Lists the data tables present in the given database. This function
+   * is not very optimized. (it opens and closes the resource) */
+  static QStringList getDataTableNames(const QUrl& url);
+
 public slots:
 
   virtual QList<entryId> insertEntries(const KLFLibEntryList& entries);

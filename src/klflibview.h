@@ -271,9 +271,6 @@ public:
 
   virtual QImage dragImage(const QModelIndexList& indexes);
 
-  //  /** \note does NOT emit dataChanged(). */
-  //  virtual bool setViewUserData(const QModelIndex & index, const QVariant & value, int role);
-
   virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 
   virtual int entryColumnContentsPropertyId(int column) const;

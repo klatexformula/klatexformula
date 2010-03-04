@@ -22,6 +22,7 @@
 /* $Id$ */
 
 #include <QDebug>
+#include <QString>
 #include <QBuffer>
 #include <QByteArray>
 #include <QDataStream>
@@ -337,6 +338,12 @@ static T metatype_from_data(const QByteArray& data)
 // static
 KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 {
+
+  QString datatablename = url.queryItemValue("dataTableName");
+  if (datatablename.isEmpty()) {
+    return NULL;
+  }
+
   QSqlDatabase db;
   if (url.scheme() == "klf+sqlite") {
     db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
@@ -346,10 +353,6 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 	     qPrintable(url.toString()));
     return NULL;
   }
-
-  QString datatablename = url.queryItemValue("dataTableName");
-  if (datatablename.isEmpty())
-    datatablename = "klfentries";
 
   if ( !db.open() || db.lastError().isValid() ) {
     QMessageBox::critical(0, tr("Error"),
@@ -770,6 +773,20 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)
   return true;
 }
 
+
+QStringList KLFLibDBEngine::getDataTableNames(const QUrl& url)
+{
+  KLFLibDBEngine *resource = openUrl(url, NULL);
+  QStringList tables = resource->pDB.tables(QSql::Tables);
+  delete resource;
+  // filter out t_<tablename> tables
+  int k;
+  QStringList dataTableNames;
+  for (k = 0; k < tables.size(); ++k)
+    if (tables[k].startsWith("t_"))
+      dataTableNames << tables[k].mid(2);
+  return dataTableNames;
+}
 
 
 // ------------------------------------

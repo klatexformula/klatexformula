@@ -13,25 +13,31 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" colspan="2">
+  <layout class="QGridLayout" name="lyt_KLFLibSqliteOpenWidget">
+   <item row="0" column="0" colspan="3">
     <widget class="QLabel" name="label">
      <property name="text">
       <string>Location:</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="1" column="0" colspan="2">
     <widget class="QLineEdit" name="txtFile"/>
    </item>
-   <item row="1" column="1">
+   <item row="1" column="2">
     <widget class="QPushButton" name="btnBrowse">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
       <string>...</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -43,6 +49,22 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Table:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" colspan="2">
+    <widget class="QComboBox" name="cbxTable">
+     <item>
+      <property name="text">
+       <string extracomment="[[sqlite open widget; use default table]]">( Default )</string>
+      </property>
+     </item>
+    </widget>
    </item>
   </layout>
  </widget>

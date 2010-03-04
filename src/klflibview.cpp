@@ -703,7 +703,6 @@ QImage KLFLibModel::dragImage(const QModelIndexList& indexes)
   image.fill(qRgba(0,0,0,0));
   {
     QPainter p(&image);
-    //    p.setOpacity(0.5);
     QPointF P(0,0);
     QPointF lastimgbr;
     for (k = 0; k < N; ++k) {
@@ -725,19 +724,6 @@ QImage KLFLibModel::dragImage(const QModelIndexList& indexes)
   }
   return image;
 }
-
-
-// bool KLFLibModel::setViewUserData(const QModelIndex& index, const QVariant& value, int role)
-// {
-//   if ( ! index.isValid() )
-//     return false;
-//   Node *node = getNodeForIndex(index);
-//   if (role >= ViewUserDataRoleBegin && role <= ViewUserDataRoleEnd) {
-//     node->viewUserData[role] = value;
-//     return true;
-//   }
-//   return false;
-// }
 
 
 bool KLFLibModel::isDesendantOf(const QModelIndex& child, const QModelIndex& ancestor)
@@ -2522,9 +2508,9 @@ void klf___temp___test_newlib()
     view->show();*/
   KLFLibBrowser * w = new KLFLibBrowser(NULL);
   w->setAttribute(Qt::WA_DeleteOnClose, true);
-  w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_sqlite_test")),
+  w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_sqlite_test?dataTableName=klfentries")),
 		  KLFLibBrowser::NoCloseRoleFlag);
-  w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_another_resource.klf.db")));
+  w->openResource(QUrl(QLatin1String("klf+sqlite:///home/philippe/temp/klf_another_resource.klf.db?dataTableName=klfentries")));
 
   w->show();
 

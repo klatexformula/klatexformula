@@ -885,7 +885,6 @@ void KLFLibBrowser::updateSearchFound(bool found)
 
 void KLFLibBrowser::slotSearchFocusIn()
 {
-  qDebug("Focus in...");
   pUi->txtSearch->setProperty("searchState", QString("default"));
   pUi->txtSearch->setPalette(pUi->txtSearch->property("defaultPalette").value<QPalette>());
   pUi->txtSearch->blockSignals(true);
@@ -894,7 +893,6 @@ void KLFLibBrowser::slotSearchFocusIn()
 }
 void KLFLibBrowser::slotSearchFocusOut()
 {
-  qDebug("Focus out...");
   pUi->txtSearch->setProperty("searchState", QString("focus-out"));
   pUi->txtSearch->setStyleSheet(pUi->txtSearch->styleSheet());
   pUi->txtSearch->setPalette(pUi->txtSearch->property("paletteFocusOut").value<QPalette>());
