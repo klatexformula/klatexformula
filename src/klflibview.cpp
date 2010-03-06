@@ -722,7 +722,11 @@ QImage KLFLibModel::dragImage(const QModelIndexList& indexes)
       p.drawPoint(br - QPointF(15,5));
     }
   }
-  return image;
+
+  //  /// \bug DEBUG: ........ BUG/TODO ...... REMOVE THIS AFTER DEBUGGING
+  //  image.save("/home/philippe/temp/klf_drag_image.png", "PNG");
+
+  return autocrop_image(image);
 }
 
 
@@ -1629,6 +1633,10 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     treeView->setSortingEnabled(true);
     treeView->setIndentation(16);
     treeView->setAllColumnsShowFocus(true);
+    connect(treeView, SIGNAL(expanded(const QModelIndex&)),
+	    this, SLOT(slotExpanded(const QModelIndex&)));
+    connect(treeView, SIGNAL(collapsed(const QModelIndex&)),
+	    this, SLOT(slotCollapsed(const QModelIndex&)));
     pView = treeView;
     break;
   };
@@ -1651,10 +1659,6 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 	  this, SLOT(slotViewItemClicked(const QModelIndex&)));
   connect(pView, SIGNAL(doubleClicked(const QModelIndex&)),
 	  this, SLOT(slotEntryDoubleClicked(const QModelIndex&)));
-  connect(pView, SIGNAL(expanded(const QModelIndex&)),
-	  this, SLOT(slotExpanded(const QModelIndex&)));
-  connect(pView, SIGNAL(collapsed(const QModelIndex&)),
-	  this, SLOT(slotCollapsed(const QModelIndex&)));
 }
 KLFLibDefaultView::~KLFLibDefaultView()
 {
@@ -1676,13 +1680,21 @@ bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
       bool showdropindic = (fl & KLFLibModel::DropWillCategorize);
       pView->setDropIndicatorShown(showdropindic);
       // decide whether to accept the drop or to ignore it
-      if ( !(fl & KLFLibModel::DropWillAccept) ) {
+      if ( !(fl & KLFLibModel::DropWillAccept) && pViewType != IconView ) {
+	// don't ignore if in icon view (user can move the equations freely...by drag&drop)
 	de->ignore();
       } else {
+	qDebug()<<"Drag: pos="<<de->pos();
+	pView->setProperty("tmpPressedPosition", de->pos());
+	de->accept();
 	// and FAKE a QDragMoveEvent to the item view.
 	QDragEnterEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
 				  de->keyboardModifiers());
-	qApp->sendEvent(pView->viewport(), &fakeevent);
+	// 	if (pView->inherits("KLFLibDefTreeView"))
+	// 	  qobject_cast<KLFLibDefTreeView*>(pView)->simulateEvent(&fakeevent);
+	// 	if (pView->inherits("KLFLibDefListView"))
+	// 	  qobject_cast<KLFLibDefListView*>(pView)->simulateEvent(&fakeevent);
+	qApp->sendEvent(object, &fakeevent);
       }
       pEventFilterNoRecurse = false;
       return true;
@@ -1693,22 +1705,58 @@ bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
       QDragMoveEvent *de = (QDragMoveEvent*) event;
       uint fl = pModel->dropFlags(de);
       // decide whether to accept the drop or to ignore it
-      if ( !(fl & KLFLibModel::DropWillAccept) ) {
+      if ( !(fl & KLFLibModel::DropWillAccept) && pViewType != IconView ) {
+	// don't ignore if in icon view (user can move the equations freely...by drag&drop)
 	de->ignore();
       } else {
 	// check proposed actions
-	if (fl & KLFLibModel::DropWillMove) {
+	if ( (fl & KLFLibModel::DropWillMove) || pViewType == IconView ) {
 	  de->setDropAction(Qt::MoveAction);
-	  de->accept();
 	} else {
 	  de->setDropAction(Qt::CopyAction);
-	  de->accept();
 	}
+	de->accept();
 	// and FAKE a QDragMoveEvent to the item view.
 	QDragMoveEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
 				 de->keyboardModifiers());
-	qApp->sendEvent(pView->viewport(), &fakeevent);
+	//	if (pView->inherits("KLFLibDefTreeView"))
+	//	  qobject_cast<KLFLibDefTreeView*>(pView)->simulateEvent(&fakeevent);
+	//	if (pView->inherits("KLFLibDefListView"))
+	//	  qobject_cast<KLFLibDefListView*>(pView)->simulateEvent(&fakeevent);
+	qApp->sendEvent(object, &fakeevent);
       }
+      pEventFilterNoRecurse = false;
+      return true;
+    }
+    if (event->type() == QEvent::Drop) {
+      if (pEventFilterNoRecurse) return false;
+      pEventFilterNoRecurse = true;
+      QDropEvent *de = (QDropEvent*) event;
+      if ( pViewType == IconView ) {
+	// internal move -> send event directly
+	//	qobject_cast<KLFLibDefListView*>(pView)->simulateEvent(event);
+	//	qApp->sendEvent(object, event);
+	// move the objects ourselves because of bug (?) in Qt's handling?
+	QPoint delta = de->pos() - pView->property("tmpPressedPosition").toPoint();
+	qDebug()<<"Delta is "<<delta;
+	// and fake a QDragLeaveEvent
+	QDragLeaveEvent fakeevent;
+	qApp->sendEvent(object, &fakeevent);
+	// and manually move all selected indexes
+	qobject_cast<KLFLibDefListView*>(pView)->moveSelectedBy(delta);
+	pView->viewport()->update();
+      } else {
+	// and FAKE a QDropEvent to the item view.
+	qDebug()<<"Drop event at position="<<de->pos();
+	QDropEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
+				 de->keyboardModifiers());
+	// 	if (pView->inherits("KLFLibDefTreeView"))
+	// 	  qobject_cast<KLFLibDefTreeView*>(pView)->simulateEvent(&fakeevent);
+	// 	if (pView->inherits("KLFLibDefListView"))
+	// 	  qobject_cast<KLFLibDefListView*>(pView)->simulateEvent(&fakeevent);
+	qApp->sendEvent(object, &fakeevent);
+      }
+
       pEventFilterNoRecurse = false;
       return true;
     }
@@ -2270,11 +2318,11 @@ KLFLibEngineFactory::Parameters KLFLibCreateResourceDlg::getCreateParameters() c
 void KLFLibCreateResourceDlg::accept()
 {
   const Parameters p = getCreateParameters();
-  if (p == Parameters() || p["cancel"].toBool() == true) {
+  if (p == Parameters() || p["klfCancel"].toBool() == true) {
     QDialog::reject();
     return;
   }
-  if (p["retry"].toBool() == true)
+  if (p["klfRetry"].toBool() == true)
     return; // ignore accept, reprompt user
 
   // then by default accept the event

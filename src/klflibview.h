@@ -498,6 +498,8 @@ public:
 
   virtual KLFLibEntryList selectedEntries() const;
 
+  virtual ViewType viewType() const { return pViewType; }
+
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
   //  enum { ViewUserDataExpandedRole = KLFLibModel::ViewUserDataRoleBegin };

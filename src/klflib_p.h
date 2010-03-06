@@ -132,6 +132,10 @@ public:
     /// \todo ...TODO.....: Add option to change main table name
     pConfirmedOverwrite = false;
     setProperty("readyToCreate", false);
+
+    // can only create a "klfentries" table
+    lblTable->hide();
+    cbxTable->hide();
   }
   virtual ~KLFLibSqliteCreateWidget() { }
 

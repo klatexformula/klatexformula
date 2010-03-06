@@ -872,7 +872,7 @@ KLFLibEngineFactory::Parameters
 			     QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel,
 			     QMessageBox::No);
       if (result == QMessageBox::No) {
-	p["retry"] = true;
+	p["klfRetry"] = true;
 	return p;
       } else if (result == QMessageBox::Cancel) {
 	return Parameters();

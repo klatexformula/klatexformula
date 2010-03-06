@@ -479,10 +479,10 @@ public:
   /** get the parameters edited by user, that are stored in \c widget GUI.
    *
    * Some special parameters are recognized by the system:
-   * <tt>param["retry"]=true</tt> will cause the dialog not to exit but re-prompt user to
+   * <tt>param["klfRetry"]=true</tt> will cause the dialog not to exit but re-prompt user to
    * possibly change his input (could result from user clicking "No" in a "Overwrite?"
    * dialog presented in a reimplementation of this function).
-   * <tt>param["cancel"]=true</tt> will cause the `create resource' process to be cancelled.
+   * <tt>param["klfCancel"]=true</tt> will cause the `create resource' process to be cancelled.
    *
    * If an empty Parameters() is returned, it is also interpreted as a cancel operation.
    * */
