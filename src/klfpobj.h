@@ -101,14 +101,21 @@ public:
    */
   virtual QString toString(uint toStringFlags = 0) const;
 
-
+  //! See the corresponding protected static method
   int propertyMaxId() const;
+  //! See the corresponding protected static method
   bool propertyIdRegistered(int propId) const;
+  //! See the corresponding protected static method
   bool propertyNameRegistered(const QString& propertyName) const;
+  //! See the corresponding protected static method
   int propertyIdForName(const QString& propertyName) const;
+  //! See the corresponding protected static method
   QString propertyNameForId(int propId) const;
+  //! See the corresponding protected static method
   QList<int> registeredPropertyIdList() const;
+  //! See the corresponding protected static method
   QStringList registeredPropertyNameList() const;
+  //! See the corresponding protected static method
   QMap<QString, int> registeredProperties() const;
 
 protected:
@@ -137,8 +144,9 @@ protected:
    * \returns The property ID that was set or -1 for failure. */
   virtual int loadProperty(const QString& propname, const QVariant& value);
 
-  // shortcuts for the corresponding static methods
+  /** shortcut for the corresponding static method */
   void registerBuiltInProperty(int propId, const QString& name) const;
+  /** shortcut for the corresponding static method */
   int registerProperty(const QString& propertyName) const;
 
   /** \note If property name space does not exist, it is created. */

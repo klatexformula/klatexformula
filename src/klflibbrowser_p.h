@@ -67,20 +67,106 @@ public:
 
   KLFAbstractLibView * view() { return qobject_cast<KLFAbstractLibView*>(currentWidget()); }
 
-  
   QStringList supportedViewTypeIdentifiers() const { return pOkViewTypeIdents; }
+
+  void setResourceRoleFlags(uint flags) {
+    pResFlags = flags;
+  }
+  uint resourceRoleFlags() const { return pResFlags; }
+
+  QVariantMap saveGuiState() const {
+    QVariantMap v;
+    QList<QVariant> vlist; // will hold QVariantMap's
+    for (QMap<QString,int>::const_iterator cit = pOpenViewTypeIdents.begin();
+	 cit != pOpenViewTypeIdents.end(); ++cit) {
+      KLFAbstractLibView *view = qobject_cast<KLFAbstractLibView*>(widget(*cit));
+      QString vti = cit.key(); // view type identifier
+      QVariantMap vstate;
+      vstate["ViewTypeIdentifier"] = vti;
+      if (vti == "default") {
+	// category tree
+	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
+	// nothing to save
+      } else if (vti == "default+list") {
+	// list
+	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
+	// nothing to save
+      } else if (vti == "default+icons") {
+	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
+	// save icon positions
+	QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions = dview->allIconPositions();
+	QMap<KLFLibResourceEngine::entryId,QPoint>::const_iterator it;
+	QVariantList vEntryIds; // will hold entryId's in qint32 format
+	QVariantList vPositions; // will hold QPoint's
+	for (it = iconpositions.begin(); it != iconpositions.end(); ++it) {
+	  vEntryIds << QVariant::fromValue<qint32>(it.key());
+	  vPositions << QVariant::fromValue<QPoint>(it.value());
+	}
+	vstate["IconPositionsEntryIdList"] = QVariant::fromValue<QVariantList>(vEntryIds);
+	vstate["IconPositionsPositionList"] = QVariant::fromValue<QVariantList>(vPositions);
+      } else {
+	// this view type is not known to us, can't save anything.
+	qDebug()<<"Unknown View Type encountered "<<vti<<": can't save its GUI state.";
+      }
+      vlist << QVariant::fromValue<QVariantMap>(vstate);
+    }
+    v["StateList"] = vlist;
+    return v;
+  }
+  void loadGuiState(const QVariantMap& v) {
+    const QList<QVariant> vlist = v["StateList"].toList(); // will hold QVariantMap's
+    int k;
+    for (k = 0; k < vlist.size(); ++k) {
+      const QVariantMap vstate = vlist[k].toMap();
+      QString vti = vstate["ViewTypeIdentifier"].toString();
+      bool res = openView(vti);
+      if (!res) {
+	qWarning()<<"Can't open view of type "<<vti<<" for resource "<<url()<<"!";
+	continue;
+      }
+      KLFAbstractLibView *view
+	= qobject_cast<KLFAbstractLibView*>(widget(pOpenViewTypeIdents.value(vti)));
+      if (view == NULL)
+	continue;
+      if (vti == "default") {
+	// category tree
+	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
+	// nothing to load
+      } else if (vti == "default+list") {
+	// list
+	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
+	// nothing to load
+      } else if (vti == "default+icons") {
+	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
+	//
+	QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
+	QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
+	QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
+	int k;
+	for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
+	  iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
+	}
+	dview->loadIconPositions(iconpositions);
+      } else {
+	// this view type is not known to us, can't save anything.
+	qDebug()<<"Unknown View Type encountered "<<vti<<": can't save its GUI state.";
+      }
+    }
+  }
 
 public slots:
   bool openView(const QString& viewTypeIdent) {
+    // see if we already have this view type open and ready
     if (pOpenViewTypeIdents.contains(viewTypeIdent)) {
       setCurrentIndex(pOpenViewTypeIdents[viewTypeIdent]);
       return true;
     }
-    // instanciate view
+    // otherwise, instanciate view
     KLFLibViewFactory *factory =
 	KLFLibViewFactory::findFactoryFor(viewTypeIdent);
     KLFAbstractLibView *v = factory->createLibView(viewTypeIdent, this, pResource);
     if (v == NULL) {
+      qWarning() << "The factory can't open a view of type "<<viewTypeIdent<<"!";
       return false;
     }
     v->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -97,6 +183,8 @@ public slots:
 	    this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
     connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
 	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
+
+    pResource->setViewType(viewTypeIdent);
 
     int index = addWidget(v);
     pOpenViewTypeIdents[viewTypeIdent] = index;
@@ -125,7 +213,10 @@ protected:
   QStringList pOkViewTypeIdents;
   KLFLibResourceEngine *pResource;
 
+  /** Stores the view type identifier with the index in widget stack for each open view */
   QMap<QString,int> pOpenViewTypeIdents;
+
+  uint pResFlags;
 };
 
 

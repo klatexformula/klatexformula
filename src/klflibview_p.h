@@ -108,7 +108,8 @@ class KLFLibDefListView : public QListView
 {
   Q_OBJECT
 public:
-  KLFLibDefListView(KLFLibDefaultView *parent) : QListView(parent), pDView(parent) { }
+  KLFLibDefListView(KLFLibDefaultView *parent)
+    : QListView(parent), pDView(parent), pWantRelayout(true) { }
 
   void simulateEvent(QEvent *e) {
     event(e);
@@ -124,15 +125,37 @@ public:
       setPositionForIndex(newp, sel[k]);
     }
   }
+
+  void forceRelayout() {
+    bool wr = pWantRelayout;
+    pWantRelayout = true;
+    doItemsLayout();
+    pWantRelayout = wr;
+  }
+
+  QPoint iconPosition(const QModelIndex& index) {
+    return rectForIndex(index).topLeft();
+  }
+  void setIconPosition(const QModelIndex& index, const QPoint& pos) {
+    setPositionForIndex(pos, index);
+    pWantRelayout = false;
+  }
   
 protected:
   virtual void startDrag(Qt::DropActions supportedActions) {
     klf_common_start_drag(this, supportedActions);
   }
+  virtual void doItemsLayout() {
+    if (pWantRelayout)
+      QListView::doItemsLayout();
+    // else ignore request
+  }
 
   KLFLibDefaultView *pDView;
 
   friend void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
+
+  bool pWantRelayout;
 };
 
 
@@ -161,6 +184,11 @@ static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supporte
       // icon view -> move icons around
       qDebug()<<"Internal DRAG!";
       /// \bug ......BUG/TODO........ WARNING: NOT in offical Qt API !
+	;
+      // if icon positions are locked abort
+      if (model->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
+	return;
+
       lv->internalDrag(supportedActions);
       return;
     }

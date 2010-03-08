@@ -282,6 +282,14 @@ public:
 
   virtual void updateData();
 
+  //! Call repeatedly to walk all indexes (once each exactly, first column only)
+  virtual QModelIndex walkNextIndex(const QModelIndex& cur);
+  //! Call repeatedly to walk all indexes in model in reverse order
+  virtual QModelIndex walkPrevIndex(const QModelIndex& cur);
+
+  virtual KLFLibResourceEngine::entryId entryIdForIndex(const QModelIndex& index) const;
+  virtual QModelIndex findEntryId(KLFLibResourceEngine::entryId eid) const;
+
 public slots:
 
   virtual QModelIndex searchFind(const QString& queryString, bool forward = true);
@@ -502,7 +510,16 @@ public:
 
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
-  //  enum { ViewUserDataExpandedRole = KLFLibModel::ViewUserDataRoleBegin };
+  /** If the ViewType (as returned by \ref viewType()) is \ref IconView (and ONLY in
+   * this case) this function returns the positions of all the icon positions and the
+   * entry IDs to which they refer. */
+  virtual QMap<KLFLibResourceEngine::entryId,QPoint> allIconPositions() const;
+
+  /** If the ViewType (as returned by \ref viewType()) is \ref IconView (and ONLY in
+   * this case) this function restores the positions of all the icons as described
+   * in the \c iconPositions map, for example which has been obtained by a call
+   * to \ref allIconPositions() some time earlier. */
+  virtual void loadIconPositions(const QMap<KLFLibResourceEngine::entryId,QPoint>& iconPositions);
 
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
@@ -515,7 +532,9 @@ public slots:
 
   virtual void restore(uint restoreflags = KLFLib::RestoreLatexAndStyle);
 
-  void slotSelectAll(const QModelIndex& parent = QModelIndex());
+  virtual void slotSelectAll(const QModelIndex& parent = QModelIndex());
+  virtual void slotRelayoutIcons();
+  virtual void slotLockIconPositions(bool locked);
 
 protected:
   virtual void updateResourceView();
@@ -542,7 +561,11 @@ private:
   KLFLibViewDelegate *pDelegate;
   KLFLibModel *pModel;
 
+  QList<QAction*> pCommonActions;
   QList<QAction*> pShowColumnActions;
+  QAction *pIconViewRelayoutAction;
+  QAction *pIconViewLockAction;
+  QList<QAction*> pIconViewActions;
 
   bool pEventFilterNoRecurse;
 

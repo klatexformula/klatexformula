@@ -22,6 +22,7 @@
 /* $Id$ */
 
 #include <QDebug>
+#include <QFile>
 #include <QMenu>
 #include <QAction>
 #include <QEvent>
@@ -141,6 +142,17 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
 
 KLFLibBrowser::~KLFLibBrowser()
 {
+  /// \bug ........... DEBUG/TODO ........... REMOVE THIS BEFORE RELEASE VERSION ................
+
+  // save state to local file
+  qDebug()<<"LibBrowser: Saving GUI state !";
+  QVariantMap vm = saveGuiState();
+  QFile f("/home/philippe/temp/klf_saved_libbrowser_state");
+  f.open(QIODevice::WriteOnly);
+  QDataStream str(&f);
+  str << vm;
+
+
   int k;
   for (k = 0; k < pLibViews.size(); ++k) {
     KLFLibResourceEngine * engine = pLibViews[k]->resourceEngine();
@@ -201,6 +213,63 @@ KLFLibResourceEngine * KLFLibBrowser::getOpenResource(const QUrl& url)
   if (viewc == NULL)
     return NULL;
   return viewc->resourceEngine();
+}
+
+
+QVariantMap KLFLibBrowser::saveGuiState()
+{
+  QVariantMap v;
+  // first save the list of open URLs
+  QList<QUrl> myurllist = openUrls();
+
+  QList<QVariant> urllist; // will hold URL's as QUrl's
+  QList<QVariant> viewstatelist; // will hold variantMap's
+  QList<QVariant> resroleflagslist; // will hold quint32's
+
+  int k;
+  for (k = 0; k < myurllist.size(); ++k) {
+    KLFLibBrowserViewContainer *viewc = findOpenUrl(myurllist[k]);
+    if (viewc == NULL) {
+      qWarning()<<"Should NOT HAPPEN! viewc is NULL in KLFLibBrowser::saveGuiState()! URL-List=\n"
+		<<myurllist;
+      continue;
+    }
+    QVariantMap viewState = viewc->saveGuiState();
+    urllist << QVariant::fromValue<QUrl>(myurllist[k]);
+    viewstatelist << QVariant::fromValue<QVariantMap>(viewState);
+    resroleflagslist << QVariant::fromValue<quint32>(viewc->resourceRoleFlags());
+  }
+  v["UrlList"] = QVariant::fromValue<QVariantList>(urllist);
+  v["ViewStateList"] = QVariant::fromValue<QVariantList>(viewstatelist);
+  v["ResourceRoleFlagsList"] = QVariant::fromValue<QVariantList>(resroleflagslist);
+  return v;
+}
+void KLFLibBrowser::loadGuiState(const QVariantMap& v)
+{
+  QList<QVariant> urllist = v["UrlList"].toList();
+  QList<QVariant> viewstatelist = v["ViewStateList"].toList();
+  QList<QVariant> resroleflagslist = v["ResourceRoleFlagsList"].toList();
+  int k;
+  for (k = 0; k < urllist.size(); ++k) {
+    QUrl url = urllist[k].toUrl();
+    quint32 flags = resroleflagslist[k].value<quint32>();
+    QVariantMap viewState = viewstatelist[k].toMap();
+    // open this URL
+    bool res = openResource(url, flags);
+    if ( ! res ) {
+      qWarning()<<"KLFLibBrowser::loadGuiState: Can't open resource "<<url<<"! (flags="
+		<<flags<<")";
+      continue;
+    }
+    KLFLibBrowserViewContainer *viewc = findOpenUrl(url); // get the freshly opened view
+    if (viewc == NULL) {
+      qWarning()<<"Should NOT HAPPEN! viewc is NULL in KLFLibBrowser::loadGuiState()! urllist=\n"
+		<<urllist<< "\n"<<"at k="<<k<<" in list: "<<url;
+      continue;
+    }
+    // and load the view's gui state
+    viewc->loadGuiState(viewState);
+  }
 }
 
 
@@ -284,6 +353,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   // now create appropriate view for this resource
   QString viewtypeident = viewTypeIdentifier;
   if (viewtypeident.isEmpty())
+    viewtypeident = resource->viewType();
+  if (viewtypeident.isEmpty())
     viewtypeident = resource->suggestedViewTypeIdentifier();
   if (viewtypeident.isEmpty())
     viewtypeident = KLFLibViewFactory::defaultViewTypeIdentifier();
@@ -305,6 +376,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
     qWarning()<<"KLFLibBrowser::openResource: can't create view! viewtypeident="<<viewtypeident<<".";
     return false;
   }
+
+  resource->setViewType(viewtypeident);
 
   // get informed about selection changes
   connect(viewc, SIGNAL(entriesSelected(const KLFLibEntryList& )),
@@ -349,9 +422,9 @@ bool KLFLibBrowser::closeResource(const QUrl& url)
 }
 
 
-void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *view, uint resroleflags)
+void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *viewc, uint resroleflags)
 {
-  view->setProperty("resourceRoleFlags", resroleflags);
+  viewc->setResourceRoleFlags(resroleflags);
 }
 
 

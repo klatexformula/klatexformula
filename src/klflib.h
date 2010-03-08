@@ -227,9 +227,20 @@ public:
    * the \ref locked() property and \ref isReadOnly() state. If the base implementation
    * returns FALSE, then the subclasses should also return FALSE.
    *
+   * If \c propId is negative, then a more general "Can we generally speaking modify properties
+   * right now?" is returned.
+   *
    * \note The base implementation returns TRUE if the resource is locked but if \c propId is
    * \ref PropLocked (to be able to un-lock the resource!) */
   virtual bool canModifyProp(int propId) const;
+
+  /** Subclasses should return TRUE if they can handle a new resource property that they
+   * (maybe) haven't yet heard of, and if they can handle saving and loading the property
+   * as a \ref QVariant to and from the backend data.
+   * 
+   * Call \ref loadResourceProperty() to actually register the property and save a value
+   * to it. */
+  virtual bool canRegisterProperty(const QString& propName) const;
 
   /** Suggested library view widget to view this resource with optimal user experience :-) .
    * Return QString() for default view. */
@@ -350,19 +361,17 @@ public slots:
    * */
   virtual bool saveAs(const QUrl& newPath);
 
-protected:
 
-  //! Save a resource property to the backend resource data.
-  /** Subclasses should reimplement this function to save the value of the given resource
-   * property to the knew given value.
+  //! Get the value of a resource property
+  /** Returns the value of the given resource property. If the property is not registered,
+   * returns an invalid QVariant with a warning.
    *
-   * If the new value is inacceptable, or if the operation is not permitted, the subclass
-   * should return FALSE, in which case the resource property will not be changed.
-   *
-   */
-  virtual bool saveResourceProperty(int propId, const QVariant& value) = 0;
+   * For built-in resource properties, consider using the simpler \ref locked(), \ref title()
+   * and \ref viewType() methods (for example). */
+  virtual QVariant resourceProperty(const QString& name) const;
 
-  /** Set a resource property to the given value. This function calls in turn:
+  //! Set a resource property to the given value
+  /** This function calls in turn:
    * - \ref canModifyProp() to check whether the property can be modified
    * - \ref saveResourceProperty() to check whether the operation is permitted (the value
    *   is acceptable, or any other check the subclass would want to perform) and to save
@@ -374,6 +383,31 @@ protected:
    *   property ID, or if canModifyProp() returns FALSE.
    * */
   virtual bool setResourceProperty(int propId, const QVariant& value);
+
+  //! Set the given property to the given value
+  /** Very similar to calling \ref setResourceProperty() with the respective property
+   * ID (see \ref KLFPropertizedObject::propertyIdForName()), except the property is
+   * registered if it does't exist.
+   *
+   * The property is registered if it doesn't exist yet and the \ref canRegisterProperty()
+   * returns TRUE.
+   *
+   * Once the property has been possibly registered, setResourceProperty() is called.
+   */
+  virtual bool loadResourceProperty(const QString& propName, const QVariant& value);
+
+
+protected:
+
+  //! Save a resource property to the backend resource data.
+  /** Subclasses should reimplement this function to save the value of the given resource
+   * property to the knew given value.
+   *
+   * If the new value is inacceptable, or if the operation is not permitted, the subclass
+   * should return FALSE, in which case the resource property will not be changed.
+   *
+   */
+  virtual bool saveResourceProperty(int propId, const QVariant& value) = 0;
 
 private:
   void initRegisteredProperties();
@@ -562,6 +596,7 @@ public:
 
   virtual bool canModifyData(ModifyType modifytype) const;
   virtual bool canModifyProp(int propid) const;
+  virtual bool canRegisterProperty(const QString& propName) const;
 
   /** True if one has supplied a valid database in the constructor or with a
    * \ref setDatabase() call. */

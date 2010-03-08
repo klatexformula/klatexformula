@@ -53,6 +53,9 @@ public:
    * engines upon destruction. */
   KLFLibResourceEngine * getOpenResource(const QUrl& url);
 
+  QVariantMap saveGuiState();
+  void loadGuiState(const QVariantMap& state);
+
 signals:
   void requestRestore(const KLFLibEntry& entry, uint restoreFlags);
   void requestRestoreStyle(const KLFStyle& style);

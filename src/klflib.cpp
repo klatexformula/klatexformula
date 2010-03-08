@@ -106,6 +106,7 @@ void KLFLibResourceEngine::initRegisteredProperties()
 
   registerBuiltInProperty(PropTitle, "Title");
   registerBuiltInProperty(PropLocked, "Locked");
+  registerBuiltInProperty(PropViewType, "ViewType");
 }
 
 bool KLFLibResourceEngine::canModifyData(ModifyType /*modifytype*/) const
@@ -118,6 +119,10 @@ bool KLFLibResourceEngine::canModifyProp(int propId) const
     return !isReadOnly() && (pFeatureFlags & FeatureLocked);
 
   return !isReadOnly() && !locked();
+}
+bool KLFLibResourceEngine::canRegisterProperty(const QString& /*propName*/) const
+{
+  return false;
 }
 
 bool KLFLibResourceEngine::setTitle(const QString& title)
@@ -163,6 +168,26 @@ bool KLFLibResourceEngine::saveAs(const QUrl&)
   // not permitted by default. Subclasses must reimplement
   // to support this feature.
   return false;
+}
+
+QVariant KLFLibResourceEngine::resourceProperty(const QString& name) const
+{
+  return KLFPropertizedObject::property(name);
+}
+
+bool KLFLibResourceEngine::loadResourceProperty(const QString& propName, const QVariant& value)
+{
+  int propId = propertyIdForName(propName);
+  if (propId < 0) {
+    if (!canRegisterProperty(propName))
+      return false;
+    // register the property
+    propId = registerProperty(propName);
+    if (propId < 0)
+      return false;
+  }
+  // finally set the property
+  return setResourceProperty(propId, value);
 }
 
 bool KLFLibResourceEngine::setResourceProperty(int propId, const QVariant& value)
@@ -420,7 +445,12 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
   while (q.next()) {
     QString propname = q.value(0).toString();
     QVariant propvalue = q.value(1);
-    //    qDebug()<<"Setting property `"<<propname<<"' to `"<<propvalue<<"'";
+    qDebug()<<"Setting property `"<<propname<<"' to `"<<propvalue<<"'";
+    if (!propertyNameRegistered(propname)) {
+      if (!canRegisterProperty(propname))
+	continue;
+      KLFPropertizedObject::registerProperty(propname);
+    }
     KLFPropertizedObject::setProperty(propname, propvalue);
   }
 }
@@ -446,6 +476,11 @@ bool KLFLibDBEngine::canModifyData(ModifyType mt) const
 bool KLFLibDBEngine::canModifyProp(int propId) const
 {
   return KLFLibResourceEngine::canModifyProp(propId);
+}
+bool KLFLibDBEngine::canRegisterProperty(const QString& /*propName*/) const
+{
+  // we can register properties if we can write them
+  return canModifyProp(-1);
 }
 
 bool KLFLibDBEngine::validDatabase() const
