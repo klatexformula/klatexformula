@@ -196,6 +196,22 @@ bool KLFLibBrowser::eventFilter(QObject *obj, QEvent *ev)
   return QWidget::eventFilter(obj, ev);
 }
 
+int KLFLibBrowser::currentUrlIndex()
+{
+  KLFLibBrowserViewContainer *viewc = curView();
+  if (viewc == NULL)
+    return -1;
+  return pLibViews.indexOf(viewc);
+}
+
+QUrl KLFLibBrowser::currentUrl()
+{
+  int i = currentUrlIndex();
+  if (i < 0)
+    return QUrl();
+  return pLibViews[i]->url();
+}
+
 
 QList<QUrl> KLFLibBrowser::openUrls() const
 {
@@ -221,7 +237,7 @@ QVariantMap KLFLibBrowser::saveGuiState()
   QVariantMap v;
   // first save the list of open URLs
   QList<QUrl> myurllist = openUrls();
-
+  QUrl currenturl = currentUrl();
   QList<QVariant> urllist; // will hold URL's as QUrl's
   QList<QVariant> viewstatelist; // will hold variantMap's
   QList<QVariant> resroleflagslist; // will hold quint32's
@@ -242,10 +258,12 @@ QVariantMap KLFLibBrowser::saveGuiState()
   v["UrlList"] = QVariant::fromValue<QVariantList>(urllist);
   v["ViewStateList"] = QVariant::fromValue<QVariantList>(viewstatelist);
   v["ResourceRoleFlagsList"] = QVariant::fromValue<QVariantList>(resroleflagslist);
+  v["CurrentUrl"] = QVariant::fromValue<QUrl>(currenturl);
   return v;
 }
 void KLFLibBrowser::loadGuiState(const QVariantMap& v)
 {
+  QUrl currenturl = v["CurrentUrl"].toUrl();
   QList<QVariant> urllist = v["UrlList"].toList();
   QList<QVariant> viewstatelist = v["ViewStateList"].toList();
   QList<QVariant> resroleflagslist = v["ResourceRoleFlagsList"].toList();
@@ -270,6 +288,11 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v)
     // and load the view's gui state
     viewc->loadGuiState(viewState);
   }
+  qDebug()<<"Almost finished loading gui state.";
+  KLFLibBrowserViewContainer *curviewc = findOpenUrl(currenturl);
+  if (curviewc != NULL)
+    pUi->tabResources->setCurrentWidget(curviewc);
+  qDebug()<<"Loaded GUI state.";
 }
 
 

@@ -76,6 +76,13 @@ public:
   inline void setTags(const QString& s) { setProperty(Tags, s); }
   inline void setStyle(const KLFStyle& style) { setProperty(Style, QVariant::fromValue(style)); }
 
+  /** Set the property named \c name to value \c value. If the property does not
+   * yet exist in the registered properties, it is registered.
+   * \returns -1 for error, or the property ID that was successfully (maybe registered
+   * and) set.
+   */
+  int setEntryProperty(const QString& propName, const QVariant& value);
+
 private:
 
   void initRegisteredProperties();
@@ -86,6 +93,10 @@ Q_DECLARE_METATYPE(KLFLibEntry)
 
 typedef QList<KLFLibEntry> KLFLibEntryList;
 
+
+namespace KLFLib {
+  typedef qint32 entryId;
+}
 
 /** \brief An abstract resource engine
  *
@@ -163,7 +174,7 @@ class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObj
 {
   Q_OBJECT
 public:
-  typedef qint32 entryId;
+  typedef KLFLib::entryId entryId;
 
   struct KLFLibEntryWithId {
     KLFLibEntryWithId(entryId i = -1, const KLFLibEntry& e = KLFLibEntry())
@@ -340,7 +351,7 @@ public slots:
    * code.
    */
   virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
-			   const QList<QVariant>& values) = 0;
+			     const QList<QVariant>& values) = 0;
   //! Delete some entries in this resource.
   /** The entries specified by the ids \c idlist are deleted.
    *
@@ -640,10 +651,18 @@ private:
   bool pAutoDisconnectDB;
   QString pDataTableName; ///< \note WITH leading \c "t_" prefix.
 
-  QMap<int,int> detectEntryColumns(const QSqlQuery& q);
-  KLFLibEntry readEntry(const QSqlQuery& q, QMap<int,int> columns);
+  QStringList detectEntryColumns(const QSqlQuery& q);
+  KLFLibEntry readEntry(const QSqlQuery& q, const QStringList& columns);
 
   QVariant convertVariantToDBData(const QVariant& value) const;
+  QVariant convertVariantFromDBData(const QVariant& dbdata) const;
+  QVariant encaps(const char *ts, const QString& data) const;
+  QVariant encaps(const char *ts, const QByteArray& data) const;
+  QVariant decaps(const QString& string) const;
+  QVariant decaps(const QByteArray& data) const;
+
+  /** Inserts columns into datatable that don't exist for each extra registered property */
+  bool ensureDataTableColumnsExist();
 };
 
 /** The associated factory to the KLFLibDBEngine engine. */

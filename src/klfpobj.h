@@ -40,7 +40,7 @@
 class KLF_EXPORT KLFPropertizedObject
 {
 public:
-  KLFPropertizedObject(const QString& propertyNameSpace);
+  explicit KLFPropertizedObject(const QString& propertyNameSpace);
   virtual ~KLFPropertizedObject();
 
   virtual QVariant property(const QString& propname) const;
@@ -178,6 +178,8 @@ protected:
   QVector<QVariant> propertyVector() const { return pProperties; }
 
 private:
+  /** No default constructor. */
+  KLFPropertizedObject() { }
 
   QString pPropNameSpace;
 

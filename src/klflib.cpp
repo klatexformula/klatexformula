@@ -60,6 +60,19 @@ KLFLibEntry::~KLFLibEntry()
 }
 
 
+int KLFLibEntry::setEntryProperty(const QString& propName, const QVariant& value)
+{
+  int propId = propertyIdForName(propName);
+  if (propId < 0) {
+    // register the property
+    propId = registerProperty(propName);
+    if (propId < 0)
+      return -1;
+  }
+  // and set the property
+  setProperty(propId, value);
+  return propId;
+}
 
 // private
 void KLFLibEntry::initRegisteredProperties()
@@ -451,7 +464,7 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
 	continue;
       KLFPropertizedObject::registerProperty(propname);
     }
-    KLFPropertizedObject::setProperty(propname, propvalue);
+    KLFPropertizedObject::setProperty(propname, convertVariantFromDBData(propvalue));
   }
 }
 
@@ -515,7 +528,7 @@ bool KLFLibDBEngine::saveResourceProperty(int propId, const QVariant& value)
     QSqlQuery q = QSqlQuery(pDB);
     q.prepare("INSERT INTO klf_properties (name,value) VALUES (?,?)");
     q.bindValue(0, propName);
-    q.bindValue(1, value);
+    q.bindValue(1, convertVariantToDBData(value));
     if ( ! q.exec() || q.lastError().isValid() ) {
       qWarning()<<"KLFLibDBEngine::setRes.Property("<<propId<<","<<value<<"): can't INSERT!\n\t"
 		<<q.lastError().text()<<"\n\tSQL="<<q.lastQuery();
@@ -531,30 +544,40 @@ bool KLFLibDBEngine::saveResourceProperty(int propId, const QVariant& value)
 
 
 // private
-QMap<int,int> KLFLibDBEngine::detectEntryColumns(const QSqlQuery& q)
+QStringList KLFLibDBEngine::detectEntryColumns(const QSqlQuery& q)
 {
   const QSqlRecord rec = q.record();
-  QMap<int,int> cols;
-  KLFLibEntry e; // dummy entry to test property names
-  QList<int> props = e.registeredPropertyIdList();
+  QStringList cols;
+  KLFLibEntry dummy; // to get prop ID and possibly register property
   int k;
-  for (k = 0; k < props.size(); ++k) {
-    cols[props[k]] = rec.indexOf(e.propertyNameForId(props[k]));
+  for (k = 0; k < rec.count(); ++k) {
+    QString propName = rec.fieldName(k);
+    int propId = dummy.propertyIdForName(propName);
+    if (propId < 0)
+      dummy.setEntryProperty(propName, QVariant()); // register property.
+
+    cols << propName;
   }
   return cols;
 }
 // private
-KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, QMap<int,int> col)
+KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& cols)
 {
   // and actually read the result and return it
   KLFLibEntry entry;
-  entry.setLatex(q.value(col[KLFLibEntry::Latex]).toString());
-  entry.setDateTime(QDateTime::fromString(q.value(col[KLFLibEntry::DateTime]).toString(), Qt::ISODate));
-  QImage img; img.loadFromData(q.value(col[KLFLibEntry::Preview]).toByteArray());
-  entry.setPreview(img);
-  entry.setCategory(q.value(col[KLFLibEntry::Category]).toString());
-  entry.setTags(q.value(col[KLFLibEntry::Tags]).toString());
-  entry.setStyle(metatype_from_data<KLFStyle>(q.value(col[KLFLibEntry::Style]).toByteArray()));
+  int k;
+  for (k = 0; k < cols.size(); ++k) {
+    if (cols[k] == "DateTime")
+      entry.setDateTime(QDateTime::fromString(q.value(k).toString(), Qt::ISODate));
+    else if (cols[k] == "Preview") {
+      QImage img; img.loadFromData(q.value(k).toByteArray());
+      entry.setPreview(img);
+    } else if (cols[k] == "KLFStyle") {
+      entry.setStyle(metatype_from_data<KLFStyle>(q.value(k).toByteArray()));
+    } else {
+      entry.setEntryProperty(cols[k], convertVariantFromDBData(q.value(k)));
+    }
+  }
   return entry;
 }
 
@@ -605,7 +628,7 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
   QList<KLFLibEntryWithId> entryList;
 
   int colId = q.record().indexOf("id");
-  QMap<int,int> cols = detectEntryColumns(q);
+  QStringList cols = detectEntryColumns(q);
   while (q.next()) {
     KLFLibEntryWithId e;
     e.id = q.value(colId).toInt();
@@ -620,16 +643,150 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
 // private
 QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
 {
-  QVariant data = value;
   // setup data in proper format if needed
-  if (data.type() == QVariant::Image)
-    data = QVariant::fromValue<QByteArray>(image_data(data.value<QImage>(), "PNG"));
-  if (data.type() == QVariant::DateTime)
-    data = data.value<QDateTime>().toString(Qt::ISODate);
-  if (data.type() == QVariant::nameToType("KLFStyle"))
-    data = QVariant::fromValue<QByteArray>(metatype_to_data(data.value<KLFStyle>()));
-  return data;
+
+  int t = value.type();
+  const char *ts = value.typeName();
+  if (t == QVariant::Int || t == QVariant::UInt || t == QVariant::LongLong || t == QVariant::ULongLong ||
+      t == QVariant::Double)
+    return value; // value is OK
+
+  // these types are to be converted to string
+  if (t == QVariant::String)
+    return encaps(ts, value.toString());
+  if (t == QVariant::Bool)
+    return encaps(ts, value.toBool() ? QString("true") : QString("false"));
+
+  // these types are to be converted by byte array
+  if (t == QVariant::ByteArray)
+    return encaps(ts, value.toByteArray());
+  if (t == QVariant::DateTime)
+    return encaps(ts, value.value<QDateTime>().toString(Qt::ISODate).toLatin1());
+  if (t == QVariant::Image)
+    return encaps(ts, image_data(value.value<QImage>(), "PNG"));
+
+  // any other case: convert metatype to QByteArray.
+  QByteArray valuedata;
+  { QDataStream stream(&valuedata, QIODevice::WriteOnly);
+    stream.setVersion(QDataStream::Qt_4_4);
+    stream << value; }
+  return encaps(ts, valuedata);
 }
+
+QVariant KLFLibDBEngine::encaps(const char *ts, const QString& data) const
+{
+  return QVariant::fromValue<QString>(QString("[")+ts+"]"+data);
+}
+QVariant KLFLibDBEngine::encaps(const char *ts, const QByteArray& data) const
+{
+  QByteArray edata;
+  edata.append("[");
+  edata.append(ts);
+  edata.append("]");
+  edata.append(data);
+  return QVariant::fromValue<QByteArray>(edata);
+}
+QVariant KLFLibDBEngine::convertVariantFromDBData(const QVariant& dbdata) const
+{
+  int t = dbdata.type();
+  if (t == QVariant::Int || t == QVariant::UInt || t == QVariant::LongLong || t == QVariant::ULongLong ||
+      t == QVariant::Double)
+    return dbdata; // value is OK
+
+  if (t == QVariant::String)
+    return decaps(dbdata.toString());
+  if (t == QVariant::ByteArray)
+    return decaps(dbdata.toByteArray());
+
+  qWarning()<<"Unexpected DB data variant found: "<<dbdata;
+  return QVariant();
+}
+QVariant KLFLibDBEngine::decaps(const QString& sdata) const
+{
+  int k;
+  if (!sdata.size())
+    return QVariant::fromValue<QString>(QString());
+  if (sdata[0] != '[')
+    return QVariant::fromValue(sdata);
+  for (k = 1; k < sdata.size() && sdata[k] != ']'; ++k)  ;
+  if (k >= sdata.size()) {
+    qWarning()<<"KLFLibDBEngine::decaps(QS.): bad string data:"<<sdata;
+    return QVariant();
+  }
+  const QString typenam = sdata.mid(1,k-1);
+  const QString valuedata = sdata.mid(k+1);
+
+  if (typenam == "bool")
+    return QVariant::fromValue<bool>(valuedata[0].toLower() == 't' ||
+				     valuedata[0].toLower() == 'y' ||
+				     valuedata.toInt() != 0);
+  if (typenam == "QString")
+    return QVariant::fromValue<QString>(valuedata);
+
+  // by default, treat as QString.
+  return QVariant::fromValue<QString>(valuedata);
+}
+QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
+{
+  int k;
+  if (!data.size())
+    return QVariant();
+  if (data[0] != '[')
+    return QVariant::fromValue(data);
+  for (k = 1; k < data.size() && data[k] != ']'; ++k)  ;
+  if (k >= data.size()) {
+    qWarning()<<"KLFLibDBEngine::decaps(QB.A.): bad data:"<<data;
+    return QVariant();
+  }
+  const QByteArray typenam = data.mid(1, k-1);
+  const QByteArray valuedata = data.mid(k+1);
+
+  if (typenam == "QByteArray")
+    return QVariant::fromValue<QByteArray>(valuedata);
+  if (typenam == "QDateTime")
+    return QDateTime::fromString(QString::fromLatin1(valuedata), Qt::ISODate);
+  if (typenam == "QImage") {
+    QImage img;
+    img.loadFromData(valuedata);
+    return QVariant::fromValue<QImage>(img);
+  }
+
+  // OTHERWISE, load from datastream save:
+
+  QVariant value;
+  { QDataStream stream(valuedata);
+    stream.setVersion(QDataStream::Qt_4_4);
+    stream >> value; }
+  return value;
+}
+
+
+bool KLFLibDBEngine::ensureDataTableColumnsExist()
+{
+  KLFLibEntry dummy;
+  QSqlRecord rec = pDB.record(pDataTableName);
+  QStringList propNameList = dummy.registeredPropertyNameList();
+  int k;
+  bool failed = false;
+  for (k = 0; k < propNameList.size(); ++k) {
+    if (rec.contains(propNameList[k]))
+      continue;
+    QSqlQuery sql(pDB);
+    sql.prepare("ALTER TABLE `"+pDataTableName+"` ADD COLUMN "+propNameList[k]+" BLOB");
+    bool r = sql.exec();
+    if (!r || sql.lastError().isValid()) {
+      qWarning()<<"KLFLibDBEngine::ensureDataTableColumnsExist: Can't add column "<<propNameList[k]<<"!\n"
+		<<sql.lastError().text()<<" SQL="<<sql.lastQuery();
+      failed = true;
+    }
+  }
+
+  return !failed;
+}
+
+
+// --
+
 
 QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibEntryList& entrylist)
 {
@@ -652,6 +809,8 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
   }
 
   QList<entryId> insertedIds;
+
+  ensureDataTableColumnsExist();
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO `" + pDataTableName + "` (" + props.join(",") + ") "
@@ -701,6 +860,11 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
   if ( idlist.size() == 0 )
     return true; // no items to change
 
+  qDebug()<<"KLFLibDBEngine::changeEntries: funcional tests passed; idlist="<<idlist<<" props="<<properties
+	  <<" vals="<<values;
+
+  ensureDataTableColumnsExist();
+
   KLFLibEntry e; // dummy 
   QStringList updatepairs;
   int k;
@@ -722,7 +886,8 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
 
   //  qDebug() << "UPDATE: SQL="<<q.lastQuery()<<"; boundvalues="<<q.boundValues().values();
   if ( !r || q.lastError().isValid() ) {
-    qWarning() << "SQL UPDATE Error: "<<q.lastError();
+    qWarning() << "SQL UPDATE Error: "<<q.lastError()<<"\nWith SQL="<<q.lastQuery()
+	       <<";\n and bound values="<<q.boundValues();
     return false;
   }
 

@@ -48,6 +48,10 @@ public:
   virtual bool eventFilter(QObject *object, QEvent *event);
 
   QList<QUrl> openUrls() const;
+  //! Returns the URL of the current tab page
+  QUrl currentUrl();
+  //! Returns the index of \ref currentUrl() in \ref openUrls()
+  int currentUrlIndex();
 
   /** \note Mind that KLFLibBrowser deletes the views and their corresponding
    * engines upon destruction. */

@@ -137,16 +137,16 @@ public:
 	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
 	// nothing to load
       } else if (vti == "default+icons") {
-	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
-	//
-	QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
-	QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
-	QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
-	int k;
-	for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
-	  iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
-	}
-	dview->loadIconPositions(iconpositions);
+	//	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
+	// 	//
+	// 	QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
+	// 	QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
+	// 	QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
+	// 	int k;
+	// 	for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
+	// 	  iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
+	// 	}
+	//	dview->loadIconPositions(iconpositions);
       } else {
 	// this view type is not known to us, can't save anything.
 	qDebug()<<"Unknown View Type encountered "<<vti<<": can't save its GUI state.";
@@ -183,12 +183,15 @@ public slots:
 	    this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
     connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
 	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
-
+    qDebug()<<"connected signals.";
     pResource->setViewType(viewTypeIdent);
+    qDebug()<<"set view type.";
 
     int index = addWidget(v);
     pOpenViewTypeIdents[viewTypeIdent] = index;
+    qDebug()<<"added widget, about to raise";
     setCurrentIndex(index);
+    qDebug()<<"Added view.";
     return true;
   }
 

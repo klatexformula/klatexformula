@@ -122,22 +122,30 @@ public:
       QPoint newp = rectForIndex(sel[k]).topLeft() + delta;
       if (newp.x() < 0) newp.setX(0);
       if (newp.y() < 0) newp.setY(0);
-      setPositionForIndex(newp, sel[k]);
+      setIconPosition(sel[k], newp);
     }
   }
 
-  void forceRelayout() {
+  void forceRelayout(bool isPolishing = false) {
     bool wr = pWantRelayout;
     pWantRelayout = true;
     doItemsLayout();
     pWantRelayout = wr;
+    if (!isPolishing && !pWantRelayout) {
+      // if we didn't want a relayout (ie. icon positions were controlled)
+      saveIconPositions();
+    }
   }
 
   QPoint iconPosition(const QModelIndex& index) {
     return rectForIndex(index).topLeft();
   }
   void setIconPosition(const QModelIndex& index, const QPoint& pos) {
+    if (rectForIndex(index).topLeft() == pos)
+      return;
+    qDebug()<<"Functional setIconPosition("<<index<<","<<pos<<")";
     setPositionForIndex(pos, index);
+    saveIconPosition(index);
     pWantRelayout = false;
   }
   
@@ -149,13 +157,33 @@ protected:
     if (pWantRelayout)
       QListView::doItemsLayout();
     // else ignore request
-  }
-
+  } 
+  
   KLFLibDefaultView *pDView;
 
   friend void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
 
   bool pWantRelayout;
+
+  void saveIconPositions() {
+    qDebug()<<"saveIconPositions()";
+    KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
+    // walk all indices, fill entryIdList
+    QModelIndex index;
+    while ((index = model->walkNextIndex(index)).isValid()) {
+      qDebug()<<"Walking index "<<index;
+      saveIconPosition(index);
+    }
+    qDebug()<<"Done saving all icon positions.";
+  }
+  void saveIconPosition(const QModelIndex& index) {
+    qDebug()<<"saveIconPosition()";
+    KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
+    KLFLibEntry edummy = index.data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
+    int propId = edummy.setEntryProperty("IconView_IconPosition", rectForIndex(index).topLeft());
+    model->changeEntries(QModelIndexList() << index, propId, edummy.property(propId)); 
+    qDebug()<<"end of saveIconPosition()";
+  }
 };
 
 
@@ -170,7 +198,7 @@ static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supporte
     return;
 
   QModelIndexList indexes;
-  // the following inheritance test and cast is needed for the frend attriubte
+  // the following inheritance test and cast is needed for the friend attriubte
   // to be taken into account (yes, we're not a friend of QAbstractItemView)
   if (v->inherits("KLFLibDefListView"))
     indexes = qobject_cast<KLFLibDefListView*>(v)->selectedIndexes();

@@ -210,6 +210,7 @@ public:
   enum {
     ItemKindItemRole = Qt::UserRole+800,
     EntryContentsTypeItemRole,
+    EntryIdItemRole,
     FullEntryItemRole,
     CategoryLabelItemRole,
     FullCategoryPathItemRole,
@@ -287,8 +288,8 @@ public:
   //! Call repeatedly to walk all indexes in model in reverse order
   virtual QModelIndex walkPrevIndex(const QModelIndex& cur);
 
-  virtual KLFLibResourceEngine::entryId entryIdForIndex(const QModelIndex& index) const;
-  virtual QModelIndex findEntryId(KLFLibResourceEngine::entryId eid) const;
+  virtual KLFLib::entryId entryIdForIndex(const QModelIndex& index) const;
+  virtual QModelIndex findEntryId(KLFLib::entryId eid) const;
 
 public slots:
 
@@ -320,7 +321,7 @@ private:
   };
   struct PersistentId {
     ItemKind kind;
-    KLFLibResourceEngine::entryId entry_id;
+    KLFLib::entryId entry_id;
     QString categorylabel_fullpath;
   };
   struct Node {
@@ -333,7 +334,7 @@ private:
   struct EntryNode : public Node {
     EntryNode() : entryid(-1), entry() { }
     virtual int nodeKind() const { return EntryKind; }
-    KLFLibResourceEngine::entryId entryid;
+    KLFLib::entryId entryid;
     KLFLibEntry entry;
   };
   struct CategoryLabelNode : public Node {
@@ -415,7 +416,7 @@ private:
    * If \c NULL is given, the root node is assumed. */
   Node * lastNode(Node *n);
 
-  QList<KLFLibResourceEngine::entryId> entryIdList(const QModelIndexList& indexlist) const;
+  QList<KLFLib::entryId> entryIdList(const QModelIndexList& indexlist) const;
   
   QString pSearchString;
   Node *pSearchCurNode;
@@ -513,13 +514,13 @@ public:
   /** If the ViewType (as returned by \ref viewType()) is \ref IconView (and ONLY in
    * this case) this function returns the positions of all the icon positions and the
    * entry IDs to which they refer. */
-  virtual QMap<KLFLibResourceEngine::entryId,QPoint> allIconPositions() const;
+  virtual QMap<KLFLib::entryId,QPoint> allIconPositions() const;
 
   /** If the ViewType (as returned by \ref viewType()) is \ref IconView (and ONLY in
    * this case) this function restores the positions of all the icons as described
    * in the \c iconPositions map, for example which has been obtained by a call
    * to \ref allIconPositions() some time earlier. */
-  virtual void loadIconPositions(const QMap<KLFLibResourceEngine::entryId,QPoint>& iconPositions);
+  virtual void loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions);
 
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
@@ -566,6 +567,8 @@ private:
   QAction *pIconViewRelayoutAction;
   QAction *pIconViewLockAction;
   QList<QAction*> pIconViewActions;
+
+  QMap<KLFLib::entryId, QPoint> pReadIconPositions;
 
   bool pEventFilterNoRecurse;
 
