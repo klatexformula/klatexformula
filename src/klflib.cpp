@@ -664,6 +664,11 @@ QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
     return encaps(ts, value.value<QDateTime>().toString(Qt::ISODate).toLatin1());
   if (t == QVariant::Image)
     return encaps(ts, image_data(value.value<QImage>(), "PNG"));
+  if (t == QVariant::Point) {
+    QPoint p = value.value<QPoint>();
+    return encaps(ts, QByteArray()+"("+QString::number(p.x()).toLatin1()+","
+		  +QString::number(p.y()).toLatin1()+")");
+  }
 
   // any other case: convert metatype to QByteArray.
   QByteArray valuedata;
@@ -745,6 +750,22 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
     return QVariant::fromValue<QByteArray>(valuedata);
   if (typenam == "QDateTime")
     return QDateTime::fromString(QString::fromLatin1(valuedata), Qt::ISODate);
+  if (typenam == "QPoint") {
+    qDebug()<<"Analyzing a QPoint:"<<valuedata;
+    static QRegExp rx("\\s*\\(\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\)");
+    if ( !rx.exactMatch(valuedata) ) {
+      qDebug()<<"nomatch!";
+      return QPoint(-1,-1);
+    }
+    QStringList cap = rx.capturedTexts();
+    if (cap.size() < 3) {
+      qDebug()<<"Bad cap "<<cap;
+      return QPoint(-1,-1);
+    }
+    QPoint p(cap[1].toInt(), cap[2].toInt());
+    qDebug()<<"cap is "<<cap<<"; QPoint is "<<p;
+    return p;
+  }
   if (typenam == "QImage") {
     QImage img;
     img.loadFromData(valuedata);

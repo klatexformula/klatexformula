@@ -141,6 +141,8 @@ public:
     return rectForIndex(index).topLeft();
   }
   void setIconPosition(const QModelIndex& index, const QPoint& pos) {
+    if (index.column() > 0)
+      return;
     if (rectForIndex(index).topLeft() == pos)
       return;
     qDebug()<<"Functional setIconPosition("<<index<<","<<pos<<")";
@@ -177,6 +179,8 @@ protected:
     qDebug()<<"Done saving all icon positions.";
   }
   void saveIconPosition(const QModelIndex& index) {
+    if (index.column()>0)
+      return;
     qDebug()<<"saveIconPosition()";
     KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
     KLFLibEntry edummy = index.data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
