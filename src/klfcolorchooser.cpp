@@ -820,8 +820,9 @@ QPixmap KLFColorChooser::colorPixmap(const QColor& color, const QSize& size)
     pix.fill(Qt::black);
     QPainter p(&pix);
     // background: a checker grid to distinguish transparency
-    p.fillRect(0,0,width(),height(), QBrush(QPixmap(":/pics/checker.png")));
-    p.fillRect(0,0,width(),height(), QBrush(color));
+    p.fillRect(0,0,pix.width(),pix.height(), QBrush(QPixmap(":/pics/checker.png")));
+    // and fill with color
+    p.fillRect(0,0,pix.width(),pix.height(), QBrush(color));
     //    pix.fill(color);
   } else {
     // draw "transparent"-representing pixmap
@@ -845,7 +846,6 @@ void KLFColorChooser::ensureColorListInstance()
 void KLFColorChooser::setColorList(const QList<QColor>& colors)
 {
   ensureColorListInstance();
-  //  *_colorlist = colors;
   _colorlist->list = colors;
   _colorlist->notifyListChanged();
 }

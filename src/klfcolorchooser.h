@@ -328,11 +328,17 @@ public:
   ~KLFColorChooser();
 
   QSize showSize() const { return _size; }
+  //! Allow the "default color" state
+  /** This is NOT a default color in the sense that it's a normal color that will be returned
+   * by default; it is a special state that can mean for ex. "no color", "full transparency" or
+   * "don't change"; it is represented by a red slash on a gray background. It is internally
+   * represented by an invalid QColor. */
   bool allowDefaultState() const { return _allowdefaultstate; }
   bool autoAddToList() const { return _autoadd; }
   QColor color() const;
   float pixXAlignFactor() const { return _xalignfactor; }
   float pixYAlignFactor() const { return _yalignfactor; }
+  //! TRUE if the user can also select opacity (alpha) with this widget
   bool alphaEnabled() const { return _alphaenabled; }
 
   virtual QSize sizeHint() const;
@@ -345,6 +351,9 @@ signals:
   void colorChanged(const QColor& newcolor);
 
 public slots:
+  /** Sets the current color to \c color. If the \ref allowDefaultState() property
+   * is TRUE, then the "default color" can be set with \ref setDefaultColor() or
+   * \code setColor(QColor()) \endcode */
   void setColor(const QColor& color);
   void setAllowDefaultState(bool allow);
   void setAutoAddToList(bool autoadd) { _autoadd = autoadd; }
@@ -352,6 +361,7 @@ public slots:
   void setPixXAlignFactor(float xalignfactor) { _xalignfactor = xalignfactor; }
   void setPixYAlignFactor(float yalignfactor) { _yalignfactor = yalignfactor; }
   void setAlphaEnabled(bool alpha_enabled);
+  /** equivalent to \code setColor(QColor()) \endcode */
   void setDefaultColor();
 
   void requestColor();
