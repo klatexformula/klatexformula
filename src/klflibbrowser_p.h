@@ -76,11 +76,14 @@ public:
 
   QVariantMap saveGuiState() const {
     QVariantMap v;
-    QList<QVariant> vlist; // will hold QVariantMap's
+    QVariantList vlist; // will hold QVariantMap's of each view's state
+    QString curViewTypeIdent;
     for (QMap<QString,int>::const_iterator cit = pOpenViewTypeIdents.begin();
 	 cit != pOpenViewTypeIdents.end(); ++cit) {
       KLFAbstractLibView *view = qobject_cast<KLFAbstractLibView*>(widget(*cit));
       QString vti = cit.key(); // view type identifier
+      if (view == currentWidget()) // this is current view -> save it in more global setting
+	curViewTypeIdent = vti;
       QVariantMap vstate;
       vstate["ViewTypeIdentifier"] = vti;
       if (vti == "default") {
@@ -110,11 +113,13 @@ public:
       }
       vlist << QVariant::fromValue<QVariantMap>(vstate);
     }
-    v["StateList"] = vlist;
+    v["StateList"] = QVariant::fromValue<QVariantList>(vlist);
+    v["CurrentViewTypeIdentifier"] = QVariant::fromValue<QString>(curViewTypeIdent);
     return v;
   }
   void loadGuiState(const QVariantMap& v) {
-    const QList<QVariant> vlist = v["StateList"].toList(); // will hold QVariantMap's
+    const QVariantList vlist = v["StateList"].toList(); // will hold QVariantMap's
+    const QString curvti = v["CurrentViewTypeIdentifier"].toString();
     int k;
     for (k = 0; k < vlist.size(); ++k) {
       const QVariantMap vstate = vlist[k].toMap();
@@ -137,21 +142,24 @@ public:
 	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
 	// nothing to load
       } else if (vti == "default+icons") {
-	//	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
-	// 	//
-	// 	QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
-	// 	QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
-	// 	QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
-	// 	int k;
-	// 	for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
-	// 	  iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
-	// 	}
-	//	dview->loadIconPositions(iconpositions);
+	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
+	//
+	QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
+	QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
+	QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
+	int k;
+	for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
+	  iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
+	}
+	dview->loadIconPositions(iconpositions);
       } else {
 	// this view type is not known to us, can't save anything.
 	qDebug()<<"Unknown View Type encountered "<<vti<<": can't save its GUI state.";
       }
     }
+    // raise current view ...
+    if (!curvti.isEmpty())
+      openView(curvti);
   }
 
 public slots:

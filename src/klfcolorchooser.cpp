@@ -43,9 +43,10 @@
 
 // -------------------------------------------------------------------
 
-QColor KLFColorDialog::getColor(QColor startwith, QWidget *parent)
+QColor KLFColorDialog::getColor(QColor startwith, bool alphaenabled, QWidget *parent)
 {
   KLFColorDialog dlg(parent);
+  dlg.mColorChooseWidget->setAlphaEnabled(alphaenabled);
   dlg.mColorChooseWidget->setColor(startwith);
   int r = dlg.exec();
   if ( r != QDialog::Accepted )
@@ -385,6 +386,8 @@ KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)
   setupUi(this);
   setObjectName("KLFColorChooseWidget");
 
+  _alphaenabled = true;
+
   ensureColorListsInstance();
 
   if (_standardcolors->list.size() == 0) {
@@ -459,8 +462,12 @@ KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)
   internalColorChanged(_color);
 }
 
-void KLFColorChooseWidget::internalColorChanged(const QColor& newcolor)
+void KLFColorChooseWidget::internalColorChanged(const QColor& wanted_newcolor)
 {
+  QColor newcolor = wanted_newcolor;
+  if (!_alphaenabled)
+    newcolor.setAlpha(255);
+
   int k;
   for (k = 0; k < _connectedColorChoosers.size(); ++k) {
     _connectedColorChoosers[k]->blockSignals(true);
@@ -492,9 +499,11 @@ void KLFColorChooseWidget::internalColorNameSet(const QString& n)
   QString name = n;
   static QRegExp rx("\\#?[0-9A-Za-z]{6}");
   if (!rx.exactMatch(name)) {
+    txtHex->setProperty("invalidInput", true);
     txtHex->setStyleSheet("background-color: rgb(255,128,128)");
     return;
   }
+  txtHex->setProperty("invalidInput", QVariant());
   txtHex->setStyleSheet("");
   if (name[0] != QLatin1Char('#'))
     name = "#"+name;
@@ -506,8 +515,22 @@ void KLFColorChooseWidget::setColor(const QColor& color)
 {
   if (color == _color)
     return;
+  if (!_alphaenabled && color.rgb() == _color.rgb())
+    return;
 
   internalColorChanged(color);
+}
+
+void KLFColorChooseWidget::setAlphaEnabled(bool enabled)
+{
+  _alphaenabled = enabled;
+  spnAlpha->setShown(enabled);
+  lblAlpha->setShown(enabled);
+  mAlphaPane->setShown(enabled);
+  lblsAlpha->setShown(enabled);
+  mAlphaSlider->setShown(enabled);
+  _color.setAlpha(255);
+  setColor(_color);
 }
 
 void KLFColorChooseWidget::fillPalette(KLFColorList *colorlist, QWidget *w)
@@ -517,7 +540,8 @@ void KLFColorChooseWidget::fillPalette(KLFColorList *colorlist, QWidget *w)
   lyt->clearAll();
   for (k = 0; k < colorlist->list.size(); ++k) {
     KLFColorClickSquare *sq = new KLFColorClickSquare(colorlist->list[k], 12,
-						      (colorlist == _customcolors || colorlist == _recentcolors),
+						      (colorlist == _customcolors ||
+						       colorlist == _recentcolors),
 						      w);
     connect(sq, SIGNAL(colorActivated(const QColor&)),
 	    this, SLOT(internalColorChanged(const QColor&)));
@@ -623,7 +647,7 @@ QStyle *KLFColorChooser::mReplaceButtonStyle = NULL;
 
 KLFColorChooser::KLFColorChooser(QWidget *parent)
   : QPushButton(parent), _color(0,0,0,255), _pix(), _allowdefaultstate(false), _autoadd(true), _size(120, 20),
-    _xalignfactor(0.5f), _yalignfactor(0.5f),
+    _xalignfactor(0.5f), _yalignfactor(0.5f), _alphaenabled(true),
     mMenu(0)
 {
   ensureColorListInstance();
@@ -698,10 +722,16 @@ void KLFColorChooser::setAllowDefaultState(bool allow)
   _makemenu();
 }
 
+void KLFColorChooser::setAlphaEnabled(bool on)
+{
+  _alphaenabled = on;
+  _makemenu();
+}
+
 void KLFColorChooser::requestColor()
 {
   // prefer our own color selection dialog
-  QColor col = KLFColorDialog::getColor(_color, this);
+  QColor col = KLFColorDialog::getColor(_color, _alphaenabled, this);
   // QColor col = QColorDialog::getColor(_color, this);
   if ( ! col.isValid() )
     return;
@@ -727,7 +757,8 @@ void KLFColorChooser::_makemenu()
   mMenu = new QMenu(this);
 
   if (_allowdefaultstate) {
-    mMenu->addAction(QIcon(colorPixmap(QColor(), menuIconSize)), tr("[ Default ]"), this, SLOT(setDefaultColor()));
+    mMenu->addAction(QIcon(colorPixmap(QColor(), menuIconSize)), tr("[ Default ]"),
+		     this, SLOT(setDefaultColor()));
     mMenu->addSeparator();
   }
 
@@ -736,9 +767,18 @@ void KLFColorChooser::_makemenu()
   n = _colorlist->list.size();
   for (k = 0; k < n; ++k) {
     nk = n - k - 1;
-    QAction *a = mMenu->addAction(QIcon(colorPixmap(_colorlist->list[nk], menuIconSize)), _colorlist->list[nk].name(),
+    QColor col = _colorlist->list[nk];
+    if (!_alphaenabled)
+      col.setAlpha(255);
+    QString collabel;
+    if (col.alpha() == 255)
+      collabel = QString("%1").arg(col.name());
+    else
+      collabel = QString("%1 (%2%)").arg(col.name()).arg((int)(100.0*col.alpha()/255.0+0.5));
+
+    QAction *a = mMenu->addAction(QIcon(colorPixmap(col, menuIconSize)), collabel,
 				  this, SLOT(setSenderPropertyColor()));
-    a->setProperty("setColor", QVariant(_colorlist->list[nk]));
+    a->setProperty("setColor", QVariant::fromValue<QColor>(col));
   }
   if (k > 0)
     mMenu->addSeparator();
@@ -777,7 +817,12 @@ QPixmap KLFColorChooser::colorPixmap(const QColor& color, const QSize& size)
 {
   QPixmap pix = QPixmap(size);
   if (color.isValid()) {
-    pix.fill(color);
+    pix.fill(Qt::black);
+    QPainter p(&pix);
+    // background: a checker grid to distinguish transparency
+    p.fillRect(0,0,width(),height(), QBrush(QPixmap(":/pics/checker.png")));
+    p.fillRect(0,0,width(),height(), QBrush(color));
+    //    pix.fill(color);
   } else {
     // draw "transparent"-representing pixmap
     pix.fill(QColor(127,127,127,80));

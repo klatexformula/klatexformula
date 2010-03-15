@@ -129,7 +129,8 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
 // ----------------------------------------------------------------------------
 
 KLFPreviewBuilderThread::KLFPreviewBuilderThread(QObject *parent, KLFBackend::klfInput input,
-						 KLFBackend::klfSettings settings, int labelwidth, int labelheight)
+						 KLFBackend::klfSettings settings, int labelwidth,
+						 int labelheight)
   : QThread(parent), _input(input), _settings(settings), _lwidth(labelwidth), _lheight(labelheight),
     _hasnewinfo(false), _abort(false)
 {

@@ -140,14 +140,15 @@ public:
   QPoint iconPosition(const QModelIndex& index) {
     return rectForIndex(index).topLeft();
   }
-  void setIconPosition(const QModelIndex& index, const QPoint& pos) {
+  void setIconPosition(const QModelIndex& index, const QPoint& pos, bool dontSave = false) {
     if (index.column() > 0)
       return;
     if (rectForIndex(index).topLeft() == pos)
       return;
     qDebug()<<"Functional setIconPosition("<<index<<","<<pos<<")";
     setPositionForIndex(pos, index);
-    saveIconPosition(index);
+    if (!dontSave)
+      saveIconPosition(index);
     pWantRelayout = false;
   }
   
@@ -156,7 +157,9 @@ protected:
     klf_common_start_drag(this, supportedActions);
   }
   virtual void doItemsLayout() {
+    qDebug()<<"doItemsLayout!";
     if (pWantRelayout)
+      /// \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API !
       QListView::doItemsLayout();
     // else ignore request
   } 
@@ -215,7 +218,7 @@ static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supporte
     if (lv->pDView->viewType() == KLFLibDefaultView::IconView) {
       // icon view -> move icons around
       qDebug()<<"Internal DRAG!";
-      /// \bug ......BUG/TODO........ WARNING: NOT in offical Qt API !
+      /// \bug ......BUG/TODO........ WARNING: QListView::internalDrag() is NOT in offical Qt API !
 	;
       // if icon positions are locked abort
       if (model->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())

@@ -223,6 +223,8 @@ private:
 // ------------------------------------------------------------------------------------
 
 // this is ugly, but true: include ui_***.h _here_.
+// reason: the above widgets are not declared in separate .h files (that would
+// pollute the file system ...)
 #include <ui_klfcolorchoosewidgetui.h>
 
 class KLF_EXPORT KLFColorChooseWidget : public QWidget, public Ui::KLFColorChooseWidgetUI
@@ -230,12 +232,14 @@ class KLF_EXPORT KLFColorChooseWidget : public QWidget, public Ui::KLFColorChoos
   Q_OBJECT
 
   Q_PROPERTY(QColor color READ color WRITE setColor USER true)
-
+  Q_PROPERTY(bool alphaEnabled READ alphaEnabled WRITE setAlphaEnabled)
 public:
   KLFColorChooseWidget(QWidget *parent = 0);
   virtual ~KLFColorChooseWidget() { }
 
   QColor color() const { return _color; }
+
+  bool alphaEnabled() const { return _alphaenabled; }
 
   static void ensureColorListsInstance();
   static void setRecentCustomColors(QList<QColor> recentcolors,
@@ -255,8 +259,10 @@ signals:
 
 public slots:
   void setColor(const QColor& color);
+  void setAlphaEnabled(bool alpha_enabled);
   void setCurrentToCustomColor();
   void updatePalettes();
+
   void updatePaletteRecent();
   void updatePaletteStandard();
   void updatePaletteCustom();
@@ -268,6 +274,7 @@ protected slots:
 
 private:
   QColor _color;
+  bool _alphaenabled;
 
   QList<QObject*> _connectedColorChoosers;
 
@@ -294,7 +301,7 @@ public:
     setObjectName("KLFColorDialog");
   }
 
-  static QColor getColor(QColor startwith = Qt::black, QWidget *parent = 0);
+  static QColor getColor(QColor startwith = Qt::black, bool alphaenabled = true, QWidget *parent = 0);
 };
 
 
@@ -314,7 +321,7 @@ class KLF_EXPORT KLFColorChooser : public QPushButton
   Q_PROPERTY(QColor color READ color WRITE setColor USER true)
   Q_PROPERTY(float pixXAlignFactor READ pixXAlignFactor WRITE setPixXAlignFactor)
   Q_PROPERTY(float pixYAlignFactor READ pixYAlignFactor WRITE setPixYAlignFactor)
-
+  Q_PROPERTY(bool alphaEnabled READ alphaEnabled WRITE setAlphaEnabled)
 
 public:
   KLFColorChooser(QWidget *parent);
@@ -326,6 +333,7 @@ public:
   QColor color() const;
   float pixXAlignFactor() const { return _xalignfactor; }
   float pixYAlignFactor() const { return _yalignfactor; }
+  bool alphaEnabled() const { return _alphaenabled; }
 
   virtual QSize sizeHint() const;
 
@@ -343,6 +351,7 @@ public slots:
   void setShowSize(const QSize& size) { _size = size; }
   void setPixXAlignFactor(float xalignfactor) { _xalignfactor = xalignfactor; }
   void setPixYAlignFactor(float yalignfactor) { _yalignfactor = yalignfactor; }
+  void setAlphaEnabled(bool alpha_enabled);
   void setDefaultColor();
 
   void requestColor();
@@ -362,6 +371,8 @@ private:
   bool _autoadd;
   QSize _size;
   float _xalignfactor, _yalignfactor;
+
+  bool _alphaenabled;
 
   QMenu *mMenu;
 

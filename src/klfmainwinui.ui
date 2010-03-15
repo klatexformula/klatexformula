@@ -8,8 +8,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>831</width>
-    <height>399</height>
+    <width>833</width>
+    <height>409</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -459,7 +459,11 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="KLFColorChooser" name="colFg"/>
+          <widget class="KLFColorChooser" name="colFg">
+           <property name="alphaEnabled" stdset="0">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
          <item row="1" column="0" colspan="2">
           <widget class="QCheckBox" name="chkBgTransparent">
@@ -496,6 +500,9 @@
          <item row="2" column="1">
           <widget class="KLFColorChooser" name="colBg">
            <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="alphaEnabled" stdset="0">
             <bool>false</bool>
            </property>
           </widget>

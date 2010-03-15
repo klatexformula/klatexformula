@@ -1708,6 +1708,7 @@ bool KLFLibDefaultView::event(QEvent *event)
 bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
 {
   if (pViewType == IconView && object == pView && event->type() == QEvent::Polish) {
+    qDebug()<<"Polish!";
     KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
     if (pReadIconPositions.isEmpty())
       lv->forceRelayout(true);
@@ -1859,6 +1860,8 @@ QMap<KLFLib::entryId,QPoint> KLFLibDefaultView::allIconPositions() const
 }
 void KLFLibDefaultView::loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions)
 {
+  /// \warning This function will NOT save the icon positions into the resource data.
+
   if (pViewType != IconView || !pView->inherits("KLFLibDefListView"))
     return;
 
@@ -1870,8 +1873,8 @@ void KLFLibDefaultView::loadIconPositions(const QMap<KLFLib::entryId,QPoint>& ic
     if (!index.isValid())
       continue;
     QPoint pos = *it;
-    qDebug()<<"About to set single icon position..";
-    view->setIconPosition(index, pos);
+    qDebug()<<"view::loadIconPositions: About to set single icon position..";
+    view->setIconPosition(index, pos, true);
     qDebug()<<"Set single icon position OK.";
   }
 }
