@@ -53,7 +53,7 @@ if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
   add_custom_target(klfbaseplugins_rcc_localinstall ALL
     COMMAND ${KLF_CMAKE_COPY} klfbaseplugins.rcc "$ENV{HOME}/.klatexformula/rccresources/"
     DEPENDS klfbaseplugins.rcc
-    COMMENT "Installing Base Plugins Locally in ~/.klatexformula/rccresources"
+    COMMENT "Installing Base Plugins Add-On Locally in ~/.klatexformula/rccresources"
     VERBATIM
 )
 endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)

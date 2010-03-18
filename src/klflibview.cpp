@@ -912,13 +912,15 @@ bool KLFLibModel::changeEntries(const QModelIndexList& indexlist, int propId, co
     return true; // no change...
 
   QList<KLFLib::entryId> idList = entryIdList(indexlist);
-  if ( pResource->changeEntries(idList, QList<int>() << propId, QList<QVariant>() << value) ) {
-    //    for (k = 0; k < nodePtrs.size(); ++k)
-    //      nodePtrs[k]->entry.setProperty(propId, value);
-    updateCacheSetupModel();
-    return true;
-  }
-  return false;
+  bool r = pResource->changeEntries(idList, QList<int>() << propId, QList<QVariant>() << value);
+
+  //  if (r)
+  //    for (k = 0; k < nodePtrs.size(); ++k)
+  //      nodePtrs[k]->entry.setProperty(propId, value);
+
+  // will be automatically called via the call to resoruce->(modify-data)()!
+  //  updateCacheSetupModel();
+  return r;
 }
 
 bool KLFLibModel::insertEntries(const KLFLibEntryList& entries)
@@ -927,7 +929,9 @@ bool KLFLibModel::insertEntries(const KLFLibEntryList& entries)
     return true; // nothing to do...
 
   QList<KLFLib::entryId> list = pResource->insertEntries(entries);
-  updateCacheSetupModel();
+
+  // will be automatically called via the call to resoruce->(modify-data)()!
+  //  updateCacheSetupModel();
 
   if ( list.size() == 0 || list.contains(-1) )
     return false; // error for at least one entry
@@ -941,7 +945,8 @@ bool KLFLibModel::deleteEntries(const QModelIndexList& indexlist)
 
   QList<KLFLib::entryId> idList = entryIdList(indexlist);
   if ( pResource->deleteEntries(idList) ) {
-    updateCacheSetupModel();
+    // will be automatically called via the call to resoruce->(modify-data)()!
+    //    updateCacheSetupModel();
     return true;
   }
   return false;
@@ -1133,7 +1138,7 @@ QModelIndex KLFLibModel::createIndexFromPtr(Node *n, int row, int column) const
 void KLFLibModel::updateCacheSetupModel()
 {
   int k;
-  //  qDebug("updateCacheSetupModel(); pFlavorFlags=%#010x", (uint)pFlavorFlags);
+  qDebug("updateCacheSetupModel(); pFlavorFlags=%#010x", (uint)pFlavorFlags);
 
   emit layoutAboutToBeChanged();
 
@@ -1819,8 +1824,10 @@ KLFLibEntryList KLFLibDefaultView::selectedEntries() const
   for (k = 0; k < selectedindexes.size(); ++k) {
     if ( selectedindexes[k].data(KLFLibModel::ItemKindItemRole) != KLFLibModel::EntryKind )
       continue;
-    //    qDebug() << "selection list: adding item [latex="<<selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>().latex()<<"]";
-    elist << selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
+    KLFLibEntry entry = selectedindexes[k].data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
+    qDebug() << "selection list: adding item [latex="<<entry.latex()<<"; tags="<<entry.tags()<<"]";
+
+    elist << entry;
   }
   return elist;
 }
@@ -1879,6 +1886,25 @@ void KLFLibDefaultView::loadIconPositions(const QMap<KLFLib::entryId,QPoint>& ic
   }
 }
 
+QByteArray KLFLibDefaultView::saveColumnsState() const
+{
+  if ( (pViewType != ListTreeView && pViewType != CategoryTreeView) ||
+       ! pView->inherits("QTreeView") )
+    return QByteArray();
+
+  QTreeView *v = qobject_cast<QTreeView*>(pView);
+  return v->header()->saveState();
+}
+bool KLFLibDefaultView::restoreColumnsState(const QByteArray& state)
+{
+  if ( (pViewType != ListTreeView && pViewType != CategoryTreeView) ||
+       ! pView->inherits("QTreeView") )
+    return false;
+
+  QTreeView *v = qobject_cast<QTreeView*>(pView);
+  return v->header()->restoreState(state);
+}
+
 
 void KLFLibDefaultView::updateResourceView()
 {
@@ -1910,6 +1936,9 @@ void KLFLibDefaultView::updateResourceView()
   QItemSelectionModel *s = pView->selectionModel();
   connect(s, SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
 	  this, SLOT(slotViewSelectionChanged(const QItemSelection&, const QItemSelection&)));
+
+  connect(pModel, SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)),
+	  this, SIGNAL(resourceDataChanged()));
 
   // delegate wants to know more about selections...
   pDelegate->setSelectionModel(s);
@@ -2137,22 +2166,6 @@ void KLFLibDefaultView::searchFound(const QModelIndex& i)
 void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
 						 const QItemSelection& /*deselected*/)
 {
-  /* delete ok on next SVN version. ID=$Id$
-  // repaint selected entries (automatical) but also repaint their parents
-      QList<QItemSelectionRange> repaintranges;
-      repaintranges << selected << deselected;
-      int k, j;
-      for (k = 0; k < repaintranges.size(); ++k) {
-      QModelIndexList il = repaintranges[k].indexes();
-      for (j = 0; j < il.size(); ++j) {
-      if (il[j].column() == 0) {
-      QModelIndex par = il[j];
-      while ((par = pModel->parent(par)).isValid()) {
-      pView->update(par);
-      }
-      }
-      }
-      } */
   pView->viewport()->update();
   
   emit entriesSelected(selectedEntries());
@@ -2160,21 +2173,14 @@ void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selecte
 
 QItemSelection KLFLibDefaultView::fixSelection(const QModelIndexList& selidx)
 {
-  // Callers of this function garantee that no signals will be emitted upon changing the
-  // selection.
-
-  //  qDebug()<<"KLFLibDef.View::fixSelection("<<selidx<<",isbasesel="<<isbasesel<<")";
-
   QModelIndexList moreselidx;
   QItemSelection moresel;
 
   int k, j;
   for (k = 0; k < selidx.size(); ++k) {
-    //    qDebug()<<"testing "<<k<<"th index "<<selidx[k];
     if (selidx[k].isValid() &&
 	selidx[k].data(KLFLibModel::ItemKindItemRole).toInt() == KLFLibModel::CategoryLabelKind &&
 	selidx[k].column() == 0) {
-      //      qDebug()<<"is a category!";
       // a category is selected -> select all its children
       const QAbstractItemModel *model = selidx[k].model();
       int nrows = model->rowCount(selidx[k]);
@@ -2196,28 +2202,16 @@ QItemSelection KLFLibDefaultView::fixSelection(const QModelIndexList& selidx)
 	}
 	
       }
-      //      moresel.append(QItemSelectionRange(selidx[k].child(0, 0), selidx[k].child(nrows-1, ncols-1)));
-      //      pTreeView->selectionModel()->select(QItemSelection(selidx[k].child(0,0),
-      //							 selidx[k].child(nrows-1,ncols-1)),
-      //					  QItemSelectionModel::Select);
     }
   }
 
-  //  qDebug()<<"moresel is "<<moresel;
-
   if (moresel.isEmpty()) {
-    //    qDebug()<<"No moresel.";
     return QItemSelection();
   }
 
-  //  return moresel;
-
   QItemSelection s = moresel;
   QItemSelection morefixed = fixSelection(moreselidx);
-  //  qDebug()<<"## before merge: selection is "<<s;
-  //  qDebug()<<"more="<<moresel<<"; more/fixed="<<morefixed;
   s.merge(morefixed, QItemSelectionModel::Select);
-  //  qDebug()<<"merged: selection is "<<s;
   return s;
 
 }
@@ -2239,12 +2233,10 @@ void KLFLibDefaultView::slotEntryDoubleClicked(const QModelIndex& index)
 
 void KLFLibDefaultView::slotExpanded(const QModelIndex& index)
 {
-  //  qDebug()<<"expanded: "<<index;
   pDelegate->setIndexExpanded(index, true);
 }
 void KLFLibDefaultView::slotCollapsed(const QModelIndex& index)
 {
-  //  qDebug()<<"collapsed: "<<index;
   pDelegate->setIndexExpanded(index, false);
 }
 

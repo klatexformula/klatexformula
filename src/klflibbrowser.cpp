@@ -414,7 +414,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(requestRestoreStyle(const KLFStyle&)),
 	  this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
 
-  connect(resource, SIGNAL(dataChanged()),
+  connect(viewc, SIGNAL(resourceDataChanged()),
 	  this, SLOT(slotResourceDataChanged()));
   connect(resource, SIGNAL(resourcePropertyChanged(int)),
 	  this, SLOT(slotResourcePropertyChanged(int)));
@@ -603,22 +603,24 @@ bool KLFLibBrowser::slotResourceSaveAs()
 
 void KLFLibBrowser::slotResourceDataChanged()
 {
-  KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
-  if (resource == NULL) {
-    qWarning("KLFLibBrowser::slotResourcePropertyChanged: NULL sender or not resource!");
+  //   KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
+  //   if (resource == NULL) {
+  //     qWarning("KLFLibBrowser::slotResourceDataChanged: NULL sender or not resource!");
+  //     return;
+  //   }
+  KLFLibBrowserViewContainer *viewc = qobject_cast<KLFLibBrowserViewContainer*>(sender());
+  if (viewc == NULL) {
+    qWarning()<<"KLFLibBrowser::slotResourceDataChanged: NULL sender or not KLFLibBro.ViewCont.!";
     return;
   }
-
   slotRefreshResourceActionsEnabled();
 
-  KLFLibBrowserViewContainer *view = findOpenUrl(resource->url());
+  KLFAbstractLibView * view = viewc->view();
   if (view == NULL) {
-    qWarning()<<"KLFLibBrowser::slotResourcePropertyChanged: can't find view for url "
-	      <<resource->url()<<"!";
+    qWarning()<<"KLFLibBrowser::slotResourceDataChanged: NULL view !!";
     return;
   }
-
-  slotEntriesSelected(view->view()->selectedEntries());
+  slotEntriesSelected(view->selectedEntries());
 }
 void KLFLibBrowser::slotResourcePropertyChanged(int propId)
 {
@@ -696,6 +698,10 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
 
 void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 {
+  qDebug()<<"KLFLibBrowser::slotEntriesSelected(): "<<entries;
+  if (entries.size()>=1)
+    qDebug()<<"KLFLibBrowser::slotEntriesSelected():\tTag of first entry="<<entries[0].property(KLFLibEntry::Tags);
+
   pUi->wEntryEditor->displayEntries(entries);
 
   pUi->btnDelete->setEnabled(entries.size() > 0);
@@ -727,10 +733,12 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   QMenu *movetomenu = new QMenu;
   int k;
   QAction *acopy, *amove;
+  int n_destinations = 0;
   for (k = 0; k < pLibViews.size(); ++k) {
     if (pLibViews[k]->url() == view->resourceEngine()->url()) // skip this view
       continue;
     KLFLibResourceEngine *res = pLibViews[k]->resourceEngine();
+    n_destinations++;
     acopy = copytomenu->addAction(res->title(), this, SLOT(slotCopyToResource()));
     acopy->setProperty("resourceUrl", res->url());
     amove = movetomenu->addAction(res->title(), this, SLOT(slotMoveToResource()));
@@ -752,7 +760,7 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 
   // Needed for when user pops up a menu without selection (ie. short list, free white space under)
   KLFLibEntryList selected = view->selectedEntries();
-  bool cancopy = (selected.size() > 0);
+  bool cancopy = (selected.size() > 0) && n_destinations;
   bool canre = (selected.size() == 1);
   bool candel = view->resourceEngine()->canModifyData(KLFLibResourceEngine::DeleteData);
   a1->setEnabled(canre);

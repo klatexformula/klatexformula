@@ -52,6 +52,9 @@ namespace KLFLib {
 /** A base API for a widget that will display a KLFLibResourceEngine's contents.
  * For example one could create a QTreeView and display the contents in there
  * (that's what KLFLibDefaultView does...).
+ *
+ * \note Subclasses should emit the \ref resourceDataChanged() signal AFTER they
+ *   refresh after a resource data change.
  */
 class KLF_EXPORT KLFAbstractLibView : public QWidget
 {
@@ -79,6 +82,9 @@ public:
 signals:
   void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
   void requestRestoreStyle(const KLFStyle& style);
+
+  /** Subclasses must emit this signal AFTER they have refreshed. */
+  void resourceDataChanged();
 
   void entriesSelected(const KLFLibEntryList& entries);
   /** Subclasses should emit this signal with lists of categories they come accross,
@@ -521,6 +527,16 @@ public:
    * in the \c iconPositions map, for example which has been obtained by a call
    * to \ref allIconPositions() some time earlier. */
   virtual void loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions);
+
+  /** If the ViewType (as returned by \ref viewType()) is \ref ListTreeView or
+   * \ref CategoryTreeView, then this function returns the columns state as a
+   * bytearray. This actually calls \ref QHeaderView::saveState(). */
+  virtual QByteArray saveColumnsState() const;
+  /** If the ViewType (as returned by \ref viewType()) is \ref ListTreeView or
+   * \ref CategoryTreeView, then this function restores the columns state from
+   * a previously saved columns state, via a call of \ref QHeaderView::restoreState() */
+  virtual bool restoreColumnsState(const QByteArray& columnsState);
+  
 
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);

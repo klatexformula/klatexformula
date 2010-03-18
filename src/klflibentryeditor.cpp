@@ -210,13 +210,13 @@ void KLFLibEntryEditor::slotUpdateFromCbx(QComboBox *cbx)
 
 void KLFLibEntryEditor::slotUpdateCategory()
 {
-  emit categoryChanged(pUi->cbxCategory->currentText());
   slotCbxSaveCurrentCompletion(pUi->cbxCategory);
+  emit categoryChanged(pUi->cbxCategory->currentText());
 }
 void KLFLibEntryEditor::slotUpdateTags()
 {
-  emit tagsChanged(pUi->cbxTags->currentText());
   slotCbxSaveCurrentCompletion(pUi->cbxTags);
+  emit tagsChanged(pUi->cbxTags->currentText());
 }
 
 void KLFLibEntryEditor::slotRestoreStyle()
@@ -255,3 +255,14 @@ void KLFLibEntryEditor::slotCbxCleanUpCompletions(QComboBox *cbx)
   cbx->setEditText(bkp_edittext);
   cbx->blockSignals(false);
 }
+
+
+/*
+void KLFLibEntryEditor::updateEditText(QComboBox *editWidget, const QString& newText)
+{
+  qDebug()<<"updateEditText("<<newtext<<")!";
+  // small utility function that updates text if it isn't already the same text
+  if (editWidget->currentText() != newText)
+    editWidget->setEditText(newText);
+}
+*/

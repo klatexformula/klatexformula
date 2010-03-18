@@ -46,6 +46,9 @@ public:
   KLFLibBrowserViewContainer(KLFLibResourceEngine *resource, QTabWidget *parent)
     : QStackedWidget(parent), pResource(resource)
   {
+    if (pResource == NULL) {
+      qWarning()<<"KLFLibBrowserViewContainer: NULL RESOURCE! Expect Imminent Crash!";
+    }
     // find OK view type identifiers
     QStringList allViewTypeIdents = KLFLibViewFactory::allSupportedViewTypeIdentifiers();
     int k;
@@ -88,12 +91,14 @@ public:
       vstate["ViewTypeIdentifier"] = vti;
       if (vti == "default") {
 	// category tree
-	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
-	// nothing to save
+	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
+	// save column states
+	vstate["ColumnsState"] = QVariant::fromValue<QByteArray>(dview->saveColumnsState());
       } else if (vti == "default+list") {
 	// list
-	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
-	// nothing to save
+	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
+	// save column states
+	vstate["ColumnsState"] = QVariant::fromValue<QByteArray>(dview->saveColumnsState());
       } else if (vti == "default+icons") {
 	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
 	// save icon positions
@@ -135,23 +140,32 @@ public:
 	continue;
       if (vti == "default") {
 	// category tree
-	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
-	// nothing to load
+	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
+	// load columns state
+	QByteArray colstate = vstate["ColumnsState"].toByteArray();
+	dview->restoreColumnsState(colstate);
       } else if (vti == "default+list") {
 	// list
-	//KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView>(view);
-	// nothing to load
+	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
+	// load columns state
+	QByteArray colstate = vstate["ColumnsState"].toByteArray();
+	dview->restoreColumnsState(colstate);
       } else if (vti == "default+icons") {
 	KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
 	//
 	QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
 	QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
-	QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
-	int k;
-	for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
-	  iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
+	if ( ! resourceEngine()->canModifyData(KLFLibResourceEngine::ChangeData) ) {
+	  // we load the client-saved icon positions if we couldn't write the icon positions
+	  // in the resource upon last run. Here we suppose that we can't write now in the
+	  // resource if and only if we couldn't write when we saved the icon positions.
+	  QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
+	  int k;
+	  for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
+	    iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
+	  }
+	  dview->loadIconPositions(iconpositions);
 	}
-	dview->loadIconPositions(iconpositions);
       } else {
 	// this view type is not known to us, can't save anything.
 	qDebug()<<"Unknown View Type encountered "<<vti<<": can't save its GUI state.";
@@ -180,15 +194,19 @@ public slots:
     v->setContextMenuPolicy(Qt::CustomContextMenu);
     // get informed about selection changes
     connect(v, SIGNAL(entriesSelected(const KLFLibEntryList& )),
-	    this, SIGNAL(entriesSelected(const KLFLibEntryList& )));
+	    this, SLOT(slotEntriesSelected(const KLFLibEntryList& )));
     // and of new category suggestions
     connect(v, SIGNAL(moreCategorySuggestions(const QStringList&)),
-	    this, SIGNAL(moreCategorySuggestions(const QStringList&)));
+	    this, SLOT(slotMoreCategorySuggestions(const QStringList&)));
     // and of restore actions
     connect(v, SIGNAL(requestRestore(const KLFLibEntry&, uint)),
-	    this, SIGNAL(requestRestore(const KLFLibEntry&, uint)));
+	    this, SLOT(slotRequestRestore(const KLFLibEntry&, uint)));
     connect(v, SIGNAL(requestRestoreStyle(const KLFStyle&)),
-	    this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
+	    this, SLOT(slotRequestRestoreStyle(const KLFStyle&)));
+    // and of after-change refresh
+    connect(v, SIGNAL(resourceDataChanged()),
+	    this, SLOT(slotResourceDataChanged()));
+    // and of context menu request
     connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
 	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
     qDebug()<<"connected signals.";
@@ -210,10 +228,33 @@ signals:
   void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
   void requestRestoreStyle(const KLFStyle& style);
 
+  void resourceDataChanged();
+
   void entriesSelected(const KLFLibEntryList& entries);
   void moreCategorySuggestions(const QStringList& categorylist);
 
 protected slots:
+  void slotRequestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle) {
+    if (sender() == view())
+      emit requestRestore(entry, restoreflags);
+  }
+  void slotRequestRestoreStyle(const KLFStyle& style) {
+    if (sender() == view())
+      emit requestRestoreStyle(style);
+  }
+  void slotResourceDataChanged() {
+    if (sender() == view())
+      emit resourceDataChanged();
+  }
+  void slotEntriesSelected(const KLFLibEntryList& entries) {
+    if (sender() == view())
+      emit entriesSelected(entries);
+  }
+  void slotMoreCategorySuggestions(const QStringList& categorylist) {
+    if (sender() == view())
+      emit moreCategorySuggestions(categorylist);
+  }
+
   void slotCurrentChanged(int /*index*/) {
     KLFAbstractLibView *v = view();
     if (v == NULL) return;

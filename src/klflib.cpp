@@ -708,28 +708,31 @@ QVariant KLFLibDBEngine::convertVariantFromDBData(const QVariant& dbdata) const
 }
 QVariant KLFLibDBEngine::decaps(const QString& sdata) const
 {
-  int k;
-  if (!sdata.size())
-    return QVariant::fromValue<QString>(QString());
-  if (sdata[0] != '[')
-    return QVariant::fromValue(sdata);
-  for (k = 1; k < sdata.size() && sdata[k] != ']'; ++k)  ;
-  if (k >= sdata.size()) {
-    qWarning()<<"KLFLibDBEngine::decaps(QS.): bad string data:"<<sdata;
-    return QVariant();
-  }
-  const QString typenam = sdata.mid(1,k-1);
-  const QString valuedata = sdata.mid(k+1);
-
-  if (typenam == "bool")
-    return QVariant::fromValue<bool>(valuedata[0].toLower() == 't' ||
-				     valuedata[0].toLower() == 'y' ||
-				     valuedata.toInt() != 0);
-  if (typenam == "QString")
-    return QVariant::fromValue<QString>(valuedata);
-
-  // by default, treat as QString.
-  return QVariant::fromValue<QString>(valuedata);
+  return decaps(sdata.toUtf8());
+  /*
+   int k;
+   if (!sdata.size())
+   return QVariant::fromValue<QString>(QString());
+   if (sdata[0] != '[')
+   return QVariant::fromValue(sdata);
+   for (k = 1; k < sdata.size() && sdata[k] != ']'; ++k)  ;
+   if (k >= sdata.size()) {
+   qWarning()<<"KLFLibDBEngine::decaps(QS.): bad string data:"<<sdata;
+   return QVariant();
+   }
+   const QString typenam = sdata.mid(1,k-1);
+   const QString valuedata = sdata.mid(k+1);
+   
+   if (typenam == "bool")
+   return QVariant::fromValue<bool>(valuedata[0].toLower() == 't' ||
+   valuedata[0].toLower() == 'y' ||
+   valuedata.toInt() != 0);
+   if (typenam == "QString")
+   return QVariant::fromValue<QString>(valuedata);
+   
+   // by default, treat as QString.
+   return QVariant::fromValue<QString>(valuedata);
+  */
 }
 QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
 {
@@ -746,12 +749,19 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
   const QByteArray typenam = data.mid(1, k-1);
   const QByteArray valuedata = data.mid(k+1);
 
+  if (typenam == "bool") {
+    QString svaluedata = QString::fromUtf8(valuedata);
+    return QVariant::fromValue<bool>(svaluedata[0].toLower() == 't' ||
+				     svaluedata[0].toLower() == 'y' ||
+				     svaluedata.toInt() != 0);
+  }
+  if (typenam == "QString")
+    return QVariant::fromValue<QString>(QString::fromUtf8(valuedata));
   if (typenam == "QByteArray")
     return QVariant::fromValue<QByteArray>(valuedata);
   if (typenam == "QDateTime")
     return QDateTime::fromString(QString::fromLatin1(valuedata), Qt::ISODate);
   if (typenam == "QPoint") {
-    qDebug()<<"Analyzing a QPoint:"<<valuedata;
     static QRegExp rx("\\s*\\(\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\)");
     if ( !rx.exactMatch(valuedata) ) {
       qDebug()<<"nomatch!";
@@ -763,7 +773,6 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
       return QPoint(-1,-1);
     }
     QPoint p(cap[1].toInt(), cap[2].toInt());
-    qDebug()<<"cap is "<<cap<<"; QPoint is "<<p;
     return p;
   }
   if (typenam == "QImage") {
