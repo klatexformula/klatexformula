@@ -44,9 +44,10 @@
     <file>pics/refresh.png</file>
   </qresource>
   <qresource prefix="/pics" >
-    <file>hi32-app-klatexformula.png</file>
-    <file>hi64-app-klatexformula.png</file>
-    <file>hi16-app-klatexformula.png</file>
+    <file>klatexformula-16.png</file>
+    <file>klatexformula-32.png</file>
+    <file>klatexformula-64.png</file>
+    <file>klatexformula-128.png</file>
   </qresource>
   <qresource prefix="/data" >
     <file>latexsymbols.xml</file>

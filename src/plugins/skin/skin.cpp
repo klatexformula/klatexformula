@@ -215,6 +215,8 @@ void SkinConfigWidget::saveCustomSkins()
 
 void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
 {
+  Q_INIT_RESOURCE(skindata);
+
   _mainwin = mainWin;
   _app = app;
   //  _defaultstyle = NULL;

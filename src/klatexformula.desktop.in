@@ -6,10 +6,9 @@ Comment=Generate images from LaTeX equations
 Comment[fr]=Générez une image d'une équation LaTeX
 GenericName=KLatexFormula
 MimeType=application/x-klatexformula;
-Exec=klatexformula %F
-Icon=klatexformula
+Exec=@CMAKE_INSTALL_PREFIX@/bin/klatexformula %F
+Icon=@CMAKE_INSTALL_PREFIX@/share/pixmaps/klatexformula-64.png
 Type=Application
 Terminal=false
 X-KDE-StartupNotify=true
 X-KDE-AuthorizeAction=shell_access
-

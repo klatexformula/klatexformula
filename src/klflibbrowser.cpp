@@ -996,3 +996,5 @@ void KLFLibBrowser::slotSearchFocusOut()
   pUi->txtSearch->setText("  "+tr("Hit Ctrl-F, Ctrl-S or / to search within the current resource"));
   pUi->txtSearch->blockSignals(false);
 }
+
+

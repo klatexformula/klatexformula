@@ -24,7 +24,7 @@
 #ifndef KLFDEFS_H_
 #define KLFDEFS_H_
 
-#include <QString>
+#include <qstring.h>
 
 
 // EXPORTING SYMBOLS TO PLUGINS ...

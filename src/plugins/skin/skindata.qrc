@@ -1,0 +1,28 @@
+<RCC>
+  <qresource prefix="/plugindata/skin">
+<!-- default (empty) theme -->
+    <file>stylesheets/default.qss</file>
+<!-- flat theme -->
+    <file>stylesheets/flat.qss</file>
+    <file>stylesheets/pics/bg_flat.jpg</file>
+    <file>stylesheets/pics/flat-branch-closed.png</file>
+    <file>stylesheets/pics/flat-branch-open.png</file>
+    <file>stylesheets/pics/flat-arrow-down.png</file>
+    <file>stylesheets/pics/flat-arrow-up.png</file>
+    <file>stylesheets/pics/flat-chk-u.png</file>
+    <file>stylesheets/pics/flat-chk-uh.png</file>
+    <file>stylesheets/pics/flat-chk-up.png</file>
+    <file>stylesheets/pics/flat-chk-c.png</file>
+    <file>stylesheets/pics/flat-chk-ch.png</file>
+    <file>stylesheets/pics/flat-chk-cp.png</file>
+    <file>stylesheets/pics/flat-chk-i.png</file>
+    <file>stylesheets/pics/flat-chk-ih.png</file>
+    <file>stylesheets/pics/flat-chk-ip.png</file>
+<!-- papyrus theme -->
+    <file>stylesheets/papyrus.qss</file>
+    <file>stylesheets/pics/bg_papyrus.jpg</file>
+<!-- galaxy theme -->
+    <file>stylesheets/galaxy.qss</file>
+    <file>stylesheets/pics/bg_galaxy.jpg</file>
+  </qresource>
+</RCC>

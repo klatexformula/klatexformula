@@ -3,151 +3,91 @@
 # #################################### #
 # $Id$
 # #################################### #
+cmake_minimum_required(VERSION 2.6)
 
 PROJECT(klatexformula)
 
-cmake_minimum_required(VERSION 2.6)
+# Set up CMAKE properly
+set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
-# Qt stuff
-include(FindQt4)
-include(${QT_USE_FILE})
 
-set(klatexformula_SRCS
-	...................
-)
-set(klatexformula_UIS
-	...................
-)
-set(klatexformula_QRCS
-	...................
-)
-qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
-qt4_wrap_ui(klatexformula_UIS_H ${klatexformula_UIS})
-qt4_automoc(${klatexformula_SRCS})
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-add_executable(klatexformula ${klatexformula_SRCS} ${klatexformula_UIS_H} ${klatexformula_QRC_CPPS})
-target_link_libraries(klatexformula ${QT_LIBRARIES})
+# Read project version
+file(READ VERSION KLF_VERSION)
+message(STATUS "KLatexFormula Version is ${KLF_VERSION}")
 
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/klatexformula.desktop.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop"
-  IMMEDIATE @ONLY)
+# Set some project settings
+# -------------------------
 
-install(TARGETS klatexformula RUNTIME DESTINATION bin)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop" DESTINATION share/applications/)
-#install(FILES klatexformula-64.png DESTINATION share/pixmaps/)
+# Installation destination
+set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFormula.")
+
+# Compile backend only or full project ?
+option(KLF_BACKEND_ONLY "If set to TRUE, only build the libklfbackend library, no GUI." OFF)
+
+# Static/Shared libklfbackend
+option(KLF_BACKEND_STATIC "Compile static libklfbackend backend library instead of shared." ON)
+
+# See what Qt we have
+set(QT_REQUIRED TRUE)
+set(DESIRED_QT_VERSION 4 CACHE STRING "Set KLF_USE_QT4 Instead.")
+include(FindQt)
+
+# Which version of Qt to use...
+if(QT4_INSTALLED)
+  set(KLF_USE_QT4 TRUE CACHE BOOL "Set to FALSE if KLatexFormula should use Qt3 instead of Qt4")
+else(QT4_INSTALLED)
+  set(KLF_USE_QT4 FALSE CACHE BOOL "Set to FALSE if KLatexFormula should use Qt3 instead of Qt4")
+  set(KLF_BACKEND_ONLY ON)
+endif(QT4_INSTALLED)
+
+# Build a shared or static source klfsrc library (for plugins to link to)
+if(WIN32 OR APPLE)
+  set(KLF_SRCLIB_STATIC FALSE CACHE BOOL "Build a static klfsrc source library")
+else(WIN32 OR APPLE)
+  set(KLF_SRCLIB_STATIC TRUE CACHE BOOL "Build a static klfsrc source library")
+endif(WIN32 OR APPLE)
+
+# Build DBUS support ?
+if(NOT WIN32)
+  set(KLF_USE_DBUS ON CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
+else(NOT WIN32)
+  set(KLF_USE_DBUS OFF CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
+endif(NOT WIN32)
+
+# Install .desktop & pixmaps in DEST/share/{applications|pixmaps} ?
+option(KLF_INSTALL_DESKTOP "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}" TRUE)
+
+# DEVELOPER OPTION to install klfbaseplugins.rcc in ~/.klatexformula/rccresources
+option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
+       "FOR DEVELOPERS. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."
+       FALSE)
+
+
+# Some more local definitions for descendant cmake files
+if(WIN32)
+  set(KLF_CMAKE_COPY "copy")
+else(WIN32)
+  set(KLF_CMAKE_COPY "cp")
+endif(WIN32)
+
+
+# Main subdirectory with all sources
+# ----------------------------------
+add_subdirectory(src)
+
+# Uninstall option
+# ----------------
 
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
-
 ADD_CUSTOM_TARGET(uninstall
   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
 
+# Configure doxygen targets
+# -------------------------
 
+# ................. TODO .....................
 
-
-
-
-
-
-
-######################################################################
-# QMake Project File for klatexformula main source library (internal)
-######################################################################
-# $Id$
-######################################################################
-
-include(../VERSION.pri)
-
-# ---
-
-
-SHAREDORSTATIC = $$[KLF_SRCLIB_SHAREDORSTATIC]
-
-TEMPLATE = lib
-TARGET = klfsrc
-DESTDIR = .
-DEPENDPATH += . klfbackend
-INCLUDEPATH += . klfbackend
-CONFIG += qt $$SHAREDORSTATIC debug
-# release
-QT = core gui xml sql
-!win32 {
-	QT += dbus
-	DEFINES += KLF_USE_DBUS
-}
-
-DEFINES += KLFBACKEND_QT4 KLF_VERSION_STRING=\\\"$$VERSION\\\" KLF_SRC_BUILD KLF_DEBUG_TIME_PRINT
-LIBS += -Lklfbackend -Lklfbackend/release -lklfbackend
-
-# Input
-HEADERS += klfcolorchooser.h \
-           klfconfig.h \
-           klfdata.h \
-	   klfpobj.h \
-	   klflatexsyntaxhighlighter.h \
-           klflatexsymbols.h \
-           klflibrary.h \
-	   klflib.h \
-	   klflib_p.h \
-	   klflibview.h \
-	   klflibview_p.h \
-	   klflibentryeditor.h \
-	   klflibbrowser.h \
-	   klflibbrowser_p.h \
-	   klfmime.h \
-           klfmainwin.h \
-           klfpathchooser.h \
-           klfsettings.h \
-           klfstylemanager.h \
-	   klfpluginiface.h \
-	   qtcolortriangle.h \
-	   klfmain.h \
-	   klfdisplaylabel.h
-!win32 {
-	HEADERS +=	klfdbus.h
-}
-FORMS += klflatexsymbolsui.ui \
-         klflibrarybrowserui.ui \
-	 klflibbrowser.ui \
-	 klflibentryeditor.ui \
-	 klflibrespropeditor.ui \
-         klfmainwinui.ui \
-         klfprogerrui.ui \
-         klfsettingsui.ui \
-         klfstylemanagerui.ui \
-	 klfaboutdialogui.ui \
-	 klfcolorchoosewidgetui.ui \
-	 klfcolordialogui.ui \
-	 klflibopenresourcedlg.ui \
-	 klflibsqliteopenwidget.ui
-SOURCES += klfcolorchooser.cpp \
-           klfconfig.cpp \
-           klfdata.cpp \
-	   klfpobj.cpp \
-	   klflatexsyntaxhighlighter.cpp \
-           klflatexsymbols.cpp \
-           klflibrary.cpp \
-	   klflib.cpp \
-	   klflibview.cpp \
-	   klflibentryeditor.cpp \
-	   klflibbrowser.cpp \
-	   klfmime.cpp \
-           klfmainwin.cpp \
-           klfpathchooser.cpp \
-           klfsettings.cpp \
-           klfstylemanager.cpp \
-	   qtcolortriangle.cpp \
-	   klfmain.cpp \
-	   klfdisplaylabel.cpp
-win32 {
-	SOURCES +=      klfwinclipboard.cpp
-}
-!win32 {
-	SOURCES +=	klfdbus.cpp
-}
-
-#TRANSLATIONS += i18n/klf_fr.ts

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Comment=KLatexFormula Library Export
+Hidden=false
+Icon=klatexformula
+MimeType=application/x-klatexformula-db
+Patterns=*.klf.db
+Type=MimeType

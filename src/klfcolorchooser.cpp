@@ -858,3 +858,6 @@ QList<QColor> KLFColorChooser::colorList()
   return l;
 }
 
+
+
+

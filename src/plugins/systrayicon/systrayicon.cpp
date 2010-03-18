@@ -73,7 +73,7 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin, K
 #endif
   menu->addAction(QIcon(":/pics/closehide.png"), tr("Quit"), mainWin, SLOT(quit()));
 
-  _systrayicon = new QSystemTrayIcon(QIcon(":/pics/hi32-app-klatexformula.png"), mainWin);
+  _systrayicon = new QSystemTrayIcon(QIcon(":/pics/klatexformula-32.png"), mainWin);
   _systrayicon->setToolTip("KLatexFormula");
   _systrayicon->setContextMenu(menu);
 

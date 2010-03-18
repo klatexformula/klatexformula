@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="rccinfo">
+    <file alias="info.xml">info_baseplugins.xml</file>
+  </qresource>
+  <qresource prefix="/plugins">
+    <file>@KLF_CMAKE_PLUGINS_LIBNAME_SKIN@</file>
+    <file>@KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON@</file>
+  </qresource>
+</RCC>
