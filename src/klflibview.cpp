@@ -2675,6 +2675,7 @@ void KLFLibResPropEditorDlg::cancelAndClose()
 #include <QFile>
 
 #include <klfbackend.h>
+#include <klflibdbengine.h>
 #include <klflibbrowser.h>
 
 

@@ -29,12 +29,15 @@
 #include <QStringList>
 #include <QEvent>
 #include <QStackedWidget>
+#include <QLayout>
+#include <QGridLayout>
+#include <QSpacerItem>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QDomElement>
 
 #include <klfdefs.h>
 
-#include <ui_klflatexsymbolsui.h>
 
 class KLFMainWin;
 
@@ -128,7 +131,11 @@ private:
 };
 
 
-class KLF_EXPORT KLFLatexSymbols : public QWidget, private Ui::KLFLatexSymbolsUI
+namespace Ui {
+  class KLFLatexSymbols;
+}
+
+class KLF_EXPORT KLFLatexSymbols : public QWidget
 {
   Q_OBJECT
 public:
@@ -159,6 +166,9 @@ protected:
 
   void closeEvent(QCloseEvent *ev);
   void showEvent(QShowEvent *ev);
+
+private:
+  Ui::KLFLatexSymbols *U;
 };
 
 #endif

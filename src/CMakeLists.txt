@@ -50,6 +50,7 @@ set(klatexformula_SRCS
 	klflatexsymbols.cpp
 	klflibrary.cpp
 	klflib.cpp
+	klflibdbengine.cpp
 	klflibview.cpp
 	klflibentryeditor.cpp
 	klflibbrowser.cpp
@@ -72,7 +73,9 @@ set(klatexformula_HEADERS
 	klflatexsymbols.h
 	klflibrary.h
 	klflib.h
-	klflib_p.h
+#	klflib_p.h
+	klflibdbengine.h
+	klflibdbengine_p.h
 	klflibview.h
 	klflibview_p.h
 	klflibentryeditor.h
@@ -90,7 +93,7 @@ set(klatexformula_HEADERS
 )
 # UI Forms
 set(klatexformula_UIS
-	klflatexsymbolsui.ui
+	klflatexsymbols.ui
 	klflibrarybrowserui.ui
 	klflibbrowser.ui
 	klflibentryeditor.ui
