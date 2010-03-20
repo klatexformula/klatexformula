@@ -77,6 +77,7 @@ static T metatype_from_data(const QByteArray& data)
 // static
 KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 {
+  bool accessshared = false;
 
   QString datatablename = url.queryItemValue("dataTableName");
   if (datatablename.isEmpty()) {
@@ -87,6 +88,7 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
   if (url.scheme() == "klf+sqlite") {
     db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
     db.setDatabaseName(url.path());
+    accessshared = false;
   } else {
     qWarning("KLFLibDBEngine::KLFLibDBEngine: bad url scheme in URL\n\t%s",
 	     qPrintable(url.toString()));
@@ -100,7 +102,7 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
     return NULL;
   }
 
-  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, parent);
+  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, accessshared, parent);
 }
 
 // static
@@ -108,6 +110,7 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
 					      QObject *parent)
 {
   QString datatablename = dtablename;
+
   bool r;
 
   if (QFile::exists(fileName)) {
@@ -141,15 +144,18 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
     return NULL;
   }
 
-  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, parent);
+  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, false, parent);
 }
 
 // private
 KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autodisconnect,
-			       const QUrl& url, QObject *parent)
+			       const QUrl& url, bool accessshared, QObject *parent)
   : KLFLibResourceEngine(url, FeatureReadOnly|FeatureLocked, parent), pAutoDisconnectDB(autodisconnect)
 {
   pDataTableName = "t_"+tablename;
+
+  // load some read-only properties in memory (these are NOT stored in the DB)
+  KLFPropertizedObject::setProperty(PropAccessShared, accessshared);
 
   setDatabase(db);
   // read resource properties from database
@@ -254,8 +260,10 @@ QStringList KLFLibDBEngine::detectEntryColumns(const QSqlQuery& q)
   for (k = 0; k < rec.count(); ++k) {
     QString propName = rec.fieldName(k);
     int propId = dummy.propertyIdForName(propName);
-    if (propId < 0)
+    if (propId < 0 && propName != "id") { // don't register field "id"
+      qDebug()<<"Registering property "<<propName;
       dummy.setEntryProperty(propName, QVariant()); // register property.
+    }
 
     cols << propName;
   }
@@ -268,12 +276,18 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& col
   KLFLibEntry entry;
   int k;
   for (k = 0; k < cols.size(); ++k) {
-    if (cols[k] == "DateTime")
+    QVariant v = q.value(k);
+    if (cols[k] == "id")
+      continue;
+    /** \bug DEBUG/TODO/BUG .... HERE REMOVE THE FOLLOWING SPECIAL CASES LATER (these
+     * are needed only for my old test db's... */
+    bool hasTypeInfo = (v.toByteArray()[0] == '[');
+    if (!hasTypeInfo && cols[k] == "DateTime")
       entry.setDateTime(QDateTime::fromString(q.value(k).toString(), Qt::ISODate));
-    else if (cols[k] == "Preview") {
+    else if (!hasTypeInfo && cols[k] == "Preview") {
       QImage img; img.loadFromData(q.value(k).toByteArray());
       entry.setPreview(img);
-    } else if (cols[k] == "KLFStyle") {
+    } else if (!hasTypeInfo && cols[k] == "KLFStyle") {
       entry.setStyle(metatype_from_data<KLFStyle>(q.value(k).toByteArray()));
     } else {
       entry.setEntryProperty(cols[k], convertVariantFromDBData(q.value(k)));
@@ -410,38 +424,15 @@ QVariant KLFLibDBEngine::convertVariantFromDBData(const QVariant& dbdata) const
 QVariant KLFLibDBEngine::decaps(const QString& sdata) const
 {
   return decaps(sdata.toUtf8());
-  /*
-   int k;
-   if (!sdata.size())
-   return QVariant::fromValue<QString>(QString());
-   if (sdata[0] != '[')
-   return QVariant::fromValue(sdata);
-   for (k = 1; k < sdata.size() && sdata[k] != ']'; ++k)  ;
-   if (k >= sdata.size()) {
-   qWarning()<<"KLFLibDBEngine::decaps(QS.): bad string data:"<<sdata;
-   return QVariant();
-   }
-   const QString typenam = sdata.mid(1,k-1);
-   const QString valuedata = sdata.mid(k+1);
-   
-   if (typenam == "bool")
-   return QVariant::fromValue<bool>(valuedata[0].toLower() == 't' ||
-   valuedata[0].toLower() == 'y' ||
-   valuedata.toInt() != 0);
-   if (typenam == "QString")
-   return QVariant::fromValue<QString>(valuedata);
-   
-   // by default, treat as QString.
-   return QVariant::fromValue<QString>(valuedata);
-  */
 }
 QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
 {
+  //  qDebug()<<"decaps(): "<<data;
   int k;
   if (!data.size())
     return QVariant();
   if (data[0] != '[')
-    return QVariant::fromValue(data);
+    return QVariant::fromValue<QString>(QString::fromUtf8(data));
   for (k = 1; k < data.size() && data[k] != ']'; ++k)  ;
   if (k >= data.size()) {
     qWarning()<<"KLFLibDBEngine::decaps(QB.A.): bad data:"<<data;
@@ -546,14 +537,14 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO `" + pDataTableName + "` (" + props.join(",") + ") "
 	    " VALUES (" + questionmarks.join(",") + ")");
-  //  qDebug()<<"INSERT query: "<<q.lastQuery();
+  qDebug()<<"INSERT query: "<<q.lastQuery();
   // now loop all entries, and exec the query with appropriate bound values
   for (j = 0; j < entrylist.size(); ++j) {
     //    qDebug()<<"New entry to insert.";
     for (k = 0; k < propids.size(); ++k) {
       QVariant data = convertVariantToDBData(entrylist[j].property(propids[k]));
       // and add a corresponding bind value for sql query
-      //      qDebug()<<"Binding value "<<k<<": "<<data;
+      qDebug()<<"Binding value "<<k<<": "<<data;
       q.bindValue(k, data);
     }
     // and exec the query with these bound values

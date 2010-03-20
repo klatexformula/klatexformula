@@ -31,7 +31,7 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-#include <klfdata.h>  // for KLFStyle and legacy library
+#include <klfdata.h>  // for KLFStyle
 #include <klfpobj.h>
 
 /** \brief An entry (single formula) in the library
@@ -128,7 +128,8 @@ namespace KLFLib {
  *
  * Resources have properties (stored in a KLFPropertizedObject structure, NOT in regular QObject
  * properties) that ARE STORED IN THE RESOURCE DATA ITSELF. Built-in properties are listed
- * in the \ref ResourceProperty enum.
+ * in the \ref ResourceProperty enum. Some properties may be implemented read-only
+ * (eg. \ref PropAccessShared) in which case saveResourceProperty() should return FALSE.
  *
  * The view used to display this resource is stored in the "ViewType" resource property (and
  * thus should be stored in the backend data like other properties).
@@ -189,7 +190,12 @@ public:
   };
 
   /** List of built-in KLFPropertizedObject-properties. */
-  enum ResourceProperty { PropTitle = 0, PropLocked, PropViewType };
+  enum ResourceProperty {
+    PropTitle = 0,
+    PropLocked,
+    PropViewType,
+    PropAccessShared
+  };
 
   enum ResourceFeature {
     FeatureReadOnly = 0x0001,
@@ -226,6 +232,14 @@ public:
 
   //! The (last) View Type used to display this resource
   virtual QString viewType() const { return KLFPropertizedObject::property(PropViewType).toString(); }
+
+  //! If the resource is accessed by many clients
+  /** Whether the resource is meant to be shared by many clients (eg. a remote database access)
+   * or if it is local and we're the only one to use it (eg. a local sqlite file).
+   *
+   * This property may be used by views to decide if they can store meta-information about the
+   * view state in the resource itself (icon positions in icon view mode for example). */
+  virtual bool accessShared() const { return KLFPropertizedObject::property(PropAccessShared).toBool(); }
 
   enum ModifyType { AllActionsData, InsertData, ChangeData, DeleteData };
   /** Subclasses should return TRUE here if it is possible to modify the resource's data in

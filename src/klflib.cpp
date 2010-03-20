@@ -84,7 +84,6 @@ void KLFLibEntry::initRegisteredProperties()
 
 // ---------------------------------------------------
 
-
 KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, uint featureflags,
 					   QObject *parent)
   : QObject(parent), KLFPropertizedObject("KLFLibResourceEngine"), pUrl(url),

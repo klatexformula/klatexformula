@@ -21,7 +21,6 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include <stack>
 
 #include <QApplication>
 #include <QDebug>
@@ -494,6 +493,7 @@ QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
     entriesnodeids << nid;
   }
 
+  //  qDebug()<<"KLFLibModel::mimeData: Encoding entries "<<entries;
 
   QMimeData *mime = new QMimeData;
   QByteArray data;
@@ -563,17 +563,18 @@ QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
 // private
 bool KLFLibModel::dropCanInternal(const QMimeData *mimedata)
 {
-  if (mimedata->hasFormat("application/x-klf-internal-lib-move-entries") &&
-      pResource->canModifyData(KLFLibResourceEngine::ChangeData)) {
-    QByteArray imdata = mimedata->data("application/x-klf-internal-lib-move-entries");
-    QDataStream imstr(imdata);
-    imstr.setVersion(QDataStream::Qt_4_4);
-    QVariantMap vprop;
-    imstr >> vprop;
-    QUrl xurl = vprop.value("Url").toUrl();
-    return (xurl == pResource->url());
-  }
-  return false;
+  if ( ! mimedata->hasFormat("application/x-klf-internal-lib-move-entries") ||
+       ! pResource->canModifyData(KLFLibResourceEngine::ChangeData))
+    return false;
+
+  QByteArray imdata = mimedata->data("application/x-klf-internal-lib-move-entries");
+  QDataStream imstr(imdata);
+  imstr.setVersion(QDataStream::Qt_4_4);
+  QVariantMap vprop;
+  imstr >> vprop;
+  QUrl url = vprop.value("Url").toUrl();
+  //  qDebug()<<"KLFLibModel::dropCanInternal: drag originated from "<<url<<"; we are "<<pResource->url();
+  return (url == pResource->url());
 }
 
 bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action, int row,
@@ -599,7 +600,7 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
   if (column > 0)
     return false;
 
-  // imdata, imstr : "internal move" ; ldata, lstr : "entry _l_ist"
+  // imdata, imstr : "*i*nternal *m*ove" ; ldata, lstr : "entry *l*ist"
   bool useinternalmove = dropCanInternal(mimedata);
   if (useinternalmove) {
     qDebug() << "Dropping application/x-klf-internal-lib-move-entries";
@@ -660,8 +661,10 @@ uint KLFLibModel::dropFlags(QDragMoveEvent *event)
   const QMimeData *mdata = event->mimeData();
   if (dropCanInternal(mdata)) {
     if ( !(pFlavorFlags & CategoryTree) ) {
-      return 0; // will NOT accept an internal move not in a category tree
+      return 0; // will NOT accept an internal move not in a category tree.
+      //           (note: icon moves not handled in KLFLibModel; intercepted in view.)
     }
+    // we're doing an internal drop in category tree:
     if (pResource->canModifyData(KLFLibResourceEngine::ChangeData))
       return DropWillAccept|DropWillMove|DropWillCategorize;
     return 0;
@@ -1695,7 +1698,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   pView->setItemDelegate(pDelegate);
   pView->viewport()->installEventFilter(this);
   pView->installEventFilter(this);
-  installEventFilter(this);
+  //  installEventFilter(this);
 
   connect(pView, SIGNAL(clicked(const QModelIndex&)),
 	  this, SLOT(slotViewItemClicked(const QModelIndex&)));
@@ -1721,8 +1724,8 @@ bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
       loadIconPositions(pReadIconPositions);
     // continue and go on, don't eat event
   }
-  if (object == this || object == pView->viewport() || object == pView) {
-    if (event->type() == QEvent::DragEnter) {
+  /*  if (object == this || object == pView->viewport() || object == pView) {
+      if (event->type() == QEvent::DragEnter) {
       if (pEventFilterNoRecurse) return false;
       pEventFilterNoRecurse = true;
       QDragEnterEvent *de = (QDragEnterEvent*) event;
@@ -1812,6 +1815,7 @@ bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
       return true;
     }
   }
+  */
   return KLFAbstractLibView::eventFilter(object, event);
 }
 
@@ -1844,6 +1848,53 @@ QList<QAction*> KLFLibDefaultView::addContextMenuActions(const QPoint& /*pos*/)
   return actionList;
 }
 
+
+QVariantMap KLFLibDefaultView::saveGuiState() const
+{
+  QVariantMap vst;
+  if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
+    vst["ColumnsState"] = QVariant::fromValue<QByteArray>(saveColumnsState());
+  }
+  if (pViewType == IconView) {
+    if ( resourceEngine()->accessShared() ) {
+      // access is shared, so we store icon position info in Gui state instead
+      // of in the resource data itself.
+      QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions = allIconPositions();
+      QMap<KLFLibResourceEngine::entryId,QPoint>::const_iterator it;
+      QVariantList vEntryIds; // will hold entryId's in qint32 format
+      QVariantList vPositions; // will hold QPoint's
+      for (it = iconpositions.begin(); it != iconpositions.end(); ++it) {
+	vEntryIds << QVariant::fromValue<qint32>(it.key());
+	vPositions << QVariant::fromValue<QPoint>(it.value());
+      }
+      vst["IconPositionsEntryIdList"] = QVariant::fromValue<QVariantList>(vEntryIds);
+      vst["IconPositionsPositionList"] = QVariant::fromValue<QVariantList>(vPositions);
+    }
+  }
+  return vst;
+}
+bool KLFLibDefaultView::restoreGuiState(const QVariantMap& vstate)
+{
+  if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
+    QByteArray colstate = vstate["ColumnsState"].toByteArray();
+    restoreColumnsState(colstate);
+  }
+  if (pViewType == IconView) {
+    if ( resourceEngine()->accessShared() ) {
+      // access is shared, so we store icon position info in Gui state instead
+      // of in the resource data itself.
+      QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
+      QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
+      QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
+      int k;
+      for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
+	iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
+      }
+      loadIconPositions(iconpositions);
+    }
+  }
+  return true;
+}
 
 
 QMap<KLFLib::entryId,QPoint> KLFLibDefaultView::allIconPositions() const
@@ -2024,7 +2075,18 @@ void KLFLibDefaultView::updateResourceData()
 }
 void KLFLibDefaultView::updateResourceProp()
 {
-  // nothing to do
+  // if locked property was modified, refresh
+  // Lock Icon Positions & Relayout Icons according to whether we store that info
+  // in resource or in view state...
+
+  if ( ! resourceEngine()->accessShared() ) {
+    // we store icon positions in the resource data itself
+    bool canmodify = resourceEngine()->canModifyData(KLFLibResourceEngine::ChangeData);
+    pIconViewRelayoutAction->setEnabled(canmodify);
+    pIconViewLockAction->setEnabled(canmodify);
+    if ( ! canmodify )
+      pIconViewLockAction->setChecked(true);
+  }
 }
 
 QStringList KLFLibDefaultView::getCategorySuggestions()

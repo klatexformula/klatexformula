@@ -30,11 +30,15 @@
 #ifndef KLFLIBVIEW_P_H
 #define KLFLIBVIEW_P_H
 
+#include <QApplication>
 #include <QAbstractItemView>
 #include <QTreeView>
 #include <QListView>
 #include <QMimeData>
 #include <QDrag>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
 
 #include "klflib.h"
 #include "klflibview.h"
@@ -80,42 +84,260 @@ static QImage autocrop_image(const QImage& img, int alpha_threshold = 0)
 }
 
 
-static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
+//static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
 
-/** \internal */
-class KLFLibDefTreeView : public QTreeView
+
+class KLFLibDefViewCommon
 {
-  Q_OBJECT
+  KLFLibModel *pModel;
+  KLFLibDefaultView::ViewType pViewType;
+  QPoint mousePressedContentsPos;
 public:
-  KLFLibDefTreeView(KLFLibDefaultView *parent) : QTreeView(parent), pDView(parent) { }
+  KLFLibDefViewCommon(KLFLibDefaultView::ViewType viewType) : pViewType(viewType) { }
 
-  void simulateEvent(QEvent *e) {
-    event(e);
+  virtual void moveSelectedIconsBy(const QPoint& delta) = 0;
+
+  /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */  
+  virtual bool evDragEnter(QDragEnterEvent *de, const QPoint& pos) {
+    uint fl = pModel->dropFlags(de);
+    qDebug()<<"KLFLibDefViewCommon::evDragEnter: drop flags are "<<fl<<"; this viewtype="<<pViewType;
+    fprintf(stderr, "\t\tflags are %u", fl);
+    // decide whether to show drop indicator or not.
+    bool showdropindic = (fl & KLFLibModel::DropWillCategorize);
+    thisView()->setDropIndicatorShown(showdropindic);
+    // decide whether to accept the drop or to ignore it
+    if ( !(fl & KLFLibModel::DropWillAccept) && pViewType != KLFLibDefaultView::IconView ) {
+      // pViewType != IconView  <=  don't ignore if in icon view (where user can
+      // move the equations freely...by drag&drop)
+      de->ignore();
+      qDebug("Ignored drag enter event.");
+    } else {
+      mousePressedContentsPos = pos;
+      de->accept();
+      qDebug()<<"Accepted drag enter event issued at pos="<<pos;
+      // and FAKE a QDragMoveEvent to the item view.
+      QDragEnterEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
+				de->keyboardModifiers());
+      qApp->sendEvent(thisView()->viewport(), &fakeevent);
+    }
+    return true;
+  }
+
+  /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */  
+  virtual bool evDragMove(QDragMoveEvent *de, const QPoint& pos) {
+    uint fl = pModel->dropFlags(de);
+    qDebug()<<"KLFLibDefViewCommon::evDragMove: flags are "<<fl<<"; pos is "<<pos;
+    // decide whether to accept the drop or to ignore it
+    if ( !(fl & KLFLibModel::DropWillAccept) && pViewType != KLFLibDefaultView::IconView ) {
+      // pView != IconView  <=   don't ignore if in icon view (user can move the equations
+      //    freely...by drag&drop)
+      de->ignore();
+    } else {
+      // check proposed actions
+      if ( (fl & KLFLibModel::DropWillMove) || pViewType == KLFLibDefaultView::IconView ) {
+	de->setDropAction(Qt::MoveAction);
+      } else {
+	de->setDropAction(Qt::CopyAction);
+      }
+      de->accept();
+      // and FAKE a QDragMoveEvent to the item view.
+      QDragMoveEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
+			       de->keyboardModifiers());
+      qApp->sendEvent(thisView()->viewport(), &fakeevent);
+    }
+    return true;
+  }
+
+  /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */
+  virtual bool evDrop(QDropEvent *de, const QPoint& pos) {
+    if ( pViewType == KLFLibDefaultView::IconView && de->source() == thisView() ) {
+      // internal move -> send event directly
+      //	qobject_cast<KLFLibDefListView*>(pView)->simulateEvent(event);
+      //	qApp->sendEvent(object, event);
+      // move the objects ourselves because of bug (?) in Qt's handling?
+      QPoint delta = pos - mousePressedContentsPos;
+      qDebug()<<"Delta is "<<delta;
+      // and fake a QDragLeaveEvent
+      QDragLeaveEvent fakeevent;
+      qApp->sendEvent(thisView()->viewport(), &fakeevent);
+      // and manually move all selected indexes
+      moveSelectedIconsBy(delta);
+      thisView()->viewport()->update();
+    } else {
+      // and FAKE a QDropEvent to the item view.
+      qDebug()<<"Drop event at position="<<de->pos();
+      QDropEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
+			   de->keyboardModifiers());
+      qApp->sendEvent(thisView()->viewport(), &fakeevent);
+    }
+    return true;
+  }
+
+  virtual void commonStartDrag(Qt::DropActions supportedActions) {
+    // largely based on Qt's QAbstractItemView source in src/gui/itemviews/qabstractitemview.cpp
+    QModelIndexList indexes = commonSelectedIndexes();
+
+    if (pViewType == KLFLibDefaultView::IconView) {
+      // icon view -> move icons around
+      qDebug()<<"Internal DRAG, move icons around...";
+      // if icon positions are locked abort
+      if (pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
+	return;
+      /// \bug ......BUG/TODO........ WARNING: QListView::internalDrag() is NOT in offical Qt API !
+      commonInternalDrag(supportedActions);
+      return;
+    }
+    
+    qDebug() << "Normal DRAG...";
+    /*  // DEBUG:
+	if (indexes.count() > 0)
+	if (v->inherits("KLFLibDefListView")) {
+	qDebug()<<"Got First index' rect: "
+	<<qobject_cast<KLFLibDefListView*>(v)->rectForIndex(indexes[0]);
+	qobject_cast<KLFLibDefListView*>(v)->setPositionForIndex(QPoint(200,100), indexes[0]);
+	}
+    */
+    if (indexes.count() == 0)
+      return;
+    QMimeData *data = pModel->mimeData(indexes);
+    if (data == NULL)
+      return;
+    QDrag *drag = new QDrag(thisView());
+    drag->setMimeData(data);
+    QPixmap pix = QPixmap::fromImage(pModel->dragImage(indexes));
+    drag->setPixmap(pix);
+    drag->setHotSpot(QPoint(0,0));
+    Qt::DropAction defaultDropAction = Qt::IgnoreAction;
+    
+    if (supportedActions & Qt::CopyAction &&
+	thisView()->dragDropMode() != QAbstractItemView::InternalMove)
+      defaultDropAction = Qt::CopyAction;
+    
+    drag->exec(supportedActions, defaultDropAction);
   }
 
 protected:
-  virtual void startDrag(Qt::DropActions supportedActions) {
-    klf_common_start_drag(this, supportedActions);
+  virtual QModelIndexList commonSelectedIndexes() const = 0;
+  virtual void commonInternalDrag(Qt::DropActions a) = 0;
+  virtual QAbstractItemView *thisView() = 0;
+
+  /** Returns contents position */
+  virtual QPoint eventPos(QObject *object, QDragEnterEvent *event, int horoffset, int veroffset) {
+    if (object == thisView()->viewport())
+      return event->pos() + QPoint(horoffset, veroffset);
+    if (object == thisView())
+      return thisView()->viewport()->mapFromGlobal(thisView()->mapToGlobal(event->pos()))
+	+ QPoint(horoffset, veroffset);
+    return event->pos() + QPoint(horoffset, veroffset);
   }
 
-  KLFLibDefaultView *pDView;
+  bool setTheModel(QAbstractItemModel *m) {
+    KLFLibModel *model = qobject_cast<KLFLibModel*>(m);
+    if (model == NULL) {
+      qWarning()<<"KLFLibDefViewCommon::setTheModel: model is NULL or not a KLFLibModel :"<<model<<" !";
+      return false;
+    }
+    pModel = model;
+    return true;
+  }
 
-  friend void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
+};
+
+
+/** \internal */
+class KLFLibDefTreeView : public QTreeView, public KLFLibDefViewCommon
+{
+  Q_OBJECT
+public:
+  KLFLibDefTreeView(KLFLibDefaultView *parent)
+    : QTreeView(parent), KLFLibDefViewCommon(parent->viewType()),
+      pDView(parent), pInEventFilter(false)
+  {
+    installEventFilter(this);
+    viewport()->installEventFilter(this);
+  }
+
+  virtual bool eventFilter(QObject *object, QEvent *event) {
+    if (pInEventFilter)
+      return QTreeView::eventFilter(object, event);
+    pInEventFilter = true;
+    bool eat = false;
+    if (event->type() == QEvent::DragEnter) {
+      eat = evDragEnter((QDragEnterEvent*)event, eventPos(object, (QDragEnterEvent*)event));
+    } else if (event->type() == QEvent::DragMove) {
+      eat = evDragMove((QDragMoveEvent*)event, eventPos(object, (QDragEnterEvent*)event));
+    } else if (event->type() == QEvent::Drop) {
+      eat = evDrop((QDropEvent*)event, eventPos(object, (QDragEnterEvent*)event));
+    }
+    pInEventFilter = false;
+    if (eat)
+      return eat;
+    return QTreeView::eventFilter(object, event);
+  }
+  virtual void setModel(QAbstractItemModel *model) {
+    if ( setTheModel(model) ) {
+      QTreeView::setModel(model);
+    }
+  }
+
+  virtual void moveSelectedIconsBy(const QPoint& /*delta*/) { }
+
+
+protected:
+  virtual QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
+  virtual void commonInternalDrag(Qt::DropActions) {  }
+  virtual QAbstractItemView *thisView() { return this; }
+
+  virtual QPoint eventPos(QObject *object, QDragEnterEvent *event) {
+    return KLFLibDefViewCommon::eventPos(object, event, horizontalOffset(), verticalOffset());
+  }
+
+  virtual void startDrag(Qt::DropActions supportedActions) {
+    commonStartDrag(supportedActions);
+  }
+
+  bool pInEventFilter;
+
+  KLFLibDefaultView *pDView;
 };
 
 /** \internal */
-class KLFLibDefListView : public QListView
+class KLFLibDefListView : public QListView, public KLFLibDefViewCommon
 {
   Q_OBJECT
 public:
   KLFLibDefListView(KLFLibDefaultView *parent)
-    : QListView(parent), pDView(parent), pWantRelayout(true) { }
-
-  void simulateEvent(QEvent *e) {
-    event(e);
+    : QListView(parent), KLFLibDefViewCommon(parent->viewType()),
+      pDView(parent), pWantRelayout(true), pInEventFilter(false)
+  {
+    installEventFilter(this);
+    viewport()->installEventFilter(this);
   }
 
-  void moveSelectedBy(const QPoint& delta) {
+  virtual bool eventFilter(QObject *object, QEvent *event) {
+    if (pInEventFilter)
+      return false;
+    pInEventFilter = true;
+    bool eat = false;
+    if (event->type() == QEvent::DragEnter) {
+      eat = evDragEnter((QDragEnterEvent*)event, eventPos(object, (QDragEnterEvent*)event));
+    } else if (event->type() == QEvent::DragMove) {
+      eat = evDragMove((QDragMoveEvent*)event, eventPos(object, (QDragEnterEvent*)event));
+    } else if (event->type() == QEvent::Drop) {
+      eat = evDrop((QDropEvent*)event, eventPos(object, (QDragEnterEvent*)event));
+    }
+    pInEventFilter = false;
+    if (eat)
+      return eat;
+    return QListView::eventFilter(object, event);
+  }
+  virtual void setModel(QAbstractItemModel *model) {
+    if ( setTheModel(model) ) {
+      QListView::setModel(model);
+    }
+  }
+
+  virtual void moveSelectedIconsBy(const QPoint& delta) {
     int k;
     QModelIndexList sel = selectionModel()->selectedIndexes();
     for (k = 0; k < sel.size(); ++k) {
@@ -127,10 +349,7 @@ public:
   }
 
   void forceRelayout(bool isPolishing = false) {
-    bool wr = pWantRelayout;
-    pWantRelayout = true;
-    doItemsLayout();
-    pWantRelayout = wr;
+    QListView::doItemsLayout(); // force re-layout
     if (!isPolishing && !pWantRelayout) {
       // if we didn't want a relayout (ie. icon positions were controlled)
       saveIconPositions();
@@ -153,8 +372,18 @@ public:
   }
   
 protected:
+  virtual QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
+  virtual void commonInternalDrag(Qt::DropActions a) { internalDrag(a); }
+  virtual QAbstractItemView *thisView() { return this; }
+
+  virtual QPoint eventPos(QObject *object, QDragEnterEvent *event) {
+    return KLFLibDefViewCommon::eventPos(object, event, horizontalOffset(), verticalOffset());
+  }
+
+  bool pInEventFilter;
+
   virtual void startDrag(Qt::DropActions supportedActions) {
-    klf_common_start_drag(this, supportedActions);
+    commonStartDrag(supportedActions);
   }
   virtual void doItemsLayout() {
     qDebug()<<"doItemsLayout!";
@@ -166,7 +395,7 @@ protected:
   
   KLFLibDefaultView *pDView;
 
-  friend void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
+  //  friend void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
 
   bool pWantRelayout;
 
@@ -197,12 +426,12 @@ protected:
 
 // -------------------------------
 
-static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions)
+/* static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions)
 {
   // largely based on Qt's QAbstractItemView source in src/gui/itemviews/qabstractitemview.cpp
-  KLFLibModel *model = (KLFLibModel*)v->model();
-  if (model == NULL)
-    return;
+      KLFLibModel *model = (KLFLibModel*)v->model();
+      if (model == NULL)
+      return;
 
   QModelIndexList indexes;
   // the following inheritance test and cast is needed for the friend attriubte
@@ -231,14 +460,14 @@ static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supporte
 
   qDebug() << "Normal DRAG";
 
-  /*  // DEBUG:
+  / *  // DEBUG:
       if (indexes.count() > 0)
       if (v->inherits("KLFLibDefListView")) {
       qDebug()<<"Got First index' rect: "
       <<qobject_cast<KLFLibDefListView*>(v)->rectForIndex(indexes[0]);
       qobject_cast<KLFLibDefListView*>(v)->setPositionForIndex(QPoint(200,100), indexes[0]);
       }
-  */
+  * /
 
   if (indexes.count() > 0) {
     QMimeData *data = model->mimeData(indexes);
@@ -257,7 +486,7 @@ static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supporte
     drag->exec(supportedActions, defaultDropAction);
   }
 }
-
+  */
 
 
 #endif

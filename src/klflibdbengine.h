@@ -105,8 +105,8 @@ protected:
 
 private:
   /** \note \c tablename does NOT contain a leading \c "t_" prefix. */
-  KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
-		 bool autoDisconnectDB, const QUrl& url, QObject *parent = NULL);
+  KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autoDisconnectDB,
+		 const QUrl& url, bool accessshared, QObject *parent);
 
   QSqlDatabase pDB;
   

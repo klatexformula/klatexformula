@@ -79,6 +79,13 @@ public:
    * The default implementation returns an empty list. */
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
+  /** Saves the current GUI state (eg. column widths and order, etc.) */
+  virtual QVariantMap saveGuiState() const = 0;
+
+  /** Restores the state described in \c state (which was previously returned
+   * by \ref saveGuiState()) */
+  virtual bool restoreGuiState(const QVariantMap& state) = 0;
+
 signals:
   void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
   void requestRestoreStyle(const KLFStyle& style);
@@ -97,13 +104,13 @@ public slots:
   virtual void updateResourceProp() = 0;
   virtual void updateResourceData() = 0;
   virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
-  bool writeEntryCategory(const QString& category)
+  inline bool writeEntryCategory(const QString& category)
   { return writeEntryProperty(KLFLibEntry::Category, category); }
-  bool writeEntryTags(const QString& tags)
+  inline bool writeEntryTags(const QString& tags)
   { return writeEntryProperty(KLFLibEntry::Tags, tags); }
   virtual bool deleteSelected(bool requireConfirm = true) = 0;
   virtual bool insertEntries(const KLFLibEntryList& entries) = 0;
-  bool insertEntry(const KLFLibEntry& entry) { return insertEntries(KLFLibEntryList() << entry); }
+  inline bool insertEntry(const KLFLibEntry& entry) { return insertEntries(KLFLibEntryList() << entry); }
 
   virtual bool searchFind(const QString& queryString, bool forward = true) = 0;
   virtual bool searchFindNext(bool forward) = 0;
@@ -517,24 +524,36 @@ public:
 
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
+  virtual QVariantMap saveGuiState() const;
+  virtual bool restoreGuiState(const QVariantMap& state);
+
+
   /** If the ViewType (as returned by \ref viewType()) is \ref IconView (and ONLY in
    * this case) this function returns the positions of all the icon positions and the
-   * entry IDs to which they refer. */
+   * entry IDs to which they refer.
+   *
+   * \note Consider using \ref saveGuiState() and \ref restoreGuiState() instead. */
   virtual QMap<KLFLib::entryId,QPoint> allIconPositions() const;
 
   /** If the ViewType (as returned by \ref viewType()) is \ref IconView (and ONLY in
    * this case) this function restores the positions of all the icons as described
    * in the \c iconPositions map, for example which has been obtained by a call
-   * to \ref allIconPositions() some time earlier. */
+   * to \ref allIconPositions() some time earlier.
+   *
+   * \note Consider using \ref saveGuiState() and \ref restoreGuiState() instead. */
   virtual void loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions);
 
   /** If the ViewType (as returned by \ref viewType()) is \ref ListTreeView or
    * \ref CategoryTreeView, then this function returns the columns state as a
-   * bytearray. This actually calls \ref QHeaderView::saveState(). */
+   * bytearray. This actually calls \ref QHeaderView::saveGuiState().
+   *
+   * \note Consider using \ref saveGuiState() and \ref restoreGuiState() instead. */
   virtual QByteArray saveColumnsState() const;
   /** If the ViewType (as returned by \ref viewType()) is \ref ListTreeView or
    * \ref CategoryTreeView, then this function restores the columns state from
-   * a previously saved columns state, via a call of \ref QHeaderView::restoreState() */
+   * a previously saved columns state, via a call of \ref QHeaderView::restoreGuiState().
+   *
+   * \note Consider using \ref saveGuiState() and \ref restoreGuiState() instead. */
   virtual bool restoreColumnsState(const QByteArray& columnsState);
   
 
