@@ -320,9 +320,23 @@ private:
   unsigned int pFlavorFlags;
 
   typedef qint32 IndexType;
+  /** UIDType standing for \a UniversalIdType: on 32 bits:
+   * <pre>
+   *   mask shift for Node Kind:  30 bits
+   *   mask for Node Kind:  0x c0000000
+   *   mask for Node Index: 0x 3FFFFFFF
+   * </pre>
+   */
+  typedef quint32 UIDType;
+  static const quint8 UIDKindShift  = 30;
+  static const UIDType UIDKindMask  = 0xC0000000;
+  static const UIDType UIDIndexMask = 0x3FFFFFFF;
+  static const UIDType UIDInvalid   = 0xFFFFFFFF;
+
   struct NodeId {
     NodeId(ItemKind k = EntryKind, IndexType i = -1) : kind(k), index(i)  { }
     bool valid() const { return index >= 0; }
+    bool isRoot() const { return kind == CategoryLabelKind && index == 0; }
     ItemKind kind;
     IndexType index;
     bool operator==(const NodeId& other) const {
@@ -331,63 +345,76 @@ private:
     bool operator!=(const NodeId& other) const {
       return !(operator==(other));
     }
+    UIDType universalId() const {
+      if ( index < 0 ) // invalid index
+	return (~0x0); // 0xFFFFFFFF
+      UIDType uid = (UIDType)index;
+      uid |= (kind << UIDKindShift);
+      return uid;
+    }
+    static NodeId fromUID(UIDType uid) {
+      return NodeId((ItemKind)((uid&UIDKindMask)>>UIDKindShift), uid&UIDIndexMask);
+    }
+    static NodeId rootNode() { return NodeId(CategoryLabelKind, 0); }
   };
   struct PersistentId {
     ItemKind kind;
     KLFLib::entryId entry_id;
     QString categorylabel_fullpath;
+    int column;
   };
   struct Node {
-    Node() : parent(NodeId()), children(QList<NodeId>()) { }
+    Node(ItemKind k) : kind(k), parent(NodeId()), children(QList<NodeId>()) { }
+    Node(const Node& other) : kind(other.kind), parent(other.parent), children(other.children) { }
+    virtual ~Node() { }
+    ItemKind kind;
     NodeId parent;
     QList<NodeId> children;
-    //    QMap<int,QVariant> viewUserData;
-    virtual int nodeKind() const = 0;
   };
   struct EntryNode : public Node {
-    EntryNode() : entryid(-1), entry() { }
-    virtual int nodeKind() const { return EntryKind; }
+    EntryNode() : Node(EntryKind), entryid(-1), entry() { }
     KLFLib::entryId entryid;
     KLFLibEntry entry;
   };
   struct CategoryLabelNode : public Node {
-    CategoryLabelNode() : categoryLabel(), fullCategoryPath()  { }
-    virtual int nodeKind() const { return CategoryLabelKind; }
+    CategoryLabelNode() : Node(CategoryLabelKind), categoryLabel(), fullCategoryPath()  { }
     //! The last element in \ref fullCategoryPath eg. "General Relativity"
     QString categoryLabel;
     //! The full category path of this category eg. "Physics/General Relativity"
     QString fullCategoryPath;
   };
-  /** QVector is used since the QModelIndex s uses pointer to individual
-   * nodes */
-  typedef QVector<EntryNode> EntryCache;
-  /** QVector is used since the QModelIndex s uses pointer to individual
-   * nodes */
-  typedef QVector<CategoryLabelNode> CategoryLabelCache;
+  typedef QList<EntryNode> EntryCache;
+  typedef QList<CategoryLabelNode> CategoryLabelCache;
 
-  mutable EntryCache pEntryCache;
-  mutable CategoryLabelCache pCategoryLabelCache;
+  friend QDebug& operator<<(QDebug& dbg, const NodeId& en);
+  friend QDebug& operator<<(QDebug& dbg, const EntryNode& en);
+  friend QDebug& operator<<(QDebug& dbg, const CategoryLabelNode& cn);
+
+  EntryCache pEntryCache;
+  CategoryLabelCache pCategoryLabelCache;
 
   /** If row is negative, it will be looked up automatically. */
   QModelIndex createIndexFromId(NodeId nodeid, int row, int column) const;
-  /** If row is negative, it will be looked up automatically. */
-  QModelIndex createIndexFromPtr(Node *node, int row, int column) const;
-  /** Returns NULL upon invalid index. */
-  Node * getNodeForIndex(const QModelIndex& index) const;
-  Node * getNode(NodeId nodeid) const;
-  NodeId getNodeId(Node *node) const;
-  /** get the row of \c nodeid in its parent. if you already have a pointer to the 
-   * \ref Node with id \c nodeid, pass it to \c node pointer (slight optimization).
-   * Otherwise pass NULL pointer and getNodeRow() will figure out the pointer with
-   * a call to getNode().  */
-  int getNodeRow(NodeId nodeid, Node *node = NULL) const;
-  int getNodeRow(Node * node) const; 
+  //  /** If row is negative, it will be looked up automatically. */
+  //  QModelIndex createIndexFromPtr( *node, int row, int column) const;
+  /** Returns an invalid ID upon invalid index. */
+  NodeId getNodeForIndex(const QModelIndex& index) const;
+  Node getNode(NodeId nodeid) const;
+  EntryNode getEntryNode(NodeId nodeid) const;
+  CategoryLabelNode getCategoryLabelNode(NodeId nodeid) const;
+  //  NodeId getNodeId(Node *node) const;
+  /** get the row of \c nodeid in its parent.  */
+  int getNodeRow(NodeId nodeid) const;
+  //  int getNodeRow(Node * node) const; 
+
+  QList<PersistentId> persistentIdList(const QModelIndexList& persistentindexlist);
+  QModelIndexList newPersistentIndexList(const QList<PersistentId>& persistentidlist);
 
   void updateCacheSetupModel();
 
   IndexType cacheFindCategoryLabel(QString category, bool createIfNotExists = false);
 
-  void dumpNodeTree(Node *node, int indent = 0) const;
+  void dumpNodeTree(NodeId node, int indent = 0) const;
 
   class KLF_EXPORT KLFLibModelSorter
   {
@@ -402,8 +429,9 @@ private:
     int sortOrderFactor;
     bool groupCategories;
   };
-  QString nodeValue(Node *ptr, int entryProperty);
-  void sortCategory(CategoryLabelNode *categoryPtr, int column, Qt::SortOrder order);
+  QString nodeValue(NodeId node, int entryProperty);
+  /** Sort a category's children */
+  void sortCategory(NodeId category, int column, Qt::SortOrder order);
 
   int lastSortColumn;
   Qt::SortOrder lastSortOrder;
@@ -415,27 +443,28 @@ private:
    *
    * Returns \c NULL after last node. Returns first node in tree if \c NULL is given as
    * paremeter. */
-  Node * nextNode(Node *n);
+  NodeId nextNode(NodeId n);
   /** Same as \ref nextNode() but the walk is performed in the opposite direction.
    *
    * This function returns all nodes in the inverse order they would be displayed in a tree view. In
    * particular, it returns a parent node after having explored its children. */
-  Node * prevNode(Node *n);
+  NodeId prevNode(NodeId n);
   /** Returns the last node in tree defined by node \c n.
    *
    * If \c n has children, returns last child of the last child of the last child etc. If \c n does
    * not have children, it is itself returned.
    *
    * If \c NULL is given, the root node is assumed. */
-  Node * lastNode(Node *n);
+  NodeId lastNode(NodeId n);
 
   QList<KLFLib::entryId> entryIdList(const QModelIndexList& indexlist) const;
   
   QString pSearchString;
-  Node *pSearchCurNode;
+  NodeId pSearchCurNode;
 
   bool dropCanInternal(const QMimeData *data);
 };
+
 
 
 // -----------------

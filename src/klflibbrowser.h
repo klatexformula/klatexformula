@@ -147,7 +147,7 @@ protected:
   KLFLibBrowserViewContainer * viewForTabIndex(int tab);
 
 private:
-  Ui::KLFLibBrowser *pUi;
+  Ui::KLFLibBrowser *u;
   QList<KLFLibBrowserViewContainer*> pLibViews;
 
   QMenu *pResourceMenu;

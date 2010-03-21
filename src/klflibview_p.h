@@ -307,7 +307,8 @@ class KLFLibDefListView : public QListView, public KLFLibDefViewCommon
   Q_OBJECT
 public:
   KLFLibDefListView(KLFLibDefaultView *parent)
-    : QListView(parent), KLFLibDefViewCommon(parent), pWantRelayout(true), pInEventFilter(false)
+    : QListView(parent), KLFLibDefViewCommon(parent), pWantRelayout(true), pInEventFilter(false),
+      pHasBeenPolished(false), pSavingIconPositions(false)
   {
     pDelayedSetIconPositions.clear();
 
@@ -332,6 +333,7 @@ public:
 	if (pWantRelayout)
 	  forceRelayout(true); // relayout if wanted
       }
+      pHasBeenPolished = true;
       eat = false;
     }
     if (event->type() == QEvent::DragEnter) {
@@ -369,6 +371,11 @@ public:
     return iconPositions;
   }
 
+  /** If we are in the process of saving icon positions (may be called from
+   * for example an update method which was called because the entry was changed
+   * when setting new icon position) */
+  bool isSavingIconPositions() const { return pSavingIconPositions; }
+
   /** this function restores the positions of all the icons as described
    * in the \c iconPositions map, for example which has been obtained by a call
    * to \ref allIconPositions() some time earlier.
@@ -376,8 +383,12 @@ public:
    * This function does NOT save the new icon positions; this function is precisely meant
    * for usage from a "loadGuiState()" function or from an "update resource data ()" function.
    */
-  virtual void loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions, bool forcenow = false) {
-    if ( ! isVisible() && ! forcenow ) {
+  virtual void loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions,
+				 bool forcenow = false) {
+    if ( pSavingIconPositions )
+      return;
+
+    if ( ! pHasBeenPolished && ! forcenow ) {
       pDelayedSetIconPositions = iconPositions;
       qDebug()<<"KLFLibDefListView::loadIconPositions: delaying action!";
       return;
@@ -409,9 +420,13 @@ public:
   }
 
   void forceRelayout(bool isPolishing = false) {
-    QListView::doItemsLayout(); // force re-layout
-    if (!isPolishing && !pWantRelayout) {
-      // if we didn't want a relayout (ie. icon positions were controlled)
+    qDebug()<<"KLFLibDefListView::forceRelayout: isPolishing="<<isPolishing<<"; pWantRelayout="
+	    <<pWantRelayout<<"; hasbeenpolished="<<pHasBeenPolished;
+    bool wr = pWantRelayout;
+    pWantRelayout = true;
+    doItemsLayout(); // force re-layout
+    if (!isPolishing && !wr) {
+      // if we didn't by default want a relayout (ie. icon positions were controlled)
       saveIconPositions();
     }
     pWantRelayout = false;
@@ -423,8 +438,8 @@ public:
   void setIconPosition(const QModelIndex& index, const QPoint& pos, bool dontSave = false) {
     if (index.column() > 0)
       return;
-    if (rectForIndex(index).topLeft() == pos)
-      return;
+    //    if (rectForIndex(index).topLeft() == pos)
+    //      return;
     qDebug()<<"Functional setIconPosition("<<index<<","<<pos<<")";
     setPositionForIndex(pos, index);
     if (!dontSave)
@@ -442,6 +457,8 @@ protected:
   }
 
   bool pInEventFilter;
+  bool pHasBeenPolished;
+  bool pSavingIconPositions;
 
   QMap<KLFLib::entryId, QPoint> pDelayedSetIconPositions;
 
@@ -454,8 +471,10 @@ protected:
     // Qt want its own doItemsLayout() to be called first (in case new indexes have appeared, or
     // old ones dissapeared)
     QMap<KLFLib::entryId,QPoint> bkpiconpos;
-    if (!pWantRelayout)
+    if (!pWantRelayout) {
       bkpiconpos = allIconPositions(); // save current icon positions
+      qDebug()<<"Got backup icon positions: "<<bkpiconpos;
+    }
     // do qt's layout
     QListView::doItemsLayout();
     // but then we want to keep our layout if !pWantRelayout:
@@ -463,6 +482,7 @@ protected:
       loadIconPositions(bkpiconpos);
 
     pWantRelayout = false;
+    qDebug()<<"doItemsLayout finished!";
   } 
   
   bool pWantRelayout;
@@ -487,7 +507,9 @@ protected:
     KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
     KLFLibEntry edummy = index.data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
     int propId = edummy.setEntryProperty("IconView_IconPosition", rectForIndex(index).topLeft());
+    pSavingIconPositions = true;
     model->changeEntries(QModelIndexList() << index, propId, edummy.property(propId)); 
+    pSavingIconPositions = false;
     qDebug()<<"end of saveIconPosition()";
   }
 };

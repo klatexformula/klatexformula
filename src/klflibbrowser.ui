@@ -10,57 +10,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>909</width>
-    <height>630</height>
+    <width>840</width>
+    <height>516</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>KLatexFormula Library</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="klfres.qrc">
+   <iconset>
     <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0">
-    <widget class="QSplitter" name="splitViewsEditor">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <widget class="QFrame" name="frmViews">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>1</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
-      </property>
-      <layout class="QVBoxLayout" name="lyt_frmViews">
-       <property name="margin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="KLFLibBrowserTabWidget" name="tabResources">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <widget class="QWidget" name="tab_dummy">
-          <attribute name="title">
-           <string notr="true" extracomment="[[don't translate]]">Dummy Tab (that will be deleted at execution)</string>
-          </attribute>
-         </widget>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="KLFLibEntryEditor" name="wEntryEditor" native="true"/>
-    </widget>
-   </item>
    <item row="0" column="0">
     <widget class="QFrame" name="frmSearch">
      <property name="sizePolicy">
@@ -279,6 +240,110 @@
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QSplitter" name="splitViewsEditor">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QFrame" name="frmViews">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <layout class="QVBoxLayout" name="lyt_frmViews">
+       <property name="margin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="KLFLibBrowserTabWidget" name="tabResources">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tabWelcome">
+          <attribute name="icon">
+           <iconset resource="klfres.qrc">
+            <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
+          </attribute>
+          <attribute name="title">
+           <string>Library Browser</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <property name="spacing">
+            <number>20</number>
+           </property>
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>25</number>
+           </property>
+           <property name="rightMargin">
+            <number>10</number>
+           </property>
+           <property name="bottomMargin">
+            <number>10</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lblNoResLoaded">
+             <property name="font">
+              <font>
+               <pointsize>16</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>No Library Resource is currently loaded.</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnOpenRes">
+             <property name="text">
+              <string>Open a library resource ...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnCreateRes">
+             <property name="text">
+              <string>Create a new library resource ...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="KLFLibEntryEditor" name="wEntryEditor" native="true"/>
     </widget>
    </item>
   </layout>

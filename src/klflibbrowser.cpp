@@ -41,15 +41,13 @@
 KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   : QWidget(parent)
 {
-  pUi = new Ui::KLFLibBrowser;
-  pUi->setupUi(this);
-  pUi->tabResources->clear();
-  pUi->tabResources->setContextMenuPolicy(Qt::CustomContextMenu);
+  u = new Ui::KLFLibBrowser;
+  u->setupUi(this);
+  u->tabResources->setContextMenuPolicy(Qt::CustomContextMenu);
 
-  pResourceMenu = new QMenu(pUi->tabResources);
+  pResourceMenu = new QMenu(u->tabResources);
   pResourceMenu->setTitle(tr("Resource Actions"));
   pARename = pResourceMenu->addAction(tr("Rename"), this, SLOT(slotResourceRename()));
-  pAClose = pResourceMenu->addAction(tr("Close"), this, SLOT(slotResourceClose()));
   pAProperties = pResourceMenu->addAction(tr("Properties..."),
 					  this, SLOT(slotResourceProperties()));
   pASaveAs = pResourceMenu->addAction(tr("Save As..."), this, SLOT(slotResourceSaveAs()));
@@ -57,16 +55,17 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pResourceMenu->addSeparator();
   pANew = pResourceMenu->addAction(tr("New..."), this, SLOT(slotResourceNew()));
   pAOpen = pResourceMenu->addAction(tr("Open..."), this, SLOT(slotResourceOpen()));
+  pAClose = pResourceMenu->addAction(tr("Close"), this, SLOT(slotResourceClose()));
   
 
   slotRefreshResourceActionsEnabled();
 
-  QPushButton *tabCornerButton = new QPushButton(tr("Resource"), pUi->tabResources);
+  QPushButton *tabCornerButton = new QPushButton(tr("Resource"), u->tabResources);
   tabCornerButton->setMenu(pResourceMenu);
-  pUi->tabResources->setCornerWidget(tabCornerButton);
+  u->tabResources->setCornerWidget(tabCornerButton);
 
-  connect(pUi->tabResources, SIGNAL(currentChanged(int)), this, SLOT(slotTabResourceShown(int)));
-  connect(pUi->tabResources, SIGNAL(customContextMenuRequested(const QPoint&)),
+  connect(u->tabResources, SIGNAL(currentChanged(int)), this, SLOT(slotTabResourceShown(int)));
+  connect(u->tabResources, SIGNAL(customContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotShowTabContextMenu(const QPoint&)));
 
 
@@ -77,47 +76,52 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
 			 this, SLOT(slotRestoreWithStyle()));
   restoreMenu->addAction(QIcon(":/pics/restore.png"), tr("Restore Formula Only"),
 			 this, SLOT(slotRestoreLatexOnly()));
-  pUi->btnRestore->setMenu(restoreMenu);
-  connect(pUi->btnRestore, SIGNAL(clicked()), this, SLOT(slotRestoreWithStyle()));
+  u->btnRestore->setMenu(restoreMenu);
+  connect(u->btnRestore, SIGNAL(clicked()), this, SLOT(slotRestoreWithStyle()));
 
-  connect(pUi->btnDelete, SIGNAL(clicked()), this, SLOT(slotDeleteSelected()));
+  connect(u->btnDelete, SIGNAL(clicked()), this, SLOT(slotDeleteSelected()));
 
   // CATEGORY/TAGS
 
-  connect(pUi->wEntryEditor, SIGNAL(categoryChanged(const QString&)),
+  connect(u->wEntryEditor, SIGNAL(categoryChanged(const QString&)),
 	  this, SLOT(slotCategoryChanged(const QString&)));
-  connect(pUi->wEntryEditor, SIGNAL(tagsChanged(const QString&)),
+  connect(u->wEntryEditor, SIGNAL(tagsChanged(const QString&)),
 	  this, SLOT(slotTagsChanged(const QString&)));
 
-  connect(pUi->wEntryEditor, SIGNAL(restoreStyle(const KLFStyle&)),
+  connect(u->wEntryEditor, SIGNAL(restoreStyle(const KLFStyle&)),
 	  this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
+
+  // OPEN / NEW BUTTONS IN WELCOME TAB
+
+  connect(u->btnOpenRes, SIGNAL(clicked()), this, SLOT(slotResourceOpen()));
+  connect(u->btnCreateRes, SIGNAL(clicked()), this, SLOT(slotResourceNew()));
 
   // SEARCH
 
-  pUi->txtSearch->installEventFilter(this);
-  connect(pUi->btnSearchClear, SIGNAL(clicked()), this, SLOT(slotSearchClear()));
-  connect(pUi->txtSearch, SIGNAL(textChanged(const QString&)),
+  u->txtSearch->installEventFilter(this);
+  connect(u->btnSearchClear, SIGNAL(clicked()), this, SLOT(slotSearchClear()));
+  connect(u->txtSearch, SIGNAL(textChanged(const QString&)),
 	  this, SLOT(slotSearchFind(const QString&)));
-  connect(pUi->btnFindNext, SIGNAL(clicked()), this, SLOT(slotSearchFindNext()));
-  connect(pUi->btnFindPrev, SIGNAL(clicked()), this, SLOT(slotSearchFindPrev()));
+  connect(u->btnFindNext, SIGNAL(clicked()), this, SLOT(slotSearchFindNext()));
+  connect(u->btnFindPrev, SIGNAL(clicked()), this, SLOT(slotSearchFindPrev()));
 
-  QPalette defaultpal = pUi->txtSearch->palette();
-  pUi->txtSearch->setProperty("defaultPalette", QVariant::fromValue<QPalette>(defaultpal));
-  QPalette pal0 = pUi->txtSearch->palette();
+  QPalette defaultpal = u->txtSearch->palette();
+  u->txtSearch->setProperty("defaultPalette", QVariant::fromValue<QPalette>(defaultpal));
+  QPalette pal0 = u->txtSearch->palette();
   pal0.setColor(QPalette::Text, QColor(180,180,180));
   pal0.setColor(QPalette::WindowText, QColor(180,180,180));
-  pal0.setColor(pUi->txtSearch->foregroundRole(), QColor(180,180,180));
-  pUi->txtSearch->setProperty("paletteFocusOut", QVariant::fromValue<QPalette>(pal0));
-  QPalette pal1 = pUi->txtSearch->palette();
+  pal0.setColor(u->txtSearch->foregroundRole(), QColor(180,180,180));
+  u->txtSearch->setProperty("paletteFocusOut", QVariant::fromValue<QPalette>(pal0));
+  QPalette pal1 = u->txtSearch->palette();
   pal1.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorFound);
   pal1.setColor(QPalette::Window, klfconfig.LibraryBrowser.colorFound);
-  pal1.setColor(pUi->txtSearch->backgroundRole(), klfconfig.LibraryBrowser.colorFound);
-  pUi->txtSearch->setProperty("paletteFound", QVariant::fromValue<QPalette>(pal1));
-  QPalette pal2 = pUi->txtSearch->palette();
+  pal1.setColor(u->txtSearch->backgroundRole(), klfconfig.LibraryBrowser.colorFound);
+  u->txtSearch->setProperty("paletteFound", QVariant::fromValue<QPalette>(pal1));
+  QPalette pal2 = u->txtSearch->palette();
   pal2.setColor(QPalette::Base, klfconfig.LibraryBrowser.colorNotFound);
   pal2.setColor(QPalette::Window, klfconfig.LibraryBrowser.colorNotFound);
-  pal2.setColor(pUi->txtSearch->backgroundRole(), klfconfig.LibraryBrowser.colorNotFound);
-  pUi->txtSearch->setProperty("paletteNotFound", QVariant::fromValue<QPalette>(pal2));
+  pal2.setColor(u->txtSearch->backgroundRole(), klfconfig.LibraryBrowser.colorNotFound);
+  u->txtSearch->setProperty("paletteNotFound", QVariant::fromValue<QPalette>(pal2));
 
   // SHORTCUTS
   // restore & delete
@@ -126,7 +130,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   (void)new QShortcut(QKeySequence(tr("Shift+Enter", "[[shortcut: restore]]")),
 		      this, SLOT(slotRestoreLatexOnly()));
   QShortcut *s = new QShortcut(QKeySequence(tr("Delete", "[[shortcut: delete item from library]]")),
-			       pUi->tabResources);
+			       u->tabResources);
   connect(s, SIGNAL(activated()), this, SLOT(slotDeleteSelected()));
 		      
   // search-related
@@ -165,13 +169,13 @@ KLFLibBrowser::~KLFLibBrowser()
     delete pLibViews[k];
     delete engine;
   }
-  delete pUi;
+  delete u;
 }
 
 
 bool KLFLibBrowser::eventFilter(QObject *obj, QEvent *ev)
 {
-  if (obj == pUi->txtSearch) {
+  if (obj == u->txtSearch) {
     if (ev->type() == QEvent::FocusIn) {
       slotSearchFocusIn();
       // don't eat event
@@ -277,6 +281,7 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v)
   for (k = 0; k < urllist.size(); ++k) {
     QUrl url = urllist[k].toUrl();
     quint32 flags = resroleflagslist[k].value<quint32>();
+    qDebug()<<"LibBrowser::loadGuiState: Opening url "<<url<<" with flags="<<flags;
     QVariantMap viewState = viewstatelist[k].toMap();
     // open this URL
     bool res = openResource(url, flags);
@@ -297,7 +302,7 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v)
   qDebug()<<"Almost finished loading gui state.";
   KLFLibBrowserViewContainer *curviewc = findOpenUrl(currenturl);
   if (curviewc != NULL)
-    pUi->tabResources->setCurrentWidget(curviewc);
+    u->tabResources->setCurrentWidget(curviewc);
   qDebug()<<"Loaded GUI state.";
 }
 
@@ -323,7 +328,7 @@ KLFLibBrowserViewContainer * KLFLibBrowser::findOpenResource(KLFLibResourceEngin
 
 KLFLibBrowserViewContainer * KLFLibBrowser::curView()
 {
-  return qobject_cast<KLFLibBrowserViewContainer*>(pUi->tabResources->currentWidget());
+  return qobject_cast<KLFLibBrowserViewContainer*>(u->tabResources->currentWidget());
 }
 KLFAbstractLibView * KLFLibBrowser::curLibView()
 {
@@ -334,7 +339,7 @@ KLFAbstractLibView * KLFLibBrowser::curLibView()
 }
 KLFLibBrowserViewContainer * KLFLibBrowser::viewForTabIndex(int tab)
 {
-  return qobject_cast<KLFLibBrowserViewContainer*>(pUi->tabResources->widget(tab));
+  return qobject_cast<KLFLibBrowserViewContainer*>(u->tabResources->widget(tab));
 }
 
 
@@ -345,7 +350,7 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
   if (openview != NULL) {
     qDebug("KLFLibBrowser::openResource(%s,%u): This resource is already open.",
 	   qPrintable(url.toString()), resourceRoleFlags);
-    pUi->tabResources->setCurrentWidget(openview);
+    u->tabResources->setCurrentWidget(openview);
     updateResourceRoleFlags(openview, resourceRoleFlags);
     return true;
   }
@@ -372,7 +377,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   if (openview != NULL) {
     qDebug("KLFLibBrowser::openResource(%p,%u): This resource is already open.",
 	   resource, resourceRoleFlags);
-    pUi->tabResources->setCurrentWidget(openview);
+    u->tabResources->setCurrentWidget(openview);
     updateResourceRoleFlags(openview, resourceRoleFlags);
     return true;
   }
@@ -380,33 +385,41 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   resource->setParent(this);
 
   // now create appropriate view for this resource
-  QString viewtypeident = viewTypeIdentifier;
-  if (viewtypeident.isEmpty())
-    viewtypeident = resource->viewType();
-  if (viewtypeident.isEmpty())
-    viewtypeident = resource->suggestedViewTypeIdentifier();
-  if (viewtypeident.isEmpty())
-    viewtypeident = KLFLibViewFactory::defaultViewTypeIdentifier();
-  KLFLibViewFactory *viewfactory =
-    KLFLibViewFactory::findFactoryFor(viewtypeident);
-  if (viewfactory == NULL) {
-    qWarning()<<"KLFLibBrowser::openResource: can't find view factory for view type identifier "
-	      <<viewtypeident<<"!";
-    return false;
-  }
-  if ( ! viewfactory->canCreateLibView(viewtypeident, resource) ) {
-    qDebug()<<"KLFLibBrowser::openResource: incompatible view type identifier "<<viewtypeident
-	    <<"for resource "<<resource->url()<<".";
-    return false; // incompatible view type identifier
-  }
-  KLFLibBrowserViewContainer *viewc = new KLFLibBrowserViewContainer(resource, pUi->tabResources);
-  bool r = viewc->openView(viewtypeident);
-  if (!r) {
-    qWarning()<<"KLFLibBrowser::openResource: can't create view! viewtypeident="<<viewtypeident<<".";
-    return false;
-  }
+  KLFLibBrowserViewContainer *viewc = new KLFLibBrowserViewContainer(resource, u->tabResources);
 
-  resource->setViewType(viewtypeident);
+  QStringList viewtypeident_try;
+  viewtypeident_try << viewTypeIdentifier
+		    << resource->viewType()
+		    << resource->suggestedViewTypeIdentifier()
+		    << KLFLibViewFactory::defaultViewTypeIdentifier() ;
+  int k;
+  // try each view type, first success is kept.
+  for (k = 0; k < viewtypeident_try.size(); ++k) {
+    if (viewtypeident_try[k].isEmpty())
+      continue;
+
+    KLFLibViewFactory *viewfactory =
+      KLFLibViewFactory::findFactoryFor(viewtypeident_try[k]);
+    if (viewfactory == NULL) {
+      qDebug()<<"KLFLibBrowser::openResource: can't find view factory for view type identifier "
+	      <<viewtypeident_try[k]<<"!";
+      continue;
+    }
+    if ( ! viewfactory->canCreateLibView(viewtypeident_try[k], resource) ) {
+      qDebug()<<"KLFLibBrowser::openResource: incompatible view type identifier "<<viewtypeident_try[k]
+	      <<"for resource "<<resource->url()<<".";
+      continue;
+    }
+    bool r = viewc->openView(viewtypeident_try[k]);
+    if (!r) {
+      qDebug()<<"KLFLibBrowser::openResource: can't create view! viewtypeident="<<viewtypeident_try[k]<<".";
+      continue;
+    }
+    // found good view type !
+    resource->setViewType(viewtypeident_try[k]);
+    // quit for() on first success.
+    break;
+  }
 
   // get informed about selection changes
   connect(viewc, SIGNAL(entriesSelected(const KLFLibEntryList& )),
@@ -432,12 +445,17 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(viewContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotShowContextMenu(const QPoint&)));
 
-  int i = pUi->tabResources->addTab(viewc, resource->title());
-  pUi->tabResources->setCurrentWidget(viewc);
-  pUi->tabResources->refreshTabReadOnly(i, !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
+  int i = u->tabResources->addTab(viewc, resource->title());
+  u->tabResources->setCurrentWidget(viewc);
+  u->tabResources->refreshTabReadOnly(i, !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
   pLibViews.append(viewc);
   setStyleSheet(styleSheet());
   updateResourceRoleFlags(viewc, resourceRoleFlags);
+
+  // hide welcome page if it's shown
+  if ((i = u->tabResources->indexOf(u->tabWelcome)) != -1)
+    u->tabResources->removeTab(i);
+
   return true;
 }
 
@@ -459,10 +477,13 @@ void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *viewc, u
 
 void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 {
+  qDebug()<<"KLFLibBrowser::slotTabResourceShown("<<tabIndex<<")";
   KLFLibBrowserViewContainer * viewc =
-    qobject_cast<KLFLibBrowserViewContainer*>(pUi->tabResources->widget(tabIndex));
-  if (viewc == NULL || tabIndex < 0)
+    qobject_cast<KLFLibBrowserViewContainer*>(u->tabResources->widget(tabIndex));
+  if (viewc == NULL || tabIndex < 0) {
+    qDebug()<<"\tNULL View or invalid tab index="<<tabIndex<<".";
     return;
+  }
 
   // set up view type menu appropriately
   QStringList vtypes = viewc->supportedViewTypeIdentifiers();
@@ -491,16 +512,16 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 
 void KLFLibBrowser::slotShowTabContextMenu(const QPoint& pos)
 {
-  int tab = pUi->tabResources->getTabAtPoint(pos);
+  int tab = u->tabResources->getTabAtPoint(pos);
   if (tab != -1) {
-    pUi->tabResources->setCurrentIndex(tab);
+    u->tabResources->setCurrentIndex(tab);
   }
-  pResourceMenu->popup(pUi->tabResources->mapToGlobal(pos));
+  pResourceMenu->popup(u->tabResources->mapToGlobal(pos));
 }
 
 void KLFLibBrowser::slotResourceRename()
 {
-  int tab = pUi->tabResources->currentIndex();
+  int tab = u->tabResources->currentIndex();
   KLFLibBrowserViewContainer * view = curView();
   if (tab < 0 || view == NULL)
     return;
@@ -510,8 +531,8 @@ void KLFLibBrowser::slotResourceRename()
   if ( ! view->resourceEngine()->canModifyProp(KLFLibResourceEngine::PropTitle) )
     return;
 
-  QLineEdit * editor = new QLineEdit(pUi->tabResources);
-  editor->setGeometry(pUi->tabResources->getTabRect(tab));
+  QLineEdit * editor = new QLineEdit(u->tabResources);
+  editor->setGeometry(u->tabResources->getTabRect(tab));
   editor->show();
   editor->setText(view->resourceEngine()->title());
   editor->setFocus();
@@ -522,7 +543,7 @@ void KLFLibBrowser::slotResourceRename()
   editor->installEventFilter(this);
 
   // kill editor if tab changes
-  connect(pUi->tabResources, SIGNAL(currentChanged(int)), editor, SLOT(deleteLater()));
+  connect(u->tabResources, SIGNAL(currentChanged(int)), editor, SLOT(deleteLater()));
   connect(editor, SIGNAL(returnPressed()), this, SLOT(slotResourceRenameFinished()));
 
 }
@@ -547,21 +568,27 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
   if (view == NULL)
     return false;
 
-  qDebug()<<"Close!";
+  if (view->resourceRoleFlags() & NoCloseRoleFlag) // sorry, can't close.
+    return false;
 
-  int tabindex = pUi->tabResources->indexOf(view);
+  qDebug()<<"Close! resflags="<<view->resourceRoleFlags();
+
+  int tabindex = u->tabResources->indexOf(view);
   if (tabindex < 0) {
     qWarning("KLFLibBrowser::closeResource(url): can't find view in tab widget?!?\n"
 	     "\turl=%s, viewwidget=%p", qPrintable(view->resourceEngine()->url().toString()), view);
     return false;
   }
-  pUi->tabResources->removeTab(tabindex);
+  u->tabResources->removeTab(tabindex);
   int index = pLibViews.indexOf(view);
   pLibViews.removeAt(index);
   // delete view and engine
   KLFLibResourceEngine *resource = view->resourceEngine();
   delete view;
   delete resource;
+
+  if (u->tabResources->count() == 0)
+    u->tabResources->addTab(u->tabWelcome, QIcon(":/pics/library.png"), tr("Library Browser"));
 
   return true;
 }
@@ -647,10 +674,10 @@ void KLFLibBrowser::slotResourcePropertyChanged(int propId)
     return;
   }
   if (propId == KLFLibResourceEngine::PropTitle) {
-    pUi->tabResources->setTabText(pUi->tabResources->indexOf(view), resource->title());
+    u->tabResources->setTabText(u->tabResources->indexOf(view), resource->title());
   }
   if (propId == KLFLibResourceEngine::PropLocked) {
-    pUi->tabResources->refreshTabReadOnly(pUi->tabResources->indexOf(view),
+    u->tabResources->refreshTabReadOnly(u->tabResources->indexOf(view),
 					  !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
   }
 }
@@ -691,15 +718,15 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
     master = true;
     canrename = view->resourceEngine()->canModifyProp(KLFLibResourceEngine::PropTitle);
     cansaveas = (view->resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSaveAs);
-    resrolefl = view->property("resourceRoleFlags").toUInt();
+    resrolefl = view->resourceRoleFlags();
   }
 
   pARename->setEnabled(canrename);
-  pAClose->setEnabled(master && !(resrolefl & NoCloseRoleFlag));
   pAProperties->setEnabled(master);
   pASaveAs->setEnabled(master && cansaveas);
   pANew->setEnabled(true);
   pAOpen->setEnabled(true);
+  pAClose->setEnabled(master && !(resrolefl & NoCloseRoleFlag));
 }
 
 
@@ -710,14 +737,14 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
   if (entries.size()>=1)
     qDebug()<<"KLFLibBrowser::slotEntriesSelected():\tTag of first entry="<<entries[0].property(KLFLibEntry::Tags);
 
-  pUi->wEntryEditor->displayEntries(entries);
+  u->wEntryEditor->displayEntries(entries);
 
-  pUi->btnDelete->setEnabled(entries.size() > 0);
-  pUi->btnRestore->setEnabled(entries.size() == 1);
+  u->btnDelete->setEnabled(entries.size() > 0);
+  u->btnRestore->setEnabled(entries.size() == 1);
 }
 void KLFLibBrowser::slotAddCategorySuggestions(const QStringList& catlist)
 {
-  pUi->wEntryEditor->addCategorySuggestions(catlist);
+  u->wEntryEditor->addCategorySuggestions(catlist);
 }
 
 void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
@@ -794,7 +821,7 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 
 void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
 {
-  QWidget *w = pUi->tabResources->currentWidget();
+  QWidget *w = u->tabResources->currentWidget();
   KLFLibBrowserViewContainer *wviewc = qobject_cast<KLFLibBrowserViewContainer*>(w);
   if (wviewc == NULL) {
     qWarning("Current view is not a KLFLibBrowserViewContainer!");
@@ -810,7 +837,7 @@ void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
 }
 void KLFLibBrowser::slotTagsChanged(const QString& newtags)
 {
-  QWidget *w = pUi->tabResources->currentWidget();
+  QWidget *w = u->tabResources->currentWidget();
   KLFLibBrowserViewContainer *wviewc = qobject_cast<KLFLibBrowserViewContainer*>(w);
   if (wviewc == NULL) {
     qWarning("Current view is not a KLFLibBrowserViewContainer!");
@@ -828,31 +855,31 @@ void KLFLibBrowser::slotTagsChanged(const QString& newtags)
 
 void KLFLibBrowser::slotSearchClear()
 {
-  if (QApplication::focusWidget() == pUi->txtSearch) {
+  if (QApplication::focusWidget() == u->txtSearch) {
     // already has focus: means that we want to recall history search
-    pUi->txtSearch->setText(pLastSearchText);
+    u->txtSearch->setText(pLastSearchText);
   } else {
-    pUi->txtSearch->setText("");
-    pUi->txtSearch->setFocus();
+    u->txtSearch->setText("");
+    u->txtSearch->setFocus();
   }
 }
 void KLFLibBrowser::slotSearchClearOrNext()
 {
-  if (QApplication::focusWidget() == pUi->txtSearch) {
+  if (QApplication::focusWidget() == u->txtSearch) {
     // already has focus
     // -> either recall history (if empty search text)
     // -> or find next
-    if (pUi->txtSearch->text().isEmpty()) {
-      pUi->txtSearch->setText(pLastSearchText);
+    if (u->txtSearch->text().isEmpty()) {
+      u->txtSearch->setText(pLastSearchText);
     } else {
       if (pSearchText.isEmpty())
-	slotSearchFind(pUi->txtSearch->text());
+	slotSearchFind(u->txtSearch->text());
       else
 	slotSearchFindNext();
     }
   } else {
-    pUi->txtSearch->setText("");
-    pUi->txtSearch->setFocus();
+    u->txtSearch->setText("");
+    u->txtSearch->setFocus();
   }
 }
 
@@ -880,19 +907,19 @@ void KLFLibBrowser::slotSearchFindNext(bool forward)
     return;
   }
   // focus search bar if not yet focused.
-  if (QApplication::focusWidget() != pUi->txtSearch)
-    pUi->txtSearch->setFocus();
+  if (QApplication::focusWidget() != u->txtSearch)
+    u->txtSearch->setFocus();
 
   if (pSearchText.isEmpty()) {
     // we're not in search mode
-    if (pUi->txtSearch->text().isEmpty()) {
+    if (u->txtSearch->text().isEmpty()) {
       // recall history
-      pUi->txtSearch->blockSignals(true); // stop txtSearch from calling our slotSearchFind()
-      pUi->txtSearch->setText(pLastSearchText);
-      pUi->txtSearch->blockSignals(false);
+      u->txtSearch->blockSignals(true); // stop txtSearch from calling our slotSearchFind()
+      u->txtSearch->setText(pLastSearchText);
+      u->txtSearch->blockSignals(false);
     }
     // and initiate search mode
-    slotSearchFind(pUi->txtSearch->text(), forward);
+    slotSearchFind(u->txtSearch->text(), forward);
     return;
   }
   bool found = view->searchFindNext(forward);
@@ -909,8 +936,8 @@ void KLFLibBrowser::slotSearchAbort()
 {
   qDebug("Search abort..");
   pSearchText = QString();
-  if ( ! pUi->txtSearch->text().isEmpty() ) {
-    pUi->txtSearch->setText("");
+  if ( ! u->txtSearch->text().isEmpty() ) {
+    u->txtSearch->setText("");
     // return because we will automatically be re-called because txtSearch will re-emit textChanged()
     // which in turn calls slotSearchFind() with empty text.
     return;
@@ -923,10 +950,10 @@ void KLFLibBrowser::slotSearchAbort()
   }
   view->searchAbort();
 
-  pUi->txtSearch->setProperty("searchState", QString("aborted"));
-  pUi->txtSearch->setStyleSheet(pUi->txtSearch->styleSheet());
-  QPalette pal = pUi->txtSearch->property("defaultPalette").value<QPalette>();
-  pUi->txtSearch->setPalette(pal);
+  u->txtSearch->setProperty("searchState", QString("aborted"));
+  u->txtSearch->setStyleSheet(u->txtSearch->styleSheet());
+  QPalette pal = u->txtSearch->property("defaultPalette").value<QPalette>();
+  u->txtSearch->setPalette(pal);
 }
 
 void KLFLibBrowser::slotCopyToResource()
@@ -985,32 +1012,32 @@ void KLFLibBrowser::updateSearchFound(bool found)
   //  qDebug("updateSearchFound(%d)", found);
   QPalette pal;
   if (found) {
-    pal = pUi->txtSearch->property("paletteFound").value<QPalette>();
-    pUi->txtSearch->setProperty("searchState", QString("found"));
+    pal = u->txtSearch->property("paletteFound").value<QPalette>();
+    u->txtSearch->setProperty("searchState", QString("found"));
   } else {
-    pal = pUi->txtSearch->property("paletteNotFound").value<QPalette>();
-    pUi->txtSearch->setProperty("searchState", QString("not-found"));
+    pal = u->txtSearch->property("paletteNotFound").value<QPalette>();
+    u->txtSearch->setProperty("searchState", QString("not-found"));
   }
-  pUi->txtSearch->setStyleSheet(pUi->txtSearch->styleSheet());
-  pUi->txtSearch->setPalette(pal);
+  u->txtSearch->setStyleSheet(u->txtSearch->styleSheet());
+  u->txtSearch->setPalette(pal);
 }
 
 void KLFLibBrowser::slotSearchFocusIn()
 {
-  pUi->txtSearch->setProperty("searchState", QString("default"));
-  pUi->txtSearch->setPalette(pUi->txtSearch->property("defaultPalette").value<QPalette>());
-  pUi->txtSearch->blockSignals(true);
-  pUi->txtSearch->setText("");
-  pUi->txtSearch->blockSignals(false);
+  u->txtSearch->setProperty("searchState", QString("default"));
+  u->txtSearch->setPalette(u->txtSearch->property("defaultPalette").value<QPalette>());
+  u->txtSearch->blockSignals(true);
+  u->txtSearch->setText("");
+  u->txtSearch->blockSignals(false);
 }
 void KLFLibBrowser::slotSearchFocusOut()
 {
-  pUi->txtSearch->setProperty("searchState", QString("focus-out"));
-  pUi->txtSearch->setStyleSheet(pUi->txtSearch->styleSheet());
-  pUi->txtSearch->setPalette(pUi->txtSearch->property("paletteFocusOut").value<QPalette>());
-  pUi->txtSearch->blockSignals(true);
-  pUi->txtSearch->setText("  "+tr("Hit Ctrl-F, Ctrl-S or / to search within the current resource"));
-  pUi->txtSearch->blockSignals(false);
+  u->txtSearch->setProperty("searchState", QString("focus-out"));
+  u->txtSearch->setStyleSheet(u->txtSearch->styleSheet());
+  u->txtSearch->setPalette(u->txtSearch->property("paletteFocusOut").value<QPalette>());
+  u->txtSearch->blockSignals(true);
+  u->txtSearch->setText("  "+tr("Hit Ctrl-F, Ctrl-S or / to search within the current resource"));
+  u->txtSearch->blockSignals(false);
 }
 
 

@@ -175,11 +175,12 @@ void KLFConfig::loadDefaults()
   homeConfigDirPlugins = homeConfigDir + "/plugins";
   homeConfigDirI18n = homeConfigDir + "/i18n";
 
-  if (qApp->inherits("QApplication")) {
+  if (qApp->inherits("QApplication")) { // and not QCoreApplication...
     QFont f = QApplication::font();
 #ifdef Q_WS_X11
     f.setPixelSize(15); // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
 #endif
+
 
     QFontDatabase fdb;
     QFont fcode;
@@ -195,6 +196,18 @@ void KLFConfig::loadDefaults()
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace", ps);
     if ( ! found_fcode )
       fcode = f;
+    // guess good font size for code font
+    QFont fp1 = f, fp2 = f;
+    qreal ps1 = 10, ps2 = 20; // measurement
+    int idealHeight = 7;
+    fp1.setPointSize(ps1);
+    fp2.setPointSize(ps2);
+    qreal h1 = QFontMetrics(fp1).xHeight();
+    qreal h2 = QFontMetrics(fp2).xHeight();
+    // linear interpolation for a height of \c idealHeight pixels
+    ps = (int)(ps1 + (idealHeight-h1)*(ps2-ps1)/(h2-h1));
+    // and set that font size
+    fcode.setPointSize(ps);
 
     UI.locale = QLocale::system().name();
     UI.applicationFont = f;
@@ -259,6 +272,12 @@ void KLFConfig::loadDefaults()
 #  define PROG_GS "gswin32c.exe"
 #  define PROG_EPSTOPDF "epstopdf.exe"
 static QString standard_extra_paths = "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
+#elif defined(Q_WS_MAC)
+#  define PROG_LATEX "latex"
+#  define PROG_DVIPS "dvips"
+#  define PROG_GS "gs"
+#  define PROG_EPSTOPDF "epstopdf"
+static QString standard_extra_paths = "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin";
 #else
 #  define PROG_LATEX "latex"
 #  define PROG_DVIPS "dvips"
