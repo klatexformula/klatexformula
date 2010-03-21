@@ -101,7 +101,7 @@ signals:
 public slots:
   virtual void updateView();
   virtual void updateResourceView() = 0;
-  virtual void updateResourceProp() = 0;
+  virtual void updateResourceProp(int propId) = 0;
   virtual void updateResourceData() = 0;
   virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
   inline bool writeEntryCategory(const QString& category)
@@ -365,8 +365,8 @@ private:
    * nodes */
   typedef QVector<CategoryLabelNode> CategoryLabelCache;
 
-  EntryCache pEntryCache;
-  CategoryLabelCache pCategoryLabelCache;
+  mutable EntryCache pEntryCache;
+  mutable CategoryLabelCache pCategoryLabelCache;
 
   /** If row is negative, it will be looked up automatically. */
   QModelIndex createIndexFromId(NodeId nodeid, int row, int column) const;
@@ -381,7 +381,7 @@ private:
    * Otherwise pass NULL pointer and getNodeRow() will figure out the pointer with
    * a call to getNode().  */
   int getNodeRow(NodeId nodeid, Node *node = NULL) const;
-  inline int getNodeRow(Node * node) const { return getNodeRow(getNodeId(node), node); }
+  int getNodeRow(Node * node) const; 
 
   void updateCacheSetupModel();
 
@@ -524,38 +524,14 @@ public:
 
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
+  /** Returns TRUE if this view type is an IconView and that we can move icons around
+   * (ie. resource property lockediconpositions FALSE and resource not locked if we
+   * store the positions in the resource data) */
+  virtual bool canMoveIcons() const;
+
   virtual QVariantMap saveGuiState() const;
   virtual bool restoreGuiState(const QVariantMap& state);
 
-
-  /** If the ViewType (as returned by \ref viewType()) is \ref IconView (and ONLY in
-   * this case) this function returns the positions of all the icon positions and the
-   * entry IDs to which they refer.
-   *
-   * \note Consider using \ref saveGuiState() and \ref restoreGuiState() instead. */
-  virtual QMap<KLFLib::entryId,QPoint> allIconPositions() const;
-
-  /** If the ViewType (as returned by \ref viewType()) is \ref IconView (and ONLY in
-   * this case) this function restores the positions of all the icons as described
-   * in the \c iconPositions map, for example which has been obtained by a call
-   * to \ref allIconPositions() some time earlier.
-   *
-   * \note Consider using \ref saveGuiState() and \ref restoreGuiState() instead. */
-  virtual void loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions);
-
-  /** If the ViewType (as returned by \ref viewType()) is \ref ListTreeView or
-   * \ref CategoryTreeView, then this function returns the columns state as a
-   * bytearray. This actually calls \ref QHeaderView::saveGuiState().
-   *
-   * \note Consider using \ref saveGuiState() and \ref restoreGuiState() instead. */
-  virtual QByteArray saveColumnsState() const;
-  /** If the ViewType (as returned by \ref viewType()) is \ref ListTreeView or
-   * \ref CategoryTreeView, then this function restores the columns state from
-   * a previously saved columns state, via a call of \ref QHeaderView::restoreGuiState().
-   *
-   * \note Consider using \ref saveGuiState() and \ref restoreGuiState() instead. */
-  virtual bool restoreColumnsState(const QByteArray& columnsState);
-  
 
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
@@ -574,8 +550,9 @@ public slots:
 
 protected:
   virtual void updateResourceView();
-  virtual void updateResourceProp();
+  virtual void updateResourceProp(int propId);
   virtual void updateResourceData();
+  virtual void updateResourceOwnData();
   virtual QStringList getCategorySuggestions();
 
 protected slots:
@@ -602,8 +579,6 @@ private:
   QAction *pIconViewRelayoutAction;
   QAction *pIconViewLockAction;
   QList<QAction*> pIconViewActions;
-
-  QMap<KLFLib::entryId, QPoint> pReadIconPositions;
 
   bool pEventFilterNoRecurse;
 

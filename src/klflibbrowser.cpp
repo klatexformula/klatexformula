@@ -120,9 +120,15 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pUi->txtSearch->setProperty("paletteNotFound", QVariant::fromValue<QPalette>(pal2));
 
   // SHORTCUTS
-  // restore
-  (void)new QShortcut(QKeySequence(tr("Ctrl+Enter", "[[restore]]")), this, SLOT(slotRestoreWithStyle()));
-  (void)new QShortcut(QKeySequence(tr("Shift+Enter", "[[restore]]")), this, SLOT(slotRestoreLatexOnly()));
+  // restore & delete
+  (void)new QShortcut(QKeySequence(tr("Ctrl+Enter", "[[shortcut: restore]]")),
+		      this, SLOT(slotRestoreWithStyle()));
+  (void)new QShortcut(QKeySequence(tr("Shift+Enter", "[[shortcut: restore]]")),
+		      this, SLOT(slotRestoreLatexOnly()));
+  QShortcut *s = new QShortcut(QKeySequence(tr("Delete", "[[shortcut: delete item from library]]")),
+			       pUi->tabResources);
+  connect(s, SIGNAL(activated()), this, SLOT(slotDeleteSelected()));
+		      
   // search-related
   (void)new QShortcut(QKeySequence(tr("Ctrl+F", "[[find]]")), this, SLOT(slotSearchClearOrNext()));
   (void)new QShortcut(QKeySequence(tr("Ctrl+S", "[[find]]")), this, SLOT(slotSearchClearOrNext()));
@@ -511,6 +517,8 @@ void KLFLibBrowser::slotResourceRename()
   editor->setFocus();
   editor->setProperty("tabURL", viewForTabIndex(tab)->resourceEngine()->url());
   editor->setProperty("resourceTitleEditor", true);
+  editor->setProperty("needsBackground", true);
+  editor->setStyleSheet("");
   editor->installEventFilter(this);
 
   // kill editor if tab changes

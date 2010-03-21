@@ -113,6 +113,7 @@ void KLFLibResourceEngine::initRegisteredProperties()
   registerBuiltInProperty(PropTitle, "Title");
   registerBuiltInProperty(PropLocked, "Locked");
   registerBuiltInProperty(PropViewType, "ViewType");
+  registerBuiltInProperty(PropAccessShared, "AccessShared");
 }
 
 bool KLFLibResourceEngine::canModifyData(ModifyType /*modifytype*/) const

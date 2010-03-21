@@ -164,14 +164,14 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
   q.exec();
   while (q.next()) {
     QString propname = q.value(0).toString();
-    QVariant propvalue = q.value(1);
-    qDebug()<<"Setting property `"<<propname<<"' to `"<<propvalue<<"'";
+    QVariant propvalue = convertVariantFromDBData(q.value(1));
+    qDebug()<<"Setting property `"<<propname<<"' to "<<propvalue<<"";
     if (!propertyNameRegistered(propname)) {
       if (!canRegisterProperty(propname))
 	continue;
       KLFPropertizedObject::registerProperty(propname);
     }
-    KLFPropertizedObject::setProperty(propname, convertVariantFromDBData(propvalue));
+    KLFPropertizedObject::setProperty(propname, propvalue);
   }
 }
 
@@ -360,6 +360,9 @@ QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
 {
   // setup data in proper format if needed
 
+  if (!value.isValid())
+    return QVariant();
+
   int t = value.type();
   const char *ts = value.typeName();
   if (t == QVariant::Int || t == QVariant::UInt || t == QVariant::LongLong || t == QVariant::ULongLong ||
@@ -408,6 +411,9 @@ QVariant KLFLibDBEngine::encaps(const char *ts, const QByteArray& data) const
 }
 QVariant KLFLibDBEngine::convertVariantFromDBData(const QVariant& dbdata) const
 {
+  if ( !dbdata.isValid() )
+    return QVariant();
+
   int t = dbdata.type();
   if (t == QVariant::Int || t == QVariant::UInt || t == QVariant::LongLong || t == QVariant::ULongLong ||
       t == QVariant::Double)

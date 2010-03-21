@@ -90,35 +90,6 @@ public:
       QVariantMap vstate;
       vstate["ViewTypeIdentifier"] = vti;
       vstate["ViewState"] = QVariant::fromValue<QVariantMap>(view->saveGuiState());
-      /*
-       if (vti == "default") {
-       // category tree
-       KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
-       // save column states
-       vstate["ColumnsState"] = QVariant::fromValue<QByteArray>(dview->saveColumnsState());
-       } else if (vti == "default+list") {
-       // list
-       KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
-       // save column states
-       vstate["ColumnsState"] = QVariant::fromValue<QByteArray>(dview->saveColumnsState());
-       } else if (vti == "default+icons") {
-       KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
-       // save icon positions
-       QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions = dview->allIconPositions();
-       QMap<KLFLibResourceEngine::entryId,QPoint>::const_iterator it;
-       QVariantList vEntryIds; // will hold entryId's in qint32 format
-       QVariantList vPositions; // will hold QPoint's
-       for (it = iconpositions.begin(); it != iconpositions.end(); ++it) {
-       vEntryIds << QVariant::fromValue<qint32>(it.key());
-       vPositions << QVariant::fromValue<QPoint>(it.value());
-       }
-       vstate["IconPositionsEntryIdList"] = QVariant::fromValue<QVariantList>(vEntryIds);
-       vstate["IconPositionsPositionList"] = QVariant::fromValue<QVariantList>(vPositions);
-       } else {
-       // this view type is not known to us, can't save anything.
-       qDebug()<<"Unknown View Type encountered "<<vti<<": can't save its GUI state.";
-       }
-      */
       vlist << QVariant::fromValue<QVariantMap>(vstate);
     }
     v["StateList"] = QVariant::fromValue<QVariantList>(vlist);
@@ -142,40 +113,6 @@ public:
       if (view == NULL)
 	continue;
       view->restoreGuiState(vstate["ViewState"].toMap());
-      /*
-       if (vti == "default") {
-       // category tree
-       KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
-       // load columns state
-       QByteArray colstate = vstate["ColumnsState"].toByteArray();
-       dview->restoreColumnsState(colstate);
-       } else if (vti == "default+list") {
-       // list
-       KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
-       // load columns state
-       QByteArray colstate = vstate["ColumnsState"].toByteArray();
-       dview->restoreColumnsState(colstate);
-       } else if (vti == "default+icons") {
-       KLFLibDefaultView *dview = qobject_cast<KLFLibDefaultView*>(view);
-       //
-       QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
-       QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
-       if ( ! resourceEngine()->canModifyData(KLFLibResourceEngine::ChangeData) ) {
-       // we load the client-saved icon positions if we couldn't write the icon positions
-       // in the resource upon last run. Here we suppose that we can't write now in the
-       // resource if and only if we couldn't write when we saved the icon positions.
-       QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
-       int k;
-       for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
-       iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
-       }
-       dview->loadIconPositions(iconpositions);
-       }
-       } else {
-       // this view type is not known to us, can't save anything.
-       qDebug()<<"Unknown View Type encountered "<<vti<<": can't save its GUI state.";
-       }
-      */
     }
     
     // raise current view ...

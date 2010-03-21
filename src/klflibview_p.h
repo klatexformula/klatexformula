@@ -89,11 +89,9 @@ static QImage autocrop_image(const QImage& img, int alpha_threshold = 0)
 
 class KLFLibDefViewCommon
 {
-  KLFLibModel *pModel;
-  KLFLibDefaultView::ViewType pViewType;
-  QPoint mousePressedContentsPos;
 public:
-  KLFLibDefViewCommon(KLFLibDefaultView::ViewType viewType) : pViewType(viewType) { }
+  KLFLibDefViewCommon(KLFLibDefaultView *dview)
+    : pDView(dview), pViewType(dview->viewType()) { }
 
   virtual void moveSelectedIconsBy(const QPoint& delta) = 0;
 
@@ -180,8 +178,8 @@ public:
     if (pViewType == KLFLibDefaultView::IconView) {
       // icon view -> move icons around
       qDebug()<<"Internal DRAG, move icons around...";
-      // if icon positions are locked abort
-      if (pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
+      // if icon positions are locked then abort
+      if ( ! pDView->canMoveIcons() )
 	return;
       /// \bug ......BUG/TODO........ WARNING: QListView::internalDrag() is NOT in offical Qt API !
       commonInternalDrag(supportedActions);
@@ -217,6 +215,11 @@ public:
   }
 
 protected:
+  KLFLibModel *pModel;
+  KLFLibDefaultView *pDView;
+  KLFLibDefaultView::ViewType pViewType;
+  QPoint mousePressedContentsPos;
+
   virtual QModelIndexList commonSelectedIndexes() const = 0;
   virtual void commonInternalDrag(Qt::DropActions a) = 0;
   virtual QAbstractItemView *thisView() = 0;
@@ -250,8 +253,7 @@ class KLFLibDefTreeView : public QTreeView, public KLFLibDefViewCommon
   Q_OBJECT
 public:
   KLFLibDefTreeView(KLFLibDefaultView *parent)
-    : QTreeView(parent), KLFLibDefViewCommon(parent->viewType()),
-      pDView(parent), pInEventFilter(false)
+    : QTreeView(parent), KLFLibDefViewCommon(parent), pInEventFilter(false)
   {
     installEventFilter(this);
     viewport()->installEventFilter(this);
@@ -297,8 +299,6 @@ protected:
   }
 
   bool pInEventFilter;
-
-  KLFLibDefaultView *pDView;
 };
 
 /** \internal */
@@ -307,9 +307,10 @@ class KLFLibDefListView : public QListView, public KLFLibDefViewCommon
   Q_OBJECT
 public:
   KLFLibDefListView(KLFLibDefaultView *parent)
-    : QListView(parent), KLFLibDefViewCommon(parent->viewType()),
-      pDView(parent), pWantRelayout(true), pInEventFilter(false)
+    : QListView(parent), KLFLibDefViewCommon(parent), pWantRelayout(true), pInEventFilter(false)
   {
+    pDelayedSetIconPositions.clear();
+
     installEventFilter(this);
     viewport()->installEventFilter(this);
   }
@@ -319,6 +320,20 @@ public:
       return false;
     pInEventFilter = true;
     bool eat = false;
+    if (object == this && event->type() == QEvent::Polish) {
+      qDebug()<<"KLFLibDefListView::eventFilter: Polish! iconpos="<<pDelayedSetIconPositions;
+      if (!pDelayedSetIconPositions.isEmpty()) {
+	// QListView wants to have its own doItemsLayout() function called first, before we start
+	// fiddling with item positions.
+	/** \bug .......... BUG/TODO/WARNING: QListView::doItemsLayout() is NOT in official API! */
+	QListView::doItemsLayout();
+	loadIconPositions(pDelayedSetIconPositions, true);
+      } else {
+	if (pWantRelayout)
+	  forceRelayout(true); // relayout if wanted
+      }
+      eat = false;
+    }
     if (event->type() == QEvent::DragEnter) {
       eat = evDragEnter((QDragEnterEvent*)event, eventPos(object, (QDragEnterEvent*)event));
     } else if (event->type() == QEvent::DragMove) {
@@ -337,6 +352,51 @@ public:
     }
   }
 
+  /** Returns the positions of all the icon positions and for each entry IDs to
+   * which they refer.
+   * */
+  virtual QMap<KLFLib::entryId,QPoint> allIconPositions() const {
+    QMap<KLFLib::entryId,QPoint> iconPositions;
+    // walk all indexes in view
+    QModelIndex it = pModel->walkNextIndex(QModelIndex());
+    while (it.isValid()) {
+      KLFLib::entryId eid = pModel->entryIdForIndex(it);
+      if (eid != -1) {
+	iconPositions[eid] = iconPosition(it);
+      }
+      it = pModel->walkNextIndex(it);
+    }
+    return iconPositions;
+  }
+
+  /** this function restores the positions of all the icons as described
+   * in the \c iconPositions map, for example which has been obtained by a call
+   * to \ref allIconPositions() some time earlier.
+   *
+   * This function does NOT save the new icon positions; this function is precisely meant
+   * for usage from a "loadGuiState()" function or from an "update resource data ()" function.
+   */
+  virtual void loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions, bool forcenow = false) {
+    if ( ! isVisible() && ! forcenow ) {
+      pDelayedSetIconPositions = iconPositions;
+      qDebug()<<"KLFLibDefListView::loadIconPositions: delaying action!";
+      return;
+    }
+    qDebug()<<"KLFLibDefListView::loadIconPositions: setting icon positions "<<iconPositions;
+    QMap<KLFLib::entryId,QPoint>::const_iterator it;
+    for (it = iconPositions.begin(); it != iconPositions.end(); ++it) {
+      QModelIndex index = pModel->findEntryId(it.key());
+      if (!index.isValid())
+	continue;
+      QPoint pos = *it;
+      qDebug()<<KLF_FUNC_NAME<<": About to set single icon position..";
+      setIconPosition(index, pos, true);
+      qDebug()<<"Set single icon position OK.";
+    }
+    pDelayedSetIconPositions.clear();
+  }
+
+
   virtual void moveSelectedIconsBy(const QPoint& delta) {
     int k;
     QModelIndexList sel = selectionModel()->selectedIndexes();
@@ -354,9 +414,10 @@ public:
       // if we didn't want a relayout (ie. icon positions were controlled)
       saveIconPositions();
     }
+    pWantRelayout = false;
   }
 
-  QPoint iconPosition(const QModelIndex& index) {
+  QPoint iconPosition(const QModelIndex& index) const {
     return rectForIndex(index).topLeft();
   }
   void setIconPosition(const QModelIndex& index, const QPoint& pos, bool dontSave = false) {
@@ -382,31 +443,40 @@ protected:
 
   bool pInEventFilter;
 
+  QMap<KLFLib::entryId, QPoint> pDelayedSetIconPositions;
+
   virtual void startDrag(Qt::DropActions supportedActions) {
     commonStartDrag(supportedActions);
   }
   virtual void doItemsLayout() {
+    /** \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API ! */
     qDebug()<<"doItemsLayout!";
-    if (pWantRelayout)
-      /// \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API !
-      QListView::doItemsLayout();
-    // else ignore request
+    // Qt want its own doItemsLayout() to be called first (in case new indexes have appeared, or
+    // old ones dissapeared)
+    QMap<KLFLib::entryId,QPoint> bkpiconpos;
+    if (!pWantRelayout)
+      bkpiconpos = allIconPositions(); // save current icon positions
+    // do qt's layout
+    QListView::doItemsLayout();
+    // but then we want to keep our layout if !pWantRelayout:
+    if (!pWantRelayout)
+      loadIconPositions(bkpiconpos);
+
+    pWantRelayout = false;
   } 
   
-  KLFLibDefaultView *pDView;
-
-  //  friend void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
-
   bool pWantRelayout;
 
   void saveIconPositions() {
     qDebug()<<"saveIconPositions()";
     KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
     // walk all indices, fill entryIdList
-    QModelIndex index;
-    while ((index = model->walkNextIndex(index)).isValid()) {
-      qDebug()<<"Walking index "<<index;
+    QModelIndex index = model->walkNextIndex(QModelIndex());
+    while (index.isValid()) {
+      qDebug()<<"Walking index "<<index<<"; our model is "<<((QAbstractItemModel*)model)
+	      <<"item's model is"<<((QAbstractItemModel*)index.model());
       saveIconPosition(index);
+      index = model->walkNextIndex(index);
     }
     qDebug()<<"Done saving all icon positions.";
   }
@@ -424,69 +494,6 @@ protected:
 
 
 
-// -------------------------------
-
-/* static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions)
-{
-  // largely based on Qt's QAbstractItemView source in src/gui/itemviews/qabstractitemview.cpp
-      KLFLibModel *model = (KLFLibModel*)v->model();
-      if (model == NULL)
-      return;
-
-  QModelIndexList indexes;
-  // the following inheritance test and cast is needed for the friend attriubte
-  // to be taken into account (yes, we're not a friend of QAbstractItemView)
-  if (v->inherits("KLFLibDefListView"))
-    indexes = qobject_cast<KLFLibDefListView*>(v)->selectedIndexes();
-  else if (v->inherits("KLFLibDefTreeView"))
-    indexes = qobject_cast<KLFLibDefTreeView*>(v)->selectedIndexes();
-
-
-  if (v->inherits("KLFLibDefListView")) {
-    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(v);
-    if (lv->pDView->viewType() == KLFLibDefaultView::IconView) {
-      // icon view -> move icons around
-      qDebug()<<"Internal DRAG!";
-      /// \bug ......BUG/TODO........ WARNING: QListView::internalDrag() is NOT in offical Qt API !
-	;
-      // if icon positions are locked abort
-      if (model->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
-	return;
-
-      lv->internalDrag(supportedActions);
-      return;
-    }
-  }
-
-  qDebug() << "Normal DRAG";
-
-  / *  // DEBUG:
-      if (indexes.count() > 0)
-      if (v->inherits("KLFLibDefListView")) {
-      qDebug()<<"Got First index' rect: "
-      <<qobject_cast<KLFLibDefListView*>(v)->rectForIndex(indexes[0]);
-      qobject_cast<KLFLibDefListView*>(v)->setPositionForIndex(QPoint(200,100), indexes[0]);
-      }
-  * /
-
-  if (indexes.count() > 0) {
-    QMimeData *data = model->mimeData(indexes);
-    if (data == NULL)
-      return;
-    QDrag *drag = new QDrag(v);
-    drag->setMimeData(data);
-    QPixmap pix = QPixmap::fromImage(model->dragImage(indexes));
-    drag->setPixmap(pix);
-    drag->setHotSpot(QPoint(0,0));
-    Qt::DropAction defaultDropAction = Qt::IgnoreAction;
-    
-    if (supportedActions & Qt::CopyAction && v->dragDropMode() != QAbstractItemView::InternalMove)
-      defaultDropAction = Qt::CopyAction;
-    
-    drag->exec(supportedActions, defaultDropAction);
-  }
-}
-  */
 
 
 #endif

@@ -101,6 +101,11 @@ QLineEdit {
 	border: 1px solid rgb(255,255,255,50);
 	border-radius: 2px;
 }
+QLineEdit[needsBackground=true] {
+	background: url(:/plugindata/skin/stylesheets/pics/bg_galaxy.jpg) no-repeat;
+	border: 2px solid rgb(255,255,255,80);
+}
+
 
 QComboBox[editable=false] {
 	color: white;

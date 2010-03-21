@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>438</width>
     <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>KLFLibSqliteOpenWidget</string>
   </property>
   <layout class="QGridLayout" name="lyt_KLFLibSqliteOpenWidget">
    <item row="0" column="0" colspan="3">
@@ -22,7 +22,14 @@
     </widget>
    </item>
    <item row="1" column="0" colspan="2">
-    <widget class="QLineEdit" name="txtFile"/>
+    <widget class="QLineEdit" name="txtFile">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
    </item>
    <item row="1" column="2">
     <widget class="QPushButton" name="btnBrowse">

@@ -241,6 +241,14 @@ public:
    * view state in the resource itself (icon positions in icon view mode for example). */
   virtual bool accessShared() const { return KLFPropertizedObject::property(PropAccessShared).toBool(); }
 
+  //! Get the value of a resource property
+  /** Returns the value of the given resource property. If the property is not registered,
+   * returns an invalid QVariant with a warning.
+   *
+   * For built-in resource properties, consider using the simpler \ref locked(), \ref title()
+   * and \ref viewType() methods (for example). */
+  virtual QVariant resourceProperty(const QString& name) const;
+
   enum ModifyType { AllActionsData, InsertData, ChangeData, DeleteData };
   /** Subclasses should return TRUE here if it is possible to modify the resource's data in
    * the way described by \c modifytype. Return for ex. false when opening a read-only file.
@@ -390,15 +398,6 @@ public slots:
    * The \c newPath is garanteed to have same schema as the previous url.
    * */
   virtual bool saveAs(const QUrl& newPath);
-
-
-  //! Get the value of a resource property
-  /** Returns the value of the given resource property. If the property is not registered,
-   * returns an invalid QVariant with a warning.
-   *
-   * For built-in resource properties, consider using the simpler \ref locked(), \ref title()
-   * and \ref viewType() methods (for example). */
-  virtual QVariant resourceProperty(const QString& name) const;
 
   //! Set a resource property to the given value
   /** This function calls in turn:

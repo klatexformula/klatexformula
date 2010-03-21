@@ -51,17 +51,47 @@ KLF_EXPORT void __klf_debug_time_print(QString str);
 /** \brief Print debug message with precise current time
  *
  * This function outputs something like:
- * <pre></pre>
+ * <pre>010.038961 : <i>debug message given in x</i></pre>
  * and can be used to print debug messages and locate time-consuming
  * instructions for example. */
 #define klf_debug_time_print(x)
 #endif
 
 
-// SIMPLE TEST FOR ONE-TIME-RUN FUNCTIONS
-
+// Simple test for one-time-run functions
 #define KLF_FUNC_SINGLE_RUN \
   { static bool first_run = true;  if ( ! first_run )  return; first_run = false; }
+
+
+#if __STDC_VERSION__ < 199901L
+# if __GNUC__ >= 2
+#  define __func__ __FUNCTION__
+# else
+#  define __func__ "<unknown>"
+# endif
+#endif
+#if defined KLF_CMAKE_HAS_PRETTY_FUNCTION
+#define KLF_FUNC_NAME __PRETTY_FUNCTION__
+#elif defined KLF_CMAKE_HAS_FUNCTION
+#define KLF_FUNC_NAME __FUNCTION__
+#elif defined KLF_CMAKE_HAS_FUNC
+#define KLF_FUNC_NAME __func__
+#else
+#define KLF_FUNC_NAME "<unknown>"
+#endif
+
+//! Asserting Non-NULL pointers (NON-FATAL)
+/**
+ * If the given \c ptr is NULL, then prints function name and message to standard warning
+ * output (see \ref qWarning()) and executes instructions given by \c failaction.
+ * \c msg may contain << operators to chain output to a QDebug.
+ */
+#define KLF_ASSERT_NOT_NULL(ptr, msg, failaction)			\
+  if ((ptr) == NULL) {							\
+    qWarning().nospace()<<"In function "<<KLF_FUNC_NAME<<":\n\t"<<msg;	\
+    failaction;								\
+  }
+
 
 
 
