@@ -155,13 +155,13 @@ KLFLibBrowser::~KLFLibBrowser()
   /// \bug ........... DEBUG/TODO ........... REMOVE THIS BEFORE RELEASE VERSION ................
 
   // save state to local file
-  qDebug()<<"LibBrowser: Saving GUI state !";
+/*  qDebug()<<"LibBrowser: Saving GUI state !";
   QVariantMap vm = saveGuiState();
   QFile f("/home/philippe/temp/klf_saved_libbrowser_state");
   f.open(QIODevice::WriteOnly);
   QDataStream str(&f);
   str << vm;
-
+*/
 
   int k;
   for (k = 0; k < pLibViews.size(); ++k) {
