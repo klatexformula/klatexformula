@@ -7,16 +7,14 @@
 
 # Include what we need from Qt (only core+gui, or xml+sql(+dbus) too,
 # depending on whether we're compiling klfsrc also or not)
-if(KLF_BACKEND_ONLY)
-  # gui + core included by default
-else(KLF_BACKEND_ONLY)
+if(KLF_BUILD_GUI)
   # we need xml + sql too, and maybe dbus
   set(QT_USE_QTXML TRUE)
   set(QT_USE_QTSQL TRUE)
   if(KLF_USE_DBUS)
     set(QT_USE_QTDBUS TRUE)
   endif(KLF_USE_DBUS)
-endif(KLF_BACKEND_ONLY)
+endif(KLF_BUILD_GUI)
 # include our Qt4 stuff; Qt3 needs nothing.
 if(KLF_USE_QT4)
 include(${QT_USE_FILE})
@@ -35,9 +33,9 @@ endif(CMAKE_DEBUG)
 # include SUBDIR: our klfbackend
 add_subdirectory(klfbackend)
 
-if(KLF_BACKEND_ONLY)
+if(NOT KLF_BUILD_GUI)
   RETURN()
-endif(KLF_BACKEND_ONLY)
+endif(NOT KLF_BUILD_GUI)
 
 
 # Sources
@@ -108,6 +106,10 @@ set(klatexformula_UIS
 	klflibopenresourcedlg.ui
 	klflibsqliteopenwidget.ui
 )
+# Translations
+set(klatexformula_TSS
+	i18n/klf_fr.ts
+)
 # Resources
 set(klatexformula_QRCS
 	klfres.qrc
@@ -131,6 +133,7 @@ if(KLF_USE_DBUS)
 endif(KLF_USE_DBUS)
 
 # ....... TODO ......... Add TRANSLATIONS ...........
+qt4_add_translation(klatexformula_QMS ${klatexformula_TSS})
 qt4_wrap_ui(klatexformula_UIS_H ${klatexformula_UIS})
 qt4_wrap_cpp(klatexformula_MOC_CPPS ${klatexformula_HEADERS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
@@ -166,8 +169,12 @@ install(FILES klatexformula-128.png DESTINATION share/pixmaps/)
 install(FILES klatexformula-64.png DESTINATION share/pixmaps/)
 install(FILES klatexformula-32.png DESTINATION share/pixmaps/)
 install(FILES klatexformula-16.png DESTINATION share/pixmaps/)
-# TODO:  ......... install mime-types too: x-klatexformula.desktop
-#   and x-klatexformula-db.desktop
+install(FILES x-klatexformula.xml x-klatexformula-db.xml
+	DESTINATION share/mime/packages/)
+install(CODE
+  "message(STATUS \"Updating Mime Type Database\")
+   execute_process(COMMAND \"update-mime-database ${CMADE_INSTALL_PREFIX}/share/mime/\"
+    )")
 endif (KLF_INSTALL_DESKTOP)
 
 
