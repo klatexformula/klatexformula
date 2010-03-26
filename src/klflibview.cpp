@@ -35,6 +35,7 @@
 #include <QVBoxLayout>
 #include <QStackedWidget>
 #include <QComboBox>
+#include <QHeaderView>
 #include <QTextDocument>
 #include <QTextCursor>
 #include <QTextCharFormat>
@@ -2706,7 +2707,7 @@ void KLFLibResPropEditorDlg::cancelAndClose()
 
 void klf___temp___test_newlib()
 {
-  KLF_ASSERT_NOT_NULL( 0 , "Test Case Assert is "<<"working!" ,  )
+  KLF_ASSERT_NOT_NULL( ((void*)0) , "Test Case Assert is "<<"working!" ,  )
     ;
   KLF_ASSERT_NOT_NULL( ((void*)1) , "Test Case Assert is "<<"NOT"<<" working!" ,  )
     ;

@@ -147,6 +147,7 @@ else(KLF_SRCLIB_STATIC)
   add_library(klfsrc SHARED ${klatexformula_ALLSRC})
 endif(KLF_SRCLIB_STATIC)
 add_dependencies(klfsrc klfbackend)
+target_link_libraries(klfsrc ${QT_LIBRARIES} klfbackend)
 # KLatexFormula Executable
 qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
 add_executable(klatexformula main.cpp ${klatexformula_QRC_CPPS})

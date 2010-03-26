@@ -14,8 +14,8 @@ if(WIN32)
   set(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON systrayicon.dll)
 elseif(APPLE)
   # Apple Mac OS X
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN libskin.dylib)
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON libsystrayicon.dylib)
+  set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN libskin.so)
+  set(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON libsystrayicon.so)
 else(WIN32)
   # Linux/Unix
   set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN libskin.so)
