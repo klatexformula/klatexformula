@@ -49,6 +49,13 @@ add_custom_command(OUTPUT klfbaseplugins.rcc
 add_custom_target(klfbaseplugins_rcc ALL
   DEPENDS klfbaseplugins.rcc
 )
+if(APPLE AND KLF_MACOSX_BUNDLE_PATH)
+  add_custom_command(TARGET klfbaseplugins_rcc POST_BUILD
+      COMMAND cp "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.rcc"
+		 "${KLF_MACOSX_BUNDLE_PATH}/Resources/rccresources/klfbaseplugins.rcc"
+      COMMENT "Installing base plugins into application bundle"   VERBATIM)
+endif(APPLE AND KLF_MACOSX_BUNDLE_PATH)
+
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
   add_custom_target(klfbaseplugins_rcc_localinstall ALL
     COMMAND ${KLF_CMAKE_COPY} klfbaseplugins.rcc "$ENV{HOME}/.klatexformula/rccresources/"

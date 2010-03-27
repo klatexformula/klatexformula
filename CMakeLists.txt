@@ -15,6 +15,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 file(READ VERSION KLF_VERSION)
 message(STATUS "KLatexFormula Version is ${KLF_VERSION}")
 
+set(klfversion_regex "([0-9]+)\\.([0-9]+)\\.([0-9]+)(.*)")
+string(REGEX REPLACE "${klfversion_regex}" "\\1" KLF_VERSION_MAJ "${KLF_VERSION}")
+string(REGEX REPLACE "${klfversion_regex}" "\\2" KLF_VERSION_MIN "${KLF_VERSION}")
+string(REGEX REPLACE "${klfversion_regex}" "\\3" KLF_VERSION_REL "${KLF_VERSION}")
+string(REGEX REPLACE "${klfversion_regex}" "\\4" KLF_VERSION_SUFFIX "${KLF_VERSION}")
+
+include(KLFUtil.cmake)
 
 # Set some project settings
 # -------------------------
@@ -43,7 +50,7 @@ set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFo
 option(KLF_BUILD_GUI "Build the full GUI interface" ON)
 
 # Static/Shared libklfbackend
-option(KLF_BACKEND_STATIC "Compile static libklfbackend backend library instead of shared." ON)
+option(KLF_BACKEND_STATIC "Compile static libklfbackend backend library instead of shared." OFF)
 
 # If we changed wanted Qt version, there are some conflicting qt cache variables
 # we need to reset -> we reset all qt variables...
@@ -90,17 +97,17 @@ else(KLF_BUILD_GUI)
   message(STATUS "Will not build the GUI interface")
 endif(KLF_BUILD_GUI)
 
-# Build a shared or static source klfsrc library (for plugins to link to)
+# Build a shared or static source klflib library (for plugins to link to)
 if(WIN32 OR APPLE)
-  set(KLF_SRCLIB_STATIC FALSE CACHE BOOL "Build a static klfsrc source library")
+  set(KLF_KLFLIB_STATIC FALSE CACHE BOOL "Build a static klflib library")
 else(WIN32 OR APPLE)
-  set(KLF_SRCLIB_STATIC TRUE CACHE BOOL "Build a static klfsrc source library")
+  set(KLF_KLFLIB_STATIC TRUE CACHE BOOL "Build a static klflib library")
 endif(WIN32 OR APPLE)
-if(KLF_SRCLIB_STATIC)
-  message(STATUS "Building a static KLatexFormula source (klfsrc) library")
-else(KLF_SRCLIB_STATIC)
-  message(STATUS "Building a shared KLatexFormula source (klfsrc) library")
-endif(KLF_SRCLIB_STATIC)
+if(KLF_KLFLIB_STATIC)
+  message(STATUS "Building a static KLatexFormula library (klflib)")
+else(KLF_KLFLIB_STATIC)
+  message(STATUS "Building a shared KLatexFormula library (klflib)")
+endif(KLF_KLFLIB_STATIC)
 
 # Target architecture (allows compile for 32-bit on 64-bit architectures)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -217,11 +224,11 @@ add_subdirectory(src)
 # Uninstall option
 # ----------------
 
-CONFIGURE_FILE(
+configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
   IMMEDIATE @ONLY)
-ADD_CUSTOM_TARGET(uninstall
+add_custom_target(uninstall
   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
 

@@ -4,9 +4,13 @@
 # $Id$
 # ######################################## #
 
+if(APPLE)
+  set(KLF_MACOSXDIR "${CMAKE_CURRENT_SOURCE_DIR}/macosx")
+  include(macosx/KLFMacBundle.cmake)
+endif(APPLE)
 
 # Include what we need from Qt (only core+gui, or xml+sql(+dbus) too,
-# depending on whether we're compiling klfsrc also or not)
+# depending on whether we're compiling klflib also or not)
 if(KLF_BUILD_GUI)
   # we need xml + sql too, and maybe dbus
   set(QT_USE_QTXML TRUE)
@@ -62,16 +66,12 @@ set(klatexformula_SRCS
 	klfdisplaylabel.cpp
 )
 # Headers
-set(klatexformula_HEADERS
+set(klatexformula_MOCHEADERS
 	klfcolorchooser.h
-#	klfconfig.h
-#	klfdata.h
-#	klfpobj.h
 	klflatexsyntaxhighlighter.h
 	klflatexsymbols.h
 	klflibrary.h
 	klflib.h
-#	klflib_p.h
 	klflibdbengine.h
 	klflibdbengine_p.h
 	klflibview.h
@@ -84,10 +84,17 @@ set(klatexformula_HEADERS
 	klfpathchooser.h
 	klfsettings.h
 	klfstylemanager.h
-#	klfpluginiface.h
 	qtcolortriangle.h
-#	klfmain.h
 	klfdisplaylabel.h
+)
+set(klatexformula_HEADERS
+	klfmain.h
+	klfconfig.h
+	klfdata.h
+	klfpobj.h
+	klflib_p.h
+	klfpluginiface.h
+	${klatexformula_MOCHEADERS}
 )
 # UI Forms
 set(klatexformula_UIS
@@ -127,31 +134,53 @@ if(KLF_USE_DBUS)
   list(APPEND klatexformula_SRCS
 	klfdbus.cpp
   )
+  list(APPEND klatexformula_MOCHEADERS
+	klfdbus.h
+  )
   list(APPEND klatexformula_HEADERS
 	klfdbus.h
   )
 endif(KLF_USE_DBUS)
 
-# ....... TODO ......... Add TRANSLATIONS ...........
+
+KLFInstHeaders(klatexformula_INSTHEADERS "${klatexformula_HEADERS}")
 qt4_add_translation(klatexformula_QMS ${klatexformula_TSS})
 qt4_wrap_ui(klatexformula_UIS_H ${klatexformula_UIS})
-qt4_wrap_cpp(klatexformula_MOC_CPPS ${klatexformula_HEADERS})
+qt4_wrap_cpp(klatexformula_MOC_CPPS ${klatexformula_MOCHEADERS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/klfbackend)
 set(klatexformula_ALLSRC ${klatexformula_SRCS} ${klatexformula_UIS_H}
 			${klatexformula_MOC_CPPS})
-# klfsrc library
-if(KLF_SRCLIB_STATIC)
-  add_library(klfsrc STATIC ${klatexformula_ALLSRC})
-else(KLF_SRCLIB_STATIC)
-  add_library(klfsrc SHARED ${klatexformula_ALLSRC})
-endif(KLF_SRCLIB_STATIC)
-add_dependencies(klfsrc klfbackend)
-target_link_libraries(klfsrc ${QT_LIBRARIES} klfbackend)
+# klf library
+if(KLF_KLFLIB_STATIC)
+  add_library(klflib STATIC ${klatexformula_ALLSRC})
+else(KLF_KLFLIB_STATIC)
+  add_library(klflib SHARED ${klatexformula_ALLSRC})
+  if(APPLE)
+    KLFMakeFramework(klflib ${klatexformula_INSTHEADERS})
+  endif(APPLE)
+  set_target_properties(klflib PROPERTIES
+	VERSION ${KLF_VERSION}
+	SOVERSION ${KLF_VERSION}
+  )
+endif(KLF_KLFLIB_STATIC)
+add_dependencies(klflib klfbackend)
+target_link_libraries(klflib ${QT_LIBRARIES} klfbackend)
 # KLatexFormula Executable
 qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
 add_executable(klatexformula main.cpp ${klatexformula_QRC_CPPS})
-target_link_libraries(klatexformula ${QT_LIBRARIES} klfsrc klfbackend)
+target_link_libraries(klatexformula ${QT_LIBRARIES} klflib klfbackend)
+# Set up the application bundle under Mac OS X
+if(APPLE)
+  set_target_properties(klatexformula PROPERTIES
+	MACOSX_BUNDLE	true
+	MACOSX_BUNDLE_ICON_FILE	klficon.icns
+	OUTPUT_NAME	klatexformula-${KLF_VERSION}
+  )
+  set(KLF_MACOSX_BUNDLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/klatexformula-${KLF_VERSION}.app")
+  KLFMakeBundle(klatexformula klatexformula-${KLF_VERSION}.app)
+endif(APPLE)
+
 
 
 # Build Plugins
@@ -163,7 +192,8 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop"
   IMMEDIATE @ONLY)
 
-install(TARGETS klatexformula RUNTIME DESTINATION bin)
+install(TARGETS klatexformula RUNTIME DESTINATION bin
+			      BUNDLE DESTINATION bin)
 if (KLF_INSTALL_DESKTOP)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop" DESTINATION share/applications/)
 install(FILES klatexformula-128.png DESTINATION share/pixmaps/)
@@ -179,4 +209,6 @@ install(CODE
 endif (KLF_INSTALL_DESKTOP)
 
 
+
+# ............. TODO: SYMLINK klatexformula_cmdl .......................
 

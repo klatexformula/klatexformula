@@ -104,7 +104,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   populateLocaleCombo();
 
   // set some smaller fonts for small titles
-  QFont f = lblSHForeground->font();
+  QFont f = this->font();
   f.setPointSize(QFontInfo(f).pointSize() - 1);
   lblSHForeground->setFont(f);
   lblSHBackground->setFont(f);

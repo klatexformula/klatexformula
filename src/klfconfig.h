@@ -73,13 +73,14 @@ public:
 };
 
 
+//! Structure that stores klatexformula's configuration
 class KLF_EXPORT KLFConfig {
 public:
 
-  // this doesn't do anything. It actually leaves every entry with undefined values.
-  // This is why it's important to call loadDefaults() quickly after building an instance
-  // of KLFConfig. readFromConfig() isn't enough, beacause it assumes the default values
-  // are already stored in the current fields.
+  /** this doesn't do anything. It actually leaves every entry with undefined values.
+      This is why it's important to call loadDefaults() quickly after building an instance
+      of KLFConfig. readFromConfig() isn't enough, beacause it assumes the default values
+      are already stored in the current fields. */
   KLFConfig();
 
   QString homeConfigDir;

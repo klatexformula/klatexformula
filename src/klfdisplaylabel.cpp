@@ -79,7 +79,8 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
   // but if one is given then prepare it (prepare it even if "enableToolTipPreview" is false,
   // because we will need it for the "showBigPreview" button)
   if ( ! tooltipimage.isNull() ) {
-    mTooltipFile = new QTemporaryFile(this);
+    mTooltipFile
+      = new QTemporaryFile(klfconfig.BackendSettings.tempDir+"/klf_tooltip_XXXXXX.png", this);
     if ( ! mTooltipFile->open() ) {
       qWarning("WARNING: Failed open for Tooltip Temp Image!\n%s\n",
 	       qPrintable(mTooltipFile->fileTemplate()));

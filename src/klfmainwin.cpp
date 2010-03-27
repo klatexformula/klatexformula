@@ -32,6 +32,7 @@
 #include <QPushButton>
 #include <QFile>
 #include <QFont>
+#include <QFontInfo>
 #include <QClipboard>
 #include <QDrag>
 #include <QTimer>
@@ -55,6 +56,7 @@
 #include <QDomElement>
 #include <QStyle>
 #include <QStyleFactory>
+#include <QDebug>
 
 #include <klfbackend.h>
 
@@ -1541,10 +1543,11 @@ void KLFMainWin::slotShowBigPreview()
     return;
 
   QString text =
-    tr("<p>%1</p><p align=\"right\" style=\"font-size: 7pt; font-style: italic;\">"
+    tr("<p>%1</p><p align=\"right\" style=\"font-size: %2pt; font-style: italic;\">"
        "This preview can be opened with the <strong>F2</strong> key. Hit "
        "<strong>Esc</strong> to close.</p>")
-    .arg(lblOutput->bigPreviewText());
+    .arg(lblOutput->bigPreviewText())
+    .arg(QFontInfo(qApp->font()).pointSize()-2);
   QWhatsThis::showText(btnEvaluate->pos(), text, lblOutput);
 }
 

@@ -1,12 +1,23 @@
 #!/bin/bash
 
-VERSION=`cat VERSION`
+SOURCE_DIR=${1-"."}
+BINARY_DIR=${2-"."}
 
-if [ ! -e klatexformula.app ] ; then
+if [ ! -e "$SOURCE_DIR/VERSION" ]; then
+    echo >&2
+    echo >&2 "Bad source dir: `$SOURCE_DIR'."
+    echo >&2 "Usage: $0 [source_dir [binary_dir]]"
+    echo >&2
+    exit 255
+fi
+
+VERSION=`cat "$SOURCE_DIR/VERSION"`
+
+if [ ! -e "klatexformula.app" ] ; then
     echo >&2 "Can't find bundle klatexformula.app"
     exit 255
 fi
-if [ -e klatexformula-$VERSION.app ]; then
+if [ -e "klatexformula-$VERSION.app" ]; then
     echo >&2 "Please remove preexisting bundle klatexformula-$VERSION.app"
     exit 255
 fi
@@ -23,18 +34,15 @@ cp -R klatexformula.app "$BUNDLE"
 mkdir -p "$BUNDLE/Contents/Frameworks"
 mkdir -p "$BUNDLE/Contents/Resources/rccresources"
 mkdir -p "$BUNDLE/Contents/plugins"
-
-# make sure Qt won't try to find plugins in global installation of Qt on current machine
-qtconf="$BUNDLE/Contents/Resources/qt.conf"
-echo >>"$qtconf"
-echo "[Paths]" >>"$qtconf"
-echo "Plugins = plugins" >>"$qtconf"
+# TODO :.......Icon klficon.icns, PkgInfo file............
+cp "$SOURCE_DIR/src/macosx/qt.conf" "$BUNDLE/Contents/Resources/qt.conf"
 
 # copy Qt libraries locally
 # and update their internal cross-references
-for lib in Core Gui Xml DBus
+for lib in Core Gui Xml DBus Sql
   do
   cp -R "$QTDIR/lib/Qt$lib.framework" "$BUNDLE/Contents/Frameworks"
+  # don't take up megabytes and remove the debug libraries.
   rm "$BUNDLE/Contents/Frameworks/Qt$lib.framework/Qt${lib}_debug" \
       "$BUNDLE/Contents/Frameworks/Qt$lib.framework/Qt${lib}_debug.prl" \
       "$BUNDLE/Contents/Frameworks/Qt$lib.framework/Versions/4/Qt${lib}_debug"
@@ -60,7 +68,7 @@ done
 
 # update the dependency of target(s) to qt libraries
 #   klatexformula executable:
-for lib in Core Gui Xml DBus
+for lib in Core Gui Xml DBus Sql
 do
   install_name_tool -change "$QTDIR/lib/Qt$lib.framework/Versions/4/Qt$lib" \
       "@executable_path/../Frameworks/Qt$lib.framework/Versions/4/Qt$lib" \
@@ -86,15 +94,15 @@ done
 
 for plugin in skin systrayicon
   do
-  for lib in Core Gui Xml
+  for lib in Core Gui Xml Sql
     do
     install_name_tool -change "$QTDIR/lib/Qt$lib.framework/Versions/4/Qt$lib" \
 	"@executable_path/../Frameworks/Qt$lib.framework/Versions/4/Qt$lib" \
-	"src/plugins/lib${plugin}.dylib"
+	"src/plugins/lib${plugin}.so"
   done
 done
-rcc -binary -o "$BUNDLE/Contents/Resources/rccresources/klfbaseplugins.rcc" "src/plugins/klfbaseplugins_mac.qrc"
 
+# klfbaseplugins.rcc will be added by the CMake script after compiling the plugins.
 
 echo "Done."
 echo
