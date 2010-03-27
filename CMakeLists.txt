@@ -150,13 +150,18 @@ if(UNIX)
     else(wantlib64)
       set(NEW_KLF_LIB_SUFFIX "")
     endif(wantlib64)
+    if(DEFINED KLF_LIB_SUFFIX)
+      set(klf_lib_suffix_redefined TRUE)
+    endif(DEFINED KLF_LIB_SUFFIX)
     if(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
     else(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
       set(KLF_LIB_SUFFIX ${NEW_KLF_LIB_SUFFIX} CACHE STRING
 			      "Suffix to library directory (eg. '64' for /usr/lib64')" FORCE)
-      message("
+      if(klf_lib_suffix_redefined)
+        message("
     *** NOTE ***
     The library suffix was detected and adjusted to \"${KLF_LIB_SUFFIX}\".\n")
+      endif(klf_lib_suffix_redefined)
     endif(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
   endif(KLF_TARGET_ARCH_64 STREQUAL old_KLF_TARGET_ARCH_64)
   set(old_KLF_TARGET_ARCH_64 ${KLF_TARGET_ARCH_64} CACHE INTERNAL "Used to detect user change.")
@@ -189,14 +194,6 @@ option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
        "FOR DEVELOPERS ONLY. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."
        FALSE)
 
-
-# Some more local definitions for descendant cmake files
-# copy command used in src/plugins/CMakeLists.txt
-if(WIN32)
-  set(KLF_CMAKE_COPY "copy")
-else(WIN32)
-  set(KLF_CMAKE_COPY "cp")
-endif(WIN32)
 
 # Some extra tests to know what we have
 include(CheckCXXSourceCompiles)

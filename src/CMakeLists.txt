@@ -6,6 +6,7 @@
 
 if(APPLE)
   set(KLF_MACOSXDIR "${CMAKE_CURRENT_SOURCE_DIR}/macosx")
+  set(KLF_MACOSX_BUNDLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/klatexformula-${KLF_VERSION}.app")
   include(macosx/KLFMacBundle.cmake)
 endif(APPLE)
 
@@ -160,15 +161,29 @@ else(KLF_KLFLIB_STATIC)
     KLFMakeFramework(klflib ${klatexformula_INSTHEADERS})
   endif(APPLE)
   set_target_properties(klflib PROPERTIES
-	VERSION ${KLF_VERSION}
-	SOVERSION ${KLF_VERSION}
+	VERSION ${KLF_VERSION}.${KLF_VERSION_MIN}
+	SOVERSION ${KLF_VERSION_MAJ}.${KLF_VERSION_MIN}
   )
 endif(KLF_KLFLIB_STATIC)
 add_dependencies(klflib klfbackend)
 target_link_libraries(klflib ${QT_LIBRARIES} klfbackend)
 # KLatexFormula Executable
 qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
-add_executable(klatexformula main.cpp ${klatexformula_QRC_CPPS})
+set(klatexformulamain_ALLSRC main.cpp ${klatexformula_QRC_CPPS})
+if(APPLE)
+  # Add the frameworks to be included as private frameworks.
+  list(APPEND klatexformulamain_ALLSRC ${KLF_LOCAL_QT_FRAMEWORKS} ${KLF_LOCAL_QT_PLUGINS})
+
+  KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" QtCore.framework "${QT_QTCORE_LIBRARY}" Frameworks)
+  KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" QtGui.framework "${QT_QTGUI_LIBRARY}" Frameworks)
+  KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" QtXml.framework "${QT_QTXML_LIBRARY}" Frameworks)
+  KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" QtSql.framework "${QT_QTSQL_LIBRARY}" Frameworks)
+  KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" QtDBus.framework "${QT_QTDBUS_LIBRARY}" Frameworks)
+  foreach(plugin ${KLF_QT_PLUGINS})
+    KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" "${plugin}" "${QT_PLUGINS_DIR}/${plugin}" plugins)
+  endforeach()
+endif(APPLE)
+add_executable(klatexformula ${klatexformulamain_ALLSRC})
 target_link_libraries(klatexformula ${QT_LIBRARIES} klflib klfbackend)
 # Set up the application bundle under Mac OS X
 if(APPLE)
@@ -177,10 +192,8 @@ if(APPLE)
 	MACOSX_BUNDLE_ICON_FILE	klficon.icns
 	OUTPUT_NAME	klatexformula-${KLF_VERSION}
   )
-  set(KLF_MACOSX_BUNDLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/klatexformula-${KLF_VERSION}.app")
   KLFMakeBundle(klatexformula klatexformula-${KLF_VERSION}.app)
 endif(APPLE)
-
 
 
 # Build Plugins
