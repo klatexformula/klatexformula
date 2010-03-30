@@ -5,7 +5,7 @@ BINARY_DIR=${2-"."}
 
 if [ ! -e "$SOURCE_DIR/VERSION" ]; then
     echo >&2
-    echo >&2 "Bad source dir: `$SOURCE_DIR'."
+    echo >&2 "Bad source dir: \`$SOURCE_DIR'."
     echo >&2 "Usage: $0 [source_dir [binary_dir]]"
     echo >&2
     exit 255

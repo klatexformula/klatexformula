@@ -54,7 +54,4 @@
     <file>symbolspixmapcache_base</file>
     <file>defaultlibrary</file>
   </qresource>
-  <qresource>
-    <file>i18n/klf_fr.qm</file>
-  </qresource>
 </RCC>

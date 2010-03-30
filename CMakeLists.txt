@@ -21,6 +21,9 @@ string(REGEX REPLACE "${klfversion_regex}" "\\2" KLF_VERSION_MIN "${KLF_VERSION}
 string(REGEX REPLACE "${klfversion_regex}" "\\3" KLF_VERSION_REL "${KLF_VERSION}")
 string(REGEX REPLACE "${klfversion_regex}" "\\4" KLF_VERSION_SUFFIX "${KLF_VERSION}")
 
+# The version that the libraries will be tagged with
+set(KLF_LIB_VERSION "${KLF_VERSION_MAJ}.${KLF_VERSION_MIN}")
+
 include(KLFUtil.cmake)
 
 # Set some project settings
@@ -60,6 +63,7 @@ endif(NOT DEFINED old_KLF_USE_QT4)
 if(KLF_USE_QT4 STREQUAL old_KLF_USE_QT4)
 else(KLF_USE_QT4 STREQUAL old_KLF_USE_QT4)
   # value of KLF_USE_QT4 changed!
+# ....................... TODO ................. Investigate & Fix .......................
 #  message("
 #    *** WARNING ***
 #    You changed the Qt version to use, while already having configured for another Qt version.
@@ -167,6 +171,11 @@ if(UNIX)
   set(old_KLF_TARGET_ARCH_64 ${KLF_TARGET_ARCH_64} CACHE INTERNAL "Used to detect user change.")
 endif(UNIX)
 
+# Mac OS X: building frameworks + bundles ?
+if(APPLE)
+  option(KLF_MACOSX_BUNDLES
+	 "On Mac OS X: Build Bundles and Frameworks instead of UNIX-Style binaries" ON)
+endif(APPLE)
 
 # Build DBUS support ?
 if(NOT WIN32)
@@ -181,8 +190,13 @@ else(KLF_USE_DBUS)
 endif(KLF_USE_DBUS)
 
 # Install .desktop & pixmaps in DEST/share/{applications|pixmaps} ?
-option(KLF_INSTALL_DESKTOP
-       "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}" TRUE)
+if(KLF_MACOSX_BUNDLES OR WIN32)
+  set(KLF_INSTALL_DESKTOP FALSE CACHE BOOL
+       "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}")
+else(KLF_MACOSX_BUNDLES OR WIN32)
+  set(KLF_INSTALL_DESKTOP FALSE CACHE BOOL
+       "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}")
+endif(KLF_MACOSX_BUNDLES OR WIN32)
 if(KLF_INSTALL_DESKTOP)
   message(STATUS "Will installing desktop files")
 else(KLF_INSTALL_DESKTOP)
@@ -191,8 +205,9 @@ endif(KLF_INSTALL_DESKTOP)
   
 # DEVELOPER OPTION to install klfbaseplugins.rcc in ~/.klatexformula/rccresources
 option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
-       "FOR DEVELOPERS ONLY. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."
-       FALSE)
+ "FOR DEVELOPERS ONLY. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."
+ FALSE)
+mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 
 
 # Some extra tests to know what we have

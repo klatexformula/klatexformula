@@ -646,12 +646,13 @@ KLFColorList *KLFColorChooser::_colorlist = NULL;
 QStyle *KLFColorChooser::mReplaceButtonStyle = NULL;
 
 KLFColorChooser::KLFColorChooser(QWidget *parent)
-  : QPushButton(parent), _color(0,0,0,255), _pix(), _allowdefaultstate(false), _autoadd(true), _size(120, 20),
-    _xalignfactor(0.5f), _yalignfactor(0.5f), _alphaenabled(true),
-    mMenu(0)
+  : QPushButton(parent), _color(0,0,0,255), _pix(), _allowdefaultstate(false), _autoadd(true),
+    _size(120, 20),  _defaultstatestring(tr("[ Default ]")), _xalignfactor(0.5f),
+    _yalignfactor(0.5f), _alphaenabled(true), mMenu(0)
 {
   ensureColorListInstance();
   connect(_colorlist, SIGNAL(listChanged()), this, SLOT(_makemenu()));
+  
   _makemenu();
   _setpix();
 
@@ -721,6 +722,11 @@ void KLFColorChooser::setAllowDefaultState(bool allow)
   _allowdefaultstate = allow;
   _makemenu();
 }
+void KLFColorChooser::setDefaultStateString(const QString& str)
+{
+  _defaultstatestring = str;
+  _makemenu();
+}
 
 void KLFColorChooser::setAlphaEnabled(bool on)
 {
@@ -757,7 +763,7 @@ void KLFColorChooser::_makemenu()
   mMenu = new QMenu(this);
 
   if (_allowdefaultstate) {
-    mMenu->addAction(QIcon(colorPixmap(QColor(), menuIconSize)), tr("[ Default ]"),
+    mMenu->addAction(QIcon(colorPixmap(QColor(), menuIconSize)), _defaultstatestring,
 		     this, SLOT(setDefaultColor()));
     mMenu->addSeparator();
   }

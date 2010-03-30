@@ -317,6 +317,7 @@ class KLF_EXPORT KLFColorChooser : public QPushButton
 
   Q_PROPERTY(QSize showSize READ showSize WRITE setShowSize)
   Q_PROPERTY(bool allowDefaultState READ allowDefaultState WRITE setAllowDefaultState)
+  Q_PROPERTY(QString defaultStateString READ defaultStateString WRITE setDefaultStateString)
   Q_PROPERTY(bool autoAddToList READ autoAddToList WRITE setAutoAddToList)
   Q_PROPERTY(QColor color READ color WRITE setColor USER true)
   Q_PROPERTY(float pixXAlignFactor READ pixXAlignFactor WRITE setPixXAlignFactor)
@@ -334,6 +335,7 @@ public:
    * "don't change"; it is represented by a red slash on a gray background. It is internally
    * represented by an invalid QColor. */
   bool allowDefaultState() const { return _allowdefaultstate; }
+  QString defaultStateString() const { return _defaultstatestring; }
   bool autoAddToList() const { return _autoadd; }
   QColor color() const;
   float pixXAlignFactor() const { return _xalignfactor; }
@@ -356,6 +358,7 @@ public slots:
    * \code setColor(QColor()) \endcode */
   void setColor(const QColor& color);
   void setAllowDefaultState(bool allow);
+  void setDefaultStateString(const QString& str);
   void setAutoAddToList(bool autoadd) { _autoadd = autoadd; }
   void setShowSize(const QSize& size) { _size = size; }
   void setPixXAlignFactor(float xalignfactor) { _xalignfactor = xalignfactor; }
@@ -378,6 +381,7 @@ private:
   QPixmap _pix;
 
   bool _allowdefaultstate;
+  QString _defaultstatestring;
   bool _autoadd;
   QSize _size;
   float _xalignfactor, _yalignfactor;
