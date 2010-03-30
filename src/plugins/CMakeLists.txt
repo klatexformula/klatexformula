@@ -36,9 +36,9 @@ add_subdirectory(skin)
 add_subdirectory(systrayicon)
 
 add_custom_command(OUTPUT klfbaseplugins.rcc
-    COMMAND "${CMAKE_EXECUTABLE}" -E copy "skin/${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}"
+    COMMAND "${CMAKE_COMMAND}" -E copy "skin/${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}"
       "${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}"
-    COMMAND "${CMAKE_EXECUTABLE}" -E copy "systrayicon/${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON}"
+    COMMAND "${CMAKE_COMMAND}" -E copy "systrayicon/${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON}"
       "${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON}"
     COMMAND ${QT_RCC_EXECUTABLE} -binary -o klfbaseplugins.rcc klfbaseplugins.qrc
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
@@ -58,7 +58,7 @@ endif(APPLE AND KLF_MACOSX_BUNDLE_PATH)
 
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
   add_custom_target(klfbaseplugins_rcc_localinstall ALL
-    COMMAND "${CMAKE_EXECUTABLE}" -E copy klfbaseplugins.rcc "$ENV{HOME}/.klatexformula/rccresources/"
+    COMMAND "${CMAKE_COMMAND}" -E copy klfbaseplugins.rcc "$ENV{HOME}/.klatexformula/rccresources/"
     DEPENDS klfbaseplugins.rcc
     COMMENT "Installing Base Plugins Add-On Locally in ~/.klatexformula/rccresources"
     VERBATIM
