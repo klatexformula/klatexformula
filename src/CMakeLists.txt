@@ -257,7 +257,9 @@ if(KLF_MACOSX_BUNDLES)
                            "MacOS/klatexformula-${KLF_VERSION}" "${KLF_MACOSX_BUNDLE_PATH}"
                            "Frameworks/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
                            "${CMAKE_CURRENT_BINARY_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib")
-
+  # Default Qt config stuff
+  KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" klatexformula_BUNDLEXTRA
+			qt.conf "${CMAKE_CURRENT_SOURCE_DIR}/macosx/qt.conf" Resources)
   # Add a few icons for our app
   KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" klatexformula_BUNDLEXTRA
 			klficon.icns "${CMAKE_CURRENT_SOURCE_DIR}/macosx/klficon.icns" Resources)

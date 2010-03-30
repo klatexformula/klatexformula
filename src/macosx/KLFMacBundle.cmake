@@ -21,14 +21,14 @@ set(klf_qtplugins ${klf_qtimageformatplugins} ${klf_qtcodecsplugins} ${klf_sqldr
 # string(REGEX REPLACE ";[a-zA-Z0-9_/-]+_debug\\.dylib" "" klf_qtplugins_nodebug "${klf_qtplugins}")
 set(klf_qtplugins_rel "")
 foreach (p ${klf_qtplugins})
-  message("p is ${p}")
+#  message("p is ${p}")
   if (p MATCHES "_debug.dylib")
   else(p MATCHES "_debug.dylib")
     file(RELATIVE_PATH r "${QT_PLUGINS_DIR}" ${p})
     list(APPEND klf_qtplugins_rel "${r}")
   endif(p MATCHES "_debug.dylib")
 endforeach()
-message("After relative: ${klf_qtplugins_rel}")
+#message("After relative: ${klf_qtplugins_rel}")
 set(KLF_QT_PLUGINS ${klf_qtplugins_rel} CACHE STRING "Qt plugins to include in application bundle")
 set(klf_local_qtplugins "")
 foreach (p ${KLF_QT_PLUGINS})
@@ -38,7 +38,7 @@ endforeach()
 # 	klf_local_qtplugins "${KLF_QT_PLUGINS}")
 set(KLF_LOCAL_QT_PLUGINS ${klf_local_qtplugins} CACHE INTERNAL "Qt plugins relative to bundle")
 
-message("Qt Plugins to package ${QT_PLUGINS_DIR} : ${KLF_QT_PLUGINS}, ... ${KLF_LOCAL_QT_PLUGINS}")
+#message("Qt Plugins to package ${QT_PLUGINS_DIR} : ${KLF_QT_PLUGINS}, ... ${KLF_LOCAL_QT_PLUGINS}")
 
 #mark_as_advanced(KLF_QT_FRAMEWORKS KLF_QT_PLUGINS)
 
@@ -73,7 +73,7 @@ macro(KLFBundlePrivateImport TGT BUNDLE VAR_SRCS FILE FULLLOCATION LOCAL)
 endmacro()
 
 macro(KLFInstallNameToolID TGT BUNDLE LIBRELPATH)
-  add_custom_command(TARGET ${TGT}_maclibpacked POST_BUILD
+  add_custom_command(TARGET ${TGT}_maclibpacked PRE_BUILD
     COMMAND "install_name_tool" -id "@executable_path/../${LIBRELPATH}" "${BUNDLE}/Contents/${LIBRELPATH}"
     COMMENT "Updating framework or library ID of ${LIBRELPATH}"
     VERBATIM
