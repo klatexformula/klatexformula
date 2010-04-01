@@ -84,7 +84,7 @@ public:
   int setEntryProperty(const QString& propName, const QVariant& value);
 
 private:
-
+  
   void initRegisteredProperties();
 };
 
@@ -181,7 +181,7 @@ class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObj
   Q_OBJECT
 public:
   typedef KLFLib::entryId entryId;
-
+  
   struct KLFLibEntryWithId {
     KLFLibEntryWithId(entryId i = -1, const KLFLibEntry& e = KLFLibEntry())
       : id(i), entry(e) { }
@@ -231,7 +231,8 @@ public:
   virtual bool locked() const { return KLFPropertizedObject::property(PropLocked).toBool(); }
 
   //! The (last) View Type used to display this resource
-  virtual QString viewType() const { return KLFPropertizedObject::property(PropViewType).toString(); }
+  virtual QString viewType() const
+  { return KLFPropertizedObject::property(PropViewType).toString(); }
 
   //! If the resource is accessed by many clients
   /** Whether the resource is meant to be shared by many clients (eg. a remote database access)
@@ -239,7 +240,8 @@ public:
    *
    * This property may be used by views to decide if they can store meta-information about the
    * view state in the resource itself (icon positions in icon view mode for example). */
-  virtual bool accessShared() const { return KLFPropertizedObject::property(PropAccessShared).toBool(); }
+  virtual bool accessShared() const
+  { return KLFPropertizedObject::property(PropAccessShared).toBool(); }
 
   //! Get the value of a resource property
   /** Returns the value of the given resource property. If the property is not registered,
@@ -289,11 +291,22 @@ public:
   virtual KLFLibEntry entry(entryId id) = 0;
   /** Returns all the entries in this library resource, with their corresponding IDs. */
   virtual QList<KLFLibEntryWithId> allEntries() = 0;
-
+  
 signals:
+  //! Emitted when a resource property changes.
   void resourcePropertyChanged(int propId);
-  void dataChanged();
-
+  
+  //! Emitted when data has changed
+  /** This signal is emitted whenever data changes in the model (eg. due to an \ref insertEntries()
+   * function call).
+   *
+   * The entries that were changed are given in the argument \c entryIdList. An empty list
+   * means either the library resource changed completely, or simply the backend does not wish
+   * to privide any information on which entries changed. In any case, the receiver should
+   * consider all previously read data from the resource as out of date and refresh all.
+   */
+  void dataChanged(const QList<KLFLib::entryId>& entryIdList);
+  
 public slots:
 
   //! set a new resource title for this library resource

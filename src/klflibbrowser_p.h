@@ -148,8 +148,8 @@ public slots:
     connect(v, SIGNAL(requestRestoreStyle(const KLFStyle&)),
 	    this, SLOT(slotRequestRestoreStyle(const KLFStyle&)));
     // and of after-change refresh
-    connect(v, SIGNAL(resourceDataChanged()),
-	    this, SLOT(slotResourceDataChanged()));
+    connect(v, SIGNAL(resourceDataChanged(const QList<KLFLib::entryId>&)),
+	    this, SLOT(slotResourceDataChanged(const QList<KLFLib::entryId>&)));
     // and of context menu request
     connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
 	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
@@ -172,7 +172,7 @@ signals:
   void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
   void requestRestoreStyle(const KLFStyle& style);
 
-  void resourceDataChanged();
+  void resourceDataChanged(const QList<KLFLib::entryId>& entryIdList);
 
   void entriesSelected(const KLFLibEntryList& entries);
   void moreCategorySuggestions(const QStringList& categorylist);
@@ -186,9 +186,9 @@ protected slots:
     if (sender() == view())
       emit requestRestoreStyle(style);
   }
-  void slotResourceDataChanged() {
+  void slotResourceDataChanged(const QList<KLFLib::entryId>& entryIdList) {
     if (sender() == view())
-      emit resourceDataChanged();
+      emit resourceDataChanged(entryIdList);
   }
   void slotEntriesSelected(const KLFLibEntryList& entries) {
     if (sender() == view())

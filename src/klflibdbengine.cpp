@@ -567,7 +567,7 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
     }
   }
 
-  emit dataChanged();
+  emit dataChanged(insertedIds);
   return insertedIds;
 }
 
@@ -588,8 +588,8 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
   if ( idlist.size() == 0 )
     return true; // no items to change
 
-  qDebug()<<"KLFLibDBEngine::changeEntries: funcional tests passed; idlist="<<idlist<<" props="<<properties
-	  <<" vals="<<values;
+  qDebug()<<"KLFLibDBEngine::changeEntries: funcional tests passed; idlist="<<idlist<<" props="
+	  <<properties<<" vals="<<values;
 
   ensureDataTableColumnsExist();
 
@@ -620,7 +620,7 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
   }
 
   //  qDebug() << "Wrote Entry change to ids "<<idlist;
-  emit dataChanged();
+  emit dataChanged(idlist);
   return true;
 }
 
@@ -645,7 +645,7 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
   bool r = q.exec();
   q.finish();
 
-  emit dataChanged();
+  emit dataChanged(idlist);
 
   if ( !r || q.lastError().isValid())
     return false;   // an error was set

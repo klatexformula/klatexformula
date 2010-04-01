@@ -112,7 +112,7 @@ protected slots:
   bool slotResourceSaveAs();
 
   /** sender is used to find resource engine emitter. */
-  void slotResourceDataChanged();
+  void slotResourceDataChanged(const QList<KLFLib::entryId>& entryIdList);
   /** sender is used to find resource engine emitter. */
   void slotResourcePropertyChanged(int propId);
 

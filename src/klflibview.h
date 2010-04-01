@@ -91,7 +91,7 @@ signals:
   void requestRestoreStyle(const KLFStyle& style);
 
   /** Subclasses must emit this signal AFTER they have refreshed. */
-  void resourceDataChanged();
+  void resourceDataChanged(const QList<KLFLib::entryId>& entryIdList);
 
   void entriesSelected(const KLFLibEntryList& entries);
   /** Subclasses should emit this signal with lists of categories they come accross,
@@ -102,7 +102,7 @@ public slots:
   virtual void updateView();
   virtual void updateResourceView() = 0;
   virtual void updateResourceProp(int propId) = 0;
-  virtual void updateResourceData() = 0;
+  virtual void updateResourceData(const QList<KLFLib::entryId>& entryIdList) = 0;
   virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
   inline bool writeEntryCategory(const QString& category)
   { return writeEntryProperty(KLFLibEntry::Category, category); }
@@ -110,7 +110,8 @@ public slots:
   { return writeEntryProperty(KLFLibEntry::Tags, tags); }
   virtual bool deleteSelected(bool requireConfirm = true) = 0;
   virtual bool insertEntries(const KLFLibEntryList& entries) = 0;
-  inline bool insertEntry(const KLFLibEntry& entry) { return insertEntries(KLFLibEntryList() << entry); }
+  inline bool insertEntry(const KLFLibEntry& entry)
+    /* */ { return insertEntries(KLFLibEntryList() << entry); }
 
   virtual bool searchFind(const QString& queryString, bool forward = true) = 0;
   virtual bool searchFindNext(bool forward) = 0;
@@ -294,7 +295,7 @@ public:
 
   virtual QStringList categoryList() const;
 
-  virtual void updateData();
+  virtual void updateData(const QList<KLFLib::entryId>& entryIdList);
 
   //! Call repeatedly to walk all indexes (once each exactly, first column only)
   virtual QModelIndex walkNextIndex(const QModelIndex& cur);
@@ -580,8 +581,8 @@ public slots:
 protected:
   virtual void updateResourceView();
   virtual void updateResourceProp(int propId);
-  virtual void updateResourceData();
-  virtual void updateResourceOwnData();
+  virtual void updateResourceData(const QList<KLFLib::entryId>& entryIdList);
+  virtual void updateResourceOwnData(const QList<KLFLib::entryId>& entryIdList);
   virtual QStringList getCategorySuggestions();
 
 protected slots:
@@ -594,6 +595,9 @@ protected slots:
   void slotCollapsed(const QModelIndex& index);
 
   void slotShowColumnSenderAction(bool showCol);
+
+  // called from model
+  void slotResourceDataChanged(const QModelIndex& topLeft, const QModelIndex& botRight);
 
 private:
   ViewType pViewType;

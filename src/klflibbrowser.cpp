@@ -50,7 +50,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pARename = pResourceMenu->addAction(tr("Rename"), this, SLOT(slotResourceRename()));
   pAProperties = pResourceMenu->addAction(tr("Properties..."),
 					  this, SLOT(slotResourceProperties()));
-  pASaveAs = pResourceMenu->addAction(tr("Save As..."), this, SLOT(slotResourceSaveAs()));
+  pASaveAs = pResourceMenu->addAction(tr("Save As Copy..."), this, SLOT(slotResourceSaveAs()));
   pAViewType = pResourceMenu->addAction(tr("View Type"));
   pResourceMenu->addSeparator();
   pANew = pResourceMenu->addAction(tr("New..."), this, SLOT(slotResourceNew()));
@@ -433,8 +433,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(requestRestoreStyle(const KLFStyle&)),
 	  this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
 
-  connect(viewc, SIGNAL(resourceDataChanged()),
-	  this, SLOT(slotResourceDataChanged()));
+  connect(viewc, SIGNAL(resourceDataChanged(const QList<KLFLib::entryId>&)),
+	  this, SLOT(slotResourceDataChanged(const QList<KLFLib::entryId>&)));
   connect(resource, SIGNAL(resourcePropertyChanged(int)),
 	  this, SLOT(slotResourcePropertyChanged(int)));
 
@@ -447,7 +447,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 
   int i = u->tabResources->addTab(viewc, resource->title());
   u->tabResources->setCurrentWidget(viewc);
-  u->tabResources->refreshTabReadOnly(i, !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
+  u->tabResources
+    ->refreshTabReadOnly(i, !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
   pLibViews.append(viewc);
   setStyleSheet(styleSheet());
   updateResourceRoleFlags(viewc, resourceRoleFlags);
@@ -636,7 +637,7 @@ bool KLFLibBrowser::slotResourceSaveAs()
   //   }
 }
 
-void KLFLibBrowser::slotResourceDataChanged()
+void KLFLibBrowser::slotResourceDataChanged(const QList<KLFLib::entryId>& /*entryIdList*/)
 {
   //   KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
   //   if (resource == NULL) {
@@ -678,7 +679,7 @@ void KLFLibBrowser::slotResourcePropertyChanged(int propId)
   }
   if (propId == KLFLibResourceEngine::PropLocked) {
     u->tabResources->refreshTabReadOnly(u->tabResources->indexOf(view),
-					  !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
+					!resource->canModifyData(KLFLibResourceEngine::AllActionsData));
   }
 }
 

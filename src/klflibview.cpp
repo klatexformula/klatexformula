@@ -87,8 +87,10 @@ void KLFAbstractLibView::setResourceEngine(KLFLibResourceEngine *resource)
   if (pResourceEngine)
     disconnect(pResourceEngine, 0, this, 0);
   pResourceEngine = resource;
-  connect(pResourceEngine, SIGNAL(dataChanged()), this, SLOT(updateResourceData()));
-  connect(pResourceEngine, SIGNAL(resourcePropertyChanged(int)), this, SLOT(updateResourceProp(int)));
+  connect(pResourceEngine, SIGNAL(dataChanged(const QList<KLFLib::entryId>&)),
+	  this, SLOT(updateResourceData(const QList<KLFLib::entryId>&)));
+  connect(pResourceEngine, SIGNAL(resourcePropertyChanged(int)),
+	  this, SLOT(updateResourceProp(int)));
   updateResourceView();
 }
 
@@ -197,7 +199,7 @@ KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject
   setResource(engine);
   // DON'T CONNECT SIGNALs FROM RESOURCE ENGINE HERE, we are informed from
   // the view. This is because of the KLFAbstractLibView API.
-  //  connect(engine, SIGNAL(dataChanged()), this, SLOT(updateData()));
+  //  connect(engine, SIGNAL(dataChanged(...)), this, SLOT(updateData(...)));
 }
 
 KLFLibModel::~KLFLibModel()
@@ -753,8 +755,9 @@ QStringList KLFLibModel::categoryList() const
   return catlist;
 }
 
-void KLFLibModel::updateData()
+void KLFLibModel::updateData(const QList<KLFLib::entryId>& /*entryIdList*/)
 {
+  /** \todo ................ OPTIMIZE THIS METHOD, don't rebuild full tree each time */
   updateCacheSetupModel();
 }
 
@@ -1168,7 +1171,7 @@ QList<KLFLibModel::PersistentId> KLFLibModel::persistentIdList(const QModelIndex
       else if (id.kind == CategoryLabelKind)
 	id.categorylabel_fullpath = getCategoryLabelNode(n).fullCategoryPath;
       else
-	qWarning("KLFLibModel::updateCacheSetupModel: Bad Node kind: %d!!", id.kind);
+	qWarning("KLFLibModel::persistentIdList: Bad Node kind: %d!!", id.kind);
     }
     id.column = persistentIndexes[k].column();
     persistentIndexIds << id;
@@ -1198,7 +1201,7 @@ QModelIndexList KLFLibModel::newPersistentIndexList(const QList<PersistentId>& p
       if (j < pCategoryLabelCache.size())
 	index = createIndexFromId(NodeId(CategoryLabelKind, j), -1, id.column);
     } else {
-      qWarning("updateCacheSetupModel: bad persistent id node kind! :%d", id.kind);
+      qWarning("newPersistentIndexList: bad persistent id node kind! :%d", id.kind);
     }
 
     newPersistentIndexes << index;
@@ -1914,7 +1917,7 @@ void KLFLibDefaultView::updateResourceView()
 	  this, SLOT(slotViewSelectionChanged(const QItemSelection&, const QItemSelection&)));
 
   connect(pModel, SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)),
-	  this, SIGNAL(resourceDataChanged()));
+	  this, SLOT(slotResourceDataChanged(const QModelIndex&, const QModelIndex&)));
 
   // delegate wants to know more about selections...
   pDelegate->setSelectionModel(s);
@@ -1984,21 +1987,22 @@ void KLFLibDefaultView::updateResourceView()
   }
 
   updateResourceProp(-1); // update all with respect to resource changes..
-  updateResourceOwnData();
+  updateResourceOwnData(QList<KLFLib::entryId>());
 
   wantMoreCategorySuggestions();
 }
 
-void KLFLibDefaultView::updateResourceData()
+void KLFLibDefaultView::updateResourceData(const QList<KLFLib::entryId>& entryIdList)
 {
   KLF_ASSERT_NOT_NULL( pModel , "Model is NULL!" , return )
     ;
-  pModel->updateData();
+  pModel->updateData(entryIdList);
   // update our own data (icon positions)
-  updateResourceOwnData();
+  updateResourceOwnData(entryIdList);
 }
-void KLFLibDefaultView::updateResourceOwnData()
+void KLFLibDefaultView::updateResourceOwnData(const QList<KLFLib::entryId>& /*entryIdList*/)
 {
+  /** \todo ..................... OPTIMIZE THIS FUNCTION not to do a full refresh */
   qDebug()<<KLF_FUNC_NAME;
   if (pViewType == IconView) {
     KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
@@ -2196,6 +2200,14 @@ void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selecte
   
   emit entriesSelected(selectedEntries());
 }
+
+void KLFLibDefaultView::slotResourceDataChanged(const QModelIndex& /*topleft*/,
+						const QModelIndex& /*bottomRight*/)
+{
+  /** \todo ............. TODO ......... optimize here, don't do full refresh */
+  emit resourceDataChanged(QList<KLFLib::entryId>());
+}
+
 
 QItemSelection KLFLibDefaultView::fixSelection(const QModelIndexList& selidx)
 {
@@ -2629,6 +2641,7 @@ void KLFLibResPropEditor::slotResourcePropertyChanged(int /*propId*/)
   pUi->chkLocked->setChecked(pResource->locked());
   pUi->chkLocked->setEnabled(pResource->canModifyProp(KLFLibResourceEngine::PropLocked));
 }
+
 
 
 // -------------
