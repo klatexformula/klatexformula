@@ -1343,19 +1343,26 @@ void KLFMainWin::slotDrag()
 void KLFMainWin::slotCopy()
 {
 #ifdef Q_WS_WIN
-  extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes, const QList<QByteArray>& datalist);
+  extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
+				  const QList<QByteArray>& datalist);
 
   // klf export profile to use (for now, use first = default)
+  /** \todo ............................... Choose export profile ...? */
   KLFMimeExportProfile p = KLFMimeExportProfile::exportProfileList() [0];
 
+  QStringList mimetypes = p.mimeTypes();
+  QStringList respectivewintypes = p.respectiveWinTypes();
   QStringList wintypes;
   QList<QByteArray> datalist;
 
   int k;
-  for (k = 0; k < p.mimeTypes.size(); ++k) {
-    QString mimetype = p.mimeTypes[k];
+  for (k = 0; k < mimetypes.size(); ++k) {
+    QString mimetype = mimetypes[k];
+    QString wintype = respectivewintypes[k];
+    if (wintype.isEmpty())
+      wintype = mimetype;
     QByteArray data = KLFMimeExporter::mimeExporterLookup(mimetype)->data(mimetype, _output);
-    wintypes << p.respectiveWinTypes[k];
+    wintypes << wintype;
     datalist << data;
   }
 

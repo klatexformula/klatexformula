@@ -464,8 +464,10 @@ Q_DECLARE_METATYPE(KLFLibResourceEngine::KLFLibEntryWithId)
   ;
 
 
-QDataStream& operator<<(QDataStream& stream, const KLFLibResourceEngine::KLFLibEntryWithId& entrywid);
-QDataStream& operator>>(QDataStream& stream, KLFLibResourceEngine::KLFLibEntryWithId& entrywid);
+QDataStream& KLF_EXPORT operator<<(QDataStream& stream,
+				   const KLFLibResourceEngine::KLFLibEntryWithId& entrywid);
+QDataStream& KLF_EXPORT operator>>(QDataStream& stream,
+				   KLFLibResourceEngine::KLFLibEntryWithId& entrywid);
 
 
 /** \brief Provides a simple API for reading library resources.

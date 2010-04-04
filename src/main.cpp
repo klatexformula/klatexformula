@@ -806,7 +806,7 @@ int main(int argc, char **argv)
 						klfconfig.UI.colorChooseWidgetCustom);
 
     // DEBUG ------------------------
-    void klf___temp___test_newlib();
+    void KLF_EXPORT klf___temp___test_newlib();
     klf___temp___test_newlib();
     // DEBUG ------------------------
 

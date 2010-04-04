@@ -200,7 +200,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     if (!r) {
       res.status = KLFERR_NOLATEXPROG;
-      res.errorstr = QObject::tr("Unable to start Latex program!", "KLFBackend");
+      res.errorstr = QObject::tr("Unable to start Latex program %1!", "KLFBackend").arg(settings.latexexec);
       return res;
     }
     if (!proc.normalExit()) {

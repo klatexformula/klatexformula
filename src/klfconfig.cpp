@@ -200,8 +200,8 @@ void KLFConfig::loadDefaults()
     QFont fp1 = f, fp2 = f;
     qreal ps1 = 10, ps2 = 20; // measurement
     int idealHeight = 7;
-    fp1.setPointSize(ps1);
-    fp2.setPointSize(ps2);
+    fp1.setPointSize((int)(ps1+0.5f));
+    fp2.setPointSize((int)(ps2+0.5f));
     qreal h1 = QFontMetrics(fp1).xHeight();
     qreal h2 = QFontMetrics(fp2).xHeight();
     // linear interpolation for a height of \c idealHeight pixels

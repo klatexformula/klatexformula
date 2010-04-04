@@ -31,17 +31,21 @@ void klfWinClipboardCopy(HWND h, const QStringList& wintypes, const QList<QByteA
     const int size = datalist[k].size();
     // Register required datatype
     int wintype =
-      RegisterClipboardFormat(reinterpret_cast<const WCHAR*>(type.utf16()));
+      RegisterClipboardFormatA(type.toLocal8Bit());
+    if (!wintype) {
+      qWarning("win: Unable to register clipboard format `%s' !", qPrintable(type));
+      continue;
+    }
     // Get the currently selected data
     HGLOBAL hGlob = GlobalAlloc(GMEM_MOVEABLE, size);
     if ( ! hGlob ) {
       qWarning("win: Unable to GlobalAlloc(): %d", (int)GetLastError());
-      return;
+      continue;
     }
     char * ptr = (char*)GlobalLock(hGlob);
     if (ptr == NULL) {
       qWarning("win: Unable to GlobalLock(): %d", (int)GetLastError());
-      return;
+      continue;
     }
     memcpy(ptr, data, size);
     GlobalUnlock(hGlob);

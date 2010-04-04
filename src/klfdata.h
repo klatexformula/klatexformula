@@ -69,14 +69,14 @@ struct KLFStyle {
 Q_DECLARE_METATYPE(KLFStyle)
   ;
 
-QString prettyPrintStyle(const KLFStyle& sty);
+QString KLF_EXPORT prettyPrintStyle(const KLFStyle& sty);
 
 typedef QList<KLFStyle> KLFStyleList;
 
-QDataStream& operator<<(QDataStream& stream, const KLFStyle& style);
-QDataStream& operator>>(QDataStream& stream, KLFStyle& style);
+QDataStream& KLF_EXPORT operator<<(QDataStream& stream, const KLFStyle& style);
+QDataStream& KLF_EXPORT operator>>(QDataStream& stream, KLFStyle& style);
 // exact matches
-bool operator==(const KLFStyle& a, const KLFStyle& b);
+bool KLF_EXPORT operator==(const KLFStyle& a, const KLFStyle& b);
 
 
 

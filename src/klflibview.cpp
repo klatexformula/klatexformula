@@ -1600,7 +1600,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
        p->p->restore();
     }
     // check the text size
-    drawnTextWidth = s.width();
+    drawnTextWidth = (int)s.width();
     if (s.width() > textRect.width()) { // sorry, too large
       s.setWidth(textRect.width());
     }
@@ -2718,7 +2718,7 @@ void KLFLibResPropEditorDlg::cancelAndClose()
 #include <klflibbrowser.h>
 
 
-void klf___temp___test_newlib()
+void KLF_EXPORT klf___temp___test_newlib()
 {
   KLF_ASSERT_NOT_NULL( ((void*)0) , "Test Case Assert is "<<"working!" ,  )
     ;

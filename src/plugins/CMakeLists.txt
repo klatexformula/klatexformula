@@ -10,8 +10,8 @@ remove_definitions(-DKLF_SRC_BUILD)
 
 if(WIN32)
   # Windows
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN skin.dll)
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON systrayicon.dll)
+  set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN libskin.dll)
+  set(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON libsystrayicon.dll)
 elseif(APPLE)
   # Apple Mac OS X
   set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN libskin.so)
