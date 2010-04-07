@@ -41,7 +41,7 @@ public:
    * with QObject parent \c parent, opening the database at location \c url.
    * Returns NULL if opening the database failed.
    *
-   * Url may contain following query strings:
+   * Url must contain following query strings:
    * - <tt>dataTableName=<i>tablename</i></tt> to specify the data table name
    *   in the DB
    *

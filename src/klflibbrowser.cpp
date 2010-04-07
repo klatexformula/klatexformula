@@ -155,13 +155,12 @@ KLFLibBrowser::~KLFLibBrowser()
   /// \bug ........... DEBUG/TODO ........... REMOVE THIS BEFORE RELEASE VERSION ................
 
   // save state to local file
-/*  qDebug()<<"LibBrowser: Saving GUI state !";
+  qDebug()<<"LibBrowser: Saving GUI state !";
   QVariantMap vm = saveGuiState();
   QFile f("/home/philippe/temp/klf_saved_libbrowser_state");
   f.open(QIODevice::WriteOnly);
   QDataStream str(&f);
   str << vm;
-*/
 
   int k;
   for (k = 0; k < pLibViews.size(); ++k) {
@@ -269,6 +268,7 @@ QVariantMap KLFLibBrowser::saveGuiState()
   v["ViewStateList"] = QVariant::fromValue<QVariantList>(viewstatelist);
   v["ResourceRoleFlagsList"] = QVariant::fromValue<QVariantList>(resroleflagslist);
   v["CurrentUrl"] = QVariant::fromValue<QUrl>(currenturl);
+  v["WidgetSize"] = QVariant::fromValue<QSize>(size());
   return v;
 }
 void KLFLibBrowser::loadGuiState(const QVariantMap& v)
@@ -277,6 +277,7 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v)
   QList<QVariant> urllist = v["UrlList"].toList();
   QList<QVariant> viewstatelist = v["ViewStateList"].toList();
   QList<QVariant> resroleflagslist = v["ResourceRoleFlagsList"].toList();
+  QSize widgetsize = v["WidgetSize"].value<QSize>();
   int k;
   for (k = 0; k < urllist.size(); ++k) {
     QUrl url = urllist[k].toUrl();
@@ -304,6 +305,9 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v)
   if (curviewc != NULL)
     u->tabResources->setCurrentWidget(curviewc);
   qDebug()<<"Loaded GUI state.";
+
+  if (widgetsize.width() > 0 && widgetsize.height() > 0)
+    resize(widgetsize);
 }
 
 
@@ -680,6 +684,9 @@ void KLFLibBrowser::slotResourcePropertyChanged(int propId)
   if (propId == KLFLibResourceEngine::PropLocked) {
     u->tabResources->refreshTabReadOnly(u->tabResources->indexOf(view),
 					!resource->canModifyData(KLFLibResourceEngine::AllActionsData));
+    u->wEntryEditor
+      ->setInputEnabled(resource->canModifyData(KLFLibResourceEngine::ChangeData));
+    u->wEntryEditor->displayEntries(view->view()->selectedEntries());
   }
 }
 
@@ -738,6 +745,12 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
   if (entries.size()>=1)
     qDebug()<<"KLFLibBrowser::slotEntriesSelected():\tTag of first entry="<<entries[0].property(KLFLibEntry::Tags);
 
+  KLFAbstractLibView *view = curLibView();
+  if (view != NULL) {
+    u->wEntryEditor
+      ->setInputEnabled(view->resourceEngine()->canModifyData(KLFLibResourceEngine::ChangeData));
+  }
+
   u->wEntryEditor->displayEntries(entries);
 
   u->btnDelete->setEnabled(entries.size() > 0);
@@ -745,6 +758,7 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 }
 void KLFLibBrowser::slotAddCategorySuggestions(const QStringList& catlist)
 {
+  qDebug()<<"KLFLibBrowser: got category suggestions: "<<catlist;
   u->wEntryEditor->addCategorySuggestions(catlist);
 }
 
@@ -832,9 +846,13 @@ void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
   if ( wview == NULL )
     return;
   bool r = wview->writeEntryProperty(KLFLibEntry::Category, newcategory);
-  if ( ! r )
+  if ( ! r ) {
     QMessageBox::warning(this, tr("Error"),
 			 tr("Failed to write category information!"));
+    // and refresh display
+    slotEntriesSelected(wview->selectedEntries());
+  }
+  // display refreshed anyway in case of success.
 }
 void KLFLibBrowser::slotTagsChanged(const QString& newtags)
 {
@@ -848,9 +866,13 @@ void KLFLibBrowser::slotTagsChanged(const QString& newtags)
   if ( wview == NULL )
     return;
   bool r = wview->writeEntryProperty(KLFLibEntry::Tags, newtags);
-  if ( ! r )
+  if ( ! r ) {
     QMessageBox::warning(this, tr("Error"),
 			 tr("Failed to write tags information!"));
+    // and refresh display
+    slotEntriesSelected(wview->selectedEntries());
+  }
+  // display refreshed anyway in case of success.
 }
 
 

@@ -5,8 +5,7 @@
 # ######################################### #
 
 macro(KLFInstHeaders varInstHeaders varAllHeaders)
-
-string(REGEX REPLACE ";[a-zA-Z0-9_-]+_p\\.h" "" ${varInstHeaders} ${varAllHeaders})
-
-
+#	message("headers are ${varAllHeaders}")
+  string(REGEX REPLACE "[A-Za-z0-9_-]+_p\\.h" "" ${varInstHeaders} "${varAllHeaders}")
+#	message("install headers are ${${varInstHeaders}}")
 endmacro()

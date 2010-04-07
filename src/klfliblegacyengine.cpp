@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klflibdbengine.cpp
+ *   file klfliblegacyengine.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2010 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,89 +21,169 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include <QDebug>
+
 #include <QString>
-#include <QBuffer>
-#include <QFile>
-#include <QByteArray>
+#include <QObject>
 #include <QDataStream>
-#include <QMessageBox>
-#include <QSqlRecord>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
+#include <QFile>
 
-#include "klfmain.h" // KLF_DB_VERSION
 #include "klflib.h"
-#include "klflibdbengine.h"
+#include "klfliblegacyengine.h"
 
-#include "klflibdbengine_p.h"
-
-static QByteArray image_data(const QImage& img, const char *format)
-{
-  QByteArray data;
-  QBuffer buf(&data);
-  buf.open(QIODevice::WriteOnly);
-  img.save(&buf, format);
-  buf.close();
-  return data;
-}
-
-template<class T>
-static QByteArray metatype_to_data(const T& object)
-{
-  QByteArray data;
-  {
-    QDataStream stream(&data, QIODevice::WriteOnly);
-    stream << object;
-    // force close of buffer in destroying stream
-  }
-  return data;
-}
-
-template<class T>
-static T metatype_from_data(const QByteArray& data)
-{
-  T object;
-  QDataStream stream(data);
-  stream >> object;
-  return object;
-}
-
-
-
-
+quint32 KLFLegacyData::KLFLibraryItem::MaxId = 1;
 
 // static
-KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
+QString KLFLegacyData::categoryFromLatex(const QString& latex)
 {
-  bool accessshared = false;
-
-  QString datatablename = url.queryItemValue("dataTableName");
-  if (datatablename.isEmpty()) {
-    return NULL;
+  QString s = latex.section('\n', 0, 0, QString::SectionSkipEmpty);
+  if (s[0] == '%' && s[1] == ':') {
+    return s.mid(2).trimmed();
   }
-
-  QSqlDatabase db;
-  if (url.scheme() == "klf+sqlite") {
-    db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
-    db.setDatabaseName(url.path());
-    accessshared = false;
-  } else {
-    qWarning("KLFLibDBEngine::openUrl: bad url scheme in URL\n\t%s",
-	     qPrintable(url.toString()));
-    return NULL;
-  }
-
-  if ( !db.open() || db.lastError().isValid() ) {
-    QMessageBox::critical(0, tr("Error"),
-			  tr("Unable to open library file %1 (engine: %2).\nError: %3")
-			  .arg(url.path(), db.driverName(), db.lastError().text()), QMessageBox::Ok);
-    return NULL;
-  }
-
-  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, accessshared, parent);
+  return QString::null;
 }
+// static
+QString KLFLegacyData::tagsFromLatex(const QString& latex)
+{
+  QString s = latex.section('\n', 0, 0, QString::SectionSkipEmpty);
+  if (s[0] == '%' && s[1] == ':') {
+    // category is s.mid(2);
+    s = latex.section('\n', 1, 1, QString::SectionSkipEmpty);
+  }
+  if (s[0] == '%') {
+    return s.mid(1).trimmed();
+  }
+  return QString::null;
+}
+
+QString KLFLegacyData::stripCategoryTagsFromLatex(const QString& latex)
+{
+  int k = 0;
+  while (k < latex.length() && latex[k].isSpace())
+    ++k;
+  if (k == latex.length()) return "";
+  if (latex[k] == '%') {
+    ++k;
+    if (k == latex.length()) return "";
+    //strip category and/or tag:
+    if (latex[k] == ':') {
+      // strip category
+      while (k < latex.length() && latex[k] != '\n')
+	++k;
+      ++k;
+      if (k >= latex.length()) return "";
+      if (latex[k] != '%') {
+	// there isn't any tags, just category; return rest of string
+	return latex.mid(k);
+      }
+      ++k;
+      if (k >= latex.length()) return "";
+    }
+    // strip tag:
+    while (k < latex.length() && latex[k] != '\n')
+      ++k;
+    ++k;
+    if (k >= latex.length()) return "";
+  }
+  // k is the beginnnig of the latex string
+  return latex.mid(k);
+}
+
+
+QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem& item)
+{
+  return stream << item.id << item.datetime
+      << item.latex // category and tags are included.
+      << item.preview << item.style;
+}
+
+// it is important to note that the >> operator imports in a compatible way to KLF 2.0
+QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryItem& item)
+{
+  stream >> item.id >> item.datetime >> item.latex >> item.preview >> item.style;
+  item.category = KLFLegacyData::categoryFromLatex(item.latex);
+  item.tags = KLFLegacyData::tagsFromLatex(item.latex);
+  return stream;
+}
+
+
+QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryResource& item)
+{
+  return stream << item.id << item.name;
+}
+QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryResource& item)
+{
+  return stream >> item.id >> item.name;
+}
+
+
+bool operator==(const KLFLegacyData::KLFLibraryItem& a, const KLFLegacyData::KLFLibraryItem& b)
+{
+  return
+    //    a.id == b.id &&   // don't compare IDs since they should be different.
+    //    a.datetime == b.datetime &&   // same for datetime
+    a.latex == b.latex &&
+    /* the following is unnecessary since category/tags information is contained in .latex
+      a.category == b.category &&
+      a.tags == b.tags &&
+    */
+    //    a.preview == b.preview && // don't compare preview: it's unnecessary and overkill
+    a.style == b.style;
+}
+
+
+
+bool operator<(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b)
+{
+  return a.id < b.id;
+}
+bool operator==(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b)
+{
+  return a.id == b.id;
+}
+
+bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
+				const KLFLegacyData::KLFLibraryResource b)
+{
+  return a.name == b.name;
+}
+
+
+
+
+
+
+// -------------------------------------------
+
+// static
+KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *parent = NULL)
+{
+  QString legresname = url.queryItemValue("legacyResourceName");
+  if (legresname.isEmpty()) {
+    return NULL;
+  }
+
+  QString fname = url.path();
+  if ( ! QFileInfo(fname).isReadable() ) {
+    qWarning("KLFLibLegacyEngine::openUrl(): file %s does not exist!", qPrintable(fname));
+    return NULL;
+  }
+
+  if (url.scheme() != "klf+legacy") {
+    qWarning("KLFLibLegacyEngine::openUrl(): unsupported scheme %s!", qPrintable(url.scheme()));
+    return NULL;
+  }
+
+  return new KLFLibLegacyEngine(fname, legresname, url, parent);
+}
+
+// static
+KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QUrl& url, const QString& legresname,
+						      QObject *parent = NULL)
+{
+  
+}
+
+
 
 // static
 KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QString& dtablename,

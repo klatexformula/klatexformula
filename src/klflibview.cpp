@@ -46,6 +46,8 @@
 #include <QDropEvent>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
+#include <QStandardItemModel>
+#include <QItemDelegate>
 
 #include <ui_klflibopenresourcedlg.h>
 #include <ui_klflibrespropeditor.h>
@@ -659,7 +661,7 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
   return true;
 }
 
-uint KLFLibModel::dropFlags(QDragMoveEvent *event)
+uint KLFLibModel::dropFlags(QDragMoveEvent *event, QAbstractItemView *view)
 {
   const QMimeData *mdata = event->mimeData();
   if (dropCanInternal(mdata)) {
@@ -668,7 +670,8 @@ uint KLFLibModel::dropFlags(QDragMoveEvent *event)
       //           (note: icon moves not handled in KLFLibModel; intercepted in view.)
     }
     // we're doing an internal drop in category tree:
-    if (pResource->canModifyData(KLFLibResourceEngine::ChangeData))
+    if (pResource->canModifyData(KLFLibResourceEngine::ChangeData) &&
+	view->indexAt(event->pos()).column() == 0)
       return DropWillAccept|DropWillMove|DropWillCategorize;
     return 0;
   }
@@ -744,15 +747,20 @@ bool KLFLibModel::isDesendantOf(const QModelIndex& child, const QModelIndex& anc
 
 QStringList KLFLibModel::categoryList() const
 {
-  QStringList catlist;
-  // walk category tree and collect all categories
-  int k;
+  /*
+   // this technique works only in category tree mode !
 
-  // skip root category (hence k=1 instead of k=0)
-  for (k = 1; k < pCategoryLabelCache.size(); ++k) {
-    catlist << pCategoryLabelCache[k].fullCategoryPath;
-  }
-  return catlist;
+   QStringList catlist;
+   // walk category tree and collect all categories
+   int k;
+   
+   // skip root category (hence k=1 instead of k=0)
+   for (k = 1; k < pCategoryLabelCache.size(); ++k) {
+   catlist << pCategoryLabelCache[k].fullCategoryPath;
+   }
+   return catlist;
+  */
+  return pCatListCache;
 }
 
 void KLFLibModel::updateData(const QList<KLFLib::entryId>& /*entryIdList*/)
@@ -795,10 +803,11 @@ QModelIndex KLFLibModel::findEntryId(KLFLib::entryId eid) const
 }
 
 
-QModelIndex KLFLibModel::searchFind(const QString& queryString, bool forward)
+QModelIndex KLFLibModel::searchFind(const QString& queryString, const QModelIndex& fromIndex,
+				    bool forward)
 {
   pSearchString = queryString;
-  pSearchCurNode = NodeId();
+  pSearchCurNode = getNodeForIndex(fromIndex);
   return searchFindNext(forward);
 }
 QModelIndex KLFLibModel::searchFindNext(bool forward)
@@ -1230,6 +1239,8 @@ void KLFLibModel::updateCacheSetupModel()
   // label cache
   pCategoryLabelCache.append(root);
 
+  QSet<QString> categorySet;
+
   QList<KLFLibResourceEngine::KLFLibEntryWithId> everything = pResource->allEntries();
   NodeId entryindex;
   entryindex.kind = EntryKind;
@@ -1242,13 +1253,22 @@ void KLFLibModel::updateCacheSetupModel()
     entryindex.index = pEntryCache.size();
     pEntryCache.append(e);
 
+    QString category = e.entry.category();
+    // fix category: remove any double-/ to avoid empty sections. (goal: ensure that join(split(c))==c )
+    category = category.split('/', QString::SkipEmptyParts).join("/");
+  
+    QStringList catelements = category.split('/', QString::SkipEmptyParts);
+    for (int kl = 0; kl < catelements.size(); ++kl) {
+      categorySet << QStringList(catelements.mid(0,kl+1)).join("/");
+    }
+
     if (displayType() == LinearList) {
       // add as child of root element
       pCategoryLabelCache[0].children.append(entryindex);
       pEntryCache[entryindex.index].parent = NodeId(CategoryLabelKind, 0);
     } else if (displayType() == CategoryTree) {
       // create category label node (creating the full tree if needed)
-      IndexType catindex = cacheFindCategoryLabel(e.entry.category(), true);
+      IndexType catindex = cacheFindCategoryLabel(catelements, true);
       pCategoryLabelCache[catindex].children.append(entryindex);
       pEntryCache[entryindex.index].parent = NodeId(CategoryLabelKind, catindex);
     } else {
@@ -1267,20 +1287,20 @@ void KLFLibModel::updateCacheSetupModel()
   // and sort
   sort(lastSortColumn, lastSortOrder);
 
+  pCatListCache = categorySet.toList();
+
   qDebug()<<"KLFLibModel::updateCacheSetupModel: end of func";
 }
-KLFLibModel::IndexType KLFLibModel::cacheFindCategoryLabel(QString category, bool createIfNotExists)
+KLFLibModel::IndexType KLFLibModel::cacheFindCategoryLabel(QStringList catelements,
+							   bool createIfNotExists)
 {
-  // fix category: remove any double-/ to avoid empty sections. (goal: ensure that join(split(c))==c )
-  category = category.split('/', QString::SkipEmptyParts).join("/");
-  
   //  qDebug() << "cacheFindCategoryLabel(category="<<category<<", createIfNotExists="<<createIfNotExists<<")";
 
   int i;
   for (i = 0; i < pCategoryLabelCache.size(); ++i)
-    if (pCategoryLabelCache[i].fullCategoryPath == category)
+    if (pCategoryLabelCache[i].fullCategoryPath == catelements.join("/"))
       return i;
-  if (category.isEmpty() || category == "/")
+  if (catelements.isEmpty())
     return 0; // index of root category label
 
   // if we haven't found the correct category, we may need to create it if requested by
@@ -1289,15 +1309,15 @@ KLFLibModel::IndexType KLFLibModel::cacheFindCategoryLabel(QString category, boo
     return -1;
 
   if (displayType() == CategoryTree) {
-    QStringList catelements = category.split('/', QString::SkipEmptyParts);
     QString path;
     int last_index = 0; // root node
     int this_index = -1;
     // create full tree
     for (i = 0; i < catelements.size(); ++i) {
-      path = QStringList(catelements.mid(0, i+1)).join("/");
+      QStringList subelements = catelements.mid(0, i+1);
+      path = subelements.join("/");
       // find this parent category (eg. "Math" for a "Math/Vector Analysis" category)
-      this_index = cacheFindCategoryLabel(path, false);
+      this_index = cacheFindCategoryLabel(subelements, false);
       if (this_index == -1) {
 	// and create the parent category if needed
 	this_index = pCategoryLabelCache.size();
@@ -1417,11 +1437,13 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
   if (cg == QPalette::Normal && !(option.state & QStyle::State_Active))
     cg = QPalette::Inactive;
   if (pp.isselected) {
-    painter->fillRect(option.rect, option.palette.brush(cg, QPalette::Highlight));
+    pp.background = option.palette.brush(cg, QPalette::Highlight);
     painter->setPen(option.palette.color(cg, QPalette::HighlightedText));
   } else {
+    pp.background = option.palette.brush(cg, QPalette::Base);
     painter->setPen(option.palette.color(cg, QPalette::Text));
   }
+  painter->fillRect(option.rect, pp.background);
 
   int kind = index.data(KLFLibModel::ItemKindItemRole).toInt();
   if (kind == KLFLibModel::EntryKind)
@@ -1448,6 +1470,7 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
 
   painter->restore();
 }
+
 void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) const
 {
   uint fl = PTF_HighlightSearch;
@@ -1467,6 +1490,20 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
       if (p->isselected)
 	img2 = transparentify_image(img2, 0.85);
       QPoint pos = p->innerRectImage.topLeft() + QPoint(0, (p->innerRectImage.height()-img2.height()) / 2);
+      // draw image on different background if it can't be "distinguished" from default background
+      // (eg. a transparent white formula)
+      QList<QColor> bglist = QList<QColor>() << p->background.color()
+					     << QColor(255,255,255)
+					     << QColor(0,0,0);
+      int k;
+      for (k = 0; k < bglist.size(); ++k) {
+	bool distinguishable = image_is_distinguishable(img2, bglist[k]);
+	if ( distinguishable )
+	  break; // got distinguishable color
+      }
+      if (k > 0 && k < bglist.size())
+	p->p->fillRect(QRect(pos, img2.size()), QBrush(bglist[k]));
+      // and draw the equation
       p->p->drawImage(pos, img2);
       break;
     }
@@ -1490,6 +1527,7 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
     //    painter->fillRect(option.rect, QColor(128,0,0));
   }
 }
+
 void KLFLibViewDelegate::paintCategoryLabel(PaintPrivate *p, const QModelIndex& index) const
 {
   if (index.column() > 0)  // paint only on first column
@@ -1509,6 +1547,17 @@ void KLFLibViewDelegate::paintCategoryLabel(PaintPrivate *p, const QModelIndex& 
   //     // force rich text edit to handle too-wide texts
   //     fl |= PTF_ForceRichTextRender;
   //   }
+
+  if (fl & PTF_HighlightSearchCurrent) {
+    // paint line as if it were selected.
+    QPen pen = p->p->pen();
+    QPalette::ColorGroup cg = p->option->state & QStyle::State_Enabled
+      ? QPalette::Normal : QPalette::Disabled;
+    if (cg == QPalette::Normal && !(p->option->state & QStyle::State_Active))
+      cg = QPalette::Inactive;
+    p->p->fillRect(p->option->rect, p->option->palette.brush(cg, QPalette::Highlight));
+    p->p->setPen(p->option->palette.color(cg, QPalette::HighlightedText));
+  }
 
   // paint Category Label
   paintText(p, index.data(KLFLibModel::CategoryLabelItemRole).toString(), fl);
@@ -1880,6 +1929,27 @@ bool KLFLibDefaultView::restoreGuiState(const QVariantMap& vstate)
   return true;
 }
 
+QModelIndex KLFLibDefaultView::currentVisibleIndex() const
+{
+  QModelIndex index;
+  if (pViewType == IconView) {
+    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
+    KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
+			 return QModelIndex() )
+      ;
+    index = lv->curVisibleIndex();
+  } else if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
+    KLFLibDefTreeView *tv = qobject_cast<KLFLibDefTreeView*>(pView);
+    KLF_ASSERT_NOT_NULL( tv, "KLFLibDefTreeView List View is NULL in view type "<<pViewType<<" !!",
+			 return QModelIndex() )
+      ;
+    index = tv->curVisibleIndex();
+  } else {
+    index = QModelIndex();
+  }
+  return index;
+}
+
 
 void KLFLibDefaultView::updateResourceView()
 {
@@ -2148,7 +2218,8 @@ void KLFLibDefaultView::slotLockIconPositions(bool locked)
 
 bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
 {
-  QModelIndex i = pModel->searchFind(queryString, forward);
+  QModelIndex fromIndex = currentVisibleIndex();
+  QModelIndex i = pModel->searchFind(queryString, fromIndex, forward);
   pDelegate->setSearchString(queryString);
   searchFound(i);
   return i.isValid();
@@ -2164,6 +2235,7 @@ bool KLFLibDefaultView::searchFindNext(bool forward)
 void KLFLibDefaultView::searchAbort()
 {
   pDelegate->setSearchString(QString());
+  pDelegate->setSearchIndex(QModelIndex());
   pView->viewport()->update(); // repaint widget to update search underline
 
   // don't un-select the found index...
@@ -2565,13 +2637,13 @@ KLFLibResourceEngine *KLFLibCreateResourceDlg::createResource(QObject *resourceP
 KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *parent)
   : QWidget(parent)
 {
-  pUi = new Ui::KLFLibResPropEditor;
-  pUi->setupUi(this);
+  U = new Ui::KLFLibResPropEditor;
+  U->setupUi(this);
 
-  QPalette pal = pUi->txtUrl->palette();
+  QPalette pal = U->txtUrl->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   pal.setColor(QPalette::Background, pal.color(QPalette::Window));
-  pUi->txtUrl->setPalette(pal);
+  U->txtUrl->setPalette(pal);
 
   if (res == NULL)
     qWarning("KLFLibResPropEditor: NULL Resource! Expect CRASH!");
@@ -2581,25 +2653,35 @@ KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *par
   connect(pResource, SIGNAL(resourcePropertyChanged(int)),
 	  this, SLOT(slotResourcePropertyChanged(int)));
 
-  pUi->frmAdvanced->setShown(pUi->btnAdvanced->isChecked());
+  pPropModel = new QStandardItemModel(this);
+  pPropModel->setColumnCount(2);
+  pPropModel->setHorizontalHeaderLabels(QStringList() << tr("Name") << tr("Value"));
+  U->tblProperties->setModel(pPropModel);
+  U->tblProperties->setItemDelegate(new QItemDelegate(this));
+
+  connect(pPropModel, SIGNAL(itemChanged(QStandardItem *)),
+	  this, SLOT(advPropEdited(QStandardItem *)));
+
+  U->frmAdvanced->setShown(U->btnAdvanced->isChecked());
+  // perform full refresh
   slotResourcePropertyChanged(-1);
 }
 
 KLFLibResPropEditor::~KLFLibResPropEditor()
 {
-  delete pUi;
+  delete U;
 }
 
 bool KLFLibResPropEditor::apply()
 {
   bool res = true;
 
-  bool lockmodified = (pResource->locked() != pUi->chkLocked->isChecked());
-  bool wantunlock = lockmodified && !pUi->chkLocked->isChecked();
+  bool lockmodified = (pResource->locked() != U->chkLocked->isChecked());
+  bool wantunlock = lockmodified && !U->chkLocked->isChecked();
   bool wantlock = lockmodified && !wantunlock;
-  bool titlemodified = (pResource->title() != pUi->txtTitle->text());
+  bool titlemodified = (pResource->title() != U->txtTitle->text());
 
-  if ( pResource->locked() && pUi->chkLocked->isChecked() ) {
+  if ( pResource->locked() && U->chkLocked->isChecked() ) {
     // no intent to modify locked state of locked resource
     if (titlemodified) {
       QMessageBox::critical(this, tr("Error"), tr("Can't rename a locked resource!"));
@@ -2615,7 +2697,7 @@ bool KLFLibResPropEditor::apply()
     }
   }
 
-  if ( titlemodified && ! pResource->setTitle(pUi->txtTitle->text()) ) {
+  if ( titlemodified && ! pResource->setTitle(U->txtTitle->text()) ) {
     res = false;
     QMessageBox::critical(this, tr("Error"), tr("Failed to rename resource."));
   }
@@ -2630,16 +2712,64 @@ bool KLFLibResPropEditor::apply()
   return res;
 }
 
+void KLFLibResPropEditor::on_btnAdvanced_toggled(bool on)
+{
+  // show/hide advanced controls
+  U->frmAdvanced->setShown(on);
+  if (U->frmAdvanced->isVisible()) {
+    // adjust size of columns
+    int w = width() / 3;
+    U->tblProperties->setColumnWidth(0, w);
+    U->tblProperties->setColumnWidth(1, w);
+  }
+  update();
+  adjustSize();
+  if (parentWidget()) {
+    parentWidget()->update();
+    parentWidget()->adjustSize();
+  }
+}
+
+
+void KLFLibResPropEditor::advPropEdited(QStandardItem *item)
+{
+  qDebug()<<"advPropEdited("<<item<<")";
+  QVariant value = item->data(Qt::EditRole);
+  int propId = item->data(Qt::UserRole).toInt();
+  bool r = pResource->setResourceProperty(propId, value);
+  if ( ! r ) {
+    QMessageBox::critical(this, tr("Error"),
+			  tr("Failed to set resource property \"%1\".")
+			  .arg(pResource->propertyNameForId(propId)));
+  }
+  // slotResourcePropertyChanged will be called.
+}
 
 void KLFLibResPropEditor::slotResourcePropertyChanged(int /*propId*/)
 {
   // perform full update
 
-  pUi->txtTitle->setText(pResource->title());
-  pUi->txtTitle->setEnabled(pResource->canModifyProp(KLFLibResourceEngine::PropTitle));
-  pUi->txtUrl->setText(pResource->url().toString());
-  pUi->chkLocked->setChecked(pResource->locked());
-  pUi->chkLocked->setEnabled(pResource->canModifyProp(KLFLibResourceEngine::PropLocked));
+  pPropModel->setRowCount(0);
+  int k;
+  QStringList props = pResource->registeredPropertyNameList();
+  for (k = 0; k < props.size(); ++k) {
+    QString prop = props[k];
+    int propId = pResource->propertyIdForName(prop);
+    QVariant val = pResource->resourceProperty(prop);
+    QStandardItem *i1 = new QStandardItem(prop);
+    i1->setEditable(false);
+    QStandardItem *i2 = new QStandardItem(val.toString());
+    i2->setEditable(pResource->canModifyProp(propId));
+    i2->setData(val, Qt::EditRole);
+    i2->setData(propId, Qt::UserRole); // user data is property ID
+    pPropModel->appendRow(QList<QStandardItem*>() << i1 << i2);
+  }
+
+  U->txtTitle->setText(pResource->title());
+  U->txtTitle->setEnabled(pResource->canModifyProp(KLFLibResourceEngine::PropTitle));
+  U->txtUrl->setText(pResource->url().toString());
+  U->chkLocked->setChecked(pResource->locked());
+  U->chkLocked->setEnabled(pResource->canModifyProp(KLFLibResourceEngine::PropLocked));
 }
 
 

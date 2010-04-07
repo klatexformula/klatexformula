@@ -28,11 +28,59 @@
 #include <QMap>
 #include <QUrl>
 #include <QDataStream>
+#include <QDateTime>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-#include <klfdata.h>  // for KLFStyle
+//#include <klfdata.h>  // for KLFStyle
 #include <klfpobj.h>
+
+
+
+/** \brief A Formula Style (collection of properties)
+ *
+ * Structure containing forground color, bg color, mathmode, preamble, etc.
+ */
+struct KLFStyle {
+  KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
+	   unsigned long bgcol = qRgba(255,255,255,0),
+	   const QString& mmode = QString(),
+	   const QString& pre = QString(),
+	   int dotsperinch = -1)
+    : name(nm), fg_color(fgcol), bg_color(bgcol), mathmode(mmode), preamble(pre),
+      dpi(dotsperinch) { }
+  KLFStyle(const KLFStyle& o)
+    : name(o.name), fg_color(o.fg_color), bg_color(o.bg_color), mathmode(o.mathmode),
+      preamble(o.preamble), dpi(o.dpi) { }
+
+  QString name; // this may not always be set, it's only important in saved style list.
+  unsigned long fg_color;
+  unsigned long bg_color;
+  QString mathmode;
+  QString preamble;
+  int dpi;
+
+  const KLFStyle& operator=(const KLFStyle& o) {
+    name = o.name; fg_color = o.fg_color; bg_color = o.bg_color; mathmode = o.mathmode;
+    preamble = o.preamble; dpi = o.dpi;
+    return *this;
+  }
+};
+
+Q_DECLARE_METATYPE(KLFStyle)
+  ;
+
+QString prettyPrintStyle(const KLFStyle& sty);
+
+typedef QList<KLFStyle> KLFStyleList;
+
+QDataStream& operator<<(QDataStream& stream, const KLFStyle& style);
+QDataStream& operator>>(QDataStream& stream, KLFStyle& style);
+// exact matches
+bool operator==(const KLFStyle& a, const KLFStyle& b);
+
+
+
 
 /** \brief An entry (single formula) in the library
  *
@@ -408,7 +456,12 @@ public slots:
 
   /** If the \ref FeatureSaveAs is supported (passed to the constructor), reimplement this
    * function to save the resource data in the new path specified by \c newPath.
-   * The \c newPath is garanteed to have same schema as the previous url.
+   *
+   * The \c newPath must be garanteed to have same schema as the previous url.
+   *
+   * \bug ................... API to define: this function is called 'saveAs' however, I think
+   *   its implementation should keep the old path open (easier to implement). What to do? rename
+   *   to saveAsCopy() ? open new path ? keep as is and clearly document ?
    * */
   virtual bool saveAs(const QUrl& newPath);
 

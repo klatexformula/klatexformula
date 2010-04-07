@@ -48,7 +48,7 @@ if(KLF_USE_QT4)
       "/Library/Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
     )
   endif(KLF_MACOSX_BUNDLES)
-  #install(FILES ${klfbackend_HEADERS} DESTINATION include/)
+#  install(FILES ${klfbackend_HEADERS} DESTINATION include/)
 else(KLF_USE_QT4)
   add_definitions(${QT_DEFINITIONS})
   include_directories(${QT_INCLUDE_DIR})

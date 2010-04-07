@@ -47,13 +47,14 @@ endif(NOT KLF_BUILD_GUI)
 set(klatexformula_SRCS
 	klfcolorchooser.cpp
 	klfconfig.cpp
-	klfdata.cpp
+#	klfdata.cpp
 	klfpobj.cpp
 	klflatexsyntaxhighlighter.cpp
 	klflatexsymbols.cpp
 	klflibrary.cpp
 	klflib.cpp
 	klflibdbengine.cpp
+	klfliblegacyengine.cpp
 	klflibview.cpp
 	klflibentryeditor.cpp
 	klflibbrowser.cpp
@@ -76,6 +77,7 @@ set(klatexformula_MOCHEADERS
 	klflib.h
 	klflibdbengine.h
 	klflibdbengine_p.h
+	klfliblegacyengine.h
 	klflibview.h
 	klflibview_p.h
 	klflibentryeditor.h
@@ -93,7 +95,7 @@ set(klatexformula_MOCHEADERS
 set(klatexformula_HEADERS
 	klfmain.h
 	klfconfig.h
-	klfdata.h
+#	klfdata.h
 	klfpobj.h
 	klflib_p.h
 	klfpluginiface.h

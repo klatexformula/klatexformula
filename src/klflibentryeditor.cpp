@@ -24,11 +24,12 @@
 
 #include <QWidget>
 #include <QComboBox>
+#include <QLineEdit>
 #include <QEvent>
 #include <QKeyEvent>
 #include <QPixmap>
 
-#include "klfdata.h"
+//#include "klfdata.h"
 #include "klfconfig.h"
 #include "klflib.h"
 
@@ -40,7 +41,7 @@
 
 
 KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
-  : QWidget(parent)
+  : QWidget(parent), pInputEnabled(true)
 {
   pUi = new Ui::KLFLibEntryEditor;
   pUi->setupUi(this);
@@ -124,6 +125,8 @@ void KLFLibEntryEditor::displayEntry(const KLFLibEntry& entry)
 
 void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
 {
+  pUi->cbxCategory->lineEdit()->setReadOnly(!pInputEnabled);
+  pUi->cbxTags->lineEdit()->setReadOnly(!pInputEnabled);
   if (entrylist.size() == 0) {
     pUi->lblPreview->setPixmap(QPixmap(":/pics/nopreview.png"));
     pUi->txtPreviewLatex->setText(tr("[ No Item Selected ]"));
@@ -149,10 +152,10 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     pCurrentStyle = e.style();
     pUi->lblStylePreview->setText(prettyPrintStyle(pCurrentStyle));
     pUi->cbxCategory->setEnabled(true);
-    pUi->btnUpdateCategory->setEnabled(true);
+    pUi->btnUpdateCategory->setEnabled(pInputEnabled && true);
     pUi->cbxTags->setEnabled(true);
-    pUi->btnUpdateTags->setEnabled(true);
-    pUi->btnRestoreStyle->setEnabled(true);
+    pUi->btnUpdateTags->setEnabled(pInputEnabled && true);
+    pUi->btnRestoreStyle->setEnabled(true); // NOT pInputEnabled && : not true input
     return;
   }
   // multiple items selected
@@ -185,18 +188,25 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
   if ( allsamestyle ) {
     pCurrentStyle = style;
     pUi->lblStylePreview->setText(prettyPrintStyle(style));
-    pUi->btnRestoreStyle->setEnabled(true);
+    pUi->btnRestoreStyle->setEnabled(true); // NOT pInputEnabled && : not true input
   } else {
     pCurrentStyle = KLFStyle();
     pUi->lblStylePreview->setText(tr("[ Different Styles ]"));
     pUi->btnRestoreStyle->setEnabled(false);
   }
 
-  pUi->cbxCategory->setEnabled(true);
-  pUi->btnUpdateCategory->setEnabled(true);
-  pUi->cbxTags->setEnabled(false);
-  pUi->btnUpdateTags->setEnabled(false);
+  pUi->cbxCategory->setEnabled(pInputEnabled && true);
+  pUi->btnUpdateCategory->setEnabled(pInputEnabled && true);
+  pUi->cbxTags->setEnabled(pInputEnabled && false);
+  pUi->btnUpdateTags->setEnabled(pInputEnabled && false);
 }
+
+void KLFLibEntryEditor::setInputEnabled(bool enabled)
+{
+  pInputEnabled = enabled;
+}
+
+
 
 void KLFLibEntryEditor::slotUpdateFromCbx(QComboBox *cbx)
 {

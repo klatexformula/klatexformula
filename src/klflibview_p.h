@@ -30,6 +30,8 @@
 #ifndef KLFLIBVIEW_P_H
 #define KLFLIBVIEW_P_H
 
+#include <math.h> // abs()
+
 #include <QApplication>
 #include <QAbstractItemView>
 #include <QTreeView>
@@ -46,9 +48,12 @@
 class KLFLibDefTreeView;
 
 
+/** \internal */
 inline QPointF sizeToPointF(const QSizeF& s) { return QPointF(s.width(), s.height()); }
+/** \internal */
 inline QSizeF pointToSizeF(const QPointF& p) { return QSizeF(p.x(), p.y()); }
 
+/** \internal */
 static QImage transparentify_image(const QImage& img, qreal factor)
 {
   // set the image opacity to factor (by multiplying each alpha value by factor)
@@ -63,6 +68,7 @@ static QImage transparentify_image(const QImage& img, qreal factor)
   return img2;
 }
 
+/** \internal */
 static QImage autocrop_image(const QImage& img, int alpha_threshold = 0)
 {
   // crop transparent borders
@@ -83,10 +89,43 @@ static QImage autocrop_image(const QImage& img, int alpha_threshold = 0)
   return img.copy(QRect(QPoint(min_x, min_y), QPoint(max_x, max_y)));
 }
 
+/** \internal */
+static float color_distinguishable_distance(QRgb a, QRgb b) {
+  static const float C_r = 11.f,   C_g = 16.f,   C_b = 5.f;
 
-//static void klf_common_start_drag(QAbstractItemView *v, Qt::DropActions supportedActions);
+  float drkfactor = 1 - (qGray(b)/1000.f);
+
+  float alpha = qAlpha(a)/255.f;
+  QRgb m = qRgb(alpha*qRed(a)+(1-alpha)*qRed(b),
+		alpha*qGreen(a)+(1-alpha)*qGreen(b),
+		alpha*qBlue(a)+(1-alpha)*qBlue(b));
+
+  return qMax( qMax(C_r*abs(qRed(m) - qRed(b)), C_g*abs(qGreen(m) - qGreen(b))),
+	       C_b*abs(qBlue(m) - qBlue(b)) ) * drkfactor * 3.f/32.f;
+}
 
 
+/** \internal */
+static bool image_is_distinguishable(const QImage& img, QColor background, float threshold = 30)
+{
+  QRgb bg = background.rgb();
+  // crop transparent borders
+  int x, y;
+  for (x = 0; x < img.width(); ++x) {
+    for (y = 0; y < img.height(); ++y) {
+      float dist = color_distinguishable_distance(img.pixel(x,y), bg);
+      if (dist > threshold) {
+	// ok we have one pixel at least we can distinguish.
+	return true;
+      }
+    }
+  }
+  return false;
+}
+
+// ---
+
+/** \internal */
 class KLFLibDefViewCommon
 {
 public:
@@ -97,7 +136,7 @@ public:
 
   /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */  
   virtual bool evDragEnter(QDragEnterEvent *de, const QPoint& pos) {
-    uint fl = pModel->dropFlags(de);
+    uint fl = pModel->dropFlags(de, thisView());
     qDebug()<<"KLFLibDefViewCommon::evDragEnter: drop flags are "<<fl<<"; this viewtype="<<pViewType;
     fprintf(stderr, "\t\tflags are %u", fl);
     // decide whether to show drop indicator or not.
@@ -123,7 +162,7 @@ public:
 
   /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */  
   virtual bool evDragMove(QDragMoveEvent *de, const QPoint& pos) {
-    uint fl = pModel->dropFlags(de);
+    uint fl = pModel->dropFlags(de, thisView());
     qDebug()<<"KLFLibDefViewCommon::evDragMove: flags are "<<fl<<"; pos is "<<pos;
     // decide whether to accept the drop or to ignore it
     if ( !(fl & KLFLibModel::DropWillAccept) && pViewType != KLFLibDefaultView::IconView ) {
@@ -214,6 +253,20 @@ public:
     drag->exec(supportedActions, defaultDropAction);
   }
 
+
+  QModelIndex curVisibleIndex() const {
+    int off_y = scrollOffset().y();
+    qDebug()<<"curVisibleIndex: offset y is "<<off_y;
+    QModelIndex it = QModelIndex();
+    while ((it = pModel->walkNextIndex(it)).isValid()) {
+      qDebug()<<"\texploring item it="<<it<<"; bottom="<<thisConstView()->visualRect(it).bottom();
+      if (thisConstView()->visualRect(it).bottom() >= 0) {
+	// first index from the beginning, that is after our scroll offset.
+	return it;
+      }
+    }
+  }
+
 protected:
   KLFLibModel *pModel;
   KLFLibDefaultView *pDView;
@@ -223,6 +276,8 @@ protected:
   virtual QModelIndexList commonSelectedIndexes() const = 0;
   virtual void commonInternalDrag(Qt::DropActions a) = 0;
   virtual QAbstractItemView *thisView() = 0;
+  virtual const QAbstractItemView *thisConstView() const = 0;
+  virtual QPoint scrollOffset() const = 0;
 
   /** Returns contents position */
   virtual QPoint eventPos(QObject *object, QDragEnterEvent *event, int horoffset, int veroffset) {
@@ -289,6 +344,8 @@ protected:
   virtual QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
   virtual void commonInternalDrag(Qt::DropActions) {  }
   virtual QAbstractItemView *thisView() { return this; }
+  virtual const QAbstractItemView *thisConstView() const { return this; }
+  virtual QPoint scrollOffset() const { return QPoint(horizontalOffset(), verticalOffset()); }
 
   virtual QPoint eventPos(QObject *object, QDragEnterEvent *event) {
     return KLFLibDefViewCommon::eventPos(object, event, horizontalOffset(), verticalOffset());
@@ -451,6 +508,8 @@ protected:
   virtual QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
   virtual void commonInternalDrag(Qt::DropActions a) { internalDrag(a); }
   virtual QAbstractItemView *thisView() { return this; }
+  virtual const QAbstractItemView *thisConstView() const { return this; }
+  virtual QPoint scrollOffset() const { return QPoint(horizontalOffset(), verticalOffset()); }
 
   virtual QPoint eventPos(QObject *object, QDragEnterEvent *event) {
     return KLFLibDefViewCommon::eventPos(object, event, horizontalOffset(), verticalOffset());

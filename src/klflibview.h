@@ -35,6 +35,7 @@
 #include <QItemSelectionModel>
 #include <QTextDocument>
 #include <QTextCharFormat>
+#include <QStandardItemModel>
 
 #include <klfdefs.h>
 #include <klflib.h>
@@ -228,9 +229,6 @@ public:
     FullEntryItemRole,
     CategoryLabelItemRole,
     FullCategoryPathItemRole,
-
-    //    ViewUserDataRoleBegin = Qt::UserRole+12000,
-    //    ViewUserDataRoleEnd = Qt::UserRole+12100
   };
 
   /** For example use
@@ -282,7 +280,7 @@ public:
   enum { DropWillAccept = 0x0001,
 	 DropWillCategorize = 0x0002,
 	 DropWillMove = 0x0004 };
-  virtual uint dropFlags(QDragMoveEvent *event);
+  virtual uint dropFlags(QDragMoveEvent *event, QAbstractItemView *view);
 
   virtual QImage dragImage(const QModelIndexList& indexes);
 
@@ -307,7 +305,8 @@ public:
 
 public slots:
 
-  virtual QModelIndex searchFind(const QString& queryString, bool forward = true);
+  virtual QModelIndex searchFind(const QString& queryString, const QModelIndex& fromIndex
+				 = QModelIndex(), bool forward = true);
   virtual QModelIndex searchFindNext(bool forward);
 
   virtual bool changeEntries(const QModelIndexList& items, int property, const QVariant& value);
@@ -394,6 +393,8 @@ private:
   EntryCache pEntryCache;
   CategoryLabelCache pCategoryLabelCache;
 
+  QStringList pCatListCache;
+
   /** If row is negative, it will be looked up automatically. */
   QModelIndex createIndexFromId(NodeId nodeid, int row, int column) const;
   //  /** If row is negative, it will be looked up automatically. */
@@ -413,7 +414,7 @@ private:
 
   void updateCacheSetupModel();
 
-  IndexType cacheFindCategoryLabel(QString category, bool createIfNotExists = false);
+  IndexType cacheFindCategoryLabel(QStringList catelements, bool createIfNotExists = false);
 
   void dumpNodeTree(NodeId node, int indent = 0) const;
 
@@ -499,6 +500,7 @@ public:
 protected:
   struct PaintPrivate {
     QPainter *p;
+    QBrush background;
     const QStyleOptionViewItem *option;
     bool isselected;
     QRect innerRectText;
@@ -562,6 +564,8 @@ public:
   virtual QVariantMap saveGuiState() const;
   virtual bool restoreGuiState(const QVariantMap& state);
 
+  //! The first index that is currently visible in the current scrolling position
+  virtual QModelIndex currentVisibleIndex() const;
 
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
@@ -720,10 +724,13 @@ public slots:
 
 protected slots:
   void slotResourcePropertyChanged(int propId);
+  void on_btnAdvanced_toggled(bool on);
+  void advPropEdited(QStandardItem *item);
 
 private:
   KLFLibResourceEngine *pResource;
-  Ui::KLFLibResPropEditor *pUi;
+  Ui::KLFLibResPropEditor *U;
+  QStandardItemModel *pPropModel;
 };
 
 class KLFLibResPropEditorDlg : public QDialog

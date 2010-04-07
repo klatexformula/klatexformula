@@ -58,6 +58,13 @@ public slots:
    * [Multiple items selected] whenever needed. */
   void displayEntries(const QList<KLFLibEntry>& entries);
 
+  /** Globally enable or disable input. Individual fields may still be disabled
+   * for example if more than one entry is selected.
+   *
+   * \warning Changes take effect upon next call of \ref displayEntries() or
+   *   \ref displayEntry() */
+  void setInputEnabled(bool enabled);
+
 protected slots:
 
   void slotUpdateFromCbx(QComboBox *cbx);
@@ -70,6 +77,8 @@ protected slots:
 
 private:
   Ui::KLFLibEntryEditor *pUi;
+
+  bool pInputEnabled;
 
   KLFStyle pCurrentStyle;
 
