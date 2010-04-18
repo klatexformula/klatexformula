@@ -29,7 +29,8 @@
 #include <QListWidget>
 #include <QStringListModel>
 
-#include <klfdata.h>
+//#include <klfdata.h>
+#include <klflib.h>
 #include <ui_klfstylemanagerui.h>
 
 

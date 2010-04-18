@@ -28,10 +28,22 @@
 #include <klflib.h>
 
 
+
+class KLF_EXPORT KLFLibDBConnectionClassUser {
+public:
+  KLFLibDBConnectionClassUser();
+  virtual ~KLFLibDBConnectionClassUser();
+  
+protected:
+  bool pAutoDisconnectDB;
+  QString pDBConnectionName;
+};
+
+
 /** Library Resource engine implementation for an (abstract) database (using Qt
  * SQL interfaces)
  */
-class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceEngine
+class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceEngine, private KLFLibDBConnectionClassUser
 {
   Q_OBJECT
 
@@ -77,7 +89,6 @@ public:
   /** supply an open database. */
   virtual void setDatabase(const QSqlDatabase& db_connection);
 
-  //  virtual bool autoDisconnectDB() const { return pAutoDisconnectDB; }
   /** Returns the data table name, WITHOUT the leading \c "t_" prefix. */
   virtual QString dataTableName() const { return pDataTableName.mid(2); }
 
@@ -110,7 +121,6 @@ private:
 
   QSqlDatabase pDB;
   
-  bool pAutoDisconnectDB;
   QString pDataTableName; ///< \note WITH leading \c "t_" prefix.
 
   QStringList detectEntryColumns(const QSqlQuery& q);

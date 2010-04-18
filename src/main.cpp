@@ -42,8 +42,11 @@
 
 #include <klfbackend.h>
 
-#include "klfdata.h"
+//#include "klfdata.h"
 #include "klflib.h"
+#include "klflibdbengine.h"
+#include "klfliblegacyengine.h"
+#include "klflibview.h"
 #include "klfmain.h"
 #include "klfconfig.h"
 #include "klfmainwin.h"
@@ -806,10 +809,14 @@ int main(int argc, char **argv)
 						klfconfig.UI.colorChooseWidgetCustom);
 
     // DEBUG ------------------------
-    void KLF_EXPORT klf___temp___test_newlib();
-    klf___temp___test_newlib();
+    //    void KLF_EXPORT klf___temp___test_newlib();
+    //    klf___temp___test_newlib();
     // DEBUG ------------------------
 
+    // initialize and register some library resource engine + view factories
+    (void)new KLFLibDBEngineFactory(qApp);
+    (void)new KLFLibLegacyEngineFactory(qApp);
+    (void)new KLFLibDefaultViewFactory(qApp);
 
     KLFMainWin mainWin;
     mainWin.show();

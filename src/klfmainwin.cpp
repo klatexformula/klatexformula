@@ -64,8 +64,9 @@
 #include <ui_klfprogerrui.h>
 #include <ui_klfmainwinui.h>
 
-#include "klfdata.h"
-#include "klflibrary.h"
+//#include "klfdata.h"
+//#include "klflibrary.h"
+#include "klflibbrowser.h"
 #include "klflatexsymbols.h"
 #include "klfsettings.h"
 #include "klfmain.h"
@@ -241,19 +242,14 @@ KLFMainWin::KLFMainWin()
   _output.epsdata = QByteArray();
   _output.pdfdata = QByteArray();
 
-  mLibraryAutoSaveTimer = new QTimer(this);
-  connect(mLibraryAutoSaveTimer, SIGNAL(timeout()), this, SLOT(saveLibrary()));
-
   // load styless
   loadStyles();
+
   // load library
+  mLibBrowser = new KLFLibBrowser(this);
+  /// \todo TODO ....................... load previously saved GUI state ............. for KLFLibBrowser....
   loadLibrary();
 
-  //  _libraryBrowserIsShown = false;
-  //  _latexSymbolsIsShown = false;
-
-  // Don't pass NULL here as widget parent
-  mLibraryBrowser = new KLFLibraryBrowser(&_library, &_libresources, this);
 
   mLatexSymbols = new KLFLatexSymbols(this);
 
@@ -349,10 +345,10 @@ KLFMainWin::KLFMainWin()
 
   connect(btnQuit, SIGNAL(clicked()), this, SLOT(quit()));
 
-  connect(mLibraryBrowser, SIGNAL(restoreFromLibrary(KLFData::KLFLibraryItem, bool)),
-	  this, SLOT(restoreFromLibrary(KLFData::KLFLibraryItem, bool)));
-  connect(mLibraryBrowser, SIGNAL(refreshLibraryBrowserShownState(bool)),
-	  this, SLOT(slotLibraryButtonRefreshState(bool)));
+  connect(mLibBrowser, SIGNAL(requestRestore(const KLFLibEntry&, uint)),
+	  this, SLOT(restoreFromLibrary(const KLFLibEntry&, uint)));
+  //  connect(mLibBrowser, SIGNAL(refreshLibraryBrowserShownState(bool)),
+  //	  this, SLOT(slotLibraryButtonRefreshState(bool)));
   connect(mLatexSymbols, SIGNAL(insertSymbol(const KLFLatexSymbol&)),
 	  this, SLOT(insertSymbol(const KLFLatexSymbol&)));
   connect(mLatexSymbols, SIGNAL(refreshSymbolBrowserShownState(bool)),
@@ -394,7 +390,7 @@ KLFMainWin::KLFMainWin()
 
   // INSTALL SOME EVENT FILTERS... FOR show/hide EVENTS
 
-  mLibraryBrowser->installEventFilter(this);
+  mLibBrowser->installEventFilter(this);
   mLatexSymbols->installEventFilter(this);
   mStyleManager->installEventFilter(this);
   mSettingsDialog->installEventFilter(this);
@@ -408,10 +404,6 @@ KLFMainWin::KLFMainWin()
   _savedwindowshownstatus = 0;
   _ignore_close_event = false;
 
-  // Start AutoSave Timer if requested
-  if (klfconfig.UI.autosaveLibraryMin > 0) {
-    mLibraryAutoSaveTimer->start(1000 * 60 * klfconfig.UI.autosaveLibraryMin);
-  }
 }
 
 
@@ -421,14 +413,13 @@ KLFMainWin::~KLFMainWin()
 
   saveSettings();
   saveStyles();
-  saveLibrary();
 
   if (mStyleMenu)
     delete mStyleMenu;
   if (mLatexSymbols)
     delete mLatexSymbols;
-  if (mLibraryBrowser)
-    delete mLibraryBrowser; // we aren't its parent
+  if (mLibBrowser)
+    delete mLibBrowser; // we aren't its parent
   if (mSettingsDialog)
     delete mSettingsDialog;
 
@@ -643,154 +634,100 @@ void KLFMainWin::saveStyles()
 
 void KLFMainWin::loadLibrary()
 {
-  _library = KLFData::KLFLibrary();
-  _libresources = KLFData::KLFLibraryResourceList();
-
-  KLFData::KLFLibraryResource hist = { KLFData::LibResource_History, tr("History") };
-  _libresources.append(hist);
-  KLFData::KLFLibraryResource archive = { KLFData::LibResource_Archive, tr("Archive") };
-  _libresources.append(archive);
-
-  // Locate a good library file.
+  // Locate a good history file.
 
   // the default library file
-  QString fname = klfconfig.homeConfigDir + "/library";
-  // if unexistant, try to load
-  if ( ! QFile::exists(fname) ) {
-    // try KDE KLF version
-    fname = kdelocate("library");
-  }
-  if ( ! QFile::exists(fname) ) {
-    // next resort: try post-2.0, pre-2.1 "history"
-    fname = kdelocate("history");
-    // in which case we need a different treatment...
-    if ( ! fname.isEmpty() ) {
-      /* IMPORT PRE-2.1 HISTORY >>>>>>>> */
-      QFile fhist(fname);
-      if ( ! fhist.open(QIODevice::ReadOnly) ) {
-	QMessageBox::critical(this, tr("Error"), tr("Unable to load your formula history list!"));
-      } else {
-	QDataStream stream(&fhist);
-	QString s1;
-	stream >> s1;
-	if (s1 != "KLATEXFORMULA_HISTORY") {
-	  QMessageBox::critical(this, tr("Error"), tr("Error: History file is incorrect or corrupt!\n"));
-	} else {
-	  qint16 vmaj, vmin;
-	  stream >> vmaj >> vmin;
-	  
-	  if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
-	    QMessageBox::information(this, tr("Load History"),
-				     tr("The history file found was created by a more recent version of KLatexFormula.\n"
-					"The process of history loading may fail."));
-	  }
-	  
-	  stream.setVersion(QDataStream::Qt_3_3);
-	  
-	  KLFData::KLFLibraryList history;
-	  
-	  stream >> KLFData::KLFLibraryItem::MaxId >> history;
-	  
-	  _library[_libresources[0]] = history;
-	  
-	} // format corrupt
-      } // open file ok
-      /* <<<<<< END IMPORT PRE-2.1 HISTORY */
-      emit libraryAllChanged();
-      return;
+  if ( ! QFileInfo(klfconfig.homeConfigDir+"/libresources").isDir() )
+    QDir(klfconfig.homeConfigDir).mkpath("libresources");
+  QString localfname = klfconfig.homeConfigDir + "/libresources/history.klf.db";
+  QString importfname;
+  if ( ! QFile::exists(localfname) ) {
+    // if unexistant, try to load:
+    importfname = klfconfig.homeConfigDir + "/library"; // the 3.1 library file
+    if ( ! QFile::exists(importfname) )
+      importfname = kdelocate("library"); // or the KDE KLF 2.1 library file
+    if ( ! QFile::exists(importfname) )
+      importfname = kdelocate("history"); // or the KDE KLF 2.0 history file
+    if ( ! QFile::exists(importfname) ) {
+      // as last resort we load our default library bundled with KLatexFormula
+      importfname = ":/data/defaultlibrary.klf.db";
     }
   }
-  if ( ! QFile::exists(fname) ) {
-    // as last resort we load our default library stored in a resource
-    fname = ":/data/defaultlibrary";
+
+  QUrl localhisturl = QUrl::fromLocalFile(localfname);
+  localhisturl.setScheme("klf+sqlite");
+  localhisturl.addQueryItem("dataTableName", "history");
+
+  mHistoryLibResource = NULL;
+
+  if (!QFile::exists(localfname)) {
+    // create local history resource
+    KLFLibEngineFactory *localHistFactory = KLFLibEngineFactory::findFactoryFor("klf+sqlite");
+    KLFLibEngineFactory::Parameters param;
+    param["Filename"] = localhisturl.path();
+    param["dataTableName"] = "history";
+    mHistoryLibResource = localHistFactory->createResource("klf+sqlite", param, this);
+    mHistoryLibResource->setTitle(tr("History"));
   }
 
-  // LOAD LIBRARY
-  
-  QFile flib(fname);
-  if ( ! flib.open(QIODevice::ReadOnly) ) {
-    QMessageBox::critical(this, tr("Error"), tr("Unable to open library file!"));
+  bool r;
+  if (mHistoryLibResource) {
+    r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag, QLatin1String("default+list"));
   } else {
-    QDataStream stream(&flib);
-    QString s1;
-    stream >> s1;
-    if (s1 != "KLATEXFORMULA_LIBRARY") {
-      QMessageBox::critical(this, tr("Error"), tr("Error: Library file is incorrect or corrupt!\n"));
-    } else {
-      qint16 vmaj, vmin;
-      stream >> vmaj >> vmin;
-      
-      if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
-	QMessageBox::warning(this, tr("Load Library"),
-			     tr("The library file found was created by a more recent version of KLatexFormula.\n"
-				"The process of library loading may fail.")
-			     );
-      }
-      
-      if (vmaj <= 2) {
-	stream.setVersion(QDataStream::Qt_3_3);
-      } else {
-	qint16 version;
-	stream >> version;
-	stream.setVersion(version);
-      }
-      
-      stream >> KLFData::KLFLibraryItem::MaxId >> _libresources >> _library;
-      
-    } // format corrupt
-  } // open file ok
-
-  emit libraryAllChanged();
-}
-
-
-void KLFMainWin::saveLibrary()
-{
-  // librarysave
-  klfconfig.ensureHomeConfigDir();
-  QString s = klfconfig.homeConfigDir + "/library";
-  QString s_last_backup = s + ".last_backup";
-  if (QFile::exists(s)) {
-    if (QFile::exists(s_last_backup))
-      QFile::remove(s_last_backup);
-    QFile::copy(s, s_last_backup);
+    r = mLibBrowser->openResource(localhisturl, KLFLibBrowser::NoCloseRoleFlag, QLatin1String("default+list"));
+    mHistoryLibResource = mLibBrowser->getOpenResource(localhisturl);
   }
-
-  QFile f(s);
-  if ( ! f.open(QIODevice::WriteOnly) ) {
-    QMessageBox::critical(this, tr("Error"), tr("Error: Unable to write to library file `%1'!")
-			   .arg(QDir::toNativeSeparators(s)));
+  if ( ! r ) {
+    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localhisturl
+	      <<"\n\tExpect Crash!";
     return;
   }
 
-  QDataStream stream(&f);
-  stream.setVersion(QDataStream::Qt_3_3);
-  // write KLF-3.0-compatible stream
-  stream << QString("KLATEXFORMULA_LIBRARY") << (qint16)3 << (qint16)0 << (qint16)stream.version()
-	 << KLFData::KLFLibraryItem::MaxId << _libresources << _library;
+  if (!importfname.isEmpty()) {
+    // needs an import
+    QUrl importhisturl = QUrl::fromLocalFile(importfname);
+    if (importfname.endsWith(".klf.db")) {
+      importhisturl.setScheme("klf+sqlite");
+      importhisturl.addQueryItem("dataTableName", "history");
+    } else {
+      importhisturl.setScheme("klf+legacy");
+      importhisturl.addQueryItem("legacyResourceName", "");
+    }
+    // import history from an older version library file.
+    KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(importhisturl.scheme());
+    if (factory != NULL) {
+      KLFLibResourceEngine *importres = factory->openResource(importhisturl, this);
+      QList<KLFLibResourceEngine::KLFLibEntryWithId> allentries
+	= importres->allEntries();
+      int k;
+      KLFLibEntryList insertentries;
+      for (k = 0; k < allentries.size(); ++k) {
+	insertentries << allentries[k].entry;
+      }
+      mHistoryLibResource->insertEntries(insertentries);
+    }
+  }
 
 }
 
-void KLFMainWin::restoreFromLibrary(KLFData::KLFLibraryItem j, bool restorestyle)
+
+
+void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
 {
-  slotSetLatex(j.latex); // to preserve text edit undo history...
-  if (restorestyle) {
-    colFg->setColor(QColor(qRed(j.style.fg_color), qGreen(j.style.fg_color), qBlue(j.style.fg_color)));
-    colBg->setColor(QColor(qRed(j.style.bg_color), qGreen(j.style.bg_color), qBlue(j.style.bg_color)));
-    chkBgTransparent->setChecked(qAlpha(j.style.bg_color) == 0);
-    chkMathMode->setChecked(j.style.mathmode.simplified() != "...");
-    if (j.style.mathmode.simplified() != "...")
-      cbxMathMode->setEditText(j.style.mathmode);
-    slotSetPreamble(j.style.preamble); // to preserve text edit undo/redo
-    spnDPI->setValue(j.style.dpi);
+  if (restoreFlags & KLFLib::RestoreLatex) {
+    slotSetLatex(entry.latex()); // to preserve text edit undo history...
+  }
+  if (restoreFlags & KLFLib::RestoreStyle) {
+    KLFStyle style = entry.style();
+    slotLoadStyle(style);
   }
 
-  lblOutput->display(j.preview.toImage(), j.preview.toImage(), false);
+  lblOutput->display(entry.preview(), entry.preview(), false);
   frmOutput->setEnabled(false);
   activateWindow();
   raise();
 }
- 
+
 void KLFMainWin::slotLibraryButtonRefreshState(bool on)
 {
   btnLibrary->setChecked(on);
@@ -898,8 +835,8 @@ void KLFMainWin::quit()
 {
   hide();
 
-  if (mLibraryBrowser)
-    mLibraryBrowser->hide();
+  if (mLibBrowser)
+    mLibBrowser->hide();
   if (mLatexSymbols)
     mLatexSymbols->hide();
   if (mStyleManager)
@@ -933,8 +870,8 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   // ----
   if ( e->type() == QEvent::Hide || e->type() == QEvent::Show ) {
     // shown/hidden windows: save/restore geometry
-    QWidget *sh_widgets[] = { mLibraryBrowser, mLatexSymbols, mSettingsDialog, mStyleManager, NULL };
-    int sh_enum[] = { LibraryBrowser, LatexSymbols, SettingsDialog, StyleManager, -1 };
+    QWidget *sh_widgets[] = { mLibBrowser, mLatexSymbols, mSettingsDialog, mStyleManager, NULL };
+    int sh_enum[] = { LibBrowser, LatexSymbols, SettingsDialog, StyleManager, -1 };
     int k;
     for (k = 0; sh_widgets[k] != NULL && sh_enum[k] >= 0; ++k) {
       if (obj == sh_widgets[k] && e->type() == QEvent::Hide && !((QHideEvent*)e)->spontaneous()) {
@@ -960,8 +897,8 @@ uint KLFMainWin::currentWindowShownStatus()
 
   flags |= isVisible();
 
-  if (mLibraryBrowser && mLibraryBrowser->isVisible())
-    flags |= LibraryBrowser;
+  if (mLibBrowser && mLibBrowser->isVisible())
+    flags |= LibBrowser;
   if (mLatexSymbols && mLatexSymbols->isVisible())
     flags |= LatexSymbols;
   if (mStyleManager && mStyleManager->isVisible())
@@ -977,8 +914,8 @@ void KLFMainWin::setWindowShownStatus(uint fl, bool metoo)
   if (metoo)
     setVisible(fl);
 
-  if (mLibraryBrowser)
-    mLibraryBrowser->setVisible(fl & LibraryBrowser);
+  if (mLibBrowser)
+    mLibBrowser->setVisible(fl & LibBrowser);
   if (mLatexSymbols)
     mLatexSymbols->setVisible(fl & LatexSymbols);
   if (mStyleManager)
@@ -1049,7 +986,9 @@ void KLFMainWin::alterSetting(altersetting_which which, QString svalue)
 
 bool KLFMainWin::importLibraryFileSeparateResources(const QString& fname, const QString& basername)
 {
-  return mLibraryBrowser->importLibraryFileSeparateResources(fname, basername);
+  //  return mLibraryBrowser->importLibraryFileSeparateResources(fname, basername);
+  /// \bug TODO/BUG............. implement this...............................
+  return false;
 }
 
 
@@ -1163,24 +1102,15 @@ void KLFMainWin::slotEvaluate()
     lblOutput->display(sc.toImage(), tooltipimg, true);
     frmOutput->setEnabled(true);
 
-    KLFData::KLFLibraryItem jj = { KLFData::KLFLibraryItem::MaxId++, QDateTime::currentDateTime(), input.latex, sc,
-				   KLFData::categoryFromLatex(input.latex), KLFData::tagsFromLatex(input.latex),
-				   KLFStyle() };
-    jj.style = currentStyle();
-
-    if ( _library[_libresources[0]].size() == 0 ||
-	 ! (_library[_libresources[0]].last() == jj) ) {
-      mLibraryBrowser->addToHistory(jj);
-    }
+    KLFLibEntry newentry = KLFLibEntry(input.latex, QDateTime::currentDateTime(), sc.toImage(),
+				       "", ""
+				       /*KLFLegacyData::categoryFromLatex(input.latex),
+					 KLFLegacyData::tagsFromLatex(input.latex)*/, currentStyle());
+    
+    mHistoryLibResource->insertEntry(newentry);
   }
 
-
   btnEvaluate->setEnabled(true); // re-enable our button
-
-  // and save our history and styles
-  //  saveLibrary(); // save library is time-consuming. do it only on program close.
-  //  saveStyles();
-
 }
 
 void KLFMainWin::slotClear()
@@ -1191,7 +1121,7 @@ void KLFMainWin::slotClear()
 
 void KLFMainWin::slotLibrary(bool showlib)
 {
-  mLibraryBrowser->setShown(showlib);
+  mLibBrowser->setShown(showlib);
   slotLibraryButtonRefreshState(showlib);
 }
 
@@ -1592,24 +1522,27 @@ void KLFMainWin::slotLoadStyleAct()
   }
 }
 
+void KLFMainWin::slotLoadStyle(const KLFStyle& style)
+{
+  QColor cfg, cbg;
+  cfg.setRgb(style.fg_color);
+  cbg.setRgb(style.bg_color);
+  colFg->setColor(cfg);
+  colBg->setColor(cbg);
+  chkBgTransparent->setChecked(qAlpha(style.bg_color) == 0);
+  chkMathMode->setChecked(style.mathmode.simplified() != "...");
+  if (style.mathmode.simplified() != "...")
+    cbxMathMode->setEditText(style.mathmode);
+  slotSetPreamble(style.preamble); // to preserve text edit undo/redo
+  spnDPI->setValue(style.dpi);
+}
+
 void KLFMainWin::slotLoadStyle(int n)
 {
   if (n < 0 || n >= (int)_styles.size())
     return; // let's not try to load an inexistant style...
 
-  uint fg = _styles[n].fg_color;
-  uint bg = _styles[n].bg_color;
-  colFg->setColor(QColor(qRed(fg), qGreen(fg), qBlue(fg)));
-  colBg->setColor(QColor(qRed(bg), qGreen(bg), qBlue(bg)));
-  chkBgTransparent->setChecked(qAlpha(bg) == 0);
-  if (_styles[n].mathmode.trimmed() == "...") {
-    chkMathMode->setChecked(false);
-  } else {
-    chkMathMode->setChecked(true);
-    cbxMathMode->setEditText(_styles[n].mathmode);
-  }
-  slotSetPreamble(_styles[n].preamble);
-  spnDPI->setValue(_styles[n].dpi);
+  slotLoadStyle(_styles[n]);
 }
 void KLFMainWin::slotSaveStyle()
 {
@@ -1654,8 +1587,7 @@ void KLFMainWin::slotSaveStyle()
 
   refreshStylePopupMenus();
 
-  // auto-save our history & style list
-  saveLibrary();
+  // auto-save our style list
   saveStyles();
 }
 

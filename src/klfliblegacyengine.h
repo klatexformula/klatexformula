@@ -25,7 +25,6 @@
 #define KLFLIBLEGACYENGINE_H
 
 
-
 #include <QDateTime>
 #include <QList>
 #include <QDataStream>
@@ -33,6 +32,7 @@
 #include <QMap>
 #include <QMetaType>
 #include <QFile>
+#include <QTimer>
 
 #include <klflib.h>
 
@@ -45,6 +45,22 @@
  */
 class KLF_EXPORT KLFLegacyData {
 public:
+
+  struct KLFStyle {
+    KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
+	     unsigned long bgcol = qRgba(255,255,255,0),
+	     const QString& mmode = QString(),
+	     const QString& pre = QString(),
+	     int dotsperinch = -1)
+      : name(nm), fg_color(fgcol), bg_color(bgcol), mathmode(mmode), preamble(pre),
+	dpi(dotsperinch) { }
+    QString name; // this may not always be set, it's only important in saved style list.
+    unsigned long fg_color;
+    unsigned long bg_color;
+    QString mathmode;
+    QString preamble;
+    int dpi;
+  };
 
   // THESE VALUES MUST NOT CHANGE FROM ONE VERSION TO ANOTHER OF KLATEXFORMULA :
   enum {  LibResource_History = 0, LibResource_Archive = 1,
@@ -71,7 +87,7 @@ public:
     QString category;
     QString tags;
 
-    KLFStyle style;
+    KLFLegacyData::KLFStyle style;
   };
 
   static QString categoryFromLatex(const QString& latex);
@@ -86,6 +102,11 @@ private:
 
   KLFLegacyData();
 };
+
+QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFStyle& style);
+QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style);
+bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle& b);
+
 
 // it is important to note that the >> operator imports in a compatible way to KLF 2.0
 QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem& item);
@@ -106,10 +127,10 @@ bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
 
 
 
-//! The Legacy Library support for the new KLFLib
+//! The Legacy Library support for the KLFLib framework
 /** Implements a KLFLibResourceEngine resource engine for accessing (KLF<=3.1)-created libraries
  * (*.klf, default library files) */
-class KLFLibLegacyEngine : public KLFLibResourceEngine
+class KLF_EXPORT KLFLibLegacyEngine : public KLFLibResourceEngine
 {
   Q_OBJECT
 public:
@@ -126,6 +147,7 @@ public:
    *   .....................
    */
   static KLFLibLegacyEngine * openUrl(const QUrl& url, QObject *parent = NULL);
+
   /** Use this function as a constructor. Creates a KLFLibLegacyEngine object,
    * with QObject parent \c parent, creating a fresh, empty .klf file.
    *
@@ -144,7 +166,7 @@ public:
   virtual bool canModifyProp(int propid) const;
   virtual bool canRegisterProperty(const QString& propName) const;
 
-  virtual QString curLegacyResource() const { return pLegacyRes; }
+  virtual QString curLegacyResource() const { return pCurRes; }
 
   virtual KLFLibEntry entry(entryId id);
   virtual QList<KLFLibEntryWithId> allEntries();
@@ -157,7 +179,10 @@ public:
 
 public slots:
 
-  virtual void setCurrentLegacyResource(const QString& curLegacyResource);
+  virtual bool save();
+  virtual void setAutoSaveInterval(int intervalms);
+
+  virtual bool setCurrentLegacyResource(const QString& curLegacyResource);
 
   virtual QList<entryId> insertEntries(const KLFLibEntryList& entries);
   virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
@@ -170,14 +195,27 @@ protected:
   virtual bool saveResourceProperty(int propId, const QVariant& value);
 
 private:
-  KLFLibLegacyEngine(const QString& fname, const QString& resname, const QUrl& url,
-		     bool accessshared, QObject *parent);
+  KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url, QObject *parent);
 
-  QFile *pFile;
-  
-  QString pResourceName;
+  QString pFileName;
 
+  KLFLegacyData::KLFLibrary pLibrary;
+  KLFLegacyData::KLFLibraryResourceList pResources;
+  // current considered resource in this legacy library
+  QString pCurRes;
+  int pCurResIndex;
 
+  QTimer *pAutoSaveTimer;
+
+  static bool loadLibraryFile(const QString& fname, KLFLegacyData::KLFLibraryResourceList *reslist,
+			      KLFLegacyData::KLFLibrary *lib);
+  static bool saveLibraryFile(const QString& fname, const KLFLegacyData::KLFLibraryResourceList& reslist,
+			      const KLFLegacyData::KLFLibrary& lib);
+  KLFLibEntry toLibEntry(const KLFLegacyData::KLFLibraryItem& item);
+  KLFLegacyData::KLFLibraryItem toLegacyLibItem(const KLFLibEntry& entry);
+  KLFLegacyData::KLFStyle toLegacyStyle(const KLFStyle& style);
+  KLFStyle toStyle(const KLFLegacyData::KLFStyle& oldstyle);
+  int findResourceName(const QString& resname);
 };
 
 

@@ -26,7 +26,7 @@
 
 #include <klfmainwin.h>
 #include <klfsettings.h>
-#include <klflibrary.h>
+//#include <klflibrary.h>
 #include <klflatexsymbols.h>
 #include <klfconfig.h>
 

@@ -26,6 +26,7 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QDataStream>
+#include <QColor>
 
 #include "klflib_p.h"
 #include "klflib.h"

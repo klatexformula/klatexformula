@@ -99,6 +99,8 @@ QString progErrorMsg(QString progname, int exitstatus, QString stderrstr, QStrin
 }
 
 
+/** Internal.
+ * \internal */
 struct cleanup_caller {
   QString tempfname;
   cleanup_caller(QString fn) : tempfname(fn) { }

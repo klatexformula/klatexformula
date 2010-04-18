@@ -26,9 +26,12 @@
 #include <QObject>
 #include <QDataStream>
 #include <QFile>
+#include <QFileInfo>
+#include <QMessageBox>
 
 #include "klflib.h"
 #include "klfliblegacyengine.h"
+#include "klfliblegacyengine_p.h"
 
 quint32 KLFLegacyData::KLFLibraryItem::MaxId = 1;
 
@@ -148,19 +151,45 @@ bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
 }
 
 
-
+QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFStyle& style)
+{
+  return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
+		<< style.mathmode << style.preamble << (quint16)style.dpi;
+}
+QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style)
+{
+  quint32 fg, bg;
+  quint16 dpi;
+  stream >> style.name;
+  stream >> fg >> bg >> style.mathmode >> style.preamble >> dpi;
+  style.fg_color = fg;
+  style.bg_color = bg;
+  style.dpi = dpi;
+  return stream;
+}
+bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle& b)
+{
+  return a.name == b.name &&
+    a.fg_color == b.fg_color &&
+    a.bg_color == b.bg_color &&
+    a.mathmode == b.mathmode &&
+    a.preamble == b.preamble &&
+    a.dpi == b.dpi;
+}
 
 
 
 // -------------------------------------------
 
+
 // static
-KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *parent = NULL)
+KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *parent)
 {
-  QString legresname = url.queryItemValue("legacyResourceName");
-  if (legresname.isEmpty()) {
+  if (!url.hasQueryItem("legacyResourceName")) {
+    qWarning()<<"Please specify a 'legacyResourceName' query item in URL.";
     return NULL;
   }
+  QString legresname = url.queryItemValue("legacyResourceName");
 
   QString fname = url.path();
   if ( ! QFileInfo(fname).isReadable() ) {
@@ -177,671 +206,483 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *paren
 }
 
 // static
-KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QUrl& url, const QString& legresname,
-						      QObject *parent = NULL)
+KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fileName, QString legacyResourceName,
+						      QObject *parent)
 {
-  
-}
-
-
-
-// static
-KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QString& dtablename,
-					      QObject *parent)
-{
-  QString datatablename = dtablename;
-
-  bool r;
-
+  QString lrname = legacyResourceName;
   if (QFile::exists(fileName)) {
-    // fail; we want to _CREATE_ a database. use openUrl() to open an existing DB.
+    // fail; we want to _CREATE_ a .klf file. Erase file before calling this function to overwrite.
     return NULL;
   }
   QUrl url = QUrl::fromLocalFile(fileName);
-  url.setScheme("klf+sqlite");
+  url.setScheme("klf+legacy");
 
-  if (datatablename.isEmpty())
-    datatablename = "klfentries";
-  else
-    url.addQueryItem("dataTableName", datatablename);
+  if (lrname.isEmpty())
+    lrname = "Resource"; // default name...?
+  url.addQueryItem("legacyResourceName", lrname);
 
-  QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
-  db.setDatabaseName(url.path());
-
-  r = db.open(); // go open (here create) the DB
-  if ( !r || db.lastError().isValid() ) {
-    QMessageBox::critical(0, tr("Error"),
-			  tr("Unable to create library file %1 (SQLITE database):\n"
-			     "%2")
-			  .arg(url.path(), db.lastError().text()), QMessageBox::Ok);
-    return NULL;
-  }
-
-  r = initFreshDatabase(db, datatablename);
-  if ( !r ) {
-    QMessageBox::critical(0, tr("Error"),
-			  tr("Unable to initialize the SQLITE database file %1!").arg(url.path()));
-    return NULL;
-  }
-
-  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, false, parent);
-}
-
-// private
-KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autodisconnect,
-			       const QUrl& url, bool accessshared, QObject *parent)
-  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureLocked, parent), pAutoDisconnectDB(autodisconnect)
-{
-  pDataTableName = "t_"+tablename;
-
-  // load some read-only properties in memory (these are NOT stored in the DB)
-  KLFPropertizedObject::setProperty(PropAccessShared, accessshared);
-
-  setDatabase(db);
-  // read resource properties from database
-  QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT name,value FROM klf_properties");
-  q.exec();
-  while (q.next()) {
-    QString propname = q.value(0).toString();
-    QVariant propvalue = convertVariantFromDBData(q.value(1));
-    qDebug()<<"Setting property `"<<propname<<"' to "<<propvalue<<"";
-    if (!propertyNameRegistered(propname)) {
-      if (!canRegisterProperty(propname))
-	continue;
-      KLFPropertizedObject::registerProperty(propname);
-    }
-    KLFPropertizedObject::setProperty(propname, propvalue);
-  }
-}
-
-KLFLibDBEngine::~KLFLibDBEngine()
-{
-  if (pAutoDisconnectDB) {
-    pDB.close();
-    QSqlDatabase::removeDatabase(pDB.connectionName());
-  }
-}
-
-bool KLFLibDBEngine::canModifyData(ModifyType mt) const
-{
-  if ( !KLFLibResourceEngine::canModifyData(mt) )
+  // create the .klf file
+  KLFLegacyData::KLFLibrary lib = KLFLegacyData::KLFLibrary();
+  KLFLegacyData::KLFLibraryResourceList reslist = KLFLegacyData::KLFLibraryResourceList();
+  bool r = saveLibraryFile(fileName, reslist, lib);
+  if (!r)
     return false;
 
-  /** \todo TODO: check if file is writable (SQLITE3), if permissions on the database
-   * are granted (MySQL, PgSQL, etc.) */
-  return true;
+  return new KLFLibLegacyEngine(fileName, lrname, url, parent);
 }
 
-bool KLFLibDBEngine::canModifyProp(int propId) const
+// private, static
+bool KLFLibLegacyEngine::loadLibraryFile(const QString& fname, KLFLegacyData::KLFLibraryResourceList *reslist,
+					 KLFLegacyData::KLFLibrary *lib)
 {
-  return KLFLibResourceEngine::canModifyProp(propId);
-}
-bool KLFLibDBEngine::canRegisterProperty(const QString& /*propName*/) const
-{
-  // we can register properties if we can write them
-  return canModifyProp(-1);
-}
-
-bool KLFLibDBEngine::validDatabase() const
-{
-  return pDB.isOpen();
-}
-
-void KLFLibDBEngine::setDatabase(const QSqlDatabase& db)
-{
-  pDB = db;
-}
-
-// private
-bool KLFLibDBEngine::saveResourceProperty(int propId, const QVariant& value)
-{
-  QString propName = propertyNameForId(propId);
-  if ( propName.isEmpty() )
+  QFile fimp(fname);
+  if ( ! fimp.open(QIODevice::ReadOnly) ) {
+    qWarning("Unable to open library file %s!", qPrintable(fname));
     return false;
-
-  {
-    QSqlQuery q = QSqlQuery(pDB);
-    q.prepare("DELETE FROM klf_properties WHERE name = ?");
-    q.addBindValue(propName);
-    bool r = q.exec();
-    if ( !r || q.lastError().isValid() ) {
-      qWarning()<<"KLFLibDBEngine::setRes.Property("<<propId<<","<<value<<"): can't DELETE!\n\t"
-		<<q.lastError().text()<<"\n\tSQL="<<q.lastQuery();
-      return false;
-    }
   }
-  {
-    QSqlQuery q = QSqlQuery(pDB);
-    q.prepare("INSERT INTO klf_properties (name,value) VALUES (?,?)");
-    q.bindValue(0, propName);
-    q.bindValue(1, convertVariantToDBData(value));
-    if ( ! q.exec() || q.lastError().isValid() ) {
-      qWarning()<<"KLFLibDBEngine::setRes.Property("<<propId<<","<<value<<"): can't INSERT!\n\t"
-		<<q.lastError().text()<<"\n\tSQL="<<q.lastQuery();
-      return false;
-    }
-  }
-  KLFPropertizedObject::setProperty(propId, value);
-  emit resourcePropertyChanged(propId);
-  return true;
-}
-
-
-
-
-// private
-QStringList KLFLibDBEngine::detectEntryColumns(const QSqlQuery& q)
-{
-  const QSqlRecord rec = q.record();
-  QStringList cols;
-  KLFLibEntry dummy; // to get prop ID and possibly register property
-  int k;
-  for (k = 0; k < rec.count(); ++k) {
-    QString propName = rec.fieldName(k);
-    int propId = dummy.propertyIdForName(propName);
-    if (propId < 0 && propName != "id") { // don't register field "id"
-      qDebug()<<"Registering property "<<propName;
-      dummy.setEntryProperty(propName, QVariant()); // register property.
-    }
-
-    cols << propName;
-  }
-  return cols;
-}
-// private
-KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& cols)
-{
-  // and actually read the result and return it
-  KLFLibEntry entry;
-  int k;
-  for (k = 0; k < cols.size(); ++k) {
-    QVariant v = q.value(k);
-    if (cols[k] == "id")
-      continue;
-    /** \bug DEBUG/TODO/BUG .... HERE REMOVE THE FOLLOWING SPECIAL CASES LATER (these
-     * are needed only for my old test db's... */
-    bool hasTypeInfo = (v.toByteArray()[0] == '[');
-    if (!hasTypeInfo && cols[k] == "DateTime")
-      entry.setDateTime(QDateTime::fromString(q.value(k).toString(), Qt::ISODate));
-    else if (!hasTypeInfo && cols[k] == "Preview") {
-      QImage img; img.loadFromData(q.value(k).toByteArray());
-      entry.setPreview(img);
-    } else if (!hasTypeInfo && cols[k] == "KLFStyle") {
-      entry.setStyle(metatype_from_data<KLFStyle>(q.value(k).toByteArray()));
+  QDataStream stream(&fimp);
+  // Qt3-compatible stream input
+  stream.setVersion(QDataStream::Qt_3_3);
+  QString s1;
+  stream >> s1;
+  if (s1 == "KLATEXFORMULA_LIBRARY_EXPORT") {
+    // opening an export file (*.klf)
+    qint16 vmaj, vmin;
+    stream >> vmaj >> vmin; // these are not needed, format has not changed in .klf export files.
+    stream >> *reslist >> *lib;
+  } else if (s1 == "KLATEXFORMULA_LIBRARY") {
+    // opening a library file (~/.klatexformula/library)
+    qint16 vmaj, vmin;
+    stream >> vmaj >> vmin; // these are not needed, format has not changed in .klf export files.
+    if (vmaj <= 2) {
+      stream.setVersion(QDataStream::Qt_3_3);
     } else {
-      entry.setEntryProperty(cols[k], convertVariantFromDBData(q.value(k)));
+      qint16 version;
+      stream >> version;
+      stream.setVersion(version);
+    }
+    quint32 lib_max_id;
+    stream >> lib_max_id; // will not be used...
+    // now read the library itself.
+    stream >> *reslist >> *lib;
+  } else if (s1 == "KLATEXFORMULA_HISTORY") {
+    // opening a post-2.0, pre-2.1 "history" file  (no "library" yet)
+    qint16 vmaj, vmin;
+    stream >> vmaj >> vmin;
+    KLFLegacyData::KLFLibraryList history;
+    quint32 lib_max_id;
+    stream >> lib_max_id >> history;
+
+    *reslist = KLFLegacyData::KLFLibraryResourceList();
+    KLFLegacyData::KLFLibraryResource historyresource;
+    historyresource.id = KLFLegacyData::LibResource_History;
+    historyresource.name = tr("History");
+    reslist->append(historyresource);
+    *lib = KLFLegacyData::KLFLibrary();
+    lib->operator[](historyresource) = history;
+	  
+  } else {
+    qWarning("Error: Library file `%s' is invalid library file or corrupt!", qPrintable(fname));
+    return false;
+  }
+
+
+  // update KLFLibraryItem::MaxId
+  int k;
+  for (k = 0; k < reslist->size(); ++k) {
+    KLFLegacyData::KLFLibraryList ll = lib->operator[](reslist->operator[](k));
+    int j;
+    for (j = 0; j < ll.size(); ++j) {
+      if (ll[j].id >= KLFLegacyData::KLFLibraryItem::MaxId)
+	KLFLegacyData::KLFLibraryItem::MaxId = ll[j].id+1;
     }
   }
-  return entry;
+
+  return true;
+}
+
+// private, static
+bool KLFLibLegacyEngine::saveLibraryFile(const QString& fname, const KLFLegacyData::KLFLibraryResourceList& reslist,
+					 const KLFLegacyData::KLFLibrary& lib)
+{
+  QFile fsav(fname);
+  if ( ! fsav.open(QIODevice::WriteOnly) ) {
+    qWarning("Can't write to file %s!", qPrintable(fname));
+    return false;
+  }
+  QDataStream stream(&fsav);
+  // write Qt 3.3-compatible data
+  stream.setVersion(QDataStream::Qt_3_3);
+
+  // WE'RE WRITING KLF 2.1 compatible output, so we write as being version 2.1
+  stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
+	 << reslist << lib;
+}
+
+// private
+int KLFLibLegacyEngine::findResourceName(const QString& resname)
+{
+  int k;
+  for (k = 0; k < pResources.size() && pResources[k].name != resname; ++k)
+    ;
+  return k < pResources.size() ? k : -1;
+}
+
+// private
+KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url,
+				       QObject *parent)
+  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureSaveAs, parent)
+{
+  // load library
+  pFileName = fileName;
+  loadLibraryFile(fileName, &pResources, &pLibrary);
+
+  // add at least one resource (baptized resname) if the library is empty
+  if (pResources.isEmpty()) {
+    // create a resource
+    KLFLegacyData::KLFLibraryResource res;
+    res.id = KLFLegacyData::LibResourceUSERMAX-1;
+    res.name = resname;
+    pResources << res;
+    // and initialize pLibrary to contain this one empty resource.
+    pLibrary.clear();
+    pLibrary[res] = KLFLegacyData::KLFLibraryList();
+    pCurRes = resname;
+    pCurResIndex = 0;
+  } else {
+    pCurRes = resname;
+    pCurResIndex = findResourceName(resname);
+    if (pCurResIndex < 0 || resname.isEmpty()) {
+      // specified resource name doesn't exist. Open first in list.
+      pCurResIndex = 0;
+      pCurRes = pResources[pCurResIndex].name;
+    }
+  }
+
+  KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
+  KLFPropertizedObject::setProperty(PropTitle, resname);
+
+  pAutoSaveTimer = new QTimer(this);
+  connect(pAutoSaveTimer, SIGNAL(timeout()), this, SLOT(save()));
+
+  if (!isReadOnly())
+    setAutoSaveInterval(180000); // by default: 3 minutes
+}
+
+KLFLibLegacyEngine::~KLFLibLegacyEngine()
+{
+  if (!isReadOnly())
+    save();
+}
+
+bool KLFLibLegacyEngine::canModifyData(ModifyType modifytype) const
+{
+  if ( ! KLFLibResourceEngine::canModifyData(modifytype) )
+    return false;
+  /// \todo TODO: check if file is writable ..............
+
+  return true;
+}
+
+bool KLFLibLegacyEngine::canModifyProp(int propid) const
+{
+  return false;
+}
+
+bool KLFLibLegacyEngine::canRegisterProperty(const QString& propName) const
+{
+  return false;
+}
+
+KLFLibEntry KLFLibLegacyEngine::entry(entryId id)
+{
+  KLFLegacyData::KLFLibraryList ll = pLibrary[pResources[pCurResIndex]];
+  // find entry with id 'id'
+  int k;
+  for (k = 0; k < ll.size() && ll[k].id != id; ++k)
+    ;
+  if (k == ll.size()) {
+    return KLFLibEntry();
+  }
+
+  return toLibEntry(ll[k]);
+}
+
+// private
+KLFLegacyData::KLFStyle KLFLibLegacyEngine::toLegacyStyle(const KLFStyle& style)
+{
+  KLFLegacyData::KLFStyle oldstyle;
+  oldstyle.name = style.name;
+  oldstyle.fg_color = style.fg_color;
+  oldstyle.bg_color = style.bg_color;
+  oldstyle.mathmode = style.mathmode;
+  oldstyle.preamble = style.preamble;
+  oldstyle.dpi = style.dpi;
+  return oldstyle;
+}
+// private
+KLFStyle KLFLibLegacyEngine::toStyle(const KLFLegacyData::KLFStyle& oldstyle)
+{
+  KLFStyle style;
+  style.name = oldstyle.name;
+  style.fg_color = oldstyle.fg_color;
+  style.bg_color = oldstyle.bg_color;
+  style.mathmode = oldstyle.mathmode;
+  style.preamble = oldstyle.preamble;
+  style.dpi = oldstyle.dpi;
+  return style;
+}
+
+// private
+KLFLibEntry KLFLibLegacyEngine::toLibEntry(const KLFLegacyData::KLFLibraryItem& item)
+{
+  return KLFLibEntry(item.latex, item.datetime, item.preview.toImage(), item.category, item.tags,
+		     toStyle(item.style));
+}
+// private
+KLFLegacyData::KLFLibraryItem KLFLibLegacyEngine::toLegacyLibItem(const KLFLibEntry& entry)
+{
+  KLFLegacyData::KLFLibraryItem item;
+  item.id = KLFLegacyData::KLFLibraryItem::MaxId++;
+  item.latex = entry.latex();
+  item.category = entry.category();
+  item.tags = entry.tags();
+  item.preview = QPixmap::fromImage(entry.preview());
+  item.datetime = entry.dateTime();
+  item.style = toLegacyStyle(entry.style());
+  return item;
 }
 
 
-
-KLFLibEntry KLFLibDBEngine::entry(entryId id)
+QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibLegacyEngine::allEntries()
 {
-  if ( ! validDatabase() )
-    return KLFLibEntry();
-
-  QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT * FROM `"+pDataTableName+"` WHERE id = ?");
-  q.addBindValue(id);
-  bool r = q.exec();
-
-  if ( !r || q.lastError().isValid() || q.size() == 0) {
-    qWarning("KLFLibDBEngine::entry: id=%d cannot be found!\n"
-	     "SQL Error (?): %s", id, qPrintable(q.lastError().text()));
-    return KLFLibEntry();
-  }
-  //   if (q.size() != 1) {
-  //     qWarning("KLFLibDBEngine::entry: %d results returned for id %d!", q.size(), id);
-  //     return KLFLibEntry();
-  //   }
-  if ( ! q.next() ) {
-    qWarning("KLFLibDBEngine::entry(): no entry available!\n"
-	     "SQL=\"%s\" (?=%d)", qPrintable(q.lastQuery()), id);
-    return KLFLibEntry();
-  }
-
-  // read the result and return it
-  KLFLibEntry e = readEntry(q, detectEntryColumns(q));
-  q.finish();
-  return e;
+  return allEntriesInResource(pCurRes);
 }
 
-
-QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
+QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibLegacyEngine::allEntriesInResource(const QString& resource)
 {
-  if ( ! validDatabase() )
-    return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
-
-  QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT * FROM `"+pDataTableName+"`");
-  q.setForwardOnly(true);
-  q.exec();
+  int rindex = findResourceName(resource);
+  if (rindex < 0)
+    return QList<KLFLibEntryWithId>();
 
   QList<KLFLibEntryWithId> entryList;
-
-  int colId = q.record().indexOf("id");
-  QStringList cols = detectEntryColumns(q);
-  while (q.next()) {
+  KLFLegacyData::KLFLibraryList ll = pLibrary[pResources[rindex]];
+  int k;
+  for (k = 0; k < ll.size(); ++k) {
     KLFLibEntryWithId e;
-    e.id = q.value(colId).toInt();
-    e.entry = readEntry(q, cols);
+    e.entry = toLibEntry(ll[k]);
+    e.id = ll[k].id;
     entryList << e;
   }
-
   return entryList;
 }
 
 
-// private
-QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
+QStringList KLFLibLegacyEngine::getLegacyResourceNames(const QUrl& url)
 {
-  // setup data in proper format if needed
-
-  if (!value.isValid())
-    return QVariant();
-
-  int t = value.type();
-  const char *ts = value.typeName();
-  if (t == QVariant::Int || t == QVariant::UInt || t == QVariant::LongLong || t == QVariant::ULongLong ||
-      t == QVariant::Double)
-    return value; // value is OK
-
-  // these types are to be converted to string
-  if (t == QVariant::String)
-    return encaps(ts, value.toString());
-  if (t == QVariant::Bool)
-    return encaps(ts, value.toBool() ? QString("true") : QString("false"));
-
-  // these types are to be converted by byte array
-  if (t == QVariant::ByteArray)
-    return encaps(ts, value.toByteArray());
-  if (t == QVariant::DateTime)
-    return encaps(ts, value.value<QDateTime>().toString(Qt::ISODate).toLatin1());
-  if (t == QVariant::Image)
-    return encaps(ts, image_data(value.value<QImage>(), "PNG"));
-  if (t == QVariant::Point) {
-    QPoint p = value.value<QPoint>();
-    return encaps(ts, QByteArray()+"("+QString::number(p.x()).toLatin1()+","
-		  +QString::number(p.y()).toLatin1()+")");
-  }
-
-  // any other case: convert metatype to QByteArray.
-  QByteArray valuedata;
-  { QDataStream stream(&valuedata, QIODevice::WriteOnly);
-    stream.setVersion(QDataStream::Qt_4_4);
-    stream << value; }
-  return encaps(ts, valuedata);
-}
-
-QVariant KLFLibDBEngine::encaps(const char *ts, const QString& data) const
-{
-  return QVariant::fromValue<QString>(QString("[")+ts+"]"+data);
-}
-QVariant KLFLibDBEngine::encaps(const char *ts, const QByteArray& data) const
-{
-  QByteArray edata;
-  edata.append("[");
-  edata.append(ts);
-  edata.append("]");
-  edata.append(data);
-  return QVariant::fromValue<QByteArray>(edata);
-}
-QVariant KLFLibDBEngine::convertVariantFromDBData(const QVariant& dbdata) const
-{
-  if ( !dbdata.isValid() )
-    return QVariant();
-
-  int t = dbdata.type();
-  if (t == QVariant::Int || t == QVariant::UInt || t == QVariant::LongLong || t == QVariant::ULongLong ||
-      t == QVariant::Double)
-    return dbdata; // value is OK
-
-  if (t == QVariant::String)
-    return decaps(dbdata.toString());
-  if (t == QVariant::ByteArray)
-    return decaps(dbdata.toByteArray());
-
-  qWarning()<<"Unexpected DB data variant found: "<<dbdata;
-  return QVariant();
-}
-QVariant KLFLibDBEngine::decaps(const QString& sdata) const
-{
-  return decaps(sdata.toUtf8());
-}
-QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
-{
-  //  qDebug()<<"decaps(): "<<data;
+  KLFLibLegacyEngine *resource = openUrl(url, NULL);
+  QStringList resnamelist;
   int k;
-  if (!data.size())
-    return QVariant();
-  if (data[0] != '[')
-    return QVariant::fromValue<QString>(QString::fromUtf8(data));
-  for (k = 1; k < data.size() && data[k] != ']'; ++k)  ;
-  if (k >= data.size()) {
-    qWarning()<<"KLFLibDBEngine::decaps(QB.A.): bad data:"<<data;
-    return QVariant();
-  }
-  const QByteArray typenam = data.mid(1, k-1);
-  const QByteArray valuedata = data.mid(k+1);
+  for (k = 0; k < resource->pResources.size(); ++k)
+    resnamelist << resource->pResources[k].name;
 
-  if (typenam == "bool") {
-    QString svaluedata = QString::fromUtf8(valuedata);
-    return QVariant::fromValue<bool>(svaluedata[0].toLower() == 't' ||
-				     svaluedata[0].toLower() == 'y' ||
-				     svaluedata.toInt() != 0);
-  }
-  if (typenam == "QString")
-    return QVariant::fromValue<QString>(QString::fromUtf8(valuedata));
-  if (typenam == "QByteArray")
-    return QVariant::fromValue<QByteArray>(valuedata);
-  if (typenam == "QDateTime")
-    return QDateTime::fromString(QString::fromLatin1(valuedata), Qt::ISODate);
-  if (typenam == "QPoint") {
-    static QRegExp rx("\\s*\\(\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\)");
-    if ( !rx.exactMatch(valuedata) ) {
-      qDebug()<<"nomatch!";
-      return QPoint(-1,-1);
-    }
-    QStringList cap = rx.capturedTexts();
-    if (cap.size() < 3) {
-      qDebug()<<"Bad cap "<<cap;
-      return QPoint(-1,-1);
-    }
-    QPoint p(cap[1].toInt(), cap[2].toInt());
-    return p;
-  }
-  if (typenam == "QImage") {
-    QImage img;
-    img.loadFromData(valuedata);
-    return QVariant::fromValue<QImage>(img);
-  }
+  delete resource; // immediately close the resource
 
-  // OTHERWISE, load from datastream save:
-
-  QVariant value;
-  { QDataStream stream(valuedata);
-    stream.setVersion(QDataStream::Qt_4_4);
-    stream >> value; }
-  return value;
+  return resnamelist;
 }
 
-
-bool KLFLibDBEngine::ensureDataTableColumnsExist()
+bool KLFLibLegacyEngine::save()
 {
-  KLFLibEntry dummy;
-  QSqlRecord rec = pDB.record(pDataTableName);
-  QStringList propNameList = dummy.registeredPropertyNameList();
-  int k;
-  bool failed = false;
-  for (k = 0; k < propNameList.size(); ++k) {
-    if (rec.contains(propNameList[k]))
-      continue;
-    QSqlQuery sql(pDB);
-    sql.prepare("ALTER TABLE `"+pDataTableName+"` ADD COLUMN "+propNameList[k]+" BLOB");
-    bool r = sql.exec();
-    if (!r || sql.lastError().isValid()) {
-      qWarning()<<"KLFLibDBEngine::ensureDataTableColumnsExist: Can't add column "<<propNameList[k]<<"!\n"
-		<<sql.lastError().text()<<" SQL="<<sql.lastQuery();
-      failed = true;
-    }
+  if (isReadOnly()) {
+    qWarning("KLFLibLegacyEngine::save: resource is read-only!");
+    return false;
   }
-
-  return !failed;
+  return saveLibraryFile(pFileName, pResources, pLibrary);
 }
 
-
-// --
-
-
-QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibEntryList& entrylist)
+void KLFLibLegacyEngine::setAutoSaveInterval(int intervalms)
 {
-  int k, j;
-  if ( ! validDatabase() )
-    return QList<entryId>();
+  pAutoSaveTimer->stop();
+  if (intervalms > 0) {
+    pAutoSaveTimer->setInterval(intervalms);
+    pAutoSaveTimer->setSingleShot(false);
+    pAutoSaveTimer->start();
+  }
+}
+
+bool KLFLibLegacyEngine::setCurrentLegacyResource(const QString& curLegacyResource)
+{
+  int index = findResourceName(curLegacyResource);
+  if (index < 0) {
+    qWarning()<<"Bad legacy resource name: "<<curLegacyResource;
+    return false;
+  }
+
+  pCurRes = curLegacyResource;
+  pCurResIndex = index;
+  emit dataChanged(QList<KLFLib::entryId>()); // data "changed" completely
+}
+
+QList<KLFLibResourceEngine::entryId> KLFLibLegacyEngine::insertEntries(const KLFLibEntryList& entrylist)
+{
   if ( entrylist.size() == 0 )
+     return QList<entryId>();
+  if (!canModifyData(InsertData))
     return QList<entryId>();
 
-  if ( !canModifyData(InsertData) )
-    return QList<entryId>();
+  QList<entryId> newIds;
 
-  KLFLibEntry e; // dummy object to test for properties
-  QList<int> propids = e.registeredPropertyIdList();
-  QStringList props;
-  QStringList questionmarks;
-  for (k = 0; k < propids.size(); ++k) {
-    props << e.propertyNameForId(propids[k]);
-    questionmarks << "?";
-  }
-
-  QList<entryId> insertedIds;
-
-  ensureDataTableColumnsExist();
-
-  QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("INSERT INTO `" + pDataTableName + "` (" + props.join(",") + ") "
-	    " VALUES (" + questionmarks.join(",") + ")");
-  qDebug()<<"INSERT query: "<<q.lastQuery();
-  // now loop all entries, and exec the query with appropriate bound values
-  for (j = 0; j < entrylist.size(); ++j) {
-    //    qDebug()<<"New entry to insert.";
-    for (k = 0; k < propids.size(); ++k) {
-      QVariant data = convertVariantToDBData(entrylist[j].property(propids[k]));
-      // and add a corresponding bind value for sql query
-      qDebug()<<"Binding value "<<k<<": "<<data;
-      q.bindValue(k, data);
-    }
-    // and exec the query with these bound values
-    bool r = q.exec();
-    if ( ! r || q.lastError().isValid() ) {
-      qWarning()<<"INSERT failed! SQL Error: "<<q.lastError().text()<<"\n\tSQL="<<q.lastQuery();
-      insertedIds << -1;
-    } else {
-      QVariant v_id = q.lastInsertId();
-      if ( ! v_id.isValid() )
-	insertedIds << -2;
-      else
-	insertedIds << v_id.toInt();
-    }
-  }
-
-  emit dataChanged(insertedIds);
-  return insertedIds;
-}
-
-
-bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
-				   const QList<QVariant>& values)
-{
-  if ( ! validDatabase() )
-    return false;
-  if ( ! canModifyData(ChangeData) )
-    return false;
-
-  if ( properties.size() != values.size() ) {
-    qWarning("KLFLibDBEngine::changeEntry(): properties' and values' sizes mismatch!");
-    return false;
-  }
-
-  if ( idlist.size() == 0 )
-    return true; // no items to change
-
-  qDebug()<<"KLFLibDBEngine::changeEntries: funcional tests passed; idlist="<<idlist<<" props="
-	  <<properties<<" vals="<<values;
-
-  ensureDataTableColumnsExist();
-
-  KLFLibEntry e; // dummy 
-  QStringList updatepairs;
   int k;
-  for (k = 0; k < properties.size(); ++k) {
-    updatepairs << (e.propertyNameForId(properties[k]) + " = ?");
-  }
-  QStringList questionmarks_ids;
-  for (k = 0; k < idlist.size(); ++k) questionmarks_ids << "?";
-  // prepare query
-  QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("UPDATE `"+pDataTableName+"` SET " + updatepairs.join(", ") + "  WHERE id IN (" +
-	    questionmarks_ids.join(", ") + ")");
-  for (k = 0; k < properties.size(); ++k) {
-    q.addBindValue(convertVariantToDBData(values[k]));
-  }
-  for (k = 0; k < idlist.size(); ++k)
-    q.addBindValue(idlist[k]);
-  bool r = q.exec();
-
-  //  qDebug() << "UPDATE: SQL="<<q.lastQuery()<<"; boundvalues="<<q.boundValues().values();
-  if ( !r || q.lastError().isValid() ) {
-    qWarning() << "SQL UPDATE Error: "<<q.lastError()<<"\nWith SQL="<<q.lastQuery()
-	       <<";\n and bound values="<<q.boundValues();
-    return false;
+  for (k = 0; k < entrylist.size(); ++k) {
+    KLFLegacyData::KLFLibraryItem item = toLegacyLibItem(entrylist[k]);
+    pLibrary[pResources[pCurResIndex]] << item;
+    newIds << item.id;
   }
 
-  //  qDebug() << "Wrote Entry change to ids "<<idlist;
-  emit dataChanged(idlist);
-  return true;
+  return newIds;
 }
-
-bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
+bool KLFLibLegacyEngine::changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
+				       const QList<QVariant>& values)
 {
-  if ( ! validDatabase() )
-    return false;
   if (idlist.size() == 0)
-    return true; // nothing to do
-  if ( ! canModifyData(DeleteData) )
+    return true;
+  if (!canModifyData(ChangeData))
     return false;
+
+  const KLFLegacyData::KLFLibraryList& ll = pLibrary[pResources[pCurResIndex]];
+
+  bool success = true;
 
   int k;
-  QStringList qmarks_ids;
-  for (k = 0; k < idlist.size(); ++k)
-    qmarks_ids << "?";
-
-  QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("DELETE FROM `"+pDataTableName+"` WHERE id IN ("+qmarks_ids.join(", ")+")");
-  for (k = 0; k < idlist.size(); ++k)
-    q.addBindValue(idlist[k]);
-  bool r = q.exec();
-  q.finish();
-
-  emit dataChanged(idlist);
-
-  if ( !r || q.lastError().isValid())
-    return false;   // an error was set
-
-  return true;  // no error
-}
-
-bool KLFLibDBEngine::saveAs(const QUrl& newPath)
-{
-  if (newPath.scheme() != "klf+sqlite") {
-    qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Bad scheme!";
-    return false;
-  }
-  if (!newPath.host().isEmpty()) {
-    qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Expected empty host!";
-    return false;
-  }
-  return QFile::copy(url().path(), newPath.path());
-}
-
-// static
-bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)
-{
-  QString datatablename = "t_"+dtname;
-  if ( ! db.isOpen() )
-    return false;
-
-  QStringList sql;
-  // the CREATE TABLE statements should be adapted to the database type (sqlite, mysql, pgsql) since
-  // syntax is different...
-  sql << "CREATE TABLE `"+datatablename+"` (id INTEGER PRIMARY KEY, Latex TEXT, DateTime TEXT, "
-    "       Preview BLOB, Category TEXT, Tags TEXT, Style BLOB)";
-  sql << "CREATE TABLE klf_properties (id INTEGER PRIMARY KEY, name TEXT, value BLOB)";
-  sql << "INSERT INTO klf_properties (name, value) VALUES ('Title', 'New Resource')";
-  sql << "INSERT INTO klf_properties (name, value) VALUES ('Locked', 'false')";
-  sql << "CREATE TABLE klf_dbmetainfo (id INTEGER PRIMARY KEY, name TEXT, value BLOB)";
-  sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_version', '" KLF_VERSION_STRING "')";
-  sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_dbversion', '"+
-    QString::number(KLF_DB_VERSION)+"')";
-
-  int k;
-  for (k = 0; k < sql.size(); ++k) {
-    QSqlQuery query(db);
-    query.prepare(sql[k]);
-    bool r = query.exec();
-    if ( !r || query.lastError().isValid() ) {
-      qWarning()<<"initFreshDatabase(): SQL Error: "<<query.lastError().text()<<"\n"
-		<<"SQL="<<sql[k];
-      return false;
+  for (k = 0; k < idlist.size(); ++k) {
+    int libindex;
+    int j;
+    // find the entry
+    for (libindex = 0; libindex < ll.size() && ll[libindex].id != idlist[k]; ++libindex)
+      ;
+    if (libindex == ll.size()) {
+      qWarning()<<"KLFLibLegacyEngine::changeEntries: Can't find entry with id "<<idlist[k];
+      success = false;
+      continue;
+    }
+    // modify this entry as requested.
+    for (j = 0; j < properties.size(); ++j) {
+      switch (properties[j]) {
+      case KLFLibEntry::Latex:
+	pLibrary[pResources[pCurResIndex]][libindex].latex = values[j].toString();
+	break;
+      case KLFLibEntry::DateTime:
+	pLibrary[pResources[pCurResIndex]][libindex].datetime = values[j].toDateTime();
+	break;
+      case KLFLibEntry::Preview:
+	pLibrary[pResources[pCurResIndex]][libindex].preview = QPixmap::fromImage(values[j].value<QImage>());
+	break;
+      case KLFLibEntry::Category:
+	pLibrary[pResources[pCurResIndex]][libindex].category = values[j].toString();
+	break;
+      case KLFLibEntry::Tags:
+	pLibrary[pResources[pCurResIndex]][libindex].tags = values[j].toString();
+	break;
+      case KLFLibEntry::Style:
+	pLibrary[pResources[pCurResIndex]][libindex].style = toLegacyStyle(values[j].value<KLFStyle>());
+	break;
+      default:
+	qWarning("KLFLibLegacyEngine::changeEntries: Cannot set arbitrary property '%s'.",
+		 qPrintable(propertyNameForId(properties[j])));
+	success = false;
+	break;
+      }
     }
   }
-
-  return true;
+  return success;
 }
 
-
-QStringList KLFLibDBEngine::getDataTableNames(const QUrl& url)
+bool KLFLibLegacyEngine::deleteEntries(const QList<entryId>& idlist)
 {
-  KLFLibDBEngine *resource = openUrl(url, NULL);
-  QStringList tables = resource->pDB.tables(QSql::Tables);
-  delete resource;
-  // filter out t_<tablename> tables
+  if (idlist.isEmpty())
+    return true;
+  if (!canModifyData(DeleteData))
+    return false;
+
+  // now remove the requested entries
+
+  KLFLegacyData::KLFLibraryList *ll = & pLibrary[pResources[pCurResIndex]];
+  bool success = true;
   int k;
-  QStringList dataTableNames;
-  for (k = 0; k < tables.size(); ++k)
-    if (tables[k].startsWith("t_"))
-      dataTableNames << tables[k].mid(2);
-  return dataTableNames;
+  for (k = 0; k < idlist.size(); ++k) {
+    int j;
+    for (j = 0; j < ll->size() && ll->operator[](j).id != idlist[k]; ++j)
+      ;
+    if (j == ll->size()) {
+      qWarning("KLFLibLegacyEngine::deleteEntries: Can't find ID %d in library list in current resource.",
+	       idlist[k]);
+      success = false;
+      continue;
+    }
+    // remove this entry from list
+    ll->removeAt(j);
+  }
+  return success;
+}
+
+bool KLFLibLegacyEngine::saveAs(const QUrl& newPath)
+{
+  if (newPath.scheme() == "klf+legacy") {
+    return saveLibraryFile(newPath.path(), pResources, pLibrary);
+  }
+  return false;
+}
+
+bool KLFLibLegacyEngine::saveResourceProperty(int propId, const QVariant& value)
+{
+  return false; // can't change anything.
 }
 
 
 // ------------------------------------
 
 
-KLFLibDBEngineFactory::KLFLibDBEngineFactory(QObject *parent)
+KLFLibLegacyEngineFactory::KLFLibLegacyEngineFactory(QObject *parent)
   : KLFLibEngineFactory(parent)
 {
 }
 
-QStringList KLFLibDBEngineFactory::supportedSchemes() const
+QStringList KLFLibLegacyEngineFactory::supportedSchemes() const
 {
-  return QStringList() << QLatin1String("klf+sqlite");
+  return QStringList() << QLatin1String("klf+legacy");
 }
 
-QString KLFLibDBEngineFactory::schemeTitle(const QString& scheme) const
+QString KLFLibLegacyEngineFactory::schemeTitle(const QString& scheme) const
 {
-  if (scheme == QLatin1String("klf+sqlite"))
-    return tr("Local Library File");
+  if (scheme == QLatin1String("klf+legacy"))
+    return tr("KLatexFormula 3.1 Library Export File");
   return QString();
 }
 
-
-KLFLibResourceEngine *KLFLibDBEngineFactory::openResource(const QUrl& location, QObject *parent)
+KLFLibResourceEngine *KLFLibLegacyEngineFactory::openResource(const QUrl& location, QObject *parent)
 {
-  return KLFLibDBEngine::openUrl(location, parent);
+  return KLFLibLegacyEngine::openUrl(location, parent);
 }
 
-QWidget * KLFLibDBEngineFactory::createPromptUrlWidget(QWidget *parent, const QString& scheme,
-						       QUrl defaultlocation)
+QWidget * KLFLibLegacyEngineFactory::createPromptUrlWidget(QWidget *parent, const QString& scheme,
+							   QUrl defaultlocation)
 {
-  if (scheme == QLatin1String("klf+sqlite")) {
-    KLFLibSqliteOpenWidget *w = new KLFLibSqliteOpenWidget(parent);
+  if (scheme == QLatin1String("klf+legacy")) {
+    KLFLibLegacyOpenWidget *w = new KLFLibLegacyOpenWidget(parent);
     w->setUrl(defaultlocation);
     return w;
   }
   return NULL;
 }
 
-QUrl KLFLibDBEngineFactory::retrieveUrlFromWidget(const QString& scheme, QWidget *widget)
+QUrl KLFLibLegacyEngineFactory::retrieveUrlFromWidget(const QString& scheme, QWidget *widget)
 {
-  if (scheme == "klf+sqlite") {
-    if (widget == NULL || !widget->inherits("KLFLibSqliteOpenWidget")) {
-      qWarning("KLFLibDBEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
+  if (scheme == "klf+legacy") {
+    if (widget == NULL || !widget->inherits("KLFLibLegacyOpenWidget")) {
+      qWarning("KLFLibLegacyEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
       return QUrl();
     }
-    return qobject_cast<KLFLibSqliteOpenWidget*>(widget)->url();
+    return qobject_cast<KLFLibLegacyOpenWidget*>(widget)->url();
   } else {
     qWarning()<<"Bad scheme: "<<scheme;
     return QUrl();
@@ -849,28 +690,29 @@ QUrl KLFLibDBEngineFactory::retrieveUrlFromWidget(const QString& scheme, QWidget
 }
 
 
-QWidget *KLFLibDBEngineFactory::createPromptCreateParametersWidget(QWidget *parent,
-								   const QString& scheme,
-								   const Parameters& defaultparameters)
+QWidget *KLFLibLegacyEngineFactory::createPromptCreateParametersWidget(QWidget *parent,
+								       const QString& scheme,
+								       const Parameters& defaultparameters)
 {
-  if (scheme == QLatin1String("klf+sqlite")) {
-    KLFLibSqliteCreateWidget *w = new KLFLibSqliteCreateWidget(parent);
+  if (scheme == QLatin1String("klf+legacy")) {
+    KLFLibLegacyCreateWidget *w = new KLFLibLegacyCreateWidget(parent);
     w->setUrl(defaultparameters["Url"].toUrl());
     return w;
   }
+  qWarning()<<"KLFLibLegacyEngineFactory::createP.C.P.Widget: Bad Scheme: "<<scheme;
   return NULL;
 }
 
 KLFLibEngineFactory::Parameters
-/* */ KLFLibDBEngineFactory::retrieveCreateParametersFromWidget(const QString& scheme,
+/* */ KLFLibLegacyEngineFactory::retrieveCreateParametersFromWidget(const QString& scheme,
 								QWidget *widget)
 {
-  if (scheme == QLatin1String("klf+sqlite")) {
-    if (widget == NULL || !widget->inherits("KLFLibSqliteCreateWidget")) {
-      qWarning("KLFLibDBEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
+  if (scheme == QLatin1String("klf+legacy")) {
+    if (widget == NULL || !widget->inherits("KLFLibLegacyCreateWidget")) {
+      qWarning("KLFLibLegacyEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
       return Parameters();
     }
-    KLFLibSqliteCreateWidget *w = qobject_cast<KLFLibSqliteCreateWidget*>(widget);
+    KLFLibLegacyCreateWidget *w = qobject_cast<KLFLibLegacyCreateWidget*>(widget);
     Parameters p;
     QString filename = w->fileName();
     if (QFile::exists(filename) && !w->confirmedOverwrite()) {
@@ -885,7 +727,7 @@ KLFLibEngineFactory::Parameters
       } else if (result == QMessageBox::Cancel) {
 	return Parameters();
       }
-      // remove the previous file, because otherwise KLFLibDBEngine will fail.
+      // remove the previous file, because otherwise KLFLibLegacyEngine will fail.
       bool r = QFile::remove(filename);
       if ( !r ) {
 	QMessageBox::critical(widget, tr("Error"), tr("Failed to overwrite the file %1.")
@@ -902,19 +744,19 @@ KLFLibEngineFactory::Parameters
   return Parameters();
 }
 
-KLFLibResourceEngine *KLFLibDBEngineFactory::createResource(const QString& scheme,
-							    const Parameters& parameters,
-							    QObject *parent)
+KLFLibResourceEngine *KLFLibLegacyEngineFactory::createResource(const QString& scheme,
+								const Parameters& parameters,
+								QObject *parent)
 {
-  if (scheme == QLatin1String("klf+sqlite")) {
+  if (scheme == QLatin1String("klf+legacy")) {
     if ( !parameters.contains("Filename") || !parameters.contains("Url") ) {
       qWarning()
-	<<"KLFLibDBEngineFactory::createResource: bad parameters. They do not contain `Filename' or\n"
+	<<"KLFLibLegacyEngineFactory::createResource: bad parameters. They do not contain `Filename' or\n"
 	"`Url': "<<parameters;
       return NULL;
     }
-    return KLFLibDBEngine::createSqlite(parameters["Filename"].toString(),
-					parameters["dataTableName"].toString(), parent);
+    return KLFLibLegacyEngine::createDotKLF(parameters["Filename"].toString(),
+					    parameters["legacyResourceName"].toString(), parent);
   }
   return NULL;
 }

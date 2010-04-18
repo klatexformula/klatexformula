@@ -39,7 +39,13 @@
 
 
 KLFLibBrowser::KLFLibBrowser(QWidget *parent)
-  : QWidget(parent)
+  : QWidget(
+#if defined(Q_OS_WIN32)
+	    0 /* parent */
+#else
+	    parent /* 0 */
+#endif
+	    , Qt::Window)
 {
   u = new Ui::KLFLibBrowser;
   u->setupUi(this);

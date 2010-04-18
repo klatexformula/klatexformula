@@ -51,7 +51,7 @@ set(klatexformula_SRCS
 	klfpobj.cpp
 	klflatexsyntaxhighlighter.cpp
 	klflatexsymbols.cpp
-	klflibrary.cpp
+#	klflibrary.cpp
 	klflib.cpp
 	klflibdbengine.cpp
 	klfliblegacyengine.cpp
@@ -73,11 +73,12 @@ set(klatexformula_MOCHEADERS
 	klfcolorchooser.h
 	klflatexsyntaxhighlighter.h
 	klflatexsymbols.h
-	klflibrary.h
+#	klflibrary.h
 	klflib.h
 	klflibdbengine.h
 	klflibdbengine_p.h
 	klfliblegacyengine.h
+	klfliblegacyengine_p.h
 	klflibview.h
 	klflibview_p.h
 	klflibentryeditor.h
@@ -104,7 +105,7 @@ set(klatexformula_HEADERS
 # UI Forms
 set(klatexformula_UIS
 	klflatexsymbols.ui
-	klflibrarybrowserui.ui
+#	klflibrarybrowserui.ui
 	klflibbrowser.ui
 	klflibentryeditor.ui
 	klflibrespropeditor.ui

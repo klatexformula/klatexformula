@@ -74,6 +74,22 @@ static T metatype_from_data(const QByteArray& data)
 
 
 
+
+KLFLibDBConnectionClassUser::KLFLibDBConnectionClassUser()
+{
+  pAutoDisconnectDB = false;
+  pDBConnectionName = QString();
+}
+KLFLibDBConnectionClassUser::~KLFLibDBConnectionClassUser()
+{
+  if (pAutoDisconnectDB)
+    QSqlDatabase::removeDatabase(pDBConnectionName);
+}
+
+
+
+
+
 // static
 KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 {
@@ -122,8 +138,8 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
 
   if (datatablename.isEmpty())
     datatablename = "klfentries";
-  else
-    url.addQueryItem("dataTableName", datatablename);
+  
+  url.addQueryItem("dataTableName", datatablename);
 
   QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
   db.setDatabaseName(url.path());
@@ -150,9 +166,11 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
 // private
 KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autodisconnect,
 			       const QUrl& url, bool accessshared, QObject *parent)
-  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureLocked, parent), pAutoDisconnectDB(autodisconnect)
+  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureLocked, parent)
 {
   pDataTableName = "t_"+tablename;
+
+  pAutoDisconnectDB = autodisconnect;
 
   // load some read-only properties in memory (these are NOT stored in the DB)
   KLFPropertizedObject::setProperty(PropAccessShared, accessshared);
@@ -177,9 +195,9 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
 
 KLFLibDBEngine::~KLFLibDBEngine()
 {
+  pDBConnectionName = pDB.connectionName();
   if (pAutoDisconnectDB) {
     pDB.close();
-    QSqlDatabase::removeDatabase(pDB.connectionName());
   }
 }
 
@@ -827,7 +845,7 @@ KLFLibResourceEngine *KLFLibDBEngineFactory::createResource(const QString& schem
 							    QObject *parent)
 {
   if (scheme == QLatin1String("klf+sqlite")) {
-    if ( !parameters.contains("Filename") || !parameters.contains("Url") ) {
+    if ( !parameters.contains("Filename") || !parameters.contains("dataTableName") ) {
       qWarning()
 	<<"KLFLibDBEngineFactory::createResource: bad parameters. They do not contain `Filename' or\n"
 	"`Url': "<<parameters;

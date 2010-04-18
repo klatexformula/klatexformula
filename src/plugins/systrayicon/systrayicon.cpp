@@ -25,7 +25,7 @@
 #include <QtGui>
 
 #include <klfmainwin.h>
-#include <klflibrary.h>
+//#include <klflibrary.h>
 #include <klflatexsymbols.h>
 #include <klfconfig.h>
 

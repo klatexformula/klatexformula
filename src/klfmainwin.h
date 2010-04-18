@@ -40,15 +40,17 @@
 
 #include <klfbackend.h>
 
+#include <klflib.h>
 #include <klfconfig.h>
-#include <klfdata.h>
+//#include <klfdata.h>
 #include <klflatexsymbols.h>
 #include <klflatexsyntaxhighlighter.h>
 
 #include <ui_klfmainwinui.h>
 
 
-class KLFLibraryBrowser;
+//class KLFLibraryBrowser;
+class KLFLibBrowser;
 class KLFLatexSymbols;
 class KLFStyleManager;
 class KLFSettings;
@@ -151,7 +153,7 @@ public:
 
   QMimeData * resultToMimeData();
   
-  KLFLibraryBrowser * libraryBrowserWidget() { return mLibraryBrowser; }
+  KLFLibBrowser * libBrowserWidget() { return mLibBrowser; }
   KLFLatexSymbols * latexSymbolsWidget() { return mLatexSymbols; }
   KLFStyleManager * styleManagerWidget() { return mStyleManager; }
   KLFSettings * settingsDialog() { return mSettingsDialog; }
@@ -164,7 +166,7 @@ public:
   enum KLFWindowsEnum {
     MainWin = 0x01,
     LatexSymbols = 0x02,
-    LibraryBrowser = 0x04,
+    LibBrowser = 0x04,
     SettingsDialog = 0x08,
     StyleManager = 0x10
   };
@@ -175,13 +177,13 @@ public:
 signals:
 
   void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
-  void libraryAllChanged();
+  //  void libraryAllChanged();
 
 public slots:
 
   void slotEvaluate();
   void slotClear();
-  void slotLibrary(bool showhist);
+  void slotLibrary(bool showlib);
   void slotLibraryButtonRefreshState(bool on);
   void slotSymbols(bool showsymbs);
   void slotSymbolsButtonRefreshState(bool on);
@@ -212,19 +214,19 @@ public slots:
 
   void slotPresetDPISender();
   void slotLoadStyle(int stylenum);
-  void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
+  void slotLoadStyle(const KLFStyle& style);
   void slotSaveStyle();
   void slotStyleManager();
   void slotSettings();
+
 
   void refreshWindowSizes();
 
   void refreshStylePopupMenus();
   void loadStyles();
-  void loadLibrary();
+  void loadLibrary(); // load library stuff
   void saveStyles();
-  void saveLibrary();
-  void restoreFromLibrary(KLFData::KLFLibraryItem h, bool restorestyle);
+  void restoreFromLibrary(const KLFLibEntry& entry, uint restoreflags);
   void insertSymbol(const KLFLatexSymbol& symbol);
   void saveSettings();
   void loadSettings();
@@ -250,18 +252,21 @@ public slots:
 
   void quit();
 
+private slots:
+  void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
+
 protected:
-  KLFLibraryBrowser *mLibraryBrowser;
+  KLFLibBrowser *mLibBrowser;
   KLFLatexSymbols *mLatexSymbols;
   KLFStyleManager *mStyleManager;
   KLFSettings *mSettingsDialog;
+
+  KLFLibResourceEngine *mHistoryLibResource;
 
   QMenu *mStyleMenu;
 
   KLFLatexSyntaxHighlighter *mHighlighter;
   KLFLatexSyntaxHighlighter *mPreambleHighlighter;
-
-  QTimer *mLibraryAutoSaveTimer;
 
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
   bool _settings_altered;
@@ -275,8 +280,6 @@ protected:
   /** The Thread that will create real-time previews of formulas. */
   KLFPreviewBuilderThread *mPreviewBuilderThread;
 
-  KLFData::KLFLibrary _library;
-  KLFData::KLFLibraryResourceList _libresources;
   KLFStyleList _styles;
 
   QSize _shrinkedsize;

@@ -649,12 +649,6 @@ private:
 
 
 
-// class KLF_EXPORT KLFLibLegacyLibraryEngine : public KLFLibResourceEngine
-// {
-//   // ..........
-// };
-
-
 
 
 #endif

@@ -57,13 +57,6 @@
      </property>
     </spacer>
    </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="lblTable">
-     <property name="text">
-      <string>Table:</string>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="1" colspan="2">
     <widget class="QComboBox" name="cbxTable">
      <item>
@@ -71,6 +64,13 @@
        <string extracomment="[[sqlite open widget; use default table]]">( Default )</string>
       </property>
      </item>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="lblTable">
+     <property name="text">
+      <string>Table:</string>
+     </property>
     </widget>
    </item>
   </layout>
