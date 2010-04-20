@@ -40,6 +40,8 @@ protected:
 };
 
 
+class KLFLibDBEnginePropertyChangeNotifier;
+
 /** Library Resource engine implementation for an (abstract) database (using Qt
  * SQL interfaces)
  */
@@ -56,6 +58,10 @@ public:
    * Url must contain following query strings:
    * - <tt>dataTableName=<i>tablename</i></tt> to specify the data table name
    *   in the DB
+   *
+   * \note if the \c dataTableName does not exist, the corresponding table is
+   *   created, if the \c url is to be opened in non-readonly mode and the
+   *   database is not locked.
    *
    * A non-NULL returned object was successfully connected to database.
    * */
@@ -92,12 +98,10 @@ public:
   /** Returns the data table name, WITHOUT the leading \c "t_" prefix. */
   virtual QString dataTableName() const { return pDataTableName.mid(2); }
 
+  virtual QString displayTitle() const { return QString("%1 - %2").arg(title(), dataTableName()); }
+
   virtual KLFLibEntry entry(entryId id);
   virtual QList<KLFLibEntryWithId> allEntries();
-
-  /** Initializes a fresh database. \c datatablename should NOT contain the leading
-   * \c "t_" prefix. */
-  static bool initFreshDatabase(QSqlDatabase db, const QString& datatablename);
 
   /** Lists the data tables present in the given database. This function
    * is not very optimized. (it opens and closes the resource) */
@@ -113,6 +117,13 @@ public slots:
 
 protected:
   virtual bool saveResourceProperty(int propId, const QVariant& value);
+
+private slots:
+  void resourcePropertyUpdate(int propId);
+
+  //! If \c propId == -1, all properties are (re-)read.
+  void readResourceProperty(int propId);
+
 
 private:
   /** \note \c tablename does NOT contain a leading \c "t_" prefix. */
@@ -135,7 +146,19 @@ private:
 
   /** Inserts columns into datatable that don't exist for each extra registered property */
   bool ensureDataTableColumnsExist();
+
+  /** Initializes a fresh database. \c datatablename should NOT contain the leading
+   * \c "t_" prefix. */
+  static bool initFreshDatabase(QSqlDatabase db, const QString& datatablename);
+  /** Creates and initializes a fresh data table. It should not yet exist. \c datatablename should
+   * NOT contain the leading \c "t_" prefix. */
+  static bool createFreshDataTable(QSqlDatabase db, const QString& datatablename);
+
+  static QMap<QString,KLFLibDBEnginePropertyChangeNotifier*> pDBPropertyNotifiers;
+  static KLFLibDBEnginePropertyChangeNotifier *dbPropertyNotifierInstance(const QString& dbname);
 };
+
+
 
 /** The associated factory to the KLFLibDBEngine engine. */
 class KLF_EXPORT KLFLibDBEngineFactory : public KLFLibEngineFactory

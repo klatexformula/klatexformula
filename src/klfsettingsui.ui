@@ -25,7 +25,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="klfres.qrc">
-    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
+    <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -1307,7 +1307,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>360</width>
-                <height>156</height>
+                <height>154</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1474,7 +1474,7 @@
                    <x>0</x>
                    <y>0</y>
                    <width>349</width>
-                   <height>197</height>
+                   <height>193</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1539,7 +1539,7 @@
             <x>0</x>
             <y>0</y>
             <width>562</width>
-            <height>495</height>
+            <height>491</height>
            </rect>
           </property>
           <attribute name="label">

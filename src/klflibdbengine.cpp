@@ -71,7 +71,7 @@ static T metatype_from_data(const QByteArray& data)
 }
 
 
-
+// --------------------------------------------
 
 
 
@@ -88,6 +88,7 @@ KLFLibDBConnectionClassUser::~KLFLibDBConnectionClassUser()
 
 
 
+// --------------------------------------------
 
 
 // static
@@ -102,19 +103,26 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 
   QSqlDatabase db;
   if (url.scheme() == "klf+sqlite") {
-    db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
-    db.setDatabaseName(url.path());
+    QUrl dburl = url;
+    dburl.removeAllQueryItems("dataTableName");
+    dburl.removeAllQueryItems("klfReadOnly");
     accessshared = false;
+    QString dburlstr = dburl.toString();
+    db = QSqlDatabase::database(dburlstr);
+    if ( ! db.isValid() ) {
+      // connection not already open
+      db = QSqlDatabase::addDatabase("QSQLITE", dburl.toString());
+      db.setDatabaseName(dburl.path());
+      if ( !db.open() || db.lastError().isValid() ) {
+	QMessageBox::critical(0, tr("Error"),
+			      tr("Unable to open library file %1 (engine: %2).\nError: %3")
+			      .arg(url.path(), db.driverName(), db.lastError().text()), QMessageBox::Ok);
+	return NULL;
+      }
+    }
   } else {
     qWarning("KLFLibDBEngine::openUrl: bad url scheme in URL\n\t%s",
 	     qPrintable(url.toString()));
-    return NULL;
-  }
-
-  if ( !db.open() || db.lastError().isValid() ) {
-    QMessageBox::critical(0, tr("Error"),
-			  tr("Unable to open library file %1 (engine: %2).\nError: %3")
-			  .arg(url.path(), db.driverName(), db.lastError().text()), QMessageBox::Ok);
     return NULL;
   }
 
@@ -140,17 +148,23 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
     datatablename = "klfentries";
   
   url.addQueryItem("dataTableName", datatablename);
-
-  QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", url.toString());
-  db.setDatabaseName(url.path());
-
-  r = db.open(); // go open (here create) the DB
-  if ( !r || db.lastError().isValid() ) {
-    QMessageBox::critical(0, tr("Error"),
-			  tr("Unable to create library file %1 (SQLITE database):\n"
-			     "%2")
-			  .arg(url.path(), db.lastError().text()), QMessageBox::Ok);
-    return NULL;
+  
+  QUrl dburl = url;
+  dburl.removeAllQueryItems("dataTableName");
+  dburl.removeAllQueryItems("klfReadOnly");
+  QString dburlstr = dburl.toString();
+  QSqlDatabase db = QSqlDatabase::database(dburlstr);
+  if (!db.isValid()) {
+    db = QSqlDatabase::addDatabase("QSQLITE", dburlstr);
+    db.setDatabaseName(url.path());
+    r = db.open(); // go open (here create) the DB
+    if ( !r || db.lastError().isValid() ) {
+      QMessageBox::critical(0, tr("Error"),
+			    tr("Unable to create library file %1 (SQLITE database):\n"
+			       "%2")
+			    .arg(url.path(), db.lastError().text()), QMessageBox::Ok);
+      return NULL;
+    }
   }
 
   r = initFreshDatabase(db, datatablename);
@@ -176,28 +190,33 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
   KLFPropertizedObject::setProperty(PropAccessShared, accessshared);
 
   setDatabase(db);
-  // read resource properties from database
-  QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT name,value FROM klf_properties");
-  q.exec();
-  while (q.next()) {
-    QString propname = q.value(0).toString();
-    QVariant propvalue = convertVariantFromDBData(q.value(1));
-    qDebug()<<"Setting property `"<<propname<<"' to "<<propvalue<<"";
-    if (!propertyNameRegistered(propname)) {
-      if (!canRegisterProperty(propname))
-	continue;
-      KLFPropertizedObject::registerProperty(propname);
+  readResourceProperty(-1); // read all resource properties from DB
+
+  if ( ! db.tables().contains("t_"+tablename) ) {
+    if (isReadOnly() || ((supportedFeatureFlags()&FeatureLocked) && locked())) {
+      // cannot create given dataTableName... will generate an error
+      qWarning()<<"KLFLibDBEngine::KLFLibDBEngine: cannot create data table "<<pDataTableName
+		<<"in read-only/locked mode!";
+    } else {
+      createFreshDataTable(db, tablename);
     }
-    KLFPropertizedObject::setProperty(propname, propvalue);
   }
+
+  KLFLibDBEnginePropertyChangeNotifier *dbNotifier = dbPropertyNotifierInstance(db.connectionName());
+  connect(dbNotifier, SIGNAL(resourcePropertyChanged(int)),
+	  this, SLOT(resourcePropertyUpdate(int)));
+  dbNotifier->ref();
 }
 
 KLFLibDBEngine::~KLFLibDBEngine()
 {
   pDBConnectionName = pDB.connectionName();
-  if (pAutoDisconnectDB) {
+  KLFLibDBEnginePropertyChangeNotifier *dbNotifier = dbPropertyNotifierInstance(pDBConnectionName);
+  if (dbNotifier->deRef() && pAutoDisconnectDB) {
     pDB.close();
+    pAutoDisconnectDB = true;
+  } else {
+    pAutoDisconnectDB = false;
   }
 }
 
@@ -261,8 +280,45 @@ bool KLFLibDBEngine::saveResourceProperty(int propId, const QVariant& value)
     }
   }
   KLFPropertizedObject::setProperty(propId, value);
-  emit resourcePropertyChanged(propId);
+  dbPropertyNotifierInstance(pDB.connectionName())->notifyResourcePropertyChanged(propId);
+  // will be emitted by own slot from above call
+  //  emit resourcePropertyChanged(propId);
   return true;
+}
+
+void KLFLibDBEngine::resourcePropertyUpdate(int propId)
+{
+  readResourceProperty(propId);
+}
+void KLFLibDBEngine::readResourceProperty(int propId)
+{
+  QString sqlstr = "SELECT name,value FROM klf_properties";
+  QString propName;
+  if (propId >= 0) {
+    if (!propertyIdRegistered(propId)) {
+      qWarning()<<"Can't read un-registered resource property "<<propId<<" !";
+      return;
+    }
+    sqlstr += " WHERE name = ?";
+    propName = propertyNameForId(propId);
+  }
+  // read resource properties from database
+  QSqlQuery q = QSqlQuery(pDB);
+  q.prepare("SELECT name,value FROM klf_properties");
+  q.exec();
+  while (q.next()) {
+    QString propname = q.value(0).toString();
+    QVariant propvalue = convertVariantFromDBData(q.value(1));
+    qDebug()<<"Setting property `"<<propname<<"' to "<<propvalue<<"";
+    if (!propertyNameRegistered(propname)) {
+      if (!canRegisterProperty(propname))
+	continue;
+      KLFPropertizedObject::registerProperty(propname);
+    }
+    int propId = propertyIdForName(propname);
+    KLFPropertizedObject::setProperty(propId, propvalue);
+    emit resourcePropertyChanged(propId);
+  }
 }
 
 
@@ -687,15 +743,12 @@ bool KLFLibDBEngine::saveAs(const QUrl& newPath)
 // static
 bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)
 {
-  QString datatablename = "t_"+dtname;
   if ( ! db.isOpen() )
     return false;
 
-  QStringList sql;
   // the CREATE TABLE statements should be adapted to the database type (sqlite, mysql, pgsql) since
-  // syntax is different...
-  sql << "CREATE TABLE `"+datatablename+"` (id INTEGER PRIMARY KEY, Latex TEXT, DateTime TEXT, "
-    "       Preview BLOB, Category TEXT, Tags TEXT, Style BLOB)";
+  // syntax is slightly different...
+  QStringList sql;
   sql << "CREATE TABLE klf_properties (id INTEGER PRIMARY KEY, name TEXT, value BLOB)";
   sql << "INSERT INTO klf_properties (name, value) VALUES ('Title', 'New Resource')";
   sql << "INSERT INTO klf_properties (name, value) VALUES ('Locked', 'false')";
@@ -716,8 +769,29 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)
     }
   }
 
+  return createFreshDataTable(db, dtname);
+}
+// static
+bool KLFLibDBEngine::createFreshDataTable(QSqlDatabase db, const QString& dtname)
+{
+  QString datatablename = "t_"+dtname;
+  if ( ! db.isOpen() )
+    return false;
+
+  QSqlQuery query(db);
+  query.prepare(QString("")+
+		"CREATE TABLE `"+datatablename+"` (id INTEGER PRIMARY KEY, Latex TEXT, DateTime TEXT, "
+		"       Preview BLOB, Category TEXT, Tags TEXT, Style BLOB)");
+  bool r = query.exec();
+  if ( !r || query.lastError().isValid() ) {
+    qWarning()<<"createFreshDataTable(): SQL Error: "<<query.lastError().text()<<"\n"
+	      <<"SQL="<<query.lastQuery();
+    return false;
+  }
+
   return true;
 }
+
 
 
 QStringList KLFLibDBEngine::getDataTableNames(const QUrl& url)
@@ -734,6 +808,18 @@ QStringList KLFLibDBEngine::getDataTableNames(const QUrl& url)
   return dataTableNames;
 }
 
+
+
+QMap<QString,KLFLibDBEnginePropertyChangeNotifier*> KLFLibDBEngine::pDBPropertyNotifiers
+/* */ = QMap<QString,KLFLibDBEnginePropertyChangeNotifier*>();
+
+// static
+KLFLibDBEnginePropertyChangeNotifier *KLFLibDBEngine::dbPropertyNotifierInstance(const QString& dbname)
+{
+  if (!pDBPropertyNotifiers.contains(dbname))
+    pDBPropertyNotifiers[dbname] = new KLFLibDBEnginePropertyChangeNotifier(dbname, qApp);
+  return pDBPropertyNotifiers[dbname];
+}
 
 // ------------------------------------
 
@@ -833,7 +919,7 @@ KLFLibEngineFactory::Parameters
     }
 
     p["Filename"] = w->fileName();
-    p["Url"] = w->url();
+    p["dataTableName"] = "klfentries";
     return p;
   }
 
@@ -848,7 +934,7 @@ KLFLibResourceEngine *KLFLibDBEngineFactory::createResource(const QString& schem
     if ( !parameters.contains("Filename") || !parameters.contains("dataTableName") ) {
       qWarning()
 	<<"KLFLibDBEngineFactory::createResource: bad parameters. They do not contain `Filename' or\n"
-	"`Url': "<<parameters;
+	"`dataTableName': "<<parameters;
       return NULL;
     }
     return KLFLibDBEngine::createSqlite(parameters["Filename"].toString(),

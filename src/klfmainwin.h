@@ -77,8 +77,8 @@ private:
 
 
 /**
- * A helper that runs in a different thread that generates previews in real-time as user types text, without
- * blocking the GUI.
+ * A helper that runs in a different thread that generates previews in real-time as user types text,
+ * without blocking the GUI.
  */
 class KLF_EXPORT KLFPreviewBuilderThread : public QThread
 {

@@ -1,8 +1,9 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <author>Ph. Faist</author>
  <class>KLFStyleManagerUI</class>
- <widget class="QWidget" name="KLFStyleManagerUI" >
-  <property name="geometry" >
+ <widget class="QWidget" name="KLFStyleManagerUI">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -10,115 +11,115 @@
     <height>342</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>KLatexFormula - Style Manager</string>
   </property>
-  <property name="windowIcon" >
-   <iconset resource="klfres.qrc" >
-    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
+  <property name="windowIcon">
+   <iconset resource="klfres.qrc">
+    <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" >
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="lbl" >
-     <property name="font" >
+    <widget class="QLabel" name="lbl">
+     <property name="font">
       <font>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>Manage Styles</string>
      </property>
-     <property name="alignment" >
+     <property name="alignment">
       <set>Qt::AlignCenter</set>
      </property>
-     <property name="wordWrap" >
+     <property name="wordWrap">
       <bool>false</bool>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QListView" name="lstStyles" >
-     <property name="contextMenuPolicy" >
+    <widget class="QListView" name="lstStyles">
+     <property name="contextMenuPolicy">
       <enum>Qt::CustomContextMenu</enum>
      </property>
-     <property name="acceptDrops" >
+     <property name="acceptDrops">
       <bool>true</bool>
      </property>
-     <property name="toolTip" >
+     <property name="toolTip">
       <string>Drag and drop styles to move them. Right-click for actions menu.</string>
      </property>
-     <property name="editTriggers" >
+     <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
-     <property name="tabKeyNavigation" >
+     <property name="tabKeyNavigation">
       <bool>true</bool>
      </property>
-     <property name="showDropIndicator" stdset="0" >
+     <property name="showDropIndicator" stdset="0">
       <bool>true</bool>
      </property>
-     <property name="dragEnabled" >
+     <property name="dragEnabled">
       <bool>true</bool>
      </property>
-     <property name="dragDropOverwriteMode" >
+     <property name="dragDropOverwriteMode">
       <bool>false</bool>
      </property>
-     <property name="dragDropMode" >
+     <property name="dragDropMode">
       <enum>QAbstractItemView::DragDrop</enum>
      </property>
-     <property name="alternatingRowColors" >
+     <property name="alternatingRowColors">
       <bool>true</bool>
      </property>
-     <property name="selectionMode" >
+     <property name="selectionMode">
       <enum>QAbstractItemView::SingleSelection</enum>
      </property>
-     <property name="selectionBehavior" >
+     <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
-     <property name="verticalScrollMode" >
+     <property name="verticalScrollMode">
       <enum>QAbstractItemView::ScrollPerPixel</enum>
      </property>
-     <property name="horizontalScrollMode" >
+     <property name="horizontalScrollMode">
       <enum>QAbstractItemView::ScrollPerPixel</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="btnActions" >
-     <property name="toolTip" >
+    <widget class="QPushButton" name="btnActions">
+     <property name="toolTip">
       <string>Choose an action</string>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>&amp;Actions</string>
      </property>
-     <property name="icon" >
-      <iconset resource="klfres.qrc" >
+     <property name="icon">
+      <iconset resource="klfres.qrc">
        <normaloff>:/pics/actions.png</normaloff>:/pics/actions.png</iconset>
      </property>
-     <property name="shortcut" >
+     <property name="shortcut">
       <string>Alt+A</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="btnClose" >
-     <property name="toolTip" >
+    <widget class="QPushButton" name="btnClose">
+     <property name="toolTip">
       <string>Close window</string>
      </property>
-     <property name="text" >
+     <property name="text">
       <string>Close</string>
      </property>
-     <property name="icon" >
-      <iconset resource="klfres.qrc" >
+     <property name="icon">
+      <iconset resource="klfres.qrc">
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
- <layoutdefault spacing="6" margin="11" />
+ <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="klfres.qrc" />
+  <include location="klfres.qrc"/>
  </resources>
  <connections/>
 </ui>

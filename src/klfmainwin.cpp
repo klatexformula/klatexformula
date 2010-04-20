@@ -693,7 +693,7 @@ void KLFMainWin::loadLibrary()
       importhisturl.setScheme("klf+legacy");
       importhisturl.addQueryItem("legacyResourceName", "");
     }
-    // import history from an older version library file.
+    // import library from an older version library file.
     KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(importhisturl.scheme());
     if (factory != NULL) {
       KLFLibResourceEngine *importres = factory->openResource(importhisturl, this);
@@ -887,6 +887,9 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
     }
   }
   // ----
+  if ( obj == mLibBrowser && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
+    slotLibraryButtonRefreshState(mLibBrowser->isVisible());
+  }
   return QWidget::eventFilter(obj, e);
 }
 

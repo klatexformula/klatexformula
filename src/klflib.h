@@ -299,6 +299,11 @@ public:
    * and \ref viewType() methods (for example). */
   virtual QVariant resourceProperty(const QString& name) const;
 
+  //! A human-readable title to display
+  /** A (maybe fuller) title to display to user (may contain e.g. more information
+   * about the specific resource connection, username, data table name, etc... */
+  virtual QString displayTitle() const { return title(); }
+
   enum ModifyType { AllActionsData, InsertData, ChangeData, DeleteData };
   /** Subclasses should return TRUE here if it is possible to modify the resource's data in
    * the way described by \c modifytype. Return for ex. false when opening a read-only file.
@@ -517,9 +522,9 @@ Q_DECLARE_METATYPE(KLFLibResourceEngine::KLFLibEntryWithId)
   ;
 
 
-QDataStream& KLF_EXPORT operator<<(QDataStream& stream,
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream,
 				   const KLFLibResourceEngine::KLFLibEntryWithId& entrywid);
-QDataStream& KLF_EXPORT operator>>(QDataStream& stream,
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream,
 				   KLFLibResourceEngine::KLFLibEntryWithId& entrywid);
 
 

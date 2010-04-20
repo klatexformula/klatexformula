@@ -195,12 +195,12 @@ private:
 };
 
 
-QDataStream& KLF_EXPORT operator<<(QDataStream& stream, const KLFPropertizedObject& obj);
-QDataStream& KLF_EXPORT operator>>(QDataStream& stream, KLFPropertizedObject& obj);
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFPropertizedObject& obj);
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFPropertizedObject& obj);
 
-QTextStream& KLF_EXPORT operator<<(QTextStream& stream, const KLFPropertizedObject& obj);
+KLF_EXPORT QTextStream& operator<<(QTextStream& stream, const KLFPropertizedObject& obj);
 
-QDebug& KLF_EXPORT operator<<(QDebug& stream, const KLFPropertizedObject& obj);
+KLF_EXPORT QDebug& operator<<(QDebug& stream, const KLFPropertizedObject& obj);
 
 
 

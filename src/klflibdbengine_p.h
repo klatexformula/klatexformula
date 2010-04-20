@@ -64,7 +64,7 @@ public:
     url.setScheme("klf+sqlite");
     int tindex = cbxTable->currentIndex();
     if (tindex > 0) {
-      QString datatablename = cbxTable->itemData(tindex).toString();
+      QString datatablename = cbxTable->currentText();
       url.addQueryItem("dataTableName", datatablename);
     } else {
       url.addQueryItem("dataTableName", "klfentries");
@@ -172,6 +172,33 @@ protected slots:
 
 protected:
   bool pConfirmedOverwrite;
+};
+
+
+/** \internal */
+class KLFLibDBEnginePropertyChangeNotifier : public QObject
+{
+  Q_OBJECT
+public:
+  KLFLibDBEnginePropertyChangeNotifier(const QString& dbname, QObject *parent)
+    : QObject(parent), pDBName(dbname), pRef(0) { }
+  virtual ~KLFLibDBEnginePropertyChangeNotifier() { }
+
+  void ref() { ++pRef; }
+  //! Returns TRUE if the object needs to be deleted.
+  bool deRef() { return !--pRef; }
+
+  void notifyResourcePropertyChanged(int propId)
+  {
+    emit resourcePropertyChanged(propId);
+  }
+
+signals:
+  void resourcePropertyChanged(int propId);
+
+private:
+  QString pDBName;
+  int pRef;
 };
 
 

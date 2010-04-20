@@ -455,7 +455,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(viewContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotShowContextMenu(const QPoint&)));
 
-  int i = u->tabResources->addTab(viewc, resource->title());
+  int i = u->tabResources->addTab(viewc, resource->displayTitle());
   u->tabResources->setCurrentWidget(viewc);
   u->tabResources
     ->refreshTabReadOnly(i, !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
@@ -685,7 +685,7 @@ void KLFLibBrowser::slotResourcePropertyChanged(int propId)
     return;
   }
   if (propId == KLFLibResourceEngine::PropTitle) {
-    u->tabResources->setTabText(u->tabResources->indexOf(view), resource->title());
+    u->tabResources->setTabText(u->tabResources->indexOf(view), resource->displayTitle());
   }
   if (propId == KLFLibResourceEngine::PropLocked) {
     u->tabResources->refreshTabReadOnly(u->tabResources->indexOf(view),
@@ -795,9 +795,9 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
       continue;
     KLFLibResourceEngine *res = pLibViews[k]->resourceEngine();
     n_destinations++;
-    acopy = copytomenu->addAction(res->title(), this, SLOT(slotCopyToResource()));
+    acopy = copytomenu->addAction(res->displayTitle(), this, SLOT(slotCopyToResource()));
     acopy->setProperty("resourceUrl", res->url());
-    amove = movetomenu->addAction(res->title(), this, SLOT(slotMoveToResource()));
+    amove = movetomenu->addAction(res->displayTitle(), this, SLOT(slotMoveToResource()));
     amove->setProperty("resourceUrl", res->url());
     if (!res->canModifyData(KLFLibResourceEngine::InsertData)) {
       acopy->setEnabled(false);

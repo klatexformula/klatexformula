@@ -18,8 +18,8 @@
    <string>KLatexFormula Library</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
+   <iconset resource="klfres.qrc">
+    <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">

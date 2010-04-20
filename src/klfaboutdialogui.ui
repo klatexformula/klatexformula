@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="klfres.qrc">
-    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
+    <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true">QDialog#KLFAboutDialog .QFrame#frmAboutArea {
