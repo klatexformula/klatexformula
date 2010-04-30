@@ -90,10 +90,6 @@ public:
     KLFLegacyData::KLFStyle style;
   };
 
-  static QString categoryFromLatex(const QString& latex);
-  static QString tagsFromLatex(const QString& latex);
-  static QString stripCategoryTagsFromLatex(const QString& latex);
-
   typedef QList<KLFLibraryItem> KLFLibraryList;
   typedef QList<KLFLibraryResource> KLFLibraryResourceList;
   typedef QMap<KLFLibraryResource, KLFLibraryList> KLFLibrary;
@@ -130,7 +126,7 @@ bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
 //! The Legacy Library support for the KLFLib framework
 /** Implements a KLFLibResourceEngine resource engine for accessing (KLF<=3.1)-created libraries
  * (*.klf, default library files) */
-class KLF_EXPORT KLFLibLegacyEngine : public KLFLibResourceEngine
+class KLF_EXPORT KLFLibLegacyEngine : public KLFLibResourceSimpleEngine
 {
   Q_OBJECT
 public:

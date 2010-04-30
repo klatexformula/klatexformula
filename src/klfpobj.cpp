@@ -448,6 +448,20 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
 }
 
 
+bool operator==(const KLFPropertizedObject& a, const KLFPropertizedObject& b)
+{
+  if (a.pPropNameSpace != b.pPropNameSpace)
+    return false;
+  QList<int> propIds = a.registeredPropertyIdList();
+  int k;
+  for (k = 0; k < propIds.size(); ++k)
+    if (a.property(propIds[k]) != b.property(propIds[k]))
+      return false;
+
+  return true;
+}
+
+
 
 QDataStream& operator<<(QDataStream& stream, const KLFPropertizedObject& obj)
 {

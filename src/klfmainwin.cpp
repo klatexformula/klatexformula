@@ -67,6 +67,7 @@
 //#include "klfdata.h"
 //#include "klflibrary.h"
 #include "klflibbrowser.h"
+#include "klflibdbengine.h"
 #include "klflatexsymbols.h"
 #include "klfsettings.h"
 #include "klfmain.h"
@@ -78,7 +79,7 @@
 
 #define min_i(x,y) ( (x)<(y) ? (x) : (y) )
 
-#define DEBUG_GEOM_ARGS(g) g.topLeft().x(), g.topLeft().y(), g.size().width(), g.size().height()
+#define DEBUG_GEOM_ARGS(g) (g).topLeft().x(), (g).topLeft().y(), (g).size().width(), (g).size().height()
 
 static QRect klf_get_window_geometry(QWidget *w)
 {
@@ -637,9 +638,7 @@ void KLFMainWin::loadLibrary()
   // Locate a good history file.
 
   // the default library file
-  if ( ! QFileInfo(klfconfig.homeConfigDir+"/libresources").isDir() )
-    QDir(klfconfig.homeConfigDir).mkpath("libresources");
-  QString localfname = klfconfig.homeConfigDir + "/libresources/history.klf.db";
+  QString localfname = klfconfig.homeConfigDir + "/library.klf.db";
   QString importfname;
   if ( ! QFile::exists(localfname) ) {
     // if unexistant, try to load:
@@ -672,9 +671,11 @@ void KLFMainWin::loadLibrary()
 
   bool r;
   if (mHistoryLibResource) {
-    r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag, QLatin1String("default+list"));
+    r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
+				  QLatin1String("default+list"));
   } else {
-    r = mLibBrowser->openResource(localhisturl, KLFLibBrowser::NoCloseRoleFlag, QLatin1String("default+list"));
+    r = mLibBrowser->openResource(localhisturl, KLFLibBrowser::NoCloseRoleFlag,
+				  QLatin1String("default+list"));
     mHistoryLibResource = mLibBrowser->getOpenResource(localhisturl);
   }
   if ( ! r ) {
@@ -693,6 +694,7 @@ void KLFMainWin::loadLibrary()
       importhisturl.setScheme("klf+legacy");
       importhisturl.addQueryItem("legacyResourceName", "");
     }
+    importhisturl.addQueryItem("klfReadOnly", "true");
     // import library from an older version library file.
     KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(importhisturl.scheme());
     if (factory != NULL) {
@@ -706,6 +708,19 @@ void KLFMainWin::loadLibrary()
       }
       mHistoryLibResource->insertEntries(insertentries);
     }
+  }
+
+
+  // open all other sub-resources present in our library
+  QStringList subresources = KLFLibDBEngine::getDataTableNames(localhisturl);
+  int k;
+  for (k = 0; k < subresources.size(); ++k) {
+    if (subresources[k] == "history")
+      continue;
+    QUrl url = localhisturl;
+    url.removeAllQueryItems("dataTableName");
+    url.addQueryItem("dataTableName", subresources[k]);
+    mLibBrowser->openResource(url, KLFLibBrowser::NoCloseRoleFlag);
   }
 
 }
@@ -1106,9 +1121,7 @@ void KLFMainWin::slotEvaluate()
     frmOutput->setEnabled(true);
 
     KLFLibEntry newentry = KLFLibEntry(input.latex, QDateTime::currentDateTime(), sc.toImage(),
-				       "", ""
-				       /*KLFLegacyData::categoryFromLatex(input.latex),
-					 KLFLegacyData::tagsFromLatex(input.latex)*/, currentStyle());
+				       currentStyle());
     
     mHistoryLibResource->insertEntry(newentry);
   }

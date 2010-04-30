@@ -192,8 +192,12 @@ private:
 				      int propId = -1);
   static QMap<QString, QMap<QString, int> > pRegisteredProperties;
   static QMap<QString, int> pRegisteredPropertiesMaxId;
+
+  friend bool operator==(const KLFPropertizedObject& a, const KLFPropertizedObject& b);
 };
 
+/** \returns TRUE if all values for all registered properties of this object are equal. */
+bool operator==(const KLFPropertizedObject& a, const KLFPropertizedObject& b);
 
 KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFPropertizedObject& obj);
 KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFPropertizedObject& obj);

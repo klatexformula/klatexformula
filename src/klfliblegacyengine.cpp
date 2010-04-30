@@ -35,61 +35,6 @@
 
 quint32 KLFLegacyData::KLFLibraryItem::MaxId = 1;
 
-// static
-QString KLFLegacyData::categoryFromLatex(const QString& latex)
-{
-  QString s = latex.section('\n', 0, 0, QString::SectionSkipEmpty);
-  if (s[0] == '%' && s[1] == ':') {
-    return s.mid(2).trimmed();
-  }
-  return QString::null;
-}
-// static
-QString KLFLegacyData::tagsFromLatex(const QString& latex)
-{
-  QString s = latex.section('\n', 0, 0, QString::SectionSkipEmpty);
-  if (s[0] == '%' && s[1] == ':') {
-    // category is s.mid(2);
-    s = latex.section('\n', 1, 1, QString::SectionSkipEmpty);
-  }
-  if (s[0] == '%') {
-    return s.mid(1).trimmed();
-  }
-  return QString::null;
-}
-
-QString KLFLegacyData::stripCategoryTagsFromLatex(const QString& latex)
-{
-  int k = 0;
-  while (k < latex.length() && latex[k].isSpace())
-    ++k;
-  if (k == latex.length()) return "";
-  if (latex[k] == '%') {
-    ++k;
-    if (k == latex.length()) return "";
-    //strip category and/or tag:
-    if (latex[k] == ':') {
-      // strip category
-      while (k < latex.length() && latex[k] != '\n')
-	++k;
-      ++k;
-      if (k >= latex.length()) return "";
-      if (latex[k] != '%') {
-	// there isn't any tags, just category; return rest of string
-	return latex.mid(k);
-      }
-      ++k;
-      if (k >= latex.length()) return "";
-    }
-    // strip tag:
-    while (k < latex.length() && latex[k] != '\n')
-      ++k;
-    ++k;
-    if (k >= latex.length()) return "";
-  }
-  // k is the beginnnig of the latex string
-  return latex.mid(k);
-}
 
 
 QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem& item)
@@ -103,8 +48,8 @@ QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem
 QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryItem& item)
 {
   stream >> item.id >> item.datetime >> item.latex >> item.preview >> item.style;
-  item.category = KLFLegacyData::categoryFromLatex(item.latex);
-  item.tags = KLFLegacyData::tagsFromLatex(item.latex);
+  item.category = KLFLibEntry::categoryFromLatex(item.latex);
+  item.tags = KLFLibEntry::tagsFromLatex(item.latex);
   return stream;
 }
 
@@ -253,7 +198,7 @@ bool KLFLibLegacyEngine::loadLibraryFile(const QString& fname, KLFLegacyData::KL
   } else if (s1 == "KLATEXFORMULA_LIBRARY") {
     // opening a library file (~/.klatexformula/library)
     qint16 vmaj, vmin;
-    stream >> vmaj >> vmin; // these are not needed, format has not changed in .klf export files.
+    stream >> vmaj >> vmin;
     if (vmaj <= 2) {
       stream.setVersion(QDataStream::Qt_3_3);
     } else {
@@ -331,7 +276,7 @@ int KLFLibLegacyEngine::findResourceName(const QString& resname)
 // private
 KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url,
 				       QObject *parent)
-  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureSaveAs, parent)
+  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureSaveAs, parent)
 {
   // load library
   pFileName = fileName;

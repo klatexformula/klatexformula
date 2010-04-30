@@ -107,6 +107,10 @@ public:
   KLFLibEntry(const QString& latex = QString(), const QDateTime& dt = QDateTime(),
 	      const QImage& preview = QImage(),	const QString& category = QString(),
 	      const QString& tags = QString(), const KLFStyle& style = KLFStyle());
+  /** This constructor extracts the legacy-style category and tags from latex, and
+   * stores latex with those tags stripped. */
+  KLFLibEntry(const QString& latex, const QDateTime& dt, const QImage& preview,
+	      const KLFStyle& style);
   KLFLibEntry(const KLFLibEntry& copy);
   virtual ~KLFLibEntry();
 
@@ -131,6 +135,15 @@ public:
    */
   int setEntryProperty(const QString& propName, const QVariant& value);
 
+
+  /** Parses and returns legacy-style category comment string from latex string
+   * in the form <pre>%: Category</pre> */
+  static QString categoryFromLatex(const QString& latex);
+  /** Parses and returns legacy-style tags comment string from latex string */
+  static QString tagsFromLatex(const QString& latex);
+  /** Removes legacy-style category and tags comment from latex string */
+  static QString stripCategoryTagsFromLatex(const QString& latex);
+
 private:
   
   void initRegisteredProperties();
@@ -146,7 +159,13 @@ typedef QList<KLFLibEntry> KLFLibEntryList;
 namespace KLFLib {
   //! An entry ID
   /** The type of the ID of an entry in a library resource (see \ref KLFLibResourceEngine)
-   * \note \ref KLFLibResourceEngine::entryId is a typedef of \ref KLFLib::entryId. */
+   *
+   * \note This type is signed, and may be assigned a negative value. Negative values
+   *   should only indicate invalid IDs. Valid IDs are always positive.
+   *
+   * \note \ref KLFLibResourceEngine::entryId is a typedef of \ref KLFLib::entryId.
+   *
+   * */
   typedef qint32 entryId;
 }
 
@@ -160,21 +179,24 @@ namespace KLFLib {
  * Subclasses may choose to implement various features specified by the \ref ResourceFeature
  * enum. The supported features must be passed (binary OR-ed) to the constructor.
  *
+ * Library resources provide entries without any particular order.
+ *
  * Library entries are communicated with KLFLibEntry objects. Each entry in the resource must
- * be attributed a numerical ID (unique within the resource, not necessarily globally unique
- * among all open resources). Entries are queried by calling \ref allEntries() to get all the
- * entries with their IDs, or \ref entry() if a specific entry (whose ID is already known) is
- * requested. IDs are attributed by the resource engine subclasses, depending of course on the
- * backend (eg. a database backend storage could use the ID in the database table).
+ * be attributed a numerical ID, which is unique within the resource, in particular not
+ * necessarily globally unique among all open resources. For engines implementing the
+ * \ref FeatureSubResource feature, the attributed IDs have only to be unique within the
+ * sub-resource the entry lives in.
  *
- * \warning I may want to change the API for this class in a future version of KLatexFormula,
- *   to perform more specific entry querying, and to avoid all items having to be pre-loaded.
- *   To ensure this simple API will remain available after such a rewrite, subclass the
- *   \ref KLFLibResourceSimpleEngine class instead: for now, it is functionless, but in the
- *   future it will (if I actually do the API change) provide an interface between the new
- *   API (in the background) while continuing to provide the current API for subclassing.
+ * Entries are queried by calling for example the functions: \ref allEntries(), \ref entries(),
+ * \ref entry(). See the individual function documentation for more details.
  *
- * Resources have properties (stored in a KLFPropertizedObject structure, NOT in regular QObject
+ * \warning The (already somewhat complicated) API for this class might be enhanced in the
+ * future to support more optimized interaction. To ensure compatibility with API changes,
+ * subclass the \ref KLFLibResourceSimpleEngine instead which implements the simplest API, and
+ * wraps calls to the more sophisticated functions provided by the KLFLibResourceEngine API.
+ *
+ * <b>Resource Properties</b>. Resources have properties (stored in a
+ * KLFPropertizedObject structure, NOT in regular QObject
  * properties) that ARE STORED IN THE RESOURCE DATA ITSELF. Built-in properties are listed
  * in the \ref ResourceProperty enum. Some properties may be implemented read-only
  * (eg. \ref PropAccessShared) in which case saveResourceProperty() should return FALSE.
@@ -198,6 +220,26 @@ namespace KLFLib {
  * \ref setReadOnly() will return FALSE without doing anything. Also in this case, any
  * occurrence of the query item "klfReadOnly" in the URL is stripped and ignored.
  *
+ * <b>Sub-Resources</b>. Sub-resources are a way of logically separating the contents of
+ * a resource into separate so-called "sub-resources", like for example a library could
+ * contain a sub-resource "History", "Archive" etc. Derived subclasses don't have to
+ * implement subresources, they can specify if subresources are available using the
+ * FeatureSubResources flag in the constructor. In classes implementing sub-resources,
+ * the <i>default sub-resource</i> (queried by \ref defaultSubResource() and set by
+ * \ref setDefaultSubResource()) is the resource that the insertEntry(), changeEntry(), etc.
+ * family functions will access when the variant of the function without sub-resource
+ * argument is called.
+ *
+ * <b>Sub-Resource Properties</b>. Sub-resources, when implemented by the subclass, may
+ * each have properties (the API would suggest subclasses to store these property values
+ * into \ref KLFPropertizedObject's). The properties (structure+values) are NOT stored
+ * by KLFLibResourceEngine itself, all the work must be done by the subclass, in particular
+ * reimplementing \ref subResourceProperty() and \ref setSubResourceProperty(). Again this
+ * feature is implemented by the subclass if and only if the subclass specified
+ * \ref FeatureSubResourceProps in the constructor argument. In this case note also that views
+ * may for example expect the resource to provide values for the sub-resource properties defined
+ * by \ref SubResourceProperty.
+ *
  * <b>Query Items in URL</b>. The URL may contain Query Items e.g.
  * <tt>scheme://klf.server.dom/path/to/location<b>?klfReadOnly=true</b></tt>. Here is a
  * list of recognized (universal) query items. Subclasses may choose to recognize more query
@@ -206,9 +248,14 @@ namespace KLFLib {
  * - <tt>klfReadOnly=<i>{</i>true<i>|</i>false<i>}</i></tt> If provided, sets the read-only
  *   flag to the given value. If not provided, the flag defaults to false (flag is directly
  *   set, bypassing the setReadOnly() function).
+ * - <tt>klfSubResource=</i>sub-resource name</i></tt> If provided, specifies which sub-resource
+ *   (which has to be present in the given location) should be opened by default. See
+ *   \ref setDefaultSubResource().
  * .
- * Note that recognized query items (and <i>only</i> the recognized query items) are stripped
- * from the \ref url() as they are parsed.
+ * Note that recognized query items (and <i>only</i> the query items recognized at the
+ * KLFLibResourceEngine level) are stripped from the \ref url() as they are parsed. Subclasses
+ * may choose to (independently) recognize and strip other query items from URL if it is relevant
+ * to do so.
  *
  * <b>NOTES FOR SUBCLASSES</b><br>
  * - Subclasses must deal with the properties and implement them as they are meant to, and
@@ -230,6 +277,7 @@ class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObj
 public:
   typedef KLFLib::entryId entryId;
   
+  //! A KLFLibEntry in combination with a KLFLib::entryId
   struct KLFLibEntryWithId {
     KLFLibEntryWithId(entryId i = -1, const KLFLibEntry& e = KLFLibEntry())
       : id(i), entry(e) { }
@@ -237,7 +285,8 @@ public:
     KLFLibEntry entry;
   };
 
-  /** List of built-in KLFPropertizedObject-properties. */
+  /** List of built-in KLFPropertizedObject-properties. See
+   * \ref KLFLibResourceEngine "class documentation" and \ref setResourceProperty(). */
   enum ResourceProperty {
     PropTitle = 0,
     PropLocked,
@@ -245,10 +294,51 @@ public:
     PropAccessShared
   };
 
+  /** List of pre-defined properties that can be applied to sub-resources when the features
+   * \ref FeatureSubResource and \ref FeatureSubResourceProps are implemented. See also
+   * \ref setSubResourceProperty(). */
+  enum SubResourceProperty {
+    SubResPropTitle = 0,
+    SubResPropViewType
+  };
+
+  //! Features that may or may not be implemented by subclasses
+  /** These binary codes specify features that a subclass may or may not implement.
+   *
+   * The subclass provides the binary combination of the exact features it supports in the
+   * constructor argument in \ref KLFLibResourceEngine().
+   *
+   * The flags can be accessed with a call to \ref supportedFeatureFlags(). They cannot be
+   * modified after the constructor call.
+   *
+   * See this \ref KLFLibResourceEngine "class documentation" for more details.
+   */
   enum ResourceFeature {
-    FeatureReadOnly = 0x0001,
-    FeatureLocked = 0x0002,
-    FeatureSaveAs = 0x0004
+    //! Open in Read-Only mode
+    /** Flag indicating that this resource engine supports opening a location in read-only mode.
+     * This resource explicitely checks that we're not \ref isReadOnly() before modifying the
+     * resource contents. */
+    FeatureReadOnly		= 0x0001,
+    //! Lock the resource
+    /** Flag indicating that this resource engine supports the resource property \ref PropLocked,
+     * can modify that property and checks that we're not \ref locked() before modifying the
+     * resource contents. */
+    FeatureLocked		= 0x0002,
+    //! Implements the \ref saveAs() function
+    /** Flag indicating that this resource engine implements the saveAs() function, ie. that
+     * calling it has a chance that it will not fail */
+    FeatureSaveAs		= 0x0004,
+    //! Data can be stored in separate sub-resources
+    /** Flag indicating that this resource engine supports saving and reading data into different
+     * "sub-resources". See \ref KLFLibResourceEngine "class documentation" for details. */
+    FeatureSubResource		= 0x0008,
+    //! Sub-Resources may be assigned properties and values
+    /** Flag indicating that this resource engine supports saving and reading sub-resource
+     * property values. This flag makes sense only in combination with \c FeatureSubResource.
+     * Note that views may assume that implementing sub-resource properties means also providing
+     * sensible values and/or loaded/stored values for the built-in sub-resource properties
+     * described in the \ref SubResourceProperty enum. */
+    FeatureSubResourceProps	= 0x0010
   };
 
   KLFLibResourceEngine(const QUrl& url, uint supportedfeatureflags, QObject *parent = NULL);
@@ -299,14 +389,15 @@ public:
    * and \ref viewType() methods (for example). */
   virtual QVariant resourceProperty(const QString& name) const;
 
-  //! A human-readable title to display
-  /** A (maybe fuller) title to display to user (may contain e.g. more information
-   * about the specific resource connection, username, data table name, etc... */
-  virtual QString displayTitle() const { return title(); }
-
-  enum ModifyType { AllActionsData, InsertData, ChangeData, DeleteData };
+  enum ModifyType { AllActionsData = 0, UnknownModification = 0,
+		    InsertData, ChangeData, DeleteData };
   /** Subclasses should return TRUE here if it is possible to modify the resource's data in
    * the way described by \c modifytype. Return for ex. false when opening a read-only file.
+   *
+   * \c modifytype must be one of AllActionsData, InsertData, ChangeData, DeleteData.
+   *
+   * The base implementation returns TRUE only if the current resource is not read-only (see
+   * \ref isReadOnly()) and is not locked (see \ref locked()).
    *
    * \warning subclasses should call the base implementation to e.g. take into account
    * the \ref locked() property. If the base implementation returns FALSE, then the
@@ -339,26 +430,121 @@ public:
    * Return QString() for default view. */
   virtual QString suggestedViewTypeIdentifier() const { return QString(); }
 
-  /** Returns the entry corresponding to ID \c id, or an empty KLFLibEntry() if the \c id
-   * is not valid. */
-  virtual KLFLibEntry entry(entryId id) = 0;
-  /** Returns all the entries in this library resource, with their corresponding IDs. */
-  virtual QList<KLFLibEntryWithId> allEntries() = 0;
+  /** Returns a list of sub-resources in this resource. This function is relevant only
+   * if the \ref FeatureSubResources is implemented. */
+  virtual QStringList subResourcesList() const { return QStringList(); }
+
+  /** Returns the default sub-resource, ie. the sub-resource to access if eg. the variant
+   * of insertEntry() without the sub-resource argument is called.  */
+  virtual QString defaultSubResource();
+
+  /** Queries properties of sub-resources. The default implementation returns an empty
+   * QVariant(). Test the \ref supportedFeatureFlags() for \ref FeatureSubResourceProps to
+   * see if this feature is implemented. In particular, subclasses should specify whether
+   * they implement this feature by passing the correct feature flags. */
+  virtual QVariant subResourceProperty(const QString& subResource, int propId);
+
+  //! Query an entry in this resource
+  /** Returns the entry (in the sub-resource \c subResource) corresponding to ID \c id, or an
+   * empty KLFLibEntry() if the \c id is not valid.
+   *
+   * \note Subclasses must reimplement this function to behave as described here.
+   *
+   * For resources implementing \ref FeatureSubResource, the \c subResource argument specifies
+   * the sub-resource in which the entry should be fetched. Classes not implementing this feature
+   * should ignore this parameter.
+   *  */
+  virtual KLFLibEntry entry(const QString& subResource, entryId id) = 0;
+  //! Query an entry in this resource
+  /** Returns the entry (for classes implementing the \ref FeatureSubResource, queries the default
+   * sub-resource) corresponding to ID \c id, or an empty KLFLibEntry() if the \c id is not valid.
+   *
+   * The default implementation calls \ref entry(const QString& subResource, entryId id) with
+   * the default subresource as argument. See \ref setDefaultSubResource().
+   */
+  virtual KLFLibEntry entry(entryId id);
+  //! Query the existence of an entry in this resource
+  /** Returns TRUE if an entry with entry ID \c id exists in this resource, in the sub-resource
+   * \c subResource, or FALSE otherwise.
+   *
+   * \note Subclasses must reimplement this function to behave as described here.
+   */
+  virtual bool hasEntry(const QString& subResource, entryId id) = 0;
+  //! Query the existence of an entry in this resource
+  /** Returns TRUE if an entry with entry ID \c id exists in this resource or FALSE otherwise.
+   * Classes implementing the \ref FeatureSubResource will query the default sub-resource, see
+   * \ref setDefaultSubResource().
+   *
+   * The default implementation calls \ref hasEntry(const QString& subResource, entryId id) with
+   * the default subresource as argument. See \ref setDefaultSubResource().
+   */
+  virtual bool hasEntry(entryId id);
+  //! Query multiple entries in this resource
+  /** Returns a list of \ref KLFLibEntryWithId's, that is a list of KLFLibEntry-ies with their
+   * corresponding IDs, exactly corresponding to the requested entries given in idList. The same
+   * order of entries in the returned list as in the specified \c idList is garanteed. For classes
+   * implementing sub-resources (\ref FeatureSubResource), the sub-resource \c subResource is
+   * queried.
+   *
+   * \note Subclasses must reimplement this function to behave as described here.
+   * */
+  virtual QList<KLFLibEntryWithId> entries(const QString& subResource,
+					   const QList<KLFLib::entryId>& idList) = 0;
+  //! Query multiple entries in this resource
+  /** Returns a list of \ref KLFLibEntryWithId's, that is a list of KLFLibEntry-ies with their
+   * corresponding IDs, exactly corresponding to the requested entries given in idList. The same
+   * order of entries in the returned list as in the specified \c idList is garanteed. For classes
+   * implementing sub-resources (\ref FeatureSubResource), the default sub-resource is
+   * queried, see \ref setDefaultSubResource().
+   *
+   * The default implementation calls
+   * \ref entries(const QString& subResource, const QList<KLFLib::entryId>& idList) with
+   * the default subresource as argument. See \ref setDefaultSubResource().
+   */
+  virtual QList<KLFLibEntryWithId> entries(const QList<KLFLib::entryId>& idList);
+
+  //! Query all entries in this resource
+  /** Returns all the entries in this library resource (in sub-resource \c subResource if
+   * \ref FeatureSubResource is supported) with their corresponding IDs.
+   *
+   * \note Subclasses must reimplement this function to behave as described here.
+   */
+  virtual QList<KLFLibEntryWithId> allEntries(const QString& subResource) = 0;
+  //! Query all entries in this resource
+  /** Returns all the entries in this library resource (in default sub-resource if
+   * \ref FeatureSubResource is supported) with their corresponding IDs.
+   *
+   * The default implementation calls \ref allEntries(const QString& subResource) with
+   * the default subresource as argument. See \ref setDefaultSubResource().
+   */
+  virtual QList<KLFLibEntryWithId> allEntries();
+
+
   
 signals:
   //! Emitted when a resource property changes.
+  /** \param propId the ID of the property that changed. */
   void resourcePropertyChanged(int propId);
   
   //! Emitted when data has changed
   /** This signal is emitted whenever data changes in the model (eg. due to an \ref insertEntries()
    * function call).
    *
-   * The entries that were changed are given in the argument \c entryIdList. An empty list
-   * means either the library resource changed completely, or simply the backend does not wish
-   * to privide any information on which entries changed. In any case, the receiver should
-   * consider all previously read data from the resource as out of date and refresh all.
+   * The parameter \c subResource is the sub-resource in which the change was observed.
+   *
+   * The parameter \c modificationType is the type of modification that occured. It is one
+   * of \ref InsertData, \ref ChangeData, \ref DeleteData, or \ref UnknownModification. (In
+   * particular, sub-classes should not emit other modification types).
+   *
+   * An \c UnknownModification change means either the library resource changed completely,
+   * or simply the backend does not wish to privide any information on which entries changed.
+   * In any case, the receiver should consider all previously read data from the resource as
+   * out of date and refresh all.
+   *
+   * The entries that were changed are given in the argument \c entryIdList.
    */
-  void dataChanged(const QList<KLFLib::entryId>& entryIdList);
+  void dataChanged(const QString& subResource, ModifyType modificationType,
+		   const QList<KLFLib::entryId>& entryIdList);
   
 public slots:
 
@@ -409,16 +595,67 @@ public slots:
    */
   virtual bool setReadOnly(bool readonly);
 
-  //! (shortcut for the list version)
-  /** This function is already implemented as shortcut for calling the list version. Subclasses
+  //! Set the default sub-resource
+  /** When calling the variants of insertEntry(), changeEntry(), etc. that do not take a
+   * sub-resource argument, and when this resource implements \ref FeatureSubResource, then
+   * calls to those functions will access the <i>default sub-resource</i>, which can be
+   * set with this function. 
+   *
+   * This function should be used only with subclasses implementing \ref FeatureSubResource.
+   */
+  virtual void setDefaultSubResource(const QString& subResource);
+
+  /** Sets the given sub-resource property of sub-resource \c subResource to the value \c value,
+   * if the operation is possible and legal.
+   *
+   * \returns TRUE for success, FALSE for failure.
+   *
+   * The default implementation does nothing and returns FALSE.
+   */
+  virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
+
+
+  //! Insert an entry into this resource
+  /** This function is provided for convenience. Inserts the entry \c entry into the
+   * subresource \c subResource of this resource. Resources not implementing the sub-resources
+   * feature (\ref FeatureSubResources) should ignore the subResource parameter.
+   *
+   * API users should use the version of \ref insertEntry(const KLFLibEntry& entry) when dealing
+   * with resources that do not implement the \ref FeatureSubResource feature.
+   *
+   * This function is already implemented as shortcut for calling the list version. Subclasses
    * need in principle NOT reimplement this function. */
+  virtual entryId insertEntry(const QString& subResource, const KLFLibEntry& entry);
+
+  //! Insert an entry into this resource
+  /** This function is provided for convenience. Inserts the entry \c entry into this resource.
+   *
+   * This function is intended for resources not implementing the \ref FeatureSubResources feature.
+   *
+   * A reasonable default implementation is provided. Subclasses are not required to reimplement
+   * this function.
+   */
   virtual entryId insertEntry(const KLFLibEntry& entry);
 
-  //! Insert new entries in this resource.
+  //! Insert new entries in this resource
+  /** This function is provided for convenience. Inserts the entries \c entrylist into this resource.
+   *
+   * This function is intended for resources not implementing the \ref FeatureSubResources feature.
+   *
+   * A reasonable default implementation is provided. Subclasses are not required to reimplement
+   * this function.
+   */
+  virtual QList<entryId> insertEntries(const KLFLibEntryList& entrylist);
+
+  //! Insert new entries in this resource
   /** Inserts the given library entries (given as a \ref KLFLibEntry list) into this resource
    * and returns a list of the IDs that were attributed to the new entries (in the same
    * order as the given list). An individual ID of -1 means failure for that specific entry;
    * an empty list returned means a general failure, except if \c entrylist is empty.
+   *
+   * The entries are inserted into sub-resource \c subResource, if sub-resources are supported
+   * (\ref FeatureSubResources). Otherwise the \c subResource parameter should be ignored
+   * by subclasses.
    *
    * This function should be reimplemented by subclasses to actually save the new entries.
    * The reimplementation should make sure that the operation is permitted (eg. by checking
@@ -427,7 +664,8 @@ public slots:
    * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
    * code.
    */
-  virtual QList<entryId> insertEntries(const KLFLibEntryList& entrylist) = 0;
+  virtual QList<entryId> insertEntries(const QString& subResource, const KLFLibEntryList& entrylist) = 0;
+
   //! Change some entries in this resource.
   /** The entries specified by the ids \c idlist are modified. The properties given
    * in \c properties (which should be KLFLibEntry property IDs) are to be set to the respective
@@ -515,6 +753,7 @@ private:
   QUrl pUrl;
   uint pFeatureFlags;
   bool pReadOnly;
+  QString pDefaultSubResource;
 };
 
 
@@ -548,11 +787,13 @@ public:
   }
   virtual ~KLFLibResourceSimpleEngine() { }
 
-  /** Returns the entry corresponding to ID \c id, or an empty KLFLibEntry() if the \c id
-   * is not valid. */
   virtual KLFLibEntry entry(entryId id) = 0;
-  /** Returns all the entries in this library resource, with their corresponding IDs. */
   virtual QList<KLFLibEntryWithId> allEntries() = 0;
+
+  // these functions are implemented using the base functions above.
+
+  virtual bool hasEntry(entryId id);
+  virtual QList<KLFLibEntryWithId> entries(const QList<KLFLib::entryId>& idList);
 
 };
 

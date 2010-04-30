@@ -45,7 +45,7 @@ class KLFLibDBEnginePropertyChangeNotifier;
 /** Library Resource engine implementation for an (abstract) database (using Qt
  * SQL interfaces)
  */
-class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceEngine, private KLFLibDBConnectionClassUser
+class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceSimpleEngine, private KLFLibDBConnectionClassUser
 {
   Q_OBJECT
 

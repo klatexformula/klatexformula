@@ -302,6 +302,8 @@ public:
 
   virtual KLFLib::entryId entryIdForIndex(const QModelIndex& index) const;
   virtual QModelIndex findEntryId(KLFLib::entryId eid) const;
+  virtual QList<KLFLib::entryId> entryIdForIndexList(const QModelIndexList& indexlist) const;
+  virtual QModelIndexList findEntryIdList(const QList<KLFLib::entryId>& eidlist) const;
 
 public slots:
 
@@ -413,6 +415,7 @@ private:
   QModelIndexList newPersistentIndexList(const QList<PersistentId>& persistentidlist);
 
   void updateCacheSetupModel();
+  void insertEntryToCacheTree(const NodeId& e);
 
   IndexType cacheFindCategoryLabel(QStringList catelements, bool createIfNotExists = false);
 
@@ -424,6 +427,7 @@ private:
     KLFLibModelSorter(KLFLibModel *m, int entry_prop, Qt::SortOrder sort_order, bool groupcategories)
       : model(m), entryProp(entry_prop), sortOrderFactor( (sort_order == Qt::AscendingOrder) ? -1 : 1),
 	groupCategories(groupcategories) { }
+    /** Returns TRUE if a<b, FALSE otherwise. */
     bool operator()(const NodeId& a, const NodeId& b);
   private:
     KLFLibModel *model;

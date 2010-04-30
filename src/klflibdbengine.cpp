@@ -180,7 +180,7 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
 // private
 KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autodisconnect,
 			       const QUrl& url, bool accessshared, QObject *parent)
-  : KLFLibResourceEngine(url, FeatureReadOnly|FeatureLocked, parent)
+  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureLocked, parent)
 {
   pDataTableName = "t_"+tablename;
 
