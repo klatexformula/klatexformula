@@ -44,24 +44,26 @@ class KLFLibDBEnginePropertyChangeNotifier;
 
 /** Library Resource engine implementation for an (abstract) database (using Qt
  * SQL interfaces)
+ *
+ * For now, only SQLITE is supported. However, the class is designed to be easily adaptable
+ * to add support for eg. MySQL, PostgreSQL, etc.
+ *
+ * Sub-resources are supported and translated to different SQLite table names, which are
+ * prefixed with "t_". Sub-resources themselves must have machine-friendly names (no special
+ * characters, especially the SQLite escape double-quote <tt>"</tt> character); however the
+ * sub-resource titles may be fantasy.
+ *
+ * Sub-resource properties are also supported in a limited way
+ * (only built-in properties Title and ViewType are supported).
  */
 class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceSimpleEngine, private KLFLibDBConnectionClassUser
 {
   Q_OBJECT
 
-  Q_PROPERTY(QString dataTableName READ dataTableName)
 public:
   /** Use this function as a constructor. Creates a KLFLibDBEngine object,
    * with QObject parent \c parent, opening the database at location \c url.
    * Returns NULL if opening the database failed.
-   *
-   * Url must contain following query strings:
-   * - <tt>dataTableName=<i>tablename</i></tt> to specify the data table name
-   *   in the DB
-   *
-   * \note if the \c dataTableName does not exist, the corresponding table is
-   *   created, if the \c url is to be opened in non-readonly mode and the
-   *   database is not locked.
    *
    * A non-NULL returned object was successfully connected to database.
    * */
@@ -70,15 +72,15 @@ public:
    * with QObject parent \c parent, creating a fresh, empty SQLITE database
    * stored in file \c fileName.
    *
-   * Returns NULL if opening the database failed.
+   * \c subresourcename is the name to give the default sub-resource. \c subresourcetitle is the
+   * human title to attribute to it.
    *
-   * \param datatablename defaults to \c "klfentries" if an empty string is given.
-   *  \c datatablename should NOT contain a leading \c "t_" prefix.
+   * Returns NULL if opening the database failed.
    *
    * A non-NULL returned object was successfully connected to database.
    * */
-  static KLFLibDBEngine * createSqlite(const QString& fileName, const QString& datatablename,
-				       QObject *parent = NULL);
+  static KLFLibDBEngine * createSqlite(const QString& fileName, const QString& subresourcename,
+				       const QString& subresourcetitle, QObject *parent = NULL);
 
 
   /** Simple destructor. Disconnects the database if autoDisconnectDB was requested
@@ -95,45 +97,40 @@ public:
   /** supply an open database. */
   virtual void setDatabase(const QSqlDatabase& db_connection);
 
-  /** Returns the data table name, WITHOUT the leading \c "t_" prefix. */
-  virtual QString dataTableName() const { return pDataTableName.mid(2); }
-
-  virtual QString displayTitle() const { return QString("%1 - %2").arg(title(), dataTableName()); }
-
-  virtual KLFLibEntry entry(entryId id);
-  virtual QList<KLFLibEntryWithId> allEntries();
-
-  /** Lists the data tables present in the given database. This function
-   * is not very optimized. (it opens and closes the resource) */
-  static QStringList getDataTableNames(const QUrl& url);
+  virtual KLFLibEntry entry(const QString& subRes, entryId id);
+  virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes);
 
 public slots:
 
-  virtual QList<entryId> insertEntries(const KLFLibEntryList& entries);
-  virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
-			   const QList<QVariant>& values);
-  virtual bool deleteEntries(const QList<entryId>& idlist);
+  virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle);
+
+  virtual QList<entryId> insertEntries(const QString& subRes, const KLFLibEntryList& entries);
+  virtual bool changeEntries(const QString& subRes, const QList<entryId>& idlist,
+			     const QList<int>& properties, const QList<QVariant>& values);
+  virtual bool deleteEntries(const QString& subRes, const QList<entryId>& idlist);
+
   virtual bool saveAs(const QUrl& newPath);
 
 protected:
   virtual bool saveResourceProperty(int propId, const QVariant& value);
+  virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
 
 private slots:
+  /** Called by our instance of KLFLibDBEnginePropertyChangeNotifier that tells us when
+   * other class instances using the same connection change the properties. */
   void resourcePropertyUpdate(int propId);
 
-  //! If \c propId == -1, all properties are (re-)read.
+  //! Read given resource property from DB
+  /** If \c propId == -1, all properties are (re-)read. */
   void readResourceProperty(int propId);
 
 
 private:
-  /** \note \c tablename does NOT contain a leading \c "t_" prefix. */
-  KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autoDisconnectDB,
-		 const QUrl& url, bool accessshared, QObject *parent);
+  KLFLibDBEngine(const QSqlDatabase& db, bool autoDisconnectDB, const QUrl& url,
+		 bool accessshared, QObject *parent);
 
   QSqlDatabase pDB;
   
-  QString pDataTableName; ///< \note WITH leading \c "t_" prefix.
-
   QStringList detectEntryColumns(const QSqlQuery& q);
   KLFLibEntry readEntry(const QSqlQuery& q, const QStringList& columns);
 
@@ -144,15 +141,20 @@ private:
   QVariant decaps(const QString& string) const;
   QVariant decaps(const QByteArray& data) const;
 
-  /** Inserts columns into datatable that don't exist for each extra registered property */
-  bool ensureDataTableColumnsExist();
+  /** Inserts columns into datatable that don't exist for each extra registered property,
+   * in sub-resource subResource. */
+  bool ensureDataTableColumnsExist(const QString& subResource);
 
-  /** Initializes a fresh database. \c datatablename should NOT contain the leading
-   * \c "t_" prefix. */
-  static bool initFreshDatabase(QSqlDatabase db, const QString& datatablename);
-  /** Creates and initializes a fresh data table. It should not yet exist. \c datatablename should
+  /** Initializes a fresh database, without any sub-resource. */
+  static bool initFreshDatabase(QSqlDatabase db);
+  /** Creates and initializes a fresh data table. It should not yet exist. \c subresource should
    * NOT contain the leading \c "t_" prefix. */
-  static bool createFreshDataTable(QSqlDatabase db, const QString& datatablename);
+  static bool createFreshDataTable(QSqlDatabase db, const QString& subresource);
+
+  bool tableExists(const QString& subResource);
+
+  static QString dataTableName(const QString& subResource);
+  static QString quotedDataTableName(const QString& subResource);
 
   static QMap<QString,KLFLibDBEnginePropertyChangeNotifier*> pDBPropertyNotifiers;
   static KLFLibDBEnginePropertyChangeNotifier *dbPropertyNotifierInstance(const QString& dbname);

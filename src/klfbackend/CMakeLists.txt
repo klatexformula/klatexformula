@@ -4,6 +4,14 @@
 # $Id$
 # ################################################### #
 
+# Include what we need from Qt for backend (only core+gui)
+
+# include our Qt4 stuff; Qt3 needs nothing.
+if(KLF_USE_QT4)
+include(${QT_USE_FILE})
+endif(KLF_USE_QT4)
+
+
 set(klfbackend_SRCS
 	klfbackend.cpp
 	klfblockprocess.cpp

@@ -114,7 +114,7 @@ protected slots:
     }
     cbxTable->setEnabled(true);
     // get tables
-    QStringList datatables = KLFLibDBEngine::getDataTableNames(url());
+    QStringList datatables = KLFLibEngineFactory::listSubResources(url());
     // and populate combo
     int k;
     for (k = 0; k < datatables.size(); ++k) {

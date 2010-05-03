@@ -34,7 +34,7 @@
 
 //#include <klfdata.h>  // for KLFStyle
 #include <klfpobj.h>
-
+#include <klffactory.h>
 
 
 /** \brief A Formula Style (collection of properties)
@@ -184,7 +184,7 @@ namespace KLFLib {
  * Library entries are communicated with KLFLibEntry objects. Each entry in the resource must
  * be attributed a numerical ID, which is unique within the resource, in particular not
  * necessarily globally unique among all open resources. For engines implementing the
- * \ref FeatureSubResource feature, the attributed IDs have only to be unique within the
+ * \ref FeatureSubResources feature, the attributed IDs have only to be unique within the
  * sub-resource the entry lives in.
  *
  * Entries are queried by calling for example the functions: \ref allEntries(), \ref entries(),
@@ -248,9 +248,9 @@ namespace KLFLib {
  * - <tt>klfReadOnly=<i>{</i>true<i>|</i>false<i>}</i></tt> If provided, sets the read-only
  *   flag to the given value. If not provided, the flag defaults to false (flag is directly
  *   set, bypassing the setReadOnly() function).
- * - <tt>klfSubResource=</i>sub-resource name</i></tt> If provided, specifies which sub-resource
- *   (which has to be present in the given location) should be opened by default. See
- *   \ref setDefaultSubResource().
+ * - <tt>klfDefaultSubResource=</i>sub-resource name</i></tt> If provided, specifies which
+ *   sub-resource (which has to be present in the given location) should be opened by default.
+ *   See \ref setDefaultSubResource().
  * .
  * Note that recognized query items (and <i>only</i> the query items recognized at the
  * KLFLibResourceEngine level) are stripped from the \ref url() as they are parsed. Subclasses
@@ -295,10 +295,11 @@ public:
   };
 
   /** List of pre-defined properties that can be applied to sub-resources when the features
-   * \ref FeatureSubResource and \ref FeatureSubResourceProps are implemented. See also
+   * \ref FeatureSubResources and \ref FeatureSubResourceProps are implemented. See also
    * \ref setSubResourceProperty(). */
   enum SubResourceProperty {
     SubResPropTitle = 0,
+    SubResPropLocked,
     SubResPropViewType
   };
 
@@ -322,7 +323,11 @@ public:
     //! Lock the resource
     /** Flag indicating that this resource engine supports the resource property \ref PropLocked,
      * can modify that property and checks that we're not \ref locked() before modifying the
-     * resource contents. */
+     * resource contents.
+     *
+     * Resources supporting feature \ref FeatureSubResourceProps, in combination with this feature
+     * (FeatureLocked) are also expected to treat properly locked sub-resources (ie. sub-resource
+     * property \ref SubResPropLocked). */
     FeatureLocked		= 0x0002,
     //! Implements the \ref saveAs() function
     /** Flag indicating that this resource engine implements the saveAs() function, ie. that
@@ -331,10 +336,10 @@ public:
     //! Data can be stored in separate sub-resources
     /** Flag indicating that this resource engine supports saving and reading data into different
      * "sub-resources". See \ref KLFLibResourceEngine "class documentation" for details. */
-    FeatureSubResource		= 0x0008,
+    FeatureSubResources		= 0x0008,
     //! Sub-Resources may be assigned properties and values
     /** Flag indicating that this resource engine supports saving and reading sub-resource
-     * property values. This flag makes sense only in combination with \c FeatureSubResource.
+     * property values. This flag makes sense only in combination with \c FeatureSubResources.
      * Note that views may assume that implementing sub-resource properties means also providing
      * sensible values and/or loaded/stored values for the built-in sub-resource properties
      * described in the \ref SubResourceProperty enum. */
@@ -363,6 +368,9 @@ public:
   //! Is this resource is locked?
   /** If the resource is locked (property \ref PropLocked), no changes can be in principle made,
    * except <tt>setLocked(false)</tt> (of course...).
+   *
+   * Note: the subclass is responsible to check in functions such as insertEntry(), that the
+   * resource is not locked and not read-only etc. (checked all-in-one with \ref canModifyData()).
    *
    * The default implementation has some limited support for the locked property: see
    * \ref setLocked(). */
@@ -432,7 +440,7 @@ public:
 
   /** Returns a list of sub-resources in this resource. This function is relevant only
    * if the \ref FeatureSubResources is implemented. */
-  virtual QStringList subResourcesList() const { return QStringList(); }
+  virtual QStringList subResourceList() const { return QStringList(); }
 
   /** Returns the default sub-resource, ie. the sub-resource to access if eg. the variant
    * of insertEntry() without the sub-resource argument is called.  */
@@ -450,13 +458,13 @@ public:
    *
    * \note Subclasses must reimplement this function to behave as described here.
    *
-   * For resources implementing \ref FeatureSubResource, the \c subResource argument specifies
+   * For resources implementing \ref FeatureSubResources, the \c subResource argument specifies
    * the sub-resource in which the entry should be fetched. Classes not implementing this feature
    * should ignore this parameter.
    *  */
   virtual KLFLibEntry entry(const QString& subResource, entryId id) = 0;
   //! Query an entry in this resource
-  /** Returns the entry (for classes implementing the \ref FeatureSubResource, queries the default
+  /** Returns the entry (for classes implementing the \ref FeatureSubResources, queries the default
    * sub-resource) corresponding to ID \c id, or an empty KLFLibEntry() if the \c id is not valid.
    *
    * The default implementation calls \ref entry(const QString& subResource, entryId id) with
@@ -472,7 +480,7 @@ public:
   virtual bool hasEntry(const QString& subResource, entryId id) = 0;
   //! Query the existence of an entry in this resource
   /** Returns TRUE if an entry with entry ID \c id exists in this resource or FALSE otherwise.
-   * Classes implementing the \ref FeatureSubResource will query the default sub-resource, see
+   * Classes implementing the \ref FeatureSubResources will query the default sub-resource, see
    * \ref setDefaultSubResource().
    *
    * The default implementation calls \ref hasEntry(const QString& subResource, entryId id) with
@@ -483,7 +491,7 @@ public:
   /** Returns a list of \ref KLFLibEntryWithId's, that is a list of KLFLibEntry-ies with their
    * corresponding IDs, exactly corresponding to the requested entries given in idList. The same
    * order of entries in the returned list as in the specified \c idList is garanteed. For classes
-   * implementing sub-resources (\ref FeatureSubResource), the sub-resource \c subResource is
+   * implementing sub-resources (\ref FeatureSubResources), the sub-resource \c subResource is
    * queried.
    *
    * \note Subclasses must reimplement this function to behave as described here.
@@ -494,7 +502,7 @@ public:
   /** Returns a list of \ref KLFLibEntryWithId's, that is a list of KLFLibEntry-ies with their
    * corresponding IDs, exactly corresponding to the requested entries given in idList. The same
    * order of entries in the returned list as in the specified \c idList is garanteed. For classes
-   * implementing sub-resources (\ref FeatureSubResource), the default sub-resource is
+   * implementing sub-resources (\ref FeatureSubResources), the default sub-resource is
    * queried, see \ref setDefaultSubResource().
    *
    * The default implementation calls
@@ -505,14 +513,14 @@ public:
 
   //! Query all entries in this resource
   /** Returns all the entries in this library resource (in sub-resource \c subResource if
-   * \ref FeatureSubResource is supported) with their corresponding IDs.
+   * \ref FeatureSubResources is supported) with their corresponding IDs.
    *
    * \note Subclasses must reimplement this function to behave as described here.
    */
   virtual QList<KLFLibEntryWithId> allEntries(const QString& subResource) = 0;
   //! Query all entries in this resource
   /** Returns all the entries in this library resource (in default sub-resource if
-   * \ref FeatureSubResource is supported) with their corresponding IDs.
+   * \ref FeatureSubResources is supported) with their corresponding IDs.
    *
    * The default implementation calls \ref allEntries(const QString& subResource) with
    * the default subresource as argument. See \ref setDefaultSubResource().
@@ -522,10 +530,6 @@ public:
 
   
 signals:
-  //! Emitted when a resource property changes.
-  /** \param propId the ID of the property that changed. */
-  void resourcePropertyChanged(int propId);
-  
   //! Emitted when data has changed
   /** This signal is emitted whenever data changes in the model (eg. due to an \ref insertEntries()
    * function call).
@@ -545,6 +549,19 @@ signals:
    */
   void dataChanged(const QString& subResource, ModifyType modificationType,
 		   const QList<KLFLib::entryId>& entryIdList);
+  
+  //! Emitted when a resource property changes.
+  /** \param propId the ID of the property that changed. */
+  void resourcePropertyChanged(int propId);
+  
+  //! Emitted when a sub-resource property changes.
+  /** This function should only be emitted by engines supporting feature \ref FeatureSubResourceProps
+   * as well as \ref FeatureSubResources.
+   *
+   * \param subResource the affected sub-resource name
+   * \param propId the ID of the property that changed
+   */
+  void subResourcePropertyChanged(const QString& subResource, int propId);
   
 public slots:
 
@@ -597,11 +614,15 @@ public slots:
 
   //! Set the default sub-resource
   /** When calling the variants of insertEntry(), changeEntry(), etc. that do not take a
-   * sub-resource argument, and when this resource implements \ref FeatureSubResource, then
+   * sub-resource argument, and when this resource implements \ref FeatureSubResources, then
    * calls to those functions will access the <i>default sub-resource</i>, which can be
    * set with this function. 
    *
-   * This function should be used only with subclasses implementing \ref FeatureSubResource.
+   * This function should be used only with subclasses implementing \ref FeatureSubResources.
+   *
+   * The default implementation remembers \c subResource to be the new \ref defaultSubResource().
+   *
+   * Reimplementing this function is DANGEROUS as it is called in the constructor.
    */
   virtual void setDefaultSubResource(const QString& subResource);
 
@@ -614,6 +635,16 @@ public slots:
    */
   virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
 
+  //! Create a new sub-resource
+  /** If they implement the feature \ref FeatureSubResources, subclasses may reimplement this
+   * function to create a new sub-resource named \c subResource, with human title \c subResourceTitle.
+   *
+   * \returns TRUE for success or FALSE for failure.
+   *
+   * The default implementation does nothing and returns FALSE.
+   */
+  virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle);
+
 
   //! Insert an entry into this resource
   /** This function is provided for convenience. Inserts the entry \c entry into the
@@ -621,7 +652,7 @@ public slots:
    * feature (\ref FeatureSubResources) should ignore the subResource parameter.
    *
    * API users should use the version of \ref insertEntry(const KLFLibEntry& entry) when dealing
-   * with resources that do not implement the \ref FeatureSubResource feature.
+   * with resources that do not implement the \ref FeatureSubResources feature.
    *
    * This function is already implemented as shortcut for calling the list version. Subclasses
    * need in principle NOT reimplement this function. */
@@ -672,6 +703,9 @@ public slots:
    * value in \c values for all the given entries in \c idlist. \c properties and \c values must
    * obviously be of same size.
    *
+   * This function affects entries in sub-resource \c subResource for engines supporting feature
+   * \ref FeatureSubResources.
+   *
    * A return value of TRUE indicates general success and FALSE indicates a failure.
    *
    * This function should be reimplemented by subclasses to actually save the modified entries.
@@ -681,12 +715,15 @@ public slots:
    * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
    * code.
    */
-  virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
-			     const QList<QVariant>& values) = 0;
+  virtual bool changeEntries(const QString& subResource, const QList<entryId>& idlist,
+			     const QList<int>& properties, const QList<QVariant>& values) = 0;
   //! Delete some entries in this resource.
   /** The entries specified by the ids \c idlist are deleted.
    *
    * A return value of TRUE indicates general success and FALSE indicates a failure.
+   *
+   * This function affects entries in sub-resource \c subResource for engines supporting feature
+   * \ref FeatureSubResources.
    *
    * This function should be reimplemented by subclasses to actually delete the entries.
    * The reimplementation should make sure that the operation is permitted (eg. by checking
@@ -695,7 +732,7 @@ public slots:
    * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
    * code.
    */
-  virtual bool deleteEntries(const QList<entryId>& idlist) = 0;
+  virtual bool deleteEntries(const QString& subResource, const QList<entryId>& idlist) = 0;
 
   /** If the \ref FeatureSaveAs is supported (passed to the constructor), reimplement this
    * function to save the resource data in the new path specified by \c newPath.
@@ -753,6 +790,7 @@ private:
   QUrl pUrl;
   uint pFeatureFlags;
   bool pReadOnly;
+
   QString pDefaultSubResource;
 };
 
@@ -787,21 +825,83 @@ public:
   }
   virtual ~KLFLibResourceSimpleEngine() { }
 
-  virtual KLFLibEntry entry(entryId id) = 0;
-  virtual QList<KLFLibEntryWithId> allEntries() = 0;
-
   // these functions are implemented using the base functions above.
 
-  virtual bool hasEntry(entryId id);
-  virtual QList<KLFLibEntryWithId> entries(const QList<KLFLib::entryId>& idList);
+  virtual bool hasEntry(const QString&, entryId id);
+  virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList);
 
 };
 
 
 
-/** An abstract factory class for opening resources identified by their URL.
+/** An abstract factory class for opening resources identified by their URL, and creating
+ * objects of the currect subclass of KLFLibResourceEngine.
+ *
+ * See also \ref KLFLibResourceEngine, \ref KLFLibDBEngine, \ref KLFLibLegacyEngine.
+ * More about factory common functions in \ref KLFFactory documentation.
  */
-class KLF_EXPORT KLFLibEngineFactory : public QObject
+class KLF_EXPORT KLFLibEngineFactory : public QObject, public KLFFactoryBase
+{
+  Q_OBJECT
+public:
+  /** Constructs an engine factory and automatically regisers it. */
+  KLFLibEngineFactory(QObject *parent = NULL);
+  /** Destroys this engine factory and unregisters it. */
+  virtual ~KLFLibEngineFactory();
+
+  /** Should return a list of supported URL schemes this factory can open.
+   *
+   * If two factories provide a common scheme name, only the last instantiated is used; the
+   * consequent ones will be ignored for that scheme name. See \ref KLFFactory::supportedTypes() */
+  virtual QStringList supportedTypes() const = 0;
+
+  /** Should return a human (short) description of the given scheme (which is one
+   * returned by \ref supportedSchemes()) */
+  virtual QString schemeTitle(const QString& scheme) const = 0;
+
+  /** Returns the widget type that should be used to present to user to "open" or "create" or
+   * "save as" a resource of the given \c scheme.
+   *
+   * For example, both \c "klf+sqlite" and \c "klf+legacy" schemes could return a "LocalFile"
+   * widget that prompts to open/create/save-as a file. */
+  virtual QString correspondingWidgetType(const QString& scheme) const = 0;
+
+  /** Create a library engine that opens resource stored at \c location. The resource
+   * engine should be constructed as a child of object \c parent. */
+  virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL) = 0;
+
+
+  /** Finds the last registered factory that should be able to open URL \c url (determined by
+   * the URL's scheme) and returns a pointer to that factory.
+   *
+   * Equivalent to \code findFactoryFor(url.scheme()) \endcode */
+  static KLFLibEngineFactory *findFactoryFor(const QUrl& url);
+
+  /** Finds the last registered factory that should be able to open URLs with scheme \c urlScheme
+   * and returns a pointer to that factory. */
+  static KLFLibEngineFactory *findFactoryFor(const QString& urlScheme);
+
+  static QStringList allSupportedSchemes();
+
+  /** Finds the good factory for URL \c location, and opens the resource using that factory.
+   * The created resource will be a child of \c parent. */
+  static KLFLibResourceEngine *openURL(const QUrl& location, QObject *parent = NULL);
+
+  /** Opens resource designated by \c url, and then lists the subresources. An empty list
+   * is returned if the resource cannot be opened, or if the resource does not support
+   * sub-resources.
+   *
+   * The resource is immedately closed after reading the list of sub-resources.
+   */
+  static QStringList listSubResources(const QUrl& url);
+
+private:
+  static KLFFactoryManager pFactoryManager;
+};
+
+
+
+class KLFLibWidgetFactory : public QObject, public KLFFactoryBase
 {
   Q_OBJECT
 public:
@@ -813,86 +913,76 @@ public:
    */
   typedef QMap<QString,QVariant> Parameters;
 
-  /** Constructs an engine factory and automatically regisers it. */
-  KLFLibEngineFactory(QObject *parent = NULL);
-  /** Destroys this engine factory and unregisters it. */
-  virtual ~KLFLibEngineFactory();
+  KLFLibWidgetFactory(QObject *parent);
 
-  /** Should return a list of supported URL schemes this factory can open.
-   * Two factories should NOT provide common scheme names, or bugs like one factory
-   * being be shadowed by the other may appear. */
-  virtual QStringList supportedSchemes() const = 0;
+  static KLFLibWidgetFactory * findFactoryFor(const QString& wtype);
 
-  /** Should return a human (short) description of the given scheme (which is one
-   * returned by \ref supportedSchemes()) */
-  virtual QString schemeTitle(const QString& scheme) const = 0;
 
-  /** create a widget that will prompt to user to open a resource of given \c scheme.
-   * It could be a file selection widget, or a text entry for a hostname or etc. The
-   * widget should be initialized to \c defaultlocation if the latter is non-empty.
+  //! List the supported widget types that this factory can create
+  /** eg. "LocalFile", "HostPortUserPass", ... */
+  QStringList supportedTypes() const = 0;
+
+  /** Create a widget of logical type \c wtype (eg. "LocalFile", ...) that will prompt to user
+   * for various data needed to open some given kind of library resource. It could be a file
+   * selection widget, or a text entry for a hostname, etc. The widget should present data
+   * corresponding to \c defaultlocation as default location if that parameter is non-empty.
    *
-   * The widget should have a <tt>readyToOpen(bool isReady)</tt> signal that is emitted
-   * to synchronize the enabled state of the "open" button. */
-  virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
+   * The widget should have a <tt>void readyToOpen(bool isReady)</tt> signal that is emitted
+   * to synchronize the enabled state of the "open" button.
+   *
+   * The create widget should be a child of \c wparent. */
+  virtual QWidget * createPromptUrlWidget(QWidget *wparent, const QString& wtype,
 					  QUrl defaultlocation = QUrl()) = 0;
 
-  /** get the url edited by user, that are stored in \c widget GUI. \c widget is a
-   * QWidget returned by \ref createPromptUrlWidget(). */
-  virtual QUrl retrieveUrlFromWidget(const QString& scheme, QWidget *widget) = 0;
+  /** Get the URL edited by user, that are stored in user-interface widgets in \c widget GUI.
+   * \c widget is never other than a QWidget returned by \ref createPromptUrlWidget(). */
+  virtual QUrl retrieveUrlFromWidget(const QString& wtype, QWidget *widget) = 0;
 
-  /** Create a library engine that opens resource stored at \c location. The resource
-   * engine should be constructed as a child of object \c parent. */
-  virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL) = 0;
+  /** \returns whether this widget type (\c wtype) can create user-interface widgets to create
+   * new resources (eg. a new library sqlite file, etc.) */
+  virtual bool canCreateResource(const QString& wtype) const;
 
-  /** \returns whether this factory can be used to create new resources (eg. a new library
-   * sqlite resource, etc.) */
-  virtual bool canCreateResource(const QString& scheme) const;
   /** create a widget that will prompt to user the different settings for the new resource
    * that is about to be created.  Do not reimplement this function if canCreateResource()
    * returns false. Information to which URL to store the resource should be included
-   * in these parameters! */
-  virtual QWidget *createPromptCreateParametersWidget(QWidget *parent, const QString& scheme,
+   * in these parameters!
+   *
+   * The created widget should be child of \c wparent. */
+  virtual QWidget *createPromptCreateParametersWidget(QWidget *wparent, const QString& wtype,
 						      const Parameters& defaultparameters = Parameters());
-  /** get the parameters edited by user, that are stored in \c widget GUI.
+  /** Get the parameters edited by user, that are stored in \c widget GUI.
    *
    * Some special parameters are recognized by the system:
    * <tt>param["klfRetry"]=true</tt> will cause the dialog not to exit but re-prompt user to
    * possibly change his input (could result from user clicking "No" in a "Overwrite?"
    * dialog presented in a reimplementation of this function).
-   * <tt>param["klfCancel"]=true</tt> will cause the `create resource' process to be cancelled.
+   * <tt>param["klfCancel"]=true</tt> will cause the "create resource" process to be cancelled.
    *
    * If an empty Parameters() is returned, it is also interpreted as a cancel operation.
    * */
-  virtual Parameters retrieveCreateParametersFromWidget(const QString& scheme, QWidget *widget);
+  virtual Parameters retrieveCreateParametersFromWidget(const QString& wtype, QWidget *widget);
   /** Actually create the new resource, with the given settings. Open the resource and return
-   * the KLFLibResourceEngine object. */
-  virtual KLFLibResourceEngine *createResource(const QString& scheme, const Parameters& parameters,
+   * the KLFLibResourceEngine object, which is instantiated as child of \c parent. */
+  virtual KLFLibResourceEngine *createResource(const QString& wtype, const Parameters& parameters,
 					       QObject *parent = NULL);
 
+  /** Returns TRUE if this widget type (\c wtype) can create user-interface widgets to save an
+   * existing open resource as a new name (eg. to an other (new) library sqlite file, etc.) */
+  virtual bool canResourceSaveAs(const QString& wtype) const;
+  /** Creates a widget to prompt the user to save the resource \c resource to a different location,
+   * by default \c defaultUrl.
+   *
+   * The created widget should be child of \c wparent. */
+  virtual QWidget *createPromptSaveAsWidget(QWidget *wparent, const QString& wtype,
+					    KLFLibResourceEngine *resource, const QUrl& defaultUrl);
+  /** Returns the URL to save as, from the data entered by user in the widget \c widget,
+   * which was previously returned by \ref createPromptSaveAsWidget(). */
+  virtual QUrl retrieveSaveAsUrlFromWidget(const QString& wtype, QWidget *widget);
 
-  virtual bool canResourceSaveAs(const QString& scheme) const;
-  virtual QWidget *createPromptSaveAsWidget(QWidget *parent, const QString& scheme,
-					    const QUrl& defaultUrl);
-  virtual QUrl retrieveSaveAsUrlFromWidget(const QString& scheme, QWidget *widget);
-
-
-  /** Returns the factory that can handle the URL scheme \c urlScheme, or NULL if no such
-   * factory exists (ie. has been registered). */
-  static KLFLibEngineFactory *findFactoryFor(const QString& urlScheme);
-
-  /** Returns a combined list of all schemes all factories support. ie. returns a list of
-   * all schemes we're capable of opening. */
-  static QStringList allSupportedSchemes();
-  /** Returns the full list of installed factories. */
-  static QList<KLFLibEngineFactory*> allFactories() { return pRegisteredFactories; }
 
 private:
-  static void registerFactory(KLFLibEngineFactory *factory);
-  static void unRegisterFactory(KLFLibEngineFactory *factory);
-
-  static QList<KLFLibEngineFactory*> pRegisteredFactories;
+  static KLFFactoryManager pFactoryManager;
 };
-
 
 
 

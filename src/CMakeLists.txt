@@ -10,22 +10,6 @@ if(KLF_MACOSX_BUNDLES)
   include("${KLF_MACOSXDIR}/KLFMacBundle.cmake")
 endif(KLF_MACOSX_BUNDLES)
 
-# Include what we need from Qt (only core+gui, or xml+sql(+dbus) too,
-# depending on whether we're compiling klflib also or not)
-if(KLF_BUILD_GUI)
-  # we need xml + sql too, and maybe dbus
-  set(QT_USE_QTXML TRUE)
-  set(QT_USE_QTSQL TRUE)
-  if(KLF_USE_DBUS)
-    set(QT_USE_QTDBUS TRUE)
-  endif(KLF_USE_DBUS)
-endif(KLF_BUILD_GUI)
-# include our Qt4 stuff; Qt3 needs nothing.
-if(KLF_USE_QT4)
-include(${QT_USE_FILE})
-endif(KLF_USE_QT4)
-
-
 # Preprocessor instructions
 add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}" -DKLF_SRC_BUILD)
 if(KLF_USE_QT4)
@@ -43,12 +27,25 @@ if(NOT KLF_BUILD_GUI)
 endif(NOT KLF_BUILD_GUI)
 
 
+# Re-Include what we need from Qt for GUI KLF core+gui+xml+sql(+dbus)
+set(QT_USE_QTXML TRUE)
+set(QT_USE_QTSQL TRUE)
+if(KLF_USE_DBUS)
+  set(QT_USE_QTDBUS TRUE)
+endif(KLF_USE_DBUS)
+# include our Qt4 stuff; Qt3 needs nothing.
+if(KLF_USE_QT4)
+include(${QT_USE_FILE})
+endif(KLF_USE_QT4)
+
+
 # Sources
 set(klatexformula_SRCS
 	klfcolorchooser.cpp
 	klfconfig.cpp
 #	klfdata.cpp
 	klfpobj.cpp
+	klffactory.cpp
 	klflatexsyntaxhighlighter.cpp
 	klflatexsymbols.cpp
 #	klflibrary.cpp
@@ -98,6 +95,7 @@ set(klatexformula_HEADERS
 	klfconfig.h
 #	klfdata.h
 	klfpobj.h
+	klffactory.h
 	klflib_p.h
 	klfpluginiface.h
 	${klatexformula_MOCHEADERS}

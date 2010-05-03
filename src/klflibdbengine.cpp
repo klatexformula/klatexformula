@@ -96,11 +96,6 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 {
   bool accessshared = false;
 
-  QString datatablename = url.queryItemValue("dataTableName");
-  if (datatablename.isEmpty()) {
-    return NULL;
-  }
-
   QSqlDatabase db;
   if (url.scheme() == "klf+sqlite") {
     QUrl dburl = url;
@@ -126,33 +121,27 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
     return NULL;
   }
 
-  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, accessshared, parent);
+  return new KLFLibDBEngine(db, true /*autoDisconnect*/, url, accessshared, parent);
 }
 
 // static
 KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QString& dtablename,
-					      QObject *parent)
+					      const QString& dtabletitle, QObject *parent)
 {
   QString datatablename = dtablename;
+  QString datatabletitle = dtabletitle;
 
   bool r;
 
   if (QFile::exists(fileName)) {
     // fail; we want to _CREATE_ a database. use openUrl() to open an existing DB.
+    // To overwrite, erase the file first.
     return NULL;
   }
   QUrl url = QUrl::fromLocalFile(fileName);
   url.setScheme("klf+sqlite");
 
-  if (datatablename.isEmpty())
-    datatablename = "klfentries";
-  
-  url.addQueryItem("dataTableName", datatablename);
-  
-  QUrl dburl = url;
-  dburl.removeAllQueryItems("dataTableName");
-  dburl.removeAllQueryItems("klfReadOnly");
-  QString dburlstr = dburl.toString();
+  QString dburlstr = url.toString();
   QSqlDatabase db = QSqlDatabase::database(dburlstr);
   if (!db.isValid()) {
     db = QSqlDatabase::addDatabase("QSQLITE", dburlstr);
@@ -174,16 +163,34 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
     return NULL;
   }
 
-  return new KLFLibDBEngine(db, datatablename, true /*autoDisconnect*/, url, false, parent);
+  if (datatablename.isEmpty()) {
+    datatablename = "table1";
+    datatabletitle = "Table 1";
+  }
+  url.addQueryItem("klfDefaultSubResource", datatablename);
+  if (datatablename.contains("\"")) {
+    // SQLite table name cannot contain double-quote char (itself is used to escape the table name!)
+    return NULL;
+  }
+
+  KLFLibDBEngine *res = new KLFLibDBEngine(db, true /*autoDisconnect*/, url, false, parent);
+
+  bool r = res->createSubResource(datatablename, datatabletitle);
+  if ( ! r ) {
+    qWarning()<<"Failed to create table named "<<datatablename<<"!";
+    delete res;
+    return NULL;
+  }
+
+  return res;
 }
 
 // private
-KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename, bool autodisconnect,
+KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, bool autodisconnect,
 			       const QUrl& url, bool accessshared, QObject *parent)
-  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureLocked, parent)
+  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureLocked|FeatureSubResources
+			       |FeatureSubResourceProps, parent)
 {
-  pDataTableName = "t_"+tablename;
-
   pAutoDisconnectDB = autodisconnect;
 
   // load some read-only properties in memory (these are NOT stored in the DB)
@@ -191,16 +198,6 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, const QString& tablename,
 
   setDatabase(db);
   readResourceProperty(-1); // read all resource properties from DB
-
-  if ( ! db.tables().contains("t_"+tablename) ) {
-    if (isReadOnly() || ((supportedFeatureFlags()&FeatureLocked) && locked())) {
-      // cannot create given dataTableName... will generate an error
-      qWarning()<<"KLFLibDBEngine::KLFLibDBEngine: cannot create data table "<<pDataTableName
-		<<"in read-only/locked mode!";
-    } else {
-      createFreshDataTable(db, tablename);
-    }
-  }
 
   KLFLibDBEnginePropertyChangeNotifier *dbNotifier = dbPropertyNotifierInstance(db.connectionName());
   connect(dbNotifier, SIGNAL(resourcePropertyChanged(int)),
@@ -219,6 +216,26 @@ KLFLibDBEngine::~KLFLibDBEngine()
     pAutoDisconnectDB = false;
   }
 }
+
+// private
+bool KLFLibDBEngine::tableExists(const QString& subResource)
+{
+  return db.tables().contains("t_"+subResource);
+}
+
+// static
+QString KLFLibDBEngine::dataTableName(const QString& subResource)
+{
+  return dtname = "t_"+subResource;
+}
+// static
+QString KLFLibDBEngine::quotedDataTableName(const QString& subResource)
+{
+  QString dtname = dataTableName(subResource);
+  dtname.replace('"', "\"\"");
+  return '"' + dtname + '"';
+}
+
 
 bool KLFLibDBEngine::canModifyData(ModifyType mt) const
 {
@@ -353,7 +370,7 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& col
     QVariant v = q.value(k);
     if (cols[k] == "id")
       continue;
-    /** \bug DEBUG/TODO/BUG .... HERE REMOVE THE FOLLOWING SPECIAL CASES LATER (these
+    /** \bug DEBUG/TODO/BUG .................... HERE REMOVE THE FOLLOWING SPECIAL CASES LATER (these
      * are needed only for my old test db's... */
     bool hasTypeInfo = (v.toByteArray()[0] == '[');
     if (!hasTypeInfo && cols[k] == "DateTime")
@@ -372,13 +389,13 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& col
 
 
 
-KLFLibEntry KLFLibDBEngine::entry(entryId id)
+KLFLibEntry KLFLibDBEngine::entry(const QString& subResource, entryId id)
 {
   if ( ! validDatabase() )
     return KLFLibEntry();
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT * FROM `"+pDataTableName+"` WHERE id = ?");
+  q.prepare(QString("SELECT * FROM %1 WHERE id = ?").arg(quotedDataTableName(subResource)));
   q.addBindValue(id);
   bool r = q.exec();
 
@@ -404,13 +421,13 @@ KLFLibEntry KLFLibDBEngine::entry(entryId id)
 }
 
 
-QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries()
+QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries(const QString& subResource)
 {
   if ( ! validDatabase() )
     return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("SELECT * FROM `"+pDataTableName+"`");
+  q.prepare("SELECT * FROM "+quotedDataTableName(subResource)+"");
   q.setForwardOnly(true);
   q.exec();
 
@@ -563,7 +580,7 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
 }
 
 
-bool KLFLibDBEngine::ensureDataTableColumnsExist()
+bool KLFLibDBEngine::ensureDataTableColumnsExist(const QString& subResource)
 {
   KLFLibEntry dummy;
   QSqlRecord rec = pDB.record(pDataTableName);
@@ -574,7 +591,7 @@ bool KLFLibDBEngine::ensureDataTableColumnsExist()
     if (rec.contains(propNameList[k]))
       continue;
     QSqlQuery sql(pDB);
-    sql.prepare("ALTER TABLE `"+pDataTableName+"` ADD COLUMN "+propNameList[k]+" BLOB");
+    sql.prepare("ALTER TABLE "+quotedDataTableName(subResource)+" ADD COLUMN "+propNameList[k]+" BLOB");
     bool r = sql.exec();
     if (!r || sql.lastError().isValid()) {
       qWarning()<<"KLFLibDBEngine::ensureDataTableColumnsExist: Can't add column "<<propNameList[k]<<"!\n"
@@ -590,7 +607,8 @@ bool KLFLibDBEngine::ensureDataTableColumnsExist()
 // --
 
 
-QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibEntryList& entrylist)
+QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString& subres,
+								   const KLFLibEntryList& entrylist)
 {
   int k, j;
   if ( ! validDatabase() )
@@ -600,6 +618,9 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
 
   if ( !canModifyData(InsertData) )
     return QList<entryId>();
+
+  if ( !tableExists(..subres..))
+    return ......;
 
   KLFLibEntry e; // dummy object to test for properties
   QList<int> propids = e.registeredPropertyIdList();
@@ -615,7 +636,7 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
   ensureDataTableColumnsExist();
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("INSERT INTO `" + pDataTableName + "` (" + props.join(",") + ") "
+  q.prepare("INSERT INTO " + quotedDataTableName(subres) + " (" + props.join(",") + ") "
 	    " VALUES (" + questionmarks.join(",") + ")");
   qDebug()<<"INSERT query: "<<q.lastQuery();
   // now loop all entries, and exec the query with appropriate bound values
@@ -646,13 +667,16 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const KLFLibE
 }
 
 
-bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
-				   const QList<QVariant>& values)
+bool KLFLibDBEngine::changeEntries(const QString& subResource, const QList<entryId>& idlist,
+				   const QList<int>& properties, const QList<QVariant>& values)
 {
   if ( ! validDatabase() )
     return false;
   if ( ! canModifyData(ChangeData) )
     return false;
+
+  if ( !tableExists(..subres..))
+    return ......;
 
   if ( properties.size() != values.size() ) {
     qWarning("KLFLibDBEngine::changeEntry(): properties' and values' sizes mismatch!");
@@ -677,8 +701,8 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
   for (k = 0; k < idlist.size(); ++k) questionmarks_ids << "?";
   // prepare query
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("UPDATE `"+pDataTableName+"` SET " + updatepairs.join(", ") + "  WHERE id IN (" +
-	    questionmarks_ids.join(", ") + ")");
+  q.prepare("UPDATE "+quotedDataTableName(subResource)+" SET " + updatepairs.join(", ") +
+	    "  WHERE id IN (" + questionmarks_ids.join(", ") + ")");
   for (k = 0; k < properties.size(); ++k) {
     q.addBindValue(convertVariantToDBData(values[k]));
   }
@@ -698,7 +722,7 @@ bool KLFLibDBEngine::changeEntries(const QList<entryId>& idlist, const QList<int
   return true;
 }
 
-bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
+bool KLFLibDBEngine::deleteEntries(const QString& subResource, const QList<entryId>& idlist)
 {
   if ( ! validDatabase() )
     return false;
@@ -707,13 +731,16 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
   if ( ! canModifyData(DeleteData) )
     return false;
 
+  if ( !tableExists(..subres..))
+    return ......;
+
   int k;
   QStringList qmarks_ids;
   for (k = 0; k < idlist.size(); ++k)
     qmarks_ids << "?";
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare("DELETE FROM `"+pDataTableName+"` WHERE id IN ("+qmarks_ids.join(", ")+")");
+  q.prepare("DELETE FROM "+quotedDataTableName(subResource)+" WHERE id IN ("+qmarks_ids.join(", ")+")");
   for (k = 0; k < idlist.size(); ++k)
     q.addBindValue(idlist[k]);
   bool r = q.exec();
@@ -729,19 +756,19 @@ bool KLFLibDBEngine::deleteEntries(const QList<entryId>& idlist)
 
 bool KLFLibDBEngine::saveAs(const QUrl& newPath)
 {
-  if (newPath.scheme() != "klf+sqlite") {
-    qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Bad scheme!";
-    return false;
+  if (newPath.scheme() == "klf+sqlite") {
+    if (!newPath.host().isEmpty()) {
+      qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Expected empty host!";
+      return false;
+    }
+    return QFile::copy(url().path(), newPath.path());
   }
-  if (!newPath.host().isEmpty()) {
-    qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Expected empty host!";
-    return false;
-  }
-  return QFile::copy(url().path(), newPath.path());
+  qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Bad scheme!";
+  return false;
 }
 
 // static
-bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)
+bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 {
   if ( ! db.isOpen() )
     return false;
@@ -756,6 +783,7 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)
   sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_version', '" KLF_VERSION_STRING "')";
   sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_dbversion', '"+
     QString::number(KLF_DB_VERSION)+"')";
+  sql << "CREATE TABLE klf_subresprops (id INTEGER PRIMARY KEY, pname TEXT, subresource TEXT, pvalue BLOB)";
 
   int k;
   for (k = 0; k < sql.size(); ++k) {
@@ -763,24 +791,32 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db, const QString& dtname)
     query.prepare(sql[k]);
     bool r = query.exec();
     if ( !r || query.lastError().isValid() ) {
-      qWarning()<<"initFreshDatabase(): SQL Error: "<<query.lastError().text()<<"\n"
+      qWarning()<<"KLFLibDBEngine::initFreshDatabase(): SQL Error: "<<query.lastError().text()<<"\n"
 		<<"SQL="<<sql[k];
       return false;
     }
   }
-
-  return createFreshDataTable(db, dtname);
+  return true;
 }
 // static
-bool KLFLibDBEngine::createFreshDataTable(QSqlDatabase db, const QString& dtname)
+bool KLFLibDBEngine::createFreshDataTable(QSqlDatabase db, const QString& subres)
 {
-  QString datatablename = "t_"+dtname;
-  if ( ! db.isOpen() )
+  QString datatablename = dataTableName(subres);
+  if ( ! db.isOpen() ) {
+    qWarning("KLFLibDBEngine::createFreshDataTable(..,%s): DB is not open!", qPrintable(subres));
     return false;
+  }
+
+  if ( db.tables().contains(datatablename) ) {
+    qWarning("KLFLibDBEngine::createFreshDataTable(..,%s): table %s exists!", qPrintable(subres),
+	     qPrintable(datatablename));
+    return false;
+  }
+  QString qdtname = quotedDataTableName(subres);
 
   QSqlQuery query(db);
   query.prepare(QString("")+
-		"CREATE TABLE `"+datatablename+"` (id INTEGER PRIMARY KEY, Latex TEXT, DateTime TEXT, "
+		"CREATE TABLE "+qdtname+" (id INTEGER PRIMARY KEY, Latex TEXT, DateTime TEXT, "
 		"       Preview BLOB, Category TEXT, Tags TEXT, Style BLOB)");
   bool r = query.exec();
   if ( !r || query.lastError().isValid() ) {
@@ -793,20 +829,21 @@ bool KLFLibDBEngine::createFreshDataTable(QSqlDatabase db, const QString& dtname
 }
 
 
-
-QStringList KLFLibDBEngine::getDataTableNames(const QUrl& url)
-{
-  KLFLibDBEngine *resource = openUrl(url, NULL);
-  QStringList tables = resource->pDB.tables(QSql::Tables);
-  delete resource;
-  // filter out t_<tablename> tables
-  int k;
-  QStringList dataTableNames;
-  for (k = 0; k < tables.size(); ++k)
-    if (tables[k].startsWith("t_"))
-      dataTableNames << tables[k].mid(2);
-  return dataTableNames;
-}
+/*
+ QStringList KLFLibDBEngine::getDataTableNames(const QUrl& url)
+ {
+ KLFLibDBEngine *resource = openUrl(url, NULL);
+ QStringList tables = resource->pDB.tables(QSql::Tables);
+ delete resource;
+ // filter out t_<tablename> tables
+ int k;
+ QStringList dataTableNames;
+ for (k = 0; k < tables.size(); ++k)
+ if (tables[k].startsWith("t_"))
+ dataTableNames << tables[k].mid(2);
+ return dataTableNames;
+ }
+*/
 
 
 
