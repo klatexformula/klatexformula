@@ -56,7 +56,7 @@
    <item row="1" column="1">
     <widget class="QComboBox" name="cbxType"/>
    </item>
-   <item row="4" column="0" colspan="2">
+   <item row="5" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="btnBar">
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Open</set>
@@ -68,12 +68,22 @@
      <widget class="QWidget" name="pageQtDesginerDefault"/>
     </widget>
    </item>
-   <item row="3" column="0" colspan="2">
+   <item row="4" column="0" colspan="2">
     <widget class="QCheckBox" name="chkReadOnly">
      <property name="text">
       <string>Open in read-only mode</string>
      </property>
     </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="lblSubResource">
+     <property name="text">
+      <string>Default Sub-Resource (if supported):</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QComboBox" name="cbxSubResource"/>
    </item>
   </layout>
  </widget>

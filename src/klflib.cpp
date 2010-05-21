@@ -33,6 +33,17 @@
 
 
 
+
+
+// issue a warning if no default sub-resource is set
+#define KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE(func)		\
+  if ((pFeatureFlags & FeatureSubResources) && pDefaultSubResource.isNull()) { \
+    qWarning("KLFLibResourceEngine::" func "(id): sub-resources are supported feature but" \
+	     " no default sub-resource is specified!"); }		\
+
+
+
+
 // ----------------------
 
 
@@ -235,7 +246,7 @@ KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, uint featureflags,
     QStringList defaultsubresource = pUrl.allQueryItemValues("klfDefaultSubResource");
     if (!defaultsubresource.isEmpty()) {
       pUrl.removeAllQueryItems("klfDefaultSubResource");
-      setDefaultSubResource(defaultsubresource.last());
+      pDefaultSubResource = defaultsubresource.last();
     }
   }
 
@@ -254,20 +265,36 @@ void KLFLibResourceEngine::initRegisteredProperties()
   registerBuiltInProperty(PropAccessShared, "AccessShared");
 }
 
-bool KLFLibResourceEngine::canModifyData(ModifyType /*modifytype*/) const
+bool KLFLibResourceEngine::canModifyData(const QString& subResource,
+					 ModifyType /*modifytype*/) const
 {
-  return !isReadOnly() && !locked();
+  return baseCanModifyStatus(true, subResource) == MS_CanModify;
 }
+
+bool KLFLibResourceEngine::canModifyData(ModifyType modifytype) const
+{
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("canModifyData")
+  return canModifyData(pDefaultSubResource, modifytype);
+}
+
+
 bool KLFLibResourceEngine::canModifyProp(int propId) const
 {
-  if (propId == PropLocked)
-    return !isReadOnly() && (pFeatureFlags & FeatureLocked);
-
-  return !isReadOnly() && !locked();
+  ModifyStatus ms = baseCanModifyStatus(false);
+  return ms == MS_CanModify ||
+    (ms == MS_IsLocked && propId == PropLocked); // allow un-locking (!)
 }
 bool KLFLibResourceEngine::canRegisterProperty(const QString& /*propName*/) const
 {
   return false;
+}
+
+bool KLFLibResourceEngine::hasSubResource(const QString& subResource) const
+{
+  if ( !(pFeatureFlags & FeatureSubResources) )
+    return false;
+
+  return subResourceList().contains(subResource);
 }
 
 QString KLFLibResourceEngine::defaultSubResource()
@@ -275,9 +302,31 @@ QString KLFLibResourceEngine::defaultSubResource()
   return pDefaultSubResource;
 }
 
-QVariant KLFLibResourceEngine::subResourceProperty(const QString& /*subResource*/, int /*propId*/)
+QVariant KLFLibResourceEngine::subResourceProperty(const QString& /*subResource*/, int /*propId*/) const
 {
   return QVariant();
+}
+
+QString KLFLibResourceEngine::subResourcePropertyName(int propId) const
+{
+  switch (propId) {
+  case SubResPropTitle:
+    return QLatin1String("Title");
+  case SubResPropLocked:
+    return QLatin1String("Locked");
+  case SubResPropViewType:
+    return QLatin1String("ViewType");
+  default:
+    ;
+  }
+  return QString::number(propId);
+}
+
+bool KLFLibResourceEngine::canModifySubResourceProperty(const QString& subResource, int propId) const
+{
+  ModifyStatus ms = baseCanModifyStatus(true, subResource);
+  return ms == MS_CanModify ||
+    (ms == MS_SubResLocked && propId == SubResPropLocked); // allow sub-resource un-locking
 }
 
 bool KLFLibResourceEngine::setTitle(const QString& title)
@@ -311,7 +360,11 @@ bool KLFLibResourceEngine::setReadOnly(bool readonly)
 
 void KLFLibResourceEngine::setDefaultSubResource(const QString& subResource)
 {
+  if (pDefaultSubResource == subResource)
+    return;
+
   pDefaultSubResource = subResource;
+  emit defaultSubResourceChanged(subResource);
 }
 
 bool KLFLibResourceEngine::setSubResourceProperty(const QString& /*subResource*/, int /*propId*/,
@@ -325,17 +378,21 @@ bool KLFLibResourceEngine::createSubResource(const QString& /*subResource*/,
 {
   return false;
 }
+bool KLFLibResourceEngine::createSubResource(const QString& subResource)
+{
+  return createSubResource(subResource, QString());
+}
+
 
 
 KLFLibEntry KLFLibResourceEngine::entry(entryId id)
 {
-  if ((pFeatureFlags & FeatureSubResources) && pDefaultSubResource.isNull())
-    qWarning("KLFLibResourceEngine::entry(id): sub-resources are supported feature but"
-	     " no default sub-resource is specified!");
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("entry");
   return entry(pDefaultSubResource, id);
 }
 bool KLFLibResourceEngine::hasEntry(entryId id)
 {
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("hasEntry");
   if ((pFeatureFlags & FeatureSubResources) && pDefaultSubResource.isNull())
     qWarning("KLFLibResourceEngine::hasEntry(id): sub-resources are supported feature but"
 	     " no default sub-resource is specified!");
@@ -344,17 +401,13 @@ bool KLFLibResourceEngine::hasEntry(entryId id)
 QList<KLFLibResourceEngine::KLFLibEntryWithId>
 /* */ KLFLibResourceEngine::entries(const QList<KLFLib::entryId>& idList)
 {
-  if ((pFeatureFlags & FeatureSubResources) && pDefaultSubResource.isNull())
-    qWarning("KLFLibResourceEngine::entries(idList): sub-resources are supported feature but"
-	     " no default sub-resource is specified!");
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("entries");
   return entries(pDefaultSubResource, idList);
 }
 
 QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibResourceEngine::allEntries()
 {
-  if ((pFeatureFlags & FeatureSubResources) && pDefaultSubResource.isNull())
-    qWarning("KLFLibResourceEngine::allEntries(): sub-resources are supported feature but"
-	     " no default sub-resource is specified!");
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("allEntries");
   return allEntries(pDefaultSubResource);
 }
 
@@ -371,25 +424,34 @@ KLFLibResourceEngine::entryId KLFLibResourceEngine::insertEntry(const QString& s
   return ids[0];
 }
 KLFLibResourceEngine::entryId KLFLibResourceEngine::insertEntry(const KLFLibEntry& entry)
-{
-  if (pFeatureFlags & FeatureSubResources)
-    qWarning("KLFLibResourceEngine::insertEntry(entry): sub-resources are supported feature but"
-	     " no sub-resource is specified!");
-  return insertEntry(QString(), entry);
+{ 
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("insertEntry");
+  return insertEntry(pDefaultSubResource, entry);
 }
 QList<KLFLibResourceEngine::entryId> KLFLibResourceEngine::insertEntries(const KLFLibEntryList& entrylist)
 {
-  if (pFeatureFlags & FeatureSubResources)
-    qWarning("KLFLibResourceEngine::insertEntries(entrylist): sub-resources are supported feature but"
-	     " no sub-resource is specified!");
-  return insertEntries(QString(), entrylist);
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("insertEntries");
+  return insertEntries(pDefaultSubResource, entrylist);
+}
+
+bool KLFLibResourceEngine::changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
+					 const QList<QVariant>& values)
+{
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("changeEntries");
+  return changeEntries(pDefaultSubResource, idlist, properties, values);
+}
+
+bool KLFLibResourceEngine::deleteEntries(const QList<entryId>& idList)
+{
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("deleteEntries");
+  return deleteEntries(pDefaultSubResource, idList);
 }
 
 
 
-bool KLFLibResourceEngine::saveAs(const QUrl&)
+bool KLFLibResourceEngine::saveTo(const QUrl&)
 {
-  // not permitted by default. Subclasses must reimplement
+  // not implemented by default. Subclasses must reimplement
   // to support this feature.
   return false;
 }
@@ -434,6 +496,28 @@ bool KLFLibResourceEngine::setResourceProperty(int propId, const QVariant& value
 }
 
 
+KLFLibResourceEngine::ModifyStatus
+/* */ KLFLibResourceEngine::baseCanModifyStatus(bool inSubResource, const QString& subResource) const
+{
+  if (pFeatureFlags & FeatureLocked) {
+    if (locked())
+      return MS_IsLocked;
+    if (inSubResource &&
+	(pFeatureFlags & FeatureSubResources) &&
+	(pFeatureFlags & FeatureSubResourceProps)) {
+      if (subResourceProperty(subResource, SubResPropLocked).toBool())
+	return MS_SubResLocked;
+    }
+  }
+
+  if (pFeatureFlags & FeatureReadOnly) {
+    if (isReadOnly())
+      return MS_NotModifiable;
+  }
+
+  return MS_CanModify;
+}
+
 // -----
 
 QDataStream& operator<<(QDataStream& stream, const KLFLibResourceEngine::KLFLibEntryWithId& entrywid)
@@ -449,18 +533,19 @@ QDataStream& operator>>(QDataStream& stream, KLFLibResourceEngine::KLFLibEntryWi
 
 // ---------------------------------------------------
 
-bool KLFLibResourceSimpleEngine::hasEntry(const QString&, entryId id)
+bool KLFLibResourceSimpleEngine::hasEntry(const QString& subResource, entryId id)
 {
-  return entry(id) == KLFLibEntry();
+  /** \bug ............... BUG/TODO .......... concept problem here */
+  return entry(subResource, id).latex().size();
 }
 
 QList<KLFLibResourceEngine::KLFLibEntryWithId>
-/* */ KLFLibResourceSimpleEngine::entries(const QString&, const QList<KLFLib::entryId>& idList)
+/* */ KLFLibResourceSimpleEngine::entries(const QString& subResource, const QList<KLFLib::entryId>& idList)
 {
   QList<KLFLibEntryWithId> elist;
   int k;
   for (k = 0; k < idList.size(); ++k)
-    elist << KLFLibEntryWithId(idList[k], entry(idList[k]));
+    elist << KLFLibEntryWithId(idList[k], entry(subResource, idList[k]));
   return elist;
 }
 
@@ -478,6 +563,11 @@ KLFLibEngineFactory::~KLFLibEngineFactory()
 {
 }
 
+uint KLFLibEngineFactory::schemeFunctions(const QString& /*scheme*/) const
+{
+  return FuncOpen;
+}
+
 KLFLibEngineFactory *KLFLibEngineFactory::findFactoryFor(const QUrl& url)
 {
   return findFactoryFor(url.scheme());
@@ -493,29 +583,62 @@ QStringList KLFLibEngineFactory::allSupportedSchemes()
   return pFactoryManager.allSupportedTypes();
 }
 
+KLFLibResourceEngine *KLFLibEngineFactory::createResource(const QString& /*scheme*/,
+							  const Parameters& /*param*/,
+							  QObject */*parent*/)
+{
+  return NULL;
+}
+
+bool KLFLibEngineFactory::saveResourceTo(KLFLibResourceEngine */*resource*/, const QUrl& /*newLocation*/)
+{
+  return false;
+}
+
+
 KLFLibResourceEngine *KLFLibEngineFactory::openURL(const QUrl& url, QObject *parent)
 {
   KLFLibEngineFactory *factory = findFactoryFor(url.scheme());
   if ( factory == NULL ) {
-    qWarning()<<"KLFLibEngineFactory::listSubResources("<<url<<"): No suitable factory found!";
+    qWarning()<<"KLFLibEngineFactory::openURL("<<url<<"): No suitable factory found!";
     return NULL;
   }
   return factory->openResource(url, parent);
 }
-QStringList KLFLibEngineFactory::listSubResources(const QUrl& url)
+
+// static
+QMap<QString,QString> KLFLibEngineFactory::listSubResourcesWithTitles(const QUrl& urlbase)
 {
+  QUrl url = urlbase;
+  url.addQueryItem("klfReadOnly", "true");
   KLFLibResourceEngine *resource = openURL(url, NULL); // NULL parent
   if ( resource == NULL ) {
     qWarning()<<"KLFLibEngineFactory::listSubResources("<<url<<"): Unable to open resource!";
-    return QStringList();
+    return QMap<QString,QString>();
   }
   if ( !(resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) ) {
     qWarning()<<"KLFLibEngineFactory::listSubResources("<<url<<"): Resource does not support sub-resources!";
-    return QStringList();
+    return QMap<QString,QString>();
   }
   QStringList subreslist = resource->subResourceList();
+  int k;
+  QMap<QString,QString> subresmap;
+  for (k = 0; k < subreslist.size(); ++k) {
+    if (resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps)
+      subresmap[subreslist[k]]
+	= resource->subResourceProperty(subreslist[k],
+					KLFLibResourceEngine::SubResPropTitle).toString();
+    else
+      subresmap[subreslist[k]] = QString();
+  }
   delete resource;
-  return subreslist;
+  return subresmap;
+}
+
+// static
+QStringList KLFLibEngineFactory::listSubResources(const QUrl& urlbase)
+{
+  return listSubResourcesWithTitles(urlbase).keys();
 }
 
 
@@ -530,14 +653,20 @@ KLFLibWidgetFactory::KLFLibWidgetFactory(QObject *parent)
 {
 }
 
-
+// static
 KLFLibWidgetFactory *KLFLibWidgetFactory::findFactoryFor(const QString& wtype)
 {
   return dynamic_cast<KLFLibWidgetFactory*>(pFactoryManager.findFactoryFor(wtype));
 }
 
+// static
+QStringList KLFLibWidgetFactory::allSupportedWTypes()
+{
+  return pFactoryManager.allSupportedTypes();
+}
 
-bool KLFLibWidgetFactory::canCreateResource(const QString& /*scheme*/) const
+
+bool KLFLibWidgetFactory::hasCreateWidget(const QString& /*scheme*/) const
 {
   return false;
 }
@@ -554,25 +683,19 @@ KLFLibWidgetFactory::Parameters
 {
   return Parameters();
 }
-KLFLibResourceEngine *KLFLibWidgetFactory::createResource(const QString& /*scheme*/,
-								  const Parameters& /*param*/,
-								  QObject */*parent*/)
-{
-  return NULL;
-}
 
-bool KLFLibWidgetFactory::canResourceSaveAs(const QString& /*scheme*/) const
+bool KLFLibWidgetFactory::hasSaveToWidget(const QString& /*scheme*/) const
 {
   return false;
 }
-QWidget *KLFLibWidgetFactory::createPromptSaveAsWidget(QWidget */*parent*/,
+QWidget *KLFLibWidgetFactory::createPromptSaveToWidget(QWidget */*parent*/,
 						       const QString& /*scheme*/,
 						       KLFLibResourceEngine* /*resource*/,
 						       const QUrl& /*defaultUrl*/)
 {
   return NULL;
 }
-QUrl KLFLibWidgetFactory::retrieveSaveAsUrlFromWidget(const QString& /*scheme*/,
+QUrl KLFLibWidgetFactory::retrieveSaveToUrlFromWidget(const QString& /*scheme*/,
 						      QWidget */*widget*/)
 {
   return QUrl();

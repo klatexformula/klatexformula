@@ -26,13 +26,24 @@
 
 #include <klfdefs.h>
 #include <klflib.h>
+#include <klflibview.h> // KLFLibLocalFileSchemeGuesser
 
 
-
+//! A utility class to automatically disconnect a database after use
+/** This class basically calls \ref QSqlDatabase::removeDatabase() upon its destruction, if the
+ * pAutoDisconnectDB flag is TRUE. The disconnected database name is given by the
+ * \ref pDBConnectionName property, which can be set directly in sub-classes, or equivalently using
+ * the \ref setDBConnectionName() member.
+ * */
 class KLF_EXPORT KLFLibDBConnectionClassUser {
 public:
   KLFLibDBConnectionClassUser();
   virtual ~KLFLibDBConnectionClassUser();
+
+  inline bool autoDisconnectDB() const { return pAutoDisconnectDB; }
+  inline void setAutoDisconnectDB(bool autodisconnectDB) { pAutoDisconnectDB = autodisconnectDB; }
+  inline QString dbConnectionName() const { return pDBConnectionName; }
+  inline void setDBConnectionName(const QString& name) { pDBConnectionName = name; }
   
 protected:
   bool pAutoDisconnectDB;
@@ -68,6 +79,7 @@ public:
    * A non-NULL returned object was successfully connected to database.
    * */
   static KLFLibDBEngine * openUrl(const QUrl& url, QObject *parent = NULL);
+
   /** Use this function as a constructor. Creates a KLFLibDBEngine object,
    * with QObject parent \c parent, creating a fresh, empty SQLITE database
    * stored in file \c fileName.
@@ -87,7 +99,7 @@ public:
    * in the constructor. */
   virtual ~KLFLibDBEngine();
 
-  virtual bool canModifyData(ModifyType modifytype) const;
+  virtual bool canModifyData(const QString& subRes, ModifyType modifytype) const;
   virtual bool canModifyProp(int propid) const;
   virtual bool canRegisterProperty(const QString& propName) const;
 
@@ -100,6 +112,14 @@ public:
   virtual KLFLibEntry entry(const QString& subRes, entryId id);
   virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes);
 
+  virtual QVariant subResourceProperty(const QString& subResource, int propId) const;
+
+  virtual QList<int> subResourcePropertyIdList() const
+  { return QList<int>() << SubResPropTitle << SubResPropViewType << SubResPropLocked; }
+
+  virtual bool hasSubResource(const QString& subRes) const;
+  virtual QStringList subResourceList() const;
+
 public slots:
 
   virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle);
@@ -111,14 +131,18 @@ public slots:
 
   virtual bool saveAs(const QUrl& newPath);
 
+  virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
+
 protected:
   virtual bool saveResourceProperty(int propId, const QVariant& value);
-  virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
 
 private slots:
   /** Called by our instance of KLFLibDBEnginePropertyChangeNotifier that tells us when
    * other class instances using the same connection change the properties. */
   void resourcePropertyUpdate(int propId);
+  /** Called by our instance of KLFLibDBEnginePropertyChangeNotifier that tells us when
+   * other class instances using the same connection change the properties. */
+  void subResourcePropertyUpdate(const QString& subResource, int propId);
 
   //! Read given resource property from DB
   /** If \c propId == -1, all properties are (re-)read. */
@@ -151,7 +175,7 @@ private:
    * NOT contain the leading \c "t_" prefix. */
   static bool createFreshDataTable(QSqlDatabase db, const QString& subresource);
 
-  bool tableExists(const QString& subResource);
+  bool tableExists(const QString& subResource) const;
 
   static QString dataTableName(const QString& subResource);
   static QString quotedDataTableName(const QString& subResource);
@@ -162,7 +186,16 @@ private:
 
 
 
-/** The associated factory to the KLFLibDBEngine engine. */
+class KLF_EXPORT KLFLibDBLocalFileSchemeGuesser : public QObject, public KLFLibLocalFileSchemeGuesser
+{
+public:
+  KLFLibDBLocalFileSchemeGuesser(QObject *parent) : QObject(parent) { }
+
+  QString guessScheme(const QString& fileName) const;
+};
+
+
+/** The associated \ref KLFLibEngineFactory factory to the \ref KLFLibDBEngine resource engine. */
 class KLF_EXPORT KLFLibDBEngineFactory : public KLFLibEngineFactory
 {
   Q_OBJECT
@@ -170,30 +203,16 @@ public:
   KLFLibDBEngineFactory(QObject *parent = NULL);
   virtual ~KLFLibDBEngineFactory() { }
 
-  /** Should return a list of supported URL schemes this factory can open */
-  virtual QStringList supportedSchemes() const;
+  virtual QStringList supportedTypes() const;
   virtual QString schemeTitle(const QString& scheme) const ;
+  virtual uint schemeFunctions(const QString& scheme) const ;
 
-  virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
-					  QUrl defaultlocation = QUrl());
-  virtual QUrl retrieveUrlFromWidget(const QString& scheme, QWidget *widget);
-
-  /** Create a library engine that opens resource stored at \c location */
+  virtual QString correspondingWidgetType(const QString& scheme) const;
   virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL);
-
-
-  virtual bool canCreateResource(const QString& /*scheme*/) const { return true; }
-
-  virtual QWidget * createPromptCreateParametersWidget(QWidget *parent, const QString& scheme,
-						       const Parameters& defaultparameters = Parameters());
-
-  virtual Parameters retrieveCreateParametersFromWidget(const QString& scheme, QWidget *widget);
 
   virtual KLFLibResourceEngine *createResource(const QString& scheme, const Parameters& parameters,
 					       QObject *parent = NULL);
-
 };
-
 
 
 

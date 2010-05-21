@@ -48,7 +48,6 @@ set(klatexformula_SRCS
 	klffactory.cpp
 	klflatexsyntaxhighlighter.cpp
 	klflatexsymbols.cpp
-#	klflibrary.cpp
 	klflib.cpp
 	klflibdbengine.cpp
 	klfliblegacyengine.cpp
@@ -70,12 +69,10 @@ set(klatexformula_MOCHEADERS
 	klfcolorchooser.h
 	klflatexsyntaxhighlighter.h
 	klflatexsymbols.h
-#	klflibrary.h
 	klflib.h
 	klflibdbengine.h
 	klflibdbengine_p.h
 	klfliblegacyengine.h
-	klfliblegacyengine_p.h
 	klflibview.h
 	klflibview_p.h
 	klflibentryeditor.h
@@ -96,14 +93,14 @@ set(klatexformula_HEADERS
 #	klfdata.h
 	klfpobj.h
 	klffactory.h
-	klflib_p.h
 	klfpluginiface.h
+	klflib_p.h
+	klfliblegacyengine_p.h
 	${klatexformula_MOCHEADERS}
 )
 # UI Forms
 set(klatexformula_UIS
 	klflatexsymbols.ui
-#	klflibrarybrowserui.ui
 	klflibbrowser.ui
 	klflibentryeditor.ui
 	klflibrespropeditor.ui
@@ -115,7 +112,7 @@ set(klatexformula_UIS
 	klfcolorchoosewidgetui.ui
 	klfcolordialogui.ui
 	klflibopenresourcedlg.ui
-	klflibsqliteopenwidget.ui
+	klfliblocalfilewidget.ui
 )
 # Translations
 set(klatexformula_TSS

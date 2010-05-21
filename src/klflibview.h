@@ -40,6 +40,8 @@
 #include <klfdefs.h>
 #include <klflib.h>
 
+
+
 namespace KLFLib {
   enum RestoreMode {
     RestoreLatex = 0x0001,
@@ -48,6 +50,7 @@ namespace KLFLib {
     RestoreLatexAndStyle = RestoreLatex|RestoreStyle
   };
 };
+
 
 //! A view widget to display a library resource's contents
 /** A base API for a widget that will display a KLFLibResourceEngine's contents.
@@ -94,7 +97,9 @@ signals:
   /** Subclasses must emit this signal AFTER they have refreshed. */
   void resourceDataChanged(const QList<KLFLib::entryId>& entryIdList);
 
+  /** Emitted when the selection has changed, eg. user selected or deselected some entries. */
   void entriesSelected(const KLFLibEntryList& entries);
+
   /** Subclasses should emit this signal with lists of categories they come accross,
    * so that the editor can suggest these as completions upon editing category */
   void moreCategorySuggestions(const QStringList& categorylist);
@@ -103,24 +108,52 @@ public slots:
   virtual void updateView();
   virtual void updateResourceView() = 0;
   virtual void updateResourceProp(int propId) = 0;
-  virtual void updateResourceData(const QList<KLFLib::entryId>& entryIdList) = 0;
+  virtual void updateResourceData(const QString& subres, int modifyType,
+				  const QList<KLFLib::entryId>& entryIdList) = 0;
   virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
-  inline bool writeEntryCategory(const QString& category)
+  /** Provides a reasonable default implementation that should suit for most purposes. */
+  virtual bool writeEntryCategory(const QString& category)
   { return writeEntryProperty(KLFLibEntry::Category, category); }
-  inline bool writeEntryTags(const QString& tags)
+  /** Provides a reasonable default implementation that should suit for most purposes. */
+  virtual bool writeEntryTags(const QString& tags)
   { return writeEntryProperty(KLFLibEntry::Tags, tags); }
   virtual bool deleteSelected(bool requireConfirm = true) = 0;
   virtual bool insertEntries(const KLFLibEntryList& entries) = 0;
-  inline bool insertEntry(const KLFLibEntry& entry)
-    /* */ { return insertEntries(KLFLibEntryList() << entry); }
+  /** Provides a reasonable default implementation that should suit for most purposes. */
+  virtual bool insertEntry(const KLFLibEntry& entry)
+  { return insertEntries(KLFLibEntryList() << entry); }
 
+  /** This function should instruct the view to find the first occurence of the
+   * string \c queryString, searching from top of the list if \c forward is TRUE, or reverse
+   * from end of list of FALSE.
+   *
+   * The reimplementation should call from time to time
+   * \code qApp->processEvents() \endcode
+   * to keep the GUI from freezing in long resources.
+   *
+   * \note If the reimplementation implements the above suggestion, note that the slot
+   *   \ref searchAbort() may be called during that time! It is best to take that into
+   *   account and provide a means to stop the search if that is the case.
+   */
   virtual bool searchFind(const QString& queryString, bool forward = true) = 0;
+  /** This function should instruct the view to find the next occurence of the query string
+   * given by a previous call to \ref searchFind(). The search must be performed in the
+   * direction given by \c forward (see \ref searchFind()).
+   *
+   * It is up to the sub-class to remember the query string and the current match location.
+   *
+   * This function should also call the applications's processEvents() to keep the GUI from
+   * freezing. The instructions are the same as for \ref searchFind().
+   */
   virtual bool searchFindNext(bool forward) = 0;
   virtual void searchAbort() = 0;
 
+  /** Collects the necessary information and emits \ref requestRestore() */
   virtual void restore(uint restoreFlags = KLFLib::RestoreLatexAndStyle) = 0;
-  void restoreWithStyle() { restore(KLFLib::RestoreLatexAndStyle); }
-  void restoreLatexOnly() { restore(KLFLib::RestoreLatex); }
+  /** Provides a reasonable default implementation that should suit for most purposes. */
+  virtual void restoreWithStyle() { restore(KLFLib::RestoreLatexAndStyle); }
+  /** Provides a reasonable default implementation that should suit for most purposes. */
+  virtual void restoreLatexOnly() { restore(KLFLib::RestoreLatex); }
 
   /** Called by the owner of the view. This function fetches category suggestions
    * (by calling the virtual getCategorySuggestions() reimplemented by subclasses)
@@ -310,10 +343,13 @@ public slots:
   virtual QModelIndex searchFind(const QString& queryString, const QModelIndex& fromIndex
 				 = QModelIndex(), bool forward = true);
   virtual QModelIndex searchFindNext(bool forward);
+  virtual void searchAbort();
 
   virtual bool changeEntries(const QModelIndexList& items, int property, const QVariant& value);
   virtual bool insertEntries(const KLFLibEntryList& entries);
   virtual bool deleteEntries(const QModelIndexList& items);
+
+  virtual void completeRefresh();
 
 private:
 
@@ -394,6 +430,7 @@ private:
 
   EntryCache pEntryCache;
   CategoryLabelCache pCategoryLabelCache;
+  bool pCategoryLabelCacheContainsInvalid;
 
   QStringList pCatListCache;
 
@@ -414,10 +451,25 @@ private:
   QList<PersistentId> persistentIdList(const QModelIndexList& persistentindexlist);
   QModelIndexList newPersistentIndexList(const QList<PersistentId>& persistentidlist);
 
-  void updateCacheSetupModel();
-  void insertEntryToCacheTree(const NodeId& e);
+  void startLayoutChange();
+  void endLayoutChange();
 
-  IndexType cacheFindCategoryLabel(QStringList catelements, bool createIfNotExists = false);
+  QModelIndexList pLytChgIndexes;
+  QList<PersistentId> pLytChgIds;
+
+  void updateCacheSetupModel();
+  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
+  void insertEntryToCacheTree(const NodeId& e, bool notifyQtApi = false);
+
+  /** emits QAbstractItemModel-appropriate LAYOUT CHANGES SIGNALS if \c notifyQtApi is true. IT ALWAYS
+   * EMITS APPROPRIATE SIGNALS FOR SUB-CATEGORIES THAT ARE CREATED TO FIT THE ITEM. */
+  void treeInsertEntry(const NodeId& e, bool notifyQtApi = true);
+  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
+  void treeRemoveEntry(const NodeId& e, bool notifyQtApi = true);
+
+  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
+  IndexType cacheFindCategoryLabel(QStringList catelements, bool createIfNotExists = false,
+				   bool notifyQtApi = false);
 
   void dumpNodeTree(NodeId node, int indent = 0) const;
 
@@ -467,6 +519,7 @@ private:
   
   QString pSearchString;
   NodeId pSearchCurNode;
+  bool pSearchAborted;
 
   bool dropCanInternal(const QMimeData *data);
 };
@@ -589,7 +642,8 @@ public slots:
 protected:
   virtual void updateResourceView();
   virtual void updateResourceProp(int propId);
-  virtual void updateResourceData(const QList<KLFLib::entryId>& entryIdList);
+  virtual void updateResourceData(const QString& subRes, int modifyType,
+				  const QList<KLFLib::entryId>& entryIdList);
   virtual void updateResourceOwnData(const QList<KLFLib::entryId>& entryIdList);
   virtual QStringList getCategorySuggestions();
 
@@ -657,6 +711,7 @@ namespace Ui {
   class KLFLibResPropEditor;
 };
 
+/** \todo .......... TODO: ......... HANDLE sub-resources */
 class KLF_EXPORT KLFLibOpenResourceDlg : public QDialog
 {
   Q_OBJECT
@@ -673,6 +728,9 @@ protected slots:
   virtual void updateReadyToOpenFromSender(bool isready);
   virtual void updateReadyToOpen();
 
+protected:
+  virtual QUrl rawUrl() const;
+
 private:
   Ui::KLFLibOpenResourceDlg *pUi;
   QAbstractButton *btnGo;
@@ -687,14 +745,15 @@ class KLF_EXPORT KLFLibCreateResourceDlg : public QDialog
 public:
   typedef KLFLibEngineFactory::Parameters Parameters;
 
-  KLFLibCreateResourceDlg(QWidget *parent = 0);
+  KLFLibCreateResourceDlg(const QString& defaultWtype, QWidget *parent = 0);
   virtual ~KLFLibCreateResourceDlg();
 
   /** An additional parameter <tt>p["klfScheme"] = QString(...scheme...)</tt> is
    * set in the return value to reflect the chosen scheme. */
   virtual Parameters getCreateParameters() const;
 
-  static KLFLibResourceEngine *createResource(QObject *resourceParent, QWidget *parent = 0);
+  static KLFLibResourceEngine *createResource(const QString& defaultWtype, QObject *resourceParent,
+					      QWidget *parent = 0);
 
 public slots:
 
@@ -728,13 +787,23 @@ public slots:
 
 protected slots:
   void slotResourcePropertyChanged(int propId);
+  void slotSubResourcePropertyChanged(const QString& subResource, int propId);
   void on_btnAdvanced_toggled(bool on);
   void advPropEdited(QStandardItem *item);
+  void advSubResPropEdited(QStandardItem *item);
+  void on_cbxSubResource_currentIndexChanged(int newSubResItemIndex);
+
+  void updateSubResources(const QString& curSubResource = QString());
 
 private:
   KLFLibResourceEngine *pResource;
+  bool pSuppSubRes;
+  bool pSuppSubResProps;
   Ui::KLFLibResPropEditor *U;
   QStandardItemModel *pPropModel;
+  QStandardItemModel *pSubResPropModel;
+
+  QString curSubResource() const;
 };
 
 class KLFLibResPropEditorDlg : public QDialog
@@ -751,6 +820,86 @@ public slots:
 private:
   KLFLibResPropEditor *pEditor;
 };
+
+
+class KLF_EXPORT KLFLibLocalFileSchemeGuesser
+{
+public:
+  KLFLibLocalFileSchemeGuesser();
+  ~KLFLibLocalFileSchemeGuesser();
+
+  virtual QString guessScheme(const QString& fileName) const = 0;
+};
+
+//! Provides some basic UIs to access resources
+/**
+ * Provides the following widget types for opening/creating/saving resources:
+ *  - Local file (\c "LocalFile"). Don't forget to add new file types with
+ *    \ref addLocalFileType() (this can be done e.g. in other engine factories'
+ *    constructor).
+ *  - planned, not yet implemented: remote DB connection with hostname/user/pass
+ *    information collecting (tentative name \c "RemoteHostUserPass").
+ *
+ * \note Sub-resources are handled in \ref KLFLibOpenResourceDlg.
+ *
+ * \todo TODO: remote connections to eg. DB ..........
+ */
+class KLF_EXPORT KLFLibBasicWidgetFactory : public KLFLibWidgetFactory
+{
+  Q_OBJECT
+public:
+  //! A known local file type for \c KLFLibBasicWidgetFactory-created widgets
+  struct LocalFileType {
+    QString scheme; //!< eg. \c "klf+sqlite"
+    QString filepattern; //!< eg. \c "*.klf.db"
+    QString filter; //!< eg. \c "Local Library Database File (*.klf.db)"
+  };
+
+  KLFLibBasicWidgetFactory(QObject *parent = NULL);
+  virtual ~KLFLibBasicWidgetFactory();
+
+  virtual QStringList supportedTypes() const;
+
+  virtual QString widgetTypeTitle(const QString& wtype) const;
+
+  virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
+					  QUrl defaultlocation = QUrl());
+  virtual QUrl retrieveUrlFromWidget(const QString& scheme, QWidget *widget);
+
+  virtual bool hasCreateWidget(const QString& /*wtype*/) const { return true; }
+
+  virtual QWidget * createPromptCreateParametersWidget(QWidget *parent, const QString& scheme,
+						       const Parameters& defaultparameters = Parameters());
+
+  virtual Parameters retrieveCreateParametersFromWidget(const QString& scheme, QWidget *widget);
+
+
+  /** This function should be called for example in KLFLibEngineFactory subclasses' constructor
+   * to inform this widget factory of local file types that are known by the various engine
+   * factories. This is then used to provide a useful filter choice in file dialogs.
+   */
+  static void addLocalFileType(const LocalFileType& fileType);
+
+  static QString guessLocalFileScheme(const QString& fileName);
+
+protected:
+  static QList<LocalFileType> pLocalFileTypes;
+  static QList<KLFLibLocalFileSchemeGuesser*> pSchemeGuessers;
+
+  friend class KLFLibLocalFileSchemeGuesser;
+
+  /** This function adds a scheme guesser, ie. a functional sub-class of
+   * \ref KLFLibLocalFileSchemeGuesser. The instance is NOT deleted after use.
+   * \c schemeguesser could for example also sub-class QObject and set \c qApp as parent.
+   */
+  static void addLocalFileSchemeGuesser(KLFLibLocalFileSchemeGuesser *schemeguesser);
+
+  static void removeLocalFileSchemeGuesser(KLFLibLocalFileSchemeGuesser *schemeguesser);
+
+};
+
+
+
 
 
 #endif

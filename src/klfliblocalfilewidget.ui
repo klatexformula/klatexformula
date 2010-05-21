@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>KLFLibSqliteOpenWidget</class>
- <widget class="QWidget" name="KLFLibSqliteOpenWidget">
+ <class>KLFLibLocalFileWidget</class>
+ <widget class="QWidget" name="KLFLibLocalFileWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    <item row="0" column="0" colspan="3">
     <widget class="QLabel" name="lblLocation">
      <property name="text">
-      <string>Location:</string>
+      <string>File Location:</string>
      </property>
     </widget>
    </item>
@@ -44,7 +44,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
+   <item row="2" column="0">
     <spacer name="vspc">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -56,25 +56,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="2" column="1" colspan="2">
-    <widget class="QComboBox" name="cbxTable">
-     <property name="editable">
-      <bool>true</bool>
-     </property>
-     <item>
-      <property name="text">
-       <string extracomment="[[sqlite open widget; use default table]]">( Default )</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="lblTable">
-     <property name="text">
-      <string>Table:</string>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>

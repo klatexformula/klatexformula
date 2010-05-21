@@ -22,6 +22,7 @@
 /* $Id$ */
 
 #include <QDebug>
+#include <QApplication>  // qApp
 #include <QString>
 #include <QBuffer>
 #include <QFile>
@@ -35,6 +36,7 @@
 
 #include "klfmain.h" // KLF_DB_VERSION
 #include "klflib.h"
+#include "klflibview.h"
 #include "klflibdbengine.h"
 
 #include "klflibdbengine_p.h"
@@ -99,7 +101,7 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
   QSqlDatabase db;
   if (url.scheme() == "klf+sqlite") {
     QUrl dburl = url;
-    dburl.removeAllQueryItems("dataTableName");
+    dburl.removeAllQueryItems("klfDefaultSubResource");
     dburl.removeAllQueryItems("klfReadOnly");
     accessshared = false;
     QString dburlstr = dburl.toString();
@@ -125,11 +127,11 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
 }
 
 // static
-KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QString& dtablename,
-					      const QString& dtabletitle, QObject *parent)
+KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QString& sresname,
+					      const QString& srestitle, QObject *parent)
 {
-  QString datatablename = dtablename;
-  QString datatabletitle = dtabletitle;
+  QString subresname = sresname;
+  QString subrestitle = srestitle;
 
   bool r;
 
@@ -156,28 +158,32 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
     }
   }
 
-  r = initFreshDatabase(db, datatablename);
+  if (subresname.isEmpty()) {
+    subresname = "table1";
+    subrestitle = "Table 1";
+  }
+  url.addQueryItem("klfDefaultSubResource", subresname);
+  if (subresname.contains("\"")) {
+    // SQLite table name cannot contain double-quote char (itself is used to escape the table name!)
+    return NULL;
+  }
+
+  r = initFreshDatabase(db);
+  if ( r ) {
+    // and create default table
+    r = createFreshDataTable(db, subresname);
+  }
   if ( !r ) {
     QMessageBox::critical(0, tr("Error"),
 			  tr("Unable to initialize the SQLITE database file %1!").arg(url.path()));
     return NULL;
   }
 
-  if (datatablename.isEmpty()) {
-    datatablename = "table1";
-    datatabletitle = "Table 1";
-  }
-  url.addQueryItem("klfDefaultSubResource", datatablename);
-  if (datatablename.contains("\"")) {
-    // SQLite table name cannot contain double-quote char (itself is used to escape the table name!)
-    return NULL;
-  }
-
   KLFLibDBEngine *res = new KLFLibDBEngine(db, true /*autoDisconnect*/, url, false, parent);
 
-  bool r = res->createSubResource(datatablename, datatabletitle);
+  r = res->setSubResourceProperty(subresname, SubResPropTitle, subrestitle);
   if ( ! r ) {
-    qWarning()<<"Failed to create table named "<<datatablename<<"!";
+    qWarning()<<"Failed to create table named "<<subresname<<"!";
     delete res;
     return NULL;
   }
@@ -202,6 +208,9 @@ KLFLibDBEngine::KLFLibDBEngine(const QSqlDatabase& db, bool autodisconnect,
   KLFLibDBEnginePropertyChangeNotifier *dbNotifier = dbPropertyNotifierInstance(db.connectionName());
   connect(dbNotifier, SIGNAL(resourcePropertyChanged(int)),
 	  this, SLOT(resourcePropertyUpdate(int)));
+  connect(dbNotifier, SIGNAL(subResourcePropertyChanged(const QString&, int)),
+	  this, SLOT(subResourcePropertyUpdate(const QString&, int)));
+
   dbNotifier->ref();
 }
 
@@ -218,15 +227,15 @@ KLFLibDBEngine::~KLFLibDBEngine()
 }
 
 // private
-bool KLFLibDBEngine::tableExists(const QString& subResource)
+bool KLFLibDBEngine::tableExists(const QString& subResource) const
 {
-  return db.tables().contains("t_"+subResource);
+  return pDB.tables().contains("t_"+subResource, Qt::CaseInsensitive);
 }
 
 // static
 QString KLFLibDBEngine::dataTableName(const QString& subResource)
 {
-  return dtname = "t_"+subResource;
+  return "t_"+subResource.toLower();
 }
 // static
 QString KLFLibDBEngine::quotedDataTableName(const QString& subResource)
@@ -237,9 +246,9 @@ QString KLFLibDBEngine::quotedDataTableName(const QString& subResource)
 }
 
 
-bool KLFLibDBEngine::canModifyData(ModifyType mt) const
+bool KLFLibDBEngine::canModifyData(const QString& subResource, ModifyType mt) const
 {
-  if ( !KLFLibResourceEngine::canModifyData(mt) )
+  if ( !KLFLibResourceEngine::canModifyData(subResource, mt) )
     return false;
 
   /** \todo TODO: check if file is writable (SQLITE3), if permissions on the database
@@ -307,6 +316,12 @@ void KLFLibDBEngine::resourcePropertyUpdate(int propId)
 {
   readResourceProperty(propId);
 }
+
+void KLFLibDBEngine::subResourcePropertyUpdate(const QString& subResource, int propId)
+{
+  emit subResourcePropertyChanged(subResource, propId);
+}
+
 void KLFLibDBEngine::readResourceProperty(int propId)
 {
   QString sqlstr = "SELECT name,value FROM klf_properties";
@@ -443,6 +458,100 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries(const 
   }
 
   return entryList;
+}
+
+
+QVariant KLFLibDBEngine::subResourceProperty(const QString& subResource, int propId) const
+{
+  if ( ! validDatabase() )
+    return QVariant();
+
+  QSqlQuery q = QSqlQuery(pDB);
+  q.prepare("SELECT pvalue FROM klf_subresprops WHERE lower(subresource) = lower(?) AND pid = ?");
+  q.bindValue(0, subResource);
+  q.bindValue(1, propId);
+  int r = q.exec();
+  if ( !r || q.lastError().isValid() ) {
+    qWarning()<<"KLFLibDBEngine::subResourceProperty("<<subResource<<","<<propId<<"): SQL Error: "
+	      <<q.lastError().text() << "\n\t\tBound values= "<<q.boundValues();
+    return QVariant();
+  }
+  //qDebug()<<"KLFLibDBEngine::subRes.Prop.(): SQL="<<q.lastQuery()<<"; vals="<<q.boundValues();
+  //qDebug("KLFLibDBEngine::subResourceProperty: Got size %d, valid=%d", q.size(), (int)q.isValid());
+  if ( !q.next() ) {
+    // return some default values, at least to ensure the correct data type
+    if (propId == SubResPropLocked)
+      return QVariant(false);
+    if (propId == SubResPropViewType)
+      return QVariant("");
+    if (propId == SubResPropTitle)
+      return QVariant("");
+    return QVariant();
+  }
+  return convertVariantFromDBData(q.value(0));
+}
+
+
+bool KLFLibDBEngine::hasSubResource(const QString& subRes) const
+{
+  return tableExists(subRes);
+}
+
+QStringList KLFLibDBEngine::subResourceList() const
+{
+  QStringList allTables = pDB.tables();
+  QStringList subreslist;
+  int k;
+  for (k = 0; k < allTables.size(); ++k) {
+    if (allTables[k].startsWith("t_"))
+      subreslist << allTables[k].mid(2);
+  }
+  return subreslist;
+}
+
+
+bool KLFLibDBEngine::setSubResourceProperty(const QString& subResource, int propId, const QVariant& value)
+{
+  if ( ! validDatabase() )
+    return false;
+
+  if ( !canModifyProp(-1) )
+    return false;
+  if ( subResourceProperty(subResource, SubResPropLocked).toBool() && propId != SubResPropLocked )
+    return false; // still allow us to unlock the sub-resource (!)
+
+  {
+    QSqlQuery q = QSqlQuery(pDB);
+    q.prepare("DELETE FROM klf_subresprops WHERE lower(subresource) = lower(?) and pid = ?");
+    q.bindValue(0, subResource);
+    q.bindValue(1, propId);
+    bool r = q.exec();
+    if ( !r || q.lastError().isValid() ) {
+      qWarning()<<"KLFLibDBEngine::setSubRes.Prop.("<<subResource<<","<<propId<<","<<value<<"):"
+		<<" can't DELETE!\n\t"<<q.lastError().text()<<"\n\tBound values="<<q.boundValues();
+      return false;
+    }
+  }
+  {
+    QSqlQuery q = QSqlQuery(pDB);
+    q.prepare("INSERT INTO klf_subresprops (subresource,pid,pvalue) VALUES (?,?,?)");
+    q.bindValue(0, subResource);
+    q.bindValue(1, propId);
+    q.bindValue(2, convertVariantToDBData(value));
+    if ( ! q.exec() || q.lastError().isValid() ) {
+      qWarning()<<"KLFLibDBEngine::setSubRes.Prop.("<<subResource<<","<<propId<<","<<value<<"):"
+		<<" can't INSERT!\n\t"<<q.lastError().text()<<"\n\tBound values="<<q.boundValues();
+      return false;
+    }
+  }
+
+  dbPropertyNotifierInstance(pDB.connectionName())
+    ->notifySubResourcePropertyChanged(subResource, propId);
+  // will be emitted by own slot from above call
+  //  qDebug("DBEngine::setSubResourceProperty: Emitting signal!");
+  //  emit subResourcePropertyChanged(subResource, propId);
+
+  return true;
 }
 
 
@@ -583,7 +692,7 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
 bool KLFLibDBEngine::ensureDataTableColumnsExist(const QString& subResource)
 {
   KLFLibEntry dummy;
-  QSqlRecord rec = pDB.record(pDataTableName);
+  QSqlRecord rec = pDB.record(dataTableName(subResource));
   QStringList propNameList = dummy.registeredPropertyNameList();
   int k;
   bool failed = false;
@@ -594,8 +703,8 @@ bool KLFLibDBEngine::ensureDataTableColumnsExist(const QString& subResource)
     sql.prepare("ALTER TABLE "+quotedDataTableName(subResource)+" ADD COLUMN "+propNameList[k]+" BLOB");
     bool r = sql.exec();
     if (!r || sql.lastError().isValid()) {
-      qWarning()<<"KLFLibDBEngine::ensureDataTableColumnsExist: Can't add column "<<propNameList[k]<<"!\n"
-		<<sql.lastError().text()<<" SQL="<<sql.lastQuery();
+      qWarning()<<"KLFLibDBEngine::ensureDataTableColumnsExist("<<subResource<<"): Can't add column "
+		<<propNameList[k]<<"!\n"<<sql.lastError().text()<<" SQL="<<sql.lastQuery();
       failed = true;
     }
   }
@@ -607,6 +716,32 @@ bool KLFLibDBEngine::ensureDataTableColumnsExist(const QString& subResource)
 // --
 
 
+bool KLFLibDBEngine::createSubResource(const QString& subResource, const QString& subResourceTitle)
+{
+  if ( ! validDatabase() )
+    return false;
+  if ( subResource.isEmpty() )
+    return false;
+
+  if ( subResourceList().contains(subResource) ) {
+    qWarning()<<"KLFLibDBEngine::createSubResource: Sub-Resource "<<subResource<<" already exists!";
+    return false;
+  }
+
+  bool r = createFreshDataTable(pDB, subResource);
+  if (!r)
+    return false;
+  QString title = subResourceTitle;
+  if (title.isEmpty())
+    title = subResource;
+  r = setSubResourceProperty(subResource, SubResPropTitle, QVariant(title));
+  if (!r)
+    return false;
+  // success
+  return true;
+}
+
+
 QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString& subres,
 								   const KLFLibEntryList& entrylist)
 {
@@ -616,11 +751,13 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
   if ( entrylist.size() == 0 )
     return QList<entryId>();
 
-  if ( !canModifyData(InsertData) )
+  if ( !canModifyData(subres, InsertData) )
     return QList<entryId>();
 
-  if ( !tableExists(..subres..))
-    return ......;
+  if ( !tableExists(subres) ) {
+    qWarning()<<KLF_FUNC_NAME<<": Sub-Resource "<<subres<<" does not exist.";
+    return QList<entryId>();
+  }
 
   KLFLibEntry e; // dummy object to test for properties
   QList<int> propids = e.registeredPropertyIdList();
@@ -633,7 +770,7 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
 
   QList<entryId> insertedIds;
 
-  ensureDataTableColumnsExist();
+  ensureDataTableColumnsExist(subres);
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO " + quotedDataTableName(subres) + " (" + props.join(",") + ") "
@@ -662,7 +799,7 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
     }
   }
 
-  emit dataChanged(insertedIds);
+  emit dataChanged(subres, InsertData, insertedIds);
   return insertedIds;
 }
 
@@ -672,11 +809,13 @@ bool KLFLibDBEngine::changeEntries(const QString& subResource, const QList<entry
 {
   if ( ! validDatabase() )
     return false;
-  if ( ! canModifyData(ChangeData) )
+  if ( ! canModifyData(subResource, ChangeData) )
     return false;
 
-  if ( !tableExists(..subres..))
-    return ......;
+  if ( !tableExists(subResource) ) {
+    qWarning()<<KLF_FUNC_NAME<<": Sub-Resource "<<subResource<<" does not exist.";
+    return false;
+  }
 
   if ( properties.size() != values.size() ) {
     qWarning("KLFLibDBEngine::changeEntry(): properties' and values' sizes mismatch!");
@@ -689,7 +828,7 @@ bool KLFLibDBEngine::changeEntries(const QString& subResource, const QList<entry
   qDebug()<<"KLFLibDBEngine::changeEntries: funcional tests passed; idlist="<<idlist<<" props="
 	  <<properties<<" vals="<<values;
 
-  ensureDataTableColumnsExist();
+  ensureDataTableColumnsExist(subResource);
 
   KLFLibEntry e; // dummy 
   QStringList updatepairs;
@@ -718,7 +857,7 @@ bool KLFLibDBEngine::changeEntries(const QString& subResource, const QList<entry
   }
 
   //  qDebug() << "Wrote Entry change to ids "<<idlist;
-  emit dataChanged(idlist);
+  emit dataChanged(subResource, ChangeData, idlist);
   return true;
 }
 
@@ -728,11 +867,13 @@ bool KLFLibDBEngine::deleteEntries(const QString& subResource, const QList<entry
     return false;
   if (idlist.size() == 0)
     return true; // nothing to do
-  if ( ! canModifyData(DeleteData) )
+  if ( ! canModifyData(subResource, DeleteData) )
     return false;
 
-  if ( !tableExists(..subres..))
-    return ......;
+  if ( !tableExists(subResource) ) {
+    qWarning()<<KLF_FUNC_NAME<<": Sub-Resource "<<subResource<<" does not exist.";
+    return false;
+  }
 
   int k;
   QStringList qmarks_ids;
@@ -746,7 +887,7 @@ bool KLFLibDBEngine::deleteEntries(const QString& subResource, const QList<entry
   bool r = q.exec();
   q.finish();
 
-  emit dataChanged(idlist);
+  emit dataChanged(subResource, DeleteData, idlist);
 
   if ( !r || q.lastError().isValid())
     return false;   // an error was set
@@ -783,7 +924,7 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
   sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_version', '" KLF_VERSION_STRING "')";
   sql << "INSERT INTO klf_dbmetainfo (name, value) VALUES ('klf_dbversion', '"+
     QString::number(KLF_DB_VERSION)+"')";
-  sql << "CREATE TABLE klf_subresprops (id INTEGER PRIMARY KEY, pname TEXT, subresource TEXT, pvalue BLOB)";
+  sql << "CREATE TABLE klf_subresprops (id INTEGER PRIMARY KEY, pid INTEGER, subresource TEXT, pvalue BLOB)";
 
   int k;
   for (k = 0; k < sql.size(); ++k) {
@@ -801,6 +942,7 @@ bool KLFLibDBEngine::initFreshDatabase(QSqlDatabase db)
 // static
 bool KLFLibDBEngine::createFreshDataTable(QSqlDatabase db, const QString& subres)
 {
+  qDebug("KLFLibDBEngine::createFreshDataTable(.., '%s')", qPrintable(subres));
   QString datatablename = dataTableName(subres);
   if ( ! db.isOpen() ) {
     qWarning("KLFLibDBEngine::createFreshDataTable(..,%s): DB is not open!", qPrintable(subres));
@@ -813,6 +955,7 @@ bool KLFLibDBEngine::createFreshDataTable(QSqlDatabase db, const QString& subres
     return false;
   }
   QString qdtname = quotedDataTableName(subres);
+
 
   QSqlQuery query(db);
   query.prepare(QString("")+
@@ -860,13 +1003,49 @@ KLFLibDBEnginePropertyChangeNotifier *KLFLibDBEngine::dbPropertyNotifierInstance
 
 // ------------------------------------
 
+#define MAGIC_SQLITE_HEADER_LEN 16
+
+QString KLFLibDBLocalFileSchemeGuesser::guessScheme(const QString& fileName) const
+{
+  // refer to  http://www.sqlite.org/fileformat.html  (section 2.2.1)  for more info
+  const char magic_sqlite_header[MAGIC_SQLITE_HEADER_LEN]
+    = { 0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66,
+	0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00 };
+  char header[MAGIC_SQLITE_HEADER_LEN];
+
+  if (fileName.endsWith(".klf.db"))
+    return QLatin1String("klf+sqlite");
+
+  QFile f(fileName);
+  if ( ! f.open(QIODevice::ReadOnly) )
+    return QString();
+
+  int len = f.readLine(header, MAGIC_SQLITE_HEADER_LEN);
+
+  if (len < MAGIC_SQLITE_HEADER_LEN)
+    return QString(); // error reading
+
+  if (!strncmp(header, magic_sqlite_header, MAGIC_SQLITE_HEADER_LEN))
+    return QLatin1String("klf+sqlite");
+
+  return QString();
+}
+
+// ------------------------------------
+
 
 KLFLibDBEngineFactory::KLFLibDBEngineFactory(QObject *parent)
   : KLFLibEngineFactory(parent)
 {
+  KLFLibBasicWidgetFactory::LocalFileType f;
+  f.scheme = QLatin1String("klf+sqlite");
+  f.filepattern = QLatin1String("*.klf.db");
+  f.filter = QString("%1 (%2)").arg(schemeTitle(f.scheme), f.filepattern);
+  KLFLibBasicWidgetFactory::addLocalFileType(f);
+  new KLFLibDBLocalFileSchemeGuesser(this);
 }
 
-QStringList KLFLibDBEngineFactory::supportedSchemes() const
+QStringList KLFLibDBEngineFactory::supportedTypes() const
 {
   return QStringList() << QLatin1String("klf+sqlite");
 }
@@ -874,7 +1053,23 @@ QStringList KLFLibDBEngineFactory::supportedSchemes() const
 QString KLFLibDBEngineFactory::schemeTitle(const QString& scheme) const
 {
   if (scheme == QLatin1String("klf+sqlite"))
-    return tr("Local Library File");
+    return tr("Local Library Database File");
+  return QString();
+}
+uint KLFLibDBEngineFactory::schemeFunctions(const QString& scheme) const
+{
+  uint flags = FuncOpen;
+  if (scheme == QLatin1String("klf+sqlite"))
+    flags |= FuncCreate;
+  else
+    qWarning()<<"KLFLibDBEngineFactory::schemeFunctions: Bad scheme: "<<scheme;
+  return flags;
+}
+
+QString KLFLibDBEngineFactory::correspondingWidgetType(const QString& scheme) const
+{
+  if (scheme == QLatin1String("klf+sqlite"))
+    return QLatin1String("LocalFile");
   return QString();
 }
 
@@ -884,101 +1079,27 @@ KLFLibResourceEngine *KLFLibDBEngineFactory::openResource(const QUrl& location, 
   return KLFLibDBEngine::openUrl(location, parent);
 }
 
-QWidget * KLFLibDBEngineFactory::createPromptUrlWidget(QWidget *parent, const QString& scheme,
-						       QUrl defaultlocation)
-{
-  if (scheme == QLatin1String("klf+sqlite")) {
-    KLFLibSqliteOpenWidget *w = new KLFLibSqliteOpenWidget(parent);
-    w->setUrl(defaultlocation);
-    return w;
-  }
-  return NULL;
-}
-
-QUrl KLFLibDBEngineFactory::retrieveUrlFromWidget(const QString& scheme, QWidget *widget)
-{
-  if (scheme == "klf+sqlite") {
-    if (widget == NULL || !widget->inherits("KLFLibSqliteOpenWidget")) {
-      qWarning("KLFLibDBEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
-      return QUrl();
-    }
-    return qobject_cast<KLFLibSqliteOpenWidget*>(widget)->url();
-  } else {
-    qWarning()<<"Bad scheme: "<<scheme;
-    return QUrl();
-  }
-}
-
-
-QWidget *KLFLibDBEngineFactory::createPromptCreateParametersWidget(QWidget *parent,
-								   const QString& scheme,
-								   const Parameters& defaultparameters)
-{
-  if (scheme == QLatin1String("klf+sqlite")) {
-    KLFLibSqliteCreateWidget *w = new KLFLibSqliteCreateWidget(parent);
-    w->setUrl(defaultparameters["Url"].toUrl());
-    return w;
-  }
-  return NULL;
-}
-
-KLFLibEngineFactory::Parameters
-/* */ KLFLibDBEngineFactory::retrieveCreateParametersFromWidget(const QString& scheme,
-								QWidget *widget)
-{
-  if (scheme == QLatin1String("klf+sqlite")) {
-    if (widget == NULL || !widget->inherits("KLFLibSqliteCreateWidget")) {
-      qWarning("KLFLibDBEngineFactory::retrieveUrlFromWidget(): Bad Widget provided!");
-      return Parameters();
-    }
-    KLFLibSqliteCreateWidget *w = qobject_cast<KLFLibSqliteCreateWidget*>(widget);
-    Parameters p;
-    QString filename = w->fileName();
-    if (QFile::exists(filename) && !w->confirmedOverwrite()) {
-      QMessageBox::StandardButton result =
-	QMessageBox::warning(widget, tr("Overwrite?"),
-			     tr("The specified file already exists. Overwrite it?"),
-			     QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel,
-			     QMessageBox::No);
-      if (result == QMessageBox::No) {
-	p["klfRetry"] = true;
-	return p;
-      } else if (result == QMessageBox::Cancel) {
-	return Parameters();
-      }
-      // remove the previous file, because otherwise KLFLibDBEngine will fail.
-      bool r = QFile::remove(filename);
-      if ( !r ) {
-	QMessageBox::critical(widget, tr("Error"), tr("Failed to overwrite the file %1.")
-			      .arg(filename));
-	return Parameters();
-      }
-    }
-
-    p["Filename"] = w->fileName();
-    p["dataTableName"] = "klfentries";
-    return p;
-  }
-
-  return Parameters();
-}
 
 KLFLibResourceEngine *KLFLibDBEngineFactory::createResource(const QString& scheme,
-							    const Parameters& parameters,
-							    QObject *parent)
+							    const Parameters& parameters, QObject *parent)
 {
-  if (scheme == QLatin1String("klf+sqlite")) {
-    if ( !parameters.contains("Filename") || !parameters.contains("dataTableName") ) {
-      qWarning()
-	<<"KLFLibDBEngineFactory::createResource: bad parameters. They do not contain `Filename' or\n"
-	"`dataTableName': "<<parameters;
-      return NULL;
-    }
-    return KLFLibDBEngine::createSqlite(parameters["Filename"].toString(),
-					parameters["dataTableName"].toString(), parent);
+  QString defsubres = parameters["klfDefaultSubResource"].toString();
+  QString defsubrestitle = parameters["klfDefaultSubResourceTitle"].toString();
+  if (defsubres.isEmpty())
+    defsubres = "entries";
+  if (defsubrestitle.isEmpty())
+    defsubrestitle = tr("Default Table", "[[default sub-resource name]]");
+
+  if ( !parameters.contains("Filename") ) {
+    qWarning()
+      <<"KLFLibLegacyEngineFactory::createResource: bad parameters. They do not contain `Filename': "
+      <<parameters;
   }
+
+  if (scheme == QLatin1String("klf+sqlite"))
+    return KLFLibDBEngine::createSqlite(parameters["Filename"].toString(), defsubres,
+					defsubrestitle, parent);
+  qWarning()<<"KLFLibDBEngineFactory::createResource("<<scheme<<","<<parameters<<","<<parent<<"):"
+	    <<"Bad scheme!";
   return NULL;
 }
-
-
-

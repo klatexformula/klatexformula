@@ -653,73 +653,98 @@ void KLFMainWin::loadLibrary()
     }
   }
 
-  QUrl localhisturl = QUrl::fromLocalFile(localfname);
-  localhisturl.setScheme("klf+sqlite");
-  localhisturl.addQueryItem("dataTableName", "history");
+  // importfname is non-empty only if the local .klf.db library file is inexistant.
+
+  QUrl localliburl = QUrl::fromLocalFile(localfname);
+  localliburl.setScheme("klf+sqlite");
+  localliburl.addQueryItem("klfDefaultSubResource", "history");
 
   mHistoryLibResource = NULL;
 
   if (!QFile::exists(localfname)) {
-    // create local history resource
-    KLFLibEngineFactory *localHistFactory = KLFLibEngineFactory::findFactoryFor("klf+sqlite");
+    // create local library resource
+    KLFLibEngineFactory *localLibFactory = KLFLibEngineFactory::findFactoryFor("klf+sqlite");
     KLFLibEngineFactory::Parameters param;
-    param["Filename"] = localhisturl.path();
-    param["dataTableName"] = "history";
-    mHistoryLibResource = localHistFactory->createResource("klf+sqlite", param, this);
-    mHistoryLibResource->setTitle(tr("History"));
+    param["Filename"] = localliburl.path();
+    param["klfDefaultSubResource"] = QLatin1String("history");
+    param["klfDefaultSubResourceTitle"] = tr("History", "[[default sub-resource title for history]]");
+    mHistoryLibResource = localLibFactory->createResource("klf+sqlite", param, this);
+    mHistoryLibResource->setTitle(tr("Local Library"));
+    mHistoryLibResource
+      -> createSubResource(QLatin1String("archive"),
+			   tr("Archive", "[[default sub-resource title for archive sub-resource]]"));
+    mHistoryLibResource->setSubResourceProperty(QLatin1String("history"),
+						KLFLibResourceEngine::SubResPropViewType,
+						QLatin1String("default+list"));
   }
 
-  bool r;
-  if (mHistoryLibResource) {
-    r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
-				  QLatin1String("default+list"));
-  } else {
-    r = mLibBrowser->openResource(localhisturl, KLFLibBrowser::NoCloseRoleFlag,
-				  QLatin1String("default+list"));
-    mHistoryLibResource = mLibBrowser->getOpenResource(localhisturl);
+  if (mHistoryLibResource == NULL) {
+    mHistoryLibResource = KLFLibEngineFactory::openURL(localliburl, this);
   }
+  if (mHistoryLibResource == NULL) {
+    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
+	      <<"\n\tNot good! Expect crash!";
+    return;
+  }
+  bool r;
+  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
+				QLatin1String("default+list"));
   if ( ! r ) {
-    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localhisturl
+    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
 	      <<"\n\tExpect Crash!";
     return;
   }
 
+  qDebug("KLFMainWin::loadLibrary(): opened history: resource-ptr=%p\n\tImportFile=%s",
+	 (void*)mHistoryLibResource, qPrintable(importfname));
+
   if (!importfname.isEmpty()) {
     // needs an import
-    QUrl importhisturl = QUrl::fromLocalFile(importfname);
+    QUrl importliburl = QUrl::fromLocalFile(importfname);
     if (importfname.endsWith(".klf.db")) {
-      importhisturl.setScheme("klf+sqlite");
-      importhisturl.addQueryItem("dataTableName", "history");
+      importliburl.setScheme("klf+sqlite");
     } else {
-      importhisturl.setScheme("klf+legacy");
-      importhisturl.addQueryItem("legacyResourceName", "");
+      importliburl.setScheme("klf+legacy");
     }
-    importhisturl.addQueryItem("klfReadOnly", "true");
+    importliburl.addQueryItem("klfReadOnly", "true");
     // import library from an older version library file.
-    KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(importhisturl.scheme());
-    if (factory != NULL) {
-      KLFLibResourceEngine *importres = factory->openResource(importhisturl, this);
-      QList<KLFLibResourceEngine::KLFLibEntryWithId> allentries
-	= importres->allEntries();
-      int k;
-      KLFLibEntryList insertentries;
-      for (k = 0; k < allentries.size(); ++k) {
-	insertentries << allentries[k].entry;
+    KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(importliburl.scheme());
+    if (factory == NULL) {
+      qWarning()<<"KLFMainWin::loadLibrary(): Can't find factory for URL="<<importliburl<<"!";
+    } else {
+      KLFLibResourceEngine *importres = factory->openResource(importliburl, this);
+      // import all sub-resources
+      QStringList subResList = importres->subResourceList();
+      qDebug()<<"\tImporting sub-resources: "<<subResList;
+      int j;
+      for (j = 0; j < subResList.size(); ++j) {
+	QString subres = subResList[j];
+	QList<KLFLibResourceEngine::KLFLibEntryWithId> allentries
+	  = importres->allEntries(subres);
+	qDebug("\tGot %d entries from sub-resource %s", allentries.size(), qPrintable(subres));
+	int k;
+	KLFLibEntryList insertentries;
+	for (k = 0; k < allentries.size(); ++k) {
+	  insertentries << allentries[k].entry;
+	}
+	if ( ! mHistoryLibResource->hasSubResource(subres) ) {
+	  mHistoryLibResource->createSubResource(subres);
+	}
+	mHistoryLibResource->insertEntries(subres, insertentries);
       }
-      mHistoryLibResource->insertEntries(insertentries);
     }
   }
 
 
   // open all other sub-resources present in our library
-  QStringList subresources = KLFLibDBEngine::getDataTableNames(localhisturl);
+  QStringList subresources = mHistoryLibResource->subResourceList();
   int k;
   for (k = 0; k < subresources.size(); ++k) {
-    if (subresources[k] == "history")
+    if (subresources[k] == QLatin1String("history"))
       continue;
-    QUrl url = localhisturl;
-    url.removeAllQueryItems("dataTableName");
-    url.addQueryItem("dataTableName", subresources[k]);
+    QUrl url = localliburl;
+    url.removeAllQueryItems("klfDefaultSubResource");
+    url.addQueryItem("klfDefaultSubResource", subresources[k]);
     mLibBrowser->openResource(url, KLFLibBrowser::NoCloseRoleFlag);
   }
 

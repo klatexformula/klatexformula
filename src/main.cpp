@@ -814,6 +814,7 @@ int main(int argc, char **argv)
     // DEBUG ------------------------
 
     // initialize and register some library resource engine + view factories
+    (void)new KLFLibBasicWidgetFactory(qApp);
     (void)new KLFLibDBEngineFactory(qApp);
     (void)new KLFLibLegacyEngineFactory(qApp);
     (void)new KLFLibDefaultViewFactory(qApp);

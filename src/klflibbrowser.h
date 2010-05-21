@@ -60,6 +60,8 @@ public:
   QVariantMap saveGuiState();
   void loadGuiState(const QVariantMap& state);
 
+  static QString displayTitle(KLFLibResourceEngine *resource);
+
 signals:
   void requestRestore(const KLFLibEntry& entry, uint restoreFlags);
   void requestRestoreStyle(const KLFStyle& style);
@@ -109,12 +111,18 @@ protected slots:
   void slotResourceProperties();
   bool slotResourceOpen();
   bool slotResourceNew();
-  bool slotResourceSaveAs();
+  bool slotResourceSaveTo();
 
   /** sender is used to find resource engine emitter. */
   void slotResourceDataChanged(const QList<KLFLib::entryId>& entryIdList);
   /** sender is used to find resource engine emitter. */
   void slotResourcePropertyChanged(int propId);
+  void slotUpdateForResourceProperty(KLFLibResourceEngine *resource, int propId);
+  /** sender is used to find resource engine emitter. */
+  void slotSubResourcePropertyChanged(const QString& subResource, int propId);
+  /** sender is used to find resource engine emitter. */
+  void slotDefaultSubResourceChanged(const QString& subResource);
+
 
   void slotEntriesSelected(const KLFLibEntryList& entries);
   void slotAddCategorySuggestions(const QStringList& catlist);
@@ -154,13 +162,17 @@ private:
   QAction *pARename;
   QAction *pAClose;
   QAction *pAProperties;
-  QAction *pASaveAs;
+  QAction *pASaveTo;
   QAction *pANew;
   QAction *pAOpen;
   QAction *pAViewType;
 
   QString pSearchText;
   QString pLastSearchText;
+
+  bool pIsWaiting;
+  void startWait();
+  void stopWait();
 
 private slots:
   void updateSearchFound(bool found);

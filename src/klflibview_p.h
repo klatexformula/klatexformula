@@ -41,9 +41,16 @@
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
+#include <QWidget>
+#include <QFileInfo>
+#include <QFileDialog>
+#include <QDir>
+
+#include "ui_klfliblocalfilewidget.h"
 
 #include "klflib.h"
 #include "klflibview.h"
+
 
 class KLFLibDefTreeView;
 
@@ -572,6 +579,195 @@ protected:
     qDebug()<<"end of saveIconPosition()";
   }
 };
+
+
+
+
+
+
+
+// ----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+/** \internal */
+class KLFLibLocalFileOpenWidget : public QWidget, protected Ui::KLFLibLocalFileWidget
+{
+  Q_OBJECT
+
+  Q_PROPERTY(bool readyToOpen READ isReadyToOpen)
+public:
+  typedef KLFLibBasicWidgetFactory::LocalFileType LocalFileType;
+
+  KLFLibLocalFileOpenWidget(QWidget *parent,
+			    const QList<LocalFileType>& fileTypes)
+    : QWidget(parent)
+  {
+    pReadyToOpen = false;
+    pReadyToOpenUrl = QUrl();
+    pFileTypes = fileTypes;
+    setupUi(this);
+  }
+  virtual ~KLFLibLocalFileOpenWidget() { }
+
+  virtual bool isReadyToOpen() const { return pReadyToOpen; }
+
+  virtual QString selectedFName() const { return txtFile->text(); }
+  virtual QString selectedScheme() const {
+    QString fname = QFileInfo(selectedFName()).fileName();
+    int k;
+    for (k = 0; k < pFileTypes.size(); ++k) {
+      // test for this file type
+      QRegExp rgx(pFileTypes[k].filepattern, Qt::CaseInsensitive, QRegExp::Wildcard);
+      if (rgx.exactMatch(fname))
+	return pFileTypes[k].scheme;
+    }
+    // fall back to guessing the scheme with the file contents
+    return KLFLibBasicWidgetFactory::guessLocalFileScheme(fname);
+  }
+
+  virtual void setUrl(const QUrl& url) {
+    txtFile->setText(url.path());
+  }
+  virtual QUrl url() const {
+    QString fname = selectedFName();
+    QString scheme = selectedScheme();
+    if (scheme.isEmpty())
+      return QUrl(); // invalid file type...
+
+    QUrl url = QUrl::fromLocalFile(fname);
+    url.setScheme(scheme);
+    return url;
+  }
+
+signals:
+  void readyToOpen(bool ready);
+
+public slots:
+  void setReadyToOpen(bool ready, const QUrl& url) {
+    if (ready != pReadyToOpen || url != pReadyToOpenUrl) {
+      // ready to open state changes
+      pReadyToOpen = ready;
+      pReadyToOpenUrl = url;
+      emit readyToOpen(ready);
+    }
+  }
+
+protected:
+  QList<LocalFileType> pFileTypes;
+  bool pReadyToOpen;
+  QUrl pReadyToOpenUrl;
+  enum BrowseType { BrowseOpen, BrowseSave };
+
+  virtual bool checkIsReadyToOpen(const QString& text = QString()) const
+  {
+    QString t = text.isNull() ? txtFile->text() : text;
+    return QFileInfo(t).isFile();
+  }
+
+
+protected slots:
+  virtual bool browseFileName(BrowseType bt)
+  {
+    static QString selectedFilter;
+
+    QStringList filters;
+    QStringList fpatterns;
+    int k;
+    for (k = 0; k < pFileTypes.size(); ++k) {
+      filters << pFileTypes[k].filter;
+      fpatterns << pFileTypes[k].filepattern;
+    }
+    if (bt == BrowseOpen)
+      filters.prepend(tr("All Known Files (%1)").arg(fpatterns.join(" "))); // only for opening
+    filters << tr("All Files (*)");
+    QString filter = filters.join(";;");
+    QString title = tr("Select Library Resource File");
+    QString name;
+    if (bt == BrowseOpen) {
+      name = QFileDialog::getOpenFileName(this, title, QDir::homePath(), filter, &selectedFilter);
+    } else if (bt == BrowseSave) {
+      name = QFileDialog::getSaveFileName(this, title, QDir::homePath(), filter, &selectedFilter);
+    } else {
+      qWarning()<<"KLFLibLocalFileOpenWidget::browseFileName: bad bt="<<bt;
+      name = QFileDialog::getSaveFileName(this, title, QDir::homePath(), filter, &selectedFilter);
+    }
+    if ( name.isEmpty() )
+      return false;
+
+    txtFile->setText(name); // this will call on_txtFile_textChanged()
+    return true;
+  }
+  virtual void on_btnBrowse_clicked()
+  {
+    browseFileName(BrowseOpen);
+  }
+  virtual void on_txtFile_textChanged(const QString& text)
+  {
+    setReadyToOpen(checkIsReadyToOpen(text), url());
+  }
+};
+
+// ---
+
+/** \internal */
+class KLFLibLocalFileCreateWidget : public KLFLibLocalFileOpenWidget
+{
+  Q_OBJECT
+
+  Q_PROPERTY(bool readyToCreate READ isReadyToCreate WRITE setReadyToCreate)
+public:
+  KLFLibLocalFileCreateWidget(QWidget *parent,
+			    const QList<LocalFileType>& fileTypes)
+    : KLFLibLocalFileOpenWidget(parent, fileTypes)
+  {
+    pConfirmedOverwrite = false;
+    pReadyToCreate = false;
+  }
+  virtual ~KLFLibLocalFileCreateWidget() { }
+
+  QString fileName() const {
+    return txtFile->text();
+  }
+
+  virtual bool isReadyToCreate() const { return pReadyToCreate; }
+
+  virtual bool confirmedOverwrite() const { return pConfirmedOverwrite; }
+
+signals:
+  void readyToCreate(bool ready);
+
+public slots:
+  void setReadyToCreate(bool ready) {
+    if (ready != pReadyToCreate) {
+      pReadyToCreate = ready;
+      emit readyToCreate(pReadyToCreate);
+    }
+  }
+
+protected slots:
+  virtual void on_btnBrowse_clicked()
+  {
+    if ( browseFileName(BrowseSave) )
+      pConfirmedOverwrite = true;
+  }
+  virtual void on_txtFile_textChanged(const QString& text)
+  {
+    pConfirmedOverwrite = false;
+    setReadyToCreate(QFileInfo(text).absoluteDir().exists());
+  }
+
+protected:
+  bool pConfirmedOverwrite;
+  bool pReadyToCreate;
+};
+
 
 
 

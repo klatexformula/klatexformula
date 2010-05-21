@@ -49,8 +49,8 @@ SysTrayIconConfigWidget::SysTrayIconConfigWidget(QWidget *parent)
 #endif
 }
 
-
-void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
+void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
+				   KLFPluginConfigAccess *rwconfig)
 {
   _mainButtonBar = NULL;
 

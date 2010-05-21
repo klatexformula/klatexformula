@@ -35,6 +35,7 @@
 #include <QTimer>
 
 #include <klflib.h>
+#include <klflibview.h>
 
 
 
@@ -123,9 +124,13 @@ bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
 
 
 
+
 //! The Legacy Library support for the KLFLib framework
 /** Implements a KLFLibResourceEngine resource engine for accessing (KLF<=3.1)-created libraries
- * (*.klf, default library files) */
+ * (*.klf, default library files)
+ *
+ * Different legacy resources (in the *.klf file) are mapped to sub-resources (in KLFLibResourceEngine).
+ */
 class KLF_EXPORT KLFLibLegacyEngine : public KLFLibResourceSimpleEngine
 {
   Q_OBJECT
@@ -136,11 +141,6 @@ public:
    * KLFLibLegacyEngine object, the parent of which is set to \c parent. Returns
    * NULL in case of an error.
    *
-   * Url must contain following query string:
-   * - <tt>legacyResourceName=<i>name</i></tt> to specify the (legacy) resource name of
-   *   the resource we're interested in the file, for the KLFLibResourceEngine API.
-   *   Note: you can always access the entries in a given resource by calling
-   *   .....................
    */
   static KLFLibLegacyEngine * openUrl(const QUrl& url, QObject *parent = NULL);
 
@@ -149,43 +149,38 @@ public:
    *
    * Returns NULL if creating the file failed.
    *
-   * \c legacyResourceName .....................................
+   * \c legacyResourceName is the name of an empty (legacy) resource (ie. sub-resource) to create
+   * in the newly created file.
    *
-   * A non-NULL returned object was successfully connected to database.
+   * A non-NULL returned object is linked to a file that was successfully created.
    * */
   static KLFLibLegacyEngine * createDotKLF(const QString& fileName, QString legacyResourceName,
 					   QObject *parent = NULL);
 
   virtual ~KLFLibLegacyEngine();
 
-  virtual bool canModifyData(ModifyType modifytype) const;
+  virtual bool canModifyData(const QString& subRes, ModifyType modifytype) const;
   virtual bool canModifyProp(int propid) const;
   virtual bool canRegisterProperty(const QString& propName) const;
 
-  virtual QString curLegacyResource() const { return pCurRes; }
+  virtual KLFLibEntry entry(const QString& resource, entryId id);
+  virtual QList<KLFLibEntryWithId> allEntries(const QString& resource);
 
-  virtual KLFLibEntry entry(entryId id);
-  virtual QList<KLFLibEntryWithId> allEntries();
-
-  virtual QList<KLFLibEntryWithId> allEntriesInResource(const QString& resource);
-
-  /** Lists the (legacy) resource names present in the given .klf file. This function
-   * is not very optimized. (it opens and closes the resource) */
-  static QStringList getLegacyResourceNames(const QUrl& url);
+  virtual QStringList subResourceList() const;
 
 public slots:
+
+  virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle);
 
   virtual bool save();
   virtual void setAutoSaveInterval(int intervalms);
 
-  virtual bool setCurrentLegacyResource(const QString& curLegacyResource);
+  virtual QList<entryId> insertEntries(const QString& subResource, const KLFLibEntryList& entries);
+  virtual bool changeEntries(const QString& subResource, const QList<entryId>& idlist,
+			     const QList<int>& properties, const QList<QVariant>& values);
+  virtual bool deleteEntries(const QString& subResource, const QList<entryId>& idlist);
 
-  virtual QList<entryId> insertEntries(const KLFLibEntryList& entries);
-  virtual bool changeEntries(const QList<entryId>& idlist, const QList<int>& properties,
-			   const QList<QVariant>& values);
-  virtual bool deleteEntries(const QList<entryId>& idlist);
-
-  virtual bool saveAs(const QUrl& newPath);
+  virtual bool saveTo(const QUrl& newPath);
 
 protected:
   virtual bool saveResourceProperty(int propId, const QVariant& value);
@@ -193,25 +188,37 @@ protected:
 private:
   KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url, QObject *parent);
 
+  enum LegacyLibType { LocalHistoryType = 1, LocalLibraryType, ExportLibraryType };
+
   QString pFileName;
 
   KLFLegacyData::KLFLibrary pLibrary;
   KLFLegacyData::KLFLibraryResourceList pResources;
-  // current considered resource in this legacy library
-  QString pCurRes;
-  int pCurResIndex;
+
+  LegacyLibType pLegacyLibType;
 
   QTimer *pAutoSaveTimer;
 
-  static bool loadLibraryFile(const QString& fname, KLFLegacyData::KLFLibraryResourceList *reslist,
-			      KLFLegacyData::KLFLibrary *lib);
-  static bool saveLibraryFile(const QString& fname, const KLFLegacyData::KLFLibraryResourceList& reslist,
-			      const KLFLegacyData::KLFLibrary& lib);
   KLFLibEntry toLibEntry(const KLFLegacyData::KLFLibraryItem& item);
   KLFLegacyData::KLFLibraryItem toLegacyLibItem(const KLFLibEntry& entry);
   KLFLegacyData::KLFStyle toLegacyStyle(const KLFStyle& style);
   KLFStyle toStyle(const KLFLegacyData::KLFStyle& oldstyle);
   int findResourceName(const QString& resname);
+
+  static bool loadLibraryFile(const QString& fname, KLFLegacyData::KLFLibraryResourceList *reslist,
+			      KLFLegacyData::KLFLibrary *lib, LegacyLibType *libType);
+  static bool saveLibraryFile(const QString& fname, const KLFLegacyData::KLFLibraryResourceList& reslist,
+			      const KLFLegacyData::KLFLibrary& lib, LegacyLibType legacyLibType);
+};
+
+
+
+class KLF_EXPORT KLFLibLegacyLocalFileSchemeGuesser : public QObject, public KLFLibLocalFileSchemeGuesser
+{
+public:
+  KLFLibLegacyLocalFileSchemeGuesser(QObject *parent) : QObject(parent) { }
+
+  QString guessScheme(const QString& fileName) const;
 };
 
 
@@ -223,27 +230,18 @@ public:
   KLFLibLegacyEngineFactory(QObject *parent = NULL);
   virtual ~KLFLibLegacyEngineFactory() { }
 
-  virtual QStringList supportedSchemes() const;
+  virtual QStringList supportedTypes() const;
   virtual QString schemeTitle(const QString& scheme) const ;
 
-  virtual QWidget * createPromptUrlWidget(QWidget *parent, const QString& scheme,
-					  QUrl defaultlocation = QUrl());
-  virtual QUrl retrieveUrlFromWidget(const QString& scheme, QWidget *widget);
+  virtual uint schemeFunctions(const QString& scheme) const;
+
+  virtual QString correspondingWidgetType(const QString& scheme) const;
 
   /** Create a library engine that opens resource stored at \c location */
   virtual KLFLibResourceEngine *openResource(const QUrl& location, QObject *parent = NULL);
 
-
-  virtual bool canCreateResource(const QString& /*scheme*/) const { return true; }
-
-  virtual QWidget * createPromptCreateParametersWidget(QWidget *parent, const QString& scheme,
-						       const Parameters& defaultparameters = Parameters());
-
-  virtual Parameters retrieveCreateParametersFromWidget(const QString& scheme, QWidget *widget);
-
   virtual KLFLibResourceEngine *createResource(const QString& scheme, const Parameters& parameters,
 					       QObject *parent = NULL);
-
 };
 
 

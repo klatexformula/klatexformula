@@ -154,7 +154,12 @@ public slots:
     connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
 	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
     qDebug()<<"connected signals.";
-    pResource->setViewType(viewTypeIdent);
+    if ((pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) &&
+	(pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps))
+      pResource->setSubResourceProperty(pResource->defaultSubResource(),
+					KLFLibResourceEngine::SubResPropViewType, viewTypeIdent);
+    else
+      pResource->setViewType(viewTypeIdent);
     qDebug()<<"set view type.";
 
     int index = addWidget(v);
