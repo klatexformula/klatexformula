@@ -113,7 +113,7 @@ static float color_distinguishable_distance(QRgb a, QRgb b) {
 
 
 /** \internal */
-static bool image_is_distinguishable(const QImage& img, QColor background, float threshold = 30)
+static bool image_is_distinguishable(const QImage& img, QColor background, float threshold)
 {
   QRgb bg = background.rgb();
   // crop transparent borders
@@ -620,7 +620,8 @@ public:
 
   virtual QString selectedFName() const { return txtFile->text(); }
   virtual QString selectedScheme() const {
-    QString fname = QFileInfo(selectedFName()).fileName();
+    QString filename = selectedFName();
+    QString fname = QFileInfo(filename).fileName();
     int k;
     for (k = 0; k < pFileTypes.size(); ++k) {
       // test for this file type
@@ -629,7 +630,7 @@ public:
 	return pFileTypes[k].scheme;
     }
     // fall back to guessing the scheme with the file contents
-    return KLFLibBasicWidgetFactory::guessLocalFileScheme(fname);
+    return KLFLibBasicWidgetFactory::guessLocalFileScheme(filename);
   }
 
   virtual void setUrl(const QUrl& url) {

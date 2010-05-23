@@ -645,11 +645,15 @@ bool KLFLibLegacyEngine::saveResourceProperty(int propId, const QVariant& value)
 
 QString KLFLibLegacyLocalFileSchemeGuesser::guessScheme(const QString& fileName) const
 {
+  qDebug("KLFLibLegacyLocalFileSchemeGuesser::guessScheme: %s", qPrintable(fileName));
+
   if (fileName.endsWith(".klf"))
     return QLatin1String("klf+legacy");
 
   QFile f(fileName);
   if ( ! f.open(QIODevice::ReadOnly) ) {
+    qWarning("KLFLibLegacyLocalFileSchemeGuesser::guessScheme: Can't open file: %s",
+	     qPrintable(fileName));
     return QString();
   }
   QDataStream stream(&f);
@@ -657,6 +661,8 @@ QString KLFLibLegacyLocalFileSchemeGuesser::guessScheme(const QString& fileName)
   stream.setVersion(QDataStream::Qt_3_3);
   QString s1;
   stream >> s1;
+  qDebug("KLFLibLegacyLocalFileSchemeGuesser::guessScheme: read line: got magic '%s'",
+	 qPrintable(s1));
   if (s1 == "KLATEXFORMULA_LIBRARY_EXPORT" || s1 == "KLATEXFORMULA_LIBRARY" ||
       s1 == "KLATEXFORMULA_HISTORY")
     return QLatin1String("klf+legacy");

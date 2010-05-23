@@ -57,6 +57,10 @@ namespace KLFLib {
  * For example one could create a QTreeView and display the contents in there
  * (that's what KLFLibDefaultView does...).
  *
+ * \note This class subclasses QWidget because it makes uses of signals and slots.
+ *   Think before removing that inheritance or muting it to a QObject (subclasses will
+ *   eventually want to inherit QWidget), no multiple QObject inheritance please!
+ *
  * \note Subclasses should emit the \ref resourceDataChanged() signal AFTER they
  *   refresh after a resource data change.
  */
@@ -91,7 +95,17 @@ public:
   virtual bool restoreGuiState(const QVariantMap& state) = 0;
 
 signals:
+  /** Is emitted when a latex entry is selected to be restored (eg. the entry was
+   * double-clicked).
+   *
+   * \param entry is the data to restore
+   * \param restoreflags provides information on which part of \c entry to restore. See the
+   *   possible flags in \ref KLFLib::RestoreMode.
+   */
   void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
+  /** Is emitted when the view wants the main application (or the framework that uses
+   * this class) to restore the given style \c style. No latex is to be restored.
+   */
   void requestRestoreStyle(const KLFStyle& style);
 
   /** Subclasses must emit this signal AFTER they have refreshed. */
@@ -634,6 +648,9 @@ public slots:
   virtual void searchAbort();
 
   virtual void restore(uint restoreflags = KLFLib::RestoreLatexAndStyle);
+
+  virtual void showColumns(int propIdColumn, bool show);
+  virtual void sortBy(int propIdColumn, Qt::SortOrder sortorder);
 
   virtual void slotSelectAll(const QModelIndex& parent = QModelIndex());
   virtual void slotRelayoutIcons();

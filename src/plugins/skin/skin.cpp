@@ -24,14 +24,13 @@
 #include <QtCore>
 #include <QtGui>
 
+#include <klfutil.h>
 #include <klfmainwin.h>
 #include <klfsettings.h>
-//#include <klflibrary.h>
 #include <klflatexsymbols.h>
 #include <klfconfig.h>
 
 #include "skin.h"
-
 
 
 SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
@@ -40,66 +39,42 @@ SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
   setupUi(this);
 
   connect(cbxSkin, SIGNAL(activated(int)), this, SLOT(skinSelected(int)));
-  connect(txtStyleSheet, SIGNAL(textChanged()), this, SLOT(stylesheetChanged()));
-  connect(btnSaveCustom, SIGNAL(clicked()), this, SLOT(saveCustom()));
-  connect(btnDeleteSkin, SIGNAL(clicked()), this, SLOT(deleteCustom()));
+  connect(btnRefresh, SIGNAL(clicked()), this, SLOT(refreshSkin()));
 }
 
-void SkinConfigWidget::load(QString skin, QString stylesheet)
+void SkinConfigWidget::loadSkinList(QString skinfn)
 {
+  qDebug("SkinConfigWidget::loadSkinList(%s)", qPrintable(skinfn));
   cbxSkin->clear();
-  _skins.clear();
 
   QStringList stylesheetsdirs;
-  stylesheetsdirs << ":/plugindata/skin/stylesheets/" << config->homeConfigDir() + "/plugins/skin/stylesheets";
+  stylesheetsdirs
+    << ":/plugindata/skin/stylesheets/" << config->homeConfigPluginDataDir(true) + "/stylesheets/";
 
-  int j;
-  int k;
+  int k, j;
   int indf = -1;
   for (j = 0; j < stylesheetsdirs.size(); ++j) {
+    if ( ! QFile::exists(stylesheetsdirs[j]) )
+      if ( ! klfEnsureDir(stylesheetsdirs[j]) )
+	continue;
+
     QDir stylesheetdir(stylesheetsdirs[j]);
     QStringList skinlist = stylesheetdir.entryList(QStringList() << "*.qss", QDir::Files);
     for (k = 0; k < skinlist.size(); ++k) {
       QString skintitle = QFileInfo(skinlist[k]).baseName();
-      
-    QFile f(stylesheetdir.absoluteFilePath(skinlist[k]));
-    f.open(QIODevice::ReadOnly);
-    QByteArray stylesheetdata = f.readAll();
-    f.close();
-    QString stylesheet = QString::fromUtf8(stylesheetdata.constData(), stylesheetdata.size());
-
-    Skin sk(true, skinlist[k], skintitle, stylesheet);
-    _skins.push_back(sk);
-    if (skinlist[k] == skin)
-      indf = _skins.size()-1;
-    cbxSkin->addItem(skintitle, QVariant(_skins.size()-1));
+      QString fn = stylesheetdir.absoluteFilePath(skinlist[k]);
+      qDebug("\tgot skin: %s : %s", qPrintable(skintitle), qPrintable(fn));
+      if (fn == skinfn) {
+	indf = cbxSkin->count();
+      }
+      cbxSkin->addItem(skintitle, fn);
     }
   }
-  QList<QVariant> customskins
-    = config->readValue("CustomSkins").value<QList<QVariant> >() ;
-  for (k = 0; k < customskins.size(); ++k) {
-    //    printf("%d...\n", k);
-    QList<QVariant> vthiscustomskin = customskins[k].value<QList<QVariant> >();
-    Skin sk(false, vthiscustomskin[0].toString(), vthiscustomskin[1].toString(),
-		  vthiscustomskin[2].toString());
-    _skins.push_back(sk);
-    if (sk.name == skin)
-      indf = _skins.size()-1;
-    cbxSkin->addItem(sk.title, QVariant(_skins.size()-1));
-  }
-
-  cbxSkin->addItem(tr("Custom ..."), QVariant(QString::null));
-
   // ---
-
-  txtStyleSheet->setPlainText(stylesheet);
   if (indf >= 0) {
-    k = cbxSkin->findData(indf);
-    if ( k >= 0 ) {
-      cbxSkin->blockSignals(true);
-      cbxSkin->setCurrentIndex(k);
-      cbxSkin->blockSignals(false);
-    }
+    cbxSkin->blockSignals(true);
+    cbxSkin->setCurrentIndex(indf);
+    cbxSkin->blockSignals(false);
   }
 }
 
@@ -107,107 +82,15 @@ void SkinConfigWidget::skinSelected(int index)
 {
   if (index < 0 || index >= cbxSkin->count()-1)
     return;
-
   _modified = true;
-
-  int k = cbxSkin->itemData(index).toInt();
-
-  txtStyleSheet->blockSignals(true);
-  txtStyleSheet->setPlainText(_skins[k].stylesheet);
-  txtStyleSheet->blockSignals(false);
-
-  btnDeleteSkin->setEnabled( ! _skins[k].builtin );
 }
 
-void SkinConfigWidget::stylesheetChanged()
+void SkinConfigWidget::refreshSkin()
 {
-  _modified = true;
-  cbxSkin->setCurrentIndex(cbxSkin->count()-1);
+  loadSkinList(currentSkin());
+  _modified = true; // and re-set this skin after click on 'apply'
 }
 
-void SkinConfigWidget::saveCustom()
-{
-  bool ok;
-  QString title = QInputDialog::getText(this, tr("Skin Name"), tr("Please enter skin name:"),
-				       QLineEdit::Normal, tr("[New Skin Name]"), &ok);
-  if (!ok)
-    return;
-
-  Skin newskin(false, title, title, txtStyleSheet->toPlainText());
-
-  int k;
-  for (k = 0; k < _skins.size(); ++k) {
-    if (_skins[k].title == title) {
-      if (_skins[k].builtin) {
-	QMessageBox::critical(this, tr("Error"), tr("Can't overwrite a built-in skin. Please choose another name."));
-	// recurse to re-ask for a new title
-	saveCustom();
-	return;
-      } else {
-	int confirmation = 
-	  QMessageBox::question(this, tr("Overwrite skin?"), tr("You are about to overwrite skin %1. Are you sure?")
-				.arg(title), QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::Cancel);
-	if ( confirmation == QMessageBox::Cancel )
-	  return;
-	if ( confirmation == QMessageBox::Yes ) {
-	  // overwrite the other skin
-	  _skins[k] = newskin;
-	  int index = cbxSkin->findData(k);
-	  if ( index >= 0 )
-	    cbxSkin->setCurrentIndex(index);
-	  return;
-	} else {
-	  // not sure
-	  // ask for new name: recurse current function
-	  saveCustom();
-	  return;
-	}
-      }
-    }
-  }
-  // skin not already existing
-
-  _skins.push_back(newskin);
-  cbxSkin->insertItem(cbxSkin->count()-1, title, _skins.size()-1);
-  cbxSkin->setCurrentIndex(cbxSkin->count()-2);
-
-  saveCustomSkins();
-}
-
-void SkinConfigWidget::deleteCustom()
-{
-  int index = cbxSkin->currentIndex();
-  int k = cbxSkin->itemData(index).toInt();
-  int confirmation
-    = QMessageBox::warning(this, tr("Delete skin?", "[[confirmation messagebox title]]"),
-			   tr("Are you sure you want to delete the skin named `%1' ?").arg(_skins[k].name),
-			   QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
-  if (confirmation != QMessageBox::Yes) {
-    return;
-  }
-
-  _skins.removeAt(k);
-
-  cbxSkin->removeItem(index);
-  cbxSkin->setCurrentIndex(cbxSkin->count()-1);
-
-  saveCustomSkins();
-}
-
-void SkinConfigWidget::saveCustomSkins()
-{
-  QList<QVariant> customskins;
-  int k;
-  for (k = 0; k < _skins.size(); ++k) {
-    if (_skins[k].builtin)
-      continue;
-    QList<QVariant> thisskin;
-    thisskin << _skins[k].name << _skins[k].title << _skins[k].stylesheet;
-    customskins.push_back( thisskin );
-  }
-
-  config->writeValue("CustomSkins", customskins);
-}
 
 
 // --------------------------------------------------------------------------------
@@ -227,13 +110,8 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
   _config = rwconfig;
 
   // ensure reasonable non-empty value in config
-  if ( rwconfig->readValue("stylesheet").isNull() ) {
-    QString stylesheet;
-    QFile f(":/plugindata/skin/stylesheets/default.qss");
-    f.open(QIODevice::ReadOnly);
-    stylesheet = QString::fromUtf8(f.readAll());
-    rwconfig->writeValue("stylesheet", stylesheet);
-  }
+  if ( rwconfig->readValue("skinfilename").isNull() )
+    rwconfig->writeValue("skinfilename", QString(":/plugindata/skin/stylesheets/default.qss"));
 
   applySkin(rwconfig);
 }
@@ -242,13 +120,15 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
 void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
 {
   qDebug("Applying skin!");
-  QVariant ss = config->readValue("stylesheet");
-  QString stylesheet = ss.toString();
+  QString ssfn = config->readValue("skinfilename").toString();
+  QString stylesheet = SkinConfigWidget::getStyleSheet(ssfn);
 
   if (_app->style() != _defaultstyle) {
     _app->setStyle(_defaultstyle);
-    _defaultstyle->setParent(this); // but aggressively keep possession of style
-    _mainwin->setProperty("widgetStyle", QVariant(QString::null)); // and refresh mainwin's idea of application's style
+    // but aggressively keep possession of style
+    _defaultstyle->setParent(this);
+    // and refresh mainwin's idea of application's style
+    _mainwin->setProperty("widgetStyle", QVariant(QString::null));
   }
   // set style sheet to whole application (doesn't work...)
   //  _app->setStyleSheet(stylesheet);
@@ -263,22 +143,17 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
     w->setAttribute(Qt::WA_StyledBackground);
     w->setStyleSheet(stylesheet);
   }
-#ifndef Q_WS_WIN
-  // BUG? tab widget in settings dialog is always un-skinned after an "apply"...?
-  KLFSettings *settingsDialog = _mainwin->findChild<KLFSettings*>();
-  if (settingsDialog) {
-    QTabWidget * tabs = settingsDialog->findChild<QTabWidget*>("tabs");
-    if (tabs) {
-      qDebug("Setting stylesheet to tabs");
-      tabs->setStyleSheet(stylesheet);
-    }
-  }
-#endif
-
-  // previously, I'd do:
-  //  _mainwin->setStyleSheet(stylesheet);
-  //  _mainwin->libraryBrowserWidget()->setStyleSheet(stylesheet);
-  //  _mainwin->latexSymbolsWidget()->setStyleSheet(stylesheet);
+  // #ifndef Q_WS_WIN
+  //   // BUG? tab widget in settings dialog is always un-skinned after an "apply"...?
+  //   KLFSettings *settingsDialog = _mainwin->findChild<KLFSettings*>();
+  //   if (settingsDialog) {
+  //     QTabWidget * tabs = settingsDialog->findChild<QTabWidget*>("tabs");
+  //     if (tabs) {
+  //       qDebug("Setting stylesheet to tabs");
+  //       tabs->setStyleSheet(stylesheet);
+  //     }
+  //   }
+  // #endif
 }
 
 QWidget * SkinPlugin::createConfigWidget(QWidget *parent)
@@ -295,8 +170,7 @@ void SkinPlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *conf
     return;
   }
   SkinConfigWidget * o = qobject_cast<SkinConfigWidget*>(confwidget);
-  o->load(config->readValue("skin").toString(),
-	  config->readValue("stylesheet").toString());
+  o->loadSkinList(config->readValue("skinfilename").toString());
   // reset modified status
   o->getModifiedAndReset();
 }
@@ -309,11 +183,9 @@ void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config
 
   SkinConfigWidget * o = qobject_cast<SkinConfigWidget*>(confwidget);
 
-  QString skin = o->currentSkin();
-  QString stylesheet = o->currentStyleSheet();
+  QString skinfn = o->currentSkin();
 
-  config->writeValue("skin", QVariant(skin));
-  config->writeValue("stylesheet", QVariant(stylesheet));
+  config->writeValue("skinfilename", QVariant::fromValue<QString>(skinfn));
 
   if ( o->getModifiedAndReset() )
     applySkin(config);

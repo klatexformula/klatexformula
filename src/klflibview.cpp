@@ -903,7 +903,7 @@ void KLFLibModel::treeRemoveEntry(const NodeId& nodeid, bool notifyQtApi)
       beginRemoveRows(parent, childIndex, childIndex);
     //    // CHANGE OF STRATEGY: EMPTY CATEGORIES ARE LEFT INTACT, THEY SHOULD BE REMOVED EXPLICITELY
     //    willRemoveParent = false;
-    willRemoveParent = parentid.valid() && getNode(parentid).children.size();
+    willRemoveParent = parentid.valid() && getNode(parentid).children.size() <= 1;
     if (n.kind == CategoryLabelKind) {
       // an unlinked category label should have its parent set to invalid.
       pCategoryLabelCache[n.index].parent = NodeId();
@@ -1779,15 +1779,22 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
       QImage img2 = img.scaled(p->innerRectImage.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
       if (p->isselected)
 	img2 = transparentify_image(img2, 0.85);
-      QPoint pos = p->innerRectImage.topLeft() + QPoint(0, (p->innerRectImage.height()-img2.height()) / 2);
+      QPoint pos = p->innerRectImage.topLeft()
+	+ QPoint(0, (p->innerRectImage.height()-img2.height()) / 2);
       // draw image on different background if it can't be "distinguished" from default background
       // (eg. a transparent white formula)
       QList<QColor> bglist = QList<QColor>() << p->background.color()
 					     << QColor(255,255,255)
+					     << QColor(220,220,220)
+					     << QColor(180,190,190)
+					     << QColor(200,200,200)
+					     << QColor(150,150,150)
+					     << QColor(100,100,100)
+					     << QColor(50,50,50)
 					     << QColor(0,0,0);
       int k;
       for (k = 0; k < bglist.size(); ++k) {
-	bool distinguishable = image_is_distinguishable(img2, bglist[k]);
+	bool distinguishable = image_is_distinguishable(img2, bglist[k], 20); //  30
 	if ( distinguishable )
 	  break; // got distinguishable color
       }
@@ -2036,7 +2043,6 @@ QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEntryWithId& e
   return dbg <<"KLFLibEntryWithId(id="<<e.id<<";"<<e.entry.category()<<","<<e.entry.tags()<<","
 	     <<e.entry.latex()<<")";
 }
-
 
 
 KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
@@ -2468,6 +2474,36 @@ void KLFLibDefaultView::restore(uint restoreflags)
   
   emit requestRestore(e, restoreflags);
 }
+
+void KLFLibDefaultView::showColumns(int propIdColumn, bool show)
+{
+  if ( ! pView->inherits("QTreeView") ) {
+    qWarning("KLFLibDefaultView::showColumns(%d,%s): Resource view for %s: view does not inherit QTreeView!",
+	     propIdColumn, show?"[show]":"[hide]", qPrintable(resourceEngine()->url().toString()));
+    return;
+  }
+  int colNo = pModel->columnForEntryPropertyId(propIdColumn);
+  qobject_cast<QTreeView*>(pView)->setColumnHidden(colNo, show);
+}
+
+void KLFLibDefaultView::sortBy(int propIdColumn, Qt::SortOrder sortorder)
+{
+  if ( ! pView->inherits("QTreeView") ) {
+    qWarning("KLFLibDefaultView::showBy(%d,%s): Resource view for %s: view does not inherit QTreeView!",
+	     propIdColumn, (sortorder == Qt::AscendingOrder)?"[Ascending]":"[Descending]" ,
+	     qPrintable(resourceEngine()->url().toString()));
+    return;
+  }
+  QTreeView * tree = qobject_cast<QTreeView*>(pView);
+  int colNo = pModel->columnForEntryPropertyId(propIdColumn);
+  if (colNo < 0 || colNo >= pModel->columnCount()) {
+    qWarning("KLFLibDefaultView::showBy(%d,%s): column number %d is not valid or hidden!",
+	     propIdColumn, (sortorder == Qt::AscendingOrder)?"[Ascending]":"[Descending]", colNo);
+    return;
+  }
+  tree->sortByColumn(colNo, sortorder);
+}
+
 
 void KLFLibDefaultView::slotSelectAll(const QModelIndex& parent)
 {

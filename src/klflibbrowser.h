@@ -57,6 +57,16 @@ public:
    * engines upon destruction. */
   KLFLibResourceEngine * getOpenResource(const QUrl& url);
 
+  /** Returns the view that is used to display the resource with URL \c url.
+   *
+   * \note the returned view belongs to this KLFLibBrowser object. */
+  KLFAbstractLibView * getView(const QUrl& url);
+
+  /** Returns the view that is used to display the resource \c resource.
+   *
+   * \note the returned view belongs to this KLFLibBrowser object. */
+  KLFAbstractLibView * getView(KLFLibResourceEngine *resource);
+
   QVariantMap saveGuiState();
   void loadGuiState(const QVariantMap& state);
 

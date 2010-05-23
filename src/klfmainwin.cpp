@@ -348,6 +348,8 @@ KLFMainWin::KLFMainWin()
 
   connect(mLibBrowser, SIGNAL(requestRestore(const KLFLibEntry&, uint)),
 	  this, SLOT(restoreFromLibrary(const KLFLibEntry&, uint)));
+  connect(mLibBrowser, SIGNAL(requestRestoreStyle(const KLFStyle&)),
+	  this, SLOT(slotLoadStyle(const KLFStyle&)));
   //  connect(mLibBrowser, SIGNAL(refreshLibraryBrowserShownState(bool)),
   //	  this, SLOT(slotLibraryButtonRefreshState(bool)));
   connect(mLatexSymbols, SIGNAL(insertSymbol(const KLFLatexSymbol&)),
@@ -365,8 +367,10 @@ KLFMainWin::KLFMainWin()
 						      klfconfig.UI.labelOutputFixedSize.width(),
 						      klfconfig.UI.labelOutputFixedSize.height());
 
-  connect(txtLatex, SIGNAL(textChanged()), this, SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
-  connect(cbxMathMode, SIGNAL(editTextChanged(const QString&)), this, SLOT(updatePreviewBuilderThreadInput()),
+  connect(txtLatex, SIGNAL(textChanged()), this,
+	  SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+  connect(cbxMathMode, SIGNAL(editTextChanged(const QString&)),
+	  this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
   connect(chkMathMode, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
@@ -694,6 +698,7 @@ void KLFMainWin::loadLibrary()
 	      <<"\n\tExpect Crash!";
     return;
   }
+  KLFAbstractLibView *view = mLibBrowser->getView(mHistoryLibResource);
 
   qDebug("KLFMainWin::loadLibrary(): opened history: resource-ptr=%p\n\tImportFile=%s",
 	 (void*)mHistoryLibResource, qPrintable(importfname));

@@ -212,6 +212,9 @@
   <tabstop>cbxSubResource</tabstop>
   <tabstop>txtSubResTitle</tabstop>
   <tabstop>chkLocked</tabstop>
+  <tabstop>chkSubResLocked</tabstop>
+  <tabstop>btnApply</tabstop>
+  <tabstop>btnAdvanced</tabstop>
   <tabstop>txtUrl</tabstop>
   <tabstop>tblProperties</tabstop>
   <tabstop>tblSubResProperties</tabstop>

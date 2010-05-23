@@ -43,8 +43,8 @@ endif(KLF_USE_QT4)
 set(klatexformula_SRCS
 	klfcolorchooser.cpp
 	klfconfig.cpp
-#	klfdata.cpp
 	klfpobj.cpp
+	klfutil.cpp
 	klffactory.cpp
 	klflatexsyntaxhighlighter.cpp
 	klflatexsymbols.cpp
@@ -89,8 +89,8 @@ set(klatexformula_MOCHEADERS
 #  * all headers
 set(klatexformula_HEADERS
 	klfmain.h
+	klfutil.h
 	klfconfig.h
-#	klfdata.h
 	klfpobj.h
 	klffactory.h
 	klfpluginiface.h

@@ -36,94 +36,21 @@
 
 #include <klfmainwin.h>
 
+#include "klfutil.h"
+#include "klfmain.h"
 #include "klfconfig.h"
 
 // global variable to access our config
-// remember to initialize it in main.cpp !
+// remember to initialize it in main() in main.cpp !
 KLFConfig klfconfig;
-
-
-// negative limit means "no limit"
-static QStringList __search_find_test(const QString& root, const QStringList& pathlist, int level, int limit)
-{
-  if (limit == 0)
-    return QStringList();
-
-  QStringList newpathlist = pathlist;
-  // our level: levelpathlist contains items in pathlist from 0 to level-1 inclusive.
-  QStringList levelpathlist;
-  int k;
-  for (k = 0; k < level; ++k) { levelpathlist << newpathlist[k]; }
-  // the dir/file at our level:
-  QString flpath = root+levelpathlist.join("/");
-  QFileInfo flinfo(flpath);
-  if (flinfo.isDir()) {
-    QDir d(flpath);
-    QStringList entries = d.entryList(QStringList()<<pathlist[level]);
-    QStringList hitlist;
-    for (k = 0; k < entries.size(); ++k) {
-      newpathlist[level] = entries[k];
-      hitlist << __search_find_test(root, newpathlist, level+1, limit - hitlist.size());
-      if (limit >= 0 && hitlist.size() >= limit) // reached limit
-	break;
-    }
-    return hitlist;
-  }
-  if (flinfo.exists()) {
-    return QStringList() << QDir::toNativeSeparators(root+pathlist.join("/"));
-  }
-  return QStringList();
-}
-
-// returns at most limit results matching wildcard_expression (which is given as absolute path with wildcards)
-QStringList search_find(const QString& wildcard_expression, int limit)
-{
-  QString expr = QDir::fromNativeSeparators(wildcard_expression);
-  QStringList pathlist = expr.split("/", QString::SkipEmptyParts);
-  QString root = "/";
-  static QRegExp driveregexp("^[A-Za-z]:$");
-  if (driveregexp.exactMatch(pathlist[0])) {
-    // WIN System with X: drive letter
-    root = pathlist[0]+"/";
-    pathlist.pop_front();
-  }
-  return __search_find_test(root, pathlist, 0, limit);
-}
-
-// smart search PATH that will interpret wildcards in PATH+extra_path and return the first matching executable
-QString search_path(const QString& prog, const QString& extra_path)
-{
-  static const QString PATH = getenv("PATH");
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-  static const char pathsep = ';';
-#else
-  static const char pathsep = ':';
-#endif
-  QString path = PATH;
-  if (!extra_path.isEmpty())
-    path += pathsep + extra_path;
-
-  const QStringList paths = path.split(pathsep, QString::KeepEmptyParts);
-  QString test;
-  int k, j;
-  for (k = 0; k < paths.size(); ++k) {
-    QStringList hits = search_find(paths[k]+"/"+prog);
-    for (j = 0; j < hits.size(); ++j) {
-      if ( QFileInfo(hits[j]).isExecutable() ) {
-	return hits[j];
-      }
-    }
-  }
-  return QString::null;
-}
-
 
 
 void settings_write_QTextCharFormat(QSettings& s, const QString& basename, const QTextCharFormat& charfmt)
 {
   s.setValue(basename+"_charformat", charfmt);
 }
-QTextCharFormat settings_read_QTextCharFormat(QSettings& s, const QString& basename, const QTextCharFormat& dflt)
+QTextCharFormat settings_read_QTextCharFormat(QSettings& s, const QString& basename,
+					      const QTextCharFormat& dflt)
 {
   QVariant val = s.value(basename+"_charformat", dflt);
   QTextFormat tf = val.value<QTextFormat>();
@@ -154,6 +81,7 @@ QList<T> settings_read_list(QSettings& s, const QString& basename, const QList<T
 }
 
 
+// -----------------------------------------------------
 
 
 KLFConfig::KLFConfig()
@@ -170,17 +98,19 @@ KLFConfig::KLFConfig()
 void KLFConfig::loadDefaults()
 {
   homeConfigDir = QDir::homePath() + "/.klatexformula";
-  homeConfigSettingsFile = homeConfigDir + "/config";
+  homeConfigSettingsFile = homeConfigDir + "/config.conf";
+  homeConfigSettingsFileIni = homeConfigDir + "/config";
   homeConfigDirRCCResources = homeConfigDir + "/rccresources";
   homeConfigDirPlugins = homeConfigDir + "/plugins";
+  homeConfigDirPluginData = homeConfigDir + "/plugindata";
   homeConfigDirI18n = homeConfigDir + "/i18n";
 
   if (qApp->inherits("QApplication")) { // and not QCoreApplication...
     QFont f = QApplication::font();
 #ifdef Q_WS_X11
-    f.setPixelSize(15); // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
+    // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
+    f.setPixelSize(15);
 #endif
-
 
     QFontDatabase fdb;
     QFont fcode;
@@ -271,7 +201,8 @@ void KLFConfig::loadDefaults()
 #  define PROG_DVIPS "dvips.exe"
 #  define PROG_GS "gswin32c.exe"
 #  define PROG_EPSTOPDF "epstopdf.exe"
-static QString standard_extra_paths = "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
+static QString standard_extra_paths
+/* */      = "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
 #elif defined(Q_WS_MAC)
 #  define PROG_LATEX "latex"
 #  define PROG_DVIPS "dvips"
@@ -290,47 +221,28 @@ static QString standard_extra_paths = "";
 void KLFConfig::loadDefaultBackendPaths(KLFConfig *c, bool allowempty)
 {
   c->BackendSettings.tempDir = QDir::fromNativeSeparators(QDir::tempPath());
-  c->BackendSettings.execLatex = search_path(PROG_LATEX, standard_extra_paths);
+  c->BackendSettings.execLatex = klfSearchPath(PROG_LATEX, standard_extra_paths);
   if (!allowempty && c->BackendSettings.execLatex.isNull()) c->BackendSettings.execLatex = PROG_LATEX;
-  c->BackendSettings.execDvips = search_path(PROG_DVIPS, standard_extra_paths);
+  c->BackendSettings.execDvips = klfSearchPath(PROG_DVIPS, standard_extra_paths);
   if (!allowempty && c->BackendSettings.execDvips.isNull()) c->BackendSettings.execDvips = PROG_DVIPS;
-  c->BackendSettings.execGs = search_path(PROG_GS, standard_extra_paths);
+  c->BackendSettings.execGs = klfSearchPath(PROG_GS, standard_extra_paths);
   if (!allowempty && c->BackendSettings.execGs.isNull()) c->BackendSettings.execGs = PROG_GS;
-  c->BackendSettings.execEpstopdf = search_path(PROG_EPSTOPDF, standard_extra_paths);
+  c->BackendSettings.execEpstopdf = klfSearchPath(PROG_EPSTOPDF, standard_extra_paths);
   if (!allowempty && c->BackendSettings.execEpstopdf.isNull()) c->BackendSettings.execEpstopdf = "";
-}
-
-
-int ensureDir(QString dir)
-{
-  if ( ! QDir(dir).exists() ) {
-    bool r = QDir("/").mkpath(dir);
-    if ( ! r ) {
-      QMessageBox::critical(0, QObject::tr("Error"),
-			    QObject::tr("Can't make local config directory `%1' !").arg(dir));
-      return -1;
-    }
-    // set permissions to "rwx------"
-    r = QFile::setPermissions(dir, QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|
-			      QFile::ReadUser|QFile::WriteUser|QFile::ExeUser);
-    if ( ! r ) {
-      qWarning("Can't set permissions to local config directory `%s' !", qPrintable(dir));
-      return -1;
-    }
-  }
-  return 0;
 }
 
 
 int KLFConfig::ensureHomeConfigDir()
 {
-  if ( ensureDir(homeConfigDir) )
+  if ( !klfEnsureDir(homeConfigDir) )
     return -1;
-  if ( ensureDir(homeConfigDirRCCResources) )
+  if ( !klfEnsureDir(homeConfigDirRCCResources) )
     return -1;
-  if ( ensureDir(homeConfigDirPlugins) )
+  if ( !klfEnsureDir(homeConfigDirPlugins) )
     return -1;
-  if ( ensureDir(homeConfigDirI18n) )
+  if ( !klfEnsureDir(homeConfigDirPluginData) )
+    return -1;
+  if ( !klfEnsureDir(homeConfigDirI18n) )
     return -1;
 
   return 0;
@@ -339,7 +251,141 @@ int KLFConfig::ensureHomeConfigDir()
 int KLFConfig::readFromConfig()
 {
   ensureHomeConfigDir();
+
+  if (QFile::exists(homeConfigSettingsFile)) {
+    return readFromConfig_v2();
+  }
+  if (QFile::exists(homeConfigSettingsFileIni)) {
+    return readFromConfig_ini();
+  }
+}
+
+template<class T>
+static void klf_settings_read(QSettings &s, const QString& baseName, T *target,
+			      const char * listOrMapType = NULL)
+{
+  qDebug("klf_settings_read<...>(%s)", qPrintable(baseName));
+  QVariant defVal = QVariant::fromValue<T>(*target);
+  QVariant valstr = s.value(baseName, defVal);
+  qDebug()<<"\tRead value "<<valstr;
+  QVariant val = klfLoadVariantFromText(valstr.toString().toLatin1(), defVal.typeName(), listOrMapType);
+  if (val.isValid())
+    *target = val.value<T>();
+}
+template<>
+void klf_settings_read<QTextCharFormat>(QSettings &s, const QString& baseName,
+					QTextCharFormat *target,
+					const char * listOrMapType)
+{
+  qDebug("klf_settings_read<QTextCharFormat>(%s)", qPrintable(baseName));
+  QTextFormat fmt = *target;
+  klf_settings_read(s, baseName, &fmt);
+  *target = fmt.toCharFormat();
+}
+
+template<class T>
+static void klf_settings_read_list(QSettings &s, const QString& baseName, QList<T> *target)
+{
+  QVariantList vlist = klfListToVariantList(*target);
+  klf_settings_read(s, baseName, &vlist, QVariant::fromValue<T>(T()).typeName());
+  *target = klfVariantListToList<T>(vlist);
+}
+
+
+template<class T>
+static void klf_settings_write(QSettings &s, const QString& baseName, const T * value)
+{
+  QVariant val = QVariant::fromValue<T>(*value);
+  QByteArray datastr = klfSaveVariantToText(val);
+  s.setValue(baseName, QVariant::fromValue<QString>(QString::fromLocal8Bit(datastr)));
+}
+
+template<class T>
+static void klf_settings_write_list(QSettings &s, const QString& baseName, const QList<T> * target)
+{
+  QVariantList vlist = klfListToVariantList(*target);
+  klf_settings_write(s, baseName, &vlist);
+}
+
+int KLFConfig::readFromConfig_v2()
+{
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
+
+  qDebug("Reading base configuration");
+
+  s.beginGroup("UI");
+  klf_settings_read(s, "locale", &UI.locale);
+  klf_settings_read(s, "applicationfont", &UI.applicationFont);
+  klf_settings_read(s, "latexeditfont", &UI.latexEditFont);
+  klf_settings_read(s, "preambleeditfont", &UI.preambleEditFont);
+  klf_settings_read(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
+  klf_settings_read(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
+  klf_settings_read(s, "lastsavedir", &UI.lastSaveDir);
+  klf_settings_read(s, "symbolsperline", &UI.symbolsPerLine);
+  klf_settings_read_list(s, "usercolorlist", &UI.userColorList);
+  klf_settings_read_list(s, "colorchoosewidgetrecent", &UI.colorChooseWidgetRecent);
+  klf_settings_read_list(s, "colorchoosewidgetcustom", &UI.colorChooseWidgetCustom);
+  klf_settings_read(s, "maxusercolors", &UI.maxUserColors);
+  klf_settings_read(s, "enabletooltippreview", &UI.enableToolTipPreview);
+  klf_settings_read(s, "enablerealtimepreview", &UI.enableRealTimePreview);
+  klf_settings_read(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
+  s.endGroup();
+
+  s.beginGroup("SyntaxHighlighter");
+  klf_settings_read(s, "configflags", &SyntaxHighlighter.configFlags);
+  klf_settings_read<QTextCharFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
+  klf_settings_read<QTextCharFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
+  klf_settings_read<QTextCharFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
+  klf_settings_read<QTextCharFormat>(s, "parenmismatch", &SyntaxHighlighter.fmtParenMismatch);
+  klf_settings_read<QTextCharFormat>(s, "lonelyparen", &SyntaxHighlighter.fmtLonelyParen);
+  s.endGroup();
+
+  s.beginGroup("BackendSettings");
+  klf_settings_read(s, "tempdir", &BackendSettings.tempDir);
+  klf_settings_read(s, "latexexec", &BackendSettings.execLatex);
+  klf_settings_read(s, "dvipsexec", &BackendSettings.execDvips);
+  klf_settings_read(s, "gsexec", &BackendSettings.execGs);
+  klf_settings_read(s, "epstopdfexec", &BackendSettings.execEpstopdf);
+  klf_settings_read(s, "lborderoffset", &BackendSettings.lborderoffset);
+  klf_settings_read(s, "tborderoffset", &BackendSettings.tborderoffset);
+  klf_settings_read(s, "rborderoffset", &BackendSettings.rborderoffset);
+  klf_settings_read(s, "bborderoffset", &BackendSettings.bborderoffset);
+  s.endGroup();
+
+  s.beginGroup("LibraryBrowser");
+  klf_settings_read(s, "displaytaggedonly", &LibraryBrowser.displayTaggedOnly);
+  klf_settings_read(s, "displaynoduplicates", &LibraryBrowser.displayNoDuplicates);
+  klf_settings_read(s, "colorfound", &LibraryBrowser.colorFound);
+  klf_settings_read(s, "colornotfound", &LibraryBrowser.colorNotFound);
+  s.endGroup();
+
+  // Special treatment for Plugins.pluginConfig
+  // for reading, we cannot rely on klf_plugins since we are called before plugins are loaded!
+  int k, j;
+  QDir plugindatadir = QDir(homeConfigDirPluginData);
+  QStringList plugindirs = plugindatadir.entryList(QDir::Dirs);
+  for (k = 0; k < plugindirs.size(); ++k) {
+    qDebug("Reading config for plugin %s", qPrintable(plugindirs[k]));
+    QString fn = plugindatadir.absoluteFilePath(plugindirs[k])+"/"+plugindirs[k]+".conf";
+    if ( ! QFile::exists(fn) ) {
+      qDebug("\tskipping plugin %s since the file %s does not exist.",
+	     qPrintable(plugindirs[k]), qPrintable(fn));
+      continue;
+    }
+    QSettings psettings(fn, QSettings::IniFormat);
+    QVariantMap pconfmap;
+    QStringList keys = psettings.allKeys();
+    for (j = 0; j < keys.size(); ++j) {
+      pconfmap[keys[j]] = psettings.value(keys[j]);
+    }
+    Plugins.pluginConfig[plugindirs[k]] = pconfmap;
+  }
+
+}
+
+int KLFConfig::readFromConfig_ini()
+{
+  QSettings s(homeConfigSettingsFileIni, QSettings::IniFormat);
 
   s.beginGroup("UI");
   UI.locale = s.value("locale", UI.locale).toString();
@@ -415,65 +461,65 @@ int KLFConfig::writeToConfig()
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
   s.beginGroup("UI");
-  s.setValue("locale", UI.locale);
-  s.setValue("applicationfont", UI.applicationFont);
-  s.setValue("latexeditfont", UI.latexEditFont);
-  s.setValue("preambleeditfont", UI.preambleEditFont);
-  s.setValue("previewtooltipmaxsize", UI.previewTooltipMaxSize);
-  s.setValue("lbloutputfixedsize", UI.labelOutputFixedSize);
-  s.setValue("lastSaveDir", UI.lastSaveDir);
-  s.setValue("symbolsperline", UI.symbolsPerLine);
-  settings_write_list(s, "usercolorlist", UI.userColorList);
-  settings_write_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent);
-  settings_write_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom);
-  s.setValue("maxusercolors", UI.maxUserColors);
-  s.setValue("enabletooltippreview", UI.enableToolTipPreview);
-  s.setValue("enablerealtimepreview", UI.enableRealTimePreview);
-  s.setValue("autosavelibrarymin", UI.autosaveLibraryMin);
+  klf_settings_write(s, "locale", &UI.locale);
+  klf_settings_write(s, "applicationfont", &UI.applicationFont);
+  klf_settings_write(s, "latexeditfont", &UI.latexEditFont);
+  klf_settings_write(s, "preambleeditfont", &UI.preambleEditFont);
+  klf_settings_write(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
+  klf_settings_write(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
+  klf_settings_write(s, "lastsavedir", &UI.lastSaveDir);
+  klf_settings_write(s, "symbolsperline", &UI.symbolsPerLine);
+  klf_settings_write_list(s, "usercolorlist", &UI.userColorList);
+  klf_settings_write_list(s, "colorchoosewidgetrecent", &UI.colorChooseWidgetRecent);
+  klf_settings_write_list(s, "colorchoosewidgetcustom", &UI.colorChooseWidgetCustom);
+  klf_settings_write(s, "maxusercolors", &UI.maxUserColors);
+  klf_settings_write(s, "enabletooltippreview", &UI.enableToolTipPreview);
+  klf_settings_write(s, "enablerealtimepreview", &UI.enableRealTimePreview);
+  klf_settings_write(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
-  s.setValue("configflags", SyntaxHighlighter.configFlags);
-  settings_write_QTextCharFormat(s, "keyword", SyntaxHighlighter.fmtKeyword);
-  settings_write_QTextCharFormat(s, "comment", SyntaxHighlighter.fmtComment);
-  settings_write_QTextCharFormat(s, "parenmatch", SyntaxHighlighter.fmtParenMatch);
-  settings_write_QTextCharFormat(s, "parenmismatch", SyntaxHighlighter.fmtParenMismatch);
-  settings_write_QTextCharFormat(s, "lonelyparen", SyntaxHighlighter.fmtLonelyParen);
+  klf_settings_write(s, "configflags", &SyntaxHighlighter.configFlags);
+  klf_settings_write<QTextFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
+  klf_settings_write<QTextFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
+  klf_settings_write<QTextFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
+  klf_settings_write<QTextFormat>(s, "parenmismatch", &SyntaxHighlighter.fmtParenMismatch);
+  klf_settings_write<QTextFormat>(s, "lonelyparen", &SyntaxHighlighter.fmtLonelyParen);
   s.endGroup();
 
   s.beginGroup("BackendSettings");
-  s.setValue("tempdir", BackendSettings.tempDir);
-  s.setValue("latexexec", BackendSettings.execLatex);
-  s.setValue("dvipsexec", BackendSettings.execDvips);
-  s.setValue("gsexec", BackendSettings.execGs);
-  s.setValue("epstopdfexec", BackendSettings.execEpstopdf);
-  s.setValue("lborderoffset", BackendSettings.lborderoffset);
-  s.setValue("tborderoffset", BackendSettings.tborderoffset);
-  s.setValue("rborderoffset", BackendSettings.rborderoffset);
-  s.setValue("bborderoffset", BackendSettings.bborderoffset);
+  klf_settings_write(s, "tempdir", &BackendSettings.tempDir);
+  klf_settings_write(s, "latexexec", &BackendSettings.execLatex);
+  klf_settings_write(s, "dvipsexec", &BackendSettings.execDvips);
+  klf_settings_write(s, "gsexec", &BackendSettings.execGs);
+  klf_settings_write(s, "epstopdfexec", &BackendSettings.execEpstopdf);
+  klf_settings_write(s, "lborderoffset", &BackendSettings.lborderoffset);
+  klf_settings_write(s, "tborderoffset", &BackendSettings.tborderoffset);
+  klf_settings_write(s, "rborderoffset", &BackendSettings.rborderoffset);
+  klf_settings_write(s, "bborderoffset", &BackendSettings.bborderoffset);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
-  s.setValue("displaytaggedonly", LibraryBrowser.displayTaggedOnly);
-  s.setValue("displaynoduplicates", LibraryBrowser.displayNoDuplicates);
-  s.setValue("colorfound", LibraryBrowser.colorFound);
-  s.setValue("colornotfound", LibraryBrowser.colorNotFound);
+  klf_settings_write(s, "displaytaggedonly", &LibraryBrowser.displayTaggedOnly);
+  klf_settings_write(s, "displaynoduplicates", &LibraryBrowser.displayNoDuplicates);
+  klf_settings_write(s, "colorfound", &LibraryBrowser.colorFound);
+  klf_settings_write(s, "colornotfound", &LibraryBrowser.colorNotFound);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
-  QMap< QString, QMap<QString,QVariant> >::const_iterator it;
-  for (it = Plugins.pluginConfig.begin(); it != Plugins.pluginConfig.end(); ++it) {
-    s.beginGroup( QString("Plugins/Config/%1").arg(it.key()) );
-    QMap<QString,QVariant> thispluginconfig = it.value();
-    QMap<QString,QVariant>::const_iterator pcit;
-    for (pcit = thispluginconfig.begin(); pcit != thispluginconfig.end(); ++pcit) {
-      s.setValue(pcit.key(), pcit.value());
+  int k;
+  for (k = 0; k < klf_plugins.size(); ++k) {
+    QString fn = homeConfigDirPluginData+"/"+klf_plugins[k].name+"/"+klf_plugins[k].name+".conf";
+    QSettings psettings(fn, QSettings::IniFormat);
+    QVariantMap pconfmap = Plugins.pluginConfig[klf_plugins[k].name];
+    QVariantMap::const_iterator it;
+    for (it = pconfmap.begin(); it != pconfmap.end(); ++it) {
+      psettings.setValue(it.key(), it.value());
     }
-    s.endGroup();
+    psettings.sync();
   }
 
   s.sync();
-
   return 0;
 }
 
@@ -500,21 +546,37 @@ KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QStr
 QString KLFPluginConfigAccess::homeConfigDir() const
 {
   if ( _config == NULL ) {
-    fprintf(stderr, "KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
-    return QString::null;
+    qWarning("KLFPluginConfigAccess::homeConfigDir: Invalid Config Pointer!\n");
+    return QString();
   }
 
   return _config->homeConfigDir;
 }
 
+QString KLFPluginConfigAccess::homeConfigPluginDataDir(bool createIfNeeded) const
+{
+  if ( _config == NULL ) {
+    qWarning("KLFPluginConfigAccess::homeConfigPluginDataDir: Invalid Config Pointer!\n");
+    return QString();
+  }
+
+  QString d = _config->homeConfigDirPluginData + "/" + _pluginname;
+  if ( createIfNeeded && ! klfEnsureDir(d) ) {
+    qWarning("KLFPluginConfigAccess::homeConfigPluginDataDir: Can't create directory: `%s'",
+	     qPrintable(d));
+    return QString();
+  }
+  return d;
+}
+
 QVariant KLFPluginConfigAccess::readValue(const QString& key)
 {
   if ( _config == NULL ) {
-    fprintf(stderr, "KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
+    qWarning("KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
     return QVariant();
   }
   if ( (_amode & Read) == 0 ) {
-    fprintf(stderr, "KLFPluginConfigAccess::readValue: Warning: Read mode not set!\n");
+    qWarning("KLFPluginConfigAccess::readValue: Warning: Read mode not set!\n");
     return QVariant();
   }
   if ( ! _config->Plugins.pluginConfig[_pluginname].contains(key) )
@@ -526,11 +588,11 @@ QVariant KLFPluginConfigAccess::readValue(const QString& key)
 QVariant KLFPluginConfigAccess::makeDefaultValue(const QString& key, const QVariant& defaultValue)
 {
   if ( _config == NULL ) {
-    fprintf(stderr, "KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
+    qWarning("KLFPluginConfigAccess::makeDefaultValue: Invalid Config Pointer!\n");
     return QVariant();
   }
   if ( (_amode & Write) == 0 ) {
-    fprintf(stderr, "KLFPluginConfigAccess::writeValue: Warning: Write mode not set!\n");
+    qWarning("KLFPluginConfigAccess::makeDefaultValue: Warning: Write mode not set!\n");
     return QVariant();
   }
 
@@ -543,11 +605,11 @@ QVariant KLFPluginConfigAccess::makeDefaultValue(const QString& key, const QVari
 void KLFPluginConfigAccess::writeValue(const QString& key, const QVariant& value)
 {
   if ( _config == NULL ) {
-    fprintf(stderr, "KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
+    qWarning("KLFPluginConfigAccess::writeValue: Invalid Config Pointer!\n");
     return;
   }
   if ( (_amode & Write) == 0 ) {
-    fprintf(stderr, "KLFPluginConfigAccess::writeValue: Warning: Write mode not set!\n");
+    qWarning("KLFPluginConfigAccess::writeValue: Warning: Write mode not set!\n");
     return;
   }
   _config->Plugins.pluginConfig[_pluginname][key] = value;

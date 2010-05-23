@@ -47,7 +47,8 @@ class KLF_EXPORT KLFPluginConfigAccess
 public:
   enum AccessMode { Read = 0x01, Write = 0x02, ReadWrite = Read|Write };
   KLFPluginConfigAccess();
-  KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName, uint accessmode = Read | Write);
+  KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName,
+			uint accessmode = Read | Write);
   KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
     : _config(other._config), _pluginname(other._pluginname), _amode(other._amode) { }
   virtual ~KLFPluginConfigAccess() { }
@@ -56,8 +57,19 @@ public:
 
   /** \note this method can be used even if accessmode doesn't have \c Read flag */
   virtual QString homeConfigDir() const;
+  /** Returns a directory in which plugins can manage their data as they want. If the
+   * \c createIfNeeded argument is TRUE, then the directory is garanteed to exist (in
+   * particular, an empty string is returned if for whatever reason the directory can't
+   * be created).
+   *
+   * Note that a file named <tt><i>pluginName</i>.conf</tt> is created for the settings
+   * set using this class, in this directory.
+   *
+   * \note this method can be used even if accessmode doesn't have \c Read flag */
+  virtual QString homeConfigPluginDataDir(bool createIfNeeded = true) const;
 
   virtual QVariant readValue(const QString& key);
+
   /** \brief write the value if inexistant in config
    *
    * equivalent to
@@ -84,9 +96,11 @@ public:
   KLFConfig();
 
   QString homeConfigDir;
-  QString homeConfigSettingsFile;
+  QString homeConfigSettingsFile; // current (now, "new") settings file
+  QString homeConfigSettingsFileIni; // OLD config file
   QString homeConfigDirRCCResources;
   QString homeConfigDirPlugins;
+  QString homeConfigDirPluginData;
   QString homeConfigDirI18n;
 
   struct {
@@ -156,21 +170,18 @@ public:
 
   // call loadDefaults() before anything, at the beginning.
   void loadDefaults();
-  // cfg defaults to kapp->config()
+
   int readFromConfig();
 
   int ensureHomeConfigDir();
 
   int writeToConfig();
 
+private:
+  int readFromConfig_v2();
+  int readFromConfig_ini();
 };
 
-
-
-
-// utility functions
-KLF_EXPORT QStringList search_find(const QString& wildcard_expression, int limit = -1);
-KLF_EXPORT QString search_path(const QString& prog, const QString& extra_path = "");
 
 
 

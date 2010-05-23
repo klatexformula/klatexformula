@@ -254,6 +254,23 @@ KLFLibResourceEngine * KLFLibBrowser::getOpenResource(const QUrl& url)
   return viewc->resourceEngine();
 }
 
+KLFAbstractLibView * KLFLibBrowser::getView(const QUrl& url)
+{
+  KLFLibBrowserViewContainer * viewc = findOpenUrl(url);
+  if (viewc == NULL)
+    return NULL;
+  return viewc->view();
+}
+
+KLFAbstractLibView * KLFLibBrowser::getView(KLFLibResourceEngine *resource)
+{
+  KLFLibBrowserViewContainer * viewc = findOpenUrl(resource->url());
+  if (viewc == NULL)
+    return NULL;
+  return viewc->view();
+}
+
+
 
 QVariantMap KLFLibBrowser::saveGuiState()
 {

@@ -24,6 +24,7 @@
 #ifndef PLUGINS_SKIN_H
 #define PLUGINS_SKIN_H
 
+#include <QtCore>
 #include <QtGui>
 
 #include <klfpluginiface.h>
@@ -38,37 +39,27 @@ public:
   SkinConfigWidget(QWidget *skinconfigwidget, KLFPluginConfigAccess *conf);
   virtual ~SkinConfigWidget() { }
 
-  QString currentSkin() { return _skins[cbxSkin->itemData(cbxSkin->currentIndex()).toInt()].name; }
-  QString currentStyleSheet() { return txtStyleSheet->toPlainText(); }
+  /// the skin full filename
+  QString currentSkin() { return cbxSkin->itemData(cbxSkin->currentIndex()).toString(); }
 
-  bool getModifiedAndReset() { int m = _modified; _modified = false; return m; }
+  static QString getStyleSheet(const QString& fn) {
+    QFile f(fn);
+    f.open(QIODevice::ReadOnly);
+    QByteArray data = f.readAll();
+    return QString::fromUtf8(data.constData(), data.size());
+  }
+
+  bool getModifiedAndReset() { bool m = _modified; _modified = false; return m; }
 
 public slots:
-  void load(QString skin, QString stylesheet);
+  void loadSkinList(QString skin);
   void skinSelected(int index);
-  void stylesheetChanged();
-  void deleteCustom();
-  void saveCustom();
+  void refreshSkin();
 
 private:
-  struct Skin {
-    Skin(bool b, const QString& nm, const QString& ttl, const QString& ssheet)
-      : builtin(b), name(nm), title(ttl), stylesheet(ssheet)  {  }
-    Skin(const Skin& o) : builtin(o.builtin), name(o.name), title(o.title), stylesheet(o.stylesheet) { }
-    ~Skin() { }
-
-    bool builtin;
-    QString name;
-    QString title;
-    QString stylesheet;
-  };
-  QList<Skin> _skins;
-
   KLFPluginConfigAccess *config;
 
   bool _modified;
-
-  void saveCustomSkins();
 };
 
 class SkinPlugin : public QObject, public KLFPluginGenericInterface
