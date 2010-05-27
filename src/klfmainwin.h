@@ -200,7 +200,8 @@ public slots:
   // will actually save only if output non empty.
   void slotEvaluateAndSave(const QString& output, const QString& format);
 
-  void importCmdlKLFFiles(const QStringList& files);
+  bool importCmdlKLFFiles(const QStringList& files, bool showLibrary = true);
+  bool importCmdlKLFFile(const QString& file, bool showLibrary = false);
 
   bool loadNamedStyle(const QString& sty);
 
@@ -245,8 +246,6 @@ public slots:
   void displayError(const QString& errormsg);
 
   void setWindowShownStatus(uint windowshownflags, bool setMainWinToo = false);
-
-  bool importLibraryFileSeparateResources(const QString& fname, const QString& basername);
 
   void setQuitOnClose(bool quitOnClose);
 

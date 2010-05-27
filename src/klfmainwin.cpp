@@ -590,8 +590,8 @@ void KLFMainWin::loadStyles()
 
 	if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
 	  QMessageBox::warning(this, tr("Load Styles"),
-				     tr("The style file found was created by a more recent version of KLatexFormula.\n"
-				        "The process of style loading may fail.")
+			       tr("The style file found was created by a more recent version of KLatexFormula.\n"
+				  "The process of style loading may fail.")
 			      );
 	}
 	
@@ -1032,15 +1032,6 @@ void KLFMainWin::alterSetting(altersetting_which which, QString svalue)
 }
 
 
-bool KLFMainWin::importLibraryFileSeparateResources(const QString& fname, const QString& basername)
-{
-  //  return mLibraryBrowser->importLibraryFileSeparateResources(fname, basername);
-  /// \bug TODO/BUG............. implement this...............................
-  return false;
-}
-
-
-
 void KLFMainWin::applySettings(const KLFBackend::klfSettings& s)
 {
   _settings = s;
@@ -1152,8 +1143,52 @@ void KLFMainWin::slotEvaluate()
 
     KLFLibEntry newentry = KLFLibEntry(input.latex, QDateTime::currentDateTime(), sc.toImage(),
 				       currentStyle());
-    
-    mHistoryLibResource->insertEntry(newentry);
+    int eid = mHistoryLibResource->insertEntry(newentry);
+    bool result = (eid >= 0);
+    if ( ! result && mHistoryLibResource->locked() ) {
+      int r = QMessageBox::warning(this, tr("Warning"),
+				   tr("Can't add the item to history library because the history "
+				      "resource is locked. Do you want to unlock it?"),
+				   QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+      if (r == QMessageBox::Yes) {
+	mHistoryLibResource->setLocked(false);
+	result = mHistoryLibResource->insertEntry(newentry); // retry inserting entry
+      }
+    }
+    uint fl = mHistoryLibResource->supportedFeatureFlags();
+    if ( ! result && (fl & KLFLibResourceEngine::FeatureSubResources) &&
+	 (fl & KLFLibResourceEngine::FeatureSubResourceProps) &&
+	 mHistoryLibResource->subResourceProperty(mHistoryLibResource->defaultSubResource(),
+						  KLFLibResourceEngine::SubResPropLocked).toBool() ) {
+      int r = QMessageBox::warning(this, tr("Warning"),
+				   tr("Can't add the item to history library because the history "
+				      "sub-resource is locked. Do you want to unlock it?"),
+				   QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+      if (r == QMessageBox::Yes) {
+	mHistoryLibResource->setSubResourceProperty(mHistoryLibResource->defaultSubResource(),
+						    KLFLibResourceEngine::SubResPropLocked, false);
+	result = mHistoryLibResource->insertEntry(newentry); // retry inserting entry
+      }
+    }
+    if ( ! result && mHistoryLibResource->isReadOnly() ) {
+      qWarning("KLFMainWin::slotEvaluate: History resource is READ-ONLY !! Should NOT!");
+      QMessageBox::critical(this, tr("Error"),
+			    tr("Can't add the item to history library because the history "
+			       "resource is opened in read-only mode. This should not happen! "
+			       "You will need to manually copy and paste your Latex code somewhere "
+			       "else to save it."),
+			    QMessageBox::Ok, QMessageBox::Ok);
+    }
+    if ( ! result ) {
+      qWarning("KLFMainWin::slotEvaluate: History resource couldn't be written!");
+      QMessageBox::critical(this, tr("Error"),
+			    tr("An error occurred when trying to write the new entry into the "
+			       "history resource!"
+			       "You will need to manually copy and paste your Latex code somewhere "
+			       "else to save it."),
+			    QMessageBox::Ok, QMessageBox::Ok);
+    }
+
   }
 
   btnEvaluate->setEnabled(true); // re-enable our button
@@ -1265,16 +1300,36 @@ void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& forma
 
 }
 
-void KLFMainWin::importCmdlKLFFiles(const QStringList& files)
+bool KLFMainWin::importCmdlKLFFiles(const QStringList& files, bool showLibrary)
 {
   int k;
   bool imported = false;
   for (k = 0; k < files.size(); ++k) {
-    importLibraryFileSeparateResources(files[k], QFileInfo(files[k]).baseName() + ":");
-    imported = true;
+    bool ok = importCmdlKLFFile(files[k], false);
+    imported = imported || ok;
   }
-  if (imported)
+  if (showLibrary && imported)
     slotLibrary(true);
+  return imported;
+}
+
+bool KLFMainWin::importCmdlKLFFile(const QString& fname, bool showLibrary)
+{
+  QUrl url = QUrl::fromLocalFile(fname);
+  url.setScheme(KLFLibBasicWidgetFactory::guessLocalFileScheme(fname));
+  QStringList subreslist = KLFLibEngineFactory::listSubResources(url);
+  if ( subreslist.isEmpty() ) {
+    // error reading sub-resources, or sub-resources not supported
+    return mLibBrowser->openResource(url);
+  }
+  bool loaded = false;
+  int k;
+  for (k = 0; k < subreslist.size(); ++k) {
+    QUrl url2 = url;
+    url2.addQueryItem("klfDefaultSubResource", subreslist[k]);
+    loaded = loaded || mLibBrowser->openResource(url2);
+  }
+  return loaded;
 }
 
 

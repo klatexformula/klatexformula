@@ -343,7 +343,7 @@ public:
      * Note that views may assume that implementing sub-resource properties means also providing
      * sensible values and/or loaded/stored values for the built-in sub-resource properties
      * described in the \ref SubResourceProperty enum. */
-    FeatureSubResourceProps	= 0x0010
+    FeatureSubResourceProps	= 0x0010,
   };
 
   KLFLibResourceEngine(const QUrl& url, uint supportedfeatureflags, QObject *parent = NULL);
@@ -499,6 +499,24 @@ public:
   /** Returns the default sub-resource, ie. the sub-resource to access if eg. the variant
    * of insertEntry() without the sub-resource argument is called.  */
   virtual QString defaultSubResource();
+
+  /** Returns TRUE if we can create a new sub-resource in this resource.
+   *
+   * This function can be reimplemented if the resource supports feature \ref FeatureSubResources.
+   *
+   * The default implementation returns FALSE.
+   */
+  virtual bool canCreateSubResource() const;
+
+  /** Returns TRUE if we can give the sub-resource \c subResource a new name. More specifically,
+   * returns TRUE if \ref renameSubResource() on that sub-resource has chances to succeed.
+   *
+   * This function can be reimplemented if the resource supports feature \ref FeatureSubResources.
+   *
+   * The default implementation returns FALSE.
+   */
+  virtual bool canRenameSubResource(const QString& subResource) const;
+
 
   /** Queries properties of sub-resources. The default implementation returns an empty
    * QVariant(). Test the \ref supportedFeatureFlags() for \ref FeatureSubResourceProps to
@@ -733,25 +751,21 @@ public slots:
    */
   virtual void setDefaultSubResource(const QString& subResource);
 
-  /** Sets the given sub-resource property of sub-resource \c subResource to the value \c value,
-   * if the operation is possible and legal.
-   *
-   * \returns TRUE for success, FALSE for failure.
-   *
-   * The default implementation does nothing and returns FALSE.
-   */
-  virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
-
   //! Create a new sub-resource
   /** If they implement the feature \ref FeatureSubResources, subclasses may reimplement this
    * function to create a new sub-resource named \c subResource, with human title \c subResourceTitle.
    *
-   * \c subResourceTitle may be ignored for resources not implementing the \ref FeatureSubResourceProps
+   * \c subResourceTitle should be ignored for resources not implementing the \ref FeatureSubResourceProps
    * feature.
    *
    * \returns TRUE for success or FALSE for failure.
    *
-   * The default implementation does nothing and returns FALSE.
+   * Subclasses should reimplement this function to provide functionality if they wish. The default
+   * implementation does nothing and returns FALSE.
+   *
+   * \note engines not implementing sub-resource properties should also subclass this function and
+   *   not the other one, without the \c subResourceTitle parameter. This is because internally this
+   *   function is ultimately called in all cases.
    */
   virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle);
 
@@ -762,13 +776,41 @@ public slots:
    * \endcode
    * and returns the same result.
    *
-   * In other words, use this function if you don't want to provide a resource title, but subclasses
-   * should re-implement the _other_ function to make sure full functionality is achieved.
+   * In other words, call this function if you don't want to provide a resource title, but subclasses
+   * should re-implement the _other_ function to make sure full functionality is achieved (in particular
+   * also engines not implementing sub-resource properties, which will then simply ignore the title
+   * argument). This is because internally the other function is ultimately called in all cases.
    *
    * Again, the default implementation of this function sould be largely sufficient in most cases
    * and thus in principle needs not be reimplemented.
    */
   virtual bool createSubResource(const QString& subResource);
+
+  /** Rename the sub-resource \c oldSubResourceName to \c newSubResourceName.
+   *
+   * \note we are talking about the resource <i>name</i> (eg. the table name in the database),
+   *   not the <i>title</i> (stored as a sub-resource property, for engines supporting
+   *   \ref FeatureSubResourceProps).
+   *
+   * Returns TRUE for success and FALSE for failure.
+   *
+   * Subclasses may reimplement this function to provide functionality. The default implementation
+   * does nothing and returns FALSE.
+   *
+   * \note Subclasses should also adjust the current defaultSubResource() if that is the one that
+   *   was precisely renamed. Use a call to \ref setDefaultSubResource().
+   */
+  virtual bool renameSubResource(const QString& oldSubResourceName, const QString& newSubResourceName);
+
+
+  /** Sets the given sub-resource property of sub-resource \c subResource to the value \c value,
+   * if the operation is possible and legal.
+   *
+   * \returns TRUE for success, FALSE for failure.
+   *
+   * The default implementation does nothing and returns FALSE.
+   */
+  virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
 
 
   //! Insert an entry into this resource

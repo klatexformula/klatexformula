@@ -59,16 +59,19 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pIsWaiting = false;
 
   pResourceMenu = new QMenu(u->tabResources);
-  pResourceMenu->setTitle(tr("Resource Actions"));
-  pARename = pResourceMenu->addAction(tr("Rename"), this, SLOT(slotResourceRename()));
-  pAProperties = pResourceMenu->addAction(tr("Properties..."),
+  pResourceMenu->setTitle(tr("Resource Actions", "[[menu title]]"));
+  pARename = pResourceMenu->addAction(tr("Rename", "[[menu entry]]"), this, SLOT(slotResourceRename()));
+  pAProperties = pResourceMenu->addAction(tr("Properties...", "[[menu entry]]"),
 					  this, SLOT(slotResourceProperties()));
-  pASaveTo = pResourceMenu->addAction(tr("Save As Copy..."), this, SLOT(slotResourceSaveTo()));
-  pAViewType = pResourceMenu->addAction(tr("View Type"));
+  pANewSubRes = pResourceMenu->addAction(tr("New Sub-Resource...", "[[menu entry]]"),
+					 this, SLOT(slotResourceNewSubRes()));
+  pASaveTo = pResourceMenu->addAction(tr("Save As Copy...", "[[menu entry]]"),
+				      this, SLOT(slotResourceSaveTo()));
+  pAViewType = pResourceMenu->addAction(tr("View Type", "[[menu entry]]"));
   pResourceMenu->addSeparator();
-  pANew = pResourceMenu->addAction(tr("New..."), this, SLOT(slotResourceNew()));
-  pAOpen = pResourceMenu->addAction(tr("Open..."), this, SLOT(slotResourceOpen()));
-  pAClose = pResourceMenu->addAction(tr("Close"), this, SLOT(slotResourceClose()));
+  pANew = pResourceMenu->addAction(tr("New Resource...", "[[menu entry]]"), this, SLOT(slotResourceNew()));
+  pAOpen = pResourceMenu->addAction(tr("Open...", "[[menu entry]]"), this, SLOT(slotResourceOpen()));
+  pAClose = pResourceMenu->addAction(tr("Close", "[[menu entry]]"), this, SLOT(slotResourceClose()));
 
   slotRefreshResourceActionsEnabled();
 
@@ -673,6 +676,17 @@ void KLFLibBrowser::slotResourceProperties()
   dialog->show();
 }
 
+bool KLFLibBrowser::slotResourceNewSubRes()
+{
+  KLFLibBrowserViewContainer *view = curView();
+  if (view == NULL) {
+    qWarning("KLFLibBrowser::slotResourceProperties: NULL View!");
+    return false;
+  }
+  bool r = KLFLibNewSubResDlg::createSubResourceIn(view->view()->resourceEngine(), this);
+  return r;
+}
+
 bool KLFLibBrowser::slotResourceOpen()
 {
   QUrl url = KLFLibOpenResourceDlg::queryOpenResource(QUrl(), this);
@@ -824,18 +838,25 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
   bool master = false;
   bool canrename = false;
   bool cansaveto = false;
+  bool cannewsubres = false;
   uint resrolefl = 0;
+  uint resfeatureflags = 0;
 
   KLFLibBrowserViewContainer * view = curView();
   if ( view != NULL ) {
     master = true;
-    canrename = view->resourceEngine()->canModifyProp(KLFLibResourceEngine::PropTitle);
-    cansaveto = (view->resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSaveTo);
+    KLFLibResourceEngine *res = view->resourceEngine();
+    canrename = res->canModifyProp(KLFLibResourceEngine::PropTitle);
+    resfeatureflags = res->supportedFeatureFlags();
+    cansaveto = (resfeatureflags & KLFLibResourceEngine::FeatureSaveTo);
     resrolefl = view->resourceRoleFlags();
+    cannewsubres = (resfeatureflags & KLFLibResourceEngine::FeatureSubResources) &&
+      (res->canCreateSubResource());
   }
 
   pARename->setEnabled(canrename);
   pAProperties->setEnabled(master);
+  pANewSubRes->setEnabled(master && cannewsubres);
   pASaveTo->setEnabled(master && cansaveto);
   pANew->setEnabled(true);
   pAOpen->setEnabled(true);
@@ -848,7 +869,8 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 {
   qDebug()<<"KLFLibBrowser::slotEntriesSelected(): "<<entries;
   if (entries.size()>=1)
-    qDebug()<<"KLFLibBrowser::slotEntriesSelected():\tTag of first entry="<<entries[0].property(KLFLibEntry::Tags);
+    qDebug()<<"KLFLibBrowser::slotEntriesSelected():\tTag of first entry="
+	    <<entries[0].property(KLFLibEntry::Tags);
 
   KLFAbstractLibView *view = curLibView();
   if (view != NULL) {

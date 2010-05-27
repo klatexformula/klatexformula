@@ -51,6 +51,7 @@
 
 #include <ui_klflibopenresourcedlg.h>
 #include <ui_klflibrespropeditor.h>
+#include <ui_klflibnewsubresdlg.h>
 
 #include "klfconfig.h"
 #include "klflibview.h"
@@ -3404,6 +3405,90 @@ void KLFLibResPropEditorDlg::cancelAndClose()
 }
 
 
+// ---------------------------------------------------------------
+
+KLFLibNewSubResDlg::KLFLibNewSubResDlg(KLFLibResourceEngine *resource, QWidget *parent)
+  : QDialog(parent), isAutoName(true)
+{
+  u = new Ui::KLFLibNewSubResDlg;
+  u->setupUi(this);
+
+  u->lblNoTitle->hide();
+
+  uint fl = resource->supportedFeatureFlags();
+  if ( (fl & KLFLibResourceEngine::FeatureSubResources) == 0 ) {
+    u->lblName->setEnabled(false);
+    u->txtName->setEnabled(false);
+    u->lblTitle->setEnabled(false);
+    u->txtTitle->setEnabled(false);
+    u->btns->button(QDialogButtonBox::Ok)->setEnabled(false);
+  } else if ( (fl & KLFLibResourceEngine::FeatureSubResourceProps) == 0) {
+    u->lblTitle->setEnabled(false);
+    u->txtTitle->setEnabled(false);
+    u->lblNoTitle->show();
+  }
+
+  u->lblResource->setText(resource->title());
+}
+
+KLFLibNewSubResDlg::~KLFLibNewSubResDlg()
+{
+}
+
+QString KLFLibNewSubResDlg::newSubResourceName() const
+{
+  return u->txtName->text();
+}
+
+QString KLFLibNewSubResDlg::newSubResourceTitle() const
+{
+  return u->txtTitle->text();
+}
+
+void KLFLibNewSubResDlg::on_txtTitle_textChanged(const QString& text)
+{
+  if (isAutoName) {
+    QString nm = text;
+    // replace "string of words" into "stringOfWords"
+    QRegExp rx("\\s([a-z])");
+    int i;
+    while ((i = rx.indexIn(nm,i+1)) >= 0) {
+      nm.replace(i, 2, nm[i+1].toUpper());
+      --i; // effectively removed one char, compensate
+    }
+    nm.replace(QRegExp("\\s"), "");
+    nm.replace(QRegExp("[^A-Za-z0-9_]"), "_");
+    u->txtName->blockSignals(true);
+    u->txtName->setText(nm);
+    u->txtName->blockSignals(false);
+  }
+}
+
+void KLFLibNewSubResDlg::on_txtName_textChanged(const QString& text)
+{
+  if (!text.isEmpty())
+    isAutoName = false; // manually set name
+  else
+    isAutoName = true; // user erased name, so auto-name again
+}
+
+bool KLFLibNewSubResDlg::createSubResourceIn(KLFLibResourceEngine *resource, QWidget *parent)
+{
+  if ( (resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) == 0 ) {
+    qWarning("KLFLibNewSubResDlg::createSubResourceIn: can't create sub-resource in resource not "
+	     "supporting sub-resources (!) : %s", qPrintable(resource->url().toString()));
+    return false;
+  }
+  KLFLibNewSubResDlg d(resource, parent);
+  int r = d.exec();
+  if (r != QDialog::Accepted)
+    return false;
+  QString name = d.newSubResourceName();
+  QString title = d.newSubResourceTitle();
+
+  bool result = resource->createSubResource(name, title);
+  return result;
+}
 
 // ---------------------------------------------------------------
 

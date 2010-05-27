@@ -302,6 +302,16 @@ QString KLFLibResourceEngine::defaultSubResource()
   return pDefaultSubResource;
 }
 
+bool KLFLibResourceEngine::canCreateSubResource() const
+{
+  return false;
+}
+
+bool KLFLibResourceEngine::canRenameSubResource(const QString& /*subResource*/) const
+{
+  return false;
+}
+
 QVariant KLFLibResourceEngine::subResourceProperty(const QString& /*subResource*/, int /*propId*/) const
 {
   return QVariant();
@@ -382,7 +392,10 @@ bool KLFLibResourceEngine::createSubResource(const QString& subResource)
 {
   return createSubResource(subResource, QString());
 }
-
+bool KLFLibResourceEngine::renameSubResource(const QString& /*old*/, const QString& /*new*/)
+{
+  return false;
+}
 
 
 KLFLibEntry KLFLibResourceEngine::entry(entryId id)

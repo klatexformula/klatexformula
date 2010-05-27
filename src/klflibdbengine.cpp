@@ -461,6 +461,12 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibDBEngine::allEntries(const 
 }
 
 
+bool KLFLibDBEngine::canCreateSubResource() const
+{
+  return true;
+}
+
+
 QVariant KLFLibDBEngine::subResourceProperty(const QString& subResource, int propId) const
 {
   if ( ! validDatabase() )

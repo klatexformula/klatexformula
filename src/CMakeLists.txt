@@ -113,6 +113,7 @@ set(klatexformula_UIS
 	klfcolordialogui.ui
 	klflibopenresourcedlg.ui
 	klfliblocalfilewidget.ui
+	klflibnewsubresdlg.ui
 )
 # Translations
 set(klatexformula_TSS

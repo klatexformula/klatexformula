@@ -119,6 +119,7 @@ protected slots:
   void slotResourceRenameFinished();
   bool slotResourceClose(KLFLibBrowserViewContainer *view = NULL);
   void slotResourceProperties();
+  bool slotResourceNewSubRes();
   bool slotResourceOpen();
   bool slotResourceNew();
   bool slotResourceSaveTo();
@@ -172,6 +173,7 @@ private:
   QAction *pARename;
   QAction *pAClose;
   QAction *pAProperties;
+  QAction *pANewSubRes;
   QAction *pASaveTo;
   QAction *pANew;
   QAction *pAOpen;

@@ -76,6 +76,7 @@ public:
     case PluginTitle: return tr("Skin");
     case PluginDescription: return tr("Personalize the look of KLatexFormula");
     case PluginDefaultEnable: return false;
+    case PluginKLFCompatVersion: return QString("3.1.99dev");
     default:
       return QVariant();
     }

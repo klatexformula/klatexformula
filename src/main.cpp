@@ -201,7 +201,7 @@ static struct { const char *source; const char *comment; }  klfopt_helptext =
 		     "      or --latexinput) to <file> or standard output.\n"
 		     "  -F|--format <format>\n"
 		     "      Specifies the format the output should be written in. By default, the format\n"
-		     "      is guessed from file name extention and defaults to PNG.\n"
+		     "      is guessed from file name extension and defaults to PNG.\n"
 		     "  -f|--fgcolor <'#xxxxxx'>\n"
 		     "      Specifies a color (in web #RRGGBB hex format) to use for foreground color.\n"
 		     "      Don't forget to escape the '#' to prevent the shell from interpreting it as\n"
@@ -808,11 +808,6 @@ int main(int argc, char **argv)
     KLFColorChooseWidget::setRecentCustomColors(klfconfig.UI.colorChooseWidgetRecent,
 						klfconfig.UI.colorChooseWidgetCustom);
 
-    // DEBUG ------------------------
-    //    void KLF_EXPORT klf___temp___test_newlib();
-    //    klf___temp___test_newlib();
-    // DEBUG ------------------------
-
     // initialize and register some library resource engine + view factories
     (void)new KLFLibBasicWidgetFactory(qApp);
     (void)new KLFLibDBEngineFactory(qApp);
@@ -933,7 +928,7 @@ int main(int argc, char **argv)
 	      version);
   
     if ( klf_args[0] != NULL && ! opt_quiet ) {
-      fprintf(stderr, "Warning: ignoring extra command-line arguments\n");
+      qWarning("ignoring extra command-line arguments");
     }
 
     // now process required actions.

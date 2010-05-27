@@ -726,6 +726,7 @@ namespace Ui {
   class KLFLibOpenResourceDlg;
   class KLFLibCreateResourceDlg;
   class KLFLibResPropEditor;
+  class KLFLibNewSubResDlg;
 };
 
 /** \todo .......... TODO: ......... HANDLE sub-resources */
@@ -837,6 +838,33 @@ public slots:
 private:
   KLFLibResPropEditor *pEditor;
 };
+
+
+
+
+class KLFLibNewSubResDlg : public QDialog
+{
+  Q_OBJECT
+public:
+  KLFLibNewSubResDlg(KLFLibResourceEngine *resource, QWidget *parent = 0);
+  virtual ~KLFLibNewSubResDlg();
+
+  QString newSubResourceName() const;
+  QString newSubResourceTitle() const;
+
+  static bool createSubResourceIn(KLFLibResourceEngine *resource, QWidget *parent = 0);
+
+private slots:
+  void on_txtTitle_textChanged(const QString& text);
+  void on_txtName_textChanged(const QString& text);
+
+private:
+  Ui::KLFLibNewSubResDlg *u;
+
+  bool isAutoName;
+};
+
+
 
 
 class KLF_EXPORT KLFLibLocalFileSchemeGuesser

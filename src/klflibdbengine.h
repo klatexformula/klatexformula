@@ -112,6 +112,9 @@ public:
   virtual KLFLibEntry entry(const QString& subRes, entryId id);
   virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes);
 
+  virtual bool canCreateSubResource() const;
+  virtual bool canRenameSubResource() const { return false; }
+
   virtual QVariant subResourceProperty(const QString& subResource, int propId) const;
 
   virtual QList<int> subResourcePropertyIdList() const
