@@ -70,6 +70,8 @@ public:
 
   KLFAbstractLibView * view() { return qobject_cast<KLFAbstractLibView*>(currentWidget()); }
 
+  QString defaultSubResource() { return pResource->defaultSubResource(); }
+
   QStringList supportedViewTypeIdentifiers() const { return pOkViewTypeIdents; }
 
   void setResourceRoleFlags(uint flags) {

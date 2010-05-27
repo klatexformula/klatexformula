@@ -852,7 +852,12 @@ public:
   QString newSubResourceName() const;
   QString newSubResourceTitle() const;
 
-  static bool createSubResourceIn(KLFLibResourceEngine *resource, QWidget *parent = 0);
+  /** Prompt to create a sub-resource in resource \c resource. Then actually create the
+   * sub-resource and return the name of the sub-resource that was created.
+   *
+   * Returns a null string in case of error or if the operation was canceled.
+   */
+  static QString createSubResourceIn(KLFLibResourceEngine *resource, QWidget *parent = 0);
 
 private slots:
   void on_txtTitle_textChanged(const QString& text);

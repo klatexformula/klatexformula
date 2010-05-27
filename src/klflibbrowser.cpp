@@ -363,11 +363,13 @@ QString KLFLibBrowser::displayTitle(KLFLibResourceEngine *resource)
 
 KLFLibBrowserViewContainer * KLFLibBrowser::findOpenUrl(const QUrl& url)
 {
+  QUrl searchurl = url;
+  QString defsr = url.hasQueryItem("klfDefaultSubResource")
+    ?  url.queryItemValue("klfDefaultSubResource")
+    :  QString();
   int k;
   for (k = 0; k < pLibViews.size(); ++k)
-    // don't compare the urls with removed query items because query items may be
-    // important as to which part of the resource is displayed (for ex.)
-    if (pLibViews[k]->url() == url)
+    if ( pLibViews[k]->url() == url && (defsr.isNull() || defsr == pLibViews[k]->defaultSubResource()) )
       return pLibViews[k];
   return NULL;
 }
@@ -683,8 +685,18 @@ bool KLFLibBrowser::slotResourceNewSubRes()
     qWarning("KLFLibBrowser::slotResourceProperties: NULL View!");
     return false;
   }
-  bool r = KLFLibNewSubResDlg::createSubResourceIn(view->view()->resourceEngine(), this);
-  return r;
+  KLFLibResourceEngine *res = view->view()->resourceEngine();
+  QString name = KLFLibNewSubResDlg::createSubResourceIn(res, this);
+  if (name.isEmpty())
+    return false;
+
+  QUrl url = res->url();
+  url.removeAllQueryItems("klfDefaultSubResource");
+  url.addQueryItem("klfDefaultSubResource", name);
+
+  qDebug()<<"KLFLibBrowser::slotRes.New.S.Res(): Create sub-resource named "<<name<<", opening "<<url;
+
+  return openResource(url);
 }
 
 bool KLFLibBrowser::slotResourceOpen()

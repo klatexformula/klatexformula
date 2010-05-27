@@ -3450,7 +3450,7 @@ void KLFLibNewSubResDlg::on_txtTitle_textChanged(const QString& text)
   if (isAutoName) {
     QString nm = text;
     // replace "string of words" into "stringOfWords"
-    QRegExp rx("\\s([a-z])");
+    QRegExp rx("(\\s|-)[a-z]");
     int i;
     while ((i = rx.indexIn(nm,i+1)) >= 0) {
       nm.replace(i, 2, nm[i+1].toUpper());
@@ -3472,22 +3472,25 @@ void KLFLibNewSubResDlg::on_txtName_textChanged(const QString& text)
     isAutoName = true; // user erased name, so auto-name again
 }
 
-bool KLFLibNewSubResDlg::createSubResourceIn(KLFLibResourceEngine *resource, QWidget *parent)
+QString KLFLibNewSubResDlg::createSubResourceIn(KLFLibResourceEngine *resource, QWidget *parent)
 {
   if ( (resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) == 0 ) {
     qWarning("KLFLibNewSubResDlg::createSubResourceIn: can't create sub-resource in resource not "
 	     "supporting sub-resources (!) : %s", qPrintable(resource->url().toString()));
-    return false;
+    return QString();
   }
   KLFLibNewSubResDlg d(resource, parent);
   int r = d.exec();
   if (r != QDialog::Accepted)
-    return false;
+    return QString();
   QString name = d.newSubResourceName();
   QString title = d.newSubResourceTitle();
 
   bool result = resource->createSubResource(name, title);
-  return result;
+  if (!result)
+    return QString();
+
+  return name;
 }
 
 // ---------------------------------------------------------------
