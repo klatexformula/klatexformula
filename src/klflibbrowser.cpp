@@ -34,8 +34,8 @@
 
 #include "klfconfig.h"
 #include "klflibbrowser_p.h"
-#include <ui_klflibbrowser.h>
 #include "klflibbrowser.h"
+#include <ui_klflibbrowser.h>
 
 
 
@@ -52,10 +52,12 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   u->setupUi(this);
   u->tabResources->setContextMenuPolicy(Qt::CustomContextMenu);
 
-  /** \todo .............. BUG/TODO ............. this is temporary ! */
-  QMovie * movie = new QMovie("/home/philippe/projects/klf/artwork/experimental/wait_anim.mng", "MNG", this);
-  u->lblWaitAnimation->setMovie(movie);
+  pAnimMovie = new QMovie(":/pics/wait_anim.mng", "MNG", this);
+  pAnimMovie->setCacheMode(QMovie::CacheAll);
+  //  u->lblWaitAnimation->setMovie(movie);
+  //  movie->start();
   u->lblWaitAnimation->hide();
+  pAnimTimerId = -1;
   pIsWaiting = false;
 
   pResourceMenu = new QMenu(u->tabResources);
@@ -349,15 +351,21 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v)
 // static
 QString KLFLibBrowser::displayTitle(KLFLibResourceEngine *resource)
 {
+  QString basestr;
   if (resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) {
     QString subresourcetitle = resource->defaultSubResource();
     if (resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps)
       subresourcetitle
 	= resource->subResourceProperty(resource->defaultSubResource(),
 					KLFLibResourceEngine::SubResPropTitle).toString();
-    return QString("%1 - %2").arg(resource->title(), subresourcetitle);
+    basestr = QString("%1 - %2").arg(resource->title(), subresourcetitle);
+  } else {
+    basestr = resource->title();
   }
-  return resource->title();
+  if (!resource->canModifyData(KLFLibResourceEngine::AllActionsData)) {
+    basestr = "# "+basestr;
+  }
+  return basestr;
 }
 
 
@@ -1213,10 +1221,12 @@ void KLFLibBrowser::startWait()
     return;
 
   u->lblWaitAnimation->show();
-  u->lblWaitAnimation->movie()->start();
+  //  u->lblWaitAnimation->movie()->start();
   update();
   qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 
+  pAnimMovie->jumpToFrame(0);
+  pAnimTimerId = startTimer(pAnimMovie->nextFrameDelay());
   pIsWaiting = true;
 }
 void KLFLibBrowser::stopWait()
@@ -1224,9 +1234,36 @@ void KLFLibBrowser::stopWait()
   if (!pIsWaiting)
     return;
 
-  u->lblWaitAnimation->movie()->stop();
+  //  u->lblWaitAnimation->movie()->stop();
   u->lblWaitAnimation->hide();
 
+  killTimer(pAnimTimerId);
+  pAnimTimerId = -1;
   pIsWaiting = false;
 }
 
+void KLFLibBrowser::timerEvent(QTimerEvent *event)
+{
+  if (event->timerId() == pAnimTimerId) {
+    pAnimMovie->jumpToNextFrame();
+    u->lblWaitAnimation->setPixmap(pAnimMovie->currentPixmap());
+    u->lblWaitAnimation->repaint();
+  } else {
+    QWidget::timerEvent(event);
+  }
+}
+
+void KLFLibBrowser::showEvent(QShowEvent *event)
+{
+  // update some last-minute stuff
+  // like the tab colors (which could have changed upon setting a skin)
+  int k;
+  for (k = 0; k < pLibViews.size(); ++k) {
+    KLFLibBrowserViewContainer *viewc = pLibViews[k];
+    KLFLibResourceEngine *resource = viewc->resourceEngine();
+    u->tabResources->refreshTabReadOnly(u->tabResources->indexOf(viewc),
+					!resource->canModifyData(KLFLibResourceEngine::AllActionsData));
+  }
+  // and call superclass
+  QWidget::showEvent(event);
+}

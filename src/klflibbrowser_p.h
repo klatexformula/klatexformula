@@ -238,9 +238,6 @@ public:
     pTabBar->setAcceptDrops(true);
     pTabBar->installEventFilter(this);
     setTabBar(pTabBar);
-
-    setProperty("normalColor", QVariant::fromValue(QColor(0,0,0)));
-    setProperty("readOnlyColor", QVariant::fromValue(QColor(80,80,120)));
   }
   virtual ~KLFLibBrowserTabWidget() { }
 
@@ -281,10 +278,15 @@ public:
 public slots:
 
   void refreshTabReadOnly(int tabindex, bool readonly) {
+    QPalette pal = palette();
+    
+    QColor normalColor = pal.color(QPalette::Active, QPalette::ButtonText);
+    QColor readOnlyColor = pal.color(QPalette::Disabled, QPalette::ButtonText);
+
     if (readonly)
-      pTabBar->setTabTextColor(tabindex, property("readOnlyColor").value<QColor>());
+      pTabBar->setTabTextColor(tabindex, readOnlyColor);
     else
-      pTabBar->setTabTextColor(tabindex, property("normalColor").value<QColor>());
+      pTabBar->setTabTextColor(tabindex, normalColor);
   }
 
 protected:

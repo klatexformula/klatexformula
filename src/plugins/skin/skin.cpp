@@ -40,6 +40,7 @@ SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
 
   connect(cbxSkin, SIGNAL(activated(int)), this, SLOT(skinSelected(int)));
   connect(btnRefresh, SIGNAL(clicked()), this, SLOT(refreshSkin()));
+  connect(btnInstallSkin, SIGNAL(clicked()), this, SLOT(installSkin()));
 }
 
 void SkinConfigWidget::loadSkinList(QString skinfn)
@@ -91,6 +92,36 @@ void SkinConfigWidget::refreshSkin()
   _modified = true; // and re-set this skin after click on 'apply'
 }
 
+void SkinConfigWidget::installSkin()
+{
+  QString fname =
+    QFileDialog::getOpenFileName(this, tr("Open Skin File"), QString(),
+				 tr("Qt Style Sheet Files (*.qss);;All files (*)"));
+  if (fname.isEmpty())
+    return;
+  if ( ! QFile::exists(fname) ) {
+    qWarning()<<"SkinConfigWidget::installSkin: File "<<fname<<" does not exist.";
+    return;
+  }
+  QString target = config->homeConfigPluginDataDir(true) + "/stylesheets/" + QFileInfo(fname).fileName();
+  if ( QFile::exists(target) ) {
+    QMessageBox::StandardButton res =
+      QMessageBox::warning(this, tr("Skin Already Exists") ,
+			   tr("A Skin Named \"%1\" is already installed. Overwrite it?")
+			   .arg(QFileInfo(fname).fileName()) ,
+			   QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
+    if (res != QMessageBox::Yes)
+      return;
+    // yes, overwrite
+    QFile::remove(target);
+  }
+  bool ok = QFile::copy(fname, target);
+  if ( !ok ) {
+    QMessageBox::critical(this, tr("Error"),
+			  tr("Failed to install skin \"%1\".").arg(QFileInfo(fname).fileName()));
+  }
+  refreshSkin();
+}
 
 
 // --------------------------------------------------------------------------------

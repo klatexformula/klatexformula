@@ -55,6 +55,7 @@ public slots:
   void loadSkinList(QString skin);
   void skinSelected(int index);
   void refreshSkin();
+  void installSkin();
 
 private:
   KLFPluginConfigAccess *config;

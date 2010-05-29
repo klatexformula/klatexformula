@@ -46,7 +46,7 @@
 #include <QFileDialog>
 #include <QDir>
 
-#include "ui_klfliblocalfilewidget.h"
+#include <ui_klfliblocalfilewidget.h>
 
 #include "klflib.h"
 #include "klflibview.h"

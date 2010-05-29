@@ -153,12 +153,13 @@ qt4_add_translation(klatexformula_QMS ${klatexformula_TSS})
 #	COMMENT "Creating a translations Qt resource"
 #	VERBATIM
 #)
-file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/klf_translations.qrc" "<RCC>\n  <qresource>")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "<RCC>\n  <qresource prefix=\"i18n\">")
 foreach(qm ${klatexformula_QMS})
-  file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/klf_translations.qrc" "    <file>${qm}</file>\n")
+  file(RELATIVE_PATH baseqmname "${CMAKE_CURRENT_BINARY_DIR}" "${qm}")  # very inelegant way to find file name without path
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "    <file alias=\"${baseqmname}\">${qm}</file>\n")
 endforeach()
-file(APPEND "${CMAKE_CURRENT_SOURCE_DIR}/klf_translations.qrc" "  </qresource>\n</RCC>\n")
-list(APPEND klatexformula_QRCS "${CMAKE_CURRENT_SOURCE_DIR}/klf_translations.qrc")
+file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "  </qresource>\n</RCC>\n")
+list(APPEND klatexformula_QRCS "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc")
 # Uis, Mocs
 qt4_wrap_ui(klatexformula_UIS_H ${klatexformula_UIS})
 qt4_wrap_cpp(klatexformula_MOC_CPPS ${klatexformula_MOCHEADERS})

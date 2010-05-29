@@ -26,6 +26,7 @@
 #define KLFLIBBROWSER_H
 
 #include <QWidget>
+#include <QMovie>
 
 #include <klflib.h>
 #include <klflibview.h>
@@ -165,6 +166,9 @@ protected:
   KLFAbstractLibView * curLibView();
   KLFLibBrowserViewContainer * viewForTabIndex(int tab);
 
+  void showEvent(QShowEvent *event);
+  void timerEvent(QTimerEvent *event);
+
 private:
   Ui::KLFLibBrowser *u;
   QList<KLFLibBrowserViewContainer*> pLibViews;
@@ -185,6 +189,8 @@ private:
   bool pIsWaiting;
   void startWait();
   void stopWait();
+  QMovie *pAnimMovie;
+  int pAnimTimerId;
 
 private slots:
   void updateSearchFound(bool found);

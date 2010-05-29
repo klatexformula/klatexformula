@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="rccinfo">
+    <file alias="info.xml">info_baseplugins.xml</file>
+  </qresource>
+  <qresource prefix="/plugins">
+    <file>libskin.so</file>
+    <file>libsystrayicon.so</file>
+  </qresource>
+  </qresource>
+</RCC>

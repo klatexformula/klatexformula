@@ -60,7 +60,7 @@
 
 
 template<class T>
-const T& passingDebug(const T& t, QDebug& dbg)
+static const T& passingDebug(const T& t, QDebug& dbg)
 {
   dbg << " : " << t;
   return t;
