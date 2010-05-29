@@ -103,9 +103,9 @@ static float color_distinguishable_distance(QRgb a, QRgb b) {
   float drkfactor = 1 - (qGray(b)/1000.f);
 
   float alpha = qAlpha(a)/255.f;
-  QRgb m = qRgb(alpha*qRed(a)+(1-alpha)*qRed(b),
-		alpha*qGreen(a)+(1-alpha)*qGreen(b),
-		alpha*qBlue(a)+(1-alpha)*qBlue(b));
+  QRgb m = qRgb((int)(alpha*qRed(a)+(1-alpha)*qRed(b)),
+		(int)(alpha*qGreen(a)+(1-alpha)*qGreen(b)),
+		(int)(alpha*qBlue(a)+(1-alpha)*qBlue(b)));
 
   return qMax( qMax(C_r*abs(qRed(m) - qRed(b)), C_g*abs(qGreen(m) - qGreen(b))),
 	       C_b*abs(qBlue(m) - qBlue(b)) ) * drkfactor * 3.f/32.f;

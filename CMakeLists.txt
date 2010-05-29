@@ -12,7 +12,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 
 # Read project version
-file(READ VERSION KLF_VERSION)
+file(READ "VERSION" KLF_VERSION)
 message(STATUS "KLatexFormula Version is ${KLF_VERSION}")
 
 set(klfversion_regex "([0-9]+)\\.([0-9]+)\\.([0-9]+)(.*)")
@@ -208,7 +208,7 @@ option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
  "FOR DEVELOPERS ONLY. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."
  FALSE)
 mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
-
+Id Date Author
 
 # Some extra tests to know what we have
 include(CheckCXXSourceCompiles)
@@ -247,7 +247,8 @@ add_custom_target(uninstall
 # Configure doxygen targets
 # -------------------------
 
-set(DOXYGEN "doxygen" CACHE STRING "Doxygen executable, if available")
+find(doxygen_exe_path "doxygen")
+set(DOXYGEN "${doxygen_exe_path}" CACHE STRING "Doxygen executable, if available")
 if(DOXYGEN)
   set(KLF_DOXYGEN_SF "")
   execute_process(COMMAND "${CMAKE_COMMAND}" -E "make_directory" "${CMAKE_CURRENT_BINARY_DIR}/apidoc")

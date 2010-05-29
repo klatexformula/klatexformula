@@ -47,12 +47,12 @@
 // ----------------------
 
 
-QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 {
   return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
 		<< style.mathmode << style.preamble << (quint16)style.dpi;
 }
-QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
 {
   quint32 fg, bg;
   quint16 dpi;

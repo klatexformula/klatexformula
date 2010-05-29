@@ -74,8 +74,8 @@ QString prettyPrintStyle(const KLFStyle& sty);
 
 typedef QList<KLFStyle> KLFStyleList;
 
-QDataStream& operator<<(QDataStream& stream, const KLFStyle& style);
-QDataStream& operator>>(QDataStream& stream, KLFStyle& style);
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style);
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style);
 // exact matches
 bool operator==(const KLFStyle& a, const KLFStyle& b);
 
