@@ -31,12 +31,6 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/klfbaseplugins.qrc.in"
   "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.qrc"
   IMMEDIATE @ONLY)
-# Fancy way to copy a file...
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/info_baseplugins.xml"
-  "${CMAKE_CURRENT_BINARY_DIR}/info_baseplugins.xml"
-  IMMEDIATE @ONLY)
-
 
 add_subdirectory(skin)
 add_subdirectory(systrayicon)
@@ -46,7 +40,7 @@ add_custom_command(OUTPUT ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SKIN}
 		 "${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}"
 	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
         DEPENDS skin
-	COMMENT "Copying ${KLF_CMAKE_PLUGINS_LIBNAME_SKIN} to plugins/"
+	COMMENT "Copying ${KLF_CMAKE_PLUGINS_LIBNAME_SKIN} to build root plugins/"
 	VERBATIM
 )
 add_custom_command(OUTPUT ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SYSTRAYICON}
@@ -54,7 +48,7 @@ add_custom_command(OUTPUT ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SYSTRAYICON}
                  "${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON}"
 	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
         DEPENDS systrayicon
-	COMMENT "Copying ${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON} to plugins/"
+	COMMENT "Copying ${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON} to build root plugins/"
         VERBATIM
 )
 if(APPLE AND KLF_MACOSX_BUNDLE_PATH)
