@@ -713,3 +713,18 @@ QUrl KLFLibWidgetFactory::retrieveSaveToUrlFromWidget(const QString& /*scheme*/,
 {
   return QUrl();
 }
+
+
+// -----------------------------------
+
+KLF_EXPORT QString urlLocalFilePath(const QUrl& url)
+{
+#ifdef Q_OS_WIN32
+  QString p = url.path();
+  if (p.startsWith("/"))
+    p = p.mid(1);
+  return p;
+#else
+  return url.path();
+#endif
+}

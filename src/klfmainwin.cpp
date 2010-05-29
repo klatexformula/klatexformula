@@ -539,7 +539,7 @@ void KLFMainWin::refreshStylePopupMenus()
   for (int i = 0; i < _styles.size(); ++i) {
     a = mStyleMenu->addAction(_styles[i].name);
     a->setData(i);
-    connect(a, SIGNAL(activated()), this, SLOT(slotLoadStyleAct()));
+    connect(a, SIGNAL(triggered()), this, SLOT(slotLoadStyleAct()));
   }
   mStyleMenu->addSeparator();
   mStyleMenu->addAction(QIcon(":/pix/pics/managestyles.png"), tr("Manage Styles"),
@@ -1585,7 +1585,7 @@ void KLFMainWin::slotShowBigPreview()
        "This preview can be opened with the <strong>F2</strong> key. Hit "
        "<strong>Esc</strong> to close.</p>")
     .arg(lblOutput->bigPreviewText())
-    .arg(QFontInfo(qApp->font()).pointSize()-2);
+    .arg(QFontInfo(qApp->font()).pointSize()-1);
   QWhatsThis::showText(btnEvaluate->pos(), text, lblOutput);
 }
 

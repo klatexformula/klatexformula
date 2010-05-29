@@ -2290,9 +2290,9 @@ void KLFLibDefaultView::updateResourceView()
   pDelegate->setSelectionModel(s);
 
   QAction *selectAllAction = new QAction(tr("Select All", "[[menu action]]"), this);
-  connect(selectAllAction, SIGNAL(activated()), this, SLOT(slotSelectAll()));
+  connect(selectAllAction, SIGNAL(triggered()), this, SLOT(slotSelectAll()));
   QAction *refreshAction = new QAction(tr("Refresh", "[[menu action]]"), this);
-  connect(refreshAction, SIGNAL(activated()), pModel, SLOT(completeRefresh()));
+  connect(refreshAction, SIGNAL(triggered()), pModel, SLOT(completeRefresh()));
   pCommonActions = QList<QAction*>() << selectAllAction << refreshAction;
 
   if (pViewType == IconView) {
@@ -2302,7 +2302,7 @@ void KLFLibDefaultView::updateResourceView()
       resource->loadResourceProperty("IconView_IconPositionsLocked", false);
 
     pIconViewRelayoutAction = new QAction(tr("Relayout All Icons", "[[menu action]]"), this);
-    connect(pIconViewRelayoutAction, SIGNAL(activated()), this, SLOT(slotRelayoutIcons()));
+    connect(pIconViewRelayoutAction, SIGNAL(triggered()), this, SLOT(slotRelayoutIcons()));
     pIconViewLockAction = new QAction(tr("Lock Icon Positions", "[[menu action]]"), this);
     pIconViewLockAction->setCheckable(true);
     connect(pIconViewLockAction, SIGNAL(toggled(bool)), this, SLOT(slotLockIconPositions(bool)));

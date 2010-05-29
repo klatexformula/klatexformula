@@ -73,6 +73,8 @@ static T metatype_from_data(const QByteArray& data)
 }
 
 
+
+
 // --------------------------------------------
 
 
@@ -109,11 +111,12 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
     if ( ! db.isValid() ) {
       // connection not already open
       db = QSqlDatabase::addDatabase("QSQLITE", dburl.toString());
-      db.setDatabaseName(dburl.path());
+      QString path = urlLocalFilePath(dburl);
+      db.setDatabaseName(path);
       if ( !db.open() || db.lastError().isValid() ) {
 	QMessageBox::critical(0, tr("Error"),
-			      tr("Unable to open library file %1 (engine: %2).\nError: %3")
-			      .arg(url.path(), db.driverName(), db.lastError().text()), QMessageBox::Ok);
+			      tr("Unable to open library file \"%1\" (engine: \"%2\").\nError: %3")
+			      .arg(path, db.driverName(), db.lastError().text()), QMessageBox::Ok);
 	return NULL;
       }
     }
@@ -147,13 +150,14 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
   QSqlDatabase db = QSqlDatabase::database(dburlstr);
   if (!db.isValid()) {
     db = QSqlDatabase::addDatabase("QSQLITE", dburlstr);
-    db.setDatabaseName(url.path());
+    QString path = urlLocalFilePath(url);
+    db.setDatabaseName(path);
     r = db.open(); // go open (here create) the DB
     if ( !r || db.lastError().isValid() ) {
       QMessageBox::critical(0, tr("Error"),
 			    tr("Unable to create library file %1 (SQLITE database):\n"
 			       "%2")
-			    .arg(url.path(), db.lastError().text()), QMessageBox::Ok);
+			    .arg(path, db.lastError().text()), QMessageBox::Ok);
       return NULL;
     }
   }
@@ -903,12 +907,12 @@ bool KLFLibDBEngine::deleteEntries(const QString& subResource, const QList<entry
 
 bool KLFLibDBEngine::saveAs(const QUrl& newPath)
 {
-  if (newPath.scheme() == "klf+sqlite") {
+  if (newPath.scheme() == "klf+sqlite" && url().scheme() == "klf+sqlite") {
     if (!newPath.host().isEmpty()) {
       qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Expected empty host!";
       return false;
     }
-    return QFile::copy(url().path(), newPath.path());
+    return QFile::copy(urlLocalFilePath(url()), urlLocalFilePath(newPath));
   }
   qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Bad scheme!";
   return false;

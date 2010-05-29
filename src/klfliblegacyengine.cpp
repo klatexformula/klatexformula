@@ -131,7 +131,7 @@ bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle&
 // static
 KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *parent)
 {
-  QString fname = url.path();
+  QString fname = urlLocalFilePath(url);
   if ( ! QFileInfo(fname).isReadable() ) {
     qWarning("KLFLibLegacyEngine::openUrl(): file %s does not exist!", qPrintable(fname));
     return NULL;
@@ -629,7 +629,7 @@ bool KLFLibLegacyEngine::deleteEntries(const QString& subResource, const QList<e
 bool KLFLibLegacyEngine::saveTo(const QUrl& newPath)
 {
   if (newPath.scheme() == "klf+legacy") {
-    return saveLibraryFile(newPath.path(), pResources, pLibrary, ExportLibraryType);
+    return saveLibraryFile(urlLocalFilePath(newPath), pResources, pLibrary, ExportLibraryType);
   }
   return false;
 }

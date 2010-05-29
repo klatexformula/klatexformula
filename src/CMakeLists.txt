@@ -10,14 +10,17 @@ if(KLF_MACOSX_BUNDLES)
   include("${KLF_MACOSXDIR}/KLFMacBundle.cmake")
 endif(KLF_MACOSX_BUNDLES)
 
+if(WIN32)
+  list(APPEND CMAKE_CXX_FLAGS_RELEASE -mwindows)
+  list(APPEND CMAKE_EXE_LINKER_FLAGS -Wl,--enable-auto-import)
+endif(WIN32)
+
 # Preprocessor instructions
 add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}" -DKLF_SRC_BUILD)
 if(KLF_USE_QT4)
   add_definitions(-DKLFBACKEND_QT4)
 endif(KLF_USE_QT4)
-if(CMAKE_DEBUG)
-  list(APPEND CMAKE_CXX_FLAGS_DEBUG -DKLF_DEBUG_TIME_PRINT)
-endif(CMAKE_DEBUG)
+list(APPEND CMAKE_CXX_FLAGS_DEBUG -DKLF_DEBUG_TIME_PRINT)
 
 # include SUBDIR: our klfbackend
 add_subdirectory(klfbackend)
@@ -148,17 +151,18 @@ endif(KLF_USE_DBUS)
 KLFInstHeaders(klatexformula_INSTHEADERS "${klatexformula_HEADERS}")
 # Translations
 qt4_add_translation(klatexformula_QMS ${klatexformula_TSS})
-#add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc"
-#	COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_SOURCE_DIR}/maketranslationsqrc.cmake"
-#	COMMENT "Creating a translations Qt resource"
-#	VERBATIM
-#)
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "<RCC>\n  <qresource prefix=\"i18n\">")
-foreach(qm ${klatexformula_QMS})
-  file(RELATIVE_PATH baseqmname "${CMAKE_CURRENT_BINARY_DIR}" "${qm}")  # very inelegant way to find file name without path
-  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "    <file alias=\"${baseqmname}\">${qm}</file>\n")
-endforeach()
-file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "  </qresource>\n</RCC>\n")
+if(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
+  # nothing to do, .qrc is up-to-date !
+else(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
+  # re-build the klf_translations.qrc file
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "<RCC>\n  <qresource prefix=\"i18n\">")
+  foreach(qm ${klatexformula_QMS})
+    file(RELATIVE_PATH baseqmname "${CMAKE_CURRENT_BINARY_DIR}" "${qm}")  # very inelegant way to find file name without path
+    file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "    <file alias=\"${baseqmname}\">${qm}</file>\n")
+  endforeach()
+  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "  </qresource>\n</RCC>\n")
+  set(cache_klatexformula_QMS "${klatexformula_QMS}" CACHE INTERNAL "List of translation files")
+endif(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
 list(APPEND klatexformula_QRCS "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc")
 # Uis, Mocs
 qt4_wrap_ui(klatexformula_UIS_H ${klatexformula_UIS})
@@ -192,7 +196,24 @@ set_target_properties(klflib PROPERTIES
 # KLatexFormula Executable
 qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
 set(klatexformulamain_ALLSRC main.cpp ${klatexformula_QRC_CPPS})
+set(klatexformulamain_winrc)
+if(MINGW)
+  set(KLF_WIN_ICON "klficon64.ico" CACHE STRING
+    "Icon for klatexformula.exe program, relative to src/")
+  mark_as_advanced(KLF_WIN_ICON)
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc"
+       "IDI_ICON1               ICON    DISCARDABLE     \"${KLF_WIN_ICON}\"\n")
+  include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+  # windows .rc resource compilation for mingw
+  ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc.o"
+    COMMAND windres.exe -I"${CMAKE_CURRENT_SOURCE_DIR}"
+    -i"${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc"
+    -o "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc.o"
+  )
 
+  set(klatexformulamain_ALLSRC ${klatexformulamain_ALLSRC}
+			      "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc.o")
+endif(MINGW)
 add_executable(klatexformula ${klatexformulamain_ALLSRC})
 target_link_libraries(klatexformula ${QT_LIBRARIES} klflib klfbackend)
 
@@ -278,12 +299,6 @@ endif(KLF_MACOSX_BUNDLES)
 # Build Plugins
 add_subdirectory(plugins)
 
-# Additional tweaks
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/klatexformula.desktop.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop"
-  IMMEDIATE @ONLY)
-
 
 # --- INSTALLATION TARGETS ---
 install(TARGETS klflib RUNTIME DESTINATION "lib${KLF_LIB_SUFFIX}"
@@ -322,16 +337,21 @@ if(KLF_MACOSX_BUNDLES)
 endif(KLF_MACOSX_BUNDLES)
 
 if(KLF_INSTALL_DESKTOP)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop" DESTINATION share/applications/)
-install(FILES klatexformula-128.png DESTINATION share/pixmaps/)
-install(FILES klatexformula-64.png DESTINATION share/pixmaps/)
-install(FILES klatexformula-32.png DESTINATION share/pixmaps/)
-install(FILES klatexformula-16.png DESTINATION share/pixmaps/)
-install(FILES x-klatexformula.xml x-klatexformula-db.xml
-	DESTINATION share/mime/packages/)
-install(CODE
-  "message(STATUS \"Updating Mime Types Database\")
-   execute_process(COMMAND \"update-mime-database ${CMAKE_INSTALL_PREFIX}/share/mime/\"
-    )")
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/klatexformula.desktop.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop"
+    IMMEDIATE @ONLY)
+
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop" DESTINATION share/applications/)
+  install(FILES klatexformula-128.png DESTINATION share/pixmaps/)
+  install(FILES klatexformula-64.png DESTINATION share/pixmaps/)
+  install(FILES klatexformula-32.png DESTINATION share/pixmaps/)
+  install(FILES klatexformula-16.png DESTINATION share/pixmaps/)
+  install(FILES x-klatexformula.xml x-klatexformula-db.xml
+	  DESTINATION share/mime/packages/)
+  install(CODE
+    "message(STATUS \"Updating Mime Types Database\")
+     execute_process(COMMAND \"update-mime-database ${CMAKE_INSTALL_PREFIX}/share/mime/\")"
+  )
 endif(KLF_INSTALL_DESKTOP)
 

@@ -1320,6 +1320,16 @@ private:
 
 
 
+/** Returns the file path represented in \c url, interpreted as an (absolute) path to
+ * a local file.
+ *
+ * Under windows, this ensures that there is no slash preceeding the drive letter, eg.
+ * fixes "/C:/..." to "C:/...", but keeps forward-slashes.
+ */
+KLF_EXPORT QString urlLocalFilePath(const QUrl& url);
+
+
+
 
 #endif
 

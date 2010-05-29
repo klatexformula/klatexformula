@@ -29,8 +29,11 @@ include(KLFUtil.cmake)
 # Set some project settings
 # -------------------------
 
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "...")
+
 # Installation destination
 set(CMAKE_INSTALL_PREFIX "" CACHE PATH "Set KLF_INSTALL_PREFIX instead.")
+mark_as_advanced(CMAKE_INSTALL_PREFIX)
 if(NOT DEFINED old_CMAKE_INSTALL_PREFIX)
   set(old_CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
 endif(NOT DEFINED old_CMAKE_INSTALL_PREFIX)
@@ -75,12 +78,17 @@ endif(KLF_USE_QT4 STREQUAL old_KLF_USE_QT4)
 # See what Qt we have
 set(QT_REQUIRED TRUE)
 set(DESIRED_QT_VERSION 4 CACHE STRING "Set KLF_USE_QT4 Instead.")
+mark_as_advanced(DESIRED_QT_VERSION)
 include(FindQt)
 
 # Which version of Qt to use...
 if(QT4_INSTALLED)
   set(KLF_USE_QT4 TRUE CACHE BOOL "Set to FALSE if KLatexFormula should use Qt3 instead of Qt4")
 else(QT4_INSTALLED)
+  if(NOT QT3_INSTALLED)
+    message(FATAL_ERROR
+      "Didn't find Qt. Try setting the QT_QMAKE_EXECUTABLE and/or QT_QMAKE_EXECUTABLE_FINDQT cache variable(s)." )
+  endif(NOT QT3_INSTALLED)
   set(KLF_USE_QT4 FALSE CACHE BOOL "Set to FALSE if KLatexFormula should use Qt3 instead of Qt4")
 endif(QT4_INSTALLED)
 set(old_KLF_USE_QT4 ${KLF_USE_QT4} CACHE INTERNAL "detects user value change")
@@ -208,7 +216,6 @@ option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
  "FOR DEVELOPERS ONLY. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."
  FALSE)
 mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
-Id Date Author
 
 # Some extra tests to know what we have
 include(CheckCXXSourceCompiles)
@@ -247,8 +254,7 @@ add_custom_target(uninstall
 # Configure doxygen targets
 # -------------------------
 
-find(doxygen_exe_path "doxygen")
-set(DOXYGEN "${doxygen_exe_path}" CACHE STRING "Doxygen executable, if available")
+find_program(DOXYGEN "doxygen")
 if(DOXYGEN)
   set(KLF_DOXYGEN_SF "")
   execute_process(COMMAND "${CMAKE_COMMAND}" -E "make_directory" "${CMAKE_CURRENT_BINARY_DIR}/apidoc")
