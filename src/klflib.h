@@ -70,7 +70,7 @@ struct KLFStyle {
 Q_DECLARE_METATYPE(KLFStyle)
   ;
 
-QString prettyPrintStyle(const KLFStyle& sty);
+KLF_EXPORT QString prettyPrintStyle(const KLFStyle& sty);
 
 typedef QList<KLFStyle> KLFStyleList;
 

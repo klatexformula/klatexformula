@@ -26,6 +26,7 @@
 
 #include <QString>
 #include <QList>
+#include <QMap>
 #include <QStringList>
 
 #include <klfdefs.h>
@@ -53,38 +54,100 @@
 class KLF_EXPORT KLFAddOnInfo
 {
 public:
-  /** Builds empty add-on */
-  KLFAddOnInfo() : islocal(false), isfresh(false) { }
   /** Reads RCC file \c rccfpath and parses its rccinfo/info.xml, etc.
-   * sets all fields to correct values and \ref isfresh to \c FALSE . */
-  KLFAddOnInfo(QString rccfpath);
+   * sets all fields to correct values and \ref isfresh to \c isFresh . */
+  KLFAddOnInfo(QString rccfpath, bool isFresh = false);
 
-  QString dir;
-  QString fname;
-  QString fpath; // grosso modo: absdir(dir) + "/" + fname
-  bool islocal; // local file: can be removed (e.g. not in a global path /usr/share/... )
+  /** Create a copy of the add-on info structure \c other */
+  KLFAddOnInfo(const KLFAddOnInfo& o);
 
-  QString title;
-  QString author;
-  QString description;
+  struct PluginSysInfo {
+    /** The directory in question */
+    QString dir;
+    /** minimum Qt version required to load the plugin, in version string format (eg. "4.4"). An
+     * empty qtminversion disables version check. */
+    QString qtminversion;
+    /** minimum KLatexFormula version required to load the plugin, in version string format (eg.
+     * "4.4"). An empty qtminversion disables version check. */
+    QString klfminversion;
+    /** The required value of \ref KLFSysInfo::osString() */
+    QString os;
+    /** The required value of \ref KLFSysInfo::arch() */
+    QString arch;
+  };
 
-  /** The list of plugins provided by this add-on (list of files \c ":/plugins/<b></b>*.so").
-   * This list stores full file names without the path (e.g. \c "libskin.so") . (Replace
-   * of course \c ".so" by \c ".dll" and \c ".dylib" for windows and mac respectively). */
-  QStringList plugins;
+  ~KLFAddOnInfo();
+
+  QString dir() { return d->dir; }
+  QString fname() { return d->fname; };
+  /** in principle: absdir(dir) + "/" + fname */
+  QString fpath() { return d->fpath; }
+  /** local file: can be removed (e.g. not in a global path /usr/share/... ) */
+  bool islocal() { return d->islocal; }
+
+  /** the info in the add-on's info.xml file */
+  QString title() { return d->title; }
+  /** the info in the add-on's info.xml file */
+  QString author() { return d->author; }
+  /** the info in the add-on's info.xml file */
+  QString description() { return d->description; }
+
+  //! where in the resource tree this rcc resource data is mounted
+  QString rccmountroot() { return d->rccmountroot; }
+    
+  /** The list of plugins provided by this add-on (list of files
+   * \c ":/plugins/<b>[&lt;dir>/]&lt;plugin-name></b>*.so|dll").
+   *
+   * This list stores full file names relative to plugin dir in add-on (e.g. \c "libskin.so" or
+   * \c "linux-x86-klf3.1.1/libskin.so") .
+   */
+  QStringList pluginList() { return d->pluginList; }
+
+  PluginSysInfo pluginSysInfo(const QString& plugin) const { return d->plugins[plugin]; }
 
   /** The list of translation files provided by this add-on (list of files \c ":/i18n/<b></b>*.qm")
    * This list stores full file names without the path (e.g. \c "klf_fr.qm") */
-  QStringList translations;
+  QStringList translations() { return d->translations; }
 
   /** Fresh file: add-on imported during this execution; ie. KLatexFormula needs to be restarted
    * for this add-on to take effect. The constructor sets this value to \c FALSE, set it manually
    * to \c TRUE if needed (e.g. in KLFSettings). */
-  bool isfresh;
+  bool isfresh() { return d->isfresh; }
+
+private:
+
+  /** \internal */
+  struct Private {
+    int ref; // number of times this data structure is referenced
+
+    QString dir;
+    QString fname;
+    QString fpath;
+    bool islocal;
+
+    QString title;
+    QString author;
+    QString description;
+
+    QString rccmountroot;
+    
+    QStringList pluginList;
+    QMap<QString,PluginSysInfo> plugins;
+    
+    QStringList translations;
+    
+    bool isfresh;
+  };
+
+  Private *d;
+
+  void initPlugins();
 };
 
 KLF_EXPORT extern QList<KLFAddOnInfo> klf_addons;
 KLF_EXPORT extern bool klf_addons_canimport;
+
+KLF_EXPORT QDebug& operator<<(QDebug& str, const KLFAddOnInfo::PluginSysInfo& i);
 
 
 

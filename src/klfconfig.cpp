@@ -365,6 +365,8 @@ int KLFConfig::readFromConfig_v2()
   QDir plugindatadir = QDir(homeConfigDirPluginData);
   QStringList plugindirs = plugindatadir.entryList(QDir::Dirs);
   for (k = 0; k < plugindirs.size(); ++k) {
+    if (plugindirs[k] == "." || plugindirs[k] == "..")
+      continue;
     qDebug("Reading config for plugin %s", qPrintable(plugindirs[k]));
     QString fn = plugindatadir.absoluteFilePath(plugindirs[k])+"/"+plugindirs[k]+".conf";
     if ( ! QFile::exists(fn) ) {

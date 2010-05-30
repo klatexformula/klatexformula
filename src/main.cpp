@@ -42,7 +42,7 @@
 
 #include <klfbackend.h>
 
-//#include "klfdata.h"
+#include "klfutil.h"
 #include "klflib.h"
 #include "klflibdbengine.h"
 #include "klfliblegacyengine.h"
@@ -361,6 +361,7 @@ void main_parse_options(int argc, char *argv[]);
 /** Free some memory we have persistently allocated */
 void main_cleanup()
 {
+  /** \bug ................ BUG IN WINDOWS HERE? .................... ???? */
   // FIXME: under windows, we have a proliferation of qt_temp.XXXXXX files
   //   in local plugin directory, what's going on?
   QDir pdir(klfconfig.homeConfigDirPlugins);
@@ -387,10 +388,7 @@ QString main_get_input(char *input, char *latexinput)
 {
   if (latexinput != NULL && strlen(latexinput) != 0) {
     if (input != NULL && strlen(input) != 0) {
-      if ( ! opt_quiet ) {
-	fprintf(stderr, "%s", QObject::tr("Warning: Ignoring --input since --latexinput is given.\n")
-		.toLocal8Bit().constData());
-      }
+      qWarning("%s", qPrintable(QObject::tr("Ignoring --input since --latexinput is given.")));
     }
     return QString::fromLocal8Bit(latexinput);
   }
@@ -399,19 +397,13 @@ QString main_get_input(char *input, char *latexinput)
     QFile f;
     if ( fname == "-" ) {
       if ( ! f.open(stdin, QIODevice::ReadOnly) ) {
-	if ( ! opt_quiet ) {
-	  fprintf(stderr, "%s", QObject::tr("Error: Can't read standard input (!)\n")
-		  .toLocal8Bit().constData());
-	}
+	qCritical("%s", qPrintable(QObject::tr("Can't read standard input (!)")));
 	main_exit(EXIT_ERR_FILEINPUT);
       }
     } else {
       f.setFileName(fname);
       if ( ! f.open(QIODevice::ReadOnly) ) {
-	if ( ! opt_quiet ) {
-	  fprintf(stderr, "%s", QObject::tr("Error: Can't read input file `%1'.\n").arg(fname)
-		  .toLocal8Bit().constData());
-	}
+	qCritical("%s", qPrintable(QObject::tr("Can't read input file `%1'.").arg(fname)));
 	main_exit(EXIT_ERR_FILEINPUT);
       }
     }
@@ -485,19 +477,43 @@ void main_load_extra_resources()
   }
   for (j = 0; j < rccfilesToLoad.size(); ++j) {
     KLFAddOnInfo addoninfo(rccfilesToLoad[j]);
-    qDebug("Registering resource %s", qPrintable(addoninfo.fpath));
-    bool res = QResource::registerResource(addoninfo.fpath);
-    if ( res ) {
-      // resource registered.
-      klf_addons.append(addoninfo);
-    } else {
-      qWarning("Failed to register resource `%s'.\n", qPrintable(rccfiles[j]));
-    }
+    // resource registered.
+    klf_addons.append(addoninfo);
   }
 
   // set the global "can-import" flag
   klf_addons_canimport = klfsettings_can_import;
+
+  void dumpDir(const QDir&, int = 0);
+  qDebug()<<"dump of :/ :";
+  dumpDir(QDir(":/"));
 }
+
+
+void dumpDir(const QDir& d, int indent = 0)
+{
+  char sindent[] = "                                                               ";
+  int nindent = indent*2; // 2 spaces per indentation
+  if (nindent < strlen(sindent))
+    sindent[nindent] = '\0';
+
+  QStringList dchildren = d.entryList(QDir::Dirs);
+
+  int k;
+  for (k = 0; k < dchildren.size(); ++k) {
+    // skip system ":/trolltech"
+    if (indent == 0 && dchildren[k] == "trolltech")
+      continue;
+    qDebug("%s%s/", sindent, qPrintable(dchildren[k]));
+    dumpDir(QDir(d.absoluteFilePath(dchildren[k])), indent+1);
+  }
+
+  QStringList fchildren = d.entryList(QDir::Files);
+  for (k = 0; k < fchildren.size(); ++k) {
+    qDebug("%s%s", sindent, qPrintable(fchildren[k]));
+  }
+}
+
 
 
 
@@ -514,13 +530,21 @@ void main_load_translations(QCoreApplication *app)
   // a list of names. this is redundant for  i18nFiles.keys()
   QSet<QString> names;
 
-  QStringList i18ndirlist
-    = QStringList() << ":/i18n" << klfconfig.homeConfigDirI18n
-		    << QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+  QStringList i18ndirlist;
+  // add any add-on specific translations
   int j, k;
+  for (k = 0; k < klf_addons.size(); ++k) {
+    i18ndirlist << klf_addons[k].rccmountroot()+"/i18n";
+  }
+  i18ndirlist << ":/i18n"
+	      << klfconfig.homeConfigDirI18n
+	      << QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+
   for (j = 0; j < i18ndirlist.size(); ++j) {
     // explore this directory; we expect a list of *.qm files
     QDir i18ndir(i18ndirlist[j]);
+    if ( ! i18ndir.exists() )
+      continue;
     QStringList files = i18ndir.entryList(QStringList() << QString::fromLatin1("*.qm"), QDir::Files);
     for (k = 0; k < files.size(); ++k) {
       KLFI18nFile i18nfile(i18ndir.absoluteFilePath(files[k]));
@@ -528,7 +552,7 @@ void main_load_translations(QCoreApplication *app)
       //	     qPrintable(i18nfile.name), qPrintable(i18nfile.locale), i18nfile.locale_specificity);
       i18nFiles[i18nfile.name][i18nfile.locale_specificity] << i18nfile;
       names << i18nfile.name;
-
+      qDebug("Found translation %s", qPrintable(i18nfile.fpath));
       klf_add_avail_translation(i18nfile);
     }
   }
@@ -582,60 +606,96 @@ void main_load_translations(QCoreApplication *app)
     if ( res ) {
       app->installTranslator(translator);
     } else {
-      qWarning("Failed to load translator %s.\n", qPrintable(translationsToLoad[j]));
+      qWarning("Failed to load translator %s.", qPrintable(translationsToLoad[j]));
     }
   }
 }
 
 
-static int main_find_addon_providing(const QString& plugin)
-{
-  int k;
-  for (k = 0; k < klf_addons.size(); ++k) {
-    if ( klf_addons[k].plugins.indexOf(plugin) != -1 )
-      return k;
-  }
-  return -1;
-}
+/*
+ static int main_find_addon_providing(const QString& plugin)
+ {
+ int k;
+ for (k = 0; k < klf_addons.size(); ++k) {
+ if ( klf_addons[k].plugins.indexOf(plugin) != -1 )
+ return k;
+ }
+ return -1;
+ }
+*/
 
 void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 {
   // first step: copy all resource-located plugin libraries to our local config
   // directory because we can only load filesystem-located plugins.
-  QDir resplugdir(":/plugins");
-  QStringList resplugins = resplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
-  int k, j;
-  for (k = 0; k < resplugins.size(); ++k) {
-    QString resfn = resplugdir.absoluteFilePath(resplugins[k]);
-    QString locfn = klfconfig.homeConfigDirPlugins + "/" + resplugins[k];
-    QDateTime installedplugin_dt = QFileInfo(locfn).lastModified();
-    QDateTime resourceplugin_dt;
-    j = main_find_addon_providing(resplugins[k]);
-    if (j >= 0)
-      resourceplugin_dt = QFileInfo(klf_addons[j].fpath).lastModified();
-    //    qDebug("Comparing resource datetime (%s) with installed plugin datetime (%s)",
-    //	   qPrintable(resourceplugin_dt.toString()), qPrintable(installedplugin_dt.toString()));
-    if (  ! QFile::exists( locfn ) ||
-	  installedplugin_dt.isNull() ||
-	  ( !resourceplugin_dt.isNull() && resourceplugin_dt > installedplugin_dt )  ) {
-      // remove old version if exists
-      if (QFile::exists(locfn)) QFile::remove(locfn);
-      // copy plugin to local plugin dir
-      bool res = QFile::copy( resfn , locfn );
-      if ( ! res ) {
-	qWarning("Unable to copy plugin to local directory!");
-      } else {
-	QFile::setPermissions(locfn, QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|
-			      QFile::ReadUser|QFile::WriteUser|QFile::ExeUser|
-			      QFile::ReadGroup|QFile::ExeGroup|QFile::ReadOther|QFile::ExeOther);
-	qDebug("Copied plugin %s to local directory %s.", qPrintable(resfn), qPrintable(locfn));
+  int i, k, j;
+  for (k = 0; k < klf_addons.size(); ++k) {
+    QStringList pluginList = klf_addons[k].pluginList();
+    for (j = 0; j < pluginList.size(); ++j) {
+      KLFAddOnInfo::PluginSysInfo psinfo = klf_addons[k].pluginSysInfo(pluginList[j]);
+      qDebug()<<"Testing plugin psinfo="<<psinfo<<"\n\tTo our system: qtver="<<qVersion()
+	      <<"; klfver="<<KLF_VERSION_STRING<<"; os="<<KLFSysInfo::osString()
+	      <<"; arch="<<KLFSysInfo::arch();
+      if ( (psinfo.klfminversion.isEmpty()
+	    || klfVersionCompare(psinfo.klfminversion, KLF_VERSION_STRING) <= 0) &&
+	   (psinfo.qtminversion.isEmpty()
+	    || klfVersionCompare(psinfo.qtminversion, qVersion()) <= 0) &&
+	   psinfo.os == KLFSysInfo::osString() &&
+	   psinfo.arch == KLFSysInfo::arch() ) {
+	// ok to install plugin
+	QString resfn = klf_addons[k].rccmountroot() + "/plugins/" + pluginList[j];
+	QString locsubdir = "";
+	if (!psinfo.klfminversion.isEmpty()) {
+	  locsubdir = QString("klf%1/").arg(psinfo.klfminversion);
+	}
+	QString locfn = klfconfig.homeConfigDirPlugins + "/" + locsubdir
+	  + QFileInfo(pluginList[j]).fileName();
+	QDateTime installedplugin_dt = QFileInfo(locfn).lastModified();
+	QDateTime resourceplugin_dt = QFileInfo(klf_addons[k].fpath()).lastModified();
+	qDebug("Comparing resource datetime (%s) with installed plugin datetime (%s)",
+	       qPrintable(resourceplugin_dt.toString()), qPrintable(installedplugin_dt.toString()));
+	if (  ! QFile::exists( locfn ) ||
+	      installedplugin_dt.isNull() || resourceplugin_dt.isNull() ||
+	      ( resourceplugin_dt > installedplugin_dt )  ) {
+	  // create path to that plugin dir
+	  if (!locsubdir.isEmpty() &&
+	      !QDir(klfconfig.homeConfigDirPlugins + "/plugins/" + locsubdir).exists())
+	    QDir(klfconfig.homeConfigDirPlugins).mkpath(locsubdir);
+	  // remove old version if exists
+	  if (QFile::exists(locfn)) QFile::remove(locfn);
+	  // copy plugin to local plugin dir
+	  qDebug()<<"\tcopy "<<resfn<<" to "<<locfn;
+	  bool res = QFile::copy( resfn , locfn );
+	  if ( ! res ) {
+	    qWarning("Unable to copy plugin '%s' to local directory!", qPrintable(pluginList[j]));
+	  } else {
+	    QFile::setPermissions(locfn, QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|
+				  QFile::ReadUser|QFile::WriteUser|QFile::ExeUser|
+				  QFile::ReadGroup|QFile::ExeGroup|QFile::ReadOther|QFile::ExeOther);
+	    qDebug("Copied plugin %s to local directory %s.", qPrintable(resfn), qPrintable(locfn));
+	  }
+	}
       }
+      // OK, plugin locally installed.
     }
   }
 
-  int i;
+  // build a list of plugin directories to search. We will need to load plugins in our version directory
+  // + all prior version directories + root plugin path.
   QStringList pluginsdirs;
+  QDir pdir(klfconfig.homeConfigDirPlugins);
+  QStringList pdirlist = pdir.entryList(QStringList()<<"klf*", QDir::Dirs);
+  for (i = 0; i < pdirlist.size(); ++i) {
+    qDebug()<<"maybe adding plugin dir"<<pdirlist[i]<<"; klfver="<<pdirlist[i].mid(3);
+    if (klfVersionCompare(pdirlist[i].mid(3), KLF_VERSION_STRING) <= 0) { // Version OK
+      pluginsdirs << pdir.absoluteFilePath(pdirlist[i]) ;
+    }
+  }
+  qSort(pluginsdirs.begin(), pluginsdirs.end(), klfVersionCompareLessThan);
   pluginsdirs << klfconfig.homeConfigDirPlugins ;
+
+  qDebug()<<"pluginsdirs="<<pluginsdirs;
+
   for (i = 0; i < pluginsdirs.size(); ++i) {
     if ( ! QFileInfo(pluginsdirs[i]).isDir() )
       continue;
@@ -645,6 +705,18 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     KLFPluginGenericInterface * pluginInstance;
     for (j = 0; j < plugins.size(); ++j) {
       QString pluginfname = plugins[j];
+      bool plugin_already_loaded = false;
+      int k;
+      for (k = 0; k < klf_plugins.size(); ++k) {
+	if (klf_plugins[k].fname == pluginfname) {
+	  qDebug()<<"Rejecting loading of plugin "<<pluginfname<<" in dir "<<pluginsdirs[i]
+		  <<"; already loaded.";
+	  plugin_already_loaded = true;
+	  break;
+	}
+      }
+      if (plugin_already_loaded)
+	continue;
       QString pluginpath = thisplugdir.absoluteFilePath(pluginfname);
       QPluginLoader pluginLoader(pluginpath, app);
       QObject *pluginInstObject = pluginLoader.instance();
@@ -662,6 +734,20 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	    // ask plugin whether it's supposed to be loaded by default
 	    klfconfig.Plugins.pluginConfig[nm]["__loadenabled"] = pluginInstance->pluginDefaultLoadEnable();
 	  }
+	  bool keepPlugin = true;
+
+	  // make sure this plugin wasn't already loaded (eg. in a different klf-version sub-dir)
+	  bool pluginRejected = false;
+	  for (k = 0; k < klf_plugins.size(); ++k) {
+	    if (klf_plugins[k].name == nm) {
+	      qDebug()<<"Rejecting loading of plugin "<<nm<<" in "<<pluginfname<<"; already loaded.";
+	      delete pluginInstance;
+	      pluginRejected = true;
+	      break;
+	    }
+	  }
+	  if (pluginRejected)
+	    continue;
 
 	  KLFPluginInfo pluginInfo;
 	  pluginInfo.name = nm;
@@ -673,7 +759,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  pluginInfo.instance = NULL;
 
 	  // if we are configured to load this plugin, load it.
-	  if ( klfconfig.Plugins.pluginConfig[nm]["__loadenabled"].toBool() ) {
+	  keepPlugin = keepPlugin && klfconfig.Plugins.pluginConfig[nm]["__loadenabled"].toBool();
+	  if ( keepPlugin ) {
 	    KLFPluginConfigAccess * c
 	      = new KLFPluginConfigAccess(klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::ReadWrite));
 	    pluginInstance->initialize(app, mainWin, c);
@@ -720,7 +807,7 @@ int main(int argc, char **argv)
 
   // error handling
   if (opt_error.has_error) {
-    fprintf(stderr, "Error while parsing command-line arguments.\n");
+    qCritical("Error while parsing command-line arguments.");
     main_exit(EXIT_ERR_OPT);
   }
 
@@ -917,8 +1004,7 @@ int main(int argc, char **argv)
 
     // show program help ?
     if ( opt_help_requested ) {
-      fprintf(stderr, "%s", QObject::tr(klfopt_helptext.source, klfopt_helptext.comment)
-	      .toLocal8Bit().constData());
+      fprintf(stderr, "%s", qPrintable(QObject::tr(klfopt_helptext.source, klfopt_helptext.comment)));
       main_exit(0);
     }
 
@@ -927,7 +1013,7 @@ int main(int argc, char **argv)
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      version);
   
-    if ( klf_args[0] != NULL && ! opt_quiet ) {
+    if ( klf_args[0] != NULL ) {
       qWarning("ignoring extra command-line arguments");
     }
 

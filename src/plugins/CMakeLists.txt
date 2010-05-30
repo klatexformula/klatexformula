@@ -27,10 +27,40 @@ set(KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SYSTRAYICON
 		"${CMAKE_CURRENT_BINARY_DIR}/${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON}")
 
 
+# Current Qt Version
+set(KLF_CMAKE_QTVERSION "${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}"
+	  CACHE INTERNAL "Qt Version")
+# Current System OS
+if(APPLE)
+set(internal_KLF_CMAKE_OS "macosx")
+elseif(WIN32)
+set(internal_KLF_CMAKE_OS "win32")
+elseif(UNIX)
+set(internal_KLF_CMAKE_OS "linux")
+else()
+set(internal_KLF_CMAKE_OS "unknown")
+endif(APPLE)
+set(KLF_CMAKE_OS "${internal_KLF_CMAKE_OS}" CACHE INTERNAL "Current Build Os")
+# Current System Arch
+set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+  set(internal_KLF_CMAKE_ARCH "x86")
+endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}" CACHE INTERNAL "Current Build Processor Arch")
+# The subdir in which to put plugins
+set(KLF_CMAKE_BASEPLUGINSSUBDIR "${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}"
+					CACHE INTERNAL "(internal) Base Plugins RCC sub-dir")
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/plugindirinfo.xml.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/plugindirinfo.xml"
+  IMMEDIATE @ONLY)
+
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/klfbaseplugins.qrc.in"
   "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.qrc"
   IMMEDIATE @ONLY)
+
 
 add_subdirectory(skin)
 add_subdirectory(systrayicon)
@@ -97,10 +127,11 @@ endif(APPLE AND KLF_MACOSX_BUNDLE_PATH)
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
   add_custom_target(klfbaseplugins_rcc_localinstall ALL
     COMMAND "${CMAKE_COMMAND}" -E copy klfbaseplugins.rcc "$ENV{HOME}/.klatexformula/rccresources/"
-    DEPENDS klfbaseplugins.rcc
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Installing Base Plugins Add-On Locally in ~/.klatexformula/rccresources"
     VERBATIM
-)
+  )
+  add_dependencies(klfbaseplugins_rcc_localinstall klfbaseplugins_rcc)
 endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 
 

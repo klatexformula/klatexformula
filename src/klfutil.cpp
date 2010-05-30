@@ -29,6 +29,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QDir>
+#include <QLibraryInfo>
 #include <QUrl>
 #include <QMessageBox>
 #include <QTextCodec>
@@ -39,7 +40,126 @@
 #include "klflib.h" // KLFStyle
 
 
-bool klfEnsureDir(const QString& dir)
+
+KLF_EXPORT QString KLFSysInfo::arch()
+{
+#ifdef Q_OS_LINUX
+  return QLibraryInfo::buildKey().section(' ', 0, 0, QString::SectionSkipEmpty);
+#endif
+  return QString();
+}
+
+KLF_EXPORT KLFSysInfo::Os KLFSysInfo::os()
+{
+#if defined(Q_OS_LINUX)
+  return Linux;
+#elif defined(Q_OS_DARWIN)
+  return MacOsX;
+#elif defined(Q_OS_WIN32)
+  return Win32;
+#else
+  return OtherOs;
+#endif
+}
+
+KLF_EXPORT QString KLFSysInfo::osString()
+{
+  switch (os()) {
+  case Linux: return QLatin1String("linux");
+  case MacOsX: return QLatin1String("macosx");
+  case Win32: return QLatin1String("win32");
+  default: ;
+  }
+  return QString();
+}
+
+
+
+
+KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
+{
+  qDebug()<<"Comparing versions "<<v1<< " and "<<v2;
+  //           *1     2  *3     4  *5    *6
+  QRegExp rx1("^(\\d+)(\\.(\\d+)(\\.(\\d+)(.*)?)?)?$");
+  QRegExp rx2(rx1);
+  if (!rx1.exactMatch(v1)) {
+    qWarning("klfVersionLessThan: Invalid version number format: %s", qPrintable(v1));
+    return -200;
+  }
+  if (!rx2.exactMatch(v2)) {
+    qWarning("klfVersionLessThan: Invalid version number format: %s", qPrintable(v2));
+    return -200;
+  }
+  int maj1 = rx1.cap(1).toInt();
+  int maj2 = rx2.cap(1).toInt();
+  qDebug()<<"Maj1="<<maj1<<"; maj2="<<maj2;
+  if (maj1 != maj2)
+    return maj1 - maj2;
+  bool hasmin1 = !rx1.cap(2).isEmpty();
+  bool hasmin2 = !rx2.cap(2).isEmpty();
+  if ( ! hasmin1 && ! hasmin2 )
+    return 0; // equal
+  if ( ! hasmin1 && hasmin2 )
+    return -1; // 3 < 3.x
+  if ( hasmin1 && ! hasmin2 )
+    return +1; // 3.x > 3
+  int min1 = rx1.cap(3).toInt();
+  int min2 = rx2.cap(3).toInt();
+  qDebug()<<"Min1="<<min1<<"; min2="<<min2;
+  if ( min1 != min2 )
+    return min1 - min2;
+
+  bool hasrel1 = !rx1.cap(4).isEmpty();
+  bool hasrel2 = !rx2.cap(4).isEmpty();
+  if ( ! hasrel1 && ! hasrel2 )
+    return 0; // equal
+  if ( ! hasrel1 && hasrel2 )
+    return -1; // 3.x < 3.x.y
+  if ( hasrel1 && ! hasrel2 )
+    return +1; // 3.x.y > 3.x
+  int rel1 = rx1.cap(5).toInt();
+  int rel2 = rx2.cap(5).toInt();
+  qDebug()<<"rel1="<<rel1<<"; rel2="<<rel2;
+  if ( rel1 != rel2 )
+    return rel1 - rel2;
+
+  QString suffix1 = rx1.cap(6);
+  QString suffix2 = rx2.cap(6);
+  if (suffix1 == suffix2)
+    return 0; // equal
+
+  if ( suffix1.startsWith("alpha") ) {
+    if ( suffix2.startsWith("alpha") ) {
+      QString a1 = suffix1.mid(6);
+      QString a2 = suffix2.mid(6);
+      return QString::compare(a1, a2); // lexicographically compare
+    }
+    // suffix alpha preceeds any other suffix
+    return -1;
+  }
+  if ( suffix1 == "dev" ) {
+    if ( suffix2 == "dev" )
+      return 0;
+    // suffix dev goes after any other suffix
+    return +1; // 3.X.Ydev > 3.X.Yzzzz
+  }
+  // suffix1 is unknown
+  if ( suffix2 == "dev" || suffix2.startsWith("alpha") ) {
+    // this is OK because suffix1 != suffix2
+    return -klfVersionCompare(v2, v1);
+  }
+  // fall back to lexicographical compare
+  return QString::compare(suffix1, suffix2);
+}
+
+KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2)
+{
+  return klfVersionCompare(v1,v2) < 0;
+}
+
+
+
+KLF_EXPORT bool klfEnsureDir(const QString& dir)
 {
   if ( ! QDir(dir).exists() ) {
     bool r = QDir("/").mkpath(dir);
@@ -100,7 +220,7 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
 
 // returns at most limit results matching wildcard_expression (which is given as absolute path
 // with wildcards)
-QStringList klfSearchFind(const QString& wildcard_expression, int limit)
+KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit)
 {
   QString expr = QDir::fromNativeSeparators(wildcard_expression);
   QStringList pathlist = expr.split("/", QString::SkipEmptyParts);
@@ -116,7 +236,7 @@ QStringList klfSearchFind(const QString& wildcard_expression, int limit)
 
 // smart search PATH that will interpret wildcards in PATH+extra_path and return the first matching
 // executable
-QString klfSearchPath(const QString& prog, const QString& extra_path)
+KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path)
 {
   static const QString PATH = getenv("PATH");
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
@@ -429,8 +549,8 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
 
 
 
-QVariant klfLoadVariantFromText(const QByteArray& stringdata, const char * dataTypeName,
-				const char *listOrMapDataTypeName)
+KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const char * dataTypeName,
+					   const char *listOrMapDataTypeName)
 {
   QRegExp v2rx("^\\(\\s*(-?\\d+)\\s*[,;]\\s*(-?\\d+)\\s*\\)");
 

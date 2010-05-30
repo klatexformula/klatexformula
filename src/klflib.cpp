@@ -74,7 +74,7 @@ bool operator==(const KLFStyle& a, const KLFStyle& b)
     a.dpi == b.dpi;
 }
 
-QString prettyPrintStyle(const KLFStyle& sty)
+KLF_EXPORT QString prettyPrintStyle(const KLFStyle& sty)
 {
   QString s = "";
   if (sty.name != QString::null)

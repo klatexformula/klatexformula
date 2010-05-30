@@ -490,16 +490,16 @@ void KLFSettings::refreshAddOnList()
     QTreeWidgetItem *item = new QTreeWidgetItem(lstAddOns);
     item->setData(0, KLFSETTINGS_ROLE_ADDONINDEX, QVariant((int)k));
 
-    item->setText(0, klf_addons[k].title);
-    item->setText(1, klf_addons[k].description);
+    item->setText(0, klf_addons[k].title());
+    item->setText(1, klf_addons[k].description());
 
     // set background color to indicate if status is fresh,
     // and/or if plugin is installed locally
-    if (klf_addons[k].isfresh) {
+    if (klf_addons[k].isfresh()) {
       item->setBackground(0, QColor(200, 255, 200));
       item->setBackground(1, QColor(200, 255, 200));
     } /* // color locally installed plug-ins  [ don't, it's unaesthetic ! ]
-	 else if (klf_addons[k].islocal) {
+	 else if (klf_addons[k].islocal()) {
 	 item->setBackground(0, QColor(200, 200, 255));
 	 item->setBackground(1, QColor(200, 200, 255));
 	 } */
@@ -522,7 +522,7 @@ void KLFSettings::refreshAddOnSelected()
   }
 
   // enable remove button only if this addon is "local", i.e. precisely removable
-  btnRemoveAddOn->setEnabled(klf_addons[k].islocal);
+  btnRemoveAddOn->setEnabled(klf_addons[k].islocal());
 
   int smallpointsize = QFontInfo(font()).pointSize() - 1;
   lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
@@ -534,13 +534,13 @@ void KLFSettings::refreshAddOnSelected()
 			   "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
 			   "<tt>File Name:</tt> <span style=\"font-size: %5pt;\">%4</span><br />\n"
 			   "<tt>File Location:</tt> <span style=\"font-size: %5pt;\">%6</span><br />\n"
-			   "<tt><i>%7</i></tt>").arg(Qt::escape(klf_addons[k].title))
-			.arg(Qt::escape(klf_addons[k].author)).arg(Qt::escape(klf_addons[k].description))
-			.arg(Qt::escape(klf_addons[k].fname))
+			   "<tt><i>%7</i></tt>").arg(Qt::escape(klf_addons[k].title()))
+			.arg(Qt::escape(klf_addons[k].author())).arg(Qt::escape(klf_addons[k].description()))
+			.arg(Qt::escape(klf_addons[k].fname()))
 			.arg(smallpointsize)
-			.arg(Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_addons[k].dir)
+			.arg(Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_addons[k].dir())
 								 .canonicalFilePath()) + QDir::separator()))
-			.arg( klf_addons[k].islocal ?
+			.arg( klf_addons[k].islocal() ?
 			      tr("Add-On installed locally") :
 			      tr("Add-On installed globally on system") )
 			);
@@ -562,13 +562,13 @@ void KLFSettings::importAddOn()
       bool r = QFile::copy(efnames[i], destfpath);
       if ( r ) {
 	// import succeeded, show the add-on as fresh.
-	KLFAddOnInfo addoninfo(destfpath);
-	addoninfo.isfresh = true;
+	KLFAddOnInfo addoninfo(destfpath, true);
 	// if we have new translations, add them to our translation combo box
 	int k;
 	bool changed = false;
-	for (k = 0; k < addoninfo.translations.size(); ++k) {
-	  KLFI18nFile i18nfile(addoninfo.translations[k]);
+	QStringList trlist = addoninfo.translations();
+	for (k = 0; k < trlist.size(); ++k) {
+	  KLFI18nFile i18nfile(trlist[k]);
 	  if ( cbxLocale->findData(i18nfile.locale) == -1 ) {
 	    klf_add_avail_translation(i18nfile);
 	    changed = true;
@@ -606,8 +606,10 @@ void KLFSettings::removeAddOn()
   QMessageBox confirmdlg(this);
   confirmdlg.setIcon(QMessageBox::Warning);
   confirmdlg.setWindowTitle(tr("Remove Add-On?"));
-  confirmdlg.setText(tr("<qt>Are you sure you want to remove Add-On <i>%1</i>?</qt>").arg(klf_addons[k].title));
-  confirmdlg.setDetailedText(tr("The Add-On File %1 will be removed from disk.").arg(klf_addons[k].fpath));
+  confirmdlg.setText(tr("<qt>Are you sure you want to remove Add-On <i>%1</i>?</qt>")
+		     .arg(klf_addons[k].title()));
+  confirmdlg.setDetailedText(tr("The Add-On File %1 will be removed from disk.")
+			     .arg(klf_addons[k].fpath()));
   confirmdlg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
   confirmdlg.setEscapeButton(QMessageBox::Cancel);
   confirmdlg.setDefaultButton(QMessageBox::Cancel);
@@ -618,20 +620,20 @@ void KLFSettings::removeAddOn()
     return;
   }
 
-  bool r = QFile::remove(klf_addons[k].fpath);
+  bool r = QFile::remove(klf_addons[k].fpath());
   // remove all corresponding plugins too
   int j;
   if ( r ) {
     QMessageBox::information(this, tr("Remove Add-On"), tr("Please restart KLatexFormula for changes to take effect."));
   } else {
-    qWarning("Failed to remove add-on '%s'", qPrintable(klf_addons[k].fpath));
+    qWarning("Failed to remove add-on '%s'", qPrintable(klf_addons[k].fpath()));
     QMessageBox::critical(this, tr("Error"), tr("Failed to remove Add-On."));
     return;
   }
 
   // remove all corresponding plug-ins
-  for (j = 0; j < klf_addons[k].plugins.size(); ++j)
-    removePlugin(klf_addons[k].plugins[j]);
+  for (j = 0; j < klf_addons[k].pluginList().size(); ++j)
+    removePlugin(klf_addons[k].pluginList()[j]);
 
   klf_addons.removeAt(k);
 

@@ -34,6 +34,53 @@
 // utility functions
 
 
+//! Get System Information
+namespace KLFSysInfo
+{
+  enum Os { Linux, Win32, MacOsX, OtherOs };
+
+  inline int sizeofVoidStar() { return sizeof(void*); }
+
+  //! Returns one of \c "x86" or \c "x86_64", or \c QString() for other/unknown
+  KLF_EXPORT QString arch();
+
+  KLF_EXPORT Os os();
+
+  //! Returns one of \c "win32", \c "linux", \c "macosx", or QString() for other/unknown
+  KLF_EXPORT QString osString();
+};
+
+
+
+
+//! Compares two version strings
+/** \c v1 and \c v2 must be of the form \c "<MAJ>.<MIN>.<REL><suffix>" or \c "<MAJ>.<MIN>.<REL>"
+ * or \c "<MAJ>.<MIN>" or \c "<MAJ>".
+ *
+ * \returns a negative value if v1 < v2, \c 0 if v1 == v2 and a positive value if v2 < v1. This
+ *   function returns \c -200 if either of the version strings are invalid.
+ *
+ * A less specific version number is considered as less than a more specific version number of
+ * equal common numbers, eg. "3.1" < "3.1.2".
+ *
+ * When a suffix is appended to the version, it is attempted to be recognized as one of:
+ *  - "alpha" or "alphaN" is alpha version, eg. "3.1.1alpha2" < "3.1.1.alpha5" < "3.1.1"
+ *  - "dev" is INTERNAL versioning, should not be published, it means further development after
+ *    the given version number; for the next release, a higher version number has to be
+ *    decided upon.
+ *  - unrecognized suffixes are compared lexicographically.
+ *
+ * Some examples:
+ * <pre>   "3.1.0" < "3.1.2"
+ *   "2" < "2.1" < "2.1.1"
+ *   "3.0.0alpha2" < "3.0.0"
+ *   "3.0.2" < "3.0.3alpha0"
+ * </pre>
+ */
+KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2);
+
+//! Same as <tt>klfVersionCompare(v1,v2) &lt; 0</tt>
+KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);
 
 KLF_EXPORT bool klfEnsureDir(const QString& dir);
 

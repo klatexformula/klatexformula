@@ -20,7 +20,7 @@ add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}" -DKLF_SRC_BUILD)
 if(KLF_USE_QT4)
   add_definitions(-DKLFBACKEND_QT4)
 endif(KLF_USE_QT4)
-list(APPEND CMAKE_CXX_FLAGS_DEBUG -DKLF_DEBUG_TIME_PRINT)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DKLF_DEBUG_TIME_PRINT")
 
 # include SUBDIR: our klfbackend
 add_subdirectory(klfbackend)
