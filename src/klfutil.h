@@ -47,7 +47,7 @@ namespace KLFSysInfo
   KLF_EXPORT Os os();
 
   //! Returns one of \c "win32", \c "linux", \c "macosx", or QString() for other/unknown
-  KLF_EXPORT QString osString();
+  KLF_EXPORT QString osString(Os sysos = os());
 };
 
 

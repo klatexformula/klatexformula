@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <klfplugindirs>
+  <!--
+    This file describes the base plugins compiled with klatexformula.
+     * dir  is the directory in which they are placed.
+     * qtminversion  is the minimal Qt version with which we can load these plugins.
+     * klfminversion  is the minimal KLatexFormula version with which we can load these plugins.
+     * os  is the OS on which these plugins were compiled (linux|win32|macosx)
+     * arch  is the processor arch these plugins are compiled for (x86|x86_64)
+   -->
   <klfplugindir>
     <dir>@KLF_CMAKE_BASEPLUGINSSUBDIR@</dir>
     <qtminversion>@KLF_CMAKE_QTVERSION@</qtminversion>

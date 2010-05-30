@@ -62,14 +62,16 @@ KLF_EXPORT KLFSysInfo::Os KLFSysInfo::os()
 #endif
 }
 
-KLF_EXPORT QString KLFSysInfo::osString()
+KLF_EXPORT QString KLFSysInfo::osString(Os sysos)
 {
-  switch (os()) {
+  switch (sysos) {
   case Linux: return QLatin1String("linux");
   case MacOsX: return QLatin1String("macosx");
   case Win32: return QLatin1String("win32");
+  case OtherOs: return QString();
   default: ;
   }
+  qWarning("KLFSysInfo::osString: unknown OS: %d", sysos);
   return QString();
 }
 
