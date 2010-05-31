@@ -1098,7 +1098,7 @@ KLFLibResourceEngine *KLFLibDBEngineFactory::createResource(const QString& schem
   if (defsubres.isEmpty())
     defsubres = "entries";
   if (defsubrestitle.isEmpty())
-    defsubrestitle = tr("Default Table", "[[default sub-resource name]]");
+    defsubrestitle = tr("Default Table", "[[default sub-resource title]]");
 
   if ( !parameters.contains("Filename") ) {
     qWarning()

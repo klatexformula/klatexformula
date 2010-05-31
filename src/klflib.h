@@ -215,7 +215,7 @@ namespace KLFLib {
  * mode is activated by the accessor only and is NOT stored in the resource data eg. on disk
  * (in contrast to the locked property). It is up to SUBCLASSES to enforce this flag and
  * prevent data from being modified if isReadOnly() is TRUE.<br>
- * <b>Preventing READ-ONLY</b>. Subclasses may prevent read-only mode by not specifying
+ * Subclasses may prevent read-only mode by not specifying
  * the FeatureReadOnly in the constructor. In this case the default implementation of
  * \ref setReadOnly() will return FALSE without doing anything. Also in this case, any
  * occurrence of the query item "klfReadOnly" in the URL is stripped and ignored.
@@ -226,7 +226,8 @@ namespace KLFLib {
  * implement subresources, they can specify if subresources are available using the
  * FeatureSubResources flag in the constructor. In classes implementing sub-resources,
  * the <i>default sub-resource</i> (queried by \ref defaultSubResource() and set by
- * \ref setDefaultSubResource()) is the resource that the insertEntry(), changeEntry(), etc.
+ * \ref setDefaultSubResource()) is the resource that the \ref insertEntry(),
+ * \ref changeEntries(), etc.
  * family functions will access when the variant of the function without sub-resource
  * argument is called.
  *
@@ -245,10 +246,10 @@ namespace KLFLib {
  * list of recognized (universal) query items. Subclasses may choose to recognize more query
  * items, but these listed here are detected in the KLFLibResourceEngine constructor and
  * the appropriate flags are set (eg. \ref isReadOnly()):
- * - <tt>klfReadOnly=<i>{</i>true<i>|</i>false<i>}</i></tt> If provided, sets the read-only
+ * - <tt>klfReadOnly=</tt>{<tt>true</tt>|<tt>false</tt>} If provided, sets the read-only
  *   flag to the given value. If not provided, the flag defaults to false (flag is directly
  *   set, bypassing the setReadOnly() function).
- * - <tt>klfDefaultSubResource=</i>sub-resource name</i></tt> If provided, specifies which
+ * - <tt>klfDefaultSubResource=<i>sub-resource name</i></tt> If provided, specifies which
  *   sub-resource (which has to be present in the given location) should be opened by default.
  *   See \ref setDefaultSubResource().
  * .
@@ -260,8 +261,8 @@ namespace KLFLib {
  * <b>NOTES FOR SUBCLASSES</b><br>
  * - Subclasses must deal with the properties and implement them as they are meant to, and
  *   as they have been documented in their respective functions (see \ref locked(), \ref title()).
- *   For example, if a resource is \ref locked(), then \ref canModify() must return FALSE and
- *   any attempt to modify the resource must fail.
+ *   For example, if a resource is \ref locked(), then \ref canModifyData() and \ref canModifyProp()
+ *   must return FALSE and any attempt to modify the resource must fail.
  * - Subclasses must reimplement \ref saveResourceProperty() to save the new property value
  *   to the backend data, or return FALSE to cancel the resource change. Calls to
  *   \ref setLocked(), \ref setTitle() or setViewType() all call in turn \ref setResourceProperty(),
@@ -602,7 +603,8 @@ public:
   virtual bool hasEntry(entryId id);
 
   //! Query multiple entries in this resource
-  /** Returns a list of \ref KLFLibEntryWithId's, that is a list of KLFLibEntry-ies with their
+  /** Returns a list of \ref KLFLibResourceEngine::KLFLibEntryWithId "KLFLibEntryWithId" s, that
+   * is a list of KLFLibEntry-ies with their
    * corresponding IDs, exactly corresponding to the requested entries given in idList. The same
    * order of entries in the returned list as in the specified \c idList is garanteed. For classes
    * implementing sub-resources (\ref FeatureSubResources), the sub-resource \c subResource is
@@ -691,9 +693,9 @@ public slots:
    *
    * This function calls directly \ref setResourceProperty().
    *
-   * The default implementation should suffice; subclass \ref savePropertyResource()
+   * The default implementation should suffice; subclass \ref saveResourceProperty()
    * for actually saving the new value into the resource backend data, and for more control
-   * over setting properties, or possibly subclass \ref setPropertyResource() for even more
+   * over setting properties, or possibly subclass \ref setResourceProperty() for even more
    * control.
    *  */
   virtual bool setTitle(const QString& title);
@@ -706,9 +708,9 @@ public slots:
    * arguments \ref PropLocked and the new value.
    *
    *
-   * The default implementation should suffice; subclass \ref savePropertyResource()
+   * The default implementation should suffice; subclass \ref saveResourceProperty()
    * for actually saving the new value into the resource backend data, and for more control
-   * over setting properties, or possibly subclass \ref setPropertyResource() for even more
+   * over setting properties, or possibly subclass \ref setResourceProperty() for even more
    * control.
    */
   virtual bool setLocked(bool locked);
@@ -717,9 +719,9 @@ public slots:
    *
    * Calls directly \ref setResourceProperty().
    *
-   * The default implementation should suffice; subclass \ref savePropertyResource()
+   * The default implementation should suffice; subclass \ref saveResourceProperty()
    * for actually saving the new value into the resource backend data, and for more control
-   * over setting properties, or possibly subclass \ref setPropertyResource() for even more
+   * over setting properties, or possibly subclass \ref setResourceProperty() for even more
    * control.
    * */
   virtual bool setViewType(const QString& viewType);
@@ -741,7 +743,7 @@ public slots:
    * This function should be used only with subclasses implementing \ref FeatureSubResources.
    *
    * The default implementation remembers \c subResource to be the new \ref defaultSubResource() and
-   * emits \ref defautSubResourceChanged(). It does nothing if \c subResource is already the default
+   * emits \ref defaultSubResourceChanged(). It does nothing if \c subResource is already the default
    * sub-resource.
    *
    * \warning Reimplementing this function has a drawback: it will not be called with the argument
@@ -849,7 +851,8 @@ public slots:
    *
    * This function should be reimplemented by subclasses to actually save the new entries.
    * The reimplementation should make sure that the operation is permitted (eg. by checking
-   * that \ref canModifyData(InsertData) is true, and should behave as described above.
+   * that \ref canModifyData() "canModifyData(InsertData)" is true, and should behave as
+   * described above.
    *
    * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
    * code.
@@ -881,7 +884,8 @@ public slots:
    *
    * This function should be reimplemented by subclasses to actually save the modified entries.
    * The reimplementation should make sure that the operation is permitted (eg. by checking
-   * that \ref canModifyData(ChangeData) is true, and should behave as described above.
+   * that \ref canModifyData() "canModifyData(ChangeData)" is true, and should behave as described
+   * above.
    *
    * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
    * code.
@@ -911,7 +915,8 @@ public slots:
    *
    * This function should be reimplemented by subclasses to actually delete the entries.
    * The reimplementation should make sure that the operation is permitted (eg. by checking
-   * that \ref canModify(DeleteData) is true, and should behave as described above.
+   * that \ref canModifyData() "canModifyData(DeleteData)" is true, and should behave as described
+   * above.
    *
    * Subclasses should then emit the \ref dataChanged() signal, and return a success/failure
    * code.
@@ -1054,7 +1059,7 @@ public:
  * objects of the currect subclass of KLFLibResourceEngine.
  *
  * See also \ref KLFLibResourceEngine, \ref KLFLibDBEngine, \ref KLFLibLegacyEngine.
- * More about factory common functions in \ref KLFFactory documentation.
+ * More about factory common functions in \ref KLFFactoryManager documentation.
  */
 class KLF_EXPORT KLFLibEngineFactory : public QObject, public KLFFactoryBase
 {
@@ -1079,8 +1084,9 @@ public:
 
   /** \brief A list of supported URL schemes this factory can open.
    *
-   * If two factories provide a common scheme name, only the last instantiated is used; the
-   * consequent ones will be ignored for that scheme name. See \ref KLFFactory::supportedTypes() */
+   * If two factories provide a common scheme name, only the last instantiated is used;
+   * the consequent ones will be ignored for that scheme name. See
+   * \ref KLFFactoryBase::supportedTypes() and \ref KLFFactoryManager::findFactoryFor() */
   virtual QStringList supportedTypes() const = 0;
 
   /** \brief What this factory is capable of doing
@@ -1095,7 +1101,7 @@ public:
   virtual uint schemeFunctions(const QString& scheme) const;
 
   /** Should return a human (short) description of the given scheme (which is one
-   * returned by \ref supportedSchemes()) */
+   * returned by \ref supportedTypes()) */
   virtual QString schemeTitle(const QString& scheme) const = 0;
 
   /** Returns the widget type that should be used to present to user to "open" or "create" or
@@ -1117,7 +1123,7 @@ public:
    * The parameters' structure are defined for each widget type. That is, if the
    * \ref correspondingWidgetType() for a given scheme is eg. \c "LocalFile", then the
    * parameters are defined by whatever the \c "LocalFile" widget sets. For example
-   * \c "LocalFile" documents its parameters in class \ref KLFLibBasicWidgetFactory:
+   * \c "LocalFile" documents its parameters in class \ref KLFLibBasicWidgetFactory :
    * parameter \c "Filename" contains a QString with the entered local file name.
    * Additional parameters may also be set by KLFLibCreateResourceDlg itself (eg.
    * default sub-resource name/title, TODO)
@@ -1294,7 +1300,6 @@ public:
    *   is the name of the default sub-resource to create if the resource supports sub-resources,
    *   and <tt>param["klfDefaultSubResourceTitle"]</tt> its title, if the resource supports sub-resource
    *   properties.
-   * .
    *
    * If an empty Parameters() is returned, it is also interpreted as a cancel operation.
    * */

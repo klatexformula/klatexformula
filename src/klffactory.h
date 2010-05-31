@@ -33,7 +33,7 @@
 class KLFFactoryManager;
 
 //! Base class for factories
-/** See \ref KLFactoryManager.
+/** See \ref KLFFactoryManager.
  *
  * This class automatically registers to the factory manager given to the constructor; it
  * also automatically unregisters itself in the destructor. */

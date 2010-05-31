@@ -98,7 +98,7 @@ KLFConfig::KLFConfig()
 void KLFConfig::loadDefaults()
 {
   homeConfigDir = QDir::homePath() + "/.klatexformula";
-  homeConfigSettingsFile = homeConfigDir + "/config.conf";
+  homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
   homeConfigSettingsFileIni = homeConfigDir + "/config";
   homeConfigDirRCCResources = homeConfigDir + "/rccresources";
   homeConfigDirPlugins = homeConfigDir + "/plugins";

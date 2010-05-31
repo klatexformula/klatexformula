@@ -37,9 +37,12 @@
 
 #include "klfpluginiface.h"
 #include "klfutil.h"
+#include "klfconfig.h"
 
-// a list of locale names available for KLatexFormula
-QList<KLFTranslationInfo> klf_avail_translations;
+KLF_EXPORT QList<KLFTranslationInfo> klf_avail_translations;
+
+KLF_EXPORT QList<QTranslator*> klf_translators;
+
 
 
 // not static so we can get this value from other modules in the project
@@ -360,4 +363,107 @@ void klf_add_avail_translation(KLFI18nFile i18nfile)
 }
 
 
+KLF_EXPORT void klf_reload_translations(QCoreApplication *app, const QString& currentLocale)
+{
+  // refresh and load all translations. Translations are files found in the form
+  //   :/i18n/<name>_<locale>.qm   or   homeconfig/i18n/<name>_<locale>.qm
+  //
+  // this function may be called at run-time to change language.
+
+  int j, k;
+
+  // clear any already set translators
+  for (k = 0; k < klf_translators.size(); ++k) {
+    app->removeTranslator(klf_translators[k]);
+    delete klf_translators[k];
+  }
+  klf_translators.clear();
+
+  // we will find all possible .qm files and store them in this structure for easy access
+  // structure is indexed by name, then locale specificity
+  QMap<QString, QMap<int, QList<KLFI18nFile> > > i18nFiles;
+  // a list of names. this is redundant for  i18nFiles.keys()
+  QSet<QString> names;
+
+  QStringList i18ndirlist;
+  // add any add-on specific translations
+  for (k = 0; k < klf_addons.size(); ++k) {
+    i18ndirlist << klf_addons[k].rccmountroot()+"/i18n";
+  }
+  i18ndirlist << ":/i18n"
+	      << klfconfig.homeConfigDirI18n
+	      << QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+
+  for (j = 0; j < i18ndirlist.size(); ++j) {
+    // explore this directory; we expect a list of *.qm files
+    QDir i18ndir(i18ndirlist[j]);
+    if ( ! i18ndir.exists() )
+      continue;
+    QStringList files = i18ndir.entryList(QStringList() << QString::fromLatin1("*.qm"), QDir::Files);
+    for (k = 0; k < files.size(); ++k) {
+      KLFI18nFile i18nfile(i18ndir.absoluteFilePath(files[k]));
+      //      qDebug("Found i18n file %s (name=%s,locale=%s,lc-spcif.=%d)", qPrintable(i18nfile.fpath),
+      //	     qPrintable(i18nfile.name), qPrintable(i18nfile.locale), i18nfile.locale_specificity);
+      i18nFiles[i18nfile.name][i18nfile.locale_specificity] << i18nfile;
+      names << i18nfile.name;
+      qDebug("Found translation %s", qPrintable(i18nfile.fpath));
+      klf_add_avail_translation(i18nfile);
+    }
+  }
+
+  // get locale
+  QString lc = currentLocale;
+  if (lc.isEmpty())
+    lc = "en_US";
+  QStringList lcparts = lc.split("_");
+
+  //  qDebug("Required locale is %s", qPrintable(lc));
+
+  // a list of translation files to load (absolute paths)
+  QStringList translationsToLoad;
+
+  // now, load a suitable translator for each encountered name.
+  for (QSet<QString>::const_iterator it = names.begin(); it != names.end(); ++it) {
+    QString name = *it;
+    QMap< int, QList<KLFI18nFile> > translations = i18nFiles[name];
+    int specificity = lcparts.size();  // start with maximum specificity for required locale
+    while (specificity >= 0) {
+      // try to load a translation matching this specificity and locale
+      QString testlocale = QStringList(lcparts.mid(0, specificity)).join("_");
+      //      qDebug("Testing locale string %s...", qPrintable(testlocale));
+      // search list:
+      QList<KLFI18nFile> list = translations[specificity];
+      for (j = 0; j < list.size(); ++j) {
+	if (list[j].locale == testlocale) {
+	  //	  qDebug("Found translation file.");
+	  // got matching translation file ! Load it !
+	  translationsToLoad << list[j].fpath;
+	  // and stop searching translation files for this name (break while condition);
+	  specificity = -1;
+	}
+      }
+      // If we didn't find a suitable translation, try less specific locale name
+      specificity--;
+    }
+  }
+  // now we have a full list of translation files to load stored in  translationsToLoad .
+
+  // Load Translations:
+  for (j = 0; j < translationsToLoad.size(); ++j) {
+    // load this translator
+    //    qDebug("Loading translator %s for %s", qPrintable(translationsToLoad[j]), qPrintable(lc));
+    QTranslator *translator = new QTranslator(app);
+    QFileInfo fi(translationsToLoad[j]);
+    //    qDebug("translator->load(\"%s\", \"%s\", \"_\", \"%s\")", qPrintable(fi.completeBaseName()),
+    //	   qPrintable(fi.absolutePath()),  qPrintable("."+fi.suffix()));
+    bool res = translator->load(fi.completeBaseName(), fi.absolutePath(), "_", "."+fi.suffix());
+    if ( res ) {
+      app->installTranslator(translator);
+      klf_translators << translator;
+    } else {
+      qWarning("Failed to load translator %s.", qPrintable(translationsToLoad[j]));
+      delete translator;
+    }
+  }
+}
 

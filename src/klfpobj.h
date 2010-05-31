@@ -129,7 +129,7 @@ protected:
    * \param oldValue the previous value of the property
    * \param newValue the new value of the property
    */
-  virtual void propertyValueChanged(int propId, const QVariant& oldvalue,
+  virtual void propertyValueChanged(int propId, const QVariant& oldValue,
 				    const QVariant& newValue);
 
 

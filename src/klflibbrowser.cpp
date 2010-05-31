@@ -61,25 +61,30 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pIsWaiting = false;
 
   pResourceMenu = new QMenu(u->tabResources);
-  pResourceMenu->setTitle(tr("Resource Actions", "[[menu title]]"));
-  pARename = pResourceMenu->addAction(tr("Rename", "[[menu entry]]"), this, SLOT(slotResourceRename()));
-  pAProperties = pResourceMenu->addAction(tr("Properties...", "[[menu entry]]"),
-					  this, SLOT(slotResourceProperties()));
-  pANewSubRes = pResourceMenu->addAction(tr("New Sub-Resource...", "[[menu entry]]"),
-					 this, SLOT(slotResourceNewSubRes()));
-  pASaveTo = pResourceMenu->addAction(tr("Save As Copy...", "[[menu entry]]"),
-				      this, SLOT(slotResourceSaveTo()));
-  pAViewType = pResourceMenu->addAction(tr("View Type", "[[menu entry]]"));
+  // connect actions
+  connect(u->aRename, SIGNAL(triggered()), this, SLOT(slotResourceRename()));
+  connect(u->aProperties, SIGNAL(triggered()), this, SLOT(slotResourceProperties()));
+  connect(u->aNewSubRes, SIGNAL(triggered()), this, SLOT(slotResourceNewSubRes()));
+  connect(u->aSaveTo, SIGNAL(triggered()), this, SLOT(slotResourceSaveTo()));
+  connect(u->aNew, SIGNAL(triggered()), this, SLOT(slotResourceNew()));
+  connect(u->aOpen, SIGNAL(triggered()), this, SLOT(slotResourceOpen()));
+  connect(u->aClose, SIGNAL(triggered()), this, SLOT(slotResourceClose()));
+  // and add them to menu
+  pResourceMenu->addAction(u->aRename);
+  pResourceMenu->addAction(u->aProperties);
+  pResourceMenu->addAction(u->aNewSubRes);
+  pResourceMenu->addAction(u->aSaveTo);
+  pResourceMenu->addAction(u->aViewType);
   pResourceMenu->addSeparator();
-  pANew = pResourceMenu->addAction(tr("New Resource...", "[[menu entry]]"), this, SLOT(slotResourceNew()));
-  pAOpen = pResourceMenu->addAction(tr("Open...", "[[menu entry]]"), this, SLOT(slotResourceOpen()));
-  pAClose = pResourceMenu->addAction(tr("Close", "[[menu entry]]"), this, SLOT(slotResourceClose()));
+  pResourceMenu->addAction(u->aNew);
+  pResourceMenu->addAction(u->aOpen);
+  pResourceMenu->addAction(u->aClose);
 
   slotRefreshResourceActionsEnabled();
 
-  QPushButton *tabCornerButton = new QPushButton(tr("Resource"), u->tabResources);
-  tabCornerButton->setMenu(pResourceMenu);
-  u->tabResources->setCornerWidget(tabCornerButton);
+  pTabCornerButton = new QPushButton(u->tabResources);
+  pTabCornerButton->setMenu(pResourceMenu);
+  u->tabResources->setCornerWidget(pTabCornerButton);
 
   connect(u->tabResources, SIGNAL(currentChanged(int)), this, SLOT(slotTabResourceShown(int)));
   connect(u->tabResources, SIGNAL(customContextMenuRequested(const QPoint&)),
@@ -88,14 +93,15 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   // RESTORE
 
   QMenu * restoreMenu = new QMenu(this);
-  restoreMenu->addAction(QIcon(":/pics/restoreall.png"), tr("Restore Formula with Style"),
-			 this, SLOT(slotRestoreWithStyle()));
-  restoreMenu->addAction(QIcon(":/pics/restore.png"), tr("Restore Formula Only"),
-			 this, SLOT(slotRestoreLatexOnly()));
+  connect(u->aRestoreWithStyle, SIGNAL(triggered()), this, SLOT(slotRestoreWithStyle()));
+  connect(u->aRestoreLatexOnly, SIGNAL(triggered()), this, SLOT(slotRestoreLatexOnly()));
+  restoreMenu->addAction(u->aRestoreWithStyle);
+  restoreMenu->addAction(u->aRestoreLatexOnly);
   u->btnRestore->setMenu(restoreMenu);
-  connect(u->btnRestore, SIGNAL(clicked()), this, SLOT(slotRestoreWithStyle()));
 
+  connect(u->btnRestore, SIGNAL(clicked()), this, SLOT(slotRestoreWithStyle()));
   connect(u->btnDelete, SIGNAL(clicked()), this, SLOT(slotDeleteSelected()));
+  connect(u->aDelete, SIGNAL(triggered()), u->btnDelete, SLOT(animateClick()));
 
   // CATEGORY/TAGS
 
@@ -140,17 +146,6 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   u->txtSearch->setProperty("paletteNotFound", QVariant::fromValue<QPalette>(pal2));
 
   // SHORTCUTS
-  // restore & delete
-  (void)new QShortcut(QKeySequence(tr("Ctrl+Enter", "[[shortcut: restore]]")),
-		      this, SLOT(slotRestoreWithStyle()));
-  (void)new QShortcut(QKeySequence(tr("Shift+Enter", "[[shortcut: restore]]")),
-		      this, SLOT(slotRestoreLatexOnly()));
-  QShortcut *s = new QShortcut(QKeySequence(tr("Delete", "[[shortcut: delete item from library]]")),
-			       u->tabResources);
-  connect(s, SIGNAL(activated()), this, SLOT(slotDeleteSelected()));
-
-  // open/close-related
-  (void)new QShortcut(QKeySequence(tr("Ctrl+W", "[[shortcut: close]]")), this, SLOT(slotResourceClose()));
 		      
   // search-related
   (void)new QShortcut(QKeySequence(tr("Ctrl+F", "[[find]]")), this, SLOT(slotSearchClearOrNext()));
@@ -159,13 +154,25 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   (void)new QShortcut(QKeySequence(tr("F3", "[[find next]]")), this, SLOT(slotSearchFindNext()));
   (void)new QShortcut(QKeySequence(tr("Shift+F3", "[[find prev]]")), this, SLOT(slotSearchFindPrev()));
   (void)new QShortcut(QKeySequence(tr("Ctrl+R", "[[find]]")), this, SLOT(slotSearchFindPrev()));
-  // Esc will be captured through event filter so that it isn't too ostrusive...
+  // Esc will be captured through event filter so that it isn't too obstrusive...
   //  (void)new QShortcut(QKeySequence(tr("Esc", "[[abort find]]")), this, SLOT(slotSearchAbort()));
+
+  retranslateUi(false);
 
   // start with no entries selected
   slotEntriesSelected(QList<KLFLibEntry>());
   // and set search bar's focus-out palette
   slotSearchFocusOut();
+}
+
+void KLFLibBrowser::retranslateUi(bool alsoBaseUi)
+{
+  if (alsoBaseUi)
+    u->retranslateUi(this);
+
+  pResourceMenu->setTitle(tr("Resource Actions", "[[menu title]]"));
+
+  pTabCornerButton->setText(tr("Resource"));
 }
 
 
@@ -187,6 +194,7 @@ KLFLibBrowser::~KLFLibBrowser()
     delete pLibViews[k];
     delete engine;
   }
+
   delete u;
 }
 
@@ -581,12 +589,12 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
   }
   connect(signalmapper, SIGNAL(mapped(const QString&)), viewc, SLOT(openView(const QString&)));
   // and replace the old menu with the new one.
-  QMenu *oldmenu = pAViewType->menu();
+  QMenu *oldmenu = u->aViewType->menu();
   if (oldmenu != NULL) {
-    pAViewType->setMenu(0);
+    u->aViewType->setMenu(0);
     delete oldmenu;
   }
-  pAViewType->setMenu(menu);
+  u->aViewType->setMenu(menu);
 
   // refresh selection-related displays
   slotEntriesSelected(viewc->view()->selectedEntries());
@@ -782,7 +790,8 @@ void KLFLibBrowser::slotUpdateForResourceProperty(KLFLibResourceEngine *resource
 	      <<resource->url()<<"!";
     return;
   }
-  if (propId == KLFLibResourceEngine::PropTitle) {
+  if (propId == KLFLibResourceEngine::PropTitle || propId == KLFLibResourceEngine::PropLocked) {
+    // the title is also affected by the locked state (# in front 
     u->tabResources->setTabText(u->tabResources->indexOf(view), displayTitle(resource));
   }
   if (propId == KLFLibResourceEngine::PropLocked) {
@@ -824,7 +833,8 @@ void KLFLibBrowser::slotDefaultSubResourceChanged(const QString& )
     return;
   }
   // view already does a full refresh. We will just refresh the tab title.
-  // fake a resource property locked state change (updated stuff is the same)
+  // fake a resource property title/locked state change (updated stuff is the same)
+  slotUpdateForResourceProperty(resource, KLFLibResourceEngine::PropTitle);
   slotUpdateForResourceProperty(resource, KLFLibResourceEngine::PropLocked);
 }
 
@@ -874,13 +884,13 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
       (res->canCreateSubResource());
   }
 
-  pARename->setEnabled(canrename);
-  pAProperties->setEnabled(master);
-  pANewSubRes->setEnabled(master && cannewsubres);
-  pASaveTo->setEnabled(master && cansaveto);
-  pANew->setEnabled(true);
-  pAOpen->setEnabled(true);
-  pAClose->setEnabled(master && !(resrolefl & NoCloseRoleFlag));
+  u->aRename->setEnabled(canrename);
+  u->aProperties->setEnabled(master);
+  u->aNewSubRes->setEnabled(master && cannewsubres);
+  u->aSaveTo->setEnabled(master && cansaveto);
+  u->aNew->setEnabled(true);
+  u->aOpen->setEnabled(true);
+  u->aClose->setEnabled(master && !(resrolefl & NoCloseRoleFlag));
 }
 
 
@@ -901,6 +911,7 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
   u->wEntryEditor->displayEntries(entries);
 
   u->btnDelete->setEnabled(entries.size() > 0);
+  u->aDelete->setEnabled(u->btnDelete->isEnabled());
   u->btnRestore->setEnabled(entries.size() == 1);
 }
 void KLFLibBrowser::slotAddCategorySuggestions(const QStringList& catlist)
@@ -1267,3 +1278,4 @@ void KLFLibBrowser::showEvent(QShowEvent *event)
   // and call superclass
   QWidget::showEvent(event);
 }
+

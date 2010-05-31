@@ -24,10 +24,12 @@
 #ifndef KLFMAIN_H
 #define KLFMAIN_H
 
+#include <QCoreApplication>
 #include <QString>
 #include <QList>
 #include <QMap>
 #include <QStringList>
+#include <QTranslator>
 
 #include <klfdefs.h>
 
@@ -189,6 +191,8 @@ KLF_EXPORT extern int version_maj, version_min, version_release;
  * To manage translation files, see \ref KLFI18nFile.
  */
 struct KLFTranslationInfo {
+  KLFTranslationInfo() : hasnicetranslatedname(false) { }
+
   QString localename;
   QString translatedname;
   /** \brief TRUE if the translatedname was provided by translator itself
@@ -197,7 +201,11 @@ struct KLFTranslationInfo {
   bool hasnicetranslatedname;
 };
 
+/** a list of locale names available for KLatexFormula */
 KLF_EXPORT extern QList<KLFTranslationInfo> klf_avail_translations;
+
+/** A list of instances of currently installed translators. */
+KLF_EXPORT extern QList<QTranslator*> klf_translators;
 
 
 /** \brief Small structure to store information for a translation file (.qm)
@@ -226,6 +234,10 @@ public:
 
 
 KLF_EXPORT void klf_add_avail_translation(KLFI18nFile i18nfile);
+
+
+/** Call this at startup or upon language change */
+KLF_EXPORT void klf_reload_translations(QCoreApplication *app, const QString& currentlocale);
 
 
 

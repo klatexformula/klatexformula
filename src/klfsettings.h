@@ -60,6 +60,8 @@ public slots:
   /** \warning This method provides NO USER CONFIRMATION and NO AFTER-OPERATION REFRESH */
   void removePlugin(const QString& fname);
 
+  void retranslateUi(bool alsoBaseUi = true);
+
 protected:
 
 protected slots:

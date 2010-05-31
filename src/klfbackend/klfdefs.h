@@ -83,7 +83,7 @@ KLF_EXPORT void __klf_debug_time_print(QString str);
 //! Asserting Non-NULL pointers (NON-FATAL)
 /**
  * If the given \c ptr is NULL, then prints function name and message to standard warning
- * output (see \ref qWarning()) and executes instructions given by \c failaction.
+ * output (using Qt's qWarning()) and executes instructions given by \c failaction.
  * \c msg may contain << operators to chain output to a QDebug.
  */
 #define KLF_ASSERT_NOT_NULL(ptr, msg, failaction)			\

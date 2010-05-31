@@ -37,16 +37,15 @@
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QDialog>
 
 #include <klfbackend.h>
 
 #include <klflib.h>
 #include <klfconfig.h>
-//#include <klfdata.h>
 #include <klflatexsymbols.h>
 #include <klflatexsyntaxhighlighter.h>
 
-#include <ui_klfmainwinui.h>
 
 
 //class KLFLibraryBrowser;
@@ -59,6 +58,7 @@ class KLFSettings;
 
 namespace Ui {
   class KLFProgErrUI;
+  class KLFMainWin;
 }
 
 class KLF_EXPORT KLFProgErr : public QDialog
@@ -115,7 +115,7 @@ protected:
  * KLatexFormula Main Window
  * \author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
  */
-class KLF_EXPORT KLFMainWin : public QWidget, private Ui::KLFMainWinUI
+class KLF_EXPORT KLFMainWin : public QWidget
 {
   Q_OBJECT
   Q_PROPERTY(QString widgetStyle READ widgetStyle WRITE setWidgetStyle)
@@ -130,8 +130,8 @@ public:
 
   KLFBackend::klfSettings backendSettings() const { return _settings; }
 
-  virtual QFont txtLatexFont() const { return txtLatex->font(); }
-  virtual QFont txtPreambleFont() const { return txtPreamble->font(); }
+  virtual QFont txtLatexFont() const;
+  virtual QFont txtPreambleFont() const;
 
   KLFBackend::klfSettings currentSettings() const { return _settings; }
 
@@ -179,6 +179,8 @@ signals:
   void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
   //  void libraryAllChanged();
 
+  void applicationLocaleChanged(const QString& newLocale);
+
 public slots:
 
   void slotEvaluate();
@@ -202,6 +204,10 @@ public slots:
 
   bool importCmdlKLFFiles(const QStringList& files, bool showLibrary = true);
   bool importCmdlKLFFile(const QString& file, bool showLibrary = false);
+
+  void setApplicationLocale(const QString& locale);
+
+  void retranslateUi(bool alsoBaseUi = true);
 
   bool loadNamedStyle(const QString& sty);
 
@@ -236,8 +242,8 @@ public slots:
 
   void setWidgetStyle(const QString& qtstyle);
 
-  void setTxtLatexFont(const QFont& f) { txtLatex->setFont(f); }
-  void setTxtPreambleFont(const QFont& f) { txtPreamble->setFont(f); }
+  void setTxtLatexFont(const QFont& f);
+  void setTxtPreambleFont(const QFont& f);
 
   void showRealTimePreview(const QImage& preview, bool latexerror);
 
@@ -255,6 +261,8 @@ private slots:
   void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
 
 protected:
+  Ui::KLFMainWin *u;
+
   KLFLibBrowser *mLibBrowser;
   KLFLatexSymbols *mLatexSymbols;
   KLFStyleManager *mStyleManager;

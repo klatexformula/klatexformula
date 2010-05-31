@@ -90,15 +90,25 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 
   btns->clear();
 
-  QPushButton *b;
-  b = new QPushButton(QIcon(":/pics/closehide.png"), tr("Cancel"), btns);
-  btns->addButton(b, QDialogButtonBox::RejectRole);
+  //   QPushButton *b;
+  //   b = new QPushButton(QIcon(":/pics/closehide.png"), QString("cancel"), btns);
+  //   btns->addButton(b, QDialogButtonBox::RejectRole);
+  //   connect(b, SIGNAL(clicked()), this, SLOT(reject()));
+  //   b = new QPushButton(QIcon(":/pics/apply.png"), QString("apply"), btns);
+  //   btns->addButton(b, QDialogButtonBox::ApplyRole);
+  //   connect(b, SIGNAL(clicked()), this, SLOT(apply()));
+  //   b = new QPushButton(QIcon(":/pics/ok.png"), QString("ok"), btns);
+  //   btns->addButton(b, QDialogButtonBox::AcceptRole);
+  //   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
+  QAbstractButton *b;
+  b = btns->addButton(QDialogButtonBox::Cancel);
+  b->setIcon(QIcon(":/pics/closehide.png"));
   connect(b, SIGNAL(clicked()), this, SLOT(reject()));
-  b = new QPushButton(QIcon(":/pics/apply.png"), tr("Apply"), btns);
-  btns->addButton(b, QDialogButtonBox::ApplyRole);
+  b = btns->addButton(QDialogButtonBox::Apply);
+  b->setIcon(QIcon(":/pics/apply.png"));
   connect(b, SIGNAL(clicked()), this, SLOT(apply()));
-  b = new QPushButton(QIcon(":/pics/ok.png"), tr("OK"), btns);
-  btns->addButton(b, QDialogButtonBox::AcceptRole);
+  b = btns->addButton(QDialogButtonBox::Ok);
+  b->setIcon(QIcon(":/pics/ok.png"));
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
   populateLocaleCombo();
@@ -142,6 +152,15 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   // dont load plugin data here as this dialog is created BEFORE plugins are loaded
   _pluginstuffloaded = false;
 }
+
+void KLFSettings::retranslateUi(bool alsoBaseUi)
+{
+  if (alsoBaseUi)
+    Ui::KLFSettingsUI::retranslateUi(this);
+
+  
+}
+
 
 KLFSettings::~KLFSettings()
 {
@@ -585,7 +604,8 @@ void KLFSettings::importAddOn()
   }
   // display message to user to restart KLatexFormula, if needed
   if (i > 0) {
-    QMessageBox::information(this, tr("Import"), tr("Please restart KLatexFormula for changes to take effect."));
+    QMessageBox::information(this, tr("Import"),
+			     tr("Please restart KLatexFormula for changes to take effect."));
   }
 }
 
@@ -624,7 +644,8 @@ void KLFSettings::removeAddOn()
   // remove all corresponding plugins too
   int j;
   if ( r ) {
-    QMessageBox::information(this, tr("Remove Add-On"), tr("Please restart KLatexFormula for changes to take effect."));
+    QMessageBox::information(this, tr("Remove Add-On"),
+			     tr("Please restart KLatexFormula for changes to take effect."));
   } else {
     qWarning("Failed to remove add-on '%s'", qPrintable(klf_addons[k].fpath()));
     QMessageBox::critical(this, tr("Error"), tr("Failed to remove Add-On."));
@@ -716,9 +737,11 @@ void KLFSettings::apply()
   QString localename = cbxLocale->itemData(cbxLocale->currentIndex()).toString();
   bool localechanged =  (  klfconfig.UI.locale != localename  ) ;
   klfconfig.UI.locale = localename;
+  _mainwin->setApplicationLocale(localename);
   if (localechanged) {
     QMessageBox::information(this, tr("Language changed"),
-			     tr("You need to restart KLatexFormula for your new language settings to take effect."));
+			     tr("You may need to restart KLatexFormula for your new language "
+				"settings to fully take effect."));
   }
   //  klf_main_do_the_change_of_locale_and_load_translators(...);
   //  QList<QWidget*> uilist;

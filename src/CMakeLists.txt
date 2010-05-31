@@ -107,7 +107,7 @@ set(klatexformula_UIS
 	klflibbrowser.ui
 	klflibentryeditor.ui
 	klflibrespropeditor.ui
-	klfmainwinui.ui
+	klfmainwin.ui
 	klfprogerrui.ui
 	klfsettingsui.ui
 	klfstylemanagerui.ui

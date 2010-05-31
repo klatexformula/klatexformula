@@ -2,8 +2,8 @@
 <ui version="4.0">
  <author>Philippe Faist</author>
  <comment>KLatexFormula main window UI</comment>
- <class>KLFMainWinUI</class>
- <widget class="QWidget" name="KLFMainWinUI">
+ <class>KLFMainWin</class>
+ <widget class="QWidget" name="KLFMainWin">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,7 +13,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string comment="window title">KLatexFormula</string>
+   <string notr="true" comment="window title">KLatexFormula</string>
   </property>
   <property name="windowIcon">
    <iconset resource="klfres.qrc">
@@ -740,6 +740,38 @@
     </widget>
    </item>
   </layout>
+  <action name="aDPI1200">
+   <property name="text">
+    <string>High Resolution (1200)</string>
+   </property>
+   <property name="toolTip">
+    <string>Very good resolution</string>
+   </property>
+  </action>
+  <action name="aDPI600">
+   <property name="text">
+    <string>Good Resolution (600)</string>
+   </property>
+   <property name="toolTip">
+    <string>Pretty good resolution</string>
+   </property>
+  </action>
+  <action name="aDPI300">
+   <property name="text">
+    <string>Medium Resolution (300)</string>
+   </property>
+   <property name="toolTip">
+    <string>Medium resolution</string>
+   </property>
+  </action>
+  <action name="aDPI150">
+   <property name="text">
+    <string>Low Resolution (150)</string>
+   </property>
+   <property name="toolTip">
+    <string>Low resolution</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="2" margin="3"/>
  <customwidgets>

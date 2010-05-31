@@ -160,7 +160,7 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
   }
   // multiple items selected
   pUi->lblPreview->setPixmap(QPixmap(":/pics/nopreview.png"));
-  pUi->txtPreviewLatex->setText(tr("[ %1 Items Selected ]").arg(entrylist.size()));
+  pUi->txtPreviewLatex->setText(tr("[ %n Items Selected ]", 0, entrylist.size()));
   pUi->cbxTags->setEditText(tr("[ Multiple Items Selected ]"));
   // if all elements have same category and style, display them, otherwise set
   // the respective field empty

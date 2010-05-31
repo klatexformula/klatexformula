@@ -1030,3 +1030,5 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   qWarning("klfLoadVariantFromText: Can't load a %s from %s !", dataTypeName, stringdata.constData());
   return QVariant();
 }
+
+

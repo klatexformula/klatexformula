@@ -44,10 +44,10 @@ namespace KLFSysInfo
   //! Returns one of \c "x86" or \c "x86_64", or \c QString() for other/unknown
   KLF_EXPORT QString arch();
 
-  KLF_EXPORT Os os();
+  KLF_EXPORT KLFSysInfo::Os os();
 
   //! Returns one of \c "win32", \c "linux", \c "macosx", or QString() for other/unknown
-  KLF_EXPORT QString osString(Os sysos = os());
+  KLF_EXPORT QString osString(KLFSysInfo::Os sysos = os());
 };
 
 
@@ -68,7 +68,7 @@ namespace KLFSysInfo
  *  - "dev" is INTERNAL versioning, should not be published, it means further development after
  *    the given version number; for the next release, a higher version number has to be
  *    decided upon.
- *  - unrecognized suffixes are compared lexicographically.
+ *  - unrecognized suffixes are compared lexicographically, case sensitive.
  *
  * Some examples:
  * <pre>   "3.1.0" < "3.1.2"
@@ -79,7 +79,7 @@ namespace KLFSysInfo
  */
 KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2);
 
-//! Same as <tt>klfVersionCompare(v1,v2) &lt; 0</tt>
+//! Same as <tt>\ref klfVersionCompare(const QString&,const QString&) "klfVersionCompare"(v1,v2) &lt; 0</tt>
 KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);
 
 KLF_EXPORT bool klfEnsureDir(const QString& dir);
@@ -146,6 +146,10 @@ inline QList<T> klfVariantListToList(const QVariantList& vlist)
   }
   return list;
 }
+
+
+
+
 
 
 #endif

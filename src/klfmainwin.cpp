@@ -62,7 +62,7 @@
 
 #include <ui_klfaboutdialogui.h>
 #include <ui_klfprogerrui.h>
-#include <ui_klfmainwinui.h>
+#include <ui_klfmainwin.h>
 
 //#include "klfdata.h"
 //#include "klflibrary.h"
@@ -228,9 +228,10 @@ void KLFPreviewBuilderThread::settingsChanged(const KLFBackend::klfSettings& set
 
 
 KLFMainWin::KLFMainWin()
-  : QWidget(0, Qt::Window), KLFMainWinUI()
+  : QWidget(0, Qt::Window)
 {
-  setupUi(this);
+  u = new Ui::KLFMainWin;
+  u->setupUi(this);
   setObjectName("KLFMainWin");
   setAttribute(Qt::WA_StyledBackground);
 
@@ -254,51 +255,56 @@ KLFMainWin::KLFMainWin()
 
   mLatexSymbols = new KLFLatexSymbols(this);
 
-  // version information as tooltip on the welcome widget
-  lblPromptMain->setToolTip(tr("KLatexFormula %1").arg(QString::fromUtf8(version)));
+  u->txtLatex->setFont(klfconfig.UI.latexEditFont);
+  u->txtPreamble->setFont(klfconfig.UI.preambleEditFont);
 
-  txtLatex->setFont(klfconfig.UI.latexEditFont);
-  txtPreamble->setFont(klfconfig.UI.preambleEditFont);
-
-  frmOutput->setEnabled(false);
+  u->frmOutput->setEnabled(false);
 
   QMenu *DPIPresets = new QMenu(this);
-  QAction *a;
-  a = DPIPresets->addAction(tr("High Resolution (1200)"), this, SLOT(slotPresetDPISender()));
-  a->setData(1200);
-  a = DPIPresets->addAction(tr("Good Resolution (600)"), this, SLOT(slotPresetDPISender()));
-  a->setData(600);
-  a = DPIPresets->addAction(tr("Medium Resolution (300)"), this, SLOT(slotPresetDPISender()));
-  a->setData(300);
-  a = DPIPresets->addAction(tr("Low Resolution (150)"), this, SLOT(slotPresetDPISender()));
-  a->setData(150);
-  btnDPIPresets->setMenu(DPIPresets);
+  // 1200 DPI
+  connect(u->aDPI1200, SIGNAL(triggered()), this, SLOT(slotPresetDPISender()));
+  u->aDPI1200->setData(1200);
+  DPIPresets->addAction(u->aDPI1200);
+  // 600 DPI
+  connect(u->aDPI600, SIGNAL(triggered()), this, SLOT(slotPresetDPISender()));
+  u->aDPI600->setData(600);
+  DPIPresets->addAction(u->aDPI600);
+  // 300 DPI
+  connect(u->aDPI300, SIGNAL(triggered()), this, SLOT(slotPresetDPISender()));
+  u->aDPI300->setData(300);
+  DPIPresets->addAction(u->aDPI300);
+  // 150 DPI
+  connect(u->aDPI150, SIGNAL(triggered()), this, SLOT(slotPresetDPISender()));
+  u->aDPI150->setData(150);
+  DPIPresets->addAction(u->aDPI150);
+  // set menu to the button
+  u->btnDPIPresets->setMenu(DPIPresets);
 
-  mHighlighter = new KLFLatexSyntaxHighlighter(txtLatex, this);
-  mPreambleHighlighter = new KLFLatexSyntaxHighlighter(txtPreamble, this);
+  mHighlighter = new KLFLatexSyntaxHighlighter(u->txtLatex, this);
+  mPreambleHighlighter = new KLFLatexSyntaxHighlighter(u->txtPreamble, this);
 
-  connect(txtLatex, SIGNAL(cursorPositionChanged()),
+  connect(u->txtLatex, SIGNAL(cursorPositionChanged()),
 	  mHighlighter, SLOT(refreshAll()));
-  connect(txtPreamble, SIGNAL(cursorPositionChanged()),
+  connect(u->txtPreamble, SIGNAL(cursorPositionChanged()),
 	  mPreambleHighlighter, SLOT(refreshAll()));
 
-  lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
+  u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
 
-  connect(lblOutput, SIGNAL(labelDrag()), this, SLOT(slotDrag()));
+  connect(u->lblOutput, SIGNAL(labelDrag()), this, SLOT(slotDrag()));
 
-  connect(btnShowBigPreview, SIGNAL(clicked()),
+  connect(u->btnShowBigPreview, SIGNAL(clicked()),
 	  this, SLOT(slotShowBigPreview()));
 
   int h;
-  h = btnDrag->sizeHint().height();  btnDrag->setFixedHeight(h - 5);
-  h = btnCopy->sizeHint().height();  btnCopy->setFixedHeight(h - 5);
-  h = btnSave->sizeHint().height();  btnSave->setFixedHeight(h - 5);
+  h = u->btnDrag->sizeHint().height();  u->btnDrag->setFixedHeight(h - 5);
+  h = u->btnCopy->sizeHint().height();  u->btnCopy->setFixedHeight(h - 5);
+  h = u->btnSave->sizeHint().height();  u->btnSave->setFixedHeight(h - 5);
 
   refreshWindowSizes();
 
-  frmDetails->hide();
+  u->frmDetails->hide();
 
-  txtLatex->installEventFilter(this);
+  u->txtLatex->installEventFilter(this);
 
   setFixedSize(_shrinkedsize);
 
@@ -333,18 +339,18 @@ KLFMainWin::KLFMainWin()
 
   // -- MAJOR SIGNAL/SLOT CONNECTIONS --
 
-  connect(btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
-  connect(btnEvaluate, SIGNAL(clicked()), this, SLOT(slotEvaluate()));
-  connect(btnSymbols, SIGNAL(toggled(bool)), this, SLOT(slotSymbols(bool)));
-  connect(btnLibrary, SIGNAL(toggled(bool)), this, SLOT(slotLibrary(bool)));
-  connect(btnExpand, SIGNAL(clicked()), this, SLOT(slotExpandOrShrink()));
-  connect(btnCopy, SIGNAL(clicked()), this, SLOT(slotCopy()));
-  connect(btnDrag, SIGNAL(released()), this, SLOT(slotDrag()));
-  connect(btnSave, SIGNAL(clicked()), this, SLOT(slotSave()));
-  connect(btnSettings, SIGNAL(clicked()), this, SLOT(slotSettings()));
-  connect(btnSaveStyle, SIGNAL(clicked()), this, SLOT(slotSaveStyle()));
+  connect(u->btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
+  connect(u->btnEvaluate, SIGNAL(clicked()), this, SLOT(slotEvaluate()));
+  connect(u->btnSymbols, SIGNAL(toggled(bool)), this, SLOT(slotSymbols(bool)));
+  connect(u->btnLibrary, SIGNAL(toggled(bool)), this, SLOT(slotLibrary(bool)));
+  connect(u->btnExpand, SIGNAL(clicked()), this, SLOT(slotExpandOrShrink()));
+  connect(u->btnCopy, SIGNAL(clicked()), this, SLOT(slotCopy()));
+  connect(u->btnDrag, SIGNAL(released()), this, SLOT(slotDrag()));
+  connect(u->btnSave, SIGNAL(clicked()), this, SLOT(slotSave()));
+  connect(u->btnSettings, SIGNAL(clicked()), this, SLOT(slotSettings()));
+  connect(u->btnSaveStyle, SIGNAL(clicked()), this, SLOT(slotSaveStyle()));
 
-  connect(btnQuit, SIGNAL(clicked()), this, SLOT(quit()));
+  connect(u->btnQuit, SIGNAL(clicked()), this, SLOT(quit()));
 
   connect(mLibBrowser, SIGNAL(requestRestore(const KLFLibEntry&, uint)),
 	  this, SLOT(restoreFromLibrary(const KLFLibEntry&, uint)));
@@ -359,7 +365,7 @@ KLFMainWin::KLFMainWin()
 
 
   // our help/about dialog
-  connect(btnHelp, SIGNAL(clicked()), this, SLOT(showAbout()));
+  connect(u->btnHelp, SIGNAL(clicked()), this, SLOT(showAbout()));
 
   // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
 
@@ -367,18 +373,18 @@ KLFMainWin::KLFMainWin()
 						      klfconfig.UI.labelOutputFixedSize.width(),
 						      klfconfig.UI.labelOutputFixedSize.height());
 
-  connect(txtLatex, SIGNAL(textChanged()), this,
+  connect(u->txtLatex, SIGNAL(textChanged()), this,
 	  SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
-  connect(cbxMathMode, SIGNAL(editTextChanged(const QString&)),
+  connect(u->cbxMathMode, SIGNAL(editTextChanged(const QString&)),
 	  this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
-  connect(chkMathMode, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
+  connect(u->chkMathMode, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
-  connect(colFg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
+  connect(u->colFg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
-  connect(chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
+  connect(u->chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
-  connect(colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
+  connect(u->colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
 
   connect(mPreviewBuilderThread, SIGNAL(previewAvailable(const QImage&, bool)),
@@ -409,6 +415,22 @@ KLFMainWin::KLFMainWin()
   _savedwindowshownstatus = 0;
   _ignore_close_event = false;
 
+  retranslateUi(false);
+
+  connect(this, SIGNAL(applicationLocaleChanged(const QString&)), this, SLOT(retranslateUi()));
+  connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mLibBrowser, SLOT(retranslateUi()));
+  connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mSettingsDialog, SLOT(retranslateUi()));
+}
+
+void KLFMainWin::retranslateUi(bool alsoBaseUi)
+{
+  if (alsoBaseUi)
+    u->retranslateUi(this);
+
+  // version information as tooltip on the welcome widget
+  u->lblPromptMain->setToolTip(tr("KLatexFormula %1").arg(QString::fromUtf8(version)));
+
+  refreshStylePopupMenus();
 }
 
 
@@ -434,22 +456,24 @@ KLFMainWin::~KLFMainWin()
     delete mHighlighter;
   if (mPreviewBuilderThread)
     delete mPreviewBuilderThread;
+
+  delete u;
 }
 
 
 void KLFMainWin::refreshWindowSizes()
 {
-  bool curstate_shown = frmDetails->isVisible();
-  frmDetails->show();
-  _shrinkedsize = frmMain->sizeHint() + QSize(3, 3);
-  _expandedsize.setWidth(frmMain->sizeHint().width() + frmDetails->sizeHint().width() + 3);
-  _expandedsize.setHeight(frmMain->sizeHint().height() + 3);
+  bool curstate_shown = u->frmDetails->isVisible();
+  u->frmDetails->show();
+  _shrinkedsize = u->frmMain->sizeHint() + QSize(3, 3);
+  _expandedsize.setWidth(u->frmMain->sizeHint().width() + u->frmDetails->sizeHint().width() + 3);
+  _expandedsize.setHeight(u->frmMain->sizeHint().height() + 3);
   if (curstate_shown) {
     setFixedSize(_expandedsize);
-    frmDetails->show();
+    u->frmDetails->show();
   } else {
     setFixedSize(_shrinkedsize);
-    frmDetails->hide();
+    u->frmDetails->hide();
   }
   updateGeometry();
 }
@@ -507,7 +531,7 @@ void KLFMainWin::saveSettings()
   mPreviewBuilderThread->settingsChanged(_settings, klfconfig.UI.labelOutputFixedSize.width(),
 					 klfconfig.UI.labelOutputFixedSize.height());
 
-  lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
+  u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
 
   if (klfconfig.UI.enableRealTimePreview) {
     if ( ! mPreviewBuilderThread->isRunning() ) {
@@ -618,7 +642,7 @@ void KLFMainWin::loadStyles()
   mStyleMenu = 0;
   refreshStylePopupMenus();
 
-  btnLoadStyle->setMenu(mStyleMenu);
+  u->btnLoadStyle->setMenu(mStyleMenu);
 }
 
 void KLFMainWin::saveStyles()
@@ -767,15 +791,15 @@ void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
     slotLoadStyle(style);
   }
 
-  lblOutput->display(entry.preview(), entry.preview(), false);
-  frmOutput->setEnabled(false);
+  u->lblOutput->display(entry.preview(), entry.preview(), false);
+  u->frmOutput->setEnabled(false);
   activateWindow();
   raise();
 }
 
 void KLFMainWin::slotLibraryButtonRefreshState(bool on)
 {
-  btnLibrary->setChecked(on);
+  u->btnLibrary->setChecked(on);
   //   if (...............kapp->sessionSaving()) {
   //     // if we're saving the session, remember that history browser is on
   //   } else {
@@ -786,19 +810,19 @@ void KLFMainWin::slotLibraryButtonRefreshState(bool on)
 
 void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
 {
-  QTextCursor c1(txtLatex->document());
+  QTextCursor c1(u->txtLatex->document());
   c1.beginEditBlock();
-  c1.setPosition(txtLatex->textCursor().position());
+  c1.setPosition(u->txtLatex->textCursor().position());
   c1.insertText(s.symbol+"\n");
   c1.deletePreviousChar(); // small hack for forcing a separate undo command when two symbols are inserted
   c1.endEditBlock();
   // see if we need to insert the xtrapreamble
   QStringList cmds = s.preamble;
   int k;
-  QString preambletext = txtPreamble->toPlainText();
+  QString preambletext = u->txtPreamble->toPlainText();
   QString addtext;
-  QTextCursor c = txtPreamble->textCursor();
-  //  qDebug("Begin preamble edit: preamble text is %s", qPrintable(txtPreamble->toPlainText()));
+  QTextCursor c = u->txtPreamble->textCursor();
+  //  qDebug("Begin preamble edit: preamble text is %s", qPrintable(u->txtPreamble->toPlainText()));
   c.beginEditBlock();
   c.movePosition(QTextCursor::End);
   for (k = 0; k < cmds.size(); ++k) {
@@ -814,16 +838,16 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   }
   c.endEditBlock();
 
-  //  qDebug("End preamble edit; premable text is %s", qPrintable(txtPreamble->toPlainText()));
+  //  qDebug("End preamble edit; premable text is %s", qPrintable(u->txtPreamble->toPlainText()));
 
   activateWindow();
   raise();
-  txtLatex->setFocus();
+  u->txtLatex->setFocus();
 }
 
 void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
 {
-  btnSymbols->setChecked(on);
+  u->btnSymbols->setChecked(on);
 }
 
 void KLFMainWin::showAbout()
@@ -901,7 +925,7 @@ bool KLFMainWin::event(QEvent *e)
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 {
   //  qDebug("eventFilter, e->type()==%d", (int)e->type());
-  if (obj == txtLatex) {
+  if (obj == u->txtLatex) {
     if (e->type() == QEvent::KeyPress) {
       QKeyEvent *ke = (QKeyEvent*) e;
       if (ke->key() == Qt::Key_Return && (QApplication::keyboardModifiers() == Qt::ShiftModifier ||
@@ -996,6 +1020,7 @@ void KLFMainWin::showEvent(QShowEvent *e)
 }
 
 
+
 void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
 {
   _settings_altered = true;
@@ -1052,15 +1077,24 @@ void KLFMainWin::updatePreviewBuilderThreadInput()
   }
 }
 
+void KLFMainWin::setTxtLatexFont(const QFont& f)
+{
+  u->txtLatex->setFont(f);
+}
+void KLFMainWin::setTxtPreambleFont(const QFont& f)
+{
+  u->txtPreamble->setFont(f);
+}
+
 void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
 {
   if (_evaloutput_uptodate)
     return;
 
   if (latexerror)
-    lblOutput->displayError(/*labelenabled:*/false);
+    u->lblOutput->displayError(/*labelenabled:*/false);
   else
-    lblOutput->display(preview, preview, false);
+    u->lblOutput->display(preview, preview, false);
 
 }
 
@@ -1069,23 +1103,23 @@ KLFBackend::klfInput KLFMainWin::collectInput()
   // KLFBackend input
   KLFBackend::klfInput input;
 
-  input.latex = txtLatex->toPlainText();
-  if (chkMathMode->isChecked()) {
-    input.mathmode = cbxMathMode->currentText();
-    if (cbxMathMode->findText(input.mathmode) == -1) {
-      cbxMathMode->addItem(input.mathmode);
+  input.latex = u->txtLatex->toPlainText();
+  if (u->chkMathMode->isChecked()) {
+    input.mathmode = u->cbxMathMode->currentText();
+    if (u->cbxMathMode->findText(input.mathmode) == -1) {
+      u->cbxMathMode->addItem(input.mathmode);
     }
   } else {
     input.mathmode = "...";
   }
-  input.preamble = txtPreamble->toPlainText();
-  input.fg_color = colFg->color().rgb();
-  if (chkBgTransparent->isChecked() == false)
-    input.bg_color = colBg->color().rgb();
+  input.preamble = u->txtPreamble->toPlainText();
+  input.fg_color = u->colFg->color().rgb();
+  if (u->chkBgTransparent->isChecked() == false)
+    input.bg_color = u->colBg->color().rgb();
   else
     input.bg_color = qRgba(255, 255, 255, 0);
 
-  input.dpi = spnDPI->value();
+  input.dpi = u->spnDPI->value();
 
   return input;
 }
@@ -1095,7 +1129,7 @@ void KLFMainWin::slotEvaluate()
   // KLFBackend input
   KLFBackend::klfInput input;
 
-  btnEvaluate->setEnabled(false); // don't allow user to click us while we're not done, and
+  u->btnEvaluate->setEnabled(false); // don't allow user to click us while we're not done, and
   //				     additionally this gives visual feedback to the user
 
   input = collectInput();
@@ -1110,12 +1144,12 @@ void KLFMainWin::slotEvaluate()
       comment = "\n"+tr("Are you sure you configured your system paths correctly in the settings dialog ?");
     }
     QMessageBox::critical(this, tr("Error"), _output.errorstr+comment);
-    lblOutput->displayClear();
-    frmOutput->setEnabled(false);
+    u->lblOutput->displayClear();
+    u->frmOutput->setEnabled(false);
   }
   if (_output.status > 0) {
     KLFProgErr::showError(this, _output.errorstr);
-    frmOutput->setEnabled(false);
+    u->frmOutput->setEnabled(false);
   }
   if (_output.status == 0) {
     // ALL OK
@@ -1138,8 +1172,8 @@ void KLFMainWin::slotEvaluate()
 	_output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio,
 			      Qt::SmoothTransformation);
     }
-    lblOutput->display(sc.toImage(), tooltipimg, true);
-    frmOutput->setEnabled(true);
+    u->lblOutput->display(sc.toImage(), tooltipimg, true);
+    u->frmOutput->setEnabled(true);
 
     KLFLibEntry newentry = KLFLibEntry(input.latex, QDateTime::currentDateTime(), sc.toImage(),
 				       currentStyle());
@@ -1191,13 +1225,13 @@ void KLFMainWin::slotEvaluate()
 
   }
 
-  btnEvaluate->setEnabled(true); // re-enable our button
+  u->btnEvaluate->setEnabled(true); // re-enable our button
 }
 
 void KLFMainWin::slotClear()
 {
-  txtLatex->setPlainText("");
-  txtLatex->setFocus();
+  u->txtLatex->setPlainText("");
+  u->txtLatex->setFocus();
 }
 
 void KLFMainWin::slotLibrary(bool showlib)
@@ -1214,22 +1248,22 @@ void KLFMainWin::slotSymbols(bool showsymbs)
 
 void KLFMainWin::slotExpandOrShrink()
 {
-  if (frmDetails->isVisible()) {
-    frmDetails->hide();
+  if (u->frmDetails->isVisible()) {
+    u->frmDetails->hide();
     setFixedSize(_shrinkedsize);
     //    adjustSize();
-    btnExpand->setIcon(QIcon(":/pics/switchexpanded.png"));
+    u->btnExpand->setIcon(QIcon(":/pics/switchexpanded.png"));
   } else {
     setFixedSize(_expandedsize);
-    frmDetails->show();
+    u->frmDetails->show();
     //    adjustSize();
-    btnExpand->setIcon(QIcon(":/pics/switchshrinked.png"));
+    u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.png"));
   }
 }
 
 void KLFMainWin::slotSetLatex(const QString& latex)
 {
-  QTextCursor cur = txtLatex->textCursor();
+  QTextCursor cur = u->txtLatex->textCursor();
   cur.beginEditBlock();
   cur.select(QTextCursor::Document);
   cur.removeSelectedText();
@@ -1239,14 +1273,14 @@ void KLFMainWin::slotSetLatex(const QString& latex)
 
 void KLFMainWin::slotSetMathMode(const QString& mathmode)
 {
-  chkMathMode->setChecked(mathmode.simplified() != "...");
+  u->chkMathMode->setChecked(mathmode.simplified() != "...");
   if (mathmode.simplified() != "...")
-    cbxMathMode->setEditText(mathmode);
+    u->cbxMathMode->setEditText(mathmode);
 }
 
 void KLFMainWin::slotSetPreamble(const QString& preamble)
 {
-  QTextCursor cur = txtPreamble->textCursor();
+  QTextCursor cur = u->txtPreamble->textCursor();
   cur.beginEditBlock();
   cur.select(QTextCursor::Document);
   cur.removeSelectedText();
@@ -1256,12 +1290,12 @@ void KLFMainWin::slotSetPreamble(const QString& preamble)
 
 void KLFMainWin::slotSetDPI(int DPI)
 {
-  spnDPI->setValue(DPI);
+  u->spnDPI->setValue(DPI);
 }
 
 void KLFMainWin::slotSetFgColor(const QColor& fg)
 {
-  colFg->setColor(fg);
+  u->colFg->setColor(fg);
 }
 void KLFMainWin::slotSetFgColor(const QString& s)
 {
@@ -1271,7 +1305,7 @@ void KLFMainWin::slotSetFgColor(const QString& s)
 }
 void KLFMainWin::slotSetBgColor(const QColor& bg)
 {
-  colBg->setColor(bg);
+  u->colBg->setColor(bg);
 }
 void KLFMainWin::slotSetBgColor(const QString& s)
 {
@@ -1285,7 +1319,7 @@ void KLFMainWin::slotSetBgColor(const QString& s)
 
 void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& format)
 {
-  if ( txtLatex->toPlainText().isEmpty() )
+  if ( u->txtLatex->toPlainText().isEmpty() )
     return;
 
   slotEvaluate();
@@ -1330,6 +1364,14 @@ bool KLFMainWin::importCmdlKLFFile(const QString& fname, bool showLibrary)
     loaded = loaded || mLibBrowser->openResource(url2);
   }
   return loaded;
+}
+
+
+void KLFMainWin::setApplicationLocale(const QString& locale)
+{
+  klf_reload_translations(qApp, locale);
+
+  emit applicationLocaleChanged(locale);
 }
 
 
@@ -1572,21 +1614,21 @@ void KLFMainWin::slotActivateEditor()
 {
   raise();
   activateWindow();
-  txtLatex->setFocus();
+  u->txtLatex->setFocus();
 }
 
 void KLFMainWin::slotShowBigPreview()
 {
-  if ( ! btnShowBigPreview->isEnabled() )
+  if ( ! u->btnShowBigPreview->isEnabled() )
     return;
 
   QString text =
     tr("<p>%1</p><p align=\"right\" style=\"font-size: %2pt; font-style: italic;\">"
        "This preview can be opened with the <strong>F2</strong> key. Hit "
        "<strong>Esc</strong> to close.</p>")
-    .arg(lblOutput->bigPreviewText())
+    .arg(u->lblOutput->bigPreviewText())
     .arg(QFontInfo(qApp->font()).pointSize()-1);
-  QWhatsThis::showText(btnEvaluate->pos(), text, lblOutput);
+  QWhatsThis::showText(u->btnEvaluate->pos(), text, u->lblOutput);
 }
 
 
@@ -1605,14 +1647,23 @@ KLFStyle KLFMainWin::currentStyle() const
   KLFStyle sty;
 
   sty.name = QString::null;
-  sty.fg_color = colFg->color().rgb();
-  QColor bgc = colBg->color();
-  sty.bg_color = qRgba(bgc.red(), bgc.green(), bgc.blue(), chkBgTransparent->isChecked() ? 0 : 255 );
-  sty.mathmode = (chkMathMode->isChecked() ? cbxMathMode->currentText() : "...");
-  sty.preamble = txtPreamble->toPlainText();
-  sty.dpi = spnDPI->value();
+  sty.fg_color = u->colFg->color().rgb();
+  QColor bgc = u->colBg->color();
+  sty.bg_color = qRgba(bgc.red(), bgc.green(), bgc.blue(), u->chkBgTransparent->isChecked() ? 0 : 255 );
+  sty.mathmode = (u->chkMathMode->isChecked() ? u->cbxMathMode->currentText() : "...");
+  sty.preamble = u->txtPreamble->toPlainText();
+  sty.dpi = u->spnDPI->value();
 
   return sty;
+}
+
+QFont KLFMainWin::txtLatexFont() const
+{
+  return u->txtLatex->font();
+}
+QFont KLFMainWin::txtPreambleFont() const
+{
+  return u->txtPreamble->font();
 }
 
 void KLFMainWin::slotLoadStyleAct()
@@ -1628,14 +1679,14 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
   QColor cfg, cbg;
   cfg.setRgb(style.fg_color);
   cbg.setRgb(style.bg_color);
-  colFg->setColor(cfg);
-  colBg->setColor(cbg);
-  chkBgTransparent->setChecked(qAlpha(style.bg_color) == 0);
-  chkMathMode->setChecked(style.mathmode.simplified() != "...");
+  u->colFg->setColor(cfg);
+  u->colBg->setColor(cbg);
+  u->chkBgTransparent->setChecked(qAlpha(style.bg_color) == 0);
+  u->chkMathMode->setChecked(style.mathmode.simplified() != "...");
   if (style.mathmode.simplified() != "...")
-    cbxMathMode->setEditText(style.mathmode);
+    u->cbxMathMode->setEditText(style.mathmode);
   slotSetPreamble(style.preamble); // to preserve text edit undo/redo
-  spnDPI->setValue(style.dpi);
+  u->spnDPI->setValue(style.dpi);
 }
 
 void KLFMainWin::slotLoadStyle(int n)

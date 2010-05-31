@@ -147,6 +147,8 @@ KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
 
   mActionsPopup = new QMenu(this);
 
+  /** \todo ............ DYNAMIC LANGUAGE CHANGE STRINGS .................. */
+
   actPopupDelete = mActionsPopup->addAction(tr("Delete Style"), this, SLOT(slotDelete()));
   actPopupMoveUp = mActionsPopup->addAction(tr("Move up"), this, SLOT(slotMoveUp()));
   actPopupMoveDown = mActionsPopup->addAction(tr("Move down"), this, SLOT(slotMoveDown()));

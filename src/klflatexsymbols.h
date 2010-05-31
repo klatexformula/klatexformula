@@ -153,6 +153,8 @@ public slots:
 
   void slotShowCategory(int cat);
 
+  void retranslateUi(bool alsoBaseUi = true);
+
 protected:
 
   KLFMainWin *_mainwin;
@@ -168,7 +170,7 @@ protected:
   void showEvent(QShowEvent *ev);
 
 private:
-  Ui::KLFLatexSymbols *U;
+  Ui::KLFLatexSymbols *u;
 };
 
 #endif

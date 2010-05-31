@@ -105,6 +105,8 @@ public slots:
 
   bool closeResource(const QUrl& url);
 
+  void retranslateUi(bool alsoBaseUi = true);
+
 protected slots:
 
   void slotRestoreWithStyle();
@@ -174,14 +176,8 @@ private:
   QList<KLFLibBrowserViewContainer*> pLibViews;
 
   QMenu *pResourceMenu;
-  QAction *pARename;
-  QAction *pAClose;
-  QAction *pAProperties;
-  QAction *pANewSubRes;
-  QAction *pASaveTo;
-  QAction *pANew;
-  QAction *pAOpen;
-  QAction *pAViewType;
+
+  QPushButton *pTabCornerButton;
 
   QString pSearchText;
   QString pLastSearchText;

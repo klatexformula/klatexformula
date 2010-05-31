@@ -6,12 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>303</width>
+    <width>306</width>
     <height>628</height>
    </rect>
-  </property>
-  <property name="windowTitle">
-   <string>KLFLibEntryEditor</string>
   </property>
   <layout class="QGridLayout" name="lyt_KLFLibViewEntryEditor">
    <property name="margin">
@@ -132,8 +129,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>297</width>
-         <height>250</height>
+         <width>300</width>
+         <height>236</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -279,8 +276,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>297</width>
-         <height>250</height>
+         <width>137</width>
+         <height>58</height>
         </rect>
        </property>
        <property name="autoFillBackground">

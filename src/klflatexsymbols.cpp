@@ -521,8 +521,8 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 #endif
 	    , /*Qt::Tool*/ Qt::Window /*0*/)
 {
-  U = new Ui::KLFLatexSymbols;
-  U->setupUi(this);
+  u = new Ui::KLFLatexSymbols;
+  u->setupUi(this);
   setObjectName("KLFLatexSymbols");
   setAttribute(Qt::WA_StyledBackground);
 
@@ -550,9 +550,9 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 
   QList<KLFLatexSymbol> allsymbols;
   // create our UI
-  U->cbxCategory->clear();
-  QGridLayout *lytstk = new QGridLayout(U->frmStackContainer);
-  stkViews = new QStackedWidget(U->frmStackContainer);
+  u->cbxCategory->clear();
+  QGridLayout *lytstk = new QGridLayout(u->frmStackContainer);
+  stkViews = new QStackedWidget(u->frmStackContainer);
   lytstk->addWidget(stkViews, 0, 0);
 
   mViews.clear();
@@ -607,7 +607,7 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 	connect(view, SIGNAL(symbolActivated(const KLFLatexSymbol&)), this, SIGNAL(insertSymbol(const KLFLatexSymbol&)));
 	mViews.append(view);
 	stkViews->addWidget(view);
-	U->cbxCategory->addItem(heading);
+	u->cbxCategory->addItem(heading);
       }
     }
   }
@@ -622,10 +622,17 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 
   slotShowCategory(0);
 
-  connect(U->cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));
-  connect(U->cbxCategory, SIGNAL(activated(int)), this, SLOT(slotShowCategory(int)));
-  connect(U->btnClose, SIGNAL(clicked()), this, SLOT(close()));
+  connect(u->cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));
+  connect(u->cbxCategory, SIGNAL(activated(int)), this, SLOT(slotShowCategory(int)));
+  connect(u->btnClose, SIGNAL(clicked()), this, SLOT(close()));
 }
+
+void KLFLatexSymbols::retranslateUi(bool alsoBaseUi)
+{
+  if (alsoBaseUi)
+    u->retranslateUi(this);
+}
+
 
 KLFLatexSymbols::~KLFLatexSymbols()
 {

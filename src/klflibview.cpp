@@ -446,10 +446,11 @@ QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
    * \section appxMimeLib_elist The application/x-klf-libentries data format
    *
    * Is basically a Qt-\ref QDataStream saved data of a \ref KLFLibEntryList (ie. a
-   * \ref QList<KLFLibEntry>), saved with Qt \ref QDataStream version \ref QDataStream::Qt_4_4.
+   * \ref QList "QList<KLFLibEntry>"), saved with Qt \ref QDataStream version "QDataStream::Qt_4_4" .
    *
    * There is also a property map for including arbitrary parameters to the list (eg.
-   * originating URL, etc.), stored in a \ref QVariantMap. Standard properties as of now:
+   * originating URL, etc.), stored in a QVariantMap, ie a \ref QMap "QMap<QString,QVariant>". Standard
+   * properties as of now:
    *  - \c "Url" (type QUrl) : originating URL
    *
    * Example code:
@@ -460,21 +461,21 @@ QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
    *  stream << QVariantMap() << data;
    *  // now data contains the exact data for the application/x-klf-libentries mimetype.
    * \endcode
-   * Other example: see the source code of \ref KLFLibModel::mimeData() in \ref klfview.cpp .
+   * Other example: see the source code of \ref KLFLibModel::mimeData() in file
+   * <a href="klflibview_8cpp.html">klfview.cpp</a> .
    *
    * \section appxMimeLib_internal The INTERNAL <tt>application/x-klf-internal-lib-move-entries</tt>
    * * Used for internal move within the same resource only.
    * * Basic difference with <tt>application/x-klf-libentries</tt>: the latter contains
    *   only the IDs of the entries (for reference for deletion for example) and the url
    *   of the open resource for identification.
-   * * Internal Format: \ref QDataStream, stream version \ref QDataStream::Qt_4_4, in the
+   * * Internal Format: \ref QDataStream, stream version QDataStream::Qt_4_4, in the
    *   following order:
    *   \code stream << QVariantMap(<i>property-map</i>)
    *        << QList<KLFLib::entryId>(<i>entry-id-list</i>);
    *   \endcode
    * * The <tt><i>property-map</i></tt> contains properties relative to the mime data, such
    *   as the originating URL (in property \c "Url" of type QUrl)
-   * .
    */
 
   // in the future, this will serve when dragging a category label, to redifine the index
@@ -2344,7 +2345,7 @@ void KLFLibDefaultView::updateResourceView()
       connect(a, SIGNAL(toggled(bool)), this, SLOT(slotShowColumnSenderAction(bool)));
       colMenu->addAction(a);
     }
-    QAction *menuAction = new QAction(tr("Show/Hide Columns"), this);
+    QAction *menuAction = new QAction(tr("Show/Hide Columns", "[[menu with sub-menu]]"), this);
     menuAction->setMenu(colMenu);
     pShowColumnActions = QList<QAction*>() << menuAction;
     // expand root items if they contain little number of children
@@ -3066,13 +3067,14 @@ KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *par
   connect(pSubResPropModel, SIGNAL(itemChanged(QStandardItem *)),
 	  this, SLOT(advSubResPropEdited(QStandardItem *)));
 
-  updateSubResources(pResource->defaultSubResource());
-
   U->frmAdvanced->setShown(U->btnAdvanced->isChecked());
+
   // perform full refresh (resource properties)
-  slotResourcePropertyChanged(-1);
+  updateResourceProperties();
+  // preform full refresh (sub-resources)
+  updateSubResources(pResource->defaultSubResource());
   // perform full refresh (sub-resource properties)
-  slotSubResourcePropertyChanged(curSubResource(), -1);
+  updateSubResourceProperties();
 
   connect(U->btnApply, SIGNAL(clicked()), this, SLOT(apply()));
 }
@@ -3192,6 +3194,7 @@ void KLFLibResPropEditor::on_btnAdvanced_toggled(bool on)
 
 void KLFLibResPropEditor::updateSubResources(const QString& curSubRes)
 {
+  qDebug()<<"KLFLibResPropEditor::updateSubResources("<<curSubRes<<")";
   if ( pSuppSubRes ) {
     U->cbxSubResource->blockSignals(true);
     U->cbxSubResource->clear();
@@ -3207,6 +3210,7 @@ void KLFLibResPropEditor::updateSubResources(const QString& curSubRes)
       if (subResList[k] == curSubRes)
 	curSubResIndex = k;
     }
+    qDebug()<<"KLFLibResPropEditor::updateSubResources("<<curSubRes<<") : setting cur index="<<curSubResIndex;
     U->cbxSubResource->setCurrentIndex(curSubResIndex);
     U->cbxSubResource->blockSignals(false);
     if ( pSuppSubResProps ) {
@@ -3259,7 +3263,11 @@ void KLFLibResPropEditor::advPropEdited(QStandardItem *item)
 void KLFLibResPropEditor::slotResourcePropertyChanged(int /*propId*/)
 {
   // perform full update
-
+  updateResourceProperties();
+  updateSubResources();
+}
+void KLFLibResPropEditor::updateResourceProperties()
+{
   pPropModel->setRowCount(0);
   int k;
   QStringList props = pResource->registeredPropertyNameList();
@@ -3286,10 +3294,7 @@ void KLFLibResPropEditor::slotResourcePropertyChanged(int /*propId*/)
   U->txtUrl->setText(pResource->url().toString());
   U->chkLocked->setChecked(pResource->locked());
   U->chkLocked->setEnabled(pResource->canModifyProp(KLFLibResourceEngine::PropLocked));
-  updateSubResources();
 }
-
-
 
 QString KLFLibResPropEditor::curSubResource() const
 {
@@ -3336,15 +3341,19 @@ void KLFLibResPropEditor::slotSubResourcePropertyChanged(const QString& subResou
   if ( ! pSuppSubResProps )
     return;
 
-  // perform full update
-
+  // perform full update of sub-res prop list
+  updateSubResourceProperties();
+}
+void KLFLibResPropEditor::updateSubResourceProperties()
+{
+  // full update of model data
   pSubResPropModel->setRowCount(0);
   QPalette pal = U->tblSubResProperties->palette();
   int k;
   QList<int> props = pResource->subResourcePropertyIdList();
   for (k = 0; k < props.size(); ++k) {
     int propId = props[k];
-    QVariant val = pResource->subResourceProperty(subResource, propId);
+    QVariant val = pResource->subResourceProperty(curSubResource(), propId);
     QStandardItem *i1 = new QStandardItem(pResource->subResourcePropertyName(propId));
     i1->setEditable(false);
     QStandardItem *i2 = new QStandardItem(val.toString());
@@ -3358,6 +3367,8 @@ void KLFLibResPropEditor::slotSubResourcePropertyChanged(const QString& subResou
     pSubResPropModel->appendRow(QList<QStandardItem*>() << i1 << i2);
   }
 }
+
+
 
 
 

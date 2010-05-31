@@ -811,6 +811,8 @@ protected slots:
   void advSubResPropEdited(QStandardItem *item);
   void on_cbxSubResource_currentIndexChanged(int newSubResItemIndex);
 
+  void updateResourceProperties();
+  void updateSubResourceProperties();
   void updateSubResources(const QString& curSubResource = QString());
 
 private:
