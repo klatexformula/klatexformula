@@ -982,6 +982,7 @@ QModelIndexList KLFLibModel::findEntryIdList(const QList<KLFLib::entryId>& eidli
 QModelIndex KLFLibModel::searchFind(const QString& queryString, const QModelIndex& fromIndex,
 				    bool forward)
 {
+  qDebug()<<KLF_FUNC_NAME<<" s="<<queryString<<" from "<<fromIndex<<" forward="<<forward;
   pSearchAborted = false;
   pSearchString = queryString;
   pSearchCurNode = getNodeForIndex(fromIndex);
@@ -989,6 +990,7 @@ QModelIndex KLFLibModel::searchFind(const QString& queryString, const QModelInde
 }
 QModelIndex KLFLibModel::searchFindNext(bool forward)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   pSearchAborted = false;
   if (pSearchString.isEmpty())
     return QModelIndex();
@@ -1011,8 +1013,10 @@ QModelIndex KLFLibModel::searchFindNext(bool forward)
       t.restart();
     }
   }
-  if (found)
+  if (found) {
+    qDebug()<<"KLFLibModel::searchFindNext: found "<<pSearchString<<" at "<<pSearchCurNode;
     return createIndexFromId(pSearchCurNode, -1, 0);
+  }
   return QModelIndex();
 }
 
@@ -2554,6 +2558,8 @@ void KLFLibDefaultView::slotLockIconPositions(bool locked)
 bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
 {
   QModelIndex fromIndex = currentVisibleIndex();
+  // take one index above in case it's partially shown
+  fromIndex = pModel->walkPrevIndex(fromIndex);
   QModelIndex i = pModel->searchFind(queryString, fromIndex, forward);
   pDelegate->setSearchString(queryString);
   searchFound(i);

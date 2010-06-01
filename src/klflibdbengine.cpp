@@ -782,12 +782,16 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
 
   ensureDataTableColumnsExist(subres);
 
+  emit operationStartReportProgress(0, entrylist.size(), tr("Inserting items into library database"));
+
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO " + quotedDataTableName(subres) + " (" + props.join(",") + ") "
 	    " VALUES (" + questionmarks.join(",") + ")");
   qDebug()<<"INSERT query: "<<q.lastQuery();
   // now loop all entries, and exec the query with appropriate bound values
   for (j = 0; j < entrylist.size(); ++j) {
+    if (j % 10 == 0) // emit every 10 items
+      emit operationReportProgress(j);
     //    qDebug()<<"New entry to insert.";
     for (k = 0; k < propids.size(); ++k) {
       QVariant data = convertVariantToDBData(entrylist[j].property(propids[k]));
@@ -808,6 +812,10 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
 	insertedIds << v_id.toInt();
     }
   }
+
+  // make sure the last signal is emitted as specified by KLFLibResourceEngine doc (needed
+  // for example to close progress dialog!)
+  emit operationReportProgress(entrylist.size());
 
   emit dataChanged(subres, InsertData, insertedIds);
   return insertedIds;

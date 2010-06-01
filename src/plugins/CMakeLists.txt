@@ -54,12 +54,12 @@ set(KLF_CMAKE_BASEPLUGINSSUBDIR "${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}"
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/plugindirinfo.xml.in"
   "${CMAKE_CURRENT_BINARY_DIR}/plugindirinfo.xml"
-  IMMEDIATE @ONLY)
+  @ONLY)
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/klfbaseplugins.qrc.in"
   "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.qrc"
-  IMMEDIATE @ONLY)
+  @ONLY)
 
 
 add_subdirectory(skin)
@@ -105,13 +105,19 @@ if(APPLE AND KLF_MACOSX_BUNDLE_PATH)
 
 endif(APPLE AND KLF_MACOSX_BUNDLE_PATH)
 
-add_custom_target(klfbaseplugins_rcc ALL
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.rcc"
 	COMMAND "${QT_RCC_EXECUTABLE}" -binary -o klfbaseplugins.rcc klfbaseplugins.qrc
 	WORKING_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}"
 	COMMENT  "Archiving Base Plugins into Add-On File"
-	DEPENDS ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SKIN} ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SYSTRAYICON}
+	DEPENDS ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SKIN}
+	  ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SYSTRAYICON}
+	  "${CMAKE_CURRENT_SOURCE_DIR}/info_baseplugins.xml"
+	  "${CMAKE_CURRENT_BINARY_DIR}/plugindirinfo.xml"
+	  "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.qrc"
 	VERBATIM
 )
+add_custom_target(klfbaseplugins_rcc ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.rcc")
+
 
 if(APPLE AND KLF_MACOSX_BUNDLE_PATH)
   add_dependencies(klfbaseplugins_rcc klfbaseplugins_maclibpacked)

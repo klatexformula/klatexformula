@@ -271,6 +271,9 @@ namespace KLFLib {
  * - See also docs for \ref setResourceProperty() and \ref saveResourceProperty().
  * - The \ref resourcePropertyChanged() is emitted in the default implementation of
  *   \ref setResourceProperty().
+ * - lengthy operations should emit signals \ref operationStartReportProgress() and
+ *   \ref operationReportProgress() as necessary. This is recommended, but subclasses are not
+ *   entitled to such behavior.
  */
 class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObject
 {
@@ -684,6 +687,30 @@ signals:
    * \param propId the ID of the property that changed
    */
   void subResourcePropertyChanged(const QString& subResource, int propId);
+
+  /** Emitted at the beginning of a long operation during which progress will be reported
+   * by emission of \ref operationReportProgress().
+   *
+   * \param minimum is the start progress value that will be reported
+   * \param maximum is the end progress value that will be reported
+   * \param descriptiveText is some text describing the nature of the
+   *   operation in progress
+   *
+   * The functions operationStartReportProgress() and operationReportProgress() are suitable
+   * to use in conjunction with a QProgressDialog.
+   */
+  void operationStartReportProgress(int minimum, int maximum, const QString& descriptiveText);
+  /** Emitted at regular intervals (at option) by subclasses to inform their
+   * callers about the progress of a given action.
+   *
+   * This signal is emitted repeatedly (by subclasses) after having emitted once the
+   * \ref operationStartReportProgress() signal, with increasing \c progressValue values
+   * ranging from \c minimum to \c maximum as given by \ref operationStartReportProgress().
+   *
+   * The last time this signal is emitted for one operation, its \c progressValue is exactly
+   * the \c maximum value. (Subclasses must guarantee this).
+   */
+  void operationReportProgress(int progressValue);
   
 public slots:
 

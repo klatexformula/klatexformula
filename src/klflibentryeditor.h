@@ -65,6 +65,8 @@ public slots:
    *   \ref displayEntry() */
   void setInputEnabled(bool enabled);
 
+  void retranslateUi(bool alsoBaseUi = true);
+
 protected slots:
 
   void slotUpdateFromCbx(QComboBox *cbx);
@@ -76,7 +78,7 @@ protected slots:
   void slotCbxCleanUpCompletions(QComboBox *cbx);
 
 private:
-  Ui::KLFLibEntryEditor *pUi;
+  Ui::KLFLibEntryEditor *u;
 
   bool pInputEnabled;
 

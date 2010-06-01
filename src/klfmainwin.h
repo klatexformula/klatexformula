@@ -44,15 +44,16 @@
 #include <klflib.h>
 #include <klfconfig.h>
 #include <klflatexsymbols.h>
-#include <klflatexsyntaxhighlighter.h>
+//#include <klflatexsyntaxhighlighter.h>
 
 
 
-//class KLFLibraryBrowser;
 class KLFLibBrowser;
-class KLFLatexSymbols;
+//class KLFLatexSymbols;
+//class KLFLatexSymbol;
 class KLFStyleManager;
 class KLFSettings;
+class KLFLatexSyntaxHighlighter;
 
 
 
@@ -71,7 +72,7 @@ public:
   static void showError(QWidget *parent, QString text);
 
 private:
-  Ui::KLFProgErrUI *mUI;
+  Ui::KLFProgErrUI *u;
 };
 
 

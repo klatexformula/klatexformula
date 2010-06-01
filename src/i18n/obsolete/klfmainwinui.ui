@@ -2,8 +2,8 @@
 <ui version="4.0">
  <author>Philippe Faist</author>
  <comment>KLatexFormula main window UI</comment>
- <class>KLFMainWin</class>
- <widget class="QWidget" name="KLFMainWin">
+ <class>KLFMainWinUI</class>
+ <widget class="QWidget" name="KLFMainWinUI">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -16,7 +16,7 @@
    <string notr="true" comment="window title">KLatexFormula</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="klfres.qrc">
+   <iconset resource="../../klfres.qrc">
     <normaloff>:/pics/klatexformula-64.png</normaloff>:/pics/klatexformula-64.png</iconset>
   </property>
   <property name="styleSheet">
@@ -120,7 +120,7 @@
            <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
           </property>
           <property name="shortcut">
@@ -146,7 +146,7 @@
            <string>&amp;Evaluate</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/evaluate.png</normaloff>:/pics/evaluate.png</iconset>
           </property>
           <property name="shortcut">
@@ -172,7 +172,7 @@
            <string comment="whatsthis text">Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
           </property>
           <property name="shortcut">
@@ -198,7 +198,7 @@
            <string comment="whatsthis text">Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
           </property>
           <property name="shortcut">
@@ -224,7 +224,7 @@
            <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/switchexpanded.png</normaloff>:/pics/switchexpanded.png</iconset>
           </property>
           <property name="shortcut">
@@ -375,7 +375,7 @@
                <string/>
               </property>
               <property name="icon">
-               <iconset resource="klfres.qrc">
+               <iconset resource="../../klfres.qrc">
                 <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
               </property>
              </widget>
@@ -398,8 +398,11 @@
          <string>Quit</string>
         </property>
         <property name="icon">
-         <iconset resource="klfres.qrc">
+         <iconset resource="../../klfres.qrc">
           <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+Q</string>
         </property>
        </widget>
       </item>
@@ -657,7 +660,7 @@
            <string>Load St&amp;yle</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/loadstyle.png</normaloff>:/pics/loadstyle.png</iconset>
           </property>
           <property name="shortcut">
@@ -680,7 +683,7 @@
            <string>Sa&amp;ve Style</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/savestyle.png</normaloff>:/pics/savestyle.png</iconset>
           </property>
           <property name="shortcut">
@@ -703,7 +706,7 @@
            <string>Settings...</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/settings.png</normaloff>:/pics/settings.png</iconset>
           </property>
           <property name="shortcut">
@@ -723,7 +726,7 @@
            <string>Edit KLatexFormula settings</string>
           </property>
           <property name="icon">
-           <iconset resource="klfres.qrc">
+           <iconset resource="../../klfres.qrc">
             <normaloff>:/pics/help.png</normaloff>:/pics/help.png</iconset>
           </property>
           <property name="shortcut">
@@ -806,7 +809,7 @@
   <tabstop>btnHelp</tabstop>
  </tabstops>
  <resources>
-  <include location="klfres.qrc"/>
+  <include location="../../klfres.qrc"/>
  </resources>
  <connections>
   <connection>

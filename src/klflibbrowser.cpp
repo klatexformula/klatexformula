@@ -31,6 +31,8 @@
 #include <QMessageBox>
 #include <QSignalMapper>
 #include <QMovie>
+#include <QProgressDialog>
+#include <QPushButton>
 
 #include "klfconfig.h"
 #include "klflibbrowser_p.h"
@@ -170,6 +172,8 @@ void KLFLibBrowser::retranslateUi(bool alsoBaseUi)
   if (alsoBaseUi)
     u->retranslateUi(this);
 
+  u->wEntryEditor->retranslateUi(alsoBaseUi);
+
   pResourceMenu->setTitle(tr("Resource Actions", "[[menu title]]"));
 
   pTabCornerButton->setText(tr("Resource"));
@@ -229,6 +233,16 @@ bool KLFLibBrowser::eventFilter(QObject *obj, QEvent *ev)
       }
     }
   }
+
+  if (ev->type() == QEvent::Hide &&
+      obj->property("klf_libbrowser_pdlg_want_hideautodelete").toBool() == true) {
+    // this object is a resource-operation progress dialog that was just hidden
+    qDebug()<<KLF_FUNC_NAME<<": Hiding progress dialog.";
+    obj->deleteLater();
+    return true;
+    //    return false;    // continue with event handling
+  }
+
   return QWidget::eventFilter(obj, ev);
 }
 
@@ -527,6 +541,9 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 	  this, SLOT(slotSubResourcePropertyChanged(const QString&, int)));
   connect(resource, SIGNAL(defaultSubResourceChanged(const QString&)),
 	  this, SLOT(slotDefaultSubResourceChanged(const QString&)));
+
+  connect(resource, SIGNAL(operationStartReportProgress(int, int, const QString&)),
+	  this, SLOT(slotStartProgress(int, int, const QString&)));
 
   // get more category completions
   viewc->view()->wantMoreCategorySuggestions();
@@ -1190,6 +1207,46 @@ void KLFLibBrowser::slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstract
     source->deleteSelected(false);
 }
 
+void KLFLibBrowser::slotStartProgress(int min, int max, const QString& text)
+{
+  KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
+  slotStartProgress(resource, min, max, text);
+}
+void KLFLibBrowser::slotStartProgress(KLFLibResourceEngine *resource, int min, int max,
+				      const QString& text)
+{
+  qDebug()<<KLF_FUNC_NAME<<": min,max="<<min<<","<<max<<"; text="<<text;
+  if (resource == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": Resource is NULL";
+    return;
+  }
+  QProgressDialog *pdlg = new QProgressDialog(this);
+  pdlg->setModal(true);
+  pdlg->setLabelText(text);
+  QPushButton *cbtn = new QPushButton(tr("Cancel"), pdlg);
+  pdlg->setCancelButton(cbtn);
+  cbtn->setEnabled(false); // can't cancel!
+
+  pdlg->setFixedSize((int)(pdlg->sizeHint().width()*1.3), (int)(pdlg->sizeHint().height()*1.1));
+
+  pdlg->setAutoClose(true);
+  pdlg->setAutoReset(true);
+
+  pdlg->setRange(min, max);
+  pdlg->setValue(0);
+
+  pdlg->setProperty("klf_libbrowser_pdlg_want_hideautodelete", QVariant(true));
+  pdlg->installEventFilter(this);
+
+  connect(resource, SIGNAL(operationReportProgress(int)), pdlg, SLOT(setValue(int)));
+  connect(resource, SIGNAL(operationReportProgress(int)), this, SLOT(slotDebugProgressValue(int)));
+}
+
+
+void KLFLibBrowser::slotDebugProgressValue(int val)
+{
+  qDebug()<<KLF_FUNC_NAME<<" val="<<val;
+}
 
 
 void KLFLibBrowser::updateSearchFound(bool found)

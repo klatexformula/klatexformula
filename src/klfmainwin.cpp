@@ -57,6 +57,7 @@
 #include <QStyle>
 #include <QStyleFactory>
 #include <QDebug>
+#include <QProgressDialog>
 
 #include <klfbackend.h>
 
@@ -66,6 +67,7 @@
 
 //#include "klfdata.h"
 //#include "klflibrary.h"
+#include "klflatexsyntaxhighlighter.h"
 #include "klflibbrowser.h"
 #include "klflibdbengine.h"
 #include "klflatexsymbols.h"
@@ -110,16 +112,16 @@ static void klf_set_window_geometry(QWidget *w, QRect g)
 
 KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
 {
-  mUI = new Ui::KLFProgErrUI;
-  mUI->setupUi(this);
+  u = new Ui::KLFProgErrUI;
+  u->setupUi(this);
   setObjectName("KLFProgErr");
 
-  mUI->txtError->setText(errtext);
+  u->txtError->setText(errtext);
 }
 
 KLFProgErr::~KLFProgErr()
 {
-  delete mUI;
+  delete u;
 }
 
 void KLFProgErr::showError(QWidget *parent, QString errtext)
@@ -308,6 +310,10 @@ KLFMainWin::KLFMainWin()
 
   setFixedSize(_shrinkedsize);
 
+  // Shortcut for quit
+  new QShortcut(QKeySequence(tr("Ctrl+Q")), this, SLOT(quit()), SLOT(quit()),
+		Qt::ApplicationShortcut);
+
   // Shortcut for activating editor
   //  QShortcut *editorActivatorShortcut = 
   new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotActivateEditor()),
@@ -420,6 +426,7 @@ KLFMainWin::KLFMainWin()
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), this, SLOT(retranslateUi()));
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mLibBrowser, SLOT(retranslateUi()));
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mSettingsDialog, SLOT(retranslateUi()));
+  connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mStyleManager, SLOT(retranslateUi()));
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -663,7 +670,7 @@ void KLFMainWin::saveStyles()
 
 void KLFMainWin::loadLibrary()
 {
-  // Locate a good history file.
+  // Locate a good library/history file.
 
   // the default library file
   QString localfname = klfconfig.homeConfigDir + "/library.klf.db";
@@ -714,21 +721,26 @@ void KLFMainWin::loadLibrary()
 	      <<"\n\tNot good! Expect crash!";
     return;
   }
-  bool r;
-  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
-				QLatin1String("default+list"));
-  if ( ! r ) {
-    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
-	      <<"\n\tExpect Crash!";
-    return;
-  }
-  KLFAbstractLibView *view = mLibBrowser->getView(mHistoryLibResource);
 
   qDebug("KLFMainWin::loadLibrary(): opened history: resource-ptr=%p\n\tImportFile=%s",
 	 (void*)mHistoryLibResource, qPrintable(importfname));
 
   if (!importfname.isEmpty()) {
     // needs an import
+
+    // visual feedback for import
+    QProgressDialog pdlg(this);
+    connect(mHistoryLibResource, SIGNAL(operationStartReportProgress(int, int, const QString&)),
+	    &pdlg, SLOT(setRange(int, int)));
+    connect(mHistoryLibResource, SIGNAL(operationReportProgress(int)), &pdlg, SLOT(setValue(int)));
+    pdlg.setAutoClose(false);
+    pdlg.setAutoReset(false);
+    pdlg.setModal(true);
+    pdlg.setWindowModality(Qt::ApplicationModal);
+    QPushButton *cbtn = new QPushButton(tr("Cancel"), &pdlg);
+    pdlg.setCancelButton(cbtn);
+    cbtn->setEnabled(false); // can't cancel!
+    // locate the import file and scheme
     QUrl importliburl = QUrl::fromLocalFile(importfname);
     if (importfname.endsWith(".klf.db")) {
       importliburl.setScheme("klf+sqlite");
@@ -748,6 +760,11 @@ void KLFMainWin::loadLibrary()
       int j;
       for (j = 0; j < subResList.size(); ++j) {
 	QString subres = subResList[j];
+	pdlg.reset();
+	pdlg.setLabelText(tr("Importing Library from previous version of KLatexFormula ... %3 (%1/%2)")
+			  .arg(j+1).arg(subResList.size()).arg(subResList[j]));
+	pdlg.setFixedSize((int)(pdlg.sizeHint().width()*1.3), (int)(pdlg.sizeHint().height()*1.1));
+	pdlg.setValue(0); // reset value
 	QList<KLFLibResourceEngine::KLFLibEntryWithId> allentries
 	  = importres->allEntries(subres);
 	qDebug("\tGot %d entries from sub-resource %s", allentries.size(), qPrintable(subres));
@@ -764,7 +781,15 @@ void KLFMainWin::loadLibrary()
     }
   }
 
-
+  // Open history sub-resource into library browser
+  bool r;
+  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
+				QLatin1String("default+list"));
+  if ( ! r ) {
+    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
+	      <<"\n\tExpect Crash!";
+    return;
+  }
   // open all other sub-resources present in our library
   QStringList subresources = mHistoryLibResource->subResourceList();
   int k;

@@ -1,4 +1,5 @@
 <RCC>
+  <!-- Qt Resource containing the base plugins included with KLatexFormula -->
   <qresource prefix="rccinfo">
     <file alias="info.xml">@CMAKE_CURRENT_SOURCE_DIR@/info_baseplugins.xml</file>
   </qresource>

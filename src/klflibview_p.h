@@ -262,16 +262,34 @@ public:
 
 
   QModelIndex curVisibleIndex() const {
-    int off_y = scrollOffset().y();
-    qDebug()<<"curVisibleIndex: offset y is "<<off_y;
-    QModelIndex it = QModelIndex();
-    while ((it = pModel->walkNextIndex(it)).isValid()) {
+    /*
+      int off_y = scrollOffset().y();
+      qDebug()<<"curVisibleIndex: offset y is "<<off_y;
+      QModelIndex it = QModelIndex();
+      while ((it = pModel->walkNextIndex(it)).isValid()) {
       qDebug()<<"\texploring item it="<<it<<"; bottom="<<thisConstView()->visualRect(it).bottom();
       if (thisConstView()->visualRect(it).bottom() >= 0) {
-	// first index from the beginning, that is after our scroll offset.
-	return it;
+      // first index from the beginning, that is after our scroll offset.
+      return it;
+      }
+      }
+    */
+    QModelIndex index;
+    QPoint offset = scrollOffset();
+    qDebug()<<KLF_FUNC_NAME<<" offset="<<offset;
+    int xStep = 40;
+    int yStep = 40;
+    int xpos, ypos;
+    for (xpos = xStep/2; xpos < thisConstView()->width(); xpos += xStep) {
+      for (ypos = yStep/2; ypos < thisConstView()->height(); ypos += yStep) {
+	if ((index = thisConstView()->indexAt(QPoint(xpos,ypos))).isValid()) {
+	  qDebug()<<KLF_FUNC_NAME<<": Found index = "<<index<<" at pos=("<<xpos<<","<<ypos<<"); "
+		  <<" with offset "<<offset;
+	  return index;
+	}
       }
     }
+    return pModel->walkNextIndex(QModelIndex());
   }
 
 protected:

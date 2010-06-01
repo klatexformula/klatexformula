@@ -39,21 +39,46 @@
 #include "klfbackend.h"
 
 
+#ifndef KLFBACKEND_QT4
+#define qPrintable(x) (x).local8Bit().data()
+#endif
+
 // declared in klfdefs.h
 
 void __klf_debug_time_print(QString str)
 {
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  qDebug("%03ld.%06ld : %s", tv.tv_sec % 1000, tv.tv_usec,
-#ifdef KLFBACKEND_QT4
-	 qPrintable(str)
-#else
-	 str.local8Bit().data()
-#endif
-
-	 );
+  qDebug("%03ld.%06ld : %s", tv.tv_sec % 1000, tv.tv_usec, qPrintable(str));
 }
+
+KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
+{
+  QString funcname(ba_funcname);
+  // returns the section between the first space and the first open paren
+  int iSpc, iParen;
+#ifdef KLFBACKEND_QT4
+  iSpc = funcname.indexOf(' ');
+  iParen = funcname.indexOf('(');
+#else
+  iSpc = funcname.find(' ');
+  iParen = funcname.find('(');
+#endif
+  if (iSpc == -1 || iParen == -1 || iSpc > iParen) {
+    qWarning("klfShortFuncSignature('%s'): Signature parse error!", qPrintable(funcname));
+    return ba_funcname;
+  }
+  // shorten name
+  QString f = funcname.mid(iSpc+1, iParen-(iSpc+1)) + "()";
+  QByteArray data;
+#ifdef KLFBACKEND_QT4
+  data = f.toLocal8Bit();
+#else
+  data = f.local8Bit();
+#endif
+  return data;
+}
+
 
 #ifdef KLFBACKEND_QT4
 #define NATIVESEPARATORS(x) QDir::toNativeSeparators(x)
@@ -490,7 +515,6 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
 #define suffix extension
 #define WRITEONLY IO_WriteOnly
 #define OPENSTDOUT WRITEONLY, stdout
-#define qPrintable(x) (x).local8Bit().data()
 #define trimmed stripWhiteSpace
 #define toUpper upper
 #define setFileName setName

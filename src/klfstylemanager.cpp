@@ -149,11 +149,10 @@ KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
 
   /** \todo ............ DYNAMIC LANGUAGE CHANGE STRINGS .................. */
 
-  actPopupDelete = mActionsPopup->addAction(tr("Delete Style"), this, SLOT(slotDelete()));
-  actPopupMoveUp = mActionsPopup->addAction(tr("Move up"), this, SLOT(slotMoveUp()));
-  actPopupMoveDown = mActionsPopup->addAction(tr("Move down"), this, SLOT(slotMoveDown()));
-  actPopupRename = mActionsPopup->addAction(tr("Rename style"), this, SLOT(slotRename()));
-
+  actPopupDelete = mActionsPopup->addAction("", this, SLOT(slotDelete()));
+  actPopupMoveUp = mActionsPopup->addAction("", this, SLOT(slotMoveUp()));
+  actPopupMoveDown = mActionsPopup->addAction("", this, SLOT(slotMoveDown()));
+  actPopupRename = mActionsPopup->addAction("", this, SLOT(slotRename()));
   btnActions->setMenu(mActionsPopup);
 
   mStyleListModel = new KLFStyleListModel(this);
@@ -172,8 +171,24 @@ KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
 	  this, SLOT(showActionsContextMenu(const QPoint&)));
   connect(mStyleListModel, SIGNAL(internalMoveCompleted(int, int)),
 	  this, SLOT(slotModelMoveCompleted(int, int)));
-  connect(lstStyles->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
+  connect(lstStyles->selectionModel(),
+	  SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
 	  this, SLOT(refreshActionsEnabledState()));
+
+  retranslateUi(false);
+}
+
+
+void KLFStyleManager::retranslateUi(bool alsoBaseUi)
+{
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME);
+  if (alsoBaseUi)
+    Ui::KLFStyleManagerUI::retranslateUi(this);
+
+  actPopupDelete->setText(tr("Delete Style"));
+  actPopupMoveUp->setText(tr("Move up"));
+  actPopupMoveDown->setText(tr("Move down"));
+  actPopupRename->setText(tr("Rename style"));
 }
 
 KLFStyleManager::~KLFStyleManager()
@@ -209,7 +224,7 @@ int KLFStyleManager::currentRow()
   if (sel.size() == 0)
     return -1;
   if (sel.size() >= 2) {
-    fprintf(stderr, "WARNING: Multiple style names selected! Expected Single Selection Policy!\n");
+    qWarning("Multiple style names selected! Expected Single Selection Policy!\n");
     return -1;
   }
   return sel[0].row();

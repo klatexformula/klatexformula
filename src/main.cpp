@@ -795,8 +795,6 @@ int main(int argc, char **argv)
 
     klf_reload_translations(&app, klfconfig.UI.locale);
 
-    app.setFont(klfconfig.UI.applicationFont);
-
     KLFColorChooser::setColorList(klfconfig.UI.userColorList);
 
     KLFColorChooseWidget::setRecentCustomColors(klfconfig.UI.colorChooseWidgetRecent,
@@ -811,7 +809,11 @@ int main(int argc, char **argv)
     KLFMainWin mainWin;
     mainWin.show();
 
+    app.setFont(klfconfig.UI.applicationFont);
+    mainWin.refreshWindowSizes();
+
     main_load_plugins(&app, &mainWin);
+
 
 #if defined(KLF_USE_DBUS)
     new KLFDBusAppAdaptor(&app, &mainWin);

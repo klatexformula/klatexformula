@@ -39,22 +39,74 @@
 #endif
 
 
+/** Takes as input a funcion signature like
+ *  <pre>void MyClass::functionName(const QString& arg1, int arg2) const</pre>
+ * and outputs a short form of it, like
+ *  <pre>MyClass::functionName()</pre>
+ */
+KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& fullFuncName);
 
 // DEBUG WITH TIME PRINTING FOR TIMING OPERATIONS
 
 #ifdef KLF_DEBUG_TIME_PRINT
 #include <sys/time.h>
-// FOR DEBUGGING: Print Debug message with precise current time
+/** FOR DEBUGGING: Print Debug message with precise current time */
 KLF_EXPORT void __klf_debug_time_print(QString str);
-#define klf_debug_time_print(x) __klf_debug_time_print(x)
+
+class KLF_EXPORT KLFDebugBlockTimer
+{
+  QString pBlockName;
+public:
+  KLFDebugBlockTimer(const QString& blockName) : pBlockName(blockName)
+  { __klf_debug_time_print(QString("%1: block begin").arg(pBlockName)); }
+
+  ~KLFDebugBlockTimer()
+  { __klf_debug_time_print(QString("%1: block end").arg(pBlockName)); }
+};
+
+#define klf_debug_time_print(msg) __klf_debug_time_print(msg)
+#define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer(QByteArray(msg))
 #else
+
+/** \brief Utility to time the execution of a block
+ *
+ * Prints message in constructor and in destructor to test
+ * block execution time */
+class KLF_EXPORT KLFDebugBlockTimer
+{
+public:
+  KLFDebugBlockTimer(const QString& /*blockName*/) { }
+  ~KLFDebugBlockTimer() { }
+};
+
 /** \brief Print debug message with precise current time
  *
  * This function outputs something like:
  * <pre>010.038961 : <i>debug message given in x</i></pre>
  * and can be used to print debug messages and locate time-consuming
- * instructions for example. */
+ * instructions for example.
+ *
+ * \note KLF_DEBUG_TIME_PRINT needs to be defined at compile-time
+ *   to enable this feature. Otherwise, this maco is a no-op.
+ */
 #define klf_debug_time_print(x)
+/** \brief Utility to time the execution of a block
+ *
+ * \note KLF_DEBUG_TIME_PRINT needs to be defined at compile-time
+ *   to enable this feature. Otherwise, this maco is a no-op.
+ *
+ * Usage example:
+ * \code
+ * void do_something() {
+ *   KLF_DEBUG_TIME_BLOCK("block do_something() execution") ;
+ *   ... // some lengthy operation
+ *   ... if (failed) return; // for example
+ *   ... // no special instruction needed at end of block
+ * }
+ * \endcode
+ */
+#define KLF_DEBUG_TIME_BLOCK(msg)
+
 #endif
 
 
@@ -71,12 +123,13 @@ KLF_EXPORT void __klf_debug_time_print(QString str);
 # endif
 #endif
 #if defined KLF_CMAKE_HAS_PRETTY_FUNCTION
-#define KLF_FUNC_NAME __PRETTY_FUNCTION__
+#define KLF_FUNC_NAME klfShortFuncSignature(__PRETTY_FUNCTION__).data()
 #elif defined KLF_CMAKE_HAS_FUNCTION
 #define KLF_FUNC_NAME __FUNCTION__
 #elif defined KLF_CMAKE_HAS_FUNC
 #define KLF_FUNC_NAME __func__
 #else
+/** This macro expands to the function name this macro is called in */
 #define KLF_FUNC_NAME "<unknown>"
 #endif
 

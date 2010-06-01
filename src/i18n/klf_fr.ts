@@ -330,7 +330,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../klflibview.cpp" line="3611"/>
         <source>Failed to overwrite the file %1.</source>
-        <translation>Erreur : Impossible d&apos;écraser le fichier `%1&apos; !</translation>
+        <translation>Erreur : Impossible d&apos;écraser le fichier `%1&apos;.</translation>
     </message>
 </context>
 <context>
@@ -1119,303 +1119,384 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibraryBrowser</name>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="844"/>
         <source>Restore Formula with Style</source>
-        <translation type="obsolete">Restaurer la formule, avec style</translation>
+        <translation>Restaurer la formule, avec style</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="845"/>
         <source>Restore Formula Only</source>
-        <translation type="obsolete">Restaurer la formule seulement</translation>
+        <translation>Restaurer la formule seulement</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="850"/>
         <source>Only display tagged items</source>
-        <translation type="obsolete">Afficher uniquement les formules avec mots-clefs</translation>
+        <translation>Afficher uniquement les formules avec mots-clefs</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="854"/>
         <source>Don&apos;t display duplicate items</source>
-        <translation type="obsolete">Ne pas afficher deux fois la même formule</translation>
+        <translation>Ne pas afficher deux fois la même formule</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="861"/>
         <source>Import ...</source>
-        <translation type="obsolete">Importer ...</translation>
+        <translation>Importer ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="863"/>
         <source>Import Into Current Resource ...</source>
-        <translation type="obsolete">Importer dans la resource courante ...</translation>
+        <translation>Importer dans la resource courante ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="865"/>
         <source>Import Into Separate Resources ...</source>
-        <translation type="obsolete">Importer dans des resources à part ...</translation>
+        <translation>Importer dans des resources à part ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="868"/>
         <source>Export Whole Library ...</source>
-        <translation type="obsolete">Exporter toute la bibliothèque ...</translation>
+        <translation>Exporter toute la bibliothèque ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="870"/>
         <source>Export Resource [] ...</source>
-        <translation type="obsolete">Exporter la resource [] ...</translation>
+        <translation>Exporter la resource [] ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="872"/>
         <source>Export Current Selection ...</source>
-        <translation type="obsolete">Exporter la séléction ...</translation>
+        <translation>Exporter la séléction ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="939"/>
         <source>Add Resource ...</source>
-        <translation type="obsolete">Ajouter une resource ...</translation>
+        <translation>Ajouter une resource ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="941"/>
         <source>Rename Resource ...</source>
-        <translation type="obsolete">Renommer la resource ...</translation>
+        <translation>Renommer la resource ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="943"/>
+        <location filename="obsolete/klflibrary.cpp" line="1575"/>
         <source>Delete Resource</source>
-        <translation type="obsolete">Supprimer la resource</translation>
+        <translation>Supprimer la resource</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="946"/>
         <source>Resources</source>
-        <translation type="obsolete">Resources</translation>
+        <translation>Resources</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1012"/>
         <source>Export Resource [ %1 ] ...</source>
-        <translation type="obsolete">Exporter la resource [ %1 ] ...</translation>
+        <translation>Exporter la resource [ %1 ] ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1013"/>
         <source>&lt;none&gt;</source>
-        <translation type="obsolete">&lt;aucune&gt;</translation>
+        <translation>&lt;aucune&gt;</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1342"/>
+        <location filename="obsolete/klflibrary.cpp" line="1424"/>
         <source>Import Library Resource</source>
-        <translation type="obsolete">Importer une resource</translation>
+        <translation>Importer une resource</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1343"/>
+        <location filename="obsolete/klflibrary.cpp" line="1425"/>
+        <location filename="obsolete/klflibrary.cpp" line="1476"/>
         <source>KLatexFormula Library Files (*.klf);;All Files (*)</source>
-        <translation type="obsolete">Fichiers Exportation de Bibliothèque KLatexFormula (*.klf);;Tous les fichiers (*)</translation>
+        <translation>Fichiers Exportation de Bibliothèque KLatexFormula (*.klf);;Tous les fichiers (*)</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1615"/>
+        <location filename="obsolete/klflibrary.cpp" line="1622"/>
         <source>Error</source>
-        <translation type="obsolete">Erreur</translation>
+        <translation>Erreur</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1615"/>
         <source>Unable to open library file %1!</source>
-        <translation type="obsolete">Impossible d&apos;ouvrir le fichier bibliothèque %1 !</translation>
+        <translation>Impossible d&apos;ouvrir le fichier bibliothèque %1 !</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1622"/>
         <source>Error: Library file `%1&apos; is incorrect or corrupt!
 </source>
-        <translation type="obsolete">Erreur: Le fichier de bibliothèque `%1&apos; est corrompu !
+        <translation>Erreur: Le fichier de bibliothèque `%1&apos; est corrompu !
 </translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1633"/>
         <source>Import Library Items</source>
-        <translation type="obsolete">Importation</translation>
+        <translation>Importation</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1634"/>
         <source>This library file was created by a more recent version of KLatexFormula.
 The process of library importing may fail.</source>
-        <translation type="obsolete">Cette bibliothèque a été créée par une version plus récente de KLatexFormula.
+        <translation>Cette bibliothèque a été créée par une version plus récente de KLatexFormula.
 Le chargement peut échouer.</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1475"/>
         <source>Export Library Resource</source>
-        <translation type="obsolete">Exporter resource</translation>
+        <translation>Exporter resource</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1496"/>
         <source>Error !</source>
-        <translation type="obsolete">Erreur !</translation>
+        <translation>Erreur !</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1496"/>
         <source>Error: Can&apos;t write to file `%1&apos;!</source>
-        <translation type="obsolete">Erreur : Impossible d&apos;écrire dans le fichier `%1&apos; !</translation>
+        <translation>Erreur : Impossible d&apos;écrire dans le fichier `%1&apos; !</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1512"/>
+        <location filename="obsolete/klflibrary.cpp" line="1513"/>
         <source>New Resource</source>
-        <translation type="obsolete">Nouvelle resource</translation>
+        <translation>Nouvelle resource</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1512"/>
+        <location filename="obsolete/klflibrary.cpp" line="1537"/>
         <source>Please Enter New Resource Name</source>
-        <translation type="obsolete">Saisissez un nouveau nom de resource</translation>
+        <translation>Saisissez un nouveau nom de resource</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1537"/>
         <source>Rename Resource</source>
-        <translation type="obsolete">Renommer la resource</translation>
+        <translation>Renommer la resource</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="1576"/>
         <source>&lt;qt&gt;Are you sure you want to delete resource &lt;b&gt;%1&lt;/b&gt; with all its contents?&lt;/qt&gt;</source>
-        <translation type="obsolete">&lt;qt&gt;Êtes-vous sûr de vouloir supprimer définitivement la resource &lt;b&gt;%1&lt;/b&gt; avec tout son contenu ?&lt;/qt&gt;</translation>
+        <translation>&lt;qt&gt;Êtes-vous sûr de vouloir supprimer définitivement la resource &lt;b&gt;%1&lt;/b&gt; avec tout son contenu ?&lt;/qt&gt;</translation>
     </message>
 </context>
 <context>
     <name>KLFLibraryBrowserUI</name>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="17"/>
         <source>KLatexFormula Library</source>
-        <translation type="obsolete">Bibliothèque KLatexFormula</translation>
+        <translation>Bibliothèque KLatexFormula</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="81"/>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="84"/>
         <source>Incremental search within history items. Find next with F3 key.</source>
-        <translation type="obsolete">Recherche incrémentale dans la bibliothèque. Chercher suivant avec la touche F3.</translation>
+        <translation>Recherche incrémentale dans la bibliothèque. Chercher suivant avec la touche F3.</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="51"/>
         <source>&amp;Search:</source>
-        <translation type="obsolete">&amp;Recherche :</translation>
+        <translation>&amp;Recherche :</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="64"/>
         <source>Clear Search bar</source>
-        <translation type="obsolete">Effacer la barre de recherche</translation>
+        <translation>Effacer la barre de recherche</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="91"/>
         <source>Find Previous [Shift-F3]</source>
-        <translation type="obsolete">Chercher précédant [Shift-F3]</translation>
+        <translation>Chercher précédant [Shift-F3]</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="94"/>
         <source>Find Previous occurrence of search string</source>
-        <translation type="obsolete">Trouver l&apos;apparition précédente du critère de recherche</translation>
+        <translation>Trouver l&apos;apparition précédente du critère de recherche</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="105"/>
         <source>Find Next [F3]</source>
-        <translation type="obsolete">Chercher suivant [F3]</translation>
+        <translation>Chercher suivant [F3]</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="108"/>
         <source>Find Next occurrence of search string</source>
-        <translation type="obsolete">Trouver l&apos;apparition suivante du critère de recherche</translation>
+        <translation>Trouver l&apos;apparition suivante du critère de recherche</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="158"/>
         <source>Preview and Tags</source>
-        <translation type="obsolete">Prévisualisation et Mots-Clefs</translation>
+        <translation>Prévisualisation et Mots-Clefs</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="202"/>
         <source>&amp;Category:</source>
-        <translation type="obsolete">&amp;Catégorie :</translation>
+        <translation>&amp;Catégorie :</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="246"/>
         <source>Update Category</source>
-        <translation type="obsolete">Mettre à jour (catégorie)</translation>
+        <translation>Mettre à jour (catégorie)</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="255"/>
         <source>Name / &amp;Tags:</source>
-        <translation type="obsolete">Nom / &amp;Mots-Clefs :</translation>
+        <translation>Nom / &amp;Mots-Clefs :</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="299"/>
         <source>Update Tags</source>
-        <translation type="obsolete">Mettre à jour (nom/mots-clefs)</translation>
+        <translation>Mettre à jour (nom/mots-clefs)</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="330"/>
         <source>Style</source>
-        <translation type="obsolete">Style</translation>
+        <translation>Style</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="342"/>
         <source>[Style]</source>
-        <translation type="obsolete">[Style]</translation>
+        <translation>[Style]</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="393"/>
         <source>Restore current selected formula to KLatexFormula editor, with style</source>
-        <translation type="obsolete">Restaurer la formule séléctionnée dans l&apos;éditeur KLatexFormula, avec le style correspondant</translation>
+        <translation>Restaurer la formule séléctionnée dans l&apos;éditeur KLatexFormula, avec le style correspondant</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="396"/>
         <source>&amp;Restore Formula</source>
-        <translation type="obsolete">&amp;Restaurer la formule</translation>
+        <translation>&amp;Restaurer la formule</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="403"/>
         <source>Alt+U</source>
-        <translation type="obsolete">Alt+U</translation>
+        <translation>Alt+U</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="419"/>
         <source>Delete de selected history items</source>
-        <translation type="obsolete">Effacer les formule séléctionnées</translation>
+        <translation>Effacer les formule séléctionnées</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="422"/>
         <source>&amp;Delete item(s)</source>
-        <translation type="obsolete">&amp;Supprimer</translation>
+        <translation>&amp;Supprimer</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="442"/>
         <source>&amp;Import/Export</source>
-        <translation type="obsolete">&amp;Importer/Exporter</translation>
+        <translation>&amp;Importer/Exporter</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="462"/>
         <source>Alt+N</source>
-        <translation type="obsolete">Alt+N</translation>
+        <translation>Alt+N</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="475"/>
         <source>Close this window</source>
-        <translation type="obsolete">Fermer cette fenêtre</translation>
+        <translation>Fermer cette fenêtre</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="478"/>
         <source>Close</source>
-        <translation type="obsolete">Fermer</translation>
+        <translation>Fermer</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrarybrowserui.ui" line="485"/>
         <source>Alt+O</source>
-        <translation type="obsolete">Alt+O</translation>
+        <translation>Alt+O</translation>
     </message>
 </context>
 <context>
     <name>KLFLibraryListManager</name>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="204"/>
+        <location filename="obsolete/klflibrary.cpp" line="206"/>
         <source>Preview</source>
-        <translation type="obsolete">Prévisualisation</translation>
+        <translation>Prévisualisation</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="204"/>
         <source>Latex Code</source>
-        <translation type="obsolete">Code Latex</translation>
+        <translation>Code Latex</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="206"/>
         <source>Tags</source>
-        <translation type="obsolete">Etiquettes</translation>
+        <translation>Etiquettes</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="286"/>
+        <location filename="obsolete/klflibrary.cpp" line="315"/>
         <source>[ No Item Selected ]</source>
-        <translation type="obsolete">[ Pas de formule séléctionnée ]</translation>
+        <translation>[ Pas de formule séléctionnée ]</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="286"/>
         <source>[ %1 Items Selected ]</source>
-        <translation type="obsolete">[ %1 éléments sélectionnés ]</translation>
+        <translation>[ %1 éléments sélectionnés ]</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="315"/>
         <source>[ Multiple Items Selected ]</source>
-        <translation type="obsolete">[ Plusieurs formules sélectionnées ]</translation>
+        <translation>[ Plusieurs formules sélectionnées ]</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="321"/>
         <source>[ No Items Selected ]</source>
-        <translation type="obsolete">[ Pas de formule séléctionnée ]</translation>
+        <translation>[ Pas de formule séléctionnée ]</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="331"/>
         <source>[ Different Styles ]</source>
-        <translation type="obsolete">[ Styles Différents ]</translation>
+        <translation>[ Styles Différents ]</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="411"/>
         <source>Restore latex formula and style</source>
-        <translation type="obsolete">Restaurer la formule latex avec le style</translation>
+        <translation>Restaurer la formule latex avec le style</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="413"/>
         <source>Restore latex formula only</source>
-        <translation type="obsolete">Restaurer la formule seulement</translation>
+        <translation>Restaurer la formule seulement</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="416"/>
         <source>Delete from library</source>
-        <translation type="obsolete">Supprimer de la bibliothèque</translation>
+        <translation>Supprimer de la bibliothèque</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="433"/>
         <source>Copy to</source>
-        <translation type="obsolete">Copier vers</translation>
+        <translation>Copier vers</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="436"/>
         <source>Move to</source>
-        <translation type="obsolete">Déplacer vers</translation>
+        <translation>Déplacer vers</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="441"/>
         <source>Refresh</source>
-        <translation type="obsolete">Rafraîchir</translation>
+        <translation>Rafraîchir</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="481"/>
         <source>delete from Library?</source>
-        <translation type="obsolete">Effacer de la bibliothèque ?</translation>
+        <translation>Effacer de la bibliothèque ?</translation>
     </message>
     <message>
         <source>Are you sure you want to delete %1 selected item(s) from library?</source>
         <translation type="obsolete">Êtes-vous sûr de vouloir supprimer définitivement %1 formules sélectionnées de la bibliothèque ?</translation>
     </message>
     <message numerus="yes">
+        <location filename="obsolete/klflibrary.cpp" line="482"/>
         <source>Are you sure you want to delete %n selected item(s) from library?</source>
         <comment>[[confirmation message box]]</comment>
-        <translation type="obsolete">
+        <translation>
             <numerusform>Êtes-vous sûr de vouloir supprimer définitivement de la bibilothèque %n formule sélectionnée ?</numerusform>
             <numerusform>Êtes-vous sûr de vouloir supprimer définitivement de la bibilothèque %n formules sélectionnées ?</numerusform>
         </translation>
@@ -2022,7 +2103,7 @@ Ecraser ?</translation>
     <message>
         <location filename="../klfmainwin.cpp" line="1626"/>
         <source>&lt;p&gt;%1&lt;/p&gt;&lt;p align=&quot;right&quot; style=&quot;font-size: %2pt; font-style: italic;&quot;&gt;This preview can be opened with the &lt;strong&gt;F2&lt;/strong&gt; key. Hit &lt;strong&gt;Esc&lt;/strong&gt; to close.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;%1&lt;/p&gt;&lt;p align=&quot;right&quot; style=&quot;font-size: %2pt; font-style: italic;&quot;&gt;Cette fenêtre de prévisualisation peut être ouverte en appuyant sur la touche&lt;strong&gt;F2&lt;/strong&gt;. Appuyez sur &lt;strong&gt;Échap&lt;/strong&gt; pour la fermer.&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;%1&lt;/p&gt;&lt;p align=&quot;right&quot; style=&quot;font-size: %2pt; font-style: italic;&quot;&gt;Cette fenêtre de prévisualisation peut être ouverte en appuyant sur la touche &lt;strong&gt;F2&lt;/strong&gt;. Appuyez sur &lt;strong&gt;Échap&lt;/strong&gt; pour la fermer.&lt;/p&gt;</translation>
     </message>
     <message>
         <source>&lt;p&gt;%1&lt;/p&gt;&lt;p align=&quot;right&quot; style=&quot;font-size: 7pt; font-style: italic;&quot;&gt;This preview can be opened with the &lt;strong&gt;F2&lt;/strong&gt; key. Hit &lt;strong&gt;Esc&lt;/strong&gt; to close.&lt;/p&gt;</source>
@@ -2057,26 +2138,31 @@ Ecraser ?</translation>
         <translation type="obsolete">KLatexFormula</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="62"/>
         <source>Enter &amp;LaTeX expression:</source>
-        <translation type="obsolete">Saisissez l&apos;expression &amp;LaTeX :</translation>
+        <translation>Saisissez l&apos;expression &amp;LaTeX :</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="81"/>
         <source>Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.</source>
-        <translation type="obsolete">Editez ou coller le code LaTeX de votre formule ici. En tout temps, utilisez la touche &lt;strong&gt;F4&lt;/strong&gt; pour venir sur l&apos;éditeur.</translation>
+        <translation>Editez ou coller le code LaTeX de votre formule ici. En tout temps, utilisez la touche &lt;strong&gt;F4&lt;/strong&gt; pour venir sur l&apos;éditeur.</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="117"/>
         <source>Clear the above field</source>
         <comment>tooltip</comment>
-        <translation type="obsolete">Effacer le champ ci-dessus</translation>
+        <translation>Effacer le champ ci-dessus</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="120"/>
         <source>Clicking this button is a utility to clear the LaTeX code entry field above</source>
         <comment>whatsthis</comment>
-        <translation type="obsolete">Efface le champ ci-dessus</translation>
+        <translation>Efface le champ ci-dessus</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="127"/>
         <source>Ctrl+C</source>
-        <translation type="obsolete">Ctrl+C</translation>
+        <translation>Ctrl+C</translation>
     </message>
     <message>
         <source>Evaluate LaTeX Expression [Shift-Enter]</source>
@@ -2084,13 +2170,15 @@ Ecraser ?</translation>
         <translation type="obsolete">Evaluer l&apos;expression LaTeX [Shift-Enter]</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="143"/>
         <source>Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</source>
         <comment>whatsthistext</comment>
-        <translation type="obsolete">Crée une image à partir de la formule &lt;i&gt;LaTeX&lt;/i&gt; ci-dessus, qui sera affichée ci-dessous.</translation>
+        <translation>Crée une image à partir de la formule &lt;i&gt;LaTeX&lt;/i&gt; ci-dessus, qui sera affichée ci-dessous.</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="146"/>
         <source>&amp;Evaluate</source>
-        <translation type="obsolete">&amp;Evaluer</translation>
+        <translation>&amp;Evaluer</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2102,19 +2190,22 @@ Ecraser ?</translation>
         <translation type="obsolete">Afficher la palette de symboles LaTeX</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="172"/>
         <source>Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</source>
         <comment>whatsthis text</comment>
-        <translation type="obsolete">Ouvre une fenêtre affichant des palettes de symboles LaTeX dont vous ne connaîtriez pas forcément par coeur tous les codes.</translation>
+        <translation>Ouvre une fenêtre affichant des palettes de symboles LaTeX dont vous ne connaîtriez pas forcément par coeur tous les codes.</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="195"/>
         <source>Show Library</source>
         <comment>tooltip</comment>
-        <translation type="obsolete">Afficher la bibliothèque</translation>
+        <translation>Afficher la bibliothèque</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="198"/>
         <source>Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</source>
         <comment>whatsthis text</comment>
-        <translation type="obsolete">Ouvre une fênetre avec la bibliothèque de formules précédemment rendues (historique) et sauvegardées et organisées (archives).</translation>
+        <translation>Ouvre une fênetre avec la bibliothèque de formules précédemment rendues (historique) et sauvegardées et organisées (archives).</translation>
     </message>
     <message>
         <source>Toggle shrinked/expanded mode</source>
@@ -2122,179 +2213,267 @@ Ecraser ?</translation>
         <translation type="obsolete">Basculer mode étendu ou simple</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="140"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation type="obsolete">&lt;p style=&quot;white-space: pre&quot;&gt;Evaluer l&apos;expression LaTeX [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Evaluer l&apos;expression LaTeX [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="169"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation type="obsolete">&lt;p style=&quot;white-space: pre&quot;&gt;Afficher la palette de symboles LaTeX&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher la palette de symboles LaTeX&lt;/p&gt;</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="221"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation type="obsolete">&lt;p style=&quot;white-space: pre&quot;&gt;Basculer mode étendu ou simple&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Basculer mode étendu ou simple&lt;/p&gt;</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="224"/>
         <source>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</source>
-        <translation type="obsolete">Bascule entre mode étendu et mode compact. En mode étendu plus d&apos;options s&apos;offrent à vous.</translation>
+        <translation>Bascule entre mode étendu et mode compact. En mode étendu plus d&apos;options s&apos;offrent à vous.</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="231"/>
         <source>Ctrl+E, Ctrl+Space</source>
-        <translation type="obsolete">Ctrl+E, Ctrl+Space</translation>
+        <translation>Ctrl+E, Ctrl+Space</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="258"/>
         <source>Click and keep mouse button pressed to drag your formula to an other application</source>
-        <translation type="obsolete">Cliquez et en maintenant appuyé le bouton de souris traînez l&apos;image dans une autre application ou sur le bureau</translation>
+        <translation>Cliquez et en maintenant appuyé le bouton de souris traînez l&apos;image dans une autre application ou sur le bureau</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="261"/>
         <source>&amp;DRAG</source>
-        <translation type="obsolete">&amp;TRAINER</translation>
+        <translation>&amp;TRAINER</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="268"/>
         <source>Copy formula to clipboard</source>
-        <translation type="obsolete">Copie l&apos;image sur le presse-papiers</translation>
+        <translation>Copie l&apos;image sur le presse-papiers</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="271"/>
         <source>&amp;COPY</source>
-        <translation type="obsolete">&amp;COPIER</translation>
+        <translation>&amp;COPIER</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="274"/>
         <source>Alt+Y</source>
-        <translation type="obsolete">Alt+Y</translation>
+        <translation>Alt+Y</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="281"/>
         <source>Save formula to disk</source>
-        <translation type="obsolete">Enregistrer sur le disque</translation>
+        <translation>Enregistrer sur le disque</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="284"/>
         <source>&amp;SAVE</source>
-        <translation type="obsolete">&amp;ENR.</translation>
+        <translation>&amp;ENR.</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="319"/>
         <source>The resulting image will be displayed here</source>
         <comment>tooltip</comment>
-        <translation type="obsolete">L&apos;image de la formule sera affichée ici</translation>
+        <translation>L&apos;image de la formule sera affichée ici</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="322"/>
         <source>Here you can see the image you get after evaluating your LaTeX code.</source>
         <comment>whatsthis</comment>
-        <translation type="obsolete">Ici s&apos;affiche l&apos;image rendue de la formula LaTeX saisie ci-dessus.</translation>
+        <translation>Ici s&apos;affiche l&apos;image rendue de la formula LaTeX saisie ci-dessus.</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="372"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</source>
-        <translation type="obsolete">&lt;p style=&quot;white-space: pre&quot;&gt;Afficher une fenêtre de prévisualisation plus grande [touche &lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher une fenêtre de prévisualisation plus grande [touche &lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="392"/>
         <source>Quit KLatexFormula</source>
         <comment>tooltip</comment>
-        <translation type="obsolete">Quitter KLatexFormula</translation>
+        <translation>Quitter KLatexFormula</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="395"/>
         <source>Exit KLatexFormula</source>
         <comment>whatsthis</comment>
-        <translation type="obsolete">Quitter KLatexFormula</translation>
+        <translation>Quitter KLatexFormula</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="398"/>
         <source>Quit</source>
-        <translation type="obsolete">Quitter</translation>
+        <translation>Quitter</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="405"/>
         <source>Ctrl+Q</source>
-        <translation type="obsolete">Ctrl+Q</translation>
+        <translation>Ctrl+Q</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="436"/>
         <source>Colors</source>
-        <translation type="obsolete">Couleurs</translation>
+        <translation>Couleurs</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="451"/>
         <source>&amp;Foreground color:</source>
-        <translation type="obsolete">&amp;Couleur d&apos;avant-plan :</translation>
+        <translation>&amp;Couleur d&apos;avant-plan :</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="471"/>
         <source>Check this if you want your formula to have a transparent background</source>
-        <translation type="obsolete">Cochez cette case pour un arrière-plan transparent</translation>
+        <translation>Cochez cette case pour un arrière-plan transparent</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="474"/>
         <source>Use &amp;transparent background</source>
-        <translation type="obsolete">Utiliser un fond &amp;transparent</translation>
+        <translation>Utiliser un fond &amp;transparent</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="477"/>
         <source>Alt+U</source>
-        <translation type="obsolete">Alt+U</translation>
+        <translation>Alt+U</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="490"/>
         <source>&amp;Background color:</source>
-        <translation type="obsolete">Couleur de &amp;fond :</translation>
+        <translation>Couleur de &amp;fond :</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="516"/>
         <source>Latex &amp;&amp; Image Settings</source>
-        <translation type="obsolete">Latex &amp;&amp; Image</translation>
+        <translation>Latex &amp;&amp; Image</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="525"/>
         <source>Check this to use a LaTeX math mode</source>
-        <translation type="obsolete">Cocher pour utiliser un mode Mathématique Latex</translation>
+        <translation>Cocher pour utiliser un mode Mathématique Latex</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="528"/>
         <source>Use &amp;Math mode:</source>
-        <translation type="obsolete">Utiliser le &amp;Mode :</translation>
+        <translation>Utiliser le &amp;Mode :</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="545"/>
         <source>\[ ... \]</source>
-        <translation type="obsolete">\[ ... \]</translation>
+        <translation>\[ ... \]</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="550"/>
         <source>$ ... $</source>
-        <translation type="obsolete">$ ... $</translation>
+        <translation>$ ... $</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="555"/>
         <source>\begin{eqnarray*} ... \end{eqnarray*}</source>
-        <translation type="obsolete">\begin{eqnarray*} ... \end{eqnarray*}</translation>
+        <translation>\begin{eqnarray*} ... \end{eqnarray*}</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="563"/>
         <source>Edit LaTeX &amp;preamble:</source>
-        <translation type="obsolete">Modifier le &amp;préambule LaTeX :</translation>
+        <translation>Modifier le &amp;préambule LaTeX :</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="597"/>
         <source>DPI &amp;Resolution:</source>
-        <translation type="obsolete">&amp;Résuolution DPI :</translation>
+        <translation>&amp;Résuolution DPI :</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="618"/>
+        <source>Presets</source>
+        <translation>Préréglages</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="657"/>
         <source>Load a previously saved style</source>
-        <translation type="obsolete">Charger un style préalablement sauvegardé</translation>
+        <translation>Charger un style préalablement sauvegardé</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="660"/>
         <source>Load St&amp;yle</source>
-        <translation type="obsolete">Charger St&amp;yle</translation>
+        <translation>Charger St&amp;yle</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="667"/>
         <source>Alt+L</source>
-        <translation type="obsolete">Alt+L</translation>
+        <translation>Alt+L</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="680"/>
         <source>Save current style (colors, etc.)</source>
-        <translation type="obsolete">Enregistrer le style courant</translation>
+        <translation>Enregistrer le style courant</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="683"/>
         <source>Sa&amp;ve Style</source>
-        <translation type="obsolete">En&amp;registrer Style</translation>
+        <translation>En&amp;registrer Style</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="703"/>
+        <location filename="obsolete/klfmainwinui.ui" line="726"/>
         <source>Edit KLatexFormula settings</source>
-        <translation type="obsolete">Modifier les paramètres KLatexFormula</translation>
+        <translation>Modifier les paramètres KLatexFormula</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="706"/>
         <source>Settings...</source>
-        <translation type="obsolete">Paramètres ...</translation>
+        <translation>Paramètres ...</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="713"/>
         <source>Alt+N</source>
-        <translation type="obsolete">Alt+N</translation>
+        <translation>Alt+N</translation>
     </message>
     <message>
+        <location filename="obsolete/klfmainwinui.ui" line="733"/>
         <source>F1</source>
-        <translation type="obsolete">F1</translation>
+        <translation>F1</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="745"/>
+        <source>High Resolution (1200)</source>
+        <translation>Haute Résolution (1200)</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="748"/>
+        <source>Very good resolution</source>
+        <translation>Très bonne résolution</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="753"/>
+        <source>Good Resolution (600)</source>
+        <translation>Bonne Résolution (600)</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="756"/>
+        <source>Pretty good resolution</source>
+        <translation>Assez bonne résolution</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="761"/>
+        <source>Medium Resolution (300)</source>
+        <translation>Résolution Moyenne (300)</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="764"/>
+        <source>Medium resolution</source>
+        <translation>résolution moyenne</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="769"/>
+        <source>Low Resolution (150)</source>
+        <translation>Basse Résolution (150)</translation>
+    </message>
+    <message>
+        <location filename="obsolete/klfmainwinui.ui" line="772"/>
+        <source>Low resolution</source>
+        <translation>basse résolution</translation>
     </message>
 </context>
 <context>
@@ -3040,8 +3219,10 @@ p, li { white-space: pre-wrap; }
         <translation type="obsolete">Annuler</translation>
     </message>
     <message>
+        <location filename="obsolete/klflibrary.cpp" line="88"/>
+        <location filename="obsolete/klflibrary.cpp" line="90"/>
         <source>[ No Category ]</source>
-        <translation type="obsolete">[ pas de catégorie ]</translation>
+        <translation>[ pas de catégorie ]</translation>
     </message>
     <message>
         <source>Warning: Ignoring --input when --latexinput is given.

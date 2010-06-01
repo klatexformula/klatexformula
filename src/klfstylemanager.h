@@ -78,6 +78,8 @@ public slots:
   void refreshActionsEnabledState();
   void showActionsContextMenu(const QPoint& pos);
 
+  void retranslateUi(bool alsoBaseUi = true);
+
 protected slots:
   void slotModelMoveCompleted(int previouspos, int newpos);
 

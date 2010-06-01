@@ -47,6 +47,7 @@
 #include "klfmainwin.h"
 #include "klfconfig.h"
 #include "klfpluginiface.h"
+#include "klflatexsyntaxhighlighter.h"
 #include "klfsettings.h"
 
 
@@ -158,7 +159,6 @@ void KLFSettings::retranslateUi(bool alsoBaseUi)
   if (alsoBaseUi)
     Ui::KLFSettingsUI::retranslateUi(this);
 
-  
 }
 
 
@@ -170,7 +170,7 @@ void KLFSettings::populateLocaleCombo()
 {
   cbxLocale->clear();
   // application language : populate combo box
-  cbxLocale->addItem( tr("English Default", "[[first item of language graphical choice box]]") ,
+  cbxLocale->addItem( QString::fromLatin1("English Default") ,
 		      QVariant(QString::null) );
   int k;
   for (k = 0; k < klf_avail_translations.size(); ++k) {
@@ -753,8 +753,13 @@ void KLFSettings::apply()
 
 
   // font settings
-  klfconfig.UI.applicationFont = btnAppFont->property("selectedFont").value<QFont>();
-  qApp->setFont(klfconfig.UI.applicationFont);
+  QFont curAppFont = klfconfig.UI.applicationFont;
+  QFont newAppFont = btnAppFont->property("selectedFont").value<QFont>();
+  if (curAppFont != newAppFont) {
+    klfconfig.UI.applicationFont = newAppFont;
+    qApp->setFont(klfconfig.UI.applicationFont);
+    qApp->setStyleSheet(qApp->styleSheet()); // needed to force font (?)
+  }
   klfconfig.UI.latexEditFont = btnAppearFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
   klfconfig.UI.preambleEditFont = btnAppearPreambleFont->property("selectedFont").value<QFont>();
