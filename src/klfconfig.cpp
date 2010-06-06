@@ -45,7 +45,8 @@
 KLFConfig klfconfig;
 
 
-void settings_write_QTextCharFormat(QSettings& s, const QString& basename, const QTextCharFormat& charfmt)
+void settings_write_QTextCharFormat(QSettings& s, const QString& basename,
+				    const QTextCharFormat& charfmt)
 {
   s.setValue(basename+"_charformat", charfmt);
 }
@@ -190,6 +191,7 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.displayNoDuplicates = false;
   LibraryBrowser.colorFound = QColor(128, 255, 128);
   LibraryBrowser.colorNotFound = QColor(255, 128, 128);
+
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }

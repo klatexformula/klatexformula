@@ -368,13 +368,26 @@ public:
    * */
   virtual uint supportedFeatureFlags() const { return pFeatureFlags; }
 
+  //! Format options one can give to \ref url()
+  enum WantUrlFormatFlag {
+    //! Add a query item for default sub-res. as \c "klfDefaultSubResource"
+    WantUrlDefaultSubResource = 0x01,
+    //! Add a query item for read-only status, as \c "klfReadOnly"
+    WantUrlReadOnly = 0x02
+  };
   //! Query URL
   /** Returns the identifying URL of this resource.
    *
    * \note This is not quite the URL passed to the constructor. Some query items are recognized
    *   and stripped. See the \ref KLFLibResourceEngine "Class Documentation" for more information.
+   *
+   * Flags may be specified as to which query items we would like to add to URL (eg. default
+   * sub-resource, read-only status). see \ref WantUrlFormatFlag.
+   *
+   * See also \ref KLFAbstractLibView::url(). That function gives also information on what part
+   * of the resource it displays.
    */
-  virtual QUrl url() const { return pUrl; }
+  virtual QUrl url(uint flags = 0x0) const;
 
   //! Query read-only state
   /** See \ref KLFLibResourceEngine "Class Documentation" for more details. */

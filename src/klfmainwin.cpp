@@ -67,6 +67,7 @@
 
 //#include "klfdata.h"
 //#include "klflibrary.h"
+#include "klfutil.h"
 #include "klflatexsyntaxhighlighter.h"
 #include "klflibbrowser.h"
 #include "klflibdbengine.h"
@@ -78,8 +79,6 @@
 #include "klfmime.h"
 
 
-
-#define min_i(x,y) ( (x)<(y) ? (x) : (y) )
 
 #define DEBUG_GEOM_ARGS(g) (g).topLeft().x(), (g).topLeft().y(), (g).size().width(), (g).size().height()
 
@@ -249,12 +248,6 @@ KLFMainWin::KLFMainWin()
   // load styless
   loadStyles();
 
-  // load library
-  mLibBrowser = new KLFLibBrowser(this);
-  /// \todo TODO ....................... load previously saved GUI state ............. for KLFLibBrowser....
-  loadLibrary();
-
-
   mLatexSymbols = new KLFLatexSymbols(this);
 
   u->txtLatex->setFont(klfconfig.UI.latexEditFont);
@@ -343,6 +336,13 @@ KLFMainWin::KLFMainWin()
   connect(synthighlighttimer, SIGNAL(timeout()), mPreambleHighlighter, SLOT(refreshAll()));
   synthighlighttimer->start(250);
 
+
+  // load library
+  mLibBrowser = new KLFLibBrowser(this);
+  /// \todo TODO ....................... load previously saved GUI state ............. for KLFLibBrowser....
+  loadLibrary();
+
+
   // -- MAJOR SIGNAL/SLOT CONNECTIONS --
 
   connect(u->btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
@@ -427,6 +427,10 @@ KLFMainWin::KLFMainWin()
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mLibBrowser, SLOT(retranslateUi()));
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mSettingsDialog, SLOT(retranslateUi()));
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mStyleManager, SLOT(retranslateUi()));
+
+
+  // load the library browser's saved state
+  loadLibrarySavedState();
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -445,6 +449,7 @@ KLFMainWin::~KLFMainWin()
 {
   //  printf("DEBUG: KLFMainWin::~KLFMainWin(): destroying...\n");
 
+  saveLibraryState();
   saveSettings();
   saveStyles();
 
@@ -783,17 +788,16 @@ void KLFMainWin::loadLibrary()
   }
 
   // Open history sub-resource into library browser
-  //  bool r;
-  //  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
-  //				QLatin1String("default+list"));
-  //  if ( ! r ) {
-  //    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
-  //	      <<"\n\tExpect Crash!";
-  //    return;
-  //  }
-
+  bool r;
+  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
+  				QLatin1String("default+list"));
+  if ( ! r ) {
+    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
+  	      <<"\n\tExpect Crash!";
+    return;
+  }
   // Delayed open
-  QMetaObject::invokeMethod(this, "slotOpenHistoryLibraryResource", Qt::QueuedConnection);
+  //  QMetaObject::invokeMethod(this, "slotOpenHistoryLibraryResource", Qt::QueuedConnection);
 
   // open all other sub-resources present in our library
   QStringList subresources = mHistoryLibResource->subResourceList();
@@ -804,17 +808,82 @@ void KLFMainWin::loadLibrary()
     QUrl url = localliburl;
     url.removeAllQueryItems("klfDefaultSubResource");
     url.addQueryItem("klfDefaultSubResource", subresources[k]);
-    //    mLibBrowser->openResource(url, KLFLibBrowser::NoCloseRoleFlag);
-    QMetaObject::invokeMethod(mLibBrowser, "openResource",
-			      Qt::QueuedConnection, Q_ARG(QUrl, url),
-			      Q_ARG(uint, KLFLibBrowser::NoCloseRoleFlag),
-			      Q_ARG(QString, QString()));
+    mLibBrowser->openResource(url, KLFLibBrowser::NoCloseRoleFlag);
+    //    QMetaObject::invokeMethod(mLibBrowser, "openResource",
+    //			      Qt::QueuedConnection, Q_ARG(QUrl, url),
+    //			      Q_ARG(uint, KLFLibBrowser::NoCloseRoleFlag),
+    //			      Q_ARG(QString, QString()));
   }
+}
+
+void KLFMainWin::loadLibrarySavedState()
+{
+  QString fname = klfconfig.homeConfigDir + "/libbrowserstate.xml";
+  if ( ! QFile::exists(fname) ) {
+    qDebug("%s: No saved library browser state found (%s).", KLF_FUNC_NAME, qPrintable(fname));
+    return;
+  }
+
+  QFile f(fname);
+  if ( ! f.open(QIODevice::ReadOnly) ) {
+    qWarning()<<"Can't open file "<<fname<<" for loading library browser state";
+    return;
+  }
+  QDomDocument doc("klflibbrowserstate");
+  doc.setContent(&f);
+  f.close();
+
+  QDomNode rootNode = doc.documentElement();
+  if (rootNode.nodeName() != "klflibbrowserstate") {
+    qWarning()<<"Invalid root node in file "<<fname<<" !";
+    return;
+  }
+  QDomNode n;
+  QVariantMap vstatemap;
+  for (n = rootNode.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+    QDomElement e = n.toElement();
+    if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
+      continue;
+    if ( e.nodeName() == "statemap" ) {
+      vstatemap = klfLoadVariantMapFromXML(e);
+      continue;
+    }
+
+    qWarning("Ignoring unrecognized node `%s' in file %s.", qPrintable(e.nodeName()), qPrintable(fname));
+  }
+
+  mLibBrowser->loadGuiState(vstatemap);
+}
+
+void KLFMainWin::saveLibraryState()
+{
+  QString fname = klfconfig.homeConfigDir + "/libbrowserstate.xml";
+
+  QVariantMap statemap = mLibBrowser->saveGuiState();
+
+  QFile f(fname);
+  if ( ! f.open(QIODevice::WriteOnly) ) {
+    qWarning()<<"Can't open file "<<fname<<" for saving library browser state";
+    return;
+  }
+
+  QDomDocument doc("klflibbrowserstate");
+  QDomElement rootNode = doc.createElement("klflibbrowserstate");
+  QDomElement statemapNode = doc.createElement("statemap");
+
+  klfSaveVariantMapToXML(statemap, statemapNode);
+
+  rootNode.appendChild(statemapNode);
+  doc.appendChild(rootNode);
+
+  f.write(doc.toByteArray());
 }
 
 // private
 void KLFMainWin::slotOpenHistoryLibraryResource()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   bool r;
   r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
   				QLatin1String("default+list"));

@@ -183,16 +183,6 @@ void KLFLibBrowser::retranslateUi(bool alsoBaseUi)
 
 KLFLibBrowser::~KLFLibBrowser()
 {
-  /// \bug ........... DEBUG/TODO ........... REMOVE THIS BEFORE RELEASE VERSION ................
-
-  // save state to local file
-  qDebug()<<"LibBrowser: Saving GUI state !";
-  QVariantMap vm = saveGuiState();
-  QFile f("/home/philippe/temp/klf_saved_libbrowser_state");
-  f.open(QIODevice::WriteOnly);
-  QDataStream str(&f);
-  str << vm;
-
   int k;
   for (k = 0; k < pLibViews.size(); ++k) {
     KLFLibResourceEngine * engine = pLibViews[k]->resourceEngine();
@@ -268,9 +258,9 @@ QList<QUrl> KLFLibBrowser::openUrls() const
 {
   QList<QUrl> urls;
   int k;
-  for (k = 0; k < pLibViews.size(); ++k)
+  for (k = 0; k < pLibViews.size(); ++k) {
     urls << pLibViews[k]->url();
-
+  }
   return urls;
 }
 
@@ -292,7 +282,7 @@ KLFAbstractLibView * KLFLibBrowser::getView(const QUrl& url)
 
 KLFAbstractLibView * KLFLibBrowser::getView(KLFLibResourceEngine *resource)
 {
-  KLFLibBrowserViewContainer * viewc = findOpenUrl(resource->url());
+  KLFLibBrowserViewContainer * viewc = findOpenResource(resource);
   if (viewc == NULL)
     return NULL;
   return viewc->view();
@@ -394,16 +384,39 @@ QString KLFLibBrowser::displayTitle(KLFLibResourceEngine *resource)
 
 KLFLibBrowserViewContainer * KLFLibBrowser::findOpenUrl(const QUrl& url)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  qDebug()<<"\turl is "<<url;
+  int k;
+  for (k = 0; k < pLibViews.size(); ++k) {
+    qDebug()<<KLF_FUNC_NAME<<": test lib view #"<<k<<"; url="<<pLibViews[k]->url();
+    uint fl = klfUrlCompare(pLibViews[k]->url(), url,
+			    KlfUrlCompareEqual|KlfUrlCompareLessSpecific,
+			    QStringList()<<"klfDefaultSubResource");
+    // allow: * urls to be equal
+    //        * this resource's URL to be less specific (shows more) than what we're searching for
+    if (fl & KlfUrlCompareEqual ||
+	fl & KlfUrlCompareLessSpecific) {
+      qDebug()<<KLF_FUNC_NAME<<": Found!";
+      return pLibViews[k];
+    }
+  }
+  return NULL;
+
+  /*
   QUrl searchurl = url;
   QString defsr = url.hasQueryItem("klfDefaultSubResource")
     ?  url.queryItemValue("klfDefaultSubResource")
     :  QString();
+  searchurl.removeAllQueryItems("klfDefaultSubResource");
   int k;
   for (k = 0; k < pLibViews.size(); ++k)
-    if ( pLibViews[k]->url() == url && (defsr.isNull() || defsr == pLibViews[k]->defaultSubResource()) )
+    if ( pLibViews[k]->url() == searchurl &&
+	 (defsr.isNull() || defsr == pLibViews[k]->defaultSubResource()) )
       return pLibViews[k];
   return NULL;
+  */
 }
+
 KLFLibBrowserViewContainer * KLFLibBrowser::findOpenResource(KLFLibResourceEngine *resource)
 {
   int k;
@@ -433,6 +446,10 @@ KLFLibBrowserViewContainer * KLFLibBrowser::viewForTabIndex(int tab)
 bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
 				 const QString& viewTypeIdentifier)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  qDebug()<<" url="<<url.toString()<<"; resroleflags="<<resourceRoleFlags
+	  <<"; vtypeidentifier="<<viewTypeIdentifier;
+
   KLFLibBrowserViewContainer * openview = findOpenUrl(url);
   if (openview != NULL) {
     qDebug("KLFLibBrowser::openResource(%s,%u): This resource is already open.",
@@ -690,7 +707,7 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
   int tabindex = u->tabResources->indexOf(view);
   if (tabindex < 0) {
     qWarning("KLFLibBrowser::closeResource(url): can't find view in tab widget?!?\n"
-	     "\turl=%s, viewwidget=%p", qPrintable(view->resourceEngine()->url().toString()), view);
+	     "\turl=%s, viewwidget=%p", qPrintable(view->url().toString()), view);
     return false;
   }
   u->tabResources->removeTab(tabindex);
@@ -729,12 +746,15 @@ bool KLFLibBrowser::slotResourceNewSubRes()
   if (name.isEmpty())
     return false;
 
+  // see remark in comment below
   QUrl url = res->url();
   url.removeAllQueryItems("klfDefaultSubResource");
   url.addQueryItem("klfDefaultSubResource", name);
 
   qDebug()<<"KLFLibBrowser::slotRes.New.S.Res(): Create sub-resource named "<<name<<", opening "<<url;
 
+  // in case of a view displaying all sub-resources, this also works because findOpenUrl() will find
+  // that view and raise it.
   return openResource(url);
 }
 
@@ -807,10 +827,10 @@ void KLFLibBrowser::slotUpdateForResourceProperty(KLFLibResourceEngine *resource
   qDebug("KLFLibBrowser::slotUpdateForResourceProperty(%p, %d)", (void*)resource, propId);
   slotRefreshResourceActionsEnabled();
 
-  KLFLibBrowserViewContainer *view = findOpenUrl(resource->url());
+  KLFLibBrowserViewContainer *view = findOpenResource(resource);
   if (view == NULL) {
-    qWarning()<<"KLFLibBrowser::slotResourcePropertyChanged: can't find view for url "
-	      <<resource->url()<<"!";
+    qWarning()<<"KLFLibBrowser::slotResourcePropertyChanged: can't find view for resource "
+	      <<resource<<", url="<<resource->url()<<"!";
     return;
   }
   if (propId == KLFLibResourceEngine::PropTitle || propId == KLFLibResourceEngine::PropLocked) {
@@ -966,14 +986,15 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   QAction *acopy, *amove;
   int n_destinations = 0;
   for (k = 0; k < pLibViews.size(); ++k) {
-    if (pLibViews[k]->url() == view->resourceEngine()->url()) // skip this view
+    if (pLibViews[k]->url() == view->url()) // skip this view
       continue;
     KLFLibResourceEngine *res = pLibViews[k]->resourceEngine();
+    QUrl viewurl = pLibViews[k]->url();
     n_destinations++;
     acopy = copytomenu->addAction(displayTitle(res), this, SLOT(slotCopyToResource()));
-    acopy->setProperty("resourceUrl", res->url());
+    acopy->setProperty("resourceViewUrl", viewurl);
     amove = movetomenu->addAction(displayTitle(res), this, SLOT(slotMoveToResource()));
-    amove->setProperty("resourceUrl", res->url());
+    amove->setProperty("resourceViewUrl", viewurl);
     if (!res->canModifyData(KLFLibResourceEngine::InsertData)) {
       acopy->setEnabled(false);
       amove->setEnabled(false);
@@ -1176,10 +1197,10 @@ void KLFLibBrowser::slotMoveToResource()
 
 void KLFLibBrowser::slotCopyMoveToResource(QObject *action, bool move)
 {
-  QUrl destUrl = action->property("resourceUrl").toUrl();
+  QUrl destUrl = action->property("resourceViewUrl").toUrl();
   if (destUrl.isEmpty()) {
     qWarning()<<"KLFLibBrowser::slotCopyMoveToResource(): bad sender property ! sender is a `"
-	      <<action->metaObject()->className()<<"'; expected QAction with 'resourceUrl' property set.";
+	      <<action->metaObject()->className()<<"'; expected QAction with 'resourceViewUrl' property set.";
     return;
   }
   KLFAbstractLibView *sourceView = curLibView();

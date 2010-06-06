@@ -43,7 +43,7 @@
 /** Takes as input a funcion signature like
  *  <pre>void MyClass::functionName(const QString& arg1, int arg2) const</pre>
  * and outputs a short form of it, like
- *  <pre>MyClass::functionName()</pre>
+ *  <pre>MyClass::functionName</pre>
  */
 KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& fullFuncName);
 

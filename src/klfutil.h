@@ -27,9 +27,11 @@
 
 #include <QString>
 #include <QStringList>
+#include <QUrl>
 #include <QVariant>
 #include <QProgressDialog>
 #include <QLabel>
+#include <QDomElement>
 
 #include <klfdefs.h>
 
@@ -85,6 +87,48 @@ KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2);
 KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);
 
 KLF_EXPORT bool klfEnsureDir(const QString& dir);
+
+
+//! Some relevant values for \ref klfUrlCompare()
+/**
+ * \note when multiple query items are given with the same key, ONLY the last one is taken into
+ *   account and the other are ignored. For example, the two following URLs are equal:
+ *   <pre>
+ *     http://host.com/path/to/somewhere/file.php?x=ABC&otherkey=othervalue&x=XYZ    and
+ *     http://host.com/path/to/somewhere/file.php?x=XYZ&otherkey=othervalue</pre>
+ *
+ *
+ * \note By <i>base URL</i> we mean <i>what remains of the URL when all query items are stripped</i>.
+ *   This is: scheme, host, port, user info, path, and fragment (ie. anchor). See \ref QUrl doc for
+ *   more info.
+ */
+enum KlfUrlCompareFlag {
+  /** \brief Urls are equal. The order of query items may be different, but the same are given
+   * with the same values. */
+  KlfUrlCompareEqual = 0x01,
+  /** \brief Urls have same base URL. All query items in \c url1 are present in \c url2 with the
+   *    same values, but although possibly they may be equal, \c url2 may specify more query items
+   *    that are not present in \c url1. */
+  KlfUrlCompareLessSpecific = 0x02,
+  /** \brief Urls have same base URL. All query items in \c url2 are present in \c url1 with the
+   *    same values, but although possibly they may be equal, \c url1 may specify more query items
+   *    that are not present in \c url2. */
+  KlfUrlCompareMoreSpecific = 0x04,
+  /** \brief Urls have same base URL. Query items are ignored. */
+  KlfUrlCompareBaseEqual = 0x08
+};
+//! Compares two URLs and returns some flags as to how they differ
+/** The return value is an binary-OR'ed value of flags given in \ref klfUrlCompareFlag.
+ *
+ * If the \c interestFlag parameter is set, only the tests that are given in \c interestFlags
+ * are performed. The returned flags are those flags set in \c interestFlags that are true.
+ *
+ * If the \c interestQueryItems is set, all query items other than those specified in
+ * \c interestQueryItems are ignored. If \c interestQueryItems is an empty list, no query items
+ * are ignored, they are all taken into account.
+ */
+KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestFlags = 0xffffffff,
+			      const QStringList& interestQueryItems = QStringList());
 
 
 KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1);
@@ -149,6 +193,15 @@ inline QList<T> klfVariantListToList(const QVariantList& vlist)
   return list;
 }
 
+//! Lossless save of full map to XML with type information
+KLF_EXPORT QDomElement klfSaveVariantMapToXML(const QVariantMap& vmap, QDomElement xmlNode);
+//! Load a map saved with klfSaveVariantMapToXML()
+KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode);
+
+//! Lossless save of full list to XML with type information
+KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomElement xmlNode);
+//! Load a list saved with klfSaveVariantListToXML()
+KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode);
 
 
 

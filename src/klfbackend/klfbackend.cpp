@@ -71,7 +71,7 @@ KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
     return ba_funcname;
   }
   // shorten name
-  QString f = funcname.mid(iSpc+1, iParen-(iSpc+1)) + "()";
+  QString f = funcname.mid(iSpc+1, iParen-(iSpc+1));
   QByteArray data;
 #ifdef KLFBACKEND_QT4
   data = f.toLocal8Bit();

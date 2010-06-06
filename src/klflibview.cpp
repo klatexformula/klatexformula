@@ -1944,6 +1944,18 @@ QDebug& operator<<(QDebug& d, const KLFLibViewDelegate::ColorRegion& c)
 
 void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint flags) const
 {
+  QColor textcol = p->option->palette.color(QPalette::Text);
+  QColor textcoltransp = textcol; textcoltransp.setAlpha(0);
+  QGradientStops borderfadelingrstops;
+  borderfadelingrstops << QGradientStop(0.0f,  textcoltransp)
+		       << QGradientStop(0.1f, textcol)
+		       << QGradientStop(0.9f, textcol)
+		       << QGradientStop(1.0f,  textcoltransp);
+  QLinearGradient borderfadelingr(p->innerRectText.topLeft(), p->innerRectText.bottomLeft());
+  borderfadelingr.setStops(borderfadelingrstops);
+  borderfadelingr.setCoordinateMode(QGradient::LogicalMode);
+  QPen borderfadepen = QPen(QBrush(borderfadelingr), 1.0f);
+
   int drawnTextWidth;
   int drawnBaseLineY;
   if ( (pSearchString.isEmpty() || !(flags&PTF_HighlightSearch) ||
@@ -1954,6 +1966,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
     QSize s = QFontMetrics(p->option->font).size(0, text);
     drawnTextWidth = s.width();
     drawnBaseLineY = (int)(p->innerRectText.bottom() - 0.5f*(p->innerRectText.height()-s.height()));
+    p->p->setPen(borderfadepen);
     p->p->drawText(p->innerRectText, Qt::AlignLeft|Qt::AlignVCenter, text);
   } else {
     // formatting required.
@@ -2029,6 +2042,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
     }
     p->p->save();
     p->p->setClipRect(textRect);
+    p->p->setPen(borderfadepen);
     p->p->translate(textRect.topLeft());
     p->p->translate( QPointF( 0, //textRect.width() - s.width(),
 			      textRect.height() - s.height()) / 2.f );
@@ -2041,11 +2055,10 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
 
   if (drawnTextWidth > p->innerRectText.width()) {
     // draw small arrow indicating more text
-    QColor c = p->option->palette.color(QPalette::Text);
     //      c.setAlpha(80);
     p->p->save();
     p->p->translate(p->option->rect.right()-2, drawnBaseLineY-2);
-    p->p->setPen(c);
+    p->p->setPen(textcol);
     p->p->drawLine(0, 0, -16, 0);
     p->p->drawLine(0, 0, -2, +2);
     p->p->restore();
@@ -2193,6 +2206,17 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 }
 KLFLibDefaultView::~KLFLibDefaultView()
 {
+}
+
+QUrl KLFLibDefaultView::url() const
+{
+  KLFLibResourceEngine *res = resourceEngine();
+  if (res == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": resource is NULL!";
+    return QUrl();
+  }
+  // return URL with the default sub-resource (as we're displaying that one only)
+  return res->url(KLFLibResourceEngine::WantUrlDefaultSubResource);
 }
 
 bool KLFLibDefaultView::event(QEvent *event)

@@ -39,6 +39,7 @@
 #include <QPushButton>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QDomDocument>
 
 #include "klfutil.h"
 #include "klflib.h" // KLFStyle
@@ -184,6 +185,92 @@ KLF_EXPORT bool klfEnsureDir(const QString& dir)
   }
   return true;
 }
+
+
+static QMap<QString,QString> klf_url_query_items_map(const QUrl& url, const QStringList& interestQueryItems)
+{
+  QList<QPair<QString,QString> > qitems = url.queryItems();
+  QMap<QString,QString> map;
+  int k;
+  for (k = 0; k < qitems.size(); ++k) {
+    const QPair<QString,QString>& p = qitems[k];
+    if (interestQueryItems.isEmpty() || interestQueryItems.contains(p.first))
+      map[p.first] = p.second;
+  }
+  return map;
+}
+
+
+KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestFlags,
+			      const QStringList& interestQueryItems)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
+  qDebug()<<KLF_FUNC_NAME<<": 1="<<url1<<"; 2="<<url2<<"; interestflags="<<interestFlags<<"; int.q.i="
+	  <<interestQueryItems;
+  uint compareflags = 0x00;
+
+  QMap<QString,QString> qitems_map1;
+  QMap<QString,QString> qitems_map2;
+
+  QUrl u1 = url1;
+  QUrl u2 = url2;
+  u1.setQueryItems(QList<QPair<QString,QString> >());
+  u2.setQueryItems(QList<QPair<QString,QString> >());
+
+  qDebug()<<KLF_FUNC_NAME<<" after q-i-stripping: u1="<<u1<<"; u2="<<u2;
+
+  if (interestFlags &
+      (KlfUrlCompareEqual|KlfUrlCompareLessSpecific|KlfUrlCompareMoreSpecific)) {
+    // have an operation that needs these maps, so load them
+    qitems_map1 = klf_url_query_items_map(url1, interestQueryItems);
+    qitems_map2 = klf_url_query_items_map(url2, interestQueryItems);
+  }
+
+  if (interestFlags & KlfUrlCompareEqual) {
+    // test equality
+    if (u1 == u2 && qitems_map1 == qitems_map2)
+      compareflags |= KlfUrlCompareEqual;
+  }
+
+  if (interestFlags & KlfUrlCompareLessSpecific) {
+    // test url1 is less specific than url2
+    if (u1 == u2) {
+      bool ok = true;
+      for (QMap<QString,QString>::const_iterator it = qitems_map1.begin(); it != qitems_map1.end(); ++it) {
+	if (!qitems_map2.contains(it.key()) || qitems_map2[it.key()] != it.value()) {
+	  ok = false;
+	  break;
+	}
+      }
+      if (ok)
+	compareflags |= KlfUrlCompareLessSpecific;
+    }
+  }
+  if (interestFlags & KlfUrlCompareMoreSpecific) {
+    // test url1 is more specific than url2
+    if (u1 == u2) {
+      bool ok = true;
+      for (QMap<QString,QString>::const_iterator it = qitems_map2.begin(); it != qitems_map2.end(); ++it) {
+	if (!qitems_map1.contains(it.key()) || qitems_map1[it.key()] != it.value()) {
+	  ok = false;
+	  break;
+	}
+      }
+      if (ok)
+	compareflags |= KlfUrlCompareMoreSpecific;
+    }
+  }
+
+  if (interestFlags & KlfUrlCompareBaseEqual) {
+    if (u1 == u2)
+      compareflags |= KlfUrlCompareBaseEqual;
+  }
+
+  qDebug()<<KLF_FUNC_NAME<<"... and the result is compareflags="<<compareflags;
+  return compareflags;
+}
+
+
 
 
 
@@ -1044,6 +1131,184 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
 
 
 
+
+KLF_EXPORT QDomElement klfSaveVariantMapToXML(const QVariantMap& vmap, QDomElement baseNode)
+{
+  QDomDocument doc = baseNode.ownerDocument();
+
+  for (QVariantMap::const_iterator it = vmap.begin(); it != vmap.end(); ++it) {
+    QString key = it.key();
+    QVariant value = it.value();
+    
+    QDomElement pairNode = doc.createElement("pair");
+    // * key
+    QDomElement keyNode = doc.createElement("key");
+    QDomText keyText = doc.createTextNode(key);
+    keyNode.appendChild(keyText);
+    pairNode.appendChild(keyNode);
+    // * value type
+    QString vtype = QString::fromLatin1(value.typeName()); // "Latin1" encoding by convention
+    //                                        because type names do not have any special chars
+    QDomElement vtypeNode = doc.createElement("type");
+    QDomText vtypeText = doc.createTextNode(vtype);
+    vtypeNode.appendChild(vtypeText);
+    pairNode.appendChild(vtypeNode);
+    // * value data
+    QDomElement vdataNode = doc.createElement("value");
+    if (vtype == "QVariantMap") {
+      vdataNode = klfSaveVariantMapToXML(value.toMap(), vdataNode);
+    } else if (vtype == "QVariantList") {
+      vdataNode = klfSaveVariantListToXML(value.toList(), vdataNode);
+    } else {
+      QDomText vdataText = doc.createTextNode(QString::fromLocal8Bit(klfSaveVariantToText(value)));
+      vdataNode.appendChild(vdataText);
+    }
+    pairNode.appendChild(vdataNode);
+    // now append this pair to our list
+    baseNode.appendChild(pairNode);
+  }
+  return baseNode;
+}
+
+KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
+{
+  QVariantMap vmap;
+
+  QDomNode n;
+  for (n = xmlNode.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+    QDomElement e = n.toElement(); // try to convert the node to an element.
+    if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
+      continue;
+    if ( e.nodeName() != "pair" ) {
+      qWarning("klfLoadVariantMapFromXML: ignoring unexpected tag `%s'!\n", qPrintable(e.nodeName()));
+      continue;
+    }
+    // read this pair
+    QString key;
+    QByteArray valuetype;
+    QByteArray valuedata;
+    QDomElement valueNode;
+    QDomNode nn;
+    for (nn = e.firstChild(); ! nn.isNull(); nn = nn.nextSibling()) {
+      QDomElement ee = nn.toElement();
+      if ( ee.isNull() || nn.nodeType() != QDomNode::ElementNode )
+	continue;
+      if ( ee.nodeName() == "key" ) {
+	key = ee.text();
+	continue;
+      }
+      if ( ee.nodeName() == "type" ) {
+	// "Latin1" by convention because type names do not have any special chars
+	valuetype = ee.text().toLatin1();
+	continue;
+      }
+      if ( ee.nodeName() == "value" ) {
+	// "local 8-bit"  because klfLoadVariantFromText() assumes local 8-bit encoding
+	valueNode = ee;
+	valuedata = ee.text().toLocal8Bit();
+	continue;
+      }
+      qWarning("klfLoadVariantMapFromXML: ignoring unexpected tag `%s' in pair!\n", qPrintable(ee.nodeName()));
+    }
+    QVariant value;
+    if (valuetype == "QVariantMap") {
+      value = QVariant::fromValue<QVariantMap>(klfLoadVariantMapFromXML(valueNode));
+    } else if (valuetype == "QVariantList") {
+      value = QVariant::fromValue<QVariantList>(klfLoadVariantListFromXML(valueNode));
+    } else {
+      value = klfLoadVariantFromText(valuedata, valuetype.constData());
+    }
+    // set this value in our variant map
+    vmap[key] = value;
+  }
+  return vmap;
+}
+
+
+KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomElement baseNode)
+{
+  QDomDocument doc = baseNode.ownerDocument();
+
+  for (QVariantList::const_iterator it = vlist.begin(); it != vlist.end(); ++it) {
+    QVariant value = *it;
+
+    QDomElement elNode = doc.createElement("element");
+    // * value type
+    QString vtype = QString::fromLatin1(value.typeName()); // "Latin1" encoding by convention
+    //                                        because type names do not have any special chars
+    QDomElement vtypeNode = doc.createElement("type");
+    QDomText vtypeText = doc.createTextNode(vtype);
+    vtypeNode.appendChild(vtypeText);
+    elNode.appendChild(vtypeNode);
+    // * value data
+    QDomElement vdataNode = doc.createElement("value");
+    if (vtype == "QVariantMap") {
+      vdataNode = klfSaveVariantMapToXML(value.toMap(), vdataNode);
+    } else if (vtype == "QVariantList") {
+      vdataNode = klfSaveVariantListToXML(value.toList(), vdataNode);
+    } else {
+      QDomText vdataText = doc.createTextNode(QString::fromLocal8Bit(klfSaveVariantToText(value)));
+      vdataNode.appendChild(vdataText);
+    }
+    elNode.appendChild(vdataNode);
+    // now append this pair to our list
+    qDebug()<<KLF_FUNC_NAME<<"... appending node!";
+    baseNode.appendChild(elNode);
+  }
+
+  return baseNode;
+}
+
+KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
+{
+  QVariantList vlist;
+
+  QDomNode n;
+  for (n = xmlNode.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+    QDomElement e = n.toElement(); // try to convert the node to an element.
+    if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
+      continue;
+    if ( e.nodeName() != "element" ) {
+      qWarning("klfLoadVariantMapFromXML: ignoring unexpected tag `%s'!\n", qPrintable(e.nodeName()));
+      continue;
+    }
+    // read this pair
+    QByteArray valuetype;
+    QByteArray valuedata;
+    QDomElement valueNode;
+    QDomNode nn;
+    for (nn = e.firstChild(); ! nn.isNull(); nn = nn.nextSibling()) {
+      QDomElement ee = nn.toElement();
+      if ( ee.isNull() || nn.nodeType() != QDomNode::ElementNode )
+	continue;
+      if ( ee.nodeName() == "type" ) {
+	// "local 8-bit"  because klfLoadVariantFromText() assumes local 8-bit encoding
+	valuetype = ee.text().toLocal8Bit();
+	continue;
+      }
+      if ( ee.nodeName() == "value" ) {
+	// "local 8-bit"  because klfLoadVariantFromText() assumes local 8-bit encoding
+	valueNode = ee;
+	valuedata = ee.text().toLocal8Bit();
+	continue;
+      }
+      qWarning("klfLoadVariantMapFromXML: ignoring unexpected tag `%s' in pair!\n", qPrintable(ee.nodeName()));
+    }
+    QVariant value;
+    if (valuetype == "QVariantMap") {
+      value = QVariant::fromValue<QVariantMap>(klfLoadVariantMapFromXML(valueNode));
+    } else if (valuetype == "QVariantList") {
+      value = QVariant::fromValue<QVariantList>(klfLoadVariantListFromXML(valueNode));
+    } else {
+      value = klfLoadVariantFromText(valuedata, valuetype.constData());
+    }
+    // set this value in our variant map
+    vlist << value;
+  }
+  return vlist;
+}
+
+// ----------------------------------------------------
 
 
 

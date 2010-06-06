@@ -63,6 +63,10 @@ namespace KLFLib {
  *
  * \note Subclasses should emit the \ref resourceDataChanged() signal AFTER they
  *   refresh after a resource data change.
+ *
+ * \warning The design of this class with a \ref setResourceEngine() function makes it
+ *   unsafe to blindly assume a non-NULL resource engine pointer at all times. Check
+ *   the pointer before using it! See \ref validResourceEngine().
  */
 class KLF_EXPORT KLFAbstractLibView : public QWidget
 {
@@ -72,6 +76,22 @@ public:
   virtual ~KLFAbstractLibView() { }
 
   virtual KLFLibResourceEngine * resourceEngine() const { return pResourceEngine; }
+
+  //! Display Resource URL. <i>NOT exactly like KLFLibResourceEngine::url() !</i>
+  /** Returns an URL describing exactly what is shown to user, based on the resource
+   * engine's URL.
+   *
+   * \warning This does not simply return <tt>resourceEngine()->url()</tt>. It returns
+   *   in the URL exactly the information that is displayed to user. For example, a
+   *   view that can handle displaying all sub-resources will NOT include the default
+   *   sub-resource in its URL, however a view displaying only the default sub-resource
+   *   will include a "klfDefaultSubResource" query item to distinguish it from another
+   *   view acting on the same base URL but displaying a different sub-resource.
+   */
+  virtual QUrl url() const = 0;
+
+  //! Returns TRUE if a non-\c NULL resource engine has been set
+  inline bool validResourceEngine() const { return pResourceEngine != NULL; }
 
   virtual void setResourceEngine(KLFLibResourceEngine *resource);
 
@@ -641,6 +661,8 @@ public:
   enum ViewType { CategoryTreeView, ListTreeView, IconView };
   KLFLibDefaultView(QWidget *parent, ViewType viewtype = CategoryTreeView);
   virtual ~KLFLibDefaultView();
+
+  virtual QUrl url() const;
 
   virtual bool event(QEvent *e);
   virtual bool eventFilter(QObject *o, QEvent *e);

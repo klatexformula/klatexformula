@@ -177,8 +177,8 @@ public:
 
 signals:
 
-  void stylesChanged(); // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
-  //  void libraryAllChanged();
+ // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
+  void stylesChanged();
 
   void applicationLocaleChanged(const QString& newLocale);
 
@@ -233,10 +233,12 @@ public slots:
   void refreshStylePopupMenus();
   void loadStyles();
   void loadLibrary(); // load library stuff
+  void loadLibrarySavedState();
   void saveStyles();
   void restoreFromLibrary(const KLFLibEntry& entry, uint restoreflags);
   void insertSymbol(const KLFLatexSymbol& symbol);
   void saveSettings();
+  void saveLibraryState();
   void loadSettings();
 
   void showAbout();
@@ -259,7 +261,8 @@ public slots:
   void quit();
 
 private slots:
-  void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
+  // private : only as slot to an action containing the style # as user data
+  void slotLoadStyleAct();
 
   void slotOpenHistoryLibraryResource();
 

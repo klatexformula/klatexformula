@@ -65,7 +65,15 @@ public:
   {
   }
 
-  QUrl url() const { return pResource->url(); }
+  QUrl url() const {
+    KLFAbstractLibView * view = qobject_cast<KLFAbstractLibView*>(currentWidget());
+    if (view == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": NULL View!";
+      return QUrl();
+    }
+    return view->url();
+  }
+
   KLFLibResourceEngine * resourceEngine() { return pResource; }
 
   KLFAbstractLibView * view() { return qobject_cast<KLFAbstractLibView*>(currentWidget()); }

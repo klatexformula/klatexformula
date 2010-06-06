@@ -270,6 +270,21 @@ void KLFLibResourceEngine::initRegisteredProperties()
   registerBuiltInProperty(PropAccessShared, "AccessShared");
 }
 
+QUrl KLFLibResourceEngine::url(uint flags) const
+{
+  QUrl url = pUrl;
+  if (flags & WantUrlDefaultSubResource &&
+      (pFeatureFlags & FeatureSubResources) &&
+      !pDefaultSubResource.isNull()) {
+    url.addQueryItem("klfDefaultSubResource", pDefaultSubResource);
+  }
+  if (flags & WantUrlReadOnly) {
+    url.addQueryItem("klfReadOnly", pReadOnly?QString("true"):QString("false"));
+  }
+  return url;
+}
+
+
 bool KLFLibResourceEngine::canModifyData(const QString& subResource,
 					 ModifyType /*modifytype*/) const
 {
