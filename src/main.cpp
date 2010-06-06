@@ -807,13 +807,13 @@ int main(int argc, char **argv)
     (void)new KLFLibDefaultViewFactory(qApp);
 
     KLFMainWin mainWin;
-    mainWin.show();
 
     app.setFont(klfconfig.UI.applicationFont);
     mainWin.refreshWindowSizes();
 
     main_load_plugins(&app, &mainWin);
 
+    mainWin.show();
 
 #if defined(KLF_USE_DBUS)
     new KLFDBusAppAdaptor(&app, &mainWin);
@@ -876,6 +876,7 @@ int main(int argc, char **argv)
       flist << QString::fromLocal8Bit(klf_args[k]);
     mainWin.importCmdlKLFFiles(flist);
 
+    app.setQuitOnLastWindowClosed(false);
     int r = app.exec();
     main_cleanup();
     // and exit.

@@ -20,7 +20,7 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="lyt_KLFLibNewSubResDlg">
    <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="lblMain">
      <property name="sizePolicy">
@@ -65,7 +65,7 @@
       </size>
      </property>
      <property name="frameShape">
-      <enum>QFrame::Panel</enum>
+      <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Sunken</enum>

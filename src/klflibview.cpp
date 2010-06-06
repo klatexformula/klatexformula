@@ -199,13 +199,15 @@ void KLFLibViewFactory::unRegisterFactory(KLFLibViewFactory *factory)
 
 KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject *parent)
   : QAbstractItemModel(parent), pFlavorFlags(flavorFlags), pCategoryLabelCacheContainsInvalid(false),
-    pFetchBatchCount(1), lastSortColumn(1), lastSortOrder(Qt::AscendingOrder)
+    pIsFetchingMore(false), lastSortColumn(1), lastSortOrder(Qt::AscendingOrder)
 {
   setResource(engine);
   // DON'T CONNECT SIGNALs FROM RESOURCE ENGINE HERE, we are informed from
   // the view. This is because of the KLFAbstractLibView API.
   //  connect(engine, SIGNAL(dataChanged(...)), this, SLOT(updateData(...)));
-  setFetchBatchCount(); // set the default value, given in this function prototype
+
+  // set the default value of 100 items per batch
+  setFetchBatchCount(100);
 }
 
 KLFLibModel::~KLFLibModel()
@@ -241,10 +243,17 @@ uint KLFLibModel::flavorFlags() const
 
 QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 {
-  //  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-  //  qDebug()<<"\tindex="<<index<<"; role="<<role;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  qDebug()<<"\tindex="<<index<<"; role="<<role;
   NodeId p = getNodeForIndex(index);
   if (!p.valid() || p.isRoot())
+    return QVariant();
+
+  // if this node is not yet visible, hide it...
+  Node thisNode = getNode(p);
+  NodeId parent = thisNode.parent;
+  Node parentNode = getNode(parent);
+  if (index.row() >= parentNode.numDisplayFetched)
     return QVariant();
 
   if (role == ItemKindItemRole)
@@ -259,10 +268,19 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
     if (role == EntryIdItemRole)
       return QVariant::fromValue<KLFLib::entryId>(ep.entryid);
 
-    if (role == Qt::ToolTipRole) { // current contents
-      role = entryItemRole(entryColumnContentsPropertyId(index.column()));
-      // readjust role, continue below to return correct data
+    if (role == Qt::ToolTipRole || role == Qt::DisplayRole) { // current contents
+      int propId = entryColumnContentsPropertyId(index.column());
+      if (propId == KLFLibEntry::Preview)
+	propId = KLFLibEntry::Tags;
+      role = entryItemRole(propId);
+      // role readjusted, continue below to return correct data
     }
+
+    // now, only custom roles are recognized.
+    if (role < Qt::UserRole)
+      return QVariant();
+
+    qDebug()<<KLF_FUNC_NAME<<"(): role="<<role;
 
     KLFLibEntry entry = ep.entry;
 
@@ -273,7 +291,7 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
     if (role == entryItemRole(KLFLibEntry::Category))
       return entry.category();
     if (role == entryItemRole(KLFLibEntry::Tags))
-      return entry.tags();
+      return klf_debug_tee( entry.tags() );
     if (role == entryItemRole(KLFLibEntry::PreviewSize))
       return entry.previewSize();
 
@@ -332,6 +350,9 @@ Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
 }
 bool KLFLibModel::hasChildren(const QModelIndex &parent) const
 {
+  if (parent.column() > 0)
+    return false;
+
   NodeId p = getNodeForIndex(parent);
   if (!p.valid() || p.isRoot()) {
     // invalid index -> interpret as root node
@@ -376,12 +397,14 @@ QModelIndex KLFLibModel::index(int row, int column, const QModelIndex &parent) c
   CategoryLabelNode p = getCategoryLabelNode(NodeId::rootNode()); // root node
   if (parent.isValid()) {
     NodeId pp = NodeId::fromUID(parent.internalId());
-    if (pp.valid() && pp.kind == CategoryLabelKind)
+    if (pp.kind != CategoryLabelKind)
+      return QModelIndex();
+    if (pp.valid())
       p = getCategoryLabelNode(pp);
   }
-  if (row < 0 || row >= p.children.size())
+  if (row < 0 || row >= p.children.size() || column < 0 || column >= columnCount(parent))
     return QModelIndex();
-  return createIndexFromId(p.children[row], row, column);
+  return createIndexFromIdConst(p.children[row], row, column);
 }
 QModelIndex KLFLibModel::parent(const QModelIndex &index) const
 {
@@ -391,15 +414,20 @@ QModelIndex KLFLibModel::parent(const QModelIndex &index) const
   Node n = getNode(p);
   if ( ! n.parent.valid() ) // invalid parent (should never happen!)
     return QModelIndex();
-  return createIndexFromId(n.parent, -1 /* figure out row */, 0);
+  return createIndexFromIdConst(n.parent, -1 /* figure out row */, 0);
 }
 int KLFLibModel::rowCount(const QModelIndex &parent) const
 {
+  if (parent.column() > 0)
+    return 0;
+
   NodeId p = getNodeForIndex(parent);
   if (!p.valid())
     p = NodeId::rootNode();
 
-  return getNode(p).children.size();
+  Node n = getNode(p);
+  qDebug()<<KLF_FUNC_NAME<<" parent="<<parent<<"; count="<<n.numDisplayFetched<<"; numchildren="<<n.children.size();
+  return n.numDisplayFetched;
 }
 
 int KLFLibModel::columnCount(const QModelIndex & /*parent*/) const
@@ -441,6 +469,57 @@ int KLFLibModel::columnForEntryPropertyId(int entryPropertyId) const
   default:
     return -1;
   }
+}
+
+
+bool KLFLibModel::canFetchMore(const QModelIndex& parent) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME); qDebug()<<"\t parent="<<parent;
+
+  NodeId n = getNodeForIndex(parent);
+  if (!n.valid())
+    n = NodeId::rootNode();
+
+  if (pIsFetchingMore)
+    return false;
+
+  Node node = getNode(n);
+  if (node.numDisplayFetched < node.children.size())
+    return true;
+
+  return false;
+}
+void KLFLibModel::fetchMore(const QModelIndex& parent)
+{
+  pIsFetchingMore = true;
+  fetchMore(getNodeForIndex(parent), parent);
+  pIsFetchingMore = false;
+}
+
+void KLFLibModel::fetchMore(NodeId n, const QModelIndex& nIndex)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME); qDebug()<<"\t parentId="<<n;
+
+  // see function doxygen doc for nIndex param info.
+
+  if (!n.valid())
+    n = NodeId::rootNode();
+
+  Node& node = getNodeRef(n);
+  if (node.numDisplayFetched >= node.children.size())
+    return;
+
+  if (pIsFetchingMore)
+    return;
+
+  // don't exceed children size
+  int fetchNum = qMin(pFetchBatchCount, node.children.size() - node.numDisplayFetched);
+  qDebug()<<KLF_FUNC_NAME<<"; children/size="<<node.children.size()<<"; batchCount="<<pFetchBatchCount
+	  <<"; numDisplayFetched="<<node.numDisplayFetched<<"; => fetchNum="<<fetchNum;
+  beginInsertRows(nIndex, node.numDisplayFetched, node.numDisplayFetched+fetchNum-1);
+  node.numDisplayFetched += fetchNum;
+  qDebug()<<KLF_FUNC_NAME<<": increased node.numDisplayFetched by "<<fetchNum<<" to "<<node.numDisplayFetched;
+  endInsertRows();
 }
 
 
@@ -886,8 +965,15 @@ void KLFLibModel::treeInsertEntry(const NodeId& n, bool notifyQtApi)
   NodeId newNodeId = childlist.last();
   pCategoryLabelCache[parentid.index].children.removeLast(); childlist.removeLast();
   // and insert it again at the required spot
-  if (notifyQtApi)
-    beginInsertRows(parentidx, insertPos, insertPos);
+  if (notifyQtApi) {
+    if (pCategoryLabelCache[parentid.index].numDisplayFetched < insertPos) {
+      beginInsertRows(parentidx, pCategoryLabelCache[parentid.index].numDisplayFetched, insertPos+1);
+      pCategoryLabelCache[parentid.index].numDisplayFetched = insertPos+1;
+    } else {
+      beginInsertRows(parentidx, insertPos, insertPos);
+      pCategoryLabelCache[parentid.index].numDisplayFetched++;
+    }
+  }
   qDebug("\tinserting (%d,%d) at pos %d in category '%s'", newNodeId.kind, newNodeId.index, insertPos,
 	 qPrintable(pCategoryLabelCache[parentid.index].fullCategoryPath));
   childlist.insert(insertPos, newNodeId);
@@ -988,7 +1074,7 @@ QModelIndexList KLFLibModel::findEntryIdList(const QList<KLFLib::entryId>& eidli
   for (k = 0; k < pEntryCache.size(); ++k) {
     int i = eidlist.indexOf(pEntryCache[k].entryid);
     if (i >= 0) {
-      indexlist[i] = createIndexFromId(NodeId(EntryKind, k), -1, 0);
+      indexlist[i] = createIndexFromIdConst(NodeId(EntryKind, k), -1, 0);
       if (++count == eidlist.size())
 	break; // found 'em all
     }
@@ -1292,6 +1378,29 @@ KLFLibModel::NodeId KLFLibModel::getNodeForIndex(const QModelIndex& index) const
     return NodeId();
   return NodeId::fromUID(index.internalId());
 }
+KLFLibModel::Node& KLFLibModel::getNodeRef(NodeId nodeid)
+{
+  if (!nodeid.valid()) {
+    qWarning()<<"KLFLibModel::getNodeRef: Invalid Node Id: "<<nodeid;
+    return pCategoryLabelCache[0]; // return root node (what else to return...?)
+  }
+  if (nodeid.kind == EntryKind) {
+    if (nodeid.index < 0 || nodeid.index >= pEntryCache.size()) {
+      qWarning()<<"KLFLibModel::getNodeRef: Invalid Entry Node Id: "<<nodeid<<" : index out of range!";
+      return pCategoryLabelCache[0]; // return root node (what else to return...?)
+    }
+    return pEntryCache[nodeid.index];
+  } else if (nodeid.kind == CategoryLabelKind) {
+    if (nodeid.index < 0 || nodeid.index >= pCategoryLabelCache.size()) {
+      qWarning()<<"KLFLibModel::getNodeRef: Invalid Category Label Node Id: "<<nodeid
+		<<" : index out of range!";
+      return pCategoryLabelCache[0]; // return root node (what else to return...?)
+    }
+    return pCategoryLabelCache[nodeid.index];
+  }
+  qWarning("KLFLibModel::getNodeRef(): Invalid kind: %d (index=%d)\n", nodeid.kind, nodeid.index);
+  return pCategoryLabelCache[0]; // return root node (what else to return...?)
+}
 KLFLibModel::Node KLFLibModel::getNode(NodeId nodeid) const
 {
   if (!nodeid.valid()) {
@@ -1324,7 +1433,10 @@ void KLFLibModel::ensureNotMinimalist(NodeId p, int countdown) const
   QMap<KLFLib::entryId, NodeId> wantedIds;
   if (countdown < 0)
     countdown = pFetchBatchCount;
-  for (n = p; n.valid() && countdown-- > 0; n = nextNode(n)) {
+  //  n = prevNode(p);
+  //  if (!n.valid())
+  n = p;
+  for (; n.valid() && countdown-- > 0; n = nextNode(n)) {
     if (n.kind == CategoryLabelKind) {
       ++countdown; // don't count category labels
       continue;
@@ -1400,7 +1512,8 @@ int KLFLibModel::getNodeRow(NodeId node) const
   return -1;
 }
 
-QModelIndex KLFLibModel::createIndexFromId(NodeId nodeid, int row, int column) const
+
+QModelIndex KLFLibModel::createIndexFromIdConst(NodeId nodeid, int row, int column) const
 {
   if ( ! nodeid.valid() )
     return QModelIndex();
@@ -1411,6 +1524,46 @@ QModelIndex KLFLibModel::createIndexFromId(NodeId nodeid, int row, int column) c
   if ( row < 0 ) {
     row = getNodeRow(nodeid);
   }
+
+  //  // get the parent node
+  //  Node node = getNode(nodeid);
+  //  NodeId parentid = node.parent;
+  //  if (!parentid.valid())
+    //    parentid = NodeId::rootNode();
+  //  // if the index is not already fetched, it's invalid...
+  //  if ( getNode(parentid).numDisplayFetched <= row )
+  //    return QModelIndex();
+
+  // create & return the index
+  return createIndex(row, column, nodeid.universalId());
+}
+
+QModelIndex KLFLibModel::createIndexFromId(NodeId nodeid, int row, int column)
+{
+  if ( ! nodeid.valid() )
+    return QModelIndex();
+  if (nodeid == NodeId::rootNode())
+    return QModelIndex();
+
+  // if row is -1, then we need to find the row of the item
+  if ( row < 0 ) {
+    row = getNodeRow(nodeid);
+  }
+
+  // make sure all elements have been "fetched" up to this row
+
+  // get the parent node
+  Node node = getNode(nodeid);
+  NodeId parentid = node.parent;
+  if (!parentid.valid())
+    parentid = NodeId::rootNode();
+  QModelIndex parentIndex = createIndexFromId(parentid, -1, 0);
+
+  // if we cache getNode(parentid) make sure to keep a reference! it changes!
+  while ( getNode(parentid).numDisplayFetched <= row && canFetchMore(parentIndex) )
+    fetchMore(parentid, parentIndex);
+
+  // create & return the index
   return createIndex(row, column, nodeid.universalId());
 }
 
@@ -1530,7 +1683,7 @@ void KLFLibModel::updateCacheSetupModel()
   qDebug("updateCacheSetupModel(); pFlavorFlags=%#010x", (uint)pFlavorFlags);
   int k;
 
-  emit layoutAboutToBeChanged();
+  //  emit layoutAboutToBeChanged();
 
   QModelIndexList persistentIndexes = persistentIndexList();
   QList<PersistentId> persistentIndexIds = persistentIdList(persistentIndexes);
@@ -1572,8 +1725,8 @@ void KLFLibModel::updateCacheSetupModel()
   qDebug()<<"Category Label Cache is:"<<pCategoryLabelCache;
   qDebug()<<"Entry Cache is:"<<pEntryCache;
   qDebug()<<"---------------------------------------------------------------------";
+  //  emit layoutChanged();
   emit dataChanged(QModelIndex(),QModelIndex());
-  emit layoutChanged();
 
   // and sort
   sort(lastSortColumn, lastSortOrder);
@@ -1633,6 +1786,7 @@ KLFLibModel::IndexType KLFLibModel::cacheFindCategoryLabel(QStringList catelemen
       int n = pCategoryLabelCache[parent_index].children.size();
       qDebug("\tabout to insert rows in child NodeId(CategoryLabelKind+%d), n=%d", parent_index, n);
       beginInsertRows(createIndexFromId(NodeId(CategoryLabelKind, parent_index), -1, 0), n, n);
+      pCategoryLabelCache[parent_index].numDisplayFetched++;
     }
     qDebug("\tinserting this_index=%d in parent_index=%d 's children", this_index, parent_index);
     pCategoryLabelCache[parent_index].children.append(NodeId(CategoryLabelKind, this_index));
@@ -2354,6 +2508,10 @@ QModelIndex KLFLibDefaultView::currentVisibleIndex() const
 }
 
 
+#ifdef KLF_DEBUG_USE_MODELTEST
+#include <modeltest.h>
+#endif
+
 void KLFLibDefaultView::updateResourceView()
 {
   int k;
@@ -2384,6 +2542,10 @@ void KLFLibDefaultView::updateResourceView()
   };
   pModel = new KLFLibModel(resource, model_flavor|KLFLibModel::GroupSubCategories, this);
   pView->setModel(pModel);
+
+#ifdef KLF_DEBUG_USE_MODELTEST
+  new ModelTest(pModel, this);
+#endif
 
   // get informed about selections
   QItemSelectionModel *s = pView->selectionModel();

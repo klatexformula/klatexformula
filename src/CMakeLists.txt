@@ -115,8 +115,8 @@ set(klatexformula_UIS
 	klfsettingsui.ui
 	klfstylemanagerui.ui
 	klfaboutdialogui.ui
-	klfcolorchoosewidgetui.ui
-	klfcolordialogui.ui
+	klfcolorchoosewidget.ui
+	klfcolordialog.ui
 	klflibopenresourcedlg.ui
 	klfliblocalfilewidget.ui
 	klflibnewsubresdlg.ui
@@ -149,7 +149,17 @@ if(KLF_USE_DBUS)
 	klfdbus.h
   )
 endif(KLF_USE_DBUS)
-
+if(KLF_DEBUG_USE_MODELTEST)
+  add_definitions(-DKLF_DEBUG_USE_MODELTEST)
+  set(klatexformula_SRCS
+	${klatexformula_SRCS}
+	modeltest.cpp
+  )
+  set(klatexformula_MOCHEADERS
+	${klatexformula_MOCHEADERS}
+	modeltest.h
+  )
+endif(KLF_DEBUG_USE_MODELTEST)
 
 KLFInstHeaders(klatexformula_INSTHEADERS "${klatexformula_HEADERS}")
 # Translations

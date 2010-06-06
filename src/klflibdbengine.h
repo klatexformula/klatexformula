@@ -160,14 +160,22 @@ private slots:
   /** If \c propId == -1, all properties are (re-)read. */
   void readResourceProperty(int propId);
 
+  void readDbMetaInfo();
+
+  void readAvailColumns(const QString& subResource);
 
 private:
   KLFLibDBEngine(const QSqlDatabase& db, bool autoDisconnectDB, const QUrl& url,
 		 bool accessshared, QObject *parent);
 
   QSqlDatabase pDB;
+
+  int pDBVersion;
+
+  QMap<QString,QStringList> pDBAvailColumns;
   
-  QStringList columnNameList(const QList<int>& entryPropList, bool wantIdFirst = true);
+  QStringList columnNameList(const QString& subResource, const QList<int>& entryPropList,
+			     bool wantIdFirst = true);
   QStringList detectEntryColumns(const QSqlQuery& q);
   KLFLibEntry readEntry(const QSqlQuery& q, const QStringList& columns);
 
@@ -178,6 +186,7 @@ private:
   QVariant decaps(const QString& string) const;
   QVariant decaps(const QByteArray& data) const;
 
+  bool ensureDataTableColumnsExist(const QString& subResource, const QStringList& columnList);
   /** Inserts columns into datatable that don't exist for each extra registered property,
    * in sub-resource subResource. */
   bool ensureDataTableColumnsExist(const QString& subResource);

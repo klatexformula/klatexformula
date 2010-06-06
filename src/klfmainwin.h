@@ -281,6 +281,8 @@ protected:
   KLFLatexSyntaxHighlighter *mHighlighter;
   KLFLatexSyntaxHighlighter *mPreambleHighlighter;
 
+  bool _loadedlibrary;
+
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
   bool _settings_altered;
 

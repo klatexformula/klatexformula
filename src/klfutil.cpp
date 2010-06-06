@@ -1310,35 +1310,90 @@ KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
 
 // ----------------------------------------------------
 
+KLFProgressReporter::KLFProgressReporter(int min, int max, QObject *parent)
+  : QObject(parent)
+{
+  pMin = min;
+  pMax = max;
+  pFinished = false;
+}
+KLFProgressReporter::~KLFProgressReporter()
+{
+  if (!pFinished)
+    emit finished(); // make sure finished() is emitted.
+}
+
+void KLFProgressReporter::doReportProgress(int value)
+{
+  if (pFinished) {
+    qWarning()<<KLF_FUNC_NAME<<": Operation is already finished!";
+    return;
+  }
+  emit progress(value);
+  if (value == pMax) {
+    emit finished();
+    pFinished = true;
+  }
+}
+
+
+
+// ---------------------------------------------------------
+
 
 
 KLFProgressDialog::KLFProgressDialog(QString labelText, QWidget *parent)
   : QProgressDialog(parent)
 {
-  setup(false, labelText);
+  setup(false);
+  init(labelText);
 }
 KLFProgressDialog::KLFProgressDialog(bool canCancel, QString labelText, QWidget *parent)
   : QProgressDialog(parent)
 {
-  setup(canCancel, labelText);
+  setup(canCancel);
+  init(labelText);
 }
 KLFProgressDialog::~KLFProgressDialog()
 {
 }
 
-void KLFProgressDialog::setup(bool canCancel, const QString& lbl)
+void KLFProgressDialog::setup(bool canCancel)
 {
   setAutoClose(true);
   setAutoReset(true);
   setModal(true);
-  setLabelText(lbl);
   setWindowModality(Qt::ApplicationModal);
   setWindowIcon(QIcon(":/pics/klatexformula-16.png"));
   QPushButton *cbtn = new QPushButton(tr("Cancel"), this);
   setCancelButton(cbtn);
   cbtn->setEnabled(canCancel);
+}
+void KLFProgressDialog::init(const QString& labelText)
+{
+  setDescriptiveText(labelText);
+}
 
+void KLFProgressDialog::setDescriptiveText(const QString& labelText)
+{
+  setLabelText(labelText);
   setFixedSize((int)(sizeHint().width()*1.3), (int)(sizeHint().height()*1.1));
+}
+void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressReporter,
+					       const QString& descriptiveText)
+{
+  reset();
+  setDescriptiveText(descriptiveText);
+  setRange(progressReporter->min(), progressReporter->max());
+
+  connect(progressReporter, SIGNAL(progress(int)), this, SLOT(setValue(int)));
+}
+
+void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressReporter)
+{
+  reset();
+  setRange(progressReporter->min(), progressReporter->max());
+  connect(progressReporter, SIGNAL(progress(int)), this, SLOT(setValue(int)));
 }
 
 

@@ -21,7 +21,7 @@
    <iconset resource="klfres.qrc">
     <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="lyt_KLFLibBrowser">
    <item row="0" column="0">
     <widget class="QFrame" name="frmSearch">
      <property name="sizePolicy">
@@ -39,7 +39,7 @@
      <property name="lineWidth">
       <number>1</number>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="lyt_frmSearch">
       <property name="topMargin">
        <number>1</number>
       </property>
@@ -159,7 +159,7 @@
      <property name="lineWidth">
       <number>0</number>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QHBoxLayout" name="lyt_frmButtons">
       <property name="margin">
        <number>0</number>
       </property>
@@ -296,7 +296,7 @@
           <attribute name="title">
            <string>Library Browser</string>
           </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout">
+          <layout class="QVBoxLayout" name="lyt_tabWelcome">
            <property name="spacing">
             <number>20</number>
            </property>
@@ -518,8 +518,8 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>692</x>
-     <y>613</y>
+     <x>833</x>
+     <y>509</y>
     </hint>
     <hint type="destinationlabel">
      <x>676</x>

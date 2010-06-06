@@ -565,8 +565,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(resource, SIGNAL(defaultSubResourceChanged(const QString&)),
 	  this, SLOT(slotDefaultSubResourceChanged(const QString&)));
 
-  connect(resource, SIGNAL(operationStartReportProgress(int, int, const QString&)),
-	  this, SLOT(slotStartProgress(int, int, const QString&)));
+  connect(resource, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
+	  this, SLOT(slotStartProgress(KLFProgressReporter *, const QString&)));
 
   // get more category completions
   viewc->view()->wantMoreCategorySuggestions();
@@ -1234,37 +1234,19 @@ void KLFLibBrowser::slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstract
     source->deleteSelected(false);
 }
 
-void KLFLibBrowser::slotStartProgress(int min, int max, const QString& text)
+void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& text)
 {
-  KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
-  slotStartProgress(resource, min, max, text);
-}
-void KLFLibBrowser::slotStartProgress(KLFLibResourceEngine *resource, int min, int max,
-				      const QString& text)
-{
-  qDebug()<<KLF_FUNC_NAME<<": min,max="<<min<<","<<max<<"; text="<<text;
-  if (resource == NULL) {
-    qWarning()<<KLF_FUNC_NAME<<": Resource is NULL";
-    return;
-  }
+  qDebug()<<KLF_FUNC_NAME<<": min,max="<<progressReporter->min()<<","<<progressReporter->max()
+	  <<"; text="<<text;
+
   KLFProgressDialog *pdlg = new KLFProgressDialog(false, this);
 
-  pdlg->setRange(min, max);
+  pdlg->startReportingProgress(progressReporter, text);
   pdlg->setValue(0);
 
   pdlg->setProperty("klf_libbrowser_pdlg_want_hideautodelete", QVariant(true));
   pdlg->installEventFilter(this);
-
-  connect(resource, SIGNAL(operationReportProgress(int)), pdlg, SLOT(setValue(int)));
-  connect(resource, SIGNAL(operationReportProgress(int)), this, SLOT(slotDebugProgressValue(int)));
 }
-
-
-void KLFLibBrowser::slotDebugProgressValue(int val)
-{
-  qDebug()<<KLF_FUNC_NAME<<" val="<<val;
-}
-
 
 void KLFLibBrowser::updateSearchFound(bool found)
 {

@@ -238,6 +238,8 @@ KLFMainWin::KLFMainWin()
 
   loadSettings();
 
+  _loadedlibrary = false;
+
   _output.status = 0;
   _output.errorstr = QString();
   _output.result = QImage();
@@ -339,8 +341,6 @@ KLFMainWin::KLFMainWin()
 
   // load library
   mLibBrowser = new KLFLibBrowser(this);
-  /// \todo TODO ....................... load previously saved GUI state ............. for KLFLibBrowser....
-  loadLibrary();
 
 
   // -- MAJOR SIGNAL/SLOT CONNECTIONS --
@@ -428,9 +428,7 @@ KLFMainWin::KLFMainWin()
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mSettingsDialog, SLOT(retranslateUi()));
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mStyleManager, SLOT(retranslateUi()));
 
-
-  // load the library browser's saved state
-  loadLibrarySavedState();
+  // library will be loaded on window show event.
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -735,17 +733,12 @@ void KLFMainWin::loadLibrary()
     // needs an import
 
     // visual feedback for import
-    QProgressDialog pdlg(this);
-    connect(mHistoryLibResource, SIGNAL(operationStartReportProgress(int, int, const QString&)),
-	    &pdlg, SLOT(setRange(int, int)));
-    connect(mHistoryLibResource, SIGNAL(operationReportProgress(int)), &pdlg, SLOT(setValue(int)));
+    KLFProgressDialog pdlg(QString(), this);
+    connect(mHistoryLibResource, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
+	    &pdlg, SLOT(startReportingProgress(KLFProgressReporter *)));
     pdlg.setAutoClose(false);
     pdlg.setAutoReset(false);
-    pdlg.setModal(true);
-    pdlg.setWindowModality(Qt::ApplicationModal);
-    QPushButton *cbtn = new QPushButton(tr("Cancel"), &pdlg);
-    pdlg.setCancelButton(cbtn);
-    cbtn->setEnabled(false); // can't cancel!
+
     // locate the import file and scheme
     QUrl importliburl = QUrl::fromLocalFile(importfname);
     if (importfname.endsWith(".klf.db")) {
@@ -766,11 +759,8 @@ void KLFMainWin::loadLibrary()
       int j;
       for (j = 0; j < subResList.size(); ++j) {
 	QString subres = subResList[j];
-	pdlg.reset();
-	pdlg.setLabelText(tr("Importing Library from previous version of KLatexFormula ... %3 (%1/%2)")
-			  .arg(j+1).arg(subResList.size()).arg(subResList[j]));
-	pdlg.setFixedSize((int)(pdlg.sizeHint().width()*1.3), (int)(pdlg.sizeHint().height()*1.1));
-	pdlg.setValue(0); // reset value
+	pdlg.setDescriptiveText(tr("Importing Library from previous version of KLatexFormula ... %3 (%1/%2)")
+				.arg(j+1).arg(subResList.size()).arg(subResList[j]));
 	QList<KLFLibResourceEngine::KLFLibEntryWithId> allentries
 	  = importres->allEntries(subres);
 	qDebug("\tGot %d entries from sub-resource %s", allentries.size(), qPrintable(subres));
@@ -1124,6 +1114,13 @@ void KLFMainWin::hideEvent(QHideEvent *e)
 
 void KLFMainWin::showEvent(QShowEvent *e)
 {
+  if ( ! _loadedlibrary ) {
+    _loadedlibrary = true;
+    // load the library browser's saved state
+    loadLibrary();
+    loadLibrarySavedState();
+  }
+
   if ( ! e->spontaneous() ) {
     // restore shown windows ...
     klf_set_window_geometry(this, _lastwindowgeometries[MainWin]);

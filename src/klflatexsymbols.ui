@@ -18,7 +18,7 @@
    <iconset resource="klfres.qrc">
     <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
-  <layout class="QVBoxLayout">
+  <layout class="QVBoxLayout" name="lyt_KLFLatexSymbols">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -36,7 +36,7 @@
      <property name="lineWidth">
       <number>0</number>
      </property>
-     <layout class="QVBoxLayout">
+     <layout class="QVBoxLayout" name="lyt_frmMain">
       <property name="spacing">
        <number>3</number>
       </property>

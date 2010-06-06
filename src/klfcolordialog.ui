@@ -1,10 +1,11 @@
-<ui version="4.0" >
- <class>KLFColorDialogUI</class>
- <widget class="QDialog" name="KLFColorDialogUI" >
-  <property name="windowModality" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>KLFColorDialog</class>
+ <widget class="QDialog" name="KLFColorDialog">
+  <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
-  <property name="geometry" >
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
@@ -12,32 +13,32 @@
     <height>367</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Select Color</string>
   </property>
-  <property name="windowIcon" >
-   <iconset resource="klfres.qrc" >
+  <property name="windowIcon">
+   <iconset resource="klfres.qrc">
     <normaloff>:/pics/huepane.png</normaloff>:/pics/huepane.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" >
+  <layout class="QVBoxLayout" name="lyt_KLFColorDialog">
    <item>
-    <widget class="QFrame" name="frmChooseWidget" >
-     <property name="frameShape" >
-      <enum>QFrame::Panel</enum>
+    <widget class="QFrame" name="frmChooseWidget">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
      </property>
-     <property name="frameShadow" >
+     <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2" >
-      <property name="spacing" >
+     <layout class="QVBoxLayout" name="lyt_frmChooseWidget">
+      <property name="spacing">
        <number>0</number>
       </property>
-      <property name="margin" >
+      <property name="margin">
        <number>2</number>
       </property>
       <item>
-       <widget class="KLFColorChooseWidget" native="1" name="mColorChooseWidget" >
-        <property name="minimumSize" >
+       <widget class="KLFColorChooseWidget" name="mColorChooseWidget" native="true">
+        <property name="minimumSize">
          <size>
           <width>353</width>
           <height>299</height>
@@ -49,11 +50,11 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox" >
-     <property name="orientation" >
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <property name="standardButtons" >
+     <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
@@ -64,25 +65,25 @@
   <customwidget>
    <class>KLFColorChooseWidget</class>
    <extends>QWidget</extends>
-   <header location="global" >QWidget</header>
+   <header location="global">QWidget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="klfres.qrc" />
+  <include location="klfres.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>KLFColorDialogUI</receiver>
+   <receiver>KLFColorDialog</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>248</x>
      <y>254</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>157</x>
      <y>274</y>
     </hint>
@@ -91,14 +92,14 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>KLFColorDialogUI</receiver>
+   <receiver>KLFColorDialog</receiver>
    <slot>reject()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>316</x>
      <y>260</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
     </hint>

@@ -323,7 +323,7 @@ public:
   virtual uint flavorFlags() const;
   inline uint displayType() const { return flavorFlags() & DisplayTypeMask; }
 
-  virtual QVariant data(const QModelIndex& index, int role) const;
+  virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
   virtual Qt::ItemFlags flags(const QModelIndex& index) const;
   virtual bool hasChildren(const QModelIndex &parent) const;
   virtual QVariant headerData(int section, Qt::Orientation orientation,
@@ -335,6 +335,9 @@ public:
   virtual QModelIndex parent(const QModelIndex &index) const;
   virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
   virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+  virtual bool canFetchMore(const QModelIndex& parent) const;
+  virtual void fetchMore(const QModelIndex& parent);
 
   virtual Qt::DropActions supportedDropActions() const;
 
@@ -388,7 +391,7 @@ public slots:
   virtual void completeRefresh();
 
   /** how many items to fetch at a time when fetching preview and style (non-minimalist) */
-  virtual void setFetchBatchCount(int count = 40) { pFetchBatchCount = count; }
+  virtual void setFetchBatchCount(int count) { pFetchBatchCount = count; }
 
 private:
 
@@ -441,12 +444,14 @@ private:
     int column;
   };
   struct Node {
-    Node(ItemKind k) : kind(k), parent(NodeId()), children(QList<NodeId>()) { }
-    Node(const Node& other) : kind(other.kind), parent(other.parent), children(other.children) { }
+    Node(ItemKind k) : kind(k), parent(NodeId()), children(QList<NodeId>()), numDisplayFetched(0) { }
+    Node(const Node& other) : kind(other.kind), parent(other.parent), children(other.children),
+			      numDisplayFetched(other.numDisplayFetched) { }
     virtual ~Node() { }
     ItemKind kind;
     NodeId parent;
     QList<NodeId> children;
+    int numDisplayFetched;
   };
   struct EntryNode : public Node {
     EntryNode() : Node(EntryKind), entryid(-1), entry(), minimalist(false) { }
@@ -476,12 +481,15 @@ private:
   QStringList pCatListCache;
 
   /** If row is negative, it will be looked up automatically. */
-  QModelIndex createIndexFromId(NodeId nodeid, int row, int column) const;
+  QModelIndex createIndexFromId(NodeId nodeid, int row, int column);
+  /** This will not fetchMore() if more data is available ... */
+  QModelIndex createIndexFromIdConst(NodeId nodeid, int row, int column) const;
   //  /** If row is negative, it will be looked up automatically. */
   //  QModelIndex createIndexFromPtr( *node, int row, int column) const;
   /** Returns an invalid ID upon invalid index. */
   NodeId getNodeForIndex(const QModelIndex& index) const;
   Node getNode(NodeId nodeid) const;
+  Node& getNodeRef(NodeId nodeid);
   EntryNode getEntryNode(NodeId nodeid) const;
   CategoryLabelNode getCategoryLabelNode(NodeId nodeid) const;
   //  NodeId getNodeId(Node *node) const;
@@ -494,7 +502,10 @@ private:
    * If count is -1, uses fetchBatchCount(). */
   void ensureNotMinimalist(NodeId nodeId, int count = -1) const;
 
+  bool pIsFetchingMore;
   int pFetchBatchCount;
+  /** parentIdAsIndex is the SAME NODE AS parentId. It MUST be given. */
+  void fetchMore(NodeId parentId, const QModelIndex& parentIdAsIndex);
 
   QList<PersistentId> persistentIdList(const QModelIndexList& persistentindexlist);
   QModelIndexList newPersistentIndexList(const QList<PersistentId>& persistentidlist);

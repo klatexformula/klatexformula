@@ -244,6 +244,11 @@ QCheckBox::indicator:indeterminate:pressed {
 	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-ip.png);
 }
 
+QLabel:disabled, QTextEdit:disabled, QSpinBox:disabled, QComboBox:disabled,
+	 QLineEdit:disabled {
+	color: rgb(120, 120, 120);
+}
+
 QToolTip {
 	padding: -2px 4px -2px 4px;
 	background-color: rgb(174, 174, 174);

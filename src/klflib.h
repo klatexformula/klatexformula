@@ -37,6 +37,9 @@
 #include <klffactory.h>
 
 
+class KLFProgressReporter;
+
+
 /** \brief A Formula Style (collection of properties)
  *
  * Structure containing forground color, bg color, mathmode, preamble, etc.
@@ -275,9 +278,9 @@ namespace KLFLib {
  * - See also docs for \ref setResourceProperty() and \ref saveResourceProperty().
  * - The \ref resourcePropertyChanged() is emitted in the default implementation of
  *   \ref setResourceProperty().
- * - lengthy operations should emit signals \ref operationStartReportProgress() and
- *   \ref operationReportProgress() as necessary. This is recommended, but subclasses are not
- *   entitled to such behavior.
+ * - lengthy operations should emit the signal \ref operationStartReportingProgress() with a suitable
+ *   KLFProgressReporter as necessary to inform callers of progress of operations that can take some
+ *   time. This is recommended, but subclasses aren't forced to comply (for laziness' sake for ex...).
  */
 class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObject
 {
@@ -765,28 +768,38 @@ signals:
   void subResourcePropertyChanged(const QString& subResource, int propId);
 
   /** Emitted at the beginning of a long operation during which progress will be reported
-   * by emission of \ref operationReportProgress().
+   * by emission of KLFProgressReporter::progress() of the given object \c progressReporter.
    *
-   * \param minimum is the start progress value that will be reported
-   * \param maximum is the end progress value that will be reported
-   * \param descriptiveText is some text describing the nature of the
-   *   operation in progress
+   * \param progressReporter is the object that will emit its progress() at regular intervals
+   *   to inform caller of operation progress.
+   * \param descriptiveText is some text describing the nature of the operation in progress
    *
-   * The functions operationStartReportProgress() and operationReportProgress() are suitable
-   * to use in conjunction with a QProgressDialog.
+   * Subclasses have to use KLFProgressReporter directly. It's very simple to use, example:
+   * \code
+   * int do_some_long_computations(...) {
+   *   int num_of_steps = ... ;
+   *   KLFProgressReporter progressReporter(0, num_of_steps, this);
+   *   // ...
+   *   int current_step = 0;
+   *   for ( ... many iterations ... ) {
+   *     progressReporter.doReportProgress(current_step++);
+   *
+   *     .... // perform a long computation iteration
+   *
+   *   }
+   *   // finally emit the last progress value
+   *   progressReporter.doReportProgress(num_of_steps);
+   *   ...
+   *   return some_result;
+   * }
+   * \endcode
+   *
+   * The signal operationStartReportingProgress() is suitable to use in conjunction with
+   * a KLFProgressDialog.
    */
-  void operationStartReportProgress(int minimum, int maximum, const QString& descriptiveText);
-  /** Emitted at regular intervals (at option) by subclasses to inform their
-   * callers about the progress of a given action.
-   *
-   * This signal is emitted repeatedly (by subclasses) after having emitted once the
-   * \ref operationStartReportProgress() signal, with increasing \c progressValue values
-   * ranging from \c minimum to \c maximum as given by \ref operationStartReportProgress().
-   *
-   * The last time this signal is emitted for one operation, its \c progressValue is exactly
-   * the \c maximum value. (Subclasses must guarantee this).
-   */
-  void operationReportProgress(int progressValue);
+  void operationStartReportingProgress(KLFProgressReporter *progressReporter,
+				       const QString& descriptiveText);
+
   
 public slots:
 

@@ -10,7 +10,7 @@
     <height>628</height>
    </rect>
   </property>
-  <layout class="QGridLayout" name="lyt_KLFLibViewEntryEditor">
+  <layout class="QGridLayout" name="lyt_KLFLibEntryEditor">
    <property name="margin">
     <number>1</number>
    </property>
@@ -139,11 +139,8 @@
        <attribute name="label">
         <string>Category and Tags</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item>
+       <layout class="QGridLayout" name="lyt_tabCategoryTags">
+        <item row="0" column="0" colspan="2">
          <widget class="QLabel" name="lblCategory">
           <property name="text">
            <string>&amp;Category:</string>
@@ -156,7 +153,7 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item row="1" column="0" colspan="2">
          <widget class="QComboBox" name="cbxCategory">
           <property name="editable">
            <bool>true</bool>
@@ -169,41 +166,37 @@
           </property>
          </widget>
         </item>
-        <item>
-         <layout class="QHBoxLayout" name="_2">
-          <item>
-           <spacer name="spacer2_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnUpdateCategory">
-            <property name="text">
-             <string>Update Category</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+        <item row="2" column="0">
+         <spacer name="hspc4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Expanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>164</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
-        <item>
+        <item row="2" column="1">
+         <widget class="QPushButton" name="btnUpdateCategory">
+          <property name="text">
+           <string>Update Category</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" colspan="2">
          <widget class="Line" name="line">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
-        <item>
+        <item row="4" column="0" colspan="2">
          <widget class="QLabel" name="lblTags">
           <property name="text">
            <string>Name / &amp;Tags:</string>
@@ -216,7 +209,7 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item row="5" column="0" colspan="2">
          <widget class="QComboBox" name="cbxTags">
           <property name="editable">
            <bool>true</bool>
@@ -229,35 +222,31 @@
           </property>
          </widget>
         </item>
-        <item>
-         <layout class="QHBoxLayout" name="_3">
-          <item>
-           <spacer name="spacer2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnUpdateTags">
-            <property name="text">
-             <string>Update Tags</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+        <item row="6" column="0">
+         <spacer name="hspc3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Expanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>164</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
-        <item>
-         <spacer name="verticalSpacer">
+        <item row="6" column="1">
+         <widget class="QPushButton" name="btnUpdateTags">
+          <property name="text">
+           <string>Update Tags</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <spacer name="vspc1">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -276,8 +265,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>137</width>
-         <height>58</height>
+         <width>300</width>
+         <height>236</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -286,7 +275,7 @@
        <attribute name="label">
         <string>Style</string>
        </attribute>
-       <layout class="QVBoxLayout" name="_4">
+       <layout class="QVBoxLayout" name="lyt_tabStyle">
         <property name="spacing">
          <number>3</number>
         </property>

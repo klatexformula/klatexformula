@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>KLFColorChooseWidgetUI</class>
- <widget class="QWidget" name="KLFColorChooseWidgetUI">
+ <class>KLFColorChooseWidget</class>
+ <widget class="QWidget" name="KLFColorChooseWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -16,7 +16,7 @@
   <property name="windowTitle">
    <string>Choose Color</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_4">
+  <layout class="QGridLayout" name="lyt_KLFColorChooseWidget">
    <property name="margin">
     <number>0</number>
    </property>
@@ -237,7 +237,7 @@
       <attribute name="title">
        <string/>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_5">
+      <layout class="QGridLayout" name="lyt_mSlidersTab">
        <item row="0" column="7">
         <widget class="KLFColorChooseWidgetPane" name="mHueSlider" native="true">
          <property name="sizePolicy">
@@ -600,7 +600,7 @@
     </widget>
    </item>
    <item row="0" column="2">
-    <layout class="QGridLayout" name="lyt_KLFColorChooseWidgetUI">
+    <layout class="QGridLayout" name="lytSpinValues">
      <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
      </property>
@@ -1039,8 +1039,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>244</width>
-            <height>87</height>
+            <width>250</width>
+            <height>92</height>
            </rect>
           </property>
          </widget>
@@ -1078,8 +1078,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>244</width>
-            <height>87</height>
+            <width>250</width>
+            <height>92</height>
            </rect>
           </property>
          </widget>
@@ -1131,8 +1131,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>219</width>
-            <height>87</height>
+            <width>225</width>
+            <height>92</height>
            </rect>
           </property>
          </widget>

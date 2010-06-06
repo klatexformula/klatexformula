@@ -35,7 +35,7 @@
 namespace Ui { class KLFLibBrowser; }
 
 class KLFLibBrowserViewContainer;
-
+class KLFProgressReporter;
 
 class KLFLibBrowser : public QWidget
 {
@@ -161,11 +161,8 @@ protected slots:
   void slotCopyMoveToResource(QObject *sender, bool move);
   void slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstractLibView *source, bool move);
 
-  /** Calls the other function, with \c resource determined from signal sender. */
-  void slotStartProgress(int min, int max, const QString& text);
-  void slotStartProgress(KLFLibResourceEngine *resource, int min, int max, const QString& text);
+  void slotStartProgress(KLFProgressReporter *progressReporter, const QString& text);
 
-  void slotDebugProgressValue(int val);
 
 protected:
   KLFLibBrowserViewContainer * findOpenUrl(const QUrl& url);

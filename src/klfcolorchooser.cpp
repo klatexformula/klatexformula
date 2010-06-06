@@ -36,6 +36,9 @@
 #include "klfconfig.h"
 #include "klfcolorchooser.h"
 
+#include <ui_klfcolorchoosewidget.h>
+#include <ui_klfcolordialog.h>
+
 
 #define cstr(x) (x).toLocal8Bit().constData()
 
@@ -43,15 +46,27 @@
 
 // -------------------------------------------------------------------
 
+
+KLFColorDialog::KLFColorDialog(QWidget *parent) : QDialog(parent)
+{
+  u = new Ui::KLFColorDialog;
+  u->setupUi(this);
+  setObjectName("KLFColorDialog");
+}
+KLFColorDialog::~KLFColorDialog()
+{
+  delete u;
+}
+
 QColor KLFColorDialog::getColor(QColor startwith, bool alphaenabled, QWidget *parent)
 {
   KLFColorDialog dlg(parent);
-  dlg.mColorChooseWidget->setAlphaEnabled(alphaenabled);
-  dlg.mColorChooseWidget->setColor(startwith);
+  dlg.u->mColorChooseWidget->setAlphaEnabled(alphaenabled);
+  dlg.u->mColorChooseWidget->setColor(startwith);
   int r = dlg.exec();
   if ( r != QDialog::Accepted )
     return QColor();
-  QColor color = dlg.mColorChooseWidget->color();
+  QColor color = dlg.u->mColorChooseWidget->color();
   KLFColorChooseWidget::addRecentColor(color);
   return color;
 }
@@ -383,7 +398,8 @@ KLFColorList * KLFColorChooseWidget::_customcolors = 0;
 KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)
   : QWidget(parent)
 {
-  setupUi(this);
+  u = new Ui::KLFColorChooseWidget;
+  u->setupUi(this);
   setObjectName("KLFColorChooseWidget");
 
   _alphaenabled = true;
@@ -405,31 +421,31 @@ KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)
       _standardcolors->list.append(QColor(QRgb(rgbs[k])));
   }
 
-  _connectedColorChoosers.append(mDisplayColor);
-  _connectedColorChoosers.append(mHueSatPane);
-  _connectedColorChoosers.append(mValPane);
-  _connectedColorChoosers.append(mAlphaPane);
-  _connectedColorChoosers.append(mColorTriangle);
-  _connectedColorChoosers.append(mHueSlider);
-  _connectedColorChoosers.append(mSatSlider);
-  _connectedColorChoosers.append(mValSlider);
-  _connectedColorChoosers.append(mRedSlider);
-  _connectedColorChoosers.append(mGreenSlider);
-  _connectedColorChoosers.append(mBlueSlider);
-  _connectedColorChoosers.append(mAlphaSlider);
-  _connectedColorChoosers.append(spnHue);
-  _connectedColorChoosers.append(spnSat);
-  _connectedColorChoosers.append(spnVal);
-  _connectedColorChoosers.append(spnRed);
-  _connectedColorChoosers.append(spnGreen);
-  _connectedColorChoosers.append(spnBlue);
-  _connectedColorChoosers.append(spnAlpha);
+  _connectedColorChoosers.append(u->mDisplayColor);
+  _connectedColorChoosers.append(u->mHueSatPane);
+  _connectedColorChoosers.append(u->mValPane);
+  _connectedColorChoosers.append(u->mAlphaPane);
+  _connectedColorChoosers.append(u->mColorTriangle);
+  _connectedColorChoosers.append(u->mHueSlider);
+  _connectedColorChoosers.append(u->mSatSlider);
+  _connectedColorChoosers.append(u->mValSlider);
+  _connectedColorChoosers.append(u->mRedSlider);
+  _connectedColorChoosers.append(u->mGreenSlider);
+  _connectedColorChoosers.append(u->mBlueSlider);
+  _connectedColorChoosers.append(u->mAlphaSlider);
+  _connectedColorChoosers.append(u->spnHue);
+  _connectedColorChoosers.append(u->spnSat);
+  _connectedColorChoosers.append(u->spnVal);
+  _connectedColorChoosers.append(u->spnRed);
+  _connectedColorChoosers.append(u->spnGreen);
+  _connectedColorChoosers.append(u->spnBlue);
+  _connectedColorChoosers.append(u->spnAlpha);
 
-  KLFGridFlowLayout *lytRecent = new KLFGridFlowLayout(12, mRecentColorsPalette);
+  KLFGridFlowLayout *lytRecent = new KLFGridFlowLayout(12, u->mRecentColorsPalette);
   lytRecent->setSpacing(2);
-  KLFGridFlowLayout *lytStandard = new KLFGridFlowLayout(12, mStandardColorsPalette);
+  KLFGridFlowLayout *lytStandard = new KLFGridFlowLayout(12, u->mStandardColorsPalette);
   lytStandard->setSpacing(2);
-  KLFGridFlowLayout *lytCustom = new KLFGridFlowLayout(12, mCustomColorsPalette);
+  KLFGridFlowLayout *lytCustom = new KLFGridFlowLayout(12, u->mCustomColorsPalette);
   lytCustom->setSpacing(2);
 
   connect(_recentcolors, SIGNAL(listChanged()), this, SLOT(updatePaletteRecent()));
@@ -444,19 +460,19 @@ KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)
 	    this, SLOT(internalColorChanged(const QColor&)));
   }
 
-  connect(lstNames, SIGNAL(itemClicked(QListWidgetItem*)),
+  connect(u->lstNames, SIGNAL(itemClicked(QListWidgetItem*)),
 	  this, SLOT(internalColorNameSelected(QListWidgetItem*)));
-  connect(txtHex, SIGNAL(textChanged(const QString&)),
+  connect(u->txtHex, SIGNAL(textChanged(const QString&)),
 	  this, SLOT(internalColorNameSet(const QString&)));
 
-  connect(btnAddCustomColor, SIGNAL(clicked()),
+  connect(u->btnAddCustomColor, SIGNAL(clicked()),
 	  this, SLOT(setCurrentToCustomColor()));
 
   QStringList colornames = QColor::colorNames();
   for (k = 0; k < colornames.size(); ++k) {
     QPixmap colsample(16, 16);
     colsample.fill(QColor(colornames[k]));
-    new QListWidgetItem(QIcon(colsample), colornames[k], lstNames);
+    new QListWidgetItem(QIcon(colsample), colornames[k], u->lstNames);
   }
 
   internalColorChanged(_color);
@@ -475,10 +491,10 @@ void KLFColorChooseWidget::internalColorChanged(const QColor& wanted_newcolor)
     _connectedColorChoosers[k]->blockSignals(false);
   }
   QString newcolorname = newcolor.name();
-  if (txtHex->text() != newcolorname) {
-    txtHex->blockSignals(true);
-    txtHex->setText(newcolorname);
-    txtHex->blockSignals(false);
+  if (u->txtHex->text() != newcolorname) {
+    u->txtHex->blockSignals(true);
+    u->txtHex->setText(newcolorname);
+    u->txtHex->blockSignals(false);
   }
 
   _color = newcolor;
@@ -499,12 +515,12 @@ void KLFColorChooseWidget::internalColorNameSet(const QString& n)
   QString name = n;
   static QRegExp rx("\\#?[0-9A-Za-z]{6}");
   if (!rx.exactMatch(name)) {
-    txtHex->setProperty("invalidInput", true);
-    txtHex->setStyleSheet("background-color: rgb(255,128,128)");
+    u->txtHex->setProperty("invalidInput", true);
+    u->txtHex->setStyleSheet("background-color: rgb(255,128,128)");
     return;
   }
-  txtHex->setProperty("invalidInput", QVariant());
-  txtHex->setStyleSheet("");
+  u->txtHex->setProperty("invalidInput", QVariant());
+  u->txtHex->setStyleSheet("");
   if (name[0] != QLatin1Char('#'))
     name = "#"+name;
   QColor color(name);
@@ -524,11 +540,11 @@ void KLFColorChooseWidget::setColor(const QColor& color)
 void KLFColorChooseWidget::setAlphaEnabled(bool enabled)
 {
   _alphaenabled = enabled;
-  spnAlpha->setShown(enabled);
-  lblAlpha->setShown(enabled);
-  mAlphaPane->setShown(enabled);
-  lblsAlpha->setShown(enabled);
-  mAlphaSlider->setShown(enabled);
+  u->spnAlpha->setShown(enabled);
+  u->lblAlpha->setShown(enabled);
+  u->mAlphaPane->setShown(enabled);
+  u->lblsAlpha->setShown(enabled);
+  u->mAlphaSlider->setShown(enabled);
   _color.setAlpha(255);
   setColor(_color);
 }
@@ -568,15 +584,15 @@ void KLFColorChooseWidget::updatePalettes()
 
 void KLFColorChooseWidget::updatePaletteRecent()
 {
-  fillPalette(_recentcolors, mRecentColorsPalette);
+  fillPalette(_recentcolors, u->mRecentColorsPalette);
 }
 void KLFColorChooseWidget::updatePaletteStandard()
 {
-  fillPalette(_standardcolors, mStandardColorsPalette);
+  fillPalette(_standardcolors, u->mStandardColorsPalette);
 }
 void KLFColorChooseWidget::updatePaletteCustom()
 {
-  fillPalette(_customcolors, mCustomColorsPalette);
+  fillPalette(_customcolors, u->mCustomColorsPalette);
 }
 
 // static

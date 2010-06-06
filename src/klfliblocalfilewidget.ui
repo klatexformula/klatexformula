@@ -10,7 +10,7 @@
     <height>322</height>
    </rect>
   </property>
-  <layout class="QGridLayout" name="lyt_KLFLibSqliteOpenWidget">
+  <layout class="QGridLayout" name="lyt_KLFLibLocalFileWidget">
    <item row="0" column="0" colspan="3">
     <widget class="QLabel" name="lblLocation">
      <property name="text">

@@ -30,6 +30,7 @@
 #include <QList>
 #include <QEvent>
 #include <QWidget>
+#include <QDialog>
 #include <QSpinBox>
 #include <QGridLayout>
 #include <QPainter>
@@ -222,12 +223,10 @@ private:
 
 // ------------------------------------------------------------------------------------
 
-// this is ugly, but true: include ui_***.h _here_.
-// reason: the above widgets are not declared in separate .h files (that would
-// pollute the file system ...)
-#include <ui_klfcolorchoosewidgetui.h>
+namespace Ui { class KLFColorChooseWidget; }
+class QListWidgetItem;
 
-class KLF_EXPORT KLFColorChooseWidget : public QWidget, public Ui::KLFColorChooseWidgetUI
+class KLF_EXPORT KLFColorChooseWidget : public QWidget
 {
   Q_OBJECT
 
@@ -273,6 +272,8 @@ protected slots:
   virtual void internalColorNameSet(const QString& colorname);
 
 private:
+  Ui::KLFColorChooseWidget *u;
+
   QColor _color;
   bool _alphaenabled;
 
@@ -288,20 +289,20 @@ private:
 
 // ------------------------------------------------------------------------------------
 
-// this is ugly, but true: include ui_***.h _here_.
-#include <ui_klfcolordialogui.h>
 
-class KLF_EXPORT KLFColorDialog : public QDialog, public Ui::KLFColorDialogUI
+namespace Ui { class KLFColorDialog; }
+
+class KLF_EXPORT KLFColorDialog : public QDialog
 {
   Q_OBJECT
 public:
-  KLFColorDialog(QWidget *parent = 0) : QDialog(parent)
-  {
-    setupUi(this);
-    setObjectName("KLFColorDialog");
-  }
+  KLFColorDialog(QWidget *parent = 0);
+  virtual ~KLFColorDialog();
 
   static QColor getColor(QColor startwith = Qt::black, bool alphaenabled = true, QWidget *parent = 0);
+
+private:
+  Ui::KLFColorDialog *u;
 };
 
 

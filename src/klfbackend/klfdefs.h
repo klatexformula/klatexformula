@@ -78,13 +78,24 @@ public:
 
 #ifdef KLF_DEBUG
 #include <sys/time.h>
+#include <qdebug.h>
+
 /** FOR DEBUGGING: Print Debug message with precise current time */
 KLF_EXPORT void __klf_debug_time_print(QString str);
 
-// dox doc is in next (unfunctional) definition in next #if block
+template<class T>
+inline const T& __klf_debug_tee(const T& expr)
+#ifdef KLFBACKEND_QT4
+{ qDebug()<<"TEE VALUE: "<<expr; return expr; }
+#else
+{ return expr; } // sorry, no  qDebug()<<(anything you want)  in Qt 3 ...
+#endif
+
+// dox doc is in next (unfunctional) definitions in next #if block
 #define klf_debug_time_print(msg) __klf_debug_time_print(msg)
 #define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(msg)
 #define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(msg)
+#define klf_debug_tee(expr) __klf_debug_tee(expr)
 #else
 
 
@@ -137,6 +148,19 @@ KLF_EXPORT void __klf_debug_time_print(QString str);
  * \endcode
  */
 #define KLF_DEBUG_BLOCK(msg)
+
+/** \brief Print the value of expression and return it
+ *
+ * If KLF_DEBUG preprocessor symbol is not defined, this macro just expands to <tt>(expr)</tt>.
+ *
+ * \note This macro works only in Qt4.
+ *
+ * Very useful for debugging return values, eg.
+ * \code
+ *   return klf_debug_tee(result);
+ * \endcode
+ */
+#define klf_debug_tee(expr) (expr)
 
 #endif
 

@@ -255,6 +255,11 @@ QScrollBar {
 	color: black
 }
 
+QLabel:disabled, QTextEdit:disabled, QSpinBox:disabled, QComboBox:disabled,
+	 QLineEdit:disabled {
+	color: rgb(160, 160, 160);
+}
+
 QToolTip {
 	padding: -2px 4px -2px 4px;
 	background-color: rgb(70, 70, 70);
