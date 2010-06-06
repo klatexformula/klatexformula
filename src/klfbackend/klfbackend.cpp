@@ -55,14 +55,16 @@ void __klf_debug_time_print(QString str)
 KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
 {
   QString funcname(ba_funcname);
-  // returns the section between the first space and the first open paren
+  // returns the section between the last space before the first open paren and the first open paren
   int iSpc, iParen;
+  /** \todo ..................... TEST/VERIFY KLFBackend lib with Qt3 ........... in particular
+   *    here below QString::rfind() */
 #ifdef KLFBACKEND_QT4
-  iSpc = funcname.indexOf(' ');
   iParen = funcname.indexOf('(');
+  iSpc = funcname.lastIndexOf(' ', iParen-2);
 #else
-  iSpc = funcname.find(' ');
   iParen = funcname.find('(');
+  iSpc = funcname.findRev(' ', iParen-2);
 #endif
   if (iSpc == -1 || iParen == -1 || iSpc > iParen) {
     qWarning("klfShortFuncSignature('%s'): Signature parse error!", qPrintable(funcname));
@@ -77,6 +79,33 @@ KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
   data = f.local8Bit();
 #endif
   return data;
+}
+
+
+KLFDebugBlock::KLFDebugBlock(const QString& blockName)
+  : pBlockName(blockName), pPrintMsg(true)
+{
+  qDebug("%s: block begin", qPrintable(pBlockName));
+}
+KLFDebugBlock::KLFDebugBlock(bool printmsg, const QString& blockName)
+  : pBlockName(blockName), pPrintMsg(printmsg)
+{
+  if (printmsg)
+    qDebug("%s: block begin", qPrintable(pBlockName));
+}
+KLFDebugBlock::~KLFDebugBlock()
+{
+  if (pPrintMsg)
+    qDebug("%s: block end", qPrintable(pBlockName));
+}
+KLFDebugBlockTimer::KLFDebugBlockTimer(const QString& blockName)
+  : KLFDebugBlock(false, blockName)
+{
+  __klf_debug_time_print(QString("%1: block begin").arg(pBlockName));
+}
+KLFDebugBlockTimer::~KLFDebugBlockTimer()
+{
+  __klf_debug_time_print(QString("%1: block end").arg(pBlockName));
 }
 
 

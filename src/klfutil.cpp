@@ -35,6 +35,10 @@
 #include <QTextCodec>
 #include <QDateTime>
 #include <QRect>
+#include <QIcon>
+#include <QPushButton>
+#include <QApplication>
+#include <QDesktopWidget>
 
 #include "klfutil.h"
 #include "klflib.h" // KLFStyle
@@ -286,7 +290,7 @@ KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& value_ba)
   QByteArray data;
   int k;
   for (k = 0; k < value_ba.size(); ++k) {
-    qDebug("\tdata[%d] = %x = %c", k, (uchar)value_ba[k], value_ba[k]);
+    //    qDebug("\tdata[%d] = %x = %c", k, (uchar)value_ba[k], value_ba[k]);
     if (value_ba[k] >= 32 && value_ba[k] <= 126 && value_ba[k] != '\\') {
       // ascii-ok values, not backslash
       data += value_ba[k];
@@ -1030,5 +1034,67 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   qWarning("klfLoadVariantFromText: Can't load a %s from %s !", dataTypeName, stringdata.constData());
   return QVariant();
 }
+
+
+
+
+
+// ----------------------------------------------------
+
+
+
+
+
+
+
+KLFProgressDialog::KLFProgressDialog(QString labelText, QWidget *parent)
+  : QProgressDialog(parent)
+{
+  setup(false, labelText);
+}
+KLFProgressDialog::KLFProgressDialog(bool canCancel, QString labelText, QWidget *parent)
+  : QProgressDialog(parent)
+{
+  setup(canCancel, labelText);
+}
+KLFProgressDialog::~KLFProgressDialog()
+{
+}
+
+void KLFProgressDialog::setup(bool canCancel, const QString& lbl)
+{
+  setAutoClose(true);
+  setAutoReset(true);
+  setModal(true);
+  setLabelText(lbl);
+  setWindowModality(Qt::ApplicationModal);
+  setWindowIcon(QIcon(":/pics/klatexformula-16.png"));
+  QPushButton *cbtn = new QPushButton(tr("Cancel"), this);
+  setCancelButton(cbtn);
+  cbtn->setEnabled(canCancel);
+
+  setFixedSize((int)(sizeHint().width()*1.3), (int)(sizeHint().height()*1.1));
+}
+
+
+KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent)
+  : QLabel(text, parent, Qt::SplashScreen|Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint)
+{
+  QFont f = font();
+  f.setPointSize(QFontInfo(f).pointSize() + 2);
+  setFont(f);
+  setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+
+  int w = qMax( (int)(sizeHint().width() *1.3) , 500 );
+  int h = qMax( (int)(sizeHint().height()*1.1) , 100 );
+  setFixedSize(w, h);
+  QSize desktopSize = QApplication::desktop()->screenGeometry(parent).size();
+  move(desktopSize.width()/2 - w/2, desktopSize.height()/2 - h/2);
+  show();
+}
+KLFPleaseWaitPopup::~KLFPleaseWaitPopup()
+{
+}
+
 
 

@@ -130,6 +130,26 @@ static bool image_is_distinguishable(const QImage& img, QColor background, float
   return false;
 }
 
+/** \internal */
+static QColor image_average_color(const QImage& img)
+{
+  // img should not be transparent
+
+  QColor avgc;
+  QColor c;
+  int x, y, N = 0;
+  for (x = 0; x < img.width(); ++x) {
+    for (y = 0; y < img.height(); ++y) {
+      c = QColor(img.pixel(x, y));
+      avgc.setHsvF( (avgc.hueF()*N + c.hueF())/(N+1),
+		    (avgc.saturationF()*N + c.saturationF())/(N+1),
+		    (avgc.valueF()*N + c.valueF())/(N+1) );
+      ++N;
+    }
+  }
+  return avgc;
+}
+
 // ---
 
 /** \internal */
@@ -292,11 +312,14 @@ public:
     return pModel->walkNextIndex(QModelIndex());
   }
 
+  QColor avgBackgroundColor() { return avgBgColor; }
+
 protected:
   KLFLibModel *pModel;
   KLFLibDefaultView *pDView;
   KLFLibDefaultView::ViewType pViewType;
   QPoint mousePressedContentsPos;
+  QColor avgBgColor;
 
   virtual QModelIndexList commonSelectedIndexes() const = 0;
   virtual void commonInternalDrag(Qt::DropActions a) = 0;
@@ -314,7 +337,7 @@ protected:
     return event->pos() + QPoint(horoffset, veroffset);
   }
 
-  bool setTheModel(QAbstractItemModel *m) {
+  virtual bool setTheModel(QAbstractItemModel *m) {
     KLFLibModel *model = qobject_cast<KLFLibModel*>(m);
     if (model == NULL) {
       qWarning()<<"KLFLibDefViewCommon::setTheModel: model is NULL or not a KLFLibModel :"<<model<<" !";
@@ -323,6 +346,8 @@ protected:
     pModel = model;
     return true;
   }
+
+
 
 };
 
@@ -333,7 +358,7 @@ class KLFLibDefTreeView : public QTreeView, public KLFLibDefViewCommon
   Q_OBJECT
 public:
   KLFLibDefTreeView(KLFLibDefaultView *parent)
-    : QTreeView(parent), KLFLibDefViewCommon(parent), pInEventFilter(false)
+    : QTreeView(parent), KLFLibDefViewCommon(parent), inPaintEvent(false), pInEventFilter(false)
   {
     installEventFilter(this);
     viewport()->installEventFilter(this);
@@ -380,6 +405,11 @@ protected:
     commonStartDrag(supportedActions);
   }
 
+  bool inPaintEvent;
+  virtual void paintEvent(QPaintEvent *event) {
+    QTreeView::paintEvent(event);
+  }
+
   bool pInEventFilter;
 };
 
@@ -389,8 +419,8 @@ class KLFLibDefListView : public QListView, public KLFLibDefViewCommon
   Q_OBJECT
 public:
   KLFLibDefListView(KLFLibDefaultView *parent)
-    : QListView(parent), KLFLibDefViewCommon(parent), pWantRelayout(true), pInEventFilter(false),
-      pHasBeenPolished(false), pSavingIconPositions(false)
+    : QListView(parent), KLFLibDefViewCommon(parent), pWantRelayout(true), inPaintEvent(false),
+      pInEventFilter(false),  pHasBeenPolished(false), pSavingIconPositions(false)
   {
     pDelayedSetIconPositions.clear();
 
@@ -538,6 +568,11 @@ protected:
 
   virtual QPoint eventPos(QObject *object, QDragEnterEvent *event) {
     return KLFLibDefViewCommon::eventPos(object, event, horizontalOffset(), verticalOffset());
+  }
+
+  bool inPaintEvent;
+  virtual void paintEvent(QPaintEvent *event) {
+    QListView::paintEvent(event);
   }
 
   bool pInEventFilter;

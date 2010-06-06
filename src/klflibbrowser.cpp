@@ -35,6 +35,7 @@
 #include <QPushButton>
 
 #include "klfconfig.h"
+#include "klfutil.h"
 #include "klflibbrowser_p.h"
 #include "klflibbrowser.h"
 #include <ui_klflibbrowser.h>
@@ -454,6 +455,11 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
 bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags,
 				 const QString& viewTypeIdentifier)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME + QString("(KLFLibRes*,uint,QString): url=%1")
+		       .arg(resource->url().toString())) ;
+
+  //  KLFPleaseWaitPopup label(tr("Loading resource, please wait..."), this);
+
   if (resource == NULL) {
     qWarning("KLFLibBrowser::openResource(***NULL***,%u,%s) !", resourceRoleFlags,
 	     qPrintable(viewTypeIdentifier));
@@ -1220,17 +1226,7 @@ void KLFLibBrowser::slotStartProgress(KLFLibResourceEngine *resource, int min, i
     qWarning()<<KLF_FUNC_NAME<<": Resource is NULL";
     return;
   }
-  QProgressDialog *pdlg = new QProgressDialog(this);
-  pdlg->setModal(true);
-  pdlg->setLabelText(text);
-  QPushButton *cbtn = new QPushButton(tr("Cancel"), pdlg);
-  pdlg->setCancelButton(cbtn);
-  cbtn->setEnabled(false); // can't cancel!
-
-  pdlg->setFixedSize((int)(pdlg->sizeHint().width()*1.3), (int)(pdlg->sizeHint().height()*1.1));
-
-  pdlg->setAutoClose(true);
-  pdlg->setAutoReset(true);
+  KLFProgressDialog *pdlg = new KLFProgressDialog(false, this);
 
   pdlg->setRange(min, max);
   pdlg->setValue(0);

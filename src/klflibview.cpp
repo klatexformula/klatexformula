@@ -199,12 +199,13 @@ void KLFLibViewFactory::unRegisterFactory(KLFLibViewFactory *factory)
 
 KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject *parent)
   : QAbstractItemModel(parent), pFlavorFlags(flavorFlags), pCategoryLabelCacheContainsInvalid(false),
-    lastSortColumn(1), lastSortOrder(Qt::AscendingOrder)
+    pFetchBatchCount(1), lastSortColumn(1), lastSortOrder(Qt::AscendingOrder)
 {
   setResource(engine);
   // DON'T CONNECT SIGNALs FROM RESOURCE ENGINE HERE, we are informed from
   // the view. This is because of the KLFAbstractLibView API.
   //  connect(engine, SIGNAL(dataChanged(...)), this, SLOT(updateData(...)));
+  setFetchBatchCount(); // set the default value, given in this function prototype
 }
 
 KLFLibModel::~KLFLibModel()
@@ -240,6 +241,8 @@ uint KLFLibModel::flavorFlags() const
 
 QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 {
+  //  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  //  qDebug()<<"\tindex="<<index<<"; role="<<role;
   NodeId p = getNodeForIndex(index);
   if (!p.valid() || p.isRoot())
     return QVariant();
@@ -250,28 +253,40 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
   if (p.kind == EntryKind) {
     // --- GET ENTRY DATA ---
     EntryNode ep = getEntryNode(p);
-    const KLFLibEntry& entry = ep.entry;
-
-    if (role == Qt::ToolTipRole) // current contents
-      role = entryItemRole(entryColumnContentsPropertyId(index.column()));
 
     if (role == EntryContentsTypeItemRole)
       return entryColumnContentsPropertyId(index.column());
-    if (role == FullEntryItemRole)
-      return QVariant::fromValue(entry);
     if (role == EntryIdItemRole)
       return QVariant::fromValue<KLFLib::entryId>(ep.entryid);
+
+    if (role == Qt::ToolTipRole) { // current contents
+      role = entryItemRole(entryColumnContentsPropertyId(index.column()));
+      // readjust role, continue below to return correct data
+    }
+
+    KLFLibEntry entry = ep.entry;
 
     if (role == entryItemRole(KLFLibEntry::Latex))
       return entry.latex();
     if (role == entryItemRole(KLFLibEntry::DateTime))
       return entry.dateTime();
-    if (role == entryItemRole(KLFLibEntry::Preview))
-      return QVariant::fromValue<QImage>(entry.preview());
     if (role == entryItemRole(KLFLibEntry::Category))
       return entry.category();
     if (role == entryItemRole(KLFLibEntry::Tags))
       return entry.tags();
+    if (role == entryItemRole(KLFLibEntry::PreviewSize))
+      return entry.previewSize();
+
+    if (ep.minimalist)
+      ensureNotMinimalist(p);
+
+    entry = ep.entry; // refresh 'entry' variable
+
+    if (role == FullEntryItemRole)
+      return QVariant::fromValue(entry);
+
+    if (role == entryItemRole(KLFLibEntry::Preview))
+      return QVariant::fromValue<QImage>(entry.preview());
     if (role == entryItemRole(KLFLibEntry::Style))
       return QVariant::fromValue(entry.style());
     // by default
@@ -496,6 +511,8 @@ QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
     if (entriesnodeids.contains(n))
       continue; // skip duplicates (for ex. for other model column indexes)
     EntryNode en = getEntryNode(n);
+    if (en.minimalist)
+      ensureNotMinimalist(n);
     entries << pResource->entry(en.entryid);
     entryids << en.entryid;
     entriesnodeids << n;
@@ -794,6 +811,7 @@ void KLFLibModel::updateData(const QList<KLFLib::entryId>& entryIdList)
       qDebug("KLFLibModel::updateData(): entry ID %d inserted", entryIdList[k]);
       EntryNode en;
       en.entryid = entryList[k].id;
+      en.minimalist = false;
       en.entry = entryList[k].entry;
       pEntryCache.append(en);      // append the entry to cache
       NodeId n = NodeId(EntryKind, pEntryCache.size()-1);
@@ -998,7 +1016,7 @@ QModelIndex KLFLibModel::searchFindNext(bool forward)
   QTime t;
 
   // search nodes
-  NodeId (KLFLibModel::*stepfunc)(NodeId) = forward ? &KLFLibModel::nextNode : &KLFLibModel::prevNode;
+  NodeId (KLFLibModel::*stepfunc)(NodeId) const = forward ? &KLFLibModel::nextNode : &KLFLibModel::prevNode;
   bool found = false;
   while ( ! found &&
 	  (pSearchCurNode = (this->*stepfunc)(pSearchCurNode)).valid() ) {
@@ -1025,7 +1043,7 @@ void KLFLibModel::searchAbort()
   pSearchAborted = true;
 }
 
-KLFLibModel::NodeId KLFLibModel::nextNode(NodeId n)
+KLFLibModel::NodeId KLFLibModel::nextNode(NodeId n) const
 {
   //  qDebug()<<"KLFLibModel::nextNode("<<n<<"): full tree dump:";
   //  dumpNodeTree(NodeId::rootNode());
@@ -1058,7 +1076,7 @@ KLFLibModel::NodeId KLFLibModel::nextNode(NodeId n)
   return NodeId();
 }
 
-KLFLibModel::NodeId KLFLibModel::prevNode(NodeId n)
+KLFLibModel::NodeId KLFLibModel::prevNode(NodeId n) const
 {
   if (!n.valid() || n.isRoot()) {
     // look for last node in tree.
@@ -1080,7 +1098,7 @@ KLFLibModel::NodeId KLFLibModel::prevNode(NodeId n)
   return parentId;
 }
 
-KLFLibModel::NodeId KLFLibModel::lastNode(NodeId n)
+KLFLibModel::NodeId KLFLibModel::lastNode(NodeId n) const
 {
   if (!n.valid())
     n = NodeId::rootNode(); // root category
@@ -1184,6 +1202,7 @@ QString KLFLibModel::nodeValue(NodeId n, int entryProperty)
       entryProperty = KLFLibEntry::DateTime; // user friendliness. sort by date when selecting preview.
 
     EntryNode en = getEntryNode(n);
+    // do NOT update minimalist nodes (minimalist info should be enough).
     if (entryProperty == KLFLibEntry::DateTime) {
       return en.entry.property(KLFLibEntry::DateTime).toDateTime().toString("yyyy-MM-dd+hh:mm:ss.zzz");
     } else {
@@ -1295,6 +1314,44 @@ KLFLibModel::Node KLFLibModel::getNode(NodeId nodeid) const
   }
   qWarning("KLFLibModel::getNode(): Invalid kind: %d (index=%d)\n", nodeid.kind, nodeid.index);
   return EntryNode();
+}
+void KLFLibModel::ensureNotMinimalist(NodeId p, int countdown) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  // fetch & complete some minimalist entry(ies)
+  NodeId n;
+  // prepare some entry IDs to fetch
+  QMap<KLFLib::entryId, NodeId> wantedIds;
+  if (countdown < 0)
+    countdown = pFetchBatchCount;
+  for (n = p; n.valid() && countdown-- > 0; n = nextNode(n)) {
+    if (n.kind == CategoryLabelKind) {
+      ++countdown; // don't count category labels
+      continue;
+    }
+    if (n.kind == EntryKind) {
+      EntryNode en = getEntryNode(n);
+      if (en.minimalist) // if this entry is "minimalist", update it
+	wantedIds[en.entryid] = n;
+      continue;
+    }
+    qWarning()<<KLF_FUNC_NAME<<": Got unknown kind="<<n.kind;
+  }
+  // fetch the required entries
+  QList<KLFLibResourceEngine::KLFLibEntryWithId> updatedentries =
+    pResource->entries(wantedIds.keys(), QList<int>()); // fetch all properties
+  int k;
+  for (k = 0; k < updatedentries.size(); ++k) {
+    KLFLib::entryId eid = updatedentries[k].id;
+    if ( ! wantedIds.contains(eid) ) {
+      qWarning()<<KLF_FUNC_NAME<<" got unrequested updated entry ID ?! id="<<eid;
+      continue;
+    }
+    NodeId nid = wantedIds[eid];
+    pEntryCache[nid.index].entry = updatedentries[k].entry;
+    pEntryCache[nid.index].minimalist = false;
+  }
+  qDebug()<<KLF_FUNC_NAME<<": updated entries "<<wantedIds.keys();
 }
 KLFLibModel::EntryNode KLFLibModel::getEntryNode(NodeId nodeid) const
 {
@@ -1469,8 +1526,9 @@ void KLFLibModel::insertEntryToCacheTree(const NodeId& entryindex, bool notifyQt
   
 void KLFLibModel::updateCacheSetupModel()
 {
-  int k;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   qDebug("updateCacheSetupModel(); pFlavorFlags=%#010x", (uint)pFlavorFlags);
+  int k;
 
   emit layoutAboutToBeChanged();
 
@@ -1487,12 +1545,16 @@ void KLFLibModel::updateCacheSetupModel()
   // label cache
   pCategoryLabelCache.append(root);
 
-  QList<KLFLibResourceEngine::KLFLibEntryWithId> everything = pResource->allEntries();
+  QList<int> wantedProps = QList<int>() << KLFLibEntry::Category << KLFLibEntry::Tags
+					<< KLFLibEntry::DateTime << KLFLibEntry::Latex
+					<< KLFLibEntry::PreviewSize;
+  QList<KLFLibResourceEngine::KLFLibEntryWithId> everything = pResource->allEntries(wantedProps);
   for (k = 0; k < everything.size(); ++k) {
     qDebug()<<"KLFLibModel::updateC.S.M.: Adding entry id="<<everything[k].id<<"; entry="
 	    <<everything[k].entry;
     EntryNode e;
     e.entryid = everything[k].id;
+    e.minimalist = true;
     e.entry = everything[k].entry;
     pEntryCache.append(e);
     NodeId entryindex;
@@ -1698,6 +1760,7 @@ void KLFLibModel::dumpNodeTree(NodeId node, int indent) const
 KLFLibViewDelegate::KLFLibViewDelegate(QObject *parent)
   : QAbstractItemDelegate(parent), pSelModel(NULL)
 {
+  pAutoBackgroundItems = true;
 }
 KLFLibViewDelegate::~KLFLibViewDelegate()
 {
@@ -1718,6 +1781,8 @@ bool KLFLibViewDelegate::editorEvent(QEvent */*event*/, QAbstractItemModel */*mo
 void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& option,
 			       const QModelIndex& index) const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  qDebug()<<"\tindex="<<index<<"; rect="<<option.rect;
   PaintPrivate pp;
   pp.p = painter;
   pp.option = &option;
@@ -1735,11 +1800,13 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
   if (pp.isselected) {
     pp.background = option.palette.brush(cg, QPalette::Highlight);
     painter->setPen(option.palette.color(cg, QPalette::HighlightedText));
+    painter->fillRect(option.rect, pp.background);
   } else {
-    pp.background = option.palette.brush(cg, QPalette::Base);
+    pp.background = pAutoBackgroundColor.isValid()
+      ? pAutoBackgroundColor
+      : option.palette.brush(cg, QPalette::Base);
     painter->setPen(option.palette.color(cg, QPalette::Text));
   }
-  painter->fillRect(option.rect, pp.background);
 
   int kind = index.data(KLFLibModel::ItemKindItemRole).toInt();
   if (kind == KLFLibModel::EntryKind)
@@ -1787,25 +1854,29 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
 	img2 = transparentify_image(img2, 0.85);
       QPoint pos = p->innerRectImage.topLeft()
 	+ QPoint(0, (p->innerRectImage.height()-img2.height()) / 2);
-      // draw image on different background if it can't be "distinguished" from default background
-      // (eg. a transparent white formula)
-      QList<QColor> bglist = QList<QColor>() << p->background.color()
-					     << QColor(255,255,255)
-					     << QColor(220,220,220)
-					     << QColor(180,190,190)
-					     << QColor(200,200,200)
-					     << QColor(150,150,150)
-					     << QColor(100,100,100)
-					     << QColor(50,50,50)
-					     << QColor(0,0,0);
-      int k;
-      for (k = 0; k < bglist.size(); ++k) {
-	bool distinguishable = image_is_distinguishable(img2, bglist[k], 20); //  30
-	if ( distinguishable )
-	  break; // got distinguishable color
+      if (pAutoBackgroundItems) {
+	// draw image on different background if it can't be "distinguished" from default background
+	// (eg. a transparent white formula)
+	qDebug()<<KLF_FUNC_NAME<<" BG Brush is "<<p->background;
+	QColor bgcolor = p->background.color();
+	QList<QColor> bglist = QList<QColor>() << bgcolor
+					       << QColor(255,255,255)
+					       << QColor(220,220,220)
+					       << QColor(180,190,190)
+					       << QColor(200,200,200)
+					       << QColor(150,150,150)
+					       << QColor(100,100,100)
+					       << QColor(50,50,50)
+					       << QColor(0,0,0);
+	int k;
+	for (k = 0; k < bglist.size(); ++k) {
+	  bool distinguishable = image_is_distinguishable(img2, bglist[k], 20); //  30
+	  if ( distinguishable )
+	    break; // got distinguishable color
+	}
+	if (k > 0 && k < bglist.size())
+	  p->p->fillRect(QRect(pos, img2.size()), QBrush(bglist[k]));
       }
-      if (k > 0 && k < bglist.size())
-	p->p->fillRect(QRect(pos, img2.size()), QBrush(bglist[k]));
       // and draw the equation
       p->p->drawImage(pos, img2);
       break;
@@ -1990,6 +2061,8 @@ void KLFLibViewDelegate::setModelData(QWidget */*editor*/, QAbstractItemModel */
 }
 QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
+  //  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  //  qDebug()<<"\tindex="<<index;
   int kind = index.data(KLFLibModel::ItemKindItemRole).toInt();
   if (kind == KLFLibModel::EntryKind) {
     int prop = -1;
@@ -2004,7 +2077,11 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
 	.size(0, index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime()
 	      .toString(Qt::DefaultLocaleLongDate) )+QSize(4,2);
     case KLFLibEntry::Preview:
-      return index.data(KLFLibModel::entryItemRole(KLFLibEntry::Preview)).value<QImage>().size()+QSize(4,4);
+      // sizeHint() is called for all entries, also those that are not visible. So no time-consuming
+      // operations and don't make model update its minimalist entries.
+      // return index.data(KLFLibModel::entryItemRole(KLFLibEntry::Preview)).value<QImage>().size()+QSize(4,4);
+      //      return klfconfig.UI.labelOutputFixedSize + QSize(4,4);
+      return index.data(KLFLibModel::entryItemRole(KLFLibEntry::PreviewSize)).value<QSize>() + QSize(4,4);
     default:
       return QSize();
     }
@@ -2283,6 +2360,7 @@ void KLFLibDefaultView::updateResourceView()
   };
   pModel = new KLFLibModel(resource, model_flavor|KLFLibModel::GroupSubCategories, this);
   pView->setModel(pModel);
+
   // get informed about selections
   QItemSelectionModel *s = pView->selectionModel();
   connect(s, SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),

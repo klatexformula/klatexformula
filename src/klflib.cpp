@@ -100,13 +100,15 @@ KLF_EXPORT QString prettyPrintStyle(const KLFStyle& sty)
 
 
 KLFLibEntry::KLFLibEntry(const QString& latex, const QDateTime& dt, const QImage& preview,
-			 const QString& category, const QString& tags, const KLFStyle& style)
+			 const QSize& previewsize, const QString& category, const QString& tags,
+			 const KLFStyle& style)
   : KLFPropertizedObject("KLFLibEntry")
 {
   initRegisteredProperties();
   setLatex(latex);
   setDateTime(dt);
   setPreview(preview);
+  setPreviewSize(previewsize);
   setCategory(category);
   setTags(tags);
   setStyle(style);
@@ -119,9 +121,11 @@ KLFLibEntry::KLFLibEntry(const QString& latex, const QDateTime& dt, const QImage
   QString latexonly = stripCategoryTagsFromLatex(latex);
   QString category = categoryFromLatex(latex);
   QString tags = tagsFromLatex(latex);
+  QSize previewsize = preview.size();
   setLatex(latexonly);
   setDateTime(dt);
   setPreview(preview);
+  setPreviewSize(previewsize);
   setCategory(category);
   setTags(tags);
   setStyle(style);
@@ -159,6 +163,7 @@ void KLFLibEntry::initRegisteredProperties()
   registerBuiltInProperty(Latex, "Latex");
   registerBuiltInProperty(DateTime, "DateTime");
   registerBuiltInProperty(Preview, "Preview");
+  registerBuiltInProperty(PreviewSize, "PreviewSize");
   registerBuiltInProperty(Category, "Category");
   registerBuiltInProperty(Tags, "Tags");
   registerBuiltInProperty(Style, "Style");
@@ -406,22 +411,26 @@ KLFLibEntry KLFLibResourceEngine::entry(entryId id)
 bool KLFLibResourceEngine::hasEntry(entryId id)
 {
   KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("hasEntry");
-  if ((pFeatureFlags & FeatureSubResources) && pDefaultSubResource.isNull())
-    qWarning("KLFLibResourceEngine::hasEntry(id): sub-resources are supported feature but"
-	     " no default sub-resource is specified!");
   return hasEntry(pDefaultSubResource, id);
 }
 QList<KLFLibResourceEngine::KLFLibEntryWithId>
-/* */ KLFLibResourceEngine::entries(const QList<KLFLib::entryId>& idList)
+/* */ KLFLibResourceEngine::entries(const QList<KLFLib::entryId>& idList,
+				    const QList<int>& wantedEntryProperties)
 {
   KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("entries");
-  return entries(pDefaultSubResource, idList);
+  return entries(pDefaultSubResource, idList, wantedEntryProperties);
 }
 
-QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibResourceEngine::allEntries()
+QList<KLFLibResourceEngine::KLFLibEntryWithId>
+/* */ KLFLibResourceEngine::allEntries(const QList<int>& wantedEntryProperties)
 {
   KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("allEntries");
-  return allEntries(pDefaultSubResource);
+  return allEntries(pDefaultSubResource, wantedEntryProperties);
+}
+QList<KLFLib::entryId> KLFLibResourceEngine::allIds()
+{
+  KLFLIBRESOURCEENGINE_WARN_NO_DEFAULT_SUBRESOURCE("allIds");
+  return allIds(pDefaultSubResource);
 }
 
 
@@ -546,6 +555,16 @@ QDataStream& operator>>(QDataStream& stream, KLFLibResourceEngine::KLFLibEntryWi
 
 // ---------------------------------------------------
 
+QList<KLFLib::entryId> KLFLibResourceSimpleEngine::allIds(const QString& subResource)
+{
+  QList<KLFLib::entryId> idList;
+  QList<KLFLibResourceEngine::KLFLibEntryWithId> elist = allEntries(subResource);
+  int k;
+  for (k = 0; k < idList.size(); ++k)
+    idList << elist[k].id;
+  return idList;
+}
+
 bool KLFLibResourceSimpleEngine::hasEntry(const QString& subResource, entryId id)
 {
   /** \bug ............... BUG/TODO .......... concept problem here */
@@ -553,13 +572,36 @@ bool KLFLibResourceSimpleEngine::hasEntry(const QString& subResource, entryId id
 }
 
 QList<KLFLibResourceEngine::KLFLibEntryWithId>
-/* */ KLFLibResourceSimpleEngine::entries(const QString& subResource, const QList<KLFLib::entryId>& idList)
+/* */ KLFLibResourceSimpleEngine::entries(const QString& subResource, const QList<KLFLib::entryId>& idList,
+					  const QList<int>& /*wantedEntryProperties*/)
 {
   QList<KLFLibEntryWithId> elist;
   int k;
   for (k = 0; k < idList.size(); ++k)
     elist << KLFLibEntryWithId(idList[k], entry(subResource, idList[k]));
   return elist;
+}
+
+QList<KLFLibResourceEngine::KLFLibEntryWithId>
+/* */ KLFLibResourceSimpleEngine::findEntries(const QString& subResource,
+					      const QMap<int,QVariant>& propertyValues,
+					      const QList<int>& wantedEntryProperties)
+{
+  // unoptimized lookup
+  QList<KLFLibEntryWithId> allEList = allEntries(subResource);
+  QList<KLFLibEntryWithId> foundEList;
+  int k;
+  for (k = 0; k < allEList.size(); ++k) {
+    bool ok = true;
+    for (QMap<int,QVariant>::const_iterator it = propertyValues.begin();
+	 ok && it != propertyValues.end(); ++it) {
+      if (allEList[k].entry.property(it.key()) != it.value())
+	ok = false;
+    }
+    if (ok)
+      foundEList << allEList[k];
+  }
+  return foundEList;
 }
 
 // ---------------------------------------------------

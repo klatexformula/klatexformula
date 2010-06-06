@@ -261,6 +261,8 @@ public slots:
 private slots:
   void slotLoadStyleAct(); // private : only as slot to an action containing the style # as user data
 
+  void slotOpenHistoryLibraryResource();
+
 protected:
   Ui::KLFMainWin *u;
 

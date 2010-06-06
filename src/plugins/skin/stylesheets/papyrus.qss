@@ -64,6 +64,9 @@ QTreeView::branch:open:has-children:!has-siblings,
 QHeaderView, QHeaderView::section {
 	background-color: rgb(190, 179, 156);
 }
+KLFLibDefaultView {
+	qproperty-autoBackgroundItems: false;
+}
 QMenu::item {
 	color: black;
 	selection-color: black;

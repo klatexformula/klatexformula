@@ -412,8 +412,8 @@ KLFStyle KLFLibLegacyEngine::toStyle(const KLFLegacyData::KLFStyle& oldstyle)
 // private
 KLFLibEntry KLFLibLegacyEngine::toLibEntry(const KLFLegacyData::KLFLibraryItem& item)
 {
-  return KLFLibEntry(item.latex, item.datetime, item.preview.toImage(), item.category, item.tags,
-		     toStyle(item.style));
+  return KLFLibEntry(item.latex, item.datetime, item.preview.toImage(), item.preview.size(),
+		     item.category, item.tags, toStyle(item.style));
 }
 // private
 KLFLegacyData::KLFLibraryItem KLFLibLegacyEngine::toLegacyLibItem(const KLFLibEntry& entry)
@@ -430,7 +430,8 @@ KLFLegacyData::KLFLibraryItem KLFLibLegacyEngine::toLegacyLibItem(const KLFLibEn
 }
 
 
-QList<KLFLibResourceEngine::KLFLibEntryWithId> KLFLibLegacyEngine::allEntries(const QString& resource)
+QList<KLFLibResourceEngine::KLFLibEntryWithId>
+/* */ KLFLibLegacyEngine::allEntries(const QString& resource, const QList<int>& /*wantedEntryProperties*/)
 {
   int rindex = findResourceName(resource);
   if (rindex < 0)

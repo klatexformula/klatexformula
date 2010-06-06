@@ -467,3 +467,5 @@ KLF_EXPORT void klf_reload_translations(QCoreApplication *app, const QString& cu
   }
 }
 
+
+

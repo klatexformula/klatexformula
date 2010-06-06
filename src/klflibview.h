@@ -270,12 +270,12 @@ public:
 
   enum ItemKind { EntryKind, CategoryLabelKind };
   enum {
-    ItemKindItemRole = Qt::UserRole+800,
+    ItemKindItemRole = Qt::UserRole+768, // = 800 in Qt 4.4
     EntryContentsTypeItemRole,
     EntryIdItemRole,
     FullEntryItemRole,
     CategoryLabelItemRole,
-    FullCategoryPathItemRole,
+    FullCategoryPathItemRole
   };
 
   /** For example use
@@ -284,7 +284,7 @@ public:
    * \endcode
    * to get LaTeX string for model index \c index.
    */
-  static inline int entryItemRole(int propertyId) { return Qt::UserRole+810+propertyId; }
+  static inline int entryItemRole(int propertyId) { return Qt::UserRole+788+propertyId; } // = 820+propId
   
   virtual void setResource(KLFLibResourceEngine *resource);
 
@@ -352,6 +352,8 @@ public:
   virtual QList<KLFLib::entryId> entryIdForIndexList(const QModelIndexList& indexlist) const;
   virtual QModelIndexList findEntryIdList(const QList<KLFLib::entryId>& eidlist) const;
 
+  virtual int fetchBatchCount() const { return pFetchBatchCount; }
+
 public slots:
 
   virtual QModelIndex searchFind(const QString& queryString, const QModelIndex& fromIndex
@@ -364,6 +366,9 @@ public slots:
   virtual bool deleteEntries(const QModelIndexList& items);
 
   virtual void completeRefresh();
+
+  /** how many items to fetch at a time when fetching preview and style (non-minimalist) */
+  virtual void setFetchBatchCount(int count = 40) { pFetchBatchCount = count; }
 
 private:
 
@@ -424,8 +429,9 @@ private:
     QList<NodeId> children;
   };
   struct EntryNode : public Node {
-    EntryNode() : Node(EntryKind), entryid(-1), entry() { }
+    EntryNode() : Node(EntryKind), entryid(-1), entry(), minimalist(false) { }
     KLFLib::entryId entryid;
+    bool minimalist; // if TRUE, 'entry' only holds category/tags/datetime/latex, no pixmap, no style.
     KLFLibEntry entry;
   };
   struct CategoryLabelNode : public Node {
@@ -442,7 +448,8 @@ private:
   friend QDebug& operator<<(QDebug& dbg, const EntryNode& en);
   friend QDebug& operator<<(QDebug& dbg, const CategoryLabelNode& cn);
 
-  EntryCache pEntryCache;
+  // mutable for updating minimalist entries in const functions
+  mutable EntryCache pEntryCache;
   CategoryLabelCache pCategoryLabelCache;
   bool pCategoryLabelCacheContainsInvalid;
 
@@ -461,6 +468,13 @@ private:
   /** get the row of \c nodeid in its parent.  */
   int getNodeRow(NodeId nodeid) const;
   //  int getNodeRow(Node * node) const; 
+  /** Updates \c count entry nodes in tree after (and including \c nodeId), if they
+   * are marked as "minimalist" (see \ref EntryNode)
+   *
+   * If count is -1, uses fetchBatchCount(). */
+  void ensureNotMinimalist(NodeId nodeId, int count = -1) const;
+
+  int pFetchBatchCount;
 
   QList<PersistentId> persistentIdList(const QModelIndexList& persistentindexlist);
   QModelIndexList newPersistentIndexList(const QList<PersistentId>& persistentidlist);
@@ -515,19 +529,19 @@ private:
    *
    * Returns \c NULL after last node. Returns first node in tree if \c NULL is given as
    * paremeter. */
-  NodeId nextNode(NodeId n);
+  NodeId nextNode(NodeId n) const;
   /** Same as \ref nextNode() but the walk is performed in the opposite direction.
    *
    * This function returns all nodes in the inverse order they would be displayed in a tree view. In
    * particular, it returns a parent node after having explored its children. */
-  NodeId prevNode(NodeId n);
+  NodeId prevNode(NodeId n) const;
   /** Returns the last node in tree defined by node \c n.
    *
    * If \c n has children, returns last child of the last child of the last child etc. If \c n does
    * not have children, it is itself returned.
    *
    * If \c NULL is given, the root node is assumed. */
-  NodeId lastNode(NodeId n);
+  NodeId lastNode(NodeId n) const;
 
   QList<KLFLib::entryId> entryIdList(const QModelIndexList& indexlist) const;
   
@@ -568,6 +582,11 @@ public:
     pExpandedIndexes[QPersistentModelIndex(index)] = isexpanded;
   }
 
+  virtual bool autoBackgroundItems() const { return pAutoBackgroundItems; }
+  virtual void setAutoBackgroundItems(bool autoBgItems) { pAutoBackgroundItems = autoBgItems; }
+  virtual QColor autoBackgroundColor() const { return pAutoBackgroundColor; }
+  virtual void setAutoBackgroundColor(const QColor& autoBgColor) { pAutoBackgroundColor = autoBgColor; }
+
 protected:
   struct PaintPrivate {
     QPainter *p;
@@ -595,6 +614,9 @@ private:
   QModelIndex pSearchIndex;
   QItemSelectionModel *pSelModel;
 
+  bool pAutoBackgroundItems;
+  QColor pAutoBackgroundColor;
+
   QMap<QPersistentModelIndex, bool> pExpandedIndexes;
 
   struct ColorRegion {
@@ -613,6 +635,8 @@ private:
 class KLF_EXPORT KLFLibDefaultView : public KLFAbstractLibView
 {
   Q_OBJECT
+  Q_PROPERTY(bool autoBackgroundItems READ autoBackgroundItems WRITE setAutoBackgroundItems) ;
+  Q_PROPERTY(QColor autoBackgroundColor READ autoBackgroundColor WRITE setAutoBackgroundColor) ;
 public:
   enum ViewType { CategoryTreeView, ListTreeView, IconView };
   KLFLibDefaultView(QWidget *parent, ViewType viewtype = CategoryTreeView);
@@ -638,6 +662,9 @@ public:
   //! The first index that is currently visible in the current scrolling position
   virtual QModelIndex currentVisibleIndex() const;
 
+  virtual bool autoBackgroundItems() const { return pDelegate->autoBackgroundItems(); }
+  virtual QColor autoBackgroundColor() const { return pDelegate->autoBackgroundColor(); }
+
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
   virtual bool deleteSelected(bool requireConfirmation = true);
@@ -655,6 +682,9 @@ public slots:
   virtual void slotSelectAll(const QModelIndex& parent = QModelIndex());
   virtual void slotRelayoutIcons();
   virtual void slotLockIconPositions(bool locked);
+
+  virtual void setAutoBackgroundItems(bool on) { pDelegate->setAutoBackgroundItems(on); }
+  virtual void setAutoBackgroundColor(const QColor& c) { pDelegate->setAutoBackgroundColor(c); }
 
 protected:
   virtual void updateResourceView();

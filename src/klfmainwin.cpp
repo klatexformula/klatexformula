@@ -670,6 +670,7 @@ void KLFMainWin::saveStyles()
 
 void KLFMainWin::loadLibrary()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // Locate a good library/history file.
 
   // the default library file
@@ -782,14 +783,18 @@ void KLFMainWin::loadLibrary()
   }
 
   // Open history sub-resource into library browser
-  bool r;
-  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
-				QLatin1String("default+list"));
-  if ( ! r ) {
-    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
-	      <<"\n\tExpect Crash!";
-    return;
-  }
+  //  bool r;
+  //  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
+  //				QLatin1String("default+list"));
+  //  if ( ! r ) {
+  //    qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
+  //	      <<"\n\tExpect Crash!";
+  //    return;
+  //  }
+
+  // Delayed open
+  QMetaObject::invokeMethod(this, "slotOpenHistoryLibraryResource", Qt::QueuedConnection);
+
   // open all other sub-resources present in our library
   QStringList subresources = mHistoryLibResource->subResourceList();
   int k;
@@ -799,8 +804,22 @@ void KLFMainWin::loadLibrary()
     QUrl url = localliburl;
     url.removeAllQueryItems("klfDefaultSubResource");
     url.addQueryItem("klfDefaultSubResource", subresources[k]);
-    mLibBrowser->openResource(url, KLFLibBrowser::NoCloseRoleFlag);
+    //    mLibBrowser->openResource(url, KLFLibBrowser::NoCloseRoleFlag);
+    QMetaObject::invokeMethod(mLibBrowser, "openResource",
+			      Qt::QueuedConnection, Q_ARG(QUrl, url),
+			      Q_ARG(uint, KLFLibBrowser::NoCloseRoleFlag),
+			      Q_ARG(QString, QString()));
   }
+}
+
+// private
+void KLFMainWin::slotOpenHistoryLibraryResource()
+{
+  bool r;
+  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
+  				QLatin1String("default+list"));
+  if ( ! r )
+    qWarning()<<KLF_FUNC_NAME<<": Can't open local history resource!";
 
 }
 
@@ -942,7 +961,8 @@ void KLFMainWin::quit()
 
 bool KLFMainWin::event(QEvent *e)
 {
-  //  qDebug("Event: e->type() == %d", (int)e->type());
+  qDebug("Event: e->type() == %d", (int)e->type());
+  
   return QWidget::event(e);
 }
 

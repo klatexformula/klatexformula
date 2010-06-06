@@ -69,6 +69,10 @@ QHeaderView, QHeaderView::section {
 	color: white;
 	background-color: black;
 }
+KLFLibDefaultView {
+	qproperty-autoBackgroundItems: true;
+	qproperty-autoBackgroundColor: #393537;
+}
 QMenu::item {
 	color: white;
 	selection-color: white;

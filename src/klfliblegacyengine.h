@@ -164,7 +164,8 @@ public:
   virtual bool canRegisterProperty(const QString& propName) const;
 
   virtual KLFLibEntry entry(const QString& resource, entryId id);
-  virtual QList<KLFLibEntryWithId> allEntries(const QString& resource);
+  virtual QList<KLFLibEntryWithId> allEntries(const QString& resource,
+					      const QList<int>& wantedEntryProperties = QList<int>());
 
   virtual QStringList subResourceList() const;
 

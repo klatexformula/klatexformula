@@ -99,14 +99,16 @@ public:
     Latex, //!< The Latex Code of the equation
     DateTime, //!< The Date/Time at which the equation was evaluated
     Preview, //!< An Image Preview of equation (scaled down QImage)
+    PreviewSize, //!< A cached value of the size of value in \c Preview
     Category, //!< The Category to which eq. belongs (path-style string)
     Tags, //!< Tags about the equation (string)
     Style //!< KLFStyle style used
   };
 
   KLFLibEntry(const QString& latex = QString(), const QDateTime& dt = QDateTime(),
-	      const QImage& preview = QImage(),	const QString& category = QString(),
-	      const QString& tags = QString(), const KLFStyle& style = KLFStyle());
+	      const QImage& preview = QImage(),	const QSize& previewsize = QSize(),
+	      const QString& category = QString(), const QString& tags = QString(),
+	      const KLFStyle& style = KLFStyle());
   /** This constructor extracts the legacy-style category and tags from latex, and
    * stores latex with those tags stripped. */
   KLFLibEntry(const QString& latex, const QDateTime& dt, const QImage& preview,
@@ -117,6 +119,7 @@ public:
   inline QString latex() const { return property(Latex).toString(); }
   inline QDateTime dateTime() const { return property(DateTime).toDateTime(); }
   inline QImage preview() const { return property(Preview).value<QImage>(); }
+  inline QSize previewSize() const { return property(PreviewSize).value<QSize>(); }
   inline QString category() const { return property(Category).toString(); }
   inline QString tags() const { return property(Tags).toString(); }
   inline KLFStyle style() const { return property(Style).value<KLFStyle>(); }
@@ -124,6 +127,7 @@ public:
   inline void setLatex(const QString& latex) { setProperty(Latex, latex); }
   inline void setDateTime(const QDateTime& dt) { setProperty(DateTime, dt); }
   inline void setPreview(const QImage& img) { setProperty(Preview, img); }
+  inline void setPreviewSize(const QSize& sz) { setProperty(PreviewSize, sz); }
   inline void setCategory(const QString& s) { setProperty(Category, s); }
   inline void setTags(const QString& s) { setProperty(Tags, s); }
   inline void setStyle(const KLFStyle& style) { setProperty(Style, QVariant::fromValue(style)); }
@@ -613,10 +617,16 @@ public:
    * implementing sub-resources (\ref FeatureSubResources), the sub-resource \c subResource is
    * queried.
    *
+   * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties, which is
+   * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
+   * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
+   * list is empty (by default), then all properties are fetched and set.
+   *
    * \note Subclasses must reimplement this function to behave as described here.
    * */
   virtual QList<KLFLibEntryWithId> entries(const QString& subResource,
-					   const QList<KLFLib::entryId>& idList) = 0;
+					   const QList<KLFLib::entryId>& idList,
+					   const QList<int>& wantedEntryProperties = QList<int>()) = 0;
 
   //! Query multiple entries in this resource
   /** Returns a list of \ref KLFLibEntryWithId's, that is a list of KLFLibEntry-ies with their
@@ -625,11 +635,63 @@ public:
    * implementing sub-resources (\ref FeatureSubResources), the default sub-resource is
    * queried, see \ref setDefaultSubResource().
    *
+   * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties, which is
+   * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
+   * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
+   * list is empty (by default), then all properties are fetched and set.
+   *
    * The default implementation calls
    * \ref entries(const QString& subResource, const QList<KLFLib::entryId>& idList) with
    * the default subresource as argument. See \ref setDefaultSubResource().
    */
-  virtual QList<KLFLibEntryWithId> entries(const QList<KLFLib::entryId>& idList);
+  virtual QList<KLFLibEntryWithId> entries(const QList<KLFLib::entryId>& idList,
+					   const QList<int>& wantedEntryProperties = QList<int>());
+
+  //! Find entries in this resource with specified property values
+  /** Returns a list of all entries in this resource (and in sub-resource \c subResource
+   * for the engines supporting this feature) that match exactly all the property values given in
+   * \c propertyValues.
+   *
+   * \c propertyValues is a map that gives which values are requested for which properties. The key
+   * is a property ID of a KLFLibEntry, and the property value is a QVariant holding the value that
+   * we require the entries to have.
+   *
+   * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties, which is
+   * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
+   * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
+   * list is empty (by default), then all properties are fetched and set.
+   *
+   * \note it is possible to specify a key in \c propertyValues that isn't given in
+   *   \c wantedEntryProperties, and reimplementations must take care of this. <i>Reason: even if
+   *   this may seem inconsistent, it can
+   *   be easily implemented in some examples of engines (SQL condition, ...) and can easily be
+   *   worked around in other engines by adding the requested property to the wanted property
+   *   list.</i>
+   */
+  virtual QList<KLFLibEntryWithId> findEntries(const QString& subResource,
+					       const QMap<int,QVariant>& propertyValues,
+					       const QList<int>& wantedEntryProperties = QList<int>()) = 0;
+
+
+  //! Returns all IDs in this resource (and this sub-resource)
+  /** Returns a list of the ID of each entry in this resource.
+   *
+   * If sub-resources are supported, then returns only IDs in the given \c subResource.
+   * Otherwise, the \c subResource parameter should be ignored.
+   */
+  virtual QList<KLFLib::entryId> allIds(const QString& subResource) = 0;
+
+  //! Returns all IDs in this resource (and the default sub-resource)
+  /** Returns a list of the ID of each entry in this resource.
+   *
+   * If sub-resources are supported, then returns only IDs in the default sub-resource
+   * given by \ref defaultSubResource().
+   *
+   * The base implementation calls \ref allIds(const QString&) with the default sub-resource
+   * as parameter. Subclasses need not reimplement this function, but rather
+   * \ref allIds(const QString&) instead.
+   */
+  virtual QList<KLFLib::entryId> allIds();
 
   //! Query all entries in this resource
   /** Returns all the entries in this library resource (in sub-resource \c subResource if
@@ -637,7 +699,8 @@ public:
    *
    * \note Subclasses must reimplement this function to behave as described here.
    */
-  virtual QList<KLFLibEntryWithId> allEntries(const QString& subResource) = 0;
+  virtual QList<KLFLibEntryWithId> allEntries(const QString& subResource,
+					      const QList<int>& wantedEntryProperties = QList<int>()) = 0;
 
   //! Query all entries in this resource
   /** Returns all the entries in this library resource (in default sub-resource if
@@ -646,7 +709,7 @@ public:
    * The default implementation calls \ref allEntries(const QString& subResource) with
    * the default subresource as argument. See \ref setDefaultSubResource().
    */
-  virtual QList<KLFLibEntryWithId> allEntries();
+  virtual QList<KLFLibEntryWithId> allEntries(const QList<int>& wantedEntryProperties = QList<int>());
 
 
   
@@ -1073,10 +1136,15 @@ public:
   }
   virtual ~KLFLibResourceSimpleEngine() { }
 
-  // these functions are implemented using the base functions above.
+  // these functions are implemented using the other base functions.
 
+  virtual QList<KLFLib::entryId> allIds(const QString& subResource);
   virtual bool hasEntry(const QString&, entryId id);
-  virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList);
+  virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList,
+					   const QList<int>& wantedEntryProperties = QList<int>());
+  virtual QList<KLFLibEntryWithId> findEntries(const QString& subResource,
+					       const QMap<int,QVariant>& propertyValues,
+					       const QList<int>& wantedEntryProperties = QList<int>());
 
 };
 

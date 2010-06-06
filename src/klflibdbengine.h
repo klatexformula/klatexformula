@@ -67,7 +67,7 @@ class KLFLibDBEnginePropertyChangeNotifier;
  * Sub-resource properties are also supported in a limited way
  * (only built-in properties Title and ViewType are supported).
  */
-class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceSimpleEngine, private KLFLibDBConnectionClassUser
+class KLF_EXPORT KLFLibDBEngine : public KLFLibResourceEngine, private KLFLibDBConnectionClassUser
 {
   Q_OBJECT
 
@@ -109,8 +109,17 @@ public:
   /** supply an open database. */
   virtual void setDatabase(const QSqlDatabase& db_connection);
 
+
+  virtual QList<KLFLib::entryId> allIds(const QString& subResource);
+  virtual bool hasEntry(const QString&, entryId id);
+  virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList,
+					   const QList<int>& wantedEntryProperties = QList<int>());
+  QList<KLFLibEntryWithId> findEntries(const QString& subResource,
+				       const QMap<int,QVariant>& propValues,
+				       const QList<int>& wantedEntryProperties = QList<int>());
   virtual KLFLibEntry entry(const QString& subRes, entryId id);
-  virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes);
+  virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes,
+					      const QList<int>& wantedEntryProperties = QList<int>());
 
   virtual bool canCreateSubResource() const;
   virtual bool canRenameSubResource() const { return false; }
@@ -158,6 +167,7 @@ private:
 
   QSqlDatabase pDB;
   
+  QStringList columnNameList(const QList<int>& entryPropList, bool wantIdFirst = true);
   QStringList detectEntryColumns(const QSqlQuery& q);
   KLFLibEntry readEntry(const QSqlQuery& q, const QStringList& columns);
 

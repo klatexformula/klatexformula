@@ -20,7 +20,10 @@ add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}" -DKLF_SRC_BUILD)
 if(KLF_USE_QT4)
   add_definitions(-DKLFBACKEND_QT4)
 endif(KLF_USE_QT4)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DKLF_DEBUG_TIME_PRINT")
+# Add flags for DEBUG build configuration
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DKLF_DEBUG")
+# Add flags for RELEASE build configuration
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT")
 
 # include SUBDIR: our klfbackend
 add_subdirectory(klfbackend)
@@ -72,6 +75,7 @@ set(klatexformula_MOCHEADERS
 	klfcolorchooser.h
 	klflatexsyntaxhighlighter.h
 	klflatexsymbols.h
+	klfutil.h
 	klflib.h
 	klflibdbengine.h
 	klflibdbengine_p.h
@@ -92,7 +96,6 @@ set(klatexformula_MOCHEADERS
 #  * all headers
 set(klatexformula_HEADERS
 	klfmain.h
-	klfutil.h
 	klfconfig.h
 	klfpobj.h
 	klffactory.h

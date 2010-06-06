@@ -28,6 +28,8 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
+#include <QProgressDialog>
+#include <QLabel>
 
 #include <klfdefs.h>
 
@@ -148,6 +150,29 @@ inline QList<T> klfVariantListToList(const QVariantList& vlist)
 }
 
 
+
+
+
+class KLFProgressDialog : public QProgressDialog
+{
+  Q_OBJECT
+public:
+  KLFProgressDialog(QString labelText = QString(), QWidget *parent = NULL);
+  KLFProgressDialog(bool canCancel, QString labelText = QString(), QWidget *parent = NULL);
+  virtual ~KLFProgressDialog();
+private:
+  void setup(bool canCancel, const QString& labelText);
+};
+
+
+class KLFPleaseWaitPopup : public QLabel
+{
+  Q_OBJECT
+public:
+  KLFPleaseWaitPopup(const QString& text, QWidget *parent = NULL);
+  virtual ~KLFPleaseWaitPopup();
+
+};
 
 
 

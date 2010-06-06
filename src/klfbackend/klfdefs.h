@@ -25,6 +25,7 @@
 #define KLFDEFS_H_
 
 #include <qstring.h>
+#include <qvariant.h>
 
 
 // EXPORTING SYMBOLS TO PLUGINS ...
@@ -46,38 +47,46 @@
  */
 KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& fullFuncName);
 
-// DEBUG WITH TIME PRINTING FOR TIMING OPERATIONS
 
-#ifdef KLF_DEBUG_TIME_PRINT
-#include <sys/time.h>
-/** FOR DEBUGGING: Print Debug message with precise current time */
-KLF_EXPORT void __klf_debug_time_print(QString str);
-
-class KLF_EXPORT KLFDebugBlockTimer
-{
-  QString pBlockName;
-public:
-  KLFDebugBlockTimer(const QString& blockName) : pBlockName(blockName)
-  { __klf_debug_time_print(QString("%1: block begin").arg(pBlockName)); }
-
-  ~KLFDebugBlockTimer()
-  { __klf_debug_time_print(QString("%1: block end").arg(pBlockName)); }
-};
-
-#define klf_debug_time_print(msg) __klf_debug_time_print(msg)
-#define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer(QByteArray(msg))
-#else
+// DEBUG UTILITIES (SOME WITH TIME PRINTING FOR TIMING OPERATIONS)
 
 /** \brief Utility to time the execution of a block
  *
  * Prints message in constructor and in destructor to test
  * block execution time */
-class KLF_EXPORT KLFDebugBlockTimer
+class KLF_EXPORT KLFDebugBlock
 {
 public:
-  KLFDebugBlockTimer(const QString& /*blockName*/) { }
-  ~KLFDebugBlockTimer() { }
+  KLFDebugBlock(const QString& blockName);
+  KLFDebugBlock(bool printmsg, const QString& blockName);
+
+  virtual ~KLFDebugBlock();
+
+protected:
+  QString pBlockName;
+private:
+  bool pPrintMsg;
 };
+
+class KLF_EXPORT KLFDebugBlockTimer : public KLFDebugBlock
+{
+public:
+  KLFDebugBlockTimer(const QString& blockName);
+  virtual ~KLFDebugBlockTimer();
+};
+
+
+#ifdef KLF_DEBUG
+#include <sys/time.h>
+/** FOR DEBUGGING: Print Debug message with precise current time */
+KLF_EXPORT void __klf_debug_time_print(QString str);
+
+// dox doc is in next (unfunctional) definition in next #if block
+#define klf_debug_time_print(msg) __klf_debug_time_print(msg)
+#define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(msg)
+#define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(msg)
+#else
+
 
 /** \brief Print debug message with precise current time
  *
@@ -86,13 +95,13 @@ public:
  * and can be used to print debug messages and locate time-consuming
  * instructions for example.
  *
- * \note KLF_DEBUG_TIME_PRINT needs to be defined at compile-time
+ * \note KLF_DEBUG needs to be defined at compile-time
  *   to enable this feature. Otherwise, this maco is a no-op.
  */
 #define klf_debug_time_print(x)
 /** \brief Utility to time the execution of a block
  *
- * \note KLF_DEBUG_TIME_PRINT needs to be defined at compile-time
+ * \note KLF_DEBUG needs to be defined at compile-time
  *   to enable this feature. Otherwise, this maco is a no-op.
  *
  * Usage example:
@@ -106,6 +115,28 @@ public:
  * \endcode
  */
 #define KLF_DEBUG_TIME_BLOCK(msg)
+/** \brief Utility to debug the execution of a block
+ *
+ * \note KLF_DEBUG needs to be defined at compile-time to enable
+ *   this feature. Otherwise, this macro is a no-op.
+ *
+ * This macro accepts a QString.
+ *
+ * Usage example:
+ * \code
+ * void do_something() {
+ *   KLF_DEBUG_BLOCK("block do_something() execution") ;
+ *   ... // do something
+ *   if (failed) { // for example
+ *     KLF_DEBUG_BLOCK(QString("%1: failed if-block").arg(KLF_FUNC_NAME)) ;
+ *     ... // more fail treatment...
+ *     return;
+ *   }
+ *   ... // no special instruction needed at end of block
+ * }
+ * \endcode
+ */
+#define KLF_DEBUG_BLOCK(msg)
 
 #endif
 
@@ -144,6 +175,15 @@ public:
     qWarning().nospace()<<"In function "<<KLF_FUNC_NAME<<":\n\t"<<msg;	\
     failaction;								\
   }
+
+
+
+
+#ifdef QT_NO_DEBUG_OUTPUT
+inline QDebug& operator<<(QDebug& str, const QVariant& v) { return str; }
+//template<class Key, class Value>
+//QDebug& operator<<(QDebug& str, const QMap<Key,Value>& map) { return str; }
+#endif
 
 
 
