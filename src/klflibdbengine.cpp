@@ -688,7 +688,7 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 
 bool KLFLibDBEngine::canCreateSubResource() const
 {
-  return true;
+  return baseCanModifyStatus(false) == MS_CanModify;
 }
 
 

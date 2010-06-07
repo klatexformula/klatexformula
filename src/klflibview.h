@@ -264,6 +264,7 @@ private:
 
 // -----------------
 
+class KLFLibModelCache;
 
 /** \brief Model for Item-Views displaying a library resource's contents
  *
@@ -395,118 +396,26 @@ public slots:
 
 private:
 
+  friend class KLFLibModelCache;
+
   KLFLibResourceEngine *pResource;
 
   unsigned int pFlavorFlags;
 
-  typedef qint32 IndexType;
-  /** UIDType standing for \a UniversalIdType: on 32 bits:
-   * <pre>
-   *   mask shift for Node Kind:  30 bits
-   *   mask for Node Kind:  0x c0000000
-   *   mask for Node Index: 0x 3FFFFFFF
-   * </pre>
-   */
-  typedef quint32 UIDType;
-  static const quint8 UIDKindShift  = 30;
-  static const UIDType UIDKindMask  = 0xC0000000;
-  static const UIDType UIDIndexMask = 0x3FFFFFFF;
-  static const UIDType UIDInvalid   = 0xFFFFFFFF;
+  int lastSortColumn;
+  Qt::SortOrder lastSortOrder;
 
-  struct NodeId {
-    NodeId(ItemKind k = EntryKind, IndexType i = -1) : kind(k), index(i)  { }
-    bool valid() const { return index >= 0; }
-    bool isRoot() const { return kind == CategoryLabelKind && index == 0; }
-    ItemKind kind;
-    IndexType index;
-    bool operator==(const NodeId& other) const {
-      return kind == other.kind && index == other.index;
-    }
-    bool operator!=(const NodeId& other) const {
-      return !(operator==(other));
-    }
-    UIDType universalId() const {
-      if ( index < 0 ) // invalid index
-	return (~0x0); // 0xFFFFFFFF
-      UIDType uid = (UIDType)index;
-      uid |= (kind << UIDKindShift);
-      return uid;
-    }
-    static NodeId fromUID(UIDType uid) {
-      return NodeId((ItemKind)((uid&UIDKindMask)>>UIDKindShift), uid&UIDIndexMask);
-    }
-    static NodeId rootNode() { return NodeId(CategoryLabelKind, 0); }
-  };
+  bool pIsFetchingMore;
+  int pFetchBatchCount;
+
+  mutable KLFLibModelCache *pCache;
+
   struct PersistentId {
-    ItemKind kind;
+    int kind;
     KLFLib::entryId entry_id;
     QString categorylabel_fullpath;
     int column;
   };
-  struct Node {
-    Node(ItemKind k) : kind(k), parent(NodeId()), children(QList<NodeId>()), numDisplayFetched(0) { }
-    Node(const Node& other) : kind(other.kind), parent(other.parent), children(other.children),
-			      numDisplayFetched(other.numDisplayFetched) { }
-    virtual ~Node() { }
-    ItemKind kind;
-    NodeId parent;
-    QList<NodeId> children;
-    int numDisplayFetched;
-  };
-  struct EntryNode : public Node {
-    EntryNode() : Node(EntryKind), entryid(-1), entry(), minimalist(false) { }
-    KLFLib::entryId entryid;
-    bool minimalist; // if TRUE, 'entry' only holds category/tags/datetime/latex, no pixmap, no style.
-    KLFLibEntry entry;
-  };
-  struct CategoryLabelNode : public Node {
-    CategoryLabelNode() : Node(CategoryLabelKind), categoryLabel(), fullCategoryPath()  { }
-    //! The last element in \ref fullCategoryPath eg. "General Relativity"
-    QString categoryLabel;
-    //! The full category path of this category eg. "Physics/General Relativity"
-    QString fullCategoryPath;
-  };
-  typedef QList<EntryNode> EntryCache;
-  typedef QList<CategoryLabelNode> CategoryLabelCache;
-
-  friend QDebug& operator<<(QDebug& dbg, const NodeId& en);
-  friend QDebug& operator<<(QDebug& dbg, const EntryNode& en);
-  friend QDebug& operator<<(QDebug& dbg, const CategoryLabelNode& cn);
-
-  // mutable for updating minimalist entries in const functions
-  mutable EntryCache pEntryCache;
-  CategoryLabelCache pCategoryLabelCache;
-  bool pCategoryLabelCacheContainsInvalid;
-
-  QStringList pCatListCache;
-
-  /** If row is negative, it will be looked up automatically. */
-  QModelIndex createIndexFromId(NodeId nodeid, int row, int column);
-  /** This will not fetchMore() if more data is available ... */
-  QModelIndex createIndexFromIdConst(NodeId nodeid, int row, int column) const;
-  //  /** If row is negative, it will be looked up automatically. */
-  //  QModelIndex createIndexFromPtr( *node, int row, int column) const;
-  /** Returns an invalid ID upon invalid index. */
-  NodeId getNodeForIndex(const QModelIndex& index) const;
-  Node getNode(NodeId nodeid) const;
-  Node& getNodeRef(NodeId nodeid);
-  EntryNode getEntryNode(NodeId nodeid) const;
-  CategoryLabelNode getCategoryLabelNode(NodeId nodeid) const;
-  //  NodeId getNodeId(Node *node) const;
-  /** get the row of \c nodeid in its parent.  */
-  int getNodeRow(NodeId nodeid) const;
-  //  int getNodeRow(Node * node) const; 
-  /** Updates \c count entry nodes in tree after (and including \c nodeId), if they
-   * are marked as "minimalist" (see \ref EntryNode)
-   *
-   * If count is -1, uses fetchBatchCount(). */
-  void ensureNotMinimalist(NodeId nodeId, int count = -1) const;
-
-  bool pIsFetchingMore;
-  int pFetchBatchCount;
-  /** parentIdAsIndex is the SAME NODE AS parentId. It MUST be given. */
-  void fetchMore(NodeId parentId, const QModelIndex& parentIdAsIndex);
-
   QList<PersistentId> persistentIdList(const QModelIndexList& persistentindexlist);
   QModelIndexList newPersistentIndexList(const QList<PersistentId>& persistentidlist);
 
@@ -517,67 +426,9 @@ private:
   QList<PersistentId> pLytChgIds;
 
   void updateCacheSetupModel();
-  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
-  void insertEntryToCacheTree(const NodeId& e, bool notifyQtApi = false);
 
-  /** emits QAbstractItemModel-appropriate LAYOUT CHANGES SIGNALS if \c notifyQtApi is true. IT ALWAYS
-   * EMITS APPROPRIATE SIGNALS FOR SUB-CATEGORIES THAT ARE CREATED TO FIT THE ITEM. */
-  void treeInsertEntry(const NodeId& e, bool notifyQtApi = true);
-  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
-  void treeRemoveEntry(const NodeId& e, bool notifyQtApi = true);
-
-  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
-  IndexType cacheFindCategoryLabel(QStringList catelements, bool createIfNotExists = false,
-				   bool notifyQtApi = false);
-
-  void dumpNodeTree(NodeId node, int indent = 0) const;
-
-  class KLF_EXPORT KLFLibModelSorter
-  {
-  public:
-    KLFLibModelSorter(KLFLibModel *m, int entry_prop, Qt::SortOrder sort_order, bool groupcategories)
-      : model(m), entryProp(entry_prop), sortOrderFactor( (sort_order == Qt::AscendingOrder) ? -1 : 1),
-	groupCategories(groupcategories) { }
-    /** Returns TRUE if a<b, FALSE otherwise. */
-    bool operator()(const NodeId& a, const NodeId& b);
-  private:
-    KLFLibModel *model;
-    int entryProp;
-    int sortOrderFactor;
-    bool groupCategories;
-  };
-  QString nodeValue(NodeId node, int entryProperty);
-  /** Sort a category's children */
-  void sortCategory(NodeId category, int column, Qt::SortOrder order);
-
-  int lastSortColumn;
-  Qt::SortOrder lastSortOrder;
-
-  /** Walks the whole tree returning all the nodes one after the other, in the following order:
-   * if \c n has children, first child is returned; otherwise next sibling is returned.
-   *
-   * This function returns all nodes in the order they would be displayed in a tree view.
-   *
-   * Returns \c NULL after last node. Returns first node in tree if \c NULL is given as
-   * paremeter. */
-  NodeId nextNode(NodeId n) const;
-  /** Same as \ref nextNode() but the walk is performed in the opposite direction.
-   *
-   * This function returns all nodes in the inverse order they would be displayed in a tree view. In
-   * particular, it returns a parent node after having explored its children. */
-  NodeId prevNode(NodeId n) const;
-  /** Returns the last node in tree defined by node \c n.
-   *
-   * If \c n has children, returns last child of the last child of the last child etc. If \c n does
-   * not have children, it is itself returned.
-   *
-   * If \c NULL is given, the root node is assumed. */
-  NodeId lastNode(NodeId n) const;
-
-  QList<KLFLib::entryId> entryIdList(const QModelIndexList& indexlist) const;
-  
   QString pSearchString;
-  NodeId pSearchCurNode;
+  QModelIndex pSearchCurNode;
   bool pSearchAborted;
 
   bool dropCanInternal(const QMimeData *data);
