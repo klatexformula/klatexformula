@@ -1,0 +1,98 @@
+<ui version="4.0" >
+ <author>Ph. Faist</author>
+ <class>KLFLatexSymbolsUI</class>
+ <widget class="QWidget" name="KLFLatexSymbolsUI" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>KLatexFormula - LaTeX symbols</string>
+  </property>
+  <property name="windowIcon" >
+   <iconset resource="klfres.qrc" >
+    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" >
+   <property name="spacing" >
+    <number>3</number>
+   </property>
+   <property name="margin" >
+    <number>5</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="frmMain" >
+     <property name="frameShape" >
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow" >
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth" >
+      <number>0</number>
+     </property>
+     <layout class="QVBoxLayout" >
+      <property name="spacing" >
+       <number>3</number>
+      </property>
+      <property name="margin" >
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="frmStackContainer" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Expanding" hsizetype="Preferred" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="frameShape" >
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow" >
+         <enum>QFrame::Plain</enum>
+        </property>
+        <property name="lineWidth" >
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cbxCategory" >
+        <property name="toolTip" >
+         <string>Choose symbol category</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnClose" >
+     <property name="toolTip" >
+      <string>Close this dialog</string>
+     </property>
+     <property name="text" >
+      <string>&amp;Close</string>
+     </property>
+     <property name="icon" >
+      <iconset resource="klfres.qrc" >
+       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+     </property>
+     <property name="shortcut" >
+      <string>Alt+C</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="2" margin="0" />
+ <resources>
+  <include location="klfres.qrc" />
+ </resources>
+ <connections/>
+</ui>

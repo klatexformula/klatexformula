@@ -668,7 +668,7 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   int count = q.size();
 
   KLFProgressReporter progr(0, count, this);
-  emit operationStartReportingProgress(&progr, tr("Fetching items from library database"));
+  emit operationStartReportingProgress(&progr, tr("Fetching items from library database ..."));
 
   int n = 0;
   while (q.next()) {
@@ -1020,7 +1020,7 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
   ensureDataTableColumnsExist(subres);
 
   KLFProgressReporter progr(0, entrylist.size(), this);
-  emit operationStartReportingProgress(&progr, tr("Inserting items into library database"));
+  emit operationStartReportingProgress(&progr, tr("Inserting items into library database ..."));
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO " + quotedDataTableName(subres) + " (" + props.join(",") + ") "

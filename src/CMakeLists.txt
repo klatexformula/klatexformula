@@ -114,7 +114,8 @@ set(klatexformula_UIS
 	klfprogerrui.ui
 	klfsettingsui.ui
 	klfstylemanagerui.ui
-	klfaboutdialogui.ui
+	klfaboutdialog.ui
+	klfwhatsnewdialog.ui
 	klfcolorchoosewidget.ui
 	klfcolordialog.ui
 	klflibopenresourcedlg.ui

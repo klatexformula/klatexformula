@@ -50,9 +50,11 @@
     <file>klatexformula-64.png</file>
     <file>klatexformula-128.png</file>
   </qresource>
-  <qresource prefix="/data" >
-    <file>latexsymbols.xml</file>
-    <file>symbolspixmapcache_base</file>
-    <file>defaultlibrary.klf.db</file>
+  <qresource>
+    <file>data/about.html</file>
+    <file>data/whats-new-3.2.html</file>
+    <file>data/latexsymbols.xml</file>
+    <file>data/symbolspixmapcache_base</file>
+    <file>data/defaultlibrary.klf.db</file>
   </qresource>
 </RCC>

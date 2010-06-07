@@ -215,7 +215,11 @@ endif(KLF_INSTALL_DESKTOP)
 option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
  "FOR DEVELOPERS ONLY. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."
  FALSE)
-mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
+# DEVELOPER OPTION to test QAbstractItemModel-based models with ModelTest
+option(KLF_DEBUG_USE_MODELTEST
+ "FOR DEVELOPERS ONLY. Uses ModelTest (from Qt's Labs) to test QAbstractItemModel-based models"
+ FALSE)
+mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY  KLF_DEBUG_USE_MODELTEST)
 
 # Some extra tests to know what we have
 include(CheckCXXSourceCompiles)

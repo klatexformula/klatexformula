@@ -61,9 +61,10 @@
 
 #include <klfbackend.h>
 
-#include <ui_klfaboutdialogui.h>
+#include <ui_klfaboutdialog.h>
 #include <ui_klfprogerrui.h>
 #include <ui_klfmainwin.h>
+#include <ui_klfwhatsnewdialog.h>
 
 //#include "klfdata.h"
 //#include "klflibrary.h"

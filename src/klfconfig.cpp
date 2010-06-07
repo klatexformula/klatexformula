@@ -140,6 +140,9 @@ void KLFConfig::loadDefaults()
     // and set that font size
     fcode.setPointSize(ps);
 
+    // by default, this is first run!
+    General.thisVersionFirstRun = true;
+
     UI.locale = QLocale::system().name();
     UI.applicationFont = f;
     UI.latexEditFont = fcode;
@@ -309,11 +312,20 @@ static void klf_settings_write_list(QSettings &s, const QString& baseName, const
   klf_settings_write(s, baseName, &vlist);
 }
 
+static QString firstRunConfigKey(const char * klf_version_string)
+{
+  return QString("versionFirstRun_%1").arg(klf_version_string);
+}
+
 int KLFConfig::readFromConfig_v2()
 {
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
   qDebug("Reading base configuration");
+
+  s.beginGroup("General");
+  klf_settings_read(s, firstRunConfigKey(KLF_VERSION_STRING), &General.thisVersionFirstRun);
+  s.endGroup();
 
   s.beginGroup("UI");
   klf_settings_read(s, "locale", &UI.locale);
@@ -463,6 +475,10 @@ int KLFConfig::writeToConfig()
 {
   ensureHomeConfigDir();
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
+
+  s.beginGroup("General");
+  klf_settings_write(s, firstRunConfigKey(KLF_VERSION_STRING), &General.thisVersionFirstRun);
+  s.endGroup();
 
   s.beginGroup("UI");
   klf_settings_write(s, "locale", &UI.locale);

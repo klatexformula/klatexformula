@@ -262,13 +262,10 @@ KLFAddOnInfo::KLFAddOnInfo(const KLFAddOnInfo& other)
   d = other.d;
   if (d)
     d->ref++;
-  qDebug()<<"KLFAddOnInfo: Copy constructor Private d has ref "<< d->ref;
 }
 
 KLFAddOnInfo::~KLFAddOnInfo()
 {
-  qDebug()<<"KLFAddOnInfo: destructor Private d has ref "<< d->ref;
-
   if (d) {
     d->ref--;
     if (d->ref <= 0) {

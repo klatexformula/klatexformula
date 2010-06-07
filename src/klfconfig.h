@@ -105,6 +105,12 @@ public:
 
   struct {
 
+    bool thisVersionFirstRun;
+
+  } General;
+
+  struct {
+
     QString locale;
     QFont applicationFont;
     QFont latexEditFont;

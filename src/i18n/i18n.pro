@@ -1,5 +1,5 @@
 
-# This project file is meant for use with lupdate only. Don't attempt
+# This project file is meant for use with lupdate only, for translations. Don't attempt
 # to parse it with qmake.
 
 TEMPLATE = no_template

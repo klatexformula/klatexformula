@@ -25,10 +25,10 @@
 	background-image: url(:/pics/helpdialogbg.png);
 	background-clip: padding;
 }
-QDialog#KLFAboutDialog .QLabel#lblAbout {
+QDialog#KLFAboutDialog .QTextBrowser#txtDisplay {
 	border: 1px solid black;
 	color: rgb(0, 0, 0);
-	background-color: rgba(255, 255, 255, 180);
+	background-color: rgba(255, 255, 255, 200);
 }</string>
   </property>
   <property name="sizeGripEnabled">
@@ -91,37 +91,20 @@ QDialog#KLFAboutDialog .QLabel#lblAbout {
        </spacer>
       </item>
       <item>
-       <widget class="QLabel" name="lblAbout">
-        <property name="text">
-         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;About KLatexFormula&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;justify&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;KLatexFormula was written by Philippe Faist, currently (2010) studying physics in Switzerland. First released in 2006 written in KDE3 environment, the program has seen many improvements and restructuring since then, leading to the current version, written in Qt 4.&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Author&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Philippe Faist, philippe.faist@bluewin.ch&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;KLatexFormula On the Web&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://klatexformula.sourceforge.net/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000bf;&quot;&gt;Home Page at http://klatexformula.sourceforge.net/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://klatexformula.sourceforge.net/doc/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000bf;&quot;&gt;Documentation at http://klatexformula.sourceforge.net/doc/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <widget class="QTextBrowser" name="txtDisplay">
+        <property name="minimumSize">
+         <size>
+          <width>400</width>
+          <height>300</height>
+         </size>
         </property>
-        <property name="textFormat">
-         <enum>Qt::RichText</enum>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-        <property name="margin">
-         <number>15</number>
+        <property name="source">
+         <url>
+          <string>qrc:/data/about.html</string>
+         </url>
         </property>
         <property name="openExternalLinks">
          <bool>true</bool>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
         </property>
        </widget>
       </item>
@@ -179,6 +162,10 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="text">
          <string>OK</string>
+        </property>
+        <property name="icon">
+         <iconset resource="klfres.qrc">
+          <normaloff>:/pics/ok.png</normaloff>:/pics/ok.png</iconset>
         </property>
         <property name="default">
          <bool>true</bool>
