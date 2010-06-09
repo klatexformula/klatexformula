@@ -1398,23 +1398,44 @@ void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressRepo
 
 
 KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent)
-  : QLabel(text, parent, Qt::SplashScreen|Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint)
+  : QLabel(text, parent, Qt::SplashScreen|Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint),
+    pGotPaintEvent(false)
 {
   QFont f = font();
   f.setPointSize(QFontInfo(f).pointSize() + 2);
   setFont(f);
   setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
 
+  // set basic minimalistic style sheet to ensure that it is readable...
+  setStyleSheet("background-color: #e0dfd8; background-image: url(); color: black;");
+
   int w = qMax( (int)(sizeHint().width() *1.3) , 500 );
   int h = qMax( (int)(sizeHint().height()*1.1) , 100 );
   setFixedSize(w, h);
-  QSize desktopSize = QApplication::desktop()->screenGeometry(parent).size();
-  move(desktopSize.width()/2 - w/2, desktopSize.height()/2 - h/2);
-  show();
 }
 KLFPleaseWaitPopup::~KLFPleaseWaitPopup()
 {
 }
 
+void KLFPleaseWaitPopup::showPleaseWait()
+{
+  QSize desktopSize = QApplication::desktop()->screenGeometry(parentWidget()).size();
+  move(desktopSize.width()/2 - width()/2, desktopSize.height()/2 - height()/2);
+  show();
+
+  while (!pGotPaintEvent)
+    qApp->processEvents();
+}
+
+void KLFPleaseWaitPopup::mousePressEvent(QMouseEvent */*event*/)
+{
+  hide();
+}
+
+void KLFPleaseWaitPopup::paintEvent(QPaintEvent *event)
+{
+  pGotPaintEvent = true;
+  QLabel::paintEvent(event);
+}
 
 

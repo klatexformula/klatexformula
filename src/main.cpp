@@ -494,7 +494,7 @@ void main_load_extra_resources()
 void dumpDir(const QDir& d, int indent = 0)
 {
   char sindent[] = "                                                               ";
-  int nindent = indent*2; // 2 spaces per indentation
+  uint nindent = indent*2; // 2 spaces per indentation
   if (nindent < strlen(sindent))
     sindent[nindent] = '\0';
 

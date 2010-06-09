@@ -43,8 +43,14 @@ public:
   QString currentSkin() { return cbxSkin->itemData(cbxSkin->currentIndex()).toString(); }
 
   static QString getStyleSheet(const QString& fn) {
+    if (fn.isEmpty())
+      return QString();
+
     QFile f(fn);
-    f.open(QIODevice::ReadOnly);
+    if ( !f.open(QIODevice::ReadOnly) ) {
+      qWarning()<<KLF_FUNC_NAME<<"Can't open file "<<fn;
+      return QString();
+    }
     QByteArray data = f.readAll();
     return QString::fromUtf8(data.constData(), data.size());
   }
@@ -91,10 +97,19 @@ public:
 
   virtual void applySkin(KLFPluginConfigAccess *config);
 
+signals:
+  virtual void skinChanged(const QString& skin);
+
+public slots:
+  virtual void changeSkin(const QString& newSkin);
+  virtual void changeSkinHelpLinkAction(const QUrl& link);
+
 protected:
   KLFMainWin *_mainwin;
   QApplication *_app;
   QStyle *_defaultstyle;
+
+  QMap<QString,QString> _baseStyleSheets;
 
   KLFPluginConfigAccess *_config;
 };

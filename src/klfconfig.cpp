@@ -263,6 +263,7 @@ int KLFConfig::readFromConfig()
   if (QFile::exists(homeConfigSettingsFileIni)) {
     return readFromConfig_ini();
   }
+  return -1;
 }
 
 template<class T>
@@ -397,6 +398,7 @@ int KLFConfig::readFromConfig_v2()
     Plugins.pluginConfig[plugindirs[k]] = pconfmap;
   }
 
+  return 0;
 }
 
 int KLFConfig::readFromConfig_ini()

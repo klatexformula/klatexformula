@@ -111,6 +111,9 @@ protected:
 };
 
 
+class KLFAboutDialog;
+class KLFWhatsNewDialog;
+
 
 /**
  * KLatexFormula Main Window
@@ -174,6 +177,8 @@ public:
   uint currentWindowShownStatus();
 
   QString widgetStyle() const { return _widgetstyle; }
+
+  void registerHelpLinkAction(const QString& path, QObject *object, const char * member, bool wantUrlParam);
 
 signals:
 
@@ -241,7 +246,11 @@ public slots:
   void saveLibraryState();
   void loadSettings();
 
+  void addWhatsNewText(const QString& htmlSnipplet);
+
   void showAbout();
+  void showWhatsNew();
+  void helpLinkAction(const QUrl& link);
 
   void setWidgetStyle(const QString& qtstyle);
 
@@ -273,6 +282,18 @@ protected:
   KLFLatexSymbols *mLatexSymbols;
   KLFStyleManager *mStyleManager;
   KLFSettings *mSettingsDialog;
+  KLFAboutDialog *mAboutDialog;
+  KLFWhatsNewDialog *mWhatsNewDialog;
+
+  struct HelpLinkAction {
+    HelpLinkAction(const QString& p, QObject *obj, const char *func, bool param)
+      : path(p), reciever(obj), memberFunc(func), wantParam(param) { }
+    QString path;
+    QObject *reciever;
+    QByteArray memberFunc;
+    bool wantParam;
+  };
+  QList<HelpLinkAction> mHelpLinkActions;
 
   KLFLibResourceEngine *mHistoryLibResource;
 
@@ -282,6 +303,7 @@ protected:
   KLFLatexSyntaxHighlighter *mPreambleHighlighter;
 
   bool _loadedlibrary;
+  bool _firstshow;
 
   KLFBackend::klfSettings _settings; // settings we pass to KLFBackend
   bool _settings_altered;

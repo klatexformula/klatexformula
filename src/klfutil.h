@@ -295,6 +295,15 @@ public:
   KLFPleaseWaitPopup(const QString& text, QWidget *parent = NULL);
   virtual ~KLFPleaseWaitPopup();
 
+public slots:
+  virtual void showPleaseWait();
+
+protected:
+  virtual void mousePressEvent(QMouseEvent *event);
+  virtual void paintEvent(QPaintEvent *event);
+
+private:
+  bool pGotPaintEvent;
 };
 
 

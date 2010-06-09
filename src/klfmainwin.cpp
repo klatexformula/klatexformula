@@ -58,16 +58,14 @@
 #include <QStyleFactory>
 #include <QDebug>
 #include <QProgressDialog>
+#include <QDesktopServices>
+#include <QDesktopWidget>
 
 #include <klfbackend.h>
 
-#include <ui_klfaboutdialog.h>
 #include <ui_klfprogerrui.h>
 #include <ui_klfmainwin.h>
-#include <ui_klfwhatsnewdialog.h>
 
-//#include "klfdata.h"
-//#include "klflibrary.h"
 #include "klfutil.h"
 #include "klflatexsyntaxhighlighter.h"
 #include "klflibbrowser.h"
@@ -75,10 +73,11 @@
 #include "klflatexsymbols.h"
 #include "klfsettings.h"
 #include "klfmain.h"
-#include "klfmainwin.h"
 #include "klfstylemanager.h"
 #include "klfmime.h"
 
+#include "klfmainwin.h"
+#include "klfmainwin_p.h"
 
 
 #define DEBUG_GEOM_ARGS(g) (g).topLeft().x(), (g).topLeft().y(), (g).size().width(), (g).size().height()
@@ -224,7 +223,6 @@ void KLFPreviewBuilderThread::settingsChanged(const KLFBackend::klfSettings& set
 
 
 
-
 // ----------------------------------------------------------------------------
 
 
@@ -239,6 +237,7 @@ KLFMainWin::KLFMainWin()
 
   loadSettings();
 
+  _firstshow = true;
   _loadedlibrary = false;
 
   _output.status = 0;
@@ -428,6 +427,16 @@ KLFMainWin::KLFMainWin()
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mLibBrowser, SLOT(retranslateUi()));
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mSettingsDialog, SLOT(retranslateUi()));
   connect(this, SIGNAL(applicationLocaleChanged(const QString&)), mStyleManager, SLOT(retranslateUi()));
+
+  // About Dialog & What's New dialog
+  mAboutDialog = new KLFAboutDialog(this);
+  mWhatsNewDialog = new KLFWhatsNewDialog(this);
+
+  connect(mAboutDialog, SIGNAL(linkActivated(const QUrl&)), this, SLOT(helpLinkAction(const QUrl&)));
+  connect(mWhatsNewDialog, SIGNAL(linkActivated(const QUrl&)), this, SLOT(helpLinkAction(const QUrl&)));
+
+  mHelpLinkActions << HelpLinkAction("/whats_new", this, "showWhatsNew", false);
+  mHelpLinkActions << HelpLinkAction("/about", this, "showAbout", false);
 
   // library will be loaded on window show event.
 }
@@ -805,6 +814,8 @@ void KLFMainWin::loadLibrary()
     //			      Q_ARG(uint, KLFLibBrowser::NoCloseRoleFlag),
     //			      Q_ARG(QString, QString()));
   }
+
+  loadLibrarySavedState();
 }
 
 void KLFMainWin::loadLibrarySavedState()
@@ -956,14 +967,65 @@ void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
 
 void KLFMainWin::showAbout()
 {
-  QDialog *aboutDialog = new QDialog(this);
-  Ui::KLFAboutDialog *aboutDialogUI = new Ui::KLFAboutDialog;
-  aboutDialogUI->setupUi(aboutDialog);
-  aboutDialog->setObjectName("KLFAboutDialog");
-  aboutDialog->setStyleSheet(aboutDialog->styleSheet());
-
-  aboutDialog->show();
+  mAboutDialog->show();
 }
+
+void KLFMainWin::showWhatsNew()
+{
+  // center the widget on the desktop
+  QSize desktopSize = QApplication::desktop()->screenGeometry(this).size();
+  QSize wS = mWhatsNewDialog->sizeHint();
+  mWhatsNewDialog->move(desktopSize.width()/2 - wS.width()/2,
+			desktopSize.height()/2 - wS.height()/2);
+  mWhatsNewDialog->show();
+}
+
+void KLFMainWin::helpLinkAction(const QUrl& link)
+{
+  qDebug()<<"Link is "<<link<<"; scheme="<<link.scheme()<<"; path="<<link.path()<<"; queryItems="
+	  <<link.queryItems();
+
+  if (link.scheme() == "http") {
+    // web link
+    QDesktopServices::openUrl(link);
+    return;
+  }
+  if (link.scheme() == "klfaction") {
+    // find the help link action(s) that is (are) associated with this link
+    bool calledOne = false;
+    int k;
+    for (k = 0; k < mHelpLinkActions.size(); ++k) {
+      if (mHelpLinkActions[k].path == link.path()) {
+	// got one
+	if (mHelpLinkActions[k].wantParam)
+	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever, mHelpLinkActions[k].memberFunc.constData(),
+				    Q_ARG(QUrl, link));
+	else
+	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever, mHelpLinkActions[k].memberFunc.constData());
+
+	calledOne = true;
+      }
+    }
+    if (!calledOne) {
+      qWarning()<<KLF_FUNC_NAME<<": no action found for link="<<link;
+    }
+    return;
+  }
+  qWarning()<<KLF_FUNC_NAME<<"("<<link<<"): Unrecognized link!";
+}
+
+void KLFMainWin::addWhatsNewText(const QString& htmlSnipplet)
+{
+  mWhatsNewDialog->addWhatsNewText(htmlSnipplet);
+}
+
+
+void KLFMainWin::registerHelpLinkAction(const QString& path, QObject *object, const char * member,
+					bool wantUrlParam)
+{
+  mHelpLinkActions << HelpLinkAction(path, object, member, wantUrlParam);
+}
+
 
 
 
@@ -1115,11 +1177,19 @@ void KLFMainWin::hideEvent(QHideEvent *e)
 
 void KLFMainWin::showEvent(QShowEvent *e)
 {
+  if ( _firstshow ) {
+    _firstshow = false;
+    // if it's the first time we're run, 
+    // show the what's new if needed.
+    if ( klfconfig.General.thisVersionFirstRun ) {
+      QMetaObject::invokeMethod(this, "showWhatsNew", Qt::QueuedConnection);
+    }
+  }
   if ( ! _loadedlibrary ) {
     _loadedlibrary = true;
+
     // load the library browser's saved state
-    loadLibrary();
-    loadLibrarySavedState();
+    QMetaObject::invokeMethod(this, "loadLibrary", Qt::QueuedConnection);
   }
 
   if ( ! e->spontaneous() ) {

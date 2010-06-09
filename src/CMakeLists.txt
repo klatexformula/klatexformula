@@ -21,7 +21,7 @@ if(KLF_USE_QT4)
   add_definitions(-DKLFBACKEND_QT4)
 endif(KLF_USE_QT4)
 # Add flags for DEBUG build configuration
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DKLF_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DKLF_DEBUG -Wall")
 # Add flags for RELEASE build configuration
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT")
 
@@ -87,6 +87,7 @@ set(klatexformula_MOCHEADERS
 	klflibbrowser_p.h
 	klfmime.h
 	klfmainwin.h
+	klfmainwin_p.h
 	klfpathchooser.h
 	klfsettings.h
 	klfstylemanager.h

@@ -12,7 +12,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 
 # Read project version
-file(READ "VERSION" KLF_VERSION)
+file(READ "VERSION" klf_ver)
+string(STRIP "${klf_ver}" KLF_VERSION)
 message(STATUS "KLatexFormula Version is ${KLF_VERSION}")
 
 set(klfversion_regex "([0-9]+)\\.([0-9]+)\\.([0-9]+)(.*)")

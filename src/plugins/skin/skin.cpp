@@ -29,6 +29,7 @@
 #include <klfsettings.h>
 #include <klflatexsymbols.h>
 #include <klfconfig.h>
+#include <klfutil.h>
 
 #include "skin.h"
 
@@ -140,11 +141,40 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
 
   _config = rwconfig;
 
+  { // add links for skins to what's new page
+    QString s =
+      tr("<p><b>Interface Skins</b></p>\n"
+	 "<p>Some new skins are available in this version. You may want to try the "
+	 "<a href=\"klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/papyrus.qss\">papyrus "
+	 "skin</a>, the <a href=\"klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/galaxy.qss\">"
+	 "galaxy skin</a>, the <a href=\"klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/flat.qss\">"
+	 "flat skin</a>, or the <a href=\"klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/default.qss"
+	 "\">style-default skin</a>.</p>");
+    _mainwin->addWhatsNewText(s);
+    _mainwin->registerHelpLinkAction("/skin_set", this, "changeSkinHelpLinkAction", true);
+  }
+
   // ensure reasonable non-empty value in config
   if ( rwconfig->readValue("skinfilename").isNull() )
     rwconfig->writeValue("skinfilename", QString(":/plugindata/skin/stylesheets/default.qss"));
 
   applySkin(rwconfig);
+}
+
+void SkinPlugin::changeSkin(const QString& newSkin)
+{
+  qDebug()<<KLF_FUNC_NAME<<": skin="<<newSkin;
+  if (_config->readValue("skinfilename").toString() == newSkin)
+    return; // already right
+
+  _config->writeValue("skinfilename", QVariant::fromValue<QString>(newSkin));
+  applySkin(_config);
+  emit skinChanged(newSkin);
+}
+void SkinPlugin::changeSkinHelpLinkAction(const QUrl& link)
+{
+  qDebug()<<KLF_FUNC_NAME<<": link="<<link;
+  changeSkin(link.queryItemValue("skin"));
 }
 
 
@@ -153,6 +183,11 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
   qDebug("Applying skin!");
   QString ssfn = config->readValue("skinfilename").toString();
   QString stylesheet = SkinConfigWidget::getStyleSheet(ssfn);
+
+  KLFPleaseWaitPopup pleaseWaitPopup(tr("Applying skin, please wait ..."), _mainwin);
+
+  if (_mainwin->isVisible())
+    pleaseWaitPopup.showPleaseWait();
 
   if (_app->style() != _defaultstyle) {
     _app->setStyle(_defaultstyle);
@@ -170,9 +205,13 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
   int k;
   for (k = 0; k < toplevelwidgets.size(); ++k) {
     QWidget *w = toplevelwidgets[k];
+    QString objnm = w->objectName();
+    if (!_baseStyleSheets.contains(objnm))
+      _baseStyleSheets[objnm] = w->styleSheet();
+
     w->setProperty("klfTopLevelWidget", QVariant(true));
     w->setAttribute(Qt::WA_StyledBackground);
-    w->setStyleSheet(stylesheet);
+    w->setStyleSheet(_baseStyleSheets[objnm] + "\n" + stylesheet);
   }
   // #ifndef Q_WS_WIN
   //   // BUG? tab widget in settings dialog is always un-skinned after an "apply"...?
@@ -191,6 +230,7 @@ QWidget * SkinPlugin::createConfigWidget(QWidget *parent)
 {
   QWidget *w = new SkinConfigWidget(parent, _config);
   w->setProperty("SkinConfigWidget", true);
+  connect(this, SIGNAL(skinChanged(const QString&)), w, SLOT(loadSkinList(const QString&)));
   return w;
 }
 

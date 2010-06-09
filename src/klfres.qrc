@@ -57,4 +57,8 @@
     <file>data/symbolspixmapcache_base</file>
     <file>data/defaultlibrary.klf.db</file>
   </qresource>
+  <qresource>
+    <file>data/about_fr.html</file>
+    <file>data/whats-new-3.2_fr.html</file>
+  </qresource>
 </RCC>

@@ -230,6 +230,7 @@ public:
   int loadCache(QDataStream& stream)
   {
     QString magic;
+    stream.setVersion(QDataStream::Qt_3_3);
     stream >> magic;
     if (magic != "KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE") {
       return BadHeader;
@@ -237,10 +238,10 @@ public:
     qint16 vmaj, vmin;
     stream >> vmaj >> vmin;
 
-    if (vmaj != version_maj || vmin != version_min) {
-      // since this is just cache, we can require EXACT version
+    if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
       return BadVersion;
     }
+
     // KLF 3.x, we saved the stream version, read it now
     qint16 version;
     stream >> version;
@@ -255,7 +256,8 @@ public:
   int saveCache(QDataStream& stream)
   {
     stream.setVersion(QDataStream::Qt_3_3);
-    stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE") << (qint16)version_maj << (qint16)version_min
+    // Write 3.1-compatible stream
+    stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE") << (qint16)3 << (qint16)1
 	   << (qint16)stream.version() << cache;
     flag_modified = false;
     return 0;
@@ -500,13 +502,15 @@ void KLFLatexSymbolsView::slotSymbolActivated()
 
 // returns -1 if file open read or the code returned by cache->loadCache(),
 // that is KLFLatexSymbolsCache::{Ok,BadHeader,BadVersion}
-int klf_load_cache(KLFLatexSymbolsCache *cache, const QString& fname)
+int klf_load_cache(KLFLatexSymbolsCache *cache, const QString& fname, int version)
 {
   QFile f(fname);
   if ( ! f.open(QIODevice::ReadOnly) ) {
     return -1;
   }
   QDataStream ds(&f);
+  if (version >= 0)
+    ds.setVersion(version);
   int r = cache->loadCache(ds);
   return r;
 }
@@ -523,7 +527,6 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 {
   u = new Ui::KLFLatexSymbols;
   u->setupUi(this);
-  setObjectName("KLFLatexSymbols");
   setAttribute(Qt::WA_StyledBackground);
 
   _mainwin = mw;
@@ -537,10 +540,10 @@ KLFLatexSymbols::KLFLatexSymbols(KLFMainWin *mw)
 		      << ":/data/symbolspixmapcache_base" ;
     int k;
     bool ok = false;
-    for (k = 0; k < cachefiles.size(); ++k) {
-      ok = (  klf_load_cache(mCache, cachefiles[k]) == KLFLatexSymbolsCache::Ok  ) ;
-      if (ok)
-	break;
+    for (k = 0; !ok && k < cachefiles.size(); ++k) {
+      ok = (  klf_load_cache(mCache, cachefiles[k], QDataStream::Qt_4_4) == KLFLatexSymbolsCache::Ok  ) ;
+      if (!ok)
+	ok = (  klf_load_cache(mCache, cachefiles[k], -1) == KLFLatexSymbolsCache::Ok  ) ;
     }
     if ( ! ok ) {
       qWarning() << tr("Warning: KLFLatexSymbols: error finding and reading cache file!");
@@ -646,6 +649,7 @@ KLFLatexSymbols::~KLFLatexSymbols()
 	qWarning() << tr("Can't save cache to file `%1'!").arg(s);
       } else {
 	QDataStream ds(&f);
+	ds.setVersion(QDataStream::Qt_4_4);
 	mCache->saveCache(ds);
 	qDebug("Saved cache to file %s.", qPrintable(s));
       }

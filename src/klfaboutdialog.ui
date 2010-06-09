@@ -3,14 +3,14 @@
  <class>KLFAboutDialog</class>
  <widget class="QDialog" name="KLFAboutDialog">
   <property name="windowModality">
-   <enum>Qt::ApplicationModal</enum>
+   <enum>Qt::NonModal</enum>
   </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>818</width>
-    <height>394</height>
+    <width>717</width>
+    <height>357</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@ QDialog#KLFAboutDialog .QTextBrowser#txtDisplay {
    <bool>false</bool>
   </property>
   <property name="modal">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -104,7 +104,10 @@ QDialog#KLFAboutDialog .QTextBrowser#txtDisplay {
          </url>
         </property>
         <property name="openExternalLinks">
-         <bool>true</bool>
+         <bool>false</bool>
+        </property>
+        <property name="openLinks">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
