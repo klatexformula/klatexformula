@@ -24,11 +24,16 @@
 #ifndef KLFDEFS_H_
 #define KLFDEFS_H_
 
+// first, detect a missing KLFBACKEND_QT4 definition
+#if QT_VERSION >= 0x040000 && !defined(KLFBACKEND_QT4)
+#define KLFBACKEND_QT4
+#endif
+
 #include <qstring.h>
 #include <qvariant.h>
 
 
-// EXPORTING SYMBOLS TO PLUGINS ...
+// EXPORTING SYMBOLS TO E.G. PLUGINS ...
 #if defined(Q_OS_WIN)
 #  if defined(KLF_SRC_BUILD)
 #    define KLF_EXPORT __declspec(dllexport)
@@ -78,7 +83,9 @@ public:
 
 #ifdef KLF_DEBUG
 #include <sys/time.h>
-#include <qdebug.h>
+#ifdef KLFBACKEND_QT4
+#include <QDebug>
+#endif
 
 /** FOR DEBUGGING: Print Debug message with precise current time */
 KLF_EXPORT void __klf_debug_time_print(QString str);
@@ -203,11 +210,74 @@ inline const T& __klf_debug_tee(const T& expr)
 
 
 
-#ifdef QT_NO_DEBUG_OUTPUT
+#if defined(KLFBACKEND_QT4) && defined(QT_NO_DEBUG_OUTPUT)
 inline QDebug& operator<<(QDebug& str, const QVariant& v) { return str; }
-//template<class Key, class Value>
-//QDebug& operator<<(QDebug& str, const QMap<Key,Value>& map) { return str; }
 #endif
+
+
+
+// utility functions
+
+
+//! Get System Information
+namespace KLFSysInfo
+{
+  enum Os { Linux, Win32, MacOsX, OtherOs };
+
+  inline int sizeofVoidStar() { return sizeof(void*); }
+
+  //! Returns one of \c "x86" or \c "x86_64", or \c QString() for other/unknown
+  KLF_EXPORT QString arch();
+
+  KLF_EXPORT KLFSysInfo::Os os();
+
+  //! Returns one of \c "win32", \c "linux", \c "macosx", or QString() for other/unknown
+  KLF_EXPORT QString osString(KLFSysInfo::Os sysos = os());
+};
+
+
+
+
+//! Compares two version strings
+/** \c v1 and \c v2 must be of the form \c "<MAJ>.<MIN>.<REL><suffix>" or \c "<MAJ>.<MIN>.<REL>"
+ * or \c "<MAJ>.<MIN>" or \c "<MAJ>".
+ *
+ * \returns a negative value if v1 < v2, \c 0 if v1 == v2 and a positive value if v2 < v1. This
+ *   function returns \c -200 if either of the version strings are invalid.
+ *
+ * A less specific version number is considered as less than a more specific version number of
+ * equal common numbers, eg. "3.1" < "3.1.2".
+ *
+ * When a suffix is appended to the version, it is attempted to be recognized as one of:
+ *  - "alpha" or "alphaN" is alpha version, eg. "3.1.1alpha2" < "3.1.1.alpha5" < "3.1.1"
+ *  - "dev" is INTERNAL versioning, should not be published, it means further development after
+ *    the given version number; for the next release, a higher version number has to be
+ *    decided upon.
+ *  - unrecognized suffixes are compared lexicographically, case sensitive.
+ *
+ * Some examples:
+ * <pre>   "3.1.0" < "3.1.2"
+ *   "2" < "2.1" < "2.1.1"
+ *   "3.0.0alpha2" < "3.0.0"
+ *   "3.0.2" < "3.0.3alpha0"
+ * </pre>
+ */
+KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2);
+
+/** \brief Same as
+ *    <tt>\ref klfVersionCompare(const QString&,const QString&) "klfVersionCompare"(v1,v2) &lt; 0</tt>
+ */
+KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);
+
+
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+#define KLF_PATH_SEP ';'
+#else
+#define KLF_PATH_SEP ':'
+#endif
+
+KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1);
+KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "");
 
 
 

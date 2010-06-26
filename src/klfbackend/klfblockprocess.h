@@ -28,6 +28,9 @@
 /** \file
  * Defines the KLFBlockProcess class */
 
+
+#include <klfdefs.h>
+
 #include <qprocess.h>
 #include <qstring.h>
 #ifdef KLFBACKEND_QT4
@@ -37,7 +40,6 @@
 #include <qmemarray.h>
 #endif
 
-#include <klfdefs.h>
 
 //! A QProcess subclass for code-blocking process execution
 /** A Code-blocking (but not GUI-blocking) process executor

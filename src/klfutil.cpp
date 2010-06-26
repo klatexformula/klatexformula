@@ -46,133 +46,12 @@
 
 
 
-KLF_EXPORT QString KLFSysInfo::arch()
-{
-#ifdef Q_OS_LINUX
-  return QLibraryInfo::buildKey().section(' ', 0, 0, QString::SectionSkipEmpty);
-#endif
-  return QString();
-}
-
-KLF_EXPORT KLFSysInfo::Os KLFSysInfo::os()
-{
-#if defined(Q_OS_LINUX)
-  return Linux;
-#elif defined(Q_OS_DARWIN)
-  return MacOsX;
-#elif defined(Q_OS_WIN32)
-  return Win32;
-#else
-  return OtherOs;
-#endif
-}
-
-KLF_EXPORT QString KLFSysInfo::osString(Os sysos)
-{
-  switch (sysos) {
-  case Linux: return QLatin1String("linux");
-  case MacOsX: return QLatin1String("macosx");
-  case Win32: return QLatin1String("win32");
-  case OtherOs: return QString();
-  default: ;
-  }
-  qWarning("KLFSysInfo::osString: unknown OS: %d", sysos);
-  return QString();
-}
-
-
-
-
-KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
-{
-  qDebug()<<"Comparing versions "<<v1<< " and "<<v2;
-  //           *1     2  *3     4  *5    *6
-  QRegExp rx1("^(\\d+)(\\.(\\d+)(\\.(\\d+)(.*)?)?)?$");
-  QRegExp rx2(rx1);
-  if (!rx1.exactMatch(v1)) {
-    qWarning("klfVersionLessThan: Invalid version number format: %s", qPrintable(v1));
-    return -200;
-  }
-  if (!rx2.exactMatch(v2)) {
-    qWarning("klfVersionLessThan: Invalid version number format: %s", qPrintable(v2));
-    return -200;
-  }
-  int maj1 = rx1.cap(1).toInt();
-  int maj2 = rx2.cap(1).toInt();
-  qDebug()<<"Maj1="<<maj1<<"; maj2="<<maj2;
-  if (maj1 != maj2)
-    return maj1 - maj2;
-  bool hasmin1 = !rx1.cap(2).isEmpty();
-  bool hasmin2 = !rx2.cap(2).isEmpty();
-  if ( ! hasmin1 && ! hasmin2 )
-    return 0; // equal
-  if ( ! hasmin1 && hasmin2 )
-    return -1; // 3 < 3.x
-  if ( hasmin1 && ! hasmin2 )
-    return +1; // 3.x > 3
-  int min1 = rx1.cap(3).toInt();
-  int min2 = rx2.cap(3).toInt();
-  qDebug()<<"Min1="<<min1<<"; min2="<<min2;
-  if ( min1 != min2 )
-    return min1 - min2;
-
-  bool hasrel1 = !rx1.cap(4).isEmpty();
-  bool hasrel2 = !rx2.cap(4).isEmpty();
-  if ( ! hasrel1 && ! hasrel2 )
-    return 0; // equal
-  if ( ! hasrel1 && hasrel2 )
-    return -1; // 3.x < 3.x.y
-  if ( hasrel1 && ! hasrel2 )
-    return +1; // 3.x.y > 3.x
-  int rel1 = rx1.cap(5).toInt();
-  int rel2 = rx2.cap(5).toInt();
-  qDebug()<<"rel1="<<rel1<<"; rel2="<<rel2;
-  if ( rel1 != rel2 )
-    return rel1 - rel2;
-
-  QString suffix1 = rx1.cap(6);
-  QString suffix2 = rx2.cap(6);
-  if (suffix1 == suffix2)
-    return 0; // equal
-
-  if ( suffix1.startsWith("alpha") ) {
-    if ( suffix2.startsWith("alpha") ) {
-      QString a1 = suffix1.mid(6);
-      QString a2 = suffix2.mid(6);
-      return QString::compare(a1, a2); // lexicographically compare
-    }
-    // suffix alpha preceeds any other suffix
-    return -1;
-  }
-  if ( suffix1 == "dev" ) {
-    if ( suffix2 == "dev" )
-      return 0;
-    // suffix dev goes after any other suffix
-    return +1; // 3.X.Ydev > 3.X.Yzzzz
-  }
-  // suffix1 is unknown
-  if ( suffix2 == "dev" || suffix2.startsWith("alpha") ) {
-    // this is OK because suffix1 != suffix2
-    return -klfVersionCompare(v2, v1);
-  }
-  // fall back to lexicographical compare
-  return QString::compare(suffix1, suffix2);
-}
-
-KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2)
-{
-  return klfVersionCompare(v1,v2) < 0;
-}
-
-
-
 KLF_EXPORT bool klfEnsureDir(const QString& dir)
 {
   if ( ! QDir(dir).exists() ) {
     bool r = QDir("/").mkpath(dir);
     if ( ! r ) {
-      QMessageBox::critical(0, QObject::tr("Error"),
-			    QObject::tr("Can't create local directory `%1' !").arg(dir));
+      qWarning("Can't create local directory %s!", qPrintable(dir));
       return false;
     }
     // set permissions to "rwx------"
@@ -187,7 +66,9 @@ KLF_EXPORT bool klfEnsureDir(const QString& dir)
 }
 
 
-static QMap<QString,QString> klf_url_query_items_map(const QUrl& url, const QStringList& interestQueryItems)
+
+static QMap<QString,QString> klf_url_query_items_map(const QUrl& url,
+						     const QStringList& interestQueryItems)
 {
   QList<QPair<QString,QString> > qitems = url.queryItems();
   QMap<QString,QString> map;
@@ -199,6 +80,9 @@ static QMap<QString,QString> klf_url_query_items_map(const QUrl& url, const QStr
   }
   return map;
 }
+
+
+
 
 
 KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestFlags,
@@ -269,94 +153,6 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
   qDebug()<<KLF_FUNC_NAME<<"... and the result is compareflags="<<compareflags;
   return compareflags;
 }
-
-
-
-
-
-
-// negative limit means "no limit"
-static QStringList __search_find_test(const QString& root, const QStringList& pathlist,
-				      int level, int limit)
-{
-  if (limit == 0)
-    return QStringList();
-
-  if (limit < 0)
-    limit = -1; // normalize negative values to -1 (mostly cosmetic...)
-
-  QStringList newpathlist = pathlist;
-  // our level: levelpathlist contains items in pathlist from 0 to level-1 inclusive.
-  QStringList levelpathlist;
-  int k;
-  for (k = 0; k < level; ++k) { levelpathlist << newpathlist[k]; }
-  // the dir/file at our level:
-  QString flpath = root+levelpathlist.join("/");
-  QFileInfo flinfo(flpath);
-  if (flinfo.isDir()) {
-    QDir d(flpath);
-    QStringList entries = d.entryList(QStringList()<<pathlist[level]);
-    QStringList hitlist;
-    for (k = 0; k < entries.size(); ++k) {
-      newpathlist[level] = entries[k];
-      hitlist << __search_find_test(root, newpathlist, level+1, limit - hitlist.size());
-      if (limit >= 0 && hitlist.size() >= limit) // reached limit
-	break;
-    }
-    return hitlist;
-  }
-  if (flinfo.exists()) {
-    return QStringList() << QDir::toNativeSeparators(root+pathlist.join("/"));
-  }
-  return QStringList();
-}
-
-// returns at most limit results matching wildcard_expression (which is given as absolute path
-// with wildcards)
-KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit)
-{
-  QString expr = QDir::fromNativeSeparators(wildcard_expression);
-  QStringList pathlist = expr.split("/", QString::SkipEmptyParts);
-  QString root = "/";
-  static QRegExp driveregexp("^[A-Za-z]:$");
-  if (driveregexp.exactMatch(pathlist[0])) {
-    // Windows System with X: drive letter
-    root = pathlist[0]+"/";
-    pathlist.pop_front();
-  }
-  return __search_find_test(root, pathlist, 0, limit);
-}
-
-// smart search PATH that will interpret wildcards in PATH+extra_path and return the first matching
-// executable
-KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path)
-{
-  static const QString PATH = getenv("PATH");
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-  static const char pathsep = ';';
-#else
-  static const char pathsep = ':';
-#endif
-  QString path = PATH;
-  if (!extra_path.isEmpty())
-    path += pathsep + extra_path;
-
-  const QStringList paths = path.split(pathsep, QString::KeepEmptyParts);
-  QString test;
-  int k, j;
-  for (k = 0; k < paths.size(); ++k) {
-    QStringList hits = klfSearchFind(paths[k]+"/"+prog);
-    for (j = 0; j < hits.size(); ++j) {
-      if ( QFileInfo(hits[j]).isExecutable() ) {
-	return hits[j];
-      }
-    }
-  }
-  return QString::null;
-}
-
-
-
 
 
 
@@ -1309,133 +1105,3 @@ KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
 }
 
 // ----------------------------------------------------
-
-KLFProgressReporter::KLFProgressReporter(int min, int max, QObject *parent)
-  : QObject(parent)
-{
-  pMin = min;
-  pMax = max;
-  pFinished = false;
-}
-KLFProgressReporter::~KLFProgressReporter()
-{
-  if (!pFinished)
-    emit finished(); // make sure finished() is emitted.
-}
-
-void KLFProgressReporter::doReportProgress(int value)
-{
-  if (pFinished) {
-    qWarning()<<KLF_FUNC_NAME<<": Operation is already finished!";
-    return;
-  }
-  emit progress(value);
-  if (value == pMax) {
-    emit finished();
-    pFinished = true;
-  }
-}
-
-
-
-// ---------------------------------------------------------
-
-
-
-KLFProgressDialog::KLFProgressDialog(QString labelText, QWidget *parent)
-  : QProgressDialog(parent)
-{
-  setup(false);
-  init(labelText);
-}
-KLFProgressDialog::KLFProgressDialog(bool canCancel, QString labelText, QWidget *parent)
-  : QProgressDialog(parent)
-{
-  setup(canCancel);
-  init(labelText);
-}
-KLFProgressDialog::~KLFProgressDialog()
-{
-}
-
-void KLFProgressDialog::setup(bool canCancel)
-{
-  setAutoClose(true);
-  setAutoReset(true);
-  setModal(true);
-  setWindowModality(Qt::ApplicationModal);
-  setWindowIcon(QIcon(":/pics/klatexformula-16.png"));
-  QPushButton *cbtn = new QPushButton(tr("Cancel"), this);
-  setCancelButton(cbtn);
-  cbtn->setEnabled(canCancel);
-}
-void KLFProgressDialog::init(const QString& labelText)
-{
-  setDescriptiveText(labelText);
-}
-
-void KLFProgressDialog::setDescriptiveText(const QString& labelText)
-{
-  setLabelText(labelText);
-  setFixedSize((int)(sizeHint().width()*1.3), (int)(sizeHint().height()*1.1));
-}
-void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressReporter,
-					       const QString& descriptiveText)
-{
-  reset();
-  setDescriptiveText(descriptiveText);
-  setRange(progressReporter->min(), progressReporter->max());
-
-  connect(progressReporter, SIGNAL(progress(int)), this, SLOT(setValue(int)));
-}
-
-void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressReporter)
-{
-  reset();
-  setRange(progressReporter->min(), progressReporter->max());
-  connect(progressReporter, SIGNAL(progress(int)), this, SLOT(setValue(int)));
-}
-
-
-KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent)
-  : QLabel(text, parent, Qt::SplashScreen|Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint),
-    pGotPaintEvent(false)
-{
-  QFont f = font();
-  f.setPointSize(QFontInfo(f).pointSize() + 2);
-  setFont(f);
-  setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
-
-  // set basic minimalistic style sheet to ensure that it is readable...
-  setStyleSheet("background-color: #e0dfd8; background-image: url(); color: black;");
-
-  int w = qMax( (int)(sizeHint().width() *1.3) , 500 );
-  int h = qMax( (int)(sizeHint().height()*1.1) , 100 );
-  setFixedSize(w, h);
-}
-KLFPleaseWaitPopup::~KLFPleaseWaitPopup()
-{
-}
-
-void KLFPleaseWaitPopup::showPleaseWait()
-{
-  QSize desktopSize = QApplication::desktop()->screenGeometry(parentWidget()).size();
-  move(desktopSize.width()/2 - width()/2, desktopSize.height()/2 - height()/2);
-  show();
-
-  while (!pGotPaintEvent)
-    qApp->processEvents();
-}
-
-void KLFPleaseWaitPopup::mousePressEvent(QMouseEvent */*event*/)
-{
-  hide();
-}
-
-void KLFPleaseWaitPopup::paintEvent(QPaintEvent *event)
-{
-  pGotPaintEvent = true;
-  QLabel::paintEvent(event);
-}
-
-

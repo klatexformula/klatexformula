@@ -184,7 +184,13 @@ void KLFConfig::loadDefaults()
     SyntaxHighlighter.fmtLonelyParen.setFontWeight(QFont::Bold);
   }
 
-  loadDefaultBackendPaths(this);
+  KLFBackend::klfSettings defaultsettings;
+  KLFBackend::detectSettings(&defaultsettings);
+  BackendSettings.tempDir = defaultsettings.tempdir;
+  BackendSettings.execLatex = defaultsettings.latexexec;
+  BackendSettings.execDvips = defaultsettings.dvipsexec;
+  BackendSettings.execGs = defaultsettings.gsexec;
+  BackendSettings.execEpstopdf = defaultsettings.epstopdfexec;
   BackendSettings.lborderoffset = 1;
   BackendSettings.tborderoffset = 1;
   BackendSettings.rborderoffset = 1;
@@ -199,42 +205,6 @@ void KLFConfig::loadDefaults()
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }
 
-
-
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-#  define PROG_LATEX "latex.exe"
-#  define PROG_DVIPS "dvips.exe"
-#  define PROG_GS "gswin32c.exe"
-#  define PROG_EPSTOPDF "epstopdf.exe"
-static QString standard_extra_paths
-/* */      = "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
-#elif defined(Q_WS_MAC)
-#  define PROG_LATEX "latex"
-#  define PROG_DVIPS "dvips"
-#  define PROG_GS "gs"
-#  define PROG_EPSTOPDF "epstopdf"
-static QString standard_extra_paths = "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin";
-#else
-#  define PROG_LATEX "latex"
-#  define PROG_DVIPS "dvips"
-#  define PROG_GS "gs"
-#  define PROG_EPSTOPDF "epstopdf"
-static QString standard_extra_paths = "";
-#endif
-
-
-void KLFConfig::loadDefaultBackendPaths(KLFConfig *c, bool allowempty)
-{
-  c->BackendSettings.tempDir = QDir::fromNativeSeparators(QDir::tempPath());
-  c->BackendSettings.execLatex = klfSearchPath(PROG_LATEX, standard_extra_paths);
-  if (!allowempty && c->BackendSettings.execLatex.isNull()) c->BackendSettings.execLatex = PROG_LATEX;
-  c->BackendSettings.execDvips = klfSearchPath(PROG_DVIPS, standard_extra_paths);
-  if (!allowempty && c->BackendSettings.execDvips.isNull()) c->BackendSettings.execDvips = PROG_DVIPS;
-  c->BackendSettings.execGs = klfSearchPath(PROG_GS, standard_extra_paths);
-  if (!allowempty && c->BackendSettings.execGs.isNull()) c->BackendSettings.execGs = PROG_GS;
-  c->BackendSettings.execEpstopdf = klfSearchPath(PROG_EPSTOPDF, standard_extra_paths);
-  if (!allowempty && c->BackendSettings.execEpstopdf.isNull()) c->BackendSettings.execEpstopdf = "";
-}
 
 
 int KLFConfig::ensureHomeConfigDir()
@@ -478,8 +448,9 @@ int KLFConfig::writeToConfig()
   ensureHomeConfigDir();
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
+  bool thisVersionFirstRunFalse = false;
   s.beginGroup("General");
-  klf_settings_write(s, firstRunConfigKey(KLF_VERSION_STRING), &General.thisVersionFirstRun);
+  klf_settings_write(s, firstRunConfigKey(KLF_VERSION_STRING), &thisVersionFirstRunFalse);
   s.endGroup();
 
   s.beginGroup("UI");

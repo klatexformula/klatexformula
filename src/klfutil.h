@@ -35,58 +35,10 @@
 
 #include <klfdefs.h>
 
-// utility functions
 
-
-//! Get System Information
-namespace KLFSysInfo
-{
-  enum Os { Linux, Win32, MacOsX, OtherOs };
-
-  inline int sizeofVoidStar() { return sizeof(void*); }
-
-  //! Returns one of \c "x86" or \c "x86_64", or \c QString() for other/unknown
-  KLF_EXPORT QString arch();
-
-  KLF_EXPORT KLFSysInfo::Os os();
-
-  //! Returns one of \c "win32", \c "linux", \c "macosx", or QString() for other/unknown
-  KLF_EXPORT QString osString(KLFSysInfo::Os sysos = os());
-};
-
-
-
-
-//! Compares two version strings
-/** \c v1 and \c v2 must be of the form \c "<MAJ>.<MIN>.<REL><suffix>" or \c "<MAJ>.<MIN>.<REL>"
- * or \c "<MAJ>.<MIN>" or \c "<MAJ>".
- *
- * \returns a negative value if v1 < v2, \c 0 if v1 == v2 and a positive value if v2 < v1. This
- *   function returns \c -200 if either of the version strings are invalid.
- *
- * A less specific version number is considered as less than a more specific version number of
- * equal common numbers, eg. "3.1" < "3.1.2".
- *
- * When a suffix is appended to the version, it is attempted to be recognized as one of:
- *  - "alpha" or "alphaN" is alpha version, eg. "3.1.1alpha2" < "3.1.1.alpha5" < "3.1.1"
- *  - "dev" is INTERNAL versioning, should not be published, it means further development after
- *    the given version number; for the next release, a higher version number has to be
- *    decided upon.
- *  - unrecognized suffixes are compared lexicographically, case sensitive.
- *
- * Some examples:
- * <pre>   "3.1.0" < "3.1.2"
- *   "2" < "2.1" < "2.1.1"
- *   "3.0.0alpha2" < "3.0.0"
- *   "3.0.2" < "3.0.3alpha0"
- * </pre>
- */
-KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2);
-
-//! Same as <tt>\ref klfVersionCompare(const QString&,const QString&) "klfVersionCompare"(v1,v2) &lt; 0</tt>
-KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);
-
+//! Ensure existence of a directory
 KLF_EXPORT bool klfEnsureDir(const QString& dir);
+
 
 
 //! Some relevant values for \ref klfUrlCompare()
@@ -130,9 +82,6 @@ enum KlfUrlCompareFlag {
 KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestFlags = 0xffffffff,
 			      const QStringList& interestQueryItems = QStringList());
 
-
-KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1);
-KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "");
 
 
 KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& data);
@@ -202,111 +151,6 @@ KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode);
 KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomElement xmlNode);
 //! Load a list saved with klfSaveVariantListToXML()
 KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode);
-
-
-//! Object that emits progress information of a (lengthy) operation
-/**
- * This object is intented to be used in two ways
- * - to get informed about progress of an operation (for waiters)
- * - to report progress information of an operation (for progress reporters)
- *
- * To get informed, simple connect to the \ref progress(int) signal, and possibly
- * the \ref finished() signal, to respectively get informed about how much progress
- * is going on, and when the operation is finished. See the doc of those respective
- * functions for more info.
- *
- * To inform others about progress of an operation you're preforming, create a dedicated
- * instance of KLFProgressReporter for that specific operation, inform others of the
- * existance of such an object (to let them connect to progress()), then call
- * doReportProgress() at regular intervals, making sure to call it the last time with the
- * max() value.
- */
-class KLFProgressReporter : public QObject
-{
-  Q_OBJECT
-public:
-  KLFProgressReporter(int min, int max, QObject *parent = NULL);
-  /** \note emits finished() if hasn't done so already. */
-  virtual ~KLFProgressReporter();
-
-  inline int min() const { return pMin; }
-  inline int max() const { return pMax; }
-
-signals:
-  /** Emitted at regular intervals to inform connected slots about the progress of
-   * a given action.
-   *
-   * This signal is emitted repeatedly with increasing \c progressValue values ranging from
-   * \ref min() to \ref max().
-   *
-   * The last time this signal is emitted for one operation, its \c progressValue is exactly
-   * the \ref max() value. (Progress reporters must enforce this).
-   */
-  void progress(int progressValue);
-  /** Emitted right after progress() was emitted with the max() value.
-   * If doReportProgress() is never called with the max() value, then this signal is
-   * emitted in the destructor.
-   */
-  void finished();
-
-public slots:
-  /** The operations that perform long operations should regularly call this function.
-   * This function emits progress() with the given value.
-   *
-   * Additionally, if value is max(), finished() is emitted. Do NOT call doReportProgress()
-   * any more after that, it will result in a warning.
-   */
-  void doReportProgress(int value);
-
-private:
-  int pMin;
-  int pMax;
-  bool pFinished;
-};
-
-
-class KLFProgressDialog : public QProgressDialog
-{
-  Q_OBJECT
-public:
-  KLFProgressDialog(QString labelText = QString(), QWidget *parent = NULL);
-  KLFProgressDialog(bool canCancel, QString labelText = QString(), QWidget *parent = NULL);
-  virtual ~KLFProgressDialog();
-
-
-public slots:
-
-  virtual void setDescriptiveText(const QString& labelText);
-  /** start reporting progress from \c progressReporter and set label text to \c descriptiveText. */
-  virtual void startReportingProgress(KLFProgressReporter *progressReporter, const QString& descriptiveText);
-  /** start reporting progress from \c progressReporter, without changing label text. */
-  virtual void startReportingProgress(KLFProgressReporter *progressReporter);
-
-private:
-  void setup(bool canCancel);
-  void init(const QString& labelText);
-};
-
-
-class KLFPleaseWaitPopup : public QLabel
-{
-  Q_OBJECT
-public:
-  KLFPleaseWaitPopup(const QString& text, QWidget *parent = NULL);
-  virtual ~KLFPleaseWaitPopup();
-
-public slots:
-  virtual void showPleaseWait();
-
-protected:
-  virtual void mousePressEvent(QMouseEvent *event);
-  virtual void paintEvent(QPaintEvent *event);
-
-private:
-  bool pGotPaintEvent;
-};
-
-
 
 
 #endif

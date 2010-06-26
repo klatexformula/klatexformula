@@ -469,8 +469,8 @@ bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedp
     }
     if ( ! required )
       return false;
-    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find %1 executable !").arg(progname),
-		       QMessageBox::Ok);
+    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find %1 executable !")
+		       .arg(progname),  QMessageBox::Ok);
     msgbox.setInformativeText(tr("Please check your installation and specify the path"
 				 " to %1 executable manually if it is not installed"
 				 " in $PATH.").arg(progname));
@@ -486,14 +486,14 @@ bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedp
 
 void KLFSettings::setDefaultPaths()
 {
-  KLFConfig tempobject;
-  KLFConfig::loadDefaultBackendPaths(&tempobject, true);
+  KLFBackend::klfSettings defaultsettings;
+  KLFBackend::detectSettings(&defaultsettings);
   if ( ! QFileInfo(pathTempDir->path()).isDir() )
-    pathTempDir->setPath(QDir::toNativeSeparators(tempobject.BackendSettings.tempDir));
-  setDefaultFor("latex", tempobject.BackendSettings.execLatex, true, pathLatex);
-  setDefaultFor("dvips", tempobject.BackendSettings.execDvips, true, pathDvips);
-  setDefaultFor("gs", tempobject.BackendSettings.execGs, true, pathGs);
-  bool r = setDefaultFor("epstopdf", tempobject.BackendSettings.execEpstopdf, false, pathEpstopdf);
+    pathTempDir->setPath(QDir::toNativeSeparators(defaultsettings.tempdir));
+  setDefaultFor("latex", defaultsettings.latexexec, true, pathLatex);
+  setDefaultFor("dvips", defaultsettings.dvipsexec, true, pathDvips);
+  setDefaultFor("gs", defaultsettings.gsexec, true, pathGs);
+  bool r = setDefaultFor("epstopdf", defaultsettings.epstopdfexec, false, pathEpstopdf);
   chkEpstopdf->setChecked(r);
 }
 

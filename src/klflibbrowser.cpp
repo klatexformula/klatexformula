@@ -35,7 +35,7 @@
 #include <QPushButton>
 
 #include "klfconfig.h"
-#include "klfutil.h"
+#include "klfguiutil.h"
 #include "klflibbrowser_p.h"
 #include "klflibbrowser.h"
 #include <ui_klflibbrowser.h>

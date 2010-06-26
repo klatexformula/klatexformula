@@ -66,7 +66,7 @@
 #include <ui_klfprogerrui.h>
 #include <ui_klfmainwin.h>
 
-#include "klfutil.h"
+#include "klfguiutil.h"
 #include "klflatexsyntaxhighlighter.h"
 #include "klflibbrowser.h"
 #include "klflibdbengine.h"

@@ -154,8 +154,6 @@ public:
 
   } BackendSettings;
 
-  static void loadDefaultBackendPaths(KLFConfig *c, bool allowempty = false);
-
   struct {
 
     bool displayTaggedOnly;

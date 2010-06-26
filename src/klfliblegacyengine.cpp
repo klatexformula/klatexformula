@@ -298,6 +298,7 @@ bool KLFLibLegacyEngine::saveLibraryFile(const QString& fname,
     stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
 	   << reslist << lib;
   }
+  return true;
 }
 
 // private
@@ -375,7 +376,7 @@ KLFLibEntry KLFLibLegacyEngine::entry(const QString& resource, entryId id)
   KLFLegacyData::KLFLibraryList ll = pLibrary[pResources[index]];
   // find entry with id 'id'
   int k;
-  for (k = 0; k < ll.size() && ll[k].id != id; ++k)
+  for (k = 0; k < ll.size() && ll[k].id != (quint32)id; ++k)
     ;
   if (k == ll.size()) {
     return KLFLibEntry();
@@ -459,9 +460,10 @@ QStringList KLFLibLegacyEngine::subResourceList() const
   return list;
 }
 
-bool KLFLibLegacyEngine::createSubResource(const QString& subResource, const QString& /*subResourceTitle*/)
+bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
+					   const QString& /*subResourceTitle*/)
 {
-  int newId = KLFLegacyData::LibResourceUSERMIN;
+  quint32 newId = KLFLegacyData::LibResourceUSERMIN;
   bool ok = true;
   int k;
   while (!ok && newId <= KLFLegacyData::LibResourceUSERMAX) {
@@ -472,7 +474,8 @@ bool KLFLibLegacyEngine::createSubResource(const QString& subResource, const QSt
     ++newId;
   }
   if (newId == KLFLegacyData::LibResourceUSERMAX) {
-    qWarning()<<"KLFLibLegacyEngine::createSubResource("<<subResource<<",..): no new ID could be found (!?!)";
+    qWarning()<<"KLFLibLegacyEngine::createSubResource("<<subResource
+	      <<",..): no new ID could be found (!?!)";
     return false;
   }
   KLFLegacyData::KLFLibraryResource res;
@@ -550,7 +553,7 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
     int libindex;
     int j;
     // find the entry
-    for (libindex = 0; libindex < ll.size() && ll[libindex].id != idlist[k]; ++libindex)
+    for (libindex = 0; libindex < ll.size() && ll[libindex].id != (quint32)idlist[k]; ++libindex)
       ;
     if (libindex == ll.size()) {
       qWarning()<<"KLFLibLegacyEngine::changeEntries: Can't find entry with id "<<idlist[k];
@@ -610,7 +613,7 @@ bool KLFLibLegacyEngine::deleteEntries(const QString& subResource, const QList<e
   int k;
   for (k = 0; k < idlist.size(); ++k) {
     int j;
-    for (j = 0; j < ll->size() && ll->operator[](j).id != idlist[k]; ++j)
+    for (j = 0; j < ll->size() && ll->operator[](j).id != (quint32)idlist[k]; ++j)
       ;
     if (j == ll->size()) {
       qWarning("KLFLibLegacyEngine::deleteEntries: Can't find ID %d in library list in current resource.",

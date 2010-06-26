@@ -16,7 +16,8 @@ if(WIN32)
 endif(WIN32)
 
 # Preprocessor instructions
-add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}" -DKLF_SRC_BUILD)
+add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}" -DKLF_SRC_BUILD
+		-DKLF_CMAKE_ARCH="${KLF_CMAKE_ARCH}")
 if(KLF_USE_QT4)
   add_definitions(-DKLFBACKEND_QT4)
 endif(KLF_USE_QT4)
@@ -51,6 +52,7 @@ set(klatexformula_SRCS
 	klfconfig.cpp
 	klfpobj.cpp
 	klfutil.cpp
+	klfguiutil.cpp
 	klffactory.cpp
 	klflatexsyntaxhighlighter.cpp
 	klflatexsymbols.cpp
@@ -76,6 +78,7 @@ set(klatexformula_MOCHEADERS
 	klflatexsyntaxhighlighter.h
 	klflatexsymbols.h
 	klfutil.h
+	klfguiutil.h
 	klflib.h
 	klflibdbengine.h
 	klflibdbengine_p.h
@@ -205,7 +208,7 @@ endif(KLF_KLFLIB_STATIC)
 add_dependencies(klflib klfbackend)
 target_link_libraries(klflib ${QT_LIBRARIES} klfbackend)
 set_target_properties(klflib PROPERTIES
-	PUBLIC_HEADER "${klflatexformula_INSTHEADERS}"
+	PUBLIC_HEADER "${klatexformula_INSTHEADERS}"
 )
 
 # KLatexFormula Executable

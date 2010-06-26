@@ -662,9 +662,9 @@ KLFColorList *KLFColorChooser::_colorlist = NULL;
 QStyle *KLFColorChooser::mReplaceButtonStyle = NULL;
 
 KLFColorChooser::KLFColorChooser(QWidget *parent)
-  : QPushButton(parent), _color(0,0,0,255), _pix(), _allowdefaultstate(false), _autoadd(true),
-    _size(120, 20),  _defaultstatestring(tr("[ Default ]")), _xalignfactor(0.5f),
-    _yalignfactor(0.5f), _alphaenabled(true), mMenu(0)
+  : QPushButton(parent), _color(0,0,0,255), _pix(), _allowdefaultstate(false),
+    _defaultstatestring(tr("[ Default ]")), _autoadd(true), _size(120, 20),
+    _xalignfactor(0.5f), _yalignfactor(0.5f), _alphaenabled(true), mMenu(0)
 {
   ensureColorListInstance();
   connect(_colorlist, SIGNAL(listChanged()), this, SLOT(_makemenu()));

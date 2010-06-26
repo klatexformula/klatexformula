@@ -501,7 +501,7 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList)
 
   QList<KLFLibResourceEngine::KLFLibEntryWithId> entryList = pModel->pResource->entries(entryIdList);
   QModelIndexList indexes = findEntryIdList(entryIdList);
-  int k, j;
+  int k;
   for (k = 0; k < indexes.size(); ++k) {
     // NOTE: in this loop, indexes remain valid all the time since specific indexes in
     // the cache are NOT changed. only references to them are changed in children fields; or
@@ -532,10 +532,12 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList)
       if (newentry.category() != oldentry.category()) {
 	pModel->startLayoutChange();
 	treeRemoveEntry(n, false); // remove it from its position in tree
-	//	qDebug()<<"\tremoved entry. dump:\n"
-	//		<<"\t Entry Cache="<<pEntryCache<<"\n\t CategoryLabelCache = "<<pCategoryLabelCache;
-	//	dumpNodeTree(NodeId::rootNode());
-	treeInsertEntry(n, false); // and add it again at the (new) correct position (automatically positioned!)
+	// qDebug()<<"\tremoved entry. dump:\n"
+	//         <<"\t Entry Cache="<<pEntryCache<<"\n\t CategoryLabelCache = "<<pCategoryLabelCache;
+	// dumpNodeTree(NodeId::rootNode());
+
+	// and add it again at the (new) correct position (automatically positioned!)
+	treeInsertEntry(n, false);
 	pModel->endLayoutChange();
 	QModelIndex idx = createIndexFromId(n, -1, 0);
 	emit pModel->dataChanged(idx, idx);
@@ -958,7 +960,7 @@ void KLFLibModelCache::dumpNodeTree(NodeId node, int indent)
     qDebug() << "---------------------------------------------------------";
   }
   char sindent[] = "                                                                                + ";
-  if (indent < strlen(sindent))
+  if (indent < (signed)strlen(sindent))
     sindent[indent] = '\0';
 
   if (!node.valid())
@@ -1006,7 +1008,7 @@ void KLFLibModelCache::dumpNodeTree(NodeId node, int indent)
 
 KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject *parent)
   : QAbstractItemModel(parent), pFlavorFlags(flavorFlags),
-    pIsFetchingMore(false), lastSortColumn(1), lastSortOrder(Qt::AscendingOrder)
+    lastSortColumn(1), lastSortOrder(Qt::AscendingOrder), pIsFetchingMore(false)
 {
   pCache = new KLFLibModelCache(this);
 
@@ -1843,7 +1845,6 @@ QModelIndexList KLFLibModel::newPersistentIndexList(const QList<PersistentId>& p
     // find node in new layout
     PersistentId id = persistentIndexIds[k];
     QModelIndex index;
-    int j;
     if (ItemKind(id.kind) == EntryKind) {
       QModelIndexList ilist = pCache->findEntryIdList(QList<KLFLib::entryId>() << id.entry_id);
       index = ilist[0];

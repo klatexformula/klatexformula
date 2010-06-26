@@ -30,28 +30,12 @@ include(KLFUtil.cmake)
 # Set some project settings
 # -------------------------
 
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "...")
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "(FOR DEVELOPERS:) Build configuration (Debug|Release)")
+mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
 
 # Installation destination
-set(CMAKE_INSTALL_PREFIX "" CACHE PATH "Set KLF_INSTALL_PREFIX instead.")
-mark_as_advanced(CMAKE_INSTALL_PREFIX)
-if(NOT DEFINED old_CMAKE_INSTALL_PREFIX)
-  set(old_CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-endif(NOT DEFINED old_CMAKE_INSTALL_PREFIX)
-set(KLF_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE PATH "The Base Installation Prefix Path.")
-if(CMAKE_INSTALL_PREFIX STREQUAL old_CMAKE_INSTALL_PREFIX)
-  # empty case
-else(CMAKE_INSTALL_PREFIX STREQUAL old_CMAKE_INSTALL_PREFIX)
-  # detected that user specified CMAKE_INSTALL_PREFIX (maybe by habit)
-  set(old_CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE INTERNAL "for user change detection.")
-  message(FATAL_ERROR "You set CMAKE_INSTALL_PREFIX. Please set KLF_INSTALL_PREFIX instead.")
-endif(CMAKE_INSTALL_PREFIX STREQUAL old_CMAKE_INSTALL_PREFIX)
-set(CMAKE_INSTALL_PREFIX ${KLF_INSTALL_PREFIX} CACHE PATH "Installation Prefix" FORCE)
-set(old_CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE INTERNAL "for user change detection.")
-# we really set CMAKE_INSTALL_PREFIX. KLF_INSTALL_PREFIX is a user interface variable.
-message(STATUS "Will install to ${CMAKE_INSTALL_PREFIX}")
-
 set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFormula.")
+mark_as_advanced(CLEAR CMAKE_INSTALL_PREFIX)
 
 # Compile the Gui project ?
 option(KLF_BUILD_GUI "Build the full GUI interface" ON)
@@ -59,55 +43,67 @@ option(KLF_BUILD_GUI "Build the full GUI interface" ON)
 # Static/Shared libklfbackend
 option(KLF_BACKEND_STATIC "Compile static libklfbackend backend library instead of shared." OFF)
 
-# If we changed wanted Qt version, there are some conflicting qt cache variables
-# we need to reset -> we reset all qt variables...
-if(NOT DEFINED old_KLF_USE_QT4)
-  set(old_KLF_USE_QT4 ${KLF_USE_QT4})
-endif(NOT DEFINED old_KLF_USE_QT4)
-if(KLF_USE_QT4 STREQUAL old_KLF_USE_QT4)
-else(KLF_USE_QT4 STREQUAL old_KLF_USE_QT4)
-  # value of KLF_USE_QT4 changed!
-# ....................... TODO ................. Investigate & Fix .......................
-#  message("
-#    *** WARNING ***
-#    You changed the Qt version to use, while already having configured for another Qt version.
-#    Usually some Qt detection cache variables subsist and interfere between Qt version detections;
-#    if compilation fails, consider deleting the cache file CMakeCache.txt and re-running cmake
-#    with the correct KLF_USE_QT4 given on first run.\n")
-endif(KLF_USE_QT4 STREQUAL old_KLF_USE_QT4)
+# Choose a Qt Version to use
+set(KLF_QT_VERSION 4 CACHE STRING "Qt major version to build with (4 or 3)")
+KLFGetCMakeVarChanged(KLF_QT_VERSION)
+if(klf_changed_KLF_QT_VERSION)
+  # the KLF_QT_VERSION variable has changed value
+  #  -> Reset some variables to let FindQt() find the right qmake
+  set(QT_QMAKE_EXECUTABLE "" CACHE FILEPATH "qmake executable for Qt4" FORCE)
+endif(klf_changed_KLF_QT_VERSION)
+KLFMarkVarAdvancedIf(QT_QMAKE_EXECUTABLE "KLF_QT_VERSION NOTEQUAL 4")
+# and set KLF_USE_QT4 (internal)
+if(KLF_QT_VERSION EQUAL 3)
+  set(KLF_USE_QT4 FALSE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4")
+else(KLF_QT_VERSION EQUAL 3)
+  set(KLF_USE_QT4 TRUE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4")
+endif(KLF_QT_VERSION EQUAL 3)
 
-# See what Qt we have
+# Include that version of Qt
 set(QT_REQUIRED TRUE)
-set(DESIRED_QT_VERSION 4 CACHE STRING "Set KLF_USE_QT4 Instead.")
-mark_as_advanced(DESIRED_QT_VERSION)
+set(DESIRED_QT_VERSION "${KLF_QT_VERSION}" CACHE INTERNAL "FindQt's Qt Version to use")
 include(FindQt)
 
-# Which version of Qt to use...
-if(QT4_INSTALLED)
-  set(KLF_USE_QT4 TRUE CACHE BOOL "Set to FALSE if KLatexFormula should use Qt3 instead of Qt4")
-else(QT4_INSTALLED)
-  if(NOT QT3_INSTALLED)
-    message(FATAL_ERROR
-      "Didn't find Qt. Try setting the QT_QMAKE_EXECUTABLE and/or QT_QMAKE_EXECUTABLE_FINDQT cache variable(s)." )
-  endif(NOT QT3_INSTALLED)
-  set(KLF_USE_QT4 FALSE CACHE BOOL "Set to FALSE if KLatexFormula should use Qt3 instead of Qt4")
-endif(QT4_INSTALLED)
-set(old_KLF_USE_QT4 ${KLF_USE_QT4} CACHE INTERNAL "detects user value change")
-if(KLF_USE_QT4)
-  message(STATUS "Using Qt 4")
-else(KLF_USE_QT4)
-  message(STATUS "Using Qt 3")
-  if(KLF_BUILD_GUI)
-    set(KLF_BUILD_GUI OFF CACHE BOOL "" FORCE)
-    message("
-    *** NOTE ***
-    Cannot build GUI with Qt3. Forcing build GUI option off.\n")
-  endif(KLF_BUILD_GUI)
-endif(KLF_USE_QT4)
+if(NOT QT4_INSTALLED AND NOT QT3_INSTALLED)
+  mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
+  message(FATAL_ERROR
+    "Didn't find Qt${KLF_QT_VERSION}. Try setting the QT_QMAKE_EXECUTABLE and/or QT_QMAKE_EXECUTABLE_FINDQT cache variable(s)." )
+endif()
+if(KLF_QT_VERSION EQUAL 3 AND NOT QT3_INSTALLED)
+  mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
+  message(FATAL_ERROR
+    "Didn't find required Qt3. You may try setting QT_QMAKE_EXECUTABLE or using Qt4 by chaning the KLF_QT_VERSION cache variable.")
+endif(KLF_QT_VERSION EQUAL 3 AND NOT QT3_INSTALLED)
+if(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
+  mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
+  message(FATAL_ERROR
+    "Didn't find required Qt4. You may try setting QT_QMAKE_EXECUTABLE or using Qt3 by chaning the KLF_QT_VERSION cache variable.")
+endif(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
+message(STATUS "Using Qt ${KLF_QT_VERSION} (KLF_QT_VERSION)")
+
+# Static or shared backend
+if(KLF_BACKEND_STATIC)
+  message(STATUS "Building a static KLFBackend library (KLF_BACKEND_STATIC)")
+else(KLF_BACKEND_STATIC)
+  message(STATUS "Building a shared KLFBackend library (KLF_BACKEND_STATIC)")
+endif(KLF_BACKEND_STATIC)
+
+# Adjust KLF_BUILD_GUI to FALSE if we're using Qt3
+KLFGetCMakeVarChanged(KLF_BUILD_GUI)
+if(NOT KLF_USE_QT4)
+  if(NOT klf_first_KLF_BUILD_GUI)
+    if(KLF_BUILD_GUI)
+      KLFNote("Cannot build GUI with Qt3. Forcing build GUI option off.")
+    endif(KLF_BUILD_GUI)
+  endif(NOT klf_first_KLF_BUILD_GUI)
+  set(KLF_BUILD_GUI OFF CACHE BOOL
+			  "Build the klatexformula graphical user interface (requires Qt4)." FORCE)
+endif(NOT KLF_USE_QT4)
+KLFCMakeSetVarChanged(KLF_BUILD_GUI)
 if(KLF_BUILD_GUI)
-  message(STATUS "Will build the GUI interface")
+  message(STATUS "Will build the GUI interface (KLF_BUILD_GUI)")
 else(KLF_BUILD_GUI)
-  message(STATUS "Will not build the GUI interface")
+  message(STATUS "Will not build the GUI interface (KLF_BUILD_GUI)")
 endif(KLF_BUILD_GUI)
 
 # Build a shared or static source klflib library (for plugins to link to)
@@ -116,11 +112,13 @@ if(WIN32 OR APPLE)
 else(WIN32 OR APPLE)
   set(KLF_KLFLIB_STATIC TRUE CACHE BOOL "Build a static klflib library")
 endif(WIN32 OR APPLE)
-if(KLF_KLFLIB_STATIC)
-  message(STATUS "Building a static KLatexFormula library (klflib)")
-else(KLF_KLFLIB_STATIC)
-  message(STATUS "Building a shared KLatexFormula library (klflib)")
-endif(KLF_KLFLIB_STATIC)
+if(KLF_BUILD_GUI)
+  if(KLF_KLFLIB_STATIC)
+    message(STATUS "Building a static KLatexFormula library (klflib) (KLF_KLFLIB_STATIC)")
+  else(KLF_KLFLIB_STATIC)
+    message(STATUS "Building a shared KLatexFormula library (klflib) (KLF_KLFLIB_STATIC)")
+  endif(KLF_KLFLIB_STATIC)
+endif(KLF_BUILD_GUI)
 
 # Target architecture (allows compile for 32-bit on 64-bit architectures)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -130,10 +128,10 @@ else(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 if(KLF_TARGET_ARCH_64)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
-  message(STATUS "Compiling for 64-bit architecture")
+  message(STATUS "Compiling for 64-bit architecture (KLF_TARGET_ARCH_64)")
 else(KLF_TARGET_ARCH_64)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
-  message(STATUS "Compiling for 32-bit architecture")
+  message(STATUS "Compiling for 32-bit architecture (KLF_TARGET_ARCH_64)")
 endif(KLF_TARGET_ARCH_64)
 
 # Guess lib dir suffix on linux/unix
@@ -151,10 +149,8 @@ if(UNIX)
     set(wantlib32 FALSE)
   endif(NOT nothavelib32 AND NOT KLF_TARGET_ARCH_64)
   # detect change in value for updating KLF_LIB_SUFFIX
-  if(KLF_TARGET_ARCH_64 STREQUAL old_KLF_TARGET_ARCH_64)
-    # no change
-    message(STATUS "Using \"${KLF_LIB_SUFFIX}\" as library directory suffix")
-  else(KLF_TARGET_ARCH_64 STREQUAL old_KLF_TARGET_ARCH_64)
+  KLFGetCMakeVarChanged(KLF_TARGET_ARCH_64)
+  if(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
     # KLF_TARGET_ARCH_64 changed, update KLF_LIB_SUFFIX
     if(wantlib64)
       set(NEW_KLF_LIB_SUFFIX "64")
@@ -171,13 +167,13 @@ if(UNIX)
       set(KLF_LIB_SUFFIX ${NEW_KLF_LIB_SUFFIX} CACHE STRING
 			      "Suffix to library directory (eg. '64' for /usr/lib64')" FORCE)
       if(klf_lib_suffix_redefined)
-        message("
-    *** NOTE ***
-    The library suffix was detected and adjusted to \"${KLF_LIB_SUFFIX}\".\n")
+        KLFNote("The library suffix was detected and adjusted to \"${KLF_LIB_SUFFIX}\" (KLF_LIB_SUFFIX).")
       endif(klf_lib_suffix_redefined)
     endif(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
-  endif(KLF_TARGET_ARCH_64 STREQUAL old_KLF_TARGET_ARCH_64)
-  set(old_KLF_TARGET_ARCH_64 ${KLF_TARGET_ARCH_64} CACHE INTERNAL "Used to detect user change.")
+  else(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
+    # no change
+    message(STATUS "Using \"${KLF_LIB_SUFFIX}\" as library directory suffix (KLF_LIB_SUFFIX)")
+  endif(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
 endif(UNIX)
 
 # Mac OS X: building frameworks + bundles ?
@@ -193,9 +189,9 @@ else(NOT WIN32)
   set(KLF_USE_DBUS OFF CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
 endif(NOT WIN32)
 if(KLF_USE_DBUS)
-  message(STATUS "Building with D-BUS support")
+  message(STATUS "Building with D-BUS support (KLF_USE_DBUS)")
 else(KLF_USE_DBUS)
-  message(STATUS "Building without D-BUS support")
+  message(STATUS "Building without D-BUS support (KLF_USE_DBUS)")
 endif(KLF_USE_DBUS)
 
 # Install .desktop & pixmaps in DEST/share/{applications|pixmaps} ?
@@ -203,13 +199,13 @@ if(KLF_MACOSX_BUNDLES OR WIN32)
   set(KLF_INSTALL_DESKTOP FALSE CACHE BOOL
        "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}")
 else(KLF_MACOSX_BUNDLES OR WIN32)
-  set(KLF_INSTALL_DESKTOP FALSE CACHE BOOL
+  set(KLF_INSTALL_DESKTOP TRUE CACHE BOOL
        "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}")
 endif(KLF_MACOSX_BUNDLES OR WIN32)
 if(KLF_INSTALL_DESKTOP)
-  message(STATUS "Will install desktop files")
+  message(STATUS "Will install desktop files (KLF_INSTALL_DESKTOP)")
 else(KLF_INSTALL_DESKTOP)
-  message(STATUS "Will not install desktop files")
+  message(STATUS "Will not install desktop files (KLF_INSTALL_DESKTOP)")
 endif(KLF_INSTALL_DESKTOP)
   
 # DEVELOPER OPTION to install klfbaseplugins.rcc in ~/.klatexformula/rccresources
@@ -220,7 +216,7 @@ option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
 option(KLF_DEBUG_USE_MODELTEST
  "FOR DEVELOPERS ONLY. Uses ModelTest (from Qt's Labs) to test QAbstractItemModel-based models"
  FALSE)
-mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY  KLF_DEBUG_USE_MODELTEST)
+mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY KLF_DEBUG_USE_MODELTEST)
 
 # Some extra tests to know what we have
 include(CheckCXXSourceCompiles)
@@ -239,6 +235,24 @@ CHECK_CXX_SOURCE_COMPILES("int main() { const char *s = __func__; }"
 if(has_func)
 add_definitions(-DKLF_CMAKE_HAS_FUNC)
 endif(has_func)
+
+# Current System OS
+if(APPLE)
+set(internal_KLF_CMAKE_OS "macosx")
+elseif(WIN32)
+set(internal_KLF_CMAKE_OS "win32")
+elseif(UNIX)
+set(internal_KLF_CMAKE_OS "linux")
+else(APPLE)
+set(internal_KLF_CMAKE_OS "unknown")
+endif(APPLE)
+set(KLF_CMAKE_OS "${internal_KLF_CMAKE_OS}" CACHE INTERNAL "Current Build OS")
+# Current System Arch
+set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+  set(internal_KLF_CMAKE_ARCH "x86")
+endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}" CACHE INTERNAL "Current Build Processor Arch")
 
 
 # Main subdirectory with all sources
@@ -313,5 +327,9 @@ if(DOXYGEN)
     VERBATIM
   )
   add_dependencies(doc  doc_klfbackend doc_klflib)
-
+  
+  message(STATUS "doxygen API documentation can be generated with 'make doc'")
+else(DOXYGEN)
+  message(STATUS "doxygen not found; API documentation cannot be generated
+  (if unsure, this warning is safe to ignore)")
 endif(DOXYGEN)

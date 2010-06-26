@@ -24,11 +24,11 @@
 #include <QtCore>
 #include <QtGui>
 
-#include <klfutil.h>
 #include <klfmainwin.h>
 #include <klfsettings.h>
 #include <klflatexsymbols.h>
 #include <klfconfig.h>
+#include <klfguiutil.h>
 #include <klfutil.h>
 
 #include "skin.h"

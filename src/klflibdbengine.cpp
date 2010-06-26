@@ -34,7 +34,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
-#include "klfutil.h"
+#include "klfguiutil.h"
 #include "klflib.h"
 #include "klflibview.h"
 #include "klflibdbengine.h"

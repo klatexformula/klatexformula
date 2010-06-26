@@ -176,7 +176,7 @@
             <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
           </property>
           <property name="shortcut">
-           <string/>
+           <string>F7</string>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -202,7 +202,7 @@
             <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
           </property>
           <property name="shortcut">
-           <string/>
+           <string>F8</string>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -228,7 +228,7 @@
             <normaloff>:/pics/switchexpanded.png</normaloff>:/pics/switchexpanded.png</iconset>
           </property>
           <property name="shortcut">
-           <string>Ctrl+E, Ctrl+Space</string>
+           <string>F5</string>
           </property>
          </widget>
         </item>

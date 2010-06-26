@@ -24,6 +24,8 @@
 #ifndef KLFBACKEND_H
 #define KLFBACKEND_H
 
+#include <klfdefs.h>
+
 #include <qstring.h>
 #ifdef KLFBACKEND_QT4
 #include <QByteArray>
@@ -32,8 +34,6 @@
 #endif
 #include <qimage.h>
 #include <qmutex.h>
-
-#include <klfdefs.h>
 
 
 
@@ -130,58 +130,80 @@ class KLF_EXPORT KLFBackend
 public:
 
   //! General settings for KLFBackend::getLatexFormula()
-  /** Some global settings to pass on when calling getLatexFormula(). In this struct you specify some system
-   * settings, like a temp directory and some paths
+  /** Some global settings to pass on when calling getLatexFormula(). In this struct you specify
+   * some system settings, like a temp directory and some paths
    *
    * \note the \c klfclspath field was removed, because we no longer use klatexformula.cls.
    * */
   struct klfSettings {
-    QString tempdir; /**< A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
+    /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
+    QString tempdir;
+    /** the latex executable, path incl. if not in $PATH */
+    QString latexexec;
+    /** the dvips executable, path incl. if not in $PATH */
+    QString dvipsexec;
+    /** the gs executable, path incl. if not in $PATH */
+    QString gsexec;
+    /** the epstopdf executable, path incl. if not in $PATH. This isn't mandatory to get PNG so
+     * you may leave this to Null or Empty string to instruct getLatexFormula() to NOT attempt to
+     * generate PDF. If, though, you do specify an epstopdf executable here, epstopdf errors will
+     * be reported as real errors. */
+    QString epstopdfexec;
 
-    QString latexexec; /**< the latex executable, path incl. if not in $PATH */
-    QString dvipsexec; /**< the dvips executable, path incl. if not in $PATH */
-    QString gsexec; /**< the gs executable, path incl. if not in $PATH */
-    QString epstopdfexec; /**< the epstopdf executable, path incl. if not in $PATH. This isn't mandatory to get PNG so
-			   * you may leave this to Null or Empty string to instruct getLatexFormula() to NOT attempt to
-			   * generate PDF. If, though, you do specify an epstopdf executable here, epstopdf errors will
-			   * be reported as real errors. */
-    int tborderoffset; /**< The number of postscript points to add to top side of the resulting EPS boundingbox */
-    int rborderoffset; /**< The number of postscript points to add to right side of the resulting EPS boundingbox */
-    int bborderoffset; /**< The number of postscript points to add to bottom side of the resulting EPS boundingbox */
-    int lborderoffset; /**< The number of postscript points to add to left side of the resulting EPS boundingbox */
+    /** The number of postscript points to add to top side of the resulting EPS boundingbox */
+    int tborderoffset;
+    /** The number of postscript points to add to right side of the resulting EPS boundingbox */
+    int rborderoffset;
+    /** The number of postscript points to add to bottom side of the resulting EPS boundingbox */
+    int bborderoffset;
+    /** The number of postscript points to add to left side of the resulting EPS boundingbox */
+    int lborderoffset;
   };
 
   //! Specific input to KLFBackend::getLatexFormula()
-  /** This struct descibes the input of getLatexFormula(), ie. the LaTeX code, the mathmode to use, the dpi for rendering png,
-   * colors etc. */
+  /** This struct descibes the input of getLatexFormula(), ie. the LaTeX code, the mathmode to use,
+   * the dpi for rendering png, colors etc. */
   struct klfInput {
-    QString latex; /**< The latex code to render */
-    QString mathmode; /**< The mathmode to use. You may pass an arbitrary string containing '...' . '...' will be replaced
-		       * by the latex code. Examples are:
-		       * \li <tt>\\[ ... \\]</tt>
-		       * \li <tt>\$ ... \$</tt>
-		       */
-    QString preamble; /**< The LaTeX preample, ie the code that appears after '\\documentclass{...}' and
-		       * before '\\begin{document}' */
-    unsigned long fg_color; /**< The foreground color to use, in format given by <tt>qRgb(r, g, b)</tt>.
-			     * You may not specify an alpha value here, it will be ignored. */
-    unsigned long bg_color; /**< The background color to use, in format given by <tt>qRgba(r, g, b, alpha)</tt>.
-			     * \warning background alpha value can only be 0 or 255, not any arbitrary value. Any non-zero
-			     *   value will be considered as 255.
-			     * \warning (E)PS and PDF formats can't handle transparency.  */
-    int dpi; /**< The dots per inch resolution to use to render the image. This is directly passed to the <tt>-r</tt>
-	      * option of the \c gs program. */
+    /** A default constructor assigning default values to all fields. */
+    klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600), smoothFactor(1) { }
+    /** The latex code to render */
+    QString latex;
+    /** The mathmode to use. You may pass an arbitrary string containing '...' . '...' will be replaced
+     * by the latex code. Examples are:
+     * \li <tt>\\[ ... \\]</tt>
+     * \li <tt>\$ ... \$</tt>
+     */
+    QString mathmode;
+    /** The LaTeX preample, ie the code that appears after '\\documentclass{...}' and
+     * before '\\begin{document}' */
+    QString preamble;
+    /** The foreground color to use, in format given by <tt>qRgb(r, g, b)</tt>.
+     * You may not specify an alpha value here, it will be ignored. */
+    unsigned long fg_color;
+    /** The background color to use, in format given by <tt>qRgba(r, g, b, alpha)</tt>.
+     * \warning background alpha value can only be 0 or 255, not any arbitrary value. Any non-zero
+     *   value will be considered as 255.
+     * \warning (E)PS and PDF formats can't handle transparency.
+     */
+    unsigned long bg_color;
+    /** The dots per inch resolution of the resulting image. This is not directly passed to the
+     * <tt>-r</tt> option of the \c gs program, see \ref smoothFactor. */
+    int dpi;
+    /** A smoothening factor. Can be seen as an extra anti-aliasing feature. The image of the latex
+     * equation is rendered with \c gs program using a DPI value of <tt>dpi*smoothFactor</tt> and
+     * then the image is scaled down by a factor of \c smoothFactor, such that the resulting image
+     * has a resolution of \c dpi. */
+    int smoothFactor;
   };
 
   //! KLFBackend::getLatexFormula() result
-  /** This struct contains data that is returned from getLatexFormula(). This includes error handling information,
-   * the resulting image (as a QImage) as well as data for PNG, (E)PS and PDF files */
+  /** This struct contains data that is returned from getLatexFormula(). This includes error handling
+   * information, the resulting image (as a QImage) as well as data for PNG, (E)PS and PDF files */
   struct klfOutput {
     /** \brief A code describing the status of the request.
      *
-     * A zero value means success for everything. A positive value means that a program (latex, dvips, ...)
-     * returned a non-zero exit code. A negative
-     * status indicates an other error.
+     * A zero value means success for everything. A positive value means that a program (latex, dvips,
+     * ...) returned a non-zero exit code. A negative status indicates an other error.
      *
      * \c status will be exactly one of the KLFERR_* constants.
      *
@@ -197,10 +219,18 @@ public:
      * This string is Qt-Translated with QObject::tr() using \c "KLFBackend" as comment. */
     QString errorstr;
 
-    QImage result; /**< The actual resulting image. */
-    QByteArray pngdata; /**< the data for a png file (exact \c gs output content) */
-    QByteArray epsdata; /**< data for an (eps-)postscript file */
-    QByteArray pdfdata; /**< data for a pdf file, if \ref klfSettings::epstopdfexec is non-empty. */
+    /** The actual resulting image. */
+    QImage result;
+
+    /** the data for a png file (exact \c gs output content)
+     *
+     * \note This PNG image is not downscaled to the correct DPI. it is still at DPI*smoothFactor
+     *   size. The resulting image \c result, is, however of correct size. */
+    QByteArray pngdata;
+    /** data for an (eps-)postscript file */
+    QByteArray epsdata;
+    /** data for a pdf file, if \ref klfSettings::epstopdfexec is non-empty. */
+    QByteArray pdfdata;
   };
 
   /** The call to process everything.
@@ -228,7 +258,8 @@ public:
    *   settings.bborderoffset = 1;
    *
    *   KLFBackend::klfInput input;
-   *   input.latex = "\\int_{\\Sigma}\\!(\\vec{\\nabla}\\times\\vec u)\\,d\\vec S = \\oint_C \\vec{u}\\cdot d\\vec r";
+   *   input.latex = "\\int_{\\Sigma}\\!(\\vec{\\nabla}\\times\\vec u)\\,d\\vec S ="
+   *     " \\oint_C \\vec{u}\\cdot d\\vec r";
    *   input.mathmode = "\\[ ... \\]";
    *   input.preamble = "\\usepackage{somerequiredpackage}\n";
    *   input.fg_color = qRgb(255, 128, 128); // pink
@@ -249,21 +280,21 @@ public:
    *   {
    *     QFile fpdf(fname);
    *     fpdf.open(IO_WriteOnly | IO_Raw);
-   *     fpdf.writeBlock(*dataptr);
+   *     fpdf.writeBlock(out.pdfdata);
    *   }
    *   ...
    * \endcode
    *
-   * \note This function is safe for threads; it locks a mutex at the beginning and unlocks it at the end; so if a
-   *   call to this function is issued while a first call is already being processed in another thread, the second
-   *   waits for the first call to finish.
+   * \note This function is safe for threads; it locks a mutex at the beginning and unlocks
+   *   it at the end; so if a call to this function is issued while a first call is already
+   *   being processed in another thread, the second waits for the first call to finish.
    */
   static klfOutput getLatexFormula(const klfInput& in, const klfSettings& settings);
 
   /** \brief Save the output to image file
    *
-   * This function can be used to write output obtained with the \ref getLatexFormula() function, to a file
-   * named \c fileName with format \c format.
+   * This function can be used to write output obtained with the \ref getLatexFormula() function,
+   * to a file named \c fileName with format \c format.
    *
    * \param output the data to save (e.g. as returned by \ref getLatexFormula() )
    * \param fileName the file name to save to. If empty or equal to \c "-" then standard output is used.
@@ -272,7 +303,8 @@ public:
    * If \c format is an empty string, then format is guessed from filename extension; if no extension is
    * found then format defaults to PNG.
    *
-   * \c fileName 's extension is NOT adjusted if it does not match an explicitely given format, for example
+   * \c fileName 's extension is NOT adjusted if it does not match an explicitely given format, for
+   * example
    * \code saveOutputToFile(output, "myfile.jpg", "PDF"); \endcode
    * will output PDF data to the file \c "myfile.jpg".
    *
@@ -280,7 +312,17 @@ public:
    *
    * qWarning()s are emitted in case of failure.
    */
-  static bool saveOutputToFile(const klfOutput& output, const QString& fileName, const QString& format = QString());
+  static bool saveOutputToFile(const klfOutput& output, const QString& fileName,
+			       const QString& format = QString());
+
+  /** \brief Detects the system settings and stores the guessed values in \c settings.
+   *
+   * This function tries to find the latex, dvips, gs, and epstopdf in standard locations on the
+   * current platform.
+   *
+   * The temporary directory is set to the system temporary directory.
+   */
+  static bool detectSettings(klfSettings *settings, const QString& extraPath = QString());
 
 
 private:
