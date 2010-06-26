@@ -515,21 +515,16 @@ void dumpDir(const QDir& d, int indent = 0)
   }
 }
 
-
-
-
-
-/*
- static int main_find_addon_providing(const QString& plugin)
- {
- int k;
- for (k = 0; k < klf_addons.size(); ++k) {
- if ( klf_addons[k].plugins.indexOf(plugin) != -1 )
- return k;
- }
- return -1;
- }
-*/
+/** \internal */
+class VersionCompareWithPrefixGreaterThan {
+  int prefixLen;
+public:
+  /** only the length of prefix is important, the prefix itself is not checked. */
+  VersionCompareWithPrefixGreaterThan(const QString& prefix) : prefixLen(prefix.length()) { }
+  bool operator()(const QString& a, const QString& b) {
+    return klfVersionCompare(a.mid(prefixLen), b.mid(prefixLen)) > 0;
+  }
+};
 
 void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 {
@@ -592,13 +587,15 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
   QStringList pluginsdirs;
   QDir pdir(klfconfig.homeConfigDirPlugins);
   QStringList pdirlist = pdir.entryList(QStringList()<<"klf*", QDir::Dirs);
+  // sort plugin dirs so that for a plugin existing in multiple versions, we load the one for the
+  // most recent first, then ignore the others.
+  qSort(pdirlist.begin(), pdirlist.end(), VersionCompareWithPrefixGreaterThan("klf"));
   for (i = 0; i < pdirlist.size(); ++i) {
     qDebug()<<"maybe adding plugin dir"<<pdirlist[i]<<"; klfver="<<pdirlist[i].mid(3);
     if (klfVersionCompare(pdirlist[i].mid(3), KLF_VERSION_STRING) <= 0) { // Version OK
       pluginsdirs << pdir.absoluteFilePath(pdirlist[i]) ;
     }
   }
-  qSort(pluginsdirs.begin(), pluginsdirs.end(), klfVersionCompareLessThan);
   pluginsdirs << klfconfig.homeConfigDirPlugins ;
 
   qDebug()<<"pluginsdirs="<<pluginsdirs;

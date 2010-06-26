@@ -130,6 +130,7 @@ void SkinConfigWidget::installSkin()
 
 void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
 {
+  qDebug("Initializing Skin plugin (compiled for KLF version %s)", KLF_VERSION_STRING);
   Q_INIT_RESOURCE(skindata);
 
   _mainwin = mainWin;
@@ -143,13 +144,15 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
 
   { // add links for skins to what's new page
     QString s =
-      tr("<p><b>Interface Skins</b></p>\n"
-	 "<p>Some new skins are available in this version. You may want to try the "
-	 "<a href=\"klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/papyrus.qss\">papyrus "
-	 "skin</a>, the <a href=\"klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/galaxy.qss\">"
-	 "galaxy skin</a>, the <a href=\"klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/flat.qss\">"
-	 "flat skin</a>, or the <a href=\"klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/default.qss"
-	 "\">style-default skin</a>.</p>");
+      "<p><b>"+tr("Interface Skins", "[[help new features addition title]]")+"</b></p>\n"
+      +tr("<p>Some new skins are available in this version. You may want to try the "
+	  "<a href=\"%1\">papyrus skin</a>, the <a href=\"%2\">galaxy skin</a>, the "
+	  "<a href=\"%3\">flat skin</a>, or the <a href=\"%4\">style-default skin</a>."
+	  "</p>", "[[help new features addition text]]")
+      .arg("klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/papyrus.qss",
+	   "klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/galaxy.qss",
+	   "klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/flat.qss",
+	   "klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/default.qss");
     _mainwin->addWhatsNewText(s);
     _mainwin->registerHelpLinkAction("/skin_set", this, "changeSkinHelpLinkAction", true);
   }

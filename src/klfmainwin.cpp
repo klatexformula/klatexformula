@@ -362,8 +362,6 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(restoreFromLibrary(const KLFLibEntry&, uint)));
   connect(mLibBrowser, SIGNAL(requestRestoreStyle(const KLFStyle&)),
 	  this, SLOT(slotLoadStyle(const KLFStyle&)));
-  //  connect(mLibBrowser, SIGNAL(refreshLibraryBrowserShownState(bool)),
-  //	  this, SLOT(slotLibraryButtonRefreshState(bool)));
   connect(mLatexSymbols, SIGNAL(insertSymbol(const KLFLatexSymbol&)),
 	  this, SLOT(insertSymbol(const KLFLatexSymbol&)));
   connect(mLatexSymbols, SIGNAL(refreshSymbolBrowserShownState(bool)),
@@ -416,10 +414,6 @@ KLFMainWin::KLFMainWin()
   // INTERNAL FLAGS
 
   _evaloutput_uptodate = false;
-
-  _lastwindowshownstatus = 0;
-  _savedwindowshownstatus = 0;
-  _ignore_close_event = false;
 
   retranslateUi(false);
 
@@ -915,11 +909,6 @@ void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
 void KLFMainWin::slotLibraryButtonRefreshState(bool on)
 {
   u->btnLibrary->setChecked(on);
-  //   if (...............kapp->sessionSaving()) {
-  //     // if we're saving the session, remember that history browser is on
-  //   } else {
-  //     _libraryBrowserIsShown = on;
-  //   }
 }
 
 
@@ -1083,11 +1072,34 @@ void KLFMainWin::quit()
 
 bool KLFMainWin::event(QEvent *e)
 {
-  qDebug("Event: e->type() == %d", (int)e->type());
+  qDebug("KLFMainWin::event(): e->type() == %d", (int)e->type());
   
   return QWidget::event(e);
 }
 
+void KLFMainWin::childEvent(QChildEvent *e)
+{
+  QObject *child = e->child();
+  if (e->type() == QEvent::ChildAdded && child->isWidgetType()) {
+    QWidget *w = qobject_cast<QWidget*>(child);
+    if (w->windowFlags() & Qt::Window) {
+      // note that all Qt::Tool, Qt::SplashScreen etc. all have the Qt::Window bit set, but
+      // not Qt::Widget (!)
+      pWindowList.append(w);
+      qDebug()<<KLF_FUNC_NAME<<": Added child "<<w<<" ("<<w->metaObject()->className()<<")";
+    }
+  } else if (e->type() == QEvent::ChildRemoved && child->isWidgetType()) {
+    QWidget *w = qobject_cast<QWidget*>(child);
+    int k;
+    if ((k = pWindowList.indexOf(w)) >= 0) {
+      qDebug()<<KLF_FUNC_NAME<<": Removing child "<<w<<" ("<<w->metaObject()->className()<<")"
+	      <<" at position k="<<k;
+      pWindowList.removeAt(k);
+    }
+  }
+
+  QWidget::childEvent(e);
+}
 
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 {
@@ -1104,21 +1116,19 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   }
 
   // ----
-  if ( e->type() == QEvent::Hide || e->type() == QEvent::Show ) {
+  if ( obj->isWidgetType() && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
     // shown/hidden windows: save/restore geometry
-    QWidget *sh_widgets[] = { mLibBrowser, mLatexSymbols, mSettingsDialog, mStyleManager, NULL };
-    int sh_enum[] = { LibBrowser, LatexSymbols, SettingsDialog, StyleManager, -1 };
-    int k;
-    for (k = 0; sh_widgets[k] != NULL && sh_enum[k] >= 0; ++k) {
-      if (obj == sh_widgets[k] && e->type() == QEvent::Hide && !((QHideEvent*)e)->spontaneous()) {
-	if (_lastwindowshownstatus & sh_enum[k])
-	  _lastwindowgeometries[sh_enum[k]] = klf_get_window_geometry(sh_widgets[k]);
-	_lastwindowshownstatus &= ~sh_enum[k];
-      }
-      // -
-      if (obj == sh_widgets[k] && e->type() == QEvent::Show && !((QShowEvent*)e)->spontaneous()) {
-	_lastwindowshownstatus |= sh_enum[k];
-	klf_set_window_geometry(sh_widgets[k], _lastwindowgeometries[sh_enum[k]]);
+    int k = pWindowList.indexOf(qobject_cast<QWidget*>(obj));
+    if (k >= 0) {
+      QWidget *w = qobject_cast<QWidget*>(obj);
+      // this widget is one of our monitored top-level children.
+      if (e->type() == QEvent::Hide && !((QHideEvent*)e)->spontaneous()) {
+	if (pLastWindowShownStatus[w])
+	  pLastWindowGeometries[w] = klf_get_window_geometry(w);
+	pLastWindowShownStatus[w] = false;
+      } else if (e->type() == QEvent::Show && !((QShowEvent*)e)->spontaneous()) {
+	pLastWindowShownStatus[w] = true;
+	klf_set_window_geometry(w, pLastWindowGeometries[w]);
       }
     }
   }
@@ -1130,46 +1140,40 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 }
 
 
-uint KLFMainWin::currentWindowShownStatus()
+QHash<QWidget*,bool> KLFMainWin::currentWindowShownStatus(bool mainWindowToo)
 {
-  uint flags = 0;
-
-  flags |= isVisible();
-
-  if (mLibBrowser && mLibBrowser->isVisible())
-    flags |= LibBrowser;
-  if (mLatexSymbols && mLatexSymbols->isVisible())
-    flags |= LatexSymbols;
-  if (mStyleManager && mStyleManager->isVisible())
-    flags |= StyleManager;
-  if (mSettingsDialog && mSettingsDialog->isVisible())
-    flags |= SettingsDialog;
-
-  return flags;
+  QHash<QWidget*,bool> status;
+  if (mainWindowToo)
+    status[this] = isVisible();
+  int k;
+  for (k = 0; k < pWindowList.size(); ++k)
+    status[pWindowList[k]] = pWindowList[k]->isVisible();
+  return status;
+}
+QHash<QWidget*,bool> KLFMainWin::prepareAllWindowShownStatus(bool visibleStatus, bool mainWindowToo)
+{
+  QHash<QWidget*,bool> status;
+  if (mainWindowToo)
+    status[this] = visibleStatus;
+  int k;
+  for (k = 0; k < pWindowList.size(); ++k)
+    status[pWindowList[k]] = visibleStatus;
+  return status;
 }
 
-void KLFMainWin::setWindowShownStatus(uint fl, bool metoo)
+void KLFMainWin::setWindowShownStatus(const QHash<QWidget*,bool>& shownStatus)
 {
-  if (metoo)
-    setVisible(fl);
-
-  if (mLibBrowser)
-    mLibBrowser->setVisible(fl & LibBrowser);
-  if (mLatexSymbols)
-    mLatexSymbols->setVisible(fl & LatexSymbols);
-  if (mStyleManager)
-    mStyleManager->setVisible(fl & StyleManager);
-  if (mSettingsDialog)
-    mSettingsDialog->setVisible(fl & SettingsDialog);
+  for (QHash<QWidget*,bool>::const_iterator it = shownStatus.begin(); it != shownStatus.end(); ++it)
+    QMetaObject::invokeMethod(it.key(), "setVisible", Qt::QueuedConnection, Q_ARG(bool, it.value()));
 }
 
 
 void KLFMainWin::hideEvent(QHideEvent *e)
 {
   if ( ! e->spontaneous() ) {
-    _savedwindowshownstatus = currentWindowShownStatus();
-    _lastwindowgeometries[MainWin] = klf_get_window_geometry(this);
-    setWindowShownStatus(0); // hide all windows
+    pSavedWindowShownStatus = currentWindowShownStatus(false);
+    pLastWindowGeometries[this] = klf_get_window_geometry(this);
+    setWindowShownStatus(prepareAllWindowShownStatus(false, false)); // hide all windows
   }
 
   QWidget::hideEvent(e);
@@ -1194,8 +1198,9 @@ void KLFMainWin::showEvent(QShowEvent *e)
 
   if ( ! e->spontaneous() ) {
     // restore shown windows ...
-    klf_set_window_geometry(this, _lastwindowgeometries[MainWin]);
-    setWindowShownStatus(_savedwindowshownstatus);
+    if (pLastWindowGeometries.contains(this))
+      klf_set_window_geometry(this, pLastWindowGeometries[this]);
+    setWindowShownStatus(pSavedWindowShownStatus);
   }
 
   QWidget::showEvent(e);
@@ -1419,7 +1424,7 @@ void KLFMainWin::slotClear()
 void KLFMainWin::slotLibrary(bool showlib)
 {
   mLibBrowser->setShown(showlib);
-  slotLibraryButtonRefreshState(showlib);
+  //  slotLibraryButtonRefreshState(showlib);
 }
 
 void KLFMainWin::slotSymbols(bool showsymbs)
@@ -1744,59 +1749,7 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   bool res = KLFBackend::saveOutputToFile(_output, fname, format, &error);
   if ( ! res ) {
     QMessageBox::critical(this, tr("Error"), error);
-    return;
   }
-/*
-  QByteArray *dataptr = 0;
-  if (format == "ps" || format == "eps") {
-    dataptr = &_output.epsdata;
-  } else if (format == "pdf") {
-    dataptr = &_output.pdfdata;
-  } else if (format == "png") {
-    // we want to add meta-info in PNG image...
-    //dataptr = &_output.pngdata;
-    dataptr = 0;
-  } else {
-    dataptr = 0;
-  }
-  
-  if (dataptr) {
-    if (dataptr->size() == 0) {
-      QMessageBox::critical(this, tr("Error"), tr("Sorry, format `%1' is not available.").arg(format));
-      slotSave(); // recurse and prompt user.
-      return;
-    }
-    QFile fsav(fname);
-    if ( ! fsav.open(QIODevice::WriteOnly) ) {
-      QMessageBox::critical(this, tr("Error"), tr("Error: Can't write to file %1!").arg(fname));
-      return;
-    }
-    fsav.write(*dataptr);
-  } else {
-    // add text information for latex formula, style, etc.
-    // with QImageWriter
-    QImageWriter writer(fname, format.toUpper().toLatin1());
-    writer.setQuality(90);
-    writer.setText("Application",
-		   tr("Created with KLatexFormula version %1").arg(QString::fromAscii(version)));
-    writer.setText("AppVersion", QString::fromLatin1("KLF ")+version);
-    writer.setText("InputLatex", _lastrun_input.latex);
-    writer.setText("InputMathMode", _lastrun_input.mathmode);
-    writer.setText("InputPreamble", _lastrun_input.preamble);
-    writer.setText("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(_lastrun_input.fg_color))
-		   .arg(qGreen(_lastrun_input.fg_color)).arg(qBlue(_lastrun_input.fg_color)));
-    writer.setText("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(_lastrun_input.bg_color))
-		   .arg(qGreen(_lastrun_input.bg_color)).arg(qBlue(_lastrun_input.bg_color))
-		   .arg(qAlpha(_lastrun_input.bg_color)));
-    writer.setText("InputDPI", QString::number(_lastrun_input.dpi));
-
-    bool res = writer.write(_output.result);
-    if ( ! res ) {
-      QMessageBox::critical(this, tr("Error"), writer.errorString());
-      return;
-    }
-  }
-*/
 }
 
 

@@ -749,7 +749,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
 	break;
       }
       QStringList vals = fontrx.capturedTexts();
-      qDebug()<<"klfLoadVariantFromText: loaded font-rx cap.Texts: "<<vals;
+      //qDebug()<<"klfLoadVariantFromText: loaded font-rx cap.Texts: "<<vals;
       QString family = vals[2].trimmed();
       QString weighttxt = vals[4];
       QString weightval = vals[5];
@@ -1048,7 +1048,7 @@ KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomEl
     }
     elNode.appendChild(vdataNode);
     // now append this pair to our list
-    qDebug()<<KLF_FUNC_NAME<<"... appending node!";
+    //qDebug()<<KLF_FUNC_NAME<<"... appending node!";
     baseNode.appendChild(elNode);
   }
 

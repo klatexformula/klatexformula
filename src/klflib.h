@@ -29,8 +29,6 @@
 #include <QUrl>
 #include <QDataStream>
 #include <QDateTime>
-#include <QSqlDatabase>
-#include <QSqlQuery>
 
 //#include <klfdata.h>  // for KLFStyle
 #include <klfpobj.h>

@@ -24,10 +24,12 @@
 #ifndef KLFLIBDBENGINE_H
 #define KLFLIBDBENGINE_H
 
+#include <QSqlDatabase>
+#include <QSqlQuery>
+
 #include <klfdefs.h>
 #include <klflib.h>
 #include <klflibview.h> // KLFLibLocalFileSchemeGuesser
-
 
 //! A utility class to automatically disconnect a database after use
 /** This class basically calls \ref QSqlDatabase::removeDatabase() upon its destruction, if the
