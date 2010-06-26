@@ -1672,7 +1672,8 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   QString suggestion = suggestfname;
   if (suggestion.isEmpty())
     suggestion = klfconfig.UI.lastSaveDir;
-  fname = QFileDialog::getSaveFileName(this, tr("Save Image Formula"), suggestion, filterformat, &selectedfilter);
+  fname = QFileDialog::getSaveFileName(this, tr("Save Image Formula"), suggestion, filterformat,
+				       &selectedfilter);
 
   if (fname.isEmpty())
     return;
@@ -1682,7 +1683,8 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   if ( fi.suffix().length() == 0 ) {
     // get format and suffix from selected filter
     if ( ! formatsByFilterName.contains(selectedfilter) ) {
-      qWarning("ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n", qPrintable(selectedfilter));
+      qWarning("ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n",
+	       qPrintable(selectedfilter));
       format = "png";
     } else {
       format = formatsByFilterName[selectedfilter];
@@ -1738,6 +1740,13 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 
   // The Qt dialog, or us, already asked user to confirm overwriting existing files
 
+  QString error;
+  bool res = KLFBackend::saveOutputToFile(_output, fname, format, &error);
+  if ( ! res ) {
+    QMessageBox::critical(this, tr("Error"), error);
+    return;
+  }
+/*
   QByteArray *dataptr = 0;
   if (format == "ps" || format == "eps") {
     dataptr = &_output.epsdata;
@@ -1768,7 +1777,8 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     // with QImageWriter
     QImageWriter writer(fname, format.toUpper().toLatin1());
     writer.setQuality(90);
-    writer.setText("Application", tr("Created with KLatexFormula version %1").arg(QString::fromAscii(version)));
+    writer.setText("Application",
+		   tr("Created with KLatexFormula version %1").arg(QString::fromAscii(version)));
     writer.setText("AppVersion", QString::fromLatin1("KLF ")+version);
     writer.setText("InputLatex", _lastrun_input.latex);
     writer.setText("InputMathMode", _lastrun_input.mathmode);
@@ -1780,15 +1790,13 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 		   .arg(qAlpha(_lastrun_input.bg_color)));
     writer.setText("InputDPI", QString::number(_lastrun_input.dpi));
 
-    //    _output.result.save(fname, format.toUpper().toLocal8Bit().constData());
-
     bool res = writer.write(_output.result);
     if ( ! res ) {
       QMessageBox::critical(this, tr("Error"), writer.errorString());
       return;
     }
   }
-
+*/
 }
 
 

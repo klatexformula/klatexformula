@@ -77,7 +77,6 @@ set(klatexformula_MOCHEADERS
 	klfcolorchooser.h
 	klflatexsyntaxhighlighter.h
 	klflatexsymbols.h
-	klfutil.h
 	klfguiutil.h
 	klflib.h
 	klflibdbengine.h
@@ -100,6 +99,7 @@ set(klatexformula_MOCHEADERS
 #  * all headers
 set(klatexformula_HEADERS
 	klfmain.h
+	klfutil.h
 	klfconfig.h
 	klfpobj.h
 	klffactory.h

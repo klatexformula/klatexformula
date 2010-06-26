@@ -32,7 +32,8 @@
 #include <qdir.h>
 
 #ifdef KLFBACKEND_QT4
-#include <qdebug.h>
+#include <QDebug>
+#include <QImageWriter>
 #endif
 
 #include "klfblockprocess.h"
@@ -152,6 +153,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   res.pngdata = QByteArray();
   res.epsdata = QByteArray();
   res.pdfdata = QByteArray();
+  res.input = in;
 
   // PROCEDURE:
   // - generate LaTeX-file
@@ -160,7 +162,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   // - Run gs:	gs -dNOPAUSE -dSAFER -dEPSCrop -r600 -dTextAlphaBits=4 -dGraphicsAlphaBits=4
   //               -sDEVICE=pngalpha|png16m -sOutputFile=xxxxxx.png -q -dBATCH xxxxxx.eps
   //   to eventually get PNG data
-  // - read PNG, downscale to account for smoothFactor
   // - if epstopdfexec is not empty, run epstopdf and get PDF file.
 
   QString tempfname = settings.tempdir + "/klatexformulatmp" KLF_VERSION_STRING "-"
@@ -360,7 +361,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     KLFBlockProcess proc;
     QStringList args;
     args << settings.gsexec << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop"
-	 << "-r"+QString::number(in.dpi*in.smoothFactor) << "-dTextAlphaBits=4"
+	 << "-r"+QString::number(in.dpi) << "-dTextAlphaBits=4"
 	 << "-dGraphicsAlphaBits=4";
     if (qAlpha(in.bg_color) > 0) { // we're forcing a background color
       args << "-sDEVICE=png16m";
@@ -413,16 +414,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     pngfile.close();
     // res.pngdata is now set.
     res.result.loadFromData(res.pngdata, "PNG");
-#ifdef KLFBACKEND_QT4
-    res.result = res.result.scaled(res.result.width()/in.smoothFactor,
-				   res.result.height()/in.smoothFactor,
-				   Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-#else
-    res.result = res.result.smoothScale(res.result.width()/in.smoothFactor,
-					res.result.height()/in.smoothFactor,
-					QImage::ScaleFree);
-#endif
-
   }
 
   if (!settings.epstopdfexec.isEmpty()) {
@@ -510,7 +501,7 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
 
 
 bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fileName,
-				  const QString& fmt)
+				  const QString& fmt, QString* errorString)
 {
   QString format = fmt;
   // determine format first
@@ -541,7 +532,7 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
     }
   }
   // now choose correct data source and write to fout
- if (format == "EPS" || format == "PS") {
+  if (format == "EPS" || format == "PS") {
     fout.write(klfoutput.epsdata);
   } else if (format == "PDF") {
     if (klfoutput.pdfdata.isEmpty()) {
@@ -550,14 +541,50 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
       return false;
     }
     fout.write(klfoutput.pdfdata);
- } else { // including PNG (pngdata is not downscaled to account for smoothFactor)
-    bool res = klfoutput.result.save(&fout, format.toLatin1());
+ } else {
+    /// \todo add meta-info in image...
+    const QString errstr3 = QObject::tr("Unable to save image to file `%1' in format `%2'!",
+					"KLFBackend::saveOutputToFile");
+    const QString errstr4 = QObject::tr("Unable to save image to file `%1' in format `%2'!\n"
+					"%3", "KLFBackend::saveOutputToFile");
+#ifdef KLFBACKEND_QT4
+    // add text information for latex formula, style, etc.
+    // with QImageWriter
+    QImageWriter writer(&fout, format.toUpper().toLatin1());
+    klfInput input = klfoutput.input;
+    writer.setQuality(90);
+    writer.setText("Application",
+		   QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile")
+		   .arg(KLF_VERSION_STRING));
+    writer.setText("AppVersion", QString("KLatexFormula %1").arg(KLF_VERSION_STRING));
+    writer.setText("InputLatex", input.latex);
+    writer.setText("InputMathMode", input.mathmode);
+    writer.setText("InputPreamble", input.preamble);
+    writer.setText("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(input.fg_color))
+		   .arg(qGreen(input.fg_color)).arg(qBlue(input.fg_color)));
+    writer.setText("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(input.bg_color))
+		   .arg(qGreen(input.bg_color)).arg(qBlue(input.bg_color))
+		   .arg(qAlpha(input.bg_color)));
+    writer.setText("InputDPI", QString::number(input.dpi));
+
+    bool res = writer.write(klfoutput.result);
     if ( ! res ) {
-      qWarning("%s", qPrintable(QObject::tr("Unable to save image to file `%1' in format `%2'!\n",
-					    "KLFBackend::saveOutputToFile")
-				.arg(fileName).arg(format)));
+      QString errstr = errstr4.arg(fileName).arg(format).arg(writer.errorString());
+      qWarning("%s", qPrintable(errstr));
+      if (errorString != NULL)
+	*errorString = errstr;
       return false;
     }
+#else
+    bool res = klfoutput.result.save(&fout, format.toLatin1());
+    if ( ! res ) {
+      QString errstr = errstr3.arg(fileName).arg(format);
+      qWarning("%s", qPrintable(errstr));
+      if (errorString != NULL)
+	*errorString = errstr;
+      return false;
+    }
+#endif
   }
 
   return true;

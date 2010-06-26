@@ -165,7 +165,7 @@ public:
    * the dpi for rendering png, colors etc. */
   struct klfInput {
     /** A default constructor assigning default values to all fields. */
-    klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600), smoothFactor(1) { }
+    klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600) { }
     /** The latex code to render */
     QString latex;
     /** The mathmode to use. You may pass an arbitrary string containing '...' . '...' will be replaced
@@ -186,14 +186,9 @@ public:
      * \warning (E)PS and PDF formats can't handle transparency.
      */
     unsigned long bg_color;
-    /** The dots per inch resolution of the resulting image. This is not directly passed to the
-     * <tt>-r</tt> option of the \c gs program, see \ref smoothFactor. */
+    /** The dots per inch resolution of the resulting image. This is directly passed to the
+     * <tt>-r</tt> option of the \c gs program. */
     int dpi;
-    /** A smoothening factor. Can be seen as an extra anti-aliasing feature. The image of the latex
-     * equation is rendered with \c gs program using a DPI value of <tt>dpi*smoothFactor</tt> and
-     * then the image is scaled down by a factor of \c smoothFactor, such that the resulting image
-     * has a resolution of \c dpi. */
-    int smoothFactor;
   };
 
   //! KLFBackend::getLatexFormula() result
@@ -221,6 +216,9 @@ public:
 
     /** The actual resulting image. */
     QImage result;
+
+    /** The input parameters used to generate this output */
+    klfInput input;
 
     /** the data for a png file (exact \c gs output content)
      *
@@ -308,12 +306,15 @@ public:
    * \code saveOutputToFile(output, "myfile.jpg", "PDF"); \endcode
    * will output PDF data to the file \c "myfile.jpg".
    *
+   * If \c errorString is non-NULL, then it is set to a human-readable description of the error that
+   * occurred if this function returns FALSE. It is left untouched if success.
+   *
    * \return TRUE if success or FALSE if failure.
    *
    * qWarning()s are emitted in case of failure.
    */
   static bool saveOutputToFile(const klfOutput& output, const QString& fileName,
-			       const QString& format = QString());
+			       const QString& format = QString(), QString* errorString = NULL);
 
   /** \brief Detects the system settings and stores the guessed values in \c settings.
    *
