@@ -58,7 +58,7 @@ class KLFLatexSyntaxHighlighter;
 
 
 namespace Ui {
-  class KLFProgErrUI;
+  class KLFProgErr;
   class KLFMainWin;
 }
 
@@ -72,7 +72,7 @@ public:
   static void showError(QWidget *parent, QString text);
 
 private:
-  Ui::KLFProgErrUI *u;
+  Ui::KLFProgErr *u;
 };
 
 

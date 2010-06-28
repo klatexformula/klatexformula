@@ -46,6 +46,8 @@ public:
   KLFLibBrowserViewContainer(KLFLibResourceEngine *resource, QTabWidget *parent)
     : QStackedWidget(parent), pResource(resource)
   {
+    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
     if (pResource == NULL) {
       qWarning()<<"KLFLibBrowserViewContainer: NULL RESOURCE! Expect Imminent Crash!";
     }
@@ -132,6 +134,9 @@ public:
 
 public slots:
   bool openView(const QString& viewTypeIdent) {
+
+    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
     // see if we already have this view type open and ready
     if (pOpenViewTypeIdents.contains(viewTypeIdent)) {
       setCurrentIndex(pOpenViewTypeIdents[viewTypeIdent]);
@@ -163,20 +168,20 @@ public slots:
     // and of context menu request
     connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
 	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
-    qDebug()<<"connected signals.";
+    klf_debug_time_print_str()<<"connected signals.";
     if ((pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) &&
 	(pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps))
       pResource->setSubResourceProperty(pResource->defaultSubResource(),
 					KLFLibResourceEngine::SubResPropViewType, viewTypeIdent);
     else
       pResource->setViewType(viewTypeIdent);
-    qDebug()<<"set view type.";
+    klf_debug_time_print_str()<<"set view type.";
 
     int index = addWidget(v);
     pOpenViewTypeIdents[viewTypeIdent] = index;
-    qDebug()<<"added widget, about to raise";
+    klf_debug_time_print_str()<<"added widget, about to raise";
     setCurrentIndex(index);
-    qDebug()<<"Added view.";
+    klf_debug_time_print_str()<<"Added view.";
     return true;
   }
 

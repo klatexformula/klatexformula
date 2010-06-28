@@ -174,6 +174,87 @@ namespace KLFLib {
   typedef qint32 entryId;
 }
 
+//! Utility class for sorting library entry items
+/**
+ * This class can be used as a sorter to sort items.
+ *
+ * This class functions as follows:
+ * - \ref operator() calls compareLessThan() with the stored propId() and order().
+ * - \ref compareLessThan() in turns calls entryValue() to get string representations of the
+ *   values of the property to compare for each entry, and compares the strings with
+ *   \ref QString::localeAwareCompare().
+ * - \ref entryValue() provides sensible string representations for the given property in the
+ *   given entry.
+ *
+ * \note The column number may be set to be equal \c -1, to indicate an invalid sorter (maybe
+ *   to indicate that a list should not be sorted). However, the functions \ref entryValue(),
+ *   \ref compareLessThan() and \ref operator() are NOT meant to be used with an invalid \c propId.
+ *   In other words, if isValid() is false (or equivalently, if \ref propId() is negative), don't
+ *   attempt any sorting or comparisions.
+ *
+ * To customize the behaviour of this class, you may subclass it and reimplement any level
+ * of its behavior, eg. you may want to just reimplement entryValue() to alter the string
+ * representation of the values of some properties, or you could reimplement compareLessThan()
+ * to do more sophisticated comparisions.
+ *
+ * \note There is no copy constructor. If there was, there would be no way of customizing the sort
+ *   behavior. To use the entry sorter in contexts where you need to copy an object, use the
+ *   clone mechanism with the clone constructor. (Although this should scarcely be needed ...).
+ */
+class KLFLibEntrySorter
+{
+public:
+  KLFLibEntrySorter(int propId = -1, Qt::SortOrder order = Qt::AscendingOrder);
+  /** Used to "circumvent" the copy-constructor issues of reimplemented functions.
+   * If an object is constructed using this constructor all calls to entryValue(),
+   * compareLessThan(), and operator()() are redirected to clone's.
+   *
+   * Calls to setPropId() and setOrder() will fail and emit a warning.
+   *
+   * In particular, never pass 'this' nor 'NULL' as clone!
+   */
+  KLFLibEntrySorter(const KLFLibEntrySorter *clone);
+  virtual ~KLFLibEntrySorter();
+
+  inline bool isValid() const { return (pPropId >= 0); }
+
+  //! The currently set property that will be queried in the items we're sorting
+  inline int propId() const { return pPropId; }
+  //! The currently set sorting order
+  inline Qt::SortOrder order() const { return pOrder; }
+
+  //! Set the KLFLibEntry property id the sort will take into account
+  virtual void setPropId(int propId);
+  //! Set the sort order
+  virtual void setOrder(Qt::SortOrder order);
+
+  //! Returns a string representation of the given property in the given entry
+  virtual QString entryValue(const KLFLibEntry& entry, int propId) const;
+
+  //! Compares entries two entries according to the given property and order
+  /** Compares the given property of entries \c a and \c b.
+   *
+   * When \c order is \c Qt::Ascending, if \c a is found to be less than (and not equal) to
+   * \c b, then TRUE is returned, otherwise FALSE is returned.
+   *
+   * If the \c order is \c Qt::Descending, if \c b is found to be less than (and not equal) to
+   * \c a, then TRUE is returned, otherwise FALSE is returned.
+   */
+  virtual bool compareLessThan(const KLFLibEntry& a, const KLFLibEntry& b,
+			       int propId, Qt::SortOrder order) const;
+
+  /** This is a wrapper that calls \ref compareLessThan() with the previously set
+   * propId() and order().
+   */
+  virtual bool operator()(const KLFLibEntry& a, const KLFLibEntry& b) const;
+
+private:
+  const KLFLibEntrySorter * pCloneOf;
+
+  int pPropId;
+  Qt::SortOrder pOrder;
+};
+
 
 /** \brief An abstract resource engine
  *

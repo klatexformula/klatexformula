@@ -60,4 +60,3 @@ macro(KLFMarkVarAdvancedIf varname condition)
     mark_as_advanced(CLEAR varname)
   endif(condition)
 endmacro(KLFMarkVarAdvancedIf)
-

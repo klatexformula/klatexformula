@@ -11,6 +11,7 @@ if(KLF_MACOSX_BUNDLES)
 endif(KLF_MACOSX_BUNDLES)
 
 if(WIN32)
+  # on debug versions, the application will open a console in which the debug output is shown.
   list(APPEND CMAKE_CXX_FLAGS_RELEASE -mwindows)
   list(APPEND CMAKE_EXE_LINKER_FLAGS -Wl,--enable-auto-import)
 endif(WIN32)
@@ -115,9 +116,9 @@ set(klatexformula_UIS
 	klflibentryeditor.ui
 	klflibrespropeditor.ui
 	klfmainwin.ui
-	klfprogerrui.ui
-	klfsettingsui.ui
-	klfstylemanagerui.ui
+	klfprogerr.ui
+	klfsettings.ui
+	klfstylemanager.ui
 	klfaboutdialog.ui
 	klfwhatsnewdialog.ui
 	klfcolorchoosewidget.ui
@@ -138,7 +139,7 @@ set(klatexformula_QRCS
 # * Windows
 if(WIN32)
   list(APPEND klatexformula_SRCS
-	klfwinclipboard.cpp
+	mswin/klfwinclipboard.cpp
   )
 endif(WIN32)
 # * DBus
@@ -216,7 +217,7 @@ qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
 set(klatexformulamain_ALLSRC main.cpp ${klatexformula_QRC_CPPS})
 set(klatexformulamain_winrc)
 if(MINGW)
-  set(KLF_WIN_ICON "klficon64.ico" CACHE STRING
+  set(KLF_WIN_ICON "mswin/klficon64.ico" CACHE STRING
     "Icon for klatexformula.exe program, relative to src/")
   mark_as_advanced(KLF_WIN_ICON)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc"
@@ -337,7 +338,9 @@ endif(KLF_MACOSX_BUNDLES)
 install(TARGETS klatexformula RUNTIME DESTINATION bin
 			      BUNDLE DESTINATION /Applications)
 if(UNIX AND NOT KLF_MACOSX_BUNDLES)
-  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND} -E create_symlink \\\"${CMAKE_INSTALL_PREFIX}/bin/klatexformula\\\" \\\"${CMAKE_INSTALL_PREFIX}/bin/klatexformula_cmdl\\\"\")"
+  install(CODE
+	  "message(STATUS \"Creating Symlink ${CMAKE_INSTALL_PREFIX}/bin/klatexformula_cmdl -> klatexformula\")
+	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${CMAKE_INSTALL_PREFIX}/bin/klatexformula_cmdl\")"
   )
 endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
 if(KLF_MACOSX_BUNDLES)
@@ -365,11 +368,11 @@ if(KLF_INSTALL_DESKTOP)
   install(FILES klatexformula-64.png DESTINATION share/pixmaps/)
   install(FILES klatexformula-32.png DESTINATION share/pixmaps/)
   install(FILES klatexformula-16.png DESTINATION share/pixmaps/)
-  install(FILES x-klatexformula.xml x-klatexformula-db.xml
+  install(FILES klatexformula-mime.xml
 	  DESTINATION share/mime/packages/)
   install(CODE
-    "message(STATUS \"Updating Mime Types Database\")
-     execute_process(COMMAND \"update-mime-database ${CMAKE_INSTALL_PREFIX}/share/mime/\")"
+    "message(STATUS \"Updating Mime Types Database (update-mime-database)\")
+     execute_process(COMMAND update-mime-database \"${CMAKE_INSTALL_PREFIX}/share/mime\")"
   )
 endif(KLF_INSTALL_DESKTOP)
 

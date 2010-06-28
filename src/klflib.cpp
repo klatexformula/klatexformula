@@ -228,6 +228,86 @@ QString KLFLibEntry::stripCategoryTagsFromLatex(const QString& latex)
 }
 
 
+// ------------------------------------------------------------
+
+
+
+KLFLibEntrySorter::KLFLibEntrySorter(int propId, Qt::SortOrder order)
+  : pCloneOf(NULL), pPropId(propId), pOrder(order)
+{
+}
+KLFLibEntrySorter::KLFLibEntrySorter(const KLFLibEntrySorter *clone)
+  : pCloneOf(clone), pPropId(clone->pPropId), pOrder(clone->pOrder)
+{
+}
+
+KLFLibEntrySorter::~KLFLibEntrySorter()
+{
+}
+
+void KLFLibEntrySorter::setPropId(int propId)
+{
+  if (pCloneOf != NULL) {
+    qWarning()<<"Attempt to setPropId() in entry sorter that is a clone of "<<pCloneOf;
+    return;
+  }
+  pPropId = propId;
+}
+void KLFLibEntrySorter::setOrder(Qt::SortOrder order)
+{
+  if (pCloneOf != NULL) {
+    qWarning()<<"Attempt to setOrder() in entry sorter that is a clone of "<<pCloneOf;
+    return;
+  }
+  pOrder = order;
+}
+
+
+
+QString KLFLibEntrySorter::entryValue(const KLFLibEntry& entry, int propId) const
+{
+  if (pCloneOf != NULL)
+    return pCloneOf->entryValue(entry, propId);
+
+  // return an internal string representation of the value of the property 'propId' in libentry 'entry'
+
+  // user friendliness. sort by date when selecting preview.
+  if (propId == KLFLibEntry::Preview)
+    propId = KLFLibEntry::DateTime;
+
+  if (propId == KLFLibEntry::PreviewSize) {
+    QSize s = entry.previewSize();
+    // eg. "0000000280,0000000180" for 280x180
+    return QString("%1,%2").arg(s.width(), 10, 10, QChar('0')).arg(s.height(), 10, 10, QChar('0'));
+  }
+  if (propId == KLFLibEntry::DateTime) {
+    return entry.property(KLFLibEntry::DateTime).toDateTime().toString("yyyy-MM-dd+hh:mm:ss.zzz");
+  }
+  return entry.property(propId).toString();
+}
+
+bool KLFLibEntrySorter::compareLessThan(const KLFLibEntry& a, const KLFLibEntry& b,
+					int propId, Qt::SortOrder order) const
+{
+  if (pCloneOf != NULL)
+    return pCloneOf->compareLessThan(a, b, propId, order);
+
+  QString as = entryValue(a, propId);
+  QString bs = entryValue(b, propId);
+  if (order == Qt::AscendingOrder)
+    return QString::localeAwareCompare(as, bs) < 0;
+  return QString::localeAwareCompare(as, bs) > 0;
+}
+
+bool KLFLibEntrySorter::operator()(const KLFLibEntry& a, const KLFLibEntry& b) const
+{
+  if (pCloneOf != NULL)
+    return pCloneOf->operator()(a, b);
+
+  return compareLessThan(a, b, pPropId, pOrder);
+}
+
+
 // ---------------------------------------------------
 
 KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, uint featureflags,

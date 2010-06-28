@@ -63,7 +63,7 @@
 
 #include <klfbackend.h>
 
-#include <ui_klfprogerrui.h>
+#include <ui_klfprogerr.h>
 #include <ui_klfmainwin.h>
 
 #include "klfguiutil.h"
@@ -111,7 +111,7 @@ static void klf_set_window_geometry(QWidget *w, QRect g)
 
 KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
 {
-  u = new Ui::KLFProgErrUI;
+  u = new Ui::KLFProgErr;
   u->setupUi(this);
   setObjectName("KLFProgErr");
 
@@ -238,7 +238,6 @@ KLFMainWin::KLFMainWin()
   loadSettings();
 
   _firstshow = true;
-  _loadedlibrary = false;
 
   _output.status = 0;
   _output.errorstr = QString();
@@ -432,7 +431,8 @@ KLFMainWin::KLFMainWin()
   mHelpLinkActions << HelpLinkAction("/whats_new", this, "showWhatsNew", false);
   mHelpLinkActions << HelpLinkAction("/about", this, "showAbout", false);
 
-  // library will be loaded on window show event.
+  _loadedlibrary = true;
+  loadLibrary();
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -680,6 +680,9 @@ void KLFMainWin::loadLibrary()
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // Locate a good library/history file.
 
+  //  KLFPleaseWaitPopup pwp(tr("Loading library, please wait..."), this);
+  //  pwp.showPleaseWait();
+
   // the default library file
   QString localfname = klfconfig.homeConfigDir + "/library.klf.db";
   QString importfname;
@@ -848,7 +851,7 @@ void KLFMainWin::loadLibrarySavedState()
     qWarning("Ignoring unrecognized node `%s' in file %s.", qPrintable(e.nodeName()), qPrintable(fname));
   }
 
-  mLibBrowser->loadGuiState(vstatemap);
+  mLibBrowser->loadGuiState(vstatemap, klfconfig.LibraryBrowser.restoreURLs);
 }
 
 void KLFMainWin::saveLibraryState()
@@ -1086,13 +1089,13 @@ void KLFMainWin::childEvent(QChildEvent *e)
       // note that all Qt::Tool, Qt::SplashScreen etc. all have the Qt::Window bit set, but
       // not Qt::Widget (!)
       pWindowList.append(w);
-      qDebug()<<KLF_FUNC_NAME<<": Added child "<<w<<" ("<<w->metaObject()->className()<<")";
+      qDebug()<<KLF_FUNC_NAME<<": Added child "<<w<<" ("<<w->objectName()<<")";
     }
   } else if (e->type() == QEvent::ChildRemoved && child->isWidgetType()) {
     QWidget *w = qobject_cast<QWidget*>(child);
     int k;
     if ((k = pWindowList.indexOf(w)) >= 0) {
-      qDebug()<<KLF_FUNC_NAME<<": Removing child "<<w<<" ("<<w->metaObject()->className()<<")"
+      qDebug()<<KLF_FUNC_NAME<<": Removing child "<<w<<" ("<<w->objectName()<<")"
 	      <<" at position k="<<k;
       pWindowList.removeAt(k);
     }
@@ -1104,16 +1107,17 @@ void KLFMainWin::childEvent(QChildEvent *e)
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 {
   //  qDebug("eventFilter, e->type()==%d", (int)e->type());
-  if (obj == u->txtLatex) {
-    if (e->type() == QEvent::KeyPress) {
+  /*  if (obj == u->txtLatex) {
+      if (e->type() == QEvent::KeyPress) {
       QKeyEvent *ke = (QKeyEvent*) e;
       if (ke->key() == Qt::Key_Return && (QApplication::keyboardModifiers() == Qt::ShiftModifier ||
-					  QApplication::keyboardModifiers() == Qt::ControlModifier)) {
-	slotEvaluate();
-	return true;
+      QApplication::keyboardModifiers() == Qt::ControlModifier)) {
+      slotEvaluate();
+      return true;
       }
-    }
-  }
+      }
+      }
+  */
 
   // ----
   if ( obj->isWidgetType() && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
@@ -1189,12 +1193,12 @@ void KLFMainWin::showEvent(QShowEvent *e)
       QMetaObject::invokeMethod(this, "showWhatsNew", Qt::QueuedConnection);
     }
   }
-  if ( ! _loadedlibrary ) {
-    _loadedlibrary = true;
-
-    // load the library browser's saved state
-    QMetaObject::invokeMethod(this, "loadLibrary", Qt::QueuedConnection);
-  }
+  //  if ( ! _loadedlibrary ) {
+  //    _loadedlibrary = true;
+  //
+  //    // load the library browser's saved state
+  //    QMetaObject::invokeMethod(this, "loadLibrary", Qt::QueuedConnection);
+  //  }
 
   if ( ! e->spontaneous() ) {
     // restore shown windows ...

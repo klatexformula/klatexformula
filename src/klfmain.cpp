@@ -108,6 +108,15 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
   // read translation list
   QDir i18ndir(mountroot+QLatin1String("/i18n/"));
   d->translations = i18ndir.entryList(QStringList() << "*.qm", QDir::Files);
+
+  // set default values for title, author, description, and klfminversion in case the XML file
+  // does not provide any
+  d->title = QObject::tr("(Name Not Provided)", "[KLFAddOnInfo: add-on information XML data is invalid]");
+  d->description = QObject::tr("(Invalid XML Data Provided By Add-On)",
+			       "[KLFAddOnInfo: add-on information XML data is invalid]");
+  d->klfminversion = QString();
+  d->author = QObject::tr("(No Author Provided)",
+			  "[KLFAddOnInfo: add-on information XML data is invalid]");
   
   // parse resource's rccinfo/info.xml file
   QDomDocument xmldoc;
@@ -116,11 +125,6 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
   QDomElement xmlroot = xmldoc.documentElement();
   if (xmlroot.nodeName() != "rccinfo") {
     qWarning("Add-on file `%s' has invalid XML information.", qPrintable(rccfpath));
-    d->title = QObject::tr("(Name Not Provided)", "[KLFAddOnInfo: add-on information XML data is invalid]");
-    d->description = QObject::tr("(Invalid XML Data Provided By Add-On)",
-				 "[KLFAddOnInfo: add-on information XML data is invalid]");
-    d->author = QObject::tr("(No Author Provided)",
-			    "[KLFAddOnInfo: add-on information XML data is invalid]");
     return;
   }
   QDomNode n;
@@ -131,11 +135,14 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
     if ( e.nodeName() == "title" ) {
       d->title = e.text().trimmed();
     }
+    if ( e.nodeName() == "author" ) {
+      d->author = e.text().trimmed();
+    }
     if ( e.nodeName() == "description" ) {
       d->description = e.text().trimmed();
     }
-    if ( e.nodeName() == "author" ) {
-      d->author = e.text().trimmed();
+    if ( e.nodeName() == "klfminversion" ) {
+      d->klfminversion = e.text().trimmed();
     }
   }
 

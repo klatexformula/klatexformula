@@ -32,6 +32,8 @@
 #include <QDrag>
 #include <QMimeData>
 
+#include <ui_klfstylemanager.h>
+
 #include "klfstylemanager.h"
 
 
@@ -134,9 +136,10 @@ bool KLFStyleListModel::dropMimeData(const QMimeData *mdata, Qt::DropAction acti
 
 
 KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
-  : QWidget(parent, Qt::Dialog), KLFStyleManagerUI()
+  : QWidget(parent, Qt::Dialog)
 {
-  setupUi(this);
+  u = new Ui::KLFStyleManager;
+  u->setupUi(this);
   setObjectName("KLFStyleManager");
 
   _styptr = stydata;
@@ -153,10 +156,10 @@ KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
   actPopupMoveUp = mActionsPopup->addAction("", this, SLOT(slotMoveUp()));
   actPopupMoveDown = mActionsPopup->addAction("", this, SLOT(slotMoveDown()));
   actPopupRename = mActionsPopup->addAction("", this, SLOT(slotRename()));
-  btnActions->setMenu(mActionsPopup);
+  u->btnActions->setMenu(mActionsPopup);
 
   mStyleListModel = new KLFStyleListModel(this);
-  lstStyles->setModel(mStyleListModel);
+  u->lstStyles->setModel(mStyleListModel);
 
   // populate style list
   slotRefresh();
@@ -164,14 +167,14 @@ KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
   // and set menu items enabled or not
   refreshActionsEnabledState();
 
-  connect(btnClose, SIGNAL(clicked()), this, SLOT(hide()));
+  connect(u->btnClose, SIGNAL(clicked()), this, SLOT(hide()));
 
-  lstStyles->installEventFilter(this);
-  connect(lstStyles, SIGNAL(customContextMenuRequested(const QPoint&)),
+  u->lstStyles->installEventFilter(this);
+  connect(u->lstStyles, SIGNAL(customContextMenuRequested(const QPoint&)),
 	  this, SLOT(showActionsContextMenu(const QPoint&)));
   connect(mStyleListModel, SIGNAL(internalMoveCompleted(int, int)),
 	  this, SLOT(slotModelMoveCompleted(int, int)));
-  connect(lstStyles->selectionModel(),
+  connect(u->lstStyles->selectionModel(),
 	  SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
 	  this, SLOT(refreshActionsEnabledState()));
 
@@ -183,7 +186,7 @@ void KLFStyleManager::retranslateUi(bool alsoBaseUi)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME);
   if (alsoBaseUi)
-    Ui::KLFStyleManagerUI::retranslateUi(this);
+    u->retranslateUi(this);
 
   actPopupDelete->setText(tr("Delete Style"));
   actPopupMoveUp->setText(tr("Move up"));
@@ -214,13 +217,13 @@ void KLFStyleManager::refreshActionsEnabledState()
 
 void KLFStyleManager::showActionsContextMenu(const QPoint& pos)
 {
-  mActionsPopup->exec(lstStyles->mapToGlobal(pos));
+  mActionsPopup->exec(u->lstStyles->mapToGlobal(pos));
 }
 
 
 int KLFStyleManager::currentRow()
 {
-  QModelIndexList sel = lstStyles->selectionModel()->selectedRows();
+  QModelIndexList sel = u->lstStyles->selectionModel()->selectedRows();
   if (sel.size() == 0)
     return -1;
   if (sel.size() >= 2) {
@@ -301,8 +304,8 @@ void KLFStyleManager::slotModelMoveCompleted(int prev, int newpos)
   _styptr->insert(newpos, sty);
 
   QModelIndex i = mStyleListModel->index(newpos);
-  lstStyles->selectionModel()->select(i, QItemSelectionModel::ClearAndSelect);
-  lstStyles->setCurrentIndex(i);
+  u->lstStyles->selectionModel()->select(i, QItemSelectionModel::ClearAndSelect);
+  u->lstStyles->setCurrentIndex(i);
 
   emit refreshStyles();
   refreshActionsEnabledState();

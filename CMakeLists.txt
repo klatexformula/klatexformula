@@ -201,13 +201,16 @@ if(KLF_MACOSX_BUNDLES OR WIN32)
 else(KLF_MACOSX_BUNDLES OR WIN32)
   set(KLF_INSTALL_DESKTOP TRUE CACHE BOOL
        "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}")
+  set(KLF_INSTALL_DESKTOP_CATEGORIES "Qt;Office;" CACHE STRING
+      "Categories section in .desktop file")
 endif(KLF_MACOSX_BUNDLES OR WIN32)
 if(KLF_INSTALL_DESKTOP)
   message(STATUS "Will install desktop files (KLF_INSTALL_DESKTOP)")
+  message(STATUS "  categories \"${KLF_INSTALL_DESKTOP_CATEGORIES}\" (KLF_INSTALL_DESKTOP_CATEGORIES)")
 else(KLF_INSTALL_DESKTOP)
   message(STATUS "Will not install desktop files (KLF_INSTALL_DESKTOP)")
 endif(KLF_INSTALL_DESKTOP)
-  
+
 # DEVELOPER OPTION to install klfbaseplugins.rcc in ~/.klatexformula/rccresources
 option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
  "FOR DEVELOPERS ONLY. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."

@@ -161,6 +161,8 @@ public:
     QColor colorFound;
     QColor colorNotFound;
 
+    bool restoreURLs;
+
   } LibraryBrowser;
 
   struct {
@@ -183,7 +185,7 @@ public:
 
 private:
   int readFromConfig_v2();
-  int readFromConfig_ini();
+  int readFromConfig_v1();
 };
 
 

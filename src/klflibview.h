@@ -305,7 +305,9 @@ public:
    * \endcode
    * to get LaTeX string for model index \c index.
    */
-  static inline int entryItemRole(int propertyId) { return Qt::UserRole+788+propertyId; } // = 820+propId
+  static inline int entryItemRole(int propertyId) { return (Qt::UserRole+788) + propertyId; } // = 820+propId
+  /** inverse operation of \ref entryItemRole */
+  static inline int entryPropIdForItemRole(int role)  { return role - (Qt::UserRole+788); } // = role - 820
   
   virtual void setResource(KLFLibResourceEngine *resource);
 
@@ -326,7 +328,7 @@ public:
 
   virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
   virtual Qt::ItemFlags flags(const QModelIndex& index) const;
-  virtual bool hasChildren(const QModelIndex &parent) const;
+  virtual bool hasChildren(const QModelIndex &parent = QModelIndex()) const;
   virtual QVariant headerData(int section, Qt::Orientation orientation,
 			      int role = Qt::DisplayRole) const;
   virtual bool hasIndex(int row, int column,
@@ -355,8 +357,6 @@ public:
 
   virtual QImage dragImage(const QModelIndexList& indexes);
 
-  virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
-
   virtual int entryColumnContentsPropertyId(int column) const;
   virtual int columnForEntryPropertyId(int entryPropertyId) const;
 
@@ -377,6 +377,19 @@ public:
   virtual QModelIndexList findEntryIdList(const QList<KLFLib::entryId>& eidlist) const;
 
   virtual int fetchBatchCount() const { return pFetchBatchCount; }
+
+
+  //! notify the model that the entrySorter() settings were changed, and we need to re-sort.
+  virtual void redoSort();
+
+  //! change the entrySorter accordingly and re-sort the model.
+  virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
+
+  //! The current KLFLibEntrySorter that sorts our items
+  virtual KLFLibEntrySorter * entrySorter() { return pEntrySorter; }
+
+  /** \warning The model will take ownership of the sorter and deleted in the destructor. */
+  virtual void setEntrySorter(KLFLibEntrySorter *entrySorter);
 
 public slots:
 
@@ -402,13 +415,11 @@ private:
 
   unsigned int pFlavorFlags;
 
-  int lastSortColumn;
-  Qt::SortOrder lastSortOrder;
-
-  bool pIsFetchingMore;
   int pFetchBatchCount;
 
   mutable KLFLibModelCache *pCache;
+
+  KLFLibEntrySorter *pEntrySorter;
 
   struct PersistentId {
     int kind;

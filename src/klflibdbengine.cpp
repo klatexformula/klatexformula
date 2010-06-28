@@ -458,8 +458,8 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& col
       entry.setEntryProperty(cols[k], convertVariantFromDBData(q.value(k)));
     }
   }
-  qDebug()<<KLF_FUNC_NAME<<": cols="<<cols.join(",");
-  qDebug()<<KLF_FUNC_NAME<<": read entry="<<entry<<" previewsize="<<entry.property(KLFLibEntry::PreviewSize)<<"; it's valid="<<entry.property(KLFLibEntry::PreviewSize).toSize().isValid()<<"; preview=... /null="<<entry.property(KLFLibEntry::Preview).value<QImage>().isNull();
+  //  qDebug()<<KLF_FUNC_NAME<<": cols="<<cols.join(",");
+  //  qDebug()<<KLF_FUNC_NAME<<": read entry="<<entry<<" previewsize="<<entry.property(KLFLibEntry::PreviewSize)<<"; it's valid="<<entry.property(KLFLibEntry::PreviewSize).toSize().isValid()<<"; preview=... /null="<<entry.property(KLFLibEntry::Preview).value<QImage>().isNull();
   // add a preview size if necessary
   const QImage& preview = entry.property(KLFLibEntry::Preview).value<QImage>();
   if (!preview.isNull()) {
@@ -869,7 +869,7 @@ QVariant KLFLibDBEngine::decaps(const QString& sdata) const
 }
 QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
 {
-  qDebug()<<"decaps(): "<<data;
+  //  qDebug()<<"decaps(): "<<data;
   int k;
   if (!data.size())
     return QVariant();
@@ -899,17 +899,17 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
     bool wantPoint = (typenam == "QPoint");
     static QRegExp rx("\\s*\\(\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\)");
     if ( !rx.exactMatch(valuedata) ) {
-      qDebug()<<"nomatch!";
+      qWarning()<<KLF_FUNC_NAME<<"QPoint: regexp not matched: "<< data;
       return wantPoint ? QVariant::fromValue(QPoint(-1,-1)) : QVariant::fromValue(QSize(-1,-1));
     }
     QStringList cap = rx.capturedTexts();
     if (cap.size() < 3) {
-      qDebug()<<"Bad cap "<<cap;
+      qWarning()<<KLF_FUNC_NAME<<"QPoint: bad captured texts: "<< cap;
       return wantPoint ? QVariant::fromValue(QPoint(-1,-1)) : QVariant::fromValue(QSize(-1,-1));
     }
     if (wantPoint)
       return QVariant::fromValue(QPoint(cap[1].toInt(), cap[2].toInt()));
-    qDebug()<<KLF_FUNC_NAME<<": Read a size: "<<QSize(cap[1].toInt(), cap[2].toInt());
+    //    qDebug()<<KLF_FUNC_NAME<<": Read a size: "<<QSize(cap[1].toInt(), cap[2].toInt());
     return QVariant::fromValue(QSize(cap[1].toInt(), cap[2].toInt()));
   }
   if (typenam == "QImage") {
@@ -1284,7 +1284,7 @@ QString KLFLibDBLocalFileSchemeGuesser::guessScheme(const QString& fileName) con
   // refer to  http://www.sqlite.org/fileformat.html  (section 2.2.1)  for more info
   const char magic_sqlite_header[MAGIC_SQLITE_HEADER_LEN]
     = { 0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66,
-	0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00 };
+	0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00 }; // "SQLite format 3"
   char header[MAGIC_SQLITE_HEADER_LEN];
 
   if (fileName.endsWith(".klf.db"))

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Ph. Faist</author>
- <class>KLFStyleManagerUI</class>
- <widget class="QWidget" name="KLFStyleManagerUI">
+ <class>KLFStyleManager</class>
+ <widget class="QWidget" name="KLFStyleManager">
   <property name="geometry">
    <rect>
     <x>0</x>

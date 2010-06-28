@@ -31,8 +31,8 @@
 
 //#include <klfdata.h>
 #include <klflib.h>
-#include <ui_klfstylemanagerui.h>
 
+namespace Ui { class KLFStyleManager; }
 
 class KLFStyleListModel : public QStringListModel
 {
@@ -49,14 +49,15 @@ public:
   Qt::DropActions supportedDropActions() const;
   QStringList mimeTypes() const;
   QMimeData *mimeData(const QModelIndexList& indexes) const;
-  bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+  bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row,
+		    int column, const QModelIndex &parent);
 
 signals:
   void internalMoveCompleted(int prevrow, int newrow);
 };
 
 
-class KLFStyleManager : public QWidget, private Ui::KLFStyleManagerUI
+class KLFStyleManager : public QWidget
 {
   Q_OBJECT
 public:
@@ -84,6 +85,8 @@ protected slots:
   void slotModelMoveCompleted(int previouspos, int newpos);
 
 private:
+  Ui::KLFStyleManager *u;
+
   KLFStyleList *_styptr;
 
   QMenu *mActionsPopup;

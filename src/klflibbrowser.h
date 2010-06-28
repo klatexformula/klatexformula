@@ -69,7 +69,7 @@ public:
   KLFAbstractLibView * getView(KLFLibResourceEngine *resource);
 
   QVariantMap saveGuiState();
-  void loadGuiState(const QVariantMap& state);
+  void loadGuiState(const QVariantMap& state, bool openURLs = true);
 
   static QString displayTitle(KLFLibResourceEngine *resource);
 

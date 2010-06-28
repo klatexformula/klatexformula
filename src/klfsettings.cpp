@@ -43,6 +43,8 @@
 
 #include <klfbackend.h>
 
+#include <ui_klfsettings.h>
+
 #include "klfmain.h"
 #include "klfmainwin.h"
 #include "klfconfig.h"
@@ -59,7 +61,7 @@
 
 #define REG_SH_TEXTFORMATENSEMBLE(x) \
   _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
-					   colSH##x, colSH##x##Bg , chkSH##x##B , chkSH##x##I ) );
+					   u->colSH##x, u->colSH##x##Bg , u->chkSH##x##B , u->chkSH##x##I ) );
 
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
 #  define PROG_LATEX "latex.exe"
@@ -80,35 +82,36 @@ static QString standard_extra_paths = "";
 
 
 KLFSettings::KLFSettings(KLFMainWin* parent)
-  : QDialog(parent), KLFSettingsUI()
+  : QDialog(parent)
 {
-  setupUi(this);
+  u = new Ui::KLFSettings;
+  u->setupUi(this);
   setObjectName("KLFSettings");
 
   _mainwin = parent;
 
   reset();
 
-  btns->clear();
+  u->btns->clear();
 
   //   QPushButton *b;
-  //   b = new QPushButton(QIcon(":/pics/closehide.png"), QString("cancel"), btns);
-  //   btns->addButton(b, QDialogButtonBox::RejectRole);
+  //   b = new QPushButton(QIcon(":/pics/closehide.png"), QString("cancel"), u->btns);
+  //   u->btns->addButton(b, QDialogButtonBox::RejectRole);
   //   connect(b, SIGNAL(clicked()), this, SLOT(reject()));
-  //   b = new QPushButton(QIcon(":/pics/apply.png"), QString("apply"), btns);
-  //   btns->addButton(b, QDialogButtonBox::ApplyRole);
+  //   b = new QPushButton(QIcon(":/pics/apply.png"), QString("apply"), u->btns);
+  //   u->btns->addButton(b, QDialogButtonBox::ApplyRole);
   //   connect(b, SIGNAL(clicked()), this, SLOT(apply()));
-  //   b = new QPushButton(QIcon(":/pics/ok.png"), QString("ok"), btns);
-  //   btns->addButton(b, QDialogButtonBox::AcceptRole);
+  //   b = new QPushButton(QIcon(":/pics/ok.png"), QString("ok"), u->btns);
+  //   u->btns->addButton(b, QDialogButtonBox::AcceptRole);
   //   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
   QAbstractButton *b;
-  b = btns->addButton(QDialogButtonBox::Cancel);
+  b = u->btns->addButton(QDialogButtonBox::Cancel);
   b->setIcon(QIcon(":/pics/closehide.png"));
   connect(b, SIGNAL(clicked()), this, SLOT(reject()));
-  b = btns->addButton(QDialogButtonBox::Apply);
+  b = u->btns->addButton(QDialogButtonBox::Apply);
   b->setIcon(QIcon(":/pics/apply.png"));
   connect(b, SIGNAL(clicked()), this, SLOT(apply()));
-  b = btns->addButton(QDialogButtonBox::Ok);
+  b = u->btns->addButton(QDialogButtonBox::Ok);
   b->setIcon(QIcon(":/pics/ok.png"));
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
@@ -117,25 +120,25 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   // set some smaller fonts for small titles
   QFont f = this->font();
   f.setPointSize(QFontInfo(f).pointSize() - 1);
-  lblSHForeground->setFont(f);
-  lblSHBackground->setFont(f);
+  u->lblSHForeground->setFont(f);
+  u->lblSHBackground->setFont(f);
 
-  connect(btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
+  connect(u->btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
 
-  connect(lstPlugins, SIGNAL(itemSelectionChanged()), this, SLOT(refreshPluginSelected()));
-  connect(lstAddOns, SIGNAL(itemSelectionChanged()), this, SLOT(refreshAddOnSelected()));
-  connect(btnImportAddOn, SIGNAL(clicked()), this, SLOT(importAddOn()));
-  connect(btnRemoveAddOn, SIGNAL(clicked()), this, SLOT(removeAddOn()));
-  //  connect(btnRemovePlugin, SIGNAL(clicked()), this, SLOT(removePlugin()));
+  connect(u->lstPlugins, SIGNAL(itemSelectionChanged()), this, SLOT(refreshPluginSelected()));
+  connect(u->lstAddOns, SIGNAL(itemSelectionChanged()), this, SLOT(refreshAddOnSelected()));
+  connect(u->btnImportAddOn, SIGNAL(clicked()), this, SLOT(importAddOn()));
+  connect(u->btnRemoveAddOn, SIGNAL(clicked()), this, SLOT(removeAddOn()));
+  //  connect(u->btnRemovePlugin, SIGNAL(clicked()), this, SLOT(removePlugin()));
 
-  lstPlugins->installEventFilter(this);
-  lstPlugins->viewport()->installEventFilter(this);
-  lstAddOns->installEventFilter(this);
-  lstAddOns->viewport()->installEventFilter(this);
+  u->lstPlugins->installEventFilter(this);
+  u->lstPlugins->viewport()->installEventFilter(this);
+  u->lstAddOns->installEventFilter(this);
+  u->lstAddOns->viewport()->installEventFilter(this);
 
-  connect(btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
-  connect(btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
-  connect(btnAppearPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
+  connect(u->btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
+  connect(u->btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
+  connect(u->btnAppearPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
 
   REG_SH_TEXTFORMATENSEMBLE(Keyword);
   REG_SH_TEXTFORMATENSEMBLE(Comment);
@@ -143,8 +146,8 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   REG_SH_TEXTFORMATENSEMBLE(ParenMismatch);
   REG_SH_TEXTFORMATENSEMBLE(LonelyParen);
 
-  btnImportAddOn->setEnabled(klf_addons_canimport);
-  btnRemoveAddOn->setEnabled(klf_addons_canimport);
+  u->btnImportAddOn->setEnabled(klf_addons_canimport);
+  u->btnRemoveAddOn->setEnabled(klf_addons_canimport);
     
   refreshAddOnList();
   refreshAddOnSelected();
@@ -157,25 +160,26 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 void KLFSettings::retranslateUi(bool alsoBaseUi)
 {
   if (alsoBaseUi)
-    Ui::KLFSettingsUI::retranslateUi(this);
+    u->retranslateUi(this);
 
 }
 
 
 KLFSettings::~KLFSettings()
 {
+  delete u;
 }
 
 void KLFSettings::populateLocaleCombo()
 {
-  cbxLocale->clear();
+  u->cbxLocale->clear();
   // application language : populate combo box
-  cbxLocale->addItem( QString::fromLatin1("English Default") ,
+  u->cbxLocale->addItem( QString::fromLatin1("English Default") ,
 		      QVariant(QString::null) );
   int k;
   for (k = 0; k < klf_avail_translations.size(); ++k) {
     KLFTranslationInfo ti = klf_avail_translations[k];
-    cbxLocale->addItem( ti.translatedname, QVariant(ti.localename) );
+    u->cbxLocale->addItem( ti.translatedname, QVariant(ti.localename) );
   }
 
 }
@@ -215,10 +219,10 @@ bool KLFSettings::eventFilter(QObject *object, QEvent *event)
 {
   // test for one the the treeWidgets
   QTreeWidget * tree = NULL;
-  if (object == lstPlugins || object == lstPlugins->viewport())
-    tree = lstPlugins;;
-  if (object == lstAddOns || object == lstAddOns->viewport())
-    tree = lstAddOns;
+  if (object == u->lstPlugins || object == u->lstPlugins->viewport())
+    tree = u->lstPlugins;
+  if (object == u->lstAddOns || object == u->lstAddOns->viewport())
+    tree = u->lstAddOns;
   
   if ( tree )
     if ( treeMaybeUnselect(tree, event) )
@@ -231,28 +235,28 @@ void KLFSettings::reset()
   int k;
   KLFBackend::klfSettings s = _mainwin->currentSettings();
 
-  k = cbxLocale->findData(klfconfig.UI.locale);
+  k = u->cbxLocale->findData(klfconfig.UI.locale);
   if (k == -1) {
     k = 0;
   }
-  cbxLocale->setCurrentIndex(k);
+  u->cbxLocale->setCurrentIndex(k);
 
-  pathTempDir->setPath(QDir::toNativeSeparators(s.tempdir));
-  pathLatex->setPath(s.latexexec);
-  pathDvips->setPath(s.dvipsexec);
-  pathGs->setPath(s.gsexec);
-  pathEpstopdf->setPath(s.epstopdfexec);
-  chkEpstopdf->setChecked( ! s.epstopdfexec.isEmpty() );
-  spnLBorderOffset->setValue( s.lborderoffset );
-  spnTBorderOffset->setValue( s.tborderoffset );
-  spnRBorderOffset->setValue( s.rborderoffset );
-  spnBBorderOffset->setValue( s.bborderoffset );
+  u->pathTempDir->setPath(QDir::toNativeSeparators(s.tempdir));
+  u->pathLatex->setPath(s.latexexec);
+  u->pathDvips->setPath(s.dvipsexec);
+  u->pathGs->setPath(s.gsexec);
+  u->pathEpstopdf->setPath(s.epstopdfexec);
+  u->chkEpstopdf->setChecked( ! s.epstopdfexec.isEmpty() );
+  u->spnLBorderOffset->setValue( s.lborderoffset );
+  u->spnTBorderOffset->setValue( s.tborderoffset );
+  u->spnRBorderOffset->setValue( s.rborderoffset );
+  u->spnBBorderOffset->setValue( s.bborderoffset );
 
-  chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.configFlags
+  u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.configFlags
 			  &  KLFLatexSyntaxHighlighter::Enabled);
-  chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.configFlags
+  u->chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.configFlags
 				       &  KLFLatexSyntaxHighlighter::HighlightParensOnly);
-  chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.configFlags
+  u->chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.configFlags
 					&  KLFLatexSyntaxHighlighter::HighlightLonelyParen);
 
   for (k = 0; k < _textformats.size(); ++k) {
@@ -274,20 +278,22 @@ void KLFSettings::reset()
       _textformats[k].chkI->setCheckState(Qt::PartiallyChecked);
   }
 
-  btnAppFont->setFont(klfconfig.UI.applicationFont);
-  btnAppFont->setProperty("selectedFont", QVariant(klfconfig.UI.applicationFont));
-  btnAppearFont->setFont(klfconfig.UI.latexEditFont);
-  btnAppearFont->setProperty("selectedFont", QVariant(klfconfig.UI.latexEditFont));
-  btnAppearPreambleFont->setFont(klfconfig.UI.preambleEditFont);
-  btnAppearPreambleFont->setProperty("selectedFont", QVariant(klfconfig.UI.preambleEditFont));
+  u->btnAppFont->setFont(klfconfig.UI.applicationFont);
+  u->btnAppFont->setProperty("selectedFont", QVariant(klfconfig.UI.applicationFont));
+  u->btnAppearFont->setFont(klfconfig.UI.latexEditFont);
+  u->btnAppearFont->setProperty("selectedFont", QVariant(klfconfig.UI.latexEditFont));
+  u->btnAppearPreambleFont->setFont(klfconfig.UI.preambleEditFont);
+  u->btnAppearPreambleFont->setProperty("selectedFont", QVariant(klfconfig.UI.preambleEditFont));
 
-  chkEnableRealTimePreview->setChecked(klfconfig.UI.enableRealTimePreview);
-  spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize.width());
-  spnPreviewHeight->setValue(klfconfig.UI.labelOutputFixedSize.height());
+  u->chkEnableRealTimePreview->setChecked(klfconfig.UI.enableRealTimePreview);
+  u->spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize.width());
+  u->spnPreviewHeight->setValue(klfconfig.UI.labelOutputFixedSize.height());
 
-  chkEnableToolTipPreview->setChecked(klfconfig.UI.enableToolTipPreview);
-  spnTooltipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
-  spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
+  u->chkEnableToolTipPreview->setChecked(klfconfig.UI.enableToolTipPreview);
+  u->spnTooltipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
+  u->spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
+
+  u->chkLibRestoreURLs->setChecked(klfconfig.LibraryBrowser.restoreURLs);
 }
 
 
@@ -297,11 +303,11 @@ void KLFSettings::initPluginControls()
     return;
   }
 
-  lstPlugins->setColumnWidth(0, 185);
+  u->lstPlugins->setColumnWidth(0, 185);
 
   // remove default Qt Designer Page
-  QWidget * w = tbxPluginsConfig->widget(tbxPluginsConfig->currentIndex());
-  tbxPluginsConfig->removeItem(tbxPluginsConfig->currentIndex());
+  QWidget * w = u->tbxPluginsConfig->widget(u->tbxPluginsConfig->currentIndex());
+  u->tbxPluginsConfig->removeItem(u->tbxPluginsConfig->currentIndex());
   delete w;
 
   int j;
@@ -313,7 +319,7 @@ void KLFSettings::initPluginControls()
     QString description = klf_plugins[j].description;
     KLFPluginGenericInterface *instance = klf_plugins[j].instance;
     
-    litem = new QTreeWidgetItem(lstPlugins);
+    litem = new QTreeWidgetItem(u->lstPlugins);
     litem->setCheckState(0,
 			 klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
 			 Qt::Checked : Qt::Unchecked);
@@ -324,7 +330,7 @@ void KLFSettings::initPluginControls()
 
     if ( instance != NULL ) {
       mPluginConfigWidgets[name] = instance->createConfigWidget( NULL );
-      tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
+      u->tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::Read);
       instance->loadFromConfig(mPluginConfigWidgets[name], &pconfa);
       n_pluginconfigpages++;
@@ -333,11 +339,11 @@ void KLFSettings::initPluginControls()
   if (n_pluginconfigpages == 0) {
     QLabel * lbl;
     lbl = new QLabel(tr("No Plugins have been loaded. Please install and enable individual plugins "
-			"before trying to configure them."), tbxPluginsConfig);
+			"before trying to configure them."), u->tbxPluginsConfig);
     lbl->hide();
     lbl->setWordWrap(true);
     lbl->setMargin(20);
-    tbxPluginsConfig->addItem(lbl, tr("No Plugins Loaded"));
+    u->tbxPluginsConfig->addItem(lbl, tr("No Plugins Loaded"));
   }
 
   _pluginstuffloaded = true;
@@ -345,35 +351,35 @@ void KLFSettings::initPluginControls()
 
 void KLFSettings::refreshPluginSelected()
 {
-  QList<QTreeWidgetItem*> sel = lstPlugins->selectedItems();
+  QList<QTreeWidgetItem*> sel = u->lstPlugins->selectedItems();
   if (sel.size() != 1) {
-    //    btnRemovePlugin->setEnabled(false);
-    lblPluginInfo->setText("");
+    //    u->btnRemovePlugin->setEnabled(false);
+    u->lblPluginInfo->setText("");
     return;
   }
   int k = sel[0]->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
   if (k < 0 || k >= klf_plugins.size()) {
-    //    btnRemovePlugin->setEnabled(false);
-    lblPluginInfo->setText("");
+    //    u->btnRemovePlugin->setEnabled(false);
+    u->lblPluginInfo->setText("");
     return;
   }
 
-  //  btnRemovePlugin->setEnabled(true);
+  //  u->btnRemovePlugin->setEnabled(true);
   int smallpointsize = QFontInfo(font()).pointSize() - 1;
-  lblPluginInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;\">\n"
-			    "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
-			    "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
-			    "<tt>Description:</tt></p>\n"
-			    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;"
-			    "   margin-bottom: 0px;\">%3</p>\n"
-			    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
-			    "<tt>File Location:</tt> <span style=\"font-size: %4pt;\">%5</span>\n")
-			 .arg(Qt::escape(klf_plugins[k].title)).arg(Qt::escape(klf_plugins[k].author))
-			 .arg(Qt::escape(klf_plugins[k].description))
-			 .arg(smallpointsize)
-			 .arg(Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_plugins[k].fpath)
-								  .canonicalFilePath())))
-			 );
+  u->lblPluginInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;\">\n"
+			       "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
+			       "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
+			       "<tt>Description:</tt></p>\n"
+			       "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;"
+			       "   margin-bottom: 0px;\">%3</p>\n"
+			       "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
+			       "<tt>File Location:</tt> <span style=\"font-size: %4pt;\">%5</span>\n")
+			    .arg(Qt::escape(klf_plugins[k].title)).arg(Qt::escape(klf_plugins[k].author))
+			    .arg(Qt::escape(klf_plugins[k].description))
+			    .arg(smallpointsize)
+			    .arg(Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_plugins[k].fpath)
+								     .canonicalFilePath())))
+			    );
 }
 
 void KLFSettings::removePlugin()
@@ -381,7 +387,7 @@ void KLFSettings::removePlugin()
   // THIS FUNCTION IS NO LONGER USED. PLUGINS ARE AUTOMATICALLY REMOVED WHEN THE CORRESPONDING
   // ADD-ON IS REMOVED. THIS FUNCTION IS KEPT IN CASE I CHANGE SOMETHING IN THE FUTURE.
 
-  QList<QTreeWidgetItem*> sel = lstPlugins->selectedItems();
+  QList<QTreeWidgetItem*> sel = u->lstPlugins->selectedItems();
   if (sel.size() != 1) {
     qWarning("KLFSettings::removePlugin: No Selection or many selection");
     return;
@@ -442,7 +448,7 @@ void KLFSettings::removePlugin(const QString& fname)
 
   if ( r ) {
     // find corresponding tree widget item
-    QTreeWidgetItemIterator it(lstPlugins);
+    QTreeWidgetItemIterator it(u->lstPlugins);
     while (*it) {
       if ( (*it)->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt() == k ) {
 	// remove plugin list item
@@ -488,25 +494,25 @@ void KLFSettings::setDefaultPaths()
 {
   KLFBackend::klfSettings defaultsettings;
   KLFBackend::detectSettings(&defaultsettings);
-  if ( ! QFileInfo(pathTempDir->path()).isDir() )
-    pathTempDir->setPath(QDir::toNativeSeparators(defaultsettings.tempdir));
-  setDefaultFor("latex", defaultsettings.latexexec, true, pathLatex);
-  setDefaultFor("dvips", defaultsettings.dvipsexec, true, pathDvips);
-  setDefaultFor("gs", defaultsettings.gsexec, true, pathGs);
-  bool r = setDefaultFor("epstopdf", defaultsettings.epstopdfexec, false, pathEpstopdf);
-  chkEpstopdf->setChecked(r);
+  if ( ! QFileInfo(u->pathTempDir->path()).isDir() )
+    u->pathTempDir->setPath(QDir::toNativeSeparators(defaultsettings.tempdir));
+  setDefaultFor("latex", defaultsettings.latexexec, true, u->pathLatex);
+  setDefaultFor("dvips", defaultsettings.dvipsexec, true, u->pathDvips);
+  setDefaultFor("gs", defaultsettings.gsexec, true, u->pathGs);
+  bool r = setDefaultFor("epstopdf", defaultsettings.epstopdfexec, false, u->pathEpstopdf);
+  u->chkEpstopdf->setChecked(r);
 }
 
 
 void KLFSettings::refreshAddOnList()
 {
-  lstAddOns->clear();
-  lstAddOns->setColumnWidth(0, 160);
+  u->lstAddOns->clear();
+  u->lstAddOns->setColumnWidth(0, 160);
 
   // explore all addons
   int k;
   for (k = 0; k < klf_addons.size(); ++k) {
-    QTreeWidgetItem *item = new QTreeWidgetItem(lstAddOns);
+    QTreeWidgetItem *item = new QTreeWidgetItem(u->lstAddOns);
     item->setData(0, KLFSETTINGS_ROLE_ADDONINDEX, QVariant((int)k));
 
     item->setText(0, klf_addons[k].title());
@@ -527,24 +533,24 @@ void KLFSettings::refreshAddOnList()
 
 void KLFSettings::refreshAddOnSelected()
 {
-  QList<QTreeWidgetItem*> sel = lstAddOns->selectedItems();
+  QList<QTreeWidgetItem*> sel = u->lstAddOns->selectedItems();
   if (sel.size() != 1) {
-    lblAddOnInfo->setText("");
-    btnRemoveAddOn->setEnabled(false);
+    u->lblAddOnInfo->setText("");
+    u->btnRemoveAddOn->setEnabled(false);
     return;
   }
   int k = sel[0]->data(0, KLFSETTINGS_ROLE_ADDONINDEX).toInt();
   if (k < 0 || k >= klf_addons.size()) {
-    lblAddOnInfo->setText("");
-    btnRemoveAddOn->setEnabled(false);
+    u->lblAddOnInfo->setText("");
+    u->btnRemoveAddOn->setEnabled(false);
     return;
   }
 
   // enable remove button only if this addon is "local", i.e. precisely removable
-  btnRemoveAddOn->setEnabled(klf_addons[k].islocal());
+  u->btnRemoveAddOn->setEnabled(klf_addons[k].islocal());
 
   int smallpointsize = QFontInfo(font()).pointSize() - 1;
-  lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
+  u->lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
 			   "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
 			   "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
 			   "<tt>Description:</tt></p>\n"
@@ -576,19 +582,29 @@ void KLFSettings::importAddOn()
   for (i = 0; i < efnames.size(); ++i) {
     QString destfpath = destination + QFileInfo(efnames[i]).fileName();
     if ( QFile::exists(destfpath) ) {
-      QMessageBox::critical(this, tr("Error"), tr("An Add-On with the same file name has already been imported."));
+      QMessageBox::critical(this, tr("Error"),
+			    tr("An Add-On with the same file name has already been imported."));
     } else {
       bool r = QFile::copy(efnames[i], destfpath);
       if ( r ) {
 	// import succeeded, show the add-on as fresh.
 	KLFAddOnInfo addoninfo(destfpath, true);
+	if (!addoninfo.klfminversion().isEmpty() &&
+	    klfVersionCompareLessThan(KLF_VERSION_STRING, addoninfo.klfminversion())) {
+	  // add-on too recent
+	  QMessageBox::critical(this, tr("Error"),
+				tr("This add-on requires a more recent version of KLatexFormula.\n"
+				   "Required version: %1\n"
+				   "This version: %2").arg(addoninfo.klfminversion(), KLF_VERSION_STRING));
+	  return;
+	}
 	// if we have new translations, add them to our translation combo box
 	int k;
 	bool changed = false;
 	QStringList trlist = addoninfo.translations();
 	for (k = 0; k < trlist.size(); ++k) {
 	  KLFI18nFile i18nfile(trlist[k]);
-	  if ( cbxLocale->findData(i18nfile.locale) == -1 ) {
+	  if ( u->cbxLocale->findData(i18nfile.locale) == -1 ) {
 	    klf_add_avail_translation(i18nfile);
 	    changed = true;
 	  }
@@ -611,7 +627,7 @@ void KLFSettings::importAddOn()
 
 void KLFSettings::removeAddOn()
 {
-  QList<QTreeWidgetItem*> sel = lstAddOns->selectedItems();
+  QList<QTreeWidgetItem*> sel = u->lstAddOns->selectedItems();
   if (sel.size() != 1) {
     qWarning("Expected single add-on selection for removal !");
     return;
@@ -680,30 +696,30 @@ void KLFSettings::apply()
   // create a temporary settings object
   KLFBackend::klfSettings s;
 
-  s.tempdir = QDir::fromNativeSeparators(pathTempDir->path());
-  s.latexexec = pathLatex->path();
-  s.dvipsexec = pathDvips->path();
-  s.gsexec = pathGs->path();
+  s.tempdir = QDir::fromNativeSeparators(u->pathTempDir->path());
+  s.latexexec = u->pathLatex->path();
+  s.dvipsexec = u->pathDvips->path();
+  s.gsexec = u->pathGs->path();
   s.epstopdfexec = QString();
-  if (chkEpstopdf->isChecked()) {
-    s.epstopdfexec = pathEpstopdf->path();
+  if (u->chkEpstopdf->isChecked()) {
+    s.epstopdfexec = u->pathEpstopdf->path();
   }
-  s.lborderoffset = spnLBorderOffset->value();
-  s.tborderoffset = spnTBorderOffset->value();
-  s.rborderoffset = spnRBorderOffset->value();
-  s.bborderoffset = spnBBorderOffset->value();
+  s.lborderoffset = u->spnLBorderOffset->value();
+  s.tborderoffset = u->spnTBorderOffset->value();
+  s.rborderoffset = u->spnRBorderOffset->value();
+  s.bborderoffset = u->spnBBorderOffset->value();
 
   _mainwin->applySettings(s);
 
-  if (chkSHEnable->isChecked())
+  if (u->chkSHEnable->isChecked())
     klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::Enabled;
   else
     klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::Enabled;
-  if (chkSHHighlightParensOnly->isChecked())
+  if (u->chkSHHighlightParensOnly->isChecked())
     klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::HighlightParensOnly;
   else
     klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightParensOnly;
-  if (chkSHHighlightLonelyParen->isChecked())
+  if (u->chkSHHighlightLonelyParen->isChecked())
     klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::HighlightLonelyParen;
   else
     klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightLonelyParen;
@@ -734,7 +750,7 @@ void KLFSettings::apply()
   }
 
   // language settings
-  QString localename = cbxLocale->itemData(cbxLocale->currentIndex()).toString();
+  QString localename = u->cbxLocale->itemData(u->cbxLocale->currentIndex()).toString();
   bool localechanged =  (  klfconfig.UI.locale != localename  ) ;
   klfconfig.UI.locale = localename;
   _mainwin->setApplicationLocale(localename);
@@ -754,28 +770,30 @@ void KLFSettings::apply()
 
   // font settings
   QFont curAppFont = klfconfig.UI.applicationFont;
-  QFont newAppFont = btnAppFont->property("selectedFont").value<QFont>();
+  QFont newAppFont = u->btnAppFont->property("selectedFont").value<QFont>();
   if (curAppFont != newAppFont) {
     klfconfig.UI.applicationFont = newAppFont;
     qApp->setFont(klfconfig.UI.applicationFont);
     qApp->setStyleSheet(qApp->styleSheet()); // needed to force font (?)
   }
-  klfconfig.UI.latexEditFont = btnAppearFont->property("selectedFont").value<QFont>();
+  klfconfig.UI.latexEditFont = u->btnAppearFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
-  klfconfig.UI.preambleEditFont = btnAppearPreambleFont->property("selectedFont").value<QFont>();
+  klfconfig.UI.preambleEditFont = u->btnAppearPreambleFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
   // recalculate window sizes etc.
   _mainwin->refreshWindowSizes();
 
-  klfconfig.UI.labelOutputFixedSize = QSize(spnPreviewWidth->value(), spnPreviewHeight->value());
-  klfconfig.UI.enableRealTimePreview = chkEnableRealTimePreview->isChecked();
+  klfconfig.UI.labelOutputFixedSize = QSize(u->spnPreviewWidth->value(), u->spnPreviewHeight->value());
+  klfconfig.UI.enableRealTimePreview = u->chkEnableRealTimePreview->isChecked();
 
-  klfconfig.UI.previewTooltipMaxSize = QSize(spnTooltipMaxWidth->value(), spnTooltipMaxHeight->value());
-  klfconfig.UI.enableToolTipPreview = chkEnableToolTipPreview->isChecked();
+  klfconfig.UI.previewTooltipMaxSize = QSize(u->spnTooltipMaxWidth->value(), u->spnTooltipMaxHeight->value());
+  klfconfig.UI.enableToolTipPreview = u->chkEnableToolTipPreview->isChecked();
+
+  klfconfig.LibraryBrowser.restoreURLs = u->chkLibRestoreURLs->isChecked();
 
   // save plugin config
   bool warnneedrestart = false;
-  QTreeWidgetItemIterator it(lstPlugins);
+  QTreeWidgetItemIterator it(u->lstPlugins);
   while (*it) {
     int j = (*it)->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
     QString name = (*it)->data(0, KLFSETTINGS_ROLE_PLUGNAME).toString();

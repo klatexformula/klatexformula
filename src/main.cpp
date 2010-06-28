@@ -871,7 +871,8 @@ int main(int argc, char **argv)
     QStringList flist;
     for (int k = 0; klf_args[k] != NULL; ++k)
       flist << QString::fromLocal8Bit(klf_args[k]);
-    mainWin.importCmdlKLFFiles(flist);
+
+    QMetaObject::invokeMethod(&mainWin, "importCmdlKLFFiles", Q_ARG(QStringList, flist));
 
     app.setQuitOnLastWindowClosed(false);
     int r = app.exec();

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Ph. Faist</author>
- <class>KLFSettingsUI</class>
- <widget class="QDialog" name="KLFSettingsUI">
+ <class>KLFSettings</class>
+ <widget class="QDialog" name="KLFSettings">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -1220,6 +1220,24 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Library</string>
+      </attribute>
+      <widget class="QCheckBox" name="chkLibRestoreURLs">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>30</y>
+         <width>431</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Restore open resources at startup</string>
+       </property>
+      </widget>
+     </widget>
      <widget class="QWidget" name="tabAddOns">
       <attribute name="title">
        <string>Add-Ons</string>
@@ -1307,7 +1325,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>360</width>
-                <height>154</height>
+                <height>167</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1474,7 +1492,7 @@
                    <x>0</x>
                    <y>0</y>
                    <width>349</width>
-                   <height>193</height>
+                   <height>215</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1539,7 +1557,7 @@
             <x>0</x>
             <y>0</y>
             <width>562</width>
-            <height>491</height>
+            <height>503</height>
            </rect>
           </property>
           <attribute name="label">

@@ -45,13 +45,21 @@
 #endif
 
 
+KLF_EXPORT const char * klfVersion();
+
+
 /** Takes as input a funcion signature like
  *  <pre>void MyClass::functionName(const QString& arg1, int arg2) const</pre>
  * and outputs a short form of it, like
  *  <pre>MyClass::functionName</pre>
  */
 KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& fullFuncName);
-
+inline QByteArray klfShortFuncSignature(const char *fullFuncName)
+#ifdef KLFBACKEND_QT4
+{ return klfShortFuncSignature(QByteArray(fullFuncName)); }
+#else
+{ return klfShortFuncSignature(QByteArray().duplicate(fullFuncName, strlen(fullFuncName))); }
+#endif
 
 // DEBUG UTILITIES (SOME WITH TIME PRINTING FOR TIMING OPERATIONS)
 
@@ -82,13 +90,19 @@ public:
 
 
 #ifdef KLF_DEBUG
+
 #include <sys/time.h>
+
+/** \internal
+ * FOR DEBUGGING: Print Debug message with precise current time */
+KLF_EXPORT void __klf_debug_time_print(QString str);
+
 #ifdef KLFBACKEND_QT4
 #include <QDebug>
+/** \internal */
+KLF_EXPORT QDebug& __klf_debug_time_print_str(QDebug stream);
 #endif
 
-/** FOR DEBUGGING: Print Debug message with precise current time */
-KLF_EXPORT void __klf_debug_time_print(QString str);
 
 template<class T>
 inline const T& __klf_debug_tee(const T& expr)
@@ -103,7 +117,11 @@ inline const T& __klf_debug_tee(const T& expr)
 #define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(msg)
 #define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(msg)
 #define klf_debug_tee(expr) __klf_debug_tee(expr)
-#else
+#ifdef KLFBACKEND_QT4
+#define klf_debug_time_print_str() __klf_debug_time_print_str(qDebug())
+#endif
+
+#else // KLF_DEBUG
 
 
 /** \brief Print debug message with precise current time
@@ -169,7 +187,13 @@ inline const T& __klf_debug_tee(const T& expr)
  */
 #define klf_debug_tee(expr) (expr)
 
-#endif
+/** \brief a qDebug() output stream on which the time has already been printed
+ *
+ * \note Only with Qt4.
+ */
+#define klf_debug_time_print_str()
+
+#endif // KLF_DEBUG
 
 
 // Simple test for one-time-run functions

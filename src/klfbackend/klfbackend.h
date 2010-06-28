@@ -54,8 +54,10 @@
  * This library will compile indifferently on QT 3 and QT 4 with the same source code.
  * The base API is the same, although QT3-specific functions were removed in QT 4-compatible
  * code (cf. KLFBlockProcess::startProcess(QStringList cmd, QCString str, QStringList env = QStringList()) ).
- * To compile with QT4, you need to add KLFBACKEND_QT4 to your defines, ie. pass option -DKLFBACKEND_QT4 to gcc.<br><br>
- * On QT 3, this library has been tested to work in non-GUI applications (ie. FALSE in QApplication constructor).
+ * To compile with QT4, you need to add KLFBACKEND_QT4 to your defines, ie. pass option -DKLFBACKEND_QT4
+ * to gcc.<br><br>
+ * This library has been tested to work in non-GUI applications (ie. FALSE in QApplication constructor,
+ * or with QCoreApplication in Qt 4).
  *</div></center>
  */
 

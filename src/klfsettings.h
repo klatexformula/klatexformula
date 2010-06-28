@@ -26,15 +26,18 @@
 
 #include <QDialog>
 #include <QTextCharFormat>
+#include <QCheckBox>
 
+#include <klfpathchooser.h>
+#include <klfcolorchooser.h>
 #include <klfbackend.h>
-
-#include <ui_klfsettingsui.h>
 
 class KLFLatexSyntaxHighlighter;
 class KLFMainWin;
 
-class KLFSettings : public QDialog, private Ui::KLFSettingsUI
+namespace Ui { class KLFSettings; }
+
+class KLFSettings : public QDialog
 {
   Q_OBJECT
 
@@ -77,6 +80,7 @@ protected slots:
   virtual void slotChangeFont();
 
 private:
+  Ui::KLFSettings *u;
 
   KLFMainWin *_mainwin;
 

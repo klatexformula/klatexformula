@@ -542,7 +542,6 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
     }
     fout.write(klfoutput.pdfdata);
  } else {
-    /// \todo add meta-info in image...
     const QString errstr3 = QObject::tr("Unable to save image to file `%1' in format `%2'!",
 					"KLFBackend::saveOutputToFile");
     const QString errstr4 = QObject::tr("Unable to save image to file `%1' in format `%2'!\n"

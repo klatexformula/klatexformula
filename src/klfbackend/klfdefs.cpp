@@ -30,16 +30,27 @@
 
 #include "klfdefs.h"
 
+static char __klf_version_string[] = KLF_VERSION_STRING;
+
+KLF_EXPORT const char * klfVersion()
+{
+  return __klf_version_string;
+}
+
+
 #ifndef KLFBACKEND_QT4
 #define qPrintable(x) (x).local8Bit().data()
 #define QLatin1String QString::fromLatin1
+#define toLocal8Bit local8Bit
 // QDir::toNativeSeparators() -> QDir::convertSeparators()
 #define toNativeSeparators convertSeparators
 #define SPLIT_STRING(x, sep, boolAllowEmptyEntries)		\
   QStringList::split((sep), (x), (boolAllowEmptyEntries))
+#define list_indexOf(list, x) (list).findIndex((x))
 #else
 #define SPLIT_STRING(x, sep, boolAllowEmptyEntries)	\
   (x).split((sep), (boolAllowEmptyEntries) ? QString::KeepEmptyParts : QString::SkipEmptyParts)
+#define list_indexOf(list, x) (list).indexOf((x))
 #endif
 
 // declared in klfdefs.h
@@ -51,6 +62,15 @@ void __klf_debug_time_print(QString str)
   gettimeofday(&tv, NULL);
   qDebug("%03ld.%06ld : %s", tv.tv_sec % 1000, tv.tv_usec, qPrintable(str));
 }
+KLF_EXPORT QDebug& __klf_debug_time_print_str(QDebug str)
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  char temp[64];
+  sprintf(temp, "%03ld.%06ld", tv.tv_sec % 1000, tv.tv_usec);
+  return str<<temp<<": ";
+}
+
 #endif
 
 KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
@@ -58,8 +78,6 @@ KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
   QString funcname(ba_funcname);
   // returns the section between the last space before the first open paren and the first open paren
   int iSpc, iParen;
-  /** \todo ..................... TEST/VERIFY KLFBackend lib with Qt3 ........... in particular
-   *    here below QString::rfind() */
 #ifdef KLFBACKEND_QT4
   iParen = funcname.indexOf('(');
   iSpc = funcname.lastIndexOf(' ', iParen-2);
@@ -73,12 +91,7 @@ KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
   }
   // shorten name
   QString f = funcname.mid(iSpc+1, iParen-(iSpc+1));
-  QByteArray data;
-#ifdef KLFBACKEND_QT4
-  data = f.toLocal8Bit();
-#else
-  data = f.local8Bit();
-#endif
+  QByteArray data = f.toLocal8Bit();
   return data;
 }
 
@@ -152,13 +165,37 @@ KLF_EXPORT QString KLFSysInfo::osString(Os sysos)
 }
 
 
+QStringList klf_version_suffixes =
+  QStringList() << "a" << "alpha" << "b" << "beta" << "p" << "pre" << "preview" << "RC" << "rc"
+/* */           << "" // empty suffix or any unrecognized suffix
+/* */           << "dev" << "devel";
+
+static int __klf_version_compare_suffix_words(QString w1, QString w2)
+{
+  // a list of known words
+  const QStringList& words = klf_version_suffixes;
+  // now compare the words
+  int borderBeforeAfter = list_indexOf(words, "");
+  if (borderBeforeAfter < 0)
+    qWarning("klfVersionCompare: suffix words list doesn't contain \"\"!");
+  int i1 = list_indexOf(words, w1);
+  int i2 = list_indexOf(words, w2);
+  if (i1 == -1 && i2 == -1)
+    return QString::compare(w1, w2);
+  if (i2 == -1)
+    return i1 < borderBeforeAfter ? -1 : +1;
+  if (i1 == -1)
+    return i2 < borderBeforeAfter ? +1 : -1;
+  // both are recognized words
+  return i1 - i2;
+}
 
 
 KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
 {
   qDebug("klfVersionCompare(): Comparing versions %s and %s", qPrintable(v1), qPrintable(v2));
   //           *1     2  *3     4  *5    *6
-  QRegExp rx1("^(\\d+)(\\.(\\d+)(\\.(\\d+)(.*)?)?)?$");
+  QRegExp rx1("^(\\d+)(\\.(\\d+)(\\.(\\d+)([a-zA-Z]+\\d*)?)?)?$");
   QRegExp rx2(rx1);
   if (!rx1.exactMatch(v1)) {
     qWarning("klfVersionLessThan: Invalid version number format: %s", qPrintable(v1));
@@ -200,31 +237,40 @@ KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
 
   QString suffix1 = rx1.cap(6);
   QString suffix2 = rx2.cap(6);
+
+  //  qDebug("Suffix1=%s, suffix2=%s", qPrintable(suffix1), qPrintable(suffix2));
+
   if (suffix1 == suffix2)
     return 0; // equal
 
-  if ( suffix1.startsWith("alpha") ) {
-    if ( suffix2.startsWith("alpha") ) {
-      QString a1 = suffix1.mid(6);
-      QString a2 = suffix2.mid(6);
-      return QString::compare(a1, a2); // lexicographically compare
-    }
-    // suffix alpha preceeds any other suffix
+  //             1          2
+  QRegExp rxs1("^([a-zA-Z]*)(\\d*)$");
+  QRegExp rxs2(rxs1);
+  rxs1.exactMatch(suffix1); // must necessarily match, already matched global regex
+  rxs2.exactMatch(suffix2);
+
+  QString w1 = rxs1.cap(1);
+  QString w2 = rxs2.cap(1);
+  QString ns1 = rxs1.cap(2);
+  QString ns2 = rxs2.cap(2);
+
+  int cmp = __klf_version_compare_suffix_words(w1, w2);
+  if (cmp != 0)
+    return cmp; // words are enough to make the difference
+
+  // the words are the same -> compare ns1<->ns2
+  if (ns1.isEmpty()) {
+    if (ns2.isEmpty())
+      return 0; // equal
     return -1;
   }
-  if ( suffix1 == "dev" ) {
-    if ( suffix2 == "dev" )
-      return 0;
-    // suffix dev goes after any other suffix
-    return +1; // 3.X.Ydev > 3.X.Yzzzz
+  if (ns2.isEmpty()) {
+    return +1;
   }
-  // suffix1 is unknown
-  if ( suffix2 == "dev" || suffix2.startsWith("alpha") ) {
-    // this is OK because suffix1 != suffix2
-    return -klfVersionCompare(v2, v1);
-  }
-  // fall back to lexicographical compare
-  return QString::compare(suffix1, suffix2);
+
+  int n1 = ns1.toInt();
+  int n2 = ns2.toInt();
+  return n1 - n2;
 }
 
 KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2)

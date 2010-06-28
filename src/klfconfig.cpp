@@ -200,7 +200,7 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.displayNoDuplicates = false;
   LibraryBrowser.colorFound = QColor(128, 255, 128);
   LibraryBrowser.colorNotFound = QColor(255, 128, 128);
-
+  LibraryBrowser.restoreURLs = false;
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }
@@ -231,7 +231,7 @@ int KLFConfig::readFromConfig()
     return readFromConfig_v2();
   }
   if (QFile::exists(homeConfigSettingsFileIni)) {
-    return readFromConfig_ini();
+    return readFromConfig_v1();
   }
   return -1;
 }
@@ -342,6 +342,7 @@ int KLFConfig::readFromConfig_v2()
   klf_settings_read(s, "displaynoduplicates", &LibraryBrowser.displayNoDuplicates);
   klf_settings_read(s, "colorfound", &LibraryBrowser.colorFound);
   klf_settings_read(s, "colornotfound", &LibraryBrowser.colorNotFound);
+  klf_settings_read(s, "restoreurls", &LibraryBrowser.restoreURLs);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
@@ -366,77 +367,6 @@ int KLFConfig::readFromConfig_v2()
       pconfmap[keys[j]] = psettings.value(keys[j]);
     }
     Plugins.pluginConfig[plugindirs[k]] = pconfmap;
-  }
-
-  return 0;
-}
-
-int KLFConfig::readFromConfig_ini()
-{
-  QSettings s(homeConfigSettingsFileIni, QSettings::IniFormat);
-
-  s.beginGroup("UI");
-  UI.locale = s.value("locale", UI.locale).toString();
-  UI.applicationFont = s.value("applicationfont", UI.applicationFont).value<QFont>();
-  UI.latexEditFont = s.value("latexeditfont", UI.latexEditFont).value<QFont>();
-  UI.preambleEditFont = s.value("preambleeditfont", UI.preambleEditFont).value<QFont>();
-  UI.previewTooltipMaxSize = s.value("previewtooltipmaxsize", UI.previewTooltipMaxSize).toSize();
-  UI.labelOutputFixedSize = s.value("lbloutputfixedsize", UI.labelOutputFixedSize ).toSize();
-  UI.lastSaveDir = s.value("lastsavedir", UI.lastSaveDir).toString();
-  UI.symbolsPerLine = s.value("symbolsperline", UI.symbolsPerLine).toInt();
-  UI.userColorList = settings_read_list(s, "usercolorlist", UI.userColorList);
-  UI.colorChooseWidgetRecent = settings_read_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent);
-  UI.colorChooseWidgetCustom = settings_read_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom);
-  UI.maxUserColors = s.value("maxusercolors", UI.maxUserColors).toInt();
-  UI.enableToolTipPreview = s.value("enabletooltippreview", UI.enableToolTipPreview).toBool();
-  UI.enableRealTimePreview = s.value("enablerealtimepreview", UI.enableRealTimePreview).toBool();
-  UI.autosaveLibraryMin = s.value("autosavelibrarymin", UI.autosaveLibraryMin).toInt();
-  s.endGroup();
-
-  s.beginGroup("SyntaxHighlighter");
-  SyntaxHighlighter.configFlags = s.value("configflags", SyntaxHighlighter.configFlags).toUInt();
-  SyntaxHighlighter.fmtKeyword = settings_read_QTextCharFormat(s, "keyword", SyntaxHighlighter.fmtKeyword);
-  SyntaxHighlighter.fmtComment = settings_read_QTextCharFormat(s, "comment", SyntaxHighlighter.fmtComment);
-  SyntaxHighlighter.fmtParenMatch = settings_read_QTextCharFormat(s, "parenmatch", SyntaxHighlighter.fmtParenMatch);
-  SyntaxHighlighter.fmtParenMismatch = settings_read_QTextCharFormat(s, "parenmismatch", SyntaxHighlighter.fmtParenMismatch);
-  SyntaxHighlighter.fmtLonelyParen = settings_read_QTextCharFormat(s, "lonelyparen", SyntaxHighlighter.fmtLonelyParen);
-  s.endGroup();
-
-  s.beginGroup("BackendSettings");
-  BackendSettings.tempDir = s.value("tempdir", BackendSettings.tempDir).toString();
-  BackendSettings.execLatex = s.value("latexexec", BackendSettings.execLatex).toString();
-  BackendSettings.execDvips = s.value("dvipsexec", BackendSettings.execDvips).toString();
-  BackendSettings.execGs = s.value("gsexec", BackendSettings.execGs).toString();
-  BackendSettings.execEpstopdf = s.value("epstopdfexec", BackendSettings.execEpstopdf).toString();
-  BackendSettings.lborderoffset = s.value("lborderoffset", BackendSettings.lborderoffset).toInt();
-  BackendSettings.tborderoffset = s.value("tborderoffset", BackendSettings.tborderoffset).toInt();
-  BackendSettings.rborderoffset = s.value("rborderoffset", BackendSettings.rborderoffset).toInt();
-  BackendSettings.bborderoffset = s.value("bborderoffset", BackendSettings.bborderoffset).toInt();
-  s.endGroup();
-
-  s.beginGroup("LibraryBrowser");
-  LibraryBrowser.displayTaggedOnly = s.value("displaytaggedonly", LibraryBrowser.displayTaggedOnly).toBool();
-  LibraryBrowser.displayNoDuplicates = s.value("displaynoduplicates", LibraryBrowser.displayNoDuplicates).toBool();
-  LibraryBrowser.colorFound = s.value("colorfound", LibraryBrowser.colorFound).value<QColor>();
-  LibraryBrowser.colorNotFound = s.value("colornotfound", LibraryBrowser.colorNotFound).value<QColor>();
-  s.endGroup();
-
-  // Special treatment for Plugins.pluginConfig
-  s.beginGroup("Plugins/Config");
-  QStringList pluginList = s.childGroups();
-  s.endGroup();
-  int j;
-  for (j = 0; j < pluginList.size(); ++j) {
-    QString name = pluginList[j];
-    s.beginGroup( QString("Plugins/Config/%1").arg(name) );
-    QMap<QString,QVariant> thispluginconfig;
-    QStringList plconfkeys = s.childKeys();
-    int k;
-    for (k = 0; k < plconfkeys.size(); ++k) {
-      thispluginconfig[plconfkeys[k]] = s.value(plconfkeys[k]);
-    }
-    klfconfig.Plugins.pluginConfig[name] = thispluginconfig;
-    s.endGroup();
   }
 
   return 0;
@@ -497,6 +427,7 @@ int KLFConfig::writeToConfig()
   klf_settings_write(s, "displaynoduplicates", &LibraryBrowser.displayNoDuplicates);
   klf_settings_write(s, "colorfound", &LibraryBrowser.colorFound);
   klf_settings_write(s, "colornotfound", &LibraryBrowser.colorNotFound);
+  klf_settings_write(s, "restoreurls", &LibraryBrowser.restoreURLs);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
@@ -608,3 +539,78 @@ void KLFPluginConfigAccess::writeValue(const QString& key, const QVariant& value
   _config->Plugins.pluginConfig[_pluginname][key] = value;
 }
 
+
+
+
+// KEPT FOR COMPATIBILITY WITH OLDER VERSIONS
+
+int KLFConfig::readFromConfig_v1()
+{
+  QSettings s(homeConfigSettingsFileIni, QSettings::IniFormat);
+
+  s.beginGroup("UI");
+  UI.locale = s.value("locale", UI.locale).toString();
+  UI.applicationFont = s.value("applicationfont", UI.applicationFont).value<QFont>();
+  UI.latexEditFont = s.value("latexeditfont", UI.latexEditFont).value<QFont>();
+  UI.preambleEditFont = s.value("preambleeditfont", UI.preambleEditFont).value<QFont>();
+  UI.previewTooltipMaxSize = s.value("previewtooltipmaxsize", UI.previewTooltipMaxSize).toSize();
+  UI.labelOutputFixedSize = s.value("lbloutputfixedsize", UI.labelOutputFixedSize ).toSize();
+  UI.lastSaveDir = s.value("lastsavedir", UI.lastSaveDir).toString();
+  UI.symbolsPerLine = s.value("symbolsperline", UI.symbolsPerLine).toInt();
+  UI.userColorList = settings_read_list(s, "usercolorlist", UI.userColorList);
+  UI.colorChooseWidgetRecent = settings_read_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent);
+  UI.colorChooseWidgetCustom = settings_read_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom);
+  UI.maxUserColors = s.value("maxusercolors", UI.maxUserColors).toInt();
+  UI.enableToolTipPreview = s.value("enabletooltippreview", UI.enableToolTipPreview).toBool();
+  UI.enableRealTimePreview = s.value("enablerealtimepreview", UI.enableRealTimePreview).toBool();
+  UI.autosaveLibraryMin = s.value("autosavelibrarymin", UI.autosaveLibraryMin).toInt();
+  s.endGroup();
+
+  s.beginGroup("SyntaxHighlighter");
+  SyntaxHighlighter.configFlags = s.value("configflags", SyntaxHighlighter.configFlags).toUInt();
+  SyntaxHighlighter.fmtKeyword = settings_read_QTextCharFormat(s, "keyword", SyntaxHighlighter.fmtKeyword);
+  SyntaxHighlighter.fmtComment = settings_read_QTextCharFormat(s, "comment", SyntaxHighlighter.fmtComment);
+  SyntaxHighlighter.fmtParenMatch = settings_read_QTextCharFormat(s, "parenmatch", SyntaxHighlighter.fmtParenMatch);
+  SyntaxHighlighter.fmtParenMismatch = settings_read_QTextCharFormat(s, "parenmismatch", SyntaxHighlighter.fmtParenMismatch);
+  SyntaxHighlighter.fmtLonelyParen = settings_read_QTextCharFormat(s, "lonelyparen", SyntaxHighlighter.fmtLonelyParen);
+  s.endGroup();
+
+  s.beginGroup("BackendSettings");
+  BackendSettings.tempDir = s.value("tempdir", BackendSettings.tempDir).toString();
+  BackendSettings.execLatex = s.value("latexexec", BackendSettings.execLatex).toString();
+  BackendSettings.execDvips = s.value("dvipsexec", BackendSettings.execDvips).toString();
+  BackendSettings.execGs = s.value("gsexec", BackendSettings.execGs).toString();
+  BackendSettings.execEpstopdf = s.value("epstopdfexec", BackendSettings.execEpstopdf).toString();
+  BackendSettings.lborderoffset = s.value("lborderoffset", BackendSettings.lborderoffset).toInt();
+  BackendSettings.tborderoffset = s.value("tborderoffset", BackendSettings.tborderoffset).toInt();
+  BackendSettings.rborderoffset = s.value("rborderoffset", BackendSettings.rborderoffset).toInt();
+  BackendSettings.bborderoffset = s.value("bborderoffset", BackendSettings.bborderoffset).toInt();
+  s.endGroup();
+
+  s.beginGroup("LibraryBrowser");
+  LibraryBrowser.displayTaggedOnly = s.value("displaytaggedonly", LibraryBrowser.displayTaggedOnly).toBool();
+  LibraryBrowser.displayNoDuplicates = s.value("displaynoduplicates", LibraryBrowser.displayNoDuplicates).toBool();
+  LibraryBrowser.colorFound = s.value("colorfound", LibraryBrowser.colorFound).value<QColor>();
+  LibraryBrowser.colorNotFound = s.value("colornotfound", LibraryBrowser.colorNotFound).value<QColor>();
+  s.endGroup();
+
+  // Special treatment for Plugins.pluginConfig
+  s.beginGroup("Plugins/Config");
+  QStringList pluginList = s.childGroups();
+  s.endGroup();
+  int j;
+  for (j = 0; j < pluginList.size(); ++j) {
+    QString name = pluginList[j];
+    s.beginGroup( QString("Plugins/Config/%1").arg(name) );
+    QMap<QString,QVariant> thispluginconfig;
+    QStringList plconfkeys = s.childKeys();
+    int k;
+    for (k = 0; k < plconfkeys.size(); ++k) {
+      thispluginconfig[plconfkeys[k]] = s.value(plconfkeys[k]);
+    }
+    klfconfig.Plugins.pluginConfig[name] = thispluginconfig;
+    s.endGroup();
+  }
+
+  return 0;
+}

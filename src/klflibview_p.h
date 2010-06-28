@@ -209,7 +209,8 @@ public:
   struct EntryNode : public Node {
     EntryNode() : Node(EntryKind), entryid(-1), minimalist(false), entry() { }
     KLFLib::entryId entryid;
-    bool minimalist; // if TRUE, 'entry' only holds category/tags/datetime/latex, no pixmap, no style.
+    /** if TRUE, 'entry' only holds category/tags/datetime/latex/previewsize, no pixmap, no style. */
+    bool minimalist;
     KLFLibEntry entry;
   };
   struct CategoryLabelNode : public Node {
@@ -222,11 +223,20 @@ public:
 
   typedef QList<EntryNode> EntryCache;
   typedef QList<CategoryLabelNode> CategoryLabelCache;
+
   EntryNode pInvalidEntryNode; // not initialized, not used except for return values
   //                              of functions aborting their call eg. getNodeRef()
 
-  KLFLibModelCache(KLFLibModel * model) : pModel(model) {
+
+  KLFLibModelCache(KLFLibModel * model)
+    : pModel(model)
+  {
     pCategoryLabelCacheContainsInvalid = false;
+
+    pIsFetchingMore = false;
+
+    pLastSortPropId = KLFLibEntry::DateTime;
+    pLastSortOrder = Qt::DescendingOrder;
   }
 
   virtual ~KLFLibModelCache() { }
@@ -243,11 +253,21 @@ public:
   /** Returns empty node for invalid indexes, not root nodem. */
   Node getNode(NodeId nodeid);
   Node& getNodeRef(NodeId nodeid);
-  EntryNode& getEntryNode(NodeId nodeid, bool requireNotMinimalist = false);
-  CategoryLabelNode& getCategoryLabelNode(NodeId nodeid);
+  EntryNode& getEntryNodeRef(NodeId nodeid, bool requireNotMinimalist = false);
+  CategoryLabelNode& getCategoryLabelNodeRef(NodeId nodeid);
 
   /** get the row of \c nodeid in its parent.  */
   int getNodeRow(NodeId nodeid);
+
+  /** define here what prop ids are stored in minimalist entries.
+   * Warning: some functions may make some assumptions on what minimalist entries have, and these
+   * properties must make sense here (eg. PreviewSize for delegate's sizeHint(), Category for
+   * creating the tree, etc.) */
+  static inline QList<int> minimalistEntryPropIds() {
+    return QList<int>() << KLFLibEntry::Category << KLFLibEntry::Tags
+			<< KLFLibEntry::DateTime << KLFLibEntry::Latex
+			<< KLFLibEntry::PreviewSize;
+  }
 
   /** Updates \c count entry nodes in tree after (and including \c nodeId), if they
    * are marked as "minimalist" (see \ref EntryNode)
@@ -259,9 +279,6 @@ public:
   void fetchMore(NodeId parentId, int batchCount);
 
   void updateData(const QList<KLFLib::entryId>& entryIdList);
-
-  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
-  void insertEntryToCacheTree(const NodeId& e, bool notifyQtApi = false);
 
   /** emits QAbstractItemModel-appropriate LAYOUT CHANGES SIGNALS if \c notifyQtApi is true. IT ALWAYS
    * EMITS APPROPRIATE SIGNALS FOR SUB-CATEGORIES THAT ARE CREATED TO FIT THE ITEM. */
@@ -276,22 +293,25 @@ public:
   class KLF_EXPORT KLFLibModelSorter
   {
   public:
-    KLFLibModelSorter(KLFLibModelCache *c, int entry_prop, Qt::SortOrder sort_order, bool groupcategories)
-      : cache(c), entryProp(entry_prop), sortOrderFactor( (sort_order == Qt::AscendingOrder) ? -1 : 1),
-	groupCategories(groupcategories) { }
+    KLFLibModelSorter(KLFLibModelCache *c, KLFLibEntrySorter *es, bool groupcategories)
+      : cache(c), entrysorter(es), groupCategories(groupcategories)
+    {
+    }
     /** Returns TRUE if a<b, FALSE otherwise. */
     bool operator()(const NodeId& a, const NodeId& b);
+
+    KLFLibEntrySorter *entrySorter() { return entrysorter; }
+
   private:
     KLFLibModelCache *cache;
-    int entryProp;
-    int sortOrderFactor;
+    KLFLibEntrySorter *entrysorter;
     bool groupCategories;
   };
 
-  QString nodeValue(NodeId node, int entryProperty);
+  QString nodeValue(NodeId node, int propId);
 
   /** Sort a category's children */
-  void sortCategory(NodeId category, int column, Qt::SortOrder order);
+  void sortCategory(NodeId category, KLFLibModelSorter *sorter, bool rootCall = true);
 
   /** Walks the whole tree returning all the nodes one after the other, in the following order:
    * if \c n has children, first child is returned; otherwise next sibling is returned.
@@ -334,6 +354,11 @@ private:
   bool pCategoryLabelCacheContainsInvalid;
 
   QStringList pCatListCache;
+
+  bool pIsFetchingMore;
+
+  int pLastSortPropId;
+  Qt::SortOrder pLastSortOrder;
 };
 
 

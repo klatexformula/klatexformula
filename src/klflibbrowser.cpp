@@ -320,7 +320,7 @@ QVariantMap KLFLibBrowser::saveGuiState()
   v["WidgetSize"] = QVariant::fromValue<QSize>(size());
   return v;
 }
-void KLFLibBrowser::loadGuiState(const QVariantMap& v)
+void KLFLibBrowser::loadGuiState(const QVariantMap& v, bool openURLs)
 {
   QUrl currenturl = v["CurrentUrl"].toUrl();
   QList<QVariant> urllist = v["UrlList"].toList();
@@ -333,6 +333,9 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v)
     quint32 flags = resroleflagslist[k].value<quint32>();
     qDebug()<<"LibBrowser::loadGuiState: Opening url "<<url<<" with flags="<<flags;
     QVariantMap viewState = viewstatelist[k].toMap();
+    // don't open new URLs if openURLs is false
+    if ( !openURLs && findOpenUrl(url) == NULL )
+      continue;
     // open this URL
     bool res = openResource(url, flags);
     if ( ! res ) {
@@ -472,8 +475,9 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
 bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags,
 				 const QString& viewTypeIdentifier)
 {
-  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME + QString("(KLFLibRes*,uint,QString): url=%1")
-		       .arg(resource->url().toString())) ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  qDebug()<<"\topening resource url="
+	  <<resource->url(KLFLibResourceEngine::WantUrlDefaultSubResource).toString();
 
   //  KLFPleaseWaitPopup label(tr("Loading resource, please wait..."), this);
 
@@ -492,6 +496,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   }
 
   resource->setParent(this);
+
+  klf_debug_time_print(KLF_FUNC_NAME + QString(": created resource. about to create view.")) ;
 
   // now create appropriate view for this resource
   KLFLibBrowserViewContainer *viewc = new KLFLibBrowserViewContainer(resource, u->tabResources);
@@ -515,6 +521,10 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 		    << KLFLibViewFactory::defaultViewTypeIdentifier()
     // * a "default" view type (last resort, hoping it exists!)
 		    << QLatin1String("default");
+
+  klf_debug_time_print(KLF_FUNC_NAME + QString(": created resource. about to test view types.")) ;
+  qDebug()<<"\tView types: "<<viewtypeident_try;
+
   int k;
   // try each view type, first success is kept.
   for (k = 0; k < viewtypeident_try.size(); ++k) {
@@ -538,6 +548,9 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
       qDebug()<<"KLFLibBrowser::openResource: can't create view! viewtypeident="<<viewtypeident_try[k]<<".";
       continue;
     }
+
+    klf_debug_time_print(KLF_FUNC_NAME + QString(": found good view type=%1.").arg(viewtypeident_try[k])) ;
+
     // found good view type !
     resource->setViewType(viewtypeident_try[k]);
     // quit for() on first success.
@@ -568,12 +581,16 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(resource, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
 	  this, SLOT(slotStartProgress(KLFProgressReporter *, const QString&)));
 
+  klf_debug_time_print(KLF_FUNC_NAME + QString(": requiring cat suggestions.")) ;
+
   // get more category completions
   viewc->view()->wantMoreCategorySuggestions();
 
   // supply a context menu to view
   connect(viewc, SIGNAL(viewContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotShowContextMenu(const QPoint&)));
+
+  klf_debug_time_print(KLF_FUNC_NAME + QString(": adding tab page....")) ;
 
   int i = u->tabResources->addTab(viewc, displayTitle(resource));
   u->tabResources->setCurrentWidget(viewc);
@@ -586,6 +603,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   // hide welcome page if it's shown
   if ((i = u->tabResources->indexOf(u->tabWelcome)) != -1)
     u->tabResources->removeTab(i);
+
+  klf_debug_time_print(KLF_FUNC_NAME + QString(": end of function")) ;
 
   return true;
 }

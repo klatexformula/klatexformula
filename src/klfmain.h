@@ -90,6 +90,8 @@ public:
   QString author() { return d->author; }
   /** the info in the add-on's info.xml file */
   QString description() { return d->description; }
+  /** the info in the add-on's info.xml file */
+  QString klfminversion() { return d->klfminversion; }
 
   //! where in the resource tree this rcc resource data is mounted
   QString rccmountroot() { return d->rccmountroot; }
@@ -127,6 +129,7 @@ private:
     QString title;
     QString author;
     QString description;
+    QString klfminversion;
 
     QString rccmountroot;
     

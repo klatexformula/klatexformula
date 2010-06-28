@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Ph. Faist</author>
- <class>KLFProgErrUI</class>
- <widget class="QDialog" name="KLFProgErrUI">
+ <class>KLFProgErr</class>
+ <widget class="QDialog" name="KLFProgErr">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -105,7 +105,7 @@ QAbstractScrollArea {
   <connection>
    <sender>btnClose</sender>
    <signal>clicked()</signal>
-   <receiver>KLFProgErrUI</receiver>
+   <receiver>KLFProgErr</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
