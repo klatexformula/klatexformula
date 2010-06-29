@@ -85,7 +85,8 @@ KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
   iParen = funcname.find('(');
   iSpc = funcname.findRev(' ', iParen-2);
 #endif
-  if (iSpc == -1 || iParen == -1 || iSpc > iParen) {
+  // if iSpc is -1, leave it at -1 (eg. constructor signature), the following code still works.
+  if (iParen == -1 || iSpc > iParen) {
     qWarning("klfShortFuncSignature('%s'): Signature parse error!", qPrintable(funcname));
     return ba_funcname;
   }

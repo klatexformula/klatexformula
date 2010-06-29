@@ -313,6 +313,8 @@ public:
 
   virtual KLFLibResourceEngine * resource() { return pResource; }
 
+  virtual QUrl url() const;
+
   /** sets the flavor flags given by \c flags. Only flags masked by \c modify_mask
    * are affected. Examples:
    * \code
@@ -364,7 +366,7 @@ public:
 
   virtual QStringList categoryList() const;
 
-  virtual void updateData(const QList<KLFLib::entryId>& entryIdList);
+  virtual void updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType);
 
   //! Call repeatedly to walk all indexes (once each exactly, first column only)
   virtual QModelIndex walkNextIndex(const QModelIndex& cur);

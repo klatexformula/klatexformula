@@ -33,6 +33,8 @@
 #include <QMovie>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QApplication>
+#include <QClipboard>
 
 #include "klfconfig.h"
 #include "klfguiutil.h"
@@ -729,6 +731,14 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
 	     "\turl=%s, viewwidget=%p", qPrintable(view->url().toString()), view);
     return false;
   }
+
+  // ask user for confirmation
+  QMessageBox::StandardButton btn =
+    QMessageBox::question(this, tr("Close Resource"), tr("Do you want to close this resource?"),
+			  QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Yes);
+  if (btn != QMessageBox::Yes)
+    return false;
+
   u->tabResources->removeTab(tabindex);
   int index = pLibViews.indexOf(view);
   pLibViews.removeAt(index);
@@ -995,6 +1005,13 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   QAction *a2 = menu->addAction(QIcon(":/pics/restore.png"), tr("Restore latex formula only"),
 				view, SLOT(restoreLatexOnly()));
   menu->addSeparator();
+  QAction *acut = menu->addAction(QIcon(":/pics/cut.png"), tr("Cut"), this, SLOT(slotCut()),
+				  QKeySequence::Cut);
+  QAction *acopy = menu->addAction(QIcon(":/pics/copy.png"), tr("Copy"), this, SLOT(slotCopy()),
+				  QKeySequence::Copy);
+  QAction *apaste = menu->addAction(QIcon(":/pics/paste.png"), tr("Paste"), this, SLOT(slotPaste()),
+				  QKeySequence::Paste);
+  menu->addSeparator();
   QAction *adel = menu->addAction(QIcon(":/pics/delete.png"), tr("Delete from library"),
 				  view, SLOT(deleteSelected()));
   menu->addSeparator();
@@ -1002,7 +1019,7 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   QMenu *copytomenu = new QMenu;
   QMenu *movetomenu = new QMenu;
   int k;
-  QAction *acopy, *amove;
+  QAction *acopythere, *amovethere;
   int n_destinations = 0;
   for (k = 0; k < pLibViews.size(); ++k) {
     if (pLibViews[k]->url() == view->url()) // skip this view
@@ -1010,13 +1027,13 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
     KLFLibResourceEngine *res = pLibViews[k]->resourceEngine();
     QUrl viewurl = pLibViews[k]->url();
     n_destinations++;
-    acopy = copytomenu->addAction(displayTitle(res), this, SLOT(slotCopyToResource()));
-    acopy->setProperty("resourceViewUrl", viewurl);
-    amove = movetomenu->addAction(displayTitle(res), this, SLOT(slotMoveToResource()));
-    amove->setProperty("resourceViewUrl", viewurl);
+    acopythere = copytomenu->addAction(displayTitle(res), this, SLOT(slotCopyToResource()));
+    acopythere->setProperty("resourceViewUrl", viewurl);
+    amovethere = movetomenu->addAction(displayTitle(res), this, SLOT(slotMoveToResource()));
+    amovethere->setProperty("resourceViewUrl", viewurl);
     if (!res->canModifyData(KLFLibResourceEngine::InsertData)) {
-      acopy->setEnabled(false);
-      amove->setEnabled(false);
+      acopythere->setEnabled(false);
+      amovethere->setEnabled(false);
     }
   }
   QAction *acopyto = menu->addMenu(copytomenu);
@@ -1034,9 +1051,13 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   bool cancopy = (selected.size() > 0) && n_destinations;
   bool canre = (selected.size() == 1);
   bool candel = view->resourceEngine()->canModifyData(KLFLibResourceEngine::DeleteData);
+  bool canpaste = KLFAbstractLibEntryMimeEncoder::canDecodeMimeData(QApplication::clipboard()->mimeData());
   a1->setEnabled(canre);
   a2->setEnabled(canre);
   adel->setEnabled(candel && selected.size());
+  acut->setEnabled(cancopy && candel);
+  acopy->setEnabled(cancopy);
+  apaste->setEnabled(canpaste);
   acopyto->setEnabled(cancopy);
   amoveto->setEnabled(cancopy && candel);
 
@@ -1252,6 +1273,49 @@ void KLFLibBrowser::slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstract
   if (move)
     source->deleteSelected(false);
 }
+
+void KLFLibBrowser::slotCut()
+{
+  KLFAbstractLibView * view = curLibView();
+  if ( view == NULL )
+    return;
+  slotCopy();
+  view->deleteSelected(false);
+}
+void KLFLibBrowser::slotCopy()
+{
+  KLFAbstractLibView * view = curLibView();
+  if ( view == NULL )
+    return;
+
+  KLFLibEntryList elist = view->selectedEntries();
+  QVariantMap vprops;
+  vprops["Url"] = view->url(); // originating URL
+
+  QMimeData *mimeData = KLFAbstractLibEntryMimeEncoder::createMimeData(elist, vprops);
+  QApplication::clipboard()->setMimeData(mimeData);
+}
+void KLFLibBrowser::slotPaste()
+{
+  KLFAbstractLibView * view = curLibView();
+  if ( view == NULL )
+    return;
+
+  KLFLibEntryList elist;
+  QVariantMap vprops;
+
+  const QMimeData* mimeData = QApplication::clipboard()->mimeData();
+  bool result =
+    KLFAbstractLibEntryMimeEncoder::decodeMimeData(mimeData, &elist, &vprops);
+  if (!result) {
+    QMessageBox::critical(this, tr("Error"), tr("The clipboard doesn't contain any appropriate data."));
+    return;
+  }
+
+  qDebug()<<KLF_FUNC_NAME<<": Pasting data! props="<<vprops;
+  view->insertEntries(elist);
+}
+
 
 void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& text)
 {

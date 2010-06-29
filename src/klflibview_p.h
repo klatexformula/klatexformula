@@ -278,7 +278,7 @@ public:
   bool canFetchMore(NodeId parentId);
   void fetchMore(NodeId parentId, int batchCount);
 
-  void updateData(const QList<KLFLib::entryId>& entryIdList);
+  void updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType);
 
   /** emits QAbstractItemModel-appropriate LAYOUT CHANGES SIGNALS if \c notifyQtApi is true. IT ALWAYS
    * EMITS APPROPRIATE SIGNALS FOR SUB-CATEGORIES THAT ARE CREATED TO FIT THE ITEM. */

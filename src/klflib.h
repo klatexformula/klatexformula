@@ -256,6 +256,46 @@ private:
 };
 
 
+class QMimeData;
+
+//! Helper class to encode an entry list as mime data (abstract interface)
+class KLFAbstractLibEntryMimeEncoder
+{
+public:
+  KLFAbstractLibEntryMimeEncoder();
+  virtual ~KLFAbstractLibEntryMimeEncoder();
+
+  //! A list of mime types this class can encode
+  virtual QStringList supportedEncodingMimeTypes() const = 0;
+  //! A list of mime types this class can decode
+  virtual QStringList supportedDecodingMimeTypes() const = 0;
+
+  virtual QByteArray encodeMime(const KLFLibEntryList& entryList, const QVariantMap& metaData,
+				const QString& mimeType) const = 0;
+
+  virtual bool decodeMime(const QByteArray& data, const QString& mimeType,
+			  KLFLibEntryList *entryList, QVariantMap *metaData) const = 0;
+
+
+  //! Creates a QMetaData with all known registered encoding mime types
+  static QMimeData *createMimeData(const KLFLibEntryList& entryList, QVariantMap& metaData);
+  static bool canDecodeMimeData(const QMimeData *mimeData);
+  static bool decodeMimeData(const QMimeData *mimeData, KLFLibEntryList *entryList,
+			     QVariantMap *metaData);
+
+  static KLFAbstractLibEntryMimeEncoder *findEncoderFor(const QString& mimeType,
+							bool warnIfNotFound = true);
+  static KLFAbstractLibEntryMimeEncoder *findDecoderFor(const QString& mimeType,
+							bool warnIfNotFound = true);
+  static QList<KLFAbstractLibEntryMimeEncoder*> encoderList();
+private:
+
+  static void registerEncoder(KLFAbstractLibEntryMimeEncoder *encoder);
+
+  static QList<KLFAbstractLibEntryMimeEncoder*> staticEncoderList;
+};
+
+
 /** \brief An abstract resource engine
  *
  * This class is the base of all resource types. Subclasses (e.g. KLFLibDBEngine) implement
@@ -717,6 +757,10 @@ public:
    * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
    * list is empty (by default), then all properties are fetched and set.
    *
+   * If in the list an ID is given which does not exist in the resource, a corresponding
+   * KLFLibEntryWithId entry is returned in which the \c entry is set to an empty \c KLFLibEntry()
+   * and the \c id is set to \c -1.
+   *
    * \note Subclasses must reimplement this function to behave as described here.
    * */
   virtual QList<KLFLibEntryWithId> entries(const QString& subResource,
@@ -734,6 +778,10 @@ public:
    * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
    * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
    * list is empty (by default), then all properties are fetched and set.
+   *
+   * If in the list an ID is given which does not exist in the resource, a corresponding
+   * KLFLibEntryWithId entry is returned in which the \c entry is set to an empty \c KLFLibEntry()
+   * and the \c id is set to \c -1.
    *
    * The default implementation calls
    * \ref entries(const QString& subResource, const QList<KLFLib::entryId>& idList) with

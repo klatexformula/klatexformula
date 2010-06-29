@@ -544,10 +544,16 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 
     q.bindValue(0, idList[k]);
     bool r = q.exec();
-    if ( !r || q.lastError().isValid() || !q.next() ) {
+    if ( !r || q.lastError().isValid() ) {
       qDebug()<<KLF_FUNC_NAME<<" SQL Error, sql="<<q.lastQuery()<<"; boundvalues="<<q.boundValues();
       qWarning("KLFLibDBEngine::entries: Error\n"
 	       "SQL Error (?): %s", qPrintable(q.lastError().text()));
+      continue;
+    }
+    if ( !q.next() ) {
+      qDebug()<<KLF_FUNC_NAME<<": id="<<idList[k]<<" does not exist in DB.";
+      KLFLibEntryWithId e; e.entry = KLFLibEntry(); e.id = -1;
+      eList << e;
       continue;
     }
     // get the entry
@@ -1146,7 +1152,7 @@ bool KLFLibDBEngine::deleteEntries(const QString& subResource, const QList<entry
   q.prepare(QString("DELETE FROM %1 WHERE id = ?").arg(quotedDataTableName(subResource)));
 
   KLFProgressReporter progr(0, idlist.size(), this);
-  emit operationStartReportingProgress(&progr, tr("Deleting entries from database ..."));
+  emit operationStartReportingProgress(&progr, tr("Removing entries from database ..."));
 
   for (k = 0; k < idlist.size(); ++k) {
     if (k % 10 == 0)

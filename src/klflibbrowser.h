@@ -161,6 +161,10 @@ protected slots:
   void slotCopyMoveToResource(QObject *sender, bool move);
   void slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstractLibView *source, bool move);
 
+  void slotCut();
+  void slotCopy();
+  void slotPaste();
+
   void slotStartProgress(KLFProgressReporter *progressReporter, const QString& text);
 
 

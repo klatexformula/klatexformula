@@ -27,6 +27,7 @@
 #include <QByteArray>
 #include <QDataStream>
 #include <QColor>
+#include <QMimeData>
 
 #include "klflib_p.h"
 #include "klflib.h"
@@ -306,6 +307,109 @@ bool KLFLibEntrySorter::operator()(const KLFLibEntry& a, const KLFLibEntry& b) c
 
   return compareLessThan(a, b, pPropId, pOrder);
 }
+
+
+// ---------------------------------------------------
+
+KLFAbstractLibEntryMimeEncoder::KLFAbstractLibEntryMimeEncoder()
+{
+  registerEncoder(this);
+}
+KLFAbstractLibEntryMimeEncoder::~KLFAbstractLibEntryMimeEncoder()
+{
+}
+void KLFAbstractLibEntryMimeEncoder::registerEncoder(KLFAbstractLibEntryMimeEncoder *encoder)
+{
+  staticEncoderList.append(encoder);
+}
+
+QList<KLFAbstractLibEntryMimeEncoder*> KLFAbstractLibEntryMimeEncoder::encoderList()
+{
+  return staticEncoderList;
+}
+
+// static
+QMimeData *KLFAbstractLibEntryMimeEncoder::createMimeData(const KLFLibEntryList& entryList,
+							  QVariantMap& metaData)
+{
+  QMimeData *mime = new QMimeData;
+  int k, j;
+  for (k = 0; k < staticEncoderList.size(); ++k) {
+    QStringList mimeTypeList = staticEncoderList[k]->supportedEncodingMimeTypes();
+    for (j = 0; j < mimeTypeList.size(); ++j) {
+      mime->setData(mimeTypeList[j],
+		    staticEncoderList[k]->encodeMime(entryList, metaData, mimeTypeList[j]));
+    }
+  }
+  return mime;
+}
+
+
+// static
+bool KLFAbstractLibEntryMimeEncoder::canDecodeMimeData(const QMimeData *mimeData)
+{
+  QStringList fmts = mimeData->formats();
+  int k;
+  for (k = 0; k < fmts.size(); ++k) {
+    if (findDecoderFor(fmts[k], false) != NULL)
+      return true;
+  }
+  return false;
+}
+
+// static
+bool KLFAbstractLibEntryMimeEncoder::decodeMimeData(const QMimeData *mimeData,
+						    KLFLibEntryList *entryListPtr,
+						    QVariantMap *metaDataPtr)
+{
+  QStringList fmts = mimeData->formats();
+  int k;
+  for (k = 0; k < fmts.size(); ++k) {
+    KLFAbstractLibEntryMimeEncoder *decoder = findDecoderFor(fmts[k], false);
+    if (decoder == NULL)
+      continue;
+    bool result = decoder->decodeMime(mimeData->data(fmts[k]), fmts[k], entryListPtr, metaDataPtr);
+    if ( result )
+      return true;
+    // else continue trying
+  }
+  return false;
+}
+
+
+
+KLFAbstractLibEntryMimeEncoder *KLFAbstractLibEntryMimeEncoder::findEncoderFor(const QString& mimeType,
+									       bool warn)
+{
+  int k;
+  for (k = 0; k < staticEncoderList.size(); ++k)
+    if (staticEncoderList[k]->supportedEncodingMimeTypes().contains(mimeType))
+      return staticEncoderList[k];
+  if (warn)
+    qWarning()<<KLF_FUNC_NAME<<": Failed to find encoder for mime-type "<<mimeType;
+  return NULL;
+}
+
+KLFAbstractLibEntryMimeEncoder *KLFAbstractLibEntryMimeEncoder::findDecoderFor(const QString& mimeType,
+									       bool warn)
+{
+  int k;
+  for (k = 0; k < staticEncoderList.size(); ++k)
+    if (staticEncoderList[k]->supportedDecodingMimeTypes().contains(mimeType))
+      return staticEncoderList[k];
+  if (warn)
+    qWarning()<<KLF_FUNC_NAME<<": Failed to find decoder for mime-type "<<mimeType;
+  return NULL;
+}
+
+
+QList<KLFAbstractLibEntryMimeEncoder*> KLFAbstractLibEntryMimeEncoder::staticEncoderList;
+
+
+
+
+// The instance of the basic encoder, that will auto-register itself
+KLFLibEntryMimeEncoder __klf_lib_mime_encoder;
 
 
 // ---------------------------------------------------

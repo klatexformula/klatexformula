@@ -510,9 +510,12 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
 
 
 
-void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList)
+void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType)
 {
   qDebug()<<"KLFLibModel::updateData(...): entryIdList="<<entryIdList;
+
+  /** \bug BUG/TODO .............................. change to use modifytype instead of inappropriately
+   * trying to probe existing items etc. */
 
   QList<KLFLibResourceEngine::KLFLibEntryWithId> entryList = pModel->pResource->entries(entryIdList);
   QModelIndexList indexes = findEntryIdList(entryIdList);
@@ -570,6 +573,8 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList)
 
 void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   qDebug()<<"KLFLibModelCache::treeInsertEntry("<<n<<","<<notifyQtApi<<")";
 
   if (n.kind != EntryKind) {
@@ -651,10 +656,16 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi)
 
 void KLFLibModelCache::treeRemoveEntry(const NodeId& nodeid, bool notifyQtApi)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   qDebug()<<"KLFLibModelCache::treeRemoveEntry("<<nodeid<<","<<notifyQtApi<<")";
   NodeId n = nodeid;
   // keep it in cache to keep indexes valid, just remove its reference.
   // then remove all empty categories above the removed item.
+  // also invalidate the entry so findEntryIdList() doesn't find it.
+  if (nodeid.kind == EntryKind) {
+    getEntryNodeRef(nodeid).entryid = -1;
+  }
   NodeId parentid;
   bool willRemoveParent;
   do {
@@ -1039,7 +1050,7 @@ KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject
   : QAbstractItemModel(parent), pFlavorFlags(flavorFlags)
 {
   // set the default value of N items per batch
-  setFetchBatchCount(10);
+  setFetchBatchCount(50);
 
   // by default, sort according to DateTime, recent first
   pEntrySorter = new KLFLibEntrySorter(KLFLibEntry::DateTime, Qt::DescendingOrder);
@@ -1065,6 +1076,20 @@ void KLFLibModel::setResource(KLFLibResourceEngine *resource)
   pResource = resource;
   updateCacheSetupModel();
 }
+
+QUrl KLFLibModel::url() const
+{
+  if (pResource == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": resource is NULL!";
+    return QUrl();
+  }
+  if ((pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources)  ==  0)
+    return pResource->url();
+
+  // return URL with the default sub-resource (as we're displaying that one only)
+  return pResource->url(KLFLibResourceEngine::WantUrlDefaultSubResource);
+}
+
 
 
 void KLFLibModel::setFlavorFlags(uint flags, uint modify_mask)
@@ -1361,43 +1386,6 @@ QStringList KLFLibModel::mimeTypes() const
 }
 QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
 {
-  /** \page appxMimeLib Appendix: KLF's Own Mime Formats for Library Entries
-   *
-   * \section appxMimeLib_elist The application/x-klf-libentries data format
-   *
-   * Is basically a Qt-\ref QDataStream saved data of a \ref KLFLibEntryList (ie. a
-   * \ref QList "QList<KLFLibEntry>"), saved with Qt \ref QDataStream version "QDataStream::Qt_4_4" .
-   *
-   * There is also a property map for including arbitrary parameters to the list (eg.
-   * originating URL, etc.), stored in a QVariantMap, ie a \ref QMap "QMap<QString,QVariant>". Standard
-   * properties as of now:
-   *  - \c "Url" (type QUrl) : originating URL
-   *
-   * Example code:
-   * \code
-   *  KLFLibEntryList entries = ...;
-   *  QByteArray data;
-   *  QDataStream stream(&data, QIODevice::WriteOnly);
-   *  stream << QVariantMap() << data;
-   *  // now data contains the exact data for the application/x-klf-libentries mimetype.
-   * \endcode
-   * Other example: see the source code of \ref KLFLibModel::mimeData() in file
-   * <a href="klflibview_8cpp.html">klfview.cpp</a> .
-   *
-   * \section appxMimeLib_internal The INTERNAL <tt>application/x-klf-internal-lib-move-entries</tt>
-   * * Used for internal move within the same resource only.
-   * * Basic difference with <tt>application/x-klf-libentries</tt>: the latter contains
-   *   only the IDs of the entries (for reference for deletion for example) and the url
-   *   of the open resource for identification.
-   * * Internal Format: \ref QDataStream, stream version QDataStream::Qt_4_4, in the
-   *   following order:
-   *   \code stream << QVariantMap(<i>property-map</i>)
-   *        << QList<KLFLib::entryId>(<i>entry-id-list</i>);
-   *   \endcode
-   * * The <tt><i>property-map</i></tt> contains properties relative to the mime data, such
-   *   as the originating URL (in property \c "Url" of type QUrl)
-   */
-
   // in the future, this will serve when dragging a category label, to redifine the index
   // list as containing all the child entries.
   QModelIndexList indexes = indlist;
@@ -1423,72 +1411,23 @@ QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
 
   //  qDebug()<<"KLFLibModel::mimeData: Encoding entries "<<entries;
 
-  QMimeData *mime = new QMimeData;
-  QByteArray data;
+  // some meta-data properties
+  QVariantMap vprop;
+  QUrl myurl = url();
+  vprop["Url"] = myurl; // originating URL
+
+  QMimeData *mimedata = KLFAbstractLibEntryMimeEncoder::createMimeData(entries, vprop);
+
   QByteArray internalmovedata;
-  QByteArray htmldata;
-  QByteArray textdata;
 
-  // prepare the data for filling in the mime object
-  {
-    // application/x-klf-libentries
-    QDataStream str(&data, QIODevice::WriteOnly);
-    QVariantMap vprop;
-    QUrl myurl = QUrl(pResource->url());
-    if (pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources)
-      myurl.addQueryItem("klfDefaultSubResource", pResource->defaultSubResource());
-    vprop["Url"] = myurl;
-    str.setVersion(QDataStream::Qt_4_4);
-    // now dump the list in the bytearray
-    str << vprop << entries;
-
-    // application/x-klf-internal-lib-move-entries
-    QDataStream imstr(&internalmovedata, QIODevice::WriteOnly);
+  // application/x-klf-internal-lib-move-entries
+  { QDataStream imstr(&internalmovedata, QIODevice::WriteOnly);
     imstr.setVersion(QDataStream::Qt_4_4);
     imstr << vprop << entryids;
   }
-  {
-    QTextStream htmlstr(&htmldata, QIODevice::WriteOnly);
-    QTextStream textstr(&textdata, QIODevice::WriteOnly);
-    // a header for HTML
-    htmlstr << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
-	    << "<html>\n"
-	    << "  <head>\n"
-      	    << "    <title>KLatexFormula Library Entry List</title>\n"
-      // 	    << "    <style>\n"
-      // 	    << "      div.klfpobj_entry { margin-bottom: 15px; }\n"
-      // 	    << "      div.klfpobj_name { font-weight: bold; }\n"
-      // 	    << "      div.klfpobj_propname { display: inline; }\n"
-      // 	    << "      div.klfpobj_propvalue { display: inline; font-style: italic;\n"
-      //	    << "        padding-left: 10px; }\n"
-      // 	    << "    </style>\n"
-	    << "  </head>\n"
-	    << "\n"
-	    << "  <body>\n"
-	    << "\n";
+  mimedata->setData("application/x-klf-internal-lib-move-entries", internalmovedata);
 
-    // a header for text
-    textstr << " *** KLFLibEntryList ***\n\n";
-    // now dump the data in the appropriate streams
-
-    KLFLibEntry de; // dummy entry for property querying
-    QList<int> entryprops = de.registeredPropertyIdList();
-    for (k = 0; k < entries.size(); ++k) {
-      htmlstr << entries[k].toString(KLFLibEntry::ToStringUseHtml);
-      textstr << entries[k].toString(/*KLFLibEntry::ToStringQuoteValues*/);
-    }
-    // HTML footer
-    htmlstr << "\n"
-	    << "  </body>\n"
-	    << "</html>\n";
-  }
-
-  // and set the data
-  mime->setData("application/x-klf-libentries", data);
-  mime->setData("application/x-klf-internal-lib-move-entries", internalmovedata);
-  mime->setData("text/html", htmldata);
-  mime->setData("text/plain", textdata);
-  return mime;
+  return mimedata;
 }
 
 // private
@@ -1504,9 +1443,7 @@ bool KLFLibModel::dropCanInternal(const QMimeData *mimedata)
   QVariantMap vprop;
   imstr >> vprop;
   QUrl theirurl = vprop.value("Url").toUrl();
-  QUrl oururl = pResource->url();
-  if (pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources)
-    oururl.addQueryItem("klfDefaultSubResource", pResource->defaultSubResource());
+  QUrl oururl = url();
   bool ok = (oururl.toEncoded() == theirurl.toEncoded());
   qDebug()<<"KLFLibModel::dropCanInternal: drag originated from "<<theirurl<<"; we are "<<oururl<<"; OK="<<ok;
   return ok;
@@ -1576,13 +1513,17 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
 
   qDebug()<<"Dropping entry list.";
   QByteArray ldata = mimedata->data("application/x-klf-libentries");
-  QDataStream lstr(ldata);
-  lstr.setVersion(QDataStream::Qt_4_4);
+  KLFAbstractLibEntryMimeEncoder *encoder =
+    KLFAbstractLibEntryMimeEncoder::findDecoderFor("application/x-klf-libentries");
   KLFLibEntryList elist;
   QVariantMap vprop;
-  lstr >> vprop >> elist;
+  bool result = encoder->decodeMime(ldata, "application/x-klf-libentries", &elist, &vprop) ;
+  if ( !result ) {
+    qWarning()<<KLF_FUNC_NAME<<": Failed to decode application/x-klf-libentries mime data!";
+    return false;
+  }
   if ( elist.isEmpty() )
-    return true;
+    return true; // nothing to drop
 
   // insert list, regardless of parent (no category change)
   bool res = insertEntries(elist);
@@ -1685,9 +1626,9 @@ QStringList KLFLibModel::categoryList() const
   return pCache->categoryListCache();
 }
 
-void KLFLibModel::updateData(const QList<KLFLib::entryId>& entryIdList)
+void KLFLibModel::updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType)
 {
-  pCache->updateData(entryIdList);
+  pCache->updateData(entryIdList, modifyType);
 }
 
 QModelIndex KLFLibModel::walkNextIndex(const QModelIndex& cur)
@@ -2408,13 +2349,11 @@ KLFLibDefaultView::~KLFLibDefaultView()
 
 QUrl KLFLibDefaultView::url() const
 {
-  KLFLibResourceEngine *res = resourceEngine();
-  if (res == NULL) {
-    qWarning()<<KLF_FUNC_NAME<<": resource is NULL!";
+  if (pModel == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": model is NULL!";
     return QUrl();
   }
-  // return URL with the default sub-resource (as we're displaying that one only)
-  return res->url(KLFLibResourceEngine::WantUrlDefaultSubResource);
+  return pModel->url();
 }
 
 bool KLFLibDefaultView::event(QEvent *event)
@@ -2685,7 +2624,7 @@ void KLFLibDefaultView::updateResourceData(const QString& subRes, int modifyType
     ;
   if (subRes != resourceEngine()->defaultSubResource())
     return;
-  pModel->updateData(entryIdList);
+  pModel->updateData(entryIdList, modifyType);
   // update our own data (icon positions)
   updateResourceOwnData(entryIdList);
 }
