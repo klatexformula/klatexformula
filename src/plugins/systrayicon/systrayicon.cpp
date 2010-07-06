@@ -61,6 +61,7 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
   // load plugin by default)
   _config->makeDefaultValue("systrayon", true);
   _config->makeDefaultValue("replacequitbutton", true);
+  _config->makeDefaultValue("mintosystray", true);
 
   QMenu *menu = new QMenu(mainWin);
   menu->addAction(tr("Minimize"), this, SLOT(minimize()));
@@ -78,6 +79,7 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
   _systrayicon->setContextMenu(menu);
 
   _systrayicon->installEventFilter(this);
+  _mainwin->installEventFilter(this);
 
   connect(_systrayicon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 	  this, SLOT(slotSysTrayActivated(QSystemTrayIcon::ActivationReason)));
@@ -126,6 +128,15 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
       restore();
     }
   }
+  if (obj == _mainwin && e->type() == QEvent::WindowStateChange) {
+    if (_config->readValue("mintosystray").toBool() &&
+	(_mainwin->windowState() & Qt::WindowMinimized) &&
+	!(((QWindowStateChangeEvent*)e)->oldState() & Qt::WindowMinimized)
+	) {
+      // the user minimized the window, and we want to minimize it to system tray.
+      minimize();
+    }
+  }
   return false;
 }
 
@@ -141,9 +152,11 @@ void SysTrayIconPlugin::loadFromConfig(QWidget *confqwidget, KLFPluginConfigAcce
   bool systrayon = config->readValue("systrayon").toBool();
   bool restoreonhover = config->readValue("restoreonhover").toBool();
   bool replacequitbutton = config->readValue("replacequitbutton").toBool();
+  bool mintosystray = config->readValue("mintosystray").toBool();
   confwidget->chkSysTrayOn->setChecked(systrayon);
   confwidget->chkRestoreOnHover->setChecked(restoreonhover);
   confwidget->chkReplaceQuitButton->setChecked(replacequitbutton);
+  confwidget->chkMinToSysTray->setChecked(mintosystray);
 }
 void SysTrayIconPlugin::saveToConfig(QWidget *confqwidget, KLFPluginConfigAccess *config)
 {
@@ -151,9 +164,11 @@ void SysTrayIconPlugin::saveToConfig(QWidget *confqwidget, KLFPluginConfigAccess
   bool systrayon = confwidget->chkSysTrayOn->isChecked();
   bool restoreonhover = confwidget->chkRestoreOnHover->isChecked();
   bool replacequitbutton = confwidget->chkReplaceQuitButton->isChecked();
+  bool mintosystray = confwidget->chkMinToSysTray->isChecked();
   config->writeValue("systrayon", systrayon);
   config->writeValue("restoreonhover", restoreonhover);
   config->writeValue("replacequitbutton", replacequitbutton);
+  config->writeValue("mintosystray", mintosystray);
   apply();
 }
 

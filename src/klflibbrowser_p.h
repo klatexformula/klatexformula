@@ -35,8 +35,17 @@
 #include <QTabWidget>
 #include <QEvent>
 #include <QDragMoveEvent>
+#include <QDialog>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QAction>
+#include <QSignalMapper>
+
+#include <ui_klflibexportdialog.h>
 
 #include "klflibview.h"
+#include "klflibbrowser.h"
 
 /** \internal */
 class KLFLibBrowserViewContainer : public QStackedWidget
@@ -48,6 +57,9 @@ public:
   {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
+    pViewTypeActionGroup = new QActionGroup(this);
+    QSignalMapper *actionSignalMapper = new QSignalMapper(this);
+
     if (pResource == NULL) {
       qWarning()<<"KLFLibBrowserViewContainer: NULL RESOURCE! Expect Imminent Crash!";
     }
@@ -55,11 +67,23 @@ public:
     QStringList allViewTypeIdents = KLFLibViewFactory::allSupportedViewTypeIdentifiers();
     int k;
     for (k = 0; k < allViewTypeIdents.size(); ++k) {
+      QString vtype = allViewTypeIdents[k];
       KLFLibViewFactory *factory =
-	KLFLibViewFactory::findFactoryFor(allViewTypeIdents[k]);
-      if (factory->canCreateLibView(allViewTypeIdents[k], pResource))
-	pOkViewTypeIdents << allViewTypeIdents[k];
+	KLFLibViewFactory::findFactoryFor(vtype);
+      bool thisViewTypeIdentOk = factory->canCreateLibView(vtype, pResource);
+      if (thisViewTypeIdentOk)
+	pOkViewTypeIdents << vtype;
+      // create an action for this view type
+      QAction *action = new QAction(pViewTypeActionGroup);
+      action->setText(factory->viewTypeTitle(vtype));
+      action->setCheckable(true);
+      connect(action, SIGNAL(triggered(bool)), actionSignalMapper, SLOT(map()));
+      actionSignalMapper->setMapping(action, vtype);
+      action->setEnabled(thisViewTypeIdentOk);
+      action->setData(vtype);
+      pViewTypeActions << action;
     }
+    connect(actionSignalMapper, SIGNAL(mapped(const QString&)), this, SLOT(openView(const QString&)));
 
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(slotCurrentChanged(int)));
   }
@@ -80,9 +104,15 @@ public:
 
   KLFAbstractLibView * view() { return qobject_cast<KLFAbstractLibView*>(currentWidget()); }
 
+  QString currentViewTypeIdentifier() {
+    return pOpenViewTypeIdents.key(currentIndex());
+  }
+
   QString defaultSubResource() { return pResource->defaultSubResource(); }
 
   QStringList supportedViewTypeIdentifiers() const { return pOkViewTypeIdents; }
+
+  QList<QAction*> viewTypeActions() const { return pViewTypeActions; }
 
   void setResourceRoleFlags(uint flags) {
     pResFlags = flags;
@@ -133,12 +163,14 @@ public:
   }
 
 public slots:
-  bool openView(const QString& viewTypeIdent) {
-
+  bool openView(const QString& viewTypeIdent)
+  {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
     // see if we already have this view type open and ready
     if (pOpenViewTypeIdents.contains(viewTypeIdent)) {
+      qDebug()<<KLF_FUNC_NAME<<": view type "<<viewTypeIdent<<" is already open at index ="
+	      <<pOpenViewTypeIdents[viewTypeIdent];
       setCurrentIndex(pOpenViewTypeIdents[viewTypeIdent]);
       return true;
     }
@@ -177,7 +209,9 @@ public slots:
       pResource->setViewType(viewTypeIdent);
     klf_debug_time_print_str()<<"set view type.";
 
+    blockSignals(true);
     int index = addWidget(v);
+    blockSignals(false);
     pOpenViewTypeIdents[viewTypeIdent] = index;
     klf_debug_time_print_str()<<"added widget, about to raise";
     setCurrentIndex(index);
@@ -188,6 +222,8 @@ public slots:
 
 signals:
   void viewContextMenuRequested(const QPoint& pos);
+
+  void viewTypeChanged(const QString&);
 
   void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
   void requestRestoreStyle(const KLFStyle& style);
@@ -219,9 +255,14 @@ protected slots:
       emit moreCategorySuggestions(categorylist);
   }
 
-  void slotCurrentChanged(int /*index*/) {
+  void slotCurrentChanged(int index) {
     KLFAbstractLibView *v = view();
     if (v == NULL) return;
+    QString vtype = pOpenViewTypeIdents.key(index);
+    int ai = findViewTypeAction(vtype);
+    if (ai >= 0)
+      pViewTypeActions[ai]->setChecked(true);
+    emit viewTypeChanged(vtype);
     emit entriesSelected(v->selectedEntries());
   }
 
@@ -231,8 +272,18 @@ protected:
 
   /** Stores the view type identifier with the index in widget stack for each open view */
   QMap<QString,int> pOpenViewTypeIdents;
+  QActionGroup *pViewTypeActionGroup;
+  QList<QAction*> pViewTypeActions;
 
   uint pResFlags;
+
+  int findViewTypeAction(const QString& vtype) {
+    int k;
+    for (k = 0; k < pViewTypeActions.size(); ++k)
+      if (pViewTypeActions[k]->data().toString() == vtype)
+	return k;
+    return -1;
+  }
 };
 
 
@@ -315,6 +366,247 @@ private:
 
 
 
+
+// -----------------------------------------------------------------
+
+
+/** \internal */
+class KLFLibExportDialog : public QDialog, public Ui::KLFLibExportDialog
+{
+  Q_OBJECT
+public:
+  enum { DataRole = Qt::UserRole, OldCheckStateRole } ;
+
+  KLFLibExportDialog(KLFLibBrowser *libbrowser, const QString& exportFilter)
+    : QDialog(libbrowser, 0), pLibBrowser(libbrowser), pModel(NULL),
+    pInSlotItemChanged(false)
+  {
+    setupUi(this);
+    setWindowModality(Qt::WindowModal);
+    setModal(true);
+
+    pathExportTo->setFilter(exportFilter);
+    pathExportTo->setPath(QDir::toNativeSeparators(QDir::homePath()+"/"+tr("klf_export.klf.db")));
+    pathExportTo->setFrameStyle(QFrame::NoFrame|QFrame::Plain);
+
+    pModel = new QStandardItemModel(this);
+    lstRes->setModel(pModel);
+
+    connect(pModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotItemChanged(QStandardItem*)));
+
+    populateExportList();
+  }
+
+  QUrl exportToUrl()
+  {
+    QUrl url = QUrl::fromLocalFile(pathExportTo->path());
+    url.setScheme("klf+sqlite");
+    return url;
+  }
+
+  QList<QUrl> selectedExportUrls()
+  {
+    QList<QUrl> urlList;
+    int k, j;
+    QStandardItem *root = pModel->invisibleRootItem();
+    for (k = 0; k < root->rowCount(); ++k) {
+      QStandardItem *resItem = root->child(k);
+      if (resItem->rowCount() > 0) {
+	// has specific sub-resources
+	for (j = 0; j < resItem->rowCount(); ++j) {
+	  if (resItem->child(j)->checkState() != Qt::Unchecked) {
+	    QUrl url = resItem->data(DataRole).toString();
+	    url.addQueryItem("klfDefaultSubResource", resItem->child(j)->data(DataRole).toString());
+	    urlList << url;
+	    continue;
+	  }
+	}
+      } else {
+	// no specific sub-resources, ie. the resource does not support sub-resources
+	if (resItem->checkState() != Qt::Unchecked)
+	  urlList << QUrl(resItem->data(DataRole).toString());
+      }
+    }
+    return urlList;
+  }
+
+private slots:
+
+  void slotItemChanged(QStandardItem *item)
+  {
+    if (pInSlotItemChanged)
+      return;
+    pInSlotItemChanged = true;
+    Qt::CheckState chk = item->checkState();
+    Qt::CheckState oldchk = (Qt::CheckState)item->data(OldCheckStateRole).toInt();
+    //    printf("Item %p maybe check state changed from %d to %d?\n", (void*)item,
+    //	   oldchk, chk);
+    if ((chk == Qt::Checked || chk == Qt::Unchecked) && oldchk != chk) {
+      //      printf("Item %p check state changed from %d to %d!\n", (void*)item, oldchk, chk);
+      // item was checked or un-checked
+      item->setData(chk, OldCheckStateRole);
+      // iterate its children and (un-)check them all
+      int k;
+      for (k = 0; k < item->rowCount(); ++k) {
+	//	printf("-->\n");
+	item->child(k)->setData(chk, OldCheckStateRole); // no update please
+	item->child(k)->setCheckState(chk);
+	//	printf("<--\n");
+      }
+      // and now set the parent's item check state to partially checked.
+      QStandardItem *p = item->parent();
+      if (p != NULL) {
+	//	printf("parent-->\n");
+	p->setData(Qt::PartiallyChecked, OldCheckStateRole);
+	p->setCheckState(Qt::PartiallyChecked);
+	//	printf("<--parent\n");
+      }
+      //      printf("Done processing item %p check state change from %d to %d\n", (void*)item, oldchk, chk);
+    }
+    pInSlotItemChanged = false;
+  }
+  
+private:
+  KLFLibBrowser *pLibBrowser;
+  QStandardItemModel *pModel;
+  bool pInSlotItemChanged;
+
+  void populateExportList()
+  {
+    pModel->clear();
+    pModel->setColumnCount(1);
+    pModel->setHorizontalHeaderLabels(QStringList()<<tr("Resource", "[[export list title]]"));
+    
+    QList<QUrl> openurls = pLibBrowser->openUrls();
+    int k, j;
+    for (k = 0; k < openurls.size(); ++k) {
+      KLFLibResourceEngine *res = pLibBrowser->getOpenResource(openurls[k]);
+      QStandardItem *parent = getResourceParentItem(res);
+      QStringList subreslist;
+      if (openurls[k].hasQueryItem("klfDefaultSubResource")) {
+	subreslist = QStringList() << openurls[k].queryItemValue("klfDefaultSubResource");
+      } else if (res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) {
+	// no default sub-resource is specified, so add them all
+	subreslist = res->subResourceList();
+      }
+      // add all subresources
+      for (j = 0; j < subreslist.size(); ++j) {
+	if (findSubResourceItem(res, subreslist[j]) != NULL)
+	  continue;
+	// create this item
+	QStandardItem *item = new QStandardItem;
+	item->setData(subreslist[j], DataRole);
+	QString srtitle;
+	if (res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps)
+	  srtitle =
+	    res->subResourceProperty(subreslist[j], KLFLibResourceEngine::SubResPropTitle).toString();
+	if (srtitle.isEmpty())
+	  srtitle = subreslist[j];
+	item->setText(srtitle);
+	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
+	item->setCheckState(Qt::Checked);
+	item->setData(item->checkState(), OldCheckStateRole);
+	parent->appendRow(item);
+	lstRes->setExpanded(pModel->indexFromItem(parent), true);
+      }
+    }
+  }
+
+  QStandardItem *getResourceParentItem(KLFLibResourceEngine *res)
+  {
+    QStandardItem *root = pModel->invisibleRootItem();
+    int j;
+    for (j = 0; j < root->rowCount(); ++j) {
+      if (root->child(j)->data(DataRole).value<QString>() == res->url().toString())
+	return root->child(j);
+    }
+    // not existent, need to create it
+    QStandardItem *item = new QStandardItem;
+    item->setData(QVariant::fromValue<QString>(res->url().toString()), DataRole);
+    item->setText(res->title());
+    item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
+    item->setCheckState(Qt::Checked);
+    item->setData(item->checkState(), OldCheckStateRole);
+    root->appendRow(item);
+    return item;
+  }
+
+  QStandardItem *findSubResourceItem(KLFLibResourceEngine *res, const QString& subResource)
+  {
+    QStandardItem *parent = getResourceParentItem(res);
+    int k;
+    for (k = 0; k < parent->rowCount(); ++k) {
+      if (parent->child(k)->data(DataRole) == subResource)
+	return parent->child(k);
+    }
+    return NULL;
+  }
+};
+
+
+
+
+/* * \internal */
+/*
+class KLFSignalUnmapper : public QObject
+{
+  Q_OBJECT
+public:
+  KLFSignalUnmapper(QObject *parent) : QObject(parent)
+  {
+  }
+  virtual ~KLFSignalUnmapper() { }
+
+  void registerObject(const QString& key, QObject *object, const QByteArray& member,
+		      QList<QGenericArgument> staticArgs)
+  {
+    UnmappedObject o;
+    o.key = key;
+    o.object = object;
+    o.member = member;
+    o.staticArgs = staticArgs;
+    unmappedObjects << o;
+    connect(o.object, SIGNAL(destroyed()), this, SLOT(unregisterObjectSender()));
+  }
+
+public slots:
+  void unmap(const QString& key) {
+    int k;
+    for (k = 0; k < unmappedObjects.size(); ++k) {
+      if (unmappedObjects[k].key == key) {
+	const QList<QGenericArgument>& al = unmappedObjects[k].staticArgs;
+	QMetaObject::invokeMethod(unmappedObjects[k].object, unmappedObjects[k].member,
+				  al.value(0), al.value(1), al.value(2), al.value(3), al.value(4),
+				  al.value(5), al.value(6), al.value(7), al.value(8), al.value(9));
+      }
+    }
+  }
+
+  void unregisterObject(QObject *object) {
+    int k;
+    for (k = 0; k < unmappedObjects.size(); ++k)
+      if (unmappedObjects[k].object == object)
+	unmappedObjects.removeAt(k);
+  }
+
+private slots:
+  void unregisterObjectSender() {
+    QObject *object = sender();
+    if (object == NULL)
+      return;
+    unregisterObject(object);
+  }
+
+private:
+  struct UnmappedObject {
+    QString key;
+    QObject *object;
+    QByteArray member;
+    QList<QGenericArgument> staticArgs;
+  };
+  QList<UnmappedObject> unmappedObjects;
+};
+*/
 
 
 

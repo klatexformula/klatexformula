@@ -58,8 +58,9 @@ namespace KLFLib {
  * (that's what KLFLibDefaultView does...).
  *
  * \note This class subclasses QWidget because it makes uses of signals and slots.
- *   Think before removing that inheritance or muting it to a QObject (subclasses will
- *   eventually want to inherit QWidget), no multiple QObject inheritance please!
+ *   Before editing this file to change that, think before removing that inheritance
+ *   or muting it to a QObject (subclasses will eventually want to inherit QWidget),
+ *   no multiple QObject inheritance please!
  *
  * \note Subclasses should emit the \ref resourceDataChanged() signal AFTER they
  *   refresh after a resource data change.
@@ -196,7 +197,6 @@ public slots:
    * Subclasses need not reimplement this function. */
   virtual void wantMoreCategorySuggestions();
 
-protected:
   virtual QStringList getCategorySuggestions() = 0;
 
 private:
@@ -456,6 +456,9 @@ class KLF_EXPORT KLFLibViewDelegate : public QAbstractItemDelegate
 {
   Q_OBJECT
 public:
+  /** Create a view delegate for displaying a KLFLibModel.
+   * \param parent the (QObject-)parent of this object.
+   */
   KLFLibViewDelegate(QObject *parent);
   virtual ~KLFLibViewDelegate();
 
@@ -473,9 +476,15 @@ public:
   virtual void setSearchString(const QString& s) { pSearchString = s; }
   virtual void setSearchIndex(const QModelIndex& index) { pSearchIndex = index; }
   virtual void setSelectionModel(QItemSelectionModel *sm) { pSelModel = sm; }
-  virtual void setIndexExpanded(const QModelIndex& index, bool isexpanded) {
-    pExpandedIndexes[QPersistentModelIndex(index)] = isexpanded;
-  }
+  /** If the delegate paints items in a QTreeView, then pass a pointer to it here to display nice
+   * selection markings under non-expanded tree items. Pass \c NULL to unset any previously set
+   * QTreeView pointer.
+   *
+   * By default, the internal tree view pointer is set to NULL. */
+  virtual void setTheTreeView(QTreeView *theTreeView) { pTheTreeView = theTreeView; }
+  //  virtual void setIndexExpanded(const QModelIndex& index, bool isexpanded) {
+  //    pExpandedIndexes[QPersistentModelIndex(index)] = isexpanded;
+  //  }
 
   virtual bool autoBackgroundItems() const { return pAutoBackgroundItems; }
   virtual void setAutoBackgroundItems(bool autoBgItems) { pAutoBackgroundItems = autoBgItems; }
@@ -502,17 +511,23 @@ protected:
   };
   virtual void paintText(PaintPrivate *p, const QString& text, uint flags = PTF_HighlightSearch) const;
 
-  virtual bool indexHasSelectedDescendant(const QModelIndex& index) const;
+  virtual bool indexHasSelectedDescendant(const QModelIndex& parent) const;
+  virtual bool selectionIntersectsIndexChildren(const QItemSelection& selection,
+						const QModelIndex& parent) const;
+  /** implements the core of \ref indexHasSelectedDescendant. use that instead. */
+  virtual bool func_indexHasSelectedDescendant(const QModelIndex& parent, const QTime& timer,
+					       int timeLimitMs) const;
 
 private:
   QString pSearchString;
   QModelIndex pSearchIndex;
   QItemSelectionModel *pSelModel;
+  QTreeView *pTheTreeView; //!< warning: this is possibly NULL! see \ref setTheTreeView()
 
   bool pAutoBackgroundItems;
   QColor pAutoBackgroundColor;
 
-  QMap<QPersistentModelIndex, bool> pExpandedIndexes;
+  //  QMap<QPersistentModelIndex, bool> pExpandedIndexes;
 
   struct ColorRegion {
     ColorRegion(QTextCharFormat f = QTextCharFormat(), int s = -1, int l = 0)
@@ -539,6 +554,8 @@ public:
 
   virtual QUrl url() const;
 
+  virtual bool groupSubCategories() const { return pGroupSubCategories; }
+
   virtual bool event(QEvent *e);
   virtual bool eventFilter(QObject *o, QEvent *e);
 
@@ -562,6 +579,8 @@ public:
   virtual bool autoBackgroundItems() const { return pDelegate->autoBackgroundItems(); }
   virtual QColor autoBackgroundColor() const { return pDelegate->autoBackgroundColor(); }
 
+  virtual QStringList getCategorySuggestions();
+
 public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
   virtual bool deleteSelected(bool requireConfirmation = true);
@@ -576,12 +595,18 @@ public slots:
   virtual void showColumns(int propIdColumn, bool show);
   virtual void sortBy(int propIdColumn, Qt::SortOrder sortorder);
 
-  virtual void slotSelectAll(const QModelIndex& parent = QModelIndex());
+  /** Selects all children of \c parent (by default a QModelIndex(), so this function selects
+   * all items). rootCall is internal and should always be set to TRUE. */
+  virtual void slotSelectAll(const QModelIndex& parent = QModelIndex(), bool rootCall = true);
   virtual void slotRelayoutIcons();
   virtual void slotLockIconPositions(bool locked);
 
   virtual void setAutoBackgroundItems(bool on) { pDelegate->setAutoBackgroundItems(on); }
   virtual void setAutoBackgroundColor(const QColor& c) { pDelegate->setAutoBackgroundColor(c); }
+
+  /** \warning This function takes effect upon the next change of resource engine, ie the next
+   * call of \ref KLFLibAbstractView::setResourceEngine() */
+  virtual void setGroupSubCategories(bool yesOrNo) { pGroupSubCategories = yesOrNo; }
 
 protected:
   virtual void updateResourceView();
@@ -589,7 +614,6 @@ protected:
   virtual void updateResourceData(const QString& subRes, int modifyType,
 				  const QList<KLFLib::entryId>& entryIdList);
   virtual void updateResourceOwnData(const QList<KLFLib::entryId>& entryIdList);
-  virtual QStringList getCategorySuggestions();
 
 protected slots:
   void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
@@ -597,8 +621,8 @@ protected slots:
   void slotViewItemClicked(const QModelIndex& index);
   void slotEntryDoubleClicked(const QModelIndex& index);
 
-  void slotExpanded(const QModelIndex& index);
-  void slotCollapsed(const QModelIndex& index);
+  //  void slotExpanded(const QModelIndex& index);
+  //  void slotCollapsed(const QModelIndex& index);
 
   void slotShowColumnSenderAction(bool showCol);
 
@@ -612,6 +636,8 @@ private:
   //  QTreeView *pTreeView;
   KLFLibViewDelegate *pDelegate;
   KLFLibModel *pModel;
+
+  bool pGroupSubCategories;
 
   QList<QAction*> pCommonActions;
   QList<QAction*> pShowColumnActions;
@@ -693,8 +719,6 @@ public:
   KLFLibCreateResourceDlg(const QString& defaultWtype, QWidget *parent = 0);
   virtual ~KLFLibCreateResourceDlg();
 
-  /** An additional parameter <tt>p["klfScheme"] = QString(...scheme...)</tt> is
-   * set in the return value to reflect the chosen scheme. */
   virtual Parameters getCreateParameters() const;
 
   static KLFLibResourceEngine *createResource(const QString& defaultWtype, QObject *resourceParent,
@@ -800,13 +824,32 @@ private:
 
 
 
-
+/** \brief Interface for guessing file schemes
+ *
+ * This class provides the basic interface for customizing known local file types, and
+ * guessing their corresponding schemes. */
 class KLF_EXPORT KLFLibLocalFileSchemeGuesser
 {
 public:
   KLFLibLocalFileSchemeGuesser();
   ~KLFLibLocalFileSchemeGuesser();
 
+  //! Guess the appropriate scheme for handling the given file
+  /** Reimplentations of this function must guess what scheme fileName is to be opened
+   * with.
+   *
+   * By \a scheme we mean the URL scheme, ie. the scheme that the correct subclass of
+   * \ref KLFLibEngineFactory reports being capable of opening (eg. \c "klf+sqlite").
+   *
+   * In reimplementations of this function, first the filename extension should be checked. If
+   * it is not known, then the file can be peeked into for magic headers.
+   *
+   * If the scheme cannot be guessed, then the reimplementation should return an empty string.
+   *
+   * \note the \c fileName does not necessarily exist. (keep that in mind before reporting
+   *   an error that you can't open the file to read a magic header). In that case, a
+   *   simple test should be performed on the file extension.
+   */
   virtual QString guessScheme(const QString& fileName) const = 0;
 };
 
@@ -850,6 +893,13 @@ public:
   virtual QWidget * createPromptCreateParametersWidget(QWidget *parent, const QString& scheme,
 						       const Parameters& defaultparameters = Parameters());
 
+  /** The parameters returned by this function depends on the \c scheme.
+   *
+   * <b>Scheme \c "LocalFile"</b>
+   * - \c "Filename" : the selected local file name
+   * - \c "klfRetry", \c "klfScheme" as documented in
+   *   \ref KLFLibWidgetFactory::retrieveCreateParametersFromWidget().
+   */
   virtual Parameters retrieveCreateParametersFromWidget(const QString& scheme, QWidget *widget);
 
 
@@ -858,6 +908,7 @@ public:
    * factories. This is then used to provide a useful filter choice in file dialogs.
    */
   static void addLocalFileType(const LocalFileType& fileType);
+  static QList<LocalFileType> localFileTypes();
 
   static QString guessLocalFileScheme(const QString& fileName);
 

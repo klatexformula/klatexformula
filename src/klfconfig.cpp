@@ -201,6 +201,7 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.colorFound = QColor(128, 255, 128);
   LibraryBrowser.colorNotFound = QColor(255, 128, 128);
   LibraryBrowser.restoreURLs = false;
+  LibraryBrowser.groupSubCategories = true;
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }
@@ -222,6 +223,19 @@ int KLFConfig::ensureHomeConfigDir()
 
   return 0;
 }
+
+
+bool KLFConfig::checkExePaths()
+{
+  return QFileInfo(BackendSettings.execLatex).isExecutable() &&
+    QFileInfo(BackendSettings.execDvips).isExecutable() &&
+    QFileInfo(BackendSettings.execGs).isExecutable() &&
+    ( BackendSettings.execEpstopdf.isEmpty() ||
+      QFileInfo(BackendSettings.execEpstopdf).isExecutable()) ;
+}
+
+
+
 
 int KLFConfig::readFromConfig()
 {
@@ -343,6 +357,7 @@ int KLFConfig::readFromConfig_v2()
   klf_settings_read(s, "colorfound", &LibraryBrowser.colorFound);
   klf_settings_read(s, "colornotfound", &LibraryBrowser.colorNotFound);
   klf_settings_read(s, "restoreurls", &LibraryBrowser.restoreURLs);
+  klf_settings_read(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
@@ -428,6 +443,7 @@ int KLFConfig::writeToConfig()
   klf_settings_write(s, "colorfound", &LibraryBrowser.colorFound);
   klf_settings_write(s, "colornotfound", &LibraryBrowser.colorNotFound);
   klf_settings_write(s, "restoreurls", &LibraryBrowser.restoreURLs);
+  klf_settings_write(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig

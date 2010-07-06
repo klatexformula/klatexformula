@@ -148,6 +148,9 @@ public:
   static QString tagsFromLatex(const QString& latex);
   /** Removes legacy-style category and tags comment from latex string */
   static QString stripCategoryTagsFromLatex(const QString& latex);
+  /** Creates a latex with category and tags comments */
+  static QString latexAddCategoryTagsComment(const QString& latex, const QString& category,
+					     const QString& tags);
 
 private:
   
@@ -1371,10 +1374,12 @@ public:
    * The parameters' structure are defined for each widget type. That is, if the
    * \ref correspondingWidgetType() for a given scheme is eg. \c "LocalFile", then the
    * parameters are defined by whatever the \c "LocalFile" widget sets. For example
-   * \c "LocalFile" documents its parameters in class \ref KLFLibBasicWidgetFactory :
-   * parameter \c "Filename" contains a QString with the entered local file name.
+   * \c "LocalFile" documents its parameters in
+   * \ref KLFLibBasicWidgetFactory::retrieveCreateParametersFromWidget(), eg. parameter
+   * \c "Filename" contains a QString with the entered local file name.
+   *
    * Additional parameters may also be set by KLFLibCreateResourceDlg itself (eg.
-   * default sub-resource name/title, TODO)
+   * default sub-resource name/title, .........TODO............)
    *
    * The default implementation of this function does nothing and returns \c NULL. To enable
    * creating resources, reimplement \ref schemeFunctions() to return also \ref FuncCreate
@@ -1538,13 +1543,13 @@ public:
   /** Get the parameters edited by user, that are stored in \c widget GUI.
    *
    * Some special parameters are recognized by the system:
-   * * <tt>param["klfScheme"]=<i>url-scheme</i></tt> is MANDATORY: it tells the caller which kind
+   * - <tt>param["klfScheme"]=<i>url-scheme</i></tt> is MANDATORY: it tells the caller which kind
    *   of scheme the resource should be.
-   * * <tt>param["klfRetry"]=true</tt> will cause the dialog not to exit but re-prompt user to
+   * - <tt>param["klfRetry"]=true</tt> will cause the dialog not to exit but re-prompt user to
    *   possibly change his input (could result from user clicking "No" in a "Overwrite?"
    *   dialog presented in a possible reimplementation of this function).
-   * * <tt>param["klfCancel"]=true</tt> will cause the "create resource" process to be cancelled.
-   * * Not directly recognized by the system, but a common standard: <tt>param["klfDefaultSubResource"]</tt>
+   * - <tt>param["klfCancel"]=true</tt> will cause the "create resource" process to be cancelled.
+   * - Not directly recognized by the system, but a common standard: <tt>param["klfDefaultSubResource"]</tt>
    *   is the name of the default sub-resource to create if the resource supports sub-resources,
    *   and <tt>param["klfDefaultSubResourceTitle"]</tt> its title, if the resource supports sub-resource
    *   properties.

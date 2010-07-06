@@ -68,6 +68,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pResourceMenu = new QMenu(u->tabResources);
   // connect actions
   connect(u->aRename, SIGNAL(triggered()), this, SLOT(slotResourceRename()));
+  connect(u->aRenameSubRes, SIGNAL(triggered()), this, SLOT(slotResourceRenameSubResource()));
   connect(u->aProperties, SIGNAL(triggered()), this, SLOT(slotResourceProperties()));
   connect(u->aNewSubRes, SIGNAL(triggered()), this, SLOT(slotResourceNewSubRes()));
   connect(u->aSaveTo, SIGNAL(triggered()), this, SLOT(slotResourceSaveTo()));
@@ -76,6 +77,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   connect(u->aClose, SIGNAL(triggered()), this, SLOT(slotResourceClose()));
   // and add them to menu
   pResourceMenu->addAction(u->aRename);
+  pResourceMenu->addAction(u->aRenameSubRes);
   pResourceMenu->addAction(u->aProperties);
   pResourceMenu->addAction(u->aNewSubRes);
   pResourceMenu->addAction(u->aSaveTo);
@@ -107,6 +109,17 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   connect(u->btnRestore, SIGNAL(clicked()), this, SLOT(slotRestoreWithStyle()));
   connect(u->btnDelete, SIGNAL(clicked()), this, SLOT(slotDeleteSelected()));
   connect(u->aDelete, SIGNAL(triggered()), u->btnDelete, SLOT(animateClick()));
+
+  // IMPORT/EXPORT
+
+  pImportExportMenu = new QMenu(this);
+  pImportExportMenu->addAction(u->aOpenAll);
+  pImportExportMenu->addAction(u->aExport);
+  u->btnImportExport->setMenu(pImportExportMenu);
+
+  connect(u->aOpenAll, SIGNAL(triggered()), this, SLOT(slotOpenAll()));
+  connect(u->aExport, SIGNAL(triggered()), this, SLOT(slotExport()));
+  
 
   // CATEGORY/TAGS
 
@@ -161,6 +174,11 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   (void)new QShortcut(QKeySequence(tr("Ctrl+R", "[[find]]")), this, SLOT(slotSearchFindPrev()));
   // Esc will be captured through event filter so that it isn't too obstrusive...
   //  (void)new QShortcut(QKeySequence(tr("Esc", "[[abort find]]")), this, SLOT(slotSearchAbort()));
+  // cut/copy/paste
+  (void)new QShortcut(QKeySequence::Delete, this, SLOT(slotDeleteSelected()));
+  (void)new QShortcut(QKeySequence::Cut, this, SLOT(slotCut()));
+  (void)new QShortcut(QKeySequence::Copy, this, SLOT(slotCopy()));
+  (void)new QShortcut(QKeySequence::Paste, this, SLOT(slotPaste()));
 
   retranslateUi(false);
 
@@ -465,11 +483,15 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
   }
 
   KLFLibEngineFactory * factory = KLFLibEngineFactory::findFactoryFor(url.scheme());
-  if ( factory == NULL )
+  if ( factory == NULL ) {
+    qWarning()<<KLF_FUNC_NAME<<": failed to find appropriate factory for url="<<url.toString()<<"!";
     return false;
+  }
   KLFLibResourceEngine * resource = factory->openResource(url, this);
-  if ( resource == NULL )
+  if ( resource == NULL ) {
+    qWarning()<<KLF_FUNC_NAME<<": factory failed to open resource "<<url.toString()<<"!";
     return false;
+  }
 
   // go on opening resource with our sister function
   return openResource(resource, resourceRoleFlags, viewTypeIdentifier);
@@ -629,7 +651,8 @@ void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *viewc, u
 
 void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 {
-  qDebug()<<"KLFLibBrowser::slotTabResourceShown("<<tabIndex<<")";
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  qDebug()<<"\t tabIndex="<<tabIndex;
   KLFLibBrowserViewContainer * viewc =
     qobject_cast<KLFLibBrowserViewContainer*>(u->tabResources->widget(tabIndex));
   if (viewc == NULL || tabIndex < 0) {
@@ -638,17 +661,12 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
   }
 
   // set up view type menu appropriately
-  QStringList vtypes = viewc->supportedViewTypeIdentifiers();
-  int k;
+  QList<QAction*> actions = viewc->viewTypeActions();
   QMenu *menu = new QMenu(this);
-  QSignalMapper *signalmapper = new QSignalMapper(menu);
-  for (k = 0; k < vtypes.size(); ++k) {
-    KLFLibViewFactory *factory =
-      KLFLibViewFactory::findFactoryFor(vtypes[k]);
-    QAction *a = menu->addAction(factory->viewTypeTitle(vtypes[k]), signalmapper, SLOT(map()));
-    signalmapper->setMapping(a, vtypes[k]);
+  int k;
+  for (k = 0; k < actions.size(); ++k) {
+    menu->addAction(actions[k]);
   }
-  connect(signalmapper, SIGNAL(mapped(const QString&)), viewc, SLOT(openView(const QString&)));
   // and replace the old menu with the new one.
   QMenu *oldmenu = u->aViewType->menu();
   if (oldmenu != NULL) {
@@ -656,6 +674,9 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
     delete oldmenu;
   }
   u->aViewType->setMenu(menu);
+
+  // DEBUG
+  //  viewc->openView("default+list");
 
   // refresh selection-related displays
   slotEntriesSelected(viewc->view()->selectedEntries());
@@ -673,31 +694,53 @@ void KLFLibBrowser::slotShowTabContextMenu(const QPoint& pos)
 
 void KLFLibBrowser::slotResourceRename()
 {
+  slotResourceRename(false);
+}
+void KLFLibBrowser::slotResourceRenameSubResource()
+{
+  slotResourceRename(true);
+}
+void KLFLibBrowser::slotResourceRename(bool renamingSubResource)
+{
   int tab = u->tabResources->currentIndex();
-  KLFLibBrowserViewContainer * view = curView();
-  if (tab < 0 || view == NULL)
+  KLFLibBrowserViewContainer * viewc = curView();
+  if (tab < 0 || viewc == NULL)
     return;
 
-  qDebug()<<"Rename!";
+  qDebug()<<KLF_FUNC_NAME<<": Rename! renamingSubResource="<<renamingSubResource;
 
-  if ( ! view->resourceEngine()->canModifyProp(KLFLibResourceEngine::PropTitle) )
+  KLFLibResourceEngine *res = viewc->resourceEngine();
+
+  if ( ! renamingSubResource && ! res->canModifyProp(KLFLibResourceEngine::PropTitle) )
+    return;
+
+  if ( renamingSubResource &&
+       ( !(res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) ||
+	 !(res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps) ||
+	 !(res->canModifySubResourceProperty(res->defaultSubResource(),
+					     KLFLibResourceEngine::SubResPropTitle))
+	 ) )
     return;
 
   QLineEdit * editor = new QLineEdit(u->tabResources);
   editor->setGeometry(u->tabResources->getTabRect(tab));
   editor->show();
-  editor->setText(view->resourceEngine()->title());
+  if (!renamingSubResource)
+    editor->setText(res->title());
+  else
+    editor->setText(res->subResourceProperty(res->defaultSubResource(),
+					     KLFLibResourceEngine::SubResPropTitle).toString());
   editor->setFocus();
-  editor->setProperty("tabURL", viewForTabIndex(tab)->resourceEngine()->url());
+  editor->setProperty("tabURL", viewc->url());
   editor->setProperty("resourceTitleEditor", true);
   editor->setProperty("needsBackground", true);
+  editor->setProperty("renamingSubResource", renamingSubResource);
   editor->setStyleSheet("");
   editor->installEventFilter(this);
 
   // kill editor if tab changes
   connect(u->tabResources, SIGNAL(currentChanged(int)), editor, SLOT(deleteLater()));
   connect(editor, SIGNAL(returnPressed()), this, SLOT(slotResourceRenameFinished()));
-
 }
 
 void KLFLibBrowser::slotResourceRenameFinished()
@@ -705,10 +748,22 @@ void KLFLibBrowser::slotResourceRenameFinished()
   QObject * editor = sender();
   if (editor == NULL) {
     qWarning("KLFLibBrowser::slotResourceRenameFinished: no sender!");
+    return;
   }
+  bool isRenamingSubResource = editor->property("renamingSubResource").toBool();
   QUrl url = editor->property("tabURL").toUrl();
-  KLFLibBrowserViewContainer * view = findOpenUrl(url);
-  view->resourceEngine()->setTitle(editor->property("text").toString());
+  KLFLibBrowserViewContainer * viewc = findOpenUrl(url);
+  if (viewc == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": can't find the resource with URL "<<url;
+    return;
+  }
+  KLFLibResourceEngine *res = viewc->resourceEngine();
+  QString text = editor->property("text").toString();
+  if (!isRenamingSubResource)
+    res->setTitle(text);
+  else
+    res->setSubResourceProperty(res->defaultSubResource(), KLFLibResourceEngine::SubResPropTitle,
+				QVariant::fromValue<QString>(text));
 
   editor->deleteLater();
 }
@@ -932,6 +987,9 @@ void KLFLibBrowser::slotDeleteSelected()
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
+  if ( !view->resourceEngine()->canModifyData(KLFLibResourceEngine::DeleteData) )
+    return;
+
   view->deleteSelected();
 }
 
@@ -939,6 +997,7 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
 {
   bool master = false;
   bool canrename = false;
+  bool canrenamesubres = false;
   bool cansaveto = false;
   bool cannewsubres = false;
   uint resrolefl = 0;
@@ -954,9 +1013,14 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
     resrolefl = view->resourceRoleFlags();
     cannewsubres = (resfeatureflags & KLFLibResourceEngine::FeatureSubResources) &&
       (res->canCreateSubResource());
+    canrenamesubres = (resfeatureflags & KLFLibResourceEngine::FeatureSubResources) &&
+      (resfeatureflags & KLFLibResourceEngine::FeatureSubResourceProps) &&
+      res->canModifySubResourceProperty(res->defaultSubResource(),
+					KLFLibResourceEngine::SubResPropTitle) ;
   }
 
   u->aRename->setEnabled(canrename);
+  u->aRenameSubRes->setEnabled(canrenamesubres);
   u->aProperties->setEnabled(master);
   u->aNewSubRes->setEnabled(master && cannewsubres);
   u->aSaveTo->setEnabled(master && cansaveto);
@@ -1005,6 +1069,10 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   QAction *a2 = menu->addAction(QIcon(":/pics/restore.png"), tr("Restore latex formula only"),
 				view, SLOT(restoreLatexOnly()));
   menu->addSeparator();
+  // NOTE: the QKeySequences given here are only for display in the context menu. Their functionality
+  // is due to additional QShortcuts declared in the constructor. (!) (reason: these actions are
+  // short-lived, and having global actions would require keeping their enabled status up-to-date
+  // + we want to add view-given context menu actions dynamically)
   QAction *acut = menu->addAction(QIcon(":/pics/cut.png"), tr("Cut"), this, SLOT(slotCut()),
 				  QKeySequence::Cut);
   QAction *acopy = menu->addAction(QIcon(":/pics/copy.png"), tr("Copy"), this, SLOT(slotCopy()),
@@ -1013,7 +1081,7 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 				  QKeySequence::Paste);
   menu->addSeparator();
   QAction *adel = menu->addAction(QIcon(":/pics/delete.png"), tr("Delete from library"),
-				  view, SLOT(deleteSelected()));
+				  view, SLOT(deleteSelected()), QKeySequence::Delete);
   menu->addSeparator();
 
   QMenu *copytomenu = new QMenu;
@@ -1081,7 +1149,7 @@ void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
   QWidget *w = u->tabResources->currentWidget();
   KLFLibBrowserViewContainer *wviewc = qobject_cast<KLFLibBrowserViewContainer*>(w);
   if (wviewc == NULL) {
-    qWarning("Current view is not a KLFLibBrowserViewContainer!");
+    qWarning("Current view is not a KLFLibBrowserViewContainer or no current tab widget!");
     return;
   }
   KLFAbstractLibView * wview = wviewc->view();
@@ -1279,6 +1347,10 @@ void KLFLibBrowser::slotCut()
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
+  if ( view->selectedEntries().size() == 0 ||
+       !view->resourceEngine()->canModifyData(KLFLibResourceEngine::DeleteData) )
+    return;
+
   slotCopy();
   view->deleteSelected(false);
 }
@@ -1286,6 +1358,8 @@ void KLFLibBrowser::slotCopy()
 {
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
+    return;
+  if ( view->selectedEntries().size() == 0 )
     return;
 
   KLFLibEntryList elist = view->selectedEntries();
@@ -1316,6 +1390,89 @@ void KLFLibBrowser::slotPaste()
   view->insertEntries(elist);
 }
 
+
+void KLFLibBrowser::slotOpenAll()
+{
+  QStringList exportFilterList;
+  QStringList filterlist;
+  QString exportFilter;
+  QList<KLFLibBasicWidgetFactory::LocalFileType> locfiletypes = KLFLibBasicWidgetFactory::localFileTypes();
+  int k;
+  for (k = 0; k < locfiletypes.size(); ++k) {
+    exportFilterList << locfiletypes[k].filter;
+    filterlist << locfiletypes[k].filepattern;
+  }
+  exportFilterList.prepend(tr("All Known Library Files (%1)").arg(filterlist.join(" ")));
+  exportFilterList << tr("All Files (*)");
+  exportFilter = exportFilterList.join(";;");
+  QString selectedFilter;
+  QString fn = QFileDialog::getOpenFileName(this, tr("Open Library File"), QDir::homePath(),
+					    exportFilter, &selectedFilter);
+  if (fn.isEmpty())
+    return;
+  int ifilter = exportFilterList.indexOf(selectedFilter);
+  ifilter--; // index in locfiletypes now
+  QString selectedScheme;
+  if (ifilter >= 0 && ifilter < locfiletypes.size()) {
+    selectedScheme = locfiletypes[ifilter].scheme;
+  } else {
+    selectedScheme = KLFLibBasicWidgetFactory::guessLocalFileScheme(fn);
+  }
+  if (!QFileInfo(fn).isReadable()) {
+    qWarning()<<KLF_FUNC_NAME<<": The given file name is not readable: "<<fn;
+    QMessageBox::critical(this, tr("Error"), tr("The given file cannot be read: %1").arg(fn));
+    return;
+  }
+  if (selectedScheme.isEmpty()) {
+    QMessageBox::critical(this, tr("Error"), tr("Unknown open file scheme!"));
+    return;
+  }
+
+  QUrl baseUrl = QUrl::fromLocalFile(fn);
+  baseUrl.setScheme(selectedScheme);
+  QStringList subreslist = KLFLibEngineFactory::listSubResources(baseUrl);
+  for (k = 0; k < subreslist.size(); ++k) {
+    QUrl url = baseUrl;
+    url.addQueryItem("klfDefaultSubResource", subreslist[k]);
+    bool r = openResource(url);
+    if ( !r )
+      QMessageBox::critical(this, tr("Error"), tr("Failed to open resource %1!").arg(url.toString()));
+  }
+}
+
+bool KLFLibBrowser::slotExport()
+{
+  /** \bug use any known local-file-based export filter (supporting sub-resources), using a
+   * create-local-file-widget */
+  const QString exportFilter = tr("Library Database File (*.klf.db);;All Files (*)");
+  KLFLibExportDialog dlg(this, exportFilter);
+  dlg.exec();
+  qDebug()<<KLF_FUNC_NAME<<": Exporting : "<<dlg.selectedExportUrls();
+
+  if (dlg.result() != QDialog::Accepted)
+    return false;
+
+  QUrl exportToUrl = dlg.exportToUrl();
+  QList<QUrl> exportUrls = dlg.selectedExportUrls();
+
+  KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(exportToUrl.scheme());
+  if (factory == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": No factory found for "<<exportToUrl;
+    return false;
+  }
+  KLFLibWidgetFactory::Parameters param;
+  param["Filename"] = exportToUrl.path();
+  param["klfScheme"] = exportToUrl.scheme();
+  KLFLibResourceEngine *exportRes = factory->createResource(exportToUrl.scheme(), param, this);
+  if (exportRes == NULL) {
+    QMessageBox::critical(this, tr("Error"),
+			  tr("Can't create resource %1!").arg(exportToUrl.path()));
+    return false;
+  }
+  /** \bug  ................................. IMPLEMENT THIS .............................. */
+  QMessageBox::information(this, "..............", "NOT YET IMPLEMENTED !!");
+  return false;
+}
 
 void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& text)
 {

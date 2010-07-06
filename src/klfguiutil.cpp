@@ -121,18 +121,20 @@ void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressRepo
 
 
 KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent)
-  : QLabel(text, parent,
+  : QLabel(text, NULL,
 	   Qt::SplashScreen|Qt::FramelessWindowHint|
 	   Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint),
-    pGotPaintEvent(false)
+    pParentWidget(parent), pDisableUi(false), pGotPaintEvent(false)
 {
   QFont f = font();
   f.setPointSize(QFontInfo(f).pointSize() + 2);
   setFont(f);
   setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
+  setWindowModality(Qt::ApplicationModal);
   // let this window be styled by skins
   setAttribute(Qt::WA_StyledBackground, true);
   setProperty("klfTopLevelWidget", QVariant(true));
+  setStyleSheet(parent->window()->styleSheet());
   //  // set basic minimalistic style sheet to ensure that it is readable...
   //  setStyleSheet("background-color: #e0dfd8; background-image: url(); color: black;");
 
@@ -142,6 +144,13 @@ KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent)
 }
 KLFPleaseWaitPopup::~KLFPleaseWaitPopup()
 {
+  if (pDisableUi && pParentWidget != NULL)
+    pParentWidget->setEnabled(true);
+}
+
+void KLFPleaseWaitPopup::setDisableUi(bool disableUi)
+{
+  pDisableUi = disableUi;
 }
 
 void KLFPleaseWaitPopup::showPleaseWait()
@@ -150,6 +159,9 @@ void KLFPleaseWaitPopup::showPleaseWait()
   move(desktopSize.width()/2 - width()/2, desktopSize.height()/2 - height()/2);
   show();
   setStyleSheet(styleSheet());
+
+  if (pDisableUi && pParentWidget != NULL)
+    pParentWidget->setEnabled(false);
 
   while (!pGotPaintEvent)
     qApp->processEvents();
@@ -169,4 +181,21 @@ void KLFPleaseWaitPopup::paintEvent(QPaintEvent *event)
 
 
 
-
+KLFDelayedPleaseWaitPopup::KLFDelayedPleaseWaitPopup(const QString& text, QWidget *callingWidget)
+  : KLFPleaseWaitPopup(text, callingWidget), pDelay(1000)
+{
+  timer.start();
+}
+KLFDelayedPleaseWaitPopup::~KLFDelayedPleaseWaitPopup()
+{
+}
+void KLFDelayedPleaseWaitPopup::setDelay(int ms)
+{
+  pDelay = ms;
+}
+void KLFDelayedPleaseWaitPopup::process()
+{
+  if (!pleaseWaitShown() && timer.elapsed() > pDelay)
+    showPleaseWait();
+  qApp->processEvents();
+}

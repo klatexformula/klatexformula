@@ -32,6 +32,7 @@
 #include <QProgressDialog>
 #include <QMouseEvent>
 #include <QPaintEvent>
+#include <QTime>
 
 #include <klfutil.h>
 
@@ -125,8 +126,22 @@ class KLFPleaseWaitPopup : public QLabel
 {
   Q_OBJECT
 public:
-  KLFPleaseWaitPopup(const QString& text, QWidget *parent = NULL);
+  /** \note this popup is made parentless. it will not be automatically destroyed.
+   *    The common use is to create it on the stack, eg.
+   * \code
+   *   void MyWidget::longFunction() {
+   *     KLFPleaseWaitPopup popup(..., this);
+   *     popup.showPleaseWait();
+   *     ... // long execution time code, with if possible regular calls to qApp->processEvents()
+   *   }
+   * \endcode
+   */
+  KLFPleaseWaitPopup(const QString& text, QWidget *callingWidget = NULL);
   virtual ~KLFPleaseWaitPopup();
+
+  virtual void setDisableUi(bool disableUi);
+
+  virtual bool pleaseWaitShown() { return pGotPaintEvent; }
 
 public slots:
   virtual void showPleaseWait();
@@ -136,9 +151,28 @@ protected:
   virtual void paintEvent(QPaintEvent *event);
 
 private:
+  QWidget *pParentWidget;
+  bool pDisableUi;
   bool pGotPaintEvent;
 };
 
+
+class KLFDelayedPleaseWaitPopup : public KLFPleaseWaitPopup
+{
+  Q_OBJECT
+public:
+  KLFDelayedPleaseWaitPopup(const QString& text, QWidget *callingWidget = NULL);
+  virtual ~KLFDelayedPleaseWaitPopup();
+
+  virtual void setDelay(int ms);
+
+public slots:
+  virtual void process();
+
+private:
+  int pDelay;
+  QTime timer;
+};
 
 
 

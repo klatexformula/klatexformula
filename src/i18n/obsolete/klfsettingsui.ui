@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <author>Ph. Faist</author>
- <class>KLFSettings</class>
- <widget class="QDialog" name="KLFSettings">
+ <class>KLFSettingsUI</class>
+ <widget class="QDialog" name="KLFSettingsUI">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -25,7 +25,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="klfres.qrc">
-    <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
+    <normaloff>:/pics/hi16-app-klatexformula.png</normaloff>:/pics/hi16-app-klatexformula.png</iconset>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -173,20 +173,20 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblPreviewSizePrompt">
-            <property name="text">
-             <string>Preview size:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="4">
+          <item row="0" column="0" colspan="4">
            <widget class="QCheckBox" name="chkEnableRealTimePreview">
             <property name="text">
              <string>Preview formulas as you type</string>
             </property>
             <property name="checked">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblPreviewSizePrompt">
+            <property name="text">
+             <string>Preview size:</string>
             </property>
            </widget>
           </item>
@@ -263,7 +263,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="4">
+          <item row="0" column="0" colspan="4">
            <widget class="QCheckBox" name="chkEnableToolTipPreview">
             <property name="text">
              <string>Show bigger preview in a tooltip on mouse hover</string>
@@ -1220,37 +1220,6 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabLibBrowser">
-      <attribute name="title">
-       <string>Library</string>
-      </attribute>
-      <widget class="QCheckBox" name="chkLibRestoreURLs">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>30</y>
-         <width>431</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Restore open resources at startup</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="chkLibGroupSubCategories">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>60</y>
-         <width>251</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Group Sub-Categories at top of lists</string>
-       </property>
-      </widget>
-     </widget>
      <widget class="QWidget" name="tabAddOns">
       <attribute name="title">
        <string>Add-Ons</string>
@@ -1337,8 +1306,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>360</width>
-                <height>167</height>
+                <width>211</width>
+                <height>156</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1504,8 +1473,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>349</width>
-                   <height>215</height>
+                   <width>204</width>
+                   <height>197</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1570,7 +1539,7 @@
             <x>0</x>
             <y>0</y>
             <width>562</width>
-            <height>503</height>
+            <height>495</height>
            </rect>
           </property>
           <attribute name="label">

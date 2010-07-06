@@ -329,6 +329,7 @@ if(DOXYGEN)
     COMMENT "Creating API doc archive"
     VERBATIM
   )
+  add_dependencies(doc_klflib  doc_klfbackend) # depends on klfbackend.tag
   add_dependencies(doc  doc_klfbackend doc_klflib)
   
   message(STATUS "doxygen API documentation can be generated with 'make doc'")

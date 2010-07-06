@@ -490,6 +490,7 @@ bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
 
 bool KLFLibLegacyEngine::save()
 {
+  qDebug()<<KLF_FUNC_NAME<<"() our url="<<url()<<".";
   if (isReadOnly()) {
     qWarning("KLFLibLegacyEngine::save: resource is read-only!");
     return false;
@@ -556,7 +557,7 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
     for (libindex = 0; libindex < ll.size() && ll[libindex].id != (quint32)idlist[k]; ++libindex)
       ;
     if (libindex == ll.size()) {
-      qWarning()<<"KLFLibLegacyEngine::changeEntries: Can't find entry with id "<<idlist[k];
+      qWarning()<<KLF_FUNC_NAME<<": Can't find entry with id "<<idlist[k];
       success = false;
       continue;
     }
@@ -564,8 +565,13 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
     for (j = 0; j < properties.size(); ++j) {
       switch (properties[j]) {
       case KLFLibEntry::Latex:
-	pLibrary[pResources[index]][libindex].latex = values[j].toString();
-	break;
+	// remember that entry.latex has redundancy for category+tags in the form "%: ...\n% ...\n<latex>"
+	{ QString curcategory = pLibrary[pResources[index]][libindex].category;
+	  QString curtags = pLibrary[pResources[index]][libindex].tags;
+	  pLibrary[pResources[index]][libindex].latex =
+	    KLFLibEntry::latexAddCategoryTagsComment(values[j].toString(), curcategory, curtags);
+	  break;
+	}
       case KLFLibEntry::DateTime:
 	pLibrary[pResources[index]][libindex].datetime = values[j].toDateTime();
 	break;
@@ -573,22 +579,45 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
 	pLibrary[pResources[index]][libindex].preview = QPixmap::fromImage(values[j].value<QImage>());
 	break;
       case KLFLibEntry::Category:
-	pLibrary[pResources[index]][libindex].category = values[j].toString();
-	break;
+	// remember that entry.latex has redundancy for category+tags in the form "%: ...\n% ...\n<latex>"
+	{ QString curlatex =
+	    KLFLibEntry::stripCategoryTagsFromLatex(pLibrary[pResources[index]][libindex].latex);
+	  QString newcategory = values[j].toString();
+	  QString curtags = pLibrary[pResources[index]][libindex].tags;
+	  pLibrary[pResources[index]][libindex].latex =
+	    KLFLibEntry::latexAddCategoryTagsComment(curlatex, newcategory, curtags);
+	  pLibrary[pResources[index]][libindex].category = newcategory;
+	  break;
+	}
       case KLFLibEntry::Tags:
-	pLibrary[pResources[index]][libindex].tags = values[j].toString();
+	// remember that entry.latex has redundancy for category+tags in the form "%: ...\n% ...\n<latex>"
+	{ QString curlatex =
+	    KLFLibEntry::stripCategoryTagsFromLatex(pLibrary[pResources[index]][libindex].latex);
+	  QString curcategory = pLibrary[pResources[index]][libindex].category;
+	  QString newtags = values[j].toString();
+	  pLibrary[pResources[index]][libindex].latex =
+	    KLFLibEntry::latexAddCategoryTagsComment(curlatex, curcategory, newtags);
+	  pLibrary[pResources[index]][libindex].tags = newtags;
+	  break;
+	}
 	break;
       case KLFLibEntry::Style:
 	pLibrary[pResources[index]][libindex].style = toLegacyStyle(values[j].value<KLFStyle>());
 	break;
       default:
-	qWarning("KLFLibLegacyEngine::changeEntries: Cannot set arbitrary property '%s'.",
-		 qPrintable(propertyNameForId(properties[j])));
+	qWarning()<<KLF_FUNC_NAME<<": Cannot set arbitrary property "<<propertyNameForId(properties[j])
+		  <<"!";
 	success = false;
 	break;
       }
     }
   }
+
+  qDebug()<<KLF_FUNC_NAME<<": Changed entries. Dump:";
+  const KLFLegacyData::KLFLibraryList& ll2 = pLibrary[pResources[index]];
+  int kl;
+  for (kl = 0; kl < ll2.size(); ++kl)
+    qDebug()<<"\t#"<<kl<<": "<<ll2[kl].latex<<" - "<<ll2[kl].category;
 
   emit dataChanged(subResource, ChangeData, idlist);
 

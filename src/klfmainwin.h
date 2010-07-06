@@ -251,6 +251,7 @@ public slots:
 
   void showAbout();
   void showWhatsNew();
+  void showSettingsHelpLinkAction(const QUrl& link);
   void helpLinkAction(const QUrl& link);
 
   void setWidgetStyle(const QString& qtstyle);

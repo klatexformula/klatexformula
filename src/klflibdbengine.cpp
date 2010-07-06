@@ -757,6 +757,9 @@ bool KLFLibDBEngine::setSubResourceProperty(const QString& subResource, int prop
   if ( subResourceProperty(subResource, SubResPropLocked).toBool() && propId != SubResPropLocked )
     return false; // still allow us to unlock the sub-resource (!)
 
+  qDebug()<<KLF_FUNC_NAME<<": setting sub-resource property "<<propId<<" to "<<value<<" in sub-res "
+	  <<subResource;
+
   {
     QSqlQuery q = QSqlQuery(pDB);
     q.prepare("DELETE FROM klf_subresprops WHERE lower(subresource) = lower(?) and pid = ?");

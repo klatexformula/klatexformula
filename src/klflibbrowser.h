@@ -54,7 +54,10 @@ public:
   //! Returns the index of \ref currentUrl() in \ref openUrls()
   int currentUrlIndex();
 
-  /** \note Mind that KLFLibBrowser deletes the views and their corresponding
+  /** Returns the KLFLibResourceEngine that is managing the display of the
+   * currently open URL \c url. The url must currently be open.
+   *
+   * \note Mind that KLFLibBrowser deletes the views and their corresponding
    * engines upon destruction. */
   KLFLibResourceEngine * getOpenResource(const QUrl& url);
 
@@ -119,6 +122,11 @@ protected slots:
   void slotShowTabContextMenu(const QPoint& pos);
 
   void slotResourceRename();
+  void slotResourceRenameSubResource();
+  /** implements both slotResourceRename() and slotResourceRenameSubResource(). If
+   * \c renameSubResource is false, renames the resource. If true renames the sub-resource.
+   */
+  void slotResourceRename(bool renameSubResource);
   void slotResourceRenameFinished();
   bool slotResourceClose(KLFLibBrowserViewContainer *view = NULL);
   void slotResourceProperties();
@@ -165,6 +173,9 @@ protected slots:
   void slotCopy();
   void slotPaste();
 
+  void slotOpenAll();
+  bool slotExport();
+
   void slotStartProgress(KLFProgressReporter *progressReporter, const QString& text);
 
 
@@ -183,6 +194,7 @@ private:
   QList<KLFLibBrowserViewContainer*> pLibViews;
 
   QMenu *pResourceMenu;
+  QMenu *pImportExportMenu;
 
   QPushButton *pTabCornerButton;
 

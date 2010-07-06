@@ -175,7 +175,7 @@ void KLFSettings::populateLocaleCombo()
   u->cbxLocale->clear();
   // application language : populate combo box
   u->cbxLocale->addItem( QString::fromLatin1("English Default") ,
-		      QVariant(QString::null) );
+			 QVariant(QString::null) );
   int k;
   for (k = 0; k < klf_avail_translations.size(); ++k) {
     KLFTranslationInfo ti = klf_avail_translations[k];
@@ -191,6 +191,73 @@ void KLFSettings::show()
   QDialog::show();
 }
 
+/** \internal */
+#define __KLF_SHOW_SETTINGS_CONTROL( tab , focuswidget )	\
+  u->tabs->setCurrentWidget( u->tab );				\
+  u->focuswidget->setFocus(Qt::OtherFocusReason);
+
+void KLFSettings::showControl(int control)
+{
+  switch (control) {
+  case AppLanguage:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, cbxLocale) ;
+    break;
+  case AppFonts:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, btnAppFont) ;
+    break;
+  case Preview:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, chkEnableRealTimePreview) ;
+    break;
+  case TooltipPreview:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, chkEnableToolTipPreview) ;
+    break;
+  case SyntaxHighlighting:
+    __KLF_SHOW_SETTINGS_CONTROL(tabSyntaxHighlighting, chkSHEnable) ;
+    break;
+  case ExecutablePaths:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAdvanced, pathTempDir) ;
+    break;
+  case ExpandEPSBBox:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAdvanced, spnLBorderOffset) ;
+    break;
+  case LibrarySettings:
+    __KLF_SHOW_SETTINGS_CONTROL(tabLibBrowser, chkLibRestoreURLs) ;
+    break;
+  case ManageAddOns:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAddOns, lstAddOns) ;
+    break;
+  case ManagePlugins:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAddOns, lstPlugins) ;
+    break;
+  case PluginsConfig:
+    __KLF_SHOW_SETTINGS_CONTROL(tabPlugins, tbxPluginsConfig->currentWidget()) ;
+    break;
+  default:
+    qWarning()<<KLF_FUNC_NAME<<": unknown control number requested : "<<control;
+  }
+}
+
+/** \internal */
+#define __KLF_SETTINGS_TEST_STR_CONTROL( controlName, controlNum )	\
+  if (controlName == QLatin1String(#controlNum)) {			\
+    showControl(controlNum);						\
+    return;								\
+  }
+
+void KLFSettings::showControl(const QString& controlName)
+{
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppLanguage ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppFonts ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, Preview ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, TooltipPreview ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, SyntaxHighlighting ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ExecutablePaths ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ExpandEPSBBox ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, LibrarySettings ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ManageAddOns ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ManagePlugins ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, PluginsConfig ) ;
+}
 
 static bool treeMaybeUnselect(QTreeWidget *tree, QEvent *event)
 {
@@ -294,6 +361,7 @@ void KLFSettings::reset()
   u->spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
 
   u->chkLibRestoreURLs->setChecked(klfconfig.LibraryBrowser.restoreURLs);
+  u->chkLibGroupSubCategories->setChecked(klfconfig.LibraryBrowser.groupSubCategories);
 }
 
 
@@ -790,6 +858,7 @@ void KLFSettings::apply()
   klfconfig.UI.enableToolTipPreview = u->chkEnableToolTipPreview->isChecked();
 
   klfconfig.LibraryBrowser.restoreURLs = u->chkLibRestoreURLs->isChecked();
+  klfconfig.LibraryBrowser.groupSubCategories = u->chkLibGroupSubCategories->isChecked();
 
   // save plugin config
   bool warnneedrestart = false;

@@ -42,6 +42,20 @@ class KLFSettings : public QDialog
   Q_OBJECT
 
 public:
+  enum SettingsControl {
+    AppLanguage = 1,
+    AppFonts,
+    Preview,
+    TooltipPreview,
+    SyntaxHighlighting,
+    ExecutablePaths,
+    ExpandEPSBBox,
+    LibrarySettings,
+    ManageAddOns,
+    ManagePlugins,
+    PluginsConfig
+  };
+
   KLFSettings(KLFMainWin* parent = 0);
   ~KLFSettings();
 
@@ -51,6 +65,12 @@ public slots:
 
   void reset();
   void show();
+
+  /** \c controlNum is one of the values of the \ref SettingsControl enum. */
+  void showControl(int controlNum);
+  /** \c controlName is the name (string) of one of the controls listed in the
+   * \c SettingsControl enum, eg. \c "AppFonts" or \c "ManageAddOns". */
+  void showControl(const QString& controlName);
 
   void apply();
 

@@ -478,6 +478,30 @@
     <string>Del</string>
    </property>
   </action>
+  <action name="aRenameSubRes">
+   <property name="text">
+    <string>Rename Sub-Resource</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename this resource</string>
+   </property>
+  </action>
+  <action name="aOpenAll">
+   <property name="text">
+    <string>Open All</string>
+   </property>
+   <property name="toolTip">
+    <string>Open all a resource's sub-resources</string>
+   </property>
+  </action>
+  <action name="aExport">
+   <property name="text">
+    <string>Export ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export a selection of the currently open resources</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

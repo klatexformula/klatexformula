@@ -228,6 +228,22 @@ QString KLFLibEntry::stripCategoryTagsFromLatex(const QString& latex)
   return latex.mid(k);
 }
 
+// static
+QString KLFLibEntry::latexAddCategoryTagsComment(const QString& latex, const QString& category,
+						 const QString& tags)
+{
+  QString s;
+
+  if (!category.isEmpty())
+    s = "%: "+category+"\n";
+
+  if (!tags.isEmpty())
+    s += "% "+tags+"\n";
+
+  s += latex;
+  return s;
+}
+
 
 // ------------------------------------------------------------
 

@@ -283,7 +283,10 @@ public:
   /** emits QAbstractItemModel-appropriate LAYOUT CHANGES SIGNALS if \c notifyQtApi is true. IT ALWAYS
    * EMITS APPROPRIATE SIGNALS FOR SUB-CATEGORIES THAT ARE CREATED TO FIT THE ITEM. */
   void treeInsertEntry(const NodeId& e, bool notifyQtApi = true);
-  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
+  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true
+   *
+   * This function sets the entryId of the removed entry to -1 so that it cannot be re-found in a
+   * future search. */
   void treeRemoveEntry(const NodeId& e, bool notifyQtApi = true);
 
   /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
@@ -343,9 +346,11 @@ public:
   QList<KLFLib::entryId> entryIdForIndexList(const QModelIndexList& indexlist);
   QModelIndexList findEntryIdList(const QList<KLFLib::entryId>& eidlist);
 
+  NodeId findEntryId(KLFLib::entryId eId);
+
   QStringList categoryListCache() { return pCatListCache; }
 
-
+  void fullDump();
   void dumpNodeTree(NodeId node, int indent = 0);
 
 private:

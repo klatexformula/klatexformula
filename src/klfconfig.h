@@ -162,6 +162,7 @@ public:
     QColor colorNotFound;
 
     bool restoreURLs;
+    bool groupSubCategories;
 
   } LibraryBrowser;
 
@@ -182,6 +183,10 @@ public:
   int ensureHomeConfigDir();
 
   int writeToConfig();
+
+
+  /** returns TRUE if the executable paths are valid. */
+  bool checkExePaths();
 
 private:
   int readFromConfig_v2();

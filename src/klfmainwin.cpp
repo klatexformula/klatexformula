@@ -430,6 +430,17 @@ KLFMainWin::KLFMainWin()
 
   mHelpLinkActions << HelpLinkAction("/whats_new", this, "showWhatsNew", false);
   mHelpLinkActions << HelpLinkAction("/about", this, "showAbout", false);
+  mHelpLinkActions << HelpLinkAction("/settings", this, "showSettingsHelpLinkAction", true);
+
+  if ( klfconfig.General.thisVersionFirstRun && ! klfconfig.checkExePaths() ) {
+    addWhatsNewText("<p><b><span style=\"color: #a00000\">"+
+		    tr("Your executable paths (latex, dvips, gs) seem not to be detected properly. Please "
+		       "adjust the settings in the <a href=\"klfaction:/settings?control=ExecutablePaths\">"
+		       "settings dialog</a>.",
+		       "[[additional text in what's-new-dialog in case of bad detected settings. this is "
+		       "HTML formatted text.]]")
+		    +"</span></b></p>");
+  }
 
   _loadedlibrary = true;
   loadLibrary();
@@ -449,7 +460,7 @@ void KLFMainWin::retranslateUi(bool alsoBaseUi)
 
 KLFMainWin::~KLFMainWin()
 {
-  //  printf("DEBUG: KLFMainWin::~KLFMainWin(): destroying...\n");
+  qDebug()<<KLF_FUNC_NAME<<"()";
 
   saveLibraryState();
   saveSettings();
@@ -572,7 +583,6 @@ void KLFMainWin::refreshStylePopupMenus()
     mStyleMenu = new QMenu(this);
   mStyleMenu->clear();
 
-  //  mStyleMenu->insertTitle(tr("Available Styles"), 100000);
   QAction *a;
   for (int i = 0; i < _styles.size(); ++i) {
     a = mStyleMenu->addAction(_styles[i].name);
@@ -580,7 +590,7 @@ void KLFMainWin::refreshStylePopupMenus()
     connect(a, SIGNAL(triggered()), this, SLOT(slotLoadStyleAct()));
   }
   mStyleMenu->addSeparator();
-  mStyleMenu->addAction(QIcon(":/pix/pics/managestyles.png"), tr("Manage Styles"),
+  mStyleMenu->addAction(QIcon(":/pics/managestyles.png"), tr("Manage Styles"),
 			 this, SLOT(slotStyleManager()), 0 /* accel */);
 }
 
@@ -972,10 +982,17 @@ void KLFMainWin::showWhatsNew()
   mWhatsNewDialog->show();
 }
 
+void KLFMainWin::showSettingsHelpLinkAction(const QUrl& link)
+{
+  qDebug()<<KLF_FUNC_NAME<<": link="<<link;
+  mSettingsDialog->show();
+  mSettingsDialog->showControl(link.queryItemValue("control"));
+}
+
 void KLFMainWin::helpLinkAction(const QUrl& link)
 {
-  qDebug()<<"Link is "<<link<<"; scheme="<<link.scheme()<<"; path="<<link.path()<<"; queryItems="
-	  <<link.queryItems();
+  qDebug()<<KLF_FUNC_NAME<<": Link is "<<link<<"; scheme="<<link.scheme()<<"; path="<<link.path()
+	  <<"; queryItems="<<link.queryItems();
 
   if (link.scheme() == "http") {
     // web link
@@ -991,9 +1008,10 @@ void KLFMainWin::helpLinkAction(const QUrl& link)
 	// got one
 	if (mHelpLinkActions[k].wantParam)
 	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever, mHelpLinkActions[k].memberFunc.constData(),
-				    Q_ARG(QUrl, link));
+				    Qt::QueuedConnection, Q_ARG(QUrl, link));
 	else
-	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever, mHelpLinkActions[k].memberFunc.constData());
+	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever, mHelpLinkActions[k].memberFunc.constData(),
+				    Qt::QueuedConnection);
 
 	calledOne = true;
       }
@@ -1003,7 +1021,7 @@ void KLFMainWin::helpLinkAction(const QUrl& link)
     }
     return;
   }
-  qWarning()<<KLF_FUNC_NAME<<"("<<link<<"): Unrecognized link!";
+  qWarning()<<KLF_FUNC_NAME<<"("<<link<<"): Unrecognized link scheme!";
 }
 
 void KLFMainWin::addWhatsNewText(const QString& htmlSnipplet)
@@ -1337,6 +1355,8 @@ void KLFMainWin::slotEvaluate()
     QMessageBox::critical(this, tr("Error"), _output.errorstr+comment);
     u->lblOutput->displayClear();
     u->frmOutput->setEnabled(false);
+    mSettingsDialog->show();
+    mSettingsDialog->showControl(KLFSettings::ExecutablePaths);
   }
   if (_output.status > 0) {
     KLFProgErr::showError(this, _output.errorstr);

@@ -1,0 +1,118 @@
+<ui version="4.0" >
+ <author>Ph. Faist</author>
+ <class>KLFProgErrUI</class>
+ <widget class="QDialog" name="KLFProgErrUI" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>811</width>
+    <height>423</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Error</string>
+  </property>
+  <property name="styleSheet" >
+   <string notr="true" >QDialog {
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0.5, y2:1, stop:0 rgba(128, 128, 128, 255), stop:1 rgba(128, 128, 200, 255));
+}
+QLabel {
+	color: white;
+	font-weight: bold;
+}
+QAbstractScrollArea {
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(255, 220, 200, 255), stop:1 rgba(255, 255, 255, 255));
+	background-clip: padding;
+	border-radius: 3px;
+	border: 2px solid rgb(128, 0, 0);
+}</string>
+  </property>
+  <property name="modal" >
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" >
+   <item>
+    <widget class="QLabel" name="lbl" >
+     <property name="sizePolicy" >
+      <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize" >
+      <size>
+       <width>0</width>
+       <height>20</height>
+      </size>
+     </property>
+     <property name="text" >
+      <string>An error occured!</string>
+     </property>
+     <property name="alignment" >
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="wordWrap" >
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTextBrowser" name="txtError" >
+     <property name="styleSheet" >
+      <string notr="true" />
+     </property>
+     <property name="html" >
+      <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Lucida Grande'; font-size:13pt; font-weight:400; font-style:normal;">
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;/p>&lt;/body>&lt;/html></string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="btnClose" >
+     <property name="toolTip" >
+      <string>Close dialog</string>
+     </property>
+     <property name="whatsThis" >
+      <string>Close dialog</string>
+     </property>
+     <property name="text" >
+      <string>Close</string>
+     </property>
+     <property name="icon" >
+      <iconset resource="klfres.qrc" >
+       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+     </property>
+     <property name="default" >
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11" />
+ <resources>
+  <include location="klfres.qrc" />
+ </resources>
+ <connections>
+  <connection>
+   <sender>btnClose</sender>
+   <signal>clicked()</signal>
+   <receiver>KLFProgErrUI</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>24</x>
+     <y>404</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
