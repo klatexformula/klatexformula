@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file $FILENAME$
+ *   file klfmainwin_p.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2010 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -24,6 +24,12 @@
 #ifndef KLFMAINWIN_P_H
 #define KLFMAINWIN_P_H
 
+
+/** \file
+ * This file contains internal definitions for file klfmainwin.cpp.
+ * \internal
+ */
+
 #include <QDialog>
 #include <QFile>
 #include <QString>
@@ -36,7 +42,7 @@
 #include <ui_klfaboutdialog.h>
 #include <ui_klfwhatsnewdialog.h>
 
-
+/** \internal */
 class KLFHelpDialogCommon
 {
 public:
@@ -56,7 +62,7 @@ public:
     int k;
     while ( k < suffixes.size() &&
 	    ! QFile::exists(fn = QString(":/data/%1%2.html").arg(pBaseFName, suffixes[k])) ) {
-      qDebug()<<KLF_FUNC_NAME<<": tried fn="<<fn;
+      klfDbg( "tried fn="<<fn ) ;
       ++k;
     }
     if (k >= suffixes.size()) {
@@ -67,13 +73,13 @@ public:
     f.open(QIODevice::ReadOnly);
     html = QString::fromUtf8(f.readAll());
 
-    qDebug()<<KLF_FUNC_NAME<<"(): read from file="<<fn<<" the HTML code=\n"<<html;
+    klfDbg( "read from file="<<fn<<" the HTML code=\n"<<html ) ;
 
     const QString marker = QLatin1String("<!--KLF_MARKER_INSERT_SPOT-->");
     for (k = 0; k < pHtmlExtraSnipplets.size(); ++k)
       html.replace(marker, pHtmlExtraSnipplets[k]+"\n"+marker);
 
-    qDebug()<<KLF_FUNC_NAME<<": new HTML is:\n"<<html;
+    klfDbg( "new HTML is:\n"<<html ) ;
 
     return html;
   }
@@ -83,6 +89,8 @@ protected:
   QStringList pHtmlExtraSnipplets;
 };
 
+
+/** \internal */
 class KLFAboutDialog : public QDialog, public KLFHelpDialogCommon
 {
   Q_OBJECT
@@ -111,6 +119,8 @@ private:
   Ui::KLFAboutDialog *u;
 };
 
+
+/** \internal */
 class KLFWhatsNewDialog : public QDialog, public KLFHelpDialogCommon
 {
   Q_OBJECT

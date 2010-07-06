@@ -275,7 +275,7 @@ void KLFLibEntryEditor::slotCbxCleanUpCompletions(QComboBox *cbx)
 /*
 void KLFLibEntryEditor::updateEditText(QComboBox *editWidget, const QString& newText)
 {
-  qDebug()<<"updateEditText("<<newtext<<")!";
+  klfDbg( "updateEditText("<<newtext<<")!" ) ;
   // small utility function that updates text if it isn't already the same text
   if (editWidget->currentText() != newText)
     editWidget->setEditText(newText);

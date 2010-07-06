@@ -13,6 +13,7 @@ endif(KLF_MACOSX_BUNDLES)
 if(WIN32)
   # on debug versions, the application will open a console in which the debug output is shown.
   list(APPEND CMAKE_CXX_FLAGS_RELEASE -mwindows)
+  # Extra linker flags for win32 compilation
   list(APPEND CMAKE_EXE_LINKER_FLAGS -Wl,--enable-auto-import)
 endif(WIN32)
 

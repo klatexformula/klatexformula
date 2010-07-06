@@ -490,7 +490,7 @@ bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
 
 bool KLFLibLegacyEngine::save()
 {
-  qDebug()<<KLF_FUNC_NAME<<"() our url="<<url()<<".";
+  klfDbg( "() our url="<<url()<<"." ) ;
   if (isReadOnly()) {
     qWarning("KLFLibLegacyEngine::save: resource is read-only!");
     return false;
@@ -613,11 +613,11 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
     }
   }
 
-  qDebug()<<KLF_FUNC_NAME<<": Changed entries. Dump:";
+  klfDbg( ": Changed entries. Dump:" ) ;
   const KLFLegacyData::KLFLibraryList& ll2 = pLibrary[pResources[index]];
   int kl;
   for (kl = 0; kl < ll2.size(); ++kl)
-    qDebug()<<"\t#"<<kl<<": "<<ll2[kl].latex<<" - "<<ll2[kl].category;
+    klfDbg( "\t#"<<kl<<": "<<ll2[kl].latex<<" - "<<ll2[kl].category ) ;
 
   emit dataChanged(subResource, ChangeData, idlist);
 

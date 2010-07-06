@@ -460,7 +460,7 @@ void KLFMainWin::retranslateUi(bool alsoBaseUi)
 
 KLFMainWin::~KLFMainWin()
 {
-  qDebug()<<KLF_FUNC_NAME<<"()";
+  klfDbg( "()" ) ;
 
   saveLibraryState();
   saveSettings();
@@ -772,7 +772,7 @@ void KLFMainWin::loadLibrary()
       KLFLibResourceEngine *importres = factory->openResource(importliburl, this);
       // import all sub-resources
       QStringList subResList = importres->subResourceList();
-      qDebug()<<"\tImporting sub-resources: "<<subResList;
+      klfDbg( "\tImporting sub-resources: "<<subResList ) ;
       int j;
       for (j = 0; j < subResList.size(); ++j) {
 	QString subres = subResList[j];
@@ -984,15 +984,15 @@ void KLFMainWin::showWhatsNew()
 
 void KLFMainWin::showSettingsHelpLinkAction(const QUrl& link)
 {
-  qDebug()<<KLF_FUNC_NAME<<": link="<<link;
+  klfDbg( ": link="<<link ) ;
   mSettingsDialog->show();
   mSettingsDialog->showControl(link.queryItemValue("control"));
 }
 
 void KLFMainWin::helpLinkAction(const QUrl& link)
 {
-  qDebug()<<KLF_FUNC_NAME<<": Link is "<<link<<"; scheme="<<link.scheme()<<"; path="<<link.path()
-	  <<"; queryItems="<<link.queryItems();
+  klfDbg( ": Link is "<<link<<"; scheme="<<link.scheme()<<"; path="<<link.path()
+	  <<"; queryItems="<<link.queryItems() ) ;
 
   if (link.scheme() == "http") {
     // web link
@@ -1107,14 +1107,14 @@ void KLFMainWin::childEvent(QChildEvent *e)
       // note that all Qt::Tool, Qt::SplashScreen etc. all have the Qt::Window bit set, but
       // not Qt::Widget (!)
       pWindowList.append(w);
-      qDebug()<<KLF_FUNC_NAME<<": Added child "<<w<<" ("<<w->objectName()<<")";
+      klfDbg( ": Added child "<<w<<" ("<<w->objectName()<<")" ) ;
     }
   } else if (e->type() == QEvent::ChildRemoved && child->isWidgetType()) {
     QWidget *w = qobject_cast<QWidget*>(child);
     int k;
     if ((k = pWindowList.indexOf(w)) >= 0) {
-      qDebug()<<KLF_FUNC_NAME<<": Removing child "<<w<<" ("<<w->objectName()<<")"
-	      <<" at position k="<<k;
+      klfDbg( ": Removing child "<<w<<" ("<<w->objectName()<<")"
+	      <<" at position k="<<k ) ;
       pWindowList.removeAt(k);
     }
   }

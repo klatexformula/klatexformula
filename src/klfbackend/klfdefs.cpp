@@ -22,6 +22,8 @@
 /* $Id$ */
 
 #include <stdlib.h>
+#include <stdio.h> // vsprintf(), vsnprintf
+#include <stdarg.h> // va_list, va_arg, va_end in klfFmt()
 
 #include <qdir.h>
 #include <qfile.h>
@@ -95,6 +97,53 @@ KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
   QByteArray data = f.toLocal8Bit();
   return data;
 }
+
+
+
+
+KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp)
+{
+  static const int bufferSize = 8192;
+  char buffer[bufferSize];
+  int len;
+#if defined(_BSD_SOURCE) || _XOPEN_SOURCE >= 500 || defined(_ISOC99_SOURCE)
+  // stdio.h provided vsnprintf()
+  len = vsnprintf(buffer, bufferSize, fmt, pp);
+  if (len >= bufferSize) {
+    // output was truncated
+    qWarning("%s(): output from format string \"%s\" was truncated from %d to %d bytes.",
+	     KLF_FUNC_NAME, fmt, len, (bufferSize-1));
+    len = bufferSize-1;
+  }
+#else
+  len = vsprintf(buffer, fmt, pp);
+#endif
+
+  if (len < 0) {
+    qWarning("%s(): vs(n)printf() failed for format \"%s\"", KLF_FUNC_NAME, fmt);
+    return QByteArray();
+  }
+
+  // create a QByteArray
+  QByteArray data;
+#ifdef KLFBACKEND_QT4
+  data = QByteArray(buffer, len);
+#else
+  data.duplicate(buffer, len);
+#endif
+  return data;
+}
+
+KLF_EXPORT QByteArray klfFmt(const char * fmt, ...)
+{
+  va_list pp;
+  va_start(pp, fmt);
+  QByteArray data = klfFmt(fmt, pp);
+  va_end(pp);
+  return data;
+}
+
+
 
 
 KLFDebugBlock::KLFDebugBlock(const QString& blockName)

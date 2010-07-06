@@ -248,7 +248,7 @@ bool KLFLibBrowser::eventFilter(QObject *obj, QEvent *ev)
   if (ev->type() == QEvent::Hide &&
       obj->property("klf_libbrowser_pdlg_want_hideautodelete").toBool() == true) {
     // this object is a resource-operation progress dialog that was just hidden
-    qDebug()<<KLF_FUNC_NAME<<": Hiding progress dialog.";
+    klfDbg( ": Hiding progress dialog." ) ;
     obj->deleteLater();
     return true;
     //    return false;    // continue with event handling
@@ -351,7 +351,7 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v, bool openURLs)
   for (k = 0; k < urllist.size(); ++k) {
     QUrl url = urllist[k].toUrl();
     quint32 flags = resroleflagslist[k].value<quint32>();
-    qDebug()<<"LibBrowser::loadGuiState: Opening url "<<url<<" with flags="<<flags;
+    klfDbg( "LibBrowser::loadGuiState: Opening url "<<url<<" with flags="<<flags ) ;
     QVariantMap viewState = viewstatelist[k].toMap();
     // don't open new URLs if openURLs is false
     if ( !openURLs && findOpenUrl(url) == NULL )
@@ -372,11 +372,11 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v, bool openURLs)
     // and load the view's gui state
     viewc->loadGuiState(viewState);
   }
-  qDebug()<<"Almost finished loading gui state.";
+  klfDbg( "Almost finished loading gui state." ) ;
   KLFLibBrowserViewContainer *curviewc = findOpenUrl(currenturl);
   if (curviewc != NULL)
     u->tabResources->setCurrentWidget(curviewc);
-  qDebug()<<"Loaded GUI state.";
+  klfDbg( "Loaded GUI state." ) ;
 
   if (widgetsize.width() > 0 && widgetsize.height() > 0)
     resize(widgetsize);
@@ -408,10 +408,10 @@ QString KLFLibBrowser::displayTitle(KLFLibResourceEngine *resource)
 KLFLibBrowserViewContainer * KLFLibBrowser::findOpenUrl(const QUrl& url)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  qDebug()<<"\turl is "<<url;
+  klfDbg( "\turl is "<<url ) ;
   int k;
   for (k = 0; k < pLibViews.size(); ++k) {
-    qDebug()<<KLF_FUNC_NAME<<": test lib view #"<<k<<"; url="<<pLibViews[k]->url();
+    klfDbg( ": test lib view #"<<k<<"; url="<<pLibViews[k]->url() ) ;
     uint fl = klfUrlCompare(pLibViews[k]->url(), url,
 			    KlfUrlCompareEqual|KlfUrlCompareLessSpecific,
 			    QStringList()<<"klfDefaultSubResource");
@@ -419,7 +419,7 @@ KLFLibBrowserViewContainer * KLFLibBrowser::findOpenUrl(const QUrl& url)
     //        * this resource's URL to be less specific (shows more) than what we're searching for
     if (fl & KlfUrlCompareEqual ||
 	fl & KlfUrlCompareLessSpecific) {
-      qDebug()<<KLF_FUNC_NAME<<": Found!";
+      klfDbg( ": Found!" ) ;
       return pLibViews[k];
     }
   }
@@ -470,8 +470,8 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
 				 const QString& viewTypeIdentifier)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  qDebug()<<" url="<<url.toString()<<"; resroleflags="<<resourceRoleFlags
-	  <<"; vtypeidentifier="<<viewTypeIdentifier;
+  klfDbg( " url="<<url.toString()<<"; resroleflags="<<resourceRoleFlags
+	  <<"; vtypeidentifier="<<viewTypeIdentifier ) ;
 
   KLFLibBrowserViewContainer * openview = findOpenUrl(url);
   if (openview != NULL) {
@@ -500,8 +500,8 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 				 const QString& viewTypeIdentifier)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-  qDebug()<<"\topening resource url="
-	  <<resource->url(KLFLibResourceEngine::WantUrlDefaultSubResource).toString();
+  klfDbg( "\topening resource url="
+	  <<resource->url(KLFLibResourceEngine::WantUrlDefaultSubResource).toString() ) ;
 
   //  KLFPleaseWaitPopup label(tr("Loading resource, please wait..."), this);
 
@@ -547,7 +547,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 		    << QLatin1String("default");
 
   klf_debug_time_print(KLF_FUNC_NAME + QString(": created resource. about to test view types.")) ;
-  qDebug()<<"\tView types: "<<viewtypeident_try;
+  klfDbg( "\tView types: "<<viewtypeident_try ) ;
 
   int k;
   // try each view type, first success is kept.
@@ -558,18 +558,18 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
     KLFLibViewFactory *viewfactory =
       KLFLibViewFactory::findFactoryFor(viewtypeident_try[k]);
     if (viewfactory == NULL) {
-      qDebug()<<"KLFLibBrowser::openResource: can't find view factory for view type identifier "
-	      <<viewtypeident_try[k]<<"!";
+      klfDbg( "KLFLibBrowser::openResource: can't find view factory for view type identifier "
+	      <<viewtypeident_try[k]<<"!" ) ;
       continue;
     }
     if ( ! viewfactory->canCreateLibView(viewtypeident_try[k], resource) ) {
-      qDebug()<<"KLFLibBrowser::openResource: incompatible view type identifier "<<viewtypeident_try[k]
-	      <<"for resource "<<resource->url()<<".";
+      klfDbg( "KLFLibBrowser::openResource: incompatible view type identifier "<<viewtypeident_try[k]
+	      <<"for resource "<<resource->url()<<"." ) ;
       continue;
     }
     bool r = viewc->openView(viewtypeident_try[k]);
     if (!r) {
-      qDebug()<<"KLFLibBrowser::openResource: can't create view! viewtypeident="<<viewtypeident_try[k]<<".";
+      klfDbg( "KLFLibBrowser::openResource: can't create view! viewtypeident="<<viewtypeident_try[k]<<"." ) ;
       continue;
     }
 
@@ -652,11 +652,11 @@ void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *viewc, u
 void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-  qDebug()<<"\t tabIndex="<<tabIndex;
+  klfDbg( "\t tabIndex="<<tabIndex ) ;
   KLFLibBrowserViewContainer * viewc =
     qobject_cast<KLFLibBrowserViewContainer*>(u->tabResources->widget(tabIndex));
   if (viewc == NULL || tabIndex < 0) {
-    qDebug()<<"\tNULL View or invalid tab index="<<tabIndex<<".";
+    klfDbg( "\tNULL View or invalid tab index="<<tabIndex<<"." ) ;
     return;
   }
 
@@ -707,7 +707,7 @@ void KLFLibBrowser::slotResourceRename(bool renamingSubResource)
   if (tab < 0 || viewc == NULL)
     return;
 
-  qDebug()<<KLF_FUNC_NAME<<": Rename! renamingSubResource="<<renamingSubResource;
+  klfDbg( ": Rename! renamingSubResource="<<renamingSubResource ) ;
 
   KLFLibResourceEngine *res = viewc->resourceEngine();
 
@@ -778,7 +778,7 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
   if (view->resourceRoleFlags() & NoCloseRoleFlag) // sorry, can't close.
     return false;
 
-  qDebug()<<"Close! resflags="<<view->resourceRoleFlags();
+  klfDbg( "Close! resflags="<<view->resourceRoleFlags() ) ;
 
   int tabindex = u->tabResources->indexOf(view);
   if (tabindex < 0) {
@@ -835,7 +835,7 @@ bool KLFLibBrowser::slotResourceNewSubRes()
   url.removeAllQueryItems("klfDefaultSubResource");
   url.addQueryItem("klfDefaultSubResource", name);
 
-  qDebug()<<"KLFLibBrowser::slotRes.New.S.Res(): Create sub-resource named "<<name<<", opening "<<url;
+  klfDbg( "KLFLibBrowser::slotRes.New.S.Res(): Create sub-resource named "<<name<<", opening "<<url ) ;
 
   // in case of a view displaying all sub-resources, this also works because findOpenUrl() will find
   // that view and raise it.
@@ -1033,10 +1033,10 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
 
 void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 {
-  qDebug()<<"KLFLibBrowser::slotEntriesSelected(): "<<entries;
+  klfDbg( "KLFLibBrowser::slotEntriesSelected(): "<<entries ) ;
   if (entries.size()>=1)
-    qDebug()<<"KLFLibBrowser::slotEntriesSelected():\tTag of first entry="
-	    <<entries[0].property(KLFLibEntry::Tags);
+    klfDbg( "KLFLibBrowser::slotEntriesSelected():\tTag of first entry="
+	    <<entries[0].property(KLFLibEntry::Tags) ) ;
 
   KLFAbstractLibView *view = curLibView();
   if (view != NULL) {
@@ -1052,7 +1052,7 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 }
 void KLFLibBrowser::slotAddCategorySuggestions(const QStringList& catlist)
 {
-  qDebug()<<"KLFLibBrowser: got category suggestions: "<<catlist;
+  klfDbg( "KLFLibBrowser: got category suggestions: "<<catlist ) ;
   u->wEntryEditor->addCategorySuggestions(catlist);
 }
 
@@ -1135,7 +1135,7 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
   if (viewActions.size())
     menu->addSeparator(); // separate view's menu items from ours
   for (k = 0; k < viewActions.size(); ++k) {
-    qDebug()<<"Added action "<<k<<": "<<viewActions[k];
+    klfDbg( "Added action "<<k<<": "<<viewActions[k] ) ;
     menu->addAction(viewActions[k]);
   }
 
@@ -1386,7 +1386,7 @@ void KLFLibBrowser::slotPaste()
     return;
   }
 
-  qDebug()<<KLF_FUNC_NAME<<": Pasting data! props="<<vprops;
+  klfDbg( ": Pasting data! props="<<vprops ) ;
   view->insertEntries(elist);
 }
 
@@ -1447,7 +1447,7 @@ bool KLFLibBrowser::slotExport()
   const QString exportFilter = tr("Library Database File (*.klf.db);;All Files (*)");
   KLFLibExportDialog dlg(this, exportFilter);
   dlg.exec();
-  qDebug()<<KLF_FUNC_NAME<<": Exporting : "<<dlg.selectedExportUrls();
+  klfDbg( ": Exporting : "<<dlg.selectedExportUrls() ) ;
 
   if (dlg.result() != QDialog::Accepted)
     return false;
@@ -1476,8 +1476,8 @@ bool KLFLibBrowser::slotExport()
 
 void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& text)
 {
-  qDebug()<<KLF_FUNC_NAME<<": min,max="<<progressReporter->min()<<","<<progressReporter->max()
-	  <<"; text="<<text;
+  klfDbg( ": min,max="<<progressReporter->min()<<","<<progressReporter->max()
+	  <<"; text="<<text ) ;
 
   KLFProgressDialog *pdlg = new KLFProgressDialog(false, this);
 

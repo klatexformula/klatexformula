@@ -486,7 +486,7 @@ void main_load_extra_resources()
   klf_addons_canimport = klfsettings_can_import;
 
   void dumpDir(const QDir&, int = 0);
-  qDebug()<<"dump of :/ :";
+  klfDbg( "dump of :/ :" ) ;
   dumpDir(QDir(":/"));
 }
 
@@ -535,9 +535,9 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     QStringList pluginList = klf_addons[k].pluginList();
     for (j = 0; j < pluginList.size(); ++j) {
       KLFAddOnInfo::PluginSysInfo psinfo = klf_addons[k].pluginSysInfo(pluginList[j]);
-      qDebug()<<"Testing plugin psinfo="<<psinfo<<"\n\tTo our system: qtver="<<qVersion()
+      klfDbg( "Testing plugin psinfo="<<psinfo<<"\n\tTo our system: qtver="<<qVersion()
 	      <<"; klfver="<<KLF_VERSION_STRING<<"; os="<<KLFSysInfo::osString()
-	      <<"; arch="<<KLFSysInfo::arch();
+	      <<"; arch="<<KLFSysInfo::arch() ) ;
       if ( (psinfo.klfminversion.isEmpty()
 	    || klfVersionCompare(psinfo.klfminversion, KLF_VERSION_STRING) <= 0) &&
 	   (psinfo.qtminversion.isEmpty()
@@ -566,7 +566,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  // remove old version if exists
 	  if (QFile::exists(locfn)) QFile::remove(locfn);
 	  // copy plugin to local plugin dir
-	  qDebug()<<"\tcopy "<<resfn<<" to "<<locfn;
+	  klfDbg( "\tcopy "<<resfn<<" to "<<locfn ) ;
 	  bool res = QFile::copy( resfn , locfn );
 	  if ( ! res ) {
 	    qWarning("Unable to copy plugin '%s' to local directory!", qPrintable(pluginList[j]));
@@ -591,14 +591,14 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
   // most recent first, then ignore the others.
   qSort(pdirlist.begin(), pdirlist.end(), VersionCompareWithPrefixGreaterThan("klf"));
   for (i = 0; i < pdirlist.size(); ++i) {
-    qDebug()<<"maybe adding plugin dir"<<pdirlist[i]<<"; klfver="<<pdirlist[i].mid(3);
+    klfDbg( "maybe adding plugin dir"<<pdirlist[i]<<"; klfver="<<pdirlist[i].mid(3) ) ;
     if (klfVersionCompare(pdirlist[i].mid(3), KLF_VERSION_STRING) <= 0) { // Version OK
       pluginsdirs << pdir.absoluteFilePath(pdirlist[i]) ;
     }
   }
   pluginsdirs << klfconfig.homeConfigDirPlugins ;
 
-  qDebug()<<"pluginsdirs="<<pluginsdirs;
+  klfDbg( "pluginsdirs="<<pluginsdirs ) ;
 
   for (i = 0; i < pluginsdirs.size(); ++i) {
     if ( ! QFileInfo(pluginsdirs[i]).isDir() )
@@ -613,8 +613,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       int k;
       for (k = 0; k < klf_plugins.size(); ++k) {
 	if (klf_plugins[k].fname == pluginfname) {
-	  qDebug()<<"Rejecting loading of plugin "<<pluginfname<<" in dir "<<pluginsdirs[i]
-		  <<"; already loaded.";
+	  klfDbg( "Rejecting loading of plugin "<<pluginfname<<" in dir "<<pluginsdirs[i]
+		  <<"; already loaded." ) ;
 	  plugin_already_loaded = true;
 	  break;
 	}
@@ -644,7 +644,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	  bool pluginRejected = false;
 	  for (k = 0; k < klf_plugins.size(); ++k) {
 	    if (klf_plugins[k].name == nm) {
-	      qDebug()<<"Rejecting loading of plugin "<<nm<<" in "<<pluginfname<<"; already loaded.";
+	      klfDbg( "Rejecting loading of plugin "<<nm<<" in "<<pluginfname<<"; already loaded." ) ;
 	      delete pluginInstance;
 	      pluginRejected = true;
 	      break;

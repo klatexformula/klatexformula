@@ -61,6 +61,22 @@ inline QByteArray klfShortFuncSignature(const char *fullFuncName)
 { return klfShortFuncSignature(QByteArray().duplicate(fullFuncName, strlen(fullFuncName))); }
 #endif
 
+/** Formats a printf-style string and returns the data as a QByteArray.
+ * \warning the length must not exceed 8192 bytes, the size of the internal
+ *   buffer. */
+KLF_EXPORT QByteArray klfFmt(const char * fmt, ...)
+#if defined(Q_CC_GNU) && !defined(__INSURE__)
+    __attribute__ ((format (printf, 1, 2)))
+#endif
+;
+
+/** Implements \ref klfFmt(const char *) functionality, but with
+ * a \c va_list argument pointer for use in vsprintf().
+ */
+KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp) ;
+
+
+
 // DEBUG UTILITIES (SOME WITH TIME PRINTING FOR TIMING OPERATIONS)
 
 /** \brief Utility to time the execution of a block
@@ -119,6 +135,7 @@ inline const T& __klf_debug_tee(const T& expr)
 #define klf_debug_tee(expr) __klf_debug_tee(expr)
 #ifdef KLFBACKEND_QT4
 #define klf_debug_time_print_str() __klf_debug_time_print_str(qDebug())
+#define klfDbg( streamableItems )  qDebug().nospace()<<KLF_FUNC_NAME<<"(): "<< streamableItems
 #endif
 
 #else // KLF_DEBUG
@@ -192,6 +209,19 @@ inline const T& __klf_debug_tee(const T& expr)
  * \note Only with Qt4.
  */
 #define klf_debug_time_print_str()
+/** \brief print debug stream items
+ *
+ * \warning This one may be counter-intuitive, as the argument is not evaluated before expansion,
+ *   that is this macro really is used as a macro, and expands to
+ *   \code qDebug()<<KLF_FUNC_NAME<<":"<< streamableItems \endcode
+ *   which means that its correct use is
+ *   \code
+ * int index = ...; QString mode = ...;
+ * klfDbg( "index is "<<index<<" and mode is "<<mode ); \endcode
+ *   where all the arguments are sent to the \c qDebug() stream, without an explicit <tt>&lt;&lt;</tt>
+ *   being defined between \c "index is" and \c index.
+ */
+#define klfDbg( streamableItems )
 
 #endif // KLF_DEBUG
 

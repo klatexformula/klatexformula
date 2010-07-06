@@ -257,7 +257,7 @@ static void klf_settings_read(QSettings &s, const QString& baseName, T *target,
   qDebug("klf_settings_read<...>(%s)", qPrintable(baseName));
   QVariant defVal = QVariant::fromValue<T>(*target);
   QVariant valstr = s.value(baseName, defVal);
-  qDebug()<<"\tRead value "<<valstr;
+  klfDbg( "\tRead value "<<valstr ) ;
   QVariant val = klfLoadVariantFromText(valstr.toString().toLatin1(), defVal.typeName(), listOrMapType);
   if (val.isValid())
     *target = val.value<T>();

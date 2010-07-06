@@ -220,6 +220,12 @@ option(KLF_DEBUG_USE_MODELTEST
  "FOR DEVELOPERS ONLY. Uses ModelTest (from Qt's Labs) to test QAbstractItemModel-based models"
  FALSE)
 mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY KLF_DEBUG_USE_MODELTEST)
+if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
+  message(STATUS "Will install klfbaseplugins.rcc in ~/.klatexformula/rccresources at compile-time (KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)")
+endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
+if(KLF_DEBUG_USE_MODELTEST)
+  message(STATUS "Will compile with QtLab's ModelTest for KLFLibModel testing (KLF_DEBUG_USE_MODELTEST)")
+endif(KLF_DEBUG_USE_MODELTEST)
 
 # Some extra tests to know what we have
 include(CheckCXXSourceCompiles)

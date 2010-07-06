@@ -169,8 +169,8 @@ public slots:
 
     // see if we already have this view type open and ready
     if (pOpenViewTypeIdents.contains(viewTypeIdent)) {
-      qDebug()<<KLF_FUNC_NAME<<": view type "<<viewTypeIdent<<" is already open at index ="
-	      <<pOpenViewTypeIdents[viewTypeIdent];
+      klfDbg( ": view type "<<viewTypeIdent<<" is already open at index ="
+	      <<pOpenViewTypeIdents[viewTypeIdent] ) ;
       setCurrentIndex(pOpenViewTypeIdents[viewTypeIdent]);
       return true;
     }

@@ -352,7 +352,7 @@ void KLFLibDBEngine::readResourceProperty(int propId)
   while (q.next()) {
     QString propname = q.value(0).toString();
     QVariant propvalue = convertVariantFromDBData(q.value(1));
-    qDebug()<<"Setting property `"<<propname<<"' to "<<propvalue<<"";
+    klfDbg( "Setting property `"<<propname<<"' to "<<propvalue<<"" ) ;
     if (!propertyNameRegistered(propname)) {
       if (!canRegisterProperty(propname))
 	continue;
@@ -427,7 +427,7 @@ QStringList KLFLibDBEngine::detectEntryColumns(const QSqlQuery& q)
     QString propName = rec.fieldName(k);
     int propId = dummy.propertyIdForName(propName);
     if (propId < 0 && propName != "id") { // don't register field "id"
-      qDebug()<<"Registering property "<<propName;
+      klfDbg( "Registering property "<<propName ) ;
       dummy.setEntryProperty(propName, QVariant()); // register property.
     }
     cols << propName;
@@ -458,14 +458,14 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& col
       entry.setEntryProperty(cols[k], convertVariantFromDBData(q.value(k)));
     }
   }
-  //  qDebug()<<KLF_FUNC_NAME<<": cols="<<cols.join(",");
-  //  qDebug()<<KLF_FUNC_NAME<<": read entry="<<entry<<" previewsize="<<entry.property(KLFLibEntry::PreviewSize)<<"; it's valid="<<entry.property(KLFLibEntry::PreviewSize).toSize().isValid()<<"; preview=... /null="<<entry.property(KLFLibEntry::Preview).value<QImage>().isNull();
+  //  klfDbg( ": cols="<<cols.join(",") ) ;
+  //  klfDbg( ": read entry="<<entry<<" previewsize="<<entry.property(KLFLibEntry::PreviewSize)<<"; it's valid="<<entry.property(KLFLibEntry::PreviewSize).toSize().isValid()<<"; preview=... /null="<<entry.property(KLFLibEntry::Preview).value<QImage>().isNull() ) ;
   // add a preview size if necessary
   const QImage& preview = entry.property(KLFLibEntry::Preview).value<QImage>();
   if (!preview.isNull()) {
     const QSize& s = entry.property(KLFLibEntry::PreviewSize).toSize();
     if (!s.isValid() || s != preview.size()) {
-      qDebug()<<KLF_FUNC_NAME<<": missing or incorrect preview size set to "<<entry.preview().size();
+      klfDbg( ": missing or incorrect preview size set to "<<entry.preview().size() ) ;
       entry.setPreviewSize(entry.preview().size());
     }
   }      
@@ -515,7 +515,7 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 /* */ KLFLibDBEngine::entries(const QString& subResource, const QList<KLFLib::entryId>& idList,
 			      const QList<int>& wantedEntryProperties)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME); qDebug()<<"\t: subResource="<<subResource<<"; idlist="<<idList;
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME); klfDbg( "\t: subResource="<<subResource<<"; idlist="<<idList ) ;
   if ( ! validDatabase() )
     return QList<KLFLibEntryWithId>();
   if (idList.isEmpty())
@@ -545,13 +545,13 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
     q.bindValue(0, idList[k]);
     bool r = q.exec();
     if ( !r || q.lastError().isValid() ) {
-      qDebug()<<KLF_FUNC_NAME<<" SQL Error, sql="<<q.lastQuery()<<"; boundvalues="<<q.boundValues();
+      klfDbg( " SQL Error, sql="<<q.lastQuery()<<"; boundvalues="<<q.boundValues() ) ;
       qWarning("KLFLibDBEngine::entries: Error\n"
 	       "SQL Error (?): %s", qPrintable(q.lastError().text()));
       continue;
     }
     if ( !q.next() ) {
-      qDebug()<<KLF_FUNC_NAME<<": id="<<idList[k]<<" does not exist in DB.";
+      klfDbg( ": id="<<idList[k]<<" does not exist in DB." ) ;
       KLFLibEntryWithId e; e.entry = KLFLibEntry(); e.id = -1;
       eList << e;
       continue;
@@ -713,7 +713,7 @@ QVariant KLFLibDBEngine::subResourceProperty(const QString& subResource, int pro
 	      <<q.lastError().text() << "\n\t\tBound values= "<<q.boundValues();
     return QVariant();
   }
-  //qDebug()<<"KLFLibDBEngine::subRes.Prop.(): SQL="<<q.lastQuery()<<"; vals="<<q.boundValues();
+  //klfDbg( "KLFLibDBEngine::subRes.Prop.(): SQL="<<q.lastQuery()<<"; vals="<<q.boundValues() ) ;
   //qDebug("KLFLibDBEngine::subResourceProperty: Got size %d, valid=%d", q.size(), (int)q.isValid());
   if ( !q.next() ) {
     // return some default values, at least to ensure the correct data type
@@ -757,8 +757,8 @@ bool KLFLibDBEngine::setSubResourceProperty(const QString& subResource, int prop
   if ( subResourceProperty(subResource, SubResPropLocked).toBool() && propId != SubResPropLocked )
     return false; // still allow us to unlock the sub-resource (!)
 
-  qDebug()<<KLF_FUNC_NAME<<": setting sub-resource property "<<propId<<" to "<<value<<" in sub-res "
-	  <<subResource;
+  klfDbg( ": setting sub-resource property "<<propId<<" to "<<value<<" in sub-res "
+	  <<subResource ) ;
 
   {
     QSqlQuery q = QSqlQuery(pDB);
@@ -878,7 +878,7 @@ QVariant KLFLibDBEngine::decaps(const QString& sdata) const
 }
 QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
 {
-  //  qDebug()<<"decaps(): "<<data;
+  //  klfDbg( "decaps(): "<<data ) ;
   int k;
   if (!data.size())
     return QVariant();
@@ -918,7 +918,7 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
     }
     if (wantPoint)
       return QVariant::fromValue(QPoint(cap[1].toInt(), cap[2].toInt()));
-    //    qDebug()<<KLF_FUNC_NAME<<": Read a size: "<<QSize(cap[1].toInt(), cap[2].toInt());
+    //    klfDbg( ": Read a size: "<<QSize(cap[1].toInt(), cap[2].toInt()) ) ;
     return QVariant::fromValue(QSize(cap[1].toInt(), cap[2].toInt()));
   }
   if (typenam == "QImage") {
@@ -1034,16 +1034,16 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO " + quotedDataTableName(subres) + " (" + props.join(",") + ") "
 	    " VALUES (" + questionmarks.join(",") + ")");
-  qDebug()<<"INSERT query: "<<q.lastQuery();
+  klfDbg( "INSERT query: "<<q.lastQuery() ) ;
   // now loop all entries, and exec the query with appropriate bound values
   for (j = 0; j < entrylist.size(); ++j) {
     if (j % 10 == 0) // emit every 10 items
       progr.doReportProgress(j);
-    //    qDebug()<<"New entry to insert.";
+    //    klfDbg( "New entry to insert." ) ;
     for (k = 0; k < propids.size(); ++k) {
       QVariant data = convertVariantToDBData(entrylist[j].property(propids[k]));
       // and add a corresponding bind value for sql query
-      qDebug()<<"Binding value "<<k<<": "<<data;
+      klfDbg( "Binding value "<<k<<": "<<data ) ;
       q.bindValue(k, data);
     }
     // and exec the query with these bound values
@@ -1090,8 +1090,8 @@ bool KLFLibDBEngine::changeEntries(const QString& subResource, const QList<entry
   if ( idlist.size() == 0 )
     return true; // no items to change
 
-  qDebug()<<"KLFLibDBEngine::changeEntries: funcional tests passed; idlist="<<idlist<<" props="
-	  <<properties<<" vals="<<values;
+  klfDbg( "KLFLibDBEngine::changeEntries: funcional tests passed; idlist="<<idlist<<" props="
+	  <<properties<<" vals="<<values ) ;
 
   ensureDataTableColumnsExist(subResource);
 

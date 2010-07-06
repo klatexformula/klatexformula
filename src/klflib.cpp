@@ -437,8 +437,8 @@ KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, uint featureflags,
 {
   initRegisteredProperties();
 
-  //  qDebug()<<"KLFLibResourceEngine::KLFLibResourceEngine("<<url<<","<<pFeatureFlags<<","
-  //	  <<parent<<")";
+  //  klfDbg( "KLFLibResourceEngine::KLFLibResourceEngine("<<url<<","<<pFeatureFlags<<","
+  //	  <<parent<<")" ) ;
 
   QStringList rdonly = pUrl.allQueryItemValues("klfReadOnly");
   if (rdonly.size() && rdonly.last() == "true") {

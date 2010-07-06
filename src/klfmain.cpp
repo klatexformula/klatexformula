@@ -66,7 +66,7 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
 {
   d = new Private;
   d->ref = 1;
-  qDebug()<<"KLFAddOnInfo: Private has ref "<< d->ref;
+  klfDbg( "KLFAddOnInfo: Private has ref "<< d->ref ) ;
 
   QFileInfo fi(rccfpath);
   
@@ -90,7 +90,7 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
     suffix = QString("_%1").arg(++k);
   }
   d->rccmountroot = mountroot;
-  qDebug()<<"Mounting resource to "<<d->rccmountroot;
+  klfDbg( "Mounting resource to "<<d->rccmountroot ) ;
 
   bool ok = QResource::registerResource(d->fpath, mountroot);
   if (!ok) {
@@ -176,8 +176,8 @@ void KLFAddOnInfo::initPlugins()
   }
 
   if (!QFile::exists(plugdir.absoluteFilePath("plugindirinfo.xml"))) {
-    qDebug()<<"KLFAddOnInfo("<<d->fname<<"): No specific plugin directories. plugdirinfo.xml="
-	    <<plugdir.absoluteFilePath("plugindirinfo.xml");
+    klfDbg( "KLFAddOnInfo("<<d->fname<<"): No specific plugin directories. plugdirinfo.xml="
+	    <<plugdir.absoluteFilePath("plugindirinfo.xml") ) ;
     return;
   }
 
@@ -214,7 +214,7 @@ void KLFAddOnInfo::initPlugins()
     QDomNode nn;
     for (nn = e.firstChild(); ! nn.isNull(); nn = nn.nextSibling()) {
       QDomElement ee = nn.toElement();
-      qDebug()<<"Node: type="<<nn.nodeType()<<"; name="<<ee.nodeName();
+      klfDbg( "Node: type="<<nn.nodeType()<<"; name="<<ee.nodeName() ) ;
       if ( ee.isNull() || nn.nodeType() != QDomNode::ElementNode )
 	continue;
       if ( ee.nodeName() == "dir" ) {
@@ -232,7 +232,7 @@ void KLFAddOnInfo::initPlugins()
 		 qPrintable(d->fpath), qPrintable(ee.nodeName()));
       }
     }
-    qDebug()<<"\tRead psi="<<psi;
+    klfDbg( "\tRead psi="<<psi ) ;
     // add this plugin dir info
     pdirinfos[psi.dir] = psi;
   }
@@ -260,7 +260,7 @@ void KLFAddOnInfo::initPlugins()
   fullList << d->pluginList;
   d->pluginList = fullList;
 
-  qDebug()<<"Loaded plugins: list="<<d->pluginList<<"; map="<<d->plugins;
+  klfDbg( "Loaded plugins: list="<<d->pluginList<<"; map="<<d->plugins ) ;
 }
 
 

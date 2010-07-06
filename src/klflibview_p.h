@@ -97,30 +97,59 @@ static QImage autocrop_image(const QImage& img, int alpha_threshold = 0)
 }
 
 /** \internal */
-static float color_distinguishable_distance(QRgb a, QRgb b) {
+static float color_distinguishable_distance(QRgb a, QRgb b, bool aPremultiplied = false) {
   static const float C_r = 11.f,   C_g = 16.f,   C_b = 5.f;
+  static const float C_avg = (C_r + C_g + C_b) / 3.f;
 
-  float drkfactor = 1 - (qGray(b)/1000.f);
+  // (?) really-> NO?  ON SECOND THOUGHT, REMOVE THIS FACTOR
+  //  // * drkfactor reduces distances for dark colors, accounting for the fact that the eye
+  //  //   distinguishes less dark colors than light colors
+  //  // * 0 <= qGray(...) <= 255
+  //  // * drkfactor <= 1 -> reducing factor
+  //  float drkfactor = 1 - (qGray(b)/1000.f);
+  static const float drkfactor = 1;
 
   float alpha = qAlpha(a)/255.f;
-  QRgb m = qRgb((int)(alpha*qRed(a)+(1-alpha)*qRed(b)),
-		(int)(alpha*qGreen(a)+(1-alpha)*qGreen(b)),
-		(int)(alpha*qBlue(a)+(1-alpha)*qBlue(b)));
+  QRgb m;
+  if (aPremultiplied)
+    m = qRgb((int)(qRed(a)+(1-alpha)*qRed(b)),
+	     (int)(qGreen(a)+(1-alpha)*qGreen(b)),
+	     (int)(qBlue(a)+(1-alpha)*qBlue(b)));
+  else
+    m = qRgb((int)(alpha*qRed(a)+(1-alpha)*qRed(b)),
+	     (int)(alpha*qGreen(a)+(1-alpha)*qGreen(b)),
+	     (int)(alpha*qBlue(a)+(1-alpha)*qBlue(b)));
 
-  return qMax( qMax(C_r*abs(qRed(m) - qRed(b)), C_g*abs(qGreen(m) - qGreen(b))),
-	       C_b*abs(qBlue(m) - qBlue(b)) ) * drkfactor * 3.f/32.f;
+  float dst = qMax( qMax(C_r*abs(qRed(m) - qRed(b)), C_g*abs(qGreen(m) - qGreen(b))),
+		    C_b*abs(qBlue(m) - qBlue(b)) ) * drkfactor / C_avg;
+  // klfDbg("a="<<klfFmt("%#010x", a).data()<<" qRed(a)="<<qRed(a)<<" b="<<klfFmt("%#010x", b).data()
+  //	 <<" m="<<klfFmt("%#010x", m)<<"drkfactor="<<drkfactor<<" a/alpha="<<alpha<<" => distance="<<dst) ;
+  return dst;
 }
 
 
 /** \internal */
-static bool image_is_distinguishable(const QImage& img, QColor background, float threshold)
+static bool image_is_distinguishable(const QImage& imgsrc, QColor background, float threshold)
 {
+  int fmt = imgsrc.format();
+  bool apremultiplied;
+  QImage img;
+  switch (fmt) {
+  case QImage::Format_ARGB32: img = imgsrc; apremultiplied = false; break;
+  case QImage::Format_ARGB32_Premultiplied: img = imgsrc; apremultiplied = true; break;
+  default:
+   img = imgsrc.convertToFormat(QImage::Format_ARGB32);
+   apremultiplied = false;
+   break;
+  }
   QRgb bg = background.rgb();
   // crop transparent borders
   int x, y;
   for (x = 0; x < img.width(); ++x) {
     for (y = 0; y < img.height(); ++y) {
-      float dist = color_distinguishable_distance(img.pixel(x,y), bg);
+      //      klfDbg("src/format="<<imgsrc.format()<<"; thisformat="<<img.format()
+      //	     <<" Testing pixel at ("<<x<<","<<y<<") pixel="<<klfFmt("%#010x", img.pixel(x,y))) ;
+      float dist = color_distinguishable_distance(img.pixel(x,y), bg, apremultiplied);
       if (dist > threshold) {
 	// ok we have one pixel at least we can distinguish.
 	return true;
@@ -391,7 +420,7 @@ public:
   /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */  
   virtual bool evDragEnter(QDragEnterEvent *de, const QPoint& pos) {
     uint fl = pModel->dropFlags(de, thisView());
-    qDebug()<<"KLFLibDefViewCommon::evDragEnter: drop flags are "<<fl<<"; this viewtype="<<pViewType;
+    klfDbg( "KLFLibDefViewCommon::evDragEnter: drop flags are "<<fl<<"; this viewtype="<<pViewType ) ;
     fprintf(stderr, "\t\tflags are %u", fl);
     // decide whether to show drop indicator or not.
     bool showdropindic = (fl & KLFLibModel::DropWillCategorize);
@@ -405,7 +434,7 @@ public:
     } else {
       mousePressedContentsPos = pos;
       de->accept();
-      qDebug()<<"Accepted drag enter event issued at pos="<<pos;
+      klfDbg( "Accepted drag enter event issued at pos="<<pos ) ;
       // and FAKE a QDragMoveEvent to the item view.
       QDragEnterEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
 				de->keyboardModifiers());
@@ -417,7 +446,7 @@ public:
   /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */  
   virtual bool evDragMove(QDragMoveEvent *de, const QPoint& pos) {
     uint fl = pModel->dropFlags(de, thisView());
-    qDebug()<<"KLFLibDefViewCommon::evDragMove: flags are "<<fl<<"; pos is "<<pos;
+    klfDbg( "KLFLibDefViewCommon::evDragMove: flags are "<<fl<<"; pos is "<<pos ) ;
     // decide whether to accept the drop or to ignore it
     if ( !(fl & KLFLibModel::DropWillAccept) && pViewType != KLFLibDefaultView::IconView ) {
       // pView != IconView  <=   don't ignore if in icon view (user can move the equations
@@ -447,7 +476,7 @@ public:
       //	qApp->sendEvent(object, event);
       // move the objects ourselves because of bug (?) in Qt's handling?
       QPoint delta = pos - mousePressedContentsPos;
-      qDebug()<<"Delta is "<<delta;
+      klfDbg( "Delta is "<<delta ) ;
       // and fake a QDragLeaveEvent
       QDragLeaveEvent fakeevent;
       qApp->sendEvent(thisView()->viewport(), &fakeevent);
@@ -456,7 +485,7 @@ public:
       thisView()->viewport()->update();
     } else {
       // and FAKE a QDropEvent to the item view.
-      qDebug()<<"Drop event at position="<<de->pos();
+      klfDbg( "Drop event at position="<<de->pos() ) ;
       QDropEvent fakeevent(de->pos(), de->dropAction(), de->mimeData(), de->mouseButtons(),
 			   de->keyboardModifiers());
       qApp->sendEvent(thisView()->viewport(), &fakeevent);
@@ -470,7 +499,7 @@ public:
 
     if (pViewType == KLFLibDefaultView::IconView) {
       // icon view -> move icons around
-      qDebug()<<"Internal DRAG, move icons around...";
+      klfDbg( "Internal DRAG, move icons around..." ) ;
       // if icon positions are locked then abort
       if ( ! pDView->canMoveIcons() )
 	return;
@@ -479,12 +508,12 @@ public:
       return;
     }
     
-    qDebug() << "Normal DRAG...";
+    klfDbg(  "Normal DRAG..." ) ;
     /*  // DEBUG:
 	if (indexes.count() > 0)
 	if (v->inherits("KLFLibDefListView")) {
-	qDebug()<<"Got First index' rect: "
-	<<qobject_cast<KLFLibDefListView*>(v)->rectForIndex(indexes[0]);
+	klfDbg( "Got First index' rect: "
+	<<qobject_cast<KLFLibDefListView*>(v)->rectForIndex(indexes[0]) ) ;
 	qobject_cast<KLFLibDefListView*>(v)->setPositionForIndex(QPoint(200,100), indexes[0]);
 	}
     */
@@ -511,10 +540,10 @@ public:
   QModelIndex curVisibleIndex() const {
     /*
       int off_y = scrollOffset().y();
-      qDebug()<<"curVisibleIndex: offset y is "<<off_y;
+      klfDbg( "curVisibleIndex: offset y is "<<off_y ) ;
       QModelIndex it = QModelIndex();
       while ((it = pModel->walkNextIndex(it)).isValid()) {
-      qDebug()<<"\texploring item it="<<it<<"; bottom="<<thisConstView()->visualRect(it).bottom();
+      klfDbg( "\texploring item it="<<it<<"; bottom="<<thisConstView()->visualRect(it).bottom() ) ;
       if (thisConstView()->visualRect(it).bottom() >= 0) {
       // first index from the beginning, that is after our scroll offset.
       return it;
@@ -523,15 +552,15 @@ public:
     */
     QModelIndex index;
     QPoint offset = scrollOffset();
-    qDebug()<<KLF_FUNC_NAME<<" offset="<<offset;
+    klfDbg( " offset="<<offset ) ;
     int xStep = 40;
     int yStep = 40;
     int xpos, ypos;
     for (xpos = xStep/2; xpos < thisConstView()->width(); xpos += xStep) {
       for (ypos = yStep/2; ypos < thisConstView()->height(); ypos += yStep) {
 	if ((index = thisConstView()->indexAt(QPoint(xpos,ypos))).isValid()) {
-	  qDebug()<<KLF_FUNC_NAME<<": Found index = "<<index<<" at pos=("<<xpos<<","<<ypos<<"); "
-		  <<" with offset "<<offset;
+	  klfDbg( ": Found index = "<<index<<" at pos=("<<xpos<<","<<ypos<<"); "
+		  <<" with offset "<<offset ) ;
 	  return index;
 	}
       }
@@ -661,7 +690,7 @@ public:
     pInEventFilter = true;
     bool eat = false;
     if (object == this && event->type() == QEvent::Polish) {
-      qDebug()<<"KLFLibDefListView::eventFilter: Polish! iconpos="<<pDelayedSetIconPositions;
+      klfDbg( "KLFLibDefListView::eventFilter: Polish! iconpos="<<pDelayedSetIconPositions ) ;
       if (!pDelayedSetIconPositions.isEmpty()) {
 	// QListView wants to have its own doItemsLayout() function called first, before we start
 	// fiddling with item positions.
@@ -729,19 +758,19 @@ public:
 
     if ( ! pHasBeenPolished && ! forcenow ) {
       pDelayedSetIconPositions = iconPositions;
-      qDebug()<<"KLFLibDefListView::loadIconPositions: delaying action!";
+      klfDbg( "KLFLibDefListView::loadIconPositions: delaying action!" ) ;
       return;
     }
-    qDebug()<<"KLFLibDefListView::loadIconPositions: setting icon positions "<<iconPositions;
+    klfDbg( "KLFLibDefListView::loadIconPositions: setting icon positions "<<iconPositions ) ;
     QMap<KLFLib::entryId,QPoint>::const_iterator it;
     for (it = iconPositions.begin(); it != iconPositions.end(); ++it) {
       QModelIndex index = pModel->findEntryId(it.key());
       if (!index.isValid())
 	continue;
       QPoint pos = *it;
-      qDebug()<<KLF_FUNC_NAME<<": About to set single icon position..";
+      klfDbg( ": About to set single icon position.." ) ;
       setIconPosition(index, pos, true);
-      qDebug()<<"Set single icon position OK.";
+      klfDbg( "Set single icon position OK." ) ;
     }
     pDelayedSetIconPositions.clear();
   }
@@ -759,8 +788,8 @@ public:
   }
 
   void forceRelayout(bool isPolishing = false) {
-    qDebug()<<"KLFLibDefListView::forceRelayout: isPolishing="<<isPolishing<<"; pWantRelayout="
-	    <<pWantRelayout<<"; hasbeenpolished="<<pHasBeenPolished;
+    klfDbg( "KLFLibDefListView::forceRelayout: isPolishing="<<isPolishing<<"; pWantRelayout="
+	    <<pWantRelayout<<"; hasbeenpolished="<<pHasBeenPolished ) ;
     bool wr = pWantRelayout;
     pWantRelayout = true;
     doItemsLayout(); // force re-layout
@@ -779,7 +808,7 @@ public:
       return;
     //    if (rectForIndex(index).topLeft() == pos)
     //      return;
-    qDebug()<<"Functional setIconPosition("<<index<<","<<pos<<")";
+    klfDbg( "Functional setIconPosition("<<index<<","<<pos<<")" ) ;
     setPositionForIndex(pos, index);
     if (!dontSave)
       saveIconPosition(index);
@@ -813,13 +842,13 @@ protected:
   }
   virtual void doItemsLayout() {
     /** \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API ! */
-    qDebug()<<"doItemsLayout!";
+    klfDbg( "doItemsLayout!" ) ;
     // Qt want its own doItemsLayout() to be called first (in case new indexes have appeared, or
     // old ones dissapeared)
     QMap<KLFLib::entryId,QPoint> bkpiconpos;
     if (!pWantRelayout) {
       bkpiconpos = allIconPositions(); // save current icon positions
-      qDebug()<<"Got backup icon positions: "<<bkpiconpos;
+      klfDbg( "Got backup icon positions: "<<bkpiconpos ) ;
     }
     // do qt's layout
     QListView::doItemsLayout();
@@ -828,35 +857,35 @@ protected:
       loadIconPositions(bkpiconpos);
 
     pWantRelayout = false;
-    qDebug()<<"doItemsLayout finished!";
+    klfDbg( "doItemsLayout finished!" ) ;
   } 
   
   bool pWantRelayout;
 
   void saveIconPositions() {
-    qDebug()<<"saveIconPositions()";
+    klfDbg( "saveIconPositions()" ) ;
     KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
     // walk all indices, fill entryIdList
     QModelIndex index = model->walkNextIndex(QModelIndex());
     while (index.isValid()) {
-      qDebug()<<"Walking index "<<index<<"; our model is "<<((QAbstractItemModel*)model)
-	      <<"item's model is"<<((QAbstractItemModel*)index.model());
+      klfDbg( "Walking index "<<index<<"; our model is "<<((QAbstractItemModel*)model)
+	      <<"item's model is"<<((QAbstractItemModel*)index.model()) ) ;
       saveIconPosition(index);
       index = model->walkNextIndex(index);
     }
-    qDebug()<<"Done saving all icon positions.";
+    klfDbg( "Done saving all icon positions." ) ;
   }
   void saveIconPosition(const QModelIndex& index) {
     if (index.column()>0)
       return;
-    qDebug()<<"saveIconPosition()";
+    klfDbg( "saveIconPosition()" ) ;
     KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
     KLFLibEntry edummy = index.data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
     int propId = edummy.setEntryProperty("IconView_IconPosition", rectForIndex(index).topLeft());
     pSavingIconPositions = true;
     model->changeEntries(QModelIndexList() << index, propId, edummy.property(propId)); 
     pSavingIconPositions = false;
-    qDebug()<<"end of saveIconPosition()";
+    klfDbg( "end of saveIconPosition()" ) ;
   }
 };
 

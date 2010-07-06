@@ -89,8 +89,8 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
 			      const QStringList& interestQueryItems)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
-  qDebug()<<KLF_FUNC_NAME<<": 1="<<url1<<"; 2="<<url2<<"; interestflags="<<interestFlags<<"; int.q.i="
-	  <<interestQueryItems;
+  klfDbg( ": 1="<<url1<<"; 2="<<url2<<"; interestflags="<<interestFlags<<"; int.q.i="
+	  <<interestQueryItems ) ;
   uint compareflags = 0x00;
 
   QMap<QString,QString> qitems_map1;
@@ -101,7 +101,7 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
   u1.setQueryItems(QList<QPair<QString,QString> >());
   u2.setQueryItems(QList<QPair<QString,QString> >());
 
-  qDebug()<<KLF_FUNC_NAME<<" after q-i-stripping: u1="<<u1<<"; u2="<<u2;
+  klfDbg( " after q-i-stripping: u1="<<u1<<"; u2="<<u2 ) ;
 
   if (interestFlags &
       (KlfUrlCompareEqual|KlfUrlCompareLessSpecific|KlfUrlCompareMoreSpecific)) {
@@ -150,7 +150,7 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
       compareflags |= KlfUrlCompareBaseEqual;
   }
 
-  qDebug()<<KLF_FUNC_NAME<<"... and the result is compareflags="<<compareflags;
+  klfDbg( "... and the result is compareflags="<<compareflags ) ;
   return compareflags;
 }
 
@@ -432,7 +432,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
     data += vdata_esc;
   }
 
-  qDebug()<<"klfSaveVariantToText("<<value<<"): saved data (len="<<data.size()<<") : "<<data;
+  klfDbg( "klfSaveVariantToText("<<value<<"): saved data (len="<<data.size()<<") : "<<data ) ;
   return data;
 }
 
@@ -449,7 +449,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   if (data.startsWith("[QVariant]")) {
     QByteArray vdata_esc = data.mid(strlen("[QVariant]"));
     QByteArray vdata = klfEscapedToData(vdata_esc);
-    qDebug()<<"\tAbout to read raw variant from datastr="<<vdata_esc<<", ie. from data len="<<vdata.size();
+    klfDbg( "\tAbout to read raw variant from datastr="<<vdata_esc<<", ie. from data len="<<vdata.size() ) ;
     QDataStream stream(vdata);
     stream >> value;
     return value;
@@ -457,7 +457,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   if (data.startsWith("\\"))
     data = data.mid(1);
 
-  qDebug()<<"Will start loading data (len="<<data.size()<<") : "<<data;
+  klfDbg( "Will start loading data (len="<<data.size()<<") : "<<data ) ;
 
   // now, start reading.
   int type = QVariant::nameToType(dataTypeName);
@@ -749,7 +749,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
 	break;
       }
       QStringList vals = fontrx.capturedTexts();
-      //qDebug()<<"klfLoadVariantFromText: loaded font-rx cap.Texts: "<<vals;
+      //klfDbg( "klfLoadVariantFromText: loaded font-rx cap.Texts: "<<vals ) ;
       QString family = vals[2].trimmed();
       QString weighttxt = vals[4];
       QString weightval = vals[5];
@@ -1048,7 +1048,7 @@ KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomEl
     }
     elNode.appendChild(vdataNode);
     // now append this pair to our list
-    //qDebug()<<KLF_FUNC_NAME<<"... appending node!";
+    //klfDbg( "... appending node!" ) ;
     baseNode.appendChild(elNode);
   }
 
