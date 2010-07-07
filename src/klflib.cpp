@@ -156,7 +156,7 @@ int KLFLibEntry::setEntryProperty(const QString& propName, const QVariant& value
   return propId;
 }
 
-// private
+// private, static
 void KLFLibEntry::initRegisteredProperties()
 {
   KLF_FUNC_SINGLE_RUN ;
@@ -345,6 +345,27 @@ QList<KLFAbstractLibEntryMimeEncoder*> KLFAbstractLibEntryMimeEncoder::encoderLi
 }
 
 // static
+QStringList KLFAbstractLibEntryMimeEncoder::allEncodingMimeTypes()
+{
+  QStringList encTypes;
+  int k;
+  for (k = 0; k < staticEncoderList.size(); ++k) {
+    encTypes << staticEncoderList[k]->supportedEncodingMimeTypes();
+  }
+  return encTypes;
+}
+// static
+QStringList KLFAbstractLibEntryMimeEncoder::allDecodingMimeTypes()
+{
+  QStringList decTypes;
+  int k;
+  for (k = 0; k < staticEncoderList.size(); ++k) {
+    decTypes << staticEncoderList[k]->supportedDecodingMimeTypes();
+  }
+  return decTypes;
+}
+
+// static
 QMimeData *KLFAbstractLibEntryMimeEncoder::createMimeData(const KLFLibEntryList& entryList,
 							  QVariantMap& metaData)
 {
@@ -353,8 +374,13 @@ QMimeData *KLFAbstractLibEntryMimeEncoder::createMimeData(const KLFLibEntryList&
   for (k = 0; k < staticEncoderList.size(); ++k) {
     QStringList mimeTypeList = staticEncoderList[k]->supportedEncodingMimeTypes();
     for (j = 0; j < mimeTypeList.size(); ++j) {
-      mime->setData(mimeTypeList[j],
-		    staticEncoderList[k]->encodeMime(entryList, metaData, mimeTypeList[j]));
+      QByteArray data =
+	staticEncoderList[k]->encodeMime(entryList, metaData, mimeTypeList[j]);
+      if (data.isEmpty()) {
+	klfDbg("Skipping mime type "<<mimeTypeList[k]<<" because it did not provide any data.");
+      } else {
+	mime->setData(mimeTypeList[j], data);
+      }
     }
   }
   return mime;

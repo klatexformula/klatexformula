@@ -232,17 +232,17 @@ include(CheckCXXSourceCompiles)
 CHECK_CXX_SOURCE_COMPILES("int main() { const char *s = __PRETTY_FUNCTION__; }"
 			  has_pretty_function)
 if(has_pretty_function)
-add_definitions(-DKLF_CMAKE_HAS_PRETTY_FUNCTION)
+add_definitions(-DKLF_HAS_PRETTY_FUNCTION)
 endif(has_pretty_function)
 CHECK_CXX_SOURCE_COMPILES("int main() { const char *s = __FUNCTION__; }"
 			  has_function)
 if(has_function)
-add_definitions(-DKLF_CMAKE_HAS_FUNCTION)
+add_definitions(-DKLF_HAS_FUNCTION)
 endif(has_function)
 CHECK_CXX_SOURCE_COMPILES("int main() { const char *s = __func__; }"
 			  has_func)
 if(has_func)
-add_definitions(-DKLF_CMAKE_HAS_FUNC)
+add_definitions(-DKLF_HAS_FUNC)
 endif(has_func)
 
 # Current System OS

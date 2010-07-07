@@ -41,12 +41,13 @@ KLFPropertizedObject::~KLFPropertizedObject()
 
 QVariant KLFPropertizedObject::property(const QString& propname) const
 {
-  if ( ! propertyNameRegistered(propname) ) {
-    qWarning("property(): Property `%s' not registered in property name space `%s'.",
-	     qPrintable(propname), qPrintable(pPropNameSpace));
+  int propId = propertyIdForName(propname);
+  if (propId < 0) {
+    qWarning("%s[%s](): Property `%s' not registered.", KLF_FUNC_NAME, qPrintable(pPropNameSpace),
+	     qPrintable(propname));
     return QVariant();
   }
-  return property(propertyIdForName(propname));
+  return property(propId);
 }
 QVariant KLFPropertizedObject::property(int propId) const
 {
@@ -55,10 +56,11 @@ QVariant KLFPropertizedObject::property(int propId) const
     return pProperties[propId];
   }
   if (propId < 0) {
-    qWarning("%s/property(%d): invalid property ID.", qPrintable(pPropNameSpace), propId);
+    qWarning("%s[%s](%d): invalid property ID.", KLF_FUNC_NAME, qPrintable(pPropNameSpace),
+	     propId);
     return QVariant();
   }
-  // property not set
+  // property not set (or property not registered)
   return QVariant();
 }
 
@@ -72,8 +74,8 @@ void KLFPropertizedObject::propertyValueChanged(int , const QVariant& ,
 void KLFPropertizedObject::setProperty(const QString& propname, const QVariant& value)
 {
   if ( ! propertyNameRegistered(propname) ) {
-    qWarning("setProperty(): Property `%s' not registered in property name space `%s'.",
-	     qPrintable(propname), qPrintable(pPropNameSpace));
+    qWarning("%s[%s](): Property `%s' not registered.", KLF_FUNC_NAME, qPrintable(pPropNameSpace),
+	     qPrintable(propname));
     return;
   }
   setProperty(propertyIdForName(propname), value);
@@ -88,7 +90,8 @@ void KLFPropertizedObject::setProperty(int propId, const QVariant& value)
     return;
   }
   if (propId < 0) {
-    qWarning("%s/setProperty(id=%d): invalid property ID.", qPrintable(pPropNameSpace), propId);
+    qWarning("%s[%s](id=%d): invalid property ID.", KLF_FUNC_NAME, qPrintable(pPropNameSpace),
+	     propId);
     return;
   }
   // maybe our properties array needs resize for properties that could have been
@@ -99,7 +102,8 @@ void KLFPropertizedObject::setProperty(int propId, const QVariant& value)
   }
   if (propId < 0 || propId >= pProperties.size() ||
       ! propertyIdRegistered(propId) ) {
-    qWarning("%s/setProperty(id=%d): invalid property id.", qPrintable(pPropNameSpace), propId);
+    qWarning("%s[%s](id=%d): invalid property id.", KLF_FUNC_NAME, qPrintable(pPropNameSpace),
+	     propId);
     return;
   }
   QVariant oldvalue = pProperties[propId];
@@ -158,7 +162,7 @@ QMap<QString,QVariant> KLFPropertizedObject::allProperties() const
   return properties;
 }
 
-void KLFPropertizedObject::setAllProperties(QMap<QString, QVariant> propValues)
+void KLFPropertizedObject::setAllProperties(const QMap<QString, QVariant>& propValues)
 {
   QStringList propKeys = propValues.keys();
   int k;
@@ -319,7 +323,8 @@ int KLFPropertizedObject::registerProperty(const QString& propNameSpace, const Q
 int KLFPropertizedObject::propertyMaxId(const QString& propNameSpace)
 {
   if ( ! pRegisteredPropertiesMaxId.contains(propNameSpace) ) {
-    qWarning("propertyMaxId: property name space `%s' does not exist!", qPrintable(propNameSpace));
+    qWarning("%s(): property name space `%s' does not exist!", KLF_FUNC_NAME,
+	     qPrintable(propNameSpace));
     return -1;
   }
   return pRegisteredPropertiesMaxId[propNameSpace];
@@ -336,7 +341,8 @@ bool KLFPropertizedObject::propertyNameRegistered(const QString& propNameSpace,
 int KLFPropertizedObject::propertyIdForName(const QString& propNameSpace, const QString& name)
 {
   if ( ! pRegisteredProperties.contains(propNameSpace) ) {
-    qWarning("propertyIdForName: property name space `%s' does not exist!", qPrintable(propNameSpace));
+    qWarning("%s: property name space `%s' does not exist!", KLF_FUNC_NAME,
+	     qPrintable(propNameSpace));
     return -1;
   }
   QMap<QString, int> propList = pRegisteredProperties[propNameSpace];
@@ -347,7 +353,8 @@ int KLFPropertizedObject::propertyIdForName(const QString& propNameSpace, const 
 QString KLFPropertizedObject::propertyNameForId(const QString& propNameSpace, int propId)
 {
   if ( ! pRegisteredProperties.contains(propNameSpace) ) {
-    qWarning("propertyNameForId: property name space `%s' does not exist!", qPrintable(propNameSpace));
+    qWarning("%s: property name space `%s' does not exist!", KLF_FUNC_NAME,
+	     qPrintable(propNameSpace));
     return QString();
   }
   QMap<QString, int> propList = pRegisteredProperties[propNameSpace];
@@ -355,15 +362,15 @@ QString KLFPropertizedObject::propertyNameForId(const QString& propNameSpace, in
   if (keyList.isEmpty())
     return QString();
   if (keyList.size() > 1) {
-    qWarning("What's going on?? property Id=%d not unique in prop name space `%s'.",
-	     propId, qPrintable(propNameSpace));
+    qWarning("%s: What's going on?? property Id=%d not unique in prop name space `%s'.",
+	     KLF_FUNC_NAME, propId, qPrintable(propNameSpace));
   }
   return keyList[0];
 }
 QStringList KLFPropertizedObject::registeredPropertyNameList(const QString& propNameSpace)
 {
   if ( ! pRegisteredProperties.contains(propNameSpace) ) {
-    qWarning("registeredPropertyNameList: property name space `%s' does not exist!",
+    qWarning("%s: property name space `%s' does not exist!", KLF_FUNC_NAME,
 	     qPrintable(propNameSpace));
     return QStringList();
   }
@@ -373,7 +380,7 @@ QStringList KLFPropertizedObject::registeredPropertyNameList(const QString& prop
 QList<int> KLFPropertizedObject::registeredPropertyIdList(const QString& propNameSpace)
 {
   if ( ! pRegisteredProperties.contains(propNameSpace) ) {
-    qWarning("registeredPropertyIdList: property name space `%s' does not exist!",
+    qWarning("%s: property name space `%s' does not exist!", KLF_FUNC_NAME,
 	     qPrintable(propNameSpace));
     return QList<int>();
   }
@@ -384,7 +391,7 @@ QList<int> KLFPropertizedObject::registeredPropertyIdList(const QString& propNam
 QMap<QString, int> KLFPropertizedObject::registeredProperties(const QString& propNameSpace)
 {
   if ( ! pRegisteredProperties.contains(propNameSpace) ) {
-    qWarning("registeredPropertyIdList: property name space `%s' does not exist!",
+    qWarning("%s: property name space `%s' does not exist!", KLF_FUNC_NAME,
 	     qPrintable(propNameSpace));
     return QMap<QString, int>();
   }
@@ -404,7 +411,7 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
 						   const QString& propName,
 						   int propId)
 {
-  QMap<QString, int> propList = pRegisteredProperties[propNameSpace];
+  const QMap<QString, int> propList = pRegisteredProperties[propNameSpace];
   int propMaxId = -1;
   if (pRegisteredPropertiesMaxId.contains(propNameSpace)) {
     propMaxId = pRegisteredPropertiesMaxId[propNameSpace];
@@ -412,7 +419,7 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
   if (propId == -1) {
     // propMaxId is maximum ID already used, so +1 gives a free ID.
     propId = propMaxId + 1;
-    // and update propMaxId to reflect the new propId...
+    // and update propMaxId to account for the new propId...
     propMaxId = propId;
   } else {
     // used the fixed propId. Update propMaxId if necessary.
@@ -423,20 +430,21 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
     QString oldPropName = propList.keys(propId).at(0);
     if (propName == oldPropName)
       return propId; // already registered, return that property ID
-    qWarning("Property ID `%d' in property name space `%s' is already registered with conflicting names!"
-	     "\told=`%s', new=`%s'", propId, qPrintable(propNameSpace), qPrintable(oldPropName),
+    qWarning("%s[%s]: Property ID `%d' is already registered with conflicting names!\n"
+	     "\told name is `%s', new is `%s'",
+	     KLF_FUNC_NAME, qPrintable(propNameSpace), propId, qPrintable(oldPropName),
 	     qPrintable(propName));
     return -1;
   }
   // make sure property name is valid and unique
   if (propName.isEmpty()) {
-    qWarning("Cannot Register a property with empty name (in prop name space `%s')!",
+    qWarning("%s[%s]: Cannot Register a property with empty name!", KLF_FUNC_NAME,
 	     qPrintable(propNameSpace));
     return -1;
   }
   if (propList.contains(propName)) {
-    qWarning("Property `%s' already registered in prop name space `%s'.", qPrintable(propName),
-	     qPrintable(propNameSpace));
+    qWarning("%s[%s]: Property `%s' already registered.", KLF_FUNC_NAME, qPrintable(propNameSpace),
+	     qPrintable(propName));
     return -1;
   }
   // name and ID are valid and unique.

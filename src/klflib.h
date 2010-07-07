@@ -135,6 +135,7 @@ public:
 
   /** Set the property named \c name to value \c value. If the property does not
    * yet exist in the registered properties, it is registered.
+   *
    * \returns -1 for error, or the property ID that was successfully (maybe registered
    * and) set.
    */
@@ -280,6 +281,8 @@ public:
 			  KLFLibEntryList *entryList, QVariantMap *metaData) const = 0;
 
 
+  static QStringList allEncodingMimeTypes();
+  static QStringList allDecodingMimeTypes();
   //! Creates a QMetaData with all known registered encoding mime types
   static QMimeData *createMimeData(const KLFLibEntryList& entryList, QVariantMap& metaData);
   static bool canDecodeMimeData(const QMimeData *mimeData);

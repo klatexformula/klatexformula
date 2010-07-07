@@ -1349,14 +1349,21 @@ void KLFMainWin::slotEvaluate()
 
   if (_output.status < 0) {
     QString comment = "";
-    if (_output.status == -4) {
+    bool showSettingsPaths = false;
+    if (_output.status == KLFERR_NOLATEXPROG ||
+	_output.status == KLFERR_NODVIPSPROG ||
+	_output.status == KLFERR_NOGSPROG ||
+	_output.status == KLFERR_NOEPSTOPDFPROG) {
       comment = "\n"+tr("Are you sure you configured your system paths correctly in the settings dialog ?");
+      showSettingsPaths = true;
     }
     QMessageBox::critical(this, tr("Error"), _output.errorstr+comment);
     u->lblOutput->displayClear();
     u->frmOutput->setEnabled(false);
-    mSettingsDialog->show();
-    mSettingsDialog->showControl(KLFSettings::ExecutablePaths);
+    if (showSettingsPaths) {
+      mSettingsDialog->show();
+      mSettingsDialog->showControl(KLFSettings::ExecutablePaths);
+    }
   }
   if (_output.status > 0) {
     KLFProgErr::showError(this, _output.errorstr);

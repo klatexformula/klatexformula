@@ -60,11 +60,106 @@
 #include "klflibview_p.h"
 
 
-template<class T>
-static const T& passingDebug(const T& t, QDebug& dbg)
+// ---------------------------------------------------
+
+/** \internal */
+static QImage transparentify_image(const QImage& img, qreal factor)
 {
-  dbg << " : " << t;
-  return t;
+  // set the image opacity to factor (by multiplying each alpha value by factor)
+  QImage img2 = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+  int k, j;
+  for (k = 0; k < img.height(); ++k) {
+    for (j = 0; j < img.width(); ++j) {
+      QRgb c = img2.pixel(j, k);
+      img2.setPixel(j, k, qRgba(qRed(c),qGreen(c),qBlue(c),(int)(factor*qAlpha(c))));
+    }
+  }
+  return img2;
+}
+
+
+/** \internal */
+static QImage autocrop_image(const QImage& img, int alpha_threshold = 0)
+{
+  // crop transparent borders
+  int x, y;
+  int min_x = -1, max_x = -1, min_y = -1, max_y = -1;
+  // so first find borders
+  for (x = 0; x < img.width(); ++x) {
+    for (y = 0; y < img.height(); ++y) {
+      if (qAlpha(img.pixel(x,y)) - alpha_threshold > 0) {
+	// opaque pixel: include it.
+	if (min_x == -1 || min_x > x) min_x = x;
+	if (max_x == -1 || max_x < x) max_x = x;
+	if (min_y == -1 || min_y > y) min_y = y;
+	if (max_y == -1 || max_y < y) max_y = y;
+      }
+    }
+  }
+  return img.copy(QRect(QPoint(min_x, min_y), QPoint(max_x, max_y)));
+}
+
+/** \internal */
+static float color_distinguishable_distance(QRgb a, QRgb b, bool aPremultiplied = false) {
+  static const float C_r = 11.f,   C_g = 16.f,   C_b = 5.f;
+  static const float C_avg = (C_r + C_g + C_b) / 3.f;
+
+  // (?) really-> NO?  ON SECOND THOUGHT, REMOVE THIS FACTOR
+  //  // * drkfactor reduces distances for dark colors, accounting for the fact that the eye
+  //  //   distinguishes less dark colors than light colors
+  //  // * 0 <= qGray(...) <= 255
+  //  // * drkfactor <= 1 -> reducing factor
+  //  float drkfactor = 1 - (qGray(b)/1000.f);
+  static const float drkfactor = 1;
+
+  float alpha = qAlpha(a)/255.f;
+  QRgb m;
+  if (aPremultiplied)
+    m = qRgb((int)(qRed(a)+(1-alpha)*qRed(b)),
+	     (int)(qGreen(a)+(1-alpha)*qGreen(b)),
+	     (int)(qBlue(a)+(1-alpha)*qBlue(b)));
+  else
+    m = qRgb((int)(alpha*qRed(a)+(1-alpha)*qRed(b)),
+	     (int)(alpha*qGreen(a)+(1-alpha)*qGreen(b)),
+	     (int)(alpha*qBlue(a)+(1-alpha)*qBlue(b)));
+
+  float dst = qMax( qMax(C_r*abs(qRed(m) - qRed(b)), C_g*abs(qGreen(m) - qGreen(b))),
+		    C_b*abs(qBlue(m) - qBlue(b)) ) * drkfactor / C_avg;
+  // klfDbg("a="<<klfFmt("%#010x", a).data()<<" qRed(a)="<<qRed(a)<<" b="<<klfFmt("%#010x", b).data()
+  //	 <<" m="<<klfFmt("%#010x", m)<<"drkfactor="<<drkfactor<<" a/alpha="<<alpha<<" => distance="<<dst) ;
+  return dst;
+}
+
+
+/** \internal */
+static bool image_is_distinguishable(const QImage& imgsrc, QColor background, float threshold)
+{
+  int fmt = imgsrc.format();
+  bool apremultiplied;
+  QImage img;
+  switch (fmt) {
+  case QImage::Format_ARGB32: img = imgsrc; apremultiplied = false; break;
+  case QImage::Format_ARGB32_Premultiplied: img = imgsrc; apremultiplied = true; break;
+  default:
+   img = imgsrc.convertToFormat(QImage::Format_ARGB32);
+   apremultiplied = false;
+   break;
+  }
+  QRgb bg = background.rgb();
+  // crop transparent borders
+  int x, y;
+  for (x = 0; x < img.width(); ++x) {
+    for (y = 0; y < img.height(); ++y) {
+      //      klfDbg("src/format="<<imgsrc.format()<<"; thisformat="<<img.format()
+      //	     <<" Testing pixel at ("<<x<<","<<y<<") pixel="<<klfFmt("%#010x", img.pixel(x,y))) ;
+      float dist = color_distinguishable_distance(img.pixel(x,y), bg, apremultiplied);
+      if (dist > threshold) {
+	// ok we have one pixel at least we can distinguish.
+	return true;
+      }
+    }
+  }
+  return false;
 }
 
 
@@ -74,11 +169,6 @@ static const T& passingDebug(const T& t, QDebug& dbg)
 KLFAbstractLibView::KLFAbstractLibView(QWidget *parent)
   : QWidget(parent), pResourceEngine(NULL)
 {
-}
-
-void KLFAbstractLibView::updateView()
-{
-  updateResourceView();
 }
 
 void KLFAbstractLibView::setResourceEngine(KLFLibResourceEngine *resource)
@@ -91,8 +181,13 @@ void KLFAbstractLibView::setResourceEngine(KLFLibResourceEngine *resource)
   connect(pResourceEngine, SIGNAL(resourcePropertyChanged(int)),
 	  this, SLOT(updateResourceProp(int)));
   connect(pResourceEngine, SIGNAL(defaultSubResourceChanged(const QString&)),
-	  this, SLOT(updateResourceView()));
-  updateResourceView();
+	  this, SLOT(updateResourceDefaultSubResourceChanged(const QString&)));
+  updateResourceEngine();
+}
+
+void KLFAbstractLibView::updateResourceDefaultSubResourceChanged(const QString& /*subResource*/)
+{
+  updateResourceEngine();
 }
 
 void KLFAbstractLibView::wantMoreCategorySuggestions()
@@ -1400,7 +1495,9 @@ int KLFLibModel::rowCount(const QModelIndex &parent) const
   KLFLibModelCache::Node n = pCache->getNode(p);
   klfDbg( " parent="<<parent<<"; count="<<n.numDisplayFetched<<"; numchildren="
 	  <<n.children.size() ) ;
-  return n.numDisplayFetched;
+
+  // make sure also that numDisplayFetched is not more than children.size()
+  return qMin(n.children.size(), n.numDisplayFetched);
 }
 
 int KLFLibModel::columnCount(const QModelIndex & /*parent*/) const
@@ -1469,7 +1566,7 @@ Qt::DropActions KLFLibModel::supportedDropActions() const
 QStringList KLFLibModel::mimeTypes() const
 {
   return QStringList() << "application/x-klf-internal-lib-move-entries"
-		       << "application/x-klf-libentries" << "text/html" << "text/plain";
+		       << KLFAbstractLibEntryMimeEncoder::allEncodingMimeTypes();
 }
 QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
 {
@@ -1549,10 +1646,10 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
 
   if ( ! (mimedata->hasFormat("application/x-klf-internal-lib-move-entries") &&
 	  pResource->canModifyData(KLFLibResourceEngine::ChangeData)) &&
-       ! (mimedata->hasFormat("application/x-klf-libentries") &&
+       ! (KLFAbstractLibEntryMimeEncoder::canDecodeMimeData(mimedata) &&
 	  pResource->canModifyData(KLFLibResourceEngine::InsertData)) ) {
     // cannot (change items with application/x-klf-internal-lib-move-entries) AND
-    // cannot (insert items with application/x-klf-libentries)
+    // cannot (insert items with any supported format, eg. application/x-klf-libentries)
     return false;
   }
 
@@ -1599,22 +1696,25 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
   }
 
   klfDbg( "Dropping entry list." ) ;
-  QByteArray ldata = mimedata->data("application/x-klf-libentries");
-  KLFAbstractLibEntryMimeEncoder *encoder =
-    KLFAbstractLibEntryMimeEncoder::findDecoderFor("application/x-klf-libentries");
+
   KLFLibEntryList elist;
   QVariantMap vprop;
-  bool result = encoder->decodeMime(ldata, "application/x-klf-libentries", &elist, &vprop) ;
-  if ( !result ) {
-    qWarning()<<KLF_FUNC_NAME<<": Failed to decode application/x-klf-libentries mime data!";
+  bool res = KLFAbstractLibEntryMimeEncoder::decodeMimeData(mimedata, &elist, &vprop);
+  if ( ! res ) {
+    qWarning()<<KLF_FUNC_NAME<<": Drop: Can't decode mime data! provided types="
+	      <<mimedata->formats();
+    QMessageBox::warning(NULL, tr("Drop Error", "[[message box title]]"),
+			 tr("Error dropping data."));
     return false;
   }
+
   if ( elist.isEmpty() )
     return true; // nothing to drop
 
   // insert list, regardless of parent (no category change)
-  bool res = insertEntries(elist);
-  klfDbg( "Dropped entry list "<<elist<<". result="<<res ) ;
+  res = insertEntries(elist);
+  klfDbg( "Dropped entry list "<<elist<<". Originating URL="
+	  <<(vprop.contains("Url")?vprop["Url"]:"(none)")<<". result="<<res ) ;
   if (!res)
     return false;
 
@@ -1638,7 +1738,8 @@ uint KLFLibModel::dropFlags(QDragMoveEvent *event, QAbstractItemView *view)
     /** \todo ....... drop not accepted on background (categorize to root) */
     return 0;
   }
-  if (pResource->canModifyData(KLFLibResourceEngine::InsertData))
+  if (KLFAbstractLibEntryMimeEncoder::canDecodeMimeData(mdata) &&
+      pResource->canModifyData(KLFLibResourceEngine::InsertData))
     return DropWillAccept;
   return 0;
 }
@@ -2469,7 +2570,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     listView->setSpacing(15);
     listView->setMovement(QListView::Free);
     listView->setFlow(QListView::LeftToRight);
-    listView->setResizeMode(QListView::Fixed);
+    listView->setResizeMode(QListView::Adjust);
     klfDbg( "prepared list view." ) ;
     pView = listView;
     break;
@@ -2582,7 +2683,7 @@ QVariantMap KLFLibDefaultView::saveGuiState() const
     vst["ColumnsState"] = QVariant::fromValue<QByteArray>(tv->header()->saveState());
   }
   if (pViewType == IconView) {
-    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
+    /*    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
     KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
 			 return QVariantMap() )
       ;
@@ -2599,7 +2700,7 @@ QVariantMap KLFLibDefaultView::saveGuiState() const
       }
       vst["IconPositionsEntryIdList"] = QVariant::fromValue<QVariantList>(vEntryIds);
       vst["IconPositionsPositionList"] = QVariant::fromValue<QVariantList>(vPositions);
-    }
+      } */
   }
   return vst;
 }
@@ -2613,7 +2714,7 @@ bool KLFLibDefaultView::restoreGuiState(const QVariantMap& vstate)
     tv->header()->restoreState(colstate);
   }
   if (pViewType == IconView) {
-    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
+    /*    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
     KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
 			 return false )
       ;
@@ -2628,7 +2729,7 @@ bool KLFLibDefaultView::restoreGuiState(const QVariantMap& vstate)
 	iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
       }
       lv->loadIconPositions(iconpositions);
-    }
+      } */
   }
   return true;
 }
@@ -2659,7 +2760,7 @@ QModelIndex KLFLibDefaultView::currentVisibleIndex() const
 #include <modeltest.h>
 #endif
 
-void KLFLibDefaultView::updateResourceView()
+void KLFLibDefaultView::updateResourceEngine()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
@@ -2671,13 +2772,17 @@ void KLFLibDefaultView::updateResourceView()
     for (k = 0; k < pShowColumnActions.size(); ++k)
       delete pShowColumnActions[k];
     pShowColumnActions.clear();
-    if (pIconViewLockAction)
+    if (pIconViewLockAction) {
       delete pIconViewLockAction;
-    if (pIconViewRelayoutAction)
+      pIconViewLockAction = NULL;
+    }
+    if (pIconViewRelayoutAction) {
       delete pIconViewRelayoutAction;
+      pIconViewRelayoutAction = NULL;
+    }
   }
 
-  //  klfDbg(  "KLFLibDefaultView::updateResourceView: All items:\n"<<resource->allEntries() ) ;
+  //  klfDbg(  "KLFLibDefaultView::updateResourceEngine: All items:\n"<<resource->allEntries() ) ;
   uint model_flavor = 0;
   switch (pViewType) {
   case IconView:
@@ -2699,6 +2804,12 @@ void KLFLibDefaultView::updateResourceView()
 #ifdef KLF_DEBUG_USE_MODELTEST
   new ModelTest(pModel, this);
 #endif
+
+  if (pViewType == IconView) {
+    qobject_cast<KLFLibDefListView*>(pView)->modelInitialized();
+  } else {
+    qobject_cast<KLFLibDefTreeView*>(pView)->modelInitialized();
+  }
 
   // get informed about selections
   QItemSelectionModel *s = pView->selectionModel();
@@ -2722,9 +2833,9 @@ void KLFLibDefaultView::updateResourceView()
   if (pViewType == IconView) {
     klfDbg( "About to prepare iconview." ) ;
     //    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
-    if ( ! resource->propertyNameRegistered("IconView_IconPositionsLocked") )
-      resource->loadResourceProperty("IconView_IconPositionsLocked", false);
-
+    /*    if ( ! resource->propertyNameRegistered("IconView_IconPositionsLocked") )
+	  resource->loadResourceProperty("IconView_IconPositionsLocked", false);
+    */
     pIconViewRelayoutAction = new QAction(tr("Relayout All Icons", "[[menu action]]"), this);
     connect(pIconViewRelayoutAction, SIGNAL(triggered()), this, SLOT(slotRelayoutIcons()));
     pIconViewLockAction = new QAction(tr("Lock Icon Positions", "[[menu action]]"), this);
@@ -2741,7 +2852,7 @@ void KLFLibDefaultView::updateResourceView()
     pIconViewLockAction->setEnabled(iconposlockenabled);
     pIconViewRelayoutAction->setEnabled(canMoveIcons());
 
-    pIconViewActions = QList<QAction*>() << pIconViewRelayoutAction << pIconViewLockAction;
+    pIconViewActions = QList<QAction*>() << pIconViewRelayoutAction ;/* << pIconViewLockAction; */
   }
   if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
     QTreeView *treeView = qobject_cast<QTreeView*>(pView);
@@ -2803,11 +2914,11 @@ void KLFLibDefaultView::updateResourceOwnData(const QList<KLFLib::entryId>& /*en
   /** \todo ..................... OPTIMIZE THIS FUNCTION not to do a full refresh */
   klfDbg( KLF_FUNC_NAME ) ;
   if (pViewType == IconView) {
-    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
-    KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
-			 return )
-      ;
-    if ( ! lv->isSavingIconPositions() ) {
+    /* KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
+       KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
+       return )
+       ;
+       if ( ! lv->isSavingIconPositions() ) {
       // Important: do NOT update if the update was generated because an icon position was
       // saved by the view!
 
@@ -2824,7 +2935,7 @@ void KLFLibDefaultView::updateResourceOwnData(const QList<KLFLib::entryId>& /*en
       // call this function now. It will detect and possibly delay the actual icon position loading
       // until widget polishing time, if needed.
       lv->loadIconPositions(readIconPositions);
-    }
+      } */
   }
 }
 void KLFLibDefaultView::updateResourceProp(int propId)
@@ -2990,14 +3101,15 @@ void KLFLibDefaultView::slotLockIconPositions(bool locked)
   if (locked == pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
     return; // no change
 
-  klfDbg( "Locking icon positions to "<<locked ) ;
-  bool r = pModel->resource()->loadResourceProperty("IconView_IconPositionsLocked",
-						    QVariant::fromValue(locked));
-  if (!r) {
-    qWarning()<<"Can't lock icon positions!";
-    return;
-  }
-  pIconViewLockAction->setChecked(locked);
+  /*  klfDbg( "Locking icon positions to "<<locked ) ;
+      bool r = pModel->resource()->loadResourceProperty("IconView_IconPositionsLocked",
+      QVariant::fromValue(locked));
+      if (!r) {
+      qWarning()<<"Can't lock icon positions!";
+      return;
+      }
+      pIconViewLockAction->setChecked(locked);
+  */
 }
 
 

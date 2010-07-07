@@ -43,7 +43,8 @@ public:
   {
     return QStringList() << "application/x-klf-libentries"
 			 << "text/html"
-			 << "text/plain";
+			 << "text/plain"
+			 << "image/png";
   }
   virtual QStringList supportedDecodingMimeTypes() const
   {
@@ -108,6 +109,17 @@ public:
 	for (k = 0; k < entryList.size(); ++k) {
 	  textstr << entryList[k].toString(/*KLFLibEntry::ToStringQuoteValues*/);
 	}
+      }
+      return data;
+    }
+    if (mimeType == "image/png") {
+      if (entryList.size() != 1) {
+	klfDbg("Can only encode image/png for an entry list of size ONE (!)");
+	return QByteArray();
+      }
+      { // format data: write the PNG data for the preview
+	QBuffer buf(&data);
+	entryList[0].preview().save(&buf, "PNG");
       }
       return data;
     }

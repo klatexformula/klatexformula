@@ -33,15 +33,18 @@
 KLFPathChooser::KLFPathChooser(QWidget *parent)
   : QFrame(parent), _mode(0), _caption(), _filter()
 {
-  setFrameShape(QFrame::Box);
-  setFrameShadow(QFrame::Raised);
+  //  setFrameShape(QFrame::Box);
+  //  setFrameShadow(QFrame::Raised);
+  setFrameStyle(QFrame::NoFrame|QFrame::Plain);
 
   QHBoxLayout *lyt = new QHBoxLayout(this);
-  lyt->setContentsMargins(2,2,2,2);
+  //  lyt->setContentsMargins(2,2,2,2);
+  lyt->setContentsMargins(0,0,0,0);
   lyt->setSpacing(2);
   txtPath = new QLineEdit(this);
   lyt->addWidget(txtPath);
-  btnBrowse = new QPushButton(tr("Browse"), this);
+  btnBrowse = new QPushButton(QLatin1String("..."), this);
+  btnBrowse->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
   lyt->addWidget(btnBrowse);
 
   connect(btnBrowse, SIGNAL(clicked()), this, SLOT(requestBrowse()));

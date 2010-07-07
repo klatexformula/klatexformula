@@ -1,0 +1,6 @@
+
+
+KLFPathChooser::KLFPathChooser()
+{
+  tr("Browse");
+}

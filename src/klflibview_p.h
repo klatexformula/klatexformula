@@ -60,104 +60,6 @@ inline QPointF sizeToPointF(const QSizeF& s) { return QPointF(s.width(), s.heigh
 /** \internal */
 inline QSizeF pointToSizeF(const QPointF& p) { return QSizeF(p.x(), p.y()); }
 
-/** \internal */
-static QImage transparentify_image(const QImage& img, qreal factor)
-{
-  // set the image opacity to factor (by multiplying each alpha value by factor)
-  QImage img2 = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
-  int k, j;
-  for (k = 0; k < img.height(); ++k) {
-    for (j = 0; j < img.width(); ++j) {
-      QRgb c = img2.pixel(j, k);
-      img2.setPixel(j, k, qRgba(qRed(c),qGreen(c),qBlue(c),(int)(factor*qAlpha(c))));
-    }
-  }
-  return img2;
-}
-
-/** \internal */
-static QImage autocrop_image(const QImage& img, int alpha_threshold = 0)
-{
-  // crop transparent borders
-  int x, y;
-  int min_x = -1, max_x = -1, min_y = -1, max_y = -1;
-  // so first find borders
-  for (x = 0; x < img.width(); ++x) {
-    for (y = 0; y < img.height(); ++y) {
-      if (qAlpha(img.pixel(x,y)) - alpha_threshold > 0) {
-	// opaque pixel: include it.
-	if (min_x == -1 || min_x > x) min_x = x;
-	if (max_x == -1 || max_x < x) max_x = x;
-	if (min_y == -1 || min_y > y) min_y = y;
-	if (max_y == -1 || max_y < y) max_y = y;
-      }
-    }
-  }
-  return img.copy(QRect(QPoint(min_x, min_y), QPoint(max_x, max_y)));
-}
-
-/** \internal */
-static float color_distinguishable_distance(QRgb a, QRgb b, bool aPremultiplied = false) {
-  static const float C_r = 11.f,   C_g = 16.f,   C_b = 5.f;
-  static const float C_avg = (C_r + C_g + C_b) / 3.f;
-
-  // (?) really-> NO?  ON SECOND THOUGHT, REMOVE THIS FACTOR
-  //  // * drkfactor reduces distances for dark colors, accounting for the fact that the eye
-  //  //   distinguishes less dark colors than light colors
-  //  // * 0 <= qGray(...) <= 255
-  //  // * drkfactor <= 1 -> reducing factor
-  //  float drkfactor = 1 - (qGray(b)/1000.f);
-  static const float drkfactor = 1;
-
-  float alpha = qAlpha(a)/255.f;
-  QRgb m;
-  if (aPremultiplied)
-    m = qRgb((int)(qRed(a)+(1-alpha)*qRed(b)),
-	     (int)(qGreen(a)+(1-alpha)*qGreen(b)),
-	     (int)(qBlue(a)+(1-alpha)*qBlue(b)));
-  else
-    m = qRgb((int)(alpha*qRed(a)+(1-alpha)*qRed(b)),
-	     (int)(alpha*qGreen(a)+(1-alpha)*qGreen(b)),
-	     (int)(alpha*qBlue(a)+(1-alpha)*qBlue(b)));
-
-  float dst = qMax( qMax(C_r*abs(qRed(m) - qRed(b)), C_g*abs(qGreen(m) - qGreen(b))),
-		    C_b*abs(qBlue(m) - qBlue(b)) ) * drkfactor / C_avg;
-  // klfDbg("a="<<klfFmt("%#010x", a).data()<<" qRed(a)="<<qRed(a)<<" b="<<klfFmt("%#010x", b).data()
-  //	 <<" m="<<klfFmt("%#010x", m)<<"drkfactor="<<drkfactor<<" a/alpha="<<alpha<<" => distance="<<dst) ;
-  return dst;
-}
-
-
-/** \internal */
-static bool image_is_distinguishable(const QImage& imgsrc, QColor background, float threshold)
-{
-  int fmt = imgsrc.format();
-  bool apremultiplied;
-  QImage img;
-  switch (fmt) {
-  case QImage::Format_ARGB32: img = imgsrc; apremultiplied = false; break;
-  case QImage::Format_ARGB32_Premultiplied: img = imgsrc; apremultiplied = true; break;
-  default:
-   img = imgsrc.convertToFormat(QImage::Format_ARGB32);
-   apremultiplied = false;
-   break;
-  }
-  QRgb bg = background.rgb();
-  // crop transparent borders
-  int x, y;
-  for (x = 0; x < img.width(); ++x) {
-    for (y = 0; y < img.height(); ++y) {
-      //      klfDbg("src/format="<<imgsrc.format()<<"; thisformat="<<img.format()
-      //	     <<" Testing pixel at ("<<x<<","<<y<<") pixel="<<klfFmt("%#010x", img.pixel(x,y))) ;
-      float dist = color_distinguishable_distance(img.pixel(x,y), bg, apremultiplied);
-      if (dist > threshold) {
-	// ok we have one pixel at least we can distinguish.
-	return true;
-      }
-    }
-  }
-  return false;
-}
 
 // /** \internal */
 // static QColor image_average_color(const QImage& img)
@@ -199,7 +101,10 @@ public:
   static const UIDType UIDIndexMask = 0x3FFFFFFF;
   static const UIDType UIDInvalid   = 0xFFFFFFFF;
 
-  enum ItemKind { EntryKind = KLFLibModel::EntryKind, CategoryLabelKind = KLFLibModel::CategoryLabelKind } ;
+  enum ItemKind {
+    EntryKind = KLFLibModel::EntryKind,
+    CategoryLabelKind = KLFLibModel::CategoryLabelKind
+  };
 
   struct NodeId {
     NodeId(ItemKind k = ItemKind(EntryKind), IndexType i = -1) : kind(k), index(i)  { }
@@ -568,14 +473,13 @@ public:
     return pModel->walkNextIndex(QModelIndex());
   }
 
-  QColor avgBackgroundColor() { return avgBgColor; }
+  virtual void modelInitialized() { }
 
 protected:
   KLFLibModel *pModel;
   KLFLibDefaultView *pDView;
   KLFLibDefaultView::ViewType pViewType;
   QPoint mousePressedContentsPos;
-  QColor avgBgColor;
 
   virtual QModelIndexList commonSelectedIndexes() const = 0;
   virtual void commonInternalDrag(Qt::DropActions a) = 0;
@@ -645,6 +549,11 @@ public:
 
   virtual void moveSelectedIconsBy(const QPoint& /*delta*/) { }
 
+public slots:
+
+  virtual void selectAll() {
+    pDView->slotSelectAll();
+  }
 
 protected:
   virtual QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
@@ -676,7 +585,7 @@ class KLFLibDefListView : public QListView, public KLFLibDefViewCommon
 public:
   KLFLibDefListView(KLFLibDefaultView *parent)
     : QListView(parent), KLFLibDefViewCommon(parent), inPaintEvent(false), pInEventFilter(false),
-      pHasBeenPolished(false), pSavingIconPositions(false), pWantRelayout(true)
+      pInitialLayoutDone(false), pSavingIconPositions(false), pWantRelayout(true)
   {
     pDelayedSetIconPositions.clear();
 
@@ -690,19 +599,20 @@ public:
     pInEventFilter = true;
     bool eat = false;
     if (object == this && event->type() == QEvent::Polish) {
-      klfDbg( "KLFLibDefListView::eventFilter: Polish! iconpos="<<pDelayedSetIconPositions ) ;
-      if (!pDelayedSetIconPositions.isEmpty()) {
-	// QListView wants to have its own doItemsLayout() function called first, before we start
-	// fiddling with item positions.
-	/** \bug .......... BUG/TODO/WARNING: QListView::doItemsLayout() is NOT in official API! */
-	QListView::doItemsLayout();
-	loadIconPositions(pDelayedSetIconPositions, true);
-      } else {
-	if (pWantRelayout)
-	  forceRelayout(true); // relayout if wanted
-      }
-      pHasBeenPolished = true;
-      eat = false;
+      /*      klfDbg( "Polish! delayedseticonpos="<<pDelayedSetIconPositions ) ;
+	      if (!pDelayedSetIconPositions.isEmpty()) {
+	      // QListView wants to have its own doItemsLayout() function called first, before we start
+	      // fiddling with item positions.
+	      / ** \bug .......... BUG/TODO/WARNING: QListView::doItemsLayout() is NOT in official API! * /
+	      QListView::doItemsLayout();
+	      loadIconPositions(pDelayedSetIconPositions, true);
+	      } else {
+	      if (pWantRelayout)
+	      forceRelayout(true); // relayout if wanted
+	      }
+	      pHasBeenPolished = true;
+	      eat = false;
+      */
     }
     if (event->type() == QEvent::DragEnter) {
       eat = evDragEnter((QDragEnterEvent*)event, eventPos(object, (QDragEnterEvent*)event));
@@ -727,15 +637,15 @@ public:
    * */
   virtual QMap<KLFLib::entryId,QPoint> allIconPositions() const {
     QMap<KLFLib::entryId,QPoint> iconPositions;
-    // walk all indexes in view
-    QModelIndex it = pModel->walkNextIndex(QModelIndex());
-    while (it.isValid()) {
-      KLFLib::entryId eid = pModel->entryIdForIndex(it);
-      if (eid != -1) {
-	iconPositions[eid] = iconPosition(it);
-      }
-      it = pModel->walkNextIndex(it);
-    }
+    /*    // walk all indexes in view
+	  QModelIndex it = pModel->walkNextIndex(QModelIndex());
+	  while (it.isValid()) {
+	  KLFLib::entryId eid = pModel->entryIdForIndex(it);
+	  if (eid != -1) {
+	  iconPositions[eid] = iconPosition(it);
+	  }
+	  it = pModel->walkNextIndex(it);
+	  } */
     return iconPositions;
   }
 
@@ -756,48 +666,53 @@ public:
     if ( pSavingIconPositions )
       return;
 
-    if ( ! pHasBeenPolished && ! forcenow ) {
-      pDelayedSetIconPositions = iconPositions;
-      klfDbg( "KLFLibDefListView::loadIconPositions: delaying action!" ) ;
-      return;
-    }
-    klfDbg( "KLFLibDefListView::loadIconPositions: setting icon positions "<<iconPositions ) ;
-    QMap<KLFLib::entryId,QPoint>::const_iterator it;
-    for (it = iconPositions.begin(); it != iconPositions.end(); ++it) {
-      QModelIndex index = pModel->findEntryId(it.key());
-      if (!index.isValid())
-	continue;
-      QPoint pos = *it;
-      klfDbg( ": About to set single icon position.." ) ;
-      setIconPosition(index, pos, true);
-      klfDbg( "Set single icon position OK." ) ;
-    }
+    /*    if ( ! pHasBeenPolished && ! forcenow ) {
+	  pDelayedSetIconPositions = iconPositions;
+	  klfDbg( "KLFLibDefListView::loadIconPositions: delaying action!" ) ;
+	  return;
+    */
+    /*	  klfDbg( "KLFLibDefListView::loadIconPositions: setting icon positions "<<iconPositions ) ;
+	  QMap<KLFLib::entryId,QPoint>::const_iterator it;
+	  for (it = iconPositions.begin(); it != iconPositions.end(); ++it) {
+	  QModelIndex index = pModel->findEntryId(it.key());
+	  if (!index.isValid())
+	  continue;
+	  QPoint pos = *it;
+	  klfDbg( ": About to set single icon position.." ) ;
+	  setIconPosition(index, pos, true);
+	  klfDbg( "Set single icon position OK." ) ;
+	  }
+    */
     pDelayedSetIconPositions.clear();
   }
 
 
   virtual void moveSelectedIconsBy(const QPoint& delta) {
-    int k;
-    QModelIndexList sel = selectionModel()->selectedIndexes();
-    for (k = 0; k < sel.size(); ++k) {
-      QPoint newp = rectForIndex(sel[k]).topLeft() + delta;
-      if (newp.x() < 0) newp.setX(0);
-      if (newp.y() < 0) newp.setY(0);
-      setIconPosition(sel[k], newp);
-    }
+    /*    int k;
+	  QModelIndexList sel = selectionModel()->selectedIndexes();
+	  for (k = 0; k < sel.size(); ++k) {
+	  QPoint newp = rectForIndex(sel[k]).topLeft() + delta;
+	  if (newp.x() < 0) newp.setX(0);
+	  if (newp.y() < 0) newp.setY(0);
+	  setIconPosition(sel[k], newp);
+	  }
+    */
   }
 
-  void forceRelayout(bool isPolishing = false) {
-    klfDbg( "KLFLibDefListView::forceRelayout: isPolishing="<<isPolishing<<"; pWantRelayout="
-	    <<pWantRelayout<<"; hasbeenpolished="<<pHasBeenPolished ) ;
-    bool wr = pWantRelayout;
-    pWantRelayout = true;
-    doItemsLayout(); // force re-layout
-    if (!isPolishing && !wr) {
-      // if we didn't by default want a relayout (ie. icon positions were controlled)
-      saveIconPositions();
-    }
-    pWantRelayout = false;
+  void forceRelayout() {
+
+    scheduleDelayedItemsLayout(); // force a re-layout
+    //    doItemsLayout(); // force a re-layout
+
+    /*	  bool wr = pWantRelayout;
+	  pWantRelayout = true;
+	  doItemsLayout(); // force re-layout
+	  if (!isPolishing && !wr) {
+	  // if we didn't by default want a relayout (ie. icon positions were controlled)
+	  saveIconPositions();
+	  }
+	  pWantRelayout = false;
+    */
   }
 
   QPoint iconPosition(const QModelIndex& index) const {
@@ -808,13 +723,25 @@ public:
       return;
     //    if (rectForIndex(index).topLeft() == pos)
     //      return;
-    klfDbg( "Functional setIconPosition("<<index<<","<<pos<<")" ) ;
-    setPositionForIndex(pos, index);
-    if (!dontSave)
+    /*
+      klfDbg( "Functional setIconPosition("<<index<<","<<pos<<")" ) ;
+      setPositionForIndex(pos, index);
+      if (!dontSave)
       saveIconPosition(index);
-    pWantRelayout = false;
+      pWantRelayout = false;
+    */
   }
   
+  virtual void modelInitialized() {
+    klfDbg("scheduling an items layout...");
+    if (isVisible()) {
+      scheduleDelayedItemsLayout();
+      pInitialLayoutDone = true;
+    } else {
+      pInitialLayoutDone = false;
+    }
+  }
+
 protected:
   virtual QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
   virtual void commonInternalDrag(Qt::DropActions a) { internalDrag(a); }
@@ -832,7 +759,7 @@ protected:
   }
 
   bool pInEventFilter;
-  bool pHasBeenPolished;
+  bool pInitialLayoutDone;
   bool pSavingIconPositions;
 
   QMap<KLFLib::entryId, QPoint> pDelayedSetIconPositions;
@@ -840,30 +767,44 @@ protected:
   virtual void startDrag(Qt::DropActions supportedActions) {
     commonStartDrag(supportedActions);
   }
-  virtual void doItemsLayout() {
-    /** \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API ! */
-    klfDbg( "doItemsLayout!" ) ;
-    // Qt want its own doItemsLayout() to be called first (in case new indexes have appeared, or
-    // old ones dissapeared)
-    QMap<KLFLib::entryId,QPoint> bkpiconpos;
-    if (!pWantRelayout) {
-      bkpiconpos = allIconPositions(); // save current icon positions
-      klfDbg( "Got backup icon positions: "<<bkpiconpos ) ;
-    }
-    // do qt's layout
-    QListView::doItemsLayout();
-    // but then we want to keep our layout if !pWantRelayout:
-    if (!pWantRelayout)
-      loadIconPositions(bkpiconpos);
 
-    pWantRelayout = false;
-    klfDbg( "doItemsLayout finished!" ) ;
-  } 
+  virtual void showEvent(QShowEvent *event) {
+    if (!event->spontaneous()) {
+      klfDbg("Show event! initialLayoutDone="<<pInitialLayoutDone<<"; size hint="<<sizeHint());
+      if (!pInitialLayoutDone) {
+	scheduleDelayedItemsLayout();
+	pInitialLayoutDone = true;
+      }
+    }
+    QListView::showEvent(event);
+  }
+
+  //   virtual void doItemsLayout() {
+  //     QListView::doItemsLayout();
+  //     /** \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API ! */
+  //     /*    klfDbg( "doItemsLayout!" ) ;
+  //     // Qt want its own doItemsLayout() to be called first (in case new indexes have appeared, or
+  //     // old ones dissapeared)
+  //     QMap<KLFLib::entryId,QPoint> bkpiconpos;
+  //     if (!pWantRelayout) {
+  //     bkpiconpos = allIconPositions(); // save current icon positions
+  //       klfDbg( "Got backup icon positions: "<<bkpiconpos ) ;
+  //       }
+  //     // do qt's layout
+  //     QListView::doItemsLayout();
+  //     // but then we want to keep our layout if !pWantRelayout:
+  //     if (!pWantRelayout)
+  //       loadIconPositions(bkpiconpos);
+
+  //     pWantRelayout = false;
+  //     klfDbg( "doItemsLayout finished!" ) ;
+  //     */
+  //   } 
   
   bool pWantRelayout;
 
   void saveIconPositions() {
-    klfDbg( "saveIconPositions()" ) ;
+    /*    klfDbg( "saveIconPositions()" ) ;
     KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
     // walk all indices, fill entryIdList
     QModelIndex index = model->walkNextIndex(QModelIndex());
@@ -873,19 +814,19 @@ protected:
       saveIconPosition(index);
       index = model->walkNextIndex(index);
     }
-    klfDbg( "Done saving all icon positions." ) ;
+    klfDbg( "Done saving all icon positions." ) ; */
   }
   void saveIconPosition(const QModelIndex& index) {
     if (index.column()>0)
       return;
-    klfDbg( "saveIconPosition()" ) ;
+    /*    klfDbg( "saveIconPosition()" ) ;
     KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
     KLFLibEntry edummy = index.data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
     int propId = edummy.setEntryProperty("IconView_IconPosition", rectForIndex(index).topLeft());
     pSavingIconPositions = true;
     model->changeEntries(QModelIndexList() << index, propId, edummy.property(propId)); 
     pSavingIconPositions = false;
-    klfDbg( "end of saveIconPosition()" ) ;
+    klfDbg( "end of saveIconPosition()" ) ; */
   }
 };
 

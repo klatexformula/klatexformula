@@ -238,11 +238,11 @@ inline const T& __klf_debug_tee(const T& expr)
 #  define __func__ "<unknown>"
 # endif
 #endif
-#if defined KLF_CMAKE_HAS_PRETTY_FUNCTION
-#define KLF_FUNC_NAME klfShortFuncSignature(__PRETTY_FUNCTION__).data()
-#elif defined KLF_CMAKE_HAS_FUNCTION
+#if defined KLF_HAS_PRETTY_FUNCTION
+#define KLF_FUNC_NAME (klfShortFuncSignature(__PRETTY_FUNCTION__).data())
+#elif defined KLF_HAS_FUNCTION
 #define KLF_FUNC_NAME __FUNCTION__
-#elif defined KLF_CMAKE_HAS_FUNC
+#elif defined KLF_HAS_FUNC
 #define KLF_FUNC_NAME __func__
 #else
 /** This macro expands to the function name this macro is called in */

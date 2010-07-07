@@ -96,6 +96,7 @@ public:
 
   virtual void setResourceEngine(KLFLibResourceEngine *resource);
 
+  /** Subclasses should return a list of entries that have been selected by the user. */
   virtual KLFLibEntryList selectedEntries() const = 0;
 
   /** Subclasses may add items to the context menu by returning them in this function.
@@ -115,8 +116,13 @@ public:
    * by \ref saveGuiState()) */
   virtual bool restoreGuiState(const QVariantMap& state) = 0;
 
+  /** Subclasses should reimplement this function to return a list of all known categories
+   * to suggest to the user, eg. in a completion list for an editable combo box to edit
+   * categories. */
+  virtual QStringList getCategorySuggestions() = 0;
+
 signals:
-  /** Is emitted when a latex entry is selected to be restored (eg. the entry was
+  /** Is emitted (by subclasses) when a latex entry is selected to be restored (eg. the entry was
    * double-clicked).
    *
    * \param entry is the data to restore
@@ -124,7 +130,7 @@ signals:
    *   possible flags in \ref KLFLib::RestoreMode.
    */
   void requestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle);
-  /** Is emitted when the view wants the main application (or the framework that uses
+  /** Is emitted (by subclasses) when the view wants the main application (or the framework that uses
    * this class) to restore the given style \c style. No latex is to be restored.
    */
   void requestRestoreStyle(const KLFStyle& style);
@@ -140,11 +146,12 @@ signals:
   void moreCategorySuggestions(const QStringList& categorylist);
 
 public slots:
-  virtual void updateView();
-  virtual void updateResourceView() = 0;
+  virtual void updateResourceEngine() = 0;
   virtual void updateResourceProp(int propId) = 0;
   virtual void updateResourceData(const QString& subres, int modifyType,
 				  const QList<KLFLib::entryId>& entryIdList) = 0;
+  /** Default implementation calls updateResourceEngine() */
+  virtual void updateResourceDefaultSubResourceChanged(const QString& newSubResource);
   virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
   /** Provides a reasonable default implementation that should suit for most purposes. */
   virtual bool writeEntryCategory(const QString& category)
@@ -196,8 +203,6 @@ public slots:
    *
    * Subclasses need not reimplement this function. */
   virtual void wantMoreCategorySuggestions();
-
-  virtual QStringList getCategorySuggestions() = 0;
 
 private:
   KLFLibResourceEngine *pResourceEngine;
@@ -609,7 +614,7 @@ public slots:
   virtual void setGroupSubCategories(bool yesOrNo) { pGroupSubCategories = yesOrNo; }
 
 protected:
-  virtual void updateResourceView();
+  virtual void updateResourceEngine();
   virtual void updateResourceProp(int propId);
   virtual void updateResourceData(const QString& subRes, int modifyType,
 				  const QList<KLFLib::entryId>& entryIdList);
