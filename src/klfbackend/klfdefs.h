@@ -75,6 +75,18 @@ KLF_EXPORT QByteArray klfFmt(const char * fmt, ...)
  */
 KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp) ;
 
+KLF_EXPORT QString klfTimeOfDay(bool shortFmt = true);
+
+/** Returns something like <tt>456.234589</tt> (in a <tt>const char*</tt>) that
+ * represents the actual time. The absolute reference is undefined, but stays
+ * always the same. Useful for debug messages.
+ */
+#define KLF_SHORT_TIME (klfTimeOfDay().ascii())
+#ifdef KLFBACKEND_QT4
+#undef KLF_SHORT_TIME
+#define KLF_SHORT_TIME qPrintable(klfTimeOfDay())
+#endif
+
 
 
 // DEBUG UTILITIES (SOME WITH TIME PRINTING FOR TIMING OPERATIONS)
@@ -107,16 +119,9 @@ public:
 
 #ifdef KLF_DEBUG
 
-#include <sys/time.h>
-
-/** \internal
- * FOR DEBUGGING: Print Debug message with precise current time */
-KLF_EXPORT void __klf_debug_time_print(QString str);
 
 #ifdef KLFBACKEND_QT4
 #include <QDebug>
-/** \internal */
-KLF_EXPORT QDebug& __klf_debug_time_print_str(QDebug stream);
 #endif
 
 
@@ -129,29 +134,21 @@ inline const T& __klf_debug_tee(const T& expr)
 #endif
 
 // dox doc is in next (unfunctional) definitions in next #if block
-#define klf_debug_time_print(msg) __klf_debug_time_print(msg)
 #define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(msg)
 #define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(msg)
 #define klf_debug_tee(expr) __klf_debug_tee(expr)
 #ifdef KLFBACKEND_QT4
-#define klf_debug_time_print_str() __klf_debug_time_print_str(qDebug())
-#define klfDbg( streamableItems )  qDebug().nospace()<<KLF_FUNC_NAME<<"(): "<< streamableItems
+KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * shorttime);
+#define klfDbg( streamableItems )				\
+  __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, NULL) << streamableItems
+#define klfDbgT( streamableItems )					\
+  __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, KLF_SHORT_TIME) << streamableItems
 #endif
+
 
 #else // KLF_DEBUG
 
 
-/** \brief Print debug message with precise current time
- *
- * This function outputs something like:
- * <pre>010.038961 : <i>debug message given in x</i></pre>
- * and can be used to print debug messages and locate time-consuming
- * instructions for example.
- *
- * \note KLF_DEBUG needs to be defined at compile-time
- *   to enable this feature. Otherwise, this maco is a no-op.
- */
-#define klf_debug_time_print(x)
 /** \brief Utility to time the execution of a block
  *
  * \note KLF_DEBUG needs to be defined at compile-time
@@ -204,11 +201,6 @@ inline const T& __klf_debug_tee(const T& expr)
  */
 #define klf_debug_tee(expr) (expr)
 
-/** \brief a qDebug() output stream on which the time has already been printed
- *
- * \note Only with Qt4.
- */
-#define klf_debug_time_print_str()
 /** \brief print debug stream items
  *
  * \warning This one may be counter-intuitive, as the argument is not evaluated before expansion,
@@ -222,12 +214,17 @@ inline const T& __klf_debug_tee(const T& expr)
  *   being defined between \c "index is" and \c index.
  */
 #define klfDbg( streamableItems )
+/** \brief print debug stream items, with current time
+ *
+ * Same as klfDbg(), but also prints current time given by KLF_SHORT_TIME.
+ */
+#define klfDbgT( streamableItems )
 
 #endif // KLF_DEBUG
 
 
-// Simple test for one-time-run functions
-#define KLF_FUNC_SINGLE_RUN \
+//! Simple test for one-time-run functions
+#define KLF_FUNC_SINGLE_RUN						\
   { static bool first_run = true;  if ( ! first_run )  return; first_run = false; }
 
 

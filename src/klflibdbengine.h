@@ -116,9 +116,13 @@ public:
   virtual bool hasEntry(const QString&, entryId id);
   virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList,
 					   const QList<int>& wantedEntryProperties = QList<int>());
-  QList<KLFLibEntryWithId> findEntries(const QString& subResource,
-				       const QMap<int,QVariant>& propValues,
-				       const QList<int>& wantedEntryProperties = QList<int>());
+  virtual int findEntries(const QString& subResource,
+			  const QMap<int,Match>& matches,
+			  QList<KLFLib::entryId> * entryIdList,
+			  int limit = 500,
+			  QList<KLFLibEntryWithId> * entryWithIdList = NULL,
+			  const QList<int>& wantedEntryProperties = QList<int>());
+
   virtual KLFLibEntry entry(const QString& subRes, entryId id);
   virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes,
 					      const QList<int>& wantedEntryProperties = QList<int>());

@@ -168,104 +168,7 @@ static struct option klfcmdl_optlist[] = {
 };
 // list of short options
 static char klfcmdl_optstring[] = "Ii:l:o:F:f:b:X:m:p:qhVQ";
-// help text
-static struct { const char *source; const char *comment; }  klfopt_helptext =
-  // QT_TRANSLATE_NOOP3(Context, Text, Comment)
-  QT_TRANSLATE_NOOP3("QObject",
-		     "\n"
-		     "KLatexFormula by Philippe Faist\n"
-		     "\n"
-		     "Usage: klatexformula\n"
-		     "           Opens klatexformula Graphical User Interface (GUI)\n"
-		     "       klatexformula [OPTIONS]\n"
-		     "           Performs actions required by [OPTIONS], and exits\n"
-		     "       klatexformula --interactive|-I [OPTIONS]\n"
-		     "           Opens the GUI and performs actions required by [OPTIONS]\n"
-		     "       klatexformula filename1.klf|.klf.db [ filename2.klf|.klf.db ... ]\n"
-		     "           Opens the GUI and imports the given library file(s) into the library.\n"
-		     "\n"
-		     "       If additional filename arguments are passed to the command line, they are\n"
-		     "       interpreted as library files to load into the library (only in interactive\n"
-		     "       mode).\n"
-		     "\n"
-		     "OPTIONS may be one or many of:\n"
-		     "  -I|--interactive\n"
-		     "      Runs KLatexFormula in interactive mode with a full-featured graphical user\n"
-		     "      interface. This option is on by default, except if --input or --latexinput\n"
-		     "      is given.\n"
-		     "  -i|--input <file|->\n"
-		     "      Specifies a file to read latex input from.\n"
-		     "  -l|--latexinput <expr>\n"
-		     "      Specifies the LaTeX code of an equation to render.\n"
-		     "  -o|--output <file|->\n"
-		     "      Specifies to write the output image (obtained from equation given by --input\n"
-		     "      or --latexinput) to <file> or standard output.\n"
-		     "  -F|--format <format>\n"
-		     "      Specifies the format the output should be written in. By default, the format\n"
-		     "      is guessed from file name extension and defaults to PNG.\n"
-		     "  -f|--fgcolor <'#xxxxxx'>\n"
-		     "      Specifies a color (in web #RRGGBB hex format) to use for foreground color.\n"
-		     "      Don't forget to escape the '#' to prevent the shell from interpreting it as\n"
-		     "      a comment.\n"
-		     "  -b|--bgcolor <-|'#xxxxxx'>\n"
-		     "      Specifies a color (in web #RRGGBB hex format, or '-' for transparent) to\n"
-		     "      use as background color (defaults to transparent)\n"
-		     "  -X|--dpi <N>\n"
-		     "      Use N dots per inch (DPI) when converting latex output to image. Defaults to\n"
-		     "      1200 (high-resolution image).\n"
-		     "  -m|--mathmode <expression containing '...'>\n"
-		     "      Specifies which LaTeX math mode to use, if any. The argument to this option\n"
-		     "      is any string containing \"...\", which will be replaced by the equation\n"
-		     "      itself. Defaults to \"\\[ ... \\]\"\n"
-		     "  -p|--preamble <LaTeX code>\n"
-		     "      Any LaTeX code that will be inserted before \\begin{document}. Useful for\n"
-		     "      including custom packages with \\usepackage{...}.\n"
-		     "  -q|--quiet\n"
-		     "      Disable console output of warnings and errors.\n"
-		     "\n"
-		     "  --lborderoffset <N>\n"
-		     "  --tborderoffset <N>\n"
-		     "  --rborderoffset <N>\n"
-		     "  --bborderoffset <N>\n"
-		     "      Include a margin of N postscript points on left, top, right, or bottom margin\n"
-		     "      respectively.\n"
-		     "  --tempdir </path/to/temp/dir>\n"
-		     "      Specify the directory in which KLatexFormula will write temporary files.\n"
-		     "      Defaults to a system-specific temporary directory like \"/tmp/\".\n"
-		     "  --latex <latex executable>\n"
-		     "  --dvips <dvips executable>\n"
-		     "  --gs <gs executable>\n"
-		     "  --epstopdf <epstopdf executable>\n"
-		     "      Specifiy the executable for latex, dvips, gs or epstopdf. By default, they\n"
-		     "      are searched for in $PATH and/or in common system directories.\n"
-		     "\n"
-		     "  -h|--help\n"
-		     "      Display this help text and exit.\n"
-		     "  -V|--version\n"
-		     "      Display KLatexFormula version information and exit.\n"
-		     "\n"
-		     "  -Q|--qtoption <qt-option>\n"
-		     "      Specify a Qt-Specific option. For example, to launch KLatexFormula in\n"
-		     "      Plastique GUI style, use:\n"
-		     "        klatexformula  --qtoption='-style=Plastique'\n"
-		     "      Note that if <qt-option> begins with a '-', then it must be appended to the\n"
-		     "      long '--qtoption=' syntax with the equal sign.\n"
-		     "\n"
-		     "\n"
-		     "NOTES\n"
-		     "  * When run in interactive mode, the newly evaluated equation is appended to\n"
-		     "    KLatexFormula's history.\n"
-		     "  * When not run in interactive mode, no X11 server is needed.\n"
-		     "  * Additional translation files and/or data can be provided to klatexformula by specifying\n"
-		     "    a list of Qt rcc files or directories containing such files to import in the KLF_RESOURCES\n"
-		     "    environment variable. Separate the file names with ':' on unix/mac, or ';' on windows. The\n"
-		     "    default paths can be included with an empty section ('::') or leading or trailing ':'.\n"
-		     "  * Please report any bugs and malfunctions to the author.\n"
-		     "\n"
-		     "Have a lot of fun!\n"
-		     "\n",
-		     "Command-line help instructions")
-  ;
+
 
 
 // EXTERNAL COMMUNICATION STUFF
@@ -697,6 +600,8 @@ int main(int argc, char **argv)
   // first thing : setup version_maj/min/release correctly
   sscanf(version, "%d.%d.%d", &version_maj, &version_min, &version_release);
 
+  klfDbgT("$$main()$$ read version="<<version) ;
+
   qInstallMsgHandler(klf_qt_message);
 
   //  // DEBUG: command-line arguments
@@ -717,7 +622,7 @@ int main(int argc, char **argv)
 
   if ( opt_interactive ) {
     QApplication app(qt_argc, qt_argv);
-    qDebug("Library paths are %s", qPrintable(QCoreApplication::libraryPaths().join("\n")));
+    klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
 
     qRegisterMetaType< QImage >("QImage");
     qRegisterMetaType< KLFStyle >();
@@ -783,13 +688,18 @@ int main(int argc, char **argv)
       fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      version);
+
+    klfDbgT("$$About to load config$$");
   
     // now load default config
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'
     klfconfig.readFromConfig();
+    klfconfig.detectMissingSettings();
 
+    klfDbgT("$$About to main_load_extra_resources$$");
     main_load_extra_resources();
 
+    klfDbgT("$$About to main_reload_translations$$");
     klf_reload_translations(&app, klfconfig.UI.locale);
 
     KLFColorChooser::setColorList(klfconfig.UI.userColorList);
@@ -797,11 +707,15 @@ int main(int argc, char **argv)
     KLFColorChooseWidget::setRecentCustomColors(klfconfig.UI.colorChooseWidgetRecent,
 						klfconfig.UI.colorChooseWidgetCustom);
 
+    klfDbgT("$$About to create lib factories$$");
+
     // initialize and register some library resource engine + view factories
     (void)new KLFLibBasicWidgetFactory(qApp);
     (void)new KLFLibDBEngineFactory(qApp);
     (void)new KLFLibLegacyEngineFactory(qApp);
     (void)new KLFLibDefaultViewFactory(qApp);
+
+    klfDbgT( "$$START LOADING$$" ) ;
 
     KLFMainWin mainWin;
 
@@ -811,6 +725,8 @@ int main(int argc, char **argv)
     main_load_plugins(&app, &mainWin);
 
     mainWin.show();
+
+    klfDbgT( "$$END LOADING$$" ) ;
 
 #if defined(KLF_USE_DBUS)
     new KLFDBusAppAdaptor(&app, &mainWin);
@@ -896,9 +812,10 @@ int main(int argc, char **argv)
       /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
 
 
-    // now load default config (for default paths etc.)
+    // now load default config
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'
     klfconfig.readFromConfig();
+    klfconfig.detectMissingSettings();
 
     main_load_extra_resources();
 
@@ -912,7 +829,13 @@ int main(int argc, char **argv)
 
     // show program help ?
     if ( opt_help_requested ) {
-      fprintf(stderr, "%s", qPrintable(QObject::tr(klfopt_helptext.source, klfopt_helptext.comment)));
+      QFile cmdlHelpFile(klfFindTranslatedDataFile(":/data/cmdl-help", ".txt"));
+      if (!cmdlHelpFile.open(QIODevice::ReadOnly)) {
+	qWarning()<<KLF_FUNC_NAME<<": Can't access command-line-help file :/data/cmdl-help.txt!";
+	main_exit(-1);
+      }
+      QString helpData = QString::fromUtf8(cmdlHelpFile.readAll());
+      fprintf(stderr, "%s", helpData.toLocal8Bit().constData());
       main_exit(0);
     }
 

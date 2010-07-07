@@ -83,6 +83,20 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
 			      const QStringList& interestQueryItems = QStringList());
 
 
+/** \brief Generalized value matching
+ *
+ * This function tests to see if the value \c testForHitCandidateValue matches the value
+ * \c queryValue according to the match flags \c flags.
+ *
+ * If you call this function repeatedly with the same \c queryValue, the query value may
+ * be converted (unnecessarily) repeatedly to a string with <tt>queryValue.toString()</tt>.
+ * To optimize this, you may cache that string and pass each time the string representation
+ * for the \c queryValue as parameter to \c queryStringCache. If however a null string is passed,
+ * the conversion is performed automatically.
+ * */
+KLF_EXPORT bool klfMatch(const QVariant& testForHitCandidateValue, const QVariant& queryValue,
+			 Qt::MatchFlags flags, const QString& queryStringCache = QString());
+
 
 KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& data);
 KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped);

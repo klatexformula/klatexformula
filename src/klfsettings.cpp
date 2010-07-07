@@ -318,6 +318,7 @@ void KLFSettings::reset()
   u->spnTBorderOffset->setValue( s.tborderoffset );
   u->spnRBorderOffset->setValue( s.rborderoffset );
   u->spnBBorderOffset->setValue( s.bborderoffset );
+  u->chkOutlineFonts->setChecked( s.outlineFonts );
 
   u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.configFlags
 			  &  KLFLatexSyntaxHighlighter::Enabled);
@@ -776,6 +777,7 @@ void KLFSettings::apply()
   s.tborderoffset = u->spnTBorderOffset->value();
   s.rborderoffset = u->spnRBorderOffset->value();
   s.bborderoffset = u->spnBBorderOffset->value();
+  s.outlineFonts = u->chkOutlineFonts->isChecked();
 
   _mainwin->applySettings(s);
 
@@ -821,6 +823,7 @@ void KLFSettings::apply()
   QString localename = u->cbxLocale->itemData(u->cbxLocale->currentIndex()).toString();
   bool localechanged =  (  klfconfig.UI.locale != localename  ) ;
   klfconfig.UI.locale = localename;
+  QLocale::setDefault(klfconfig.UI.locale);
   _mainwin->setApplicationLocale(localename);
   if (localechanged) {
     QMessageBox::information(this, tr("Language changed"),

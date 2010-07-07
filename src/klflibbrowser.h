@@ -27,15 +27,19 @@
 
 #include <QWidget>
 #include <QMovie>
+#include <QMenu>
+#include <QPushButton>
 
 #include <klflib.h>
-#include <klflibview.h>
+//#include <klflibview.h>
 
 
 namespace Ui { class KLFLibBrowser; }
 
 class KLFLibBrowserViewContainer;
 class KLFProgressReporter;
+
+class KLFAbstractLibView;
 
 class KLFLibBrowser : public QWidget
 {

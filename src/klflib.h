@@ -322,10 +322,10 @@ private:
  * Entries are queried by calling for example the functions: \ref allEntries(), \ref entries(),
  * \ref entry(). See the individual function documentation for more details.
  *
- * \warning The (already somewhat complicated) API for this class might be enhanced in the
- * future to support more optimized interaction. To ensure compatibility with API changes,
- * subclass the \ref KLFLibResourceSimpleEngine instead which implements the simplest API, and
- * wraps calls to the more sophisticated functions provided by the KLFLibResourceEngine API.
+ * The API in this class for accessing data is pretty elaborate. You may consider to subclass
+ * \ref KLFLibResourceSimpleEngine, which requires you to implement a simpler API, but at the
+ * price of not being able to take profit of the optimization opportunities given by the
+ * more complicated API.
  *
  * <b>Resource Properties</b>. Resources have properties (stored in a
  * KLFPropertizedObject structure, NOT in regular QObject
@@ -760,7 +760,7 @@ public:
    *
    * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties, which is
    * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
-   * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
+   * set in the KLFLibEntry object. The other fields are left undefined. If the property
    * list is empty (by default), then all properties are fetched and set.
    *
    * If in the list an ID is given which does not exist in the resource, a corresponding
@@ -782,7 +782,7 @@ public:
    *
    * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties, which is
    * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
-   * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
+   * set in the KLFLibEntry object. The other fields are left undefined. If the property
    * list is empty (by default), then all properties are fetched and set.
    *
    * If in the list an ID is given which does not exist in the resource, a corresponding
@@ -796,30 +796,79 @@ public:
   virtual QList<KLFLibEntryWithId> entries(const QList<KLFLib::entryId>& idList,
 					   const QList<int>& wantedEntryProperties = QList<int>());
 
+
+  /** Describes a matching criterion */
+  struct Match {
+    Match(const QVariant& value, Qt::MatchFlags flags = Qt::MatchExactly)
+      : mFlags(flags), mValue(value), mValueString(value.toString()) { }
+
+    /** How the match should be tested (exact match, regex, contains, etc.), this is
+     * a binary-OR'ed value of \ref Qt::MatchFlag enum values.
+     *
+     * the Qt::MatchCaseSensitive may be set to match case sensitive.
+     */
+    inline const Qt::MatchFlags matchFlags() const { return mFlags; }
+    /** The value that will be matched to. */
+    inline const QVariant matchValue() const { return mValue; }
+    /** equivalent to <tt>matchValue().toString()</tt>, however the conversion is
+     * performed once and cached. */
+    inline const QString matchValueString() const { return mValueString; }
+
+  protected:
+    Qt::MatchFlags mFlags;
+    QVariant mValue;
+    QString mValueString;
+  };
+
   //! Find entries in this resource with specified property values
   /** Returns a list of all entries in this resource (and in sub-resource \c subResource
-   * for the engines supporting this feature) that match exactly all the property values given in
-   * \c propertyValues.
+   * for the engines supporting this feature) that match all the required matches specifed
+   * in \c matches.
    *
-   * \c propertyValues is a map that gives which values are requested for which properties. The key
-   * is a property ID of a KLFLibEntry, and the property value is a QVariant holding the value that
-   * we require the entries to have.
+   * \note the subclass is responsible for providing a functional implementation of this function.
+   *   Subclasses that don't want to pass much time to implement this feature can resort to calling
+   *   the static method \ref KLFLibResourceSimpleEngine::findEntriesImpl() that provides a functional
+   *   but not very optimized default implementation.
+   *
+   * \c matches is a map that gives which properties have to be matched, how, and to what value.
+   * The key of the map is a property ID of a KLFLibEntry, and the property value is \ref Match
+   * structure that holds match flags determining how the property should be matched (exact match,
+   * regex, contains, etc.), and that holds also the value that the property should be matched
+   * to (stored in a QVariant).
+   *
+   * The Qt::MatchWrap and Qt::MatchRecursive flags are ignored.
+   *
+   * The matches are returned in the following way:
+   *   - if non NULL, the list pointed by \c entryIdList is set to a list of all entry ID s that
+   *      matched
+   *   - if non NULL, the list pointed by \c entryWithIdList is set to a list of all entries, with
+   *     their corresponding entry ID, that matched (similar to the return value of allEntries()).
+   *     only the requested properties are populated (\c wantedEntryProperties)
+   *
+   * If \c limit is positive, then at most \c limit entries will be returned in either of the above
+   * mentioned lists. If \c limit is zero or negative, then no limit is set on the matches.
+   *
+   * \returns the number of items in the resource that matched. If a \c limit was set, then at
+   *   most \c limit is returned. \c 0 is returned if no match was found. \c -1 can be returned
+   *   to signify an error (eg. invalid regex).
    *
    * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties, which is
    * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
    * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
    * list is empty (by default), then all properties are fetched and set.
    *
-   * \note it is possible to specify a key in \c propertyValues that isn't given in
-   *   \c wantedEntryProperties, and reimplementations must take care of this. <i>Reason: even if
-   *   this may seem inconsistent, it can
-   *   be easily implemented in some examples of engines (SQL condition, ...) and can easily be
-   *   worked around in other engines by adding the requested property to the wanted property
-   *   list.</i>
+   * \note it is possible to specify a key in \c matches that isn't given in
+   *   \c wantedEntryProperties, and reimplementations must handle this. <i>Reason: even if
+   *   this may seem inconsistent, it can be easily implemented in some examples of engines (SQL
+   *   condition, ...) and can easily be worked around in other engines by adding the requested
+   *   property to the wanted property list.</i>
    */
-  virtual QList<KLFLibEntryWithId> findEntries(const QString& subResource,
-					       const QMap<int,QVariant>& propertyValues,
-					       const QList<int>& wantedEntryProperties = QList<int>()) = 0;
+  virtual int findEntries(const QString& subResource,
+			  const QMap<int,Match>& matches,
+			  QList<KLFLib::entryId> * entryIdList,
+			  int limit = 500,
+			  QList<KLFLibEntryWithId> * entryWithIdList = NULL,
+			  const QList<int>& wantedEntryProperties = QList<int>()) = 0;
 
 
   //! Returns all IDs in this resource (and this sub-resource)
@@ -1277,13 +1326,21 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream,
 
 /** \brief Provides a simple API for reading library resources.
  *
- * Right now already KLFLibResourceEngine requires a simple API subclassing for reading
- * resources. However in the future I may wish to change that API for providing more specific
- * entry querying (by category / by any property type / ....) to avoid full caching of all
- * entries (which is for ex. not useful when displaying a huge library resource in a category
- * tree). In the event of an API modification, this class will still provide the simple
- * approach with \ref allEntries() and \ref entry().
+ * This class provides default implementations of some pure virtual methods of
+ * \ref KLFLibResourceEngine, which call other member functions. The goal is to make life
+ * simpler to create a resource engine, where access speed is not a major concern.
  *
+ * For example, KLFLibResourceEngine::allIds() is pure virtual. Normally it can be implemented
+ * to be faster than allEntries(), depending on the engine backend. However the functionality
+ * can as well easily be achieved by calling KLFLibResourceEngine::allEntries() and returning
+ * just a list with all the IDs, at the price of losing optimization.
+ *
+ * This class provides non-optimized default implementations for allIds() (as given above),
+ * hasEntry(), entries(), and findEntries(), based on the data returned by allEntries() and
+ * entry()
+ *
+ * Bear in mind that optimizing one or more of those functions is still possible, by
+ * reimplementing them (!)
  */
 class KLF_EXPORT KLFLibResourceSimpleEngine : public KLFLibResourceEngine
 {
@@ -1301,10 +1358,22 @@ public:
   virtual bool hasEntry(const QString&, entryId id);
   virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList,
 					   const QList<int>& wantedEntryProperties = QList<int>());
-  virtual QList<KLFLibEntryWithId> findEntries(const QString& subResource,
-					       const QMap<int,QVariant>& propertyValues,
-					       const QList<int>& wantedEntryProperties = QList<int>());
 
+  virtual int findEntries(const QString& subResource,
+			  const QMap<int,Match>& matches,
+			  QList<KLFLib::entryId> * entryIdList,
+			  int limit = 500,
+			  QList<KLFLibEntryWithId> * entryWithIdList = NULL,
+			  const QList<int>& wantedEntryProperties = QList<int>());
+
+  /** A basic implementation based on matching the results of <tt>resource->allEntries()</tt>. */
+  static int findEntriesImpl(KLFLibResourceEngine *resource,
+			     const QString& subResource,
+			     const QMap<int,Match>& matches,
+			     QList<KLFLib::entryId> * entryIdList,
+			     int limit = 500,
+			     QList<KLFLibEntryWithId> * entryWithIdList = NULL,
+			     const QList<int>& wantedEntryProperties = QList<int>());
 };
 
 

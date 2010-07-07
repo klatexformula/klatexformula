@@ -48,7 +48,7 @@ class KLFHelpDialogCommon
 public:
   KLFHelpDialogCommon(const QString& baseFName) : pBaseFName(baseFName) { }
 
-  virtual void addWhatsNewText(const QString& htmlSnipplet)
+  virtual void addExtraText(const QString& htmlSnipplet)
   {
     pHtmlExtraSnipplets << htmlSnipplet;
   }
@@ -56,19 +56,8 @@ public:
   virtual QString getFullHtml()
   {
     QString html;
-    QString fn;
-    QString loc = klfconfig.UI.locale;
-    QStringList suffixes = QStringList()<<"_"+loc<<"_"+loc.section('_',0,0)<<QString("");
-    int k;
-    while ( k < suffixes.size() &&
-	    ! QFile::exists(fn = QString(":/data/%1%2.html").arg(pBaseFName, suffixes[k])) ) {
-      klfDbg( "tried fn="<<fn ) ;
-      ++k;
-    }
-    if (k >= suffixes.size()) {
-      qWarning()<<KLF_FUNC_NAME<<": Can't find good file! last try="<<fn;
-      return QString();
-    }
+    QString fn = klfFindTranslatedDataFile(":/data/"+pBaseFName, ".html");
+
     QFile f(fn);
     f.open(QIODevice::ReadOnly);
     html = QString::fromUtf8(f.readAll());
@@ -76,6 +65,7 @@ public:
     klfDbg( "read from file="<<fn<<" the HTML code=\n"<<html ) ;
 
     const QString marker = QLatin1String("<!--KLF_MARKER_INSERT_SPOT-->");
+    int k;
     for (k = 0; k < pHtmlExtraSnipplets.size(); ++k)
       html.replace(marker, pHtmlExtraSnipplets[k]+"\n"+marker);
 

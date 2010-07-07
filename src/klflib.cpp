@@ -29,9 +29,9 @@
 #include <QColor>
 #include <QMimeData>
 
+#include "klfutil.h"
 #include "klflib_p.h"
 #include "klflib.h"
-
 
 
 
@@ -823,27 +823,60 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   return elist;
 }
 
-QList<KLFLibResourceEngine::KLFLibEntryWithId>
-/* */ KLFLibResourceSimpleEngine::findEntries(const QString& subResource,
-					      const QMap<int,QVariant>& propertyValues,
-					      const QList<int>& wantedEntryProperties)
+
+int KLFLibResourceSimpleEngine::findEntries(const QString& subResource,
+					    const QMap<int,Match>& matches,
+					    QList<KLFLib::entryId> * entryIdList,
+					    int limit,
+					    QList<KLFLibEntryWithId> * entryWithIdList,
+					    const QList<int>& wantedEntryProperties)
 {
-  // unoptimized lookup
-  QList<KLFLibEntryWithId> allEList = allEntries(subResource);
-  QList<KLFLibEntryWithId> foundEList;
+  return findEntriesImpl(this, subResource, matches, entryIdList, limit, entryWithIdList,
+			 wantedEntryProperties);
+}
+
+// static
+int KLFLibResourceSimpleEngine::findEntriesImpl(KLFLibResourceEngine *resource,
+						const QString& subResource,
+						const QMap<int,Match>& matches,
+						QList<KLFLib::entryId> * entryIdList,
+						int limit,
+						QList<KLFLibEntryWithId> * entryWithIdList,
+						const QList<int>& /*wantedEntryProperties*/)
+{
+  QList<KLFLibEntryWithId> allEList = resource->allEntries(subResource);
+  if (entryIdList)
+    entryIdList->clear();
+  if (entryWithIdList)
+    entryWithIdList->clear();
+  int count = 0;
   int k;
   for (k = 0; k < allEList.size(); ++k) {
-    bool ok = true;
-    for (QMap<int,QVariant>::const_iterator it = propertyValues.begin();
-	 ok && it != propertyValues.end(); ++it) {
-      if (allEList[k].entry.property(it.key()) != it.value())
-	ok = false;
+    bool match = true;
+    // test all match conditions
+    for (QMap<int,Match>::const_iterator mit = matches.begin(); mit != matches.end(); ++mit) {
+      bool m = klfMatch(allEList[k].entry.property(mit.key()), // test value
+			mit.value().matchValue(), // match value
+			mit.value().matchFlags(),
+			mit.value().matchValueString());
+      if ( ! m ) {
+	match = false;
+	break;
+      }
     }
-    if (ok)
-      foundEList << allEList[k];
+    if (match) {
+      if (entryIdList)
+	entryIdList->append(allEList[k].id);
+      if (entryWithIdList)
+	entryWithIdList->append(allEList[k]);
+      ++count;
+      if (limit > 0 && count >= limit)
+	return count;
+    }
   }
-  return foundEList;
+  return count;
 }
+
 
 // ---------------------------------------------------
 

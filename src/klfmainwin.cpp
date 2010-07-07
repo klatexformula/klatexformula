@@ -442,6 +442,8 @@ KLFMainWin::KLFMainWin()
 		    +"</span></b></p>");
   }
 
+  // and load the library
+
   _loadedlibrary = true;
   loadLibrary();
 }
@@ -529,6 +531,8 @@ void KLFMainWin::loadSettings()
   _settings.rborderoffset = klfconfig.BackendSettings.rborderoffset;
   _settings.bborderoffset = klfconfig.BackendSettings.bborderoffset;
 
+  _settings.outlineFonts = klfconfig.BackendSettings.outlineFonts;
+
   _settings_altered = false;
 }
 
@@ -545,6 +549,7 @@ void KLFMainWin::saveSettings()
     klfconfig.BackendSettings.tborderoffset = _settings.tborderoffset;
     klfconfig.BackendSettings.rborderoffset = _settings.rborderoffset;
     klfconfig.BackendSettings.bborderoffset = _settings.bborderoffset;
+    klfconfig.BackendSettings.outlineFonts = _settings.outlineFonts;
   }
 
   klfconfig.UI.userColorList = KLFColorChooser::colorList();
@@ -751,7 +756,8 @@ void KLFMainWin::loadLibrary()
 
     // visual feedback for import
     KLFProgressDialog pdlg(QString(), this);
-    connect(mHistoryLibResource, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
+    connect(mHistoryLibResource, SIGNAL(operationStartReportingProgress(KLFProgressReporter *,
+									const QString&)),
 	    &pdlg, SLOT(startReportingProgress(KLFProgressReporter *)));
     pdlg.setAutoClose(false);
     pdlg.setAutoReset(false);
@@ -805,6 +811,13 @@ void KLFMainWin::loadLibrary()
   }
   // Delayed open
   //  QMetaObject::invokeMethod(this, "slotOpenHistoryLibraryResource", Qt::QueuedConnection);
+
+
+
+
+  /** \bug .................... DEBUG HERE.............................. */
+  //  return;
+
 
   // open all other sub-resources present in our library
   QStringList subresources = mHistoryLibResource->subResourceList();
@@ -1026,7 +1039,7 @@ void KLFMainWin::helpLinkAction(const QUrl& link)
 
 void KLFMainWin::addWhatsNewText(const QString& htmlSnipplet)
 {
-  mWhatsNewDialog->addWhatsNewText(htmlSnipplet);
+  mWhatsNewDialog->addExtraText(htmlSnipplet);
 }
 
 
@@ -1242,6 +1255,8 @@ void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
     _settings.rborderoffset = ivalue; break;
   case altersetting_BBorderOffset:
     _settings.bborderoffset = ivalue; break;
+  case altersetting_OutlineFonts:
+    _settings.outlineFonts = (bool)ivalue; break;
   default:
     break;
   }
@@ -1390,6 +1405,7 @@ void KLFMainWin::slotEvaluate()
 	_output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio,
 			      Qt::SmoothTransformation);
     }
+    emit evaluateFinished(_output);
     u->lblOutput->display(sc.toImage(), tooltipimg, true);
     u->frmOutput->setEnabled(true);
 

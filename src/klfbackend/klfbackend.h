@@ -90,6 +90,10 @@
 #define KLFERR_BADEPSBBOX -12
 //! Error while opening <tt>...-good.eps</tt> file for writing
 #define KLFERR_EPSWRITEFAIL -13
+//! No -outlfonts.eps file appeared after calling gs for outlining fonts
+#define KLFERR_NOEPSFILE_OF -22
+//! Error while opening -outlfonts.eps after outlining fonts with gs
+#define KLFERR_EPSREADFAIL_OF -23
 //! Error while launching the given \c gs program
 #define KLFERR_NOGSPROG -14
 //! \c gs program did not exit properly (program killed) (see also \ref KLFERR_PROGERR_GS)
@@ -106,6 +110,7 @@
 #define KLFERR_NOPDFFILE -20
 //! Error while opening .pdf file for reading
 #define KLFERR_PDFREADFAIL -21
+// last error defined: -23
 
 //! \c latex exited with a non-zero status
 #define KLFERR_PROGERR_LATEX 1
@@ -113,9 +118,11 @@
 #define KLFERR_PROGERR_DVIPS 2
 //! \c gs exited with a non-zero status
 #define KLFERR_PROGERR_GS 3
+//! \c gs (while outlining fonts) exited with non-zero status
+#define KLFERR_PROGERR_GS_OF 5
 //! \c epstopdf exited with non-zero status (if \c epstopdf is to be used)
 #define KLFERR_PROGERR_EPSTOPDF 4
-
+// last error defined: 5
 
 
 //! The main engine for KLatexFormula
@@ -138,6 +145,9 @@ public:
    * \note the \c klfclspath field was removed, because we no longer use klatexformula.cls.
    * */
   struct klfSettings {
+    /** A default constructor assigning default (empty) values to all fields */
+    klfSettings() : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
+		    outlineFonts(true) { }
     /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
     QString tempdir;
     /** the latex executable, path incl. if not in $PATH */
@@ -160,6 +170,12 @@ public:
     int bborderoffset;
     /** The number of postscript points to add to left side of the resulting EPS boundingbox */
     int lborderoffset;
+
+    /** Strip away fonts in favor of vectorially outlining them with gs.
+     *
+     * Use this option to produce output that doens't embed fonts, eg. for Adobe Illustrator.
+     */
+    bool outlineFonts;
   };
 
   //! Specific input to KLFBackend::getLatexFormula()

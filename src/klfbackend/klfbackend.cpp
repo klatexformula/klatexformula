@@ -144,7 +144,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
   QMutexLocker mutexlocker(&__mutex);
 
-  klf_debug_time_print("KLFBackend::getLatexFormula() called.\n");
+  qDebug("%s: %s: KLFBackend::getLatexFormula() called.\n", KLF_FUNC_NAME, KLF_SHORT_TIME);
   
   klfOutput res;
   res.status = KLFERR_NOERROR;
@@ -166,6 +166,15 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   QString tempfname = settings.tempdir + "/klatexformulatmp" KLF_VERSION_STRING "-"
     + QDateTime::currentDateTime().toString("hh-mm-ss");
+
+  QString fnTex = tempfname + ".tex";
+  QString fnDvi = tempfname + ".dvi";
+  QString fnRawEps = tempfname + "-raw.eps";
+  QString fnBBCorrEps = tempfname + "-bbcorr.eps";
+  QString fnOutlFontsEps = tempfname + "-outlfonts.eps";
+  QString fnFinalEps = settings.outlineFonts ? fnOutlFontsEps : fnBBCorrEps;
+  QString fnPng = tempfname + ".png";
+  QString fnPdf = tempfname + ".pdf";
 
   // upon destruction (on stack) of this object, cleanup() will be
   // automatically called as wanted
@@ -192,12 +201,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   latexin.replace("...", in.latex);
 
   {
-    QFile file(tempfname+".tex");
+    QFile file(fnTex);
     bool r = file.open(WRITEONLY);
     if ( ! r ) {
       res.status = KLFERR_TEXWRITEFAIL;
       res.errorstr = QObject::tr("Can't open file for writing: '%1'!", "KLFBackend")
-	.arg(tempfname+".tex");
+	.arg(fnTex);
       return res;
     }
     QTextStream stream(&file);
@@ -223,11 +232,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     proc.setWorkingDirectory(settings.tempdir);
 
-    args << settings.latexexec << NATIVESEPARATORS(tempfname+".tex");
+    args << settings.latexexec << NATIVESEPARATORS(fnTex);
 
-    klf_debug_time_print("KLFBackend::getLatexFormula: about to exec latex...\n");
+    qDebug("%s: %s:  about to exec latex...\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
     bool r = proc.startProcess(args, env);
-    klf_debug_time_print("KLFBackend::getLatexFormula: latex returned.\n");
+    qDebug("%s: %s:  latex returned.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
     if (!r) {
       res.status = KLFERR_NOLATEXPROG;
@@ -247,7 +256,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       return res;
     }
 
-    if (!QFile::exists(tempfname + ".dvi")) {
+    if (!QFile::exists(fnDvi)) {
       res.status = KLFERR_NODVIFILE;
       res.errorstr = QObject::tr("DVI file didn't appear after having called Latex!", "KLFBackend");
       return res;
@@ -259,12 +268,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     KLFBlockProcess proc;
     QStringList args;
-    args << settings.dvipsexec << "-E" << NATIVESEPARATORS(tempfname+".dvi")
-         << "-o" << NATIVESEPARATORS(tempfname+".eps");
+    args << settings.dvipsexec << "-E" << NATIVESEPARATORS(fnDvi)
+         << "-o" << NATIVESEPARATORS(fnRawEps);
 
-    klf_debug_time_print("KLFBackend::getLatexFormula: about to dvips...\n");
+    qDebug("%s: %s:  about to dvips...\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
     bool r = proc.startProcess(args);
-    klf_debug_time_print("KLFBackend::getLatexFormula: dvips returned.\n");
+    qDebug("%s: %s:  dvips returned.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
     if ( ! r ) {
       res.status = KLFERR_NODVIPSPROG;
@@ -282,7 +291,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 				  proc.readStdoutString());
       return res;
     }
-    if (!QFile::exists(tempfname + ".eps")) {
+    if (!QFile::exists(fnRawEps)) {
       res.status = KLFERR_NOEPSFILE;
       res.errorstr = QObject::tr("EPS file didn't appear after dvips call!\n", "KLFBackend");
       return res;
@@ -290,11 +299,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // add some space on bounding-box to avoid some too tight bounding box bugs
     // read eps file
-    QFile epsfile(tempfname+".eps");
+    QFile epsfile(fnRawEps);
     r = epsfile.open(READONLY);
     if ( ! r ) {
       res.status = KLFERR_EPSREADFAIL;
-      res.errorstr = QObject::tr("Can't read file '%1'!\n", "KLFBackend").arg(tempfname+".eps");
+      res.errorstr = QObject::tr("Can't read file '%1'!\n", "KLFBackend").arg(fnRawEps);
       return res;
     }
     QByteArray epscontent = epsfile.readAll();
@@ -309,7 +318,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     if ( i == -1 ) {
       res.status = KLFERR_NOEPSBBOX;
       res.errorstr = QObject::tr("File '%1' does not contain line \"%%BoundingBox: ... \" !",
-				 "KLFBackend").arg(tempfname+".eps");
+				 "KLFBackend").arg(fnRawEps);
       return res;
     }
     int ax, ay, bx, by;
@@ -320,7 +329,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     if ( n != 4 ) {
       res.status = KLFERR_BADEPSBBOX;
       res.errorstr = QObject::tr("file %1: Line %%BoundingBox: can't read values!\n", "KLFBackend")
-	.arg(tempfname+".eps");
+	.arg(fnRawEps);
       return res;
     }
     // grow bbox by settings.Xborderoffset points
@@ -332,13 +341,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     (void) RX_INDEXIN(rx, chunk);
     int l = rx.matchedLength();
     epscontent_s.replace(k, l, temp);
-#ifdef KLFBACKEND_QT4
-    res.epsdata = epscontent_s;
-#else
-    res.epsdata.duplicate(epscontent_s.data(), epscontent_s.length());
-#endif
+
     // write content back to second file
-    QFile epsgoodfile(tempfname+"-good.eps");
+    QFile epsgoodfile(fnBBCorrEps);
 #ifdef KLFBACKEND_QT4
     r = epsgoodfile.open(QIODevice::WriteOnly);
 #else
@@ -347,15 +352,77 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     if ( ! r ) {
       res.status = KLFERR_EPSWRITEFAIL;
       res.errorstr = QObject::tr("Can't write to file '%1'!\n", "KLFBackend")
-	.arg(tempfname+"-good.eps");
+	.arg(fnBBCorrEps);
       return res;
     }
-    epsgoodfile.write(res.epsdata);
+    epsgoodfile.write(epscontent_s);
+
+    if ( ! settings.outlineFonts ) {
+#ifdef KLFBACKEND_QT4
+      res.epsdata = epscontent_s;
+#else
+      res.epsdata.duplicate(epscontent_s.data(), epscontent_s.length());
+#endif
+    }
     // res.epsdata is now set.
 
-    klf_debug_time_print("KLFBackend::getLatexFormula: eps bbox set.\n");    
+    qDebug("%s: %s:  eps bbox set.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 
   } // end of block "make EPS"
+
+  if (settings.outlineFonts) {
+    // run 'gs' to outline fonts
+    KLFBlockProcess proc;
+    QStringList args;
+    args << settings.gsexec << "-dNOCACHE" << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop"
+	 << "-sDEVICE=pswrite" << "-sOutputFile="+NATIVESEPARATORS(fnOutlFontsEps)
+	 << "-q" << "-dBATCH" << NATIVESEPARATORS(fnBBCorrEps);
+
+    qDebug("%s: %s: about to gs (for outline fonts)...\n%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
+	   qPrintable(args.join(" ")));
+    bool r = proc.startProcess(args);
+    qDebug("%s: %s:  gs returned (for outline fonts).\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+  
+    if ( ! r ) {
+      res.status = KLFERR_NOGSPROG;
+      res.errorstr = QObject::tr("Unable to start gs!\n", "KLFBackend");
+      return res;
+    }
+    if ( !proc.normalExit() ) {
+      res.status = KLFERR_GSNONORMALEXIT;
+      res.errorstr = QObject::tr("gs died abnormally!\n", "KLFBackend");
+      return res;
+    }
+    if ( proc.exitStatus() != 0) {
+      res.status = KLFERR_PROGERR_GS_OF;
+      res.errorstr = progErrorMsg("gs", proc.exitStatus(), proc.readStderrString(),
+				  proc.readStdoutString());
+      return res;
+    }
+    if (!QFile::exists(fnOutlFontsEps)) {
+      res.status = KLFERR_NOEPSFILE_OF;
+      res.errorstr = QObject::tr("EPS file (with outlined fonts) didn't appear after call to gs!\n",
+				 "KLFBackend");
+      return res;
+    }
+
+    // get and save outlined EPS to memory
+    QFile ofepsfile(fnOutlFontsEps);
+#ifdef KLFBACKEND_QT4
+    r = ofepsfile.open(QIODevice::ReadOnly);
+#else
+    r = ofepsfile.open(IO_ReadOnly);
+#endif
+    if ( ! r ) {
+      res.status = KLFERR_EPSREADFAIL_OF;
+      res.errorstr = QObject::tr("Unable to read file %1!\n", "KLFBackend")
+	.arg(fnOutlFontsEps);
+      return res;
+    }
+    res.epsdata = ofepsfile.readAll();
+    ofepsfile.close();
+    // res.epsdata is now set to the outlined-fonts version
+  }
 
   { // run 'gs' to get png
     KLFBlockProcess proc;
@@ -368,12 +435,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     } else {
       args << "-sDEVICE=pngalpha";
     }
-    args << "-sOutputFile="+NATIVESEPARATORS(tempfname+".png") << "-q" << "-dBATCH"
-         << NATIVESEPARATORS(tempfname+"-good.eps");
+    args << "-sOutputFile="+NATIVESEPARATORS(fnPng) << "-q" << "-dBATCH"
+         << NATIVESEPARATORS(fnFinalEps);
 
-    klf_debug_time_print("KLFBackend::getLatexFormula: about to gs...\n");    
+    qDebug("%s: %s:  about to gs...\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
     bool r = proc.startProcess(args);
-    klf_debug_time_print("KLFBackend::getLatexFormula: gs returned.\n");    
+    qDebug("%s: %s:  gs returned.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
   
     if ( ! r ) {
       res.status = KLFERR_NOGSPROG;
@@ -391,14 +458,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 				  proc.readStdoutString());
       return res;
     }
-    if (!QFile::exists(tempfname + ".png")) {
+    if (!QFile::exists(fnPng)) {
       res.status = KLFERR_NOPNGFILE;
       res.errorstr = QObject::tr("PNG file didn't appear after call to gs!\n", "KLFBackend");
       return res;
     }
 
     // get and save PNG to memory
-    QFile pngfile(tempfname+".png");
+    QFile pngfile(fnPng);
 #ifdef KLFBACKEND_QT4
     r = pngfile.open(QIODevice::ReadOnly);
 #else
@@ -407,7 +474,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     if ( ! r ) {
       res.status = KLFERR_PNGREADFAIL;
       res.errorstr = QObject::tr("Unable to read file %1!\n", "KLFBackend")
-	.arg(tempfname+".png");
+	.arg(fnPng);
       return res;
     }
     res.pngdata = pngfile.readAll();
@@ -420,12 +487,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // if we have epstopdf functionality, then we'll take advantage of it to generate pdf:
     KLFBlockProcess proc;
     QStringList args;
-    args << settings.epstopdfexec << (tempfname+"-good.eps")
-	 << ("--outfile="+NATIVESEPARATORS(tempfname+".pdf"));
+    args << settings.epstopdfexec << NATIVESEPARATORS(fnFinalEps)
+	 << ("--outfile="+NATIVESEPARATORS(fnPdf));
 
-    klf_debug_time_print("KLFBackend::getLatexFormula: about to epstopdf...\n");    
+    qDebug("%s: %s:  about to epstopdf...\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
     bool r = proc.startProcess(args);
-    klf_debug_time_print("KLFBackend::getLatexFormula: epstopdf returned.\n");    
+    qDebug("%s: %s:  epstopdf returned.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 
     if ( ! r ) {
       res.status = KLFERR_NOEPSTOPDFPROG;
@@ -443,14 +510,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 				  proc.readStdoutString());
       return res;
     }
-    if (!QFile::exists(tempfname + ".pdf")) {
+    if (!QFile::exists(fnPdf)) {
       res.status = KLFERR_NOPDFFILE;
       res.errorstr = QObject::tr("PDF file didn't appear after call to epstopdf!\n", "KLFBackend");
       return res;
     }
 
     // get and save PDF to memory
-    QFile pdffile(tempfname+".pdf");
+    QFile pdffile(fnPdf);
 #ifdef KLFBACKEND_QT4
     r = pdffile.open(QIODevice::ReadOnly);
 #else
@@ -458,15 +525,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 #endif
     if ( ! r ) {
       res.status = KLFERR_PDFREADFAIL;
-      res.errorstr = QObject::tr("Unable to read file %1!\n", "KLFBackend")
-	.arg(tempfname+".pdf");
+      res.errorstr = QObject::tr("Unable to read file %1!\n", "KLFBackend").arg(fnPdf);
       return res;
     }
     res.pdfdata = pdffile.readAll();
 
   }
 
-  klf_debug_time_print("KLFBackend::getLatexFormula: end of function.\n");    
+  qDebug("%s: %s:  end of function.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 
   return res;
 }
@@ -481,6 +547,9 @@ void KLFBackend::cleanup(QString tempfname)
   if (QFile::exists(tempfname+".toc")) QFile::remove(tempfname+".toc");
   if (QFile::exists(tempfname+".eps")) QFile::remove(tempfname+".eps");
   if (QFile::exists(tempfname+"-good.eps")) QFile::remove(tempfname+"-good.eps");
+  if (QFile::exists(tempfname+"-raw.eps")) QFile::remove(tempfname+"-raw.eps");
+  if (QFile::exists(tempfname+"-bbcorr.eps")) QFile::remove(tempfname+"-bbcorr.eps");
+  if (QFile::exists(tempfname+"-outlfonts.eps")) QFile::remove(tempfname+"-outlfonts.eps");
   if (QFile::exists(tempfname+".png")) QFile::remove(tempfname+".png");
   if (QFile::exists(tempfname+".pdf")) QFile::remove(tempfname+".pdf");
 }
@@ -593,6 +662,8 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
 
 bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   QString extra_paths = standard_extra_paths;
   if (!extraPath.isEmpty())
     extra_paths += KLF_PATH_SEP + extraPath;

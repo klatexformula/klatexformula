@@ -264,20 +264,15 @@ protected:
    *   ... // API to access/write properties
    *
    * private:
-   *   static bool hasInitBuiltInProperties;
    *   static void initBuiltInProperties();
    * };
-   *
-   * // mybook.cpp
-   * bool MyBook::hasInitBuiltInProperties = false;
    *
    * MyBook::MyBook() : KLFPropertizedObject("MyBook") {
    *   initBuiltInProperties();
    * }
    * void MyBook::initBuiltInProperties() {
-   *   if (hasInitBuiltInProperties)
-   *     return;
-   *   hasInitBuiltInProperties = true;
+   *   KLF_FUNC_SINGLE_RUN ;
+   *
    *   registerBuiltInProperty(PropTitle, "Title");
    *   registerBuiltInProperty(PropAuthor, "Author");
    *   registerBuiltInProperty(PropEditor, "Editor");

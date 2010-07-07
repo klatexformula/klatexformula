@@ -111,7 +111,7 @@ public:
 
   struct {
 
-    QString locale;
+    QString locale; //!< When setting this, don't forget to call QLocale::setDefault().
     QFont applicationFont;
     QFont latexEditFont;
     QFont preambleEditFont;
@@ -151,6 +151,7 @@ public:
     int tborderoffset;
     int rborderoffset;
     int bborderoffset;
+    bool outlineFonts;
 
   } BackendSettings;
 
@@ -175,10 +176,19 @@ public:
   KLFPluginConfigAccess getPluginConfigAccess(const QString& name, uint amode)
   { return KLFPluginConfigAccess(this, name, amode); }
 
-  // call loadDefaults() before anything, at the beginning.
+  /** call loadDefaults() before anything, at the beginning, to ensure that the values
+   * in this structure are not undefined. (the constructor doesn't set any values).
+   *
+   * loadDefaults() will set reasonable default values for most settings, but will not
+   * start detecting system settings, specifically look for system executables, possibly other
+   * long detection tasks. To perform that, call detectMissingSettings().
+   *
+   * In practice, main() should call, in order, loadDefaults(), readFromConfig(), and
+   * detectMissingSettings().
+   * */
   void loadDefaults();
-
   int readFromConfig();
+  void detectMissingSettings();
 
   int ensureHomeConfigDir();
 
@@ -191,6 +201,7 @@ public:
 private:
   int readFromConfig_v2();
   int readFromConfig_v1();
+
 };
 
 

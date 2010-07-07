@@ -70,8 +70,8 @@
      <y>13</y>
     </hint>
     <hint type="destinationlabel">
-     <x>190</x>
-     <y>52</y>
+     <x>196</x>
+     <y>51</y>
     </hint>
    </hints>
   </connection>
@@ -86,8 +86,24 @@
      <y>17</y>
     </hint>
     <hint type="destinationlabel">
-     <x>142</x>
-     <y>83</y>
+     <x>148</x>
+     <y>77</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkSysTrayOn</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>chkMinToSysTray</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>228</x>
+     <y>13</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>234</x>
+     <y>99</y>
     </hint>
    </hints>
   </connection>

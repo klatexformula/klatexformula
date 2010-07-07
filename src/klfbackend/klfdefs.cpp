@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h> // vsprintf(), vsnprintf
 #include <stdarg.h> // va_list, va_arg, va_end in klfFmt()
+#include <sys/time.h>
 
 #include <qdir.h>
 #include <qfile.h>
@@ -56,24 +57,6 @@ KLF_EXPORT const char * klfVersion()
 #endif
 
 // declared in klfdefs.h
-
-#ifdef KLF_DEBUG
-void __klf_debug_time_print(QString str)
-{
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  qDebug("%03ld.%06ld : %s", tv.tv_sec % 1000, tv.tv_usec, qPrintable(str));
-}
-KLF_EXPORT QDebug& __klf_debug_time_print_str(QDebug str)
-{
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  char temp[64];
-  sprintf(temp, "%03ld.%06ld", tv.tv_sec % 1000, tv.tv_usec);
-  return str<<temp<<": ";
-}
-
-#endif
 
 KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
 {
@@ -144,6 +127,19 @@ KLF_EXPORT QByteArray klfFmt(const char * fmt, ...)
 }
 
 
+KLF_EXPORT QString klfTimeOfDay(bool shortfmt)
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  char temp[128];
+  if (shortfmt)
+    sprintf(temp, "%03ld.%06ld", tv.tv_sec % 1000, tv.tv_usec);
+  else
+    sprintf(temp, "%ld.%06ld", tv.tv_sec, tv.tv_usec);
+  return QString::fromAscii(temp);
+}
+
+
 
 
 KLFDebugBlock::KLFDebugBlock(const QString& blockName)
@@ -166,15 +162,26 @@ KLFDebugBlockTimer::KLFDebugBlockTimer(const QString& blockName)
   : KLFDebugBlock(false, blockName)
 {
 #ifdef KLF_DEBUG
-  __klf_debug_time_print(QString("%1: block begin").arg(pBlockName));
+  qDebug("+T:%s: %s: block begin", KLF_SHORT_TIME, qPrintable(pBlockName));
 #endif
 }
 KLFDebugBlockTimer::~KLFDebugBlockTimer()
 {
 #ifdef KLF_DEBUG
-  __klf_debug_time_print(QString("%1: block end").arg(pBlockName));
+  qDebug("+T:%s: %s: block end", KLF_SHORT_TIME, qPrintable(pBlockName));
 #endif
 }
+
+
+#if defined(KLFBACKEND_QT4) && defined(KLF_DEBUG)
+KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * shorttime)
+{
+  if (shorttime == NULL)
+    return dbg.nospace()<<funcname<<"(): ";
+  else
+    return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"(): ";
+}
+#endif
 
 
 

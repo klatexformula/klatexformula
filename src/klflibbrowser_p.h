@@ -200,22 +200,22 @@ public slots:
     // and of context menu request
     connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
 	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
-    klf_debug_time_print_str()<<"connected signals.";
+    klfDbgT(": connected signals.");
     if ((pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) &&
 	(pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps))
       pResource->setSubResourceProperty(pResource->defaultSubResource(),
 					KLFLibResourceEngine::SubResPropViewType, viewTypeIdent);
     else
       pResource->setViewType(viewTypeIdent);
-    klf_debug_time_print_str()<<"set view type.";
+    klfDbgT(": set view type.");
 
     blockSignals(true);
     int index = addWidget(v);
     blockSignals(false);
     pOpenViewTypeIdents[viewTypeIdent] = index;
-    klf_debug_time_print_str()<<"added widget, about to raise";
+    klfDbgT(": added widget, about to raise");
     setCurrentIndex(index);
-    klf_debug_time_print_str()<<"Added view.";
+    klfDbgT(": Added view.");
     return true;
   }
 

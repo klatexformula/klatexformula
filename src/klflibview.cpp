@@ -60,6 +60,16 @@
 #include "klflibview_p.h"
 
 
+#ifndef KLF_DEBUG
+// Qt doesn't provide this operator out of debug mode, however we need it to feed
+// into qWarning()<< ...
+QDebug& operator<<(QDebug& dbg, const QModelIndex &index)
+{
+  return dbg << "QModelIndex(row="<<index.row()<<";data="<<index.internalPointer()<<")";
+}
+#endif
+
+
 // ---------------------------------------------------
 
 /** \internal */
@@ -365,7 +375,7 @@ void KLFLibModelCache::rebuildCache()
   QList<int> wantedProps = minimalistEntryPropIds();
   QList<KLFLibResourceEngine::KLFLibEntryWithId> everything = pModel->pResource->allEntries(wantedProps);
   for (k = 0; k < everything.size(); ++k) {
-    klfDbg( "Adding entry id="<<everything[k].id<<"; entry="
+    klfDbgT( "Adding entry id="<<everything[k].id<<"; entry="
 	    <<everything[k].entry ) ;
     EntryNode e;
     e.entryid = everything[k].id;
@@ -412,8 +422,8 @@ QModelIndex KLFLibModelCache::createIndexFromId(NodeId nodeid, int row, int colu
 
   // if we cache getNode(parentid) make sure to keep a reference! it changes!
   while ( getNode(parentid).numDisplayFetched <= row && canFetchMore(parentid) ) {
-    klf_debug_time_print_str()<<KLF_FUNC_NAME<<": need to fetch more numDisplayFetched="
-			      <<getNode(parentid).numDisplayFetched<<"<row="<<row<<" !";
+    klfDbgT(": need to fetch more numDisplayFetched="
+	   <<getNode(parentid).numDisplayFetched<<"<row="<<row<<" !");
     fetchMore(parentid, pModel->fetchBatchCount());
   }
 
@@ -1229,7 +1239,10 @@ KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject
   : QAbstractItemModel(parent), pFlavorFlags(flavorFlags)
 {
   // set the default value of N items per batch
-  setFetchBatchCount(50);
+  // the initial default value is ridicuously small because fetchMore() is called during startup
+  // sequence too many times (in my opinion). the batch count is increased once the widget is
+  // shown, see KLFLibDefaultView::showEvent().
+  setFetchBatchCount(10);
 
   // by default, sort according to DateTime, recent first
   pEntrySorter = new KLFLibEntrySorter(KLFLibEntry::DateTime, Qt::DescendingOrder);
@@ -1469,7 +1482,7 @@ QModelIndex KLFLibModel::index(int row, int column, const QModelIndex &parent) c
   }
   if (row < 0 || row >= p.children.size() || column < 0 || column >= columnCount(parent))
     return QModelIndex();
-  klf_debug_time_print_str()<<KLF_FUNC_NAME<<": row="<<row<<"; column="<<column<<"; parent="<<parent;
+  klfDbgT(": row="<<row<<"; column="<<column<<"; parent="<<parent);
   return pCache->createIndexFromId(p.children[row], row, column);
 }
 QModelIndex KLFLibModel::parent(const QModelIndex &index) const
@@ -1480,7 +1493,7 @@ QModelIndex KLFLibModel::parent(const QModelIndex &index) const
   KLFLibModelCache::Node n = pCache->getNode(p);
   if ( ! n.parent.valid() ) // invalid parent (should never happen!)
     return QModelIndex();
-  klf_debug_time_print_str()<<KLF_FUNC_NAME<<": requesting parent of index "<<index;
+  klfDbgT(": requesting parent of index "<<index);
   return pCache->createIndexFromId(n.parent, -1 /* figure out row */, 0);
 }
 int KLFLibModel::rowCount(const QModelIndex &parent) const
@@ -2234,9 +2247,11 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
     break;
   case KLFLibEntry::DateTime:
     // paint DateTime String
-    paintText(p, index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime()
-	      .toString(Qt::DefaultLocaleLongDate), fl);
-    break;
+    { QLocale loc = klfconfig.UI.locale;
+      paintText(p, loc.toString(index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime))
+				.toDateTime(), QLocale::LongFormat), fl);
+      break;
+    }
   default:
     qDebug("KLFLibViewDelegate::paintEntry(): Got bad contents type %d !",
 	   index.data(KLFLibModel::EntryContentsTypeItemRole).toInt());
@@ -2435,13 +2450,16 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
       return QFontMetrics(option.font)
 	.size(0, index.data(KLFLibModel::entryItemRole(prop)).toString())+QSize(4,2);
     case KLFLibEntry::DateTime:
-      return QFontMetrics(option.font)
-	.size(0, index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime()
-	      .toString(Qt::DefaultLocaleLongDate) )+QSize(4,2);
+      { QLocale loc = klfconfig.UI.locale;
+	return QFontMetrics(option.font)
+	  .size(0, loc.toString(index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime))
+				.toDateTime(), QLocale::LongFormat) )+QSize(4,2);
+      }
     case KLFLibEntry::Preview:
       // sizeHint() is called for all entries, also those that are not visible. So no time-consuming
       // operations and don't make model update its minimalist entries.
-      // return index.data(KLFLibModel::entryItemRole(KLFLibEntry::Preview)).value<QImage>().size()+QSize(4,4);
+      // return index.data(KLFLibModel::entryItemRole(KLFLibEntry::Preview)).value<QImage>().size()
+      //                                                                                  +QSize(4,4);
       //      return klfconfig.UI.labelOutputFixedSize + QSize(4,4);
       return index.data(KLFLibModel::entryItemRole(KLFLibEntry::PreviewSize)).value<QSize>() + QSize(4,4);
     default:
@@ -2581,6 +2599,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     treeView->setSortingEnabled(true);
     treeView->setIndentation(16);
     treeView->setAllColumnsShowFocus(true);
+    //    treeView->setUniformRowHeights(true);
     pDelegate->setTheTreeView(treeView);
     //    connect(treeView, SIGNAL(expanded(const QModelIndex&)),
     //	    this, SLOT(slotExpanded(const QModelIndex&)));
@@ -2965,6 +2984,14 @@ void KLFLibDefaultView::updateResourceProp(int propId)
     }
   }
 }
+
+void KLFLibDefaultView::showEvent(QShowEvent *event)
+{
+  if (pModel)
+    pModel->setFetchBatchCount(100);
+}
+
+
 
 QStringList KLFLibDefaultView::getCategorySuggestions()
 {

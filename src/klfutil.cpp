@@ -155,6 +155,50 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
 }
 
 
+// ------------------------------------------------------------
+
+
+
+// ignores: flags: Recurse, Wrap. (!)
+KLF_EXPORT bool klfMatch(const QVariant& testForHitCandidateValue, const QVariant& queryValue,
+			 Qt::MatchFlags flags, const QString& queryStringCache /* = QString()*/)
+{
+  //
+  // *** NOTE ***
+  //   code inspired from Qt's QAbstractItemModel::match() defined in
+  //   src/corelib/kernel/qabstractitemmodel.cpp
+  //
+
+  uint matchType = flags & 0x0F;
+  Qt::CaseSensitivity cs = (flags & Qt::MatchCaseSensitive)
+    ? Qt::CaseSensitive
+    : Qt::CaseInsensitive;
+
+  const QVariant& v = testForHitCandidateValue; // the name is a bit long :)
+  
+  // QVariant based matching
+  if (matchType == Qt::MatchExactly)
+    return (queryValue == v);
+
+  // QString based matching
+  QString text = !queryStringCache.isNull() ? queryStringCache : queryValue.toString();
+  QString t = v.toString();
+  switch (matchType) {
+  case Qt::MatchRegExp:
+    return (QRegExp(text, cs).exactMatch(t));
+  case Qt::MatchWildcard:
+    return (QRegExp(text, cs, QRegExp::Wildcard).exactMatch(t));
+  case Qt::MatchStartsWith:
+    return (t.startsWith(text, cs));
+  case Qt::MatchEndsWith:
+    return (t.endsWith(text, cs));
+  case Qt::MatchFixedString:
+    return (QString::compare(t, text, cs) == 0);
+  case Qt::MatchContains:
+  default:
+    return (t.contains(text, cs));
+  }
+}
 
 
 // -----------------------------------------------------
@@ -438,9 +482,12 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
 
 
 
+
 KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const char * dataTypeName,
 					   const char *listOrMapDataTypeName)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   QRegExp v2rx("^\\(\\s*(-?\\d+)\\s*[,;]\\s*(-?\\d+)\\s*\\)");
 
   QByteArray data = stringdata; // might need slight modifications before parsing

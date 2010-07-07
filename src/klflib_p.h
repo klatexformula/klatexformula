@@ -151,35 +151,42 @@ public:
  * \section appxMimeLib_elist The application/x-klf-libentries data format
  *
  * Is basically a Qt-\ref QDataStream saved data of a \ref KLFLibEntryList (ie. a
- * \ref QList "QList<KLFLibEntry>"), saved with Qt \ref QDataStream version "QDataStream::Qt_4_4" .
+ * \ref QList "QList<KLFLibEntry>"), with some meta data.
  *
- * There is also a property map for including arbitrary parameters to the list (eg.
- * originating URL, etc.), stored in a QVariantMap, ie a \ref QMap "QMap<QString,QVariant>". Standard
- * properties as of now:
- *  - \c "Url" (type QUrl) : originating URL
+ * The meta data is given in a QVariantMap, see below. The data is stored as a
+ * \ref KLFLibEntryList. The <tt>application/x-klf-libentries</tt> data is exactly what
+ * \ref QDataStream will produce when sent in, in this order, the properties meta data,
+ * and the library entries. The \ref QDataStream must have its version set to
+ * "QDataStream::Qt_4_4" .
  *
- * Example code:
+ * Fundamental example code:
  * \code
  *  KLFLibEntryList entries = ...;
+ *  QVariantMap metaData = ...;
  *  QByteArray data;
  *  QDataStream stream(&data, QIODevice::WriteOnly);
- *  stream << QVariantMap() << data;
+ *  stream.setVersion(QDataStream::Qt_4_4);
+ *  stream << metaData << entries;
  *  // now data contains the exact data for the application/x-klf-libentries mimetype.
  * \endcode
- * Other example: see the source code of \ref KLFLibModel::mimeData() in file
- * <a href="klflibview_8cpp.html">klfview.cpp</a> .
  *
- * \section appxMimeLib_internal The INTERNAL <tt>application/x-klf-internal-lib-move-entries</tt>
- * * Used for internal move within the same resource only.
- * * Basic difference with <tt>application/x-klf-libentries</tt>: the latter contains
- *   only the IDs of the entries (for reference for deletion for example) and the url
- *   of the open resource for identification.
- * * Internal Format: \ref QDataStream, stream version QDataStream::Qt_4_4, in the
- *   following order:
- *   \code stream << QVariantMap(<i>property-map</i>)
- *        << QList<KLFLib::entryId>(<i>entry-id-list</i>);
- *   \endcode
- * * The <tt><i>property-map</i></tt> contains properties relative to the mime data, such
+ * The property map is meant for including arbitrary parameters to the list (eg. originating
+ * URL, etc.). These are stored in a QVariantMap, ie a \ref QMap "QMap<QString,QVariant>".
+ * Standard known properties are, as of now:
+ *  - \c "Url" (type QUrl) : originating URL
+ *
+ * \section appxMimeLib_internal The INTERNAL application/x-klf-internal-lib-move-entries
+ * <b>This format is internal only. Do not attempt to paste or drop this format in other places.</b>
+ *
+ * - Used for internal move within the same resource only (category change).
+ * - Basic difference with <tt>application/x-klf-libentries</tt>:
+ *   <tt>application/x-klf-internal-lib-move-entries</tt> contains only the IDs of the entries
+ *   (for reference for deletion for example) and the url of the open resource for identification.
+ * - Internal Format: \ref QDataStream, stream version QDataStream::Qt_4_4, in the
+ *   following order:<br/>
+ *   <tt> stream << QVariantMap(<i>property-map</i>)
+ *        << QList<KLFLib::entryId>(<i>entry-id-list</i>);</tt>
+ * - The <tt><i>property-map</i></tt> contains properties relative to the mime data, such
  *   as the originating URL (in property \c "Url" of type QUrl)
  */
 

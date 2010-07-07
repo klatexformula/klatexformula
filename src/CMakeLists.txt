@@ -26,7 +26,7 @@ endif(KLF_USE_QT4)
 # Add flags for DEBUG build configuration
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DKLF_DEBUG -Wall")
 # Add flags for RELEASE build configuration
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT -O3")
 
 # include SUBDIR: our klfbackend
 add_subdirectory(klfbackend)

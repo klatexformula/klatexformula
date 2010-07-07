@@ -473,3 +473,28 @@ KLF_EXPORT void klf_reload_translations(QCoreApplication *app, const QString& cu
 
 
 
+
+KLF_EXPORT QString klfFindTranslatedDataFile(const QString& baseFileName, const QString& extension)
+{
+  QString loc = klfconfig.UI.locale;
+  QStringList suffixes;
+  suffixes << "_"+loc
+	   << "_"+loc.section('_',0,0)
+	   << "";
+  int k = 0;
+  QString fn;
+  while ( k < suffixes.size() &&
+	  ! QFile::exists(fn = QString("%1%2%3").arg(baseFileName, suffixes[k], extension)) ) {
+    klfDbg( "base="<<baseFileName<<" extn="<<extension<<"; tried fn="<<fn ) ;
+    ++k;
+  }
+  if (k >= suffixes.size()) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't find good translated file for "<<qPrintable(baseFileName+extension)
+	      <<"! last try was "<<fn;
+    return QString();
+  }
+  return fn;
+}
+
+
+

@@ -290,9 +290,14 @@ void KLFLibDBEngine::setDatabase(const QSqlDatabase& db)
 // private
 bool KLFLibDBEngine::saveResourceProperty(int propId, const QVariant& value)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   QString propName = propertyNameForId(propId);
   if ( propName.isEmpty() )
     return false;
+
+  if ( KLFPropertizedObject::property(propId) == value )
+    return true;
 
   {
     QSqlQuery q = QSqlQuery(pDB);
@@ -568,54 +573,67 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   return eList;
 }
 
-QList<KLFLibResourceEngine::KLFLibEntryWithId>
-/* */ KLFLibDBEngine::findEntries(const QString& subResource,
-				  const QMap<int,QVariant>& propValues,
-				  const QList<int>& wantedEntryProperties)
+int KLFLibDBEngine::findEntries(const QString& subResource,
+				const QMap<int,Match>& matches,
+				QList<KLFLib::entryId> * entryIdList,
+				int limit,
+				QList<KLFLibEntryWithId> * entryWithIdList,
+				const QList<int>& wantedEntryProperties)
 {
-  if ( ! validDatabase() )
-    return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
+  return
+    KLFLibResourceSimpleEngine::findEntriesImpl(this, subResource, matches, entryIdList,
+						limit, entryWithIdList, wantedEntryProperties);
+}
 
+/*
+  QList<KLFLibResourceEngine::KLFLibEntryWithId>
+  KLFLibDBEngine::findEntries(const QString& subResource,
+  const QMap<int,QVariant>& propValues,
+  const QList<int>& wantedEntryProperties)
+  {
+  if ( ! validDatabase() )
+  return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
+  
   int k;
   QStringList cols = columnNameList(subResource, wantedEntryProperties, true);
   // now, in cols, 'id' is first column (see columnNameList())
-
+  
   QStringList qpairs;
   QVariantList qvalues;
   for (QMap<int,QVariant>::const_iterator it = propValues.begin(); it != propValues.end(); ++it) {
-    qpairs << QString("(%1 = ?)").arg(it.key());
-    qvalues << it.value();
+  qpairs << QString("(%1 = ?)").arg(it.key());
+  qvalues << it.value();
   }
-
+  
   QString qwhere;
   if (qpairs.size())
-    qwhere = "WHERE "+qpairs.join(" AND ");
-
+  qwhere = "WHERE "+qpairs.join(" AND ");
+  
   QSqlQuery q = QSqlQuery(pDB);
   q.setForwardOnly(true);
   q.prepare(QString("SELECT %1 FROM %2  %3").arg(cols.join(","), quotedDataTableName(subResource), qwhere));
   for (k = 0; k < qvalues.size(); ++k)
-    q.addBindValue(qvalues[k]);
+  q.addBindValue(qvalues[k]);
   bool r = q.exec();
   if ( ! r || q.lastError().isValid() ) {
-    qWarning()<<"KLFLibDBEngine::findEntries: SQL error.\nSQL="<<q.lastQuery()<<"\nError="
-	      <<q.lastError().text();
-    return QList<KLFLibEntryWithId>();
+  qWarning()<<"KLFLibDBEngine::findEntries: SQL error.\nSQL="<<q.lastQuery()<<"\nError="
+  <<q.lastError().text();
+  return QList<KLFLibEntryWithId>();
   }
-
+  
   // make sure cols is correct (and expand '*' to column list)
   cols = detectEntryColumns(q);
-
+  
   QList<KLFLibEntryWithId> foundEList;
   while (q.next()) {
-    KLFLibEntryWithId e;
-    e.entry = readEntry(q, cols);
-    e.id = q.value(0).toInt();
-    foundEList << e;
+  KLFLibEntryWithId e;
+  e.entry = readEntry(q, cols);
+  e.id = q.value(0).toInt();
+  foundEList << e;
   }
   return foundEList;
-}
-
+  }
+*/
 
 KLFLibEntry KLFLibDBEngine::entry(const QString& subResource, entryId id)
 {
@@ -749,6 +767,8 @@ QStringList KLFLibDBEngine::subResourceList() const
 
 bool KLFLibDBEngine::setSubResourceProperty(const QString& subResource, int propId, const QVariant& value)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   if ( ! validDatabase() )
     return false;
 
@@ -759,6 +779,11 @@ bool KLFLibDBEngine::setSubResourceProperty(const QString& subResource, int prop
 
   klfDbg( ": setting sub-resource property "<<propId<<" to "<<value<<" in sub-res "
 	  <<subResource ) ;
+
+  if ( subResourceProperty(subResource, propId) == value ) {
+    klfDbg("property already has the requested value "<<value<<".");
+    return true;
+  }
 
   {
     QSqlQuery q = QSqlQuery(pDB);

@@ -521,7 +521,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 
   resource->setParent(this);
 
-  klf_debug_time_print(KLF_FUNC_NAME + QString(": created resource. about to create view.")) ;
+  klfDbgT(": created resource. about to create view.") ;
 
   // now create appropriate view for this resource
   KLFLibBrowserViewContainer *viewc = new KLFLibBrowserViewContainer(resource, u->tabResources);
@@ -546,7 +546,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
     // * a "default" view type (last resort, hoping it exists!)
 		    << QLatin1String("default");
 
-  klf_debug_time_print(KLF_FUNC_NAME + QString(": created resource. about to test view types.")) ;
+  klfDbgT(": created resource. about to test view types.") ;
   klfDbg( "\tView types: "<<viewtypeident_try ) ;
 
   int k;
@@ -573,7 +573,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
       continue;
     }
 
-    klf_debug_time_print(KLF_FUNC_NAME + QString(": found good view type=%1.").arg(viewtypeident_try[k])) ;
+    klfDbgT(": found good view type="<<viewtypeident_try[k]) ;
 
     // found good view type !
     resource->setViewType(viewtypeident_try[k]);
@@ -605,7 +605,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(resource, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
 	  this, SLOT(slotStartProgress(KLFProgressReporter *, const QString&)));
 
-  klf_debug_time_print(KLF_FUNC_NAME + QString(": requiring cat suggestions.")) ;
+  klfDbgT(": requiring cat suggestions.") ;
 
   // get more category completions
   viewc->view()->wantMoreCategorySuggestions();
@@ -614,7 +614,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(viewContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotShowContextMenu(const QPoint&)));
 
-  klf_debug_time_print(KLF_FUNC_NAME + QString(": adding tab page....")) ;
+  klfDbgT(": adding tab page....") ;
 
   int i = u->tabResources->addTab(viewc, displayTitle(resource));
   u->tabResources->setCurrentWidget(viewc);
@@ -628,7 +628,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   if ((i = u->tabResources->indexOf(u->tabWelcome)) != -1)
     u->tabResources->removeTab(i);
 
-  klf_debug_time_print(KLF_FUNC_NAME + QString(": end of function")) ;
+  klfDbgT(": end of function") ;
 
   return true;
 }

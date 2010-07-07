@@ -1,0 +1,92 @@
+
+KLatexFormula par Philippe Faist
+
+Utilisation:
+       klatexformula
+           Ouvre l'interface graphique de klatexformula
+       klatexformula [OPTIONS]
+           Exécute les actions demandées par les [OPTIONS] et quitte
+       klatexformula --interactive|-I [OPTIONS]
+           Démarre l'interface graphique et exécute les actions données dans [OPTIONS]
+       klatexformula filename1.klf|.klf.db [ filename2.klf|.klf.db ... ]
+           Démarre l'interface graphique et ouvre les fichiers bibliothèque donnés
+
+       Si des fichiers additionnels sont précisés à la ligne de commande, ils sont pris pour des
+       fichiers ressource bibliothèque à importer dans la bibliothèque. (Ne fonctionne qu'en mode
+       interactif, c'est-à-dire avec interface graphique)
+
+les OPTIONS peuvent être l'une ou plusieurs parmi :
+  -I|--interactive
+      Exécute KLatexFormula en mode interactif, c'est-à-dire avec une interface graphique.
+      Cette option est activée par défaut, sauf si --input ou --latexinput est spécifié.
+  -i|--input <file|->
+      Donne un fichier avec de l'entrée LaTeX à lire.
+  -l|--latexinput <expr>
+      Précise directement une expression LaTeX à évaluer.
+  -o|--output <file|->
+      Précise le fichier où écrire l'image résultante obtenue sur la base de --input ou
+      --latexinput. L'argument à cette option peut être un nom de fichier ou « - » pour
+      la sortie standard.
+  -F|--format <format>
+      Précise le format de fichier à utiliser pour sauvegarder l'image avec l'option -o. Par
+      défaut, le format est deviné à partir du nom du fichier (en gardant PNG par défaut).
+  -f|--fgcolor <'#xxxxxx'>
+      Précise une couleur (en format web hexa #RRGGBB) à utiliser pour la couleur d'avant-
+      plan. N'oubliez pas d'échapper le caractère « # » du shell avec des guillements par ex.
+  -b|--bgcolor <-|'#xxxxxx'>
+      Précise une couleur (en format web hexa #RRGGBB) à utiliser pour la couleur d'arrière-
+      plan. N'oubliez pas d'échapper le caractère « # » du shell avec des guillements par ex.
+      Si le caractère « - » est donné l'image aura un fond transparent. (par défaut: transparent).
+  -X|--dpi <N>
+      Utilise N points par pouce (DPI) pour la pixélisation de la sortie latex. Par défaut: 1200 (haute
+      résolution)
+  -m|--mathmode <expression contenant « ... »>
+      Précise quel mode mathématique de LaTeX utiliser. Cet argument peut être n'importe quelle
+      chaîne de caractère contant « ... »; les trois points seront remplacés par l'expression LaTeX
+      à évaluer. Par défaut : "\[ ... \]"
+  -p|--preamble <LaTeX code>
+      Du texte à insérer avant \begin{document}. Peut s'avérer utile pour des inclusions de paquets
+      avec des instructions \usepackage{...}.
+  -q|--quiet
+      N'affiche pas les avertissements et les erreurs.
+
+  --lborderoffset <N>
+  --tborderoffset <N>
+  --rborderoffset <N>
+  --bborderoffset <N>
+      Inclure une marge de N points postscript à gauche, en haut, à droite ou en bas respectivement.
+  --tempdir </path/to/temp/dir>
+      Précise le dossier temporaire de travail. Par défaut : dossier temporaire du système, par
+      exemple "/tmp/".
+  --latex <latex executable>
+  --dvips <dvips executable>
+  --gs <gs executable>
+  --epstopdf <epstopdf executable>
+      Précise le chemin d'accès pour l'exécutable latex, dvips, gs ou epstopdf respectivement. Par
+      défaut, ces programmes sont cherchés dans les chemins $PATH et/ou dans des dossiers
+      courants.
+
+  -h|--help
+      Affiche ce message d'aide et quitte.
+  -V|--version
+      Affiche la version de ce KLatexFormula et quitte.
+
+  -Q|--qtoption <qt-option>
+      Précise une option Qt. Par exemple, pour exécuter KLatexFormula en utilisant le
+      style graphique « Plastique », saisissez :
+        klatexformula  --qtoption='-style=Plastique'
+      Notez que si <qt-option> commence avec un « - » alors il doit être ajouté à la forme
+      longue '--qtoption=' avec le signe égal.
+
+
+REMARQUES
+  * Lorsque KLatexFormula est lancé avec des OPTIONS en mode interactif, l'expression fraîchement
+    évaluée est rajoutée dans l'historique.
+  * Quand KLatexFormula n'est pas exécuté en mode interactif, un serveur X11 n'est pas nécessaire.
+  * Des fichiers de traduction et/ou de greffons peuvent être précisés à klatexformula en précisant
+    une liste de fichiers RCC et de dossiers contenant de tels fichiers à charger dans la variable
+    d'environnement KLF_RESOURCES. Séparez les noms de fichier avec « : » sous unix/mac
+    et « ; » sous windows. Les chemins par défaut peuvent être introduits dans KLF_RESOURCES
+    en rajoutant une section vide (« :: ») ou un caractère « : » en début ou en fin de chaîne.
+  * Merci d'annoncer à l'auteur les éventuels bugs et dysfonctionnements du programme.
+

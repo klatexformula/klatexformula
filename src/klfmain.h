@@ -241,4 +241,9 @@ KLF_EXPORT void klf_reload_translations(QCoreApplication *app, const QString& cu
 
 
 
+// eg. baseFileName="cmdl-help"  extension=".txt" will look for
+// "cmdl-help_fr_CH.txt", "cmdl-help_fr.txt", "cmdl-help.txt" assuming current locale is "fr_CH"
+KLF_EXPORT QString klfFindTranslatedDataFile(const QString& baseFileName, const QString& extension);
+
+
 #endif 

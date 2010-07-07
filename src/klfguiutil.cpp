@@ -25,6 +25,7 @@
 #include <QDesktopWidget>
 #include <QIcon>
 #include <QPushButton>
+#include <QDebug>
 
 #include "klfutil.h"
 #include "klfguiutil.h"

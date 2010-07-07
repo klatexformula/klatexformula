@@ -620,6 +620,8 @@ protected:
 				  const QList<KLFLib::entryId>& entryIdList);
   virtual void updateResourceOwnData(const QList<KLFLib::entryId>& entryIdList);
 
+  virtual void showEvent(QShowEvent *event);
+
 protected slots:
   void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
   QItemSelection fixSelection(const QModelIndexList& selected);

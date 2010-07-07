@@ -151,7 +151,9 @@ public:
 			    altersetting_Latex,
 			    altersetting_Dvips,
 			    altersetting_Gs,
-			    altersetting_Epstopdf };
+			    altersetting_Epstopdf,
+			    altersetting_OutlineFonts //!< bool given as an int value
+  };
   void alterSetting(altersetting_which, int ivalue);
   void alterSetting(altersetting_which, QString svalue);
 
@@ -167,13 +169,6 @@ public:
 
   KLFConfig * klfConfig() { return & klfconfig; }
 
-  enum KLFWindowsEnum {
-    MainWin = 0x01,
-    LatexSymbols = 0x02,
-    LibBrowser = 0x04,
-    SettingsDialog = 0x08,
-    StyleManager = 0x10
-  };
   QHash<QWidget*,bool> currentWindowShownStatus(bool mainWindowToo = false);
   QHash<QWidget*,bool> prepareAllWindowShownStatus(bool visibleStatus, bool mainWindowToo = false);
 
@@ -183,7 +178,9 @@ public:
 
 signals:
 
- // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
+  void evaluateFinished(const KLFBackend::klfOutput& output);
+
+  // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
   void stylesChanged();
 
   void applicationLocaleChanged(const QString& newLocale);
@@ -287,6 +284,7 @@ protected:
   KLFAboutDialog *mAboutDialog;
   KLFWhatsNewDialog *mWhatsNewDialog;
 
+  /** \internal */
   struct HelpLinkAction {
     HelpLinkAction(const QString& p, QObject *obj, const char *func, bool param)
       : path(p), reciever(obj), memberFunc(func), wantParam(param) { }

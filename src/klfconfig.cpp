@@ -184,17 +184,19 @@ void KLFConfig::loadDefaults()
     SyntaxHighlighter.fmtLonelyParen.setFontWeight(QFont::Bold);
   }
 
-  KLFBackend::klfSettings defaultsettings;
-  KLFBackend::detectSettings(&defaultsettings);
-  BackendSettings.tempDir = defaultsettings.tempdir;
-  BackendSettings.execLatex = defaultsettings.latexexec;
-  BackendSettings.execDvips = defaultsettings.dvipsexec;
-  BackendSettings.execGs = defaultsettings.gsexec;
-  BackendSettings.execEpstopdf = defaultsettings.epstopdfexec;
+  // invalid values. if the config is not read from file, then settings will
+  // be detected in detectMissingSettings()
+  BackendSettings.tempDir = ".";
+  BackendSettings.execLatex = ".";
+  BackendSettings.execDvips = ".";
+  BackendSettings.execGs = ".";
+  BackendSettings.execEpstopdf = ".";
+
   BackendSettings.lborderoffset = 1;
   BackendSettings.tborderoffset = 1;
   BackendSettings.rborderoffset = 1;
   BackendSettings.bborderoffset = 1;
+  BackendSettings.outlineFonts = true;
 
   LibraryBrowser.displayTaggedOnly = false;
   LibraryBrowser.displayNoDuplicates = false;
@@ -204,6 +206,32 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.groupSubCategories = true;
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
+}
+
+void KLFConfig::detectMissingSettings()
+{
+  int neededsettings = 
+    !BackendSettings.tempDir.compare(".")      << 0 |
+    !BackendSettings.execLatex.compare(".")    << 1 |
+    !BackendSettings.execDvips.compare(".")    << 2 |
+    !BackendSettings.execGs.compare(".")       << 3 |
+    !BackendSettings.execEpstopdf.compare(".") << 4 ;
+
+  if (neededsettings) {
+    KLFBackend::klfSettings defaultsettings;
+    KLFBackend::detectSettings(&defaultsettings);
+    if (neededsettings & (1<<0))
+      BackendSettings.tempDir = defaultsettings.tempdir;
+    if (neededsettings & (1<<1))
+      BackendSettings.execLatex = defaultsettings.latexexec;
+    if (neededsettings & (1<<2))
+      BackendSettings.execDvips = defaultsettings.dvipsexec;
+    if (neededsettings & (1<<3))
+      BackendSettings.execGs = defaultsettings.gsexec;
+    if (neededsettings & (1<<4))
+      BackendSettings.execEpstopdf = defaultsettings.epstopdfexec;
+  }
+
 }
 
 
@@ -239,6 +267,8 @@ bool KLFConfig::checkExePaths()
 
 int KLFConfig::readFromConfig()
 {
+  klfDbgT(" reading config") ;
+
   ensureHomeConfigDir();
 
   if (QFile::exists(homeConfigSettingsFile)) {
@@ -254,10 +284,10 @@ template<class T>
 static void klf_settings_read(QSettings &s, const QString& baseName, T *target,
 			      const char * listOrMapType = NULL)
 {
-  qDebug("klf_settings_read<...>(%s)", qPrintable(baseName));
+  //  qDebug("klf_settings_read<...>(%s)", qPrintable(baseName));
   QVariant defVal = QVariant::fromValue<T>(*target);
   QVariant valstr = s.value(baseName, defVal);
-  klfDbg( "\tRead value "<<valstr ) ;
+  //  klfDbg( "\tRead value "<<valstr ) ;
   QVariant val = klfLoadVariantFromText(valstr.toString().toLatin1(), defVal.typeName(), listOrMapType);
   if (val.isValid())
     *target = val.value<T>();
@@ -314,6 +344,7 @@ int KLFConfig::readFromConfig_v2()
 
   s.beginGroup("UI");
   klf_settings_read(s, "locale", &UI.locale);
+  QLocale::setDefault(klfconfig.UI.locale);
   klf_settings_read(s, "applicationfont", &UI.applicationFont);
   klf_settings_read(s, "latexeditfont", &UI.latexEditFont);
   klf_settings_read(s, "preambleeditfont", &UI.preambleEditFont);
@@ -349,6 +380,7 @@ int KLFConfig::readFromConfig_v2()
   klf_settings_read(s, "tborderoffset", &BackendSettings.tborderoffset);
   klf_settings_read(s, "rborderoffset", &BackendSettings.rborderoffset);
   klf_settings_read(s, "bborderoffset", &BackendSettings.bborderoffset);
+  klf_settings_read(s, "outlinefonts", &BackendSettings.outlineFonts);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
@@ -434,7 +466,8 @@ int KLFConfig::writeToConfig()
   klf_settings_write(s, "lborderoffset", &BackendSettings.lborderoffset);
   klf_settings_write(s, "tborderoffset", &BackendSettings.tborderoffset);
   klf_settings_write(s, "rborderoffset", &BackendSettings.rborderoffset);
-  klf_settings_write(s, "bborderoffset", &BackendSettings.bborderoffset);
+  klf_settings_write(s, "bborderoffset", &BackendSettings.bborderoffset); 
+  klf_settings_write(s, "outlinefonts", &BackendSettings.outlineFonts);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");

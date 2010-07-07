@@ -781,7 +781,8 @@ protected:
 
   //   virtual void doItemsLayout() {
   //     QListView::doItemsLayout();
-  //     /** \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API ! */
+  //     / ** \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API !
+  //      * /
   //     /*    klfDbg( "doItemsLayout!" ) ;
   //     // Qt want its own doItemsLayout() to be called first (in case new indexes have appeared, or
   //     // old ones dissapeared)
