@@ -44,12 +44,15 @@ les OPTIONS peuvent être l'une ou plusieurs parmi :
       Précise quel mode mathématique de LaTeX utiliser. Cet argument peut être n'importe quelle
       chaîne de caractère contant « ... »; les trois points seront remplacés par l'expression LaTeX
       à évaluer. Par défaut : "\[ ... \]"
-  -p|--preamble <LaTeX code>
+  -p|--preamble <code LaTeX>
       Du texte à insérer avant \begin{document}. Peut s'avérer utile pour des inclusions de paquets
       avec des instructions \usepackage{...}.
   -q|--quiet
       N'affiche pas les avertissements et les erreurs.
 
+  --outlinefonts <ON|Y[ES]|T[RUE]|1 ou OFF|N[O]|F[ALSE]|0>
+      Convertit les polices dans le EPS et le PDF en contours (utilisant gs avec -dNOCACHE). Utile
+      pour exporter p. ex. vers Adobe Illustrator.
   --lborderoffset <N>
   --tborderoffset <N>
   --rborderoffset <N>

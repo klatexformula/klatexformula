@@ -97,8 +97,12 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
 KLF_EXPORT bool klfMatch(const QVariant& testForHitCandidateValue, const QVariant& queryValue,
 			 Qt::MatchFlags flags, const QString& queryStringCache = QString());
 
-
+/** Escapes every character in \c data that is not in the range 32-126 (included) as
+ * \xHH whith HH the hex code of the character. Backslashes are replaced by double-backslashes.
+ */
 KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& data);
+/** Performs the exact inverse of \ref klfDataToEscaped().
+ */
 KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped);
 
 /** Saves the variant \c value into a string, stored in Local 8-bit encoding text in QByteArray.

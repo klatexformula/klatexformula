@@ -100,6 +100,12 @@ public slots:
   bool openResource(const QUrl& url, uint resourceRoleFlags = 0x0,
 		    const QString& viewTypeIdentifier = QString());
 
+  /** Convenience function. Equivalent to
+   * \code openResource(QUrl(url), ...) \endcode
+   */
+  bool openResource(const QString& url, uint resourceRoleFlags = 0x0,
+		    const QString& viewTypeIdentifier = QString());
+
   /** Overloaded member, provided for convenience.
    *
    * Opens a previously (independently) open \c resource and displays it in the library.

@@ -74,6 +74,9 @@
       </item>
       <item>
        <widget class="QTextEdit" name="txtLatex">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
         <property name="acceptDrops">
          <bool>true</bool>
         </property>
@@ -192,7 +195,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string comment="tooltip">Show Library</string>
+           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Library [&lt;strong&gt;F8&lt;/strong&gt;]&lt;/p&gt;</string>
           </property>
           <property name="whatsThis">
            <string comment="whatsthis text">Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</string>
@@ -218,7 +221,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode&lt;/p&gt;</string>
+           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</string>
           </property>
           <property name="whatsThis">
            <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
@@ -354,8 +357,8 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>41</width>
-                <height>20</height>
+                <width>5</width>
+                <height>5</height>
                </size>
               </property>
              </spacer>
@@ -767,6 +770,14 @@
    </property>
    <property name="toolTip">
     <string>Low resolution</string>
+   </property>
+  </action>
+  <action name="aShowSymbols">
+   <property name="text">
+    <string>Insert Symbol</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
    </property>
   </action>
  </widget>

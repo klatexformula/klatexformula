@@ -32,6 +32,7 @@
 #include <QFontDatabase>
 #include <QMap>
 #include <QString>
+#include <QListView> // icon view flow
 #include <QLocale>
 
 #include <klfmainwin.h>
@@ -168,6 +169,7 @@ void KLFConfig::loadDefaults()
     UI.enableToolTipPreview = false;
     UI.enableRealTimePreview = true;
     UI.autosaveLibraryMin = 5;
+    UI.showHintPopups = true;
 
     SyntaxHighlighter.configFlags = 0x05;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
@@ -198,12 +200,12 @@ void KLFConfig::loadDefaults()
   BackendSettings.bborderoffset = 1;
   BackendSettings.outlineFonts = true;
 
-  LibraryBrowser.displayTaggedOnly = false;
-  LibraryBrowser.displayNoDuplicates = false;
   LibraryBrowser.colorFound = QColor(128, 255, 128);
   LibraryBrowser.colorNotFound = QColor(255, 128, 128);
   LibraryBrowser.restoreURLs = false;
+  LibraryBrowser.confirmClose = true;
   LibraryBrowser.groupSubCategories = true;
+  LibraryBrowser.iconViewFlow = QListView::TopToBottom;
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }
@@ -281,10 +283,10 @@ int KLFConfig::readFromConfig()
 }
 
 template<class T>
-static void klf_settings_read(QSettings &s, const QString& baseName, T *target,
+static void klf_config_read(QSettings &s, const QString& baseName, T *target,
 			      const char * listOrMapType = NULL)
 {
-  //  qDebug("klf_settings_read<...>(%s)", qPrintable(baseName));
+  //  qDebug("klf_config_read<...>(%s)", qPrintable(baseName));
   QVariant defVal = QVariant::fromValue<T>(*target);
   QVariant valstr = s.value(baseName, defVal);
   //  klfDbg( "\tRead value "<<valstr ) ;
@@ -293,27 +295,27 @@ static void klf_settings_read(QSettings &s, const QString& baseName, T *target,
     *target = val.value<T>();
 }
 template<>
-void klf_settings_read<QTextCharFormat>(QSettings &s, const QString& baseName,
+void klf_config_read<QTextCharFormat>(QSettings &s, const QString& baseName,
 					QTextCharFormat *target,
 					const char * listOrMapType)
 {
-  qDebug("klf_settings_read<QTextCharFormat>(%s)", qPrintable(baseName));
+  qDebug("klf_config_read<QTextCharFormat>(%s)", qPrintable(baseName));
   QTextFormat fmt = *target;
-  klf_settings_read(s, baseName, &fmt);
+  klf_config_read(s, baseName, &fmt);
   *target = fmt.toCharFormat();
 }
 
 template<class T>
-static void klf_settings_read_list(QSettings &s, const QString& baseName, QList<T> *target)
+static void klf_config_read_list(QSettings &s, const QString& baseName, QList<T> *target)
 {
   QVariantList vlist = klfListToVariantList(*target);
-  klf_settings_read(s, baseName, &vlist, QVariant::fromValue<T>(T()).typeName());
+  klf_config_read(s, baseName, &vlist, QVariant::fromValue<T>(T()).typeName());
   *target = klfVariantListToList<T>(vlist);
 }
 
 
 template<class T>
-static void klf_settings_write(QSettings &s, const QString& baseName, const T * value)
+static void klf_config_write(QSettings &s, const QString& baseName, const T * value)
 {
   QVariant val = QVariant::fromValue<T>(*value);
   QByteArray datastr = klfSaveVariantToText(val);
@@ -321,10 +323,10 @@ static void klf_settings_write(QSettings &s, const QString& baseName, const T * 
 }
 
 template<class T>
-static void klf_settings_write_list(QSettings &s, const QString& baseName, const QList<T> * target)
+static void klf_config_write_list(QSettings &s, const QString& baseName, const QList<T> * target)
 {
   QVariantList vlist = klfListToVariantList(*target);
-  klf_settings_write(s, baseName, &vlist);
+  klf_config_write(s, baseName, &vlist);
 }
 
 static QString firstRunConfigKey(const char * klf_version_string)
@@ -339,57 +341,58 @@ int KLFConfig::readFromConfig_v2()
   qDebug("Reading base configuration");
 
   s.beginGroup("General");
-  klf_settings_read(s, firstRunConfigKey(KLF_VERSION_STRING), &General.thisVersionFirstRun);
+  klf_config_read(s, firstRunConfigKey(KLF_VERSION_STRING), &General.thisVersionFirstRun);
   s.endGroup();
 
   s.beginGroup("UI");
-  klf_settings_read(s, "locale", &UI.locale);
+  klf_config_read(s, "locale", &UI.locale);
   QLocale::setDefault(klfconfig.UI.locale);
-  klf_settings_read(s, "applicationfont", &UI.applicationFont);
-  klf_settings_read(s, "latexeditfont", &UI.latexEditFont);
-  klf_settings_read(s, "preambleeditfont", &UI.preambleEditFont);
-  klf_settings_read(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
-  klf_settings_read(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
-  klf_settings_read(s, "lastsavedir", &UI.lastSaveDir);
-  klf_settings_read(s, "symbolsperline", &UI.symbolsPerLine);
-  klf_settings_read_list(s, "usercolorlist", &UI.userColorList);
-  klf_settings_read_list(s, "colorchoosewidgetrecent", &UI.colorChooseWidgetRecent);
-  klf_settings_read_list(s, "colorchoosewidgetcustom", &UI.colorChooseWidgetCustom);
-  klf_settings_read(s, "maxusercolors", &UI.maxUserColors);
-  klf_settings_read(s, "enabletooltippreview", &UI.enableToolTipPreview);
-  klf_settings_read(s, "enablerealtimepreview", &UI.enableRealTimePreview);
-  klf_settings_read(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
+  klf_config_read(s, "applicationfont", &UI.applicationFont);
+  klf_config_read(s, "latexeditfont", &UI.latexEditFont);
+  klf_config_read(s, "preambleeditfont", &UI.preambleEditFont);
+  klf_config_read(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
+  klf_config_read(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
+  klf_config_read(s, "lastsavedir", &UI.lastSaveDir);
+  klf_config_read(s, "symbolsperline", &UI.symbolsPerLine);
+  klf_config_read_list(s, "usercolorlist", &UI.userColorList);
+  klf_config_read_list(s, "colorchoosewidgetrecent", &UI.colorChooseWidgetRecent);
+  klf_config_read_list(s, "colorchoosewidgetcustom", &UI.colorChooseWidgetCustom);
+  klf_config_read(s, "maxusercolors", &UI.maxUserColors);
+  klf_config_read(s, "enabletooltippreview", &UI.enableToolTipPreview);
+  klf_config_read(s, "enablerealtimepreview", &UI.enableRealTimePreview);
+  klf_config_read(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
+  klf_config_read(s, "showhintpopups", &UI.showHintPopups);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
-  klf_settings_read(s, "configflags", &SyntaxHighlighter.configFlags);
-  klf_settings_read<QTextCharFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
-  klf_settings_read<QTextCharFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
-  klf_settings_read<QTextCharFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
-  klf_settings_read<QTextCharFormat>(s, "parenmismatch", &SyntaxHighlighter.fmtParenMismatch);
-  klf_settings_read<QTextCharFormat>(s, "lonelyparen", &SyntaxHighlighter.fmtLonelyParen);
+  klf_config_read(s, "configflags", &SyntaxHighlighter.configFlags);
+  klf_config_read<QTextCharFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
+  klf_config_read<QTextCharFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
+  klf_config_read<QTextCharFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
+  klf_config_read<QTextCharFormat>(s, "parenmismatch", &SyntaxHighlighter.fmtParenMismatch);
+  klf_config_read<QTextCharFormat>(s, "lonelyparen", &SyntaxHighlighter.fmtLonelyParen);
   s.endGroup();
 
   s.beginGroup("BackendSettings");
-  klf_settings_read(s, "tempdir", &BackendSettings.tempDir);
-  klf_settings_read(s, "latexexec", &BackendSettings.execLatex);
-  klf_settings_read(s, "dvipsexec", &BackendSettings.execDvips);
-  klf_settings_read(s, "gsexec", &BackendSettings.execGs);
-  klf_settings_read(s, "epstopdfexec", &BackendSettings.execEpstopdf);
-  klf_settings_read(s, "lborderoffset", &BackendSettings.lborderoffset);
-  klf_settings_read(s, "tborderoffset", &BackendSettings.tborderoffset);
-  klf_settings_read(s, "rborderoffset", &BackendSettings.rborderoffset);
-  klf_settings_read(s, "bborderoffset", &BackendSettings.bborderoffset);
-  klf_settings_read(s, "outlinefonts", &BackendSettings.outlineFonts);
+  klf_config_read(s, "tempdir", &BackendSettings.tempDir);
+  klf_config_read(s, "latexexec", &BackendSettings.execLatex);
+  klf_config_read(s, "dvipsexec", &BackendSettings.execDvips);
+  klf_config_read(s, "gsexec", &BackendSettings.execGs);
+  klf_config_read(s, "epstopdfexec", &BackendSettings.execEpstopdf);
+  klf_config_read(s, "lborderoffset", &BackendSettings.lborderoffset);
+  klf_config_read(s, "tborderoffset", &BackendSettings.tborderoffset);
+  klf_config_read(s, "rborderoffset", &BackendSettings.rborderoffset);
+  klf_config_read(s, "bborderoffset", &BackendSettings.bborderoffset);
+  klf_config_read(s, "outlinefonts", &BackendSettings.outlineFonts);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
-  klf_settings_read(s, "displaytaggedonly", &LibraryBrowser.displayTaggedOnly);
-  klf_settings_read(s, "displaynoduplicates", &LibraryBrowser.displayNoDuplicates);
-  klf_settings_read(s, "colorfound", &LibraryBrowser.colorFound);
-  klf_settings_read(s, "colornotfound", &LibraryBrowser.colorNotFound);
-  klf_settings_read(s, "restoreurls", &LibraryBrowser.restoreURLs);
-  klf_settings_read(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
+  klf_config_read(s, "colorfound", &LibraryBrowser.colorFound);
+  klf_config_read(s, "colornotfound", &LibraryBrowser.colorNotFound);
+  klf_config_read(s, "restoreurls", &LibraryBrowser.restoreURLs);
+  klf_config_read(s, "confirmclose", &LibraryBrowser.confirmClose);
+  klf_config_read(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
+  klf_config_read(s, "iconviewflow", &LibraryBrowser.iconViewFlow);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
@@ -427,56 +430,57 @@ int KLFConfig::writeToConfig()
 
   bool thisVersionFirstRunFalse = false;
   s.beginGroup("General");
-  klf_settings_write(s, firstRunConfigKey(KLF_VERSION_STRING), &thisVersionFirstRunFalse);
+  klf_config_write(s, firstRunConfigKey(KLF_VERSION_STRING), &thisVersionFirstRunFalse);
   s.endGroup();
 
   s.beginGroup("UI");
-  klf_settings_write(s, "locale", &UI.locale);
-  klf_settings_write(s, "applicationfont", &UI.applicationFont);
-  klf_settings_write(s, "latexeditfont", &UI.latexEditFont);
-  klf_settings_write(s, "preambleeditfont", &UI.preambleEditFont);
-  klf_settings_write(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
-  klf_settings_write(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
-  klf_settings_write(s, "lastsavedir", &UI.lastSaveDir);
-  klf_settings_write(s, "symbolsperline", &UI.symbolsPerLine);
-  klf_settings_write_list(s, "usercolorlist", &UI.userColorList);
-  klf_settings_write_list(s, "colorchoosewidgetrecent", &UI.colorChooseWidgetRecent);
-  klf_settings_write_list(s, "colorchoosewidgetcustom", &UI.colorChooseWidgetCustom);
-  klf_settings_write(s, "maxusercolors", &UI.maxUserColors);
-  klf_settings_write(s, "enabletooltippreview", &UI.enableToolTipPreview);
-  klf_settings_write(s, "enablerealtimepreview", &UI.enableRealTimePreview);
-  klf_settings_write(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
+  klf_config_write(s, "locale", &UI.locale);
+  klf_config_write(s, "applicationfont", &UI.applicationFont);
+  klf_config_write(s, "latexeditfont", &UI.latexEditFont);
+  klf_config_write(s, "preambleeditfont", &UI.preambleEditFont);
+  klf_config_write(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
+  klf_config_write(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
+  klf_config_write(s, "lastsavedir", &UI.lastSaveDir);
+  klf_config_write(s, "symbolsperline", &UI.symbolsPerLine);
+  klf_config_write_list(s, "usercolorlist", &UI.userColorList);
+  klf_config_write_list(s, "colorchoosewidgetrecent", &UI.colorChooseWidgetRecent);
+  klf_config_write_list(s, "colorchoosewidgetcustom", &UI.colorChooseWidgetCustom);
+  klf_config_write(s, "maxusercolors", &UI.maxUserColors);
+  klf_config_write(s, "enabletooltippreview", &UI.enableToolTipPreview);
+  klf_config_write(s, "enablerealtimepreview", &UI.enableRealTimePreview);
+  klf_config_write(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
+  klf_config_write(s, "showhintpopups", &UI.showHintPopups);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
-  klf_settings_write(s, "configflags", &SyntaxHighlighter.configFlags);
-  klf_settings_write<QTextFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
-  klf_settings_write<QTextFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
-  klf_settings_write<QTextFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
-  klf_settings_write<QTextFormat>(s, "parenmismatch", &SyntaxHighlighter.fmtParenMismatch);
-  klf_settings_write<QTextFormat>(s, "lonelyparen", &SyntaxHighlighter.fmtLonelyParen);
+  klf_config_write(s, "configflags", &SyntaxHighlighter.configFlags);
+  klf_config_write<QTextFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
+  klf_config_write<QTextFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
+  klf_config_write<QTextFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
+  klf_config_write<QTextFormat>(s, "parenmismatch", &SyntaxHighlighter.fmtParenMismatch);
+  klf_config_write<QTextFormat>(s, "lonelyparen", &SyntaxHighlighter.fmtLonelyParen);
   s.endGroup();
 
   s.beginGroup("BackendSettings");
-  klf_settings_write(s, "tempdir", &BackendSettings.tempDir);
-  klf_settings_write(s, "latexexec", &BackendSettings.execLatex);
-  klf_settings_write(s, "dvipsexec", &BackendSettings.execDvips);
-  klf_settings_write(s, "gsexec", &BackendSettings.execGs);
-  klf_settings_write(s, "epstopdfexec", &BackendSettings.execEpstopdf);
-  klf_settings_write(s, "lborderoffset", &BackendSettings.lborderoffset);
-  klf_settings_write(s, "tborderoffset", &BackendSettings.tborderoffset);
-  klf_settings_write(s, "rborderoffset", &BackendSettings.rborderoffset);
-  klf_settings_write(s, "bborderoffset", &BackendSettings.bborderoffset); 
-  klf_settings_write(s, "outlinefonts", &BackendSettings.outlineFonts);
+  klf_config_write(s, "tempdir", &BackendSettings.tempDir);
+  klf_config_write(s, "latexexec", &BackendSettings.execLatex);
+  klf_config_write(s, "dvipsexec", &BackendSettings.execDvips);
+  klf_config_write(s, "gsexec", &BackendSettings.execGs);
+  klf_config_write(s, "epstopdfexec", &BackendSettings.execEpstopdf);
+  klf_config_write(s, "lborderoffset", &BackendSettings.lborderoffset);
+  klf_config_write(s, "tborderoffset", &BackendSettings.tborderoffset);
+  klf_config_write(s, "rborderoffset", &BackendSettings.rborderoffset);
+  klf_config_write(s, "bborderoffset", &BackendSettings.bborderoffset); 
+  klf_config_write(s, "outlinefonts", &BackendSettings.outlineFonts);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
-  klf_settings_write(s, "displaytaggedonly", &LibraryBrowser.displayTaggedOnly);
-  klf_settings_write(s, "displaynoduplicates", &LibraryBrowser.displayNoDuplicates);
-  klf_settings_write(s, "colorfound", &LibraryBrowser.colorFound);
-  klf_settings_write(s, "colornotfound", &LibraryBrowser.colorNotFound);
-  klf_settings_write(s, "restoreurls", &LibraryBrowser.restoreURLs);
-  klf_settings_write(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
+  klf_config_write(s, "colorfound", &LibraryBrowser.colorFound);
+  klf_config_write(s, "colornotfound", &LibraryBrowser.colorNotFound);
+  klf_config_write(s, "restoreurls", &LibraryBrowser.restoreURLs);
+  klf_config_write(s, "confirmclose", &LibraryBrowser.confirmClose);
+  klf_config_write(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
+  klf_config_write(s, "iconviewflow", &LibraryBrowser.iconViewFlow);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
@@ -637,8 +641,6 @@ int KLFConfig::readFromConfig_v1()
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
-  LibraryBrowser.displayTaggedOnly = s.value("displaytaggedonly", LibraryBrowser.displayTaggedOnly).toBool();
-  LibraryBrowser.displayNoDuplicates = s.value("displaynoduplicates", LibraryBrowser.displayNoDuplicates).toBool();
   LibraryBrowser.colorFound = s.value("colorfound", LibraryBrowser.colorFound).value<QColor>();
   LibraryBrowser.colorNotFound = s.value("colornotfound", LibraryBrowser.colorNotFound).value<QColor>();
   s.endGroup();

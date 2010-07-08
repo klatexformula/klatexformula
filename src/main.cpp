@@ -76,6 +76,7 @@ char *opt_mathmode = NULL;
 char *opt_preamble = NULL;
 bool opt_quiet = false;
 
+int opt_outlinefonts = -1;
 int opt_lborderoffset = -1;
 int opt_tborderoffset = -1;
 int opt_rborderoffset = -1;
@@ -123,7 +124,8 @@ enum {
 
   OPT_QTOPT = 'Q',
 
-  OPT_LBORDEROFFSET = 128,
+  OPT_OUTLINEFONTS = 127,
+  OPT_LBORDEROFFSET,
   OPT_TBORDEROFFSET,
   OPT_RBORDEROFFSET,
   OPT_BBORDEROFFSET,
@@ -148,6 +150,7 @@ static struct option klfcmdl_optlist[] = {
   { "preamble", 1, NULL, OPT_PREAMBLE },
   { "quiet", 1, NULL, OPT_QUIET },
   // -----
+  { "outlinefonts", 1, NULL, OPT_OUTLINEFONTS },
   { "lborderoffset", 1, NULL, OPT_LBORDEROFFSET },
   { "tborderoffset", 1, NULL, OPT_TBORDEROFFSET },
   { "rborderoffset", 1, NULL, OPT_RBORDEROFFSET },
@@ -654,6 +657,8 @@ int main(int argc, char **argv)
 	iface->setInputData("mathmode", QString::fromLocal8Bit(opt_mathmode));
       if (opt_preamble != NULL)
 	iface->setInputData("preamble", QString::fromLocal8Bit(opt_preamble));
+      if (opt_outlinefonts >= 0)
+	iface->setAlterSetting_i(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
       if (opt_lborderoffset != -1)
 	iface->setAlterSetting_i(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
       if (opt_tborderoffset != -1)
@@ -759,6 +764,8 @@ int main(int argc, char **argv)
       qDebug("opt_preamble != NULL, gui mode, preamble=%s", opt_preamble);
       mainWin.slotSetPreamble(QString::fromLocal8Bit(opt_preamble));
     }
+    if (opt_outlinefonts >= 0)
+      mainWin.alterSetting(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
     if (opt_lborderoffset != -1)
       mainWin.alterSetting(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
     if (opt_tborderoffset != -1)
@@ -894,6 +901,9 @@ int main(int argc, char **argv)
 
     input.dpi = (opt_dpi > 0) ? opt_dpi : 1200;
 
+    settings.outlineFonts = true;
+    if (opt_outlinefonts >= 0)
+      settings.outlineFonts = (bool)opt_outlinefonts;
     settings.lborderoffset = settings.tborderoffset
       = settings.rborderoffset = settings.bborderoffset = 1;
     if (opt_lborderoffset != -1)
@@ -1011,6 +1021,18 @@ void main_parse_options(int argc, char *argv[])
       break;
     case OPT_QUIET:
       opt_quiet = true;
+      break;
+    case OPT_OUTLINEFONTS:
+      if ( QRegExp("^\\s*on|y(es)?|1|t(rue)?\\s*", Qt::CaseInsensitive).exactMatch(arg) )
+	opt_outlinefonts = 1;
+      else if ( QRegExp("^\\s*off|n(o)?|0|f(alse)?\\s*", Qt::CaseInsensitive).exactMatch(arg) )
+	opt_outlinefonts = 0;
+      else {
+	qWarning()<<KLF_FUNC_NAME<<": Can't parse argument to value --outlinefonts: "<<QString(arg);
+	opt_error.has_error = true;
+	opt_error.retcode = -1;
+      }
+
       break;
     case OPT_LBORDEROFFSET:
       opt_lborderoffset = atoi(arg);

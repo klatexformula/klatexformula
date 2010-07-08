@@ -270,6 +270,74 @@ KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& data)
 }
 
 
+static QByteArray encaps_list(const QList<QByteArray>& list)
+{
+  QByteArray data = "[";
+  for (int k = 0; k < list.size(); ++k) {
+    QByteArray d = list[k];
+    d.replace("\\", "\\\\");
+    d.replace(";", "\\;");
+    d.replace("[", "\\[");
+    d.replace("]", "\\]");
+    data += d;
+    if (k < list.size()-1)
+      data += ";";
+  }
+  data += "]";
+  return data;
+}
+
+static QList<QByteArray> decaps_list(const QByteArray& ba_data)
+{
+  klfDbg("decaps_list, data="<<ba_data);
+  QByteArray data = ba_data.trimmed();
+  if (data[0] != '[')
+    return QList<QByteArray>();
+
+  QList<QByteArray> sections;
+  QByteArray chunk;
+  // first, split data.  take into account escaped chars.
+  // k=1 to skip '['
+  int k = 1;
+  while (k < data.size()) {
+    if (data[k] == ';') { // element separator
+      // flush chunk as a new section
+      sections.append(chunk);
+      // and start a new section
+      chunk = QByteArray();
+      ++k;
+    }
+    if (data[k] == '\\') {
+      if (k+1 < data.size()) { // there exists a next char
+	chunk += data[k+1];
+	k += 2;
+      } else {
+	chunk += data[k];
+	++k;
+      }
+      continue;
+    }
+    if (data[k] == ']') {
+      // end of list marker.
+      // flush last chunk into sections, and break.
+      sections.append(chunk);
+      chunk = "";
+      break;
+    }
+    // regular char, populate current chunk.
+    chunk += data[k];
+    ++k;
+  }
+  if (!chunk.isEmpty()) {
+    // missing ']' at end, tolerate this by adding the unfinished chunk to sections
+    sections.append(chunk);
+  }
+
+  klfDbg("sections="<<sections);
+
+  return sections;
+}
+
 
 
 KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
@@ -338,6 +406,17 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
       }
       break;
     }
+  case QMetaType::QStringList:
+    {
+      const QStringList list = value.toStringList();
+      QList<QByteArray> sections;
+      int k;
+      for (k = 0; k < list.size(); ++k) {
+	sections.append(klfDataToEscaped(list[k].toUtf8()));
+      }
+      data = encaps_list(sections);
+      break;
+    }
   case QMetaType::QUrl:
     data = value.toUrl().toEncoded(); break;
   case QMetaType::QByteArray:
@@ -398,18 +477,11 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
   case QMetaType::QVariantList:
     {
       const QList<QVariant> list = value.toList();
-      data = "[";
+      QList<QByteArray> sections;
       for (k = 0; k < list.size(); ++k) {
-	QByteArray d = klfSaveVariantToText(list[k]);
-	d.replace("\\", "\\\\");
-	d.replace(";", "\\;");
-	d.replace("[", "\\[");
-	d.replace("]", "\\]");
-	data += d;
-	if (k < list.size()-1)
-	  data += ";";
+	sections << klfSaveVariantToText(list[k]);
       }
-      data += "]";
+      data = encaps_list(sections);
       break;
     }
   case QMetaType::QVariantMap:
@@ -670,6 +742,18 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
       s += QString::fromLocal8Bit(chunk);
       return QVariant::fromValue<QString>(s);
     }
+  case QMetaType::QStringList:
+    {
+      QList<QByteArray> sections = decaps_list(data);
+
+      // now we separated into bytearray sections. now read those into values.
+      QStringList list;
+      for (k = 0; k < sections.size(); ++k) {
+	list << QString::fromUtf8(klfEscapedToData(sections[k]));
+      }
+
+      return QVariant::fromValue<QStringList>(list);
+    }
   case QMetaType::QUrl:
     return QVariant::fromValue<QUrl>(QUrl(QString::fromLocal8Bit(data), QUrl::TolerantMode));
   case QMetaType::QByteArray:
@@ -827,45 +911,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QVariantList:
     {
-      data = data.trimmed();
-      if (data[0] != '[')
-	break;
-      if ( !data.contains(']') )
-	data += ']';
-
-      QList<QByteArray> sections;
-      QByteArray chunk;
-      // first, split data.  take into account escaped chars.
-      // k=1 to skip '['
-      k = 1;
-      while (k < data.size()) {
-	if (data[k] == ';') { // element separator
-	  // flush chunk as a new section
-	  sections.append(chunk);
-	  // and start a new section
-	  chunk = QByteArray();
-	  ++k;
-	}
-	if (data[k] == '\\') {
-	  if (k+1 < data.size()) { // there exists a next char
-	    chunk += data[k+1];
-	    k += 2;
-	  } else {
-	    chunk += data[k];
-	    ++k;
-	  }
-	  continue;
-	}
-	if (data[k] == ']') {
-	  // end of list marker.
-	  // flush last chunk into sections, and break.
-	  sections.append(chunk);
-	  break;
-	}
-	// regular char, populate current chunk.
-	chunk += data[k];
-	++k;
-      }
+      QList<QByteArray> sections = decaps_list(data);
 
       // now we separated into bytearray sections. now read those into values.
       QVariantList list;
@@ -1023,7 +1069,7 @@ KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
     if ( e.nodeName() != "pair" ) {
-      qWarning("klfLoadVariantMapFromXML: ignoring unexpected tag `%s'!\n", qPrintable(e.nodeName()));
+      qWarning("%s: ignoring unexpected tag `%s'!\n", KLF_FUNC_NAME, qPrintable(e.nodeName()));
       continue;
     }
     // read this pair
@@ -1051,7 +1097,8 @@ KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
 	valuedata = ee.text().toLocal8Bit();
 	continue;
       }
-      qWarning("klfLoadVariantMapFromXML: ignoring unexpected tag `%s' in pair!\n", qPrintable(ee.nodeName()));
+      qWarning("%s: ignoring unexpected tag `%s' in pair!\n", KLF_FUNC_NAME,
+	       qPrintable(ee.nodeName()));
     }
     QVariant value;
     if (valuetype == "QVariantMap") {
@@ -1112,7 +1159,7 @@ KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
     if ( e.nodeName() != "element" ) {
-      qWarning("klfLoadVariantMapFromXML: ignoring unexpected tag `%s'!\n", qPrintable(e.nodeName()));
+      qWarning("%s: ignoring unexpected tag `%s'!\n", KLF_FUNC_NAME, qPrintable(e.nodeName()));
       continue;
     }
     // read this pair
@@ -1135,7 +1182,8 @@ KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
 	valuedata = ee.text().toLocal8Bit();
 	continue;
       }
-      qWarning("klfLoadVariantMapFromXML: ignoring unexpected tag `%s' in pair!\n", qPrintable(ee.nodeName()));
+      qWarning("%s: ignoring unexpected tag `%s' in pair!\n", KLF_FUNC_NAME,
+	       qPrintable(ee.nodeName()));
     }
     QVariant value;
     if (valuetype == "QVariantMap") {

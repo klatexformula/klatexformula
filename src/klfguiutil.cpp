@@ -200,3 +200,77 @@ void KLFDelayedPleaseWaitPopup::process()
     showPleaseWait();
   qApp->processEvents();
 }
+
+
+
+// ------------------------------------------------
+
+
+KLFEnumComboBox::KLFEnumComboBox(QWidget *parent)
+  : QComboBox(parent)
+{
+  setEnumValues(QList<int>(), QStringList());
+  connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(internalCurrentIndexChanged(int)));
+}
+
+KLFEnumComboBox::KLFEnumComboBox(const QList<int>& enumValues, const QStringList& enumTitles,
+				 QWidget *parent)
+  : QComboBox(parent)
+{
+  setEnumValues(enumValues, enumTitles);
+  connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(internalCurrentIndexChanged(int)));
+}
+
+KLFEnumComboBox::~KLFEnumComboBox()
+{
+}
+
+void KLFEnumComboBox::setEnumValues(const QList<int>& enumValues, const QStringList& enumTitles)
+{
+  blockSignals(true);
+  int savedCurrentIndex = currentIndex();
+  if (enumValues.size() != enumTitles.size()) {
+    qWarning()<<KLF_FUNC_NAME<<": enum value list and enum title list do not match!";
+    return;
+  }
+  pEnumValueList = enumValues;
+  clear();
+  int k;
+  for (k = 0; k < enumValues.size(); ++k) {
+    pEnumValues[enumValues[k]] = enumTitles[k];
+    insertItem(k, enumTitles[k], QVariant(enumValues[k]));
+    pEnumCbxIndexes[enumValues[k]] = k;
+  }
+  if (savedCurrentIndex >= 0 && savedCurrentIndex < count())
+    setCurrentIndex(savedCurrentIndex);
+  blockSignals(false);
+}
+
+int KLFEnumComboBox::selectedValue() const
+{
+  return itemData(currentIndex()).toInt();
+}
+
+QString KLFEnumComboBox::enumText(int enumValue) const
+{
+  if (!pEnumValueList.contains(enumValue)) {
+    qWarning()<<KLF_FUNC_NAME<<": "<<enumValue<<" is not a registered valid enum value!";
+    return QString();
+  }
+  return pEnumValues[enumValue];
+}
+
+void KLFEnumComboBox::setSelectedValue(int val)
+{
+  if (!pEnumCbxIndexes.contains(val)) {
+    qWarning()<<KLF_FUNC_NAME<<": "<<val<<" is not a registered valid enum value!";
+    return;
+  }
+  setCurrentIndex(pEnumCbxIndexes[val]);
+}
+
+void KLFEnumComboBox::internalCurrentIndexChanged(int index)
+{
+  emit selectedValueChanged(itemData(index).toInt());
+}
+

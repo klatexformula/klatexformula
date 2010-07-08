@@ -36,6 +36,7 @@
 #include <QWhatsThis>
 #include <QResource>
 #include <QEvent>
+#include <QListView> // QListView::LeftToRight|TopToBottom
 #include <QMouseEvent>
 
 #include <klfcolorchooser.h>
@@ -148,7 +149,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 
   u->btnImportAddOn->setEnabled(klf_addons_canimport);
   u->btnRemoveAddOn->setEnabled(klf_addons_canimport);
-    
+
+  retranslateUi(false);
+
   refreshAddOnList();
   refreshAddOnSelected();
   refreshPluginSelected();
@@ -162,6 +165,8 @@ void KLFSettings::retranslateUi(bool alsoBaseUi)
   if (alsoBaseUi)
     u->retranslateUi(this);
 
+  u->cbxLibIconViewFlow->setEnumValues(QList<int>()<<QListView::TopToBottom<<QListView::LeftToRight,
+				       QStringList()<<tr("Top to Bottom")<<tr("Left to Right"));
 }
 
 
@@ -361,8 +366,12 @@ void KLFSettings::reset()
   u->spnTooltipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
   u->spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
 
+  u->chkShowHintPopups->setChecked(klfconfig.UI.showHintPopups);
+
   u->chkLibRestoreURLs->setChecked(klfconfig.LibraryBrowser.restoreURLs);
-  u->chkLibGroupSubCategories->setChecked(klfconfig.LibraryBrowser.groupSubCategories);
+  u->chkLibConfirmClose->setChecked(klfconfig.LibraryBrowser.confirmClose);
+  //  u->chkLibGroupSubCategories->setChecked(klfconfig.LibraryBrowser.groupSubCategories);
+  u->cbxLibIconViewFlow->setSelectedValue(klfconfig.LibraryBrowser.iconViewFlow);
 }
 
 
@@ -860,8 +869,12 @@ void KLFSettings::apply()
   klfconfig.UI.previewTooltipMaxSize = QSize(u->spnTooltipMaxWidth->value(), u->spnTooltipMaxHeight->value());
   klfconfig.UI.enableToolTipPreview = u->chkEnableToolTipPreview->isChecked();
 
+  klfconfig.UI.showHintPopups = u->chkShowHintPopups->isChecked();
+
   klfconfig.LibraryBrowser.restoreURLs = u->chkLibRestoreURLs->isChecked();
-  klfconfig.LibraryBrowser.groupSubCategories = u->chkLibGroupSubCategories->isChecked();
+  klfconfig.LibraryBrowser.confirmClose = u->chkLibConfirmClose->isChecked();
+  //  klfconfig.LibraryBrowser.groupSubCategories = u->chkLibGroupSubCategories->isChecked();
+  klfconfig.LibraryBrowser.iconViewFlow =  u->cbxLibIconViewFlow->selectedValue();
 
   // save plugin config
   bool warnneedrestart = false;

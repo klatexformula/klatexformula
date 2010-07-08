@@ -162,6 +162,36 @@ public:
       openView(curvti);
   }
 
+  QMenu * createOpenSubResourceMenu()
+  {
+    if ( ! (pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) )
+      return NULL;
+
+    QMenu *menu = new QMenu(this);
+    //    QSignalMapper *signalMapper = new QSignalMapper(menu);
+    QStringList subreslist = pResource->subResourceList();
+    QUrl baseurl = pResource->url();
+    int k;
+    for (k = 0; k < subreslist.size(); ++k) {
+      QString t;
+      if (pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps)
+	t = pResource->subResourceProperty(subreslist[k],
+					  KLFLibResourceEngine::SubResPropTitle).toString();
+      else
+	t = subreslist[k];
+
+      QAction *a = new QAction(t, menu);
+      QUrl url = baseurl;
+      url.addQueryItem("klfDefaultSubResource", subreslist[k]);
+      a->setData(url.toString());
+      connect(a, SIGNAL(triggered()), this, SLOT(internalRequestOpenSubResourceSender()));
+      menu->addAction(a);
+    }
+    //    connect(signalMapper, SIGNAL(mapped(const QString&)), this, SIGNAL(requestOpenUrl(const QString&)));
+
+    return menu;
+  }
+
 public slots:
   bool openView(const QString& viewTypeIdent)
   {
@@ -233,6 +263,8 @@ signals:
   void entriesSelected(const KLFLibEntryList& entries);
   void moreCategorySuggestions(const QStringList& categorylist);
 
+  void requestOpenUrl(const QString& url);
+
 protected slots:
   void slotRequestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle) {
     if (sender() == view())
@@ -264,6 +296,16 @@ protected slots:
       pViewTypeActions[ai]->setChecked(true);
     emit viewTypeChanged(vtype);
     emit entriesSelected(v->selectedEntries());
+  }
+
+  void internalRequestOpenSubResourceSender()
+  {
+    QAction * a = qobject_cast<QAction*>(sender());
+    if (a == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": Sender action is NULL";
+      return;
+    }
+    emit requestOpenUrl(a->data().toString());
   }
 
 protected:

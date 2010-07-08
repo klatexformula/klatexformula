@@ -85,7 +85,13 @@ public:
 };
 
 
-//! Structure that stores klatexformula's configuration
+//! Structure that stores klatexformula's configuration in memory
+/**
+ * This structure is more of a namespace than a class. Access it through the global
+ * object \ref klfconfig.
+ *
+ * See also \ref KLFSettings for a graphical interface for editing these settings.
+ */
 class KLF_EXPORT KLFConfig {
 public:
 
@@ -126,7 +132,7 @@ public:
     bool enableToolTipPreview;
     bool enableRealTimePreview;
     int autosaveLibraryMin;
-
+    bool showHintPopups;
   } UI;
 
   struct {
@@ -157,13 +163,13 @@ public:
 
   struct {
 
-    bool displayTaggedOnly;
-    bool displayNoDuplicates;
     QColor colorFound;
     QColor colorNotFound;
 
     bool restoreURLs;
+    bool confirmClose;
     bool groupSubCategories;
+    int iconViewFlow;
 
   } LibraryBrowser;
 

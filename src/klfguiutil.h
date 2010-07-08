@@ -27,6 +27,7 @@
 
 #include <QString>
 #include <QByteArray>
+#include <QComboBox>
 #include <QWidget>
 #include <QDialog>
 #include <QProgressDialog>
@@ -174,6 +175,40 @@ private:
   QTime timer;
 };
 
+
+/** Utility class for a combo box proposing a list of enumeration values.
+ */
+class KLFEnumComboBox : public QComboBox
+{
+  Q_OBJECT
+
+  Q_PROPERTY(int selectedValue READ selectedValue WRITE setSelectedValue)
+public:
+  KLFEnumComboBox(QWidget *parent = 0);
+  KLFEnumComboBox(const QList<int>& enumValues, const QStringList& enumTitles,
+		  QWidget *parent = 0);
+  virtual ~KLFEnumComboBox();
+
+  int selectedValue() const;
+
+  QString enumText(int enumValue) const;
+
+signals:
+  void selectedValueChanged(int enumValue);
+
+public slots:
+  void setSelectedValue(int val);
+
+  void setEnumValues(const QList<int>& enumValues, const QStringList& enumTitles);
+
+private slots:
+  void internalCurrentIndexChanged(int index);
+
+private:
+  QList<int> pEnumValueList;
+  QMap<int,QString> pEnumValues;
+  QMap<int,int> pEnumCbxIndexes;
+};
 
 
 

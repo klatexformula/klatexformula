@@ -36,19 +36,17 @@
 #include <QScrollArea>
 #include <QDomElement>
 
-#include <klfdefs.h>
+#include <klfbackend.h>
 
-
-class KLFMainWin;
-
-
-class KLFLatexSymbolsCache; // see klflatexsymbols.cpp
-
-struct KLF_EXPORT KLFLatexSymbol {
-  KLFLatexSymbol() : symbol(), preamble(), textmode(false) { }
-  KLFLatexSymbol(const QString& s, const QStringList& p, bool txtmod) : symbol(s), preamble(p), textmode(txtmod) { }
-  KLFLatexSymbol(const QString& symentry);
+/** A Latex Symbol. */
+struct KLF_EXPORT KLFLatexSymbol
+{
+  KLFLatexSymbol() : symbol(), preamble(), textmode(false), hidden(true) { }
+  KLFLatexSymbol(const QString& s, const QStringList& p, bool txtmod)
+    : symbol(s), preamble(p), textmode(txtmod), hidden(false) { }
   KLFLatexSymbol(const QDomElement& e);
+
+  inline bool valid() const { return !symbol.isEmpty(); }
 
   QString symbol;
   QStringList preamble;
@@ -58,45 +56,48 @@ struct KLF_EXPORT KLFLatexSymbol {
     int t, r, b, l;
   } bbexpand;
 
-  //  QString symentry();
+  bool hidden;
 };
 
 
 
-
-class KLF_EXPORT KLFPixmapButton : public QPushButton
+class KLFLatexSymbolsCache
 {
-  Q_OBJECT
 public:
-  Q_PROPERTY(QPixmap pixmap READ pixmap WRITE setPixmap USER true)
-  Q_PROPERTY(int pixmapMargin READ pixmapMargin WRITE setPixmapMargin)
-  Q_PROPERTY(float pixXAlignFactor READ pixXAlignFactor WRITE setPixXAlignFactor)
-  Q_PROPERTY(float pixYAlignFactor READ pixYAlignFactor WRITE setPixYAlignFactor)
+  enum { Ok = 0, BadHeader, BadVersion };
 
-  KLFPixmapButton(const QPixmap& pix, QWidget *parent = 0);
-  virtual ~KLFPixmapButton() { }
+  inline bool cacheNeedsSave() const { return flag_modified; }
 
-  virtual QSize minimumSizeHint() const;
-  virtual QSize sizeHint() const;
+  QPixmap getPixmap(const KLFLatexSymbol& sym, bool fromcacheonly = true);
 
-  virtual QPixmap pixmap() const { return _pix; }
-  virtual int pixmapMargin() const { return _pixmargin; }
-  virtual float pixXAlignFactor() const { return _xalignfactor; }
-  virtual float pixYAlignFactor() const { return _yalignfactor; }
+  int precacheList(const QList<KLFLatexSymbol>& list, bool userfeedback, QWidget *parent = NULL);
 
-public slots:
-  virtual void setPixmap(const QPixmap& pix) { _pix = pix; }
-  virtual void setPixmapMargin(int pixels) { _pixmargin = pixels; }
-  virtual void setPixXAlignFactor(float xalignfactor) { _xalignfactor = xalignfactor; }
-  virtual void setPixYAlignFactor(float yalignfactor) { _yalignfactor = yalignfactor; }
+  void setBackendSettings(const KLFBackend::klfSettings& settings);
 
-protected:
-  virtual void paintEvent(QPaintEvent *event);
+  KLFLatexSymbol findSymbol(const QString& symbolCode);
+  QStringList symbolCodeList();
+
+  static KLFLatexSymbolsCache * theCache();
+  static void saveTheCache();
 
 private:
-  QPixmap _pix;
-  int _pixmargin;
-  float _xalignfactor, _yalignfactor;
+  /** Private constructor */
+  KLFLatexSymbolsCache();
+  /** No copy constructor */
+  KLFLatexSymbolsCache(const KLFLatexSymbolsCache& /*other*/) { }
+
+  QMap<KLFLatexSymbol,QPixmap> cache;
+  bool flag_modified;
+  KLFBackend::klfSettings backendsettings;
+
+  int loadCacheStream(QDataStream& stream);
+  int saveCacheStream(QDataStream& stream);
+
+  static KLFLatexSymbolsCache * staticCache;
+
+  /** returns -1 if file open read or the code returned by loadCache(),
+   * that is KLFLatexSymbolsCache::{Ok,BadHeader,BadVersion} */
+  int loadCacheFrom(const QString& file, int version);
 };
 
 
@@ -135,14 +136,15 @@ namespace Ui {
   class KLFLatexSymbols;
 }
 
+
+/** \brief Dialog that presents a selection of latex symbols to user
+ */
 class KLF_EXPORT KLFLatexSymbols : public QWidget
 {
   Q_OBJECT
 public:
-  KLFLatexSymbols(KLFMainWin* parent);
+  KLFLatexSymbols(QWidget* parent, const KLFBackend::klfSettings& baseSettings);
   ~KLFLatexSymbols();
-
-  static KLFLatexSymbolsCache *cache() { return mCache; }
 
 signals:
 
@@ -156,13 +158,7 @@ public slots:
   void retranslateUi(bool alsoBaseUi = true);
 
 protected:
-
-  KLFMainWin *_mainwin;
-
   QStackedWidget *stkViews;
-
-  static KLFLatexSymbolsCache *mCache;
-  static int mCacheRefCounter;
 
   QList<KLFLatexSymbolsView *> mViews;
 
@@ -172,6 +168,9 @@ protected:
 private:
   Ui::KLFLatexSymbols *u;
 };
+
+
+
 
 #endif
 

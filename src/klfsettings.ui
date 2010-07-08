@@ -34,7 +34,7 @@
    <item>
     <widget class="QTabWidget" name="tabs">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabAppearance">
       <attribute name="title">
@@ -274,6 +274,13 @@
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkShowHintPopups">
+         <property name="text">
+          <string>Suggest inclusion of detected missing packages</string>
+         </property>
         </widget>
        </item>
        <item>
@@ -1267,32 +1274,107 @@
       <attribute name="title">
        <string>Library</string>
       </attribute>
-      <widget class="QCheckBox" name="chkLibRestoreURLs">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>30</y>
-         <width>431</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Restore open resources at startup</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="chkLibGroupSubCategories">
-       <property name="geometry">
-        <rect>
-         <x>20</x>
-         <y>60</y>
-         <width>251</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Group Sub-Categories at top of lists</string>
-       </property>
-      </widget>
+      <layout class="QGridLayout" name="gridLayout_7">
+       <item row="4" column="0" colspan="2">
+        <widget class="QLabel" name="lblLibWarnSettingsAffect">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>Some settings may only affect newly opened resources.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>15</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="5" column="0">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>275</width>
+           <height>206</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Appearance and Behavior</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_8" columnstretch="0,1,1">
+          <item row="0" column="0" colspan="3">
+           <widget class="QCheckBox" name="chkLibRestoreURLs">
+            <property name="text">
+             <string>Restore open resources at startup</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="3">
+           <widget class="QCheckBox" name="chkLibConfirmClose">
+            <property name="text">
+             <string>Confirm before closing resources</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label">
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Icon View Flow:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="KLFEnumComboBox" name="cbxLibIconViewFlow"/>
+          </item>
+          <item row="2" column="2">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Preferred</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="tabAddOns">
       <attribute name="title">
@@ -1646,6 +1728,11 @@
    <class>KLFColorChooser</class>
    <extends>QPushButton</extends>
    <header>klfcolorchooser.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KLFEnumComboBox</class>
+   <extends>QComboBox</extends>
+   <header>klfguiutil.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

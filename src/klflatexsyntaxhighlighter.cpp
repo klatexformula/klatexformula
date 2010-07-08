@@ -141,7 +141,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	}
       }
 
-      if (text[i] == '\\') {
+      if (text[i] == '\\') { // a keyword ("\symbol")
 	++i;
 	k = 0;
 	if (i >= text.length())
@@ -152,6 +152,16 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	if (k == 0 && i+1 < text.length())
 	  k = 1;
 	_rulestoapply.append(FormatRule(blockpos+i-1, k+1, FKeyWord));
+	QString symbol = text.mid(i-1,k+1); // from i-1, length k+1
+	if (symbol.size() > 1) { // no empty backslash
+	  klfDbg("symbol="<<symbol<<" i="<<i<<" k="<<k<<" caretpos="<<_caretpos<<" blockpos="<<blockpos);
+	  if ( (_caretpos < blockpos+i ||_caretpos >= blockpos+i+k+1) &&
+	       !pTypedSymbols.contains(symbol)) { // not typing symbol
+	    klfDbg("newSymbolTyped() about to be emitted for : "<<symbol);
+	    emit newSymbolTyped(symbol);
+	    pTypedSymbols.append(symbol);
+	  }
+	}
 	i += k;
 	continue;
       }
@@ -263,4 +273,10 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
   }
   
   return;
+}
+
+
+void KLFLatexSyntaxHighlighter::resetEditing()
+{
+  pTypedSymbols = QStringList();
 }

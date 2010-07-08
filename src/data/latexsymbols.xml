@@ -81,7 +81,7 @@
     <sym><latex>\bigwedge</latex></sym>
     <sym><latex>\bigvee</latex></sym>
     <sym><latex>\biguplus</latex></sym>
-    <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\int</latex></sym>
+    <sym><bb expand="1,4,1,1"/><latex>\int</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iint</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,5,1,1"/><latex>\iiint</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iiiint</latex></sym>
@@ -577,6 +577,7 @@
     <sym><usepackage name="[mathcal]{euscript}"/><latex>\mathcal{X}</latex></sym>
     <sym><usepackage name="[mathcal]{euscript}"/><latex>\mathcal{Y}</latex></sym>
     <sym><usepackage name="[mathcal]{euscript}"/><latex>\mathcal{Z}</latex></sym>
+    <sym><usepackage name="mathrsfs"/><hidden/><latex>\mathscr</latex></sym>
     <sym><usepackage name="mathrsfs"/><latex>\mathscr{A}</latex></sym>
     <sym><usepackage name="mathrsfs"/><latex>\mathscr{B}</latex></sym>
     <sym><usepackage name="mathrsfs"/><latex>\mathscr{C}</latex></sym>
@@ -603,6 +604,7 @@
     <sym><usepackage name="mathrsfs"/><latex>\mathscr{X}</latex></sym>
     <sym><usepackage name="mathrsfs"/><latex>\mathscr{Y}</latex></sym>
     <sym><usepackage name="mathrsfs"/><latex>\mathscr{Z}</latex></sym>
+    <sym><usepackage name="amsfonts"/><hidden/><latex>\mathbb</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathbb{A}</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathbb{B}</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathbb{C}</latex></sym>
@@ -655,6 +657,7 @@
     <sym><latex>\mathbf{X}</latex></sym>
     <sym><latex>\mathbf{Y}</latex></sym>
     <sym><latex>\mathbf{Z}</latex></sym>
+    <sym><usepackage name="bbm"/><hidden/><latex>\mathbbm</latex></sym>
     <sym><usepackage name="bbm"/><latex>\mathbbm{1}</latex></sym>
     <sym><usepackage name="bbm"/><latex>\mathbbm{A}</latex></sym>
     <sym><usepackage name="bbm"/><latex>\mathbbm{B}</latex></sym>
@@ -682,6 +685,7 @@
     <sym><usepackage name="bbm"/><latex>\mathbbm{X}</latex></sym>
     <sym><usepackage name="bbm"/><latex>\mathbbm{Y}</latex></sym>
     <sym><usepackage name="bbm"/><latex>\mathbbm{Z}</latex></sym>
+    <sym><usepackage name="amsfonts"/><hidden/><latex>\mathfrak</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{A}</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{B}</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{C}</latex></sym>
@@ -708,6 +712,7 @@
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{X}</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{Y}</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{Z}</latex></sym>
+    <sym><usepackage name="amsmath"/><hidden/><latex>\boldsymbol</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{A}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{B}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{C}</latex></sym>
@@ -777,6 +782,7 @@
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{\nabla}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{\infty}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{[bold\ sym.]}</latex></sym>
+    <sym><usepackage name="amsmath"/><hidden/><latex>\text</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\text{[Regular text]}</latex></sym>
   </category>
   <category name="Math Accents">

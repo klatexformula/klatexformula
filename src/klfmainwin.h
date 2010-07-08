@@ -113,7 +113,7 @@ protected:
 
 class KLFAboutDialog;
 class KLFWhatsNewDialog;
-
+class KLFMainWinPopup;
 
 /**
  * KLatexFormula Main Window
@@ -197,6 +197,9 @@ public slots:
   void slotSetLatex(const QString& latex);
   void slotSetMathMode(const QString& mathmode);
   void slotSetPreamble(const QString& preamble);
+  /** If \c line is already in the preamble, then does nothing. Otherwise appends
+   * \c line to the preamble text. */
+  void slotEnsurePreambleCmd(const QString& line);
   void slotSetDPI(int DPI);
   void slotSetFgColor(const QColor& fgcolor);
   void slotSetFgColor(const QString& fgcolor);
@@ -274,6 +277,13 @@ private slots:
 
   void slotOpenHistoryLibraryResource();
 
+  void slotNewSymbolTyped(const QString& symbol);
+  void slotPopupClose();
+  void slotPopupAction(const QUrl& helpLinkUrl);
+  void slotPopupAcceptAll();
+
+  void slotEditorContextMenu(const QPoint& pos);
+
 protected:
   Ui::KLFMainWin *u;
 
@@ -283,6 +293,8 @@ protected:
   KLFSettings *mSettingsDialog;
   KLFAboutDialog *mAboutDialog;
   KLFWhatsNewDialog *mWhatsNewDialog;
+
+  KLFMainWinPopup *mPopup;
 
   /** \internal */
   struct HelpLinkAction {

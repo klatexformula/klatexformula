@@ -235,6 +235,8 @@ KLFMainWin::KLFMainWin()
   setObjectName("KLFMainWin");
   setAttribute(Qt::WA_StyledBackground);
 
+  mPopup = NULL;
+
   loadSettings();
 
   _firstshow = true;
@@ -249,7 +251,7 @@ KLFMainWin::KLFMainWin()
   // load styless
   loadStyles();
 
-  mLatexSymbols = new KLFLatexSymbols(this);
+  mLatexSymbols = new KLFLatexSymbols(this, _settings);
 
   u->txtLatex->setFont(klfconfig.UI.latexEditFont);
   u->txtPreamble->setFont(klfconfig.UI.preambleEditFont);
@@ -283,6 +285,9 @@ KLFMainWin::KLFMainWin()
 	  mHighlighter, SLOT(refreshAll()));
   connect(u->txtPreamble, SIGNAL(cursorPositionChanged()),
 	  mPreambleHighlighter, SLOT(refreshAll()));
+
+  connect(mHighlighter, SIGNAL(newSymbolTyped(const QString&)),
+	  this, SLOT(slotNewSymbolTyped(const QString&)));
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
 
@@ -378,6 +383,8 @@ KLFMainWin::KLFMainWin()
 
   connect(u->txtLatex, SIGNAL(textChanged()), this,
 	  SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
+  connect(u->txtLatex, SIGNAL(customContextMenuRequested(const QPoint&)),
+	  this, SLOT(slotEditorContextMenu(const QPoint&)));
   connect(u->cbxMathMode, SIGNAL(editTextChanged(const QString&)),
 	  this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
@@ -430,15 +437,17 @@ KLFMainWin::KLFMainWin()
 
   mHelpLinkActions << HelpLinkAction("/whats_new", this, "showWhatsNew", false);
   mHelpLinkActions << HelpLinkAction("/about", this, "showAbout", false);
+  mHelpLinkActions << HelpLinkAction("/popup_close", this, "slotPopupClose", false);
+  mHelpLinkActions << HelpLinkAction("/popup", this, "slotPopupAction", true);
   mHelpLinkActions << HelpLinkAction("/settings", this, "showSettingsHelpLinkAction", true);
 
   if ( klfconfig.General.thisVersionFirstRun && ! klfconfig.checkExePaths() ) {
     addWhatsNewText("<p><b><span style=\"color: #a00000\">"+
-		    tr("Your executable paths (latex, dvips, gs) seem not to be detected properly. Please "
-		       "adjust the settings in the <a href=\"klfaction:/settings?control=ExecutablePaths\">"
-		       "settings dialog</a>.",
-		       "[[additional text in what's-new-dialog in case of bad detected settings. this is "
-		       "HTML formatted text.]]")
+		    tr("Your executable paths (latex, dvips, gs) seem not to be detected properly. "
+		       "Please adjust the settings in the <a href=\"klfaction:/settings?control="
+		       "ExecutablePaths\">settings dialog</a>.",
+		       "[[additional text in what's-new-dialog in case of bad detected settings. this "
+		       "is HTML formatted text.]]")
 		    +"</span></b></p>");
   }
 
@@ -940,40 +949,153 @@ void KLFMainWin::slotLibraryButtonRefreshState(bool on)
 
 void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
 {
+  // see if we need to insert the xtrapreamble
+  QStringList cmds = s.preamble;
+  int k;
+  QString preambletext = u->txtPreamble->toPlainText();
+  QString addtext;
+  for (k = 0; k < cmds.size(); ++k) {
+    slotEnsurePreambleCmd(cmds[k]);
+  }
+
+  // only after actually insert the symbol, so as not to interfere with popup package suggestions.
+
   QTextCursor c1(u->txtLatex->document());
   c1.beginEditBlock();
   c1.setPosition(u->txtLatex->textCursor().position());
   c1.insertText(s.symbol+"\n");
   c1.deletePreviousChar(); // small hack for forcing a separate undo command when two symbols are inserted
   c1.endEditBlock();
-  // see if we need to insert the xtrapreamble
-  QStringList cmds = s.preamble;
-  int k;
-  QString preambletext = u->txtPreamble->toPlainText();
-  QString addtext;
-  QTextCursor c = u->txtPreamble->textCursor();
-  //  qDebug("Begin preamble edit: preamble text is %s", qPrintable(u->txtPreamble->toPlainText()));
-  c.beginEditBlock();
-  c.movePosition(QTextCursor::End);
-  for (k = 0; k < cmds.size(); ++k) {
-    if (preambletext.indexOf(cmds[k]) == -1) {
-      addtext = "";
-      if (preambletext.length() > 0 &&
-	  preambletext[preambletext.length()-1] != '\n')
-	addtext = "\n";
-      addtext += cmds[k];
-      c.insertText(addtext);
-      preambletext += addtext;
-    }
-  }
-  c.endEditBlock();
-
-  //  qDebug("End preamble edit; premable text is %s", qPrintable(u->txtPreamble->toPlainText()));
 
   activateWindow();
   raise();
   u->txtLatex->setFocus();
 }
+
+
+void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
+{
+  if (mPopup == NULL)
+    mPopup = new KLFMainWinPopup(this);
+
+  if (!klfconfig.UI.showHintPopups)
+    return;
+
+  KLFLatexSymbol sym = KLFLatexSymbolsCache::theCache()->findSymbol(symbol);
+  if (!sym.valid())
+    return;
+
+  QStringList cmds = sym.preamble;
+  klfDbg("Got symbol for "<<symbol<<"; cmds is "<<cmds);
+  if (cmds.isEmpty())
+    return; // no need to include anything
+
+  QStringList texts;
+  int k;
+  for (k = 0; k < cmds.size(); ++k) {
+    QRegExp rx("\\\\usepackage.*\\{(\\w+)\\}");
+    klfDbg(" regexp="<<rx.pattern()<<"; cmd for symbol: "<<cmds[k].trimmed());
+    if (rx.exactMatch(cmds[k].trimmed())) {
+      texts << rx.cap(1); // the package name
+    } else {
+      if (!texts.size() || texts.last() != "...") // forbit consecutive ...'s
+	texts << "<i>(some definitions)</i>";
+    }
+  }
+
+  QByteArray cmdsData = klfSaveVariantToText(QVariant(cmds));
+  QString msgkey = "preambleCmdStringList:"+QString::fromLatin1(cmdsData);
+  QUrl urlaction;
+  urlaction.setScheme("klfaction");
+  urlaction.setPath("/popup");
+  QUrl urlactionClose = urlaction;
+  urlaction.addQueryItem("preambleCmdStringList", QString::fromLatin1(cmdsData));
+  urlactionClose.addQueryItem("removeMessageKey", msgkey);
+  mPopup->addMessage(msgkey,
+		     //"[<a href=\""+urlactionClose.toEncoded()+"\">"
+		     //"<img border=\"0\" src=\":/pics/smallclose.png\"></a>] - "+
+		     tr("<a href=\"%1\">include <b>%2</b></a> in preamble for symbol <tt>%3</tt>")
+		     .arg(urlaction.toEncoded(), texts.join(","), symbol) );
+  mPopup->show();
+  mPopup->raise();
+}
+void KLFMainWin::slotPopupClose()
+{
+  if (mPopup != NULL) {
+    delete mPopup;
+    mPopup = NULL;
+  }
+}
+void KLFMainWin::slotPopupAction(const QUrl& url)
+{
+  klfDbg("url="<<url.toEncoded());
+  if (url.hasQueryItem("preambleCmdStringList")) {
+    // include the given package
+    QByteArray data = url.queryItemValue("preambleCmdStringList").toLatin1();
+    klfDbg("data="<<data);
+    QStringList cmds = klfLoadVariantFromText(data, "QStringList").toStringList();
+    klfDbg("ensuring CMDS="<<cmds);
+    int k;
+    for (k = 0; k < cmds.size(); ++k) {
+      slotEnsurePreambleCmd(cmds[k]);
+    }
+    mPopup->removeMessage("preambleCmdStringList:"+QString::fromLatin1(data));
+    if (!mPopup->hasMessages())
+      slotPopupClose();
+    return;
+  }
+  if (url.hasQueryItem("acceptAll")) {
+    slotPopupAcceptAll();
+    return;
+  }
+  if (url.hasQueryItem("removeMessageKey")) {
+    QString key = url.queryItemValue("removeMessageKey");
+    mPopup->removeMessage(key);
+    if (!mPopup->hasMessages())
+      slotPopupClose();
+    return;
+  }
+  if (url.hasQueryItem("configDontShow")) {
+    // don't show popups
+    slotPopupClose();
+    klfconfig.UI.showHintPopups = false;
+    saveSettings();
+    return;
+  }
+}
+void KLFMainWin::slotPopupAcceptAll()
+{
+  if (mPopup == NULL)
+    return;
+
+  // accept all messages, based on their key
+  QStringList keys = mPopup->messageKeys();
+  int k;
+  for (k = 0; k < keys.size(); ++k) {
+    QString s = keys[k];
+    if (s.startsWith("preambleCmdStringList:")) {
+      QByteArray data = s.mid(strlen("preambleCmdStringList:")).toLatin1();
+      QStringList cmds = klfLoadVariantFromText(data, "QStringList").toStringList();
+      int k;
+      for (k = 0; k < cmds.size(); ++k) {
+	slotEnsurePreambleCmd(cmds[k]);
+      }
+      continue;
+    }
+    qWarning()<<KLF_FUNC_NAME<<": Unknown message key: "<<s;
+  }
+  slotPopupClose();
+}
+
+void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
+{
+  QMenu * menu = u->txtLatex->createStandardContextMenu(u->txtLatex->mapToGlobal(pos));
+  QTextCursor cur = u->txtLatex->cursorForPosition(pos);
+  QString text = cur.block().text();
+
+  menu->popup(pos);
+}
+
 
 void KLFMainWin::slotSymbolsButtonRefreshState(bool on)
 {
@@ -1020,10 +1142,12 @@ void KLFMainWin::helpLinkAction(const QUrl& link)
       if (mHelpLinkActions[k].path == link.path()) {
 	// got one
 	if (mHelpLinkActions[k].wantParam)
-	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever, mHelpLinkActions[k].memberFunc.constData(),
+	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever,
+				    mHelpLinkActions[k].memberFunc.constData(),
 				    Qt::QueuedConnection, Q_ARG(QUrl, link));
 	else
-	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever, mHelpLinkActions[k].memberFunc.constData(),
+	  QMetaObject::invokeMethod(mHelpLinkActions[k].reciever,
+				    mHelpLinkActions[k].memberFunc.constData(),
 				    Qt::QueuedConnection);
 
 	calledOne = true;
@@ -1137,18 +1261,25 @@ void KLFMainWin::childEvent(QChildEvent *e)
 
 bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 {
-  //  qDebug("eventFilter, e->type()==%d", (int)e->type());
-  /*  if (obj == u->txtLatex) {
-      if (e->type() == QEvent::KeyPress) {
+
+  // even with QShortcuts, we still need this event handler (why?)
+  if (obj == u->txtLatex) {
+    if (e->type() == QEvent::KeyPress) {
       QKeyEvent *ke = (QKeyEvent*) e;
-      if (ke->key() == Qt::Key_Return && (QApplication::keyboardModifiers() == Qt::ShiftModifier ||
-      QApplication::keyboardModifiers() == Qt::ControlModifier)) {
-      slotEvaluate();
-      return true;
+      if (ke->key() == Qt::Key_Return &&
+	  (QApplication::keyboardModifiers() == Qt::ShiftModifier ||
+	   QApplication::keyboardModifiers() == Qt::ControlModifier)) {
+	slotEvaluate();
+	return true;
       }
-      }
-      }
-  */
+      if (mPopup != NULL && ke->key() == Qt::Key_Return &&
+	  QApplication::keyboardModifiers() == Qt::AltModifier)
+	slotPopupAcceptAll();
+      if (mPopup != NULL && ke->key() == Qt::Key_Escape)
+	slotPopupClose();
+    }
+  }
+
 
   // ----
   if ( obj->isWidgetType() && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
@@ -1466,6 +1597,7 @@ void KLFMainWin::slotClear()
 {
   u->txtLatex->setPlainText("");
   u->txtLatex->setFocus();
+  mHighlighter->resetEditing();
 }
 
 void KLFMainWin::slotLibrary(bool showlib)
@@ -1520,6 +1652,27 @@ void KLFMainWin::slotSetPreamble(const QString& preamble)
   cur.removeSelectedText();
   cur.insertText(preamble);
   cur.endEditBlock();
+}
+
+void KLFMainWin::slotEnsurePreambleCmd(const QString& line)
+{
+  QTextCursor c = u->txtPreamble->textCursor();
+  //  qDebug("Begin preamble edit: preamble text is %s", qPrintable(u->txtPreamble->toPlainText()));
+  c.beginEditBlock();
+  c.movePosition(QTextCursor::End);
+
+  QString preambletext = u->txtPreamble->toPlainText();
+  if (preambletext.indexOf(line) == -1) {
+    QString addtext = "";
+    if (preambletext.length() > 0 &&
+	preambletext[preambletext.length()-1] != '\n')
+      addtext = "\n";
+    addtext += line;
+    c.insertText(addtext);
+    preambletext += addtext;
+  }
+
+  c.endEditBlock();
 }
 
 void KLFMainWin::slotSetDPI(int DPI)

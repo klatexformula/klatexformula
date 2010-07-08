@@ -58,6 +58,7 @@ set(klatexformula_SRCS
 	klffactory.cpp
 	klflatexsyntaxhighlighter.cpp
 	klflatexsymbols.cpp
+	klfpixmapbutton.cpp
 	klflib.cpp
 	klflibdbengine.cpp
 	klfliblegacyengine.cpp
@@ -79,6 +80,7 @@ set(klatexformula_MOCHEADERS
 	klfcolorchooser.h
 	klflatexsyntaxhighlighter.h
 	klflatexsymbols.h
+	klfpixmapbutton.h
 	klfguiutil.h
 	klflib.h
 	klflibdbengine.h
@@ -326,7 +328,7 @@ install(TARGETS klflib RUNTIME DESTINATION "lib${KLF_LIB_SUFFIX}"
 		       ARCHIVE DESTINATION "lib${KLF_LIB_SUFFIX}"
 		       LIBRARY DESTINATION "lib${KLF_LIB_SUFFIX}"
 		       FRAMEWORK DESTINATION /Library/Frameworks
-		       PUBLIC_HEADER DESTINATION "include")
+		       PUBLIC_HEADER DESTINATION include/klf)
 if(KLF_MACOSX_BUNDLES)
   # Installed library's ID
   KLFInstFrameworkUpdateId("/Library/Frameworks/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib")

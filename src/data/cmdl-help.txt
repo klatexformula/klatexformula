@@ -49,6 +49,9 @@ OPTIONS may be one or many of:
   -q|--quiet
       Disable console output of warnings and errors.
 
+  --outlinefonts <ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>
+      Convert embedded fonts in EPS and PDF to vector outlines (gs with -dNOCACHE).
+      Useful for exporting to eg. Adobe Illustrator.
   --lborderoffset <N>
   --tborderoffset <N>
   --rborderoffset <N>

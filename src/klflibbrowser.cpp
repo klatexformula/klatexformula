@@ -82,6 +82,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pResourceMenu->addAction(u->aNewSubRes);
   pResourceMenu->addAction(u->aSaveTo);
   pResourceMenu->addAction(u->aViewType);
+  pResourceMenu->addAction(u->aOpenSubRes);
   pResourceMenu->addSeparator();
   pResourceMenu->addAction(u->aNew);
   pResourceMenu->addAction(u->aOpen);
@@ -466,6 +467,13 @@ KLFLibBrowserViewContainer * KLFLibBrowser::viewForTabIndex(int tab)
 }
 
 
+bool KLFLibBrowser::openResource(const QString& url, uint resourceRoleFlags,
+				 const QString& viewTypeIdentifier)
+{
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+QString("(QString,uint,QString)")) ;
+  return openResource(QUrl(url), resourceRoleFlags, viewTypeIdentifier);
+}
+
 bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
 				 const QString& viewTypeIdentifier)
 {
@@ -593,6 +601,9 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(requestRestoreStyle(const KLFStyle&)),
 	  this, SIGNAL(requestRestoreStyle(const KLFStyle&)));
 
+  connect(viewc, SIGNAL(requestOpenUrl(const QString&)),
+	  this, SLOT(openResource(const QString&)));
+
   connect(viewc, SIGNAL(resourceDataChanged(const QList<KLFLib::entryId>&)),
 	  this, SLOT(slotResourceDataChanged(const QList<KLFLib::entryId>&)));
   connect(resource, SIGNAL(resourcePropertyChanged(int)),
@@ -670,10 +681,20 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
   // and replace the old menu with the new one.
   QMenu *oldmenu = u->aViewType->menu();
   if (oldmenu != NULL) {
-    u->aViewType->setMenu(0);
+    u->aViewType->setMenu(NULL);
     delete oldmenu;
   }
   u->aViewType->setMenu(menu);
+
+  oldmenu = u->aOpenSubRes->menu();
+  if (oldmenu != NULL) {
+    u->aOpenSubRes->setMenu(NULL);
+    delete oldmenu;
+  }
+  menu = viewc->createOpenSubResourceMenu();
+  u->aOpenSubRes->setMenu(menu);
+  if (menu == NULL)
+    u->aOpenSubRes->setEnabled(false);
 
   // DEBUG
   //  viewc->openView("default+list");
@@ -787,12 +808,14 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
     return false;
   }
 
-  // ask user for confirmation
-  QMessageBox::StandardButton btn =
-    QMessageBox::question(this, tr("Close Resource"), tr("Do you want to close this resource?"),
-			  QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Yes);
-  if (btn != QMessageBox::Yes)
-    return false;
+  if (klfconfig.LibraryBrowser.confirmClose) {
+    // ask user for confirmation
+    QMessageBox::StandardButton btn =
+      QMessageBox::question(this, tr("Close Resource"), tr("Do you want to close this resource?"),
+			    QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Yes);
+    if (btn != QMessageBox::Yes)
+      return false;
+  }
 
   u->tabResources->removeTab(tabindex);
   int index = pLibViews.indexOf(view);

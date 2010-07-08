@@ -2587,7 +2587,9 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     listView->setViewMode(QListView::IconMode);
     listView->setSpacing(15);
     listView->setMovement(QListView::Free);
-    listView->setFlow(QListView::LeftToRight);
+    //    listView->setFlow(QListView::LeftToRight);
+    //    listView->setFlow(QListView::TopToBottom);
+    listView->setFlow((QListView::Flow)klfconfig.LibraryBrowser.iconViewFlow);
     listView->setResizeMode(QListView::Adjust);
     klfDbg( "prepared list view." ) ;
     pView = listView;

@@ -21,8 +21,8 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFLATEXSYNTAXHIGHLIGHTER
-#define KLFLATEXSYNTAXHIGHLIGHTER
+#ifndef KLFLATEXSYNTAXHIGHLIGHTER_H
+#define KLFLATEXSYNTAXHIGHLIGHTER_H
 
 #include <klfdefs.h>
 
@@ -48,8 +48,14 @@ public:
 	 HighlightParensOnly = 0x02,
 	 HighlightLonelyParen = 0x04 };
 
+signals:
+  void newSymbolTyped(const QString& symbolName);
+
 public slots:
   void refreshAll();
+
+  /** This clears for example the list of already typed symbols. */
+  void resetEditing();
 
 private:
 
@@ -84,6 +90,9 @@ private:
 
   QTextCharFormat charfmtForFormat(Format f);
 
+  /** symbols that have already been typed and that newSymbolTyped() should not
+   * be emitted for any more. */
+  QStringList pTypedSymbols;
 };
 
 

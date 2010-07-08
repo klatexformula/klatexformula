@@ -37,6 +37,10 @@ class KLFMainWin;
 
 namespace Ui { class KLFSettings; }
 
+/** \brief A settings dialog
+ *
+ * See also \ref KLFConfig and \ref klfconfig.
+ */
 class KLFSettings : public QDialog
 {
   Q_OBJECT
