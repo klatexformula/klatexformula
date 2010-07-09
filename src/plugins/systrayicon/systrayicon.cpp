@@ -59,8 +59,11 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
 
   // set default value: Enable System Tray by default (but see plugin definition: don't
   // load plugin by default)
-  _config->makeDefaultValue("systrayon", true);
+  _config->makeDefaultValue("systrayon", false);
   _config->makeDefaultValue("replacequitbutton", true);
+#ifdef Q_WS_X11
+  _config->makeDefaultValue("restoreonhover", true);
+#endif
   _config->makeDefaultValue("mintosystray", true);
 
   QMenu *menu = new QMenu(mainWin);

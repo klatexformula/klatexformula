@@ -503,19 +503,34 @@ int KLFConfig::writeToConfig()
 
 
 
+KLFPluginConfigAccess KLFConfig::getPluginConfigAccess(const QString& name)
+{
+  return KLFPluginConfigAccess(this, name);
+}
+
+
+// --------------------------------------
+
+
+
+
 KLFPluginConfigAccess::KLFPluginConfigAccess()
 {
   _config = NULL;
   _pluginname = QString::null;
-  _amode = 0;
+}
+KLFPluginConfigAccess::KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
+  : _config(other._config), _pluginname(other._pluginname)
+{
+}
+KLFPluginConfigAccess::~KLFPluginConfigAccess()
+{
 }
 
-KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName,
-					     uint accessMode)
+KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName)
 {
   _config = configObject;
   _pluginname = pluginName;
-  _amode = accessMode;
 }
 
 
@@ -552,10 +567,7 @@ QVariant KLFPluginConfigAccess::readValue(const QString& key)
     qWarning("KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
     return QVariant();
   }
-  if ( (_amode & Read) == 0 ) {
-    qWarning("KLFPluginConfigAccess::readValue: Warning: Read mode not set!\n");
-    return QVariant();
-  }
+
   if ( ! _config->Plugins.pluginConfig[_pluginname].contains(key) )
     return QVariant();
 
@@ -566,10 +578,6 @@ QVariant KLFPluginConfigAccess::makeDefaultValue(const QString& key, const QVari
 {
   if ( _config == NULL ) {
     qWarning("KLFPluginConfigAccess::makeDefaultValue: Invalid Config Pointer!\n");
-    return QVariant();
-  }
-  if ( (_amode & Write) == 0 ) {
-    qWarning("KLFPluginConfigAccess::makeDefaultValue: Warning: Write mode not set!\n");
     return QVariant();
   }
 
@@ -585,12 +593,23 @@ void KLFPluginConfigAccess::writeValue(const QString& key, const QVariant& value
     qWarning("KLFPluginConfigAccess::writeValue: Invalid Config Pointer!\n");
     return;
   }
-  if ( (_amode & Write) == 0 ) {
-    qWarning("KLFPluginConfigAccess::writeValue: Warning: Write mode not set!\n");
-    return;
-  }
+
   _config->Plugins.pluginConfig[_pluginname][key] = value;
 }
+
+
+
+
+
+
+
+
+// ----------------------
+
+
+
+
+
 
 
 

@@ -43,7 +43,7 @@ KLFPathChooser::KLFPathChooser(QWidget *parent)
   lyt->setSpacing(2);
   txtPath = new QLineEdit(this);
   lyt->addWidget(txtPath);
-  btnBrowse = new QPushButton(QLatin1String("..."), this);
+  btnBrowse = new QPushButton(tr("Browse"), this);
   btnBrowse->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
   lyt->addWidget(btnBrowse);
 

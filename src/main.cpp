@@ -532,7 +532,9 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       QObject *pluginInstObject = pluginLoader.instance();
       if (pluginInstObject) {
 	pluginInstance = qobject_cast<KLFPluginGenericInterface *>(pluginInstObject);
-	if (pluginInstance) {
+	if (pluginInstance == NULL) {
+	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<". Skipping.");
+	} else {
 	  // plugin file successfully loaded.
 	  QString nm = pluginInstance->pluginName();
 	  qDebug("Successfully loaded plugin library %s (%s)", qPrintable(nm),
@@ -542,7 +544,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	    // create default plugin configuration if non-existant
 	    klfconfig.Plugins.pluginConfig[nm] = QMap<QString, QVariant>();
 	    // ask plugin whether it's supposed to be loaded by default
-	    klfconfig.Plugins.pluginConfig[nm]["__loadenabled"] = pluginInstance->pluginDefaultLoadEnable();
+	    klfconfig.Plugins.pluginConfig[nm]["__loadenabled"] =
+	      pluginInstance->pluginDefaultLoadEnable();
 	  }
 	  bool keepPlugin = true;
 
@@ -570,12 +573,14 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 
 	  // if we are configured to load this plugin, load it.
 	  keepPlugin = keepPlugin && klfconfig.Plugins.pluginConfig[nm]["__loadenabled"].toBool();
+	  klfDbg("got plugin info. keeping plugin? "<<keepPlugin);
 	  if ( keepPlugin ) {
-	    KLFPluginConfigAccess * c
-	      = new KLFPluginConfigAccess(klfconfig.getPluginConfigAccess(nm, KLFPluginConfigAccess::ReadWrite));
+	    KLFPluginConfigAccess pgca = klfconfig.getPluginConfigAccess(nm);
+	    KLFPluginConfigAccess * c = new KLFPluginConfigAccess(pgca);
+	    klfDbg("prepared a configaccess "<<c);
 	    pluginInstance->initialize(app, mainWin, c);
 	    pluginInfo.instance = pluginInstance;
-	    qDebug("\tPlugin %s loaded.", qPrintable(nm));
+	    qDebug("\tPlugin %s loaded and initialized.", qPrintable(nm));
 	  } else {
 	    // if we aren't configured to load it, then discard it, but keep info with NULL instance,
 	    // so that user can configure to load or not this plugin in the settings dialog.

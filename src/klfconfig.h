@@ -38,49 +38,83 @@
 class KLFConfig;
 
 /** \brief Utility class for plugins to access their configuration space in KLFConfig
+ *
+ * KLatexFormula stores its configuration via KLFConfig and the global \c klfconfig object.
+ * That structure relies on the config structure being known in advance and the named
+ * fields to appear publicly in the KLFConfig class. This scheme is obviously NOT possible
+ * for plugins, so a different approach is taken.
+ *
+ * Plugins are given a pointer to a \c KLFPluginConfigAccess object, which is an interface
+ * to access a special part of KLFConfig that stores plugin-related configuration in the
+ * form of QVariantMaps. (themselves written in an INI-based config file inside the plugin's
+ * local directory, at <tt>~/.klatexformula/plugindata/&lt;plugin>/&lt;plugin>.conf</tt>)
+ *
+ * KLFConfig transparently takes care of reading the config for plugins at the beginning
+ * when launching KLatexFormula and storing the plugin configurations in their respective
+ * locations when quitting.
+ *
+ * Plugins can read values they have set in earlier sessions with readValue(). Default values
+ * can be defined with \ref makeDefaultValue().
+ *
+ * Plugins can write changed settings with \ref writeValue().
  */
 class KLF_EXPORT KLFPluginConfigAccess
 {
   KLFConfig *_config;
   QString _pluginname;
-  uint _amode;
 public:
-  enum AccessMode { Read = 0x01, Write = 0x02, ReadWrite = Read|Write };
   KLFPluginConfigAccess();
-  KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName,
-			uint accessmode = Read | Write);
-  KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
-    : _config(other._config), _pluginname(other._pluginname), _amode(other._amode) { }
-  virtual ~KLFPluginConfigAccess() { }
+  KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName);
+  KLFPluginConfigAccess(const KLFPluginConfigAccess& other);
+  virtual ~KLFPluginConfigAccess();
 
-  virtual uint accessMode() const { return _amode; }
-
-  /** \note this method can be used even if accessmode doesn't have \c Read flag */
+  /** Returns the root directory in which KLatexFormula stores its stuff, usually
+   * <tt>~/.klatexformula</tt>.
+   */
   virtual QString homeConfigDir() const;
-  /** Returns a directory in which plugins can manage their data as they want. If the
-   * \c createIfNeeded argument is TRUE, then the directory is garanteed to exist (in
-   * particular, an empty string is returned if for whatever reason the directory can't
-   * be created).
+
+  /** Returns a path to a directory in which plugins can manage their data as they want.
    *
-   * Note that a file named <tt><i>pluginName</i>.conf</tt> is created for the settings
-   * set using this class, in this directory.
+   * If the \c createIfNeeded argument is TRUE, then the directory is garanteed to exist,
+   * and an empty string is returned if, for whatever reason, the directory can't be
+   * created.
    *
-   * \note this method can be used even if accessmode doesn't have \c Read flag */
+   * If the \c createIfNeeded argument is FALSE, then the directory path is returned
+   * regardless of whether the directory exists or not.
+   *
+   * Note that a file named <tt><i>pluginName</i>.conf</tt> is created to store the plugin's
+   * settings in that directory (the settings are stored automatically).
+   */
   virtual QString homeConfigPluginDataDir(bool createIfNeeded = true) const;
 
+  /** \brief read a value in the config
+   *
+   * Returns the value of the entry with key \c key. If no such entry exists,
+   * it is not created and an invalid QVariant() is returned.
+   */
   virtual QVariant readValue(const QString& key);
 
   /** \brief write the value if inexistant in config
    *
    * equivalent to
-   * \code if (readValue(key).isNull()) writeValue(key, defaultValue); \endcode
-   * except that only the \c Write flag is needed for makeDefaultValue().
+   * \code
+   *  if (readValue(key).isNull())
+   *    writeValue(key, defaultValue);
+   * \endcode
    *
    * \return the value this key has after this function call, ie. \c defaultValue if no
    *   existing value was found, or the existing value if one already exists. A null QVariant
-   *   is returned upon error (e.g. accessMode() doesn't have the Write flag set).
+   *   is returned upon error.
    */
   virtual QVariant makeDefaultValue(const QString& key, const QVariant& defaultValue);
+
+  /** \brief write a value to settings
+   *
+   * Saves the value of a setting, referenced by \c key, to the given \c value.
+   *
+   * If \c key hasn't been previously set, creates an entry for \c key with the
+   * given \c value.
+   */
   virtual void writeValue(const QString& key, const QVariant& value);
 };
 
@@ -102,8 +136,8 @@ public:
   KLFConfig();
 
   QString homeConfigDir;
-  QString homeConfigSettingsFile; // current (now, "new") settings file
-  QString homeConfigSettingsFileIni; // OLD config file
+  QString homeConfigSettingsFile; //!< current (now, "new" klatexformula.conf) settings file
+  QString homeConfigSettingsFileIni; //!< OLD config file
   QString homeConfigDirRCCResources;
   QString homeConfigDirPlugins;
   QString homeConfigDirPluginData;
@@ -179,8 +213,7 @@ public:
 
   } Plugins;
 
-  KLFPluginConfigAccess getPluginConfigAccess(const QString& name, uint amode)
-  { return KLFPluginConfigAccess(this, name, amode); }
+  KLFPluginConfigAccess getPluginConfigAccess(const QString& name);
 
   /** call loadDefaults() before anything, at the beginning, to ensure that the values
    * in this structure are not undefined. (the constructor doesn't set any values).
@@ -189,7 +222,7 @@ public:
    * start detecting system settings, specifically look for system executables, possibly other
    * long detection tasks. To perform that, call detectMissingSettings().
    *
-   * In practice, main() should call, in order, loadDefaults(), readFromConfig(), and
+   * In practice, main() calls, in order, loadDefaults(), readFromConfig(), and
    * detectMissingSettings().
    * */
   void loadDefaults();

@@ -409,7 +409,7 @@ void KLFSettings::initPluginControls()
     if ( instance != NULL ) {
       mPluginConfigWidgets[name] = instance->createConfigWidget( NULL );
       u->tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
-      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::Read);
+      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
       instance->loadFromConfig(mPluginConfigWidgets[name], &pconfa);
       n_pluginconfigpages++;
     }
@@ -888,7 +888,7 @@ void KLFSettings::apply()
     klfconfig.Plugins.pluginConfig[name]["__loadenabled"] = loadenable;
 
     if (klf_plugins[j].instance != NULL) {
-      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name, KLFPluginConfigAccess::ReadWrite);
+      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
       klf_plugins[j].instance->saveToConfig(mPluginConfigWidgets[name], &pconfa);
     }
 

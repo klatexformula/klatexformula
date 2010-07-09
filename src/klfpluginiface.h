@@ -48,7 +48,6 @@ public:
     PluginAuthor,
     PluginDescription,
     PluginDefaultEnable,
-    PluginKLFCompatVersion //! Compatibility version, given in string "3.2" or "3.2.5" or "3.2.99dev"
   };
 
   virtual QVariant pluginInfo(PluginInfo which) const = 0;
@@ -58,7 +57,6 @@ public:
   inline QString pluginAuthor() const { return pluginInfo(PluginAuthor).toString(); }
   inline QString pluginDescription() const { return pluginInfo(PluginDescription).toString(); }
   inline bool pluginDefaultLoadEnable() const { return pluginInfo(PluginDefaultEnable).toBool(); }
-  inline QString pluginKLFCompatVersion() const { return pluginInfo(PluginKLFCompatVersion).toString(); }
 
   virtual void initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *config) = 0;
 
@@ -70,6 +68,6 @@ public:
 };
 
 Q_DECLARE_INTERFACE(KLFPluginGenericInterface,
-		    "org.klatexformula.KLatexFormula.Plugin.GenericInterface/1.0");
+		    "org.klatexformula.KLatexFormula.Plugin.GenericInterface/1.1");
 
 #endif

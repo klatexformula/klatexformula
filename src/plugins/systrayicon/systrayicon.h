@@ -65,7 +65,7 @@ public:
     case PluginAuthor: return "Philippe Faist <philippe.f"+QString("aist@bluewin.c")+"h>";
     case PluginTitle: return tr("System Tray Icon");
     case PluginDescription: return tr("Dock KLatexFormula into system tray");
-    case PluginDefaultEnable: return false;
+    case PluginDefaultEnable: return true;
     default: return QVariant();
     }
   }

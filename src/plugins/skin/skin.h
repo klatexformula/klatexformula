@@ -32,6 +32,7 @@
 
 #include <ui_skinconfigwidget.h>
 
+
 class SkinConfigWidget : public QWidget, public Ui::SkinConfigWidget
 {
   Q_OBJECT
@@ -82,8 +83,7 @@ public:
     case PluginAuthor: return QString("Philippe Faist <philippe.faist")+QString("@bluewin.ch>");
     case PluginTitle: return tr("Skin");
     case PluginDescription: return tr("Personalize the look of KLatexFormula");
-    case PluginDefaultEnable: return false;
-    case PluginKLFCompatVersion: return QString("3.1.99dev");
+    case PluginDefaultEnable: return true;
     default:
       return QVariant();
     }
