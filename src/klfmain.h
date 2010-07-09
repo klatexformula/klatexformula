@@ -175,31 +175,6 @@ KLF_EXPORT extern QList<KLFPluginInfo> klf_plugins;
 
 
 
-// VERSION INFORMATION
-
-/** Returns the current version of the KLatexFormula library, given as a string,
- * eg. \c "3.2.1".
- *
- * For non-release builds, this may have a suffix, eg. \c "3.2.0beta2".
- */
-KLF_EXPORT const char * klfVersion();
-
-/** Returns the current major version of the KLatexFormula library.
- *
- * For example, if the version is "3.2.0", klfVersionMaj() returns \c 3.
- */
-KLF_EXPORT int klfVersionMaj();
-/** Returns the current minor version of the KLatexFormula library.
- *
- * For example, if the version is "3.2.0", klfVersionMin() returns \c 2.
- */
-KLF_EXPORT int klfVersionMin();
-/** Returns the current release version of the KLatexFormula library.
- *
- * For example, if the version is "3.2.0", klfVersionRelease() returns \c 0.
- */
-KLF_EXPORT int klfVersionRelease();
-
 
 
 
