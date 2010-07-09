@@ -600,10 +600,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 
 int main(int argc, char **argv)
 {
-  // first thing : setup version_maj/min/release correctly
-  sscanf(version, "%d.%d.%d", &version_maj, &version_min, &version_release);
-
-  klfDbgT("$$main()$$ read version="<<version) ;
+  klfDbgT("$$main()$$") ;
 
   qInstallMsgHandler(klf_qt_message);
 
@@ -692,7 +689,7 @@ int main(int argc, char **argv)
     if ( ! opt_quiet )
       fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
-	      version);
+	      KLF_VERSION_STRING);
 
     klfDbgT("$$About to load config$$");
   
@@ -849,7 +846,7 @@ int main(int argc, char **argv)
     if ( ! opt_quiet )
       fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
-	      version);
+	      KLF_VERSION_STRING);
   
     if ( klf_args[0] != NULL ) {
       qWarning("ignoring extra command-line arguments");

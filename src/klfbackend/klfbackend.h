@@ -315,6 +315,8 @@ public:
    * \param output the data to save (e.g. as returned by \ref getLatexFormula() )
    * \param fileName the file name to save to. If empty or equal to \c "-" then standard output is used.
    * \param format the format to use to save to fileName
+   * \param errorString if a valid pointer, then when an error occurs this string is set to a
+   *   text describing the error.
    *
    * If \c format is an empty string, then format is guessed from filename extension; if no extension is
    * found then format defaults to PNG.

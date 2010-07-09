@@ -191,9 +191,10 @@ public slots:
   void slotClear();
   void slotLibrary(bool showlib);
   void slotLibraryButtonRefreshState(bool on);
-  void slotSymbols(bool showsymbs);
+  void slotSymbols(bool showsymbs = true);
   void slotSymbolsButtonRefreshState(bool on);
   void slotExpandOrShrink();
+  void slotExpand(bool expanded = true);
   void slotSetLatex(const QString& latex);
   void slotSetMathMode(const QString& mathmode);
   void slotSetPreamble(const QString& preamble);
@@ -357,6 +358,8 @@ protected:
   //  QHash<QWidget*, bool> _savedwindowshownstatus;
 
   QString _widgetstyle;
+
+  void getMissingCmdsFor(const QString& symbol, QStringList * missingCmds, QString *guiText);
 };
 
 #endif

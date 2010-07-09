@@ -162,12 +162,12 @@ public:
       openView(curvti);
   }
 
-  QMenu * createOpenSubResourceMenu()
+  QMenu * createOpenSubResourceMenu(QMenu *menuparent)
   {
     if ( ! (pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) )
       return NULL;
 
-    QMenu *menu = new QMenu(this);
+    QMenu *menu = new QMenu(menuparent);
     //    QSignalMapper *signalMapper = new QSignalMapper(menu);
     QStringList subreslist = pResource->subResourceList();
     QUrl baseurl = pResource->url();
@@ -239,12 +239,19 @@ public slots:
       pResource->setViewType(viewTypeIdent);
     klfDbgT(": set view type.");
 
+    int curindex = currentIndex();
     blockSignals(true);
     int index = addWidget(v);
     blockSignals(false);
     pOpenViewTypeIdents[viewTypeIdent] = index;
     klfDbgT(": added widget, about to raise");
-    setCurrentIndex(index);
+    if (currentIndex() == curindex)
+      setCurrentIndex(index); // show new open view (and call slot slotCurrentIndex())
+    else {
+      // call now the slot that would have been called with addWidget()
+      // if the signals hadn't been blocked
+      slotCurrentChanged(index);
+    }
     klfDbgT(": Added view.");
     return true;
   }

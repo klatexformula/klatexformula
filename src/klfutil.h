@@ -70,7 +70,7 @@ enum KlfUrlCompareFlag {
   KlfUrlCompareBaseEqual = 0x08
 };
 //! Compares two URLs and returns some flags as to how they differ
-/** The return value is an binary-OR'ed value of flags given in \ref klfUrlCompareFlag.
+/** The return value is an binary-OR'ed value of flags given in \ref KlfUrlCompareFlag.
  *
  * If the \c interestFlag parameter is set, only the tests that are given in \c interestFlags
  * are performed. The returned flags are those flags set in \c interestFlags that are true.
@@ -98,7 +98,7 @@ KLF_EXPORT bool klfMatch(const QVariant& testForHitCandidateValue, const QVarian
 			 Qt::MatchFlags flags, const QString& queryStringCache = QString());
 
 /** Escapes every character in \c data that is not in the range 32-126 (included) as
- * \xHH whith HH the hex code of the character. Backslashes are replaced by double-backslashes.
+ * \\xHH whith HH the hex code of the character. Backslashes are replaced by double-backslashes.
  */
 KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& data);
 /** Performs the exact inverse of \ref klfDataToEscaped().

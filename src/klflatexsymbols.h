@@ -170,6 +170,8 @@ private:
 };
 
 
+KLF_EXPORT bool operator==(const KLFLatexSymbol& a, const KLFLatexSymbol& b);
+
 
 
 #endif

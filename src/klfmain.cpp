@@ -46,10 +46,39 @@ KLF_EXPORT QList<QTranslator*> klf_translators;
 
 
 // not static so we can get this value from other modules in the project
-char version[] = KLF_VERSION_STRING;
-int version_maj = -1;
-int version_min = -1;
-int version_release = -1;
+static char klf_version[] = KLF_VERSION_STRING;
+static int klf_version_maj = -1;
+static int klf_version_min = -1;
+static int klf_version_release = -1;
+
+static void ensure_version_parsed()
+{
+  if (klf_version_maj < 0 || klf_version_min < 0 || klf_version_release < 0)
+    sscanf(KLF_VERSION_STRING, "%d.%d.%d", &klf_version_maj, &klf_version_min, &klf_version_release);
+}
+
+
+KLF_EXPORT const char * klfVersion()
+{
+  return klf_version;
+}
+
+KLF_EXPORT int klfVersionMaj()
+{
+  ensure_version_parsed();
+  return klf_version_maj;
+}
+KLF_EXPORT int klfVersionMin()
+{
+  ensure_version_parsed();
+  return klf_version_min;
+}
+KLF_EXPORT int klfVersionRelease()
+{
+  ensure_version_parsed();
+  return klf_version_release;
+}
+
 
 
 

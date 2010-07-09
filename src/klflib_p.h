@@ -44,7 +44,8 @@ public:
     return QStringList() << "application/x-klf-libentries"
 			 << "text/html"
 			 << "text/plain"
-			 << "image/png";
+      //<< "image/png"
+      ;
   }
   virtual QStringList supportedDecodingMimeTypes() const
   {
@@ -112,17 +113,17 @@ public:
       }
       return data;
     }
-    if (mimeType == "image/png") {
-      if (entryList.size() != 1) {
-	klfDbg("Can only encode image/png for an entry list of size ONE (!)");
-	return QByteArray();
-      }
-      { // format data: write the PNG data for the preview
-	QBuffer buf(&data);
-	entryList[0].preview().save(&buf, "PNG");
-      }
-      return data;
-    }
+    //     if (mimeType == "image/png") {
+    //       if (entryList.size() != 1) {
+    // 	klfDbg("Can only encode image/png for an entry list of size ONE (!)");
+    // 	return QByteArray();
+    //       }
+    //       { // format data: write the PNG data for the preview
+    // 	QBuffer buf(&data);
+    // 	entryList[0].preview().save(&buf, "PNG");
+    //       }
+    //       return data;
+    //     }
     qWarning()<<KLF_FUNC_NAME<<": unsupported mime type requested: "<<mimeType;
     return QByteArray();
   }
@@ -166,7 +167,7 @@ public:
  *  QByteArray data;
  *  QDataStream stream(&data, QIODevice::WriteOnly);
  *  stream.setVersion(QDataStream::Qt_4_4);
- *  stream << metaData << entries;
+ *  stream &lt;&lt; metaData &lt;&lt; entries;
  *  // now data contains the exact data for the application/x-klf-libentries mimetype.
  * \endcode
  *
@@ -183,9 +184,9 @@ public:
  *   <tt>application/x-klf-internal-lib-move-entries</tt> contains only the IDs of the entries
  *   (for reference for deletion for example) and the url of the open resource for identification.
  * - Internal Format: \ref QDataStream, stream version QDataStream::Qt_4_4, in the
- *   following order:<br/>
- *   <tt> stream << QVariantMap(<i>property-map</i>)
- *        << QList<KLFLib::entryId>(<i>entry-id-list</i>);</tt>
+ *   following order:<br>
+ *   <tt> stream &lt;&lt; QVariantMap(<i>property-map</i>)
+ *        &lt;&lt; QList<KLFLib::entryId>(<i>entry-id-list</i>);</tt>
  * - The <tt><i>property-map</i></tt> contains properties relative to the mime data, such
  *   as the originating URL (in property \c "Url" of type QUrl)
  */

@@ -120,7 +120,7 @@ signals:
 public:
   KLFWhatsNewDialog(QWidget *parent)
     : QDialog(parent),
-      KLFHelpDialogCommon(QString("whats-new-%1.%2").arg(version_maj).arg(version_min))
+      KLFHelpDialogCommon(QString("whats-new-%1.%2").arg(klfVersionMaj()).arg(klfVersionMin()))
   {
     u = new Ui::KLFWhatsNewDialog;
     u->setupUi(this);
@@ -221,8 +221,8 @@ private slots:
 
   void updateText()
   {
-    setText("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" "
-	    "\"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    setText("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\""
+	    " \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 	    "<html><head><meta name=\"qrichtext\" content=\"1\" />"
 	    "<style type=\"text/css\">\n"
 	    "body { margin: 2px 10px; }\n"

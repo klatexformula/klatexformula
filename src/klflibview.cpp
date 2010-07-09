@@ -621,11 +621,12 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
     return;
   }
 
-  //   if (entryIdList.size() > pCache.approxSize()/2) {
-  //     // too big a modification, just rebuild the cache
-  //     rebuildCache();
-  //     return;
-  //   }
+  if (entryIdList.size() > 10 &&
+      (entryIdList.size() > pEntryCache.size()/3 || entryIdList.size() > 100)) {
+    // too big a modification, just rebuild the cache
+    rebuildCache();
+    return;
+  }
 
   switch (modifyType) {
   case KLFLibResourceEngine::InsertData:

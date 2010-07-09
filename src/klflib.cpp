@@ -367,7 +367,7 @@ QStringList KLFAbstractLibEntryMimeEncoder::allDecodingMimeTypes()
 
 // static
 QMimeData *KLFAbstractLibEntryMimeEncoder::createMimeData(const KLFLibEntryList& entryList,
-							  QVariantMap& metaData)
+							  const QVariantMap& metaData)
 {
   QMimeData *mime = new QMimeData;
   int k, j;

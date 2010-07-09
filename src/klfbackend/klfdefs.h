@@ -70,7 +70,7 @@ KLF_EXPORT QByteArray klfFmt(const char * fmt, ...)
 #endif
 ;
 
-/** Implements \ref klfFmt(const char *) functionality, but with
+/** Implements \ref klfFmt(const char *, ...) functionality, but with
  * a \c va_list argument pointer for use in vsprintf().
  */
 KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp) ;

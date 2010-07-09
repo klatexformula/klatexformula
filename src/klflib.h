@@ -30,7 +30,6 @@
 #include <QDataStream>
 #include <QDateTime>
 
-//#include <klfdata.h>  // for KLFStyle
 #include <klfpobj.h>
 #include <klffactory.h>
 
@@ -183,7 +182,7 @@ namespace KLFLib {
  * This class can be used as a sorter to sort items.
  *
  * This class functions as follows:
- * - \ref operator() calls compareLessThan() with the stored propId() and order().
+ * - operator()() calls compareLessThan() with the stored propId() and order().
  * - \ref compareLessThan() in turns calls entryValue() to get string representations of the
  *   values of the property to compare for each entry, and compares the strings with
  *   \ref QString::localeAwareCompare().
@@ -192,7 +191,7 @@ namespace KLFLib {
  *
  * \note The column number may be set to be equal \c -1, to indicate an invalid sorter (maybe
  *   to indicate that a list should not be sorted). However, the functions \ref entryValue(),
- *   \ref compareLessThan() and \ref operator() are NOT meant to be used with an invalid \c propId.
+ *   \ref compareLessThan() and operator()() are NOT meant to be used with an invalid \c propId.
  *   In other words, if isValid() is false (or equivalently, if \ref propId() is negative), don't
  *   attempt any sorting or comparisions.
  *
@@ -284,7 +283,7 @@ public:
   static QStringList allEncodingMimeTypes();
   static QStringList allDecodingMimeTypes();
   //! Creates a QMetaData with all known registered encoding mime types
-  static QMimeData *createMimeData(const KLFLibEntryList& entryList, QVariantMap& metaData);
+  static QMimeData *createMimeData(const KLFLibEntryList& entryList, const QVariantMap& metaData);
   static bool canDecodeMimeData(const QMimeData *mimeData);
   static bool decodeMimeData(const QMimeData *mimeData, KLFLibEntryList *entryList,
 			     QVariantMap *metaData);
@@ -790,8 +789,8 @@ public:
    * and the \c id is set to \c -1.
    *
    * The default implementation calls
-   * \ref entries(const QString& subResource, const QList<KLFLib::entryId>& idList) with
-   * the default subresource as argument. See \ref setDefaultSubResource().
+   * \ref entries(const QString& subResource, const QList<KLFLib::entryId>& idList, const QList<int>&)
+   * with the default subresource as argument. See \ref setDefaultSubResource().
    */
   virtual QList<KLFLibEntryWithId> entries(const QList<KLFLib::entryId>& idList,
 					   const QList<int>& wantedEntryProperties = QList<int>());
@@ -803,7 +802,7 @@ public:
       : mFlags(flags), mValue(value), mValueString(value.toString()) { }
 
     /** How the match should be tested (exact match, regex, contains, etc.), this is
-     * a binary-OR'ed value of \ref Qt::MatchFlag enum values.
+     * a binary-OR'ed value of Qt::MatchFlag enum values.
      *
      * the Qt::MatchCaseSensitive may be set to match case sensitive.
      */
@@ -904,8 +903,9 @@ public:
   /** Returns all the entries in this library resource (in default sub-resource if
    * \ref FeatureSubResources is supported) with their corresponding IDs.
    *
-   * The default implementation calls \ref allEntries(const QString& subResource) with
-   * the default subresource as argument. See \ref setDefaultSubResource().
+   * The default implementation calls
+   * \ref allEntries(const QString& subResource, const QList<int>&) with the default subresource
+   * as argument. See \ref setDefaultSubResource().
    */
   virtual QList<KLFLibEntryWithId> allEntries(const QList<int>& wantedEntryProperties = QList<int>());
 

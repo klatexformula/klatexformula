@@ -49,8 +49,8 @@
 
 #include <ui_klflatexsymbols.h>
 
-#include "klfmain.h" // version_{min|maj|rel}
 #include "klfpixmapbutton.h"
+#include "klfmain.h"
 #include "klfconfig.h"
 #include "klflatexsymbols.h"
 
@@ -63,18 +63,18 @@ KLFLatexSymbol::KLFLatexSymbol(const QDomElement& e)
   : symbol(), preamble(), textmode(false), bbexpand(), hidden(false)
 {
   // preamble
-  QDomNodeList preamblelinelist = e.elementsByTagName("preambleline");
-  int k;
-  for (k = 0; k < preamblelinelist.size(); ++k) {
-    preamble.append(preamblelinelist.at(k).toElement().text());
-  }
   QDomNodeList usepackagelist = e.elementsByTagName("usepackage");
+  int k;
   for (k = 0; k < usepackagelist.size(); ++k) {
     QString package = usepackagelist.at(k).toElement().attribute("name");
     if (package[0] == '[' || package[0] == '{')
       preamble.append(QString::fromAscii("\\usepackage%1").arg(package));
     else
       preamble.append(QString::fromAscii("\\usepackage{%1}").arg(package));
+  }
+  QDomNodeList preamblelinelist = e.elementsByTagName("preambleline");
+  for (k = 0; k < preamblelinelist.size(); ++k) {
+    preamble.append(preamblelinelist.at(k).toElement().text());
   }
   // textmode
   if (e.attribute("textmode") == "true")
@@ -107,7 +107,19 @@ KLFLatexSymbol::KLFLatexSymbol(const QDomElement& e)
   klfDbg("read symbol "<<symbol<<" hidden="<<hidden);
 }
 
-bool operator<(const KLFLatexSymbol& a, const KLFLatexSymbol& b)
+KLF_EXPORT bool operator==(const KLFLatexSymbol& a, const KLFLatexSymbol& b)
+{
+  return a.symbol == b.symbol &&
+    a.textmode == b.textmode &&
+    a.preamble == b.preamble &&
+    a.bbexpand.t == b.bbexpand.t &&
+    a.bbexpand.r == b.bbexpand.r &&
+    a.bbexpand.b == b.bbexpand.b &&
+    a.bbexpand.l == b.bbexpand.l &&
+    a.hidden == b.hidden;
+}
+
+KLF_EXPORT bool operator<(const KLFLatexSymbol& a, const KLFLatexSymbol& b)
 {
   if (a.symbol != b.symbol)
     return a.symbol < b.symbol;
@@ -156,9 +168,10 @@ KLFLatexSymbolsCache::KLFLatexSymbolsCache()
 {
   // load the cache
 
-  QStringList cachefiles
-    = QStringList() << klfconfig.homeConfigDir + "/symbolspixmapcache"
-		    << ":/data/symbolspixmapcache_base" ;
+  QStringList cachefiles;
+  cachefiles
+    << klfconfig.homeConfigDir+"/symbolspixmapcache-klf"+klfVersionMaj()+"."+klfVersionMin()
+    << ":/data/symbolspixmapcache_base" ;
   int k;
   bool ok = false;
   for (k = 0; !ok && k < cachefiles.size(); ++k) {
@@ -186,7 +199,7 @@ int KLFLatexSymbolsCache::loadCacheStream(QDataStream& stream)
   qint16 vmaj, vmin;
   stream >> vmaj >> vmin;
 
-  if (vmaj != version_maj || vmin != version_min) {
+  if (vmaj != klfVersionMaj() || vmin != klfVersionMin()) {
     return BadVersion;
   }
 
@@ -204,8 +217,9 @@ int KLFLatexSymbolsCache::loadCacheStream(QDataStream& stream)
 int KLFLatexSymbolsCache::saveCacheStream(QDataStream& stream)
 {
   stream.setVersion(QDataStream::Qt_3_3);
-  // Write KLF-3.2 stream
-  stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE") << (qint16)3 << (qint16)2
+  // Write version 3.2 stream (added hidden symbol attribute at KLF 3.2)
+  stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE")
+	 << (qint16)3 << (qint16)2
 	 << (qint16)stream.version() << cache;
   flag_modified = false;
   return 0;
@@ -213,16 +227,37 @@ int KLFLatexSymbolsCache::saveCacheStream(QDataStream& stream)
 
 QPixmap KLFLatexSymbolsCache::getPixmap(const KLFLatexSymbol& sym, bool fromcacheonly)
 {
-  if (cache.contains(sym))
+  klfDbg("sym.symbol="<<sym.symbol<<" fromCacheOnly="<<fromcacheonly) ;
+
+  if (cache.contains(sym)) {
+    klfDbg("Found symbol in cache! sym.preamble="<<sym.preamble.join(";"));
     return cache[sym];
+  }
 
   if (fromcacheonly) {
     // if we weren't able to load it from cache, show failed icon
     return QPixmap(":/pics/badsym.png");
   }
 
+  // clean cache: make sure there are no two duplicate symbols (this is for the popup hint parser,
+  // so that it doesn't detect old symbols in the cache)
+  // This is done only if fromcache is false, so as to perform the check only on first pass
+  // when generating the symbol cache.
+  QMap<KLFLatexSymbol,QPixmap>::iterator it = cache.begin();
+  while (it != cache.end()) {
+    klfDbg("Testing symbol "<<it.key().symbol<<",preamble="<<it.key().preamble.join(",")
+	   << "for being a duplicate of "<<sym.symbol);
+    if (it.key().symbol == sym.symbol) {
+      klfDbg("erasing duplicate.");
+      it = cache.erase(it); // erase old symbol entry
+    } else {
+      ++it;
+    }
+  }
+
   if (sym.hidden) {
     // special treatment for hidden symbols
+    // insert a QPixmap() into cache and return it
     return ( cache[sym] = QPixmap() );
   }
 
@@ -358,7 +393,8 @@ KLFLatexSymbolsCache * KLFLatexSymbolsCache::theCache()
 void KLFLatexSymbolsCache::saveTheCache()
 {
   if (staticCache->cacheNeedsSave()) {
-    QString s = klfconfig.homeConfigDir + "/symbolspixmapcache";
+    QString s = 
+      klfconfig.homeConfigDir + "/symbolspixmapcache-klf"+klfVersionMaj()+"."+klfVersionMin() ;
     QFile f(s);
     if ( ! f.open(QIODevice::WriteOnly) ) {
       qWarning() << KLF_FUNC_NAME<< "Can't save cache to file "<< s << "!";
@@ -435,7 +471,25 @@ void KLFLatexSymbolsView::buildDisplay()
     btn->setProperty("gridpos", QPoint(-1,-1));
     btn->setProperty("gridcolspan", -1);
     btn->setProperty("myWidth", p.width() + 4);
-    btn->setToolTip(_symbols[i].symbol);
+    QString tooltiptext =
+      "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\""
+      " \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+      "<html><head><meta name=\"qrichtext\" content=\"1\" />"
+      "<style type=\"text/css\">\n"
+      "p { white-space: pre-wrap; padding: 0px; margin: 0px 0px 2px 0px; }\n"
+      "pre { padding: 0px; margin: 0px 0px 2px 0px; }\n"
+      "</style>"
+      "</head>"
+      "<body>\n"
+      "<p style=\"white-space: pre\">"+tr("LaTeX code:")+" <b><tt>"+_symbols[i].symbol+"</tt></b>"+
+      (_symbols[i].textmode?tr(" [in text mode]"):QString(""))+
+      +"</p>";
+    if (_symbols[i].preamble.size())
+      tooltiptext += "<p>"+tr("Requires:")+"<b><pre>" +
+	_symbols[i].preamble.join("\n")+"</pre></b></p>";
+    tooltiptext += "</body></html>";
+    btn->setToolTip(tooltiptext);
+    klfDbg("tooltip text is "<<tooltiptext);
     connect(btn, SIGNAL(clicked()), this, SLOT(slotSymbolActivated()));
     mSymbols.append(btn);
   }

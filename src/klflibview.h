@@ -610,7 +610,7 @@ public slots:
   virtual void setAutoBackgroundColor(const QColor& c) { pDelegate->setAutoBackgroundColor(c); }
 
   /** \warning This function takes effect upon the next change of resource engine, ie the next
-   * call of \ref KLFLibAbstractView::setResourceEngine() */
+   * call of \ref KLFAbstractLibView::setResourceEngine() */
   virtual void setGroupSubCategories(bool yesOrNo) { pGroupSubCategories = yesOrNo; }
 
 protected:

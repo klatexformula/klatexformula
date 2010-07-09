@@ -691,7 +691,7 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
     u->aOpenSubRes->setMenu(NULL);
     delete oldmenu;
   }
-  menu = viewc->createOpenSubResourceMenu();
+  menu = viewc->createOpenSubResourceMenu(pResourceMenu);
   u->aOpenSubRes->setMenu(menu);
   if (menu == NULL)
     u->aOpenSubRes->setEnabled(false);
@@ -1107,8 +1107,8 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 				  view, SLOT(deleteSelected()), QKeySequence::Delete);
   menu->addSeparator();
 
-  QMenu *copytomenu = new QMenu;
-  QMenu *movetomenu = new QMenu;
+  QMenu *copytomenu = new QMenu(menu);
+  QMenu *movetomenu = new QMenu(menu);
   int k;
   QAction *acopythere, *amovethere;
   int n_destinations = 0;

@@ -2,17 +2,17 @@ BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV {
 	font-family: Geneva, Arial, Helvetica, sans-serif;
 }
 BODY,TD {
-	font-size: 90%;
+/*	font-size: 90%;*/
 }
 H1 {
 	text-align: center;
 	font-size: 160%;
 }
 H2 {
-	font-size: 120%;
+	font-size: 130%;
 }
 H3 {
-	font-size: 100%;
+	font-size: 110%;
 }
 CAPTION { 
 	font-weight: bold 
@@ -111,7 +111,7 @@ DL.el {
 }
 .fragment {
        font-family: monospace, fixed;
-       font-size: 95%;
+       /*font-size: 95%;*/
 }
 PRE.fragment {
 	border: 1px solid #CCCCCC;
@@ -142,7 +142,7 @@ DIV.groupHeader {
 DIV.groupText { 
 	margin-left: 16px; 
 	font-style: italic; 
-	font-size: 90% 
+	/*font-size: 90% */
 }
 BODY {
 	background: white;
@@ -454,7 +454,7 @@ HR {
 .directory-alt h3 { 
 	margin: 0px; 
 	margin-top: 1em; 
-	font-size: 11pt; 
+	font-size: 100%;/*11pt; */
 }
 .directory-alt > h3 { 
 	margin-top: 0; 

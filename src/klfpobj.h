@@ -55,8 +55,8 @@
  * that all instances of, say a KLFLibEntry, always share the same property ID and names,
  * even though they each store different values for them.
  *
- * Property values may be queried with \ref property(const QString&) or \ref property(int),
- * and may be set with setProperty().
+ * Property values may be queried with property(const QString&) const or
+ * property(int propId) const , and may be set with \ref setProperty().
  *
  * Subclasses have to provide their own public API for setting and/or registering property
  * values, as setProperty() and registerProperty() are protected. This is because depending
@@ -72,10 +72,11 @@
  *
  * <b>What is the <i>Property Name Space</i>?</b> The Property Name Space is a string identifying
  * the type of object an instance belongs to. This will typically be the subclass name. Since
- * all properties are stored statically in this object, different subclasses must access different
- * registered properties, and that is what the &quot;property name spaces&quot; are meant for.
- * Subclasses specify once and for all the property name space to the
- * \ref KLFPropertizedObject(const QString&) constructor, then they can forget about it.
+ * all registered properties are stored (the names and IDs, not the values (!)) statically in this
+ * object, different subclasses must access different registered properties, and that is what the
+ * &quot;property name spaces&quot; are meant for. Subclasses specify once and for all the property
+ * name space to the \ref KLFPropertizedObject(const QString&) constructor, then they can forget
+ * about it. Other classes than the direct subclass don't have to know about property name spaces.
  *
  * \note For fast access, the property values are stored in a \ref QVector&lt;\ref QVariant&gt;.
  *   The \c propId is just an index in that vector. Keep that in mind before defining static
@@ -171,36 +172,43 @@ public:
   virtual QString toString(uint toStringFlags = 0) const;
 
   //! See the corresponding protected static method
-  /** Shortcut for the corresponding (protected) static method, where the property name
-   * space is automatically detected. */
+  /** Shortcut for the corresponding (protected) static method propertyMaxId(const QString&).
+   * The property name space is automatically detected. */
   int propertyMaxId() const;
   //! See the corresponding protected static method
-  /** Shortcut for the corresponding (protected) static method, where the property name
-   * space is automatically detected. */
+  /** Shortcut for the corresponding (protected) static method
+   * propertyIdRegistered(const QString&, int). The property name space is automatically
+   * detected. */
   bool propertyIdRegistered(int propId) const;
   //! See the corresponding protected static method
-  /** Shortcut for the corresponding (protected) static method, where the property name
-   * space is automatically detected. */
+  /** Shortcut for the corresponding (protected) static method
+   * propertyNameRegistered(const QString&, const QString&). The property name space is
+   * automatically detected. */
   bool propertyNameRegistered(const QString& propertyName) const;
   //! See the corresponding protected static method
-  /** Shortcut for the corresponding (protected) static method, where the property name
-   * space is automatically detected. */
+  /** Shortcut for the corresponding (protected) static method
+   * propertyIdForName(const QString&, const QString&); the property name space is
+   * automatically detected. */
   int propertyIdForName(const QString& propertyName) const;
   //! See the corresponding protected static method
-  /** Shortcut for the corresponding (protected) static method, where the property name
-   * space is automatically detected. */
+  /** Shortcut for the corresponding (protected) static method
+   * propertyNameForId(const QString&, int); the property name space is automatically
+   * detected. */
   QString propertyNameForId(int propId) const;
   //! See the corresponding protected static method
-  /** Shortcut for the corresponding (protected) static method, where the property name
-   * space is automatically detected. */
+  /** Shortcut for the corresponding (protected) static method
+   * registeredPropertyIdList(const QString&); the property name space is automatically
+   * detected. */
   QList<int> registeredPropertyIdList() const;
   //! See the corresponding protected static method
-  /** Shortcut for the corresponding (protected) static method, where the property name
-   * space is automatically detected. */
+  /** Shortcut for the corresponding (protected) static method
+   * registeredPropertyNameList(const QString); the property name space is automatically
+   * detected. */
   QStringList registeredPropertyNameList() const;
   //! See the corresponding protected static method
-  /** Shortcut for the corresponding (protected) static method, where the property name
-   * space is automatically detected. */
+  /** Shortcut for the corresponding (protected) static method
+   * registeredProperties(const QString&);
+   * the property name space is automatically detected. */
   QMap<QString, int> registeredProperties() const;
 
 protected:
@@ -221,6 +229,7 @@ protected:
   /** Sets the given property to \c value. If propname is not registered,
    * this function fails. */
   virtual void setProperty(const QString& propname, const QVariant& value);
+
   /** Sets the property identified by propId to the value \c value.
    * Fails if the property \c propId is not registered. */
   virtual void setProperty(int propId, const QVariant& value);
@@ -233,11 +242,14 @@ protected:
   virtual int loadProperty(const QString& propname, const QVariant& value);
 
   /** shortcut for the corresponding static method. Detects the correct property
-   * name space and calls
-   * \ref registerBuiltInProperty(const QString&, int, const QString&) */
-  void registerBuiltInProperty(int propId, const QString& name) const;
+   * name space and calls registerBuiltInProperty(const QString&, int, const QString&)
+   */
+  void registerBuiltInProperty(int propId, const QString& propName) const;
+
   /** shortcut for the corresponding static method. Detects the correct property
-   * name space and calls \ref registerProperty(const QString&, const QString&). */
+   * name space and calls
+   * \ref registerProperty(const QString& propNameSpace, const QString& propName).
+   */
   int registerProperty(const QString& propertyName) const;
 
   /** Registers the property named \c name with the fixed ID \c propId.
@@ -286,11 +298,12 @@ protected:
    * \note If property name space does not exist, it is created.
    *
    * Subclasses may prefer to use the more convenient function
-   * \ref registerBuiltInProperty(int propId, const QString& propName),
-   * which automatically uses the correct property name space.
+   * registerBuiltInProperty(int propId, const QString& propName), which automatically uses
+   * the correct property name space.
    */
   static void registerBuiltInProperty(const QString& propNameSpace, int propId,
 				      const QString& name);
+
   /** Registers the property \c propertyName and assigns a new unused ID for that property,
    * and returns the newly assigned ID.
    *
@@ -301,29 +314,38 @@ protected:
    * will print a warning and return \c -1.
    *
    * Subclasses may prefer to use the more convenient function
-   * \ref registerProperty(const QString&),
+   * registerProperty(const QString&) const,
    * which automatically uses the correct property name space.
    */
   static int registerProperty(const QString& propNameSpace, const QString& propertyName);
+
   /** Returns a number that is guaranteed higher or equal to all registered property IDs in
    * the given property name space.
+   *
+   * Subclasses may prefer to use the more convenient function
+   * propertyMaxId() const, which automatically uses the correct property
+   * name space.
    */
   static int propertyMaxId(const QString& propNameSpace);
+
   /** \returns true if a property with ID \c propId exists (=has been registered) in the
    * property name space \c propNameSpace .
    *
-   * Subclasses may prefer to use the more convenient function \ref propertyIdRegistered(int),
-   * which automatically uses the correct property name space.
-   * */
+   * Subclasses may prefer to use the more convenient function
+   * propertyIdRegistered(int) const, which automatically uses the correct property
+   * name space.
+   */
   static bool propertyIdRegistered(const QString& propNameSpace, int propId);
+
   /** \returns true if a property of name \c propertyName exists (=has been registered) in the
    * property name space \c propNameSpace .
    *
    * Subclasses may prefer to use the more convenient function
-   * \ref propertyNameRegistered(const QString&),
+   * propertyNameRegistered(const QString&) const,
    * which automatically uses the correct property name space.
    * */
   static bool propertyNameRegistered(const QString& propNameSpace, const QString& propertyName);
+
   /** \returns the ID corresponding to property name \c propertyName in property name
    * space \c propNameSpace.
    *
@@ -333,18 +355,20 @@ protected:
    * The property name space \c propNameSpace must exist or a warning message is issued.
    *
    * Subclasses may prefer to use the more convenient function
-   * \ref propertyIdForName(const QString&),
-   * which automatically uses the correct property name space.
+   * propertyIdForName(const QString&) const, which automatically uses the correct property
+   * name space.
    */
   static int propertyIdForName(const QString& propNameSpace, const QString& propertyName);
+
   /** Reverse operation of propertyIdForName(), with similar behavior.
    *
    * This function silently returns <tt>QString()</tt> on failure.
    *
-   * Subclasses may prefer to use the more convenient function \ref propertyNameForId(int),
+   * Subclasses may prefer to use the more convenient function propertyNameForId(int) const,
    * which automatically uses the correct property name space.
    */
   static QString propertyNameForId(const QString& propNameSpace, int propId);
+
   /** Returns a list of all registered property IDs in the given property name space.
    *
    * Subclasses may prefer to use the more convenient function
@@ -352,6 +376,7 @@ protected:
    * which automatically uses the correct property name space.
    * */
   static QList<int> registeredPropertyIdList(const QString& propNameSpace);
+
   /** Returns a list of all registered property names in the given property name space.
    *
    * Subclasses may prefer to use the more convenient function
@@ -359,6 +384,7 @@ protected:
    * which automatically uses the correct property name space.
    * */
   static QStringList registeredPropertyNameList(const QString& propNameSpace);
+
   /** Returns a map of all registered properties, with the property names as map keys and
    * the property IDs as map values, in the given property name space.
    *
@@ -390,7 +416,9 @@ private:
   friend bool operator==(const KLFPropertizedObject& a, const KLFPropertizedObject& b);
 };
 
-/** \returns TRUE if all values for all registered properties of this object are equal. */
+/** \returns TRUE if all values for all registered properties of this object are equal.
+ * \relates KLFPropertizedObject
+ */
 bool operator==(const KLFPropertizedObject& a, const KLFPropertizedObject& b);
 
 KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFPropertizedObject& obj);

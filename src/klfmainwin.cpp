@@ -463,7 +463,7 @@ void KLFMainWin::retranslateUi(bool alsoBaseUi)
     u->retranslateUi(this);
 
   // version information as tooltip on the welcome widget
-  u->lblPromptMain->setToolTip(tr("KLatexFormula %1").arg(QString::fromUtf8(version)));
+  u->lblPromptMain->setToolTip(tr("KLatexFormula %1").arg(QString::fromUtf8(KLF_VERSION_STRING)));
 
   refreshStylePopupMenus();
 }
@@ -650,9 +650,10 @@ void KLFMainWin::loadStyles()
 	qint16 vmaj, vmin;
 	str >> vmaj >> vmin;
 
-	if (vmaj > version_maj || (vmaj == version_maj && vmin > version_min)) {
+	if (vmaj > klfVersionMaj() || (vmaj == klfVersionMaj() && vmin > klfVersionMin())) {
 	  QMessageBox::warning(this, tr("Load Styles"),
-			       tr("The style file found was created by a more recent version of KLatexFormula.\n"
+			       tr("The style file found was created by a more recent version "
+				  "of KLatexFormula.\n"
 				  "The process of style loading may fail.")
 			      );
 	}
@@ -791,7 +792,8 @@ void KLFMainWin::loadLibrary()
       int j;
       for (j = 0; j < subResList.size(); ++j) {
 	QString subres = subResList[j];
-	pdlg.setDescriptiveText(tr("Importing Library from previous version of KLatexFormula ... %3 (%1/%2)")
+	pdlg.setDescriptiveText(tr("Importing Library from previous version of KLatexFormula ... "
+				   "%3 (%1/%2)")
 				.arg(j+1).arg(subResList.size()).arg(subResList[j]));
 	QList<KLFLibResourceEngine::KLFLibEntryWithId> allentries
 	  = importres->allEntries(subres);
@@ -927,12 +929,14 @@ void KLFMainWin::slotOpenHistoryLibraryResource()
 
 void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
 {
-  if (restoreFlags & KLFLib::RestoreLatex) {
-    slotSetLatex(entry.latex()); // to preserve text edit undo history...
-  }
   if (restoreFlags & KLFLib::RestoreStyle) {
     KLFStyle style = entry.style();
     slotLoadStyle(style);
+  }
+  // restore latex after style, so that the parser-hint-popup doesn't appear for packages
+  // that we're going to include anyway
+  if (restoreFlags & KLFLib::RestoreLatex) {
+    slotSetLatex(entry.latex()); // to preserve text edit undo history...
   }
 
   u->lblOutput->display(entry.preview(), entry.preview(), false);
@@ -972,6 +976,11 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   u->txtLatex->setFocus();
 }
 
+void KLFMainWin::getMissingCmdsFor(const QString& symbol, QStringList * missingCmds,
+				   QString *guiText)
+{
+  // ....
+}
 
 void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
 {
@@ -990,18 +999,27 @@ void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
   if (cmds.isEmpty())
     return; // no need to include anything
 
-  QStringList texts;
+  QString curpreambletext = u->txtPreamble->toPlainText();
+  QStringList packages;
+  bool moreDefinitions = false;
   int k;
   for (k = 0; k < cmds.size(); ++k) {
+    if (curpreambletext.indexOf(cmds[k]) >= 0)
+      continue; // this line is already included
+
     QRegExp rx("\\\\usepackage.*\\{(\\w+)\\}");
     klfDbg(" regexp="<<rx.pattern()<<"; cmd for symbol: "<<cmds[k].trimmed());
     if (rx.exactMatch(cmds[k].trimmed())) {
-      texts << rx.cap(1); // the package name
+      packages << rx.cap(1); // the package name
     } else {
-      if (!texts.size() || texts.last() != "...") // forbit consecutive ...'s
-	texts << "<i>(some definitions)</i>";
+      // not a package inclusion
+      moreDefinitions = true;
     }
   }
+  packages.replaceInStrings(QRegExp("^(.*)$"), QString("<b>\\1</b>"));
+
+  if (packages.isEmpty() && !moreDefinitions) // nothing to include
+    return;
 
   QByteArray cmdsData = klfSaveVariantToText(QVariant(cmds));
   QString msgkey = "preambleCmdStringList:"+QString::fromLatin1(cmdsData);
@@ -1011,11 +1029,26 @@ void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
   QUrl urlactionClose = urlaction;
   urlaction.addQueryItem("preambleCmdStringList", QString::fromLatin1(cmdsData));
   urlactionClose.addQueryItem("removeMessageKey", msgkey);
+  QString requiredtext;
+  if (packages.size()) {
+    if (packages.size() == 1)
+      requiredtext += tr("package %1",
+			 "[[part of popup text, if one package only]]").arg(packages[0]);
+    else
+      requiredtext += tr("packages %1",
+			 "[[part of popup text, if multiple packages]]").arg(packages.join(", "));
+  }
+  if (moreDefinitions)
+    requiredtext += packages.size()
+      ? tr(" and <i>some more definitions</i>",
+	   "[[part of hint popup text, when packages also need to be included]]")
+      : tr("<i>some definitions</i>",
+	   "[[part of hint popup text, when no packages need to be included]]");
   mPopup->addMessage(msgkey,
 		     //"[<a href=\""+urlactionClose.toEncoded()+"\">"
 		     //"<img border=\"0\" src=\":/pics/smallclose.png\"></a>] - "+
-		     tr("<a href=\"%1\">include <b>%2</b></a> in preamble for symbol <tt>%3</tt>")
-		     .arg(urlaction.toEncoded(), texts.join(","), symbol) );
+		     tr("Symbol <tt>%3</tt> may require <a href=\"%1\">%2</a>.")
+		     .arg(urlaction.toEncoded(), requiredtext, symbol) );
   mPopup->show();
   mPopup->raise();
 }
@@ -1091,7 +1124,35 @@ void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
 {
   QMenu * menu = u->txtLatex->createStandardContextMenu(u->txtLatex->mapToGlobal(pos));
   QTextCursor cur = u->txtLatex->cursorForPosition(pos);
-  QString text = cur.block().text();
+  QString text = u->txtLatex->toPlainText();
+
+  int curpos = cur.position();
+  /*
+  // try to determine if we clicked on a symbol.
+  QRegExp rxSym("\\\\(\\w+|.)");
+  int i = text.lastIndexOf(rxSym, curpos); // search backwards from curpos
+  if (i >= 0) {
+    // matched somewhere before in text. See if we clicked on it
+    int len = rxSym.matchedLength();
+    QString symbol = text.mid(i, len);
+    if (!symbol.isEmpty()) {
+      // we got a symbol
+      KLFLatexSymbol sym = KLFLatexSymbolCache::theCache()->findSymbol(symbol);
+      QStringList neededCmds;
+      int k;
+      for (k = 0; k < sym.preamble; ++k) {
+	if (u->txtPreamble->indexOf(sym.preamble[k]) < 0)
+	  neededCmds << sym.preamble[k];
+      }
+      if (neededCmds.size()) {
+	QAction * aInsCmds = new QAction();
+      }
+    }
+  }
+  */
+  menu->addSeparator();
+  menu->addAction(QIcon(":/pics/symbols.png"), tr("Insert Symbol ..."),
+		  this, SLOT(slotSymbols()));
 
   menu->popup(pos);
 }
@@ -1273,10 +1334,19 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 	return true;
       }
       if (mPopup != NULL && ke->key() == Qt::Key_Return &&
-	  QApplication::keyboardModifiers() == Qt::AltModifier)
+	  QApplication::keyboardModifiers() == Qt::AltModifier) {
 	slotPopupAcceptAll();
-      if (mPopup != NULL && ke->key() == Qt::Key_Escape)
+	return true;
+      }
+      if (mPopup != NULL && ke->key() == Qt::Key_Escape) {
 	slotPopupClose();
+	return true;
+      }
+      if (ke->key() == Qt::Key_F9) {
+	slotExpand(true);
+	u->txtPreamble->setFocus();
+	return true;
+      }
     }
   }
 
@@ -1626,6 +1696,14 @@ void KLFMainWin::slotExpandOrShrink()
     u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.png"));
   }
 }
+void KLFMainWin::slotExpand(bool expanded)
+{
+  if (u->frmDetails->isVisible() == expanded)
+    return; // nothing to change
+  // change
+  slotExpandOrShrink();
+}
+
 
 void KLFMainWin::slotSetLatex(const QString& latex)
 {
@@ -1780,6 +1858,22 @@ QMimeData * KLFMainWin::resultToMimeData()
     mimedata->setData(mimetype, data);
   }
 
+  // add also the mime data for a KLFLibEntry
+  const QPixmap *px = u->lblOutput->pixmap();
+  KLFLibEntry e = KLFLibEntry(_output.input.latex, QDateTime::currentDateTime(),
+			      (px?px->toImage():QImage()),
+			      currentStyle());
+  KLFAbstractLibEntryMimeEncoder *encoder =
+    KLFAbstractLibEntryMimeEncoder::findEncoderFor("application/x-klf-libentries", true);
+  if (encoder != NULL) {
+    QByteArray klflibdata = encoder->encodeMime(KLFLibEntryList()<<e, QVariantMap(),
+						"application/x-klf-libentries");
+    if (klflibdata.size())
+      mimedata->setData("application/x-klf-libentries", klflibdata);
+    else
+      qWarning()<<KLF_FUNC_NAME<<": application/x-klf-libentries encoder returned empty data!";
+  }
+
   return mimedata;
 }
 
@@ -1798,7 +1892,7 @@ void KLFMainWin::slotDrag()
   drag->setPixmap(p);
   drag->setDragCursor(p, Qt::MoveAction);
   drag->setHotSpot(QPoint(p.width()/2, p.height()));
-  drag->exec();
+  drag->exec(Qt::CopyAction);
 }
 void KLFMainWin::slotCopy()
 {

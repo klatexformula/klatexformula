@@ -169,7 +169,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette&lt;/p&gt;</string>
+           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette  [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
           </property>
           <property name="whatsThis">
            <string comment="whatsthis text">Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</string>
@@ -245,7 +245,7 @@
         <property name="frameShadow">
          <enum>QFrame::Sunken</enum>
         </property>
-        <layout class="QGridLayout" name="lyt_frmOutput">
+        <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="1,0">
          <property name="horizontalSpacing">
           <number>6</number>
          </property>

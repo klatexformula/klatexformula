@@ -2,6 +2,23 @@
 <!-- Latex Symbol List for KLatexFormula symbol palette -->
 <!-- $Id$ -->
 <latexsymbollist version="1.0" >
+  <!-- Notes
+    * Symbols are grouped in categories, which will be shown on different
+      pages in the symbols palette.
+    * Generally the order of the different element types inside a
+      <sym>...</sym> declaration isn't important
+    * Packages can be included with a <usepackage name="...">
+    * Arbitrary lines in the preamble can be inserted with
+      <preambleline>...</preambleline>
+    * BBox settings can be altered for the symbol pixmap generation,
+      see symbol "\int" for an example. (values are "top,right,bottom,left"
+      margins in posctscript points)
+    * <sym textmode="true">...</sym> specifies a symbol that is to be inserted
+      in text mode, not math mode
+    * Symbols that are marked <hidden/> won't display in the symbols palette,
+      however they will be recognized by the editor and a popup will suggest
+      to insert missing packages when that symbol is typed.
+    -->
   <category name="Relation Symbols">
     <sym><latex>\pm</latex></sym>
     <sym><latex>\cap</latex></sym>
@@ -86,7 +103,7 @@
     <sym><usepackage name="amsmath"/><bb expand="1,5,1,1"/><latex>\iiint</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iiiint</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\idotsint</latex></sym>
-    <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\oint</latex></sym>
+    <sym><bb expand="1,4,1,1"/><latex>\oint</latex></sym>
     <sym><bb expand="1,4,1,1"/><usepackage name="wasysym"/><latex>\varoint</latex></sym>
     <sym><bb expand="1,4,1,1"/><usepackage name="esint"/><latex>\dotsint</latex></sym>
     <sym><bb expand="1,4,1,1"/><usepackage name="esint"/><latex>\fint</latex></sym>
@@ -267,7 +284,7 @@
     <sym><usepackage name="stmaryrd"/><latex>\curlywedgeuparrow</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\fatbslash</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\fatsemi</latex></sym>
-    <sym><usepackage name="stmaryrd"/><latex>\fatslash</latex></sym>
+    <sym><usepackage name="stmaryrd"/><bb expand="1,2,1,1"/><latex>\fatslash</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\interleave</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\leftslice</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\merge</latex></sym>
@@ -447,6 +464,17 @@
     <sym><usepackage name="mathtools"/><latex>\coloneqq</latex></sym>
     <sym><usepackage name="mathtools"/><latex>\Coloneqq</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\stackrel{\text{\tiny def}}{=}</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><hidden/><latex>\ket</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex>\ket{\psi}</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><hidden/><latex>\bra</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex>\bra{\psi}</latex></sym>
+    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><hidden/><latex>\braket</latex></sym>    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex>\braket{\phi}{\psi}</latex></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right|
+ #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><hidden/><latex>\matrixel</latex></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right|
+ #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex>\matrixel{\phi}{H}{\psi}</latex></sym>
+    <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
+    <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
   </category>
   <category name="Delimiters">
     <sym><latex>\vert</latex></sym>
@@ -481,6 +509,8 @@
     <sym><latex>\sqrt{xyz}</latex></sym>
     <sym><latex>\sqrt[n]{xyz}</latex></sym>
     <sym><latex>\frac{a}{b}</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><hidden/><latex>\abs</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex>\abs{x}</latex></sym>
   </category>
   <category name="Greek Alphabet">
     <sym><latex>\alpha</latex></sym>
