@@ -146,6 +146,8 @@ public:
   KLFLatexSymbols(QWidget* parent, const KLFBackend::klfSettings& baseSettings);
   ~KLFLatexSymbols();
 
+  bool event(QEvent *event);
+
 signals:
 
   void insertSymbol(const KLFLatexSymbol& symb);

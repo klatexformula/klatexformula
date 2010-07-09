@@ -1465,18 +1465,42 @@ void KLFLibBrowser::slotOpenAll()
 
 bool KLFLibBrowser::slotExport()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   /** \bug use any known local-file-based export filter (supporting sub-resources), using a
    * create-local-file-widget */
   const QString exportFilter = tr("Library Database File (*.klf.db);;All Files (*)");
   KLFLibExportDialog dlg(this, exportFilter);
-  dlg.exec();
-  klfDbg( ": Exporting : "<<dlg.selectedExportUrls() ) ;
+  QUrl exportToUrl;
+  QList<QUrl> exportUrls;
+  bool repeat;
+  do {
+    repeat = false;
 
-  if (dlg.result() != QDialog::Accepted)
-    return false;
+    dlg.exec();
 
-  QUrl exportToUrl = dlg.exportToUrl();
-  QList<QUrl> exportUrls = dlg.selectedExportUrls();
+    klfDbg( ": Dialog selected: "<<dlg.selectedExportUrls() ) ;
+    
+    if (dlg.result() != QDialog::Accepted)
+      return false;
+
+    exportToUrl = dlg.exportToUrl();
+    exportUrls = dlg.selectedExportUrls();
+    if (QFile::exists(exportToUrl.path())) {
+      QMessageBox::StandardButton result =
+	QMessageBox::warning(this, tr("Overwrite?"),
+			     tr("The specified file already exists. Overwrite it?"),
+			     QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel,
+			     QMessageBox::No);
+      if (result == QMessageBox::Cancel)
+	return false;
+      if (result != QMessageBox::Yes)
+	repeat = true;
+    }
+  } while (repeat);
+
+  if (QFile::exists(exportToUrl.path()))
+    QFile::remove(exportToUrl.path());
 
   KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(exportToUrl.scheme());
   if (factory == NULL) {
@@ -1492,8 +1516,79 @@ bool KLFLibBrowser::slotExport()
 			  tr("Can't create resource %1!").arg(exportToUrl.path()));
     return false;
   }
-  /** \bug  ................................. IMPLEMENT THIS .............................. */
-  QMessageBox::information(this, "..............", "NOT YET IMPLEMENTED !!");
+  exportRes->setTitle(tr("Export %1").arg(QDateTime::currentDateTime()
+					  .toString(Qt::DefaultLocaleShortDate)));
+
+  klfDbg("Export: to file "<<exportToUrl.toString()<<". Export: "<<exportUrls);
+
+  // visual feedback for export
+  KLFProgressDialog pdlg(QString(), this);
+  connect(exportRes, SIGNAL(operationStartReportingProgress(KLFProgressReporter *,
+							    const QString&)),
+	  &pdlg, SLOT(startReportingProgress(KLFProgressReporter *)));
+  pdlg.setAutoClose(false);
+  pdlg.setAutoReset(false);
+
+  bool fail = false;
+  QStringList subresources;
+  int k;
+  for (k = 0; k < exportUrls.size(); ++k) {
+    klfDbg("Exporting "<<exportUrls[k]<<" ...");
+    QUrl u = exportUrls[k];
+    QString usr = u.hasQueryItem("klfDefaultSubResource")
+      ? u.queryItemValue("klfDefaultSubResource")
+      : QString();
+    QString sr = usr;
+    if (usr.isEmpty()) {
+      // the resource doesn't support sub-resources
+      usr = u.path().section('/', -1, -1, QString::SectionSkipEmpty); // last path element
+    }
+    usr.replace(QRegExp("[^a-zA-Z0-9_-]"), "_");
+    QString subres = usr;
+    int counter = 1;
+    while (subresources.contains(subres))
+      subres = usr+"_"+QString::number(counter++);
+    // subres is the name of the subresource we will create
+    bool r = exportRes->createSubResource(subres);
+    if (!r) {
+      fail = true;
+      qWarning()<<KLF_FUNC_NAME<<" exporting "<<u<<" failed!";
+      continue;
+    }
+    subresources.append(subres);
+    KLFLibResourceEngine *res = getOpenResource(u);
+    if (res == NULL) {
+      fail = true;
+      qWarning()<<KLF_FUNC_NAME<<" can't find open resource="<<u<<" !";
+      continue;
+    }
+    QString title;
+    if (usr.isEmpty()) {
+      title = res->title();
+    } else {
+      if (res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps) {
+	title = res->title() + ": " +
+	  res->subResourceProperty(usr, KLFLibResourceEngine::SubResPropTitle).toString();
+      } else {
+	title = res->title() + ": " + usr;
+      }
+    }
+    exportRes->setSubResourceProperty(subres, KLFLibResourceEngine::SubResPropTitle, title);
+
+    pdlg.setDescriptiveText(tr("Exporting ... %3 (%1/%2)")
+			    .arg(k+1).arg(exportUrls.size()).arg(title));
+
+    QList<KLFLibResourceEngine::KLFLibEntryWithId> elistwid = res->allEntries(usr);
+    /** \bug ....... Add a 'KLFLibEntryList KLFLibResourceEngine::entryList(idList)'
+     * function so that we don't have to manually get rid of ID's ! */
+    KLFLibEntryList elist;
+    int j;
+    for (j = 0; j < elistwid.size(); ++j)
+      elist << elistwid[j].entry;
+
+    exportRes->insertEntries(subres, elist);
+  }
+
   return false;
 }
 

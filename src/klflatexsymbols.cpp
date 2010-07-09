@@ -164,13 +164,22 @@ QDataStream& operator>>(QDataStream& stream, KLFLatexSymbol& s)
 
 KLFLatexSymbolsCache * KLFLatexSymbolsCache::staticCache = NULL;
 
+static QString __rel_cache_file = QString();
+static QString relcachefile()
+{
+  if (__rel_cache_file.isEmpty())
+    __rel_cache_file =
+      QString("/symbolspixmapcache-klf%1.%2").arg(klfVersionMaj()).arg(klfVersionMin());
+  return __rel_cache_file;
+}
+
 KLFLatexSymbolsCache::KLFLatexSymbolsCache()
 {
   // load the cache
 
   QStringList cachefiles;
   cachefiles
-    << klfconfig.homeConfigDir+"/symbolspixmapcache-klf"+klfVersionMaj()+"."+klfVersionMin()
+    << klfconfig.homeConfigDir+relcachefile()
     << ":/data/symbolspixmapcache_base" ;
   int k;
   bool ok = false;
@@ -393,8 +402,7 @@ KLFLatexSymbolsCache * KLFLatexSymbolsCache::theCache()
 void KLFLatexSymbolsCache::saveTheCache()
 {
   if (staticCache->cacheNeedsSave()) {
-    QString s = 
-      klfconfig.homeConfigDir + "/symbolspixmapcache-klf"+klfVersionMaj()+"."+klfVersionMin() ;
+    QString s = klfconfig.homeConfigDir + relcachefile();
     QFile f(s);
     if ( ! f.open(QIODevice::WriteOnly) ) {
       qWarning() << KLF_FUNC_NAME<< "Can't save cache to file "<< s << "!";
@@ -645,6 +653,10 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
 
   slotShowCategory(0);
 
+  QFont f = u->cbxCategory->font();
+  f.setPointSize(QFontInfo(f).pointSize()+1);
+  u->cbxCategory->setFont(f);
+
   connect(u->cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));
   connect(u->cbxCategory, SIGNAL(activated(int)), this, SLOT(slotShowCategory(int)));
   connect(u->btnClose, SIGNAL(clicked()), this, SLOT(close()));
@@ -680,5 +692,11 @@ void KLFLatexSymbols::showEvent(QShowEvent *e)
 }
 
 
-
+bool KLFLatexSymbols::event(QEvent *e)
+{
+  if (e->type() == QEvent::Polish) {
+    u->cbxCategory->setMinimumHeight(u->cbxCategory->sizeHint().height()+5);
+  }
+  return QWidget::event(e);
+}
 

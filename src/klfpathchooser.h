@@ -36,6 +36,7 @@ class KLFPathChooser : public QFrame
 
   // mode: 0=open, 1=save, 2=choose dir
   Q_PROPERTY(int mode READ mode WRITE setMode)
+  Q_PROPERTY(bool dialogConfirmOverwrite READ dialogConfirmOverwrite WRITE setDialogConfirmOverwrite)
   Q_PROPERTY(QString caption READ caption WRITE setCaption)
   Q_PROPERTY(QString filter READ filter WRITE setFilter)
   Q_PROPERTY(QString path READ path WRITE setPath USER true)
@@ -49,11 +50,15 @@ public:
   QString filter() const { return _filter; }
   QString path() const;
 
+  bool dialogConfirmOverwrite() const { return _dlgconfirmoverwrite; }
+
 public slots:
   void setMode(int mode);
   void setCaption(const QString& caption);
   void setFilter(const QString& filter);
   void setPath(const QString& path);
+
+  void setDialogConfirmOverwrite(bool confirm) { _dlgconfirmoverwrite = confirm; }
 
   void requestBrowse();
 
@@ -61,6 +66,7 @@ private:
   int _mode;
   QString _caption;
   QString _filter;
+  bool _dlgconfirmoverwrite;
 
   QLineEdit *txtPath;
   QPushButton *btnBrowse;

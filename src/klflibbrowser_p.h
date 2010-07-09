@@ -437,11 +437,15 @@ public:
     pathExportTo->setFilter(exportFilter);
     pathExportTo->setPath(QDir::toNativeSeparators(QDir::homePath()+"/"+tr("klf_export.klf.db")));
     pathExportTo->setFrameStyle(QFrame::NoFrame|QFrame::Plain);
+    pathExportTo->setDialogConfirmOverwrite(false);
 
     pModel = new QStandardItemModel(this);
     lstRes->setModel(pModel);
 
     connect(pModel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(slotItemChanged(QStandardItem*)));
+
+    connect(btnSelectAll, SIGNAL(clicked()), this, SLOT(selectAll()));
+    connect(btnUnselectAll, SIGNAL(clicked()), this, SLOT(unselectAll()));
 
     populateExportList();
   }
@@ -477,6 +481,23 @@ public:
       }
     }
     return urlList;
+  }
+
+
+public slots:
+
+  void selectAll(bool select = true)
+  {
+    // select all root items, their children will follow by cascade
+    QStandardItem *root = pModel->invisibleRootItem();
+    int k;
+    for (k = 0; k < root->rowCount(); ++k) {
+      root->child(k)->setCheckState(select ? Qt::Checked : Qt::Unchecked);
+    }
+  }
+  void unselectAll()
+  {
+    selectAll(false);
   }
 
 private slots:

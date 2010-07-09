@@ -284,6 +284,7 @@ private slots:
   void slotPopupAcceptAll();
 
   void slotEditorContextMenu(const QPoint& pos);
+  void slotInsertMissingPackagesFromActionSender();
 
 protected:
   Ui::KLFMainWin *u;
@@ -359,7 +360,8 @@ protected:
 
   QString _widgetstyle;
 
-  void getMissingCmdsFor(const QString& symbol, QStringList * missingCmds, QString *guiText);
+  void getMissingCmdsFor(const QString& symbol, QStringList * missingCmds, QString *guiText,
+			 bool wantHtmlText = true);
 };
 
 #endif

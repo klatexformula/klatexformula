@@ -476,7 +476,7 @@
     <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
   </category>
-  <category name="Delimiters">
+  <category name="Delimiters and Accents">
     <sym><latex>\vert</latex></sym>
     <sym><latex>\Vert</latex></sym>
     <sym><latex>\lbrace</latex></sym>
@@ -511,6 +511,16 @@
     <sym><latex>\frac{a}{b}</latex></sym>
     <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><hidden/><latex>\abs</latex></sym>
     <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex>\abs{x}</latex></sym>
+        <sym><latex>\bar{a}</latex></sym>
+    <sym><latex>\vec{a}</latex></sym>
+    <sym><latex>\dot{a}</latex></sym>
+    <sym><latex>\ddot{a}</latex></sym>
+    <sym><latex>\hat{a}</latex></sym>
+    <sym><latex>\check{a}</latex></sym>
+    <sym><latex>\breve{a}</latex></sym>
+    <sym><latex>\tilde{a}</latex></sym>
+    <sym><latex>\acute{a}</latex></sym>
+    <sym><latex>\grave{a}</latex></sym>
   </category>
   <category name="Greek Alphabet">
     <sym><latex>\alpha</latex></sym>
@@ -811,21 +821,9 @@
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{\Omega}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{\nabla}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{\infty}</latex></sym>
-    <sym><usepackage name="amsmath"/><latex>\boldsymbol{[bold\ sym.]}</latex></sym>
+    <sym><usepackage name="amsmath"/><latex>\boldsymbol{[bold\ symbol]}</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\text</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\text{[Regular text]}</latex></sym>
-  </category>
-  <category name="Math Accents">
-    <sym><latex>\bar{a}</latex></sym>
-    <sym><latex>\vec{a}</latex></sym>
-    <sym><latex>\dot{a}</latex></sym>
-    <sym><latex>\ddot{a}</latex></sym>
-    <sym><latex>\hat{a}</latex></sym>
-    <sym><latex>\check{a}</latex></sym>
-    <sym><latex>\breve{a}</latex></sym>
-    <sym><latex>\tilde{a}</latex></sym>
-    <sym><latex>\acute{a}</latex></sym>
-    <sym><latex>\grave{a}</latex></sym>
   </category>
   <category name="Text Mode LaTeX Special Characters">
     <sym textmode="true"><latex>\$</latex></sym>

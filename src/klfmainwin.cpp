@@ -977,17 +977,21 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
 }
 
 void KLFMainWin::getMissingCmdsFor(const QString& symbol, QStringList * missingCmds,
-				   QString *guiText)
+				   QString *guiText, bool wantHtmlText)
 {
-  // ....
-}
+  if (missingCmds == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": missingCmds is NULL!";
+    return;
+  }
+  if (guiText == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": guiText is NULL!";
+    return;
+  }
 
-void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
-{
-  if (mPopup == NULL)
-    mPopup = new KLFMainWinPopup(this);
+  missingCmds->clear();
+  *guiText = QString();
 
-  if (!klfconfig.UI.showHintPopups)
+  if (symbol.isEmpty())
     return;
 
   KLFLatexSymbol sym = KLFLatexSymbolsCache::theCache()->findSymbol(symbol);
@@ -996,8 +1000,9 @@ void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
 
   QStringList cmds = sym.preamble;
   klfDbg("Got symbol for "<<symbol<<"; cmds is "<<cmds);
-  if (cmds.isEmpty())
+  if (cmds.isEmpty()) {
     return; // no need to include anything
+  }
 
   QString curpreambletext = u->txtPreamble->toPlainText();
   QStringList packages;
@@ -1006,6 +1011,8 @@ void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
   for (k = 0; k < cmds.size(); ++k) {
     if (curpreambletext.indexOf(cmds[k]) >= 0)
       continue; // this line is already included
+
+    missingCmds->append(cmds[k]);
 
     QRegExp rx("\\\\usepackage.*\\{(\\w+)\\}");
     klfDbg(" regexp="<<rx.pattern()<<"; cmd for symbol: "<<cmds[k].trimmed());
@@ -1016,19 +1023,9 @@ void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
       moreDefinitions = true;
     }
   }
-  packages.replaceInStrings(QRegExp("^(.*)$"), QString("<b>\\1</b>"));
+  if (wantHtmlText)
+    packages.replaceInStrings(QRegExp("^(.*)$"), QString("<b>\\1</b>"));
 
-  if (packages.isEmpty() && !moreDefinitions) // nothing to include
-    return;
-
-  QByteArray cmdsData = klfSaveVariantToText(QVariant(cmds));
-  QString msgkey = "preambleCmdStringList:"+QString::fromLatin1(cmdsData);
-  QUrl urlaction;
-  urlaction.setScheme("klfaction");
-  urlaction.setPath("/popup");
-  QUrl urlactionClose = urlaction;
-  urlaction.addQueryItem("preambleCmdStringList", QString::fromLatin1(cmdsData));
-  urlactionClose.addQueryItem("removeMessageKey", msgkey);
   QString requiredtext;
   if (packages.size()) {
     if (packages.size() == 1)
@@ -1044,6 +1041,36 @@ void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
 	   "[[part of hint popup text, when packages also need to be included]]")
       : tr("<i>some definitions</i>",
 	   "[[part of hint popup text, when no packages need to be included]]");
+  if (!wantHtmlText)
+    requiredtext.replace(QRegExp("<[^>]*>"), "");
+
+  *guiText = requiredtext;
+}
+
+void KLFMainWin::slotNewSymbolTyped(const QString& symbol)
+{
+  if (mPopup == NULL)
+    mPopup = new KLFMainWinPopup(this);
+
+  if (!klfconfig.UI.showHintPopups)
+    return;
+
+  QStringList cmds;
+  QString requiredtext;
+
+  getMissingCmdsFor(symbol, &cmds, &requiredtext);
+
+  if (cmds.isEmpty()) // nothing to include
+    return;
+
+  QByteArray cmdsData = klfSaveVariantToText(QVariant(cmds));
+  QString msgkey = "preambleCmdStringList:"+QString::fromLatin1(cmdsData);
+  QUrl urlaction;
+  urlaction.setScheme("klfaction");
+  urlaction.setPath("/popup");
+  QUrl urlactionClose = urlaction;
+  urlaction.addQueryItem("preambleCmdStringList", QString::fromLatin1(cmdsData));
+  urlactionClose.addQueryItem("removeMessageKey", msgkey);
   mPopup->addMessage(msgkey,
 		     //"[<a href=\""+urlactionClose.toEncoded()+"\">"
 		     //"<img border=\"0\" src=\":/pics/smallclose.png\"></a>] - "+
@@ -1123,39 +1150,57 @@ void KLFMainWin::slotPopupAcceptAll()
 void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
 {
   QMenu * menu = u->txtLatex->createStandardContextMenu(u->txtLatex->mapToGlobal(pos));
+
+  menu->addSeparator();
+
+  // try to determine if we clicked on a symbol, and suggest to include the corresponding package
+
   QTextCursor cur = u->txtLatex->cursorForPosition(pos);
   QString text = u->txtLatex->toPlainText();
-
   int curpos = cur.position();
-  /*
-  // try to determine if we clicked on a symbol.
+
   QRegExp rxSym("\\\\(\\w+|.)");
   int i = text.lastIndexOf(rxSym, curpos); // search backwards from curpos
   if (i >= 0) {
     // matched somewhere before in text. See if we clicked on it
     int len = rxSym.matchedLength();
     QString symbol = text.mid(i, len);
-    if (!symbol.isEmpty()) {
-      // we got a symbol
-      KLFLatexSymbol sym = KLFLatexSymbolCache::theCache()->findSymbol(symbol);
-      QStringList neededCmds;
-      int k;
-      for (k = 0; k < sym.preamble; ++k) {
-	if (u->txtPreamble->indexOf(sym.preamble[k]) < 0)
-	  neededCmds << sym.preamble[k];
-      }
-      if (neededCmds.size()) {
-	QAction * aInsCmds = new QAction();
-      }
+    QStringList cmds;
+    QString guitext;
+    getMissingCmdsFor(symbol, &cmds, &guitext, false);
+    if (cmds.size()) {
+      QAction * aInsCmds = new QAction(menu);
+      //      aInsCmds->setText(tr("Include %1 for %2",
+      //			"[[menu entry to insert missing packages for a symbol]]")
+      //			.arg(guitext, symbol));
+      aInsCmds->setText(tr("Include missing definitions for %1").arg(symbol));
+      aInsCmds->setData(QVariant(cmds));
+      connect(aInsCmds, SIGNAL(triggered()), this, SLOT(slotInsertMissingPackagesFromActionSender()));
+      menu->addAction(aInsCmds);
     }
   }
-  */
-  menu->addSeparator();
+
   menu->addAction(QIcon(":/pics/symbols.png"), tr("Insert Symbol ..."),
 		  this, SLOT(slotSymbols()));
 
   menu->popup(pos);
 }
+
+void KLFMainWin::slotInsertMissingPackagesFromActionSender()
+{
+  QAction * a = qobject_cast<QAction*>(sender());
+  if (a == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": NULL QAction sender!";
+    return;
+  }
+  QVariant data = a->data();
+  QStringList cmds = data.toStringList();
+  int k;
+  for (k = 0; k < cmds.size(); ++k) {
+    slotEnsurePreambleCmd(cmds[k]);
+  }
+}
+
 
 
 void KLFMainWin::slotSymbolsButtonRefreshState(bool on)

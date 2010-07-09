@@ -268,3 +268,15 @@ QToolTip {
 	border-radius: 2px;
 	opacity: 255;
 }
+
+QProgressBar {
+	background-color: rgba(0,0,0,0);
+	color: rgb(200,200,200);
+	text-align: center;
+	border: 1px solid rgb(128, 128, 128);
+	border-radius: 2px;
+}
+QProgressBar::chunk {
+	background-color: rgba(128,128,128,128);
+	width: 10px;
+}

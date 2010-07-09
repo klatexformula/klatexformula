@@ -31,7 +31,7 @@
 
 
 KLFPathChooser::KLFPathChooser(QWidget *parent)
-  : QFrame(parent), _mode(0), _caption(), _filter()
+  : QFrame(parent), _mode(0), _caption(), _filter(), _dlgconfirmoverwrite(true)
 {
   //  setFrameShape(QFrame::Box);
   //  setFrameShadow(QFrame::Raised);
@@ -67,10 +67,14 @@ void KLFPathChooser::setPath(const QString& path)
 
 void KLFPathChooser::requestBrowse()
 {
+  QFileDialog::Options options = 0;
+  if (!_dlgconfirmoverwrite)
+    options |= QFileDialog::DontConfirmOverwrite;
   QString s;
   if (_mode == 1) {
     // save
-    s = QFileDialog::getSaveFileName(this, _caption, txtPath->text(), _filter, &_selectedfilter);
+    s = QFileDialog::getSaveFileName(this, _caption, txtPath->text(), _filter,
+				     &_selectedfilter, options);
   } else if (_mode == 2) {
     s = QFileDialog::getExistingDirectory(this, _caption, txtPath->text(), 0/*options*/);
   } else {

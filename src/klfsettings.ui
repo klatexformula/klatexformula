@@ -144,7 +144,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>x</string>
+             <string notr="true">x</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -234,7 +234,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>x</string>
+             <string notr="true">x</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -277,10 +277,19 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="chkShowHintPopups">
-         <property name="text">
-          <string>Suggest inclusion of detected missing packages</string>
+        <widget class="QGroupBox" name="gbxPopupHints">
+         <property name="title">
+          <string>Popup Hints</string>
          </property>
+         <layout class="QGridLayout" name="gridLayout_9">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="chkShowHintPopups">
+            <property name="text">
+             <string>Suggest inclusion of detected missing packages</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
