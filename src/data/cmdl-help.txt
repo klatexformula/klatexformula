@@ -91,5 +91,7 @@ NOTES
     default paths can be included with an empty section ('::') or leading or trailing ':'.
   * Please report any bugs and malfunctions to the author.
 
+More information is available on http://klatexformula.sourceforge.net/.
+
 Have a lot of fun!
 

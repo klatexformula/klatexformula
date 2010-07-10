@@ -93,3 +93,5 @@ REMARQUES
     en rajoutant une section vide (« :: ») ou un caractère « : » en début ou en fin de chaîne.
   * Merci d'annoncer à l'auteur les éventuels bugs et dysfonctionnements du programme.
 
+Plus d'informations sont disponibles sur http://klatexformula.sourceforge.net/.
+
