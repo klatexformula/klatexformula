@@ -60,14 +60,14 @@
 #include "klflibview_p.h"
 
 
-#ifndef KLF_DEBUG
-// Qt doesn't provide this operator out of debug mode, however we need it to feed
-// into qWarning()<< ...
-QDebug& operator<<(QDebug& dbg, const QModelIndex &index)
-{
-  return dbg << "QModelIndex(row="<<index.row()<<";data="<<index.internalPointer()<<")";
-}
-#endif
+// #ifndef KLF_DEBUG
+// // Qt doesn't provide this operator out of debug mode, however we need it to feed
+// // into qWarning()<< ...
+// QDebug& operator<<(QDebug& dbg, const QModelIndex &index)
+// {
+//   return dbg << "QModelIndex(row="<<index.row()<<";data="<<index.internalPointer()<<")";
+// }
+// #endif
 
 
 // ---------------------------------------------------
@@ -1309,6 +1309,21 @@ uint KLFLibModel::flavorFlags() const
   return pFlavorFlags;
 }
 
+void KLFLibModel::prefetch(const QModelIndexList& indexes) const
+{
+  int k;
+  for (k = 0; k < indexes.size(); ++k) {
+    if (!indexes[k].isValid())
+      continue;
+    KLFLibModelCache::NodeId p = pCache->getNodeForIndex(indexes[k]);
+    if (!p.valid() || p.isRoot()) {
+      klfDbg("Invalid index: indexes[k].row="<<indexes[k].row());
+      continue;
+    }
+    pCache->ensureNotMinimalist(p);
+  }
+}
+
 QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 {
   //  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
@@ -1418,7 +1433,7 @@ Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
   if (p.kind == KLFLibModelCache::CategoryLabelKind)
     return Qt::ItemIsEnabled | flagdropenabled;
 
-  qWarning()<<KLF_FUNC_NAME<<": bad item kind! index="<<index<<"; p="<<p;
+  qWarning()<<KLF_FUNC_NAME<<": bad item kind! index-row="<<index.row()<<"; p="<<p;
 
   // by default (should never happen)
   return 0;
@@ -2120,6 +2135,20 @@ bool KLFLibViewDelegate::editorEvent(QEvent */*event*/, QAbstractItemModel */*mo
 {
   return false;
 }
+/** \internal */
+class _klf_block_progress_blocker
+{
+  KLFLibResourceEngine *res;
+public:
+  _klf_block_progress_blocker(KLFLibResourceEngine *r) : res(r)
+  {
+    res->blockProgressReporting(true);
+  }
+  ~_klf_block_progress_blocker()
+  {
+    res->blockProgressReporting(false);
+  }
+};
 void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& option,
 			       const QModelIndex& index) const
 {
@@ -2130,6 +2159,11 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
   pp.option = &option;
   pp.innerRectImage = QRect(option.rect.topLeft()+QPoint(2,2), option.rect.size()-QSize(4,4));
   pp.innerRectText = QRect(option.rect.topLeft()+QPoint(4,2), option.rect.size()-QSize(8,4));
+
+#ifdef Q_WS_MAC
+  // block progress reporting on MAC to avoid repaint recursions
+  _klf_block_progress_blocker(qobject_cast<KLFLibModel*>(const_cast<QAbstractItemModel*>(index.model()))->resource());
+#endif
 
   painter->save();
 
@@ -2509,7 +2543,7 @@ bool KLFLibViewDelegate::func_indexHasSelectedDescendant(const QModelIndex& pare
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (!parent.isValid()) {
-    qWarning()<<KLF_FUNC_NAME<<": parent is invalid! parent="<<parent;
+    qWarning()<<KLF_FUNC_NAME<<": parent is invalid!";
     return false;
   }
   if (selectionIntersectsIndexChildren(pSelModel->selection(), parent)) {
@@ -2518,7 +2552,7 @@ bool KLFLibViewDelegate::func_indexHasSelectedDescendant(const QModelIndex& pare
   }
   const QAbstractItemModel *model = parent.model();
   if (model == NULL) {
-    qWarning()<<KLF_FUNC_NAME<<": parent has NULL model! parent="<<parent;
+    qWarning()<<KLF_FUNC_NAME<<": parent has NULL model!";
     return false;
   }
 
@@ -2614,6 +2648,8 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 
   lyt->addWidget(pView);
 
+  //  pView->setViewport(new KLFNoRecurseRepaintWidget(this));
+
   pView->setSelectionBehavior(QAbstractItemView::SelectRows);
   pView->setSelectionMode(QAbstractItemView::ExtendedSelection);
   pView->setDragEnabled(true);
@@ -2624,7 +2660,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   pView->setItemDelegate(pDelegate);
   pView->viewport()->installEventFilter(this);
   pView->installEventFilter(this);
-  //  installEventFilter(this);
+  installEventFilter(this);
 
   connect(pView, SIGNAL(clicked(const QModelIndex&)),
 	  this, SLOT(slotViewItemClicked(const QModelIndex&)));

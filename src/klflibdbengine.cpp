@@ -538,7 +538,8 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 							  quotedDataTableName(subResource)));
 
   KLFProgressReporter progr(0, idList.size(), this);
-  emit operationStartReportingProgress(&progr, tr("Fetching items from library database ..."));
+  if (!thisOperationProgressBlocked())
+    emit operationStartReportingProgress(&progr, tr("Fetching items from library database ..."));
 
   QList<KLFLibEntryWithId> eList;
 
@@ -692,7 +693,8 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   int count = q.size();
 
   KLFProgressReporter progr(0, count, this);
-  emit operationStartReportingProgress(&progr, tr("Fetching items from library database ..."));
+  if (!thisOperationProgressBlocked())
+    emit operationStartReportingProgress(&progr, tr("Fetching items from library database ..."));
 
   int n = 0;
   while (q.next()) {
@@ -1054,7 +1056,8 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
   ensureDataTableColumnsExist(subres);
 
   KLFProgressReporter progr(0, entrylist.size(), this);
-  emit operationStartReportingProgress(&progr, tr("Inserting items into library database ..."));
+  if (!thisOperationProgressBlocked())
+    emit operationStartReportingProgress(&progr, tr("Inserting items into library database ..."));
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("INSERT INTO " + quotedDataTableName(subres) + " (" + props.join(",") + ") "
@@ -1136,7 +1139,8 @@ bool KLFLibDBEngine::changeEntries(const QString& subResource, const QList<entry
   const int idBindValueNum = k;
 
   KLFProgressReporter progr(0, idlist.size(), this);
-  emit operationStartReportingProgress(&progr, tr("Changing entries in database ..."));
+  if (!thisOperationProgressBlocked())
+    emit operationStartReportingProgress(&progr, tr("Changing entries in database ..."));
 
   bool failed = false;
   for (k = 0; k < idlist.size(); ++k) {
@@ -1180,7 +1184,8 @@ bool KLFLibDBEngine::deleteEntries(const QString& subResource, const QList<entry
   q.prepare(QString("DELETE FROM %1 WHERE id = ?").arg(quotedDataTableName(subResource)));
 
   KLFProgressReporter progr(0, idlist.size(), this);
-  emit operationStartReportingProgress(&progr, tr("Removing entries from database ..."));
+  if (!thisOperationProgressBlocked())
+    emit operationStartReportingProgress(&progr, tr("Removing entries from database ..."));
 
   for (k = 0; k < idlist.size(); ++k) {
     if (k % 10 == 0)

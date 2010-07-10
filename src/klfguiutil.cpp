@@ -87,7 +87,7 @@ void KLFProgressDialog::setup(bool canCancel)
   setAutoClose(true);
   setAutoReset(true);
   setModal(true);
-  setWindowModality(Qt::ApplicationModal);
+  //  setWindowModality(Qt::ApplicationModal);
   setWindowIcon(QIcon(":/pics/klatexformula-16.png"));
   QPushButton *cbtn = new QPushButton(tr("Cancel"), this);
   setCancelButton(cbtn);
@@ -119,6 +119,25 @@ void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressRepo
   setRange(progressReporter->min(), progressReporter->max());
   connect(progressReporter, SIGNAL(progress(int)), this, SLOT(setValue(int)));
 }
+
+void KLFProgressDialog::setValue(int value)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
+  klfDbg("value="<<value);
+  //#ifdef Q_WS_MAC  // This fails on mac with recursive repaint events
+  QProgressDialog::setValue(value);
+  //#endif
+}
+
+void KLFProgressDialog::paintEvent(QPaintEvent *event)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
+  QProgressDialog::paintEvent(event);
+}
+
+
+// --------------------------
+
 
 
 KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent)

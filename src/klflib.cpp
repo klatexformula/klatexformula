@@ -459,7 +459,8 @@ KLFLibEntryMimeEncoder __klf_lib_mime_encoder;
 KLFLibResourceEngine::KLFLibResourceEngine(const QUrl& url, uint featureflags,
 					   QObject *parent)
   : QObject(parent), KLFPropertizedObject("KLFLibResourceEngine"), pUrl(url),
-    pFeatureFlags(featureflags), pReadOnly(false), pDefaultSubResource(QString())
+    pFeatureFlags(featureflags), pReadOnly(false), pDefaultSubResource(QString()),
+    pProgressBlocked(false), pThisOperationProgressBlockedOnly(false)
 {
   initRegisteredProperties();
 
@@ -674,7 +675,25 @@ QList<KLFLib::entryId> KLFLibResourceEngine::allIds()
   return allIds(pDefaultSubResource);
 }
 
+void KLFLibResourceEngine::blockProgressReportingForNextOperation()
+{
+  pProgressBlocked = true;
+  pThisOperationProgressBlockedOnly = true;
+}
 
+void KLFLibResourceEngine::blockProgressReporting(bool block)
+{
+  pProgressBlocked = true;
+  pThisOperationProgressBlockedOnly = false;
+}
+
+bool KLFLibResourceEngine::thisOperationProgressBlocked() const
+{
+  bool blocked = pProgressBlocked;
+  if (pThisOperationProgressBlockedOnly)
+    pProgressBlocked = false; // reset for next operation
+  return blocked;
+}
 
 
 KLFLibResourceEngine::entryId KLFLibResourceEngine::insertEntry(const QString& subResource,

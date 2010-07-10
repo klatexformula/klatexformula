@@ -48,6 +48,7 @@ class KLFHelpDialogCommon
 {
 public:
   KLFHelpDialogCommon(const QString& baseFName) : pBaseFName(baseFName) { }
+  virtual ~KLFHelpDialogCommon() { }
 
   virtual void addExtraText(const QString& htmlSnipplet)
   {

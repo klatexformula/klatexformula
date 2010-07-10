@@ -333,6 +333,7 @@ public:
   virtual uint flavorFlags() const;
   inline uint displayType() const { return flavorFlags() & DisplayTypeMask; }
 
+  virtual void prefetch(const QModelIndexList& index) const;
   virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
   virtual Qt::ItemFlags flags(const QModelIndex& index) const;
   virtual bool hasChildren(const QModelIndex &parent = QModelIndex()) const;
@@ -839,7 +840,7 @@ class KLF_EXPORT KLFLibLocalFileSchemeGuesser
 {
 public:
   KLFLibLocalFileSchemeGuesser();
-  ~KLFLibLocalFileSchemeGuesser();
+  virtual ~KLFLibLocalFileSchemeGuesser();
 
   //! Guess the appropriate scheme for handling the given file
   /** Reimplentations of this function must guess what scheme fileName is to be opened

@@ -307,10 +307,6 @@ private:
 
 
 
-
-
-
-
 // ---
 
 /** \internal */
@@ -318,7 +314,10 @@ class KLFLibDefViewCommon
 {
 public:
   KLFLibDefViewCommon(KLFLibDefaultView *dview)
-    : pDView(dview), pViewType(dview->viewType()) { }
+    : pDView(dview), pViewType(dview->viewType())
+  {
+  }
+  virtual ~KLFLibDefViewCommon() { }
 
   virtual void moveSelectedIconsBy(const QPoint& delta) = 0;
 
@@ -507,7 +506,19 @@ protected:
     return true;
   }
 
-
+  /*   virtual void preparePaintEvent(QPaintEvent *e) */
+  /*   { */
+  /*     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ; */
+  /*     klfDbg("e->rect()="<<e->rect()); */
+  /*     const QAbstractItemView *v = thisView(); */
+  /*     QModelIndex idx; */
+  /*     while ((idx = pModel->walkNextIndex(idx)).isValid()) { */
+  /*       klfDbg("Testing for prefetching item at row="<<idx.row()<<" its rect="<<v->visualRect(idx)); */
+  /*       if (e->rect().intersects(v->visualRect(idx))) { */
+  /* 	pModel->prefetch(QModelIndexList()<<idx); */
+  /*       } */
+  /*     } */
+  /*   } */
 
 };
 
@@ -536,6 +547,8 @@ public:
     } else if (event->type() == QEvent::Drop) {
       eat = evDrop((QDropEvent*)event, eventPos(object, (QDragEnterEvent*)event));
     }
+    //    if (object == this && event->type() == QEvent::Paint)
+    //      preparePaintEvent((QPaintEvent*)event);
     pInEventFilter = false;
     if (eat)
       return eat;
@@ -621,6 +634,8 @@ public:
     } else if (event->type() == QEvent::Drop) {
       eat = evDrop((QDropEvent*)event, eventPos(object, (QDragEnterEvent*)event));
     }
+    //    if (object == this && event->type() == QEvent::Paint)
+    //      preparePaintEvent((QPaintEvent*)event);
     pInEventFilter = false;
     if (eat)
       return eat;

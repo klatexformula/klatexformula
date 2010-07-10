@@ -117,6 +117,11 @@ public slots:
   /** start reporting progress from \c progressReporter, without changing label text. */
   virtual void startReportingProgress(KLFProgressReporter *progressReporter);
 
+  virtual void setValue(int value);
+
+protected:
+  void paintEvent(QPaintEvent *event);
+
 private:
   void setup(bool canCancel);
   void init(const QString& labelText);

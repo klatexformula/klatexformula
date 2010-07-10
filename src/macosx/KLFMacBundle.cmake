@@ -60,7 +60,7 @@ macro(KLFBundlePrivateImport TGT BUNDLE VAR_SRCS FILE FULLLOCATION LOCAL)
   string(REGEX REPLACE "(.*)/[^/]+$" "\\1" dirnamelocaltarget ${localtarget})
 
   # add the command to copy the file or directory into the bundle
-  add_custom_command(TARGET ${TGT}_maclibpacked POST_BUILD
+  add_custom_command(TARGET ${TGT}_maclibpacked PRE_BUILD
 #	OUTPUT "${BUNDLE}/Contents/${LOCAL}/${FILE}"
 	COMMAND mkdir -p "${dirnamelocaltarget}"
 	COMMAND rm -Rf "${BUNDLE}/Contents/${LOCAL}/${FILE}"

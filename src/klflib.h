@@ -405,6 +405,8 @@ private:
  * - lengthy operations should emit the signal \ref operationStartReportingProgress() with a suitable
  *   KLFProgressReporter as necessary to inform callers of progress of operations that can take some
  *   time. This is recommended, but subclasses aren't forced to comply (for laziness' sake for ex...).
+ *   However, subclasses should test ONCE per operation whether \ref thisOperationProgressBlocked() and
+ *   should not emit progress in that case.
  */
 class KLF_EXPORT KLFLibResourceEngine : public QObject, public KLFPropertizedObject
 {
@@ -910,6 +912,11 @@ public:
   virtual QList<KLFLibEntryWithId> allEntries(const QList<int>& wantedEntryProperties = QList<int>());
 
 
+  //! Specifies that the next operation (only) should not report progress
+  void blockProgressReportingForNextOperation();
+
+  //! (Un)Blocks generally progress reporting
+  void blockProgressReporting(bool block);
   
 signals:
   //! Emitted when data has changed
@@ -982,7 +989,8 @@ signals:
   void operationStartReportingProgress(KLFProgressReporter *progressReporter,
 				       const QString& descriptiveText);
 
-  
+
+
 public slots:
 
   //! set a new resource title for this library resource
@@ -1303,6 +1311,8 @@ protected:
   virtual ModifyStatus baseCanModifyStatus(bool inSubResource,
 					   const QString& subResource = QString()) const;
 
+  bool thisOperationProgressBlocked() const;
+
 private:
   void initRegisteredProperties();
 
@@ -1311,6 +1321,9 @@ private:
   bool pReadOnly;
 
   QString pDefaultSubResource;
+
+  mutable bool pProgressBlocked;
+  bool pThisOperationProgressBlockedOnly;
 };
 
 
