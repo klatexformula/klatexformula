@@ -227,6 +227,8 @@ KLFEnumComboBox::~KLFEnumComboBox()
 
 void KLFEnumComboBox::setEnumValues(const QList<int>& enumValues, const QStringList& enumTitles)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("enumValues="<<enumValues<<"; enumTitles="<<enumTitles);
   blockSignals(true);
   int savedCurrentIndex = currentIndex();
   if (enumValues.size() != enumTitles.size()) {

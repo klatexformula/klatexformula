@@ -64,21 +64,6 @@
   _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
 					   u->colSH##x, u->colSH##x##Bg , u->chkSH##x##B , u->chkSH##x##I ) );
 
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-#  define PROG_LATEX "latex.exe"
-#  define PROG_DVIPS "dvips.exe"
-#  define PROG_GS "gswin32c.exe"
-#  define PROG_EPSTOPDF "epstopdf.exe"
-static QString standard_extra_paths =
-  "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
-#else
-#  define PROG_LATEX "latex"
-#  define PROG_DVIPS "dvips"
-#  define PROG_GS "gs"
-#  define PROG_EPSTOPDF "epstopdf"
-static QString standard_extra_paths = "";
-#endif
-
 
 
 
@@ -90,6 +75,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   setObjectName("KLFSettings");
 
   _mainwin = parent;
+
+  u->cbxLibIconViewFlow->setEnumValues(QList<int>()<<QListView::TopToBottom<<QListView::LeftToRight,
+				       QStringList()<<tr("Top to Bottom")<<tr("Left to Right"));
 
   reset();
 
@@ -150,14 +138,14 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->btnImportAddOn->setEnabled(klf_addons_canimport);
   u->btnRemoveAddOn->setEnabled(klf_addons_canimport);
 
-  retranslateUi(false);
-
   refreshAddOnList();
   refreshAddOnSelected();
   refreshPluginSelected();
 
   // dont load plugin data here as this dialog is created BEFORE plugins are loaded
   _pluginstuffloaded = false;
+
+  retranslateUi(false);
 }
 
 void KLFSettings::retranslateUi(bool alsoBaseUi)
@@ -165,8 +153,6 @@ void KLFSettings::retranslateUi(bool alsoBaseUi)
   if (alsoBaseUi)
     u->retranslateUi(this);
 
-  u->cbxLibIconViewFlow->setEnumValues(QList<int>()<<QListView::TopToBottom<<QListView::LeftToRight,
-				       QStringList()<<tr("Top to Bottom")<<tr("Left to Right"));
 }
 
 

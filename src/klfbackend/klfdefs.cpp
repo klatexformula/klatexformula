@@ -35,36 +35,23 @@
 
 static char __klf_version_string[] = KLF_VERSION_STRING;
 
-static int klf_version_maj = -1;
-static int klf_version_min = -1;
-static int klf_version_release = -1;
 
 KLF_EXPORT const char * klfVersion()
 {
   return __klf_version_string;
 }
 
-static void ensure_version_parsed()
-{
-  if (klf_version_maj < 0 || klf_version_min < 0 || klf_version_release < 0)
-    sscanf(KLF_VERSION_STRING, "%d.%d.%d",
-	   &klf_version_maj, &klf_version_min, &klf_version_release);
-}
-
 KLF_EXPORT int klfVersionMaj()
 {
-  ensure_version_parsed();
-  return klf_version_maj;
+  return KLF_VERSION_MAJ;
 }
 KLF_EXPORT int klfVersionMin()
 {
-  ensure_version_parsed();
-  return klf_version_min;
+  return KLF_VERSION_MIN;
 }
 KLF_EXPORT int klfVersionRelease()
 {
-  ensure_version_parsed();
-  return klf_version_release;
+  return KLF_VERSION_REL;
 }
 
 

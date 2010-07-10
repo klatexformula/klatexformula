@@ -32,10 +32,12 @@ include(KLFUtil.cmake)
 
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "(FOR DEVELOPERS:) Build configuration (Debug|Release)")
 mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE} (CMAKE_BUILD_TYPE)")
 
 # Installation destination
 set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFormula.")
 mark_as_advanced(CLEAR CMAKE_INSTALL_PREFIX)
+message(STATUS "'make install' will install to ${CMAKE_INSTALL_PREFIX} (CMAKE_INSTALL_PREFIX)")
 
 # Compile the Gui project ?
 option(KLF_BUILD_GUI "Build the full GUI interface" ON)
@@ -176,6 +178,31 @@ if(UNIX)
     message(STATUS "Using \"${KLF_LIB_SUFFIX}\" as library directory suffix (KLF_LIB_SUFFIX)")
   endif(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
 endif(UNIX)
+
+# Installed RPATH
+set(CMAKE_SKIP_RPATH FALSE CACHE BOOL "Don't set RPATH on executables and libraries")
+KLFGetCMakeVarChanged(CMAKE_INSTALL_PREFIX)
+KLFGetCMakeVarChanged(CMAKE_INSTALL_RPATH)
+if(NOT CMAKE_SKIP_RPATH)
+  set(wantSetNewRpath FALSE)
+  if(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_CMAKE_INSTALL_RPATH)
+    set(wantSetNewRpath TRUE)
+  endif(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_CMAKE_INSTALL_RPATH)
+  if(NOT CMAKE_INSTALL_RPATH)
+    set(wantSetNewRpath TRUE)
+  endif(NOT CMAKE_INSTALL_RPATH)
+  if(wantSetNewRpath)
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib${KLF_LIB_SUFFIX}" CACHE PATH
+					    "RPATH for installed libraries and executables" FORCE)
+    if(NOT klf_first_CMAKE_INSTALL_RPATH)
+      KLFNote("Updating CMAKE_INSTALL_RPATH to \"${CMAKE_INSTALL_RPATH}\" (following change of CMAKE_INSTALL_PREFIX)")
+    endif(NOT klf_first_CMAKE_INSTALL_RPATH)
+  endif(wantSetNewRpath)
+  mark_as_advanced(CLEAR CMAKE_INSTALL_RPATH)
+  message(STATUS "RPATH for installed libraries and executables: ${CMAKE_INSTALL_RPATH} (CMAKE_INSTALL_RPATH)")
+else(NOT CMAKE_SKIP_RPATH)
+  message(STATUS "Skipping RPATH on executables and libraries (CMAKE_SKIP_RPATH)")
+endif(NOT CMAKE_SKIP_RPATH)
 
 # Mac OS X: building frameworks + bundles ?
 if(APPLE)
@@ -344,3 +371,5 @@ else(DOXYGEN)
   message(STATUS "doxygen not found; API documentation cannot be generated
   (if unsure, this warning is safe to ignore)")
 endif(DOXYGEN)
+
+

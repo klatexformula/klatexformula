@@ -2683,15 +2683,16 @@ QList<QAction*> KLFLibDefaultView::addContextMenuActions(const QPoint& /*pos*/)
 
 bool KLFLibDefaultView::canMoveIcons() const
 {
-  KLFLibResourceEngine *e = resourceEngine();
-  if (e == NULL)
-    return false;
-  if (e->propertyNameRegistered("IconView_IconPositionsLocked") &&
-      e->resourceProperty("IconView_IconPositionsLocked").toBool())
-    return false;
-  if (!e->accessShared() && e->locked())
-    return false;
-  return true;
+  return false;
+  //  KLFLibResourceEngine *e = resourceEngine();
+  //  if (e == NULL)
+  //    return false;
+  //  if (e->propertyNameRegistered("IconView_IconPositionsLocked") &&
+  //      e->resourceProperty("IconView_IconPositionsLocked").toBool())
+  //    return false;
+  //  if (!e->accessShared() && e->locked())
+  //    return false;
+  //  return true;
 }
 
 
@@ -2865,13 +2866,13 @@ void KLFLibDefaultView::updateResourceEngine()
     connect(pIconViewLockAction, SIGNAL(toggled(bool)), this, SLOT(slotLockIconPositions(bool)));
     connect(pIconViewLockAction, SIGNAL(toggled(bool)),
 	    pIconViewRelayoutAction, SLOT(setDisabled(bool)));
-    bool iconposlocked
-      = resource->resourceProperty("IconView_IconPositionsLocked").toBool();
+    bool iconposlocked = true;
+      //      = resource->resourceProperty("IconView_IconPositionsLocked").toBool();
     pIconViewLockAction->setChecked(iconposlocked);
-    bool iconposlockenabled
-      = resource->propertyNameRegistered("IconView_IconPositionsLocked") &&
-      /* */ resource->canModifyProp(resource->propertyIdForName("IconView_IconPositionsLocked"));
-    pIconViewLockAction->setEnabled(iconposlockenabled);
+    //     bool iconposlockenabled
+    //       = resource->propertyNameRegistered("IconView_IconPositionsLocked") &&
+    //       /* */ resource->canModifyProp(resource->propertyIdForName("IconView_IconPositionsLocked"));
+    //     pIconViewLockAction->setEnabled(iconposlockenabled);
     pIconViewRelayoutAction->setEnabled(canMoveIcons());
 
     pIconViewActions = QList<QAction*>() << pIconViewRelayoutAction ;/* << pIconViewLockAction; */
@@ -2962,30 +2963,29 @@ void KLFLibDefaultView::updateResourceOwnData(const QList<KLFLib::entryId>& /*en
 }
 void KLFLibDefaultView::updateResourceProp(int propId)
 {
-  //  klfDbg( "KLFLibDefView::updateR.Prop("<<propId<<")" ) ;
+  klfDbg( "propId="<<propId ) ;
 
   // if locked property was modified, refresh
   // Lock Icon Positions & Relayout Icons according to whether we store that info
   // in resource or in view state...
 
-  KLF_ASSERT_NOT_NULL( resourceEngine() , "Resource Engine is NULL, skipping !" , return )
-    ;
+  KLF_ASSERT_NOT_NULL( resourceEngine() , "Resource Engine is NULL, skipping !" , return ) ;
 
-  if ( propId == -1 || propId == KLFLibResourceEngine::PropLocked ) {
-    if (pIconViewRelayoutAction != NULL)
-      pIconViewRelayoutAction->setEnabled(canMoveIcons());
-    if (pIconViewLockAction != NULL) {
-      int propId = resourceEngine()->propertyIdForName("IconView_IconPositionsLocked");
-      bool canmodify = resourceEngine()->canModifyProp(propId);
-      if ( ! canmodify )
-	pIconViewLockAction->setChecked(!canMoveIcons());
-      pIconViewLockAction->setEnabled(canmodify);
-      if (canmodify) {
-	bool locked = pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool();
-	pIconViewLockAction->setChecked(locked);
-      }
-    }
-  }
+  //  if ( propId == -1 || propId == KLFLibResourceEngine::PropLocked ) {
+  //     if (pIconViewRelayoutAction != NULL)
+  //       pIconViewRelayoutAction->setEnabled(canMoveIcons());
+  //     if (pIconViewLockAction != NULL) {
+  //       int propId = resourceEngine()->propertyIdForName("IconView_IconPositionsLocked");
+  //       bool canmodify = resourceEngine()->canModifyProp(propId);
+  //       if ( ! canmodify )
+  // 	pIconViewLockAction->setChecked(!canMoveIcons());
+  //       pIconViewLockAction->setEnabled(canmodify);
+  //       if (canmodify) {
+  // 	bool locked = pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool();
+  // 	pIconViewLockAction->setChecked(locked);
+  //       }
+  //     }
+  //  }
 }
 
 void KLFLibDefaultView::showEvent(QShowEvent *event)
@@ -3117,19 +3117,19 @@ void KLFLibDefaultView::slotSelectAll(const QModelIndex& parent, bool rootCall)
 
 void KLFLibDefaultView::slotRelayoutIcons()
 {
-  if (pViewType != IconView || !pView->inherits("KLFLibDefListView")) {
-    return;
-  }
-  if (pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
-    return;
-  KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
-  // force a re-layout
-  lv->forceRelayout();
+  //   if (pViewType != IconView || !pView->inherits("KLFLibDefListView")) {
+  //     return;
+  //   }
+  //   if (pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
+  //     return;
+  //   KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
+  //   // force a re-layout
+  //   lv->forceRelayout();
 }
 void KLFLibDefaultView::slotLockIconPositions(bool locked)
 {
-  if (locked == pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
-    return; // no change
+  //  if (locked == pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
+  //    return; // no change
 
   /*  klfDbg( "Locking icon positions to "<<locked ) ;
       bool r = pModel->resource()->loadResourceProperty("IconView_IconPositionsLocked",
