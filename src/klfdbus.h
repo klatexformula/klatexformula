@@ -32,6 +32,7 @@
 #include <QDBusReply>
 #include <QApplication>
 
+#include <klfdefs.h>
 
 class KLFMainWin;
 

@@ -327,3 +327,83 @@ endif(KLF_MACOSX_BUNDLES)
 add_subdirectory(plugins)
 
 
+
+
+# Install Targets
+# ---------------
+
+# klflib
+
+install(TARGETS klflib RUNTIME DESTINATION "${KLF_INSTALL_LIB_DIR}"
+		       ARCHIVE DESTINATION "${KLF_INSTALL_LIB_DIR}"
+		       LIBRARY DESTINATION "${KLF_INSTALL_LIB_DIR}"
+		       FRAMEWORK DESTINATION "${KLF_INSTALL_LIB_DIR}"
+		       PUBLIC_HEADER DESTINATION include/klf)
+if(KLF_MACOSX_BUNDLES)
+  # Installed library's ID
+  KLFInstFrameworkUpdateId("${KLF_INSTALL_LIB_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib")
+  # Installed library's dependency on klfbackend should be updated
+  KLFInstFrameworkUpdateLibChange(
+  "${KLF_INSTALL_LIB_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
+  "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+  "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+  )
+endif(KLF_MACOSX_BUNDLES)
+
+if(WIN32)
+  # Install Qt libs
+  install(FILES "${QT_QTCORE_LIBRARY}" "${QT_QTGUI_LIBRARY}" "${QT_QTSQL_LIBRARY}"
+		"${QT_QTXML_LIBRARY}"
+	  DESTINATION "${KLF_INSTALL_LIB_DIR}")
+endif(WIN32)
+
+
+# klatexformula bin
+
+install(TARGETS klatexformula RUNTIME DESTINATION "${KLF_INSTALL_BIN_DIR}"
+			      BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
+if(UNIX AND NOT KLF_MACOSX_BUNDLES)
+  install(CODE
+	  "message(STATUS \"Creating Symlink ${KLF_INSTALL_BIN_DIR}/klatexformula_cmdl -> klatexformula\")
+	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${KLF_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
+  )
+endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
+if(KLF_MACOSX_BUNDLES)
+  # Update klatexformula's dependency on the installed frameworks.
+  KLFInstFrameworkUpdateLibChange(
+  "${KLF_INSTALL_BIN_DIR}/klatexformula-${KLF_VERSION}/Contents/MacOS/klatexformula-${KLF_VERSION}"
+  "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+  "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+  )
+  KLFInstFrameworkUpdateLibChange(
+  "${KLF_INSTALL_BIN_DIR}/klatexformula-${KLF_VERSION}/Contents/MacOS/klatexformula-${KLF_VERSION}"
+  "${CMAKE_CURRENT_BINARY_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
+  "${KLF_INSTALL_LIB_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
+  )
+endif(KLF_MACOSX_BUNDLES)
+
+
+# --- LINUX DESKTOP FILES ---
+
+if(KLF_INSTALL_DESKTOP)
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/src/klatexformula.desktop.in"
+    "${CMAKE_BINARY_DIR}/src/klatexformula.desktop"
+    IMMEDIATE @ONLY)
+
+  install(FILES "${CMAKE_BINARY_DIR}/src/klatexformula.desktop" DESTINATION share/applications/)
+  install(FILES klatexformula-128.png DESTINATION share/pixmaps/)
+  install(FILES klatexformula-64.png DESTINATION share/pixmaps/)
+  install(FILES klatexformula-32.png DESTINATION share/pixmaps/)
+  install(FILES klatexformula-16.png DESTINATION share/pixmaps/)
+  install(FILES "${CMAKE_SOURCE_DIR}/src/klatexformula-mime.xml"
+	  DESTINATION share/mime/packages/)
+  install(CODE
+    "message(STATUS \"Updating Mime Types Database (update-mime-database)\")
+     execute_process(COMMAND update-mime-database \"${CMAKE_INSTALL_PREFIX}/share/mime\")"
+  )
+endif(KLF_INSTALL_DESKTOP)
+
+
+
+

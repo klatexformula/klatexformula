@@ -8,7 +8,7 @@ STRING(REGEX REPLACE "\n" ";" files "${files}")
 if(UNIX AND NOT KLF_MACOSX_BUNDLES)
   ## Extra files to uninstall
   set(files
-      "@CMAKE_INSTALL_PREFIX@/bin/klatexformula_cmdl"
+      "@KLF_INSTALL_BIN_DIR@/klatexformula_cmdl"
       ${files}
   )
 endif(UNIX AND NOT KLF_MACOSX_BUNDLES)

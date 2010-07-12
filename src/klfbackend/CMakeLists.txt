@@ -74,3 +74,23 @@ else(KLF_USE_QT4)
 endif(KLF_USE_QT4)
 
 
+
+# Install Targets
+# ---------------
+
+if(KLF_USE_QT4)
+  install(TARGETS klfbackend LIBRARY DESTINATION "${KLF_INSTALL_LIB_DIR}"
+			     ARCHIVE DESTINATION "${KLF_INSTALL_LIB_DIR}"
+			     FRAMEWORK DESTINATION "${KLF_INSTALL_LIB_DIR}"
+			     PUBLIC_HEADER DESTINATION "include/klfbackend")
+  if(KLF_MACOSX_BUNDLES)
+    KLFInstFrameworkUpdateId(
+      "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+    )
+  endif(KLF_MACOSX_BUNDLES)
+else(KLF_USE_QT4)
+  install(TARGETS klfbackend-qt3 LIBRARY DESTINATION "${KLF_INSTALL_LIB_DIR}"
+				 ARCHIVE DESTINATION "${KLF_INSTALL_LIB_DIR}"
+				 FRAMEWORK DESTINATION "${KLF_INSTALL_LIB_DIR}"
+				 PUBLIC_HEADER DESTINATION "include/klfbackend")
+endif(KLF_USE_QT4)
