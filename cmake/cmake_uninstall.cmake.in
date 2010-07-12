@@ -1,3 +1,12 @@
+# CMake Instructions for uninstall
+# ================================
+# $Id$
+
+
+# Based on the code from Kitware at
+#   http://www.cmake.org/Wiki/CMake_FAQ#Can_I_do_.22make_uninstall.22_with_CMake.3F
+
+
 IF(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
   MESSAGE(FATAL_ERROR "Cannot find install manifest: \"@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt\"")
 ENDIF(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
@@ -5,13 +14,15 @@ ENDIF(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
 FILE(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
 STRING(REGEX REPLACE "\n" ";" files "${files}")
 
+
+## KLatexFormula: Some extra files to uninstall
 if(UNIX AND NOT KLF_MACOSX_BUNDLES)
-  ## Extra files to uninstall
   set(files
       "@KLF_INSTALL_BIN_DIR@/klatexformula_cmdl"
       ${files}
   )
 endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
+
 
 FOREACH(file ${files})
   MESSAGE(STATUS "Uninstalling \"$ENV{DESTDIR}${file}\"")

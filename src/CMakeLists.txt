@@ -389,7 +389,7 @@ if(KLF_INSTALL_DESKTOP)
   configure_file(
     "${CMAKE_SOURCE_DIR}/src/klatexformula.desktop.in"
     "${CMAKE_BINARY_DIR}/src/klatexformula.desktop"
-    IMMEDIATE @ONLY)
+    @ONLY)
 
   install(FILES "${CMAKE_BINARY_DIR}/src/klatexformula.desktop" DESTINATION share/applications/)
   install(FILES klatexformula-128.png DESTINATION share/pixmaps/)

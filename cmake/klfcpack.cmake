@@ -1,5 +1,11 @@
 # CMake definitions for CPack
+# ===========================
+# $Id$
 
+
+configure_file("${CMAKE_SOURCE_DIR}/cmake/welcome_installer.txt.in"
+	       "${CMAKE_BINARY_DIR}/welcome_installer.txt"
+	       @ONLY)
 
 # == Binary packages ==
 
@@ -9,11 +15,11 @@ set(CPACK_VERSION_MINOR ${KLF_VERSION_MIN})
 set(CPACK_VERSION_PATCH ${KLF_VERSION_REL})
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/descr_long.txt")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${CMAKE_SOURCE_DIR}/descr_short.txt")
-
+#set(CPACK_PACKAGE_FILE_NAME )
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "KLatexFormula-${KLF_VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README")
-#set(CPACK_RESOURCE_FILE_WELCOME )
+set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_BINARY_DIR}/welcome_installer.txt")
 #set(CPACK_MONOLITHIC_INSTALL )
 #set(CPACK_GENERATOR )
 #set(CPACK_OUTPUT_CONFIG_FILE )

@@ -1,4 +1,6 @@
 # CMake definitions for building doxygen API documentation
+# ========================================================
+# $Id$
 
 
 # Configure doxygen targets
