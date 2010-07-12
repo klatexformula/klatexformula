@@ -235,6 +235,8 @@ KLFMainWin::KLFMainWin()
   setObjectName("KLFMainWin");
   setAttribute(Qt::WA_StyledBackground);
 
+  QApplication::instance()->installEventFilter(this); // to watch for QFileOpenEvent s
+
   mPopup = NULL;
 
   loadSettings();
@@ -1417,6 +1419,14 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   if ( obj == mLibBrowser && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
     slotLibraryButtonRefreshState(mLibBrowser->isVisible());
   }
+
+  // ----
+  if ( obj == QApplication::instance() && e->type() == QEvent::FileOpen ) {
+    // open a file
+    importCmdlKLFFile(((QFileOpenEvent*)e)->file());
+    return true;
+  }
+
   return QWidget::eventFilter(obj, e);
 }
 

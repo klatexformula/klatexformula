@@ -129,8 +129,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>300</width>
-         <height>236</height>
+         <width>285</width>
+         <height>201</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -265,8 +265,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>300</width>
-         <height>236</height>
+         <width>285</width>
+         <height>201</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -275,33 +275,61 @@
        <attribute name="label">
         <string>Style</string>
        </attribute>
-       <layout class="QVBoxLayout" name="lyt_tabStyle">
-        <property name="spacing">
-         <number>3</number>
-        </property>
+       <layout class="QGridLayout" name="gridLayout">
         <property name="margin">
          <number>6</number>
         </property>
-        <item>
-         <widget class="QLabel" name="lblStylePreview">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblStyMathModeCaption">
           <property name="text">
-           <string>[Style]</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-          </property>
-          <property name="wordWrap">
-           <bool>true</bool>
-          </property>
-          <property name="textInteractionFlags">
-           <set>Qt::TextBrowserInteraction</set>
+           <string>Math Mode:</string>
           </property>
          </widget>
         </item>
-        <item>
+        <item row="4" column="0" colspan="2">
          <widget class="QPushButton" name="btnRestoreStyle">
           <property name="text">
            <string>Restore This Style</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lblStyPreamble">
+          <property name="text">
+           <string>LaTeX Preamble:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" colspan="2">
+         <widget class="QTextEdit" name="txtStyPreamble">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QLabel" name="lblStyMathMode">
+          <property name="frameShape">
+           <enum>QFrame::Panel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+          <property name="text">
+           <string/>
           </property>
          </widget>
         </item>

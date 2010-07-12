@@ -48,7 +48,7 @@ QTreeView {
 	selection-background-color: rgb(128,128,128,128);
 }
 /* for checkable items, qt bug --> need an opaque bg col */
-QTreeView#lstPlugins {
+QTreeView#lstPlugins , KLFLibExportDialog QTreeView#lstRes {
 	background: url(:/plugindata/skin/stylesheets/pics/bg_papyrus.jpg) no-repeat;
 }
 QTreeView::branch:has-children:!has-siblings:closed,

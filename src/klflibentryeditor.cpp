@@ -137,7 +137,9 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     u->txtPreviewLatex->setText(tr("[ No Item Selected ]"));
     u->cbxCategory->setEditText(tr("[ No Item Selected ]"));
     u->cbxTags->setEditText(tr("[ No Item Selected ]"));
-    u->lblStylePreview->setText(tr("[ No Item Selected ]"));
+    //    u->lblStylePreview->setText(tr("[ No Item Selected ]"));
+    u->lblStyMathMode->setText(tr("[ No Item Selected ]"));
+    u->txtStyPreamble->setPlainText(tr("[ No Item Selected ]"));
     u->cbxCategory->setEnabled(false);
     u->btnUpdateCategory->setEnabled(false);
     u->cbxTags->setEnabled(false);
@@ -155,7 +157,9 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     u->cbxCategory->setEditText(e.category());
     u->cbxTags->setEditText(e.tags());
     pCurrentStyle = e.style();
-    u->lblStylePreview->setText(prettyPrintStyle(pCurrentStyle));
+    //    u->lblStylePreview->setText(prettyPrintStyle(pCurrentStyle));
+    u->lblStyMathMode->setText(pCurrentStyle.mathmode);
+    u->txtStyPreamble->setPlainText(pCurrentStyle.preamble);
     u->cbxCategory->setEnabled(true);
     u->btnUpdateCategory->setEnabled(pInputEnabled && true);
     u->cbxTags->setEnabled(true);
@@ -192,11 +196,15 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
   u->cbxCategory->setEditText(cat);
   if ( allsamestyle ) {
     pCurrentStyle = style;
-    u->lblStylePreview->setText(prettyPrintStyle(style));
+    //    u->lblStylePreview->setText(prettyPrintStyle(style));
+    u->lblStyMathMode->setText(pCurrentStyle.mathmode);
+    u->txtStyPreamble->setPlainText(pCurrentStyle.preamble);
     u->btnRestoreStyle->setEnabled(true); // NOT pInputEnabled && : not true input
   } else {
     pCurrentStyle = KLFStyle();
-    u->lblStylePreview->setText(tr("[ Different Styles ]"));
+    //    u->lblStylePreview->setText(tr("[ Different Styles ]"));
+    u->lblStyMathMode->setText(tr("[ Different Styles ]"));
+    u->txtStyPreamble->setPlainText(tr("[ Different Styles ]"));
     u->btnRestoreStyle->setEnabled(false);
   }
 

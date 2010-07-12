@@ -33,16 +33,19 @@ if(KLF_USE_QT4)
   set(klfbackend_allsrc ${klfbackend_SRCS} ${klfbackend_MOC_CPPS})
   if (KLF_BACKEND_STATIC)
     add_library(klfbackend STATIC ${klfbackend_allsrc})
+    set_target_properties(klfbackend PROPERTIES
+	      VERSION		${KLF_LIB_VERSION}
+    )
   else(KLF_BACKEND_STATIC)
     add_library(klfbackend SHARED ${klfbackend_allsrc})
     target_link_libraries(klfbackend ${QT_LIBRARIES})
+    set_target_properties(klfbackend PROPERTIES
+	      VERSION		${KLF_LIB_VERSION}
+	      SOVERSION		${KLF_LIB_VERSION}
+    )
     if(KLF_MACOSX_BUNDLES)
       set(klfbackend_FRAMEWORKS ${KLF_QT_FRAMEWORKS})
       KLFMakeFramework(klfbackend "${klfbackend_FRAMEWORKS}" "${klfbackend_INSTHEADERS}")
-      set_target_properties(klfbackend PROPERTIES
-		VERSION		${KLF_LIB_VERSION}
-		SOVERSION	${KLF_LIB_VERSION}
-      )
     endif(KLF_MACOSX_BUNDLES)
   endif(KLF_BACKEND_STATIC)
   set_target_properties(klfbackend PROPERTIES
@@ -67,6 +70,10 @@ else(KLF_USE_QT4)
     add_library(klfbackend-qt3 STATIC ${klfbackend_allsrc})
   else(KLF_BACKEND_STATIC)
     add_library(klfbackend-qt3 SHARED ${klfbackend_allsrc})
+    set_target_properties(klfbackend PROPERTIES
+	      VERSION		${KLF_LIB_VERSION}
+	      SOVERSION		${KLF_LIB_VERSION}
+    )
 # ....... TODO for APPLE ...... MAYBE: No frameworks, only normal libs (how is qt3 compiled?)
 #    KLFMakeFramework(klfbackend-qt3 "${klfbackend_INSTHEADERS}")
   endif(KLF_BACKEND_STATIC)
