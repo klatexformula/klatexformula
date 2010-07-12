@@ -225,10 +225,11 @@ void klf_qt_message(QtMsgType type, const char *msg)
   case QtWarningMsg:
     fprintf(fout, "Warning: %s\n", msg);
 #ifdef Q_WS_WIN
-    QMessageBox::warning(0, QObject::tr("Warning", "[[KLF's Qt Message Handler: dialog title]]"),
-			 QObject::tr("KLatexFormula System Warning:\n%1",
-				     "[[KLF's Qt Message Handler: dialog text]]")
-			 .arg(QString::fromLocal8Bit(msg)));
+    if (!QString::fromLocal8Bit(msg).startsWith("MNG error"))
+      QMessageBox::warning(0, QObject::tr("Warning", "[[KLF's Qt Message Handler: dialog title]]"),
+			   QObject::tr("KLatexFormula System Warning:\n%1",
+				       "[[KLF's Qt Message Handler: dialog text]]")
+			   .arg(QString::fromLocal8Bit(msg)));
 #endif
     break;
   case QtCriticalMsg:

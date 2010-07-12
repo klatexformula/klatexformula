@@ -29,8 +29,9 @@
 #include <QPushButton>
 #include <QLineEdit>
 
+#include <klfdefs.h>
 
-class KLFPathChooser : public QFrame
+class KLF_EXPORT KLFPathChooser : public QFrame
 {
   Q_OBJECT
 

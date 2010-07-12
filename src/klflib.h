@@ -204,7 +204,7 @@ namespace KLFLib {
  *   behavior. To use the entry sorter in contexts where you need to copy an object, use the
  *   clone mechanism with the clone constructor. (Although this should scarcely be needed ...).
  */
-class KLFLibEntrySorter
+class KLF_EXPORT KLFLibEntrySorter
 {
 public:
   KLFLibEntrySorter(int propId = -1, Qt::SortOrder order = Qt::AscendingOrder);
@@ -262,7 +262,7 @@ private:
 class QMimeData;
 
 //! Helper class to encode an entry list as mime data (abstract interface)
-class KLFAbstractLibEntryMimeEncoder
+class KLF_EXPORT KLFAbstractLibEntryMimeEncoder
 {
 public:
   KLFAbstractLibEntryMimeEncoder();
@@ -1560,7 +1560,7 @@ private:
  * "open" or "create new" or "save to" actions (eg. <tt>wtype=="LocalFile"</tt>
  * or similar logical name).
  */
-class KLFLibWidgetFactory : public QObject, public KLFFactoryBase
+class KLF_EXPORT KLFLibWidgetFactory : public QObject, public KLFFactoryBase
 {
   Q_OBJECT
 public:

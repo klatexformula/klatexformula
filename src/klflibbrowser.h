@@ -41,7 +41,7 @@ class KLFProgressReporter;
 
 class KLFAbstractLibView;
 
-class KLFLibBrowser : public QWidget
+class KLF_EXPORT KLFLibBrowser : public QWidget
 {
   Q_OBJECT
 public:

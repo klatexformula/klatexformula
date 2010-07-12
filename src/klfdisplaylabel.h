@@ -27,9 +27,11 @@
 #include <QLabel>
 #include <QTemporaryFile>
 
+#include <klfdefs.h>
+
 /** \brief A label to display a LaTeX-formula-output-like image
  */
-class KLFDisplayLabel : public QLabel
+class KLF_EXPORT KLFDisplayLabel : public QLabel
 {
   Q_OBJECT
 

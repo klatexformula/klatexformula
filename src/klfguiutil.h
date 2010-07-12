@@ -55,7 +55,7 @@
  * doReportProgress() at regular intervals, making sure to call it the last time with the
  * max() value.
  */
-class KLFProgressReporter : public QObject
+class KLF_EXPORT KLFProgressReporter : public QObject
 {
   Q_OBJECT
 public:
@@ -99,7 +99,7 @@ private:
 };
 
 
-class KLFProgressDialog : public QProgressDialog
+class KLF_EXPORT KLFProgressDialog : public QProgressDialog
 {
   Q_OBJECT
 public:
@@ -128,7 +128,7 @@ private:
 };
 
 
-class KLFPleaseWaitPopup : public QLabel
+class KLF_EXPORT KLFPleaseWaitPopup : public QLabel
 {
   Q_OBJECT
 public:
@@ -163,7 +163,7 @@ private:
 };
 
 
-class KLFDelayedPleaseWaitPopup : public KLFPleaseWaitPopup
+class KLF_EXPORT KLFDelayedPleaseWaitPopup : public KLFPleaseWaitPopup
 {
   Q_OBJECT
 public:
@@ -183,7 +183,7 @@ private:
 
 /** Utility class for a combo box proposing a list of enumeration values.
  */
-class KLFEnumComboBox : public QComboBox
+class KLF_EXPORT KLFEnumComboBox : public QComboBox
 {
   Q_OBJECT
 

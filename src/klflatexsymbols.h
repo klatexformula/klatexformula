@@ -61,7 +61,7 @@ struct KLF_EXPORT KLFLatexSymbol
 
 
 
-class KLFLatexSymbolsCache
+class KLF_EXPORT KLFLatexSymbolsCache
 {
 public:
   enum { Ok = 0, BadHeader, BadVersion };

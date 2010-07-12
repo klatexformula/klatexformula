@@ -175,7 +175,12 @@ void KLFPleaseWaitPopup::setDisableUi(bool disableUi)
 
 void KLFPleaseWaitPopup::showPleaseWait()
 {
-  QSize desktopSize = QApplication::desktop()->screenGeometry(parentWidget()).size();
+  QSize desktopSize;
+  QDesktopWidget *dw = QApplication::desktop();
+  if (dw != NULL)
+    desktopSize = dw->screenGeometry(parentWidget()).size();
+  else
+    desktopSize = QSize(1024, 768); // assume some default, worst case widget is more left and higher
   move(desktopSize.width()/2 - width()/2, desktopSize.height()/2 - height()/2);
   show();
   setStyleSheet(styleSheet());

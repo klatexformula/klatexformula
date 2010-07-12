@@ -25,8 +25,10 @@
 #define KLFDEFS_H_
 
 // first, detect a missing KLFBACKEND_QT4 definition
-#if QT_VERSION >= 0x040000 && !defined(KLFBACKEND_QT4)
-#define KLFBACKEND_QT4
+#if QT_VERSION >= 0x040000
+# ifndef KLFBACKEND_QT4
+#  define KLFBACKEND_QT4
+# endif
 #endif
 
 #include <qstring.h>

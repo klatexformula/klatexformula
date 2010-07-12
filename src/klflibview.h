@@ -752,7 +752,7 @@ private:
 
 // --
 
-class KLFLibResPropEditor : public QWidget
+class KLF_EXPORT KLFLibResPropEditor : public QWidget
 {
   Q_OBJECT
 public:
@@ -785,7 +785,7 @@ private:
   QString curSubResource() const;
 };
 
-class KLFLibResPropEditorDlg : public QDialog
+class KLF_EXPORT KLFLibResPropEditorDlg : public QDialog
 {
   Q_OBJECT
 public:
@@ -803,7 +803,7 @@ private:
 
 
 
-class KLFLibNewSubResDlg : public QDialog
+class KLF_EXPORT KLFLibNewSubResDlg : public QDialog
 {
   Q_OBJECT
 public:

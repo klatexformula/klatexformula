@@ -10,6 +10,7 @@ PROJECT(klatexformula)
 # Set up CMAKE properly
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Read project version
 file(READ "VERSION" klf_ver)
@@ -25,7 +26,7 @@ string(REGEX REPLACE "${klfversion_regex}" "\\4" KLF_VERSION_SUFFIX "${KLF_VERSI
 # The version that the libraries will be tagged with
 set(KLF_LIB_VERSION "${KLF_VERSION_MAJ}.${KLF_VERSION_MIN}")
 
-include(KLFUtil.cmake)
+include(KLFUtil)
 
 # Set some project settings
 # -------------------------
@@ -233,10 +234,10 @@ else(KLF_MACOSX_BUNDLES OR WIN32)
       "Categories section in .desktop file")
 endif(KLF_MACOSX_BUNDLES OR WIN32)
 if(KLF_INSTALL_DESKTOP)
-  message(STATUS "Will install desktop files (KLF_INSTALL_DESKTOP)")
+  message(STATUS "Will install linux desktop files (KLF_INSTALL_DESKTOP)")
   message(STATUS "  categories \"${KLF_INSTALL_DESKTOP_CATEGORIES}\" (KLF_INSTALL_DESKTOP_CATEGORIES)")
 else(KLF_INSTALL_DESKTOP)
-  message(STATUS "Will not install desktop files (KLF_INSTALL_DESKTOP)")
+  message(STATUS "Will not install linux desktop files (KLF_INSTALL_DESKTOP)")
 endif(KLF_INSTALL_DESKTOP)
 
 # DEVELOPER OPTION to install klfbaseplugins.rcc in ~/.klatexformula/rccresources
@@ -296,80 +297,18 @@ set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}" CACHE INTERNAL "Current Build Pr
 # ----------------------------------
 add_subdirectory(src)
 
-# Uninstall option
-# ----------------
 
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY)
-add_custom_target(uninstall
-  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+# Doxygen
+# -------
+include(klfdoxygen)
 
 
-# Configure doxygen targets
-# -------------------------
+# Install
+# -------
+include(klfinstall)
 
-find_program(DOXYGEN "doxygen")
-if(DOXYGEN)
-  set(KLF_DOXYGEN_SF "")
-  execute_process(COMMAND "${CMAKE_COMMAND}" -E "make_directory" "${CMAKE_CURRENT_BINARY_DIR}/apidoc")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.klfbackend.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.klfbackend"
-    IMMEDIATE @ONLY)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.klflib.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.klflib"
-    IMMEDIATE @ONLY)
-  set(KLF_DOXYGEN_SF "_sf")
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.klfbackend.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.klfbackend.sfweb"
-    IMMEDIATE @ONLY)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.klflib.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.klflib.sfweb"
-    IMMEDIATE @ONLY)
-  add_custom_target(doc_klfbackend
-    COMMAND "${DOXYGEN}" "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.klfbackend"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Building Doxygen Documenation for klfbackend"
-    VERBATIM
-  )
-  add_custom_target(doc_klflib
-    COMMAND "${DOXYGEN}" "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.klflib"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Building Doxygen Documenation for klflib"
-    VERBATIM
-  )
-  add_custom_target(doc_klfbackend_sfweb
-    COMMAND "${DOXYGEN}" "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.klfbackend.sfweb"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Building Doxygen Documenation for klfbackend (sfweb)"
-    VERBATIM
-  )
-  add_custom_target(doc_klflib_sfweb
-    COMMAND "${DOXYGEN}" "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.klflib.sfweb"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    COMMENT "Building Doxygen Documenation for klflib (sfweb)"
-    VERBATIM
-  )
 
-  add_custom_target(doc
-    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/index.html" "index.html"
-    COMMAND tar cvfj "klf-apidoc-${KLF_VERSION}.tar.bz2" klfbackend/ klflib/ index.html
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/apidoc"
-    COMMENT "Creating API doc archive"
-    VERBATIM
-  )
-  add_dependencies(doc_klflib  doc_klfbackend) # depends on klfbackend.tag
-  add_dependencies(doc  doc_klfbackend doc_klflib)
-  
-  message(STATUS "doxygen API documentation can be generated with 'make doc'")
-else(DOXYGEN)
-  message(STATUS "doxygen not found; API documentation cannot be generated
-  (if unsure, this warning is safe to ignore)")
-endif(DOXYGEN)
-
+# CPack
+# -----
+include(klfcpack)
 

@@ -33,7 +33,7 @@
 
 namespace Ui { class KLFLibEntryEditor; }
 
-class KLFLibEntryEditor : public QWidget
+class KLF_EXPORT KLFLibEntryEditor : public QWidget
 {
   Q_OBJECT
 public:

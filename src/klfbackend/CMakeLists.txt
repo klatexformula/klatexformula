@@ -51,16 +51,6 @@ if(KLF_USE_QT4)
   set_target_properties(klfbackend PROPERTIES
 	      PUBLIC_HEADER "${klfbackend_INSTHEADERS}"
   )
-  install(TARGETS klfbackend LIBRARY DESTINATION "lib${KLF_LIB_SUFFIX}/"
-			     ARCHIVE DESTINATION "lib${KLF_LIB_SUFFIX}/"
-			     FRAMEWORK DESTINATION "/Library/Frameworks/"
-			     PUBLIC_HEADER DESTINATION "include/")
-  #install(FILES ${klfbackend_HEADERS} DESTINATION include/)
-  if(KLF_MACOSX_BUNDLES)
-    KLFInstFrameworkUpdateId(
-      "/Library/Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-    )
-  endif(KLF_MACOSX_BUNDLES)
 else(KLF_USE_QT4)
   add_definitions(${QT_DEFINITIONS})
   include_directories(${QT_INCLUDE_DIR})
@@ -81,10 +71,6 @@ else(KLF_USE_QT4)
   set_target_properties(klfbackend-qt3 PROPERTIES
 	      PUBLIC_HEADER "${klfbackend_INSTHEADERS}"
   )
-  install(TARGETS klfbackend-qt3 LIBRARY DESTINATION "lib${KLF_LIB_SUFFIX}/"
-				 ARCHIVE DESTINATION "lib${KLF_LIB_SUFFIX}/"
-				 FRAMEWORK DESTINATION "/Library/Frameworks/"
-				 PUBLIC_HEADER DESTINATION "include/")
 endif(KLF_USE_QT4)
 
 

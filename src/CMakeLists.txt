@@ -7,14 +7,14 @@
 if(KLF_MACOSX_BUNDLES)
   set(KLF_MACOSXDIR "${CMAKE_CURRENT_SOURCE_DIR}/macosx")
   set(KLF_MACOSX_BUNDLE_PATH "${CMAKE_CURRENT_BINARY_DIR}/klatexformula-${KLF_VERSION}.app")
-  include("${KLF_MACOSXDIR}/KLFMacBundle.cmake")
+  include(KLFMacBundle)
 endif(KLF_MACOSX_BUNDLES)
 
 if(WIN32)
   # on debug versions, the application will open a console in which the debug output is shown.
-  list(APPEND CMAKE_CXX_FLAGS_RELEASE -mwindows)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
   # Extra linker flags for win32 compilation
-  list(APPEND CMAKE_EXE_LINKER_FLAGS -Wl,--enable-auto-import)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
 endif(WIN32)
 
 # Preprocessor instructions
@@ -225,8 +225,8 @@ qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
 set(klatexformulamain_ALLSRC main.cpp ${klatexformula_QRC_CPPS})
 set(klatexformulamain_winrc)
 if(MINGW)
-  set(KLF_WIN_ICON "mswin/klficon64.ico" CACHE STRING
-    "Icon for klatexformula.exe program, relative to src/")
+  set(KLF_WIN_ICON "mswin\\\\klficon64.ico" CACHE STRING
+    "Icon for klatexformula.exe program, relative to src/, with (escaped double-backslashes!)")
   mark_as_advanced(KLF_WIN_ICON)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc"
        "IDI_ICON1               ICON    DISCARDABLE     \"${KLF_WIN_ICON}\"\n")
@@ -326,61 +326,4 @@ endif(KLF_MACOSX_BUNDLES)
 # Build Plugins
 add_subdirectory(plugins)
 
-
-# --- INSTALLATION TARGETS ---
-install(TARGETS klflib RUNTIME DESTINATION "lib${KLF_LIB_SUFFIX}"
-		       ARCHIVE DESTINATION "lib${KLF_LIB_SUFFIX}"
-		       LIBRARY DESTINATION "lib${KLF_LIB_SUFFIX}"
-		       FRAMEWORK DESTINATION /Library/Frameworks
-		       PUBLIC_HEADER DESTINATION include/klf)
-if(KLF_MACOSX_BUNDLES)
-  # Installed library's ID
-  KLFInstFrameworkUpdateId("/Library/Frameworks/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib")
-  # Installed library's dependency on klfbackend should be updated
-  KLFInstFrameworkUpdateLibChange(
-  "/Library/Frameworks/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
-  "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-  "/Library/Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-  )
-endif(KLF_MACOSX_BUNDLES)
-install(TARGETS klatexformula RUNTIME DESTINATION bin
-			      BUNDLE DESTINATION /Applications)
-if(UNIX AND NOT KLF_MACOSX_BUNDLES)
-  install(CODE
-	  "message(STATUS \"Creating Symlink ${CMAKE_INSTALL_PREFIX}/bin/klatexformula_cmdl -> klatexformula\")
-	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${CMAKE_INSTALL_PREFIX}/bin/klatexformula_cmdl\")"
-  )
-endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
-if(KLF_MACOSX_BUNDLES)
-  # Update klatexformula's dependency on the installed frameworks.
-  KLFInstFrameworkUpdateLibChange(
-  "/Applications/klatexformula-${KLF_VERSION}/Contents/MacOS/klatexformula-${KLF_VERSION}"
-  "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-  "/Library/Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-  )
-  KLFInstFrameworkUpdateLibChange(
-  "/Applications/klatexformula-${KLF_VERSION}/Contents/MacOS/klatexformula-${KLF_VERSION}"
-  "${CMAKE_CURRENT_BINARY_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
-  "/Library/Frameworks/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
-  )
-endif(KLF_MACOSX_BUNDLES)
-
-if(KLF_INSTALL_DESKTOP)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/klatexformula.desktop.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop"
-    IMMEDIATE @ONLY)
-
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.desktop" DESTINATION share/applications/)
-  install(FILES klatexformula-128.png DESTINATION share/pixmaps/)
-  install(FILES klatexformula-64.png DESTINATION share/pixmaps/)
-  install(FILES klatexformula-32.png DESTINATION share/pixmaps/)
-  install(FILES klatexformula-16.png DESTINATION share/pixmaps/)
-  install(FILES klatexformula-mime.xml
-	  DESTINATION share/mime/packages/)
-  install(CODE
-    "message(STATUS \"Updating Mime Types Database (update-mime-database)\")
-     execute_process(COMMAND update-mime-database \"${CMAKE_INSTALL_PREFIX}/share/mime\")"
-  )
-endif(KLF_INSTALL_DESKTOP)
 

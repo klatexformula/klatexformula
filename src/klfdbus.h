@@ -36,7 +36,7 @@
 class KLFMainWin;
 
 
-class KLFDBusAppAdaptor : public QDBusAbstractAdaptor
+class KLF_EXPORT KLFDBusAppAdaptor : public QDBusAbstractAdaptor
 {
   Q_OBJECT
   Q_CLASSINFO("D-Bus Interface", "org.klatexformula.KLatexFormula")
@@ -63,7 +63,7 @@ public slots:
 };
 
 
-class KLFDBusAppInterface: public QDBusAbstractInterface
+class KLF_EXPORT KLFDBusAppInterface: public QDBusAbstractInterface
 {
   Q_OBJECT
 public:

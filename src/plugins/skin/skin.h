@@ -98,7 +98,7 @@ public:
   virtual void applySkin(KLFPluginConfigAccess *config);
 
 signals:
-  virtual void skinChanged(const QString& skin);
+  void skinChanged(const QString& skin);
 
 public slots:
   virtual void changeSkin(const QString& newSkin);

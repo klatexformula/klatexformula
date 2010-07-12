@@ -37,7 +37,7 @@ class KLFFactoryManager;
  *
  * This class automatically registers to the factory manager given to the constructor; it
  * also automatically unregisters itself in the destructor. */
-class KLFFactoryBase
+class KLF_EXPORT KLFFactoryBase
 {
 public:
   KLFFactoryBase(KLFFactoryManager *factoryManager);

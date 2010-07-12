@@ -41,7 +41,7 @@ namespace Ui { class KLFSettings; }
  *
  * See also \ref KLFConfig and \ref klfconfig.
  */
-class KLFSettings : public QDialog
+class KLF_EXPORT KLFSettings : public QDialog
 {
   Q_OBJECT
 
