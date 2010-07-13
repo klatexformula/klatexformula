@@ -7,6 +7,8 @@ configure_file("${CMAKE_SOURCE_DIR}/cmake/welcome_installer.txt.in"
 	       "${CMAKE_BINARY_DIR}/welcome_installer.txt"
 	       @ONLY)
 
+
+
 # == Binary packages ==
 
 set(CPACK_PACKAGE_NAME klatexformula)
@@ -15,12 +17,12 @@ set(CPACK_VERSION_MINOR ${KLF_VERSION_MIN})
 set(CPACK_VERSION_PATCH ${KLF_VERSION_REL})
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/descr_long.txt")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${CMAKE_SOURCE_DIR}/descr_short.txt")
-#set(CPACK_PACKAGE_FILE_NAME )
+set(CPACK_PACKAGE_FILE_NAME "klatexformula-${KLF_VERSION}-${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "KLatexFormula-${KLF_VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README")
 set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_BINARY_DIR}/welcome_installer.txt")
-#set(CPACK_MONOLITHIC_INSTALL )
+set(CPACK_MONOLITHIC_INSTALL TRUE)
 #set(CPACK_GENERATOR )
 #set(CPACK_OUTPUT_CONFIG_FILE )
 set(CPACK_PACKAGE_EXECUTABLES klatexformula;KLatexFormula)
@@ -75,5 +77,4 @@ set(CPACK_PACKAGE_VERSION "${KLF_VERSION}")
 #### Finally include the CPack module ####
 
 include(CPack)
-
 

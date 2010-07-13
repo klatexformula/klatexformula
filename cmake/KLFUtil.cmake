@@ -58,7 +58,8 @@ macro(KLFGetCMakeVarChanged varname)
 endmacro(KLFGetCMakeVarChanged)
 
 # Remember the current value of varname to be used with KLFGetCMakeVarChanged(). Call this
-# function after setting manually a cache variable in the code.
+# function after setting manually a cache variable in the code. Does not touch the current
+# values of klf_{changed|first}_${varname}
 #
 macro(KLFCMakeSetVarChanged varname)
   set(klf_internal_${varname} "${${varname}}" CACHE INTERNAL "Stored previous value of ${varname}")
@@ -71,6 +72,8 @@ macro(KLFMarkVarAdvancedIf varname condition)
     mark_as_advanced(CLEAR varname)
   endif(condition)
 endmacro(KLFMarkVarAdvancedIf)
+
+
 
 # Thanks to
 #   http://www.cmake.org/pipermail/cmake/2009-February/027014.html

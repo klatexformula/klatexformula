@@ -176,6 +176,11 @@ if(KLF_DEBUG_USE_MODELTEST)
 endif(KLF_DEBUG_USE_MODELTEST)
 
 KLFInstHeaders(klatexformula_INSTHEADERS "${klatexformula_HEADERS}")
+list(REMOVE_ITEM klatexformula_INSTHEADERS
+	# list more private headers here
+	qtcolortriangle.h
+)
+
 # Translations
 qt4_add_translation(klatexformula_QMS ${klatexformula_TSS})
 if(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
@@ -398,10 +403,12 @@ if(KLF_INSTALL_DESKTOP)
   install(FILES klatexformula-16.png DESTINATION share/pixmaps/)
   install(FILES "${CMAKE_SOURCE_DIR}/src/klatexformula-mime.xml"
 	  DESTINATION share/mime/packages/)
-  install(CODE
-    "message(STATUS \"Updating Mime Types Database (update-mime-database)\")
-     execute_process(COMMAND update-mime-database \"${CMAKE_INSTALL_PREFIX}/share/mime\")"
-  )
+  if(KLF_INSTALL_RUN_POST_INSTALL)
+    install(CODE
+      "message(STATUS \"Updating Mime Types Database (update-mime-database)\")
+	execute_process(COMMAND update-mime-database \"${CMAKE_INSTALL_PREFIX}/share/mime\")"
+    )
+  endif(KLF_INSTALL_RUN_POST_INSTALL)
 endif(KLF_INSTALL_DESKTOP)
 
 

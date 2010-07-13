@@ -7,6 +7,7 @@ KLFGetCMakeVarChanged(CMAKE_INSTALL_PREFIX)
 KLFGetCMakeVarChanged(KLF_INSTALL_LIB_DIR)
 KLFGetCMakeVarChanged(KLF_INSTALL_BIN_DIR)
 KLFGetCMakeVarChanged(CMAKE_INSTALL_RPATH)
+KLFGetCMakeVarChanged(KLF_INSTALL_RUN_POST_INSTALL)
 
 
 # Installation destination
@@ -73,8 +74,15 @@ if(NOT CMAKE_SKIP_RPATH)
     set(wantSetNewRpath TRUE)
   endif(NOT CMAKE_INSTALL_RPATH)
   if(wantSetNewRpath)
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${KLF_INSTALL_LIB_DIR}" CACHE PATH
+    if(KLF_INSTALL_LIB_DIR MATCHES "^\\/.*$")
+      # Absolute file path
+      set(CMAKE_INSTALL_RPATH "${KLF_INSTALL_LIB_DIR}" CACHE PATH
 					    "RPATH for installed libraries and executables" FORCE)
+    else(KLF_INSTALL_LIB_DIR MATCHES "^\\/.*$")
+      # Relative file path to install prefix
+      set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${KLF_INSTALL_LIB_DIR}" CACHE PATH
+					    "RPATH for installed libraries and executables" FORCE)
+    endif(KLF_INSTALL_LIB_DIR MATCHES "^\\/.*$")
     if(NOT klf_first_CMAKE_INSTALL_RPATH)
       KLFNote("Updating CMAKE_INSTALL_RPATH to \"${CMAKE_INSTALL_RPATH}\" (following change of CMAKE_INSTALL_PREFIX)")
     endif(NOT klf_first_CMAKE_INSTALL_RPATH)
@@ -86,6 +94,12 @@ else(NOT CMAKE_SKIP_RPATH)
 endif(NOT CMAKE_SKIP_RPATH)
 
 
+
+# Run Post-Install Scripts?
+# -------------------------
+
+option(KLF_INSTALL_RUN_POST_INSTALL "Run post-install scripts after 'make install'" ON)
+mark_as_advanced(KLF_INSTALL_RUN_POST_INSTALL)
 
 
 
