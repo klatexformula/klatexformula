@@ -30,14 +30,32 @@ if(APPLE AND KLF_MACOSX_BUNDLES)
   # install to /Library/Frameworks on mac OS X
   set(install_lib_dir "/Library/Frameworks")
 endif(APPLE AND KLF_MACOSX_BUNDLES)
-if(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_KLF_INSTALL_LIB_DIR)
+if(klf_changed_KLF_LIB_SUFFIX OR klf_changed_CMAKE_INSTALL_PREFIX)
+  if(NOT klf_changed_KLF_INSTALL_LIB_DIR AND NOT install_lib_dir STREQUAL "${KLF_INSTALL_LIB_DIR}")
+    set(install_lib_dir_needs_set TRUE)
+  else(NOT klf_changed_KLF_INSTALL_LIB_DIR AND NOT install_lib_dir STREQUAL "${KLF_INSTALL_LIB_DIR}")
+    set(install_lib_dir_needs_set FALSE)
+  endif(NOT klf_changed_KLF_INSTALL_LIB_DIR AND NOT install_lib_dir STREQUAL "${KLF_INSTALL_LIB_DIR}")
+else(klf_changed_KLF_LIB_SUFFIX OR klf_changed_CMAKE_INSTALL_PREFIX)
+  set(install_lib_dir_needs_set FALSE)
+endif(klf_changed_KLF_LIB_SUFFIX OR klf_changed_CMAKE_INSTALL_PREFIX)
+KLFCMakeDebug("install_lib_dir=${install_lib_dir}. klf_changed_CMAKE_INSTALL_PREFIX=${klf_changed_CMAKE_INSTALL_PREFIX}. install_lib_dir_needs_set:? ${install_lib_dir_needs_set}. klf_changed_KLF_INSTALL_LIB_DIR=${klf_changed_KLF_INSTALL_LIB_DIR} klf_internal_KLF_INSTALL_LIB_DIR=${klf_internal_KLF_INSTALL_LIB_DIR} klf_first_KLF_INSTALL_LIB_DIR=${klf_first_KLF_INSTALL_LIB_DIR} KLF_INSTALL_LIB_DIR=${KLF_INSTALL_LIB_DIR}")
+if(install_lib_dir_needs_set)
   set(KLF_INSTALL_LIB_DIR "${install_lib_dir}" CACHE STRING
 		  "Library installation directory (relative to install prefix, or absolute)" FORCE)
-  mark_as_advanced(KLF_INSTALL_LIB_DIR)
+  mark_as_advanced(CLEAR KLF_INSTALL_LIB_DIR)
   if(NOT klf_first_KLF_INSTALL_LIB_DIR)
-    message(STATUS "Updating library install dir to ${KLF_INSTALL_LIB_DIR} following changed of CMAKE_INSTALL_PREFIX")
+    KLFNote("Updating library install dir to ${KLF_INSTALL_LIB_DIR} following changes to CMAKE_INSTALL_PREFIX and/or KLF_LIB_SUFFIX")
   endif(NOT klf_first_KLF_INSTALL_LIB_DIR)
-endif(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_KLF_INSTALL_LIB_DIR)
+  KLFCMakeSetVarChanged(KLF_INSTALL_LIB_DIR)
+endif(install_lib_dir_needs_set)
+message(STATUS "Installing libraries to ${KLF_INSTALL_LIB_DIR} (KLF_INSTALL_LIB_DIR)")
+# Utility variable. Same as KLF_INSTALL_LIB_DIR, but garanteed to be absolute path.
+# Not kept in cache, it is (trivially) computed here
+set(KLF_ABS_INSTALL_LIB_DIR "${KLF_INSTALL_LIB_DIR}")
+if(NOT IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}")
+  set(KLF_ABS_INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/${KLF_INSTALL_LIB_DIR}")
+endif(NOT IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}")
 
 
 set(install_bin_dir "bin")
@@ -52,12 +70,19 @@ endif(APPLE AND KLF_MACOSX_BUNDLES)
 if(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_KLF_INSTALL_BIN_DIR)
   set(KLF_INSTALL_BIN_DIR "${install_bin_dir}" CACHE STRING
 		  "Binaries installation directory (relative to install prefix, or absolute)" FORCE)
-  mark_as_advanced(KLF_INSTALL_BIN_DIR)
+  mark_as_advanced(CLEAR KLF_INSTALL_BIN_DIR)
   if(NOT klf_first_KLF_INSTALL_BIN_DIR)
     message(STATUS "Updating binary install dir to ${KLF_INSTALL_BIN_DIR} following changed of CMAKE_INSTALL_PREFIX")
   endif(NOT klf_first_KLF_INSTALL_BIN_DIR)
+  KLFCMakeSetVarChanged(KLF_INSTALL_BIN_DIR)
 endif(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_KLF_INSTALL_BIN_DIR)
-
+message(STATUS "Installing binary to ${KLF_INSTALL_BIN_DIR} (KLF_INSTALL_BIN_DIR)")
+# Utility variable. Same as KLF_INSTALL_BIN_DIR, but garanteed to be absolute path.
+# Not kept in cache, it is (trivially) computed here
+set(KLF_ABS_INSTALL_BIN_DIR "${KLF_INSTALL_BIN_DIR}")
+if(NOT IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
+  set(KLF_ABS_INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/${KLF_INSTALL_BIN_DIR}")
+endif(NOT IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
 
 
 
@@ -74,17 +99,17 @@ if(NOT CMAKE_SKIP_RPATH)
     set(wantSetNewRpath TRUE)
   endif(NOT CMAKE_INSTALL_RPATH)
   if(wantSetNewRpath)
-    if(KLF_INSTALL_LIB_DIR MATCHES "^\\/.*$")
+    if(IS_ABSOLUTE KLF_INSTALL_LIB_DIR)
       # Absolute file path
       set(CMAKE_INSTALL_RPATH "${KLF_INSTALL_LIB_DIR}" CACHE PATH
 					    "RPATH for installed libraries and executables" FORCE)
-    else(KLF_INSTALL_LIB_DIR MATCHES "^\\/.*$")
+    else(IS_ABSOLUTE KLF_INSTALL_LIB_DIR)
       # Relative file path to install prefix
       set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${KLF_INSTALL_LIB_DIR}" CACHE PATH
 					    "RPATH for installed libraries and executables" FORCE)
-    endif(KLF_INSTALL_LIB_DIR MATCHES "^\\/.*$")
+    endif(IS_ABSOLUTE KLF_INSTALL_LIB_DIR)
     if(NOT klf_first_CMAKE_INSTALL_RPATH)
-      KLFNote("Updating CMAKE_INSTALL_RPATH to \"${CMAKE_INSTALL_RPATH}\" (following change of CMAKE_INSTALL_PREFIX)")
+      KLFNote("Updating CMAKE_INSTALL_RPATH to \"${CMAKE_INSTALL_RPATH}\" (following change of CMAKE_INSTALL_PREFIX and/or KLF_INSTALL_LIB_DIR)")
     endif(NOT klf_first_CMAKE_INSTALL_RPATH)
   endif(wantSetNewRpath)
   mark_as_advanced(CLEAR CMAKE_INSTALL_RPATH)

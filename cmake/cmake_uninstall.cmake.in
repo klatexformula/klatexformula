@@ -16,9 +16,17 @@ STRING(REGEX REPLACE "\n" ";" files "${files}")
 
 
 ## KLatexFormula: Some extra files to uninstall
+
 if(UNIX AND NOT KLF_MACOSX_BUNDLES)
+  # symbolic links should be removed before the original files or
+  # cmake -E remove complains and fails (cmake bug)
   set(files
-      "@KLF_INSTALL_BIN_DIR@/klatexformula_cmdl"
+      "@KLF_ABS_INSTALL_BIN_DIR@/klatexformula_cmdl"
+      ${files}
+  )
+  set(files
+      "@KLF_ABS_INSTALL_LIB_DIR@/libklfbackend.so"
+      "@KLF_ABS_INSTALL_LIB_DIR@/libklflib.so"
       ${files}
   )
 endif(UNIX AND NOT KLF_MACOSX_BUNDLES)

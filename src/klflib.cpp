@@ -558,6 +558,10 @@ bool KLFLibResourceEngine::canRenameSubResource(const QString& /*subResource*/) 
 {
   return false;
 }
+bool KLFLibResourceEngine::canDeleteSubResource(const QString& /*subResource*/) const
+{
+  return false;
+}
 
 QVariant KLFLibResourceEngine::subResourceProperty(const QString& /*subResource*/, int /*propId*/) const
 {
@@ -640,6 +644,10 @@ bool KLFLibResourceEngine::createSubResource(const QString& subResource)
   return createSubResource(subResource, QString());
 }
 bool KLFLibResourceEngine::renameSubResource(const QString& /*old*/, const QString& /*new*/)
+{
+  return false;
+}
+bool KLFLibResourceEngine::deleteSubResource(const QString& /*subResource*/)
 {
   return false;
 }

@@ -57,8 +57,7 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
   _mainwin = mainWin;
   _config = rwconfig;
 
-  // set default value: Enable System Tray by default (but see plugin definition: don't
-  // load plugin by default)
+  // set default settings: disable sys tray icon by default
   _config->makeDefaultValue("systrayon", false);
   _config->makeDefaultValue("replacequitbutton", true);
 #ifdef Q_WS_X11

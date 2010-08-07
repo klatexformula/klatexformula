@@ -1,7 +1,7 @@
 # ######################################### #
 # CMake utility functions for klatexformula #
 # ######################################### #
-# $Id: CMakeLists.txt 340 2010-03-26 19:24:15Z philippe $
+# $Id$
 # ######################################### #
 
 macro(KLFInstHeaders varInstHeaders varAllHeaders)
@@ -16,6 +16,22 @@ message("
     ${message}
 ")
 endmacro(KLFNote)
+
+
+option(KLF_CMAKE_DEBUG "Enable Debug Messages in CMake Scripts" OFF)
+mark_as_advanced(KLF_CMAKE_DEBUG)
+
+macro(KLFCMakeDebug message)
+  # To include debugging messages, define KLF_CMAKE_DEBUG to ON
+  if(KLF_CMAKE_DEBUG)
+    message("
+    --- DEBUG MESSAGE ---
+    ${message}
+")
+  endif(KLF_CMAKE_DEBUG)
+endmacro(KLFCMakeDebug)
+
+
 
 # Detect changes to cache variable varname.
 #
@@ -44,13 +60,15 @@ macro(KLFGetCMakeVarChanged varname)
 
     set(klf_first_${varname} FALSE)
 
-    if(klf_internal_${varname} STREQUAL ${varname})
+    if(klf_internal_${varname} STREQUAL "${${varname}}")
+      KLFCMakeDebug("VARIABLE ${varname} NOT CHANGED (value='${${varname}}')")
       # variable NOT changed
       set(klf_changed_${varname} FALSE)
-    else(klf_internal_${varname} STREQUAL ${varname})
+    else(klf_internal_${varname} STREQUAL "${${varname}}")
+      KLFCMakeDebug("VARIABLE ${varname} CHANGED from '${klf_internal_${varname}}' to '${${varname}}'")
       set(klf_changed_${varname} TRUE)
       set(klf_old_${varname} "${klf_internal_${varname}}")
-    endif(klf_internal_${varname} STREQUAL ${varname})
+    endif(klf_internal_${varname} STREQUAL "${${varname}}")
 
   endif(NOT DEFINED klf_internal_${varname})
 

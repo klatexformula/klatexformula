@@ -1,7 +1,7 @@
 # ##################################################### #
 # CMake extra definitions for klatexformula on Mac OS X
 # ##################################################### #
-# $Id: CMakeLists.txt 341 2010-03-26 20:09:49Z philippe $
+# $Id$
 # ##################################################### #
 
 set(KLF_QT_FRAMEWORKS ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTXML_LIBRARY}

@@ -72,6 +72,9 @@ public:
       html.replace(marker, pHtmlExtraSnipplets[k]+"\n"+marker);
 
     klfDbg( "new HTML is:\n"<<html ) ;
+    
+    // replace some general recognized "macros"
+    html.replace("<!--KLF_VERSION-->", KLF_VERSION_STRING);
 
     return html;
   }

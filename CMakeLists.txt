@@ -133,6 +133,7 @@ else(KLF_TARGET_ARCH_64)
   message(STATUS "Compiling for 32-bit architecture (KLF_TARGET_ARCH_64)")
 endif(KLF_TARGET_ARCH_64)
 
+KLFGetCMakeVarChanged(KLF_LIB_SUFFIX)  # Also used later in klfinstallpaths.cmake
 # Guess lib dir suffix on linux/unix
 if(UNIX)
   execute_process(COMMAND test -d /lib64 -a ! -L /lib64 RESULT_VARIABLE nothavelib64)
@@ -164,7 +165,7 @@ if(UNIX)
     if(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
     else(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
       set(KLF_LIB_SUFFIX ${NEW_KLF_LIB_SUFFIX} CACHE STRING
-			      "Suffix to library directory (eg. '64' for /usr/lib64')" FORCE)
+			      "Suffix to library directory (eg. '64' for '/usr/lib64')" FORCE)
       if(klf_lib_suffix_redefined)
         KLFNote("The library suffix was detected and adjusted to \"${KLF_LIB_SUFFIX}\" (KLF_LIB_SUFFIX).")
       endif(klf_lib_suffix_redefined)

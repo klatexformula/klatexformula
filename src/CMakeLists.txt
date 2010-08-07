@@ -369,8 +369,8 @@ install(TARGETS klatexformula RUNTIME DESTINATION "${KLF_INSTALL_BIN_DIR}"
 			      BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
 if(UNIX AND NOT KLF_MACOSX_BUNDLES)
   install(CODE
-	  "message(STATUS \"Creating Symlink ${KLF_INSTALL_BIN_DIR}/klatexformula_cmdl -> klatexformula\")
-	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${KLF_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
+	  "message(STATUS \"Creating Symlink ${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl -> klatexformula\")
+	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
   )
 endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
 if(KLF_MACOSX_BUNDLES)

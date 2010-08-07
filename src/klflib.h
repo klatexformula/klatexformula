@@ -667,6 +667,14 @@ public:
    */
   virtual bool canRenameSubResource(const QString& subResource) const;
 
+  /** Returns TRUE if we can completely delete sub-resource \c subResource from the resource.
+   *
+   * If this function returns FALSE, a subsequent call to deleteSubResoruce() is certain
+   * to fail.
+   *
+   * The default implementation returns FALSE.
+   */
+  virtual bool canDeleteSubResource(const QString& subResource) const;
 
   /** Queries properties of sub-resources. The default implementation returns an empty
    * QVariant(). Test the \ref supportedFeatureFlags() for \ref FeatureSubResourceProps to
@@ -948,13 +956,27 @@ signals:
   void resourcePropertyChanged(int propId);
   
   //! Emitted when a sub-resource property changes.
-  /** This function should only be emitted by engines supporting feature \ref FeatureSubResourceProps
+  /** This signal should only be emitted by engines supporting feature \ref FeatureSubResourceProps
    * as well as \ref FeatureSubResources.
    *
    * \param subResource the affected sub-resource name
    * \param propId the ID of the property that changed
    */
   void subResourcePropertyChanged(const QString& subResource, int propId);
+
+  //! Emitted when a sub-resource is renamed
+  /** This signal should be emitted by engines supporting feature \ref FeatureSubResources, at
+   * the end of a (successful) \ref renameSubResource() call.\
+   */
+  void subResourceRenamed(const QString& oldSubResourceName,
+			  const QString& newSubResourceName);
+
+  //! Emitted when a sub-resource is deleted
+  /** This signal should be emitted by engines supporting feature \ref FeatureSubResources, at
+   * the end of a (successful) \ref deleteSubResource() call.
+   */
+  void subResourceDeleted(const QString& subResource);
+
 
   /** Emitted at the beginning of a long operation during which progress will be reported
    * by emission of KLFProgressReporter::progress() of the given object \c progressReporter.
@@ -1105,10 +1127,28 @@ public slots:
    * Subclasses may reimplement this function to provide functionality. The default implementation
    * does nothing and returns FALSE.
    *
+   * Subclasses should not forget to emit \ref subResourceRenamed() after a successful sub-resource
+   * rename.
+   *
    * \note Subclasses should also adjust the current defaultSubResource() if that is the one that
    *   was precisely renamed. Use a call to \ref setDefaultSubResource().
    */
   virtual bool renameSubResource(const QString& oldSubResourceName, const QString& newSubResourceName);
+
+  /** Delete the given sub-resource
+   *
+   * Returns TRUE for success and FALSE for failure.
+   *
+   * Subclasses may reimplement this function to provide functionality. The default implementation
+   * does nothing and returns FALSE.
+   *
+   * Subclasses should not forget to emit \ref subResourceDeleted() after the sub-resource
+   * has been deleted (ie. upon a successful execution).
+   *
+   * \note Subclasses should also change the current defaultSubResource() if that is the one that
+   *   was precisely deleted. Use a call to \ref setDefaultSubResource().
+   */
+  virtual bool deleteSubResource(const QString& subResource);
 
 
   /** Sets the given sub-resource property of sub-resource \c subResource to the value \c value,
