@@ -1,0 +1,13 @@
+<!DOCTYPE kpartgui>
+<gui name="ktexteditor_klf" library="ktexteditor_klf" version="2">
+<MenuBar>
+ <Menu name="tools"><text>&amp;Tools</text>
+    <Separator group="tools_operations" />
+    <Menu name="tools_klf" group="tools_operations"><text>&amp;KLatexFormula Tools</text>
+      <Action name="klf_preview_selection"/>
+      <Action name="klf_invoke_klf"/>
+    </Menu>
+ </Menu>
+</MenuBar>
+</gui>
+

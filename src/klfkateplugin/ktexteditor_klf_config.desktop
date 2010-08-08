@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=KCModule
+X-KDE-Library=ktexteditor_klf
+X-KDE-PluginKeyword=ktexteditor_klf_config
+X-KDE-ParentComponents=ktexteditorklf
+Name=KLatexFormula KTextEditor Plugin
+Icon=klatexformula
