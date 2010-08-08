@@ -158,8 +158,12 @@ void KLFPreviewBuilderThread::run()
   int lwid, lhgt;
 
   for (;;) {
-    if (_abort)
+    _mutex.lock();
+    bool abrt = _abort;
+    _mutex.unlock();
+    if (abrt)
       return;
+  
     // fetch info
     _mutex.lock();
     input = _input;

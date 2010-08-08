@@ -24,6 +24,8 @@
 #include <QLabel>
 #include <QGridLayout>
 #include <QMouseEvent>
+#include <QPainter>
+#include <QTimer>
 
 #include <ktexteditor/document.h>
 
@@ -119,7 +121,10 @@ void KLFKteLatexRunThread::run()
   QImage img;
 
   for (;;) {
-    if (_abort)
+    _mutex.lock();
+    bool abrt = _abort;
+    _mutex.unlock();
+    if (abrt)
       return;
 
     // fetch info
@@ -135,13 +140,14 @@ void KLFKteLatexRunThread::run()
       emit previewError(i18n("No Latex Equation"), -1000);
     } else {
       // and GO!
-      fprintf(stderr, "KLFKteLatexRunThread::run(): running getLatexFormula ...\n");
+      // fprintf(stderr, "KLFKteLatexRunThread::run(): running getLatexFormula ...\n");
       output = KLFBackend::getLatexFormula(input, settings);
       img = output.result;
-      fprintf(stderr, "... status=%d\n", output.status);
+      // fprintf(stderr, "... status=%d\n", output.status);
       if (output.status == 0) {
-	if (img.width() > 600 || img.height() > 200)
-	  img = img.scaled(QSize(600, 200), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	QSize popupMaxSize = KLFKteConfigData::inst()->popupMaxSize;
+	if (img.width() > popupMaxSize.width() || img.height() > popupMaxSize.height())
+	  img = img.scaled(popupMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
       } else {
 	img = QImage();
       }
@@ -154,27 +160,24 @@ void KLFKteLatexRunThread::run()
 
     if (abort)
       return;
-    if (hasnewinfo)
-      continue;
 
-    // otherwise we have a ready preview!
-
+    // fprintf(stderr, "thread::run(): emitting signal. image size=(%d,%d)\n", img.width(), img.height());
     if (!img.isNull())
       emit previewAvailable(img);
     else
       emit previewError(output.errorstr, output.status);
+
+    if (hasnewinfo)
+      continue;
 
     _mutex.lock();
     _condnewinfoavail.wait(&_mutex);
     _mutex.unlock();
   }
 }
-bool KLFKteLatexRunThread::setInput(const KLFBackend::klfInput& input)
+bool KLFKteLatexRunThread::setNewInput(const KLFBackend::klfInput& input)
 {
   QMutexLocker mutexlocker(&_mutex);
-  if (_input == input) {
-    return false;
-  }
   _input = input;
   _hasnewinfo = true;
   _condnewinfoavail.wakeOne();
@@ -191,23 +194,59 @@ void KLFKteLatexRunThread::setSettings(const KLFBackend::klfSettings& settings)
 
 
 
+// --------------------------------
+
+
+KLFKtePixmapWidget::KLFKtePixmapWidget(QWidget *parent)
+  : QWidget(parent), pPix(QPixmap())
+{
+  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  setMinimumSize(QSize(10,10));
+  setFocusPolicy(Qt::NoFocus);
+}
+KLFKtePixmapWidget::~KLFKtePixmapWidget()
+{
+}
+
+void KLFKtePixmapWidget::setPix(const QPixmap& pix)
+{
+  pPix = pix;
+  setMinimumSize(pPix.size());
+  resize(pPix.size());
+  update();
+}
+
+void KLFKtePixmapWidget::paintEvent(QPaintEvent */*e*/)
+{
+  int x = (width()-pPix.width()) / 2;
+  int y = (height()-pPix.height()) / 2;
+  QPainter p(this);
+  p.drawPixmap(x,y,pPix);
+}
+
 
 // --------------------------------
 
 
 KLFKtePreviewWidget::KLFKtePreviewWidget(KTextEditor::View *vparent)
-  : QWidget(vparent, Qt::Window|Qt::FramelessWindowHint|Qt::CustomizeWindowHint|
+  : QWidget(vparent, Qt::ToolTip|Qt::FramelessWindowHint|Qt::CustomizeWindowHint|
 	    Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint)
 {
   setAttribute(Qt::WA_ShowWithoutActivating, true);
+  //setAttribute(Qt::WA_PaintOnScreen, true);
 
   QGridLayout *l = new QGridLayout(this);
-  lbl = new QLabel(this);
-  lbl->setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
-  QLabel *klfLinks = new QLabel(i18n("<a href=\"klfkteaction:/invoke_klf\">open in KLatexFormula</a>&nbsp;|&nbsp;"
-				     "<a href=\"klfkteaction:/no_autopopup\">don't popup automatically</a>&nbsp;|&nbsp;"
-				     "<a href=\"klfkteaction:/close\">close</a>"), this);
-  
+  lbl = new KLFKtePixmapWidget(this);
+  klfLinks =
+    new QLabel(i18n("<a href=\"klfkteaction:/invoke_klf\">open in KLatexFormula</a> | "
+		    "<a href=\"klfkteaction:/no_autopopup\">don't popup automatically</a> | "
+		    "<a href=\"klfkteaction:/close\">close</a>"), this);
+  klfLinks->setWordWrap(false);
+  // smaller font
+  QFont f = klfLinks->font();
+  f.setPointSize(QFontInfo(f).pointSize()-1);
+  klfLinks->setFont(f);
+
   l->addWidget(lbl, 0, 0, 2, 2, Qt::AlignCenter);
   l->addWidget(klfLinks, 2, 0, 2, 1);
   l->setColumnStretch(0, 1);
@@ -224,7 +263,10 @@ KLFKtePreviewWidget::~KLFKtePreviewWidget()
 
 bool KLFKtePreviewWidget::eventFilter(QObject *obj, QEvent *event)
 {
-  if (obj == parentWidget() && event->type() == QEvent::FocusOut) {
+  //  qDebug()<<"KLFKte: Object: "<<obj<<", Event: "<<event->type();
+  if (obj == parentWidget() && (event->type() == QEvent::FocusOut ||
+				event->type() == QEvent::WindowDeactivate ||
+				event->type() == QEvent::WindowStateChange)) {
     hide();
   }
   if (event->type() == QEvent::MouseButtonPress) {
@@ -246,17 +288,44 @@ void KLFKtePreviewWidget::linkActivated(const QString& url)
   }
 }
 
-
-void KLFKtePreviewWidget::showPreview(const QImage& preview, const QPoint& globalpos)
+void KLFKtePreviewWidget::paintEvent(QPaintEvent *event)
 {
-  qDebug()<<KLF_FUNC_NAME<<"()";
-  lbl->setPixmap(QPixmap::fromImage(preview));
-  move(globalpos+QPoint(0,30));
-  show();
-  adjustSize();
+  QWidget::paintEvent(event);
+}
+static int popupXPos(int mywidth, int viewx, int viewwidth, int viewposx)
+{
+  if (mywidth > viewwidth) {
+    // center the popup on the view, but not past zero on the left
+    return qMax(0, viewx - (mywidth-viewwidth)/2);
+  }
+  // rel. to view: at viewposx=0, show at x=0, at viewposx=viewwidth, show at x=viewwidth-mywidth
+  return  viewx   +    (viewwidth-mywidth) * viewposx/viewwidth ;
+  /*
+  int maxleftshift = qMin(400, globalposx*2/3);
+  // if mywidth <= 100 -> show right under cursor
+  if (mywidth <= 100)
+    return 0;
+  if (mywidth >= 600) {
+    return -maxleftshift;
+  }
+  // interpolate between 0 (at mywidth=100) and -maxleftshift (at mywidth=600)
+  return 0  +  (-maxleftshift) * (mywidth-100)/(600-100) ; */
+}
+void KLFKtePreviewWidget::showPreview(const QImage& preview, QWidget *view, const QPoint& pos)
+{
+  QPoint globViewPos = view->mapToGlobal(view->pos());
+  lbl->setPix(QPixmap::fromImage(preview));
+  //adjustSize();
+  klfLinks->setShown(KLFKteConfigData::inst()->popupLinks);
   resize(sizeHint()+QSize(4,4));
+  move(popupXPos(width(), globViewPos.x(), view->width(), pos.x()),
+       globViewPos.y()+pos.y()+35);
+  show();
 
   setWindowOpacity(1.0 - (KLFKteConfigData::inst()->transparencyPercent / 100.0));
+  
+  // schedule re-paint to workaround bug where label is not repainted some times
+  QTimer::singleShot(20, lbl, SLOT(repaint()));
 }
 
 
@@ -301,9 +370,9 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
   pLatexRunThread->setSettings(klfsettings);
 
   connect(pLatexRunThread, SIGNAL(previewAvailable(const QImage&)),
-	  this, SLOT(slotReadyPreview(const QImage&)));
+	  this, SLOT(slotReadyPreview(const QImage&)), Qt::QueuedConnection);
   connect(pLatexRunThread, SIGNAL(previewError(const QString&, int)),
-	  this, SLOT(slotHidePreview()));
+	  this, SLOT(slotHidePreview()), Qt::QueuedConnection);
 
   connect(pPreview, SIGNAL(invokeKLF()), this, SLOT(slotInvokeKLF()));
 }
@@ -326,7 +395,7 @@ void KLFKtePluginView::slotHighlightingModeChanged(KTextEditor::Document *docume
 
 void KLFKtePluginView::slotReparseCurrentContext()
 {
-  qDebug()<<KLF_FUNC_NAME<<"()";
+  //  qDebug()<<KLF_FUNC_NAME<<"()";
 
   if (!pIsGoodHighlightingMode)
     return;
@@ -364,23 +433,23 @@ void KLFKtePluginView::slotReparseCurrentContext()
     ++l;
   }
 
-  qDebug()<<KLF_FUNC_NAME<<": collected full text is:\n"<<text;
-  qDebug()<<KLF_FUNC_NAME<<": regex pattern is:\n"<<rxmm.pattern();
-  qDebug()<<KLF_FUNC_NAME<<": Matching regex to doc text. ; cur cursor position=(line="<<curPos.line()
-	  <<",col="<<curPos.column()<<"), curOffset="<<curOffset<<": "<<("..."+text.mid(curOffset-10,10)+"\033[7m"+text.mid(curOffset,1)+"\033[0m"+text.mid(curOffset+1,10)+"...");
+  //  qDebug()<<KLF_FUNC_NAME<<": collected full text is:\n"<<text;
+  //  qDebug()<<KLF_FUNC_NAME<<": regex pattern is:\n"<<rxmm.pattern();
+  //  qDebug()<<KLF_FUNC_NAME<<": Matching regex to doc text. ; cur cursor position=(line="<<curPos.line()
+  //	  <<",col="<<curPos.column()<<"), curOffset="<<curOffset<<": "<<("..."+text.mid(curOffset-10,10)+"\033[7m"+text.mid(curOffset,1)+"\033[0m"+text.mid(curOffset+1,10)+"...");
   // now match regex to text.
   int matchIndex = rxmm.lastIndexIn(text, curOffset-1);
-  qDebug()<<KLF_FUNC_NAME<<": matchIndex="<<matchIndex<<": "<<("..."+text.mid(matchIndex-10,10)+"\033[7m"+text.mid(matchIndex,1)+"\033[0m"+text.mid(matchIndex+1,10)+"...");
+  //  qDebug()<<KLF_FUNC_NAME<<": matchIndex="<<matchIndex<<": "<<("..."+text.mid(matchIndex-10,10)+"\033[7m"+text.mid(matchIndex,1)+"\033[0m"+text.mid(matchIndex+1,10)+"...");
   // check if
   //  * we matched at all
   //  * the cursor is in the equation (ie. matchpos+matchlength >= cursorpos)
   if (matchIndex < 0 || matchIndex < curOffset-rxmm.matchedLength()) {
-    qDebug()<<KLF_FUNC_NAME<<": match failed. matchIndex="<<matchIndex;
+    //    qDebug()<<KLF_FUNC_NAME<<": match failed. matchIndex="<<matchIndex;
     pCurMathContext.isValidMathContext = false;
     slotHidePreview();
     return;
   }
-  qDebug()<<KLF_FUNC_NAME<<": match succeeded! match pos="<<matchIndex;
+  //  qDebug()<<KLF_FUNC_NAME<<": match succeeded! match pos="<<matchIndex;
 
   // match, setup the math context structure
   pCurMathContext.isValidMathContext = true;
@@ -424,7 +493,7 @@ void KLFKtePluginView::slotPreview(const MathContext& context)
   if (!pIsGoodHighlightingMode)
     return;
 
-  // NOTE: Don't complain if the equation doesn't parse, my latex parser can very easily be fooled if eg.
+  // Note: Don't complain if the equation doesn't parse, my latex parser can very easily be fooled if eg.
   // the cursor is placed between to inlined equations like : ...and we define $R$ and $S$ to...
   // if the cursor is on the "and", then it sees the (wrong) inlined equation "$ and $"
 
@@ -436,7 +505,7 @@ void KLFKtePluginView::slotPreview(const MathContext& context)
   klfinput.bg_color = qRgba(255, 255, 255, 0); // transparent
   klfinput.dpi = 180;
 
-  pLatexRunThread->setInput(klfinput);
+  pLatexRunThread->setNewInput(klfinput);
 }
 
 void KLFKtePluginView::slotHidePreview()
@@ -449,8 +518,8 @@ void KLFKtePluginView::slotReadyPreview(const QImage& preview)
   if (!pIsGoodHighlightingMode)
     return;
 
-  qDebug()<<KLF_FUNC_NAME<<"()";
-  pPreview->showPreview(preview, pView->cursorPositionCoordinates()+pView->mapToGlobal(pView->pos()));
+  // qDebug()<<KLF_FUNC_NAME<<"()";
+  pPreview->showPreview(preview, pView, pView->cursorPositionCoordinates());
 }
 
 

@@ -31,7 +31,7 @@
 #include <QThread>
 #include <QWaitCondition>
 #include <QMutex>
-
+#include <QPixmap>
 #include <QLabel>
 
 #include <ktexteditor/plugin.h>
@@ -84,7 +84,7 @@ signals:
   void previewAvailable(const QImage& preview);
 
 public slots:
-  bool setInput(const KLFBackend::klfInput& input);
+  bool setNewInput(const KLFBackend::klfInput& input);
   void setSettings(const KLFBackend::klfSettings& settings);
 
 protected:
@@ -98,6 +98,27 @@ protected:
   bool _abort;
 };
 
+class KLFKtePixmapWidget : public QWidget
+{
+  Q_OBJECT
+  Q_PROPERTY(QPixmap pix READ pix WRITE setPix)
+public:
+  KLFKtePixmapWidget(QWidget *parent);
+  virtual ~KLFKtePixmapWidget();
+  
+  virtual QPixmap pix() const { return pPix; }
+  
+  virtual QSize sizeHint() const { return pPix.size(); }
+  
+public Q_SLOTS:
+  virtual void setPix(const QPixmap& pix);
+  
+protected:
+  virtual void paintEvent(QPaintEvent *e);
+  
+private:
+  QPixmap pPix;
+};
 
 class KLFKtePreviewWidget : public QWidget
 {
@@ -112,13 +133,17 @@ signals:
   void invokeKLF();
 
 public Q_SLOTS:
-void showPreview(const QImage& img, const QPoint& pos);
+  void showPreview(const QImage& img, QWidget *view, const QPoint& pos);
 
 private Q_SLOTS:
   void linkActivated(const QString& url);
+  
+protected:
+  void paintEvent(QPaintEvent *event);
 
 private:
-  QLabel *lbl;
+  KLFKtePixmapWidget *lbl;
+  QLabel *klfLinks;
 };
 
 

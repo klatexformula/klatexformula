@@ -42,6 +42,8 @@ public:
   int transparencyPercent;
   QString preamble;
   QString klfpath;
+  QSize popupMaxSize;
+  bool popupLinks;
 
 private:
   KLFKteConfigData(QObject *parent) : QObject(parent) { }
@@ -66,6 +68,8 @@ public:
   
 private Q_SLOTS:
   void slotChanged();
+  
+  void slotMaxSize(int step);
 
 private:
   Ui::KLFKatePluginConfigWidget *u;
