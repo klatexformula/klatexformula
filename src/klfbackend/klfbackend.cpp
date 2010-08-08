@@ -677,7 +677,7 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
 # elif defined(Q_OS_WIN32)
   settings->tempdir = getenv("TEMP");
 # else
-  settings->tempdir = "";
+  settings->tempdir = QString();
 # endif
 #endif
 

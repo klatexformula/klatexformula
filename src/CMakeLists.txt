@@ -332,6 +332,10 @@ endif(KLF_MACOSX_BUNDLES)
 add_subdirectory(plugins)
 
 
+# Build KDE KTextEditor Plugin
+if(KLF_BUILD_KTEXTEDITORPLUGIN)
+  add_subdirectory(klfkateplugin)
+endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 
 
 # Install Targets

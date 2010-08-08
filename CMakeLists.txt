@@ -263,6 +263,23 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
 endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
 set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}" CACHE INTERNAL "Current Build Processor Arch")
 
+# Find KDE4 for KTextEditor Plugin
+if(KLF_USE_QT4)
+  set(KLF_BUILD_KTEXTEDITORPLUGIN ON CACHE BOOL "Build the KTextEditor plugin")
+  if(KLF_BUILD_KTEXTEDITORPLUGIN)
+    message(STATUS "Will build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
+  else(KLF_BUILD_KTEXTEDITORPLUGIN)
+    message(STATUS "Will NOT build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
+  endif(KLF_BUILD_KTEXTEDITORPLUGIN)
+else(KLF_USE_QT4)
+  if(KLF_BUILD_KTEXTEDITORPLUGIN)
+    set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build the KTextEditor Plugin" FORCE)
+    KLFNote("Not building the KTextEditor plugin because we're using Qt3.")
+  endif(KLF_BUILD_KTEXTEDITORPLUGIN)
+endif(KLF_USE_QT4)
+
+
+
 
 # Install Paths
 # -------------

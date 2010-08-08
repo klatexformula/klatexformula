@@ -186,13 +186,20 @@ void KLFPreviewBuilderThread::run()
       } else {
 	img = QImage();
       }
-
-      emit previewAvailable(img, output.status != 0);
     }
-    if (_abort)
+
+    _mutex.lock();
+    bool abort = _abort;
+    bool hasnewinfo = _hasnewinfo;
+    _mutex.unlock();
+
+    if (abort)
       return;
-    if (_hasnewinfo)
+    if (hasnewinfo)
       continue;
+
+    emit previewAvailable(img, output.status != 0);
+
     _mutex.lock();
     _condnewinfoavail.wait(&_mutex);
     _mutex.unlock();

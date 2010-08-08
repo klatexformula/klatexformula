@@ -1,9 +1,23 @@
-# KLatexFormula Kate Editor Part Plugin
+# ###################################################### #
+# CMake project file for klatexformula/src/klfkateplugin #
+# ###################################################### #
+# $Id$
+# ###################################################### #
 
-find_package(KDE4 REQUIRED)
+# KLatexFormula KTextEditor Plugin
+
+# find KDE4
+find_package(KDE4)
+if(NOT KDE4_KDECONFIG_EXECUTABLE)
+  set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build KTextEditor plugin" FORCE)
+  KLFNote(
+  "KDE4 is required to build KTextEditor plugin. The plugin has been disabled (KLF_BUILD_KTEXTEDITORPLUGIN). Please re-run cmake to continue.")
+  message(FATAL_ERROR "KDE4 not found.")
+endif(NOT KDE4_KDECONFIG_EXECUTABLE)
+
 include(KDE4Defaults)
 include_directories(${KDE4_INCLUDES})
-include_directories(/usr/include/klfbackend)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../klfbackend")
 
 
 ########### next target ###############
@@ -15,7 +29,7 @@ kde4_install_icons(${ICON_INSTALL_DIR})
 kde4_add_plugin(ktexteditor_klf ${ktexteditor_klf_PART_SRCS} )
 
 target_link_libraries(ktexteditor_klf ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS}
-				       -lktexteditor -lklfbackend )
+				       -lktexteditor klfbackend )
 
 install(TARGETS ktexteditor_klf DESTINATION "${PLUGIN_INSTALL_DIR}" )
 

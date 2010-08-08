@@ -1,20 +1,25 @@
-/**
-  * Copyright (C) 2010 Philippe Faist  philippe dot faist at bluewin dot ch
-  *
-  * This library is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU Library General Public
-  * License version 2 as published by the Free Software Foundation.
-  *
-  * This library is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  * Library General Public License for more details.
-  *
-  * You should have received a copy of the GNU Library General Public License
-  * along with this library; see the file COPYING.LIB.  If not, write to
-  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-  * Boston, MA 02110-1301, USA.
-  */
+/***************************************************************************
+ *   file klfkateplugin.cpp
+ *   This file is part of the KLatexFormula Project.
+ *   Copyright (C) 2010 by Philippe Faist
+ *   philippe.faist at bluewin.ch
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+/* $Id$ */
 
 #include <QLabel>
 #include <QGridLayout>
@@ -34,11 +39,6 @@
 
 #include "klfkateplugin.h"
 #include "klfkateplugin_config.h"
-
-const char *klfkteDefaultPreamble =
-  "\\usepackage{amsmath}\n"
-  "\\usepackage{amssymb}\n"
-  "\\usepackage{amsfonts}\n";
 
 
 KLFKtePlugin *KLFKtePlugin::plugin = NULL;
@@ -83,19 +83,13 @@ void KLFKtePlugin::removeView(KTextEditor::View *view)
 void KLFKtePlugin::readConfig()
 {
   KConfigGroup cg(KGlobal::config(), "KLatexFormula Plugin");
-  autopopup = cg.readEntry("autopopup", true);
-  onlyLatexMode = cg.readEntry("onlylatexmode", true);
-  preamble = cg.readEntry("preamble", klfkteDefaultPreamble);
-  klfpath = cg.readEntry("klfpath", KStandardDirs::findExe("klatexformula"));
+  KLFKteConfigData::inst()->readConfig(&cg);
 }
 
 void KLFKtePlugin::writeConfig()
 {
   KConfigGroup cg(KGlobal::config(), "KLatexFormula Plugin");
-  cg.writeEntry("autopopup", autopopup);
-  cg.writeEntry("onlylatexmode", onlyLatexMode);
-  cg.writeEntry("preamble", preamble);
-  cg.writeEntry("klfpath", klfpath);
+  KLFKteConfigData::inst()->writeConfig(&cg);
 }
 
 
@@ -213,11 +207,9 @@ KLFKtePreviewWidget::KLFKtePreviewWidget(KTextEditor::View *vparent)
   QLabel *klfLinks = new QLabel(i18n("<a href=\"klfkteaction:/invoke_klf\">open in KLatexFormula</a>&nbsp;|&nbsp;"
 				     "<a href=\"klfkteaction:/no_autopopup\">don't popup automatically</a>&nbsp;|&nbsp;"
 				     "<a href=\"klfkteaction:/close\">close</a>"), this);
-  //  QLabel *closeLink = new QLabel(i18n("<a href=\"klfkteaction:/close\">close</a>"), this);
   
   l->addWidget(lbl, 0, 0, 2, 2, Qt::AlignCenter);
   l->addWidget(klfLinks, 2, 0, 2, 1);
-  //  l->addWidget(closeLink, 2, 1, 1, 1);
   l->setColumnStretch(0, 1);
 
   installEventFilter(this);
@@ -225,7 +217,6 @@ KLFKtePreviewWidget::KLFKtePreviewWidget(KTextEditor::View *vparent)
   vparent->installEventFilter(this);
 
   connect(klfLinks, SIGNAL(linkActivated(const QString&)), this, SLOT(linkActivated(const QString&)));
-  //  connect(closeLink, SIGNAL(linkActivated(const QString&)), this, SLOT(linkActivated(const QString&)));
 }
 KLFKtePreviewWidget::~KLFKtePreviewWidget()
 {
@@ -249,7 +240,8 @@ void KLFKtePreviewWidget::linkActivated(const QString& url)
   } else if (url == "klfkteaction:/close") {
     hide();
   } else if (url == "klfkteaction:/no_autopopup") {
-    KLFKtePlugin::self()->autopopup = false;
+    KLFKteConfigData::inst()->autopopup = false;
+    KLFKtePlugin::self()->writeConfig();
     hide();
   }
 }
@@ -263,6 +255,8 @@ void KLFKtePreviewWidget::showPreview(const QImage& preview, const QPoint& globa
   show();
   adjustSize();
   resize(sizeHint()+QSize(4,4));
+
+  setWindowOpacity(1.0 - (KLFKteConfigData::inst()->transparencyPercent / 100.0));
 }
 
 
@@ -322,7 +316,7 @@ KLFKtePluginView::~KLFKtePluginView()
 void KLFKtePluginView::slotHighlightingModeChanged(KTextEditor::Document *document)
 {
   if (document == pView->document()) {
-    if (KLFKtePlugin::self()->onlyLatexMode)
+    if (KLFKteConfigData::inst()->onlyLatexMode)
       pIsGoodHighlightingMode =
 	! QString::compare(pView->document()->highlightingMode(), "LaTeX", Qt::CaseInsensitive);
     else
@@ -402,7 +396,7 @@ void KLFKtePluginView::slotReparseCurrentContext()
   }
   pCurMathContext.klfmathmode = mathmodebegin + "..." + mathmodeend;
 
-  if (KLFKtePlugin::self()->autopopup)
+  if (KLFKteConfigData::inst()->autopopup)
     slotPreview();
 }
 
@@ -437,7 +431,7 @@ void KLFKtePluginView::slotPreview(const MathContext& context)
   KLFBackend::klfInput klfinput;
   klfinput.latex = context.latexequation;
   klfinput.mathmode = context.klfmathmode;
-  klfinput.preamble = KLFKtePlugin::self()->preamble;
+  klfinput.preamble = KLFKteConfigData::inst()->preamble;
   klfinput.fg_color = qRgb(0, 0, 0); // black
   klfinput.bg_color = qRgba(255, 255, 255, 0); // transparent
   klfinput.dpi = 180;
@@ -464,14 +458,14 @@ void KLFKtePluginView::slotInvokeKLF()
 {
   if (pCurMathContext.isValidMathContext) {
     KProcess::startDetached(QStringList()
-			    << KLFKtePlugin::self()->klfpath
+			    << KLFKteConfigData::inst()->klfpath
 			    << "-I"
 			    << "--latexinput="+pCurMathContext.latexequation
 			    << "--mathmode="+pCurMathContext.klfmathmode
 			    );
   } else {
     KProcess::startDetached(QStringList()
-			    << KLFKtePlugin::self()->klfpath
+			    << KLFKteConfigData::inst()->klfpath
 			    );
   }
 }

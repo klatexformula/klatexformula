@@ -25,7 +25,7 @@
 #define KLFDEFS_H_
 
 // first, detect a missing KLFBACKEND_QT4 definition
-#if QT_VERSION >= 0x040000
+#if defined(QT_VERSION) && QT_VERSION >= 0x040000
 # ifndef KLFBACKEND_QT4
 #  define KLFBACKEND_QT4
 # endif
@@ -255,8 +255,8 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
   { static bool first_run = true;  if ( ! first_run )  return; first_run = false; }
 
 
-#if __STDC_VERSION__ < 199901L
-# if __GNUC__ >= 2
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ < 199901L
+# if defined(__GNUC__) && __GNUC__ >= 2
 #  define __func__ __FUNCTION__
 # else
 #  define __func__ "<unknown>"
