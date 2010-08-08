@@ -119,12 +119,104 @@ else(NOT CMAKE_SKIP_RPATH)
 endif(NOT CMAKE_SKIP_RPATH)
 
 
+# What to Install?
+# ----------------
+
+# general options
+option(KLF_INSTALL_RUNTIME "Install run-time files (binaries, so libraries, plugins)" YES)
+option(KLF_INSTALL_DEVEL "Install development files (headers, static libraries)" YES)
+
+KLFGetCMakeVarChanged(KLF_INSTALL_RUNTIME)
+KLFGetCMakeVarChanged(KLF_INSTALL_DEVEL)
+
+# fine-tuning
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_HEADERS      KLF_INSTALL_DEVEL  BOOL "Install klfbackend headers")
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_STATIC_LIBS  KLF_INSTALL_DEVEL  BOOL "Install klfbackend static libraries")
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_SO_LIBS      KLF_INSTALL_RUNTIME  BOOL "Install klfbackend so libraries")
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_FRAMEWORK    KLF_INSTALL_RUNTIME  BOOL "Install klfbackend framework (Mac OS X)")
+
+if(KLF_BUILD_GUI)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_HEADERS      KLF_INSTALL_DEVEL  BOOL "Install klflib headers")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_STATIC_LIBS  KLF_INSTALL_DEVEL  BOOL "Install klflib static libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_SO_LIBS      KLF_INSTALL_RUNTIME  BOOL "Install klflib so libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_FRAMEWORK    KLF_INSTALL_RUNTIME  BOOL "Install klflib framework (Mac OS X)")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BIN   KLF_INSTALL_RUNTIME  BOOL "Install klatexformula binary")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_CMDL  KLF_INSTALL_RUNTIME  BOOL "Install klatexformula_cmdl symlink")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BUNDLE KLF_INSTALL_RUNTIME  BOOL "Install klatexformula bundle (Mac OS X)")
+endif(KLF_BUILD_GUI)
+
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_PLUGINS   KLF_INSTALL_RUNTIME  BOOL "Install klatexformula plugins")
+
+message(STATUS "Will install (irrelevant items eg. bundles on linux, are ignored):\n
+             \theaders\t\tstatic,\t    shared libraries\tframework
+ klfbackend: \t  ${KLF_INSTALL_KLFBACKEND_HEADERS}\t\t  ${KLF_INSTALL_KLFBACKEND_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_FRAMEWORK}
+ klflib:     \t  ${KLF_INSTALL_KLFLIB_HEADERS}\t\t  ${KLF_INSTALL_KLFLIB_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFLIB_SO_LIBS}\t\t  ${KLF_INSTALL_KLFLIB_FRAMEWORK}
+
+ klatexformula: \t${KLF_INSTALL_KLATEXFORMULA_BIN}
+ klatexformula_cmdl: \t${KLF_INSTALL_KLATEXFORMULA_CMDL}
+ klatexformula bundle: \t${KLF_INSTALL_KLATEXFORMULA_BUNDLE}
+ 
+ individual installs can be tuned with KLF_INSTALL_{KLFLIB|KLFBACKEND}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK}
+ and KLF_INSTALL_KLATEXFORMULA_{BIN|CMDL|BUNDLE}
+")
+
+# Install .desktop & pixmaps in DEST/share/{applications|pixmaps} ?
+if(KLF_MACOSX_BUNDLES OR WIN32)
+  set(default_KLF_INSTALL_DESKTOP FALSE)
+else(KLF_MACOSX_BUNDLES OR WIN32)
+  set(default_KLF_INSTALL_DESKTOP TRUE)
+endif(KLF_MACOSX_BUNDLES OR WIN32)
+
+option(KLF_INSTALL_DESKTOP
+  "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}; update mime database"
+  ${default_KLF_INSTALL_DESKTOP} )
+
+if(KLF_INSTALL_DESKTOP)
+  set(KLF_INSTALL_DESKTOP_CATEGORIES "Qt;Office;" CACHE STRING "Categories section in .desktop file")
+  message(STATUS "Will install linux desktop files (KLF_INSTALL_DESKTOP)")
+  message(STATUS "  categories \"${KLF_INSTALL_DESKTOP_CATEGORIES}\" (KLF_INSTALL_DESKTOP_CATEGORIES)")
+else(KLF_INSTALL_DESKTOP)
+  message(STATUS "Will not install linux desktop files (KLF_INSTALL_DESKTOP)")
+endif(KLF_INSTALL_DESKTOP)
+
+if(WIN32)
+  option(KLF_INSTALL_QTLIBS "Copy Qt Libs next to installed executable" ON)
+  if(KLF_INSTALL_QTLIBS)
+    message(STATUS "Will install Qt libs next to installed executable")
+  else(KLF_INSTALL_QTLIBS)
+    message(STATUS "Will NOT install Qt libs next to installed executable")
+  endif(KLF_INSTALL_QTLIBS)
+endif(WIN32)
+
 
 # Run Post-Install Scripts?
 # -------------------------
+# eg. for packaging, post-install scripts should be given in the RPM/deb/... definition
+# and not be done at RPM creation time
+option(KLF_INSTALL_RUN_POST_INSTALL "Run post-install scripts after 'make install'" YES)
+if(KLF_INSTALL_RUN_POST_INSTALL)
+  message(STATUS "Will run post-install scripts")
+else(KLF_INSTALL_RUN_POST_INSTALL)
+  message(STATUS "Will NOT run post-install scripts")
+endif(KLF_INSTALL_RUN_POST_INSTALL)
 
-option(KLF_INSTALL_RUN_POST_INSTALL "Run post-install scripts after 'make install'" ON)
-mark_as_advanced(KLF_INSTALL_RUN_POST_INSTALL)
+
+
+macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
+  set(dummyinstdir "${CMAKE_BINARY_DIR}/dummy_install_prefix")
+  KLFConditionalSet(inst_${targetlib}_runtime_dir ${varOptBase}SO_LIBS "${inst_lib_dir}" "${dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_library_dir ${varOptBase}SO_LIBS "${inst_lib_dir}" "${dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_archive_dir ${varOptBase}STATIC_LIBS "${inst_lib_dir}" "${dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_framework_dir ${varOptBase}FRAMEWORK "${inst_lib_dir}" "${dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_pubheader_dir ${varOptBase}HEADERS "${inst_pubheader_dir}" "${dummyinstdir}")
+  install(TARGETS ${targetlib}
+	  RUNTIME DESTINATION "${inst_${targetlib}_runtime_dir}"
+	  LIBRARY DESTINATION "${inst_${targetlib}_library_dir}"
+	  ARCHIVE DESTINATION "${inst_${targetlib}_archive_dir}"
+	  FRAMEWORK DESTINATION "${inst_${targetlib}_framework_dir}"
+	  PUBLIC_HEADER DESTINATION "${inst_${targetlib}_pubheader_dir}"
+  )
+endmacro(KLFInstallLibrary)
 
 
 

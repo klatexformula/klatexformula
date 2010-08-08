@@ -33,6 +33,15 @@ endmacro(KLFCMakeDebug)
 
 
 
+macro(KLFConditionalSet var condition valueTrue valueFalse)
+  if(${condition})
+    set(${var} "${valueTrue}")
+  else(${condition})
+    set(${var} "${valueFalse}")
+  endif(${condition})
+endmacro(KLFConditionalSet)
+
+
 # Detect changes to cache variable varname.
 #
 # This function sets the (local non-cache) variables
@@ -91,7 +100,27 @@ macro(KLFMarkVarAdvancedIf varname condition)
   endif(condition)
 endmacro(KLFMarkVarAdvancedIf)
 
-
+# This function declares a cache variable that should change its value to that of genericoption
+# if the latter is changed when the first is not touched.
+# eg. KLF_INSTALL_BACKEND_HEADERS follows KLF_INSTALL_DEVEL
+# Notes:
+#  * This function calls KLFGetCMakeVarChanged() on the specific variable
+#  * This function does NOT call KLFGetCMakeVarChanged() on the generic variable
+macro(KLFDeclareCacheVarOptionFollow specificoption genericoption cachetype cachestring)
+  # declare option (cache var)
+  if(NOT DEFINED ${specificoption})
+    set(${specificoption} "${${genericoption}}" CACHE ${cachetype} ${cachestring})
+  endif(NOT DEFINED ${specificoption})
+  # and check if it was changed
+  KLFGetCMakeVarChanged(${specificoption})
+  KLFCMakeDebug("Specific option: ${specificoption} (chg: ${klf_changed_${specificoption}}) following ${genericoption} (chg: ${klf_changed_${genericoption}}).")
+  if(klf_changed_${genericoption} AND NOT klf_changed_${specificoption})
+    # generic option changed, then a non-changed specific option must follow
+    set(${specificoption} "${${genericoption}}" CACHE ${cachetype} $cachestring FORCE)
+    KLFCMakeDebug("Updated ${specificoption} to ${${specificoption}} following ${genericoption}.")
+  endif(klf_changed_${genericoption} AND NOT klf_changed_${specificoption})
+  KLFCMakeSetVarChanged(${specificoption})
+endmacro(KLFDeclareCacheVarOptionFollow)
 
 # Thanks to
 #   http://www.cmake.org/pipermail/cmake/2009-February/027014.html
@@ -107,3 +136,8 @@ MACRO(KLFToday RESULT)
         SET(${RESULT} 000000)
     ENDIF (WIN32)
 ENDMACRO(KLFToday)
+
+
+
+
+

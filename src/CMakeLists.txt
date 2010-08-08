@@ -343,12 +343,8 @@ endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 
 # klflib
 
-install(TARGETS klflib RUNTIME DESTINATION "${KLF_INSTALL_LIB_DIR}"
-		       ARCHIVE DESTINATION "${KLF_INSTALL_LIB_DIR}"
-		       LIBRARY DESTINATION "${KLF_INSTALL_LIB_DIR}"
-		       FRAMEWORK DESTINATION "${KLF_INSTALL_LIB_DIR}"
-		       PUBLIC_HEADER DESTINATION include/klf)
-if(KLF_MACOSX_BUNDLES)
+KLFInstallLibrary(klflib KLF_INSTALL_KLFLIB_ "${KLF_INSTALL_LIB_DIR}" "include/klf")
+if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFLIB_FRAMEWORK)
   # Installed library's ID
   KLFInstFrameworkUpdateId("${KLF_INSTALL_LIB_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib")
   # Installed library's dependency on klfbackend should be updated
@@ -357,27 +353,31 @@ if(KLF_MACOSX_BUNDLES)
   "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
   "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
   )
-endif(KLF_MACOSX_BUNDLES)
+endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFLIB_FRAMEWORK)
 
-if(WIN32)
+if(WIN32 AND KLF_INSTALL_QTLIBS)
   # Install Qt libs
   install(FILES "${QT_QTCORE_LIBRARY}" "${QT_QTGUI_LIBRARY}" "${QT_QTSQL_LIBRARY}"
 		"${QT_QTXML_LIBRARY}"
 	  DESTINATION "${KLF_INSTALL_LIB_DIR}")
-endif(WIN32)
+endif(WIN32 AND KLF_INSTALL_QTLIBS)
 
 
 # klatexformula bin
 
-install(TARGETS klatexformula RUNTIME DESTINATION "${KLF_INSTALL_BIN_DIR}"
-			      BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
 if(UNIX AND NOT KLF_MACOSX_BUNDLES)
+  if(KLF_INSTALL_KLATEXFORMULA_BIN)
+    install(TARGETS klatexformula RUNTIME DESTINATION "${KLF_INSTALL_BIN_DIR}")
+  endif(KLF_INSTALL_KLATEXFORMULA_BIN)
+ if(KLF_INSTALL_KLATEXFORMULA_CMDL)
   install(CODE
 	  "message(STATUS \"Creating Symlink ${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl -> klatexformula\")
 	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
   )
+ endif(KLF_INSTALL_KLATEXFORMULA_CMDL)
 endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
-if(KLF_MACOSX_BUNDLES)
+if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLATEXFORMULA_BUNDLE)
+  install(TARGETS klatexformula BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
   # Update klatexformula's dependency on the installed frameworks.
   KLFInstFrameworkUpdateLibChange(
   "${KLF_INSTALL_BIN_DIR}/klatexformula-${KLF_VERSION}/Contents/MacOS/klatexformula-${KLF_VERSION}"
@@ -389,7 +389,7 @@ if(KLF_MACOSX_BUNDLES)
   "${CMAKE_CURRENT_BINARY_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
   "${KLF_INSTALL_LIB_DIR}/klflib.framework/Versions/${KLF_LIB_VERSION}/klflib"
   )
-endif(KLF_MACOSX_BUNDLES)
+endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLATEXFORMULA_BUNDLE)
 
 
 # --- LINUX DESKTOP FILES ---

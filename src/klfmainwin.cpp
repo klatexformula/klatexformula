@@ -174,7 +174,7 @@ void KLFPreviewBuilderThread::run()
     //    // force 240 DPI (we're only a preview...)
     //    input.dpi = 240;
 
-    if ( input.latex.isEmpty() ) {
+    if ( input.latex.trimmed().isEmpty() ) {
       emit previewAvailable(QImage(), 0);
     } else {
       // and GO!
