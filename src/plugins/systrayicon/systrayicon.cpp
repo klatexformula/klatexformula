@@ -136,7 +136,7 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
 	!(((QWindowStateChangeEvent*)e)->oldState() & Qt::WindowMinimized)
 	) {
       // the user minimized the window, and we want to minimize it to system tray.
-      minimize();
+      QTimer::singleShot(20, this, SLOT(minimize()));
     }
   }
   return false;
@@ -185,7 +185,7 @@ void SysTrayIconPlugin::latexFromClipboard(QClipboard::Mode mode)
 
 void SysTrayIconPlugin::restore()
 {
-  _mainwin->show();
+  _mainwin->showNormal();
   _mainwin->raise();
   _mainwin->activateWindow();
 }
@@ -205,10 +205,10 @@ void SysTrayIconPlugin::slotSysTrayActivated(QSystemTrayIcon::ActivationReason r
 
   if (reason == QSystemTrayIcon::Trigger) {
     if ( ! _mainwin->isVisible() ) {
-      _mainwin->show();
+      restore();
     } else {
       if ( QApplication::activeWindow() != NULL ) {
-	_mainwin->hide();
+	minimize();
       } else {
 	_mainwin->raise();
 	_mainwin->activateWindow();

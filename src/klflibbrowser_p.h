@@ -40,6 +40,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QAction>
+#include <QSettings>
 #include <QSignalMapper>
 
 #include <ui_klflibexportdialog.h>
@@ -434,8 +435,17 @@ public:
     setWindowModality(Qt::WindowModal);
     setModal(true);
 
+#ifdef Q_OS_WIN32
+    // get path to My Documents
+    QSettings settings(QSettings::UserScope, "Microsoft", "Windows");
+    settings.beginGroup("CurrentVersion/Explorer/Shell Folders");
+    QString mydoc = settings.value("Personal").toString();
+#else
+    QString mydoc = QDir::homePath();
+#endif
+
     pathExportTo->setFilter(exportFilter);
-    pathExportTo->setPath(QDir::toNativeSeparators(QDir::homePath()+"/"+tr("klf_export.klf.db")));
+    pathExportTo->setPath(QDir::toNativeSeparators(mydoc+"/"+tr("klf_export.klf.db")));
     pathExportTo->setFrameStyle(QFrame::NoFrame|QFrame::Plain);
     pathExportTo->setDialogConfirmOverwrite(false);
 
