@@ -232,7 +232,6 @@ set(klatexformulamain_winrc)
 if(MINGW)
   set(KLF_WIN_ICON "mswin\\\\klficon64.ico" CACHE STRING
     "Icon for klatexformula.exe program, relative to src/, with (escaped double-backslashes!)")
-  mark_as_advanced(KLF_WIN_ICON)
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc"
        "IDI_ICON1               ICON    DISCARDABLE     \"${KLF_WIN_ICON}\"\n")
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
@@ -357,25 +356,33 @@ endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFLIB_FRAMEWORK)
 
 if(WIN32 AND KLF_INSTALL_QTLIBS)
   # Install Qt libs
-  install(FILES "${QT_QTCORE_LIBRARY}" "${QT_QTGUI_LIBRARY}" "${QT_QTSQL_LIBRARY}"
-		"${QT_QTXML_LIBRARY}"
-	  DESTINATION "${KLF_INSTALL_LIB_DIR}")
+  execute_process(COMMAND "${QT_QMAKE_EXECUTABLE}" "-query" "QT_INSTALL_PREFIX"
+		  OUTPUT_VARIABLE QT_INSTALL_PREFIX)
+  string(REPLACE "\\" "/" QT_INSTALL_PREFIX "${QT_INSTALL_PREFIX}")
+  string(STRIP "${QT_INSTALL_PREFIX}" QT_INSTALL_PREFIX)
+  install(DIRECTORY "${QT_INSTALL_PREFIX}/bin/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
+	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" PATTERN "libgcc*\\.dll"
+	 )
+  #install(FILES "${QT_INSTALL_PREFIX}/bin/QtCore4.dll" "${QT_INSTALL_PREFIX}/bin/QtGui4.dll"
+  #		"${QT_INSTALL_PREFIX}/bin/QtSql4.dll" "${QT_INSTALL_PREFIX}/bin/QtXml4.dll"
+  #	  DESTINATION "${KLF_INSTALL_LIB_DIR}")
+  #install(FILES "${QT_INSTALL_PREFIX}/libgcc_s_dw2-1.dll")
 endif(WIN32 AND KLF_INSTALL_QTLIBS)
 
 
 # klatexformula bin
 
-if(UNIX AND NOT KLF_MACOSX_BUNDLES)
+if(NOT KLF_MACOSX_BUNDLES)
   if(KLF_INSTALL_KLATEXFORMULA_BIN)
     install(TARGETS klatexformula RUNTIME DESTINATION "${KLF_INSTALL_BIN_DIR}")
   endif(KLF_INSTALL_KLATEXFORMULA_BIN)
- if(KLF_INSTALL_KLATEXFORMULA_CMDL)
+ if(UNIX AND KLF_INSTALL_KLATEXFORMULA_CMDL)
   install(CODE
 	  "message(STATUS \"Creating Symlink ${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl -> klatexformula\")
 	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
   )
- endif(KLF_INSTALL_KLATEXFORMULA_CMDL)
-endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
+ endif(UNIX AND KLF_INSTALL_KLATEXFORMULA_CMDL)
+endif(NOT KLF_MACOSX_BUNDLES)
 if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLATEXFORMULA_BUNDLE)
   install(TARGETS klatexformula BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
   # Update klatexformula's dependency on the installed frameworks.

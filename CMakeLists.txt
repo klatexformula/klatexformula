@@ -248,7 +248,11 @@ set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}" CACHE INTERNAL "Current Build Pr
 
 # Find KDE4 for KTextEditor Plugin
 if(KLF_USE_QT4)
-  set(KLF_BUILD_KTEXTEDITORPLUGIN ON CACHE BOOL "Build the KTextEditor plugin")
+  if(UNIX)
+    set(KLF_BUILD_KTEXTEDITORPLUGIN ON CACHE BOOL "Build the KTextEditor plugin")
+  else(UNIX)
+    set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build the KTextEditor Plugin")
+  endif(UNIX)
   if(KLF_BUILD_KTEXTEDITORPLUGIN)
     message(STATUS "Will build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
   else(KLF_BUILD_KTEXTEDITORPLUGIN)

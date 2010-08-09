@@ -21,6 +21,7 @@ message(STATUS "'make install' will install to ${CMAKE_INSTALL_PREFIX} (CMAKE_IN
 # Installation Paths
 # ------------------
 
+# Lib Dir
 set(install_lib_dir "lib${KLF_LIB_SUFFIX}")
 if(WIN32)
   # install all in root dir on windows
@@ -39,6 +40,9 @@ if(klf_changed_KLF_LIB_SUFFIX OR klf_changed_CMAKE_INSTALL_PREFIX)
 else(klf_changed_KLF_LIB_SUFFIX OR klf_changed_CMAKE_INSTALL_PREFIX)
   set(install_lib_dir_needs_set FALSE)
 endif(klf_changed_KLF_LIB_SUFFIX OR klf_changed_CMAKE_INSTALL_PREFIX)
+if(NOT DEFINED KLF_INSTALL_LIB_DIR)
+  set(install_lib_dir_needs_set TRUE)
+endif(NOT DEFINED KLF_INSTALL_LIB_DIR)
 KLFCMakeDebug("install_lib_dir=${install_lib_dir}. klf_changed_CMAKE_INSTALL_PREFIX=${klf_changed_CMAKE_INSTALL_PREFIX}. install_lib_dir_needs_set:? ${install_lib_dir_needs_set}. klf_changed_KLF_INSTALL_LIB_DIR=${klf_changed_KLF_INSTALL_LIB_DIR} klf_internal_KLF_INSTALL_LIB_DIR=${klf_internal_KLF_INSTALL_LIB_DIR} klf_first_KLF_INSTALL_LIB_DIR=${klf_first_KLF_INSTALL_LIB_DIR} KLF_INSTALL_LIB_DIR=${KLF_INSTALL_LIB_DIR}")
 if(install_lib_dir_needs_set)
   set(KLF_INSTALL_LIB_DIR "${install_lib_dir}" CACHE STRING
@@ -57,7 +61,7 @@ if(NOT IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}")
   set(KLF_ABS_INSTALL_LIB_DIR "${CMAKE_INSTALL_PREFIX}/${KLF_INSTALL_LIB_DIR}")
 endif(NOT IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}")
 
-
+# Bin Dir
 set(install_bin_dir "bin")
 if(WIN32)
   # install all in root dir
@@ -68,6 +72,12 @@ if(APPLE AND KLF_MACOSX_BUNDLES)
   set(install_bin_dir "/Applications")
 endif(APPLE AND KLF_MACOSX_BUNDLES)
 if(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_KLF_INSTALL_BIN_DIR)
+  set(install_bin_dir_needs_set TRUE)
+endif(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_KLF_INSTALL_BIN_DIR)
+if(NOT DEFINED KLF_INSTALL_BIN_DIR)
+  set(install_bin_dir_needs_set TRUE)
+endif(NOT DEFINED KLF_INSTALL_BIN_DIR)
+if(install_bin_dir_needs_set)
   set(KLF_INSTALL_BIN_DIR "${install_bin_dir}" CACHE STRING
 		  "Binaries installation directory (relative to install prefix, or absolute)" FORCE)
   mark_as_advanced(CLEAR KLF_INSTALL_BIN_DIR)
@@ -75,7 +85,7 @@ if(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_KLF_INSTALL_BIN_DIR)
     message(STATUS "Updating binary install dir to ${KLF_INSTALL_BIN_DIR} following changed of CMAKE_INSTALL_PREFIX")
   endif(NOT klf_first_KLF_INSTALL_BIN_DIR)
   KLFCMakeSetVarChanged(KLF_INSTALL_BIN_DIR)
-endif(klf_changed_CMAKE_INSTALL_PREFIX AND NOT klf_changed_KLF_INSTALL_BIN_DIR)
+endif(install_bin_dir_needs_set)
 message(STATUS "Installing binary to ${KLF_INSTALL_BIN_DIR} (KLF_INSTALL_BIN_DIR)")
 # Utility variable. Same as KLF_INSTALL_BIN_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
@@ -84,6 +94,22 @@ if(NOT IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
   set(KLF_ABS_INSTALL_BIN_DIR "${CMAKE_INSTALL_PREFIX}/${KLF_INSTALL_BIN_DIR}")
 endif(NOT IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
 
+# rccresources dir
+if(WIN32)
+  set(KLF_INSTALL_RCCRESOURCES_DIR  "${KLF_INSTALL_BIN_DIR}/rccresources" CACHE PATH
+							      "Where to install rccresources files")
+  # and check if it was changed
+  KLFGetCMakeVarChanged(KLF_INSTALL_RCCRESOURCES_DIR)
+  if(klf_changed_KLF_INSTALL_BIN_DIR AND NOT klf_changed_KLF_INSTALL_RCCRESOURCES_DIR)
+    # generic option changed, then a non-changed specific option must follow
+    set(KLF_INSTALL_RCCRESOURCES_DIR  "${KLF_INSTALL_BIN_DIR}/rccresources" CACHE PATH
+							      "Where to install rccresources files")
+  endif(klf_changed_KLF_INSTALL_BIN_DIR AND NOT klf_changed_KLF_INSTALL_RCCRESOURCES_DIR)
+  KLFCMakeSetVarChanged(KLF_INSTALL_RCCRESOURCES_DIR)
+else(WIN32)
+  set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources" CACHE STRING
+      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
+endif(WIN32)
 
 
 # Installed RPATH
@@ -145,7 +171,14 @@ if(KLF_BUILD_GUI)
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BUNDLE KLF_INSTALL_RUNTIME  BOOL "Install klatexformula bundle (Mac OS X)")
 endif(KLF_BUILD_GUI)
 
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_PLUGINS   KLF_INSTALL_RUNTIME  BOOL "Install klatexformula plugins")
+if(NOT KLF_MACOSX_BUNDLES)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_PLUGINS   KLF_INSTALL_RUNTIME  BOOL "Install klatexformula plugins")
+else(NOT KLF_MACOSX_BUNDLES)
+  if(KLF_INSTALL_PLUGINS)
+    KLFNote("Not Installing plugins outside bundle.")
+    set(KLF_INSTALL_PLUGINS  OFF  CACHE BOOL "Not needed. plugins are incorporated to bundle instead." FORCE)
+  endif(KLF_INSTALL_PLUGINS)
+endif(NOT KLF_MACOSX_BUNDLES)
 
 message(STATUS "Will install (irrelevant items eg. bundles on linux, are ignored):\n
              \theaders\t\tstatic,\t    shared libraries\tframework

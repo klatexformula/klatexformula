@@ -123,8 +123,10 @@ if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 
 
-# The install target
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.rcc"
-	DESTINATION share/klatexformula/rccresources)
+if(KLF_INSTALL_PLUGINS)
+  # The install target
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.rcc"
+	  DESTINATION "${KLF_INSTALL_RCCRESOURCES_DIR}")
+endif(KLF_INSTALL_PLUGINS)
 
 
