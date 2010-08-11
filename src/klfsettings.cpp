@@ -49,6 +49,7 @@
 #include "klfmain.h"
 #include "klfmainwin.h"
 #include "klfconfig.h"
+#include "klfmime.h"
 #include "klfpluginiface.h"
 #include "klflatexsyntaxhighlighter.h"
 #include "klfsettings.h"
@@ -105,6 +106,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
   populateLocaleCombo();
+  populateExportProfilesCombos();
 
   // set some smaller fonts for small titles
   QFont f = this->font();
@@ -166,7 +168,7 @@ void KLFSettings::populateLocaleCombo()
   u->cbxLocale->clear();
   // application language : populate combo box
   u->cbxLocale->addItem( QString::fromLatin1("English Default") ,
-			 QVariant(QString::null) );
+			 QVariant("C") );
   int k;
   for (k = 0; k < klf_avail_translations.size(); ++k) {
     KLFTranslationInfo ti = klf_avail_translations[k];
@@ -175,12 +177,31 @@ void KLFSettings::populateLocaleCombo()
 
 }
 
+void KLFSettings::populateExportProfilesCombos()
+{
+  QList<KLFMimeExportProfile> eplist = KLFMimeExportProfile::exportProfileList();
+
+  u->cbxCopyExportProfile->clear();
+  u->cbxDragExportProfile->clear();
+  int k;
+  for (k = 0; k < eplist.size(); ++k) {
+    u->cbxCopyExportProfile->addItem(eplist[k].description(), QVariant(eplist[k].profileName()));
+    u->cbxDragExportProfile->addItem(eplist[k].description(), QVariant(eplist[k].profileName()));
+  }
+}
+
+
 void KLFSettings::show()
 {
+  populateExportProfilesCombos();
+
   reset();
+
   initPluginControls();
+
   QDialog::show();
 }
+
 
 /** \internal */
 #define __KLF_SHOW_SETTINGS_CONTROL( tab , focuswidget )	\
@@ -210,6 +231,9 @@ void KLFSettings::showControl(int control)
     break;
   case ExpandEPSBBox:
     __KLF_SHOW_SETTINGS_CONTROL(tabAdvanced, spnLBorderOffset) ;
+    break;
+  case ExportProfiles:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAdvanced, cbxCopyExportProfile) ;
     break;
   case LibrarySettings:
     __KLF_SHOW_SETTINGS_CONTROL(tabLibBrowser, chkLibRestoreURLs) ;
@@ -353,6 +377,10 @@ void KLFSettings::reset()
   u->spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
 
   u->chkShowHintPopups->setChecked(klfconfig.UI.showHintPopups);
+  u->chkClearLatexOnly->setChecked(klfconfig.UI.clearLatexOnly);
+
+  u->cbxCopyExportProfile->setCurrentIndex(u->cbxCopyExportProfile->findData(QVariant(klfconfig.UI.copyExportProfile)));
+  u->cbxDragExportProfile->setCurrentIndex(u->cbxDragExportProfile->findData(QVariant(klfconfig.UI.dragExportProfile)));
 
   u->chkLibRestoreURLs->setChecked(klfconfig.LibraryBrowser.restoreURLs);
   u->chkLibConfirmClose->setChecked(klfconfig.LibraryBrowser.confirmClose);
@@ -816,6 +844,7 @@ void KLFSettings::apply()
 
   // language settings
   QString localename = u->cbxLocale->itemData(u->cbxLocale->currentIndex()).toString();
+  klfDbg("New locale name: "<<localename);
   bool localechanged =  (  klfconfig.UI.locale != localename  ) ;
   klfconfig.UI.locale = localename;
   QLocale::setDefault(klfconfig.UI.locale);
@@ -856,6 +885,12 @@ void KLFSettings::apply()
   klfconfig.UI.enableToolTipPreview = u->chkEnableToolTipPreview->isChecked();
 
   klfconfig.UI.showHintPopups = u->chkShowHintPopups->isChecked();
+  klfconfig.UI.clearLatexOnly = u->chkClearLatexOnly->isChecked();
+
+  klfconfig.UI.copyExportProfile = 
+    u->cbxCopyExportProfile->itemData(u->cbxCopyExportProfile->currentIndex()).toString();
+  klfconfig.UI.dragExportProfile = 
+    u->cbxDragExportProfile->itemData(u->cbxDragExportProfile->currentIndex()).toString();
 
   klfconfig.LibraryBrowser.restoreURLs = u->chkLibRestoreURLs->isChecked();
   klfconfig.LibraryBrowser.confirmClose = u->chkLibConfirmClose->isChecked();
@@ -885,6 +920,7 @@ void KLFSettings::apply()
 			     tr("You need to restart KLatexFormula for your changes to take effect."));
   }
 
+  _mainwin->refreshShowCorrectClearButton();
   _mainwin->saveSettings();
 }
 

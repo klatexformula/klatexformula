@@ -39,6 +39,7 @@
 #include <QMessageBox>
 #include <QLibraryInfo>
 #include <QMetaType>
+#include <QClipboard>
 
 #include <klfbackend.h>
 
@@ -54,6 +55,13 @@
 #include "klfdbus.h"
 #include "klfpluginiface.h"
 
+
+// Name of the environment variable to check for paths to extra resources
+#ifndef KLF_RESOURCES_ENVNAM
+#define KLF_RESOURCES_ENVNAM "KLF_RESOURCES"
+#endif
+
+
 // Program Exit Error Codes
 #define EXIT_ERR_FILEINPUT 100
 #define EXIT_ERR_FILESAVE 101
@@ -67,6 +75,8 @@
 int opt_interactive = -1; // -1: not specified, 0: NOT interactive, 1: interactive
 char *opt_input = NULL;
 char *opt_latexinput = NULL;
+int opt_paste = -1; // -1: don't paste, 1: paste clipboard, 2: paste selection
+bool opt_base64arg = false;
 char *opt_output = NULL;
 char *opt_format = NULL;
 char *opt_fgcolor = NULL;
@@ -110,6 +120,9 @@ enum {
   OPT_INTERACTIVE = 'I',
   OPT_INPUT = 'i',
   OPT_LATEXINPUT = 'l',
+  OPT_PASTE_CLIPBOARD = 'P',
+  OPT_PASTE_SELECTION = 'S',
+  OPT_BASE64ARG = 'B',
   OPT_OUTPUT = 'o',
   OPT_FORMAT = 'F',
   OPT_FGCOLOR = 'f',
@@ -134,13 +147,15 @@ enum {
   OPT_DVIPS,
   OPT_GS,
   OPT_EPSTOPDF
-
 };
 
 static struct option klfcmdl_optlist[] = {
   { "interactive", 0, NULL, OPT_INTERACTIVE },
   { "input", 1, NULL, OPT_INPUT },
   { "latexinput", 1, NULL, OPT_LATEXINPUT },
+  { "paste-clipboard", 0, NULL, OPT_PASTE_CLIPBOARD },
+  { "paste-selection", 0, NULL, OPT_PASTE_SELECTION },
+  { "base64arg", 0, NULL, OPT_BASE64ARG },
   { "output", 1, NULL, OPT_OUTPUT },
   { "format", 1, NULL, OPT_FORMAT },
   { "fgcolor", 1, NULL, OPT_FGCOLOR },
@@ -169,26 +184,11 @@ static struct option klfcmdl_optlist[] = {
   // ---- end of option list ----
   {0, 0, 0, 0}
 };
+
 // list of short options
-static char klfcmdl_optstring[] = "Ii:l:o:F:f:b:X:m:p:qhVQ";
+static char klfcmdl_optstring[] = "Ii:l:PSBo:F:f:b:X:m:p:qhVQ";
+/** \todo build dynamically klfcmdl_optstring from klfcmdl_optlist at top of main()......... */
 
-
-
-// EXTERNAL COMMUNICATION STUFF
-
-#define KLF_RESOURCES_ENVNAM "KLF_RESOURCES"
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-const char * PATH_ENVVAR_SEP =  ";";
-const char * klfresources_default_rel = "/rccresources/";
-#else
-# if defined(Q_WS_MAC)
-const char * PATH_ENVVAR_SEP =  ":";
-const char * klfresources_default_rel = "/../Resources/rccresources/";
-# else // unix-like system
-const char * PATH_ENVVAR_SEP = ":";
-const char * klfresources_default_rel = "/../share/klatexformula/rccresources/";
-# endif
-#endif
 
 // TRAP SIGINT SIGNAL AND EXIT GRACEFULLY
 
@@ -220,20 +220,24 @@ void klf_qt_message(QtMsgType type, const char *msg)
 
   switch (type) {
   case QtDebugMsg:
+    // only with debugging enabled
+#ifdef KLF_DEBUG
     fprintf(fout, "Debug: %s\n", msg);
+#endif
     break;
   case QtWarningMsg:
     fprintf(fout, "Warning: %s\n", msg);
 #ifdef Q_WS_WIN
-    if (!QString::fromLocal8Bit(msg).startsWith("MNG error"))
+    if (!QString::fromLocal8Bit(msg).startsWith("MNG error")) { // need to ignore these errors...
       QMessageBox::warning(0, QObject::tr("Warning", "[[KLF's Qt Message Handler: dialog title]]"),
 			   QObject::tr("KLatexFormula System Warning:\n%1",
 				       "[[KLF's Qt Message Handler: dialog text]]")
 			   .arg(QString::fromLocal8Bit(msg)));
+    }
 #endif
     break;
   case QtCriticalMsg:
-    fprintf(fout, "Critical: %s\n", msg);
+    fprintf(fout, "Error: %s\n", msg);
 #ifdef Q_WS_WIN
     QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
 			  QObject::tr("KLatexFormula System Error:\n%1",
@@ -291,14 +295,15 @@ void main_exit(int code)
 }
 
 /** Determine from where to get input (direct input, from file, stdin) and read latex code;
- * return the latex code as QString */
-QString main_get_input(char *input, char *latexinput)
+ * return the latex code as QString.
+ *
+ * We can count on a QCoreApplication or QApplication running.
+ */
+QString main_get_input(char *input, char *latexinput, int paste)
 {
+  QString latex;
   if (latexinput != NULL && strlen(latexinput) != 0) {
-    if (input != NULL && strlen(input) != 0) {
-      qWarning("%s", qPrintable(QObject::tr("Ignoring --input since --latexinput is given.")));
-    }
-    return QString::fromLocal8Bit(latexinput);
+    latex += QString::fromLocal8Bit(latexinput);
   }
   if (input != NULL && strlen(input) != 0) {
     QString fname = QString::fromLocal8Bit(input);
@@ -318,10 +323,20 @@ QString main_get_input(char *input, char *latexinput)
     // now file is opened properly.
     QByteArray contents = f.readAll();
     // contents is assumed to be local 8 bit encoding.
-    return QString::fromLocal8Bit(contents);
+    latex += QString::fromLocal8Bit(contents);
   }
-  // neither input nor latexinput have any contents
-  return QString::null;
+  if (paste >= 0) {
+    if (!qApp->inherits("QApplication")) {
+      qWarning("%s", qPrintable(QObject::tr("--paste-{clipboard|selection} requires interactive mode. Ignoring option.")));
+    } else {
+      if (paste == 1)
+	latex += QApplication::clipboard()->text();
+      else
+	latex += QApplication::clipboard()->text(QClipboard::Selection);
+    }
+  }
+
+  return latex;
 }
 
 /** Saves a klfbackend result (KLFBackend::klfOutput) to a file or stdout with given format.
@@ -346,8 +361,8 @@ void main_load_extra_resources()
   bool klfsettings_can_import = false;
 
   // Find global system-wide klatexformula rccresources dir
-  QString defaultrccpath = QCoreApplication::applicationDirPath() + klfresources_default_rel
-    + PATH_ENVVAR_SEP + klfconfig.homeConfigDirRCCResources;
+  QString defaultrccpath =
+    klfconfig.globalShareDir+"/rccresources/" + KLF_PATH_SEP + klfconfig.homeConfigDirRCCResources ;
   QString rccfilepath;
   if ( klf_resources.isNull() ) {
     rccfilepath = "";
@@ -355,8 +370,8 @@ void main_load_extra_resources()
     rccfilepath = klf_resources;
   }
   //  printf("DEBUG: Rcc file list is \"%s\"\n", rccfilepath.toLocal8Bit().constData());
-  QStringList defaultsplitrccpath = defaultrccpath.split(PATH_ENVVAR_SEP, QString::SkipEmptyParts);
-  QStringList rccfiles = rccfilepath.split(PATH_ENVVAR_SEP, QString::KeepEmptyParts);
+  QStringList defaultsplitrccpath = defaultrccpath.split(KLF_PATH_SEP, QString::SkipEmptyParts);
+  QStringList rccfiles = rccfilepath.split(KLF_PATH_SEP, QString::KeepEmptyParts);
   int j, k;
   for (QStringList::iterator it = rccfiles.begin(); it != rccfiles.end(); ++it) {
     if ((*it).isEmpty()) {
@@ -651,7 +666,7 @@ int main(int argc, char **argv)
     if (iface->isValid()) {
       iface->raiseWindow();
       // load everything via DBus
-      QString latex = main_get_input(opt_input, opt_latexinput);
+      QString latex = main_get_input(opt_input, opt_latexinput, opt_paste);
       if ( ! latex.isNull() )
 	iface->setInputData("latex", latex);
       if ( opt_fgcolor != NULL )
@@ -751,7 +766,7 @@ int main(int argc, char **argv)
 
     // parse command-line given actions
 
-    QString latex = main_get_input(opt_input, opt_latexinput);
+    QString latex = main_get_input(opt_input, opt_latexinput, opt_paste);
     if ( ! latex.isNull() )
       mainWin.slotSetLatex(latex);
 
@@ -874,7 +889,7 @@ int main(int argc, char **argv)
       opt_strdup_free_list[opt_strdup_free_list_n++] = opt_input;
     }
 
-    input.latex = main_get_input(opt_input, opt_latexinput);
+    input.latex = main_get_input(opt_input, opt_latexinput, opt_paste);
 
     if (opt_mathmode != NULL) {
       input.mathmode = QString::fromLocal8Bit(opt_mathmode);
@@ -982,9 +997,18 @@ void main_parse_options(int argc, char *argv[])
 
     arg = NULL;
     if (optarg != NULL) {
-      arg = strdup(optarg);
+      if (opt_base64arg) {
+	// this argument is to be decoded from base64
+	QByteArray decoded = QByteArray::fromBase64(optarg);
+	arg = strdup(decoded.constData());
+      } else {
+	arg = strdup(optarg);
+      }
       opt_strdup_free_list[opt_strdup_free_list_n++] = arg;
     }
+    // immediately reset this flag, as it applies to the argument of the next option
+    // only (which we have just retrieved and possibly decoded)
+    opt_base64arg = false;
 
     switch (c) {
     case OPT_INTERACTIVE:
@@ -997,6 +1021,25 @@ void main_parse_options(int argc, char *argv[])
     case OPT_LATEXINPUT:
       if (opt_interactive == -1) opt_interactive = 0;
       opt_latexinput = arg;
+      break;
+    case OPT_PASTE_CLIPBOARD:
+      if (opt_interactive <= 0) {
+	if (opt_interactive == 0)
+	  qWarning("%s", qPrintable(QObject::tr("--paste-clipboard requires interactive mode. Switching.")));
+	opt_interactive = 1;
+      }
+      opt_paste = 1;
+      break;
+    case OPT_PASTE_SELECTION:
+      if (opt_interactive <= 0) {
+	if (opt_interactive == 0)
+	  qWarning("%s", qPrintable(QObject::tr("--paste-selection requires interactive mode. Switching.")));
+	opt_interactive = 1;
+      }
+      opt_paste = 2;
+      break;
+    case OPT_BASE64ARG:
+      opt_base64arg = true;
       break;
     case OPT_OUTPUT:
       opt_output = arg;

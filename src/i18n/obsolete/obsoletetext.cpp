@@ -1,4 +1,11 @@
 
+// this file will not compile.
+// it is used only as a collection of tr(...) texts that are obsolete for the current
+// version of klatexformula, and is provided for generating translation files that are
+// compatible with all versions (at the cost of being slightly larger)
+
+// this file will only be parsed by Qt's  lupdate  tool.
+
 
 KLFPathChooser::KLFPathChooser()
 {
@@ -200,3 +207,12 @@ QT_TRANSLATE_NOOP3("QObject",
 		     "Have a lot of fun!\n"
 		     "\n",
 		   "Command-line help instructions") ;
+
+
+KLFMainWin::KLFMainWin()
+{
+  // default styles
+  tr("Default"); 
+  tr("default");
+}
+

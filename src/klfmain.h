@@ -185,7 +185,8 @@ KLF_EXPORT extern QList<KLFPluginInfo> klf_plugins;
  *
  * To manage translation files, see \ref KLFI18nFile.
  */
-struct KLFTranslationInfo {
+struct KLF_EXPORT KLFTranslationInfo
+{
   KLFTranslationInfo() : hasnicetranslatedname(false) { }
 
   QString localename;

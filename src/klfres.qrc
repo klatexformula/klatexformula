@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>pics/clearedit.png</file>
     <file>pics/wait_anim.mng</file>
     <file>pics/importexport.png</file>
     <file>pics/save.png</file>
@@ -46,7 +47,7 @@
     <file>pics/move.png</file>
     <file>pics/refresh.png</file>
   </qresource>
-  <qresource prefix="/pics" >
+  <qresource prefix="/pics">
     <file>klatexformula-16.png</file>
     <file>klatexformula-32.png</file>
     <file>klatexformula-64.png</file>
@@ -59,6 +60,8 @@
     <file>data/latexsymbols.xml</file>
     <file>data/symbolspixmapcache_base</file>
     <file>data/defaultlibrary.klf.db</file>
+    <file>data/ooodrawingtemplate</file>
+    <file>data/export_mime_profiles.d/export_default.xml</file>
   </qresource>
   <qresource>
     <file>data/cmdl-help_fr.txt</file>

@@ -41,9 +41,24 @@
 #include "klfmain.h"
 #include "klfconfig.h"
 
+
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+static const char * klf_share_dir_rel = "";
+#else
+# if defined(Q_WS_MAC)
+static const char * klf_share_dir_rel = "/../Resources";
+# else
+// unix-like system
+static const char * klf_share_dir_rel = "/../share/klatexformula";
+# endif
+#endif
+
+
+
 // global variable to access our config
 // remember to initialize it in main() in main.cpp !
 KLFConfig klfconfig;
+
 
 
 void settings_write_QTextCharFormat(QSettings& s, const QString& basename,
@@ -100,6 +115,7 @@ KLFConfig::KLFConfig()
 void KLFConfig::loadDefaults()
 {
   homeConfigDir = QDir::homePath() + "/.klatexformula";
+  globalShareDir = QCoreApplication::applicationDirPath() + klf_share_dir_rel;
   homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
   homeConfigSettingsFileIni = homeConfigDir + "/config";
   homeConfigDirRCCResources = homeConfigDir + "/rccresources";
@@ -145,6 +161,7 @@ void KLFConfig::loadDefaults()
     General.thisVersionFirstRun = true;
 
     UI.locale = QLocale::system().name();
+    klfDbg("System locale: "<<QLocale::system().name());
     UI.applicationFont = f;
     UI.latexEditFont = fcode;
     UI.preambleEditFont = fcode;
@@ -170,6 +187,9 @@ void KLFConfig::loadDefaults()
     UI.enableRealTimePreview = true;
     UI.autosaveLibraryMin = 5;
     UI.showHintPopups = true;
+    UI.clearLatexOnly = false;
+    UI.copyExportProfile = "default";
+    UI.dragExportProfile = "default";
 
     SyntaxHighlighter.configFlags = 0x05;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
@@ -346,7 +366,6 @@ int KLFConfig::readFromConfig_v2()
 
   s.beginGroup("UI");
   klf_config_read(s, "locale", &UI.locale);
-  QLocale::setDefault(klfconfig.UI.locale);
   klf_config_read(s, "applicationfont", &UI.applicationFont);
   klf_config_read(s, "latexeditfont", &UI.latexEditFont);
   klf_config_read(s, "preambleeditfont", &UI.preambleEditFont);
@@ -362,6 +381,9 @@ int KLFConfig::readFromConfig_v2()
   klf_config_read(s, "enablerealtimepreview", &UI.enableRealTimePreview);
   klf_config_read(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
   klf_config_read(s, "showhintpopups", &UI.showHintPopups);
+  klf_config_read(s, "clearlatexonly", &UI.clearLatexOnly);
+  klf_config_read(s, "copyexportprofile", &UI.copyExportProfile);
+  klf_config_read(s, "dragexportprofile", &UI.dragExportProfile);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -419,6 +441,14 @@ int KLFConfig::readFromConfig_v2()
     Plugins.pluginConfig[plugindirs[k]] = pconfmap;
   }
 
+  // POST-CONFIG-READ SETUP
+
+  // forbid empty locale
+  if (klfconfig.UI.locale.isEmpty())
+    klfconfig.UI.locale = "C";
+  // set Qt default locale to ours
+  QLocale::setDefault(klfconfig.UI.locale);
+
   return 0;
 }
 
@@ -450,6 +480,9 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "enablerealtimepreview", &UI.enableRealTimePreview);
   klf_config_write(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
   klf_config_write(s, "showhintpopups", &UI.showHintPopups);
+  klf_config_write(s, "clearlatexonly", &UI.clearLatexOnly);
+  klf_config_write(s, "copyexportprofile", &UI.copyExportProfile);
+  klf_config_write(s, "dragexportprofile", &UI.dragExportProfile);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -543,6 +576,16 @@ QString KLFPluginConfigAccess::homeConfigDir() const
   }
 
   return _config->homeConfigDir;
+}
+
+QString KLFPluginConfigAccess::globalShareDir() const
+{
+  if ( _config == NULL ) {
+    qWarning("KLFPluginConfigAccess::homeConfigDir: Invalid Config Pointer!\n");
+    return QString();
+  }
+
+  return _config->globalShareDir;
 }
 
 QString KLFPluginConfigAccess::homeConfigPluginDataDir(bool createIfNeeded) const

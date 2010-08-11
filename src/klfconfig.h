@@ -73,6 +73,13 @@ public:
    */
   virtual QString homeConfigDir() const;
 
+  /** Returns the directory (not necessarily existing) in which installed data that is
+   * shared among different users is stored.
+   * eg. system-wide installations of plugins/extensions can be placed in:
+   * <tt>share-dir/rccresources/<i>*</i>.rcc</tt>.
+   */
+  virtual QString globalShareDir() const;
+
   /** Returns a path to a directory in which plugins can manage their data as they want.
    *
    * If the \c createIfNeeded argument is TRUE, then the directory is garanteed to exist,
@@ -136,6 +143,7 @@ public:
   KLFConfig();
 
   QString homeConfigDir;
+  QString globalShareDir;
   QString homeConfigSettingsFile; //!< current (now, "new" klatexformula.conf) settings file
   QString homeConfigSettingsFileIni; //!< OLD config file
   QString homeConfigDirRCCResources;
@@ -167,6 +175,10 @@ public:
     bool enableRealTimePreview;
     int autosaveLibraryMin;
     bool showHintPopups;
+    bool clearLatexOnly;
+    QString copyExportProfile;
+    QString dragExportProfile;
+
   } UI;
 
   struct {

@@ -38,7 +38,8 @@
 
 
 
-class KLF_EXPORT KLFMimeExporter : public QObject {
+class KLF_EXPORT KLFMimeExporter : public QObject
+{
   Q_OBJECT
 public:
   KLFMimeExporter(QObject *parent) : QObject(parent) { }
@@ -70,7 +71,8 @@ private:
 };
 
 
-class KLF_EXPORT KLFMimeExportProfile {
+class KLF_EXPORT KLFMimeExportProfile
+{
 public:
   KLFMimeExportProfile(const QString& pname, const QString& desc, const QStringList& mtypes,
 		       const QStringList& wintypes);
@@ -79,17 +81,21 @@ public:
   QString profileName() const { return p_profileName; }
   QString description() const { return p_description; }
   QStringList mimeTypes() const { return p_mimeTypes; }
+
   /** Windows Clipboard Formats to show for each mime type (respectively).
    *
    * An empty string should cause the mime type name to be used. */
   QStringList respectiveWinTypes() const { return p_respectiveWinTypes; }
+
   /** Returns the k-th element in respectiveWinTypes if non-empty, otherwise
    * the k-th element in mimeTypes. */
   QString respectiveWinType(int k) const;
 
-
   static QList<KLFMimeExportProfile> exportProfileList();
   static void addExportProfile(const KLFMimeExportProfile& exportProfile);
+
+  static KLFMimeExportProfile findExportProfile(const QString& pname);
+
 private:
 
   QString p_profileName;
@@ -97,12 +103,20 @@ private:
   QStringList p_mimeTypes;
   QStringList p_respectiveWinTypes;
 
-  static void initExportProfileList();
+  static void ensureLoadedExportProfileList();
+  static void loadFromXMLFile(const QString& fname);
   static QList<KLFMimeExportProfile> p_exportProfileList;
 };
 
-
-class KLF_EXPORT KLFMimeExporterImage : public KLFMimeExporter {
+/** KLFMimeExporter implementation to export all known built-in image formats, including
+ * - all Qt-supported image formats
+ * - all KLFBackend-generated formats, namely EPS (image/eps, application/eps, application/postscript),
+ *   PDF (application/pdf)
+ * - additionally, OpenOffice.org draw object
+ *   (\c application/x-openoffice-drawing;windows_formatname="Drawing Format")
+ */
+class KLF_EXPORT KLFMimeExporterImage : public KLFMimeExporter
+{
   Q_OBJECT
 public:
   KLFMimeExporterImage(QObject *parent) : KLFMimeExporter(parent) { }
@@ -115,7 +129,11 @@ private:
   static QMap<QString,QByteArray> imageFormats;
 };
 
-class KLF_EXPORT KLFMimeExporterUrilist : public KLFMimeExporter {
+/** KLFMimeExporter implementation for exporting \c "text/x-moz-url" and \c "text/uri-list"
+ * to a temporary PNG file
+ */
+class KLF_EXPORT KLFMimeExporterUrilist : public KLFMimeExporter
+{
   Q_OBJECT
 public:
   KLFMimeExporterUrilist(QObject *parent) : KLFMimeExporter(parent) { }
@@ -129,6 +147,19 @@ private:
 };
 
 
+/** Wrapper class to export all formats registered in KLFAbstractLibEntryMimeExporter,
+ * including all additional added encoders (eg. from plugins)
+ */
+class KLF_EXPORT KLFMimeExporterLibFmts : public KLFMimeExporter
+{
+  Q_OBJECT
+public:
+  KLFMimeExporterLibFmts(QObject *parent) : KLFMimeExporter(parent) { }
+  virtual ~KLFMimeExporterLibFmts() { }
+
+  virtual QStringList keys() const;
+  virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+};
 
 
 

@@ -154,10 +154,19 @@ public:
 			    altersetting_Epstopdf,
 			    altersetting_OutlineFonts //!< bool given as an int value
   };
+  /** This function allows to temporarily modify a given setting with a new value. KLatexFormula
+   * will NOT remember the new setting in later executions.
+   *
+   * Used eg. for command-line mode.
+   *
+   * Note you have to use the correct function for each setting, if the setting requires an int
+   * use this function, if it requires a string use alterSetting(altersetting_which, QString).
+   */
   void alterSetting(altersetting_which, int ivalue);
+  /** See alterSetting(altersetting_which, int) */
   void alterSetting(altersetting_which, QString svalue);
 
-  QMimeData * resultToMimeData();
+  QMimeData * resultToMimeData(const QString& exportProfileName = QString("default"));
   
   KLFLibBrowser * libBrowserWidget() { return mLibBrowser; }
   KLFLatexSymbols * latexSymbolsWidget() { return mLatexSymbols; }
@@ -188,7 +197,9 @@ signals:
 public slots:
 
   void slotEvaluate();
-  void slotClear();
+  void slotClear() { slotClearLatex(); }
+  void slotClearLatex();
+  void slotClearAll();
   void slotLibrary(bool showlib);
   void slotLibraryButtonRefreshState(bool on);
   void slotSymbols(bool showsymbs = true);
@@ -217,6 +228,7 @@ public slots:
 
   void retranslateUi(bool alsoBaseUi = true);
 
+  bool loadDefaultStyle();
   bool loadNamedStyle(const QString& sty);
 
   void slotDrag();
@@ -236,6 +248,8 @@ public slots:
 
 
   void refreshWindowSizes();
+
+  void refreshShowCorrectClearButton();
 
   void refreshStylePopupMenus();
   void loadStyles();

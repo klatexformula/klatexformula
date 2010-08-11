@@ -277,15 +277,27 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="gbxPopupHints">
+        <widget class="QGroupBox" name="gbxInterfaceOptions">
          <property name="title">
-          <string>Popup Hints</string>
+          <string>Interface Options</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_9">
           <item row="0" column="0">
            <widget class="QCheckBox" name="chkShowHintPopups">
             <property name="text">
              <string>Suggest inclusion of detected missing packages</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="chkClearLatexOnly">
+            <property name="toolTip">
+             <string extracomment="[[tooltip]]">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body&gt;
+&lt;p&gt;If this box is left unchecked, the clear button under to the LaTeX code editor clears the editor and resets the default style. By enabling this option, only the LaTeX field is cleared and the style is not modified.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Clear button clears LaTeX field only</string>
             </property>
            </widget>
           </item>
@@ -872,7 +884,7 @@
        <string>A&amp;dvanced</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="3" column="1">
+       <item row="4" column="1">
         <spacer name="spc_Advanced">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -1277,6 +1289,56 @@
          </layout>
         </widget>
        </item>
+       <item row="3" column="0" colspan="2">
+        <widget class="QGroupBox" name="gbxExportProfiles">
+         <property name="title">
+          <string>Data Export Profiles</string>
+         </property>
+         <layout class="QGridLayout" name="lyt_gbxExportProfiles">
+          <property name="leftMargin">
+           <number>6</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="lblCopyExportProfile">
+            <property name="text">
+             <string>Copy export profile:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cbxCopyExportProfile</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="cbxCopyExportProfile"/>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cbxDragExportProfile"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblDragExportProfile">
+            <property name="text">
+             <string>Drag export profile:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cbxDragExportProfile</cstring>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tabLibBrowser">
@@ -1471,7 +1533,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>360</width>
+                <width>359</width>
                 <height>167</height>
                </rect>
               </property>
@@ -1638,7 +1700,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>349</width>
+                   <width>348</width>
                    <height>215</height>
                   </rect>
                  </property>
@@ -1704,7 +1766,7 @@
             <x>0</x>
             <y>0</y>
             <width>562</width>
-            <height>503</height>
+            <height>502</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1729,14 +1791,14 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>KLFPathChooser</class>
-   <extends>QLineEdit</extends>
-   <header>klfpathchooser.h</header>
-  </customwidget>
-  <customwidget>
    <class>KLFColorChooser</class>
    <extends>QPushButton</extends>
    <header>klfcolorchooser.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KLFPathChooser</class>
+   <extends>QLineEdit</extends>
+   <header>klfpathchooser.h</header>
   </customwidget>
   <customwidget>
    <class>KLFEnumComboBox</class>
@@ -1745,13 +1807,19 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>tabs</tabstop>
+  <tabstop>cbxLocale</tabstop>
   <tabstop>btnAppFont</tabstop>
   <tabstop>btnAppearFont</tabstop>
   <tabstop>btnAppearPreambleFont</tabstop>
   <tabstop>spnPreviewWidth</tabstop>
   <tabstop>spnPreviewHeight</tabstop>
+  <tabstop>chkEnableRealTimePreview</tabstop>
   <tabstop>spnTooltipMaxWidth</tabstop>
   <tabstop>spnTooltipMaxHeight</tabstop>
+  <tabstop>chkEnableToolTipPreview</tabstop>
+  <tabstop>chkShowHintPopups</tabstop>
+  <tabstop>chkClearLatexOnly</tabstop>
   <tabstop>chkSHEnable</tabstop>
   <tabstop>chkSHHighlightParensOnly</tabstop>
   <tabstop>chkSHHighlightLonelyParen</tabstop>
@@ -1775,11 +1843,29 @@
   <tabstop>colSHLonelyParenBg</tabstop>
   <tabstop>chkSHLonelyParenB</tabstop>
   <tabstop>chkSHLonelyParenI</tabstop>
+  <tabstop>pathTempDir</tabstop>
+  <tabstop>pathLatex</tabstop>
+  <tabstop>pathDvips</tabstop>
+  <tabstop>pathGs</tabstop>
+  <tabstop>chkEpstopdf</tabstop>
+  <tabstop>pathEpstopdf</tabstop>
   <tabstop>btnPathsReset</tabstop>
+  <tabstop>chkOutlineFonts</tabstop>
   <tabstop>spnLBorderOffset</tabstop>
   <tabstop>spnTBorderOffset</tabstop>
   <tabstop>spnRBorderOffset</tabstop>
   <tabstop>spnBBorderOffset</tabstop>
+  <tabstop>cbxCopyExportProfile</tabstop>
+  <tabstop>cbxDragExportProfile</tabstop>
+  <tabstop>chkLibRestoreURLs</tabstop>
+  <tabstop>chkLibConfirmClose</tabstop>
+  <tabstop>cbxLibIconViewFlow</tabstop>
+  <tabstop>lstAddOns</tabstop>
+  <tabstop>scrAddOnInfo</tabstop>
+  <tabstop>btnImportAddOn</tabstop>
+  <tabstop>btnRemoveAddOn</tabstop>
+  <tabstop>lstPlugins</tabstop>
+  <tabstop>scrPluginInfo</tabstop>
   <tabstop>btns</tabstop>
  </tabstops>
  <resources>

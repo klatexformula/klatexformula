@@ -23,6 +23,20 @@ OPTIONS may be one or many of:
       Specifies a file to read latex input from.
   -l|--latexinput <expr>
       Specifies the LaTeX code of an equation to render.
+  -P|--paste-clipboard
+  -S|--paste-selection
+      Specifies that the LaTeX code should be pasted from the system clipboard or
+      current mouse selection. Works only in interactive mode.
+  -B|--base64arg
+      Specifies that the argument to the option immediately following this one is
+      encoded in base64. For example:
+	klatexformula --base64arg --latexinput="YV4yK2JeMj1jXjI="
+      will use the latex code "a^2+b^2=c^2"
+      This option can be specified more than once on the command line, each time
+      indicating that the argument to the immediately next option is encoded in
+      base64.
+      This option can be useful when scripting, to avoid the nuisance of having to
+      escape latex code from the shell.
   -o|--output <file|->
       Specifies to write the output image (obtained from equation given by --input
       or --latexinput) to <file> or standard output.

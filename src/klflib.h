@@ -30,8 +30,11 @@
 #include <QDataStream>
 #include <QDateTime>
 
+#include <klfbackend.h>
+
 #include <klfpobj.h>
 #include <klffactory.h>
+
 
 
 class KLFProgressReporter;
@@ -49,6 +52,11 @@ struct KLFStyle {
 	   int dotsperinch = -1)
     : name(nm), fg_color(fgcol), bg_color(bgcol), mathmode(mmode), preamble(pre),
       dpi(dotsperinch) { }
+
+  KLFStyle(const KLFBackend::klfInput& input)
+    : name(), fg_color(input.fg_color), bg_color(input.bg_color), mathmode(input.mathmode),
+      preamble(input.preamble), dpi(input.dpi)  { }
+
   KLFStyle(const KLFStyle& o)
     : name(o.name), fg_color(o.fg_color), bg_color(o.bg_color), mathmode(o.mathmode),
       preamble(o.preamble), dpi(o.dpi) { }

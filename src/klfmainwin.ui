@@ -109,7 +109,30 @@
          <number>2</number>
         </property>
         <item>
-         <widget class="QPushButton" name="btnClear">
+         <widget class="QPushButton" name="btnClearLatex">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string comment="tooltip">Clear the above field</string>
+          </property>
+          <property name="whatsThis">
+           <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
+          </property>
+          <property name="icon">
+           <iconset resource="klfres.qrc">
+            <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
+          </property>
+          <property name="shortcut">
+           <string>Ctrl+C</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnClearAll">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -178,9 +201,6 @@
            <iconset resource="klfres.qrc">
             <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
           </property>
-          <property name="shortcut">
-           <string>F7</string>
-          </property>
           <property name="checkable">
            <bool>true</bool>
           </property>
@@ -203,9 +223,6 @@
           <property name="icon">
            <iconset resource="klfres.qrc">
             <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string>F8</string>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -257,9 +274,6 @@
          </property>
          <item row="0" column="1">
           <widget class="QPushButton" name="btnDrag">
-           <property name="toolTip">
-            <string>Click and keep mouse button pressed to drag your formula to an other application</string>
-           </property>
            <property name="text">
             <string>&amp;DRAG</string>
            </property>
@@ -267,9 +281,6 @@
          </item>
          <item row="1" column="1">
           <widget class="QPushButton" name="btnCopy">
-           <property name="toolTip">
-            <string>Copy formula to clipboard</string>
-           </property>
            <property name="text">
             <string>&amp;COPY</string>
            </property>
@@ -773,11 +784,55 @@
    </property>
   </action>
   <action name="aShowSymbols">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Insert Symbol</string>
    </property>
    <property name="toolTip">
     <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>F7</string>
+   </property>
+  </action>
+  <action name="aShowLibrary">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Library</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Library Browser Window</string>
+   </property>
+   <property name="shortcut">
+    <string>F8</string>
+   </property>
+  </action>
+  <action name="aClearLatex">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear LaTeX</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear the LaTeX code field above</string>
+   </property>
+  </action>
+  <action name="aClearAll">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear LaTeX and reset default style</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear the LaTeX field above, and reset the style to the default style</string>
    </property>
   </action>
  </widget>
@@ -796,7 +851,7 @@
  </customwidgets>
  <tabstops>
   <tabstop>txtLatex</tabstop>
-  <tabstop>btnClear</tabstop>
+  <tabstop>btnClearLatex</tabstop>
   <tabstop>btnEvaluate</tabstop>
   <tabstop>btnSymbols</tabstop>
   <tabstop>btnLibrary</tabstop>
@@ -827,12 +882,12 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>435</x>
-     <y>84</y>
+     <x>817</x>
+     <y>75</y>
     </hint>
     <hint type="destinationlabel">
-     <x>435</x>
-     <y>118</y>
+     <x>621</x>
+     <y>106</y>
     </hint>
    </hints>
   </connection>
@@ -843,12 +898,12 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>590</x>
-     <y>85</y>
+     <x>817</x>
+     <y>75</y>
     </hint>
     <hint type="destinationlabel">
-     <x>624</x>
-     <y>120</y>
+     <x>817</x>
+     <y>106</y>
     </hint>
    </hints>
   </connection>
@@ -859,12 +914,108 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>523</x>
-     <y>189</y>
+     <x>557</x>
+     <y>170</y>
     </hint>
     <hint type="destinationlabel">
-     <x>815</x>
-     <y>196</y>
+     <x>817</x>
+     <y>175</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnLibrary</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>aShowLibrary</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>349</x>
+     <y>235</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>aShowLibrary</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>btnLibrary</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>349</x>
+     <y>235</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnSymbols</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>aShowSymbols</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>309</x>
+     <y>235</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>aShowSymbols</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>btnSymbols</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>309</x>
+     <y>235</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnClearAll</sender>
+   <signal>clicked()</signal>
+   <receiver>aClearAll</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>67</x>
+     <y>235</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnClearLatex</sender>
+   <signal>clicked()</signal>
+   <receiver>aClearLatex</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>27</x>
+     <y>235</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>

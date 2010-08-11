@@ -568,59 +568,37 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
 }
 
 
-
-bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fileName,
-				  const QString& fmt, QString* errorString)
+bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *device,
+				    const QString& fmt, QString *errorString)
 {
-  QString format = fmt;
-  // determine format first
-  if (format.isEmpty()) {
-    QFileInfo fi(fileName);
-    if ( ! fi.suffix().isEmpty() )
-      format = fi.suffix();
-    else
-      format = "PNG";
-  }
-  format = format.trimmed().toUpper();
-  // got format. choose output now and prepare write
-  QFile fout;
-  if (fileName.isEmpty() || fileName == "-") {
-    if ( ! fout.open(OPENSTDOUT) ) {
-      qWarning("%s", qPrintable(QObject::tr("Unable to open stderr for write! Error: %1\n",
-					    "KLFBackend::saveOutputToFile")
-				.arg(fout.error())));
-      return false;
-    }
-  } else {
-    fout.setFileName(fileName);
-    if ( ! fout.open(WRITEONLY) ) {
-      qWarning("%s", qPrintable(QObject::tr("Unable to write to file `%1'! Error: %2\n",
-					    "KLFBackend::saveOutputToFile")
-				.arg(fileName).arg(fout.error())));
-      return false;
-    }
-  }
+  QString format = fmt.trimmed().toUpper();
+
   // now choose correct data source and write to fout
   if (format == "EPS" || format == "PS") {
-    fout.write(klfoutput.epsdata);
+    device->write(klfoutput.epsdata);
   } else if (format == "PDF") {
     if (klfoutput.pdfdata.isEmpty()) {
-      qWarning("%s", qPrintable(QObject::tr("PDF format is not available!\n",
-					    "KLFBackend::saveOutputToFile")));
+      QString error = QObject::tr("PDF format is not available!\n",
+				  "KLFBackend::saveOutputToFile");
+      qWarning("%s", qPrintable(error));
+      if (errorString != NULL)
+	*errorString = error;
       return false;
     }
-    fout.write(klfoutput.pdfdata);
+    device->write(klfoutput.pdfdata);
  } else {
-    const QString errstr3 = QObject::tr("Unable to save image to file `%1' in format `%2'!",
-					"KLFBackend::saveOutputToFile");
-    const QString errstr4 = QObject::tr("Unable to save image to file `%1' in format `%2'!\n"
-					"%3", "KLFBackend::saveOutputToFile");
+    const QString errstr3 = QObject::tr("Unable to save image in format `%1'!",
+					"KLFBackend::saveOutputToDevice");
+    const QString errstr4 = QObject::tr("Unable to save image in format `%1'!\n"
+					"%2", "KLFBackend::saveOutputToDevice");
 #ifdef KLFBACKEND_QT4
     // add text information for latex formula, style, etc.
     // with QImageWriter
-    QImageWriter writer(&fout, format.toUpper().toLatin1());
+    QImageWriter writer(device, format.toLatin1());
     klfInput input = klfoutput.input;
-    writer.setQuality(90);
+    if (format.startsWith("JP")) //  jpg, jpeg
+      writer.setQuality(90);
+
     writer.setText("Application",
 		   QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile")
 		   .arg(KLF_VERSION_STRING));
@@ -637,16 +615,16 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
 
     bool res = writer.write(klfoutput.result);
     if ( ! res ) {
-      QString errstr = errstr4.arg(fileName).arg(format).arg(writer.errorString());
+      QString errstr = errstr4.arg(format).arg(writer.errorString());
       qWarning("%s", qPrintable(errstr));
       if (errorString != NULL)
 	*errorString = errstr;
       return false;
     }
 #else
-    bool res = klfoutput.result.save(&fout, format.toLatin1());
+    bool res = klfoutput.result.save(device, format.toLatin1());
     if ( ! res ) {
-      QString errstr = errstr3.arg(fileName).arg(format);
+      QString errstr = errstr3.arg(format);
       qWarning("%s", qPrintable(errstr));
       if (errorString != NULL)
 	*errorString = errstr;
@@ -656,6 +634,46 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
   }
 
   return true;
+}
+
+bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fileName,
+				  const QString& fmt, QString *errorString)
+{
+  QString format = fmt;
+  // determine format first
+  if (format.isEmpty()) {
+    QFileInfo fi(fileName);
+    if ( ! fi.suffix().isEmpty() )
+      format = fi.suffix();
+    else
+      format = "PNG";
+  }
+  format = format.trimmed().toUpper();
+  // got format. choose output now and prepare write
+  QFile fout;
+  if (fileName.isEmpty() || fileName == "-") {
+    if ( ! fout.open(OPENSTDOUT) ) {
+      QString error = QObject::tr("Unable to open stderr for write! Error: %1\n",
+				  "KLFBackend::saveOutputToFile").arg(fout.error());
+      qWarning("%s", qPrintable(error));
+      if (errorString != NULL)
+	*errorString = error;
+      return false;
+    }
+  } else {
+    fout.setFileName(fileName);
+    if ( ! fout.open(WRITEONLY) ) {
+      QString error = QObject::tr("Unable to write to file `%1'! Error: %2\n",
+				  "KLFBackend::saveOutputToFile")
+	.arg(fileName).arg(fout.error());
+      qWarning("%s", qPrintable(error));
+      if (errorString != NULL)
+	*errorString = error;
+      return false;
+    }
+  }
+
+  return saveOutputToDevice(klfoutput, &fout, format, errorString);
 }
 
 

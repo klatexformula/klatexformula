@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- MimeType Export Profiles for KLatexFormula -->
+<!-- $Id$ -->
+<export-profile-list version="1.0">
+  <profile name="default">
+    <description>Default MimeType Export Profile</description>
+    <description xml:lang="fr">Profile d'exportation par défaut</description>
+      
+    <export-type><mime-type>image/png</mime-type><windows-type>PNG</windows-type></export-type>
+    <export-type>
+      <mime-type>application/x-openoffice-drawing;windows_formatname="Drawing Format"</mime-type>
+      <windows-type>Drawing Format</windows-type>
+    </export-type>
+    <export-type><mime-type>text/x-moz-url</mime-type><windows-type>FileName</windows-type></export-type>
+    <export-type><mime-type>text/uri-list</mime-type><windows-type/></export-type>
+    <export-type><mime-type>application/x-klf-libentries</mime-type><windows-type/></export-type>
+  </profile>
+
+  <profile name="png_only">
+    <description>PNG Only</description>
+    <description xml:lang="fr">PNG Seul</description>
+
+    <export-type><mime-type>image/png</mime-type><windows-type>PNG</windows-type></export-type>
+  </profile>
+
+</export-profile-list>

@@ -13,8 +13,8 @@
 	background-repeat: no-repeat;
 	background-position: top left;
 }
-/* repeat about dialog information, which seems to be forgotten.
-   May this be a Qt bug ? */
+/* / * repeat about dialog information, which seems to be forgotten.
+       May this be a Qt bug ? * /
 QFrame#frmAboutArea {
 	background-image: url(:/pics/helpdialogbg.png);
 	background-clip: padding;
@@ -24,6 +24,7 @@ QLabel#lblAbout {
 	color: rgb(0, 0, 0);
 	background-color: rgba(255, 255, 255, 180);
 }
+*/
 QPushButton, QToolButton {
 	background-color: rgb(255,255,255,50);
 	selection-background-color: rgb(255,255,255,100);
@@ -59,7 +60,7 @@ QTreeView {
 	selection-background-color: rgb(128,128,128,128);
 }
 /* for checkable items, qt bug --> need an opaque bg col */
-QTreeView#lstPlugins {
+QTreeView#lstPlugins, KLFLibExportDialog QTreeView#lstRes {
 	background-color: rgb(204, 204, 204);
 }
 QTreeView::branch:has-children:!has-siblings:closed,
@@ -94,6 +95,10 @@ QLineEdit[searchState="not-found"] {
 }
 QLabel#lblPreview, QLabel#lblOutput {
     background-color: transparent;
+}
+KLFDisplayLabel[realTimeLatexError=true] {
+    border: 2px solid rgb(255,0,0,50);
+    background-color: rgb(255,128,128,60);
 }
 QLineEdit {
 	color: black;
@@ -257,3 +262,16 @@ QToolTip {
 	border-radius: 2px;
 	opacity: 255;
 }
+
+QProgressBar {
+	background-color: rgba(255,255,255,20);
+	color: rgb(0,0,0);
+	text-align: center;	
+	border: 1px solid rgb(0,0,0,50);
+	border-radius: 2px;
+}
+QProgressBar::chunk {
+	background-color: rgba(0,0,0,64);
+	width: 10px;
+}
+

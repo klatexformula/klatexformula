@@ -464,17 +464,6 @@
     <sym><usepackage name="mathtools"/><latex>\coloneqq</latex></sym>
     <sym><usepackage name="mathtools"/><latex>\Coloneqq</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\stackrel{\text{\tiny def}}{=}</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><hidden/><latex>\ket</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex>\ket{\psi}</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><hidden/><latex>\bra</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex>\bra{\psi}</latex></sym>
-    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><hidden/><latex>\braket</latex></sym>    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex>\braket{\phi}{\psi}</latex></sym>
-    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right|
- #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><hidden/><latex>\matrixel</latex></sym>
-    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right|
- #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex>\matrixel{\phi}{H}{\psi}</latex></sym>
-    <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
-    <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
   </category>
   <category name="Delimiters and Accents">
     <sym><latex>\vert</latex></sym>
@@ -521,6 +510,19 @@
     <sym><latex>\tilde{a}</latex></sym>
     <sym><latex>\acute{a}</latex></sym>
     <sym><latex>\grave{a}</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><hidden/><latex>\ket</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex>\ket{\psi}</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><hidden/><latex>\bra</latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex>\bra{\psi}</latex></sym>
+    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><hidden/><latex>\braket</latex></sym>    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex>\braket{\phi}{\psi}</latex></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right|
+ #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><hidden/><latex>\matrixel</latex></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right|
+ #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex>\matrixel{\phi}{H}{\psi}</latex></sym>
+    <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
+    <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
+    <sym><usepackage name="slashed"/><hidden/><latex>\slashed</latex></sym>
+    <sym><usepackage name="slashed"/><latex>\slashed{a}</latex></sym>
   </category>
   <category name="Greek Alphabet">
     <sym><latex>\alpha</latex></sym>

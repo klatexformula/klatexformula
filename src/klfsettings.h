@@ -54,6 +54,7 @@ public:
     SyntaxHighlighting,
     ExecutablePaths,
     ExpandEPSBBox,
+    ExportProfiles,
     LibrarySettings,
     ManageAddOns,
     ManagePlugins,
@@ -94,6 +95,7 @@ protected:
 protected slots:
 
   void populateLocaleCombo();
+  void populateExportProfilesCombos();
 
   void initPluginControls();
   void refreshPluginSelected();

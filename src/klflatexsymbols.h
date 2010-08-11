@@ -169,6 +169,8 @@ protected:
 
 private:
   Ui::KLFLatexSymbols *u;
+
+  void read_symbols_create_ui();
 };
 
 

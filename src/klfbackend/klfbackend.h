@@ -240,8 +240,8 @@ public:
 
     /** the data for a png file (exact \c gs output content)
      *
-     * \note This PNG image is not downscaled to the correct DPI. it is still at DPI*smoothFactor
-     *   size. The resulting image \c result, is, however of correct size. */
+     * This image does NOT contain any meta-data. Use saveOutputToFile() or saveOutputToDevice() to
+     * include meta-data on the input parameters of the formula. */
     QByteArray pngdata;
     /** data for an (eps-)postscript file */
     QByteArray epsdata;
@@ -335,6 +335,11 @@ public:
    */
   static bool saveOutputToFile(const klfOutput& output, const QString& fileName,
 			       const QString& format = QString(), QString* errorString = NULL);
+
+  /** Overloaded function, provided for convenience. Behaves very much like \ref saveOutputToFile(),
+   * except that the format cannot be guessed. */
+  static bool saveOutputToDevice(const klfOutput& output, QIODevice *device,
+				 const QString& format = QString("PNG"), QString* errorString = NULL);
 
   /** \brief Detects the system settings and stores the guessed values in \c settings.
    *

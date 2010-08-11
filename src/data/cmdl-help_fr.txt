@@ -20,9 +20,22 @@ les OPTIONS peuvent être l'une ou plusieurs parmi :
       Exécute KLatexFormula en mode interactif, c'est-à-dire avec une interface graphique.
       Cette option est activée par défaut, sauf si --input ou --latexinput est spécifié.
   -i|--input <file|->
-      Donne un fichier avec de l'entrée LaTeX à lire.
+      Donne un fichier qui contient du code LaTeX à lire.
   -l|--latexinput <expr>
       Précise directement une expression LaTeX à évaluer.
+  -P|--paste-clipboard
+  -S|--paste-selection
+      Indique à klatexformula de coller le contenu du presse-papiers (clipboard) ou du texte
+      actuellement sélectionné par la souris. Fonctionne uniquement en mode interactif.
+  -B|--base64arg
+      Indique que l'option qui suit immédiatement a son argument encodé en base64. Par
+      exemple:
+        klatexformula --base64arg --latexinput="YV4yK2JeMj1jXjI="
+      utilisera comme code latex "a^2+b^2=c^2"
+      Cette option peut être donnée à plusieurs reprises pour indiquer que chaque fois,
+      le paramètre de l'option suivante est encodé en base64.
+      Cette option peut s'avérer utile dans les scripts, permettant d'éviter de devoir
+      échapper le code latex du shell.
   -o|--output <file|->
       Précise le fichier où écrire l'image résultante obtenue sur la base de --input ou
       --latexinput. L'argument à cette option peut être un nom de fichier ou « - » pour

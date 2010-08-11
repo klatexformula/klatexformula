@@ -52,7 +52,7 @@ QAbstractItemView {
 }
 
 /* for checkable items, qt bug --> need an opaque bg col */
-QTreeView#lstPlugins {
+QTreeView#lstPlugins, KLFLibExportDialog QTreeView#lstRes  {
 	background-image: url(:/plugindata/skin/stylesheets/pics/bg_galaxy.jpg);
 }
 QTreeView::branch:has-children:!has-siblings:closed,

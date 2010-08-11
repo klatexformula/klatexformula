@@ -28,6 +28,10 @@
 #ifndef KLFLIB_P_H
 #define KLFLIB_P_H
 
+#include <QDomDocument>
+#include <QDomNode>
+#include <QDomElement>
+
 #include "klflib.h"
 
 
@@ -41,7 +45,8 @@ public:
 
   virtual QStringList supportedEncodingMimeTypes() const
   {
-    return QStringList() << "application/x-klf-libentries"
+    return QStringList() /*<< "application/x-klf-library-entries"*/
+			 << "application/x-klf-libentries"
 			 << "text/html"
 			 << "text/plain"
       //<< "image/png"
@@ -49,7 +54,7 @@ public:
   }
   virtual QStringList supportedDecodingMimeTypes() const
   {
-    return QStringList() << "application/x-klf-libentries";
+    return QStringList()/* << "application/x-klf-library-entries"*/ << "application/x-klf-libentries";
   }
 
   virtual QByteArray encodeMime(const KLFLibEntryList& entryList, const QVariantMap& metaData,
@@ -66,6 +71,9 @@ public:
       }
       // now the data is prepared, return it
       return data;
+    }
+    if (mimeType == "application/x-klf-library-entries") {
+      return QByteArray();
     }
     if (mimeType == "text/html") {
       // prepare the data through the stream in a separate block

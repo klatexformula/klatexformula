@@ -342,11 +342,7 @@ KLFMainWin::KLFMainWin()
   connect(this, SIGNAL(stylesChanged()), this, SLOT(saveStyles()));
   connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(saveStyles()));
 
-  // load style "default" or "Default" (or translation) if one of them exists
-  loadNamedStyle(tr("Default"));
-  loadNamedStyle(tr("default"));
-  loadNamedStyle("Default");
-  loadNamedStyle("default");
+  loadDefaultStyle();
 
   // For systematical syntax highlighting
   // make sure syntax highlighting is up-to-date at all times
@@ -359,10 +355,13 @@ KLFMainWin::KLFMainWin()
   // load library
   mLibBrowser = new KLFLibBrowser(this);
 
+  refreshShowCorrectClearButton();
 
   // -- MAJOR SIGNAL/SLOT CONNECTIONS --
 
-  connect(u->btnClear, SIGNAL(clicked()), this, SLOT(slotClear()));
+  //  connect(u->btnClear, SIGNAL(toggled(bool)), this, SLOT(slotClear()));
+  connect(u->aClearLatex, SIGNAL(triggered()), this, SLOT(slotClearLatex()));
+  connect(u->aClearAll, SIGNAL(triggered()), this, SLOT(slotClearAll()));
   connect(u->btnEvaluate, SIGNAL(clicked()), this, SLOT(slotEvaluate()));
   connect(u->btnSymbols, SIGNAL(toggled(bool)), this, SLOT(slotSymbols(bool)));
   connect(u->btnLibrary, SIGNAL(toggled(bool)), this, SLOT(slotLibrary(bool)));
@@ -432,7 +431,7 @@ KLFMainWin::KLFMainWin()
 
   // INTERNAL FLAGS
 
-  _evaloutput_uptodate = false;
+  _evaloutput_uptodate = true;
 
   retranslateUi(false);
 
@@ -527,6 +526,23 @@ void KLFMainWin::refreshWindowSizes()
   updateGeometry();
 }
 
+void KLFMainWin::refreshShowCorrectClearButton()
+{
+  bool lo = klfconfig.UI.clearLatexOnly;
+  u->btnClearAll->setVisible(!lo);
+  u->btnClearLatex->setVisible(lo);
+}
+
+
+bool KLFMainWin::loadDefaultStyle()
+{
+  // load style "default" or "Default" (or translation) if one of them exists
+  bool r;
+  r = loadNamedStyle(tr("Default", "[[style name]]"));
+  r = r || loadNamedStyle("Default");
+  r = r || loadNamedStyle("default");
+  return r;
+}
 
 bool KLFMainWin::loadNamedStyle(const QString& sty)
 {
@@ -560,8 +576,7 @@ void KLFMainWin::loadSettings()
 
 void KLFMainWin::saveSettings()
 {
-  if ( ! _settings_altered ) {
-    // don't save altered settings
+  if ( ! _settings_altered ) {    // don't save altered settings
     klfconfig.BackendSettings.tempDir = _settings.tempdir;
     klfconfig.BackendSettings.execLatex = _settings.latexexec;
     klfconfig.BackendSettings.execDvips = _settings.dvipsexec;
@@ -1193,7 +1208,7 @@ void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
     }
   }
 
-  menu->addAction(QIcon(":/pics/symbols.png"), tr("Insert Symbol ..."),
+  menu->addAction(QIcon(":/pics/symbols.png"), tr("Insert Symbol ...", "[[context menu entry]]"),
 		  this, SLOT(slotSymbols()));
 
   menu->popup(pos);
@@ -1438,6 +1453,21 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
     return true;
   }
 
+  // ----
+  if ( (obj == u->btnCopy || obj == u->btnDrag) && e->type() == QEvent::ToolTip ) {
+    QString tooltipText;
+    if (obj == u->btnCopy) {
+      tooltipText = tr("Copy the formula to the clipboard. Current export profile: %1")
+	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.UI.copyExportProfile).description());
+    } else if (obj == u->btnDrag) {
+      tooltipText = tr("Click and keep mouse button pressed to drag your formula to an other application. "
+		       "Current export profile: %1")
+	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.UI.dragExportProfile).description());
+    }
+    QToolTip::showText(((QHelpEvent*)e)->globalPos(), tooltipText, qobject_cast<QWidget*>(obj));
+    return true;
+  }
+
   return QWidget::eventFilter(obj, e);
 }
 
@@ -1579,6 +1609,7 @@ void KLFMainWin::setTxtPreambleFont(const QFont& f)
 
 void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
 {
+  klfDbg("preview.size=" << preview.size()<< "  latexerror=" << latexerror);
   if (_evaloutput_uptodate)
     return;
 
@@ -1729,23 +1760,34 @@ void KLFMainWin::slotEvaluate()
   u->btnEvaluate->setEnabled(true); // re-enable our button
 }
 
-void KLFMainWin::slotClear()
+void KLFMainWin::slotClearLatex()
 {
-  u->txtLatex->setPlainText("");
+  slotSetLatex("");
   u->txtLatex->setFocus();
   mHighlighter->resetEditing();
 }
+void KLFMainWin::slotClearAll()
+{
+  slotClearLatex();
+  // load default style
+  loadNamedStyle(tr("Default"));
+  loadNamedStyle(tr("default"));
+  loadNamedStyle("Default");
+  loadNamedStyle("default");
+}
+
 
 void KLFMainWin::slotLibrary(bool showlib)
 {
   mLibBrowser->setShown(showlib);
-  //  slotLibraryButtonRefreshState(showlib);
 }
 
 void KLFMainWin::slotSymbols(bool showsymbs)
 {
   mLatexSymbols->setShown(showsymbs);
   slotSymbolsButtonRefreshState(showsymbs);
+  mLatexSymbols->activateWindow();
+  mLatexSymbols->raise();
 }
 
 void KLFMainWin::slotExpandOrShrink()
@@ -1906,40 +1948,31 @@ void KLFMainWin::setApplicationLocale(const QString& locale)
 }
 
 
-QMimeData * KLFMainWin::resultToMimeData()
+QMimeData * KLFMainWin::resultToMimeData(const QString& exportProfileName)
 {
+  klfDbg("export profile: "<<exportProfileName);
   if ( _output.result.isNull() )
     return NULL;
 
-  // klf export profile to use (for now, use first = default)
-  /** \todo .......TODO: choose export profile ! */
-  KLFMimeExportProfile p = KLFMimeExportProfile::exportProfileList() [0];
+  KLFMimeExportProfile p = KLFMimeExportProfile::findExportProfile(exportProfileName);
   QStringList mimetypes = p.mimeTypes();
 
   QMimeData *mimedata = new QMimeData;
   int k;
   for (k = 0; k < mimetypes.size(); ++k) {
+    klfDbg("exporting "<<mimetypes[k]<<" ...");
     QString mimetype = mimetypes[k];
-    QByteArray data = KLFMimeExporter::mimeExporterLookup(mimetype)->data(mimetype, _output);
+    KLFMimeExporter *exporter = KLFMimeExporter::mimeExporterLookup(mimetype);
+    if (exporter == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": Can't find an exporter for mime-type "<<mimetype<<".";
+      continue;
+    }
+    QByteArray data = exporter->data(mimetype, _output);
     mimedata->setData(mimetype, data);
+    klfDbg("exporting mimetype done");
   }
 
-  // add also the mime data for a KLFLibEntry
-  const QPixmap *px = u->lblOutput->pixmap();
-  KLFLibEntry e = KLFLibEntry(_output.input.latex, QDateTime::currentDateTime(),
-			      (px?px->toImage():QImage()),
-			      currentStyle());
-  KLFAbstractLibEntryMimeEncoder *encoder =
-    KLFAbstractLibEntryMimeEncoder::findEncoderFor("application/x-klf-libentries", true);
-  if (encoder != NULL) {
-    QByteArray klflibdata = encoder->encodeMime(KLFLibEntryList()<<e, QVariantMap(),
-						"application/x-klf-libentries");
-    if (klflibdata.size())
-      mimedata->setData("application/x-klf-libentries", klflibdata);
-    else
-      qWarning()<<KLF_FUNC_NAME<<": application/x-klf-libentries encoder returned empty data!";
-  }
-
+  klfDbg("got mime data.");
   return mimedata;
 }
 
@@ -1950,7 +1983,7 @@ void KLFMainWin::slotDrag()
     return;
 
   QDrag *drag = new QDrag(this);
-  QMimeData *mime = resultToMimeData();
+  QMimeData *mime = resultToMimeData(klfconfig.UI.dragExportProfile);
   drag->setMimeData(mime);
   QImage img;
   img = _output.result.scaled(QSize(200, 100), Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -1960,15 +1993,15 @@ void KLFMainWin::slotDrag()
   drag->setHotSpot(QPoint(p.width()/2, p.height()));
   drag->exec(Qt::CopyAction);
 }
+
 void KLFMainWin::slotCopy()
 {
 #ifdef Q_WS_WIN
   extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
 				  const QList<QByteArray>& datalist);
 
-  // klf export profile to use (for now, use first = default)
-  /** \todo ............................... Choose export profile ...? */
-  KLFMimeExportProfile p = KLFMimeExportProfile::exportProfileList() [0];
+  QString profilename = klfconfig.UI.copyExportProfile;
+  KLFMimeExportProfile p = KLFMimeExportProfile::findExportProfile(profilename);
 
   QStringList mimetypes = p.mimeTypes();
   QStringList respectivewintypes = p.respectiveWinTypes();
@@ -1989,7 +2022,7 @@ void KLFMainWin::slotCopy()
   klfWinClipboardCopy(winId(), wintypes, datalist);
 
 #else
-  QMimeData *mimedata = resultToMimeData();
+  QMimeData *mimedata = resultToMimeData(klfconfig.UI.copyExportProfile);
   QApplication::clipboard()->setMimeData(mimedata, QClipboard::Clipboard);
 #endif
 }
@@ -2048,7 +2081,7 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   if ( fi.suffix().length() == 0 ) {
     // get format and suffix from selected filter
     if ( ! formatsByFilterName.contains(selectedfilter) ) {
-      qWarning("ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n",
+      qWarning("%s: ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n", KLF_FUNC_NAME,
 	       qPrintable(selectedfilter));
       format = "png";
     } else {
@@ -2073,13 +2106,13 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     }
   }
   fi.setFile(fname);
-  int index = formatlist.indexOf(fi.suffix());
+  int index = formatlist.indexOf(fi.suffix().toLower());
   if ( index < 0 ) {
     // select PNG by default if suffix is not recognized
     QMessageBox msgbox(this);
     msgbox.setIcon(QMessageBox::Warning);
     msgbox.setWindowTitle(tr("Extension not recognized"));
-    msgbox.setText(tr("Extension <b>%1</b> not recognized.").arg(fi.suffix()));
+    msgbox.setText(tr("Extension <b>%1</b> not recognized.").arg(fi.suffix().toUpper()));
     msgbox.setInformativeText(tr("Press \"Change\" to change the file name, or \"Use PNG\" to save as PNG."));
     QPushButton *png = new QPushButton(tr("Use PNG"), &msgbox);
     msgbox.addButton(png, QMessageBox::AcceptRole);
