@@ -1977,12 +1977,12 @@ bool KLFLibModel::insertEntries(const KLFLibEntryList& entries)
     return true; // nothing to do...
 
   KLFLibEntryList elist = entries;
-  int k;
+  /*  int k;
   for (k = 0; k < entries.size(); ++k) {
     // strip any position property from the entry
     if (elist[k].property("IconView_IconPosition").isValid())
       elist[k].setEntryProperty("IconView_IconPosition", QVariant());
-  }
+  }*/
 
   QList<KLFLib::entryId> list = pResource->insertEntries(elist);
 
@@ -2909,7 +2909,7 @@ void KLFLibDefaultView::updateResourceEngine()
     //       = resource->propertyNameRegistered("IconView_IconPositionsLocked") &&
     //       /* */ resource->canModifyProp(resource->propertyIdForName("IconView_IconPositionsLocked"));
     //     pIconViewLockAction->setEnabled(iconposlockenabled);
-    pIconViewRelayoutAction->setEnabled(canMoveIcons());
+    // pIconViewRelayoutAction->setEnabled(canMoveIcons());
 
     pIconViewActions = QList<QAction*>() << pIconViewRelayoutAction ;/* << pIconViewLockAction; */
   }
@@ -3158,9 +3158,9 @@ void KLFLibDefaultView::slotRelayoutIcons()
   //   }
   //   if (pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
   //     return;
-  //   KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
-  //   // force a re-layout
-  //   lv->forceRelayout();
+  KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
+  // force a re-layout
+  lv->forceRelayout();
 }
 void KLFLibDefaultView::slotLockIconPositions(bool locked)
 {

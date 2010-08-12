@@ -963,6 +963,7 @@ void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
   u->frmOutput->setEnabled(false);
   activateWindow();
   raise();
+  u->txtLatex->setFocus();
 }
 
 void KLFMainWin::slotLibraryButtonRefreshState(bool on)

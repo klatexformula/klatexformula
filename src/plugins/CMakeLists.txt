@@ -111,15 +111,22 @@ if(APPLE AND KLF_MACOSX_BUNDLE_PATH)
 endif(APPLE AND KLF_MACOSX_BUNDLE_PATH)
 
 
+if(WIN32)
+  set(homePath "$ENV{USERPROFILE}")
+else(WIN32)
+  set(homePath "$ENV{HOME}")
+endif(WIN32)
 # local for-developers-only compile-time install
-add_custom_target(klfbaseplugins_rcc_localinstall ALL
-  COMMAND "${CMAKE_COMMAND}" -E copy klfbaseplugins.rcc "$ENV{HOME}/.klatexformula/rccresources/"
+add_custom_target(klfbaseplugins_rcc_localinstall
+  COMMAND "${CMAKE_COMMAND}" -E copy klfbaseplugins.rcc "${homePath}/.klatexformula/rccresources/"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Installing Base Plugins Add-On Locally in ~/.klatexformula/rccresources"
   VERBATIM
 )
+add_dependencies(klfbaseplugins_rcc_localinstall klfbaseplugins_rcc)
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
-  add_dependencies(klfbaseplugins_rcc_localinstall klfbaseplugins_rcc)
+  add_custom_target(klfbaseplugins_rcc_localinstall_all ALL)
+  add_dependencies(klfbaseplugins_rcc_localinstall_all klfbaseplugins_rcc_localinstall)
 endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 
 

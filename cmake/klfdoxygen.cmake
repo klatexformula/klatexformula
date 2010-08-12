@@ -62,9 +62,9 @@ if(DOXYGEN)
   add_dependencies(doc_klflib  doc_klfbackend) # depends on klfbackend.tag
   add_dependencies(doc  doc_klfbackend doc_klflib)
   
-  message(STATUS "doxygen API documentation can be generated with 'make doc'")
+  message(STATUS "doxygen developer API documentation can be generated with 'make doc'")
 else(DOXYGEN)
-  message(STATUS "doxygen not found; API documentation cannot be generated
+  message(STATUS "doxygen not found; developer API documentation cannot be generated
   (if unsure, this warning is safe to ignore)")
 endif(DOXYGEN)
 
