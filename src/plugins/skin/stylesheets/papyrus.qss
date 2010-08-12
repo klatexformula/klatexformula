@@ -41,6 +41,9 @@ QAbstractItemView {
 	selection-color: black;
 	selection-background-color: rgb(128,128,128,128);
 }
+QListView {
+	alternate-background-color: rgb(255,255,255,80);
+}
 QTreeView {
 	color: black;
 	background-color: rgb(255,255,255,0);

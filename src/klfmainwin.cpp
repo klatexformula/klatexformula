@@ -23,43 +23,8 @@
 
 #include <stdio.h>
 
-#include <QComboBox>
-#include <QLineEdit>
-#include <QTextEdit>
-#include <QLabel>
-#include <QCheckBox>
-#include <QImage>
-#include <QPushButton>
-#include <QFile>
-#include <QFont>
-#include <QFontInfo>
-#include <QClipboard>
-#include <QDrag>
-#include <QTimer>
-#include <QApplication>
-#include <QMessageBox>
-#include <QShortcut>
-#include <QToolTip>
-#include <QWhatsThis>
-#include <QProcess>
-#include <QFileDialog>
-#include <QKeyEvent>
-#include <QMimeData>
-#include <QImageWriter>
-#include <QInputDialog>
-#include <QCloseEvent>
-#include <QTemporaryFile>
-#include <QByteArray>
-#include <QBuffer>
-#include <QResource>
-#include <QDomDocument>
-#include <QDomElement>
-#include <QStyle>
-#include <QStyleFactory>
-#include <QDebug>
-#include <QProgressDialog>
-#include <QDesktopServices>
-#include <QDesktopWidget>
+#include <QtCore>
+#include <QtGui>
 
 #include <klfbackend.h>
 
@@ -322,6 +287,7 @@ KLFMainWin::KLFMainWin()
 
   setFixedSize(_shrinkedsize);
 
+
   // Shortcut for quit
   new QShortcut(QKeySequence(tr("Ctrl+Q")), this, SLOT(quit()), SLOT(quit()),
 		Qt::ApplicationShortcut);
@@ -507,6 +473,32 @@ KLFMainWin::~KLFMainWin()
 
   delete u;
 }
+
+void KLFMainWin::startupFinished()
+{
+  //  if ( ! _loadedlibrary ) {
+  //    _loadedlibrary = true;
+  //
+  //    // load the library browser's saved state
+  //    QMetaObject::invokeMethod(this, "loadLibrary", Qt::QueuedConnection);
+  //  }
+
+  // Export profiles selection list
+  int k;
+  QList<KLFMimeExportProfile> eplist = KLFMimeExportProfile::exportProfileList();
+  QMenu *menu = new QMenu(u->btnSetExportProfile);
+  QSignalMapper *smapper = new QSignalMapper(this);
+  for (k = 0; k < eplist.size(); ++k) {
+    QAction *action = new QAction(eplist[k].description(), menu);
+    menu->addAction(action);
+    smapper->setMapping(action, eplist[k].profileName());
+    connect(action, SIGNAL(triggered()), smapper, SLOT(map()));
+  }
+  connect(smapper, SIGNAL(mapped(const QString&)), this, SLOT(slotSetExportProfile(const QString&)));
+
+  u->btnSetExportProfile->setMenu(menu);
+}
+
 
 
 void KLFMainWin::refreshWindowSizes()
@@ -1177,6 +1169,9 @@ void KLFMainWin::slotPopupAcceptAll()
 
 void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
 {
+  // move cursor at that point
+  u->txtLatex->setTextCursor(u->txtLatex->cursorForPosition(pos));
+
   QMenu * menu = u->txtLatex->createStandardContextMenu(u->txtLatex->mapToGlobal(pos));
 
   menu->addSeparator();
@@ -1521,12 +1516,6 @@ void KLFMainWin::showEvent(QShowEvent *e)
       QMetaObject::invokeMethod(this, "showWhatsNew", Qt::QueuedConnection);
     }
   }
-  //  if ( ! _loadedlibrary ) {
-  //    _loadedlibrary = true;
-  //
-  //    // load the library browser's saved state
-  //    QMetaObject::invokeMethod(this, "loadLibrary", Qt::QueuedConnection);
-  //  }
 
   if ( ! e->spontaneous() ) {
     // restore shown windows ...
@@ -1945,6 +1934,13 @@ void KLFMainWin::setApplicationLocale(const QString& locale)
   klf_reload_translations(qApp, locale);
 
   emit applicationLocaleChanged(locale);
+}
+
+void KLFMainWin::slotSetExportProfile(const QString& exportProfile)
+{
+  klfconfig.UI.copyExportProfile = exportProfile;
+  klfconfig.UI.dragExportProfile = exportProfile;
+  saveSettings();
 }
 
 

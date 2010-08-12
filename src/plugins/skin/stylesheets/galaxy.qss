@@ -50,7 +50,9 @@ QAbstractItemView {
 	selection-color: rgb(200,200,200);
 	selection-background-color: rgb(128,128,128,128);
 }
-
+QListView {
+	alternate-background-color: rgb(128,128,128,40);
+}
 /* for checkable items, qt bug --> need an opaque bg col */
 QTreeView#lstPlugins, KLFLibExportDialog QTreeView#lstRes  {
 	background-image: url(:/plugindata/skin/stylesheets/pics/bg_galaxy.jpg);

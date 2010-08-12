@@ -154,6 +154,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   res.epsdata = QByteArray();
   res.pdfdata = QByteArray();
   res.input = in;
+  res.settings = settings;
 
   // PROCEDURE:
   // - generate LaTeX-file
@@ -192,13 +193,15 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   }
 
   QString latexin;
-  if (in.mathmode.contains("...") == 0) {
-    res.status = KLFERR_MISSINGMATHMODETHREEDOTS;
-    res.errorstr = QObject::tr("The math mode string doesn't contain '...'!", "KLFBackend");
-    return res;
+  if (!in.bypassTemplate) {
+    if (in.mathmode.contains("...") == 0) {
+      res.status = KLFERR_MISSINGMATHMODETHREEDOTS;
+      res.errorstr = QObject::tr("The math mode string doesn't contain '...'!", "KLFBackend");
+      return res;
+    }
+    latexin = in.mathmode;
+    latexin.replace("...", in.latex);
   }
-  latexin = in.mathmode;
-  latexin.replace("...", in.latex);
 
   {
     QFile file(fnTex);
@@ -210,18 +213,22 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       return res;
     }
     QTextStream stream(&file);
-    stream << "\\documentclass{article}\n"
-	   << "\\usepackage[dvips]{color}\n"
-	   << in.preamble << "\n"
-	   << "\\begin{document}\n"
-	   << "\\thispagestyle{empty}\n"
-	   << QString("\\definecolor{klffgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.fg_color)/255.0)
-      .arg(qGreen(in.fg_color)/255.0).arg(qBlue(in.fg_color)/255.0)
-	   << QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.bg_color)/255.0)
-      .arg(qGreen(in.bg_color)/255.0).arg(qBlue(in.bg_color)/255.0)
-	   << ( (qAlpha(in.bg_color)>0) ? "\\pagecolor{klfbgcolor}\n" : "" )
-	   << "{\\color{klffgcolor} " << latexin << " }\n"
-	   << "\\end{document}\n";
+    if (!in.bypassTemplate) {
+      stream << "\\documentclass{article}\n"
+	     << "\\usepackage[dvips]{color}\n"
+	     << in.preamble << "\n"
+	     << "\\begin{document}\n"
+	     << "\\thispagestyle{empty}\n"
+	     << QString("\\definecolor{klffgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.fg_color)/255.0)
+	.arg(qGreen(in.fg_color)/255.0).arg(qBlue(in.fg_color)/255.0)
+	     << QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.bg_color)/255.0)
+	.arg(qGreen(in.bg_color)/255.0).arg(qBlue(in.bg_color)/255.0)
+	     << ( (qAlpha(in.bg_color)>0) ? "\\pagecolor{klfbgcolor}\n" : "" )
+	     << "{\\color{klffgcolor} " << latexin << " }\n"
+	     << "\\end{document}\n";
+    } else {
+      stream << in.latex;
+    }
   }
 
   { // execute latex

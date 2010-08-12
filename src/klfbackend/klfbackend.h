@@ -183,7 +183,7 @@ public:
    * the dpi for rendering png, colors etc. */
   struct klfInput {
     /** A default constructor assigning default values to all fields. */
-    klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600) { }
+    klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600), bypassTemplate(false) { }
     /** The latex code to render */
     QString latex;
     /** The mathmode to use. You may pass an arbitrary string containing '...' . '...' will be replaced
@@ -207,6 +207,13 @@ public:
     /** The dots per inch resolution of the resulting image. This is directly passed to the
      * <tt>-r</tt> option of the \c gs program. */
     int dpi;
+    /** If TRUE, indicates that \c latex contains the whole of the latex code, it should not be included into
+     * a default document template.
+     *
+     * In particular, if TRUE, then \c mathmode and \c preamble are have no effect.
+     *
+     * This property is FALSE by default. */
+    bool bypassTemplate;
   };
 
   //! KLFBackend::getLatexFormula() result
@@ -237,6 +244,8 @@ public:
 
     /** The input parameters used to generate this output */
     klfInput input;
+    /** The settings that this output was generated with */
+    klfSettings settings;
 
     /** the data for a png file (exact \c gs output content)
      *

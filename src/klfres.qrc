@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>pics/exportprofile.png</file>
     <file>pics/clearedit.png</file>
     <file>pics/wait_anim.mng</file>
     <file>pics/importexport.png</file>

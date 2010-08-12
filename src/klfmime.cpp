@@ -493,12 +493,21 @@ QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput)
     bgcols = "-";
 
   templ.replace(QByteArray("<!--KLF_PNG_BASE64_DATA-->"), pngdata.toBase64());
+
   templ.replace(QByteArray("<!--KLF_INPUT_LATEX-->"), toAttrText(klfoutput.input.latex));
   templ.replace(QByteArray("<!--KLF_INPUT_MATHMODE-->"), toAttrText(klfoutput.input.mathmode));
   templ.replace(QByteArray("<!--KLF_INPUT_PREAMBLE-->"), toAttrText(klfoutput.input.preamble));
   templ.replace(QByteArray("<!--KLF_INPUT_FGCOLOR-->"), toAttrText(fgcols));
   templ.replace(QByteArray("<!--KLF_INPUT_BGCOLOR-->"),	toAttrText(bgcols));
   templ.replace(QByteArray("<!--KLF_INPUT_DPI-->"), toAttrText(QString::number(klfoutput.input.dpi)));
+  templ.replace(QByteArray("<!--KLF_SETTINGS_TBORDEROFFSET_PSPT-->"),
+		toAttrText(QString::number(klfoutput.settings.tborderoffset)));
+  templ.replace(QByteArray("<!--KLF_SETTINGS_RBORDEROFFSET_PSPT-->"),
+		toAttrText(QString::number(klfoutput.settings.rborderoffset)));
+  templ.replace(QByteArray("<!--KLF_SETTINGS_BBORDEROFFSET_PSPT-->"),
+		toAttrText(QString::number(klfoutput.settings.bborderoffset)));
+  templ.replace(QByteArray("<!--KLF_SETTINGS_LBORDEROFFSET_PSPT-->"),
+		toAttrText(QString::number(klfoutput.settings.lborderoffset)));
 
   templ.replace(QByteArray("<!--KLF_INPUT_LATEX_BASE64-->"), klfoutput.input.latex.toLocal8Bit().toBase64());
   templ.replace(QByteArray("<!--KLF_INPUT_MATHMODE_BASE64-->"), klfoutput.input.mathmode.toLocal8Bit().toBase64());
@@ -506,11 +515,26 @@ QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput)
   templ.replace(QByteArray("<!--KLF_INPUT_FGCOLOR_BASE64-->"), fgcols.toLocal8Bit().toBase64());
   templ.replace(QByteArray("<!--KLF_INPUT_BGCOLOR_BASE64-->"), bgcols.toLocal8Bit().toBase64());
 
-  // 2.54 cm/inch
+  templ.replace(QByteArray("<!--KLF_OOOLATEX_ARGS-->"), toAttrText("12§display§"+klfoutput.input.latex));
+
+  // make the equationn larger, so it is not too cramped up
+  const double DPI_FACTOR = 2.0;
+  // cm/inch = 2.54
+  // include an elargment factor in these tags
   templ.replace(QByteArray("<!--KLF_IMAGE_WIDTH_CM-->"),
-		QString::number(2.54 * klfoutput.result.width()/klfoutput.input.dpi, 'f', 2).toUtf8());
+		QString::number(DPI_FACTOR * 2.54 * klfoutput.result.width()/klfoutput.input.dpi, 'f', 2).toUtf8());
   templ.replace(QByteArray("<!--KLF_IMAGE_HEIGHT_CM-->"),
+		QString::number(DPI_FACTOR * 2.54 * klfoutput.result.height()/klfoutput.input.dpi, 'f', 2).toUtf8());
+  // same, without the enlargment factor
+  templ.replace(QByteArray("<!--KLF_IMAGE_ORIG_WIDTH_CM-->"),
+		QString::number(2.54 * klfoutput.result.width()/klfoutput.input.dpi, 'f', 2).toUtf8());
+  templ.replace(QByteArray("<!--KLF_IMAGE_ORIG_HEIGHT_CM-->"),
 		QString::number(2.54 * klfoutput.result.height()/klfoutput.input.dpi, 'f', 2).toUtf8());
+
+  templ.replace(QByteArray("<!--KLF_IMAGE_WIDTH_PX-->"), QString::number(klfoutput.result.width()).toUtf8());
+  templ.replace(QByteArray("<!--KLF_IMAGE_HEIGHT_PX-->"), QString::number(klfoutput.result.height()).toUtf8());
+  templ.replace(QByteArray("<!--KLF_IMAGE_ASPECT_RATIO-->"),
+		QString::number((double)klfoutput.result.width()/klfoutput.result.height(), 'f', 3).toUtf8());
 
   klfDbg("final templ: "<<templ);
 

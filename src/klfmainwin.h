@@ -128,6 +128,9 @@ public:
   KLFMainWin();
   virtual ~KLFMainWin();
 
+  /** called by main.cpp right after show(), just before entering into event loop. */
+  void startupFinished();
+
   bool eventFilter(QObject *obj, QEvent *event);
 
   KLFStyle currentStyle() const;
@@ -234,6 +237,7 @@ public slots:
   void slotDrag();
   void slotCopy();
   void slotSave(const QString& suggestedFname = QString::null);
+  void slotSetExportProfile(const QString& exportProfile);
 
   void slotActivateEditor();
 

@@ -386,11 +386,31 @@
                <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</string>
               </property>
               <property name="text">
-               <string/>
+               <string notr="true"/>
               </property>
               <property name="icon">
                <iconset resource="klfres.qrc">
                 <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnSetExportProfile">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>&lt;p style=&quot;white-space: pre&quot;&gt;Select the export profile to use for Copy and Drag operations&lt;/p&gt;</string>
+              </property>
+              <property name="text">
+               <string notr="true"/>
+              </property>
+              <property name="icon">
+               <iconset resource="klfres.qrc">
+                <normaloff>:/pics/exportprofile.png</normaloff>:/pics/exportprofile.png</iconset>
               </property>
              </widget>
             </item>

@@ -44,10 +44,10 @@ les OPTIONS peuvent être l'une ou plusieurs parmi :
       Précise le format de fichier à utiliser pour sauvegarder l'image avec l'option -o. Par
       défaut, le format est deviné à partir du nom du fichier (en gardant PNG par défaut).
   -f|--fgcolor <'#xxxxxx'>
-      Précise une couleur (en format web hexa #RRGGBB) à utiliser pour la couleur d'avant-
+      Précise une couleur (en format web hexa #RRVVBB) à utiliser pour la couleur d'avant-
       plan. N'oubliez pas d'échapper le caractère « # » du shell avec des guillements par ex.
   -b|--bgcolor <-|'#xxxxxx'>
-      Précise une couleur (en format web hexa #RRGGBB) à utiliser pour la couleur d'arrière-
+      Précise une couleur (en format web hexa #RRVVBB) à utiliser pour la couleur d'arrière-
       plan. N'oubliez pas d'échapper le caractère « # » du shell avec des guillements par ex.
       Si le caractère « - » est donné l'image aura un fond transparent. (par défaut: transparent).
   -X|--dpi <N>

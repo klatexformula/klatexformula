@@ -666,9 +666,6 @@ int main(int argc, char **argv)
     if (iface->isValid()) {
       iface->raiseWindow();
       // load everything via DBus
-      QString latex = main_get_input(opt_input, opt_latexinput, opt_paste);
-      if ( ! latex.isNull() )
-	iface->setInputData("latex", latex);
       if ( opt_fgcolor != NULL )
 	iface->setInputData("fgcolor", opt_fgcolor);
       if ( opt_bgcolor != NULL )
@@ -679,6 +676,10 @@ int main(int argc, char **argv)
 	iface->setInputData("mathmode", QString::fromLocal8Bit(opt_mathmode));
       if (opt_preamble != NULL)
 	iface->setInputData("preamble", QString::fromLocal8Bit(opt_preamble));
+      // load latex after preamble, so that the interface doesn't prompt to include missing packages
+      QString latex = main_get_input(opt_input, opt_latexinput, opt_paste);
+      if ( ! latex.isNull() )
+	iface->setInputData("latex", latex);
       if (opt_outlinefonts >= 0)
 	iface->setAlterSetting_i(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
       if (opt_lborderoffset != -1)
@@ -752,6 +753,8 @@ int main(int argc, char **argv)
     main_load_plugins(&app, &mainWin);
 
     mainWin.show();
+
+    mainWin.startupFinished();
 
     klfDbgT( "$$END LOADING$$" ) ;
 
