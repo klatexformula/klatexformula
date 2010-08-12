@@ -95,8 +95,9 @@ void SkinConfigWidget::refreshSkin()
 
 void SkinConfigWidget::installSkin()
 {
+  QString docs = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
   QString fname =
-    QFileDialog::getOpenFileName(this, tr("Open Skin File"), QString(),
+    QFileDialog::getOpenFileName(this, tr("Open Skin File"), docs,
 				 tr("Qt Style Sheet Files (*.qss);;All files (*)"));
   if (fname.isEmpty())
     return;

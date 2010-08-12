@@ -48,6 +48,13 @@ public:
   virtual QStringList keys() const = 0;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput) = 0;
 
+  /* returns the MS Windows Format Name for the given mime-type \c key.
+   *
+   * The default implementation just returns \c key. You should reimplement
+   * this function to return a useful standard name.
+   */
+  virtual QString windowsFormatName(const QString& key) const { return key; }
+
   /** \brief Shortcut function (do not reimplement in subclasses)
    *
    * \returns true if key is in \ref keys() list. */
@@ -84,12 +91,17 @@ public:
 
   /** Windows Clipboard Formats to show for each mime type (respectively).
    *
-   * An empty string should cause the mime type name to be used. */
+   * An empty string in the list means that the caller should query the mime
+   * exporter for a windows format name with KLFMimeExporter::windowsFormatName().
+   */
   QStringList respectiveWinTypes() const { return p_respectiveWinTypes; }
 
-  /** Returns the k-th element in respectiveWinTypes if non-empty, otherwise
-   * the k-th element in mimeTypes. */
+  /** Returns the k-th element in respectiveWinTypes. If that element is empty,
+   * queries the correct mime-type exporter for a windows format name with
+   * KLFMimeExporter::windowsFormatName().
+   */
   QString respectiveWinType(int k) const;
+
 
   static QList<KLFMimeExportProfile> exportProfileList();
   static void addExportProfile(const KLFMimeExportProfile& exportProfile);
@@ -125,6 +137,8 @@ public:
   virtual QStringList keys() const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
+  virtual QString windowsFormatName(const QString& key) const;
+
 private:
   static QMap<QString,QByteArray> imageFormats;
 };
@@ -141,6 +155,8 @@ public:
 
   virtual QStringList keys() const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+
+  virtual QString windowsFormatName(const QString& key) const;
 
 private:
   static QMap<QByteArray,QString> tempFilesForImageMD5;
@@ -159,6 +175,7 @@ public:
 
   virtual QStringList keys() const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+
 };
 
 

@@ -106,7 +106,9 @@ endmacro(KLFMarkVarAdvancedIf)
 # Notes:
 #  * This function calls KLFGetCMakeVarChanged() on the specific variable
 #  * This function does NOT call KLFGetCMakeVarChanged() on the generic variable
-macro(KLFDeclareCacheVarOptionFollow specificoption genericoption cachetype cachestring)
+#  * if updatenotice is TRUE then a KLFNote() is emitted when this value is changed not for the
+#    very first time
+macro(KLFDeclareCacheVarOptionFollow specificoption genericoption cachetype cachestring updatenotice)
   # declare option (cache var)
   if(NOT DEFINED ${specificoption})
     set(${specificoption} "${${genericoption}}" CACHE ${cachetype} ${cachestring})
@@ -117,7 +119,11 @@ macro(KLFDeclareCacheVarOptionFollow specificoption genericoption cachetype cach
   if(klf_changed_${genericoption} AND NOT klf_changed_${specificoption})
     # generic option changed, then a non-changed specific option must follow
     set(${specificoption} "${${genericoption}}" CACHE ${cachetype} $cachestring FORCE)
-    KLFCMakeDebug("Updated ${specificoption} to ${${specificoption}} following ${genericoption}.")
+    if(updatenotice)
+      KLFNote("Updating ${specificoption} to \"${${specificoption}}\" following changes to ${genericoption}.")
+    else(updatenotice)
+      KLFCMakeDebug("Updated ${specificoption} to \"${${specificoption}}\" following ${genericoption}.")
+    endif(updatenotice)
   endif(klf_changed_${genericoption} AND NOT klf_changed_${specificoption})
   KLFCMakeSetVarChanged(${specificoption})
 endmacro(KLFDeclareCacheVarOptionFollow)

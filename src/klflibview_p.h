@@ -45,6 +45,7 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QDir>
+#include <QDesktopServices>
 
 #include <ui_klfliblocalfilewidget.h>
 
@@ -957,13 +958,14 @@ protected slots:
     QString filter = filters.join(";;");
     QString title = tr("Select Library Resource File");
     QString name;
+    QString docs = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
     if (bt == BrowseOpen) {
-      name = QFileDialog::getOpenFileName(this, title, QDir::homePath(), filter, &selectedFilter);
+      name = QFileDialog::getOpenFileName(this, title, docs, filter, &selectedFilter);
     } else if (bt == BrowseSave) {
-      name = QFileDialog::getSaveFileName(this, title, QDir::homePath(), filter, &selectedFilter);
+      name = QFileDialog::getSaveFileName(this, title, docs, filter, &selectedFilter);
     } else {
       qWarning()<<"KLFLibLocalFileOpenWidget::browseFileName: bad bt="<<bt;
-      name = QFileDialog::getSaveFileName(this, title, QDir::homePath(), filter, &selectedFilter);
+      name = QFileDialog::getSaveFileName(this, title, docs, filter, &selectedFilter);
     }
     if ( name.isEmpty() )
       return false;

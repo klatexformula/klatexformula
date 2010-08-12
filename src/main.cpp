@@ -1002,6 +1002,11 @@ void main_parse_options(int argc, char *argv[])
     if (optarg != NULL) {
       if (opt_base64arg) {
 	// this argument is to be decoded from base64
+	//
+	// note that here QByteArray can function without a Q[Core]Application
+	// (officially? this is just suggested by the fact that they mention it
+	//  explicitely for QString: 
+	//  http://doc.trolltech.com/4.4/qcoreapplication.html#details)
 	QByteArray decoded = QByteArray::fromBase64(optarg);
 	arg = strdup(decoded.constData());
       } else {

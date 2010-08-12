@@ -26,12 +26,14 @@
 #include <QPushButton>
 #include <QFrame>
 #include <QFileDialog>
+#include <QDesktopServices>
 
 #include "klfpathchooser.h"
 
 
 KLFPathChooser::KLFPathChooser(QWidget *parent)
-  : QFrame(parent), _mode(0), _caption(), _filter(), _dlgconfirmoverwrite(true)
+  : QFrame(parent), _mode(0), _caption(), _filter(), _dlgconfirmoverwrite(true),
+    _pathFromDialog(false)
 {
   //  setFrameShape(QFrame::Box);
   //  setFrameShadow(QFrame::Raised);
@@ -47,6 +49,7 @@ KLFPathChooser::KLFPathChooser(QWidget *parent)
   btnBrowse->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
   lyt->addWidget(btnBrowse);
 
+  connect(txtPath, SIGNAL(textChanged(const QString&)), this, SLOT(slotTextChanged()));
   connect(btnBrowse, SIGNAL(clicked()), this, SLOT(requestBrowse()));
 }
 
@@ -63,26 +66,35 @@ QString KLFPathChooser::path() const
 void KLFPathChooser::setPath(const QString& path)
 {
   txtPath->setText(path);
+  _pathFromDialog = false;
 }
 
 void KLFPathChooser::requestBrowse()
 {
   QFileDialog::Options options = 0;
-  if (!_dlgconfirmoverwrite)
+  if (_mode == 1 && !_dlgconfirmoverwrite)
     options |= QFileDialog::DontConfirmOverwrite;
+
+  QString path;
+  if (!txtPath->text().isEmpty())
+    path = txtPath->text();
+  else
+    path = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+
   QString s;
   if (_mode == 1) {
     // save
-    s = QFileDialog::getSaveFileName(this, _caption, txtPath->text(), _filter,
-				     &_selectedfilter, options);
+    s = QFileDialog::getSaveFileName(this, _caption, path, _filter, &_selectedfilter, options);
   } else if (_mode == 2) {
-    s = QFileDialog::getExistingDirectory(this, _caption, txtPath->text(), 0/*options*/);
+    s = QFileDialog::getExistingDirectory(this, _caption, path, 0/*options*/);
   } else {
     // open
-    s = QFileDialog::getOpenFileName(this, _caption, txtPath->text(), _filter, &_selectedfilter);
+    s = QFileDialog::getOpenFileName(this, _caption, path, _filter, &_selectedfilter);
   }
   if ( ! s.isEmpty() ) {
     setPath(s);
+    if (_mode == 1 && _dlgconfirmoverwrite)
+      _pathFromDialog = true;
   }
 }
 
@@ -95,9 +107,16 @@ void KLFPathChooser::setCaption(const QString& caption)
 void KLFPathChooser::setMode(int mode)
 {
   _mode = mode;
+  _pathFromDialog = false; // no overwrite confirmed yet
 }
 
 void KLFPathChooser::setFilter(const QString& filter)
 {
   _filter = filter;
 }
+
+void KLFPathChooser::slotTextChanged()
+{
+  _pathFromDialog = false;
+}
+

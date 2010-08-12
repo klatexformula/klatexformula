@@ -90,3 +90,4 @@ else(KLF_USE_QT4)
 endif(KLF_USE_QT4)
 
 
+KLFRemoveDummyInstallDirRule()

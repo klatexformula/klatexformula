@@ -31,6 +31,10 @@
 
 #include <klfdefs.h>
 
+/** \brief A widget comprising of a line edit and a "browse" button
+ *
+ * This widget can be used to open existing files, save files, and open existing directories.
+ */
 class KLF_EXPORT KLFPathChooser : public QFrame
 {
   Q_OBJECT
@@ -41,33 +45,78 @@ class KLF_EXPORT KLFPathChooser : public QFrame
   Q_PROPERTY(QString caption READ caption WRITE setCaption)
   Q_PROPERTY(QString filter READ filter WRITE setFilter)
   Q_PROPERTY(QString path READ path WRITE setPath USER true)
+  
+  Q_PROPERTY(bool possibleOverwriteWasConfirmed READ possibleOverwriteWasConfirmed)
 
 public:
   KLFPathChooser(QWidget *parent);
-  ~KLFPathChooser();
+  virtual ~KLFPathChooser();
 
-  int mode() const { return _mode; }
-  QString caption() const { return _caption; }
-  QString filter() const { return _filter; }
-  QString path() const;
+  /** The path chooser's mode.
+   * - \c 0 : choose an existing file for opening
+   * - \c 1 : choose a (most likely non-existant) file for saving
+   * - \c 2 : choose an existing directory
+   */
+  virtual int mode() const { return _mode; }
+  virtual QString caption() const { return _caption; }
+  virtual QString filter() const { return _filter; }
+  virtual QString path() const;
 
-  bool dialogConfirmOverwrite() const { return _dlgconfirmoverwrite; }
+  /** Returns the current \c dialogConfirmOverwrite setting. See setDialogConfirmOverwrite() */
+  virtual bool dialogConfirmOverwrite() const { return _dlgconfirmoverwrite; }
+  
+  /** Whether the user has already been asked confirmation for overwrite or not
+   *
+   * This function returns TRUE if the path was obtained by the file dialog, and the
+   * option dialogConfirmOverwrite is enabled. In other words, if the file were to
+   * exist, then the dialog would have asked confirmation already.
+   *
+   * If this function returns FALSE, and the file exists, and the dialogConfirmOverwrite
+   * setting is enabled, that means that the user entered the path manually and was NOT
+   * prompted for overwrite confirmation.
+   *
+   * This value is only relevant in "save" mode. (see \ref mode())
+   *
+   * \bug WARNING: THIS FEATURE UNTESTED
+   */
+  virtual bool possibleOverwriteWasConfirmed() const { return _pathFromDialog; }
 
 public slots:
-  void setMode(int mode);
-  void setCaption(const QString& caption);
-  void setFilter(const QString& filter);
-  void setPath(const QString& path);
+  /** Set the path chooser's mode. See \ref mode() */
+  virtual void setMode(int mode);
+  virtual void setCaption(const QString& caption);
+  virtual void setFilter(const QString& filter);
 
-  void setDialogConfirmOverwrite(bool confirm) { _dlgconfirmoverwrite = confirm; }
+  /** Displays the path \c path in the widget.
+   *
+   * Note that if mode is save mode (mode()==1), the new path is flagged as not
+   * overwrite-confirmed, ie. possibleOverwriteWasConfirmed() will return FALSE.
+   */
+  virtual void setPath(const QString& path);
 
-  void requestBrowse();
+  /** If this setting is set to TRUE, then the file dialog will ask to confirm before
+   * selecting an existing file.
+   *
+   * Note that if the user entered manually the path, no overwrite confirmation will have
+   * been required. see possibleOverwriteWasConfirmed().
+   *
+   * This option is only relevant in "save" mode (mode()==1). It has no effect in the other
+   * modes.
+   */
+  virtual void setDialogConfirmOverwrite(bool confirm) { _dlgconfirmoverwrite = confirm; }
 
+  virtual void requestBrowse();
+
+private slots:
+  void slotTextChanged();
+  
 private:
   int _mode;
   QString _caption;
   QString _filter;
   bool _dlgconfirmoverwrite;
+  
+  bool _pathFromDialog;
 
   QLineEdit *txtPath;
   QPushButton *btnBrowse;

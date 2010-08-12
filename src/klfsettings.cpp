@@ -38,6 +38,7 @@
 #include <QEvent>
 #include <QListView> // QListView::LeftToRight|TopToBottom
 #include <QMouseEvent>
+#include <QDesktopServices>
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
@@ -667,8 +668,10 @@ void KLFSettings::refreshAddOnSelected()
 
 void KLFSettings::importAddOn()
 {
-  QStringList efnames = QFileDialog::getOpenFileNames(this, tr("Please select add-on file(s) to import"),
-						      QString(), "Qt Resource Files (*.rcc)");
+  QStringList efnames =
+    QFileDialog::getOpenFileNames(this, tr("Please select add-on file(s) to import"),
+				  QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation),
+				  "Qt Resource Files (*.rcc)");
   int i;
   QString destination = klfconfig.homeConfigDir + "/rccresources/";
   for (i = 0; i < efnames.size(); ++i) {

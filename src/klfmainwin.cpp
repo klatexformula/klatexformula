@@ -2001,17 +2001,22 @@ void KLFMainWin::slotCopy()
   KLFMimeExportProfile p = KLFMimeExportProfile::findExportProfile(profilename);
 
   QStringList mimetypes = p.mimeTypes();
-  QStringList respectivewintypes = p.respectiveWinTypes();
   QStringList wintypes;
   QList<QByteArray> datalist;
 
   int k;
   for (k = 0; k < mimetypes.size(); ++k) {
     QString mimetype = mimetypes[k];
-    QString wintype = respectivewintypes[k];
+    QString wintype = p.respectiveWinType(k); // queries the exporter if needed
     if (wintype.isEmpty())
       wintype = mimetype;
-    QByteArray data = KLFMimeExporter::mimeExporterLookup(mimetype)->data(mimetype, _output);
+    KLFMimeExporter *exporter = KLFMimeExporter::mimeExporterLookup(mimetype);
+    if (exporter == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": Can't find exporter for type "<<mimetype
+	        <<", winformat="<<wintype<<".";
+      continue;
+    }
+    QByteArray data = exporter->data(mimetype, _output);
     wintypes << wintype;
     datalist << data;
   }
@@ -2028,7 +2033,7 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 {
   // application-long persistent selectedfilter
   static QString selectedfilter;
-
+  
   QStringList formatlist, filterformatlist;
   QMap<QString,QString> formatsByFilterName;
   QList<QByteArray> formats = QImageWriter::supportedImageFormats();
@@ -2064,9 +2069,13 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 
   QString filterformat = filterformatlist.join(";;");
   QString fname, format;
+
   QString suggestion = suggestfname;
   if (suggestion.isEmpty())
     suggestion = klfconfig.UI.lastSaveDir;
+  if (suggestion.isEmpty())
+    suggestion = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+
   fname = QFileDialog::getSaveFileName(this, tr("Save Image Formula"), suggestion, filterformat,
 				       &selectedfilter);
 

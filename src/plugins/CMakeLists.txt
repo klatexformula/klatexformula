@@ -137,3 +137,4 @@ if(KLF_INSTALL_PLUGINS)
 endif(KLF_INSTALL_PLUGINS)
 
 
+KLFRemoveDummyInstallDirRule()

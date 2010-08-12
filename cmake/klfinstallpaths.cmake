@@ -15,7 +15,7 @@ KLFGetCMakeVarChanged(KLF_INSTALL_RUN_POST_INSTALL)
 
 set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFormula.")
 mark_as_advanced(CLEAR CMAKE_INSTALL_PREFIX)
-message(STATUS "'make install' will install to ${CMAKE_INSTALL_PREFIX} (CMAKE_INSTALL_PREFIX)")
+message(STATUS "'make install' will install to \"${CMAKE_INSTALL_PREFIX}\" (CMAKE_INSTALL_PREFIX)")
 
 
 # Installation Paths
@@ -82,7 +82,7 @@ if(install_bin_dir_needs_set)
 		  "Binaries installation directory (relative to install prefix, or absolute)" FORCE)
   mark_as_advanced(CLEAR KLF_INSTALL_BIN_DIR)
   if(NOT klf_first_KLF_INSTALL_BIN_DIR)
-    message(STATUS "Updating binary install dir to ${KLF_INSTALL_BIN_DIR} following changed of CMAKE_INSTALL_PREFIX")
+    KLFNote("Updating binary install dir to ${KLF_INSTALL_BIN_DIR} following changes to CMAKE_INSTALL_PREFIX")
   endif(NOT klf_first_KLF_INSTALL_BIN_DIR)
   KLFCMakeSetVarChanged(KLF_INSTALL_BIN_DIR)
 endif(install_bin_dir_needs_set)
@@ -100,15 +100,25 @@ if(WIN32)
 							      "Where to install rccresources files")
   # and check if it was changed
   KLFGetCMakeVarChanged(KLF_INSTALL_RCCRESOURCES_DIR)
-  if(klf_changed_KLF_INSTALL_BIN_DIR AND NOT klf_changed_KLF_INSTALL_RCCRESOURCES_DIR)
+  
+  if(klf_changed_KLF_INSTALL_BIN_DIR OR klf_changed_CMAKE_INSTALL_PREFIX)
+    set(rccres_dir_deps_changed TRUE)
+  endif(klf_changed_KLF_INSTALL_BIN_DIR OR klf_changed_CMAKE_INSTALL_PREFIX)
+  
+  if(rccres_dir_deps_changed AND NOT klf_changed_KLF_INSTALL_RCCRESOURCES_DIR)
     # generic option changed, then a non-changed specific option must follow
     set(KLF_INSTALL_RCCRESOURCES_DIR  "${KLF_INSTALL_BIN_DIR}/rccresources" CACHE PATH
 							      "Where to install rccresources files")
-  endif(klf_changed_KLF_INSTALL_BIN_DIR AND NOT klf_changed_KLF_INSTALL_RCCRESOURCES_DIR)
+    if(NOT klf_first_KLF_INSTALL_RCCRESOURCES_DIR)
+      KLFNote("Updating KLF_INSTALL_RCCRESOURCES_DIR to \"${KLF_INSTALL_RCCRESOURCES_DIR}\" following changes to other variables")
+    endif(NOT klf_first_KLF_INSTALL_RCCRESOURCES_DIR)
+  endif(rccres_dir_deps_changed AND NOT klf_changed_KLF_INSTALL_RCCRESOURCES_DIR)
+  
   KLFCMakeSetVarChanged(KLF_INSTALL_RCCRESOURCES_DIR)
+  
 else(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources" CACHE STRING
-      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
+			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
 endif(WIN32)
 
 
@@ -156,23 +166,24 @@ KLFGetCMakeVarChanged(KLF_INSTALL_RUNTIME)
 KLFGetCMakeVarChanged(KLF_INSTALL_DEVEL)
 
 # fine-tuning
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_HEADERS      KLF_INSTALL_DEVEL  BOOL "Install klfbackend headers")
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_STATIC_LIBS  KLF_INSTALL_DEVEL  BOOL "Install klfbackend static libraries")
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_SO_LIBS      KLF_INSTALL_RUNTIME  BOOL "Install klfbackend so libraries")
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_FRAMEWORK    KLF_INSTALL_RUNTIME  BOOL "Install klfbackend framework (Mac OS X)")
+# the OFF's at end of line is to turn off the KLFNotes() indicating the value changed
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_HEADERS      KLF_INSTALL_DEVEL  BOOL "Install klfbackend headers" OFF)
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_STATIC_LIBS  KLF_INSTALL_DEVEL  BOOL "Install klfbackend static libraries" OFF)
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_SO_LIBS      KLF_INSTALL_RUNTIME  BOOL "Install klfbackend so libraries" OFF)
+KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_FRAMEWORK    KLF_INSTALL_RUNTIME  BOOL "Install klfbackend framework (Mac OS X)" OFF)
 
 if(KLF_BUILD_GUI)
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_HEADERS      KLF_INSTALL_DEVEL  BOOL "Install klflib headers")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_STATIC_LIBS  KLF_INSTALL_DEVEL  BOOL "Install klflib static libraries")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_SO_LIBS      KLF_INSTALL_RUNTIME  BOOL "Install klflib so libraries")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_FRAMEWORK    KLF_INSTALL_RUNTIME  BOOL "Install klflib framework (Mac OS X)")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BIN   KLF_INSTALL_RUNTIME  BOOL "Install klatexformula binary")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_CMDL  KLF_INSTALL_RUNTIME  BOOL "Install klatexformula_cmdl symlink")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BUNDLE KLF_INSTALL_RUNTIME  BOOL "Install klatexformula bundle (Mac OS X)")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_HEADERS      KLF_INSTALL_DEVEL  BOOL "Install klflib headers" OFF)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_STATIC_LIBS  KLF_INSTALL_DEVEL  BOOL "Install klflib static libraries" OFF)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_SO_LIBS      KLF_INSTALL_RUNTIME  BOOL "Install klflib so libraries" OFF)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_FRAMEWORK    KLF_INSTALL_RUNTIME  BOOL "Install klflib framework (Mac OS X)" OFF)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BIN   KLF_INSTALL_RUNTIME  BOOL "Install klatexformula binary" OFF)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_CMDL  KLF_INSTALL_RUNTIME  BOOL "Install klatexformula_cmdl symlink" OFF)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BUNDLE KLF_INSTALL_RUNTIME  BOOL "Install klatexformula bundle (Mac OS X)" OFF)
 endif(KLF_BUILD_GUI)
 
 if(NOT KLF_MACOSX_BUNDLES)
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_PLUGINS   KLF_INSTALL_RUNTIME  BOOL "Install klatexformula plugins")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_PLUGINS   KLF_INSTALL_RUNTIME  BOOL "Install klatexformula plugins" OFF)
 else(NOT KLF_MACOSX_BUNDLES)
   if(KLF_INSTALL_PLUGINS)
     KLFNote("Not Installing plugins outside bundle.")
@@ -215,9 +226,9 @@ endif(KLF_INSTALL_DESKTOP)
 if(WIN32)
   option(KLF_INSTALL_QTLIBS "Copy Qt Libs next to installed executable" ON)
   if(KLF_INSTALL_QTLIBS)
-    message(STATUS "Will install Qt libs next to installed executable")
+    message(STATUS "Will install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
   else(KLF_INSTALL_QTLIBS)
-    message(STATUS "Will NOT install Qt libs next to installed executable")
+    message(STATUS "Will NOT install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
   endif(KLF_INSTALL_QTLIBS)
 endif(WIN32)
 
@@ -228,20 +239,20 @@ endif(WIN32)
 # and not be done at RPM creation time
 option(KLF_INSTALL_RUN_POST_INSTALL "Run post-install scripts after 'make install'" YES)
 if(KLF_INSTALL_RUN_POST_INSTALL)
-  message(STATUS "Will run post-install scripts")
+  message(STATUS "Will run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL)")
 else(KLF_INSTALL_RUN_POST_INSTALL)
-  message(STATUS "Will NOT run post-install scripts")
+  message(STATUS "Will NOT run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL)")
 endif(KLF_INSTALL_RUN_POST_INSTALL)
 
 
+set(klf_dummyinstdir "${CMAKE_BINARY_DIR}/dummy_install_prefix")
 
 macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
-  set(dummyinstdir "${CMAKE_BINARY_DIR}/dummy_install_prefix")
-  KLFConditionalSet(inst_${targetlib}_runtime_dir ${varOptBase}SO_LIBS "${inst_lib_dir}" "${dummyinstdir}")
-  KLFConditionalSet(inst_${targetlib}_library_dir ${varOptBase}SO_LIBS "${inst_lib_dir}" "${dummyinstdir}")
-  KLFConditionalSet(inst_${targetlib}_archive_dir ${varOptBase}STATIC_LIBS "${inst_lib_dir}" "${dummyinstdir}")
-  KLFConditionalSet(inst_${targetlib}_framework_dir ${varOptBase}FRAMEWORK "${inst_lib_dir}" "${dummyinstdir}")
-  KLFConditionalSet(inst_${targetlib}_pubheader_dir ${varOptBase}HEADERS "${inst_pubheader_dir}" "${dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_runtime_dir ${varOptBase}SO_LIBS "${inst_lib_dir}" "${klf_dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_library_dir ${varOptBase}SO_LIBS "${inst_lib_dir}" "${klf_dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_archive_dir ${varOptBase}STATIC_LIBS "${inst_lib_dir}" "${klf_dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_framework_dir ${varOptBase}FRAMEWORK "${inst_lib_dir}" "${klf_dummyinstdir}")
+  KLFConditionalSet(inst_${targetlib}_pubheader_dir ${varOptBase}HEADERS "${inst_pubheader_dir}" "${klf_dummyinstdir}")
   install(TARGETS ${targetlib}
 	  RUNTIME DESTINATION "${inst_${targetlib}_runtime_dir}"
 	  LIBRARY DESTINATION "${inst_${targetlib}_library_dir}"
@@ -250,6 +261,11 @@ macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
 	  PUBLIC_HEADER DESTINATION "${inst_${targetlib}_pubheader_dir}"
   )
 endmacro(KLFInstallLibrary)
+
+macro(KLFRemoveDummyInstallDirRule)
+  install(CODE "message(\"Removing dummy installation directory '${klf_dummyinstdir}'\")
+  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E remove_directory \"\$ENV{DESTDIR}${klf_dummyinstdir}\")")
+endmacro(KLFRemoveDummyInstallDirRule)
 
 
 

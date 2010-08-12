@@ -266,11 +266,15 @@ else(KLF_USE_QT4)
 endif(KLF_USE_QT4)
 
 
-
-
 # Install Paths
 # -------------
+# include after CPack declarations, so that changes in CMAKE_INSTALL_PREFIX take effect.
 include(klfinstallpaths)
+
+
+# CPack
+# -----
+include(klfcpack)
 
 
 
@@ -278,13 +282,9 @@ include(klfinstallpaths)
 # ----------------------------------
 add_subdirectory(src)
 
+KLFRemoveDummyInstallDirRule()
 
 # Doxygen
 # -------
 include(klfdoxygen)
-
-
-# CPack
-# -----
-include(klfcpack)
 

@@ -102,7 +102,7 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
     }
   }
   if (klfconfig.UI.enableToolTipPreview) {
-    setToolTip(QString("<p>%1</p>").arg(_bigPreviewText));
+    setToolTip(QString("<p style=\"padding: 8px 8px 8px 8px;\">%1</p>").arg(_bigPreviewText));
   } else {
     setToolTip(QString(""));
   }

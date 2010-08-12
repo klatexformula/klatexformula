@@ -119,17 +119,32 @@ KLFMimeExportProfile::KLFMimeExportProfile(const KLFMimeExportProfile& o)
   : p_profileName(o.p_profileName), p_description(o.p_description),
     p_mimeTypes(o.p_mimeTypes), p_respectiveWinTypes(o.p_respectiveWinTypes)
 {
+  if (p_mimeTypes.size() != p_respectiveWinTypes.size()) {
+    int s = qMin(p_mimeTypes.size(), p_respectiveWinTypes.size());
+    p_mimeTypes = p_mimeTypes.mid(0, s);
+    p_respectiveWinTypes = p_respectiveWinTypes.mid(0, s);
+    qWarning()<<KLF_FUNC_NAME
+	      <<": mime types list and respective win types list sizes don't match! "
+	      <<"keeping only the "<<s<<" first entries.";
+  }
 }
 
 
 QString KLFMimeExportProfile::respectiveWinType(int k) const
 {
-  if (k < 0 || k >= p_respectiveWinTypes.size())
+  if (k < 0 || k >= p_respectiveWinTypes.size() || k >= p_mimeTypes.size())
     return QString();
 
   if ( ! p_respectiveWinTypes[k].isEmpty() )
     return p_respectiveWinTypes[k];
-  return p_mimeTypes[k];
+
+  KLFMimeExporter *exporter = KLFMimeExporter::mimeExporterLookup(p_mimeTypes[k]);
+  if (exporter == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't find a mime exporter for #"<<k
+	      <<": "<<p_mimeTypes[k];
+    return QString();
+  }
+  return exporter->windowsFormatName(p_mimeTypes[k]);
 }
 
 
@@ -197,16 +212,7 @@ void KLFMimeExportProfile::ensureLoadedExportProfileList()
   KLFMimeExporterImage imgexporter(NULL);
   mimetypes << imgexporter.keys();
   for (k = 0; k < mimetypes.size(); ++k) {
-    QString mime = mimetypes[k];
-    QString wtype;
-    if (mime == "application/pdf")
-      wintypes << "PDF";
-    else if (mime == "image/png")
-      wintypes << "PNG";
-    else if (mime == "image/bmp")
-      wintypes << "Bitmap";
-    else
-      wintypes << mime;
+    wintypes << imgexporter.windowsFormatName(mimetypes[k]);
   }
   KLFMimeExportProfile allimgfmts
     = KLFMimeExportProfile("all_image_formats",
@@ -313,19 +319,26 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	continue;
       }
       QDomNodeList mimetypetags = ee.elementsByTagName("mime-type");
-      QDomNodeList wintypetags = ee.elementsByTagName("windows-type");
       if (mimetypetags.size() != 1) {
 	qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<", profile "<<pname
 		  <<": exactly ONE <mime-type> tag must be present in each <export-type>...</export-type>.";
 	continue;
       }
-      if (wintypetags.size() != 1) {
+      QDomNodeList wintypetags = ee.elementsByTagName("windows-type");
+      if (wintypetags.size() > 1) {
 	qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<", profile "<<pname
-		  <<": exactly ONE <windows-type> tag must be present in each <export-type>...</export-type>.";
+		  <<": expecting at most ONE <windows-type> tag must be present in each <export-type>...</export-type>.";
 	continue;
       }
+      QString wintype;
+      if (wintypetags.size() == 1) {
+	wintype = wintypetags.at(0).toElement().text().trimmed();
+      } else {
+	wintype = QString();
+      }
+
       mimetypes << mimetypetags.at(0).toElement().text().trimmed();
-      wintypes << wintypetags.at(0).toElement().text().trimmed();
+      wintypes << wintype;
     }
 
     // add this profile
@@ -351,7 +364,9 @@ QStringList KLFMimeExporterImage::keys() const
   // image formats that are always supported. Qt image formats are added too.
   static QStringList staticKeys
     = QStringList() << "image/png" << "image/eps" << "application/eps" << "application/postscript"
-		    << "application/pdf" << OPENOFFICE_DRAWING_MIMETYPE;
+		    << "application/pdf" << OPENOFFICE_DRAWING_MIMETYPE
+		    // add duplicate for png, see below
+		    << "image/x-win-png-office-art";
 
   if (imageFormats.isEmpty()) {
     // populate qt's image formats
@@ -363,16 +378,54 @@ QStringList KLFMimeExporterImage::keys() const
 	// add this image format, if not already provided by staticKeys
 	if (staticKeys.indexOf(mime) == -1)
 	  imageFormats[mime] = qtimgfmts[k];
+	// add duplicate mime types for some formats, to be able to specify multiple windows format
+	// names for them, eg. "Bitmap" and "Windows Bitmap" :
+	if (mime == "image/bmp") {
+	  imageFormats["image/x-win-bmp"] = qtimgfmts[k];
+	} else if (mime == "image/jpeg") {
+	  imageFormats["image/x-win-jfif"] = qtimgfmts[k];
+	  imageFormats["image/x-win-jfif-office-art"] = qtimgfmts[k];
+	} else if (mime == "image/png") {
+	  imageFormats["image/x-win-png-office-art"] = qtimgfmts[k];
+	}
       }
     }
   }
+
   return staticKeys << imageFormats.keys();
+}
+
+QString KLFMimeExporterImage::windowsFormatName(const QString& mime) const
+{
+  QString wtype;
+  if (mime == "application/pdf")
+    return "PDF";
+  else if (mime == "image/png")
+    return "PNG";
+  else if (mime == "image/jpg" || mime == "image/jpeg")
+    // standards should only allow image/jpeg, but just in case we treat also erroneous "image/jpg"
+    return "JPEG";
+  else if (mime == "image/x-win-jfif")
+    return "JFIF";
+  else if (mime == "image/x-win-jfif-office-art")
+    return "JFIF+Office Art"; // for Ms Office
+  else if (mime == "image/x-win-png-office-art")
+    return "PNG+Office Art"; // for Ms Office
+  else if (mime == "image/bmp")
+    return "Bitmap";
+  else if (mime == "image/x-win-bmp")
+    return "Windows Bitmap";
+  else if (mime == OPENOFFICE_DRAWING_MIMETYPE)
+    return "Drawing Format";
+
+  return mime;
 }
 
 QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput);
 
-QByteArray KLFMimeExporterImage::data(const QString& key, const KLFBackend::klfOutput& klfoutput)
+QByteArray KLFMimeExporterImage::data(const QString& keymime, const KLFBackend::klfOutput& klfoutput)
 {
+  QString key = keymime;
   klfDbg("key="<<key);
 
   if (key == "image/png")
@@ -386,7 +439,7 @@ QByteArray KLFMimeExporterImage::data(const QString& key, const KLFBackend::klfO
 
   // rely on qt's image saving routines for other formats
   klfDbg("Will use Qt's image format exporting");
-
+  
   if ( ! imageFormats.contains(key) )
     return QByteArray();
 
@@ -440,6 +493,12 @@ QByteArray KLFMimeExporterUrilist::data(const QString& /*key*/, const KLFBackend
   return urilist;
 }
 
+QString KLFMimeExporterUrilist::windowsFormatName(const QString& mime) const
+{
+  if (mime == "text/x-moz-url")
+    return "FileName";
+  return mime;
+}
 
 
 

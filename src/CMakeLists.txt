@@ -361,7 +361,7 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
   string(REPLACE "\\" "/" QT_INSTALL_PREFIX "${QT_INSTALL_PREFIX}")
   string(STRIP "${QT_INSTALL_PREFIX}" QT_INSTALL_PREFIX)
   install(DIRECTORY "${QT_INSTALL_PREFIX}/bin/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
-	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" PATTERN "libgcc*\\.dll"
+	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll"
 	 )
   #install(FILES "${QT_INSTALL_PREFIX}/bin/QtCore4.dll" "${QT_INSTALL_PREFIX}/bin/QtGui4.dll"
   #		"${QT_INSTALL_PREFIX}/bin/QtSql4.dll" "${QT_INSTALL_PREFIX}/bin/QtXml4.dll"
@@ -425,3 +425,4 @@ endif(KLF_INSTALL_DESKTOP)
 
 
 
+KLFRemoveDummyInstallDirRule()

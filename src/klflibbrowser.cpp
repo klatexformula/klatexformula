@@ -35,6 +35,7 @@
 #include <QPushButton>
 #include <QApplication>
 #include <QClipboard>
+#include <QDesktopServices>
 
 #include "klfconfig.h"
 #include "klfguiutil.h"
@@ -1431,7 +1432,8 @@ void KLFLibBrowser::slotOpenAll()
   exportFilterList << tr("All Files (*)");
   exportFilter = exportFilterList.join(";;");
   QString selectedFilter;
-  QString fn = QFileDialog::getOpenFileName(this, tr("Open Library File"), QDir::homePath(),
+  QString docs = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+  QString fn = QFileDialog::getOpenFileName(this, tr("Open Library File"), docs,
 					    exportFilter, &selectedFilter);
   if (fn.isEmpty())
     return;
