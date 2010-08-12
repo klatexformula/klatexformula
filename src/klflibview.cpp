@@ -614,6 +614,7 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
 
 void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg( "modifyType="<<modifyType<<" entryIdList="<<entryIdList ) ;
 
   if (modifyType == KLFLibResourceEngine::UnknownModification) {
@@ -657,16 +658,16 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	pEntryCache[n.index].entry = newentry;
 	// the modified entry may have a different category, move it if needed
 	if (newentry.category() != oldentry.category()) {
-	  pModel->startLayoutChange();
-	  treeRemoveEntry(n, false); // remove it from its position in tree
+	  pModel->startLayoutChange(false);
+	  treeRemoveEntry(n, true); // remove it from its position in tree
 	  // klfDbg( "\tremoved entry. dump:\n"
 	  //         <<"\t Entry Cache="<<pEntryCache<<"\n\t CategoryLabelCache = "<<pCategoryLabelCache ) ;
 	  // dumpNodeTree(NodeId::rootNode());
 	  // revalidate the removed entry
 	  pEntryCache[n.index].entryid = entryIdList[k];
 	  // and add it again at the (new) correct position (automatically positioned!)
-	  treeInsertEntry(n, false);
-	  pModel->endLayoutChange();
+	  treeInsertEntry(n, true);
+	  pModel->endLayoutChange(false);
 	  QModelIndex idx = createIndexFromId(n, -1, 0);
 	  emit pModel->dataChanged(idx, idx);
 	} else {
@@ -2087,20 +2088,22 @@ QModelIndexList KLFLibModel::newPersistentIndexList(const QList<PersistentId>& p
 }
 
 
-void KLFLibModel::startLayoutChange()
+void KLFLibModel::startLayoutChange(bool withQtLayoutChangedSignal)
 {
   // first notify anyone who may be interested
-  emit layoutAboutToBeChanged();
+  if (withQtLayoutChangedSignal)
+ emit layoutAboutToBeChanged();
   // save persistent indexes
   pLytChgIndexes = persistentIndexList();
   pLytChgIds = persistentIdList(pLytChgIndexes);
 }
-void KLFLibModel::endLayoutChange()
+void KLFLibModel::endLayoutChange(bool withQtLayoutChangedSignal)
 {
   QModelIndexList newpindexes = newPersistentIndexList(pLytChgIds);
   changePersistentIndexList(pLytChgIndexes, newpindexes);
   // and notify of layout change
-  emit layoutChanged();
+  if (withQtLayoutChangedSignal)
+    emit layoutChanged();
 }
 
 

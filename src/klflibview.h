@@ -438,8 +438,8 @@ private:
   QList<PersistentId> persistentIdList(const QModelIndexList& persistentindexlist);
   QModelIndexList newPersistentIndexList(const QList<PersistentId>& persistentidlist);
 
-  void startLayoutChange();
-  void endLayoutChange();
+  void startLayoutChange(bool withQtLayoutChangedSignal = true);
+  void endLayoutChange(bool withQtLayoutChangedSignal = true);
 
   QModelIndexList pLytChgIndexes;
   QList<PersistentId> pLytChgIds;
