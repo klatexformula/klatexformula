@@ -34,6 +34,7 @@ set(CPACK_PACKAGE_EXECUTABLES "klatexformula;KLatexFormula")
 set(CPACK_STRIP_FILES TRUE)
 set(CPACK_PACKAGE_VENDOR "Philippe Faist <philippe.faist@bluewin.ch>")
 set(CPACK_SET_DESTDIR TRUE)  # use ENV{DESTDIR}=... instead of setting CMAKE_INSTALL_PREFIX
+set(CPACK_CREATE_DESKTOP_LINKS "klatexformula")
 
 # == Source packages ==
 
@@ -49,16 +50,16 @@ set(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/")
 set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "klatexformula-${KLF_VERSION}")
 set(cmake_CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/src/mswin/klficon64.ico")
 STRING(REPLACE "/" "\\\\" CPACK_NSIS_MUI_ICON "${cmake_CPACK_NSIS_MUI_ICON}")
-set(cmake_CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/src/mswin/klatexformula-64.bmp")
+set(cmake_CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/src/mswin/klatexformula-nsis-header.bmp")
 STRING(REPLACE "/" "\\\\" CPACK_PACKAGE_ICON "${cmake_CPACK_PACKAGE_ICON}")
 #set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS )
 #set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS )
 #set(CPACK_NSIS_COMPRESSOR )
 set(CPACK_NSIS_MODIFY_PATH "ON")
-set(CPACK_NSIS_DISPLAY_NAME "KLatexFormula ${KLF_VERSION} Installer")
-#set(CPACK_NSIS_INSTALLED_ICON_NAME )
+set(CPACK_NSIS_DISPLAY_NAME "KLatexFormula ${KLF_VERSION}")
+set(CPACK_NSIS_INSTALLED_ICON_NAME "${KLF_INSTALL_BIN_DIR}\\\\klatexformula.exe")
 set(CPACK_NSIS_HELP_LINK
-    "http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing")
+    "http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Home")
 set(CPACK_NSIS_URL_INFO_ABOUT "http://klatexformula.sourceforge.net/")
 set(CPACK_NSIS_CONTACT "philippe.faist@bluewin.ch")
 #set(CPACK_NSIS_CREATE_ICONS_EXTRA )
@@ -81,18 +82,22 @@ set(CPACK_PACKAGE_VERSION "${KLF_VERSION}")
 
 
 
-#### Finally include the CPack module ####
+
+
+
+# Finally include the CPack module
+# --------------------------------
 
 option(KLF_USE_CPACK
        "Use CPack to create packages with 'make packages'. Affects possibly CMAKE_INSTALL_PREFIX" OFF)
 
 if(KLF_USE_CPACK)
   if(WIN32)
-    if(NOT CMAKE_INSTALL_PREFIX STREQUAL ".")
-      set(CMAKE_INSTALL_PREFIX "." CACHE PATH "CMake install prefix for CPack" FORCE)
-      KLFNote("For windows CPack, CMAKE_INSTALL_PREFIX has to be '.'. Corrected. Please re-run.")
+    if(NOT CMAKE_INSTALL_PREFIX STREQUAL "/.")
+      set(CMAKE_INSTALL_PREFIX "/." CACHE PATH "CMake install prefix for CPack" FORCE)
+      KLFNote("For windows CPack, CMAKE_INSTALL_PREFIX has to be '/.'. Corrected. Please re-run.")
       message(FATAL_ERROR "Bad CMAKE_INSTALL_PREFIX detected and corrected. Please re-run.")
-    endif(NOT CMAKE_INSTALL_PREFIX STREQUAL ".")
+    endif(NOT CMAKE_INSTALL_PREFIX STREQUAL "/.")
     if(NOT CMAKE_SKIP_RPATH)
       KLFNote("You have not set CMAKE_SKIP_RPATH. For windows installers, installed RPATHs are incorrect.")
     endif(NOT CMAKE_SKIP_RPATH)
@@ -101,7 +106,15 @@ if(KLF_USE_CPACK)
     KLFNote("NOT IMPLEMENTED......")
   endif(KLF_MACOSX_BUNDLES)
 
+  # include CPack stuff
   include(CPack)
+  
+  KLFNote("You have configured to use CPack for generating packages.
+    Run 'make package' to generate package(s).
+    Note that (at least on windows), you should not run 'make install'
+    without a DESTDIR=... environment variable set, since the
+    CMAKE_INSTALL_PREFIX might have been altered in order to generate
+    the package(s).")
 
 endif(KLF_USE_CPACK)
 

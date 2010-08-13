@@ -210,13 +210,15 @@ else(KLF_KLFLIB_STATIC)
   add_library(klflib SHARED ${klatexformula_ALLSRC})
   if(KLF_MACOSX_BUNDLES)
     KLFMakeFramework(klflib ${klatexformula_INSTHEADERS})
+    set_target_properties(klflib PROPERTIES
+	MACOSX_FRAMEWORK_IDENTIFIER "org.klatexformula.klflib"
+	MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${KLF_VERSION}"
+	MACOSX_FRAMEWORK_BUNDLE_VERSION "${KLF_VERSION}"
+    )
   endif(KLF_MACOSX_BUNDLES)
   set_target_properties(klflib PROPERTIES
 	VERSION ${KLF_LIB_VERSION}
 	SOVERSION ${KLF_LIB_VERSION}
-	MACOSX_FRAMEWORK_IDENTIFIER "org.klatexformula.klflib"
-	MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${KLF_VERSION}"
-	MACOSX_FRAMEWORK_BUNDLE_VERSION "${KLF_VERSION}"
   )
 endif(KLF_KLFLIB_STATIC)
 add_dependencies(klflib klfbackend)
@@ -273,8 +275,8 @@ if(KLF_MACOSX_BUNDLES)
 	klatexformula_BUNDLEXTRA  Sql   Core)
   KLFBundlePrivateImportQtLib(klatexformula "${KLF_MACOSX_BUNDLE_PATH}"
 	klatexformula_BUNDLEXTRA  DBus  "Core;Xml")
-  message("Will Package Qt Plugins --> ${KLF_QT_PLUGINS}")
-  foreach(plugin ${KLF_QT_PLUGINS})
+  message("Will Package Qt Plugins in bundle --> ${KLF_BUNDLE_QT_PLUGINS} (KLF_BUNDLE_QT_PLUGINS)")
+  foreach(plugin ${KLF_BUNDLE_QT_PLUGINS})
     KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" klatexformula_BUNDLEXTRA
 			"${plugin}" "${QT_PLUGINS_DIR}/${plugin}" plugins)
     KLFInstallNameToolID(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" "plugins/${plugin}")
@@ -376,12 +378,18 @@ if(NOT KLF_MACOSX_BUNDLES)
   if(KLF_INSTALL_KLATEXFORMULA_BIN)
     install(TARGETS klatexformula RUNTIME DESTINATION "${KLF_INSTALL_BIN_DIR}")
   endif(KLF_INSTALL_KLATEXFORMULA_BIN)
- if(UNIX AND KLF_INSTALL_KLATEXFORMULA_CMDL)
-  install(CODE
+  if(UNIX AND KLF_INSTALL_KLATEXFORMULA_CMDL)
+    install(CODE
 	  "message(STATUS \"Creating Symlink ${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl -> klatexformula\")
 	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
-  )
- endif(UNIX AND KLF_INSTALL_KLATEXFORMULA_CMDL)
+    )
+  elseif(WIN32 AND KLF_INSTALL_KLATEXFORMULA_CMDL)
+    # win32: no symlinks, we have to copy the binary
+    install(CODE
+	  "message(STATUS \"Creating Copy \$ENV{DESTDIR}${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl.exe of klatexformula.exe\")
+	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E copy \"\$ENV{DESTDIR}${KLF_ABS_INSTALL_BIN_DIR}/klatexformula.exe\" \"\$ENV{DESTDIR}${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl.exe\")"
+    )
+  endif(UNIX AND KLF_INSTALL_KLATEXFORMULA_CMDL)
 endif(NOT KLF_MACOSX_BUNDLES)
 if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLATEXFORMULA_BUNDLE)
   install(TARGETS klatexformula BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
@@ -422,7 +430,3 @@ if(KLF_INSTALL_DESKTOP)
   endif(KLF_INSTALL_RUN_POST_INSTALL)
 endif(KLF_INSTALL_DESKTOP)
 
-
-
-
-KLFRemoveDummyInstallDirRule()

@@ -15,7 +15,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Read project version
 file(READ "VERSION" klf_ver)
 string(STRIP "${klf_ver}" KLF_VERSION)
-message(STATUS "KLatexFormula Version is ${KLF_VERSION}")
+message(STATUS "KLatexFormula Version ${KLF_VERSION}")
 
 set(klfversion_regex "([0-9]+)\\.([0-9]+)\\.([0-9]+)(.*)")
 string(REGEX REPLACE "${klfversion_regex}" "\\1" KLF_VERSION_MAJ "${KLF_VERSION}")
@@ -78,6 +78,13 @@ if(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
     "Didn't find required Qt4. You may try setting QT_QMAKE_EXECUTABLE or using Qt3 by chaning the KLF_QT_VERSION cache variable.")
 endif(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
 message(STATUS "Using Qt ${KLF_QT_VERSION} (KLF_QT_VERSION)")
+
+# variables that FindQt obviously forgets to set to advanced
+mark_as_advanced(QT_QTMOTIF_INCLUDE_DIR QT_QTMOTIF_LIBRARY_DEBUG QT_QTMOTIF_LIBRARY_RELEASE)
+if(WIN32)
+  mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE_FINDQT)
+endif(WIN32)
+
 
 # Static or shared backend
 if(KLF_BACKEND_STATIC)
@@ -282,7 +289,6 @@ include(klfcpack)
 # ----------------------------------
 add_subdirectory(src)
 
-KLFRemoveDummyInstallDirRule()
 
 # Doxygen
 # -------

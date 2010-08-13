@@ -106,27 +106,47 @@ endmacro(KLFMarkVarAdvancedIf)
 # Notes:
 #  * This function calls KLFGetCMakeVarChanged() on the specific variable
 #  * This function does NOT call KLFGetCMakeVarChanged() on the generic variable
+macro(KLFDeclareCacheVarOptionFollow specificoption genericoption cachestring)
+  KLFDeclareCacheVarOptionFollowComplexN("${specificoption}" "${cachetype}" "${cachestring}" "${updatenotice}" "${${genericoption}}" "${genericoption}" "klf_changed_${genericoption}")
+endmacro(KLFDeclareCacheVarOptionFollow)
+
 #  * if updatenotice is TRUE then a KLFNote() is emitted when this value is changed not for the
 #    very first time
-macro(KLFDeclareCacheVarOptionFollow specificoption genericoption cachetype cachestring updatenotice)
+macro(KLFDeclareCacheVarOptionFollowComplexN specificoption cachetype cachestring updatenotice calcoptvalue depvarcommalist depvarchangedorlist)
   # declare option (cache var)
   if(NOT DEFINED ${specificoption})
-    set(${specificoption} "${${genericoption}}" CACHE ${cachetype} ${cachestring})
+    set(${specificoption} "${calcoptvalue}" CACHE ${cachetype} "${cachestring}")
   endif(NOT DEFINED ${specificoption})
   # and check if it was changed
   KLFGetCMakeVarChanged(${specificoption})
-  KLFCMakeDebug("Specific option: ${specificoption} (chg: ${klf_changed_${specificoption}}) following ${genericoption} (chg: ${klf_changed_${genericoption}}).")
-  if(klf_changed_${genericoption} AND NOT klf_changed_${specificoption})
-    # generic option changed, then a non-changed specific option must follow
-    set(${specificoption} "${${genericoption}}" CACHE ${cachetype} $cachestring FORCE)
-    if(updatenotice)
-      KLFNote("Updating ${specificoption} to \"${${specificoption}}\" following changes to ${genericoption}.")
-    else(updatenotice)
-      KLFCMakeDebug("Updated ${specificoption} to \"${${specificoption}}\" following ${genericoption}.")
-    endif(updatenotice)
-  endif(klf_changed_${genericoption} AND NOT klf_changed_${specificoption})
+  KLFCMakeDebug("Specific option: ${specificoption} (chg: ${klf_changed_${specificoption}}) following ${depvarcommalist} (dep condition: ${depvarchangedorlist}).")
+  if(${depvarchangedorlist})
+    if(NOT klf_changed_${specificoption} AND NOT ${specificoption} STREQUAL "${calcoptvalue}")
+      # dependency option(s) changed, then a non-changed specific option must follow
+      set(${specificoption} "${calcoptvalue}" CACHE ${cachetype} "${cachestring}" FORCE)
+      if(updatenotice)
+	KLFNote("Updating ${specificoption} to \"${${specificoption}}\" following changes to ${depvarcommalist}.")
+      else(updatenotice)
+	KLFCMakeDebug("Updated ${specificoption} to \"${${specificoption}}\" following ${depvarcommalist}.")
+      endif(updatenotice)
+    endif(NOT klf_changed_${specificoption} AND NOT ${specificoption} STREQUAL "${calcoptvalue}")
+  endif(${depvarchangedorlist})
   KLFCMakeSetVarChanged(${specificoption})
-endmacro(KLFDeclareCacheVarOptionFollow)
+endmacro(KLFDeclareCacheVarOptionFollowComplexN)
+
+#
+# Calls KLFDeclareCacheVarOptionFollowComplexN()  for one dependency variable 'depvar1'.
+#
+macro(KLFDeclareCacheVarOptionFollowComplex1 specificoption cachetype cachestring updatenotice calcoptvalue depvar1)
+  KLFDeclareCacheVarOptionFollowComplexN("${specificoption}" "${cachetype}" "${cachestring}" "${updatenotice}" "${calcoptvalue}" "${depvar1}" "klf_changed_${depvar1}")
+endmacro(KLFDeclareCacheVarOptionFollowComplex1)
+
+#
+# Calls KLFDeclareCacheVarOptionFollowComplexN()  for two dependency variables 'depvar1' and 'depvar2'.
+#
+macro(KLFDeclareCacheVarOptionFollowComplex2 specificoption cachetype cachestring updatenotice calcoptvalue depvar1 depvar2)
+  KLFDeclareCacheVarOptionFollowComplexN("${specificoption}" "${cachetype}" "${cachestring}" "${updatenotice}" "${calcoptvalue}" "${depvar1},${depvar2}" "klf_changed_${depvar1} OR klf_changed_${depvar2}")
+endmacro(KLFDeclareCacheVarOptionFollowComplex2)
 
 # Thanks to
 #   http://www.cmake.org/pipermail/cmake/2009-February/027014.html

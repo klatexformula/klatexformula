@@ -43,7 +43,8 @@
 
 
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-static const char * klf_share_dir_rel = "";
+// program is in a bin/ directory
+static const char * klf_share_dir_rel = "/..";
 #else
 # if defined(Q_WS_MAC)
 static const char * klf_share_dir_rel = "/../Resources";

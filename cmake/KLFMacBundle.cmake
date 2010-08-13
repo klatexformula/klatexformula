@@ -146,14 +146,14 @@ macro(KLFMakeBundle TGT BUNDLE)
 endmacro()
 
 macro(KLFBundlePackage TGT BUNDLEXTRA)
-  message(Extras: ${BUNDLEXTRA})
+  message("Extras: ${BUNDLEXTRA}")
   add_dependencies(${TGT}_maclibpacked ${BUNDLEXTRA})
 endmacro()
 
 macro(KLFMakeFramework TGT HEADERS)
 
   set_target_properties(${TGT} PROPERTIES
-	FRAMEWORK	true
+	FRAMEWORK	TRUE
   )
 
   # Add Proper bundle clean target 

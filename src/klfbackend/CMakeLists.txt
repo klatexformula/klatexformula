@@ -89,5 +89,3 @@ else(KLF_USE_QT4)
   KLFInstallLibrary(klfbackend-qt3 KLF_INSTALL_KLFBACKEND_ "${KLF_INSTALL_LIB_DIR}" "include/klfbackend")
 endif(KLF_USE_QT4)
 
-
-KLFRemoveDummyInstallDirRule()
