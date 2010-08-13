@@ -4,9 +4,9 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = KLatexFormula Source API
+PROJECT_NAME           = KLatexFormula Application Library
 PROJECT_NUMBER         = @KLF_VERSION@
-OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/apidoc@KLF_DOXYGEN_SF@/klflib
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/apidoc@KLF_DOXYGEN_SF@/klfapp
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
 BRIEF_MEMBER_DESC      = YES
@@ -266,7 +266,8 @@ SKIP_FUNCTION_MACROS   = YES
 # Configuration::additions related to external references   
 #---------------------------------------------------------------------------
 TAGFILES               = apidoc/qt4.tag=http://doc.trolltech.com/4.4 \
-			 @CMAKE_CURRENT_BINARY_DIR@/apidoc/klfbackend.tag=../../klfbackend/html
+			 @CMAKE_CURRENT_BINARY_DIR@/apidoc/klfbackend.tag=../../klfbackend/html \
+			 @CMAKE_CURRENT_BINARY_DIR@/apidoc/klftools.tag=../../klftools/html
 GENERATE_TAGFILE       = 
 ALLEXTERNALS           = NO
 EXTERNAL_GROUPS        = YES

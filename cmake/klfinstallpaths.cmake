@@ -191,21 +191,21 @@ endif(NOT KLF_MACOSX_BUNDLES)
 
 message(STATUS "Will install targets:
 
-             \theaders\t\tstatic,\t    shared libraries   \tframework
- klfbackend: \t  ${KLF_INSTALL_KLFBACKEND_HEADERS}\t\t  ${KLF_INSTALL_KLFBACKEND_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_FRAMEWORK}
- klftools:   \t  ${KLF_INSTALL_KLFTOOLS_HEADERS}\t\t  ${KLF_INSTALL_KLFTOOLS_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_SO_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_FRAMEWORK}
- klfapp:     \t  ${KLF_INSTALL_KLFAPP_HEADERS}\t\t  ${KLF_INSTALL_KLFAPP_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_SO_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_FRAMEWORK}
+               \theaders\t\tstatic,\t    shared libraries   \tframework
+   klfbackend: \t  ${KLF_INSTALL_KLFBACKEND_HEADERS}\t\t  ${KLF_INSTALL_KLFBACKEND_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_FRAMEWORK}
+   klftools:   \t  ${KLF_INSTALL_KLFTOOLS_HEADERS}\t\t  ${KLF_INSTALL_KLFTOOLS_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_SO_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_FRAMEWORK}
+   klfapp:     \t  ${KLF_INSTALL_KLFAPP_HEADERS}\t\t  ${KLF_INSTALL_KLFAPP_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_SO_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_FRAMEWORK}
 
- klatexformula: \t${KLF_INSTALL_KLATEXFORMULA_BIN}
- klatexformula_cmdl: \t${KLF_INSTALL_KLATEXFORMULA_CMDL}
- klatexformula bundle: \t${KLF_INSTALL_KLATEXFORMULA_BUNDLE}
+   klatexformula: \t${KLF_INSTALL_KLATEXFORMULA_BIN}
+   klatexformula_cmdl: \t${KLF_INSTALL_KLATEXFORMULA_CMDL}
+   klatexformula bundle: \t${KLF_INSTALL_KLATEXFORMULA_BUNDLE}
 
- individual installs can be fine-tuned with
-        KLF_INSTALL_KLF{BACKEND|TOOLS|APP}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK}
- and    KLF_INSTALL_KLATEXFORMULA_{BIN|CMDL|BUNDLE}
+   individual installs can be fine-tuned with
+          KLF_INSTALL_KLF{BACKEND|TOOLS|APP}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK}
+   and    KLF_INSTALL_KLATEXFORMULA_{BIN|CMDL|BUNDLE}
 
- Irrelevant settings, eg. installing os X bundles on linux, or KLF{TOOLS|APP} library install
- settings without the corresponding KLF_BUILD_KLF{TOOLS|GUI}, are ignored.
+   Irrelevant settings, eg. installing os X bundles on linux, or KLF{TOOLS|APP} library install
+   settings without the corresponding KLF_BUILD_KLF{TOOLS|GUI}, are ignored.
 \n")
 
 
@@ -231,10 +231,10 @@ if(KLF_INSTALL_DESKTOP)
 		    "Where to install mime database xml file(s) (default share/mime/packages)")
 
   message(STATUS "Will install linux desktop files (KLF_INSTALL_DESKTOP):
- .desktop categories:\t${KLF_INSTALL_DESKTOP_CATEGORIES}  (KLF_INSTALL_DESKTOP_CATEGORIES)
- app .desktop files: \t${KLF_INSTALL_SHARE_APPLICATIONS_DIR}  (KLF_INSTALL_SHARE_APPLICATIONS_DIR)
- pixmaps:            \t${KLF_INSTALL_SHARE_PIXMAPS_DIR}  (KLF_INSTALL_SHARE_PIXMAPS_DIR)
- mime database xml:  \t${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}  (KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+   .desktop categories:\t${KLF_INSTALL_DESKTOP_CATEGORIES}  (KLF_INSTALL_DESKTOP_CATEGORIES)
+   app .desktop files: \t${KLF_INSTALL_SHARE_APPLICATIONS_DIR}  (KLF_INSTALL_SHARE_APPLICATIONS_DIR)
+   pixmaps:            \t${KLF_INSTALL_SHARE_PIXMAPS_DIR}  (KLF_INSTALL_SHARE_PIXMAPS_DIR)
+   mime database xml:  \t${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}  (KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
 ")
 
   mark_as_advanced( KLF_INSTALL_DESKTOP_CATEGORIES
@@ -268,7 +268,7 @@ if(KLF_INSTALL_RUN_POST_INSTALL)
   mark_as_advanced(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
 
   message(STATUS "Will run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL):
- Update the mime database: \t${KLF_INSTALL_POST_UPDATEMIMEDATABASE} \t(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
+   Update the mime database: \t${KLF_INSTALL_POST_UPDATEMIMEDATABASE} \t(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
 ")
 else(KLF_INSTALL_RUN_POST_INSTALL)
   message(STATUS "Will NOT run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL)")
