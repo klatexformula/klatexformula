@@ -84,7 +84,7 @@ if(WIN32)
 
   set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
 			    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
-
+  mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
   #   #KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice calcoptvalue depvar1)
   #   KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_RCCRESOURCES_DIR
   # 	STRING "Where to install rccresources files (relative to CMAKE_INSTALL_PREFIX, or absolute)"
@@ -142,42 +142,72 @@ KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_HEADERS     KLF_INSTALL_DE
 KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_STATIC_LIBS KLF_INSTALL_DEVEL   "Install klfbackend static libraries")
 KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_SO_LIBS     KLF_INSTALL_RUNTIME "Install klfbackend so libraries")
 KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_FRAMEWORK   KLF_INSTALL_RUNTIME "Install klfbackend framework (Mac OS X)")
+mark_as_advanced( KLF_INSTALL_KLFBACKEND_HEADERS
+		  KLF_INSTALL_KLFBACKEND_STATIC_LIBS
+		  KLF_INSTALL_KLFBACKEND_SO_LIBS
+		  KLF_INSTALL_KLFBACKEND_FRAMEWORK
+)
+
+if(KLF_BUILD_TOOLS)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFTOOLS_HEADERS      KLF_INSTALL_DEVEL   "Install klftools headers")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFTOOLS_STATIC_LIBS  KLF_INSTALL_DEVEL   "Install klftools static libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFTOOLS_SO_LIBS      KLF_INSTALL_RUNTIME "Install klftools so libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFTOOLS_FRAMEWORK    KLF_INSTALL_RUNTIME "Install klftools framework (Mac OS X)")
+  mark_as_advanced( KLF_INSTALL_KLFTOOLS_HEADERS
+		    KLF_INSTALL_KLFTOOLS_STATIC_LIBS
+		    KLF_INSTALL_KLFTOOLS_SO_LIBS
+		    KLF_INSTALL_KLFTOOLS_FRAMEWORK
+  )
+endif(KLF_BUILD_TOOLS)
 
 if(KLF_BUILD_GUI)
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_HEADERS      KLF_INSTALL_DEVEL   "Install klflib headers")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_STATIC_LIBS  KLF_INSTALL_DEVEL   "Install klflib static libraries")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_SO_LIBS      KLF_INSTALL_RUNTIME "Install klflib so libraries")
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFLIB_FRAMEWORK    KLF_INSTALL_RUNTIME "Install klflib framework (Mac OS X)")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFAPP_HEADERS      KLF_INSTALL_DEVEL   "Install klfapp headers")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFAPP_STATIC_LIBS  KLF_INSTALL_DEVEL   "Install klfapp static libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFAPP_SO_LIBS      KLF_INSTALL_RUNTIME "Install klfapp so libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFAPP_FRAMEWORK    KLF_INSTALL_RUNTIME "Install klfapp framework (Mac OS X)")
+  mark_as_advanced( KLF_INSTALL_KLFAPP_HEADERS
+		    KLF_INSTALL_KLFAPP_STATIC_LIBS
+		    KLF_INSTALL_KLFAPP_SO_LIBS
+		    KLF_INSTALL_KLFAPP_FRAMEWORK
+  )
+
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BIN   KLF_INSTALL_RUNTIME "Install klatexformula binary")
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_CMDL  KLF_INSTALL_RUNTIME "Install klatexformula_cmdl symlink")
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLATEXFORMULA_BUNDLE KLF_INSTALL_RUNTIME "Install klatexformula bundle (Mac OS X)")
+  mark_as_advanced( KLF_INSTALL_KLATEXFORMULA_BIN
+		    KLF_INSTALL_KLATEXFORMULA_CMDL
+		    KLF_INSTALL_KLATEXFORMULA_BUNDLE
+  )
 endif(KLF_BUILD_GUI)
 
 if(NOT KLF_MACOSX_BUNDLES)
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_PLUGINS    KLF_INSTALL_RUNTIME   "Install klatexformula plugins")
 else(NOT KLF_MACOSX_BUNDLES)
   if(KLF_INSTALL_PLUGINS)
-    KLFNote("Not Installing plugins outside bundle.")
+    KLFNote("Not Installing plugins outside bundle. On mac, klatexformula looks for plugins by expecting to reside in a bundle.")
     set(KLF_INSTALL_PLUGINS  OFF  CACHE BOOL "Not needed. plugins are incorporated into bundle instead." FORCE)
   endif(KLF_INSTALL_PLUGINS)
 endif(NOT KLF_MACOSX_BUNDLES)
 
 message(STATUS "Will install targets:
 
-             \theaders\t\tstatic,\t      shared libraries   \tframework
+             \theaders\t\tstatic,\t    shared libraries   \tframework
  klfbackend: \t  ${KLF_INSTALL_KLFBACKEND_HEADERS}\t\t  ${KLF_INSTALL_KLFBACKEND_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_FRAMEWORK}
- klflib:     \t  ${KLF_INSTALL_KLFLIB_HEADERS}\t\t  ${KLF_INSTALL_KLFLIB_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFLIB_SO_LIBS}\t\t  ${KLF_INSTALL_KLFLIB_FRAMEWORK}
+ klftools:   \t  ${KLF_INSTALL_KLFTOOLS_HEADERS}\t\t  ${KLF_INSTALL_KLFTOOLS_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_SO_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_FRAMEWORK}
+ klfapp:     \t  ${KLF_INSTALL_KLFAPP_HEADERS}\t\t  ${KLF_INSTALL_KLFAPP_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_SO_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_FRAMEWORK}
 
  klatexformula: \t${KLF_INSTALL_KLATEXFORMULA_BIN}
  klatexformula_cmdl: \t${KLF_INSTALL_KLATEXFORMULA_CMDL}
  klatexformula bundle: \t${KLF_INSTALL_KLATEXFORMULA_BUNDLE}
- 
- individual installs can be tuned with KLF_INSTALL_{KLFLIB|KLFBACKEND}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK}
- and KLF_INSTALL_KLATEXFORMULA_{BIN|CMDL|BUNDLE}
- 
- Irrelevant items, eg. os X bundles on linux, are ignored.
 
-")
+ individual installs can be fine-tuned with
+        KLF_INSTALL_KLF{BACKEND|TOOLS|APP}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK}
+ and    KLF_INSTALL_KLATEXFORMULA_{BIN|CMDL|BUNDLE}
+
+ Irrelevant settings, eg. installing os X bundles on linux, or KLF{TOOLS|APP} library install
+ settings without the corresponding KLF_BUILD_KLF{TOOLS|GUI}, are ignored.
+\n")
+
 
 # Install .desktop & pixmaps in DEST/share/{applications|pixmaps} ?
 if(KLF_MACOSX_BUNDLES OR WIN32)
@@ -191,9 +221,27 @@ option(KLF_INSTALL_DESKTOP
   ${default_KLF_INSTALL_DESKTOP} )
 
 if(KLF_INSTALL_DESKTOP)
-  set(KLF_INSTALL_DESKTOP_CATEGORIES "Qt;Office;" CACHE STRING "Categories section in .desktop file")
-  message(STATUS "Will install linux desktop files (KLF_INSTALL_DESKTOP)")
-  message(STATUS "  categories \"${KLF_INSTALL_DESKTOP_CATEGORIES}\" (KLF_INSTALL_DESKTOP_CATEGORIES)")
+  set(KLF_INSTALL_DESKTOP_CATEGORIES "Qt;Office;" CACHE STRING
+							  "Categories section in .desktop file")
+  set(KLF_INSTALL_SHARE_APPLICATIONS_DIR "share/applications/" CACHE STRING
+    "Where application .desktop links should be installed (relative to install prefix or absolute).")
+  set(KLF_INSTALL_SHARE_PIXMAPS_DIR "share/pixmaps/" CACHE STRING
+		"Where to place an application icon for klatexformula (default share/pixmaps/)")
+  set(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR "share/mime/packages/" CACHE STRING
+		    "Where to install mime database xml file(s) (default share/mime/packages)")
+
+  message(STATUS "Will install linux desktop files (KLF_INSTALL_DESKTOP):
+ .desktop categories:\t${KLF_INSTALL_DESKTOP_CATEGORIES}  (KLF_INSTALL_DESKTOP_CATEGORIES)
+ app .desktop files: \t${KLF_INSTALL_SHARE_APPLICATIONS_DIR}  (KLF_INSTALL_SHARE_APPLICATIONS_DIR)
+ pixmaps:            \t${KLF_INSTALL_SHARE_PIXMAPS_DIR}  (KLF_INSTALL_SHARE_PIXMAPS_DIR)
+ mime database xml:  \t${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}  (KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+")
+
+  mark_as_advanced( KLF_INSTALL_DESKTOP_CATEGORIES
+		    KLF_INSTALL_SHARE_APPLICATIONS_DIR
+		    KLF_INSTALL_SHARE_PIXMAPS_DIR
+		    KLF_INSTALL_SHARE_MIME_PACKAGES_DIR
+  )
 else(KLF_INSTALL_DESKTOP)
   message(STATUS "Will not install linux desktop files (KLF_INSTALL_DESKTOP)")
 endif(KLF_INSTALL_DESKTOP)
@@ -215,7 +263,13 @@ endif(WIN32)
 option(KLF_INSTALL_RUN_POST_INSTALL
 		    "Run post-install scripts after 'make install' (eg. update mime database)" YES)
 if(KLF_INSTALL_RUN_POST_INSTALL)
-  message(STATUS "Will run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL)")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_POST_UPDATEMIMEDATABASE KLF_INSTALL_RUN_POST_INSTALL
+		      "Update the mime database after installing package mime-database xml files")
+  mark_as_advanced(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
+
+  message(STATUS "Will run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL):
+ Update the mime database: \t${KLF_INSTALL_POST_UPDATEMIMEDATABASE} \t(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
+")
 else(KLF_INSTALL_RUN_POST_INSTALL)
   message(STATUS "Will NOT run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL)")
 endif(KLF_INSTALL_RUN_POST_INSTALL)
@@ -223,6 +277,10 @@ endif(KLF_INSTALL_RUN_POST_INSTALL)
 
 macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
 
+  # this dummy installation directory cannot be set to an absolute path (actually, it could..., but
+  # it's a headache)  because on windows installing to absolute paths with drive letters is EVIL
+  # when using DESTDIR=... (eg. for packaging). Instead, install to a dummy directory specified as
+  # a relative path in final installation directory, then remove that dummy directory.
   set(klf_dummy_inst_dir "dummy_install_directory")
 
   KLFConditionalSet(inst_${targetlib}_runtime_dir ${varOptBase}SO_LIBS
@@ -243,22 +301,24 @@ macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
 	FRAMEWORK DESTINATION "${inst_${targetlib}_framework_dir}"
 	PUBLIC_HEADER DESTINATION "${inst_${targetlib}_pubheader_dir}"
   )
-  
+
   install(CODE "
-    set(klfdummyinstdir 
+    set(dummyinstdir 
 	\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${klf_dummy_inst_dir}\")
-    message(STATUS \"Removing dummy install directory '\${klfdummyinstdir}'\")
-    execute_process(COMMAND \"${CMAKE_COMMAND}\" -E remove_directory \"\${klfdummyinstdir}\")
+    message(STATUS \"Removing dummy install directory '\${dummyinstdir}'\")
+    execute_process(COMMAND \"${CMAKE_COMMAND}\" -E remove_directory \"\${dummyinstdir}\")
     "
   )
 
 endmacro(KLFInstallLibrary)
 
 
-# Fool-proof to avoid installing into root directory
-# Root directory is detected if prefix is empty, '/', '/.' or '/./' and ENV{DESTDIR} not set
+# Fool-proof check to avoid installing into root directory
+#  * Root directory is detected if prefix is empty, '/', '/.' or '/./' and ENV{DESTDIR} not set
+#  * Note: if prefix contains a drive letter, then it was set manually, so it's probably on purpose.
+#    another check will make sure that you don't install into DESTDIR/X:/... below.
 install(CODE "
-# --- Fool-proof: forbid to install to / ---
+# --- Fool-proof: forbid to install to root / ---
 if(\"\$ENV{DESTDIR}\" STREQUAL \"\" AND
    NOT \"\$ENV{KLF_CONFIRM_INSTALL_TO_ROOT_DIR}\" STREQUAL \"YES\")
 
@@ -273,8 +333,8 @@ if(\"\$ENV{DESTDIR}\" STREQUAL \"\" AND
     package generation under windows, or some other human error.
     
     If, however, you are certain of what you are doing and wish to proceed,
-    define KLF_CONFIRM_INSTALL_TO_ROOT_DIR environment variable, eg. on
-    your make install line:
+    define KLF_CONFIRM_INSTALL_TO_ROOT_DIR environment variable to YES, eg.
+    on your make install line:
       make install KLF_CONFIRM_INSTALL_TO_ROOT_DIR=YES
 
 \")
@@ -285,8 +345,8 @@ endif(\"\$ENV{DESTDIR}\" STREQUAL \"\" AND
       NOT \"\$ENV{KLF_CONFIRM_INSTALL_TO_ROOT_DIR}\" STREQUAL \"YES\")
 ")
 
-# Fool-proof to warn a foolhardy user from using absolute paths with drive
-# names in conjunction with DESTDIR during installs
+# Fool-proof to warn a foolhardy user from using absolute paths with drive names in conjunction
+# with DESTDIR during installs (windows)
 install(CODE "
 if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND CMAKE_INSTALL_PREFIX MATCHES \"^[A-Za-z]:\")
   message(\"

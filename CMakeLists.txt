@@ -16,6 +16,46 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 file(READ "VERSION" klf_ver)
 string(STRIP "${klf_ver}" KLF_VERSION)
 message(STATUS "KLatexFormula Version ${KLF_VERSION}")
+option(KLF_WELCOME_MSG_SILENT "Don't display welcome message" OFF)
+if(NOT KLF_WELCOME_MSG_SILENT)
+  message(STATUS "
+   Welcome to the klatexformula build script. This CMake script will guide
+   you through the process of building klatexformula ${KLF_VERSION} for your
+   system.
+
+   Some settings will have to be detected. This script should be able to
+   detect the correct settings for most systems. However, you may want to
+   tune and even fine-tune your klatexformula installation sequence to
+   build and install the compenents you would like, and install them at
+   specific locations.
+
+   Each status message displays a default or detected value for a setting, with
+   the corresponding variable name, in case you want to change the setting.
+   With command-line cmake, you can set a variable with:
+     cmake <build-dir> -D<VARIABLE_NAME>=<VALUE>
+   most values are just ON or OFF or string paths.
+
+   But don't worry, most default values should be fine. Unless an error was
+   reported, after this script has run, you can type
+       make
+   and
+       sudo make install
+
+   to install klatexformula on your system.
+   
+   For more options and help:
+      - look at the stored cache variable documentation (displayed eg. by
+        cmake-gui and ccmake)
+      - have a look at
+        http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
+
+   And have a lot of fun!
+
+")
+  message(STATUS "Displayed welcome message (KLF_WELCOME_MSG_SILENT)")
+else(NOT KLF_WELCOME_MSG_SILENT)
+  message(STATUS "Skipped welcome message (KLF_WELCOME_MSG_SILENT)")
+endif(NOT KLF_WELCOME_MSG_SILENT)
 
 set(klfversion_regex "([0-9]+)\\.([0-9]+)\\.([0-9]+)(.*)")
 string(REGEX REPLACE "${klfversion_regex}" "\\1" KLF_VERSION_MAJ "${KLF_VERSION}")
@@ -31,15 +71,16 @@ include(KLFUtil)
 # Set some project settings
 # -------------------------
 
+message(STATUS "")
+message(STATUS "[BUILD SETTINGS]")
+
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "(FOR DEVELOPERS:) Build configuration (Debug|Release)")
 mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE} (CMAKE_BUILD_TYPE)")
 
-# Compile the Gui project ?
-option(KLF_BUILD_GUI "Build the full GUI interface" ON)
 
 # Static/Shared libklfbackend
-option(KLF_BACKEND_STATIC "Compile static libklfbackend backend library instead of shared." OFF)
+option(KLF_LIBKLFBACKEND_STATIC "Compile static libklfbackend backend library instead of shared." OFF)
 
 # Choose a Qt Version to use
 set(KLF_QT_VERSION 4 CACHE STRING "Qt major version to build with (4 or 3)")
@@ -49,12 +90,12 @@ if(klf_changed_KLF_QT_VERSION)
   #  -> Reset some variables to let FindQt() find the right qmake
   set(QT_QMAKE_EXECUTABLE "" CACHE FILEPATH "qmake executable for Qt4" FORCE)
 endif(klf_changed_KLF_QT_VERSION)
-KLFMarkVarAdvancedIf(QT_QMAKE_EXECUTABLE "KLF_QT_VERSION NOTEQUAL 4")
-# and set KLF_USE_QT4 (internal)
+KLFMarkVarAdvancedIf(QT_QMAKE_EXECUTABLE "NOT KLF_QT_VERSION EQUAL 4")
+# and set KLF_USE_QT4 (internal to us, mirror of KLF_QT_VERSION==4)
 if(KLF_QT_VERSION EQUAL 3)
-  set(KLF_USE_QT4 FALSE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4")
+  set(KLF_USE_QT4 FALSE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4 (reflects KLF_QT_VERSION)")
 else(KLF_QT_VERSION EQUAL 3)
-  set(KLF_USE_QT4 TRUE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4")
+  set(KLF_USE_QT4 TRUE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4 (reflects KLF_QT_VERSION)")
 endif(KLF_QT_VERSION EQUAL 3)
 
 # Include that version of Qt
@@ -87,43 +128,93 @@ endif(WIN32)
 
 
 # Static or shared backend
-if(KLF_BACKEND_STATIC)
-  message(STATUS "Building a static KLFBackend library (KLF_BACKEND_STATIC)")
-else(KLF_BACKEND_STATIC)
-  message(STATUS "Building a shared KLFBackend library (KLF_BACKEND_STATIC)")
-endif(KLF_BACKEND_STATIC)
+if(KLF_LIBKLFBACKEND_STATIC)
+  message(STATUS "Building a static KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
+else(KLF_LIBKLFBACKEND_STATIC)
+  message(STATUS "Building a shared KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
+endif(KLF_LIBKLFBACKEND_STATIC)
 
-# Adjust KLF_BUILD_GUI to FALSE if we're using Qt3
-KLFGetCMakeVarChanged(KLF_BUILD_GUI)
-if(NOT KLF_USE_QT4)
-  if(NOT klf_first_KLF_BUILD_GUI)
-    if(KLF_BUILD_GUI)
-      KLFNote("Cannot build GUI with Qt3. Forcing build GUI option off.")
-    endif(KLF_BUILD_GUI)
-  endif(NOT klf_first_KLF_BUILD_GUI)
-  set(KLF_BUILD_GUI OFF CACHE BOOL
-			  "Build the klatexformula graphical user interface (requires Qt4)." FORCE)
-endif(NOT KLF_USE_QT4)
-KLFCMakeSetVarChanged(KLF_BUILD_GUI)
+
+#KLFDeclareCacheVarOptionCondition(specificoption cachetype cachestring updatenoticestring condition forcedvalue defaultvalue)
+KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLS
+	BOOL "Build klatexformula tools library (klftools), requires Qt4"          # cache info
+	"Building klftools library requires Qt 4. Not building klftools library."  # update notify message
+	KLF_USE_QT4           # the condition
+	OFF                   # the forced value if condition is not met
+	${KLF_USE_QT4}        # the default value at beginning
+)
+if(KLF_BUILD_TOOLS)
+  message(STATUS "Will build the klftools library (KLF_BUILD_TOOLS)")
+else(KLF_BUILD_TOOLS)
+  message(STATUS "Will not build the klftools library (KLF_BUILD_TOOLS)")
+endif(KLF_BUILD_TOOLS)
+
+
+#KLFDeclareCacheVarOptionCondition(spec.option cachetype cachestr updatemsg cond. forceval def.val.)
+KLFDeclareCacheVarOptionCondition(KLF_BUILD_GUI
+	BOOL "Build klatexformula GUI (klfapp+klatexformula), requires Qt4 and klftools" # cache info
+	"Building klatexformula GUI requires Qt 4 and klftools libraries. Not building GUI." # notify message
+	"KLF_USE_QT4 AND KLF_BUILD_TOOLS"  # the condition
+	OFF                                # the forced value if condition is not met
+	${KLF_BUILD_TOOLS}                 # the default value at beginning (here this is a boolean)
+)
 if(KLF_BUILD_GUI)
-  message(STATUS "Will build the GUI interface (KLF_BUILD_GUI)")
+  message(STATUS "Will build the GUI interface (klftools+klfapp) (KLF_BUILD_GUI)")
 else(KLF_BUILD_GUI)
-  message(STATUS "Will not build the GUI interface (KLF_BUILD_GUI)")
+  message(STATUS "Will not build the GUI interface (klftools+klfapp) (KLF_BUILD_GUI)")
 endif(KLF_BUILD_GUI)
 
-# Build a shared or static source klflib library (for plugins to link to)
+
+#KLFDeclareCacheVarOptionCondition(spec.option cachetype cachestr updatemsg cond. forceval def.val.)
+KLFDeclareCacheVarOptionCondition(KLF_BUILD_PLUGINS
+	BOOL "Build klatexformula plugins; requires Qt4, klftools and GUI" # cache info
+	"Building klatexformula plugins requires klatexformula GUI. Not building plugins." # notify message
+	"KLF_BUILD_GUI"                    # the condition (GUI depends on klftools and Qt4)
+	OFF                                # the forced value if condition is not met
+	${KLF_BUILD_GUI}                   # the default value at beginning (here this is a boolean)
+)
+if(KLF_BUILD_PLUGINS)
+  message(STATUS "Will build klatexformula plugins (KLF_BUILD_PLUGINS)")
+else(KLF_BUILD_PLUGINS)
+  message(STATUS "Will not build klatexformula plugins (KLF_BUILD_PLUGINS)")
+endif(KLF_BUILD_PLUGINS)
+
+
+
+# Build a shared or static klftools library
+set(default_klftools_static FALSE)
 if(WIN32 OR APPLE)
-  set(KLF_KLFLIB_STATIC FALSE CACHE BOOL "Build a static klflib library")
+  set(default_klftools_static FALSE)
 else(WIN32 OR APPLE)
-  # could set to true, but have problems (?)
-  set(KLF_KLFLIB_STATIC FALSE CACHE BOOL "Build a static klflib library")
+  set(default_klftools_static FALSE)
 endif(WIN32 OR APPLE)
+set(KLF_LIBKLFTOOLS_STATIC ${default_klftools_static} CACHE BOOL "Build a static klftools library")
+# and status message
+if(KLF_BUILD_TOOLS)
+  if(KLF_LIBKLFTOOLS_STATIC)
+    message(STATUS "Building a static KLatexFormula tools library (klftools) (KLF_KLFTOOLS_STATIC)")
+  else(KLF_LIBKLFTOOLS_STATIC)
+    message(STATUS "Building a shared KLatexFormula tools library (klftools) (KLF_KLFTOOLS_STATIC)")
+  endif(KLF_LIBKLFTOOLS_STATIC)
+endif(KLF_BUILD_TOOLS)
+
+# Build a shared or static source klfapp library (for plugins to link to)
+set(default_klfapp_static FALSE)
+if(WIN32 OR APPLE)
+  set(default_klfapp_static FALSE)
+else(WIN32 OR APPLE)
+  # by default on linux systems, plugins compile with their undefined references and are correctly
+  # linked to the executable's exported symbols.
+  set(default_klfapp_static TRUE)
+endif(WIN32 OR APPLE)
+set(KLF_LIBKLFAPP_STATIC ${default_klfapp_static} CACHE BOOL "Build a static klfapp library")
+# and status message
 if(KLF_BUILD_GUI)
-  if(KLF_KLFLIB_STATIC)
-    message(STATUS "Building a static KLatexFormula library (klflib) (KLF_KLFLIB_STATIC)")
-  else(KLF_KLFLIB_STATIC)
-    message(STATUS "Building a shared KLatexFormula library (klflib) (KLF_KLFLIB_STATIC)")
-  endif(KLF_KLFLIB_STATIC)
+  if(KLF_LIBKLFAPP_STATIC)
+    message(STATUS "Building a static KLatexFormula klfapp library (KLF_LIBKLFAPP_STATIC)")
+  else(KLF_LIBKLFAPP_STATIC)
+    message(STATUS "Building a shared KLatexFormula klfapp library (KLF_LIBKLFAPP_STATIC)")
+  endif(KLF_LIBKLFAPP_STATIC)
 endif(KLF_BUILD_GUI)
 
 # Target architecture (allows compile for 32-bit on 64-bit architectures)
@@ -273,9 +364,21 @@ else(KLF_USE_QT4)
 endif(KLF_USE_QT4)
 
 
+# some additional variables that get shown on some versions of CMake that could be hidden
+mark_as_advanced(
+	EXECUTABLE_OUTPUT_PATH
+	LIBRARY_OUTPUT_PATH
+	CMAKE_BACKWARDS_COMPATIBILITY
+	LIB_SUFFIX
+	)
+
+
 # Install Paths
 # -------------
-# include after CPack declarations, so that changes in CMAKE_INSTALL_PREFIX take effect.
+
+message(STATUS "")
+message(STATUS "[INSTALLATION SETTINGS]")
+
 include(klfinstallpaths)
 
 
@@ -290,7 +393,18 @@ include(klfcpack)
 add_subdirectory(src)
 
 
+message(STATUS "")
+message(STATUS "[ADDITIONAL SETTINGS]")
+
+
 # Doxygen
 # -------
 include(klfdoxygen)
+
+
+
+message(STATUS "")
+message(STATUS "[DONE]")
+message(STATUS "")
+
 

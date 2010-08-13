@@ -395,9 +395,25 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="btnSetExportProfile">
+             <spacer name="hspc">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>6</width>
+                <height>10</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnSetExportProfile">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -1036,6 +1052,22 @@
     <hint type="destinationlabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnSetExportProfile</sender>
+   <signal>clicked()</signal>
+   <receiver>btnSetExportProfile</receiver>
+   <slot>showMenu()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>393</x>
+     <y>346</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>356</y>
     </hint>
    </hints>
   </connection>

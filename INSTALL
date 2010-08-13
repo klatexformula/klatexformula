@@ -1,3 +1,17 @@
+
+The very quick install guide
+----------------------------
+
+> mkdir build && cd build
+build> cmake ..                  <--- cmake step
+build> make
+build> sudo make install
+Password:
+
+Where the cmake step can be repeated with options to set cache variables, like
+build> cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+
+
 For detailed up-to-date installation instructions, please see
 http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
 

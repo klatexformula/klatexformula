@@ -33,7 +33,7 @@
 #include <QStyleOptionButton>
 #include <QRegExp>
 
-#include "klfconfig.h"
+//#include "klfconfig.h"
 #include "klfcolorchooser.h"
 
 #include <ui_klfcolorchoosewidget.h>
@@ -41,6 +41,8 @@
 
 
 #define cstr(x) (x).toLocal8Bit().constData()
+
+
 
 
 
@@ -595,6 +597,8 @@ void KLFColorChooseWidget::updatePaletteCustom()
   fillPalette(_customcolors, u->mCustomColorsPalette);
 }
 
+
+
 // static
 void KLFColorChooseWidget::ensureColorListsInstance()
 {
@@ -859,10 +863,20 @@ QPixmap KLFColorChooser::colorPixmap(const QColor& color, const QSize& size)
 
 
 // static
+int KLFColorChooser::staticUserMaxColors = 10;   // default of 10 colors
+
+
+// static
+void KLFColorChooser::setUserMaxColors(int maxColors)
+{
+  staticUserMaxColors = maxColors;
+}
+
+// static
 void KLFColorChooser::ensureColorListInstance()
 {
   if ( _colorlist == 0 )
-    _colorlist = new KLFColorList(klfconfig.UI.maxUserColors);
+    _colorlist = new KLFColorList(staticUserMaxColors);
 }
 // static
 void KLFColorChooser::setColorList(const QList<QColor>& colors)

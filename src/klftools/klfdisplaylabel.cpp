@@ -27,12 +27,11 @@
 #include <QMessageBox>
 #include <QVariant>
 
-#include "klfconfig.h"
 #include "klfdisplaylabel.h"
 
 
 KLFDisplayLabel::KLFDisplayLabel(QWidget *parent)
-  : QLabel(parent), mTooltipFile(NULL)
+  : QLabel(parent), pEnableToolTipPreview(true), mToolTipFile(NULL)
 {
   setText(QString());
   setLabelFixedSize(QSize(120,80));
@@ -44,8 +43,8 @@ KLFDisplayLabel::KLFDisplayLabel(QWidget *parent)
 
 KLFDisplayLabel::~KLFDisplayLabel()
 {
-  if (mTooltipFile)
-    delete mTooltipFile;
+  if (mToolTipFile)
+    delete mToolTipFile;
 }
 
 void KLFDisplayLabel::setLabelFixedSize(const QSize& size)
@@ -70,38 +69,38 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
   // un-set any error
   set_error(false);
 
-  if (mTooltipFile) {
-    delete mTooltipFile;
-    mTooltipFile = 0;
+  if (mToolTipFile) {
+    delete mToolTipFile;
+    mToolTipFile = 0;
   }
   // no big preview by default
   _bigPreviewText = "";
   // but if one is given then prepare it (prepare it even if "enableToolTipPreview" is false,
   // because we will need it for the "showBigPreview" button)
   if ( ! tooltipimage.isNull() ) {
-    mTooltipFile
-      = new QTemporaryFile(klfconfig.BackendSettings.tempDir+"/klf_tooltip_XXXXXX.png", this);
-    if ( ! mTooltipFile->open() ) {
-      qWarning("WARNING: Failed open for Tooltip Temp Image!\n%s\n",
-	       qPrintable(mTooltipFile->fileTemplate()));
-      delete mTooltipFile;
-      mTooltipFile = 0;
+    QString tempdir = QDir::tempPath();
+    mToolTipFile = new QTemporaryFile(tempdir+"/klf_tooltip_XXXXXX.png", this);
+    if ( ! mToolTipFile->open() ) {
+      qWarning("WARNING: Failed open for ToolTip Temp Image!\n%s\n",
+	       qPrintable(mToolTipFile->fileTemplate()));
+      delete mToolTipFile;
+      mToolTipFile = 0;
     } else {
-      mTooltipFile->setAutoRemove(true);
-      bool res = tooltipimage.save(mTooltipFile, "PNG");
+      mToolTipFile->setAutoRemove(true);
+      bool res = tooltipimage.save(mToolTipFile, "PNG");
       if ( ! res ) {
 	QMessageBox::critical(this, tr("Error"), tr("Failed write to ToolTip Temp Image file %1!")
-			      .arg(mTooltipFile->fileName()));
+			      .arg(mToolTipFile->fileName()));
 	qWarning("WARNING: Failed write to Tooltip temp image to temporary file `%s' !\n",
-		 qPrintable(mTooltipFile->fileTemplate()));
-	delete mTooltipFile;
-	mTooltipFile = 0;
+		 qPrintable(mToolTipFile->fileTemplate()));
+	delete mToolTipFile;
+	mToolTipFile = 0;
       } else {
-	_bigPreviewText = QString("<img src=\"%1\">").arg(mTooltipFile->fileName());
+	_bigPreviewText = QString("<img src=\"%1\">").arg(mToolTipFile->fileName());
       }
     }
   }
-  if (klfconfig.UI.enableToolTipPreview) {
+  if (pEnableToolTipPreview) {
     setToolTip(QString("<p style=\"padding: 8px 8px 8px 8px;\">%1</p>").arg(_bigPreviewText));
   } else {
     setToolTip(QString(""));

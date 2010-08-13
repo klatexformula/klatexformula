@@ -35,33 +35,38 @@ class KLF_EXPORT KLFDisplayLabel : public QLabel
 {
   Q_OBJECT
 
-  Q_PROPERTY(QSize labelFixedSize READ labelFixedSize WRITE setLabelFixedSize)
-  Q_PROPERTY(QString bigPreviewText READ bigPreviewText)
+  Q_PROPERTY(QSize labelFixedSize READ labelFixedSize WRITE setLabelFixedSize) ;
+  Q_PROPERTY(bool enableToolTipPreview READ enableToolTipPreview WRITE setEnableToolTipPreview) ;
+
+  Q_PROPERTY(QString bigPreviewText READ bigPreviewText) ;
 public:
   KLFDisplayLabel(QWidget *parent);
   virtual ~KLFDisplayLabel();
 
-  QSize labelFixedSize() const { return pLabelFixedSize; }
+  virtual QSize labelFixedSize() const { return pLabelFixedSize; }
+  virtual bool enableToolTipPreview() const { return pEnableToolTipPreview; }
 
-  QString bigPreviewText() const { return _bigPreviewText; }
+  virtual QString bigPreviewText() const { return _bigPreviewText; }
 
 signals:
   void labelDrag();
 
 public slots:
-  void setLabelFixedSize(const QSize& size);
+  virtual void setLabelFixedSize(const QSize& size);
+  virtual void setEnableToolTipPreview(bool enable) { pEnableToolTipPreview = enable; }
 
-  void displayClear();
-  void display(QImage displayimg, QImage tooltipimage, bool labelenabled = true);
-  void displayError(bool labelenabled = false);
+  virtual void displayClear();
+  virtual void display(QImage displayimg, QImage tooltipimage, bool labelenabled = true);
+  virtual void displayError(bool labelenabled = false);
 
 protected:
-
-  void mouseMoveEvent(QMouseEvent *e);
+  virtual void mouseMoveEvent(QMouseEvent *e);
 
 private:
+
   QSize pLabelFixedSize;
-  QTemporaryFile *mTooltipFile;
+  bool pEnableToolTipPreview;
+  QTemporaryFile *mToolTipFile;
 
   QPalette pDefaultPalette;
   QPalette pErrorPalette;

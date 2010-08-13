@@ -6,6 +6,9 @@
 
 # KLatexFormula KTextEditor Plugin
 
+message(STATUS "")
+message(STATUS "[KDE4 SETTINGS]")
+
 # find KDE4
 find_package(KDE4)
 if(NOT KDE4_KDECONFIG_EXECUTABLE)
@@ -19,8 +22,20 @@ include(KDE4Defaults)
 include_directories(${KDE4_INCLUDES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../klfbackend")
 
+mark_as_advanced(
+	Automoc4_DIR
+	KDE4_AUTH_POLICY_FILES_INSTALL_DIR
+	KDE4_BUILD_TESTS
+	KDE4_DATA_DIR
+	KDE4_ENABLE_FINAL
+	KDE4_ENABLE_FPIE
+	KDE4_ENABLE_HTMLHANDBOOK
+	KDE4_PLASMA_OPENGL_FOUND
+	KDE4_SERIALIZE_TOOL
+	KDE4_USE_COMMON_CMAKE_PACKAGE_CONFIG_DIR
+)
 
-########### next target ###############
+# klfkateplugin plugin target
 
 set(ktexteditor_klf_PART_SRCS klfkateplugin.cpp klfkateplugin_config.cpp )
 

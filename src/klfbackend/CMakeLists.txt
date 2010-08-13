@@ -31,12 +31,12 @@ KLFInstHeaders(klfbackend_INSTHEADERS "${klfbackend_HEADERS}")
 if(KLF_USE_QT4)
   qt4_wrap_cpp(klfbackend_MOC_CPPS ${klfbackend_MOCHEADERS})
   set(klfbackend_allsrc ${klfbackend_SRCS} ${klfbackend_MOC_CPPS})
-  if (KLF_BACKEND_STATIC)
+  if (KLF_LIBKLFBACKEND_STATIC)
     add_library(klfbackend STATIC ${klfbackend_allsrc})
     set_target_properties(klfbackend PROPERTIES
 	      VERSION		${KLF_LIB_VERSION}
     )
-  else(KLF_BACKEND_STATIC)
+  else(KLF_LIBKLFBACKEND_STATIC)
     add_library(klfbackend SHARED ${klfbackend_allsrc})
     target_link_libraries(klfbackend ${QT_LIBRARIES})
     set_target_properties(klfbackend PROPERTIES
@@ -47,7 +47,7 @@ if(KLF_USE_QT4)
       set(klfbackend_FRAMEWORKS ${KLF_QT_FRAMEWORKS})
       KLFMakeFramework(klfbackend "${klfbackend_FRAMEWORKS}" "${klfbackend_INSTHEADERS}")
     endif(KLF_MACOSX_BUNDLES)
-  endif(KLF_BACKEND_STATIC)
+  endif(KLF_LIBKLFBACKEND_STATIC)
   set_target_properties(klfbackend PROPERTIES
 	      PUBLIC_HEADER "${klfbackend_INSTHEADERS}"
   )
@@ -56,17 +56,17 @@ else(KLF_USE_QT4)
   include_directories(${QT_INCLUDE_DIR})
   qt_wrap_cpp(klfbackend-qt3 klfbackend_SRCS ${klfbackend_MOCHEADERS})
   set(klfbackend_allsrc ${klfbackend_SRCS})
-  if (KLF_BACKEND_STATIC)
+  if (KLF_LIBKLFBACKEND_STATIC)
     add_library(klfbackend-qt3 STATIC ${klfbackend_allsrc})
-  else(KLF_BACKEND_STATIC)
+  else(KLF_LIBKLFBACKEND_STATIC)
     add_library(klfbackend-qt3 SHARED ${klfbackend_allsrc})
     set_target_properties(klfbackend PROPERTIES
 	      VERSION		${KLF_LIB_VERSION}
 	      SOVERSION		${KLF_LIB_VERSION}
     )
-# ....... TODO for APPLE ...... MAYBE: No frameworks, only normal libs (how is qt3 compiled?)
-#    KLFMakeFramework(klfbackend-qt3 "${klfbackend_INSTHEADERS}")
-  endif(KLF_BACKEND_STATIC)
+  # ....... TODO for APPLE ...... MAYBE: No frameworks, only normal libs (how is qt3 compiled?)
+  #    KLFMakeFramework(klfbackend-qt3 "${klfbackend_INSTHEADERS}")
+  endif(KLF_LIBKLFBACKEND_STATIC)
   target_link_libraries(klfbackend-qt3 ${QT_LIBRARIES})
   set_target_properties(klfbackend-qt3 PROPERTIES
 	      PUBLIC_HEADER "${klfbackend_INSTHEADERS}"

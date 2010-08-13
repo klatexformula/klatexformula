@@ -4,6 +4,21 @@
 # $Id$
 # ##################################################### #
 
+macro(KLFMessageBundleExtraDeps var textname)
+  if(var)
+    message(STATUS "Will bundle library and framework dependencies into ${textname}")
+  else(var)
+    message(STATUS "Will not bundle library and framework dependencies into ${textname}")
+  endif(var)
+endmacro(KLFMessageBundleExtraDeps var textname)
+
+if(APPLE AND KLF_MACOSX_BUNDLES)
+  option(KLF_MACOSX_BUNDLE_EXTRAS
+	"Bundle dependency libraries and frameworks into bundles (general setting)"  ON)
+  KLFMessageBundleExtraDeps(KLF_MACOSX_BUNDLE_EXTRAS
+	"bundles in general, unless bundle-specific settings specifies otherwise")
+endif(APPLE AND KLF_MACOSX_BUNDLES)
+
 set(KLF_QT_FRAMEWORKS ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTXML_LIBRARY}
 	      ${QT_QTSQL_LIBRARY} ${QT_QTDBUS_LIBRARY} CACHE STRING "Qt Frameworks on Mac OS X")
 string(REGEX REPLACE "([^;]+)/([a-zA-Z0-9_-]+.framework)"
@@ -61,7 +76,7 @@ macro(KLFBundlePrivateImport TGT BUNDLE VAR_SRCS FILE FULLLOCATION LOCAL)
 
   # add the command to copy the file or directory into the bundle
   add_custom_command(TARGET ${TGT}_maclibpacked PRE_BUILD
-#	OUTPUT "${BUNDLE}/Contents/${LOCAL}/${FILE}"
+	# cmake -E ... doesn't work well enough for us, plus anyway mac OS X is a unix-like platform
 	COMMAND mkdir -p "${dirnamelocaltarget}"
 	COMMAND rm -Rf "${BUNDLE}/Contents/${LOCAL}/${FILE}"
 	COMMAND cp -Rf "${FULLLOCATION}"
@@ -132,7 +147,7 @@ macro(KLFMakeBundle TGT BUNDLE)
   )
   add_dependencies(bundleclean ${TGT}_clean)
 
-  add_custom_target(${TGT}_maclibpacked ALL
+  add_custom_target(${TGT}_maclibpacked
 	DEPENDS ${TGT}
 	COMMENT "Packaging non-system libraries into bundle ${TGT}"
   )
@@ -146,8 +161,18 @@ macro(KLFMakeBundle TGT BUNDLE)
 endmacro()
 
 macro(KLFBundlePackage TGT BUNDLEXTRA)
-  message("Extras: ${BUNDLEXTRA}")
+  #KLFDeclareCacheVarOptionFollow(specificoption genericoption cachestring)
+  KLFDeclareCacheVarOptionFollow(KLF_MACOSX_BUNDLE_EXTRAS_${TGT} KLF_MACOSX_BUNDLE_EXTRAS
+	"Bundle dependency frameworks into bundle ${TGT}")
+  KLFMessageBundleExtraDeps(KLF_MACOSX_BUNDLE_EXTRAS "${TGT}")
+
   add_dependencies(${TGT}_maclibpacked ${BUNDLEXTRA})
+  
+  if(KLF_MACOSX_BUNDLE_EXTRAS_${TGT})
+    # perform ${TGT}_maclibpacked in ALL. Just make it depend on a target that is built in ALL
+    add_custom_target(${TGT}_maclibpacked_all ALL )
+    add_dependencies(${TGT}_maclibpacked_all ${TGT}_maclibpacked)
+  endif(KLF_MACOSX_BUNDLE_EXTRAS_${TGT})
 endmacro()
 
 macro(KLFMakeFramework TGT HEADERS)

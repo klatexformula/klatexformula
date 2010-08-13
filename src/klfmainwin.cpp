@@ -201,6 +201,52 @@ void KLFPreviewBuilderThread::settingsChanged(const KLFBackend::klfSettings& set
 
 // ----------------------------------------------------------------------------
 
+/* **
+// This demonstrates the usage of KLFAbstractOutputSaver, as there is no other example
+// as of now.
+class klf_main_win_dummy_output_saver : public KLFAbstractOutputSaver
+{
+public:
+  klf_main_win_dummy_output_saver() { }
+  virtual ~klf_main_win_dummy_output_saver() { }
+
+  virtual QStringList supportedMimeFormats()
+  {
+    return QStringList() << "application/x-klf-dummy-1" << "application/x-klf-dummy-2" ;
+  }
+
+  virtual QString formatTitle(const QString& key)
+  {
+    if (key == "application/x-klf-dummy-1")
+      return "Dummy 1 format";
+    if (key == "application/x-klf-dummy-2")
+      return "Second Dummy format";
+    return QString();
+  }
+
+  virtual QStringList formatFilePatterns(const QString& key)
+  {
+    if (key == "application/x-klf-dummy-1")
+      return QStringList() << "*.dummy1";
+    if (key == "application/x-klf-dummy-2")
+      return QStringList() << "*.dummy2" << "*.dmy2";
+    return QStringList();
+  }
+
+  virtual bool saveToFile(const QString& key, const QString& fileName, const KLFBackend::klfOutput& output)
+  {
+    return output.result.save(fileName, "PNG");
+  }
+  
+};
+*/
+
+
+
+
+
+
+// ----------------------------------------------------------------------------
 
 
 KLFMainWin::KLFMainWin()
@@ -268,6 +314,7 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(slotNewSymbolTyped(const QString&)));
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
+  u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
 
   connect(u->lblOutput, SIGNAL(labelDrag()), this, SLOT(slotDrag()));
 
@@ -433,6 +480,9 @@ KLFMainWin::KLFMainWin()
 
   _loadedlibrary = true;
   loadLibrary();
+
+  //  / ** \bug .................... * /
+  //  registerOutputSaver(new klf_main_win_dummy_output_saver);
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -591,22 +641,25 @@ void KLFMainWin::saveSettings()
 					 klfconfig.UI.labelOutputFixedSize.height());
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
+  u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
 
   if (klfconfig.UI.enableRealTimePreview) {
     if ( ! mPreviewBuilderThread->isRunning() ) {
       delete mPreviewBuilderThread;
-      mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(), _settings,
-							  klfconfig.UI.labelOutputFixedSize.width(),
-							  klfconfig.UI.labelOutputFixedSize.height());
+      mPreviewBuilderThread =
+	new KLFPreviewBuilderThread(this, collectInput(), _settings,
+				    klfconfig.UI.labelOutputFixedSize.width(),
+				    klfconfig.UI.labelOutputFixedSize.height());
       mPreviewBuilderThread->start();
     }
   } else {
     if ( mPreviewBuilderThread->isRunning() ) {
       delete mPreviewBuilderThread;
       // do NOT leave a NULL mPreviewBuilderThread !
-      mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(), _settings,
-							  klfconfig.UI.labelOutputFixedSize.width(),
-							  klfconfig.UI.labelOutputFixedSize.height());
+      mPreviewBuilderThread =
+	new KLFPreviewBuilderThread(this, collectInput(), _settings,
+				    klfconfig.UI.labelOutputFixedSize.width(),
+				    klfconfig.UI.labelOutputFixedSize.height());
     }
   }
 }
@@ -1301,6 +1354,20 @@ void KLFMainWin::registerHelpLinkAction(const QString& path, QObject *object, co
 					bool wantUrlParam)
 {
   mHelpLinkActions << HelpLinkAction(path, object, member, wantUrlParam);
+}
+
+
+void KLFMainWin::registerOutputSaver(KLFAbstractOutputSaver *outputsaver)
+{
+  if (outputsaver == NULL)
+    qWarning()<<KLF_FUNC_NAME<<": Refusing to register NULL outputsaver!";
+  else
+    pOutputSavers.append(outputsaver);
+}
+
+void KLFMainWin::unregisterOutputSaver(KLFAbstractOutputSaver *outputsaver)
+{
+  pOutputSavers.removeAll(outputsaver);
 }
 
 
@@ -2048,6 +2115,20 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     formatsByFilterName[s] = f;
   }
 
+  QMap<QString,QString> externFormatsByFilterName;
+  QMap<QString,KLFAbstractOutputSaver*> externSaverByKey;
+  int k, j;
+  for (k = 0; k < pOutputSavers.size(); ++k) {
+    QStringList xoformats = pOutputSavers[k]->supportedMimeFormats();
+    for (j = 0; j < xoformats.size(); ++j) {
+      QString f = QString("%1 (%2)").arg(pOutputSavers[k]->formatTitle(xoformats[j]),
+					 pOutputSavers[k]->formatFilePatterns(xoformats[j]).join(" "));
+      filterformatlist << f;
+      externFormatsByFilterName[f] = xoformats[j];
+      externSaverByKey[xoformats[j]] = pOutputSavers[k];
+    }
+  }
+
   QString s;
   s = tr("EPS PostScript (*.eps)");
   filterformatlist.push_front(s);
@@ -2082,11 +2163,30 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   if (fname.isEmpty())
     return;
 
+  // first test if it's an extern-format
+  if ( externFormatsByFilterName.contains(selectedfilter) ) {
+    // use an external output-saver
+    QString key = externFormatsByFilterName[selectedfilter];
+    if ( ! externSaverByKey.contains(key) ) {
+      qWarning()<<KLF_FUNC_NAME<<": Internal error: externSaverByKey() does not contain key="<<key<<": "<<externSaverByKey;
+      return;
+    }
+    KLFAbstractOutputSaver *saver = externSaverByKey[key];
+    if (saver == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": Internal error: saver is NULL!";
+      return;
+    }
+    bool result = saver->saveToFile(key, fname, _output);
+    if (!result)
+      qWarning()<<KLF_FUNC_NAME<<": saver failed to save format "<<key<<".";
+    return;
+  }
+
   QFileInfo fi(fname);
   klfconfig.UI.lastSaveDir = fi.absolutePath();
   if ( fi.suffix().length() == 0 ) {
     // get format and suffix from selected filter
-    if ( ! formatsByFilterName.contains(selectedfilter) ) {
+    if ( ! formatsByFilterName.contains(selectedfilter) && ! externFormatsByFilterName.contains(selectedfilter) ) {
       qWarning("%s: ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n", KLF_FUNC_NAME,
 	       qPrintable(selectedfilter));
       format = "png";

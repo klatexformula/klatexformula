@@ -527,7 +527,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       continue;
 
     QDir thisplugdir(pluginsdirs[i]);
-    QStringList plugins = thisplugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
+    QStringList plugins = thisplugdir.entryList(KLF_DLL_EXT_LIST, QDir::Files);
     KLFPluginGenericInterface * pluginInstance;
     for (j = 0; j < plugins.size(); ++j) {
       QString pluginfname = plugins[j];
@@ -730,8 +730,8 @@ int main(int argc, char **argv)
     klfDbgT("$$About to main_reload_translations$$");
     klf_reload_translations(&app, klfconfig.UI.locale);
 
+    KLFColorChooser::setUserMaxColors(klfconfig.UI.maxUserColors);
     KLFColorChooser::setColorList(klfconfig.UI.userColorList);
-
     KLFColorChooseWidget::setRecentCustomColors(klfconfig.UI.colorChooseWidgetRecent,
 						klfconfig.UI.colorChooseWidgetCustom);
 

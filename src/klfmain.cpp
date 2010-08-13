@@ -162,7 +162,7 @@ void KLFAddOnInfo::initPlugins()
   d->pluginList = QStringList();
 
   // first add all plugins that are in :/plugins
-  QStringList unorderedplugins = plugdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
+  QStringList unorderedplugins = plugdir.entryList(KLF_DLL_EXT_LIST, QDir::Files);
   int k;
   for (k = 0; k < unorderedplugins.size(); ++k) {
     d->pluginList << unorderedplugins[k];
@@ -241,7 +241,7 @@ void KLFAddOnInfo::initPlugins()
       continue;
     }
     QDir plugsubdir(d->rccmountroot + "/plugins/" + dir);
-    QStringList plugins = plugsubdir.entryList(QStringList() << KLF_DLL_EXT, QDir::Files);
+    QStringList plugins = plugsubdir.entryList(KLF_DLL_EXT_LIST, QDir::Files);
     int j;
     for (j = 0; j < plugins.size(); ++j) {
       QString p = dir+"/"+plugins[j];

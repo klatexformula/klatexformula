@@ -346,7 +346,10 @@ public:
 
   virtual QSize sizeHint() const;
 
-  static void ensureColorListInstance();
+  /** This function must be called before any instance is created, and before
+   * calling setColorList() and/or colorList(), otherwise it has no effect. */
+  static void setUserMaxColors(int maxcolors);
+
   static void setColorList(const QList<QColor>& colorlist);
   static QList<QColor> colorList();
 
@@ -397,6 +400,11 @@ private:
 
   static KLFColorList *_colorlist;
   static QStyle *mReplaceButtonStyle;
+
+  static int staticUserMaxColors;
+
+  static void ensureColorListInstance();
+
 };
 
 

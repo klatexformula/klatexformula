@@ -76,6 +76,40 @@ private:
 };
 
 
+/** A helper interface class to implement more export formats to save output (to file).
+ */
+class KLFAbstractOutputSaver
+{
+public:
+  KLFAbstractOutputSaver() { }
+  virtual ~KLFAbstractOutputSaver() { }
+
+  /** Returns a list of mime-types of supported file formats */
+  virtual QStringList supportedMimeFormats() = 0;
+
+  /** Returns the human-readable, (possibly translated,) label to display in save dialog that
+   * the user can select to save in this format.
+   *
+   * \param key is a mime-type returned by \ref supportedMimeFormats().
+   */
+  virtual QString formatTitle(const QString& key) = 0;
+
+  /** Returns the file pattern(s) that the files of this format (normally) match.
+   * syntax is simple pattern eg. \c "*.png".
+   *
+   * The patterns are joined to spaces to form a filter that is given to QFileDialog.
+   */
+  virtual QStringList formatFilePatterns(const QString& key) = 0;
+
+  /** Actually save to the file \c fileName, using the format \c key.
+   *
+   * The subclass is responsible for notifying the user of possible errors that have occurred.
+   *
+   * Overwrite confirmation has already been required (if applicable).
+   */
+  virtual bool saveToFile(const QString& key, const QString& fileName, const KLFBackend::klfOutput& output) = 0;
+};
+
 
 /**
  * A helper that runs in a different thread that generates previews in real-time as user types text,
@@ -187,6 +221,9 @@ public:
   QString widgetStyle() const { return _widgetstyle; }
 
   void registerHelpLinkAction(const QString& path, QObject *object, const char * member, bool wantUrlParam);
+
+  void registerOutputSaver(KLFAbstractOutputSaver *outputsaver);
+  void unregisterOutputSaver(KLFAbstractOutputSaver *outputsaver);
 
 signals:
 
@@ -380,6 +417,8 @@ protected:
 
   void getMissingCmdsFor(const QString& symbol, QStringList * missingCmds, QString *guiText,
 			 bool wantHtmlText = true);
+
+  QList<KLFAbstractOutputSaver*> pOutputSavers;
 };
 
 #endif
