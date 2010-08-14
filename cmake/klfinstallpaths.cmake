@@ -29,16 +29,18 @@ if(APPLE AND KLF_MACOSX_BUNDLES)
   set(install_lib_dir "/Library/Frameworks")
 endif(APPLE AND KLF_MACOSX_BUNDLES)
 
-#KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice calcoptvalue depvar1)
+#KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice
+#                                       calcoptvalue depvar1)
 KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_LIB_DIR
 	STRING "Library installation directory (relative to install prefix, or absolute)"
-	ON                      # updatenotice
-	"${install_lib_dir}"    # calculated value
-	KLF_LIB_SUFFIX          # dependance variable
+	ON                               # updatenotice
+	"${install_lib_dir}"             # calculated value
+	KLF_LIB_SUFFIX                   # dependance variables
 )
 message(STATUS "Installing libraries to ${KLF_INSTALL_LIB_DIR} (KLF_INSTALL_LIB_DIR)")
 if(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}" AND klf_changed_KLF_INSTALL_LIB_DIR)
-  KLFNote("You have chosen an absolute KLF_INSTALL_LIB_DIR path. There is nothing wrong with that, but keep in mind that this value will NOT be updated if you change CMAKE_INSTALL_PREFIX.")
+  KLFNote("You have chosen an absolute KLF_INSTALL_LIB_DIR path. There is nothing wrong with that,
+    but keep in mind that this value will NOT be updated if you change CMAKE_INSTALL_PREFIX.")
 endif(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}" AND klf_changed_KLF_INSTALL_LIB_DIR)
 
 # Utility variable. Same as KLF_INSTALL_LIB_DIR, but garanteed to be absolute path.
@@ -68,7 +70,8 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_BIN_DIR
 )
 message(STATUS "Installing binary to ${KLF_INSTALL_BIN_DIR} (KLF_INSTALL_BIN_DIR)")
 if(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}" AND klf_changed_KLF_INSTALL_BIN_DIR)
-  KLFNote("You have chosen an absolute KLF_INSTALL_BIN_DIR. There is nothing wrong with that, but keep in mind that this value will NOT be updated if you change CMAKE_INSTALL_PREFIX.")
+  KLFNote("You have chosen an absolute KLF_INSTALL_BIN_DIR. There is nothing wrong with that,
+    but keep in mind that this value will NOT be updated if you change CMAKE_INSTALL_PREFIX.")
 endif(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}" AND klf_changed_KLF_INSTALL_BIN_DIR)
 
 # Utility variable. Same as KLF_INSTALL_BIN_DIR, but garanteed to be absolute path.
@@ -281,7 +284,7 @@ macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
   # it's a headache)  because on windows installing to absolute paths with drive letters is EVIL
   # when using DESTDIR=... (eg. for packaging). Instead, install to a dummy directory specified as
   # a relative path in final installation directory, then remove that dummy directory.
-  set(klf_dummy_inst_dir "dummy_install_directory")
+  set(klf_dummy_inst_dir "__klf_dummy_install_directory__")
 
   KLFConditionalSet(inst_${targetlib}_runtime_dir ${varOptBase}SO_LIBS
 	"${inst_lib_dir}"  "${klf_dummy_inst_dir}")

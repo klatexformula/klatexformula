@@ -38,7 +38,6 @@
 #include "klflib.h"
 #include "klflibview.h"
 #include "klflibdbengine.h"
-
 #include "klflibdbengine_p.h"
 
 
@@ -112,7 +111,7 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
     if ( ! db.isValid() ) {
       // connection not already open
       db = QSqlDatabase::addDatabase("QSQLITE", dburl.toString());
-      QString path = urlLocalFilePath(dburl);
+      QString path = klfUrlLocalFilePath(dburl);
       db.setDatabaseName(path);
       if ( !db.open() || db.lastError().isValid() ) {
 	QMessageBox::critical(0, tr("Error"),
@@ -151,7 +150,7 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
   QSqlDatabase db = QSqlDatabase::database(dburlstr);
   if (!db.isValid()) {
     db = QSqlDatabase::addDatabase("QSQLITE", dburlstr);
-    QString path = urlLocalFilePath(url);
+    QString path = klfUrlLocalFilePath(url);
     db.setDatabaseName(path);
     r = db.open(); // go open (here create) the DB
     if ( !r || db.lastError().isValid() ) {
@@ -1207,16 +1206,16 @@ bool KLFLibDBEngine::deleteEntries(const QString& subResource, const QList<entry
   return !failed;
 }
 
-bool KLFLibDBEngine::saveAs(const QUrl& newPath)
+bool KLFLibDBEngine::saveTo(const QUrl& newPath)
 {
   if (newPath.scheme() == QLatin1String("klf+sqlite") && url().scheme() == QLatin1String("klf+sqlite")) {
     if (!newPath.host().isEmpty()) {
-      qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Expected empty host!";
+      qWarning()<<"KLFLibDBEngine::saveTo("<<newPath<<"): Expected empty host!";
       return false;
     }
-    return QFile::copy(urlLocalFilePath(url()), urlLocalFilePath(newPath));
+    return QFile::copy(klfUrlLocalFilePath(url()), klfUrlLocalFilePath(newPath));
   }
-  qWarning()<<"KLFLibDBEngine::saveAs("<<newPath<<"): Bad scheme!";
+  qWarning()<<"KLFLibDBEngine::saveTo("<<newPath<<"): Bad scheme!";
   return false;
 }
 

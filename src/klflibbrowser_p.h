@@ -47,6 +47,7 @@
 #include <ui_klflibexportdialog.h>
 
 #include "klflibview.h"
+#include "klfconfig.h"
 #include "klflibbrowser.h"
 
 /** \internal */
@@ -214,6 +215,16 @@ public slots:
       qWarning() << "The factory can't open a view of type "<<viewTypeIdent<<"!";
       return false;
     }
+    // some view settings as given by klfconfig
+    if (viewTypeIdent == "default") { // category tree list
+      KLFLibDefaultView *defview = qobject_cast<KLFLibDefaultView*>(v);
+      if (defview == NULL) {
+	qWarning()<<KLF_FUNC_NAME<<": Created view of type"<<viewTypeIdent<<", that is NOT a KLFLibDefaultView ?!?";
+      } else {
+	defview->setGroupSubCategories(klfconfig.LibraryBrowser.groupSubCategories);
+      }
+    }
+
     v->setContextMenuPolicy(Qt::CustomContextMenu);
     // get informed about selection changes
     connect(v, SIGNAL(entriesSelected(const KLFLibEntryList& )),

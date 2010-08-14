@@ -32,6 +32,7 @@
 
 #include "klflib.h"
 #include "klflibview.h"
+#include "klfutil.h"
 #include "klfliblegacyengine.h"
 #include "klfliblegacyengine_p.h"
 
@@ -150,7 +151,7 @@ QMap<QString,KLFLibLegacyEngine*> KLFLibLegacyEngine::staticLegacyEngineInstance
 // static
 KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *parent)
 {
-  QString fname = urlLocalFilePath(url);
+  QString fname = klfUrlLocalFilePath(url);
   if ( ! QFileInfo(fname).isReadable() ) {
     qWarning("KLFLibLegacyEngine::openUrl(): file %s does not exist!", qPrintable(fname));
     return NULL;
@@ -350,7 +351,9 @@ int KLFLibLegacyEngine::findResourceName(const QString& resname)
 // private
 KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url,
 				       QObject *parent)
-  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureSaveTo|FeatureSubResources, parent), pCloneOf(NULL)
+  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureSaveTo|FeatureSubResources, parent),
+    pCloneOf(NULL),
+    pAutoSaveTimer(NULL)
 {
   // load library
   pFileName = fileName;
@@ -362,6 +365,7 @@ KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& r
   QString fncan = QFileInfo(fileName).canonicalFilePath();
   if (staticLegacyEngineInstances.contains(fncan)) {
     pCloneOf = staticLegacyEngineInstances[fncan];
+    pCloneOf->pMyClones.append(this);
     klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"' as clone of "<<pCloneOf<<" (fncan="<<fncan<<")");
   } else {
     staticLegacyEngineInstances[fncan] = this;
@@ -393,12 +397,55 @@ KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& r
 
 KLFLibLegacyEngine::~KLFLibLegacyEngine()
 {
-  if (!pCloneOf && !isReadOnly())
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg(" this="<<(void*)this<<", pCloneOf="<<(void*)pCloneOf<<", my clones="<<pMyClones) ;
+
+  if (pCloneOf == NULL && !isReadOnly())
     save();
+
+  // notify all my clones that I'm destroyed
+  if (pMyClones.size()) {
+    // my first clone will be the new master clone
+    KLFLibLegacyEngine *newCloneMaster = pMyClones[0];
+    newCloneMaster->takeOverFromClone();
+    newCloneMaster->pCloneOf = NULL;
+    klfDbg(" -- clone #0: "<<pMyClones[0]<<": is new master, he took over.") ;
+    int k;
+    for (k = 1; k < pMyClones.size(); ++k) {
+      klfDbg(" -- clone #"<<k<<": "<<pMyClones[k]<<": will be a clone of the new master, "<<newCloneMaster<<".") ;
+      pMyClones[k]->pCloneOf = newCloneMaster;
+      newCloneMaster->pMyClones.append(pMyClones[k]);
+    }
+    klfDbg("Notified "<<k<<" clones of my destruction. the new clone master is "<<newCloneMaster) ;
+  }
 
   if (staticLegacyEngineInstances.keys(this).size())
     staticLegacyEngineInstances.remove(staticLegacyEngineInstances.key(this));
 }
+
+void KLFLibLegacyEngine::takeOverFromClone()
+{
+  klfDbg("called. pCloneOf="<<pCloneOf) ;
+  if (pCloneOf == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": Called but I have a NULL clone !?!?";
+    return;
+  }
+  if (pAutoSaveTimer != NULL)
+    delete pAutoSaveTimer;
+
+  this->pFileName = pCloneOf->pFileName;
+  this->pLibrary = pCloneOf->pLibrary;
+  this->pResources = pCloneOf->pResources;
+  this->pLegacyLibType = pCloneOf->pLegacyLibType;
+  this->pAutoSaveTimer = pCloneOf->pAutoSaveTimer;
+
+  // we're on our own
+  pCloneOf = NULL;
+
+  // take over clone's timer
+  pAutoSaveTimer->setParent(this);
+}
+
 
 bool KLFLibLegacyEngine::canModifyData(const QString& subResource, ModifyType modifytype) const
 {
@@ -749,7 +796,7 @@ bool KLFLibLegacyEngine::saveTo(const QUrl& newPath)
     return pCloneOf->saveTo(newPath);
 
   if (newPath.scheme() == "klf+legacy") {
-    return saveLibraryFile(urlLocalFilePath(newPath), pResources, pLibrary, ExportLibraryType);
+    return saveLibraryFile(klfUrlLocalFilePath(newPath), pResources, pLibrary, ExportLibraryType);
   }
   return false;
 }

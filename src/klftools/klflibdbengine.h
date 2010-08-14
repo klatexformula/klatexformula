@@ -29,7 +29,7 @@
 
 #include <klfdefs.h>
 #include <klflib.h>
-#include <klflibview.h> // KLFLibLocalFileSchemeGuesser
+//#include <klflibview.h> // KLFLibLocalFileSchemeGuesser
 
 //! A utility class to automatically disconnect a database after use
 /** This class basically calls \ref QSqlDatabase::removeDatabase() upon its destruction, if the
@@ -147,7 +147,7 @@ public slots:
 			     const QList<int>& properties, const QList<QVariant>& values);
   virtual bool deleteEntries(const QString& subRes, const QList<entryId>& idlist);
 
-  virtual bool saveAs(const QUrl& newPath);
+  virtual bool saveTo(const QUrl& newPath);
 
   virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
 

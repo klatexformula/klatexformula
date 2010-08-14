@@ -67,9 +67,6 @@ set(klfapp_SRCS
 	klfconfig.cpp
 	klflatexsyntaxhighlighter.cpp
 	klflatexsymbols.cpp
-	klflibdbengine.cpp
-	klfliblegacyengine.cpp
-	klflibview.cpp
 	klflibentryeditor.cpp
 	klflibbrowser.cpp
 	klfmime.cpp
@@ -83,11 +80,6 @@ set(klfapp_SRCS
 set(klfapp_MOCHEADERS
 	klflatexsyntaxhighlighter.h
 	klflatexsymbols.h
-	klflibdbengine.h
-	klflibdbengine_p.h
-	klfliblegacyengine.h
-	klflibview.h
-	klflibview_p.h
 	klflibentryeditor.h
 	klflibbrowser.h
 	klflibbrowser_p.h
@@ -103,7 +95,6 @@ set(klfapp_HEADERS
 	klfmain.h
 	klfconfig.h
 	klfpluginiface.h
-	klfliblegacyengine_p.h
 	${klatexformula_MOCHEADERS}
 )
 # UI Forms
@@ -111,16 +102,12 @@ set(klfapp_UIS
 	klflatexsymbols.ui
 	klflibbrowser.ui
 	klflibentryeditor.ui
-	klflibrespropeditor.ui
 	klfmainwin.ui
 	klfprogerr.ui
 	klfsettings.ui
 	klfstylemanager.ui
 	klfaboutdialog.ui
 	klfwhatsnewdialog.ui
-	klflibopenresourcedlg.ui
-	klfliblocalfilewidget.ui
-	klflibnewsubresdlg.ui
 	klflibexportdialog.ui
 )
 
@@ -216,7 +203,7 @@ else(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
   # re-build the klf_translations.qrc file
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "<RCC>\n  <qresource prefix=\"i18n\">")
   foreach(qm ${klatexformula_QMS})
-    get_file_component(baseqmname  "${qm}"  NAME)
+    get_filename_component(baseqmname  "${qm}"  NAME)
     file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc"
 	 "    <file alias=\"${baseqmname}\">${qm}</file>\n")
   endforeach()

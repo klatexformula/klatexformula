@@ -80,15 +80,42 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE} (CMAKE_BUILD_TYPE)")
 
 
 # Static/Shared libklfbackend
-option(KLF_LIBKLFBACKEND_STATIC "Compile static libklfbackend backend library instead of shared." OFF)
+set(default_library_static FALSE)
+if(WIN32 OR APPLE)
+  set(default_library_static FALSE)
+else(WIN32 OR APPLE)
+  # linux systems.
+  # Note that plugins can locate symbols in the binary and will compile with undefined
+  # references, so it's ok
+  set(default_library_static TRUE)
+endif(WIN32 OR APPLE)
+option(KLF_LIBKLFBACKEND_STATIC "Compile static libklfbackend backend library instead of shared."
+       ${default_library_static})
 
 # Choose a Qt Version to use
 set(KLF_QT_VERSION 4 CACHE STRING "Qt major version to build with (4 or 3)")
 KLFGetCMakeVarChanged(KLF_QT_VERSION)
 if(klf_changed_KLF_QT_VERSION)
   # the KLF_QT_VERSION variable has changed value
-  #  -> Reset some variables to let FindQt() find the right qmake
-  set(QT_QMAKE_EXECUTABLE "" CACHE FILEPATH "qmake executable for Qt4" FORCE)
+  #  -> Reset some variables to let FindQt() find the right qmake and other executables (eg. moc)
+  unset(QT_INCLUDE_DIR CACHE)
+  unset(QT_INCLUDE_DIR)
+  unset(QT_LIBRARIES CACHE)
+  unset(QT_LIBRARIES)
+  unset(QT_DEFINITIONS CACHE)
+  unset(QT_DEFINITIONS)
+  unset(QT_FOUND CACHE)
+  unset(QT_FOUND)
+  unset(QT_MOC_EXECUTABLE CACHE)
+  unset(QT_MOC_EXECUTABLE)
+  unset(QT_UIC_EXECUTABLE CACHE)
+  unset(QT_UIC_EXECUTABLE)
+  unset(QT_QT_LIBRARY CACHE)
+  unset(QT_QT_LIBRARY)
+  unset(QT_QMAKE_EXECUTABLE CACHE)
+  unset(QT_QMAKE_EXECUTABLE)
+  unset(QT3_QGLOBAL_H_FILE CACHE)
+  unset(QT3_QGLOBAL_H_FILE)
 endif(klf_changed_KLF_QT_VERSION)
 KLFMarkVarAdvancedIf(QT_QMAKE_EXECUTABLE "NOT KLF_QT_VERSION EQUAL 4")
 # and set KLF_USE_QT4 (internal to us, mirror of KLF_QT_VERSION==4)
@@ -99,8 +126,12 @@ else(KLF_QT_VERSION EQUAL 3)
 endif(KLF_QT_VERSION EQUAL 3)
 
 # Include that version of Qt
-set(QT_REQUIRED TRUE)
+set(QT_REQUIRED TRUE CACHE INTERNAL "Qt required.")
 set(DESIRED_QT_VERSION "${KLF_QT_VERSION}" CACHE INTERNAL "FindQt's Qt Version to use")
+set(QT4_INSTALLED)
+set(QT3_INSTALLED)
+mark_as_advanced(QT_REQUIRED DESIRED_QT_VERSION QT3_INSTALLED QT4_INSTALLED)
+KLFCMakeDebug("QT3_QGLOBAL_H_FILE is ${QT3_QGLOBAL_H_FILE}")
 include(FindQt)
 
 if(NOT QT4_INSTALLED AND NOT QT3_INSTALLED)
@@ -182,32 +213,18 @@ endif(KLF_BUILD_PLUGINS)
 
 
 # Build a shared or static klftools library
-set(default_klftools_static FALSE)
-if(WIN32 OR APPLE)
-  set(default_klftools_static FALSE)
-else(WIN32 OR APPLE)
-  set(default_klftools_static FALSE)
-endif(WIN32 OR APPLE)
-set(KLF_LIBKLFTOOLS_STATIC ${default_klftools_static} CACHE BOOL "Build a static klftools library")
+set(KLF_LIBKLFTOOLS_STATIC ${default_library_static} CACHE BOOL "Build a static klftools library")
 # and status message
 if(KLF_BUILD_TOOLS)
   if(KLF_LIBKLFTOOLS_STATIC)
-    message(STATUS "Building a static KLatexFormula tools library (klftools) (KLF_KLFTOOLS_STATIC)")
+    message(STATUS "Building a static KLatexFormula tools library (klftools) (KLF_LIBKLFTOOLS_STATIC)")
   else(KLF_LIBKLFTOOLS_STATIC)
-    message(STATUS "Building a shared KLatexFormula tools library (klftools) (KLF_KLFTOOLS_STATIC)")
+    message(STATUS "Building a shared KLatexFormula tools library (klftools) (KLF_LIBKLFTOOLS_STATIC)")
   endif(KLF_LIBKLFTOOLS_STATIC)
 endif(KLF_BUILD_TOOLS)
 
 # Build a shared or static source klfapp library (for plugins to link to)
-set(default_klfapp_static FALSE)
-if(WIN32 OR APPLE)
-  set(default_klfapp_static FALSE)
-else(WIN32 OR APPLE)
-  # by default on linux systems, plugins compile with their undefined references and are correctly
-  # linked to the executable's exported symbols.
-  set(default_klfapp_static TRUE)
-endif(WIN32 OR APPLE)
-set(KLF_LIBKLFAPP_STATIC ${default_klfapp_static} CACHE BOOL "Build a static klfapp library")
+set(KLF_LIBKLFAPP_STATIC ${default_library_static} CACHE BOOL "Build a static klfapp library")
 # and status message
 if(KLF_BUILD_GUI)
   if(KLF_LIBKLFAPP_STATIC)
@@ -218,6 +235,7 @@ if(KLF_BUILD_GUI)
 endif(KLF_BUILD_GUI)
 
 # Target architecture (allows compile for 32-bit on 64-bit architectures)
+KLFGetCMakeVarChanged(KLF_TARGET_ARCH_64)  # detect changes, for KLF_LIB_SUFFIX later on
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(KLF_TARGET_ARCH_64 TRUE CACHE BOOL "Build for 64-bit platform")
 else(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -230,6 +248,7 @@ else(KLF_TARGET_ARCH_64)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
   message(STATUS "Compiling for 32-bit architecture (KLF_TARGET_ARCH_64)")
 endif(KLF_TARGET_ARCH_64)
+KLFCMakeSetVarChanged(KLF_TARGET_ARCH_64)
 
 KLFGetCMakeVarChanged(KLF_LIB_SUFFIX)  # Also used later in klfinstallpaths.cmake
 # Guess lib dir suffix on linux/unix
@@ -246,9 +265,7 @@ if(UNIX)
   else(NOT nothavelib32 AND NOT KLF_TARGET_ARCH_64)
     set(wantlib32 FALSE)
   endif(NOT nothavelib32 AND NOT KLF_TARGET_ARCH_64)
-  # detect change in value for updating KLF_LIB_SUFFIX
-  KLFGetCMakeVarChanged(KLF_TARGET_ARCH_64)
-  if(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
+  if(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64 OR klf_updated_KLF_TARGET_ARCH_64)
     # KLF_TARGET_ARCH_64 changed, update KLF_LIB_SUFFIX
     if(wantlib64)
       set(NEW_KLF_LIB_SUFFIX "64")
@@ -264,15 +281,18 @@ if(UNIX)
     else(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
       set(KLF_LIB_SUFFIX ${NEW_KLF_LIB_SUFFIX} CACHE STRING
 			      "Suffix to library directory (eg. '64' for '/usr/lib64')" FORCE)
+      set(klf_updated_KLF_LIB_SUFFIX TRUE) # we updated this variable's value
       if(klf_lib_suffix_redefined)
-        KLFNote("The library suffix was detected and adjusted to \"${KLF_LIB_SUFFIX}\" (KLF_LIB_SUFFIX).")
+        KLFNote("The library suffix was detected and adjusted to \"${KLF_LIB_SUFFIX}\".")
       endif(klf_lib_suffix_redefined)
     endif(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
-  else(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
+  else(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64 OR klf_updated_KLF_TARGET_ARCH_64)
     # no change
-    message(STATUS "Using \"${KLF_LIB_SUFFIX}\" as library directory suffix (KLF_LIB_SUFFIX)")
-  endif(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
+  endif(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64 OR klf_updated_KLF_TARGET_ARCH_64)
+  message(STATUS "Using \"${KLF_LIB_SUFFIX}\" as library directory suffix (KLF_LIB_SUFFIX)")
 endif(UNIX)
+KLFCMakeSetVarChanged(KLF_LIB_SUFFIX)
+
 
 # Mac OS X: building frameworks + bundles ?
 if(APPLE)
@@ -362,6 +382,15 @@ else(KLF_USE_QT4)
     KLFNote("Not building the KTextEditor plugin because we're using Qt3.")
   endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 endif(KLF_USE_QT4)
+if(KLF_BUILD_KTEXTEDITORPLUGIN)
+  if(KLF_LIBKLFBACKEND_STATIC)
+    KLFNote("ktexteditor plugin needs to link against a shared klfbackend library, but we're building
+    that library statically. Make sure a shared libklfbackend library has already been compiled (cmake
+    option KLF_LIBKLFBACKEND_STATIC=OFF) and possibly installed in a standard location; if not in
+    default library search path adjust the linker flags (add -L/library/path to cmake option
+    CMAKE_EXE_LINKER_FLAGS)")
+  endif(KLF_LIBKLFBACKEND_STATIC)
+endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 
 
 # some additional variables that get shown on some versions of CMake that could be hidden
@@ -405,6 +434,7 @@ include(klfdoxygen)
 
 message(STATUS "")
 message(STATUS "[DONE]")
+KLFNotifyNotices()
 message(STATUS "")
 
 

@@ -36,6 +36,7 @@
 #include <QTextDocument>
 #include <QTextCharFormat>
 #include <QStandardItemModel>
+#include <QListView>
 
 #include <klfdefs.h>
 #include <klflib.h>
@@ -116,8 +117,8 @@ public:
   /** Saves the current GUI state (eg. column widths and order, etc.) */
   virtual QVariantMap saveGuiState() const = 0;
 
-  /** Restores the state described in \c state (which was previously returned
-   * by \ref saveGuiState()) */
+  /** Restores the state described in \c state (which was previously, possibly in another
+   * session, returned by \ref saveGuiState()) */
   virtual bool restoreGuiState(const QVariantMap& state) = 0;
 
   /** Subclasses should reimplement this function to return a list of all known categories
@@ -563,11 +564,17 @@ private:
 
 // -----------------
 
+/** An implementation of the KLFAbstractLibView viwer to view library resource contents in
+ * so-called Category, List or Icon view modes.
+ */
 class KLF_EXPORT KLFLibDefaultView : public KLFAbstractLibView
 {
   Q_OBJECT
   Q_PROPERTY(bool autoBackgroundItems READ autoBackgroundItems WRITE setAutoBackgroundItems) ;
   Q_PROPERTY(QColor autoBackgroundColor READ autoBackgroundColor WRITE setAutoBackgroundColor) ;
+
+  Q_PROPERTY(QListView::Flow iconViewFlow READ iconViewFlow WRITE setIconViewFlow) ;
+
 public:
   enum ViewType { CategoryTreeView, ListTreeView, IconView };
   KLFLibDefaultView(QWidget *parent, ViewType viewtype = CategoryTreeView);
@@ -575,14 +582,14 @@ public:
 
   virtual QUrl url() const;
 
-  virtual bool groupSubCategories() const { return pGroupSubCategories; }
+  bool groupSubCategories() const { return pGroupSubCategories; }
 
   virtual bool event(QEvent *e);
   virtual bool eventFilter(QObject *o, QEvent *e);
 
   virtual KLFLibEntryList selectedEntries() const;
 
-  virtual ViewType viewType() const { return pViewType; }
+  ViewType viewType() const { return pViewType; }
 
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
@@ -597,8 +604,10 @@ public:
   //! The first index that is currently visible in the current scrolling position
   virtual QModelIndex currentVisibleIndex() const;
 
-  virtual bool autoBackgroundItems() const { return pDelegate->autoBackgroundItems(); }
-  virtual QColor autoBackgroundColor() const { return pDelegate->autoBackgroundColor(); }
+  bool autoBackgroundItems() const { return pDelegate->autoBackgroundItems(); }
+  QColor autoBackgroundColor() const { return pDelegate->autoBackgroundColor(); }
+
+  QListView::Flow iconViewFlow() const;
 
   virtual QStringList getCategorySuggestions();
 
@@ -617,17 +626,22 @@ public slots:
   virtual void sortBy(int propIdColumn, Qt::SortOrder sortorder);
 
   /** Selects all children of \c parent (by default a QModelIndex(), so this function selects
-   * all items). rootCall is internal and should always be set to TRUE. */
+   * all items). rootCall is internal and should always be set to TRUE for regular use. */
   virtual void slotSelectAll(const QModelIndex& parent = QModelIndex(), bool rootCall = true);
   virtual void slotRelayoutIcons();
+
+  /** Inoperational. Icon positioning by user was abandoned for now. */
   virtual void slotLockIconPositions(bool locked);
 
-  virtual void setAutoBackgroundItems(bool on) { pDelegate->setAutoBackgroundItems(on); }
-  virtual void setAutoBackgroundColor(const QColor& c) { pDelegate->setAutoBackgroundColor(c); }
+  void setAutoBackgroundItems(bool on) { pDelegate->setAutoBackgroundItems(on); }
+  void setAutoBackgroundColor(const QColor& c) { pDelegate->setAutoBackgroundColor(c); }
+
+  /** Has no effect if view type is not icon view. */
+  void setIconViewFlow(QListView::Flow flow);
 
   /** \warning This function takes effect upon the next change of resource engine, ie the next
    * call of \ref KLFAbstractLibView::setResourceEngine() */
-  virtual void setGroupSubCategories(bool yesOrNo) { pGroupSubCategories = yesOrNo; }
+  void setGroupSubCategories(bool yesOrNo) { pGroupSubCategories = yesOrNo; }
 
 protected:
   virtual void updateResourceEngine();
@@ -655,8 +669,6 @@ protected slots:
 private:
   ViewType pViewType;
   QAbstractItemView *pView;
-  //  QListView *pListView;
-  //  QTreeView *pTreeView;
   KLFLibViewDelegate *pDelegate;
   KLFLibModel *pModel;
 
@@ -846,35 +858,6 @@ private:
 };
 
 
-
-/** \brief Interface for guessing file schemes
- *
- * This class provides the basic interface for customizing known local file types, and
- * guessing their corresponding schemes. */
-class KLF_EXPORT KLFLibLocalFileSchemeGuesser
-{
-public:
-  KLFLibLocalFileSchemeGuesser();
-  virtual ~KLFLibLocalFileSchemeGuesser();
-
-  //! Guess the appropriate scheme for handling the given file
-  /** Reimplentations of this function must guess what scheme fileName is to be opened
-   * with.
-   *
-   * By \a scheme we mean the URL scheme, ie. the scheme that the correct subclass of
-   * \ref KLFLibEngineFactory reports being capable of opening (eg. \c "klf+sqlite").
-   *
-   * In reimplementations of this function, first the filename extension should be checked. If
-   * it is not known, then the file can be peeked into for magic headers.
-   *
-   * If the scheme cannot be guessed, then the reimplementation should return an empty string.
-   *
-   * \note the \c fileName does not necessarily exist. (keep that in mind before reporting
-   *   an error that you can't open the file to read a magic header). In that case, a
-   *   simple test should be performed on the file extension.
-   */
-  virtual QString guessScheme(const QString& fileName) const = 0;
-};
 
 //! Provides some basic UIs to access resources
 /**

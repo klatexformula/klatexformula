@@ -576,7 +576,7 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
 
 
 bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *device,
-				    const QString& fmt, QString *errorString)
+				    const QString& fmt, QString *errorStringPtr)
 {
   QString format = fmt.trimmed().toUpper();
 
@@ -588,8 +588,8 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
       QString error = QObject::tr("PDF format is not available!\n",
 				  "KLFBackend::saveOutputToFile");
       qWarning("%s", qPrintable(error));
-      if (errorString != NULL)
-	*errorString = error;
+      if (errorStringPtr != NULL)
+	errorStringPtr->operator=(error);
       return false;
     }
     device->write(klfoutput.pdfdata);
@@ -624,8 +624,8 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
     if ( ! res ) {
       QString errstr = errstr4.arg(format).arg(writer.errorString());
       qWarning("%s", qPrintable(errstr));
-      if (errorString != NULL)
-	*errorString = errstr;
+      if (errorStringPtr != NULL)
+	*errorStringPtr = errstr;
       return false;
     }
 #else
@@ -633,8 +633,8 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
     if ( ! res ) {
       QString errstr = errstr3.arg(format);
       qWarning("%s", qPrintable(errstr));
-      if (errorString != NULL)
-	*errorString = errstr;
+      if (errorStringPtr != NULL)
+	*errorStringPtr = errstr;
       return false;
     }
 #endif
@@ -644,7 +644,7 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
 }
 
 bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fileName,
-				  const QString& fmt, QString *errorString)
+				  const QString& fmt, QString *errorStringPtr)
 {
   QString format = fmt;
   // determine format first
@@ -663,8 +663,8 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
       QString error = QObject::tr("Unable to open stderr for write! Error: %1\n",
 				  "KLFBackend::saveOutputToFile").arg(fout.error());
       qWarning("%s", qPrintable(error));
-      if (errorString != NULL)
-	*errorString = error;
+      if (errorStringPtr != NULL)
+	*errorStringPtr = error;
       return false;
     }
   } else {
@@ -674,13 +674,13 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
 				  "KLFBackend::saveOutputToFile")
 	.arg(fileName).arg(fout.error());
       qWarning("%s", qPrintable(error));
-      if (errorString != NULL)
-	*errorString = error;
+      if (errorStringPtr != NULL)
+	*errorStringPtr = error;
       return false;
     }
   }
 
-  return saveOutputToDevice(klfoutput, &fout, format, errorString);
+  return saveOutputToDevice(klfoutput, &fout, format, errorStringPtr);
 }
 
 

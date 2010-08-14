@@ -31,11 +31,26 @@ endmacro(KLFInstHeaders)
 # proceed to succeed or fail.
 #
 macro(KLFNote message)
-message("
+  message("
     *** NOTE ***
     ${message}
 ")
+  if(NOT DEFINED _klf_notices)
+    set(_klf_notices "1" CACHE INTERNAL "have shown notices via KLFNote().")
+  elseif(_klf_notices STREQUAL "1")
+    set(_klf_notices "+" CACHE INTERNAL "have shown notices via KLFNote().")
+  endif(NOT DEFINED _klf_notices)
 endmacro(KLFNote)
+
+macro(KLFNotifyNotices)
+  if(_klf_notices)
+    if(_klf_notices STREQUAL "1")
+      message(STATUS "There was **1 notice message** during the configuration process.")
+    else(_klf_notices STREQUAL "1")
+      message(STATUS "There were **notice messages** during the configuration process.")
+    endif(_klf_notices STREQUAL "1")
+  endif(_klf_notices)
+endmacro(KLFNotifyNotices)
 
 
 option(KLF_CMAKE_DEBUG "Enable Debug Messages in CMake Scripts" OFF)
@@ -104,7 +119,7 @@ endmacro(KLFTestCondition var condition)
 # IS_VEGETARIAN.
 #
 # Notes
-#  - 'condition' can by any string suitable for usage in an if(${condition}) clause.
+#  - 'condition' can by any string suitable for usage in an if(...) clause.
 #  - 'var' is not set in the cache
 #
 macro(KLFConditionalSet var condition valueTrue valueFalse)
@@ -261,6 +276,13 @@ endmacro(KLFDeclareCacheVarOptionFollow)
 # with KLFGetCMakeVarChanged(). However nothing is done for the dependency variables, and
 # this function also assumes that KLFGetCMakeVarChanged() has already been called on them.
 #
+# If the value of 'specificoption' was updated, then klf_updated_${specificoption} is set
+# to TRUE.
+#
+# When, above, we mean that a variable dependency has "changed", we mean that either
+# klf_changed_${var} or klf_updated_${var} is TRUE. The fact that klf_updated_* is also checked
+# can be used to make variables depend on variables that themselves depend on other variables.
+#
 # Arguments
 #
 #   specificoption   is a cache option (to be declared into cache, and checked its changed status
@@ -290,6 +312,8 @@ macro(KLFDeclareCacheVarOptionFollowComplexN specificoption cachetype cachestrin
   endif(NOT DEFINED ${specificoption})
   # and check if it was changed
   KLFGetCMakeVarChanged(${specificoption})
+  
+  #KLFCMakeDebug("${specificoption} chg:${klf_changed_${specificoption}} val:${${specificoption}}, calcoptvalue=${calcoptvalue}")
 
   # see if this specific option was changed. If it was, don't bother looking for dependencies,
   # we won't update it anyway.
@@ -299,19 +323,23 @@ macro(KLFDeclareCacheVarOptionFollowComplexN specificoption cachetype cachestrin
     if(NOT ${specificoption} STREQUAL "${calcoptvalue}")
       
       # [build debug message]
-      set(DCVOFCN_debugstr "Specific option: ${specificoption} (chg: ${klf_changed_${specificoption}})")
+      set(DCVOFCN_debugstr "Specific option: ${specificoption} (chg: ${klf_changed_${specificoption}}, updt: ${klf_updated_${specificoption}})")
       # the master variable that will be TRUE if (at least) one dependency has been changed
       set(DCVOFCN_deps_changed)
+      set(DCVOFCN_what_changed_list)
       # loop on dependency variables
       foreach(DCVOFCNdepvar ${depvarlist})
 	set(DCVOFCN_thisdepvarchanged "${klf_changed_${DCVOFCNdepvar}}") # check if this var changed
+	set(DCVOFCN_thisdepvarupdated "${klf_updated_${DCVOFCNdepvar}}") # check if this var updated
+	# [continue building debug message]
+	set(DCVOFCN_debugstr "${DCVOFCN_debugstr}\n\t\tfollowing ${DCVOFCNdepvar} (chg.: ${DCVOFCN_thisdepvarchanged}, updt.: ${DCVOFCN_thisdepvarupdated}).")
 	# if we detected a change, then set the master DCVOFCN_deps_changed to TRUE
-	if(DCVOFCN_thisdepvarchanged)
-	  # [continue building debug message]
-	  set(DCVOFCN_debugstr "${DOCVOFN_debugstr}\n\t\tfollowing ${DCVOFCNdepvar} (chg.?: ${DCVOFCN_thisdepvarchanged}).")
+	if(DCVOFCN_thisdepvarchanged OR DCVOFCN_thisdepvarupdated)
 	  # set the master dependency changed variable
 	  set(DCVOFCN_deps_changed TRUE)
-	endif(DCVOFCN_thisdepvarchanged)
+	  # add to list of changed dependencies, to show to user
+	  set(DCVOFCN_what_changed_list ${DCVOFCN_what_changed_list} ${DCVOFCNdepvar})
+	endif(DCVOFCN_thisdepvarchanged OR DCVOFCN_thisdepvarupdated)
       endforeach(DCVOFCNdepvar)
 
       # debug
@@ -321,11 +349,13 @@ macro(KLFDeclareCacheVarOptionFollowComplexN specificoption cachetype cachestrin
       if(DCVOFCN_deps_changed)
 	# dependency option(s) changed, then the specific option must follow
 	set(${specificoption} "${calcoptvalue}" CACHE ${cachetype} "${cachestring}" FORCE)
-	if(updatenotice)
-	  KLFNote("Updating ${specificoption} to \"${${specificoption}}\" following changes to ${depvarlist}.")
-	else(updatenotice)
-	  KLFCMakeDebug("Updated ${specificoption} to \"${${specificoption}}\" following ${depvarlist}.")
-	endif(updatenotice)
+	set(klf_updated_${specificoption} TRUE)
+	set(_klf_updatenotice ${updatenotice})
+	if(_klf_updatenotice)
+	  KLFNote("Updating ${specificoption} to \"${${specificoption}}\" following changes to ${DCVOFCN_what_changed_list}.")
+	else(_klf_updatenotice)
+	  KLFCMakeDebug("Updated ${specificoption} to \"${${specificoption}}\" following chg to ${DCVOFCN_what_changed_list}. updatenotice=${updatenotice}")
+	endif(_klf_updatenotice)
       endif(DCVOFCN_deps_changed)
     endif(NOT ${specificoption} STREQUAL "${calcoptvalue}")
   endif(NOT klf_changed_${specificoption})
@@ -397,7 +427,7 @@ endmacro(KLFDeclareCacheVarOptionFollowComplex2)
 # "${forcedvalue}" by a call to set(... CACHE ... FORCE) and a notice is emitted with
 # KLFNote(). In this case, klf_changed_*, klf_first_* reflect the status of the variable
 # _before_ the change, (you should consider klf_changed_* as meaning "changed by the
-# user") and additionally, klf_forcedchange_${specificoption} is set to TRUE.
+# user") and additionally, klf_updated_${specificoption} is set to TRUE.
 #
 # This function makes use of KLFGetCMakeVarChanged() tool. KLFGetCMakeVarChanged() is
 # called in this function on the 'specificoption', even though the result is not used:
@@ -430,13 +460,13 @@ macro(KLFDeclareCacheVarOptionCondition specificoption cachetype cachestring upd
 
       set(${specificoption} "${forcedvalue}" CACHE ${cachetype} "${cachestring}" FORCE)
       KLFNote("${updatenoticestring}")
-      set(klf_forcedchange_${specificoption} TRUE)
+      set(klf_updated_${specificoption} TRUE)
 
       KLFCMakeDebug("Specific option: ${specificoption} (chg: ${klf_changed_${specificoption}}, value: '${${specificoption}}') is not compatible with condition ${condition} (=${_klf_conditiontest}) and is being forced to '${forcedvalue}'.")
 
     else(NOT ${specificoption} STREQUAL "${forcedvalue}")
 
-      KLFCMakeDebug("Specific option: ${specificoption} (chg: ${klf_changed_${specificoption}}, value: '${${specificoption}}') currently has a good value; however \n    it is constrained by condition ${condition} (=${_klf_conditiontest}) and its value has to be '${forcedvalue}'.")
+      KLFCMakeDebug("Specific option: ${specificoption} (chg: ${klf_changed_${specificoption}}') is constrained by condition ${condition} (=${_klf_conditiontest}) to its current value '${forcedvalue}'.")
 
     endif(NOT ${specificoption} STREQUAL "${forcedvalue}")
 

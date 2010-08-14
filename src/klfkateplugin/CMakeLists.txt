@@ -44,7 +44,15 @@ kde4_install_icons(${ICON_INSTALL_DIR})
 kde4_add_plugin(ktexteditor_klf ${ktexteditor_klf_PART_SRCS} )
 
 target_link_libraries(ktexteditor_klf ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS}
-				       -lktexteditor klfbackend )
+				       -lktexteditor )
+if(KLF_LIBKLFBACKEND_STATIC)
+  # Can't link the plugin to a static klfbackend library. We need to rely on a previously-built
+  # or an already-installed shared libklfbackend
+  target_link_libraries(ktexteditor_klf  -lklfbackend)
+else(KLF_LIBKLFBACKEND_STATIC)
+  # link to our klfbackend
+  target_link_libraries(ktexteditor_klf  klfbackend)
+endif(KLF_LIBKLFBACKEND_STATIC)
 
 install(TARGETS ktexteditor_klf DESTINATION "${PLUGIN_INSTALL_DIR}" )
 

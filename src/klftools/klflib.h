@@ -1711,13 +1711,36 @@ private:
 
 
 
-/** Returns the file path represented in \c url, interpreted as an (absolute) path to
- * a local file.
+
+/** \brief Interface for guessing file schemes
  *
- * Under windows, this ensures that there is no slash preceeding the drive letter, eg.
- * fixes "/C:/..." to "C:/...", but keeps forward-slashes.
- */
-KLF_EXPORT QString urlLocalFilePath(const QUrl& url);
+ * This class provides the basic interface for customizing known local file types, and
+ * guessing their corresponding schemes. */
+class KLF_EXPORT KLFLibLocalFileSchemeGuesser
+{
+public:
+  KLFLibLocalFileSchemeGuesser();
+  virtual ~KLFLibLocalFileSchemeGuesser();
+
+  //! Guess the appropriate scheme for handling the given file
+  /** Reimplentations of this function must guess what scheme fileName is to be opened
+   * with.
+   *
+   * By \a scheme we mean the URL scheme, ie. the scheme that the correct subclass of
+   * \ref KLFLibEngineFactory reports being capable of opening (eg. \c "klf+sqlite").
+   *
+   * In reimplementations of this function, first the filename extension should be checked. If
+   * it is not known, then the file can be peeked into for magic headers.
+   *
+   * If the scheme cannot be guessed, then the reimplementation should return an empty string.
+   *
+   * \note the \c fileName does not necessarily exist. (keep that in mind before reporting
+   *   an error that you can't open the file to read a magic header). In that case, a
+   *   simple test should be performed on the file extension.
+   */
+  virtual QString guessScheme(const QString& fileName) const = 0;
+};
+
 
 
 

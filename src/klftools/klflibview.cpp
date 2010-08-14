@@ -53,7 +53,7 @@
 #include <ui_klflibrespropeditor.h>
 #include <ui_klflibnewsubresdlg.h>
 
-#include "klfconfig.h"
+//#include "klfconfig.h"
 #include "klflibview.h"
 #include "klfguiutil.h"
 
@@ -1803,7 +1803,7 @@ QImage KLFLibModel::dragImage(const QModelIndexList& indexes)
     return QImage();
 
   const int MAX = 5;
-  const QSize s1 = 0.8*klfconfig.UI.labelOutputFixedSize;
+  const QSize s1 = 0.8*QSize(250,75); //klfconfig.UI.labelOutputFixedSize;
   const QPointF delta(18.0, 20.0);
   QList<QImage> previewlist;
   QList<KLFLibModelCache::NodeId> alreadydone;
@@ -2308,7 +2308,7 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
     break;
   case KLFLibEntry::DateTime:
     // paint DateTime String
-    { QLocale loc = klfconfig.UI.locale;
+    { QLocale loc; // use the default locale, which was set to the value of klfconfig.UI.locale in main app.
       paintText(p, loc.toString(index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime))
 				.toDateTime(), QLocale::LongFormat), fl);
       break;
@@ -2511,7 +2511,7 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
       return QFontMetrics(option.font)
 	.size(0, index.data(KLFLibModel::entryItemRole(prop)).toString())+QSize(4,2);
     case KLFLibEntry::DateTime:
-      { QLocale loc = klfconfig.UI.locale;
+      { QLocale loc; // use default locale, which was set to the value of klfconfig.UI.locale;
 	return QFontMetrics(option.font)
 	  .size(0, loc.toString(index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime))
 				.toDateTime(), QLocale::LongFormat) )+QSize(4,2);
@@ -2650,7 +2650,8 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     listView->setMovement(QListView::Free);
     //    listView->setFlow(QListView::LeftToRight);
     //    listView->setFlow(QListView::TopToBottom);
-    listView->setFlow((QListView::Flow)klfconfig.LibraryBrowser.iconViewFlow);
+    //    listView->setFlow((QListView::Flow)klfconfig.LibraryBrowser.iconViewFlow);
+    // icon view flow is set later with setIconViewFlow()
     listView->setResizeMode(QListView::Adjust);
     klfDbg( "prepared list view." ) ;
     pView = listView;
@@ -2880,7 +2881,7 @@ void KLFLibDefaultView::updateResourceEngine()
     break;
   };
 
-  if (klfconfig.LibraryBrowser.groupSubCategories)
+  if (pGroupSubCategories)
     model_flavor |= KLFLibModel::GroupSubCategories;
 
   pModel = new KLFLibModel(resource, model_flavor, this);
@@ -3062,6 +3063,20 @@ void KLFLibDefaultView::showEvent(QShowEvent *event)
 }
 
 
+QListView::Flow KLFLibDefaultView::iconViewFlow() const
+{
+  if (pViewType == IconView) {
+    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
+    KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
+			 return QListView::TopToBottom)
+      ;
+    return lv->flow();
+  }
+  qWarning()<<KLF_FUNC_NAME<<": requesting icon view flow in the wrong mode `"<<pViewType
+	    <<"'. Should only be called for icon view modes.";
+  return QListView::TopToBottom; // whatever
+}
+
 
 QStringList KLFLibDefaultView::getCategorySuggestions()
 {
@@ -3209,6 +3224,17 @@ void KLFLibDefaultView::slotLockIconPositions(bool locked)
   */
 }
 
+void KLFLibDefaultView::setIconViewFlow(QListView::Flow flow)
+{
+  if (pViewType == IconView) {
+    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
+    KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
+			 return )
+      ;
+    // set the flow
+    lv->setFlow(flow);
+  }
+}
 
 
 

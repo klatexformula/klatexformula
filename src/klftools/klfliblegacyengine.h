@@ -35,7 +35,6 @@
 #include <QTimer>
 
 #include <klflib.h>
-#include <klflibview.h>
 
 
 
@@ -191,12 +190,31 @@ protected:
 private:
   KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url, QObject *parent);
 
-  // if pCloneOf, EVERY FUNCTION CALL redirects the call to the clone original.
+  /** if pCloneOf is non-NULL, EVERY FUNCTION CALL redirects the call to the clone original.
+   *
+   * \bug A clone-based approach was taken to avoid multiple engines accessing the same file. A better approach
+   *   would have been to have one instance of a KLFLibLegacyFileData (eg. QObject-subclass) containing the
+   *   filename, KLFLibLegacyData::KLFLibrary etc. data, lib type etc. and all resources that want to connect
+   *   to this file read/write that (shared) data. With a refcount one can make the object destroy itself after
+   *   the last one using it was destroyed. */
   KLFLibLegacyEngine *pCloneOf;
+  /** a list of objects whose pCloneOf points to me. */
+  QList<KLFLibLegacyEngine*> pMyClones;
+
+  /** copies all data from the clone to this object, making this object independant.
+   * this is called by the master clone's destructor */
+  void takeOverFromClone();
 
   static QMap<QString,KLFLibLegacyEngine*> staticLegacyEngineInstances;
 
   enum LegacyLibType { LocalHistoryType = 1, LocalLibraryType, ExportLibraryType };
+
+  int findResourceName(const QString& resname);
+  int getReservedResourceId(const QString& resourceName, int defaultId);
+
+  // Resource data is data that has to be copied when taking over from a master clone
+  // If you add a property here, make sure it is copied in takeOverFromClone().
+  // BEGIN RESOURCE DATA ->
 
   QString pFileName;
 
@@ -207,18 +225,17 @@ private:
 
   QTimer *pAutoSaveTimer;
 
+  // <- END RESOURCE DATA
+
   static KLFLibEntry toLibEntry(const KLFLegacyData::KLFLibraryItem& item);
   static KLFLegacyData::KLFLibraryItem toLegacyLibItem(const KLFLibEntry& entry);
   static KLFLegacyData::KLFStyle toLegacyStyle(const KLFStyle& style);
   static KLFStyle toStyle(const KLFLegacyData::KLFStyle& oldstyle);
-  int findResourceName(const QString& resname);
 
   static bool loadLibraryFile(const QString& fname, KLFLegacyData::KLFLibraryResourceList *reslist,
 			      KLFLegacyData::KLFLibrary *lib, LegacyLibType *libType);
   static bool saveLibraryFile(const QString& fname, const KLFLegacyData::KLFLibraryResourceList& reslist,
 			      const KLFLegacyData::KLFLibrary& lib, LegacyLibType legacyLibType);
-
-  int getReservedResourceId(const QString& resourceName, int defaultId);
 };
 
 

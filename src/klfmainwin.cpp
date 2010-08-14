@@ -31,10 +31,12 @@
 #include <ui_klfprogerr.h>
 #include <ui_klfmainwin.h>
 
-#include "klfguiutil.h"
+#include <klflibview.h>
+#include <klfguiutil.h>
+//#include <klflibdbengine.h>
+
 #include "klflatexsyntaxhighlighter.h"
 #include "klflibbrowser.h"
-#include "klflibdbengine.h"
 #include "klflatexsymbols.h"
 #include "klfsettings.h"
 #include "klfmain.h"
@@ -810,7 +812,10 @@ void KLFMainWin::loadLibrary()
   //  pwp.showPleaseWait();
 
   // the default library file
-  QString localfname = klfconfig.homeConfigDir + "/" + klfconfig.Core.libraryFileName;
+  QString localfname = klfconfig.Core.libraryFileName;
+  if (QFileInfo(localfname).isRelative())
+    localfname.prepend(klfconfig.homeConfigDir + "/");
+
   QString importfname;
   if ( ! QFile::exists(localfname) ) {
     // if unexistant, try to load:
