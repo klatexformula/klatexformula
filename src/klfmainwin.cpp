@@ -533,16 +533,26 @@ void KLFMainWin::startupFinished()
   //    QMetaObject::invokeMethod(this, "loadLibrary", Qt::QueuedConnection);
   //  }
 
+
   // Export profiles selection list
+
+  pExportProfileQuickMenuActionList.clear();
   int k;
   QList<KLFMimeExportProfile> eplist = KLFMimeExportProfile::exportProfileList();
   QMenu *menu = new QMenu(u->btnSetExportProfile);
-  QSignalMapper *smapper = new QSignalMapper(this);
+  QActionGroup *actionGroup = new QActionGroup(menu);
+  actionGroup->setExclusive(true);
+  QSignalMapper *smapper = new QSignalMapper(menu);
   for (k = 0; k < eplist.size(); ++k) {
-    QAction *action = new QAction(eplist[k].description(), menu);
+    QAction *action = new QAction(actionGroup);
+    action->setText(eplist[k].description());
+    action->setData(eplist[k].profileName());
+    action->setCheckable(true);
+    action->setChecked(false);
     menu->addAction(action);
     smapper->setMapping(action, eplist[k].profileName());
     connect(action, SIGNAL(triggered()), smapper, SLOT(map()));
+    pExportProfileQuickMenuActionList.append(action);
   }
   connect(smapper, SIGNAL(mapped(const QString&)), this, SLOT(slotSetExportProfile(const QString&)));
 
@@ -642,6 +652,24 @@ void KLFMainWin::saveSettings()
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
+
+  int k;
+  if (klfconfig.UI.dragExportProfile == klfconfig.UI.copyExportProfile) {
+    klfDbg("checking quick menu action item export profile="<<klfconfig.UI.copyExportProfile) ;
+    // check this export profile in the quick export profile menu
+    for (k = 0; k < pExportProfileQuickMenuActionList.size(); ++k) {
+      if (pExportProfileQuickMenuActionList[k]->data().toString() == klfconfig.UI.copyExportProfile) {
+	klfDbg("checking item #"<<k<<": "<<pExportProfileQuickMenuActionList[k]->data()) ;
+	// found the one
+	pExportProfileQuickMenuActionList[k]->setChecked(true);
+	break; // by auto-exclusivity the other ones will be un-checked.
+      }
+    }
+  } else {
+    // uncheck all items (since there is not a unique one set, drag and copy differ)
+    for (k = 0; k < pExportProfileQuickMenuActionList.size(); ++k)
+      pExportProfileQuickMenuActionList[k]->setChecked(false);
+  }
 
   if (klfconfig.UI.enableRealTimePreview) {
     if ( ! mPreviewBuilderThread->isRunning() ) {
@@ -782,7 +810,7 @@ void KLFMainWin::loadLibrary()
   //  pwp.showPleaseWait();
 
   // the default library file
-  QString localfname = klfconfig.homeConfigDir + "/library.klf.db";
+  QString localfname = klfconfig.homeConfigDir + "/" + klfconfig.Core.libraryFileName;
   QString importfname;
   if ( ! QFile::exists(localfname) ) {
     // if unexistant, try to load:
@@ -800,26 +828,41 @@ void KLFMainWin::loadLibrary()
   // importfname is non-empty only if the local .klf.db library file is inexistant.
 
   QUrl localliburl = QUrl::fromLocalFile(localfname);
-  localliburl.setScheme("klf+sqlite");
-  localliburl.addQueryItem("klfDefaultSubResource", "history");
+  localliburl.setScheme(klfconfig.Core.libraryLibScheme);
+  localliburl.addQueryItem("klfDefaultSubResource", "History");
 
   mHistoryLibResource = NULL;
 
   if (!QFile::exists(localfname)) {
     // create local library resource
-    KLFLibEngineFactory *localLibFactory = KLFLibEngineFactory::findFactoryFor("klf+sqlite");
+    KLFLibEngineFactory *localLibFactory = KLFLibEngineFactory::findFactoryFor(localliburl.scheme());
+    if (localLibFactory == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": Can't find library resource engine factory for scheme "<<localliburl.scheme()<<"!";
+      qFatal("%s: Can't find library resource engine factory for scheme '%s'!",
+	     KLF_FUNC_NAME, qPrintable(localliburl.scheme()));
+      return;
+    }
     KLFLibEngineFactory::Parameters param;
     param["Filename"] = localliburl.path();
-    param["klfDefaultSubResource"] = QLatin1String("history");
+    param["klfDefaultSubResource"] = QLatin1String("History");
     param["klfDefaultSubResourceTitle"] = tr("History", "[[default sub-resource title for history]]");
-    mHistoryLibResource = localLibFactory->createResource("klf+sqlite", param, this);
+    mHistoryLibResource = localLibFactory->createResource(localliburl.scheme(), param, this);
+    if (mHistoryLibResource == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": Can't create resource engine for library, of scheme "<<localliburl.scheme()<<"! "
+		<<"Create parameters are "<<param;
+      qFatal("%s: Can't create resource engine for library!", KLF_FUNC_NAME);
+      return;
+    }
     mHistoryLibResource->setTitle(tr("Local Library"));
     mHistoryLibResource
-      -> createSubResource(QLatin1String("archive"),
+      -> createSubResource(QLatin1String("Archive"),
 			   tr("Archive", "[[default sub-resource title for archive sub-resource]]"));
-    mHistoryLibResource->setSubResourceProperty(QLatin1String("history"),
-						KLFLibResourceEngine::SubResPropViewType,
-						QLatin1String("default+list"));
+    if (mHistoryLibResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps)
+      mHistoryLibResource->setSubResourceProperty(QLatin1String("History"),
+						  KLFLibResourceEngine::SubResPropViewType,
+						  QLatin1String("default+list"));
+    else
+      mHistoryLibResource->setViewType(QLatin1String("default+list"));
   }
 
   if (mHistoryLibResource == NULL) {
@@ -836,6 +879,7 @@ void KLFMainWin::loadLibrary()
 
   if (!importfname.isEmpty()) {
     // needs an import
+    klfDbg("Importing library from "<<importfname) ;
 
     // visual feedback for import
     KLFProgressDialog pdlg(QString(), this);
@@ -893,22 +937,14 @@ void KLFMainWin::loadLibrary()
   	      <<"\n\tExpect Crash!";
     return;
   }
-  // Delayed open
-  //  QMetaObject::invokeMethod(this, "slotOpenHistoryLibraryResource", Qt::QueuedConnection);
-
-
-
-
-  /** \bug .................... DEBUG HERE.............................. */
-  //  return;
-
 
   // open all other sub-resources present in our library
   QStringList subresources = mHistoryLibResource->subResourceList();
   int k;
   for (k = 0; k < subresources.size(); ++k) {
-    if (subresources[k] == QLatin1String("history"))
-      continue;
+    //    if (subresources[k] == QLatin1String("History")) // already open
+    //      continue;
+    // if a URL is already open, it won't open it a second time.
     QUrl url = localliburl;
     url.removeAllQueryItems("klfDefaultSubResource");
     url.addQueryItem("klfDefaultSubResource", subresources[k]);
@@ -1715,7 +1751,6 @@ void KLFMainWin::slotEvaluate()
 
   // and GO !
   _output = KLFBackend::getLatexFormula(input, _settings);
-  _lastrun_input = input;
 
   if (_output.status < 0) {
     QString comment = "";
@@ -2011,7 +2046,7 @@ void KLFMainWin::slotSetExportProfile(const QString& exportProfile)
   saveSettings();
 }
 
-
+/*
 QMimeData * KLFMainWin::resultToMimeData(const QString& exportProfileName)
 {
   klfDbg("export profile: "<<exportProfileName);
@@ -2039,6 +2074,7 @@ QMimeData * KLFMainWin::resultToMimeData(const QString& exportProfileName)
   klfDbg("got mime data.");
   return mimedata;
 }
+*/
 
 
 void KLFMainWin::slotDrag()
@@ -2047,7 +2083,7 @@ void KLFMainWin::slotDrag()
     return;
 
   QDrag *drag = new QDrag(this);
-  QMimeData *mime = resultToMimeData(klfconfig.UI.dragExportProfile);
+  KLFMimeData *mime = new KLFMimeData(klfconfig.UI.dragExportProfile, _output);
   drag->setMimeData(mime);
   QImage img;
   img = _output.result.scaled(QSize(200, 100), Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -2091,7 +2127,7 @@ void KLFMainWin::slotCopy()
   klfWinClipboardCopy(winId(), wintypes, datalist);
 
 #else
-  QMimeData *mimedata = resultToMimeData(klfconfig.UI.copyExportProfile);
+  KLFMimeData *mimedata = new KLFMimeData(klfconfig.UI.copyExportProfile, _output);
   QApplication::clipboard()->setMimeData(mimedata, QClipboard::Clipboard);
 #endif
 }

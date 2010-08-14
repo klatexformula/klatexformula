@@ -298,7 +298,7 @@ option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
  FALSE)
 # DEVELOPER OPTION to test QAbstractItemModel-based models with ModelTest
 option(KLF_DEBUG_USE_MODELTEST
- "FOR DEVELOPERS ONLY. Uses ModelTest (from Qt's Labs) to test QAbstractItemModel-based models"
+ "DEVELOPERS ONLY. Uses ModelTest (Qt's Labs) to test QAbstractItemModel-based models. VERY slow."
  FALSE)
 mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY KLF_DEBUG_USE_MODELTEST)
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)

@@ -65,6 +65,10 @@ namespace KLFLib {
  * \note Subclasses should emit the \ref resourceDataChanged() signal AFTER they
  *   refresh after a resource data change.
  *
+ * Note: The operationStartReportingProgress() signal is purposed for when long update
+ * operations are necessary. It is to be used by subclasses exactly like in
+ * KLFLibResourceEngine.
+ *
  * \warning The design of this class with a \ref setResourceEngine() function makes it
  *   unsafe to blindly assume a non-NULL resource engine pointer at all times. Check
  *   the pointer before using it! See \ref validResourceEngine().
@@ -144,6 +148,13 @@ signals:
   /** Subclasses should emit this signal with lists of categories they come accross,
    * so that the editor can suggest these as completions upon editing category */
   void moreCategorySuggestions(const QStringList& categorylist);
+
+  /** Emitted by subclasses to announce the beginning of a long operation during which progress
+   * will be reported through the given \c progressReporter.
+   *
+   * Should be used in the same way as KLFLibResourceEngine::operationStartReportingProgress().
+   */
+  void operationStartReportingProgress(KLFProgressReporter *progressReporter, const QString& descriptiveText);
 
 public slots:
   virtual void updateResourceEngine() = 0;
@@ -398,6 +409,10 @@ public:
 
   /** \warning The model will take ownership of the sorter and deleted in the destructor. */
   virtual void setEntrySorter(KLFLibEntrySorter *entrySorter);
+
+signals:
+  /** Announces the beginning of a long operation  (used for updates in updateData()) */
+  void operationStartReportingProgress(KLFProgressReporter *progressReporter, const QString& descriptiveText);
 
 public slots:
 

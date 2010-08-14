@@ -48,7 +48,10 @@ public:
   KLFLibBrowser(QWidget *parent = NULL);
   virtual ~KLFLibBrowser();
 
-  enum ResourceRoleFlag { NoCloseRoleFlag = 0x01 };
+  enum ResourceRoleFlag {
+    NoCloseRoleFlag = 0x01,
+    NoChangeFlag = 0x70000000 //!< Instructs to ignore these flags for already-open resources
+  };
 
   virtual bool eventFilter(QObject *object, QEvent *event);
 
@@ -97,13 +100,13 @@ public slots:
    * the resource itself is taken. If the latter is empty, then the default view type
    * identifier (\ref KLFLibViewFactory::defaultViewTypeIdentifier) is considered.
    */
-  bool openResource(const QUrl& url, uint resourceRoleFlags = 0x0,
+  bool openResource(const QUrl& url, uint resourceRoleFlags = NoChangeFlag,
 		    const QString& viewTypeIdentifier = QString());
 
   /** Convenience function. Equivalent to
    * \code openResource(QUrl(url), ...) \endcode
    */
-  bool openResource(const QString& url, uint resourceRoleFlags = 0x0,
+  bool openResource(const QString& url, uint resourceRoleFlags = NoChangeFlag,
 		    const QString& viewTypeIdentifier = QString());
 
   /** Overloaded member, provided for convenience.

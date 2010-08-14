@@ -252,7 +252,7 @@ bool KLFLibBrowser::eventFilter(QObject *obj, QEvent *ev)
   if (ev->type() == QEvent::Hide &&
       obj->property("klf_libbrowser_pdlg_want_hideautodelete").toBool() == true) {
     // this object is a resource-operation progress dialog that was just hidden
-    klfDbg( ": Hiding progress dialog." ) ;
+    klfDbg( ": progress dialog was hidden, deleting." ) ;
     obj->deleteLater();
     return true;
     //    return false;    // continue with event handling
@@ -361,7 +361,8 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v, bool openURLs)
     if ( !openURLs && findOpenUrl(url) == NULL )
       continue;
     // open this URL
-    bool res = openResource(url, flags);
+    bool res = openResource(url, /*flags*/NoChangeFlag);
+    // (above) ^^ ignore flags, in case we eg. change library file, don't keep the old one uncloseable
     if ( ! res ) {
       qWarning()<<"KLFLibBrowser::loadGuiState: Can't open resource "<<url<<"! (flags="
 		<<flags<<")";
@@ -616,7 +617,11 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(resource, SIGNAL(defaultSubResourceChanged(const QString&)),
 	  this, SLOT(slotDefaultSubResourceChanged(const QString&)));
 
+  // progress reporting originating from resource (eg. database operations)
   connect(resource, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
+	  this, SLOT(slotStartProgress(KLFProgressReporter *, const QString&)));
+  // progress reporting originating from view (eg. model updates)
+  connect(viewc, SIGNAL(viewOperationStartReportingProgress(KLFProgressReporter *, const QString&)),
 	  this, SLOT(slotStartProgress(KLFProgressReporter *, const QString&)));
 
   klfDbgT(": requiring cat suggestions.") ;
@@ -659,6 +664,9 @@ bool KLFLibBrowser::closeResource(const QUrl& url)
 
 void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *viewc, uint resroleflags)
 {
+  if (resroleflags & NoChangeFlag)
+    return;
+
   viewc->setResourceRoleFlags(resroleflags);
 }
 
@@ -1604,7 +1612,6 @@ void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, con
   KLFProgressDialog *pdlg = new KLFProgressDialog(false, this);
 
   pdlg->startReportingProgress(progressReporter, text);
-  pdlg->setValue(0);
 
   pdlg->setProperty("klf_libbrowser_pdlg_want_hideautodelete", QVariant(true));
   pdlg->installEventFilter(this);

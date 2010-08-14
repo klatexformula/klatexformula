@@ -395,7 +395,7 @@
              </widget>
             </item>
             <item>
-             <spacer name="hspc">
+             <spacer name="spcLeftExportProfile">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>

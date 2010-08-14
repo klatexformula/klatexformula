@@ -28,6 +28,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QApplication> // qApp
 
 #include "klflib.h"
 #include "klflibview.h"
@@ -35,6 +36,21 @@
 #include "klfliblegacyengine_p.h"
 
 quint32 KLFLegacyData::KLFLibraryItem::MaxId = 1;
+
+
+// debug
+
+QDebug& operator<<(QDebug& s, const KLFLegacyData::KLFLibraryItem& item)
+{
+  return s << "KLFLegacyData::KLFLibraryItem(id="<<item.id<<"; latex="<<item.latex<<")" ;
+}
+
+QDebug& operator<<(QDebug& s, const KLFLegacyData::KLFLibraryResource& res)
+{
+  return s << "KLFLegacyData::KLFLibraryResource(id="<<res.id<<"; name="<<res.name<<")";
+}
+
+
 
 
 
@@ -127,6 +143,9 @@ bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle&
 
 // -------------------------------------------
 
+// static
+QMap<QString,KLFLibLegacyEngine*> KLFLibLegacyEngine::staticLegacyEngineInstances;
+
 
 // static
 KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *parent)
@@ -163,7 +182,7 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fileName, Q
 
   if (lrname.isEmpty())
     lrname = "Resource"; // default name...?
-  url.addQueryItem("legacyResourceName", lrname);
+  url.addQueryItem("klfDefaultSubResource", lrname);
 
   // create the .klf file
   KLFLegacyData::KLFLibrary lib = KLFLegacyData::KLFLibrary();
@@ -301,6 +320,24 @@ bool KLFLibLegacyEngine::saveLibraryFile(const QString& fname,
   return true;
 }
 
+
+// private
+int KLFLibLegacyEngine::getReservedResourceId(const QString& resname, int defaultId)
+{
+  if ( ! QString::localeAwareCompare(resname, "History") ||
+       ! QString::localeAwareCompare(resname, qApp->translate("KLFMainWin", "History")) ||
+       ! QString::compare(resname, "History", Qt::CaseInsensitive) ||
+       ! QString::compare(resname, qApp->translate("KLFMainWin", "History"), Qt::CaseInsensitive) )
+    return KLFLegacyData::LibResource_History;
+  if ( ! QString::localeAwareCompare(resname, "Archive") ||
+       ! QString::localeAwareCompare(resname, qApp->translate("KLFMainWin", "Archive")) ||
+       ! QString::compare(resname, "Archive", Qt::CaseInsensitive) ||
+       ! QString::compare(resname, qApp->translate("KLFMainWin", "Archive"), Qt::CaseInsensitive) )
+    return KLFLegacyData::LibResource_Archive;
+
+  return defaultId;
+}
+
 // private
 int KLFLibLegacyEngine::findResourceName(const QString& resname)
 {
@@ -313,44 +350,62 @@ int KLFLibLegacyEngine::findResourceName(const QString& resname)
 // private
 KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url,
 				       QObject *parent)
-  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureSaveTo|FeatureSubResources, parent)
+  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureSaveTo|FeatureSubResources, parent), pCloneOf(NULL)
 {
   // load library
   pFileName = fileName;
-  loadLibraryFile(fileName, &pResources, &pLibrary, &pLegacyLibType);
-
-  // add at least one resource (baptized resname) if the library is empty
-  if (pResources.isEmpty()) {
-    // create a resource
-    KLFLegacyData::KLFLibraryResource res;
-    res.id = KLFLegacyData::LibResourceUSERMAX-1;
-    res.name = resname;
-    pResources << res;
-    // and initialize pLibrary to contain this one empty resource.
-    pLibrary.clear();
-    pLibrary[res] = KLFLegacyData::KLFLibraryList();
-  }
 
   KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
   KLFPropertizedObject::setProperty(PropTitle, QFileInfo(fileName).baseName());
 
-  pAutoSaveTimer = new QTimer(this);
-  connect(pAutoSaveTimer, SIGNAL(timeout()), this, SLOT(save()));
+  // immediately detect if another instance is accessing the same file
+  QString fncan = QFileInfo(fileName).canonicalFilePath();
+  if (staticLegacyEngineInstances.contains(fncan)) {
+    pCloneOf = staticLegacyEngineInstances[fncan];
+    klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"' as clone of "<<pCloneOf<<" (fncan="<<fncan<<")");
+  } else {
+    staticLegacyEngineInstances[fncan] = this;
 
-  if (!isReadOnly())
-    setAutoSaveInterval(180000); // by default: 3 minutes
+    loadLibraryFile(fileName, &pResources, &pLibrary, &pLegacyLibType);
 
+    // add at least one resource (baptized resname) if the library is empty
+    if (pResources.isEmpty()) {
+      // create a resource
+      KLFLegacyData::KLFLibraryResource res;
+      res.name = resname;
+      res.id = getReservedResourceId(resname, KLFLegacyData::LibResourceUSERMAX - 1);
+      pResources << res;
+      // and initialize pLibrary to contain this one empty resource.
+      pLibrary.clear();
+      pLibrary[res] = KLFLegacyData::KLFLibraryList();
+    }
+
+    pAutoSaveTimer = new QTimer(this);
+    connect(pAutoSaveTimer, SIGNAL(timeout()), this, SLOT(save()));
+
+    if (!isReadOnly())
+      setAutoSaveInterval(180000); // by default: 3 minutes
+
+    klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"': resources=\n"<<pResources<<"\n, library=\n"<<pLibrary
+	   <<"\n (me="<<this<<", fncan="<<fncan<<")\n") ;
+  }
 }
 
 KLFLibLegacyEngine::~KLFLibLegacyEngine()
 {
-  if (!isReadOnly())
+  if (!pCloneOf && !isReadOnly())
     save();
+
+  if (staticLegacyEngineInstances.keys(this).size())
+    staticLegacyEngineInstances.remove(staticLegacyEngineInstances.key(this));
 }
 
-bool KLFLibLegacyEngine::canModifyData(const QString& subResouce, ModifyType modifytype) const
+bool KLFLibLegacyEngine::canModifyData(const QString& subResource, ModifyType modifytype) const
 {
-  if ( ! KLFLibResourceEngine::canModifyData(subResouce, modifytype) )
+  if (pCloneOf != NULL)
+    return pCloneOf->canModifyData(subResource, modifytype);
+
+  if ( ! KLFLibResourceEngine::canModifyData(subResource, modifytype) )
     return false;
   /// \todo TODO: check if file is writable, etc. ..............
 
@@ -369,6 +424,9 @@ bool KLFLibLegacyEngine::canRegisterProperty(const QString& propName) const
 
 KLFLibEntry KLFLibLegacyEngine::entry(const QString& resource, entryId id)
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->entry(resource, id);
+
   int index = findResourceName(resource);
   if (index < 0)
     return KLFLibEntry();
@@ -385,7 +443,7 @@ KLFLibEntry KLFLibLegacyEngine::entry(const QString& resource, entryId id)
   return toLibEntry(ll[k]);
 }
 
-// private
+// static, private
 KLFLegacyData::KLFStyle KLFLibLegacyEngine::toLegacyStyle(const KLFStyle& style)
 {
   KLFLegacyData::KLFStyle oldstyle;
@@ -397,7 +455,7 @@ KLFLegacyData::KLFStyle KLFLibLegacyEngine::toLegacyStyle(const KLFStyle& style)
   oldstyle.dpi = style.dpi;
   return oldstyle;
 }
-// private
+// static, private
 KLFStyle KLFLibLegacyEngine::toStyle(const KLFLegacyData::KLFStyle& oldstyle)
 {
   KLFStyle style;
@@ -410,13 +468,13 @@ KLFStyle KLFLibLegacyEngine::toStyle(const KLFLegacyData::KLFStyle& oldstyle)
   return style;
 }
 
-// private
+// static private
 KLFLibEntry KLFLibLegacyEngine::toLibEntry(const KLFLegacyData::KLFLibraryItem& item)
 {
   return KLFLibEntry(item.latex, item.datetime, item.preview.toImage(), item.preview.size(),
 		     item.category, item.tags, toStyle(item.style));
 }
-// private
+// static private
 KLFLegacyData::KLFLibraryItem KLFLibLegacyEngine::toLegacyLibItem(const KLFLibEntry& entry)
 {
   KLFLegacyData::KLFLibraryItem item;
@@ -432,8 +490,11 @@ KLFLegacyData::KLFLibraryItem KLFLibLegacyEngine::toLegacyLibItem(const KLFLibEn
 
 
 QList<KLFLibResourceEngine::KLFLibEntryWithId>
-/* */ KLFLibLegacyEngine::allEntries(const QString& resource, const QList<int>& /*wantedEntryProperties*/)
+/* */ KLFLibLegacyEngine::allEntries(const QString& resource, const QList<int>& wantedEntryProperties)
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->allEntries(resource, wantedEntryProperties);
+
   int rindex = findResourceName(resource);
   if (rindex < 0)
     return QList<KLFLibEntryWithId>();
@@ -453,6 +514,9 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 
 QStringList KLFLibLegacyEngine::subResourceList() const
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->subResourceList();
+
   QStringList list;
   int k;
   for (k = 0; k < pResources.size(); ++k)
@@ -461,8 +525,11 @@ QStringList KLFLibLegacyEngine::subResourceList() const
 }
 
 bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
-					   const QString& /*subResourceTitle*/)
+					   const QString& subResourceTitle)
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->createSubResource(subResource, subResourceTitle) ;
+
   quint32 newId = KLFLegacyData::LibResourceUSERMIN;
   bool ok = true;
   int k;
@@ -480,7 +547,7 @@ bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
   }
   KLFLegacyData::KLFLibraryResource res;
   res.name = subResource;
-  res.id = newId;
+  res.id = getReservedResourceId(subResource, newId);
 
   pResources.push_back(res);
   pLibrary[res] = KLFLegacyData::KLFLibraryList();
@@ -490,6 +557,9 @@ bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
 
 bool KLFLibLegacyEngine::save()
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->save();
+
   klfDbg( "() our url="<<url()<<"." ) ;
   if (isReadOnly()) {
     qWarning("KLFLibLegacyEngine::save: resource is read-only!");
@@ -500,6 +570,11 @@ bool KLFLibLegacyEngine::save()
 
 void KLFLibLegacyEngine::setAutoSaveInterval(int intervalms)
 {
+  if (pCloneOf != NULL) {
+    pCloneOf->setAutoSaveInterval(intervalms);
+    return;
+  }
+
   pAutoSaveTimer->stop();
   if (intervalms > 0) {
     pAutoSaveTimer->setInterval(intervalms);
@@ -511,6 +586,9 @@ void KLFLibLegacyEngine::setAutoSaveInterval(int intervalms)
 QList<KLFLibResourceEngine::entryId> KLFLibLegacyEngine::insertEntries(const QString& subResource,
 								       const KLFLibEntryList& entrylist)
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->insertEntries(subResource, entrylist);
+
   if ( entrylist.size() == 0 )
      return QList<entryId>();
   if (!canModifyData(subResource, InsertData))
@@ -536,6 +614,9 @@ QList<KLFLibResourceEngine::entryId> KLFLibLegacyEngine::insertEntries(const QSt
 bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<entryId>& idlist,
 				       const QList<int>& properties, const QList<QVariant>& values)
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->changeEntries(subResource, idlist, properties, values);
+
   if (idlist.size() == 0)
     return true;
   if (!canModifyData(subResource, ChangeData))
@@ -626,6 +707,9 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
 
 bool KLFLibLegacyEngine::deleteEntries(const QString& subResource, const QList<entryId>& idlist)
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->deleteEntries(subResource, idlist);
+
   if (idlist.isEmpty())
     return true;
   if (!canModifyData(subResource, DeleteData))
@@ -661,6 +745,9 @@ bool KLFLibLegacyEngine::deleteEntries(const QString& subResource, const QList<e
 
 bool KLFLibLegacyEngine::saveTo(const QUrl& newPath)
 {
+  if (pCloneOf != NULL)
+    return pCloneOf->saveTo(newPath);
+
   if (newPath.scheme() == "klf+legacy") {
     return saveLibraryFile(urlLocalFilePath(newPath), pResources, pLibrary, ExportLibraryType);
   }

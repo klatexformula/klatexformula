@@ -175,7 +175,7 @@ public:
  *  QByteArray data;
  *  QDataStream stream(&data, QIODevice::WriteOnly);
  *  stream.setVersion(QDataStream::Qt_4_4);
- *  stream &lt;&lt; metaData &lt;&lt; entries;
+ *  stream << metaData << entries;
  *  // now data contains the exact data for the application/x-klf-libentries mimetype.
  * \endcode
  *

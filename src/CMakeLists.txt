@@ -92,6 +92,7 @@ set(klfapp_MOCHEADERS
 	klflibbrowser.h
 	klflibbrowser_p.h
 	klfmime.h
+	klfmime_p.h
 	klfmainwin.h
 	klfmainwin_p.h
 	klfsettings.h

@@ -37,6 +37,7 @@
 #include "klfconfig.h"
 #include "klflib.h"
 #include "klfmime.h"
+#include "klfmime_p.h"
 
 
 #define OPENOFFICE_DRAWING_MIMETYPE "application/x-openoffice-drawing;windows_formatname=\"Drawing Format\""
@@ -146,6 +147,18 @@ QString KLFMimeExportProfile::respectiveWinType(int k) const
   }
   return exporter->windowsFormatName(p_mimeTypes[k]);
 }
+
+QStringList KLFMimeExportProfile::availableExporterMimeTypes() const
+{
+  QStringList oktypes;
+  int k;
+  for (k = 0; k < p_mimeTypes.size(); ++k) {
+    if (KLFMimeExporter::mimeExporterLookup(p_mimeTypes[k]) != NULL)
+      oktypes << p_mimeTypes[k];
+  }
+  return oktypes;
+}
+
 
 
 QList<KLFMimeExportProfile> KLFMimeExportProfile::p_exportProfileList = QList<KLFMimeExportProfile>();
@@ -354,6 +367,44 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 }
 
 
+// ---------------------------------------------------------------------
+
+
+
+
+KLFMimeData::KLFMimeData(const QString& exportProfile, const KLFBackend::klfOutput& output)
+  : QMimeData(), pExportProfile(KLFMimeExportProfile::findExportProfile(exportProfile))
+{
+  pOutput = output;
+}
+KLFMimeData::~KLFMimeData()
+{
+}
+
+QStringList KLFMimeData::formats() const
+{
+  return pExportProfile.availableExporterMimeTypes();
+}
+
+QVariant KLFMimeData::retrieveData(const QString &mimetype, QVariant::Type /*type*/) const
+{
+  klfDbg("exporting "<<mimetype<<" ...");
+  KLFMimeExporter *exporter = KLFMimeExporter::mimeExporterLookup(mimetype);
+  if (exporter == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't find an exporter for mime-type "<<mimetype<<".";
+    return QVariant();
+  }
+
+  // get the data
+  QByteArray data = exporter->data(mimetype, pOutput);
+
+  klfDbg("exporting mimetype "<<mimetype<<": data length is "<<data.size());
+
+  return QVariant::fromValue<QByteArray>(data);
+}
+
+
+
 
 // ---------------------------------------------------------------------
 
@@ -474,8 +525,10 @@ QByteArray KLFMimeExporterUrilist::data(const QString& /*key*/, const KLFBackend
   if (tempFilesForImageMD5.contains(imgmd5)) {
     tempfilename = tempFilesForImageMD5[imgmd5];
   } else {
-    QString templ = klfconfig.BackendSettings.tempDir+"/klf_temp_export_XXXXXX.png";
+    QString templ = klfconfig.BackendSettings.tempDir +
+      QString("/klf_%1_XXXXXX.png").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm"));
     QTemporaryFile *tempfile = new QTemporaryFile(templ, qApp);
+    tempfile->setAutoRemove(true); // will be deleted when klatexformula exists (= qApp destroyed)
     if (tempfile->open() == false) {
       qWarning("Can't open temp png file for mimetype text/uri-list: template is %s",
 	       qPrintable(templ));

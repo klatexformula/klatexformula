@@ -64,7 +64,9 @@ public:
   };
 
   // THESE VALUES MUST NOT CHANGE FROM ONE VERSION TO ANOTHER OF KLATEXFORMULA :
-  enum {  LibResource_History = 0, LibResource_Archive = 1,
+  enum {
+    LibResource_History = 0,
+    LibResource_Archive = 1,
     // user resources must be in the following range:
     LibResourceUSERMIN = 100,
     LibResourceUSERMAX = 99999
@@ -189,6 +191,11 @@ protected:
 private:
   KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url, QObject *parent);
 
+  // if pCloneOf, EVERY FUNCTION CALL redirects the call to the clone original.
+  KLFLibLegacyEngine *pCloneOf;
+
+  static QMap<QString,KLFLibLegacyEngine*> staticLegacyEngineInstances;
+
   enum LegacyLibType { LocalHistoryType = 1, LocalLibraryType, ExportLibraryType };
 
   QString pFileName;
@@ -200,16 +207,18 @@ private:
 
   QTimer *pAutoSaveTimer;
 
-  KLFLibEntry toLibEntry(const KLFLegacyData::KLFLibraryItem& item);
-  KLFLegacyData::KLFLibraryItem toLegacyLibItem(const KLFLibEntry& entry);
-  KLFLegacyData::KLFStyle toLegacyStyle(const KLFStyle& style);
-  KLFStyle toStyle(const KLFLegacyData::KLFStyle& oldstyle);
+  static KLFLibEntry toLibEntry(const KLFLegacyData::KLFLibraryItem& item);
+  static KLFLegacyData::KLFLibraryItem toLegacyLibItem(const KLFLibEntry& entry);
+  static KLFLegacyData::KLFStyle toLegacyStyle(const KLFStyle& style);
+  static KLFStyle toStyle(const KLFLegacyData::KLFStyle& oldstyle);
   int findResourceName(const QString& resname);
 
   static bool loadLibraryFile(const QString& fname, KLFLegacyData::KLFLibraryResourceList *reslist,
 			      KLFLegacyData::KLFLibrary *lib, LegacyLibType *libType);
   static bool saveLibraryFile(const QString& fname, const KLFLegacyData::KLFLibraryResourceList& reslist,
 			      const KLFLegacyData::KLFLibrary& lib, LegacyLibType legacyLibType);
+
+  int getReservedResourceId(const QString& resourceName, int defaultId);
 };
 
 

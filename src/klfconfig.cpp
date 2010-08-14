@@ -161,6 +161,9 @@ void KLFConfig::loadDefaults()
     // by default, this is first run!
     General.thisVersionFirstRun = true;
 
+    Core.libraryFileName = "library.klf.db";
+    Core.libraryLibScheme = "klf+sqlite";
+
     UI.locale = QLocale::system().name();
     klfDbg("System locale: "<<QLocale::system().name());
     UI.applicationFont = f;
@@ -207,7 +210,7 @@ void KLFConfig::loadDefaults()
     SyntaxHighlighter.fmtLonelyParen.setFontWeight(QFont::Bold);
   }
 
-  // invalid values. if the config is not read from file, then settings will
+  // invalid value, by convention ".". if the config is not read from file, then settings will
   // be detected in detectMissingSettings()
   BackendSettings.tempDir = ".";
   BackendSettings.execLatex = ".";
@@ -215,10 +218,10 @@ void KLFConfig::loadDefaults()
   BackendSettings.execGs = ".";
   BackendSettings.execEpstopdf = ".";
 
-  BackendSettings.lborderoffset = 1;
-  BackendSettings.tborderoffset = 1;
-  BackendSettings.rborderoffset = 1;
-  BackendSettings.bborderoffset = 1;
+  BackendSettings.lborderoffset = 0;
+  BackendSettings.tborderoffset = 0;
+  BackendSettings.rborderoffset = 0;
+  BackendSettings.bborderoffset = 0;
   BackendSettings.outlineFonts = true;
 
   LibraryBrowser.colorFound = QColor(128, 255, 128);
@@ -365,6 +368,11 @@ int KLFConfig::readFromConfig_v2()
   klf_config_read(s, firstRunConfigKey(KLF_VERSION_STRING), &General.thisVersionFirstRun);
   s.endGroup();
 
+  s.beginGroup("Core");
+  klf_config_read(s, "libraryfilename", &Core.libraryFileName);
+  klf_config_read(s, "librarylibscheme", &Core.libraryLibScheme);
+  s.endGroup();
+
   s.beginGroup("UI");
   klf_config_read(s, "locale", &UI.locale);
   klf_config_read(s, "applicationfont", &UI.applicationFont);
@@ -462,6 +470,11 @@ int KLFConfig::writeToConfig()
   bool thisVersionFirstRunFalse = false;
   s.beginGroup("General");
   klf_config_write(s, firstRunConfigKey(KLF_VERSION_STRING), &thisVersionFirstRunFalse);
+  s.endGroup();
+
+  s.beginGroup("Core");
+  klf_config_write(s, "libraryfilename", &Core.libraryFileName);
+  klf_config_write(s, "librarylibscheme", &Core.libraryLibScheme);
   s.endGroup();
 
   s.beginGroup("UI");

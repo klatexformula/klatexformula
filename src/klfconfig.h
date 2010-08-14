@@ -159,6 +159,16 @@ public:
 
   struct {
 
+    /** The library file name, relative to homeConfigDir. */
+    QString libraryFileName;
+    /** The lib scheme to use to store the library. This scheme will be given the full path
+     * to the library in the URL path part. */
+    QString libraryLibScheme;
+
+  } Core;
+
+  struct {
+
     QString locale; //!< When setting this, don't forget to call QLocale::setDefault().
     QFont applicationFont;
     QFont latexEditFont;

@@ -203,8 +203,6 @@ public:
   /** See alterSetting(altersetting_which, int) */
   void alterSetting(altersetting_which, QString svalue);
 
-  QMimeData * resultToMimeData(const QString& exportProfileName = QString("default"));
-  
   KLFLibBrowser * libBrowserWidget() { return mLibBrowser; }
   KLFLatexSymbols * latexSymbolsWidget() { return mLatexSymbols; }
   KLFStyleManager * styleManagerWidget() { return mStyleManager; }
@@ -366,6 +364,8 @@ protected:
 
   KLFLibResourceEngine *mHistoryLibResource;
 
+  KLFStyleList _styles;
+
   QMenu *mStyleMenu;
 
   KLFLatexSyntaxHighlighter *mHighlighter;
@@ -378,7 +378,7 @@ protected:
   bool _settings_altered;
 
   KLFBackend::klfOutput _output; // output from KLFBackend
-  KLFBackend::klfInput _lastrun_input; // input that generated _output
+  //  KLFBackend::klfInput _lastrun_input; // input that generated _output (now _output.input)
 
   /** If TRUE, then the output contained in _output is up-to-date, meaning that we favor displaying
    * _output.result instead of the image given by mPreviewBuilderThread. */
@@ -386,12 +386,12 @@ protected:
   /** The Thread that will create real-time previews of formulas. */
   KLFPreviewBuilderThread *mPreviewBuilderThread;
 
-  KLFStyleList _styles;
+  KLFBackend::klfInput collectInput();
+
+  QList<QAction*> pExportProfileQuickMenuActionList;
 
   QSize _shrinkedsize;
   QSize _expandedsize;
-
-  KLFBackend::klfInput collectInput();
 
   bool event(QEvent *e);
   void childEvent(QChildEvent *e);

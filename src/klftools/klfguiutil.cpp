@@ -43,8 +43,10 @@ KLFProgressReporter::KLFProgressReporter(int min, int max, QObject *parent)
 }
 KLFProgressReporter::~KLFProgressReporter()
 {
-  if (!pFinished)
-    emit finished(); // make sure finished() is emitted.
+  if (!pFinished) {  // make sure finished() is emitted.
+    emit progress(pMax); // some connected clients just wait for maximum value progress
+    emit finished();
+  }
 }
 
 void KLFProgressReporter::doReportProgress(int value)
@@ -89,6 +91,7 @@ void KLFProgressDialog::setup(bool canCancel)
   setModal(true);
   //  setWindowModality(Qt::ApplicationModal);
   setWindowIcon(QIcon(":/pics/klatexformula-16.png"));
+  setWindowTitle(tr("Progress"));
   QPushButton *cbtn = new QPushButton(tr("Cancel"), this);
   setCancelButton(cbtn);
   cbtn->setEnabled(canCancel);
@@ -109,6 +112,7 @@ void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressRepo
   reset();
   setDescriptiveText(descriptiveText);
   setRange(progressReporter->min(), progressReporter->max());
+  setValue(0);
 
   connect(progressReporter, SIGNAL(progress(int)), this, SLOT(setValue(int)));
 }
@@ -117,16 +121,15 @@ void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressRepo
 {
   reset();
   setRange(progressReporter->min(), progressReporter->max());
+  setValue(0);
   connect(progressReporter, SIGNAL(progress(int)), this, SLOT(setValue(int)));
 }
 
 void KLFProgressDialog::setValue(int value)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
+  //  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
   klfDbg("value="<<value);
-  //#ifdef Q_WS_MAC  // This fails on mac with recursive repaint events
   QProgressDialog::setValue(value);
-  //#endif
 }
 
 void KLFProgressDialog::paintEvent(QPaintEvent *event)

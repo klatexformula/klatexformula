@@ -75,7 +75,8 @@ if(DOXYGEN)
 
   add_custom_target(doc
     COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/index.html" "index.html"
-    COMMAND tar cvfj "klf-apidoc-${KLF_VERSION}.tar.bz2" klfbackend/ klftools/ klfapp/ index.html
+    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/f.gif" "f.gif"
+    COMMAND tar cvfj "klf-apidoc-${KLF_VERSION}.tar.bz2" klfbackend/ klftools/ klfapp/ index.html f.gif
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/apidoc"
     COMMENT "Creating API doc archive"
     VERBATIM

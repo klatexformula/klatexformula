@@ -232,6 +232,10 @@ public slots:
     // and of context menu request
     connect(v, SIGNAL(customContextMenuRequested(const QPoint&)),
 	    this, SIGNAL(viewContextMenuRequested(const QPoint&)));
+    // view progress reporting
+    connect(v, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
+	    this, SIGNAL(viewOperationStartReportingProgress(KLFProgressReporter *, const QString&)));
+
     klfDbgT(": connected signals.");
     if ((pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) &&
 	(pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps))
@@ -273,6 +277,8 @@ signals:
   void moreCategorySuggestions(const QStringList& categorylist);
 
   void requestOpenUrl(const QString& url);
+
+  void viewOperationStartReportingProgress(KLFProgressReporter *progressReporter, const QString& descriptiveText);
 
 protected slots:
   void slotRequestRestore(const KLFLibEntry& entry, uint restoreflags = KLFLib::RestoreLatexAndStyle) {

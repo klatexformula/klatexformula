@@ -359,6 +359,12 @@ void KLFLibModelCache::rebuildCache()
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ; qDebug("\tflavorFlags=%#010x", flavorFlags);
   int k;
 
+  // report progress
+  KLFProgressReporter progressReporter(0, 100, NULL);
+  emit pModel->operationStartReportingProgress(&progressReporter,
+					       QObject::tr("Updating View...", "[[KLFLibModelCache, progress text]]"));
+  progressReporter.doReportProgress(0);
+
   QModelIndexList persistentIndexes = pModel->persistentIndexList();
   QList<KLFLibModel::PersistentId> persistentIndexIds = pModel->persistentIdList(persistentIndexes);
 
@@ -386,6 +392,9 @@ void KLFLibModelCache::rebuildCache()
     entryindex.kind = EntryKind;
     entryindex.index = pEntryCache.size()-1;
     treeInsertEntry(entryindex, false);
+
+    if (k % 20 == 0)
+      progressReporter.doReportProgress((k+1) * 100 / everything.size());
   }
 
   QModelIndexList newPersistentIndexes = pModel->newPersistentIndexList(persistentIndexIds);
@@ -614,10 +623,11 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
 
 void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg( "modifyType="<<modifyType<<" entryIdList="<<entryIdList ) ;
 
   if (modifyType == KLFLibResourceEngine::UnknownModification) {
+    klfDbg("Performing full refresh.") ;
     rebuildCache();
     return;
   }
@@ -625,9 +635,16 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
   if (entryIdList.size() > 10 &&
       (entryIdList.size() > pEntryCache.size()/3 || entryIdList.size() > 100)) {
     // too big a modification, just rebuild the cache
+    klfDbg("Performing full refresh.") ;
     rebuildCache();
     return;
   }
+
+  // progress reporting [here, not above, because rebuildCache() has its own progress reporting]
+  KLFProgressReporter progressReporter(0, entryIdList.size(), NULL);
+  emit pModel->operationStartReportingProgress(&progressReporter,
+					       QObject::tr("Updating View...", "[[KLFLibModelCache, progress text]]"));
+  progressReporter.doReportProgress(0);
 
   switch (modifyType) {
   case KLFLibResourceEngine::InsertData:
@@ -643,6 +660,8 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	NodeId n = NodeId(EntryKind, pEntryCache.size()-1);
 	treeInsertEntry(n);
 	qDebug("%s: entry ID %d inserted", KLF_FUNC_NAME, entryIdList[k]);
+	if (k % 20 == 0)
+	  progressReporter.doReportProgress(k+1);
       }
       break;
     }
@@ -675,6 +694,8 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	  QModelIndex idx = createIndexFromId(n, -1, 0);
 	  emit pModel->dataChanged(idx, idx);
 	}
+	if (k % 20 == 0)
+	  progressReporter.doReportProgress(k+1);
       }
       break;
     }
@@ -686,6 +707,8 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	// entry deleted
 	NodeId n = findEntryId(entryIdList[k]);
 	treeRemoveEntry(n);
+	if (k % 20 == 0)
+	  progressReporter.doReportProgress(k+1);
       }
       break;
     }
@@ -2880,6 +2903,11 @@ void KLFLibDefaultView::updateResourceEngine()
 
   connect(pModel, SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)),
 	  this, SLOT(slotResourceDataChanged(const QModelIndex&, const QModelIndex&)));
+
+  // reflect pModel's request for progress reporting
+  connect(pModel, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
+	  this, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)));
+
 
   // delegate wants to know more about selections...
   pDelegate->setSelectionModel(s);

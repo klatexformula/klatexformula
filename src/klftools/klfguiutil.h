@@ -77,6 +77,7 @@ signals:
    * the \ref max() value. (Progress reporters must enforce this).
    */
   void progress(int progressValue);
+
   /** Emitted right after progress() was emitted with the max() value.
    * If doReportProgress() is never called with the max() value, then this signal is
    * emitted in the destructor.
@@ -98,18 +99,90 @@ private:
   bool pFinished;
 };
 
-
+/** \brief A Progress Dialog
+ *
+ * This class is a QProgressDialog derivative that is optimized to work for klatexformula's needs,
+ * especially making it easy to use with KLFProgressReporter.
+ *
+ * Among others, this dialog provides a straightforward option to disable the Cancel button.
+ *
+ * Basically this is just a wrapper around QProgressDialog's functions. Typical use is:
+ * \code
+ *  MyWidget::someLengthyOperation()
+ *  {
+ *    int number_of_steps = ...;
+ *    KLFProgressDialog pdlg(false, this); // disable cancel
+ *    KLFProgressReporter progressReporter(0, number_of_steps);
+ *    pdlg.startReportingProgress(&progressReporter, "Please wait until some long operation completes...");
+ *    ...
+ *    int step = 0;
+ *    for (step = 0; step < number_of_steps; ++step) {
+ *      // an iteration step
+ *      ...
+ *      progressReporter.doReportProgress(step)
+ *    }
+ *  }
+ * \endcode
+ *
+ * The previous example is somewhat trivial and does not exhibit the advantages of the features of
+ * this classand of KLFProgressReporter over QProgressDialog; the example of KLFLibResourceEngine
+ * is more relevant:
+ * \code
+ * // klflib.h  : the library resource engine system (no GUI)
+ * class KLFLibResourceEngine {
+ *    ....
+ * signals:
+ *   void operationStartReportingProgress(KLFProgressReporter *progressReporter, const QString& label);
+ *
+ *   ...
+ * };
+ *
+ * // klflibbrowser.cpp  : the library browser (GUI)
+ *   ...
+ * bool KLFLibBrowser::openResource(...)
+ * {
+ *   ...
+ *   connect(resource, SIGNAL(operationStartReportingProgress(KLFProgressReporter *, const QString&)),
+ *	  this, SLOT(slotStartProgress(KLFProgressReporter *, const QString&)));
+ *   ...
+ * }
+ * void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& label)
+ * {
+ *   KLFProgressDialog *pdialog = new KLFProgressDialog(false, this);
+ *   pdialog->startReportingProgress(progressReporter, text);
+ *   ...
+ * }
+ * \endcode
+ * which opens a progress dialog whenever the resource emits an <tt>operationStartReportingProgress()</tt>
+ * signal. Note that in this example, we have not provided the means to delete the progress dialog once
+ * it has completed; for details have a look at the source code of klflibbrowser.cpp.
+ *
+ * For yet another example of inline (on-the-stack) usage of KLFProgressDialog, check out
+ * KLFLibBrowser::slotExport() in klflibbrowser.cpp.
+ *
+ * \todo .... I'm not sure, but to delete the dialog, couldn't we simply connect
+ *   KLFProgressReporter::finished() to KLFProgressDialog::deleteLater() ... ? needs a test.
+ *
+ */
 class KLF_EXPORT KLFProgressDialog : public QProgressDialog
 {
   Q_OBJECT
 public:
+  /** Build a progress dialog with the given labelText and parent */
   KLFProgressDialog(QString labelText = QString(), QWidget *parent = NULL);
+
+  /** Build a progress dialog with a cancel button that is enabled or disabled (following the
+   * value of \c canCancel), with label \c labelText, and parent \c parent.
+    */
   KLFProgressDialog(bool canCancel, QString labelText = QString(), QWidget *parent = NULL);
+
   virtual ~KLFProgressDialog();
 
 
 public slots:
 
+  /** same as QProgressDialog::setLabelText() but resizes the dialog a bit larger so that its looks
+   * nicer. */
   virtual void setDescriptiveText(const QString& labelText);
   /** start reporting progress from \c progressReporter and set label text to \c descriptiveText. */
   virtual void startReportingProgress(KLFProgressReporter *progressReporter,
@@ -117,6 +190,7 @@ public slots:
   /** start reporting progress from \c progressReporter, without changing label text. */
   virtual void startReportingProgress(KLFProgressReporter *progressReporter);
 
+  /** Calls directly QProgressDialog::setValue() */
   virtual void setValue(int value);
 
 protected:
@@ -125,9 +199,22 @@ protected:
 private:
   void setup(bool canCancel);
   void init(const QString& labelText);
+
+  bool pGotPaintEvent;
 };
 
 
+/** \brief A popup screen inviting the user to wait
+ *
+ * A splashscreen-like widget that appears in the middle of the screen displaying a text
+ * inviting the user to wait.
+ *
+ * Used in klatexformula for example when changing skins, to invite the user to wait until
+ * Qt finished processing the new style sheet rules onto all the widgets.
+ *
+ * See the constructor KLFPleaseWaitPopup() for an example.
+ *
+ */
 class KLF_EXPORT KLFPleaseWaitPopup : public QLabel
 {
   Q_OBJECT
@@ -145,11 +232,17 @@ public:
   KLFPleaseWaitPopup(const QString& text, QWidget *callingWidget = NULL);
   virtual ~KLFPleaseWaitPopup();
 
+  /** If set to TRUE, then calling showPleaseWait() will disable the widget passed to
+   * the constructor. The widget is re-enabled when this popup is destroyed.
+   *
+   * Default is false. */
   virtual void setDisableUi(bool disableUi);
 
+  /** Returns TRUE as soon as this widget got its first paint event. */
   virtual bool pleaseWaitShown() { return pGotPaintEvent; }
 
 public slots:
+  /** Show the "please wait" widget. */
   virtual void showPleaseWait();
 
 protected:
@@ -163,6 +256,17 @@ private:
 };
 
 
+/** \brief A popup screen inviting user to wait, appearing after a delay
+ *
+ * See KLFPleaseWaitPopup.
+ *
+ * Additionally, this class provides setDelay(int) where you can specify after how much
+ * time this popup should be displayed.
+ *
+ * Your code should regularly call process(). process() will check current time,
+ * and show the widget if the delay has elapsed from the time the widget was
+ * constructed.
+ * */
 class KLF_EXPORT KLFDelayedPleaseWaitPopup : public KLFPleaseWaitPopup
 {
   Q_OBJECT
@@ -181,7 +285,21 @@ private:
 };
 
 
-/** Utility class for a combo box proposing a list of enumeration values.
+/** \brief a combo box proposing a list of (integer) enumeration values.
+ *
+ * Utility class built over QComboBox that can be used to propose a list of enumeration values
+ * to user.
+ *
+ * You can set the enumeration values in the constructor or with setEnumValues(), and retrieve
+ * the currently selected enum value with selectedValue().
+ *
+ * \note We say "enumeration values" because that is this widget's main purpose, however of
+ *   course this is just a widget that more conveniently connects a title displayed to the
+ *   user with an integer, and allows the user to select the former while the program code
+ *   manipulates the latter.
+ *
+ * \note Note also that this widget sets item data in the QComboBox with setItemData() using
+ *   the default role number. If you want also to set item data, use another role number!
  */
 class KLF_EXPORT KLFEnumComboBox : public QComboBox
 {

@@ -31,6 +31,7 @@
 #include <QMap>
 #include <QImage>
 #include <QImageWriter>
+#include <QMimeData>
 #include <QTemporaryFile>
 
 #include <klfdefs.h>
@@ -103,6 +104,13 @@ public:
   QString respectiveWinType(int k) const;
 
 
+  /** Returns a list of mime types, for which we garantee that (at least at the time
+   * of calling this function), KLFMimeExporter::mimeExporterLookup(mimetype) will
+   * not return NULL.
+   */
+  QStringList availableExporterMimeTypes() const;
+
+
   static QList<KLFMimeExportProfile> exportProfileList();
   static void addExportProfile(const KLFMimeExportProfile& exportProfile);
 
@@ -120,62 +128,30 @@ private:
   static QList<KLFMimeExportProfile> p_exportProfileList;
 };
 
-/** KLFMimeExporter implementation to export all known built-in image formats, including
- * - all Qt-supported image formats
- * - all KLFBackend-generated formats, namely EPS (image/eps, application/eps, application/postscript),
- *   PDF (application/pdf)
- * - additionally, OpenOffice.org draw object
- *   (\c application/x-openoffice-drawing;windows_formatname="Drawing Format")
+
+
+/** A QMimeData subclass for Copy and Drag operations in KLFMainWin, that supports delayed
+ * data processing, ie. that actually creates the requested data only on drop or paste, and
+ * not when the operation is initiated.
+ *
+ * This function can be used as a regular QMimeData object to copy or drag any
+ * KLFBackend::klfOutput data, with a given export profile.
  */
-class KLF_EXPORT KLFMimeExporterImage : public KLFMimeExporter
+class KLF_EXPORT KLFMimeData : public QMimeData
 {
   Q_OBJECT
 public:
-  KLFMimeExporterImage(QObject *parent) : KLFMimeExporter(parent) { }
-  virtual ~KLFMimeExporterImage() { }
+  KLFMimeData(const QString& exportProfileName, const KLFBackend::klfOutput& output);
+  virtual ~KLFMimeData();
 
-  virtual QStringList keys() const;
-  virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+  QStringList formats() const;
 
-  virtual QString windowsFormatName(const QString& key) const;
+protected:
+  QVariant retrieveData(const QString &mimetype, QVariant::Type type) const;
 
 private:
-  static QMap<QString,QByteArray> imageFormats;
-};
-
-/** KLFMimeExporter implementation for exporting \c "text/x-moz-url" and \c "text/uri-list"
- * to a temporary PNG file
- */
-class KLF_EXPORT KLFMimeExporterUrilist : public KLFMimeExporter
-{
-  Q_OBJECT
-public:
-  KLFMimeExporterUrilist(QObject *parent) : KLFMimeExporter(parent) { }
-  virtual ~KLFMimeExporterUrilist() { }
-
-  virtual QStringList keys() const;
-  virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
-
-  virtual QString windowsFormatName(const QString& key) const;
-
-private:
-  static QMap<QByteArray,QString> tempFilesForImageMD5;
-};
-
-
-/** Wrapper class to export all formats registered in KLFAbstractLibEntryMimeExporter,
- * including all additional added encoders (eg. from plugins)
- */
-class KLF_EXPORT KLFMimeExporterLibFmts : public KLFMimeExporter
-{
-  Q_OBJECT
-public:
-  KLFMimeExporterLibFmts(QObject *parent) : KLFMimeExporter(parent) { }
-  virtual ~KLFMimeExporterLibFmts() { }
-
-  virtual QStringList keys() const;
-  virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
-
+  KLFMimeExportProfile pExportProfile;
+  KLFBackend::klfOutput pOutput;
 };
 
 
