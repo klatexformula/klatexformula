@@ -255,8 +255,8 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 
   QDomElement root = doc.documentElement();
   if (root.nodeName() != "export-profile-list") {
-    qWarning("%s: Error parsing XML for export mime profiles from file `%s': Bad root node.\n",
-	     KLF_FUNC_NAME, qPrintable(fname));
+    qWarning("%s: Error parsing XML for export mime profiles from file `%s': Bad root node `%s'.\n",
+	     KLF_FUNC_NAME, qPrintable(fname), qPrintable(root.nodeName()));
     return;
   }
 

@@ -28,6 +28,7 @@
 #include <QString>
 #include <QStringList>
 #include <QUrl>
+#include <QMap>
 #include <QVariant>
 #include <QProgressDialog>
 #include <QLabel>
@@ -39,6 +40,67 @@
 //! Ensure existence of a directory
 KLF_EXPORT bool klfEnsureDir(const QString& dir);
 
+
+//! Implements default equality tester with operator==
+/** Used in eg. \ref klfMapIsIncludedIn() algorithm to test for items equality.
+ *
+ * See also \ref klfStrCaseEqualFunc.
+ */
+template<class Value>
+class klfEqualFunc
+{
+public:
+  bool operator()(const Value& a, const Value& b) { return a == b; }
+};
+
+//! implements an equality tester between strings
+/** Can be used in eg. \ref klfMapIsIncludedIn().
+ *
+ * It is possible to specify whether to compare strings case sensitive or insensitive.
+ *
+ * See also \ref klfEqualFunc.
+ */
+class klfStrCaseEqualFunc
+{
+  Qt::CaseSensitivity cs;
+public:
+  klfStrCaseEqualFunc(Qt::CaseSensitivity caseSensitive) : cs(caseSensitive) { }
+  bool operator()(const QString& a, const QString& b) { return QString::compare(a, b, cs) == 0; }
+};
+
+
+/** \brief Compares two QMap's for inclusion
+ *
+ * returns TRUE if all keys in \c a are present in \c b, with same values. Map \c b may
+ * (possibly) contain more keys than \c a.
+ *
+ * This function uses a general value comparer helper, \c cfunc. You can give for example
+ * \ref klfEqualFunc or \ref klfStrCaseEqualFunc.
+ */
+template<class Key, class Value, class ValCompareFunc>
+inline bool klfMapIsIncludedIn(const QMap<Key,Value>& a, const QMap<Key,Value>& b,
+			       ValCompareFunc cfunc = klfEqualFunc<Value>())
+{
+  typename QMap<Key,Value>::const_iterator iter;
+  for (iter = a.begin(); iter != a.end(); ++iter) {
+    if (!b.contains(iter.key()) || ! cfunc(b[iter.key()], iter.value())) {
+      return false;
+    }
+  }
+  // the map a is included in b
+  return true;
+}
+
+//! Compares two QMap's for inclusion (values QString's)
+/** Same as klfMapIsIncludedIn(const QMap<Key,Value>&, const QMap<Key,Value>&, ValCompareFunc), except
+ * that values have to be QStrings, and that the value comparision is done by comparing strings for
+ * equality, with case sensitivity \c cs.
+ */
+template<class Key>
+inline bool klfMapIsIncludedIn(const QMap<Key,QString>& a, const QMap<Key,QString>& b, Qt::CaseSensitivity cs)
+{
+  return klfMapIsIncludedIn(a, b, klfStrCaseEqualFunc(cs));
+}
 
 
 //! Some relevant values for \ref klfUrlCompare()
@@ -67,7 +129,13 @@ enum KlfUrlCompareFlag {
    *    that are not present in \c url2. */
   KlfUrlCompareMoreSpecific = 0x04,
   /** \brief Urls have same base URL. Query items are ignored. */
-  KlfUrlCompareBaseEqual = 0x08
+  KlfUrlCompareBaseEqual = 0x08,
+
+  /** \brief This is NOT a specific test. It modifies the behavior of klfUrlCompare() by instructing
+   * it to compare query item _values_ in a non-case-sensitive manner (query item name (=key)
+   * comparisions are always case sensitive). Namely, with this flag set \c "file:///path?name=value" is
+   * equal to \c "file:///path?name=VALUE" but is not equal to \c "file:///path?NAME=value". */
+  klfUrlCompareFlagIgnoreQueryItemValueCase = 0x1000000
 };
 //! Compares two URLs and returns some flags as to how they differ
 /** The return value is an binary-OR'ed value of flags given in \ref KlfUrlCompareFlag.

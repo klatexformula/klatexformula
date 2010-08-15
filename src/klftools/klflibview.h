@@ -96,6 +96,35 @@ public:
    */
   virtual QUrl url() const = 0;
 
+  //! Compare this resource view's URL to another URL
+  /** Compares the URL of the resource we are viewing with the URL \c other, and
+   * returns an OR-ed combination of enum \ref KlfUrlCompareFlag values of URL-comparision
+   * tests that have turned out to be true (see \ref KlfUrlCompareFlag for a list
+   * of tests).
+   *
+   * This function is supposed to answer to the following questions, each a condition
+   * as whether to return a URL comparation flag or not:
+   * - flag \c KlfUrlCompareEqual: does this view show the same information as a view
+   *   whose URL would be \c other ?
+   * - flag \c KlfUrlCompareLessSpecific: does this view show _MORE_ information than
+   *   the \c other view ("less specific information" <=> "shows more") ?
+   * - flag \c KLFUrlCompareMoreSpecific: does this view show _LESS_ information than
+   *   the \c other view ?
+   * - flag \c KLFUrlComapreBaseEqual: does this view show the same resource as the
+   *   \c other view, but possibly does not the same specific information, eg. not the
+   *   same sub-resource.
+   *
+   * The \c interestFlags is a binary OR'ed value of KlfUrlCompareFlag values of tests
+   * to be performed. Any flag that is set in \c interestFlags indicates that the return
+   * value of this function, when binary-AND'ed with that flag, is the result (T or F)
+   * of the test the flag stands for. However, if a flag is not set in \c interestFlags,
+   * its state in the return value by this function is undefined.
+   *
+   * See also klfUrlCompare().
+   */
+  virtual uint compareUrlTo(const QUrl& other, uint interestFlags = 0xFFFFFFFF) const = 0;
+
+
   //! Returns TRUE if a non-\c NULL resource engine has been set
   inline bool validResourceEngine() const { return pResourceEngine != NULL; }
 
@@ -581,6 +610,7 @@ public:
   virtual ~KLFLibDefaultView();
 
   virtual QUrl url() const;
+  virtual uint compareUrlTo(const QUrl& other, uint interestFlags = 0xFFFFFFFF) const;
 
   bool groupSubCategories() const { return pGroupSubCategories; }
 

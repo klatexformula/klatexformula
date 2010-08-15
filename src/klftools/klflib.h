@@ -491,6 +491,26 @@ public:
     FeatureSubResourceProps	= 0x0010,
   };
 
+  /**
+   *
+   * \note If the URL \c url needs to be normalized in some way (eg. convert some query item
+   * values to lower case, ...), then you need to implement a static function, eg.
+   * \code
+   * static KLFMyEngine * openURL(const QUrl& url) {
+   *   QUrl normalized = url;
+   *   // ... normalize URL ...
+   *   return new KLFMyEngine(normalized, ...);
+   * }
+   * KLFMyEngine::KLFMyEngine(const QUrl& url, ...) : KLFLibResourceEngine(url,...)
+   * {
+   *   // ...
+   * }
+   * \endcode
+   * which will pass the normalized URL here. You cannot change the URL once it has been
+   * passed to the constructor. Note however that the stored URL has some elements stripped,
+   * as described in the class documentation \ref KLFLibResourceEngine, which you can
+   * change via the API (eg. setDefaultSubResource()).
+   */
   KLFLibResourceEngine(const QUrl& url, uint supportedfeatureflags, QObject *parent = NULL);
 
   virtual ~KLFLibResourceEngine();
@@ -525,6 +545,26 @@ public:
    * of the resource it displays.
    */
   virtual QUrl url(uint flags = 0x0) const;
+
+  //! Compare this resource's URL with another's
+  /** Compares the URL of this resource with \c other, and returns a binary OR'ed value of
+   * \ref KLFUrlCompareFlag enum values of tests that have proved true (see \ref KlfUrlCompareFlag
+   * for a list of URL-comparision tests).
+   *
+   * This function should return the following flag, if its corresponding tests turn out
+   * to be true. This function should NOT return any other flag that is not listed here.
+   * - \c KLFUrlComapreBaseEqual should be set if this resource shares its data with the resource
+   *   given by URL \c other. Default sub-resources are to be ignored.
+   * 
+   * The \c interestFlags is a binary OR'ed value of KlfUrlCompareFlag values of tests
+   * to be performed. Any flag that is set in \c interestFlags indicates that the return
+   * value of this function, when binary-AND'ed with that flag, is the result (T or F)
+   * of the test the flag stands for. However, if a flag is not set in \c interestFlags,
+   * its state in the return value by this function is undefined.
+   *
+   * See also klfUrlCompare().
+   */
+  virtual uint compareUrlTo(const QUrl& other, uint interestFlags = 0xfffffff) const = 0;
 
   //! Query read-only state
   /** See \ref KLFLibResourceEngine "Class Documentation" for more details. */
@@ -647,6 +687,9 @@ public:
    *
    * If subclasses have a more optimized method to check this, they may (but need not
    * necessarily) reimplement this function to optimize it.
+   *
+   * Engines that have case-insensitive resource names (eg. SQL tables) must reimplement
+   * this function to do a case-insensitive test.
    */
   virtual bool hasSubResource(const QString& subResource) const;
 
@@ -655,8 +698,21 @@ public:
   virtual QStringList subResourceList() const { return QStringList(); }
 
   /** Returns the default sub-resource, ie. the sub-resource to access if eg. the variant
-   * of insertEntry() without the sub-resource argument is called.  */
-  virtual QString defaultSubResource();
+   * of insertEntry() without the sub-resource argument is called.
+   *
+   * This is relevant only if the engine supports feature \ref FeatureSubResources.
+   */
+  virtual QString defaultSubResource() const;
+
+  /** \brief Compare our sub-resource name to another
+   *
+   * Returns TRUE if our default sub-resource name equals \c subResource, FALSE otherwise.
+   *
+   * The default implementation tests for string equality (case sensitive). If sub-resources
+   * in the reimplemented engine are case-insensitive, then reimplement this function to
+   * compare string case-insensitive.
+   */
+  virtual bool compareSubResourceEquals(const QString& subResourceName) const;
 
   /** Returns TRUE if we can create a new sub-resource in this resource.
    *

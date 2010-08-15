@@ -417,11 +417,9 @@ KLFLibBrowserViewContainer * KLFLibBrowser::findOpenUrl(const QUrl& url)
   int k;
   for (k = 0; k < pLibViews.size(); ++k) {
     klfDbg( ": test lib view #"<<k<<"; url="<<pLibViews[k]->url() ) ;
-    uint fl = klfUrlCompare(pLibViews[k]->url(), url,
-			    KlfUrlCompareEqual|KlfUrlCompareLessSpecific,
-			    QStringList()<<"klfDefaultSubResource");
     // allow: * urls to be equal
     //        * this resource's URL to be less specific (shows more) than what we're searching for
+    uint fl = pLibViews[k]->view()->compareUrlTo(url, KlfUrlCompareEqual|KlfUrlCompareLessSpecific);
     if (fl & KlfUrlCompareEqual ||
 	fl & KlfUrlCompareLessSpecific) {
       klfDbg( ": Found!" ) ;

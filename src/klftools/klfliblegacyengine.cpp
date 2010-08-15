@@ -446,6 +446,14 @@ void KLFLibLegacyEngine::takeOverFromClone()
   pAutoSaveTimer->setParent(this);
 }
 
+uint KLFLibLegacyEngine::compareUrlTo(const QUrl& other, uint interestFlags) const
+{
+  // we can only test for these flags (see doc for KLFLibResourceEngine::compareUrlTo())
+  interestFlags = interestFlags & (KlfUrlCompareBaseEqual);
+
+  return klfUrlCompare(url(), other, interestFlags);
+}
+
 
 bool KLFLibLegacyEngine::canModifyData(const QString& subResource, ModifyType modifytype) const
 {

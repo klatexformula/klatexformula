@@ -96,9 +96,17 @@ KLFLibDBConnectionClassUser::~KLFLibDBConnectionClassUser()
 
 
 // static
-KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& url, QObject *parent)
+KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& givenurl, QObject *parent)
 {
   bool accessshared = false;
+
+  QUrl url = givenurl;
+
+  if (url.hasQueryItem("klfDefaultSubResource")) {
+    QString defaultsubres = url.queryItemValue("klfDefaultSubResource");
+    url.removeAllQueryItems("klfDefaultSubResource");
+    url.addQueryItem("klfDefaultSubResource", defaultsubres.toLower());
+  }
 
   QSqlDatabase db;
   if (url.scheme() == "klf+sqlite") {
@@ -255,6 +263,16 @@ QString KLFLibDBEngine::quotedDataTableName(const QString& subResource)
   return '"' + dtname + '"';
 }
 
+
+uint KLFLibDBEngine::compareUrlTo(const QUrl& other, uint interestFlags) const
+{
+  // we can only test for these flags (see doc for KLFLibResourceEngine::compareUrlTo())
+  interestFlags = interestFlags & (KlfUrlCompareBaseEqual);
+  // and we have to compare sub-resources case-insensitive (SQL table names)
+  interestFlags |= klfUrlCompareFlagIgnoreQueryItemValueCase;
+
+  return klfUrlCompare(url(), other, interestFlags);
+}
 
 bool KLFLibDBEngine::canModifyData(const QString& subResource, ModifyType mt) const
 {
@@ -708,6 +726,12 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   progr.doReportProgress(count);
 
   return entryList;
+}
+
+
+bool KLFLibDBEngine::compareSubResourceEquals(const QString& subResourceName) const
+{
+  return QString::compare(defaultSubResource(), subResourceName, Qt::CaseInsensitive) == 0;
 }
 
 

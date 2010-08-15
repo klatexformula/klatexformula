@@ -2706,6 +2706,68 @@ QUrl KLFLibDefaultView::url() const
   }
   return pModel->url();
 }
+uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) const
+{
+  bool baseequal = false;
+  uint resultFlags = 0x0;
+
+  // see if base resources are equal
+  baseequal = resourceEngine()->compareUrlTo(other, KlfUrlCompareBaseEqual);
+  if (baseequal)
+    resultFlags |= KlfUrlCompareBaseEqual;
+
+  // perform inclusion checks
+  if (interestFlags & KlfUrlCompareLessSpecific) {
+    if (!baseequal) {
+      // aren't less specific since not base equal.
+    } else {
+      // we can only "see" sub-resources, compare for that only
+      // "less specific" -> our sub-resource (if we have one) must equal theirs; if we don't have one we're fine.
+      // --> they must support sub-resources if we do, and display one
+      if ( ! (resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) ) {
+	resultFlags |= KlfUrlCompareLessSpecific;
+      } else if (other.hasQueryItem("klfDefaultSubResource")) {
+	if (resourceEngine()->compareSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+	  resultFlags |= KlfUrlCompareLessSpecific;
+      }
+    }
+  }
+  if (interestFlags & KlfUrlCompareMoreSpecific) {
+    if (!baseequal) {
+      // aren't more specific since not base equal.
+    } else {
+      // we can only "see" sub-resources, compare for that only
+      // more spec.
+      // -> if other doesn't have sub-resource, we're fine
+      // -> if does, if (we not) { fail; } else { compare equality }
+      if (!other.hasQueryItem("klfDefaultSubResource")) {
+	resultFlags |= KlfUrlCompareMoreSpecific;
+      } else if (! (resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources)) {
+	// fail
+      } else {
+	// both support sub-resources, compare equality
+	if (resourceEngine()->compareSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+	  resultFlags |= KlfUrlCompareMoreSpecific;
+      }
+    } 
+  }
+  if (interestFlags & KlfUrlCompareEqual) {
+    bool wesupportsubres = (resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources);
+    bool hesupportssubres = other.hasQueryItem("klfDefaultSubResource");
+    if ( wesupportsubres && hesupportssubres ) {
+      // both have sub-resources
+      if (baseequal && resourceEngine()->compareSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+	resultFlags |= KlfUrlCompareEqual;
+    } else if ( !wesupportsubres && ! hesupportssubres ) {
+      // both don't have sub-resources, so we're "equal"
+      resultFlags |= KlfUrlCompareEqual;
+    } else {
+      // otherwise, not equal
+    }
+  }
+
+  return resultFlags;
+}
 
 bool KLFLibDefaultView::event(QEvent *event)
 {

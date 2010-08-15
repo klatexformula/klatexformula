@@ -36,14 +36,16 @@
 
 
 // EXPORTING SYMBOLS TO E.G. PLUGINS ...
-#if defined(Q_OS_WIN)
-#  if defined(KLF_SRC_BUILD)
-#    define KLF_EXPORT __declspec(dllexport)
+#ifndef KLF_EXPORT
+#  if defined(Q_OS_WIN)
+#    if defined(KLF_SRC_BUILD)
+#      define KLF_EXPORT __declspec(dllexport)
+#    else
+#      define KLF_EXPORT __declspec(dllimport)
+#    endif
 #  else
-#    define KLF_EXPORT __declspec(dllimport)
+#    define KLF_EXPORT __attribute__((visibility("default")))
 #  endif
-#else
-#  define KLF_EXPORT __attribute__((visibility("default")))
 #endif
 
 

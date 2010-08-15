@@ -101,6 +101,10 @@ public:
    * in the constructor. */
   virtual ~KLFLibDBEngine();
 
+  virtual uint compareUrlTo(const QUrl& other, uint interestFlags = 0xfffffff) const;
+
+  virtual bool compareSubResourceEquals(const QString& subResourceName) const;
+
   virtual bool canModifyData(const QString& subRes, ModifyType modifytype) const;
   virtual bool canModifyProp(int propid) const;
   virtual bool canRegisterProperty(const QString& propName) const;

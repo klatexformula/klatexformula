@@ -544,9 +544,14 @@ bool KLFLibResourceEngine::hasSubResource(const QString& subResource) const
   return subResourceList().contains(subResource);
 }
 
-QString KLFLibResourceEngine::defaultSubResource()
+QString KLFLibResourceEngine::defaultSubResource() const
 {
   return pDefaultSubResource;
+}
+
+bool KLFLibResourceEngine::compareSubResourceEquals(const QString& subResourceName) const
+{
+  return QString::compare(pDefaultSubResource, subResourceName) == 0;
 }
 
 bool KLFLibResourceEngine::canCreateSubResource() const

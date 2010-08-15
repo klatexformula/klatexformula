@@ -400,7 +400,7 @@
   </action>
   <action name="aViewType">
    <property name="text">
-    <string>View Type</string>
+    <string>View Mode</string>
    </property>
    <property name="toolTip">
     <string>Select View Type</string>

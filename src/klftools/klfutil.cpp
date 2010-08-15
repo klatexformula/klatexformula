@@ -83,8 +83,6 @@ static QMap<QString,QString> klf_url_query_items_map(const QUrl& url,
 
 
 
-
-
 KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestFlags,
 			      const QStringList& interestQueryItems)
 {
@@ -92,6 +90,10 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
   klfDbg( ": 1="<<url1<<"; 2="<<url2<<"; interestflags="<<interestFlags<<"; int.q.i="
 	  <<interestQueryItems ) ;
   uint compareflags = 0x00;
+
+  Qt::CaseSensitivity queryItemValsCS = Qt::CaseSensitive;
+  if (interestFlags & klfUrlCompareFlagIgnoreQueryItemValueCase)
+    queryItemValsCS = Qt::CaseInsensitive;
 
   QMap<QString,QString> qitems_map1;
   QMap<QString,QString> qitems_map2;
@@ -117,29 +119,17 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
   }
 
   if (interestFlags & KlfUrlCompareLessSpecific) {
-    // test url1 is less specific than url2
+    // test url1 is less specific than url2   <-> url1 items are included in those of url2
     if (u1 == u2) {
-      bool ok = true;
-      for (QMap<QString,QString>::const_iterator it = qitems_map1.begin(); it != qitems_map1.end(); ++it) {
-	if (!qitems_map2.contains(it.key()) || qitems_map2[it.key()] != it.value()) {
-	  ok = false;
-	  break;
-	}
-      }
+      bool ok = klfMapIsIncludedIn(qitems_map1, qitems_map2, queryItemValsCS);
       if (ok)
 	compareflags |= KlfUrlCompareLessSpecific;
     }
   }
   if (interestFlags & KlfUrlCompareMoreSpecific) {
-    // test url1 is more specific than url2
+    // test url1 is more specific than url2  <-> url2 items are included in those of url1
     if (u1 == u2) {
-      bool ok = true;
-      for (QMap<QString,QString>::const_iterator it = qitems_map2.begin(); it != qitems_map2.end(); ++it) {
-	if (!qitems_map1.contains(it.key()) || qitems_map1[it.key()] != it.value()) {
-	  ok = false;
-	  break;
-	}
-      }
+      bool ok = klfMapIsIncludedIn(qitems_map2, qitems_map1, queryItemValsCS);
       if (ok)
 	compareflags |= KlfUrlCompareMoreSpecific;
     }

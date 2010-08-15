@@ -12,13 +12,25 @@
     </export-type>
 
     <!--  <export-type><mime-type>text/x-moz-url</mime-type><windows-type>FileName</windows-type></export-type>
-          <export-type><mime-type>text/uri-list</mime-type><windows-type/></export-type> -->
+          <export-type><mime-type>text/uri-list</mime-type></export-type> -->
 
     <export-type><mime-type>application/x-klf-libentries</mime-type></export-type>
     
     <!-- For Windows -->
     <export-type><mime-type>image/x-win-png-office-art</mime-type></export-type>
     <export-type><mime-type>image/x-win-jfif</mime-type></export-type>
+  </profile>
+
+  <profile name="vector_formats">
+    <description>Vector Formats</description>
+    <description xml:lang="fr">Formats Vectoriels</description>
+
+    <export-type><mime-type>application/pdf</mime-type></export-type>
+    <export-type><mime-type>application/eps</mime-type></export-type>
+    <export-type><mime-type>image/eps</mime-type></export-type>
+    <export-type><mime-type>application/postscript</mime-type></export-type>
+    <!-- Soon SVG will also be available (eg. via inkscape equation.pdf --export-plain-svg=equation.svg), maybe in plugin ...? -->
+    <export-type><mime-type>image/svg+xml</mime-type></export-type>
   </profile>
 
   <profile name="png_only">
@@ -32,7 +44,7 @@
     <description>URL List</description>
     <description xml:lang="fr">Liste d'URLs</description>
 
-    <export-type><mime-type>text/x-moz-url</mime-type></export-type>
+    <export-type><mime-type>text/x-moz-url</mime-type><windows-type>FileName</windows-type></export-type>
     <export-type><mime-type>text/uri-list</mime-type></export-type>
   </profile>
 
