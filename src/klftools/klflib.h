@@ -44,7 +44,7 @@ class KLFProgressReporter;
  *
  * Structure containing forground color, bg color, mathmode, preamble, etc.
  */
-struct KLFStyle {
+struct KLF_EXPORT KLFStyle {
   KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
 	   unsigned long bgcol = qRgba(255,255,255,0),
 	   const QString& mmode = QString(),
@@ -68,7 +68,7 @@ struct KLFStyle {
   QString preamble;
   int dpi;
 
-  const KLFStyle& operator=(const KLFStyle& o) {
+  inline const KLFStyle& operator=(const KLFStyle& o) {
     name = o.name; fg_color = o.fg_color; bg_color = o.bg_color; mathmode = o.mathmode;
     preamble = o.preamble; dpi = o.dpi;
     return *this;
@@ -85,7 +85,7 @@ typedef QList<KLFStyle> KLFStyleList;
 KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style);
 KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style);
 // exact matches
-bool operator==(const KLFStyle& a, const KLFStyle& b);
+KLF_EXPORT bool operator==(const KLFStyle& a, const KLFStyle& b);
 
 
 

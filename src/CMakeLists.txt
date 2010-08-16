@@ -379,7 +379,7 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
   string(REPLACE "\\" "/" QT_INSTALL_PREFIX "${QT_INSTALL_PREFIX}")
   string(STRIP "${QT_INSTALL_PREFIX}" QT_INSTALL_PREFIX) # strip string leading/ending spaces/newlines
   install(DIRECTORY "${QT_INSTALL_PREFIX}/bin/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
-	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll"
+	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll" REGEX "/mingw.*\\.dll"
 	 )
 endif(WIN32 AND KLF_INSTALL_QTLIBS)
 

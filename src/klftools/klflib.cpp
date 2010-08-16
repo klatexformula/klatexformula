@@ -65,7 +65,7 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
   return stream;
 }
 
-bool operator==(const KLFStyle& a, const KLFStyle& b)
+KLF_EXPORT bool operator==(const KLFStyle& a, const KLFStyle& b)
 {
   return a.name == b.name &&
     a.fg_color == b.fg_color &&
