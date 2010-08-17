@@ -85,20 +85,26 @@ endif(NOT IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
 # rccresources dir
 if(WIN32)
 
+  execute_process(COMMAND "${QT_QMAKE_EXECUTABLE}" "-query" "QT_INSTALL_PREFIX"
+		  OUTPUT_VARIABLE qt_install_prefix_result)
+  string(REPLACE "\\" "/" qt_install_prefix_result "${qt_install_prefix_result}")
+  # strip string leading/ending spaces/newlines
+  string(STRIP "${qt_install_prefix_result}" qt_install_prefix_result)
+  # and store the final value into internal cache
+  set(QT_INSTALL_PREFIX "${qt_install_prefix_result}" CACHE INTERNAL "Qt's install prefix")
+
   set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
 			    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
   mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
-  #   #KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice calcoptvalue depvar1)
-  #   KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_RCCRESOURCES_DIR
-  # 	STRING "Where to install rccresources files (relative to CMAKE_INSTALL_PREFIX, or absolute)"
-  # 	ON                                      # enable update notice
-  # 	"${KLF_INSTALL_BIN_DIR}/rccresources"   # calculated value
-  # 	KLF_INSTALL_BIN_DIR                     # dependency variable
-  #   )
+
   set(KLF_INSTALL_QTPLUGINS_DIR "qt-plugins/" CACHE STRING
 	"Where to install Qt Plugins to deploy with application (relative to prefix, or absolute)")
-  set(KLF_INSTALL_QTPLUGINS_LIST "")
-
+  if(NOT KLF_INSTALL_QTPLUGINS_LIST)
+    file(GLOB_RECURSE qtplugins_list RELATIVE "${QT_INSTALL_PREFIX}/plugins"
+							      "${QT_INSTALL_PREFIX}/plugins/*.dll")
+  endif(NOT KLF_INSTALL_QTPLUGINS_LIST)
+  set(KLF_INSTALL_QTPLUGINS_LIST "${qtplugins_list}" CACHE STRING
+		"List of Qt plugins, relative to ${QT_INSTALL_PREFIX}/plugins, to deploy with exe")
 else(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
 			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")

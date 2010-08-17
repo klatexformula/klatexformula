@@ -105,9 +105,6 @@ if(KLF_USE_CPACK)
   if(KLF_MACOSX_BUNDLES)
     KLFNote("NOT IMPLEMENTED......")
   endif(KLF_MACOSX_BUNDLES)
-
-  # include CPack stuff
-  include(CPack)
   
   KLFNote("You have configured to use CPack for generating packages.
     Run 'make package' to generate package(s).
@@ -116,5 +113,8 @@ if(KLF_USE_CPACK)
     CMAKE_INSTALL_PREFIX might have been altered in order to generate
     the package(s).")
 
+  # include CPack stuff
+  include(CPack)
+  
 endif(KLF_USE_CPACK)
 

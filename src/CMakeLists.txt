@@ -15,7 +15,9 @@ if(WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
   # Extra linker flags for win32 compilation
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
-  add_definition(-DKLF_INSTALL_COPY_QTPLUGINS_DIR=${KLF_INSTALL_COPY_QTPLUGINS_DIR})
+  if(KLF_INSTALL_COPY_QTPLUGINS_DIR)
+    add_definition(-DKLF_INSTALL_COPY_QTPLUGINS_DIR=${KLF_INSTALL_COPY_QTPLUGINS_DIR})
+  endif(KLF_INSTALL_COPY_QTPLUGINS_DIR)
 endif(WIN32)
 
 # Preprocessor instructions
@@ -375,19 +377,20 @@ endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFAPP_FRAMEWORK)
 
 if(WIN32 AND KLF_INSTALL_QTLIBS)
   # Install Qt libs
-  execute_process(COMMAND "${QT_QMAKE_EXECUTABLE}" "-query" "QT_INSTALL_PREFIX"
-		  OUTPUT_VARIABLE QT_INSTALL_PREFIX)
-  string(REPLACE "\\" "/" QT_INSTALL_PREFIX "${QT_INSTALL_PREFIX}")
-  string(STRIP "${QT_INSTALL_PREFIX}" QT_INSTALL_PREFIX) # strip string leading/ending spaces/newlines
+  # The variable QT_INSTALL_PREFIX has already been set in klfinstallpaths.cmake
   install(DIRECTORY "${QT_INSTALL_PREFIX}/bin/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
 	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll" REGEX "/mingw.*\\.dll"
 	 )
   set(qtplugin_list ${KLF_INSTALL_QTPLUGINS_LIST})
   set(qtplugin_list "dummyitem" ${qtplugin_list})
-  string(REGEX REPLACE ";" ";${QT_INSTALL_PREFIX}/plugins" qtplugin_list_temp "${qtplugin_list}")
-  string(REGEX REPLACE "^dummyitem;" abs_qtplugin_list "${qtplugin_list_temp}")
-  KLFNote("Installing plugins : ${abs_qtplugin_list}")
-  install(FILES ${abs_qtplugin_list} DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}")
+  string(REGEX REPLACE ";" ";${QT_INSTALL_PREFIX}/plugins/" qtplugin_list_temp "${qtplugin_list}")
+  string(REGEX REPLACE "^dummyitem;" "" abs_qtplugin_list "${qtplugin_list_temp}")
+
+  message("Qt install prefix=${QT_INSTALL_PREFIX}, install dest dir = ${KLF_INSTALL_QTPLUGINS_DIR}")
+  #install(FILES ${abs_qtplugin_list} DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}")
+  .................................
+  install(DIRECTORY "${QT_INSTALL_PREFIX}/plugins/" DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/"
+	  FILES_MATCHING PATTERN "${KLF_INSTALL_QTPLUGINS_LIST}")
 endif(WIN32 AND KLF_INSTALL_QTLIBS)
 
 

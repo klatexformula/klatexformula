@@ -43,23 +43,18 @@
 
 
 
-#ifdef KLF_SHARE_DIR_REL
-// defined by the build system
-const char * klf_share_dir_rel = KLF_SHARE_DIR_REL;
-#else
 // the following SHOULD NOT BE DEFINED 'STATIC', as they are referenced by main.cpp
 // since we need them before loading klfconfig configuration.
-#  if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-// program is in a bin/ directory
-const char * klf_share_dir_rel = "/..";
-#  else
-#    if defined(Q_WS_MAC)
-const char * klf_share_dir_rel = "/../Resources";
-#    else
-// unix-like system
-const char * klf_share_dir_rel = "/../share/klatexformula";
-#    endif
-#  endif
+
+KLF_EXPORT const char * klf_share_dir_rel =
+#ifdef KLF_SHARE_DIR_REL  // defined by the build system
+	KLF_SHARE_DIR_REL;
+#elif defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
+	"/..";   // note: program is in a bin/ directory
+#elif defined(Q_WS_MAC) // Mac OS X
+	"/../Resources";
+#else  // unix-like system
+	"/../share/klatexformula";
 #endif
 
 
