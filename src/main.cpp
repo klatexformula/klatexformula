@@ -647,6 +647,14 @@ int main(int argc, char **argv)
 
   if ( opt_interactive ) {
     QApplication app(qt_argc, qt_argv);
+
+    extern const char * klf_share_dir_rel;
+#ifdef KLF_INSTALL_COPY_QTPLUGINS_DIR
+    QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/"+KLF_INSTALL_COPY_QTPLUGINS_DIR);
+#else
+    QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/qt-plugins");
+#endif
+
     klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
 
     qRegisterMetaType< QImage >("QImage");
@@ -713,7 +721,7 @@ int main(int argc, char **argv)
 #endif
 
     if ( ! opt_quiet )
-      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
+      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2010\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      KLF_VERSION_STRING);
 
@@ -872,12 +880,12 @@ int main(int argc, char **argv)
     }
 
     if ( ! opt_quiet )
-      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2009\n"
+      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2010\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      KLF_VERSION_STRING);
   
     if ( klf_args[0] != NULL ) {
-      qWarning("ignoring extra command-line arguments");
+      qWarning("Ignoring extra command-line arguments");
     }
 
     // now process required actions.

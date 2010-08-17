@@ -116,7 +116,7 @@ public:
   virtual void loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *config);
   virtual void saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config);
 
-  virtual void applySkin(KLFPluginConfigAccess *config);
+  virtual void applySkin(KLFPluginConfigAccess *config, bool isStartup);
 
 signals:
   void skinChanged(const QString& skin);

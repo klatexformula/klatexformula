@@ -254,7 +254,7 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
        !QFile::exists(rwconfig->readValue("skinfilename").toString()) )
     rwconfig->writeValue("skinfilename", QString(":/plugindata/skin/skins/default.xml"));
 
-  applySkin(rwconfig);
+  applySkin(rwconfig, true);
 }
 
 void SkinPlugin::changeSkin(const QString& newSkin)
@@ -264,7 +264,7 @@ void SkinPlugin::changeSkin(const QString& newSkin)
     return; // already right
 
   _config->writeValue("skinfilename", QVariant::fromValue<QString>(newSkin));
-  applySkin(_config);
+  applySkin(_config, false);
   emit skinChanged(newSkin);
 }
 void SkinPlugin::changeSkinHelpLinkAction(const QUrl& link)
@@ -274,7 +274,7 @@ void SkinPlugin::changeSkinHelpLinkAction(const QUrl& link)
 }
 
 
-void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
+void SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
 {
   klfDbg("Applying skin!");
   QString ssfn = config->readValue("skinfilename").toString();
@@ -324,17 +324,19 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
   //   }
   // #endif
 
-  // apply syntax highlighting scheme
-  if (skin.shscheme.fmtKeyword.isValid())
-    klfconfig.SyntaxHighlighter.fmtKeyword = skin.shscheme.fmtKeyword;
-  if (skin.shscheme.fmtComment.isValid())
-    klfconfig.SyntaxHighlighter.fmtComment = skin.shscheme.fmtComment;
-  if (skin.shscheme.fmtParenMatch.isValid())
-    klfconfig.SyntaxHighlighter.fmtParenMatch = skin.shscheme.fmtParenMatch;
-  if (skin.shscheme.fmtParenMismatch.isValid())
-    klfconfig.SyntaxHighlighter.fmtParenMismatch = skin.shscheme.fmtParenMismatch;
-  if (skin.shscheme.fmtLonelyParen.isValid())
-    klfconfig.SyntaxHighlighter.fmtLonelyParen = skin.shscheme.fmtLonelyParen;
+  if ( ! isStartUp ) {
+    // apply syntax highlighting scheme
+    if (skin.shscheme.fmtKeyword.isValid())
+      klfconfig.SyntaxHighlighter.fmtKeyword = skin.shscheme.fmtKeyword;
+    if (skin.shscheme.fmtComment.isValid())
+      klfconfig.SyntaxHighlighter.fmtComment = skin.shscheme.fmtComment;
+    if (skin.shscheme.fmtParenMatch.isValid())
+      klfconfig.SyntaxHighlighter.fmtParenMatch = skin.shscheme.fmtParenMatch;
+    if (skin.shscheme.fmtParenMismatch.isValid())
+      klfconfig.SyntaxHighlighter.fmtParenMismatch = skin.shscheme.fmtParenMismatch;
+    if (skin.shscheme.fmtLonelyParen.isValid())
+      klfconfig.SyntaxHighlighter.fmtLonelyParen = skin.shscheme.fmtLonelyParen;
+  }
 }
 
 QWidget * SkinPlugin::createConfigWidget(QWidget *parent)
@@ -370,7 +372,7 @@ void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config
   config->writeValue("skinfilename", QVariant::fromValue<QString>(skinfn));
 
   if ( o->getModifiedAndReset() )
-    applySkin(config);
+    applySkin(config, false);
 }
 
 

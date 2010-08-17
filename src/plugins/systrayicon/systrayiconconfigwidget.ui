@@ -36,6 +36,9 @@
    </item>
    <item row="1" column="0">
     <widget class="QCheckBox" name="chkRestoreOnHover">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>Restore Windows upon mouse hover</string>
      </property>
@@ -43,6 +46,9 @@
    </item>
    <item row="2" column="0">
     <widget class="QCheckBox" name="chkReplaceQuitButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>Replace main window's quit button by an iconify and quit button bar</string>
      </property>
@@ -50,6 +56,9 @@
    </item>
    <item row="3" column="0">
     <widget class="QCheckBox" name="chkMinToSysTray">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>Minimize button sends the window to system tray</string>
      </property>

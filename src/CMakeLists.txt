@@ -15,6 +15,7 @@ if(WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
   # Extra linker flags for win32 compilation
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
+  add_definition(-DKLF_INSTALL_COPY_QTPLUGINS_DIR=${KLF_INSTALL_COPY_QTPLUGINS_DIR})
 endif(WIN32)
 
 # Preprocessor instructions
@@ -381,6 +382,12 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
   install(DIRECTORY "${QT_INSTALL_PREFIX}/bin/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
 	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll" REGEX "/mingw.*\\.dll"
 	 )
+  set(qtplugin_list ${KLF_INSTALL_QTPLUGINS_LIST})
+  set(qtplugin_list "dummyitem" ${qtplugin_list})
+  string(REGEX REPLACE ";" ";${QT_INSTALL_PREFIX}/plugins" qtplugin_list_temp "${qtplugin_list}")
+  string(REGEX REPLACE "^dummyitem;" abs_qtplugin_list "${qtplugin_list_temp}")
+  KLFNote("Installing plugins : ${abs_qtplugin_list}")
+  install(FILES ${abs_qtplugin_list} DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}")
 endif(WIN32 AND KLF_INSTALL_QTLIBS)
 
 

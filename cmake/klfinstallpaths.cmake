@@ -95,6 +95,9 @@ if(WIN32)
   # 	"${KLF_INSTALL_BIN_DIR}/rccresources"   # calculated value
   # 	KLF_INSTALL_BIN_DIR                     # dependency variable
   #   )
+  set(KLF_INSTALL_QTPLUGINS_DIR "qt-plugins/" CACHE STRING
+	"Where to install Qt Plugins to deploy with application (relative to prefix, or absolute)")
+  set(KLF_INSTALL_QTPLUGINS_LIST "")
 
 else(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING

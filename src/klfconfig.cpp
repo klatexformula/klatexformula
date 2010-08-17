@@ -42,16 +42,24 @@
 #include "klfconfig.h"
 
 
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-// program is in a bin/ directory
-static const char * klf_share_dir_rel = "/..";
+
+#ifdef KLF_SHARE_DIR_REL
+// defined by the build system
+const char * klf_share_dir_rel = KLF_SHARE_DIR_REL;
 #else
-# if defined(Q_WS_MAC)
-static const char * klf_share_dir_rel = "/../Resources";
-# else
+// the following SHOULD NOT BE DEFINED 'STATIC', as they are referenced by main.cpp
+// since we need them before loading klfconfig configuration.
+#  if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+// program is in a bin/ directory
+const char * klf_share_dir_rel = "/..";
+#  else
+#    if defined(Q_WS_MAC)
+const char * klf_share_dir_rel = "/../Resources";
+#    else
 // unix-like system
-static const char * klf_share_dir_rel = "/../share/klatexformula";
-# endif
+const char * klf_share_dir_rel = "/../share/klatexformula";
+#    endif
+#  endif
 #endif
 
 
@@ -145,10 +153,11 @@ void KLFConfig::loadDefaults()
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace", ps);
     if ( ! found_fcode )
       fcode = f;
+    /** \bug .... Font comes out way too big on windows system with this algorithm ... */
     // guess good font size for code font
     QFont fp1 = f, fp2 = f;
-    qreal ps1 = 10, ps2 = 20; // measurement
-    int idealHeight = 7;
+    qreal ps1 = 10, ps2 = 20; // measurement points
+    int idealHeight = 7; // the ideal hight in pixels
     fp1.setPointSize((int)(ps1+0.5f));
     fp2.setPointSize((int)(ps2+0.5f));
     qreal h1 = QFontMetrics(fp1).xHeight();
