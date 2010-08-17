@@ -386,11 +386,12 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
   string(REGEX REPLACE ";" ";${QT_INSTALL_PREFIX}/plugins/" qtplugin_list_temp "${qtplugin_list}")
   string(REGEX REPLACE "^dummyitem;" "" abs_qtplugin_list "${qtplugin_list_temp}")
 
-  message("Qt install prefix=${QT_INSTALL_PREFIX}, install dest dir = ${KLF_INSTALL_QTPLUGINS_DIR}")
   #install(FILES ${abs_qtplugin_list} DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}")
-  .................................
-  install(DIRECTORY "${QT_INSTALL_PREFIX}/plugins/" DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/"
-	  FILES_MATCHING PATTERN "${KLF_INSTALL_QTPLUGINS_LIST}")
+  foreach(qtplugin ${KLF_INSTALL_QTPLUGINS_LIST})
+    get_filename_component(qtplugin_dir "${qtplugin}" PATH)
+    install(FILES "${QT_INSTALL_PREFIX}/plugins/${qtplugin}"
+	    DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/${qtplugin_dir}")
+  endforeach(qtplugin)
 endif(WIN32 AND KLF_INSTALL_QTLIBS)
 
 

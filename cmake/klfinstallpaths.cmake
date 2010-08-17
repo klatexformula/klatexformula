@@ -96,15 +96,6 @@ if(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
 			    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
   mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
-
-  set(KLF_INSTALL_QTPLUGINS_DIR "qt-plugins/" CACHE STRING
-	"Where to install Qt Plugins to deploy with application (relative to prefix, or absolute)")
-  if(NOT KLF_INSTALL_QTPLUGINS_LIST)
-    file(GLOB_RECURSE qtplugins_list RELATIVE "${QT_INSTALL_PREFIX}/plugins"
-							      "${QT_INSTALL_PREFIX}/plugins/*.dll")
-  endif(NOT KLF_INSTALL_QTPLUGINS_LIST)
-  set(KLF_INSTALL_QTPLUGINS_LIST "${qtplugins_list}" CACHE STRING
-		"List of Qt plugins, relative to ${QT_INSTALL_PREFIX}/plugins, to deploy with exe")
 else(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
 			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
@@ -259,12 +250,28 @@ else(KLF_INSTALL_DESKTOP)
 endif(KLF_INSTALL_DESKTOP)
 
 if(WIN32)
+
   option(KLF_INSTALL_QTLIBS "Copy Qt Libs next to installed executable" ON)
+
   if(KLF_INSTALL_QTLIBS)
+
     message(STATUS "Will install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
+
+    set(KLF_INSTALL_QTPLUGINS_DIR "qt-plugins/" CACHE STRING
+	"Where to install Qt Plugins to deploy with application (relative to prefix, or absolute)")
+    if(NOT KLF_INSTALL_QTPLUGINS_LIST)
+      file(GLOB_RECURSE qtplugins_list RELATIVE "${QT_INSTALL_PREFIX}/plugins"
+							      "${QT_INSTALL_PREFIX}/plugins/*.dll")
+    endif(NOT KLF_INSTALL_QTPLUGINS_LIST)
+    set(KLF_INSTALL_QTPLUGINS_LIST "${qtplugins_list}" CACHE STRING
+		"List of Qt plugins, relative to ${QT_INSTALL_PREFIX}/plugins, to deploy with exe")
+    message(STATUS "Will install given Qt plugins next to installed executable in ${KLF_INSTALL_PLUGINS_LIST} (KLF_INSTALL_QTPLUGINS_DIR,KLF_INSTALL_QTPLUGINS_LIST)")
   else(KLF_INSTALL_QTLIBS)
+
     message(STATUS "Will NOT install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
+
   endif(KLF_INSTALL_QTLIBS)
+
 endif(WIN32)
 
 
