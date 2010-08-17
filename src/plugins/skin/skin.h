@@ -32,6 +32,22 @@
 
 #include <ui_skinconfigwidget.h>
 
+struct SkinSyntaxHighlightingScheme
+{
+  QTextCharFormat fmtKeyword;
+  QTextCharFormat fmtComment;
+  QTextCharFormat fmtParenMatch;
+  QTextCharFormat fmtParenMismatch;
+  QTextCharFormat fmtLonelyParen;
+};
+
+struct Skin
+{
+  QString name;
+  QString stylesheet;
+  SkinSyntaxHighlightingScheme shscheme;
+};
+
 
 class SkinConfigWidget : public QWidget, public Ui::SkinConfigWidget
 {
@@ -43,6 +59,7 @@ public:
   /// the skin full filename
   QString currentSkin() { return cbxSkin->itemData(cbxSkin->currentIndex()).toString(); }
 
+  /*
   static QString getStyleSheet(const QString& fn) {
     if (fn.isEmpty())
       return QString();
@@ -55,6 +72,9 @@ public:
     QByteArray data = f.readAll();
     return QString::fromUtf8(data.constData(), data.size());
   }
+  */
+
+  static Skin loadSkin(const QString& fn, bool getStyleSheet = true);
 
   bool getModifiedAndReset() { bool m = _modified; _modified = false; return m; }
 
@@ -62,7 +82,8 @@ public slots:
   void loadSkinList(QString skin);
   void skinSelected(int index);
   void refreshSkin();
-  void installSkin();
+  //  void installSkin();
+
 
 private:
   KLFPluginConfigAccess *config;

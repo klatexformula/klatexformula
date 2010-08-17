@@ -36,6 +36,7 @@ set(klftools_MOCHEADERS
 	klflibdbengine.h
 	klflibdbengine_p.h
 	klfliblegacyengine.h
+	klfliblegacyengine_p.h
 )
 #  * all headers
 set(klftools_HEADERS
@@ -43,7 +44,7 @@ set(klftools_HEADERS
 	klfpobj.h
 	klffactory.h
 	klflib_p.h
-	klfliblegacyengine_p.h
+	${klftools_MOCHEADERS}
 )
 # UI Forms
 set(klftools_UIS

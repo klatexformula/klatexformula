@@ -51,7 +51,7 @@ QTreeView {
 	selection-background-color: rgb(128,128,128,128);
 }
 /* for checkable items, qt bug --> need an opaque bg col */
-QTreeView#lstPlugins , KLFLibExportDialog QTreeView#lstRes {
+QTreeView#lstPlugins , KLFLibExportDialog QTreeView#lstRes, QWidget[needsOpaqueBackground=true] {
 	background: url(:/plugindata/skin/stylesheets/pics/bg_papyrus.jpg) no-repeat;
 }
 QTreeView::branch:has-children:!has-siblings:closed,
@@ -69,6 +69,9 @@ QHeaderView, QHeaderView::section {
 }
 KLFLibDefaultView {
 	qproperty-autoBackgroundItems: false;
+}
+QAbstractItemView QLineEdit, QAbstractItemView QComboBox { /* In-line editing in lists */
+	background: url(:/plugindata/skin/stylesheets/pics/bg_papyrus.jpg) no-repeat;
 }
 QMenu::item {
 	color: black;

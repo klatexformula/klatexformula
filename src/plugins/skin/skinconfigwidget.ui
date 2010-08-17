@@ -37,20 +37,20 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
+   <item row="4" column="0">
     <spacer name="vspc1">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>20</width>
+       <width>10</width>
        <height>40</height>
       </size>
      </property>
     </spacer>
    </item>
-   <item row="1" column="2">
+   <item row="2" column="2">
     <spacer name="vspc2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -83,10 +83,13 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="2" colspan="2">
-    <widget class="QPushButton" name="btnInstallSkin">
+   <item row="3" column="0" colspan="4">
+    <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Install Skin ...</string>
+      <string>Additional downloaded skins can be installed using the add-on installer in the previous settings tab.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

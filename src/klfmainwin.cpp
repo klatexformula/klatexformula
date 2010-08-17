@@ -550,7 +550,8 @@ void KLFMainWin::startupFinished()
     action->setText(eplist[k].description());
     action->setData(eplist[k].profileName());
     action->setCheckable(true);
-    action->setChecked(false);
+    action->setChecked( (klfconfig.UI.dragExportProfile==klfconfig.UI.copyExportProfile) &&
+			(klfconfig.UI.dragExportProfile==eplist[k].profileName()) );
     menu->addAction(action);
     smapper->setMapping(action, eplist[k].profileName());
     connect(action, SIGNAL(triggered()), smapper, SLOT(map()));
@@ -1050,7 +1051,8 @@ void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
   // restore latex after style, so that the parser-hint-popup doesn't appear for packages
   // that we're going to include anyway
   if (restoreFlags & KLFLib::RestoreLatex) {
-    slotSetLatex(entry.latex()); // to preserve text edit undo history...
+    // to preserve text edit undo history... call this slot instead of brutally doing txt->setPlainText(..)
+    slotSetLatex(KLFLibEntry::latexAddCategoryTagsComment(entry.latex(), entry.category(), entry.tags()));
   }
 
   u->lblOutput->display(entry.preview(), entry.preview(), false);
@@ -1090,6 +1092,29 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   raise();
   u->txtLatex->setFocus();
 }
+
+void KLFMainWin::insertDelimiter(const QString& delim, int charsBack)
+{
+  QTextCursor c1 = u->txtLatex->textCursor();
+  c1.beginEditBlock();
+  QString selected = c1.selection().toPlainText();
+  QString toinsert = delim;
+  if (selected.length())
+    toinsert.insert(toinsert.length()-charsBack, selected);
+  c1.removeSelectedText();
+  c1.insertText(toinsert);
+  c1.endEditBlock();
+
+  if (selected.isEmpty())
+    c1.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, charsBack);
+
+  u->txtLatex->setTextCursor(c1);
+
+  activateWindow();
+  raise();
+  u->txtLatex->setFocus();
+}
+
 
 void KLFMainWin::getMissingCmdsFor(const QString& symbol, QStringList * missingCmds,
 				   QString *guiText, bool wantHtmlText)
@@ -1264,8 +1289,10 @@ void KLFMainWin::slotPopupAcceptAll()
 
 void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
 {
-  // move cursor at that point
-  u->txtLatex->setTextCursor(u->txtLatex->cursorForPosition(pos));
+  if ( ! u->txtLatex->textCursor().hasSelection() ) {
+    // move cursor at that point, but not if we have a selection
+    u->txtLatex->setTextCursor(u->txtLatex->cursorForPosition(pos));
+  }
 
   QMenu * menu = u->txtLatex->createStandardContextMenu(u->txtLatex->mapToGlobal(pos));
 
@@ -1301,7 +1328,43 @@ void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
   menu->addAction(QIcon(":/pics/symbols.png"), tr("Insert Symbol ...", "[[context menu entry]]"),
 		  this, SLOT(slotSymbols()));
 
-  menu->popup(pos);
+  QMenu *delimmenu = new QMenu(menu);
+
+  /** \todo ....make this more flexible ... */
+  static QStringList delimList =
+    QStringList()<<"\\textrm{}"<<"\\textit{}"<<"\\textsl{}"<<"\\textbf{}"<<"\\mathrm{}"<<"\\mathit{}"<<"\\mathcal{}";
+  static QList<int> charsBackList =
+    QList<int>() << 1 << 1 << 1 << 1 << 1 << 1 << 1;
+
+  int k;
+  for (k = 0; k < delimList.size() && k < charsBackList.size(); ++k) {
+    QAction *a = new QAction(delimmenu);
+    a->setText(delimList[k]);
+    QVariantMap v;
+    v["delim"] = QVariant::fromValue<QString>(delimList[k]);
+    v["charsBack"] = QVariant::fromValue<int>(charsBackList[k]);
+    a->setData(QVariant(v));
+    a->setIcon(KLFLatexSymbolsCache::theCache()->findSymbolPixmap(delimList[k].left(delimList[k].length()-1)+"A}"));
+    delimmenu->addAction(a);
+    connect(a, SIGNAL(triggered()), this, SLOT(slotInsertFromActionSender()));
+  }
+
+  QAction *delimaction = menu->addAction(tr("Insert Delimiter"));
+  delimaction->setMenu(delimmenu);
+
+  menu->popup(u->txtLatex->mapToGlobal(pos));
+}
+
+void KLFMainWin::slotInsertFromActionSender()
+{
+  QObject *obj = sender();
+  if (obj == NULL || !obj->inherits("QAction")) {
+    qWarning()<<KLF_FUNC_NAME<<": sender object is not a QAction: "<<obj;
+    return;
+  }
+  QVariant v = qobject_cast<QAction*>(obj)->data();
+  QVariantMap vdata = v.toMap();
+  insertDelimiter(vdata["delim"].toString(), vdata["charsBack"].toInt());
 }
 
 void KLFMainWin::slotInsertMissingPackagesFromActionSender()

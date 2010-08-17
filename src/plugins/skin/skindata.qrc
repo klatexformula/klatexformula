@@ -1,8 +1,10 @@
 <RCC>
   <qresource prefix="/plugindata/skin">
 <!-- default (empty) theme -->
+    <file>skins/default.xml</file>
     <file>stylesheets/default.qss</file>
 <!-- flat theme -->
+    <file>skins/flat.xml</file>
     <file>stylesheets/flat.qss</file>
     <file>stylesheets/pics/bg_flat.jpg</file>
     <file>stylesheets/pics/flat-branch-closed.png</file>
@@ -19,9 +21,11 @@
     <file>stylesheets/pics/flat-chk-ih.png</file>
     <file>stylesheets/pics/flat-chk-ip.png</file>
 <!-- papyrus theme -->
+    <file>skins/papyrus.xml</file>
     <file>stylesheets/papyrus.qss</file>
     <file>stylesheets/pics/bg_papyrus.jpg</file>
 <!-- galaxy theme -->
+    <file>skins/galaxy.xml</file>
     <file>stylesheets/galaxy.qss</file>
     <file>stylesheets/pics/bg_galaxy.jpg</file>
   </qresource>

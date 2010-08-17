@@ -254,7 +254,7 @@ void klf_qt_message(QtMsgType type, const char *msg)
 				      "[[KLF's Qt Message Handler: dialog text]]")
 			  .arg(QString::fromLocal8Bit(msg)));
 #endif
-    abort();
+    ::exit(255);
   default:
     fprintf(fout, "?????: %s\n", msg);
     break;

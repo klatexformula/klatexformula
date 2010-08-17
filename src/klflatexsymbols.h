@@ -76,6 +76,7 @@ public:
 
   KLFLatexSymbol findSymbol(const QString& symbolCode);
   QStringList symbolCodeList();
+  QPixmap findSymbolPixmap(const QString& symbolCode);
 
   static KLFLatexSymbolsCache * theCache();
   static void saveTheCache();

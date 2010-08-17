@@ -125,6 +125,7 @@ void KLFDisplayLabel::set_error(bool error_on)
   } else {
     p = &pDefaultPalette;
   }
+  setAutoFillBackground(true);
   setStyleSheet(styleSheet()); // force style sheet refresh
   setPalette(*p);
 }

@@ -101,30 +101,30 @@ private:
   KLFLegacyData();
 };
 
-QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFStyle& style);
-QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style);
-bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle& b);
-
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFStyle& style);
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style);
+KLF_EXPORT bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle& b);
 
 // it is important to note that the >> operator imports in a compatible way to KLF 2.0
-QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem& item);
-QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryItem& item);
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem& item);
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryItem& item);
 
-QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryResource& item);
-QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryResource& item);
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryResource& item);
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryResource& item);
 
 // exact matches, style included, but excluding ID and datetime
-bool operator==(const KLFLegacyData::KLFLibraryItem& a, const KLFLegacyData::KLFLibraryItem& b);
+KLF_EXPORT bool operator==(const KLFLegacyData::KLFLibraryItem& a, const KLFLegacyData::KLFLibraryItem& b);
 
 // is needed for QMap : these operators compare ID only.
-bool operator<(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b);
-bool operator==(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b);
+KLF_EXPORT bool operator<(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b);
+KLF_EXPORT bool operator==(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b);
 // name comparision
-bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
-				const KLFLegacyData::KLFLibraryResource b);
+KLF_EXPORT bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
+					   const KLFLegacyData::KLFLibraryResource b);
 
 
 
+class KLFLibLegacyFileDataPrivate;
 
 //! The Legacy Library support for the KLFLib framework
 /** Implements a KLFLibResourceEngine resource engine for accessing (KLF<=3.1)-created libraries
@@ -192,53 +192,10 @@ protected:
 private:
   KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url, QObject *parent);
 
-  /** if pCloneOf is non-NULL, EVERY FUNCTION CALL redirects the call to the clone original.
-   *
-   * \bug A clone-based approach was taken to avoid multiple engines accessing the same file. A better approach
-   *   would have been to have one instance of a KLFLibLegacyFileData (eg. QObject-subclass) containing the
-   *   filename, KLFLibLegacyData::KLFLibrary etc. data, lib type etc. and all resources that want to connect
-   *   to this file read/write that (shared) data. With a refcount one can make the object destroy itself after
-   *   the last one using it was destroyed. */
-  KLFLibLegacyEngine *pCloneOf;
-  /** a list of objects whose pCloneOf points to me. */
-  QList<KLFLibLegacyEngine*> pMyClones;
-
-  /** copies all data from the clone to this object, making this object independant.
-   * this is called by the master clone's destructor */
-  void takeOverFromClone();
-
-  static QMap<QString,KLFLibLegacyEngine*> staticLegacyEngineInstances;
-
-  enum LegacyLibType { LocalHistoryType = 1, LocalLibraryType, ExportLibraryType };
-
-  int findResourceName(const QString& resname);
-  int getReservedResourceId(const QString& resourceName, int defaultId);
-
-  // Resource data is data that has to be copied when taking over from a master clone
-  // If you add a property here, make sure it is copied in takeOverFromClone().
-  // BEGIN RESOURCE DATA ->
-
-  QString pFileName;
-
-  KLFLegacyData::KLFLibrary pLibrary;
-  KLFLegacyData::KLFLibraryResourceList pResources;
-
-  LegacyLibType pLegacyLibType;
-
-  QTimer *pAutoSaveTimer;
-
-  // <- END RESOURCE DATA
-
-  static KLFLibEntry toLibEntry(const KLFLegacyData::KLFLibraryItem& item);
-  static KLFLegacyData::KLFLibraryItem toLegacyLibItem(const KLFLibEntry& entry);
-  static KLFLegacyData::KLFStyle toLegacyStyle(const KLFStyle& style);
-  static KLFStyle toStyle(const KLFLegacyData::KLFStyle& oldstyle);
-
-  static bool loadLibraryFile(const QString& fname, KLFLegacyData::KLFLibraryResourceList *reslist,
-			      KLFLegacyData::KLFLibrary *lib, LegacyLibType *libType);
-  static bool saveLibraryFile(const QString& fname, const KLFLegacyData::KLFLibraryResourceList& reslist,
-			      const KLFLegacyData::KLFLibrary& lib, LegacyLibType legacyLibType);
+  KLFLibLegacyFileDataPrivate *d;
 };
+
+
 
 
 

@@ -729,7 +729,7 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 }
 
 
-bool KLFLibDBEngine::compareSubResourceEquals(const QString& subResourceName) const
+bool KLFLibDBEngine::compareDefaultSubResourceEquals(const QString& subResourceName) const
 {
   return QString::compare(defaultSubResource(), subResourceName, Qt::CaseInsensitive) == 0;
 }

@@ -63,7 +63,7 @@ QTreeView {
 	selection-background-color: rgb(128,128,128,128);
 }
 /* for checkable items, qt bug --> need an opaque bg col */
-QTreeView#lstPlugins, KLFLibExportDialog QTreeView#lstRes {
+QTreeView#lstPlugins, KLFLibExportDialog QTreeView#lstRes, QWidget[needsOpaqueBackground=true] {
 	background-color: rgb(204, 204, 204);
 }
 QTreeView::branch:has-children:!has-siblings:closed,

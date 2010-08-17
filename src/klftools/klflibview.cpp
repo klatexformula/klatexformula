@@ -746,7 +746,7 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi)
 
   EntryNode e = pEntryCache[n.index];
   QString category = e.entry.category();
-  // fix category: remove any double-/ to avoid empty sections. (goal: ensure that join(split(c))==c )
+  // fix category: remove any double-/ to avoid empty sections. (goal: ensure that join('/', split('/', c))==c )
   category = category.split('/', QString::SkipEmptyParts).join("/");
   
   // parse its catelements and remember that in the category list cache (that is useful only to
@@ -777,7 +777,6 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi)
   // now we determined the parent of the new entry in the category tree, we will actually
   // insert the item according to current sort instructions.
   Node& parentref = getNodeRef(parentid);
-  QModelIndex parentidx = createIndexFromId(parentid, -1, 0);
   KLFLibModelSorter srt =
     KLFLibModelSorter(this, pModel->pEntrySorter, pModel->pFlavorFlags & KLFLibModel::GroupSubCategories);
   QList<NodeId> & childlistref = parentref.children;
@@ -793,6 +792,7 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi)
 
   // and insert it again at the required spot
   if (notifyQtApi) {
+    QModelIndex parentidx = createIndexFromId(parentid, -1, 0);
     if (catLabelNodeRef.numDisplayFetched < insertPos) {
       pModel->beginInsertRows(parentidx, catLabelNodeRef.numDisplayFetched, insertPos+1);
       catLabelNodeRef.numDisplayFetched = insertPos+1;
@@ -1267,7 +1267,8 @@ KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject
   // the initial default value is ridicuously small because fetchMore() is called during startup
   // sequence too many times (in my opinion). the batch count is increased once the widget is
   // shown, see KLFLibDefaultView::showEvent().
-  setFetchBatchCount(10);
+  // EDIT: the fetchMore() seems to be called when applying skins
+  setFetchBatchCount(25);
 
   // by default, sort according to DateTime, recent first
   pEntrySorter = new KLFLibEntrySorter(KLFLibEntry::DateTime, Qt::DescendingOrder);
@@ -2727,7 +2728,7 @@ uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) cons
       if ( ! (resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) ) {
 	resultFlags |= KlfUrlCompareLessSpecific;
       } else if (other.hasQueryItem("klfDefaultSubResource")) {
-	if (resourceEngine()->compareSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+	if (resourceEngine()->compareDefaultSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
 	  resultFlags |= KlfUrlCompareLessSpecific;
       }
     }
@@ -2746,7 +2747,7 @@ uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) cons
 	// fail
       } else {
 	// both support sub-resources, compare equality
-	if (resourceEngine()->compareSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+	if (resourceEngine()->compareDefaultSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
 	  resultFlags |= KlfUrlCompareMoreSpecific;
       }
     } 
@@ -2756,7 +2757,7 @@ uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) cons
     bool hesupportssubres = other.hasQueryItem("klfDefaultSubResource");
     if ( wesupportsubres && hesupportssubres ) {
       // both have sub-resources
-      if (baseequal && resourceEngine()->compareSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+      if (baseequal && resourceEngine()->compareDefaultSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
 	resultFlags |= KlfUrlCompareEqual;
     } else if ( !wesupportsubres && ! hesupportssubres ) {
       // both don't have sub-resources, so we're "equal"
@@ -3056,7 +3057,8 @@ void KLFLibDefaultView::updateResourceData(const QString& subRes, int modifyType
 {
   KLF_ASSERT_NOT_NULL( pModel , "Model is NULL!" , return )
     ;
-  if (subRes != resourceEngine()->defaultSubResource())
+  klfDbg("The resource modified its data [type="<<modifyType<<"] in subres="<<subRes<<". Our subres="<<resourceEngine()->defaultSubResource()<<"; matches?="<<resourceEngine()->compareDefaultSubResourceEquals(subRes));
+  if (!resourceEngine()->compareDefaultSubResourceEquals(subRes))
     return;
   pModel->updateData(entryIdList, modifyType);
   // update our own data (icon positions)

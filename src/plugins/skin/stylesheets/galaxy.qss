@@ -46,15 +46,15 @@ QScrollArea, QScrollArea > #qt_scrollarea_viewport > QWidget {
 }
 QAbstractItemView {
 	color: rgb(200,200,200);
-	background-color: rgb(255,255,255,50);
+	background-color: rgb(255,255,255,80);
 	selection-color: rgb(200,200,200);
-	selection-background-color: rgb(128,128,128,128);
+	selection-background-color: rgb(50,50,50,128);
 }
 QListView {
 	alternate-background-color: rgb(128,128,128,40);
 }
 /* for checkable items, qt bug --> need an opaque bg col */
-QTreeView#lstPlugins, KLFLibExportDialog QTreeView#lstRes  {
+QTreeView#lstPlugins, KLFLibExportDialog QTreeView#lstRes, QWidget[needsOpaqueBackground=true]  {
 	background-image: url(:/plugindata/skin/stylesheets/pics/bg_galaxy.jpg);
 }
 QTreeView::branch:has-children:!has-siblings:closed,
@@ -74,6 +74,9 @@ QHeaderView, QHeaderView::section {
 KLFLibDefaultView {
 	qproperty-autoBackgroundItems: true;
 	qproperty-autoBackgroundColor: #393537;
+}
+QAbstractItemView QLineEdit, QAbstractItemView QComboBox { /* In-line editing in lists */
+	background: url(:/plugindata/skin/stylesheets/pics/bg_galaxy.jpg) no-repeat;
 }
 QMenu::item {
 	color: white;

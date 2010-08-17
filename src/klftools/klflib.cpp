@@ -549,7 +549,7 @@ QString KLFLibResourceEngine::defaultSubResource() const
   return pDefaultSubResource;
 }
 
-bool KLFLibResourceEngine::compareSubResourceEquals(const QString& subResourceName) const
+bool KLFLibResourceEngine::compareDefaultSubResourceEquals(const QString& subResourceName) const
 {
   return QString::compare(pDefaultSubResource, subResourceName) == 0;
 }

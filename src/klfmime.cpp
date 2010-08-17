@@ -239,18 +239,22 @@ void KLFMimeExportProfile::ensureLoadedExportProfileList()
 // static, private
 void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 {
-  int k;
-
   klfDbg("Loading from file "<<fname<<"; our locale is "<<klfconfig.UI.locale) ;
 
   QFile file(fname);
   if ( ! file.open(QIODevice::ReadOnly) ) {
-    qWarning()<<KLF_FUNC_NAME<<": Error: Can't open export mime profiles XML file "<<fname<<": "<<file.errorString()<<"!";
+    qWarning()<<KLF_FUNC_NAME<<": Error: Can't open export mime profiles XML file "<<fname<<": "
+	      <<file.errorString()<<"!";
     return;
   }
 
   QDomDocument doc("export-profile-list");
-  doc.setContent(&file);
+  QString errMsg; int errLine, errCol;
+  bool r = doc.setContent(&file, false, &errMsg, &errLine, &errCol);
+  if (!r) {
+    qWarning()<<KLF_FUNC_NAME<<": Error parsing file "<<fname<<": "<<errMsg<<" at line "<<errLine<<", col "<<errCol;
+    return;
+  }
   file.close();
 
   QDomElement root = doc.documentElement();
@@ -273,17 +277,10 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     }
     // read profile
     QString pname = e.attribute("name");
-    // check that name is unique
-    bool pname_ok = true;
-    for (k = 0; k < p_exportProfileList.size(); ++k) {
-      if (p_exportProfileList[k].profileName() == pname) {
-	qWarning()<<KLF_FUNC_NAME<<": file "<<fname<<": profile with name "<<pname<<" already declared! Ignoring.";
-	pname_ok = false;
-	break;
-      }
-    }
-    if (!pname_ok)
-      continue;
+
+    // note: profile may already exist, we will check for that later.
+
+    klfDbg("Reading profile "<<pname<<" ...") ;
     
     QString description;
     QString curDescriptionLang;
@@ -302,7 +299,8 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	QDomNamedNodeMap attrlist = ee.attributes();
 	int kk;
 	for (kk = 0; kk < attrlist.size(); ++kk) {
-	  klfDbg("description attribute: "<<attrlist.item(kk).toAttr().name()<<" : "<<attrlist.item(kk).toAttr().value());
+	  klfDbg("description attribute: "<<attrlist.item(kk).toAttr().name()<<" : "
+	         <<attrlist.item(kk).toAttr().value());
 	}
 	// <-- */
 	//	klfDbg("<description>: lang="<<lang<<"; hasAttribute(xml:lang)="<<ee.hasAttribute("xml:lang"));
@@ -340,7 +338,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
       QDomNodeList wintypetags = ee.elementsByTagName("windows-type");
       if (wintypetags.size() > 1) {
 	qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<", profile "<<pname
-		  <<": expecting at most ONE <windows-type> tag must be present in each <export-type>...</export-type>.";
+		  <<": expecting at most ONE <windows-type> tag in each <export-type>...</export-type>.";
 	continue;
       }
       QString wintype;
@@ -356,12 +354,32 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 
     // add this profile
     KLFMimeExportProfile profile(pname, description, mimetypes, wintypes);
-    
-    if (pname == "default") {
-      // prepend default profile, so it's at beginning
-      p_exportProfileList.prepend(profile);
+
+    // check if a profile has not already been declared with same name
+    int kp;
+    for (kp = 0; kp < p_exportProfileList.size(); ++kp) {
+      if (p_exportProfileList[kp].profileName() == pname) {
+	break;
+      }
+    }
+    if (kp == p_exportProfileList.size()) {
+      // the profile is new
+      klfDbg("Adding profile "<<pname<<" to mime export profiles") ;
+      if (pname == "default") {
+	// prepend default profile, so it's at beginning
+	p_exportProfileList.prepend(profile);
+      } else {
+	p_exportProfileList << profile;
+      }
     } else {
-      p_exportProfileList << profile;
+      // profile already exists, append data to it
+      KLFMimeExportProfile oldp = p_exportProfileList[kp];
+      description = oldp.description()+"; "+description; // concatenate the descriptions
+
+      KLFMimeExportProfile finalp(pname, description,
+				  oldp.mimeTypes()+mimetypes, // concatenate lists
+				  oldp.respectiveWinTypes()+wintypes);
+      p_exportProfileList[kp] = finalp;
     }
   }
 }

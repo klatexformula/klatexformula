@@ -826,6 +826,12 @@
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{[bold\ symbol]}</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\text</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\text{[Regular text]}</latex></sym>
+    <sym><latex>\mathrm{A}</latex></sym>
+    <sym><latex>\mathit{A}</latex></sym>
+    <sym><latex>\textrm{A}</latex></sym>
+    <sym><latex>\textit{A}</latex></sym>
+    <sym><latex>\textsl{A}</latex></sym>
+    <sym><latex>\textbf{A}</latex></sym>
   </category>
   <category name="Text Mode LaTeX Special Characters">
     <sym textmode="true"><latex>\$</latex></sym>

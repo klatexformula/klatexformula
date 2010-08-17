@@ -24,6 +24,9 @@ macro(KLFInstHeaders varInstHeaders varAllHeaders)
 
 endmacro(KLFInstHeaders)
 
+
+set(_klf_notices "" CACHE INTERNAL "no notices shown via KLFNote().")
+
 #
 # Prints a note on the screen in such a way that the user will probably not miss it.
 #

@@ -81,7 +81,7 @@
          <bool>true</bool>
         </property>
         <property name="toolTip">
-         <string>Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.</string>
+         <string>&lt;p style=&quot;white-space: pre&quot;&gt;Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.&lt;/p&gt;</string>
         </property>
         <property name="autoFormatting">
          <set>QTextEdit::AutoNone</set>
@@ -140,7 +140,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string comment="tooltip">Clear the above field</string>
+           <string comment="tooltip">Clear the above field and set the default style</string>
           </property>
           <property name="whatsThis">
            <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
@@ -336,7 +336,7 @@
             <string comment="whatsthis">Here you can see the image you get after evaluating your LaTeX code.</string>
            </property>
            <property name="autoFillBackground">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="frameShape">
             <enum>QFrame::NoFrame</enum>

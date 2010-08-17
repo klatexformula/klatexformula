@@ -712,7 +712,7 @@ public:
    * in the reimplemented engine are case-insensitive, then reimplement this function to
    * compare string case-insensitive.
    */
-  virtual bool compareSubResourceEquals(const QString& subResourceName) const;
+  virtual bool compareDefaultSubResourceEquals(const QString& subResourceName) const;
 
   /** Returns TRUE if we can create a new sub-resource in this resource.
    *

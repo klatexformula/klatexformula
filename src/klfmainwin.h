@@ -297,6 +297,9 @@ public slots:
   void saveStyles();
   void restoreFromLibrary(const KLFLibEntry& entry, uint restoreflags);
   void insertSymbol(const KLFLatexSymbol& symbol);
+  /** Inserts a delimiter \c delim, and brings the cursor \c charsBack characters
+   * back. Eg. you can insert \c "\mathrm{}" and bring the cursor 1 space back. */
+  void insertDelimiter(const QString& delim, int charsBack = 1);
   void saveSettings();
   void saveLibraryState();
   void loadSettings();
@@ -338,6 +341,7 @@ private slots:
 
   void slotEditorContextMenu(const QPoint& pos);
   void slotInsertMissingPackagesFromActionSender();
+  void slotInsertFromActionSender();
 
 protected:
   Ui::KLFMainWin *u;

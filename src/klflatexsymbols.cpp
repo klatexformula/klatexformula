@@ -369,6 +369,18 @@ QStringList KLFLatexSymbolsCache::symbolCodeList()
   return l;
 }
 
+QPixmap KLFLatexSymbolsCache::findSymbolPixmap(const QString& symbolCode)
+{
+  KLFLatexSymbol sym = findSymbol(symbolCode);
+  if (sym.symbol.isEmpty()) {
+    // invalid symbol
+    qWarning()<<KLF_FUNC_NAME<<": Can't find symbol "<<symbolCode<<".";
+    return QPixmap();
+  }
+  // return the pixmap from cache
+  return cache[sym];
+}
+
 
 
 
@@ -631,12 +643,18 @@ void KLFLatexSymbols::read_symbols_create_ui()
   }
 
   QDomDocument doc("latexsymbols");
-  doc.setContent(&file);
+  QString errMsg; int errLine, errCol;
+  bool r = doc.setContent(&file, false, &errMsg, &errLine, &errCol);
+  if (!r) {
+    qWarning()<<KLF_FUNC_NAME<<": Error parsing file "<<fn<<": "<<errMsg<<" at line "<<errLine<<", col "<<errCol;
+    return;
+  }
   file.close();
 
   QDomElement root = doc.documentElement();
   if (root.nodeName() != "latexsymbollist") {
-    qWarning("%s: Error parsing XML for latex symbols from file `%s'!\n", KLF_FUNC_NAME, qPrintable(fn));
+    qWarning("%s: Error parsing XML for latex symbols from file `%s': unexpected root tag `%s'.\n", KLF_FUNC_NAME,
+	     qPrintable(fn), qPrintable(root.nodeName()));
     return;
   }
 

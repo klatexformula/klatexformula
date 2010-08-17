@@ -23,6 +23,7 @@
 
 #include <QtCore>
 #include <QtGui>
+#include <QtXml>
 
 #include <klfmainwin.h>
 #include <klfsettings.h>
@@ -41,30 +42,116 @@ SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
 
   connect(cbxSkin, SIGNAL(activated(int)), this, SLOT(skinSelected(int)));
   connect(btnRefresh, SIGNAL(clicked()), this, SLOT(refreshSkin()));
-  connect(btnInstallSkin, SIGNAL(clicked()), this, SLOT(installSkin()));
+  //  connect(btnInstallSkin, SIGNAL(clicked()), this, SLOT(installSkin()));
 }
+
+
+// static
+Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
+{
+  Skin skin;
+
+  QFile f(fn);
+  if ( ! f.open(QIODevice::ReadOnly) ) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't read skin "<<fn<<"!";
+    return skin;
+  }
+
+  QDomDocument doc("klf-skin");
+  QString errMsg; int errLine, errCol;
+  bool r = doc.setContent(&f, false, &errMsg, &errLine, &errCol);
+  if (!r) {
+    qWarning()<<KLF_FUNC_NAME<<": Error parsing file "<<fn<<": "<<errMsg<<" at line "<<errLine<<", col "<<errCol;
+    return skin;
+  }
+  f.close();
+
+  QDomElement root = doc.documentElement();
+  if (root.nodeName() != "klf-skin") {
+    qWarning("%s: Error parsing XML for skin `%s': Bad root node `%s'.\n",
+	     KLF_FUNC_NAME, qPrintable(fn), qPrintable(root.nodeName()));
+    return skin;
+  }
+
+  // read XML file
+  QDomNode n;
+  for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+    QDomElement e = n.toElement(); // try to convert the node to an element.
+    if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
+      continue;
+    if ( e.nodeName() == "name" ) {
+      skin.name = e.text();
+      continue;
+    } else if ( e.nodeName() == "stylesheet" ) {
+      QString fnqss = e.text().trimmed();
+      QFile fqss(fnqss);
+      if (!fqss.exists() || !fqss.open(QIODevice::ReadOnly)) {
+	qWarning()<<KLF_FUNC_NAME<<"Can't open qss-stylesheet file "<<fnqss<<" while reading skin "<<fn<<".";
+	continue;
+      }
+      skin.stylesheet = QString::fromUtf8(fqss.readAll());
+      continue;
+    } else if ( e.nodeName() == "syntax-highlighting-scheme" ) {
+      // read the syntax highlighting scheme...
+      QDomNode nn;
+      for (nn = e.firstChild(); ! nn.isNull(); nn = nn.nextSibling()) {
+	QDomElement ee = nn.toElement();
+	if (ee.isNull() || nn.nodeType() != QDomNode::ElementNode)
+	  continue; // skip non-element nodes
+	// read an item in the syntax highlighting scheme
+	QTextCharFormat *which = NULL;
+	if (ee.nodeName() == "keyword") { which = & skin.shscheme.fmtKeyword; }
+	else if (ee.nodeName() == "comment") { which = & skin.shscheme.fmtComment; }
+	else if (ee.nodeName() == "paren-match") { which = & skin.shscheme.fmtParenMatch; }
+	else if (ee.nodeName() == "paren-mismatch") { which = & skin.shscheme.fmtParenMismatch; }
+	else if (ee.nodeName() == "lonely-paren") { which = & skin.shscheme.fmtLonelyParen; }
+	else {
+	  qWarning()<<KLF_FUNC_NAME<<": Encountered unexpected tag "<<ee.nodeName()
+		    <<" in element <syntax-highlighting-scheme> in file "<<fn;
+	  continue;
+	}
+	// load the given format
+	QTextFormat fmt = klfLoadVariantFromText(ee.text().toUtf8(), "QTextFormat").value<QTextFormat>();
+	*which = fmt.toCharFormat();
+      }
+    } else {
+      qWarning()<<KLF_FUNC_NAME<<": got unexpected tag "<<e.nodeName()<<" in <klf-skin> in file "<<fn<<".";
+    }
+  }
+
+  klfDbg("read skin: "<<skin.name<<"; stylesheet="<<skin.stylesheet.mid(0, 100)<<"; keyword format is "
+	 <<" fg:"<<skin.shscheme.fmtKeyword.foreground()<<"/bg:"<<skin.shscheme.fmtKeyword.background()) ;
+
+  // finally return the loaded skin
+  return skin;
+}
+
+
 
 void SkinConfigWidget::loadSkinList(QString skinfn)
 {
   qDebug("SkinConfigWidget::loadSkinList(%s)", qPrintable(skinfn));
   cbxSkin->clear();
 
-  QStringList stylesheetsdirs;
-  stylesheetsdirs
-    << ":/plugindata/skin/stylesheets/" << config->homeConfigPluginDataDir(true) + "/stylesheets/";
+  QStringList skindirs;
+  skindirs
+    << ":/plugindata/skin/skins/" << config->homeConfigPluginDataDir(true) + "/skins/";
 
   int k, j;
   int indf = -1;
-  for (j = 0; j < stylesheetsdirs.size(); ++j) {
-    if ( ! QFile::exists(stylesheetsdirs[j]) )
-      if ( ! klfEnsureDir(stylesheetsdirs[j]) )
+  for (j = 0; j < skindirs.size(); ++j) {
+    klfDbg("Checking dir "<<skindirs[j]) ;
+    if ( ! QFile::exists(skindirs[j]) )
+      if ( ! klfEnsureDir(skindirs[j]) )
 	continue;
 
-    QDir stylesheetdir(stylesheetsdirs[j]);
-    QStringList skinlist = stylesheetdir.entryList(QStringList() << "*.qss", QDir::Files);
+    QDir skindir(skindirs[j]);
+    QStringList skinlist = skindir.entryList(QStringList() << "*.xml", QDir::Files);
+    klfDbg("Skin list: "<<skinlist) ;
     for (k = 0; k < skinlist.size(); ++k) {
-      QString skintitle = QFileInfo(skinlist[k]).baseName();
-      QString fn = stylesheetdir.absoluteFilePath(skinlist[k]);
+      Skin skin = loadSkin(skindir.absoluteFilePath(skinlist[k]), false);
+      QString skintitle = skin.name;
+      QString fn = skindir.absoluteFilePath(skinlist[k]);
       qDebug("\tgot skin: %s : %s", qPrintable(skintitle), qPrintable(fn));
       if (fn == skinfn) {
 	indf = cbxSkin->count();
@@ -92,6 +179,9 @@ void SkinConfigWidget::refreshSkin()
   loadSkinList(currentSkin());
   _modified = true; // and re-set this skin after click on 'apply'
 }
+
+/* SKINS SHOULD BE INSTALLED VIA EXTENSIONS (Qt RCC FILES)
+ * -------------------------------------------------------
 
 void SkinConfigWidget::installSkin()
 {
@@ -124,6 +214,8 @@ void SkinConfigWidget::installSkin()
   }
   refreshSkin();
 }
+*/
+
 
 
 // --------------------------------------------------------------------------------
@@ -149,17 +241,18 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
 	  "to try the <a href=\"%1\">papyrus skin</a>, the <a href=\"%2\">galaxy skin</a>, "
 	  "the <a href=\"%3\">flat skin</a>, or the <a href=\"%4\">style-default skin</a>."
 	  "</p>", "[[help new features additional text]]")
-      .arg("klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/papyrus.qss",
-	   "klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/galaxy.qss",
-	   "klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/flat.qss",
-	   "klfaction:/skin_set?skin=:/plugindata/skin/stylesheets/default.qss");
+      .arg("klfaction:/skin_set?skin=:/plugindata/skin/skins/papyrus.xml",
+	   "klfaction:/skin_set?skin=:/plugindata/skin/skins/galaxy.xml",
+	   "klfaction:/skin_set?skin=:/plugindata/skin/skins/flat.xml",
+	   "klfaction:/skin_set?skin=:/plugindata/skin/skins/default.xml");
     _mainwin->addWhatsNewText(s);
     _mainwin->registerHelpLinkAction("/skin_set", this, "changeSkinHelpLinkAction", true);
   }
 
   // ensure reasonable non-empty value in config
-  if ( rwconfig->readValue("skinfilename").isNull() )
-    rwconfig->writeValue("skinfilename", QString(":/plugindata/skin/stylesheets/default.qss"));
+  if ( rwconfig->readValue("skinfilename").isNull() ||
+       !QFile::exists(rwconfig->readValue("skinfilename").toString()) )
+    rwconfig->writeValue("skinfilename", QString(":/plugindata/skin/skins/default.xml"));
 
   applySkin(rwconfig);
 }
@@ -183,11 +276,14 @@ void SkinPlugin::changeSkinHelpLinkAction(const QUrl& link)
 
 void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
 {
-  qDebug("Applying skin!");
+  klfDbg("Applying skin!");
   QString ssfn = config->readValue("skinfilename").toString();
-  QString stylesheet = SkinConfigWidget::getStyleSheet(ssfn);
+  Skin skin =  SkinConfigWidget::loadSkin(ssfn);
+  QString stylesheet = skin.stylesheet;
 
-  KLFPleaseWaitPopup pleaseWaitPopup(tr("Applying skin, please wait ..."), _mainwin);
+  klfDbg("Applyin skin "<<skin.name<<" (from file "<<ssfn<<")") ;
+
+  KLFPleaseWaitPopup pleaseWaitPopup(tr("Applying skin <i>%1</i>, please wait ...").arg(skin.name), _mainwin);
 
   if (_mainwin->isVisible())
     pleaseWaitPopup.showPleaseWait();
@@ -227,6 +323,18 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config)
   //     }
   //   }
   // #endif
+
+  // apply syntax highlighting scheme
+  if (skin.shscheme.fmtKeyword.isValid())
+    klfconfig.SyntaxHighlighter.fmtKeyword = skin.shscheme.fmtKeyword;
+  if (skin.shscheme.fmtComment.isValid())
+    klfconfig.SyntaxHighlighter.fmtComment = skin.shscheme.fmtComment;
+  if (skin.shscheme.fmtParenMatch.isValid())
+    klfconfig.SyntaxHighlighter.fmtParenMatch = skin.shscheme.fmtParenMatch;
+  if (skin.shscheme.fmtParenMismatch.isValid())
+    klfconfig.SyntaxHighlighter.fmtParenMismatch = skin.shscheme.fmtParenMismatch;
+  if (skin.shscheme.fmtLonelyParen.isValid())
+    klfconfig.SyntaxHighlighter.fmtLonelyParen = skin.shscheme.fmtLonelyParen;
 }
 
 QWidget * SkinPlugin::createConfigWidget(QWidget *parent)

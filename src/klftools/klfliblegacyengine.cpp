@@ -55,7 +55,7 @@ QDebug& operator<<(QDebug& s, const KLFLegacyData::KLFLibraryResource& res)
 
 
 
-QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem& item)
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem& item)
 {
   return stream << item.id << item.datetime
       << item.latex // category and tags are included.
@@ -63,7 +63,7 @@ QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem
 }
 
 // it is important to note that the >> operator imports in a compatible way to KLF 2.0
-QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryItem& item)
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryItem& item)
 {
   stream >> item.id >> item.datetime >> item.latex >> item.preview >> item.style;
   item.category = KLFLibEntry::categoryFromLatex(item.latex);
@@ -72,17 +72,17 @@ QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryItem& item
 }
 
 
-QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryResource& item)
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryResource& item)
 {
   return stream << item.id << item.name;
 }
-QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryResource& item)
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFLibraryResource& item)
 {
   return stream >> item.id >> item.name;
 }
 
 
-bool operator==(const KLFLegacyData::KLFLibraryItem& a, const KLFLegacyData::KLFLibraryItem& b)
+KLF_EXPORT bool operator==(const KLFLegacyData::KLFLibraryItem& a, const KLFLegacyData::KLFLibraryItem& b)
 {
   return
     //    a.id == b.id &&   // don't compare IDs since they should be different.
@@ -98,28 +98,28 @@ bool operator==(const KLFLegacyData::KLFLibraryItem& a, const KLFLegacyData::KLF
 
 
 
-bool operator<(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b)
+KLF_EXPORT bool operator<(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b)
 {
   return a.id < b.id;
 }
-bool operator==(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b)
+KLF_EXPORT bool operator==(const KLFLegacyData::KLFLibraryResource a, const KLFLegacyData::KLFLibraryResource b)
 {
   return a.id == b.id;
 }
 
-bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
-				const KLFLegacyData::KLFLibraryResource b)
+KLF_EXPORT bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResource a,
+					   const KLFLegacyData::KLFLibraryResource b)
 {
   return a.name == b.name;
 }
 
 
-QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFStyle& style)
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFStyle& style)
 {
   return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
 		<< style.mathmode << style.preamble << (quint16)style.dpi;
 }
-QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style)
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style)
 {
   quint32 fg, bg;
   quint16 dpi;
@@ -130,7 +130,7 @@ QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style)
   style.dpi = dpi;
   return stream;
 }
-bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle& b)
+KLF_EXPORT bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle& b)
 {
   return a.name == b.name &&
     a.fg_color == b.fg_color &&
@@ -144,8 +144,171 @@ bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle&
 
 // -------------------------------------------
 
+// KLFLibLegacyFileDataPrivate
+
+
 // static
-QMap<QString,KLFLibLegacyEngine*> KLFLibLegacyEngine::staticLegacyEngineInstances;
+QMap<QString,KLFLibLegacyFileDataPrivate*> KLFLibLegacyFileDataPrivate::staticFileDataObjects;
+
+
+
+bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
+{
+  QString fname = (!fnm.isEmpty() ? fnm : filename);    
+
+  QFile fimp(fname);
+  if ( ! fimp.open(QIODevice::ReadOnly) ) {
+    qWarning("Unable to open library file %s!", qPrintable(fname));
+    return false;
+  }
+  QDataStream stream(&fimp);
+  // Qt3-compatible stream input
+  stream.setVersion(QDataStream::Qt_3_3);
+  QString s1;
+  stream >> s1;
+  if (s1 == "KLATEXFORMULA_LIBRARY_EXPORT") {
+    // opening an export file (*.klf)
+    legacyLibType = ExportLibraryType;
+    qint16 vmaj, vmin;
+    stream >> vmaj >> vmin; // these are not needed, format has not changed in .klf export files.
+    stream >> resources >> library;
+  } else if (s1 == "KLATEXFORMULA_LIBRARY") {
+    // opening a library file (~/.klatexformula/library)
+    legacyLibType = LocalLibraryType;
+    qint16 vmaj, vmin;
+    stream >> vmaj >> vmin;
+    if (vmaj <= 2) {
+      stream.setVersion(QDataStream::Qt_3_3);
+    } else {
+      qint16 version;
+      stream >> version;
+      stream.setVersion(version);
+    }
+    quint32 lib_max_id;
+    stream >> lib_max_id; // will not be used...
+    // now read the library itself.
+    stream >> resources >> library;
+  } else if (s1 == "KLATEXFORMULA_HISTORY") {
+    // opening a post-2.0, pre-2.1 "history" file  (no "library" yet)
+    legacyLibType = LocalHistoryType;
+    qint16 vmaj, vmin;
+    stream >> vmaj >> vmin;
+    KLFLegacyData::KLFLibraryList history;
+    quint32 lib_max_id;
+    stream >> lib_max_id >> history;
+
+    resources = KLFLegacyData::KLFLibraryResourceList();
+    KLFLegacyData::KLFLibraryResource historyresource;
+    historyresource.id = KLFLegacyData::LibResource_History;
+    historyresource.name = tr("History");
+    resources.append(historyresource);
+    library = KLFLegacyData::KLFLibrary();
+    library[historyresource] = history;
+	  
+  } else {
+    qWarning("Error: Library file `%s' is invalid library file or corrupt!", qPrintable(fname));
+    return false;
+  }
+
+  // update KLFLibraryItem::MaxId
+  int k;
+  for (k = 0; k < resources.size(); ++k) {
+    KLFLegacyData::KLFLibraryList ll = library[resources[k]];
+    int j;
+    for (j = 0; j < ll.size(); ++j) {
+      if (ll[j].id >= KLFLegacyData::KLFLibraryItem::MaxId)
+	KLFLegacyData::KLFLibraryItem::MaxId = ll[j].id+1;
+    }
+  }
+  haschanges = false;
+  return true;
+}
+
+bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
+{
+  QString fname = (!fnm.isEmpty() ? fnm : filename) ;
+  QFile fsav(fname);
+  if ( ! fsav.open(QIODevice::WriteOnly) ) {
+    qWarning("Can't write to file %s!", qPrintable(fname));
+    return false;
+  }
+  QDataStream stream(&fsav);
+  // write Qt 3.3-compatible data
+  stream.setVersion(QDataStream::Qt_3_3);
+
+  // WE'RE WRITING KLF 2.1 compatible output, so we write as being version 2.1
+  switch (legacyLibType) {
+  case LocalHistoryType:
+    {
+      KLFLegacyData::KLFLibraryList liblist;
+      if (resources.size() == 0) {
+	liblist = KLFLegacyData::KLFLibraryList(); // no resources !
+      } else {
+	liblist = library[resources[0]];
+      }
+      if (resources.size() > 1) {
+	qWarning("%s: Saving an old \"history\" resource. Only one resource can be saved, "
+		 "it will be the first: %s", KLF_FUNC_NAME, qPrintable(resources[0].name));
+      }
+      // find history resource in our
+      stream << QString("KLATEXFORMULA_HISTORY") << (qint16)2 << (qint16)0
+	     << (quint32)KLFLegacyData::KLFLibraryItem::MaxId << liblist;
+      break;
+    }
+  case LocalLibraryType:
+    {
+      stream << QString("KLATEXFORMULA_LIBRARY") << (qint16)2 << (qint16)1;
+      // don't save explicitely QDataStream version: we're writing KLF 2.1-compatible;
+      // version explicitely saved only since KLF >= 3.x.
+      stream << (quint32)KLFLegacyData::KLFLibraryItem::MaxId << resources << library;
+      break;
+    }
+  case ExportLibraryType:
+    stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
+	   << resources << library;
+    break;
+  default:
+    qWarning("%s: bad library type %d!", KLF_FUNC_NAME, legacyLibType);
+    stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
+	   << resources << library;
+  }
+
+  if (fnm.isEmpty())
+    haschanges = false; // saving to the reference file, not a copy
+  return true;
+}
+
+
+int KLFLibLegacyFileDataPrivate::getReservedResourceId(const QString& resname, int defaultId)
+{
+  if ( ! QString::localeAwareCompare(resname, "History") ||
+       ! QString::localeAwareCompare(resname, qApp->translate("KLFMainWin", "History")) ||
+       ! QString::compare(resname, "History", Qt::CaseInsensitive) ||
+       ! QString::compare(resname, qApp->translate("KLFMainWin", "History"), Qt::CaseInsensitive) )
+    return KLFLegacyData::LibResource_History;
+  if ( ! QString::localeAwareCompare(resname, "Archive") ||
+       ! QString::localeAwareCompare(resname, qApp->translate("KLFMainWin", "Archive")) ||
+       ! QString::compare(resname, "Archive", Qt::CaseInsensitive) ||
+       ! QString::compare(resname, qApp->translate("KLFMainWin", "Archive"), Qt::CaseInsensitive) )
+    return KLFLegacyData::LibResource_Archive;
+
+  return defaultId;
+}
+
+int KLFLibLegacyFileDataPrivate::findResourceName(const QString& resname)
+{
+  int k;
+  for (k = 0; k < resources.size() && resources[k].name != resname; ++k)
+    ;
+  return k < resources.size() ? k : -1;
+}
+
+
+
+
+
+
+// -------------------------------------------
 
 
 // static
@@ -166,7 +329,7 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *paren
   if (url.hasQueryItem("klfDefaultSubResource"))
     legresname = url.queryItemValue("klfDefaultSubResource");
 
-  return new KLFLibLegacyEngine(fname, legresname, url, parent);
+  return new KLFLibLegacyEngine(QFileInfo(fname).canonicalFilePath(), legresname, url, parent);
 }
 
 // static
@@ -182,268 +345,57 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fileName, Q
   url.setScheme("klf+legacy");
 
   if (lrname.isEmpty())
-    lrname = "Resource"; // default name...?
+    lrname = tr("Default Resource"); // default name...?
   url.addQueryItem("klfDefaultSubResource", lrname);
 
-  // create the .klf file
-  KLFLegacyData::KLFLibrary lib = KLFLegacyData::KLFLibrary();
-  KLFLegacyData::KLFLibraryResourceList reslist = KLFLegacyData::KLFLibraryResourceList();
-  bool r = saveLibraryFile(fileName, reslist, lib, ExportLibraryType);
-  if (!r)
-    return false;
-
-  return new KLFLibLegacyEngine(fileName, lrname, url, parent);
+  return new KLFLibLegacyEngine(QFileInfo(fileName).canonicalFilePath(), lrname, url, parent);
 }
 
-// private, static
-bool KLFLibLegacyEngine::loadLibraryFile(const QString& fname, KLFLegacyData::KLFLibraryResourceList *reslist,
-					 KLFLegacyData::KLFLibrary *lib, LegacyLibType *libType)
-{
-  QFile fimp(fname);
-  if ( ! fimp.open(QIODevice::ReadOnly) ) {
-    qWarning("Unable to open library file %s!", qPrintable(fname));
-    return false;
-  }
-  QDataStream stream(&fimp);
-  // Qt3-compatible stream input
-  stream.setVersion(QDataStream::Qt_3_3);
-  QString s1;
-  stream >> s1;
-  if (s1 == "KLATEXFORMULA_LIBRARY_EXPORT") {
-    // opening an export file (*.klf)
-    *libType = ExportLibraryType;
-    qint16 vmaj, vmin;
-    stream >> vmaj >> vmin; // these are not needed, format has not changed in .klf export files.
-    stream >> *reslist >> *lib;
-  } else if (s1 == "KLATEXFORMULA_LIBRARY") {
-    // opening a library file (~/.klatexformula/library)
-    *libType = LocalLibraryType;
-    qint16 vmaj, vmin;
-    stream >> vmaj >> vmin;
-    if (vmaj <= 2) {
-      stream.setVersion(QDataStream::Qt_3_3);
-    } else {
-      qint16 version;
-      stream >> version;
-      stream.setVersion(version);
-    }
-    quint32 lib_max_id;
-    stream >> lib_max_id; // will not be used...
-    // now read the library itself.
-    stream >> *reslist >> *lib;
-  } else if (s1 == "KLATEXFORMULA_HISTORY") {
-    // opening a post-2.0, pre-2.1 "history" file  (no "library" yet)
-    *libType = LocalHistoryType;
-    qint16 vmaj, vmin;
-    stream >> vmaj >> vmin;
-    KLFLegacyData::KLFLibraryList history;
-    quint32 lib_max_id;
-    stream >> lib_max_id >> history;
-
-    *reslist = KLFLegacyData::KLFLibraryResourceList();
-    KLFLegacyData::KLFLibraryResource historyresource;
-    historyresource.id = KLFLegacyData::LibResource_History;
-    historyresource.name = tr("History");
-    reslist->append(historyresource);
-    *lib = KLFLegacyData::KLFLibrary();
-    lib->operator[](historyresource) = history;
-	  
-  } else {
-    qWarning("Error: Library file `%s' is invalid library file or corrupt!", qPrintable(fname));
-    return false;
-  }
-
-  // update KLFLibraryItem::MaxId
-  int k;
-  for (k = 0; k < reslist->size(); ++k) {
-    KLFLegacyData::KLFLibraryList ll = lib->operator[](reslist->operator[](k));
-    int j;
-    for (j = 0; j < ll.size(); ++j) {
-      if (ll[j].id >= KLFLegacyData::KLFLibraryItem::MaxId)
-	KLFLegacyData::KLFLibraryItem::MaxId = ll[j].id+1;
-    }
-  }
-
-  return true;
-}
-
-// private, static
-bool KLFLibLegacyEngine::saveLibraryFile(const QString& fname,
-					 const KLFLegacyData::KLFLibraryResourceList& reslist,
-					 const KLFLegacyData::KLFLibrary& lib,
-					 LegacyLibType libType)
-{
-  QFile fsav(fname);
-  if ( ! fsav.open(QIODevice::WriteOnly) ) {
-    qWarning("Can't write to file %s!", qPrintable(fname));
-    return false;
-  }
-  QDataStream stream(&fsav);
-  // write Qt 3.3-compatible data
-  stream.setVersion(QDataStream::Qt_3_3);
-
-  // WE'RE WRITING KLF 2.1 compatible output, so we write as being version 2.1
-  switch (libType) {
-  case LocalHistoryType:
-    {
-      KLFLegacyData::KLFLibraryList liblist;
-      if (reslist.size() == 0) {
-	liblist = KLFLegacyData::KLFLibraryList(); // no resources !
-      } else {
-	liblist = lib[reslist[0]];
-      }
-      if (reslist.size() > 1) {
-	qWarning("KLFLibLegacyEngine::saveLibraryFile: Saving an old \"history\" resource. Only "
-		 "one resource can be saved, it will be the first: %s", qPrintable(reslist[0].name));
-      }
-      // find history resource in our
-      stream << QString("KLATEXFORMULA_HISTORY") << (qint16)2 << (qint16)0
-	     << (quint32)KLFLegacyData::KLFLibraryItem::MaxId << liblist;
-      break;
-    }
-  case LocalLibraryType:
-    {
-      stream << QString("KLATEXFORMULA_LIBRARY") << (qint16)2 << (qint16)1;
-      // don't save explicitely QDataStream version: we're writing <= KLF 2.x
-      // version explicitely saved since KLF >= 3.x.
-      stream << (quint32)KLFLegacyData::KLFLibraryItem::MaxId << reslist << lib;
-      break;
-    }
-  case ExportLibraryType:
-    stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
-	   << reslist << lib;
-    break;
-  default:
-    qWarning("KLFLibLegacyEngine::saveLibraryFile: bad library type %d!", libType);
-    stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
-	   << reslist << lib;
-  }
-  return true;
-}
-
-
-// private
-int KLFLibLegacyEngine::getReservedResourceId(const QString& resname, int defaultId)
-{
-  if ( ! QString::localeAwareCompare(resname, "History") ||
-       ! QString::localeAwareCompare(resname, qApp->translate("KLFMainWin", "History")) ||
-       ! QString::compare(resname, "History", Qt::CaseInsensitive) ||
-       ! QString::compare(resname, qApp->translate("KLFMainWin", "History"), Qt::CaseInsensitive) )
-    return KLFLegacyData::LibResource_History;
-  if ( ! QString::localeAwareCompare(resname, "Archive") ||
-       ! QString::localeAwareCompare(resname, qApp->translate("KLFMainWin", "Archive")) ||
-       ! QString::compare(resname, "Archive", Qt::CaseInsensitive) ||
-       ! QString::compare(resname, qApp->translate("KLFMainWin", "Archive"), Qt::CaseInsensitive) )
-    return KLFLegacyData::LibResource_Archive;
-
-  return defaultId;
-}
-
-// private
-int KLFLibLegacyEngine::findResourceName(const QString& resname)
-{
-  int k;
-  for (k = 0; k < pResources.size() && pResources[k].name != resname; ++k)
-    ;
-  return k < pResources.size() ? k : -1;
-}
 
 // private
 KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url,
 				       QObject *parent)
-  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureSaveTo|FeatureSubResources, parent),
-    pCloneOf(NULL),
-    pAutoSaveTimer(NULL)
+  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureSaveTo|FeatureSubResources, parent)
 {
-  // load library
-  pFileName = fileName;
-
   KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
   KLFPropertizedObject::setProperty(PropTitle, QFileInfo(fileName).baseName());
 
-  // immediately detect if another instance is accessing the same file
-  QString fncan = QFileInfo(fileName).canonicalFilePath();
-  if (staticLegacyEngineInstances.contains(fncan)) {
-    pCloneOf = staticLegacyEngineInstances[fncan];
-    pCloneOf->pMyClones.append(this);
-    klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"' as clone of "<<pCloneOf<<" (fncan="<<fncan<<")");
-  } else {
-    staticLegacyEngineInstances[fncan] = this;
-
-    loadLibraryFile(fileName, &pResources, &pLibrary, &pLegacyLibType);
-
-    // add at least one resource (baptized resname) if the library is empty
-    if (pResources.isEmpty()) {
-      // create a resource
-      KLFLegacyData::KLFLibraryResource res;
-      res.name = resname;
-      res.id = getReservedResourceId(resname, KLFLegacyData::LibResourceUSERMAX - 1);
-      pResources << res;
-      // and initialize pLibrary to contain this one empty resource.
-      pLibrary.clear();
-      pLibrary[res] = KLFLegacyData::KLFLibraryList();
-    }
-
-    pAutoSaveTimer = new QTimer(this);
-    connect(pAutoSaveTimer, SIGNAL(timeout()), this, SLOT(save()));
-
-    if (!isReadOnly())
-      setAutoSaveInterval(180000); // by default: 3 minutes
-
-    klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"': resources=\n"<<pResources<<"\n, library=\n"<<pLibrary
-	   <<"\n (me="<<this<<", fncan="<<fncan<<")\n") ;
+  // get the data object
+  d = KLFLibLegacyFileDataPrivate::instanceFor(fileName, !isReadOnly());
+  if (d == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": Couldn't get KLFLibLegacyFileDataPrivate instance for "<<fileName<<"! Expect Crash!";
+    return;
   }
+  d->ref();
+
+  // add at least one resource (baptized resname) if the library is empty
+  if (d->resources.isEmpty()) {
+    // create a resource
+    KLFLegacyData::KLFLibraryResource res;
+    res.name = resname;
+    res.id = d->getReservedResourceId(resname, KLFLegacyData::LibResourceUSERMAX - 1);
+    d->resources << res;
+    // and initialize pLibrary to contain this one empty resource.
+    d->library.clear();
+    d->library[res] = KLFLegacyData::KLFLibraryList();
+    d->haschanges = true;
+  }
+
+  klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"': d="<<d<<"; resources=\n"<<d->resources<<"\n, library=\n"<<d->library
+	 <<"\n (me="<<this<<", d="<<d<<")\n") ;
 }
 
 KLFLibLegacyEngine::~KLFLibLegacyEngine()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg(" this="<<(void*)this<<", pCloneOf="<<(void*)pCloneOf<<", my clones="<<pMyClones) ;
 
-  if (pCloneOf == NULL && !isReadOnly())
-    save();
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return ) ;
 
-  // notify all my clones that I'm destroyed
-  if (pMyClones.size()) {
-    // my first clone will be the new master clone
-    KLFLibLegacyEngine *newCloneMaster = pMyClones[0];
-    newCloneMaster->takeOverFromClone();
-    newCloneMaster->pCloneOf = NULL;
-    klfDbg(" -- clone #0: "<<pMyClones[0]<<": is new master, he took over.") ;
-    int k;
-    for (k = 1; k < pMyClones.size(); ++k) {
-      klfDbg(" -- clone #"<<k<<": "<<pMyClones[k]<<": will be a clone of the new master, "<<newCloneMaster<<".") ;
-      pMyClones[k]->pCloneOf = newCloneMaster;
-      newCloneMaster->pMyClones.append(pMyClones[k]);
-    }
-    klfDbg("Notified "<<k<<" clones of my destruction. the new clone master is "<<newCloneMaster) ;
+  if ( ! d->deref() ) {
+    if (d->haschanges)
+      d->save();
+    delete d;
   }
-
-  if (staticLegacyEngineInstances.keys(this).size())
-    staticLegacyEngineInstances.remove(staticLegacyEngineInstances.key(this));
-}
-
-void KLFLibLegacyEngine::takeOverFromClone()
-{
-  klfDbg("called. pCloneOf="<<pCloneOf) ;
-  if (pCloneOf == NULL) {
-    qWarning()<<KLF_FUNC_NAME<<": Called but I have a NULL clone !?!?";
-    return;
-  }
-  if (pAutoSaveTimer != NULL)
-    delete pAutoSaveTimer;
-
-  this->pFileName = pCloneOf->pFileName;
-  this->pLibrary = pCloneOf->pLibrary;
-  this->pResources = pCloneOf->pResources;
-  this->pLegacyLibType = pCloneOf->pLegacyLibType;
-  this->pAutoSaveTimer = pCloneOf->pAutoSaveTimer;
-
-  // we're on our own
-  pCloneOf = NULL;
-
-  // take over clone's timer
-  pAutoSaveTimer->setParent(this);
 }
 
 uint KLFLibLegacyEngine::compareUrlTo(const QUrl& other, uint interestFlags) const
@@ -457,12 +409,13 @@ uint KLFLibLegacyEngine::compareUrlTo(const QUrl& other, uint interestFlags) con
 
 bool KLFLibLegacyEngine::canModifyData(const QString& subResource, ModifyType modifytype) const
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->canModifyData(subResource, modifytype);
-
   if ( ! KLFLibResourceEngine::canModifyData(subResource, modifytype) )
     return false;
-  /// \todo TODO: check if file is writable, etc. ..............
+
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
+
+  if ( ! QFileInfo(d->fileName()).isWritable() )
+    return false;
 
   return true;
 }
@@ -479,14 +432,13 @@ bool KLFLibLegacyEngine::canRegisterProperty(const QString& propName) const
 
 KLFLibEntry KLFLibLegacyEngine::entry(const QString& resource, entryId id)
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->entry(resource, id);
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return KLFLibEntry() ) ;
 
-  int index = findResourceName(resource);
+  int index = d->findResourceName(resource);
   if (index < 0)
     return KLFLibEntry();
 
-  KLFLegacyData::KLFLibraryList ll = pLibrary[pResources[index]];
+  KLFLegacyData::KLFLibraryList ll = d->library[d->resources[index]];
   // find entry with id 'id'
   int k;
   for (k = 0; k < ll.size() && ll[k].id != (quint32)id; ++k)
@@ -495,71 +447,26 @@ KLFLibEntry KLFLibLegacyEngine::entry(const QString& resource, entryId id)
     return KLFLibEntry();
   }
 
-  return toLibEntry(ll[k]);
+  return d->toLibEntry(ll[k]);
 }
 
-// static, private
-KLFLegacyData::KLFStyle KLFLibLegacyEngine::toLegacyStyle(const KLFStyle& style)
-{
-  KLFLegacyData::KLFStyle oldstyle;
-  oldstyle.name = style.name;
-  oldstyle.fg_color = style.fg_color;
-  oldstyle.bg_color = style.bg_color;
-  oldstyle.mathmode = style.mathmode;
-  oldstyle.preamble = style.preamble;
-  oldstyle.dpi = style.dpi;
-  return oldstyle;
-}
-// static, private
-KLFStyle KLFLibLegacyEngine::toStyle(const KLFLegacyData::KLFStyle& oldstyle)
-{
-  KLFStyle style;
-  style.name = oldstyle.name;
-  style.fg_color = oldstyle.fg_color;
-  style.bg_color = oldstyle.bg_color;
-  style.mathmode = oldstyle.mathmode;
-  style.preamble = oldstyle.preamble;
-  style.dpi = oldstyle.dpi;
-  return style;
-}
-
-// static private
-KLFLibEntry KLFLibLegacyEngine::toLibEntry(const KLFLegacyData::KLFLibraryItem& item)
-{
-  return KLFLibEntry(item.latex, item.datetime, item.preview.toImage(), item.preview.size(),
-		     item.category, item.tags, toStyle(item.style));
-}
-// static private
-KLFLegacyData::KLFLibraryItem KLFLibLegacyEngine::toLegacyLibItem(const KLFLibEntry& entry)
-{
-  KLFLegacyData::KLFLibraryItem item;
-  item.id = KLFLegacyData::KLFLibraryItem::MaxId++;
-  item.latex = entry.latex();
-  item.category = entry.category();
-  item.tags = entry.tags();
-  item.preview = QPixmap::fromImage(entry.preview());
-  item.datetime = entry.dateTime();
-  item.style = toLegacyStyle(entry.style());
-  return item;
-}
 
 
 QList<KLFLibResourceEngine::KLFLibEntryWithId>
 /* */ KLFLibLegacyEngine::allEntries(const QString& resource, const QList<int>& wantedEntryProperties)
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->allEntries(resource, wantedEntryProperties);
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return QList<KLFLibEntryWithId>() ) ;
 
-  int rindex = findResourceName(resource);
+  int rindex = d->findResourceName(resource);
   if (rindex < 0)
     return QList<KLFLibEntryWithId>();
 
   QList<KLFLibEntryWithId> entryList;
-  KLFLegacyData::KLFLibraryList ll = pLibrary[pResources[rindex]];
+  KLFLegacyData::KLFLibraryList ll = d->library[d->resources[rindex]];
   int k;
   for (k = 0; k < ll.size(); ++k) {
     KLFLibEntryWithId e;
-    e.entry = toLibEntry(ll[k]);
+    e.entry = d->toLibEntry(ll[k]);
     e.id = ll[k].id;
     entryList << e;
   }
@@ -569,87 +476,80 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 
 QStringList KLFLibLegacyEngine::subResourceList() const
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->subResourceList();
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return QStringList() ) ;
 
   QStringList list;
   int k;
-  for (k = 0; k < pResources.size(); ++k)
-    list << pResources[k].name;
+  for (k = 0; k < d->resources.size(); ++k)
+    list << d->resources[k].name;
   return list;
 }
 
 bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
 					   const QString& subResourceTitle)
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->createSubResource(subResource, subResourceTitle) ;
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
 
   quint32 newId = KLFLegacyData::LibResourceUSERMIN;
   bool ok = true;
   int k;
   while (!ok && newId <= KLFLegacyData::LibResourceUSERMAX) {
-    for (k = 0; k < pResources.size() && pResources[k].id != newId; ++k)
+    for (k = 0; k < d->resources.size() && d->resources[k].id != newId; ++k)
       ;
-    if (k == pResources.size())
+    if (k == d->resources.size())
       ok = true;
     ++newId;
   }
   if (newId == KLFLegacyData::LibResourceUSERMAX) {
-    qWarning()<<"KLFLibLegacyEngine::createSubResource("<<subResource
-	      <<",..): no new ID could be found (!?!)";
+    qWarning()<<KLF_FUNC_NAME<<"("<<subResource<<",..): no new ID could be found (!?!)";
     return false;
   }
   KLFLegacyData::KLFLibraryResource res;
   res.name = subResource;
-  res.id = getReservedResourceId(subResource, newId);
+  res.id = d->getReservedResourceId(subResource, newId);
 
-  pResources.push_back(res);
-  pLibrary[res] = KLFLegacyData::KLFLibraryList();
+  d->resources.push_back(res);
+  d->library[res] = KLFLegacyData::KLFLibraryList();
+  d->haschanges = true;
+
   return true;
 }
 
 
 bool KLFLibLegacyEngine::save()
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->save();
-
   klfDbg( "() our url="<<url()<<"." ) ;
   if (isReadOnly()) {
     qWarning("KLFLibLegacyEngine::save: resource is read-only!");
     return false;
   }
-  return saveLibraryFile(pFileName, pResources, pLibrary, pLegacyLibType);
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
+
+  return d->save();
 }
 
 void KLFLibLegacyEngine::setAutoSaveInterval(int intervalms)
 {
-  if (pCloneOf != NULL) {
-    pCloneOf->setAutoSaveInterval(intervalms);
-    return;
-  }
-
-  pAutoSaveTimer->stop();
+  d->autoSaveTimer->stop();
   if (intervalms > 0) {
-    pAutoSaveTimer->setInterval(intervalms);
-    pAutoSaveTimer->setSingleShot(false);
-    pAutoSaveTimer->start();
+    d->autoSaveTimer->setInterval(intervalms);
+    d->autoSaveTimer->start();
   }
 }
 
 QList<KLFLibResourceEngine::entryId> KLFLibLegacyEngine::insertEntries(const QString& subResource,
 								       const KLFLibEntryList& entrylist)
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->insertEntries(subResource, entrylist);
+  klfDbg("subResource="<<subResource<<"; entrylist="<<entrylist) ;
+
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return QList<entryId>() ) ;
 
   if ( entrylist.size() == 0 )
      return QList<entryId>();
   if (!canModifyData(subResource, InsertData))
     return QList<entryId>();
 
-  int index = findResourceName(subResource);
+  int index = d->findResourceName(subResource);
   if (index < 0)
     return QList<entryId>();
 
@@ -657,31 +557,32 @@ QList<KLFLibResourceEngine::entryId> KLFLibLegacyEngine::insertEntries(const QSt
 
   int k;
   for (k = 0; k < entrylist.size(); ++k) {
-    KLFLegacyData::KLFLibraryItem item = toLegacyLibItem(entrylist[k]);
-    pLibrary[pResources[index]] << item;
+    KLFLegacyData::KLFLibraryItem item = d->toLegacyLibItem(entrylist[k]);
+    d->library[d->resources[index]] << item;
     newIds << item.id;
   }
+  d->haschanges = true;
 
   emit dataChanged(subResource, InsertData, newIds);
 
   return newIds;
 }
+
 bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<entryId>& idlist,
 				       const QList<int>& properties, const QList<QVariant>& values)
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->changeEntries(subResource, idlist, properties, values);
-
   if (idlist.size() == 0)
     return true;
   if (!canModifyData(subResource, ChangeData))
     return false;
 
-  int index = findResourceName(subResource);
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
+
+  int index = d->findResourceName(subResource);
   if (index < 0)
     return false;
 
-  const KLFLegacyData::KLFLibraryList& ll = pLibrary[pResources[index]];
+  const KLFLegacyData::KLFLibraryList& ll = d->library[d->resources[index]];
 
   bool success = true;
 
@@ -702,43 +603,43 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
       switch (properties[j]) {
       case KLFLibEntry::Latex:
 	// remember that entry.latex has redundancy for category+tags in the form "%: ...\n% ...\n<latex>"
-	{ QString curcategory = pLibrary[pResources[index]][libindex].category;
-	  QString curtags = pLibrary[pResources[index]][libindex].tags;
-	  pLibrary[pResources[index]][libindex].latex =
+	{ QString curcategory = d->library[d->resources[index]][libindex].category;
+	  QString curtags = d->library[d->resources[index]][libindex].tags;
+	  d->library[d->resources[index]][libindex].latex =
 	    KLFLibEntry::latexAddCategoryTagsComment(values[j].toString(), curcategory, curtags);
 	  break;
 	}
       case KLFLibEntry::DateTime:
-	pLibrary[pResources[index]][libindex].datetime = values[j].toDateTime();
+	d->library[d->resources[index]][libindex].datetime = values[j].toDateTime();
 	break;
       case KLFLibEntry::Preview:
-	pLibrary[pResources[index]][libindex].preview = QPixmap::fromImage(values[j].value<QImage>());
+	d->library[d->resources[index]][libindex].preview = QPixmap::fromImage(values[j].value<QImage>());
 	break;
       case KLFLibEntry::Category:
 	// remember that entry.latex has redundancy for category+tags in the form "%: ...\n% ...\n<latex>"
 	{ QString curlatex =
-	    KLFLibEntry::stripCategoryTagsFromLatex(pLibrary[pResources[index]][libindex].latex);
+	    KLFLibEntry::stripCategoryTagsFromLatex(d->library[d->resources[index]][libindex].latex);
 	  QString newcategory = values[j].toString();
-	  QString curtags = pLibrary[pResources[index]][libindex].tags;
-	  pLibrary[pResources[index]][libindex].latex =
+	  QString curtags = d->library[d->resources[index]][libindex].tags;
+	  d->library[d->resources[index]][libindex].latex =
 	    KLFLibEntry::latexAddCategoryTagsComment(curlatex, newcategory, curtags);
-	  pLibrary[pResources[index]][libindex].category = newcategory;
+	  d->library[d->resources[index]][libindex].category = newcategory;
 	  break;
 	}
       case KLFLibEntry::Tags:
 	// remember that entry.latex has redundancy for category+tags in the form "%: ...\n% ...\n<latex>"
 	{ QString curlatex =
-	    KLFLibEntry::stripCategoryTagsFromLatex(pLibrary[pResources[index]][libindex].latex);
-	  QString curcategory = pLibrary[pResources[index]][libindex].category;
+	    KLFLibEntry::stripCategoryTagsFromLatex(d->library[d->resources[index]][libindex].latex);
+	  QString curcategory = d->library[d->resources[index]][libindex].category;
 	  QString newtags = values[j].toString();
-	  pLibrary[pResources[index]][libindex].latex =
+	  d->library[d->resources[index]][libindex].latex =
 	    KLFLibEntry::latexAddCategoryTagsComment(curlatex, curcategory, newtags);
-	  pLibrary[pResources[index]][libindex].tags = newtags;
+	  d->library[d->resources[index]][libindex].tags = newtags;
 	  break;
 	}
 	break;
       case KLFLibEntry::Style:
-	pLibrary[pResources[index]][libindex].style = toLegacyStyle(values[j].value<KLFStyle>());
+	d->library[d->resources[index]][libindex].style = d->toLegacyStyle(values[j].value<KLFStyle>());
 	break;
       default:
 	qWarning()<<KLF_FUNC_NAME<<": Cannot set arbitrary property "<<propertyNameForId(properties[j])
@@ -749,11 +650,15 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
     }
   }
 
+#ifdef KLF_DEBUG
   klfDbg( ": Changed entries. Dump:" ) ;
-  const KLFLegacyData::KLFLibraryList& ll2 = pLibrary[pResources[index]];
+  const KLFLegacyData::KLFLibraryList& ll2 = d->library[d->resources[index]];
   int kl;
   for (kl = 0; kl < ll2.size(); ++kl)
     klfDbg( "\t#"<<kl<<": "<<ll2[kl].latex<<" - "<<ll2[kl].category ) ;
+#endif
+
+  d->haschanges = true;
 
   emit dataChanged(subResource, ChangeData, idlist);
 
@@ -762,21 +667,20 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
 
 bool KLFLibLegacyEngine::deleteEntries(const QString& subResource, const QList<entryId>& idlist)
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->deleteEntries(subResource, idlist);
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
 
   if (idlist.isEmpty())
     return true;
   if (!canModifyData(subResource, DeleteData))
     return false;
 
-  int index = findResourceName(subResource);
+  int index = d->findResourceName(subResource);
   if (index < 0)
     return false;
 
   // now remove the requested entries
 
-  KLFLegacyData::KLFLibraryList *ll = & pLibrary[pResources[index]];
+  KLFLegacyData::KLFLibraryList *ll = & d->library[d->resources[index]];
   bool success = true;
   int k;
   for (k = 0; k < idlist.size(); ++k) {
@@ -793,6 +697,8 @@ bool KLFLibLegacyEngine::deleteEntries(const QString& subResource, const QList<e
     ll->removeAt(j);
   }
 
+  d->haschanges = true;
+
   emit dataChanged(subResource, DeleteData, idlist);
 
   return success;
@@ -800,11 +706,10 @@ bool KLFLibLegacyEngine::deleteEntries(const QString& subResource, const QList<e
 
 bool KLFLibLegacyEngine::saveTo(const QUrl& newPath)
 {
-  if (pCloneOf != NULL)
-    return pCloneOf->saveTo(newPath);
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
 
   if (newPath.scheme() == "klf+legacy") {
-    return saveLibraryFile(klfUrlLocalFilePath(newPath), pResources, pLibrary, ExportLibraryType);
+    return d->save(klfUrlLocalFilePath(newPath));
   }
   return false;
 }

@@ -29,8 +29,6 @@
     <export-type><mime-type>application/eps</mime-type></export-type>
     <export-type><mime-type>image/eps</mime-type></export-type>
     <export-type><mime-type>application/postscript</mime-type></export-type>
-    <!-- Soon SVG will also be available (eg. via inkscape equation.pdf --export-plain-svg=equation.svg), maybe in plugin ...? -->
-    <export-type><mime-type>image/svg+xml</mime-type></export-type>
   </profile>
 
   <profile name="png_only">
