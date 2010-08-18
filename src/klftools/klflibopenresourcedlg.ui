@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>Open Library Resource</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="klfres.qrc">
-    <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
-  </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
   </property>
@@ -65,7 +61,7 @@
    </item>
    <item row="2" column="0" colspan="2">
     <widget class="QStackedWidget" name="stkOpenWidgets">
-     <widget class="QWidget" name="pageQtDesginerDefault"/>
+     <widget class="QWidget" name="pageDummy"/>
     </widget>
    </item>
    <item row="4" column="0" colspan="2">
@@ -87,9 +83,7 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="klfres.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>cbxType</sender>

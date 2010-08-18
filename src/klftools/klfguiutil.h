@@ -34,6 +34,7 @@
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QTime>
+#include <QGridLayout>
 
 #include <klfutil.h>
 
@@ -334,6 +335,32 @@ private:
 };
 
 
+
+
+
+/** A Layout that lays out its children flowing left to right, top to bottom.
+ * Used eg. in KLF's color dialog to display the standard color panels
+ *
+ * Be sure to insert items into the layout with \ref insertGridFlowWidget()
+ */
+class KLF_EXPORT KLFGridFlowLayout : public QGridLayout
+{
+  Q_OBJECT
+public:
+  KLFGridFlowLayout(int columns, QWidget *parent);
+  virtual ~KLFGridFlowLayout() { }
+
+  virtual int ncolumns() const { return _ncols; }
+
+  virtual void insertGridFlowWidget(QWidget *w, Qt::Alignment align = 0);
+
+  void clearAll();
+
+protected:
+  QList<QWidget*> mGridFlowWidgets;
+  int _ncols;
+  int _currow, _curcol;
+};
 
 
 

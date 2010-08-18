@@ -138,14 +138,15 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     u->cbxCategory->setEditText(tr("[ No Item Selected ]"));
     u->cbxTags->setEditText(tr("[ No Item Selected ]"));
     //    u->lblStylePreview->setText(tr("[ No Item Selected ]"));
-    u->lblStyMathMode->setText(tr("[ No Item Selected ]"));
-    u->txtStyPreamble->setPlainText(tr("[ No Item Selected ]"));
     u->cbxCategory->setEnabled(false);
     u->btnUpdateCategory->setEnabled(false);
     u->cbxTags->setEnabled(false);
     u->btnUpdateTags->setEnabled(false);
     u->btnRestoreStyle->setEnabled(false);
     pCurrentStyle = KLFStyle();
+    displayStyle(false, KLFStyle());
+    u->lblStyMathMode->setText(tr("[ No Item Selected ]"));
+    u->txtStyPreamble->setPlainText(tr("[ No Item Selected ]"));
     return;
   }
   if (entrylist.size() == 1) {
@@ -158,13 +159,12 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     u->cbxTags->setEditText(e.tags());
     pCurrentStyle = e.style();
     //    u->lblStylePreview->setText(prettyPrintStyle(pCurrentStyle));
-    u->lblStyMathMode->setText(pCurrentStyle.mathmode);
-    u->txtStyPreamble->setPlainText(pCurrentStyle.preamble);
     u->cbxCategory->setEnabled(true);
     u->btnUpdateCategory->setEnabled(pInputEnabled && true);
     u->cbxTags->setEnabled(true);
     u->btnUpdateTags->setEnabled(pInputEnabled && true);
     u->btnRestoreStyle->setEnabled(true); // NOT pInputEnabled && : not true input
+    displayStyle(true, pCurrentStyle);
     return;
   }
   // multiple items selected
@@ -196,13 +196,11 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
   u->cbxCategory->setEditText(cat);
   if ( allsamestyle ) {
     pCurrentStyle = style;
-    //    u->lblStylePreview->setText(prettyPrintStyle(style));
-    u->lblStyMathMode->setText(pCurrentStyle.mathmode);
-    u->txtStyPreamble->setPlainText(pCurrentStyle.preamble);
+    displayStyle(true, pCurrentStyle);
     u->btnRestoreStyle->setEnabled(true); // NOT pInputEnabled && : not true input
   } else {
     pCurrentStyle = KLFStyle();
-    //    u->lblStylePreview->setText(tr("[ Different Styles ]"));
+    displayStyle(false, KLFStyle());
     u->lblStyMathMode->setText(tr("[ Different Styles ]"));
     u->txtStyPreamble->setPlainText(tr("[ Different Styles ]"));
     u->btnRestoreStyle->setEnabled(false);
@@ -213,6 +211,34 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
   u->cbxTags->setEnabled(pInputEnabled && false);
   u->btnUpdateTags->setEnabled(pInputEnabled && false);
 }
+
+// private
+void KLFLibEntryEditor::displayStyle(bool valid, const KLFStyle& style)
+{
+  if (valid) {
+    QPixmap pxfg(16, 16);
+    pxfg.fill(QColor(style.fg_color));
+    u->lblStyColFg->setPixmap(pxfg);
+    if (qAlpha(style.bg_color)) {
+      QPixmap pxbg(16, 16);
+      pxbg.fill(QColor(style.bg_color));
+      u->lblStyColBg->setPixmap(pxbg);
+    } else {
+      u->lblStyColBg->setText(QString());
+      u->lblStyColBg->setPixmap(QPixmap());
+    }
+    u->lblStyMathMode->setText(style.mathmode);
+    u->txtStyPreamble->setPlainText(style.preamble);
+  } else {
+    u->lblStyColFg->setText(QString());
+    u->lblStyColFg->setPixmap(QPixmap());
+    u->lblStyColBg->setText(QString());
+    u->lblStyColBg->setPixmap(QPixmap());
+    u->lblStyMathMode->setText(QString());
+    u->txtStyPreamble->setPlainText(QString());
+  }
+}
+
 
 void KLFLibEntryEditor::setInputEnabled(bool enabled)
 {

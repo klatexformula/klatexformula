@@ -9,12 +9,6 @@
     <file>pics/new.png</file>
     <file>pics/iconify.png</file>
     <file>pics/bullet22.png</file>
-    <file>pics/checker.png</file>
-    <file>pics/rightarrow.png</file>
-    <file>pics/colorsliders.png</file>
-    <file>pics/named.png</file>
-    <file>pics/huepane.png</file>
-    <file>pics/colortriangle.png</file>
     <file>pics/helpdialogbg.png</file>
     <file>pics/findprev.png</file>
     <file>pics/symbols.png</file>
@@ -62,7 +56,7 @@
     <file>data/symbolspixmapcache_base</file>
     <file>data/defaultlibrary.klf.db</file>
     <file>data/ooodrawingtemplate</file>
-    <file>data/export_mime_profiles.d/export_default.xml</file>
+    <file>conf/export_mime_profiles.d/export_default.xml</file>
   </qresource>
   <qresource>
     <file>data/cmdl-help_fr.txt</file>

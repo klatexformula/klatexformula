@@ -110,6 +110,9 @@ public:
   KLFLatexSymbolsView(const QString& category, QWidget *parent);
 
   void setSymbolList(const QList<KLFLatexSymbol>& symbols);
+  void appendSymbolList(const QList<KLFLatexSymbol>& symbols);
+
+  QString category() const { return _category; }
 
 signals:
   void symbolActivated(const KLFLatexSymbol& symb);

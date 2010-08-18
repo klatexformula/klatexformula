@@ -200,9 +200,9 @@ void KLFMimeExportProfile::ensureLoadedExportProfileList()
   QStringList fcandidates;
 
   QStringList dirs;
-  dirs << klfconfig.homeConfigDir  + "/data/export_mime_profiles.d"
-       << klfconfig.globalShareDir + "/data/export_mime_profiles.d"
-       << ":/data/export_mime_profiles.d";
+  dirs << klfconfig.homeConfigDir  + "/conf/export_mime_profiles.d"
+       << klfconfig.globalShareDir + "/conf/export_mime_profiles.d"
+       << ":/conf/export_mime_profiles.d";
   int j, k;
   for (j = 0; j < dirs.size(); ++j) {
     // add all files in ...dirs[j].../*.xml

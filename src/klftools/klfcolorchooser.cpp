@@ -33,15 +33,11 @@
 #include <QStyleOptionButton>
 #include <QRegExp>
 
-//#include "klfconfig.h"
 #include "klfcolorchooser.h"
+#include "klfguiutil.h"
 
 #include <ui_klfcolorchoosewidget.h>
 #include <ui_klfcolordialog.h>
-
-
-#define cstr(x) (x).toLocal8Bit().constData()
-
 
 
 
@@ -58,6 +54,11 @@ KLFColorDialog::KLFColorDialog(QWidget *parent) : QDialog(parent)
 KLFColorDialog::~KLFColorDialog()
 {
   delete u;
+}
+
+KLFColorChooseWidget *KLFColorDialog::colorChooseWidget()
+{
+  return u->mColorChooseWidget;
 }
 
 QColor KLFColorDialog::getColor(QColor startwith, bool alphaenabled, QWidget *parent)
@@ -189,7 +190,24 @@ void KLFColorChooseWidgetPane::mouseMoveEvent(QMouseEvent *e)
 
   setColor(colorFromValues(_color, (int)(x*xfac), (int)(y*yfac)));
 }
+void KLFColorChooseWidgetPane::wheelEvent(QWheelEvent *e)
+{
+  int step = - 10 * e->delta() / 120;
+  // isA: TRUE if we are modifying component A, if FALSE then modifying component B
 
+  bool isA =  (e->orientation() == Qt::Horizontal);
+  if (isA && _colorcomponent=="fix")
+    isA = false;
+  if (!isA && _colorcomponent_b=="fix")
+    isA = true;
+  if (isA) {
+    // the first component
+    setColor(colorFromValues(_color, valueA()+step, valueB()));
+  } else {
+    setColor(colorFromValues(_color, valueA(), valueB()+step));
+  }
+  e->accept();
+}
 
 
 // -------------------------------------------------------------------
@@ -279,8 +297,8 @@ int KLFColorComponentsEditorBase::valueMax(const QString& component)
 QColor KLFColorComponentsEditorBase::colorFromValues(QColor base, int a, int b)
 {
   QColor col = base;
-  /*  printf("colorFromValues(%s/alpha=%d, %d, %d): My components:(%s+%s);\n", cstr(col.name()),
-      col.alpha(), a, b, cstr(_colorcomponent), cstr(_colorcomponent_b)); */
+  /*  printf("colorFromValues(%s/alpha=%d, %d, %d): My components:(%s+%s);\n", qPrintable(col.name()),
+      col.alpha(), a, b, qPrintable(_colorcomponent), qPrintable(_colorcomponent_b)); */
   if (_colorcomponent == "hue") {
     col.setHsv(a, col.saturation(), col.value());
     col.setAlpha(base.alpha());
@@ -307,7 +325,7 @@ QColor KLFColorComponentsEditorBase::colorFromValues(QColor base, int a, int b)
     qWarning("Unknown color component property : %s", _colorcomponent.toLocal8Bit().constData());
   }
   QColor base2 = col;
-  //  printf("\tnew color is (%s/alpha=%d);\n", cstr(col.name()), col.alpha());
+  //  printf("\tnew color is (%s/alpha=%d);\n", qPrintable(col.name()), col.alpha());
   if ( ! _colorcomponent_b.isEmpty() && _colorcomponent_b != "fix" ) {
     //    printf("\twe have a second component\n");
     if (_colorcomponent_b == "hue") {
@@ -334,7 +352,7 @@ QColor KLFColorComponentsEditorBase::colorFromValues(QColor base, int a, int b)
       qWarning("Unknown color component property : %s", _colorcomponent_b.toLocal8Bit().constData());
     }
   }
-  //  printf("\tand color is finally %s/alpha=%d\n", cstr(col.name()), col.alpha());
+  //  printf("\tand color is finally %s/alpha=%d\n", qPrintable(col.name()), col.alpha());
   return col;
 }
 bool KLFColorComponentsEditorBase::refreshColorFromInternalValues(int a, int b)

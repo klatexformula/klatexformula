@@ -3527,6 +3527,8 @@ KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidge
 {
   pUi = new Ui::KLFLibOpenResourceDlg;
   pUi->setupUi(this);
+  if (QFile::exists(":/pics/klatexformula-64.png"))
+    setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   // add a widget for all supported widgets
   QStringList wtypeList = KLFLibWidgetFactory::allSupportedWTypes();
@@ -3656,6 +3658,8 @@ KLFLibCreateResourceDlg::KLFLibCreateResourceDlg(const QString& defaultWtype, QW
 {
   pUi = new Ui::KLFLibOpenResourceDlg;
   pUi->setupUi(this);
+  if (QFile::exists(":/pics/klatexformula-64.png"))
+    setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   pUi->lblMain->setText(tr("Create New Library Resource", "[[dialog label title]]"));
   setWindowTitle(tr("Create New Library Resource", "[[dialog window title]]"));
@@ -3786,6 +3790,8 @@ KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *par
 {
   U = new Ui::KLFLibResPropEditor;
   U->setupUi(this);
+  if (QFile::exists(":/pics/klatexformula-64.png"))
+    setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   QPalette pal = U->txtUrl->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
@@ -4192,6 +4198,8 @@ KLFLibNewSubResDlg::KLFLibNewSubResDlg(KLFLibResourceEngine *resource, QWidget *
 {
   u = new Ui::KLFLibNewSubResDlg;
   u->setupUi(this);
+  if (QFile::exists(":/pics/klatexformula-64.png"))
+    setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   u->lblNoTitle->hide();
 

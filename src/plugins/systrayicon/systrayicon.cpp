@@ -131,6 +131,8 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
     }
   }
   if (obj == _mainwin && e->type() == QEvent::WindowStateChange) {
+    klfDbg("main win window state changed: oldState="<<((QWindowStateChangeEvent*)e)->oldState()
+	   <<" new state="<<_mainwin->windowState()) ;
     if (_config->readValue("mintosystray").toBool() &&
 	(_mainwin->windowState() & Qt::WindowMinimized) &&
 	!(((QWindowStateChangeEvent*)e)->oldState() & Qt::WindowMinimized)

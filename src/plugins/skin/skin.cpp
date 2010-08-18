@@ -119,7 +119,7 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
     }
   }
 
-  klfDbg("read skin: "<<skin.name<<"; stylesheet="<<skin.stylesheet.mid(0, 100)<<"; keyword format is "
+  klfDbg("read skin: "<<skin.name<<"; stylesheet="<<skin.stylesheet.simplified().mid(0, 50)<<"[...]; keyword format is "
 	 <<" fg:"<<skin.shscheme.fmtKeyword.foreground()<<"/bg:"<<skin.shscheme.fmtKeyword.background()) ;
 
   // finally return the loaded skin
@@ -147,7 +147,7 @@ void SkinConfigWidget::loadSkinList(QString skinfn)
 
     QDir skindir(skindirs[j]);
     QStringList skinlist = skindir.entryList(QStringList() << "*.xml", QDir::Files);
-    klfDbg("Skin list: "<<skinlist) ;
+    klfDbg("Skin list in dir "<<skindirs[j]<<": "<<skinlist) ;
     for (k = 0; k < skinlist.size(); ++k) {
       Skin skin = loadSkin(skindir.absoluteFilePath(skinlist[k]), false);
       QString skintitle = skin.name;
@@ -165,6 +165,7 @@ void SkinConfigWidget::loadSkinList(QString skinfn)
     cbxSkin->setCurrentIndex(indf);
     cbxSkin->blockSignals(false);
   }
+  _modified = false;
 }
 
 void SkinConfigWidget::skinSelected(int index)
@@ -257,14 +258,31 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
   applySkin(rwconfig, true);
 }
 
-void SkinPlugin::changeSkin(const QString& newSkin)
+void SkinPlugin::changeSkin(const QString& newSkin, bool force)
 {
   qDebug()<<KLF_FUNC_NAME<<": skin="<<newSkin;
-  if (_config->readValue("skinfilename").toString() == newSkin)
+  if (!force && _config->readValue("skinfilename").toString() == newSkin) {
+    klfDbg("newSkin="<<newSkin<<" is same as already-set skin "<<_config->readValue("skinfilename").toString());
     return; // already right
+  }
 
   _config->writeValue("skinfilename", QVariant::fromValue<QString>(newSkin));
-  applySkin(_config, false);
+  Skin skin = applySkin(_config, false);
+
+  // apply syntax highlighting scheme only when skin is CHANGED (thus here and not in applySkin())
+
+  klfDbg("Applying syntax highlighting scheme, keyword.isValid()="<<skin.shscheme.fmtKeyword.isValid()) ;
+  if (skin.shscheme.fmtKeyword.isValid())
+    klfconfig.SyntaxHighlighter.fmtKeyword = skin.shscheme.fmtKeyword;
+  if (skin.shscheme.fmtComment.isValid())
+    klfconfig.SyntaxHighlighter.fmtComment = skin.shscheme.fmtComment;
+  if (skin.shscheme.fmtParenMatch.isValid())
+    klfconfig.SyntaxHighlighter.fmtParenMatch = skin.shscheme.fmtParenMatch;
+  if (skin.shscheme.fmtParenMismatch.isValid())
+    klfconfig.SyntaxHighlighter.fmtParenMismatch = skin.shscheme.fmtParenMismatch;
+  if (skin.shscheme.fmtLonelyParen.isValid())
+    klfconfig.SyntaxHighlighter.fmtLonelyParen = skin.shscheme.fmtLonelyParen;
+
   emit skinChanged(newSkin);
 }
 void SkinPlugin::changeSkinHelpLinkAction(const QUrl& link)
@@ -274,7 +292,7 @@ void SkinPlugin::changeSkinHelpLinkAction(const QUrl& link)
 }
 
 
-void SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
+Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool /*isStartUp*/)
 {
   klfDbg("Applying skin!");
   QString ssfn = config->readValue("skinfilename").toString();
@@ -324,19 +342,7 @@ void SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
   //   }
   // #endif
 
-  if ( ! isStartUp ) {
-    // apply syntax highlighting scheme
-    if (skin.shscheme.fmtKeyword.isValid())
-      klfconfig.SyntaxHighlighter.fmtKeyword = skin.shscheme.fmtKeyword;
-    if (skin.shscheme.fmtComment.isValid())
-      klfconfig.SyntaxHighlighter.fmtComment = skin.shscheme.fmtComment;
-    if (skin.shscheme.fmtParenMatch.isValid())
-      klfconfig.SyntaxHighlighter.fmtParenMatch = skin.shscheme.fmtParenMatch;
-    if (skin.shscheme.fmtParenMismatch.isValid())
-      klfconfig.SyntaxHighlighter.fmtParenMismatch = skin.shscheme.fmtParenMismatch;
-    if (skin.shscheme.fmtLonelyParen.isValid())
-      klfconfig.SyntaxHighlighter.fmtLonelyParen = skin.shscheme.fmtLonelyParen;
-  }
+  return skin;
 }
 
 QWidget * SkinPlugin::createConfigWidget(QWidget *parent)
@@ -360,6 +366,7 @@ void SkinPlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *conf
 }
 void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
 {
+  klfDbg("called.");
   if (confwidget->property("SkinConfigWidget").toBool() != true) {
     fprintf(stderr, "Error: bad config widget given !!\n");
     return;
@@ -371,8 +378,12 @@ void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config
 
   config->writeValue("skinfilename", QVariant::fromValue<QString>(skinfn));
 
-  if ( o->getModifiedAndReset() )
-    applySkin(config, false);
+  if ( o->getModifiedAndReset() ) {
+    klfDbg("skin setting modified. setting new skin");
+    // "true"=force skin change, because we just wrote the config, and it will
+    // believe there was no skin change
+    changeSkin(skinfn, true);
+  }
 }
 
 
@@ -381,3 +392,5 @@ void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config
 
 // Export Plugin
 Q_EXPORT_PLUGIN2(skin, SkinPlugin);
+
+

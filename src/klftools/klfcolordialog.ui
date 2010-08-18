@@ -17,7 +17,7 @@
    <string>Select Color</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="klfres.qrc">
+   <iconset resource="../klftoolsres.qrc">
     <normaloff>:/pics/huepane.png</normaloff>:/pics/huepane.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="lyt_KLFColorDialog">
@@ -50,7 +50,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
+    <widget class="QDialogButtonBox" name="btns">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -70,18 +70,18 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="klfres.qrc"/>
+  <include location="../klftoolsres.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>btns</sender>
    <signal>accepted()</signal>
    <receiver>KLFColorDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>254</x>
+     <y>360</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -90,14 +90,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>btns</sender>
    <signal>rejected()</signal>
    <receiver>KLFColorDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>322</x>
+     <y>360</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

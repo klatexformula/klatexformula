@@ -55,6 +55,11 @@ set(klftools_UIS
 	klfliblocalfilewidget.ui
 	klflibnewsubresdlg.ui
 )
+# Resources
+set(klftools_QRCS
+	../klftoolsres.qrc
+)
+
 
 
 
@@ -64,11 +69,12 @@ KLFInstHeaders(klftools_INSTHEADERS "${klftools_HEADERS}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}"
 		    "${CMAKE_CURRENT_SOURCE_DIR}/../klfbackend")
 
-# Uis, Mocs
+# Uis, Mocs, Qrcs
 qt4_wrap_ui(klftools_UIS_H ${klftools_UIS})
 qt4_wrap_cpp(klftools_MOC_CPPS ${klftools_MOCHEADERS})
+qt4_add_resources(klftools_QRC_CPPS ${klftools_QRCS})
 
-set(klftools_allsrc ${klftools_SRCS} ${klftools_UIS_H} ${klftools_MOC_CPPS})
+set(klftools_allsrc ${klftools_SRCS} ${klftools_QRC_CPPS} ${klftools_UIS_H} ${klftools_MOC_CPPS})
 if (KLF_LIBKLFTOOLS_STATIC)
   add_library(klftools STATIC ${klftools_allsrc})
   set_target_properties(klftools PROPERTIES

@@ -548,7 +548,7 @@ public:
 
   //! Compare this resource's URL with another's
   /** Compares the URL of this resource with \c other, and returns a binary OR'ed value of
-   * \ref KLFUrlCompareFlag enum values of tests that have proved true (see \ref KlfUrlCompareFlag
+   * \ref KlfUrlCompareFlag enum values of tests that have proved true (see \ref KlfUrlCompareFlag
    * for a list of URL-comparision tests).
    *
    * This function should return the following flag, if its corresponding tests turn out
@@ -1081,7 +1081,7 @@ public slots:
 
   //! set a new resource title for this library resource
   /** Stores the new resource title. The title is a human string to display eg. in the
-   * tabs of the \ref KLFLibBrowser library browser.
+   * tabs of the KLFLibBrowser library browser. [KLFLibBrowser:  see klfapp library]
    *
    * This function calls directly \ref setResourceProperty().
    *
@@ -1663,6 +1663,11 @@ private:
  * each scheme tells with <i>Widget-Type</i> it requires to associate with
  * "open" or "create new" or "save to" actions (eg. <tt>wtype=="LocalFile"</tt>
  * or similar logical name).
+ *
+ * The widget type is given by the
+ * \ref KLFLibEngineFactory::correspondingWidgetType "Engine Factory".
+ *
+ * See also \ref KLFLibBasicWidgetFactory and \ref KLFLibEngineFactory.
  */
 class KLF_EXPORT KLFLibWidgetFactory : public QObject, public KLFFactoryBase
 {

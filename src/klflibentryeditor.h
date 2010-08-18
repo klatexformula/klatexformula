@@ -87,6 +87,7 @@ private:
   KLFLatexSyntaxHighlighter *pHighlighter;
 
   //  void updateEditText(QComboBox *editWidget, const QString& newText);
+  void displayStyle(bool valid, const KLFStyle& style);
 };
 
 

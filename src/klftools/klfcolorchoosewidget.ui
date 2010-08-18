@@ -33,7 +33,7 @@
      </property>
      <widget class="QWidget" name="mHSVTab">
       <attribute name="icon">
-       <iconset resource="klfres.qrc">
+       <iconset resource="../klftoolsres.qrc">
         <normaloff>:/pics/huepane.png</normaloff>:/pics/huepane.png</iconset>
       </attribute>
       <attribute name="title">
@@ -149,7 +149,7 @@
        </size>
       </property>
       <attribute name="icon">
-       <iconset resource="klfres.qrc">
+       <iconset resource="../klftoolsres.qrc">
         <normaloff>:/pics/colortriangle.png</normaloff>:/pics/colortriangle.png</iconset>
       </attribute>
       <attribute name="title">
@@ -185,7 +185,7 @@
      </widget>
      <widget class="QWidget" name="mNamedTab">
       <attribute name="icon">
-       <iconset resource="klfres.qrc">
+       <iconset resource="../klftoolsres.qrc">
         <normaloff>:/pics/named.png</normaloff>:/pics/named.png</iconset>
       </attribute>
       <attribute name="title">
@@ -231,7 +231,7 @@
      </widget>
      <widget class="QWidget" name="mSlidersTab">
       <attribute name="icon">
-       <iconset resource="klfres.qrc">
+       <iconset resource="../klftoolsres.qrc">
         <normaloff>:/pics/colorsliders.png</normaloff>:/pics/colorsliders.png</iconset>
       </attribute>
       <attribute name="title">
@@ -1039,8 +1039,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>92</height>
+            <width>249</width>
+            <height>91</height>
            </rect>
           </property>
          </widget>
@@ -1078,8 +1078,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>250</width>
-            <height>92</height>
+            <width>249</width>
+            <height>91</height>
            </rect>
           </property>
          </widget>
@@ -1107,7 +1107,7 @@
           </sizepolicy>
          </property>
          <property name="icon">
-          <iconset resource="klfres.qrc">
+          <iconset resource="../klftoolsres.qrc">
            <normaloff>:/pics/rightarrow.png</normaloff>:/pics/rightarrow.png</iconset>
          </property>
         </widget>
@@ -1131,8 +1131,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>225</width>
-            <height>92</height>
+            <width>224</width>
+            <height>91</height>
            </rect>
           </property>
          </widget>
@@ -1163,7 +1163,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="klfres.qrc"/>
+  <include location="../klftoolsres.qrc"/>
  </resources>
  <connections/>
 </ui>

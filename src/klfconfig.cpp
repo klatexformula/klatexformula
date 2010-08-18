@@ -43,7 +43,7 @@
 
 
 
-// the following SHOULD NOT BE DEFINED 'STATIC', as they are referenced by main.cpp
+// the following SHOULD NOT BE DEFINED 'STATIC', as it is referenced by main.cpp
 // since we need them before loading klfconfig configuration.
 
 KLF_EXPORT const char * klf_share_dir_rel =

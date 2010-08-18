@@ -925,6 +925,10 @@ void KLFSettings::apply()
 
   _mainwin->refreshShowCorrectClearButton();
   _mainwin->saveSettings();
+
+  // in case eg. the plugins re-change klfconfig in some way (skin does this for syntax highlighting)
+  // -> refresh
+  reset();
 }
 
 void KLFSettings::accept()

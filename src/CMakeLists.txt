@@ -114,11 +114,6 @@ set(klfapp_UIS
 	klflibexportdialog.ui
 )
 
-# Translations
-set(klatexformula_TSS
-	i18n/klf_fr.ts
-)
-
 # Special adjustments for certain platforms and options
 # * Windows
 if(WIN32)
@@ -162,7 +157,11 @@ list(REMOVE_ITEM klatexformula_INSTHEADERS
 # klfapp Library
 # --------------
 
-
+if(KLF_LIBKLFTOOLS_STATIC)
+  # let main() know it has to initialize klftools' resource with
+  # Q_INIT_RESOURCE(klftoolsres)
+  add_definitions(-DKLF_LIBKLFTOOLS_STATIC)
+endif(KLF_LIBKLFTOOLS_STATIC)
 # Uis, Mocs
 qt4_wrap_ui(klfapp_UIS_H ${klfapp_UIS})
 qt4_wrap_cpp(klfapp_MOC_CPPS ${klfapp_MOCHEADERS})
@@ -198,6 +197,19 @@ set_target_properties(klfapp PROPERTIES
 # klatexformula Executable
 # ------------------------
 
+# Sources
+set(klatexformula_SRCS
+	main.cpp
+)
+# Translations
+set(klatexformula_TSS
+	i18n/klf_fr.ts
+)
+# Resources
+set(klatexformula_QRCS
+	klfres.qrc
+)
+
 # Translations
 qt4_add_translation(klatexformula_QMS ${klatexformula_TSS})
 if(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
@@ -215,13 +227,9 @@ else(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
 endif(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
 list(APPEND klatexformula_QRCS "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc")
 
-# Resources
-set(klatexformula_QRCS
-	klfres.qrc
-)
 
 qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
-set(klatexformula_ALLSRC main.cpp ${klatexformula_QRC_CPPS})
+set(klatexformula_ALLSRC ${klatexformula_SRCS} ${klatexformula_QRC_CPPS})
 set(klatexformula_winrc)
 if(MINGW)
   set(KLF_WIN_ICON "mswin\\\\klficon64.ico" CACHE STRING

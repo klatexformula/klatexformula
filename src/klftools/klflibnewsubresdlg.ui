@@ -6,16 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>472</width>
-    <height>236</height>
+    <width>469</width>
+    <height>217</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>New Sub-Resource</string>
-  </property>
-  <property name="windowIcon">
-   <iconset resource="klfres.qrc">
-    <normaloff>:/pics/klatexformula-64.png</normaloff>:/pics/klatexformula-64.png</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -153,7 +149,7 @@
     </widget>
    </item>
    <item row="5" column="0">
-    <spacer name="verticalSpacer">
+    <spacer name="vspc">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -172,9 +168,7 @@
   <tabstop>txtName</tabstop>
   <tabstop>btns</tabstop>
  </tabstops>
- <resources>
-  <include location="klfres.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>btns</sender>

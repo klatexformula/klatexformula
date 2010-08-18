@@ -37,7 +37,7 @@ QDialog#KLFAboutDialog .QTextBrowser#txtDisplay {
   <property name="modal">
    <bool>false</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="lyt_KLFAboutDialog">
    <property name="spacing">
     <number>10</number>
    </property>
@@ -67,7 +67,7 @@ QDialog#KLFAboutDialog .QTextBrowser#txtDisplay {
      <property name="midLineWidth">
       <number>0</number>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QHBoxLayout" name="lyt_frmAboutArea">
       <property name="spacing">
        <number>5</number>
       </property>
@@ -124,7 +124,7 @@ p, li { white-space: pre-wrap; }
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QHBoxLayout" name="lyt_wOkBtnBar">
       <property name="spacing">
        <number>0</number>
       </property>

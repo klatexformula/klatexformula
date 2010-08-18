@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 #include <QFile>
+#include <QDir>
 #include <QTextStream>
 #include <QScrollArea>
 #include <QList>
@@ -460,8 +461,12 @@ KLFLatexSymbolsView::KLFLatexSymbolsView(const QString& category, QWidget *paren
 
 void KLFLatexSymbolsView::setSymbolList(const QList<KLFLatexSymbol>& symbols)
 {
-  // filter out hidden symbols
   _symbols.clear();
+  appendSymbolList(symbols);
+}
+void KLFLatexSymbolsView::appendSymbolList(const QList<KLFLatexSymbol>& symbols)
+{
+  // filter out hidden symbols
   int k;
   for (k = 0; k < symbols.size(); ++k)
     if ( ! symbols[k].hidden )
@@ -621,81 +626,108 @@ void KLFLatexSymbols::read_symbols_create_ui()
 
   mViews.clear();
 
-  // find correct XML file
-  QStringList fcandidates;
-  fcandidates << klfconfig.homeConfigDir + "/data/latexsymbols.xml"
-	      << klfconfig.homeConfigDir + "/latexsymbols.xml"
-	      << klfconfig.globalShareDir + "/data/latexsymbols.xml"
-	      << klfconfig.globalShareDir + "/latexsymbols.xml"
-	      << ":/data/latexsymbols.xml";
-  int k;
-  for (k = 0; k < fcandidates.size() && !QFile::exists(fcandidates[k]); ++k)
-    ;
-  if (k >= fcandidates.size()) {
-    qWarning()<<KLF_FUNC_NAME<<": Can't find a suitable latexsymbols.xml file! Candidates are: "<<fcandidates;
-    return;
+  // find collection of XML files
+  QStringList fxmllist;
+  // in the following directories
+  QStringList fxmldirs;
+  fxmldirs << klfconfig.homeConfigDir + "/conf/latexsymbols.d/"
+	   << klfconfig.globalShareDir + "/conf/latexsymbols.d/"
+	   << ":/conf/latexsymbols.d/";
+
+  // collect all XML files
+  int k, j;
+  for (k = 0; k < fxmldirs.size(); ++k) {
+    QDir fxmldir(fxmldirs[k]);
+    QStringList xmllist = fxmldir.entryList(QStringList()<<"*.xml", QDir::Files);
+    for (j = 0; j < xmllist.size(); ++j)
+      fxmllist << fxmldir.absoluteFilePath(xmllist[j]);
   }
-  QString fn = fcandidates[k];
-  QFile file(fn);
-  if ( ! file.open(QIODevice::ReadOnly) ) {
-    qWarning()<<KLF_FUNC_NAME<<": Error: Can't open latex symbols XML file "<<fn<<": "<<file.errorString()<<"!";
-    return;
+  if (fxmllist.isEmpty()) {
+    // copy legacy XML file into the home latexsymbols.d directory
+    QDir("/").mkpath(klfconfig.homeConfigDir+"/conf/latexsymbols.d");
+    if (QFile::exists(klfconfig.homeConfigDir+"/latexsymbols.xml")) {
+      QFile::copy(klfconfig.homeConfigDir+"/latexsymbols.xml", klfconfig.homeConfigDir+"/conf/latexsymbols.d/mylatexsymbols.xml");
+      fxmllist << klfconfig.homeConfigDir+"/conf/latexsymbols.d/mylatexsymbols.xml";
+    } else {
+      QFile::copy(":/data/latexsymbols.xml", klfconfig.homeConfigDir+"/conf/latexsymbols.d/defaultlatexsymbols.xml");
+      fxmllist << klfconfig.homeConfigDir+"/conf/latexsymbols.d/defaultlatexsymbols.xml";
+    }
   }
 
-  QDomDocument doc("latexsymbols");
-  QString errMsg; int errLine, errCol;
-  bool r = doc.setContent(&file, false, &errMsg, &errLine, &errCol);
-  if (!r) {
-    qWarning()<<KLF_FUNC_NAME<<": Error parsing file "<<fn<<": "<<errMsg<<" at line "<<errLine<<", col "<<errCol;
-    return;
-  }
-  file.close();
-
-  QDomElement root = doc.documentElement();
-  if (root.nodeName() != "latexsymbollist") {
-    qWarning("%s: Error parsing XML for latex symbols from file `%s': unexpected root tag `%s'.\n", KLF_FUNC_NAME,
-	     qPrintable(fn), qPrintable(root.nodeName()));
-    return;
-  }
-
+  // this will be a full list of symbols to feed to the cache
   QList<KLFLatexSymbol> allsymbols;
-  
-  // read XML file
-  QDomNode n;
-  for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
-    QDomElement e = n.toElement(); // try to convert the node to an element.
-    if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
-      continue;
-    if ( e.nodeName() != "category" ) {
-      qWarning("WARNING in parsing XML : ignoring unexpected tag `%s'!\n",
-	       qPrintable(e.nodeName()));
+
+  // now read the file list
+  for (k = 0; k < fxmllist.size(); ++k) {
+    QString fn = fxmllist[k];
+    QFile file(fn);
+    if ( ! file.open(QIODevice::ReadOnly) ) {
+      qWarning()<<KLF_FUNC_NAME<<": Error: Can't open latex symbols XML file "<<fn<<": "<<file.errorString()<<"!";
       continue;
     }
-    // read category
-    QString heading = e.attribute("name");
-    QList<KLFLatexSymbol> l;
-    QDomNode esym;
-    for (esym = e.firstChild(); ! esym.isNull(); esym = esym.nextSibling() ) {
-      if ( esym.isNull() || esym.nodeType() != QDomNode::ElementNode )
+
+    QDomDocument doc("latexsymbols");
+    QString errMsg; int errLine, errCol;
+    bool r = doc.setContent(&file, false, &errMsg, &errLine, &errCol);
+    if (!r) {
+      qWarning()<<KLF_FUNC_NAME<<": Error parsing file "<<fn<<": "<<errMsg<<" at line "<<errLine<<", col "<<errCol;
+      continue;
+    }
+    file.close();
+    
+    QDomElement root = doc.documentElement();
+    if (root.nodeName() != "latexsymbollist") {
+      qWarning("%s: Error parsing XML for latex symbols from file `%s': unexpected root tag `%s'.\n", KLF_FUNC_NAME,
+	       qPrintable(fn), qPrintable(root.nodeName()));
+      continue;
+    }
+
+    QDomNode n;
+    for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+      QDomElement e = n.toElement(); // try to convert the node to an element.
+      if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
 	continue;
-      if ( esym.nodeName() != "sym" ) {
-	qWarning("%s: WARNING in parsing XML : ignoring unexpected tag `%s' in category `%s'!\n",
-		 KLF_FUNC_NAME, qPrintable(esym.nodeName()), qPrintable(heading));
+      if ( e.nodeName() != "category" ) {
+	qWarning("WARNING in parsing XML : ignoring unexpected tag `%s'!\n",
+		 qPrintable(e.nodeName()));
 	continue;
       }
-      KLFLatexSymbol sym(esym.toElement());
-      l.append(sym);
-      allsymbols.append(sym);
-    }
-    // and add this category
-    KLFLatexSymbolsView *view = new KLFLatexSymbolsView(heading, stkViews);
-    view->setSymbolList(l);
-    connect(view, SIGNAL(symbolActivated(const KLFLatexSymbol&)),
-	    this, SIGNAL(insertSymbol(const KLFLatexSymbol&)));
-    mViews.append(view);
-    stkViews->addWidget(view);
-    u->cbxCategory->addItem(heading);
-  }
+      // read category
+      QString heading = e.attribute("name");
+      QList<KLFLatexSymbol> l;
+      QDomNode esym;
+      for (esym = e.firstChild(); ! esym.isNull(); esym = esym.nextSibling() ) {
+	if ( esym.isNull() || esym.nodeType() != QDomNode::ElementNode )
+	  continue;
+	if ( esym.nodeName() != "sym" ) {
+	  qWarning("%s: WARNING in parsing XML : ignoring unexpected tag `%s' in category `%s'!\n",
+		   KLF_FUNC_NAME, qPrintable(esym.nodeName()), qPrintable(heading));
+	  continue;
+	}
+	KLFLatexSymbol sym(esym.toElement());
+	l.append(sym);
+	allsymbols.append(sym);
+      }
+      // and add this category, or append to existing category
+      KLFLatexSymbolsView * view = NULL;
+      for (j = 0; j < mViews.size(); ++j) {
+	if (mViews[j]->category() == heading) {
+	  view = mViews[j];
+	  break;
+	}
+      }
+      if (view == NULL) {
+	// category does not yet exist
+	view = new KLFLatexSymbolsView(heading, stkViews);
+	connect(view, SIGNAL(symbolActivated(const KLFLatexSymbol&)),
+		this, SIGNAL(insertSymbol(const KLFLatexSymbol&)));
+	mViews.append(view);
+	stkViews->addWidget(view);
+	u->cbxCategory->addItem(heading);
+      }
+      view->appendSymbolList(l);
+    } // iterate over categories in XML file
+  } // iterate over XML files
 
   // pre-cache all our symbols
   KLFLatexSymbolsCache::theCache()->precacheList(allsymbols, true, this);
@@ -704,6 +736,7 @@ void KLFLatexSymbols::read_symbols_create_ui()
   for (i = 0; i < mViews.size(); ++i) {
     mViews[i]->buildDisplay();
   }
+
 }
 
 void KLFLatexSymbols::slotShowCategory(int c)

@@ -116,13 +116,13 @@ public:
   virtual void loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *config);
   virtual void saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config);
 
-  virtual void applySkin(KLFPluginConfigAccess *config, bool isStartup);
+  virtual Skin applySkin(KLFPluginConfigAccess *config, bool isStartup);
 
 signals:
   void skinChanged(const QString& skin);
 
 public slots:
-  virtual void changeSkin(const QString& newSkin);
+  virtual void changeSkin(const QString& newSkin, bool force = false);
   virtual void changeSkinHelpLinkAction(const QUrl& link);
 
 protected:

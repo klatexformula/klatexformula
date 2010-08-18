@@ -647,7 +647,9 @@ int main(int argc, char **argv)
 
   if ( opt_interactive ) {
     QApplication app(qt_argc, qt_argv);
-
+#ifdef KLF_LIBKLFTOOLS_STATIC
+    Q_INIT_RESOURCE(klftoolsres) ;
+#endif
     extern const char * klf_share_dir_rel;
 #ifdef KLF_INSTALL_COPY_QTPLUGINS_DIR
     QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/"+KLF_INSTALL_COPY_QTPLUGINS_DIR);
@@ -863,6 +865,8 @@ int main(int argc, char **argv)
 
     // show version number ?
     if ( opt_version_requested ) {
+      /* Remember: the format here should NOT change from one version to another, so that it
+       * can be parsed eg. by scripts if needed. */
       fprintf(stderr, "KLatexFormula: Version %s using Qt %s\n", KLF_VERSION_STRING, qVersion());
       main_exit(0);
     }
@@ -884,9 +888,10 @@ int main(int argc, char **argv)
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      KLF_VERSION_STRING);
   
-    if ( klf_args[0] != NULL ) {
-      qWarning("Ignoring extra command-line arguments");
-    }
+    // warn for ignored arguments
+    for (int kl = 0; klf_args[kl] != NULL; ++kl)
+      qWarning()<<"[Non-Interactive Mode] Ignoring additional command-line argument: "<<klf_args[kl];
+
 
     // now process required actions.
     KLFBackend::klfInput input;
