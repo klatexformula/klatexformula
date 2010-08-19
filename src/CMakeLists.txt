@@ -15,9 +15,6 @@ if(WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
   # Extra linker flags for win32 compilation
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
-  if(KLF_INSTALL_COPY_QTPLUGINS_DIR)
-    add_definition(-DKLF_INSTALL_COPY_QTPLUGINS_DIR=${KLF_INSTALL_COPY_QTPLUGINS_DIR})
-  endif(KLF_INSTALL_COPY_QTPLUGINS_DIR)
 endif(WIN32)
 
 # Preprocessor instructions
@@ -72,6 +69,10 @@ set(klfapp_SRCS
 	klflatexsymbols.cpp
 	klflibentryeditor.cpp
 	klflibbrowser.cpp
+	klflib.cpp
+	klflibview.cpp
+	klflibdbengine.cpp
+	klfliblegacyengine.cpp
 	klfmime.cpp
 	klfmainwin.cpp
 	klfsettings.cpp
@@ -86,6 +87,13 @@ set(klfapp_MOCHEADERS
 	klflibentryeditor.h
 	klflibbrowser.h
 	klflibbrowser_p.h
+	klflib.h
+	klflibview.h
+	klflibview_p.h
+	klflibdbengine.h
+	klflibdbengine_p.h
+	klfliblegacyengine.h
+	klfliblegacyengine_p.h
 	klfmime.h
 	klfmime_p.h
 	klfmainwin.h
@@ -98,6 +106,7 @@ set(klfapp_HEADERS
 	klfmain.h
 	klfconfig.h
 	klfpluginiface.h
+	klflib_p.h
 	${klatexformula_MOCHEADERS}
 )
 # UI Forms
@@ -105,6 +114,10 @@ set(klfapp_UIS
 	klflatexsymbols.ui
 	klflibbrowser.ui
 	klflibentryeditor.ui
+	klflibopenresourcedlg.ui
+	klflibrespropeditor.ui
+	klfliblocalfilewidget.ui
+	klflibnewsubresdlg.ui
 	klfmainwin.ui
 	klfprogerr.ui
 	klfsettings.ui

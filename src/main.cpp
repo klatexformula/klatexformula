@@ -646,16 +646,19 @@ int main(int argc, char **argv)
   }
 
   if ( opt_interactive ) {
+    // Create the QApplication
     QApplication app(qt_argc, qt_argv);
+
 #ifdef KLF_LIBKLFTOOLS_STATIC
     Q_INIT_RESOURCE(klftoolsres) ;
 #endif
-    extern const char * klf_share_dir_rel;
-#ifdef KLF_INSTALL_COPY_QTPLUGINS_DIR
-    QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/"+KLF_INSTALL_COPY_QTPLUGINS_DIR);
-#else
-    QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/qt-plugins");
+#ifdef KLF_LIBKLFAPP_STATIC
+    Q_INIT_RESOURCE(klfres) ;
 #endif
+    // add [share dir]/qt-plugins to library path.
+    // under windows, that is were plugins are packaged with the executable
+    extern const char * klf_share_dir_rel;
+    QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/qt-plugins");
 
     klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
 
@@ -840,9 +843,16 @@ int main(int argc, char **argv)
     return r;
 
   } else {
-
     // NON-INTERACTIVE (BATCH MODE, no X11)
+
+    // Create the QCoreApplication
     QCoreApplication app(qt_argc, qt_argv);
+#ifdef KLF_LIBKLFTOOLS_STATIC
+    Q_INIT_RESOURCE(klftoolsres) ;
+#endif
+#ifdef KLF_LIBKLFAPP_STATIC
+    Q_INIT_RESOURCE(klfres) ;
+#endif
 
     qRegisterMetaType< QImage >("QImage");
     qRegisterMetaType< KLFStyle >();

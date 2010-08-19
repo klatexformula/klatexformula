@@ -16,10 +16,6 @@ set(klftools_SRCS
 	klfpathchooser.cpp
 	qtcolortriangle.cpp
 	klfdisplaylabel.cpp
-	klflib.cpp
-	klflibview.cpp
-	klflibdbengine.cpp
-	klfliblegacyengine.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -30,30 +26,18 @@ set(klftools_MOCHEADERS
 	klfpathchooser.h
 	qtcolortriangle.h
 	klfdisplaylabel.h
-	klflib.h
-	klflibview.h
-	klflibview_p.h
-	klflibdbengine.h
-	klflibdbengine_p.h
-	klfliblegacyengine.h
-	klfliblegacyengine_p.h
 )
 #  * all headers
 set(klftools_HEADERS
 	klfutil.h
 	klfpobj.h
 	klffactory.h
-	klflib_p.h
 	${klftools_MOCHEADERS}
 )
 # UI Forms
 set(klftools_UIS
 	klfcolorchoosewidget.ui
 	klfcolordialog.ui
-	klflibopenresourcedlg.ui
-	klflibrespropeditor.ui
-	klfliblocalfilewidget.ui
-	klflibnewsubresdlg.ui
 )
 # Resources
 set(klftools_QRCS

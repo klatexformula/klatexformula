@@ -390,6 +390,7 @@ KLF_EXPORT void klf_reload_translations(QCoreApplication *app, const QString& cu
   }
   i18ndirlist << ":/i18n"
 	      << klfconfig.homeConfigDirI18n
+	      << klfconfig.globalShareDir+"/i18n"
 	      << QLibraryInfo::location(QLibraryInfo::TranslationsPath);
 
   for (j = 0; j < i18ndirlist.size(); ++j) {
