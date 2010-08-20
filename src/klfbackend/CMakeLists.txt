@@ -60,7 +60,7 @@ else(KLF_USE_QT4)
     add_library(klfbackend-qt3 STATIC ${klfbackend_allsrc})
   else(KLF_LIBKLFBACKEND_STATIC)
     add_library(klfbackend-qt3 SHARED ${klfbackend_allsrc})
-    set_target_properties(klfbackend PROPERTIES
+    set_target_properties(klfbackend-qt3 PROPERTIES
 	      VERSION		${KLF_LIB_VERSION}
 	      SOVERSION		${KLF_LIB_VERSION}
     )

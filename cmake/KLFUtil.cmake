@@ -25,6 +25,7 @@ macro(KLFInstHeaders varInstHeaders varAllHeaders)
 endmacro(KLFInstHeaders)
 
 
+# internal cache variable
 set(_klf_notices "" CACHE INTERNAL "no notices shown via KLFNote().")
 
 #
@@ -38,11 +39,11 @@ macro(KLFNote message)
     *** NOTE ***
     ${message}
 ")
-  if(NOT DEFINED _klf_notices)
-    set(_klf_notices "1" CACHE INTERNAL "have shown notices via KLFNote().")
+  if(NOT _klf_notices)
+    set(_klf_notices "1" CACHE INTERNAL "have shown a notice with KLFNote().")
   elseif(_klf_notices STREQUAL "1")
-    set(_klf_notices "+" CACHE INTERNAL "have shown notices via KLFNote().")
-  endif(NOT DEFINED _klf_notices)
+    set(_klf_notices "+" CACHE INTERNAL "have shown notices with KLFNote().")
+  endif(NOT _klf_notices)
 endmacro(KLFNote)
 
 macro(KLFNotifyNotices)

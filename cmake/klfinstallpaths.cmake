@@ -10,7 +10,10 @@ KLFGetCMakeVarChanged(KLF_INSTALL_RUN_POST_INSTALL)
 # Installation destination
 # ------------------------
 
-set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFormula.")
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFormula." FORCE)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+KLFCMakeSetVarChanged(CMAKE_INSTALL_PREFIX)
 mark_as_advanced(CLEAR CMAKE_INSTALL_PREFIX)
 message(STATUS "'make install' will install to \"${CMAKE_INSTALL_PREFIX}\" (CMAKE_INSTALL_PREFIX)")
 

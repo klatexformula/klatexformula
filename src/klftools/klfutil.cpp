@@ -42,7 +42,7 @@
 #include <QDomDocument>
 
 #include "klfutil.h"
-#include "klflib.h" // KLFStyle
+#include "klfstyle.h"
 
 
 

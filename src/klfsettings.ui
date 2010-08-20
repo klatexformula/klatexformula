@@ -292,9 +292,7 @@
           <item row="1" column="0">
            <widget class="QCheckBox" name="chkClearLatexOnly">
             <property name="toolTip">
-             <string extracomment="[[tooltip]]">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;/head&gt;&lt;body&gt;
-&lt;p&gt;If this box is left unchecked, the clear button under to the LaTeX code editor clears the editor and resets the default style. By enabling this option, only the LaTeX field is cleared and the style is not modified.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string extracomment="[[tooltip]]">&lt;p&gt;If this box is left unchecked, the clear button under to the LaTeX code editor clears the editor and resets the default style. By enabling this option, only the LaTeX field is cleared and the style is not modified.&lt;/p&gt;</string>
             </property>
             <property name="text">
              <string>Clear button clears LaTeX field only</string>
@@ -1533,8 +1531,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>359</width>
-                <height>167</height>
+                <width>100</width>
+                <height>30</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1700,8 +1698,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>348</width>
-                   <height>215</height>
+                   <width>100</width>
+                   <height>30</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1765,8 +1763,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>562</width>
-            <height>502</height>
+            <width>94</width>
+            <height>24</height>
            </rect>
           </property>
           <attribute name="label">

@@ -16,6 +16,7 @@ set(klftools_SRCS
 	klfpathchooser.cpp
 	qtcolortriangle.cpp
 	klfdisplaylabel.cpp
+	klfstyle.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -32,6 +33,7 @@ set(klftools_HEADERS
 	klfutil.h
 	klfpobj.h
 	klffactory.h
+	klfstyle.h
 	${klftools_MOCHEADERS}
 )
 # UI Forms
@@ -81,6 +83,8 @@ set_target_properties(klftools PROPERTIES
 	    PUBLIC_HEADER "${klftools_INSTHEADERS}"
 )
 
+# add dependency on klfbackend
+add_dependencies(klftools  klfbackend)
 
 
 # Install Targets

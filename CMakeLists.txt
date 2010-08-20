@@ -19,35 +19,33 @@ message(STATUS "KLatexFormula Version ${KLF_VERSION}")
 option(KLF_WELCOME_MSG_SILENT "Don't display welcome message" OFF)
 if(NOT KLF_WELCOME_MSG_SILENT)
   message(STATUS "
-   Welcome to the klatexformula build script. This CMake script will guide
-   you through the process of building klatexformula ${KLF_VERSION} for your
-   system.
+   Welcome to the klatexformula build script. This CMake script will configure
+   the klatexformula ${KLF_VERSION} build process for your system.
 
-   Some settings will have to be detected. This script should be able to
-   detect the correct settings for most systems. However, you may want to
-   tune and even fine-tune your klatexformula installation sequence to
-   build and install the compenents you would like, and install them at
-   specific locations.
+   Some settings will have to be detected. This script should be able to detect
+   the correct settings for most systems. However, you may want to tune and even
+   fine-tune this configuration in order to build and install the compenents you
+   would like, and install them at your preferred locations.
 
-   Each status message displays a default or detected value for a setting, with
-   the corresponding variable name, in case you want to change the setting.
-   With command-line cmake, you can set a variable with:
-     cmake <build-dir> -D<VARIABLE_NAME>=<VALUE>
-   most values are just ON or OFF or string paths.
+   Each status message displays a default or detected value for a setting. In
+   capital letters is given the corresponding CMake cache variable name, in case
+   you want to change the setting. With command-line cmake, you can set a
+   variable with:
+     cmake <source-dir> -D<VARIABLE_NAME>=<VALUE>
+   In most cases values are just 'ON' or 'OFF'. In some other cases they are paths.
 
    But don't worry, most default values should be fine. Unless an error was
-   reported, after this script has run, you can type
+   reported during this script, you can type
        make
    and
        sudo make install
-
    to install klatexformula on your system.
    
    For more options and help:
-      - look at the stored cache variable documentation (displayed eg. by
-        cmake-gui and ccmake)
-      - have a look at
-        http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
+      - look at the stored cache variable documentation (displayed eg. by cmake-gui
+        and ccmake, or directly in the CMakeCache.txt file)
+      - take a look at
+http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
 
    And have a lot of fun!
 
@@ -57,6 +55,7 @@ else(NOT KLF_WELCOME_MSG_SILENT)
   message(STATUS "Skipped welcome message (KLF_WELCOME_MSG_SILENT)")
 endif(NOT KLF_WELCOME_MSG_SILENT)
 
+# Extract KLF Version from VERSION file
 set(klfversion_regex "([0-9]+)\\.([0-9]+)\\.([0-9]+)(.*)")
 string(REGEX REPLACE "${klfversion_regex}" "\\1" KLF_VERSION_MAJ "${KLF_VERSION}")
 string(REGEX REPLACE "${klfversion_regex}" "\\2" KLF_VERSION_MIN "${KLF_VERSION}")
@@ -79,22 +78,14 @@ mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE} (CMAKE_BUILD_TYPE)")
 
 
-# Static/Shared libklfbackend
-set(default_library_static FALSE)
-if(WIN32 OR APPLE)
-  set(default_library_static FALSE)
-else(WIN32 OR APPLE)
-  # linux systems.
-  # Note that plugins can locate symbols in the binary and will compile with undefined
-  # references, so it's ok
-  set(default_library_static TRUE)
-endif(WIN32 OR APPLE)
-option(KLF_LIBKLFBACKEND_STATIC "Compile static libklfbackend backend library instead of shared."
-       ${default_library_static})
 
 # Choose a Qt Version to use
 set(KLF_QT_VERSION 4 CACHE STRING "Qt major version to build with (4 or 3)")
 KLFGetCMakeVarChanged(KLF_QT_VERSION)
+if(NOT KLF_QT_VERSION STREQUAL "3" AND NOT KLF_QT_VERSION STREQUAL "4")
+  KLFNote("KLF_QT_VERSION has to be \"3\" (for Qt 3) or \"4\" (for Qt 4) (major version number)")
+  message(FATAL_ERROR "Invalid value for KLF_QT_VERSION")
+endif(NOT KLF_QT_VERSION STREQUAL "3" AND NOT KLF_QT_VERSION STREQUAL "4")
 if(klf_changed_KLF_QT_VERSION)
   # the KLF_QT_VERSION variable has changed value
   #  -> Reset some variables to let FindQt() find the right qmake and other executables (eg. moc)
@@ -158,13 +149,6 @@ if(WIN32)
 endif(WIN32)
 
 
-# Static or shared backend
-if(KLF_LIBKLFBACKEND_STATIC)
-  message(STATUS "Building a static KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
-else(KLF_LIBKLFBACKEND_STATIC)
-  message(STATUS "Building a shared KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
-endif(KLF_LIBKLFBACKEND_STATIC)
-
 
 #KLFDeclareCacheVarOptionCondition(specificoption cachetype cachestring updatenoticestring condition forcedvalue defaultvalue)
 KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLS
@@ -211,6 +195,24 @@ else(KLF_BUILD_PLUGINS)
 endif(KLF_BUILD_PLUGINS)
 
 
+# Static/Shared libklfbackend
+set(default_library_static FALSE)
+if(WIN32 OR APPLE)
+  set(default_library_static FALSE)
+else(WIN32 OR APPLE)
+  # linux systems.
+  # Note that plugins can locate symbols in the binary and will compile with undefined
+  # references, so it's ok
+  set(default_library_static TRUE)
+endif(WIN32 OR APPLE)
+option(KLF_LIBKLFBACKEND_STATIC "Compile static libklfbackend backend library instead of shared."
+       ${default_library_static})
+# status message
+if(KLF_LIBKLFBACKEND_STATIC)
+  message(STATUS "Building a static KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
+else(KLF_LIBKLFBACKEND_STATIC)
+  message(STATUS "Building a shared KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
+endif(KLF_LIBKLFBACKEND_STATIC)
 
 # Build a shared or static klftools library
 set(KLF_LIBKLFTOOLS_STATIC ${default_library_static} CACHE BOOL "Build a static klftools library")
@@ -382,15 +384,16 @@ else(KLF_USE_QT4)
     KLFNote("Not building the KTextEditor plugin because we're using Qt3.")
   endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 endif(KLF_USE_QT4)
-if(KLF_BUILD_KTEXTEDITORPLUGIN)
-  if(KLF_LIBKLFBACKEND_STATIC)
-    KLFNote("ktexteditor plugin needs to link against a shared klfbackend library, but we're building
-    that library statically. Make sure a shared libklfbackend library has already been compiled (cmake
-    option KLF_LIBKLFBACKEND_STATIC=OFF) and possibly installed in a standard location; if not in
-    default library search path adjust the linker flags (add -L/library/path to cmake option
-    CMAKE_EXE_LINKER_FLAGS)")
-  endif(KLF_LIBKLFBACKEND_STATIC)
-endif(KLF_BUILD_KTEXTEDITORPLUGIN)
+# The following has been worked around by re-compiling the klfbackend sources into klfkateplugin
+#if(KLF_BUILD_KTEXTEDITORPLUGIN)
+#  if(KLF_LIBKLFBACKEND_STATIC)
+#    KLFNote("ktexteditor plugin needs to link against a shared klfbackend library, but we're building
+#    that library statically. Make sure a shared libklfbackend library has already been compiled (cmake
+#    option KLF_LIBKLFBACKEND_STATIC=OFF) and possibly installed in a standard location; if not in
+#    default library search path adjust the linker flags (add -L/library/path to cmake option
+#    CMAKE_EXE_LINKER_FLAGS). Otherwise consider disabling the plugin (KLF_BUILD_KTEXTEDITORPLUGIN).")
+#  endif(KLF_LIBKLFBACKEND_STATIC)
+#endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 
 
 # some additional variables that get shown on some versions of CMake that could be hidden

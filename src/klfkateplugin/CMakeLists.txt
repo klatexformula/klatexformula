@@ -39,20 +39,29 @@ mark_as_advanced(
 
 set(ktexteditor_klf_PART_SRCS klfkateplugin.cpp klfkateplugin_config.cpp )
 
+if(KLF_LIBKLFBACKEND_STATIC)
+  # Can't link the plugin to a static klfbackend library. We need to re-compile the klfbackend
+  # sources for this target.
+  get_target_property(klfbackend_sources klfbackend SOURCES)
+  foreach(klfbackend_sourcefile ${klfbackend_sources})
+    if(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
+      set(ktexteditor_klf_PART_SRCS ${ktexteditor_klf_PART_SRCS}
+				    "${CMAKE_SOURCE_DIR}/src/klfbackend/${klfbackend_sourcefile}")
+    else(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
+    endif(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
+  endforeach(klfbackend_sourcefile)
+endif(KLF_LIBKLFBACKEND_STATIC)
+
 kde4_add_ui_files(ktexteditor_klf_PART_SRCS klfkatepluginconfigwidget.ui)
 kde4_install_icons(${ICON_INSTALL_DIR})
 kde4_add_plugin(ktexteditor_klf ${ktexteditor_klf_PART_SRCS} )
 
 target_link_libraries(ktexteditor_klf ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS}
 				       -lktexteditor )
-if(KLF_LIBKLFBACKEND_STATIC)
-  # Can't link the plugin to a static klfbackend library. We need to rely on a previously-built
-  # or an already-installed shared libklfbackend
-  target_link_libraries(ktexteditor_klf  -lklfbackend)
-else(KLF_LIBKLFBACKEND_STATIC)
+if(NOT KLF_LIBKLFBACKEND_STATIC)
   # link to our klfbackend
   target_link_libraries(ktexteditor_klf  klfbackend)
-endif(KLF_LIBKLFBACKEND_STATIC)
+endif(NOT KLF_LIBKLFBACKEND_STATIC)
 
 install(TARGETS ktexteditor_klf DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
