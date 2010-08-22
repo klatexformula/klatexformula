@@ -27,8 +27,9 @@
 #include <QWidget>
 #include <QComboBox>
 
-#include <klflatexsyntaxhighlighter.h>
 #include <klflib.h>
+
+class KLFLatexSyntaxHighlighter;
 
 
 namespace Ui { class KLFLibEntryEditor; }

@@ -592,15 +592,16 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 }
 
 int KLFLibDBEngine::findEntries(const QString& subResource,
-				const QMap<int,Match>& matches,
+				const EntryMatchCondition& matchcondition,
 				QList<KLFLib::entryId> * entryIdList,
 				int limit,
+				KLFLibEntryList * rawEntryList,
 				QList<KLFLibEntryWithId> * entryWithIdList,
 				const QList<int>& wantedEntryProperties)
 {
   return
-    KLFLibResourceSimpleEngine::findEntriesImpl(this, subResource, matches, entryIdList,
-						limit, entryWithIdList, wantedEntryProperties);
+    KLFLibResourceSimpleEngine::findEntriesImpl(this, subResource, matchcondition, entryIdList, limit,
+						rawEntryList, entryWithIdList, wantedEntryProperties);
 }
 
 /*

@@ -77,6 +77,8 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   connect(u->aOpen, SIGNAL(triggered()), this, SLOT(slotResourceOpen()));
   connect(u->aClose, SIGNAL(triggered()), this, SLOT(slotResourceClose()));
   // and add them to menu
+  pResourceMenu->addAction((new KLFLibBrowserTabMenu(u->tabResources))->menuAction());
+  pResourceMenu->addSeparator();
   pResourceMenu->addAction(u->aRename);
   pResourceMenu->addAction(u->aRenameSubRes);
   pResourceMenu->addAction(u->aProperties);
@@ -1477,59 +1479,15 @@ bool KLFLibBrowser::slotExport()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
-  /** \bug use any known local-file-based export filter (supporting sub-resources), using a
-   * create-local-file-widget */
-  const QString exportFilter = tr("Library Database File (*.klf.db);;All Files (*)");
-  KLFLibExportDialog dlg(this, exportFilter);
-  QUrl exportToUrl;
   QList<QUrl> exportUrls;
-  bool repeat;
-  do {
-    repeat = false;
-
-    dlg.exec();
-
-    klfDbg( ": Dialog selected: "<<dlg.selectedExportUrls() ) ;
-    
-    if (dlg.result() != QDialog::Accepted)
-      return false;
-
-    exportToUrl = dlg.exportToUrl();
-    exportUrls = dlg.selectedExportUrls();
-    if (QFile::exists(exportToUrl.path())) {
-      QMessageBox::StandardButton result =
-	QMessageBox::warning(this, tr("Overwrite?"),
-			     tr("The specified file already exists. Overwrite it?"),
-			     QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel,
-			     QMessageBox::No);
-      if (result == QMessageBox::Cancel)
-	return false;
-      if (result != QMessageBox::Yes)
-	repeat = true;
-    }
-  } while (repeat);
-
-  if (QFile::exists(exportToUrl.path()))
-    QFile::remove(exportToUrl.path());
-
-  KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(exportToUrl.scheme());
-  if (factory == NULL) {
-    qWarning()<<KLF_FUNC_NAME<<": No factory found for "<<exportToUrl;
-    return false;
-  }
-  KLFLibWidgetFactory::Parameters param;
-  param["Filename"] = exportToUrl.path();
-  param["klfScheme"] = exportToUrl.scheme();
-  KLFLibResourceEngine *exportRes = factory->createResource(exportToUrl.scheme(), param, this);
+  KLFLibResourceEngine *exportRes = KLFLibExportDialog::showExportDialogCreateResource(this, &exportUrls);
   if (exportRes == NULL) {
-    QMessageBox::critical(this, tr("Error"),
-			  tr("Can't create resource %1!").arg(exportToUrl.path()));
     return false;
   }
   exportRes->setTitle(tr("Export %1").arg(QDateTime::currentDateTime()
 					  .toString(Qt::DefaultLocaleShortDate)));
 
-  klfDbg("Export: to file "<<exportToUrl.toString()<<". Export: "<<exportUrls);
+  klfDbg("Export: to resource "<<exportRes->url().toString()<<". Export: "<<exportUrls);
 
   // visual feedback for export
   KLFProgressDialog pdlg(QString(), this);
@@ -1562,7 +1520,7 @@ bool KLFLibBrowser::slotExport()
     bool r = exportRes->createSubResource(subres);
     if (!r) {
       fail = true;
-      qWarning()<<KLF_FUNC_NAME<<" exporting "<<u<<" failed!";
+      qWarning()<<KLF_FUNC_NAME<<" exporting "<<u<<" failed: can't create sub-resource "<<subres<<"!";
       continue;
     }
     subresources.append(subres);
@@ -1599,7 +1557,11 @@ bool KLFLibBrowser::slotExport()
     exportRes->insertEntries(subres, elist);
   }
 
-  return false;
+  // important, as it will cause save() to be called on legacy engines, otherwise we will just
+  // have a zombie resource waiting for something
+  delete exportRes;
+
+  return !fail;
 }
 
 void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& text)

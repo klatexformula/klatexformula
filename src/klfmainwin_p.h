@@ -35,7 +35,12 @@
 #include <QString>
 #include <QByteArray>
 #include <QLabel>
+#include <QImageReader>
+#include <QBuffer>
+#include <QFileInfo>
+#include <QMessageBox>
 
+#include <klflibview.h>
 #include "klfmain.h"
 
 #include "klfmainwin.h"
@@ -250,6 +255,279 @@ private slots:
 private:
   QStringList msgKeys;
   QStringList messages;
+};
+
+
+
+
+
+// -------------------------------------------------
+
+
+class KLFBasicDataOpener : public QObject, public KLFAbstractDataOpener
+{
+  Q_OBJECT
+public:
+  KLFBasicDataOpener(KLFMainWin *mainwin) : QObject(mainwin), KLFAbstractDataOpener(mainwin) { }
+  virtual ~KLFBasicDataOpener() { }
+
+  virtual QStringList supportedMimeTypes()
+  {
+    QStringList types;
+    types << "image/png"
+	  << "image/jpeg"
+	  << "text/uri-list"
+	  << "application/x-klf-libentries"
+	  << "application/x-klatexformula"
+	  << "application/x-klatexformula-db" ;
+    int k;
+    QList<QByteArray> fmts = QImageReader::supportedImageFormats();
+    for (k = 0; k < fmts.size(); ++k) {
+      types << "image/"+fmts[k].toLower();
+      types << "image/x-"+fmts[k].toLower();
+    }
+    klfDbg("mime types: "<<types) ;
+    return types;
+  }
+
+  virtual bool canOpenFile(const QString& file)
+  {
+    QFile f(file);
+    bool r = f.open(QIODevice::ReadOnly);
+    if (!r)
+      return false;
+    bool isimage;
+    if (isKlfImage(&f, &isimage))
+      return true;
+    if (isimage) // no try going further, we can't otherwise read image ...
+      return false;
+
+    QString libscheme = KLFLibBasicWidgetFactory::guessLocalFileScheme(file);
+    if (!libscheme.isEmpty()) {
+      return true; // it is a library file
+    }
+    // by default, fail
+    return false;
+  }
+
+  virtual bool canOpenData(const QByteArray& data)
+  {
+    QBuffer buf;
+    buf.setData(data);
+    buf.open(QIODevice::ReadOnly);
+    bool isimg = false;
+    if (isKlfImage(&buf, &isimg))
+      return true;
+    if (isimg) // no try going further, we can't otherwise read image ...
+      return false;
+
+    // try to read beginning with a QDataStream to look for a known x-klf-libentries header
+    QDataStream stream(&buf);
+    stream.setVersion(QDataStream::Qt_4_4);
+    QString headerstr;
+    stream >> headerstr;
+    if (headerstr == QLatin1String("KLF_LIBENTRIES"))
+      return true;
+    // *** see note in openData() for library formats. ***
+    // don't try to open .klf or .klf.db formats.
+
+    // otherwise, we can't recognize data, fail
+    return false;
+  }
+
+  virtual bool openFile(const QString& file)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg("file="<<file);
+    QFileInfo fi(file);
+    if (!fi.exists() || !fi.isReadable())
+      return false;
+    QString ext = fi.suffix().trimmed().toLower();
+
+    { // try to open image
+      QFile f(file);
+      bool r = f.open(QIODevice::ReadOnly);
+      if (!r)
+	return false;
+      bool isimage = false;
+      if (tryOpenImageData(&f, &isimage))
+	return true;
+      if (isimage) // no try going further, we can't otherwise read image ...
+	return false;
+    }
+
+    // open image failed, try the other formats...
+
+    // try to load library file
+    bool result = mainWin()->openLibFile(file);
+    if (result)
+      return true;
+
+    // and otherwise, fail
+    return false;
+  }
+
+  virtual bool openData(const QByteArray& data, const QString& mimetype)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg("mimetype is "<<mimetype) ;
+
+    QBuffer buf;
+    buf.setData(data);
+    buf.open(QIODevice::ReadOnly);
+
+    if (mimetype == "text/uri-list") {
+      klfDbg("Opening uri-list") ;
+      QByteArray line;
+      QStringList flist;
+      char sbuf[1024];
+      qint64 len;
+      while ((len = buf.readLine(sbuf, sizeof(sbuf))) > 0) {
+	line = QByteArray(sbuf, len);
+	QUrl url = QUrl::fromEncoded(line);
+	if (url.scheme() != "file") {
+	  qWarning()<<KLF_FUNC_NAME<<": can't open URL "<<url.scheme()<<" (can only open local files)";
+	  continue;
+	}
+	flist << url.path();
+	klfDbg("... added file "<<url.path()) ;
+      }
+      if (flist.isEmpty()) {
+	klfDbg("file list is empty.") ;
+	return true;
+      }
+      return  mainWin()->openFiles(flist);
+    }
+
+    bool isimage = false;
+    if (tryOpenImageData(&buf, &isimage))
+      return true;
+    if (isimage) // no try going further, we can't otherwise read image ...
+      return false;
+
+    // drop application/x-klf-libentries
+    if (tryOpenKlfLibEntries(&buf))
+      return true;
+
+    // otherwise if we paste/drop library entries, the case is more delicate, as it can't be
+    // just opened in the library browser, as they are not in a file. So for now, fail to open the data
+    // Possibly, todo: suggest user to create a resource/sub-resource to drop the data into
+    return false;
+  }
+
+private:
+  bool prepareImageReader(QImageReader *imagereader, QImage *img, bool *isImage)
+  {
+    *isImage = false;
+    if (!imagereader->canRead()) {
+      klfDbg("format "<<imagereader->format()<<": canRead() returned FALSE!") ;
+      return false;
+    }
+    *isImage = true;
+    *img = imagereader->read();
+    if (img->isNull()) {
+      klfDbg("read() returned a null qimage!") ;
+      return false;
+    }
+    klfDbg("format: '"<<imagereader->format().constData()<<"': text keys set: "<<img->textKeys()
+	   <<"; error="<<imagereader->error()
+	   <<"; quality="<<imagereader->quality()
+	   <<"; supportsOption(description)="<<imagereader->supportsOption(QImageIOHandler::Description)
+	   <<"; text('AppVersion')="<<img->text("AppVersion")
+	   ) ;
+    if (!img->text("AppVersion").startsWith("KLatexFormula ") && !img->text("AppVersion").startsWith("KLF ")) {
+      klfDbg("AppVersion is not set to 'KL[atex]F[ormula] [...]' in image metadata.") ;
+      return false;
+    }
+    // it is a klf-saved image
+    return true;
+  }
+  bool isKlfImage(QIODevice *device, bool *isImage)
+  {
+    QList<QByteArray> formatlist = QImageReader::supportedImageFormats();
+    int k;
+    QImage img;
+    QImageReader imagereader;
+    for (k = 0; k < formatlist.size(); ++k) {
+      device->seek(0);
+      imagereader.setFormat(formatlist[k]);
+      imagereader.setDevice(device);
+      if (prepareImageReader(&imagereader, &img, isImage))
+	return true;
+    }
+    return false;
+  }
+  bool tryOpenImageData(QIODevice *device, bool *isimage)
+  {
+    QList<QByteArray> formatlist = QImageReader::supportedImageFormats();
+    int k;
+    QImageReader imagereader;
+    QImage img;
+    for (k = 0; k < formatlist.size(); ++k) {
+      device->seek(0);
+      imagereader.setFormat(formatlist[k]);
+      imagereader.setDevice(device);
+      if (!prepareImageReader(&imagereader, &img, isimage))
+	continue;
+
+      // read meta-information
+      QString latex = img.text("InputLatex");
+      KLFStyle style;
+      style.fg_color = read_color(img.text("InputFgColor"));
+      style.bg_color = read_color(img.text("InputBgColor"));
+      style.mathmode = img.text("InputMathMode");
+      style.preamble = img.text("InputPreamble");
+      style.dpi = img.text("InputDPI").toInt();
+
+      mainWin()->slotLoadStyle(style);
+      mainWin()->slotSetLatex(latex);
+      return true;
+    }
+    return false;
+  }
+  unsigned long read_color(const QString& text)
+  {
+    //                               1          2          3     4         5
+    QRegExp rx1("\\s*rgba?\\s*\\(\\s*(\\d+),\\s*(\\d+),\\s*(\\d+)(\\s*,\\s*(\\d+))?\\s*\\)\\s*");
+    if (rx1.exactMatch(text)) {
+      if (rx1.cap(4).isEmpty())
+	return qRgb(rx1.cap(1).toInt(), rx1.cap(2).toInt(), rx1.cap(3).toInt());
+      else
+	return qRgba(rx1.cap(1).toInt(), rx1.cap(2).toInt(), rx1.cap(3).toInt(), rx1.cap(5).toInt());
+    }
+    // try named color format
+    QColor c(text);
+    return c.rgba();
+  }
+
+  bool tryOpenKlfLibEntries(QIODevice *dev)
+  {
+    // if ONE entry -> load that latex and style
+    // if more entries -> warn user, and fail
+    QDataStream stream(dev);
+    stream.setVersion(QDataStream::Qt_4_4);
+    QString headerstr;
+    stream >> headerstr;
+    if (headerstr != QLatin1String("KLF_LIBENTRIES"))
+      return false;
+    QVariantMap properties;
+    KLFLibEntryList entries;
+    stream >> properties >> entries;
+    if (entries.size() > 1) {
+      QMessageBox::critical(mainWin(), tr("Error"),
+			    tr("The data you have request to open contains multiple formulas.\n"
+			       "You may only open one formula into the latex code editor."));
+      return false;
+    }
+    if (entries.size() == 0) {
+      QMessageBox::critical(mainWin(), tr("Error"),
+			    tr("The data you have request to open contains no formulas.\n"
+			       "You may only open one formula into the latex code editor."));
+      return false;
+    }
+    mainWin()->restoreFromLibrary(entries[0], KLFLib::RestoreAll);
+    return true;
+  }
 };
 
 

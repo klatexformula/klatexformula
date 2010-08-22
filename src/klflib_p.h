@@ -67,14 +67,14 @@ public:
       { QDataStream str(&data, QIODevice::WriteOnly);
 	str.setVersion(QDataStream::Qt_4_4);
 	// now dump the list in the bytearray
-	str << metaData << entryList;
+	str << QString("KLF_LIBENTRIES") << metaData << entryList;
       }
       // now the data is prepared, return it
       return data;
     }
-    if (mimeType == "application/x-klf-library-entries") {
-      return QByteArray();
-    }
+    /*    if (mimeType == "application/x-klf-library-entries") {
+	  return QByteArray();
+	  } */
     if (mimeType == "text/html") {
       // prepare the data through the stream in a separate block
       { QTextStream htmlstr(&data, QIODevice::WriteOnly);
@@ -142,6 +142,12 @@ public:
     if (mimeType == "application/x-klf-libentries") {
       QDataStream str(data);
       str.setVersion(QDataStream::Qt_4_4);
+      QString header;
+      str >> header;
+      if (header != QLatin1String("KLF_LIBENTRIES")) {
+	qWarning()<<KLF_FUNC_NAME<<": data has invalid header: "<<header;
+	return false;
+      }
       str >> *metaData >> *entryList;
       return true;
     }
@@ -164,9 +170,9 @@ public:
  *
  * The meta data is given in a QVariantMap, see below. The data is stored as a
  * \ref KLFLibEntryList. The <tt>application/x-klf-libentries</tt> data is exactly what
- * \ref QDataStream will produce when sent in, in this order, the properties meta data,
- * and the library entries. The \ref QDataStream must have its version set to
- * "QDataStream::Qt_4_4" .
+ * \ref QDataStream will produce when sent in, in this order, a <tt>QString("KLF_LIBENTRIES")</tt>,
+ * the properties meta data, and the library entries. The \ref QDataStream must have
+ * its version set to "QDataStream::Qt_4_4" .
  *
  * Fundamental example code:
  * \code
@@ -175,7 +181,7 @@ public:
  *  QByteArray data;
  *  QDataStream stream(&data, QIODevice::WriteOnly);
  *  stream.setVersion(QDataStream::Qt_4_4);
- *  stream << metaData << entries;
+ *  stream << QString("KLF_LIBENTRIES") << metaData << entries;
  *  // now data contains the exact data for the application/x-klf-libentries mimetype.
  * \endcode
  *

@@ -804,48 +804,45 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 
 
 int KLFLibResourceSimpleEngine::findEntries(const QString& subResource,
-					    const QMap<int,Match>& matches,
+					    const EntryMatchCondition& matchcondition,
 					    QList<KLFLib::entryId> * entryIdList,
 					    int limit,
+					    KLFLibEntryList *rawEntryList,
 					    QList<KLFLibEntryWithId> * entryWithIdList,
 					    const QList<int>& wantedEntryProperties)
 {
-  return findEntriesImpl(this, subResource, matches, entryIdList, limit, entryWithIdList,
-			 wantedEntryProperties);
+  return findEntriesImpl(this, subResource, matchcondition, entryIdList, limit, rawEntryList,
+			 entryWithIdList, wantedEntryProperties);
 }
 
 // static
 int KLFLibResourceSimpleEngine::findEntriesImpl(KLFLibResourceEngine *resource,
 						const QString& subResource,
-						const QMap<int,Match>& matches,
+						const EntryMatchCondition& matchcondition,
 						QList<KLFLib::entryId> * entryIdList,
 						int limit,
+						KLFLibEntryList *rawEntryList,
 						QList<KLFLibEntryWithId> * entryWithIdList,
 						const QList<int>& /*wantedEntryProperties*/)
 {
+  /** \bug ............ UNTESTED ...................... */
+
   QList<KLFLibEntryWithId> allEList = resource->allEntries(subResource);
   if (entryIdList)
     entryIdList->clear();
   if (entryWithIdList)
     entryWithIdList->clear();
+  if (rawEntryList)
+    rawEntryList->clear();
   int count = 0;
   int k;
   for (k = 0; k < allEList.size(); ++k) {
-    bool match = true;
-    // test all match conditions
-    for (QMap<int,Match>::const_iterator mit = matches.begin(); mit != matches.end(); ++mit) {
-      bool m = klfMatch(allEList[k].entry.property(mit.key()), // test value
-			mit.value().matchValue(), // match value
-			mit.value().matchFlags(),
-			mit.value().matchValueString());
-      if ( ! m ) {
-	match = false;
-	break;
-      }
-    }
-    if (match) {
+    // test match condition
+    if (testEntryMatchConditionImpl(matchcondition, allEList[k].entry)) {
       if (entryIdList)
 	entryIdList->append(allEList[k].id);
+      if (rawEntryList)
+	rawEntryList->append(allEList[k].entry);
       if (entryWithIdList)
 	entryWithIdList->append(allEList[k]);
       ++count;
@@ -854,6 +851,47 @@ int KLFLibResourceSimpleEngine::findEntriesImpl(KLFLibResourceEngine *resource,
     }
   }
   return count;
+}
+
+// static
+bool KLFLibResourceSimpleEngine::testEntryMatchConditionImpl(const EntryMatchCondition& condition,
+							     const KLFLibEntry& libentry)
+{
+  int k;
+  PropertyMatch pmatch;
+  QList<EntryMatchCondition> condlist;
+
+  switch (condition.type()) {
+  case EntryMatchCondition::MatchAllType:
+    return true;
+  case EntryMatchCondition::PropertyMatchType:
+    pmatch = condition.propertyMatch();
+    return klfMatch(libentry.property(pmatch.propertyId()), // test value
+		    pmatch.matchValue(), // match value
+		    pmatch.matchFlags(), // flags
+		    pmatch.matchValueString()); // variant converted to string, cached
+  case EntryMatchCondition::OrMatchType:
+    condlist = condition.conditionList();
+    if (condlist.isEmpty())
+      return true;
+    for (k = 0; k < condlist.size(); ++k) {
+      if (testEntryMatchConditionImpl(condlist[k], libentry)) // recurse
+	return true; // 'OR' -> find one that's OK and the condition is OK
+    }
+    return false; // but if none is OK then we're not OK
+  case EntryMatchCondition::AndMatchType:
+    condlist = condition.conditionList();
+    if (condlist.isEmpty())
+      return true;
+    for (k = 0; k < condlist.size(); ++k) {
+      if ( ! testEntryMatchConditionImpl(condlist[k], libentry) ) // recurse
+	return false; // 'AND' -> find one that's not OK and the condition is globally false
+    }
+    return true; // but if all are OK then we're OK
+  default:
+    qWarning()<<KLF_FUNC_NAME<<": EntryMatchCondition type "<<condition.type()<<" not known!";
+  }
+  return false;
 }
 
 

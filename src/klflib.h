@@ -84,6 +84,9 @@ public:
   inline QString tags() const { return property(Tags).toString(); }
   inline KLFStyle style() const { return property(Style).value<KLFStyle>(); }
 
+  inline QString latexWithCategoryTagsComments() const
+  { return latexAddCategoryTagsComment(latex(), category(), tags()); }
+
   inline void setLatex(const QString& latex) { setProperty(Latex, latex); }
   inline void setDateTime(const QDateTime& dt) { setProperty(DateTime, dt); }
   inline void setPreview(const QImage& img) { setProperty(Preview, img); }
@@ -218,47 +221,6 @@ private:
   Qt::SortOrder pOrder;
 };
 
-
-class QMimeData;
-
-//! Helper class to encode an entry list as mime data (abstract interface)
-class KLF_EXPORT KLFAbstractLibEntryMimeEncoder
-{
-public:
-  KLFAbstractLibEntryMimeEncoder();
-  virtual ~KLFAbstractLibEntryMimeEncoder();
-
-  //! A list of mime types this class can encode
-  virtual QStringList supportedEncodingMimeTypes() const = 0;
-  //! A list of mime types this class can decode
-  virtual QStringList supportedDecodingMimeTypes() const = 0;
-
-  virtual QByteArray encodeMime(const KLFLibEntryList& entryList, const QVariantMap& metaData,
-				const QString& mimeType) const = 0;
-
-  virtual bool decodeMime(const QByteArray& data, const QString& mimeType,
-			  KLFLibEntryList *entryList, QVariantMap *metaData) const = 0;
-
-
-  static QStringList allEncodingMimeTypes();
-  static QStringList allDecodingMimeTypes();
-  //! Creates a QMetaData with all known registered encoding mime types
-  static QMimeData *createMimeData(const KLFLibEntryList& entryList, const QVariantMap& metaData);
-  static bool canDecodeMimeData(const QMimeData *mimeData);
-  static bool decodeMimeData(const QMimeData *mimeData, KLFLibEntryList *entryList,
-			     QVariantMap *metaData);
-
-  static KLFAbstractLibEntryMimeEncoder *findEncoderFor(const QString& mimeType,
-							bool warnIfNotFound = true);
-  static KLFAbstractLibEntryMimeEncoder *findDecoderFor(const QString& mimeType,
-							bool warnIfNotFound = true);
-  static QList<KLFAbstractLibEntryMimeEncoder*> encoderList();
-private:
-
-  static void registerEncoder(KLFAbstractLibEntryMimeEncoder *encoder);
-
-  static QList<KLFAbstractLibEntryMimeEncoder*> staticEncoderList;
-};
 
 
 /** \brief An abstract resource engine
@@ -777,11 +739,10 @@ public:
 
   //! Query multiple entries in this resource
   /** Returns a list of \ref KLFLibResourceEngine::KLFLibEntryWithId "KLFLibEntryWithId" s, that
-   * is a list of KLFLibEntry-ies with their
-   * corresponding IDs, exactly corresponding to the requested entries given in idList. The same
-   * order of entries in the returned list as in the specified \c idList is garanteed. For classes
-   * implementing sub-resources (\ref FeatureSubResources), the sub-resource \c subResource is
-   * queried.
+   * is a list of KLFLibEntry-ies with their corresponding IDs, exactly corresponding to the
+   * requested entries given in idList. The same order of entries in the returned list as in the
+   * specified \c idList is garanteed. For classes implementing sub-resources
+   * (\ref FeatureSubResources), the sub-resource \c subResource is queried.
    *
    * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties, which is
    * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
@@ -791,6 +752,8 @@ public:
    * If in the list an ID is given which does not exist in the resource, a corresponding
    * KLFLibEntryWithId entry is returned in which the \c entry is set to an empty \c KLFLibEntry()
    * and the \c id is set to \c -1.
+   *
+   * If \c idList is empty, then this function returns an empty list.
    *
    * \note Subclasses must reimplement this function to behave as described here.
    * */
@@ -814,6 +777,8 @@ public:
    * KLFLibEntryWithId entry is returned in which the \c entry is set to an empty \c KLFLibEntry()
    * and the \c id is set to \c -1.
    *
+   * If \c idList is empty, then this function returns an empty list.
+   *
    * The default implementation calls
    * \ref entries(const QString& subResource, const QList<KLFLib::entryId>& idList, const QList<int>&)
    * with the default subresource as argument. See \ref setDefaultSubResource().
@@ -822,10 +787,14 @@ public:
 					   const QList<int>& wantedEntryProperties = QList<int>());
 
 
-  /** Describes a matching criterion */
-  struct Match {
-    Match(const QVariant& value, Qt::MatchFlags flags = Qt::MatchExactly)
+  /** Describes a matching criterion for a string
+   *
+   * Note: The Qt::MatchWrap and Qt::MatchRecursive flags are ignored.
+   */
+  struct StringMatch {
+    StringMatch(const QVariant& value = QVariant(), Qt::MatchFlags flags = Qt::MatchExactly)
       : mFlags(flags), mValue(value), mValueString(value.toString()) { }
+    StringMatch(const StringMatch& m) : mFlags(m.mFlags), mValue(m.mValue), mValueString(m.mValueString) { }
 
     /** How the match should be tested (exact match, regex, contains, etc.), this is
      * a binary-OR'ed value of Qt::MatchFlag enum values.
@@ -845,27 +814,107 @@ public:
     QString mValueString;
   };
 
+  /** Discribes a matching criterion for the value of a property ID */
+  struct PropertyMatch : public StringMatch {
+    /** propId is the ID of the property which will have to match as given by \c match */
+    PropertyMatch(int propId = -1, const StringMatch& match = StringMatch())
+      : StringMatch(match), mPropertyId(propId) { }
+    /** copy constructor */
+    PropertyMatch(const PropertyMatch& other) : StringMatch(other), mPropertyId(other.mPropertyId) { }
+
+    /** Returns the propery ID set in the constructor. */
+    inline int propertyId() const { return mPropertyId; }
+    
+  protected:
+    int mPropertyId;
+  };
+
+  /** This is a generalized condition. It can be one of several types.
+   *
+   * In the future, more match condition types may be added. For now, the following
+   * matching condition types are supported.
+   *  - property string matching (see \ref PropertyMatch)
+   *  - AND of N conditions
+   *  - OR of N conditions
+   *
+   * This class is meant for use with findEntries().
+   */
+  struct EntryMatchCondition
+  {
+    enum Type {
+      MatchAllType = 0, //!< Matches all entries
+      PropertyMatchType, //!< Matches a property ID with a string (with a \ref StringMatch)
+      OrMatchType, //!< entries have to match with one of a list of conditions
+      AndMatchType //!< entries have to match with all given conditions
+    };
+
+    //! Get which type of condition this is
+    inline Type type() const { return mType; }
+    //! Relevant for type PropertyMatchType
+    inline PropertyMatch propertyMatch() const { return mPropertyMatch; }
+    //! Relevant for types OrMatchType and AndMatchType
+    inline QList<EntryMatchCondition> conditionList() const { return mConditionList; }
+
+
+    static EntryMatchCondition mkMatchAll()
+    {
+      return EntryMatchCondition(MatchAllType);
+    }
+    static EntryMatchCondition mkPropertyMatch(PropertyMatch pmatch)
+    {
+      EntryMatchCondition c(PropertyMatchType);
+      c.mPropertyMatch = pmatch;
+      return c;
+    }
+    static EntryMatchCondition mkOrMatch(QList<EntryMatchCondition> conditions)
+    {
+      EntryMatchCondition c(OrMatchType);
+      c.mConditionList = conditions;
+      return c;
+    }
+    static EntryMatchCondition mkAndMatch(QList<EntryMatchCondition> conditions)
+    {
+      EntryMatchCondition c(AndMatchType);
+      c.mConditionList = conditions;
+      return c;
+    }
+
+  protected:
+    EntryMatchCondition(Type type) : mType(type) { }
+
+    Type mType;
+
+    PropertyMatch mPropertyMatch;
+
+    QList<EntryMatchCondition> mConditionList;
+  };
+
+
   //! Find entries in this resource with specified property values
   /** Returns a list of all entries in this resource (and in sub-resource \c subResource
    * for the engines supporting this feature) that match all the required matches specifed
-   * in \c matches.
+   * in \c match.
    *
    * \note the subclass is responsible for providing a functional implementation of this function.
    *   Subclasses that don't want to pass much time to implement this feature can resort to calling
    *   the static method \ref KLFLibResourceSimpleEngine::findEntriesImpl() that provides a functional
-   *   but not very optimized default implementation.
+   *   (but not very optimized) default implementation, and the
+   *   KLFLibResourceSimpleEngine::testMatchConditionImpl() may prove useful for testing match
+   *   conditions.
    *
-   * \c matches is a map that gives which properties have to be matched, how, and to what value.
-   * The key of the map is a property ID of a KLFLibEntry, and the property value is \ref Match
-   * structure that holds match flags determining how the property should be matched (exact match,
-   * regex, contains, etc.), and that holds also the value that the property should be matched
-   * to (stored in a QVariant).
-   *
-   * The Qt::MatchWrap and Qt::MatchRecursive flags are ignored.
+   * \c matchcondition is an \ref EntryMatchCondition struct that gives which properties have to be
+   * matched, how, and to what value. Only entries that match the \c match will be returned. Note that
+   * \c matchcondition itself may be a complex condition, like a OR and AND tree of property matching
+   * conditions with strings or regexps. See \ref EntryMatchCondition, and \ref PropertyMatch for more
+   * info. The idea is that engines can translate such conditions into, eg. a SQL WHERE condition
+   * for optimized entry finds.
    *
    * The matches are returned in the following way:
    *   - if non NULL, the list pointed by \c entryIdList is set to a list of all entry ID s that
    *      matched
+   *   - if non NULL, the list pointed by \c rawEntryList is set to a list of all entries that
+   *     matched, stored as KLFLibEntry objects. Only the requested properties are populated
+   *     (\c wantedEntryProperties)
    *   - if non NULL, the list pointed by \c entryWithIdList is set to a list of all entries, with
    *     their corresponding entry ID, that matched (similar to the return value of allEntries()).
    *     only the requested properties are populated (\c wantedEntryProperties)
@@ -889,9 +938,10 @@ public:
    *   property to the wanted property list.</i>
    */
   virtual int findEntries(const QString& subResource,
-			  const QMap<int,Match>& matches,
+			  const EntryMatchCondition& matchcondition,
 			  QList<KLFLib::entryId> * entryIdList,
 			  int limit = 500,
+			  KLFLibEntryList *rawEntryList = NULL,
 			  QList<KLFLibEntryWithId> * entryWithIdList = NULL,
 			  const QList<int>& wantedEntryProperties = QList<int>()) = 0;
 
@@ -1429,20 +1479,25 @@ public:
 					   const QList<int>& wantedEntryProperties = QList<int>());
 
   virtual int findEntries(const QString& subResource,
-			  const QMap<int,Match>& matches,
+			  const EntryMatchCondition& matchcondition,
 			  QList<KLFLib::entryId> * entryIdList,
 			  int limit = 500,
+			  KLFLibEntryList *rawEntryList = NULL,
 			  QList<KLFLibEntryWithId> * entryWithIdList = NULL,
 			  const QList<int>& wantedEntryProperties = QList<int>());
 
   /** A basic implementation based on matching the results of <tt>resource->allEntries()</tt>. */
   static int findEntriesImpl(KLFLibResourceEngine *resource,
 			     const QString& subResource,
-			     const QMap<int,Match>& matches,
+			     const EntryMatchCondition& match,
 			     QList<KLFLib::entryId> * entryIdList,
 			     int limit = 500,
+			     KLFLibEntryList *rawEntryList = NULL,
 			     QList<KLFLibEntryWithId> * entryWithIdList = NULL,
 			     const QList<int>& wantedEntryProperties = QList<int>());
+
+  /** A simple entry condition tester. */
+  static bool testEntryMatchConditionImpl(const EntryMatchCondition& condition, const KLFLibEntry& libentry);
 };
 
 
@@ -1725,33 +1780,46 @@ private:
 
 
 
-/** \brief Interface for guessing file schemes
- *
- * This class provides the basic interface for customizing known local file types, and
- * guessing their corresponding schemes. */
-class KLF_EXPORT KLFLibLocalFileSchemeGuesser
+
+class QMimeData;
+
+//! Helper class to encode an entry list as mime data (abstract interface)
+class KLF_EXPORT KLFAbstractLibEntryMimeEncoder
 {
 public:
-  KLFLibLocalFileSchemeGuesser();
-  virtual ~KLFLibLocalFileSchemeGuesser();
+  KLFAbstractLibEntryMimeEncoder();
+  virtual ~KLFAbstractLibEntryMimeEncoder();
 
-  //! Guess the appropriate scheme for handling the given file
-  /** Reimplentations of this function must guess what scheme fileName is to be opened
-   * with.
-   *
-   * By \a scheme we mean the URL scheme, ie. the scheme that the correct subclass of
-   * \ref KLFLibEngineFactory reports being capable of opening (eg. \c "klf+sqlite").
-   *
-   * In reimplementations of this function, first the filename extension should be checked. If
-   * it is not known, then the file can be peeked into for magic headers.
-   *
-   * If the scheme cannot be guessed, then the reimplementation should return an empty string.
-   *
-   * \note the \c fileName does not necessarily exist. (keep that in mind before reporting
-   *   an error that you can't open the file to read a magic header). In that case, a
-   *   simple test should be performed on the file extension.
-   */
-  virtual QString guessScheme(const QString& fileName) const = 0;
+  //! A list of mime types this class can encode
+  virtual QStringList supportedEncodingMimeTypes() const = 0;
+  //! A list of mime types this class can decode
+  virtual QStringList supportedDecodingMimeTypes() const = 0;
+
+  virtual QByteArray encodeMime(const KLFLibEntryList& entryList, const QVariantMap& metaData,
+				const QString& mimeType) const = 0;
+
+  virtual bool decodeMime(const QByteArray& data, const QString& mimeType,
+			  KLFLibEntryList *entryList, QVariantMap *metaData) const = 0;
+
+
+  static QStringList allEncodingMimeTypes();
+  static QStringList allDecodingMimeTypes();
+  //! Creates a QMetaData with all known registered encoding mime types
+  static QMimeData *createMimeData(const KLFLibEntryList& entryList, const QVariantMap& metaData);
+  static bool canDecodeMimeData(const QMimeData *mimeData);
+  static bool decodeMimeData(const QMimeData *mimeData, KLFLibEntryList *entryList,
+			     QVariantMap *metaData);
+
+  static KLFAbstractLibEntryMimeEncoder *findEncoderFor(const QString& mimeType,
+							bool warnIfNotFound = true);
+  static KLFAbstractLibEntryMimeEncoder *findDecoderFor(const QString& mimeType,
+							bool warnIfNotFound = true);
+  static QList<KLFAbstractLibEntryMimeEncoder*> encoderList();
+private:
+
+  static void registerEncoder(KLFAbstractLibEntryMimeEncoder *encoder);
+
+  static QList<KLFAbstractLibEntryMimeEncoder*> staticEncoderList;
 };
 
 

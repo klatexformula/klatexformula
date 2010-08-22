@@ -44,16 +44,14 @@
 #include <klflib.h>
 #include <klfconfig.h>
 #include <klflatexsymbols.h>
-//#include <klflatexsyntaxhighlighter.h>
 
 
 
 class KLFLibBrowser;
-//class KLFLatexSymbols;
-//class KLFLatexSymbol;
 class KLFStyleManager;
 class KLFSettings;
 class KLFLatexSyntaxHighlighter;
+class KLFLatexEdit;
 
 
 
@@ -61,6 +59,9 @@ namespace Ui {
   class KLFProgErr;
   class KLFMainWin;
 }
+
+class KLFMainWin;
+
 
 class KLF_EXPORT KLFProgErr : public QDialog
 {
@@ -110,6 +111,67 @@ public:
   virtual bool saveToFile(const QString& key, const QString& fileName, const KLFBackend::klfOutput& output) = 0;
 };
 
+/** A helper interface class to open old PNG files, library files or abstract data, to fill in
+ * the main window controls (latex and style), or possibly open a resource into library.
+ *
+ * Instances of subclasses will be invoked when:
+ *  - a file is given on command-line, see \ref canOpenFile() and \ref openFile()
+ *  - data is pasted or dropped in editor, see \ref supportedMimeTypes(), \ref canOpenData() and
+ *    \ref openData()
+ *
+ */
+class KLF_EXPORT KLFAbstractDataOpener
+{
+public:
+  KLFAbstractDataOpener(KLFMainWin *mainwin) : mMainWin(mainwin) { }
+  virtual ~KLFAbstractDataOpener() { }
+
+  /** Returns a list of mime-types we can handle */
+  virtual QStringList supportedMimeTypes() = 0;
+
+  /** Is supposed to peek into \c file to try to recognize if its format is one which we can open.
+   * The implementation of this function may also rely on the file name's extension.
+   *
+   * If the file is recognized as one this opener can open, then return TRUE, otherwise return FALSE.
+   */
+  virtual bool canOpenFile(const QString& file) = 0;
+
+  /** Is supposed to peek into \c data to try to recognize if its format is one which we can open.
+   * No indication is given as to which format \c data is in. If the \c data is recognized as
+   * a format this opener can open, return TRUE, otherwise, return FALSE. */
+  virtual bool canOpenData(const QByteArray& data) = 0;
+
+  /** Actually open the file. You may use the mainWin() to perform something useful.
+   *
+   * Note: this function will be called for every file the main window tries to open. Do NOT assume
+   *   that the file given here is a file that passed the canOpenFile() function test. (Reason:
+   *   calling both canOpenFile() and openFile() may result into ressources being loaded twice, which
+   *   is not optimal).
+   *
+   * This function should return FALSE if it is not capable of loading the given \c file.
+   */
+  virtual bool openFile(const QString& file) = 0;
+
+  /** Actually open the data. You may use the mainWin() to perform something useful.
+   *
+   * \c mimetype is the mime-type of the data.
+   *
+   * Note: the \c mimetype can be empty, in which case the opener should make no assumption
+   *   whatsoever as to the data's format, and try to parse data, and return FALSE if it
+   *   is not capable of loading the given data. In particular, it should not be assumed
+   *   that canOpenData() has already been called and returned true on this data.
+   *
+   * This function should return FALSE if it is not capable of loading the given \c data.
+   */
+  virtual bool openData(const QByteArray& data, const QString& mimetype) = 0;
+
+protected:
+  /** Get a pointer to the main window passed to the constructor. */
+  KLFMainWin * mainWin() { return mMainWin; }
+
+private:
+  KLFMainWin *mMainWin;
+};
 
 /**
  * A helper that runs in a different thread that generates previews in real-time as user types text,
@@ -208,8 +270,9 @@ public:
   KLFStyleManager * styleManagerWidget() { return mStyleManager; }
   KLFSettings * settingsDialog() { return mSettingsDialog; }
   QMenu * styleMenu() { return mStyleMenu; }
-  KLFLatexSyntaxHighlighter * syntaxHighlighter() { return mHighlighter; }
-  KLFLatexSyntaxHighlighter * preambleSyntaxHighlighter() { return mPreambleHighlighter; }
+  KLFLatexEdit *latexEdit();
+  KLFLatexSyntaxHighlighter * syntaxHighlighter();
+  KLFLatexSyntaxHighlighter * preambleSyntaxHighlighter();
 
   KLFConfig * klfConfig() { return & klfconfig; }
 
@@ -222,6 +285,13 @@ public:
 
   void registerOutputSaver(KLFAbstractOutputSaver *outputsaver);
   void unregisterOutputSaver(KLFAbstractOutputSaver *outputsaver);
+
+  void registerDataOpener(KLFAbstractDataOpener *dataopener);
+  void unregisterDataOpener(KLFAbstractDataOpener *dataopener);
+
+  bool canOpenFile(const QString& fileName);
+  bool canOpenData(const QByteArray& data);
+  bool canOpenData(const QMimeData *mimeData);
 
 signals:
 
@@ -259,8 +329,13 @@ public slots:
   // will actually save only if output non empty.
   void slotEvaluateAndSave(const QString& output, const QString& format);
 
-  bool importCmdlKLFFiles(const QStringList& files, bool showLibrary = true);
-  bool importCmdlKLFFile(const QString& file, bool showLibrary = false);
+  bool openFile(const QString& file);
+  bool openFiles(const QStringList& fileList);
+  bool openData(const QMimeData *mimeData, bool *openerFound = NULL);
+  bool openData(const QByteArray& data);
+
+  bool openLibFiles(const QStringList& files, bool showLibrary = true);
+  bool openLibFile(const QString& file, bool showLibrary = true);
 
   void setApplicationLocale(const QString& locale);
 
@@ -339,7 +414,7 @@ private slots:
   void slotPopupAction(const QUrl& helpLinkUrl);
   void slotPopupAcceptAll();
 
-  void slotEditorContextMenu(const QPoint& pos);
+  void slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAction*> *actionList);
   void slotInsertMissingPackagesFromActionSender();
   void slotInsertFromActionSender();
 
@@ -371,9 +446,6 @@ protected:
   KLFStyleList _styles;
 
   QMenu *mStyleMenu;
-
-  KLFLatexSyntaxHighlighter *mHighlighter;
-  KLFLatexSyntaxHighlighter *mPreambleHighlighter;
 
   bool _loadedlibrary;
   bool _firstshow;
@@ -423,6 +495,7 @@ protected:
 			 bool wantHtmlText = true);
 
   QList<KLFAbstractOutputSaver*> pOutputSavers;
+  QList<KLFAbstractDataOpener*> pDataOpeners;
 };
 
 #endif

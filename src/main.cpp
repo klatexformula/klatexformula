@@ -327,7 +327,8 @@ QString main_get_input(char *input, char *latexinput, int paste)
   }
   if (paste >= 0) {
     if (!qApp->inherits("QApplication")) {
-      qWarning("%s", qPrintable(QObject::tr("--paste-{clipboard|selection} requires interactive mode. Ignoring option.")));
+      qWarning("%s",
+	       qPrintable(QObject::tr("--paste-{clipboard|selection} requires interactive mode. Ignoring option.")));
     } else {
       if (paste == 1)
 	latex += QApplication::clipboard()->text();
@@ -621,6 +622,39 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 
 
 
+// function to set up the Q[Core]Application correctly
+void main_setup_app(QCoreApplication *a)
+{
+  a->setApplicationName(QLatin1String("KLatexFormula"));
+  a->setApplicationVersion(QLatin1String(KLF_VERSION_STRING));
+  a->setOrganizationDomain(QLatin1String("klatexformula.org"));
+  a->setOrganizationName(QLatin1String("KLatexFormula"));
+
+#ifdef KLF_LIBKLFTOOLS_STATIC
+  Q_INIT_RESOURCE(klftoolsres) ;
+#endif
+#ifdef KLF_LIBKLFAPP_STATIC
+  Q_INIT_RESOURCE(klfres) ;
+#endif
+
+  // add [share dir]/qt-plugins to library path.
+  // under windows, that is were plugins are packaged with the executable
+  extern const char * klf_share_dir_rel;
+  QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/qt-plugins");
+
+  klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
+
+  qRegisterMetaType< QImage >("QImage");
+  qRegisterMetaType< KLFStyle >();
+  qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
+  qRegisterMetaType< KLFLibEntry >();
+  qRegisterMetaTypeStreamOperators< KLFLibEntry >("KLFLibEntry");
+  qRegisterMetaType< KLFLibResourceEngine::KLFLibEntryWithId >();
+  qRegisterMetaTypeStreamOperators< KLFLibResourceEngine::KLFLibEntryWithId >
+    /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
+}
+
+
 // OUR MAIN FUNCTION
 
 int main(int argc, char **argv)
@@ -649,27 +683,7 @@ int main(int argc, char **argv)
     // Create the QApplication
     QApplication app(qt_argc, qt_argv);
 
-#ifdef KLF_LIBKLFTOOLS_STATIC
-    Q_INIT_RESOURCE(klftoolsres) ;
-#endif
-#ifdef KLF_LIBKLFAPP_STATIC
-    Q_INIT_RESOURCE(klfres) ;
-#endif
-    // add [share dir]/qt-plugins to library path.
-    // under windows, that is were plugins are packaged with the executable
-    extern const char * klf_share_dir_rel;
-    QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/qt-plugins");
-
-    klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
-
-    qRegisterMetaType< QImage >("QImage");
-    qRegisterMetaType< KLFStyle >();
-    qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
-    qRegisterMetaType< KLFLibEntry >();
-    qRegisterMetaTypeStreamOperators< KLFLibEntry >("KLFLibEntry");
-    qRegisterMetaType< KLFLibResourceEngine::KLFLibEntryWithId >();
-    qRegisterMetaTypeStreamOperators< KLFLibResourceEngine::KLFLibEntryWithId >
-      /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
+    main_setup_app(&app);
 
 #if defined(KLF_USE_DBUS)
     // see if an instance of KLatexFormula is running...
@@ -719,7 +733,7 @@ int main(int argc, char **argv)
       QStringList flist;
       for (int k = 0; klf_args[k] != NULL; ++k)
 	flist << QString::fromLocal8Bit(klf_args[k]);
-      iface->importCmdlKLFFiles(flist);
+      iface->openFiles(flist);
       main_cleanup();
       return 0;
     }
@@ -828,18 +842,19 @@ int main(int argc, char **argv)
 				QString::fromLocal8Bit(opt_format));
 
 
-    // IMPORT .klf files passed as arguments
+    // IMPORT .klf (or other) files passed as arguments
     QStringList flist;
     for (int k = 0; klf_args[k] != NULL; ++k)
       flist << QString::fromLocal8Bit(klf_args[k]);
 
-    QMetaObject::invokeMethod(&mainWin, "importCmdlKLFFiles", Q_ARG(QStringList, flist));
+    QMetaObject::invokeMethod(&mainWin, "openFiles", Qt::QueuedConnection, Q_ARG(QStringList, flist));
 
     app.setQuitOnLastWindowClosed(false);
     int r = app.exec();
     main_cleanup();
     // and exit.
     // DO NOT CALL ::exit() as this prevents KLFMainWin's destructor from being called.
+    // This includes not calling main_exit().
     return r;
 
   } else {
@@ -847,22 +862,8 @@ int main(int argc, char **argv)
 
     // Create the QCoreApplication
     QCoreApplication app(qt_argc, qt_argv);
-#ifdef KLF_LIBKLFTOOLS_STATIC
-    Q_INIT_RESOURCE(klftoolsres) ;
-#endif
-#ifdef KLF_LIBKLFAPP_STATIC
-    Q_INIT_RESOURCE(klfres) ;
-#endif
 
-    qRegisterMetaType< QImage >("QImage");
-    qRegisterMetaType< KLFStyle >();
-    qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
-    qRegisterMetaType< KLFLibEntry >();
-    qRegisterMetaTypeStreamOperators< KLFLibEntry >("KLFLibEntry");
-    qRegisterMetaType< KLFLibResourceEngine::KLFLibEntryWithId >();
-    qRegisterMetaTypeStreamOperators< KLFLibResourceEngine::KLFLibEntryWithId >
-      /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
-
+    main_setup_app(&app);
 
     // now load default config
     klfconfig.loadDefaults(); // must be called before 'readFromConfig'

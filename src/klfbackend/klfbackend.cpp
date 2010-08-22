@@ -29,12 +29,9 @@
 #include <qfile.h>
 #include <qdatetime.h>
 #include <qtextstream.h>
+#include <qbuffer.h>
 #include <qdir.h>
 
-#ifdef KLFBACKEND_QT4
-#include <QDebug>
-#include <QImageWriter>
-#endif
 
 #include "klfblockprocess.h"
 #include "klfbackend.h"
@@ -87,6 +84,23 @@ static QString standard_extra_paths = "";
 #define write writeBlock
 #define RX_INDEXIN(rx, str) (rx).search((str))
 #endif
+
+static inline void setimagetext(QImage *image, const char *key, const QString& value)
+{
+#ifdef KLFBACKEND_QT4
+  image->setText(key, value);
+#else
+  image->setText(key, 0, value);
+#endif
+}
+static inline void assign_ba(QByteArray *a, const QByteArray& b)
+{
+#ifdef KLFBACKEND_QT4
+  *a = b;
+#else
+  a->duplicate(b.data(), b.length());
+#endif
+}
 
 
 // ---------------------------------
@@ -144,12 +158,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
   QMutexLocker mutexlocker(&__mutex);
 
-  qDebug("%s: %s: KLFBackend::getLatexFormula() called.\n", KLF_FUNC_NAME, KLF_SHORT_TIME);
+  qDebug("%s: %s: KLFBackend::getLatexFormula() called. latex=%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
+	 qPrintable(in.latex));
   
   klfOutput res;
   res.status = KLFERR_NOERROR;
   res.errorstr = QString();
   res.result = QImage();
+  res.pngdata_raw = QByteArray();
   res.pngdata = QByteArray();
   res.epsdata = QByteArray();
   res.pdfdata = QByteArray();
@@ -241,9 +257,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     args << settings.latexexec << NATIVESEPARATORS(fnTex);
 
-    qDebug("%s: %s:  about to exec latex...\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
+    qDebug("%s: %s:  about to exec latex...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
     bool r = proc.startProcess(args, env);
-    qDebug("%s: %s:  latex returned.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
+    qDebug("%s: %s:  latex returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
     if (!r) {
       res.status = KLFERR_NOLATEXPROG;
@@ -278,9 +294,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << settings.dvipsexec << "-E" << NATIVESEPARATORS(fnDvi)
          << "-o" << NATIVESEPARATORS(fnRawEps);
 
-    qDebug("%s: %s:  about to dvips...\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
+    qDebug("%s: %s:  about to dvips...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
     bool r = proc.startProcess(args);
-    qDebug("%s: %s:  dvips returned.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
+    qDebug("%s: %s:  dvips returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
     if ( ! r ) {
       res.status = KLFERR_NODVIPSPROG;
@@ -351,11 +367,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // write content back to second file
     QFile epsgoodfile(fnBBCorrEps);
-#ifdef KLFBACKEND_QT4
-    r = epsgoodfile.open(QIODevice::WriteOnly);
-#else
-    r = epsgoodfile.open(IO_WriteOnly);
-#endif
+    r = epsgoodfile.open(WRITEONLY);
     if ( ! r ) {
       res.status = KLFERR_EPSWRITEFAIL;
       res.errorstr = QObject::tr("Can't write to file '%1'!\n", "KLFBackend")
@@ -365,15 +377,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     epsgoodfile.write(epscontent_s);
 
     if ( ! settings.outlineFonts ) {
-#ifdef KLFBACKEND_QT4
-      res.epsdata = epscontent_s;
-#else
-      res.epsdata.duplicate(epscontent_s.data(), epscontent_s.length());
-#endif
+      assign_ba(&res.epsdata, epscontent_s);
     }
     // res.epsdata is now set.
 
-    qDebug("%s: %s:  eps bbox set.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+    qDebug("%s: %s:  eps bbox set.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 
   } // end of block "make EPS"
 
@@ -388,7 +396,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     qDebug("%s: %s: about to gs (for outline fonts)...\n%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
 	   qPrintable(args.join(" ")));
     bool r = proc.startProcess(args);
-    qDebug("%s: %s:  gs returned (for outline fonts).\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+    qDebug("%s: %s:  gs returned (for outline fonts).", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
   
     if ( ! r ) {
       res.status = KLFERR_NOGSPROG;
@@ -415,11 +423,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // get and save outlined EPS to memory
     QFile ofepsfile(fnOutlFontsEps);
-#ifdef KLFBACKEND_QT4
-    r = ofepsfile.open(QIODevice::ReadOnly);
-#else
-    r = ofepsfile.open(IO_ReadOnly);
-#endif
+    r = ofepsfile.open(READONLY);
     if ( ! r ) {
       res.status = KLFERR_EPSREADFAIL_OF;
       res.errorstr = QObject::tr("Unable to read file %1!\n", "KLFBackend")
@@ -445,9 +449,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << "-sOutputFile="+NATIVESEPARATORS(fnPng) << "-q" << "-dBATCH"
          << NATIVESEPARATORS(fnFinalEps);
 
-    qDebug("%s: %s:  about to gs...\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
+    qDebug("%s: %s:  about to gs...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
     bool r = proc.startProcess(args);
-    qDebug("%s: %s:  gs returned.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+    qDebug("%s: %s:  gs returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
   
     if ( ! r ) {
       res.status = KLFERR_NOGSPROG;
@@ -473,21 +477,51 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // get and save PNG to memory
     QFile pngfile(fnPng);
-#ifdef KLFBACKEND_QT4
-    r = pngfile.open(QIODevice::ReadOnly);
-#else
-    r = pngfile.open(IO_ReadOnly);
-#endif
+    r = pngfile.open(READONLY);
     if ( ! r ) {
       res.status = KLFERR_PNGREADFAIL;
       res.errorstr = QObject::tr("Unable to read file %1!\n", "KLFBackend")
 	.arg(fnPng);
       return res;
     }
-    res.pngdata = pngfile.readAll();
+    res.pngdata_raw = pngfile.readAll();
     pngfile.close();
-    // res.pngdata is now set.
-    res.result.loadFromData(res.pngdata, "PNG");
+    // res.pngdata_raw is now set.
+    res.result.loadFromData(res.pngdata_raw, "PNG");
+
+    // store some meta-information into result
+    setimagetext(&res.result, "AppVersion", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
+    setimagetext(&res.result, "Application",
+		 QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile"));
+    setimagetext(&res.result, "Software", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
+    setimagetext(&res.result, "InputLatex", in.latex);
+    setimagetext(&res.result, "InputMathMode", in.mathmode);
+    setimagetext(&res.result, "InputPreamble", in.preamble);
+    setimagetext(&res.result, "InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(in.fg_color))
+		   .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)));
+    setimagetext(&res.result, "InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(in.bg_color))
+		   .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color))
+		   .arg(qAlpha(in.bg_color)));
+    setimagetext(&res.result, "InputDPI", QString::number(in.dpi));
+    setimagetext(&res.result, "SettingsTBorderOffset", QString::number(settings.tborderoffset));
+    setimagetext(&res.result, "SettingsRBorderOffset", QString::number(settings.rborderoffset));
+    setimagetext(&res.result, "SettingsBBorderOffset", QString::number(settings.bborderoffset));
+    setimagetext(&res.result, "SettingsLBorderOffset", QString::number(settings.lborderoffset));
+    setimagetext(&res.result, "SettingsOutlineFonts", settings.outlineFonts?QString("true"):QString("false"));
+  }
+
+  { // create "final" PNG data
+#ifdef KLFBACKEND_QT4
+    QBuffer buf(&res.pngdata);
+#else
+    QBuffer buf(res.pngdata);
+#endif
+    buf.open(WRITEONLY);
+    bool r = res.result.save(&buf, "PNG");
+    if (!r) {
+      qWarning("%s: Error: Can't save \"final\" PNG data.", KLF_FUNC_NAME);
+      assign_ba(&res.pngdata, res.pngdata_raw);
+    }
   }
 
   if (!settings.epstopdfexec.isEmpty()) {
@@ -497,9 +531,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << settings.epstopdfexec << NATIVESEPARATORS(fnFinalEps)
 	 << ("--outfile="+NATIVESEPARATORS(fnPdf));
 
-    qDebug("%s: %s:  about to epstopdf...\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+    qDebug("%s: %s:  about to epstopdf...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
     bool r = proc.startProcess(args);
-    qDebug("%s: %s:  epstopdf returned.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+    qDebug("%s: %s:  epstopdf returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 
     if ( ! r ) {
       res.status = KLFERR_NOEPSTOPDFPROG;
@@ -525,11 +559,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // get and save PDF to memory
     QFile pdffile(fnPdf);
-#ifdef KLFBACKEND_QT4
-    r = pdffile.open(QIODevice::ReadOnly);
-#else
-    r = pdffile.open(IO_ReadOnly);
-#endif
+    r = pdffile.open(READONLY);
     if ( ! r ) {
       res.status = KLFERR_PDFREADFAIL;
       res.errorstr = QObject::tr("Unable to read file %1!\n", "KLFBackend").arg(fnPdf);
@@ -539,7 +569,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   }
 
-  qDebug("%s: %s:  end of function.\n", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+  qDebug("%s: %s:  end of function.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 
   return res;
 }
@@ -583,6 +613,8 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
   // now choose correct data source and write to fout
   if (format == "EPS" || format == "PS") {
     device->write(klfoutput.epsdata);
+  } else if (format == "PNG") {
+    device->write(klfoutput.pngdata);
   } else if (format == "PDF") {
     if (klfoutput.pdfdata.isEmpty()) {
       QString error = QObject::tr("PDF format is not available!\n",
@@ -594,50 +626,15 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
     }
     device->write(klfoutput.pdfdata);
  } else {
-    const QString errstr3 = QObject::tr("Unable to save image in format `%1'!",
-					"KLFBackend::saveOutputToDevice");
-    const QString errstr4 = QObject::tr("Unable to save image in format `%1'!\n"
-					"%2", "KLFBackend::saveOutputToDevice");
-#ifdef KLFBACKEND_QT4
-    // add text information for latex formula, style, etc.
-    // with QImageWriter
-    QImageWriter writer(device, format.toLatin1());
-    klfInput input = klfoutput.input;
-    if (format.startsWith("JP")) //  jpg, jpeg
-      writer.setQuality(90);
-
-    writer.setText("Application",
-		   QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile")
-		   .arg(KLF_VERSION_STRING));
-    writer.setText("AppVersion", QString("KLatexFormula %1").arg(KLF_VERSION_STRING));
-    writer.setText("InputLatex", input.latex);
-    writer.setText("InputMathMode", input.mathmode);
-    writer.setText("InputPreamble", input.preamble);
-    writer.setText("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(input.fg_color))
-		   .arg(qGreen(input.fg_color)).arg(qBlue(input.fg_color)));
-    writer.setText("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(input.bg_color))
-		   .arg(qGreen(input.bg_color)).arg(qBlue(input.bg_color))
-		   .arg(qAlpha(input.bg_color)));
-    writer.setText("InputDPI", QString::number(input.dpi));
-
-    bool res = writer.write(klfoutput.result);
-    if ( ! res ) {
-      QString errstr = errstr4.arg(format).arg(writer.errorString());
-      qWarning("%s", qPrintable(errstr));
-      if (errorStringPtr != NULL)
-	*errorStringPtr = errstr;
-      return false;
-    }
-#else
     bool res = klfoutput.result.save(device, format.toLatin1());
     if ( ! res ) {
-      QString errstr = errstr3.arg(format);
+      QString errstr = QObject::tr("Unable to save image in format `%1'!",
+				   "KLFBackend::saveOutputToDevice").arg(format);
       qWarning("%s", qPrintable(errstr));
       if (errorStringPtr != NULL)
 	*errorStringPtr = errstr;
       return false;
     }
-#endif
   }
 
   return true;
@@ -726,5 +723,5 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
 }
 
 
-// warning from here on: nasty macros are defined for the previous function.
+// warning: nasty macros are defined in this file to write bi-Qt3-Qt4 compatible code.... beware......
 

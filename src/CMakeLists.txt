@@ -65,7 +65,7 @@ endif(NOT KLF_BUILD_GUI)
 # Sources
 set(klfapp_SRCS
 	klfconfig.cpp
-	klflatexsyntaxhighlighter.cpp
+	klflatexedit.cpp
 	klflatexsymbols.cpp
 	klflibentryeditor.cpp
 	klflibbrowser.cpp
@@ -82,7 +82,7 @@ set(klfapp_SRCS
 # Headers
 #  * with QObject classes (needs moc)
 set(klfapp_MOCHEADERS
-	klflatexsyntaxhighlighter.h
+	klflatexedit.h
 	klflatexsymbols.h
 	klflibentryeditor.h
 	klflibbrowser.h

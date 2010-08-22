@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klflatexsyntaxhighlighter.cpp
+ *   file klflatexedit.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2010 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -23,9 +23,133 @@
 
 #include <stack>
 
-#include "klfconfig.h"
+#include <QObject>
+#include <QWidget>
+#include <QTextEdit>
 
-#include "klflatexsyntaxhighlighter.h"
+#include "klfconfig.h"
+#include "klfmainwin.h"
+
+#include "klflatexedit.h"
+
+
+
+KLFLatexEdit::KLFLatexEdit(QWidget *parent)
+  : QTextEdit(parent), mMainWin(NULL)
+{
+  mSyntaxHighlighter = new KLFLatexSyntaxHighlighter(this, this);
+
+  connect(this, SIGNAL(cursorPositionChanged()),
+	  mSyntaxHighlighter, SLOT(refreshAll()));
+
+  setContextMenuPolicy(Qt::DefaultContextMenu);
+}
+
+KLFLatexEdit::~KLFLatexEdit()
+{
+}
+
+void KLFLatexEdit::clearLatex()
+{
+  setLatex("");
+  setFocus();
+  mSyntaxHighlighter->resetEditing();
+}
+
+void KLFLatexEdit::setLatex(const QString& latex)
+{
+  // don't call setPlainText(); we want to preserve undo history
+  QTextCursor cur = textCursor();
+  cur.beginEditBlock();
+  cur.select(QTextCursor::Document);
+  cur.removeSelectedText();
+  cur.insertText(latex);
+  cur.endEditBlock();
+}
+
+void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
+{
+  QPoint pos = event->pos();
+
+  if ( ! textCursor().hasSelection() ) {
+    // move cursor at that point, but not if we have a selection
+    setTextCursor(cursorForPosition(pos));
+  }
+
+  QMenu * menu = createStandardContextMenu(mapToGlobal(pos));
+
+  menu->addSeparator();
+
+  /** \todo ....make this more flexible ..... ideally integrate into KLFLatexSymbolCache... with XML description,
+   *    "symbols" that would be delimiters would have a "display latex" and an "insert latex" with instructions
+   *    in if we need to go back spaces, etc.. */
+  static QStringList delimList =
+    QStringList()<<"\\textrm{}"<<"\\textit{}"<<"\\textsl{}"<<"\\textbf{}"<<"\\mathrm{}"<<"\\mathit{}"<<"\\mathcal{}";
+  static QList<int> charsBackList =
+    QList<int>() << 1 << 1 << 1 << 1 << 1 << 1 << 1;
+  QMenu *delimmenu = new QMenu(menu);
+  int k;
+  for (k = 0; k < delimList.size() && k < charsBackList.size(); ++k) {
+    QAction *a = new QAction(delimmenu);
+    a->setText(delimList[k]);
+    QVariantMap v;
+    v["delim"] = QVariant::fromValue<QString>(delimList[k]);
+    v["charsBack"] = QVariant::fromValue<int>(charsBackList[k]);
+    a->setData(QVariant(v));
+    a->setIcon(KLFLatexSymbolsCache::theCache()->findSymbolPixmap(delimList[k].left(delimList[k].length()-1)+"A}"));
+    delimmenu->addAction(a);
+    connect(a, SIGNAL(triggered()), this, SLOT(slotInsertFromActionSender()));
+  }
+
+  QAction *delimaction = menu->addAction(tr("Insert Delimiter"));
+  delimaction->setMenu(delimmenu);
+
+  QList<QAction*> actionList;
+  emit insertContextMenuActions(pos, &actionList);
+
+  if (actionList.size()) {
+    menu->addSeparator();
+    for (k = 0; k < actionList.size(); ++k) {
+      menu->addAction(actionList[k]);
+    }
+  }
+ 
+  menu->popup(mapToGlobal(pos));
+  event->accept();
+}
+
+
+bool KLFLatexEdit::canInsertFromMimeData(const QMimeData *data) const
+{
+  klfDbg("formats: "<<data->formats());
+  if (mMainWin != NULL)
+    if (mMainWin->canOpenData(data))
+      return true; // data can be opened by main window
+
+  // or check if we can insert the data ourselves
+  return QTextEdit::canInsertFromMimeData(data);
+}
+
+void KLFLatexEdit::insertFromMimeData(const QMimeData *data)
+{
+  bool openerfound = false;
+  klfDbg("formats: "<<data->formats());
+  if (mMainWin != NULL)
+    if (mMainWin->openData(data, &openerfound))
+      return; // data was opened by main window
+  if (openerfound) {
+    // failed to open data, don't insist.
+    return;
+  }
+
+  klfDbg("mMainWin="<<mMainWin<<" did not handle the paste doing it ourselves.") ;
+
+  // insert the data ourselves
+  QTextEdit::insertFromMimeData(data);
+}
+
+
+// ------------------------------------
 
 
 KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent)

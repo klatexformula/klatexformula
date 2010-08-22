@@ -60,6 +60,10 @@ public slots:
   void setAlterSetting_s(int setting, const QString& value);
   void evaluateAndSave(const QString& output, const QString& fmt);
 
+  void openFile(const QString& fileName);
+  void openFiles(const QStringList& fileNameList);
+  void openData(const QByteArray& data);
+
   void importCmdlKLFFiles(const QStringList& fnames);
 };
 
@@ -69,7 +73,9 @@ class KLF_EXPORT KLFDBusAppInterface: public QDBusAbstractInterface
   Q_OBJECT
 public:
   static inline const char *staticInterfaceName()
-  { return "org.klatexformula.KLatexFormula"; }
+  {
+    return "org.klatexformula.KLatexFormula";
+  }
   
 public:
   KLFDBusAppInterface(const QString &service, const QString &path, const QDBusConnection &connection,
@@ -84,6 +90,9 @@ public slots: // METHODS
   QDBusReply<void> setAlterSetting_i(int setting, int value);
   QDBusReply<void> setAlterSetting_s(int setting, const QString& value);
   QDBusReply<void> evaluateAndSave(const QString& output, const QString& fmt);
+  QDBusReply<void> openFile(const QString& fileName);
+  QDBusReply<void> openFiles(const QStringList& fileNameList);
+  QDBusReply<void> openData(const QByteArray& data);
   QDBusReply<void> importCmdlKLFFiles(const QStringList& fnames);
 
 };

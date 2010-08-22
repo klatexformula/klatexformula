@@ -29,9 +29,9 @@
 #include <QKeyEvent>
 #include <QPixmap>
 
-//#include "klfdata.h"
 #include "klfconfig.h"
 #include "klflib.h"
+#include "klflatexedit.h"
 
 #include <ui_klflibentryeditor.h>
 #include "klflibentryeditor.h"
@@ -224,8 +224,7 @@ void KLFLibEntryEditor::displayStyle(bool valid, const KLFStyle& style)
       pxbg.fill(QColor(style.bg_color));
       u->lblStyColBg->setPixmap(pxbg);
     } else {
-      u->lblStyColBg->setText(QString());
-      u->lblStyColBg->setPixmap(QPixmap());
+      u->lblStyColBg->setPixmap(QPixmap(":pics/transparenticon16.png"));
     }
     u->lblStyMathMode->setText(style.mathmode);
     u->txtStyPreamble->setPlainText(style.preamble);

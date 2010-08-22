@@ -41,6 +41,7 @@
     <file>pics/paste.png</file>
     <file>pics/move.png</file>
     <file>pics/refresh.png</file>
+    <file>pics/transparenticon16.png</file>
   </qresource>
   <qresource prefix="/pics">
     <file>klatexformula-16.png</file>

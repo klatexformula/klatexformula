@@ -35,7 +35,7 @@
 #include <QTimer>
 
 #include <klflib.h>
-
+#include <klflibview.h> // scheme guesser
 
 
 /** Legacy data structures for KLatexFormula

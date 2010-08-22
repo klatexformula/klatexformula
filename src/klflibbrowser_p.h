@@ -36,6 +36,7 @@
 #include <QEvent>
 #include <QDragMoveEvent>
 #include <QDialog>
+#include <QStackedLayout>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -43,6 +44,7 @@
 #include <QSettings>
 #include <QSignalMapper>
 #include <QDesktopServices>
+#include <QMessageBox>
 
 #include <ui_klflibexportdialog.h>
 
@@ -59,6 +61,8 @@ public:
     : QStackedWidget(parent), pResource(resource)
   {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
+    pResFlags = 0x0;
 
     pViewTypeActionGroup = new QActionGroup(this);
     QSignalMapper *actionSignalMapper = new QSignalMapper(this);
@@ -407,6 +411,33 @@ public:
   }
 
 
+  void setTabEnabled(int index, bool enable)
+  {
+    QTabWidget::setTabEnabled(index, enable);
+    emit pageEnabled(index, enable);
+  }
+
+  void setTabIcon(int index, const QIcon& icon)
+  {
+    QTabWidget::setTabIcon(index, icon);
+    emit pageIconChanged(index, icon);
+  }
+
+  void setTabText(int index, const QString& label)
+  {
+    QTabWidget::setTabText(index, label);
+    emit pageTextChanged(index, label);
+  }
+
+signals:
+
+  void pageInserted(int index, const QIcon& icon, const QString& text);
+  void pageTextChanged(int index, const QString& text);
+  void pageIconChanged(int index, const QIcon& icon);
+  void pageEnabled(int index, bool enable);
+  void pageRemoved(int index);
+
+
 public slots:
 
   void refreshTabReadOnly(int tabindex, bool readonly) {
@@ -423,13 +454,113 @@ public slots:
 
 protected:
 
-  void tabInserted(int index) {
-    return QTabWidget::tabInserted(index);
+  virtual void tabInserted(int index) {
+    emit pageInserted(index, tabIcon(index), tabText(index));
+  }
+  virtual void tabRemoved(int index) {
+    emit pageRemoved(index);
   }
 
 private:
   QTabBar *pTabBar;
 };
+
+// -----------------------------------------------------------------
+
+
+
+class KLFLibBrowserTabMenu : public QMenu
+{
+  Q_OBJECT
+public:
+  KLFLibBrowserTabMenu(KLFLibBrowserTabWidget *tabwidget)
+    : QMenu(tabwidget), pTabWidget(tabwidget)
+  {
+    setTitle(tr("Open Tabs"));
+    pActionGroup = new QActionGroup(this);
+    pActionGroup->setExclusive(true);
+
+    int k;
+    for (k = 0; k < pTabWidget->count(); ++k) {
+      slotPageInserted(k, pTabWidget->tabIcon(k), pTabWidget->tabText(k));
+    }
+
+    connect(pTabWidget, SIGNAL(pageInserted(int, const QIcon&, const QString&)),
+	    this, SLOT(slotPageInserted(int, const QIcon&, const QString&)));
+    connect(pTabWidget, SIGNAL(pageRemoved(int)), this, SLOT(slotPageRemoved(int)));
+    connect(pTabWidget, SIGNAL(pageTextChanged(int, const QString&)),
+	    this, SLOT(slotPageTextChanged(int, const QString&)));
+    connect(pTabWidget, SIGNAL(pageIconChanged(int, const QIcon&)),
+	    this, SLOT(slotPageIconChanged(int, const QIcon&)));
+    connect(pTabWidget, SIGNAL(pageEnabled(int, bool)), this, SLOT(slotPageEnabled(int, bool)));
+    connect(pTabWidget, SIGNAL(currentChanged(int)), this, SLOT(slotCurrentIndexChanged(int)));
+  }
+  virtual ~KLFLibBrowserTabMenu()
+  {
+  }
+
+protected slots:
+  void slotPageInserted(int index, const QIcon& icon, const QString& text)
+  {
+    QAction *a = new QAction(pActionGroup);
+    a->setIcon(icon);
+    a->setText(text);
+    a->setCheckable(true);
+    connect(a, SIGNAL(triggered()), this, SLOT(slotRaisePageFromAction()));
+    if (index < actions().size())
+      insertAction(actions()[index], a);
+    else
+      addAction(a);
+  }
+  void slotPageRemoved(int index)
+  {
+    if (index >= 0 && index < actions().size())
+      removeAction(actions()[index]);
+  }
+  void slotPageTextChanged(int index, const QString& text)
+  {
+    if (index >= 0 && index < actions().size())
+      actions()[index]->setText(text);
+  }
+  void slotPageIconChanged(int index, const QIcon& icon)
+  {
+    if (index >= 0 && index < actions().size())
+      actions()[index]->setIcon(icon);
+  }
+  void slotPageEnabled(int index, bool enable)
+  {
+    if (index >= 0 && index < actions().size())
+      actions()[index]->setEnabled(enable);
+  }
+  void slotCurrentIndexChanged(int index)
+  {
+    if (index >= 0 && index < actions().size())
+      actions()[index]->setChecked(true); // will auto-exclude the others because of exclusive action group
+  }
+
+
+  void slotRaisePageFromAction()
+  {
+    QAction * a = qobject_cast<QAction*>(sender());
+    if (a == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": action sender is NULL?!?";
+      return;
+    }
+    int k;
+    QList<QAction*> alist = actions();
+    for (k = 0; k < alist.size(); ++k) {
+      if (alist[k] == a) {
+	pTabWidget->setCurrentIndex(k);
+	return;
+      }
+    }
+  }
+
+private:
+  QActionGroup *pActionGroup;
+  KLFLibBrowserTabWidget *pTabWidget;
+};
+
 
 
 
@@ -445,7 +576,58 @@ class KLFLibExportDialog : public QDialog, public Ui::KLFLibExportDialog
 public:
   enum { DataRole = Qt::UserRole, OldCheckStateRole } ;
 
-  KLFLibExportDialog(KLFLibBrowser *libbrowser, const QString& exportFilter)
+  static KLFLibResourceEngine * showExportDialogCreateResource(KLFLibBrowser *libbrowser, QList<QUrl> *exportUrls)
+  {
+    KLFLibExportDialog dlg(libbrowser);
+    bool ok;
+    KLFLibWidgetFactory::Parameters param;
+    *exportUrls = QList<QUrl>();
+    do {
+      int result = dlg.exec();
+      if (result != QDialog::Accepted)
+	return NULL; // cancelled by user
+      param = dlg.wfactory->retrieveCreateParametersFromWidget("LocalFile", dlg.localFileWidget);
+      ok = true; // by default we got parameters OK
+      if (param.isEmpty())
+	ok = false;
+      if (param.contains("klfRetry") && param["klfRetry"].toBool())
+	ok = false;
+      if (param.contains("klfCancel") && param["klfCancel"].toBool())
+	return NULL; // cancelled
+    } while (!ok) ;
+
+    QList<QUrl> urls = dlg.selectedExportUrls();
+    if (urls.isEmpty()) {
+      QMessageBox::critical(&dlg, tr("Error"), tr("You have not selected any resources to export!"));
+      return NULL;
+    }
+
+    // now create the resource
+    if (!param.contains("klfScheme")) {
+      qWarning()<<KLF_FUNC_NAME<<": factory create parameters did not provide a scheme!";
+      return NULL;
+    }
+    QString scheme = param["klfScheme"].toString();
+    KLFLibEngineFactory *efactory = KLFLibEngineFactory::findFactoryFor(scheme);
+    if (efactory == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": can't find factory for scheme "<<scheme<<"!";
+      return NULL;
+    }
+    param["klfDefaultSubResource"] = tr("Extra Export Sub-Resource",
+					"[[the default sub-resource name when creating export resource]]");
+    KLFLibResourceEngine *resource = efactory->createResource(scheme, param, libbrowser);
+    if (resource == NULL) {
+      QMessageBox::critical(&dlg, tr("Error"),
+			    tr("Can't create resource %1!").arg(param["Filename"].toString()));
+      qWarning()<<KLF_FUNC_NAME<<": Failed to create resource of type "<<scheme<<" with parameters: "<<param;
+      return NULL;
+    }
+    *exportUrls = urls;
+    return resource;
+  }
+
+
+  KLFLibExportDialog(KLFLibBrowser *libbrowser)
     : QDialog(libbrowser, 0), pLibBrowser(libbrowser), pModel(NULL),
     pInSlotItemChanged(false)
   {
@@ -453,12 +635,25 @@ public:
     setWindowModality(Qt::WindowModal);
     setModal(true);
 
+    wfactory = KLFLibWidgetFactory::findFactoryFor("LocalFile");
+    if (wfactory == NULL) {
+      qWarning()<<KLF_FUNC_NAME<<": Can't find factory for type 'LocalFile'!";
+      return;
+    }
     QString mydoc = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
-
-    pathExportTo->setFilter(exportFilter);
-    pathExportTo->setPath(QDir::toNativeSeparators(mydoc+"/"+tr("klf_export.klf.db")));
-    pathExportTo->setFrameStyle(QFrame::NoFrame|QFrame::Plain);
-    pathExportTo->setDialogConfirmOverwrite(false);
+    KLFLibWidgetFactory::Parameters pdefault;
+    QString filedate = QDate::currentDate().toString(Qt::DefaultLocaleShortDate);
+    filedate.replace("/", "-");
+    pdefault["Url"] = QUrl("klf+legacy://"+tr("%1/klatexformula_export_%2.klf").arg(mydoc, filedate));
+    QStackedLayout *lyt_gbxExportLocalFileWidget = new QStackedLayout(gbxExportLocalFileWidget);
+    lyt_gbxExportLocalFileWidget->setObjectName("lyt_gbxExportLocalFileWidget");
+    lyt_gbxExportLocalFileWidget->setContentsMargins(0,0,0,0);
+    lyt_gbxExportLocalFileWidget->setSpacing(0);
+    localFileWidget = 
+      wfactory->createPromptCreateParametersWidget(gbxExportLocalFileWidget, "LocalFile", pdefault);
+    lyt_gbxExportLocalFileWidget->addWidget(localFileWidget);
+    localFileWidget->setFixedHeight(localFileWidget->minimumSizeHint().height()+4);
+    gbxExportLocalFileWidget->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
 
     pModel = new QStandardItemModel(this);
     lstRes->setModel(pModel);
@@ -471,12 +666,6 @@ public:
     populateExportList();
   }
 
-  QUrl exportToUrl()
-  {
-    QUrl url = QUrl::fromLocalFile(pathExportTo->path());
-    url.setScheme("klf+sqlite");
-    return url;
-  }
 
   QList<QUrl> selectedExportUrls()
   {
@@ -562,6 +751,10 @@ private:
   QStandardItemModel *pModel;
   bool pInSlotItemChanged;
 
+  KLFLibWidgetFactory * wfactory;
+  QWidget *localFileWidget;
+
+
   void populateExportList()
   {
     pModel->clear();
@@ -637,8 +830,10 @@ private:
 
 
 
-/* * \internal */
-/*
+
+/* THIS HAS NEVER BEEN USED NOR TESTED, HOWEVER IT MAY COME IN HANDY IF NEEDED.
+
+/ ** \internal * /
 class KLFSignalUnmapper : public QObject
 {
   Q_OBJECT

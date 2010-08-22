@@ -73,10 +73,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QTextEdit" name="txtLatex">
-        <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
-        </property>
+       <widget class="KLFLatexEdit" name="txtLatex">
         <property name="acceptDrops">
          <bool>true</bool>
         </property>
@@ -328,6 +325,9 @@
              <width>280</width>
              <height>75</height>
             </size>
+           </property>
+           <property name="acceptDrops">
+            <bool>true</bool>
            </property>
            <property name="toolTip">
             <string comment="tooltip">The resulting image will be displayed here</string>
@@ -621,7 +621,7 @@
           </widget>
          </item>
          <item row="2" column="0" colspan="3">
-          <widget class="QTextEdit" name="txtPreamble">
+          <widget class="KLFLatexEdit" name="txtPreamble">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -883,6 +883,11 @@
    <class>KLFDisplayLabel</class>
    <extends>QLabel</extends>
    <header location="global">klfdisplaylabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KLFLatexEdit</class>
+   <extends>QTextEdit</extends>
+   <header>klflatexedit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

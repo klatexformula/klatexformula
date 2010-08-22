@@ -33,9 +33,8 @@
 
 #include <klflibview.h>
 #include <klfguiutil.h>
-//#include <klflibdbengine.h>
 
-#include "klflatexsyntaxhighlighter.h"
+#include "klflatexedit.h"
 #include "klflibbrowser.h"
 #include "klflatexsymbols.h"
 #include "klfsettings.h"
@@ -269,10 +268,7 @@ KLFMainWin::KLFMainWin()
 
   _output.status = 0;
   _output.errorstr = QString();
-  _output.result = QImage();
-  _output.pngdata = QByteArray();
-  _output.epsdata = QByteArray();
-  _output.pdfdata = QByteArray();
+
 
   // load styless
   loadStyles();
@@ -304,15 +300,8 @@ KLFMainWin::KLFMainWin()
   // set menu to the button
   u->btnDPIPresets->setMenu(DPIPresets);
 
-  mHighlighter = new KLFLatexSyntaxHighlighter(u->txtLatex, this);
-  mPreambleHighlighter = new KLFLatexSyntaxHighlighter(u->txtPreamble, this);
 
-  connect(u->txtLatex, SIGNAL(cursorPositionChanged()),
-	  mHighlighter, SLOT(refreshAll()));
-  connect(u->txtPreamble, SIGNAL(cursorPositionChanged()),
-	  mPreambleHighlighter, SLOT(refreshAll()));
-
-  connect(mHighlighter, SIGNAL(newSymbolTyped(const QString&)),
+  connect(u->txtLatex->syntaxHighlighter(), SIGNAL(newSymbolTyped(const QString&)),
 	  this, SLOT(slotNewSymbolTyped(const QString&)));
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
@@ -333,6 +322,7 @@ KLFMainWin::KLFMainWin()
   u->frmDetails->hide();
 
   u->txtLatex->installEventFilter(this);
+  u->txtLatex->setMainWinDataOpener(this);
 
   setFixedSize(_shrinkedsize);
 
@@ -362,8 +352,8 @@ KLFMainWin::KLFMainWin()
   // For systematical syntax highlighting
   // make sure syntax highlighting is up-to-date at all times
   QTimer *synthighlighttimer = new QTimer(this);
-  connect(synthighlighttimer, SIGNAL(timeout()), mHighlighter, SLOT(refreshAll()));
-  connect(synthighlighttimer, SIGNAL(timeout()), mPreambleHighlighter, SLOT(refreshAll()));
+  connect(synthighlighttimer, SIGNAL(timeout()), u->txtLatex->syntaxHighlighter(), SLOT(refreshAll()));
+  connect(synthighlighttimer, SIGNAL(timeout()), u->txtPreamble->syntaxHighlighter(), SLOT(refreshAll()));
   synthighlighttimer->start(250);
 
 
@@ -410,8 +400,8 @@ KLFMainWin::KLFMainWin()
 
   connect(u->txtLatex, SIGNAL(textChanged()), this,
 	  SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
-  connect(u->txtLatex, SIGNAL(customContextMenuRequested(const QPoint&)),
-	  this, SLOT(slotEditorContextMenu(const QPoint&)));
+  connect(u->txtLatex, SIGNAL(insertContextMenuActions(const QPoint&, QList<QAction*> *)),
+	  this, SLOT(slotEditorContextMenuInsertActions(const QPoint&, QList<QAction*> *)));
   connect(u->cbxMathMode, SIGNAL(editTextChanged(const QString&)),
 	  this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
@@ -483,6 +473,8 @@ KLFMainWin::KLFMainWin()
   _loadedlibrary = true;
   loadLibrary();
 
+  registerDataOpener(new KLFBasicDataOpener(this));
+
   //  / ** \bug .................... * /
   //  registerOutputSaver(new klf_main_win_dummy_output_saver);
 }
@@ -516,10 +508,6 @@ KLFMainWin::~KLFMainWin()
   if (mSettingsDialog)
     delete mSettingsDialog;
 
-  if (mPreambleHighlighter)
-    delete mPreambleHighlighter;
-  if (mHighlighter)
-    delete mHighlighter;
   if (mPreviewBuilderThread)
     delete mPreviewBuilderThread;
 
@@ -827,7 +815,7 @@ void KLFMainWin::loadLibrary()
       importfname = kdelocate("history"); // or the KDE KLF 2.0 history file
     if ( ! QFile::exists(importfname) ) {
       // as last resort we load our default library bundled with KLatexFormula
-      importfname = ":/data/defaultlibrary.klf.db";
+      importfname = ":/data/defaultlibrary.klf";
     }
   }
 
@@ -897,11 +885,12 @@ void KLFMainWin::loadLibrary()
 
     // locate the import file and scheme
     QUrl importliburl = QUrl::fromLocalFile(importfname);
-    if (importfname.endsWith(".klf.db")) {
-      importliburl.setScheme("klf+sqlite");
-    } else {
-      importliburl.setScheme("klf+legacy");
+    QString scheme = KLFLibBasicWidgetFactory::guessLocalFileScheme(importfname);
+    if (scheme.isEmpty()) {
+      // assume .klf if not able to guess
+      scheme = "klf+legacy";
     }
+    importliburl.setScheme(scheme);
     importliburl.addQueryItem("klfReadOnly", "true");
     // import library from an older version library file.
     KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(importliburl.scheme());
@@ -1052,7 +1041,7 @@ void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
   // that we're going to include anyway
   if (restoreFlags & KLFLib::RestoreLatex) {
     // to preserve text edit undo history... call this slot instead of brutally doing txt->setPlainText(..)
-    slotSetLatex(KLFLibEntry::latexAddCategoryTagsComment(entry.latex(), entry.category(), entry.tags()));
+    slotSetLatex(entry.latexWithCategoryTagsComments());
   }
 
   u->lblOutput->display(entry.preview(), entry.preview(), false);
@@ -1287,21 +1276,15 @@ void KLFMainWin::slotPopupAcceptAll()
   slotPopupClose();
 }
 
-void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
+void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAction*> *actionList)
 {
-  if ( ! u->txtLatex->textCursor().hasSelection() ) {
-    // move cursor at that point, but not if we have a selection
-    u->txtLatex->setTextCursor(u->txtLatex->cursorForPosition(pos));
-  }
-
-  QMenu * menu = u->txtLatex->createStandardContextMenu(u->txtLatex->mapToGlobal(pos));
-
-  menu->addSeparator();
+  KLFLatexEdit *latexEdit = qobject_cast<KLFLatexEdit*>(sender());
+  KLF_ASSERT_NOT_NULL( latexEdit, "KLFLatexEdit sender is NULL!", return ) ;
 
   // try to determine if we clicked on a symbol, and suggest to include the corresponding package
 
-  QTextCursor cur = u->txtLatex->cursorForPosition(pos);
-  QString text = u->txtLatex->toPlainText();
+  QTextCursor cur = latexEdit->cursorForPosition(pos);
+  QString text = latexEdit->toPlainText();
   int curpos = cur.position();
 
   QRegExp rxSym("\\\\(\\w+|.)");
@@ -1314,45 +1297,18 @@ void KLFMainWin::slotEditorContextMenu(const QPoint& pos)
     QString guitext;
     getMissingCmdsFor(symbol, &cmds, &guitext, false);
     if (cmds.size()) {
-      QAction * aInsCmds = new QAction(menu);
-      //      aInsCmds->setText(tr("Include %1 for %2",
-      //			"[[menu entry to insert missing packages for a symbol]]")
-      //			.arg(guitext, symbol));
+      QAction * aInsCmds = new QAction(latexEdit);
       aInsCmds->setText(tr("Include missing definitions for %1").arg(symbol));
       aInsCmds->setData(QVariant(cmds));
       connect(aInsCmds, SIGNAL(triggered()), this, SLOT(slotInsertMissingPackagesFromActionSender()));
-      menu->addAction(aInsCmds);
+      *actionList << aInsCmds;
     }
   }
 
-  menu->addAction(QIcon(":/pics/symbols.png"), tr("Insert Symbol ...", "[[context menu entry]]"),
-		  this, SLOT(slotSymbols()));
-
-  QMenu *delimmenu = new QMenu(menu);
-
-  /** \todo ....make this more flexible ... */
-  static QStringList delimList =
-    QStringList()<<"\\textrm{}"<<"\\textit{}"<<"\\textsl{}"<<"\\textbf{}"<<"\\mathrm{}"<<"\\mathit{}"<<"\\mathcal{}";
-  static QList<int> charsBackList =
-    QList<int>() << 1 << 1 << 1 << 1 << 1 << 1 << 1;
-
-  int k;
-  for (k = 0; k < delimList.size() && k < charsBackList.size(); ++k) {
-    QAction *a = new QAction(delimmenu);
-    a->setText(delimList[k]);
-    QVariantMap v;
-    v["delim"] = QVariant::fromValue<QString>(delimList[k]);
-    v["charsBack"] = QVariant::fromValue<int>(charsBackList[k]);
-    a->setData(QVariant(v));
-    a->setIcon(KLFLatexSymbolsCache::theCache()->findSymbolPixmap(delimList[k].left(delimList[k].length()-1)+"A}"));
-    delimmenu->addAction(a);
-    connect(a, SIGNAL(triggered()), this, SLOT(slotInsertFromActionSender()));
-  }
-
-  QAction *delimaction = menu->addAction(tr("Insert Delimiter"));
-  delimaction->setMenu(delimmenu);
-
-  menu->popup(u->txtLatex->mapToGlobal(pos));
+  QAction *insertSymbolAction = new QAction(QIcon(":/pics/symbols.png"),
+					    tr("Insert Symbol ...", "[[context menu entry]]"), latexEdit);
+  connect(insertSymbolAction, SIGNAL(triggered()), this, SLOT(slotSymbols()));
+  *actionList << insertSymbolAction;
 }
 
 void KLFMainWin::slotInsertFromActionSender()
@@ -1463,10 +1419,9 @@ void KLFMainWin::registerHelpLinkAction(const QString& path, QObject *object, co
 
 void KLFMainWin::registerOutputSaver(KLFAbstractOutputSaver *outputsaver)
 {
-  if (outputsaver == NULL)
-    qWarning()<<KLF_FUNC_NAME<<": Refusing to register NULL outputsaver!";
-  else
-    pOutputSavers.append(outputsaver);
+  KLF_ASSERT_NOT_NULL( outputsaver, "Refusing to register NULL Output Saver object!",  return ) ;
+
+  pOutputSavers.append(outputsaver);
 }
 
 void KLFMainWin::unregisterOutputSaver(KLFAbstractOutputSaver *outputsaver)
@@ -1474,7 +1429,16 @@ void KLFMainWin::unregisterOutputSaver(KLFAbstractOutputSaver *outputsaver)
   pOutputSavers.removeAll(outputsaver);
 }
 
+void KLFMainWin::registerDataOpener(KLFAbstractDataOpener *dataopener)
+{
+  KLF_ASSERT_NOT_NULL( dataopener, "Refusing to register NULL Data Opener object!",  return ) ;
 
+  pDataOpeners.append(dataopener);
+}
+void KLFMainWin::unregisterDataOpener(KLFAbstractDataOpener *dataopener)
+{
+  pDataOpeners.removeAll(dataopener);
+}
 
 
 void KLFMainWin::setWidgetStyle(const QString& qtstyle)
@@ -1616,7 +1580,7 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   // ----
   if ( obj == QApplication::instance() && e->type() == QEvent::FileOpen ) {
     // open a file
-    importCmdlKLFFile(((QFileOpenEvent*)e)->file());
+    openLibFile(((QFileOpenEvent*)e)->file());
     return true;
   }
 
@@ -1737,6 +1701,23 @@ void KLFMainWin::alterSetting(altersetting_which which, QString svalue)
     break;
   }
 }
+
+
+KLFLatexEdit *KLFMainWin::latexEdit()
+{
+  return u->txtLatex;
+}
+KLFLatexSyntaxHighlighter * KLFMainWin::syntaxHighlighter()
+{
+  return u->txtLatex->syntaxHighlighter();
+}
+KLFLatexSyntaxHighlighter * KLFMainWin::preambleSyntaxHighlighter()
+{
+  return u->txtPreamble->syntaxHighlighter();
+}
+
+
+
 
 
 void KLFMainWin::applySettings(const KLFBackend::klfSettings& s)
@@ -1922,9 +1903,7 @@ void KLFMainWin::slotEvaluate()
 
 void KLFMainWin::slotClearLatex()
 {
-  slotSetLatex("");
-  u->txtLatex->setFocus();
-  mHighlighter->resetEditing();
+  u->txtLatex->clearLatex();
 }
 void KLFMainWin::slotClearAll()
 {
@@ -1939,6 +1918,7 @@ void KLFMainWin::slotClearAll()
 
 void KLFMainWin::slotLibrary(bool showlib)
 {
+  klfDbg("showlib="<<showlib) ;
   mLibBrowser->setShown(showlib);
 }
 
@@ -1975,12 +1955,7 @@ void KLFMainWin::slotExpand(bool expanded)
 
 void KLFMainWin::slotSetLatex(const QString& latex)
 {
-  QTextCursor cur = u->txtLatex->textCursor();
-  cur.beginEditBlock();
-  cur.select(QTextCursor::Document);
-  cur.removeSelectedText();
-  cur.insertText(latex);
-  cur.endEditBlock();
+  u->txtLatex->setLatex(latex);
 }
 
 void KLFMainWin::slotSetMathMode(const QString& mathmode)
@@ -1992,12 +1967,7 @@ void KLFMainWin::slotSetMathMode(const QString& mathmode)
 
 void KLFMainWin::slotSetPreamble(const QString& preamble)
 {
-  QTextCursor cur = u->txtPreamble->textCursor();
-  cur.beginEditBlock();
-  cur.select(QTextCursor::Document);
-  cur.removeSelectedText();
-  cur.insertText(preamble);
-  cur.endEditBlock();
+  u->txtPreamble->setLatex(preamble);
 }
 
 void KLFMainWin::slotEnsurePreambleCmd(const QString& line)
@@ -2067,21 +2037,143 @@ void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& forma
 
 }
 
-bool KLFMainWin::importCmdlKLFFiles(const QStringList& files, bool showLibrary)
+
+
+
+static QString find_list_agreement(const QStringList& a, const QStringList& b)
 {
+  // returns the first element in a that is also in b, or a null QString() if there are no
+  // common elements.
+  int i, j;
+  for (i = 0; i < a.size(); ++i)
+    for (j = 0; j < b.size(); ++j)
+      if (a[i] == b[j])
+	return a[i];
+  return QString();
+}
+
+bool KLFMainWin::canOpenFile(const QString& fileName)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("file name="<<fileName) ;
+  int k;
+  for (k = 0; k < pDataOpeners.size(); ++k)
+    if (pDataOpeners[k]->canOpenFile(fileName))
+      return true;
+  klfDbg("cannot open file.") ;
+  return false;
+}
+bool KLFMainWin::canOpenData(const QByteArray& data)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("data. length="<<data.size()) ;
+  int k;
+  for (k = 0; k < pDataOpeners.size(); ++k)
+    if (pDataOpeners[k]->canOpenData(data))
+      return true;
+  klfDbg("cannot open data.") ;
+  return false;
+}
+bool KLFMainWin::canOpenData(const QMimeData *mimeData)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  QStringList formats = mimeData->formats();
+  klfDbg("mime data. formats="<<formats) ;
+
+  QString mimetype;
+  int k;
+  for (k = 0; k < pDataOpeners.size(); ++k) {
+    mimetype = find_list_agreement(formats, pDataOpeners[k]->supportedMimeTypes());
+    if (!mimetype.isEmpty())
+      return true; // this opener can open the data
+  }
+  klfDbg("cannot open data: no appropriate opener found.") ;
+  return false;
+}
+
+
+bool KLFMainWin::openFile(const QString& file)
+{
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("file="<<file) ;
+  int k;
+  for (k = 0; k < pDataOpeners.size(); ++k)
+    if (pDataOpeners[k]->openFile(file))
+      return true;
+
+  QMessageBox::critical(this, tr("Error"), tr("Failed to load file %1.").arg(file));
+
+  return false;
+}
+
+bool KLFMainWin::openFiles(const QStringList& fileList)
+{
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("file list="<<fileList) ;
+  int k;
+  bool result = true;
+  for (k = 0; k < fileList.size(); ++k) {
+    result = result && openFile(fileList[k]);
+    klfDbg("Opened file "<<fileList[k]<<": result="<<result) ;
+  }
+  return result;
+}
+
+bool KLFMainWin::openData(const QMimeData *mimeData, bool *openerFound)
+{
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("mime data, formats="<<mimeData->formats()) ;
+  int k;
+  QString mimetype;
+  QStringList fmts = mimeData->formats();
+  if (openerFound != NULL)
+    *openerFound = false;
+  for (k = 0; k < pDataOpeners.size(); ++k) {
+    mimetype = find_list_agreement(fmts, pDataOpeners[k]->supportedMimeTypes());
+    if (!mimetype.isEmpty()) {
+      if (openerFound != NULL)
+	*openerFound = true;
+      // mime types intersect.
+      klfDbg("Opening mimetype "<<mimetype) ;
+      QByteArray data = mimeData->data(mimetype);
+      if (pDataOpeners[k]->openData(data, mimetype))
+	return true;
+    }
+  }
+
+  return false;
+}
+bool KLFMainWin::openData(const QByteArray& data)
+{
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("data, len="<<data.length()) ;
+  int k;
+  for (k = 0; k < pDataOpeners.size(); ++k)
+    if (pDataOpeners[k]->openData(data, QString()))
+      return true;
+
+  return false;
+}
+
+
+bool KLFMainWin::openLibFiles(const QStringList& files, bool showLibrary)
+{
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   int k;
   bool imported = false;
   for (k = 0; k < files.size(); ++k) {
-    bool ok = importCmdlKLFFile(files[k], false);
+    bool ok = openLibFile(files[k], false);
     imported = imported || ok;
+    klfDbg("imported file "<<files[k]<<": imported status is now "<<imported) ;
   }
   if (showLibrary && imported)
     slotLibrary(true);
   return imported;
 }
 
-bool KLFMainWin::importCmdlKLFFile(const QString& fname, bool showLibrary)
+bool KLFMainWin::openLibFile(const QString& fname, bool showLibrary)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   QUrl url = QUrl::fromLocalFile(fname);
   url.setScheme(KLFLibBasicWidgetFactory::guessLocalFileScheme(fname));
   QStringList subreslist = KLFLibEngineFactory::listSubResources(url);
@@ -2089,13 +2181,17 @@ bool KLFMainWin::importCmdlKLFFile(const QString& fname, bool showLibrary)
     // error reading sub-resources, or sub-resources not supported
     return mLibBrowser->openResource(url);
   }
+  klfDbg("subreslist is "<<subreslist);
   bool loaded = false;
   int k;
   for (k = 0; k < subreslist.size(); ++k) {
     QUrl url2 = url;
     url2.addQueryItem("klfDefaultSubResource", subreslist[k]);
-    loaded = loaded || mLibBrowser->openResource(url2);
+    bool thisloaded =  mLibBrowser->openResource(url2);
+    loaded = loaded || thisloaded;
   }
+  if (showLibrary && loaded)
+    slotLibrary(true);
   return loaded;
 }
 
@@ -2272,7 +2368,8 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     // use an external output-saver
     QString key = externFormatsByFilterName[selectedfilter];
     if ( ! externSaverByKey.contains(key) ) {
-      qWarning()<<KLF_FUNC_NAME<<": Internal error: externSaverByKey() does not contain key="<<key<<": "<<externSaverByKey;
+      qWarning()<<KLF_FUNC_NAME<<": Internal error: externSaverByKey() does not contain key="<<key
+		<<": "<<externSaverByKey;
       return;
     }
     KLFAbstractOutputSaver *saver = externSaverByKey[key];

@@ -48,7 +48,8 @@ namespace KLFLib {
     RestoreLatex = 0x0001,
     RestoreStyle = 0x0002,
 
-    RestoreLatexAndStyle = RestoreLatex|RestoreStyle
+    RestoreLatexAndStyle = RestoreLatex|RestoreStyle,
+    RestoreAll = 0xFFFF
   };
 };
 
@@ -889,6 +890,46 @@ private:
 
 
 
+
+
+/** \brief Interface for guessing file schemes
+ *
+ * This class provides the basic interface for customizing known local file types, and
+ * guessing their corresponding schemes.
+ *
+ * To add a scheme guesser, just reimplement this function and create an instance of it.
+ * It will register automatically.
+ *
+ * To query [all guessers instances] the scheme to use for a filename, use
+ * \ref KLFLibBasicWidgetFactory::guessLocalFileScheme().
+ */
+class KLF_EXPORT KLFLibLocalFileSchemeGuesser
+{
+public:
+  KLFLibLocalFileSchemeGuesser();
+  virtual ~KLFLibLocalFileSchemeGuesser();
+
+  //! Guess the appropriate scheme for handling the given file
+  /** Reimplentations of this function must guess what scheme fileName is to be opened
+   * with.
+   *
+   * By \a scheme we mean the URL scheme, ie. the scheme that the correct subclass of
+   * \ref KLFLibEngineFactory reports being capable of opening (eg. \c "klf+sqlite").
+   *
+   * In reimplementations of this function, first the filename extension should be checked. If
+   * it is not known, then the file can be peeked into for magic headers.
+   *
+   * If the scheme cannot be guessed, then the reimplementation should return an empty string.
+   *
+   * \note the \c fileName does not necessarily exist. (keep that in mind before reporting
+   *   an error that you can't open the file to read a magic header). In that case, a
+   *   simple test should be performed on the file extension.
+   */
+  virtual QString guessScheme(const QString& fileName) const = 0;
+};
+
+
+
 //! Provides some basic UIs to access resources
 /**
  * Provides the following widget types for opening/creating/saving resources:
@@ -926,26 +967,35 @@ public:
 
   virtual bool hasCreateWidget(const QString& /*wtype*/) const { return true; }
 
+  /** See \ref KLFLibWidgetFactory.
+   *
+   * Default parameters that can be given in \c defaultparameters:
+   * - \c "Url" (type QUrl): the URL to start with
+   */
   virtual QWidget * createPromptCreateParametersWidget(QWidget *parent, const QString& scheme,
 						       const Parameters& defaultparameters = Parameters());
 
-  /** The parameters returned by this function depends on the \c scheme.
+  /** The parameters returned by this function depends on the \c wtype.
    *
-   * <b>Scheme \c "LocalFile"</b>
+   * <b>Widget-type \c "LocalFile"</b>
    * - \c "Filename" : the selected local file name
    * - \c "klfRetry", \c "klfScheme" as documented in
    *   \ref KLFLibWidgetFactory::retrieveCreateParametersFromWidget().
    */
-  virtual Parameters retrieveCreateParametersFromWidget(const QString& scheme, QWidget *widget);
+  virtual Parameters retrieveCreateParametersFromWidget(const QString& wtype, QWidget *widget);
 
 
   /** This function should be called for example in KLFLibEngineFactory subclasses' constructor
    * to inform this widget factory of local file types that are known by the various engine
-   * factories. This is then used to provide a useful filter choice in file dialogs.
+   * factories. This is then eg. used to provide a useful filter choice in file dialogs.
    */
   static void addLocalFileType(const LocalFileType& fileType);
   static QList<LocalFileType> localFileTypes();
 
+  /** Queries all the instantiated KLFLibLocalFileSchemeGuesser objects to see if one can recognize
+   * the file \c fileName. The first scheme match found is returned. An empty QString is returned
+   * if no guesser succeeded to recognize \c fileName.
+   */
   static QString guessLocalFileScheme(const QString& fileName);
 
 protected:

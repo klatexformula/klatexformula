@@ -1,21 +1,20 @@
 
-// this file will not compile.
+// this file is not meant to be compiled.
 // it is used only as a collection of tr(...) texts that are obsolete for the current
 // version of klatexformula, and is provided for generating translation files that are
-// compatible with all versions (at the cost of being slightly larger)
+// compatible with all versions (at the cost of being slightly larger), by also providing
+// translations for these obsolete texts.
 
-// this file will only be parsed by Qt's  lupdate  tool.
+// this file will only be parsed by Qt's 'lupdate' tool.
 
 
-KLFPathChooser::KLFPathChooser()
+void dummy()
 {
-  tr("Browse");
-}
-
-
-KLFAboutDialogUI::KLFAboutDialogUI()
-{
-  tr("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+  // KLFPathChooser
+  QT_TRANSLATE_NOOP("KLFPathChooser", "Browse");
+  // KLFAboutDialogUI
+  QT_TRANSLATE_NOOP("KLFAboutDialogUI",
+     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
      "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
      "p, li { white-space: pre-wrap; }\n"
      "</style></head><body style=\"\">\n"
@@ -26,75 +25,58 @@ KLFAboutDialogUI::KLFAboutDialogUI()
      "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">KLatexFormula On the Web</span></p>\n"
      "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"http://klatexformula.sourceforge.net/\"><span style=\" text-decoration: underline; color:#0000bf;\">Home Page at http://klatexformula.sourceforge.net/</span></a></p>\n"
      "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"http://klatexformula.sourceforge.net/doc/\"><span style=\" text-decoration: underline; color:#0000bf;\">Documentation at http://klatexformula.sourceforge.net/doc/</span></a></p></body></html>");
+  QT_TRANSLATE_NOOP("KLFAboutDialogUI", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\"font-weight:400; font-style:normal;\">\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:large; font-weight:600;\"><span style=\" font-size:large;\">About KLatexFormula</span></p>\n<p align=\"justify\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">KLatexFormula was written by Philippe Faist, currently (2009) studying physics in Switzerland. First released in 2006 written in KDE3 environment, the program has seen many improvements and restructuring since then, leading to the current Qt 4 version.</p>\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;\">Author</p>\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Philippe Faist, philippe.faist@bluewin.ch</p>\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;\">KLatexFormula On the Web</p>\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"http://klatexformula.sourceforge.net/\"><span style=\" text-decoration: underline; color:#0000bf;\">http://klatexformula.sourceforge.net/</span></a></p></body></html>");
 
-  tr("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\"font-weight:400; font-style:normal;\">\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:large; font-weight:600;\"><span style=\" font-size:large;\">About KLatexFormula</span></p>\n<p align=\"justify\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">KLatexFormula was written by Philippe Faist, currently (2009) studying physics in Switzerland. First released in 2006 written in KDE3 environment, the program has seen many improvements and restructuring since then, leading to the current Qt 4 version.</p>\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;\">Author</p>\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Philippe Faist, philippe.faist@bluewin.ch</p>\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;\">KLatexFormula On the Web</p>\n<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"http://klatexformula.sourceforge.net/\"><span style=\" text-decoration: underline; color:#0000bf;\">http://klatexformula.sourceforge.net/</span></a></p></body></html>");
-}
-
-
-KLFLatexSymbols::KLFLatexSymbols()
-{
-  tr("Warning: failed to open file `%1'!");
-  tr("Warning: KLFLatexSymbols: error reading cache file ! code=%1");
-}
-
-KLFLibraryListManager::KLFLibraryListManager()
-{
-  tr("Are you sure you want to delete %1 selected item(s) from library?")
-}
-
-KLFMainWin::KLFMainWin()
-{
-  tr("Can't install klatexformula.cls to temporary directory !");
-  tr("History");
-  tr("Archive");
-  tr("Unable to open library file!");
-  tr("Error: Library file is incorrect or corrupt!\n");
-  tr("Load Library");
-  tr("The library file found was created by a more recent version of KLatexFormula.\nThe process of library loading may fail.");
-  tr("Unable to load your formula history list!");
-  tr("Error: History file is incorrect or corrupt!\n");
-  tr("Load History");
-  tr("The history file found was created by a more recent version of KLatexFormula.\nThe process of history loading may fail.");
-  tr("Error: Unable to write to library file `%1'!");
-  tr("Failed open for ToolTip Temp Image!\n%1");
-  tr("Failed write to ToolTip Temp Image file %1!");
-  tr("Sorry, format `%1' is not available.");
-  tr("Error: Can't write to file %1!");
-  tr("Created with KLatexFormula version %1");
-}
-
-class KLFMainWinUI {
-  KLFMainWinUI()
-  {
-    tr("KLatexFormula", "window title");
-    tr("Evaluate LaTeX Expression [Shift-Enter]", "tooltip");
-    tr("Show Latex Symbols palette", "tooltip");
-    tr("Toggle shrinked/expanded mode", "tooltip");
-  }
-};
-
-KLFSettings::KLFSettings()
-{
-  tr("Cancel");
-  tr("Apply");
-  tr("OK");
-  tr("English Default", "[[first item of language graphical choice box]]");
-  tr("%1 (%2)", "[[%1=Language (%2=Country)]]");
-  tr("%1", "[[%1=Language, no country is specified]]");
-  tr("Could not find `%1' executable !");
-  tr("Please check your installation and specify the path to `%1' executable manually if it is not installed in $PATH.");
-  tr("You need to restart KLatexFormula for your new language settings to take effect.");
-  tr("Main editor font sample - click to change");
-  tr("Preamble editor font sample - click to change");
-  tr("Preview Size");
-  tr("Maximum Size of Preview Tooltip on LaTeX formula display");
-  tr("System E&xecutables and paths");
-  tr("A&dvanced settings");
-  tr("I  ");
-}
-
-void dummyfunction()
-{
+  // KLFLatexSymbols
+  QT_TRANSLATE_NOOP("KLFLatexSymbols", "Warning: failed to open file `%1'!");
+  QT_TRANSLATE_NOOP("KLFLatexSymbols", "Warning: KLFLatexSymbols: error reading cache file ! code=%1");
+  QT_TRANSLATE_NOOP("KLFLatexSymbols", "Can't save cache to file `%1'!");
+  QT_TRANSLATE_NOOP("KLFLatexSymbols", "Warning: KLFLatexSymbols: error finding and reading cache file!");
+  // KLFLibraryListManager
+  QT_TRANSLATE_NOOP("KLFLibraryListManager", "Are you sure you want to delete %1 selected item(s) from library?");
+  // KLFMainWin
+  QT_TRANSLATE_NOOP("KLFMainWin", "Can't install klatexformula.cls to temporary directory !");
+  QT_TRANSLATE_NOOP("KLFMainWin", "History");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Archive");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Unable to open library file!");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Error: Library file is incorrect or corrupt!\n");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Load Library");
+  QT_TRANSLATE_NOOP("KLFMainWin", "The library file found was created by a more recent version of KLatexFormula.\nThe process of library loading may fail.");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Unable to load your formula history list!");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Error: History file is incorrect or corrupt!\n");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Load History");
+  QT_TRANSLATE_NOOP("KLFMainWin", "The history file found was created by a more recent version of KLatexFormula.\nThe process of history loading may fail.");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Error: Unable to write to library file `%1'!");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Failed open for ToolTip Temp Image!\n%1");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Failed write to ToolTip Temp Image file %1!");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Sorry, format `%1' is not available.");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Error: Can't write to file %1!");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Created with KLatexFormula version %1");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Default");
+  QT_TRANSLATE_NOOP("KLFMainWin", "default");
+  // KLFMainWinUI
+  QT_TRANSLATE_NOOP3("KLFMainWinUI", "KLatexFormula", "window title");
+  QT_TRANSLATE_NOOP3("KLFMainWinUI", "Evaluate LaTeX Expression [Shift-Enter]", "tooltip");
+  QT_TRANSLATE_NOOP3("KLFMainWinUI", "Show Latex Symbols palette", "tooltip");
+  QT_TRANSLATE_NOOP3("KLFMainWinUI", "Toggle shrinked/expanded mode", "tooltip");
+  // KLFSettings
+  QT_TRANSLATE_NOOP("KLFSettings", "Cancel");
+  QT_TRANSLATE_NOOP("KLFSettings", "Apply");
+  QT_TRANSLATE_NOOP("KLFSettings", "OK");
+  QT_TRANSLATE_NOOP3("KLFSettings", "English Default", "[[first item of language graphical choice box]]");
+  QT_TRANSLATE_NOOP3("KLFSettings", "%1 (%2)", "[[%1=Language (%2=Country)]]");
+  QT_TRANSLATE_NOOP3("KLFSettings", "%1", "[[%1=Language, no country is specified]]");
+  QT_TRANSLATE_NOOP("KLFSettings", "Could not find `%1' executable !");
+  QT_TRANSLATE_NOOP("KLFSettings", "Please check your installation and specify the path to `%1' executable manually if it is not installed in $PATH.");
+  QT_TRANSLATE_NOOP("KLFSettings", "You need to restart KLatexFormula for your new language settings to take effect.");
+  QT_TRANSLATE_NOOP("KLFSettings", "Main editor font sample - click to change");
+  QT_TRANSLATE_NOOP("KLFSettings", "Preamble editor font sample - click to change");
+  QT_TRANSLATE_NOOP("KLFSettings", "Preview Size");
+  QT_TRANSLATE_NOOP("KLFSettings", "Maximum Size of Preview Tooltip on LaTeX formula display");
+  QT_TRANSLATE_NOOP("KLFSettings", "System E&xecutables and paths");
+  QT_TRANSLATE_NOOP("KLFSettings", "A&dvanced settings");
+  QT_TRANSLATE_NOOP("KLFSettings", "I  ");
+  // QObject
   QObject::tr("Error");
   QObject::tr("Can't create local directory `%1' !");
   QObject::tr("Can't make local config directory `%1' !");
@@ -109,11 +91,7 @@ void dummyfunction()
   QObject::tr("Warning: Ignoring --input since --latexinput is given.\n");
   QObject::tr("Unable to start Latex program!", "KLFBackend");
   QObject::tr("Unable to save image to file `%1' in format `%2'!\n", "KLFBackend::saveOutputToFile");
-
-}
-
-
-QT_TRANSLATE_NOOP3("QObject",
+  QT_TRANSLATE_NOOP3("QObject",
 		     "\n"
 		     "KLatexFormula by Philippe Faist\n"
 		     "\n"
@@ -209,10 +187,5 @@ QT_TRANSLATE_NOOP3("QObject",
 		   "Command-line help instructions") ;
 
 
-KLFMainWin::KLFMainWin()
-{
-  // default styles
-  tr("Default"); 
-  tr("default");
 }
 

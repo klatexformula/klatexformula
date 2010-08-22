@@ -25,6 +25,7 @@
 #include <QString>
 #include <QObject>
 #include <QDataStream>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -156,6 +157,8 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
 {
   QString fname = (!fnm.isEmpty() ? fnm : filename);    
 
+  klfDbg("loading from file "<<fname<<" (our filename="<<filename<<")") ;
+
   QFile fimp(fname);
   if ( ! fimp.open(QIODevice::ReadOnly) ) {
     qWarning("Unable to open library file %s!", qPrintable(fname));
@@ -227,16 +230,22 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
 bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
 {
   QString fname = (!fnm.isEmpty() ? fnm : filename) ;
+  klfDbg(" saving to file "<<fname<<" a "<<legacyLibType<<"-type library with N="<<resources.size()
+	 <<" resources (our filename="<<filename<<")") ;
   QFile fsav(fname);
   if ( ! fsav.open(QIODevice::WriteOnly) ) {
     qWarning("Can't write to file %s!", qPrintable(fname));
+    QMessageBox::critical(NULL, tr("Error"), tr("Can't write to file %1").arg(fname));
     return false;
   }
   QDataStream stream(&fsav);
+
+  // WE'RE WRITING KLF 2.1 compatible output, so we write as being version 2.1
+  // This also implies that we write with QDataStream version "Qt 3.3"
+
   // write Qt 3.3-compatible data
   stream.setVersion(QDataStream::Qt_3_3);
 
-  // WE'RE WRITING KLF 2.1 compatible output, so we write as being version 2.1
   switch (legacyLibType) {
   case LocalHistoryType:
     {
@@ -249,6 +258,9 @@ bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
       if (resources.size() > 1) {
 	qWarning("%s: Saving an old \"history\" resource. Only one resource can be saved, "
 		 "it will be the first: %s", KLF_FUNC_NAME, qPrintable(resources[0].name));
+	QMessageBox::warning(NULL, tr("Warning"),
+			     tr("Saving an old \"history\" resource. Only one resource can be saved, "
+				"it will be the first: %1").arg(resources[0].name));
       }
       // find history resource in our
       stream << QString("KLATEXFORMULA_HISTORY") << (qint16)2 << (qint16)0
@@ -268,12 +280,13 @@ bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
 	   << resources << library;
     break;
   default:
-    qWarning("%s: bad library type %d!", KLF_FUNC_NAME, legacyLibType);
+    qWarning("%s: bad library type %d! Falling back to '.klf'-library-export type",
+	     KLF_FUNC_NAME, legacyLibType);
     stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
 	   << resources << library;
   }
 
-  if (fnm.isEmpty())
+  if (fnm.isEmpty() || canonicalFilePath(fnm) == canonicalFilePath(filename))
     haschanges = false; // saving to the reference file, not a copy
   return true;
 }
@@ -329,18 +342,29 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *paren
   if (url.hasQueryItem("klfDefaultSubResource"))
     legresname = url.queryItemValue("klfDefaultSubResource");
 
-  return new KLFLibLegacyEngine(QFileInfo(fname).canonicalFilePath(), legresname, url, parent);
+  return new KLFLibLegacyEngine(fname, legresname, url, parent);
 }
 
 // static
-KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fileName, QString legacyResourceName,
+KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fname, QString legacyResourceName,
 						      QObject *parent)
 {
+  QString fileName = KLFLibLegacyFileDataPrivate::canonicalFilePath(fname);
+
   QString lrname = legacyResourceName;
   if (QFile::exists(fileName)) {
     // fail; we want to _CREATE_ a .klf file. Erase file before calling this function to overwrite.
     return NULL;
   }
+
+  if (fileName.isEmpty()) {
+    qWarning()<<KLF_FUNC_NAME<<": file name "<<fileName<<" is empty!";
+    return NULL;
+  }
+  if (!QFileInfo(QFileInfo(fileName).absolutePath()).isWritable()) {
+    qWarning()<<KLF_FUNC_NAME<<": containing directory is not writable.";
+  }
+
   QUrl url = QUrl::fromLocalFile(fileName);
   url.setScheme("klf+legacy");
 
@@ -348,7 +372,10 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fileName, Q
     lrname = tr("Default Resource"); // default name...?
   url.addQueryItem("klfDefaultSubResource", lrname);
 
-  return new KLFLibLegacyEngine(QFileInfo(fileName).canonicalFilePath(), lrname, url, parent);
+  klfDbg("fileName="<<fileName<<"; canonical file path="<<QFileInfo(fileName).canonicalFilePath()
+	 <<"; legacyResourceName="<<legacyResourceName);
+
+  return new KLFLibLegacyEngine(fileName, lrname, url, parent);
 }
 
 
@@ -381,8 +408,8 @@ KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& r
     d->haschanges = true;
   }
 
-  klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"': d="<<d<<"; resources=\n"<<d->resources<<"\n, library=\n"<<d->library
-	 <<"\n (me="<<this<<", d="<<d<<")\n") ;
+  klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"': d="<<d<<"; resources="<<d->resources
+	 <<" (me="<<this<<", d="<<d<<")\n") ;
 }
 
 KLFLibLegacyEngine::~KLFLibLegacyEngine()
@@ -414,8 +441,11 @@ bool KLFLibLegacyEngine::canModifyData(const QString& subResource, ModifyType mo
 
   KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
 
-  if ( ! QFileInfo(d->fileName()).isWritable() )
+  if ( QFile::exists(d->fileName())  // depending on whether the file itself exists, check if
+       ?  ! QFileInfo(d->fileName()).isWritable() // file itself writable
+       :  ! QFileInfo(QFileInfo(d->fileName()).absolutePath()).isWritable() ) { // or containing dir writable
     return false;
+  }
 
   return true;
 }
@@ -564,6 +594,8 @@ QList<KLFLibResourceEngine::entryId> KLFLibLegacyEngine::insertEntries(const QSt
   d->haschanges = true;
 
   emit dataChanged(subResource, InsertData, newIds);
+
+  klfDbg("finished inserting items. dumping resources:\n"<<d->resources<<"\nand library:\n"<<d->library) ;
 
   return newIds;
 }
@@ -743,8 +775,9 @@ QString KLFLibLegacyLocalFileSchemeGuesser::guessScheme(const QString& fileName)
   stream >> s1;
   qDebug("KLFLibLegacyLocalFileSchemeGuesser::guessScheme: read line: got magic '%s'",
 	 qPrintable(s1));
-  if (s1 == "KLATEXFORMULA_LIBRARY_EXPORT" || s1 == "KLATEXFORMULA_LIBRARY" ||
-      s1 == "KLATEXFORMULA_HISTORY")
+  if (s1 == QLatin1String("KLATEXFORMULA_LIBRARY_EXPORT") ||
+      s1 == QLatin1String("KLATEXFORMULA_LIBRARY") ||
+      s1 == QLatin1String("KLATEXFORMULA_HISTORY"))
     return QLatin1String("klf+legacy");
 
   return QString();
@@ -772,7 +805,7 @@ QStringList KLFLibLegacyEngineFactory::supportedTypes() const
 QString KLFLibLegacyEngineFactory::schemeTitle(const QString& scheme) const
 {
   if (scheme == QLatin1String("klf+legacy"))
-    return tr("KLatexFormula 3.1 Library Export File");
+    return tr("KLatexFormula Library Export File");
   return QString();
 }
 

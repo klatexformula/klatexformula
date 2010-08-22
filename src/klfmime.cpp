@@ -552,12 +552,18 @@ QByteArray KLFMimeExporterUrilist::data(const QString& /*key*/, const KLFBackend
 	       qPrintable(templ));
       return QByteArray();
     } else {
-      tempfilename = tempfile->fileName();
-      tempfile->write(output.pngdata);
-      tempfile->close();
+      QString errStr;
+      bool res = KLFBackend::saveOutputToFile(output, tempfile->fileName(), "PNG", &errStr);
+      if (!res) {
+	qWarning()<<KLF_FUNC_NAME<<": Can't save to temp file "<<tempfile->fileName()<<": "<<errStr;
+      } else {
+	tempfilename = tempfile->fileName();
+	tempfile->write(output.pngdata);
+	tempfile->close();
+	// cache this temp file for other formats' use or other QMimeData instantiation...
+	tempFilesForImageMD5[imgmd5] = tempfilename;
+      }
     }
-    // cache this temp file for other formats' use
-    tempFilesForImageMD5[imgmd5] = tempfilename;
   }
 
   QByteArray urilist = (QUrl::fromLocalFile(tempfilename).toString()+QLatin1String("\n")).toLatin1();
@@ -601,15 +607,7 @@ static QByteArray toAttrText(const QString& sbase)
 
 QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput)
 {
-  QByteArray pngdata;
-  QBuffer buf(&pngdata);
-  buf.open(QIODevice::WriteOnly);
-  QString errstr;
-  bool r = KLFBackend::saveOutputToDevice(klfoutput, &buf, "PNG", &errstr);
-  if (!r) {
-    qWarning()<<KLF_FUNC_NAME<<": Error: "<<errstr;
-    return QByteArray();
-  }
+  QByteArray pngdata = klfoutput.pngdata;
 
   QFile templfile(":/data/ooodrawingtemplate");
   templfile.open(QIODevice::ReadOnly);

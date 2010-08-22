@@ -81,9 +81,22 @@ void KLFDBusAppAdaptor::evaluateAndSave(const QString& output, const QString& fm
   _mainwin->slotEvaluateAndSave(output, fmt);
 }
 
+void KLFDBusAppAdaptor::openFile(const QString& fileName)
+{
+  _mainwin->openFile(fileName);
+}
+void KLFDBusAppAdaptor::openFiles(const QStringList& fileNameList)
+{
+  _mainwin->openFiles(fileNameList);
+}
+void KLFDBusAppAdaptor::openData(const QByteArray& data)
+{
+  _mainwin->openData(data);
+}
+
 void KLFDBusAppAdaptor::importCmdlKLFFiles(const QStringList& files)
 {
-  _mainwin->importCmdlKLFFiles(files);
+  _mainwin->openLibFiles(files);
 }
 
 
@@ -135,6 +148,24 @@ QDBusReply<void> KLFDBusAppInterface::evaluateAndSave(const QString& output, con
 {
   return callWithArgumentList( QDBus::Block, QString("evaluateAndSave"),
 			       QList<QVariant>() << QVariant(output) << QVariant(fmt) );
+}
+
+QDBusReply<void> KLFDBusAppInterface::openFile(const QString& fileName)
+{
+  return callWithArgumentList( QDBus::Block, QString("openFile"),
+			       QList<QVariant>() << QVariant(fileName) );
+}
+QDBusReply<void> KLFDBusAppInterface::openFiles(const QStringList& fileNameList)
+{
+  QList<QVariant> argumentList;
+  argumentList << QVariant(fileNameList);
+  return callWithArgumentList( QDBus::Block, QString("openFiles"),
+			       QList<QVariant>() << QVariant(argumentList) );
+}
+QDBusReply<void> KLFDBusAppInterface::openData(const QByteArray& data)
+{
+  return callWithArgumentList( QDBus::Block, QString("openData"),
+			       QList<QVariant>() << QVariant(data) );
 }
 
 QDBusReply<void> KLFDBusAppInterface::importCmdlKLFFiles(const QStringList& fnames)

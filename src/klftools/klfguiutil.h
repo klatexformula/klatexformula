@@ -185,10 +185,14 @@ public slots:
   /** same as QProgressDialog::setLabelText() but resizes the dialog a bit larger so that its looks
    * nicer. */
   virtual void setDescriptiveText(const QString& labelText);
-  /** start reporting progress from \c progressReporter and set label text to \c descriptiveText. */
+  /** start reporting progress from \c progressReporter and set label text to \c descriptiveText.
+   *
+   * \note This will disconnect any previously set progress reporter to the slot \c setValue() */
   virtual void startReportingProgress(KLFProgressReporter *progressReporter,
 				      const QString& descriptiveText);
-  /** start reporting progress from \c progressReporter, without changing label text. */
+  /** start reporting progress from \c progressReporter, without changing label text.
+   *
+   * \note This will disconnect any previously set progress reporter to the slot \c setValue() */
   virtual void startReportingProgress(KLFProgressReporter *progressReporter);
 
   /** Calls directly QProgressDialog::setValue() */
@@ -200,6 +204,8 @@ protected:
 private:
   void setup(bool canCancel);
   void init(const QString& labelText);
+
+  KLFProgressReporter *pProgressReporter;
 
   bool pGotPaintEvent;
 };

@@ -49,7 +49,12 @@ public:
    */
   static inline KLFLibLegacyFileDataPrivate * instanceFor(const QString fname, bool starttimer)
   {
-    QString f = QFileInfo(fname).canonicalFilePath();
+    QString f = canonicalFilePath(fname);
+    klfDbg("fname="<<fname<<"; canonical f="<<f<<"; starttimer="<<starttimer) ;
+    if (f.isEmpty()) {
+      qWarning()<<KLF_FUNC_NAME<<": error getting canonical file path for "<<fname<<".";
+      return NULL;
+    }
     if (staticFileDataObjects.contains(f))
       return staticFileDataObjects[f];
     KLFLibLegacyFileDataPrivate *d = new KLFLibLegacyFileDataPrivate(f);
@@ -58,9 +63,42 @@ public:
     return d;
   }
 
+  /** Returns a path that will be "canonicalized", ie. two (string-wise) different paths pointing to the
+   * same file will have the same canonical path (eg. '..' entries simplified, symlinks resolved).
+   *
+   * Works for both existing and non-existing files. However for non-existing files the containing directory
+   * must exist.
+   *
+   * An empty string is returned to indicate an error (eg. containing directory does not exist).
+   */
+  static QString canonicalFilePath(const QString& fname)
+  {
+    QFileInfo fi(fname);
+    if (fi.exists())
+      return fi.canonicalFilePath();
+    // non-existing file. Rely on existing directory
+    QString containdir = fi.absolutePath();
+    klfDbg("non-existing file "<<fname<<": containing dir="<<containdir) ;
+    QFileInfo di(containdir);
+    if (!di.exists() || !di.isDir()) {
+      qWarning()<<KLF_FUNC_NAME<<": Path "<<fname<<": directory "<<containdir<<" does not exist.";
+      return QString();
+    }
+    QString canonical = QFileInfo(containdir).canonicalFilePath();
+    if (canonical.isEmpty()) {
+      qWarning()<<KLF_FUNC_NAME<<": Error getting "<<containdir<<"'s canonical path.";
+      return QString();
+    }
+    if (!canonical.endsWith("/"))
+      canonical += "/";
+    canonical += fi.fileName();
+    return canonical;
+  }
+
   /** Saves the file, removes this instance from the static instance list and deletes the timer. */
   ~KLFLibLegacyFileDataPrivate()
   {
+    klfDbg("destroying. Possibly save? haschanges="<<haschanges) ;
     if (haschanges)
       save();
 
@@ -151,12 +189,18 @@ public slots:
 
 private:
   KLFLibLegacyFileDataPrivate() { }
+
   KLFLibLegacyFileDataPrivate(const QString& fname) : refcount(0), filename(fname)
   {
+    klfDbg(" filename is "<<filename ) ;
+
     staticFileDataObjects[filename] = this;
 
     if (QFile::exists(fname))
       load(); // load the data
+
+    // by default, we're a .klf export type
+    legacyLibType = ExportLibraryType;
 
     // prepare the autosave timer
     autoSaveTimer = new QTimer(NULL);

@@ -239,9 +239,10 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
   { // add links for skins to what's new page
     QString s =
       tr("<p>Some new <b>interface skins</b> are available in this version. You may want "
-	  "to try the <a href=\"%1\">papyrus skin</a>, the <a href=\"%2\">galaxy skin</a>, "
-	  "the <a href=\"%3\">flat skin</a>, or the <a href=\"%4\">style-default skin</a>."
-	  "</p>", "[[help new features additional text]]")
+	 "to try the <a href=\"%1\">papyrus skin</a>, the <a href=\"%2\">galaxy skin</a>, "
+	 "the <a href=\"%3\">flat skin</a>, or fall back to the regular "
+	 "<a href=\"%4\">default skin</a>.</p>",
+	 "[[help new features additional text]]")
       .arg("klfaction:/skin_set?skin=:/plugindata/skin/skins/papyrus.xml",
 	   "klfaction:/skin_set?skin=:/plugindata/skin/skins/galaxy.xml",
 	   "klfaction:/skin_set?skin=:/plugindata/skin/skins/flat.xml",

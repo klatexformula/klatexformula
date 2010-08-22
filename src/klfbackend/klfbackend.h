@@ -251,6 +251,8 @@ public:
      *
      * This image does NOT contain any meta-data. Use saveOutputToFile() or saveOutputToDevice() to
      * include meta-data on the input parameters of the formula. */
+    QByteArray pngdata_raw;
+    /** the data for a png file (re-processed, with meta information on Qt4) */
     QByteArray pngdata;
     /** data for an (eps-)postscript file */
     QByteArray epsdata;

@@ -357,9 +357,13 @@ static void klf_config_write_list(QSettings &s, const QString& baseName, const Q
   klf_config_write(s, baseName, &vlist);
 }
 
-static QString firstRunConfigKey(const char * klf_version_string)
+static QString firstRunConfigKey()
 {
-  return QString("versionFirstRun_%1").arg(klf_version_string);
+  // new version, eg. show the "What's new in this version" dialog, requires change
+  // of at least the minor version.
+  // eg. change 3.1 -> 3.2
+  // but not 3.2.0 -> 3.2.1
+  return QString("versionFirstRun_%1.%2").arg(klfVersionMaj()).arg(klfVersionMin());
 }
 
 int KLFConfig::readFromConfig_v2()
@@ -369,7 +373,7 @@ int KLFConfig::readFromConfig_v2()
   qDebug("Reading base configuration");
 
   s.beginGroup("General");
-  klf_config_read(s, firstRunConfigKey(KLF_VERSION_STRING), &General.thisVersionFirstRun);
+  klf_config_read(s, firstRunConfigKey(), &General.thisVersionFirstRun);
   s.endGroup();
 
   s.beginGroup("Core");
@@ -473,7 +477,7 @@ int KLFConfig::writeToConfig()
 
   bool thisVersionFirstRunFalse = false;
   s.beginGroup("General");
-  klf_config_write(s, firstRunConfigKey(KLF_VERSION_STRING), &thisVersionFirstRunFalse);
+  klf_config_write(s, firstRunConfigKey(), &thisVersionFirstRunFalse);
   s.endGroup();
 
   s.beginGroup("Core");

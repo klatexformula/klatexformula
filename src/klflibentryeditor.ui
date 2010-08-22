@@ -136,7 +136,7 @@
          <x>0</x>
          <y>0</y>
          <width>300</width>
-         <height>249</height>
+         <height>298</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -272,7 +272,7 @@
          <x>0</x>
          <y>0</y>
          <width>300</width>
-         <height>249</height>
+         <height>298</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -336,6 +336,9 @@
           </property>
           <property name="text">
            <string/>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>

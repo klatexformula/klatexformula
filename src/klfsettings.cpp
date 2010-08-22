@@ -52,7 +52,7 @@
 #include "klfconfig.h"
 #include "klfmime.h"
 #include "klfpluginiface.h"
-#include "klflatexsyntaxhighlighter.h"
+#include "klflatexedit.h"
 #include "klfsettings.h"
 
 

@@ -196,8 +196,12 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
 #define KLF_DEBUG_TIME_BLOCK(msg)
 /** \brief Utility to debug the execution of a block
  *
- * \note KLF_DEBUG needs to be defined at compile-time to enable
- *   this feature. Otherwise, this macro is a no-op.
+ * Prints msg with \c ": block begin" when this macro is called, and prints msg with \c ": block end"
+ * at the end of the block. The end of the block is detected by creating an object on the stack
+ * and printing the message in that object's destructor.
+ *
+ * \note KLF_DEBUG needs to be defined at compile-time to enable this feature. Otherwise, this macro
+ *   is a no-op.
  *
  * This macro accepts a QString.
  *
@@ -209,9 +213,12 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
  *   if (failed) { // for example
  *     KLF_DEBUG_BLOCK(QString("%1: failed if-block").arg(KLF_FUNC_NAME)) ;
  *     ... // more fail treatment...
- *     return;
+ *     return;   // both end block messages will be printed here automatically
  *   }
- *   ... // no special instruction needed at end of block
+ *   if (go_no_further)
+ *     return;   // do_something() end block msg will be printed here automatically
+ *   ...
+ *   // no special instruction needed at end of block
  * }
  * \endcode
  */

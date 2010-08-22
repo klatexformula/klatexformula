@@ -886,18 +886,29 @@ public:
   virtual bool isReadyToOpen() const { return pReadyToOpen; }
 
   virtual QString selectedFName() const { return txtFile->text(); }
-  virtual QString selectedScheme() const {
+  virtual QString selectedScheme() const
+  {
     QString filename = selectedFName();
+    LocalFileType ft = fileTypeForFileName(filename);
+    if (!ft.scheme.isEmpty())
+      return ft.scheme;
+    // fall back to guessing the scheme with the file contents
+    return KLFLibBasicWidgetFactory::guessLocalFileScheme(filename);
+  }
+
+  LocalFileType fileTypeForFileName(const QString& filename) const
+  {
     QString fname = QFileInfo(filename).fileName();
     int k;
     for (k = 0; k < pFileTypes.size(); ++k) {
       // test for this file type
       QRegExp rgx(pFileTypes[k].filepattern, Qt::CaseInsensitive, QRegExp::Wildcard);
       if (rgx.exactMatch(fname))
-	return pFileTypes[k].scheme;
+	return pFileTypes[k];
     }
-    // fall back to guessing the scheme with the file contents
-    return KLFLibBasicWidgetFactory::guessLocalFileScheme(filename);
+    if (!pFileTypes.size())
+      return LocalFileType();
+    return pFileTypes[0];
   }
 
   virtual void setUrl(const QUrl& url) {
@@ -945,27 +956,53 @@ protected slots:
   {
     static QString selectedFilter;
 
+    QString path = txtFile->text();
+    if (path.isEmpty())
+      path = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+    QString pathfilter;
+    if (!QFileInfo(path).isDir()) {
+      LocalFileType pathft = fileTypeForFileName(path);
+      if (!pathft.filter.isEmpty())
+	pathfilter = pathft.filter;
+    }
+
     QStringList filters;
     QStringList fpatterns;
     int k;
+    int pathfilterN = -1;
     for (k = 0; k < pFileTypes.size(); ++k) {
       filters << pFileTypes[k].filter;
       fpatterns << pFileTypes[k].filepattern;
+      if (pFileTypes[k].filter == pathfilter)
+	pathfilterN = k; // remember this one
     }
-    if (bt == BrowseOpen)
-      filters.prepend(tr("All Known Files (%1)").arg(fpatterns.join(" "))); // only for opening
-    filters << tr("All Files (*)");
+    if (bt == BrowseOpen) {
+      // only when opening
+      // NOTE: this doesn't work for save when we want to preserve 'path's extension, because
+      //   Q(K?)FileDialog foolishly feels obliged to automatically force the first extension
+      //   in the patterns list.
+      if (pathfilterN >= 0)
+	filters.removeAt(pathfilterN);
+      filters.prepend(tr("All Known Files (%1)").arg(fpatterns.join(" ")));
+      if (pathfilterN >= 0)
+	filters.prepend(pathfilter);
+    } else {
+      if (pathfilterN >= 0) {
+	filters.removeAt(pathfilterN);
+	filters.prepend(pathfilter);
+      }
+    }
+    filters.append(tr("All Files (*)"));
     QString filter = filters.join(";;");
     QString title = tr("Select Library Resource File");
     QString name;
-    QString docs = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
     if (bt == BrowseOpen) {
-      name = QFileDialog::getOpenFileName(this, title, docs, filter, &selectedFilter);
+      name = QFileDialog::getOpenFileName(this, title, path, filter, &selectedFilter);
     } else if (bt == BrowseSave) {
-      name = QFileDialog::getSaveFileName(this, title, docs, filter, &selectedFilter);
+      name = QFileDialog::getSaveFileName(this, title, path, filter, &selectedFilter);
     } else {
       qWarning()<<"KLFLibLocalFileOpenWidget::browseFileName: bad bt="<<bt;
-      name = QFileDialog::getSaveFileName(this, title, docs, filter, &selectedFilter);
+      name = QFileDialog::getSaveFileName(this, title, path, filter, &selectedFilter);
     }
     if ( name.isEmpty() )
       return false;

@@ -70,7 +70,7 @@ p, li { white-space: pre-wrap; }
         <translation>A propos de KLatexFormula</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="18"/>
+        <location filename="obsolete/obsoletetext.cpp" line="15"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -120,7 +120,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;http://klatexformula.sourceforge.net/doc/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000bf;&quot;&gt;Documentation : http://klatexformula.sourceforge.net/doc/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="30"/>
+        <location filename="obsolete/obsoletetext.cpp" line="27"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -349,22 +349,24 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>KLFLatexSymbols</name>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="36"/>
+        <location filename="obsolete/obsoletetext.cpp" line="30"/>
         <source>Warning: failed to open file `%1&apos;!</source>
         <translation>Avertissement: Impossible d&apos;ouvrir le fichier `%1&apos; !</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="37"/>
+        <location filename="obsolete/obsoletetext.cpp" line="31"/>
         <source>Warning: KLFLatexSymbols: error reading cache file ! code=%1</source>
         <translation>Avertissement: KLFLatexSymbols: erreur de lecture du fichier cache ! code d&apos;erreur=%1</translation>
     </message>
     <message>
+        <location filename="obsolete/obsoletetext.cpp" line="32"/>
         <source>Can&apos;t save cache to file `%1&apos;!</source>
-        <translation type="obsolete">Impossible d&apos;enregistrer le fichier cache `%1&apos; !</translation>
+        <translation>Impossible d&apos;enregistrer le fichier cache `%1&apos; !</translation>
     </message>
     <message>
+        <location filename="obsolete/obsoletetext.cpp" line="33"/>
         <source>Warning: KLFLatexSymbols: error finding and reading cache file!</source>
-        <translation type="obsolete">Avertissement: KLFLatexSymbols: impossible de trouver et/ou de lire un fichier cache !</translation>
+        <translation>Avertissement: KLFLatexSymbols: impossible de trouver et/ou de lire un fichier cache !</translation>
     </message>
     <message>
         <location filename="../klflatexsymbols.ui" line="15"/>
@@ -544,7 +546,6 @@ p, li { white-space: pre-wrap; }
         <location filename="../klflibbrowser.cpp" line="1456"/>
         <location filename="../klflibbrowser.cpp" line="1460"/>
         <location filename="../klflibbrowser.cpp" line="1472"/>
-        <location filename="../klflibbrowser.cpp" line="1525"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
@@ -649,37 +650,29 @@ p, li { white-space: pre-wrap; }
         <translation>Impossible d&apos;ouvrir la ressource %1!</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1482"/>
-        <source>Library Database File (*.klf.db);;All Files (*)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../klflibbrowser.cpp" line="1501"/>
         <source>Overwrite?</source>
-        <translation>Ecraser ?</translation>
+        <translation type="obsolete">Ecraser ?</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1502"/>
         <source>The specified file already exists. Overwrite it?</source>
-        <translation>Le fichier existe déjà. L&apos;écraser ?</translation>
+        <translation type="obsolete">Le fichier existe déjà. L&apos;écraser ?</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1526"/>
         <source>Can&apos;t create resource %1!</source>
-        <translation>Impossible de créer la ressource %1!</translation>
+        <translation type="obsolete">Impossible de créer la ressource %1!</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1529"/>
+        <location filename="../klflibbrowser.cpp" line="1485"/>
         <source>Export %1</source>
         <translation>Exportation %1</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1588"/>
+        <location filename="../klflibbrowser.cpp" line="1544"/>
         <source>Exporting ... %3 (%1/%2)</source>
         <translation>Exportation en cours ... %3 (%1/%2)</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1647"/>
+        <location filename="../klflibbrowser.cpp" line="1603"/>
         <source>Hit Ctrl-F, Ctrl-S or / to search within the current resource</source>
         <translation>Tapez Ctrl-F, Ctrl-S ou / pour démarrer la recherche dans cette ressource</translation>
     </message>
@@ -1214,12 +1207,33 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibExportDialog</name>
     <message>
-        <location filename="../klflibbrowser_p.h" line="459"/>
         <source>klf_export.klf.db</source>
-        <translation>klf_exportation.klf.db</translation>
+        <translation type="obsolete">klf_exportation.klf.db</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser_p.h" line="569"/>
+        <location filename="../klflibbrowser_p.h" line="480"/>
+        <source>Extra Export Sub-Resource</source>
+        <comment>[[the default sub-resource name when creating export resource]]</comment>
+        <translatorcomment>not translated</translatorcomment>
+        <translation>Extra Export Sub-Resource</translation>
+    </message>
+    <message>
+        <location filename="../klflibbrowser_p.h" line="484"/>
+        <source>Error</source>
+        <translation>Erreur</translation>
+    </message>
+    <message>
+        <location filename="../klflibbrowser_p.h" line="485"/>
+        <source>Can&apos;t create resource %1!</source>
+        <translation>Impossible de créer la ressource %1!</translation>
+    </message>
+    <message>
+        <location filename="../klflibbrowser_p.h" line="510"/>
+        <source>%1/klatexformula_export_%2.klf</source>
+        <translation>%1/klatexformula_exportation_%2.klf</translation>
+    </message>
+    <message>
+        <location filename="../klflibbrowser_p.h" line="621"/>
         <source>Resource</source>
         <comment>[[export list title]]</comment>
         <translation>Ressource</translation>
@@ -1231,30 +1245,33 @@ Erreur: %3</translation>
         <translation>Exporter des Ressources</translation>
     </message>
     <message>
-        <location filename="../klflibexportdialog.ui" line="58"/>
         <source>Export to File:</source>
-        <translation>Exporter vers le fichier :</translation>
+        <translation type="obsolete">Exporter vers le fichier :</translation>
     </message>
     <message>
-        <location filename="../klflibexportdialog.ui" line="68"/>
         <source>Export to file</source>
         <extracomment>[[file dialog caption]]</extracomment>
-        <translation>Exporter vers un fichier</translation>
+        <translation type="obsolete">Exporter vers un fichier</translation>
     </message>
     <message>
-        <location filename="../klflibexportdialog.ui" line="91"/>
+        <location filename="../klflibexportdialog.ui" line="74"/>
         <source>Select the resources to export</source>
         <translation>Veuillez sélectionner les ressources à exporter</translation>
     </message>
     <message>
-        <location filename="../klflibexportdialog.ui" line="113"/>
+        <location filename="../klflibexportdialog.ui" line="96"/>
         <source>Select All</source>
         <translation>Tout sélectionner</translation>
     </message>
     <message>
-        <location filename="../klflibexportdialog.ui" line="120"/>
+        <location filename="../klflibexportdialog.ui" line="103"/>
         <source>Unselect All</source>
         <translation>Tout Déselectionner</translation>
+    </message>
+    <message>
+        <location filename="../klflibexportdialog.ui" line="132"/>
+        <source>Export to File</source>
+        <translation>Exporter vers un fichier</translation>
     </message>
 </context>
 <context>
@@ -1890,7 +1907,7 @@ Le chargement peut échouer.</translation>
         <translation>Effacer de la bibliothèque ?</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="42"/>
+        <location filename="obsolete/obsoletetext.cpp" line="35"/>
         <source>Are you sure you want to delete %1 selected item(s) from library?</source>
         <translation>Êtes-vous sûr de vouloir supprimer définitivement %1 formules sélectionnées de la bibliothèque ?</translation>
     </message>
@@ -1907,39 +1924,39 @@ Le chargement peut échouer.</translation>
 <context>
     <name>KLFMainWin</name>
     <message>
-        <location filename="../klfmainwin.cpp" line="496"/>
+        <location filename="../klfmainwin.cpp" line="495"/>
         <source>KLatexFormula %1</source>
         <translation>KLatexFormula %1</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="216"/>
+        <location filename="obsolete/obsoletetext.cpp" line="55"/>
         <location filename="../klfmainwin.cpp" line="1934"/>
         <source>default</source>
         <translation>par défaut</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="215"/>
-        <location filename="../klfmainwin.cpp" line="781"/>
+        <location filename="obsolete/obsoletetext.cpp" line="54"/>
+        <location filename="../klfmainwin.cpp" line="780"/>
         <location filename="../klfmainwin.cpp" line="1933"/>
         <source>Default</source>
         <translation>Par Défaut</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="473"/>
+        <location filename="../klfmainwin.cpp" line="472"/>
         <source>Your executable paths (latex, dvips, gs) seem not to be detected properly. Please adjust the settings in the &lt;a href=&quot;klfaction:/settings?control=ExecutablePaths&quot;&gt;settings dialog&lt;/a&gt;.</source>
         <comment>[[additional text in what&apos;s-new-dialog in case of bad detected settings. this is HTML formatted text.]]</comment>
         <translation>Les exécutables (latex, dvips, gs) semblent ne pas avoir été détectés correctement. Veuillez ajuster la configuration dans le &lt;a href=&quot;klfaction:/settings?control=ExecutablePaths&quot;&gt;panneau de paramètres&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="596"/>
+        <location filename="../klfmainwin.cpp" line="595"/>
         <source>Default</source>
         <comment>[[style name]]</comment>
         <translation>Par Défaut</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="745"/>
-        <location filename="../klfmainwin.cpp" line="752"/>
-        <location filename="../klfmainwin.cpp" line="797"/>
+        <location filename="../klfmainwin.cpp" line="744"/>
+        <location filename="../klfmainwin.cpp" line="751"/>
+        <location filename="../klfmainwin.cpp" line="796"/>
         <location filename="../klfmainwin.cpp" line="1750"/>
         <location filename="../klfmainwin.cpp" line="1833"/>
         <location filename="../klfmainwin.cpp" line="1901"/>
@@ -1950,78 +1967,78 @@ Le chargement peut échouer.</translation>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="47"/>
+        <location filename="obsolete/obsoletetext.cpp" line="37"/>
         <source>Can&apos;t install klatexformula.cls to temporary directory !</source>
         <translation>Impossible d&apos;installer klatexformula.cls vers le dossier temporaire !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="711"/>
+        <location filename="../klfmainwin.cpp" line="710"/>
         <source>Manage Styles</source>
         <translation>Gérer les styles</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="745"/>
+        <location filename="../klfmainwin.cpp" line="744"/>
         <source>Error: Unable to load your style list!</source>
         <translation>Erreur: Impossible de charger la liste de styles !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="752"/>
+        <location filename="../klfmainwin.cpp" line="751"/>
         <source>Error: Style file is incorrect or corrupt!
 </source>
         <translation>Erreur: Le fichier de styles est corrompu !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="758"/>
+        <location filename="../klfmainwin.cpp" line="757"/>
         <source>Load Styles</source>
         <translation>Chargement des styles</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="759"/>
+        <location filename="../klfmainwin.cpp" line="758"/>
         <source>The style file found was created by a more recent version of KLatexFormula.
 The process of style loading may fail.</source>
         <translation>Le fichier de styles trouvé a été écrit avec une version plus récente de KLatexFormula.
 Le chargement peut echouer.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="797"/>
+        <location filename="../klfmainwin.cpp" line="796"/>
         <source>Error: Unable to write to styles file!
 %1</source>
         <translation>Erreur: Impossible d&apos;écrire le fichier de styles !
 %1</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="48"/>
+        <location filename="obsolete/obsoletetext.cpp" line="38"/>
         <location filename="../klfliblegacyengine.cpp" line="285"/>
         <location filename="../klfliblegacyengine.cpp" line="287"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="49"/>
+        <location filename="obsolete/obsoletetext.cpp" line="39"/>
         <location filename="../klfliblegacyengine.cpp" line="290"/>
         <location filename="../klfliblegacyengine.cpp" line="292"/>
         <source>Archive</source>
         <translation>Archives</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="50"/>
+        <location filename="obsolete/obsoletetext.cpp" line="40"/>
         <source>Unable to open library file!</source>
         <translation>Impossible d&apos;ouvrir le fichier bibliothèque !</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="51"/>
+        <location filename="obsolete/obsoletetext.cpp" line="41"/>
         <source>Error: Library file is incorrect or corrupt!
 </source>
         <translation>Erreur: Le fichier de bibliothèque est corrompu !
 </translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="52"/>
+        <location filename="obsolete/obsoletetext.cpp" line="42"/>
         <source>Load Library</source>
         <translation>Chargement de la bibliothèque</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="53"/>
+        <location filename="obsolete/obsoletetext.cpp" line="43"/>
         <source>The library file found was created by a more recent version of KLatexFormula.
 The process of library loading may fail.</source>
         <oldsource>The library file found was created by a more recent version of KLatexFormula.</oldsource>
@@ -2029,7 +2046,7 @@ The process of library loading may fail.</source>
 Le chargement peut echouer.</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="54"/>
+        <location filename="obsolete/obsoletetext.cpp" line="44"/>
         <source>Unable to load your formula history list!</source>
         <translation>Erreur: Impossible de charger l&apos;historique !</translation>
     </message>
@@ -2217,7 +2234,7 @@ Le chargement peut echouer.</translation>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="341"/>
+        <location filename="../klfmainwin.cpp" line="340"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
@@ -2442,26 +2459,26 @@ Le chargement peut echouer.</translation>
         <translation>Effacer le champ ci-dessus, et appliquer le style par défaut</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="55"/>
+        <location filename="obsolete/obsoletetext.cpp" line="45"/>
         <source>Error: History file is incorrect or corrupt!
 </source>
         <translation>Erreur: Le fichier de bibliothèque est corrompu !
 </translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="56"/>
+        <location filename="obsolete/obsoletetext.cpp" line="46"/>
         <source>Load History</source>
         <translation>Chargement de l&apos;historique</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="57"/>
+        <location filename="obsolete/obsoletetext.cpp" line="47"/>
         <source>The history file found was created by a more recent version of KLatexFormula.
 The process of history loading may fail.</source>
         <translation>Le fichier d&apos;historique trouvé a été écrit avec une version plus récente de KLatexFormula.
 Le chargement peut echouer.</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="58"/>
+        <location filename="obsolete/obsoletetext.cpp" line="48"/>
         <source>Error: Unable to write to library file `%1&apos;!</source>
         <translation>Erreur: Impossible d&apos;écrire dans le fichier bibliothèque `%1&apos; !</translation>
     </message>
@@ -2471,30 +2488,30 @@ Le chargement peut echouer.</translation>
         <translation>Etes-vous sûr d&apos;avoir configuré correctement les chemins d&apos;accès aux programmes dans la fenêtre de paramètres ?</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="59"/>
+        <location filename="obsolete/obsoletetext.cpp" line="49"/>
         <source>Failed open for ToolTip Temp Image!
 %1</source>
         <translation>Impossible d&apos;ouvrir le fichier temporaire pour le tooltip !
 %1</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="60"/>
+        <location filename="obsolete/obsoletetext.cpp" line="50"/>
         <source>Failed write to ToolTip Temp Image file %1!</source>
         <translation>Impossible d&apos;écrire dans le fichier temporaire pour le tooltip %1 !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="854"/>
+        <location filename="../klfmainwin.cpp" line="853"/>
         <source>History</source>
         <comment>[[default sub-resource title for history]]</comment>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="862"/>
+        <location filename="../klfmainwin.cpp" line="861"/>
         <source>Local Library</source>
         <translation>Bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="865"/>
+        <location filename="../klfmainwin.cpp" line="864"/>
         <source>Archive</source>
         <comment>[[default sub-resource title for archive sub-resource]]</comment>
         <translation>Archives</translation>
@@ -2663,17 +2680,17 @@ Ecraser ?</translation>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="61"/>
+        <location filename="obsolete/obsoletetext.cpp" line="51"/>
         <source>Sorry, format `%1&apos; is not available.</source>
         <translation>Désolé, le format `%1&apos; n&apos;est pas disponible.</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="62"/>
+        <location filename="obsolete/obsoletetext.cpp" line="52"/>
         <source>Error: Can&apos;t write to file %1!</source>
         <translation>Erreur : Impossible d&apos;écrire dans le fichier `%1&apos; !</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="63"/>
+        <location filename="obsolete/obsoletetext.cpp" line="53"/>
         <source>Created with KLatexFormula version %1</source>
         <translation>Créé par KLatexFormula version %1</translation>
     </message>
@@ -2728,7 +2745,7 @@ Ecraser ?</translation>
 <context>
     <name>KLFMainWinUI</name>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="69"/>
+        <location filename="obsolete/obsoletetext.cpp" line="57"/>
         <source>KLatexFormula</source>
         <comment>window title</comment>
         <translation>KLatexFormula</translation>
@@ -2761,7 +2778,7 @@ Ecraser ?</translation>
         <translation>Ctrl+C</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="70"/>
+        <location filename="obsolete/obsoletetext.cpp" line="58"/>
         <source>Evaluate LaTeX Expression [Shift-Enter]</source>
         <comment>tooltip</comment>
         <translation>Evaluer l&apos;expression LaTeX [Shift-Enter]</translation>
@@ -2782,7 +2799,7 @@ Ecraser ?</translation>
         <translation type="obsolete">Alt+A</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="71"/>
+        <location filename="obsolete/obsoletetext.cpp" line="59"/>
         <source>Show Latex Symbols palette</source>
         <comment>tooltip</comment>
         <translation>Afficher la palette de symboles LaTeX</translation>
@@ -2806,7 +2823,7 @@ Ecraser ?</translation>
         <translation>Ouvre une fênetre avec la bibliothèque de formules précédemment rendues (historique) et sauvegardées et organisées (archives).</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="72"/>
+        <location filename="obsolete/obsoletetext.cpp" line="60"/>
         <source>Toggle shrinked/expanded mode</source>
         <comment>tooltip</comment>
         <translation>Basculer mode étendu ou simple</translation>
@@ -3078,7 +3095,7 @@ Ecraser ?</translation>
 <context>
     <name>KLFPathChooser</name>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="12"/>
+        <location filename="obsolete/obsoletetext.cpp" line="13"/>
         <location filename="../klftools/klfpathchooser.cpp" line="48"/>
         <source>Browse</source>
         <translation>Parcourir</translation>
@@ -3149,12 +3166,12 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>KLFProgressDialog</name>
     <message>
-        <location filename="../klftools/klfguiutil.cpp" line="94"/>
+        <location filename="../klftools/klfguiutil.cpp" line="95"/>
         <source>Progress</source>
         <translation>En cours ...</translation>
     </message>
     <message>
-        <location filename="../klftools/klfguiutil.cpp" line="95"/>
+        <location filename="../klftools/klfguiutil.cpp" line="96"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
@@ -3162,64 +3179,64 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>KLFSettings</name>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="87"/>
+        <location filename="obsolete/obsoletetext.cpp" line="71"/>
         <source>Main editor font sample - click to change</source>
         <translation>Police de l&apos;éditeur principal - cliquer pour changer</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="88"/>
+        <location filename="obsolete/obsoletetext.cpp" line="72"/>
         <source>Preamble editor font sample - click to change</source>
         <translation>Police de l&apos;éditeur secondaire - cliquer pour changer</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="89"/>
+        <location filename="obsolete/obsoletetext.cpp" line="73"/>
         <source>Preview Size</source>
         <translation>Taille de la prévisualisation</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="90"/>
+        <location filename="obsolete/obsoletetext.cpp" line="74"/>
         <source>Maximum Size of Preview Tooltip on LaTeX formula display</source>
         <translation>Taille maximale de l&apos;info-bulle de prévisualisation</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="91"/>
+        <location filename="obsolete/obsoletetext.cpp" line="75"/>
         <source>System E&amp;xecutables and paths</source>
         <translation>Chemins d&apos;a&amp;ccès système</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="92"/>
+        <location filename="obsolete/obsoletetext.cpp" line="76"/>
         <source>A&amp;dvanced settings</source>
         <translation>&amp;Paramètres avancés</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="78"/>
+        <location filename="obsolete/obsoletetext.cpp" line="62"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="79"/>
+        <location filename="obsolete/obsoletetext.cpp" line="63"/>
         <source>Apply</source>
         <translation>Appliquer</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="80"/>
+        <location filename="obsolete/obsoletetext.cpp" line="64"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="81"/>
+        <location filename="obsolete/obsoletetext.cpp" line="65"/>
         <source>English Default</source>
         <comment>[[first item of language graphical choice box]]</comment>
         <translation>Anglais par défaut</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="82"/>
+        <location filename="obsolete/obsoletetext.cpp" line="66"/>
         <source>%1 (%2)</source>
         <comment>[[%1=Language (%2=Country)]]</comment>
         <translation>%1 (%2)</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="83"/>
+        <location filename="obsolete/obsoletetext.cpp" line="67"/>
         <source>%1</source>
         <comment>[[%1=Language, no country is specified]]</comment>
         <translation>%1</translation>
@@ -3270,12 +3287,12 @@ p, li { white-space: pre-wrap; }
         <translation>Vérifiez votre installation et spécifiez le chemin à l&apos;exécutable `%1&apos; manuellement s&apos;il n&apos;est pas dans $PATH.</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="84"/>
+        <location filename="obsolete/obsoletetext.cpp" line="68"/>
         <source>Could not find `%1&apos; executable !</source>
         <translation>Impossible de trouver l&apos;exécutable `%1&apos; !</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="85"/>
+        <location filename="obsolete/obsoletetext.cpp" line="69"/>
         <source>Please check your installation and specify the path to `%1&apos; executable manually if it is not installed in $PATH.</source>
         <translation>Vérifiez votre installation et spécifiez le chemin à l&apos;exécutable `%1&apos; manuellement s&apos;il n&apos;est pas dans $PATH.</translation>
     </message>
@@ -3283,13 +3300,13 @@ p, li { white-space: pre-wrap; }
         <location filename="../klfsettings.cpp" line="82"/>
         <source>Top to Bottom</source>
         <translatorcomment>not literally translated, kept idea though</translatorcomment>
-        <translation>En colonnes</translation>
+        <translation>Défilement horizontal</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="82"/>
         <source>Left to Right</source>
         <translatorcomment>not literally translated, kept idea though</translatorcomment>
-        <translation>En lignes</translation>
+        <translation>Défilement vertical</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="434"/>
@@ -3438,7 +3455,7 @@ Version actuelle: %2</translation>
         <translation>Il sera peut-être nécessaire de redémarrer KLatexFormula pour complètement prendre en compte le changement de langue.</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="86"/>
+        <location filename="obsolete/obsoletetext.cpp" line="70"/>
         <source>You need to restart KLatexFormula for your new language settings to take effect.</source>
         <translation>Veuillez redémarrer KLatexFormula pour prendre en compte le changement de langue.</translation>
     </message>
@@ -3620,7 +3637,7 @@ Version actuelle: %2</translation>
     </message>
     <message>
         <location filename="../klfsettings.ui" line="858"/>
-        <location filename="obsolete/obsoletetext.cpp" line="93"/>
+        <location filename="obsolete/obsoletetext.cpp" line="77"/>
         <source>I  </source>
         <translation>I  </translation>
     </message>
@@ -4286,17 +4303,17 @@ Version actuelle: %2</translation>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="98"/>
+        <location filename="obsolete/obsoletetext.cpp" line="79"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="99"/>
+        <location filename="obsolete/obsoletetext.cpp" line="80"/>
         <source>Can&apos;t create local directory `%1&apos; !</source>
         <translation>Impossible de créer le dossier %1 !</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="100"/>
+        <location filename="obsolete/obsoletetext.cpp" line="81"/>
         <source>Can&apos;t make local config directory `%1&apos; !</source>
         <translation>Impossible de créer le dossier local de configuration %1 !</translation>
     </message>
@@ -4334,7 +4351,7 @@ Version actuelle: %2</translation>
         <translation>Veuillez patienter pendant le programme génère les prévisualisations de la palette de symboles ...</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="101"/>
+        <location filename="obsolete/obsoletetext.cpp" line="82"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
@@ -4345,7 +4362,7 @@ Version actuelle: %2</translation>
         <translation>[ pas de catégorie ]</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="102"/>
+        <location filename="obsolete/obsoletetext.cpp" line="83"/>
         <source>Warning: Ignoring --input when --latexinput is given.
 </source>
         <translation>Avertissement: l&apos;option --input n&apos;est pas prise en compte lorsque l&apos;option --latexinput est fournie.
@@ -4583,7 +4600,7 @@ REMARQUES
 %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="330"/>
+        <location filename="../main.cpp" line="331"/>
         <source>--paste-{clipboard|selection} requires interactive mode. Ignoring option.</source>
         <translation>--paste-{clipboard|selection} ne fonctionne qu&apos;en mode interactif. Cette option sera ignorée.</translation>
     </message>
@@ -4614,45 +4631,45 @@ REMARQUES
         <translation>Impossible de lire le fichier `%1&apos;.</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="103"/>
+        <location filename="obsolete/obsoletetext.cpp" line="84"/>
         <source>Error: Can&apos;t read standard input (!)
 </source>
         <translation>Erreur: Impossible de lire l&apos;entrée standard (!)
 </translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="104"/>
+        <location filename="obsolete/obsoletetext.cpp" line="85"/>
         <source>Error: Can&apos;t read input file `%1&apos;.
 </source>
         <translation>Erreur : Impossible de lire le fichier `%1&apos; .</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="105"/>
+        <location filename="obsolete/obsoletetext.cpp" line="86"/>
         <source>Unable to open stderr for write! Error: %1
 </source>
         <translation>Impossible d&apos;écrire dans stderr ! Erreur %1</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="106"/>
+        <location filename="obsolete/obsoletetext.cpp" line="87"/>
         <source>Unable to write to file `%1&apos;! Error: %2
 </source>
         <translation>Erreur: Impossible d&apos;écrire dans le fichier %1 ! Erreur %2
 </translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="107"/>
+        <location filename="obsolete/obsoletetext.cpp" line="88"/>
         <source>PDF format is not available!
 </source>
         <translation>Le format PDF n&apos;est pas disponible !</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="108"/>
+        <location filename="obsolete/obsoletetext.cpp" line="89"/>
         <source>Unable to save image to file `%1&apos; in format `%2&apos;!
 </source>
         <translation>Impossible de savegarder l&apos;image `%1&apos; au format `%2&apos; !</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="109"/>
+        <location filename="obsolete/obsoletetext.cpp" line="90"/>
         <source>Warning: Ignoring --input since --latexinput is given.
 </source>
         <translation>Avertissement: l&apos;option --input n&apos;est pas prise en compte lorsque l&apos;option --latexinput est fournie.
@@ -4715,7 +4732,7 @@ REMARQUES
         <translation>L&apos;ouverture du fichier « %1 » en écriture a échoué !</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="110"/>
+        <location filename="obsolete/obsoletetext.cpp" line="91"/>
         <source>Unable to start Latex program!</source>
         <comment>KLFBackend</comment>
         <translation>L&apos;exécution du programme latex a échoué !</translation>
@@ -4902,7 +4919,7 @@ REMARQUES
         <translation>Créé avec KLatexFormula version %1</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="111"/>
+        <location filename="obsolete/obsoletetext.cpp" line="92"/>
         <source>Unable to save image to file `%1&apos; in format `%2&apos;!
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
@@ -4933,7 +4950,7 @@ REMARQUES
         <translation>Français</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="116"/>
+        <location filename="obsolete/obsoletetext.cpp" line="93"/>
         <source>
 KLatexFormula by Philippe Faist
 
@@ -5287,13 +5304,18 @@ NOTES
         <translation>Personalisez l&apos;apparence de KLatexFormula</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="241"/>
         <source>&lt;p&gt;Some new &lt;b&gt;interface skins&lt;/b&gt; are available in this version. You may want to try the &lt;a href=&quot;%1&quot;&gt;papyrus skin&lt;/a&gt;, the &lt;a href=&quot;%2&quot;&gt;galaxy skin&lt;/a&gt;, the &lt;a href=&quot;%3&quot;&gt;flat skin&lt;/a&gt;, or the &lt;a href=&quot;%4&quot;&gt;style-default skin&lt;/a&gt;.&lt;/p&gt;</source>
         <comment>[[help new features additional text]]</comment>
-        <translation>&lt;p&gt;Des nouveaux &lt;b&gt;thèmes d&apos;interface&lt;/b&gt; sont disponibles dans cette version. Vous pouvez essayer le &lt;a href=&quot;%1&quot;&gt;thème &amp;quot;papyrus&amp;quot;&lt;/a&gt;, le &lt;a href=&quot;%2&quot;&gt;thème &amp;quot;galaxy&amp;quot;&lt;/a&gt;, le &lt;a href=&quot;%3&quot;&gt;thème &amp;quot;plat&amp;quot;&lt;/a&gt; ou le thème &lt;a href=&quot;%4&quot;&gt;par défaut&lt;/a&gt;.&lt;/p&gt;</translation>
+        <translation type="obsolete">&lt;p&gt;Des nouveaux &lt;b&gt;thèmes d&apos;interface&lt;/b&gt; sont disponibles dans cette version. Vous pouvez essayer le &lt;a href=&quot;%1&quot;&gt;thème &amp;quot;papyrus&amp;quot;&lt;/a&gt;, le &lt;a href=&quot;%2&quot;&gt;thème &amp;quot;galaxy&amp;quot;&lt;/a&gt;, le &lt;a href=&quot;%3&quot;&gt;thème &amp;quot;plat&amp;quot;&lt;/a&gt; ou le thème &lt;a href=&quot;%4&quot;&gt;par défaut&lt;/a&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="304"/>
+        <location filename="../plugins/skin/skin.cpp" line="241"/>
+        <source>&lt;p&gt;Some new &lt;b&gt;interface skins&lt;/b&gt; are available in this version. You may want to try the &lt;a href=&quot;%1&quot;&gt;papyrus skin&lt;/a&gt;, the &lt;a href=&quot;%2&quot;&gt;galaxy skin&lt;/a&gt;, the &lt;a href=&quot;%3&quot;&gt;flat skin&lt;/a&gt;, or fall back to the regular &lt;a href=&quot;%4&quot;&gt;default skin&lt;/a&gt;.&lt;/p&gt;</source>
+        <comment>[[help new features additional text]]</comment>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../plugins/skin/skin.cpp" line="305"/>
         <source>Applying skin &lt;i&gt;%1&lt;/i&gt;, please wait ...</source>
         <translation>Application du thème &lt;i&gt;%1&lt;/i&gt;, veuillez patienter ...</translation>
     </message>
