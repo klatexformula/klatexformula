@@ -31,7 +31,12 @@
 #include <qfileinfo.h>
 #include <qregexp.h>
 
+#ifdef KLFBACKEND_QT4
+#include <QDebug>
+#endif
+
 #include "klfdefs.h"
+
 
 static char __klf_version_string[] = KLF_VERSION_STRING;
 
@@ -188,15 +193,20 @@ KLFDebugBlockTimer::~KLFDebugBlockTimer()
 }
 
 
-#if defined(KLFBACKEND_QT4) && defined(KLF_DEBUG)
 KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * shorttime)
 {
+#if defined(KLFBACKEND_QT4) && defined(KLF_DEBUG)
   if (shorttime == NULL)
     return dbg.nospace()<<funcname<<"(): ";
   else
     return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"(): ";
-}
+#else
+  Q_UNUSED(funcname) ;
+  Q_UNUSED(shorttime) ;
+
+  return dbg; // do nothing (not debug mode)
 #endif
+}
 
 
 
@@ -379,10 +389,10 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
     entries = d.entryList(pathlist[level]);
 #endif
     QStringList hitlist;
-    for (k = 0; k < entries.size(); ++k) {
+    for (k = 0; k < (int)entries.size(); ++k) {
       newpathlist[level] = entries[k];
       hitlist += __search_find_test(root, newpathlist, level+1, limit - hitlist.size());
-      if (limit >= 0 && hitlist.size() >= limit) // reached limit
+      if (limit >= 0 && (int)hitlist.size() >= limit) // reached limit
 	break;
     }
     return hitlist;
@@ -428,9 +438,9 @@ KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path)
   const QStringList paths = SPLIT_STRING(path, pathsep, true);
   QString test;
   int k, j;
-  for (k = 0; k < paths.size(); ++k) {
+  for (k = 0; k < (int)paths.size(); ++k) {
     QStringList hits = klfSearchFind(paths[k]+"/"+prog);
-    for (j = 0; j < hits.size(); ++j) {
+    for (j = 0; j < (int)hits.size(); ++j) {
       if ( QFileInfo(hits[j]).isExecutable() ) {
 	return hits[j];
       }

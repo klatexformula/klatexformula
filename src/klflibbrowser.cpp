@@ -83,10 +83,10 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pResourceMenu->addAction(u->aRenameSubRes);
   pResourceMenu->addAction(u->aProperties);
   pResourceMenu->addSeparator();
+  pResourceMenu->addAction(u->aViewType);
+  pResourceMenu->addSeparator();
   pResourceMenu->addAction(u->aNewSubRes);
   pResourceMenu->addAction(u->aOpenSubRes);
-  pResourceMenu->addSeparator();
-  pResourceMenu->addAction(u->aViewType);
   pResourceMenu->addSeparator();
   pResourceMenu->addAction(u->aNew);
   pResourceMenu->addAction(u->aOpen);

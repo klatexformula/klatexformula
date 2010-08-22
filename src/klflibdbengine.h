@@ -120,13 +120,8 @@ public:
   virtual bool hasEntry(const QString&, entryId id);
   virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList,
 					   const QList<int>& wantedEntryProperties = QList<int>());
-  virtual int findEntries(const QString& subResource,
-			  const EntryMatchCondition& matchcondition,
-			  QList<KLFLib::entryId> * entryIdList,
-			  int limit = 500,
-			  KLFLibEntryList *rawEntryList = NULL,
-			  QList<KLFLibEntryWithId> * entryWithIdList = NULL,
-			  const QList<int>& wantedEntryProperties = QList<int>());
+
+  virtual int query(const QString& subResource, const Query& query, QueryResult *result);
 
   virtual KLFLibEntry entry(const QString& subRes, entryId id);
   virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes,

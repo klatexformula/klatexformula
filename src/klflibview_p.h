@@ -134,15 +134,21 @@ public:
   struct Node {
     Node(ItemKind k) : kind(k), parent(NodeId()), children(QList<NodeId>()), numDisplayFetched(0) { }
     Node(const Node& other) : kind(other.kind), parent(other.parent), children(other.children),
-			      numDisplayFetched(other.numDisplayFetched) { }
+			      allChildrenFetched(false), numDisplayFetched(other.numDisplayFetched) { }
     virtual ~Node() { }
     ItemKind kind;
     NodeId parent;
     QList<NodeId> children;
+    /** \brief TRUE if all the children of this node have been fetched and stored into \c children,
+     * FALSE if possibly there may be more children, we may need to query the resource. */
+    bool allChildrenFetched;
     int numDisplayFetched;
   };
   struct EntryNode : public Node {
-    EntryNode() : Node(EntryKind), entryid(-1), minimalist(false), entry() { }
+    EntryNode() : Node(EntryKind), entryid(-1), minimalist(false), entry()
+    {
+      allChildrenFetched = true; // no children anyway
+    }
     KLFLib::entryId entryid;
     /** if TRUE, 'entry' only holds category/tags/datetime/latex/previewsize, no pixmap, no style. */
     bool minimalist;
@@ -215,9 +221,10 @@ public:
 
   void updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType);
 
-  /** emits QAbstractItemModel-appropriate LAYOUT CHANGES SIGNALS if \c notifyQtApi is true. IT ALWAYS
-   * EMITS APPROPRIATE SIGNALS FOR SUB-CATEGORIES THAT ARE CREATED TO FIT THE ITEM. */
-  void treeInsertEntry(const NodeId& e, bool notifyQtApi = true);
+  /** emits QAbstractItemModel-appropriate beginInsertRows()/endInsertRows() if \c notifyQtApi is
+   * true. Those signals are also emitted (if \c notifyQtApi is true) when category labels are
+   * created to fit the node. */
+  void treeInsertEntry(const NodeId& e, bool notifyQtApi = true, bool appendOnly = false);
   /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true
    *
    * This function sets the entryId of the removed entry to -1 so that it cannot be re-found in a

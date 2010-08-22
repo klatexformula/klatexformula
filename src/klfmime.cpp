@@ -24,7 +24,6 @@
 #include <QDebug>
 #include <QApplication>
 #include <QMap>
-#include <QCryptographicHash>
 #include <QUrl>
 #include <QBuffer>
 #include <QDir>
@@ -72,13 +71,18 @@ QList<KLFMimeExporter *> KLFMimeExporter::mimeExporterList()
 }
 
 // static
-void KLFMimeExporter::addMimeExporter(KLFMimeExporter *exporter, bool overrides)
+void KLFMimeExporter::registerMimeExporter(KLFMimeExporter *exporter, bool overrides)
 {
   initMimeExporterList();
   if (overrides)
     p_mimeExporterList.push_front(exporter);
   else
     p_mimeExporterList.push_back(exporter);
+}
+// static
+void KLFMimeExporter::unregisterMimeExporter(KLFMimeExporter *exporter)
+{
+  p_mimeExporterList.removeAll(exporter);
 }
 
 // static
@@ -374,7 +378,10 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     } else {
       // profile already exists, append data to it
       KLFMimeExportProfile oldp = p_exportProfileList[kp];
-      description = oldp.description()+"; "+description; // concatenate the descriptions
+      if (!description.isEmpty())
+	description = oldp.description()+"; "+description; // concatenate the descriptions
+      else
+	description = oldp.description();
 
       KLFMimeExportProfile finalp(pname, description,
 				  oldp.mimeTypes()+mimetypes, // concatenate lists
@@ -526,7 +533,7 @@ QByteArray KLFMimeExporterImage::data(const QString& keymime, const KLFBackend::
 
 // ---------------------------------------------------------------------
 
-QMap<QByteArray,QString> KLFMimeExporterUrilist::tempFilesForImageMD5 = QMap<QByteArray,QString>();
+QMap<qint64,QString> KLFMimeExporterUrilist::tempFilesForImageCacheKey = QMap<qint64,QString>();
 
 QStringList KLFMimeExporterUrilist::keys() const
 {
@@ -535,13 +542,12 @@ QStringList KLFMimeExporterUrilist::keys() const
 
 QByteArray KLFMimeExporterUrilist::data(const QString& /*key*/, const KLFBackend::klfOutput& output)
 {
-  // make an MD5-hash of the image to uniquely identify this output
-  QByteArray imgmd5 = QCryptographicHash::hash(output.pngdata, QCryptographicHash::Md5);
+  qint64 imgcachekey = output.result.cacheKey();
 
   QString tempfilename;
 
-  if (tempFilesForImageMD5.contains(imgmd5)) {
-    tempfilename = tempFilesForImageMD5[imgmd5];
+  if (tempFilesForImageCacheKey.contains(imgcachekey)) {
+    tempfilename = tempFilesForImageCacheKey[imgcachekey];
   } else {
     QString templ = klfconfig.BackendSettings.tempDir +
       QString("/klf_%1_XXXXXX.png").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm"));
@@ -561,7 +567,7 @@ QByteArray KLFMimeExporterUrilist::data(const QString& /*key*/, const KLFBackend
 	tempfile->write(output.pngdata);
 	tempfile->close();
 	// cache this temp file for other formats' use or other QMimeData instantiation...
-	tempFilesForImageMD5[imgmd5] = tempfilename;
+	tempFilesForImageCacheKey[imgcachekey] = tempfilename;
       }
     }
   }

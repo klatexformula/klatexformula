@@ -107,7 +107,7 @@ set(klfapp_HEADERS
 	klfconfig.h
 	klfpluginiface.h
 	klflib_p.h
-	${klatexformula_MOCHEADERS}
+	${klfapp_MOCHEADERS}
 )
 # UI Forms
 set(klfapp_UIS
@@ -159,8 +159,8 @@ if(KLF_DEBUG_USE_MODELTEST)
   )
 endif(KLF_DEBUG_USE_MODELTEST)
 
-KLFInstHeaders(klatexformula_INSTHEADERS "${klatexformula_HEADERS}")
-list(REMOVE_ITEM klatexformula_INSTHEADERS
+KLFInstHeaders(klfapp_INSTHEADERS "${klfapp_HEADERS}")
+list(REMOVE_ITEM klfapp_INSTHEADERS
 	# list more private headers here
 	qtcolortriangle.h
 )

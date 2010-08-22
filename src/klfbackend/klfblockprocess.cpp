@@ -30,6 +30,7 @@
 KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)
 {
 #ifdef KLFBACKEND_QT4
+  mProcessAppEvents = true;
   connect(this, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ourProcExited()));
 #else
   connect(this, SIGNAL(wroteToStdin()), this, SLOT(ourProcGotOurStdinData()));
@@ -94,13 +95,19 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   // slot ourProcGotOutStdinData() should be called, which closes input
 #endif
 
-  while (_runstatus == 0) {
 #ifdef KLFBACKEND_QT4
-    qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-#else
-    qApp->eventLoop()->processEvents(QEventLoop::ExcludeUserInput);
-#endif
+  if (mProcessAppEvents) {
+    while (_runstatus == 0) {
+      qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    }
+  } else {
+    waitForFinished();
   }
+#else
+  while (_runstatus == 0) {
+    qApp->processEvents(QEventLoop::ExcludeUserInput);
+  }
+#endif
 
   if (_runstatus < 0) { // some error occurred somewhere
     return false;

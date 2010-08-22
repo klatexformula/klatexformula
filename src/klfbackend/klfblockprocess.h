@@ -67,6 +67,13 @@ public:
   /** Normal destructor */
   ~KLFBlockProcess();
 
+#ifdef KLFBACKEND_QT4
+  /** Qt4 ONLY: specify whether or not to call regularly qApp->processEvents() while executing.
+   * This will prevent the GUI to freeze. Enabled is the default. However you can choose to
+   * disable this behavior by passing FALSE here. */
+  inline void setProcessAppEvents(bool processAppEvents) { mProcessAppEvents = processAppEvents; }
+#endif
+
   /** Returns all standard error output as a QByteArray. This function is to standardize the
    * readStderr() and readAllStandardError() functions in QT 3 or QT 4 respectively */
   QByteArray getAllStderr() {
@@ -87,16 +94,23 @@ public:
 #endif
   }
 
+  /** A function that normalizes Qt3 and Qt4 api: Qt3: normalExit(), Qt4: exitStatus()==NormalExit */
+  bool processNormalExit() const {
 #ifdef KLFBACKEND_QT4
-  /** Tweak here to change new QT4 api to old QT3 api */
-  bool normalExit() const {
     return QProcess::exitStatus() == NormalExit;
-  }
-  /** Tweak here to change new QT4 api to old QT3 api */
-  int exitStatus() const {
-    return exitCode();
-  }
+#else
+    return normalExit();
 #endif
+  }
+
+  /** A function that normalizes Qt3 and Qt4 api: Qt3: exitStatus(), Qt4: exitCode() */
+  int processExitStatus() const {
+#ifdef KLFBACKEND_QT4
+    return exitCode();
+#else
+    return exitStatus();
+#endif
+  }
 
 
 public slots:
@@ -105,7 +119,7 @@ public slots:
    * loop is updated regularly so that the GUI doesn't freeze.
    *
    * Read result with QProcess::readStdout() and QProcess::readStderr(),
-   * get process exit info with QProcess::normalExit() and QProcess::exitStatus().
+   * get process exit info with processNormalExit() and processExitStatus().
    *
    * \returns TRUE upon success, FALSE upon failure.
    */
@@ -157,6 +171,9 @@ private slots:
 
 private:
   bool _runstatus;
+#ifdef KLFBACKEND_QT4
+  bool mProcessAppEvents;
+#endif
 };
 
 #endif

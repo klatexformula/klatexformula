@@ -85,6 +85,7 @@ int opt_dpi = -1;
 char *opt_mathmode = NULL;
 char *opt_preamble = NULL;
 bool opt_quiet = false;
+bool opt_daemonize = false;
 
 int opt_outlinefonts = -1;
 int opt_lborderoffset = -1;
@@ -131,6 +132,7 @@ enum {
   OPT_MATHMODE = 'm',
   OPT_PREAMBLE = 'p',
   OPT_QUIET = 'q',
+  OPT_DAEMONIZE = 'd',
 
   OPT_HELP = 'h',
   OPT_VERSION = 'V',
@@ -164,8 +166,9 @@ static struct option klfcmdl_optlist[] = {
   { "mathmode", 1, NULL, OPT_MATHMODE },
   { "preamble", 1, NULL, OPT_PREAMBLE },
   { "quiet", 1, NULL, OPT_QUIET },
+  { "daemonize", 0, NULL, OPT_DAEMONIZE },
   // -----
-  { "outlinefonts", 1, NULL, OPT_OUTLINEFONTS },
+  { "outlinefonts", 2 /*optional arg*/, NULL, OPT_OUTLINEFONTS },
   { "lborderoffset", 1, NULL, OPT_LBORDEROFFSET },
   { "tborderoffset", 1, NULL, OPT_TBORDEROFFSET },
   { "rborderoffset", 1, NULL, OPT_RBORDEROFFSET },
@@ -186,8 +189,8 @@ static struct option klfcmdl_optlist[] = {
 };
 
 // list of short options
-static char klfcmdl_optstring[] = "Ii:l:PSBo:F:f:b:X:m:p:qhVQ";
-/** \todo build dynamically klfcmdl_optstring from klfcmdl_optlist at top of main()......... */
+//static char klfcmdl_optstring[] = "Ii:l:PSBo:F:f:b:X:m:p:qdhVQ";
+// / ** \todo build dynamically klfcmdl_optstring from klfcmdl_optlist at top of main()......... * /
 
 
 // TRAP SIGINT SIGNAL AND EXIT GRACEFULLY
@@ -659,6 +662,7 @@ void main_setup_app(QCoreApplication *a)
 
 int main(int argc, char **argv)
 {
+  int k;
   klfDbgT("$$main()$$") ;
 
   qInstallMsgHandler(klf_qt_message);
@@ -680,8 +684,84 @@ int main(int argc, char **argv)
   }
 
   if ( opt_interactive ) {
+    // save the qt_argv options separately to pass them to daemonized process if needed, before
+    // QApplication modifies the qt_argv array
+    QStringList qtargvlist;
+    for (k = 0; k < qt_argc && qt_argv[k] != NULL; ++k)
+      qtargvlist << QString::fromLocal8Bit(qt_argv[k]);
+
     // Create the QApplication
     QApplication app(qt_argc, qt_argv);
+
+    // main_get_input relies on a Q[Core]Application
+    QString latexinput = main_get_input(opt_input, opt_latexinput, opt_paste);
+
+    // see if we have to daemonize
+    if ( opt_daemonize ) {
+      // try to start detached process, with our arguments. This is preferred to feeding D-BUS input
+      // to the new process, since we cannot be sure this system supports D-BUS, and we would have
+      // to wait to see the new process appear, etc. and I really don't see the big advantage over
+      // cmdl options here.
+      QString progexe = QCoreApplication::applicationFilePath();
+      QStringList args;
+      args << "-I";
+      if (!latexinput.isNull())
+	args << "--latexinput="+latexinput;
+      if (opt_output != NULL)
+	args << "--output="+QString::fromLocal8Bit(opt_output);
+      if (opt_format != NULL)
+	args << "--format="+QString::fromLocal8Bit(opt_format);
+      if (opt_fgcolor != NULL)
+	args << "--fgcolor="+QString::fromLocal8Bit(opt_fgcolor);
+      if (opt_bgcolor != NULL)
+	args << "--bgcolor="+QString::fromLocal8Bit(opt_bgcolor);
+      if (opt_dpi >= 0)
+	args << "--dpi="+QString::number(opt_dpi);
+      if (opt_mathmode != NULL)
+	args << "--mathmode="+QString::fromLocal8Bit(opt_mathmode);
+      if (opt_preamble != NULL)
+	args << "--preamble="+QString::fromLocal8Bit(opt_preamble);
+      if (opt_quiet)
+	args << "--quiet";
+      if (opt_outlinefonts >= 0)
+	args << "--outlinefonts="+QString::fromLatin1(opt_outlinefonts?"TRUE":"FALSE");
+      const struct { char c; int optval; } borderoffsets[] =
+					     { {'t', opt_tborderoffset}, {'r', opt_rborderoffset},
+					       {'b', opt_bborderoffset}, {'l', opt_lborderoffset},
+					       {'\0', -1} };
+      for (k = 0; borderoffsets[k].c != 0; ++k)
+	if (borderoffsets[k].optval != -1)
+	  args << (QString::fromLatin1("--")+QLatin1Char(borderoffsets[k].c)+"borderoffset="
+		   +QString::number(borderoffsets[k].optval)) ;
+      if (opt_tempdir != NULL)
+	args << "--tempdir="+QString::fromLocal8Bit(opt_tempdir);
+      if (opt_latex != NULL)
+	args << "--latex="+QString::fromLocal8Bit(opt_latex);
+      if (opt_dvips != NULL)
+	args << "--dvips="+QString::fromLocal8Bit(opt_dvips);
+      if (opt_gs != NULL)
+	args << "--gs="+QString::fromLocal8Bit(opt_gs);
+      if (opt_epstopdf != NULL)
+	args << "--epstopdf="+QString::fromLocal8Bit(opt_epstopdf);
+      for (k = 0; k < qtargvlist.size(); ++k)
+	args << "--qtoption="+qtargvlist[k];
+      // add additional args
+      for (k = 0; klf_args[k] != NULL; ++k)
+	args << QString::fromLocal8Bit(klf_args[k]);
+
+      klfDbg("Prepared damonized process' command-line: progexe="<<progexe<<"; args="<<args) ;
+      // now launch the klatexformula 'daemon' process
+      qint64 pid;
+      bool result = QProcess::startDetached(progexe, args, QDir::currentPath(), &pid);
+      if (result) { // Success
+	if (!opt_quiet)
+	  fprintf(stderr, "%s",
+		  qPrintable(QObject::tr("KLatexFormula Daemon Process successfully launched with pid %1\n")
+			     .arg(pid)));
+	return 0;
+      }
+      qWarning()<<qPrintable(QObject::tr("Failed to launch daemon process. Not daemonizing."));
+    }
 
     main_setup_app(&app);
 
@@ -704,9 +784,8 @@ int main(int argc, char **argv)
       if (opt_preamble != NULL)
 	iface->setInputData("preamble", QString::fromLocal8Bit(opt_preamble));
       // load latex after preamble, so that the interface doesn't prompt to include missing packages
-      QString latex = main_get_input(opt_input, opt_latexinput, opt_paste);
-      if ( ! latex.isNull() )
-	iface->setInputData("latex", latex);
+      if ( ! latexinput.isNull() )
+	iface->setInputData("latex", latexinput);
       if (opt_outlinefonts >= 0)
 	iface->setAlterSetting_i(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
       if (opt_lborderoffset != -1)
@@ -796,9 +875,8 @@ int main(int argc, char **argv)
 
     // parse command-line given actions
 
-    QString latex = main_get_input(opt_input, opt_latexinput, opt_paste);
-    if ( ! latex.isNull() )
-      mainWin.slotSetLatex(latex);
+    if ( ! latexinput.isNull() )
+      mainWin.slotSetLatex(latexinput);
 
     if ( opt_fgcolor != NULL ) {
       mainWin.slotSetFgColor(QString::fromLocal8Bit(opt_fgcolor));
@@ -863,6 +941,9 @@ int main(int argc, char **argv)
     // Create the QCoreApplication
     QCoreApplication app(qt_argc, qt_argv);
 
+    // main_get_input relies on a Q[Core]Application
+    QString latexinput = main_get_input(opt_input, opt_latexinput, opt_paste);
+
     main_setup_app(&app);
 
     // now load default config
@@ -898,10 +979,15 @@ int main(int argc, char **argv)
       fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2010\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      KLF_VERSION_STRING);
+
+    if ( opt_daemonize ) {
+      qWarning()<<qPrintable(QObject::tr("Damonize option can only be used in interactive mode!."));
+    }
   
     // warn for ignored arguments
     for (int kl = 0; klf_args[kl] != NULL; ++kl)
-      qWarning()<<"[Non-Interactive Mode] Ignoring additional command-line argument: "<<klf_args[kl];
+      qWarning()<<qPrintable(QObject::tr("[Non-Interactive Mode] Ignoring additional command-line argument: %1")
+			     .arg(klf_args[kl]));
 
 
     // now process required actions.
@@ -916,7 +1002,7 @@ int main(int argc, char **argv)
       opt_strdup_free_list[opt_strdup_free_list_n++] = opt_input;
     }
 
-    input.latex = main_get_input(opt_input, opt_latexinput, opt_paste);
+    input.latex = latexinput;
 
     if (opt_mathmode != NULL) {
       input.mathmode = QString::fromLocal8Bit(opt_mathmode);
@@ -1015,6 +1101,18 @@ void main_parse_options(int argc, char *argv[])
   qt_argv[0] = argv[0];
   qt_argv[1] = NULL;
 
+  // build getopt_long short option list
+  char klfcmdl_optstring[1024];
+  int k, j;
+  for (k = 0, j = 0; klfcmdl_optlist[k].name != NULL; ++k) {
+    if (klfcmdl_optlist[k].val < 127) { // has short option char
+      klfcmdl_optstring[j++] = klfcmdl_optlist[k].val;
+      if (klfcmdl_optlist[k].has_arg)
+	klfcmdl_optstring[j++] = ':';
+    }
+  }
+  klfcmdl_optstring[j] = '\0'; // terminate C string
+
   // loop for each option
   for (;;) {
     // get an option from command line
@@ -1104,17 +1202,23 @@ void main_parse_options(int argc, char *argv[])
     case OPT_QUIET:
       opt_quiet = true;
       break;
+    case OPT_DAEMONIZE:
+      opt_daemonize = true;
+      break;
     case OPT_OUTLINEFONTS:
-      if ( QRegExp("^\\s*on|y(es)?|1|t(rue)?\\s*", Qt::CaseInsensitive).exactMatch(arg) )
-	opt_outlinefonts = 1;
-      else if ( QRegExp("^\\s*off|n(o)?|0|f(alse)?\\s*", Qt::CaseInsensitive).exactMatch(arg) )
-	opt_outlinefonts = 0;
-      else {
-	qWarning()<<KLF_FUNC_NAME<<": Can't parse argument to value --outlinefonts: "<<QString(arg);
-	opt_error.has_error = true;
-	opt_error.retcode = -1;
+      if (arg != NULL) {
+	if ( QRegExp("^\\s*on|y(es)?|1|t(rue)?\\s*", Qt::CaseInsensitive).exactMatch(arg) )
+	  opt_outlinefonts = 1;
+	else if ( QRegExp("^\\s*off|n(o)?|0|f(alse)?\\s*", Qt::CaseInsensitive).exactMatch(arg) )
+	  opt_outlinefonts = 0;
+	else {
+	  qWarning()<<KLF_FUNC_NAME<<": Can't parse argument to value --outlinefonts: "<<QString(arg);
+	  opt_error.has_error = true;
+	  opt_error.retcode = -1;
+	}
+      } else {
+	opt_outlinefonts = 1; // no arg -> enable
       }
-
       break;
     case OPT_LBORDEROFFSET:
       opt_lborderoffset = atoi(arg);

@@ -21,7 +21,7 @@ OPTIONS may be one or many of:
       is given.
   -i|--input <file|->
       Specifies a file to read latex input from.
-  -l|--latexinput <expr>
+    -l|--latexinput <expr>
       Specifies the LaTeX code of an equation to render.
   -P|--paste-clipboard
   -S|--paste-selection
@@ -62,8 +62,12 @@ OPTIONS may be one or many of:
       including custom packages with \usepackage{...}.
   -q|--quiet
       Disable console output of warnings and errors.
+  -d|--daemonize
+      Run a separate, detached, klatexformula process and return immediately. All
+      other options, like --latexinput, may still be given. They will be forwared
+      to the daemon process.
 
-  --outlinefonts <ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>
+  --outlinefonts [ <ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0> ]
       Convert embedded fonts in EPS and PDF to vector outlines (gs with -dNOCACHE).
       Useful for exporting to eg. Adobe Illustrator.
   --lborderoffset <N>

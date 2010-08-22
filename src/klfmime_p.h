@@ -41,11 +41,11 @@
  * - additionally, OpenOffice.org draw object
  *   (\c application/x-openoffice-drawing;windows_formatname="Drawing Format")
  */
-class KLF_EXPORT KLFMimeExporterImage : public KLFMimeExporter
+class KLF_EXPORT KLFMimeExporterImage : public QObject, public KLFMimeExporter
 {
   Q_OBJECT
 public:
-  KLFMimeExporterImage(QObject *parent) : KLFMimeExporter(parent) { }
+  KLFMimeExporterImage(QObject *parent) : QObject(parent) { }
   virtual ~KLFMimeExporterImage() { }
 
   virtual QStringList keys() const;
@@ -60,11 +60,11 @@ private:
 /** KLFMimeExporter implementation for exporting \c "text/x-moz-url" and \c "text/uri-list"
  * to a temporary PNG file
  */
-class KLF_EXPORT KLFMimeExporterUrilist : public KLFMimeExporter
+class KLF_EXPORT KLFMimeExporterUrilist : public QObject, public KLFMimeExporter
 {
   Q_OBJECT
 public:
-  KLFMimeExporterUrilist(QObject *parent) : KLFMimeExporter(parent) { }
+  KLFMimeExporterUrilist(QObject *parent) : QObject(parent) { }
   virtual ~KLFMimeExporterUrilist() { }
 
   virtual QStringList keys() const;
@@ -73,18 +73,18 @@ public:
   virtual QString windowsFormatName(const QString& key) const;
 
 private:
-  static QMap<QByteArray,QString> tempFilesForImageMD5;
+  static QMap<qint64,QString> tempFilesForImageCacheKey;
 };
 
 
 /** Wrapper class to export all formats registered in KLFAbstractLibEntryMimeExporter,
  * including all additional added encoders (eg. from plugins)
  */
-class KLF_EXPORT KLFMimeExporterLibFmts : public KLFMimeExporter
+class KLF_EXPORT KLFMimeExporterLibFmts : public QObject, public KLFMimeExporter
 {
   Q_OBJECT
 public:
-  KLFMimeExporterLibFmts(QObject *parent) : KLFMimeExporter(parent) { }
+  KLFMimeExporterLibFmts(QObject *parent) : QObject(parent) { }
   virtual ~KLFMimeExporterLibFmts() { }
 
   virtual QStringList keys() const;

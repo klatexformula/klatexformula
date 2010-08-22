@@ -91,7 +91,15 @@ public:
   inline void setDateTime(const QDateTime& dt) { setProperty(DateTime, dt); }
   inline void setPreview(const QImage& img) { setProperty(Preview, img); }
   inline void setPreviewSize(const QSize& sz) { setProperty(PreviewSize, sz); }
-  inline void setCategory(const QString& s) { setProperty(Category, s); }
+  /** \note this function normalizes category to remove any double-'/' to avoid empty sections.
+   *    Equality between categories can be compared stringwise. */
+  inline void setCategory(const QString& s) {
+    QString c = s.trimmed();
+    if (c.startsWith('/') || c.endsWith('/') || c.contains("//"))
+      setProperty(Category, c.split('/', QString::SkipEmptyParts).join("/"));
+    else
+      setProperty(Category, c);
+  }
   inline void setTags(const QString& s) { setProperty(Tags, s); }
   inline void setStyle(const KLFStyle& style) { setProperty(Style, QVariant::fromValue(style)); }
 
@@ -138,11 +146,98 @@ namespace KLFLib {
    *
    * */
   typedef qint32 entryId;
+
+
+  /** Describes a matching criterion for a string
+   *
+   * Note: The Qt::MatchWrap and Qt::MatchRecursive flags are ignored.
+   */
+  struct StringMatch {
+    StringMatch(const QVariant& value = QVariant(), Qt::MatchFlags flags = Qt::MatchExactly)
+      : mFlags(flags), mValue(value), mValueString(value.toString()) { }
+    StringMatch(const StringMatch& m) : mFlags(m.mFlags), mValue(m.mValue), mValueString(m.mValueString) { }
+
+    /** How the match should be tested (exact match, regex, contains, etc.), this is
+     * a binary-OR'ed value of Qt::MatchFlag enum values.
+     *
+     * the Qt::MatchCaseSensitive may be set to match case sensitive.
+     */
+    inline const Qt::MatchFlags matchFlags() const { return mFlags; }
+    /** The value that will be matched to. */
+    inline const QVariant matchValue() const { return mValue; }
+    /** equivalent to <tt>matchValue().toString()</tt>, however the conversion is
+     * performed once and cached. */
+    inline const QString matchValueString() const { return mValueString; }
+
+  protected:
+    Qt::MatchFlags mFlags;
+    QVariant mValue;
+    QString mValueString;
+  };
+
+  /** Discribes a matching criterion for the value of a property ID. Although not assumed
+   * in this definition, property IDs will eventually refer to KLFPropertizedObject property
+   * IDs, more specifically \ref KLFLibEntry-ies' property IDs.
+   */
+  struct PropertyMatch : public StringMatch {
+    /** propId is the ID of the property which will have to match as given by \c match */
+    PropertyMatch(int propId = -1, const StringMatch& match = StringMatch())
+      : StringMatch(match), mPropertyId(propId) { }
+    /** copy constructor */
+    PropertyMatch(const PropertyMatch& other) : StringMatch(other), mPropertyId(other.mPropertyId) { }
+
+    /** Returns the propery ID set in the constructor. */
+    inline int propertyId() const { return mPropertyId; }
+    
+  protected:
+    int mPropertyId;
+  };
+
+  /** This is a generalized condition. It can be one of several types.
+   *
+   * In the future, more match condition types may be added. For now, the following
+   * matching condition types are supported.
+   *  - property string matching (see \ref PropertyMatch)
+   *  - AND of N conditions
+   *  - OR of N conditions
+   *
+   * This class is meant for use with findEntries().
+   */
+  struct EntryMatchCondition
+  {
+    enum Type {
+      MatchAllType = 0, //!< Matches all entries
+      PropertyMatchType, //!< Matches a property ID with a string (with a \ref StringMatch)
+      OrMatchType, //!< entries have to match with one of a list of conditions
+      AndMatchType //!< entries have to match with all given conditions
+    };
+
+    //! Get which type of condition this is
+    inline Type type() const { return mType; }
+    //! Relevant for type PropertyMatchType
+    inline PropertyMatch propertyMatch() const { return mPropertyMatch; }
+    //! Relevant for types OrMatchType and AndMatchType
+    inline QList<EntryMatchCondition> conditionList() const { return mConditionList; }
+
+    static EntryMatchCondition mkMatchAll();
+    static EntryMatchCondition mkPropertyMatch(PropertyMatch pmatch);
+    static EntryMatchCondition mkOrMatch(QList<EntryMatchCondition> conditions);
+    static EntryMatchCondition mkAndMatch(QList<EntryMatchCondition> conditions);
+
+  protected:
+    EntryMatchCondition(Type type) : mType(type) { }
+
+    Type mType;
+
+    PropertyMatch mPropertyMatch;
+    QList<EntryMatchCondition> mConditionList;
+  };
+
 }
 
 //! Utility class for sorting library entry items
 /**
- * This class can be used as a sorter to sort items.
+ * This class can be used as a sorter to sort entry items.
  *
  * This class functions as follows:
  * - operator()() calls compareLessThan() with the stored propId() and order().
@@ -213,6 +308,7 @@ public:
    * propId() and order().
    */
   virtual bool operator()(const KLFLibEntry& a, const KLFLibEntry& b) const;
+
 
 private:
   const KLFLibEntrySorter * pCloneOf;
@@ -787,163 +883,136 @@ public:
 					   const QList<int>& wantedEntryProperties = QList<int>());
 
 
-  /** Describes a matching criterion for a string
+  /** \brief A structure that describes a query for query()
    *
-   * Note: The Qt::MatchWrap and Qt::MatchRecursive flags are ignored.
+   * The following properties should be adjusted (by direct access) before calling query().
+   *
+   * \c matchcondition is an \ref KLFLib::EntryMatchCondition struct that tells which properties have to be
+   * matched, how, and to what value. Only entries that match the match condition set in \c query will
+   * be returned by query(). Note that the match condition itself may be a complex condition, like an OR
+   * and AND tree of property matching conditions with strings or regexps. See \ref KLFLib::EntryMatchCondition,
+   * and \ref PropertyMatch for more info. The idea is that engines can translate such conditions into,
+   * eg. a SQL WHERE condition for optimized entry queries.
+   *
+   * The default match condition (set automatically in constructor) matches all entries.
+   *
+   * A \c limit may be set to limit the number of returned results (default 500).
+   *
+   * \c orderPropId specifies along which KLFLibEntry property ID the items should be ordered. This
+   * can be \c -1 to specify that elements should not be ordered; their order will then be undefined.
+   * Default value: \c -1.
+   *
+   * \c orderDirection specifies in which direction the elements should be ordered. This can be
+   * Qt::AscendingOrder or Qt::DescendingOrder (lesser value first or greater value first).
+   *
+   * \c wantedEntryProperties is a list of properties the lists should be filled with. Elements in the
+   * entryWithIdList and rawEntryList lists will only have those properties listed in
+   * \c wantedEntryProperties set. The other properties are undefined (some implementations may decide
+   * to ignore this optimization). An empty list (which is the default) indicates that all entry
+   * properties have to be set.
    */
-  struct StringMatch {
-    StringMatch(const QVariant& value = QVariant(), Qt::MatchFlags flags = Qt::MatchExactly)
-      : mFlags(flags), mValue(value), mValueString(value.toString()) { }
-    StringMatch(const StringMatch& m) : mFlags(m.mFlags), mValue(m.mValue), mValueString(m.mValueString) { }
-
-    /** How the match should be tested (exact match, regex, contains, etc.), this is
-     * a binary-OR'ed value of Qt::MatchFlag enum values.
-     *
-     * the Qt::MatchCaseSensitive may be set to match case sensitive.
-     */
-    inline const Qt::MatchFlags matchFlags() const { return mFlags; }
-    /** The value that will be matched to. */
-    inline const QVariant matchValue() const { return mValue; }
-    /** equivalent to <tt>matchValue().toString()</tt>, however the conversion is
-     * performed once and cached. */
-    inline const QString matchValueString() const { return mValueString; }
-
-  protected:
-    Qt::MatchFlags mFlags;
-    QVariant mValue;
-    QString mValueString;
-  };
-
-  /** Discribes a matching criterion for the value of a property ID */
-  struct PropertyMatch : public StringMatch {
-    /** propId is the ID of the property which will have to match as given by \c match */
-    PropertyMatch(int propId = -1, const StringMatch& match = StringMatch())
-      : StringMatch(match), mPropertyId(propId) { }
-    /** copy constructor */
-    PropertyMatch(const PropertyMatch& other) : StringMatch(other), mPropertyId(other.mPropertyId) { }
-
-    /** Returns the propery ID set in the constructor. */
-    inline int propertyId() const { return mPropertyId; }
-    
-  protected:
-    int mPropertyId;
-  };
-
-  /** This is a generalized condition. It can be one of several types.
-   *
-   * In the future, more match condition types may be added. For now, the following
-   * matching condition types are supported.
-   *  - property string matching (see \ref PropertyMatch)
-   *  - AND of N conditions
-   *  - OR of N conditions
-   *
-   * This class is meant for use with findEntries().
-   */
-  struct EntryMatchCondition
+  struct Query
   {
-    enum Type {
-      MatchAllType = 0, //!< Matches all entries
-      PropertyMatchType, //!< Matches a property ID with a string (with a \ref StringMatch)
-      OrMatchType, //!< entries have to match with one of a list of conditions
-      AndMatchType //!< entries have to match with all given conditions
-    };
-
-    //! Get which type of condition this is
-    inline Type type() const { return mType; }
-    //! Relevant for type PropertyMatchType
-    inline PropertyMatch propertyMatch() const { return mPropertyMatch; }
-    //! Relevant for types OrMatchType and AndMatchType
-    inline QList<EntryMatchCondition> conditionList() const { return mConditionList; }
-
-
-    static EntryMatchCondition mkMatchAll()
+    /** Default constructor. sets reasonable default values as documented in class doc. */
+    Query()
+      : matchCondition(KLFLib::EntryMatchCondition::mkMatchAll()),
+	limit(500),
+	orderPropId(-1),
+	orderDirection(Qt::AscendingOrder),
+	wantedEntryProperties(QList<int>())
     {
-      return EntryMatchCondition(MatchAllType);
-    }
-    static EntryMatchCondition mkPropertyMatch(PropertyMatch pmatch)
-    {
-      EntryMatchCondition c(PropertyMatchType);
-      c.mPropertyMatch = pmatch;
-      return c;
-    }
-    static EntryMatchCondition mkOrMatch(QList<EntryMatchCondition> conditions)
-    {
-      EntryMatchCondition c(OrMatchType);
-      c.mConditionList = conditions;
-      return c;
-    }
-    static EntryMatchCondition mkAndMatch(QList<EntryMatchCondition> conditions)
-    {
-      EntryMatchCondition c(AndMatchType);
-      c.mConditionList = conditions;
-      return c;
     }
 
-  protected:
-    EntryMatchCondition(Type type) : mType(type) { }
+    KLFLib::EntryMatchCondition matchCondition;
+    int limit;
+    int orderPropId;
+    Qt::SortOrder orderDirection;
+    QList<int> wantedEntryProperties;
+  };
 
-    Type mType;
+  /** \brief A structure that will hold the result of a query() query.
+   *
+   * This class will contain the entry ID list, the raw entry list and the entry-with-id
+   * list of the entries that matched the query() query this object was given to.
+   *
+   * \c fillFlags may specify which of the aforementioned lists are to be filled (those that are
+   * not needed by the caller don't have to be filled, this saves time). You may pass those flags
+   * to the constructor.
+   *
+   * Once the \c fillFlags adjusted, pass a pointer to this object to the query() function to
+   * retrieve results.
+   *
+   * \warning The lists in this object are not garanteed to be cleared at the beginning of
+   *   query(). If you recycle this object to call query() a second time, be sure to clean this
+   *   object first.
+   */
+  struct QueryResult
+  {
+    enum Flags { FillEntryIdList = 0x01, FillRawEntryList = 0x02, FillEntryWithIdList = 0x04 };
 
-    PropertyMatch mPropertyMatch;
+    /** Constructor. Sets \c fillFlags as given, and sets reasonable default values for the other
+     * members. */
+    QueryResult(uint fill_flags = 0x00)  : fillFlags(fill_flags)   {  }
+    uint fillFlags;
 
-    QList<EntryMatchCondition> mConditionList;
+    QList<KLFLib::entryId> entryIdList;
+    KLFLibEntryList rawEntryList;
+    QList<KLFLibEntryWithId> entryWithIdList;
   };
 
 
-  //! Find entries in this resource with specified property values
+  //! Query entries in this resource with specified property values
   /** Returns a list of all entries in this resource (and in sub-resource \c subResource
    * for the engines supporting this feature) that match all the required matches specifed
-   * in \c match.
+   * in \c matchcondition.
    *
    * \note the subclass is responsible for providing a functional implementation of this function.
    *   Subclasses that don't want to pass much time to implement this feature can resort to calling
-   *   the static method \ref KLFLibResourceSimpleEngine::findEntriesImpl() that provides a functional
-   *   (but not very optimized) default implementation, and the
-   *   KLFLibResourceSimpleEngine::testMatchConditionImpl() may prove useful for testing match
-   *   conditions.
+   *   the static method \ref KLFLibResourceSimpleEngine::queryImpl() that provides a functional
+   *   (but not very optimized) default implementation; the
+   *   KLFLibResourceSimpleEngine::testMatchConditionImpl() function may prove useful for testing match
+   *   conditions; and the utilities KLFLibEntrySorter and KLFLibResourceSimpleEngine::QueryResultListSorter
+   *   might prove useful for sorting entries in conjuction with qLowerBound().
    *
-   * \c matchcondition is an \ref EntryMatchCondition struct that gives which properties have to be
-   * matched, how, and to what value. Only entries that match the \c match will be returned. Note that
-   * \c matchcondition itself may be a complex condition, like a OR and AND tree of property matching
-   * conditions with strings or regexps. See \ref EntryMatchCondition, and \ref PropertyMatch for more
-   * info. The idea is that engines can translate such conditions into, eg. a SQL WHERE condition
-   * for optimized entry finds.
+   * \c query is a \ref Query object that describes the query. See \ref Query for details.
    *
-   * The matches are returned in the following way:
-   *   - if non NULL, the list pointed by \c entryIdList is set to a list of all entry ID s that
-   *      matched
-   *   - if non NULL, the list pointed by \c rawEntryList is set to a list of all entries that
-   *     matched, stored as KLFLibEntry objects. Only the requested properties are populated
-   *     (\c wantedEntryProperties)
-   *   - if non NULL, the list pointed by \c entryWithIdList is set to a list of all entries, with
-   *     their corresponding entry ID, that matched (similar to the return value of allEntries()).
-   *     only the requested properties are populated (\c wantedEntryProperties)
+   * \c result is a \ref QueryResult structure that will be filled with the queried data. See
+   * \ref QueryResult for details.
    *
-   * If \c limit is positive, then at most \c limit entries will be returned in either of the above
-   * mentioned lists. If \c limit is zero or negative, then no limit is set on the matches.
+   * The matches are returned in the following way into the \c result structure:
+   *   - if the appropriate flag in \c result is set, then <tt>result.entryIdList</tt> is set to a list
+   *     of all entry IDs that matched
+   *   - if the appropriate flag in \c result is set, then <tt>result.rawEntryList</tt> is set to a list
+   *     of all entries that matched, stored as KLFLibEntry objects. Only the requested properties
+   *     are populated (specified by <tt>query.wantedEntryProperties</tt>)
+   *   - if the appropriate flag in \c result is set, then <tt>result.entryWithIdList</tt> is set
+   *     to a list of all entries, with their corresponding entry ID, that matched (similar to the
+   *     return value of allEntries()). Only the requested properties are populated (as specified
+   *     by <tt>result.wantedEntryProperties</tt>.)
    *
-   * \returns the number of items in the resource that matched. If a \c limit was set, then at
-   *   most \c limit is returned. \c 0 is returned if no match was found. \c -1 can be returned
-   *   to signify an error (eg. invalid regex).
+   * If the \c orderPropId member in \c query is not \c -1, then the returned results (in all
+   * to-be-filled lists) are ordered according to the entry property ID \c orderPropId, in the order
+   * specified by \c orderDirection.
    *
-   * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties, which is
-   * a list of IDs of KLFLibEntry properties (the KLFPropertizedObject-kind properties) that are
-   * set in the KLFLibEntry object. The other fields are left invalid or blank. If the property
-   * list is empty (by default), then all properties are fetched and set.
+   * \returns the number of items in the resource that matched. If a \c limit was set in \c query,
+   *   then at most that many results are returned. \c 0 is returned if no match was found. \c -1
+   *   can be returned to signify an error (eg. invalid regexp, i/o error, etc.).
    *
-   * \note it is possible to specify a key in \c matches that isn't given in
+   * The KLFLibEntry objects are populated only of the required \c wantedEntryProperties as set in
+   * \c query (see \ref Query), which is a list of IDs of KLFLibEntry properties (the
+   * KLFPropertizedObject-kind properties) that are set in the KLFLibEntry object. If the property
+   * list is empty (by default), then all properties are fetched and set. Note that if this list
+   * is not empty, then the properties not in the list are undefined: they may be uninitialized,
+   * set to null/invalid, or filled eg. by an implementation that ignores \c wantedEntryProperties.
+   *
+   * \note it is possible to specify a property ID in the match condition that isn't given in
    *   \c wantedEntryProperties, and reimplementations must handle this. <i>Reason: even if
    *   this may seem inconsistent, it can be easily implemented in some examples of engines (SQL
    *   condition, ...) and can easily be worked around in other engines by adding the requested
-   *   property to the wanted property list.</i>
+   *   property to the wanted property list. Example: listing entries by date/time order, without
+   *   necessarily displaying the date/time.</i>
    */
-  virtual int findEntries(const QString& subResource,
-			  const EntryMatchCondition& matchcondition,
-			  QList<KLFLib::entryId> * entryIdList,
-			  int limit = 500,
-			  KLFLibEntryList *rawEntryList = NULL,
-			  QList<KLFLibEntryWithId> * entryWithIdList = NULL,
-			  const QList<int>& wantedEntryProperties = QList<int>()) = 0;
+  virtual int query(const QString& subResource, const Query& query, QueryResult *result) = 0;
 
 
   //! Returns all IDs in this resource (and this sub-resource)
@@ -1455,7 +1524,7 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream,
  * just a list with all the IDs, at the price of losing optimization.
  *
  * This class provides non-optimized default implementations for allIds() (as given above),
- * hasEntry(), entries(), and findEntries(), based on the data returned by allEntries() and
+ * hasEntry(), entries(), and query(), based on the data returned by allEntries() and
  * entry()
  *
  * Bear in mind that optimizing one or more of those functions is still possible, by
@@ -1478,26 +1547,63 @@ public:
   virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList,
 					   const QList<int>& wantedEntryProperties = QList<int>());
 
-  virtual int findEntries(const QString& subResource,
-			  const EntryMatchCondition& matchcondition,
-			  QList<KLFLib::entryId> * entryIdList,
-			  int limit = 500,
-			  KLFLibEntryList *rawEntryList = NULL,
-			  QList<KLFLibEntryWithId> * entryWithIdList = NULL,
-			  const QList<int>& wantedEntryProperties = QList<int>());
+  /** \brief Helper class to sort entries into a \ref QueryResult.
+   */
+  class QueryResultListSorter
+  {
+    KLFLibEntrySorter *mSorter;
+    QueryResult *mResult;
+    uint fillflags;
+    bool reference_is_rawentrylist;
+  public:
+    /** Build an QueryResultListSorter object, that should sort entries according to
+     * \c sorter. See also \ref KLFLibEntrySorter.
+     *
+     * \c sorter must not be NULL.
+     */
+    QueryResultListSorter(KLFLibEntrySorter *sorter, QueryResult *result);
+
+    /*    QueryResultListSorter(const QueryResultListSorter& other); */
+
+    /** \brief Compares \ref KLFLibEntry'ies */
+    inline bool operator()(const KLFLibEntry& a, const KLFLibEntry& b)
+    { return mSorter->operator()(a, b); }
+
+    /** \brief Compares \ref KLFLibEntryWithId's */
+    inline bool operator()(const KLFLibEntryWithId& a, const KLFLibEntryWithId& b)
+    { return mSorter->operator()(a.entry, b.entry); }
+
+    /** Inserts the entry-with-id \c entrywid, into the appropriate lists in the \c result that
+     * was given to the constructor, such that the lists are ordered according to the sorter set
+     * in the constructor.
+     *
+     * By \a appropriate we mean the lists for which the fill flags are set in the QueryResult object.
+     *
+     * If the set sorter's sorting property ID is \c -1, then the elements are simply
+     * appended to the appropriate lists; sorting is disabled in this case.
+     *
+     * When sorting is enabled, this function assumes that the lists in \c result are sorted
+     * appropriately. This is naturally the case if you only use this function to build the lists.
+     * In other terms, don't call this function if you already added non-sorted items into the
+     * list(s).
+     *
+     * \note if the fill flags include neither the raw entry list, nor the entry-with-id list,
+     *   then the raw entry list is also filled, as it is not possible to just compare bare entry
+     *   IDs (!)
+     */
+    void insertIntoOrderedResult(const KLFLibEntryWithId& entry);
+  };
+
+  virtual int query(const QString& subResource, const Query& query, QueryResult *result);
+
 
   /** A basic implementation based on matching the results of <tt>resource->allEntries()</tt>. */
-  static int findEntriesImpl(KLFLibResourceEngine *resource,
-			     const QString& subResource,
-			     const EntryMatchCondition& match,
-			     QList<KLFLib::entryId> * entryIdList,
-			     int limit = 500,
-			     KLFLibEntryList *rawEntryList = NULL,
-			     QList<KLFLibEntryWithId> * entryWithIdList = NULL,
-			     const QList<int>& wantedEntryProperties = QList<int>());
+  static int queryImpl(KLFLibResourceEngine *resource, const QString& subResource,
+		       const Query& query, QueryResult *result);
 
   /** A simple entry condition tester. */
-  static bool testEntryMatchConditionImpl(const EntryMatchCondition& condition, const KLFLibEntry& libentry);
+  static bool testEntryMatchConditionImpl(const KLFLib::EntryMatchCondition& condition,
+					  const KLFLibEntry& libentry);
 };
 
 

@@ -98,7 +98,7 @@ static inline void assign_ba(QByteArray *a, const QByteArray& b)
 #ifdef KLFBACKEND_QT4
   *a = b;
 #else
-  a->duplicate(b.data(), b.length());
+  a->duplicate(b.data(), b.size());
 #endif
 }
 
@@ -267,14 +267,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	.arg(settings.latexexec);
       return res;
     }
-    if (!proc.normalExit()) {
+    if (!proc.processNormalExit()) {
       res.status = KLFERR_LATEXNONORMALEXIT;
       res.errorstr = QObject::tr("Latex was killed!", "KLFBackend");
       return res;
     }
-    if (proc.exitStatus() != 0) {
+    if (proc.processExitStatus() != 0) {
       res.status = KLFERR_PROGERR_LATEX;
-      res.errorstr = progErrorMsg("LaTeX", proc.exitStatus(), proc.readStderrString(),
+      res.errorstr = progErrorMsg("LaTeX", proc.processExitStatus(), proc.readStderrString(),
 				  proc.readStdoutString());
       return res;
     }
@@ -303,14 +303,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       res.errorstr = QObject::tr("Unable to start dvips!\n", "KLFBackend");
       return res;
     }
-    if ( !proc.normalExit() ) {
+    if ( !proc.processNormalExit() ) {
       res.status = KLFERR_DVIPSNONORMALEXIT;
       res.errorstr = QObject::tr("Dvips was mercilessly killed!\n", "KLFBackend");
       return res;
     }
-    if ( proc.exitStatus() != 0) {
+    if ( proc.processExitStatus() != 0) {
       res.status = KLFERR_PROGERR_DVIPS;
-      res.errorstr = progErrorMsg("dvips", proc.exitStatus(), proc.readStderrString(),
+      res.errorstr = progErrorMsg("dvips", proc.processExitStatus(), proc.readStderrString(),
 				  proc.readStdoutString());
       return res;
     }
@@ -403,14 +403,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       res.errorstr = QObject::tr("Unable to start gs!\n", "KLFBackend");
       return res;
     }
-    if ( !proc.normalExit() ) {
+    if ( !proc.processNormalExit() ) {
       res.status = KLFERR_GSNONORMALEXIT;
       res.errorstr = QObject::tr("gs died abnormally!\n", "KLFBackend");
       return res;
     }
-    if ( proc.exitStatus() != 0) {
+    if ( proc.processExitStatus() != 0) {
       res.status = KLFERR_PROGERR_GS_OF;
-      res.errorstr = progErrorMsg("gs", proc.exitStatus(), proc.readStderrString(),
+      res.errorstr = progErrorMsg("gs", proc.processExitStatus(), proc.readStderrString(),
 				  proc.readStdoutString());
       return res;
     }
@@ -458,14 +458,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       res.errorstr = QObject::tr("Unable to start gs!\n", "KLFBackend");
       return res;
     }
-    if ( !proc.normalExit() ) {
+    if ( !proc.processNormalExit() ) {
       res.status = KLFERR_GSNONORMALEXIT;
       res.errorstr = QObject::tr("gs died abnormally!\n", "KLFBackend");
       return res;
     }
-    if ( proc.exitStatus() != 0) {
+    if ( proc.processExitStatus() != 0) {
       res.status = KLFERR_PROGERR_GS;
-      res.errorstr = progErrorMsg("gs", proc.exitStatus(), proc.readStderrString(),
+      res.errorstr = progErrorMsg("gs", proc.processExitStatus(), proc.readStderrString(),
 				  proc.readStdoutString());
       return res;
     }
@@ -540,14 +540,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       res.errorstr = QObject::tr("Unable to start epstopdf!\n", "KLFBackend");
       return res;
     }
-    if ( !proc.normalExit() ) {
+    if ( !proc.processNormalExit() ) {
       res.status = KLFERR_EPSTOPDFNONORMALEXIT;
       res.errorstr = QObject::tr("epstopdf died nastily!\n", "KLFBackend");
       return res;
     }
-    if ( proc.exitStatus() != 0) {
+    if ( proc.processExitStatus() != 0) {
       res.status = KLFERR_PROGERR_EPSTOPDF;
-      res.errorstr = progErrorMsg("epstopdf", proc.exitStatus(), proc.readStderrString(),
+      res.errorstr = progErrorMsg("epstopdf", proc.processExitStatus(), proc.readStderrString(),
 				  proc.readStdoutString());
       return res;
     }

@@ -460,8 +460,13 @@ void KLFKtePluginView::slotReparseCurrentContext()
   pCurMathContext.mathmodeend = mathmodeend;
   QString beginenviron = rxmm.cap(3);
   if (beginenviron.length() > 0) {
-    mathmodebegin = "\\begin{"+beginenviron+"*}"; // force '*' for no line numbering
-    mathmodeend = "\\end{"+beginenviron+"*}"; // force '*' for no line numbering
+    if (beginenviron == "equation") {
+      mathmodebegin = "\\["; // latex doesn't like 'equation*' environment when opened in KLF (?)
+      mathmodeend = "\\]";
+    } else {
+      mathmodebegin = "\\begin{"+beginenviron+"*}"; // force '*' for no line numbering
+      mathmodeend = "\\end{"+beginenviron+"*}"; // force '*' for no line numbering
+    }
   }
   pCurMathContext.klfmathmode = mathmodebegin + "..." + mathmodeend;
 

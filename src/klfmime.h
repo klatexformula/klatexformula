@@ -39,11 +39,10 @@
 
 
 
-class KLF_EXPORT KLFMimeExporter : public QObject
+class KLF_EXPORT KLFMimeExporter
 {
-  Q_OBJECT
 public:
-  KLFMimeExporter(QObject *parent) : QObject(parent) { }
+  KLFMimeExporter() { }
   virtual ~KLFMimeExporter() { }
 
   virtual QStringList keys() const = 0;
@@ -66,12 +65,12 @@ public:
   static KLFMimeExporter * mimeExporterLookup(const QString& key);
   
   static QList<KLFMimeExporter *> mimeExporterList();
-  /** Adds the instance \c exporter to the internal list of exporters. Ownership of the
-   * object is NOT transferred.
+  /** Adds the instance \c exporter to the internal list of exporters.
    *
    * If \c overrides is TRUE, then prepends the exporter to the list (will be looked
    * up first), otherwise appends it to list. */
-  static void addMimeExporter(KLFMimeExporter *exporter, bool overrides = true);
+  static void registerMimeExporter(KLFMimeExporter *exporter, bool overrides = true);
+  static void unregisterMimeExporter(KLFMimeExporter *exporter);
 
 private:
   static void initMimeExporterList();

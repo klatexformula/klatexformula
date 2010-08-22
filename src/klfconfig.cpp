@@ -610,6 +610,16 @@ QString KLFPluginConfigAccess::globalShareDir() const
   return _config->globalShareDir;
 }
 
+QString KLFPluginConfigAccess::tempDir() const
+{
+  if ( _config == NULL ) {
+    qWarning("KLFPluginConfigAccess::tempDir: Invalid Config Pointer!\n");
+    return QString();
+  }
+
+  return _config->BackendSettings.tempDir;
+}
+
 QString KLFPluginConfigAccess::homeConfigPluginDataDir(bool createIfNeeded) const
 {
   if ( _config == NULL ) {
@@ -626,7 +636,7 @@ QString KLFPluginConfigAccess::homeConfigPluginDataDir(bool createIfNeeded) cons
   return d;
 }
 
-QVariant KLFPluginConfigAccess::readValue(const QString& key)
+QVariant KLFPluginConfigAccess::readValue(const QString& key) const
 {
   if ( _config == NULL ) {
     qWarning("KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");

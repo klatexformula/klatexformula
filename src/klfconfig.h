@@ -80,6 +80,11 @@ public:
    */
   virtual QString globalShareDir() const;
 
+  /** Returns a directory in which we can read/write temporary files, eg. "/tmp".
+   *
+   * This is actually the value of <tt>klfconfig.BackendSettings.tempDir</tt> */
+  virtual QString tempDir() const;
+
   /** Returns a path to a directory in which plugins can manage their data as they want.
    *
    * If the \c createIfNeeded argument is TRUE, then the directory is garanteed to exist,
@@ -99,7 +104,7 @@ public:
    * Returns the value of the entry with key \c key. If no such entry exists,
    * it is not created and an invalid QVariant() is returned.
    */
-  virtual QVariant readValue(const QString& key);
+  virtual QVariant readValue(const QString& key) const;
 
   /** \brief write the value if inexistant in config
    *

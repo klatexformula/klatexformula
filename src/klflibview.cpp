@@ -361,8 +361,8 @@ void KLFLibModelCache::rebuildCache()
 
   // report progress
   KLFProgressReporter progressReporter(0, 100, NULL);
-  emit pModel->operationStartReportingProgress(&progressReporter,
-					       QObject::tr("Updating View...", "[[KLFLibModelCache, progress text]]"));
+  QString msg = QObject::tr("Updating View...", "[[KLFLibModelCache, progress text]]");
+  emit pModel->operationStartReportingProgress(&progressReporter, msg);
   progressReporter.doReportProgress(0);
 
   QModelIndexList persistentIndexes = pModel->persistentIndexList();
@@ -379,7 +379,18 @@ void KLFLibModelCache::rebuildCache()
   pCategoryLabelCache.append(root);
 
   QList<int> wantedProps = minimalistEntryPropIds();
-  QList<KLFLibResourceEngine::KLFLibEntryWithId> everything = pModel->pResource->allEntries(wantedProps);
+  KLFLibResourceEngine::Query q;
+  q.orderPropId = pLastSortPropId;
+  q.orderDirection = pLastSortOrder;
+  KLFLibResourceEngine::QueryResult qr(KLFLibResourceEngine::QueryResult::FillEntryWithIdList);
+  // query the resource
+  int count = pModel->pResource->query(pModel->pResource->defaultSubResource(), q, &qr);
+  if (count < 0) {
+    qWarning()<<KLF_FUNC_NAME<<": query() returned an error.";
+    // don't return, continue with empty list
+  }
+  QList<KLFLibResourceEngine::KLFLibEntryWithId> everything = qr.entryWithIdList;
+
   for (k = 0; k < everything.size(); ++k) {
     klfDbgT( "Adding entry id="<<everything[k].id<<"; entry="
 	    <<everything[k].entry ) ;
@@ -391,9 +402,9 @@ void KLFLibModelCache::rebuildCache()
     NodeId entryindex;
     entryindex.kind = EntryKind;
     entryindex.index = pEntryCache.size()-1;
-    treeInsertEntry(entryindex, false);
+    treeInsertEntry(entryindex, false, true); // notifyQtApi=FALSE, appendOnly=TRUE
 
-    if (k % 20 == 0)
+    if (k % 10 == 0)
       progressReporter.doReportProgress((k+1) * 100 / everything.size());
   }
 
@@ -530,7 +541,7 @@ int KLFLibModelCache::getNodeRow(NodeId node)
 
 void KLFLibModelCache::ensureNotMinimalist(NodeId p, int countdown)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // fetch & complete some minimalist entry(ies)
   NodeId n;
   // prepare some entry IDs to fetch
@@ -584,7 +595,7 @@ bool KLFLibModelCache::canFetchMore(NodeId parentId)
 }
 void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME); klfDbg( "\t parentId: n="<<n<<"; valid="<<n.valid() ) ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME); klfDbg( "\t parentId: n="<<n<<"; valid="<<n.valid() ) ;
 
   if (pIsFetchingMore)
     return;
@@ -726,7 +737,7 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 }
 
 
-void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi)
+void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool appendOnly)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
@@ -744,20 +755,23 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi)
 
   // first find the appropriate category label parent
 
+  // start by looking at category
+
   EntryNode e = pEntryCache[n.index];
   QString category = e.entry.category();
-  // fix category: remove any double-/ to avoid empty sections. (goal: ensure that join('/', split('/', c))==c )
-  category = category.split('/', QString::SkipEmptyParts).join("/");
   
   // parse its catelements and remember that in the category list cache (that is useful only to
   // suggest known categories to user at given occasions)
   QStringList catelements = category.split('/', QString::SkipEmptyParts);
-  for (int kl = 0; kl < catelements.size(); ++kl) {
+  // walk decrementally, and break once we fall back in the list of known categories
+  for (int kl = catelements.size()-1; kl >= 0; --kl) {
     QString c = QStringList(catelements.mid(0,kl+1)).join("/");
-    if (!pCatListCache.contains(c)) {
-      pCatListCache.insert(qLowerBound(pCatListCache.begin(), pCatListCache.end(), c), c);
-    }
+    if (pCatListCache.contains(c))
+      break;
+    pCatListCache.insert(qLowerBound(pCatListCache.begin(), pCatListCache.end(), c), c);
   }
+
+  // and find the category parent
 
   IndexType catindex;
   if (pModel->displayType() == KLFLibModel::LinearList) {
@@ -777,13 +791,13 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi)
   // now we determined the parent of the new entry in the category tree, we will actually
   // insert the item according to current sort instructions.
   Node& parentref = getNodeRef(parentid);
-  KLFLibModelSorter srt =
-    KLFLibModelSorter(this, pModel->pEntrySorter, pModel->pFlavorFlags & KLFLibModel::GroupSubCategories);
   QList<NodeId> & childlistref = parentref.children;
   int insertPos;
-  if (pLastSortPropId < 0) {
+  if (appendOnly || pLastSortPropId < 0) {
     insertPos = childlistref.size(); // no sorting, just append the item
   } else {
+    KLFLibModelSorter srt =
+      KLFLibModelSorter(this, pModel->pEntrySorter, pModel->pFlavorFlags & KLFLibModel::GroupSubCategories);
     // qLowerBound returns an iterator. subtract begin() to get absolute index
     insertPos = qLowerBound(childlistref.begin(), childlistref.end(), n, srt) - childlistref.begin();
   }

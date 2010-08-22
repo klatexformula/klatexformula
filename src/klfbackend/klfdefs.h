@@ -123,7 +123,9 @@ KLF_EXPORT QString klfTimeOfDay(bool shortFmt = true);
 /** \brief Utility to time the execution of a block
  *
  * Prints message in constructor and in destructor to test
- * block execution time */
+ * block execution time.
+ *
+ * Consider using the macro \ref KLF_DEBUG_BLOCK and \ref KLF_DEBUG_TIME_BLOCK. */
 class KLF_EXPORT KLFDebugBlock
 {
 public:
@@ -138,6 +140,10 @@ private:
   bool pPrintMsg;
 };
 
+/** \brief An extension of KLFDebugBlock with millisecond-time display
+ *
+ * Consider the use of \ref KLF_DEBUG_BLOCK and \ref KLF_DEBUG_TIME_BLOCK macros instead.
+ */
 class KLF_EXPORT KLFDebugBlockTimer : public KLFDebugBlock
 {
 public:

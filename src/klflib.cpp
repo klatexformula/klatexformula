@@ -760,6 +760,40 @@ KLFLibResourceEngine::ModifyStatus
   return MS_CanModify;
 }
 
+
+
+// static
+KLFLib::EntryMatchCondition KLFLib::EntryMatchCondition::mkMatchAll()
+{
+  return EntryMatchCondition(MatchAllType);
+}
+// static
+KLFLib::EntryMatchCondition KLFLib::EntryMatchCondition::mkPropertyMatch(PropertyMatch pmatch)
+{
+  EntryMatchCondition c(PropertyMatchType);
+  c.mPropertyMatch = pmatch;
+  return c;
+}
+// static
+KLFLib::EntryMatchCondition KLFLib::EntryMatchCondition::mkOrMatch(QList<EntryMatchCondition> conditions)
+{
+  EntryMatchCondition c(OrMatchType);
+  c.mConditionList = conditions;
+  return c;
+}
+// static
+KLFLib::EntryMatchCondition KLFLib::EntryMatchCondition::mkAndMatch(QList<EntryMatchCondition> conditions)
+{
+  EntryMatchCondition c(AndMatchType);
+  c.mConditionList = conditions;
+  return c;
+}
+
+
+
+
+
+
 // -----
 
 QDataStream& operator<<(QDataStream& stream, const KLFLibResourceEngine::KLFLibEntryWithId& entrywid)
@@ -803,50 +837,35 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 }
 
 
-int KLFLibResourceSimpleEngine::findEntries(const QString& subResource,
-					    const EntryMatchCondition& matchcondition,
-					    QList<KLFLib::entryId> * entryIdList,
-					    int limit,
-					    KLFLibEntryList *rawEntryList,
-					    QList<KLFLibEntryWithId> * entryWithIdList,
-					    const QList<int>& wantedEntryProperties)
+int KLFLibResourceSimpleEngine::query(const QString& subResource,
+				      const Query& query,
+				      QueryResult *result)
 {
-  return findEntriesImpl(this, subResource, matchcondition, entryIdList, limit, rawEntryList,
-			 entryWithIdList, wantedEntryProperties);
+  return queryImpl(this, subResource, query, result);
 }
 
 // static
-int KLFLibResourceSimpleEngine::findEntriesImpl(KLFLibResourceEngine *resource,
-						const QString& subResource,
-						const EntryMatchCondition& matchcondition,
-						QList<KLFLib::entryId> * entryIdList,
-						int limit,
-						KLFLibEntryList *rawEntryList,
-						QList<KLFLibEntryWithId> * entryWithIdList,
-						const QList<int>& /*wantedEntryProperties*/)
+int KLFLibResourceSimpleEngine::queryImpl(KLFLibResourceEngine *resource,
+					  const QString& subResource,
+					  const Query& query,
+					  QueryResult *result)
 {
   /** \bug ............ UNTESTED ...................... */
 
   QList<KLFLibEntryWithId> allEList = resource->allEntries(subResource);
-  if (entryIdList)
-    entryIdList->clear();
-  if (entryWithIdList)
-    entryWithIdList->clear();
-  if (rawEntryList)
-    rawEntryList->clear();
+
+  KLFLibEntrySorter sorter(query.orderPropId, query.orderDirection);
+  QueryResultListSorter lsorter(&sorter, result);
+
   int count = 0;
   int k;
   for (k = 0; k < allEList.size(); ++k) {
     // test match condition
-    if (testEntryMatchConditionImpl(matchcondition, allEList[k].entry)) {
-      if (entryIdList)
-	entryIdList->append(allEList[k].id);
-      if (rawEntryList)
-	rawEntryList->append(allEList[k].entry);
-      if (entryWithIdList)
-	entryWithIdList->append(allEList[k]);
+    const KLFLibEntryWithId& ewid = allEList[k];
+    if (testEntryMatchConditionImpl(query.matchCondition, ewid.entry)) {
+      lsorter.insertIntoOrderedResult(ewid);
       ++count;
-      if (limit > 0 && count >= limit)
+      if (query.limit > 0 && count >= query.limit)
 	return count;
     }
   }
@@ -854,23 +873,23 @@ int KLFLibResourceSimpleEngine::findEntriesImpl(KLFLibResourceEngine *resource,
 }
 
 // static
-bool KLFLibResourceSimpleEngine::testEntryMatchConditionImpl(const EntryMatchCondition& condition,
+bool KLFLibResourceSimpleEngine::testEntryMatchConditionImpl(const KLFLib::EntryMatchCondition& condition,
 							     const KLFLibEntry& libentry)
 {
   int k;
-  PropertyMatch pmatch;
-  QList<EntryMatchCondition> condlist;
+  KLFLib::PropertyMatch pmatch;
+  QList<KLFLib::EntryMatchCondition> condlist;
 
   switch (condition.type()) {
-  case EntryMatchCondition::MatchAllType:
+  case KLFLib::EntryMatchCondition::MatchAllType:
     return true;
-  case EntryMatchCondition::PropertyMatchType:
+  case KLFLib::EntryMatchCondition::PropertyMatchType:
     pmatch = condition.propertyMatch();
     return klfMatch(libentry.property(pmatch.propertyId()), // test value
 		    pmatch.matchValue(), // match value
 		    pmatch.matchFlags(), // flags
 		    pmatch.matchValueString()); // variant converted to string, cached
-  case EntryMatchCondition::OrMatchType:
+  case KLFLib::EntryMatchCondition::OrMatchType:
     condlist = condition.conditionList();
     if (condlist.isEmpty())
       return true;
@@ -879,7 +898,7 @@ bool KLFLibResourceSimpleEngine::testEntryMatchConditionImpl(const EntryMatchCon
 	return true; // 'OR' -> find one that's OK and the condition is OK
     }
     return false; // but if none is OK then we're not OK
-  case EntryMatchCondition::AndMatchType:
+  case KLFLib::EntryMatchCondition::AndMatchType:
     condlist = condition.conditionList();
     if (condlist.isEmpty())
       return true;
@@ -889,9 +908,73 @@ bool KLFLibResourceSimpleEngine::testEntryMatchConditionImpl(const EntryMatchCon
     }
     return true; // but if all are OK then we're OK
   default:
-    qWarning()<<KLF_FUNC_NAME<<": EntryMatchCondition type "<<condition.type()<<" not known!";
+    qWarning()<<KLF_FUNC_NAME<<": KLFLib::EntryMatchCondition type "<<condition.type()<<" not known!";
   }
   return false;
+}
+
+
+KLFLibResourceSimpleEngine::QueryResultListSorter::QueryResultListSorter(KLFLibEntrySorter *sorter,
+									 QueryResult *result)
+  : mSorter(sorter), mResult(result)
+{
+  KLF_ASSERT_NOT_NULL( result, "result ptr is NULL!", return ) ;
+
+  fillflags = result->fillFlags;
+
+  if (fillflags & QueryResult::FillRawEntryList) {
+    reference_is_rawentrylist = true;
+  } else if (fillflags & QueryResult::FillEntryWithIdList) {
+    reference_is_rawentrylist = false;
+  } else {
+    // fill also the raw entry list to have a reference (!)
+    fillflags |= QueryResult::FillRawEntryList;
+    reference_is_rawentrylist = true;
+  }
+}
+
+/*
+KLFLibResourceSimpleEngine::QueryResultListSorter::QueryResultListSorter(const QueryResultListSorter& other)
+  : mSorter(other.mSorter), mResult(other.mResult), fillflags(other.fillflags),
+    reference_is_rawentrylist(other.reference_is_rawentrylist)
+{
+}
+*/
+
+#define klf_lower_bound_entry						\
+  qLowerBound<KLFLibEntryList::iterator,KLFLibEntry,const KLFLibEntrySorter&>
+#define klf_lower_bound_ewid						\
+  qLowerBound<QList<KLFLibEntryWithId>::iterator,KLFLibEntryWithId,const QueryResultListSorter&>
+
+void KLFLibResourceSimpleEngine::QueryResultListSorter::insertIntoOrderedResult(const KLFLibEntryWithId& ewid)
+{
+  int pos;
+
+  if (mSorter->propId() == -1) {
+    // just append
+    if (reference_is_rawentrylist)
+      pos = mResult->rawEntryList.size();
+    else
+      pos = mResult->entryWithIdList.size();
+  } else {
+    // insert at right place
+    if (reference_is_rawentrylist) {
+      KLFLibEntryList::iterator it =
+	klf_lower_bound_entry(mResult->rawEntryList.begin(), mResult->rawEntryList.end(), ewid.entry, *mSorter);
+      pos = it - mResult->rawEntryList.begin();
+    } else {
+      QList<KLFLibEntryWithId>::iterator it =
+	klf_lower_bound_ewid(mResult->entryWithIdList.begin(), mResult->entryWithIdList.end(), ewid, *this);
+      pos = it - mResult->entryWithIdList.begin();
+    }
+  }
+  // actually insert the items into appropriate lists
+  if (fillflags & QueryResult::FillEntryIdList)
+    mResult->entryIdList.insert(pos, ewid.id);
+  if (fillflags & QueryResult::FillRawEntryList)
+    mResult->rawEntryList.insert(pos, ewid.entry);
+  if (fillflags & QueryResult::FillEntryWithIdList)
+    mResult->entryWithIdList.insert(pos, ewid);
 }
 
 

@@ -591,68 +591,13 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   return eList;
 }
 
-int KLFLibDBEngine::findEntries(const QString& subResource,
-				const EntryMatchCondition& matchcondition,
-				QList<KLFLib::entryId> * entryIdList,
-				int limit,
-				KLFLibEntryList * rawEntryList,
-				QList<KLFLibEntryWithId> * entryWithIdList,
-				const QList<int>& wantedEntryProperties)
+
+int KLFLibDBEngine::query(const QString& subResource, const Query& query, QueryResult *result)
 {
-  return
-    KLFLibResourceSimpleEngine::findEntriesImpl(this, subResource, matchcondition, entryIdList, limit,
-						rawEntryList, entryWithIdList, wantedEntryProperties);
+  /** \todo ........ Optimize (!) ............. */
+  return KLFLibResourceSimpleEngine::queryImpl(this, subResource, query, result);
 }
 
-/*
-  QList<KLFLibResourceEngine::KLFLibEntryWithId>
-  KLFLibDBEngine::findEntries(const QString& subResource,
-  const QMap<int,QVariant>& propValues,
-  const QList<int>& wantedEntryProperties)
-  {
-  if ( ! validDatabase() )
-  return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
-  
-  int k;
-  QStringList cols = columnNameList(subResource, wantedEntryProperties, true);
-  // now, in cols, 'id' is first column (see columnNameList())
-  
-  QStringList qpairs;
-  QVariantList qvalues;
-  for (QMap<int,QVariant>::const_iterator it = propValues.begin(); it != propValues.end(); ++it) {
-  qpairs << QString("(%1 = ?)").arg(it.key());
-  qvalues << it.value();
-  }
-  
-  QString qwhere;
-  if (qpairs.size())
-  qwhere = "WHERE "+qpairs.join(" AND ");
-  
-  QSqlQuery q = QSqlQuery(pDB);
-  q.setForwardOnly(true);
-  q.prepare(QString("SELECT %1 FROM %2  %3").arg(cols.join(","), quotedDataTableName(subResource), qwhere));
-  for (k = 0; k < qvalues.size(); ++k)
-  q.addBindValue(qvalues[k]);
-  bool r = q.exec();
-  if ( ! r || q.lastError().isValid() ) {
-  qWarning()<<"KLFLibDBEngine::findEntries: SQL error.\nSQL="<<q.lastQuery()<<"\nError="
-  <<q.lastError().text();
-  return QList<KLFLibEntryWithId>();
-  }
-  
-  // make sure cols is correct (and expand '*' to column list)
-  cols = detectEntryColumns(q);
-  
-  QList<KLFLibEntryWithId> foundEList;
-  while (q.next()) {
-  KLFLibEntryWithId e;
-  e.entry = readEntry(q, cols);
-  e.id = q.value(0).toInt();
-  foundEList << e;
-  }
-  return foundEList;
-  }
-*/
 
 KLFLibEntry KLFLibDBEngine::entry(const QString& subResource, entryId id)
 {
