@@ -643,11 +643,6 @@ public:
 
   virtual QList<QAction*> addContextMenuActions(const QPoint& pos);
 
-  /** Returns TRUE if this view type is an IconView and that we can move icons around
-   * (ie. resource property lockediconpositions FALSE and resource not locked if we
-   * store the positions in the resource data) */
-  virtual bool canMoveIcons() const;
-
   virtual QVariantMap saveGuiState() const;
   virtual bool restoreGuiState(const QVariantMap& state);
 
@@ -680,13 +675,12 @@ public slots:
   virtual void slotSelectAll(const QModelIndex& parent = QModelIndex(), bool rootCall = true);
   virtual void slotRelayoutIcons();
 
-  /** Inoperational. Icon positioning by user was abandoned for now. */
-  virtual void slotLockIconPositions(bool locked);
-
   void setAutoBackgroundItems(bool on) { pDelegate->setAutoBackgroundItems(on); }
   void setAutoBackgroundColor(const QColor& c) { pDelegate->setAutoBackgroundColor(c); }
 
-  /** Has no effect if view type is not icon view. */
+  /** \brief Sets the icon view flow, see \ref QListView::Flow.
+   *
+   * Has no effect if our view type is not icon view. */
   void setIconViewFlow(QListView::Flow flow);
 
   /** \warning This function takes effect upon the next change of resource engine, ie the next
@@ -727,7 +721,6 @@ private:
   QList<QAction*> pCommonActions;
   QList<QAction*> pShowColumnActions;
   QAction *pIconViewRelayoutAction;
-  QAction *pIconViewLockAction;
   QList<QAction*> pIconViewActions;
 
   bool pEventFilterNoRecurse;

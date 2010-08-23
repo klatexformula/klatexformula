@@ -62,27 +62,8 @@ inline QPointF sizeToPointF(const QSizeF& s) { return QPointF(s.width(), s.heigh
 inline QSizeF pointToSizeF(const QPointF& p) { return QSizeF(p.x(), p.y()); }
 
 
-// /** \internal */
-// static QColor image_average_color(const QImage& img)
-// {
-//   // img should not be transparent
-// 
-//   QColor avgc;
-//   QColor c;
-//   int x, y, N = 0;
-//   for (x = 0; x < img.width(); ++x) {
-//     for (y = 0; y < img.height(); ++y) {
-//       c = QColor(img.pixel(x, y));
-//       avgc.setHsvF( (avgc.hueF()*N + c.hueF())/(N+1),
-// 		    (avgc.saturationF()*N + c.saturationF())/(N+1),
-// 		    (avgc.valueF()*N + c.valueF())/(N+1) );
-//       ++N;
-//     }
-//   }
-//   return avgc;
-// }
+// -----------------------------
 
-// ---
 
 /** \internal */
 class KLFLibModelCache
@@ -315,7 +296,8 @@ private:
 
 
 
-// ---
+// -----------------------------------------
+
 
 /** \internal */
 class KLFLibDefViewCommon
@@ -327,7 +309,7 @@ public:
   }
   virtual ~KLFLibDefViewCommon() { }
 
-  virtual void moveSelectedIconsBy(const QPoint& delta) = 0;
+  //  virtual void moveSelectedIconsBy(const QPoint& delta) = 0;
 
   /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */  
   virtual bool evDragEnter(QDragEnterEvent *de, const QPoint& pos) {
@@ -393,7 +375,7 @@ public:
       QDragLeaveEvent fakeevent;
       qApp->sendEvent(thisView()->viewport(), &fakeevent);
       // and manually move all selected indexes
-      moveSelectedIconsBy(delta);
+      //      moveSelectedIconsBy(delta); .... IF we decide to sometime re-try supporting manual icon positioning...
       thisView()->viewport()->update();
     } else {
       // and FAKE a QDropEvent to the item view.
@@ -411,12 +393,8 @@ public:
 
     if (pViewType == KLFLibDefaultView::IconView) {
       // icon view -> move icons around
-      klfDbg( "Internal DRAG, move icons around..." ) ;
-      // if icon positions are locked then abort
-      if ( ! pDView->canMoveIcons() )
-	return;
-      /// \bug ......BUG/TODO........ WARNING: QListView::internalDrag() is NOT in offical Qt API !
-      commonInternalDrag(supportedActions);
+
+      // this is not supported. This functionality was attempted and abandoned.
       return;
     }
     
@@ -568,7 +546,6 @@ public:
     }
   }
 
-  virtual void moveSelectedIconsBy(const QPoint& /*delta*/) { }
 
 public slots:
 
@@ -606,10 +583,8 @@ class KLFLibDefListView : public QListView, public KLFLibDefViewCommon
 public:
   KLFLibDefListView(KLFLibDefaultView *parent)
     : QListView(parent), KLFLibDefViewCommon(parent), inPaintEvent(false), pInEventFilter(false),
-      pInitialLayoutDone(false), pSavingIconPositions(false), pWantRelayout(true)
+      pInitialLayoutDone(false), pWantRelayout(true)
   {
-    pDelayedSetIconPositions.clear();
-
     installEventFilter(this);
     viewport()->installEventFilter(this);
   }
@@ -619,22 +594,6 @@ public:
       return false;
     pInEventFilter = true;
     bool eat = false;
-    if (object == this && event->type() == QEvent::Polish) {
-      /*      klfDbg( "Polish! delayedseticonpos="<<pDelayedSetIconPositions ) ;
-	      if (!pDelayedSetIconPositions.isEmpty()) {
-	      // QListView wants to have its own doItemsLayout() function called first, before we start
-	      // fiddling with item positions.
-	      / ** \bug .......... BUG/TODO/WARNING: QListView::doItemsLayout() is NOT in official API! * /
-	      QListView::doItemsLayout();
-	      loadIconPositions(pDelayedSetIconPositions, true);
-	      } else {
-	      if (pWantRelayout)
-	      forceRelayout(true); // relayout if wanted
-	      }
-	      pHasBeenPolished = true;
-	      eat = false;
-      */
-    }
     if (event->type() == QEvent::DragEnter) {
       eat = evDragEnter((QDragEnterEvent*)event, eventPos(object, (QDragEnterEvent*)event));
     } else if (event->type() == QEvent::DragMove) {
@@ -655,104 +614,9 @@ public:
     }
   }
 
-  /** Returns the positions of all the icon positions and for each entry IDs to
-   * which they refer.
-   * */
-  virtual QMap<KLFLib::entryId,QPoint> allIconPositions() const {
-    QMap<KLFLib::entryId,QPoint> iconPositions;
-    /*    // walk all indexes in view
-	  QModelIndex it = pModel->walkNextIndex(QModelIndex());
-	  while (it.isValid()) {
-	  KLFLib::entryId eid = pModel->entryIdForIndex(it);
-	  if (eid != -1) {
-	  iconPositions[eid] = iconPosition(it);
-	  }
-	  it = pModel->walkNextIndex(it);
-	  } */
-    return iconPositions;
-  }
-
-  /** If we are in the process of saving icon positions (may be called from
-   * for example an update method which was called because the entry was changed
-   * when setting new icon position) */
-  bool isSavingIconPositions() const { return pSavingIconPositions; }
-
-  /** this function restores the positions of all the icons as described
-   * in the \c iconPositions map, for example which has been obtained by a call
-   * to \ref allIconPositions() some time earlier.
-   *
-   * This function does NOT save the new icon positions; this function is precisely meant
-   * for usage from a "loadGuiState()" function or from an "update resource data ()" function.
-   */
-  virtual void loadIconPositions(const QMap<KLFLib::entryId,QPoint>& iconPositions,
-				 bool forcenow = false) {
-    if ( pSavingIconPositions )
-      return;
-
-    /*    if ( ! pHasBeenPolished && ! forcenow ) {
-	  pDelayedSetIconPositions = iconPositions;
-	  klfDbg( "KLFLibDefListView::loadIconPositions: delaying action!" ) ;
-	  return;
-    */
-    /*	  klfDbg( "KLFLibDefListView::loadIconPositions: setting icon positions "<<iconPositions ) ;
-	  QMap<KLFLib::entryId,QPoint>::const_iterator it;
-	  for (it = iconPositions.begin(); it != iconPositions.end(); ++it) {
-	  QModelIndex index = pModel->findEntryId(it.key());
-	  if (!index.isValid())
-	  continue;
-	  QPoint pos = *it;
-	  klfDbg( ": About to set single icon position.." ) ;
-	  setIconPosition(index, pos, true);
-	  klfDbg( "Set single icon position OK." ) ;
-	  }
-    */
-    pDelayedSetIconPositions.clear();
-  }
-
-
-  virtual void moveSelectedIconsBy(const QPoint& delta) {
-    /*    int k;
-	  QModelIndexList sel = selectionModel()->selectedIndexes();
-	  for (k = 0; k < sel.size(); ++k) {
-	  QPoint newp = rectForIndex(sel[k]).topLeft() + delta;
-	  if (newp.x() < 0) newp.setX(0);
-	  if (newp.y() < 0) newp.setY(0);
-	  setIconPosition(sel[k], newp);
-	  }
-    */
-  }
 
   void forceRelayout() {
-
     scheduleDelayedItemsLayout(); // force a re-layout
-    //    doItemsLayout(); // force a re-layout
-
-    /*	  bool wr = pWantRelayout;
-	  pWantRelayout = true;
-	  doItemsLayout(); // force re-layout
-	  if (!isPolishing && !wr) {
-	  // if we didn't by default want a relayout (ie. icon positions were controlled)
-	  saveIconPositions();
-	  }
-	  pWantRelayout = false;
-    */
-  }
-
-  QPoint iconPosition(const QModelIndex& index) const {
-    return rectForIndex(index).topLeft();
-  }
-  void setIconPosition(const QModelIndex& index, const QPoint& pos, bool dontSave = false) {
-    if (index.column() > 0)
-      return;
-    //    if (rectForIndex(index).topLeft() == pos)
-    //      return;
-    /*
-      klfDbg( "Functional setIconPosition("<<index<<","<<pos<<")" ) ;
-      setPositionForIndex(pos, index);
-      if (!dontSave)
-      saveIconPosition(index);
-      pWantRelayout = false;
-    */
   }
   
   virtual void modelInitialized() {
@@ -783,9 +647,6 @@ protected:
 
   bool pInEventFilter;
   bool pInitialLayoutDone;
-  bool pSavingIconPositions;
-
-  QMap<KLFLib::entryId, QPoint> pDelayedSetIconPositions;
 
   virtual void startDrag(Qt::DropActions supportedActions) {
     commonStartDrag(supportedActions);
@@ -801,57 +662,9 @@ protected:
     }
     QListView::showEvent(event);
   }
-
-  //   virtual void doItemsLayout() {
-  //     QListView::doItemsLayout();
-  //     / ** \bug ......BUG/TODO........ WARNING: QListView::doItemsLayout() is NOT in offical Qt API !
-  //      * /
-  //     /*    klfDbg( "doItemsLayout!" ) ;
-  //     // Qt want its own doItemsLayout() to be called first (in case new indexes have appeared, or
-  //     // old ones dissapeared)
-  //     QMap<KLFLib::entryId,QPoint> bkpiconpos;
-  //     if (!pWantRelayout) {
-  //     bkpiconpos = allIconPositions(); // save current icon positions
-  //       klfDbg( "Got backup icon positions: "<<bkpiconpos ) ;
-  //       }
-  //     // do qt's layout
-  //     QListView::doItemsLayout();
-  //     // but then we want to keep our layout if !pWantRelayout:
-  //     if (!pWantRelayout)
-  //       loadIconPositions(bkpiconpos);
-
-  //     pWantRelayout = false;
-  //     klfDbg( "doItemsLayout finished!" ) ;
-  //     */
-  //   } 
   
   bool pWantRelayout;
 
-  void saveIconPositions() {
-    /*    klfDbg( "saveIconPositions()" ) ;
-    KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
-    // walk all indices, fill entryIdList
-    QModelIndex index = model->walkNextIndex(QModelIndex());
-    while (index.isValid()) {
-      klfDbg( "Walking index "<<index<<"; our model is "<<((QAbstractItemModel*)model)
-	      <<"item's model is"<<((QAbstractItemModel*)index.model()) ) ;
-      saveIconPosition(index);
-      index = model->walkNextIndex(index);
-    }
-    klfDbg( "Done saving all icon positions." ) ; */
-  }
-  void saveIconPosition(const QModelIndex& index) {
-    if (index.column()>0)
-      return;
-    /*    klfDbg( "saveIconPosition()" ) ;
-    KLFLibModel *model = qobject_cast<KLFLibModel*>(this->model());
-    KLFLibEntry edummy = index.data(KLFLibModel::FullEntryItemRole).value<KLFLibEntry>();
-    int propId = edummy.setEntryProperty("IconView_IconPosition", rectForIndex(index).topLeft());
-    pSavingIconPositions = true;
-    model->changeEntries(QModelIndexList() << index, propId, edummy.property(propId)); 
-    pSavingIconPositions = false;
-    klfDbg( "end of saveIconPosition()" ) ; */
-  }
 };
 
 
@@ -1027,7 +840,7 @@ protected slots:
   }
 };
 
-// ---
+// --------------------------------------
 
 /** \internal */
 class KLFLibLocalFileCreateWidget : public KLFLibLocalFileOpenWidget

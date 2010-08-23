@@ -60,15 +60,6 @@
 #include "klflibview_p.h"
 
 
-// #ifndef KLF_DEBUG
-// // Qt doesn't provide this operator out of debug mode, however we need it to feed
-// // into qWarning()<< ...
-// QDebug& operator<<(QDebug& dbg, const QModelIndex &index)
-// {
-//   return dbg << "QModelIndex(row="<<index.row()<<";data="<<index.internalPointer()<<")";
-// }
-// #endif
-
 
 // ---------------------------------------------------
 
@@ -2016,12 +2007,6 @@ bool KLFLibModel::insertEntries(const KLFLibEntryList& entries)
     return true; // nothing to do...
 
   KLFLibEntryList elist = entries;
-  /*  int k;
-  for (k = 0; k < entries.size(); ++k) {
-    // strip any position property from the entry
-    if (elist[k].property("IconView_IconPosition").isValid())
-      elist[k].setEntryProperty("IconView_IconPosition", QVariant());
-  }*/
 
   QList<KLFLib::entryId> list = pResource->insertEntries(elist);
 
@@ -2644,7 +2629,6 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 
   pModel = NULL;
 
-  pIconViewLockAction = NULL;
   pIconViewRelayoutAction = NULL;
 
   pEventFilterNoRecurse = false;
@@ -2821,20 +2805,6 @@ QList<QAction*> KLFLibDefaultView::addContextMenuActions(const QPoint& /*pos*/)
   return actionList;
 }
 
-bool KLFLibDefaultView::canMoveIcons() const
-{
-  return false;
-  //  KLFLibResourceEngine *e = resourceEngine();
-  //  if (e == NULL)
-  //    return false;
-  //  if (e->propertyNameRegistered("IconView_IconPositionsLocked") &&
-  //      e->resourceProperty("IconView_IconPositionsLocked").toBool())
-  //    return false;
-  //  if (!e->accessShared() && e->locked())
-  //    return false;
-  //  return true;
-}
-
 
 QVariantMap KLFLibDefaultView::saveGuiState() const
 {
@@ -2846,24 +2816,7 @@ QVariantMap KLFLibDefaultView::saveGuiState() const
     vst["ColumnsState"] = QVariant::fromValue<QByteArray>(tv->header()->saveState());
   }
   if (pViewType == IconView) {
-    /*    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
-    KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
-			 return QVariantMap() )
-      ;
-    if ( resourceEngine()->accessShared() ) {
-      // access is shared, so we store icon position info in Gui state instead
-      // of in the resource data itself.
-      QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions = lv->allIconPositions();
-      QMap<KLFLibResourceEngine::entryId,QPoint>::const_iterator it;
-      QVariantList vEntryIds; // will hold entryId's in qint32 format
-      QVariantList vPositions; // will hold QPoint's
-      for (it = iconpositions.begin(); it != iconpositions.end(); ++it) {
-	vEntryIds << QVariant::fromValue<qint32>(it.key());
-	vPositions << QVariant::fromValue<QPoint>(it.value());
-      }
-      vst["IconPositionsEntryIdList"] = QVariant::fromValue<QVariantList>(vEntryIds);
-      vst["IconPositionsPositionList"] = QVariant::fromValue<QVariantList>(vPositions);
-      } */
+    // nothing to be done
   }
   return vst;
 }
@@ -2877,22 +2830,7 @@ bool KLFLibDefaultView::restoreGuiState(const QVariantMap& vstate)
     tv->header()->restoreState(colstate);
   }
   if (pViewType == IconView) {
-    /*    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
-    KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
-			 return false )
-      ;
-    if ( resourceEngine()->accessShared() ) {
-      // access is shared, so we store icon position info in Gui state instead
-      // of in the resource data itself.
-      QVariantList vEntryIds = vstate["IconPositionsEntryIdList"].toList();
-      QVariantList vPositions = vstate["IconPositionsPositionList"].toList();
-      QMap<KLFLibResourceEngine::entryId,QPoint> iconpositions;
-      int k;
-      for (k = 0; k < vEntryIds.size() && k < vPositions.size(); ++k) {
-	iconpositions[vEntryIds[k].value<qint32>()] = vPositions[k].value<QPoint>();
-      }
-      lv->loadIconPositions(iconpositions);
-      } */
+    // nothing to be done
   }
   return true;
 }
@@ -2935,10 +2873,6 @@ void KLFLibDefaultView::updateResourceEngine()
     for (k = 0; k < pShowColumnActions.size(); ++k)
       delete pShowColumnActions[k];
     pShowColumnActions.clear();
-    if (pIconViewLockAction) {
-      delete pIconViewLockAction;
-      pIconViewLockAction = NULL;
-    }
     if (pIconViewRelayoutAction) {
       delete pIconViewRelayoutAction;
       pIconViewRelayoutAction = NULL;
@@ -3000,27 +2934,9 @@ void KLFLibDefaultView::updateResourceEngine()
 
   if (pViewType == IconView) {
     klfDbg( "About to prepare iconview." ) ;
-    //    KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
-    /*    if ( ! resource->propertyNameRegistered("IconView_IconPositionsLocked") )
-	  resource->loadResourceProperty("IconView_IconPositionsLocked", false);
-    */
     pIconViewRelayoutAction = new QAction(tr("Relayout All Icons", "[[menu action]]"), this);
     connect(pIconViewRelayoutAction, SIGNAL(triggered()), this, SLOT(slotRelayoutIcons()));
-    pIconViewLockAction = new QAction(tr("Lock Icon Positions", "[[menu action]]"), this);
-    pIconViewLockAction->setCheckable(true);
-    connect(pIconViewLockAction, SIGNAL(toggled(bool)), this, SLOT(slotLockIconPositions(bool)));
-    connect(pIconViewLockAction, SIGNAL(toggled(bool)),
-	    pIconViewRelayoutAction, SLOT(setDisabled(bool)));
-    bool iconposlocked = true;
-      //      = resource->resourceProperty("IconView_IconPositionsLocked").toBool();
-    pIconViewLockAction->setChecked(iconposlocked);
-    //     bool iconposlockenabled
-    //       = resource->propertyNameRegistered("IconView_IconPositionsLocked") &&
-    //       /* */ resource->canModifyProp(resource->propertyIdForName("IconView_IconPositionsLocked"));
-    //     pIconViewLockAction->setEnabled(iconposlockenabled);
-    // pIconViewRelayoutAction->setEnabled(canMoveIcons());
-
-    pIconViewActions = QList<QAction*>() << pIconViewRelayoutAction ;/* << pIconViewLockAction; */
+    pIconViewActions = QList<QAction*>() << pIconViewRelayoutAction ;
   }
   if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
     QTreeView *treeView = qobject_cast<QTreeView*>(pView);
@@ -3083,55 +2999,16 @@ void KLFLibDefaultView::updateResourceOwnData(const QList<KLFLib::entryId>& /*en
   /** \todo ..................... OPTIMIZE THIS FUNCTION not to do a full refresh */
   klfDbg( KLF_FUNC_NAME ) ;
   if (pViewType == IconView) {
-    /* KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
-       KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
-       return )
-       ;
-       if ( ! lv->isSavingIconPositions() ) {
-      // Important: do NOT update if the update was generated because an icon position was
-      // saved by the view!
-
-      // load the icon positions stored in the resource's entries as custom properties.
-      int k;
-      QList<KLFLibResourceEngine::KLFLibEntryWithId> allentries = pModel->resource()->allEntries();
-      QMap<KLFLib::entryId, QPoint> readIconPositions;
-      for (k = 0; k < allentries.size(); ++k) {
-	QVariant pos = allentries[k].entry.property("IconView_IconPosition");
-	if (pos.isValid() && pos.canConvert<QPoint>())
-	  readIconPositions[allentries[k].id] = pos.value<QPoint>();
-      }
-      // update the view
-      // call this function now. It will detect and possibly delay the actual icon position loading
-      // until widget polishing time, if needed.
-      lv->loadIconPositions(readIconPositions);
-      } */
+    // nothing to do
   }
 }
 void KLFLibDefaultView::updateResourceProp(int propId)
 {
   klfDbg( "propId="<<propId ) ;
 
-  // if locked property was modified, refresh
-  // Lock Icon Positions & Relayout Icons according to whether we store that info
-  // in resource or in view state...
-
   KLF_ASSERT_NOT_NULL( resourceEngine() , "Resource Engine is NULL, skipping !" , return ) ;
 
-  //  if ( propId == -1 || propId == KLFLibResourceEngine::PropLocked ) {
-  //     if (pIconViewRelayoutAction != NULL)
-  //       pIconViewRelayoutAction->setEnabled(canMoveIcons());
-  //     if (pIconViewLockAction != NULL) {
-  //       int propId = resourceEngine()->propertyIdForName("IconView_IconPositionsLocked");
-  //       bool canmodify = resourceEngine()->canModifyProp(propId);
-  //       if ( ! canmodify )
-  // 	pIconViewLockAction->setChecked(!canMoveIcons());
-  //       pIconViewLockAction->setEnabled(canmodify);
-  //       if (canmodify) {
-  // 	bool locked = pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool();
-  // 	pIconViewLockAction->setChecked(locked);
-  //       }
-  //     }
-  //  }
+  // ... nothing to be done...
 }
 
 void KLFLibDefaultView::showEvent(QShowEvent *event)
@@ -3277,29 +3154,12 @@ void KLFLibDefaultView::slotSelectAll(const QModelIndex& parent, bool rootCall)
 
 void KLFLibDefaultView::slotRelayoutIcons()
 {
-  //   if (pViewType != IconView || !pView->inherits("KLFLibDefListView")) {
-  //     return;
-  //   }
-  //   if (pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
-  //     return;
+  if (pViewType != IconView || !pView->inherits("KLFLibDefListView")) {
+    return;
+  }
   KLFLibDefListView *lv = qobject_cast<KLFLibDefListView*>(pView);
   // force a re-layout
   lv->forceRelayout();
-}
-void KLFLibDefaultView::slotLockIconPositions(bool locked)
-{
-  //  if (locked == pModel->resource()->resourceProperty("IconView_IconPositionsLocked").toBool())
-  //    return; // no change
-
-  /*  klfDbg( "Locking icon positions to "<<locked ) ;
-      bool r = pModel->resource()->loadResourceProperty("IconView_IconPositionsLocked",
-      QVariant::fromValue(locked));
-      if (!r) {
-      qWarning()<<"Can't lock icon positions!";
-      return;
-      }
-      pIconViewLockAction->setChecked(locked);
-  */
 }
 
 void KLFLibDefaultView::setIconViewFlow(QListView::Flow flow)
@@ -3672,8 +3532,7 @@ KLFLibCreateResourceDlg::KLFLibCreateResourceDlg(const QString& defaultWtype, QW
 {
   pUi = new Ui::KLFLibOpenResourceDlg;
   pUi->setupUi(this);
-  if (QFile::exists(":/pics/klatexformula-64.png"))
-    setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
+  setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   pUi->lblMain->setText(tr("Create New Library Resource", "[[dialog label title]]"));
   setWindowTitle(tr("Create New Library Resource", "[[dialog window title]]"));
@@ -3804,8 +3663,7 @@ KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *par
 {
   U = new Ui::KLFLibResPropEditor;
   U->setupUi(this);
-  if (QFile::exists(":/pics/klatexformula-64.png"))
-    setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
+  setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   QPalette pal = U->txtUrl->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
@@ -4212,8 +4070,7 @@ KLFLibNewSubResDlg::KLFLibNewSubResDlg(KLFLibResourceEngine *resource, QWidget *
 {
   u = new Ui::KLFLibNewSubResDlg;
   u->setupUi(this);
-  if (QFile::exists(":/pics/klatexformula-64.png"))
-    setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
+  setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   u->lblNoTitle->hide();
 
