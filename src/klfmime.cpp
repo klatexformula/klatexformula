@@ -314,6 +314,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	    // correct locale
 	    //	    klfDbg("remembering description tag with lang="<<lang);
 	    description = ee.text();
+	    curDescriptionLang = lang;
 	  }
 	  // otherwise skip this tag
 	} else {
@@ -323,6 +324,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	    // then keep it and replace the other
 	    //	    klfDbg("remembering description tag with lang="<<lang);
 	    description = ee.text();
+	    curDescriptionLang = lang;
 	  }
 	  // otherwise skip this tag
 	}

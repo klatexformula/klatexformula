@@ -51,6 +51,8 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
 {
   Skin skin;
 
+  skin.fn = fn;
+
   QFile f(fn);
   if ( ! f.open(QIODevice::ReadOnly) ) {
     qWarning()<<KLF_FUNC_NAME<<": Can't read skin "<<fn<<"!";
@@ -82,6 +84,12 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
     if ( e.nodeName() == "name" ) {
       skin.name = e.text();
       continue;
+    } else if ( e.nodeName() == "author" ) {
+      skin.author = e.text();
+      continue;
+    } else if ( e.nodeName() == "description" ) {
+      skin.description = e.text();
+      continue;
     } else if ( e.nodeName() == "stylesheet" ) {
       QString fnqss = e.text().trimmed();
       QFile fqss(fnqss);
@@ -93,6 +101,7 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
       continue;
     } else if ( e.nodeName() == "syntax-highlighting-scheme" ) {
       // read the syntax highlighting scheme...
+      skin.overrideSHScheme = true;
       QDomNode nn;
       for (nn = e.firstChild(); ! nn.isNull(); nn = nn.nextSibling()) {
 	QDomElement ee = nn.toElement();
@@ -119,8 +128,9 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
     }
   }
 
-  klfDbg("read skin: "<<skin.name<<"; stylesheet="<<skin.stylesheet.simplified().mid(0, 50)<<"[...]; keyword format is "
-	 <<" fg:"<<skin.shscheme.fmtKeyword.foreground()<<"/bg:"<<skin.shscheme.fmtKeyword.background()) ;
+  klfDbg("read skin: "<<skin.name<<"; stylesheet="<<skin.stylesheet.simplified().mid(0, 50)
+	 <<"[...]; keyword format is- fg:"<<skin.shscheme.fmtKeyword.foreground()
+	 <<"/bg:"<<skin.shscheme.fmtKeyword.background()) ;
 
   // finally return the loaded skin
   return skin;
@@ -156,7 +166,7 @@ void SkinConfigWidget::loadSkinList(QString skinfn)
       if (fn == skinfn) {
 	indf = cbxSkin->count();
       }
-      cbxSkin->addItem(skintitle, fn);
+      cbxSkin->addItem(skintitle, QVariant::fromValue<Skin>(skin));
     }
   }
   // ---
@@ -166,20 +176,68 @@ void SkinConfigWidget::loadSkinList(QString skinfn)
     cbxSkin->blockSignals(false);
   }
   _modified = false;
+  updateSkinDescription(cbxSkin->itemData(cbxSkin->currentIndex()).value<Skin>());
 }
 
 void SkinConfigWidget::skinSelected(int index)
 {
   if (index < 0 || index >= cbxSkin->count()-1)
     return;
+
+  updateSkinDescription(cbxSkin->itemData(index).value<Skin>());
+  
   _modified = true;
 }
 
 void SkinConfigWidget::refreshSkin()
 {
-  loadSkinList(currentSkin());
+  loadSkinList(currentSkinFn());
   _modified = true; // and re-set this skin after click on 'apply'
 }
+
+void SkinConfigWidget::updateSkinDescription(const Skin& skin)
+{
+  QString ds;
+  ds =
+    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    "<html><head>\n"
+    "<meta name=\"qrichtext\" content=\"1\" />\n"
+    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n"
+    "<style type=\"text/css\">\n"
+    "p, li {\n"
+    "  white-space: pre-wrap;\n"
+    "  -qt-block-indent:0;\n"
+    "  text-indent:0px;\n"
+    "}\n"
+    "a {\n"
+    "  text-decoration: underline;\n"
+    "  color: #0000bf;\n"
+    "}\n"
+    "</style>\n"
+    "</head><body>"
+    "<pre style=\"font-weight: bold;\">"+tr("DESCRIPTION")+"</pre>\n";
+  if (skin.description.length()) {
+    ds += "<pre>"+skin.description+"</pre>\n";
+  } else {
+    ds += "<pre>"+tr("(No description provided)")+"</pre>\n";
+  }
+  ds += "<pre style=\"font-weight: bold;\">"+tr("AUTHOR")+"</pre>";
+  if (skin.author.length()) {
+    ds += "<pre>"+skin.author+"</pre>";
+  } else {
+    ds += "<pre>"+tr("(No author name provided)")+"</pre>\n";
+  }
+  if (skin.overrideSHScheme) {
+    ds += "<pre><i>"+tr("This skin provides an appropriate syntax highlighting color scheme")+"</i></pre>";
+  } else {
+    ds += "<pre><i>"+tr("This skin will not alter syntax highlighting color scheme")+"</i></pre>";
+  }
+  ds += "</body></html>";
+
+  lblSkinDescription->setText(ds);
+}
+
+
 
 /* SKINS SHOULD BE INSTALLED VIA EXTENSIONS (Qt RCC FILES)
  * -------------------------------------------------------
@@ -272,17 +330,19 @@ void SkinPlugin::changeSkin(const QString& newSkin, bool force)
 
   // apply syntax highlighting scheme only when skin is CHANGED (thus here and not in applySkin())
 
-  klfDbg("Applying syntax highlighting scheme, keyword.isValid()="<<skin.shscheme.fmtKeyword.isValid()) ;
-  if (skin.shscheme.fmtKeyword.isValid())
-    klfconfig.SyntaxHighlighter.fmtKeyword = skin.shscheme.fmtKeyword;
-  if (skin.shscheme.fmtComment.isValid())
-    klfconfig.SyntaxHighlighter.fmtComment = skin.shscheme.fmtComment;
-  if (skin.shscheme.fmtParenMatch.isValid())
-    klfconfig.SyntaxHighlighter.fmtParenMatch = skin.shscheme.fmtParenMatch;
-  if (skin.shscheme.fmtParenMismatch.isValid())
-    klfconfig.SyntaxHighlighter.fmtParenMismatch = skin.shscheme.fmtParenMismatch;
-  if (skin.shscheme.fmtLonelyParen.isValid())
-    klfconfig.SyntaxHighlighter.fmtLonelyParen = skin.shscheme.fmtLonelyParen;
+  if (skin.overrideSHScheme) {
+    klfDbg("Applying syntax highlighting scheme, keyword.isValid()="<<skin.shscheme.fmtKeyword.isValid()) ;
+    if (skin.shscheme.fmtKeyword.isValid())
+      klfconfig.SyntaxHighlighter.fmtKeyword = skin.shscheme.fmtKeyword;
+    if (skin.shscheme.fmtComment.isValid())
+      klfconfig.SyntaxHighlighter.fmtComment = skin.shscheme.fmtComment;
+    if (skin.shscheme.fmtParenMatch.isValid())
+      klfconfig.SyntaxHighlighter.fmtParenMatch = skin.shscheme.fmtParenMatch;
+    if (skin.shscheme.fmtParenMismatch.isValid())
+      klfconfig.SyntaxHighlighter.fmtParenMismatch = skin.shscheme.fmtParenMismatch;
+    if (skin.shscheme.fmtLonelyParen.isValid())
+      klfconfig.SyntaxHighlighter.fmtLonelyParen = skin.shscheme.fmtLonelyParen;
+  }
 
   emit skinChanged(newSkin);
 }
@@ -375,7 +435,7 @@ void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config
 
   SkinConfigWidget * o = qobject_cast<SkinConfigWidget*>(confwidget);
 
-  QString skinfn = o->currentSkin();
+  QString skinfn = o->currentSkinFn();
 
   config->writeValue("skinfilename", QVariant::fromValue<QString>(skinfn));
 

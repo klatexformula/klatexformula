@@ -21,7 +21,7 @@ OPTIONS may be one or many of:
       is given.
   -i|--input <file|->
       Specifies a file to read latex input from.
-    -l|--latexinput <expr>
+  -l|--latexinput <expr>
       Specifies the LaTeX code of an equation to render.
   -P|--paste-clipboard
   -S|--paste-selection

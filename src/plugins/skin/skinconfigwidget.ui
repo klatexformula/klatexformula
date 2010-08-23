@@ -37,7 +37,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="6" column="0">
     <spacer name="vspc1">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -83,7 +83,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0" colspan="4">
+   <item row="5" column="0" colspan="4">
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Additional downloaded skins can be installed using the add-on installer in the previous settings tab.</string>
@@ -92,6 +92,41 @@
       <bool>true</bool>
      </property>
     </widget>
+   </item>
+   <item row="3" column="0" colspan="4">
+    <widget class="QLabel" name="lblSkinDescription">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="text">
+      <string notr="true"/>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::RichText</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2">
+    <spacer name="vspc2_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

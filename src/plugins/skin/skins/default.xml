@@ -2,12 +2,14 @@
 <klf-skin>
   <name>Default</name>
   <stylesheet>:/plugindata/skin/stylesheets/default.qss</stylesheet>
-  <syntax-highlighting-scheme>
-    <!-- Don't override the syntax highlighting scheme ...
+  <description>This skin provides the default appearance for your system.</description>
+  <!-- Don't override the syntax highlighting scheme ...
+   <syntax-highlighting-scheme>
     <keyword></keyword>
     <comment></comment>
     <paren-match</paren-match>
     <paren-mismatch</paren-mismatch>
-    <lonely-paren></lonely-paren> -->
-  </syntax-highlighting-scheme>
+    <lonely-paren></lonely-paren>
+   </syntax-highlighting-scheme>
+  -->
 </klf-skin>

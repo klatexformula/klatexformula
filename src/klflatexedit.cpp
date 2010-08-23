@@ -35,7 +35,7 @@
 
 
 KLFLatexEdit::KLFLatexEdit(QWidget *parent)
-  : QTextEdit(parent), mMainWin(NULL)
+  : QTextEdit(parent), mMainWin(NULL), pHeightHintLines(-1)
 {
   mSyntaxHighlighter = new KLFLatexSyntaxHighlighter(this, this);
 
@@ -67,6 +67,22 @@ void KLFLatexEdit::setLatex(const QString& latex)
   cur.endEditBlock();
 }
 
+QSize KLFLatexEdit::sizeHint() const
+{
+  QSize superSizeHint = QTextEdit::sizeHint();
+  if (pHeightHintLines >= 0) {
+    return QSize(superSizeHint.width(), 4 + QFontMetrics(font()).height()*pHeightHintLines);
+  }
+  return superSizeHint;
+}
+
+void KLFLatexEdit::setHeightHintLines(int lines)
+{
+  pHeightHintLines = lines;
+  updateGeometry();
+}
+
+
 void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
 {
   QPoint pos = event->pos();
@@ -96,7 +112,8 @@ void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
     v["delim"] = QVariant::fromValue<QString>(delimList[k]);
     v["charsBack"] = QVariant::fromValue<int>(charsBackList[k]);
     a->setData(QVariant(v));
-    a->setIcon(KLFLatexSymbolsCache::theCache()->findSymbolPixmap(delimList[k].left(delimList[k].length()-1)+"A}"));
+    a->setIcon(KLFLatexSymbolsCache::theCache() ->
+	       findSymbolPixmap(delimList[k].left(delimList[k].length()-1)+"A}"));
     delimmenu->addAction(a);
     connect(a, SIGNAL(triggered()), this, SLOT(slotInsertFromActionSender()));
   }
@@ -142,7 +159,7 @@ void KLFLatexEdit::insertFromMimeData(const QMimeData *data)
     return;
   }
 
-  klfDbg("mMainWin="<<mMainWin<<" did not handle the paste doing it ourselves.") ;
+  klfDbg("mMainWin="<<mMainWin<<" did not handle the paste, doing it ourselves.") ;
 
   // insert the data ourselves
   QTextEdit::insertFromMimeData(data);
@@ -347,7 +364,7 @@ QTextCharFormat KLFLatexSyntaxHighlighter::charfmtForFormat(Format f)
 
 void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
 {
-  //  printf("-- HIGHLIGHTBLOCK --:\n%s\n", (const char*)text.toLocal8Bit());
+  klfDbg("text is "<<text);
 
   if ( ( klfconfig.SyntaxHighlighter.configFlags & Enabled ) == 0)
     return; // forget everything about synt highlight if we don't want it.

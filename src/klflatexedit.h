@@ -51,6 +51,8 @@ class KLFMainWin;
 class KLF_EXPORT KLFLatexEdit : public QTextEdit
 {
   Q_OBJECT
+
+  Q_PROPERTY(int heightHintLines READ heightHintLines WRITE setHeightHintLines) ;
 public:
   KLFLatexEdit(QWidget *mainwin);
   virtual ~KLFLatexEdit();
@@ -64,6 +66,17 @@ public:
    * This pointer may also be NULL, in which case we will only rely on QTextEdit built-in
    * functionality. */
   void setMainWinDataOpener(KLFMainWin *mainwin) { mMainWin = mainwin; }
+
+  /** See sizeHint(). This gets the preferred height of this widget in number of text lines,
+   * as set by setHeightHintLints(). */
+  inline int heightHintLines() const { return pHeightHintLines; }
+
+  /** The size hint of the widget. If \c heightHintLines() is set to \c -1, this directly
+   * calles the superclass function. Otherwise this returns the size in pixels this widget
+   * wants to have, given the value of heightHintLines() number of lines in the current font.
+   */
+  virtual QSize sizeHint() const;
+
 
 signals:
   /** This signal is emitted just before the context menu is shown. If someone wants
@@ -81,6 +94,9 @@ public slots:
   void setLatex(const QString& latex);
   void clearLatex();
 
+  /** See sizeHint(). This sets the preferred height of this widget in number of text lines. */
+  void setHeightHintLines(int lines);
+
 protected:
   virtual void contextMenuEvent(QContextMenuEvent *event);
   virtual bool canInsertFromMimeData(const QMimeData *source) const;
@@ -91,6 +107,8 @@ private:
 
   /** This is used to open data if needed */
   KLFMainWin *mMainWin;
+
+  int pHeightHintLines;
 };
 
 

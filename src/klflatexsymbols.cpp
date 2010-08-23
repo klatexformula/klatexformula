@@ -209,7 +209,8 @@ int KLFLatexSymbolsCache::loadCacheStream(QDataStream& stream)
   qint16 vmaj, vmin;
   stream >> vmaj >> vmin;
 
-  if (vmaj != klfVersionMaj() || vmin != klfVersionMin()) {
+  // currently : KLF-3.2 symbols cache format.
+  if (vmaj != 3 || vmin != 2) {
     return BadVersion;
   }
 
@@ -227,10 +228,13 @@ int KLFLatexSymbolsCache::loadCacheStream(QDataStream& stream)
 int KLFLatexSymbolsCache::saveCacheStream(QDataStream& stream)
 {
   stream.setVersion(QDataStream::Qt_3_3);
-  // Write version 3.2 stream (added hidden symbol attribute at KLF 3.2)
+  // Write version 3.2 stream (added 'hidden' symbol attribute at KLF 3.2)
   stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE")
-	 << (qint16)3 << (qint16)2
-	 << (qint16)stream.version() << cache;
+	 << (qint16)3 << (qint16)2;
+  // and KLF-3.2 symbol cache is written with Qt_4_4 stream version.
+  stream << (qint16)QDataStream::Qt_4_4;
+  stream.setVersion(QDataStream::Qt_4_4);
+  stream << cache;
   flag_modified = false;
   return 0;
 }
@@ -311,6 +315,8 @@ QPixmap KLFLatexSymbolsCache::getPixmap(const KLFLatexSymbol& sym, bool fromcach
 int KLFLatexSymbolsCache::precacheList(const QList<KLFLatexSymbol>& list, bool userfeedback,
 				       QWidget *parent)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   QProgressDialog *pdlg = NULL;
 
   if (userfeedback) {
@@ -475,6 +481,7 @@ void KLFLatexSymbolsView::appendSymbolList(const QList<KLFLatexSymbol>& symbols)
 
 void KLFLatexSymbolsView::buildDisplay()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 #ifdef Q_WS_MAC
   QStyle *myStyle = new QPlastiqueStyle;
   QPalette pal = palette();
@@ -514,7 +521,7 @@ void KLFLatexSymbolsView::buildDisplay()
 	_symbols[i].preamble.join("\n")+"</pre></b></p>";
     tooltiptext += "</body></html>";
     btn->setToolTip(tooltiptext);
-    klfDbg("tooltip text is "<<tooltiptext);
+    //klfDbg("tooltip text is "<<tooltiptext);
     connect(btn, SIGNAL(clicked()), this, SLOT(slotSymbolActivated()));
     mSymbols.append(btn);
   }
@@ -618,6 +625,8 @@ KLFLatexSymbols::~KLFLatexSymbols()
 
 void KLFLatexSymbols::read_symbols_create_ui()
 {
+  klfDbgT("called.") ;
+
   // create our UI
   u->cbxCategory->clear();
   QGridLayout *lytstk = new QGridLayout(u->frmStackContainer);
@@ -634,6 +643,8 @@ void KLFLatexSymbols::read_symbols_create_ui()
 	   << klfconfig.globalShareDir + "/conf/latexsymbols.d/"
 	   << ":/conf/latexsymbols.d/";
 
+  klfDbgT("starting to collect XML files from dirs "<<fxmldirs) ;
+
   // collect all XML files
   int k, j;
   for (k = 0; k < fxmldirs.size(); ++k) {
@@ -642,23 +653,31 @@ void KLFLatexSymbols::read_symbols_create_ui()
     for (j = 0; j < xmllist.size(); ++j)
       fxmllist << fxmldir.absoluteFilePath(xmllist[j]);
   }
+  klfDbgT("files collected: "<<fxmllist) ;
   if (fxmllist.isEmpty()) {
     // copy legacy XML file into the home latexsymbols.d directory
     QDir("/").mkpath(klfconfig.homeConfigDir+"/conf/latexsymbols.d");
     if (QFile::exists(klfconfig.homeConfigDir+"/latexsymbols.xml")) {
-      QFile::copy(klfconfig.homeConfigDir+"/latexsymbols.xml", klfconfig.homeConfigDir+"/conf/latexsymbols.d/mylatexsymbols.xml");
+      QFile::copy(klfconfig.homeConfigDir+"/latexsymbols.xml",
+		  klfconfig.homeConfigDir+"/conf/latexsymbols.d/mylatexsymbols.xml");
       fxmllist << klfconfig.homeConfigDir+"/conf/latexsymbols.d/mylatexsymbols.xml";
     } else {
-      QFile::copy(":/data/latexsymbols.xml", klfconfig.homeConfigDir+"/conf/latexsymbols.d/defaultlatexsymbols.xml");
+      QFile::copy(":/data/latexsymbols.xml",
+		  klfconfig.homeConfigDir+"/conf/latexsymbols.d/defaultlatexsymbols.xml");
       fxmllist << klfconfig.homeConfigDir+"/conf/latexsymbols.d/defaultlatexsymbols.xml";
     }
   }
+
+  klfDbgT("got xml files, ensured not empty; fxmllist="<<fxmllist) ;
 
   // this will be a full list of symbols to feed to the cache
   QList<KLFLatexSymbol> allsymbols;
 
   // now read the file list
   for (k = 0; k < fxmllist.size(); ++k) {
+    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"/fxmllist["+('0'+k)+"]");
+    klfDbg("reading XML file="<<fxmllist[k]);
+
     QString fn = fxmllist[k];
     QFile file(fn);
     if ( ! file.open(QIODevice::ReadOnly) ) {

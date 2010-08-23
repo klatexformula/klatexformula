@@ -106,14 +106,15 @@ KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp) ;
 
 KLF_EXPORT QString klfTimeOfDay(bool shortFmt = true);
 
+
+#ifdef KLFBACKEND_QT4
 /** Returns something like <tt>456.234589</tt> (in a <tt>const char*</tt>) that
  * represents the actual time. The absolute reference is undefined, but stays
  * always the same. Useful for debug messages.
  */
-#define KLF_SHORT_TIME (klfTimeOfDay().ascii())
-#ifdef KLFBACKEND_QT4
-#undef KLF_SHORT_TIME
 #define KLF_SHORT_TIME qPrintable(klfTimeOfDay())
+#else
+#define KLF_SHORT_TIME (klfTimeOfDay().ascii())
 #endif
 
 
@@ -169,8 +170,8 @@ inline const T& __klf_debug_tee(const T& expr)
 #endif
 
 // dox doc is in next (unfunctional) definitions in next #if block
-#define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(msg)
-#define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(msg)
+#define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(QString("")+msg)
+#define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(QString("")+msg)
 #define klf_debug_tee(expr) __klf_debug_tee(expr)
 #ifdef KLFBACKEND_QT4
 KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * shorttime);
@@ -198,6 +199,15 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
  *   ... // no special instruction needed at end of block
  * }
  * \endcode
+ *
+ * \note msg is (macro-expanded) added to a <tt>QString("")</tt>, so you can write something like
+ * \code
+ *   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"(QString)") ;
+ * \endcode
+ * even though <tt>KLF_FUNC_NAME</tt> expands into a <tt>const char*</tt>.
+ *
+ * \warning This is a macro that expands its text without protecting it (this allows you to do what
+ *   the above note said).
  */
 #define KLF_DEBUG_TIME_BLOCK(msg)
 /** \brief Utility to debug the execution of a block
@@ -227,6 +237,15 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
  *   // no special instruction needed at end of block
  * }
  * \endcode
+ *
+ * \note msg is (macro-expanded) added to a <tt>QString("")</tt>, so you can write something like
+ * \code
+ *   KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(QString)") ;
+ * \endcode
+ * even though <tt>KLF_FUNC_NAME</tt> expands into a <tt>const char*</tt>.
+ *
+ * \warning This is a macro that expands its text without protecting it (this allows you to do what
+ *   the above note said).
  */
 #define KLF_DEBUG_BLOCK(msg)
 
@@ -245,15 +264,20 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
 
 /** \brief print debug stream items
  *
- * \warning This one may be counter-intuitive, as the argument is not evaluated before expansion,
- *   that is this macro really is used as a macro, and expands to
+ * \warning This macro may be counter-intuitive, as the argument is not evaluated before expansion.
+ *   This macro expands exactly to:
  *   \code qDebug()<<KLF_FUNC_NAME<<":"<< streamableItems \endcode
- *   which means that its correct use is
+ *   which means that you can list any QDebug-streamable items as macro arguments, separated by a
+ *   <tt>&lt;&lt;</tt> operator, keeping in mind that these stream operators will be "seen" only
+ *   AFTER the macro has expanded. Example usage:
  *   \code
  * int index = ...; QString mode = ...;
  * klfDbg( "index is "<<index<<" and mode is "<<mode ); \endcode
- *   where all the arguments are sent to the \c qDebug() stream, without an explicit <tt>&lt;&lt;</tt>
- *   being defined between \c "index is" and \c index.
+ *
+ * The advantage of this syntax is that when disabling debug, the parts in your code where you
+ * call this macro are truly "erased" (the macro itself, with all its arguments, expands to
+ * nothing), and result into no overhead of having to go eg. through null-streams. Additionally,
+ * all macro arguments are NOT evaluated in non-debug mode.
  */
 #define klfDbg( streamableItems )
 /** \brief print debug stream items, with current time

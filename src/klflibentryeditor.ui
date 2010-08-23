@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>306</width>
-    <height>628</height>
+    <width>314</width>
+    <height>518</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="lyt_KLFLibEntryEditor">
@@ -53,7 +53,7 @@
         </widget>
        </item>
        <item row="1" column="0" colspan="3">
-        <widget class="QTextEdit" name="txtPreviewLatex">
+        <widget class="KLFLatexEdit" name="txtPreviewLatex">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -74,6 +74,12 @@
          </property>
          <property name="readOnly">
           <bool>true</bool>
+         </property>
+         <property name="acceptRichText">
+          <bool>false</bool>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextSelectableByMouse</set>
          </property>
         </widget>
        </item>
@@ -135,8 +141,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>300</width>
-         <height>298</height>
+         <width>308</width>
+         <height>240</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -196,7 +202,7 @@
          </widget>
         </item>
         <item row="3" column="0" colspan="2">
-         <widget class="Line" name="line">
+         <widget class="Line" name="hlineCatTags">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -271,8 +277,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>300</width>
-         <height>298</height>
+         <width>308</width>
+         <height>240</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -285,14 +291,14 @@
         <property name="margin">
          <number>6</number>
         </property>
-        <item row="1" column="0" colspan="4">
+        <item row="1" column="0" colspan="9">
          <widget class="QLabel" name="lblStyMathModeCaption">
           <property name="text">
            <string>Math Mode:</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="0" colspan="4">
+        <item row="6" column="0" colspan="9">
          <widget class="QPushButton" name="btnRestoreStyle">
           <property name="text">
            <string>Restore This Style</string>
@@ -312,27 +318,45 @@
           </property>
          </spacer>
         </item>
-        <item row="4" column="0" colspan="4">
+        <item row="4" column="0" colspan="9">
          <widget class="QLabel" name="lblStyPreamble">
           <property name="text">
            <string>LaTeX Preamble:</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="0" colspan="4">
-         <widget class="QTextEdit" name="txtStyPreamble">
+        <item row="5" column="0" colspan="9">
+         <widget class="KLFLatexEdit" name="txtStyPreamble">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>40</height>
+           </size>
+          </property>
           <property name="tabChangesFocus">
            <bool>true</bool>
           </property>
+          <property name="undoRedoEnabled">
+           <bool>false</bool>
+          </property>
           <property name="readOnly">
            <bool>true</bool>
+          </property>
+          <property name="acceptRichText">
+           <bool>false</bool>
           </property>
           <property name="textInteractionFlags">
            <set>Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
-        <item row="3" column="0" colspan="4">
+        <item row="3" column="0" colspan="9">
          <widget class="QLabel" name="lblStyMathMode">
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
@@ -357,7 +381,36 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="2" colspan="2">
+        <item row="0" column="0">
+         <spacer name="hspc6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Expanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="lblStyColors">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Colors:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
          <widget class="QFrame" name="frmStyColors">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -378,28 +431,6 @@
            <property name="margin">
             <number>0</number>
            </property>
-           <item row="1" column="3">
-            <widget class="QLabel" name="lblStyColFg">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>16</width>
-               <height>16</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string>Foreground Color</string>
-             </property>
-             <property name="text">
-              <string notr="true">X</string>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="4">
             <widget class="QLabel" name="lblStyColSlash">
              <property name="sizePolicy">
@@ -444,37 +475,81 @@
              </property>
             </widget>
            </item>
+           <item row="1" column="3">
+            <widget class="QLabel" name="lblStyColFg">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Foreground Color</string>
+             </property>
+             <property name="text">
+              <string notr="true">X</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
-        <item row="0" column="0">
-         <spacer name="horizontalSpacer">
+        <item row="0" column="5" colspan="4">
+         <widget class="QLabel" name="lblStyDPI">
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+          <property name="text">
+           <string notr="true">1200</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::PlainText</enum>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="margin">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="4">
+         <widget class="QLabel" name="lblStyDPILbl">
+          <property name="text">
+           <string>DPI Res.:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <spacer name="hspc5">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
           <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
+           <enum>QSizePolicy::Fixed</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>20</width>
-            <height>20</height>
+            <width>5</width>
+            <height>10</height>
            </size>
           </property>
          </spacer>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLabel" name="lblStyColors">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Colors:</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </widget>
@@ -483,6 +558,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>KLFLatexEdit</class>
+   <extends>QTextEdit</extends>
+   <header>klflatexedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

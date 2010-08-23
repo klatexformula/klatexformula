@@ -29,7 +29,6 @@
 
 #include <klflib.h>
 
-class KLFLatexSyntaxHighlighter;
 
 
 namespace Ui { class KLFLibEntryEditor; }
@@ -84,8 +83,6 @@ private:
   bool pInputEnabled;
 
   KLFStyle pCurrentStyle;
-
-  KLFLatexSyntaxHighlighter *pHighlighter;
 
   //  void updateEditText(QComboBox *editWidget, const QString& newText);
   void displayStyle(bool valid, const KLFStyle& style);

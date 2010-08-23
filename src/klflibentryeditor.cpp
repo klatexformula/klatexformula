@@ -77,13 +77,10 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
 	  this, SLOT(slotUpdateTags()));
 
 
-  // setup latex preview text browser with syntax highlighter
-
+  // setup latex preview / preamble preview text browser
   u->txtPreviewLatex->setFont(klfconfig.UI.preambleEditFont);
-
-  pHighlighter = new KLFLatexSyntaxHighlighter(u->txtPreviewLatex, this);
-  connect(u->txtPreviewLatex, SIGNAL(cursorPositionChanged()),
-	  pHighlighter, SLOT(refreshAll()));
+  u->txtStyPreamble->setFont(klfconfig.UI.preambleEditFont);
+  u->txtStyPreamble->setHeightHintLines(4);
 
   // --
 
@@ -216,6 +213,7 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
 void KLFLibEntryEditor::displayStyle(bool valid, const KLFStyle& style)
 {
   if (valid) {
+    u->lblStyDPI->setText(QString::number(style.dpi));
     QPixmap pxfg(16, 16);
     pxfg.fill(QColor(style.fg_color));
     u->lblStyColFg->setPixmap(pxfg);
@@ -229,6 +227,7 @@ void KLFLibEntryEditor::displayStyle(bool valid, const KLFStyle& style)
     u->lblStyMathMode->setText(style.mathmode);
     u->txtStyPreamble->setPlainText(style.preamble);
   } else {
+    u->lblStyDPI->setText(QLatin1String("-"));
     u->lblStyColFg->setText(QString());
     u->lblStyColFg->setPixmap(QPixmap());
     u->lblStyColBg->setText(QString());

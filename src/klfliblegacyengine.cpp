@@ -33,7 +33,8 @@
 
 #include "klflib.h"
 #include "klflibview.h"
-#include "klfutil.h"
+#include "klfconfig.h"
+#include <klfutil.h>
 #include "klfliblegacyengine.h"
 #include "klfliblegacyengine_p.h"
 
@@ -155,6 +156,8 @@ QMap<QString,KLFLibLegacyFileDataPrivate*> KLFLibLegacyFileDataPrivate::staticFi
 
 bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"("+fnm+")") ;
+
   QString fname = (!fnm.isEmpty() ? fnm : filename);    
 
   klfDbg("loading from file "<<fname<<" (our filename="<<filename<<")") ;
@@ -229,6 +232,8 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
 
 bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"("+fnm+")") ;
+
   QString fname = (!fnm.isEmpty() ? fnm : filename) ;
   klfDbg(" saving to file "<<fname<<" a "<<legacyLibType<<"-type library with N="<<resources.size()
 	 <<" resources (our filename="<<filename<<")") ;
@@ -246,7 +251,23 @@ bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
   // write Qt 3.3-compatible data
   stream.setVersion(QDataStream::Qt_3_3);
 
-  switch (legacyLibType) {
+  LegacyLibType llt = legacyLibType;
+
+  // however, for old versions of klatexformula:
+  QString cfname = canonicalFilePath(fname);
+  if (legacyLibType == ExportLibraryType &&
+      (cfname == canonicalFilePath(klfconfig.homeConfigDir+"/library") ||
+       (cfname.startsWith(canonicalFilePath(QDir::homePath()+"/.kde")) &&
+	(cfname.endsWith("/library") || cfname.endsWith("/history"))))) {
+    // the file name is a legacy library or history.
+    if (QFileInfo(fsav).fileName() == "history")
+      llt = LocalHistoryType;
+    if (QFileInfo(fsav).fileName() == "library")
+      llt = LocalLibraryType;
+    klfDbg("adjusted legacy lib type to save to type "<<llt<<" instead of "<<legacyLibType) ;
+  }
+
+  switch (llt) {
   case LocalHistoryType:
     {
       KLFLegacyData::KLFLibraryList liblist;
@@ -281,7 +302,7 @@ bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
     break;
   default:
     qWarning("%s: bad library type %d! Falling back to '.klf'-library-export type",
-	     KLF_FUNC_NAME, legacyLibType);
+	     KLF_FUNC_NAME, llt);
     stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
 	   << resources << library;
   }

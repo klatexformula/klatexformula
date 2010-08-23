@@ -43,10 +43,20 @@ struct SkinSyntaxHighlightingScheme
 
 struct Skin
 {
+  Skin() : overrideSHScheme(false) { }
+  QString fn; //!< File Name (XML)
+  
   QString name;
+  QString author;
+  QString description;
+
   QString stylesheet;
+
+  bool overrideSHScheme;
   SkinSyntaxHighlightingScheme shscheme;
 };
+
+Q_DECLARE_METATYPE(Skin) ;
 
 
 class SkinConfigWidget : public QWidget, public Ui::SkinConfigWidget
@@ -56,8 +66,10 @@ public:
   SkinConfigWidget(QWidget *skinconfigwidget, KLFPluginConfigAccess *conf);
   virtual ~SkinConfigWidget() { }
 
-  /// the skin full filename
-  QString currentSkin() { return cbxSkin->itemData(cbxSkin->currentIndex()).toString(); }
+  /// the currently selected skin
+  inline Skin currentSkin() { return cbxSkin->itemData(cbxSkin->currentIndex()).value<Skin>(); }
+  /// the skin (XML) full filename. equivalent to currentSkin().fn
+  inline QString currentSkinFn() { return currentSkin().fn; }
 
   /*
   static QString getStyleSheet(const QString& fn) {
@@ -84,6 +96,7 @@ public slots:
   void refreshSkin();
   //  void installSkin();
 
+  void updateSkinDescription(const Skin& skin);
 
 private:
   KLFPluginConfigAccess *config;
