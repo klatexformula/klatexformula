@@ -385,8 +385,6 @@ KLFMainWin::KLFMainWin()
 	  this, SLOT(slotLoadStyle(const KLFStyle&)));
   connect(mLatexSymbols, SIGNAL(insertSymbol(const KLFLatexSymbol&)),
 	  this, SLOT(insertSymbol(const KLFLatexSymbol&)));
-  connect(mLatexSymbols, SIGNAL(refreshSymbolBrowserShownState(bool)),
-	  this, SLOT(slotSymbolsButtonRefreshState(bool)));
 
 
   // our help/about dialog
@@ -685,7 +683,7 @@ void KLFMainWin::saveSettings()
 
 void KLFMainWin::refreshStylePopupMenus()
 {
-  if (!mStyleMenu)
+  if (mStyleMenu == NULL)
     mStyleMenu = new QMenu(this);
   mStyleMenu->clear();
 
@@ -695,12 +693,16 @@ void KLFMainWin::refreshStylePopupMenus()
     a->setData(i);
     connect(a, SIGNAL(triggered()), this, SLOT(slotLoadStyleAct()));
   }
+
   mStyleMenu->addSeparator();
   mStyleMenu->addAction(QIcon(":/pics/managestyles.png"), tr("Manage Styles"),
 			 this, SLOT(slotStyleManager()), 0 /* accel */);
+
 }
 
-QString kdelocate(const char *fname)
+
+
+static QString kdelocate(const char *fname)
 {
   QString candidate;
 
@@ -1575,6 +1577,9 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   // ----
   if ( obj == mLibBrowser && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
     slotLibraryButtonRefreshState(mLibBrowser->isVisible());
+  }
+  if ( obj == mLatexSymbols && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
+    slotSymbolsButtonRefreshState(mLatexSymbols->isVisible());
   }
 
   // ----
@@ -2578,12 +2583,12 @@ void KLFMainWin::slotSaveStyle()
   else
     _styles[found_i] = sty;
 
-  emit stylesChanged();
-
   refreshStylePopupMenus();
 
   // auto-save our style list
   saveStyles();
+
+  emit stylesChanged();
 }
 
 void KLFMainWin::slotStyleManager()

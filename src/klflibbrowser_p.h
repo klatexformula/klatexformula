@@ -203,6 +203,7 @@ public slots:
   bool openView(const QString& viewTypeIdent)
   {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg("view type="<<viewTypeIdent<<"; resource URL="<<pResource->url()) ; 
 
     // see if we already have this view type open and ready
     if (pOpenViewTypeIdents.contains(viewTypeIdent)) {

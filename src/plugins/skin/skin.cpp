@@ -314,6 +314,8 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
        !QFile::exists(rwconfig->readValue("skinfilename").toString()) )
     rwconfig->writeValue("skinfilename", QString(":/plugindata/skin/skins/default.xml"));
 
+  rwconfig->makeDefaultValue("noSyntaxHighlightingChange", QVariant(false));
+
   applySkin(rwconfig, true);
 }
 
@@ -330,7 +332,7 @@ void SkinPlugin::changeSkin(const QString& newSkin, bool force)
 
   // apply syntax highlighting scheme only when skin is CHANGED (thus here and not in applySkin())
 
-  if (skin.overrideSHScheme) {
+  if ( ! _config->readValue("noSyntaxHighlightingChange").toBool()  &&  skin.overrideSHScheme) {
     klfDbg("Applying syntax highlighting scheme, keyword.isValid()="<<skin.shscheme.fmtKeyword.isValid()) ;
     if (skin.shscheme.fmtKeyword.isValid())
       klfconfig.SyntaxHighlighter.fmtKeyword = skin.shscheme.fmtKeyword;
@@ -422,6 +424,7 @@ void SkinPlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *conf
   }
   SkinConfigWidget * o = qobject_cast<SkinConfigWidget*>(confwidget);
   o->loadSkinList(config->readValue("skinfilename").toString());
+  o->chkNoSyntaxHighlightingChange->setChecked(config->readValue("noSyntaxHighlightingChange").toBool());
   // reset modified status
   o->getModifiedAndReset();
 }
@@ -438,6 +441,7 @@ void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config
   QString skinfn = o->currentSkinFn();
 
   config->writeValue("skinfilename", QVariant::fromValue<QString>(skinfn));
+  config->writeValue("noSyntaxHighlightingChange", o->chkNoSyntaxHighlightingChange->isChecked());
 
   if ( o->getModifiedAndReset() ) {
     klfDbg("skin setting modified. setting new skin");

@@ -393,8 +393,8 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fname, QStr
     lrname = tr("Default Resource"); // default name...?
   url.addQueryItem("klfDefaultSubResource", lrname);
 
-  klfDbg("fileName="<<fileName<<"; canonical file path="<<QFileInfo(fileName).canonicalFilePath()
-	 <<"; legacyResourceName="<<legacyResourceName);
+  klfDbgSt("fileName="<<fileName<<"; canonical file path="<<QFileInfo(fileName).canonicalFilePath()
+	   <<"; legacyResourceName="<<legacyResourceName);
 
   return new KLFLibLegacyEngine(fileName, lrname, url, parent);
 }

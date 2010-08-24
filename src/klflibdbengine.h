@@ -122,6 +122,7 @@ public:
 					   const QList<int>& wantedEntryProperties = QList<int>());
 
   virtual int query(const QString& subResource, const Query& query, QueryResult *result);
+  virtual QList<QVariant> queryValues(const QString& subResource, int entryPropId);
 
   virtual KLFLibEntry entry(const QString& subRes, entryId id);
   virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes,

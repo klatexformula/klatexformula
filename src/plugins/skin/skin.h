@@ -98,6 +98,9 @@ public slots:
 
   void updateSkinDescription(const Skin& skin);
 
+  void on_chkNoSyntaxHighlightingChange_toggled(bool value)
+  { _modified = true; }
+
 private:
   KLFPluginConfigAccess *config;
 

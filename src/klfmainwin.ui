@@ -198,6 +198,9 @@
            <iconset resource="klfres.qrc">
             <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
           </property>
+          <property name="shortcut">
+           <string>F7</string>
+          </property>
           <property name="checkable">
            <bool>true</bool>
           </property>
@@ -220,6 +223,9 @@
           <property name="icon">
            <iconset resource="klfres.qrc">
             <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
+          </property>
+          <property name="shortcut">
+           <string>F8</string>
           </property>
           <property name="checkable">
            <bool>true</bool>
@@ -829,9 +835,6 @@
    <property name="toolTip">
     <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
    </property>
-   <property name="shortcut">
-    <string>F7</string>
-   </property>
   </action>
   <action name="aShowLibrary">
    <property name="checkable">
@@ -842,9 +845,6 @@
    </property>
    <property name="toolTip">
     <string>Show Library Browser Window</string>
-   </property>
-   <property name="shortcut">
-    <string>F8</string>
    </property>
   </action>
   <action name="aClearLatex">

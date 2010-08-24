@@ -597,6 +597,16 @@ int KLFLibDBEngine::query(const QString& subResource, const Query& query, QueryR
   /** \todo ........ Optimize (!) ............. */
   return KLFLibResourceSimpleEngine::queryImpl(this, subResource, query, result);
 }
+QList<QVariant> KLFLibDBEngine::queryValues(const QString& subResource, int entryPropId)
+{
+  /** \todo ....... Optimize (!) .......... */
+
+  // working command for this function:
+  //   SELECT DISTINCT Category FROM t_klfentries ;
+
+  return KLFLibResourceSimpleEngine::queryValuesImpl(this, subResource, entryPropId);
+}
+
 
 
 KLFLibEntry KLFLibDBEngine::entry(const QString& subResource, entryId id)
@@ -640,7 +650,7 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   QStringList cols = columnNameList(subResource, wantedEntryProperties, true);
 
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare(QString("SELECT %1 FROM %2").arg(cols.join(","), quotedDataTableName(subResource)));
+  q.prepare(QString("SELECT %1 FROM %2 ORDER BY id ASC").arg(cols.join(","), quotedDataTableName(subResource)));
   q.setForwardOnly(true);
   bool r = q.exec();
   if ( ! r || q.lastError().isValid() ) {

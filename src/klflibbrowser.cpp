@@ -90,7 +90,8 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pResourceMenu->addSeparator();
   pResourceMenu->addAction(u->aNew);
   pResourceMenu->addAction(u->aOpen);
-  pResourceMenu->addAction(u->aSaveTo);
+  /// \todo .......... save as copy action ............
+  //  pResourceMenu->addAction(u->aSaveTo);
   pResourceMenu->addAction(u->aClose);
 
   slotRefreshResourceActionsEnabled();
@@ -234,6 +235,9 @@ bool KLFLibBrowser::eventFilter(QObject *obj, QEvent *ev)
       QKeyEvent *ke = (QKeyEvent*)ev;
       if (ke->key() == Qt::Key_Escape) {
 	slotSearchAbort();
+	KLFAbstractLibView *view = curLibView();
+	if (view != NULL)
+	  view->setFocus(Qt::OtherFocusReason);
       }
     }
   }
@@ -1638,6 +1642,20 @@ void KLFLibBrowser::stopWait()
   pIsWaiting = false;
 }
 
+
+bool KLFLibBrowser::event(QEvent *e)
+{
+  if (e->type() == QEvent::KeyPress) {
+    QKeyEvent *ke = (QKeyEvent*)e;
+    if (ke->key() == Qt::Key_F8 && ke->modifiers() == 0) {
+      hide();
+      e->accept();
+      return true;
+    }
+  }
+  return QWidget::event(e);
+}
+
 void KLFLibBrowser::timerEvent(QTimerEvent *event)
 {
   if (event->timerId() == pAnimTimerId) {
@@ -1648,6 +1666,7 @@ void KLFLibBrowser::timerEvent(QTimerEvent *event)
     QWidget::timerEvent(event);
   }
 }
+
 
 void KLFLibBrowser::showEvent(QShowEvent *event)
 {

@@ -37,7 +37,7 @@
 
 #include <klfmainwin.h>
 
-#include "klfutil.h"
+#include <klfutil.h>
 #include "klfmain.h"
 #include "klfconfig.h"
 
@@ -759,3 +759,4 @@ int KLFConfig::readFromConfig_v1()
 
   return 0;
 }
+

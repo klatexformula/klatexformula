@@ -278,16 +278,71 @@ void KLFLibViewFactory::unRegisterFactory(KLFLibViewFactory *factory)
 
 
 
+// ---------------------------------------------------
+
+
+// static
+KLFFactoryManager KLFLibWidgetFactory::pFactoryManager;
+
+KLFLibWidgetFactory::KLFLibWidgetFactory(QObject *parent)
+  : QObject(parent), KLFFactoryBase(&pFactoryManager)
+{
+}
+
+// static
+KLFLibWidgetFactory *KLFLibWidgetFactory::findFactoryFor(const QString& wtype)
+{
+  return dynamic_cast<KLFLibWidgetFactory*>(pFactoryManager.findFactoryFor(wtype));
+}
+
+// static
+QStringList KLFLibWidgetFactory::allSupportedWTypes()
+{
+  return pFactoryManager.allSupportedTypes();
+}
+
+
+bool KLFLibWidgetFactory::hasCreateWidget(const QString& /*scheme*/) const
+{
+  return false;
+}
+
+QWidget * KLFLibWidgetFactory::createPromptCreateParametersWidget(QWidget */*parent*/,
+									  const QString& /*scheme*/,
+									  const Parameters& /*par*/)
+{
+  return NULL;
+}
+KLFLibWidgetFactory::Parameters
+/* */ KLFLibWidgetFactory::retrieveCreateParametersFromWidget(const QString& /*scheme*/,
+								      QWidget */*parent*/)
+{
+  return Parameters();
+}
+
+bool KLFLibWidgetFactory::hasSaveToWidget(const QString& /*scheme*/) const
+{
+  return false;
+}
+QWidget *KLFLibWidgetFactory::createPromptSaveToWidget(QWidget */*parent*/,
+						       const QString& /*scheme*/,
+						       KLFLibResourceEngine* /*resource*/,
+						       const QUrl& /*defaultUrl*/)
+{
+  return NULL;
+}
+QUrl KLFLibWidgetFactory::retrieveSaveToUrlFromWidget(const QString& /*scheme*/,
+						      QWidget */*widget*/)
+{
+  return QUrl();
+}
 
 
 
+// --------------------------------------------
 
 
-// -------------------------------------------------------
-
-//   MODEL CACHE OBJECT
-
-QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::NodeId& n)
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::NodeId& n)
 {
   const char * skind =
     ( (n.kind == KLFLibModelCache::EntryKind) ? "EntryKind" :
@@ -295,16 +350,38 @@ QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::NodeId& n)
        "*InvalidKind*") );
   return dbg.nospace() << "NodeId("<<skind<<"+"<<n.index<<")";
 }
-QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::EntryNode& en)
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Node& n)
+{
+  return dbg << "[kind="<<n.kind<<", children/sz="<<n.children.size()
+	     <<",displayed="<< n.numDisplayFetched<<",allfetched="<<n.allChildrenFetched<<"]";
+}
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::EntryNode& en)
 {
   return dbg << "EntryNode(entryid="<<en.entryid<<"; entry/latex="<<en.entry.latex()<<"; parent="
 	     <<en.parent<<")";
 }
-QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::CategoryLabelNode& cn)
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::CategoryLabelNode& cn)
 {
   return dbg << "CategoryLabelNode(label="<<cn.categoryLabel<<";fullCategoryPath="<<cn.fullCategoryPath
-	     <<"; parent="<<cn.parent<<")";
+	     << "; parent="<<cn.parent<<";"<<(const KLFLibModelCache::Node&)cn<<")";
 }
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModel::PersistentId& n)
+{
+  return dbg << "PersistentId("<<n.kind<<", entry_id="<<n.entry_id<<", cat...path="<<n.categorylabel_fullpath<<")";
+}
+KLF_EXPORT_IF_DEBUG QDebug& operator<<(QDebug& d, const KLFLibViewDelegate::ColorRegion& c)
+{
+  return d << "ColorRegion["<<c.start<<"->+"<<c.len<<"]";
+}
+
+
+
+// -------------------------------------------------------
+
+//   MODEL CACHE OBJECT
+
+
+
 
 bool KLFLibModelCache::KLFLibModelSorter::operator()(const NodeId& a, const NodeId& b)
 {
@@ -347,7 +424,8 @@ void KLFLibModelCache::rebuildCache()
 {
   uint flavorFlags = pModel->pFlavorFlags;
 
-  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ; qDebug("\tflavorFlags=%#010x", flavorFlags);
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg(klfFmtCC("flavorFlags=%#010x", flavorFlags));
   int k;
 
   // report progress
@@ -356,58 +434,95 @@ void KLFLibModelCache::rebuildCache()
   emit pModel->operationStartReportingProgress(&progressReporter, msg);
   progressReporter.doReportProgress(0);
 
+  klfDbgT("saving persistent indexes ...");
   QModelIndexList persistentIndexes = pModel->persistentIndexList();
   QList<KLFLibModel::PersistentId> persistentIndexIds = pModel->persistentIdList(persistentIndexes);
+  klfDbgT("... done saving persistent indexes.");
 
   // clear cache first
   pEntryCache.clear();
   pCategoryLabelCache.clear();
-  CategoryLabelNode root = CategoryLabelNode();
+  // root category label MUST ALWAYS (in every display flavor) occupy index 0 in category label cache
+  pCategoryLabelCache.append(CategoryLabelNode());
+  CategoryLabelNode& root = pCategoryLabelCache[0];
   root.fullCategoryPath = "/";
   root.categoryLabel = "/";
-  // root category label MUST ALWAYS (in every display flavor) occupy index 0 in category
-  // label cache
-  pCategoryLabelCache.append(root);
+  root.allChildrenFetched = false;
 
   QList<int> wantedProps = minimalistEntryPropIds();
   KLFLibResourceEngine::Query q;
   q.orderPropId = pLastSortPropId;
   q.orderDirection = pLastSortOrder;
+  if (pModel->pFlavorFlags & KLFLibModel::CategoryTree) {
+    // fetch only elements in root category
+    KLFLib::PropertyMatch pmatch(KLFLibEntry::Category, KLFLib::StringMatch(QString("")));
+    q.matchCondition = KLFLib::EntryMatchCondition::mkPropertyMatch(pmatch);
+  }
+  q.wantedEntryProperties = minimalistEntryPropIds();
+  q.limit = pModel->pFetchBatchCount; // limit number of results
   KLFLibResourceEngine::QueryResult qr(KLFLibResourceEngine::QueryResult::FillEntryWithIdList);
   // query the resource
+  klfDbgT("about to query resource...");
   int count = pModel->pResource->query(pModel->pResource->defaultSubResource(), q, &qr);
+  klfDbgT("resource returned "<<count<<" entries.");
   if (count < 0) {
     qWarning()<<KLF_FUNC_NAME<<": query() returned an error.";
     // don't return, continue with empty list
   }
-  QList<KLFLibResourceEngine::KLFLibEntryWithId> everything = qr.entryWithIdList;
+  if (count < pModel->pFetchBatchCount) {
+    // we have fetched all children
+    root.allChildrenFetched = true;
+  }
+  const QList<KLFLibResourceEngine::KLFLibEntryWithId>& everything = qr.entryWithIdList;
+  QList<KLFLibResourceEngine::KLFLibEntryWithId>::const_iterator it;
 
-  for (k = 0; k < everything.size(); ++k) {
-    klfDbgT( "Adding entry id="<<everything[k].id<<"; entry="
-	    <<everything[k].entry ) ;
+  k = 0; // used for progress reporting
+  for (it = everything.begin(); it != everything.end(); ++it) {
+    const KLFLibResourceEngine::KLFLibEntryWithId& ewid = *it;
+    klfDbgT( "Adding entry id="<<ewid.id<<"; entry="<<ewid.entry ) ;
     EntryNode e;
-    e.entryid = everything[k].id;
+    e.entryid = ewid.id;
     e.minimalist = true;
-    e.entry = everything[k].entry;
+    e.entry = ewid.entry;
     pEntryCache.append(e);
     NodeId entryindex;
     entryindex.kind = EntryKind;
     entryindex.index = pEntryCache.size()-1;
-    treeInsertEntry(entryindex, false, true); // notifyQtApi=FALSE, appendOnly=TRUE
+    treeInsertEntry(entryindex, false, true); // notifyQtApi=FALSE, rebuildingCache=TRUE
 
     if (k % 10 == 0)
-      progressReporter.doReportProgress((k+1) * 100 / everything.size());
+      progressReporter.doReportProgress((++k) * 100 / everything.size());
   }
 
+  if (pModel->pFlavorFlags & KLFLibModel::CategoryTree) {
+    // now fetch all categories, and insert them
+    klfDbgT("About to query categories...");
+    QVariantList vcatlist = pModel->pResource->queryValues(pModel->pResource->defaultSubResource(),
+							   KLFLibEntry::Category);
+    klfDbgT("... got categories. inserting them ...");
+    for (QVariantList::const_iterator vcit = vcatlist.begin(); vcit != vcatlist.end(); ++vcit) {
+      QString cat = (*vcit).toString();
+      if (cat.isEmpty() || cat == "/")
+	continue;
+      int i = cacheFindCategoryLabel(cat.split('/'), true, false, false);
+      if (i < 0) {
+	qWarning()<<KLF_FUNC_NAME<<": Failed to create category node for category "<<cat;
+      }
+    }
+    klfDbgT("... ins catnodes done.") ;
+  }
+
+  klfDbg("restoring persistent indexes ...");
   QModelIndexList newPersistentIndexes = pModel->newPersistentIndexList(persistentIndexIds);
   // and refresh all persistent indexes
   pModel->changePersistentIndexList(persistentIndexes, newPersistentIndexes);
+  klfDbg("... done restoring persistent indexes.");
 
   fullDump(); // DEBUG
 
   emit pModel->reset();
 
-  klfDbg( " end of func" ) ;
+  klfDbgT( " end of func" ) ;
 }
 
 
@@ -432,6 +547,8 @@ QModelIndex KLFLibModelCache::createIndexFromId(NodeId nodeid, int row, int colu
     parentid = NodeId::rootNode();
 
   // if we cache getNode(parentid) make sure to keep a reference! it changes!
+  klfDbg(" getNode("<<parentid<<").numDisplayFetched="<< getNode(parentid).numDisplayFetched
+	 <<", row="<<row) ;
   while ( getNode(parentid).numDisplayFetched <= row && canFetchMore(parentid) ) {
     klfDbgT(": need to fetch more numDisplayFetched="
 	   <<getNode(parentid).numDisplayFetched<<"<row="<<row<<" !");
@@ -574,14 +691,25 @@ void KLFLibModelCache::ensureNotMinimalist(NodeId p, int countdown)
 
 bool KLFLibModelCache::canFetchMore(NodeId parentId)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (pIsFetchingMore)
     return false;
 
   if (!parentId.valid())
     parentId = NodeId::rootNode();
+
+  klfDbg("parentId="<<parentId) ;
+
   const Node& node = getNodeRef(parentId);
+
+  klfDbg("node="<<node) ;
+
   if (node.numDisplayFetched < node.children.size())
     return true;
+  if (!node.allChildrenFetched)
+    return true;
+
+  klfDbg("cannot fetchmore.") ;
   return false;
 }
 void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
@@ -597,26 +725,105 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
   if (!n.valid())
     n = NodeId::rootNode();
 
+  if (n.kind != CategoryLabelKind) {
+    klfDbg("can't fetch more in this node kind. n="<<n);
+    qWarning()<<KLF_FUNC_NAME<<": Can't fetch more children of a non-category-label node.";
+    return;
+  }
 
-  Node& node = getNodeRef(n);
-  klfDbg( "\t -> n="<<n<<"; node: kind="<<node.kind<<", numDisplayFetched="
-	  <<node.numDisplayFetched ) ;
+  CategoryLabelNode& noderef = getCategoryLabelNodeRef(n);
+  klfDbg( "\t -> n="<<n<<"; noderef: kind="<<noderef.kind<<", allChildrenFetched="<<noderef.allChildrenFetched
+	  <<", numDisplayFetched="<<noderef.numDisplayFetched ) ;
 
-  if (node.numDisplayFetched >= node.children.size()) {
+  if (noderef.numDisplayFetched < noderef.children.size()) {
+    // we can "fetch more" by just increasing the number of displayed children.
+    QModelIndex parent = createIndexFromId(n, -1, 0);
+    // don't exceed children size
+    int fetchNum = qMin(fetchBatchCount, noderef.children.size() - noderef.numDisplayFetched);
+    klfDbg( "; children/size="<<noderef.children.size()<<"; batchCount="<<fetchBatchCount
+	    <<"; numDisplayFetched="<<noderef.numDisplayFetched<<"; => fetchNum="<<fetchNum ) ;
+    pModel->startLayoutChange(false);
+    pModel->beginInsertRows(parent, noderef.numDisplayFetched, noderef.numDisplayFetched+fetchNum-1);
+    noderef.numDisplayFetched += fetchNum;
+    klfDbg( ": increased noderef.numDisplayFetched by "<<fetchNum<<" to "<<noderef.numDisplayFetched ) ;
+    pModel->endInsertRows();
+    pModel->endLayoutChange(false);
+  
     pIsFetchingMore = false;
     return;
   }
 
-  QModelIndex parent = createIndexFromId(n, -1, 0);
+  if (noderef.allChildrenFetched) {
+    // all children have been fetched, cannot do anything more.
+    klfDbg("can't fetch more: all children are fetched! noderef="<<noderef<<"; n (the id)="<<n) ;
+    //    qWarning()<<KLF_FUNC_NAME<<": can't fetch any more items!";
+    pIsFetchingMore = false;
+    return;
+  }
 
-  // don't exceed children size
-  int fetchNum = qMin(fetchBatchCount, node.children.size() - node.numDisplayFetched);
-  klfDbg( "; children/size="<<node.children.size()<<"; batchCount="<<fetchBatchCount
-	  <<"; numDisplayFetched="<<node.numDisplayFetched<<"; => fetchNum="<<fetchNum ) ;
-  pModel->beginInsertRows(parent, node.numDisplayFetched, node.numDisplayFetched+fetchNum-1);
-  node.numDisplayFetched += fetchNum;
-  klfDbg( ": increased node.numDisplayFetched by "<<fetchNum<<" to "<<node.numDisplayFetched ) ;
+  // fetch more items, using query().
+  KLFLibResourceEngine::Query q;
+  if (pModel->pFlavorFlags & KLFLibModel::CategoryTree) {
+    KLFLib::PropertyMatch pmatch(KLFLibEntry::Category, KLFLib::StringMatch(noderef.fullCategoryPath));
+    q.matchCondition = KLFLib::EntryMatchCondition::mkPropertyMatch(pmatch);
+  }
+  q.orderPropId = pLastSortPropId;
+  q.orderDirection = pLastSortOrder;
+  q.limit = pModel->pFetchBatchCount;
+  q.skip = noderef.children.size();
+  q.wantedEntryProperties = minimalistEntryPropIds();
+  KLFLibResourceEngine::QueryResult qr(KLFLibResourceEngine::QueryResult::FillEntryWithIdList);
+  // _query()_ the resource
+  int count = pModel->pResource->query(pModel->pResource->defaultSubResource(), q, &qr);
+  if (count < 0) {
+    qWarning()<<KLF_FUNC_NAME<<": error fetching more results: count is "<<count;
+    pIsFetchingMore = false;
+    return;
+  }
+
+  /** \todo ....... the items are _appended_. this supposes that the items that may have already
+   * been listed as children nodes are the beginning, and that what we fetched is what
+   * follows. This order must be enforced when updating data, for eg. an entry category
+   * change. (in updateData()).
+   */
+
+  // append all results into category-label-noderef 'noderef'
+
+  // notify any views
+  // note that numDisplayFetched at this point is exactly children.size()
+  pModel->startLayoutChange(false);
+  pModel->beginInsertRows(createIndexFromId(n, -1, 0), noderef.numDisplayFetched,
+			  noderef.numDisplayFetched+qr.entryWithIdList.size()-1);
+
+  // if we fetched all the remaining entries, then set allChildrenFetched to TRUE
+  if (count < q.limit) {
+    noderef.allChildrenFetched = true;
+  }
+
+  int k;
+  for (k = 0; k < qr.entryWithIdList.size(); ++k) {
+    const KLFLibResourceEngine::KLFLibEntryWithId& ewid = qr.entryWithIdList[k];
+    EntryNode e;
+    e.entryid = ewid.id;
+    e.minimalist = true;
+    e.entry = ewid.entry;
+    e.parent = n;
+    pEntryCache.append(e);
+    NodeId entryindex;
+    entryindex.kind = EntryKind;
+    entryindex.index = pEntryCache.size()-1;
+
+    klfDbg("appending "<<e<<" in category node.") ;
+
+    noderef.children.append(entryindex);
+  }
+  noderef.numDisplayFetched += qr.entryWithIdList.size();
+
+  klfDbg("Fetched more. About to notify view of end of rows inserted ... meanwile the dump:") ;
+  fullDump();
+
   pModel->endInsertRows();
+  pModel->endLayoutChange(false);
 
   pIsFetchingMore = false;
 }
@@ -660,6 +867,8 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	en.entry = entryList[k].entry;
 	pEntryCache.append(en);      // append the entry to cache
 	NodeId n = NodeId(EntryKind, pEntryCache.size()-1);
+	/** \todo ...... here the view is notified for each individual insert. would be better for
+	 * contiguous inserts to be notified once .... */
 	treeInsertEntry(n);
 	qDebug("%s: entry ID %d inserted", KLF_FUNC_NAME, entryIdList[k]);
 	if (k % 20 == 0)
@@ -672,11 +881,12 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
       QList<KLFLibResourceEngine::KLFLibEntryWithId> entryList = pModel->pResource->entries(entryIdList);
       int k;
       for (k = 0; k < entryIdList.size(); ++k) {
-	qDebug("%s: modifying entry ID=%d.", KLF_FUNC_NAME, entryIdList[k]);
+	klfDbg("modifying entry ID="<<entryIdList[k]<<", modif."<<k) ;
 	NodeId n = findEntryId(entryIdList[k]);
 	KLFLibEntry oldentry = pEntryCache[n.index].entry;
 	KLFLibEntry newentry = entryList[k].entry;
 	pEntryCache[n.index].entry = newentry;
+	klfDbg("entry change: old="<<oldentry<<"; new="<<newentry) ;
 	// the modified entry may have a different category, move it if needed
 	if (newentry.category() != oldentry.category()) {
 	  pModel->startLayoutChange(false);
@@ -728,7 +938,7 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 }
 
 
-void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool appendOnly)
+void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool rebuildingcache)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
@@ -748,7 +958,7 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool a
 
   // start by looking at category
 
-  EntryNode e = pEntryCache[n.index];
+  const EntryNode& e = pEntryCache[n.index];
   QString category = e.entry.category();
   
   // parse its catelements and remember that in the category list cache (that is useful only to
@@ -770,7 +980,7 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool a
     catindex = 0;
   } else if (pModel->displayType() == KLFLibModel::CategoryTree) {
     // find/create category label node (creating the full tree if needed)
-    catindex = cacheFindCategoryLabel(catelements, true, notifyQtApi);
+    catindex = cacheFindCategoryLabel(catelements, true, notifyQtApi, rebuildingcache?false:true);
   } else {
     qWarning("Flavor Flags have unknown display type! flavorFlags=%#010x", pModel->pFlavorFlags);
     catindex = 0;
@@ -784,7 +994,7 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool a
   Node& parentref = getNodeRef(parentid);
   QList<NodeId> & childlistref = parentref.children;
   int insertPos;
-  if (appendOnly || pLastSortPropId < 0) {
+  if (rebuildingcache || pLastSortPropId < 0) {
     insertPos = childlistref.size(); // no sorting, just append the item
   } else {
     KLFLibModelSorter srt =
@@ -869,7 +1079,8 @@ void KLFLibModelCache::treeRemoveEntry(const NodeId& nodeid, bool notifyQtApi)
 
 KLFLibModelCache::IndexType KLFLibModelCache::cacheFindCategoryLabel(QStringList catelements,
 								     bool createIfNotExists,
-								     bool notifyQtApi)
+								     bool notifyQtApi,
+								     bool newlyCreatedAreChildrenFetched)
 {
   klfDbg(  "cacheFindCategoryLabel(catelmnts="<<catelements<<", createIfNotExists="<<createIfNotExists
 	   <<", notifyQtApi="<<notifyQtApi<<")" ) ;
@@ -922,6 +1133,7 @@ KLFLibModelCache::IndexType KLFLibModelCache::cacheFindCategoryLabel(QStringList
 
   // the category label node to add
   CategoryLabelNode c;
+  c.allChildrenFetched = newlyCreatedAreChildrenFetched;
   c.fullCategoryPath = catelpath;
   c.categoryLabel = catelements.last(); // catelements is non-empty, see above
   pCategoryLabelCache[this_index] = c;
@@ -1177,11 +1389,13 @@ QModelIndexList KLFLibModelCache::findEntryIdList(const QList<KLFLib::entryId>& 
 
 KLFLibModelCache::NodeId KLFLibModelCache::findEntryId(KLFLib::entryId eId)
 {
+  klfDbg("eId="<<eId) ;
   int k;
   for (k = 0; k < pEntryCache.size(); ++k)
     if (pEntryCache[k].entryid == eId)
       return NodeId(EntryKind, k);
 
+  klfDbg("...not found.") ;
   return NodeId();
 }
 
@@ -1273,7 +1487,8 @@ KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject
   // sequence too many times (in my opinion). the batch count is increased once the widget is
   // shown, see KLFLibDefaultView::showEvent().
   // EDIT: the fetchMore() seems to be called when applying skins
-  setFetchBatchCount(25);
+  // EDIT(2): with new optimizations, the above not may not apply any more. needs testing.
+  setFetchBatchCount(30);
 
   // by default, sort according to DateTime, recent first
   pEntrySorter = new KLFLibEntrySorter(KLFLibEntry::DateTime, Qt::DescendingOrder);
@@ -1479,7 +1694,7 @@ bool KLFLibModel::hasChildren(const QModelIndex &parent) const
     p = KLFLibModelCache::NodeId::rootNode();
   }
 
-  return pCache->getNode(p).children.size() > 0;
+  return !pCache->getNode(p).allChildrenFetched  ||  pCache->getNode(p).children.size() > 0;
 }
 QVariant KLFLibModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -1520,7 +1735,7 @@ QModelIndex KLFLibModel::index(int row, int column, const QModelIndex &parent) c
   KLFLibModelCache::CategoryLabelNode p = cat_p;
 
   if (parent.isValid()) {
-    KLFLibModelCache::NodeId pp = KLFLibModelCache::NodeId::fromUID(parent.internalId());
+    KLFLibModelCache::NodeId pp = pCache->getNodeForIndex(parent);
     if (pp.kind != KLFLibModelCache::CategoryLabelKind)
       return QModelIndex();
     if (pp.valid())
@@ -1533,13 +1748,13 @@ QModelIndex KLFLibModel::index(int row, int column, const QModelIndex &parent) c
 }
 QModelIndex KLFLibModel::parent(const QModelIndex &index) const
 {
+  klfDbgT(": requesting parent of index "<<index);
   KLFLibModelCache::NodeId p = pCache->getNodeForIndex(index);
   if ( !p.valid() ) // invalid index
     return QModelIndex();
   KLFLibModelCache::Node n = pCache->getNode(p);
   if ( ! n.parent.valid() ) // invalid parent (should never happen!)
     return QModelIndex();
-  klfDbgT(": requesting parent of index "<<index);
   return pCache->createIndexFromId(n.parent, -1 /* figure out row */, 0);
 }
 int KLFLibModel::rowCount(const QModelIndex &parent) const
@@ -2082,6 +2297,7 @@ QList<KLFLibModel::PersistentId> KLFLibModel::persistentIdList(const QModelIndex
     }
     id.column = persistentIndexes[k].column();
     persistentIndexIds << id;
+    klfDbg("saved persistent id "<<id) ;
   }
   return persistentIndexIds;
 }
@@ -2106,6 +2322,7 @@ QModelIndexList KLFLibModel::newPersistentIndexList(const QList<PersistentId>& p
     }
 
     newPersistentIndexes << index;
+    klfDbg("restoring persistent id "<<id<<" as index "<<index) ;
   }
   return newPersistentIndexes;
 }
@@ -2115,7 +2332,7 @@ void KLFLibModel::startLayoutChange(bool withQtLayoutChangedSignal)
 {
   // first notify anyone who may be interested
   if (withQtLayoutChangedSignal)
- emit layoutAboutToBeChanged();
+    emit layoutAboutToBeChanged();
   // save persistent indexes
   pLytChgIndexes = persistentIndexList();
   pLytChgIds = persistentIdList(pLytChgIndexes);
@@ -2161,6 +2378,8 @@ bool KLFLibViewDelegate::editorEvent(QEvent */*event*/, QAbstractItemModel */*mo
 {
   return false;
 }
+
+
 /** \internal */
 class _klf_block_progress_blocker
 {
@@ -2175,6 +2394,8 @@ public:
     res->blockProgressReporting(false);
   }
 };
+
+
 void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& option,
 			       const QModelIndex& index) const
 {
@@ -2358,11 +2579,6 @@ void KLFLibViewDelegate::paintCategoryLabel(PaintPrivate *p, const QModelIndex& 
 
   // paint Category Label
   paintText(p, index.data(KLFLibModel::CategoryLabelItemRole).toString(), fl);
-}
-
-QDebug& operator<<(QDebug& d, const KLFLibViewDelegate::ColorRegion& c)
-{
-  return d << "ColorRegion["<<c.start<<"->+"<<c.len<<"]";
 }
 
 void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint flags) const
@@ -2615,11 +2831,6 @@ bool KLFLibViewDelegate::func_indexHasSelectedDescendant(const QModelIndex& pare
 
 // -------------------------------------------------------
 
-QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEntryWithId& e)
-{
-  return dbg <<"KLFLibEntryWithId(id="<<e.id<<";"<<e.entry.category()<<","<<e.entry.tags()<<","
-	     <<e.entry.latex()<<")";
-}
 
 
 KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
@@ -2638,6 +2849,8 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   lyt->setSpacing(0);
   pDelegate = new KLFLibViewDelegate(this);
 
+  setFocusPolicy(Qt::NoFocus);
+
   KLFLibDefTreeView *treeView = NULL;
   KLFLibDefListView *listView = NULL;
   switch (pViewType) {
@@ -2647,9 +2860,6 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     listView->setViewMode(QListView::IconMode);
     listView->setSpacing(15);
     listView->setMovement(QListView::Free);
-    //    listView->setFlow(QListView::LeftToRight);
-    //    listView->setFlow(QListView::TopToBottom);
-    //    listView->setFlow((QListView::Flow)klfconfig.LibraryBrowser.iconViewFlow);
     // icon view flow is set later with setIconViewFlow()
     listView->setResizeMode(QListView::Adjust);
     klfDbg( "prepared list view." ) ;
@@ -2662,19 +2872,14 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     treeView->setSortingEnabled(true);
     treeView->setIndentation(16);
     treeView->setAllColumnsShowFocus(true);
-    //    treeView->setUniformRowHeights(true);
+    //    treeView->setUniformRowHeights(true);   // optimization, but is ugly...
     pDelegate->setTheTreeView(treeView);
-    //    connect(treeView, SIGNAL(expanded(const QModelIndex&)),
-    //	    this, SLOT(slotExpanded(const QModelIndex&)));
-    //    connect(treeView, SIGNAL(collapsed(const QModelIndex&)),
-    //	    this, SLOT(slotCollapsed(const QModelIndex&)));
     pView = treeView;
     break;
   };
 
   lyt->addWidget(pView);
 
-  //  pView->setViewport(new KLFNoRecurseRepaintWidget(this));
 
   pView->setSelectionBehavior(QAbstractItemView::SelectRows);
   pView->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -2898,6 +3103,8 @@ void KLFLibDefaultView::updateResourceEngine()
   pModel = new KLFLibModel(resource, model_flavor, this);
   pView->setModel(pModel);
 
+  klfDbg("created model. pModel="<<klfFmtCC("%p", (void*)pModel)<<"; view type="<<pViewType);
+
 #ifdef KLF_DEBUG_USE_MODELTEST
   new ModelTest(pModel, this);
 #endif
@@ -3014,7 +3221,7 @@ void KLFLibDefaultView::updateResourceProp(int propId)
 void KLFLibDefaultView::showEvent(QShowEvent *event)
 {
   if (pModel)
-    pModel->setFetchBatchCount(100);
+    pModel->setFetchBatchCount(80);
 }
 
 
@@ -3404,24 +3611,7 @@ KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidge
   if (QFile::exists(":/pics/klatexformula-64.png"))
     setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
-  // add a widget for all supported widgets
-  QStringList wtypeList = KLFLibWidgetFactory::allSupportedWTypes();
-  int k;
-  for (k = 0; k < wtypeList.size(); ++k) {
-    qDebug("KLFLibOpenRes.Dlg::[constr.]() Adding widget for wtype %s", qPrintable(wtypeList[k]));
-    KLFLibWidgetFactory *factory
-      = KLFLibWidgetFactory::findFactoryFor(wtypeList[k]);
-    QWidget *openWidget = factory->createPromptUrlWidget(pUi->stkOpenWidgets, wtypeList[k],
-							 defaultlocation);
-    pUi->stkOpenWidgets->insertWidget(k, openWidget);
-    pUi->cbxType->insertItem(k, factory->widgetTypeTitle(wtypeList[k]),
-			     QVariant::fromValue(wtypeList[k]));
-
-    connect(openWidget, SIGNAL(readyToOpen(bool)), this, SLOT(updateReadyToOpenFromSender(bool)));
-  }
-
-  /** \todo .... BUG/TODO ........ only scheme part of defaultlocation URL is considered. */
-
+  // check to see which is the default widget to show according to defaultlocation
   KLFLibEngineFactory *efactory = KLFLibEngineFactory::findFactoryFor(defaultlocation.scheme());
   QString defaultwtype;
   if (efactory == NULL) {
@@ -3430,6 +3620,25 @@ KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidge
   } else {
     defaultwtype = efactory->correspondingWidgetType(defaultlocation.scheme());
   }
+
+  // add a widget for all supported widgets
+  QStringList wtypeList = KLFLibWidgetFactory::allSupportedWTypes();
+  int k;
+  for (k = 0; k < wtypeList.size(); ++k) {
+    qDebug("KLFLibOpenRes.Dlg::[constr.]() Adding widget for wtype %s", qPrintable(wtypeList[k]));
+    KLFLibWidgetFactory *factory = KLFLibWidgetFactory::findFactoryFor(wtypeList[k]);
+    QUrl thisdefaultlocation;
+    if (wtypeList[k] == defaultwtype)
+      thisdefaultlocation = defaultlocation;
+    QWidget *openWidget = factory->createPromptUrlWidget(pUi->stkOpenWidgets, wtypeList[k],
+							 thisdefaultlocation);
+    pUi->stkOpenWidgets->insertWidget(k, openWidget);
+    pUi->cbxType->insertItem(k, factory->widgetTypeTitle(wtypeList[k]),
+			     QVariant::fromValue(wtypeList[k]));
+
+    connect(openWidget, SIGNAL(readyToOpen(bool)), this, SLOT(updateReadyToOpenFromSender(bool)));
+  }
+
   if (defaultwtype.isEmpty()) {
     pUi->cbxType->setCurrentIndex(0);
     pUi->stkOpenWidgets->setCurrentIndex(0);
@@ -3449,7 +3658,7 @@ KLFLibOpenResourceDlg::~KLFLibOpenResourceDlg()
   delete pUi;
 }
 
-QUrl KLFLibOpenResourceDlg::rawUrl() const
+QUrl KLFLibOpenResourceDlg::retrieveRawUrl() const
 {
   int k = pUi->cbxType->currentIndex();
   QString wtype = pUi->cbxType->itemData(k).toString();
@@ -3460,7 +3669,7 @@ QUrl KLFLibOpenResourceDlg::rawUrl() const
 
 QUrl KLFLibOpenResourceDlg::url() const
 {
-  QUrl url = rawUrl();
+  QUrl url = retrieveRawUrl();
   if (url.isEmpty()) {
     // empty url means cancel open
     return QUrl();
@@ -3484,17 +3693,25 @@ void KLFLibOpenResourceDlg::updateReadyToOpenFromSender(bool isready)
 void KLFLibOpenResourceDlg::updateReadyToOpen()
 {
   QWidget *w = pUi->stkOpenWidgets->currentWidget();
-  if (w == NULL)
-    return;
-  QVariant v = w->property("__klflibopenresourcedlg_readyToOpen");
-  // and update button enabled
-  bool haveValidLocation = !v.isValid() || v.toBool();
-  btnGo->setEnabled(haveValidLocation);
+  KLF_ASSERT_NOT_NULL( w, "widget is NULL!",  return ) ;
+
+  bool w_is_ready = w->property("readyToOpen").toBool();
+  if (!w_is_ready) {
+    // possibly the widget did not set the 'readyToOpen' property, but emitted its signal
+    // that must have reached us in the secondary property
+    QVariant v = w->property("__klflibopenresourcedlg_readyToOpen");
+    if (v.isValid())
+      w_is_ready = v.toBool();
+  }
+  btnGo->setEnabled(w_is_ready);
   // and propose choice of sub-resources
   pUi->cbxSubResource->setEnabled(true);
   pUi->cbxSubResource->clear();
-  if (haveValidLocation) {
-    QMap<QString,QString> subResMap = KLFLibEngineFactory::listSubResourcesWithTitles(rawUrl());
+  if (!w_is_ready) {
+    pUi->cbxSubResource->setEnabled(false);
+  } else {
+    // we're ready to open, read sub-resource list
+    QMap<QString,QString> subResMap = KLFLibEngineFactory::listSubResourcesWithTitles(retrieveRawUrl());
     if (subResMap.isEmpty()) {
       pUi->cbxSubResource->setEnabled(false);
     } else {
@@ -3506,8 +3723,6 @@ void KLFLibOpenResourceDlg::updateReadyToOpen()
 	pUi->cbxSubResource->addItem(subrestitle, QVariant(subres));
       }
     }
-  } else {
-    pUi->cbxSubResource->setEnabled(false);
   }
 }
 
@@ -3622,7 +3837,8 @@ void KLFLibCreateResourceDlg::updateReadyToCreate()
   QWidget *w = pUi->stkOpenWidgets->currentWidget();
   if (w == NULL) return;
   QVariant v = w->property("__klflibcreateresourcedlg_readyToCreate");
-  // and update button enabled
+  // and update button enabled. If the widget emitted no signal, then it is
+  // assumed to be ready, as we have no way of knowing
   btnGo->setEnabled(!v.isValid() || v.toBool());
 }
 

@@ -155,7 +155,6 @@ public:
 signals:
 
   void insertSymbol(const KLFLatexSymbol& symb);
-  void refreshSymbolBrowserShownState(bool);
 
 public slots:
 

@@ -73,7 +73,7 @@ QHeaderView, QHeaderView::section {
 }
 KLFLibDefaultView {
 	qproperty-autoBackgroundItems: true;
-	qproperty-autoBackgroundColor: #393537;
+	qproperty-autoBackgroundColor: #555555;
 }
 QAbstractItemView QLineEdit, QAbstractItemView QComboBox { /* In-line editing in lists */
 	background: url(:/plugindata/skin/stylesheets/pics/bg_galaxy.jpg) no-repeat;

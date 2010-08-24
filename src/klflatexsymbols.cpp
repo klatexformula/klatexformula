@@ -767,7 +767,6 @@ void KLFLatexSymbols::slotShowCategory(int c)
 void KLFLatexSymbols::closeEvent(QCloseEvent *e)
 {
   e->accept();
-  emit refreshSymbolBrowserShownState(false);
 }
 
 void KLFLatexSymbols::showEvent(QShowEvent *e)
@@ -780,6 +779,14 @@ bool KLFLatexSymbols::event(QEvent *e)
 {
   if (e->type() == QEvent::Polish) {
     u->cbxCategory->setMinimumHeight(u->cbxCategory->sizeHint().height()+5);
+  }
+  if (e->type() == QEvent::KeyPress) {
+    QKeyEvent *ke = (QKeyEvent*)e;
+    if (ke->key() == Qt::Key_F7 && ke->modifiers() == 0) {
+      hide();
+      e->accept();
+      return true;
+    }
   }
   return QWidget::event(e);
 }

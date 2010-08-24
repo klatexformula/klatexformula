@@ -160,53 +160,86 @@ KLF_EXPORT QString klfTimeOfDay(bool shortfmt)
 }
 
 
-
+#ifdef KLF_DEBUG
+static int __klf_dbg_block_depth_counter = 0;
+#endif
 
 KLFDebugBlock::KLFDebugBlock(const QString& blockName)
   : pBlockName(blockName), pPrintMsg(true)
 {
-  qDebug("%s: block begin", qPrintable(pBlockName));
+#ifdef KLF_DEBUG
+  qDebug("%s: [%02d]block begin", qPrintable(pBlockName), ++__klf_dbg_block_depth_counter);
+#endif
 }
 KLFDebugBlock::KLFDebugBlock(bool printmsg, const QString& blockName)
   : pBlockName(blockName), pPrintMsg(printmsg)
 {
+#ifdef KLF_DEBUG
+  // convention: __klf_dbg_block_depth_counter is incremented/decremented only when displayed
   if (printmsg)
-    qDebug("%s: block begin", qPrintable(pBlockName));
+    qDebug("%s: [%02d]block begin", qPrintable(pBlockName), ++__klf_dbg_block_depth_counter);
+#endif
 }
 KLFDebugBlock::~KLFDebugBlock()
 {
+#ifdef KLF_DEBUG
+  // convention: __klf_dbg_block_depth_counter is incremented/decremented only when displayed
   if (pPrintMsg)
-    qDebug("%s: block end", qPrintable(pBlockName));
+    qDebug("%s: [%02d]block end", qPrintable(pBlockName), __klf_dbg_block_depth_counter--);
+#endif
 }
 KLFDebugBlockTimer::KLFDebugBlockTimer(const QString& blockName)
   : KLFDebugBlock(false, blockName)
 {
 #ifdef KLF_DEBUG
-  qDebug("+T:%s: %s: block begin", KLF_SHORT_TIME, qPrintable(pBlockName));
+  // convention: __klf_dbg_block_depth_counter is incremented/decremented only when displayed
+  qDebug("+T:%s: %s: [%02d]block begin", KLF_SHORT_TIME, qPrintable(pBlockName), ++__klf_dbg_block_depth_counter);
 #endif
 }
 KLFDebugBlockTimer::~KLFDebugBlockTimer()
 {
 #ifdef KLF_DEBUG
-  qDebug("+T:%s: %s: block end", KLF_SHORT_TIME, qPrintable(pBlockName));
+  // convention: __klf_dbg_block_depth_counter is incremented/decremented only when displayed
+  qDebug("+T:%s: %s: [%02d]block end", KLF_SHORT_TIME, qPrintable(pBlockName), __klf_dbg_block_depth_counter--);
 #endif
 }
 
 
-KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * shorttime)
+KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime)
 {
 #if defined(KLFBACKEND_QT4) && defined(KLF_DEBUG)
   if (shorttime == NULL)
-    return dbg.nospace()<<funcname<<"(): ";
+    return dbg.nospace()<<funcname<<"():"<<refinstance<<"\n  ";
   else
-    return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"(): ";
+    return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"():"<<refinstance<<"\n  ";
 #else
   Q_UNUSED(funcname) ;
   Q_UNUSED(shorttime) ;
+  Q_UNUSED(refinstance) ;
 
   return dbg; // do nothing (not debug mode)
 #endif
 }
+
+#ifndef KLFBACKEND_QT4
+int __klf_dbg_string_obj::operator=(const QString& msg)
+{
+  qDebug("%s", qPrintable(hdr + msg));
+}
+KLF_EXPORT __klf_dbg_string_obj
+/* */ __klf_dbg_hdr_qt3(const char *funcname, const char *refinstance, const char *shorttime)
+{
+#  ifdef KLF_DEBUG
+  QString s;
+  if (shorttime == NULL)
+    s = QString::fromLocal8Bit(funcname) + "():" + refinstance + "\n  ";
+  else
+    s = QString::fromLocal8Bit("+T:") + shorttime + ": " + funcname + "(): " + refinstance + "\n  ";
+  return  __klf_dbg_string_obj(s);
+#  endif
+}
+#endif
+
 
 
 

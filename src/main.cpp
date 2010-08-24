@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file main.cpp
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2007 by Philippe Faist
+ *   Copyright (C) 2010 by Philippe Faist
  *   philippe.faist@bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -225,7 +225,7 @@ void klf_qt_message(QtMsgType type, const char *msg)
   case QtDebugMsg:
     // only with debugging enabled
 #ifdef KLF_DEBUG
-    fprintf(fout, "Debug: %s\n", msg);
+    fprintf(fout, "D: %s\n", msg);
 #endif
     break;
   case QtWarningMsg:

@@ -113,9 +113,11 @@ public:
     static NodeId rootNode() { return NodeId(CategoryLabelKind, 0); }
   };
   struct Node {
-    Node(ItemKind k) : kind(k), parent(NodeId()), children(QList<NodeId>()), numDisplayFetched(0) { }
+    Node(ItemKind k) : kind(k), parent(NodeId()), children(QList<NodeId>()), allChildrenFetched(false),
+		       numDisplayFetched(0)  { }
     Node(const Node& other) : kind(other.kind), parent(other.parent), children(other.children),
-			      allChildrenFetched(false), numDisplayFetched(other.numDisplayFetched) { }
+			      allChildrenFetched(other.allChildrenFetched),
+			      numDisplayFetched(other.numDisplayFetched)  { }
     virtual ~Node() { }
     ItemKind kind;
     NodeId parent;
@@ -167,7 +169,11 @@ public:
 
   void rebuildCache();
 
-  /** If row is negative, it will be looked up automatically. */
+  /** If row is negative, it will be looked up automatically.
+   *
+   * This function will also fetchMore() if the given node has not been 'fetched' yet (to the
+   * eyes of QModelIndex, this translates to catlblnode.numDisplayFetched).
+   */
   QModelIndex createIndexFromId(NodeId nodeid, int row, int column);
 
   /** Returns an invalid ID upon invalid index. */
@@ -194,7 +200,7 @@ public:
   /** Updates \c count entry nodes in tree after (and including \c nodeId), if they
    * are marked as "minimalist" (see \ref EntryNode)
    *
-   * If count is -1, uses fetchBatchCount(). */
+   * If count is -1, uses pModel->fetchBatchCount(). */
   void ensureNotMinimalist(NodeId nodeId, int count = -1);
 
   bool canFetchMore(NodeId parentId);
@@ -204,17 +210,26 @@ public:
 
   /** emits QAbstractItemModel-appropriate beginInsertRows()/endInsertRows() if \c notifyQtApi is
    * true. Those signals are also emitted (if \c notifyQtApi is true) when category labels are
-   * created to fit the node. */
-  void treeInsertEntry(const NodeId& e, bool notifyQtApi = true, bool appendOnly = false);
+   * created to fit the node.
+   *
+   * if \c isRebuildingCache is set, then items are just appended to the category childs (as they
+   * are inserted in the right order), and calls to cacheFindCategoryLabel will set
+   * \c newlyCreatedAllChildrenFetched parameter to FALSE. */
+  void treeInsertEntry(const NodeId& e, bool notifyQtApi = true, bool isRebuildingCache = false);
   /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true
    *
    * This function sets the entryId of the removed entry to -1 so that it cannot be re-found in a
    * future search. */
   void treeRemoveEntry(const NodeId& e, bool notifyQtApi = true);
 
-  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true */
+  /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true.
+   *
+   * If \c newlyCreatedAreChildrenFetched is TRUE, then any newly created CategoryLabelNode will have its
+   * \c allChildrenFetched flag set to TRUE (eg. when updating data, a new entry was changed category to
+   * a yet-inexistant category). If the parameter is FALSE, then any newly created CategoryLabelNode will
+   * have its \c allChildrenFetched flag set to FALSE (eg. when rebuilding the cache). */
   IndexType cacheFindCategoryLabel(QStringList catelements, bool createIfNotExists = false,
-				   bool notifyQtApi = false);
+				   bool notifyQtApi = false, bool newlyCreatedAreChildrenFetched = true);
 
   class KLF_EXPORT KLFLibModelSorter
   {
@@ -287,6 +302,8 @@ private:
 
   int pLastSortPropId;
   Qt::SortOrder pLastSortOrder;
+
+  KLF_DEBUG_DECLARE_REF_INSTANCE(  klfFmt("pModel=%p", pModel)  ) ;
 };
 
 
@@ -897,6 +914,13 @@ protected:
 
 
 
+#ifdef KLF_DEBUG
+#include <QDebug>
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::NodeId& n);
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Node& n);
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::EntryNode& en);
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::CategoryLabelNode& cn);
+#endif
 
 
 #endif

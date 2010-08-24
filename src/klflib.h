@@ -29,7 +29,9 @@
 #include <QUrl>
 #include <QDataStream>
 #include <QDateTime>
+#include <QFileInfo>
 
+#include <klfdefs.h>
 #include <klfbackend.h>
 
 #include <klfpobj.h>
@@ -54,9 +56,10 @@ class KLF_EXPORT KLFLibEntry : public KLFPropertizedObject {
 public:
   /** \note The numeric IDs don't have to be preserved from one version of KLF to
    * another, since they are nowhere stored. Properties are always stored by name
-   * when dealing in scopes larger than the running application (saved files, etc.). */
+   * when dealing in scopes larger than the running application (saved files, etc.).
+   */
   enum PropertyId {
-    Latex, //!< The Latex Code of the equation
+    Latex = 0, //!< The Latex Code of the equation
     DateTime, //!< The Date/Time at which the equation was evaluated
     Preview, //!< An Image Preview of equation (scaled down QImage)
     PreviewSize, //!< A cached value of the size of value in \c Preview
@@ -390,7 +393,7 @@ private:
  * may for example expect the resource to provide values for the sub-resource properties defined
  * by \ref SubResourceProperty.
  *
- * <b>Query Items in URL</b>. The URL may contain Query Items e.g.
+ * <b>query Items in URL</b>. The URL may contain query items e.g.
  * <tt>scheme://klf.server.dom/path/to/location<b>?klfReadOnly=true</b></tt>. Here is a
  * list of recognized (universal) query items. Subclasses may choose to recognize more query
  * items, but these listed here are detected in the KLFLibResourceEngine constructor and
@@ -542,7 +545,7 @@ public:
     //! Add a query item for read-only status, as \c "klfReadOnly"
     WantUrlReadOnly = 0x02
   };
-  //! Query URL
+  //! query URL
   /** Returns the identifying URL of this resource.
    *
    * \note This is not quite the URL passed to the constructor. Some query items are recognized
@@ -576,7 +579,7 @@ public:
    */
   virtual uint compareUrlTo(const QUrl& other, uint interestFlags = 0xfffffff) const = 0;
 
-  //! Query read-only state
+  //! query read-only state
   /** See \ref KLFLibResourceEngine "Class Documentation" for more details. */
   virtual bool isReadOnly() const { return pReadOnly; }
 
@@ -794,7 +797,7 @@ public:
    */
   virtual bool canModifySubResourceProperty(const QString& subResource, int propId) const;
 
-  //! Query an entry in this resource
+  //! query an entry in this resource
   /** Returns the entry (in the sub-resource \c subResource) corresponding to ID \c id, or an
    * empty KLFLibEntry() if the \c id is not valid.
    *
@@ -806,7 +809,7 @@ public:
    *  */
   virtual KLFLibEntry entry(const QString& subResource, entryId id) = 0;
 
-  //! Query an entry in this resource
+  //! query an entry in this resource
   /** Returns the entry (for classes implementing the \ref FeatureSubResources, queries the default
    * sub-resource) corresponding to ID \c id, or an empty KLFLibEntry() if the \c id is not valid.
    *
@@ -815,7 +818,7 @@ public:
    */
   virtual KLFLibEntry entry(entryId id);
 
-  //! Query the existence of an entry in this resource
+  //! query the existence of an entry in this resource
   /** Returns TRUE if an entry with entry ID \c id exists in this resource, in the sub-resource
    * \c subResource, or FALSE otherwise.
    *
@@ -823,7 +826,7 @@ public:
    */
   virtual bool hasEntry(const QString& subResource, entryId id) = 0;
 
-  //! Query the existence of an entry in this resource
+  //! query the existence of an entry in this resource
   /** Returns TRUE if an entry with entry ID \c id exists in this resource or FALSE otherwise.
    * Classes implementing the \ref FeatureSubResources will query the default sub-resource, see
    * \ref setDefaultSubResource().
@@ -833,7 +836,7 @@ public:
    */
   virtual bool hasEntry(entryId id);
 
-  //! Query multiple entries in this resource
+  //! query multiple entries in this resource
   /** Returns a list of \ref KLFLibResourceEngine::KLFLibEntryWithId "KLFLibEntryWithId" s, that
    * is a list of KLFLibEntry-ies with their corresponding IDs, exactly corresponding to the
    * requested entries given in idList. The same order of entries in the returned list as in the
@@ -857,7 +860,7 @@ public:
 					   const QList<KLFLib::entryId>& idList,
 					   const QList<int>& wantedEntryProperties = QList<int>()) = 0;
 
-  //! Query multiple entries in this resource
+  //! query multiple entries in this resource
   /** Returns a list of \ref KLFLibEntryWithId's, that is a list of KLFLibEntry-ies with their
    * corresponding IDs, exactly corresponding to the requested entries given in idList. The same
    * order of entries in the returned list as in the specified \c idList is garanteed. For classes
@@ -896,7 +899,12 @@ public:
    *
    * The default match condition (set automatically in constructor) matches all entries.
    *
-   * A \c limit may be set to limit the number of returned results (default 500).
+   * The first \c skip results will be ignored, and the first returned result will be the <tt>skip</tt>'th
+   * entry (that is counting from 0; or the <tt>skip+1</tt>'th, counting more intuitively from 1). By default,
+   * \c skip is zero, so no entries are skipped. The entries must be skipped \a after they have been sorted.
+   * The query() function's return value (entry count) does not include the skipped entries.
+   *
+   * A \c limit may be set to limit the number of returned results (default is \c -1, meaning no limit).
    *
    * \c orderPropId specifies along which KLFLibEntry property ID the items should be ordered. This
    * can be \c -1 to specify that elements should not be ordered; their order will then be undefined.
@@ -916,7 +924,8 @@ public:
     /** Default constructor. sets reasonable default values as documented in class doc. */
     Query()
       : matchCondition(KLFLib::EntryMatchCondition::mkMatchAll()),
-	limit(500),
+	skip(0),
+	limit(-1),
 	orderPropId(-1),
 	orderDirection(Qt::AscendingOrder),
 	wantedEntryProperties(QList<int>())
@@ -924,6 +933,7 @@ public:
     }
 
     KLFLib::EntryMatchCondition matchCondition;
+    int skip;
     int limit;
     int orderPropId;
     Qt::SortOrder orderDirection;
@@ -961,7 +971,7 @@ public:
   };
 
 
-  //! Query entries in this resource with specified property values
+  //! query entries in this resource with specified property values
   /** Returns a list of all entries in this resource (and in sub-resource \c subResource
    * for the engines supporting this feature) that match all the required matches specifed
    * in \c matchcondition.
@@ -1015,6 +1025,26 @@ public:
   virtual int query(const QString& subResource, const Query& query, QueryResult *result) = 0;
 
 
+  /** \brief List all distinct values that a property takes in all entries
+   *
+   * \return A list of all (distinct) values that a given property in all the entries of sub-resource
+   *   \c subResource takes.
+   *
+   * For example, KLFLibModel uses this function in category tree mode to get the category tree,
+   * by passing \ref KLFLibEntry::Category as \c entryPropId.
+   *
+   * The order of the elements within the returned list is not defined.
+   *
+   * In mathematical terms, if $f_{pid}(entry)$ is the value of property ID \c pid of the entry \c entry,
+   * then this function returns the \a range (=set of all reached values) of $f_{pid}$.
+   *
+   * KLFLibResourceSimpleEngine::queryValuesImpl() offers a very simple non-optimized implementation
+   * of this function that you can use in your resource engine subclass if you don't want to do this
+   * yourself. That function is automatically re-implemented if you subclass KLFLibResourceSimpleEngine.
+   */
+  virtual QList<QVariant> queryValues(const QString& subResource, int entryPropId) = 0;
+
+
   //! Returns all IDs in this resource (and this sub-resource)
   /** Returns a list of the ID of each entry in this resource.
    *
@@ -1035,7 +1065,7 @@ public:
    */
   virtual QList<KLFLib::entryId> allIds();
 
-  //! Query all entries in this resource
+  //! query all entries in this resource
   /** Returns all the entries in this library resource (in sub-resource \c subResource if
    * \ref FeatureSubResources is supported) with their corresponding IDs.
    *
@@ -1044,7 +1074,7 @@ public:
   virtual QList<KLFLibEntryWithId> allEntries(const QString& subResource,
 					      const QList<int>& wantedEntryProperties = QList<int>()) = 0;
 
-  //! Query all entries in this resource
+  //! query all entries in this resource
   /** Returns all the entries in this library resource (in default sub-resource if
    * \ref FeatureSubResources is supported) with their corresponding IDs.
    *
@@ -1419,6 +1449,10 @@ public slots:
    * function to save the resource data in the new path specified by \c newPath.
    *
    * The \c newPath must be garanteed to have same schema as the previous url.
+   *
+   * \bug ........ THIS FUNCTION IS NOT SUPPORTED IN KLFLibBrowser. ....... It is also not
+   *   very clear what it is meant to do (save sub-resources, resource as a whole [in which
+   *   case is it useful?]) ...............
    */
   virtual bool saveTo(const QUrl& newPath);
 
@@ -1499,6 +1533,8 @@ private:
 
   mutable bool pProgressBlocked;
   bool pThisOperationProgressBlockedOnly;
+
+  KLF_DEBUG_DECLARE_REF_INSTANCE( QFileInfo(url().path()).fileName()+":"+defaultSubResource()  ) ;
 };
 
 
@@ -1573,6 +1609,10 @@ public:
     inline bool operator()(const KLFLibEntryWithId& a, const KLFLibEntryWithId& b)
     { return mSorter->operator()(a.entry, b.entry); }
 
+    /** Returns the number of entries there are in the lists (ignoring those lists left empty, of
+     * course). */
+    int numberOfEntries();
+
     /** Inserts the entry-with-id \c entrywid, into the appropriate lists in the \c result that
      * was given to the constructor, such that the lists are ordered according to the sorter set
      * in the constructor.
@@ -1596,10 +1636,19 @@ public:
 
   virtual int query(const QString& subResource, const Query& query, QueryResult *result);
 
+  virtual QList<QVariant> queryValues(const QString& subResource, int entryPropId);
 
-  /** A basic implementation based on matching the results of <tt>resource->allEntries()</tt>. */
+
+  /** A basic implementation of query() based on matching the results of
+   * <tt>resource->allEntries()</tt>. */
   static int queryImpl(KLFLibResourceEngine *resource, const QString& subResource,
 		       const Query& query, QueryResult *result);
+
+  /** A basic implementation of queryValues() based on looking at the results of
+   * <tt>resource->allEntries()</tt> */
+  static QList<QVariant> queryValuesImpl(KLFLibResourceEngine *resource, const QString& subResource,
+					 int entryPropId);
+
 
   /** A simple entry condition tester. */
   static bool testEntryMatchConditionImpl(const KLFLib::EntryMatchCondition& condition,
@@ -1763,128 +1812,8 @@ private:
 };
 
 
-//! Create Associated Widgets to resources for Open/Create/Save actions
-/**
- * Widget-types are associated User Interface widgets with the actions
- * "Open Resource", "Create Resource" and "Save Resource To New Location". The
- * typical example would be to show a file dialog to enter a file name for
- * file-based resources (eg. Sqlite database).
- *
- * Widget-types are not directly one-to-one mapped to url schemes, because
- * for example multiple schemes can be accessed with the same open resource
- * parameters (eg. a file name for both "klf+sqlite" and "klf+legacy"). Thus
- * each scheme tells with <i>Widget-Type</i> it requires to associate with
- * "open" or "create new" or "save to" actions (eg. <tt>wtype=="LocalFile"</tt>
- * or similar logical name).
- *
- * The widget type is given by the
- * \ref KLFLibEngineFactory::correspondingWidgetType "Engine Factory".
- *
- * See also \ref KLFLibBasicWidgetFactory and \ref KLFLibEngineFactory.
- */
-class KLF_EXPORT KLFLibWidgetFactory : public QObject, public KLFFactoryBase
-{
-  Q_OBJECT
-public:
-  /** A generalized way of passing arbitrary parameters for creating
-   * new resources.
-   *
-   * See \ref KLFLibEngineFactory::createResource().
-   *
-   * Some parameters have special meaning to the system; see
-   * \ref retrieveCreateParametersFromWidget().
-   */
-  typedef KLFLibEngineFactory::Parameters Parameters;
-  
-  /** Simple constructor. Pass the parent object of this factory as parameter. This
-   * can be the application object \c qApp for example. */
-  KLFLibWidgetFactory(QObject *parent);
 
-  /** Finds the factory in the list of registered factories that can handle
-   * the widget-type \c wtype. */
-  static KLFLibWidgetFactory * findFactoryFor(const QString& wtype);
-
-  /** Returns a concatenated list of all supported widget types all registered factories
-   * support. */
-  static QStringList allSupportedWTypes();
-
-
-  //! List the supported widget types that this factory can create
-  /** eg. "LocalFile", "HostPortUserPass", ... */
-  virtual QStringList supportedTypes() const = 0;
-
-  //! The human-readable label for this type of input
-  /** Returns a human-readable label that describes the kind of input the widget type
-   * \c wtype provides (eg. \c "Local File", \c "Remote Database Connection", etc.)
-   */
-  virtual QString widgetTypeTitle(const QString& wtype) const = 0;
-
-  /** Create a widget of logical type \c wtype (eg. "LocalFile", ...) that will prompt to user
-   * for various data needed to open some given kind of library resource. It could be a file
-   * selection widget, or a text entry for a hostname, etc. The widget should present data
-   * corresponding to \c defaultlocation as default location if that parameter is non-empty.
-   *
-   * The widget should have a <tt>void readyToOpen(bool isReady)</tt> signal that is emitted
-   * to synchronize the enabled state of the "open" button.
-   *
-   * The create widget should be a child of \c wparent. */
-  virtual QWidget * createPromptUrlWidget(QWidget *wparent, const QString& wtype,
-					  QUrl defaultlocation = QUrl()) = 0;
-
-  /** Get the URL edited by user, that are stored in user-interface widgets in \c widget GUI.
-   * \c widget is never other than a QWidget returned by \ref createPromptUrlWidget(). */
-  virtual QUrl retrieveUrlFromWidget(const QString& wtype, QWidget *widget) = 0;
-
-  /** \returns whether this widget type (\c wtype) can create user-interface widgets to create
-   * new resources (eg. a new library sqlite file, etc.) */
-  virtual bool hasCreateWidget(const QString& wtype) const;
-
-  /** create a widget that will prompt to user the different settings for the new resource
-   * that is about to be created.  Do not reimplement this function if hasCreateWidget()
-   * returns false. Information to which URL to store the resource should be included
-   * in these parameters!
-   *
-   * The created widget should be child of \c wparent. */
-  virtual QWidget *createPromptCreateParametersWidget(QWidget *wparent, const QString& wtype,
-						      const Parameters& defaultparameters = Parameters());
-  /** Get the parameters edited by user, that are stored in \c widget GUI.
-   *
-   * Some special parameters are recognized by the system:
-   * - <tt>param["klfScheme"]=<i>url-scheme</i></tt> is MANDATORY: it tells the caller which kind
-   *   of scheme the resource should be.
-   * - <tt>param["klfRetry"]=true</tt> will cause the dialog not to exit but re-prompt user to
-   *   possibly change his input (could result from user clicking "No" in a "Overwrite?"
-   *   dialog presented in a possible reimplementation of this function).
-   * - <tt>param["klfCancel"]=true</tt> will cause the "create resource" process to be cancelled.
-   * - Not directly recognized by the system, but a common standard: <tt>param["klfDefaultSubResource"]</tt>
-   *   is the name of the default sub-resource to create if the resource supports sub-resources,
-   *   and <tt>param["klfDefaultSubResourceTitle"]</tt> its title, if the resource supports sub-resource
-   *   properties.
-   *
-   * If an empty Parameters() is returned, it is also interpreted as a cancel operation.
-   * */
-  virtual Parameters retrieveCreateParametersFromWidget(const QString& wtype, QWidget *widget);
-
-  /** Returns TRUE if this widget type (\c wtype) can create user-interface widgets to save an
-   * existing open resource as a new name (eg. to an other (new) library sqlite file, etc.) */
-  virtual bool hasSaveToWidget(const QString& wtype) const;
-  /** Creates a widget to prompt the user to save the resource \c resource to a different location,
-   * by default \c defaultUrl.
-   *
-   * The created widget should be child of \c wparent. */
-  virtual QWidget *createPromptSaveToWidget(QWidget *wparent, const QString& wtype,
-					    KLFLibResourceEngine *resource, const QUrl& defaultUrl);
-  /** Returns the URL to "save to copy", from the data entered by user in the widget \c widget,
-   * which was previously returned by \ref createPromptSaveToWidget(). */
-  virtual QUrl retrieveSaveToUrlFromWidget(const QString& wtype, QWidget *widget);
-
-
-private:
-  static KLFFactoryManager pFactoryManager;
-};
-
-
-
+// -------------------------
 
 
 class QMimeData;
@@ -1928,6 +1857,18 @@ private:
   static QList<KLFAbstractLibEntryMimeEncoder*> staticEncoderList;
 };
 
+
+
+
+
+#ifdef KLF_DEBUG
+#include <QDebug>
+KLF_EXPORT QDebug& operator<<(QDebug& dbg, const KLFLib::StringMatch& smatch);
+KLF_EXPORT QDebug& operator<<(QDebug& dbg, const KLFLib::PropertyMatch& pmatch);
+KLF_EXPORT QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCondition& c);
+KLF_EXPORT QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::Query& q);
+KLF_EXPORT QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEntryWithId& ewid);
+#endif
 
 
 

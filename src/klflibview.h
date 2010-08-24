@@ -308,6 +308,137 @@ private:
 };
 
 
+// --------------------
+
+
+
+//! Create Associated Widgets to resources for Open/Create/Save actions
+/**
+ * Widget-types are associated User Interface widgets with the actions
+ * "Open Resource", "Create Resource" and "Save Resource To New Location". The
+ * typical example would be to show a file dialog to enter a file name for
+ * file-based resources (eg. Sqlite database).
+ *
+ * Widget-types are not directly one-to-one mapped to url schemes, because
+ * for example multiple schemes can be accessed with the same open resource
+ * parameters (eg. a file name for both "klf+sqlite" and "klf+legacy"). Thus
+ * each scheme tells with <i>Widget-Type</i> it requires to associate with
+ * "open" or "create new" or "save to" actions (eg. <tt>wtype=="LocalFile"</tt>
+ * or similar logical name).
+ *
+ * The widget type is given by the
+ * \ref KLFLibEngineFactory::correspondingWidgetType "Engine Factory".
+ *
+ * See also \ref KLFLibBasicWidgetFactory and \ref KLFLibEngineFactory.
+ */
+class KLF_EXPORT KLFLibWidgetFactory : public QObject, public KLFFactoryBase
+{
+  Q_OBJECT
+public:
+  /** A generalized way of passing arbitrary parameters for creating
+   * new resources.
+   *
+   * See \ref KLFLibEngineFactory::createResource().
+   *
+   * Some parameters have special meaning to the system; see
+   * \ref retrieveCreateParametersFromWidget().
+   */
+  typedef KLFLibEngineFactory::Parameters Parameters;
+  
+  /** Simple constructor. Pass the parent object of this factory as parameter. This
+   * can be the application object \c qApp for example. */
+  KLFLibWidgetFactory(QObject *parent);
+
+  /** Finds the factory in the list of registered factories that can handle
+   * the widget-type \c wtype. */
+  static KLFLibWidgetFactory * findFactoryFor(const QString& wtype);
+
+  /** Returns a concatenated list of all supported widget types all registered factories
+   * support. */
+  static QStringList allSupportedWTypes();
+
+
+  //! List the supported widget types that this factory can create
+  /** eg. \c "LocalFile", ... */
+  virtual QStringList supportedTypes() const = 0;
+
+  //! The human-readable label for this type of input
+  /** Returns a human-readable label that describes the kind of input the widget type
+   * \c wtype provides (eg. \c "Local File", \c "Remote Database Connection", etc.)
+   */
+  virtual QString widgetTypeTitle(const QString& wtype) const = 0;
+
+  /** Create a widget of logical type \c wtype (eg. "LocalFile", ...) that will prompt to user
+   * for various data needed to open some given kind of library resource. It could be a file
+   * selection widget, or a text entry for a hostname, etc. The widget should present data
+   * corresponding to \c defaultlocation as default location if that parameter is non-empty.
+   *
+   * The widget should have a <tt>void readyToOpen(bool isReady)</tt> signal, that is emitted
+   * to synchronize the enabled state of the "open" button. The widget should also have a
+   * \c "readyToOpen" Qt property (static or dynamic, doesn't matter), that can be retrieved
+   * with QObject::property(), that contains the current status of if the widget is ready to
+   * open.
+   *
+   * The create widget should be a child of \c wparent.
+   */
+  virtual QWidget * createPromptUrlWidget(QWidget *wparent, const QString& wtype,
+					  QUrl defaultlocation = QUrl()) = 0;
+
+  /** Get the URL edited by user, that are stored in user-interface widgets in \c widget GUI.
+   * \c widget is never other than a QWidget returned by \ref createPromptUrlWidget(). */
+  virtual QUrl retrieveUrlFromWidget(const QString& wtype, QWidget *widget) = 0;
+
+  /** \returns whether this widget type (\c wtype) can create user-interface widgets to create
+   * new resources (eg. a new library sqlite file, etc.) */
+  virtual bool hasCreateWidget(const QString& wtype) const;
+
+  /** create a widget that will prompt to user the different settings for the new resource
+   * that is about to be created.  Do not reimplement this function if hasCreateWidget()
+   * returns false. Information to which URL to store the resource should be included
+   * in these parameters!
+   *
+   * The created widget should be child of \c wparent. */
+  virtual QWidget *createPromptCreateParametersWidget(QWidget *wparent, const QString& wtype,
+						      const Parameters& defaultparameters = Parameters());
+  /** Get the parameters edited by user, that are stored in \c widget GUI.
+   *
+   * Some special parameters are recognized by the system:
+   * - <tt>param["klfScheme"]=<i>url-scheme</i></tt> is MANDATORY: it tells the caller which kind
+   *   of scheme the resource should be.
+   * - <tt>param["klfRetry"]=true</tt> will cause the dialog not to exit but re-prompt user to
+   *   possibly change his input (could result from user clicking "No" in a "Overwrite?"
+   *   dialog presented in a possible reimplementation of this function).
+   * - <tt>param["klfCancel"]=true</tt> will cause the "create resource" process to be cancelled.
+   * - Not directly recognized by the system, but a common standard: <tt>param["klfDefaultSubResource"]</tt>
+   *   is the name of the default sub-resource to create if the resource supports sub-resources,
+   *   and <tt>param["klfDefaultSubResourceTitle"]</tt> its title, if the resource supports sub-resource
+   *   properties.
+   *
+   * If an empty Parameters() is returned, it is also interpreted as a cancel operation.
+   * */
+  virtual Parameters retrieveCreateParametersFromWidget(const QString& wtype, QWidget *widget);
+
+  /** Returns TRUE if this widget type (\c wtype) can create user-interface widgets to save an
+   * existing open resource as a new name (eg. to an other (new) library sqlite file, etc.) */
+  virtual bool hasSaveToWidget(const QString& wtype) const;
+  /** Creates a widget to prompt the user to save the resource \c resource to a different location,
+   * by default \c defaultUrl.
+   *
+   * The created widget should be child of \c wparent. */
+  virtual QWidget *createPromptSaveToWidget(QWidget *wparent, const QString& wtype,
+					    KLFLibResourceEngine *resource, const QUrl& defaultUrl);
+  /** Returns the URL to "save to copy", from the data entered by user in the widget \c widget,
+   * which was previously returned by \ref createPromptSaveToWidget(). */
+  virtual QUrl retrieveSaveToUrlFromWidget(const QString& wtype, QWidget *widget);
+
+
+private:
+  static KLFFactoryManager pFactoryManager;
+};
+
+
+
+
 
 // -----------------
 
@@ -375,6 +506,7 @@ public:
   virtual uint flavorFlags() const;
   inline uint displayType() const { return flavorFlags() & DisplayTypeMask; }
 
+  /** ensures that the cache nodes of the given index list are not 'minimalist' */
   virtual void prefetch(const QModelIndexList& index) const;
   virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
   virtual Qt::ItemFlags flags(const QModelIndex& index) const;
@@ -481,6 +613,8 @@ private:
     QString categorylabel_fullpath;
     int column;
   };
+  friend QDebug& operator<<(QDebug&, const PersistentId&);
+
   QList<PersistentId> persistentIdList(const QModelIndexList& persistentindexlist);
   QModelIndexList newPersistentIndexList(const QList<PersistentId>& persistentidlist);
 
@@ -497,6 +631,11 @@ private:
   bool pSearchAborted;
 
   bool dropCanInternal(const QMimeData *data);
+
+
+  KLF_DEBUG_DECLARE_REF_INSTANCE( QFileInfo(url().path()).fileName()+":"
+				  +pResource->defaultSubResource()+"|fl="+klfFmt("%#010x", pFlavorFlags)
+				  +"|"+klfFmt("%p", (void*)this)  ) ;
 };
 
 
@@ -702,9 +841,6 @@ protected slots:
   void slotViewItemClicked(const QModelIndex& index);
   void slotEntryDoubleClicked(const QModelIndex& index);
 
-  //  void slotExpanded(const QModelIndex& index);
-  //  void slotCollapsed(const QModelIndex& index);
-
   void slotShowColumnSenderAction(bool showCol);
 
   // called from model
@@ -729,6 +865,11 @@ private:
 
 private slots:
   void searchFound(const QModelIndex& i);
+
+protected:
+  KLF_DEBUG_DECLARE_REF_INSTANCE( QFileInfo(url().path()).fileName()+":"
+				  +(resourceEngine()?resourceEngine()->defaultSubResource():"[NULL]")
+				  +"|viewtype="+pViewType  ) ;
 };
 
 // -----------------
@@ -760,7 +901,7 @@ namespace Ui {
   class KLFLibNewSubResDlg;
 };
 
-/** \todo .......... TODO: ......... HANDLE sub-resources */
+/** \brief Dialog prompting user to choose a resource and a sub-resource to open. */
 class KLF_EXPORT KLFLibOpenResourceDlg : public QDialog
 {
   Q_OBJECT
@@ -778,7 +919,7 @@ protected slots:
   virtual void updateReadyToOpen();
 
 protected:
-  virtual QUrl rawUrl() const;
+  virtual QUrl retrieveRawUrl() const;
 
 private:
   Ui::KLFLibOpenResourceDlg *pUi;
@@ -1026,6 +1167,15 @@ protected:
 
 };
 
+
+
+
+
+
+#ifdef KLF_DEBUG
+#include <QDebug>
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModel::PersistentId& n);
+#endif
 
 
 

@@ -199,6 +199,7 @@ protected:
   KLFAbstractLibView * curLibView();
   KLFLibBrowserViewContainer * viewForTabIndex(int tab);
 
+  bool event(QEvent *event);
   void showEvent(QShowEvent *event);
   void timerEvent(QTimerEvent *event);
 

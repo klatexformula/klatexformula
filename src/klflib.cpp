@@ -796,14 +796,63 @@ KLFLib::EntryMatchCondition KLFLib::EntryMatchCondition::mkAndMatch(QList<EntryM
 
 // -----
 
-QDataStream& operator<<(QDataStream& stream, const KLFLibResourceEngine::KLFLibEntryWithId& entrywid)
+// DATA STREAM OPERATORS
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLibResourceEngine::KLFLibEntryWithId& entrywid)
 {
   return stream << entrywid.id << entrywid.entry;
 }
-QDataStream& operator>>(QDataStream& stream, KLFLibResourceEngine::KLFLibEntryWithId& entrywid)
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLibResourceEngine::KLFLibEntryWithId& entrywid)
 {
   return stream >> entrywid.id >> entrywid.entry;
 }
+
+// DEBUG OPERATOR<<'S
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLib::StringMatch& smatch)
+{
+  return dbg << "StringMatch[ref="<<smatch.matchValueString()<<";flags="<<smatch.matchFlags()<<"]";
+}
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLib::PropertyMatch& pmatch)
+{
+  return dbg << "PropertyMatch[prop-id="<<pmatch.propertyId()<<"; ref="<<pmatch.matchValueString()
+	     <<"; flags="<<pmatch.matchFlags()<<"]";
+}
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCondition& c)
+{
+  dbg << "EntryMatchCondition{type=";
+  if (c.type() == KLFLib::EntryMatchCondition::MatchAllType)
+    return dbg << "match-all}";
+  if (c.type() == KLFLib::EntryMatchCondition::PropertyMatchType)
+    return dbg << "property-match; "<<c.propertyMatch()<<"}";
+  if (c.type() != KLFLib::EntryMatchCondition::AndMatchType &&
+      c.type() != KLFLib::EntryMatchCondition::OrMatchType)
+    return dbg << "unknown-type}";
+  // AND or OR type:
+  static const char *w_and = " AND ";
+  static const char *w_or = " OR ";
+  const char * word =  (c.type()==KLFLib::EntryMatchCondition::AndMatchType) ? w_and : w_or ;
+  dbg << (word+1/*nospace*/) << "; list: ";
+  QList<KLFLib::EntryMatchCondition> conditions = c.conditionList();
+  int k;
+  for (k = 0; k < conditions.size(); ++k) {
+    if (k > 0)
+      dbg << word;
+    dbg << conditions[k];
+  }
+  dbg << ".}";
+  return dbg;
+}
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEntryWithId& e)
+{
+  return dbg <<"KLFLibEntryWithId(id="<<e.id<<";"<<e.entry.category()<<","<<e.entry.tags()<<","
+	     <<e.entry.latex()<<")";
+}
+KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::Query& q)
+{
+  return dbg << "Query(cond.="<<q.matchCondition<<"; skip="<<q.skip<<",limit="<<q.limit
+	     <<"; orderpropid="<<q.orderPropId<<"/"<<(q.orderDirection==Qt::AscendingOrder ? "Asc":"Desc")
+	     <<"; wanted props="<<q.wantedEntryProperties<<")" ;
+}
+
 
 
 
@@ -844,33 +893,71 @@ int KLFLibResourceSimpleEngine::query(const QString& subResource,
   return queryImpl(this, subResource, query, result);
 }
 
-// static
-int KLFLibResourceSimpleEngine::queryImpl(KLFLibResourceEngine *resource,
-					  const QString& subResource,
-					  const Query& query,
-					  QueryResult *result)
+QList<QVariant> KLFLibResourceSimpleEngine::queryValues(const QString& subResource, int entryPropId)
 {
-  /** \bug ............ UNTESTED ...................... */
+  return queryValuesImpl(this, subResource, entryPropId);
+}
+
+
+// static
+int KLFLibResourceSimpleEngine::queryImpl(KLFLibResourceEngine *resource, const QString& subResource,
+					  const Query& query, QueryResult *result)
+{
+  /// \bug ............ some features UNTESTED (match conditions....) ......................
+
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  klfDbgSt("Query: "<<query);
 
   QList<KLFLibEntryWithId> allEList = resource->allEntries(subResource);
 
   KLFLibEntrySorter sorter(query.orderPropId, query.orderDirection);
   QueryResultListSorter lsorter(&sorter, result);
 
-  int count = 0;
+  // we first need to order _all_ the entries (yes, since the order of allEntries()
+  // is undefined ... and limit/skip refer to _ordered_ entry list...)
   int k;
   for (k = 0; k < allEList.size(); ++k) {
     // test match condition
     const KLFLibEntryWithId& ewid = allEList[k];
     if (testEntryMatchConditionImpl(query.matchCondition, ewid.entry)) {
       lsorter.insertIntoOrderedResult(ewid);
-      ++count;
-      if (query.limit > 0 && count >= query.limit)
-	return count;
     }
   }
-  return count;
+
+  klfDbgSt("queried ordered list. result->entryWithIdList: \n"<<result->entryWithIdList) ;
+
+  // now we need to remove the first 'query.skip' number of results.
+  // we can't do this while inserting because the order counts.
+  /** \bug the QList::mid() function does not document its behavior when the given position
+   * is out of range, we will see if this raises an error ....... */
+  result->entryIdList = result->entryIdList.mid(query.skip);
+  result->rawEntryList = result->rawEntryList.mid(query.skip);
+  result->entryWithIdList = result->entryWithIdList.mid(query.skip);
+  if (query.limit >= 0) {
+    // we may have had a limit, so remove any extra entries, too
+    result->entryIdList = result->entryIdList.mid(0, query.limit);
+    result->rawEntryList = result->rawEntryList.mid(0, query.limit);
+    result->entryWithIdList = result->entryWithIdList.mid(0, query.limit);
+  }
+
+  return lsorter.numberOfEntries();
 }
+
+// static
+QList<QVariant> KLFLibResourceSimpleEngine::queryValuesImpl(KLFLibResourceEngine *resource,
+							    const QString& subResource, int entryPropId)
+{
+  QList<KLFLibEntryWithId> allEList = resource->allEntries(subResource);
+  QList<QVariant> values;
+  int k;
+  for (k = 0; k < allEList.size(); ++k) {
+    QVariant p = allEList[k].entry.property(entryPropId);
+    if (!values.contains(p))
+      values << p;
+  }
+  return values;
+}
+
 
 // static
 bool KLFLibResourceSimpleEngine::testEntryMatchConditionImpl(const KLFLib::EntryMatchCondition& condition,
@@ -932,6 +1019,14 @@ KLFLibResourceSimpleEngine::QueryResultListSorter::QueryResultListSorter(KLFLibE
     reference_is_rawentrylist = true;
   }
 }
+int KLFLibResourceSimpleEngine::QueryResultListSorter::numberOfEntries()
+{
+  if (reference_is_rawentrylist)
+    return mResult->rawEntryList.size();
+  else
+    return mResult->entryWithIdList.size();
+}
+
 
 /*
 KLFLibResourceSimpleEngine::QueryResultListSorter::QueryResultListSorter(const QueryResultListSorter& other)
@@ -1068,65 +1163,5 @@ QMap<QString,QString> KLFLibEngineFactory::listSubResourcesWithTitles(const QUrl
 QStringList KLFLibEngineFactory::listSubResources(const QUrl& urlbase)
 {
   return listSubResourcesWithTitles(urlbase).keys();
-}
-
-
-// ---------------------------------------------------
-
-
-// static
-KLFFactoryManager KLFLibWidgetFactory::pFactoryManager;
-
-KLFLibWidgetFactory::KLFLibWidgetFactory(QObject *parent)
-  : QObject(parent), KLFFactoryBase(&pFactoryManager)
-{
-}
-
-// static
-KLFLibWidgetFactory *KLFLibWidgetFactory::findFactoryFor(const QString& wtype)
-{
-  return dynamic_cast<KLFLibWidgetFactory*>(pFactoryManager.findFactoryFor(wtype));
-}
-
-// static
-QStringList KLFLibWidgetFactory::allSupportedWTypes()
-{
-  return pFactoryManager.allSupportedTypes();
-}
-
-
-bool KLFLibWidgetFactory::hasCreateWidget(const QString& /*scheme*/) const
-{
-  return false;
-}
-
-QWidget * KLFLibWidgetFactory::createPromptCreateParametersWidget(QWidget */*parent*/,
-									  const QString& /*scheme*/,
-									  const Parameters& /*par*/)
-{
-  return NULL;
-}
-KLFLibWidgetFactory::Parameters
-/* */ KLFLibWidgetFactory::retrieveCreateParametersFromWidget(const QString& /*scheme*/,
-								      QWidget */*parent*/)
-{
-  return Parameters();
-}
-
-bool KLFLibWidgetFactory::hasSaveToWidget(const QString& /*scheme*/) const
-{
-  return false;
-}
-QWidget *KLFLibWidgetFactory::createPromptSaveToWidget(QWidget */*parent*/,
-						       const QString& /*scheme*/,
-						       KLFLibResourceEngine* /*resource*/,
-						       const QUrl& /*defaultUrl*/)
-{
-  return NULL;
-}
-QUrl KLFLibWidgetFactory::retrieveSaveToUrlFromWidget(const QString& /*scheme*/,
-						      QWidget */*widget*/)
-{
-  return QUrl();
 }
 

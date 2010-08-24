@@ -26,9 +26,9 @@
 
 // first, detect a missing KLFBACKEND_QT4 definition
 #if defined(QT_VERSION) && QT_VERSION >= 0x040000
-# ifndef KLFBACKEND_QT4
-#  define KLFBACKEND_QT4
-# endif
+#  ifndef KLFBACKEND_QT4
+#    define KLFBACKEND_QT4
+#   endif
 #endif
 
 #include <qstring.h>
@@ -44,8 +44,18 @@
 #      define KLF_EXPORT __declspec(dllimport)
 #    endif
 #  else
+/** symbols we want to export will be declared with this macro. this makes declarations
+ * platform-independant. */
 #    define KLF_EXPORT __attribute__((visibility("default")))
 #  endif
+#endif
+
+#ifdef KLF_DEBUG
+#  define KLF_EXPORT_IF_DEBUG  KLF_EXPORT
+#else
+/** symbols we want to export only if in debug mode will use this definition. This will
+ * declare symbols with KLF_EXPORT in debug mode, and without that flag in non-debug mode. */
+#  define KLF_EXPORT_IF_DEBUG
 #endif
 
 
@@ -99,6 +109,20 @@ KLF_EXPORT QByteArray klfFmt(const char * fmt, ...)
 #endif
 ;
 
+/** Utility for replacing the (function) klfFmt()'s QByteArray return value into a
+ * regular <tt>const char*</tt>-C-string value, eg. to pass into a QDebug stream.
+ *
+ * \warning this macro, when called as <tt>klfFmtCC (args...)</tt> expands to
+ * \code  (const char*)klfFmt (args...)  \endcode
+ * No parentheses can be forced to ensure the <tt>const char*</tt> before any other
+ * operation in the context, however casts are higher priority than many other
+ * operators, so you should be safe. Still, be warned.
+ *
+ * \note This macro can take no parameters, since C preprocessor macros don't support
+ *   variable number of arguments (as required by printf-style formatting).
+ */
+#define klfFmtCC   (const char*)klfFmt
+
 /** Implements \ref klfFmt(const char *, ...) functionality, but with
  * a \c va_list argument pointer for use in vsprintf().
  */
@@ -112,9 +136,9 @@ KLF_EXPORT QString klfTimeOfDay(bool shortFmt = true);
  * represents the actual time. The absolute reference is undefined, but stays
  * always the same. Useful for debug messages.
  */
-#define KLF_SHORT_TIME qPrintable(klfTimeOfDay())
+#  define KLF_SHORT_TIME qPrintable(klfTimeOfDay())
 #else
-#define KLF_SHORT_TIME (klfTimeOfDay().ascii())
+#  define KLF_SHORT_TIME (klfTimeOfDay().ascii())
 #endif
 
 
@@ -156,33 +180,106 @@ public:
 #ifdef KLF_DEBUG
 
 
-#ifdef KLFBACKEND_QT4
-#include <QDebug>
-#endif
+#  ifdef KLFBACKEND_QT4
+#    include <QDebug>
+#  endif
 
 
 template<class T>
 inline const T& __klf_debug_tee(const T& expr)
-#ifdef KLFBACKEND_QT4
+#  ifdef KLFBACKEND_QT4
 { qDebug()<<"TEE VALUE: "<<expr; return expr; }
-#else
+#  else
 { return expr; } // sorry, no  qDebug()<<(anything you want)  in Qt 3 ...
-#endif
+#  endif
+
+
+#  ifdef KLFBACKEND_QT4
+KLF_EXPORT  QDebug
+/* */ __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime);
+#  else
+class KLF_EXPORT __klf_dbg_string_obj  {
+  QString hdr;
+public:
+  __klf_dbg_string_obj(const QString& h) : hdr(h) { }
+  __klf_dbg_string_obj(const __klf_dbg_string_obj& other) : hdr(other.hdr) { }
+  int operator=(const QString& msg);
+};
+KLF_EXPORT  __klf_dbg_string_obj
+/* */ __klf_dbg_hdr_qt3(const char *funcname, const char *refinstance, const char *shorttime) ;
+#  endif
+
+inline QString __klf_debug_ref_instance() { return QString(); }
+#  define KLF_DEBUG_DECLARE_REF_INSTANCE( expr )			\
+  protected: inline QString __klf_debug_ref_instance() const { return QString("[")+ (expr) + "]" ; }
+
+
 
 // dox doc is in next (unfunctional) definitions in next #if block
-#define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(QString("")+msg)
-#define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(QString("")+msg)
-#define klf_debug_tee(expr) __klf_debug_tee(expr)
-#ifdef KLFBACKEND_QT4
-KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * shorttime);
-#define klfDbg( streamableItems )				\
-  __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, NULL) << streamableItems
-#define klfDbgT( streamableItems )					\
-  __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, KLF_SHORT_TIME) << streamableItems
-#endif
+#  define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(QString("")+msg)
+#  define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(QString("")+msg)
+#  define klf_debug_tee(expr) __klf_debug_tee(expr)
+#  ifdef KLFBACKEND_QT4
+#    define klfDbg( streamableItems )				\
+  __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, qPrintable(__klf_debug_ref_instance()), NULL) << streamableItems
+#    define klfDbgT( streamableItems )					\
+  __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, qPrintable(__klf_debug_ref_instance()), KLF_SHORT_TIME) << streamableItems
+#    define klfDbgSt( streamableItems )				\
+  __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, NULL, NULL) << streamableItems
+#    define klfDbgStT( streamableItems )					\
+  __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, NULL, KLF_SHORT_TIME) << streamableItems
+#  else
+#    define klfDbg( string )						\
+  __klf_dbg_hdr_qt3(KLF_FUNC_NAME, __klf_debug_ref_instance().local8bit(), NULL) = QString("") + (string)
+#    define klfDbgT( string )						\
+  __klf_dbg_hdr_qt3(KLF_FUNC_NAME, __klf_debug_ref_instance().local8bit(), KLF_SHORT_TIME) = QString("") + (string)
+#    define klfDbgSt( string )						\
+  __klf_dbg_hdr_qt3(KLF_FUNC_NAME, NULL, NULL) = QString("") + (string)
+#    define klfDbgStT( string )						\
+  __klf_dbg_hdr_qt3(KLF_FUNC_NAME, NULL, KLF_SHORT_TIME) = QString("") + (string)
+#  endif
 
 
 #else // KLF_DEBUG
+
+
+
+/** Useful for debugging classes that are instanciated multiple times, and that may superpose
+ * debugging output.
+ *
+ * Use this macro in the class declaration and specify an expression that will identify the instance.
+ * Then this information will be displayed in the debug message when using \ref klfDbg().
+ *
+ * The expression given as argument to this macro is any valid expression that can be used within a
+ * const member function---you may reference eg. private properties, private functions, inherited
+ * protected members, public functions, etc. The expression should evaluate to a QString, or any
+ * expression that can be added (with <tt>operator+(QString,...)</tt>) to a QString.
+ *
+ * Example:
+ * \code
+ * class MyDocument {
+ * public:
+ *   MyDocument(QString fname) : fileName(fname) { }
+ *   // ....
+ *   QString currentFileName() const { return fileName; }
+ *   // ...
+ * private:
+ *   QString fileName;
+ *   KLF_DEBUG_DECLARE_REF_INSTANCE( currentFileName() ) ;
+ *   //  we could also have used (equivalent):
+ *   //KLF_DEBUG_DECLARE_REF_INSTANCE( fileName ) ;
+ * };
+ * \endcode
+ *
+ * This macro expands to a protected inline member returning the given expression surrounded with
+ * square brackets.
+ *
+ * \note this feature is optional. Classes that do not declare a 'ref-instance' will still be able
+ *   to use \c klfDbg() normally, except there is no way (apart from what you output yourself) to
+ *   make the difference between messages originating from two different class instances.
+ */
+#  define KLF_DEBUG_DECLARE_REF_INSTANCE( expr )
+
 
 
 /** \brief Utility to time the execution of a block
@@ -209,7 +306,7 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
  * \warning This is a macro that expands its text without protecting it (this allows you to do what
  *   the above note said).
  */
-#define KLF_DEBUG_TIME_BLOCK(msg)
+#  define KLF_DEBUG_TIME_BLOCK(msg)
 /** \brief Utility to debug the execution of a block
  *
  * Prints msg with \c ": block begin" when this macro is called, and prints msg with \c ": block end"
@@ -247,7 +344,7 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
  * \warning This is a macro that expands its text without protecting it (this allows you to do what
  *   the above note said).
  */
-#define KLF_DEBUG_BLOCK(msg)
+#  define KLF_DEBUG_BLOCK(msg)
 
 /** \brief Print the value of expression and return it
  *
@@ -260,7 +357,7 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
  *   return klf_debug_tee(result);
  * \endcode
  */
-#define klf_debug_tee(expr) (expr)
+#  define klf_debug_tee(expr) (expr)
 
 /** \brief print debug stream items
  *
@@ -272,19 +369,51 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
  *   AFTER the macro has expanded. Example usage:
  *   \code
  * int index = ...; QString mode = ...;
- * klfDbg( "index is "<<index<<" and mode is "<<mode ); \endcode
+ * klfDbg( "index is "<<index<<" and mode is "<<mode ) ; \endcode
  *
  * The advantage of this syntax is that when disabling debug, the parts in your code where you
  * call this macro are truly "erased" (the macro itself, with all its arguments, expands to
  * nothing), and result into no overhead of having to go eg. through null-streams. Additionally,
  * all macro arguments are NOT evaluated in non-debug mode.
+ *
+ * \warning This macro in its full-featured version requires Qt4. When used with Qt3, the
+ *   argument may no longer be "any streamable items" because Qt3 does not support qDebug()
+ *   streaming. However this macro still works, with the limitation that the argument must
+ *   be a QString, or an expression that can be cast into a QString. (see also klfFmt())
+ * \code
+ * // Qt3 Usage Example
+ * klfDbg("debug message") ;
+ * klfDbg(QString("debug message. value is %1.").arg(value)) ;
+ * klfDbg(klfFmt("debug. value is %d, string is %s, and flags are %#010x.", intvalue, strvalue, flags)) ;
+ * \endcode
  */
-#define klfDbg( streamableItems )
+#  define klfDbg( streamableItems )
 /** \brief print debug stream items, with current time
  *
  * Same as klfDbg(), but also prints current time given by KLF_SHORT_TIME.
  */
-#define klfDbgT( streamableItems )
+#  define klfDbgT( streamableItems )
+/** \brief print debug stream items (special case)
+ *
+ * Like klfDbg(), but for use in static functions in classes for which you have declared a 'ref-instance'
+ * with \ref KLF_DEBUG_DECLARE_REF_INSTANCE().
+ *
+ * If you get compilation errors like '<tt>cannot call memeber function ...::__klf_debug_ref_instance() const
+ * without object</tt>' then it is likely that you should use this macro instead.
+ *
+ * Explanation: ref instance works by declaring a protected inline const member in classes. A function with
+ * the same name exists globally, returning an empty string, such that classes that do not declare a 
+ * ref-instance may use klfDbg() which sees the global no-op ref-instance function. However, static members
+ * of classes that declare a ref-instance see the class' ref-instance function, which evidently cannot
+ * be called from a static member. Use this macro in that last case, that simply bypasses the ref-instance
+ * call (anyway you won't need it in a static function !).
+ */
+#  define klfDbgSt( streamableItems )
+/** \brief print debug stream items, with current time (special case)
+ *
+ * Same as klfDbgSt(), but prints also the time like klfDbgT() does.
+ */
+#  define klfDbgStT( streamableItems )
 
 #endif // KLF_DEBUG
 
@@ -295,21 +424,28 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char * 
 
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ < 199901L
-# if defined(__GNUC__) && __GNUC__ >= 2
-#  define __func__ __FUNCTION__
-# else
-#  define __func__ "<unknown>"
-# endif
+#  if defined(__GNUC__) && __GNUC__ >= 2
+#    define __func__ __FUNCTION__
+#  else
+#    define __func__ "<unknown>"
+#  endif
 #endif
 #if defined KLF_HAS_PRETTY_FUNCTION
-#define KLF_FUNC_NAME (klfShortFuncSignature(__PRETTY_FUNCTION__).data())
+#  define KLF_FUNC_NAME (klfShortFuncSignature(__PRETTY_FUNCTION__).data())
 #elif defined KLF_HAS_FUNCTION
-#define KLF_FUNC_NAME __FUNCTION__
+#  define KLF_FUNC_NAME __FUNCTION__
 #elif defined KLF_HAS_FUNC
-#define KLF_FUNC_NAME __func__
+#  define KLF_FUNC_NAME __func__
 #else
-/** This macro expands to the function name this macro is called in */
-#define KLF_FUNC_NAME "<unknown>"
+/** This macro expands to the function name this macro is called in.
+ *
+ * The macros KLF_HAS_PRETTY_FUNCTION, KLF_HAS_FUNCTION and KLF_HAS_FUNC should be defined
+ * to inform this header that the compiler supports respectively the symbols
+ * <tt>__PRETTY_FUNCTION__</tt>, <tt>__FUNCTION__</tt> and/or <tt>__func__</tt>.
+ *
+ * If none of those HAS_* macros are defined, this macro expands to <tt>"&lt;unknown>"</tt>
+ */
+#  define KLF_FUNC_NAME "<unknown>"
 #endif
 
 //! Asserting Non-NULL pointers (NON-FATAL)

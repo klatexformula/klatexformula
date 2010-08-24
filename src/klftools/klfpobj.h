@@ -40,7 +40,7 @@
 /** \brief A class that holds properties.
  *
  * This class is meant to be subclassed to create objects that need to store
- * properties. For an example, see \ref KLFLibEntry.
+ * properties. For an example, see KLFLibEntry in the klfapp library.
  *
  * Properties are stored in \ref QVariant "QVariant"s, are referenced either by an
  * integer ID or a QString name.

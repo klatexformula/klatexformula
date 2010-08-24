@@ -6,21 +6,33 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>420</width>
+    <height>250</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QGridLayout" name="lyt_SkinConfigWidget">
+   <property name="horizontalSpacing">
+    <number>1</number>
+   </property>
+   <property name="verticalSpacing">
+    <number>20</number>
+   </property>
    <item row="0" column="0">
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="lblSkin">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>1</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>80</width>
+       <height>0</height>
+      </size>
      </property>
      <property name="text">
       <string>Skin:</string>
@@ -45,22 +57,6 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>10</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="2">
-    <spacer name="vspc2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
        <height>10</height>
       </size>
      </property>
@@ -83,8 +79,8 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0" colspan="4">
-    <widget class="QLabel" name="label_2">
+   <item row="4" column="0" colspan="4">
+    <widget class="QLabel" name="lblNote1">
      <property name="text">
       <string>Additional downloaded skins can be installed using the add-on installer in the previous settings tab.</string>
      </property>
@@ -93,7 +89,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0" colspan="4">
+   <item row="2" column="0" colspan="4">
     <widget class="QLabel" name="lblSkinDescription">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
@@ -112,21 +108,22 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="2">
-    <spacer name="vspc2_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+   <item row="3" column="0" colspan="4">
+    <widget class="QCheckBox" name="chkNoSyntaxHighlightingChange">
+     <property name="text">
+      <string>Forbid skins from changing syntax highlighting scheme</string>
      </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="4">
+    <widget class="QLabel" name="lblNote2">
+     <property name="text">
+      <string>Note that sometimes skins don't display appropriately when set. Try restarting KLatexFormula in that case.</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>10</height>
-      </size>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
-    </spacer>
+    </widget>
    </item>
   </layout>
  </widget>
