@@ -536,6 +536,20 @@ QStringList KLFLibLegacyEngine::subResourceList() const
   return list;
 }
 
+bool KLFLibLegacyEngine::canCreateSubResource() const
+{
+  // canModifyData is not sensitive to thses arguments...
+  return canModifyData(QString(), ChangeData);
+}
+bool KLFLibLegacyEngine::canRenameSubResource(const QString& subResource) const
+{
+  return canModifyData(subResource, ChangeData);
+}
+bool KLFLibLegacyEngine::canDeleteSubResource(const QString& subResource) const
+{
+  return canModifyData(subResource, DeleteData);
+}
+
 bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
 					   const QString& subResourceTitle)
 {
@@ -563,6 +577,54 @@ bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
   d->library[res] = KLFLegacyData::KLFLibraryList();
   d->haschanges = true;
 
+  emit subResourceCreated(subResource);
+
+  return true;
+}
+
+bool KLFLibLegacyEngine::renameSubResource(const QString& subResource, const QString& subResourceNewName)
+{
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
+  int rindex = d->findResourceName(subResource);
+  if (rindex < 0) {
+    qWarning()<<KLF_FUNC_NAME<<": can't find sub-resource "<<subResource<<" in our data.";
+    return false;
+  }
+  KLFLegacyData::KLFLibraryResource & resref = d->resources[rindex];
+  // remove from library lists, keep the list
+  KLFLegacyData::KLFLibraryList liblist = d->library.take(resref);
+
+  // modify the resource data as requested
+  resref.name = subResourceNewName;
+  // see if the name we gave this resource is a 'reserved' name, eg. "History", or "Archive", that
+  // have specific resource IDs.
+  int possibleNewId = d->getReservedResourceId(subResource, -1);
+  if (possibleNewId != -1)
+    resref.id = possibleNewId;
+
+  // re-insert into library list
+  d->library[resref] = liblist;
+
+  emit subResourceRenamed(subResource, subResourceNewName);
+  return true;
+}
+
+bool KLFLibLegacyEngine::deleteSubResource(const QString& subResource)
+{
+  KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
+  int rindex = d->findResourceName(subResource);
+  if (rindex < 0) {
+    qWarning()<<KLF_FUNC_NAME<<": can't find sub-resource "<<subResource<<" in our data.";
+    return false;
+  }
+
+  // delete the data from our resource list and library
+
+  KLFLegacyData::KLFLibraryResource res = d->resources.takeAt(rindex);
+  // remove from library lists, keep the list
+  d->library.remove(res);
+
+  emit subResourceDeleted(subResource);
   return true;
 }
 

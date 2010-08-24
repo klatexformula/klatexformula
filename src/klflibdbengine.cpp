@@ -247,7 +247,7 @@ KLFLibDBEngine::~KLFLibDBEngine()
 // private
 bool KLFLibDBEngine::tableExists(const QString& subResource) const
 {
-  return pDB.tables().contains("t_"+subResource, Qt::CaseInsensitive);
+  return pDB.tables().contains(dataTableName(subResource), Qt::CaseInsensitive);
 }
 
 // static
@@ -373,14 +373,14 @@ void KLFLibDBEngine::readResourceProperty(int propId)
   q.exec();
   while (q.next()) {
     QString propname = q.value(0).toString();
-    QVariant propvalue = convertVariantFromDBData(q.value(1));
-    klfDbg( "Setting property `"<<propname<<"' to "<<propvalue<<"" ) ;
     if (!propertyNameRegistered(propname)) {
       if (!canRegisterProperty(propname))
 	continue;
       KLFPropertizedObject::registerProperty(propname);
     }
     int propId = propertyIdForName(propname);
+    QVariant propvalue = dbReadEntryPropertyValue(q.value(1), propId);
+    klfDbg( "Setting property `"<<propname<<"' (id #"<<propId<<") to "<<propvalue<<"" ) ;
     KLFPropertizedObject::setProperty(propId, propvalue);
     emit resourcePropertyChanged(propId);
   }
@@ -466,19 +466,9 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& col
     QVariant v = q.value(k);
     if (cols[k] == "id")
       continue;
-    /** \bug DEBUG/TODO/BUG .................... HERE REMOVE THE FOLLOWING SPECIAL CASES LATER (these
-     * are needed only for my old test db's... */
-    bool hasTypeInfo = (v.toByteArray()[0] == '[');
-    if (!hasTypeInfo && cols[k] == "DateTime")
-      entry.setDateTime(QDateTime::fromString(q.value(k).toString(), Qt::ISODate));
-    else if (!hasTypeInfo && cols[k] == "Preview") {
-      QImage img; img.loadFromData(q.value(k).toByteArray());
-      entry.setPreview(img);
-    } else if (!hasTypeInfo && cols[k] == "Style") {
-      entry.setStyle(metatype_from_data<KLFStyle>(q.value(k).toByteArray()));
-    } else {
-      entry.setEntryProperty(cols[k], convertVariantFromDBData(q.value(k)));
-    }
+    int propId = entry.propertyIdForName(cols[k]);
+    QVariant value = dbReadEntryPropertyValue(q.value(k), propId);
+    entry.setEntryProperty(cols[k], value);
   }
   //  klfDbg( ": cols="<<cols.join(",") ) ;
   //  klfDbg( ": read entry="<<entry<<" previewsize="<<entry.property(KLFLibEntry::PreviewSize)<<"; it's valid="<<entry.property(KLFLibEntry::PreviewSize).toSize().isValid()<<"; preview=... /null="<<entry.property(KLFLibEntry::Preview).value<QImage>().isNull() ) ;
@@ -591,20 +581,278 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   return eList;
 }
 
+// note: does not enclose expression in parens
+static QString make_like_condition(QString field, QString val, bool wildbefore, bool wildafter, bool casesensitive)
+{
+  if (casesensitive) {
+    QString globval = val;
+    if (wildbefore)
+      globval.prepend("*");
+    if (wildafter)
+      globval.append("*");
+    // we cannot escape special chars in GLOB -> use glob in conjunction with like
+    return field+" GLOB '"+globval+"'  AND  " + make_like_condition(field, val, wildbefore, wildafter, false);
+  } else {
+    val.replace("%", "\\%");
+    val.replace("_", "\\_");
+    val.replace("\\", "\\\\");
+    val.replace("'", "''");
+    if (wildbefore)
+      val.prepend("%");
+    if (wildafter)
+      val.append("%");
+    return field+" LIKE '"+val+"' ESCAPE '\\' ";
+  }
+}
+
+
+
+static QString make_sql_condition(const KLFLib::EntryMatchCondition m, QVariantList *placeholders,
+				  bool *haspostsqlcondition, KLFLib::EntryMatchCondition *postsqlcondition)
+{
+  /** \bug ........... LARGELY UNTESTED ..........................
+   */
+  *haspostsqlcondition = false;
+
+  if (m.type() == KLFLib::EntryMatchCondition::MatchAllType) {
+    return "1";
+  }
+  if (m.type() == KLFLib::EntryMatchCondition::PropertyMatchType) {
+    QString condition;
+    KLFLib::PropertyMatch pm = m.propertyMatch();
+    KLFLibEntry dummyentry;
+    QString field = dummyentry.propertyNameForId(pm.propertyId());
+    condition += "(";
+    uint f = pm.matchFlags();
+    switch ( f & 0xFF ) { // the match type
+    case Qt::MatchExactly:
+      condition += field+" = ?";
+      if ((f & Qt::CaseSensitive) == 0)
+	condition += " COLLATE NOCASE";
+      if (f & Qt::MatchFixedString)
+	placeholders->append(pm.matchValueString());
+      else
+	placeholders->append(pm.matchValueString());
+      break;
+    case Qt::MatchContains:
+      condition += make_like_condition(field, pm.matchValueString(), true, true, (f & Qt::CaseSensitive));
+      break;
+    case Qt::MatchStartsWith:
+      condition += make_like_condition(field, pm.matchValueString(), true, false, (f & Qt::CaseSensitive));
+      break;
+    case Qt::MatchEndsWith:
+      condition += make_like_condition(field, pm.matchValueString(), false, true, (f & Qt::CaseSensitive));
+      break;
+    case Qt::MatchRegExp:
+      // sqlite does not support regexp natively
+      *haspostsqlcondition = true;
+      *postsqlcondition = m;
+      condition += "1";
+      break;
+    case Qt::MatchWildcard:
+      if (f & Qt::CaseSensitive) {
+	condition += field+" GLOB  ? ";
+      } else {
+	condition += " lower("+field+") GLOB lower(?) ";
+      }
+      placeholders->append(pm.matchValueString());
+      break;
+    default:
+      qWarning()<<KLF_FUNC_NAME<<": unknown property match type flags: "<<f ;
+      return "0";
+    }
+    condition += ")";
+    return condition;
+  }
+  if (m.type() == KLFLib::EntryMatchCondition::NegateMatchType) {
+    if (m.conditionList().size() == 0) {
+      qWarning()<<KLF_FUNC_NAME<<": condition list is empty for NOT match type!";
+      return "0";
+    }
+    KLFLib::EntryMatchCondition postm = KLFLib::EntryMatchCondition::mkMatchAll(); // has to be initialized to sth..
+    QString c = "(NOT " + make_sql_condition(m.conditionList()[0], placeholders,
+					     haspostsqlcondition, &postm) ;
+    if (*haspostsqlcondition) {
+      *postsqlcondition = KLFLib::EntryMatchCondition::mkNegateMatch(postm);
+    }
+    return c;
+  }
+  if (m.type() == KLFLib::EntryMatchCondition::OrMatchType ||
+      m.type() == KLFLib::EntryMatchCondition::AndMatchType) {
+    static const char *w_and = " AND ";
+    static const char *w_or  = " OR ";
+    const char * word = (m.type() == KLFLib::EntryMatchCondition::AndMatchType) ? w_and : w_or ;
+    QList<KLFLib::EntryMatchCondition> clist = m.conditionList();
+    if (clist.isEmpty())
+      return "1";
+    int k;
+    QString str;
+    QList<KLFLib::EntryMatchCondition> postconditionlist;
+    for (k = 0; k < clist.size(); ++k) {
+      if (k > 0)
+	str += word;
+
+      KLFLib::EntryMatchCondition thispostm = KLFLib::EntryMatchCondition::mkMatchAll(); // init to sth...
+      bool thishaspostsql;
+      QString c = make_sql_condition(m.conditionList()[0], placeholders,
+				     &thishaspostsql, &thispostm) ;
+      if (thishaspostsql) {
+	postconditionlist.append(thispostm);
+      }
+      str += c;
+    } // for
+    if (postconditionlist.size()) {
+      *haspostsqlcondition = true;
+      *postsqlcondition = (m.type() == KLFLib::EntryMatchCondition::OrMatchType)
+	?  KLFLib::EntryMatchCondition::mkOrMatch(postconditionlist)
+	:  KLFLib::EntryMatchCondition::mkOrMatch(postconditionlist) ;
+    }
+    return str;
+  }
+  qWarning()<<KLF_FUNC_NAME<<": unknown entry match condition type: "<<m.type();
+  return "0";
+}
 
 int KLFLibDBEngine::query(const QString& subResource, const Query& query, QueryResult *result)
 {
-  /** \todo ........ Optimize (!) ............. */
-  return KLFLibResourceSimpleEngine::queryImpl(this, subResource, query, result);
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
+  klfDbg( "\t: subResource="<<subResource<<"; query="<<query ) ;
+
+  if ( ! validDatabase() )
+    return -1;
+
+  QStringList cols = columnNameList(subResource, query.wantedEntryProperties, true);
+
+  QString sql;
+  // prepare SQL string.
+  sql = QString("SELECT %1 FROM %2 ").arg(cols.join(","), quotedDataTableName(subResource));
+  QVariantList placeholders;
+  bool haspostsqlcondition = false;
+  KLFLib::EntryMatchCondition postsqlcondition = KLFLib::EntryMatchCondition::mkMatchAll();
+  QString wherecond = make_sql_condition(query.matchCondition, &placeholders, &haspostsqlcondition,
+					 &postsqlcondition);
+  sql += " WHERE "+wherecond;
+
+  /** \bug. ................ postsqlcondition is NOT implemented ............. */
+  if (haspostsqlcondition) {
+    // fallback on very rudimentary search
+    return KLFLibResourceSimpleEngine::queryImpl(this, subResource, query, result);
+  }
+
+  if (query.orderPropId != -1) {
+    sql += " ORDER BY "+KLFLibEntry().propertyNameForId(query.orderPropId)+" ";
+    sql += (query.orderDirection==Qt::AscendingOrder)?"ASC ":"DESC ";
+  }
+
+  if (query.limit != -1) {
+    sql += " LIMIT "+QString::number(query.skip+query.limit);
+  }
+
+  klfDbg("Built query: SQL="<<sql<<"; placeholders="<<placeholders) ;
+
+  QSqlQuery q = QSqlQuery(pDB);
+  q.prepare(sql);
+  q.setForwardOnly(true);
+  int k;
+  for (k = 0; k < placeholders.size(); ++k)
+    q.bindValue(k, placeholders[k]);
+
+  // and exec the query
+  bool r = q.exec();
+  if ( !r || q.lastError().isValid() ) {
+    qWarning()<<KLF_FUNC_NAME<<"SQL Error: "<<qPrintable(q.lastError().text())
+	      <<"\nSql was="<<sql<<"; bound values="<<q.boundValues();
+    return -1;
+  }
+
+  // retrieve the entries
+
+  cols = detectEntryColumns(q);
+
+  int N = q.size();
+  if (N == -1)
+    N = 100;
+  else
+    N -= query.skip;
+  KLFProgressReporter progr(0, N, this);
+  if (!thisOperationProgressBlocked())
+    emit operationStartReportingProgress(&progr, tr("Querying items from library database ..."));
+
+  // skip the first 'query.skip' entries
+  int skipped = 0;
+  bool ok = true;
+  while (skipped < query.skip && (ok = q.next()))
+    ++skipped;
+  klfDbg("skipped "<<skipped<<" entries.") ;
+
+  // warning: Qt crashes on to conseqent failing q.next() calls, if forward-only mode is enabled.
+
+  int count = 0;
+  while (ok && q.next()) {
+    if (count % 10 == 0 && count < N) {
+      // emit every 10 items, without exceeding what maximum we gave
+      progr.doReportProgress(count);
+    }
+
+    KLFLibEntryWithId e;
+    e.id = q.value(0).toInt(); // column 0 is 'id', see \ref columnNameList()
+    e.entry = readEntry(q, cols);
+
+    if (result->fillFlags & QueryResult::FillEntryIdList)
+      result->entryIdList << e.id;
+    if (result->fillFlags & QueryResult::FillRawEntryList)
+      result->rawEntryList << e.entry;
+    if (result->fillFlags & QueryResult::FillEntryWithIdList)
+      result->entryWithIdList << e;
+    ++count;
+  }
+
+  progr.doReportProgress(count);
+  klfDbg("got "<<count<<" entries.") ;
+  return count;
 }
 QList<QVariant> KLFLibDBEngine::queryValues(const QString& subResource, int entryPropId)
 {
-  /** \todo ....... Optimize (!) .......... */
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
+  klfDbg( "\t: subResource="<<subResource<<"; entryPropId="<<entryPropId ) ;
 
-  // working command for this function:
-  //   SELECT DISTINCT Category FROM t_klfentries ;
+  if (!pDBAvailColumns.contains(subResource)) {
+    qWarning()<<KLF_FUNC_NAME<<": bad sub-resource: "<<subResource;
+    return QVariantList();
+  }
 
-  return KLFLibResourceSimpleEngine::queryValuesImpl(this, subResource, entryPropId);
+  KLFLibEntry dummye;
+  QString pname;
+  if (!dummye.propertyIdRegistered(entryPropId)) {
+    qWarning()<<KLF_FUNC_NAME<<": Invalid property ID "<<entryPropId;
+    return QVariantList();
+  }
+  pname = dummye.propertyNameForId(entryPropId);
+  if (!pDBAvailColumns[subResource].contains(pname)) {
+    qWarning()<<KLF_FUNC_NAME<<": property "<<pname<<" is not available in tables (avail are "
+	      <<pDBAvailColumns[subResource]<<"!";
+    return QVariantList();
+  }
+
+  QString sql = "SELECT DISTINCT "+pname+" FROM "+quotedDataTableName(subResource);
+
+  QSqlQuery q = QSqlQuery(pDB);
+  q.prepare(sql);
+  q.setForwardOnly(true);
+  bool r = q.exec();
+  if ( !r || q.lastError().isValid() ) {
+    qWarning()<<KLF_FUNC_NAME<<"SQL Error: "<<qPrintable(q.lastError().text())
+	      <<"\nSQL was: "<<sql;
+    return QVariantList();
+  }
+
+  QVariantList list;
+  while (q.next()) {
+    list << dbReadEntryPropertyValue(q.value(0), entryPropId);
+    klfDbg("adding value "<<list.last().toString()) ;
+  }
+
+  return list;
 }
 
 
@@ -696,6 +944,14 @@ bool KLFLibDBEngine::canCreateSubResource() const
   return baseCanModifyStatus(false) == MS_CanModify;
 }
 
+bool KLFLibDBEngine::canDeleteSubResource(const QString& subResource) const
+{
+  if (baseCanModifyStatus(true, subResource) == MS_CanModify)
+    if (tableExists(subResource))
+      return true;
+
+  return false;
+}
 
 QVariant KLFLibDBEngine::subResourceProperty(const QString& subResource, int propId) const
 {
@@ -799,6 +1055,56 @@ bool KLFLibDBEngine::setSubResourceProperty(const QString& subResource, int prop
 
   return true;
 }
+
+
+
+QVariant KLFLibDBEngine::dbMakeEntryPropertyValue(const QVariant& entryval, int propertyId)
+{
+  if (propertyId == KLFLibEntry::Latex)
+    return QVariant::fromValue<QString>(entryval.toString());
+  if (propertyId == KLFLibEntry::DateTime)
+    return QVariant::fromValue<qulonglong>(entryval.toDateTime().toTime_t());
+  if (propertyId == KLFLibEntry::Preview)
+    return QVariant::fromValue<QByteArray>(image_data(entryval.value<QImage>(), "PNG"));
+  if (propertyId == KLFLibEntry::Category)
+    return QVariant::fromValue<QString>(entryval.toString());
+  if (propertyId == KLFLibEntry::Tags)
+    return QVariant::fromValue<QString>(entryval.toString());
+  if (propertyId == KLFLibEntry::PreviewSize) {
+    QSize s = entryval.value<QSize>();
+    return QVariant::fromValue<qulonglong>( (((qulonglong)s.width()) <<         32)  |
+					    (((qulonglong)s.height()) & 0xFFFFFFFF) );
+  }
+  // otherwise, return a generic encapsulation
+  return convertVariantToDBData(entryval);
+}
+QVariant KLFLibDBEngine::dbReadEntryPropertyValue(const QVariant& dbdata, int propertyId)
+{
+  if (propertyId == KLFLibEntry::Latex)
+    return dbdata.toString();
+  if (propertyId == KLFLibEntry::DateTime)
+    return QVariant::fromValue<QDateTime>(QDateTime::fromTime_t(dbdata.toULongLong()));
+  if (propertyId == KLFLibEntry::Preview) {
+    QImage img;
+    img.loadFromData(dbdata.toByteArray(), "PNG");
+    return QVariant::fromValue<QImage>(img);
+  }
+  if (propertyId == KLFLibEntry::Category)
+    return dbdata.toString();
+  if (propertyId == KLFLibEntry::Tags)
+    return dbdata.toString();
+  if (propertyId == KLFLibEntry::PreviewSize) {
+    qulonglong val = dbdata.toULongLong();
+    int w = (int)((val>>32) & 0xFFFFFFFF) ;
+    int h = (int)(val       & 0xFFFFFFFF) ;
+    return QVariant::fromValue<QSize>(QSize(w, h));
+  }
+  // otherwise, return the generic decapsulation
+  return convertVariantFromDBData(dbdata);
+}
+
+
+
 
 
 // private
@@ -978,6 +1284,36 @@ bool KLFLibDBEngine::ensureDataTableColumnsExist(const QString& subResource)
 // --
 
 
+bool KLFLibDBEngine::deleteSubResource(const QString& subResource)
+{
+  if (!canDeleteSubResource(subResource))
+    return false;
+
+  QSqlQuery q = QSqlQuery(pDB);
+  q.prepare(QString("DROP TABLE %1").arg(quotedDataTableName(subResource)));
+  int r = q.exec();
+  if ( !r || q.lastError().isValid() ) {
+    qWarning()<<KLF_FUNC_NAME<<"("<<subResource<<"): SQL Error: "
+	      <<q.lastError().text() << "\n\tSQL="<<q.lastQuery() ;
+    return false;
+  }
+
+  // all ok
+  emit subResourceDeleted(subResource);
+
+  if (subResource == defaultSubResource()) {
+    QString newDefaultSubResource;
+    if (subResourceList().size() >= 1)
+      newDefaultSubResource = subResourceList()[0];
+    else
+      newDefaultSubResource = QString();
+    setDefaultSubResource(newDefaultSubResource);
+    emit defaultSubResourceChanged(newDefaultSubResource);
+  }
+  return true;
+}
+
+
 bool KLFLibDBEngine::createSubResource(const QString& subResource, const QString& subResourceTitle)
 {
   if ( ! validDatabase() )
@@ -999,7 +1335,10 @@ bool KLFLibDBEngine::createSubResource(const QString& subResource, const QString
   r = setSubResourceProperty(subResource, SubResPropTitle, QVariant(title));
   if (!r)
     return false;
+
   // success
+  emit subResourceCreated(subResource);
+
   return true;
 }
 
@@ -1048,7 +1387,7 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
       progr.doReportProgress(j);
     //    klfDbg( "New entry to insert." ) ;
     for (k = 0; k < propids.size(); ++k) {
-      QVariant data = convertVariantToDBData(entrylist[j].property(propids[k]));
+      QVariant data = dbMakeEntryPropertyValue(entrylist[j].property(propids[k]), propids[k]);
       // and add a corresponding bind value for sql query
       klfDbg( "Binding value "<<k<<": "<<data ) ;
       q.bindValue(k, data);
@@ -1113,7 +1452,7 @@ bool KLFLibDBEngine::changeEntries(const QString& subResource, const QList<entry
   q.prepare(QString("UPDATE %1 SET %2 WHERE id = ?")
 	    .arg(quotedDataTableName(subResource), updatepairs.join(",")));
   for (k = 0; k < properties.size(); ++k) {
-    q.bindValue(k, convertVariantToDBData(values[k]));
+    q.bindValue(k, dbMakeEntryPropertyValue(values[k], properties[k]));
   }
   const int idBindValueNum = k;
 

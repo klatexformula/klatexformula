@@ -130,6 +130,7 @@ public:
 
   virtual bool canCreateSubResource() const;
   virtual bool canRenameSubResource() const { return false; }
+  virtual bool canDeleteSubResource(const QString& subResource) const;
 
   virtual QVariant subResourceProperty(const QString& subResource, int propId) const;
 
@@ -142,6 +143,7 @@ public:
 public slots:
 
   virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle);
+  virtual bool deleteSubResource(const QString& subResource);
 
   virtual QList<entryId> insertEntries(const QString& subRes, const KLFLibEntryList& entries);
   virtual bool changeEntries(const QString& subRes, const QList<entryId>& idlist,
@@ -179,12 +181,16 @@ private:
 
   int pDBVersion;
 
+  /** Key is sub-resource name (not raw table name) */
   QMap<QString,QStringList> pDBAvailColumns;
   
   QStringList columnNameList(const QString& subResource, const QList<int>& entryPropList,
 			     bool wantIdFirst = true);
   QStringList detectEntryColumns(const QSqlQuery& q);
   KLFLibEntry readEntry(const QSqlQuery& q, const QStringList& columns);
+
+  QVariant dbMakeEntryPropertyValue(const QVariant& entryValue, int entryPropertyId);
+  QVariant dbReadEntryPropertyValue(const QVariant& dbdata, int entryPropertyId);
 
   QVariant convertVariantToDBData(const QVariant& value) const;
   QVariant convertVariantFromDBData(const QVariant& dbdata) const;

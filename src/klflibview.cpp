@@ -528,6 +528,8 @@ void KLFLibModelCache::rebuildCache()
 
 QModelIndex KLFLibModelCache::createIndexFromId(NodeId nodeid, int row, int column)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if ( ! nodeid.valid() || nodeid == NodeId::rootNode())
     return QModelIndex();
 
@@ -714,7 +716,8 @@ bool KLFLibModelCache::canFetchMore(NodeId parentId)
 }
 void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
 {
-  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME); klfDbg( "\t parentId: n="<<n<<"; valid="<<n.valid() ) ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME);
+  klfDbg( "\t parentId: n="<<n<<"; valid="<<n.valid() <<"; url="<<pModel->url() ) ;
 
   if (pIsFetchingMore)
     return;
@@ -824,6 +827,8 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
 
   pModel->endInsertRows();
   pModel->endLayoutChange(false);
+
+  klfDbg("views notified, persistent indexes restored.") ;
 
   pIsFetchingMore = false;
 }

@@ -211,6 +211,7 @@ namespace KLFLib {
     enum Type {
       MatchAllType = 0, //!< Matches all entries
       PropertyMatchType, //!< Matches a property ID with a string (with a \ref StringMatch)
+      NegateMatchType, //!< Matches entries that don't match a condition
       OrMatchType, //!< entries have to match with one of a list of conditions
       AndMatchType //!< entries have to match with all given conditions
     };
@@ -224,6 +225,8 @@ namespace KLFLib {
 
     static EntryMatchCondition mkMatchAll();
     static EntryMatchCondition mkPropertyMatch(PropertyMatch pmatch);
+    /** Stores \c condition in first element of conditionList(). */
+    static EntryMatchCondition mkNegateMatch(const EntryMatchCondition& condition);
     static EntryMatchCondition mkOrMatch(QList<EntryMatchCondition> conditions);
     static EntryMatchCondition mkAndMatch(QList<EntryMatchCondition> conditions);
 
@@ -1129,6 +1132,12 @@ signals:
    */
   void subResourcePropertyChanged(const QString& subResource, int propId);
 
+  //! Emitted when a sub-resource is created
+  /** This signal should be emitted by engines supporting feature \ref FeatureSubResources, at
+   * the end of a (successful) \ref createSubResource() call.\
+   */
+  void subResourceCreated(const QString& newSubResource);
+
   //! Emitted when a sub-resource is renamed
   /** This signal should be emitted by engines supporting feature \ref FeatureSubResources, at
    * the end of a (successful) \ref renameSubResource() call.\
@@ -1505,8 +1514,10 @@ protected:
   };
 
   //! can modify data in resource (base common tests only)
-  /** Don't call this function directly, use \ref canModifyData(), \ref canModifyProp(),
+  /** External classes: Don't call this function directly, use \ref canModifyData(), \ref canModifyProp(),
    * and \ref canModifySubResourceProperty() instead.
+   *
+   * Internal classes: this is useful for reimplementations of canModifyData(), canModifyProp(), etc.
    *
    * The latter and their reimplementations may call this function.
    *

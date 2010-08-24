@@ -775,6 +775,13 @@ KLFLib::EntryMatchCondition KLFLib::EntryMatchCondition::mkPropertyMatch(Propert
   return c;
 }
 // static
+KLFLib::EntryMatchCondition KLFLib::EntryMatchCondition::mkNegateMatch(const EntryMatchCondition& condition)
+{
+  EntryMatchCondition c(NegateMatchType);
+  c.mConditionList = QList<EntryMatchCondition>() << condition;
+  return c;
+}
+// static
 KLFLib::EntryMatchCondition KLFLib::EntryMatchCondition::mkOrMatch(QList<EntryMatchCondition> conditions)
 {
   EntryMatchCondition c(OrMatchType);
@@ -823,13 +830,16 @@ KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCon
     return dbg << "match-all}";
   if (c.type() == KLFLib::EntryMatchCondition::PropertyMatchType)
     return dbg << "property-match; "<<c.propertyMatch()<<"}";
-  if (c.type() != KLFLib::EntryMatchCondition::AndMatchType &&
+  if (c.type() != KLFLib::EntryMatchCondition::NegateMatchType &&
+      c.type() != KLFLib::EntryMatchCondition::AndMatchType &&
       c.type() != KLFLib::EntryMatchCondition::OrMatchType)
     return dbg << "unknown-type}";
-  // AND or OR type:
+  // NOT, AND or OR type:
   static const char *w_and = " AND ";
-  static const char *w_or = " OR ";
-  const char * word =  (c.type()==KLFLib::EntryMatchCondition::AndMatchType) ? w_and : w_or ;
+  static const char *w_or  = " OR ";
+  static const char *w_not = " NOT ";
+  const char * word =  (c.type()==KLFLib::EntryMatchCondition::NegateMatchType)? w_not :
+			((c.type()==KLFLib::EntryMatchCondition::AndMatchType) ? w_and : w_or) ;
   dbg << (word+1/*nospace*/) << "; list: ";
   QList<KLFLib::EntryMatchCondition> conditions = c.conditionList();
   int k;
@@ -976,6 +986,13 @@ bool KLFLibResourceSimpleEngine::testEntryMatchConditionImpl(const KLFLib::Entry
 		    pmatch.matchValue(), // match value
 		    pmatch.matchFlags(), // flags
 		    pmatch.matchValueString()); // variant converted to string, cached
+  case KLFLib::EntryMatchCondition::NegateMatchType:
+    condlist = condition.conditionList(); // only first item is used
+    if (condlist.isEmpty()) {
+      qWarning()<<KLF_FUNC_NAME<<": NOT condition with no arguments!";
+      return false;
+    }
+    return  ! testEntryMatchConditionImpl(condlist[0], libentry); // negate test
   case KLFLib::EntryMatchCondition::OrMatchType:
     condlist = condition.conditionList();
     if (condlist.isEmpty())

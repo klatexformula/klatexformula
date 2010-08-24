@@ -172,9 +172,15 @@ public:
 
   virtual QStringList subResourceList() const;
 
+  virtual bool canCreateSubResource() const;
+  virtual bool canRenameSubResource(const QString& subResource) const;
+  virtual bool canDeleteSubResource(const QString& subResource) const;
+
 public slots:
 
   virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle);
+  virtual bool renameSubResource(const QString& subResource, const QString& subResourceName);
+  virtual bool deleteSubResource(const QString& subResource);
 
   virtual bool save();
   virtual void setAutoSaveInterval(int intervalms);
