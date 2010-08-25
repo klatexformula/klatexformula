@@ -373,13 +373,13 @@ void KLFLibDBEngine::readResourceProperty(int propId)
   q.exec();
   while (q.next()) {
     QString propname = q.value(0).toString();
+    int propId = propertyIdForName(propname);
     if (!propertyNameRegistered(propname)) {
       if (!canRegisterProperty(propname))
 	continue;
       KLFPropertizedObject::registerProperty(propname);
     }
-    int propId = propertyIdForName(propname);
-    QVariant propvalue = dbReadEntryPropertyValue(q.value(1), propId);
+    QVariant propvalue = convertVariantFromDBData(q.value(1));
     klfDbg( "Setting property `"<<propname<<"' (id #"<<propId<<") to "<<propvalue<<"" ) ;
     KLFPropertizedObject::setProperty(propId, propvalue);
     emit resourcePropertyChanged(propId);

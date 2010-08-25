@@ -205,6 +205,21 @@ void signal_act(int sig)
       ::exit(128);
     }
   }
+  if (sig == SIGSEGV) {
+    FILE *ftty = fopen("/dev/tty", "w");
+    if (ftty == NULL)
+      ftty = stderr;
+    static bool first = true;
+    if (!first) {
+      fprintf(ftty, "Exiting\n");
+      ::exit(127);
+    }
+    first = false;
+    fprintf(ftty, "Segmentation Fault :-(\n");
+    if (ftty != stderr)
+      fprintf(stderr, "** Segmentation Fault :-( **\n");
+    qApp->exit(127);
+  }
 }
 
 
@@ -673,6 +688,8 @@ int main(int argc, char **argv)
 
   // signal acting -- catch SIGINT to exit gracefully
   signal(SIGINT, signal_act);
+  // signal acting -- catch SIGSEGV to attempt graceful exit
+  signal(SIGSEGV, signal_act);
 
   // parse command-line options
   main_parse_options(argc, argv);

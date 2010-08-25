@@ -429,10 +429,12 @@ void KLFLibModelCache::rebuildCache()
   int k;
 
   // report progress
+#ifndef Q_WS_MAC
   KLFProgressReporter progressReporter(0, 100, NULL);
   QString msg = QObject::tr("Updating View...", "[[KLFLibModelCache, progress text]]");
   emit pModel->operationStartReportingProgress(&progressReporter, msg);
   progressReporter.doReportProgress(0);
+#endif
 
   klfDbgT("saving persistent indexes ...");
   QModelIndexList persistentIndexes = pModel->persistentIndexList();
@@ -490,8 +492,10 @@ void KLFLibModelCache::rebuildCache()
     entryindex.index = pEntryCache.size()-1;
     treeInsertEntry(entryindex, false, true); // notifyQtApi=FALSE, rebuildingCache=TRUE
 
+#ifndef Q_WS_MAC
     if (k % 10 == 0)
       progressReporter.doReportProgress((++k) * 100 / everything.size());
+#endif
   }
 
   if (pModel->pFlavorFlags & KLFLibModel::CategoryTree) {
@@ -504,6 +508,7 @@ void KLFLibModelCache::rebuildCache()
       QString cat = (*vcit).toString();
       if (cat.isEmpty() || cat == "/")
 	continue;
+      //      cacheFindCategoryLabel(categoryelements, createIfNotExists, notifyQtApi, newCreatedAreChildrenFetched)
       int i = cacheFindCategoryLabel(cat.split('/'), true, false, false);
       if (i < 0) {
 	qWarning()<<KLF_FUNC_NAME<<": Failed to create category node for category "<<cat;
@@ -512,15 +517,15 @@ void KLFLibModelCache::rebuildCache()
     klfDbgT("... ins catnodes done.") ;
   }
 
+  fullDump(); // DEBUG
+
+  emit pModel->reset();
+
   klfDbg("restoring persistent indexes ...");
   QModelIndexList newPersistentIndexes = pModel->newPersistentIndexList(persistentIndexIds);
   // and refresh all persistent indexes
   pModel->changePersistentIndexList(persistentIndexes, newPersistentIndexes);
   klfDbg("... done restoring persistent indexes.");
-
-  fullDump(); // DEBUG
-
-  emit pModel->reset();
 
   klfDbgT( " end of func" ) ;
 }
@@ -566,7 +571,23 @@ KLFLibModelCache::NodeId KLFLibModelCache::getNodeForIndex(const QModelIndex& in
 {
   if ( ! index.isValid() )
     return NodeId();
-  return NodeId::fromUID(index.internalId());
+  NodeId n = NodeId::fromUID(index.internalId());
+  // perform validity check on 'n'
+  if (n.kind == EntryKind) {
+    if (n.index < 0 || n.index >= pEntryCache.size()) {
+      qWarning()<<KLF_FUNC_NAME<<": Invalid entry node reference for index "<<index<<": "<<n;
+      return NodeId();
+    }
+  } else if (n.kind == CategoryLabelKind) {
+    if (n.index < 0 || n.index >= pCategoryLabelCache.size()) {
+      qWarning()<<KLF_FUNC_NAME<<": Invalid category label node reference for index "<<index<<": "<<n;
+      return NodeId();
+    }
+  } else {
+    qWarning()<<KLF_FUNC_NAME<<": Invalid node kind for index "<<index<<": "<<n;
+    return NodeId();
+  }
+  return n;
 }
 
 KLFLibModelCache::Node KLFLibModelCache::getNode(NodeId nodeid)
@@ -601,10 +622,11 @@ KLFLibModelCache::Node& KLFLibModelCache::getNodeRef(NodeId nodeid)
 }
 KLFLibModelCache::EntryNode& KLFLibModelCache::getEntryNodeRef(NodeId nodeid, bool enforceNotMinimalist)
 {
+  static EntryNode dummyerrornode;
   if (!nodeid.valid() || nodeid.kind != EntryKind ||
       nodeid.index < 0 || nodeid.index >= pEntryCache.size()) {
     qWarning()<<"KLFLibModelCache::getEntryNodeRef: Invalid Entry Node "<<nodeid<<"!";
-    return pEntryCache[0];
+    return dummyerrornode;
   }
   if (enforceNotMinimalist && pEntryCache[nodeid.index].minimalist)
     ensureNotMinimalist(nodeid);
@@ -634,7 +656,7 @@ int KLFLibModelCache::getNodeRow(NodeId node)
   NodeId pparentid = n.parent;
   if ( !pparentid.valid() ) {
     // shouldn't happen (!?!), only parentless item should be root node !
-    qWarning()<<"Found parentless non-root node !";
+    qWarning()<<KLF_FUNC_NAME<<": Found parentless non-root node: "<<node;
     return 0;
   }
   Node pparent = getNode(pparentid);
@@ -645,7 +667,7 @@ int KLFLibModelCache::getNodeRow(NodeId node)
       return k;
 
   // search failed
-  qWarning("KLFLibModelCache: Unable to get node row: parent-child one-way broken!!");
+  qWarning()<<KLF_FUNC_NAME<<": Unable to get node row: parent-child one-way broken!! node="<<node;
   return -1;
 }
 
@@ -854,11 +876,13 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
     return;
   }
 
+#ifndef Q_WS_MAC
   // progress reporting [here, not above, because rebuildCache() has its own progress reporting]
   KLFProgressReporter progressReporter(0, entryIdList.size(), NULL);
   emit pModel->operationStartReportingProgress(&progressReporter,
 					       QObject::tr("Updating View...", "[[KLFLibModelCache, progress text]]"));
   progressReporter.doReportProgress(0);
+#endif
 
   switch (modifyType) {
   case KLFLibResourceEngine::InsertData:
@@ -876,8 +900,10 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	 * contiguous inserts to be notified once .... */
 	treeInsertEntry(n);
 	qDebug("%s: entry ID %d inserted", KLF_FUNC_NAME, entryIdList[k]);
+#ifndef Q_WS_MAC
 	if (k % 20 == 0)
 	  progressReporter.doReportProgress(k+1);
+#endif
       }
       break;
     }
@@ -911,8 +937,10 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	  QModelIndex idx = createIndexFromId(n, -1, 0);
 	  emit pModel->dataChanged(idx, idx);
 	}
+#ifndef Q_WS_MAC
 	if (k % 20 == 0)
 	  progressReporter.doReportProgress(k+1);
+#endif
       }
       break;
     }
@@ -924,8 +952,10 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	// entry deleted
 	NodeId n = findEntryId(entryIdList[k]);
 	treeRemoveEntry(n);
+#ifndef Q_WS_MAC
 	if (k % 20 == 0)
 	  progressReporter.doReportProgress(k+1);
+#endif
       }
       break;
     }
@@ -1189,9 +1219,6 @@ QString KLFLibModelCache::nodeValue(NodeId n, int entryProperty)
     return QString();
   }
   if (n.kind == EntryKind) {
-    if (entryProperty == KLFLibEntry::Preview)
-      entryProperty = KLFLibEntry::DateTime; // user friendliness. sort by date when selecting preview.
-
     EntryNode en = getEntryNodeRef(n);
     // don't update minimalist nodes (assume minimalist info is enough)
     return pModel->entrySorter()->entryValue(en.entry, entryProperty);
@@ -1199,7 +1226,7 @@ QString KLFLibModelCache::nodeValue(NodeId n, int entryProperty)
   if (n.kind == CategoryLabelKind)
     return getCategoryLabelNodeRef(n).categoryLabel;
 
-  qWarning("nodeValue(): Bad Item Kind: %d", n.kind);
+  qWarning()<<KLF_FUNC_NAME<<": Bad Item Kind: "<<n;
   return QString();
 }
 
@@ -1279,6 +1306,12 @@ KLFLibModelCache::NodeId KLFLibModelCache::nextNode(NodeId n)
   if (nn.children.size() > 0) {
     return nn.children[0];
   }
+  if (!nn.allChildrenFetched && canFetchMore(n)) {
+    // we may have children, so try to fetch children
+    fetchMore(n, pModel->pFetchBatchCount);
+    // and recurse, now that more children have possibly been fetched.
+    return nextNode(n);
+  }
   // no children, find next sibling.
   NodeId parentid;
   while ( (parentid = nn.parent).valid() ) {
@@ -1287,6 +1320,12 @@ KLFLibModelCache::NodeId KLFLibModelCache::nextNode(NodeId n)
     if (row+1 < parent.children.size()) {
       // there is a next sibling: return it
       return parent.children[row+1];
+    }
+    if (!parent.allChildrenFetched && canFetchMore(parentid)) {
+      // there is possibly a next sibling, it just possibly hasn't been fetched.
+      fetchMore(parentid, pModel->pFetchBatchCount);
+      // now that the more children has been fetched for this parent, try again: (by recursing)
+      return nextNode(n);
     }
     // no next sibling, so go up the tree
     n = parentid;
@@ -1324,6 +1363,18 @@ KLFLibModelCache::NodeId KLFLibModelCache::lastNode(NodeId n)
     n = NodeId::rootNode(); // root category
 
   Node nn = getNode(n);
+
+  // get the last child of node 'n'
+  // this includes fetching _all_ its children if applicable
+  while (!nn.allChildrenFetched) {
+    if (!canFetchMore(n)) {
+      qWarning()<<KLF_FUNC_NAME<<": internal error: node "<<n<<", node="<<nn
+		<<" has allChildrenFetched=false, but can't fetch more!";
+      break;
+    }
+    fetchMore(n, pModel->pFetchBatchCount);
+  }
+
   if (nn.children.size() == 0)
     return n; // no children: n is itself the "last node"
 
@@ -1735,6 +1786,8 @@ bool KLFLibModel::hasIndex(int row, int column, const QModelIndex &parent) const
 
 QModelIndex KLFLibModel::index(int row, int column, const QModelIndex &parent) const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   const KLFLibModelCache::CategoryLabelNode& cat_p =
     pCache->getCategoryLabelNodeRef(KLFLibModelCache::NodeId::rootNode()); // root node
   KLFLibModelCache::CategoryLabelNode p = cat_p;
@@ -1746,13 +1799,14 @@ QModelIndex KLFLibModel::index(int row, int column, const QModelIndex &parent) c
     if (pp.valid())
       p = pCache->getCategoryLabelNodeRef(pp);
   }
-  if (row < 0 || row >= p.children.size() || column < 0 || column >= columnCount(parent))
+  if (row < 0 || row >= p.numDisplayFetched || column < 0 || column >= columnCount(parent))
     return QModelIndex();
   klfDbgT(": row="<<row<<"; column="<<column<<"; parent="<<parent);
   return pCache->createIndexFromId(p.children[row], row, column);
 }
 QModelIndex KLFLibModel::parent(const QModelIndex &index) const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbgT(": requesting parent of index "<<index);
   KLFLibModelCache::NodeId p = pCache->getNodeForIndex(index);
   if ( !p.valid() ) // invalid index
@@ -1760,10 +1814,12 @@ QModelIndex KLFLibModel::parent(const QModelIndex &index) const
   KLFLibModelCache::Node n = pCache->getNode(p);
   if ( ! n.parent.valid() ) // invalid parent (should never happen!)
     return QModelIndex();
-  return pCache->createIndexFromId(n.parent, -1 /* figure out row */, 0);
+  return klf_debug_tee( pCache->createIndexFromId(n.parent, -1 /* figure out row */, 0) ) ;
 }
 int KLFLibModel::rowCount(const QModelIndex &parent) const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if (parent.column() > 0)
     return 0;
 
@@ -2178,8 +2234,7 @@ QModelIndex KLFLibModel::searchFindNext(bool forward)
   bool found = false;
   while ( ! found &&
 	  (curNode = (pCache->*stepfunc)(curNode)).valid() ) {
-    if ( pCache->nodeValue(curNode, KLFLibEntry::Latex).contains(pSearchString, cs) ||
-    	 pCache->nodeValue(curNode, KLFLibEntry::Tags).contains(pSearchString, cs) ) {
+    if ( pCache->searchNodeMatches(curNode, pSearchString, cs) ) {
       found = true;
     }
     if (t.elapsed() > 150) {
@@ -2202,6 +2257,28 @@ void KLFLibModel::searchAbort()
 {
   pSearchAborted = true;
 }
+
+bool KLFLibModelCache::searchNodeMatches(const NodeId& nodeId, const QString& searchString,
+					 Qt::CaseSensitivity cs)
+{
+  if (nodeId.kind == CategoryLabelKind) {
+    if (nodeValue(nodeId).contains(searchString, cs))
+      return true;
+    return false;
+  }
+  if (nodeValue(nodeId, KLFLibEntry::Latex).contains(searchString, cs) ||
+      nodeValue(nodeId, KLFLibEntry::Tags).contains(searchString, cs))
+    return true;
+  // let an item match its category only in NON-category tree mode (user friendlyness: category matching
+  // will match the category title, after that, don't walk all the children...)
+  if ((pModel->pFlavorFlags & KLFLibModel::CategoryTree) == 0 &&
+      nodeValue(nodeId, KLFLibEntry::Category).contains(searchString, cs)) {
+    return true;
+  }
+
+  return false;
+}
+
 
 bool KLFLibModel::changeEntries(const QModelIndexList& indexlist, int propId, const QVariant& value)
 {
@@ -2272,7 +2349,14 @@ void KLFLibModel::redoSort()
 
 void KLFLibModel::sort(int column, Qt::SortOrder order)
 {
-  pEntrySorter->setPropId(entryColumnContentsPropertyId(column));
+  // select right property ID
+  int propId = entryColumnContentsPropertyId(column);
+  // if property ID is preview, then request sort by DateTime (user friendliness)
+  if (propId == KLFLibEntry::Preview) {
+    propId = KLFLibEntry::DateTime;
+  }
+
+  pEntrySorter->setPropId(propId);
   pEntrySorter->setOrder(order);
 
   redoSort();
@@ -2323,7 +2407,7 @@ QModelIndexList KLFLibModel::newPersistentIndexList(const QList<PersistentId>& p
       KLFLibModelCache::NodeId nodeId(KLFLibModelCache::CategoryLabelKind, idx);
       index = pCache->createIndexFromId(nodeId, -1, 0);
     } else {
-      qWarning("newPersistentIndexList: bad persistent id node kind! :%d", id.kind);
+      qWarning("%s: bad persistent id node kind! :%d", KLF_FUNC_NAME, id.kind);
     }
 
     newPersistentIndexes << index;
@@ -2344,6 +2428,8 @@ void KLFLibModel::startLayoutChange(bool withQtLayoutChangedSignal)
 }
 void KLFLibModel::endLayoutChange(bool withQtLayoutChangedSignal)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QModelIndexList newpindexes = newPersistentIndexList(pLytChgIds);
   changePersistentIndexList(pLytChgIndexes, newpindexes);
   // and notify of layout change

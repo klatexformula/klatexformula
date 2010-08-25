@@ -38,6 +38,388 @@
 #include "klfdefs.h"
 
 
+/** \def KLF_EXPORT
+ *
+ * symbols we want to export will be declared with this macro. this makes declarations
+ * platform-independant. */
+
+/** \def KLF_EXPORT_IF_DEBUG
+ *
+ * symbols we want to export only if in debug mode will use this definition. This will
+ * declare symbols with KLF_EXPORT in debug mode, and without that flag in non-debug mode. */
+
+/** \fn KLF_EXPORT int klfVersion()
+ *
+ * Returns the current version of the KLatexFormula library, given as a string,
+ * eg. \c "3.2.1".
+ *
+ * For non-release builds, this may have a suffix, eg. \c "3.2.0beta2".
+ */
+/** \fn KLF_EXPORT int klfVersionMaj()
+ *
+ * Returns the current major version of the KLatexFormula library.
+ *
+ * For example, if the version is "3.2.0", klfVersionMaj() returns \c 3.
+ */
+/** \fn KLF_EXPORT int klfVersionMin()
+ *
+ * Returns the current minor version of the KLatexFormula library.
+ *
+ * For example, if the version is "3.2.0", klfVersionMin() returns \c 2.
+ */
+/** \fn KLF_EXPORT int klfVersionRelease()
+ *
+ * Returns the current release version of the KLatexFormula library.
+ *
+ * For example, if the version is "3.2.0", klfVersionRelease() returns \c 0.
+ */
+
+/** \fn KLF_EXPORT QByteArray klfShortFuncSignature(const char *fullFuncName)
+ *
+ * Takes as input a funcion signature like
+ *  <pre>void MyClass::functionName(const QString& arg1, int arg2) const</pre>
+ * and outputs a short form of it, like
+ *  <pre>MyClass::functionName</pre>
+ */
+
+/** \fn KLF_EXPORT QByteArray klfFmt(const char *fmt, ...)
+ *
+ * Formats a printf-style string and returns the data as a QByteArray.
+ * \warning the final string length must not exceed 8192 bytes, the size of the
+ * internal buffer. */
+
+/** \def klfFmtCC
+ *
+ * Utility for replacing the (function) klfFmt()'s QByteArray return value into a
+ * regular <tt>const char*</tt>-C-string value, eg. to pass into a QDebug stream.
+ *
+ * \warning this macro, when called as <tt>klfFmtCC (args...)</tt> expands to
+ * \code  (const char*)klfFmt (args...)  \endcode
+ * No parentheses can be forced to ensure the <tt>const char*</tt> before any other
+ * operation in the context, however casts are higher priority than many other
+ * operators, so you should be safe. Still, be warned.
+ *
+ * \note This macro can take no parameters, since C preprocessor macros don't support
+ *   variable number of arguments (as required by printf-style formatting).
+ */
+
+/** \fn QByteArray klfFmt(const char * fmt, va_list pp)
+ *
+ * Implements \ref klfFmt(const char *, ...) functionality, but with
+ * a \c va_list argument pointer for use in vsprintf().
+ */
+
+/** \fn QString klfTimeOfDay(bool shortFmt = true)
+ *
+ * Returns something like <tt>456.234589</tt> (in a <tt>QString</tt>) that
+ * represents the actual time in seconds from midnight.
+ *
+ * if \c shortFmt is TRUE, then the seconds are truncated to 3 digits (ie. seconds
+ * are given modulo 1000). In this case, the absolute time reference is undefined, but
+ * stays always the same along the program execution (useful for debug messages
+ * and timing blocks of code).
+ *
+ * Otherwise if \c shortFmt is FALSE, the full second and micro-second count output of
+ * gettimeofday() is given.
+ */
+
+/** \class KLFDebugBlock
+ *
+ * \brief Utility to time the execution of a block
+ *
+ * Prints message in constructor and in destructor to test
+ * block execution time.
+ *
+ * Consider using the macros \ref KLF_DEBUG_BLOCK and \ref KLF_DEBUG_TIME_BLOCK instead.
+ */
+
+/** \class KLFDebugBlockTimer
+ *
+ * \brief An extension of KLFDebugBlock with millisecond-time display
+ *
+ * Consider the use of \ref KLF_DEBUG_BLOCK and \ref KLF_DEBUG_TIME_BLOCK macros instead.
+ */
+
+
+/** \def KLF_DEBUG_DECLARE_REF_INSTANCE
+ *
+ * \brief Declares a 'ref-instance' identifier for identifying insances in debug output
+ *
+ * Useful for debugging classes that are instanciated multiple times, and that may superpose
+ * debugging output.
+ *
+ * Use this macro in the class declaration and specify an expression that will identify the instance.
+ * Then this information will be displayed in the debug message when using \ref klfDbg().
+ *
+ * The expression given as argument to this macro is any valid expression that can be used within a
+ * const member function---you may reference eg. private properties, private functions, inherited
+ * protected members, public functions, etc. The expression should evaluate to a QString, or any
+ * expression that can be added (with <tt>operator+(QString,...)</tt>) to a QString.
+ *
+ * Example:
+ * \code
+ * class MyDocument {
+ * public:
+ *   MyDocument(QString fname) : fileName(fname) { }
+ *   // ....
+ *   QString currentFileName() const { return fileName; }
+ *   // ...
+ * private:
+ *   QString fileName;
+ *   KLF_DEBUG_DECLARE_REF_INSTANCE( currentFileName() ) ;
+ *   //  we could also have used (equivalent):
+ *   //KLF_DEBUG_DECLARE_REF_INSTANCE( fileName ) ;
+ * };
+ * \endcode
+ *
+ * This macro expands to a protected inline member returning the given expression surrounded with
+ * square brackets.
+ *
+ * \note this feature is optional. Classes that do not declare a 'ref-instance' will still be able
+ *   to use \c klfDbg() normally, except there is no way (apart from what you output yourself) to
+ *   make the difference between messages originating from two different class instances.
+ */
+
+/** KLF_DEBUG_TIME_BLOCK
+ *
+ * \brief Utility to time the execution of a block
+ *
+ * \note KLF_DEBUG needs to be defined at compile-time
+ *   to enable this feature. Otherwise, this maco is a no-op.
+ *
+ * Usage example:
+ * \code
+ * void do_something() {
+ *   KLF_DEBUG_TIME_BLOCK("block do_something() execution") ;
+ *   ... // some lengthy operation
+ *   ... if (failed) return; // for example
+ *   ... // no special instruction needed at end of block
+ * }
+ * \endcode
+ *
+ * \note msg is (macro-expanded) added to a <tt>QString("")</tt>, so you can write something like
+ * \code
+ *   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"(QString)") ;
+ * \endcode
+ * even though <tt>KLF_FUNC_NAME</tt> expands into a <tt>const char*</tt>.
+ *
+ * \warning This is a macro that expands its text without protecting it (this allows you to do what
+ *   the above note said).
+ */
+
+/** \def KLF_DEBUG_BLOCK
+ *
+ * \brief Utility to debug the execution of a block
+ *
+ * Prints msg with \c ": block begin" when this macro is called, and prints msg with \c ": block end"
+ * at the end of the block. The end of the block is detected by creating an object on the stack
+ * and printing the message in that object's destructor.
+ *
+ * \note KLF_DEBUG needs to be defined at compile-time to enable this feature. Otherwise, this macro
+ *   is a no-op.
+ *
+ * This macro accepts a QString.
+ *
+ * Usage example:
+ * \code
+ * void do_something() {
+ *   KLF_DEBUG_BLOCK("block do_something() execution") ;
+ *   ... // do something
+ *   if (failed) { // for example
+ *     KLF_DEBUG_BLOCK(QString("%1: failed if-block").arg(KLF_FUNC_NAME)) ;
+ *     ... // more fail treatment...
+ *     return;   // both end block messages will be printed here automatically
+ *   }
+ *   if (go_no_further)
+ *     return;   // do_something() end block msg will be printed here automatically
+ *   ...
+ *   // no special instruction needed at end of block
+ * }
+ * \endcode
+ *
+ * \note msg is (macro-expanded) added to a <tt>QString("")</tt>, so you can write something like
+ * \code
+ *   KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(QString)") ;
+ * \endcode
+ * even though <tt>KLF_FUNC_NAME</tt> expands into a <tt>const char*</tt>.
+ *
+ * \warning This is a macro that expands its text without protecting it (this allows you to do what
+ *   the above note said).
+ */
+
+/** \def klf_debug_tee
+ *
+ * \brief Print the value of expression and return it
+ *
+ * If KLF_DEBUG preprocessor symbol is not defined, this macro just expands to <tt>(expr)</tt>.
+ *
+ * \note This macro works only in Qt4.
+ *
+ * Very useful for debugging return values, eg.
+ * \code
+ *   return klf_debug_tee(result);
+ * \endcode
+ * effectively does
+ * \code
+ *   return result;
+ * \endcode
+ * however printing the result while returning it.
+ */
+
+/** \def klfDbg
+ *
+ * \brief print debug stream items
+ *
+ * \warning This macro may be counter-intuitive, as the argument is not evaluated before expansion.
+ *   This macro expands more or less to:
+ *   \code qDebug()<<KLF_FUNC_NAME [possibly more info, eg ref-instance] <<": "<< streamableItems \endcode
+ *   which means that you can list any QDebug-streamable items as macro arguments, separated by a
+ *   <tt>&lt;&lt;</tt> operator, keeping in mind that these stream operators will be "seen" only
+ *   AFTER the macro has expanded. Example usage:
+ *   \code
+ * int index = ...; QString mode = ...;
+ * klfDbg( "index is "<<index<<" and mode is "<<mode ) ; \endcode
+ *
+ * The advantage of this syntax is that when disabling debug, the parts in your code where you
+ * call this macro are truly "erased" (the macro itself, with all its arguments, expands to
+ * nothing), and result into no overhead of having to go eg. through null-streams. Additionally,
+ * all macro arguments are NOT evaluated in non-debug mode.
+ *
+ * \warning This macro in its full-featured version requires Qt4. When used with Qt3, the
+ *   argument may no longer be "any streamable items" because Qt3 does not support qDebug()
+ *   streaming. However this macro still works, with the limitation that the argument must
+ *   be a QString, or an expression that can be cast into a QString. (see also klfFmt())
+ * \code
+ * // Qt3 Usage Example
+ * klfDbg("debug message") ;
+ * klfDbg(QString("debug message. value is %1.").arg(value)) ;
+ * klfDbg(klfFmt("debug. value is %d, string is %s, and flags are %#010x.", intvalue, strvalue, flags)) ;
+ * \endcode
+ */
+
+/** \def klfDbgT
+ *
+ * \brief print debug stream items, with current time
+ *
+ * Same as klfDbg(), but also prints current time given by KLF_SHORT_TIME.
+ */
+
+/** \def klfDbgSt
+ *
+ * \brief print debug stream items (special case)
+ *
+ * Like klfDbg(), but for use in static functions in classes for which you have declared a 'ref-instance'
+ * with \ref KLF_DEBUG_DECLARE_REF_INSTANCE().
+ *
+ * If you get compilation errors like '<tt>cannot call memeber function ...::__klf_debug_ref_instance() const
+ * without object</tt>' then it is likely that you should use this macro instead.
+ *
+ * Explanation: ref instance works by declaring a protected inline const member in classes. A function with
+ * the same name exists globally, returning an empty string, such that classes that do not declare a 
+ * ref-instance may use klfDbg() which sees the global no-op ref-instance function. However, static members
+ * of classes that declare a ref-instance see the class' ref-instance function, which evidently cannot
+ * be called from a static member. Use this macro in that last case, that simply bypasses the ref-instance
+ * call (anyway you won't need it in a static function !).
+ */
+
+/** \def klfDbgStT
+ *
+ * \brief print debug stream items, with current time (special case)
+ *
+ * Same as klfDbgSt(), but prints also the time like klfDbgT() does.
+ */
+
+/** \def KLF_FUNC_SINGLE_RUN
+ *
+ * \brief Simple test for one-time-run functions
+ *
+ * Usage example:
+ * \code
+ * void init_load_stuff()
+ * {
+ *   KLF_FUNC_SINGLE_RUN ;
+ *   // ... eg. load some initializing data in a static structure ...
+ *   // this operation will only be performed the first time that init_load_stuff() is called.
+ *   // ...
+ * }
+ * \endcode
+ */
+
+/** \def KLF_FUNC_NAME
+ *
+ * This macro expands to the function name this macro is called in.
+ *
+ * The macros KLF_HAS_PRETTY_FUNCTION, KLF_HAS_FUNCTION and KLF_HAS_FUNC should be defined
+ * to inform this header that the compiler supports respectively the symbols
+ * <tt>__PRETTY_FUNCTION__</tt>, <tt>__FUNCTION__</tt> and/or <tt>__func__</tt>.
+ *
+ * If none of those HAS_* macros are defined, this macro expands to <tt>"&lt;unknown>"</tt>
+ */
+
+/** \def KLF_ASSERT_NOT_NULL
+ *
+ * \brief Asserting Non-NULL pointers (NON-FATAL)
+ *
+ * If the given \c ptr is NULL, then prints function name and message to standard warning
+ * output (using Qt's qWarning()) and executes instructions given by \c failaction.
+ * \c msg may contain << operators to chain output to a QDebug.
+ */
+
+
+
+/** \fn KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
+ *
+ * \brief Compares two version strings
+ *
+ * \c v1 and \c v2 must be of the form \c "<MAJ>.<MIN>.<REL><suffix>" or \c "<MAJ>.<MIN>.<REL>"
+ * or \c "<MAJ>.<MIN>" or \c "<MAJ>".
+ *
+ * \returns a negative value if v1 < v2, \c 0 if v1 == v2 and a positive value if v2 < v1. This
+ *   function returns \c -200 if either of the version strings are invalid.
+ *
+ * A less specific version number is considered as less than a more specific version number of
+ * equal common numbers, eg. "3.1" < "3.1.2".
+ *
+ * When a suffix is appended to the version, it is attempted to be recognized as one of:
+ *  - "alpha" or "alphaN" is alpha version, eg. "3.1.1alpha2" < "3.1.1.alpha5" < "3.1.1"
+ *  - "dev" is INTERNAL versioning, should not be published, it means further development after
+ *    the given version number; for the next release, a higher version number has to be
+ *    decided upon.
+ *  - unrecognized suffixes are compared lexicographically, case sensitive.
+ *
+ * Some examples:
+ * <pre>   "3.1.0" < "3.1.2"
+ *   "2" < "2.1" < "2.1.1"
+ *   "3.0.0alpha2" < "3.0.0"
+ *   "3.0.2" < "3.0.3alpha0"
+ * </pre>
+ */
+
+/** \fn KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2)
+ *
+ * \brief Same as
+ *   <tt>\ref klfVersionCompare(const QString&,const QString&) "klfVersionCompare"(v1,v2) &lt; 0</tt>
+ */
+
+/** \def KLF_PATH_SEP
+ *
+ * \brief The character used in the $PATH environment variable to separate different locations
+ *
+ * Expands to ':' on unices/Mac and on ';' on Windows.
+ */
+
+/** \fn KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1)
+ *
+ * \bug ...... MISSING DOX DOC ...........
+ */
+
+/** \fn KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "")
+ *
+ * \bug ....... MISSING DOX DOC ...........
+ */
+
+
+
 static char __klf_version_string[] = KLF_VERSION_STRING;
 
 

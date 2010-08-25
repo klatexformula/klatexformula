@@ -130,7 +130,7 @@ public:
   struct EntryNode : public Node {
     EntryNode() : Node(EntryKind), entryid(-1), minimalist(false), entry()
     {
-      allChildrenFetched = true; // no children anyway
+      allChildrenFetched = true; // no children to fetch
     }
     KLFLib::entryId entryid;
     /** if TRUE, 'entry' only holds category/tags/datetime/latex/previewsize, no pixmap, no style. */
@@ -249,7 +249,13 @@ public:
     bool groupCategories;
   };
 
-  QString nodeValue(NodeId node, int propId);
+  /** If node is a category label, then \c propId is ignored. */
+  QString nodeValue(NodeId node, int propId = KLFLibEntry::Latex);
+
+  /** returns TRUE if the node \c nodeId matches the search query defined by \c searchString and
+   * case-sensitivity \c cs. */
+  bool searchNodeMatches(const NodeId& nodeId, const QString& searchString, Qt::CaseSensitivity cs);
+
 
   /** Sort a category's children */
   void sortCategory(NodeId category, KLFLibModelSorter *sorter, bool rootCall = true);
@@ -332,7 +338,6 @@ public:
   virtual bool evDragEnter(QDragEnterEvent *de, const QPoint& pos) {
     uint fl = pModel->dropFlags(de, thisView());
     klfDbg( "KLFLibDefViewCommon::evDragEnter: drop flags are "<<fl<<"; this viewtype="<<pViewType ) ;
-    fprintf(stderr, "\t\tflags are %u", fl);
     // decide whether to show drop indicator or not.
     bool showdropindic = (fl & KLFLibModel::DropWillCategorize);
     thisView()->setDropIndicatorShown(showdropindic);
