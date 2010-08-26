@@ -2253,6 +2253,10 @@ void KLFMainWin::slotDrag()
 
   QDrag *drag = new QDrag(this);
   KLFMimeData *mime = new KLFMimeData(klfconfig.UI.dragExportProfile, _output);
+
+  /** \bug .... DEBUG ... */
+  mime->setImageData(_output.result);
+
   drag->setMimeData(mime);
   QImage img;
   img = _output.result.scaled(QSize(200, 100), Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -2265,6 +2269,12 @@ void KLFMainWin::slotDrag()
 
 void KLFMainWin::slotCopy()
 {
+  /** \bug .... FIXME copy/drag formats on Mac OS X ... */
+#ifdef Q_WS_MAC
+  QApplication::clipboard()->setImage(_output.result, QClipboard::Clipboard);
+  return;
+#endif
+
 #ifdef Q_WS_WIN
   extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
 				  const QList<QByteArray>& datalist);

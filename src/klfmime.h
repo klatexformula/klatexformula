@@ -38,7 +38,14 @@
 #include <klfbackend.h>
 
 
-
+/** \brief A helper class to export KLF output to other applications
+ *
+ * This helper class can be subclassed to implement exporting klatexformula output in a given
+ * data format.
+ *
+ * \todo ........... DOCUMENT what to do under mac os x, once it's implemented ;)
+ * \note To export under Mac OS X, you may have to add ............ rules as XML file ?. .....
+ */
 class KLF_EXPORT KLFMimeExporter
 {
 public:
@@ -48,7 +55,7 @@ public:
   virtual QStringList keys() const = 0;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput) = 0;
 
-  /* returns the MS Windows Format Name for the given mime-type \c key.
+  /* \brief the MS Windows Format Name for the given mime-type \c key.
    *
    * The default implementation just returns \c key. You should reimplement
    * this function to return a useful standard name.

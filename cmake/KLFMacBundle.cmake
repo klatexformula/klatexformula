@@ -5,11 +5,11 @@
 # ##################################################### #
 
 macro(KLFMessageBundleExtraDeps var textname)
-  if(var)
+  if(${var})
     message(STATUS "Will bundle library and framework dependencies into ${textname}")
-  else(var)
+  else(${var})
     message(STATUS "Will not bundle library and framework dependencies into ${textname}")
-  endif(var)
+  endif(${var})
 endmacro(KLFMessageBundleExtraDeps var textname)
 
 if(APPLE AND KLF_MACOSX_BUNDLES)
@@ -19,14 +19,14 @@ if(APPLE AND KLF_MACOSX_BUNDLES)
 	"bundles in general, unless bundle-specific settings specifies otherwise")
 endif(APPLE AND KLF_MACOSX_BUNDLES)
 
-set(KLF_QT_FRAMEWORKS ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTXML_LIBRARY}
+set(KLF_BUNDLE_QT_FRAMEWORKS ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTXML_LIBRARY}
 	      ${QT_QTSQL_LIBRARY} ${QT_QTDBUS_LIBRARY} CACHE STRING "Qt Frameworks on Mac OS X")
 string(REGEX REPLACE "([^;]+)/([a-zA-Z0-9_-]+.framework)"
 		     "${KLF_MACOSX_BUNDLE_PATH}/Contents/Frameworks/\\2"
-	 klf_local_qt_frameworks "${KLF_QT_FRAMEWORKS}")
+	 klf_local_qt_frameworks "${KLF_BUNDLE_QT_FRAMEWORKS}")
 set(KLF_LOCAL_QT_FRAMEWORKS "${klf_local_qt_frameworks}" CACHE INTERNAL "Qt frameworks relative to bundle")
 
-#message("klf-qt-frameworks: ${KLF_QT_FRAMEWORKS}")
+#message("klf-qt-frameworks: ${KLF_BUNDLE_QT_FRAMEWORKS}")
 #message("klf-local-qt-frameworks: ${KLF_LOCAL_QT_FRAMEWORKS}")
 
 file(GLOB klf_qtimageformatplugins "${QT_PLUGINS_DIR}/imageformats/*.dylib")
@@ -55,7 +55,7 @@ set(KLF_LOCAL_QT_PLUGINS ${klf_local_qtplugins} CACHE INTERNAL "Qt plugins relat
 
 #message("Qt Plugins to package ${QT_PLUGINS_DIR} : ${KLF_QT_PLUGINS}, ... ${KLF_LOCAL_QT_PLUGINS}")
 
-#mark_as_advanced(KLF_QT_FRAMEWORKS KLF_QT_PLUGINS)
+#mark_as_advanced(KLF_BUNDLE_QT_FRAMEWORKS KLF_QT_PLUGINS)
 
 
 add_custom_target(bundleclean
@@ -164,7 +164,7 @@ macro(KLFBundlePackage TGT BUNDLEXTRA)
   #KLFDeclareCacheVarOptionFollow(specificoption genericoption cachestring)
   KLFDeclareCacheVarOptionFollow(KLF_MACOSX_BUNDLE_EXTRAS_${TGT} KLF_MACOSX_BUNDLE_EXTRAS
 	"Bundle dependency frameworks into bundle ${TGT}")
-  KLFMessageBundleExtraDeps(KLF_MACOSX_BUNDLE_EXTRAS "${TGT}")
+  KLFMessageBundleExtraDeps(KLF_MACOSX_BUNDLE_EXTRAS_${TGT} "${TGT}")
 
   add_dependencies(${TGT}_maclibpacked ${BUNDLEXTRA})
   

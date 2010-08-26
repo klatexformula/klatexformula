@@ -347,7 +347,7 @@ KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Nod
   const char * skind =
     ( (n.kind == KLFLibModelCache::EntryKind) ? "EntryKind" :
       ((n.kind == KLFLibModelCache::CategoryLabelKind) ? "CategoryLabelKind" :
-       "*InvalidKind*") );
+       "*UnknownKind*") );
   return dbg.nospace() << "NodeId("<<skind<<"+"<<n.index<<")";
 }
 KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Node& n)
@@ -575,16 +575,16 @@ KLFLibModelCache::NodeId KLFLibModelCache::getNodeForIndex(const QModelIndex& in
   // perform validity check on 'n'
   if (n.kind == EntryKind) {
     if (n.index < 0 || n.index >= pEntryCache.size()) {
-      qWarning()<<KLF_FUNC_NAME<<": Invalid entry node reference for index "<<index<<": "<<n;
+      qWarning()<<KLF_FUNC_NAME<<": Invalid entry node reference: "<<n;
       return NodeId();
     }
   } else if (n.kind == CategoryLabelKind) {
     if (n.index < 0 || n.index >= pCategoryLabelCache.size()) {
-      qWarning()<<KLF_FUNC_NAME<<": Invalid category label node reference for index "<<index<<": "<<n;
+      qWarning()<<KLF_FUNC_NAME<<": Invalid category label node reference: "<<n;
       return NodeId();
     }
   } else {
-    qWarning()<<KLF_FUNC_NAME<<": Invalid node kind for index "<<index<<": "<<n;
+    qWarning()<<KLF_FUNC_NAME<<": Invalid node kind: "<<n;
     return NodeId();
   }
   return n;

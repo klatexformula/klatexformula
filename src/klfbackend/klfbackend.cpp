@@ -552,6 +552,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       return res;
     }
     if (!QFile::exists(fnPdf)) {
+      qDebug("%s: %s: pdf file '%s' didn't appear after epstopdf!", KLF_FUNC_NAME, KLF_SHORT_TIME,
+	     qPrintable(fnPdf));
       res.status = KLFERR_NOPDFFILE;
       res.errorstr = QObject::tr("PDF file didn't appear after call to epstopdf!\n", "KLFBackend");
       return res;

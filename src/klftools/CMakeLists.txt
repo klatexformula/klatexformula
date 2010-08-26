@@ -74,7 +74,7 @@ else(KLF_LIBKLFTOOLS_STATIC)
 	    SOVERSION		${KLF_LIB_VERSION}
   )
   if(KLF_MACOSX_BUNDLES)
-    set(klftools_FRAMEWORKS ${KLF_QT_FRAMEWORKS})
+    set(klftools_FRAMEWORKS ${KLF_BUNDLE_QT_FRAMEWORKS})
     KLFMakeFramework(klftools "${klftools_FRAMEWORKS}" "${klftools_INSTHEADERS}")
   endif(KLF_MACOSX_BUNDLES)
 endif(KLF_LIBKLFTOOLS_STATIC)

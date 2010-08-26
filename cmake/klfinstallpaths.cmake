@@ -88,13 +88,16 @@ endif(NOT IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
 # rccresources dir
 if(WIN32)
 
-  execute_process(COMMAND "${QT_QMAKE_EXECUTABLE}" "-query" "QT_INSTALL_PREFIX"
-		  OUTPUT_VARIABLE qt_install_prefix_result)
-  string(REPLACE "\\" "/" qt_install_prefix_result "${qt_install_prefix_result}")
-  # strip string leading/ending spaces/newlines
-  string(STRIP "${qt_install_prefix_result}" qt_install_prefix_result)
-  # and store the final value into internal cache
-  set(QT_INSTALL_PREFIX "${qt_install_prefix_result}" CACHE INTERNAL "Qt's install prefix")
+#  if(NOT QT_INSTALL_PREFIX)
+#    execute_process(COMMAND "${QT_QMAKE_EXECUTABLE}" "-query" "QT_INSTALL_PREFIX"
+#		    OUTPUT_VARIABLE qt_install_prefix_result)
+#    string(REPLACE "\\" "/" qt_install_prefix_result "${qt_install_prefix_result}")
+#    # strip string leading/ending spaces/newlines
+#    string(STRIP "${qt_install_prefix_result}" qt_install_prefix_result)
+#    # and store the final value into internal cache
+#    set(QT_INSTALL_PREFIX "${qt_install_prefix_result}" CACHE STRING "Qt's install prefix")
+#    mark_as_advanced(QT_INSTALL_PREFIX)
+#  endif(QT_INSTALL_PREFIX)
 
   set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
 			    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")

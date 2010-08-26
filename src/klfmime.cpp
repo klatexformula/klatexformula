@@ -38,6 +38,9 @@
 #include "klfmime.h"
 #include "klfmime_p.h"
 
+#ifdef Q_WS_MAC
+#include "macosx/klfmacclipboard.h"
+#endif
 
 #define OPENOFFICE_DRAWING_MIMETYPE "application/x-openoffice-drawing;windows_formatname=\"Drawing Format\""
 
@@ -88,12 +91,17 @@ void KLFMimeExporter::unregisterMimeExporter(KLFMimeExporter *exporter)
 // static
 void KLFMimeExporter::initMimeExporterList()
 {
-  if (p_mimeExporterList.isEmpty())
+  if (p_mimeExporterList.isEmpty()) {
+#ifdef Q_WS_MAC
+    // ensure an instance of KLFMacPasteboardMime object
+    __klf_init_the_macpasteboardmime();
+#endif
     p_mimeExporterList
       << new KLFMimeExporterImage(qApp)
       << new KLFMimeExporterUrilist(qApp)
       << new KLFMimeExporterLibFmts(qApp)
       ;
+  }
 }
 
 // static
@@ -413,7 +421,7 @@ QStringList KLFMimeData::formats() const
   return pExportProfile.availableExporterMimeTypes();
 }
 
-QVariant KLFMimeData::retrieveData(const QString &mimetype, QVariant::Type /*type*/) const
+QVariant KLFMimeData::retrieveData(const QString &mimetype, QVariant::Type type) const
 {
   klfDbg("exporting "<<mimetype<<" ...");
   KLFMimeExporter *exporter = KLFMimeExporter::mimeExporterLookup(mimetype);
@@ -421,12 +429,12 @@ QVariant KLFMimeData::retrieveData(const QString &mimetype, QVariant::Type /*typ
     qWarning()<<KLF_FUNC_NAME<<": Can't find an exporter for mime-type "<<mimetype<<".";
     return QVariant();
   }
-
+  
   // get the data
   QByteArray data = exporter->data(mimetype, pOutput);
-
+  
   klfDbg("exporting mimetype "<<mimetype<<": data length is "<<data.size());
-
+  
   return QVariant::fromValue<QByteArray>(data);
 }
 
@@ -442,7 +450,7 @@ QStringList KLFMimeExporterImage::keys() const
   // image formats that are always supported. Qt image formats are added too.
   static QStringList staticKeys
     = QStringList() << "image/png" << "image/eps" << "application/eps" << "application/postscript"
-		    << "application/pdf" << OPENOFFICE_DRAWING_MIMETYPE
+		    << OPENOFFICE_DRAWING_MIMETYPE << "application/x-qt-image"
 		    // add duplicate for png, see below
 		    << "image/x-win-png-office-art";
 
@@ -470,7 +478,14 @@ QStringList KLFMimeExporterImage::keys() const
     }
   }
 
-  return staticKeys << imageFormats.keys();
+  QStringList keys = staticKeys;
+
+  if (!klfconfig.BackendSettings.execEpstopdf.isEmpty())
+    keys <<"application/pdf"; // add PDF only if we have PDF
+
+  keys << imageFormats.keys();
+
+  return keys;
 }
 
 QString KLFMimeExporterImage::windowsFormatName(const QString& mime) const
@@ -495,6 +510,8 @@ QString KLFMimeExporterImage::windowsFormatName(const QString& mime) const
     return "Windows Bitmap";
   else if (mime == OPENOFFICE_DRAWING_MIMETYPE)
     return "Drawing Format";
+  else if (mime == "application/x-qt-image")
+    return mime; // let Qt translate this one
 
   return mime;
 }
@@ -510,10 +527,17 @@ QByteArray KLFMimeExporterImage::data(const QString& keymime, const KLFBackend::
     return klfoutput.pngdata;
   if (key == "image/eps" || key == "application/eps" || key == "application/postscript")
     return klfoutput.epsdata;
-  if (key == "application/pdf")
+  if (key == "application/pdf") {
+#ifdef KLF_DEBUG
+    if (klfoutput.pdfdata.isEmpty())
+      klfDbg("---warning: don't have PDF data ---") ;
+#endif
     return klfoutput.pdfdata;
+  }
   if (key == OPENOFFICE_DRAWING_MIMETYPE)
     return klf_openoffice_drawing(klfoutput);
+  if (key == "application/x-qt-image")
+    return klfoutput.pngdata;
 
   // rely on qt's image saving routines for other formats
   klfDbg("Will use Qt's image format exporting");

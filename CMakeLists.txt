@@ -368,11 +368,11 @@ set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}" CACHE INTERNAL "Current Build Pr
 
 # Find KDE4 for KTextEditor Plugin
 if(KLF_USE_QT4)
-  if(UNIX)
+  if(UNIX AND NOT APPLE)
     set(KLF_BUILD_KTEXTEDITORPLUGIN ON CACHE BOOL "Build the KTextEditor plugin")
-  else(UNIX)
+  else(UNIX AND NOT APPLE)
     set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build the KTextEditor Plugin")
-  endif(UNIX)
+  endif(UNIX AND NOT APPLE)
   if(KLF_BUILD_KTEXTEDITORPLUGIN)
     message(STATUS "Will build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
   else(KLF_BUILD_KTEXTEDITORPLUGIN)
@@ -412,6 +412,23 @@ message(STATUS "")
 message(STATUS "[INSTALLATION SETTINGS]")
 
 include(klfinstallpaths)
+
+if(KLF_MACOSX_BUNDLES)
+  set(default_KLF_BUNDLE_QT_PLUGINS
+	imageformats/libqgif.dylib
+	imageformats/libqico.dylib
+	imageformats/libqjpeg.dylib
+	imageformats/libqmng.dylib
+	imageformats/libqtiff.dylib
+	codecs/libqcncodecs.dylib
+	codecs/libqjpcodecs.dylib
+	codecs/libqkrcodecs.dylib
+	codecs/libqtwcodecs.dylib
+	sqldrivers/libqsqlite.dylib
+	sqldrivers/libqsqlodbc.dylib)
+  set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}" CACHE STRING "Qt plugins to incorporate into Mac bundle")
+  message("Will Package Qt Plugins in bundle --> ${KLF_BUNDLE_QT_PLUGINS} (KLF_BUNDLE_QT_PLUGINS)")
+endif(KLF_MACOSX_BUNDLES)
 
 
 # CPack

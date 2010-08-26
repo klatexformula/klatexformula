@@ -55,7 +55,6 @@
 #include "klfdbus.h"
 #include "klfpluginiface.h"
 
-
 // Name of the environment variable to check for paths to extra resources
 #ifndef KLF_RESOURCES_ENVNAM
 #define KLF_RESOURCES_ENVNAM "KLF_RESOURCES"
@@ -691,8 +690,12 @@ int main(int argc, char **argv)
   // signal acting -- catch SIGSEGV to attempt graceful exit
   signal(SIGSEGV, signal_act);
 
+  klfDbg("about to parse options") ;
+
   // parse command-line options
   main_parse_options(argc, argv);
+
+  klfDbg("options parsed.") ;
 
   // error handling
   if (opt_error.has_error) {
@@ -709,6 +712,11 @@ int main(int argc, char **argv)
 
     // Create the QApplication
     QApplication app(qt_argc, qt_argv);
+
+#ifdef Q_WS_MAC
+    extern void __klf_init_the_macpasteboardmime();
+    __klf_init_the_macpasteboardmime();
+#endif
 
     // main_get_input relies on a Q[Core]Application
     QString latexinput = main_get_input(opt_input, opt_latexinput, opt_paste);

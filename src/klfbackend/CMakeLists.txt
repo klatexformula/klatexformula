@@ -44,7 +44,7 @@ if(KLF_USE_QT4)
 	      SOVERSION		${KLF_LIB_VERSION}
     )
     if(KLF_MACOSX_BUNDLES)
-      set(klfbackend_FRAMEWORKS ${KLF_QT_FRAMEWORKS})
+      set(klfbackend_FRAMEWORKS ${KLF_BUNDLE_QT_FRAMEWORKS})
       KLFMakeFramework(klfbackend "${klfbackend_FRAMEWORKS}" "${klfbackend_INSTHEADERS}")
     endif(KLF_MACOSX_BUNDLES)
   endif(KLF_LIBKLFBACKEND_STATIC)
