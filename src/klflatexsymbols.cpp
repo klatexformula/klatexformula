@@ -200,24 +200,18 @@ KLFLatexSymbolsCache::KLFLatexSymbolsCache()
 
 int KLFLatexSymbolsCache::loadCacheStream(QDataStream& stream)
 {
-  QString magic;
-  stream.setVersion(QDataStream::Qt_3_3);
-  stream >> magic;
-  if (magic != "KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE") {
-    return BadHeader;
-  }
-  qint16 vmaj, vmin;
-  stream >> vmaj >> vmin;
-
-  // currently : KLF-3.2 symbols cache format.
-  if (vmaj != 3 || vmin != 2) {
+  QString readHeader;
+  QString readCompatKLFVersion;
+  bool r = klfDataStreamReadHeader(stream, QStringList()<<"KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE",
+				   &readHeader, &readCompatKLFVersion);
+  if (!r) {
+    if (readHeader.isEmpty() || readCompatKLFVersion.isEmpty())
+      return BadHeader;
+    // otherwise, it's a bad version error
     return BadVersion;
   }
 
-  // KLF 3.x, we saved the stream version, read it now
-  qint16 version;
-  stream >> version;
-  stream.setVersion(version);
+  // stream is now ready to read
 
   stream >> cache;
 
@@ -227,13 +221,8 @@ int KLFLatexSymbolsCache::loadCacheStream(QDataStream& stream)
 
 int KLFLatexSymbolsCache::saveCacheStream(QDataStream& stream)
 {
-  stream.setVersion(QDataStream::Qt_3_3);
-  // Write version 3.2 stream (added 'hidden' symbol attribute at KLF 3.2)
-  stream << QString("KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE")
-	 << (qint16)3 << (qint16)2;
-  // and KLF-3.2 symbol cache is written with Qt_4_4 stream version.
-  stream << (qint16)QDataStream::Qt_4_4;
-  stream.setVersion(QDataStream::Qt_4_4);
+  klfDataStreamWriteHeader(stream, "KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE");
+  // stream is now ready to be written
   stream << cache;
   flag_modified = false;
   return 0;

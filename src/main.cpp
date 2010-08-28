@@ -187,12 +187,9 @@ static struct option klfcmdl_optlist[] = {
   {0, 0, 0, 0}
 };
 
-// list of short options
-//static char klfcmdl_optstring[] = "Ii:l:PSBo:F:f:b:X:m:p:qdhVQ";
-// / ** \todo build dynamically klfcmdl_optstring from klfcmdl_optlist at top of main()......... * /
 
 
-// TRAP SIGINT SIGNAL AND EXIT GRACEFULLY
+// TRAP SOME SIGNALS TO EXIT GRACEFULLY
 
 void signal_act(int sig)
 {
@@ -205,18 +202,24 @@ void signal_act(int sig)
     }
   }
   if (sig == SIGSEGV) {
-    FILE *ftty = fopen("/dev/tty", "w");
+    FILE *ftty = NULL;
+#ifdef Q_OS_LINUX
+    ftty = fopen("/dev/tty", "w");
+#endif
     if (ftty == NULL)
       ftty = stderr;
+
     static bool first = true;
     if (!first) {
       fprintf(ftty, "Exiting\n");
-      ::exit(127);
+      ::exit(126);
     }
     first = false;
+
     fprintf(ftty, "Segmentation Fault :-(\n");
     if (ftty != stderr)
       fprintf(stderr, "** Segmentation Fault :-( **\n");
+
     qApp->exit(127);
   }
 }

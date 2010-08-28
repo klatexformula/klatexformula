@@ -199,54 +199,6 @@ void KLFPreviewBuilderThread::settingsChanged(const KLFBackend::klfSettings& set
 }
 
 
-
-// ----------------------------------------------------------------------------
-
-/* **
-// This demonstrates the usage of KLFAbstractOutputSaver, as there is no other example
-// as of now.
-class klf_main_win_dummy_output_saver : public KLFAbstractOutputSaver
-{
-public:
-  klf_main_win_dummy_output_saver() { }
-  virtual ~klf_main_win_dummy_output_saver() { }
-
-  virtual QStringList supportedMimeFormats()
-  {
-    return QStringList() << "application/x-klf-dummy-1" << "application/x-klf-dummy-2" ;
-  }
-
-  virtual QString formatTitle(const QString& key)
-  {
-    if (key == "application/x-klf-dummy-1")
-      return "Dummy 1 format";
-    if (key == "application/x-klf-dummy-2")
-      return "Second Dummy format";
-    return QString();
-  }
-
-  virtual QStringList formatFilePatterns(const QString& key)
-  {
-    if (key == "application/x-klf-dummy-1")
-      return QStringList() << "*.dummy1";
-    if (key == "application/x-klf-dummy-2")
-      return QStringList() << "*.dummy2" << "*.dmy2";
-    return QStringList();
-  }
-
-  virtual bool saveToFile(const QString& key, const QString& fileName, const KLFBackend::klfOutput& output)
-  {
-    return output.result.save(fileName, "PNG");
-  }
-  
-};
-*/
-
-
-
-
-
-
 // ----------------------------------------------------------------------------
 
 
@@ -258,7 +210,10 @@ KLFMainWin::KLFMainWin()
   setObjectName("KLFMainWin");
   setAttribute(Qt::WA_StyledBackground);
 
-  QApplication::instance()->installEventFilter(this); // to watch for QFileOpenEvent s
+#ifdef Q_WS_MAC
+  // watch for QFileOpenEvent s on mac
+  QApplication::instance()->installEventFilter(this);
+#endif
 
   mPopup = NULL;
 
@@ -472,9 +427,6 @@ KLFMainWin::KLFMainWin()
   loadLibrary();
 
   registerDataOpener(new KLFBasicDataOpener(this));
-
-  //  / ** \bug .................... * /
-  //  registerOutputSaver(new klf_main_win_dummy_output_saver);
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -731,39 +683,30 @@ void KLFMainWin::loadStyles()
   }
   if ( QFile::exists(styfname) ) {
     QFile fsty(styfname);
-    if ( ! fsty.open(QIODevice::ReadOnly) )
+    if ( ! fsty.open(QIODevice::ReadOnly) ) {
       QMessageBox::critical(this, tr("Error"), tr("Error: Unable to load your style list!"));
-    else {
+    } else {
       QDataStream str(&fsty);
-      QString s1;
-      str >> s1;
-      // check for KLATEXFORMULA_STYLE_LIST
-      if (s1 != "KLATEXFORMULA_STYLE_LIST") {
-	QMessageBox::critical(this, tr("Error"), tr("Error: Style file is incorrect or corrupt!\n"));
-      } else {
-	qint16 vmaj, vmin;
-	str >> vmaj >> vmin;
 
-	if (vmaj > klfVersionMaj() || (vmaj == klfVersionMaj() && vmin > klfVersionMin())) {
+      QString readHeader;
+      QString readCompatKLFVersion;
+      bool r = klfDataStreamReadHeader(str, QStringList()<<QLatin1String("KLATEXFORMULA_STYLE_LIST"),
+				       &readHeader, &readCompatKLFVersion);
+      if (!r) {
+	if (readHeader.isEmpty() || readCompatKLFVersion.isEmpty()) {
+	  QMessageBox::critical(this, tr("Error"), tr("Error: Style file is incorrect or corrupt!\n"));
+	} else {
 	  QMessageBox::warning(this, tr("Load Styles"),
 			       tr("The style file found was created by a more recent version "
 				  "of KLatexFormula.\n"
 				  "The process of style loading may fail.")
-			      );
+			       );
 	}
-	
-	if (vmaj <= 2) {
-	  str.setVersion(QDataStream::Qt_3_3);
-	} else {
-	  qint16 version;
-	  str >> version;
-	  str.setVersion(version);
-	}
-
+      } else {
+	// succeeded reading the header, just need to read data now
 	str >> _styles;
-
-      } // bad file format
-    }
+      }
+    } // read header
   } // file exists
 
   if (_styles.isEmpty()) {
@@ -788,10 +731,10 @@ void KLFMainWin::saveStyles()
     return;
   }
   QDataStream stream(&f);
-  stream.setVersion(QDataStream::Qt_3_3);
-  // we write KLF-3.0-compatible stream
-  stream << QString("KLATEXFORMULA_STYLE_LIST") << (qint16)3 << (qint16)0
-	 << (qint16)stream.version() << _styles;
+
+  klfDataStreamWriteHeader(stream, "KLATEXFORMULA_STYLE_LIST");
+
+  stream << _styles;
 }
 
 void KLFMainWin::loadLibrary()
@@ -1803,8 +1746,17 @@ void KLFMainWin::slotEvaluate()
 
   input = collectInput();
 
+  KLFBackend::klfSettings settings = _settings;
+  // see if we need to override settings
+  if (u->gbxOverrideMargins->isChecked()) {
+    settings.tborderoffset = int(u->spnMarginTop->valueInRefUnit() + 0.5);
+    settings.rborderoffset = int(u->spnMarginRight->valueInRefUnit() + 0.5);
+    settings.bborderoffset = int(u->spnMarginBottom->valueInRefUnit() + 0.5);
+    settings.lborderoffset = int(u->spnMarginLeft->valueInRefUnit() + 0.5);
+  }
+
   // and GO !
-  _output = KLFBackend::getLatexFormula(input, _settings);
+  _output = KLFBackend::getLatexFormula(input, settings);
 
   if (_output.status < 0) {
     QString comment = "";
@@ -1913,11 +1865,7 @@ void KLFMainWin::slotClearLatex()
 void KLFMainWin::slotClearAll()
 {
   slotClearLatex();
-  // load default style
-  loadNamedStyle(tr("Default"));
-  loadNamedStyle(tr("default"));
-  loadNamedStyle("Default");
-  loadNamedStyle("default");
+  loadDefaultStyle();
 }
 
 
@@ -2512,6 +2460,13 @@ KLFStyle KLFMainWin::currentStyle() const
   sty.preamble = u->txtPreamble->toPlainText();
   sty.dpi = u->spnDPI->value();
 
+  if (u->gbxOverrideMargins->isChecked()) {
+    sty.overrideBBoxExpand.top = u->spnMarginTop->valueInRefUnit();
+    sty.overrideBBoxExpand.right = u->spnMarginRight->valueInRefUnit();
+    sty.overrideBBoxExpand.bottom = u->spnMarginBottom->valueInRefUnit();
+    sty.overrideBBoxExpand.left = u->spnMarginLeft->valueInRefUnit();
+  }
+
   return sty;
 }
 
@@ -2545,6 +2500,16 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
     u->cbxMathMode->setEditText(style.mathmode);
   slotSetPreamble(style.preamble); // to preserve text edit undo/redo
   u->spnDPI->setValue(style.dpi);
+
+  if (style.overrideBBoxExpand.valid()) {
+    u->gbxOverrideMargins->setChecked(true);
+    u->spnMarginTop->setValueInRefUnit(style.overrideBBoxExpand.top);
+    u->spnMarginRight->setValueInRefUnit(style.overrideBBoxExpand.right);
+    u->spnMarginBottom->setValueInRefUnit(style.overrideBBoxExpand.bottom);
+    u->spnMarginLeft->setValueInRefUnit(style.overrideBBoxExpand.left);
+  } else {
+    u->gbxOverrideMargins->setChecked(false);
+  }
 }
 
 void KLFMainWin::slotLoadStyle(int n)

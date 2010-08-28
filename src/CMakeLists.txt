@@ -28,7 +28,7 @@ if(KLF_USE_QT4)
   add_definitions(-DKLFBACKEND_QT4)
 endif(KLF_USE_QT4)
 # Add flags for DEBUG build configuration
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DKLF_DEBUG -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 if(KLF_DEBUG)
   add_definitions(-DKLF_DEBUG)
 else(KLF_DEBUG)

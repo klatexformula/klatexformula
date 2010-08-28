@@ -35,6 +35,34 @@
  * Structure containing forground color, bg color, mathmode, preamble, etc.
  */
 struct KLF_EXPORT KLFStyle {
+  /** \brief a structure memorizing parameters for bbox expansion
+   *
+   * Stores how much to expand (EPS) BBox in each of top, right, bottom, and left directions,
+   * in units of Postscript Points.
+   *
+   * BBox expansion is done in KLFBackend::getLatexFormula() to add margins on the sides of the
+   * resulting image.
+   *
+   * Type is stored as \c double for now, however the backend requires integer values. This is to
+   * allow for future improvement of klfbackend to accept float values.
+   */
+  struct KLF_EXPORT BBoxExpand {
+    BBoxExpand(double t = -1, double r = -1, double b = -1, double l = -1)
+      : top(t), right(r), bottom(b), left(l)  { }
+    BBoxExpand(const BBoxExpand& c) : top(c.top), right(c.right), bottom(c.bottom), left(c.left) { }
+
+    inline bool valid() const { return top >= 0 && right >= 0 && bottom >= 0 && left >= 0; }
+
+    double top;
+    double right;
+    double bottom;
+    double left;
+    inline const BBoxExpand& operator=(const BBoxExpand& other)
+    { top = other.top; right = other.right; bottom = other.bottom; left = other.left;  return *this; }
+    inline bool operator==(const BBoxExpand& x) const
+    { return top == x.top && right == x.right && bottom == x.bottom && left == x.left; }
+  };
+
   KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
 	   unsigned long bgcol = qRgba(255,255,255,0),
 	   const QString& mmode = QString(),
@@ -47,13 +75,13 @@ struct KLF_EXPORT KLFStyle {
 
   KLFStyle(const KLFBackend::klfInput& input)
     : name(), fg_color(input.fg_color), bg_color(input.bg_color), mathmode(input.mathmode),
-      preamble(input.preamble), dpi(input.dpi)
+      preamble(input.preamble), dpi(input.dpi), overrideBBoxExpand()
   {
   }
 
   KLFStyle(const KLFStyle& o)
     : name(o.name), fg_color(o.fg_color), bg_color(o.bg_color), mathmode(o.mathmode),
-      preamble(o.preamble), dpi(o.dpi)
+      preamble(o.preamble), dpi(o.dpi), overrideBBoxExpand(o.overrideBBoxExpand)
   {
   }
 
@@ -63,18 +91,17 @@ struct KLF_EXPORT KLFStyle {
   QString mathmode;
   QString preamble;
   int dpi;
+  BBoxExpand overrideBBoxExpand;
 
   inline const KLFStyle& operator=(const KLFStyle& o) {
     name = o.name; fg_color = o.fg_color; bg_color = o.bg_color; mathmode = o.mathmode;
-    preamble = o.preamble; dpi = o.dpi;
+    preamble = o.preamble; dpi = o.dpi; overrideBBoxExpand = o.overrideBBoxExpand;
     return *this;
   }
 };
 
 Q_DECLARE_METATYPE(KLFStyle)
   ;
-
-KLF_EXPORT QString prettyPrintStyle(const KLFStyle& sty);
 
 typedef QList<KLFStyle> KLFStyleList;
 

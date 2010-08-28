@@ -29,6 +29,7 @@
 #include <QList>
 #include <QMap>
 #include <QStringList>
+#include <QDataStream>
 #include <QTranslator>
 
 #include <klfdefs.h>
@@ -240,6 +241,50 @@ KLF_EXPORT void klf_reload_translations(QCoreApplication *app, const QString& cu
 // eg. baseFileName="cmdl-help"  extension=".txt" will look for
 // "cmdl-help_fr_CH.txt", "cmdl-help_fr.txt", "cmdl-help.txt" assuming current locale is "fr_CH"
 KLF_EXPORT QString klfFindTranslatedDataFile(const QString& baseFileName, const QString& extension);
+
+
+
+
+/** \brief Current datastream compatibility klatexformulaversion
+ *
+ * This value is updated to the new version of KLF whenever a change in the format of the
+ * QDataStream's occur.
+ *
+ * This is used notably in local styles list and symbols cache.
+ *
+ * \note This does NOT affect legacy \c ".klf" library files
+ */
+#define KLF_DATA_STREAM_APP_VERSION  "3.2"
+//                                --- don't forget to update below too! ---
+
+/** \brief 'Major' version part of \ref KLF_DATA_STREAM_APP_VERSION. */
+#define KLF_DATA_STREAM_APP_VERSION_MAJ  3
+/** \brief 'Minor' version part of \ref KLF_DATA_STREAM_APP_VERSION. */
+#define KLF_DATA_STREAM_APP_VERSION_MIN  2
+
+
+/** \brief Obtain the KLF version stream operations on \c d have to be compatible with.
+ *
+ * \returns the KLatexFormula verison as a QString, eg. \c "2.1"
+ */
+inline QString klfDataStreamAppVersion(const QDataStream& d)
+{ return d.device()->property("klfDataStreamAppVersion").toString(); }
+
+
+/** This function sets up the stream for writing data (for internal storage, eg.
+ * styles list)
+ *
+ * This function will set the \c klfDataStreamAppVersion property on the QIODevice associated
+ * with the given \c stream, in order that objects that are sent into the stream can know their
+ * compatibility version by querying the stream with klfDataStreamAppVersion().
+ */
+KLF_EXPORT void klfDataStreamWriteHeader(QDataStream& stream, const QString headermagic);
+
+/** Reads a stream in which a header was prepared with klfDataStreamWriteHeader().
+ */
+KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList possibleHeaders,
+					QString * readHeader = NULL, QString * readCompatKLFVersion = NULL) ;
+
 
 
 #endif 

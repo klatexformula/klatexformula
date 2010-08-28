@@ -117,6 +117,15 @@ public:
   virtual ~KLFDebugBlockTimer();
 };
 
+#ifndef KLFBACKEND_QT4
+class KLF_EXPORT __klf_dbg_string_obj  {
+  QString hdr;
+public:
+  __klf_dbg_string_obj(const QString& h) : hdr(h) { }
+  __klf_dbg_string_obj(const __klf_dbg_string_obj& other) : hdr(other.hdr) { }
+  int operator=(const QString& msg);
+};
+#endif
 
 #ifdef KLF_DEBUG
 
@@ -139,13 +148,6 @@ inline const T& __klf_debug_tee(const T& expr)
 KLF_EXPORT  QDebug
 /* */ __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime);
 #  else
-class KLF_EXPORT __klf_dbg_string_obj  {
-  QString hdr;
-public:
-  __klf_dbg_string_obj(const QString& h) : hdr(h) { }
-  __klf_dbg_string_obj(const __klf_dbg_string_obj& other) : hdr(other.hdr) { }
-  int operator=(const QString& msg);
-};
 KLF_EXPORT  __klf_dbg_string_obj
 /* */ __klf_dbg_hdr_qt3(const char *funcname, const char *refinstance, const char *shorttime) ;
 #  endif

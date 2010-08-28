@@ -356,7 +356,7 @@ macro(KLFDeclareCacheVarOptionFollowComplexN specificoption cachetype cachestrin
 	set(klf_updated_${specificoption} TRUE)
 	set(_klf_updatenotice ${updatenotice})
 	if(_klf_updatenotice)
-	  KLFNote("Updating ${specificoption} to \"${${specificoption}}\" following changes to ${DCVOFCN_what_changed_list}.")
+	  KLFNote("Updating ${specificoption} to \"${${specificoption}}\" following changes to ${DCVOFCN_what_changed_list}.\n    This is the default behavior. Pass -D${specificoption}=<value> to override.")
 	else(_klf_updatenotice)
 	  KLFCMakeDebug("Updated ${specificoption} to \"${${specificoption}}\" following chg to ${DCVOFCN_what_changed_list}. updatenotice=${updatenotice}")
 	endif(_klf_updatenotice)

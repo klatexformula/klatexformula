@@ -176,6 +176,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   // - generate LaTeX-file
   // - latex --> get DVI file
   // - dvips -E file.dvi it to get an EPS file
+  // - expand BBox by editing EPS file (if applicable)
+  // - outline fonts with gs (if applicable)
   // - Run gs:	gs -dNOPAUSE -dSAFER -dEPSCrop -r600 -dTextAlphaBits=4 -dGraphicsAlphaBits=4
   //               -sDEVICE=pngalpha|png16m -sOutputFile=xxxxxx.png -q -dBATCH xxxxxx.eps
   //   to eventually get PNG data

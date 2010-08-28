@@ -59,19 +59,19 @@
  *
  * Returns the current major version of the KLatexFormula library.
  *
- * For example, if the version is "3.2.0", klfVersionMaj() returns \c 3.
+ * For example, if the version is \c "3.2.0", klfVersionMaj() returns \c 3.
  */
 /** \fn KLF_EXPORT int klfVersionMin()
  *
  * Returns the current minor version of the KLatexFormula library.
  *
- * For example, if the version is "3.2.0", klfVersionMin() returns \c 2.
+ * For example, if the version is \c "3.2.0", klfVersionMin() returns \c 2.
  */
 /** \fn KLF_EXPORT int klfVersionRelease()
  *
  * Returns the current release version of the KLatexFormula library.
  *
- * For example, if the version is "3.2.0", klfVersionRelease() returns \c 0.
+ * For example, if the version is \c "3.2.0", klfVersionRelease() returns \c 0.
  */
 
 /** \fn KLF_EXPORT QByteArray klfShortFuncSignature(const char *fullFuncName)
@@ -103,13 +103,13 @@
  *   variable number of arguments (as required by printf-style formatting).
  */
 
-/** \fn QByteArray klfFmt(const char * fmt, va_list pp)
+/** \fn KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp)
  *
  * Implements \ref klfFmt(const char *, ...) functionality, but with
  * a \c va_list argument pointer for use in vsprintf().
  */
 
-/** \fn QString klfTimeOfDay(bool shortFmt = true)
+/** \fn KLF_EXPORT QString klfTimeOfDay(bool shortFmt = true)
  *
  * Returns something like <tt>456.234589</tt> (in a <tt>QString</tt>) that
  * represents the actual time in seconds from midnight.
@@ -178,11 +178,22 @@
  * \note this feature is optional. Classes that do not declare a 'ref-instance' will still be able
  *   to use \c klfDbg() normally, except there is no way (apart from what you output yourself) to
  *   make the difference between messages originating from two different class instances.
+ *
+ * \warning when you declare a 'ref-instance' in a class, static members of that class cannot use
+ *  \c klfDbg any more because that macro will try to invoke the ref-instance of the class. Use
+ *  instead \ref klfDbgSt which does the same thing, but explicitely skips the ref-instance. This is not
+ *  needed for classes that do not declare a ref-instance.
  */
 
-/** KLF_DEBUG_TIME_BLOCK
+/** \def KLF_DEBUG_TIME_BLOCK
  *
  * \brief Utility to time the execution of a block
+ *
+ * This macro behaves exactly like \ref KLF_DEBUG_BLOCK, but also prints the current time (short format) for
+ * timing the execution of the given block.
+ *
+ * The effective internal difference between KLF_DEBUG_TIME_BLOCK and KLF_DEBUG_BLOCK is the use of the
+ * helper class KLFDebugBlockTimer instead of KLFDebugBlock.
  *
  * \note KLF_DEBUG needs to be defined at compile-time
  *   to enable this feature. Otherwise, this maco is a no-op.
@@ -190,21 +201,12 @@
  * Usage example:
  * \code
  * void do_something() {
- *   KLF_DEBUG_TIME_BLOCK("block do_something() execution") ;
+ *   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
  *   ... // some lengthy operation
  *   ... if (failed) return; // for example
  *   ... // no special instruction needed at end of block
  * }
  * \endcode
- *
- * \note msg is (macro-expanded) added to a <tt>QString("")</tt>, so you can write something like
- * \code
- *   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"(QString)") ;
- * \endcode
- * even though <tt>KLF_FUNC_NAME</tt> expands into a <tt>const char*</tt>.
- *
- * \warning This is a macro that expands its text without protecting it (this allows you to do what
- *   the above note said).
  */
 
 /** \def KLF_DEBUG_BLOCK
@@ -237,14 +239,27 @@
  * }
  * \endcode
  *
- * \note msg is (macro-expanded) added to a <tt>QString("")</tt>, so you can write something like
+ * \note \c msg is (macro-expanded) added to a <tt>QString("")</tt>, so you can write something like
  * \code
- *   KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(QString)") ;
+ *   KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(int,void*)") ;
+ * \endcode
+ * (the \c '+' is understood well) instead of having to write
+ * \code
+ *   KLF_DEBUG_BLOCK(QString("")+KLF_FUNC_NAME+"(int,void*)") ;
  * \endcode
  * even though <tt>KLF_FUNC_NAME</tt> expands into a <tt>const char*</tt>.
  *
- * \warning This is a macro that expands its text without protecting it (this allows you to do what
- *   the above note said).
+ * Advanced: If that last note wasn't clear, consider that this macro expands to:
+ * \code
+ *   KLFDebugBlock __klf_debug_block(QString("")+msg)
+ * \endcode
+ * where \c KLFDebugBlock is a helper class and \c __klf_debug_block the name of an instance of that
+ * class created on the stack. \c msg is passed as argument to the constructor, added to a QString(""),
+ * which allows for the feature explained above, using the fact that the preprocessor replaces the macro
+ * argument in full text, and the fact that the \c '+' operator operates from left to right.
+ *
+ * \warning This is a macro that expands its text without explicitely protecting it (this allows you to
+ *   do what the above note said).
  */
 
 /** \def klf_debug_tee
@@ -349,11 +364,9 @@
  *
  * This macro expands to the function name this macro is called in.
  *
- * The macros KLF_HAS_PRETTY_FUNCTION, KLF_HAS_FUNCTION and KLF_HAS_FUNC should be defined
- * to inform this header that the compiler supports respectively the symbols
- * <tt>__PRETTY_FUNCTION__</tt>, <tt>__FUNCTION__</tt> and/or <tt>__func__</tt>.
- *
- * If none of those HAS_* macros are defined, this macro expands to <tt>"&lt;unknown>"</tt>
+ * The header <tt>klfdefs.h</tt> will try to determine which of the symbols
+ * <tt>__PRETTY_FUNCTION__</tt>, <tt>__FUNCTION__</tt> and/or <tt>__func__</tt> are defined
+ * and use the most "pretty" one, formatting it as necessary with klfShortFuncSignature().
  */
 
 /** \def KLF_ASSERT_NOT_NULL
@@ -363,6 +376,20 @@
  * If the given \c ptr is NULL, then prints function name and message to standard warning
  * output (using Qt's qWarning()) and executes instructions given by \c failaction.
  * \c msg may contain << operators to chain output to a QDebug.
+ *
+ * \c failaction is any C/C++ instructions that you can place in an 'if' block, including \c 'return',
+ *   'continue' or 'break' instructions.
+ *
+ * This macro is not affected by the KLF_DEBUG symbol. This macro is always defined and functional.
+ *
+ * Example:
+ * \code
+ *  QString get_myobject_name(MyObject *object)
+ *  {
+ *    KLF_ASSERT_NOT_NULL( object , "object is NULL!" , return QString() ) ;
+ *    return object->name;
+ *  }
+ * \endcode
  */
 
 
@@ -372,7 +399,10 @@
  * \brief Compares two version strings
  *
  * \c v1 and \c v2 must be of the form \c "<MAJ>.<MIN>.<REL><suffix>" or \c "<MAJ>.<MIN>.<REL>"
- * or \c "<MAJ>.<MIN>" or \c "<MAJ>".
+ * or \c "<MAJ>.<MIN>" or \c "<MAJ>" or an empty string.
+ *
+ * Empty strings are considered less than any other version string, except to other empty strings
+ * to which they compare equal.
  *
  * \returns a negative value if v1 < v2, \c 0 if v1 == v2 and a positive value if v2 < v1. This
  *   function returns \c -200 if either of the version strings are invalid.
@@ -405,7 +435,7 @@
  *
  * \brief The character used in the $PATH environment variable to separate different locations
  *
- * Expands to ':' on unices/Mac and on ';' on Windows.
+ * Expands to \c ':' (colon) on unices/Mac and to \c ';' (semicolon) on Windows.
  */
 
 /** \fn KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1)
@@ -586,27 +616,32 @@ KLFDebugBlockTimer::~KLFDebugBlockTimer()
 #endif
 }
 
-
+#ifdef KLFBACKEND_QT4
+// QT 4 >>
 KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime)
 {
-#if defined(KLFBACKEND_QT4) && defined(KLF_DEBUG)
+#  ifdef KLF_DEBUG
   if (shorttime == NULL)
     return dbg.nospace()<<funcname<<"():"<<refinstance<<"\n  ";
   else
     return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"():"<<refinstance<<"\n  ";
-#else
+#  else
   Q_UNUSED(funcname) ;
   Q_UNUSED(shorttime) ;
   Q_UNUSED(refinstance) ;
 
   return dbg; // do nothing (not debug mode)
-#endif
+#  endif
 }
-
-#ifndef KLFBACKEND_QT4
+// << QT 4
+#else
+// QT 3 >>
 int __klf_dbg_string_obj::operator=(const QString& msg)
 {
+#  ifdef KLF_DEBUG
   qDebug("%s", qPrintable(hdr + msg));
+#  endif
+  return 0;
 }
 KLF_EXPORT __klf_dbg_string_obj
 /* */ __klf_dbg_hdr_qt3(const char *funcname, const char *refinstance, const char *shorttime)
@@ -618,8 +653,11 @@ KLF_EXPORT __klf_dbg_string_obj
   else
     s = QString::fromLocal8Bit("+T:") + shorttime + ": " + funcname + "(): " + refinstance + "\n  ";
   return  __klf_dbg_string_obj(s);
+#  else
+  return  __klf_dbg_string_obj(QString());
 #  endif
 }
+// << QT 3
 #endif
 
 
@@ -691,6 +729,12 @@ static int __klf_version_compare_suffix_words(QString w1, QString w2)
 KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
 {
   qDebug("klfVersionCompare(): Comparing versions %s and %s", qPrintable(v1), qPrintable(v2));
+  if (v1 == v2)
+    return 0;
+  if (v1.isEmpty()) // v2 is not empty because of test above
+    return -1;
+  if (v2.isEmpty()) // same note with v1
+    return 1;
   //           *1     2  *3     4  *5    *6
   QRegExp rx1("^(\\d+)(\\.(\\d+)(\\.(\\d+)([a-zA-Z]+\\d*)?)?)?$");
   QRegExp rx2(rx1);

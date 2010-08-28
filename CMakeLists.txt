@@ -73,11 +73,27 @@ include(KLFUtil)
 message(STATUS "")
 message(STATUS "[BUILD SETTINGS]")
 
+KLFGetCMakeVarChanged(CMAKE_BUILD_TYPE)
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "(FOR DEVELOPERS:) Build configuration (Debug|Release)")
 mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE} (CMAKE_BUILD_TYPE)")
+KLFCMakeSetVarChanged(CMAKE_BUILD_TYPE)
 
-
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(default_klf_debug TRUE)
+else(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(default_klf_debug FALSE)
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+#KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice calcoptvalue depvar1)
+KLFDeclareCacheVarOptionFollowComplex1(KLF_DEBUG
+	BOOL "Enable debugging messages"  # cache
+	ON                                # updatenotice enabled
+	"${default_klf_debug}"            # (possibly new) calculated value
+	CMAKE_BUILD_TYPE                  # dependency variable
+)
+if(KLF_DEBUG)
+  message(STATUS "Enabling debugging messages (KLF_DEBUG)")
+endif(KLF_DEBUG)
 
 # Choose a Qt Version to use
 set(KLF_QT_VERSION 4 CACHE STRING "Qt major version to build with (4 or 3)")
@@ -330,24 +346,6 @@ if(KLF_DEBUG_USE_MODELTEST)
   message(STATUS "Will compile with QtLab's ModelTest for KLFLibModel testing (KLF_DEBUG_USE_MODELTEST)")
 endif(KLF_DEBUG_USE_MODELTEST)
 
-# Some extra tests to know what we have
-include(CheckCXXSourceCompiles)
-CHECK_CXX_SOURCE_COMPILES("int main() { const char *s = __PRETTY_FUNCTION__; }"
-			  has_pretty_function)
-if(has_pretty_function)
-add_definitions(-DKLF_HAS_PRETTY_FUNCTION)
-endif(has_pretty_function)
-CHECK_CXX_SOURCE_COMPILES("int main() { const char *s = __FUNCTION__; }"
-			  has_function)
-if(has_function)
-add_definitions(-DKLF_HAS_FUNCTION)
-endif(has_function)
-CHECK_CXX_SOURCE_COMPILES("int main() { const char *s = __func__; }"
-			  has_func)
-if(has_func)
-add_definitions(-DKLF_HAS_FUNC)
-endif(has_func)
-
 # Current System OS
 if(APPLE)
 set(internal_KLF_CMAKE_OS "macosx")
@@ -384,16 +382,6 @@ else(KLF_USE_QT4)
     KLFNote("Not building the KTextEditor plugin because we're using Qt3.")
   endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 endif(KLF_USE_QT4)
-# The following has been worked around by re-compiling the klfbackend sources into klfkateplugin
-#if(KLF_BUILD_KTEXTEDITORPLUGIN)
-#  if(KLF_LIBKLFBACKEND_STATIC)
-#    KLFNote("ktexteditor plugin needs to link against a shared klfbackend library, but we're building
-#    that library statically. Make sure a shared libklfbackend library has already been compiled (cmake
-#    option KLF_LIBKLFBACKEND_STATIC=OFF) and possibly installed in a standard location; if not in
-#    default library search path adjust the linker flags (add -L/library/path to cmake option
-#    CMAKE_EXE_LINKER_FLAGS). Otherwise consider disabling the plugin (KLF_BUILD_KTEXTEDITORPLUGIN).")
-#  endif(KLF_LIBKLFBACKEND_STATIC)
-#endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 
 
 # some additional variables that get shown on some versions of CMake that could be hidden
@@ -426,7 +414,8 @@ if(KLF_MACOSX_BUNDLES)
 	codecs/libqtwcodecs.dylib
 	sqldrivers/libqsqlite.dylib
 	sqldrivers/libqsqlodbc.dylib)
-  set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}" CACHE STRING "Qt plugins to incorporate into Mac bundle")
+  set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}"
+					  CACHE STRING "Qt plugins to incorporate into Mac bundle")
   message("Will Package Qt Plugins in bundle --> ${KLF_BUNDLE_QT_PLUGINS} (KLF_BUNDLE_QT_PLUGINS)")
 endif(KLF_MACOSX_BUNDLES)
 

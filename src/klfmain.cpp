@@ -493,3 +493,68 @@ KLF_EXPORT QString klfFindTranslatedDataFile(const QString& baseFileName, const 
 
 
 
+
+KLF_EXPORT void klfDataStreamWriteHeader(QDataStream& stream, const QString headermagic)
+{
+  // QIODevice inherits QObject ... use dynamic properties
+  stream.device()->setProperty("klfDataStreamAppVersion",
+			       QVariant::fromValue<QString>(KLF_DATA_STREAM_APP_VERSION));
+
+  // header always written in QDataStream version Qt_3_3
+  stream.setVersion(QDataStream::Qt_3_3);
+  stream << QString("KLATEXFORMULA_STYLE_LIST")
+	 << (qint16)KLF_DATA_STREAM_APP_VERSION_MAJ
+	 << (qint16)KLF_DATA_STREAM_APP_VERSION_MIN
+	 << (qint16)QDataStream::Qt_4_4;
+  stream.setVersion(QDataStream::Qt_4_4);
+  // stream is ready to be written to
+
+}
+
+KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList possibleHeaders,
+					QString *readHeader, QString *readCompatKLFVersion)
+{
+  QString s;
+  stream.setVersion(QDataStream::Qt_3_3);
+  stream >> s;
+  if (!possibleHeaders.contains(s) || stream.status() != QDataStream::Ok) {
+    if (readHeader != NULL)
+      *readHeader = QString();
+    return false;
+  }
+  if (readHeader != NULL)
+    *readHeader = s;
+
+  // read KLF-compat writing version
+  qint16 vmaj, vmin;
+  stream >> vmaj >> vmin;
+  if (stream.status() != QDataStream::Ok) {
+    if (readCompatKLFVersion)
+      *readCompatKLFVersion = QString();
+    return false;
+  }
+
+  QString compatKLFVersion = QString("%1.%2").arg(vmaj).arg(vmin);
+
+  if (vmaj > klfVersionMaj() || (vmaj == klfVersionMaj() && vmin > klfVersionMin())) {
+    if (readCompatKLFVersion != NULL)
+      *readCompatKLFVersion = compatKLFVersion; 
+    return false;
+  }	
+
+  // decide on QDataStream version
+  if (vmaj <= 2) { // 2.x: version # not saved into stream, use Qt_3_3
+    stream.setVersion(QDataStream::Qt_3_3);
+  } else { // 3.x+: read version # from stream and set it
+    qint16 version;
+    stream >> version;
+    stream.setVersion(version);
+  }
+
+  // set the compatibility version for reading data
+  // QIODevice inherits QObject ... use dynamic properties
+  stream.device()->setProperty("klfDataStreamAppVersion", QVariant::fromValue<QString>(compatKLFVersion));
+
+  // the stream is ready to read data from
+  return true;
+}
