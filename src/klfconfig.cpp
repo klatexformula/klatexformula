@@ -234,6 +234,7 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.confirmClose = true;
   LibraryBrowser.groupSubCategories = true;
   LibraryBrowser.iconViewFlow = QListView::TopToBottom;
+  LibraryBrowser.historyTagCopyToArchive = true;
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }
@@ -432,6 +433,7 @@ int KLFConfig::readFromConfig_v2()
   klf_config_read(s, "confirmclose", &LibraryBrowser.confirmClose);
   klf_config_read(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
   klf_config_read(s, "iconviewflow", &LibraryBrowser.iconViewFlow);
+  klf_config_read(s, "historytagcopytoarchive", &LibraryBrowser.historyTagCopyToArchive);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
@@ -536,6 +538,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "confirmclose", &LibraryBrowser.confirmClose);
   klf_config_write(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
   klf_config_write(s, "iconviewflow", &LibraryBrowser.iconViewFlow);
+  klf_config_write(s, "historytagcopytoarchive", &LibraryBrowser.historyTagCopyToArchive);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig

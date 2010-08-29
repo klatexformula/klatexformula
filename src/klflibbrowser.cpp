@@ -473,6 +473,20 @@ KLFLibBrowserViewContainer * KLFLibBrowser::viewForTabIndex(int tab)
 {
   return qobject_cast<KLFLibBrowserViewContainer*>(u->tabResources->widget(tab));
 }
+QList<KLFLibBrowserViewContainer*> KLFLibBrowser::findByRoleFlags(uint testflags, uint mask)
+{
+  klfDbg("Looking for flags "<<klfFmtCC("%#010x", testflags)<<" with mask "<<klfFmtCC("%#010x", mask)) ;
+  QList<KLFLibBrowserViewContainer *> list;
+  int k;
+  for (k = 0; k < pLibViews.size(); ++k) {
+    if ((pLibViews[k]->resourceRoleFlags() & mask) == testflags) {
+      klfDbg("Adding #"<<k<<": "<<pLibViews[k]<<", url="<<pLibViews[k]->url()) ;
+      list << pLibViews[k];
+    }
+  }
+  return list;
+}
+
 
 
 bool KLFLibBrowser::openResource(const QString& url, uint resourceRoleFlags,
@@ -671,6 +685,29 @@ void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *viewc, u
   if (resroleflags & NoChangeFlag)
     return;
 
+  // If history resroleflags is set, then unset that flag to its previous owner (history role flag
+  // is exclusive).
+  // Same respectively for archive flag.
+  uint exclusive_flag_list[] = { HistoryRoleFlag, ArchiveRoleFlag, 0 } ;
+  int j;
+  for (j = 0; exclusive_flag_list[j] != 0; ++j) {
+    uint xflag = exclusive_flag_list[j];
+    if (resroleflags & xflag) {
+      // If we are about to set this flag to resource 'viewc', then make sure no one (else) has it
+      int k;
+      for (k = 0; k < pLibViews.size(); ++k) {
+	if (pLibViews[k] == viewc)
+	  continue; // skip our targeted view
+	uint fl = pLibViews[k]->resourceRoleFlags();
+	if (fl & xflag) {
+	  // unset it
+	  pLibViews[k]->setResourceRoleFlags(fl & ~xflag);
+	}
+      }
+    }
+  }
+
+  // now we can set the appropriate flags on the requested resource view
   viewc->setResourceRoleFlags(resroleflags);
 }
 
@@ -1193,14 +1230,43 @@ void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
   KLFAbstractLibView * wview = wviewc->view();
   if ( wview == NULL )
     return;
+  QList<KLFLib::entryId> selected = wview->selectedEntryIds();
   bool r = wview->writeEntryProperty(KLFLibEntry::Category, newcategory);
   if ( ! r ) {
     QMessageBox::warning(this, tr("Error"),
 			 tr("Failed to write category information!"));
     // and refresh display
     slotEntriesSelected(wview->selectedEntries());
+    return;
   }
-  // display refreshed anyway in case of success.
+
+  // ensure that exactly the modified items are selected, as writeEntryProperty() does
+  // not garantee to preserve selection
+  wview->selectEntries(selected);
+
+  // if we categorized a formula in the history resource, copy it to the archive
+  if (klfconfig.LibraryBrowser.historyTagCopyToArchive && !newcategory.isEmpty()) {
+    KLFLibBrowserViewContainer *vHistory = findSpecialResource(HistoryRoleFlag);
+    KLFLibBrowserViewContainer *vArchive = findSpecialResource(ArchiveRoleFlag);
+    klfDbg("vHistory="<<vHistory<<", vArchive="<<vArchive<<", wviewc="<<wviewc) ;
+    if (vHistory != NULL && vArchive != NULL && vHistory != vArchive  &&
+	vHistory == wviewc) {
+      klfDbg("categorized formula in history. copying it to archive");
+      // copy the formula from history to archive
+      KLFLibEntryList entryList = vHistory->view()->selectedEntries();
+      KLFLibResourceEngine *archiveRes =  vArchive->resourceEngine();
+      // bypass the KLFAbstractLibView API for insertEntries to the resource directly, as the view
+      // does not give information about inserted IDs.
+      QList<KLFLib::entryId> insertedIds = archiveRes->insertEntries(entryList);
+      if (!insertedIds.size() || insertedIds.contains(-1)) {
+	QMessageBox::critical(this, tr("Error"), tr("Error copying the given items to the archive!"));
+      } else {
+	u->tabResources->setCurrentWidget(vArchive);
+	// and select those items in archive that were inserted.
+	vArchive->view()->selectEntries(insertedIds);
+      }
+    }
+  }
 }
 void KLFLibBrowser::slotTagsChanged(const QString& newtags)
 {
@@ -1219,8 +1285,8 @@ void KLFLibBrowser::slotTagsChanged(const QString& newtags)
 			 tr("Failed to write tags information!"));
     // and refresh display
     slotEntriesSelected(wview->selectedEntries());
+    return;
   }
-  // display refreshed anyway in case of success.
 }
 
 
@@ -1682,4 +1748,5 @@ void KLFLibBrowser::showEvent(QShowEvent *event)
   // and call superclass
   QWidget::showEvent(event);
 }
+
 

@@ -385,6 +385,7 @@ void KLFSettings::reset()
 
   u->chkLibRestoreURLs->setChecked(klfconfig.LibraryBrowser.restoreURLs);
   u->chkLibConfirmClose->setChecked(klfconfig.LibraryBrowser.confirmClose);
+  u->chkLibHistoryTagCopyToArchive->setChecked(klfconfig.LibraryBrowser.historyTagCopyToArchive);
   //  u->chkLibGroupSubCategories->setChecked(klfconfig.LibraryBrowser.groupSubCategories);
   u->cbxLibIconViewFlow->setSelectedValue(klfconfig.LibraryBrowser.iconViewFlow);
 }
@@ -897,6 +898,7 @@ void KLFSettings::apply()
 
   klfconfig.LibraryBrowser.restoreURLs = u->chkLibRestoreURLs->isChecked();
   klfconfig.LibraryBrowser.confirmClose = u->chkLibConfirmClose->isChecked();
+  klfconfig.LibraryBrowser.historyTagCopyToArchive = u->chkLibHistoryTagCopyToArchive->isChecked();
   //  klfconfig.LibraryBrowser.groupSubCategories = u->chkLibGroupSubCategories->isChecked();
   klfconfig.LibraryBrowser.iconViewFlow =  u->cbxLibIconViewFlow->selectedValue();
 

@@ -37,16 +37,11 @@
 
 #include "klfdefs.h"
 
-
-/** \def KLF_EXPORT
+/** \file klfdefs.h
+ * \brief Base declarations for utilities (debugging, exporting symbols, version comparing, ...)
  *
- * symbols we want to export will be declared with this macro. this makes declarations
- * platform-independant. */
+ */
 
-/** \def KLF_EXPORT_IF_DEBUG
- *
- * symbols we want to export only if in debug mode will use this definition. This will
- * declare symbols with KLF_EXPORT in debug mode, and without that flag in non-debug mode. */
 
 /** \fn KLF_EXPORT int klfVersion()
  *
@@ -447,6 +442,25 @@
  *
  * \bug ....... MISSING DOX DOC ...........
  */
+
+
+
+// INTERNAL
+
+/** \def KLF_EXPORT
+ *
+ * \internal
+ *
+ * symbols we want to export will be declared with this macro. this makes declarations
+ * platform-independant. */
+
+/** \def KLF_EXPORT_IF_DEBUG
+ *
+ * \internal
+ *
+ * symbols we want to export only if in debug mode will use this definition. This will
+ * declare symbols with KLF_EXPORT in debug mode, and without that flag in non-debug mode. */
+
 
 
 

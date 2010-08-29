@@ -43,24 +43,6 @@
  * our core functionality of transforming LaTeX code into graphics.
  */
 
-
-/** \mainpage
- * <center>
- * <div style="width: 60%; text-align: justify; font-weight: bold">This documentation is the API
- * documentation for the KLatexFormula library backend that
- * you may want to use in your programs. It is a GPL-licensed library based on QT 3 or QT 4 that
- * converts a LaTeX equation given as text into graphics, specifically PNG, EPS or PDF.<br><br>
- * All the core functionality is based in the class \ref KLFBackend .<br><br>
- * This library will compile indifferently on QT 3 and QT 4 with the same source code.
- * The base API is the same, although QT3-specific functions were removed in QT 4-compatible
- * code (cf. KLFBlockProcess::startProcess(QStringList cmd, QCString str, QStringList env = QStringList()) ).
- * To compile with QT4, you need to add KLFBACKEND_QT4 to your defines, ie. pass option -DKLFBACKEND_QT4
- * to gcc.<br><br>
- * This library has been tested to work in non-GUI applications (ie. FALSE in QApplication constructor,
- * or with QCoreApplication in Qt 4).
- *</div></center>
- */
-
 //! No Error.
 #define KLFERR_NOERROR 0
 

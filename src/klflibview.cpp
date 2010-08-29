@@ -2307,9 +2307,6 @@ bool KLFLibModel::insertEntries(const KLFLibEntryList& entries)
 
   QList<KLFLib::entryId> list = pResource->insertEntries(elist);
 
-  // will be automatically called via the call to resoruce->(modify-data)()!
-  //  updateCacheSetupModel();
-
   if ( list.size() == 0 || list.contains(-1) )
     return false; // error for at least one entry
   return true;
@@ -3073,6 +3070,11 @@ bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
   return KLFAbstractLibView::eventFilter(object, event);
 }
 
+QList<KLFLib::entryId> KLFLibDefaultView::selectedEntryIds() const
+{
+  return pModel->entryIdForIndexList(pView->selectionModel()->selectedIndexes());
+}
+
 KLFLibEntryList KLFLibDefaultView::selectedEntries() const
 {
   QModelIndexList selectedindexes = selectedEntryIndexes();
@@ -3359,6 +3361,22 @@ bool KLFLibDefaultView::deleteSelected(bool requireConfirm)
 bool KLFLibDefaultView::insertEntries(const KLFLibEntryList& entries)
 {
   return pModel->insertEntries(entries);
+}
+bool KLFLibDefaultView::selectEntries(const QList<KLFLib::entryId>& idList)
+{
+  QModelIndexList mil = pModel->findEntryIdList(idList);
+  QItemSelection sel;
+  int k;
+  for (k = 0; k < mil.size(); ++k)
+    sel << QItemSelectionRange(mil[k]);
+
+  pView->selectionModel()->select(sel, QItemSelectionModel::ClearAndSelect);
+
+  if (pViewType == CategoryTreeView && pView->inherits("KLFLibDefTreeView")) {
+    KLFLibDefTreeView *v = qobject_cast<KLFLibDefTreeView*>(pView);
+    v->ensureExpandedTo(mil);
+  }
+  return true;
 }
 
 

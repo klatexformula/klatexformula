@@ -37,6 +37,37 @@
 #include "klfbackend.h"
 
 
+
+
+/** \mainpage
+ * <div style="width: 60%; padding: 0 20%; text-align: justify; line-height: 150%">
+ * This documentation is the API documentation for the KLatexFormula library backend that
+ * you may want to use in your programs. It is a GPL-licensed library based on QT 3 or QT 4 that
+ * converts a LaTeX equation given as text into graphics, specifically PNG, EPS or PDF (and the
+ * image is available as a QImage&mdash;so any format supported by Qt is available.
+ *
+ * Some utilities to save the output (in the various available formats) to a file or a QIODevice
+ * are provided, see KLFBackend::saveOutputToFile() and KLFBackend::saveOutputToDevice().
+ *
+ * All the core functionality is based in the class \ref KLFBackend . Some extra utility functions
+ * are available in \ref klfdefs.h , such as klfVersionCompare(), \ref KLFSysInfo,
+ * \ref klfDbg "debugging utilities", klfFmt(), klfSearchFind(), etc. .
+ *
+ * This library will compile indifferently on QT 3 and QT 4 with the same source code.
+ * The base API is the same, although some specific overloaded functions may differ or not be available
+ * in either versionn for Qt 3 or Qt 4. Those members are documented as such.
+ *
+ * To compile with Qt 4, you may add \c KLFBACKEND_QT4 to your defines, ie. pass option \c -DKLFBACKEND_QT4
+ * to gcc; however this is set automatically in \ref klfdefs.h if Qt 4 is detected.
+ *
+ * This library has been tested to work in non-GUI applications (ie. FALSE in QApplication constructor,
+ * or with QCoreApplication in Qt 4).
+ *</div>
+ */
+
+
+
+
 // some standard guess settings for system configurations
 
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)

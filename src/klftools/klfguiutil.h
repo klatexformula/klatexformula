@@ -127,7 +127,7 @@ private:
  * \endcode
  *
  * The previous example is somewhat trivial and does not exhibit the advantages of the features of
- * this classand of KLFProgressReporter over QProgressDialog; the example of KLFLibResourceEngine
+ * this class and of KLFProgressReporter over QProgressDialog; the example of KLFLibResourceEngine
  * is more relevant:
  * \code
  * // klflib.h  : the library resource engine system (no GUI)
@@ -151,7 +151,7 @@ private:
  * void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& label)
  * {
  *   KLFProgressDialog *pdialog = new KLFProgressDialog(false, this);
- *   pdialog->startReportingProgress(progressReporter, text);
+ *   pdialog->startReportingProgress(progressReporter, label);
  *   ...
  * }
  * \endcode

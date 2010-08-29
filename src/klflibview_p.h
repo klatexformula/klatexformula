@@ -575,18 +575,33 @@ public slots:
     pDView->slotSelectAll();
   }
 
-protected:
-  virtual QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
-  virtual void commonInternalDrag(Qt::DropActions) {  }
-  virtual QAbstractItemView *thisView() { return this; }
-  virtual const QAbstractItemView *thisConstView() const { return this; }
-  virtual QPoint scrollOffset() const { return QPoint(horizontalOffset(), verticalOffset()); }
+  void ensureExpandedTo(const QModelIndexList& mil)
+  {
+    int k;
+    for (k = 0; k < mil.size(); ++k) {
+      QModelIndex idx = mil[k];
+      if (!idx.isValid())
+	continue;
+      while (idx.parent().isValid()) {
+	expand(idx.parent());
+	idx = idx.parent();
+      }
+    }
+  }
 
-  virtual QPoint eventPos(QObject *object, QDragEnterEvent *event) {
+
+protected:
+  QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
+  void commonInternalDrag(Qt::DropActions) {  }
+  QAbstractItemView *thisView() { return this; }
+  const QAbstractItemView *thisConstView() const { return this; }
+  QPoint scrollOffset() const { return QPoint(horizontalOffset(), verticalOffset()); }
+
+  QPoint eventPos(QObject *object, QDragEnterEvent *event) {
     return KLFLibDefViewCommon::eventPos(object, event, horizontalOffset(), verticalOffset());
   }
 
-  virtual void startDrag(Qt::DropActions supportedActions) {
+  void startDrag(Qt::DropActions supportedActions) {
     commonStartDrag(supportedActions);
   }
 

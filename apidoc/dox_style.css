@@ -1,8 +1,8 @@
 BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV {
-	font-family: Geneva, Arial, Helvetica, sans-serif;
+  font-family: "DejaVu Sans", "Arial";
 }
 BODY,TD {
-/*	font-size: 90%;*/
+	font-size: 10pt;
 }
 H1 {
 	text-align: center;
@@ -24,7 +24,7 @@ DIV.qindex {
 	text-align: center;
 	margin: 2px;
 	padding: 2px;
-	line-height: 140%;
+/*	line-height: 140%;*/
 }
 DIV.navpath {
 	width: 100%;
@@ -33,7 +33,7 @@ DIV.navpath {
 	text-align: center;
 	margin: 2px;
 	padding: 2px;
-	line-height: 140%;
+/*	line-height: 140%;*/
 }
 DIV.navtab {
        background-color: #e8eef2;
@@ -49,12 +49,10 @@ TD.navtab {
 A.qindex {
        text-decoration: none;
        font-weight: bold;
-       color: #1A419D;
 }
 A.qindex:visited {
        text-decoration: none;
        font-weight: bold;
-       color: #1A419D
 }
 A.qindex:hover {
 	text-decoration: none;
@@ -87,24 +85,19 @@ A.elRef {
 A.code:link { 
 	text-decoration: none; 
 	font-weight: normal; 
-	color: #0000FF
 }
 A.code:visited { 
 	text-decoration: none; 
 	font-weight: normal; 
-	color: #0000FF
 }
 A.codeRef:link { 
 	font-weight: normal; 
-	color: #0000FF
 }
 A.codeRef:visited { 
 	font-weight: normal; 
-	color: #0000FF
 }
 A:hover { 
 	text-decoration: none; 	
-	background-color: #f2f2ff 
 }
 DL.el { 
 	margin-left: -1cm 
@@ -182,18 +175,24 @@ TR.memlist {
 P.formulaDsp { 
 	text-align: center; 
 }
+p {
+  line-height: 145%;
+/*  letter-spacing: 1px;
+    word-spacing: 1em;*/
+}
+
 IMG.formulaDsp {
 }
 IMG.formulaInl { 
 	vertical-align: middle; 
 }
-SPAN.keyword       { color: #008000 }
-SPAN.keywordtype   { color: #604020 }
-SPAN.keywordflow   { color: #e08000 }
-SPAN.comment       { color: #800000 }
-SPAN.preprocessor  { color: #806020 }
-SPAN.stringliteral { color: #002080 }
-SPAN.charliteral   { color: #008080 }
+SPAN.keyword       { color: #006060; font-weight: bold; }
+SPAN.keywordtype   { color: #4682b4 }
+SPAN.keywordflow   { color: #006060; font-weight: bold; }
+SPAN.comment       { color: #a00000 }
+SPAN.preprocessor  { color: #0000cd }
+SPAN.stringliteral { color: #008b00 }
+SPAN.charliteral   { color: #008b00 }
 SPAN.vhdldigit     { color: #ff00ff }
 SPAN.vhdlchar      { color: #000000 }
 SPAN.vhdlkeyword   { color: #700070 }
@@ -330,11 +329,50 @@ TD.tiny {
 	font-size: 75%;
 }
 a {
-	color: #1A41A8;
+  color: #006080/*#1A41A8*/ ;
+  text-decoration: none;
+}
+a:hover {
+  color: #004060;
+  background-color: #f2f2ff 
 }
 a:visited {
-	color: #2A3798;
+  color: #005065/*#2A3798*/ ;
+  text-decoration: none;
 }
+a:visited:hover {
+  color: #002030;
+}
+
+/* external link references */
+a.elRef, a.elRef:visited {
+  color: #407060;
+}
+a.elRef:hover {
+  color: #306050;
+  background-color: #f2f2ff;
+}
+/* links appearing in source code */
+a.code {
+  color: #000080;
+}
+a.code:visited {
+  color: #000080;
+}
+a.code:hover {
+  color: #000080;
+  background-color: #ffffff;
+}
+/* external link references in source code*/
+a.codeRef, a.codeRef:visited {
+  color: #27453b;
+}
+a.codeRef:hover {
+  color: #27453b;
+  background-color: #f0fff0;
+}
+
+
 .dirtab { 
 	padding: 4px;
 	border-collapse: collapse;

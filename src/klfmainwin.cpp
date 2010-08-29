@@ -888,11 +888,15 @@ void KLFMainWin::loadLibrary()
     QUrl url = localliburl;
     url.removeAllQueryItems("klfDefaultSubResource");
     url.addQueryItem("klfDefaultSubResource", subresources[k]);
-    mLibBrowser->openResource(url, KLFLibBrowser::NoCloseRoleFlag);
-    //    QMetaObject::invokeMethod(mLibBrowser, "openResource",
-    //			      Qt::QueuedConnection, Q_ARG(QUrl, url),
-    //			      Q_ARG(uint, KLFLibBrowser::NoCloseRoleFlag),
-    //			      Q_ARG(QString, QString()));
+
+    uint flags = KLFLibBrowser::NoCloseRoleFlag;
+    QString sr = subresources[k].toLower();
+    if (sr == "history" || sr == tr("History").toLower())
+      flags |= KLFLibBrowser::HistoryRoleFlag;
+    if (sr == "archive" || sr == tr("Archive").toLower())
+      flags |= KLFLibBrowser::ArchiveRoleFlag;
+
+    mLibBrowser->openResource(url, flags);
   }
 
   loadLibrarySavedState();

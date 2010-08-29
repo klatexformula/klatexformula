@@ -134,6 +134,10 @@ public:
   /** Subclasses should return a list of entries that have been selected by the user. */
   virtual KLFLibEntryList selectedEntries() const = 0;
 
+  /** Subclasses should return a list of resource-entry-IDs that have been selected by
+   * the user. */
+  virtual QList<KLFLib::entryId> selectedEntryIds() const = 0;
+
   /** Subclasses may add items to the context menu by returning them in this function.
    * \param pos is the position relative to widget where the menu was requested.
    *
@@ -194,18 +198,38 @@ public slots:
 				  const QList<KLFLib::entryId>& entryIdList) = 0;
   /** Default implementation calls updateResourceEngine() */
   virtual void updateResourceDefaultSubResourceChanged(const QString& newSubResource);
+
+  /** Subclasses should reimplement to update the given property to the given value on all
+   * library entries that are selected by the user. (They have to actually perform the change
+   * in the resource, eg with KLFLibResourceEngine::changeEntries()).
+   *
+   * \note The view does not have to garantee that selection is preserved.
+   */
   virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
+
   /** Provides a reasonable default implementation that should suit for most purposes. */
   virtual bool writeEntryCategory(const QString& category)
   { return writeEntryProperty(KLFLibEntry::Category, category); }
+
   /** Provides a reasonable default implementation that should suit for most purposes. */
   virtual bool writeEntryTags(const QString& tags)
   { return writeEntryProperty(KLFLibEntry::Tags, tags); }
+
   virtual bool deleteSelected(bool requireConfirm = true) = 0;
+
   virtual bool insertEntries(const KLFLibEntryList& entries) = 0;
+
   /** Provides a reasonable default implementation that should suit for most purposes. */
   virtual bool insertEntry(const KLFLibEntry& entry)
   { return insertEntries(KLFLibEntryList() << entry); }
+
+  /** Subclasses must reimplement to select the given entries in the view.
+   *
+   * \returns TRUE on success. If the operation was not possible (eg. one ID is invalid/not
+   * displayed, view does not support multiple selections whilst idList.size()>1, etc.) then
+   * this function should return FALSE.
+   */
+  virtual bool selectEntries(const QList<KLFLib::entryId>& idList) = 0;
 
   /** This function should instruct the view to find the first occurence of the
    * string \c queryString, searching from top of the list if \c forward is TRUE, or reverse
@@ -777,6 +801,7 @@ public:
   virtual bool eventFilter(QObject *o, QEvent *e);
 
   virtual KLFLibEntryList selectedEntries() const;
+  virtual QList<KLFLib::entryId> selectedEntryIds() const;
 
   ViewType viewType() const { return pViewType; }
 
@@ -799,6 +824,7 @@ public slots:
   virtual bool writeEntryProperty(int property, const QVariant& value);
   virtual bool deleteSelected(bool requireConfirmation = true);
   virtual bool insertEntries(const KLFLibEntryList& entries);
+  virtual bool selectEntries(const QList<KLFLib::entryId>& idList);
 
   virtual bool searchFind(const QString& queryString, bool forward = true);
   virtual bool searchFindNext(bool forward);

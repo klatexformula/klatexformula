@@ -49,8 +49,15 @@ public:
   virtual ~KLFLibBrowser();
 
   enum ResourceRoleFlag {
-    NoCloseRoleFlag = 0x01,
-    NoChangeFlag = 0x70000000 //!< Instructs to ignore these flags for already-open resources
+    NoRoleFlag              = 0x0, //!< This resource has nothing special
+
+    NoCloseRoleFlag         = 0x00000001, //!< Resource 'Close' GUI button is disabled (grayed)
+
+    HistoryRoleFlag         = 0x00010000, //!< This resource is the History resource
+    ArchiveRoleFlag         = 0x00020000, //!< This resource is the Archive resource
+    SpecialResourceRoleMask = 0x00ff0000, //!< Mask to extract the 'special resource' type (eg. history)
+
+    NoChangeFlag            = 0x70000000 //!< Instructs to ignore these flags for already-open resources
   };
 
   virtual bool eventFilter(QObject *object, QEvent *event);
@@ -116,7 +123,7 @@ public slots:
    * \warning this library browser takes ownership of the resource and will delete it
    *   when done using it.
    */
-  bool openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags = 0x0,
+  bool openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags = NoChangeFlag,
 		    const QString& viewTypeIdentifier = QString());
 
   bool closeResource(const QUrl& url);
@@ -198,6 +205,12 @@ protected:
   KLFLibBrowserViewContainer * curView();
   KLFAbstractLibView * curLibView();
   KLFLibBrowserViewContainer * viewForTabIndex(int tab);
+
+  QList<KLFLibBrowserViewContainer*> findByRoleFlags(uint flags, uint mask);
+
+  inline KLFLibBrowserViewContainer *findSpecialResource(uint specialResourceRoleFlag)
+  { QList<KLFLibBrowserViewContainer*> l = findByRoleFlags(specialResourceRoleFlag, SpecialResourceRoleMask);
+    if (l.isEmpty()) { return NULL; }  return l[0]; }
 
   bool event(QEvent *event);
   void showEvent(QShowEvent *event);

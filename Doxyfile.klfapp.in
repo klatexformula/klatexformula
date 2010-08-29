@@ -266,7 +266,7 @@ SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 # Configuration::additions related to external references   
 #---------------------------------------------------------------------------
-TAGFILES               = apidoc/qt4.tag=http://doc.trolltech.com/4.4 \
+TAGFILES               = apidoc/qt4.tag=http://doc.trolltech.com/4.6 \
 			 @CMAKE_CURRENT_BINARY_DIR@/apidoc/klfbackend.tag=../../klfbackend/html \
 			 @CMAKE_CURRENT_BINARY_DIR@/apidoc/klftools.tag=../../klftools/html
 GENERATE_TAGFILE       = 

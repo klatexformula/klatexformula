@@ -231,6 +231,7 @@ public:
     bool confirmClose;
     bool groupSubCategories;
     int iconViewFlow;
+    bool historyTagCopyToArchive;
 
   } LibraryBrowser;
 

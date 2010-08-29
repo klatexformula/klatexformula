@@ -24,6 +24,8 @@
 #ifndef MODELTEST_H
 #define MODELTEST_H
 
+#ifdef KLF_DEBUG_USE_MODELTEST // for doxygen to skip these files
+
 #include <QtCore/QObject>
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QStack>
@@ -72,5 +74,7 @@ private:
 
     QList<QPersistentModelIndex> changing;
 };
+
+#endif
 
 #endif

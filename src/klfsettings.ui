@@ -34,7 +34,7 @@
    <item>
     <widget class="QTabWidget" name="tabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabAppearance">
       <attribute name="title">
@@ -1408,7 +1408,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="3" column="0">
            <widget class="QLabel" name="label">
             <property name="minimumSize">
              <size>
@@ -1421,10 +1421,10 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="3" column="1">
            <widget class="KLFEnumComboBox" name="cbxLibIconViewFlow"/>
           </item>
-          <item row="2" column="2">
+          <item row="3" column="2">
            <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -1439,6 +1439,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="2" column="0" colspan="3">
+           <widget class="QCheckBox" name="chkLibHistoryTagCopyToArchive">
+            <property name="text">
+             <string>When categorizing a formula in History, automatically copy it to the Archive</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -1531,8 +1538,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>100</width>
-                <height>30</height>
+                <width>359</width>
+                <height>167</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1698,8 +1705,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>100</width>
-                   <height>30</height>
+                   <width>348</width>
+                   <height>215</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1763,8 +1770,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>94</width>
-            <height>24</height>
+            <width>562</width>
+            <height>502</height>
            </rect>
           </property>
           <attribute name="label">
