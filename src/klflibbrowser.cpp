@@ -1254,16 +1254,21 @@ void KLFLibBrowser::slotCategoryChanged(const QString& newcategory)
       klfDbg("categorized formula in history. copying it to archive");
       // copy the formula from history to archive
       KLFLibEntryList entryList = vHistory->view()->selectedEntries();
-      KLFLibResourceEngine *archiveRes =  vArchive->resourceEngine();
-      // bypass the KLFAbstractLibView API for insertEntries to the resource directly, as the view
-      // does not give information about inserted IDs.
-      QList<KLFLib::entryId> insertedIds = archiveRes->insertEntries(entryList);
-      if (!insertedIds.size() || insertedIds.contains(-1)) {
-	QMessageBox::critical(this, tr("Error"), tr("Error copying the given items to the archive!"));
+      KLFAbstractLibView *archiveView = vArchive->view();
+      KLFLibResourceEngine *archiveRes = vArchive->resourceEngine();
+      if (archiveRes == NULL || archiveView == NULL) {
+	qWarning()<<KLF_FUNC_NAME<<": archiveRes or archiveView is NULL ?!?";
       } else {
-	u->tabResources->setCurrentWidget(vArchive);
-	// and select those items in archive that were inserted.
-	vArchive->view()->selectEntries(insertedIds);
+	// bypass the KLFAbstractLibView API for insertEntries to the resource directly, as the view
+	// does not give information about inserted IDs.
+	QList<KLFLib::entryId> insertedIds = archiveRes->insertEntries(entryList);
+	if (!insertedIds.size() || insertedIds.contains(-1)) {
+	  QMessageBox::critical(this, tr("Error"), tr("Error copying the given items to the archive!"));
+	} else {
+	  u->tabResources->setCurrentWidget(vArchive);
+	  // and select those items in archive that were inserted.
+	  archiveView->selectEntries(insertedIds);
+	}
       }
     }
   }

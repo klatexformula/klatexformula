@@ -914,6 +914,10 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
       for (k = 0; k < entryIdList.size(); ++k) {
 	klfDbg("modifying entry ID="<<entryIdList[k]<<", modif."<<k) ;
 	NodeId n = findEntryId(entryIdList[k]);
+	if (!n.valid()) {
+	  qWarning()<<KLF_FUNC_NAME<<": n is invalid! (kind="<<n.kind<<", index="<<n.index<<")";
+	  continue;
+	}
 	KLFLibEntry oldentry = pEntryCache[n.index].entry;
 	KLFLibEntry newentry = entryList[k].entry;
 	pEntryCache[n.index].entry = newentry;
@@ -951,6 +955,10 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	qDebug("%s: deleting entry ID=%d.", KLF_FUNC_NAME, entryIdList[k]);
 	// entry deleted
 	NodeId n = findEntryId(entryIdList[k]);
+	if (!n.valid()) {
+	  qWarning()<<KLF_FUNC_NAME<<": n not valid! n=(kind="<<n.kind<<", index="<<n.index<<")";
+	  continue;
+	}
 	treeRemoveEntry(n);
 #ifndef Q_WS_MAC
 	if (k % 20 == 0)
@@ -3364,6 +3372,8 @@ bool KLFLibDefaultView::insertEntries(const KLFLibEntryList& entries)
 }
 bool KLFLibDefaultView::selectEntries(const QList<KLFLib::entryId>& idList)
 {
+  klfDbg("selecting entries: "<<idList) ;
+
   QModelIndexList mil = pModel->findEntryIdList(idList);
   QItemSelection sel;
   int k;

@@ -583,6 +583,7 @@ public slots:
       if (!idx.isValid())
 	continue;
       while (idx.parent().isValid()) {
+	klfDbg("expanding index "<<idx.parent()) ;
 	expand(idx.parent());
 	idx = idx.parent();
       }
