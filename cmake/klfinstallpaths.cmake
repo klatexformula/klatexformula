@@ -319,6 +319,12 @@ macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
   KLFConditionalSet(inst_${targetlib}_pubheader_dir ${varOptBase}HEADERS
 	"${inst_pubheader_dir}"  "${klf_dummy_inst_dir}")
 
+  set(need_dummy_dir FALSE)
+  if(NOT ${varOptBase}SO_LIBS OR NOT ${varOptBase}SO_LIBS OR NOT ${varOptBase}STATIC_LIBS
+     OR NOT ${varOptBase}FRAMEWORK OR NOT ${varOptBase}HEADERS)
+    set(need_dummy_dir TRUE)
+  endif()
+
   install(TARGETS ${targetlib}
 	RUNTIME DESTINATION "${inst_${targetlib}_runtime_dir}"
 	LIBRARY DESTINATION "${inst_${targetlib}_library_dir}"
@@ -327,13 +333,15 @@ macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
 	PUBLIC_HEADER DESTINATION "${inst_${targetlib}_pubheader_dir}"
   )
 
-  install(CODE "
+  if(need_dummy_dir)
+    install(CODE "
     set(dummyinstdir 
 	\"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${klf_dummy_inst_dir}\")
     message(STATUS \"Removing dummy install directory '\${dummyinstdir}'\")
     execute_process(COMMAND \"${CMAKE_COMMAND}\" -E remove_directory \"\${dummyinstdir}\")
     "
-  )
+    )
+  endif(need_dummy_dir)
 
 endmacro(KLFInstallLibrary)
 
