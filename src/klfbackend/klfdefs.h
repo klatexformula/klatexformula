@@ -48,10 +48,12 @@
 #  endif
 #endif
 
-#ifdef KLF_DEBUG
-#  define KLF_EXPORT_IF_DEBUG  KLF_EXPORT
-#else
-#  define KLF_EXPORT_IF_DEBUG
+#ifndef KLF_EXPORT_IF_DEBUG
+#  ifdef KLF_DEBUG
+#    define KLF_EXPORT_IF_DEBUG  KLF_EXPORT
+#  else
+#    define KLF_EXPORT_IF_DEBUG
+#  endif
 #endif
 
 
@@ -218,17 +220,19 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #  endif
 #endif
 /* The following declaration tests are inspired from "qglobal.h" in Qt 4.6.2 source code */
-#if (defined(Q_CC_GNU) && !defined(Q_OS_SOLARIS)) || defined(Q_CC_HPACC) || defined(Q_CC_DIAB)
-#  define KLF_FUNC_NAME  (klfShortFuncSignature(__PRETTY_FUNCTION__).data())
-#elif defined(_MSC_VER)
+#ifndef KLF_FUNC_NAME
+#  if (defined(Q_CC_GNU) && !defined(Q_OS_SOLARIS)) || defined(Q_CC_HPACC) || defined(Q_CC_DIAB)
+#    define KLF_FUNC_NAME  (klfShortFuncSignature(__PRETTY_FUNCTION__).data())
+#  elif defined(_MSC_VER)
     /* MSVC 2002 doesn't have __FUNCSIG__ */
-#  if _MSC_VER <= 1300
-#      define KLF_FUNC_NAME  __func__
+#    if _MSC_VER <= 1300
+#        define KLF_FUNC_NAME  __func__
+#    else
+#        define KLF_FUNC_NAME  (klfShortFuncSignature(__FUNCSIG__).data())
+#    endif
 #  else
-#      define KLF_FUNC_NAME  (klfShortFuncSignature(__FUNCSIG__).data())
+#    define KLF_FUNC_NAME __func__
 #  endif
-#else
-#  define KLF_FUNC_NAME __func__
 #endif
 
 
@@ -251,19 +255,16 @@ inline QDebug& operator<<(QDebug& str, const QVariant& v) { return str; }
 // utility functions
 
 
-//! Get System Information
 namespace KLFSysInfo
 {
   enum Os { Linux, Win32, MacOsX, OtherOs };
 
   inline int sizeofVoidStar() { return sizeof(void*); }
 
-  //! Returns one of \c "x86" or \c "x86_64", or \c QString() for other/unknown
   KLF_EXPORT QString arch();
 
   KLF_EXPORT KLFSysInfo::Os os();
 
-  //! Returns one of \c "win32", \c "linux", \c "macosx", or QString() for other/unknown
   KLF_EXPORT QString osString(KLFSysInfo::Os sysos = os());
 };
 

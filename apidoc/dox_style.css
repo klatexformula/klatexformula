@@ -103,7 +103,7 @@ DL.el {
 	margin-left: -1cm 
 }
 .fragment {
-       font-family: monospace, fixed;
+       font-family: "DejaVu Sans Mono", monospace, fixed;
        /*font-size: 95%;*/
 }
 PRE.fragment {

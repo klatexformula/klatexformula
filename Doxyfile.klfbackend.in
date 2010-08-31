@@ -4,7 +4,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = KLFBackend
+PROJECT_NAME           = "KLFBackend Library"
 PROJECT_NUMBER         = @KLF_VERSION@
 OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/apidoc@KLF_DOXYGEN_SF@/klfbackend
 CREATE_SUBDIRS         = NO
@@ -49,14 +49,14 @@ TYPEDEF_HIDES_STRUCT   = NO
 #---------------------------------------------------------------------------
 # Build related configuration options
 #---------------------------------------------------------------------------
-EXTRACT_ALL            = YES
+EXTRACT_ALL            = NO
 EXTRACT_PRIVATE        = NO
 EXTRACT_STATIC         = YES
 EXTRACT_LOCAL_CLASSES  = YES
 EXTRACT_LOCAL_METHODS  = NO
 EXTRACT_ANON_NSPACES   = NO
-HIDE_UNDOC_MEMBERS     = NO
-HIDE_UNDOC_CLASSES     = NO
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = YES
 HIDE_FRIEND_COMPOUNDS  = YES
 HIDE_IN_BODY_DOCS      = NO
 INTERNAL_DOCS          = YES
@@ -173,7 +173,7 @@ VERBATIM_HEADERS       = YES
 #---------------------------------------------------------------------------
 ALPHABETICAL_INDEX     = YES
 COLS_IN_ALPHA_INDEX    = 3
-IGNORE_PREFIX          = KLF
+IGNORE_PREFIX          = KLF klf
 #---------------------------------------------------------------------------
 # configuration options related to the HTML output
 #---------------------------------------------------------------------------

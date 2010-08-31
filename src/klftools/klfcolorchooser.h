@@ -116,49 +116,104 @@ private slots:
 
 // ------------------------------------------------------------------------------------
 
-/** Base utility class that stores and calculates specific components of a color that is
+/** \brief Base utility class that stores and calculates specific components of a color that is
  * being edited.
  *
  * Example: a  <tt>Red: [...]</tt> spin-box would have to calculate the red component of a
  * newly set color, while a  <tt>Saturation: (.............)</tt> slider would have to calculate
  * the same, but for the saturation value.
  *
- * An editor is assumed to handle at most two components (\a A and \a B) of a color.
+ * This class is a base class that stores a color one (respectively two) components are being edited
+ * in a widget subclass. This class also provides some utilities to calculate the component values
+ * from a color and vice versa.
+ *
+ * An editor is assumed to handle at most two components of a color (labels \a A and \a B indicate
+ * respectively the first edited component and the second edited component). If the editor can edit
+ * only one component (eg. spin-box), then the second component is set to the special component
+ * \c "fix" and ignored by this class.
+ *
+ * The subclasses have to set \ref _colorcomponent (component \a A) and \ref _colorcomponent_b (component
+ * \a B) directly, for example in their constructor.
  *
  * Valid components are: \c "hue", \c "sat", \c "val", \c "red", \c "green", \c "blue", \c "alpha",
  * and \c "fix". \c "fix" should be used when the component is not used (eg. 2nd component of a 1-D
- * slider).
+ * slider). Components are case sensitive (all lower case).
  *
- * Components are case sensitive (all lower case).
+ * This class assumes that the editor subclass will be displayed in conjunction with other similar
+ * editors, also KLFColorComponentsEditorBase subclasses (eg. a list of spin boxes to edit each component
+ * of a color). It is therefore important to synchronize the various editors, because the information
+ * that is displayed is redundant: for example red, green, blue editors may be displayed simultaniously
+ * next to hue, saturation, and value editors. When for example the red component is changed, then the
+ * saturation, value and hue will have to update.
  *
+ * In the setup above, when one of the editors has its value changed, that editor that changed should
+ * calculate the new color using refreshColorFromInternalValues() with the new component value(s), and
+ * notify the other editors (eg. with signal-slot connections) of the change (note that the return value
+ * of refreshColorFromInternalValues() indicates whether the color changed). All the other editors should
+ * then calculate their new component values (with valueAFromNewColor() and valueBFromNewColor() to get
+ * the values for component \a A and \a B respectively) and display those values.
+ *
+ * Note that all editors (in the setup described above) store independently the current color in their
+ * \ref _color member. Eventually the color may be obtained by querying any of the editors.
+ *
+ * Note that both components may be set to \c "fix", for example for a widget that just displays the current
+ * color (this is no longer an editor!).
  */
 class KLF_EXPORT KLFColorComponentsEditorBase
 {
-public:
-
 protected:
+  /** Returns the value of component \a A in the color \c color */
   int valueAFromNewColor(const QColor& color) const;
+  /** Returns the value of component \a B in the color \c color */
   int valueBFromNewColor(const QColor& color) const;
-  int valueA() const { return valueAFromNewColor(_color); }
-  int valueB() const { return valueBFromNewColor(_color); }
-  int valueAMax() const { return valueMax(_colorcomponent); }
-  int valueBMax() const { return valueMax(_colorcomponent_b); }
+  /** Returns the current value of component \a A in the color being edited (\ref _color) */
+  inline int valueA() const { return valueAFromNewColor(_color); }
+  /** Returns the current value of component \a B in the color being edited (\ref _color) */
+  inline int valueB() const { return valueBFromNewColor(_color); }
+  /** Returns the maximal possible value that can be assigned to component \a A */
+  inline int valueAMax() const { return valueMax(_colorcomponent); }
+  /** Returns the maximal possible value that can be assigned to component \a B */
+  inline int valueBMax() const { return valueMax(_colorcomponent_b); }
 
+  /** Calculate the color that we get when in \c color_base, we set the component \a A
+   * value to \c value_a and component \a B to \c value_b.
+   *
+   * Example, with component \a A being red and component \a B being blue:
+   * \code
+   * colorFromValues(QColor(120, 60, 44), 10, 33)   ==   QColor(10, 60, 33)
+   * \endcode
+   * This example is somewhat trivial in that the displayed components are independant. However
+   * this function can also handle the case when the components are not independant, eg.
+   * component \a A being saturation and \a B being red.
+   *
+   * Example with \a A being Hue (\c "hue") and with \a B unused (\c "fix"):
+   * \code
+   * colorFromValues(QColor(20, 90, 120), 110)   ==   QColor(37, 120, 20)
+   * \endcode
+   * */
   QColor colorFromValues(QColor color_base, int value_a, int value_b = -1);
-  /** returns true if color changed */
+
+  /** Calls \ref colorFromNewValues() with the given values and with the current \ref _color, and
+   * sets \ref _color to the returned value.
+   *
+   * \returns TRUE if the color changed, FALSE otherwise.
+   */
   bool refreshColorFromInternalValues(int value_a, int value_b = -1);
 
-  /** Returns the value of the component \c component in the color \c color */
+  /** Returns the value of the component \c component in the color \c color.
+   */
   static int valueFromNewColor(const QColor& color, const QString& component);
 
-  /** Returns the Maximum value the given \c component may be assigned. This is
-   * 359 for hue, 255 for others except 'fix', for which it is -1.
+  /** Returns the Maximum value the given \c component may be assigned. This is \c 359 for hue,
+   * \c 255 for others except \c 'fix', for which it is \c -1.
    *
-   * Note that for all (valid) componenets minimum value is zero. */
+   * Note that for all (valid) componenets minimum value is zero.
+   */
   static int valueMax(const QString& component);
 
   /** The stored color that we are displaying components of */
   QColor _color;
+
   /** The components that we are displaying. The strings are one of those given in the
    * class main documentation: \ref KLFColorComponentsEditorBase. */
   QString _colorcomponent, _colorcomponent_b;
@@ -174,7 +229,20 @@ protected:
  *
  * Use \ref setColorComponent() to set the component, then use \ref setColor() to set
  * a color, and connect to \ref colorChanged() for changes by the user to this component,
- * and retrieve the color when you like with \ref color().
+ * and retrieve the color with \ref color(). color() returns the color that was set with
+ * setColor(), except that the compoenent being edited was adjusted to the currently edited
+ * value.
+ *
+ * You can retrieve the value of the component being edited with the value() member (inherited
+ * from QSpinBox).
+ *
+ * Example usage is to have multiple instances of this spin box editing different components,
+ * with a chain (looped) of colorChanged() signals connected to the setColor() of the next spin box
+ * in such way as to have all spin boxes being up to date. With this trick you can edit components
+ * that are not independant (eg. saturation and red values; they need to update each other when
+ * edited).
+ *
+ * See \ref KLFColorChooseWidget for an example.
  */
 class KLF_EXPORT KLFColorComponentSpinBox : public QSpinBox, public KLFColorComponentsEditorBase
 {
@@ -204,8 +272,8 @@ private slots:
 
 // ------------------------------------------------------------------------------------
 
-/** A Pane displaying a gradient of colors, controlling two (arbitrary) components of a
- * color.
+/** \brief A pane displaying a gradient of colors, controlling one or two (arbitrary) components
+ * of a color.
  *
  * Most common would be eg. hue and saturation in the big pane in most common selection dialogs.
  *

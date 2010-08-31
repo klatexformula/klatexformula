@@ -207,7 +207,7 @@ public:
      * A zero value means success for everything. A positive value means that a program (latex, dvips,
      * ...) returned a non-zero exit code. A negative status indicates an other error.
      *
-     * \c status will be exactly one of the KLFERR_* constants.
+     * \c status will be exactly one of the KLFERR_* constants, defined in \ref klfbackend.h .
      *
      * In every case where status is non-zero, a suitable human-readable error string will be provided in
      * the \ref errorstr field. If status is zero, \ref errorstr will be empty.  */
@@ -231,10 +231,27 @@ public:
 
     /** the data for a png file (exact \c gs output content)
      *
-     * This image does NOT contain any meta-data. Use saveOutputToFile() or saveOutputToDevice() to
-     * include meta-data on the input parameters of the formula. */
+     * This image does NOT contain any meta-data. See also \ref pngdata.
+     */
     QByteArray pngdata_raw;
-    /** the data for a png file (re-processed, with meta information on Qt4) */
+    /** the data for a png file (re-processed, with meta information on Qt4)
+     *
+     * The following metadata tags are set in the image:
+     * - \c "AppVersion" set to <tt>&quot;KLatexFormula <i>&lt;version></i>&quot;</tt>
+     * - \c "Application" set to translated string <tt>&quot;Created with KLatexFormula version
+     *   <i>&lt;version></i>&quot;</tt>
+     * - \c "Software", set to <tt>&quot;KLatexFormula <i>&lt;version></i>&quot;</tt>
+     * - \c "InputLatex", \c "InputMathMode", \c "InputPreamble" are set respectively to the latex code
+     *   text, the math mode and the preamble as given in the \ref klfInput object.
+     * - \c "InputFgColor" set to <tt>&quot;rgb(<i>&lt;0-255></i>, <i>&lt;0-255></i>, <i>&lt;0-255></i>)&quot;</tt>
+     * - \c "InputBgColor" set to <tt>&quot;rgba(<i>&lt;0-255></i>, <i>&lt;0-255></i>, <i>&lt;0-255></i>,
+     *   <i>&lt;0-255></i>)&quot;</tt>
+     * - \c "InputDPI" set to the Dots Per Inch resolution of the image
+     * - \c "SettingsTBorderOffset", \c "SettingsRBorderOffset", \c "SettingsBBorderOffset",
+     *   \c "SettingsLBorderOffset", are set to the border offsets in postscript points of the image
+     *   (respectively top, right, bottom and left)
+     * - \c "SettingsOutlineFonts" set to \c "true" or \c "false" as given in \ref klfSettings::outlineFonts.
+     */
     QByteArray pngdata;
     /** data for an (eps-)postscript file */
     QByteArray epsdata;
@@ -242,7 +259,7 @@ public:
     QByteArray pdfdata;
   };
 
-  /** The call to process everything.
+  /** \brief The function that processes everything.
    *
    * Pass on a valid \ref klfInput input object, as well as a \ref klfSettings
    * object filled with your input and settings, and you will get output in \ref klfOutput.
@@ -254,25 +271,22 @@ public:
    * Usage example:
    * \code
    *   ...
-   *   // these could have been declared at some more global scope
+   *   // this could have been declared at some more global scope
    *   KLFBackend::klfSettings settings;
-   *   settings.tempdir = "/tmp";
-   *   settings.latexexec = "latex";
-   *   settings.dvipsexec = "dvips";
-   *   settings.gsexec = "gs";
-   *   settings.epstopdfexec = "epstopdf";
-   *   settings.lborderoffset = 1;
-   *   settings.tborderoffset = 1;
-   *   settings.rborderoffset = 1;
-   *   settings.bborderoffset = 1;
+   *   bool ok = KLFBackend::detectSettings(&settings);
+   *   if (!ok) {
+   *     // vital program not found
+   *     raise_error("error in your system: are latex,dvips and gs installed?");
+   *     return;
+   *   }
    *
    *   KLFBackend::klfInput input;
    *   input.latex = "\\int_{\\Sigma}\\!(\\vec{\\nabla}\\times\\vec u)\\,d\\vec S ="
    *     " \\oint_C \\vec{u}\\cdot d\\vec r";
    *   input.mathmode = "\\[ ... \\]";
    *   input.preamble = "\\usepackage{somerequiredpackage}\n";
-   *   input.fg_color = qRgb(255, 128, 128); // pink
-   *   input.bg_color = qRgba(0, 0, 80, 255); // dark blue, opaque
+   *   input.fg_color = qRgb(255, 168, 88); // beige
+   *   input.bg_color = qRgba(0, 64, 64, 255); // dark turquoise
    *   input.dpi = 300;
    *
    *   KLFBackend::klfOutput out = KLFBackend::getLatexFormula(input, settings);
@@ -329,8 +343,11 @@ public:
   static bool saveOutputToFile(const klfOutput& output, const QString& fileName,
 			       const QString& format = QString(), QString* errorString = NULL);
 
-  /** Overloaded function, provided for convenience. Behaves very much like \ref saveOutputToFile(),
-   * except that the format cannot be guessed. */
+  /** \brief Saves the given output into the given device.
+   *
+   * Overloaded function, provided for convenience. Behaves very much like \ref saveOutputToFile(),
+   * except that the format cannot be guessed.
+   */
   static bool saveOutputToDevice(const klfOutput& output, QIODevice *device,
 				 const QString& format = QString("PNG"), QString* errorString = NULL);
 

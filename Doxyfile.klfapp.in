@@ -4,7 +4,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
-PROJECT_NAME           = KLatexFormula Application Library
+PROJECT_NAME           = "KLatexFormula Application Library"
 PROJECT_NUMBER         = @KLF_VERSION@
 OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/apidoc@KLF_DOXYGEN_SF@/klfapp
 CREATE_SUBDIRS         = NO

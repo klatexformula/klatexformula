@@ -43,26 +43,26 @@
  */
 
 
-/** \fn KLF_EXPORT int klfVersion()
+/** \fn int klfVersion()
  *
  * Returns the current version of the KLatexFormula library, given as a string,
  * eg. \c "3.2.1".
  *
  * For non-release builds, this may have a suffix, eg. \c "3.2.0beta2".
  */
-/** \fn KLF_EXPORT int klfVersionMaj()
+/** \fn int klfVersionMaj()
  *
  * Returns the current major version of the KLatexFormula library.
  *
  * For example, if the version is \c "3.2.0", klfVersionMaj() returns \c 3.
  */
-/** \fn KLF_EXPORT int klfVersionMin()
+/** \fn int klfVersionMin()
  *
  * Returns the current minor version of the KLatexFormula library.
  *
  * For example, if the version is \c "3.2.0", klfVersionMin() returns \c 2.
  */
-/** \fn KLF_EXPORT int klfVersionRelease()
+/** \fn int klfVersionRelease()
  *
  * Returns the current release version of the KLatexFormula library.
  *
@@ -420,6 +420,51 @@
  * </pre>
  */
 
+/** \namespace KLFSysInfo
+ * \brief Utilities to get system information
+ */
+
+/** \enum KLFSysInfo::Os
+ * \brief List of known operating systems
+ */
+/** \var KLFSysInfo::Os KLFSysInfo::Linux
+ * \brief systems on which Q_OS_LINUX is defined
+ */
+/** \var KLFSysInfo::Os KLFSysInfo::Win32
+ * \brief systems on which Q_OS_WIN32 is defined
+ */
+/** \var KLFSysInfo::Os KLFSysInfo::MacOsX
+ * \brief systems on which Q_OS_DARWIN is defined
+ */
+/** \var KLFSysInfo::Os KLFSysInfo::OtherOs
+ * \brief systems on which neither Q_OS_{LINUX|WIN32|DARWIN} is defined
+ */
+
+/** \fn inline int KLFSysInfo::sizeofVoidStar()
+ * \brief the processor register size.
+ *
+ * Typically 4 or 8 to indicate a 32-bit or a 64-bit system, respectively.
+ */
+
+/** \fn KLF_EXPORT QString KLFSysInfo::arch()
+ * \brief The architecture of this sytem
+ *
+ * \returns One of \c "x86" or \c "x86_64", or \c QString() for other/unknown.
+ */
+/** \fn KLF_EXPORT KLFSysInfo::Os KLFSysInfo::os()
+ * \brief Which operating system this system is running
+ *
+ * \returns one of the values of the \ref Os enum.
+ */
+/** \fn KLF_EXPORT QString KLFSysInfo::osString(KLFSysInfo::Os sysos = os())
+ * \brief The operating system we are running, returned as a string
+ *
+ * \returns one of \c "win32", \c "linux", \c "macosx", or QString() for other/unknown.
+ */
+
+
+
+
 /** \fn KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2)
  *
  * \brief Same as
@@ -434,32 +479,62 @@
  */
 
 /** \fn KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1)
+ * \brief Find files matching a path with wildcards
  *
- * \bug ...... MISSING DOX DOC ...........
+ * This function returns at most \c limit file names that match the given \c wildcard_expression.
+ * The latter may be any absolute path in which (any number of) \c * and \c ? wildcards may be
+ * placed.
+ *
+ * This function splits the \c wildcard_expression at \c '/' characters, and by starting at the
+ * root directory, recursively exploring all directories matching the given section of the pattern.
+ * (native '\\' separators on windows are appropriately converted to universal \c '/', so you don't
+ * have to worry about passing '\\'-style paths).
+ *
+ * For example, searching for <tt>"/usr/lib*<span></span>/kde4/kate*.so"</tt> will start looking in
+ * the root directory for a directory named \c "usr", in which a directory matching \c "lib*" is
+ * searched for. In each of those matches, a directory named \c "kde4" is searched for, in which
+ * files named \c "lib*.so.*" are listed. All found matches are returned (up to a given \c limit
+ * number of entries if \c limit is positive).
+ *
+ * The drive letter in \c wildcard_expression on windows may not contain a wildcard.
  */
 
 /** \fn KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "")
+ * \brief Smart executable searching in a given path list with wildcards
  *
- * \bug ....... MISSING DOX DOC ...........
+ * This function looks for an executable named \c prog. It looks in the directories given in
+ * \c extra_path. \c extra_path is assumed to be a colon-separated list of directories (semicolon-separated
+ * on windows, see \ref KLF_PATH_SEP). Each given directory may contain wildcards. \c prog itself
+ * may also contain wildcards.
+ *
+ * This function splits \c extra_path into a directory list, and then calls klfSearchFind() for
+ * \c "&lt;directory>/<t>prog</t>" for each directory in the list, and returns the first result that
+ * is an executable file (this is explicitely checked).
  */
 
 
 
 // INTERNAL
 
-/** \def KLF_EXPORT
+/** \if klf_internal_docs
+ * \def KLF_EXPORT
  *
  * \internal
  *
  * symbols we want to export will be declared with this macro. this makes declarations
- * platform-independant. */
+ * platform-independant.
+ * \endif
+ */
 
-/** \def KLF_EXPORT_IF_DEBUG
+/** \if klf_internal_docs
+ * \def KLF_EXPORT_IF_DEBUG
  *
  * \internal
  *
  * symbols we want to export only if in debug mode will use this definition. This will
- * declare symbols with KLF_EXPORT in debug mode, and without that flag in non-debug mode. */
+ * declare symbols with KLF_EXPORT in debug mode, and without that flag in non-debug mode.
+ * \endif
+ */
 
 
 
@@ -876,8 +951,6 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
   return QStringList();
 }
 
-// returns at most limit results matching wildcard_expression (which is given as absolute path
-// with wildcards)
 KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit)
 {
   QString expr;
@@ -897,8 +970,6 @@ KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int lim
   return __search_find_test(root, pathlist, 0, limit);
 }
 
-// smart search PATH that will interpret wildcards in PATH+extra_path and return the first matching
-// executable
 KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path)
 {
   static const QString PATH = getenv("PATH");
