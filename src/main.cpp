@@ -958,6 +958,7 @@ int main(int argc, char **argv)
     app.setQuitOnLastWindowClosed(false);
     int r = app.exec();
     main_cleanup();
+    klfDbg("application has quit; we have cleaned up main(), ready to return. code="<<r) ;
     // and exit.
     // DO NOT CALL ::exit() as this prevents KLFMainWin's destructor from being called.
     // This includes not calling main_exit().

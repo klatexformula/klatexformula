@@ -1,10 +1,14 @@
 <RCC>
   <qresource>
+    <file>pics/findnext.png</file>
+    <file>pics/findprev.png</file>
+    <file>pics/clearright.png</file>
     <file>pics/checker.png</file>
     <file>pics/rightarrow.png</file>
     <file>pics/colorsliders.png</file>
     <file>pics/named.png</file>
     <file>pics/huepane.png</file>
     <file>pics/colortriangle.png</file>
+    <file>pics/wait_anim.mng</file>
   </qresource>
 </RCC>

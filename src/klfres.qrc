@@ -2,7 +2,6 @@
   <qresource>
     <file>pics/exportprofile.png</file>
     <file>pics/clearedit.png</file>
-    <file>pics/wait_anim.mng</file>
     <file>pics/importexport.png</file>
     <file>pics/save.png</file>
     <file>pics/showpreview.png</file>
@@ -10,12 +9,10 @@
     <file>pics/iconify.png</file>
     <file>pics/bullet22.png</file>
     <file>pics/helpdialogbg.png</file>
-    <file>pics/findprev.png</file>
     <file>pics/symbols.png</file>
     <file>pics/actions.png</file>
     <file>pics/badsym.png</file>
     <file>pics/restoreall.png</file>
-    <file>pics/clearright.png</file>
     <file>pics/loadstyle.png</file>
     <file>pics/restore.png</file>
     <file>pics/nopreview.png</file>
@@ -23,7 +20,6 @@
     <file>pics/closehide.png</file>
     <file>pics/smallclose.png</file>
     <file>pics/delete.png</file>
-    <file>pics/findnext.png</file>
     <file>pics/help.png</file>
     <file>pics/resetdefaults.png</file>
     <file>pics/ok.png</file>

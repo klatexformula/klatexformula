@@ -486,11 +486,7 @@ void KLFLibModelCache::rebuildCache()
     e.entryid = ewid.id;
     e.minimalist = true;
     e.entry = ewid.entry;
-    pEntryCache.append(e);
-    NodeId entryindex;
-    entryindex.kind = EntryKind;
-    entryindex.index = pEntryCache.size()-1;
-    treeInsertEntry(entryindex, false, true); // notifyQtApi=FALSE, rebuildingCache=TRUE
+    treeInsertEntry(e, true); // rebuildingCache=TRUE
 
 #ifndef Q_WS_MAC
     if (k % 10 == 0)
@@ -559,7 +555,7 @@ QModelIndex KLFLibModelCache::createIndexFromId(NodeId nodeid, int row, int colu
   while ( getNode(parentid).numDisplayFetched <= row && canFetchMore(parentid) ) {
     klfDbgT(": need to fetch more numDisplayFetched="
 	   <<getNode(parentid).numDisplayFetched<<"<row="<<row<<" !");
-    fetchMore(parentid, pModel->fetchBatchCount());
+    fetchMore(parentid);
   }
 
   // create & return the index
@@ -741,6 +737,9 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME);
   klfDbg( "\t parentId: n="<<n<<"; valid="<<n.valid() <<"; url="<<pModel->url() ) ;
 
+  if (fetchBatchCount < 0) // set default value
+    fetchBatchCount = pModel->pFetchBatchCount;
+
   if (pIsFetchingMore)
     return;
   pIsFetchingMore = true;
@@ -894,11 +893,9 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	en.entryid = entryList[k].id;
 	en.minimalist = false;
 	en.entry = entryList[k].entry;
-	pEntryCache.append(en);      // append the entry to cache
-	NodeId n = NodeId(EntryKind, pEntryCache.size()-1);
 	/** \todo ...... here the view is notified for each individual insert. would be better for
 	 * contiguous inserts to be notified once .... */
-	treeInsertEntry(n);
+	treeInsertEntry(en);
 	qDebug("%s: entry ID %d inserted", KLF_FUNC_NAME, entryIdList[k]);
 #ifndef Q_WS_MAC
 	if (k % 20 == 0)
@@ -920,24 +917,25 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	}
 	KLFLibEntry oldentry = pEntryCache[n.index].entry;
 	KLFLibEntry newentry = entryList[k].entry;
-	pEntryCache[n.index].entry = newentry;
 	klfDbg("entry change: old="<<oldentry<<"; new="<<newentry) ;
 	// the modified entry may have a different category, move it if needed
-	if (newentry.category() != oldentry.category()) {
+	if (newentry.category() != oldentry.category() && (pModel->pFlavorFlags & KLFLibModel::CategoryTree)) {
 	  pModel->startLayoutChange(false);
-	  treeRemoveEntry(n, true); // remove it from its position in tree
+	  EntryNode entrynode = treeTakeEntry(n, true); // remove it from its position in tree
 	  // klfDbg( "\tremoved entry. dump:\n"
 	  //         <<"\t Entry Cache="<<pEntryCache<<"\n\t CategoryLabelCache = "<<pCategoryLabelCache ) ;
 	  // dumpNodeTree(NodeId::rootNode());
 	  // revalidate the removed entry
-	  pEntryCache[n.index].entryid = entryIdList[k];
-	  // and add it again at the (new) correct position (automatically positioned!)
-	  treeInsertEntry(n, true);
+	  entrynode.entryid = entryIdList[k];
+	  entrynode.entry = newentry;
+	  // and insert it at the (new) correct position (automatically positioned!)
+	  treeInsertEntry(entrynode);
 	  pModel->endLayoutChange(false);
 	  QModelIndex idx = createIndexFromId(n, -1, 0);
 	  emit pModel->dataChanged(idx, idx);
 	} else {
 	  // just some data change
+	  pEntryCache[n.index].entry = newentry;
 	  QModelIndex idx = createIndexFromId(n, -1, 0);
 	  emit pModel->dataChanged(idx, idx);
 	}
@@ -959,7 +957,7 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	  qWarning()<<KLF_FUNC_NAME<<": n not valid! n=(kind="<<n.kind<<", index="<<n.index<<")";
 	  continue;
 	}
-	treeRemoveEntry(n);
+	(void) treeTakeEntry(n);
 #ifndef Q_WS_MAC
 	if (k % 20 == 0)
 	  progressReporter.doReportProgress(k+1);
@@ -981,28 +979,18 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 }
 
 
-void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool rebuildingcache)
+void KLFLibModelCache::treeInsertEntry(const EntryNode& entrynode, bool rebuildingcache)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
-  klfDbg( "n="<<n<<",notifyQtApi="<<notifyQtApi<<"" ) ;
-
-  if (n.kind != EntryKind) {
-    qWarning()<<"KLFLibModelCache::treeInsertEntry("<<n<<"): bad kind!";
-    return;
-  }
-  if (n.index < 0 || n.index >= pEntryCache.size()) {
-    qWarning()<<KLF_FUNC_NAME
-	      <<"Requested to insert entry to cache tree which is NOT A VALID ENTRY INDEX: "<<n;
-    return;
-  }
+  bool notifyQtApi = !rebuildingcache;
+  klfDbg( "entrynode="<<entrynode<<",notifyQtApi="<<notifyQtApi<<"" ) ;
 
   // first find the appropriate category label parent
 
   // start by looking at category
 
-  const EntryNode& e = pEntryCache[n.index];
-  QString category = e.entry.category();
+  QString category = entrynode.entry.category();
   
   // parse its catelements and remember that in the category list cache (that is useful only to
   // suggest known categories to user at given occasions)
@@ -1030,7 +1018,13 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool r
   }
 
   NodeId parentid = NodeId(CategoryLabelKind, catindex);
-  pEntryCache[n.index].parent = parentid; // set the parent
+
+  // now actually create the entry cache node
+  int index = pEntryCache.insertNewNode(entrynode);
+  NodeId n = NodeId(EntryKind, index);
+  // invalidate the node until the insert process is finished.
+  // the (invalid but with correct info) entry needs to reside in the cache for qLowerBound() below.
+  pEntryCache[index].parent = NodeId();
 
   // now we determined the parent of the new entry in the category tree, we will actually
   // insert the item according to current sort instructions.
@@ -1042,10 +1036,24 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool r
   } else {
     KLFLibModelSorter srt =
       KLFLibModelSorter(this, pModel->pEntrySorter, pModel->pFlavorFlags & KLFLibModel::GroupSubCategories);
-    // qLowerBound returns an iterator. subtract begin() to get absolute index
-    insertPos = qLowerBound(childlistref.begin(), childlistref.end(), n, srt) - childlistref.begin();
+    // Note: as long as we are instructed to insert the new item at the end, we need to fetchMore() to ensure
+    // that all elements logically appearing before the new element are fetched.
+    bool retry;
+    do {
+      retry = false;
+      // qLowerBound returns an iterator. subtract begin() to get absolute index
+      insertPos = qLowerBound(childlistref.begin(), childlistref.end(), n, srt) - childlistref.begin();
+      if (insertPos > childlistref.size()-10 && canFetchMore(parentid)) {
+	fetchMore(parentid);
+	retry = true;
+      }
+    } while (retry);
+    // by fetching more, we may possibly have actually fetched the entry that we were instructed to insert
+    // in the first place. Check.
+    if (insertPos < childlistref.size() && childlistref[insertPos] == n)
+      return; // job already done.
   }
-  // now remove the temporarily appended item to insertPos
+
   CategoryLabelNode &catLabelNodeRef = getCategoryLabelNodeRef(parentid);
 
   // and insert it again at the required spot
@@ -1059,74 +1067,88 @@ void KLFLibModelCache::treeInsertEntry(const NodeId& n, bool notifyQtApi, bool r
       catLabelNodeRef.numDisplayFetched++;
     }
   }
+
   qDebug("\tinserting (%d,%d) at pos %d in category '%s'", n.kind, n.index, insertPos,
 	 qPrintable(catLabelNodeRef.fullCategoryPath));
-  childlistref.insert(insertPos, n);
+
+  pEntryCache[n.index].parent = parentid; // set the parent, thus validating the node
+
+  childlistref.insert(insertPos, n); // insert into list of children
 
   if (notifyQtApi)
     pModel->endInsertRows();
 }
 
-void KLFLibModelCache::treeRemoveEntry(const NodeId& nodeid, bool notifyQtApi)
+KLFLibModelCache::EntryNode KLFLibModelCache::treeTakeEntry(const NodeId& nodeid, bool notifyQtApi)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
-  klfDbg( "KLFLibModelCache::treeRemoveEntry("<<nodeid<<","<<notifyQtApi<<")" ) ;
+  klfDbg( "("<<nodeid<<","<<notifyQtApi<<")" ) ;
   NodeId n = nodeid;
-  // keep it in cache to keep indexes valid, just remove its reference.
+  // keep it in cache to keep indexes valid, but invalidate the entry so findEntryIdList() doesn't find it
   // then remove all empty categories above the removed item.
-  // also invalidate the entry so findEntryIdList() doesn't find it.
-  if (nodeid.kind == EntryKind) {
-    getEntryNodeRef(nodeid).entryid = -1;
+  if (nodeid.kind != EntryKind) {
+    qWarning()<<KLF_FUNC_NAME<<": nodeid="<<nodeid<<" does not reference an entry node!";
+    return EntryNode();
   }
+  EntryNode entrynode = getEntryNodeRef(nodeid);
+
+  klfDbg("The entrynode in question is "<<entrynode) ;
+
   NodeId parentid;
   bool willRemoveParent;
   do {
     parentid = getNode(n).parent;
+    klfDbg("Getting interested to remove entry ID="<<n<<", from its parent of id="<<parentid) ;
     if (parentid.kind != CategoryLabelKind) {
-      qWarning()<<"KLFLibModelCache::treeRemoveEntry("<<n<<"): Bad parent node kind: "<<parentid.kind<<"!";
-      return;
+      qWarning()<<KLF_FUNC_NAME<<"("<<n<<"): Bad parent node kind: "<<parentid.kind<<"!";
+      return entrynode;
     }
     QModelIndex parent = createIndexFromId(parentid, -1, 0);
     int childIndex = pCategoryLabelCache[parentid.index].children.indexOf(n);
     if (childIndex < 0) {
-      qWarning()<<"KLFLibModelCache::treeRemoveEntry("<<n<<"): !!?! bad child-parent relation, can't find "<<n
+      qWarning()<<KLF_FUNC_NAME<<"("<<n<<"): !!?! bad child-parent relation, can't find "<<n
 		<<" in child list "<<pCategoryLabelCache[parentid.index].children<<"; full dump:\n"
 		<<"\tEntryCache = "<<pEntryCache<<"\n"
 		<<"\tCat.Lbl.Cache = "<<pCategoryLabelCache;
-      return;
+      return entrynode;
     }
     if (notifyQtApi)
       pModel->beginRemoveRows(parent, childIndex, childIndex);
-    //    // CHANGE OF STRATEGY: EMPTY CATEGORIES ARE LEFT INTACT, THEY SHOULD BE REMOVED EXPLICITELY
-    //    willRemoveParent = false;
+    // will-Remove-Parent if node 'n' is the sole remaining child of node 'parentid'
     willRemoveParent = parentid.valid() && getNode(parentid).children.size() <= 1;
-    if (n.kind == CategoryLabelKind) {
-      // an unlinked category label should have its parent set to invalid.
-      pCategoryLabelCache[n.index].parent = NodeId();
-      // small optimization feature: mark that we should look for invalid category labels when inserting
-      // new category labels.
-      pCategoryLabelCacheContainsInvalid = true;
+    // remove 'n'
+    if (n.kind == EntryKind) {
+      klfDbg("unlinking entry node "<<n);
+      pEntryCache.unlinkNode(n);
+    } else if (n.kind == CategoryLabelKind) {
+      klfDbg("unlinking category label node "<<n);
+      pCategoryLabelCache.unlinkNode(n);
+    } else {
+      qWarning()<<KLF_FUNC_NAME<<": unlinking elements: unknown node kind in id="<<n<<"!";
     }
-    pCategoryLabelCache[parentid.index].children.removeAt(childIndex);
-    if (pCategoryLabelCache[parentid.index].numDisplayFetched > childIndex)
-      pCategoryLabelCache[parentid.index].numDisplayFetched--;
+    // remove n from parents
+    Node & parentref = getNodeRef(parentid);
+    klfDbg("removing child #"<<childIndex<<" from parent id="<<parentid<<"; parent itself is "<<parentref) ;
+    parentref.children.removeAt(childIndex);
+    if (parentref.numDisplayFetched > childIndex)
+      parentref.numDisplayFetched--;
     if (notifyQtApi)
       pModel->endRemoveRows();
     n = parentid;
   } while (willRemoveParent);
+
+  return entrynode;
 }
 
 
 
 
-KLFLibModelCache::IndexType KLFLibModelCache::cacheFindCategoryLabel(QStringList catelements,
-								     bool createIfNotExists,
-								     bool notifyQtApi,
-								     bool newlyCreatedAreChildrenFetched)
+KLFLibModelCache::IndexType
+/* */ KLFLibModelCache::cacheFindCategoryLabel(QStringList catelements, bool createIfNotExists,
+					       bool notifyQtApi, bool newlyCreatedAreChildrenFetched)
 {
-  klfDbg(  "cacheFindCategoryLabel(catelmnts="<<catelements<<", createIfNotExists="<<createIfNotExists
-	   <<", notifyQtApi="<<notifyQtApi<<")" ) ;
+  klfDbg( "catelmnts="<<catelements<<", createIfNotExists="<<createIfNotExists<<", notifyQtApi="<<notifyQtApi ) ;
 
   QString catelpath = catelements.join("/");
 
@@ -1154,21 +1176,6 @@ KLFLibModelCache::IndexType KLFLibModelCache::cacheFindCategoryLabel(QStringList
 
   QStringList catelementsparent = catelements.mid(0, catelements.size()-1);
   IndexType parent_index = cacheFindCategoryLabel(catelementsparent, true, notifyQtApi);
-  // now create this last category label
-  IndexType this_index;
-  if (pCategoryLabelCacheContainsInvalid) {
-    // find invalid category label to overwrite (but not root node of course) ...
-    for (this_index = 1; this_index < pCategoryLabelCache.size() &&
-	   pCategoryLabelCache[this_index].parent.valid(); ++this_index)
-      ;
-  } else {
-    this_index = pCategoryLabelCache.size();
-  }
-  // ... or append
-  if (this_index == pCategoryLabelCache.size()) {
-    pCategoryLabelCacheContainsInvalid = false;
-    pCategoryLabelCache.append(CategoryLabelNode());
-  }
   
   KLFLibModelCache::KLFLibModelSorter srt = 
     KLFLibModelCache::KLFLibModelSorter(this, pModel->pEntrySorter,
@@ -1179,7 +1186,8 @@ KLFLibModelCache::IndexType KLFLibModelCache::cacheFindCategoryLabel(QStringList
   c.allChildrenFetched = newlyCreatedAreChildrenFetched;
   c.fullCategoryPath = catelpath;
   c.categoryLabel = catelements.last(); // catelements is non-empty, see above
-  pCategoryLabelCache[this_index] = c;
+  // now create this last category label
+  IndexType this_index = pCategoryLabelCache.insertNewNode(c);
   int insertPos;
   CategoryLabelNode & parentCatLabelNodeRef = pCategoryLabelCache[parent_index];
   QList<NodeId> & childlistref = parentCatLabelNodeRef.children;
@@ -1316,7 +1324,7 @@ KLFLibModelCache::NodeId KLFLibModelCache::nextNode(NodeId n)
   }
   if (!nn.allChildrenFetched && canFetchMore(n)) {
     // we may have children, so try to fetch children
-    fetchMore(n, pModel->pFetchBatchCount);
+    fetchMore(n);
     // and recurse, now that more children have possibly been fetched.
     return nextNode(n);
   }
@@ -1331,7 +1339,7 @@ KLFLibModelCache::NodeId KLFLibModelCache::nextNode(NodeId n)
     }
     if (!parent.allChildrenFetched && canFetchMore(parentid)) {
       // there is possibly a next sibling, it just possibly hasn't been fetched.
-      fetchMore(parentid, pModel->pFetchBatchCount);
+      fetchMore(parentid);
       // now that the more children has been fetched for this parent, try again: (by recursing)
       return nextNode(n);
     }
@@ -1380,7 +1388,7 @@ KLFLibModelCache::NodeId KLFLibModelCache::lastNode(NodeId n)
 		<<" has allChildrenFetched=false, but can't fetch more!";
       break;
     }
-    fetchMore(n, pModel->pFetchBatchCount);
+    fetchMore(n);
   }
 
   if (nn.children.size() == 0)
@@ -1441,6 +1449,8 @@ QModelIndexList KLFLibModelCache::findEntryIdList(const QList<KLFLib::entryId>& 
 
   // walk entry list
   for (k = 0; k < pEntryCache.size(); ++k) {
+    if (!pEntryCache[k].entryIsValid())
+      continue;
     int i = eidlist.indexOf(pEntryCache[k].entryid);
     if (i >= 0) {
       indexlist[i] = createIndexFromId(NodeId(EntryKind, k), -1, 0);
@@ -1456,7 +1466,7 @@ KLFLibModelCache::NodeId KLFLibModelCache::findEntryId(KLFLib::entryId eId)
   klfDbg("eId="<<eId) ;
   int k;
   for (k = 0; k < pEntryCache.size(); ++k)
-    if (pEntryCache[k].entryid == eId)
+    if (pEntryCache[k].entryid == eId && pEntryCache[k].entryIsValid())
       return NodeId(EntryKind, k);
 
   klfDbg("...not found.") ;
@@ -2055,7 +2065,8 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
     return true; // nothing to drop
 
   // insert list, regardless of parent (no category change)
-  res = insertEntries(elist);
+  QList<KLFLib::entryId> inserted = pResource->insertEntries(elist);
+  res = (inserted.size() && !inserted.contains(-1));
   klfDbg( "Dropped entry list "<<elist<<". Originating URL="
 	  <<(vprop.contains("Url")?vprop["Url"]:"(none)")<<". result="<<res ) ;
   if (!res)
@@ -2288,51 +2299,51 @@ bool KLFLibModelCache::searchNodeMatches(const NodeId& nodeId, const QString& se
 }
 
 
-bool KLFLibModel::changeEntries(const QModelIndexList& indexlist, int propId, const QVariant& value)
-{
-  if ( indexlist.size() == 0 )
-    return true; // no change...
+// bool KLFLibModel::changeEntries(const QModelIndexList& indexlist, int propId, const QVariant& value)
+// {
+//   if ( indexlist.size() == 0 )
+//     return true; // no change...
 
-  QList<KLFLib::entryId> idList = pCache->entryIdList(indexlist);
-  klfDbg( ": Changing entries "<<idList<<"; indexlist="<<indexlist ) ;
-  //  klfDbg( "full dump:" ) ;
-  //  pCache->fullDump();
-  bool r = pResource->changeEntries(idList, QList<int>() << propId, QList<QVariant>() << value);
-  //  klfDbg( ": entries changed, full dump:" ) ;
-  //  pCache->fullDump();
+//   QList<KLFLib::entryId> idList = pCache->entryIdList(indexlist);
+//   klfDbg( ": Changing entries "<<idList<<"; indexlist="<<indexlist ) ;
+//   //  klfDbg( "full dump:" ) ;
+//   //  pCache->fullDump();
+//   bool r = pResource->changeEntries(idList, QList<int>() << propId, QList<QVariant>() << value);
+//   //  klfDbg( ": entries changed, full dump:" ) ;
+//   //  pCache->fullDump();
 
-  // the resource will emit dataChanged() to the view's updateResourceData() for the model update
+//   // the resource will emit dataChanged() to the view's updateResourceData() for the model update
 
-  return r;
-}
+//   return r;
+// }
 
-bool KLFLibModel::insertEntries(const KLFLibEntryList& entries)
-{
-  if (entries.size() == 0)
-    return true; // nothing to do...
+// bool KLFLibModel::insertEntries(const KLFLibEntryList& entries)
+// {
+//   if (entries.size() == 0)
+//     return true; // nothing to do...
 
-  KLFLibEntryList elist = entries;
+//   KLFLibEntryList elist = entries;
 
-  QList<KLFLib::entryId> list = pResource->insertEntries(elist);
+//   QList<KLFLib::entryId> list = pResource->insertEntries(elist);
 
-  if ( list.size() == 0 || list.contains(-1) )
-    return false; // error for at least one entry
-  return true;
-}
+//   if ( list.size() == 0 || list.contains(-1) )
+//     return false; // error for at least one entry
+//   return true;
+// }
 
-bool KLFLibModel::deleteEntries(const QModelIndexList& indexlist)
-{
-  if ( indexlist.size() == 0 )
-    return true; // no change...
+// bool KLFLibModel::deleteEntries(const QModelIndexList& indexlist)
+// {
+//   if ( indexlist.size() == 0 )
+//     return true; // no change...
 
-  QList<KLFLib::entryId> idList = pCache->entryIdList(indexlist);
-  if ( pResource->deleteEntries(idList) ) {
-    // will be automatically called via the call to resoruce->(modify-data)()!
-    //    updateCacheSetupModel();
-    return true;
-  }
-  return false;
-}
+//   QList<KLFLib::entryId> idList = pCache->entryIdList(indexlist);
+//   if ( pResource->deleteEntries(idList) ) {
+//     // will be automatically called via the call to resoruce->(modify-data)()!
+//     //    updateCacheSetupModel();
+//     return true;
+//   }
+//   return false;
+// }
 
 void KLFLibModel::completeRefresh()
 {
@@ -3080,7 +3091,15 @@ bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
 
 QList<KLFLib::entryId> KLFLibDefaultView::selectedEntryIds() const
 {
-  return pModel->entryIdForIndexList(pView->selectionModel()->selectedIndexes());
+  QList<KLFLib::entryId> idListWithDupl = pModel->entryIdForIndexList(pView->selectionModel()->selectedIndexes());
+  // remove duplicates
+  QList<KLFLib::entryId> idList;
+  int k;
+  for (k = 0; k < idListWithDupl.size(); ++k) {
+    if (!idList.contains(idListWithDupl[k]))
+      idList << idListWithDupl[k];
+  }
+  return idList;
 }
 
 KLFLibEntryList KLFLibDefaultView::selectedEntries() const
@@ -3346,30 +3365,30 @@ QStringList KLFLibDefaultView::getCategorySuggestions()
   return pModel->categoryList();
 }
 
-bool KLFLibDefaultView::writeEntryProperty(int property, const QVariant& value)
-{
-  return pModel->changeEntries(selectedEntryIndexes(), property, value);
-}
-bool KLFLibDefaultView::deleteSelected(bool requireConfirm)
-{
-  QModelIndexList sel = selectedEntryIndexes();
-  if (sel.size() == 0)
-    return true;
-  if (requireConfirm) {
-    QMessageBox::StandardButton res
-      = QMessageBox::question(this, tr("Delete?"),
-			      tr("Delete %n selected item(s) from resource \"%1\"?", "", sel.size())
-			      .arg(pModel->resource()->title()),
-			      QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
-    if (res != QMessageBox::Yes)
-      return false; // abort action
-  }
-  return pModel->deleteEntries(sel);
-}
-bool KLFLibDefaultView::insertEntries(const KLFLibEntryList& entries)
-{
-  return pModel->insertEntries(entries);
-}
+// bool KLFLibDefaultView::writeEntryProperty(int property, const QVariant& value)
+// {
+//   return pModel->changeEntries(selectedEntryIndexes(), property, value);
+// }
+// bool KLFLibDefaultView::deleteSelected(bool requireConfirm)
+// {
+//   QModelIndexList sel = selectedEntryIndexes();
+//   if (sel.size() == 0)
+//     return true;
+//   if (requireConfirm) {
+//     QMessageBox::StandardButton res
+//       = QMessageBox::question(this, tr("Delete?"),
+// 			      tr("Delete %n selected item(s) from resource \"%1\"?", "", sel.size())
+// 			      .arg(pModel->resource()->title()),
+// 			      QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
+//     if (res != QMessageBox::Yes)
+//       return false; // abort action
+//   }
+//   return pModel->deleteEntries(sel);
+// }
+// bool KLFLibDefaultView::insertEntries(const KLFLibEntryList& entries)
+// {
+//   return pModel->insertEntries(entries);
+// }
 bool KLFLibDefaultView::selectEntries(const QList<KLFLib::entryId>& idList)
 {
   klfDbg("selecting entries: "<<idList) ;
@@ -3509,6 +3528,8 @@ bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
   fromIndex = pModel->walkPrevIndex(fromIndex);
   QModelIndex i = pModel->searchFind(queryString, fromIndex, forward);
   pDelegate->setSearchString(queryString);
+  for (int col = 0; i.isValid() && col < pModel->columnCount(); ++col)
+    pView->update(pModel->index(i.row(), col, i.parent()));
   searchFound(i);
   return i.isValid();
 }
@@ -3658,6 +3679,8 @@ void KLFLibDefaultView::slotShowColumnSenderAction(bool showCol)
 
 QModelIndexList KLFLibDefaultView::selectedEntryIndexes() const
 {
+  /** \bug ....... correct selectedEntryIds() to optmize as we do here .......... (this comment is misplaced, i know) */
+
   QModelIndexList selection = pView->selectionModel()->selectedIndexes();
   QModelIndexList entryindexes;
   int k;

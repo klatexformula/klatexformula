@@ -142,7 +142,7 @@
          <x>0</x>
          <y>0</y>
          <width>308</width>
-         <height>240</height>
+         <height>193</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -178,37 +178,7 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         <spacer name="hspc4">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>164</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="2" column="1">
-         <widget class="QPushButton" name="btnUpdateCategory">
-          <property name="text">
-           <string>Update Category</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0" colspan="2">
-         <widget class="Line" name="hlineCatTags">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0" colspan="2">
+        <item row="2" column="0" colspan="2">
          <widget class="QLabel" name="lblTags">
           <property name="text">
            <string>Name / &amp;Tags:</string>
@@ -221,7 +191,7 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0" colspan="2">
+        <item row="3" column="0" colspan="2">
          <widget class="QComboBox" name="cbxTags">
           <property name="editable">
            <bool>true</bool>
@@ -234,7 +204,7 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
+        <item row="4" column="0">
          <spacer name="hspc3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -250,14 +220,14 @@
           </property>
          </spacer>
         </item>
-        <item row="6" column="1">
-         <widget class="QPushButton" name="btnUpdateTags">
+        <item row="4" column="1">
+         <widget class="QPushButton" name="btnApplyChanges">
           <property name="text">
-           <string>Update Tags</string>
+           <string>Apply Changes</string>
           </property>
          </widget>
         </item>
-        <item row="7" column="0">
+        <item row="5" column="0">
          <spacer name="vspcCatTags">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -278,7 +248,7 @@
          <x>0</x>
          <y>0</y>
          <width>308</width>
-         <height>240</height>
+         <height>193</height>
         </rect>
        </property>
        <property name="autoFillBackground">

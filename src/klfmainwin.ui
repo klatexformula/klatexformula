@@ -571,7 +571,7 @@
         <property name="currentIndex">
          <number>0</number>
         </property>
-        <widget class="QWidget" name="tabLatexImage" native="true">
+        <widget class="QWidget" name="tabLatexImage">
          <attribute name="title">
           <string>Latex</string>
          </attribute>
@@ -1080,7 +1080,7 @@
   <customwidget>
    <class>KLFUnitSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header location="global">klfguiutil.h</header>
+   <header location="global">klfunitinput.h</header>
    <slots>
     <slot>setUnit(float)</slot>
     <slot>setUnit(double)</slot>
@@ -1089,7 +1089,7 @@
   <customwidget>
    <class>KLFUnitChooser</class>
    <extends>QComboBox</extends>
-   <header location="global">klfguiutil.h</header>
+   <header location="global">klfunitinput.h</header>
    <slots>
     <signal>unitChanged(double)</signal>
    </slots>

@@ -44,10 +44,15 @@ public:
 
   virtual bool eventFilter(QObject *object, QEvent *event);
 
+  inline bool metaInfoModified() const { return pMetaInfoModified; }
+
 signals:
 
-  void categoryChanged(const QString& newCategory);
-  void tagsChanged(const QString& newTags);
+  /** Emitted when user clicks the "Apply" button after having edited category/tags, or hits return.
+   * The \c props are given as a map of KLFLibEntry-property IDs with their corresponding new values.
+   */
+  void metaInfoChanged(const QMap<int,QVariant>& props);
+
   void restoreStyle(const KLFStyle& style);
 
 public slots:
@@ -70,9 +75,16 @@ public slots:
 protected slots:
 
   void slotUpdateFromCbx(QComboBox *cbx);
-  void slotUpdateCategory();
-  void slotUpdateTags();
-  void slotRestoreStyle();
+
+  void on_btnApplyChanges_clicked();
+  void on_btnRestoreStyle_clicked();
+  /** Updates the changes done to category and tags, for which the corresponding argument is \c true.
+   * eg. <tt>slotApplyChanges(true,false)</tt> will update category but not tags.
+   */
+  void slotApplyChanges() { slotApplyChanges(true, true); }
+  void slotApplyChanges(bool category, bool tags);
+
+  void slotModified(bool modif = true);
 
   void slotCbxSaveCurrentCompletion(QComboBox *cbx);
   void slotCbxCleanUpCompletions(QComboBox *cbx);
@@ -81,6 +93,8 @@ private:
   Ui::KLFLibEntryEditor *u;
 
   bool pInputEnabled;
+
+  bool pMetaInfoModified;
 
   KLFStyle pCurrentStyle;
 

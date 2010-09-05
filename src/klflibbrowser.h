@@ -29,9 +29,9 @@
 #include <QMovie>
 #include <QMenu>
 #include <QPushButton>
+#include <QLabel>
 
 #include <klflib.h>
-//#include <klflibview.h>
 
 
 namespace Ui { class KLFLibBrowser; }
@@ -57,7 +57,7 @@ public:
     ArchiveRoleFlag         = 0x00020000, //!< This resource is the Archive resource
     SpecialResourceRoleMask = 0x00ff0000, //!< Mask to extract the 'special resource' type (eg. history)
 
-    NoChangeFlag            = 0x70000000 //!< Instructs to ignore these flags for already-open resources
+    NoChangeFlag            = 0x70000000 //!< Instructs to not set new flags for already-open resources
   };
 
   virtual bool eventFilter(QObject *object, QEvent *event);
@@ -170,16 +170,7 @@ protected slots:
   void slotAddCategorySuggestions(const QStringList& catlist);
   void slotShowContextMenu(const QPoint& pos);
 
-  void slotCategoryChanged(const QString& newcategory);
-  void slotTagsChanged(const QString& newtags);
-
-  void slotSearchClear();
-  void slotSearchFind(const QString& searchText) { slotSearchFind(searchText, true); }
-  void slotSearchFind(const QString& searchText, bool forward);
-  void slotSearchClearOrNext();
-  void slotSearchFindNext(bool forward = true);
-  void slotSearchFindPrev();
-  void slotSearchAbort();
+  void slotMetaInfoChanged(const QMap<int,QVariant>& props);
 
   /** \note important data is defined in sender's custom properties (a QAction) */
   void slotCopyToResource();
@@ -225,20 +216,7 @@ private:
 
   QPushButton *pTabCornerButton;
 
-  QString pSearchText;
-  QString pLastSearchText;
-
-  bool pIsWaiting;
-  void startWait();
-  void stopWait();
-  QMovie *pAnimMovie;
-  int pAnimTimerId;
-
 private slots:
-  void updateSearchFound(bool found);
-  void slotSearchFocusIn();
-  void slotSearchFocusOut();
-
   void updateResourceRoleFlags(KLFLibBrowserViewContainer *view, uint flags);
 };
 

@@ -235,12 +235,20 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #  endif
 #endif
 
-
-#define KLF_ASSERT_NOT_NULL(ptr, msg, failaction)			\
-  if ((ptr) == NULL) {							\
-    qWarning().nospace()<<"In function "<<KLF_FUNC_NAME<<":\n\t"<<msg;	\
+#ifdef KLFBACKEND_QT4
+#define KLF_ASSERT_CONDITION(expr, msg, failaction)		       \
+  if ( !(expr) ) {						       \
+    qWarning().nospace()<<"In function "<<KLF_FUNC_NAME<<":\n\t"<<msg; \
+    failaction;							       \
+  }
+#else
+#define KLF_ASSERT_CONDITION(expr, msg, failaction)			\
+  if ( !(expr) ) {							\
+    qWarning("In function %s:\n\t%s", (QString("")+msg).local8Bit().data()); \
     failaction;								\
   }
+#endif
+#define KLF_ASSERT_NOT_NULL(ptr, msg, failaction)  KLF_ASSERT_CONDITION((ptr) != NULL, msg, failaction)
 
 
 

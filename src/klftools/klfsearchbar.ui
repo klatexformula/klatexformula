@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>KLFSearchBar</class>
+ <widget class="QFrame" name="KLFSearchBar">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>522</width>
+    <height>30</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="frameShape">
+   <enum>QFrame::StyledPanel</enum>
+  </property>
+  <property name="frameShadow">
+   <enum>QFrame::Sunken</enum>
+  </property>
+  <layout class="QGridLayout" name="lyt_KLFSearchBar">
+   <property name="topMargin">
+    <number>1</number>
+   </property>
+   <property name="bottomMargin">
+    <number>1</number>
+   </property>
+   <property name="horizontalSpacing">
+    <number>3</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QLabel" name="lblSearch">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>&amp;Search:</string>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+     <property name="buddy">
+      <cstring>txtSearch</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QToolButton" name="btnSearchClear">
+     <property name="toolTip">
+      <string>Clear Search bar</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../klftoolsres.qrc">
+       <normaloff>:/pics/clearright.png</normaloff>:/pics/clearright.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLineEdit" name="txtSearch">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="toolTip">
+      <string>Incremental search within this library resource. Find next with F3 or Ctrl-S key.</string>
+     </property>
+     <property name="whatsThis">
+      <string>Incremental search within this library resource. Find next with F3 or Ctrl-S key.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QToolButton" name="btnFindPrev">
+     <property name="toolTip">
+      <string>Find Previous [Shift-F3]</string>
+     </property>
+     <property name="whatsThis">
+      <string>Find Previous occurrence of search string</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../klftoolsres.qrc">
+       <normaloff>:/pics/findprev.png</normaloff>:/pics/findprev.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QToolButton" name="btnFindNext">
+     <property name="toolTip">
+      <string>Find Next [F3]</string>
+     </property>
+     <property name="whatsThis">
+      <string>Find Next occurrence of search string</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../klftoolsres.qrc">
+       <normaloff>:/pics/findnext.png</normaloff>:/pics/findnext.png</iconset>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../klftoolsres.qrc"/>
+ </resources>
+ <connections/>
+</ui>

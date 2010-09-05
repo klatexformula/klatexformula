@@ -1443,7 +1443,7 @@
           <item row="2" column="0" colspan="3">
            <widget class="QCheckBox" name="chkLibHistoryTagCopyToArchive">
             <property name="text">
-             <string>When categorizing a formula in History, automatically copy it to the Archive</string>
+             <string>When tagging a formula in History, automatically copy it to the Archive</string>
             </property>
            </widget>
           </item>
@@ -1538,8 +1538,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>359</width>
-                <height>167</height>
+                <width>100</width>
+                <height>30</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1705,8 +1705,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>348</width>
-                   <height>215</height>
+                   <width>100</width>
+                   <height>30</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1770,8 +1770,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>562</width>
-            <height>502</height>
+            <width>94</width>
+            <height>24</height>
            </rect>
           </property>
           <attribute name="label">

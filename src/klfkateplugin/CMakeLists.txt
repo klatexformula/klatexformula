@@ -7,7 +7,7 @@
 # KLatexFormula KTextEditor Plugin
 
 message(STATUS "")
-message(STATUS "[KDE4 SETTINGS]")
+message(STATUS "[KDE4 SETTINGS (for kate plugin)]")
 
 # find KDE4
 find_package(KDE4)

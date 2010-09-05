@@ -113,12 +113,15 @@ public:
     static NodeId rootNode() { return NodeId(CategoryLabelKind, 0); }
   };
   struct Node {
-    Node(ItemKind k) : kind(k), parent(NodeId()), children(QList<NodeId>()), allChildrenFetched(false),
-		       numDisplayFetched(0)  { }
-    Node(const Node& other) : kind(other.kind), parent(other.parent), children(other.children),
-			      allChildrenFetched(other.allChildrenFetched),
+    Node() : allocated(false) { }
+    Node(ItemKind k) : allocated(true), kind(k), parent(NodeId()), children(QList<NodeId>()),
+		       allChildrenFetched(false), numDisplayFetched(0)  { }
+    Node(const Node& other) : allocated(other.allocated), kind(other.kind), parent(other.parent),
+			      children(other.children), allChildrenFetched(other.allChildrenFetched),
 			      numDisplayFetched(other.numDisplayFetched)  { }
     virtual ~Node() { }
+    //! Whether this node is used. when false, this Node object is just unused memory space in the cache list
+    bool allocated;
     ItemKind kind;
     NodeId parent;
     QList<NodeId> children;
@@ -132,6 +135,11 @@ public:
     {
       allChildrenFetched = true; // no children to fetch
     }
+    EntryNode(const EntryNode& copy)
+      : Node(copy), entryid(copy.entryid), minimalist(copy.minimalist), entry(copy.entry) { }
+
+    inline bool entryIsValid() const  { return allocated && parent != NodeId() && entryid >= 0; }
+
     KLFLib::entryId entryid;
     /** if TRUE, 'entry' only holds category/tags/datetime/latex/previewsize, no pixmap, no style. */
     bool minimalist;
@@ -139,14 +147,62 @@ public:
   };
   struct CategoryLabelNode : public Node {
     CategoryLabelNode() : Node(CategoryLabelKind), categoryLabel(), fullCategoryPath()  { }
+    CategoryLabelNode(const CategoryLabelNode& copy)
+      : Node(copy), categoryLabel(copy.categoryLabel), fullCategoryPath(copy.fullCategoryPath) { }
     //! The last element in \ref fullCategoryPath eg. "General Relativity"
     QString categoryLabel;
     //! The full category path of this category eg. "Physics/General Relativity"
     QString fullCategoryPath;
   };
 
-  typedef QList<EntryNode> EntryCache;
-  typedef QList<CategoryLabelNode> CategoryLabelCache;
+  template<class N>
+  class NodeCache : public QList<N> {
+  public:
+    NodeCache() : QList<N>(), pContainsNonAllocated(false) { }
+
+    inline bool isAllocated(IndexType i) { return QList<N>::at(i).allocated; }
+
+    IndexType insertNewNode(const N& n) {
+      IndexType insertPos = QList<N>::size();
+      if (pContainsNonAllocated) {
+	// walk the cache, and find an invalid node
+	for (insertPos = 0; insertPos < QList<N>::size() && QList<N>::at(insertPos).allocated; ++insertPos)
+	  ;
+      }
+      if (insertPos == QList<N>::size()) {
+	pContainsNonAllocated = false;
+	append(n);
+	return insertPos;
+      }
+      QList<N>::operator[](insertPos) = n;
+      return insertPos;
+    }
+
+    /** \warning: you must check manually before calling this function that \c nid is right kind! */
+    inline void unlinkNode(const NodeId& nid) { unlinkNode(nid.index); }
+    void unlinkNode(IndexType index) {
+      N& node = QList<N>::operator[](index);
+      node.allocated = false; // render invalid
+      pContainsNonAllocated = true;
+    }
+
+    /** \warning: you must check manually before calling this function that \c nid is right kind! */
+    inline N takeNode(const NodeId& nid) { return takeNode(nid.index); }
+    N takeNode(IndexType index) {
+      if (index < 0 || index >= QList<N>::size()) {
+	qWarning()<<KLF_FUNC_NAME<<": invalid index="<<index;
+	return N();
+      }
+      N node = QList<N>::at(index);
+      unlinkNode(index);
+      return node;
+    }
+  private:
+    bool pContainsNonAllocated;
+  };
+
+  typedef NodeCache<EntryNode> EntryCache;
+  typedef NodeCache<CategoryLabelNode> CategoryLabelCache;
 
   EntryNode pInvalidEntryNode; // not initialized, not used except for return values
   //                              of functions aborting their call eg. getNodeRef()
@@ -155,8 +211,6 @@ public:
   KLFLibModelCache(KLFLibModel * model)
     : pModel(model)
   {
-    pCategoryLabelCacheContainsInvalid = false;
-
     pIsFetchingMore = false;
 
     pLastSortPropId = KLFLibEntry::DateTime;
@@ -204,23 +258,28 @@ public:
   void ensureNotMinimalist(NodeId nodeId, int count = -1);
 
   bool canFetchMore(NodeId parentId);
-  void fetchMore(NodeId parentId, int batchCount);
+  void fetchMore(NodeId parentId, int batchCount = -1);
 
   void updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType);
 
-  /** emits QAbstractItemModel-appropriate beginInsertRows()/endInsertRows() if \c notifyQtApi is
-   * true. Those signals are also emitted (if \c notifyQtApi is true) when category labels are
-   * created to fit the node.
-   *
+  /**
    * if \c isRebuildingCache is set, then items are just appended to the category childs (as they
    * are inserted in the right order), and calls to cacheFindCategoryLabel will set
-   * \c newlyCreatedAllChildrenFetched parameter to FALSE. */
-  void treeInsertEntry(const NodeId& e, bool notifyQtApi = true, bool isRebuildingCache = false);
+   * \c newlyCreatedAllChildrenFetched parameter to FALSE.
+   *
+   * emits QAbstractItemModel-appropriate beginInsertRows()/endInsertRows() if \c isRebuildingCache is
+   * FALSE. Those signals are also emitted (if \c isRebuildingCache is false) when category labels are
+   * created to fit the node.
+   *
+   * The entry-node \c e must not be yet in the entry cache.
+   */
+  void treeInsertEntry(const EntryNode& e, bool isRebuildingCache = false);
+
   /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true
    *
    * This function sets the entryId of the removed entry to -1 so that it cannot be re-found in a
    * future search. */
-  void treeRemoveEntry(const NodeId& e, bool notifyQtApi = true);
+  EntryNode treeTakeEntry(const NodeId& e, bool notifyQtApi = true);
 
   /** emits QAbstractItemModel-appropriate signals and updates indexes if \c notifyQtApi is true.
    *
@@ -300,7 +359,6 @@ public:
 private:
   EntryCache pEntryCache;
   CategoryLabelCache pCategoryLabelCache;
-  bool pCategoryLabelCacheContainsInvalid;
 
   QStringList pCatListCache;
 

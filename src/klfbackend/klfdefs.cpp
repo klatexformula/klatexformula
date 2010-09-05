@@ -368,23 +368,63 @@
  *
  * \brief Asserting Non-NULL pointers (NON-FATAL)
  *
- * If the given \c ptr is NULL, then prints function name and message to standard warning
- * output (using Qt's qWarning()) and executes instructions given by \c failaction.
- * \c msg may contain << operators to chain output to a QDebug.
+ * This macro is equivalent to
+ * \code
+ *  KLF_ASSERT_CONDITION(ptr != NULL, message, failaction) ;
+ * \endcode
  *
- * \c failaction is any C/C++ instructions that you can place in an 'if' block, including \c 'return',
- *   'continue' or 'break' instructions.
+ * If the given pointer \c ptr is NULL, then prints function name and the given message \c msg to
+ * standard warning output (using Qt's qWarning()) and executes instructions given by \c failaction.
  *
- * This macro is not affected by the KLF_DEBUG symbol. This macro is always defined and functional.
+ * On Qt 4, \c msg may contain << operators to chain output to a QDebug.
+ *
+ * On Qt 3, \c msg may be anything that can be added with \c '+' to a QString.
+ *
+ * See \ref KLF_ASSERT_CONDITION for more information.
+ */
+
+/** \def KLF_ASSERT_CONDITION
+ *
+ * \brief Asserting Conditions (NON-FATAL)
+ *
+ * If the given expression \c expr is FALSE, then prints function name and the given message \c msg to
+ * standard warning output (using Qt's qWarning()) and executes instructions given by \c failaction.
+ *
+ * \c failaction is any C/C++ instructions that you can place inside a normal code block (in this
+ * case the code will be contained in an 'if' block). The allowed instructions include \c 'return',
+ * 'continue' or 'break' instructions.
+ *
+ * On Qt 4, \c msg may contain <tt>&lt;&lt;</tt> operators to chain output to a QDebug.
+ *
+ * On Qt 3, \c msg may be anything that can be added with \c '+' to a QString.
+ *
+ * A helper macro for asserting non-NULL pointers is also defined as \ref KLF_ASSERT_NOT_NULL. It directly
+ * calls KLF_ASSERT_CONDITION with the expression <tt>(ptr) != NULL</tt>.
  *
  * Example:
  * \code
- *  QString get_myobject_name(MyObject *object)
- *  {
+ *  bool static_has_failed = false;
+ *  void * find_whatever_pointer(SomeContainer c, const char * querystring) {
+ *    int i = ... // find 'querystring' in the container 'c'
+ *    KLF_ASSERT_CONDITION( i >= 0 && i < c.size() ,
+ *                          "Can't find string "<<querystring<<"!" ,  // Assuming Qt 4
+ *                          static_has_failed = true;  return NULL;  )
+ *    ...
+ *  }
+ *  QString get_myobject_name(MyObject *object) {
  *    KLF_ASSERT_NOT_NULL( object , "object is NULL!" , return QString() ) ;
  *    return object->name;
  *  }
  * \endcode
+ *
+ * Note Qt4 is needed to use the streaming operators as in the first asserting condition above. With
+ * Qt 3, one has to use QString's '+' operator:
+ * \code
+ *  KLF_ASSERT_CONDITION( ... , "Can't find string "+querystring+"!" , ... );
+ * \endcode
+ * Which works since on Qt 3, the \c msg argument is as a whole added to <tt>QString("")</tt>.
+ *
+ * This macro is not affected by the KLF_DEBUG symbol. This macro is always defined and functional.
  */
 
 
@@ -705,22 +745,16 @@ KLFDebugBlockTimer::~KLFDebugBlockTimer()
 #endif
 }
 
+// the following is defined for both debug and non-debug modes. In non-debug modes, it provides the symbol __klf_dbg_hdr
+// for debugging eg. plugins compiled in debug mode (NEEDS TESTING...?)
 #ifdef KLFBACKEND_QT4
 // QT 4 >>
 KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime)
 {
-#  ifdef KLF_DEBUG
   if (shorttime == NULL)
-    return dbg.nospace()<<funcname<<"():"<<refinstance<<"\n  ";
+    return dbg.nospace()<<funcname<<"():"<<refinstance<<"\n        ";
   else
     return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"():"<<refinstance<<"\n  ";
-#  else
-  Q_UNUSED(funcname) ;
-  Q_UNUSED(shorttime) ;
-  Q_UNUSED(refinstance) ;
-
-  return dbg; // do nothing (not debug mode)
-#  endif
 }
 // << QT 4
 #else

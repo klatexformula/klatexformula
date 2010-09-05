@@ -36,6 +36,8 @@
 #include <QTime>
 #include <QGridLayout>
 #include <QDoubleSpinBox>
+#include <QLabel>
+#include <QMovie>
 
 #include <klfutil.h>
 
@@ -372,135 +374,124 @@ protected:
 
 
 
-
-
-/** \brief A combo box to select a unit for measures
+//! An animation display
+/** This animation widget can be used as an overlay widget (meaning, not positioned within a layout)
+ * to indicate the user to be patient.
  *
- * Typical usage:
- * - set possible units with setUnitList() or setUnits() or by setting the klfUnits property
- *   in Qt designer to a string-list as documented in setUnits()
- * - eg. connect signal unitChanged(double) to a KLFUnitSpinBox' setUnit(double) to allow us
- *   to change that spin box' unit; or set/retrieve manually the selected unit with the various
- *   getters (currentUnit(), currentUnitName(), etc.) and the setter setCurrentUnit().
+ * Note that this label relies on a non-NULL parent widget. <i>(Exception: the parent is only needed in
+ * calcAnimationLabelGeometry(); if you need a parentless animation widget, subclass this animation
+ * label and reimplement that function to fit your needs without calling the base implemenation
+ * of that function)</i>.
  */
-class KLFUnitChooser : public QComboBox
+class KLFWaitAnimationOverlay : public QLabel
 {
   Q_OBJECT
-
-  Q_PROPERTY(QString currentUnit READ currentUnitName WRITE setCurrentUnit USER true)
-  Q_PROPERTY(double currentUnitFactor READ currentUnitFactor)
-  Q_PROPERTY(QStringList klfUnits READ unitStrList WRITE setUnits)
+  Q_PROPERTY(QString waitMovie READ waitMovieFileName WRITE setWaitMovie) ;
+  Q_PROPERTY(int widthPercent READ widthPercent WRITE setWidthPercent) ;
+  Q_PROPERTY(int heightPercent READ heightPercent WRITE setHeightPercent) ;
+  Q_PROPERTY(int positionXPercent READ positionXPercent WRITE setPositionXPercent) ;
+  Q_PROPERTY(int positionYPercent READ positionYPercent WRITE setPositionYPercent) ;
+  Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor) ;
 public:
-  KLFUnitChooser(QWidget *parent = NULL);
-  virtual ~KLFUnitChooser();
+  KLFWaitAnimationOverlay(QWidget *parent);
+  virtual ~KLFWaitAnimationOverlay();
 
-  struct Unit {
-    QString name;
-    QString abbrev;
-    double factor;
-  };
+  inline QString waitMovieFileName() const { return (pAnimMovie!=NULL) ? pAnimMovie->fileName() : QString(); }
 
-  inline Unit currentUnit() const { return itemData(currentIndex()).value<Unit>(); }
-  inline QString currentUnitName() const { return currentUnit().name; }
-  inline QString currentUnitAbbrev() const { return currentUnit().abbrev; }
-  inline double currentUnitFactor() const { return currentUnit().factor; }
+  inline int widthPercent() const { return pWidthPercent; }
+  inline int heightPercent() const { return pHeightPercent; }
+  inline int positionXPercent() const { return pPositionXPercent; }
+  inline int positionYPercent() const { return pPositionYPercent; }
 
-  inline QStringList unitNames() const
-  { QStringList l; foreach (Unit unit, pUnits) { l << unit.name; } return l;  }
-  inline QList<Unit> unitList() const { return pUnits; }
-
-  QStringList unitStrList() const;
+  QColor backgroundColor() const;
 
 public slots:
-  /** Set the possible units user can choose from.
-   * Units are specified as a list, each item in the list corresponding to one unit, specified
-   * as a string like \c "Inch=in=25.4" or \c "Centimeter=cm=10" or \c "Millimeter=mm=1", that
-   * is a string with three sections separated by an \c '=' sign giving unit name, unit abbreviation,
-   * and the factor of that unit to a reference unit. See KLFUnitSpinBox for discussion about units.
+  /** \brief Set which animation to display while searching
+   *
+   * An animation is displayed when performing long searches, to tell the user to be patient. A default
+   * animation is provided if you do not call this function. If you give a NULL movie pointer, the animation
+   * is unset and disabled.
+   *
+   * The ownership of \c movie is transferred to this search bar object, and will be \c delete'd when no
+   * longer used.
    */
-  void setUnits(const QStringList& unitstrlist);
-  /** Set the possible units user can choose from. */
-  void setUnitList(const QList<Unit>& unitlist);
+  virtual void setWaitMovie(QMovie *movie);
+  /** Set the animation to display while searching (eg. MNG file). See also setWaitMovie(QMovie*).
+   */
+  virtual void setWaitMovie(const QString& file);
 
-  void setCurrentUnit(const QString& unitName);
+  //! Sets the width of this label
+  /** Sets the width of the displayed animation, in percent of the parent's width.
+   * \c 50% will occupy half of the parent's width, leaving \c 25% on each side, while
+   * \c 100% will occupy the full parent width.
+   *
+   * This function has no effect if \ref calcAnimationLabelGeometry() has been reimplemented in a subclass
+   * that does not call the base implementation of that function.
+   *
+   * This function must be called before animation is shown with startWait().
+   *
+   * See also setHeightPercent().
+   */
+  void setWidthPercent(int widthpercent) { pWidthPercent = widthpercent; }
 
-signals:
-  void unitChanged(const QString& unitName);
-  void unitChanged(double unitFactor);
+  //! Sets the height of this label
+  /** See setWidthPercent().
+   */
+  void setHeightPercent(int heightpercent) { pHeightPercent = heightpercent; }
 
-private:
-  QList<Unit> pUnits;
-private slots:
-  void internalCurrentIndexChanged(int index);
-};
+  //! Sets the horizontal position of this label relative to the parent widget
+  /** The value given is, in percent, the amout of space on the left of this label (relative to parent), with
+   * \c 0% being aligned completely to the left (no space left on the left) and \c 100% being aligned completely
+   * to the right (no space left on the right). \c 50% will center the label.
+   *
+   * The label will never go beyond the parent widget's geometry.
+   *
+   * This function has no effect if \ref calcAnimationLabelGeometry() has been reimplemented in a subclass
+   * that does not call the base implementation of that function.
+   *
+   * See also setPositionYPercent().
+   */
+  void setPositionXPercent(int xpc) { pPositionXPercent = xpc; }
 
-Q_DECLARE_METATYPE(KLFUnitChooser::Unit) ;
+  //! Sets the vertical position of this label relative to the parent widget
+  /** See setPositionXPercent().
+   */
+  void setPositionYPercent(int ypc) { pPositionYPercent = ypc; }
 
+  //! Set the label background color.
+  /** This function will set the label background color. It may contain an alpha value to make the label
+   * translucent or semi-translucent.
+   *
+   * This function internally sets a style sheet to this label.
+   */
+  void setBackgroundColor(const QColor& c);
 
-/** \brief A spin box that can display values in different units
- *
- * This widget presents a spin box which displays a value, which by default is shown
- * in the 'reference unit', for which the 'unit factor' is \c 1.
- *
- * Other units may be set (eg. by connecting our setUnit(double) slot to the unitChanged(double)
- * signal of a KLFUnitChooser) which have other unit factors telling how to convert the other
- * value into the 'ref unit' value.
- *
- * Example:
- * \code
- *   // as the programmer, we have only to think which units the _program_ requests and define
- *   // that value to be the 'reference unit'. We assume for this example that the (fictive)
- *   // function  perform_adjustment(double)  requests an argument that is a length in millimeters.
- *   KLFUnitSpinBox spn = new KLFUnitSpinBox;
- *   spn->setValue(18); // We display the value 18 ref-units. (= mm here)
- *   spn->setUnit(25.4); // set a unit that is 25.4 'ref-units': will now display the value 0.709
- *   //                     which is 18mm in inches.
- *   ...
- *   // other units may be set with spn->setUnit(double unitfactor)
- *   ...
- *   // at the end, retrieve the value
- *   double valueInMM = spn->valueInRefUnit();
- *   perform_adjustment(valueInMM);
- * \endcode
- *
- * When units are changed, the minimum and maximum are adjusted to the value in the new units.
- *
- * The precision (\ref setDecimals()) is also adjusted to the right order of magnitude (power of 10).
- * For example, if the value of 18.3mm is displayed with 1 decimal place, and a unit is set with factor
- * of \c 1000 (m) then the presision is adjusted to 4 decimal places. And if a unit is set with factor
- * of \c 304.8 (foot) then the precision is adjusted to 3 decimal places. <i>Details: the number
- * of decimal places to adjust is determined by rounding the value <tt>log_10(unit-factor)</tt>
- * to the nearest integer.</i>
- *
- * \note 'unit-factor' of unit \a XYZ is defined as the number of ref units needed to amount to one
- *   \a XYZ.
- */
-class KLFUnitSpinBox : public QDoubleSpinBox
-{
-  Q_OBJECT
-public:
-  KLFUnitSpinBox(QWidget *parent = NULL);
-  virtual ~KLFUnitSpinBox();
+  /** \brief Display the animation */
+  virtual void startWait();
 
-  inline double unitFactor() const { return pUnitFactor; }
+  /** \brief Hide the animation */
+  virtual void stopWait();
 
-  inline double valueInRefUnit() const { return QDoubleSpinBox::value() * unitFactor(); }
+protected:
+  virtual void timerEvent(QTimerEvent *event);
 
-signals:
-  void valueInRefUnitChanged(double value);
-
-public slots:
-  void setUnit(double unitfactor);
-
-  void setValueInRefUnit(double value);
+  /** Calculate the geometry the label should have, according to current parent geometry. This function is
+   * called just before the label is shown.
+   *
+   * The returned QRect should be relative to the parent widget.
+   */
+  virtual QRect calcAnimationLabelGeometry();
 
 private:
-  double pUnitFactor;
-private slots:
-  void internalValueChanged(double valueInExtUnits);
+  bool pIsWaiting;
+  QMovie *pAnimMovie;
+  int pAnimTimerId;
+
+  int pWidthPercent;
+  int pHeightPercent;
+  int pPositionXPercent;
+  int pPositionYPercent;
 };
-
-
 
 
 

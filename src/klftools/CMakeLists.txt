@@ -17,6 +17,8 @@ set(klftools_SRCS
 	qtcolortriangle.cpp
 	klfdisplaylabel.cpp
 	klfstyle.cpp
+	klfsearchbar.cpp
+	klfunitinput.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -27,6 +29,8 @@ set(klftools_MOCHEADERS
 	klfpathchooser.h
 	qtcolortriangle.h
 	klfdisplaylabel.h
+	klfunitinput.h
+	klfsearchbar.h
 )
 #  * all headers
 set(klftools_HEADERS
@@ -40,6 +44,7 @@ set(klftools_HEADERS
 set(klftools_UIS
 	klfcolorchoosewidget.ui
 	klfcolordialog.ui
+	klfsearchbar.ui
 )
 # Resources
 set(klftools_QRCS

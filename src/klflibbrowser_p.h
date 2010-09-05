@@ -48,12 +48,13 @@
 
 #include <ui_klflibexportdialog.h>
 
+#include <klfsearchbar.h>
 #include "klflibview.h"
 #include "klfconfig.h"
 #include "klflibbrowser.h"
 
 /** \internal */
-class KLFLibBrowserViewContainer : public QStackedWidget
+class KLFLibBrowserViewContainer : public QStackedWidget, public KLFSearchableProxy
 {
   Q_OBJECT
 public:
@@ -320,11 +321,14 @@ protected slots:
 
   void slotCurrentChanged(int index) {
     KLFAbstractLibView *v = view();
+    setSearchTarget(v);
     if (v == NULL) return;
     QString vtype = pOpenViewTypeIdents.key(index);
     int ai = findViewTypeAction(vtype);
     if (ai >= 0)
       pViewTypeActions[ai]->setChecked(true);
+
+
     emit viewTypeChanged(vtype);
     emit entriesSelected(v->selectedEntries());
   }

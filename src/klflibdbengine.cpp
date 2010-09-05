@@ -278,6 +278,8 @@ bool KLFLibDBEngine::canModifyData(const QString& subResource, ModifyType mt) co
 {
   if ( !KLFLibResourceEngine::canModifyData(subResource, mt) )
     return false;
+  if ( !validDatabase() )
+    return false;
 
   /** \todo TODO: check if file is writable (SQLITE3), if permissions on the database
    * are granted (MySQL, PgSQL, etc.) */
@@ -308,6 +310,9 @@ void KLFLibDBEngine::setDatabase(const QSqlDatabase& db)
 bool KLFLibDBEngine::saveResourceProperty(int propId, const QVariant& value)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return false ) ;
 
   QString propName = propertyNameForId(propId);
   if ( propName.isEmpty() )
@@ -357,6 +362,9 @@ void KLFLibDBEngine::subResourcePropertyUpdate(const QString& subResource, int p
 
 void KLFLibDBEngine::readResourceProperty(int propId)
 {
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return ) ;
+
   QString sqlstr = "SELECT name,value FROM klf_properties";
   QString propName;
   if (propId >= 0) {
@@ -487,8 +495,8 @@ KLFLibEntry KLFLibDBEngine::readEntry(const QSqlQuery& q, const QStringList& col
 
 QList<KLFLib::entryId> KLFLibDBEngine::allIds(const QString& subResource)
 {
-  if ( ! validDatabase() )
-    return QList<KLFLib::entryId>();
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return QList<KLFLib::entryId>() ) ;
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare(QString("SELECT id FROM %1").arg(quotedDataTableName(subResource)));
@@ -507,8 +515,8 @@ QList<KLFLib::entryId> KLFLibDBEngine::allIds(const QString& subResource)
 }
 bool KLFLibDBEngine::hasEntry(const QString& subResource, entryId id)
 {
-  if ( ! validDatabase() )
-    return false;
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return false ) ;
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare(QString("SELECT id FROM %1 WHERE id = ?").arg(quotedDataTableName(subResource)));
@@ -528,8 +536,8 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
 			      const QList<int>& wantedEntryProperties)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME); klfDbg( "\t: subResource="<<subResource<<"; idlist="<<idList ) ;
-  if ( ! validDatabase() )
-    return QList<KLFLibEntryWithId>();
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return QList<KLFLibEntryWithId>() ) ;
   if (idList.isEmpty())
     return QList<KLFLibEntryWithId>();
 
@@ -718,8 +726,8 @@ int KLFLibDBEngine::query(const QString& subResource, const Query& query, QueryR
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
   klfDbg( "\t: subResource="<<subResource<<"; query="<<query ) ;
 
-  if ( ! validDatabase() )
-    return -1;
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return -1 ) ;
 
   QStringList cols = columnNameList(subResource, query.wantedEntryProperties, true);
 
@@ -736,6 +744,8 @@ int KLFLibDBEngine::query(const QString& subResource, const Query& query, QueryR
   /** \bug. ................ postsqlcondition is NOT implemented ............. */
   if (haspostsqlcondition) {
     // fallback on very rudimentary search
+    klfDbg("You are using a feature that is not natively implemented in KLFLibDBEngine: falling back to "
+	   "rudimentary and slow implementation!");
     return KLFLibResourceSimpleEngine::queryImpl(this, subResource, query, result);
   }
 
@@ -785,7 +795,7 @@ int KLFLibDBEngine::query(const QString& subResource, const Query& query, QueryR
     ++skipped;
   klfDbg("skipped "<<skipped<<" entries.") ;
 
-  // warning: Qt crashes on to conseqent failing q.next() calls, if forward-only mode is enabled.
+  // warning: Qt crashes on two consequent failing q.next() calls, if forward-only mode is enabled.
 
   int count = 0;
   while (ok && q.next()) {
@@ -815,6 +825,9 @@ QList<QVariant> KLFLibDBEngine::queryValues(const QString& subResource, int entr
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
   klfDbg( "\t: subResource="<<subResource<<"; entryPropId="<<entryPropId ) ;
+
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return QList<QVariant>() ) ;
 
   if (!pDBAvailColumns.contains(subResource)) {
     qWarning()<<KLF_FUNC_NAME<<": bad sub-resource: "<<subResource;
@@ -859,8 +872,8 @@ QList<QVariant> KLFLibDBEngine::queryValues(const QString& subResource, int entr
 
 KLFLibEntry KLFLibDBEngine::entry(const QString& subResource, entryId id)
 {
-  if ( ! validDatabase() )
-    return KLFLibEntry();
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return KLFLibEntry() ) ;
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare(QString("SELECT * FROM %1 WHERE id = ?").arg(quotedDataTableName(subResource)));
@@ -892,8 +905,8 @@ KLFLibEntry KLFLibDBEngine::entry(const QString& subResource, entryId id)
 QList<KLFLibResourceEngine::KLFLibEntryWithId>
 /* */ KLFLibDBEngine::allEntries(const QString& subResource, const QList<int>& wantedEntryProperties)
 {
-  if ( ! validDatabase() )
-    return QList<KLFLibResourceEngine::KLFLibEntryWithId>();
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return QList<KLFLibEntryWithId>() ) ;
 
   QStringList cols = columnNameList(subResource, wantedEntryProperties, true);
 
@@ -955,8 +968,8 @@ bool KLFLibDBEngine::canDeleteSubResource(const QString& subResource) const
 
 QVariant KLFLibDBEngine::subResourceProperty(const QString& subResource, int propId) const
 {
-  if ( ! validDatabase() )
-    return QVariant();
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return QVariant() ) ;
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("SELECT pvalue FROM klf_subresprops WHERE lower(subresource) = lower(?) AND pid = ?");
@@ -991,6 +1004,9 @@ bool KLFLibDBEngine::hasSubResource(const QString& subRes) const
 
 QStringList KLFLibDBEngine::subResourceList() const
 {
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return QStringList() ) ;
+
   QStringList allTables = pDB.tables();
   QStringList subreslist;
   int k;
@@ -1006,8 +1022,8 @@ bool KLFLibDBEngine::setSubResourceProperty(const QString& subResource, int prop
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
-  if ( ! validDatabase() )
-    return false;
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return false ) ;
 
   if ( !canModifyProp(-1) )
     return false;
@@ -1286,6 +1302,9 @@ bool KLFLibDBEngine::ensureDataTableColumnsExist(const QString& subResource)
 
 bool KLFLibDBEngine::deleteSubResource(const QString& subResource)
 {
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return false ) ;
+
   if (!canDeleteSubResource(subResource))
     return false;
 
@@ -1316,8 +1335,10 @@ bool KLFLibDBEngine::deleteSubResource(const QString& subResource)
 
 bool KLFLibDBEngine::createSubResource(const QString& subResource, const QString& subResourceTitle)
 {
-  if ( ! validDatabase() )
-    return false;
+
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return false ) ;
+
   if ( subResource.isEmpty() )
     return false;
 
@@ -1347,13 +1368,20 @@ QList<KLFLibResourceEngine::entryId> KLFLibDBEngine::insertEntries(const QString
 								   const KLFLibEntryList& entrylist)
 {
   int k, j;
-  if ( ! validDatabase() )
-    return QList<entryId>();
-  if ( entrylist.size() == 0 )
-    return QList<entryId>();
 
-  if ( !canModifyData(subres, InsertData) )
+  KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
+			return QList<KLFLibResourceEngine::entryId>() ) ;
+
+  klfDbg("subres="<<subres<<"; entrylist="<<entrylist) ;
+
+  if ( entrylist.size() == 0 ) {
     return QList<entryId>();
+  }
+
+  if ( !canModifyData(subres, InsertData) ) {
+    klfDbg("can't modify data.") ;
+    return QList<entryId>();
+  }
 
   if ( !tableExists(subres) ) {
     qWarning()<<KLF_FUNC_NAME<<": Sub-Resource "<<subres<<" does not exist.";
@@ -1498,8 +1526,12 @@ bool KLFLibDBEngine::deleteEntries(const QString& subResource, const QList<entry
   int k;
   bool failed = false;
 
+  QString sql = QString("DELETE FROM %1 WHERE id = ?").arg(quotedDataTableName(subResource));
+
+  klfDbg("sql is "<<sql<<", idlist is "<<idlist) ;
+
   QSqlQuery q = QSqlQuery(pDB);
-  q.prepare(QString("DELETE FROM %1 WHERE id = ?").arg(quotedDataTableName(subResource)));
+  q.prepare(sql);
 
   KLFProgressReporter progr(0, idlist.size(), this);
   if (!thisOperationProgressBlocked())

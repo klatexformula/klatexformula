@@ -181,7 +181,7 @@ void SkinConfigWidget::loadSkinList(QString skinfn)
 
 void SkinConfigWidget::skinSelected(int index)
 {
-  if (index < 0 || index >= cbxSkin->count()-1)
+  if (index < 0 || index >= cbxSkin->count())
     return;
 
   updateSkinDescription(cbxSkin->itemData(index).value<Skin>());

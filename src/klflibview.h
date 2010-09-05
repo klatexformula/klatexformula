@@ -40,6 +40,7 @@
 
 #include <klfdefs.h>
 #include <klflib.h>
+#include <klfsearchbar.h>
 
 
 
@@ -74,8 +75,10 @@ namespace KLFLib {
  * \warning The design of this class with a \ref setResourceEngine() function makes it
  *   unsafe to blindly assume a non-NULL resource engine pointer at all times. Check
  *   the pointer before using it! See \ref validResourceEngine().
+ *
+ * \note Don't forget to reimplement KLFSearchable's pure virtual functions for I-Search.
  */
-class KLF_EXPORT KLFAbstractLibView : public QWidget
+class KLF_EXPORT KLFAbstractLibView : public QWidget, public KLFSearchable
 {
   Q_OBJECT
 public:
@@ -205,23 +208,23 @@ public slots:
    *
    * \note The view does not have to garantee that selection is preserved.
    */
-  virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
+  //  virtual bool writeEntryProperty(int property, const QVariant& value) = 0;
 
-  /** Provides a reasonable default implementation that should suit for most purposes. */
-  virtual bool writeEntryCategory(const QString& category)
-  { return writeEntryProperty(KLFLibEntry::Category, category); }
+  /* * Provides a reasonable default implementation that should suit for most purposes. */
+  //  virtual bool writeEntryCategory(const QString& category)
+  //  { return writeEntryProperty(KLFLibEntry::Category, category); }
 
-  /** Provides a reasonable default implementation that should suit for most purposes. */
-  virtual bool writeEntryTags(const QString& tags)
-  { return writeEntryProperty(KLFLibEntry::Tags, tags); }
+  /* * Provides a reasonable default implementation that should suit for most purposes. */
+  //  virtual bool writeEntryTags(const QString& tags)
+  //  { return writeEntryProperty(KLFLibEntry::Tags, tags); }
 
-  virtual bool deleteSelected(bool requireConfirm = true) = 0;
+  //  virtual bool deleteSelected(bool requireConfirm = true);
 
-  virtual bool insertEntries(const KLFLibEntryList& entries) = 0;
+  //   virtual bool insertEntries(const KLFLibEntryList& entries);
 
-  /** Provides a reasonable default implementation that should suit for most purposes. */
-  virtual bool insertEntry(const KLFLibEntry& entry)
-  { return insertEntries(KLFLibEntryList() << entry); }
+  /* * Provides a reasonable default implementation that should suit for most purposes. */
+  //   virtual bool insertEntry(const KLFLibEntry& entry)
+  //   { return insertEntries(KLFLibEntryList() << entry); }
 
   /** Subclasses must reimplement to select the given entries in the view.
    *
@@ -230,31 +233,6 @@ public slots:
    * this function should return FALSE.
    */
   virtual bool selectEntries(const QList<KLFLib::entryId>& idList) = 0;
-
-  /** This function should instruct the view to find the first occurence of the
-   * string \c queryString, searching from top of the list if \c forward is TRUE, or reverse
-   * from end of list of FALSE.
-   *
-   * The reimplementation should call from time to time
-   * \code qApp->processEvents() \endcode
-   * to keep the GUI from freezing in long resources.
-   *
-   * \note If the reimplementation implements the above suggestion, note that the slot
-   *   \ref searchAbort() may be called during that time! It is best to take that into
-   *   account and provide a means to stop the search if that is the case.
-   */
-  virtual bool searchFind(const QString& queryString, bool forward = true) = 0;
-  /** This function should instruct the view to find the next occurence of the query string
-   * given by a previous call to \ref searchFind(). The search must be performed in the
-   * direction given by \c forward (see \ref searchFind()).
-   *
-   * It is up to the sub-class to remember the query string and the current match location.
-   *
-   * This function should also call the applications's processEvents() to keep the GUI from
-   * freezing. The instructions are the same as for \ref searchFind().
-   */
-  virtual bool searchFindNext(bool forward) = 0;
-  virtual void searchAbort() = 0;
 
   /** Collects the necessary information and emits \ref requestRestore() */
   virtual void restore(uint restoreFlags = KLFLib::RestoreLatexAndStyle) = 0;
@@ -481,6 +459,7 @@ class KLF_EXPORT KLFLibModel : public QAbstractItemModel
 public:
   enum FlavorFlag {
     LinearList = 0x0001,
+    IconViewList = LinearList,
     CategoryTree = 0x0002,
     DisplayTypeMask = 0x000f,
 
@@ -608,9 +587,9 @@ public slots:
   virtual QModelIndex searchFindNext(bool forward);
   virtual void searchAbort();
 
-  virtual bool changeEntries(const QModelIndexList& items, int property, const QVariant& value);
-  virtual bool insertEntries(const KLFLibEntryList& entries);
-  virtual bool deleteEntries(const QModelIndexList& items);
+  //   virtual bool changeEntries(const QModelIndexList& items, int property, const QVariant& value);
+  //   virtual bool insertEntries(const KLFLibEntryList& entries);
+  //   virtual bool deleteEntries(const QModelIndexList& items);
 
   virtual void completeRefresh();
 
@@ -821,9 +800,9 @@ public:
   virtual QStringList getCategorySuggestions();
 
 public slots:
-  virtual bool writeEntryProperty(int property, const QVariant& value);
-  virtual bool deleteSelected(bool requireConfirmation = true);
-  virtual bool insertEntries(const KLFLibEntryList& entries);
+  //   virtual bool writeEntryProperty(int property, const QVariant& value);
+  //   virtual bool deleteSelected(bool requireConfirmation = true);
+  //   virtual bool insertEntries(const KLFLibEntryList& entries);
   virtual bool selectEntries(const QList<KLFLib::entryId>& idList);
 
   virtual bool searchFind(const QString& queryString, bool forward = true);

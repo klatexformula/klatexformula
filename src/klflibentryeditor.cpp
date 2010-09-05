@@ -62,30 +62,22 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
   u->cbxCategory->addItem("");
   u->cbxTags->addItem("");
 
-  connect(u->cbxCategory, SIGNAL(activated(int)),
-	  this, SLOT(slotUpdateCategory()));
-  connect(u->cbxTags, SIGNAL(activated(int)),
-	  this, SLOT(slotUpdateTags()));
+  // do NOT automatically apply changes, rather enable the 'apply changes' button
+  //  connect(u->cbxCategory, SIGNAL(activated(int)), this, SLOT(slotApplyChanges()));
+  //  connect(u->cbxTags, SIGNAL(activated(int)), this, SLOT(slotApplyChanges()));
+  connect(u->cbxCategory, SIGNAL(activated(int)), this, SLOT(slotModified()));
+  connect(u->cbxCategory, SIGNAL(editTextChanged(const QString&)), this, SLOT(slotModified()));
+  connect(u->cbxTags, SIGNAL(activated(int)), this, SLOT(slotModified()));
+  connect(u->cbxTags, SIGNAL(editTextChanged(const QString&)), this, SLOT(slotModified()));
 
   // preview and latexpreview should be as small as possible (while
   // still respecting their minimum sizes...)
   u->splitEntryEditor->setSizes(QList<int>() << 100 << 1000);
 
-  connect(u->btnUpdateCategory, SIGNAL(clicked()),
-	  this, SLOT(slotUpdateCategory()));
-  connect(u->btnUpdateTags, SIGNAL(clicked()),
-	  this, SLOT(slotUpdateTags()));
-
-
   // setup latex preview / preamble preview text browser
   u->txtPreviewLatex->setFont(klfconfig.UI.preambleEditFont);
   u->txtStyPreamble->setFont(klfconfig.UI.preambleEditFont);
   u->txtStyPreamble->setHeightHintLines(4);
-
-  // --
-
-  connect(u->btnRestoreStyle, SIGNAL(clicked()), this, SLOT(slotRestoreStyle()));
-
 }
 void KLFLibEntryEditor::retranslateUi(bool alsoBaseUi)
 {
@@ -136,32 +128,36 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     u->cbxTags->setEditText(tr("[ No Item Selected ]"));
     //    u->lblStylePreview->setText(tr("[ No Item Selected ]"));
     u->cbxCategory->setEnabled(false);
-    u->btnUpdateCategory->setEnabled(false);
     u->cbxTags->setEnabled(false);
-    u->btnUpdateTags->setEnabled(false);
+    u->btnApplyChanges->setEnabled(false);
     u->btnRestoreStyle->setEnabled(false);
     pCurrentStyle = KLFStyle();
     displayStyle(false, KLFStyle());
     u->lblStyMathMode->setText(tr("[ No Item Selected ]"));
     u->txtStyPreamble->setPlainText(tr("[ No Item Selected ]"));
+    slotModified(false);
     return;
   }
   if (entrylist.size() == 1) {
     KLFLibEntry e = entrylist[0];
-    u->lblPreview->setPixmap(QPixmap::fromImage(e.preview().scaled(u->lblPreview->size(),
-								     Qt::KeepAspectRatio,
-								     Qt::SmoothTransformation)));
+    QImage img = e.preview();
+    QPixmap pix;
+    if (img.width() > u->lblPreview->width() || img.height() > u->lblPreview->height())
+      pix = QPixmap::fromImage(img.scaled(u->lblPreview->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    else
+      pix = QPixmap::fromImage(img);
+    u->lblPreview->setPixmap(pix);
     u->txtPreviewLatex->setText(e.latex());
     u->cbxCategory->setEditText(e.category());
     u->cbxTags->setEditText(e.tags());
     pCurrentStyle = e.style();
     //    u->lblStylePreview->setText(prettyPrintStyle(pCurrentStyle));
     u->cbxCategory->setEnabled(true);
-    u->btnUpdateCategory->setEnabled(pInputEnabled && true);
     u->cbxTags->setEnabled(true);
-    u->btnUpdateTags->setEnabled(pInputEnabled && true);
+    u->btnApplyChanges->setEnabled(pInputEnabled && true);
     u->btnRestoreStyle->setEnabled(true); // NOT pInputEnabled && : not true input
     displayStyle(true, pCurrentStyle);
+    slotModified(false);
     return;
   }
   // multiple items selected
@@ -204,9 +200,9 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
   }
 
   u->cbxCategory->setEnabled(pInputEnabled && true);
-  u->btnUpdateCategory->setEnabled(pInputEnabled && true);
   u->cbxTags->setEnabled(pInputEnabled && false);
-  u->btnUpdateTags->setEnabled(pInputEnabled && false);
+  u->btnApplyChanges->setEnabled(pInputEnabled && true);
+  slotModified(false);
 }
 
 // private
@@ -243,30 +239,47 @@ void KLFLibEntryEditor::setInputEnabled(bool enabled)
   pInputEnabled = enabled;
 }
 
+void KLFLibEntryEditor::slotModified(bool modif)
+{
+  pMetaInfoModified = modif;
+  u->btnApplyChanges->setEnabled(pMetaInfoModified);
+}
 
 
 void KLFLibEntryEditor::slotUpdateFromCbx(QComboBox *cbx)
 {
   if (cbx == u->cbxCategory)
-    slotUpdateCategory();
+    slotApplyChanges(true, false);
   else if (cbx == u->cbxTags)
-    slotUpdateTags();
+    slotApplyChanges(false, true);
   else
     qWarning("KLFLibEntryEditor::slotUpdateFromCbx: Couldn't find combo box=%p", (void*)cbx);
 }
 
-void KLFLibEntryEditor::slotUpdateCategory()
+void KLFLibEntryEditor::on_btnApplyChanges_clicked()
 {
-  slotCbxSaveCurrentCompletion(u->cbxCategory);
-  emit categoryChanged(u->cbxCategory->currentText());
+  slotApplyChanges(u->cbxCategory->isEnabled(), u->cbxTags->isEnabled());
 }
-void KLFLibEntryEditor::slotUpdateTags()
+void KLFLibEntryEditor::slotApplyChanges(bool cat, bool tags)
 {
-  slotCbxSaveCurrentCompletion(u->cbxTags);
-  emit tagsChanged(u->cbxTags->currentText());
+  klfDbg("category="<<cat<<" tags="<<tags) ;
+  QMap<int,QVariant> data;
+  if (cat && u->cbxCategory->isEnabled()) {
+    slotCbxSaveCurrentCompletion(u->cbxCategory);
+    data[KLFLibEntry::Category] = u->cbxCategory->currentText();
+  }
+  if (tags && u->cbxTags->isEnabled()) {
+    slotCbxSaveCurrentCompletion(u->cbxTags);
+    data[KLFLibEntry::Tags] = u->cbxTags->currentText();
+  }
+  klfDbg("data to update: "<<data) ;
+  if (data.isEmpty())
+    return;
+
+  emit metaInfoChanged(data);
 }
 
-void KLFLibEntryEditor::slotRestoreStyle()
+void KLFLibEntryEditor::on_btnRestoreStyle_clicked()
 {
   emit restoreStyle(pCurrentStyle);
 }
@@ -302,14 +315,3 @@ void KLFLibEntryEditor::slotCbxCleanUpCompletions(QComboBox *cbx)
   cbx->setEditText(bkp_edittext);
   cbx->blockSignals(false);
 }
-
-
-/*
-void KLFLibEntryEditor::updateEditText(QComboBox *editWidget, const QString& newText)
-{
-  klfDbg( "updateEditText("<<newtext<<")!" ) ;
-  // small utility function that updates text if it isn't already the same text
-  if (editWidget->currentText() != newText)
-    editWidget->setEditText(newText);
-}
-*/
