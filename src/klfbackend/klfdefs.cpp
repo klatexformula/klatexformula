@@ -84,18 +84,36 @@
  * internal buffer. */
 
 /** \def klfFmtCC
+ * \hideinitializer
  *
- * Utility for replacing the (function) klfFmt()'s QByteArray return value into a
- * regular <tt>const char*</tt>-C-string value, eg. to pass into a QDebug stream.
+ * Same as klfFmt(), but returns the formatted string as a <tt>const char*</tt>
+ * C-style string.
  *
- * \warning this macro, when called as <tt>klfFmtCC (args...)</tt> expands to
- * \code  (const char*)klfFmt (args...)  \endcode
- * No parentheses can be forced to ensure the <tt>const char*</tt> before any other
- * operation in the context, however casts are higher priority than many other
- * operators, so you should be safe. Still, be warned.
+ * Example:
+ * \code
+ *  unsigned int flags = ... ;
+ *  qDebug()<<"Flags are: "<<klfFmtCC("%#010x", flags) ;
+ * \endcode
  *
- * \note This macro can take no parameters, since C preprocessor macros don't support
- *   variable number of arguments (as required by printf-style formatting).
+ * Used in a QDebug stream, this function has the advantage (over klfFmt()) of not
+ * having its value enclosed in quotes.
+ *
+ * <i><b>Note for advanced usage</b><br>
+ * This macro, when called as <tt>klfFmtCC (format, args...)</tt> expands to
+ * \code  (const char*)klfFmt (format, args...)  \endcode
+ * Which means that if you are trying to do something (quite unorthodox) like:
+ * \code
+ *   cout<<"3rd digit of 280 in base 8 is: "<< klfFmtCC("%o", 280)[2]; // does not compile
+ * \endcode
+ * then it will fail at compile-time, since the <tt>const char*</tt> cast is evaluated
+ * after the <tt>operator[]</tt>. The working example is:
+ * \code
+ *   cout<<"3rd digit of 280 in base 8 is: "<< (klfFmtCC("%o", 280))[2]; // correct
+ * \endcode
+ * This macro had to be declared without any arguments, since C preprocessor macros
+ * don't support variable number of arguments (as required by printf-style formatting).
+ * This is the reason why I couldn't automatically fit in the extra required parenthesis
+ * in the macro definition.</i>
  */
 
 /** \fn KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp)
@@ -137,6 +155,7 @@
 
 
 /** \def KLF_DEBUG_DECLARE_REF_INSTANCE
+ * \hideinitializer
  *
  * \brief Declares a 'ref-instance' identifier for identifying insances in debug output
  *
@@ -181,6 +200,7 @@
  */
 
 /** \def KLF_DEBUG_TIME_BLOCK
+ * \hideinitializer
  *
  * \brief Utility to time the execution of a block
  *
@@ -205,6 +225,7 @@
  */
 
 /** \def KLF_DEBUG_BLOCK
+ * \hideinitializer
  *
  * \brief Utility to debug the execution of a block
  *
@@ -258,7 +279,7 @@
  */
 
 /** \def klf_debug_tee
- *
+ * \hideinitializer
  * \brief Print the value of expression and return it
  *
  * If KLF_DEBUG preprocessor symbol is not defined, this macro just expands to <tt>(expr)</tt>.
@@ -277,6 +298,7 @@
  */
 
 /** \def klfDbg
+ * \hideinitializer
  *
  * \brief print debug stream items
  *
@@ -308,6 +330,7 @@
  */
 
 /** \def klfDbgT
+ * \hideinitializer
  *
  * \brief print debug stream items, with current time
  *
@@ -315,6 +338,7 @@
  */
 
 /** \def klfDbgSt
+ * \hideinitializer
  *
  * \brief print debug stream items (special case)
  *
@@ -333,6 +357,7 @@
  */
 
 /** \def klfDbgStT
+ * \hideinitializer
  *
  * \brief print debug stream items, with current time (special case)
  *
@@ -340,7 +365,7 @@
  */
 
 /** \def KLF_FUNC_SINGLE_RUN
- *
+ * \hideinitializer
  * \brief Simple test for one-time-run functions
  *
  * Usage example:
@@ -356,7 +381,7 @@
  */
 
 /** \def KLF_FUNC_NAME
- *
+ * \hideinitializer
  * This macro expands to the function name this macro is called in.
  *
  * The header <tt>klfdefs.h</tt> will try to determine which of the symbols
@@ -365,7 +390,7 @@
  */
 
 /** \def KLF_ASSERT_NOT_NULL
- *
+ * \hideinitializer
  * \brief Asserting Non-NULL pointers (NON-FATAL)
  *
  * This macro is equivalent to
@@ -384,15 +409,15 @@
  */
 
 /** \def KLF_ASSERT_CONDITION
- *
+ * \hideinitializer
  * \brief Asserting Conditions (NON-FATAL)
  *
  * If the given expression \c expr is FALSE, then prints function name and the given message \c msg to
  * standard warning output (using Qt's qWarning()) and executes instructions given by \c failaction.
  *
  * \c failaction is any C/C++ instructions that you can place inside a normal code block (in this
- * case the code will be contained in an 'if' block). The allowed instructions include \c 'return',
- * 'continue' or 'break' instructions.
+ * case the code will be contained in an 'if' block). The allowed instructions include for example
+ * \c 'return', \c 'continue' or \c 'break' instructions.
  *
  * On Qt 4, \c msg may contain <tt>&lt;&lt;</tt> operators to chain output to a QDebug.
  *
@@ -512,10 +537,12 @@
  */
 
 /** \def KLF_PATH_SEP
- *
+ * \hideinitializer
  * \brief The character used in the $PATH environment variable to separate different locations
  *
  * Expands to \c ':' (colon) on unices/Mac and to \c ';' (semicolon) on Windows.
+ *
+ * Note that the character is given as a \c char (observe the single-quotes), not in a string.
  */
 
 /** \fn KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1)
@@ -558,7 +585,7 @@
 
 /** \if klf_internal_docs
  * \def KLF_EXPORT
- *
+ * \hideinitializer
  * \internal
  *
  * symbols we want to export will be declared with this macro. this makes declarations
@@ -568,7 +595,7 @@
 
 /** \if klf_internal_docs
  * \def KLF_EXPORT_IF_DEBUG
- *
+ * \hideinitializer
  * \internal
  *
  * symbols we want to export only if in debug mode will use this definition. This will

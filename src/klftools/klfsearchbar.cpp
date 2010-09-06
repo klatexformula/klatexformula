@@ -21,6 +21,7 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <QDebug>
 #include <QObject>
 #include <QFrame>
 #include <QLineEdit>

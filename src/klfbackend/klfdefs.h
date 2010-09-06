@@ -248,7 +248,8 @@ inline QString __klf_debug_ref_instance() { return QString(); }
     failaction;								\
   }
 #endif
-#define KLF_ASSERT_NOT_NULL(ptr, msg, failaction)  KLF_ASSERT_CONDITION((ptr) != NULL, msg, failaction)
+#define KLF_ASSERT_NOT_NULL(ptr, msg, failaction)	\
+  KLF_ASSERT_CONDITION((ptr) != NULL, msg, failaction)
 
 
 

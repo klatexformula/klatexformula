@@ -23,6 +23,7 @@
 
 #include <math.h>
 
+#include <QDebug>
 #include <QVariant>
 #include <QStringList>
 #include <QComboBox>

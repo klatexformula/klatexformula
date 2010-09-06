@@ -156,7 +156,7 @@ if(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
   message(FATAL_ERROR
     "Didn't find required Qt4. You may try setting QT_QMAKE_EXECUTABLE or using Qt3 by chaning the KLF_QT_VERSION cache variable.")
 endif(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
-message(STATUS "Using Qt ${KLF_QT_VERSION} (KLF_QT_VERSION)")
+message(STATUS "Using Qt ${KLF_QT_VERSION} (KLF_QT_VERSION=\"${KLF_QT_VERSION}\")")
 
 # variables that FindQt obviously forgets to set to advanced
 mark_as_advanced(QT_QTMOTIF_INCLUDE_DIR QT_QTMOTIF_LIBRARY_DEBUG QT_QTMOTIF_LIBRARY_RELEASE)

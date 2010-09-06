@@ -312,7 +312,7 @@ bool KLFLibDBEngine::saveResourceProperty(int propId, const QVariant& value)
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
   KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
-			return false ) ;
+			return false; ) ;
 
   QString propName = propertyNameForId(propId);
   if ( propName.isEmpty() )
