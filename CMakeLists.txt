@@ -76,6 +76,11 @@ message(STATUS "[BUILD SETTINGS]")
 KLFGetCMakeVarChanged(CMAKE_BUILD_TYPE)
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "(FOR DEVELOPERS:) Build configuration (Debug|Release)")
 mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE AND klf_first_CMAKE_BUILD_TYPE)
+  # force to "Release" the first time if empty
+  set(CMAKE_BUILD_TYPE "Release"
+		      CACHE STRING "(FOR DEVELOPERS:) Build configuration (Debug|Release)" FORCE)
+endif(NOT CMAKE_BUILD_TYPE AND klf_first_CMAKE_BUILD_TYPE)
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE} (CMAKE_BUILD_TYPE)")
 KLFCMakeSetVarChanged(CMAKE_BUILD_TYPE)
 
@@ -391,6 +396,13 @@ mark_as_advanced(
 	CMAKE_BACKWARDS_COMPATIBILITY
 	LIB_SUFFIX
 	)
+
+# Application Fonts
+if(KLF_BUILD_GUI)
+  set(KLF_APPLICATION_FONTS ":/data/cmunso.otf|:/data/cmunss.otf|:/data/cmunssdc.otf"
+				      CACHE STRING "Fonts application should import at start-up")
+  mark_as_advanced(KLF_APPLICATION_FONTS)
+endif(KLF_BUILD_GUI)
 
 
 # Install Paths

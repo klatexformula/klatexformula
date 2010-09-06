@@ -723,8 +723,14 @@ int main(int argc, char **argv)
     __klf_init_the_macpasteboardmime();
 #endif
 
-    // add our default application font ;-)
-    QFontDatabase::addApplicationFont(":/data/cmunss.otf");
+#ifdef KLF_APPLICATION_FONTS
+    // add our default application font(s) ;-)
+    const QStringList appFontsList = QString::fromLatin1(KLF_APPLICATION_FONTS).split('|');
+    int k;
+    for (k = 0; k < appFontsList.size(); ++k) {
+      QFontDatabase::addApplicationFont(appFontsList[k]);
+    }
+#endif
 
     // main_get_input relies on a Q[Core]Application
     QString latexinput = main_get_input(opt_input, opt_latexinput, opt_paste);

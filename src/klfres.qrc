@@ -47,6 +47,8 @@
   </qresource>
   <qresource>
     <file>data/cmunss.otf</file>
+    <file>data/cmunso.otf</file>
+    <file>data/cmunssdc.otf</file>
     <file>data/cmdl-help.txt</file>
     <file>data/about.html</file>
     <file>data/whats-new-3.2.html</file>

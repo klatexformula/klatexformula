@@ -12,7 +12,9 @@ message(STATUS "[KDE4 SETTINGS (for kate plugin)]")
 macro(klf_nokde4)
   set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build KTextEditor plugin" FORCE)
   KLFNote(
-  "KDE4 is required to build KTextEditor plugin. The plugin has been disabled (KLF_BUILD_KTEXTEDITORPLUGIN). Please re-run cmake to continue.")
+   "KDE4 is required to build KTextEditor plugin.
+    The plugin has been disabled (KLF_BUILD_KTEXTEDITORPLUGIN).
+    Please re-run cmake to continue.")
   message(FATAL_ERROR "KDE4 not found.")
 endmacro(klf_nokde4)
 

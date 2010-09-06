@@ -248,10 +248,14 @@ void KLFLibEntryEditor::slotModified(bool modif)
 
 void KLFLibEntryEditor::slotUpdateFromCbx(QComboBox *cbx)
 {
+  // Apply all changes, this is more natural than applying only the changes
+  // to the current cbx (and losing the changes to the other)
   if (cbx == u->cbxCategory)
-    slotApplyChanges(true, false);
+    //    slotApplyChanges(true, false);
+    slotApplyChanges();
   else if (cbx == u->cbxTags)
-    slotApplyChanges(false, true);
+    //    slotApplyChanges(false, true);
+    slotApplyChanges();
   else
     qWarning("KLFLibEntryEditor::slotUpdateFromCbx: Couldn't find combo box=%p", (void*)cbx);
 }
