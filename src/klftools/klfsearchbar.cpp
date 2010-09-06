@@ -122,6 +122,9 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
 
   pWaitLabel = new KLFWaitAnimationOverlay(u->txtSearch);
   pWaitLabel->setWaitMovie(":/pics/wait_anim.mng");
+  /* // amusing test
+     pWaitLabel->setWaitMovie("/home/philippe/projects/klf/artwork/experimental/packman_anim.gif");
+  */
 
   setSearchTarget(NULL);
   slotSearchFocusOut();
@@ -288,15 +291,15 @@ void KLFSearchBar::abortSearch()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  if (searchBarHasFocus())
-    displayState(Aborted);
-  else
-    displayState(FocusOut);
-
   pSearchText = QString();
   if ( ! u->txtSearch->text().isEmpty() ) {
     showSearchBarText("");
   }
+
+  if (searchBarHasFocus())
+    displayState(Aborted);
+  else
+    displayState(FocusOut);
 
   if (pTarget != NULL) {
     klfDbg("telling target to abort search...") ;

@@ -245,7 +245,7 @@ KLF_EXPORT QString klfFindTranslatedDataFile(const QString& baseFileName, const 
 
 
 
-/** \brief Current datastream compatibility klatexformulaversion
+/** \brief Current datastream compatibility klatexformula version
  *
  * This value is updated to the new version of KLF whenever a change in the format of the
  * QDataStream's occur.

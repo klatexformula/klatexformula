@@ -311,6 +311,8 @@ KLFMainWin::KLFMainWin()
   connect(synthighlighttimer, SIGNAL(timeout()), u->txtPreamble->syntaxHighlighter(), SLOT(refreshAll()));
   synthighlighttimer->start(250);
 
+  // initialize the margin unit selector
+  u->cbxMarginsUnit->setCurrentUnitAbbrev("pt");
 
   // load library
   mLibBrowser = new KLFLibBrowser(this);
@@ -673,41 +675,60 @@ static QString kdelocate(const char *fname)
   return QString::null;
 }
 
+bool KLFMainWin::try_load_style_list(const QString& styfname)
+{
+  if ( ! QFile::exists(styfname) )
+    return false;
+
+  QFile fsty(styfname);
+  if ( ! fsty.open(QIODevice::ReadOnly) )
+    return false;
+
+  QDataStream str(&fsty);
+
+  QString readHeader;
+  QString readCompatKLFVersion;
+  bool r = klfDataStreamReadHeader(str, QStringList()<<QLatin1String("KLATEXFORMULA_STYLE_LIST"),
+				   &readHeader, &readCompatKLFVersion);
+  if (!r) {
+    if (readHeader.isEmpty() || readCompatKLFVersion.isEmpty()) {
+      QMessageBox::critical(this, tr("Error"), tr("Error: Style file is incorrect or corrupt!\n"));
+      return false;
+    }
+    // too recent version warning
+    QMessageBox::warning(this, tr("Load Styles"),
+			 tr("The style file found was created by a more recent version "
+			    "of KLatexFormula.\n"
+			    "The process of style loading may fail.")
+			 );
+  }
+  // read the header, just need to read data now
+  str >> _styles;
+  return true;
+}
+
 void KLFMainWin::loadStyles()
 {
   _styles = KLFStyleList(); // empty list to start with
-  QString styfname = klfconfig.homeConfigDir + "/styles";
-  if ( ! QFile::exists(styfname) ) {
-    // try KDE version (for KLF 2.x)
-    styfname = kdelocate("styles");
-  }
-  if ( QFile::exists(styfname) ) {
-    QFile fsty(styfname);
-    if ( ! fsty.open(QIODevice::ReadOnly) ) {
-      QMessageBox::critical(this, tr("Error"), tr("Error: Unable to load your style list!"));
-    } else {
-      QDataStream str(&fsty);
 
-      QString readHeader;
-      QString readCompatKLFVersion;
-      bool r = klfDataStreamReadHeader(str, QStringList()<<QLatin1String("KLATEXFORMULA_STYLE_LIST"),
-				       &readHeader, &readCompatKLFVersion);
-      if (!r) {
-	if (readHeader.isEmpty() || readCompatKLFVersion.isEmpty()) {
-	  QMessageBox::critical(this, tr("Error"), tr("Error: Style file is incorrect or corrupt!\n"));
-	} else {
-	  QMessageBox::warning(this, tr("Load Styles"),
-			       tr("The style file found was created by a more recent version "
-				  "of KLatexFormula.\n"
-				  "The process of style loading may fail.")
-			       );
-	}
-      } else {
-	// succeeded reading the header, just need to read data now
-	str >> _styles;
-      }
-    } // read header
-  } // file exists
+  QStringList styfnamecandidates;
+  styfnamecandidates << klfconfig.homeConfigDir + QString("/styles-klf%1").arg(KLF_DATA_STREAM_APP_VERSION)
+		     << klfconfig.homeConfigDir + QLatin1String("/styles")
+		     << QLatin1String("kde-locate"); // locate in KDE only if necessary in for loop below
+
+  int k;
+  bool result = false;
+  for (k = 0; k < styfnamecandidates.size(); ++k) {
+    QString fn = styfnamecandidates[k];
+    if (fn == QLatin1String("kde-locate"))
+      fn = kdelocate("styles");
+    // try to load this file
+    if ( (result = try_load_style_list(fn)) == true )
+      break;
+  }
+  if (!result) {
+    QMessageBox::critical(this, tr("Error"), tr("Error: Unable to load your style list!"));
+  }
 
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
@@ -724,7 +745,7 @@ void KLFMainWin::loadStyles()
 void KLFMainWin::saveStyles()
 {
   klfconfig.ensureHomeConfigDir();
-  QString s = klfconfig.homeConfigDir + "/styles";
+  QString s = klfconfig.homeConfigDir + QString("/styles-klf%1").arg(KLF_DATA_STREAM_APP_VERSION);
   QFile f(s);
   if ( ! f.open(QIODevice::WriteOnly) ) {
     QMessageBox::critical(this, tr("Error"), tr("Error: Unable to write to styles file!\n%1").arg(s));
@@ -1552,6 +1573,16 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   }
 
   return QWidget::eventFilter(obj, e);
+}
+
+
+void KLFMainWin::refreshAllWindowStyleSheets()
+{
+  int k;
+  for (k = 0; k < pWindowList.size(); ++k)
+    pWindowList[k]->setStyleSheet(pWindowList[k]->styleSheet());
+  // me too!
+  setStyleSheet(styleSheet());
 }
 
 

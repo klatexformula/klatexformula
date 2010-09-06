@@ -569,7 +569,7 @@
          <enum>QTabWidget::West</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tabLatexImage">
          <attribute name="title">
@@ -857,13 +857,7 @@
              <item row="1" column="1">
               <widget class="KLFUnitChooser" name="cbxMarginsUnit">
                <property name="klfUnits" stdset="0">
-                <stringlist>
-                 <string>Postscript Point=pt=1</string>
-                 <string>Millimeter=mm=2.835</string>
-                 <string>1/8 th inch=1/8 in=9</string>
-                 <string>Centimeter=cm=28.35</string>
-                 <string>Inch=in=72</string>
-                </stringlist>
+                <string>Postscript Point=pt=1;Millimeter=mm=2.835;Centimeter=cm=28.35;1/8 th inch=1/8 in=9;Inch=in=72</string>
                </property>
               </widget>
              </item>
@@ -1082,8 +1076,8 @@
    <extends>QDoubleSpinBox</extends>
    <header location="global">klfunitinput.h</header>
    <slots>
-    <slot>setUnit(float)</slot>
     <slot>setUnit(double)</slot>
+    <slot>setUnitWithSuffix(double,QString)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -1091,6 +1085,7 @@
    <extends>QComboBox</extends>
    <header location="global">klfunitinput.h</header>
    <slots>
+    <signal>unitChanged(double,QString)</signal>
     <signal>unitChanged(double)</signal>
    </slots>
   </customwidget>
@@ -1132,7 +1127,7 @@
      <y>75</y>
     </hint>
     <hint type="destinationlabel">
-     <x>614</x>
+     <x>612</x>
      <y>106</y>
     </hint>
    </hints>
@@ -1256,20 +1251,20 @@
    <slot>showMenu()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>392</x>
+     <x>388</x>
      <y>366</y>
     </hint>
     <hint type="destinationlabel">
-     <x>392</x>
+     <x>388</x>
      <y>366</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>cbxMarginsUnit</sender>
-   <signal>unitChanged(double)</signal>
+   <signal>unitChanged(double,QString)</signal>
    <receiver>spnMarginTop</receiver>
-   <slot>setUnit(double)</slot>
+   <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>691</x>
@@ -1283,9 +1278,9 @@
   </connection>
   <connection>
    <sender>cbxMarginsUnit</sender>
-   <signal>unitChanged(double)</signal>
+   <signal>unitChanged(double,QString)</signal>
    <receiver>spnMarginRight</receiver>
-   <slot>setUnit(double)</slot>
+   <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>676</x>
@@ -1299,9 +1294,9 @@
   </connection>
   <connection>
    <sender>cbxMarginsUnit</sender>
-   <signal>unitChanged(double)</signal>
+   <signal>unitChanged(double,QString)</signal>
    <receiver>spnMarginBottom</receiver>
-   <slot>setUnit(double)</slot>
+   <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>705</x>
@@ -1315,9 +1310,9 @@
   </connection>
   <connection>
    <sender>cbxMarginsUnit</sender>
-   <signal>unitChanged(double)</signal>
+   <signal>unitChanged(double,QString)</signal>
    <receiver>spnMarginLeft</receiver>
-   <slot>setUnit(double)</slot>
+   <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>741</x>

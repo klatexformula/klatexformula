@@ -147,12 +147,18 @@ public:
     return v;
   }
   void loadGuiState(const QVariantMap& v) {
+    pViewState = v;
+
     const QVariantList vlist = v["StateList"].toList(); // will hold QVariantMap's
     const QString curvti = v["CurrentViewTypeIdentifier"].toString();
     int k;
     for (k = 0; k < vlist.size(); ++k) {
       const QVariantMap vstate = vlist[k].toMap();
       QString vti = vstate["ViewTypeIdentifier"].toString();
+      if (vti != curvti)
+	continue;
+      // open the current view type identifier. The other view type identifiers will have
+      // their state restored only if the user requests to display that view type.
       bool res = openView(vti);
       if (!res) {
 	qWarning()<<"Can't open view of type "<<vti<<" for resource "<<url()<<"!";
@@ -276,6 +282,21 @@ public slots:
       slotCurrentChanged(index);
     }
     klfDbgT(": Added view.");
+
+    // see if we have a GUI state to restore
+    if (pViewState.contains("StateList")) {
+      const QVariantList vlist = pViewState["StateList"].toList(); // will hold QVariantMap's
+      int k;
+      for (k = 0; k < vlist.size(); ++k) {
+	const QVariantMap vstate = vlist[k].toMap();
+	QString vti = vstate["ViewTypeIdentifier"].toString();
+	if (vti != viewTypeIdent)
+	  continue;
+
+	v->restoreGuiState(vstate["ViewState"].toMap());
+	break;
+      }
+    }
     return true;
   }
 
@@ -346,6 +367,8 @@ protected slots:
 protected:
   QStringList pOkViewTypeIdents;
   KLFLibResourceEngine *pResource;
+
+  QVariantMap pViewState;
 
   /** Stores the view type identifier with the index in widget stack for each open view */
   QMap<QString,int> pOpenViewTypeIdents;

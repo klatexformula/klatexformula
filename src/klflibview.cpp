@@ -48,6 +48,7 @@
 #include <QDragMoveEvent>
 #include <QStandardItemModel>
 #include <QItemDelegate>
+#include <QShortcut>
 
 #include <ui_klflibopenresourcedlg.h>
 #include <ui_klflibrespropeditor.h>
@@ -3080,12 +3081,38 @@ uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) cons
   return resultFlags;
 }
 
+class __klf_guarded_bool {
+  bool *x;
+public:
+  __klf_guarded_bool(bool *var) : x(var) { *x = true; }
+  ~__klf_guarded_bool() { *x = false; }
+};
+
 bool KLFLibDefaultView::event(QEvent *event)
 {
   return KLFAbstractLibView::event(event);
 }
 bool KLFLibDefaultView::eventFilter(QObject *object, QEvent *event)
 {
+  if (pEventFilterNoRecurse) {
+    klfDbg("Avoiding recursion") ;
+    return KLFAbstractLibView::eventFilter(object, event);
+  }
+  __klf_guarded_bool guard_object(&pEventFilterNoRecurse);
+
+  if (object == pView && event->type() == QEvent::KeyPress) {
+    QKeyEvent *ke = (QKeyEvent*)event;
+    QKeySequence thisKey = QKeySequence(ke->key() | ke->modifiers());
+    int k;
+    for (k = 0; k < pViewActionsWithShortcut.size(); ++k) {
+      QAction *a = pViewActionsWithShortcut[k];
+      if (a->shortcut() == thisKey) {
+	klfDbg("Activating view action "<<a->text()<<" for shortcut key "<<thisKey<<".") ;
+	a->trigger();
+	return true;
+      }
+    }
+  }
   return KLFAbstractLibView::eventFilter(object, event);
 }
 
@@ -3251,13 +3278,17 @@ void KLFLibDefaultView::updateResourceEngine()
   // delegate wants to know more about selections...
   pDelegate->setSelectionModel(s);
 
-  QAction *selectAllAction = new QAction(tr("Select All", "[[menu action]]"), this);
-  selectAllAction->setShortcut(QKeySequence::SelectAll);
+  QKeySequence selectAllKey = QKeySequence::SelectAll;
+  QKeySequence refreshKey = QKeySequence::Refresh;
+  QAction *selectAllAction = new QAction(tr("Select All", "[[menu action]]"), pView);
+  selectAllAction->setShortcut(selectAllKey);
   connect(selectAllAction, SIGNAL(triggered()), this, SLOT(slotSelectAll()));
-  QAction *refreshAction = new QAction(tr("Refresh", "[[menu action]]"), this);
-  refreshAction->setShortcut(QKeySequence::Refresh);
-  connect(refreshAction, SIGNAL(triggered()), pModel, SLOT(completeRefresh()));
+  QAction *refreshAction = new QAction(tr("Refresh", "[[menu action]]"), pView);
+  refreshAction->setShortcut(refreshKey);
+  connect(refreshAction, SIGNAL(triggered()), this, SLOT(slotRefresh()));
   pCommonActions = QList<QAction*>() << selectAllAction << refreshAction;
+
+  pViewActionsWithShortcut << selectAllAction << refreshAction;
 
   if (pViewType == IconView) {
     klfDbg( "About to prepare iconview." ) ;
@@ -3455,7 +3486,9 @@ void KLFLibDefaultView::sortBy(int propIdColumn, Qt::SortOrder sortorder)
 
 void KLFLibDefaultView::slotSelectAll(const QModelIndex& parent, bool rootCall)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   // this function requires to fetch all items in parent!
+
   KLFDelayedPleaseWaitPopup *pleaseWait = NULL;
   if (rootCall) {
     pleaseWait = new KLFDelayedPleaseWaitPopup(tr("Fetching and selecting all, please wait ..."), this);
@@ -3495,6 +3528,14 @@ void KLFLibDefaultView::slotSelectAll(const QModelIndex& parent, bool rootCall)
     emit entriesSelected(selectedEntries());
     delete pleaseWait;
   }
+
+  repaint();
+}
+
+void KLFLibDefaultView::slotRefresh()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  pModel->completeRefresh();
 }
 
 void KLFLibDefaultView::slotRelayoutIcons()

@@ -817,6 +817,7 @@ public slots:
   /** Selects all children of \c parent (by default a QModelIndex(), so this function selects
    * all items). rootCall is internal and should always be set to TRUE for regular use. */
   virtual void slotSelectAll(const QModelIndex& parent = QModelIndex(), bool rootCall = true);
+  virtual void slotRefresh();
   virtual void slotRelayoutIcons();
 
   void setAutoBackgroundItems(bool on) { pDelegate->setAutoBackgroundItems(on); }
@@ -863,6 +864,8 @@ private:
   QList<QAction*> pShowColumnActions;
   QAction *pIconViewRelayoutAction;
   QList<QAction*> pIconViewActions;
+
+  QList<QAction*> pViewActionsWithShortcut;
 
   bool pEventFilterNoRecurse;
 

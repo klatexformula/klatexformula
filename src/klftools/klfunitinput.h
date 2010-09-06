@@ -46,7 +46,7 @@ class KLF_EXPORT KLFUnitChooser : public QComboBox
 
   Q_PROPERTY(QString currentUnit READ currentUnitName WRITE setCurrentUnit USER true)
   Q_PROPERTY(double currentUnitFactor READ currentUnitFactor)
-  Q_PROPERTY(QStringList klfUnits READ unitStrList WRITE setUnits)
+  Q_PROPERTY(QString klfUnits READ unitStringDescription WRITE setUnits)
 public:
   KLFUnitChooser(QWidget *parent = NULL);
   virtual ~KLFUnitChooser();
@@ -66,27 +66,41 @@ public:
   { QStringList l; foreach (Unit unit, pUnits) { l << unit.name; } return l;  }
   inline QList<Unit> unitList() const { return pUnits; }
 
-  QStringList unitStrList() const;
+  QString unitStringDescription() const;
 
 public slots:
   /** Set the possible units user can choose from.
-   * Units are specified as a list, each item in the list corresponding to one unit, specified
-   * as a string like \c "Inch=in=25.4" or \c "Centimeter=cm=10" or \c "Millimeter=mm=1", that
+   * Units are specified as a string of semicolon-separated items, each item in the list corresponding
+   * to one unit, specified as a string like \c "Inch=in=25.4" or \c "Centimeter=cm=10" or \c "Millimeter=mm=1", that
    * is a string with three sections separated by an \c '=' sign giving unit name, unit abbreviation,
    * and the factor of that unit to a reference unit. See KLFUnitSpinBox for discussion about units.
+   *
+   * Example:
+   * \code
+   * setUnits("Postscript Point=pt=1;Millimeter=mm=2.835;Centimeter=cm=28.35;1/8 th inch=1/8 in=9;Inch=in=72")
+   * \endcode
    */
-  void setUnits(const QStringList& unitstrlist);
+  void setUnits(const QString& unitstrlist);
   /** Set the possible units user can choose from. */
-  void setUnitList(const QList<Unit>& unitlist);
+  void setUnits(const QList<Unit>& unitlist);
 
   void setCurrentUnit(const QString& unitName);
+  void setCurrentUnitAbbrev(const QString& unitAbbrev);
+  void setCurrentUnitIndex(int k);
 
 signals:
   void unitChanged(const QString& unitName);
   void unitChanged(double unitFactor);
+  void unitChanged(double unitFactor, const QString& suffix);
+
+protected:
+  virtual void changeEvent(QEvent *event);
 
 private:
   QList<Unit> pUnits;
+
+  QString pDelayedUnitSet;
+
 private slots:
   void internalCurrentIndexChanged(int index);
 };
@@ -135,11 +149,16 @@ Q_DECLARE_METATYPE(KLFUnitChooser::Unit) ;
 class KLF_EXPORT KLFUnitSpinBox : public QDoubleSpinBox
 {
   Q_OBJECT
+  Q_PROPERTY(double valurInRefUnit READ valueInRefUnit WRITE setValueInRefUnit USER true)
+  Q_PROPERTY(double unitFactor READ unitFactor WRITE setUnit)
+  Q_PROPERTY(bool showUnitSuffix READ showUnitSuffix WRITE setShowUnitSuffix)
 public:
   KLFUnitSpinBox(QWidget *parent = NULL);
   virtual ~KLFUnitSpinBox();
 
   inline double unitFactor() const { return pUnitFactor; }
+
+  inline bool showUnitSuffix() const { return pShowUnitSuffix; }
 
   inline double valueInRefUnit() const { return QDoubleSpinBox::value() * unitFactor(); }
 
@@ -149,10 +168,21 @@ signals:
 public slots:
   void setUnit(double unitfactor);
 
+  /** Display the current value converted to the new unit using \c unitfactor, and if showUnitSuffix() is
+   * TRUE, then displays the given suffix.
+   */
+  void setUnitWithSuffix(double unitfactor, const QString& suffix);
+
+  /** Whether to display the unit suffix or not. This only works if you use setUnitWithSuffix() to set
+   * new units. */
+  void setShowUnitSuffix(bool show);
+
   void setValueInRefUnit(double value);
 
 private:
   double pUnitFactor;
+  bool pShowUnitSuffix;
+
 private slots:
   void internalValueChanged(double valueInExtUnits);
 };

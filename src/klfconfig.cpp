@@ -128,13 +128,17 @@ void KLFConfig::loadDefaults()
   homeConfigDirI18n = homeConfigDir + "/i18n";
 
   if (qApp->inherits("QApplication")) { // and not QCoreApplication...
+    QFontDatabase fdb;
     QFont f = QApplication::font();
+
+    if (fdb.isScalable("Computer Modern Sans Serif"))
+      f = QFont("Computer Modern Sans Serif", QFontInfo(f).pointSize());
+
 #ifdef Q_WS_X11
     // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
     f.setPixelSize(15);
 #endif
 
-    QFontDatabase fdb;
     QFont fcode;
     bool found_fcode = false;
     int ps = 11;

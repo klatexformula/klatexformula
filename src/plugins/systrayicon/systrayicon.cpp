@@ -131,6 +131,9 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
     }
   }
   if (obj == _mainwin && e->type() == QEvent::WindowStateChange) {
+    if ( _mainwin->property("x11WindowShaded").toBool() )
+      return false; // don't take action if the window is just shaded
+
     klfDbg("main win window state changed: oldState="<<((QWindowStateChangeEvent*)e)->oldState()
 	   <<" new state="<<_mainwin->windowState()) ;
     if (_config->readValue("mintosystray").toBool() &&
@@ -190,6 +193,7 @@ void SysTrayIconPlugin::restore()
   _mainwin->showNormal();
   _mainwin->raise();
   _mainwin->activateWindow();
+  qApp->alert(_mainwin);
 }
 
 void SysTrayIconPlugin::minimize()

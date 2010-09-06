@@ -146,6 +146,12 @@ if(APPLE)
         macosx/klfmacclipboard.cpp
   )
 endif(APPLE)
+# * X11
+if(Q_WS_X11)
+  set(klfapp_SRCS ${klfapp_SRCS}
+	x11/klfx11.cpp
+  )
+endif(Q_WS_X11)
 # * DBus
 if(KLF_USE_DBUS)
   add_definitions(-DKLF_USE_DBUS)

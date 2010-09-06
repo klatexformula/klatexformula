@@ -89,11 +89,14 @@ QMenu::item:disabled {
 QMenu::item:selected {
 	background-color: rgb(255,255,255,80);
 }
+QLineEdit[searchState="focus-out"] {
+    color: rgb(128,128,128);
+}
 QLineEdit[searchState="found"] {
-    background-color: rgb(128,255,128,220);
+    background-color: rgb(128,255,128,120);
 }
 QLineEdit[searchState="not-found"] {
-    background-color: rgb(255,128,128,220);
+    background-color: rgb(255,128,180,120);
 }
 QLabel#lblPreview, KLFDisplayLabel[realTimeLatexError=false] {
     background-color: rgb(255,255,255,128);
@@ -177,7 +180,7 @@ QComboBox QAbstractItemView {
 	selection-background-color: rgb(255,255,255,50);
 }
 
-QSpinBox {
+QAbstractSpinBox {
 	border: 1px solid rgb(128, 128, 128);
 	border-radius: 2px;
 	padding-right: 14px;
@@ -187,40 +190,40 @@ QSpinBox {
 	selection-color: white;
 	selection-background-color: rgb(255,255,255,50);
 }
-QSpinBox::up-button {
+QAbstractSpinBox::up-button {
 	margin-top: 1px;
 	margin-right: 1px;
 	border: 1px solid rgb(255,255,255,50);
 	background-color: rgb(255,255,255,50);
 }
-QSpinBox::up-button:pressed { border-color: rgb(255,255,255,80); }
-QSpinBox::up-button:hover:!off:!disabled {
+QAbstractSpinBox::up-button:pressed { border-color: rgb(255,255,255,80); }
+QAbstractSpinBox::up-button:hover:!off:!disabled {
 	background-color: rgb(255,255,255,20);
 }
-QSpinBox::up-arrow {
+QAbstractSpinBox::up-arrow {
 	image: url(:/plugindata/skin/stylesheets/pics/flat-arrow-up.png);
 	width: 12px;
 	height: 12px;
 }
-QSpinBox::up-arrow:disabled, QSpinBox::up-arrow:off {
+QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {
     image: none;
 }
-QSpinBox::down-button {
+QAbstractSpinBox::down-button {
 	margin-bottom: 1px;
 	margin-right: 1px;
 	border: 1px solid rgb(255,255,255,50);
 	background-color: rgb(255,255,255,50);
 }
-QSpinBox::down-button:pressed { border-color: rgb(255,255,255,80); }
-QSpinBox::down-button:hover:!off:!disabled {
+QAbstractSpinBox::down-button:pressed { border-color: rgb(255,255,255,80); }
+QAbstractSpinBox::down-button:hover:!off:!disabled {
 	background-color: rgb(255,255,255,20);
 }
-QSpinBox::down-arrow {
+QAbstractSpinBox::down-arrow {
 	image: url(:plugindata/skin/stylesheets/pics/flat-arrow-down.png);
 	width: 12px;
 	height: 12px;
 }
-QSpinBox::down-arrow:disabled, QSpinBox::down-arrow:off {
+QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
 	image: none;
 }
 QCheckBox::indicator:unchecked {
@@ -260,7 +263,7 @@ QScrollBar {
 	color: black
 }
 
-QLabel:disabled, QTextEdit:disabled, QSpinBox:disabled, QComboBox:disabled,
+QLabel:disabled, QTextEdit:disabled, QAbstractSpinBox:disabled, QComboBox:disabled,
 	 QLineEdit:disabled {
 	color: rgb(160, 160, 160);
 }

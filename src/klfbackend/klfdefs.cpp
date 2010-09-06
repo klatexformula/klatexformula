@@ -36,6 +36,7 @@
 #endif
 
 #include "klfdefs.h"
+#include "klfqt34common.h"
 
 /** \file klfdefs.h
  * \brief Base declarations for utilities (debugging, exporting symbols, version comparing, ...)
@@ -557,7 +558,7 @@
  * (native '\\' separators on windows are appropriately converted to universal \c '/', so you don't
  * have to worry about passing '\\'-style paths).
  *
- * For example, searching for <tt>"/usr/lib*<span></span>/kde4/kate*.so"</tt> will start looking in
+ * For example, searching for <tt>&quot;/usr/lib*</tt><tt>/kde4/kate*.so&quot;</tt> will start looking in
  * the root directory for a directory named \c "usr", in which a directory matching \c "lib*" is
  * searched for. In each of those matches, a directory named \c "kde4" is searched for, in which
  * files named \c "lib*.so.*" are listed. All found matches are returned (up to a given \c limit
@@ -566,17 +567,19 @@
  * The drive letter in \c wildcard_expression on windows may not contain a wildcard.
  */
 
-/** \fn KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "")
+/** \fn KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extra_path = "")
  * \brief Smart executable searching in a given path list with wildcards
  *
- * This function looks for an executable named \c prog. It looks in the directories given in
- * \c extra_path. \c extra_path is assumed to be a colon-separated list of directories (semicolon-separated
- * on windows, see \ref KLF_PATH_SEP). Each given directory may contain wildcards. \c prog itself
- * may also contain wildcards.
+ * This function looks for an executable named \c programName. It looks in the directories given in
+ * the system environment variable \c PATH and in argument \c extra_path. \c PATH and \c extra_path
+ * are assumed to be a colon-separated list of directories (semicolon-separated on windows, see
+ * \ref KLF_PATH_SEP). Each given directory may contain wildcards (in particular, wildcards in
+ * \c PATH are also parsed). \c programName itself may also contain wildcards.
  *
- * This function splits \c extra_path into a directory list, and then calls klfSearchFind() for
- * \c "&lt;directory>/<t>prog</t>" for each directory in the list, and returns the first result that
- * is an executable file (this is explicitely checked).
+ * This function splits \c PATH and  \c extra_path into a directory list, and then, for each directory
+ * in that list, calls \ref klfSearchFind() with as argument the string
+ * <tt><i>&quot;&lt;directory></i>/<i>&lt;programName></i>&quot;</tt>. This function then returns the
+ * first result that is an executable file (this check is explicitely performed).
  */
 
 
@@ -629,20 +632,6 @@ KLF_EXPORT int klfVersionRelease()
 
 
 
-#ifndef KLFBACKEND_QT4
-#define qPrintable(x) (x).local8Bit().data()
-#define QLatin1String QString::fromLatin1
-#define toLocal8Bit local8Bit
-// QDir::toNativeSeparators() -> QDir::convertSeparators()
-#define toNativeSeparators convertSeparators
-#define SPLIT_STRING(x, sep, boolAllowEmptyEntries)		\
-  QStringList::split((sep), (x), (boolAllowEmptyEntries))
-#define list_indexOf(list, x) (list).findIndex((x))
-#else
-#define SPLIT_STRING(x, sep, boolAllowEmptyEntries)	\
-  (x).split((sep), (boolAllowEmptyEntries) ? QString::KeepEmptyParts : QString::SkipEmptyParts)
-#define list_indexOf(list, x) (list).indexOf((x))
-#endif
 
 // declared in klfdefs.h
 
@@ -665,7 +654,7 @@ KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
   }
   // shorten name
   QString f = funcname.mid(iSpc+1, iParen-(iSpc+1));
-  QByteArray data = f.toLocal8Bit();
+  QByteArray data = f.s_toLocal8Bit();
   return data;
 }
 
@@ -860,11 +849,11 @@ static int __klf_version_compare_suffix_words(QString w1, QString w2)
   // a list of known words
   const QStringList& words = klf_version_suffixes;
   // now compare the words
-  int borderBeforeAfter = list_indexOf(words, "");
+  int borderBeforeAfter = words.list_indexOf("");
   if (borderBeforeAfter < 0)
     qWarning("klfVersionCompare: suffix words list doesn't contain \"\"!");
-  int i1 = list_indexOf(words, w1);
-  int i2 = list_indexOf(words, w2);
+  int i1 = words.list_indexOf(w1);
+  int i2 = words.list_indexOf(w2);
   if (i1 == -1 && i2 == -1)
     return QString::compare(w1, w2);
   if (i2 == -1)
@@ -1007,7 +996,7 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
     return hitlist;
   }
   if (flinfo.exists()) {
-    return QStringList() << QDir::toNativeSeparators(root+pathlist.join("/"));
+    return QStringList() << dir_native_separators(root+pathlist.join("/"));
   }
   return QStringList();
 }
@@ -1020,7 +1009,7 @@ KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int lim
 #else
   expr = wildcard_expression;  expr.replace(QDir::separator(), "/");
 #endif
-  QStringList pathlist = SPLIT_STRING(expr, "/", false);
+  QStringList pathlist = str_split(expr, "/", false);
   QString root = "/";
   static QRegExp driveregexp("^[A-Za-z]:$");
   if (driveregexp.exactMatch(pathlist[0])) {
@@ -1031,7 +1020,7 @@ KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int lim
   return __search_find_test(root, pathlist, 0, limit);
 }
 
-KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path)
+KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extra_path)
 {
   static const QString PATH = getenv("PATH");
   static const QString pathsep = QString("")+KLF_PATH_SEP;
@@ -1040,11 +1029,11 @@ KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path)
   if (!extra_path.isEmpty())
     path += pathsep + extra_path;
 
-  const QStringList paths = SPLIT_STRING(path, pathsep, true);
+  const QStringList paths = str_split(path, pathsep, true);
   QString test;
   int k, j;
   for (k = 0; k < (int)paths.size(); ++k) {
-    QStringList hits = klfSearchFind(paths[k]+"/"+prog);
+    QStringList hits = klfSearchFind(paths[k]+"/"+programName);
     for (j = 0; j < (int)hits.size(); ++j) {
       if ( QFileInfo(hits[j]).isExecutable() ) {
 	return hits[j];

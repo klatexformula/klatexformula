@@ -228,7 +228,7 @@ void SkinConfigWidget::updateSkinDescription(const Skin& skin)
     ds += "<pre>"+tr("(No author name provided)")+"</pre>\n";
   }
   if (skin.overrideSHScheme) {
-    ds += "<pre><i>"+tr("This skin provides an appropriate syntax highlighting color scheme")+"</i></pre>";
+    ds += "<pre><i>"+tr("This skin also provides a syntax highlighting color scheme")+"</i></pre>";
   } else {
     ds += "<pre><i>"+tr("This skin will not alter syntax highlighting color scheme")+"</i></pre>";
   }

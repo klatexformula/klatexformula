@@ -399,6 +399,8 @@ public slots:
 
   void setWindowShownStatus(const QHash<QWidget*,bool>& windowshownflags);
 
+  void refreshAllWindowStyleSheets();
+
   void setQuitOnClose(bool quitOnClose);
 
   void quit();
@@ -445,6 +447,8 @@ protected:
 
   KLFStyleList _styles;
 
+  bool try_load_style_list(const QString& fileName);
+
   QMenu *mStyleMenu;
 
   bool _loadedlibrary;
@@ -470,6 +474,9 @@ protected:
   QSize _expandedsize;
 
   bool event(QEvent *e);
+#ifdef Q_WS_X11
+  bool x11Event(XEvent *event);
+#endif
   void childEvent(QChildEvent *e);
   void closeEvent(QCloseEvent *e);
   void hideEvent(QHideEvent *e);

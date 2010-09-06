@@ -28,6 +28,7 @@
 #include <QStringList>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QEvent>
 
 #include "klfunitinput.h"
 
@@ -41,8 +42,9 @@ KLFUnitChooser::~KLFUnitChooser()
 {
 }
 
-void KLFUnitChooser::setUnits(const QStringList& unitstrlist)
+void KLFUnitChooser::setUnits(const QString& unitstr)
 {
+  QStringList unitstrlist = unitstr.split(';');
   QList<Unit> units;
   int k;
   for (k = 0; k < unitstrlist.size(); ++k) {
@@ -57,10 +59,10 @@ void KLFUnitChooser::setUnits(const QStringList& unitstrlist)
     u.factor = parts[2].toDouble();
     units << u;
   }
-  setUnitList(units);
+  setUnits(units);
 }
 
-void KLFUnitChooser::setUnitList(const QList<Unit>& unitlist)
+void KLFUnitChooser::setUnits(const QList<Unit>& unitlist)
 {
   clear(); // clear combo box
   pUnits = unitlist;
@@ -72,13 +74,13 @@ void KLFUnitChooser::setUnitList(const QList<Unit>& unitlist)
   }
 }
 
-QStringList KLFUnitChooser::unitStrList() const
+QString KLFUnitChooser::unitStringDescription() const
 {
   QStringList l;
   int k;
   for (k = 0; k < pUnits.size(); ++k)
     l << QString("%2=%3=%1").arg(pUnits[k].factor, 0, 'g').arg(pUnits[k].name, pUnits[k].abbrev);
-  return l;
+  return l.join(";");
 }
 
 void KLFUnitChooser::setCurrentUnit(const QString& unitname)
@@ -86,18 +88,59 @@ void KLFUnitChooser::setCurrentUnit(const QString& unitname)
   int k;
   for (k = 0; k < count(); ++k) {
     if (itemData(k).value<Unit>().name == unitname) {
-      setCurrentIndex(k);
+      setCurrentUnitIndex(k);
       return;
     }
   }
   qWarning()<<KLF_FUNC_NAME<<": unit "<<unitname<<" not found.";
 }
+void KLFUnitChooser::setCurrentUnitAbbrev(const QString& unitAbbrev)
+{
+  int k;
+  for (k = 0; k < count(); ++k) {
+    if (itemData(k).value<Unit>().abbrev == unitAbbrev) {
+      setCurrentUnitIndex(k);
+      return;
+    }
+  }
+  qWarning()<<KLF_FUNC_NAME<<": unit abbrev. "<<unitAbbrev<<" not found.";
+}
+
+// private
+void KLFUnitChooser::setCurrentUnitIndex(int k)
+{
+  if (isEnabled()) {
+    setCurrentIndex(k);
+  } else {
+    pDelayedUnitSet = pUnits[k].name;
+    emit unitChanged(pUnits[k].name);
+    emit unitChanged(pUnits[k].factor);
+    emit unitChanged(pUnits[k].factor, pUnits[k].abbrev);
+  }
+}
+
+void KLFUnitChooser::changeEvent(QEvent *event)
+{
+  if (event->type() == QEvent::EnabledChange) {
+    if (isEnabled() && !pDelayedUnitSet.isEmpty()) {
+      setCurrentUnit(pDelayedUnitSet);
+      pDelayedUnitSet = QString();
+    }
+  }
+  QComboBox::changeEvent(event);
+}
+
 
 void KLFUnitChooser::internalCurrentIndexChanged(int index)
 {
+  if (index < 0 || index >= count())
+    return;
+
   Unit u = itemData(index).value<Unit>();
+  klfDbg("New unit selected : #"<<index<<" = "<<u.name) ;
   emit unitChanged(u.name);
   emit unitChanged(u.factor);
+  emit unitChanged(u.factor, u.abbrev);
 }
 
 
@@ -108,6 +151,7 @@ KLFUnitSpinBox::KLFUnitSpinBox(QWidget *parent)
   : QDoubleSpinBox(parent)
 {
   pUnitFactor = 1.0f;
+  pShowUnitSuffix = true;
   connect(this, SIGNAL(valueChanged(double)), this, SLOT(internalValueChanged(double)));
 }
 KLFUnitSpinBox::~KLFUnitSpinBox()
@@ -142,9 +186,21 @@ void KLFUnitSpinBox::setUnit(double unitfactor)
   setValue(curValue * curUnitFactor / pUnitFactor);
 }
 
+void KLFUnitSpinBox::setUnitWithSuffix(double unitfactor, const QString& suffix)
+{
+  setUnit(unitfactor);
+  if (pShowUnitSuffix)
+    setSuffix("  "+suffix);
+}
+
 void KLFUnitSpinBox::setValueInRefUnit(double value)
 {
   setValue(value / pUnitFactor);
+}
+
+void KLFUnitSpinBox::setShowUnitSuffix(bool show)
+{
+  pShowUnitSuffix = show;
 }
 
 

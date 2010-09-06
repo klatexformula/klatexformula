@@ -873,7 +873,9 @@ void KLFSettings::apply()
   if (curAppFont != newAppFont) {
     klfconfig.UI.applicationFont = newAppFont;
     qApp->setFont(klfconfig.UI.applicationFont);
-    qApp->setStyleSheet(qApp->styleSheet()); // needed to force font (?)
+    // Style sheet refresh is needed to force font (?)
+    qApp->setStyleSheet(qApp->styleSheet());
+    _mainwin->refreshAllWindowStyleSheets();
   }
   klfconfig.UI.latexEditFont = u->btnAppearFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);

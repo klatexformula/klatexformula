@@ -40,6 +40,7 @@
 #include <QLibraryInfo>
 #include <QMetaType>
 #include <QClipboard>
+#include <QFontDatabase>
 
 #include <klfbackend.h>
 
@@ -156,6 +157,7 @@ static struct option klfcmdl_optlist[] = {
   { "latexinput", 1, NULL, OPT_LATEXINPUT },
   { "paste-clipboard", 0, NULL, OPT_PASTE_CLIPBOARD },
   { "paste-selection", 0, NULL, OPT_PASTE_SELECTION },
+  //  { "dont-eval" 0, NULL, OPT_DONT_EVAL }, ................. this is a suggestion ......
   { "base64arg", 0, NULL, OPT_BASE64ARG },
   { "output", 1, NULL, OPT_OUTPUT },
   { "format", 1, NULL, OPT_FORMAT },
@@ -720,6 +722,9 @@ int main(int argc, char **argv)
     extern void __klf_init_the_macpasteboardmime();
     __klf_init_the_macpasteboardmime();
 #endif
+
+    // add our default application font ;-)
+    QFontDatabase::addApplicationFont(":/data/cmunss.otf");
 
     // main_get_input relies on a Q[Core]Application
     QString latexinput = main_get_input(opt_input, opt_latexinput, opt_paste);

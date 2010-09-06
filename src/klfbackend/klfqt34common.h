@@ -40,10 +40,15 @@
 #define s_trimmed trimmed
 #define s_toUpper toUpper
 #define s_toLatin1 toLatin1
+#define s_toLocal8Bit toLocal8Bit
+#define str_split(string, sep, boolAllowEmptyEntries)			\
+  (string).split((sep), (boolAllowEmptyEntries) ? QString::KeepEmptyParts : QString::SkipEmptyParts)
+#define list_indexOf(x) indexOf((x))
 #define rx_indexin(str) indexIn((str))
 #define img_settext(key, value)  setText((key), (value))
 #else
 #define qPrintable(x) (x).local8Bit().data()
+#define QLatin1String QString::fromLatin1
 #define dir_native_separators(x) QDir::convertSeparators(x)
 #define ba_assign(otherba) duplicate((otherba).data(), (otherba).size())
 #define dev_WRITEONLY IO_WriteOnly
@@ -56,10 +61,13 @@
 #define s_trimmed stripWhiteSpace
 #define s_toUpper upper
 #define s_toLatin1 latin1
+#define s_toLocal8Bit local8Bit
+#define str_split(string, sep, boolAllowEmptyEntries)		\
+  QStringList::split((sep), (string), (boolAllowEmptyEntries))
+#define list_indexOf(x) findIndex((x))
 #define rx_indexin(str) search((str))
 #define img_settext(key, value)  setText((key), 0, (value))
 #endif
-
 
 
 
