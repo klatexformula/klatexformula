@@ -168,8 +168,7 @@ void KLFSettings::populateLocaleCombo()
 {
   u->cbxLocale->clear();
   // application language : populate combo box
-  u->cbxLocale->addItem( QString::fromLatin1("English Default") ,
-			 QVariant("C") );
+  u->cbxLocale->addItem( QLatin1String("English Default"), QVariant::fromValue<QString>("en_US") );
   int k;
   for (k = 0; k < klf_avail_translations.size(); ++k) {
     KLFTranslationInfo ti = klf_avail_translations[k];

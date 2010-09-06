@@ -481,3 +481,14 @@ macro(KLFDeclareCacheVarOptionCondition specificoption cachetype cachestring upd
 endmacro(KLFDeclareCacheVarOptionCondition)
 
 
+
+macro(KLFMakeAbsInstallPath abs_dir_var dir_var)
+  if(IS_ABSOLUTE "${${dir_var}}")
+    set(${abs_dir_var} "${${dir_var}}")
+  else(IS_ABSOLUTE "${${dir_var}}")
+    set(${abs_dir_var} "${CMAKE_INSTALL_PREFIX}/${${dir_var}}")
+  endif(IS_ABSOLUTE "${${dir_var}}")
+endmacro(KLFMakeAbsInstallPath)
+
+
+

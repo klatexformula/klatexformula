@@ -9,16 +9,23 @@
 message(STATUS "")
 message(STATUS "[KDE4 SETTINGS (for kate plugin)]")
 
-# find KDE4
-find_package(KDE4)
-if(NOT KDE4_KDECONFIG_EXECUTABLE)
+macro(klf_nokde4)
   set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build KTextEditor plugin" FORCE)
   KLFNote(
   "KDE4 is required to build KTextEditor plugin. The plugin has been disabled (KLF_BUILD_KTEXTEDITORPLUGIN). Please re-run cmake to continue.")
   message(FATAL_ERROR "KDE4 not found.")
+endmacro(klf_nokde4)
+
+# find KDE4
+find_package(KDE4)
+if(NOT KDE4_KDECONFIG_EXECUTABLE)
+  klf_nokde4()
 endif(NOT KDE4_KDECONFIG_EXECUTABLE)
 
-include(KDE4Defaults)
+include(KDE4Defaults OPTIONAL RESULT_VARIABLE klf_kde4defaults_found)
+if(NOT klf_kde4defaults_found)
+  klf_nokde4()
+endif(NOT klf_kde4defaults_found)
 include_directories(${KDE4_INCLUDES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../klfbackend")
 

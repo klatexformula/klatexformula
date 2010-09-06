@@ -131,8 +131,8 @@ void KLFConfig::loadDefaults()
     QFontDatabase fdb;
     QFont f = QApplication::font();
 
-    if (fdb.isScalable("Computer Modern Sans Serif"))
-      f = QFont("Computer Modern Sans Serif", QFontInfo(f).pointSize());
+    if (fdb.isScalable("CMU Sans Serif"))
+      f = QFont("CMU Sans Serif", QFontInfo(f).pointSize());
 
 #ifdef Q_WS_X11
     // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
@@ -468,7 +468,7 @@ int KLFConfig::readFromConfig_v2()
 
   // forbid empty locale
   if (klfconfig.UI.locale.isEmpty())
-    klfconfig.UI.locale = "C";
+    klfconfig.UI.locale = "en_US";
   // set Qt default locale to ours
   QLocale::setDefault(klfconfig.UI.locale);
 
