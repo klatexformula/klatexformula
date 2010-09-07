@@ -38,6 +38,7 @@ set(klftools_HEADERS
 	klfpobj.h
 	klffactory.h
 	klfstyle.h
+	klfiteratorsearchable.h
 	${klftools_MOCHEADERS}
 )
 # UI Forms

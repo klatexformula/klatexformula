@@ -726,9 +726,10 @@ void KLFMainWin::loadStyles()
     if ( (result = try_load_style_list(fn)) == true )
       break;
   }
-  if (!result) {
-    QMessageBox::critical(this, tr("Error"), tr("Error: Unable to load your style list!"));
-  }
+  //  Don't fail if result is false, this is the case on first run (!)
+  //  if (!result) {
+  //    QMessageBox::critical(this, tr("Error"), tr("Error: Unable to load your style list!"));
+  //  }
 
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
@@ -2238,7 +2239,9 @@ void KLFMainWin::slotDrag()
   KLFMimeData *mime = new KLFMimeData(klfconfig.UI.dragExportProfile, _output);
 
   /** \bug .... DEBUG ... */
+#ifdef Q_WS_MAC
   mime->setImageData(_output.result);
+#endif
 
   drag->setMimeData(mime);
   QImage img;

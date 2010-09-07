@@ -488,7 +488,7 @@ void KLFLatexSymbolsView::buildDisplay()
     btn->setPalette(pal);
 #endif
     btn->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
-    btn->setProperty("symbol", (unsigned int) i);
+    btn->setProperty("symbol", QVariant::fromValue<int>(i));
     btn->setProperty("gridpos", QPoint(-1,-1));
     btn->setProperty("gridcolspan", -1);
     btn->setProperty("myWidth", p.width() + 4);
@@ -562,11 +562,70 @@ void KLFLatexSymbolsView::recalcLayout()
 void KLFLatexSymbolsView::slotSymbolActivated()
 {
   QObject *s = sender();
-  unsigned int i = s->property("symbol").toUInt();
-
-  emit symbolActivated(_symbols[i]);
+  int i = s->property("symbol").toInt();
+  if (i < 0 || i >= _symbols.size())
+    qWarning()<<KLF_FUNC_NAME<<": Inavlid symbol index "<<i;
+  else
+    emit symbolActivated(_symbols[i]);
 }
 
+
+bool KLFLatexSymbolsView::searchIterMatches(const SearchIterator& pos, const QString& queryString)
+{
+  // remember:  SearchIterator==int
+  if (pos < 0 || pos >= mSymbols.size())
+    return false;
+
+  int symIndex = mSymbols[pos]->property("symbol").toInt();
+  if (symIndex < 0 || symIndex >= _symbols.size()) {
+    qWarning()<<KLF_FUNC_NAME<<": Inavlid symbol index "<<symIndex;
+    return false;
+  }
+
+  // (X)Emacs-style: presence of capital letter triggers case sensitive search
+  Qt::CaseSensitivity cs = (queryString.contains(QRegExp("[A-Z]")) ? Qt::CaseSensitive : Qt::CaseInsensitive) ;
+
+  if ( _symbols[symIndex].symbol.contains(queryString, cs) ||
+       _symbols[symIndex].preamble.contains(queryString, cs) ) {
+    klfDbg("found match at "<<symIndex<<": "<<_symbols[symIndex].symbol) ;
+    return true;
+  }
+  return false;
+}
+
+void KLFLatexSymbolsView::searchPerformed(const SearchIterator& result)
+{
+  klfDbg("result is "<<result<<" valid="<<(result<mSymbols.size())) ;
+
+  highlightSearchMatches(result);
+}
+void KLFLatexSymbolsView::searchAbort()
+{
+  KLFIteratorSearchable<int>::searchAbort();
+  highlightSearchMatches(-1);
+  setFocus();
+}
+
+void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch)
+{
+  QString stylesheets[] = { "", "background-color: rgb(180,180,255)", "background-color: rgb(0,0,255)" };
+
+  if (currentMatch == -1) {
+    // abort search
+    stylesheets[0] = stylesheets[1] = stylesheets[2] = QString();
+  }
+  int k;
+  for (k = 0; k < mSymbols.size(); ++k) {
+    int which = 0;
+    if (k == currentMatch)
+      which = 2;
+    else if (searchIterMatches(k, searchQueryString()))
+      which = 1;
+    mSymbols[k]->setStyleSheet(stylesheets[which]);
+  }  
+  if (currentMatch >= 0 && currentMatch < mSymbols.size())
+    ensureWidgetVisible(mSymbols[currentMatch]);
+}
 
 
 
@@ -584,6 +643,12 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
   u = new Ui::KLFLatexSymbols;
   u->setupUi(this);
   setAttribute(Qt::WA_StyledBackground);
+
+  // add our search bar
+  pSearchBar = new KLFSearchBar(this);
+  pSearchBar->setShowOverlayMode(true);
+  pSearchBar->registerShortcuts(this);
+  pSearchBar->setSearchText("");
 
   KLFLatexSymbolsCache::theCache()->setBackendSettings(baseSettings);
 
@@ -749,8 +814,21 @@ void KLFLatexSymbols::read_symbols_create_ui()
 
 void KLFLatexSymbols::slotShowCategory(int c)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   // called by combobox
   stkViews->setCurrentIndex(c);
+
+  klfDbg("current index="<<c) ;
+
+  QWidget * w = stkViews->currentWidget();
+  KLFSearchable * target = NULL;
+  if (w != NULL) {
+    KLFLatexSymbolsView *view = qobject_cast<KLFLatexSymbolsView*>(w);
+    if (view != NULL)
+      target = view;
+  }
+  pSearchBar->setSearchTarget(target);
 }
 
 void KLFLatexSymbols::closeEvent(QCloseEvent *e)

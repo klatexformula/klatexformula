@@ -411,6 +411,10 @@ KLFMimeData::KLFMimeData(const QString& exportProfile, const KLFBackend::klfOutp
   : QMimeData(), pExportProfile(KLFMimeExportProfile::findExportProfile(exportProfile))
 {
   pOutput = output;
+
+  // Handle platform-specific default image type with 'application/x-qt-image' and setImage()
+  if (pExportProfile.mimeTypes().contains("application/x-qt-image"))
+    setImageData(output.result);
 }
 KLFMimeData::~KLFMimeData()
 {

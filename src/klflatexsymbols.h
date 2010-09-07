@@ -38,6 +38,9 @@
 
 #include <klfbackend.h>
 
+#include <klfsearchbar.h>
+#include <klfiteratorsearchable.h>
+
 /** A Latex Symbol. */
 struct KLF_EXPORT KLFLatexSymbol
 {
@@ -103,7 +106,7 @@ private:
 
 
 
-class KLF_EXPORT KLFLatexSymbolsView : public QScrollArea
+class KLF_EXPORT KLFLatexSymbolsView : public QScrollArea, public KLFIteratorSearchable<int>
 {
   Q_OBJECT
 public:
@@ -113,6 +116,15 @@ public:
   void appendSymbolList(const QList<KLFLatexSymbol>& symbols);
 
   QString category() const { return _category; }
+
+  // reimplemented from KLFIteratorSearchable
+  virtual SearchIterator searchIterBegin() { return 0; }
+  virtual SearchIterator searchIterEnd() { return mSymbols.size(); }
+
+  virtual bool searchIterMatches(const SearchIterator& pos, const QString& queryString);
+
+  virtual void searchPerformed(const SearchIterator& result);
+  virtual void searchAbort();
 
 signals:
   void symbolActivated(const KLFLatexSymbol& symb);
@@ -133,6 +145,8 @@ private:
   QGridLayout *mLayout;
   QSpacerItem *mSpacerItem;
   QList<QWidget*> mSymbols;
+
+  void highlightSearchMatches(int currentMatch);
 };
 
 
@@ -172,6 +186,8 @@ protected:
 
 private:
   Ui::KLFLatexSymbols *u;
+
+  KLFSearchBar * pSearchBar;
 
   void read_symbols_create_ui();
 };

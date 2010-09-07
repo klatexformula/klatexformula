@@ -242,10 +242,6 @@ set(klatexformula_QRCS
 	klfres.qrc
 )
 
-if(KLF_APPLICATION_FONTS)
-  add_definitions(-DKLF_APPLICATION_FONTS="${KLF_APPLICATION_FONTS}")
-endif(KLF_APPLICATION_FONTS)
-
 # Translations
 qt4_add_translation(klatexformula_QMS ${klatexformula_TSS})
 if(klatexformula_QMS STREQUAL cache_klatexformula_QMS)

@@ -30,6 +30,7 @@
 #include <QFrame>
 #include <QMovie>
 #include <QLabel>
+#include <QTime>
 
 #include <klfdefs.h>
 
@@ -40,6 +41,23 @@ class KLFSearchableProxy;
 namespace Ui { class KLFSearchBar; }
 
 //! An interface for objects that can be I-searched with a KLFSearchBar
+/** This class is the base skeleton interface for displays that will be targets for I-searches.
+ * There are three functions to reimplement:
+ * \code
+ * virtual bool searchFind(const QString& queryString, bool forward);
+ * virtual bool searchFindNext(bool forward);
+ * virtual void searchAbort();
+ * \endcode
+ * That have to actually perform the search.
+ *
+ * It is not uncommon for the display widget itself to inherit also from a KLFSearchable. See
+ * KLFAbstractLibView and KLFLibDefautlView for an example (in klfapp library).
+ *
+ * This class is pretty low-level search (you have to manually walk all items, remember the query
+ * string for future find-next operations, etc.). For a higher-level search implementation, see
+ * KLFIteratorSearchable (which itself is a KLFSearchable object and can also be used as target
+ * for KLFSearchBar).
+ */
 class KLF_EXPORT KLFSearchable
 {
 public:
@@ -89,15 +107,7 @@ public:
    */
   virtual void searchAbort() = 0;
 
-protected:
-  //! The current query string.
-  /** This can be used in eg. reimplementations of searchFindNext() to get the current
-   * query string. */
-  inline QString queryString() const { return pQueryString; }
-
 private:
-  QString pQueryString;
-
   QList<KLFSearchBar*> pTargetOf;
   QList<KLFSearchableProxy*> pTargetOfProxy;
 
@@ -114,7 +124,7 @@ class KLF_EXPORT KLFSearchableProxy : public KLFSearchable
 public:
   KLFSearchableProxy() : pTarget(NULL) { }
   virtual ~KLFSearchableProxy();
-
+  
   void setSearchTarget(KLFSearchable *target);
 
   virtual bool searchFind(const QString& queryString, bool forward);
@@ -128,6 +138,7 @@ private:
 };
 
 
+
 //! An Search Bar for Incremental Search
 /** This widget provides a set of controls an incremental search. This includes a line edit to input
  * the query string, a clear button, 'find next' and 'find previous' buttons.
@@ -135,6 +146,12 @@ private:
  * This widget acts upon an abstract \ref KLFSearchable object, which the object or display being searched
  * will have to implement. You only need to implement three straightforward functions providing the
  * actual search functionality. The search target can be set with \ref setSearchTarget().
+ *
+ * The user interface is inspired from (X)Emacs' I-search. More specifically:
+ *  - results are searched for already while the user is typing
+ *  - once arrived at the end of the list, the search will fail. However, re-attempting to find next
+ *    (eg. F3 or Ctrl-S) (respectively previous) will wrap the search from the beginning (respectively
+ *    from the end)
  *
  * Shortcuts can be enabled so that Ctrl-F, Ctrl-S, F3, and such other keys work. See registerShortcuts().
  *
@@ -163,10 +180,16 @@ public:
    * set this bar is unusable. */
   virtual void setSearchTarget(KLFSearchable *object);
 
+  virtual void setSearchText(const QString& text);
+
   virtual void setColorFound(const QColor& color);
   virtual void setColorNotFound(const QColor& color);
 
   virtual bool eventFilter(QObject *obj, QEvent *ev);
+
+  void setShowOverlayMode(bool showOverlayMode);
+  void setShowOverlayRelativeGeometry(int widthPercent, int heightPercent,
+				      int positionXPercent, int positionYPercent);
 
 signals:
   void searchPerformed(bool found);
@@ -186,6 +209,8 @@ public slots:
   void findNext(bool forward = true);
   void findPrev() { findNext(false); }
   void abortSearch();
+
+  void focus();
 
 protected:
   Ui::KLFSearchBar *u;
@@ -218,6 +243,9 @@ private:
   QString pLastSearchText;
 
   KLFWaitAnimationOverlay *pWaitLabel;
+
+  bool pShowOverlayMode;
+  QRect pShowOverlayRelativeGeometry;
 
   QString palettePropName(SearchState state);
   QString statePropValue(SearchState state);

@@ -397,13 +397,6 @@ mark_as_advanced(
 	LIB_SUFFIX
 	)
 
-# Application Fonts
-if(KLF_BUILD_GUI)
-  set(KLF_APPLICATION_FONTS ":/data/cmunso.otf|:/data/cmunss.otf|:/data/cmunssdc.otf"
-				      CACHE STRING "Fonts application should import at start-up")
-  mark_as_advanced(KLF_APPLICATION_FONTS)
-endif(KLF_BUILD_GUI)
-
 
 # Install Paths
 # -------------
