@@ -725,9 +725,10 @@ int main(int argc, char **argv)
 
     // add our default application font(s) ;-)
     const QStringList appFontsList =
-      QStringList() << ":/data/cmunso.otf"
+      QStringList() << ":/data/cmunsi.otf"
+		    << ":/data/cmunso.otf"
 		    << ":/data/cmunss.otf"
-		    << ":/data/cmunssdc.otf";
+		    << ":/data/cmunsx.otf" ;
     int k;
     for (k = 0; k < appFontsList.size(); ++k) {
       QFontDatabase::addApplicationFont(appFontsList[k]);

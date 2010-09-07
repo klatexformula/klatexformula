@@ -413,7 +413,7 @@ KLFMimeData::KLFMimeData(const QString& exportProfile, const KLFBackend::klfOutp
   pOutput = output;
 
   // Handle platform-specific default image type with 'application/x-qt-image' and setImage()
-  if (pExportProfile.mimeTypes().contains("application/x-qt-image"))
+  if (pExportProfile.mimeTypes().contains(QLatin1String("application/x-qt-image")))
     setImageData(output.result);
 }
 KLFMimeData::~KLFMimeData()
@@ -425,8 +425,11 @@ QStringList KLFMimeData::formats() const
   return pExportProfile.availableExporterMimeTypes();
 }
 
-QVariant KLFMimeData::retrieveData(const QString &mimetype, QVariant::Type type) const
+QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type) const
 {
+  if (mimetype == QLatin1String("application/x-qt-image"))
+    return QMimeData::retrieveData(mimetype, type);
+
   klfDbg("exporting "<<mimetype<<" ...");
   KLFMimeExporter *exporter = KLFMimeExporter::mimeExporterLookup(mimetype);
   if (exporter == NULL) {
