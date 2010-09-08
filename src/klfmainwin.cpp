@@ -762,6 +762,12 @@ void KLFMainWin::saveStyles()
 void KLFMainWin::loadLibrary()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
+  // start by loading the saved library browser state.
+  // Inside this function the value of klfconfig.LibraryBrowser.restoreURLs is taken
+  // into account.
+  loadLibrarySavedState();
+
   // Locate a good library/history file.
 
   //  KLFPleaseWaitPopup pwp(tr("Loading library, please wait..."), this);
@@ -792,7 +798,7 @@ void KLFMainWin::loadLibrary()
   localliburl.setScheme(klfconfig.Core.libraryLibScheme);
   localliburl.addQueryItem("klfDefaultSubResource", "History");
 
-  mHistoryLibResource = NULL;
+  mHistoryLibResource = mLibBrowser->getOpenResource(localliburl); // possibly NULL
 
   if (!QFile::exists(localfname)) {
     // create local library resource
@@ -835,8 +841,7 @@ void KLFMainWin::loadLibrary()
     return;
   }
 
-  qDebug("KLFMainWin::loadLibrary(): opened history: resource-ptr=%p\n\tImportFile=%s",
-	 (void*)mHistoryLibResource, qPrintable(importfname));
+  klfDbg("opened history: resource-ptr="<<mHistoryLibResource<<"\n\tImportFile="<<importfname);
 
   if (!importfname.isEmpty()) {
     // needs an import
@@ -876,7 +881,7 @@ void KLFMainWin::loadLibrary()
 				.arg(j+1).arg(subResList.size()).arg(subResList[j]));
 	QList<KLFLibResourceEngine::KLFLibEntryWithId> allentries
 	  = importres->allEntries(subres);
-	qDebug("\tGot %d entries from sub-resource %s", allentries.size(), qPrintable(subres));
+	klfDbg("Got "<<allentries.size()<<" entries from sub-resource "<<subres);
 	int k;
 	KLFLibEntryList insertentries;
 	for (k = 0; k < allentries.size(); ++k) {
@@ -892,7 +897,8 @@ void KLFMainWin::loadLibrary()
 
   // Open history sub-resource into library browser
   bool r;
-  r = mLibBrowser->openResource(mHistoryLibResource, KLFLibBrowser::NoCloseRoleFlag,
+  r = mLibBrowser->openResource(mHistoryLibResource,
+				KLFLibBrowser::NoCloseRoleFlag|KLFLibBrowser::OpenNoRaise,
   				QLatin1String("default+list"));
   if ( ! r ) {
     qWarning()<<"KLFMainWin::loadLibrary(): Can't open local history resource!\n\tURL="<<localliburl
@@ -911,7 +917,7 @@ void KLFMainWin::loadLibrary()
     url.removeAllQueryItems("klfDefaultSubResource");
     url.addQueryItem("klfDefaultSubResource", subresources[k]);
 
-    uint flags = KLFLibBrowser::NoCloseRoleFlag;
+    uint flags = KLFLibBrowser::NoCloseRoleFlag|KLFLibBrowser::OpenNoRaise;
     QString sr = subresources[k].toLower();
     if (sr == "history" || sr == tr("History").toLower())
       flags |= KLFLibBrowser::HistoryRoleFlag;
@@ -920,15 +926,13 @@ void KLFMainWin::loadLibrary()
 
     mLibBrowser->openResource(url, flags);
   }
-
-  loadLibrarySavedState();
 }
 
 void KLFMainWin::loadLibrarySavedState()
 {
   QString fname = klfconfig.homeConfigDir + "/libbrowserstate.xml";
   if ( ! QFile::exists(fname) ) {
-    qDebug("%s: No saved library browser state found (%s).", KLF_FUNC_NAME, qPrintable(fname));
+    klfDbg("No saved library browser state found ("<<fname<<")");
     return;
   }
 
@@ -957,7 +961,8 @@ void KLFMainWin::loadLibrarySavedState()
       continue;
     }
 
-    qWarning("Ignoring unrecognized node `%s' in file %s.", qPrintable(e.nodeName()), qPrintable(fname));
+    qWarning("%s: Ignoring unrecognized node `%s' in file %s.", KLF_FUNC_NAME,
+	     qPrintable(e.nodeName()), qPrintable(fname));
   }
 
   mLibBrowser->loadGuiState(vstatemap, klfconfig.LibraryBrowser.restoreURLs);
@@ -984,7 +989,7 @@ void KLFMainWin::saveLibraryState()
   rootNode.appendChild(statemapNode);
   doc.appendChild(rootNode);
 
-  f.write(doc.toByteArray());
+  f.write(doc.toByteArray(2));
 }
 
 // private
@@ -1466,7 +1471,7 @@ void KLFMainWin::quit()
 
 bool KLFMainWin::event(QEvent *e)
 {
-  qDebug("KLFMainWin::event(): e->type() == %d", (int)e->type());
+  klfDbg("e->type() == "<<e->type());
   
   return QWidget::event(e);
 }

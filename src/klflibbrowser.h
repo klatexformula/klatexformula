@@ -49,7 +49,7 @@ public:
   virtual ~KLFLibBrowser();
 
   enum ResourceRoleFlag {
-    NoRoleFlag              = 0x0, //!< This resource has nothing special
+    NoRoleFlag              = 0x00000000, //!< This resource has nothing special
 
     NoCloseRoleFlag         = 0x00000001, //!< Resource 'Close' GUI button is disabled (grayed)
 
@@ -57,7 +57,9 @@ public:
     ArchiveRoleFlag         = 0x00020000, //!< This resource is the Archive resource
     SpecialResourceRoleMask = 0x00ff0000, //!< Mask to extract the 'special resource' type (eg. history)
 
-    NoChangeFlag            = 0x70000000 //!< Instructs to not set new flags for already-open resources
+    NoChangeFlag            = 0x01000000, //!< Instructs to not set new flags for already-open resources
+    OpenNoRaise             = 0x02000000, //!< Instructs not to raise the tab during this call of openResource()
+    NowMask                 = 0xff000000  //!< These flags are not stored, they act upon the openResource() call only.
   };
 
   virtual bool eventFilter(QObject *object, QEvent *event);
@@ -125,6 +127,17 @@ public slots:
    */
   bool openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags = NoChangeFlag,
 		    const QString& viewTypeIdentifier = QString());
+
+  /**
+   * [ADVANCED USAGE]
+   * Overloaded member, provided for conenience. This function should not be called
+   * directly normally, use it only if you want to play with the library browser's
+   * advanced functions. Use loadGuiState() to load saved GUI state instead.
+   *
+   * [internal:] The \c guiState is exactly in the format that can be given to
+   * KLFLibBrowserViewContainer::loadGuiState().
+   */
+  bool openResourceFromGuiState(const QUrl& url, const QVariantMap& guiState);
 
   bool closeResource(const QUrl& url);
 

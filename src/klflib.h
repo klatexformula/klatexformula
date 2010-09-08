@@ -95,14 +95,10 @@ public:
   inline void setPreview(const QImage& img) { setProperty(Preview, img); }
   inline void setPreviewSize(const QSize& sz) { setProperty(PreviewSize, sz); }
   /** \note this function normalizes category to remove any double-'/' to avoid empty sections.
-   *    Equality between categories can be compared stringwise. */
-  inline void setCategory(const QString& s) {
-    QString c = s.trimmed();
-    if (c.startsWith('/') || c.endsWith('/') || c.contains("//"))
-      setProperty(Category, c.split('/', QString::SkipEmptyParts).join("/"));
-    else
-      setProperty(Category, c);
-  }
+   *    Equality between categories can be compared stringwise.
+   *
+   * See also \ref normalizeCategoryPath(). */
+  inline void setCategory(const QString& s) { setProperty(Category, normalizeCategoryPath(s)); }
   inline void setTags(const QString& s) { setProperty(Tags, s); }
   inline void setStyle(const KLFStyle& style) { setProperty(Style, QVariant::fromValue(style)); }
 
@@ -125,6 +121,15 @@ public:
   /** Creates a latex with category and tags comments */
   static QString latexAddCategoryTagsComment(const QString& latex, const QString& category,
 					     const QString& tags);
+  /** Renders a category-path "pretty" by removing any double-slashes to single slashes.
+   * Trailing slashes are removed. The root category is an empty string.
+   *
+   * When a category is set to a lib-entry with \c setCategory(), it is automatically
+   * normalized.
+   *
+   * Returned paths may be compared string-wise for equality.
+   */
+  static QString normalizeCategoryPath(const QString& categoryPath);
 
 private:
   

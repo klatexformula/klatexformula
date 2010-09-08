@@ -36,10 +36,13 @@
 #include <QDateTime>
 #include <QRect>
 #include <QIcon>
+#include <QColor>
+#include <QBrush>
 #include <QPushButton>
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QDomDocument>
+#include <QTextFormat>
 
 #include "klfutil.h"
 #include "klfstyle.h"
@@ -193,10 +196,81 @@ KLF_EXPORT bool klfMatch(const QVariant& testForHitCandidateValue, const QVarian
 
 // -----------------------------------------------------
 
+
+
 static inline bool klf_is_hex_char(char c)
 {
   return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
 }
+
+
+
+#define KLF_BRUSH_STYLE(sty)			\
+  { Qt::sty##Pattern, #sty }
+
+static struct { int brushStyle; const char *style; } klf_brush_styles[] = {
+  { Qt::NoBrush, "NoBrush" },
+  { Qt::SolidPattern, "" },
+  { Qt::SolidPattern, "Solid" },
+  KLF_BRUSH_STYLE(Dense1),
+  KLF_BRUSH_STYLE(Dense2),
+  KLF_BRUSH_STYLE(Dense3),
+  KLF_BRUSH_STYLE(Dense4),
+  KLF_BRUSH_STYLE(Dense5),
+  KLF_BRUSH_STYLE(Dense6),
+  KLF_BRUSH_STYLE(Dense7),
+  KLF_BRUSH_STYLE(Hor),
+  KLF_BRUSH_STYLE(Ver),
+  KLF_BRUSH_STYLE(Cross),
+  KLF_BRUSH_STYLE(BDiag),
+  KLF_BRUSH_STYLE(FDiag),
+  KLF_BRUSH_STYLE(DiagCross),
+  { -1, NULL }
+};
+
+
+
+#define KLF_TEXT_FORMAT_FORMAT(fmt)		\
+  { QTextFormat::fmt##Format, #fmt "Format" }
+
+static struct { int formatId; const char *format; } klf_text_format_formats[] = {
+  KLF_TEXT_FORMAT_FORMAT(Invalid),
+  KLF_TEXT_FORMAT_FORMAT(Block),
+  KLF_TEXT_FORMAT_FORMAT(Char),
+  KLF_TEXT_FORMAT_FORMAT(List),
+  KLF_TEXT_FORMAT_FORMAT(Table),
+  KLF_TEXT_FORMAT_FORMAT(Frame),
+  KLF_TEXT_FORMAT_FORMAT(User),
+  { -100, NULL }
+};
+
+
+#define KLF_TEXT_FORMAT_PROP(p, type)		\
+  { QTextFormat::p, #p, #type }
+
+static struct { int propId; const char *key; const char *type; } klf_text_format_props[] = {
+  KLF_TEXT_FORMAT_PROP(ForegroundBrush, QBrush),
+  KLF_TEXT_FORMAT_PROP(BackgroundBrush, QBrush),
+  KLF_TEXT_FORMAT_PROP(FontFamily, QString),
+  KLF_TEXT_FORMAT_PROP(FontPointSize, int),
+  KLF_TEXT_FORMAT_PROP(FontWeight, int),
+  KLF_TEXT_FORMAT_PROP(FontItalic, bool),
+  KLF_TEXT_FORMAT_PROP(TextUnderlineStyle, int),
+  // add more keys for short-hands
+  { QTextFormat::ForegroundBrush, "FG", "QBrush" },
+  { QTextFormat::BackgroundBrush, "BG", "QBrush" },
+
+  { -1, NULL, NULL }
+};
+
+static struct { const char * keyword; int propId; QVariant fixed_value; } klf_text_format_keywords[] = {
+    { "NORMALWEIGHT", QTextFormat::FontWeight, QVariant(QFont::Normal) },
+    { "BOLD", QTextFormat::FontWeight, QVariant(QFont::Bold) },
+    { "NORMALSTYLE", QTextFormat::FontItalic, QVariant(false) },
+    { "ITALIC", QTextFormat::FontItalic, QVariant(true) },
+
+    { NULL, -1, QVariant() }
+};
 
 
 
@@ -277,6 +351,36 @@ static QByteArray encaps_list(const QList<QByteArray>& list)
   return data;
 }
 
+// if 'ignore_empty_values' is TRUE, then the '=' sign is omitted with the value in a section is empty.
+static QByteArray encaps_map(const QList<QPair<QByteArray,QByteArray> >& sections, bool ignore_empty_values = false)
+{
+  QByteArray data;
+  data = "{";
+  bool first_item = true;
+  int k;
+  for (k = 0; k < sections.size(); ++k) {
+    if (!first_item) {
+      data += ";";
+    }
+    first_item = false;
+    QByteArray key = sections[k].first;
+    QByteArray val = sections[k].second;
+    // prepare the pair  key=value
+    key.replace("\\", "\\\\");
+    key.replace(";", "\\;");
+    key.replace("=", "\\=");
+    val.replace("\\", "\\\\");
+    val.replace(";", "\\;");
+    if (val.isEmpty() && ignore_empty_values)
+      data += key;
+    else
+      data += key + "=" + val;
+  }
+  data += "}";
+  return data;
+}
+
+
 static QList<QByteArray> decaps_list(const QByteArray& ba_data)
 {
   klfDbg("decaps_list, data="<<ba_data);
@@ -328,9 +432,90 @@ static QList<QByteArray> decaps_list(const QByteArray& ba_data)
   return sections;
 }
 
+static QList<QPair<QByteArray,QByteArray> > decaps_map(const QByteArray& ba_data, bool allow_empty_values = false)
+{
+  QByteArray data = ba_data.trimmed();
+  if (data[0] != '{')
+    return QList<QPair<QByteArray,QByteArray> >();
+  if ( !data.contains('}') )
+    data += '}';
+	
+  QList<QPair<QByteArray, QByteArray> > sections;
+  QByteArray chunkkey;
+  QByteArray chunkvalue;
+  QByteArray *curChunk = &chunkkey;
+  // first, split data.  take into account escaped chars.
+  // k=1 to skip '{'
+  int k = 1;
+  while (k < data.size()) {
+    if (data[k] == ';') { // separator for next pair
+      // flush chunk as a new section
+      if (!allow_empty_values && curChunk == &chunkkey)
+	qWarning()<<KLF_FUNC_NAME<<": no '=' in pair at pos "<<k<<" in string: "<<data<<"";
+      sections << QPair<QByteArray,QByteArray>(chunkkey, chunkvalue);
+      // and start a new section
+      chunkkey = QByteArray();
+      chunkvalue = QByteArray();
+      curChunk = &chunkkey;
+      ++k;
+    }
+    if (data[k] == '\\') {
+      if (k+1 < data.size()) { // there exists a next char
+	*curChunk += data[k+1];
+	k += 2;
+      } else {
+	*curChunk += data[k];
+	++k;
+      }
+      continue;
+    }
+    if (curChunk == &chunkkey && data[k] == '=') {
+      // currently reading key, switch to reading value
+      curChunk = &chunkvalue;
+      ++k;
+      continue;
+    }
+    if (data[k] == '}') {
+      // end of list marker.
+      // flush last chunk into sections, and break.
+      if (!allow_empty_values && curChunk == &chunkkey)
+	qWarning()<<"klfLoadVariantFromText: no '=' in pair at pos "<<k<<" in string: "<<data<<"";
+      sections << QPair<QByteArray,QByteArray>(chunkkey, chunkvalue);
+      break;
+    }
+    // regular char, populate current chunk.
+    *curChunk += data[k];
+    ++k;
+  }
+  return sections;
+}
 
 
-KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
+
+// returns root node. get the document with  root.ownerDocument()
+static QDomElement make_xml_wrapper(const QString& rootname)
+{
+  QDomDocument xmldoc(rootname);
+  QDomElement root = xmldoc.createElement(rootname);
+  xmldoc.appendChild(root);
+  return root;
+}
+
+static QDomElement parse_xml_wrapper(const QByteArray& xmldata, const QString& shouldBeRootName)
+{
+  QDomDocument xmldoc(shouldBeRootName);
+  bool result = xmldoc.setContent(xmldata);
+  KLF_ASSERT_CONDITION(result, "Failed to read wrapper XML for klfLoadVariantFromText()",
+		       return QDomElement() ) ;
+
+  QDomElement el = xmldoc.documentElement();
+  KLF_ASSERT_CONDITION( el.nodeName() == shouldBeRootName,
+		        "Wrong XML root node in wrapper for klfLoadVariantFromText(): "
+			<<el.nodeName() ,  ) ;
+  return el;
+}
+
+KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML)
 {
   QTextCodec *tc = QTextCodec::codecForLocale();
 
@@ -422,30 +607,30 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
     data = value.value<QDateTime>().toString(Qt::SystemLocaleShortDate).toLocal8Bit(); break;
   case QMetaType::QSize:
     { QSize sz = value.toSize();
-      data = QString("(%1,%2)").arg(sz.width()).arg(sz.height()).toAscii();
+      data = QString("(%1 %2)").arg(sz.width()).arg(sz.height()).toAscii();
       break;
     }
   case QMetaType::QPoint:
     { QPoint pt = value.toPoint();
-      data = QString("(%1,%2)").arg(pt.x()).arg(pt.y()).toAscii();
+      data = QString("(%1 %2)").arg(pt.x()).arg(pt.y()).toAscii();
       break;
     }
   case QMetaType::QRect:
     { QRect r = value.toRect();
-      data = QString("(%1,%2+%3,%4)").arg(r.left()).arg(r.top()).arg(r.width()).arg(r.height()).toAscii();
+      data = QString("(%1 %2+%3x%4)").arg(r.left()).arg(r.top()).arg(r.width()).arg(r.height()).toAscii();
       break;
     }
   case QMetaType::QColor:
     { QColor c = value.value<QColor>();
       if (c.alpha() == 255)
-	data = QString("(%1,%2,%3)").arg(c.red()).arg(c.green()).arg(c.blue()).toAscii();
+	data = QString("(%1 %2 %3)").arg(c.red()).arg(c.green()).arg(c.blue()).toAscii();
       else
-	data = QString("(%1,%2,%3,%4)").arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()).toAscii();
+	data = QString("(%1 %2 %3 %4)").arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()).toAscii();
       break;
     }
   case QMetaType::QFont:
     { QFont f = value.value<QFont>();
-      data = '"' + f.family().toLocal8Bit() + '"';
+      data = "'" + f.family().toLocal8Bit() + "'";
       switch (f.weight()) {
       case QFont::Light: data += " Light"; break;
       case QFont::Normal: break; //data += " Normal"; break;
@@ -464,37 +649,133 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
       data += " " + QString::number(QFontInfo(f).pointSize()).toAscii();
       break;
     }
+  case QMetaType::QBrush:
+    { QBrush b = value.value<QBrush>();
+      if (!b.matrix().isIdentity())
+	break; // forget about saving complex brushes here
+      int bstyle = b.style();
+      // find index in our brush style enum
+      int k;
+      bool found_style = false;
+      for (k = 0; klf_brush_styles[k].brushStyle >= 0 && klf_brush_styles[k].style != NULL; ++k) {
+	if (klf_brush_styles[k].brushStyle == bstyle) {
+	  found_style = true;
+	  break;
+	}
+      }
+      if (!found_style) {
+	// didn't find this style, this is a complex brush. Need to save it via a datastream.
+	break;
+      }
+      // found brush style. This is a simple brush with just a style and a color.
+      data = "(";
+      data += klf_brush_styles[k].style;
+      if (strlen(klf_brush_styles[k].style))
+	data += " ";
+      QColor c = b.color();
+      data += QString("%1 %2 %3 %4").arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha());
+      data += ")";
+      break;
+    }
+  case QMetaType::QTextFormat:
+    {
+      QTextFormat tf = value.value<QTextFormat>();
+      const QMap<int,QVariant> props = tf.properties();
+
+      QList<QPair<QByteArray,QByteArray> > sections;
+
+      // first find the QTextFormat type.
+      int k;
+      for (k = 0; klf_text_format_formats[k].format != NULL; ++k)
+	if (klf_text_format_formats[k].formatId == tf.type())
+	  break;
+      if (klf_text_format_formats[k].format == NULL) {
+	// didn't find format, something is bound to go wrong, so fall back
+	// on Qt's datastream saving.
+	data = QByteArray();
+	break;
+      }
+      // found format. This will be the first (value-less) section.
+      sections << QPair<QByteArray,QByteArray>(klf_text_format_formats[k].format, QByteArray());
+
+      QMap<int,QVariant>::const_iterator it;
+      for (it = props.begin(); it != props.end(); ++it) {
+	int propId = it.key();
+	QVariant propValue = it.value();
+	// Add data for this property.
+
+	// first look to see if a keyword is already known to be available
+	for (k = 0; klf_text_format_keywords[k].keyword != NULL; ++k)
+	  if (klf_text_format_keywords[k].propId == propId &&
+	      klf_text_format_keywords[k].fixed_value == propValue)
+	    break;
+	const char *kw = klf_text_format_keywords[k].keyword;
+	if (kw != NULL) {
+	  // found a keyword for this property-value pair
+	  QByteArray key = kw;
+	  sections << QPair<QByteArray,QByteArray>(kw, QByteArray());
+	  continue;
+	}
+
+	// now look to see if we can name the property
+	for (k = 0; klf_text_format_props[k].key != NULL; ++k)
+	  if (klf_text_format_props[k].propId == propId)
+	    break;
+	if (klf_text_format_props[k].key != NULL) {
+	  // make sure the variant has the advertised type
+	  if ( !strcmp(klf_text_format_props[k].type, propValue.typeName()) ) {
+	    // found the property in our list of common properties
+	    QByteArray key = klf_text_format_props[k].key;
+	    QByteArray value = klfSaveVariantToText(propValue, true); // resort to XML for lists/maps...
+	    sections << QPair<QByteArray,QByteArray>(key, value);
+	    continue;
+	  } else {
+	    qWarning()<<KLF_FUNC_NAME<<": QTextFormat property "<<klf_text_format_props[k].key
+		      <<" 's type is `"<<propValue.typeName()<<"' which is not the known type: "
+		      <<klf_text_format_props[k].type;
+	  }
+	}
+
+	// this property is unknown to us. store it as we can.
+	QByteArray key = QString::number(propId).toLatin1();
+	QByteArray value;
+	value = QByteArray("[")+propValue.typeName()+"]"+klfSaveVariantToText(propValue, true);
+      }
+      data = encaps_map(sections, true);
+      break;
+    }
   case QMetaType::QVariantList:
     {
-      const QList<QVariant> list = value.toList();
-      QList<QByteArray> sections;
-      for (k = 0; k < list.size(); ++k) {
-	sections << klfSaveVariantToText(list[k]);
+      const QList<QVariant>& list = value.toList();
+      if (saveListAndMapsAsXML) {
+	QDomElement el = make_xml_wrapper("variant-list");
+	el = klfSaveVariantListToXML(list, el);
+	data = el.ownerDocument().toByteArray(0);
+      } else {
+	QList<QByteArray> sections;
+	for (k = 0; k < list.size(); ++k) {
+	  sections << klfSaveVariantToText(list[k]);
+	}
+	data = encaps_list(sections);
       }
-      data = encaps_list(sections);
       break;
     }
   case QMetaType::QVariantMap:
     {
-      const QMap<QString,QVariant> map = value.toMap();
-      data = "{";
-      bool first = true;
-      for (QMap<QString,QVariant>::const_iterator it = map.begin(); it != map.end(); ++it) {
-	if (!first) {
-	  data += ";";
+      const QMap<QString,QVariant>& map = value.toMap();
+      if (saveListAndMapsAsXML) {
+	QDomElement el = make_xml_wrapper("variant-map");
+	el = klfSaveVariantMapToXML(map, el);
+	data = el.ownerDocument().toByteArray(0);
+      } else {
+	QList<QPair<QByteArray, QByteArray> > sections;
+	for (QMap<QString,QVariant>::const_iterator it = map.begin(); it != map.end(); ++it) {
+	  QByteArray k = klfSaveVariantToText(QVariant(it.key()));
+	  QByteArray v = klfSaveVariantToText(it.value());
+	  sections << QPair<QByteArray,QByteArray>(k, v);
 	}
-	first = false;
-	// prepare the pair  key=value
-	QByteArray k = klfSaveVariantToText(QVariant(it.key()));
-	QByteArray v = klfSaveVariantToText(it.value());
-	k.replace("\\", "\\\\");
-	k.replace(";", "\\;");
-	k.replace("=", "\\=");
-	v.replace("\\", "\\\\");
-	v.replace(";", "\\;");
-	data += k + "=" + v;
+	data = encaps_map(sections);
       }
-      data += "}";
       break;
     }
   default:
@@ -524,7 +805,8 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value)
   if (data.startsWith("[QVariant]") || data.startsWith("\\")) // protect this special sequence
     data = "\\"+data;
 
-  // and provide a default encoding scheme (only machine-readable ...)
+  // and provide a default encoding scheme in case no one up to now was able to
+  // format the data (this format is only machine-readable ...)
 
   if (data.isNull()) {
     QByteArray vdata;
@@ -550,7 +832,53 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
-  QRegExp v2rx("^\\(\\s*(-?\\d+)\\s*[,;]\\s*(-?\\d+)\\s*\\)");
+  // SOME REGULAR EXPRESSIONS
+
+#define RX_INT "-?\\d+"
+#define RX_COORD_SEP "\\s*(?:[,;]|\\s)\\s*" // note: non-capturing parenthesis
+#define RX_SIZE_SEP "\\s*(?:[,;x]|\\s)\\s*" // note: non-capturing parenthesis
+
+  //                     1                           2
+  QRegExp v2rx("^\\(?\\s*(" RX_INT ")" RX_COORD_SEP "(" RX_INT ")\\s*\\)?");
+  static const int V2RX_X = 1, V2RX_Y = 2;
+
+  //                     1                          2
+  QRegExp szrx("^\\(?\\s*(" RX_INT ")" RX_SIZE_SEP "(" RX_INT ")\\s*\\)?");
+  static const int SZRX_W = 1, SZRX_H = 2;
+
+  //                       1                           2
+  QRegExp rectrx("^\\(?\\s*(" RX_INT ")" RX_COORD_SEP "(" RX_INT ")"
+		 //                       3
+		 "(?:" RX_COORD_SEP "|\\s*([+])\\s*)"
+		 //4                                5         6
+		 "(" RX_INT ")(?:"RX_COORD_SEP"|\\s*([x])\\s*)(" RX_INT ")\\s*\\)?");
+  static const int RECTRX_X1 = 1, RECTRX_Y1 = 2, RECTRX_MIDDLESEP_PLUS = 3,
+    RECTRX_X2orW = 4, RECTRX_LASTSEP_X = 5, RECTRX_Y2orH = 6;
+
+  //                                1                     2                     3
+  QRegExp colrx("^(?:rgba?)?\\(?\\s*(\\d+)" RX_COORD_SEP "(\\d+)" RX_COORD_SEP "(\\d+)"
+		//4               5
+		"(" RX_COORD_SEP "(\\d+))?\\s*\\)?", Qt::CaseInsensitive);
+  static const int COLRX_R = 1, COLRX_G = 2, COLRX_B = 3, COLRX_MAYBE_ALPHA = 4, COLRX_A = 5;
+
+  //                                       1                                2                     3
+  QRegExp brushrx("^(?:q?brush)?\\(?\\s*(?:([A-Za-z_]\\w*)" RX_COORD_SEP ")?(\\d+)" RX_COORD_SEP "(\\d+)"
+		  //            4         5               6
+		  RX_COORD_SEP "(\\d+)"  "("RX_COORD_SEP "(\\d+))?" "\\s*\\)?", Qt::CaseInsensitive);
+  static const int BRUSHRX_STYLE = 1, BRUSHRX_R = 2, BRUSHRX_G = 3, BRUSHRX_B = 4, BRUSHRX_A = 6;
+
+  //               1           2
+  QRegExp fontrx("^([\"']?)\\s*(.+)\\s*\\1"
+		 //3   4                                             5
+		 "(\\s+(Light|Normal|DemiBold|Bold|Black|Wgt\\s*=\\s*(\\d+)))?"
+		 //6   7                        8    9
+		 "(\\s+(Normal|Italic|Oblique))?(\\s+(\\d+))?$");
+  fontrx.setMinimal(true); // don't match Light|Normal|DemiBold|... etc as part of font name
+  static const int FONTRX_FAMILY = 2, FONTRX_WEIGHT_TEXT = 4, FONTRX_WEIGHT_VALUE = 5,
+    FONTRX_STYLE_TEXT = 7, FONTRX_POINTSIZE = 9;
+
+
+  // START DECODING TEXT
 
   QByteArray data = stringdata; // might need slight modifications before parsing
 
@@ -566,7 +894,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   if (data.startsWith("\\"))
     data = data.mid(1);
 
-  klfDbg( "Will start loading data (len="<<data.size()<<") : "<<data ) ;
+  klfDbg( "Will start loading a `"<<dataTypeName<<"' from data (len="<<data.size()<<") : "<<data ) ;
 
   // now, start reading.
   int type = QVariant::nameToType(dataTypeName);
@@ -816,10 +1144,10 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   case QMetaType::QSize:
     {
       QString s = QString::fromLocal8Bit(data.trimmed());
-      if (v2rx.indexIn(s) < 0)
+      if (szrx.indexIn(s) < 0)
 	break;
-      QStringList vals = v2rx.capturedTexts();
-      return QVariant::fromValue<QSize>(QSize(vals[1].toInt(), vals[2].toInt()));
+      QStringList vals = szrx.capturedTexts();
+      return QVariant::fromValue<QSize>(QSize(vals[SZRX_W].toInt(), vals[SZRX_H].toInt()));
     }
   case QMetaType::QPoint:
     {
@@ -827,57 +1155,57 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
       if (v2rx.indexIn(s) < 0)
 	break;
       QStringList vals = v2rx.capturedTexts();
-      return QVariant::fromValue<QPoint>(QPoint(vals[1].toInt(), vals[2].toInt()));
+      return QVariant::fromValue<QPoint>(QPoint(vals[V2RX_X].toInt(), vals[V2RX_Y].toInt()));
     }
   case QMetaType::QRect:
     {
-      //                      1                   2           3          4                   5
-      QRegExp rectrx("^\\(\\s*(-?\\d+)\\s*[,;]\\s*(-?\\d+)\\s*([+,;])\\s*(-?\\d+)\\s*[,;]\\s*(-?\\d+)\\s*\\)");
       QString s = QString::fromLocal8Bit(data.trimmed());
       if (rectrx.indexIn(s) < 0)
 	break;
       QStringList vals = rectrx.capturedTexts();
-      if (vals[3] == "+") {
-	return QVariant::fromValue<QRect>(QRect( QPoint(vals[1].toInt(), vals[2].toInt()),
-						 QSize(vals[4].toInt(), vals[5].toInt()) ));
+      if (vals[RECTRX_MIDDLESEP_PLUS] == "+" || vals[RECTRX_LASTSEP_X] == "x") {
+	return QVariant::fromValue<QRect>(QRect( QPoint(vals[RECTRX_X1].toInt(), vals[RECTRX_Y1].toInt()),
+						 QSize(vals[RECTRX_X2orW].toInt(), vals[RECTRX_Y2orH].toInt()) ));
       }
-      return QVariant::fromValue<QRect>(QRect( QPoint(vals[1].toInt(), vals[2].toInt()),
-					       QPoint(vals[4].toInt(), vals[5].toInt()) ));
+      return QVariant::fromValue<QRect>(QRect( QPoint(vals[RECTRX_X1].toInt(), vals[RECTRX_Y1].toInt()),
+					       QPoint(vals[RECTRX_X2orW].toInt(), vals[RECTRX_Y2orH].toInt()) ));
     }
   case QMetaType::QColor:
     {
-      //                     1                   2                   3           4        5
-      QRegExp colrx("^\\(\\s*(-?\\d+)\\s*[,;]\\s*(-?\\d+)\\s*[,;]\\s*(-?\\d+)\\s*([,;]\\s*(-?\\d+)\\s*)?\\)");
-      if (colrx.indexIn(QString::fromLocal8Bit(data.trimmed())) < 0)
+      QString colstr = QString::fromLocal8Bit(data.trimmed());
+      // try our regexp
+      if (colrx.indexIn(colstr) < 0) {
+	klfDbg("color "<<colstr<<" does not match regexp="<<colrx.pattern()<<", trying named...") ;
+	// try a named color
+	QColor color;  color.setNamedColor(colstr);
+	// if we got a valid color, yepee
+	if (color.isValid())
+	  return color;
 	break;
+      }
+      // our regexp matched
       QStringList vals = colrx.capturedTexts();
-      QColor color = QColor(vals[1].toInt(), vals[2].toInt(), vals[3].toInt(), 255);
-      if (!vals[4].isEmpty())
-	color.setAlpha(vals[5].toInt());
+      QColor color = QColor(vals[COLRX_R].toInt(), vals[COLRX_G].toInt(), vals[COLRX_B].toInt(), 255);
+      if (!vals[COLRX_MAYBE_ALPHA].isEmpty())
+	color.setAlpha(vals[COLRX_A].toInt());
       return QVariant::fromValue<QColor>(color);
     }
   case QMetaType::QFont:
     {
-      //               1        2
-      QRegExp fontrx("^(\"?)\\s*([^\"]+)\\s*\\1"
-		     //3   4                                             5
-		     "(\\s+(Light|Normal|DemiBold|Bold|Black|Wgt\\s*=\\s*(\\d+)))?"
-		     //6   7                        8    9
-		     "(\\s+(Normal|Italic|Oblique))?(\\s+(\\d+))?");
-
       if (fontrx.indexIn(QString::fromLocal8Bit(data.trimmed())) < 0) {
-	qDebug("\tmalformed font: `%s'", qPrintable(QString::fromLocal8Bit(data.trimmed())));
+	klfDbg("malformed font: "<<data);
 	break;
       }
       QStringList vals = fontrx.capturedTexts();
-      //klfDbg( "klfLoadVariantFromText: loaded font-rx cap.Texts: "<<vals ) ;
-      QString family = vals[2].trimmed();
-      QString weighttxt = vals[4];
-      QString weightval = vals[5];
-      QString styletxt = vals[7];
-      QString ptsval = vals[9];
+      klfDbg("parsing font: data="<<data<<"; captured texts are: "<<vals );
 
-      int weight = -1;
+      QString family = vals[FONTRX_FAMILY].trimmed();
+      QString weighttxt = vals[FONTRX_WEIGHT_TEXT];
+      QString weightval = vals[FONTRX_WEIGHT_VALUE];
+      QString styletxt = vals[FONTRX_STYLE_TEXT];
+      QString ptsval = vals[FONTRX_POINTSIZE];
+
+      int weight = QFont::Normal;
       if (weighttxt == "Light") weight = QFont::Light;
       else if (weighttxt == "Normal") weight = QFont::Normal;
       else if (weighttxt == "DemiBold") weight = QFont::DemiBold;
@@ -899,84 +1227,150 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
       font.setStyle(style);
       return QVariant::fromValue<QFont>(font);
     }
+  case QMetaType::QBrush:
+    {
+      if (brushrx.indexIn(QString::fromLocal8Bit(data.trimmed())) < 0) {
+	klfDbg("malformed brush text: "<<data) ;
+	break;
+      }
+      QStringList vals = brushrx.capturedTexts();
+      QString style = vals[BRUSHRX_STYLE];
+      // find brush style
+      int k;
+      bool style_found = false;
+      for (k = 0; klf_brush_styles[k].brushStyle >= 0 && klf_brush_styles[k].style != NULL; ++k) {
+	if (klf_brush_styles[k].style == style) {
+	  style_found = true;
+	  break;
+	}
+      }
+      if (!style_found) {
+	klfDbg("Can't find style"<<style<<" in brush style list!");
+	break;
+      }
+      int qbrush_style = klf_brush_styles[k].brushStyle;
+      // read the color and construct QBrush.
+      QColor c = QColor(vals[BRUSHRX_R].toInt(),  vals[BRUSHRX_G].toInt(),
+			vals[BRUSHRX_B].toInt());
+      if (!vals[BRUSHRX_A].isEmpty())
+	c.setAlpha(vals[BRUSHRX_A].toInt());
+      return QBrush(c, static_cast<Qt::BrushStyle>(qbrush_style));
+    }
+  case QMetaType::QTextFormat:
+    {
+      int k;
+      QList<QPair<QByteArray,QByteArray> > sections = decaps_map(data, true);
+      if (sections.isEmpty()) {
+	klfDbg("Invalid QTextFormat data.") ;
+	break;
+      }
+      QPair<QByteArray,QByteArray> firstSection = sections.takeFirst();
+      QString fmttype = QString::fromLatin1(firstSection.first);
+      // find the format in our list
+      for (k = 0; klf_text_format_formats[k].format != NULL; ++k)
+	if (QString::compare(fmttype, QLatin1String(klf_text_format_formats[k].format),
+			     Qt::CaseInsensitive) == 0)
+	  break;
+      if (klf_text_format_formats[k].format == NULL) {
+	klfDbg("QTextFormat: Invalid format type: "<<fmttype) ;
+	break;
+      }
+      int qtextformat_type = klf_text_format_formats[k].formatId;
+
+      // now decode the list of properties
+      QTextFormat textformat(qtextformat_type);
+      QList<QPair<QByteArray,QByteArray> >::const_iterator it;
+      for (it = sections.begin(); it != sections.end(); ++it) {
+	QByteArray key = (*it).first.trimmed();
+	QByteArray value = (*it).second;
+	klfDbg("QTextFormat: considering property pair key="<<key<<"; value="<<value) ;
+	// see if the key is a keyword
+	for (k = 0; klf_text_format_keywords[k].keyword != NULL; ++k)
+	  if (QString::compare(QLatin1String(klf_text_format_keywords[k].keyword),
+			       key, Qt::CaseInsensitive) == 0)
+	    break;
+	if (klf_text_format_keywords[k].keyword != NULL) {
+	  // this is a keyword.
+	  klfDbg("QTextFormat: is keyword, propId="<<klf_text_format_keywords[k].propId<<", fixed_value="
+		 <<klf_text_format_keywords[k].fixed_value) ;
+	  textformat.setProperty(klf_text_format_keywords[k].propId,
+				 klf_text_format_keywords[k].fixed_value);
+	  continue;
+	}
+	// see if the key is a known property name
+	for (k = 0; klf_text_format_props[k].key != NULL; ++k)
+	  if (QString::compare(QLatin1String(klf_text_format_props[k].key),
+			       key, Qt::CaseInsensitive) == 0)
+	    break;
+	if (klf_text_format_props[k].key != NULL) {
+	  klfDbg("QTextFormat: is known property of type "<<klf_text_format_props[k].type) ;
+	  // load property propId, of type type
+	  QVariant vval = klfLoadVariantFromText(value, klf_text_format_props[k].type, "XML");
+	  textformat.setProperty(klf_text_format_props[k].propId, vval);
+	  continue;
+	}
+	// load generally-saved qvariant property
+
+	bool tointok = true;
+	int propid = key.toInt(&tointok);
+	if (!tointok) {
+	  qWarning()<<KLF_FUNC_NAME<<": QTextFormat bad format for general property key=value pair; "
+		    <<"key is not a numerical property ID, nor is it a known property name.";
+	}
+
+	klfDbg("QTextFormat: property is not a known one. propid="<<propid) ;
+
+	// trim space beginning of string
+	while (value.size() && QChar(value[0]).isSpace())
+	  value.remove(0, 1);
+	int i;
+	if (value.isEmpty() || !value.startsWith("[") || ((i = value.indexOf(']')) == -1)) {
+	  qWarning().nospace()<<KLF_FUNC_NAME<<": QTextFormat bad format for general property, value does "
+			      <<"not begin with \"[type-name]\".";
+	  continue;
+	}
+	QByteArray typenm = value.mid(1, i-1);
+	QByteArray valuedata = value.mid(i+1);
+	QVariant vval = klfLoadVariantFromText(valuedata, typenm);
+	klfDbg("setting generalized property "<<propid<<" to value "<<vval) ;
+	textformat.setProperty(propid, vval);
+      }
+      return textformat;
+    }
   case QMetaType::QVariantList:
     {
-      QList<QByteArray> sections = decaps_list(data);
+      if (listOrMapDataTypeName == QLatin1String("XML")) {
+	QDomElement el = parse_xml_wrapper(data, "variant-list");
+	return klfLoadVariantListFromXML(el);
+      } else {
+	QList<QByteArray> sections = decaps_list(data);
 
-      // now we separated into bytearray sections. now read those into values.
-      QVariantList list;
-      for (k = 0; k < sections.size(); ++k) {
-	QVariant val = klfLoadVariantFromText(sections[k], listOrMapDataTypeName);
+	// now we separated into bytearray sections. now read those into values.
+	QVariantList list;
+	for (k = 0; k < sections.size(); ++k) {
+	  QVariant val = klfLoadVariantFromText(sections[k], listOrMapDataTypeName);
 	list << val;
-      }
+	}
 
-      return QVariant::fromValue<QVariantList>(list);
+	return QVariant::fromValue<QVariantList>(list);
+      }
     }
   case QMetaType::QVariantMap:
     {
-      data = data.trimmed();
-      if (data[0] != '{')
-	break;
-      if ( !data.contains('}') )
-	data += '}';
-
-      QMap<QByteArray, QByteArray> sections;
-      QByteArray chunkkey;
-      QByteArray chunkvalue;
-      QByteArray *curChunk = &chunkkey;
-      // first, split data.  take into account escaped chars.
-      // k=1 to skip '{'
-      k = 1;
-      while (k < data.size()) {
-	if (data[k] == ';') { // separator for next pair
-	  // flush chunk as a new section
-	  if (curChunk == &chunkkey)
-	    qWarning()<<"klfLoadVariantFromText: no '=' in pair at pos "<<k<<" in string: "<<data<<"";
-	  sections[chunkkey] = chunkvalue;
-	  // and start a new section
-	  chunkkey = QByteArray();
-	  chunkvalue = QByteArray();
-	  curChunk = &chunkkey;
-	  ++k;
+      if (listOrMapDataTypeName == QLatin1String("XML")) {
+	QDomElement el = parse_xml_wrapper(data, "variant-map");
+	return klfLoadVariantMapFromXML(el);
+      } else {
+	const QList<QPair<QByteArray,QByteArray> > sections = decaps_map(data);
+	QVariantMap vmap;
+	QList<QPair<QByteArray,QByteArray> >::const_iterator it;
+	for (it = sections.begin(); it != sections.end(); ++it) {
+	  QString key = klfLoadVariantFromText((*it).first, "QString").toString();
+	  QVariant value = klfLoadVariantFromText((*it).second, listOrMapDataTypeName);
+	  vmap[key] = value;
 	}
-	if (data[k] == '\\') {
-	  if (k+1 < data.size()) { // there exists a next char
-	    *curChunk += data[k+1];
-	    k += 2;
-	  } else {
-	    *curChunk += data[k];
-	    ++k;
-	  }
-	  continue;
-	}
-	if (curChunk == &chunkkey && data[k] == '=') {
-	  // currently reading key, switch to reading value
-	  curChunk = &chunkvalue;
-	  ++k;
-	  continue;
-	}
-	if (data[k] == '}') {
-	  // end of list marker.
-	  // flush last chunk into sections, and break.
-	  if (curChunk == &chunkkey)
-	    qWarning()<<"klfLoadVariantFromText: no '=' in pair at pos "<<k<<" in string: "<<data<<"";
-	  sections[chunkkey] = chunkvalue;
-	  break;
-	}
-	// regular char, populate current chunk.
-	*curChunk += data[k];
-	++k;
+	return QVariant::fromValue<QVariantMap>(vmap);
       }
-
-      QVariantMap vmap;
-      QMap<QByteArray,QByteArray>::const_iterator it;
-      for (it = sections.begin(); it != sections.end(); ++it) {
-	QString key = klfLoadVariantFromText(it.key(), "QString").toString();
-	QVariant value = klfLoadVariantFromText(it.value(), listOrMapDataTypeName);
-	vmap[key] = value;
-      }
-
-      return QVariant::fromValue<QVariantMap>(vmap);
     }
   default:
     break;
@@ -1025,15 +1419,10 @@ KLF_EXPORT QDomElement klfSaveVariantMapToXML(const QVariantMap& vmap, QDomEleme
     QDomText keyText = doc.createTextNode(key);
     keyNode.appendChild(keyText);
     pairNode.appendChild(keyNode);
-    // * value type
-    QString vtype = QString::fromLatin1(value.typeName()); // "Latin1" encoding by convention
-    //                                        because type names do not have any special chars
-    QDomElement vtypeNode = doc.createElement("type");
-    QDomText vtypeText = doc.createTextNode(vtype);
-    vtypeNode.appendChild(vtypeText);
-    pairNode.appendChild(vtypeNode);
     // * value data
     QDomElement vdataNode = doc.createElement("value");
+    QString vtype = QLatin1String(value.typeName());
+    vdataNode.setAttribute(QLatin1String("type"), vtype);
     if (vtype == "QVariantMap") {
       vdataNode = klfSaveVariantMapToXML(value.toMap(), vdataNode);
     } else if (vtype == "QVariantList") {
@@ -1051,6 +1440,8 @@ KLF_EXPORT QDomElement klfSaveVariantMapToXML(const QVariantMap& vmap, QDomEleme
 
 KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QVariantMap vmap;
 
   QDomNode n;
@@ -1069,6 +1460,7 @@ KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
     QDomElement valueNode;
     QDomNode nn;
     for (nn = e.firstChild(); ! nn.isNull(); nn = nn.nextSibling()) {
+      klfDbg("inside <pair>: read node "<<nn.nodeName()) ;
       QDomElement ee = nn.toElement();
       if ( ee.isNull() || nn.nodeType() != QDomNode::ElementNode )
 	continue;
@@ -1076,18 +1468,14 @@ KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
 	key = ee.text();
 	continue;
       }
-      if ( ee.nodeName() == "type" ) {
-	// "Latin1" by convention because type names do not have any special chars
-	valuetype = ee.text().toLatin1();
-	continue;
-      }
       if ( ee.nodeName() == "value" ) {
 	// "local 8-bit"  because klfLoadVariantFromText() assumes local 8-bit encoding
 	valueNode = ee;
 	valuedata = ee.text().toLocal8Bit();
+	valuetype = ee.attribute("type").toLatin1();
 	continue;
       }
-      qWarning("%s: ignoring unexpected tag `%s' in pair!\n", KLF_FUNC_NAME,
+      qWarning("%s: ignoring unexpected tag `%s' in <pair>!\n", KLF_FUNC_NAME,
 	       qPrintable(ee.nodeName()));
     }
     QVariant value;
@@ -1112,25 +1500,18 @@ KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomEl
   for (QVariantList::const_iterator it = vlist.begin(); it != vlist.end(); ++it) {
     QVariant value = *it;
 
-    QDomElement elNode = doc.createElement("element");
-    // * value type
+    QDomElement elNode = doc.createElement(QLatin1String("item"));
     QString vtype = QString::fromLatin1(value.typeName()); // "Latin1" encoding by convention
     //                                        because type names do not have any special chars
-    QDomElement vtypeNode = doc.createElement("type");
-    QDomText vtypeText = doc.createTextNode(vtype);
-    vtypeNode.appendChild(vtypeText);
-    elNode.appendChild(vtypeNode);
-    // * value data
-    QDomElement vdataNode = doc.createElement("value");
+    elNode.setAttribute(QLatin1String("type"), vtype);
     if (vtype == "QVariantMap") {
-      vdataNode = klfSaveVariantMapToXML(value.toMap(), vdataNode);
+      elNode = klfSaveVariantMapToXML(value.toMap(), elNode);
     } else if (vtype == "QVariantList") {
-      vdataNode = klfSaveVariantListToXML(value.toList(), vdataNode);
+      elNode = klfSaveVariantListToXML(value.toList(), elNode);
     } else {
       QDomText vdataText = doc.createTextNode(QString::fromLocal8Bit(klfSaveVariantToText(value)));
-      vdataNode.appendChild(vdataText);
+      elNode.appendChild(vdataText);
     }
-    elNode.appendChild(vdataNode);
     // now append this pair to our list
     //klfDbg( "... appending node!" ) ;
     baseNode.appendChild(elNode);
@@ -1141,6 +1522,8 @@ KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomEl
 
 KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QVariantList vlist;
 
   QDomNode n;
@@ -1148,41 +1531,22 @@ KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
     QDomElement e = n.toElement(); // try to convert the node to an element.
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
-    if ( e.nodeName() != "element" ) {
+    if ( e.nodeName() != QLatin1String("item") ) {
       qWarning("%s: ignoring unexpected tag `%s'!\n", KLF_FUNC_NAME, qPrintable(e.nodeName()));
       continue;
     }
-    // read this pair
-    QByteArray valuetype;
-    QByteArray valuedata;
-    QDomElement valueNode;
-    QDomNode nn;
-    for (nn = e.firstChild(); ! nn.isNull(); nn = nn.nextSibling()) {
-      QDomElement ee = nn.toElement();
-      if ( ee.isNull() || nn.nodeType() != QDomNode::ElementNode )
-	continue;
-      if ( ee.nodeName() == "type" ) {
-	// "local 8-bit"  because klfLoadVariantFromText() assumes local 8-bit encoding
-	valuetype = ee.text().toLocal8Bit();
-	continue;
-      }
-      if ( ee.nodeName() == "value" ) {
-	// "local 8-bit"  because klfLoadVariantFromText() assumes local 8-bit encoding
-	valueNode = ee;
-	valuedata = ee.text().toLocal8Bit();
-	continue;
-      }
-      qWarning("%s: ignoring unexpected tag `%s' in pair!\n", KLF_FUNC_NAME,
-	       qPrintable(ee.nodeName()));
-    }
+
+    QString vtype = e.attribute(QLatin1String("type"));
+
     QVariant value;
-    if (valuetype == "QVariantMap") {
-      value = QVariant::fromValue<QVariantMap>(klfLoadVariantMapFromXML(valueNode));
-    } else if (valuetype == "QVariantList") {
-      value = QVariant::fromValue<QVariantList>(klfLoadVariantListFromXML(valueNode));
+    if (vtype == QLatin1String("QVariantMap")) {
+      value = QVariant::fromValue<QVariantMap>(klfLoadVariantMapFromXML(e));
+    } else if (vtype == QLatin1String("QVariantList")) {
+      value = QVariant::fromValue<QVariantList>(klfLoadVariantListFromXML(e));
     } else {
-      value = klfLoadVariantFromText(valuedata, valuetype.constData());
+      value = klfLoadVariantFromText(e.text().toLocal8Bit(), vtype.toLatin1().constData());
     }
+
     // set this value in our variant map
     vlist << value;
   }

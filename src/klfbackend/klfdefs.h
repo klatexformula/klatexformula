@@ -158,6 +158,14 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #  define KLF_DEBUG_DECLARE_REF_INSTANCE( expr )			\
   protected: inline QString __klf_debug_ref_instance() const { return QString("[")+ (expr) + "]" ; }
 
+#  define KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE()			\
+  public: QString __klf_debug_this_ref_instance;			\
+  protected: inline QString __klf_debug_ref_instance() const { return __klf_debug_this_ref_instance; }
+#  define KLF_DEBUG_ASSIGN_REF_INSTANCE(object, ref_instance)	\
+  (object)->__klf_debug_this_ref_instance = QString("[%1]").arg((ref_instance))
+#  define KLF_DEBUG_ASSIGN_SAME_REF_INSTANCE(object)			\
+  (object)->__klf_debug_this_ref_instance = __klf_debug_ref_instance();
+
 #  define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(QString("")+msg)
 #  define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(QString("")+msg)
 #  define klf_debug_tee(expr) __klf_debug_tee(expr)
@@ -187,7 +195,9 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 
 
 #  define KLF_DEBUG_DECLARE_REF_INSTANCE( expr )
-
+#  define KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE()
+#  define KLF_DEBUG_ASSIGN_REF_INSTANCE(object, ref_instance)
+#  define KLF_DEBUG_ASSIGN_SAME_REF_INSTANCE(object)
 
 
 #  define KLF_DEBUG_TIME_BLOCK(msg)

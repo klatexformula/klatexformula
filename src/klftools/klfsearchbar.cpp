@@ -93,6 +93,9 @@ void KLFSearchableProxy::searchAbort()
 KLFSearchBar::KLFSearchBar(QWidget *parent)
   : QFrame(parent), pTarget(NULL)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("parent: "<<parent) ;
+
   u = new Ui::KLFSearchBar;
   u->setupUi(this);
 
@@ -127,6 +130,8 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   //                            size     of (90%, 0%)   [remember: expanded to minimum size]
   pShowOverlayRelativeGeometry = QRect(QPoint(50, 95), QSize(90, 0));
 
+  pFocusOutText = "  "+tr("Hit Ctrl-F, Ctrl-S or / to start searching");
+
   setSearchTarget(NULL);
   slotSearchFocusOut();
 }
@@ -136,6 +141,21 @@ KLFSearchBar::~KLFSearchBar()
     pTarget->pTargetOf.removeAll(this);
 }
 
+QString KLFSearchBar::currentSearchText() const
+{
+  return u->txtSearch->text();
+}
+
+QColor KLFSearchBar::colorFound() const
+{
+  QPalette p = u->txtSearch->property(palettePropName(Found).toAscii()).value<QPalette>();
+  return p.color(QPalette::Base);
+}
+QColor KLFSearchBar::colorNotFound() const
+{
+  QPalette p = u->txtSearch->property(palettePropName(NotFound).toAscii()).value<QPalette>();
+  return p.color(QPalette::Base);
+}
 void KLFSearchBar::setColorFound(const QColor& color)
 {
   QPalette pal1 = u->txtSearch->property(palettePropName(Default).toAscii()).value<QPalette>();
@@ -192,6 +212,11 @@ void KLFSearchBar::setSearchText(const QString& text)
   u->lblSearch->setText(text);
 }
 
+void KLFSearchBar::setFocusOutText(const QString& focusOutText)
+{
+  pFocusOutText = focusOutText;
+}
+
 
 bool KLFSearchBar::eventFilter(QObject *obj, QEvent *ev)
 {
@@ -218,17 +243,27 @@ bool KLFSearchBar::eventFilter(QObject *obj, QEvent *ev)
 
 void KLFSearchBar::setShowOverlayMode(bool overlayMode)
 {
+  klfDbg("setting show overlay mode to "<<overlayMode) ;
   pShowOverlayMode = overlayMode;
   if (pShowOverlayMode && !searchBarHasFocus())
     hide();
-  setProperty("showOverlayMode", QVariant::fromValue<bool>(pShowOverlayMode));
+  setProperty("klfShowOverlayMode", QVariant::fromValue<bool>(pShowOverlayMode));
+  // cheat with klfTopLevelWidget property, set it always in show-overlay-mode
+  setProperty("klfTopLevelWidget", QVariant::fromValue<bool>(pShowOverlayMode));
+
+  /** \bug ..... the search bar should install an event filter on the parent to listen
+   * for resize events, and to resize appropriately. */
 }
 
+void KLFSearchBar::setShowOverlayRelativeGeometry(const QRect& relativeGeometryPercent)
+{
+  pShowOverlayRelativeGeometry = relativeGeometryPercent;
+}
 void KLFSearchBar::setShowOverlayRelativeGeometry(int widthPercent, int heightPercent,
 						  int positionXPercent, int positionYPercent)
 {
-  pShowOverlayRelativeGeometry = QRect(QPoint(positionXPercent, positionYPercent),
-				       QSize(widthPercent, heightPercent));
+  setShowOverlayRelativeGeometry(QRect(QPoint(positionXPercent, positionYPercent),
+				       QSize(widthPercent, heightPercent)));
 }
 
 
@@ -351,7 +386,7 @@ void KLFSearchBar::focus()
 			sz );
       klfDbg("Geometry is "<<gm) ;
       setGeometry(gm);
-      setAutoFillBackground(true);
+      //      setAutoFillBackground(true);
       setStyleSheet(styleSheet());
       show();
       raise();
@@ -387,7 +422,7 @@ void KLFSearchBar::updateSearchFound(bool found)
 }
 
 // private
-QString KLFSearchBar::palettePropName(SearchState state)
+QString KLFSearchBar::palettePropName(SearchState state) const
 {
   switch (state) {
   case Default:  return QString("paletteDefault");
@@ -401,7 +436,7 @@ QString KLFSearchBar::palettePropName(SearchState state)
   return QString(NULL);
 }
 // private
-QString KLFSearchBar::statePropValue(SearchState state)
+QString KLFSearchBar::statePropValue(SearchState state) const
 {
   switch (state) {
   case Default:  return QLatin1String("default");
@@ -423,7 +458,7 @@ void KLFSearchBar::displayState(SearchState s)
   u->txtSearch->update();
 
   if (s == FocusOut) {
-    showSearchBarText("  "+tr("Hit Ctrl-F, Ctrl-S or / to search within the current resource"));
+    showSearchBarText(pFocusOutText);
   }
 }
 

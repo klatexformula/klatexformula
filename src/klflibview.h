@@ -606,7 +606,7 @@ private:
 
   int pFetchBatchCount;
 
-  mutable KLFLibModelCache *pCache;
+  KLFLibModelCache *pCache;
 
   KLFLibEntrySorter *pEntrySorter;
 
@@ -635,10 +635,7 @@ private:
 
   bool dropCanInternal(const QMimeData *data);
 
-
-  KLF_DEBUG_DECLARE_REF_INSTANCE( QFileInfo(url().path()).fileName()+":"
-				  +pResource->defaultSubResource()+"|fl="+klfFmt("%#010x", pFlavorFlags)
-				  +"|"+klfFmt("%p", (void*)this)  ) ;
+  KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE() ;
 };
 
 
@@ -717,10 +714,12 @@ protected:
   virtual void paintEntry(PaintPrivate *p, const QModelIndex& index) const;
   virtual void paintCategoryLabel(PaintPrivate *p, const QModelIndex& index) const;
 
-  enum { PTF_HighlightSearch = 0x0001,
+  enum { PTF_HighlightSearch        = 0x0001,
 	 PTF_HighlightSearchCurrent = 0x0002,
-	 PTF_SelUnderline = 0x0004,
-	 PTF_ForceRichTextRender = 0x0008
+	 PTF_SelUnderline           = 0x0004,
+	 PTF_ForceRichTextRender    = 0x0008,
+	 PTF_FontLarge              = 0x0010,
+	 PTF_FontTT                 = 0x0020
   };
   virtual void paintText(PaintPrivate *p, const QString& text, uint flags = PTF_HighlightSearch) const;
 
@@ -832,6 +831,8 @@ public slots:
    * call of \ref KLFAbstractLibView::setResourceEngine() */
   void setGroupSubCategories(bool yesOrNo) { pGroupSubCategories = yesOrNo; }
 
+  void updateDisplay();
+
 protected:
   virtual void updateResourceEngine();
   virtual void updateResourceProp(int propId);
@@ -877,7 +878,7 @@ private slots:
 protected:
   KLF_DEBUG_DECLARE_REF_INSTANCE( QFileInfo(url().path()).fileName()+":"
 				  +(resourceEngine()?resourceEngine()->defaultSubResource():"[NULL]")
-				  +"|viewtype="+pViewType  ) ;
+				  +"|viewtype="+QString::number(pViewType)  ) ;
 };
 
 // -----------------

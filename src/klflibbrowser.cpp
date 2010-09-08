@@ -58,10 +58,12 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   u->setupUi(this);
   u->tabResources->setContextMenuPolicy(Qt::CustomContextMenu);
 
+  KLF_DEBUG_ASSIGN_REF_INSTANCE(u->searchBar, "libbrowser-searchbar") ;
   u->searchBar->registerShortcuts(this);
   // set found/not-found colors
   u->searchBar->setColorFound(klfconfig.LibraryBrowser.colorFound);
   u->searchBar->setColorNotFound(klfconfig.LibraryBrowser.colorNotFound);
+
 
   pResourceMenu = new QMenu(u->tabResources);
   // connect actions
@@ -308,21 +310,14 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v, bool openURLs)
     if ( !openURLs && findOpenUrl(url) == NULL )
       continue;
     // open this URL
-    bool res = openResource(url, /*flags*/NoChangeFlag);
-    // (above) ^^ ignore flags, in case we eg. change library file, don't keep the old one uncloseable
+    bool res = openResourceFromGuiState(url, viewState);
+    // ignore flags, in case we eg. change library file, don't keep the old ones uncloseable
+    // updateResourceRoleFlags(..., flags);
     if ( ! res ) {
       qWarning()<<"KLFLibBrowser::loadGuiState: Can't open resource "<<url<<"! (flags="
 		<<flags<<")";
       continue;
     }
-    KLFLibBrowserViewContainer *viewc = findOpenUrl(url); // get the freshly opened view
-    if (viewc == NULL) {
-      qWarning()<<"Should NOT HAPPEN! viewc is NULL in KLFLibBrowser::loadGuiState()! urllist=\n"
-		<<urllist<< "\n"<<"at k="<<k<<" in list: "<<url;
-      continue;
-    }
-    // and load the view's gui state
-    viewc->loadGuiState(viewState);
   }
   klfDbg( "Almost finished loading gui state." ) ;
   KLFLibBrowserViewContainer *curviewc = findOpenUrl(currenturl);
@@ -434,7 +429,8 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
   if (openview != NULL) {
     qDebug("KLFLibBrowser::openResource(%s,%u): This resource is already open.",
 	   qPrintable(url.toString()), resourceRoleFlags);
-    u->tabResources->setCurrentWidget(openview);
+    if ((resourceRoleFlags & OpenNoRaise) == 0)
+      u->tabResources->setCurrentWidget(openview);
     updateResourceRoleFlags(openview, resourceRoleFlags);
     return true;
   }
@@ -462,81 +458,38 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 
   //  KLFPleaseWaitPopup label(tr("Loading resource, please wait..."), this);
 
-  if (resource == NULL) {
-    qWarning("KLFLibBrowser::openResource(***NULL***,%u,%s) !", resourceRoleFlags,
-	     qPrintable(viewTypeIdentifier));
-    return false;
-  }
+  KLF_ASSERT_NOT_NULL(resource,
+		      "resource pointer is NULL! (flags="<<resourceRoleFlags<<",vti="<<viewTypeIdentifier<<")",
+		      return false );
+
   KLFLibBrowserViewContainer * openview = findOpenResource(resource);
   if (openview != NULL) {
     qDebug("KLFLibBrowser::openResource(%p,%u): This resource is already open.",
 	   resource, resourceRoleFlags);
-    u->tabResources->setCurrentWidget(openview);
+    if ((resourceRoleFlags & OpenNoRaise) == 0)
+      u->tabResources->setCurrentWidget(openview);
     updateResourceRoleFlags(openview, resourceRoleFlags);
     return true;
   }
 
   resource->setParent(this);
 
-  klfDbgT(": created resource. about to create view.") ;
+  klfDbgT(": created resource. about to create view container.") ;
 
   // now create appropriate view for this resource
   KLFLibBrowserViewContainer *viewc = new KLFLibBrowserViewContainer(resource, u->tabResources);
 
-  // create a list of view types to attempt to open, in a given priority order
-  QStringList viewtypeident_try;
-  //   * the argument to this function
-  viewtypeident_try << viewTypeIdentifier;
-  if ((resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) &&
-      (resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps)) {
-    // * the sub-resource view type property (if applicable)
-    viewtypeident_try
-      << resource->subResourceProperty(resource->defaultSubResource(),
-				       KLFLibResourceEngine::SubResPropViewType).toString();
-  }
-  // * the resource view type property
-  viewtypeident_try << resource->viewType()
-    // * the suggested view type for this resource (as given by engine itself)
-		    << resource->suggestedViewTypeIdentifier()
-    // * the default view type suggested by the factory
-		    << KLFLibViewFactory::defaultViewTypeIdentifier()
-    // * a "default" view type (last resort, hoping it exists!)
-		    << QLatin1String("default");
+  klfDbgT(": adding tab page....") ;
 
-  klfDbgT(": created resource. about to test view types.") ;
-  klfDbg( "\tView types: "<<viewtypeident_try ) ;
+  int i = u->tabResources->addTab(viewc, displayTitle(resource));
+  if ((resourceRoleFlags & OpenNoRaise) == 0)
+    u->tabResources->setCurrentWidget(viewc);
+  u->tabResources
+    ->refreshTabReadOnly(i, !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
+  pLibViews.append(viewc);
+  setStyleSheet(styleSheet());
+  updateResourceRoleFlags(viewc, resourceRoleFlags);
 
-  int k;
-  // try each view type, first success is kept.
-  for (k = 0; k < viewtypeident_try.size(); ++k) {
-    if (viewtypeident_try[k].isEmpty())
-      continue;
-
-    KLFLibViewFactory *viewfactory =
-      KLFLibViewFactory::findFactoryFor(viewtypeident_try[k]);
-    if (viewfactory == NULL) {
-      klfDbg( "KLFLibBrowser::openResource: can't find view factory for view type identifier "
-	      <<viewtypeident_try[k]<<"!" ) ;
-      continue;
-    }
-    if ( ! viewfactory->canCreateLibView(viewtypeident_try[k], resource) ) {
-      klfDbg( "KLFLibBrowser::openResource: incompatible view type identifier "<<viewtypeident_try[k]
-	      <<"for resource "<<resource->url()<<"." ) ;
-      continue;
-    }
-    bool r = viewc->openView(viewtypeident_try[k]);
-    if (!r) {
-      klfDbg( "KLFLibBrowser::openResource: can't create view! viewtypeident="<<viewtypeident_try[k]<<"." ) ;
-      continue;
-    }
-
-    klfDbgT(": found good view type="<<viewtypeident_try[k]) ;
-
-    // found good view type !
-    resource->setViewType(viewtypeident_try[k]);
-    // quit for() on first success.
-    break;
-  }
 
   // get informed about selection changes
   connect(viewc, SIGNAL(entriesSelected(const KLFLibEntryList& )),
@@ -569,24 +522,70 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   connect(viewc, SIGNAL(viewOperationStartReportingProgress(KLFProgressReporter *, const QString&)),
 	  this, SLOT(slotStartProgress(KLFProgressReporter *, const QString&)));
 
-  klfDbgT(": requiring cat suggestions.") ;
-
-  // get more category completions
-  viewc->view()->wantMoreCategorySuggestions();
-
   // supply a context menu to view
   connect(viewc, SIGNAL(viewContextMenuRequested(const QPoint&)),
 	  this, SLOT(slotShowContextMenu(const QPoint&)));
 
-  klfDbgT(": adding tab page....") ;
 
-  int i = u->tabResources->addTab(viewc, displayTitle(resource));
-  u->tabResources->setCurrentWidget(viewc);
-  u->tabResources
-    ->refreshTabReadOnly(i, !resource->canModifyData(KLFLibResourceEngine::AllActionsData));
-  pLibViews.append(viewc);
-  setStyleSheet(styleSheet());
-  updateResourceRoleFlags(viewc, resourceRoleFlags);
+  // create a list of view types to attempt to open, in a given priority order
+  QStringList viewtypeident_try;
+  //   * the argument to this function
+  viewtypeident_try << viewTypeIdentifier;
+  if ((resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) &&
+      (resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps)) {
+    // * the sub-resource view type property (if applicable)
+    viewtypeident_try
+      << resource->subResourceProperty(resource->defaultSubResource(),
+				       KLFLibResourceEngine::SubResPropViewType).toString();
+  }
+  //   * the resource view type property
+  viewtypeident_try << resource->viewType();
+  //   * the suggested view type for this resource (as given by engine itself)
+  viewtypeident_try << resource->suggestedViewTypeIdentifier();
+  //   * the default view type suggested by the factory
+  viewtypeident_try << KLFLibViewFactory::defaultViewTypeIdentifier();
+  //   * a "default" view type (last resort, hoping it exists!)
+  viewtypeident_try << QLatin1String("default");
+
+  klfDbgT(": created resource. about to test view types.") ;
+  klfDbg( "\tView types: "<<viewtypeident_try ) ;
+
+  int k;
+  // try each view type, first success is kept.
+  for (k = 0; k < viewtypeident_try.size(); ++k) {
+    if (viewtypeident_try[k].isEmpty())
+      continue;
+
+    KLFLibViewFactory *viewfactory =
+      KLFLibViewFactory::findFactoryFor(viewtypeident_try[k]);
+    if (viewfactory == NULL) {
+      klfDbg( "can't find view factory for view type identifier "
+	      <<viewtypeident_try[k]<<"!" ) ;
+      continue;
+    }
+    if ( ! viewfactory->canCreateLibView(viewtypeident_try[k], resource) ) {
+      klfDbg( "incompatible view type identifier "<<viewtypeident_try[k]
+	      <<"for resource "<<resource->url()<<"." ) ;
+      continue;
+    }
+    bool r = viewc->openView(viewtypeident_try[k]);
+    if (!r) {
+      klfDbg( "can't create view! viewtypeident="<<viewtypeident_try[k]<<"." ) ;
+      continue;
+    }
+
+    klfDbgT(": found and instantiated good view type="<<viewtypeident_try[k]) ;
+
+    // found good view type !
+    resource->setViewType(viewtypeident_try[k]);
+    // quit for() on first success.
+    break;
+  }
+
+  klfDbgT(": requiring cat suggestions.") ;
+
+  // get more category completions
+  viewc->view()->wantMoreCategorySuggestions();
 
   // hide welcome page if it's shown
   if ((i = u->tabResources->indexOf(u->tabWelcome)) != -1)
@@ -596,6 +595,23 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 
   return true;
 }
+
+bool KLFLibBrowser::openResourceFromGuiState(const QUrl& url, const QVariantMap& guiState)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  // peek into GUI state to open the correct view
+  QString vti = guiState.value(QLatin1String("CurrentViewTypeIdentifier")).toString();
+  klfDbg("view-type-identifier is "<<vti<<"; guiState is "<<guiState) ;
+  bool result = openResource(url, NoChangeFlag, vti);
+  if (!result)
+    return false;
+  klfDbg("restoring gui state..") ;
+  KLFLibBrowserViewContainer *viewc = findOpenUrl(url);
+  KLF_ASSERT_NOT_NULL( viewc, "can't find the view container we just opened!", return false ) ;
+  viewc->loadGuiState(guiState);
+  return true;
+}
+
 
 bool KLFLibBrowser::closeResource(const QUrl& url)
 {
@@ -609,8 +625,16 @@ bool KLFLibBrowser::closeResource(const QUrl& url)
 
 void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *viewc, uint resroleflags)
 {
+  KLF_ASSERT_NOT_NULL(viewc, "the viewc parameter is null!", return; ) ;
+
   if (resroleflags & NoChangeFlag)
     return;
+
+  // only store flags that don't act 'now'
+  resroleflags = resroleflags & ~NowMask;
+
+  klfDbg("updating flags for resource="<<viewc->url()<<"; flags after mask="
+	 <<klfFmtCC("%#010x", resroleflags)) ;
 
   // If history resroleflags is set, then unset that flag to its previous owner (history role flag
   // is exclusive).
@@ -652,6 +676,9 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 
   // redirect searches to the correct view
   u->searchBar->setSearchTarget(viewc);
+  u->searchBar->setFocusOutText("  "+tr("Hit Ctrl-F, Ctrl-S or / to search within the current resource"));
+
+  klfDbg("setting up view type menu...") ;
 
   // set up view type menu appropriately
   QList<QAction*> actions = viewc->viewTypeActions();
@@ -678,11 +705,11 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
   if (menu == NULL)
     u->aOpenSubRes->setEnabled(false);
 
-  // DEBUG
-  //  viewc->openView("default+list");
 
   // refresh selection-related displays
-  slotEntriesSelected(viewc->view()->selectedEntries());
+  KLFAbstractLibView *view = viewc->view();
+  if (view != NULL)
+    slotEntriesSelected(view->selectedEntries());
   slotRefreshResourceActionsEnabled();
 }
 

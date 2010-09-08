@@ -200,6 +200,96 @@
  *  needed for classes that do not declare a ref-instance.
  */
 
+/** \def KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE
+ * \hideinitializer
+ * \brief Declare that this class has an assignable debugging ref-instance
+ *
+ * This macro should be used within class declarations. If the KLF_DEBUG symbol is defined, this macro
+ * will declare a ref-instance for that class, which other objects may assign with
+ * \ref KLF_DEBUG_ASSIGN_REF_INSTANCE().
+ *
+ * See also \ref KLF_DEBUG_DECLARE_REF_INSTANCE and \ref KLF_DEBUG_ASSIGN_REF_INSTANCE(). See the latter
+ * for an example usage.
+ */
+
+/** \def KLF_DEBUG_ASSIGN_REF_INSTANCE
+ * \hideinitializer
+ * \brief Assign a debugging ref-instance to a class instance
+ *
+ * The class declaration must contain a call to the \ref KLF_DEBUG_DECLARE_ASSIGNALBE_REF_INSTANCE() macro.
+ *
+ * Example usage:
+ * \code
+ * // vehicle.h
+ * class Vehicle {
+ * public:
+ *   Vehicle(QString xmlspecsfile) { loadFromXML(xmlspecsfile);  }
+ *   ...
+ *   double calculate_drag_force(double speed);
+ * private:
+ *   void loadFromXML(const QString& fname);
+ *   ...
+ *   KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE()
+ * }
+ * // vehicle.cpp
+ * void Vehicle::loadFromXML()
+ * {
+ *   // ... load vehicle data and parameters from XML file
+ * }
+ * void Vehicle::calculate_drag_force(double speed)
+ * {
+ *   klfDbg("shape-factor="<<...<<", speed="<<speed ) ;
+ *   ...
+ *   return drag_force;
+ * }
+ * // main.cpp
+ * int main()
+ * {
+ *   ...
+ *   Vehicle alpha("vehiclespecs/alpha-romeo.xml");
+ *   KLF_DEBUG_ASSIGN_REF_INSTANCE(&alpha, "car/Alpha-Romeo");
+ *   Vehicle f16("vehiclespecs/f16.xml");
+ *   KLF_DEBUG_ASSIGN_REF_INSTANCE(&f16, "fighter/F-16");
+ *   ...
+ *   double drag_at_210kmh = alpha.calculate_drag_force(210);  // will produce debugging output
+ * }
+ * \endcode
+ * This program will produce debugging output at the last line marked above:
+ * <pre>Vehicle::calculate_drag_force():<b>[car/Alpha-Romeo]</b>
+ *        node=[kind=1, children/sz=0,allfetched=false]</pre>
+ * Note that the ref-instance is the one assigned with KLF_DEBUG_ASSIGN_REF_INSTANCE().
+ */
+
+/** \def KLF_DEBUG_ASSIGN_SAME_REF_INSTANCE(object)
+ * \hideinitializer
+ * \brief Assigns to the given object the same ref-instance as the current object instance
+ *
+ * This macro works very much like KLF_DEBUG_ASSIGN_REF_INSTANCE(), but instead of assigning
+ * a given string as ref-instance, it assigns the ref-instance from the current object instance
+ * it is being called from.
+ *
+ * Note that the ref-instance string is copied at the time of calling this macro. In other words:
+ *  - if the current object has itself an assignable ref-instance, and the ref-instance of the
+ *    current object is not yet set, then \c object will be set an empty ref-instance
+ *  - if the ref-instance of the current class instance changes, then the second class will not
+ *    update its ref-instance.
+ *
+ * Example usage: in <tt>src/klflibview.cpp</tt>, in KLFLibDefaultView, when the corresponding
+ * view model is created, it is assigned the same ref-instance to the view object:
+ * \code
+ * KLFLibDefaultView::setResource(...)  : ...
+ * {
+ *   ...
+ *   pModel = new KLFLibModel(...);
+ *   KLF_DEBUG_ASSIGN_SAME_REF_INSTANCE(pModel) ;
+ *   ...
+ * }
+ * \endcode
+ * Debugging messages sent from the KLFLibModel object will be tagged with the same ref-instance
+ * string as the messages sent from the KLFLibDefaultView object.
+ */
+
+
 /** \def KLF_DEBUG_TIME_BLOCK
  * \hideinitializer
  *
@@ -770,7 +860,7 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *r
   if (shorttime == NULL)
     return dbg.nospace()<<funcname<<"():"<<refinstance<<"\n        ";
   else
-    return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"():"<<refinstance<<"\n  ";
+    return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"():"<<refinstance<<"\n        ";
 }
 // << QT 4
 #else

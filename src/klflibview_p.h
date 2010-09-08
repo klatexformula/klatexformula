@@ -115,10 +115,9 @@ public:
   struct Node {
     Node() : allocated(false) { }
     Node(ItemKind k) : allocated(true), kind(k), parent(NodeId()), children(QList<NodeId>()),
-		       allChildrenFetched(false), numDisplayFetched(0)  { }
+		       allChildrenFetched(false)  { }
     Node(const Node& other) : allocated(other.allocated), kind(other.kind), parent(other.parent),
-			      children(other.children), allChildrenFetched(other.allChildrenFetched),
-			      numDisplayFetched(other.numDisplayFetched)  { }
+			      children(other.children), allChildrenFetched(other.allChildrenFetched)  { }
     virtual ~Node() { }
     //! Whether this node is used. when false, this Node object is just unused memory space in the cache list
     bool allocated;
@@ -128,7 +127,6 @@ public:
     /** \brief TRUE if all the children of this node have been fetched and stored into \c children,
      * FALSE if possibly there may be more children, we may need to query the resource. */
     bool allChildrenFetched;
-    int numDisplayFetched;
   };
   struct EntryNode : public Node {
     EntryNode() : Node(EntryKind), entryid(-1), minimalist(false), entry()
@@ -224,9 +222,6 @@ public:
   void rebuildCache();
 
   /** If row is negative, it will be looked up automatically.
-   *
-   * This function will also fetchMore() if the given node has not been 'fetched' yet (to the
-   * eyes of QModelIndex, this translates to catlblnode.numDisplayFetched).
    */
   QModelIndex createIndexFromId(NodeId nodeid, int row, int column);
 
@@ -286,7 +281,8 @@ public:
    * If \c newlyCreatedAreChildrenFetched is TRUE, then any newly created CategoryLabelNode will have its
    * \c allChildrenFetched flag set to TRUE (eg. when updating data, a new entry was changed category to
    * a yet-inexistant category). If the parameter is FALSE, then any newly created CategoryLabelNode will
-   * have its \c allChildrenFetched flag set to FALSE (eg. when rebuilding the cache). */
+   * have its \c allChildrenFetched flag set to FALSE (eg. when rebuilding the cache).
+   */
   IndexType cacheFindCategoryLabel(QStringList catelements, bool createIfNotExists = false,
 				   bool notifyQtApi = false, bool newlyCreatedAreChildrenFetched = true);
 
@@ -367,7 +363,7 @@ private:
   int pLastSortPropId;
   Qt::SortOrder pLastSortOrder;
 
-  KLF_DEBUG_DECLARE_REF_INSTANCE(  klfFmt("pModel=%p", pModel)  ) ;
+  KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE() ;
 };
 
 
@@ -667,6 +663,13 @@ protected:
   bool inPaintEvent;
   virtual void paintEvent(QPaintEvent *event) {
     QTreeView::paintEvent(event);
+  }
+
+  // reimpl. from QTreeView for debugging a segfault in fetchMore()
+  virtual void rowsInserted(const QModelIndex& parent, int start, int end)
+  {
+    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+    QTreeView::rowsInserted(parent, start, end);
   }
 
   bool pInEventFilter;

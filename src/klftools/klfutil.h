@@ -181,10 +181,16 @@ KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped);
  * formats are stored machine-readable only, by sending the variant in a datastream, and protecting
  * the special characters from encoding artifacts (ascii chars only, proper escape sequences).
  *
+ * If \c saveListAndMapsAsXML is FALSE (the default), then variant-lists and -maps are saved in
+ * a format like \c "[element-1,element-2,...]" or \c "{key1=value1,key2=value2,....}", assuming
+ * that all elements are of the same QVariant type. If \c saveListAndMapsAsXML is TRUE, then
+ * variant lists and maps are saved with klfSaveVariantListToXML() and klfSaveVariantMapToXML(),
+ * which enables you to save arbitrary combination of types.
+ *
  * \note Note however that the saved string does NOT save the type. The data type must be known
  *   when loading the value. See \ref klfLoadVariantFromText().
  * */
-KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value);
+KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML = false);
 
 /** Loads the value stored in \c string into a variant of data type \c dataTypeName. The string
  * is parsed and the returned variant will by of the given type name, or invalid if the string
@@ -195,8 +201,10 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value);
  *
  * Example use: to save/store settings values in QSettings in a human-read/writable format.
  *
- * If \c dataTypeName is a list or a map, then please specify the type of the values in the list
- * or map (this function assumes all objects in list or map have the same type).
+ * If \c dataTypeName is a variant list or map, then please specify the type of the values in
+ * the list or map (this function assumes all objects in list or map have the same type). As
+ * a special case, you can pass \c "XML" to load the list or map data with klfLoadVariantListFromXML()
+ * or klfLoadVariantMapFromXML(), which enables you to save arbitrary combination of types.
  *
  * See also \ref klfSaveVariantToText().
  */

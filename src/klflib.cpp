@@ -191,6 +191,16 @@ QString KLFLibEntry::latexAddCategoryTagsComment(const QString& latex, const QSt
   return s;
 }
 
+// static
+QString KLFLibEntry::normalizeCategoryPath(const QString& categoryPath)
+{
+  QString c = categoryPath.trimmed().split('/', QString::SkipEmptyParts).join("/");
+  if (c.endsWith("/"))
+    c.chop(1);
+  return c;
+}
+
+
 
 // ------------------------------------------------------------
 

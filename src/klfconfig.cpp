@@ -43,10 +43,7 @@
 
 
 
-// the following SHOULD NOT BE DEFINED 'STATIC', as it is referenced by main.cpp
-// since we need them before loading klfconfig configuration.
-
-KLF_EXPORT const char * klf_share_dir_rel =
+static const char * __klf_share_dir_relpath =
 #ifdef KLF_SHARE_DIR_REL  // defined by the build system
 	KLF_SHARE_DIR_REL;
 #elif defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
@@ -56,6 +53,11 @@ KLF_EXPORT const char * klf_share_dir_rel =
 #else  // unix-like system
 	"/../share/klatexformula";
 #endif
+
+KLF_EXPORT const char * klf_share_dir_relpath()
+{
+  return __klf_share_dir_relpath;
+}
 
 
 
@@ -119,7 +121,7 @@ KLFConfig::KLFConfig()
 void KLFConfig::loadDefaults()
 {
   homeConfigDir = QDir::homePath() + "/.klatexformula";
-  globalShareDir = QCoreApplication::applicationDirPath() + klf_share_dir_rel;
+  globalShareDir = QCoreApplication::applicationDirPath() + klf_share_dir_relpath();
   homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
   homeConfigSettingsFileIni = homeConfigDir + "/config";
   homeConfigDirRCCResources = homeConfigDir + "/rccresources";
@@ -131,11 +133,13 @@ void KLFConfig::loadDefaults()
     QFontDatabase fdb;
     QFont f = QApplication::font();
 
-    if (fdb.isScalable("CMU Sans Serif"))
+    if (fdb.isScalable("CMU Sans Serif")) {
+      // CMU Sans Serif is available ;-)
       f = QFont("CMU Sans Serif", QFontInfo(f).pointSize());
+    }
 
 #ifdef Q_WS_X11
-    // setting pixel size avoids X11 bug of fonts having their metrics badly calculated
+    // setting pixel size avoids bug with Qt/X11 of fonts having their metrics badly calculated
     f.setPixelSize(15);
 #endif
 
@@ -178,7 +182,7 @@ void KLFConfig::loadDefaults()
     UI.latexEditFont = fcode;
     UI.preambleEditFont = fcode;
     UI.previewTooltipMaxSize = QSize(800, 600);
-    UI.labelOutputFixedSize = QSize(280, 90);
+    UI.labelOutputFixedSize = QSize(280, 80);
     UI.lastSaveDir = QDir::homePath();
     UI.symbolsPerLine = 6;
     UI.userColorList = QList<QColor>();
@@ -373,6 +377,8 @@ static QString firstRunConfigKey()
 
 int KLFConfig::readFromConfig_v2()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
   qDebug("Reading base configuration");
@@ -704,7 +710,8 @@ int KLFConfig::readFromConfig_v1()
 
   s.beginGroup("UI");
   UI.locale = s.value("locale", UI.locale).toString();
-  UI.applicationFont = s.value("applicationfont", UI.applicationFont).value<QFont>();
+  // ingnore KLF 3.1 app font setting, we have our nice CMU Sans Serif font ;-)
+  //  UI.applicationFont = s.value("applicationfont", UI.applicationFont).value<QFont>();
   UI.latexEditFont = s.value("latexeditfont", UI.latexEditFont).value<QFont>();
   UI.preambleEditFont = s.value("preambleeditfont", UI.preambleEditFont).value<QFont>();
   UI.previewTooltipMaxSize = s.value("previewtooltipmaxsize", UI.previewTooltipMaxSize).toSize();

@@ -603,7 +603,7 @@ void KLFLatexSymbolsView::searchAbort()
 {
   KLFIteratorSearchable<int>::searchAbort();
   highlightSearchMatches(-1);
-  setFocus();
+  //  setFocus();
 }
 
 void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch)
@@ -640,15 +640,20 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
 #endif
 	    , /*Qt::Tool*/ Qt::Window /*0*/)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   u = new Ui::KLFLatexSymbols;
   u->setupUi(this);
   setAttribute(Qt::WA_StyledBackground);
 
   // add our search bar
   pSearchBar = new KLFSearchBar(this);
+  KLF_DEBUG_ASSIGN_REF_INSTANCE(pSearchBar, "latexsymbols-searchbar") ;
   pSearchBar->setShowOverlayMode(true);
   pSearchBar->registerShortcuts(this);
   pSearchBar->setSearchText("");
+
+  klfDbg("prepared search bar.") ;
 
   KLFLatexSymbolsCache::theCache()->setBackendSettings(baseSettings);
 

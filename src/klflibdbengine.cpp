@@ -589,22 +589,31 @@ QList<KLFLibResourceEngine::KLFLibEntryWithId>
   return eList;
 }
 
+
+static QString escape_sql_data_string(QString s)
+{
+  s.replace("'", "''");
+  return "'" + s + "'";
+}
+
 // note: does not enclose expression in parens
 static QString make_like_condition(QString field, QString val, bool wildbefore, bool wildafter, bool casesensitive)
 {
-  if (casesensitive) {
+  if (casesensitive) { // use GLOB for case sensitive match
     QString globval = val;
     if (wildbefore)
       globval.prepend("*");
     if (wildafter)
       globval.append("*");
     // we cannot escape special chars in GLOB -> use glob in conjunction with like
-    return field+" GLOB '"+globval+"'  AND  " + make_like_condition(field, val, wildbefore, wildafter, false);
+    return field+" GLOB "+escape_sql_data_string(globval)+"  AND  "
+      + make_like_condition(field, val, wildbefore, wildafter, false);
   } else {
+    // use LIKE for case-insensitive match
     val.replace("%", "\\%");
     val.replace("_", "\\_");
     val.replace("\\", "\\\\");
-    val.replace("'", "''");
+    val = escape_sql_data_string(val);
     if (wildbefore)
       val.prepend("%");
     if (wildafter)
@@ -641,6 +650,8 @@ static QString make_sql_condition(const KLFLib::EntryMatchCondition m, QVariantL
 	placeholders->append(pm.matchValueString());
       else
 	placeholders->append(pm.matchValueString());
+      if (pm.matchValueString().isEmpty()) // allow this field to be sql-NULL
+	condition += " OR "+field+" IS NULL";
       break;
     case Qt::MatchContains:
       condition += make_like_condition(field, pm.matchValueString(), true, true, (f & Qt::CaseSensitive));

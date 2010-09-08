@@ -86,6 +86,7 @@ char *opt_mathmode = NULL;
 char *opt_preamble = NULL;
 bool opt_quiet = false;
 bool opt_daemonize = false;
+bool opt_dbus_export_mainwin = false;
 
 int opt_outlinefonts = -1;
 int opt_lborderoffset = -1;
@@ -148,7 +149,9 @@ enum {
   OPT_LATEX,
   OPT_DVIPS,
   OPT_GS,
-  OPT_EPSTOPDF
+  OPT_EPSTOPDF,
+
+  OPT_DBUS_EXPORT_MAINWIN
 };
 
 static struct option klfcmdl_optlist[] = {
@@ -168,6 +171,7 @@ static struct option klfcmdl_optlist[] = {
   { "preamble", 1, NULL, OPT_PREAMBLE },
   { "quiet", 1, NULL, OPT_QUIET },
   { "daemonize", 0, NULL, OPT_DAEMONIZE },
+  { "dbus-export-mainwin", 0, NULL, OPT_DBUS_EXPORT_MAINWIN },
   // -----
   { "outlinefonts", 2 /*optional arg*/, NULL, OPT_OUTLINEFONTS },
   { "lborderoffset", 1, NULL, OPT_LBORDEROFFSET },
@@ -211,18 +215,14 @@ void signal_act(int sig)
     if (ftty == NULL)
       ftty = stderr;
 
-    static bool first = true;
-    if (!first) {
-      fprintf(ftty, "Exiting\n");
-      ::exit(126);
-    }
-    first = false;
-
     fprintf(ftty, "Segmentation Fault :-(\n");
     if (ftty != stderr)
       fprintf(stderr, "** Segmentation Fault :-( **\n");
 
     qApp->exit(127);
+
+    // next time SIGSEGV is sent, use default handler (exit and dump core)
+    signal(SIGSEGV, SIG_DFL);
   }
 }
 
@@ -232,6 +232,10 @@ void signal_act(int sig)
 // in the future I may add some option to redirect debug output to file...
 static FILE *klf_qt_msg_fp = NULL;
 
+// in case we want to print messages directly into terminal
+static FILE *klf_fp_tty = NULL;
+static bool klf_fp_tty_failed = false;
+
 void klf_qt_message(QtMsgType type, const char *msg)
 {
   if (opt_quiet)
@@ -239,6 +243,12 @@ void klf_qt_message(QtMsgType type, const char *msg)
 
   FILE *fout = stderr;
   if (klf_qt_msg_fp != NULL)  fout = klf_qt_msg_fp;
+
+#ifdef Q_OS_LINUX
+  if (klf_fp_tty == NULL && !klf_fp_tty_failed)
+    if ( !(klf_fp_tty = fopen("/dev/tty", "w")) )
+      klf_fp_tty_failed = true;
+#endif
 
   switch (type) {
   case QtDebugMsg:
@@ -249,6 +259,11 @@ void klf_qt_message(QtMsgType type, const char *msg)
     break;
   case QtWarningMsg:
     fprintf(fout, "Warning: %s\n", msg);
+#ifdef KLF_DEBUG
+    // in debug mode, also print warning messages to TTY (because they get lost in the debug messages!)
+    if (klf_fp_tty) fprintf(klf_fp_tty, "Warning: %s\n", msg);
+#endif
+
 #ifdef Q_WS_WIN
     if (!QString::fromLocal8Bit(msg).startsWith("MNG error")) { // need to ignore these errors...
       QMessageBox::warning(0, QObject::tr("Warning", "[[KLF's Qt Message Handler: dialog title]]"),
@@ -661,8 +676,8 @@ void main_setup_app(QCoreApplication *a)
 
   // add [share dir]/qt-plugins to library path.
   // under windows, that is were plugins are packaged with the executable
-  extern const char * klf_share_dir_rel;
-  QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_rel+"/qt-plugins");
+  extern const char * klf_share_dir_relpath();
+  QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_relpath()+"/qt-plugins");
 
   klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
 
@@ -910,8 +925,9 @@ int main(int argc, char **argv)
     QDBusConnection dbusconn = QDBusConnection::sessionBus();
     dbusconn.registerService("org.klatexformula.KLatexFormula");
     dbusconn.registerObject("/MainApplication", &app);
-    dbusconn.registerObject("/MainWindow/KLFMainWin", &mainWin, QDBusConnection::ExportAllContents
-			    | QDBusConnection::ExportChildObjects);
+    if (opt_dbus_export_mainwin)
+      dbusconn.registerObject("/MainWindow/KLFMainWin", &mainWin, QDBusConnection::ExportAllContents
+			      | QDBusConnection::ExportChildObjects);
 #endif
 
     // parse command-line given actions
@@ -1246,6 +1262,9 @@ void main_parse_options(int argc, char *argv[])
       break;
     case OPT_DAEMONIZE:
       opt_daemonize = true;
+      break;
+    case OPT_DBUS_EXPORT_MAINWIN:
+      opt_dbus_export_mainwin = true;
       break;
     case OPT_OUTLINEFONTS:
       if (arg != NULL) {

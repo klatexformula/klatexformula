@@ -171,6 +171,14 @@ private:
 class KLF_EXPORT KLFSearchBar : public QFrame
 {
   Q_OBJECT
+
+  Q_PROPERTY(QString currentSearchText READ currentSearchText WRITE setSearchText) ;
+  Q_PROPERTY(bool showOverlayMode READ showOverlayMode WRITE setShowOverlayMode) ;
+  Q_PROPERTY(QRect showOverlayRelativeGeometry READ showOverlayRelativeGeometry
+	     WRITE setShowOverlayRelativeGeometry ) ;
+  Q_PROPERTY(QString focusOutText READ focusOutText WRITE setFocusOutText) ;
+  Q_PROPERTY(QColor colorFound READ colorFound WRITE setColorFound) ;
+  Q_PROPERTY(QColor colorNotFound READ colorNotFound WRITE setColorNotFound) ;
 public:
   KLFSearchBar(QWidget *parent = NULL);
   virtual ~KLFSearchBar();
@@ -180,16 +188,24 @@ public:
    * set this bar is unusable. */
   virtual void setSearchTarget(KLFSearchable *object);
 
-  virtual void setSearchText(const QString& text);
+  QString currentSearchText() const;
+  inline bool showOverlayMode() const { return pShowOverlayMode; }
+  inline QRect showOverlayRelativeGeometry() const { return pShowOverlayRelativeGeometry; }
+  inline QString focusOutText() const { return pFocusOutText; }
+  /** This value is read from the palette. It does not take into account style sheets. */
+  QColor colorFound() const;
+  /** This value is read from the palette. It does not take into account style sheets. */
+  QColor colorNotFound() const;
 
+  void setShowOverlayMode(bool showOverlayMode);
+  void setShowOverlayRelativeGeometry(const QRect& relativeGeometryPercent);
+  void setShowOverlayRelativeGeometry(int widthPercent, int heightPercent,
+				      int positionXPercent, int positionYPercent);
   virtual void setColorFound(const QColor& color);
   virtual void setColorNotFound(const QColor& color);
 
-  virtual bool eventFilter(QObject *obj, QEvent *ev);
 
-  void setShowOverlayMode(bool showOverlayMode);
-  void setShowOverlayRelativeGeometry(int widthPercent, int heightPercent,
-				      int positionXPercent, int positionYPercent);
+  virtual bool eventFilter(QObject *obj, QEvent *ev);
 
 signals:
   void searchPerformed(bool found);
@@ -211,6 +227,9 @@ public slots:
   void abortSearch();
 
   void focus();
+
+  virtual void setSearchText(const QString& text);
+  void setFocusOutText(const QString& focusOutText);
 
 protected:
   Ui::KLFSearchBar *u;
@@ -247,10 +266,14 @@ private:
   bool pShowOverlayMode;
   QRect pShowOverlayRelativeGeometry;
 
-  QString palettePropName(SearchState state);
-  QString statePropValue(SearchState state);
+  QString pFocusOutText;
+
+  QString palettePropName(SearchState state) const;
+  QString statePropValue(SearchState state) const;
 
   friend class KLFSearchable;
+
+  KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE()
 };
 
 

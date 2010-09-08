@@ -54,7 +54,7 @@
 #include <ui_klflibrespropeditor.h>
 #include <ui_klflibnewsubresdlg.h>
 
-//#include "klfconfig.h"
+#include "klfconfig.h"
 #include "klflibview.h"
 #include "klfguiutil.h"
 
@@ -354,7 +354,7 @@ KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Nod
 KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Node& n)
 {
   return dbg << "[kind="<<n.kind<<", children/sz="<<n.children.size()
-	     <<",displayed="<< n.numDisplayFetched<<",allfetched="<<n.allChildrenFetched<<"]";
+	     <<",allfetched="<<n.allChildrenFetched<<"]";
 }
 KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::EntryNode& en)
 {
@@ -474,6 +474,7 @@ void KLFLibModelCache::rebuildCache()
   }
   if (count < pModel->pFetchBatchCount) {
     // we have fetched all children
+    klfDbg("all children have been fetched.") ;
     root.allChildrenFetched = true;
   }
   const QList<KLFLibResourceEngine::KLFLibEntryWithId>& everything = qr.entryWithIdList;
@@ -505,7 +506,7 @@ void KLFLibModelCache::rebuildCache()
       QString cat = (*vcit).toString();
       if (cat.isEmpty() || cat == "/")
 	continue;
-      //      cacheFindCategoryLabel(categoryelements, createIfNotExists, notifyQtApi, newCreatedAreChildrenFetched)
+      // cacheFindCategoryLabel(categoryelements, createIfNotExists, notifyQtApi, newCreatedAreChildrenFetched)
       int i = cacheFindCategoryLabel(cat.split('/'), true, false, false);
       if (i < 0) {
 	qWarning()<<KLF_FUNC_NAME<<": Failed to create category node for category "<<cat;
@@ -551,11 +552,10 @@ QModelIndex KLFLibModelCache::createIndexFromId(NodeId nodeid, int row, int colu
     parentid = NodeId::rootNode();
 
   // if we cache getNode(parentid) make sure to keep a reference! it changes!
-  klfDbg(" getNode("<<parentid<<").numDisplayFetched="<< getNode(parentid).numDisplayFetched
-	 <<", row="<<row) ;
-  while ( getNode(parentid).numDisplayFetched <= row && canFetchMore(parentid) ) {
-    klfDbgT(": need to fetch more numDisplayFetched="
-	   <<getNode(parentid).numDisplayFetched<<"<row="<<row<<" !");
+  klfDbg("row="<<row) ;
+  while ( getNode(parentid).children.size() <= row && canFetchMore(parentid) ) {
+    klfDbgT(": need to fetch more children/size="
+	    <<getNode(parentid).children.size()<<"<row="<<row<<" !");
     fetchMore(parentid);
   }
 
@@ -725,8 +725,6 @@ bool KLFLibModelCache::canFetchMore(NodeId parentId)
 
   klfDbg("node="<<node) ;
 
-  if (node.numDisplayFetched < node.children.size())
-    return true;
   if (!node.allChildrenFetched)
     return true;
 
@@ -757,26 +755,7 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
   }
 
   CategoryLabelNode& noderef = getCategoryLabelNodeRef(n);
-  klfDbg( "\t -> n="<<n<<"; noderef: kind="<<noderef.kind<<", allChildrenFetched="<<noderef.allChildrenFetched
-	  <<", numDisplayFetched="<<noderef.numDisplayFetched ) ;
-
-  if (noderef.numDisplayFetched < noderef.children.size()) {
-    // we can "fetch more" by just increasing the number of displayed children.
-    QModelIndex parent = createIndexFromId(n, -1, 0);
-    // don't exceed children size
-    int fetchNum = qMin(fetchBatchCount, noderef.children.size() - noderef.numDisplayFetched);
-    klfDbg( "; children/size="<<noderef.children.size()<<"; batchCount="<<fetchBatchCount
-	    <<"; numDisplayFetched="<<noderef.numDisplayFetched<<"; => fetchNum="<<fetchNum ) ;
-    pModel->startLayoutChange(false);
-    pModel->beginInsertRows(parent, noderef.numDisplayFetched, noderef.numDisplayFetched+fetchNum-1);
-    noderef.numDisplayFetched += fetchNum;
-    klfDbg( ": increased noderef.numDisplayFetched by "<<fetchNum<<" to "<<noderef.numDisplayFetched ) ;
-    pModel->endInsertRows();
-    pModel->endLayoutChange(false);
-  
-    pIsFetchingMore = false;
-    return;
-  }
+  klfDbg( "\t -> n="<<n<<"; noderef: kind="<<noderef.kind<<", allChildrenFetched="<<noderef.allChildrenFetched ) ;
 
   if (noderef.allChildrenFetched) {
     // all children have been fetched, cannot do anything more.
@@ -789,7 +768,8 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
   // fetch more items, using query().
   KLFLibResourceEngine::Query q;
   if (pModel->pFlavorFlags & KLFLibModel::CategoryTree) {
-    KLFLib::PropertyMatch pmatch(KLFLibEntry::Category, KLFLib::StringMatch(noderef.fullCategoryPath));
+    QString c = KLFLibEntry::normalizeCategoryPath(noderef.fullCategoryPath);
+    KLFLib::PropertyMatch pmatch(KLFLibEntry::Category, KLFLib::StringMatch(c));
     q.matchCondition = KLFLib::EntryMatchCondition::mkPropertyMatch(pmatch);
   }
   q.orderPropId = pLastSortPropId;
@@ -815,10 +795,9 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
   // append all results into category-label-noderef 'noderef'
 
   // notify any views
-  // note that numDisplayFetched at this point is exactly children.size()
   pModel->startLayoutChange(false);
-  pModel->beginInsertRows(createIndexFromId(n, -1, 0), noderef.numDisplayFetched,
-			  noderef.numDisplayFetched+qr.entryWithIdList.size()-1);
+  pModel->beginInsertRows(createIndexFromId(n, -1, 0), noderef.children.size(),
+			  noderef.children.size() + qr.entryWithIdList.size()-1);
 
   // if we fetched all the remaining entries, then set allChildrenFetched to TRUE
   if (count < q.limit) {
@@ -842,12 +821,12 @@ void KLFLibModelCache::fetchMore(NodeId n, int fetchBatchCount)
 
     noderef.children.append(entryindex);
   }
-  noderef.numDisplayFetched += qr.entryWithIdList.size();
 
   klfDbg("Fetched more. About to notify view of end of rows inserted ... meanwile the dump:") ;
   fullDump();
 
   pModel->endInsertRows();
+  klfDbg("signal emitted. restore persistent indexes...") ;
   pModel->endLayoutChange(false);
 
   klfDbg("views notified, persistent indexes restored.") ;
@@ -1060,13 +1039,7 @@ void KLFLibModelCache::treeInsertEntry(const EntryNode& entrynode, bool rebuildi
   // and insert it again at the required spot
   if (notifyQtApi) {
     QModelIndex parentidx = createIndexFromId(parentid, -1, 0);
-    if (catLabelNodeRef.numDisplayFetched < insertPos) {
-      pModel->beginInsertRows(parentidx, catLabelNodeRef.numDisplayFetched, insertPos+1);
-      catLabelNodeRef.numDisplayFetched = insertPos+1;
-    } else {
-      pModel->beginInsertRows(parentidx, insertPos, insertPos);
-      catLabelNodeRef.numDisplayFetched++;
-    }
+    pModel->beginInsertRows(parentidx, insertPos, insertPos);
   }
 
   qDebug("\tinserting (%d,%d) at pos %d in category '%s'", n.kind, n.index, insertPos,
@@ -1132,8 +1105,6 @@ KLFLibModelCache::EntryNode KLFLibModelCache::treeTakeEntry(const NodeId& nodeid
     Node & parentref = getNodeRef(parentid);
     klfDbg("removing child #"<<childIndex<<" from parent id="<<parentid<<"; parent itself is "<<parentref) ;
     parentref.children.removeAt(childIndex);
-    if (parentref.numDisplayFetched > childIndex)
-      parentref.numDisplayFetched--;
     if (notifyQtApi)
       pModel->endRemoveRows();
     n = parentid;
@@ -1203,13 +1174,7 @@ KLFLibModelCache::IndexType
 	  <<" at position "<<insertPos ) ;
   if (notifyQtApi) {
     QModelIndex parentidx = createIndexFromId(NodeId(CategoryLabelKind, parent_index), -1, 0);
-    if (parentCatLabelNodeRef.numDisplayFetched < insertPos) {
-      pModel->beginInsertRows(parentidx, parentCatLabelNodeRef.numDisplayFetched, insertPos+1);
-      parentCatLabelNodeRef.numDisplayFetched = insertPos+1;
-    } else {
-      pModel->beginInsertRows(parentidx, insertPos, insertPos);
-      parentCatLabelNodeRef.numDisplayFetched++;
-    }
+    pModel->beginInsertRows(parentidx, insertPos, insertPos);
   }
   qDebug("%s: Inserting this_index=%d in parent_index=%d 's children", KLF_FUNC_NAME, this_index,
 	 parent_index);
@@ -1557,6 +1522,8 @@ void KLFLibModelCache::dumpNodeTree(NodeId node, int indent)
 KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject *parent)
   : QAbstractItemModel(parent), pFlavorFlags(flavorFlags)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   // set the default value of N items per batch
   // the initial default value is ridicuously small because fetchMore() is called during startup
   // sequence too many times (in my opinion). the batch count is increased once the widget is
@@ -1569,6 +1536,7 @@ KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject
   pEntrySorter = new KLFLibEntrySorter(KLFLibEntry::DateTime, Qt::DescendingOrder);
 
   pCache = new KLFLibModelCache(this);
+  // assign KLF_DEBUG ref-instance later, as we don't have one yet!
 
   setResource(engine);
   // DON'T CONNECT SIGNALs FROM RESOURCE ENGINE HERE, we are informed from
@@ -1579,6 +1547,7 @@ KLFLibModel::KLFLibModel(KLFLibResourceEngine *engine, uint flavorFlags, QObject
 
 KLFLibModel::~KLFLibModel()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   delete pCache;
   if (pEntrySorter)
     delete pEntrySorter;
@@ -1586,12 +1555,17 @@ KLFLibModel::~KLFLibModel()
 
 void KLFLibModel::setResource(KLFLibResourceEngine *resource)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
+  KLF_DEBUG_ASSIGN_SAME_REF_INSTANCE(pCache) ;
+
   pResource = resource;
   updateCacheSetupModel();
 }
 
 QUrl KLFLibModel::url() const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (pResource == NULL) {
     qWarning()<<KLF_FUNC_NAME<<": resource is NULL!";
     return QUrl();
@@ -1607,6 +1581,7 @@ QUrl KLFLibModel::url() const
 
 void KLFLibModel::setFlavorFlags(uint flags, uint modify_mask)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if ( (flags & modify_mask) == (pFlavorFlags & modify_mask) )
     return; // no change
   uint other_flags = pFlavorFlags & ~modify_mask;
@@ -1631,6 +1606,7 @@ uint KLFLibModel::flavorFlags() const
 
 void KLFLibModel::prefetch(const QModelIndexList& indexes) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   int k;
   for (k = 0; k < indexes.size(); ++k) {
     if (!indexes[k].isValid())
@@ -1646,6 +1622,7 @@ void KLFLibModel::prefetch(const QModelIndexList& indexes) const
 
 QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   //  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   //  klfDbg( "\tindex="<<index<<"; role="<<role ) ;
 
@@ -1657,8 +1634,6 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
   KLFLibModelCache::Node thisNode = pCache->getNode(p);
   KLFLibModelCache::NodeId parent = thisNode.parent;
   KLFLibModelCache::Node parentNode = pCache->getNode(parent);
-  if (index.row() >= parentNode.numDisplayFetched)
-    return QVariant();
 
   if (role == ItemKindItemRole)
     return QVariant::fromValue<int>(p.kind);
@@ -1736,6 +1711,7 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
 }
 Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   Qt::ItemFlags flagdropenabled = 0;
   if ( index.column() == 0 &&
        (pResource->canModifyData(KLFLibResourceEngine::InsertData) ||
@@ -1760,6 +1736,7 @@ Qt::ItemFlags KLFLibModel::flags(const QModelIndex& index) const
 }
 bool KLFLibModel::hasChildren(const QModelIndex &parent) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (parent.column() > 0)
     return false;
 
@@ -1773,6 +1750,7 @@ bool KLFLibModel::hasChildren(const QModelIndex &parent) const
 }
 QVariant KLFLibModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (role == Qt::FontRole) {
     return qApp->font();
   }
@@ -1799,6 +1777,7 @@ QVariant KLFLibModel::headerData(int section, Qt::Orientation orientation, int r
 
 bool KLFLibModel::hasIndex(int row, int column, const QModelIndex &parent) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // better implementation in the future
   return index(row, column, parent).isValid();
 }
@@ -1818,7 +1797,7 @@ QModelIndex KLFLibModel::index(int row, int column, const QModelIndex &parent) c
     if (pp.valid())
       p = pCache->getCategoryLabelNodeRef(pp);
   }
-  if (row < 0 || row >= p.numDisplayFetched || column < 0 || column >= columnCount(parent))
+  if (row < 0 || row >= p.children.size() || column < 0 || column >= columnCount(parent))
     return QModelIndex();
   klfDbgT(": row="<<row<<"; column="<<column<<"; parent="<<parent);
   return pCache->createIndexFromId(p.children[row], row, column);
@@ -1847,11 +1826,9 @@ int KLFLibModel::rowCount(const QModelIndex &parent) const
     p = KLFLibModelCache::NodeId::rootNode();
 
   KLFLibModelCache::Node n = pCache->getNode(p);
-  klfDbg( " parent="<<parent<<"; count="<<n.numDisplayFetched<<"; numchildren="
-	  <<n.children.size() ) ;
+  klfDbg( " parent="<<parent<<"; numchildren="<<n.children.size() ) ;
 
-  // make sure also that numDisplayFetched is not more than children.size()
-  return qMin(n.children.size(), n.numDisplayFetched);
+  return n.children.size();
 }
 
 int KLFLibModel::columnCount(const QModelIndex & /*parent*/) const
@@ -1898,6 +1875,7 @@ int KLFLibModel::columnForEntryPropertyId(int entryPropertyId) const
 
 bool KLFLibModel::canFetchMore(const QModelIndex& parent) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   //  KLF_DEBUG_BLOCK(KLF_FUNC_NAME); klfDbg( "\t parent="<<parent ) ;
 
   KLFLibModelCache::NodeId n = pCache->getNodeForIndex(parent);
@@ -1908,6 +1886,7 @@ bool KLFLibModel::canFetchMore(const QModelIndex& parent) const
 }
 void KLFLibModel::fetchMore(const QModelIndex& parent)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   pCache->fetchMore(pCache->getNodeForIndex(parent), pFetchBatchCount);
 }
 
@@ -1924,6 +1903,7 @@ QStringList KLFLibModel::mimeTypes() const
 }
 QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // in the future, this will serve when dragging a category label, to redifine the index
   // list as containing all the child entries.
   QModelIndexList indexes = indlist;
@@ -1971,6 +1951,7 @@ QMimeData *KLFLibModel::mimeData(const QModelIndexList& indlist) const
 // private
 bool KLFLibModel::dropCanInternal(const QMimeData *mimedata)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if ( ! mimedata->hasFormat("application/x-klf-internal-lib-move-entries") ||
        ! pResource->canModifyData(KLFLibResourceEngine::ChangeData))
     return false;
@@ -1990,6 +1971,7 @@ bool KLFLibModel::dropCanInternal(const QMimeData *mimedata)
 bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action, int row,
 			       int column, const QModelIndex& parent)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg(  "Drop data: action="<<action<<" row="<<row<<" col="<<column
 	   << " parent="<<parent ) ;
 
@@ -2079,6 +2061,7 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
 
 uint KLFLibModel::dropFlags(QDragMoveEvent *event, QAbstractItemView *view)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   const QMimeData *mdata = event->mimeData();
   if (dropCanInternal(mdata)) {
     if ( !(pFlavorFlags & CategoryTree) ) {
@@ -2101,6 +2084,7 @@ uint KLFLibModel::dropFlags(QDragMoveEvent *event, QAbstractItemView *view)
 
 QImage KLFLibModel::dragImage(const QModelIndexList& indexes)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (indexes.isEmpty())
     return QImage();
 
@@ -2158,6 +2142,7 @@ QImage KLFLibModel::dragImage(const QModelIndexList& indexes)
 
 bool KLFLibModel::isDesendantOf(const QModelIndex& child, const QModelIndex& ancestor)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (!child.isValid())
     return false;
 
@@ -2171,43 +2156,51 @@ QStringList KLFLibModel::categoryList() const
 
 void KLFLibModel::updateData(const QList<KLFLib::entryId>& entryIdList, int modifyType)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   pCache->updateData(entryIdList, modifyType);
 }
 
 QModelIndex KLFLibModel::walkNextIndex(const QModelIndex& cur)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   KLFLibModelCache::NodeId nextnode = pCache->nextNode(pCache->getNodeForIndex(cur));
   //  klfDbg( "KLFLibModel::walkNextIndex: got next node=NodeId("<<nextnode.kind<<","<<nextnode.index<<")" ) ;
   return pCache->createIndexFromId(nextnode, -1, 0);
 }
 QModelIndex KLFLibModel::walkPrevIndex(const QModelIndex& cur)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   KLFLibModelCache::NodeId prevnode = pCache->prevNode(pCache->getNodeForIndex(cur));
   return pCache->createIndexFromId(prevnode, -1, 0);
 }
 
 KLFLib::entryId KLFLibModel::entryIdForIndex(const QModelIndex& index) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   return entryIdForIndexList(QModelIndexList() << index) [0];
 }
 
 QModelIndex KLFLibModel::findEntryId(KLFLib::entryId eid) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   return findEntryIdList(QList<KLFLib::entryId>() << eid) [0];
 }
 
 QList<KLFLib::entryId> KLFLibModel::entryIdForIndexList(const QModelIndexList& indexlist) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   return pCache->entryIdForIndexList(indexlist);
 }
 QModelIndexList KLFLibModel::findEntryIdList(const QList<KLFLib::entryId>& eidlist) const
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   return pCache->findEntryIdList(eidlist);
 }
 
 
 void KLFLibModel::setEntrySorter(KLFLibEntrySorter *entrySorter)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (pEntrySorter == entrySorter)
     return;
   if (entrySorter == NULL) {
@@ -2223,6 +2216,7 @@ void KLFLibModel::setEntrySorter(KLFLibEntrySorter *entrySorter)
 QModelIndex KLFLibModel::searchFind(const QString& queryString, const QModelIndex& fromIndex,
 				    bool forward)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg( " s="<<queryString<<" from "<<fromIndex<<" forward="<<forward ) ;
   pSearchAborted = false;
   pSearchString = queryString;
@@ -2281,6 +2275,7 @@ void KLFLibModel::searchAbort()
 bool KLFLibModelCache::searchNodeMatches(const NodeId& nodeId, const QString& searchString,
 					 Qt::CaseSensitivity cs)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   if (nodeId.kind == CategoryLabelKind) {
     if (nodeValue(nodeId).contains(searchString, cs))
       return true;
@@ -2348,12 +2343,14 @@ bool KLFLibModelCache::searchNodeMatches(const NodeId& nodeId, const QString& se
 
 void KLFLibModel::completeRefresh()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   updateCacheSetupModel();
 }
 
 
 void KLFLibModel::redoSort()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   startLayoutChange();
 
   KLFLibModelCache::KLFLibModelSorter srt = 
@@ -2366,6 +2363,7 @@ void KLFLibModel::redoSort()
 
 void KLFLibModel::sort(int column, Qt::SortOrder order)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // select right property ID
   int propId = entryColumnContentsPropertyId(column);
   // if property ID is preview, then request sort by DateTime (user friendliness)
@@ -2436,6 +2434,7 @@ QModelIndexList KLFLibModel::newPersistentIndexList(const QList<PersistentId>& p
 
 void KLFLibModel::startLayoutChange(bool withQtLayoutChangedSignal)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // first notify anyone who may be interested
   if (withQtLayoutChangedSignal)
     emit layoutAboutToBeChanged();
@@ -2457,6 +2456,7 @@ void KLFLibModel::endLayoutChange(bool withQtLayoutChangedSignal)
 
 void KLFLibModel::updateCacheSetupModel()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   pCache->rebuildCache();
 }
 
@@ -2575,6 +2575,7 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
   switch (index.data(KLFLibModel::EntryContentsTypeItemRole).toInt()) {
   case KLFLibEntry::Latex:
     // paint Latex String
+    fl |= PTF_FontTT;
     paintText(p, index.data(KLFLibModel::entryItemRole(KLFLibEntry::Latex)).toString(), fl);
     break;
   case KLFLibEntry::Preview:
@@ -2633,6 +2634,7 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
     break;
   case KLFLibEntry::Tags:
     // paint Tags String
+    fl |= PTF_FontLarge;
     paintText(p, index.data(KLFLibModel::entryItemRole(KLFLibEntry::Tags)).toString(), fl);
     break;
   case KLFLibEntry::DateTime:
@@ -2693,6 +2695,15 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
+  QFont font = p->option->font;
+
+  if (flags & PTF_FontTT)
+    font = klfconfig.UI.preambleEditFont; // use preamble font
+  if (flags & PTF_FontLarge) {
+    font.setPointSize(QFontInfo(font).pointSize()+1);
+    //    font.setStyle(QFont::StyleOblique);
+  }
+
   QColor textcol = p->option->palette.color(QPalette::Text);
   QColor textcoltransp = textcol; textcoltransp.setAlpha(0);
   QGradientStops borderfadelingrstops;
@@ -2712,9 +2723,10 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
        !(flags & PTF_SelUnderline) &&
        !(flags & PTF_ForceRichTextRender) ) {
     // no formatting required, use fast method.
-    QSize s = QFontMetrics(p->option->font).size(0, text);
+    QSize s = QFontMetrics(font).size(0, text);
     drawnTextWidth = s.width();
     drawnBaseLineY = (int)(p->innerRectText.bottom() - 0.5f*(p->innerRectText.height()-s.height()));
+    p->p->setFont(font);
     p->p->setPen(borderfadepen);
     p->p->drawText(p->innerRectText, Qt::AlignLeft|Qt::AlignVCenter, text);
   } else {
@@ -2735,7 +2747,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
     qSort(c);
     //    klfDbg( "searchstr="<<pSearchString<<"; label "<<text<<": c is "<<c ) ;
     QTextDocument textDocument;
-    textDocument.setDefaultFont(p->option->font);
+    textDocument.setDefaultFont(font);
     QTextCursor cur(&textDocument);
     QList<ColorRegion> appliedfmts;
     for (i = ci = 0; i < text.length(); ++i) {
@@ -3012,10 +3024,8 @@ KLFLibDefaultView::~KLFLibDefaultView()
 
 QUrl KLFLibDefaultView::url() const
 {
-  if (pModel == NULL) {
-    qWarning()<<KLF_FUNC_NAME<<": model is NULL!";
+  if (pModel == NULL)
     return QUrl();
-  }
   return pModel->url();
 }
 uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) const
@@ -3244,11 +3254,16 @@ void KLFLibDefaultView::updateResourceEngine()
     break;
   };
 
+  // refresh this setting from klfconfig
+  setGroupSubCategories(klfconfig.LibraryBrowser.groupSubCategories);
+
   if (pGroupSubCategories)
     model_flavor |= KLFLibModel::GroupSubCategories;
 
   pModel = new KLFLibModel(resource, model_flavor, this);
   pView->setModel(pModel);
+
+  KLF_DEBUG_ASSIGN_SAME_REF_INSTANCE(pModel) ;
 
   klfDbg("created model. pModel="<<klfFmtCC("%p", (void*)pModel)<<"; view type="<<pViewType);
 
@@ -3329,7 +3344,7 @@ void KLFLibDefaultView::updateResourceEngine()
     int numRootItems = pModel->rowCount(QModelIndex());
     for (k = 0; k < pModel->rowCount(QModelIndex()); ++k) {
       QModelIndex i = pModel->index(k, 0, QModelIndex());
-      if (pModel->rowCount(i) < 6 || numRootItems < 4)
+      if (pModel->rowCount(i) < 6 || numRootItems < 6)
 	treeView->expand(i);
     }
   }
@@ -3560,7 +3575,11 @@ void KLFLibDefaultView::setIconViewFlow(QListView::Flow flow)
   }
 }
 
-
+void KLFLibDefaultView::updateDisplay()
+{
+  KLF_ASSERT_NOT_NULL(pView, "view is NULL!", return ) ;
+  pView->viewport()->update();
+}
 
 bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
 {
@@ -3569,8 +3588,8 @@ bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
   fromIndex = pModel->walkPrevIndex(fromIndex);
   QModelIndex i = pModel->searchFind(queryString, fromIndex, forward);
   pDelegate->setSearchString(queryString);
-  for (int col = 0; i.isValid() && col < pModel->columnCount(); ++col)
-    pView->update(pModel->index(i.row(), col, i.parent()));
+  //  for (int col = 0; i.isValid() && col < pModel->columnCount(); ++col)
+  //    pView->update(pModel->index(i.row(), col, i.parent())); // searchFound will call updateDisplay()
   searchFound(i);
   return i.isValid();
 }
@@ -3587,7 +3606,7 @@ void KLFLibDefaultView::searchAbort()
   pModel->searchAbort();
   pDelegate->setSearchString(QString());
   pDelegate->setSearchIndex(QModelIndex());
-  pView->viewport()->update(); // repaint widget to update search underline
+  updateDisplay(); // repaint widget to update search underline
 
   // don't un-select the found index...
   //  searchFound(QModelIndex());
@@ -3598,12 +3617,13 @@ void KLFLibDefaultView::searchFound(const QModelIndex& i)
 {
   pDelegate->setSearchIndex(i);
   if ( ! i.isValid() ) {
-    pView->scrollTo(QModelIndex(), QAbstractItemView::PositionAtTop);
+    pView->scrollToTop();
     // unselect all
     pView->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::Clear);
     return;
+  } else {
+    pView->scrollTo(i, QAbstractItemView::EnsureVisible);
   }
-  pView->scrollTo(i, QAbstractItemView::EnsureVisible);
   if (pViewType == CategoryTreeView) {
     // if tree view, expand item
     qobject_cast<QTreeView*>(pView)->expand(i);
@@ -3612,14 +3632,14 @@ void KLFLibDefaultView::searchFound(const QModelIndex& i)
   pView->selectionModel()->setCurrentIndex(i,
 					   QItemSelectionModel::ClearAndSelect|
 					   QItemSelectionModel::Rows);
-  pView->update(i);
+  updateDisplay();
 }
 
 
 void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
 						 const QItemSelection& /*deselected*/)
 {
-  pView->viewport()->update();
+  updateDisplay();
   
   emit entriesSelected(selectedEntries());
 }
