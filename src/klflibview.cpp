@@ -1072,7 +1072,11 @@ KLFLibModelCache::EntryNode KLFLibModelCache::treeTakeEntry(const NodeId& nodeid
   NodeId parentid;
   bool willRemoveParent;
   do {
+    if (!n.valid())
+      break; // what's going on?
     parentid = getNode(n).parent;
+    if (n == NodeId::rootNode())
+      break; // stop before removing root node (!)
     klfDbg("Getting interested to remove entry ID="<<n<<", from its parent of id="<<parentid) ;
     if (parentid.kind != CategoryLabelKind) {
       qWarning()<<KLF_FUNC_NAME<<"("<<n<<"): Bad parent node kind: "<<parentid.kind<<"!";
