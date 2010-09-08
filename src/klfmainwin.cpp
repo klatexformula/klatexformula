@@ -1060,24 +1060,7 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
 
 void KLFMainWin::insertDelimiter(const QString& delim, int charsBack)
 {
-  QTextCursor c1 = u->txtLatex->textCursor();
-  c1.beginEditBlock();
-  QString selected = c1.selection().toPlainText();
-  QString toinsert = delim;
-  if (selected.length())
-    toinsert.insert(toinsert.length()-charsBack, selected);
-  c1.removeSelectedText();
-  c1.insertText(toinsert);
-  c1.endEditBlock();
-
-  if (selected.isEmpty())
-    c1.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, charsBack);
-
-  u->txtLatex->setTextCursor(c1);
-
-  activateWindow();
-  raise();
-  u->txtLatex->setFocus();
+  u->txtLatex->insertDelimiter(delim, charsBack);
 }
 
 
@@ -1287,17 +1270,6 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
   *actionList << insertSymbolAction;
 }
 
-void KLFMainWin::slotInsertFromActionSender()
-{
-  QObject *obj = sender();
-  if (obj == NULL || !obj->inherits("QAction")) {
-    qWarning()<<KLF_FUNC_NAME<<": sender object is not a QAction: "<<obj;
-    return;
-  }
-  QVariant v = qobject_cast<QAction*>(obj)->data();
-  QVariantMap vdata = v.toMap();
-  insertDelimiter(vdata["delim"].toString(), vdata["charsBack"].toInt());
-}
 
 void KLFMainWin::slotInsertMissingPackagesFromActionSender()
 {

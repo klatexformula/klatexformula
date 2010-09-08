@@ -3639,7 +3639,9 @@ void KLFLibDefaultView::searchFound(const QModelIndex& i)
 void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
 						 const QItemSelection& /*deselected*/)
 {
-  updateDisplay();
+  // This line generates QPaint* warnings on Win32
+  // ### Why would we need it anyway ?
+  //  updateDisplay();
   
   emit entriesSelected(selectedEntries());
 }

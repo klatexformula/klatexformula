@@ -414,7 +414,8 @@ static QList<QByteArray> decaps_list(const QByteArray& ba_data)
     if (data[k] == ']') {
       // end of list marker.
       // flush last chunk into sections, and break.
-      sections.append(chunk);
+      if (!chunk.isEmpty())
+	sections.append(chunk);
       chunk = "";
       break;
     }

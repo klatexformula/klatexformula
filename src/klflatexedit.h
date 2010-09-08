@@ -97,10 +97,17 @@ public slots:
   /** See sizeHint(). This sets the preferred height of this widget in number of text lines. */
   void setHeightHintLines(int lines);
 
+  /** Inserts a delimiter \c delim, and brings the cursor \c charsBack characters
+   * back. Eg. you can insert \c "\mathrm{}" and bring the cursor 1 space back. */
+  void insertDelimiter(const QString& delim, int charsBack = 1);
+
 protected:
   virtual void contextMenuEvent(QContextMenuEvent *event);
   virtual bool canInsertFromMimeData(const QMimeData *source) const;
   virtual void insertFromMimeData(const QMimeData *source);
+
+private slots:
+  void slotInsertFromActionSender();
 
 private:
   KLFLatexSyntaxHighlighter *mSyntaxHighlighter;

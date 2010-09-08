@@ -418,7 +418,6 @@ private slots:
 
   void slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAction*> *actionList);
   void slotInsertMissingPackagesFromActionSender();
-  void slotInsertFromActionSender();
 
 protected:
   Ui::KLFMainWin *u;

@@ -502,7 +502,7 @@ KLF_EXPORT void klfDataStreamWriteHeader(QDataStream& stream, const QString head
 
   // header always written in QDataStream version Qt_3_3
   stream.setVersion(QDataStream::Qt_3_3);
-  stream << QString("KLATEXFORMULA_STYLE_LIST")
+  stream << headermagic
 	 << (qint16)KLF_DATA_STREAM_APP_VERSION_MAJ
 	 << (qint16)KLF_DATA_STREAM_APP_VERSION_MIN
 	 << (qint16)QDataStream::Qt_4_4;
@@ -514,10 +514,13 @@ KLF_EXPORT void klfDataStreamWriteHeader(QDataStream& stream, const QString head
 KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList possibleHeaders,
 					QString *readHeader, QString *readCompatKLFVersion)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QString s;
   stream.setVersion(QDataStream::Qt_3_3);
   stream >> s;
   if (!possibleHeaders.contains(s) || stream.status() != QDataStream::Ok) {
+    klfDbg("Read bad header: "<<s) ;
     if (readHeader != NULL)
       *readHeader = QString();
     return false;
@@ -533,6 +536,7 @@ KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList p
       *readCompatKLFVersion = QString();
     return false;
   }
+  klfDbg("read app compat version = "<<vmaj<<"."<<vmin) ;
 
   QString compatKLFVersion = QString("%1.%2").arg(vmaj).arg(vmin);
 
@@ -540,7 +544,7 @@ KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList p
     if (readCompatKLFVersion != NULL)
       *readCompatKLFVersion = compatKLFVersion; 
     return false;
-  }	
+  }
 
   // decide on QDataStream version
   if (vmaj <= 2) { // 2.x: version # not saved into stream, use Qt_3_3

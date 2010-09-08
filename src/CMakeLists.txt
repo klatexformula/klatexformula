@@ -15,6 +15,7 @@ if(WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
   # Extra linker flags for win32 compilation
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-auto-import")
 endif(WIN32)
 
 # Preprocessor instructions
@@ -194,6 +195,9 @@ if(KLF_LIBKLFTOOLS_STATIC)
   # Q_INIT_RESOURCE(klftoolsres)
   add_definitions(-DKLF_LIBKLFTOOLS_STATIC)
 endif(KLF_LIBKLFTOOLS_STATIC)
+if(WIN32)
+  add_definitions(-DKLF_SHARE_DIR="${CMAKE_INSTALL_PREFIX}")
+endif(WIN32)
 # Uis, Mocs
 qt4_wrap_ui(klfapp_UIS_H ${klfapp_UIS})
 qt4_wrap_cpp(klfapp_MOC_CPPS ${klfapp_MOCHEADERS})

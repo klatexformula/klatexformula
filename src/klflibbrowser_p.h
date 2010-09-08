@@ -528,7 +528,7 @@ public:
   KLFLibBrowserTabMenu(KLFLibBrowserTabWidget *tabwidget)
     : QMenu(tabwidget), pTabWidget(tabwidget)
   {
-    setTitle(tr("Open Tabs"));
+    setTitle(tr("Switch to Tab"));
     pActionGroup = new QActionGroup(this);
     pActionGroup->setExclusive(true);
 

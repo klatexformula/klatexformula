@@ -170,12 +170,13 @@ static QString relcachefile()
 {
   if (__rel_cache_file.isEmpty())
     __rel_cache_file =
-      QString("/symbolspixmapcache-klf%1.%2").arg(klfVersionMaj()).arg(klfVersionMin());
+      QString("/symbolspixmapcache-klf%1").arg(KLF_DATA_STREAM_APP_VERSION);
   return __rel_cache_file;
 }
 
 KLFLatexSymbolsCache::KLFLatexSymbolsCache()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // load the cache
 
   QStringList cachefiles;
@@ -185,11 +186,16 @@ KLFLatexSymbolsCache::KLFLatexSymbolsCache()
   int k;
   bool ok = false;
   for (k = 0; !ok && k < cachefiles.size(); ++k) {
+    // ??: do the two attempts here apply a datastream version to the header only, or to
+    //     the data too?
+    klfDbg("trying to load from "<<cachefiles[k]) ;
     ok = (  loadCacheFrom(cachefiles[k], QDataStream::Qt_4_4)
 	    == KLFLatexSymbolsCache::Ok  ) ;
-    if (!ok)
+    if (!ok) {
+      klfDbg("trying to load from "<<cachefiles[k]<<" with default header datastream version") ;
       ok = (  loadCacheFrom(cachefiles[k], -1)
 	      == KLFLatexSymbolsCache::Ok  ) ;
+    }
   }
   if ( ! ok ) {
     qWarning() << KLF_FUNC_NAME << ": error finding and reading cache file!";
@@ -205,6 +211,8 @@ int KLFLatexSymbolsCache::loadCacheStream(QDataStream& stream)
   bool r = klfDataStreamReadHeader(stream, QStringList()<<"KLATEXFORMULA_SYMBOLS_PIXMAP_CACHE",
 				   &readHeader, &readCompatKLFVersion);
   if (!r) {
+    klfDbg("failed to read symbolscache data header. readHeader="<<readHeader
+	   <<", readcompatklfver="<<readCompatKLFVersion) ;
     if (readHeader.isEmpty() || readCompatKLFVersion.isEmpty())
       return BadHeader;
     // otherwise, it's a bad version error
@@ -233,7 +241,7 @@ QPixmap KLFLatexSymbolsCache::getPixmap(const KLFLatexSymbol& sym, bool fromcach
   klfDbg("sym.symbol="<<sym.symbol<<" fromCacheOnly="<<fromcacheonly) ;
 
   if (cache.contains(sym)) {
-    klfDbg("Found symbol in cache! sym.preamble="<<sym.preamble.join(";"));
+    klfDbg("Found symbol in cache! pixmap is null="<<cache[sym].isNull()<<"; sym.preamble="<<sym.preamble.join(";"));
     return cache[sym];
   }
 
@@ -242,26 +250,31 @@ QPixmap KLFLatexSymbolsCache::getPixmap(const KLFLatexSymbol& sym, bool fromcach
     return QPixmap(":/pics/badsym.png");
   }
 
-  // clean cache: make sure there are no two duplicate symbols (this is for the popup hint parser,
-  // so that it doesn't detect old symbols in the cache)
-  // This is done only if fromcache is false, so as to perform the check only on first pass
-  // when generating the symbol cache.
-  QMap<KLFLatexSymbol,QPixmap>::iterator it = cache.begin();
-  while (it != cache.end()) {
-    klfDbg("Testing symbol "<<it.key().symbol<<",preamble="<<it.key().preamble.join(",")
-	   << "for being a duplicate of "<<sym.symbol);
-    if (it.key().symbol == sym.symbol) {
-      klfDbg("erasing duplicate.");
-      it = cache.erase(it); // erase old symbol entry
-    } else {
-      ++it;
+  {
+    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"/clean cache duplicate test") ;
+    // clean cache: make sure there are no two duplicate symbols (this is for the popup hint parser,
+    // so that it doesn't detect old symbols in the cache)
+    // This is done only if fromcache is false, so as to perform the check only on first pass
+    // when generating the symbol cache.
+    QMap<KLFLatexSymbol,QPixmap>::iterator it = cache.begin();
+    while (it != cache.end()) {
+      klfDbg("Testing symbol "<<it.key().symbol<<",preamble="<<it.key().preamble.join(",")
+	     << "for being a duplicate of "<<sym.symbol);
+      if (it.key().symbol == sym.symbol) {
+	klfDbg("erasing duplicate.");
+	it = cache.erase(it); // erase old symbol entry
+      } else {
+	++it;
+      }
     }
   }
 
   if (sym.hidden) {
     // special treatment for hidden symbols
     // insert a QPixmap() into cache and return it
-    return ( cache[sym] = QPixmap() );
+    klfDbg("symbol is hidden. Assigning NULL pixmap.") ;
+    cache[sym] = QPixmap();
+    return QPixmap();
   }
 
   const float mag = 4.0;
@@ -297,6 +310,8 @@ QPixmap KLFLatexSymbolsCache::getPixmap(const KLFLatexSymbol& sym, bool fromcach
 				    Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
   QPixmap pix = QPixmap::fromImage(scaled);
   cache[sym] = pix;
+
+  klfDbg("Ran getLatexFormula(), got the pixmap. Returning.") ;
 
   return pix;
 }
@@ -388,6 +403,7 @@ int KLFLatexSymbolsCache::loadCacheFrom(const QString& fname, int version)
 {
   QFile f(fname);
   if ( ! f.open(QIODevice::ReadOnly) ) {
+    klfDbg("Failed to open "<<fname) ;
     return -1;
   }
   QDataStream ds(&f);

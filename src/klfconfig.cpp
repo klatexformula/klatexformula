@@ -43,20 +43,32 @@
 
 
 
-static const char * __klf_share_dir_relpath =
-#ifdef KLF_SHARE_DIR_REL  // defined by the build system
-	KLF_SHARE_DIR_REL;
+static const char * __klf_share_dir =
+#ifdef KLF_SHARE_DIR  // defined by the build system
+	KLF_SHARE_DIR;
 #elif defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
-	"/..";   // note: program is in a bin/ directory
+	"..";   // note: program is in a bin/ directory by default (this is for installer)
 #elif defined(Q_WS_MAC) // Mac OS X
-	"/../Resources";
+	"../Resources";
 #else  // unix-like system
-	"/../share/klatexformula";
+	"../share/klatexformula";
 #endif
 
-KLF_EXPORT const char * klf_share_dir_relpath()
+static QString __klf_share_dir_cached;
+
+KLF_EXPORT QString klf_share_dir_abspath()
 {
-  return __klf_share_dir_relpath;
+  if (!__klf_share_dir_cached.isEmpty())
+    return __klf_share_dir_cached;
+
+  if (QFileInfo(__klf_share_dir).isAbsolute())
+    return ( __klf_share_dir_cached = __klf_share_dir ) ;
+
+  __klf_share_dir_cached = QCoreApplication::applicationDirPath();
+  __klf_share_dir_cached += "/";
+  __klf_share_dir_cached += __klf_share_dir;
+  
+  return __klf_share_dir_cached;
 }
 
 
@@ -120,8 +132,10 @@ KLFConfig::KLFConfig()
 
 void KLFConfig::loadDefaults()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   homeConfigDir = QDir::homePath() + "/.klatexformula";
-  globalShareDir = QCoreApplication::applicationDirPath() + klf_share_dir_relpath();
+  globalShareDir = klf_share_dir_abspath();
   homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
   homeConfigSettingsFileIni = homeConfigDir + "/config";
   homeConfigDirRCCResources = homeConfigDir + "/rccresources";
@@ -129,13 +143,20 @@ void KLFConfig::loadDefaults()
   homeConfigDirPluginData = homeConfigDir + "/plugindata";
   homeConfigDirI18n = homeConfigDir + "/i18n";
 
+  //debug: QMessageBox::information(0, "", QString("global share dir=")+globalShareDir);
+
   if (qApp->inherits("QApplication")) { // and not QCoreApplication...
     QFontDatabase fdb;
     QFont f = QApplication::font();
 
-    if (fdb.isScalable("CMU Sans Serif")) {
+    if (fdb.families().contains("CMU Sans Serif")) {
       // CMU Sans Serif is available ;-)
-      f = QFont("CMU Sans Serif", QFontInfo(f).pointSize());
+      int ps = QFontInfo(f).pointSize();
+      f = QFont("CMU Sans Serif", ps);
+      int fIdealHeight = 16; // ideal height of the string "MX" in pixels
+      while (ps < 18 && QFontMetrics(f).size(Qt::TextSingleLine, "MX").height() < fIdealHeight) {
+	f.setPointSize(++ps);
+      }
     }
 
 #ifdef Q_WS_X11
@@ -156,19 +177,20 @@ void KLFConfig::loadDefaults()
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace", ps);
     if ( ! found_fcode )
       fcode = f;
-    /** \bug .... Font comes out way too big on windows system with this algorithm ... */
     // guess good font size for code font
     QFont fp1 = f, fp2 = f;
-    qreal ps1 = 10, ps2 = 20; // measurement points
-    int idealHeight = 7; // the ideal hight in pixels
+    qreal ps1 = 5, ps2 = 20; // measurement points
+    int idealHeight = 18; // the ideal height of the string "MX" in pixels
     fp1.setPointSize((int)(ps1+0.5f));
     fp2.setPointSize((int)(ps2+0.5f));
-    qreal h1 = QFontMetrics(fp1).xHeight();
-    qreal h2 = QFontMetrics(fp2).xHeight();
+    qreal h1 = QFontMetrics(fp1).size(Qt::TextSingleLine, "MX").height();
+    qreal h2 = QFontMetrics(fp2).size(Qt::TextSingleLine, "MX").height();
     // linear interpolation for a height of \c idealHeight pixels
     ps = (int)(ps1 + (idealHeight-h1)*(ps2-ps1)/(h2-h1));
     // and set that font size
     fcode.setPointSize(ps);
+    QFont fcodeMain = fcode;
+    fcodeMain.setPointSize(ps+1);
 
     // by default, this is first run!
     General.thisVersionFirstRun = true;
@@ -179,7 +201,7 @@ void KLFConfig::loadDefaults()
     UI.locale = QLocale::system().name();
     klfDbg("System locale: "<<QLocale::system().name());
     UI.applicationFont = f;
-    UI.latexEditFont = fcode;
+    UI.latexEditFont = fcodeMain;
     UI.preambleEditFont = fcode;
     UI.previewTooltipMaxSize = QSize(800, 600);
     UI.labelOutputFixedSize = QSize(280, 80);

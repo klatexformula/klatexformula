@@ -41,14 +41,16 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_LIB_DIR
 	KLF_LIB_SUFFIX                   # dependance variables
 )
 message(STATUS "Installing libraries to ${KLF_INSTALL_LIB_DIR} (KLF_INSTALL_LIB_DIR)")
-if(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}" AND klf_changed_KLF_INSTALL_LIB_DIR)
-  KLFNote("You have chosen an absolute KLF_INSTALL_LIB_DIR path. There is nothing wrong with that,
-    but keep in mind that this value will NOT be updated if you change CMAKE_INSTALL_PREFIX.")
-endif(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}" AND klf_changed_KLF_INSTALL_LIB_DIR)
+if(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}"	)
+  KLFNote("You have chosen an absolute KLF_INSTALL_LIB_DIR path. There is
+    nothing wrong with that, but keep in mind that this value will
+    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
+endif(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}")
 
 # Utility variable. Same as KLF_INSTALL_LIB_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
-KLFMakeAbsInstallPath(KLF_ABS_INSTALL_LIB_DIR KLF_INSTALL_LIB_DIR)
+KLFMakeAbsInstallPath(KLF_ABS_INSTALL_LIB_DIR  KLF_INSTALL_LIB_DIR)
+KLFCMakeDebug("KLF_ABS_INSTALL_LIB_DIR is ${KLF_ABS_INSTALL_LIB_DIR}; lib-dir is ${KLF_INSTALL_LIB_DIR}")
 
 # Bin Dir
 set(install_bin_dir "bin")
@@ -69,10 +71,11 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_BIN_DIR
 	DUMMY_DEPENDANCE_VARIABLE # dependance variable (as of now none!)
 )
 message(STATUS "Installing binary to ${KLF_INSTALL_BIN_DIR} (KLF_INSTALL_BIN_DIR)")
-if(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}" AND klf_changed_KLF_INSTALL_BIN_DIR)
-  KLFNote("You have chosen an absolute KLF_INSTALL_BIN_DIR. There is nothing wrong with that,
-    but keep in mind that this value will NOT be updated if you change CMAKE_INSTALL_PREFIX.")
-endif(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}" AND klf_changed_KLF_INSTALL_BIN_DIR)
+if(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
+  KLFNote("You have chosen an absolute KLF_INSTALL_BIN_DIR path. There is
+    nothing wrong with that, but keep in mind that this value will
+    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
+endif(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
 
 # Utility variable. Same as KLF_INSTALL_BIN_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
@@ -82,20 +85,16 @@ KLFMakeAbsInstallPath(KLF_ABS_INSTALL_BIN_DIR KLF_INSTALL_BIN_DIR)
 # rccresources dir
 if(WIN32)
 
-#  if(NOT QT_INSTALL_PREFIX)
-#    execute_process(COMMAND "${QT_QMAKE_EXECUTABLE}" "-query" "QT_INSTALL_PREFIX"
-#		    OUTPUT_VARIABLE qt_install_prefix_result)
-#    string(REPLACE "\\" "/" qt_install_prefix_result "${qt_install_prefix_result}")
-#    # strip string leading/ending spaces/newlines
-#    string(STRIP "${qt_install_prefix_result}" qt_install_prefix_result)
-#    # and store the final value into internal cache
-#    set(QT_INSTALL_PREFIX "${qt_install_prefix_result}" CACHE STRING "Qt's install prefix")
-#    mark_as_advanced(QT_INSTALL_PREFIX)
-#  endif(QT_INSTALL_PREFIX)
-
   set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
 			    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
   mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
+  if(IS_ABSOLUTE "${KLF_INSTALL_RCCRESOURCES_DIR}")
+    KLFNote("You have chosen an absolute KLF_INSTALL_RCCRESOURCES_DIR. There is
+    nothing wrong with that, but keep in mind that this value will
+    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
+  endif(IS_ABSOLUTE "${KLF_INSTALL_RCCRESOURCES_DIR}")
+  KLFMakeAbsInstallPath(KLF_ABS_INSTALL_RCCRESOURCES_DIR  KLF_INSTALL_RCCRESOURCES_DIR)
+
 else(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
 			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
@@ -111,7 +110,7 @@ mark_as_advanced(CLEAR CMAKE_SKIP_RPATH)
 # option to specify RPATH, only if not skipping
 if(NOT CMAKE_SKIP_RPATH)
   
-  #KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice calcoptvalue depvar1)
+  #KLFDeclareCacheVarOptionFollowComplex2(specificoption cachetype cachestring updatenotice calcoptvalue depvar1 depvar2)
   KLFDeclareCacheVarOptionFollowComplex2(CMAKE_INSTALL_RPATH
 	PATH "RPATH for installed libraries and executables"
 	ON

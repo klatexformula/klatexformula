@@ -500,6 +500,8 @@ QString KLFMimeExporterImage::windowsFormatName(const QString& mime) const
   QString wtype;
   if (mime == "application/pdf")
     return "PDF";
+  else if (mime == "application/eps")
+    return "Encapsulated PostScript";
   else if (mime == "image/png")
     return "PNG";
   else if (mime == "image/jpg" || mime == "image/jpeg")

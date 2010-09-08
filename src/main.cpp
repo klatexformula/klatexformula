@@ -85,6 +85,7 @@ int opt_dpi = -1;
 char *opt_mathmode = NULL;
 char *opt_preamble = NULL;
 bool opt_quiet = false;
+char *opt_redirect_debug = NULL;
 bool opt_daemonize = false;
 bool opt_dbus_export_mainwin = false;
 
@@ -151,7 +152,8 @@ enum {
   OPT_GS,
   OPT_EPSTOPDF,
 
-  OPT_DBUS_EXPORT_MAINWIN
+  OPT_DBUS_EXPORT_MAINWIN,
+  OPT_REDIRECT_DEBUG
 };
 
 static struct option klfcmdl_optlist[] = {
@@ -170,6 +172,7 @@ static struct option klfcmdl_optlist[] = {
   { "mathmode", 1, NULL, OPT_MATHMODE },
   { "preamble", 1, NULL, OPT_PREAMBLE },
   { "quiet", 1, NULL, OPT_QUIET },
+  { "redirect-debug", 1, NULL, OPT_REDIRECT_DEBUG },
   { "daemonize", 0, NULL, OPT_DAEMONIZE },
   { "dbus-export-mainwin", 0, NULL, OPT_DBUS_EXPORT_MAINWIN },
   // -----
@@ -229,7 +232,7 @@ void signal_act(int sig)
 
 // DEBUG, WARNING AND FATAL MESSAGES HANDLER
 
-// in the future I may add some option to redirect debug output to file...
+// redirect deboug output to this file (if non-NULL) instead of stderr
 static FILE *klf_qt_msg_fp = NULL;
 
 // in case we want to print messages directly into terminal
@@ -248,6 +251,8 @@ void klf_qt_message(QtMsgType type, const char *msg)
   if (klf_fp_tty == NULL && !klf_fp_tty_failed)
     if ( !(klf_fp_tty = fopen("/dev/tty", "w")) )
       klf_fp_tty_failed = true;
+#else
+  Q_UNUSED(klf_fp_tty_failed) ;
 #endif
 
   switch (type) {
@@ -265,12 +270,20 @@ void klf_qt_message(QtMsgType type, const char *msg)
 #endif
 
 #ifdef Q_WS_WIN
-    if (!QString::fromLocal8Bit(msg).startsWith("MNG error")) { // need to ignore these errors...
+#define   SAFECOUNTER_NUM  10
+    static int safecounter = SAFECOUNTER_NUM;
+    if ((safecounter-- >= 0) && !QString::fromLocal8Bit(msg).startsWith("MNG error")) { // ignore these "MNG" errors...
       QMessageBox::warning(0, QObject::tr("Warning", "[[KLF's Qt Message Handler: dialog title]]"),
 			   QObject::tr("KLatexFormula System Warning:\n%1",
 				       "[[KLF's Qt Message Handler: dialog text]]")
 			   .arg(QString::fromLocal8Bit(msg)));
     }
+    if (safecounter == -1) {
+      QMessageBox::information(0, QObject::tr("Information", "[[KLF's Qt Message Handler: dialog title]]"),
+			       QObject::tr("Shown %1 system warnings. Will stop displaying them.").arg(SAFECOUNTER_NUM));
+      safecounter = -2;
+    }
+    if (safecounter < -2) safecounter = -2;
 #endif
     break;
   case QtCriticalMsg:
@@ -676,8 +689,8 @@ void main_setup_app(QCoreApplication *a)
 
   // add [share dir]/qt-plugins to library path.
   // under windows, that is were plugins are packaged with the executable
-  extern const char * klf_share_dir_relpath();
-  QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath()+klf_share_dir_relpath()+"/qt-plugins");
+  extern QString klf_share_dir_abspath();
+  QCoreApplication::addLibraryPath(klf_share_dir_abspath()+"/qt-plugins");
 
   klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
 
@@ -721,6 +734,30 @@ int main(int argc, char **argv)
   if (opt_error.has_error) {
     qCritical("Error while parsing command-line arguments.");
     main_exit(EXIT_ERR_OPT);
+  }
+
+  // redirect debug output if requested
+  if (opt_redirect_debug != NULL) {
+    // force the file name to end in .klfdebug to make sure we don't overwrite an important file
+    char fname[1024];
+    const char * SUFFIX = ".klfdebug";
+    strcpy(fname, opt_redirect_debug);
+    if (strncmp(fname+(strlen(fname)-strlen(SUFFIX)), SUFFIX, strlen(SUFFIX)) != 0) {
+      // fname does not end with SUFFIX
+      strcat(fname, SUFFIX);
+    }
+    // before performing the redirect...
+    klfDbg("Redirecting debug output to file "<<QString::fromLocal8Bit(fname)) ;
+    klf_qt_msg_fp = fopen(fname, "w");
+    KLF_ASSERT_NOT_NULL( klf_qt_msg_fp, "debug output redirection failed." , /* no fail action */; ) ;
+    if (klf_qt_msg_fp != NULL) {
+      fprintf(klf_qt_msg_fp, "\n\n"
+	      "-------------------------------------------------\n"
+	      "  KLATEXFORMULA DEBUG OUTPUT\n"
+	      "-------------------------------------------------\n"
+	      "Started on %s\n\n",
+	      qPrintable(QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate)));
+    }
   }
 
   if ( opt_interactive ) {
@@ -779,6 +816,8 @@ int main(int argc, char **argv)
 	args << "--preamble="+QString::fromLocal8Bit(opt_preamble);
       if (opt_quiet)
 	args << "--quiet";
+      if (opt_redirect_debug != NULL)
+	args << "--redirect-debug="+QString::fromLocal8Bit(opt_redirect_debug);
       if (opt_outlinefonts >= 0)
 	args << "--outlinefonts="+QString::fromLatin1(opt_outlinefonts?"TRUE":"FALSE");
       const struct { char c; int optval; } borderoffsets[] =
@@ -1259,6 +1298,9 @@ void main_parse_options(int argc, char *argv[])
       break;
     case OPT_QUIET:
       opt_quiet = true;
+      break;
+    case OPT_REDIRECT_DEBUG:
+      opt_redirect_debug = arg;
       break;
     case OPT_DAEMONIZE:
       opt_daemonize = true;

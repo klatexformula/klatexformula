@@ -130,7 +130,8 @@ void KLFProgressDialog::startReportingProgress(KLFProgressReporter *progressRepo
   setRange(progressReporter->min(), progressReporter->max());
   setValue(0);
   // disconnect any previous progress reporter object
-  disconnect(0, 0, this, SLOT(setValue(int)));
+  if (pProgressReporter != NULL)
+    disconnect(pProgressReporter, 0, this, SLOT(setValue(int)));
   // and connect to this new one
   connect(progressReporter, SIGNAL(progress(int)), this, SLOT(setValue(int)));
 }

@@ -26,6 +26,8 @@
 #include <QObject>
 #include <QWidget>
 #include <QTextEdit>
+#include <QTextDocumentFragment>
+#include <QTextCursor>
 
 #include "klfconfig.h"
 #include "klfmainwin.h"
@@ -163,6 +165,39 @@ void KLFLatexEdit::insertFromMimeData(const QMimeData *data)
 
   // insert the data ourselves
   QTextEdit::insertFromMimeData(data);
+}
+
+void KLFLatexEdit::insertDelimiter(const QString& delim, int charsBack)
+{
+  QTextCursor c1 = textCursor();
+  c1.beginEditBlock();
+  QString selected = c1.selection().toPlainText();
+  QString toinsert = delim;
+  if (selected.length())
+    toinsert.insert(toinsert.length()-charsBack, selected);
+  c1.removeSelectedText();
+  c1.insertText(toinsert);
+  c1.endEditBlock();
+
+  if (selected.isEmpty())
+    c1.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, charsBack);
+
+  setTextCursor(c1);
+
+  setFocus();
+}
+
+
+void KLFLatexEdit::slotInsertFromActionSender()
+{
+  QObject *obj = sender();
+  if (obj == NULL || !obj->inherits("QAction")) {
+    qWarning()<<KLF_FUNC_NAME<<": sender object is not a QAction: "<<obj;
+    return;
+  }
+  QVariant v = qobject_cast<QAction*>(obj)->data();
+  QVariantMap vdata = v.toMap();
+  insertDelimiter(vdata["delim"].toString(), vdata["charsBack"].toInt());
 }
 
 
