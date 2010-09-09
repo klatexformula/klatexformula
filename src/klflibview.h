@@ -76,9 +76,10 @@ namespace KLFLib {
  *   unsafe to blindly assume a non-NULL resource engine pointer at all times. Check
  *   the pointer before using it! See \ref validResourceEngine().
  *
- * \note Don't forget to reimplement KLFSearchable's pure virtual functions for I-Search.
+ * If the reimplementation of this view can be searched with a KLFSearchBar, reimplement
+ * searchable() to return a KLFSearchable object for this view.
  */
-class KLF_EXPORT KLFAbstractLibView : public QWidget, public KLFSearchable
+class KLF_EXPORT KLFAbstractLibView : public QWidget
 {
   Q_OBJECT
 public:
@@ -162,6 +163,8 @@ public:
    * to suggest to the user, eg. in a completion list for an editable combo box to edit
    * categories. */
   virtual QStringList getCategorySuggestions() = 0;
+
+  virtual KLFSearchable * searchable() { return NULL; }
 
 signals:
   /** Is emitted (by subclasses) when a latex entry is selected to be restored (eg. the entry was
@@ -472,7 +475,7 @@ public:
 
   enum ItemKind { EntryKind, CategoryLabelKind };
   enum {
-    ItemKindItemRole = Qt::UserRole+768, // = 800 in Qt 4.4
+    ItemKindItemRole = Qt::UserRole+768, // = 800 in Qt 4.4, nice in debugging messages ;-)
     EntryContentsTypeItemRole,
     EntryIdItemRole,
     FullEntryItemRole,
@@ -757,7 +760,7 @@ private:
 /** An implementation of the KLFAbstractLibView viwer to view library resource contents in
  * so-called Category, List or Icon view modes.
  */
-class KLF_EXPORT KLFLibDefaultView : public KLFAbstractLibView
+class KLF_EXPORT KLFLibDefaultView : public KLFAbstractLibView, public KLFSearchable
 {
   Q_OBJECT
   Q_PROPERTY(bool autoBackgroundItems READ autoBackgroundItems WRITE setAutoBackgroundItems) ;
@@ -797,6 +800,8 @@ public:
   QListView::Flow iconViewFlow() const;
 
   virtual QStringList getCategorySuggestions();
+
+  virtual KLFSearchable * searchable() { return this; }
 
 public slots:
   //   virtual bool writeEntryProperty(int property, const QVariant& value);
@@ -1176,15 +1181,6 @@ protected:
 
 };
 
-
-
-
-
-
-#ifdef KLF_DEBUG
-#include <QDebug>
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModel::PersistentId& n);
-#endif
 
 
 

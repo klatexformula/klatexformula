@@ -365,8 +365,11 @@ protected slots:
 
   void slotCurrentChanged(int index) {
     KLFAbstractLibView *v = view();
-    setSearchTarget(v);
-    if (v == NULL) return;
+    if (v == NULL) {
+      setSearchTarget(NULL);
+      return;
+    }
+    setSearchTarget(v->searchable());
     QString vtype = pOpenViewTypeIdents.key(index);
     int ai = findViewTypeAction(vtype);
     if (ai >= 0)

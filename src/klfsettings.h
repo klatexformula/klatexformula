@@ -28,10 +28,11 @@
 #include <QTextCharFormat>
 #include <QCheckBox>
 
-#include <klfpathchooser.h>
-#include <klfcolorchooser.h>
 #include <klfbackend.h>
 
+class QTreeWidgetItem;
+class KLFColorChooser;
+class KLFPathChooser;
 class KLFLatexSyntaxHighlighter;
 class KLFMainWin;
 
@@ -98,6 +99,7 @@ protected slots:
   void populateExportProfilesCombos();
 
   void initPluginControls();
+  void resetPluginControls();
   void refreshPluginSelected();
   void refreshAddOnList();
   void refreshAddOnSelected();
@@ -125,6 +127,7 @@ private:
 
   bool _pluginstuffloaded;
   QMap<QString,QWidget*> mPluginConfigWidgets;
+  QMap<QString,QTreeWidgetItem*> mPluginListItems;
 
   bool setDefaultFor(const QString& progname, const QString& guessprog, bool required,
 		     KLFPathChooser *destination);

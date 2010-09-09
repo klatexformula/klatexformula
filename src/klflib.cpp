@@ -824,16 +824,16 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLibResourceEngine::KL
 }
 
 // DEBUG OPERATOR<<'S
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLib::StringMatch& smatch)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::StringMatch& smatch)
 {
   return dbg << "StringMatch[ref="<<smatch.matchValueString()<<";flags="<<smatch.matchFlags()<<"]";
 }
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLib::PropertyMatch& pmatch)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::PropertyMatch& pmatch)
 {
   return dbg << "PropertyMatch[prop-id="<<pmatch.propertyId()<<"; ref="<<pmatch.matchValueString()
 	     <<"; flags="<<pmatch.matchFlags()<<"]";
 }
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCondition& c)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCondition& c)
 {
   dbg << "EntryMatchCondition{type=";
   if (c.type() == KLFLib::EntryMatchCondition::MatchAllType)
@@ -861,12 +861,12 @@ KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCon
   dbg << ".}";
   return dbg;
 }
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEntryWithId& e)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEntryWithId& e)
 {
   return dbg <<"KLFLibEntryWithId(id="<<e.id<<";"<<e.entry.category()<<","<<e.entry.tags()<<","
 	     <<e.entry.latex()<<")";
 }
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::Query& q)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::Query& q)
 {
   return dbg << "Query(cond.="<<q.matchCondition<<"; skip="<<q.skip<<",limit="<<q.limit
 	     <<"; orderpropid="<<q.orderPropId<<"/"<<(q.orderDirection==Qt::AscendingOrder ? "Asc":"Desc")

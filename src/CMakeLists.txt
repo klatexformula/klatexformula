@@ -218,13 +218,14 @@ else(KLF_LIBKLFAPP_STATIC)
     )
   endif(KLF_MACOSX_BUNDLES)
   set_target_properties(klfapp PROPERTIES
-	VERSION ${KLF_LIB_VERSION}
-	SOVERSION ${KLF_LIB_VERSION}
+	VERSION "${KLF_LIB_VERSION}"
+	SOVERSION "${KLF_LIB_VERSION}"
   )
 endif(KLF_LIBKLFAPP_STATIC)
 add_dependencies(klfapp klftools klfbackend)
 target_link_libraries(klfapp ${QT_LIBRARIES} klfbackend klftools)
 set_target_properties(klfapp PROPERTIES
+	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
 	PUBLIC_HEADER "${klfapp_INSTHEADERS}"
 )
 

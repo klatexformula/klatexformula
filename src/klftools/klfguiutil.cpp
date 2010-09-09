@@ -153,13 +153,28 @@ void KLFProgressDialog::paintEvent(QPaintEvent *event)
 // --------------------------
 
 
+static Qt::WindowFlags klfpleasewait_flagsForSettings(bool alwaysAbove)
+{
+  Qt::WindowFlags f =  Qt::Window|Qt::SplashScreen|Qt::FramelessWindowHint;
+  if (alwaysAbove)
+    f |= Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint;
+  return f;
+}
 
-KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent)
-  : QLabel(text, NULL,
-	   Qt::SplashScreen|Qt::FramelessWindowHint|
-	   Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint),
+// static QWidget * klfpleasewait_parentwindow(QWidget *w)
+// {
+//   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+//   klfDbg("w="<<w) ;
+//   if (w == NULL)
+//     return NULL;
+//   return w->window();
+// }
+
+KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent, bool alwaysAbove)
+  : QLabel(text, parent, klfpleasewait_flagsForSettings(alwaysAbove)),
     pParentWidget(parent), pDisableUi(false), pGotPaintEvent(false)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QFont f = font();
   f.setPointSize(QFontInfo(f).pointSize() + 2);
   setFont(f);
@@ -168,13 +183,17 @@ KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent)
   // let this window be styled by skins
   setAttribute(Qt::WA_StyledBackground, true);
   setProperty("klfTopLevelWidget", QVariant(true));
-  setStyleSheet(parent->window()->styleSheet());
+
+  QWidget *pw = parentWidget(); // the one set in QLabel constructor, this is the top-level window
+  if (pw != NULL)
+    setStyleSheet(pw->window()->styleSheet());
   //  // set basic minimalistic style sheet to ensure that it is readable...
   //  setStyleSheet("background-color: #e0dfd8; background-image: url(); color: black;");
 
   int w = qMax( (int)(sizeHint().width() *1.3) , 500 );
   int h = qMax( (int)(sizeHint().height()*1.1) , 100 );
   setFixedSize(w, h);
+  setWindowOpacity(0.94);
 }
 KLFPleaseWaitPopup::~KLFPleaseWaitPopup()
 {
@@ -189,6 +208,8 @@ void KLFPleaseWaitPopup::setDisableUi(bool disableUi)
 
 void KLFPleaseWaitPopup::showPleaseWait()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QSize desktopSize;
   QDesktopWidget *dw = QApplication::desktop();
   if (dw != NULL) {

@@ -39,7 +39,11 @@
 #include "klfqt34common.h"
 
 /** \file klfdefs.h
- * \brief Base declarations for utilities (debugging, exporting symbols, version comparing, ...)
+ * \brief Base declarations for klatexformula and some utilities
+ *
+ */
+/** \file klfdefs.h
+ * \brief Debugging utilities
  *
  */
 

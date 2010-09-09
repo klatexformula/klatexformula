@@ -624,7 +624,12 @@ void KLFLatexSymbolsView::searchAbort()
 
 void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch)
 {
-  QString stylesheets[] = { "", "background-color: rgb(180,180,255)", "background-color: rgb(0,0,255)" };
+  QString stylesheets[] = {
+    // don't affect tooltips: give KLFPixmapButton { } scopes
+    "",
+    "KLFPixmapButton { background-color: rgb(180,180,255); }",
+    "KLFPixmapButton { background-color: rgb(0,0,255); }"
+  };
 
   if (currentMatch == -1) {
     // abort search

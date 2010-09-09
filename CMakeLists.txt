@@ -99,6 +99,16 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_DEBUG
 if(KLF_DEBUG)
   message(STATUS "Enabling debugging messages (KLF_DEBUG)")
 endif(KLF_DEBUG)
+if(WIN32)
+  set(klf_default_debug_postfix "d")
+elseif(APPLE)
+  set(klf_default_debug_postfix "_debug")
+else(WIN32)
+  set(klf_default_debug_postfix "")  
+endif(WIN32)
+set(KLF_DEBUG_POSTFIX "${klf_default_debug_postfix}"
+	    CACHE STRING "Suffix to add to target names when built in 'Debug' build configuration")
+mark_as_advanced(KLF_DEBUG_POSTFIX)
 
 # Choose a Qt Version to use
 set(KLF_QT_VERSION 4 CACHE STRING "Qt major version to build with (4 or 3)")

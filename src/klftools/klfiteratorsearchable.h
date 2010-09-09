@@ -97,8 +97,15 @@ public:
   inline SearchIterator searchIterPrev(const SearchIterator& pos) { return searchIterAdvance(pos, false); }
 
   /** Returns the position from where we should start the search, given the current view situation. This
-   * can be reimplemented to start the search for example from the current scroll position in the display. */
-  virtual SearchIterator searchIterStartFrom() { return searchIterBegin(); }
+   * can be reimplemented to start the search for example from the current scroll position in the display.
+   *
+   * If \c forward is TRUE, then the search is about to be performed forward, otherwise it is about to
+   * be performed in reverse direction.
+   *
+   * The default implementation returns searchIterBegin() to search from beginning if \c forward is TRUE,
+   * or searchIterEnd() if \c forward is FALSE. */
+  virtual SearchIterator searchIterStartFrom(bool forward)
+  { return forward ? searchIterBegin() : searchIterEnd(); }
 
   /** See if the data pointed at by \c pos matches the query string \c queryString. Return TRUE if it
    * does match, or FALSE if it does not match.
@@ -119,11 +126,20 @@ public:
   virtual void searchPerformed(const SearchIterator& resultMatchPosition) { Q_UNUSED(resultMatchPosition); }
 
 
-  // FUNCTIONS THAT PERFORM THE SEARCH (DO NOT REIMPLEMENT)
+  // FUNCTIONS THAT PERFORM THE SEARCH (NO NEED TO REIMPLEMENT)
 
-  /** Extension of searchFind(). Looks for \c queryString starting at position \c startPos. If \c startPos
-   * itself matches, it will be the first search match. This function returns the position to the first
-   * match.
+  //! Find occurence of a search string
+  /** Extension of searchFind(). Looks for \c queryString starting at position \c startPos.
+   *
+   * This function returns the position to the first match, or searchIterEnd() if no match was found.
+   *
+   * This function starts searching from \c startPos \a inclusive, in forward direction, if \c forward is
+   * TRUE, and searches from \c startPos \a not inclusive [see reason below], in reverse direction, if
+   * \c forward is FALSE.
+   *
+   * <i>Reason: iterators have an asymmetry, namely that 'begin' points on the first item while 'end' points
+   * to one-past-end. We want to be able to search forward naturally from 'begin' and search reverse from
+   * 'end', see also searchIterStartFrom().</i>
    *
    * This function need not be reimplemented, the default implementation should suffice for most cases. */
   virtual SearchIterator searchIterFind(const SearchIterator& startPos, const QString& queryString, bool forward)
@@ -131,14 +147,19 @@ public:
     klfDbg( " s="<<queryString<<" from "<<startPos<<" forward="<<forward ) ;
     // start searching from pCurPos _included_, but findNext() immediately increments to next position. so
     // simply go back one position before calling findNext()
-    pCurPos = safe_cycl_advance_iterator(startPos, !forward);
+    // however when finding reverse we are searching from pos _not inclusive_, see function dox doc
+    if (forward)
+      pCurPos = safe_cycl_advance_iterator(startPos, !forward);
     pSearchAborted = false;
     pQString = queryString;
     SearchIterator it = searchIterFindNext(forward);
     return it;
   }
 
+  //! Find the next occurence of previous search string
   /** Extension of searchFindNext(), in that this function returns the position of the next match.
+   *
+   * Returns searchIterEnd() if no match was found.
    *
    * This function need not be reimplemented, the default implementation should suffice for most cases. */
   virtual SearchIterator searchIterFindNext(bool forward)
@@ -193,7 +214,8 @@ public:
   virtual bool searchFind(const QString& queryString, bool forward)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    return klf_debug_tee( ! (searchIterFind(searchIterStartFrom(), queryString, forward) == searchIterEnd()) );
+    return klf_debug_tee( ! (searchIterFind(searchIterStartFrom(forward), queryString, forward)
+			     == searchIterEnd()) );
   }
 
   /* Calls searchIterFindNext().
@@ -218,6 +240,29 @@ public:
     pSearchAborted = true;
   }
 
+  /** Advances iterator \c it safely, that means it incremenets or decrements the iterator while always
+   * making sure not to perform illegal operations like incremenet an iterator that has arrived at
+   * searchIterEnd() and making sure not to decrement an iterator that has arrived at searchIterBegin().
+   *
+   * Iterators that have arrived to searchIterEnd() or searchIterBegin(), when again incremented (resp.
+   * decremented), wrap around and start again from the other end. Namely decrementing an iterator equal
+   * to searchIterBegin() will give you searchIterEnd() and incrementing searchIterEnd() will yield
+   * searchIterBegin().
+   */
+  SearchIterator searchAdvanceIteratorSafe(const SearchIterator& it, int n = 1)
+  {
+    if (n == 0)
+      return it;
+    bool forward = (n>0);
+    if (n < 0)
+      n = -n;
+    // 'n' is number of steps (positive) to perform in direction 'forward'
+    SearchIterator a = it;
+    while (n--)
+      a = safe_cycl_advance_iterator(a, forward);
+
+    return a;
+  }
 
 protected:
 

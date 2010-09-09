@@ -1,8 +1,13 @@
 /* Galaxy Theme - extra adjustments */
 
+
+KLFDisplayLabel {
+	background-color: rgb(128,128,128,50);
+}
+
 KLFDisplayLabel[realTimeLatexError=true] {
-    background-color: rgb(255,128,128,128);
-    border: 2px solid rgb(255,0,0,128);
+	background-color: rgb(255,128,160,60);
+	border: 2px solid rgb(255,0,0,128);
 }
 
 #KLFLatexSymbols KLFPixmapButton {
@@ -11,7 +16,7 @@ KLFDisplayLabel[realTimeLatexError=true] {
 }
 
 QScrollBar {
-	color: black
+	color: black;
 }
 
 QToolTip {

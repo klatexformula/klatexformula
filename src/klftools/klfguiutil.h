@@ -222,15 +222,27 @@ private:
  * Used in klatexformula for example when changing skins, to invite the user to wait until
  * Qt finished processing the new style sheet rules onto all the widgets.
  *
- * See the constructor KLFPleaseWaitPopup() for an example.
+ * The popup is closed if the user clicks it. However this works only if GUI events are
+ * processed regularly by the caller (which is not the case if for example you use this
+ * utility in a function taking much time to execute, and that blocks the GUI)
  *
+ * You may choose to disable the parent widget while this popup is shown, for example to
+ * forbid the user from editing any fields while a change is being processed. Enable this
+ * option (by default false) with setDisableUi(). If disableUi is set, then the parent widget
+ * is disabled when showPleaseWait() is called, and re-enabled again when this popup is
+ * destroyed.
+ *
+ * See the constructor KLFPleaseWaitPopup() for an example.
  */
 class KLF_EXPORT KLFPleaseWaitPopup : public QLabel
 {
   Q_OBJECT
+  Q_PROPERTY(bool disableUi READ willDisableUi WRITE setDisableUi) ;
 public:
-  /** \note this popup is made parentless. it will not be automatically destroyed.
-   *    The common use is to create it on the stack, eg.
+  /** Build a KLFPleaseWaitPopup object. This behaves very much like a regular Qt window widget,
+   * like QDialog or splsh screen.
+   *
+   * The common use is to create it on the stack, eg.
    * \code
    *   void MyWidget::longFunction() {
    *     KLFPleaseWaitPopup popup(..., this);
@@ -238,9 +250,17 @@ public:
    *     ... // long execution time code, with if possible regular calls to qApp->processEvents()
    *   }
    * \endcode
+   *
+   * If \c alwaysAbove is TRUE, then the widget will set some window flags that will display it
+   * above all other windows. Note that if this widget is displayed and no application events can
+   * be delivered (because of a long, GUI-blocking operation), this can be obstrusive as the window
+   * will display over all other windows and cannot be closed by clicking into it. If \c alwaysAbove
+   * is FALSE, then the popup will still display above the \c callingWidget.
    */
-  KLFPleaseWaitPopup(const QString& text, QWidget *callingWidget = NULL);
+  KLFPleaseWaitPopup(const QString& text, QWidget *callingWidget = NULL, bool alwaysAbove = false);
   virtual ~KLFPleaseWaitPopup();
+
+  inline bool willDisableUi() const { return pDisableUi; }
 
   /** If set to TRUE, then calling showPleaseWait() will disable the widget passed to
    * the constructor. The widget is re-enabled when this popup is destroyed.

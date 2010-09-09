@@ -997,14 +997,12 @@ protected:
 
 
 
-
 #ifdef KLF_DEBUG
 #include <QDebug>
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::NodeId& n);
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Node& n);
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::EntryNode& en);
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::CategoryLabelNode& cn);
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::NodeId& n);
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Node& n);
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::EntryNode& en);
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::CategoryLabelNode& cn);
 #endif
-
 
 #endif

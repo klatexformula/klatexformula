@@ -269,18 +269,17 @@ void klf_qt_message(QtMsgType type, const char *msg)
     if (klf_fp_tty) fprintf(klf_fp_tty, "Warning: %s\n", msg);
 #endif
 
-#ifdef Q_WS_WIN
-#define   SAFECOUNTER_NUM  10
+#if defined Q_WS_WIN && defined KLF_DEBUG
+#  define   SAFECOUNTER_NUM   10
     static int safecounter = SAFECOUNTER_NUM;
     if ((safecounter-- >= 0) && !QString::fromLocal8Bit(msg).startsWith("MNG error")) { // ignore these "MNG" errors...
-      QMessageBox::warning(0, QObject::tr("Warning", "[[KLF's Qt Message Handler: dialog title]]"),
-			   QObject::tr("KLatexFormula System Warning:\n%1",
-				       "[[KLF's Qt Message Handler: dialog text]]")
+      QMessageBox::warning(0, "Warning",
+			   "KLatexFormula System Warning:\n%1"
 			   .arg(QString::fromLocal8Bit(msg)));
     }
     if (safecounter == -1) {
-      QMessageBox::information(0, QObject::tr("Information", "[[KLF's Qt Message Handler: dialog title]]"),
-			       QObject::tr("Shown %1 system warnings. Will stop displaying them.").arg(SAFECOUNTER_NUM));
+      QMessageBox::information(0, "Information",
+			       QString("Shown %1 system warnings. Will stop displaying them.").arg(SAFECOUNTER_NUM));
       safecounter = -2;
     }
     if (safecounter < -2) safecounter = -2;

@@ -71,8 +71,8 @@ public:
 
 /** \brief Compares two QMap's for inclusion
  *
- * returns TRUE if all keys in \c a are present in \c b, with same values. Map \c b may
- * (possibly) contain more keys than \c a.
+ * returns TRUE if all keys in \c a are present in \c b, with same values. It is still
+ * possible however that map \c b contains more keys than \c a.
  *
  * This function uses a general value comparer helper, \c cfunc. You can give for example
  * \ref klfEqualFunc or \ref klfStrCaseEqualFunc.

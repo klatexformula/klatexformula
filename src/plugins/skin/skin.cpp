@@ -40,6 +40,9 @@ SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
 {
   setupUi(this);
 
+  if (klfVersionCompare(qVersion(), "4.5.0") >= 0)
+    lblNoteQtVersion->hide();
+
   connect(cbxSkin, SIGNAL(activated(int)), this, SLOT(skinSelected(int)));
   connect(btnRefresh, SIGNAL(clicked()), this, SLOT(refreshSkin()));
   //  connect(btnInstallSkin, SIGNAL(clicked()), this, SLOT(installSkin()));
@@ -391,9 +394,16 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool /*isStartUp*/)
   Skin skin =  SkinConfigWidget::loadSkin(ssfn);
   QString stylesheet = skin.stylesheet;
 
-  klfDbg("Applyin skin "<<skin.name<<" (from file "<<ssfn<<")") ;
+  klfDbg("Applying skin "<<skin.name<<" (from file "<<ssfn<<")") ;
 
-  KLFPleaseWaitPopup pleaseWaitPopup(tr("Applying skin <i>%1</i>, please wait ...").arg(skin.name), _mainwin);
+  QWidget * curWidget = qApp->activeWindow();
+  if (curWidget == NULL)
+    curWidget = _mainwin;
+  if (curWidget == _mainwin && _mainwin->settingsDialog()->isVisible())
+    curWidget = _mainwin->settingsDialog();
+  klfDbg("curWidget: "<<curWidget) ;
+  KLFPleaseWaitPopup pleaseWaitPopup(tr("Applying skin <i>%1</i>, please wait ...").arg(skin.name),
+				     curWidget, false);
 
   if (_mainwin->isVisible())
     pleaseWaitPopup.showPleaseWait();

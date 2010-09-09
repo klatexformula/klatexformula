@@ -23,6 +23,7 @@ set(klfbackend_MOCHEADERS
 set(klfbackend_HEADERS
 	klfdefs.h
 	klfbackend.h
+	klfdebug.h
 	${klfbackend_MOCHEADERS}
 )
 
@@ -49,6 +50,7 @@ if(KLF_USE_QT4)
     endif(KLF_MACOSX_BUNDLES)
   endif(KLF_LIBKLFBACKEND_STATIC)
   set_target_properties(klfbackend PROPERTIES
+	      DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
 	      PUBLIC_HEADER "${klfbackend_INSTHEADERS}"
   )
 else(KLF_USE_QT4)
@@ -69,6 +71,7 @@ else(KLF_USE_QT4)
   endif(KLF_LIBKLFBACKEND_STATIC)
   target_link_libraries(klfbackend-qt3 ${QT_LIBRARIES})
   set_target_properties(klfbackend-qt3 PROPERTIES
+	      DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
 	      PUBLIC_HEADER "${klfbackend_INSTHEADERS}"
   )
 endif(KLF_USE_QT4)

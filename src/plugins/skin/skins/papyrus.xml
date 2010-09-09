@@ -18,6 +18,9 @@
   <def name="COLOR_APPROX_BG">rgb(190,179,156)</def>
   <def name="COLOR_TOOLTIP">rgb(40,37,33)</def>
 
+  <def name="BG_PANE">transparent</def>
+  <def name="COLOR_PANE">black</def>
+
   <def name="COLOR_SELBG">rgb(0,0,0,50)</def>
 
   <def name="BG_L_OVRL_LOW">rgb(255,255,255,70)</def>

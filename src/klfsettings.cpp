@@ -145,6 +145,14 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   refreshAddOnSelected();
   refreshPluginSelected();
 
+
+  // remove default Qt Designer Page
+  QWidget * w = u->tbxPluginsConfig->widget(u->tbxPluginsConfig->currentIndex());
+  u->tbxPluginsConfig->removeItem(u->tbxPluginsConfig->currentIndex());
+  delete w;
+
+  u->lstPlugins->setColumnWidth(0, 185);
+
   // dont load plugin data here as this dialog is created BEFORE plugins are loaded
   _pluginstuffloaded = false;
 
@@ -193,11 +201,15 @@ void KLFSettings::populateExportProfilesCombos()
 
 void KLFSettings::show()
 {
+  klfDbg("show called.") ;
   populateExportProfilesCombos();
 
   reset();
 
-  initPluginControls();
+  if (!_pluginstuffloaded)
+    initPluginControls();
+  else
+    resetPluginControls();
 
   QDialog::show();
 }
@@ -392,16 +404,9 @@ void KLFSettings::reset()
 
 void KLFSettings::initPluginControls()
 {
-  if ( _pluginstuffloaded ) {
+  if (_pluginstuffloaded)
     return;
-  }
-
-  u->lstPlugins->setColumnWidth(0, 185);
-
-  // remove default Qt Designer Page
-  QWidget * w = u->tbxPluginsConfig->widget(u->tbxPluginsConfig->currentIndex());
-  u->tbxPluginsConfig->removeItem(u->tbxPluginsConfig->currentIndex());
-  delete w;
+  _pluginstuffloaded = true;
 
   int j;
   int n_pluginconfigpages = 0;
@@ -421,6 +426,8 @@ void KLFSettings::initPluginControls()
     litem->setData(0, KLFSETTINGS_ROLE_PLUGNAME, name);
     litem->setData(0, KLFSETTINGS_ROLE_PLUGINDEX, j);
 
+    mPluginListItems[name] = litem;
+
     if ( instance != NULL ) {
       mPluginConfigWidgets[name] = instance->createConfigWidget( NULL );
       u->tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
@@ -438,8 +445,36 @@ void KLFSettings::initPluginControls()
     lbl->setMargin(20);
     u->tbxPluginsConfig->addItem(lbl, tr("No Plugins Loaded"));
   }
+}
 
-  _pluginstuffloaded = true;
+void KLFSettings::resetPluginControls()
+{
+  // go through all plugins, and load their configs into their corresponding config widget
+  // and see if they are loaded (corresponding checkbox)
+  int k;
+  for (k = 0; k < klf_plugins.size(); ++k) {
+    QString name = klf_plugins[k].name;
+    KLFPluginGenericInterface *instance = klf_plugins[k].instance;
+
+    KLF_ASSERT_CONDITION(mPluginListItems.contains(name),
+			 "Plugin "<<name<<" does not have its corresponding check item!",
+			 continue ;) ;
+
+    mPluginListItems[name]->setCheckState(0,
+					  klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
+					  Qt::Checked : Qt::Unchecked);
+
+    if (instance != NULL) {
+      if (!mPluginConfigWidgets.contains(name)) {
+	qWarning()<<KLF_FUNC_NAME<<": Plugin "<<name<<" does not have its config widget !?!?!";
+	continue;
+      }
+      QWidget *widget = mPluginConfigWidgets[name];
+      // load the config into the widget
+      KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
+      instance->loadFromConfig(widget, &pconfa);
+    }
+  }
 }
 
 void KLFSettings::refreshPluginSelected()
@@ -941,7 +976,6 @@ void KLFSettings::accept()
   // and exit dialog
   QDialog::accept();
 }
-
 
 void KLFSettings::help()
 {

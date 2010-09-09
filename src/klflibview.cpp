@@ -343,7 +343,7 @@ QUrl KLFLibWidgetFactory::retrieveSaveToUrlFromWidget(const QString& /*scheme*/,
 // --------------------------------------------
 
 
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::NodeId& n)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::NodeId& n)
 {
   const char * skind =
     ( (n.kind == KLFLibModelCache::EntryKind) ? "EntryKind" :
@@ -351,26 +351,26 @@ KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Nod
        "*UnknownKind*") );
   return dbg.nospace() << "NodeId("<<skind<<"+"<<n.index<<")";
 }
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Node& n)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::Node& n)
 {
   return dbg << "[kind="<<n.kind<<", children/sz="<<n.children.size()
 	     <<",allfetched="<<n.allChildrenFetched<<"]";
 }
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::EntryNode& en)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::EntryNode& en)
 {
   return dbg << "EntryNode(entryid="<<en.entryid<<"; entry/latex="<<en.entry.latex()<<"; parent="
 	     <<en.parent<<")";
 }
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::CategoryLabelNode& cn)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModelCache::CategoryLabelNode& cn)
 {
   return dbg << "CategoryLabelNode(label="<<cn.categoryLabel<<";fullCategoryPath="<<cn.fullCategoryPath
 	     << "; parent="<<cn.parent<<";"<<(const KLFLibModelCache::Node&)cn<<")";
 }
-KLF_EXPORT_IF_DEBUG  QDebug& operator<<(QDebug& dbg, const KLFLibModel::PersistentId& n)
+KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibModel::PersistentId& n)
 {
   return dbg << "PersistentId("<<n.kind<<", entry_id="<<n.entry_id<<", cat...path="<<n.categorylabel_fullpath<<")";
 }
-KLF_EXPORT_IF_DEBUG QDebug& operator<<(QDebug& d, const KLFLibViewDelegate::ColorRegion& c)
+KLF_EXPORT QDebug& operator<<(QDebug& d, const KLFLibViewDelegate::ColorRegion& c)
 {
   return d << "ColorRegion["<<c.start<<"->+"<<c.len<<"]";
 }

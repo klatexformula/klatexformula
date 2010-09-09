@@ -47,6 +47,10 @@ configure_file(
 add_subdirectory(skin)
 add_subdirectory(systrayicon)
 
+set_target_properties(skin systrayicon  PROPERTIES
+	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
+)
+
 add_custom_command(OUTPUT ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SKIN}
 	COMMAND "${CMAKE_COMMAND}" -E copy "skin/${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}"
 		 "${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}"
@@ -117,16 +121,16 @@ else(WIN32)
   set(homePath "$ENV{HOME}")
 endif(WIN32)
 # local for-developers-only compile-time install
-add_custom_target(klfbaseplugins_rcc_localinstall
+add_custom_target(klfbaseplugins_localinstall
   COMMAND "${CMAKE_COMMAND}" -E copy klfbaseplugins.rcc "${homePath}/.klatexformula/rccresources/"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Installing Base Plugins Add-On Locally in ~/.klatexformula/rccresources"
   VERBATIM
 )
-add_dependencies(klfbaseplugins_rcc_localinstall klfbaseplugins_rcc)
+add_dependencies(klfbaseplugins_localinstall klfbaseplugins_rcc)
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
-  add_custom_target(klfbaseplugins_rcc_localinstall_all ALL)
-  add_dependencies(klfbaseplugins_rcc_localinstall_all klfbaseplugins_rcc_localinstall)
+  add_custom_target(klfbaseplugins_localinstall_all ALL)
+  add_dependencies(klfbaseplugins_localinstall_all klfbaseplugins_localinstall)
 endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 
 

@@ -16,6 +16,9 @@
     COLOR_APPROX_BG	a color that approximates the background, eg.	rgb(190,179,156)
     COLOR_TOOLTIP	color for tooltip text, eg.	rgb(40,37,33)
 
+    BG_PANE		Background of list views, etc., eg.	transparent
+    COLOR_PANE		Forground color in such panes., eg.	black
+
     COLOR_SELBG		color for selection background, eg.	rgb(0,0,0,50)
 
     BG_L_OVRL_LOW	low light overlay background, eg.	rgb(255,255,255,70)
@@ -111,7 +114,7 @@ QTabWidget::pane:left { border-right: 2px solid BORCOLOR_D_MED; }
 /* offset or align the tabs if wanted */
 QTabWidget::tab-bar {	/*left: 0px;*/	}
 QTabBar::tab {
-	background: transparent; /*BG_D_OVRL_MED;*/
+	background: BG_D_OVRL_LOW;
         border: 1px solid BORCOLOR_D_MED;
 }
 /* note: the margins are no longer needed as of qt 4.6 ... */
@@ -152,7 +155,7 @@ QTabBar::tab:left:selected {
 	border-bottom-right-radius: TAB_ROUND_PX;
 }
 QTabBar::tab:hover {
-	background: BG_D_OVRL_LOW;
+	background: BG_D_OVRL_MED;
 }
 QTabBar::tab:selected {
 	background: BG_D_OVRL_MED; /*transparent;*/
@@ -172,24 +175,21 @@ QScrollArea, QScrollArea > #qt_scrollarea_viewport > QWidget {
 }
 
 QAbstractItemView {
-	color: COLOR_MAIN;
-	background: rgb(255,255,255,0); /* transparent with white fallback */
-	selection-color: COLOR_MAIN;
-	selection-background-color: COLOR_SELBG; /*rgb(128,128,128,128);*/
+	color: COLOR_PANE;
+	background: BG_PANE;
+	selection-color: COLOR_PANE;
+	selection-background-color: COLOR_SELBG;
+	alternate-background-color: BG_L_OVRL_LOW;
 }
 QListView {
 	alternate-background-color: BG_L_OVRL_LOW;
 }
 QTreeView {
-	color: COLOR_MAIN;
-	background: rgb(255,255,255,0);
-	selection-color: COLOR_MAIN;
-	selection-background-color: COLOR_SELBG; /*rgb(128,128,128,128);*/
+	color: COLOR_PANE;
+	background: BG_PANE;
+	selection-color: COLOR_PANE;
+	selection-background-color: COLOR_SELBG;
 	alternate-background-color: BG_L_OVRL_LOW;
-}
-/* for checkable items, qt bug --> need an opaque bg col */
-QTreeView#lstPlugins , KLFLibExportDialog QTreeView#lstRes, QWidget[needsOpaqueBackground=true] {
-	background: BG_MAIN;
 }
 
 QTreeView::branch:has-children:!has-siblings:closed,
@@ -219,6 +219,12 @@ QMenu::item:disabled {
 }
 QMenu::item:selected {
 	background: BG_D_OVRL_DARK;
+}
+QMenu::separator {
+	height: 1px;
+	background: BG_D_OVRL_MED;
+	margin-left: 10px;
+	margin-right: 5px;
 }
 
 QLineEdit[searchState="focus-out"] {
@@ -352,6 +358,9 @@ QAbstractSpinBox::down-arrow {
 QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
 	image: none;
 }
+QCheckBox:hover {
+	background: BG_L_OVRL_LOW;
+}
 QCheckBox::indicator:unchecked {
 	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-u.png);
 }
@@ -437,7 +446,7 @@ QAbstractItemView::indicator:indeterminate:pressed {
 }
 
 QLabel:disabled, QTextEdit:disabled, QAbstractSpinBox:disabled, QComboBox:disabled,
-	 QLineEdit:disabled {
+	 QLineEdit:disabled, QAbstractButton:disabled {
 	color: COLOR_DISABLED;
 }
 
