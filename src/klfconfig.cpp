@@ -34,6 +34,7 @@
 #include <QString>
 #include <QListView> // icon view flow
 #include <QLocale>
+#include <QDesktopServices> // "My Documents" or "Documents" directory
 
 #include <klfmainwin.h>
 
@@ -265,6 +266,8 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.groupSubCategories = true;
   LibraryBrowser.iconViewFlow = QListView::TopToBottom;
   LibraryBrowser.historyTagCopyToArchive = true;
+  LibraryBrowser.lastFileDialogPath = // "My Documents":
+    QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }
@@ -466,6 +469,7 @@ int KLFConfig::readFromConfig_v2()
   klf_config_read(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
   klf_config_read(s, "iconviewflow", &LibraryBrowser.iconViewFlow);
   klf_config_read(s, "historytagcopytoarchive", &LibraryBrowser.historyTagCopyToArchive);
+  klf_config_read(s, "lastfiledialogpath", &LibraryBrowser.lastFileDialogPath);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
@@ -571,6 +575,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "groupsubcategories", &LibraryBrowser.groupSubCategories);
   klf_config_write(s, "iconviewflow", &LibraryBrowser.iconViewFlow);
   klf_config_write(s, "historytagcopytoarchive", &LibraryBrowser.historyTagCopyToArchive);
+  klf_config_write(s, "lastfiledialogpath", &LibraryBrowser.lastFileDialogPath);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig

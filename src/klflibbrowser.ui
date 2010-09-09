@@ -11,7 +11,7 @@
     <x>0</x>
     <y>0</y>
     <width>795</width>
-    <height>517</height>
+    <height>516</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -146,7 +146,7 @@
          <string>Close</string>
         </property>
         <property name="icon">
-         <iconset resource="klfres.qrc">
+         <iconset resource="klftoolsres.qrc">
           <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
         </property>
         <property name="shortcut">
@@ -264,7 +264,7 @@
   </layout>
   <action name="aRename">
    <property name="text">
-    <string>Rename</string>
+    <string>Rename Resource</string>
    </property>
    <property name="toolTip">
     <string>Rename this resource</string>
@@ -439,6 +439,7 @@
  </tabstops>
  <resources>
   <include location="klfres.qrc"/>
+  <include location="klftoolsres.qrc"/>
  </resources>
  <connections>
   <connection>

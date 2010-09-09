@@ -81,6 +81,9 @@ public:
    */
   virtual bool possibleOverwriteWasConfirmed() const { return _pathFromDialog; }
 
+signals:
+  void fileDialogPathChosen(const QString& fname);
+
 public slots:
   /** Set the path chooser's mode. See \ref mode() */
   virtual void setMode(int mode);

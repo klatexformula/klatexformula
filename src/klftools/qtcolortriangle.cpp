@@ -1,10 +1,5 @@
 /*
  * This file was very Slightly modified by Philippe Faist for KLatexFormula. (april 2009)
- * In order for integration into KLatexFormula, this code is relicensed
- * to **GPL Version 2.1 or higher** as described in the footnote to the GPL
- * compatibility table found at
- *   http://www.gnu.org/licenses/gpl-faq.html#compat-matrix-footnote-7
- *
  */
 
 /****************************************************************************
@@ -217,10 +212,10 @@ void QtColorTriangle::genBackground()
     double innerRadius = outerRadius - outerRadius / 5;
 
     // Create an image of the same size as the contents rect.
-    bg = QImage(contentsRect().size(), QImage::Format_RGB32);
+    bg = QImage(contentsRect().size(), QImage::Format_ARGB32_Premultiplied);
+    bg.fill(qRgba(0,0,0,0));
     QPainter p(&bg);
     p.setRenderHint(QPainter::Antialiasing);
-    p.fillRect(bg.rect(), palette().mid());
 
     QConicalGradient gradient(bg.rect().center(), 90);
     QColor color;
@@ -258,6 +253,7 @@ void QtColorTriangle::genBackground()
         p.setPen(QPen(color, penThickness));
         p.drawArc(outerRadiusRect, 2880 - 1440 - f, 20);
     }
+
     return;
 }
 

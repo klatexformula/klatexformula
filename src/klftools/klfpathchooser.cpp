@@ -95,6 +95,7 @@ void KLFPathChooser::requestBrowse()
     setPath(s);
     if (_mode == 1 && _dlgconfirmoverwrite)
       _pathFromDialog = true;
+    emit fileDialogPathChosen(s);
   }
 }
 

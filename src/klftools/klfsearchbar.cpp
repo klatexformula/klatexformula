@@ -119,6 +119,9 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   setColorFound(QColor(128,255,128));
   setColorNotFound(QColor(255,128,128));
 
+  connect(u->btnHide, SIGNAL(clicked()), this, SLOT(hide()));
+  setShowHideButton(false); // not shown by default
+
   pWaitLabel = new KLFWaitAnimationOverlay(u->txtSearch);
   pWaitLabel->setWaitMovie(":/pics/wait_anim.mng");
   /* // amusing test
@@ -131,6 +134,8 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   pShowOverlayRelativeGeometry = QRect(QPoint(50, 95), QSize(90, 0));
 
   pFocusOutText = "  "+tr("Hit Ctrl-F, Ctrl-S or / to start searching");
+
+  pSearchForward = true;
 
   setSearchTarget(NULL);
   slotSearchFocusOut();
@@ -156,6 +161,12 @@ QColor KLFSearchBar::colorNotFound() const
   QPalette p = u->txtSearch->property(palettePropName(NotFound).toAscii()).value<QPalette>();
   return p.color(QPalette::Base);
 }
+
+bool KLFSearchBar::hideButtonShown() const
+{
+  return u->btnHide->isVisible();
+}
+
 void KLFSearchBar::setColorFound(const QColor& color)
 {
   QPalette pal1 = u->txtSearch->property(palettePropName(Default).toAscii()).value<QPalette>();
@@ -173,6 +184,11 @@ void KLFSearchBar::setColorNotFound(const QColor& color)
   u->txtSearch->setProperty(palettePropName(NotFound).toAscii(), QVariant::fromValue<QPalette>(pal2));
 }
 
+void KLFSearchBar::setShowHideButton(bool showHideButton)
+{
+  u->btnHide->setShown(showHideButton);
+}
+
 /** \internal */
 #define DECLARE_SEARCH_SHORTCUT(shortcut, parent, slotmember)		\
   { QShortcut *s = new QShortcut(parent); s->setKey(QKeySequence(shortcut)); \
@@ -185,7 +201,7 @@ void KLFSearchBar::registerShortcuts(QWidget *parent)
   DECLARE_SEARCH_SHORTCUT(tr("/", "[[find]]"), parent, SLOT(clear()));
   DECLARE_SEARCH_SHORTCUT(tr("F3", "[[find next]]"), parent, SLOT(findNext()));
   DECLARE_SEARCH_SHORTCUT(tr("Shift+F3", "[[find prev]]"), parent, SLOT(findPrev()));
-  DECLARE_SEARCH_SHORTCUT(tr("Ctrl+R", "[[find rev]]"), parent, SLOT(findPrev()));
+  DECLARE_SEARCH_SHORTCUT(tr("Ctrl+R", "[[find rev]]"), parent, SLOT(focusOrPrev()));
   // Esc will be captured through event filter so that it isn't too obstrusive...
 }
 
@@ -234,6 +250,7 @@ bool KLFSearchBar::eventFilter(QObject *obj, QEvent *ev)
       QKeyEvent *ke = (QKeyEvent*)ev;
       if (ke->key() == Qt::Key_Escape) {
 	abortSearch();
+	emit escapePressed();
 	return true;
       }
     }
@@ -275,8 +292,10 @@ void KLFSearchBar::clear()
   focus();
 }
 
-void KLFSearchBar::focusOrNext()
+void KLFSearchBar::focusOrNext(bool forward)
 {
+  pSearchForward = forward;
+
   if (QApplication::focusWidget() == u->txtSearch) {
     klfDbgT("already have focus") ;
     // already has focus
@@ -286,9 +305,9 @@ void KLFSearchBar::focusOrNext()
       u->txtSearch->setText(pLastSearchText);
     } else {
       if (pSearchText.isEmpty())
-	find(u->txtSearch->text());
+	find(u->txtSearch->text(), forward);
       else
-	findNext();
+	findNext(forward);
     }
   } else {
     klfDbgT("setting focus") ;
@@ -388,15 +407,18 @@ void KLFSearchBar::focus()
       setGeometry(gm);
       //      setAutoFillBackground(true);
       setStyleSheet(styleSheet());
-      show();
       raise();
     } else {
       // set some widget window flags if we're parent-less...
       setWindowFlags(Qt::Tool);
       // just for fun...
       setWindowOpacity(0.95);
-      show();
     }
+  }
+  if (!isVisible()) {
+    // show the search bar. This works with in overlay mode as well as when the widget is hidden
+    // with the hide button.
+    show();
   }
   u->txtSearch->setFocus();
 }

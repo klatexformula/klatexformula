@@ -49,6 +49,10 @@ SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
 // static
 Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
 {
+  Q_UNUSED(getstylesheet) ;
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("loading skin "<<fn<<", get style sheet="<<getstylesheet) ;
+
   Skin skin;
 
   skin.fn = fn;
@@ -75,6 +79,8 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
     return skin;
   }
 
+  QMap<QString,QString> defines;
+
   // read XML file
   QDomNode n;
   for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
@@ -87,6 +93,13 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
     } else if ( e.nodeName() == "author" ) {
       skin.author = e.text();
       continue;
+    } else if ( e.nodeName() == "def" ) {
+      QString key = e.attribute("name");
+      QString value = e.text();
+      if (QRegExp("^[A-Za-z][A-Za-z0-9_]*$").exactMatch(key))
+	defines[key] = value;
+      else
+	qWarning()<<KLF_FUNC_NAME<<": file "<<fn<<": Illegal <def> name: "<<key;
     } else if ( e.nodeName() == "description" ) {
       skin.description = e.text();
       continue;
@@ -97,7 +110,23 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
 	qWarning()<<KLF_FUNC_NAME<<"Can't open qss-stylesheet file "<<fnqss<<" while reading skin "<<fn<<".";
 	continue;
       }
-      skin.stylesheet = QString::fromUtf8(fqss.readAll());
+      QString ss = QString::fromUtf8(fqss.readAll());
+      if (!defines.isEmpty()) {
+	// we need to process <def>ines ...
+	QRegExp alldefines_rx = QRegExp("\\b("+QStringList(defines.keys()).join("|")+")\\b");
+	int k = 0;
+	while ( (k = alldefines_rx.indexIn(ss, k+1)) != -1) {
+	  QString key = alldefines_rx.cap(1);
+	  KLF_ASSERT_CONDITION( defines.contains(key), "Error: key "<<key<<" found, but not in defines="
+				<<defines<<"?!?",   ++k; continue; ) ;
+	  QString value = defines[key];
+	  klfDbg("Substituting def. "<<key<<" by "<<value<<" in style sheet "<<fnqss<<" for "<<fn) ;
+	  ss.replace(k, alldefines_rx.matchedLength(), value);
+	  k += value.length();
+	}
+	klfDbg("def-Replaced style sheet is \n"<<ss) ;
+      }
+      skin.stylesheet += "\n\n"	+ ss;
       continue;
     } else if ( e.nodeName() == "syntax-highlighting-scheme" ) {
       // read the syntax highlighting scheme...

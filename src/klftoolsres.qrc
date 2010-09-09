@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>pics/closehide.png</file>
     <file>pics/findnext.png</file>
     <file>pics/findprev.png</file>
     <file>pics/clearright.png</file>

@@ -179,6 +179,7 @@ class KLF_EXPORT KLFSearchBar : public QFrame
   Q_PROPERTY(QString focusOutText READ focusOutText WRITE setFocusOutText) ;
   Q_PROPERTY(QColor colorFound READ colorFound WRITE setColorFound) ;
   Q_PROPERTY(QColor colorNotFound READ colorNotFound WRITE setColorNotFound) ;
+  Q_PROPERTY(bool showHideButton READ hideButtonShown WRITE setShowHideButton) ;
 public:
   KLFSearchBar(QWidget *parent = NULL);
   virtual ~KLFSearchBar();
@@ -196,14 +197,15 @@ public:
   QColor colorFound() const;
   /** This value is read from the palette. It does not take into account style sheets. */
   QColor colorNotFound() const;
+  bool hideButtonShown() const;
 
   void setShowOverlayMode(bool showOverlayMode);
   void setShowOverlayRelativeGeometry(const QRect& relativeGeometryPercent);
   void setShowOverlayRelativeGeometry(int widthPercent, int heightPercent,
 				      int positionXPercent, int positionYPercent);
-  virtual void setColorFound(const QColor& color);
-  virtual void setColorNotFound(const QColor& color);
-
+  void setColorFound(const QColor& color);
+  void setColorNotFound(const QColor& color);
+  void setShowHideButton(bool showHideButton);
 
   virtual bool eventFilter(QObject *obj, QEvent *ev);
 
@@ -214,14 +216,20 @@ signals:
   void didNotFind();
   void didNotFind(const QString& queryString, bool forward);
   void searchAborted();
+  void escapePressed();
 
 public slots:
   /** Clears the search bar and takes focus. */
   void clear();
-  /** If the search bar does not have focus, takes focus and clears the bar. If it has focus, finds the
-   * next occurence of the current or last search string. */
-  void focusOrNext();
-  void find(const QString& string, bool forward = true);
+  /** If the search bar does not have focus, takes focus and clears the bar, preparing to search
+   * in forward direction (unless \c forward is FALSE). If it has focus, finds the next occurence
+   * (resp. previous if \c forward is FALSE) of the current or last search string. */
+  void focusOrNext(bool forward = true);
+  /** If the search bar does not have focus, takes focus and clears the bar, preparing for a backwards
+   * search. If it has focus, finds the previous occurence of the current or last search string. */
+  void focusOrPrev() { focusOrNext(false); }
+  void find(const QString& string) { find(string, pSearchForward); }
+  void find(const QString& string, bool forward);
   void findNext(bool forward = true);
   void findPrev() { findNext(false); }
   void abortSearch();
@@ -258,6 +266,9 @@ private:
 
   KLFSearchable *pTarget;
 
+  /** This is set by focusOrNext() or focusOrPrev() to remember in which direction to
+   * search when text in search bar is changed and thus find() is called. */
+  bool pSearchForward;
   QString pSearchText;
   QString pLastSearchText;
 

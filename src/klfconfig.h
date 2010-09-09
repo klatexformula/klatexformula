@@ -232,6 +232,7 @@ public:
     bool groupSubCategories;
     int iconViewFlow;
     bool historyTagCopyToArchive;
+    QString lastFileDialogPath;
 
   } LibraryBrowser;
 

@@ -31,6 +31,9 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
+     <property name="klfSkinTightTabs" stdset="0">
+      <bool>true</bool>
+     </property>
      <widget class="QWidget" name="mHSVTab">
       <attribute name="icon">
        <iconset resource="../klftoolsres.qrc">
@@ -1078,8 +1081,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>249</width>
-            <height>91</height>
+            <width>100</width>
+            <height>30</height>
            </rect>
           </property>
          </widget>
@@ -1131,8 +1134,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>224</width>
-            <height>91</height>
+            <width>100</width>
+            <height>30</height>
            </rect>
           </property>
          </widget>

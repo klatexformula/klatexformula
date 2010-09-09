@@ -692,11 +692,10 @@ public:
       qWarning()<<KLF_FUNC_NAME<<": Can't find factory for type 'LocalFile'!";
       return;
     }
-    QString mydoc = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+    QString mydir = klfconfig.LibraryBrowser.lastFileDialogPath;
     KLFLibWidgetFactory::Parameters pdefault;
-    QString filedate = QDate::currentDate().toString(Qt::DefaultLocaleShortDate);
-    filedate.replace("/", "-");
-    pdefault["Url"] = QUrl("klf+legacy://"+tr("%1/klatexformula_export_%2.klf").arg(mydoc, filedate));
+    QString filedate = QDate::currentDate().toString("yyyy-MM-dd");
+    pdefault["Url"] = QUrl("klf+legacy://"+tr("%1/klatexformula_export_%2.klf").arg(mydir, filedate));
     QStackedLayout *lyt_gbxExportLocalFileWidget = new QStackedLayout(gbxExportLocalFileWidget);
     lyt_gbxExportLocalFileWidget->setObjectName("lyt_gbxExportLocalFileWidget");
     lyt_gbxExportLocalFileWidget->setContentsMargins(0,0,0,0);
@@ -797,7 +796,8 @@ private slots:
     }
     pInSlotItemChanged = false;
   }
-  
+
+
 private:
   KLFLibBrowser *pLibBrowser;
   QStandardItemModel *pModel;

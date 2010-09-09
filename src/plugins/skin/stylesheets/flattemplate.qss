@@ -1,0 +1,463 @@
+/* Our "standard" `flat' skin template, with keywords that will be replaced by their
+ * appropriate values for the different standard skins.
+ *
+ * Skins Papyrus, Galaxy and Flat are all based on this QSS template.
+ *
+ * Remember, the defines have to be defined in your skin XML with, eg.
+ *   <def name="BG_L_OVRL_MED">rgb(255,255,255,50)</def>
+ * before including this stylesheet template.
+ */
+
+/* Have to be <def>ined in XML skin description: (examples are from Papyrus theme)
+
+    BG_MAIN	main background, eg.	url(:/plugindata/skin/stylesheets/pics/bg_papyrus.jpg) no-repeat
+    COLOR_MAIN	main text color, eg.	black
+    COLOR_DISABLED	disabled items color (label, menu item...), eg.	rgb(127,111,86)
+    COLOR_APPROX_BG	a color that approximates the background, eg.	rgb(190,179,156)
+    COLOR_TOOLTIP	color for tooltip text, eg.	rgb(40,37,33)
+
+    COLOR_SELBG		color for selection background, eg.	rgb(0,0,0,50)
+
+    BG_L_OVRL_LOW	low light overlay background, eg.	rgb(255,255,255,70)
+    BG_L_OVRL_MED	medium light overlay background, eg.	rgb(255,255,255,100)
+    BG_L_OVRL_HI	high light overlay background, eg.	rgb(255,255,255,150)
+
+    BG_D_OVRL_LOW	low dark overlay background, eg.	rgb(0,0,0,20)
+    BG_D_OVRL_MED	medium dark overlay background, eg.	rgb(0,0,0,40)
+    BG_D_OVRL_HI	high dark overlay background, eg.	rgb(0,0,0,70)
+    BG_D_OVRL_DARK	dark, for selected menu items, eg.	rgb(0,0,0,120)
+
+    BORCOLOR_D_MED	medium darkening border color, eg.	rgb(0,0,0,50)
+    BORCOLOR_D_HI 	high darkening border color, eg.	rgb(0,0,0,80)
+    BORCOLOR_D_VERYHI 	high darkening border color, eg.	rgb(0,0,0,110)
+    BORCOLOR_L_MED	medium lightening border color, eg.	rgb(255,255,255,50)
+
+    BG_SEARCH_FOUND	background of search bar in "found" state, eg.	rgb(128,255,128,128)
+    BG_SEARCH_NOTFOUND	background of search bar when "not-found", eg.	rgb(255,128,128,128)
+
+    BORDER_POPUP	border color for tooltips and combo popups, eg.	1px solid rgb(80,80,80)
+
+    BTN_ROUND_PX	'roundness' of buttons, radius in pixels, eg.	3px
+    TAB_ROUND_PX	'roundness' of selected tab, eg.	4px
+
+    CHKIMG_BASE_NAME	the base name of the checkbox images, eg.	:/plugindata/.../pics/flat-chk
+                        required files:
+				unchecked (normal, hover, pressed): [basename]-u.png  -uh.png  -up.png
+				checked (normal, hover, pressed):   [basename]-c.png  -ch.png  -cp.png
+				indeterminate (normal, h, p):       [basename]-i.png  -ih.png  -ip.png
+
+ */
+
+
+#KLFMainWin {
+	qproperty-widgetStyle: Plastique;
+}
+
+#KLFMainWin, #KLFSettings, #KLFLibraryBrowser, #KLFLatexSymbols,
+  #KLFStyleManager, QMenu, QDialog, QComboBox QAbstractItemView,
+  QWidget[klfTopLevelWidget=true]
+{
+	background: BG_MAIN;
+}
+
+QWidget {
+	color: COLOR_MAIN;
+	selection-color: COLOR_MAIN;
+}
+
+QPushButton, QToolButton {
+	border: 1px solid BORCOLOR_D_HI;
+	border-radius: BTN_ROUND_PX;
+	background: BG_L_OVRL_LOW;
+	padding: 2px; /* for toolbuttons, push-buttons see right below */
+}
+QPushButton {
+	padding: 3px 7px;
+}
+QPushButton:default {
+	border: 1px solid BORCOLOR_D_VERYHI;
+	background: BG_L_OVRL_MED;
+}
+QPushButton:on, QPushButton:checked, QToolButton:on {
+	background: BG_D_OVRL_MED;
+}
+QPushButton:hover, QToolButton:hover {
+	background: BG_L_OVRL_HI;
+}
+QPushButton:on:hover, QPushButton:checked:hover, QToolButton:on:hover {
+	background: BG_D_OVRL_LOW;
+}
+QLabel {
+	color: COLOR_MAIN;
+	selection-background-color: COLOR_SELBG;
+}
+
+
+QTextEdit {
+	color: COLOR_MAIN;
+	background: BG_D_OVRL_LOW;
+	selection-background-color: COLOR_SELBG;
+	selection-color: COLOR_MAIN;
+}
+
+QTabWidget::pane {
+	border: 1px solid BORCOLOR_D_MED;
+}
+/* "underline" the tab bar */
+QTabWidget::pane:top { border-top: 2px solid BORCOLOR_D_MED; }
+QTabWidget::pane:bottom { border-bottom: 2px solid BORCOLOR_D_MED; }
+QTabWidget::pane:right { border-left: 2px solid BORCOLOR_D_MED; }
+QTabWidget::pane:left { border-right: 2px solid BORCOLOR_D_MED; }
+/* offset or align the tabs if wanted */
+QTabWidget::tab-bar {	/*left: 0px;*/	}
+QTabBar::tab {
+	background: transparent; /*BG_D_OVRL_MED;*/
+        border: 1px solid BORCOLOR_D_MED;
+}
+/* note: the margins are no longer needed as of qt 4.6 ... */
+QTabBar::tab:top { border-bottom-color: transparent; /* margin-bottom: 1px; */ }
+QTabBar::tab:bottom { border-top-color: transparent; /* margin-top: 1px; */ }
+QTabBar::tab:right { border-right-color: transparent; /* margin-right: 1px; */ }
+QTabBar::tab:left { border-left-color: transparent; /* margin-left: 1px; */ }
+/* some margins and paddings */
+QTabBar::tab:top, QTabBar::tab:bottom {
+	/*min-width: 8ex;*/
+	padding: 2px 8px 1px 8px;
+}
+QTabBar::tab:left, QTabBar::tab:right {
+	/*min-height: 8ex;*/
+	padding: 8px 2px;
+}
+/* These rules are needed for the color selection widget KLFColorChooseWidget */
+QTabWidget[klfSkinTightTabs=true] QTabBar::tab:top, QTabWidget[klfSkinTightTabs=true] QTabBar::tab:bottom {
+	padding: 0px 1px 0px 1px;
+}
+QTabWidget[klfSkinTightTabs=true] QTabBar::tab:left, QTabWidget[klfSkinTightTabs=true] QTabBar::tab:right {
+	padding: 1px 0px 1px 0px;
+}
+QTabBar::tab:top:selected {
+	border-top-left-radius: TAB_ROUND_PX;
+	border-top-right-radius: TAB_ROUND_PX;
+}
+QTabBar::tab:bottom:selected {
+	border-bottom-left-radius: TAB_ROUND_PX;
+	border-bottom-right-radius: TAB_ROUND_PX;
+}
+QTabBar::tab:right:selected {
+	border-top-left-radius: TAB_ROUND_PX;
+	border-bottom-left-radius: TAB_ROUND_PX;
+}
+QTabBar::tab:left:selected {
+	border-top-right-radius: TAB_ROUND_PX;
+	border-bottom-right-radius: TAB_ROUND_PX;
+}
+QTabBar::tab:hover {
+	background: BG_D_OVRL_LOW;
+}
+QTabBar::tab:selected {
+	background: BG_D_OVRL_MED; /*transparent;*/
+}
+QTabBar::tab:hover:selected {
+	background: BG_D_OVRL_MED;
+}
+/* make non-selected tabs look smaller */
+QTabBar::tab:top:!selected { margin-top: 3px; }
+QTabBar::tab:bottom:!selected { margin-bottom: 3px; }
+QTabBar::tab:right:!selected { margin-left: 3px; }
+QTabBar::tab:left:!selected { margin-right: 3px; }
+
+QScrollArea, QScrollArea > #qt_scrollarea_viewport > QWidget {
+	background: rgb(255,255,255,0);
+	selection-background-color: COLOR_SELBG;
+}
+
+QAbstractItemView {
+	color: COLOR_MAIN;
+	background: rgb(255,255,255,0); /* transparent with white fallback */
+	selection-color: COLOR_MAIN;
+	selection-background-color: COLOR_SELBG; /*rgb(128,128,128,128);*/
+}
+QListView {
+	alternate-background-color: BG_L_OVRL_LOW;
+}
+QTreeView {
+	color: COLOR_MAIN;
+	background: rgb(255,255,255,0);
+	selection-color: COLOR_MAIN;
+	selection-background-color: COLOR_SELBG; /*rgb(128,128,128,128);*/
+	alternate-background-color: BG_L_OVRL_LOW;
+}
+/* for checkable items, qt bug --> need an opaque bg col */
+QTreeView#lstPlugins , KLFLibExportDialog QTreeView#lstRes, QWidget[needsOpaqueBackground=true] {
+	background: BG_MAIN;
+}
+
+QTreeView::branch:has-children:!has-siblings:closed,
+  QTreeView::branch:closed:has-children:has-siblings {
+	border-image: none;
+	image: url(:/plugindata/skin/stylesheets/pics/flat-branch-closed.png);
+}
+QTreeView::branch:open:has-children:!has-siblings,
+  QTreeView::branch:open:has-children:has-siblings  {
+	border-image: none;
+	image: url(:/plugindata/skin/stylesheets/pics/flat-branch-open.png);
+}
+QHeaderView, QHeaderView::section {
+	background-color: COLOR_APPROX_BG;
+	color: COLOR_MAIN;
+}
+QAbstractItemView QLineEdit, QAbstractItemView QComboBox { /* In-line editing in lists */
+	background: BG_MAIN;
+}
+QMenu::item {
+	color: COLOR_MAIN;
+	selection-color: COLOR_MAIN;
+	selection-background-color: COLOR_SELBG;
+}
+QMenu::item:disabled {
+	color: COLOR_DISABLED;
+}
+QMenu::item:selected {
+	background: BG_D_OVRL_DARK;
+}
+
+QLineEdit[searchState="focus-out"] {
+    color: COLOR_DISABLED;
+    font-style: italic;
+}
+QLineEdit[searchState="found"] {
+    background: BG_SEARCH_FOUND;
+}
+QLineEdit[searchState="not-found"] {
+    background: BG_SEARCH_NOTFOUND;
+}
+KLFDisplayLabel, QLabel#lblPreview {
+    background: transparent;
+}
+QLineEdit {
+	color: COLOR_MAIN;
+	background: BG_D_OVRL_LOW;
+	selection-color: COLOR_MAIN;
+	selection-background-color: COLOR_SELBG;
+	border: 1px solid BORCOLOR_D_MED;
+	border-radius: 2px;
+}
+QLineEdit[needsBackground=true] {
+	background: BG_MAIN;
+	border: 2px solid BORCOLOR_D_MED;
+}
+
+QComboBox[editable=false] {
+	color: COLOR_MAIN;
+	background: BG_L_OVRL_MED;
+	selection-color: COLOR_MAIN;
+	border: 1px solid BORCOLOR_D_MED;
+	border-radius: 3px;
+	padding-left: 4px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-right: 16px;
+}
+QComboBox[editable=false]:hover {
+	background: BG_L_OVRL_HI;
+}
+QComboBox[editable=false]:on {
+	background: BG_L_OVRL_LOW;
+}
+QComboBox[editable=true] {
+	color: COLOR_MAIN;
+	background: BG_D_OVRL_LOW;
+	selection-color: COLOR_MAIN;
+	selection-background-color: COLOR_SELBG;
+	border: 1px solid BORCOLOR_D_MED;
+	border-radius: 2px;
+	padding-left: 2px;
+	padding-right: 16px;
+}
+QComboBox::drop-down {
+	subcontrol-origin: border;
+	subcontrol-position: top right;
+	width: 15px;
+	padding-left: 2px;
+	background: BG_D_OVRL_MED;
+	border: 1px solid BORCOLOR_L_MED;
+	border-radius: 0;
+}
+QComboBox::drop-down:hover {
+	background: BG_D_OVRL_LOW;
+}
+QComboBox::drop-down:on {
+	background: BG_D_OVRL_HI;
+}
+QComboBox::down-arrow {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-arrow-down.png);
+	width: 12px;
+}
+/* now corrections to previous rules for non-editable combos */
+QComboBox[editable=false]::drop-down {
+	background: BG_L_OVRL_MED;
+	border-color: transparent transparent transparent BORCOLOR_D_MED;
+	margin: 1px;
+}
+QComboBox QAbstractItemView {
+	border: BORDER_POPUP;
+	color: COLOR_MAIN;
+	selection-color: COLOR_MAIN;
+	selection-background-color: COLOR_SELBG;
+}
+
+QAbstractSpinBox {
+	border: 1px solid BORCOLOR_D_MED;
+	border-radius: 2px;
+	padding-right: 14px;
+	padding-left: 4px;
+	color: COLOR_MAIN;
+	background: BG_D_OVRL_LOW;
+	selection-color: COLOR_MAIN;
+	selection-background-color: COLOR_SELBG;
+}
+QAbstractSpinBox::up-button {
+	margin-top: 1px;
+	margin-right: 1px;
+	border: 1px solid BORCOLOR_L_MED;
+	background: BG_D_OVRL_MED;
+}
+QAbstractSpinBox::up-button:pressed { border-color: BORCOLOR_D_HI; }
+QAbstractSpinBox::up-button:hover:!off:!disabled {
+	background: BG_L_OVRL_LOW;
+}
+QAbstractSpinBox::up-arrow {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-arrow-up.png);
+	width: 12px;
+	height: 12px;
+}
+QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {
+    image: none;
+}
+QAbstractSpinBox::down-button {
+	margin-bottom: 1px;
+	margin-right: 1px;
+	border: 1px solid BORCOLOR_L_MED;
+	background: BG_D_OVRL_MED;
+}
+QAbstractSpinBox::down-button:pressed { border-color: BORCOLOR_D_HI; }
+QAbstractSpinBox::down-button:hover:!off:!disabled {
+	background: BG_L_OVRL_LOW;
+}
+QAbstractSpinBox::down-arrow {
+	image: url(:plugindata/skin/stylesheets/pics/flat-arrow-down.png);
+	width: 12px;
+	height: 12px;
+}
+QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
+	image: none;
+}
+QCheckBox::indicator:unchecked {
+	image: url(:/plugindata/skin/stylesheets/pics/flat-chk-u.png);
+}
+QCheckBox::indicator:unchecked:hover {
+	image: url(CHKIMG_BASE_NAME-uh.png);
+}
+QCheckBox::indicator:unchecked:pressed {
+	image: url(CHKIMG_BASE_NAME-up.png);
+}
+QCheckBox::indicator:checked {
+	image: url(CHKIMG_BASE_NAME-c.png);
+}
+QCheckBox::indicator:checked:hover {
+	image: url(CHKIMG_BASE_NAME-ch.png);
+}
+QCheckBox::indicator:checked:pressed {
+	image: url(CHKIMG_BASE_NAME-cp.png);
+}
+QCheckBox::indicator:indeterminate {
+	image: url(CHKIMG_BASE_NAME-i.png);
+}
+QCheckBox::indicator:indeterminate:hover {
+	image: url(CHKIMG_BASE_NAME-ih.png);
+}
+QCheckBox::indicator:indeterminate:pressed {
+	image: url(CHKIMG_BASE_NAME-ip.png);
+}
+
+QGroupBox::indicator:unchecked {
+	image: url(CHKIMG_BASE_NAME-u.png);
+}
+QGroupBox::indicator:unchecked:hover {
+	image: url(CHKIMG_BASE_NAME-uh.png);
+}
+QGroupBox::indicator:unchecked:pressed {
+	image: url(CHKIMG_BASE_NAME-up.png);
+}
+QGroupBox::indicator:checked {
+	image: url(CHKIMG_BASE_NAME-c.png);
+}
+QGroupBox::indicator:checked:hover {
+	image: url(CHKIMG_BASE_NAME-ch.png);
+}
+QGroupBox::indicator:checked:pressed {
+	image: url(CHKIMG_BASE_NAME-cp.png);
+}
+QGroupBox::indicator:indeterminate {
+	image: url(CHKIMG_BASE_NAME-i.png);
+}
+QGroupBox::indicator:indeterminate:hover {
+	image: url(CHKIMG_BASE_NAME-ih.png);
+}
+QGroupBox::indicator:indeterminate:pressed {
+	image: url(CHKIMG_BASE_NAME-ip.png);
+}
+
+QAbstractItemView::indicator:unchecked {
+	image: url(CHKIMG_BASE_NAME-u.png);
+}
+QAbstractItemView::indicator:unchecked:hover {
+	image: url(CHKIMG_BASE_NAME-uh.png);
+}
+QAbstractItemView::indicator:unchecked:pressed {
+	image: url(CHKIMG_BASE_NAME-up.png);
+}
+QAbstractItemView::indicator:checked {
+	image: url(CHKIMG_BASE_NAME-c.png);
+}
+QAbstractItemView::indicator:checked:hover {
+	image: url(CHKIMG_BASE_NAME-ch.png);
+}
+QAbstractItemView::indicator:checked:pressed {
+	image: url(CHKIMG_BASE_NAME-cp.png);
+}
+QAbstractItemView::indicator:indeterminate {
+	image: url(CHKIMG_BASE_NAME-i.png);
+}
+QAbstractItemView::indicator:indeterminate:hover {
+	image: url(CHKIMG_BASE_NAME-ih.png);
+}
+QAbstractItemView::indicator:indeterminate:pressed {
+	image: url(CHKIMG_BASE_NAME-ip.png);
+}
+
+QLabel:disabled, QTextEdit:disabled, QAbstractSpinBox:disabled, QComboBox:disabled,
+	 QLineEdit:disabled {
+	color: COLOR_DISABLED;
+}
+
+QToolTip {
+	background: BG_MAIN;
+	color: COLOR_TOOLTIP;
+	border: BORDER_POPUP;
+	/*border-radius: 2px;*/
+	/*opacity: 255;*/
+}
+
+QProgressBar {
+	background: BG_L_OVRL_LOW;
+	color: COLOR_MAIN;
+	text-align: center;	
+	border: 1px solid BORCOLOR_D_MED;
+	border-radius: 2px;
+}
+QProgressBar::chunk {
+	background: BG_L_OVRL_HI;
+	width: 10px;
+}
+

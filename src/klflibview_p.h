@@ -51,7 +51,7 @@
 
 #include "klflib.h"
 #include "klflibview.h"
-
+#include "klfconfig.h"
 
 class KLFLibDefTreeView;
 
@@ -877,7 +877,7 @@ protected slots:
 
     QString path = txtFile->text();
     if (path.isEmpty())
-      path = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+      path = klfconfig.LibraryBrowser.lastFileDialogPath;
     QString pathfilter;
     if (!QFileInfo(path).isDir()) {
       LocalFileType pathft = fileTypeForFileName(path);
@@ -925,6 +925,8 @@ protected slots:
     }
     if ( name.isEmpty() )
       return false;
+
+    klfconfig.LibraryBrowser.lastFileDialogPath = QFileInfo(name).absolutePath();
 
     txtFile->setText(name); // this will call on_txtFile_textChanged()
     return true;

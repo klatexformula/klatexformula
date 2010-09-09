@@ -1378,11 +1378,13 @@ void KLFLibBrowser::slotOpenAll()
   exportFilterList << tr("All Files (*)");
   exportFilter = exportFilterList.join(";;");
   QString selectedFilter;
-  QString docs = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
-  QString fn = QFileDialog::getOpenFileName(this, tr("Open Library File"), docs,
-					    exportFilter, &selectedFilter);
+  QString dir = klfconfig.LibraryBrowser.lastFileDialogPath;
+  QString fn = QFileDialog::getOpenFileName(this, tr("Open Library File"), dir, exportFilter, &selectedFilter);
   if (fn.isEmpty())
     return;
+
+  klfconfig.LibraryBrowser.lastFileDialogPath = QFileInfo(fn).absolutePath();
+
   int ifilter = exportFilterList.indexOf(selectedFilter);
   ifilter--; // index in locfiletypes now
   QString selectedScheme;

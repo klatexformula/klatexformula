@@ -668,6 +668,8 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
   pSearchBar->setShowOverlayMode(true);
   pSearchBar->registerShortcuts(this);
   pSearchBar->setSearchText("");
+  pSearchBar->setShowHideButton(true);
+  connect(pSearchBar, SIGNAL(escapePressed()), pSearchBar, SLOT(hide()));
 
   klfDbg("prepared search bar.") ;
 
@@ -679,7 +681,10 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
   slotShowCategory(0);
 
   QFont f = u->cbxCategory->font();
-  f.setPointSize(QFontInfo(f).pointSize()+1);
+  int ps = f.pointSize();
+  if (ps < 8)
+    ps = QFontInfo(f).pointSize();
+  f.setPointSize(ps+1);
   u->cbxCategory->setFont(f);
 
   connect(u->cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));

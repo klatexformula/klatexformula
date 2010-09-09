@@ -3817,8 +3817,7 @@ KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidge
 {
   pUi = new Ui::KLFLibOpenResourceDlg;
   pUi->setupUi(this);
-  if (QFile::exists(":/pics/klatexformula-64.png"))
-    setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
+  setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   // check to see which is the default widget to show according to defaultlocation
   KLFLibEngineFactory *efactory = KLFLibEngineFactory::findFactoryFor(defaultlocation.scheme());
