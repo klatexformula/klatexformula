@@ -128,9 +128,95 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->lstAddOns->installEventFilter(this);
   u->lstAddOns->viewport()->installEventFilter(this);
 
-  connect(u->btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
-  connect(u->btnAppearFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
-  connect(u->btnAppearPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFont()));
+  connect(u->btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFontSender()));
+  connect(u->btnEditorFont, SIGNAL(clicked()), this, SLOT(slotChangeFontSender()));
+  connect(u->btnPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFontSender()));
+
+  // prepare some actions as shortcuts for standard fonts
+  pFontBasePresetActions["CMU"] = u->aFontCMU;
+  pFontBasePresetActions["TT"] = u->aFontTT;
+  pFontBasePresetActions["Std"] = u->aFontStd;
+  pFontButtons["AppFont"] = u->btnAppFont;
+  pFontButtons["EditorFont"] = u->btnEditorFont;
+  pFontButtons["PreambleFont"] = u->btnPreambleFont;
+  QAction *a = NULL;
+  QMenu *fontPresetMenu = NULL;
+  QVariantMap vmap;
+  // remember: action text/icon/font/... is set in retranslateUi().
+  // -- AppFont --
+  fontPresetMenu = new QMenu(this);
+  a = new QAction(this);
+  vmap["Action"] = "CMU";
+  vmap["Font"] = klfconfig.defaultCMUFont;
+  vmap["Button"] = QVariant("AppFont");
+  a->setData(QVariant(vmap));
+  fontPresetMenu->addAction(a);
+  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  pFontSetActions << a;
+  a = new QAction(this);
+  vmap["Action"] = "Std";
+  vmap["Font"] = klfconfig.defaultStdFont;
+  vmap["Button"] = QVariant("AppFont");
+  a->setData(QVariant(vmap));
+  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  pFontSetActions << a;
+  fontPresetMenu->addAction(a);
+  u->btnAppFontChoose->setMenu(fontPresetMenu);
+  // -- EditorFont --
+  fontPresetMenu = new QMenu(this);
+  a = new QAction(this);
+  vmap["Action"] = "TT";
+  vmap["Font"] = klfconfig.defaultTTFont;
+  vmap["Button"] = QVariant("EditorFont");
+  a->setData(QVariant(vmap));
+  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  pFontSetActions << a;
+  fontPresetMenu->addAction(a);
+  a = new QAction(this);
+  vmap["Action"] = "CMU";
+  vmap["Font"] = klfconfig.defaultCMUFont;
+  vmap["Button"] = QVariant("EditorFont");
+  a->setData(QVariant(vmap));
+  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  pFontSetActions << a;
+  fontPresetMenu->addAction(a);
+  a = new QAction(this);
+  vmap["Action"] = "Std";
+  vmap["Font"] = klfconfig.defaultStdFont;
+  vmap["Button"] = QVariant("EditorFont");
+  a->setData(QVariant(vmap));
+  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  pFontSetActions << a;
+  fontPresetMenu->addAction(a);
+  u->btnEditorFontChoose->setMenu(fontPresetMenu);
+  // -- PreambleFont --
+  fontPresetMenu = new QMenu(this);
+  a = new QAction(this);
+  vmap["Action"] = "TT";
+  vmap["Font"] = klfconfig.defaultTTFont;
+  vmap["Button"] = QVariant("EditorFont");
+  a->setData(QVariant(vmap));
+  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  pFontSetActions << a;
+  fontPresetMenu->addAction(a);
+  a = new QAction(this);
+  vmap["Action"] = "CMU";
+  vmap["Font"] = klfconfig.defaultCMUFont;
+  vmap["Button"] = QVariant("EditorFont");
+  a->setData(QVariant(vmap));
+  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  pFontSetActions << a;
+  fontPresetMenu->addAction(a);
+  a = new QAction(this);
+  vmap["Action"] = "Std";
+  vmap["Font"] = klfconfig.defaultStdFont;
+  vmap["Button"] = QVariant("EditorFont");
+  a->setData(QVariant(vmap));
+  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  pFontSetActions << a;
+  fontPresetMenu->addAction(a);
+  u->btnPreambleFontChoose->setMenu(fontPresetMenu);
+
 
   REG_SH_TEXTFORMATENSEMBLE(Keyword);
   REG_SH_TEXTFORMATENSEMBLE(Comment);
@@ -164,6 +250,22 @@ void KLFSettings::retranslateUi(bool alsoBaseUi)
   if (alsoBaseUi)
     u->retranslateUi(this);
 
+  // translate our preset actions
+  int k;
+  for (k = 0; k < pFontSetActions.size(); ++k) {
+    QAction *a = pFontSetActions[k];
+    QVariantMap vmap = a->data().toMap();
+    QString refAKey = vmap["Action"].toString();
+    KLF_ASSERT_CONDITION(pFontBasePresetActions.contains(refAKey),
+			 "Base Reference Preset Action not found: "<<refAKey<<" ?!?",
+			 continue ) ;
+    QAction *refA = pFontBasePresetActions[refAKey];
+    a->setText(refA->text());
+    a->setIcon(refA->icon());
+    a->setToolTip(refA->toolTip());
+    QFont f = vmap["Font"].value<QFont>();
+    a->setFont(f);
+  }
 }
 
 
@@ -375,10 +477,10 @@ void KLFSettings::reset()
 
   u->btnAppFont->setFont(klfconfig.UI.applicationFont);
   u->btnAppFont->setProperty("selectedFont", QVariant(klfconfig.UI.applicationFont));
-  u->btnAppearFont->setFont(klfconfig.UI.latexEditFont);
-  u->btnAppearFont->setProperty("selectedFont", QVariant(klfconfig.UI.latexEditFont));
-  u->btnAppearPreambleFont->setFont(klfconfig.UI.preambleEditFont);
-  u->btnAppearPreambleFont->setProperty("selectedFont", QVariant(klfconfig.UI.preambleEditFont));
+  u->btnEditorFont->setFont(klfconfig.UI.latexEditFont);
+  u->btnEditorFont->setProperty("selectedFont", QVariant(klfconfig.UI.latexEditFont));
+  u->btnPreambleFont->setFont(klfconfig.UI.preambleEditFont);
+  u->btnPreambleFont->setProperty("selectedFont", QVariant(klfconfig.UI.preambleEditFont));
 
   u->chkEnableRealTimePreview->setChecked(klfconfig.UI.enableRealTimePreview);
   u->spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize.width());
@@ -808,12 +910,29 @@ void KLFSettings::removeAddOn()
   refreshAddOnSelected();
 }
 
-void KLFSettings::slotChangeFont()
+void KLFSettings::slotChangeFontPresetSender()
 {
-  QWidget *w = dynamic_cast<QWidget*>(sender());
+  QAction *a = qobject_cast<QAction*>(sender());
+  if (a == 0)
+    return;
+  QVariantMap vmap = a->data().toMap();
+  QString btnkey = vmap["Button"].toString();
+  KLF_ASSERT_CONDITION(pFontButtons.contains(btnkey), "Unknown button "<<btnkey<<" !", return ) ;
+  QFont f = vmap["Font"].value<QFont>();
+  slotChangeFont(pFontButtons[btnkey], f);
+}
+void KLFSettings::slotChangeFontSender()
+{
+  QPushButton *w = qobject_cast<QPushButton*>(sender());
   if ( w == 0 )
     return;
   QFont fnt = QFontDialog::getFont(0, w->property("selectedFont").value<QFont>(), this);
+  slotChangeFont(w, fnt);
+}
+void KLFSettings::slotChangeFont(QPushButton *w, const QFont& fnt)
+{
+  if ( w == 0 )
+    return;
   w->setFont(fnt);
   w->setProperty("selectedFont", QVariant(fnt));
 }
@@ -911,9 +1030,9 @@ void KLFSettings::apply()
     qApp->setStyleSheet(qApp->styleSheet());
     _mainwin->refreshAllWindowStyleSheets();
   }
-  klfconfig.UI.latexEditFont = u->btnAppearFont->property("selectedFont").value<QFont>();
+  klfconfig.UI.latexEditFont = u->btnEditorFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
-  klfconfig.UI.preambleEditFont = u->btnAppearPreambleFont->property("selectedFont").value<QFont>();
+  klfconfig.UI.preambleEditFont = u->btnPreambleFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
   // recalculate window sizes etc.
   _mainwin->refreshWindowSizes();

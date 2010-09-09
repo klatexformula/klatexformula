@@ -10,7 +10,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>590</width>
+    <width>585</width>
     <height>620</height>
    </rect>
   </property>
@@ -40,8 +40,11 @@
       <attribute name="title">
        <string>&amp;Appearance</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
+      <layout class="QGridLayout" name="lyt_tabAppearance">
+       <property name="horizontalSpacing">
+        <number>2</number>
+       </property>
+       <item row="0" column="0" colspan="2">
         <layout class="QHBoxLayout" name="lytLocale">
          <item>
           <widget class="QLabel" name="lblLocale">
@@ -68,49 +71,14 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="2" column="0">
         <widget class="QPushButton" name="btnAppFont">
          <property name="text">
           <string>Application Font - click to change</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QGroupBox" name="gbxEditorFont">
-         <property name="title">
-          <string>LaTeX editor fonts</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QPushButton" name="btnAppearFont">
-            <property name="font">
-             <font>
-              <family>Courier New</family>
-              <pointsize>9</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Main editor font - click to change</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnAppearPreambleFont">
-            <property name="font">
-             <font>
-              <family>Courier New</family>
-              <pointsize>9</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Preamble editor font - click to change</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
+       <item row="4" column="0" colspan="2">
         <widget class="QGroupBox" name="gbxPreview">
          <property name="title">
           <string>Preview</string>
@@ -193,7 +161,7 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="5" column="0" colspan="2">
         <widget class="QGroupBox" name="gbxTooltipSize">
          <property name="title">
           <string>Tooltip Preview</string>
@@ -276,7 +244,7 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="6" column="0" colspan="2">
         <widget class="QGroupBox" name="gbxInterfaceOptions">
          <property name="title">
           <string>Interface Options</string>
@@ -302,7 +270,7 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="7" column="0">
         <spacer name="spcAppearance">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -317,6 +285,92 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="2" column="1">
+        <widget class="QToolButton" name="btnAppFontChoose">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string notr="true">...</string>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::InstantPopup</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="2">
+        <widget class="QGroupBox" name="gbxEditorFont">
+         <property name="title">
+          <string>LaTeX editor fonts</string>
+         </property>
+         <layout class="QGridLayout" name="lyt_gbxEditorFont">
+          <property name="horizontalSpacing">
+           <number>2</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="btnEditorFont">
+            <property name="font">
+             <font>
+              <family>Courier New</family>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Main editor font - click to change</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="btnPreambleFont">
+            <property name="font">
+             <font>
+              <family>Courier New</family>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Preamble editor font - click to change</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QToolButton" name="btnEditorFontChoose">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string notr="true">...</string>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QToolButton" name="btnPreambleFontChoose">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string notr="true">...</string>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -1538,8 +1592,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>100</width>
-                <height>30</height>
+                <width>355</width>
+                <height>167</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1705,8 +1759,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>100</width>
-                   <height>30</height>
+                   <width>345</width>
+                   <height>215</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1770,8 +1824,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>94</width>
-            <height>24</height>
+            <width>557</width>
+            <height>502</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1792,6 +1846,21 @@
     </widget>
    </item>
   </layout>
+  <action name="aFontCMU">
+   <property name="text">
+    <string>Set LaTeX Computer Modern Sans Serif Font</string>
+   </property>
+  </action>
+  <action name="aFontStd">
+   <property name="text">
+    <string>Set Standard Application Font</string>
+   </property>
+  </action>
+  <action name="aFontTT">
+   <property name="text">
+    <string>Set Default Typewriter Font</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -1815,8 +1884,8 @@
   <tabstop>tabs</tabstop>
   <tabstop>cbxLocale</tabstop>
   <tabstop>btnAppFont</tabstop>
-  <tabstop>btnAppearFont</tabstop>
-  <tabstop>btnAppearPreambleFont</tabstop>
+  <tabstop>btnEditorFont</tabstop>
+  <tabstop>btnPreambleFont</tabstop>
   <tabstop>spnPreviewWidth</tabstop>
   <tabstop>spnPreviewHeight</tabstop>
   <tabstop>chkEnableRealTimePreview</tabstop>

@@ -21,8 +21,6 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include "klfmain.h"
-
 #include <QDebug>
 #include <QString>
 #include <QList>
@@ -35,9 +33,11 @@
 #include <QTranslator>
 #include <QLibraryInfo>
 
+#include <klfutil.h>
 #include "klfpluginiface.h"
-#include "klfutil.h"
 #include "klfconfig.h"
+#include "klfmain.h"
+
 
 KLF_EXPORT QList<KLFTranslationInfo> klf_avail_translations;
 

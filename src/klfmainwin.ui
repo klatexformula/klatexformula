@@ -454,7 +454,7 @@
          <string>Quit</string>
         </property>
         <property name="icon">
-         <iconset resource="klfres.qrc">
+         <iconset>
           <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
         </property>
        </widget>
@@ -608,6 +608,11 @@
             <item>
              <property name="text">
               <string>$ ... $</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>\[ \begin{aligned} ... \end{aligned} \]</string>
              </property>
             </item>
             <item>

@@ -54,9 +54,9 @@
 #include <ui_klflibrespropeditor.h>
 #include <ui_klflibnewsubresdlg.h>
 
+#include <klfguiutil.h>
 #include "klfconfig.h"
 #include "klflibview.h"
-#include "klfguiutil.h"
 
 #include "klflibview_p.h"
 

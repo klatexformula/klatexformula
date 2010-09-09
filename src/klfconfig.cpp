@@ -147,23 +147,35 @@ void KLFConfig::loadDefaults()
   //debug: QMessageBox::information(0, "", QString("global share dir=")+globalShareDir);
 
   if (qApp->inherits("QApplication")) { // and not QCoreApplication...
+
     QFontDatabase fdb;
     QFont f = QApplication::font();
 
+#ifdef Q_WS_X11
+    // setting pixel size avoids bug with Qt/X11 of fonts having their metrics badly calculated (...?)
+    f.setPixelSize(15);
+#endif
+
+    defaultStdFont = f;
+
+    QFont niceappfont = f;
     if (fdb.families().contains("CMU Sans Serif")) {
       // CMU Sans Serif is available ;-)
       int ps = QFontInfo(f).pointSize();
-      f = QFont("CMU Sans Serif", ps);
-      int fIdealHeight = 16; // ideal height of the string "MX" in pixels
-      while (ps < 18 && QFontMetrics(f).size(Qt::TextSingleLine, "MX").height() < fIdealHeight) {
-	f.setPointSize(++ps);
+      niceappfont = QFont("CMU Sans Serif", ps);
+      // ideal height of the string "MX" in pixels. This value was CAREFULLY ADJUSTED.
+      // please change it only if you feel sure. (fonts have to look nice on most platforms)
+      int fIdealHeight = 15;
+      // start with a little bit smaller font
+      ps -= 2;
+      const int cutoff = 16; //just a cutoff to be sure
+      // and increase font size up to something "ideal"
+      while (ps < cutoff && QFontMetrics(niceappfont).size(Qt::TextSingleLine, "MX").height() < fIdealHeight) {
+	niceappfont.setPointSize(++ps);
       }
+      if (ps >= cutoff)
+	ps = 10; // the default
     }
-
-#ifdef Q_WS_X11
-    // setting pixel size avoids bug with Qt/X11 of fonts having their metrics badly calculated
-    f.setPixelSize(15);
-#endif
 
     QFont fcode;
     bool found_fcode = false;
@@ -199,9 +211,12 @@ void KLFConfig::loadDefaults()
     Core.libraryFileName = "library.klf.db";
     Core.libraryLibScheme = "klf+sqlite";
 
+    defaultCMUFont = niceappfont;
+    defaultTTFont = fcode;
+
     UI.locale = QLocale::system().name();
     klfDbg("System locale: "<<QLocale::system().name());
-    UI.applicationFont = f;
+    UI.applicationFont = niceappfont;
     UI.latexEditFont = fcodeMain;
     UI.preambleEditFont = fcode;
     UI.previewTooltipMaxSize = QSize(800, 600);

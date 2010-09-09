@@ -242,6 +242,13 @@ public:
 
   } Plugins;
 
+  /** Not a saved setting. This is set in loadDefaults() */
+  QFont defaultCMUFont;
+  /** Not a saved setting. This is set in loadDefaults() */
+  QFont defaultStdFont;
+  /** Not a saved setting. This is set in loadDefaults() */
+  QFont defaultTTFont;
+
   KLFPluginConfigAccess getPluginConfigAccess(const QString& name);
 
   /** call loadDefaults() before anything, at the beginning, to ensure that the values

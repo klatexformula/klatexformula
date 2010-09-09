@@ -50,7 +50,7 @@
 
 #include <ui_klflatexsymbols.h>
 
-#include "klfpixmapbutton.h"
+#include <klfpixmapbutton.h>
 #include "klfmain.h"
 #include "klfconfig.h"
 #include "klflatexsymbols.h"

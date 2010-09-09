@@ -29,7 +29,7 @@
 #include <QColor>
 #include <QMimeData>
 
-#include "klfutil.h"
+#include <klfutil.h>
 #include "klflib_p.h"
 #include "klflib.h"
 

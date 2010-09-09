@@ -27,6 +27,7 @@
 #include <QDialog>
 #include <QTextCharFormat>
 #include <QCheckBox>
+#include <QPushButton>
 
 #include <klfbackend.h>
 
@@ -105,12 +106,19 @@ protected slots:
   void refreshAddOnSelected();
 
   virtual void accept();
-  virtual void slotChangeFont();
+
+  void slotChangeFontPresetSender();
+  void slotChangeFontSender();
+  void slotChangeFont(QPushButton *btn, const QFont& f);
 
 private:
   Ui::KLFSettings *u;
 
   KLFMainWin *_mainwin;
+
+  QMap<QString,QPushButton*> pFontButtons;
+  QMap<QString,QAction*> pFontBasePresetActions;
+  QList<QAction*> pFontSetActions;
 
   struct TextFormatEnsemble {
     TextFormatEnsemble(QTextCharFormat *format,

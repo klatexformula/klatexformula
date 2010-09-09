@@ -101,21 +101,29 @@ void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
   /** \todo ....make this more flexible ..... ideally integrate into KLFLatexSymbolCache... with XML description,
    *    "symbols" that would be delimiters would have a "display latex" and an "insert latex" with instructions
    *    in if we need to go back spaces, etc.. */
-  static QStringList delimList =
-    QStringList()<<"\\textrm{}"<<"\\textit{}"<<"\\textsl{}"<<"\\textbf{}"<<"\\mathrm{}"<<"\\mathit{}"<<"\\mathcal{}";
-  static QList<int> charsBackList =
-    QList<int>() << 1 << 1 << 1 << 1 << 1 << 1 << 1;
+  static const struct { const char * instext; int charsback; const char * iconsymb; } delimList[] = {
+    { "\\frac{}{}", 3, "\\frac{a}{b}" },
+    { "\\sqrt{}", 1, "\\sqrt{xyz}" },
+    { "\\sqrt[]{}", 3, "\\sqrt[n]{xyz}" },
+    { "\\textrm{}", 1, "\\textrm{A}" },
+    { "\\textit{}", 1, "\\textit{A}" },
+    { "\\textsl{}", 1, "\\textsl{A}" },
+    { "\\textbf{}", 1, "\\textbf{A}" },
+    { "\\mathrm{}", 1, "\\mathrm{A}" },
+    { "\\mathit{}", 1, "\\mathit{A}" },
+    { NULL, 0, NULL }
+  };
+
   QMenu *delimmenu = new QMenu(menu);
   int k;
-  for (k = 0; k < delimList.size() && k < charsBackList.size(); ++k) {
+  for (k = 0; delimList[k].instext != NULL; ++k) {
     QAction *a = new QAction(delimmenu);
-    a->setText(delimList[k]);
+    a->setText(delimList[k].instext);
     QVariantMap v;
-    v["delim"] = QVariant::fromValue<QString>(delimList[k]);
-    v["charsBack"] = QVariant::fromValue<int>(charsBackList[k]);
+    v["delim"] = QVariant::fromValue<QString>(QLatin1String(delimList[k].instext));
+    v["charsBack"] = QVariant::fromValue<int>(delimList[k].charsback);
     a->setData(QVariant(v));
-    a->setIcon(KLFLatexSymbolsCache::theCache() ->
-	       findSymbolPixmap(delimList[k].left(delimList[k].length()-1)+"A}"));
+    a->setIcon(KLFLatexSymbolsCache::theCache()->findSymbolPixmap(QLatin1String(delimList[k].iconsymb)));
     delimmenu->addAction(a);
     connect(a, SIGNAL(triggered()), this, SLOT(slotInsertFromActionSender()));
   }
