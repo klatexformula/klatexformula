@@ -668,8 +668,11 @@ public:
       qWarning()<<KLF_FUNC_NAME<<": can't find factory for scheme "<<scheme<<"!";
       return NULL;
     }
-    param["klfDefaultSubResource"] = tr("Extra Export Sub-Resource",
-					"[[the default sub-resource name when creating export resource]]");
+    // this is the sub-resource that will be created with the resource. It will be deleted after
+    // we filled up the resource. Remember the name ("export_xtra"), it will be deleted at the
+    // end of KLFLibBrowser::slotExport()
+    param["klfDefaultSubResource"] = QLatin1String("export_xtra");
+
     KLFLibResourceEngine *resource = efactory->createResource(scheme, param, libbrowser);
     if (resource == NULL) {
       QMessageBox::critical(&dlg, tr("Error"),

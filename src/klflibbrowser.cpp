@@ -1557,6 +1557,10 @@ bool KLFLibBrowser::slotExport()
     exportRes->insertEntries(subres, elist);
   }
 
+  // remove our dummy sub-resource that was created with the resource
+  // name was set in klflibbrowser_p.h: KLFLibExportDialog::showExportDi...()
+  exportRes->deleteSubResource(QLatin1String("export_xtra"));
+
   // important, as it will cause save() to be called on legacy engines, otherwise we will just
   // have a zombie resource waiting for something
   delete exportRes;

@@ -1003,7 +1003,12 @@ void KLFSettings::apply()
   // language settings
   QString localename = u->cbxLocale->itemData(u->cbxLocale->currentIndex()).toString();
   klfDbg("New locale name: "<<localename);
-  bool localechanged =  (  klfconfig.UI.locale != localename  ) ;
+  bool localechanged = false;
+  if (klfconfig.UI.locale != localename) {
+    if ((!klfconfig.UI.locale.isEmpty() && klfconfig.UI.locale != "C" && klfconfig.UI.locale != "en_US") ||
+	(!localename.isEmpty() && localename != "C" && localename != "en_US"))
+      localechanged = true; // not just switching from "C" to "en_US" which is not a locale change...
+  }
   klfconfig.UI.locale = localename;
   QLocale::setDefault(klfconfig.UI.locale);
   _mainwin->setApplicationLocale(localename);
