@@ -417,12 +417,11 @@ endmacro(KLFDeclareCacheVarOptionFollowComplex2)
 # do NOT want to let the user set BUILD_API_DOCUMENTATION unless a valid DOXYGEN_PATH
 # has been set (manually specified or automatically)
 #
-# This function DECLARES the cache variable 'specificoption' into cache with value
+# This function sets the cache variable 'specificoption' into cache with value
 # "${defaultvalue}", with type 'cachetype' and docstring 'cachestring' with a
 # call to instruction set(.. CACHE ...).
 #
-# If condition is met, then does not modify 'specificoption', and klf_changed_* are set
-# by a call to KLFGetCMakeVarChanged().
+# If condition is met, then nothing is done, and 'specificoption' is not modified.
 #
 # If condition is NOT met and the 'specificoption' already has value "${forcedvalue}",
 # then nothing is done.
@@ -432,6 +431,9 @@ endmacro(KLFDeclareCacheVarOptionFollowComplex2)
 # KLFNote(). In this case, klf_changed_*, klf_first_* reflect the status of the variable
 # _before_ the change, (you should consider klf_changed_* as meaning "changed by the
 # user") and additionally, klf_updated_${specificoption} is set to TRUE.
+#
+# In any case, the klf_{changed|first|old}_* variables are initialized by a call to
+# KLFGetCMakeVarChanged().
 #
 # This function makes use of KLFGetCMakeVarChanged() tool. KLFGetCMakeVarChanged() is
 # called in this function on the 'specificoption', even though the result is not used:
@@ -568,3 +570,15 @@ macro(KLFRelativePath var from_path to_path)
 endmacro(KLFRelativePath)
 
 
+macro(KLFGetTargetLocation var target)
+  if(CMAKE_BUILD_TYPE)
+    get_target_property(${var} ${target} ${CMAKE_BUILD_TYPE}_LOCATION)
+  else(CMAKE_BUILD_TYPE)
+    get_target_property(${var} ${target} LOCATION)
+  endif(CMAKE_BUILD_TYPE)
+endmacro(KLFGetTargetLocation)
+
+macro(KLFGetTargetFileName var target)
+  KLFGetTargetLocation(${var} ${target})
+  string(REGEX REPLACE "^.*/([^/]+)$" "\\1" ${var} "${${var}}")
+endmacro(KLFGetTargetFileName)

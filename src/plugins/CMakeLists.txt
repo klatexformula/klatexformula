@@ -20,10 +20,8 @@ add_subdirectory(skin)
 add_subdirectory(systrayicon)
 
 
-get_target_property(skin_location skin ${CMAKE_BUILD_TYPE}_LOCATION)
-get_target_property(systrayicon_location systrayicon ${CMAKE_BUILD_TYPE}_LOCATION)
-string(REGEX REPLACE "^.?:?/.*/([^/]+)$" "\\1" KLF_CMAKE_PLUGINS_LIBNAME_SKIN "${skin_location}")
-string(REGEX REPLACE "^.?:?/.*/([^/]+)$" "\\1" KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON "${systrayicon_location}")
+KLFGetTargetFileName(KLF_CMAKE_PLUGINS_LIBNAME_SKIN skin)
+KLFGetTargetFileName(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON systrayicon)
 
 set(KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SKIN
 		"${CMAKE_CURRENT_BINARY_DIR}/${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}")

@@ -623,6 +623,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     }
   case QMetaType::QColor:
     { QColor c = value.value<QColor>();
+      klfDbg("Saving color "<<c<<": alpha="<<c.alpha()) ;
       if (c.alpha() == 255)
 	data = QString("(%1 %2 %3)").arg(c.red()).arg(c.green()).arg(c.blue()).toAscii();
       else

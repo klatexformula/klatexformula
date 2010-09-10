@@ -363,9 +363,15 @@ static void klf_config_read(QSettings &s, const QString& baseName, T *target,
 {
   //  qDebug("klf_config_read<...>(%s)", qPrintable(baseName));
   QVariant defVal = QVariant::fromValue<T>(*target);
-  QVariant valstr = s.value(baseName, defVal);
+  QVariant valstrv = s.value(baseName, QVariant());
   //  klfDbg( "\tRead value "<<valstr ) ;
-  QVariant val = klfLoadVariantFromText(valstr.toString().toLatin1(), defVal.typeName(), listOrMapType);
+  if (valstrv.isNull()) {
+    // no such entry in config
+    klfDbg("No entry "<<baseName<<" in config.") ;
+    return;
+  }
+  QString valstr = valstrv.toString();
+  QVariant val = klfLoadVariantFromText(valstr.toLatin1(), defVal.typeName(), listOrMapType);
   if (val.isValid())
     *target = val.value<T>();
 }
@@ -452,6 +458,8 @@ int KLFConfig::readFromConfig_v2()
   klf_config_read(s, "dragexportprofile", &UI.dragExportProfile);
   klf_config_read(s, "gloweffect", &UI.glowEffect);
   klf_config_read(s, "gloweffectcolor", &UI.glowEffectColor);
+  klfDbg("Read glow effect color from config: color="<<UI.glowEffectColor
+	 <<", alpha="<<UI.glowEffectColor.alpha());
   klf_config_read(s, "gloweffectradius", &UI.glowEffectRadius);
   s.endGroup();
 

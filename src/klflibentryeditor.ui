@@ -38,14 +38,11 @@
          <property name="minimumSize">
           <size>
            <width>280</width>
-           <height>90</height>
+           <height>80</height>
           </size>
          </property>
          <property name="pixmap">
           <pixmap>:/pix/pics/nopreview.png</pixmap>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -247,7 +244,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>236</width>
+         <width>293</width>
          <height>186</height>
         </rect>
        </property>

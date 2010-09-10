@@ -237,7 +237,7 @@ QLineEdit[searchState="found"] {
 QLineEdit[searchState="not-found"] {
     background: BG_SEARCH_NOTFOUND;
 }
-KLFDisplayLabel, QLabel#lblPreview {
+KLFDisplayLabel {
     background: transparent;
 }
 QLineEdit {

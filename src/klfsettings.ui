@@ -270,7 +270,7 @@
           <item row="2" column="0">
            <widget class="QCheckBox" name="chkGlowEffect">
             <property name="text">
-             <string>Equations Glow Effect</string>
+             <string>Display Equations Glow Effect</string>
             </property>
            </widget>
           </item>
@@ -1599,8 +1599,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>355</width>
-                <height>167</height>
+                <width>100</width>
+                <height>30</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1766,8 +1766,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>345</width>
-                   <height>215</height>
+                   <width>100</width>
+                   <height>30</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1831,8 +1831,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>557</width>
-            <height>502</height>
+            <width>94</width>
+            <height>24</height>
            </rect>
           </property>
           <attribute name="label">

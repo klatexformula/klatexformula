@@ -38,6 +38,8 @@ KLFDisplayLabel::KLFDisplayLabel(QWidget *parent)
   setText(QString());
   setLabelFixedSize(QSize(120,80));
 
+  setAlignment(Qt::AlignCenter);
+
   pDefaultPalette = palette();
   pErrorPalette = pDefaultPalette;
   pErrorPalette.setColor(QPalette::Window, QColor(255, 200, 200));
@@ -56,6 +58,7 @@ KLFDisplayLabel::~KLFDisplayLabel()
 void KLFDisplayLabel::setLabelFixedSize(const QSize& size)
 {
   pLabelFixedSize = size;
+  setMinimumSize(size);
   setFixedSize(size);
 }
 
@@ -74,12 +77,13 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
   QPixmap pix;
   if (pGE) {
     int r = pGEradius;
-    pix = QPixmap(img.size()+QSize(2*r,2*r));
+    QSize msz = QSize(2*r, 2*r);
+    if (img.width()+msz.width() > width() || img.height()+msz.height() > height())
+      img = displayimg.scaled(size()-msz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    pix = QPixmap(img.size()+msz);
     pix.fill(QColor(0,0,0,0));
     QPainter painter(&pix);
-    painter.translate(r, r);
-    if (img.width()+2*r > width() || img.height()+2*r > height())
-      img = displayimg.scaled(size()-QSize(2*r,2*r), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    painter.translate(QPoint(r, r));
     klfDrawGlowedImage(&painter, img, pGEcolor, r);
   } else {
     if (img.width() > width() || img.height() > height())
