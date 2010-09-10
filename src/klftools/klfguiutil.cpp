@@ -184,6 +184,8 @@ KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent, boo
   setAttribute(Qt::WA_StyledBackground, true);
   setProperty("klfTopLevelWidget", QVariant(true));
 
+  setFrameStyle(QFrame::Panel|QFrame::Sunken);
+
   QWidget *pw = parentWidget(); // the one set in QLabel constructor, this is the top-level window
   if (pw != NULL)
     setStyleSheet(pw->window()->styleSheet());
@@ -462,5 +464,37 @@ QRect KLFWaitAnimationOverlay::calcAnimationLabelGeometry()
 
 
 
+// -----------------------
 
 
+KLF_EXPORT void klfDrawGlowedImage(QPainter *p, const QImage& foreground, const QColor& glowcol,
+				   int r, bool also_draw_image)
+{
+  QImage fg = foreground;
+  if (fg.format() != QImage::Format_ARGB32_Premultiplied &&
+      fg.format() != QImage::Format_ARGB32)
+    fg = fg.convertToFormat(QImage::Format_ARGB32);
+
+  QRgb glow_color = glowcol.rgba();
+  int ga = qAlpha(glow_color);
+
+  QImage glow(fg.size(), QImage::Format_ARGB32_Premultiplied);
+  int x, y;
+  for (x = 0; x < fg.width(); ++x) {
+    for (y = 0; y < fg.height(); ++y) {
+      int a = qAlpha(fg.pixel(x,y)) * ga / 255;
+      // glow format is argb32_premultiplied
+      glow.setPixel(x,y, qRgba(qRed(glow_color)*a/255, qGreen(glow_color)*a/255, qBlue(glow_color)*a/255, a));
+    }
+  }
+  // now draw that glowed image a few times moving around the interest point to do a glow effect
+  for (x = -r; x <= r; ++x) {
+    for (y = -r; y <= r; ++y) {
+      if (x*x+y*y > r*r) // don't go beyond r pixels from (0,0)
+	continue;
+      p->drawImage(QPoint(x,y), glow);
+    }
+  }
+  if (also_draw_image)
+    p->drawImage(QPoint(0,0), fg);
+}

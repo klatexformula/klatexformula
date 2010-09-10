@@ -29,6 +29,8 @@
 #include <QKeyEvent>
 #include <QPixmap>
 
+#include <klfdisplaylabel.h>
+
 #include "klfconfig.h"
 #include "klflib.h"
 #include "klflatexedit.h"
@@ -49,7 +51,7 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
 
   pCurrentStyle = KLFStyle();
 
-  u->lblPreview->setFixedSize(klfconfig.UI.labelOutputFixedSize);
+  u->lblPreview->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
 
   u->cbxCategory->setInsertPolicy(QComboBox::InsertAlphabetically);
   u->cbxCategory->setDuplicatesEnabled(false);
@@ -119,10 +121,16 @@ void KLFLibEntryEditor::displayEntry(const KLFLibEntry& entry)
 
 void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
 {
+  // refresh the display label's glow effect
+  /** \bug .... find a better way to synchronize config values like this. ....... */
+  u->lblPreview->setGlowEffect(klfconfig.UI.glowEffect);
+  u->lblPreview->setGlowEffectColor(klfconfig.UI.glowEffectColor);
+  u->lblPreview->setGlowEffectRadius(klfconfig.UI.glowEffectRadius);
+
   u->cbxCategory->lineEdit()->setReadOnly(!pInputEnabled);
   u->cbxTags->lineEdit()->setReadOnly(!pInputEnabled);
   if (entrylist.size() == 0) {
-    u->lblPreview->setPixmap(QPixmap(":/pics/nopreview.png"));
+    u->lblPreview->display(QImage(":/pics/nopreview.png"), QImage(), false);
     u->txtPreviewLatex->setText(tr("[ No Item Selected ]"));
     u->cbxCategory->setEditText(tr("[ No Item Selected ]"));
     u->cbxTags->setEditText(tr("[ No Item Selected ]"));
@@ -141,12 +149,7 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
   if (entrylist.size() == 1) {
     KLFLibEntry e = entrylist[0];
     QImage img = e.preview();
-    QPixmap pix;
-    if (img.width() > u->lblPreview->width() || img.height() > u->lblPreview->height())
-      pix = QPixmap::fromImage(img.scaled(u->lblPreview->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    else
-      pix = QPixmap::fromImage(img);
-    u->lblPreview->setPixmap(pix);
+    u->lblPreview->display(img, img, true);
     u->txtPreviewLatex->setText(e.latex());
     u->cbxCategory->setEditText(e.category());
     u->cbxTags->setEditText(e.tags());
@@ -161,7 +164,7 @@ void KLFLibEntryEditor::displayEntries(const QList<KLFLibEntry>& entrylist)
     return;
   }
   // multiple items selected
-  u->lblPreview->setPixmap(QPixmap(":/pics/nopreview.png"));
+  u->lblPreview->display(QImage(":/pics/nopreview.png"), QImage(), false);
   u->txtPreviewLatex->setText(tr("[ %n Items Selected ]", 0, entrylist.size()));
   u->cbxTags->setEditText(tr("[ Multiple Items Selected ]"));
   // if all elements have same category and style, display them, otherwise set

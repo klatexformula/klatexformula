@@ -492,6 +492,7 @@ void KLFSettings::reset()
 
   u->chkShowHintPopups->setChecked(klfconfig.UI.showHintPopups);
   u->chkClearLatexOnly->setChecked(klfconfig.UI.clearLatexOnly);
+  u->chkGlowEffect->setChecked(klfconfig.UI.glowEffect);
 
   u->cbxCopyExportProfile->setCurrentIndex(u->cbxCopyExportProfile->findData(QVariant(klfconfig.UI.copyExportProfile)));
   u->cbxDragExportProfile->setCurrentIndex(u->cbxDragExportProfile->findData(QVariant(klfconfig.UI.dragExportProfile)));
@@ -541,7 +542,7 @@ void KLFSettings::initPluginControls()
   if (n_pluginconfigpages == 0) {
     QLabel * lbl;
     lbl = new QLabel(tr("No Plugins have been loaded. Please install and enable individual plugins "
-			"before trying to configure them."), u->tbxPluginsConfig);
+			"first, then come back to this page to configure them."), u->tbxPluginsConfig);
     lbl->hide();
     lbl->setWordWrap(true);
     lbl->setMargin(20);
@@ -1045,6 +1046,7 @@ void KLFSettings::apply()
 
   klfconfig.UI.showHintPopups = u->chkShowHintPopups->isChecked();
   klfconfig.UI.clearLatexOnly = u->chkClearLatexOnly->isChecked();
+  klfconfig.UI.glowEffect = u->chkGlowEffect->isChecked();
 
   klfconfig.UI.copyExportProfile = 
     u->cbxCopyExportProfile->itemData(u->cbxCopyExportProfile->currentIndex()).toString();

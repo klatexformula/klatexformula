@@ -147,6 +147,7 @@ public:
       are already stored in the current fields. */
   KLFConfig();
 
+
   QString homeConfigDir;
   QString globalShareDir;
   QString homeConfigSettingsFile; //!< current (now, "new" klatexformula.conf) settings file
@@ -193,6 +194,9 @@ public:
     bool clearLatexOnly;
     QString copyExportProfile;
     QString dragExportProfile;
+    bool glowEffect;
+    QColor glowEffectColor;
+    int glowEffectRadius;
 
   } UI;
 

@@ -261,6 +261,9 @@ KLFMainWin::KLFMainWin()
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
+  u->lblOutput->setGlowEffect(klfconfig.UI.glowEffect);
+  u->lblOutput->setGlowEffectColor(klfconfig.UI.glowEffectColor);
+  u->lblOutput->setGlowEffectRadius(klfconfig.UI.glowEffectRadius);
 
   connect(u->lblOutput, SIGNAL(labelDrag()), this, SLOT(slotDrag()));
 
@@ -596,6 +599,10 @@ void KLFMainWin::saveSettings()
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
 
+  u->lblOutput->setGlowEffect(klfconfig.UI.glowEffect);
+  u->lblOutput->setGlowEffectColor(klfconfig.UI.glowEffectColor);
+  u->lblOutput->setGlowEffectRadius(klfconfig.UI.glowEffectRadius);
+
   int k;
   if (klfconfig.UI.dragExportProfile == klfconfig.UI.copyExportProfile) {
     klfDbg("checking quick menu action item export profile="<<klfconfig.UI.copyExportProfile) ;
@@ -798,7 +805,9 @@ void KLFMainWin::loadLibrary()
   localliburl.setScheme(klfconfig.Core.libraryLibScheme);
   localliburl.addQueryItem("klfDefaultSubResource", "History");
 
-  mHistoryLibResource = mLibBrowser->getOpenResource(localliburl); // possibly NULL
+  // If the history is already open from library browser saved state, retrieve it
+  // This is possibly NULL
+  mHistoryLibResource = mLibBrowser->getOpenResource(localliburl);
 
   if (!QFile::exists(localfname)) {
     // create local library resource
@@ -824,12 +833,16 @@ void KLFMainWin::loadLibrary()
     mHistoryLibResource
       -> createSubResource(QLatin1String("Archive"),
 			   tr("Archive", "[[default sub-resource title for archive sub-resource]]"));
-    if (mHistoryLibResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps)
+    if (mHistoryLibResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps) {
       mHistoryLibResource->setSubResourceProperty(QLatin1String("History"),
 						  KLFLibResourceEngine::SubResPropViewType,
 						  QLatin1String("default+list"));
-    else
+      mHistoryLibResource->setSubResourceProperty(QLatin1String("Archive"),
+						  KLFLibResourceEngine::SubResPropViewType,
+						  QLatin1String("default"));
+    } else {
       mHistoryLibResource->setViewType(QLatin1String("default+list"));
+    }
   }
 
   if (mHistoryLibResource == NULL) {

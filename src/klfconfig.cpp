@@ -62,13 +62,8 @@ KLF_EXPORT QString klf_share_dir_abspath()
   if (!__klf_share_dir_cached.isEmpty())
     return __klf_share_dir_cached;
 
-  if (QFileInfo(__klf_share_dir).isAbsolute())
-    return ( __klf_share_dir_cached = __klf_share_dir ) ;
-
-  __klf_share_dir_cached = QCoreApplication::applicationDirPath();
-  __klf_share_dir_cached += "/";
-  __klf_share_dir_cached += __klf_share_dir;
-  
+  __klf_share_dir_cached = klfPrefixedPath(__klf_share_dir); // prefixed by app-dir-path
+  klfDbg("share dir is "<<__klf_share_dir_cached) ;
   return __klf_share_dir_cached;
 }
 
@@ -244,6 +239,9 @@ void KLFConfig::loadDefaults()
     UI.clearLatexOnly = false;
     UI.copyExportProfile = "default";
     UI.dragExportProfile = "default";
+    UI.glowEffect = false;
+    UI.glowEffectColor = QColor(128, 255, 128, 12);
+    UI.glowEffectRadius = 4;
 
     SyntaxHighlighter.configFlags = 0x05;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
@@ -452,6 +450,9 @@ int KLFConfig::readFromConfig_v2()
   klf_config_read(s, "clearlatexonly", &UI.clearLatexOnly);
   klf_config_read(s, "copyexportprofile", &UI.copyExportProfile);
   klf_config_read(s, "dragexportprofile", &UI.dragExportProfile);
+  klf_config_read(s, "gloweffect", &UI.glowEffect);
+  klf_config_read(s, "gloweffectcolor", &UI.glowEffectColor);
+  klf_config_read(s, "gloweffectradius", &UI.glowEffectRadius);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -558,6 +559,9 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "clearlatexonly", &UI.clearLatexOnly);
   klf_config_write(s, "copyexportprofile", &UI.copyExportProfile);
   klf_config_write(s, "dragexportprofile", &UI.dragExportProfile);
+  klf_config_write(s, "gloweffect", &UI.glowEffect);
+  klf_config_write(s, "gloweffectcolor", &UI.glowEffectColor);
+  klf_config_write(s, "gloweffectradius", &UI.glowEffectRadius);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");

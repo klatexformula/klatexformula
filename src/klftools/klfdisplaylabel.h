@@ -39,6 +39,9 @@ class KLF_EXPORT KLFDisplayLabel : public QLabel
   Q_PROPERTY(bool enableToolTipPreview READ enableToolTipPreview WRITE setEnableToolTipPreview) ;
 
   Q_PROPERTY(QString bigPreviewText READ bigPreviewText) ;
+  Q_PROPERTY(bool glowEffect READ glowEffect WRITE setGlowEffect) ;
+  Q_PROPERTY(QColor glowEffectColor READ glowEffectColor WRITE setGlowEffectColor) ;
+  Q_PROPERTY(int glowEffectRadius READ glowEffectRadius WRITE setGlowEffectRadius) ;
 public:
   KLFDisplayLabel(QWidget *parent);
   virtual ~KLFDisplayLabel();
@@ -47,6 +50,10 @@ public:
   virtual bool enableToolTipPreview() const { return pEnableToolTipPreview; }
 
   virtual QString bigPreviewText() const { return _bigPreviewText; }
+
+  inline bool glowEffect() const { return pGE; }
+  inline QColor glowEffectColor() const { return pGEcolor; }
+  inline int glowEffectRadius() const { return pGEradius; }
 
 signals:
   void labelDrag();
@@ -58,6 +65,13 @@ public slots:
   virtual void displayClear();
   virtual void display(QImage displayimg, QImage tooltipimage, bool labelenabled = true);
   virtual void displayError(bool labelenabled = false);
+
+  /** \note takes effect only upon next call of display() */
+  void setGlowEffect(bool on) { pGE = on; }
+  /** \note takes effect only upon next call of display() */
+  void setGlowEffectColor(const QColor& color) { pGEcolor = color; }
+  /** \note takes effect only upon next call of display() */
+  void setGlowEffectRadius(int r) { pGEradius = r; }
 
 protected:
   virtual void mouseMoveEvent(QMouseEvent *e);
@@ -72,6 +86,10 @@ private:
   QPalette pErrorPalette;
 
   QString _bigPreviewText;
+
+  bool pGE;
+  QColor pGEcolor;
+  int pGEradius;
 
   void set_error(bool error_on);
 };

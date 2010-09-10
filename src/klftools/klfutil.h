@@ -248,6 +248,16 @@ KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode);
 
 
 
+/** \brief Returns absolute path to \c path as seen from \c reference
+ *
+ * If \c path is absolute, then \c path is returned as is. Otherwise, an absolute
+ * path constructed by concatenating \c path to \c reference is returned.
+ *
+ * If \c reference is empty, then the reference is considered to be the application's
+ * location, see \ref QCoreApplication::applicationDirPath().
+ */
+KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference = QString());
+
 
 /** Returns the file path represented in \c url, interpreted as an (absolute) path to
  * a local file.

@@ -736,7 +736,9 @@ QByteArray KLFMimeExporterLibFmts::data(const QString& key, const KLFBackend::kl
   }
 
   KLFLibEntry e = KLFLibEntry(output.input.latex, QDateTime::currentDateTime(),
-			      output.result, KLFStyle(output.input));
+			      output.result.scaled(klfconfig.UI.labelOutputFixedSize, Qt::KeepAspectRatio,
+						   Qt::SmoothTransformation),
+			      KLFStyle(output.input));
 
   QByteArray data = encoder->encodeMime(KLFLibEntryList()<<e, QVariantMap(), key);
 

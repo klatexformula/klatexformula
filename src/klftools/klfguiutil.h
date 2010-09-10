@@ -38,6 +38,7 @@
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QMovie>
+#include <QPainter>
 
 #include <klfutil.h>
 
@@ -513,6 +514,27 @@ private:
   int pPositionYPercent;
 };
 
+
+
+
+/** \brief Draws the given image with a glow effect.
+ *
+ * Draws a glow effect for image \c foreground by extracting the alpha channel, and
+ * creating fills an image of color \c glow_color with the same alpha channel. The
+ * image is then drawn at all points (x,y) around (0,0) such that
+ * <tt>|(x,y)-(0,0)| &lt; r</tt>, effectively overlapping the glow image with itself
+ * creating a blur effect.
+ *
+ * The resulting graphics are painted using the painter \c painter, at the reference
+ * position <tt>(0,0)</tt>. If you want your image drawn at another position, use
+ * QPainter::translate().
+ *
+ * If \c also_draw_image is TRUE, then the image itself is also drawn on top of the
+ * glow effect.
+ */
+KLF_EXPORT void klfDrawGlowedImage(QPainter *painter, const QImage& foreground,
+				   const QColor& glow_color = QColor(128, 255, 128, 8),
+				   int radius = 4, bool also_draw_image = true);
 
 
 

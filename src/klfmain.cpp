@@ -60,7 +60,7 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
 {
   d = new Private;
   d->ref = 1;
-  klfDbg( "KLFAddOnInfo: Private has ref "<< d->ref ) ;
+  klfDbg( "KLFAddOnInfo: rccfpath="<<rccfpath<<", Private has ref "<< d->ref ) ;
 
   QFileInfo fi(rccfpath);
   
@@ -84,13 +84,10 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
     suffix = QString("_%1").arg(++k);
   }
   d->rccmountroot = mountroot;
-  klfDbg( "Mounting resource to "<<d->rccmountroot ) ;
+  klfDbg( "Mounting resource "<<rccfpath<<" to "<<d->rccmountroot ) ;
 
   bool ok = QResource::registerResource(d->fpath, mountroot);
-  if (!ok) {
-    qWarning("Failed to register resource `%s'.", qPrintable(rccfpath));
-    return;
-  }
+  KLF_ASSERT_CONDITION(ok, "Failed to register resource "<<rccfpath, return; ) ;
 
   // read the RCC's info.xml content
   { // code block brackets {} are to close the file immediately after reading.

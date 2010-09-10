@@ -274,7 +274,7 @@ void klf_qt_message(QtMsgType type, const char *msg)
     static int safecounter = SAFECOUNTER_NUM;
     if ((safecounter-- >= 0) && !QString::fromLocal8Bit(msg).startsWith("MNG error")) { // ignore these "MNG" errors...
       QMessageBox::warning(0, "Warning",
-			   "KLatexFormula System Warning:\n%1"
+			   QString("KLatexFormula System Warning:\n%1")
 			   .arg(QString::fromLocal8Bit(msg)));
     }
     if (safecounter == -1) {
@@ -411,8 +411,13 @@ void main_load_extra_resources()
   bool klfsettings_can_import = false;
 
   // Find global system-wide klatexformula rccresources dir
-  QString defaultrccpath =
-    klfconfig.globalShareDir+"/rccresources/" + KLF_PATH_SEP + klfconfig.homeConfigDirRCCResources ;
+  QStringList defaultrccpaths;
+#ifdef KLF_SHARE_RCCRESOURCES_DIR
+  defaultrccpaths << klfPrefixedPath(KLF_SHARE_RCCRESOURCES_DIR); // prefixed by app-dir-path
+#endif
+  defaultrccpaths << klfconfig.globalShareDir+"/rccresources/";
+  defaultrccpaths << klfconfig.homeConfigDirRCCResources;
+  klfDbg("RCC search path is "<<defaultrccpaths.join(QString()+KLF_PATH_SEP)) ;
   QString rccfilepath;
   if ( klf_resources.isNull() ) {
     rccfilepath = "";
@@ -420,15 +425,14 @@ void main_load_extra_resources()
     rccfilepath = klf_resources;
   }
   //  printf("DEBUG: Rcc file list is \"%s\"\n", rccfilepath.toLocal8Bit().constData());
-  QStringList defaultsplitrccpath = defaultrccpath.split(KLF_PATH_SEP, QString::SkipEmptyParts);
   QStringList rccfiles = rccfilepath.split(KLF_PATH_SEP, QString::KeepEmptyParts);
   int j, k;
   for (QStringList::iterator it = rccfiles.begin(); it != rccfiles.end(); ++it) {
     if ((*it).isEmpty()) {
       // empty split section: meaning that we want default paths at this point
       it = rccfiles.erase(it, it+1);
-      for (j = 0; j < defaultsplitrccpath.size(); ++j) {
-	it = rccfiles.insert(it, defaultsplitrccpath[j]) + 1;
+      for (j = 0; j < defaultrccpaths.size(); ++j) {
+	it = rccfiles.insert(it, defaultrccpaths[j]) + 1;
       }
       // having the default paths added, it is safe for klfsettings to import add-ons to ~/.klf.../rccresources/
       klfsettings_can_import = true;
@@ -442,10 +446,14 @@ void main_load_extra_resources()
       QDir dir(rccfiles[j]);
       QFileInfoList files = dir.entryInfoList(QStringList()<<"*.rcc", QDir::Files);
       for (k = 0; k < files.size(); ++k) {
-	rccfilesToLoad << files[k].absoluteFilePath();
+	QString f = files[k].canonicalFilePath();
+	if (!rccfilesToLoad.contains(f))
+	  rccfilesToLoad << f;
       }
     } else if (fi.isFile() && fi.suffix() == "rcc") {
-      rccfilesToLoad << fi.absoluteFilePath();
+      QString f = fi.canonicalFilePath();
+      if (!rccfilesToLoad.contains(f))
+	rccfilesToLoad << f;
     }
   }
   for (j = 0; j < rccfilesToLoad.size(); ++j) {

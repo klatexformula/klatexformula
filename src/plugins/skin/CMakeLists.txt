@@ -30,3 +30,6 @@ if(NOT KLF_LIBKLFAPP_STATIC)
   target_link_libraries(skin klfapp)
 endif(NOT KLF_LIBKLFAPP_STATIC)
 
+#set_target_properties(skin  PROPERTIES
+#	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
+#)

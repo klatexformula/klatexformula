@@ -96,6 +96,9 @@ signals:
   void requestRestore(const KLFLibEntry& entry, uint restoreFlags);
   void requestRestoreStyle(const KLFStyle& style);
 
+  void resourceTabChanged(const QUrl& currentUrl);
+  void libEntriesSelected(const KLFLibEntryList& entries);
+
 public slots:
   /** If the \c url is not already open, opens the given URL. An appropriate factory
    * needs to be installed supporting that scheme. Then an appropriate view is created
@@ -161,9 +164,10 @@ protected slots:
    */
   void slotResourceRename(bool renameSubResource);
   void slotResourceRenameFinished();
-  bool slotResourceClose(KLFLibBrowserViewContainer *view = NULL);
+  bool slotResourceClose(KLFLibBrowserViewContainer *view = NULL, bool force = false);
   void slotResourceProperties();
   bool slotResourceNewSubRes();
+  bool slotResourceDelSubRes();
   bool slotResourceOpen();
   bool slotResourceNew();
   bool slotResourceSaveTo();

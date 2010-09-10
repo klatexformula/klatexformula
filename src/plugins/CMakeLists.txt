@@ -8,23 +8,6 @@
 # We are no longer compiling KLF source !
 remove_definitions(-DKLF_SRC_BUILD)
 
-if(WIN32)
-  # Windows
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN libskin.dll)
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON libsystrayicon.dll)
-elseif(APPLE)
-  # Apple Mac OS X
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN libskin.so)
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON libsystrayicon.so)
-else(WIN32)
-  # Linux/Unix
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SKIN libskin.so)
-  set(KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON libsystrayicon.so)
-endif(WIN32)
-set(KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SKIN
-		"${CMAKE_CURRENT_BINARY_DIR}/${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}")
-set(KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SYSTRAYICON
-		"${CMAKE_CURRENT_BINARY_DIR}/${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON}")
 
 # Current Qt Version "MAJ.MIN"
 set(KLF_CMAKE_QTVERSION "${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}" CACHE INTERNAL "Qt Version")
@@ -32,6 +15,20 @@ set(KLF_CMAKE_QTVERSION "${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}" CACHE INTERNAL
 # The subdir in which to put plugins
 set(KLF_CMAKE_BASEPLUGINSSUBDIR "${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}"
 					CACHE INTERNAL "(internal) Base Plugins RCC sub-dir")
+
+add_subdirectory(skin)
+add_subdirectory(systrayicon)
+
+
+get_target_property(skin_location skin ${CMAKE_BUILD_TYPE}_LOCATION)
+get_target_property(systrayicon_location systrayicon ${CMAKE_BUILD_TYPE}_LOCATION)
+string(REGEX REPLACE "^.?:?/.*/([^/]+)$" "\\1" KLF_CMAKE_PLUGINS_LIBNAME_SKIN "${skin_location}")
+string(REGEX REPLACE "^.?:?/.*/([^/]+)$" "\\1" KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON "${systrayicon_location}")
+
+set(KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SKIN
+		"${CMAKE_CURRENT_BINARY_DIR}/${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}")
+set(KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SYSTRAYICON
+		"${CMAKE_CURRENT_BINARY_DIR}/${KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON}")
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/plugindirinfo.xml.in"
@@ -43,13 +40,6 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.qrc"
   @ONLY)
 
-
-add_subdirectory(skin)
-add_subdirectory(systrayicon)
-
-set_target_properties(skin systrayicon  PROPERTIES
-	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
-)
 
 add_custom_command(OUTPUT ${KLF_CMAKE_PLUGINS_LOCAL_LIBNAME_SKIN}
 	COMMAND "${CMAKE_COMMAND}" -E copy "skin/${KLF_CMAKE_PLUGINS_LIBNAME_SKIN}"

@@ -106,9 +106,9 @@ elseif(APPLE)
 else(WIN32)
   set(klf_default_debug_postfix "")  
 endif(WIN32)
-set(KLF_DEBUG_POSTFIX "${klf_default_debug_postfix}"
+set(CMAKE_DEBUG_POSTFIX "${klf_default_debug_postfix}"
 	    CACHE STRING "Suffix to add to target names when built in 'Debug' build configuration")
-mark_as_advanced(KLF_DEBUG_POSTFIX)
+mark_as_advanced(CMAKE_DEBUG_POSTFIX)
 
 # Choose a Qt Version to use
 set(KLF_QT_VERSION 4 CACHE STRING "Qt major version to build with (4 or 3)")

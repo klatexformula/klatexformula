@@ -195,9 +195,13 @@ if(KLF_LIBKLFTOOLS_STATIC)
   # Q_INIT_RESOURCE(klftoolsres)
   add_definitions(-DKLF_LIBKLFTOOLS_STATIC)
 endif(KLF_LIBKLFTOOLS_STATIC)
-if(WIN32)
-  add_definitions(-DKLF_SHARE_DIR="${CMAKE_INSTALL_PREFIX}")
-endif(WIN32)
+
+# Don't use CMAKE_INSTALL_PREFIX as it is irrelevant for windows installers
+# we need relative path
+KLFRelativePath(klf_share_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${CMAKE_INSTALL_PREFIX}")
+KLFRelativePath(klf_share_rccresources_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${KLF_ABS_INSTALL_RCCRESOURCES_DIR}")
+add_definitions(-DKLF_SHARE_DIR="${klf_share_dir}" -DKLF_SHARE_RCCRESOURCES_DIR="${klf_share_rccresources_dir}")
+
 # Uis, Mocs
 qt4_wrap_ui(klfapp_UIS_H ${klfapp_UIS})
 qt4_wrap_cpp(klfapp_MOC_CPPS ${klfapp_MOCHEADERS})
@@ -225,7 +229,7 @@ endif(KLF_LIBKLFAPP_STATIC)
 add_dependencies(klfapp klftools klfbackend)
 target_link_libraries(klfapp ${QT_LIBRARIES} klfbackend klftools)
 set_target_properties(klfapp PROPERTIES
-	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
+	#	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
 	PUBLIC_HEADER "${klfapp_INSTHEADERS}"
 )
 

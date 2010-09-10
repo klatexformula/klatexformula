@@ -2629,7 +2629,12 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
 	  p->p->fillRect(QRect(pos, img2.size()), QBrush(bglist[k]));
       }
       // and draw the equation
-      p->p->drawImage(pos, img2);
+      p->p->save();
+      p->p->translate(pos);
+      if (klfconfig.UI.glowEffect)
+	klfDrawGlowedImage(p->p, img2, klfconfig.UI.glowEffectColor, klfconfig.UI.glowEffectRadius, false);
+      p->p->drawImage(QPoint(0,0), img2);
+      p->p->restore();
       break;
     }
   case KLFLibEntry::Category:
@@ -3820,7 +3825,9 @@ KLFLibOpenResourceDlg::KLFLibOpenResourceDlg(const QUrl& defaultlocation, QWidge
   setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
 
   // check to see which is the default widget to show according to defaultlocation
-  KLFLibEngineFactory *efactory = KLFLibEngineFactory::findFactoryFor(defaultlocation.scheme());
+  KLFLibEngineFactory *efactory = NULL;
+  if (!defaultlocation.isEmpty())
+    KLFLibEngineFactory::findFactoryFor(defaultlocation.scheme());
   QString defaultwtype;
   if (efactory == NULL) {
     if (!defaultlocation.isEmpty())
@@ -3913,15 +3920,15 @@ void KLFLibOpenResourceDlg::updateReadyToOpen()
   }
   btnGo->setEnabled(w_is_ready);
   // and propose choice of sub-resources
-  pUi->cbxSubResource->setEnabled(true);
+  pUi->frmSubResource->show();
   pUi->cbxSubResource->clear();
   if (!w_is_ready) {
-    pUi->cbxSubResource->setEnabled(false);
+    pUi->frmSubResource->hide();
   } else {
     // we're ready to open, read sub-resource list
     QMap<QString,QString> subResMap = KLFLibEngineFactory::listSubResourcesWithTitles(retrieveRawUrl());
     if (subResMap.isEmpty()) {
-      pUi->cbxSubResource->setEnabled(false);
+      pUi->frmSubResource->hide();
     } else {
       for (QMap<QString,QString>::const_iterator it = subResMap.begin(); it != subResMap.end(); ++it) {
 	QString subres = it.key();

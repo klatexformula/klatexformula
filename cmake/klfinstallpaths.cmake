@@ -93,12 +93,12 @@ if(WIN32)
     nothing wrong with that, but keep in mind that this value will
     NOT be updated if you change CMAKE_INSTALL_PREFIX.")
   endif(IS_ABSOLUTE "${KLF_INSTALL_RCCRESOURCES_DIR}")
-  KLFMakeAbsInstallPath(KLF_ABS_INSTALL_RCCRESOURCES_DIR  KLF_INSTALL_RCCRESOURCES_DIR)
 
 else(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
 			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
 endif(WIN32)
+KLFMakeAbsInstallPath(KLF_ABS_INSTALL_RCCRESOURCES_DIR  KLF_INSTALL_RCCRESOURCES_DIR)
 
 
 # Installed RPATH

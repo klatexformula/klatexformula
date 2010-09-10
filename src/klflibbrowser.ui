@@ -406,6 +406,14 @@
     <string>Open a sub-resource of an already open resource</string>
    </property>
   </action>
+  <action name="aDelSubRes">
+   <property name="text">
+    <string>Delete Sub-Resource</string>
+   </property>
+   <property name="toolTip">
+    <string>Permanently delete the current sub-resource</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

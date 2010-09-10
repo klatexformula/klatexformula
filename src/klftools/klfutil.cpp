@@ -618,7 +618,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     }
   case QMetaType::QRect:
     { QRect r = value.toRect();
-      data = QString("(%1 %2+%3x%4)").arg(r.left()).arg(r.top()).arg(r.width()).arg(r.height()).toAscii();
+      data = QString("(%1 %2 %3x%4)").arg(r.left()).arg(r.top()).arg(r.width()).arg(r.height()).toAscii();
       break;
     }
   case QMetaType::QColor:
@@ -1557,6 +1557,24 @@ KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
 // ----------------------------------------------------
 
 
+KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference)
+{
+  if (QFileInfo(path).isAbsolute())
+    return path;
+
+  QString ref = reference;
+  if (ref.isEmpty())
+    ref = QCoreApplication::applicationDirPath();
+
+  // return path relative to reference
+  if (!ref.endsWith("/"))
+    ref += "/";
+
+  return ref + path;
+}
+
+
+// ----------------------------------------------------
 
 KLF_EXPORT QString klfUrlLocalFilePath(const QUrl& url)
 {

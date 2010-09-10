@@ -267,6 +267,13 @@
             </property>
            </widget>
           </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="chkGlowEffect">
+            <property name="text">
+             <string>Equations Glow Effect</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

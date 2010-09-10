@@ -26,7 +26,9 @@
 #include <QTemporaryFile>
 #include <QMessageBox>
 #include <QVariant>
+#include <QPainter>
 
+#include <klfguiutil.h>
 #include "klfdisplaylabel.h"
 
 
@@ -39,6 +41,10 @@ KLFDisplayLabel::KLFDisplayLabel(QWidget *parent)
   pDefaultPalette = palette();
   pErrorPalette = pDefaultPalette;
   pErrorPalette.setColor(QPalette::Window, QColor(255, 200, 200));
+
+  pGE = false;
+  pGEcolor = QColor(128, 255, 128, 8);
+  pGEradius = 4;
 }
 
 KLFDisplayLabel::~KLFDisplayLabel()
@@ -64,7 +70,23 @@ void KLFDisplayLabel::displayClear()
 
 void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool labelenabled)
 {
-  setPixmap(QPixmap::fromImage(displayimg));
+  QImage img = displayimg;
+  QPixmap pix;
+  if (pGE) {
+    int r = pGEradius;
+    pix = QPixmap(img.size()+QSize(2*r,2*r));
+    pix.fill(QColor(0,0,0,0));
+    QPainter painter(&pix);
+    painter.translate(r, r);
+    if (img.width()+2*r > width() || img.height()+2*r > height())
+      img = displayimg.scaled(size()-QSize(2*r,2*r), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    klfDrawGlowedImage(&painter, img, pGEcolor, r);
+  } else {
+    if (img.width() > width() || img.height() > height())
+      img = displayimg.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    pix = QPixmap::fromImage(img);
+  }
+  setPixmap(pix);
 
   // un-set any error
   set_error(false);

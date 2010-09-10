@@ -64,13 +64,13 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   u->searchBar->setColorFound(klfconfig.LibraryBrowser.colorFound);
   u->searchBar->setColorNotFound(klfconfig.LibraryBrowser.colorNotFound);
 
-
   pResourceMenu = new QMenu(u->tabResources);
   // connect actions
   connect(u->aRename, SIGNAL(triggered()), this, SLOT(slotResourceRename()));
   connect(u->aRenameSubRes, SIGNAL(triggered()), this, SLOT(slotResourceRenameSubResource()));
   connect(u->aProperties, SIGNAL(triggered()), this, SLOT(slotResourceProperties()));
   connect(u->aNewSubRes, SIGNAL(triggered()), this, SLOT(slotResourceNewSubRes()));
+  connect(u->aDelSubRes, SIGNAL(triggered()), this, SLOT(slotResourceDelSubRes()));
   connect(u->aSaveTo, SIGNAL(triggered()), this, SLOT(slotResourceSaveTo()));
   connect(u->aNew, SIGNAL(triggered()), this, SLOT(slotResourceNew()));
   connect(u->aOpen, SIGNAL(triggered()), this, SLOT(slotResourceOpen()));
@@ -86,6 +86,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pResourceMenu->addSeparator();
   pResourceMenu->addAction(u->aNewSubRes);
   pResourceMenu->addAction(u->aOpenSubRes);
+  pResourceMenu->addAction(u->aDelSubRes);
   pResourceMenu->addSeparator();
   pResourceMenu->addAction(u->aNew);
   pResourceMenu->addAction(u->aOpen);
@@ -162,7 +163,7 @@ void KLFLibBrowser::retranslateUi(bool alsoBaseUi)
   u->wEntryEditor->retranslateUi(alsoBaseUi);
 
   pResourceMenu->setTitle(tr("Resource Actions", "[[menu title]]"));
-
+  u->searchBar->setFocusOutText("  "+tr("Hit Ctrl-F, Ctrl-S or / to search within the current resource"));
   pTabCornerButton->setText(tr("Resource"));
 }
 
@@ -670,13 +671,12 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
   KLFLibBrowserViewContainer * viewc =
     qobject_cast<KLFLibBrowserViewContainer*>(u->tabResources->widget(tabIndex));
   if (viewc == NULL || tabIndex < 0) {
-    klfDbg( "\tNULL View or invalid tab index="<<tabIndex<<"." ) ;
+    emit resourceTabChanged(QUrl());
     return;
   }
 
   // redirect searches to the correct view
   u->searchBar->setSearchTarget(viewc);
-  u->searchBar->setFocusOutText("  "+tr("Hit Ctrl-F, Ctrl-S or / to search within the current resource"));
 
   klfDbg("setting up view type menu...") ;
 
@@ -711,6 +711,8 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
   if (view != NULL)
     slotEntriesSelected(view->selectedEntries());
   slotRefreshResourceActionsEnabled();
+
+  emit resourceTabChanged(viewc->url());
 }
 
 void KLFLibBrowser::slotShowTabContextMenu(const QPoint& pos)
@@ -798,14 +800,14 @@ void KLFLibBrowser::slotResourceRenameFinished()
   editor->deleteLater();
 }
 
-bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
+bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view, bool force)
 {
   if (view == NULL)
     view = curView();
   if (view == NULL)
     return false;
 
-  if (view->resourceRoleFlags() & NoCloseRoleFlag) // sorry, can't close.
+  if (!force && view->resourceRoleFlags() & NoCloseRoleFlag) // sorry, can't close.
     return false;
 
   klfDbg( "Close! resflags="<<view->resourceRoleFlags() ) ;
@@ -817,7 +819,7 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
     return false;
   }
 
-  if (klfconfig.LibraryBrowser.confirmClose) {
+  if (!force && klfconfig.LibraryBrowser.confirmClose) {
     // ask user for confirmation
     QMessageBox::StandardButton btn =
       QMessageBox::question(this, tr("Close Resource"), tr("Do you want to close this resource?"),
@@ -839,6 +841,7 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view)
 
   return true;
 }
+
 void KLFLibBrowser::slotResourceProperties()
 {
   KLFLibBrowserViewContainer *view = curView();
@@ -872,6 +875,56 @@ bool KLFLibBrowser::slotResourceNewSubRes()
   // in case of a view displaying all sub-resources, this also works because findOpenUrl() will find
   // that view and raise it.
   return openResource(url);
+}
+
+bool KLFLibBrowser::slotResourceDelSubRes()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLFLibBrowserViewContainer *viewc = curView();
+  KLF_ASSERT_NOT_NULL(viewc , "NULL View Container!" , return false; ) ;
+  KLFAbstractLibView *view = viewc->view();
+  KLF_ASSERT_NOT_NULL(view , "NULL View in container "<<viewc<<" !" , return false; ) ;
+  KLFLibResourceEngine *res = view->resourceEngine();
+  KLF_ASSERT_NOT_NULL(res , "NULL resource for view="<<view<<" !" , return false; ) ;
+
+  KLF_ASSERT_CONDITION( res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources ,
+			": Sub-resources not supported in resource "<<res->url()<<"!"
+			" Cannot delete sub-resource!",
+			return false; ) ;
+
+  QString curSubResource = res->defaultSubResource();
+  QString curSubResTitle = curSubResource;
+  if (res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResourceProps) {
+    QString t = res->subResourceProperty(curSubResource, KLFLibResourceEngine::SubResPropTitle).toString();
+    if (!t.isEmpty())
+      curSubResTitle = t;
+  }
+
+  // remove the current sub-resource: first ask user confirmation
+
+  QMessageBox::StandardButton btn =
+    QMessageBox::question(this, tr("Delete Sub-Resource", "[[msgbox title]]"),
+			  tr("Do you really want to delete the sub-resource <b>%1</b>, "
+			     "with all its contents, from resource <b>%2</b>?")
+			  .arg(curSubResTitle, displayTitle(res)),
+			  QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
+  if (btn != QMessageBox::Yes)
+    return false;
+
+  // now remove that sub-resource
+  bool result = res->deleteSubResource(curSubResource);
+
+  if (!result) {
+    // report failure
+    QMessageBox::critical(this, tr("Delete Sub-Resource", "[[msgbox title]]"),
+			  tr("Deleting sub-resource failed."));
+    return false;
+  }
+
+  // close the corresponding tab.
+  slotResourceClose(viewc, true);
+  return true;
 }
 
 bool KLFLibBrowser::slotResourceOpen()
@@ -1048,6 +1101,7 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
   bool canrenamesubres = false;
   bool cansaveto = false;
   bool cannewsubres = false;
+  bool candelsubres = false;
   uint resrolefl = 0;
   uint resfeatureflags = 0;
 
@@ -1061,6 +1115,8 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
     resrolefl = view->resourceRoleFlags();
     cannewsubres = (resfeatureflags & KLFLibResourceEngine::FeatureSubResources) &&
       (res->canCreateSubResource());
+    candelsubres = (resfeatureflags & KLFLibResourceEngine::FeatureSubResources) &&
+      res->canDeleteSubResource(res->defaultSubResource()) ;
     canrenamesubres = (resfeatureflags & KLFLibResourceEngine::FeatureSubResources) &&
       (resfeatureflags & KLFLibResourceEngine::FeatureSubResourceProps) &&
       res->canModifySubResourceProperty(res->defaultSubResource(),
@@ -1071,6 +1127,7 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
   u->aRenameSubRes->setEnabled(canrenamesubres);
   u->aProperties->setEnabled(master);
   u->aNewSubRes->setEnabled(master && cannewsubres);
+  u->aDelSubRes->setEnabled(master && candelsubres);
   u->aSaveTo->setEnabled(master && cansaveto);
   u->aNew->setEnabled(true);
   u->aOpen->setEnabled(true);
@@ -1083,7 +1140,7 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 {
   klfDbg( "KLFLibBrowser::slotEntriesSelected(): "<<entries ) ;
   if (entries.size()>=1)
-    klfDbg( "KLFLibBrowser::slotEntriesSelected():\tTag of first entry="
+    klfDbg( "KLFLibBrowser::slotEntriesSelected():\tTag of first selected entry="
 	    <<entries[0].property(KLFLibEntry::Tags) ) ;
 
   KLFAbstractLibView *view = curLibView();
@@ -1097,7 +1154,10 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
   u->btnDelete->setEnabled(entries.size() > 0);
   u->aDelete->setEnabled(u->btnDelete->isEnabled());
   u->btnRestore->setEnabled(entries.size() == 1);
+
+  emit libEntriesSelected(entries);
 }
+
 void KLFLibBrowser::slotAddCategorySuggestions(const QStringList& catlist)
 {
   klfDbg( "KLFLibBrowser: got category suggestions: "<<catlist ) ;

@@ -490,5 +490,81 @@ macro(KLFMakeAbsInstallPath abs_dir_var dir_var)
   endif(IS_ABSOLUTE "${${dir_var}}")
 endmacro(KLFMakeAbsInstallPath)
 
+#
+# Returns first element in list 'list' (variable name), but does not complain if list is empty.
+# If that is the case then 'var' is set to an empty string.
+#
+macro(KLFListHeadSafe list var)
+  if(${list})
+    list(GET ${list} 0 ${var})
+  else(${list})
+    set(${var} "")
+  endif(${list})
+endmacro(KLFListHeadSafe)
+
+#
+# like  file(RELATIVE_PATH )  but not quite as stupid as not to know that '.' entries in path have
+# no directory changing effect.
+#
+macro(KLFRelativePath var from_path to_path)
+
+  KLFCMakeDebug("var=${var} from_path=${from_path} to_path=${to_path}")
+
+  file(TO_CMAKE_PATH "${from_path}" klfRP_from_path)
+  file(TO_CMAKE_PATH "${to_path}" klfRP_to_path)
+
+  # Convert paths to lists of entries
+  string(REPLACE "/" ";" klfRP_from_path_split "${klfRP_from_path}")
+  string(REPLACE "/" ";" klfRP_to_path_split "${klfRP_to_path}")
+  # remove any '.' and '' entries from both lists
+  list(REMOVE_ITEM klfRP_from_path_split "." "")
+  list(REMOVE_ITEM klfRP_to_path_split "." "")
+  KLFCMakeDebug("Lists: ${klfRP_from_path_split} -> ${klfRP_to_path_split}")
+  # now remove common beginning items from both lists
+  # this is equivalent in thought to start at root dir, and chdir'ing to the next directory
+  # as long as both paths are in that same directory. We stop once both paths separate and are no
+  # longer in the same directory
+  KLFListHeadSafe(klfRP_from_path_split klfRP_from_first)
+  KLFListHeadSafe(klfRP_to_path_split klfRP_to_first)
+  while(klfRP_from_path_split AND klfRP_to_path_split AND klfRP_from_first STREQUAL "${klfRP_to_first}")
+    KLFCMakeDebug("Removing common item ${klfRP_from_first}==${klfRP_to_first}")
+    # remove first item from both lists
+    list(REMOVE_AT klfRP_from_path_split 0)
+    list(REMOVE_AT klfRP_to_path_split 0)
+    # and get the new first elements
+  KLFListHeadSafe(klfRP_from_path_split klfRP_from_first)
+  KLFListHeadSafe(klfRP_to_path_split klfRP_to_first)
+    KLFCMakeDebug("New first items are ${klfRP_from_first} and ${klfRP_to_first}")
+  endwhile(klfRP_from_path_split AND klfRP_to_path_split AND klfRP_from_first STREQUAL "${klfRP_to_first}")
+  # Prepare the relative string.
+  set(klfRP_relpath "")
+  # Start by adding '..' the needed number of times to get to the first common directory (beginning of list)
+  # - This is effectively done by replacing the directory names in from_path by '..'s  ...
+  string(REGEX REPLACE "[^;]+" ".." klfRP_ddots "${klfRP_from_path_split}")
+  # - ... and replacing the ';' list element separator by directory separators '/'
+  string(REPLACE ";" "/" klfRP_relpath "${klfRP_ddots}")
+  # Now prepare the path to the other location
+  string(REPLACE ";" "/" klfRP_otherpath "${klfRP_to_path_split}")
+
+  # And glue together the pieces
+  # - add a '/' if needed
+  if(klfRP_relpath AND klfRP_otherpath)
+    set(klfRP_relpath "${klfRP_relpath}/")
+  endif(klfRP_relpath AND klfRP_otherpath)
+  # - and concatenate both path segments
+  set(klfRP_relpath "${klfRP_relpath}${klfRP_otherpath}")
+
+  # make sure we are not returning an empty string (in case the user concatenates the result with a '/',
+  # which would make it an absolute path... not wanted)
+  if(NOT klfRP_relpath)
+    set(klfRP_relpath ".")
+  endif(NOT klfRP_relpath)
+  
+  # and save the result into the target variable
+  set(${var} "${klfRP_relpath}")
+
+  KLFCMakeDebug("Result is : ${klfRP_relpath}, saved in ${var}")
+
+endmacro(KLFRelativePath)
 
 

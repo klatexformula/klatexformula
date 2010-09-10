@@ -28,7 +28,7 @@
       </property>
       <layout class="QGridLayout" name="lyt_frmPreviews">
        <item row="0" column="1">
-        <widget class="QLabel" name="lblPreview">
+        <widget class="KLFDisplayLabel" name="lblPreview">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -142,7 +142,7 @@
          <x>0</x>
          <y>0</y>
          <width>308</width>
-         <height>193</height>
+         <height>174</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -247,8 +247,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>308</width>
-         <height>193</height>
+         <width>236</width>
+         <height>186</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -533,6 +533,11 @@
    <class>KLFLatexEdit</class>
    <extends>QTextEdit</extends>
    <header>klflatexedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KLFDisplayLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">klfdisplaylabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
