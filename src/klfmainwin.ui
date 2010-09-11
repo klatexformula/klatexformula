@@ -123,9 +123,6 @@
            <iconset resource="klfres.qrc">
             <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
           </property>
-          <property name="shortcut">
-           <string>Ctrl+C</string>
-          </property>
          </widget>
         </item>
         <item>
@@ -145,9 +142,6 @@
           <property name="icon">
            <iconset resource="klfres.qrc">
             <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string>Ctrl+C</string>
           </property>
          </widget>
         </item>

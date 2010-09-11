@@ -284,6 +284,8 @@ KLFMainWin::KLFMainWin()
 
   setFixedSize(_shrinkedsize);
 
+  u->btnEvaluate->installEventFilter(this);
+
 
   // Shortcut for quit
   new QShortcut(QKeySequence(tr("Ctrl+Q")), this, SLOT(quit()), SLOT(quit()),
@@ -1514,7 +1516,24 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
       }
     }
   }
-
+  if (obj == u->txtLatex || obj == u->btnEvaluate) {
+    if (e->type() == QEvent::KeyPress) {
+      QKeyEvent *ke = (QKeyEvent*) e;
+      QKeySequence seq = QKeySequence(ke->key() | ke->modifiers());
+      if (seq.matches(QKeySequence::Copy)) {
+	// copy key shortcut. Check if editor received the event, and if there is a selection
+	// in the editor. If there is a selection, let the editor copy it to clipboard. Otherwise
+	// we will copy our output
+	if (/*obj == u->txtLatex &&*/ u->txtLatex->textCursor().hasSelection()) {
+	  u->txtLatex->copy();
+	  return true;
+	} else {
+	  slotCopy();
+	  return true;
+	}
+      }
+    }
+  }
 
   // ----
   if ( obj->isWidgetType() && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
@@ -1882,6 +1901,7 @@ void KLFMainWin::slotEvaluate()
   }
 
   u->btnEvaluate->setEnabled(true); // re-enable our button
+  u->btnEvaluate->setFocus();
 }
 
 void KLFMainWin::slotClearLatex()

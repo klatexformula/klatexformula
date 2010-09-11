@@ -118,6 +118,7 @@ public:
   QString category() const { return _category; }
 
   // reimplemented from KLFIteratorSearchable
+
   virtual SearchIterator searchIterBegin() { return 0; }
   virtual SearchIterator searchIterEnd() { return mSymbols.size(); }
 

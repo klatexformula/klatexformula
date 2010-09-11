@@ -42,7 +42,8 @@
  * \brief Base declarations for klatexformula and some utilities
  *
  */
-/** \file klfdefs.h
+
+/** \file klfdebug.h
  * \brief Debugging utilities
  *
  */
@@ -220,7 +221,7 @@
  * \hideinitializer
  * \brief Assign a debugging ref-instance to a class instance
  *
- * The class declaration must contain a call to the \ref KLF_DEBUG_DECLARE_ASSIGNALBE_REF_INSTANCE() macro.
+ * The class declaration must contain a call to the \ref KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE() macro.
  *
  * Example usage:
  * \code
@@ -570,7 +571,10 @@
  *  - "dev" is INTERNAL versioning, should not be published, it means further development after
  *    the given version number; for the next release, a higher version number has to be
  *    decided upon.
+ *  - ... a few more, needs documentation ... 
  *  - unrecognized suffixes are compared lexicographically, case sensitive.
+ *
+ * \todo DOCUMENT the recognized suffixes
  *
  * Some examples:
  * <pre>   "3.1.0" < "3.1.2"

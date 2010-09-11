@@ -52,7 +52,7 @@
  * are provided, see KLFBackend::saveOutputToFile() and KLFBackend::saveOutputToDevice().
  *
  * All the core functionality is based in the class \ref KLFBackend . Some extra general utilities are
- * available in \ref klfdefs.h , such as klfVersionCompare(), \ref KLFSysInfo, \ref klfDbg(),
+ * available in \ref klfdefs.h , such as klfVersionCompare(), \ref KLFSysInfo, \ref klfDbg,
  * klfFmt(), klfSearchFind(), etc.
  *
  * This library will compile indifferently on QT 3 and QT 4 with the same source code.

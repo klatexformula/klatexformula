@@ -15,6 +15,10 @@ FILE(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
 STRING(REGEX REPLACE "\n" ";" files "${files}")
 
 
+message(STATUS "NOTE: If you have some error messages like \".... does not exist.\" ignore them, it's a bug 
+   in the build system")
+
+
 ## KLatexFormula: Some extra files to uninstall
 
 if(UNIX AND NOT KLF_MACOSX_BUNDLES)
@@ -47,3 +51,4 @@ FOREACH(file ${files})
     MESSAGE(STATUS "File \"$ENV{DESTDIR}${file}\" is not installed.")
   ENDIF(EXISTS "$ENV{DESTDIR}${file}")
 ENDFOREACH(file)
+
