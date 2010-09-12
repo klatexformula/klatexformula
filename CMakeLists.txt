@@ -205,9 +205,9 @@ KLFDeclareCacheVarOptionCondition(KLF_BUILD_GUI
 	${KLF_BUILD_TOOLS}                 # the default value at beginning (here this is a boolean)
 )
 if(KLF_BUILD_GUI)
-  message(STATUS "Will build the GUI interface (klftools+klfapp) (KLF_BUILD_GUI)")
+  message(STATUS "Will build the GUI interface (klatexformula, klfapp) (KLF_BUILD_GUI)")
 else(KLF_BUILD_GUI)
-  message(STATUS "Will not build the GUI interface (klftools+klfapp) (KLF_BUILD_GUI)")
+  message(STATUS "Will not build the GUI interface (klatexformula, klfapp) (KLF_BUILD_GUI)")
 endif(KLF_BUILD_GUI)
 
 
@@ -360,6 +360,14 @@ endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 if(KLF_DEBUG_USE_MODELTEST)
   message(STATUS "Will compile with QtLab's ModelTest for KLFLibModel testing (KLF_DEBUG_USE_MODELTEST)")
 endif(KLF_DEBUG_USE_MODELTEST)
+
+# Include some extra data files/fonts into KLatexFormula
+KLFGetCMakeVarChanged(KLF_INCLUDE_FONTS)
+set(KLF_INCLUDE_FONTS "data/cmunsi.otf;data/cmunso.otf;data/cmunss.otf;data/cmunsx.otf"
+  CACHE STRING "Include some extra fonts into KLF's internal resources (absolute or relative to src/)")
+message(STATUS "Will include fonts into klatexformula's resources: \"${KLF_INCLUDE_FONTS}\" (KLF_INCLUDE_FONTS)")
+mark_as_advanced(KLF_INCLUDE_FONTS)
+KLFCMakeSetVarChanged(KLF_INCLUDE_FONTS)
 
 # Current System OS
 if(APPLE)

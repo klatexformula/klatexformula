@@ -250,23 +250,31 @@ set(klatexformula_TSS
 set(klatexformula_QRCS
 	klfres.qrc
 )
-
 # Translations
 qt4_add_translation(klatexformula_QMS ${klatexformula_TSS})
-if(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
-  # nothing to do, .qrc is up-to-date !
-else(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
-  # re-build the klf_translations.qrc file
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "<RCC>\n  <qresource prefix=\"i18n\">")
-  foreach(qm ${klatexformula_QMS})
-    get_filename_component(baseqmname  "${qm}"  NAME)
-    file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc"
-	 "    <file alias=\"${baseqmname}\">${qm}</file>\n")
-  endforeach()
-  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc" "  </qresource>\n</RCC>\n")
-  set(cache_klatexformula_QMS "${klatexformula_QMS}" CACHE INTERNAL "List of translation files")
-endif(klatexformula_QMS STREQUAL cache_klatexformula_QMS)
-list(APPEND klatexformula_QRCS "${CMAKE_CURRENT_BINARY_DIR}/klf_translations.qrc")
+
+# build the klf_xtradata.qrc file
+set(klf_xtradata_res "${CMAKE_CURRENT_BINARY_DIR}/klf_xtradata.qrc")
+file(WRITE "${klf_xtradata_res}" "<RCC>\n  <qresource prefix=\"i18n\">")
+#  - add translations
+foreach(qm ${klatexformula_QMS})
+  get_filename_component(baseqmname  "${qm}"  NAME)
+  file(APPEND "${klf_xtradata_res}"    "    <file alias=\"${baseqmname}\">${qm}</file>\n")
+endforeach(qm)
+file(APPEND "${klf_xtradata_res}" "  </qresource>\n")
+#  - add fonts
+file(APPEND "${klf_xtradata_res}" "  <qresource prefix=\"data/fonts\">\n")
+foreach(fnt ${KLF_INCLUDE_FONTS})
+  get_filename_component(basefntname "${fnt}" NAME)
+  if(NOT IS_ABSOLUTE "${fnt}")
+    set(fnt "${CMAKE_CURRENT_SOURCE_DIR}/${fnt}")
+  endif(NOT IS_ABSOLUTE "${fnt}")
+  file(APPEND "${klf_xtradata_res}"   "    <file alias=\"${basefntname}\">${fnt}</file>\n")
+endforeach(fnt)
+file(APPEND "${klf_xtradata_res}" "  </qresource>\n")
+file(APPEND "${klf_xtradata_res}" "</RCC>\n")
+
+list(APPEND klatexformula_QRCS "${klf_xtradata_res}")
 
 
 qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
@@ -491,17 +499,34 @@ if(KLF_INSTALL_DESKTOP)
     "${CMAKE_BINARY_DIR}/src/klatexformula.desktop"
     @ONLY)
 
-  install(FILES "${CMAKE_BINARY_DIR}/src/klatexformula.desktop"
-	  DESTINATION "${KLF_INSTALL_SHARE_APPLICATIONS_DIR}"
-	  )
-  install(FILES   klatexformula-128.png
-		  klatexformula-64.png
-		  klatexformula-32.png
-		  klatexformula-16.png
-	  DESTINATION "${KLF_INSTALL_SHARE_PIXMAPS_DIR}"
-	  )
-  install(FILES "${CMAKE_SOURCE_DIR}/src/klatexformula-mime.xml"
-	  DESTINATION "${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}")
+  if(KLF_INSTALL_SHARE_APPLICATIONS_DIR)
+    install(FILES "${CMAKE_BINARY_DIR}/src/klatexformula.desktop"
+      DESTINATION "${KLF_INSTALL_SHARE_APPLICATIONS_DIR}"
+      )
+  endif(KLF_INSTALL_SHARE_APPLICATIONS_DIR)
+  if(KLF_INSTALL_SHARE_PIXMAPS_DIR)
+    install(FILES
+      klatexformula-128.png
+      klatexformula-64.png
+      klatexformula-32.png
+      klatexformula-16.png
+      DESTINATION "${KLF_INSTALL_SHARE_PIXMAPS_DIR}"
+      )
+  endif(KLF_INSTALL_SHARE_PIXMAPS_DIR)
+  if(KLF_INSTALL_ICON_THEME)
+    install(FILES klatexformula-128.png
+      DESTINATION "${KLF_INSTALL_ICON_THEME}/128x128/apps/" RENAME "klatexformula.png")
+    install(FILES klatexformula-64.png
+      DESTINATION "${KLF_INSTALL_ICON_THEME}/64x64/apps/" RENAME "klatexformula.png")
+    install(FILES klatexformula-32.png
+      DESTINATION "${KLF_INSTALL_ICON_THEME}/32x32/apps/" RENAME "klatexformula.png")
+    install(FILES klatexformula-16.png
+      DESTINATION "${KLF_INSTALL_ICON_THEME}/16x16/apps/" RENAME "klatexformula.png")
+  endif(KLF_INSTALL_ICON_THEME)
+  if(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+    install(FILES "${CMAKE_SOURCE_DIR}/src/klatexformula-mime.xml"
+      DESTINATION "${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}")
+  endif(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
 
   if(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
     install(CODE

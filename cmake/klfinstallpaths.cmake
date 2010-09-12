@@ -222,37 +222,57 @@ option(KLF_INSTALL_DESKTOP
   "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}"
   ${default_KLF_INSTALL_DESKTOP} )
 
-if(KLF_INSTALL_DESKTOP)
-  set(KLF_INSTALL_DESKTOP_CATEGORIES "Qt;Office;" CACHE STRING
-							  "Categories section in .desktop file")
-  set(KLF_INSTALL_SHARE_APPLICATIONS_DIR "share/applications/" CACHE STRING
-    "Where application .desktop links should be installed (relative to install prefix or absolute).")
-  set(KLF_INSTALL_SHARE_PIXMAPS_DIR "share/pixmaps/" CACHE STRING
-		"Where to place an application icon for klatexformula (default share/pixmaps/)")
-  set(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR "share/mime/packages/" CACHE STRING
-		    "Where to install mime database xml file(s) (default share/mime/packages)")
 
-  message(STATUS "Will install linux desktop files (KLF_INSTALL_DESKTOP):
-   .desktop categories:\t${KLF_INSTALL_DESKTOP_CATEGORIES}  (KLF_INSTALL_DESKTOP_CATEGORIES)
-   app .desktop files: \t${KLF_INSTALL_SHARE_APPLICATIONS_DIR}  (KLF_INSTALL_SHARE_APPLICATIONS_DIR)
-   pixmaps:            \t${KLF_INSTALL_SHARE_PIXMAPS_DIR}  (KLF_INSTALL_SHARE_PIXMAPS_DIR)
-   mime database xml:  \t${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}  (KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
-")
-
-  mark_as_advanced( KLF_INSTALL_DESKTOP_CATEGORIES
-		    KLF_INSTALL_SHARE_APPLICATIONS_DIR
-		    KLF_INSTALL_SHARE_PIXMAPS_DIR
-		    KLF_INSTALL_SHARE_MIME_PACKAGES_DIR
+set(KLF_INSTALL_DESKTOP_CATEGORIES "Qt;Office;" CACHE STRING
+  "Categories section in .desktop file")
+set(KLF_INSTALL_SHARE_APPLICATIONS_DIR "share/applications/" CACHE STRING
+  "(if KLF_INSTALL_DESKTOP) Where application .desktop links should be installed (relative to install prefix or absolute).")
+set(KLF_INSTALL_SHARE_PIXMAPS_DIR "share/pixmaps/" CACHE STRING
+  "(if KLF_INSTALL_DESKTOP) Where to place an application icon for klatexformula (default share/pixmaps/)")
+set(KLF_INSTALL_ICON_THEME "" CACHE STRING
+  "(if KLF_INSTALL_DESKTOP) Icons are to be installed in this desktop icon theme, eg. /usr/share/icons/hicolor")
+set(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR "share/mime/packages/" CACHE STRING
+  "(if KLF_INSTALL_DESKTOP) Where to install mime database xml file(s) (default share/mime/packages)")
+KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_APPLICATIONS_DIR KLF_INSTALL_SHARE_APPLICATIONS_DIR)
+KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_PIXMAPS_DIR KLF_INSTALL_SHARE_PIXMAPS_DIR)
+KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_MIME_PACKAGES_DIR KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+# Reasonable Icon= entry given the installation settings
+if(KLF_INSTALL_SHARE_PIXMAPS_DIR)
+  set(klf_icon "${KLF_ABS_INSTALL_SHARE_PIXMAPS_DIR}/klatexformula-64.png")
+else(KLF_INSTALL_SHARE_PIXMAPS_DIR)
+  set(klf_icon "klatexformula")
+endif(KLF_INSTALL_SHARE_PIXMAPS_DIR)
+#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
+KLFDeclareCacheVarOptionFollowComplexN(KLF_INSTALL_DESKTOP_ICON STRING "The Icon= entry of the .desktop file"
+  ON # updatenotice
+  "${klf_icon}" # calculated value
+  "KLF_INSTALL_SHARE_PIXMAPS_DIR;CMAKE_INSTALL_PREFIX" # dependency variables
   )
-  KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_APPLICATIONS_DIR KLF_INSTALL_SHARE_APPLICATIONS_DIR)
-  KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_PIXMAPS_DIR KLF_INSTALL_SHARE_PIXMAPS_DIR)
-  KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_MIME_PACKAGES_DIR KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+mark_as_advanced(
+  KLF_INSTALL_DESKTOP_CATEGORIES
+  KLF_INSTALL_DESKTOP_ICON
+  KLF_INSTALL_SHARE_APPLICATIONS_DIR
+  KLF_INSTALL_SHARE_PIXMAPS_DIR
+  KLF_INSTALL_SHARE_MIME_PACKAGES_DIR
+  KLF_INSTALL_ICON_THEME
+  )
+
+if(KLF_INSTALL_DESKTOP)
+  message(STATUS "Will install linux desktop files (KLF_INSTALL_DESKTOP):
+   .desktop categories:  \t${KLF_INSTALL_DESKTOP_CATEGORIES}  (KLF_INSTALL_DESKTOP_CATEGORIES)
+   .desktop Icon= entry: \t${KLF_INSTALL_DESKTOP_ICON}  (KLF_INSTALL_DESKTOP_ICON)
+   app .desktop files:   \t${KLF_INSTALL_SHARE_APPLICATIONS_DIR}  (KLF_INSTALL_SHARE_APPLICATIONS_DIR)
+   mime database xml:    \t${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}  (KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+   pixmaps:              \t${KLF_INSTALL_SHARE_PIXMAPS_DIR}  (KLF_INSTALL_SHARE_PIXMAPS_DIR)
+   icon theme:           \t${KLF_INSTALL_ICON_THEME}  (KLF_INSTALL_ICON_THEME)
+     All paths are absolute, or relative to CMAKE_INSTALL_PREFIX. Setting the corresponding variable
+     to an empty value disables that particular install.
+")
 else(KLF_INSTALL_DESKTOP)
   message(STATUS "Will not install linux desktop files (KLF_INSTALL_DESKTOP)")
 endif(KLF_INSTALL_DESKTOP)
 
 if(WIN32)
-
   option(KLF_INSTALL_QTLIBS "Copy Qt Libs next to installed executable" ON)
 
   if(KLF_INSTALL_QTLIBS)

@@ -34,3 +34,13 @@ REPORTING BUGS AND PROVIDING FEEDBACK
 Please report bugs and suggest features and improvements on the "Feedback"
 page of the wiki at
   http://klatexformula.sourceforge.net/klfwiki/index.php/Feedback
+
+
+LEGAL INFORMATION
+
+KLatexFormula is licensed under the GPL license, a copy of which is provided
+in the COPYING file.
+
+This source tarball contains fonts (Computer Modern Unicode Fonts in otf
+format) provided by Andrey V. Panov. The original copyright notice is
+provided in the file CMUFONTS_COPYRIGHT.

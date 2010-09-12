@@ -783,14 +783,10 @@ int main(int argc, char **argv)
 #endif
 
     // add our default application font(s) ;-)
-    const QStringList appFontsList =
-      QStringList() << ":/data/cmunsi.otf"
-		    << ":/data/cmunso.otf"
-		    << ":/data/cmunss.otf"
-		    << ":/data/cmunsx.otf" ;
+    QFileInfoList appFontsInfoList = QDir(":/data/fonts/").entryInfoList(QStringList()<<"*.otf"<<"*.ttf");
     int k;
-    for (k = 0; k < appFontsList.size(); ++k) {
-      QFontDatabase::addApplicationFont(appFontsList[k]);
+    for (k = 0; k < appFontsInfoList.size(); ++k) {
+      QFontDatabase::addApplicationFont(appFontsInfoList[k].absoluteFilePath());
     }
 
     // main_get_input relies on a Q[Core]Application
