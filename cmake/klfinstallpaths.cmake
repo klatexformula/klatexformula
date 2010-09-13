@@ -208,6 +208,9 @@ message(STATUS "Will install targets:
 
    Irrelevant settings, eg. installing os X bundles on linux, or KLF{TOOLS|APP} library install
    settings without the corresponding KLF_BUILD_KLF{TOOLS|GUI}, are ignored.
+
+   Set KLF_INSTALL_RUNTIME to install binaries, frameworks and shared libraries in general;
+   Set KLF_INSTALL_DEVEL to install static libraries and headers in general
 \n")
 
 
@@ -314,6 +317,11 @@ if(KLF_INSTALL_RUN_POST_INSTALL)
 else(KLF_INSTALL_RUN_POST_INSTALL)
   message(STATUS "Will NOT run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL)")
 endif(KLF_INSTALL_RUN_POST_INSTALL)
+
+
+# see klfdoxygen.cmake for installation instructions of doxygen api doc
+
+# ---------------------------------------------------
 
 
 macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
