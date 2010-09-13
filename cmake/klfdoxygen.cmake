@@ -133,7 +133,8 @@ if(KLF_INSTALL_APIDOC_DIR)
   add_dependencies(doc_all  doc_noautorebuild_klfbackend doc_noautorebuild_klftools doc_noautorebuild_klfapp)
 
   install(DIRECTORY "${KLF_APIDOC_DIR}/klfbackend" "${KLF_APIDOC_DIR}/klftools" "${KLF_APIDOC_DIR}/klfapp"
-    DESTINATION "${KLF_INSTALL_APIDOC_DIR}")
+    DESTINATION "${KLF_INSTALL_APIDOC_DIR}"
+    FILES_MATCHING REGEX "\\.(html|css|png|gif|jpe?g)$")
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/index.html" "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/f.gif"
     "${KLF_APIDOC_DIR}/klfbackend.tag" "${KLF_APIDOC_DIR}/klftools.tag" "${KLF_APIDOC_DIR}/klfapp.tag"
     DESTINATION "${KLF_INSTALL_APIDOC_DIR}")
