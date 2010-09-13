@@ -459,8 +459,8 @@ if(NOT KLF_MACOSX_BUNDLES)
   endif(KLF_INSTALL_KLATEXFORMULA_BIN)
   if(UNIX AND KLF_INSTALL_KLATEXFORMULA_CMDL)
     install(CODE
-	  "message(STATUS \"Creating Symlink ${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl -> klatexformula\")
-	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
+	  "message(STATUS \"Creating Symlink [\$ENV{DESTDIR}]${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl -> klatexformula\")
+	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"\$ENV{DESTDIR}${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
     )
   elseif(WIN32 AND KLF_INSTALL_KLATEXFORMULA_CMDL)
     # win32: no symlinks, we have to copy the binary
