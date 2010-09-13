@@ -134,8 +134,9 @@ if(KLF_INSTALL_APIDOC_DIR)
 
   install(DIRECTORY "${KLF_APIDOC_DIR}/klfbackend" "${KLF_APIDOC_DIR}/klftools" "${KLF_APIDOC_DIR}/klfapp"
     DESTINATION "${KLF_INSTALL_APIDOC_DIR}")
-  install(FILES "${KLF_APIDOC_DIR}/index.html" "${KLF_APIDOC_DIR}/f.gif" "${KLF_APIDOC_DIR}/klfbackend.tag"
-    "${KLF_APIDOC_DIR}/klftools.tag" "${KLF_APIDOC_DIR}/klfapp.tag" DESTINATION "${KLF_INSTALL_APIDOC_DIR}")
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/index.html" "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/f.gif"
+    "${KLF_APIDOC_DIR}/klfbackend.tag" "${KLF_APIDOC_DIR}/klftools.tag" "${KLF_APIDOC_DIR}/klfapp.tag"
+    DESTINATION "${KLF_INSTALL_APIDOC_DIR}")
 
 else(KLF_INSTALL_APIDOC_DIR)
   message(STATUS "Developer API documentation will not be installed (KLF_INSTALL_APIDOC_DIR)")

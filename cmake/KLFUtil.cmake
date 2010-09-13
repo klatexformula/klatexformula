@@ -164,11 +164,11 @@ macro(KLFGetCMakeVarChanged varname)
   if(NOT DEFINED klf_internal_${varname})
 
     set(klf_first_${varname} TRUE)
-    if(DEFINED varname)
+    if(DEFINED ${varname})
       set(klf_changed_${varname} TRUE)
-    else(DEFINED varname)
+    else(DEFINED ${varname})
       set(klf_changed_${varname} FALSE)
-    endif(DEFINED varname)
+    endif(DEFINED ${varname})
 
   else(NOT DEFINED klf_internal_${varname})
 
