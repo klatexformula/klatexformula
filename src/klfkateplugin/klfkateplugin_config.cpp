@@ -126,7 +126,7 @@ void KLFKteConfig::save()
   d->onlyLatexMode = u->chkOnlyLatexMode->isChecked();
   d->transparencyPercent = u->spnTransparency->value();
   d->preamble = u->txtPreamble->toPlainText();
-  d->klfpath = u->pathKLF->text();
+  d->klfpath = u->pathKLF->url().path();
   d->popupMaxSize = maxsizesteps[u->sldMaxSize->value()];
   d->popupLinks = u->chkPopupLinks->isChecked();
 
@@ -147,7 +147,7 @@ void KLFKteConfig::load()
   u->chkOnlyLatexMode->setChecked(d->onlyLatexMode);
   u->spnTransparency->setValue(d->transparencyPercent);
   u->txtPreamble->setPlainText(d->preamble);
-  u->pathKLF->setText(d->klfpath);
+  u->pathKLF->setUrl(QUrl::fromLocalFile(d->klfpath));
   int k = 0;
   while (k < maxsizesteps.size() && maxsizesteps[k].width() < d->popupMaxSize.width())
     ++k;
@@ -163,7 +163,7 @@ void KLFKteConfig::defaults()
   u->chkOnlyLatexMode->setChecked(true);
   u->spnTransparency->setValue(20);
   u->txtPreamble->setPlainText(klfkteDefaultPreamble);
-  u->pathKLF->setText(KStandardDirs::findExe("klatexformula"));
+  u->pathKLF->setUrl(QUrl::fromLocalFile(KStandardDirs::findExe("klatexformula")));
   int k = 0;
   while (k < maxsizesteps.size() && maxsizesteps[k].width() < 600)
     ++k;
