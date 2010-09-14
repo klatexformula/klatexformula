@@ -97,7 +97,9 @@ KLFKteConfig::KLFKteConfig(QWidget *parent, const QVariantList &args)
 
   // note: KLF_VERSION_STRING can be used only in KLF source. external code must
   // call klfVersion() instead.
-  u->lblTitle->setText(u->lblTitle->text().arg(KLF_VERSION_STRING));
+  // We could use KLF_VERSION_STRING here but in order to allow for this plugin to
+  // compile separately from main build, we use klfVersion()
+  u->lblTitle->setText(u->lblTitle->text().arg(klfVersion()));
   
   u->sldMaxSize->setMinimum(0);
   u->sldMaxSize->setMaximum(maxsizesteps.size()-1);

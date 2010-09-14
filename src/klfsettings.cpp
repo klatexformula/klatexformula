@@ -194,7 +194,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   a = new QAction(this);
   vmap["Action"] = "TT";
   vmap["Font"] = klfconfig.defaultTTFont;
-  vmap["Button"] = QVariant("EditorFont");
+  vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
   pFontSetActions << a;
@@ -202,7 +202,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   a = new QAction(this);
   vmap["Action"] = "CMU";
   vmap["Font"] = klfconfig.defaultCMUFont;
-  vmap["Button"] = QVariant("EditorFont");
+  vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
   pFontSetActions << a;
@@ -210,7 +210,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   a = new QAction(this);
   vmap["Action"] = "Std";
   vmap["Font"] = klfconfig.defaultStdFont;
-  vmap["Button"] = QVariant("EditorFont");
+  vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
   pFontSetActions << a;

@@ -267,6 +267,9 @@ SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
 TAGFILES               = apidoc/qt4.tag=http://doc.trolltech.com/4.6 \
 			 @KLF_APIDOC_DIR@/klfbackend.tag=../../klfbackend/html
+# We NEED to generate a tagfile, as it is the tagfile that is used as
+# output name in CMake's compilation command definitions
+# Plus, klfapp links to this tagfile
 GENERATE_TAGFILE       = @KLF_APIDOC_DIR@/klftools.tag
 ALLEXTERNALS           = NO
 EXTERNAL_GROUPS        = YES

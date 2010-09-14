@@ -6,13 +6,24 @@
 
 # KLatexFormula KTextEditor Plugin
 
+# NOTE: This CMakeLists.txt can either be included from the root CMakeLists.txt
+#       to build the plugin, or the plugin can also be built separately by
+#       calling directly this CMakeLists.txt as root build script, eg.
+#         > cd src/klfkateplugin/
+#         > mkdir build && cd build
+#         build> cmake .. && make
+#
+
 message(STATUS "")
 message(STATUS "[KDE4 SETTINGS (for kate plugin)]")
 
+if(NOT KLF_ROOT_CMAKE_READ)
+  include(../../cmake/KLFUtil.cmake)
+endif(NOT KLF_ROOT_CMAKE_READ)
+
 macro(klf_nokde4)
   set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build KTextEditor plugin" FORCE)
-  KLFNote(
-   "KDE4 is required to build KTextEditor plugin.
+  KLFNote("KDE4 is required to build KTextEditor plugin.
     The plugin has been disabled (KLF_BUILD_KTEXTEDITORPLUGIN).
     Please re-run cmake to continue.")
   message(FATAL_ERROR "KDE4 not found.")
@@ -53,6 +64,8 @@ if(KLF_LIBKLFBACKEND_STATIC)
   # sources for this target.
   get_target_property(klfbackend_sources klfbackend SOURCES)
   foreach(klfbackend_sourcefile ${klfbackend_sources})
+    # TODO: this assumes that absolute paths are auto-generated sources (moc) and relative are
+    #       real sources...
     if(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
       set(ktexteditor_klf_PART_SRCS ${ktexteditor_klf_PART_SRCS}
 				    "${CMAKE_SOURCE_DIR}/src/klfbackend/${klfbackend_sourcefile}")
@@ -67,10 +80,13 @@ kde4_add_plugin(ktexteditor_klf ${ktexteditor_klf_PART_SRCS} )
 
 target_link_libraries(ktexteditor_klf ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS}
 				       -lktexteditor )
-if(NOT KLF_LIBKLFBACKEND_STATIC)
+if(KLF_ROOT_CMAKE_READ AND NOT KLF_LIBKLFBACKEND_STATIC)
   # link to our klfbackend
   target_link_libraries(ktexteditor_klf  klfbackend)
-endif(NOT KLF_LIBKLFBACKEND_STATIC)
+elseif(NOT KLF_ROOT_CMAKE_READ)
+  # link to external klfbackend, we are being compiled externally
+  target_link_libraries(ktexteditor_klf  -lklfbackend)
+endif(KLF_ROOT_CMAKE_READ AND NOT KLF_LIBKLFBACKEND_STATIC)
 
 install(TARGETS ktexteditor_klf DESTINATION "${PLUGIN_INSTALL_DIR}" )
 

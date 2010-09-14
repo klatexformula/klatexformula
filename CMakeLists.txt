@@ -12,6 +12,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+set(KLF_ROOT_CMAKE_READ TRUE CACHE INTERNAL "Can be queried to see if the root CMakeLists.txt was read")
+
 # Read project version
 file(READ "VERSION" klf_ver)
 string(STRIP "${klf_ver}" KLF_VERSION)
@@ -448,10 +450,40 @@ endif(KLF_MACOSX_BUNDLES)
 include(klfcpack)
 
 
+# Some Basic Compilation Definitions
+# ----------------------------------
+
+# Preprocessor instructions
+add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}"
+		-DKLF_VERSION_MAJ=${KLF_VERSION_MAJ}
+		-DKLF_VERSION_MIN=${KLF_VERSION_MIN}
+		-DKLF_VERSION_REL=${KLF_VERSION_REL}
+		-DKLF_SRC_BUILD
+		-DKLF_CMAKE_ARCH="${KLF_CMAKE_ARCH}")
+if(KLF_USE_QT4)
+  add_definitions(-DKLFBACKEND_QT4)
+endif(KLF_USE_QT4)
+# Add flags for DEBUG build configuration
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+if(KLF_DEBUG)
+  add_definitions(-DKLF_DEBUG)
+else(KLF_DEBUG)
+  # Instruct Qt to ignore qDebug() for RELEASE build configuration (if not KLF_DEBUG)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT")
+endif(KLF_DEBUG)
+
 
 # Main subdirectory with all sources
 # ----------------------------------
 add_subdirectory(src)
+
+# Build KDE KTextEditor Plugin
+# This can't be called from src/CMakeLists.txt because the ktexteditor plugin can
+# be build with just klfbackend and no gui.
+if(KLF_BUILD_KTEXTEDITORPLUGIN)
+  add_subdirectory(src/klfkateplugin)
+endif(KLF_BUILD_KTEXTEDITORPLUGIN)
+
 
 
 message(STATUS "")
