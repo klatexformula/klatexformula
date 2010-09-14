@@ -455,7 +455,7 @@ QString KLFSearchBar::palettePropName(SearchState state) const
   default:
     qWarning()<<KLF_FUNC_NAME<<": invalid state: "<<state;
   }
-  return QString(NULL);
+  return QString();
 }
 // private
 QString KLFSearchBar::statePropValue(SearchState state) const
