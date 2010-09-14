@@ -465,7 +465,11 @@ protected:
   /** The Thread that will create real-time previews of formulas. */
   KLFPreviewBuilderThread *mPreviewBuilderThread;
 
-  KLFBackend::klfInput collectInput();
+  /** Returns the input corresponding to the current GUI state. If \c isFinal is TRUE, then
+   * the input data may be "remembered" as used (the exact effect depends on the setting), eg.
+   * math mode is memorized into combo box choices. Typically \c isFinal is TRUE when called
+   * from slotEvaluate() and FALSE when called to update the preview builder thread. */
+  KLFBackend::klfInput collectInput(bool isFinal);
 
   QList<QAction*> pExportProfileQuickMenuActionList;
 

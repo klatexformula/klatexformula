@@ -323,6 +323,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       res.errorstr = QObject::tr("Can't read file '%1'!\n", "KLFBackend").arg(fnRawEps);
       return res;
     }
+    /** \todo Hi-Res bounding box adjustment. Shouldn't be too hard to do, but needs tests to see
+     * how this works... [ Currently: only integer-valued BoundingBox: is adjusted. ] */
     QByteArray epscontent = epsfile.readAll();
 #ifdef KLFBACKEND_QT4
     QByteArray epscontent_s = epscontent;
@@ -350,9 +352,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       return res;
     }
     // grow bbox by settings.Xborderoffset points
-    // Don't forget: '%' in printf has special meaning (!)
-    sprintf(temp, "%%%%BoundingBox: %d %d %d %d", ax-settings.lborderoffset, ay-settings.bborderoffset,
-	    bx+settings.rborderoffset, by+settings.tborderoffset);
+    // Don't forget: '%' in printf has special meaning (!) -> double percent signs '%'->'%%'
+    sprintf(temp, "%%%%BoundingBox: %d %d %d %d",
+	    (int)(ax-settings.lborderoffset+0.5),
+	    (int)(ay-settings.bborderoffset+0.5),
+	    (int)(bx+settings.rborderoffset+0.5),
+	    (int)(by+settings.tborderoffset+0.5));
     QString chunk = QString::fromLocal8Bit(epscontent_s.data()+k);
     QRegExp rx("^%%BoundingBox: [0-9]+ [0-9]+ [0-9]+ [0-9]+");
     rx.rx_indexin(chunk);

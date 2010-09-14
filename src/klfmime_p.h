@@ -48,6 +48,8 @@ public:
   KLFMimeExporterImage(QObject *parent) : QObject(parent) { }
   virtual ~KLFMimeExporterImage() { }
 
+  virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterImage"); }
+
   virtual QStringList keys() const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
@@ -66,6 +68,8 @@ class KLF_EXPORT KLFMimeExporterUrilist : public QObject, public KLFMimeExporter
 public:
   KLFMimeExporterUrilist(QObject *parent) : QObject(parent) { }
   virtual ~KLFMimeExporterUrilist() { }
+
+  virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterUrilist"); }
 
   virtual QStringList keys() const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
@@ -87,11 +91,29 @@ public:
   KLFMimeExporterLibFmts(QObject *parent) : QObject(parent) { }
   virtual ~KLFMimeExporterLibFmts() { }
 
+  virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterLibFmts"); }
+
   virtual QStringList keys() const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
 };
 
+
+
+
+/** Alien equations ;) */
+class KLFMimeExporterGlowImage : public QObject, public KLFMimeExporter
+{
+  Q_OBJECT
+public:
+  KLFMimeExporterGlowImage(QObject *parent) : QObject(parent) { }
+
+  virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterGlowImage"); }
+
+  virtual QStringList keys() const;
+  virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+
+};
 
 
 #endif

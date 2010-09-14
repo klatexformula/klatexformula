@@ -144,14 +144,22 @@ public:
      * be reported as real errors. */
     QString epstopdfexec;
 
-    /** The number of postscript points to add to top side of the resulting EPS boundingbox */
-    int tborderoffset;
-    /** The number of postscript points to add to right side of the resulting EPS boundingbox */
-    int rborderoffset;
-    /** The number of postscript points to add to bottom side of the resulting EPS boundingbox */
-    int bborderoffset;
-    /** The number of postscript points to add to left side of the resulting EPS boundingbox */
-    int lborderoffset;
+    /** The number of postscript points to add to top side of the resulting EPS boundingbox.
+     * \note Currently this value is rounded off to the nearest integer. The type \c double is
+     *   just an anticipation of hi-resolution bounding box adjustment. */
+    double tborderoffset;
+    /** The number of postscript points to add to right side of the resulting EPS boundingbox
+     * \note Currently this value is rounded off to the nearest integer. The type \c double is
+     *   just an anticipation of hi-resolution bounding box adjustment. */
+    double rborderoffset;
+    /** The number of postscript points to add to bottom side of the resulting EPS boundingbox
+     * \note Currently this value is rounded off to the nearest integer. The type \c double is
+     *   just an anticipation of hi-resolution bounding box adjustment. */
+    double bborderoffset;
+    /** The number of postscript points to add to left side of the resulting EPS boundingbox
+     * \note Currently this value is rounded off to the nearest integer. The type \c double is
+     *   just an anticipation of hi-resolution bounding box adjustment. */
+    double lborderoffset;
 
     /** Strip away fonts in favor of vectorially outlining them with gs.
      *

@@ -159,11 +159,10 @@ public:
 
   struct {
 
-    bool thisVersionFirstRun;
-
-  } General;
-
-  struct {
+    bool thisVersionMajFirstRun;
+    bool thisVersionMajMinFirstRun;
+    bool thisVersionMajMinRelFirstRun;
+    bool thisVersionExactFirstRun;
 
     /** The library file name, relative to homeConfigDir. */
     QString libraryFileName;
@@ -197,6 +196,7 @@ public:
     bool glowEffect;
     QColor glowEffectColor;
     int glowEffectRadius;
+    QStringList customMathModes;
 
   } UI;
 
@@ -218,10 +218,10 @@ public:
     QString execDvips;
     QString execGs;
     QString execEpstopdf;
-    int lborderoffset;
-    int tborderoffset;
-    int rborderoffset;
-    int bborderoffset;
+    double lborderoffset;
+    double tborderoffset;
+    double rborderoffset;
+    double bborderoffset;
     bool outlineFonts;
 
   } BackendSettings;

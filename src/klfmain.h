@@ -102,10 +102,32 @@ public:
    *
    * This list stores full file names relative to plugin dir in add-on (e.g. \c "libskin.so" or
    * \c "linux-x86-klf3.1.1/libskin.so") .
+   *
+   * See also \ref localPluginList().
    */
-  QStringList pluginList() { return d->pluginList; }
+  QStringList pluginList() const { return d->pluginList; }
 
   PluginSysInfo pluginSysInfo(const QString& plugin) const { return d->plugins[plugin]; }
+
+  QString pluginLocalSubDirName(const QString& plugin) const
+  {
+    if ( ! d->plugins[plugin].klfminversion.isEmpty() )
+      return QString("klf%1").arg(d->plugins[plugin].klfminversion);
+    return QString(".");
+  }
+
+  /** A list of locally (ie. in <tt>~/.klatexformula/plugins/</tt>) installed plugins coming
+   * from this add-on.
+   *
+   * The path is relative to <tt>~/.klatexformula/plugins/</tt>. */
+  QStringList localPluginList() const
+  {
+    QStringList lplugins;
+    for (int k = 0; k < d->pluginList.size(); ++k)
+      lplugins << pluginLocalSubDirName(d->pluginList[k])+"/"+QFileInfo(d->pluginList[k]).fileName();
+    return lplugins;
+  }
+
 
   /** The list of translation files provided by this add-on (list of files \c ":/i18n/<b></b>*.qm")
    * This list stores full file names without the path (e.g. \c "klf_fr.qm") */

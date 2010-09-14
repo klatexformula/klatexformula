@@ -48,7 +48,7 @@ static const char * __klf_share_dir =
 #ifdef KLF_SHARE_DIR  // defined by the build system
 	KLF_SHARE_DIR;
 #elif defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
-	"..";   // note: program is in a bin/ directory by default (this is for installer)
+	"..";   // note: program is in a bin/ directory by default (this is for nsis-installer)
 #elif defined(Q_WS_MAC) // Mac OS X
 	"../Resources";
 #else  // unix-like system
@@ -75,31 +75,33 @@ KLFConfig klfconfig;
 
 
 
-void settings_write_QTextCharFormat(QSettings& s, const QString& basename,
-				    const QTextCharFormat& charfmt)
-{
+/*void settings_write_QTextCharFormat(QSettings& s, const QString& basename,
+  const QTextCharFormat& charfmt)
+  {
   s.setValue(basename+"_charformat", charfmt);
-}
-QTextCharFormat settings_read_QTextCharFormat(QSettings& s, const QString& basename,
-					      const QTextCharFormat& dflt)
+  }
+*/
+static QTextCharFormat settings_read_QTextCharFormat(QSettings& s, const QString& basename,
+						     const QTextCharFormat& dflt)
 {
   QVariant val = s.value(basename+"_charformat", dflt);
   QTextFormat tf = val.value<QTextFormat>();
   return tf.toCharFormat();
 }
+/*
+ template<class T>
+ void settings_write_list(QSettings& s, const QString& basename, const QList<T>& list)
+ {
+ QList<QVariant> l;
+ int k;
+ for (k = 0; k < list.size(); ++k)
+ l.append(QVariant(list[k]));
+ s.setValue(basename+"_list", l);
+ }
+*/
 
 template<class T>
-void settings_write_list(QSettings& s, const QString& basename, const QList<T>& list)
-{
-  QList<QVariant> l;
-  int k;
-  for (k = 0; k < list.size(); ++k)
-    l.append(QVariant(list[k]));
-  s.setValue(basename+"_list", l);
-}
-
-template<class T>
-QList<T> settings_read_list(QSettings& s, const QString& basename, const QList<T>& dflt)
+static QList<T> settings_read_list(QSettings& s, const QString& basename, const QList<T>& dflt)
 {
   QList<QVariant> l = s.value(basename+"_list", QList<QVariant>()).toList();
   if (l.size() == 0)
@@ -201,7 +203,10 @@ void KLFConfig::loadDefaults()
     fcodeMain.setPointSize(ps+1);
 
     // by default, this is first run!
-    General.thisVersionFirstRun = true;
+    Core.thisVersionMajFirstRun = true;
+    Core.thisVersionMajMinFirstRun = true;
+    Core.thisVersionMajMinRelFirstRun = true;
+    Core.thisVersionExactFirstRun = true;
 
     Core.libraryFileName = "library.klf.db";
     Core.libraryLibScheme = "klf+sqlite";
@@ -242,6 +247,7 @@ void KLFConfig::loadDefaults()
     UI.glowEffect = false;
     UI.glowEffectColor = QColor(128, 255, 128, 12);
     UI.glowEffectRadius = 4;
+    UI.customMathModes = QStringList();
 
     SyntaxHighlighter.configFlags = 0x05;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
@@ -410,13 +416,19 @@ static void klf_config_write_list(QSettings &s, const QString& baseName, const Q
   klf_config_write(s, baseName, &vlist);
 }
 
-static QString firstRunConfigKey()
+static QString firstRunConfigKey(int N)
 {
-  // new version, eg. show the "What's new in this version" dialog, requires change
-  // of at least the minor version.
-  // eg. change 3.1 -> 3.2
-  // but not 3.2.0 -> 3.2.1
-  return QString("versionFirstRun_%1.%2").arg(klfVersionMaj()).arg(klfVersionMin());
+  QString s = QString("versionFirstRun-%1_").arg(N);
+  if (N >= 4)
+    return s + QLatin1String(KLF_VERSION_STRING);
+
+  if (N-- > 0)
+    s += QString("%1").arg(KLF_VERSION_MAJ);
+  if (N-- > 0)
+    s += QString(".%1").arg(KLF_VERSION_MIN);
+  if (N-- > 0)
+    s += QString(".%1").arg(KLF_VERSION_REL);
+  return s;
 }
 
 int KLFConfig::readFromConfig_v2()
@@ -427,11 +439,11 @@ int KLFConfig::readFromConfig_v2()
 
   qDebug("Reading base configuration");
 
-  s.beginGroup("General");
-  klf_config_read(s, firstRunConfigKey(), &General.thisVersionFirstRun);
-  s.endGroup();
-
   s.beginGroup("Core");
+  klf_config_read(s, firstRunConfigKey(1), &Core.thisVersionMajFirstRun);
+  klf_config_read(s, firstRunConfigKey(2), &Core.thisVersionMajMinFirstRun);
+  klf_config_read(s, firstRunConfigKey(3), &Core.thisVersionMajMinRelFirstRun);
+  klf_config_read(s, firstRunConfigKey(4), &Core.thisVersionExactFirstRun);
   klf_config_read(s, "libraryfilename", &Core.libraryFileName);
   klf_config_read(s, "librarylibscheme", &Core.libraryLibScheme);
   s.endGroup();
@@ -461,6 +473,7 @@ int KLFConfig::readFromConfig_v2()
   klfDbg("Read glow effect color from config: color="<<UI.glowEffectColor
 	 <<", alpha="<<UI.glowEffectColor.alpha());
   klf_config_read(s, "gloweffectradius", &UI.glowEffectRadius);
+  klf_config_read(s, "custommathmodes", &UI.customMathModes);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -538,11 +551,12 @@ int KLFConfig::writeToConfig()
   QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
 
   bool thisVersionFirstRunFalse = false;
-  s.beginGroup("General");
-  klf_config_write(s, firstRunConfigKey(), &thisVersionFirstRunFalse);
-  s.endGroup();
 
   s.beginGroup("Core");
+  klf_config_write(s, firstRunConfigKey(1), &thisVersionFirstRunFalse);
+  klf_config_write(s, firstRunConfigKey(2), &thisVersionFirstRunFalse);
+  klf_config_write(s, firstRunConfigKey(3), &thisVersionFirstRunFalse);
+  klf_config_write(s, firstRunConfigKey(4), &thisVersionFirstRunFalse);
   klf_config_write(s, "libraryfilename", &Core.libraryFileName);
   klf_config_write(s, "librarylibscheme", &Core.libraryLibScheme);
   s.endGroup();
@@ -570,6 +584,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "gloweffect", &UI.glowEffect);
   klf_config_write(s, "gloweffectcolor", &UI.glowEffectColor);
   klf_config_write(s, "gloweffectradius", &UI.glowEffectRadius);
+  klf_config_write(s, "custommathmodes", &UI.customMathModes);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");

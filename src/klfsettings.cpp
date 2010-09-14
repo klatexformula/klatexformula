@@ -668,6 +668,11 @@ void KLFSettings::removePlugin()
 void KLFSettings::removePlugin(const QString& fname)
 {
   int k;
+  klfDbg("removing plugin "<<fname<<" from plugins. Dumping plugin list: ");
+  for (k = 0; k < klf_plugins.size(); ++k) {
+    klfDbg("  --> plugin: fname="<<klf_plugins[k].fname) ;
+  }
+
   for (k = 0; k < klf_plugins.size() && klf_plugins[k].fname != fname; ++k)
     ;
   if (k < 0 || k >= klf_plugins.size()) {
@@ -877,8 +882,8 @@ void KLFSettings::removeAddOn()
   confirmdlg.setWindowTitle(tr("Remove Add-On?"));
   confirmdlg.setText(tr("<qt>Are you sure you want to remove Add-On <i>%1</i>?</qt>")
 		     .arg(klf_addons[k].title()));
-  confirmdlg.setDetailedText(tr("The Add-On File %1 will be removed from disk.")
-			     .arg(klf_addons[k].fpath()));
+  confirmdlg.setDetailedText(tr("The Add-On File %1 will be removed from disk, along with plugin(s) %2.")
+			     .arg(klf_addons[k].fpath(), klf_addons[k].localPluginList().join(", ")));
   confirmdlg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
   confirmdlg.setEscapeButton(QMessageBox::Cancel);
   confirmdlg.setDefaultButton(QMessageBox::Cancel);
@@ -902,8 +907,9 @@ void KLFSettings::removeAddOn()
   }
 
   // remove all corresponding plug-ins
-  for (j = 0; j < klf_addons[k].pluginList().size(); ++j)
-    removePlugin(klf_addons[k].pluginList()[j]);
+  QStringList lplugins = klf_addons[k].localPluginList();
+  for (j = 0; j < lplugins.size(); ++j)
+    removePlugin(QFileInfo(lplugins[j]).fileName());
 
   klf_addons.removeAt(k);
 

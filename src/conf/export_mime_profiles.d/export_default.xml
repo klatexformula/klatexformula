@@ -7,7 +7,7 @@
     <description xml:lang="fr">Par défaut</description>
       
     <export-type><mime-type>image/png</mime-type></export-type>
-    <export-type>
+    <export-type><exporter-name>KLFMimeExporterImage</exporter-name>
       <mime-type>application/x-openoffice-drawing;windows_formatname="Drawing Format"</mime-type>
     </export-type>
 
@@ -53,6 +53,13 @@
     <description xml:lang="fr">Format dessin OpenOffice.org</description>
     <export-type>
       <mime-type>application/x-openoffice-drawing;windows_formatname="Drawing Format"</mime-type>
+    </export-type>
+  </profile>
+
+  <profile name="glow">
+    <description>Alien Glow Image</description>
+    <export-type><exporter-name>KLFMimeExporterGlowImage</exporter-name>
+      <mime-type>application/x-qt-image</mime-type>
     </export-type>
   </profile>
 

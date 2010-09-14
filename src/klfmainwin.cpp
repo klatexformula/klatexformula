@@ -319,6 +319,9 @@ KLFMainWin::KLFMainWin()
   // initialize the margin unit selector
   u->cbxMarginsUnit->setCurrentUnitAbbrev("pt");
 
+  // set custom math modes
+  u->cbxMathMode->addItems(klfconfig.UI.customMathModes);
+
   // load library
   mLibBrowser = new KLFLibBrowser(this);
 
@@ -354,7 +357,7 @@ KLFMainWin::KLFMainWin()
 
   // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
 
-  mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(), _settings,
+  mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(false), _settings,
 						      klfconfig.UI.labelOutputFixedSize.width(),
 						      klfconfig.UI.labelOutputFixedSize.height());
 
@@ -418,7 +421,7 @@ KLFMainWin::KLFMainWin()
   mHelpLinkActions << HelpLinkAction("/popup", this, "slotPopupAction", true);
   mHelpLinkActions << HelpLinkAction("/settings", this, "showSettingsHelpLinkAction", true);
 
-  if ( klfconfig.General.thisVersionFirstRun && ! klfconfig.checkExePaths() ) {
+  if ( klfconfig.Core.thisVersionMajMinFirstRun && ! klfconfig.checkExePaths() ) {
     addWhatsNewText("<p><b><span style=\"color: #a00000\">"+
 		    tr("Your executable paths (latex, dvips, gs) seem not to be detected properly. "
 		       "Please adjust the settings in the <a href=\"klfaction:/settings?control="
@@ -627,7 +630,7 @@ void KLFMainWin::saveSettings()
     if ( ! mPreviewBuilderThread->isRunning() ) {
       delete mPreviewBuilderThread;
       mPreviewBuilderThread =
-	new KLFPreviewBuilderThread(this, collectInput(), _settings,
+	new KLFPreviewBuilderThread(this, collectInput(false), _settings,
 				    klfconfig.UI.labelOutputFixedSize.width(),
 				    klfconfig.UI.labelOutputFixedSize.height());
       mPreviewBuilderThread->start();
@@ -637,7 +640,7 @@ void KLFMainWin::saveSettings()
       delete mPreviewBuilderThread;
       // do NOT leave a NULL mPreviewBuilderThread !
       mPreviewBuilderThread =
-	new KLFPreviewBuilderThread(this, collectInput(), _settings,
+	new KLFPreviewBuilderThread(this, collectInput(false), _settings,
 				    klfconfig.UI.labelOutputFixedSize.width(),
 				    klfconfig.UI.labelOutputFixedSize.height());
     }
@@ -1641,7 +1644,7 @@ void KLFMainWin::showEvent(QShowEvent *e)
     _firstshow = false;
     // if it's the first time we're run, 
     // show the what's new if needed.
-    if ( klfconfig.General.thisVersionFirstRun ) {
+    if ( klfconfig.Core.thisVersionMajMinFirstRun ) {
       QMetaObject::invokeMethod(this, "showWhatsNew", Qt::QueuedConnection);
     }
   }
@@ -1727,7 +1730,7 @@ void KLFMainWin::displayError(const QString& error)
 
 void KLFMainWin::updatePreviewBuilderThreadInput()
 {
-  bool reallyinputchanged = mPreviewBuilderThread->inputChanged(collectInput());
+  bool reallyinputchanged = mPreviewBuilderThread->inputChanged(collectInput(false));
   if (reallyinputchanged) {
     _evaloutput_uptodate = false;
   }
@@ -1755,7 +1758,7 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
 
 }
 
-KLFBackend::klfInput KLFMainWin::collectInput()
+KLFBackend::klfInput KLFMainWin::collectInput(bool final)
 {
   // KLFBackend input
   KLFBackend::klfInput input;
@@ -1763,8 +1766,9 @@ KLFBackend::klfInput KLFMainWin::collectInput()
   input.latex = u->txtLatex->toPlainText();
   if (u->chkMathMode->isChecked()) {
     input.mathmode = u->cbxMathMode->currentText();
-    if (u->cbxMathMode->findText(input.mathmode) == -1) {
+    if (final && u->cbxMathMode->findText(input.mathmode) == -1) {
       u->cbxMathMode->addItem(input.mathmode);
+      klfconfig.UI.customMathModes.append(input.mathmode);
     }
   } else {
     input.mathmode = "...";
@@ -1789,15 +1793,15 @@ void KLFMainWin::slotEvaluate()
   u->btnEvaluate->setEnabled(false); // don't allow user to click us while we're not done, and
   //				     additionally this gives visual feedback to the user
 
-  input = collectInput();
+  input = collectInput(true);
 
   KLFBackend::klfSettings settings = _settings;
   // see if we need to override settings
   if (u->gbxOverrideMargins->isChecked()) {
-    settings.tborderoffset = int(u->spnMarginTop->valueInRefUnit() + 0.5);
-    settings.rborderoffset = int(u->spnMarginRight->valueInRefUnit() + 0.5);
-    settings.bborderoffset = int(u->spnMarginBottom->valueInRefUnit() + 0.5);
-    settings.lborderoffset = int(u->spnMarginLeft->valueInRefUnit() + 0.5);
+    settings.tborderoffset = u->spnMarginTop->valueInRefUnit();
+    settings.rborderoffset = u->spnMarginRight->valueInRefUnit();
+    settings.bborderoffset = u->spnMarginBottom->valueInRefUnit();
+    settings.lborderoffset = u->spnMarginLeft->valueInRefUnit();
   }
 
   // and GO !

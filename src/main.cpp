@@ -526,10 +526,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	   psinfo.arch == KLFSysInfo::arch() ) {
 	// ok to install plugin
 	QString resfn = klf_addons[k].rccmountroot() + "/plugins/" + pluginList[j];
-	QString locsubdir = "";
-	if (!psinfo.klfminversion.isEmpty()) {
-	  locsubdir = QString("klf%1/").arg(psinfo.klfminversion);
-	}
+	QString locsubdir = klf_addons[k].pluginLocalSubDirName(pluginList[j]);
 	QString locfn = klfconfig.homeConfigDirPlugins + "/" + locsubdir
 	  + QFileInfo(pluginList[j]).fileName();
 	QDateTime installedplugin_dt = QFileInfo(locfn).lastModified();
@@ -620,8 +617,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       }
       // plugin file successfully loaded.
       QString nm = pluginInstance->pluginName();
-      qDebug("Successfully loaded plugin library %s (%s)", qPrintable(nm),
-	      qPrintable(pluginInstance->pluginDescription()));
+      qDebug("Successfully loaded plugin library %s (%s) from file %s", qPrintable(nm),
+	     qPrintable(pluginInstance->pluginDescription()), qPrintable(pluginfname));
 
       if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
 	// create default plugin configuration if non-existant
