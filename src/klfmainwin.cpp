@@ -2252,7 +2252,7 @@ void KLFMainWin::slotDrag()
   QDrag *drag = new QDrag(this);
   KLFMimeData *mime = new KLFMimeData(klfconfig.UI.dragExportProfile, _output);
 
-  /** \bug .... DEBUG ... */
+  /** \bug .... Temporary solution for mac os X ... */
 #ifdef Q_WS_MAC
   mime->setImageData(_output.result);
 #endif

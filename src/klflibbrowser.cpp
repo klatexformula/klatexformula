@@ -1654,7 +1654,7 @@ void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, con
   klfDbg( ": min,max="<<progressReporter->min()<<","<<progressReporter->max()
 	  <<"; text="<<text ) ;
 
-  KLFProgressDialog *pdlg = new KLFProgressDialog(false, this);
+  KLFProgressDialog *pdlg = new KLFProgressDialog(false, QString(), this);
 
   pdlg->startReportingProgress(progressReporter, text);
 

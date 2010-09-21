@@ -177,9 +177,8 @@ public:
   KLFProgressDialog(QString labelText = QString(), QWidget *parent = NULL);
 
   /** Build a progress dialog with a cancel button that is enabled or disabled (following the
-   * value of \c canCancel), with label \c labelText, and parent \c parent.
-    */
-  KLFProgressDialog(bool canCancel, QString labelText = QString(), QWidget *parent = NULL);
+   * value of \c canCancel), with label \c labelText, and parent \c parent. */
+  KLFProgressDialog(bool canCancel, QString labelText, QWidget *parent);
 
   virtual ~KLFProgressDialog();
 
