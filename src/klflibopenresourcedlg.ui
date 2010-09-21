@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>542</width>
-    <height>383</height>
+    <width>547</width>
+    <height>275</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,6 +61,12 @@
    </item>
    <item row="2" column="0" colspan="2">
     <widget class="QStackedWidget" name="stkOpenWidgets">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <widget class="QWidget" name="pageDummy"/>
     </widget>
    </item>
@@ -76,9 +82,6 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Preferred</enum>
-     </property>
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
@@ -89,6 +92,12 @@
    </item>
    <item row="3" column="0" colspan="2">
     <widget class="QFrame" name="frmSubResource">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
      </property>
@@ -108,7 +117,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="lblSubResource">
         <property name="text">
-         <string>Open Sub-Resource:</string>
+         <string>Sub-Resource:</string>
         </property>
        </widget>
       </item>

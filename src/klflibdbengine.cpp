@@ -104,6 +104,7 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& givenurl, QObject *parent)
 
   if (url.hasQueryItem("klfDefaultSubResource")) {
     QString defaultsubres = url.queryItemValue("klfDefaultSubResource");
+    // force lower-case default sub-resource
     url.removeAllQueryItems("klfDefaultSubResource");
     url.addQueryItem("klfDefaultSubResource", defaultsubres.toLower());
   }
@@ -115,11 +116,16 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& givenurl, QObject *parent)
     dburl.removeAllQueryItems("klfReadOnly");
     accessshared = false;
     QString dburlstr = dburl.toString();
+    QString path = klfUrlLocalFilePath(dburl);
+    if (dburlstr.isEmpty() || !QFile::exists(path)) {
+      QMessageBox::critical(0, tr("Error"),
+			    tr("Database file <b>%1</b> does not exist.").arg(path));
+      return NULL;
+    }
     db = QSqlDatabase::database(dburlstr);
     if ( ! db.isValid() ) {
       // connection not already open
       db = QSqlDatabase::addDatabase("QSQLITE", dburl.toString());
-      QString path = klfUrlLocalFilePath(dburl);
       db.setDatabaseName(path);
       if ( !db.open() || db.lastError().isValid() ) {
 	QMessageBox::critical(0, tr("Error"),
@@ -141,6 +147,9 @@ KLFLibDBEngine * KLFLibDBEngine::openUrl(const QUrl& givenurl, QObject *parent)
 KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QString& sresname,
 					      const QString& srestitle, QObject *parent)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbgSt("fileName="<<fileName<<", sresname="<<sresname<<", srestitle="<<srestitle) ;
+
   QString subresname = sresname;
   QString subrestitle = srestitle;
 
@@ -172,11 +181,17 @@ KLFLibDBEngine * KLFLibDBEngine::createSqlite(const QString& fileName, const QSt
 
   if (subresname.isEmpty()) {
     subresname = "table1";
-    subrestitle = "Table 1";
+    if (subrestitle.isEmpty()) {
+      subrestitle = "Table 1";
+    }
   }
+  if (subrestitle.isEmpty())
+    subrestitle = subresname;
+
   url.addQueryItem("klfDefaultSubResource", subresname);
   if (subresname.contains("\"")) {
     // SQLite table name cannot contain double-quote char (itself is used to escape the table name!)
+    qWarning()<<KLF_FUNC_NAME<<"\" character is not allowed in SQLITE database tables (<-> library sub-resources).";
     return NULL;
   }
 
@@ -840,7 +855,7 @@ QList<QVariant> KLFLibDBEngine::queryValues(const QString& subResource, int entr
   KLF_ASSERT_CONDITION( validDatabase() , "Database connection not valid!" ,
 			return QList<QVariant>() ) ;
 
-  if (!pDBAvailColumns.contains(subResource)) {
+  if (!pDBAvailColumns.contains(subResource) || !hasSubResource(subResource)) {
     qWarning()<<KLF_FUNC_NAME<<": bad sub-resource: "<<subResource;
     return QVariantList();
   }
@@ -853,8 +868,8 @@ QList<QVariant> KLFLibDBEngine::queryValues(const QString& subResource, int entr
   }
   pname = dummye.propertyNameForId(entryPropId);
   if (!pDBAvailColumns[subResource].contains(pname)) {
-    qWarning()<<KLF_FUNC_NAME<<": property "<<pname<<" is not available in tables (avail are "
-	      <<pDBAvailColumns[subResource]<<"!";
+    qWarning()<<KLF_FUNC_NAME<<": property "<<pname<<" is not available in tables for sub-res "<<subResource
+	      <<" (avail are "<<pDBAvailColumns[subResource]<<")";
     return QVariantList();
   }
 
@@ -971,7 +986,7 @@ bool KLFLibDBEngine::canCreateSubResource() const
 bool KLFLibDBEngine::canDeleteSubResource(const QString& subResource) const
 {
   if (baseCanModifyStatus(true, subResource) == MS_CanModify)
-    if (tableExists(subResource))
+    if (tableExists(subResource) && subResourceList().size() > 1)
       return true;
 
   return false;
@@ -1763,6 +1778,9 @@ KLFLibResourceEngine *KLFLibDBEngineFactory::createResource(const QString& schem
     defsubres = "entries";
   if (defsubrestitle.isEmpty())
     defsubrestitle = tr("Default Table", "[[default sub-resource title]]");
+
+  // ensure that the sub-resource (internal) name conforms to standard characters
+  defsubres = KLFLibNewSubResDlg::makeSubResInternalName(defsubres);
 
   if ( !parameters.contains("Filename") ) {
     qWarning()

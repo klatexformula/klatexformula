@@ -63,6 +63,8 @@ public:
   {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
+    KLF_DEBUG_WATCH_OBJECT(this) ;
+
     pResFlags = 0x0;
 
     pViewTypeActionGroup = new QActionGroup(this);
@@ -97,9 +99,12 @@ public:
   }
   virtual ~KLFLibBrowserViewContainer()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   }
 
   QUrl url() const {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     KLFAbstractLibView * view = qobject_cast<KLFAbstractLibView*>(currentWidget());
     if (view == NULL)
       return QUrl();
@@ -126,6 +131,8 @@ public:
   uint resourceRoleFlags() const { return pResFlags; }
 
   QVariantMap saveGuiState() const {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     QVariantMap v;
     QVariantList vlist; // will hold QVariantMap's of each view's state
     QString curViewTypeIdent;
@@ -198,13 +205,15 @@ public:
       openView(curvti);
   }
 
-  QMenu * createOpenSubResourceMenu(QMenu *menuparent)
+  QList<QAction*> openSubResourceActions()
   {
-    if ( ! (pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) )
-      return NULL;
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-    QMenu *menu = new QMenu(menuparent);
-    //    QSignalMapper *signalMapper = new QSignalMapper(menu);
+    if ( ! (pResource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) )
+      return QList<QAction*>();
+
+    QList<QAction*> actions;
+
     QStringList subreslist = pResource->subResourceList();
     QUrl baseurl = pResource->url();
     int k;
@@ -216,16 +225,28 @@ public:
       else
 	t = subreslist[k];
 
-      QAction *a = new QAction(t, menu);
       QUrl url = baseurl;
       url.addQueryItem("klfDefaultSubResource", subreslist[k]);
-      a->setData(url.toString());
-      connect(a, SIGNAL(triggered()), this, SLOT(internalRequestOpenSubResourceSender()));
-      menu->addAction(a);
-    }
-    //    connect(signalMapper, SIGNAL(mapped(const QString&)), this, SIGNAL(requestOpenUrl(const QString&)));
+      QString urlstr = url.toString();
 
-    return menu;
+      QAction *a = NULL;
+      if (pOpenSubResActionCache.contains(urlstr)) {
+	klfDbg("re-using action for url="<<urlstr<<" from our local action cache") ;
+	a = pOpenSubResActionCache[urlstr];
+      } else {
+	klfDbg("creating action for url="<<urlstr<<", it is not yet in our local action cache...") ;
+	a = new QAction(t, this);
+	a->setData(url.toString());
+	connect(a, SIGNAL(triggered()), this, SLOT(internalRequestOpenSubResourceSender()));
+	pOpenSubResActionCache[urlstr] = a;
+	KLF_DEBUG_WATCH_OBJECT(a) ;
+      }
+      actions << a;
+      klfDbg(pResource->url().toString()<<": Added action for sub-resource "<<subreslist[k]<<": url is "
+	     <<a->data().toString()) ;
+    }
+
+    return actions;
   }
 
 public slots:
@@ -258,6 +279,8 @@ public slots:
 	defview->setGroupSubCategories(klfconfig.LibraryBrowser.groupSubCategories);
       }
     }
+
+    KLF_DEBUG_WATCH_OBJECT(v) ;
 
     v->setContextMenuPolicy(Qt::CustomContextMenu);
     // get informed about selection changes
@@ -364,6 +387,8 @@ protected slots:
   }
 
   void slotCurrentChanged(int index) {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     KLFAbstractLibView *v = view();
     if (v == NULL) {
       setSearchTarget(NULL);
@@ -382,11 +407,11 @@ protected slots:
 
   void internalRequestOpenSubResourceSender()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     QAction * a = qobject_cast<QAction*>(sender());
-    if (a == NULL) {
-      qWarning()<<KLF_FUNC_NAME<<": Sender action is NULL";
-      return;
-    }
+    KLF_ASSERT_NOT_NULL( a, "Sender action is NULL", return ) ;
+
     emit requestOpenUrl(a->data().toString());
   }
 
@@ -405,12 +430,17 @@ protected:
   uint pResFlags;
 
   int findViewTypeAction(const QString& vtype) {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     int k;
     for (k = 0; k < pViewTypeActions.size(); ++k)
       if (pViewTypeActions[k]->data().toString() == vtype)
 	return k;
     return -1;
   }
+
+  // re-use "open sub-resource ->" actions within multiple menu appearances
+  QMap<QString,QAction*> pOpenSubResActionCache;
 };
 
 
@@ -557,6 +587,7 @@ public:
 protected slots:
   void slotPageInserted(int index, const QIcon& icon, const QString& text)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     QAction *a = new QAction(pActionGroup);
     a->setIcon(icon);
     a->setText(text);
@@ -569,6 +600,7 @@ protected slots:
   }
   void slotPageRemoved(int index)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     if (index >= 0 && index < actions().size())
       removeAction(actions()[index]);
   }

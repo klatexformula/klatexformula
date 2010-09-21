@@ -1045,6 +1045,12 @@ public:
    */
   static QString createSubResourceIn(KLFLibResourceEngine *resource, QWidget *parent = 0);
 
+  /** Choose a nice internal name for the given title. Only "nice" characters will be
+   * used in the return value, namely \c "[A-Za-z0-9_]".
+   *
+   * If \c title only consists of allowed characters, it is returned unchanged. */
+  static QString makeSubResInternalName(const QString& title);
+
 private slots:
   void on_txtTitle_textChanged(const QString& text);
   void on_txtName_textChanged(const QString& text);

@@ -173,12 +173,11 @@ list(REMOVE_ITEM klfapp_INSTHEADERS
 # --------------
 
 if(KLF_LIBKLFTOOLS_STATIC)
-  # let main() know it has to initialize klftools' resource with
-  # Q_INIT_RESOURCE(klftoolsres)
+  # let main() know it has to initialize klftools' resource with  Q_INIT_RESOURCE(klftoolsres)
   add_definitions(-DKLF_LIBKLFTOOLS_STATIC)
 endif(KLF_LIBKLFTOOLS_STATIC)
 
-# Don't use CMAKE_INSTALL_PREFIX as it is irrelevant for windows installers
+# Don't use CMAKE_INSTALL_PREFIX itself, as it is irrelevant for windows installers
 # we need relative path
 KLFRelativePath(klf_share_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${CMAKE_INSTALL_PREFIX}")
 KLFRelativePath(klf_share_rccresources_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${KLF_ABS_INSTALL_RCCRESOURCES_DIR}")

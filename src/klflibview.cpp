@@ -1680,7 +1680,7 @@ QVariant KLFLibModel::data(const QModelIndex& index, int role) const
     if (role == entryItemRole(KLFLibEntry::Category))
       return entry.category();
     if (role == entryItemRole(KLFLibEntry::Tags))
-      //      return klf_debug_tee( entry.tags() );
+      //      return KLF_DEBUG_TEE( entry.tags() );
       return entry.tags();
     if (role == entryItemRole(KLFLibEntry::PreviewSize))
       return entry.previewSize();
@@ -1816,7 +1816,7 @@ QModelIndex KLFLibModel::parent(const QModelIndex &index) const
   KLFLibModelCache::Node n = pCache->getNode(p);
   if ( ! n.parent.valid() ) // invalid parent (should never happen!)
     return QModelIndex();
-  return klf_debug_tee( pCache->createIndexFromId(n.parent, -1 /* figure out row */, 0) ) ;
+  return KLF_DEBUG_TEE( pCache->createIndexFromId(n.parent, -1 /* figure out row */, 0) ) ;
 }
 int KLFLibModel::rowCount(const QModelIndex &parent) const
 {
@@ -3097,6 +3097,8 @@ uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) cons
     }
   }
 
+  klfDbg( "and the final resultFlags are"<<klfFmtCC("%#010x",resultFlags) ) ;
+
   return resultFlags;
 }
 
@@ -3960,6 +3962,8 @@ QUrl KLFLibOpenResourceDlg::queryOpenResource(const QUrl& defaultlocation, QWidg
 KLFLibCreateResourceDlg::KLFLibCreateResourceDlg(const QString& defaultWtype, QWidget *parent)
   : QDialog(parent)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   pUi = new Ui::KLFLibOpenResourceDlg;
   pUi->setupUi(this);
   setWindowIcon(QPixmap(":/pics/klatexformula-64.png"));
@@ -3994,6 +3998,7 @@ KLFLibCreateResourceDlg::KLFLibCreateResourceDlg(const QString& defaultWtype, QW
 
     connect(createResWidget, SIGNAL(readyToCreate(bool)),
 	    this, SLOT(updateReadyToCreateFromSender(bool)));
+    klfDbg("Added create-res-widget of type "<<wtypeList[k]) ;
   }
 
   pUi->cbxType->setCurrentIndex(defaultIndex);
@@ -4009,6 +4014,8 @@ KLFLibCreateResourceDlg::~KLFLibCreateResourceDlg()
 
 KLFLibEngineFactory::Parameters KLFLibCreateResourceDlg::getCreateParameters() const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   int k = pUi->cbxType->currentIndex();
   QString wtype = pUi->cbxType->itemData(k).toString();
   KLFLibWidgetFactory *factory
@@ -4016,6 +4023,10 @@ KLFLibEngineFactory::Parameters KLFLibCreateResourceDlg::getCreateParameters() c
   Parameters p = factory->retrieveCreateParametersFromWidget(wtype, pUi->stkOpenWidgets->widget(k));
   p["klfWidgetType"] = wtype;
   p["klfDefaultSubResource"] = pUi->cbxSubResource->currentText();
+  p["klfDefaultSubResourceTitle"] = pUi->cbxSubResource->currentText();
+
+  klfDbg("Create parameters are: "<<p) ;
+
   return p;
 }
 
@@ -4277,9 +4288,12 @@ void KLFLibResPropEditor::updateSubResources(const QString& curSubRes)
     int k;
     int curSubResIndex = 0;
     for (k = 0; k < subResList.size(); ++k) {
-      QString title
+      QString title;
+      QString thissrtitle
 	= pResource->subResourceProperty(subResList[k], KLFLibResourceEngine::SubResPropTitle).toString();
-      if (title.isEmpty())
+      if (!thissrtitle.isEmpty())
+	title = QString("%1 (%2)").arg(thissrtitle, subResList[k]);
+      else
 	title = subResList[k];
       U->cbxSubResource->addItem(title, subResList[k]);
       if (subResList[k] == curSubRes)
@@ -4535,21 +4549,27 @@ QString KLFLibNewSubResDlg::newSubResourceTitle() const
   return u->txtTitle->text();
 }
 
+// static
+QString KLFLibNewSubResDlg::makeSubResInternalName(const QString& title)
+{
+  QString nm = title;
+  // replace "string of words-hello" with "stringOfWordsHello"
+  QRegExp rx("(?:\\s|-)([a-z])");
+  int i;
+  while ((i = rx.indexIn(nm,i+1)) >= 0) {
+    QChar c = rx.cap(1).length() ? rx.cap(1)[0] : QChar('_');
+    nm.replace(i, rx.matchedLength(), c.toUpper());
+  }
+  nm.replace(QRegExp("\\s"), "");
+  nm.replace(QRegExp("[^A-Za-z0-9_]"), "_");
+  return nm;
+}
+
 void KLFLibNewSubResDlg::on_txtTitle_textChanged(const QString& text)
 {
   if (isAutoName) {
-    QString nm = text;
-    // replace "string of words" into "stringOfWords"
-    QRegExp rx("(\\s|-)[a-z]");
-    int i;
-    while ((i = rx.indexIn(nm,i+1)) >= 0) {
-      nm.replace(i, 2, nm[i+1].toUpper());
-      --i; // effectively removed one char, compensate
-    }
-    nm.replace(QRegExp("\\s"), "");
-    nm.replace(QRegExp("[^A-Za-z0-9_]"), "_");
     u->txtName->blockSignals(true);
-    u->txtName->setText(nm);
+    u->txtName->setText(makeSubResInternalName(text));
     u->txtName->blockSignals(false);
   }
 }

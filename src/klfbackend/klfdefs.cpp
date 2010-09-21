@@ -30,6 +30,7 @@
 #include <qfile.h>
 #include <qfileinfo.h>
 #include <qregexp.h>
+#include <qapplication.h>
 
 #ifdef KLFBACKEND_QT4
 #include <QDebug>
@@ -374,7 +375,7 @@
  *   do what the above note said).
  */
 
-/** \def klf_debug_tee
+/** \def KLF_DEBUG_TEE
  * \hideinitializer
  * \brief Print the value of expression and return it
  *
@@ -384,7 +385,7 @@
  *
  * Very useful for debugging return values, eg.
  * \code
- *   return klf_debug_tee(result);
+ *   return KLF_DEBUG_TEE(result);
  * \endcode
  * effectively does
  * \code
@@ -731,7 +732,32 @@ KLF_EXPORT int klfVersionRelease()
 
 
 
-// declared in klfdefs.h
+// declared in klfdebug.h
+
+
+// static
+KLFDebugObjectWatcher *KLFDebugObjectWatcher::instance = NULL;
+// static
+KLFDebugObjectWatcher *KLFDebugObjectWatcher::getWatcher()
+{
+  if (instance == NULL)
+    instance = new KLFDebugObjectWatcher;
+  return instance;
+}
+
+KLFDebugObjectWatcher::KLFDebugObjectWatcher()
+  : QObject(qApp)
+{
+}
+KLFDebugObjectWatcher::~KLFDebugObjectWatcher()
+{
+}
+void KLFDebugObjectWatcher::debugObjectDestroyed(QObject *object)
+{
+  klfDbg("Object destroyed: "<<object<<"; object variable name is "<<refInfos.value(object)) ;
+}
+
+
 
 KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
 {

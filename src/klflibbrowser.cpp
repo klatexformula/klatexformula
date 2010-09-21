@@ -54,6 +54,8 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
 #endif
 	    , Qt::Window)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   u = new Ui::KLFLibBrowser;
   u->setupUi(this);
   u->tabResources->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -185,6 +187,8 @@ KLFLibBrowser::~KLFLibBrowser()
 
 bool KLFLibBrowser::eventFilter(QObject *obj, QEvent *ev)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if (obj->property("resourceTitleEditor").toBool() == true) {
     if (ev->type() == QEvent::FocusOut) {
       obj->deleteLater(); // if lost focus, cancel...
@@ -222,7 +226,7 @@ int KLFLibBrowser::currentUrlIndex()
 QUrl KLFLibBrowser::currentUrl()
 {
   int i = currentUrlIndex();
-  if (i < 0)
+  if (i < 0 || i >= pLibViews.size())
     return QUrl();
   return pLibViews[i]->url();
 }
@@ -335,6 +339,10 @@ void KLFLibBrowser::loadGuiState(const QVariantMap& v, bool openURLs)
 // static
 QString KLFLibBrowser::displayTitle(KLFLibResourceEngine *resource)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLF_ASSERT_NOT_NULL( resource, "Resource is NULL!", return QString() ) ;
+
   QString basestr;
   if (resource->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) {
     QString subresourcetitle = resource->defaultSubResource();
@@ -356,6 +364,7 @@ QString KLFLibBrowser::displayTitle(KLFLibResourceEngine *resource)
 KLFLibBrowserViewContainer * KLFLibBrowser::findOpenUrl(const QUrl& url)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klfDbg( "\turl is "<<url ) ;
   int k;
   for (k = 0; k < pLibViews.size(); ++k) {
@@ -374,6 +383,8 @@ KLFLibBrowserViewContainer * KLFLibBrowser::findOpenUrl(const QUrl& url)
 
 KLFLibBrowserViewContainer * KLFLibBrowser::findOpenResource(KLFLibResourceEngine *resource)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   int k;
   for (k = 0; k < pLibViews.size(); ++k)
     if (pLibViews[k]->resourceEngine() == resource)
@@ -422,7 +433,7 @@ bool KLFLibBrowser::openResource(const QString& url, uint resourceRoleFlags,
 bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
 				 const QString& viewTypeIdentifier)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"(QUrl,uint,QString)") ;
   klfDbg( " url="<<url.toString()<<"; resroleflags="<<resourceRoleFlags
 	  <<"; vtypeidentifier="<<viewTypeIdentifier ) ;
 
@@ -453,7 +464,7 @@ bool KLFLibBrowser::openResource(const QUrl& url, uint resourceRoleFlags,
 bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRoleFlags,
 				 const QString& viewTypeIdentifier)
 {
-  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"(KLFLibResourceEngine*,uint,QString)") ;
   klfDbg( "\topening resource url="
 	  <<resource->url(KLFLibResourceEngine::WantUrlDefaultSubResource).toString() ) ;
 
@@ -599,7 +610,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
 
 bool KLFLibBrowser::openResourceFromGuiState(const QUrl& url, const QVariantMap& guiState)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   // peek into GUI state to open the correct view
   QString vti = guiState.value(QLatin1String("CurrentViewTypeIdentifier")).toString();
   klfDbg("view-type-identifier is "<<vti<<"; guiState is "<<guiState) ;
@@ -616,6 +627,8 @@ bool KLFLibBrowser::openResourceFromGuiState(const QUrl& url, const QVariantMap&
 
 bool KLFLibBrowser::closeResource(const QUrl& url)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFLibBrowserViewContainer * w = findOpenUrl(url);
   if (w == NULL)
     return false;
@@ -626,6 +639,8 @@ bool KLFLibBrowser::closeResource(const QUrl& url)
 
 void KLFLibBrowser::updateResourceRoleFlags(KLFLibBrowserViewContainer *viewc, uint resroleflags)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLF_ASSERT_NOT_NULL(viewc, "the viewc parameter is null!", return; ) ;
 
   if (resroleflags & NoChangeFlag)
@@ -668,6 +683,7 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg( "\t tabIndex="<<tabIndex ) ;
+
   KLFLibBrowserViewContainer * viewc =
     qobject_cast<KLFLibBrowserViewContainer*>(u->tabResources->widget(tabIndex));
   if (viewc == NULL || tabIndex < 0) {
@@ -682,29 +698,33 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 
   // set up view type menu appropriately
   QList<QAction*> actions = viewc->viewTypeActions();
-  QMenu *menu = new QMenu(this);
+  QMenu *viewTypeMenu = u->aViewType->menu();
+  if (viewTypeMenu == NULL) {
+    viewTypeMenu = new QMenu(this);
+    u->aViewType->setMenu(viewTypeMenu);
+    KLF_DEBUG_WATCH_OBJECT(viewTypeMenu) ;
+  }
+  viewTypeMenu->clear();
   int k;
   for (k = 0; k < actions.size(); ++k) {
-    menu->addAction(actions[k]);
+    viewTypeMenu->addAction(actions[k]);
   }
-  // and replace the old menu with the new one.
-  QMenu *oldmenu = u->aViewType->menu();
-  if (oldmenu != NULL) {
-    u->aViewType->setMenu(NULL);
-    delete oldmenu;
-  }
-  u->aViewType->setMenu(menu);
 
-  oldmenu = u->aOpenSubRes->menu();
-  if (oldmenu != NULL) {
-    u->aOpenSubRes->setMenu(NULL);
-    delete oldmenu;
+  QMenu * openSubResMenu = u->aOpenSubRes->menu();
+  if (openSubResMenu == NULL) {
+    openSubResMenu = new QMenu(this);
+    u->aOpenSubRes->setMenu(openSubResMenu);
+    KLF_DEBUG_WATCH_OBJECT(openSubResMenu) ;
   }
-  menu = viewc->createOpenSubResourceMenu(pResourceMenu);
-  u->aOpenSubRes->setMenu(menu);
-  if (menu == NULL)
+  openSubResMenu->clear();
+  QList<QAction*> openSubResActions = viewc->openSubResourceActions();
+  for (k = 0; k < openSubResActions.size(); ++k) {
+    openSubResMenu->addAction(openSubResActions[k]);
+  }
+  if (openSubResActions.size() > 0)
+    u->aOpenSubRes->setEnabled(true);
+  else
     u->aOpenSubRes->setEnabled(false);
-
 
   // refresh selection-related displays
   KLFAbstractLibView *view = viewc->view();
@@ -717,6 +737,8 @@ void KLFLibBrowser::slotTabResourceShown(int tabIndex)
 
 void KLFLibBrowser::slotShowTabContextMenu(const QPoint& pos)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   int tab = u->tabResources->getTabAtPoint(pos);
   if (tab != -1) {
     u->tabResources->setCurrentIndex(tab);
@@ -734,6 +756,9 @@ void KLFLibBrowser::slotResourceRenameSubResource()
 }
 void KLFLibBrowser::slotResourceRename(bool renamingSubResource)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("renamingSubResource="<<renamingSubResource) ;
+
   int tab = u->tabResources->currentIndex();
   KLFLibBrowserViewContainer * viewc = curView();
   if (tab < 0 || viewc == NULL)
@@ -777,6 +802,8 @@ void KLFLibBrowser::slotResourceRename(bool renamingSubResource)
 
 void KLFLibBrowser::slotResourceRenameFinished()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QObject * editor = sender();
   if (editor == NULL) {
     qWarning("KLFLibBrowser::slotResourceRenameFinished: no sender!");
@@ -802,6 +829,8 @@ void KLFLibBrowser::slotResourceRenameFinished()
 
 bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view, bool force)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if (view == NULL)
     view = curView();
   if (view == NULL)
@@ -844,6 +873,8 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view, bool for
 
 void KLFLibBrowser::slotResourceProperties()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFLibBrowserViewContainer *view = curView();
   if (view == NULL) {
     qWarning("KLFLibBrowser::slotResourceProperties: NULL View!");
@@ -855,6 +886,8 @@ void KLFLibBrowser::slotResourceProperties()
 
 bool KLFLibBrowser::slotResourceNewSubRes()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFLibBrowserViewContainer *view = curView();
   if (view == NULL) {
     qWarning("KLFLibBrowser::slotResourceProperties: NULL View!");
@@ -889,9 +922,17 @@ bool KLFLibBrowser::slotResourceDelSubRes()
   KLF_ASSERT_NOT_NULL(res , "NULL resource for view="<<view<<" !" , return false; ) ;
 
   KLF_ASSERT_CONDITION( res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources ,
-			": Sub-resources not supported in resource "<<res->url()<<"!"
+			"Sub-resources are not supported in resource "<<res->url()<<"!"
 			" Cannot delete sub-resource!",
 			return false; ) ;
+
+  if (res->subResourceList().size() <= 1) {
+    QMessageBox::warning(this, tr("Error"),
+			 tr("You may not delete the last remaining sub-resource of this resource."));
+    klfDbg("Attempted to delete last remaining sub-resource"<<res->defaultSubResource()<<" of resource "
+	   <<res->url()<<". Not allowed.") ;
+    return false;
+  }
 
   QString curSubResource = res->defaultSubResource();
   QString curSubResTitle = curSubResource;
@@ -929,6 +970,8 @@ bool KLFLibBrowser::slotResourceDelSubRes()
 
 bool KLFLibBrowser::slotResourceOpen()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QUrl url = KLFLibOpenResourceDlg::queryOpenResource(QUrl(), this);
   if (url.isEmpty())
     return false;
@@ -942,6 +985,8 @@ bool KLFLibBrowser::slotResourceOpen()
 
 bool KLFLibBrowser::slotResourceNew()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFLibResourceEngine *resource = KLFLibCreateResourceDlg::createResource(QString(), this, this);
   if (resource == NULL)
     return false;
@@ -962,6 +1007,8 @@ bool KLFLibBrowser::slotResourceSaveTo()
 
 void KLFLibBrowser::slotResourceDataChanged(const QList<KLFLib::entryId>& /*entryIdList*/)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   //   KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
   //   if (resource == NULL) {
   //     qWarning("KLFLibBrowser::slotResourceDataChanged: NULL sender or not resource!");
@@ -983,6 +1030,8 @@ void KLFLibBrowser::slotResourceDataChanged(const QList<KLFLib::entryId>& /*entr
 }
 void KLFLibBrowser::slotResourcePropertyChanged(int propId)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
   if (resource == NULL) {
     qWarning("KLFLibBrowser::slotResourcePropertyChanged: NULL sender or not resource!");
@@ -993,7 +1042,9 @@ void KLFLibBrowser::slotResourcePropertyChanged(int propId)
 
 void KLFLibBrowser::slotUpdateForResourceProperty(KLFLibResourceEngine *resource, int propId)
 {
-  qDebug("KLFLibBrowser::slotUpdateForResourceProperty(%p, %d)", (void*)resource, propId);
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("res="<<resource<<", propId="<<propId) ;
+
   slotRefreshResourceActionsEnabled();
 
   KLFLibBrowserViewContainer *view = findOpenResource(resource);
@@ -1015,9 +1066,11 @@ void KLFLibBrowser::slotUpdateForResourceProperty(KLFLibResourceEngine *resource
   }
 }
 
-void KLFLibBrowser::slotSubResourcePropertyChanged(const QString& /*subResource*/, int propId)
+void KLFLibBrowser::slotSubResourcePropertyChanged(const QString& subResource, int propId)
 {
-  qDebug("KLFLibBrowser::slotSubResourcePropertyChanged(..,%d)", propId);
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  Q_UNUSED(subResource) ;
+  klfDbg("subResource="<<subResource<<", propId="<<propId) ;
 
   KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
   if (resource == NULL) {
@@ -1037,8 +1090,12 @@ void KLFLibBrowser::slotSubResourcePropertyChanged(const QString& /*subResource*
   }
 }
 
-void KLFLibBrowser::slotDefaultSubResourceChanged(const QString& )
+void KLFLibBrowser::slotDefaultSubResourceChanged(const QString& subResource)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  Q_UNUSED(subResource) ;
+  klfDbg("subResource="<<subResource) ;
+
   KLFLibResourceEngine *resource = qobject_cast<KLFLibResourceEngine*>(sender());
   if (resource == NULL) {
     qWarning("KLFLibBrowser::slotDefaultSubResourceChanged: NULL sender or not resource!");
@@ -1053,6 +1110,8 @@ void KLFLibBrowser::slotDefaultSubResourceChanged(const QString& )
 
 void KLFLibBrowser::slotRestoreWithStyle()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
@@ -1061,6 +1120,8 @@ void KLFLibBrowser::slotRestoreWithStyle()
 
 void KLFLibBrowser::slotRestoreLatexOnly()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
@@ -1069,7 +1130,8 @@ void KLFLibBrowser::slotRestoreLatexOnly()
 
 void KLFLibBrowser::slotDeleteSelected()
 {
-  klfDbg("called");
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
@@ -1096,6 +1158,8 @@ void KLFLibBrowser::slotDeleteSelected()
 
 void KLFLibBrowser::slotRefreshResourceActionsEnabled()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   bool master = false;
   bool canrename = false;
   bool canrenamesubres = false;
@@ -1138,10 +1202,10 @@ void KLFLibBrowser::slotRefreshResourceActionsEnabled()
 
 void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 {
-  klfDbg( "KLFLibBrowser::slotEntriesSelected(): "<<entries ) ;
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg( "(): "<<entries ) ;
   if (entries.size()>=1)
-    klfDbg( "KLFLibBrowser::slotEntriesSelected():\tTag of first selected entry="
-	    <<entries[0].property(KLFLibEntry::Tags) ) ;
+    klfDbg( "Tag of first selected entry="<<entries[0].property(KLFLibEntry::Tags) ) ;
 
   KLFAbstractLibView *view = curLibView();
   if (view != NULL) {
@@ -1166,6 +1230,8 @@ void KLFLibBrowser::slotAddCategorySuggestions(const QStringList& catlist)
 
 void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
@@ -1254,6 +1320,8 @@ void KLFLibBrowser::slotShowContextMenu(const QPoint& pos)
 
 void KLFLibBrowser::slotMetaInfoChanged(const QMap<int,QVariant>& props)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QWidget *w = u->tabResources->currentWidget();
   KLFLibBrowserViewContainer *wviewc = qobject_cast<KLFLibBrowserViewContainer*>(w);
   if (wviewc == NULL) {
@@ -1332,6 +1400,8 @@ void KLFLibBrowser::slotMoveToResource()
 
 void KLFLibBrowser::slotCopyMoveToResource(QObject *action, bool move)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QUrl destUrl = action->property("resourceViewUrl").toUrl();
   if (destUrl.isEmpty()) {
     qWarning()<<"KLFLibBrowser::slotCopyMoveToResource(): bad sender property ! sender is a `"
@@ -1356,6 +1426,8 @@ void KLFLibBrowser::slotCopyMoveToResource(QObject *action, bool move)
 void KLFLibBrowser::slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstractLibView *source,
 					   bool move)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QList<KLFLib::entryId> selectedids = source->selectedEntryIds();
   KLFLibEntryList items = source->selectedEntries();
 
@@ -1372,6 +1444,8 @@ void KLFLibBrowser::slotCopyMoveToResource(KLFAbstractLibView *dest, KLFAbstract
 
 void KLFLibBrowser::slotCut()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
@@ -1385,6 +1459,8 @@ void KLFLibBrowser::slotCut()
 }
 void KLFLibBrowser::slotCopy()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
@@ -1400,6 +1476,8 @@ void KLFLibBrowser::slotCopy()
 }
 void KLFLibBrowser::slotPaste()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;
@@ -1425,6 +1503,8 @@ void KLFLibBrowser::slotPaste()
 
 void KLFLibBrowser::slotOpenAll()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QStringList exportFilterList;
   QStringList filterlist;
   QString exportFilter;
@@ -1570,6 +1650,7 @@ bool KLFLibBrowser::slotExport()
 
 void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& text)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg( ": min,max="<<progressReporter->min()<<","<<progressReporter->max()
 	  <<"; text="<<text ) ;
 

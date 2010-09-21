@@ -72,6 +72,9 @@ if(KLF_LIBKLFBACKEND_STATIC)
     else(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
     endif(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
   endforeach(klfbackend_sourcefile)
+  # add the moc file for klfdebug.h manually for automoc, since there isn't a klfdebug.cpp
+  set(ktexteditor_klf_PART_SRCS ${ktexteditor_klf_PART_SRCS}
+				    "${CMAKE_SOURCE_DIR}/src/klfbackend/klfdebug.h")
 endif(KLF_LIBKLFBACKEND_STATIC)
 
 kde4_add_ui_files(ktexteditor_klf_PART_SRCS klfkatepluginconfigwidget.ui)

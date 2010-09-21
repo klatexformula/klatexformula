@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>606</width>
-    <height>69</height>
+    <width>572</width>
+    <height>95</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="lyt_KLFLibLocalFileWidget" columnstretch="1,0,0">

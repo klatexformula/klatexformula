@@ -214,7 +214,7 @@ public:
   virtual bool searchFind(const QString& queryString, bool forward)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    return klf_debug_tee( ! (searchIterFind(searchIterStartFrom(forward), queryString, forward)
+    return KLF_DEBUG_TEE( ! (searchIterFind(searchIterStartFrom(forward), queryString, forward)
 			     == searchIterEnd()) );
   }
 
@@ -224,7 +224,7 @@ public:
   virtual bool searchFindNext(bool forward)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    return klf_debug_tee( ! (searchIterFindNext(forward) == searchIterEnd()) );
+    return KLF_DEBUG_TEE( ! (searchIterFindNext(forward) == searchIterEnd()) );
   }
 
   /* Aborts the search.

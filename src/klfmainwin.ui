@@ -1266,12 +1266,12 @@
    <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>691</x>
-     <y>213</y>
+     <x>541</x>
+     <y>168</y>
     </hint>
     <hint type="destinationlabel">
-     <x>647</x>
-     <y>248</y>
+     <x>541</x>
+     <y>168</y>
     </hint>
    </hints>
   </connection>
@@ -1282,12 +1282,12 @@
    <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>676</x>
-     <y>203</y>
+     <x>541</x>
+     <y>168</y>
     </hint>
     <hint type="destinationlabel">
-     <x>672</x>
-     <y>266</y>
+     <x>541</x>
+     <y>168</y>
     </hint>
    </hints>
   </connection>
@@ -1298,12 +1298,12 @@
    <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>705</x>
-     <y>212</y>
+     <x>541</x>
+     <y>168</y>
     </hint>
     <hint type="destinationlabel">
-     <x>702</x>
-     <y>298</y>
+     <x>541</x>
+     <y>168</y>
     </hint>
    </hints>
   </connection>
@@ -1314,12 +1314,28 @@
    <slot>setUnitWithSuffix(double,QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>741</x>
-     <y>202</y>
+     <x>541</x>
+     <y>168</y>
     </hint>
     <hint type="destinationlabel">
-     <x>730</x>
-     <y>312</y>
+     <x>541</x>
+     <y>168</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkMathMode</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cbxMathMode</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>559</x>
+     <y>146</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>584</x>
+     <y>142</y>
     </hint>
    </hints>
   </connection>

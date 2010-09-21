@@ -25,6 +25,8 @@
 #define KLFDEBUG_H
 
 
+#include <klfdefs.h>
+
 // Note: function definitions are in klfdefs.cpp
 
 
@@ -79,13 +81,32 @@ public:
 };
 #endif
 
-#ifdef KLF_DEBUG
 
+class KLF_EXPORT KLFDebugObjectWatcher : public QObject
+{
+  Q_OBJECT
+public:
+  static KLFDebugObjectWatcher *getWatcher();
+
+  inline void registerObjectRefInfo(QObject *object, const QString& refInfo)
+  { refInfos[object] = refInfo; }
+public slots:
+  void debugObjectDestroyedFromSender() { debugObjectDestroyed(sender()); }
+  void debugObjectDestroyed(QObject *object);
+private:
+  KLFDebugObjectWatcher();
+  virtual ~KLFDebugObjectWatcher();
+  static KLFDebugObjectWatcher *instance;
+  QHash<QObject*,QString> refInfos;
+};
+
+
+
+#ifdef KLF_DEBUG
 
 #  ifdef KLFBACKEND_QT4
 #    include <QDebug>
 #  endif
-
 
 template<class T>
 inline const T& __klf_debug_tee(const T& expr)
@@ -118,7 +139,7 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 
 #  define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(QString("")+msg)
 #  define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(QString("")+msg)
-#  define klf_debug_tee(expr) __klf_debug_tee(expr)
+#  define KLF_DEBUG_TEE(expr) __klf_debug_tee(expr)
 #  ifdef KLFBACKEND_QT4
 #    define klfDbg( streamableItems )				\
   __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, qPrintable(__klf_debug_ref_instance()), NULL) << streamableItems
@@ -139,6 +160,12 @@ inline QString __klf_debug_ref_instance() { return QString(); }
   __klf_dbg_hdr_qt3(KLF_FUNC_NAME, NULL, KLF_SHORT_TIME) = QString("") + (string)
 #  endif
 
+#  define KLF_DEBUG_WATCH_OBJECT( qobj )				\
+  { KLFDebugObjectWatcher::getWatcher()->registerObjectRefInfo((qobj), #qobj) ; \
+    connect((qobj), SIGNAL(destroyed()),				\
+	    KLFDebugObjectWatcher::getWatcher(), SLOT(debugObjectDestroyedFromSender())); \
+  }
+
 
 #else // KLF_DEBUG
 
@@ -153,12 +180,14 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #  define KLF_DEBUG_TIME_BLOCK(msg)
 #  define KLF_DEBUG_BLOCK(msg)
 
-#  define klf_debug_tee(expr) (expr)
+#  define KLF_DEBUG_TEE(expr) (expr)
 
 #  define klfDbg( streamableItems )
 #  define klfDbgT( streamableItems )
 #  define klfDbgSt( streamableItems )
 #  define klfDbgStT( streamableItems )
+
+#  define KLF_DEBUG_WATCH_OBJECT( qobj )
 
 #endif // KLF_DEBUG
 

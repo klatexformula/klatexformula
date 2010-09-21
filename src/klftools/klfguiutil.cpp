@@ -457,7 +457,7 @@ QRect KLFWaitAnimationOverlay::calcAnimationLabelGeometry()
 
   klfDbg("parent geometry: "<<g<<"; our size="<<sz) ;
 
-  return klf_debug_tee( QRect(QPoint( (g.width()-sz.width())*pPositionXPercent/100,
+  return KLF_DEBUG_TEE( QRect(QPoint( (g.width()-sz.width())*pPositionXPercent/100,
 				      (g.height()-sz.height())*pPositionYPercent/100),
 			      sz) );
 }

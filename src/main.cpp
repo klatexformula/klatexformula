@@ -398,6 +398,8 @@ void main_save(KLFBackend::klfOutput klfoutput, const QString& f_output, QString
 
 void main_load_extra_resources()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   // this function is called with running Q[Core]Application and klfconfig all set up.
 
   QStringList env = QProcess::systemEnvironment();
@@ -460,6 +462,7 @@ void main_load_extra_resources()
     KLFAddOnInfo addoninfo(rccfilesToLoad[j]);
     // resource registered.
     klf_addons.append(addoninfo);
+    klfDbg("registered resource "<<addoninfo.fpath()<<".") ;
   }
 
   // set the global "can-import" flag
@@ -508,6 +511,13 @@ public:
 
 void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  QStringList baseplugindirs =
+    QStringList() << klfconfig.homeConfigDirPlugins << klfconfig.globalShareDir+"/plugins";
+
+  klfDbg("base plugins dirs are "<<baseplugindirs) ;
+
   // first step: copy all resource-located plugin libraries to our local config
   // directory because we can only load filesystem-located plugins.
   int i, k, j;
@@ -527,7 +537,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	// ok to install plugin
 	QString resfn = klf_addons[k].rccmountroot() + "/plugins/" + pluginList[j];
 	QString locsubdir = klf_addons[k].pluginLocalSubDirName(pluginList[j]);
-	QString locfn = klfconfig.homeConfigDirPlugins + "/" + locsubdir
+	QString locfn = klfconfig.homeConfigDirPlugins + "/" + locsubdir + "/"
 	  + QFileInfo(pluginList[j]).fileName();
 	QDateTime installedplugin_dt = QFileInfo(locfn).lastModified();
 	QDateTime resourceplugin_dt = QFileInfo(klf_addons[k].fpath()).lastModified();
@@ -559,116 +569,127 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
     }
   }
 
-  // build a list of plugin directories to search. We will need to load plugins in our version directory
-  // + all prior version directories + root plugin path.
-  QStringList pluginsdirs;
-  QDir pdir(klfconfig.homeConfigDirPlugins);
-  QStringList pdirlist = pdir.entryList(QStringList()<<"klf*", QDir::Dirs);
-  // sort plugin dirs so that for a plugin existing in multiple versions, we load the one for the
-  // most recent first, then ignore the others.
-  qSort(pdirlist.begin(), pdirlist.end(), VersionCompareWithPrefixGreaterThan("klf"));
-  for (i = 0; i < pdirlist.size(); ++i) {
-    klfDbg( "maybe adding plugin dir"<<pdirlist[i]<<"; klfver="<<pdirlist[i].mid(3) ) ;
-    if (klfVersionCompare(pdirlist[i].mid(3), KLF_VERSION_STRING) <= 0) { // Version OK
-      pluginsdirs << pdir.absoluteFilePath(pdirlist[i]) ;
+  // explore all base plugins dir, eg. /usr/share/klatexformula/plugins, and ~/.klatexformula/plugins/
+  int n;
+  for (n = 0; n < baseplugindirs.size(); ++n) {
+    QString baseplugindir = baseplugindirs[n];
+    klfDbg("exploring base plugin directory "<<baseplugindir) ;
+    // build a list of plugin directories to search. We will need to load plugins in our version directory
+    // + all prior version directories + root plugin path.
+    QStringList pluginsdirs;
+    // For each path in pluginsdirs, in this array (at same index pos) we have the relative path from baseplugindir.
+    QStringList pluginsdirsbaserel;
+    QDir pdir(baseplugindir);
+    QStringList pdirlist = pdir.entryList(QStringList()<<"klf*", QDir::Dirs);
+    // sort plugin dirs so that for a plugin existing in multiple versions, we load the one for the
+    // most recent first, then ignore the others.
+    qSort(pdirlist.begin(), pdirlist.end(), VersionCompareWithPrefixGreaterThan("klf"));
+    for (i = 0; i < pdirlist.size(); ++i) {
+      klfDbg( "maybe adding plugin dir"<<pdirlist[i]<<"; klfver="<<pdirlist[i].mid(3) ) ;
+      if (klfVersionCompare(pdirlist[i].mid(3), KLF_VERSION_STRING) <= 0) { // Version OK
+	pluginsdirs << pdir.absoluteFilePath(pdirlist[i]) ;
+	pluginsdirsbaserel << pdirlist[i]+"/";
+      }
     }
-  }
-  pluginsdirs << klfconfig.homeConfigDirPlugins ;
+    pluginsdirs << klfconfig.homeConfigDirPlugins ;
+    pluginsdirsbaserel << "" ;
 
-  klfDbg( "pluginsdirs="<<pluginsdirs ) ;
+    klfDbg( "pluginsdirs="<<pluginsdirs ) ;
+    
+    for (i = 0; i < pluginsdirs.size(); ++i) {
+      if ( ! QFileInfo(pluginsdirs[i]).isDir() )
+	continue;
 
-  for (i = 0; i < pluginsdirs.size(); ++i) {
-    if ( ! QFileInfo(pluginsdirs[i]).isDir() )
-      continue;
-
-    QDir thisplugdir(pluginsdirs[i]);
-    QStringList plugins = thisplugdir.entryList(KLF_DLL_EXT_LIST, QDir::Files);
-    KLFPluginGenericInterface * pluginInstance;
-    for (j = 0; j < plugins.size(); ++j) {
-      QString pluginfname = plugins[j];
-      bool plugin_already_loaded = false;
-      int k;
-      for (k = 0; k < klf_plugins.size(); ++k) {
-	if (klf_plugins[k].fname == pluginfname) {
-	  klfDbg( "Rejecting loading of plugin "<<pluginfname<<" in dir "<<pluginsdirs[i]
-		  <<"; already loaded." ) ;
-	  plugin_already_loaded = true;
-	  break;
+      QDir thisplugdir(pluginsdirs[i]);
+      QStringList plugins = thisplugdir.entryList(KLF_DLL_EXT_LIST, QDir::Files);
+      KLFPluginGenericInterface * pluginInstance;
+      for (j = 0; j < plugins.size(); ++j) {
+	QString pluginfname = plugins[j];
+	QString pluginfnamebaserel = pluginsdirsbaserel[i]+plugins[j];
+	bool plugin_already_loaded = false;
+	int k;
+	for (k = 0; k < klf_plugins.size(); ++k) {
+	  if (QFileInfo(klf_plugins[k].fname).fileName() == pluginfname) {
+	    klfDbg( "Rejecting loading of plugin "<<pluginfname<<" in dir "<<pluginsdirs[i]
+		    <<"; already loaded." ) ;
+	    plugin_already_loaded = true;
+	    break;
+	  }
 	}
-      }
-      if (plugin_already_loaded)
-	continue;
-      QString pluginpath = thisplugdir.absoluteFilePath(pluginfname);
-      QPluginLoader pluginLoader(pluginpath, app);
-      bool loaded = pluginLoader.load();
-      if (!loaded) {
-	klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<". Skipping.");
-	continue;
-      }
-      QObject *pluginInstObject = pluginLoader.instance();
-      if (pluginInstObject == NULL) {
-	klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<" (object is NULL). Skipping.");
-	continue;
-      }
-      pluginInstance = qobject_cast<KLFPluginGenericInterface *>(pluginInstObject);
-      if (pluginInstance == NULL) {
-	klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<" (instance is NULL). Skipping.");
-	continue;
-      }
-      // plugin file successfully loaded.
-      QString nm = pluginInstance->pluginName();
-      qDebug("Successfully loaded plugin library %s (%s) from file %s", qPrintable(nm),
-	     qPrintable(pluginInstance->pluginDescription()), qPrintable(pluginfname));
-
-      if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
-	// create default plugin configuration if non-existant
-	klfconfig.Plugins.pluginConfig[nm] = QMap<QString, QVariant>();
-	// ask plugin whether it's supposed to be loaded by default
-	klfconfig.Plugins.pluginConfig[nm]["__loadenabled"] =
-	  pluginInstance->pluginDefaultLoadEnable();
-      }
-      bool keepPlugin = true;
-
-      // make sure this plugin wasn't already loaded (eg. in a different klf-version sub-dir)
-      bool pluginRejected = false;
-      for (k = 0; k < klf_plugins.size(); ++k) {
-	if (klf_plugins[k].name == nm) {
-	  klfDbg( "Rejecting loading of plugin "<<nm<<" in "<<pluginfname<<"; already loaded." ) ;
-	  delete pluginInstance;
-	  pluginRejected = true;
-	  break;
+	if (plugin_already_loaded)
+	  continue;
+	QString pluginpath = thisplugdir.absoluteFilePath(pluginfname);
+	QPluginLoader pluginLoader(pluginpath, app);
+	bool loaded = pluginLoader.load();
+	if (!loaded) {
+	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<". Skipping.");
+	  continue;
 	}
-      }
-      if (pluginRejected)
-	continue;
+	QObject *pluginInstObject = pluginLoader.instance();
+	if (pluginInstObject == NULL) {
+	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<" (object is NULL). Skipping.");
+	  continue;
+	}
+	pluginInstance = qobject_cast<KLFPluginGenericInterface *>(pluginInstObject);
+	if (pluginInstance == NULL) {
+	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<" (instance is NULL). Skipping.");
+	  continue;
+	}
+	// plugin file successfully loaded.
+	QString nm = pluginInstance->pluginName();
+	qDebug("Successfully loaded plugin library %s (%s) from file %s", qPrintable(nm),
+	       qPrintable(pluginInstance->pluginDescription()), qPrintable(pluginfname));
 
-      KLFPluginInfo pluginInfo;
-      pluginInfo.name = nm;
-      pluginInfo.title = pluginInstance->pluginTitle();
-      pluginInfo.description = pluginInstance->pluginDescription();
-      pluginInfo.author = pluginInstance->pluginAuthor();
-      pluginInfo.fname = pluginfname;
-      pluginInfo.fpath = pluginpath;
-      pluginInfo.instance = NULL;
+	if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
+	  // create default plugin configuration if non-existant
+	  klfconfig.Plugins.pluginConfig[nm] = QMap<QString, QVariant>();
+	  // ask plugin whether it's supposed to be loaded by default
+	  klfconfig.Plugins.pluginConfig[nm]["__loadenabled"] =
+	    pluginInstance->pluginDefaultLoadEnable();
+	}
+	bool keepPlugin = true;
 
-      // if we are configured to load this plugin, load it.
-      keepPlugin = keepPlugin && klfconfig.Plugins.pluginConfig[nm]["__loadenabled"].toBool();
-      klfDbg("got plugin info. keeping plugin? "<<keepPlugin);
-      if ( keepPlugin ) {
-	KLFPluginConfigAccess pgca = klfconfig.getPluginConfigAccess(nm);
-	KLFPluginConfigAccess * c = new KLFPluginConfigAccess(pgca);
-	klfDbg("prepared a configaccess "<<c);
-	pluginInstance->initialize(app, mainWin, c);
-	pluginInfo.instance = pluginInstance;
-	qDebug("\tPlugin %s loaded and initialized.", qPrintable(nm));
-      } else {
-	// if we aren't configured to load it, then discard it, but keep info with NULL instance,
-	// so that user can configure to load or not this plugin in the settings dialog.
-	delete pluginInstance;
+	// make sure this plugin wasn't already loaded (eg. in a different klf-version sub-dir)
+	bool pluginRejected = false;
+	for (k = 0; k < klf_plugins.size(); ++k) {
+	  if (klf_plugins[k].name == nm) {
+	    klfDbg( "Rejecting loading of plugin "<<nm<<" in "<<pluginfname<<"; already loaded." ) ;
+	    delete pluginInstance;
+	    pluginRejected = true;
+	    break;
+	  }
+	}
+	if (pluginRejected)
+	  continue;
+
+	KLFPluginInfo pluginInfo;
+	pluginInfo.name = nm;
+	pluginInfo.title = pluginInstance->pluginTitle();
+	pluginInfo.description = pluginInstance->pluginDescription();
+	pluginInfo.author = pluginInstance->pluginAuthor();
+	pluginInfo.fname = pluginfnamebaserel;
+	pluginInfo.fpath = pluginpath;
 	pluginInfo.instance = NULL;
-	qDebug("\tPlugin %s NOT loaded.", qPrintable(nm));
+
+	// if we are configured to load this plugin, load it.
+	keepPlugin = keepPlugin && klfconfig.Plugins.pluginConfig[nm]["__loadenabled"].toBool();
+	klfDbg("got plugin info. keeping plugin? "<<keepPlugin);
+	if ( keepPlugin ) {
+	  KLFPluginConfigAccess pgca = klfconfig.getPluginConfigAccess(nm);
+	  KLFPluginConfigAccess * c = new KLFPluginConfigAccess(pgca);
+	  klfDbg("prepared a configaccess "<<c);
+	  pluginInstance->initialize(app, mainWin, c);
+	  pluginInfo.instance = pluginInstance;
+	  qDebug("\tPlugin %s loaded and initialized.", qPrintable(nm));
+	} else {
+	  // if we aren't configured to load it, then discard it, but keep info with NULL instance,
+	  // so that user can configure to load or not this plugin in the settings dialog.
+	  delete pluginInstance;
+	  pluginInfo.instance = NULL;
+	  qDebug("\tPlugin %s NOT loaded.", qPrintable(nm));
+	}
+	klf_plugins.push_back(pluginInfo);
       }
-      klf_plugins.push_back(pluginInfo);
     }
   }
 }

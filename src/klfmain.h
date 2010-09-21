@@ -31,6 +31,7 @@
 #include <QStringList>
 #include <QDataStream>
 #include <QTranslator>
+#include <QDir>
 
 #include <klfdefs.h>
 
@@ -124,12 +125,12 @@ public:
   {
     QStringList lplugins;
     for (int k = 0; k < d->pluginList.size(); ++k)
-      lplugins << pluginLocalSubDirName(d->pluginList[k])+"/"+QFileInfo(d->pluginList[k]).fileName();
+      lplugins << QDir::cleanPath(pluginLocalSubDirName(d->pluginList[k])+"/"+QFileInfo(d->pluginList[k]).fileName());
     return lplugins;
   }
 
 
-  /** The list of translation files provided by this add-on (list of files \c ":/i18n/<b></b>*.qm")
+  /** The list of translation files provided by this add-on (list of files <tt>:/i18n/<b></b>*.qm</tt>)
    * This list stores full file names without the path (e.g. \c "klf_fr.qm") */
   QStringList translations() { return d->translations; }
 

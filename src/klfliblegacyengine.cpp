@@ -348,9 +348,15 @@ int KLFLibLegacyFileDataPrivate::findResourceName(const QString& resname)
 // static
 KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *parent)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QString fname = klfUrlLocalFilePath(url);
+  if (fname.isEmpty()) {
+    klfDbgSt("Requested empty fname.") ;
+    return NULL;
+  }
   if ( ! QFileInfo(fname).isReadable() ) {
-    qWarning("KLFLibLegacyEngine::openUrl(): file %s does not exist!", qPrintable(fname));
+    qWarning("%s: file %s does not exist!", KLF_FUNC_NAME, qPrintable(fname));
     return NULL;
   }
 
@@ -547,7 +553,8 @@ bool KLFLibLegacyEngine::canRenameSubResource(const QString& subResource) const
 }
 bool KLFLibLegacyEngine::canDeleteSubResource(const QString& subResource) const
 {
-  return canModifyData(subResource, DeleteData);
+  return subResource.length() && hasSubResource(subResource) &&
+    canModifyData(subResource, DeleteData) && subResourceList().size() > 1;
 }
 
 bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
@@ -612,6 +619,10 @@ bool KLFLibLegacyEngine::renameSubResource(const QString& subResource, const QSt
 bool KLFLibLegacyEngine::deleteSubResource(const QString& subResource)
 {
   KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
+  if (!canDeleteSubResource(subResource)) {
+    klfDbg("Cannot delete sub-resource "<<subResource) ;
+    return false;
+  }
   int rindex = d->findResourceName(subResource);
   if (rindex < 0) {
     qWarning()<<KLF_FUNC_NAME<<": can't find sub-resource "<<subResource<<" in our data.";

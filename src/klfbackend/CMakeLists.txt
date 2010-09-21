@@ -14,16 +14,17 @@ endif(KLF_USE_QT4)
 # Source files
 set(klfbackend_SRCS
 	klfdefs.cpp
+	klfdebug.cpp
 	klfbackend.cpp
 	klfblockprocess.cpp
 )
 set(klfbackend_MOCHEADERS
 	klfblockprocess.h
+	klfdebug.h
 )
 set(klfbackend_HEADERS
 	klfdefs.h
 	klfbackend.h
-	klfdebug.h
 	${klfbackend_MOCHEADERS}
 )
 

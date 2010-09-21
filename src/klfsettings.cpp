@@ -909,7 +909,7 @@ void KLFSettings::removeAddOn()
   // remove all corresponding plug-ins
   QStringList lplugins = klf_addons[k].localPluginList();
   for (j = 0; j < lplugins.size(); ++j)
-    removePlugin(QFileInfo(lplugins[j]).fileName());
+    removePlugin(lplugins[j]);
 
   klf_addons.removeAt(k);
 

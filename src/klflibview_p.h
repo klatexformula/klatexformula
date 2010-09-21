@@ -46,6 +46,8 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QDesktopServices>
+#include <QDirModel>
+#include <QCompleter>
 
 #include <ui_klfliblocalfilewidget.h>
 
@@ -799,12 +801,28 @@ public:
     pReadyToOpenUrl = QUrl();
     pFileTypes = fileTypes;
     setupUi(this);
+    
+    QStringList namefilters;
+    int k;
+    for (k = 0; k < pFileTypes.size(); ++k)
+      namefilters << pFileTypes[k].filepattern;
+    QDirModel *dirModel = new QDirModel(namefilters,
+					QDir::AllEntries|QDir::AllDirs|QDir::NoDotAndDotDot,
+					QDir::DirsFirst|QDir::IgnoreCase, this);
+
+    QCompleter *fileNameCompleter = new QCompleter(this);
+    fileNameCompleter->setModel(dirModel);
+    txtFile->setCompleter(fileNameCompleter);
+
+    setUrl(QUrl());
   }
   virtual ~KLFLibLocalFileOpenWidget() { }
 
   virtual bool isReadyToOpen() const { return pReadyToOpen; }
 
-  virtual QString selectedFName() const { return txtFile->text(); }
+  virtual QString selectedFName() const {
+    return QDir::fromNativeSeparators(txtFile->text());
+  }
   virtual QString selectedScheme() const
   {
     QString filename = selectedFName();
@@ -831,7 +849,10 @@ public:
   }
 
   virtual void setUrl(const QUrl& url) {
-    txtFile->setText(url.path());
+    if (url.isValid() && url.path().length()>0)
+      txtFile->setText(QDir::toNativeSeparators(url.path()));
+    else
+      txtFile->setText(QDir::toNativeSeparators(klfconfig.LibraryBrowser.lastFileDialogPath+"/"));
   }
   virtual QUrl url() const {
     QString fname = selectedFName();
