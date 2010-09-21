@@ -734,6 +734,10 @@ KLF_EXPORT int klfVersionRelease()
 
 // declared in klfdebug.h
 
+struct KLFDebugObjectWatcherPrivate
+{
+  QMap<quintptr, QString> refInfos;
+};
 
 // static
 KLFDebugObjectWatcher *KLFDebugObjectWatcher::instance = NULL;
@@ -745,20 +749,31 @@ KLFDebugObjectWatcher *KLFDebugObjectWatcher::getWatcher()
   return instance;
 }
 
+void KLFDebugObjectWatcher::registerObjectRefInfo(QObject *object, const QString& refinfo)
+{
+  p->refInfos[(quintptr)object] = refinfo;
+}
+
 KLFDebugObjectWatcher::KLFDebugObjectWatcher()
   : QObject(qApp)
 {
+  p = new KLFDebugObjectWatcherPrivate;
 }
 KLFDebugObjectWatcher::~KLFDebugObjectWatcher()
 {
+  delete p;
 }
 void KLFDebugObjectWatcher::debugObjectDestroyed(QObject *object)
 {
-  uiptr obji = (uiptr) object;
-  if (refInfos.contains(obji)) {
-    klfDbg("Object destroyed: "<<object<<"; object variable name is "<<refInfos[obji]) ;
+  quintptr obji = (quintptr) object;
+  if (p->refInfos.contains(obji)) {
+    klfDbg(klfFmt("Object destroyed: (%s*)%p; object reference name is `%s'",
+		  (object ? object->metaObject().className() : "void"),
+		  object, p->refInfos[obji]));
   } else {
-    klfDbg("Object destroyed: "<<object) ;
+    klfDbg(klfFmt("Object destroyed: (%s*)%p",
+		  (object ? object->metaObject().className() : "void"),
+		  object));
   }
 }
 

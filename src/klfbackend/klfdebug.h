@@ -82,6 +82,7 @@ public:
 };
 #endif
 
+class KLFDebugObjectWatcherPrivate;
 
 class KLF_EXPORT KLFDebugObjectWatcher : public QObject
 {
@@ -89,22 +90,17 @@ class KLF_EXPORT KLFDebugObjectWatcher : public QObject
 public:
   static KLFDebugObjectWatcher *getWatcher();
 
-  inline void registerObjectRefInfo(QObject *object, const QString& refInfo)
-  { refInfos[(uiptr)object] = refInfo; }
+  void registerObjectRefInfo(QObject *object, const QString& refInfo);
 public slots:
   void debugObjectDestroyedFromSender() { debugObjectDestroyed(const_cast<QObject*>(sender())); }
   void debugObjectDestroyed(QObject *object);
 private:
-#ifdef KLF_UIPTR
-  typedef KLF_UIPTR uiptr;
-#else
-  typedef unsigned long long uiptr;
-#endif
 
   KLFDebugObjectWatcher();
   virtual ~KLFDebugObjectWatcher();
   static KLFDebugObjectWatcher *instance;
-  QMap<uiptr, QString> refInfos;
+
+  KLFDebugObjectWatcherPrivate *p;
 };
 
 

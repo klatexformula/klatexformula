@@ -131,7 +131,7 @@
        <number>0</number>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabCategoryTags">
        <property name="geometry">
@@ -139,7 +139,7 @@
          <x>0</x>
          <y>0</y>
          <width>308</width>
-         <height>177</height>
+         <height>244</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -244,8 +244,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>293</width>
-         <height>186</height>
+         <width>308</width>
+         <height>244</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -527,14 +527,14 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>KLFLatexEdit</class>
-   <extends>QTextEdit</extends>
-   <header>klflatexedit.h</header>
-  </customwidget>
-  <customwidget>
    <class>KLFDisplayLabel</class>
    <extends>QLabel</extends>
    <header location="global">klfdisplaylabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KLFLatexEdit</class>
+   <extends>QTextEdit</extends>
+   <header>klflatexedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

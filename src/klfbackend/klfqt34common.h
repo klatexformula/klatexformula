@@ -70,5 +70,29 @@
 #endif
 
 
+// EXTRA DEFINITIONS
 
+#ifndef KLFBACKEND_QT4
+// The following lines defining quintptr/qptrdiff are taken from Qt's corelib/global/qglobal.h
+// source file. (changed QIntegerForSize -> __klf_integer_for_size)
+/*
+  quintptr and qptrdiff is guaranteed to be the same size as a pointer, i.e.
+
+      sizeof(void *) == sizeof(quintptr)
+      && sizeof(void *) == sizeof(qptrdiff)
+*/
+template <int> struct __klf_integer_for_size;
+template <>    struct __klf_integer_for_size<1> { typedef quint8  Unsigned; typedef qint8  Signed; };
+template <>    struct __klf_integer_for_size<2> { typedef quint16 Unsigned; typedef qint16 Signed; };
+template <>    struct __klf_integer_for_size<4> { typedef quint32 Unsigned; typedef qint32 Signed; };
+template <>    struct __klf_integer_for_size<8> { typedef quint64 Unsigned; typedef qint64 Signed; };
+template <class T> struct __klf_integer_for_sizeof: __klf_integer_for_size<sizeof(T)> { };
+typedef __klf_integer_for_sizeof<void*>::Unsigned quintptr;
+typedef __klf_integer_for_sizeof<void*>::Signed qptrdiff;
 #endif
+
+
+
+
+
+#endif // KLFQT34COMMON_H

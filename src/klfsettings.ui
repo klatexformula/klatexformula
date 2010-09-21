@@ -302,7 +302,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string notr="true">...</string>
+          <string>Presets</string>
          </property>
          <property name="popupMode">
           <enum>QToolButton::InstantPopup</enum>
@@ -353,7 +353,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string>Presets</string>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>
@@ -369,7 +369,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string notr="true">...</string>
+             <string>Presets</string>
             </property>
             <property name="popupMode">
              <enum>QToolButton::InstantPopup</enum>

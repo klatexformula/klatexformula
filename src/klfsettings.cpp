@@ -443,10 +443,12 @@ void KLFSettings::reset()
   u->pathGs->setPath(s.gsexec);
   u->pathEpstopdf->setPath(s.epstopdfexec);
   u->chkEpstopdf->setChecked( ! s.epstopdfexec.isEmpty() );
-  u->spnLBorderOffset->setValue( s.lborderoffset );
-  u->spnTBorderOffset->setValue( s.tborderoffset );
-  u->spnRBorderOffset->setValue( s.rborderoffset );
-  u->spnBBorderOffset->setValue( s.bborderoffset );
+  /** \todo .... these settings should be shown in double when the corresponding
+   * functionality will be implemented in klfbackend. */
+  u->spnLBorderOffset->setValue( (int)(s.lborderoffset+0.5) );
+  u->spnTBorderOffset->setValue( (int)(s.tborderoffset+0.5) );
+  u->spnRBorderOffset->setValue( (int)(s.rborderoffset+0.5) );
+  u->spnBBorderOffset->setValue( (int)(s.bborderoffset+0.5) );
   u->chkOutlineFonts->setChecked( s.outlineFonts );
 
   u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.configFlags
