@@ -83,19 +83,23 @@ void KLFDBusAppAdaptor::evaluateAndSave(const QString& output, const QString& fm
 
 void KLFDBusAppAdaptor::openFile(const QString& fileName)
 {
+  klfDbg("opening file: "<<fileName) ;
   _mainwin->openFile(fileName);
 }
 void KLFDBusAppAdaptor::openFiles(const QStringList& fileNameList)
 {
+  klfDbg("opening files: "<<fileNameList) ;
   _mainwin->openFiles(fileNameList);
 }
 void KLFDBusAppAdaptor::openData(const QByteArray& data)
 {
+  klfDbg("opening data: length="<<data.length()<<", data="<<data) ;
   _mainwin->openData(data);
 }
 
 void KLFDBusAppAdaptor::importCmdlKLFFiles(const QStringList& files)
 {
+  klfDbg("opening files: "<<files) ;
   _mainwin->openLibFiles(files);
 }
 
@@ -157,10 +161,8 @@ QDBusReply<void> KLFDBusAppInterface::openFile(const QString& fileName)
 }
 QDBusReply<void> KLFDBusAppInterface::openFiles(const QStringList& fileNameList)
 {
-  QList<QVariant> argumentList;
-  argumentList << QVariant(fileNameList);
   return callWithArgumentList( QDBus::Block, QString("openFiles"),
-			       QList<QVariant>() << QVariant(argumentList) );
+			       QList<QVariant>() << QVariant(fileNameList) );
 }
 QDBusReply<void> KLFDBusAppInterface::openData(const QByteArray& data)
 {
