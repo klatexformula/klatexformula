@@ -82,10 +82,10 @@
       && sizeof(void *) == sizeof(qptrdiff)
 */
 template <int> struct __klf_integer_for_size;
-template <>    struct __klf_integer_for_size<1> { typedef quint8  Unsigned; typedef qint8  Signed; };
-template <>    struct __klf_integer_for_size<2> { typedef quint16 Unsigned; typedef qint16 Signed; };
-template <>    struct __klf_integer_for_size<4> { typedef quint32 Unsigned; typedef qint32 Signed; };
-template <>    struct __klf_integer_for_size<8> { typedef quint64 Unsigned; typedef qint64 Signed; };
+template <>    struct __klf_integer_for_size<1> { typedef Q_UINT8  Unsigned; typedef Q_INT8  Signed; };
+template <>    struct __klf_integer_for_size<2> { typedef Q_UINT16 Unsigned; typedef Q_INT16 Signed; };
+template <>    struct __klf_integer_for_size<4> { typedef Q_UINT32 Unsigned; typedef Q_INT32 Signed; };
+template <>    struct __klf_integer_for_size<8> { typedef Q_UINT64 Unsigned; typedef Q_INT64 Signed; };
 template <class T> struct __klf_integer_for_sizeof: __klf_integer_for_size<sizeof(T)> { };
 typedef __klf_integer_for_sizeof<void*>::Unsigned quintptr;
 typedef __klf_integer_for_sizeof<void*>::Signed qptrdiff;

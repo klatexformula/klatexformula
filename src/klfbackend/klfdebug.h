@@ -154,9 +154,9 @@ inline QString __klf_debug_ref_instance() { return QString(); }
   __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, NULL, KLF_SHORT_TIME) << streamableItems
 #  else
 #    define klfDbg( string )						\
-  __klf_dbg_hdr_qt3(KLF_FUNC_NAME, __klf_debug_ref_instance().local8bit(), NULL) = QString("") + (string)
+  __klf_dbg_hdr_qt3(KLF_FUNC_NAME, __klf_debug_ref_instance().local8Bit(), NULL) = QString("") + (string)
 #    define klfDbgT( string )						\
-  __klf_dbg_hdr_qt3(KLF_FUNC_NAME, __klf_debug_ref_instance().local8bit(), KLF_SHORT_TIME) = QString("") + (string)
+  __klf_dbg_hdr_qt3(KLF_FUNC_NAME, __klf_debug_ref_instance().local8Bit(), KLF_SHORT_TIME) = QString("") + (string)
 #    define klfDbgSt( string )						\
   __klf_dbg_hdr_qt3(KLF_FUNC_NAME, NULL, NULL) = QString("") + (string)
 #    define klfDbgStT( string )						\

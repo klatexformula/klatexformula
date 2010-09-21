@@ -31,6 +31,7 @@
 #include <qfileinfo.h>
 #include <qregexp.h>
 #include <qapplication.h>
+#include <qmetaobject.h>
 
 #ifdef KLFBACKEND_QT4
 #include <QDebug>
@@ -417,12 +418,12 @@
  * \warning This macro in its full-featured version requires Qt4. When used with Qt3, the
  *   argument may no longer be "any streamable items" because Qt3 does not support qDebug()
  *   streaming. However this macro still works, with the limitation that the argument must
- *   be a QString, or an expression that can be cast into a QString. (see also klfFmt())
+ *   be a QString, or an expression that can be cast into a QString. (see also klfFmtCC())
  * \code
  * // Qt3 Usage Example
  * klfDbg("debug message") ;
  * klfDbg(QString("debug message. value is %1.").arg(value)) ;
- * klfDbg(klfFmt("debug. value is %d, string is %s, and flags are %#010x.", intvalue, strvalue, flags)) ;
+ * klfDbg(klfFmtCC("debug. value is %d, string is %s, and flags are %#010x.", intvalue, strvalue, flags)) ;
  * \endcode
  */
 
@@ -767,13 +768,13 @@ void KLFDebugObjectWatcher::debugObjectDestroyed(QObject *object)
 {
   quintptr obji = (quintptr) object;
   if (p->refInfos.contains(obji)) {
-    klfDbg(klfFmt("Object destroyed: (%s*)%p; object reference name is `%s'",
-		  (object ? object->metaObject().className() : "void"),
-		  object, p->refInfos[obji]));
+    klfDbg(klfFmtCC("Object destroyed: (%s*)%p; object reference name is `%s'",
+		    (object ? object->metaObject()->className() : "void"),
+		    object, qPrintable(p->refInfos[obji])));
   } else {
-    klfDbg(klfFmt("Object destroyed: (%s*)%p",
-		  (object ? object->metaObject().className() : "void"),
-		  object));
+    klfDbg(klfFmtCC("Object destroyed: (%s*)%p",
+		    (object ? object->metaObject()->className() : "void"),
+		    object));
   }
 }
 

@@ -209,22 +209,26 @@ message(STATUS "Will install targets:
    Irrelevant settings, eg. installing os X bundles on linux, or KLF{TOOLS|APP} library install
    settings without the corresponding KLF_BUILD_KLF{TOOLS|GUI}, are ignored.
 
-   Set KLF_INSTALL_RUNTIME to install binaries, frameworks and shared libraries in general;
-   Set KLF_INSTALL_DEVEL to install static libraries and headers in general
+   Set: - KLF_INSTALL_RUNTIME to install binaries, frameworks and shared libraries in general;
+        - KLF_INSTALL_DEVEL to install static libraries and headers in general;
+   KLF_INSTALL_{RUNTIME|DEVEL} are overridden by individual specific settings.
 \n")
 
 
 # Install .desktop & pixmaps in DEST/share/{applications|pixmaps} ?
-if(KLF_MACOSX_BUNDLES OR WIN32)
+if(KLF_MACOSX_BUNDLES OR WIN32 OR NOT KLF_BUILD_GUI)
   set(default_KLF_INSTALL_DESKTOP FALSE)
-else(KLF_MACOSX_BUNDLES OR WIN32)
+else(KLF_MACOSX_BUNDLES OR WIN32 OR NOT KLF_BUILD_GUI)
   set(default_KLF_INSTALL_DESKTOP TRUE)
-endif(KLF_MACOSX_BUNDLES OR WIN32)
+endif(KLF_MACOSX_BUNDLES OR WIN32 OR NOT KLF_BUILD_GUI)
 
-option(KLF_INSTALL_DESKTOP
-  "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}"
-  ${default_KLF_INSTALL_DESKTOP} )
-
+#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
+KLFDeclareCacheVarOptionFollowComplexN(KLF_INSTALL_DESKTOP
+  BOOL "Install a .desktop file and pixmap in DESTINTATION/share/{applications|pixmaps}"
+  TRUE   # update notice
+  ${default_KLF_INSTALL_DESKTOP}
+  "KLF_BUILD_GUI"
+  )
 
 set(KLF_INSTALL_DESKTOP_CATEGORIES "Qt;Office;" CACHE STRING
   "Categories section in .desktop file")
@@ -306,17 +310,25 @@ endif(WIN32)
 # and not be done at RPM creation time
 option(KLF_INSTALL_RUN_POST_INSTALL
 		    "Run post-install scripts after 'make install' (eg. update mime database)" YES)
-if(KLF_INSTALL_RUN_POST_INSTALL)
-  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_POST_UPDATEMIMEDATABASE KLF_INSTALL_RUN_POST_INSTALL
-		      "Update the mime database after installing package mime-database xml files")
-  mark_as_advanced(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
+#KLFGetCMakeVarChanged(KLF_INSTALL_RUN_POST_INSTALL) is called at top of this file
+KLFCMakeSetVarChanged(KLF_INSTALL_RUN_POST_INSTALL)
+set(klf_default_install_post_updatemimedatabase OFF)
+if(KLF_INSTALL_RUN_POST_INSTALL AND KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+  set(klf_default_install_post_updatemimedatabase ON)
+endif(KLF_INSTALL_RUN_POST_INSTALL AND KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+KLFCMakeDebug("klf_default_install_post_updatemimedatabase is ${klf_default_install_post_updatemimedatabase}")
+#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
+KLFDeclareCacheVarOptionFollowComplexN(KLF_INSTALL_POST_UPDATEMIMEDATABASE
+  BOOL "Update the mime database after installing package mime-database xml files"
+  TRUE
+  "${klf_default_install_post_updatemimedatabase}"
+  "KLF_INSTALL_RUN_POST_INSTALL;KLF_INSTALL_DESKTOP;KLF_INSTALL_SHARE_MIME_PACKAGES_DIR"
+  )
+mark_as_advanced(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
 
-  message(STATUS "Will run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL):
-   Update the mime database: \t${KLF_INSTALL_POST_UPDATEMIMEDATABASE} \t(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
+message(STATUS "Will run the following post-install scripts (master switch KLF_INSTALL_RUN_POST_INSTALL):
+ Update the mime database: \t${KLF_INSTALL_POST_UPDATEMIMEDATABASE} \t(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
 ")
-else(KLF_INSTALL_RUN_POST_INSTALL)
-  message(STATUS "Will NOT run post-install scripts (KLF_INSTALL_RUN_POST_INSTALL)")
-endif(KLF_INSTALL_RUN_POST_INSTALL)
 
 
 # see klfdoxygen.cmake for installation instructions of doxygen api doc

@@ -318,7 +318,7 @@ macro(KLFDeclareCacheVarOptionFollowComplexN specificoption cachetype cachestrin
   # and check if it was changed
   KLFGetCMakeVarChanged(${specificoption})
   
-  #KLFCMakeDebug("${specificoption} chg:${klf_changed_${specificoption}} val:${${specificoption}}, calcoptvalue=${calcoptvalue}")
+  KLFCMakeDebug("${specificoption} chg:${klf_changed_${specificoption}} val:${${specificoption}}, calcoptvalue=${calcoptvalue}")
 
   # see if this specific option was changed. If it was, don't bother looking for dependencies,
   # we won't update it anyway.
