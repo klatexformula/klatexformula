@@ -24,6 +24,7 @@
 #ifndef KLFDEBUG_H
 #define KLFDEBUG_H
 
+#include <qmap.h>
 
 #include <klfdefs.h>
 
@@ -89,15 +90,21 @@ public:
   static KLFDebugObjectWatcher *getWatcher();
 
   inline void registerObjectRefInfo(QObject *object, const QString& refInfo)
-  { refInfos[object] = refInfo; }
+  { refInfos[(uiptr)object] = refInfo; }
 public slots:
-  void debugObjectDestroyedFromSender() { debugObjectDestroyed(sender()); }
+  void debugObjectDestroyedFromSender() { debugObjectDestroyed(const_cast<QObject*>(sender())); }
   void debugObjectDestroyed(QObject *object);
 private:
+#ifdef KLF_UIPTR
+  typedef KLF_UIPTR uiptr;
+#else
+  typedef unsigned long long uiptr;
+#endif
+
   KLFDebugObjectWatcher();
   virtual ~KLFDebugObjectWatcher();
   static KLFDebugObjectWatcher *instance;
-  QHash<QObject*,QString> refInfos;
+  QMap<uiptr, QString> refInfos;
 };
 
 

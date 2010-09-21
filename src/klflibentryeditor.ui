@@ -131,7 +131,7 @@
        <number>0</number>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabCategoryTags">
        <property name="geometry">
@@ -139,7 +139,7 @@
          <x>0</x>
          <y>0</y>
          <width>308</width>
-         <height>174</height>
+         <height>177</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -471,7 +471,7 @@
          <widget class="QLabel" name="lblStyDPI">
           <property name="minimumSize">
            <size>
-            <width>16</width>
+            <width>50</width>
             <height>16</height>
            </size>
           </property>

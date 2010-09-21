@@ -27,6 +27,8 @@
 #include <QFrame>
 #include <QFileDialog>
 #include <QDesktopServices>
+#include <QDirModel>
+#include <QCompleter>
 
 #include "klfpathchooser.h"
 
@@ -49,6 +51,15 @@ KLFPathChooser::KLFPathChooser(QWidget *parent)
   btnBrowse->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
   lyt->addWidget(btnBrowse);
 
+  // set a filename completer for txtPath
+  QDirModel *dirModel = new QDirModel(QStringList(),
+				      QDir::AllEntries|QDir::AllDirs|QDir::NoDotAndDotDot,
+				      QDir::DirsFirst|QDir::IgnoreCase, this);
+  QCompleter *fileNameCompleter = new QCompleter(this);
+  fileNameCompleter->setModel(dirModel);
+  txtPath->setCompleter(fileNameCompleter);
+
+  // connect signals
   connect(txtPath, SIGNAL(textChanged(const QString&)), this, SLOT(slotTextChanged()));
   connect(btnBrowse, SIGNAL(clicked()), this, SLOT(requestBrowse()));
 }

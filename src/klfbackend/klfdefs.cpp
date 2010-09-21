@@ -754,7 +754,12 @@ KLFDebugObjectWatcher::~KLFDebugObjectWatcher()
 }
 void KLFDebugObjectWatcher::debugObjectDestroyed(QObject *object)
 {
-  klfDbg("Object destroyed: "<<object<<"; object variable name is "<<refInfos.value(object)) ;
+  uiptr obji = (uiptr) object;
+  if (refInfos.contains(obji)) {
+    klfDbg("Object destroyed: "<<object<<"; object variable name is "<<refInfos[obji]) ;
+  } else {
+    klfDbg("Object destroyed: "<<object) ;
+  }
 }
 
 
