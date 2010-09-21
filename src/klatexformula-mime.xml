@@ -5,15 +5,19 @@
     <comment xml:lang="fr">Exportation de Bibliothèque KLatexFormula</comment>
     <glob pattern="*.klf"/>
     <magic priority="90">
-      <match type="string" offset="0" value="\0\0\0\b\0K\0L\0A\0T\0E\0X\0F\0O\0R\0M\0U\0L\0A\0_\0L\0I\0B\0R\0A\0R\0Y\0_\0E\0X\0P\0O\0R\0T"/>
+      <match type="string" offset="0" value="\0\0\08\0K\0L\0A\0T\0E\0X\0F\0O\0R\0M\0U\0L\0A\0_\0L\0I\0B\0R\0A\0R\0Y\0_\0E\0X\0P\0O\0R\0T"/>
     </magic>
   </mime-type>
   <mime-type type="application/x-klatexformula-db">
     <comment>KLatexFormula Library Export (Sqlite DB)</comment>
     <comment xml:lang="fr">Bibliothèque KLatexFormula (BD Sqlite)</comment>
-    <magic priority="50"><!-- We still don't have a better magic signature, TODO -->
-      <match type="string" offset="0" value="SQLite format 3\0"/>
-    </magic>
+    <!-- We still don't have a better magic signature, TODO.
+         We need to match eg. a specific SQLite User Version so that we don't match
+         every sqlite file (not related to KLF)
+         <magic priority="90">
+           <match type="string" offset="0" value="SQLite format 3\0"/>
+         </magic>
+    -->
     <glob pattern="*.klf.db"/>
   </mime-type>
 </mime-info>
