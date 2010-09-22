@@ -24,6 +24,7 @@ set(klftools_SRCS
 #  * with QObject classes (needs moc)
 set(klftools_MOCHEADERS
 	klfcolorchooser.h
+	klfcolorchooser_p.h
 	klfpixmapbutton.h
 	klfguiutil.h
 	klfpathchooser.h

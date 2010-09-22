@@ -269,5 +269,10 @@ KLF_EXPORT QString klfUrlLocalFilePath(const QUrl& url);
 
 
 
+/** Call this from your main program, so that the klftools resource is initialized. */
+#define KLFTOOLS_INIT				\
+  Q_INIT_RESOURCE(klftoolsres)
+
+
 
 #endif

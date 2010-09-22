@@ -367,7 +367,8 @@ private:
 
 
 
-/** A Layout that lays out its children flowing left to right, top to bottom.
+/** \brief A Layout that lays out its children in a grid, flowing left to right, top to bottom
+ *
  * Used eg. in KLF's color dialog to display the standard color panels
  *
  * Be sure to insert items into the layout with \ref insertGridFlowWidget()

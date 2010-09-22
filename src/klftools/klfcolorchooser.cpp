@@ -34,11 +34,11 @@
 #include <QRegExp>
 
 #include "klfcolorchooser.h"
+#include "klfcolorchooser_p.h"
 #include "klfguiutil.h"
 
 #include <ui_klfcolorchoosewidget.h>
 #include <ui_klfcolordialog.h>
-
 
 
 
@@ -413,6 +413,25 @@ void KLFColorComponentSpinBox::setColor(const QColor& color)
 KLFColorList * KLFColorChooseWidget::_recentcolors = 0;
 KLFColorList * KLFColorChooseWidget::_standardcolors = 0;
 KLFColorList * KLFColorChooseWidget::_customcolors = 0;
+
+// static
+void KLFColorChooseWidget::setRecentCustomColors(QList<QColor> recentcolors, QList<QColor> customcolors)
+{
+  ensureColorListsInstance();
+  _recentcolors->list = recentcolors;
+  _recentcolors->notifyListChanged();
+  _customcolors->list = customcolors;
+  _customcolors->notifyListChanged();
+}
+// static
+QList<QColor> KLFColorChooseWidget::recentColors()
+{
+  ensureColorListsInstance(); return _recentcolors->list;
+}
+// static
+QList<QColor> KLFColorChooseWidget::customColors() {
+  ensureColorListsInstance(); return _customcolors->list;
+}
 
 
 KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)

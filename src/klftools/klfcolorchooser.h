@@ -37,37 +37,8 @@
 
 #include <klfdefs.h>
 
-#define MAX_RECENT_COLORS 128
 
-
-
-// ------------------------------------------------------------------------------------
-
-
-class KLF_EXPORT KLFColorList : public QObject
-{
-  Q_OBJECT
-
-  Q_PROPERTY(int maxSize READ maxSize WRITE setMaxSize)
-public:
-  KLFColorList(int maxsize) : QObject(qApp) { _maxsize = maxsize; }
-
-  int maxSize() const { return _maxsize; }
-
-  QList<QColor> list;
-
-signals:
-  void listChanged();
-
-public slots:
-  void setMaxSize(int maxsize) { _maxsize = maxsize; }
-  void addColor(const QColor& color);
-  void removeColor(const QColor& color);
-  void notifyListChanged() { emit listChanged(); }
-
-private:
-  int _maxsize;
-};
+class KLFColorList;
 
 
 // ------------------------------------------------------------------------------------
@@ -355,18 +326,10 @@ public:
   bool alphaEnabled() const { return _alphaenabled; }
 
   static void ensureColorListsInstance();
-  static void setRecentCustomColors(QList<QColor> recentcolors,
-				    QList<QColor> customcolors)
-  {
-    ensureColorListsInstance();
-    _recentcolors->list = recentcolors;
-    _recentcolors->notifyListChanged();
-    _customcolors->list = customcolors;
-    _customcolors->notifyListChanged();
-  }
+  static void setRecentCustomColors(QList<QColor> recentcolors, QList<QColor> customcolors);
   static void addRecentColor(const QColor& col);
-  static QList<QColor> recentColors() { ensureColorListsInstance(); return _recentcolors->list; }
-  static QList<QColor> customColors() { ensureColorListsInstance(); return _customcolors->list; }
+  static QList<QColor> recentColors();
+  static QList<QColor> customColors();
 
 signals:
   void colorChanged(const QColor& color);
