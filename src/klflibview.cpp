@@ -507,10 +507,13 @@ void KLFLibModelCache::rebuildCache()
       if (cat.isEmpty() || cat == "/")
 	continue;
       // cacheFindCategoryLabel(categoryelements, createIfNotExists, notifyQtApi, newCreatedAreChildrenFetched)
-      int i = cacheFindCategoryLabel(cat.split('/'), true, false, false);
+      QStringList catelements = cat.split('/', QString::SkipEmptyParts);
+      int i = cacheFindCategoryLabel(catelements, true, false, false);
       if (i < 0) {
 	qWarning()<<KLF_FUNC_NAME<<": Failed to create category node for category "<<cat;
       }
+      // remember this category as suggestion
+      insertCategoryStringInSuggestionCache(catelements);
     }
     klfDbgT("... ins catnodes done.") ;
   }
@@ -971,17 +974,8 @@ void KLFLibModelCache::treeInsertEntry(const EntryNode& entrynode, bool rebuildi
   // start by looking at category
 
   QString category = entrynode.entry.category();
-  
-  // parse its catelements and remember that in the category list cache (that is useful only to
-  // suggest known categories to user at given occasions)
   QStringList catelements = category.split('/', QString::SkipEmptyParts);
-  // walk decrementally, and break once we fall back in the list of known categories
-  for (int kl = catelements.size()-1; kl >= 0; --kl) {
-    QString c = QStringList(catelements.mid(0,kl+1)).join("/");
-    if (pCatListCache.contains(c))
-      break;
-    pCatListCache.insert(qLowerBound(pCatListCache.begin(), pCatListCache.end(), c), c);
-  }
+  insertCategoryStringInSuggestionCache(catelements);
 
   // and find the category parent
 

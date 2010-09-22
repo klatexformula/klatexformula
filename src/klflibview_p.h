@@ -33,6 +33,7 @@
 #include <math.h> // abs()
 
 #include <QApplication>
+#include <QStringList>
 #include <QAbstractItemView>
 #include <QTreeView>
 #include <QListView>
@@ -359,6 +360,25 @@ private:
   CategoryLabelCache pCategoryLabelCache;
 
   QStringList pCatListCache;
+
+  /** remember this category in the category list cache (that is useful only to
+   * suggest known categories to user at given occasions) */
+  void insertCategoryStringInSuggestionCache(const QString& category)
+  {
+    insertCategoryStringInSuggestionCache(category.split('/', QString::SkipEmptyParts));
+  }
+  /** \note catelements should be obtained with
+   * <tt>categorystring.split('/', QString::SkipEmptyParts)</tt> */
+  void insertCategoryStringInSuggestionCache(const QStringList& catelements)
+  {
+    // walk decrementally, and break once we fall back in the list of known categories
+    for (int kl = catelements.size()-1; kl >= 0; --kl) {
+      QString c = QStringList(catelements.mid(0,kl+1)).join("/");
+      if (pCatListCache.contains(c))
+	break;
+      pCatListCache.insert(qLowerBound(pCatListCache.begin(), pCatListCache.end(), c), c);
+    }
+  }
 
   bool pIsFetchingMore;
 

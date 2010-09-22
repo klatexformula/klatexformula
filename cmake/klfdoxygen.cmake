@@ -6,7 +6,10 @@
 # Configure doxygen targets
 # -------------------------
 
-find_program(DOXYGEN "doxygen")
+if(NOT DEFINED DOXYGEN OR DOXYGEN STREQUAL "")
+  find_program(DOXYGEN "doxygen")
+endif(NOT DEFINED DOXYGEN OR DOXYGEN STREQUAL "")
+
 if(DOXYGEN)
 
   # A non-cache variable holding the directory in which we will build the documentation

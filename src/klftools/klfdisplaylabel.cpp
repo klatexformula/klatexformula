@@ -75,7 +75,7 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
 {
   QImage img = displayimg;
   QPixmap pix;
-  if (pGE) {
+  if (labelenabled && pGE) {
     int r = pGEradius;
     QSize msz = QSize(2*r, 2*r);
     if (img.width()+msz.width() > width() || img.height()+msz.height() > height())

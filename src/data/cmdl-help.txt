@@ -1,77 +1,84 @@
 
 KLatexFormula by Philippe Faist
 
-Usage: klatexformula
-           Opens klatexformula Graphical User Interface (GUI)
-       klatexformula [OPTIONS]
-           Performs actions required by [OPTIONS], and exits
-       klatexformula --interactive|-I [OPTIONS]
-           Opens the GUI and performs actions required by [OPTIONS]
-       klatexformula filename1.klf|.klf.db [ filename2.klf|.klf.db ... ]
-           Opens the GUI and imports the given library file(s) into the library.
+An easy-to-use graphical application and command-line interface for generating
+images from LaTeX equations.
 
-       If additional filename arguments are passed to the command line, they are
-       interpreted as library files to load into the library (only in interactive
-       mode).
+Usage: klatexformula [OPTIONS] [filename1 [...]]
 
-OPTIONS may be one or many of:
-  -I|--interactive
+Execution Modes:
+  klatexformula [filename1 [...]]
+      Opens klatexformula Graphical User Interface (GUI)
+  klatexformula [OPTIONS]
+      Performs actions required by [OPTIONS], and exits
+  klatexformula --interactive [OPTIONS] [filename1 [...]]
+      Opens the GUI and performs actions required by [OPTIONS]
+
+  If additional filename arguments are passed to the command line, they are
+  interpreted as library files to load into the library (only in interactive
+  mode).
+
+Options:
+  -I, --interactive
       Runs KLatexFormula in interactive mode with a full-featured graphical user
       interface. This option is on by default, except if --input or --latexinput
       is given.
-  -i|--input <file|->
+  -i, --input <file|->
       Specifies a file to read latex input from.
-  -l|--latexinput <expr>
+  -l, --latexinput <expr>
       Specifies the LaTeX code of an equation to render.
-  -P|--paste-clipboard
-  -S|--paste-selection
+  -P, --paste-clipboard
+  -S, --paste-selection
       Specifies that the LaTeX code should be pasted from the system clipboard or
       current mouse selection. Works only in interactive mode.
-  -B|--base64arg
+  -n, --noeval
+      Do not evaluate the LaTeX equation given, leave it to the user to click on
+      the "Evaluate" button. This option may only be used in interactive mode.
+  -B, --base64arg
       Specifies that the argument to the option immediately following this one is
       encoded in base64. For example:
-	klatexformula --base64arg --latexinput="YV4yK2JeMj1jXjI="
-      will use the latex code "a^2+b^2=c^2"
+        klatexformula --base64arg --latexinput="YV4yK2JeMj1jXjI="
+      will use the latex code "a^2+b^2=c^2".
       This option can be specified more than once on the command line, each time
       indicating that the argument to the immediately next option is encoded in
       base64.
       This option can be useful when scripting, to avoid the nuisance of having to
       escape latex code from the shell.
-  -o|--output <file|->
+  -o, --output <file|->
       Specifies to write the output image (obtained from equation given by --input
       or --latexinput) to <file> or standard output.
-  -F|--format <format>
+  -F, --format <format>
       Specifies the format the output should be written in. By default, the format
       is guessed from file name extension and defaults to PNG.
-  -f|--fgcolor <'#xxxxxx'>
+  -f, --fgcolor <'#xxxxxx'>
       Specifies a color (in web #RRGGBB hex format) to use for foreground color.
       Don't forget to escape the '#' to prevent the shell from interpreting it as
       a comment.
-  -b|--bgcolor <-|'#xxxxxx'>
+  -b, --bgcolor <-|'#xxxxxx'>
       Specifies a color (in web #RRGGBB hex format, or '-' for transparent) to
       use as background color (defaults to transparent)
-  -X|--dpi <N>
+  -X, --dpi <N>
       Use N dots per inch (DPI) when converting latex output to image. Defaults to
       1200 (high-resolution image).
-  -m|--mathmode <expression containing '...'>
+  -m, --mathmode <expression containing '...'>
       Specifies which LaTeX math mode to use, if any. The argument to this option
       is any string containing "...", which will be replaced by the equation
       itself. Defaults to "\[ ... \]"
-  -p|--preamble <LaTeX code>
+  -p, --preamble <LaTeX code>
       Any LaTeX code that will be inserted before \begin{document}. Useful for
       including custom packages with \usepackage{...}.
-  -q|--quiet
+  -q, --quiet
       Disable console output of warnings and errors.
   --redirect-debug <file>
       Redirects debugging output to the given <file>. If the file name does not
       end with .klfdebug, this suffix is enforced. If the file exists, it is
       silently overwritten.
-  -d|--daemonize
+  -d, --daemonize
       Run a separate, detached, klatexformula process and return immediately. All
       other options, like --latexinput, may still be given. They will be forwared
       to the daemon process.
 
-  --outlinefonts [ <ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0> ]
+  --outlinefonts [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
       Convert embedded fonts in EPS and PDF to vector outlines (gs with -dNOCACHE).
       Useful for exporting to eg. Adobe Illustrator.
   --lborderoffset <N>
@@ -90,28 +97,50 @@ OPTIONS may be one or many of:
       Specifiy the executable for latex, dvips, gs or epstopdf. By default, they
       are searched for in $PATH and/or in common system directories.
 
-  -h|--help
-      Display this help text and exit.
-  -V|--version
-      Display KLatexFormula version information and exit.
-
-  -Q|--qtoption <qt-option>
-      Specify a Qt-Specific option. For example, to launch KLatexFormula in
-      Plastique GUI style, use:
-        klatexformula  --qtoption='-style=Plastique'
+  -Q, --qtoption <qt-option>
+      Specify a Qt-specific option. For example, to launch KLatexFormula in
+      Plastique GUI style, use
+        klatexformula --qtoption="-style=Plastique"
       Note that if <qt-option> begins with a '-', then it must be appended to the
       long '--qtoption=' syntax with the equal sign.
 
+  -h, --help [<filename|&N>]
+      Display this help text and exit.
+      If a file name is provided, the help message is appended to that file. If
+      the argument is "&<N>", then the help message is printed in file descriptor
+      N. (Reminder: N=1 for standard output 'stdout', N=2 for standard error
+      output 'stderr')
+  -V, --version [<filename|&N>][:<format>]
+      Display KLatexFormula version information and exit.
+      The optional output argument is handled as with --help, however it may contain
+      a version string format preceeded by a colon where %k, and %q and %% are
+      respectively replaced by klatexformula version, Qt version and a literal %.
 
-NOTES
-  * When run in interactive mode, the newly evaluated equation is appended to
-    KLatexFormula's history.
-  * When not run in interactive mode, no X11 server is needed.
-  * Additional translation files and/or data can be provided to klatexformula by specifying
-    a list of Qt rcc files or directories containing such files to import in the KLF_RESOURCES
-    environment variable. Separate the file names with ':' on unix/mac, or ';' on windows. The
-    default paths can be included with an empty section ('::') or leading or trailing ':'.
-  * Please report any bugs and malfunctions to the author.
+Examples:
+  Create an image named filename.png from the equation 'a^2+b^2=c^2':
+    klatexformula --latexinput 'a^2+b^2=c^2' --output filename.png
+
+  Open klatexformula window with equation 'f(x)=-2\,x', but don't evaluate it:
+    klatexformula -I --latexinput='f(x)=-2\,x' --noeval
+
+  Open klatexformula window and return immediately to shell command:
+    klatexformula -I --daemonize
+
+  Print help message, but to standard output instead of standard error output:
+    klatexformula --help='&1'
+
+Notes:
+  When run in interactive mode, the newly evaluated equation is appended to
+  KLatexFormula's history.
+  
+  When not run in interactive mode, no X11 server is needed.
+  
+  Additional translation files and/or data can be provided to klatexformula by specifying
+  a list of Qt rcc files or directories containing such files to import in the KLF_RESOURCES
+  environment variable. Separate the file names with ':' on unix/mac, or ';' on windows. The
+  default paths can be included with an empty section ('::') or leading or trailing ':'.
+    
+  Please report any bugs and malfunctions to the author.
 
 More information is available on http://klatexformula.sourceforge.net/.
 

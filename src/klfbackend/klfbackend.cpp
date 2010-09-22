@@ -646,13 +646,13 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
 {
   QString format = fmt;
   // determine format first
-  if (format.isEmpty()) {
+  if (format.isEmpty() && !fileName.isEmpty()) {
     QFileInfo fi(fileName);
     if ( ! fi.fi_suffix().isEmpty() )
       format = fi.fi_suffix();
-    else
-      format = "PNG";
   }
+  if (format.isEmpty())
+    format = QLatin1String("PNG");
   format = format.s_trimmed().s_toUpper();
   // got format. choose output now and prepare write
   QFile fout;

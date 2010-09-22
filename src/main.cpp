@@ -76,6 +76,7 @@ int opt_interactive = -1; // -1: not specified, 0: NOT interactive, 1: interacti
 char *opt_input = NULL;
 char *opt_latexinput = NULL;
 int opt_paste = -1; // -1: don't paste, 1: paste clipboard, 2: paste selection
+bool opt_noeval = false;
 bool opt_base64arg = false;
 char *opt_output = NULL;
 char *opt_format = NULL;
@@ -102,7 +103,10 @@ char *opt_gs;
 char *opt_epstopdf;
 
 bool opt_help_requested = false;
+FILE * opt_help_fp = stderr;
 bool opt_version_requested = false;
+FILE * opt_version_fp = stderr;
+char *opt_version_format = (char*)"KLatexFormula: Version %k using Qt %q\n";
 
 char **klf_args;
 
@@ -125,6 +129,7 @@ enum {
   OPT_LATEXINPUT = 'l',
   OPT_PASTE_CLIPBOARD = 'P',
   OPT_PASTE_SELECTION = 'S',
+  OPT_NOEVAL = 'n',
   OPT_BASE64ARG = 'B',
   OPT_OUTPUT = 'o',
   OPT_FORMAT = 'F',
@@ -156,13 +161,18 @@ enum {
   OPT_REDIRECT_DEBUG
 };
 
+/** A List of command-line options klatexformula accepts.
+ *
+ * NOTE: Remember to forward any NEW OPTIONS to the daemonized process when the new option is
+ * used with --daemonize (!) (search for \c opt_daemonize).
+ */
 static struct option klfcmdl_optlist[] = {
   { "interactive", 0, NULL, OPT_INTERACTIVE },
   { "input", 1, NULL, OPT_INPUT },
   { "latexinput", 1, NULL, OPT_LATEXINPUT },
   { "paste-clipboard", 0, NULL, OPT_PASTE_CLIPBOARD },
   { "paste-selection", 0, NULL, OPT_PASTE_SELECTION },
-  //  { "dont-eval" 0, NULL, OPT_DONT_EVAL }, ................. this is a suggestion ......
+  { "noeval", 0, NULL, OPT_NOEVAL },
   { "base64arg", 0, NULL, OPT_BASE64ARG },
   { "output", 1, NULL, OPT_OUTPUT },
   { "format", 1, NULL, OPT_FORMAT },
@@ -188,8 +198,8 @@ static struct option klfcmdl_optlist[] = {
   { "gs", 1, NULL, OPT_GS },
   { "epstopdf", 1, NULL, OPT_EPSTOPDF },
   // -----
-  { "help", 0, NULL, OPT_HELP },
-  { "version", 0, NULL, OPT_VERSION },
+  { "help", 2, NULL, OPT_HELP },
+  { "version", 2, NULL, OPT_VERSION },
   // -----
   { "qtoption", 1, NULL, OPT_QTOPT },
   // ---- end of option list ----
@@ -821,6 +831,8 @@ int main(int argc, char **argv)
       args << "-I";
       if (!latexinput.isNull())
 	args << "--latexinput="+latexinput;
+      if (opt_noeval)
+	args << "--noeval";
       if (opt_output != NULL)
 	args << "--output="+QString::fromLocal8Bit(opt_output);
       if (opt_format != NULL)
@@ -923,7 +935,8 @@ int main(int argc, char **argv)
       if (opt_epstopdf != NULL)
 	iface->setAlterSetting_s(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
       // will actually save only if output is non empty.
-      iface->evaluateAndSave(QString::fromLocal8Bit(opt_output), QString::fromLocal8Bit(opt_format));
+      if (!opt_noeval || opt_output)
+	iface->evaluateAndSave(QString::fromLocal8Bit(opt_output), QString::fromLocal8Bit(opt_format));
       // and import KLF files if wanted
       QStringList flist;
       for (int k = 0; klf_args[k] != NULL; ++k)
@@ -1032,9 +1045,11 @@ int main(int argc, char **argv)
     if (opt_epstopdf != NULL)
       mainWin.alterSetting(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
 
-    // will actually save only if output is non empty.
-    mainWin.slotEvaluateAndSave(QString::fromLocal8Bit(opt_output),
-				QString::fromLocal8Bit(opt_format));
+    if (!opt_noeval) {
+      // will actually save only if output is non empty.
+      mainWin.slotEvaluateAndSave(QString::fromLocal8Bit(opt_output),
+				  QString::fromLocal8Bit(opt_format));
+    }
 
 
     // IMPORT .klf (or other) files passed as arguments
@@ -1077,7 +1092,11 @@ int main(int argc, char **argv)
     if ( opt_version_requested ) {
       /* Remember: the format here should NOT change from one version to another, so that it
        * can be parsed eg. by scripts if needed. */
-      fprintf(stderr, "KLatexFormula: Version %s using Qt %s\n", KLF_VERSION_STRING, qVersion());
+      QString version_string = QString::fromLocal8Bit(opt_version_format);
+      version_string.replace(QLatin1String("%k"), QLatin1String(KLF_VERSION_STRING));
+      version_string.replace(QLatin1String("%q"), QLatin1String(qVersion()));
+      version_string.replace(QLatin1String("%%"), QLatin1String("%"));
+      fprintf(opt_version_fp, "%s\n", qPrintable(version_string));
       main_exit(0);
     }
 
@@ -1089,7 +1108,7 @@ int main(int argc, char **argv)
 	main_exit(-1);
       }
       QString helpData = QString::fromUtf8(cmdlHelpFile.readAll());
-      fprintf(stderr, "%s", helpData.toLocal8Bit().constData());
+      fprintf(opt_help_fp, "%s", helpData.toLocal8Bit().constData());
       main_exit(0);
     }
 
@@ -1208,6 +1227,34 @@ int main(int argc, char **argv)
 
 // PARSE COMMAND-LINE OPTIONS
 
+FILE *main_msg_get_fp_arg(const char *arg)
+{
+  FILE *fp;
+  if (arg != NULL) {
+    if (arg[0] == '&') { // file descriptor number
+      int fd = atoi(&arg[1]);
+      if (fd > 0)
+	fp = fdopen(fd, "a");
+      if (fd <= 0 || fp == NULL) {
+	qWarning("Failed to open file descriptor %d.", fd);
+	return stderr;
+      }
+      return fp;
+    }
+    if (!strcmp(arg, "-")) { // stdout
+      return stdout;
+    }
+    // file name
+    fp = fopen(arg, "a");
+    if (fp == NULL) {
+      qWarning("Failed to open file `%s' to print help message.", arg);
+      return stderr;
+    }
+    return fp;
+  }
+  return stderr;
+}
+
 void main_parse_options(int argc, char *argv[])
 {
   // argument processing
@@ -1273,7 +1320,7 @@ void main_parse_options(int argc, char *argv[])
     case OPT_PASTE_CLIPBOARD:
       if (opt_interactive <= 0) {
 	if (opt_interactive == 0)
-	  qWarning("%s", qPrintable(QObject::tr("--paste-clipboard requires interactive mode. Switching.")));
+	  qWarning("--paste-clipboard requires interactive mode. Switching.");
 	opt_interactive = 1;
       }
       opt_paste = 1;
@@ -1281,10 +1328,13 @@ void main_parse_options(int argc, char *argv[])
     case OPT_PASTE_SELECTION:
       if (opt_interactive <= 0) {
 	if (opt_interactive == 0)
-	  qWarning("%s", qPrintable(QObject::tr("--paste-selection requires interactive mode. Switching.")));
+	  qWarning("--paste-selection requires interactive mode. Switching.");
 	opt_interactive = 1;
       }
       opt_paste = 2;
+      break;
+    case OPT_NOEVAL:
+      opt_noeval = true;
       break;
     case OPT_BASE64ARG:
       opt_base64arg = true;
@@ -1372,9 +1422,18 @@ void main_parse_options(int argc, char *argv[])
       opt_epstopdf = arg;
       break;
     case OPT_HELP:
+      opt_help_fp = main_msg_get_fp_arg(arg);
       opt_help_requested = true;
       break;
     case OPT_VERSION:
+      if (arg != NULL) {
+	char *colonptr = strchr(arg, ':');
+	if (colonptr != NULL) {
+	  *colonptr = '\0';
+	  opt_version_format = colonptr+1;
+	}
+      }
+      opt_version_fp = main_msg_get_fp_arg(arg);
       opt_version_requested = true;
       break;
     case OPT_QTOPT:
@@ -1399,6 +1458,20 @@ void main_parse_options(int argc, char *argv[])
   if (opt_interactive == -1) {
     // interactive (open GUI) by default
     opt_interactive = 1;
+  }
+  
+  // Constistency checks
+  if (opt_noeval && !opt_interactive) {
+    qWarning("%s", qPrintable(QObject::tr("--noeval is relevant only in interactive mode.")));
+    opt_noeval = false;
+  }
+  if (opt_noeval && opt_output) {
+    qWarning("%s", qPrintable(QObject::tr("--noeval may not be used when --output is present.")));
+    opt_noeval = false;
+  }
+  if (opt_interactive && opt_format && !opt_output) {
+    qWarning("%s", qPrintable(QObject::tr("ignoring --format without --output.")));
+    opt_format = NULL;
   }
 
   return;

@@ -417,6 +417,26 @@ mark_as_advanced(
 	LIB_SUFFIX
 	)
 
+# Manpage generation from --help and --version help text
+if(NOT DEFINED HELP2MAN OR HELP2MAN STREQUAL "")
+  find_program(HELP2MAN "help2man")
+endif(NOT DEFINED HELP2MAN OR HELP2MAN STREQUAL "")
+if(HELP2MAN)
+  message(STATUS "Manpage will be generated from --help text with help2man (HELP2MAN=OFF or /path/to/help2man)")
+else(HELP2MAN)
+  message(STATUS "Manpage will not be generated with help2man (HELP2MAN=OFF or /path/to/help2man)")
+endif(HELP2MAN)
+if(NOT DEFINED GZIP OR GZIP STREQUAL "")
+  find_program(GZIP "gzip")
+endif(NOT DEFINED GZIP OR GZIP STREQUAL "")
+if(HELP2MAN)
+  if(GZIP)
+    message(STATUS "Manpage will be gzip'ed (GZIP=OFF or /path/to/gzip)")
+  else(GZIP)
+    message(STATUS "Manpage will not be gzip'ed (GZIP=OFF or /path/to/gzip)")
+  endif(GZIP)
+endif(HELP2MAN)
+
 
 # Install Paths
 # -------------

@@ -240,9 +240,12 @@ set(KLF_INSTALL_ICON_THEME "" CACHE STRING
   "(if KLF_INSTALL_DESKTOP) Icons are to be installed in this desktop icon theme, eg. /usr/share/icons/hicolor")
 set(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR "share/mime/packages/" CACHE STRING
   "(if KLF_INSTALL_DESKTOP) Where to install mime database xml file(s) (default share/mime/packages)")
+set(KLF_INSTALL_SHARE_MAN1_DIR "share/man/man1" CACHE STRING
+  "(if KLF_INSTALL_DESKTOP) Where to install manual page (if generated) (default share/man/man1)")
 KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_APPLICATIONS_DIR KLF_INSTALL_SHARE_APPLICATIONS_DIR)
 KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_PIXMAPS_DIR KLF_INSTALL_SHARE_PIXMAPS_DIR)
 KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_MIME_PACKAGES_DIR KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+KLFMakeAbsInstallPath(KLF_ABS_INSTALL_SHARE_MAN1_DIR KLF_INSTALL_SHARE_MAN1_DIR)
 # Reasonable Icon= entry given the installation settings
 if(KLF_INSTALL_SHARE_PIXMAPS_DIR)
   set(klf_icon "${KLF_ABS_INSTALL_SHARE_PIXMAPS_DIR}/klatexformula-64.png")
@@ -261,6 +264,7 @@ mark_as_advanced(
   KLF_INSTALL_SHARE_APPLICATIONS_DIR
   KLF_INSTALL_SHARE_PIXMAPS_DIR
   KLF_INSTALL_SHARE_MIME_PACKAGES_DIR
+  KLF_INSTALL_SHARE_MAN1_DIR
   KLF_INSTALL_ICON_THEME
   )
 
@@ -272,6 +276,7 @@ if(KLF_INSTALL_DESKTOP)
    mime database xml:    \t${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}  (KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
    pixmaps:              \t${KLF_INSTALL_SHARE_PIXMAPS_DIR}  (KLF_INSTALL_SHARE_PIXMAPS_DIR)
    icon theme:           \t${KLF_INSTALL_ICON_THEME}  (KLF_INSTALL_ICON_THEME)
+   man page:             \t${KLF_INSTALL_SHARE_MAN1_DIR} (KLF_INSTALL_SHARE_MAN1_DIR)
      All paths are absolute, or relative to CMAKE_INSTALL_PREFIX. Setting the corresponding variable
      to an empty value disables that particular install.
 ")

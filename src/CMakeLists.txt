@@ -383,6 +383,43 @@ if(KLF_BUILD_PLUGINS)
 endif(KLF_BUILD_PLUGINS)
 
 
+
+# Make man page
+if(HELP2MAN)
+  KLFGetTargetLocation(klatexformula_binary klatexformula)
+  # generate the man page
+  add_custom_command(OUTPUT "klatexformula.1"
+    COMMAND "${HELP2MAN}" -h "--help='&1'" -v "--version='&1:klatexformula %k'" --no-info ${klatexformula_binary}
+    -o "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.1"
+    COMMENT "Generating man page for klatexformula"
+    DEPENDS "${klatexformula_binary}"
+    VERBATIM
+    )
+  if(GZIP)
+    add_custom_command(OUTPUT "klatexformula.1.gz"
+      COMMAND "${CMAKE_COMMAND}" -E copy "klatexformula.1" "klatexformula.1.bkp"
+      COMMAND "${GZIP}" -f "klatexformula.1"
+      COMMAND "${CMAKE_COMMAND}" -E copy "klatexformula.1.bkp" "klatexformula.1"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+      COMMENT "Compressing (gzip) manpage"
+      DEPENDS "klatexformula.1"
+      VERBATIM
+      )
+    set(klatexformula_manpage_file "klatexformula.1.gz")
+  else(GZIP)
+    set(klatexformula_manpage_file "klatexformula.1")
+  endif(GZIP)
+
+  add_custom_target(klatexformula_manpage ALL DEPENDS "${klatexformula_manpage_file}")
+
+  if(KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MAN1_DIR)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${klatexformula_manpage_file}"
+      DESTINATION "${KLF_INSTALL_SHARE_MAN1_DIR}")
+  endif(KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MAN1_DIR)
+
+endif(HELP2MAN)
+
+
 # Install Targets
 # ---------------
 
