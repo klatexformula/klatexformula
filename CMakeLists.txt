@@ -409,7 +409,7 @@ else(KLF_USE_QT4)
 endif(KLF_USE_QT4)
 
 
-# some additional variables that get shown on some versions of CMake that could be hidden
+# some additional variables that get shown in some versions of CMake that could be hidden
 mark_as_advanced(
 	EXECUTABLE_OUTPUT_PATH
 	LIBRARY_OUTPUT_PATH

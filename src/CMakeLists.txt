@@ -406,14 +406,27 @@ if(HELP2MAN)
       VERBATIM
       )
     set(klatexformula_manpage_file "klatexformula.1.gz")
+    set(klatexformula_cmdl_manpage_file "klatexformula_cmdl.1.gz")
   else(GZIP)
     set(klatexformula_manpage_file "klatexformula.1")
+    set(klatexformula_cmdl_manpage_file "klatexformula_cmdl.1")
   endif(GZIP)
 
-  add_custom_target(klatexformula_manpage ALL DEPENDS "${klatexformula_manpage_file}")
+  add_custom_command(OUTPUT "${klatexformula_cmdl_manpage_file}"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${klatexformula_manpage_file}" "${klatexformula_cmdl_manpage_file}"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    COMMENT "Copying ${klatexformula_manpage_file} to ${klatexformula_cmdl_manpage_file}"
+    DEPENDS "${klatexformula_manpage_file}"
+    VERBATIM
+    )
+
+  add_custom_target(klatexformula_manpage ALL
+    DEPENDS "${klatexformula_manpage_file}" "${klatexformula_cmdl_manpage_file}")
 
   if(KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MAN1_DIR)
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${klatexformula_manpage_file}"
+    install(FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/${klatexformula_manpage_file}"
+      "${CMAKE_CURRENT_BINARY_DIR}/${klatexformula_cmdl_manpage_file}"
       DESTINATION "${KLF_INSTALL_SHARE_MAN1_DIR}")
   endif(KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MAN1_DIR)
 
