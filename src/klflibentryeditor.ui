@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>314</width>
-    <height>518</height>
+    <width>311</width>
+    <height>492</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="lyt_KLFLibEntryEditor">
@@ -138,8 +138,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>308</width>
-         <height>244</height>
+         <width>305</width>
+         <height>164</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -244,8 +244,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>308</width>
-         <height>244</height>
+         <width>290</width>
+         <height>186</height>
         </rect>
        </property>
        <property name="autoFillBackground">
@@ -254,7 +254,7 @@
        <attribute name="label">
         <string>Style</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout">
+       <layout class="QGridLayout" name="lyt_tabStyle">
         <property name="margin">
          <number>6</number>
         </property>
@@ -358,8 +358,8 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>20</width>
-            <height>20</height>
+            <width>1</width>
+            <height>10</height>
            </size>
           </property>
          </spacer>
@@ -537,6 +537,14 @@
    <header>klflatexedit.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>txtPreviewLatex</tabstop>
+  <tabstop>cbxCategory</tabstop>
+  <tabstop>cbxTags</tabstop>
+  <tabstop>btnApplyChanges</tabstop>
+  <tabstop>txtStyPreamble</tabstop>
+  <tabstop>btnRestoreStyle</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

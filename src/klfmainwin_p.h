@@ -516,13 +516,12 @@ private:
     if (entries.size() > 1) {
       QMessageBox::critical(mainWin(), tr("Error"),
 			    tr("The data you have request to open contains multiple formulas.\n"
-			       "You may only open one formula into the latex code editor."));
+			       "You may only open one formula into the LaTeX code editor."));
       return false;
     }
     if (entries.size() == 0) {
       QMessageBox::critical(mainWin(), tr("Error"),
-			    tr("The data you have request to open contains no formulas.\n"
-			       "You may only open one formula into the latex code editor."));
+			    tr("The data you have request to open contains no formulas."));
       return false;
     }
     mainWin()->restoreFromLibrary(entries[0], KLFLib::RestoreAll);

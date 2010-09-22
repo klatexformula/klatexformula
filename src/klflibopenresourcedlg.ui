@@ -129,6 +129,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>cbxType</tabstop>
+  <tabstop>cbxSubResource</tabstop>
+  <tabstop>chkReadOnly</tabstop>
+  <tabstop>btnBar</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

@@ -567,7 +567,7 @@
         </property>
         <widget class="QWidget" name="tabLatexImage">
          <attribute name="title">
-          <string>Latex</string>
+          <string>LaTeX</string>
          </attribute>
          <layout class="QGridLayout" name="lyt_gbxLatexImage">
           <property name="leftMargin">
@@ -596,22 +596,22 @@
             </property>
             <item>
              <property name="text">
-              <string>\[ ... \]</string>
+              <string notr="true">\[ ... \]</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>$ ... $</string>
+              <string notr="true">$ ... $</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>\[ \begin{aligned} ... \end{aligned} \]</string>
+              <string notr="true">\[ \begin{aligned} ... \end{aligned} \]</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>\begin{eqnarray*} ... \end{eqnarray*}</string>
+              <string notr="true">\begin{eqnarray*} ... \end{eqnarray*}</string>
              </property>
             </item>
            </widget>
@@ -727,7 +727,7 @@
             <property name="checkable">
              <bool>true</bool>
             </property>
-            <layout class="QGridLayout" name="gridLayout_2">
+            <layout class="QGridLayout" name="lyt_gbxOverrideMargins">
              <item row="2" column="0" colspan="2">
               <widget class="QFrame" name="frmMargins">
                <property name="frameShape">
@@ -736,7 +736,7 @@
                <property name="frameShadow">
                 <enum>QFrame::Plain</enum>
                </property>
-               <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,2">
+               <layout class="QGridLayout" name="lyt_frmMargins" columnstretch="1,2">
                 <property name="horizontalSpacing">
                  <number>0</number>
                 </property>
@@ -1092,6 +1092,7 @@
  <tabstops>
   <tabstop>txtLatex</tabstop>
   <tabstop>btnClearLatex</tabstop>
+  <tabstop>btnClearAll</tabstop>
   <tabstop>btnEvaluate</tabstop>
   <tabstop>btnSymbols</tabstop>
   <tabstop>btnLibrary</tabstop>
@@ -1099,13 +1100,24 @@
   <tabstop>btnDrag</tabstop>
   <tabstop>btnCopy</tabstop>
   <tabstop>btnSave</tabstop>
+  <tabstop>btnShowBigPreview</tabstop>
+  <tabstop>btnSetExportProfile</tabstop>
   <tabstop>btnQuit</tabstop>
   <tabstop>colFg</tabstop>
   <tabstop>chkBgTransparent</tabstop>
   <tabstop>colBg</tabstop>
+  <tabstop>tabsOptions</tabstop>
   <tabstop>chkMathMode</tabstop>
   <tabstop>cbxMathMode</tabstop>
   <tabstop>txtPreamble</tabstop>
+  <tabstop>btnDPIPresets</tabstop>
+  <tabstop>spnDPI</tabstop>
+  <tabstop>gbxOverrideMargins</tabstop>
+  <tabstop>cbxMarginsUnit</tabstop>
+  <tabstop>spnMarginTop</tabstop>
+  <tabstop>spnMarginRight</tabstop>
+  <tabstop>spnMarginBottom</tabstop>
+  <tabstop>spnMarginLeft</tabstop>
   <tabstop>btnLoadStyle</tabstop>
   <tabstop>btnSaveStyle</tabstop>
   <tabstop>btnSettings</tabstop>

@@ -56,6 +56,10 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>txtFile</tabstop>
+  <tabstop>btnBrowse</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

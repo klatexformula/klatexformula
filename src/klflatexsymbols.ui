@@ -81,7 +81,7 @@
       <string>&amp;Close</string>
      </property>
      <property name="icon">
-      <iconset resource="klfres.qrc">
+      <iconset>
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
      </property>
      <property name="shortcut">
@@ -92,6 +92,10 @@
   </layout>
  </widget>
  <layoutdefault spacing="2" margin="0"/>
+ <tabstops>
+  <tabstop>cbxCategory</tabstop>
+  <tabstop>btnClose</tabstop>
+ </tabstops>
  <resources>
   <include location="klfres.qrc"/>
  </resources>

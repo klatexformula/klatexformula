@@ -42,7 +42,7 @@ QAbstractScrollArea {
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="lyt_KLFProgErr">
    <item>
     <widget class="QLabel" name="lbl">
      <property name="sizePolicy">
@@ -87,7 +87,7 @@ QAbstractScrollArea {
       <string>Close</string>
      </property>
      <property name="icon">
-      <iconset resource="klfres.qrc">
+      <iconset>
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
      </property>
      <property name="default">

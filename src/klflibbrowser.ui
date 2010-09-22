@@ -437,13 +437,13 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>tabResources</tabstop>
+  <tabstop>btnOpenRes</tabstop>
+  <tabstop>btnCreateRes</tabstop>
   <tabstop>btnRestore</tabstop>
   <tabstop>btnDelete</tabstop>
   <tabstop>btnImportExport</tabstop>
   <tabstop>btnClose</tabstop>
-  <tabstop>tabResources</tabstop>
-  <tabstop>btnOpenRes</tabstop>
-  <tabstop>btnCreateRes</tabstop>
  </tabstops>
  <resources>
   <include location="klfres.qrc"/>

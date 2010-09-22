@@ -116,6 +116,13 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>txtSearch</tabstop>
+  <tabstop>btnFindNext</tabstop>
+  <tabstop>btnFindPrev</tabstop>
+  <tabstop>btnSearchClear</tabstop>
+  <tabstop>btnHide</tabstop>
+ </tabstops>
  <resources>
   <include location="../klftoolsres.qrc"/>
  </resources>

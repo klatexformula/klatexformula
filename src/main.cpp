@@ -1470,7 +1470,7 @@ void main_parse_options(int argc, char *argv[])
     opt_noeval = false;
   }
   if (opt_interactive && opt_format && !opt_output) {
-    qWarning("%s", qPrintable(QObject::tr("ignoring --format without --output.")));
+    qWarning("%s", qPrintable(QObject::tr("Ignoring --format without --output.")));
     opt_format = NULL;
   }
 

@@ -18,7 +18,7 @@
    <iconset resource="klfres.qrc">
     <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="lyt_KLFStyleManager">
    <item>
     <widget class="QLabel" name="lbl">
      <property name="font">
@@ -110,7 +110,7 @@
       <string>Close</string>
      </property>
      <property name="icon">
-      <iconset resource="klfres.qrc">
+      <iconset>
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
      </property>
     </widget>

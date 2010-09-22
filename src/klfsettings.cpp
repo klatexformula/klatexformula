@@ -489,8 +489,8 @@ void KLFSettings::reset()
   u->spnPreviewHeight->setValue(klfconfig.UI.labelOutputFixedSize.height());
 
   u->chkEnableToolTipPreview->setChecked(klfconfig.UI.enableToolTipPreview);
-  u->spnTooltipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
-  u->spnTooltipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
+  u->spnToolTipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
+  u->spnToolTipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
 
   u->chkShowHintPopups->setChecked(klfconfig.UI.showHintPopups);
   u->chkClearLatexOnly->setChecked(klfconfig.UI.clearLatexOnly);
@@ -1054,7 +1054,7 @@ void KLFSettings::apply()
   klfconfig.UI.labelOutputFixedSize = QSize(u->spnPreviewWidth->value(), u->spnPreviewHeight->value());
   klfconfig.UI.enableRealTimePreview = u->chkEnableRealTimePreview->isChecked();
 
-  klfconfig.UI.previewTooltipMaxSize = QSize(u->spnTooltipMaxWidth->value(), u->spnTooltipMaxHeight->value());
+  klfconfig.UI.previewTooltipMaxSize = QSize(u->spnToolTipMaxWidth->value(), u->spnToolTipMaxHeight->value());
   klfconfig.UI.enableToolTipPreview = u->chkEnableToolTipPreview->isChecked();
 
   klfconfig.UI.showHintPopups = u->chkShowHintPopups->isChecked();

@@ -1081,8 +1081,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>100</width>
-            <height>30</height>
+            <width>249</width>
+            <height>91</height>
            </rect>
           </property>
          </widget>
@@ -1134,8 +1134,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>100</width>
-            <height>30</height>
+            <width>224</width>
+            <height>91</height>
            </rect>
           </property>
          </widget>
@@ -1165,6 +1165,23 @@
    <header location="global">QWidget</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>mPaneTabs</tabstop>
+  <tabstop>lstNames</tabstop>
+  <tabstop>txtHex</tabstop>
+  <tabstop>spnHue</tabstop>
+  <tabstop>spnSat</tabstop>
+  <tabstop>spnVal</tabstop>
+  <tabstop>spnRed</tabstop>
+  <tabstop>spnGreen</tabstop>
+  <tabstop>spnBlue</tabstop>
+  <tabstop>spnAlpha</tabstop>
+  <tabstop>mStandardColorsPaletteScroll</tabstop>
+  <tabstop>mRecentColorsPaletteScroll</tabstop>
+  <tabstop>mTabs</tabstop>
+  <tabstop>btnAddCustomColor</tabstop>
+  <tabstop>mCustomColorsPaletteScroll</tabstop>
+ </tabstops>
  <resources>
   <include location="../klftoolsres.qrc"/>
  </resources>

@@ -57,7 +57,7 @@
      <property name="title">
       <string>Select the resources to export</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="lyt_gbxExport">
       <item row="0" column="0" rowspan="4">
        <widget class="QTreeView" name="lstRes"/>
       </item>

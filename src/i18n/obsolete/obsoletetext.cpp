@@ -54,11 +54,17 @@ void dummy()
   QT_TRANSLATE_NOOP("KLFMainWin", "Created with KLatexFormula version %1");
   QT_TRANSLATE_NOOP("KLFMainWin", "Default");
   QT_TRANSLATE_NOOP("KLFMainWin", "default");
+  QT_TRANSLATE_NOOP("KLFMainWin", "Error: Unable to load your style list!");
   // KLFMainWinUI
   QT_TRANSLATE_NOOP3("KLFMainWinUI", "KLatexFormula", "window title");
   QT_TRANSLATE_NOOP3("KLFMainWinUI", "Evaluate LaTeX Expression [Shift-Enter]", "tooltip");
   QT_TRANSLATE_NOOP3("KLFMainWinUI", "Show Latex Symbols palette", "tooltip");
   QT_TRANSLATE_NOOP3("KLFMainWinUI", "Toggle shrinked/expanded mode", "tooltip");
+  QT_TRANSLATE_NOOP3("KLFMainWinUI", "Show Library", "tooltip");
+  QT_TRANSLATE_NOOP("KLFMainWinUI", "Ctrl+E, Ctrl+Space");
+  QT_TRANSLATE_NOOP("KLFMainWinUI", "Click and keep mouse button pressed to drag your formula to an other application");
+  QT_TRANSLATE_NOOP("KLFMainWinUI", "Copy formula to clipboard");
+  QT_TRANSLATE_NOOP("KLFMainWinUI", "Latex && Image Settings");
   // KLFSettings
   QT_TRANSLATE_NOOP("KLFSettings", "Cancel");
   QT_TRANSLATE_NOOP("KLFSettings", "Apply");
@@ -76,6 +82,8 @@ void dummy()
   QT_TRANSLATE_NOOP("KLFSettings", "System E&xecutables and paths");
   QT_TRANSLATE_NOOP("KLFSettings", "A&dvanced settings");
   QT_TRANSLATE_NOOP("KLFSettings", "I  ");
+  QT_TRANSLATE_NOOP("KLFSettings", "No Plugins have been loaded. Please install and enable individual plugins before trying to configure them.");
+  QT_TRANSLATE_NOOP("KLFSettings", "The Add-On File %1 will be removed from disk.");
   // QObject
   QObject::tr("Error");
   QObject::tr("Can't create local directory `%1' !");
@@ -91,6 +99,10 @@ void dummy()
   QObject::tr("Warning: Ignoring --input since --latexinput is given.\n");
   QObject::tr("Unable to start Latex program!", "KLFBackend");
   QObject::tr("Unable to save image to file `%1' in format `%2'!\n", "KLFBackend::saveOutputToFile");
+  QObject::tr("<b>Style Name</b>: %1<br>");
+  QObject::tr("<b>Math Mode</b>: %1<br><b>DPI Resolution</b>: %2<br><b>Foreground Color</b>: %3 <font color=\"%4\"><b>[SAMPLE]</b></font><br><b>Background is Transparent</b>: %5<br><b>Background Color</b>: %6 <font color=\"%7\"><b>[SAMPLE]</b></font><br><b>LaTeX Preamble:</b><br><pre>%8</pre>");
+  QObject::tr("ERROR: Can't generate preview for symbol %1 : status %2 !\n	Error: %3\n");
+  QObject::tr("YES"); QObject::tr("NO");
   QT_TRANSLATE_NOOP3("QObject",
 		     "\n"
 		     "KLatexFormula by Philippe Faist\n"
@@ -185,7 +197,17 @@ void dummy()
 		     "Have a lot of fun!\n"
 		     "\n",
 		   "Command-line help instructions") ;
-
+  // SkinConfigWidget
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "Custom ...");
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "Skin Name");
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "Please enter skin name:");
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "[New Skin Name]");
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "Error");
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "Can't overwrite a built-in skin. Please choose another name.");
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "Overwrite skin?");
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "You are about to overwrite skin %1. Are you sure?");
+  QT_TRANSLATE_NOOP3("SkinConfigWidget", "Delete skin?", "[[confirmation messagebox title]]");
+  QT_TRANSLATE_NOOP("SkinConfigWidget", "Are you sure you want to delete the skin named `%1' ?");
 
 }
 
