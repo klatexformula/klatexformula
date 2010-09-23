@@ -675,7 +675,7 @@ static QString kdelocate(const char *fname)
   QStringList env = QProcess::systemEnvironment();
   QStringList kdehome = env.filter(QRegExp("^KDEHOME="));
   if (kdehome.size() == 0) {
-    candidate = QString("~/.kde/share/apps/klatexformula/") + QString::fromLocal8Bit(fname);
+    candidate = QDir::homePath() + QString("/.kde/share/apps/klatexformula/") + QString::fromLocal8Bit(fname);
   } else {
     QString kdehomeval = kdehome[0];
     kdehomeval.replace(QRegExp("^KDEHOME="), "");
