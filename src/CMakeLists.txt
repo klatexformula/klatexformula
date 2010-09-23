@@ -458,7 +458,7 @@ endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFAPP_FRAMEWORK)
 
 if(WIN32 AND KLF_INSTALL_QTLIBS)
   # Install Qt libs
-  #  # The variable QT_INSTALL_PREFIX has already been set in klfinstallpaths.cmake
+  #  QT_BINARY_DIR and QT_PLUGINS_DIR are set by FindQt4 CMake module
   install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
 	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll" REGEX "/mingw.*\\.dll"
 	 )
@@ -470,7 +470,7 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
   #install(FILES ${abs_qtplugin_list} DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}")
   foreach(qtplugin ${KLF_INSTALL_QTPLUGINS_LIST})
     get_filename_component(qtplugin_dir "${qtplugin}" PATH)
-    install(FILES "${QT_INSTALL_PREFIX}/plugins/${qtplugin}"
+    install(FILES "${QT_PLUGINS_DIR}/${qtplugin}"
 	    DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/${qtplugin_dir}")
   endforeach(qtplugin)
 endif(WIN32 AND KLF_INSTALL_QTLIBS)

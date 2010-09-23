@@ -293,13 +293,14 @@ if(WIN32)
 
     set(KLF_INSTALL_QTPLUGINS_DIR "qt-plugins/" CACHE STRING
 	"Where to install Qt Plugins to deploy with application (relative to prefix, or absolute)")
-    if(NOT KLF_INSTALL_QTPLUGINS_LIST)
-      file(GLOB_RECURSE qtplugins_list RELATIVE "${QT_INSTALL_PREFIX}/plugins"
-							      "${QT_INSTALL_PREFIX}/plugins/*.dll")
-    endif(NOT KLF_INSTALL_QTPLUGINS_LIST)
-    set(KLF_INSTALL_QTPLUGINS_LIST "${qtplugins_list}" CACHE STRING
-		"List of Qt plugins, relative to ${QT_INSTALL_PREFIX}/plugins, to deploy with exe")
-    message(STATUS "Will install given Qt plugins next to installed executable in ${KLF_INSTALL_PLUGINS_LIST} (KLF_INSTALL_QTPLUGINS_DIR,KLF_INSTALL_QTPLUGINS_LIST)")
+    KLFGetCMakeVarChanged(KLF_INSTALL_QTPLUGINS_LIST)
+    if(NOT DEFINED KLF_INSTALL_QTPLUGINS_LIST OR KLF_INSTALL_QTPLUGINS_LIST STREQUAL "")
+      file(GLOB_RECURSE qtplugins_list RELATIVE "${QT_PLUGINS_DIR}"
+	"${QT_PLUGINS_DIR}/*.dll")
+      set(KLF_INSTALL_QTPLUGINS_LIST "${qtplugins_list}" CACHE STRING
+	"List of Qt plugins, relative to ${QT_PLUGINS_DIR}, to deploy with exe" FORCE)
+    endif(NOT DEFINED KLF_INSTALL_QTPLUGINS_LIST OR KLF_INSTALL_QTPLUGINS_LIST STREQUAL "")
+    message(STATUS "Will install given Qt plugins next to installed executable, in ${KLF_INSTALL_QTPLUGINS_DIR} (KLF_INSTALL_QTPLUGINS_DIR,KLF_INSTALL_QTPLUGINS_LIST)")
   else(KLF_INSTALL_QTLIBS)
 
     message(STATUS "Will NOT install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
