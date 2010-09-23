@@ -7,7 +7,7 @@
     <description xml:lang="fr">Par défaut</description>
       
     <export-type><mime-type>image/png</mime-type></export-type>
-    <export-type><exporter-name>KLFMimeExporterImage</exporter-name>
+    <export-type>
       <mime-type>application/x-openoffice-drawing;windows_formatname="Drawing Format"</mime-type>
     </export-type>
 
@@ -41,8 +41,8 @@
   </profile>
 
   <profile name="uri_list">
-    <description>URL List</description>
-    <description xml:lang="fr">Liste d'URLs</description>
+    <description>PNG File (URL)</description>
+    <description xml:lang="fr">Fichier PNG (URL)</description>
 
     <export-type><mime-type>text/x-moz-url</mime-type><windows-type>FileName</windows-type></export-type>
     <export-type><mime-type>text/uri-list</mime-type></export-type>
