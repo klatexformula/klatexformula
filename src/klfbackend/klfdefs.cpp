@@ -530,7 +530,7 @@
  *  void * find_whatever_pointer(SomeContainer c, const char * querystring) {
  *    int i = ... // find 'querystring' in the container 'c'
  *    KLF_ASSERT_CONDITION( i >= 0 && i < c.size() ,
- *                          "Can't find string "<<querystring<<"!" ,  // Assuming Qt 4
+ *                          "Can't find string "<<querystring<<"!" ,  // Assuming Qt 4 for << streaming
  *                          static_has_failed = true;  return NULL;  )
  *    ...
  *  }
@@ -545,7 +545,7 @@
  * \code
  *  KLF_ASSERT_CONDITION( ... , "Can't find string "+querystring+"!" , ... );
  * \endcode
- * Which works since on Qt 3, the \c msg argument is as a whole added to <tt>QString("")</tt>.
+ * Which works since on Qt 3, the \c msg argument text is expanded after a <tt>QString("")+</tt>.
  *
  * This macro is not affected by the KLF_DEBUG symbol. This macro is always defined and functional.
  */

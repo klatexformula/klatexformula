@@ -2071,7 +2071,6 @@ uint KLFLibModel::dropFlags(QDragMoveEvent *event, QAbstractItemView *view)
     if (pResource->canModifyData(KLFLibResourceEngine::ChangeData) &&
 	(!dropOnIndex.isValid() || dropOnIndex.column() == 0) )
       return DropWillAccept|DropWillMove|DropWillCategorize;
-    /** \todo ....... drop not accepted on background (categorize to root) */
     return 0;
   }
   if (KLFAbstractLibEntryMimeEncoder::canDecodeMimeData(mdata) &&
@@ -2464,7 +2463,8 @@ void KLFLibModel::updateCacheSetupModel()
 
 
 KLFLibViewDelegate::KLFLibViewDelegate(QObject *parent)
-  : QAbstractItemDelegate(parent), pSelModel(NULL), pTheTreeView(NULL)
+  : QAbstractItemDelegate(parent), pSelModel(NULL), pTheTreeView(NULL),
+    pPreviewSize(klfconfig.UI.labelOutputFixedSize)
 {
   pAutoBackgroundItems = true;
 }
@@ -2511,7 +2511,7 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
   pp.p = painter;
   pp.option = &option;
   pp.innerRectImage = QRect(option.rect.topLeft()+QPoint(2,2), option.rect.size()-QSize(4,4));
-  pp.innerRectText = QRect(option.rect.topLeft()+QPoint(4,2), option.rect.size()-QSize(8,4));
+  pp.innerRectText = QRect(option.rect.topLeft()+QPoint(4,2), option.rect.size()-QSize(8,3));
 
 #ifdef Q_WS_MAC
   // block progress reporting on MAC to avoid repaint recursions
@@ -2718,6 +2718,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
   borderfadelingr.setStops(borderfadelingrstops);
   borderfadelingr.setCoordinateMode(QGradient::LogicalMode);
   QPen borderfadepen = QPen(QBrush(borderfadelingr), 1.0f);
+  QPen normalpen = QPen(textcol, 1.0f);
 
   int drawnTextWidth;
   int drawnBaseLineY;
@@ -2730,7 +2731,13 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
     drawnTextWidth = s.width();
     drawnBaseLineY = (int)(p->innerRectText.bottom() - 0.5f*(p->innerRectText.height()-s.height()));
     p->p->setFont(font);
-    p->p->setPen(borderfadepen);
+    if (s.height() > p->innerRectText.height()) { // contents height exceeds available height
+      klfDbg("Need border fade pen for text "<<text) ;
+      p->p->setPen(borderfadepen);
+    } else {
+      klfDbg("Don't need border fade pen for text "<<text) ;
+      p->p->setPen(normalpen);
+    }
     p->p->drawText(p->innerRectText, Qt::AlignLeft|Qt::AlignVCenter, text);
   } else {
     // formatting required.
@@ -2782,7 +2789,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
     // note: setLeft changes width, not right.
     textRect.setLeft(textRect.left()-4); // some offset because of qt's rich text drawing ..?
     // textRect is now correct
-    // draw a selection underline, if needed
+    // draw a "hidden children selection" marker, if needed
     if (flags & PTF_SelUnderline) {
        QColor h1 = p->option->palette.color(QPalette::Highlight);
        QColor h2 = h1;
@@ -2806,7 +2813,12 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
     }
     p->p->save();
     p->p->setClipRect(textRect);
-    p->p->setPen(borderfadepen);
+    if (s.height() > textRect.height()) { // contents height exceeds available height
+      klfDbg("Need borderfadepen for (rich) text "<<textDocument.toHtml());
+      p->p->setPen(borderfadepen);
+    } else {
+      p->p->setPen(normalpen);
+    }
     p->p->translate(textRect.topLeft());
     p->p->translate( QPointF( 0, //textRect.width() - s.width(),
 			      textRect.height() - s.height()) / 2.f );
@@ -2848,7 +2860,7 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
     case KLFLibEntry::Category: prop = (prop > 0) ? prop : KLFLibEntry::Category;
     case KLFLibEntry::Tags: prop = (prop > 0) ? prop : KLFLibEntry::Tags;
       return QFontMetrics(option.font)
-	.size(0, index.data(KLFLibModel::entryItemRole(prop)).toString())+QSize(4,2);
+	.size(0, index.data(KLFLibModel::entryItemRole(prop)).toString())+QSize(4,4);
     case KLFLibEntry::DateTime:
       { QLocale loc; // use default locale, which was set to the value of klfconfig.UI.locale;
 	return QFontMetrics(option.font)
@@ -2856,18 +2868,20 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
 				.toDateTime(), QLocale::LongFormat) )+QSize(4,2);
       }
     case KLFLibEntry::Preview:
-      // sizeHint() is called for all entries, also those that are not visible. So no time-consuming
-      // operations and don't make model update its minimalist entries.
-      // return index.data(KLFLibModel::entryItemRole(KLFLibEntry::Preview)).value<QImage>().size()
-      //                                                                                  +QSize(4,4);
-      //      return klfconfig.UI.labelOutputFixedSize + QSize(4,4);
-      return index.data(KLFLibModel::entryItemRole(KLFLibEntry::PreviewSize)).value<QSize>() + QSize(4,4);
+      {
+	QSize s = index.data(KLFLibModel::entryItemRole(KLFLibEntry::PreviewSize)).value<QSize>() + QSize(4,3);
+	if (s.width() > pPreviewSize.width() || s.height() > pPreviewSize.height()) {
+	  // shrink to the requested display size, keeping aspect ratio
+	  s.scale(pPreviewSize, Qt::KeepAspectRatio);
+	}
+	return s+QSize(2,2); // scaling margin etc.
+      }
     default:
       return QSize();
     }
   } else if (kind == KLFLibModel::CategoryLabelKind) {
     return QFontMetrics(option.font)
-      .size(0, index.data(KLFLibModel::CategoryLabelItemRole).toString())+QSize(4,2);
+      .size(0, index.data(KLFLibModel::CategoryLabelItemRole).toString())+QSize(4,4);
   } else {
     qWarning("KLFLibItemViewDelegate::sizeHint(): Bad Item kind: %d\n", kind);
     return QSize();
@@ -2884,20 +2898,24 @@ bool KLFLibViewDelegate::indexHasSelectedDescendant(const QModelIndex& parent) c
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg( "\t parent="<<parent ) ;
+
+  if (!parent.isValid())
+    return false;
+
   QTime tm; tm.start();
-  return func_indexHasSelectedDescendant(parent, tm, 250);
+  return func_indexHasSelectedDescendant(parent, tm, 200);
 }
 
 bool KLFLibViewDelegate::selectionIntersectsIndexChildren(const QItemSelection& selection,
 							  const QModelIndex& parent) const
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg( ": selection size is "<<selection.size() ) ;
+  klfDbg( "selection size is "<<selection.size() ) ;
   int k;
   for (k = 0; k < selection.size(); ++k) {
     if (selection[k].parent() != parent)
       continue;
-    if (selection[k].isValid()) // selection range not empty
+    if (selection[k].isValid()) // selection range not empty, with same parent
       return true;
   }
   return false;
@@ -2912,7 +2930,7 @@ bool KLFLibViewDelegate::func_indexHasSelectedDescendant(const QModelIndex& pare
     return false;
   }
   if (selectionIntersectsIndexChildren(pSelModel->selection(), parent)) {
-    klfDbg( ": selection under index parent="<<parent ) ;
+    klfDbg( "selection under index parent="<<parent ) ;
     return true;
   }
   const QAbstractItemModel *model = parent.model();
@@ -2936,17 +2954,6 @@ bool KLFLibViewDelegate::func_indexHasSelectedDescendant(const QModelIndex& pare
 
   }
   return false;
-  //   // simple, dumb way: walk selection list.
-  //   int k;
-  //   QModelIndexList sel = pSelModel->selectedIndexes();
-  //   KLFLibModel *model = (KLFLibModel*)index.model();
-  //   for (k = 0; k < sel.size(); ++k) {
-  //     if (model->isDesendantOf(sel[k], index)) {
-  //       // this selected item is child of our index
-  //       return true;
-  //     }
-  //   }
-  //   return false;
 }
 
 
@@ -2963,7 +2970,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 
   pModel = NULL;
 
-  pIconViewRelayoutAction = NULL;
+  pPreviewSizeMenu = NULL;
 
   pEventFilterNoRecurse = false;
 
@@ -2971,6 +2978,21 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   lyt->setMargin(0);
   lyt->setSpacing(0);
   pDelegate = new KLFLibViewDelegate(this);
+
+  // set icon size
+  switch (pViewType) {
+  case CategoryTreeView:
+    pDelegate->setPreviewSize(klfconfig.UI.labelOutputFixedSize*klfconfig.LibraryBrowser.treePreviewSizePercent/100.0);
+    break;
+  case ListTreeView:
+    pDelegate->setPreviewSize(klfconfig.UI.labelOutputFixedSize*klfconfig.LibraryBrowser.listPreviewSizePercent/100.0);
+    break;
+  case IconView:
+    pDelegate->setPreviewSize(klfconfig.UI.labelOutputFixedSize*klfconfig.LibraryBrowser.iconPreviewSizePercent/100.0);
+    break;
+  default:
+    break;
+  }
 
   setFocusPolicy(Qt::NoFocus);
 
@@ -3185,6 +3207,7 @@ QVariantMap KLFLibDefaultView::saveGuiState() const
   if (pViewType == IconView) {
     // nothing to be done
   }
+  vst["IconPreviewSize"] = QVariant::fromValue<QSize>(previewSize());
   return vst;
 }
 bool KLFLibDefaultView::restoreGuiState(const QVariantMap& vstate)
@@ -3199,6 +3222,7 @@ bool KLFLibDefaultView::restoreGuiState(const QVariantMap& vstate)
   if (pViewType == IconView) {
     // nothing to be done
   }
+  setPreviewSize(vstate["IconPreviewSize"].value<QSize>());
   return true;
 }
 
@@ -3240,10 +3264,6 @@ void KLFLibDefaultView::updateResourceEngine()
     for (k = 0; k < pShowColumnActions.size(); ++k)
       delete pShowColumnActions[k];
     pShowColumnActions.clear();
-    if (pIconViewRelayoutAction) {
-      delete pIconViewRelayoutAction;
-      pIconViewRelayoutAction = NULL;
-    }
   }
 
   //  klfDbg(  "KLFLibDefaultView::updateResourceEngine: All items:\n"<<resource->allEntries() ) ;
@@ -3306,15 +3326,40 @@ void KLFLibDefaultView::updateResourceEngine()
   QAction *refreshAction = new QAction(tr("Refresh", "[[menu action]]"), pView);
   refreshAction->setShortcut(refreshKey);
   connect(refreshAction, SIGNAL(triggered()), this, SLOT(slotRefresh()));
-  pCommonActions = QList<QAction*>() << selectAllAction << refreshAction;
 
+  QActionGroup * ag = new QActionGroup(pView);
+  ag->setExclusive(true);
+  QAction *aPreviewSizeLarge = new QAction(tr("Large", "[[icon preview size menu item]]"), ag);
+  aPreviewSizeLarge->setCheckable(true);
+  aPreviewSizeLarge->setData(100);
+  connect(aPreviewSizeLarge, SIGNAL(triggered()), this, SLOT(slotPreviewSizeFromActionSender()));
+  QAction *aPreviewSizeMedium = new QAction(tr("Medium", "[[icon preview size menu item]]"), ag);
+  aPreviewSizeMedium->setCheckable(true);
+  aPreviewSizeMedium->setData(75);
+  connect(aPreviewSizeMedium, SIGNAL(triggered()), this, SLOT(slotPreviewSizeFromActionSender()));
+  QAction *aPreviewSizeSmall = new QAction(tr("Small", "[[icon preview size menu item]]"), ag);
+  aPreviewSizeSmall->setCheckable(true);
+  aPreviewSizeSmall->setData(50);
+  connect(aPreviewSizeSmall, SIGNAL(triggered()), this, SLOT(slotPreviewSizeFromActionSender()));
+
+  pPreviewSizeMenu = new QMenu(this);
+  pPreviewSizeMenu->addAction(aPreviewSizeLarge);
+  pPreviewSizeMenu->addAction(aPreviewSizeMedium);
+  pPreviewSizeMenu->addAction(aPreviewSizeSmall);
+
+  QAction *aPreviewSize = new QAction(tr("Icon Size", "[[icon preview size option menu]]"), pView);
+  aPreviewSize->setMenu(pPreviewSizeMenu);
+
+  slotPreviewSizeActionsRefreshChecked();
+
+  pCommonActions = QList<QAction*>() << selectAllAction << refreshAction << aPreviewSize;
   pViewActionsWithShortcut << selectAllAction << refreshAction;
 
   if (pViewType == IconView) {
     klfDbg( "About to prepare iconview." ) ;
-    pIconViewRelayoutAction = new QAction(tr("Relayout All Icons", "[[menu action]]"), this);
-    connect(pIconViewRelayoutAction, SIGNAL(triggered()), this, SLOT(slotRelayoutIcons()));
-    pIconViewActions = QList<QAction*>() << pIconViewRelayoutAction ;
+    QAction * iconViewRelayoutAction = new QAction(tr("Relayout All Icons", "[[menu action]]"), this);
+    connect(iconViewRelayoutAction, SIGNAL(triggered()), this, SLOT(slotRelayoutIcons()));
+    pIconViewActions = QList<QAction*>() << iconViewRelayoutAction ;
   }
   if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
     QTreeView *treeView = qobject_cast<QTreeView*>(pView);
@@ -3504,52 +3549,78 @@ void KLFLibDefaultView::sortBy(int propIdColumn, Qt::SortOrder sortorder)
 }
 
 
-void KLFLibDefaultView::slotSelectAll(const QModelIndex& parent, bool rootCall)
+void KLFLibDefaultView::slotSelectAll(bool expandItems)
+{
+  slotSelectAll( QModelIndex(), NoSignals | (expandItems?ExpandItems:0) );
+  updateDisplay();
+}
+void KLFLibDefaultView::slotSelectAll(const QModelIndex& parent, uint selectAllFlags)
+{
+  KLFDelayedPleaseWaitPopup pleaseWait(tr("Fetching and selecting all, please wait ..."), this);
+  pleaseWait.setDisableUi(true);
+  pleaseWait.setDelay(500);
+
+  if (selectAllFlags & NoSignals)
+    pView->selectionModel()->blockSignals(true);
+
+  QTime tm;
+  tm.start();
+  func_selectAll(parent, selectAllFlags, &tm, &pleaseWait);
+
+  if (selectAllFlags & NoSignals)
+    pView->selectionModel()->blockSignals(false);
+
+  emit entriesSelected(selectedEntries());
+  updateDisplay();
+}
+
+// If this returns FALSE, then propagate the cancel/error/stop further up in recursion
+bool KLFLibDefaultView::func_selectAll(const QModelIndex& parent, uint selectAllFlags, QTime *tm,
+				       KLFDelayedPleaseWaitPopup *pleaseWait)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   // this function requires to fetch all items in parent!
 
-  KLFDelayedPleaseWaitPopup *pleaseWait = NULL;
-  if (rootCall) {
-    pleaseWait = new KLFDelayedPleaseWaitPopup(tr("Fetching and selecting all, please wait ..."), this);
-    pleaseWait->setDisableUi(true);
-    pleaseWait->setDelay(500);
-  }
-
   while (pModel->canFetchMore(parent)) {
     pModel->fetchMore(parent);
-    if (pleaseWait != NULL)
-      pleaseWait->process();
+    pleaseWait->process();
+    if (pleaseWait->wasUserDiscarded())
+      return false;
+    if (tm->elapsed() > 300) {
+      // process a few events..
+      qApp->processEvents();
+      tm->restart();
+    }
   }
 
-  if (rootCall)
-    pView->selectionModel()->blockSignals(true);
   int k;
   QModelIndex topLeft = pModel->index(0, 0, parent);
   QModelIndex bottomRight = pModel->index(pModel->rowCount(parent)-1,
 					  pModel->columnCount(parent)-1, parent);
   pView->selectionModel()->select(QItemSelection(topLeft, bottomRight), QItemSelectionModel::Select);
   if ( ! pModel->hasChildren(parent) )
-    return;
+    return true;
 
-  QTime t; t.start();
+  if (selectAllFlags & ExpandItems) {
+    QTreeView *treeView = pView->inherits("QTreeView") ? qobject_cast<QTreeView*>(pView) : NULL;
+    if (treeView != NULL)
+      treeView->expand(parent);
+  }
+
   for (k = 0; k < pModel->rowCount(parent); ++k) {
     QModelIndex child = pModel->index(k, 0, parent);
-    slotSelectAll(child, false);
-    if (t.elapsed() > 500) {
+    if ( ! func_selectAll(child, selectAllFlags, tm, pleaseWait) )
+      return false; // cancel requested eg. by user clicking on the popup
+    if (tm->elapsed() > 300) {
       qApp->processEvents();
-      if (pleaseWait != NULL)
-	pleaseWait->process();
-      t.restart();
+      pleaseWait->process();
+      if (pleaseWait->wasUserDiscarded())
+	return false;
+      tm->restart();
     }
   }
-  if (rootCall) {
-    pView->selectionModel()->blockSignals(false);
-    emit entriesSelected(selectedEntries());
-    delete pleaseWait;
-  }
 
-  repaint();
+  return true;
 }
 
 void KLFLibDefaultView::slotRefresh()
@@ -3557,6 +3628,45 @@ void KLFLibDefaultView::slotRefresh()
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   pModel->completeRefresh();
 }
+
+void KLFLibDefaultView::slotPreviewSizeFromActionSender()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  QAction *a = qobject_cast<QAction*>(sender());
+  KLF_ASSERT_NOT_NULL(a, "action sender is NULL!", return ; ) ;
+
+  pDelegate->setPreviewSize(klfconfig.UI.labelOutputFixedSize * a->data().toInt() / 100.0);
+  pView->reset();
+
+  slotPreviewSizeActionsRefreshChecked();
+}
+
+void KLFLibDefaultView::slotPreviewSizeActionsRefreshChecked()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLF_ASSERT_NOT_NULL(pPreviewSizeMenu, "pPreviewSizeMenu is NULL!", return ) ;
+
+  int curPreviewSizePercent
+    = pDelegate->previewSize().width() * 100 / klfconfig.UI.labelOutputFixedSize.width();
+  // round off to 5 units (for comparision with some threshold)
+  curPreviewSizePercent = (int)(curPreviewSizePercent/5 +0.5)*5;
+
+  QList<QAction*> alist = pPreviewSizeMenu->actions();
+  klfDbg("There are "<<alist.size()<<" actions...") ;
+  for (QList<QAction*>::iterator it = alist.begin(); it != alist.end(); ++it) {
+    QAction *a = (*it);
+    int a_sz = (int)(a->data().toInt()/5 +0.5)*5;
+    klfDbg("Processing action "<< a->text() << " (data="<<a->data().toInt()<<" ~= "<<a_sz
+	   <<") curPreviewSizePercent="<<curPreviewSizePercent) ;
+
+    if ( a_sz == curPreviewSizePercent )
+      a->setChecked(true);
+    else
+      a->setChecked(false);
+  }
+}
+
 
 void KLFLibDefaultView::slotRelayoutIcons()
 {
@@ -3644,9 +3754,11 @@ void KLFLibDefaultView::searchFound(const QModelIndex& i)
 void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
 						 const QItemSelection& /*deselected*/)
 {
+#ifndef Q_WS_WIN
   // This line generates QPaint* warnings on Win32
-  // ### Why would we need it anyway ?
-  //  updateDisplay();
+  // This is needed to update the parent items selection indicator
+  updateDisplay();
+#endif
   
   emit entriesSelected(selectedEntries());
 }
@@ -3660,7 +3772,7 @@ void KLFLibDefaultView::slotResourceDataChanged(const QModelIndex& topLeft,
   emit resourceDataChanged(eids);
 }
 
-
+/*
 QItemSelection KLFLibDefaultView::fixSelection(const QModelIndexList& selidx)
 {
   QModelIndexList moreselidx;
@@ -3676,8 +3788,9 @@ QItemSelection KLFLibDefaultView::fixSelection(const QModelIndexList& selidx)
       int nrows = model->rowCount(selidx[k]);
       int ncols = model->columnCount(selidx[k]);
       if (pViewType == CategoryTreeView) {
-	// if tree view, expand item
-	qobject_cast<QTreeView*>(pView)->expand(selidx[k]);
+	//	// if tree view, expand item
+	//	// do this delayed, since this function can be called from within a slot
+	//	QMetaObject::invokeMethod(pView, "expand", Qt::QueuedConnection, Q_ARG(QModelIndex, selidx[k]));
       }
       for (j = 0; j < nrows; ++j) {
 	switch (selidx[k].child(j,0).data(KLFLibModel::ItemKindItemRole).toInt()) {
@@ -3705,13 +3818,26 @@ QItemSelection KLFLibDefaultView::fixSelection(const QModelIndexList& selidx)
   return s;
 
 }
+*/
+
 
 void KLFLibDefaultView::slotViewItemClicked(const QModelIndex& index)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   if (index.column() != 0)
     return;
-  QItemSelection fixed = fixSelection( QModelIndexList() << index);
-  pView->selectionModel()->select(fixed, QItemSelectionModel::Select);
+
+  slotSelectAll(index, ExpandItems);
+  /*
+    QItemSelection fixed = fixSelection( QModelIndexList() << index);
+    // do this delayed, since this function can be called from within a slot
+    bool result =
+    QMetaObject::invokeMethod(pView->selectionModel(), "select", Qt::QueuedConnection,
+    Q_ARG(QItemSelection, fixed),
+    Q_ARG(QItemSelectionModel::SelectionFlags, QItemSelectionModel::Select));
+    klfDbg("result of invoked method is "<<result) ;
+  */
 }
 void KLFLibDefaultView::slotEntryDoubleClicked(const QModelIndex& index)
 {

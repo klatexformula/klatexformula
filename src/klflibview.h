@@ -41,7 +41,7 @@
 #include <klfdefs.h>
 #include <klflib.h>
 #include <klfsearchbar.h>
-
+#include <klfguiutil.h>
 
 
 namespace KLFLib {
@@ -649,12 +649,16 @@ private:
 class KLF_EXPORT KLFLibViewDelegate : public QAbstractItemDelegate
 {
   Q_OBJECT
+
+  Q_PROPERTY(QSize previewSize READ previewSize WRITE setPreviewSize) ;
 public:
   /** Create a view delegate for displaying a KLFLibModel.
    * \param parent the (QObject-)parent of this object.
    */
   KLFLibViewDelegate(QObject *parent);
   virtual ~KLFLibViewDelegate();
+
+  inline QSize previewSize() const { return pPreviewSize; }
 
   virtual QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem& option,
 				const QModelIndex& index) const;
@@ -684,6 +688,9 @@ public:
   virtual void setAutoBackgroundItems(bool autoBgItems) { pAutoBackgroundItems = autoBgItems; }
   virtual QColor autoBackgroundColor() const { return pAutoBackgroundColor; }
   virtual void setAutoBackgroundColor(const QColor& autoBgColor) { pAutoBackgroundColor = autoBgColor; }
+
+public slots:
+  void setPreviewSize(const QSize& psize) { pPreviewSize = psize; }
 
 protected:
   struct PaintPrivate {
@@ -720,6 +727,8 @@ private:
   QItemSelectionModel *pSelModel;
   QTreeView *pTheTreeView; //!< warning: this is possibly NULL! see \ref setTheTreeView()
 
+  QSize pPreviewSize;
+
   bool pAutoBackgroundItems;
   QColor pAutoBackgroundColor;
 
@@ -749,6 +758,8 @@ class KLF_EXPORT KLFLibDefaultView : public KLFAbstractLibView, public KLFSearch
 
   Q_PROPERTY(QListView::Flow iconViewFlow READ iconViewFlow WRITE setIconViewFlow) ;
 
+  Q_PROPERTY(QSize previewSize READ previewSize WRITE setPreviewSize) ;
+
 public:
   enum ViewType { CategoryTreeView, ListTreeView, IconView };
   KLFLibDefaultView(QWidget *parent, ViewType viewtype = CategoryTreeView);
@@ -756,6 +767,8 @@ public:
 
   virtual QUrl url() const;
   virtual uint compareUrlTo(const QUrl& other, uint interestFlags = 0xFFFFFFFF) const;
+
+  inline QSize previewSize() const { return pDelegate->previewSize(); }
 
   bool groupSubCategories() const { return pGroupSubCategories; }
 
@@ -799,11 +812,14 @@ public slots:
   virtual void showColumns(int propIdColumn, bool show);
   virtual void sortBy(int propIdColumn, Qt::SortOrder sortorder);
 
-  /** Selects all children of \c parent (by default a QModelIndex(), so this function selects
-   * all items). rootCall is internal and should always be set to TRUE for regular use. */
-  virtual void slotSelectAll(const QModelIndex& parent = QModelIndex(), bool rootCall = true);
+  /** Selects all items in the view, fetching all necessary items (this can be slow). If \c expandItems
+   * is TRUE, then all items in this view (category labels) are expanded (no effect if this view is
+   * not a tree view). */
+  virtual void slotSelectAll(bool expandItems = false);
   virtual void slotRefresh();
   virtual void slotRelayoutIcons();
+
+  void setPreviewSize(const QSize& size) { pDelegate->setPreviewSize(size); }
 
   void setAutoBackgroundItems(bool on) { pDelegate->setAutoBackgroundItems(on); }
   void setAutoBackgroundColor(const QColor& c) { pDelegate->setAutoBackgroundColor(c); }
@@ -828,9 +844,20 @@ protected:
 
   virtual void showEvent(QShowEvent *event);
 
+  enum SelectAllFlags { ExpandItems = 0x01, NoSignals = 0x02 } ;
+
 protected slots:
   void slotViewSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
-  QItemSelection fixSelection(const QModelIndexList& selected);
+
+  /** Selects all children of \c parent (by default a QModelIndex(), so this function selects
+   * all items).
+   *
+   * selectFlags is an OR'ed combination of SelectAllFlags. If ExpandItems is set then all items
+   * in the view are expanded (no effect if the
+   * view is not a tree view).
+   */
+  virtual void slotSelectAll(const QModelIndex& parent, uint selectFlags);
+  
   void slotViewItemClicked(const QModelIndex& index);
   void slotEntryDoubleClicked(const QModelIndex& index);
 
@@ -838,6 +865,9 @@ protected slots:
 
   // called from model
   void slotResourceDataChanged(const QModelIndex& topLeft, const QModelIndex& botRight);
+
+  void slotPreviewSizeFromActionSender();
+  void slotPreviewSizeActionsRefreshChecked();
 
 private:
   ViewType pViewType;
@@ -849,7 +879,7 @@ private:
 
   QList<QAction*> pCommonActions;
   QList<QAction*> pShowColumnActions;
-  QAction *pIconViewRelayoutAction;
+  QMenu *pPreviewSizeMenu;
   QList<QAction*> pIconViewActions;
 
   QList<QAction*> pViewActionsWithShortcut;
@@ -857,6 +887,8 @@ private:
   bool pEventFilterNoRecurse;
 
   QModelIndexList selectedEntryIndexes() const;
+
+  bool func_selectAll(const QModelIndex& parent, uint flags, QTime *tm, KLFDelayedPleaseWaitPopup *pleaseWait);
 
 private slots:
   void searchFound(const QModelIndex& i);

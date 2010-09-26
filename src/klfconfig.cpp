@@ -287,6 +287,9 @@ void KLFConfig::loadDefaults()
   LibraryBrowser.historyTagCopyToArchive = true;
   LibraryBrowser.lastFileDialogPath = // "My Documents":
     QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+  LibraryBrowser.treePreviewSizePercent = 75;
+  LibraryBrowser.listPreviewSizePercent = 75;
+  LibraryBrowser.iconPreviewSizePercent = 100;
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
 }
@@ -507,6 +510,9 @@ int KLFConfig::readFromConfig_v2()
   klf_config_read(s, "iconviewflow", &LibraryBrowser.iconViewFlow);
   klf_config_read(s, "historytagcopytoarchive", &LibraryBrowser.historyTagCopyToArchive);
   klf_config_read(s, "lastfiledialogpath", &LibraryBrowser.lastFileDialogPath);
+  klf_config_read(s, "treepreviewsizepercent", &LibraryBrowser.treePreviewSizePercent);
+  klf_config_read(s, "listpreviewsizepercent", &LibraryBrowser.listPreviewSizePercent);
+  klf_config_read(s, "iconpreviewsizepercent", &LibraryBrowser.iconPreviewSizePercent);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig
@@ -618,6 +624,9 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "iconviewflow", &LibraryBrowser.iconViewFlow);
   klf_config_write(s, "historytagcopytoarchive", &LibraryBrowser.historyTagCopyToArchive);
   klf_config_write(s, "lastfiledialogpath", &LibraryBrowser.lastFileDialogPath);
+  klf_config_write(s, "treepreviewsizepercent", &LibraryBrowser.treePreviewSizePercent);
+  klf_config_write(s, "listpreviewsizepercent", &LibraryBrowser.listPreviewSizePercent);
+  klf_config_write(s, "iconpreviewsizepercent", &LibraryBrowser.iconPreviewSizePercent);
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig

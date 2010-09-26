@@ -161,18 +161,9 @@ static Qt::WindowFlags klfpleasewait_flagsForSettings(bool alwaysAbove)
   return f;
 }
 
-// static QWidget * klfpleasewait_parentwindow(QWidget *w)
-// {
-//   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-//   klfDbg("w="<<w) ;
-//   if (w == NULL)
-//     return NULL;
-//   return w->window();
-// }
-
 KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent, bool alwaysAbove)
-  : QLabel(text, parent, klfpleasewait_flagsForSettings(alwaysAbove)),
-    pParentWidget(parent), pDisableUi(false), pGotPaintEvent(false)
+  : QLabel(text, parent->window(), klfpleasewait_flagsForSettings(alwaysAbove)),
+    pParentWidget(parent), pDisableUi(false), pGotPaintEvent(false), pDiscarded(false)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QFont f = font();
@@ -189,8 +180,6 @@ KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent, boo
   QWidget *pw = parentWidget(); // the one set in QLabel constructor, this is the top-level window
   if (pw != NULL)
     setStyleSheet(pw->window()->styleSheet());
-  //  // set basic minimalistic style sheet to ensure that it is readable...
-  //  setStyleSheet("background-color: #e0dfd8; background-image: url(); color: black;");
 
   int w = qMax( (int)(sizeHint().width() *1.3) , 500 );
   int h = qMax( (int)(sizeHint().height()*1.1) , 100 );
@@ -233,6 +222,7 @@ void KLFPleaseWaitPopup::showPleaseWait()
 void KLFPleaseWaitPopup::mousePressEvent(QMouseEvent */*event*/)
 {
   hide();
+  pDiscarded = true;
 }
 
 void KLFPleaseWaitPopup::paintEvent(QPaintEvent *event)

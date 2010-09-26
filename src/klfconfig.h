@@ -238,6 +238,10 @@ public:
     bool historyTagCopyToArchive;
     QString lastFileDialogPath;
 
+    int treePreviewSizePercent;
+    int listPreviewSizePercent;
+    int iconPreviewSizePercent;
+
   } LibraryBrowser;
 
   struct {

@@ -212,25 +212,33 @@ static struct option klfcmdl_optlist[] = {
 
 void signal_act(int sig)
 {
+  FILE *ftty = NULL;
+#ifdef Q_OS_LINUX
+  ftty = fopen("/dev/tty", "w");
+#endif
+  if (ftty == NULL)
+    ftty = stderr;
+
   if (sig == SIGINT) {
-    fprintf(stderr, "Interrupt\n");
-    if (qApp != NULL) {
+    fprintf(ftty, "Interrupt\n");
+    if (ftty != stderr)  fprintf(stderr, "*** Interrupt\n");
+
+    static long last_sigint_time = 0;
+    long curtime;
+    time(&curtime);
+    bool isInsisted = (curtime - last_sigint_time <= 2); // re-pressed Ctrl-C after less than 2 secs
+    if (!isInsisted && qApp != NULL) {
       qApp->quit();
+      last_sigint_time = curtime;
     } else {
+      fprintf(ftty, "Exiting\n");
+      if (ftty != stderr)  fprintf(stderr, "*** Exiting\n");
       ::exit(128);
     }
   }
   if (sig == SIGSEGV) {
-    FILE *ftty = NULL;
-#ifdef Q_OS_LINUX
-    ftty = fopen("/dev/tty", "w");
-#endif
-    if (ftty == NULL)
-      ftty = stderr;
-
     fprintf(ftty, "Segmentation Fault :-(\n");
-    if (ftty != stderr)
-      fprintf(stderr, "** Segmentation Fault :-( **\n");
+    if (ftty != stderr)  fprintf(stderr, "** Segmentation Fault :-( **\n");
 
     qApp->exit(127);
 
@@ -737,6 +745,10 @@ void main_setup_app(QCoreApplication *a)
   qRegisterMetaType< KLFLibResourceEngine::KLFLibEntryWithId >();
   qRegisterMetaTypeStreamOperators< KLFLibResourceEngine::KLFLibEntryWithId >
     /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
+
+  // for delayed calls in klflibview.cpp
+  qRegisterMetaType< QItemSelection >("QItemSelection");
+  qRegisterMetaType< QItemSelectionModel::SelectionFlags >("QItemSelectionModel::SelectionFlags");
 }
 
 

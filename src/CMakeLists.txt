@@ -398,8 +398,8 @@ if(HELP2MAN)
   if(GZIP)
     add_custom_command(OUTPUT "klatexformula.1.gz"
       COMMAND "${CMAKE_COMMAND}" -E copy "klatexformula.1" "klatexformula.1.bkp"
-      COMMAND "${GZIP}" -f "klatexformula.1"
-      COMMAND "${CMAKE_COMMAND}" -E copy "klatexformula.1.bkp" "klatexformula.1"
+      COMMAND "${GZIP}" -f "klatexformula.1.bkp"
+      COMMAND "${CMAKE_COMMAND}" -E copy "klatexformula.1.bkp.gz" "klatexformula.1.gz"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
       COMMENT "Compressing (gzip) manpage"
       DEPENDS "klatexformula.1"

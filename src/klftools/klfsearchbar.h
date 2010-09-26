@@ -34,6 +34,7 @@
 
 #include <klfdefs.h>
 
+class QLineEdit;
 class KLFWaitAnimationOverlay;
 
 class KLFSearchBar;
@@ -208,6 +209,8 @@ public:
   void setShowHideButton(bool showHideButton);
 
   virtual bool eventFilter(QObject *obj, QEvent *ev);
+
+  QLineEdit * editor();
 
 signals:
   void searchPerformed(bool found);

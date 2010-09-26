@@ -258,6 +258,11 @@ bool KLFSearchBar::eventFilter(QObject *obj, QEvent *ev)
   return QFrame::eventFilter(obj, ev);
 }
 
+QLineEdit * KLFSearchBar::editor()
+{
+  return u->txtSearch;
+}
+
 void KLFSearchBar::setShowOverlayMode(bool overlayMode)
 {
   klfDbg("setting show overlay mode to "<<overlayMode) ;
@@ -268,7 +273,7 @@ void KLFSearchBar::setShowOverlayMode(bool overlayMode)
   // cheat with klfTopLevelWidget property, set it always in show-overlay-mode
   setProperty("klfTopLevelWidget", QVariant::fromValue<bool>(pShowOverlayMode));
 
-  /** \bug ..... the search bar should install an event filter on the parent to listen
+  /** \todo ..... the search bar should install an event filter on the parent to listen
    * for resize events, and to resize appropriately. */
 }
 

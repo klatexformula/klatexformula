@@ -153,7 +153,7 @@ private:
  * }
  * void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& label)
  * {
- *   KLFProgressDialog *pdialog = new KLFProgressDialog(false, this);
+ *   KLFProgressDialog *pdialog = new KLFProgressDialog(false, QString(), this);
  *   pdialog->startReportingProgress(progressReporter, label);
  *   ...
  * }
@@ -190,12 +190,12 @@ public slots:
   virtual void setDescriptiveText(const QString& labelText);
   /** start reporting progress from \c progressReporter and set label text to \c descriptiveText.
    *
-   * \note This will disconnect any previously set progress reporter to the slot \c setValue() */
+   * \note This will disconnect the previously set progress reporter to the slot \c setValue() */
   virtual void startReportingProgress(KLFProgressReporter *progressReporter,
 				      const QString& descriptiveText);
   /** start reporting progress from \c progressReporter, without changing label text.
    *
-   * \note This will disconnect any previously set progress reporter to the slot \c setValue() */
+   * \note This will disconnect the previously set progress reporter to the slot \c setValue() */
   virtual void startReportingProgress(KLFProgressReporter *progressReporter);
 
   /** Calls directly QProgressDialog::setValue() */
@@ -232,7 +232,7 @@ private:
  * is disabled when showPleaseWait() is called, and re-enabled again when this popup is
  * destroyed.
  *
- * See the constructor KLFPleaseWaitPopup() for an example.
+ * See documentation for the constructor KLFPleaseWaitPopup() for an example.
  */
 class KLF_EXPORT KLFPleaseWaitPopup : public QLabel
 {
@@ -269,7 +269,11 @@ public:
   virtual void setDisableUi(bool disableUi);
 
   /** Returns TRUE as soon as this widget got its first paint event. */
-  virtual bool pleaseWaitShown() { return pGotPaintEvent; }
+  virtual bool pleaseWaitShown() const { return pGotPaintEvent; }
+
+  /** Returns TRUE if the user clicked on the popup to hide it. (The popup is automatically
+   * hidden in that case.) */
+  virtual bool wasUserDiscarded() const { return pDiscarded; }
 
 public slots:
   /** Show the "please wait" widget. */
@@ -283,6 +287,7 @@ private:
   QWidget *pParentWidget;
   bool pDisableUi;
   bool pGotPaintEvent;
+  bool pDiscarded;
 };
 
 
