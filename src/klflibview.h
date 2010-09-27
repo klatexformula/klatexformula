@@ -103,8 +103,8 @@ public:
 
   //! Compare this resource view's URL to another URL
   /** Compares the URL of the resource we are viewing with the URL \c other, and
-   * returns an OR-ed combination of enum \ref KlfUrlCompareFlag values of URL-comparision
-   * tests that have turned out to be true (see \ref KlfUrlCompareFlag for a list
+   * returns an OR-ed combination of enum KlfUrlCompareFlag values of URL-comparision
+   * tests that have turned out to be true (see KlfUrlCompareFlag for a list
    * of tests).
    *
    * This function is supposed to answer to the following questions, each a condition
@@ -824,7 +824,7 @@ public slots:
   void setAutoBackgroundItems(bool on) { pDelegate->setAutoBackgroundItems(on); }
   void setAutoBackgroundColor(const QColor& c) { pDelegate->setAutoBackgroundColor(c); }
 
-  /** \brief Sets the icon view flow, see \ref QListView::Flow.
+  /** \brief Sets the icon view flow, see QListView::Flow.
    *
    * Has no effect if our view type is not icon view. */
   void setIconViewFlow(QListView::Flow flow);

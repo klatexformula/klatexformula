@@ -41,6 +41,50 @@
 #include "klflibdbengine_p.h"
 
 
+
+
+/** \page libfmt_klfdb Library Database Format Specification
+ *
+ * \todo (needs doc..............)
+ *
+ * - refer to klflibdbengine.cpp
+ * - is a real, valid sqlite3 database
+ * - table structure:
+ *   - klf_dbmetainfo  (id INTEGER PRIMARY KEY, name TEXT, value BLOB) stores database-specific
+ *     information
+ *      - created by klf version (name=<tt>klf_version</tt>, value=<i>klf-version</i>)
+ *      - database version (name=<tt>klf_dbversion</tt>, value=<tt>1</tt>) currently, db version
+ *        is <tt>1</tt>.
+ *   - klf_subresprops (id INTEGER PRIMARY KEY, pid INTEGER, subresource TEXT, pvalue BLOB) stores
+ *     sub-resource properties
+ *      - properties are stored with <tt>pid</tt> = sub-property ID (eg.
+ *        KLFLibResourceEngine::SubResPropTitle), <tt>subresource</tt> = the sub-resource whose
+ *        given property has this given value, <tt>value</tt> = the value of the sub-resource property
+ *   - klf_properties (id INTEGER PRIMARY KEY, name TEXT, value BLOB)
+ *     stores resource properties
+ *     - properties are stored with <tt>name</tt> = resource property name (see KLFPropertizedObject in
+ *       klftools)
+ *   - t_<i>subresource_name</i> (id INTEGER PRIMARY KEY, Latex TEXT, DateTime TEXT, Preview BLOB,
+ *     PreviewSize TEXT, Category TEXT, Tags TEXT, Style BLOB) (possibly more columns as more entry
+ *     properties are added) stores the entries themselves. Each column stores a KLFLibEntry property.
+ *     - Latex is stored as a string
+ *     - DateTime is stored as an integer (QDateTime::toTime_t())
+ *     - Preview is stored as PNG data (blob)
+ *     - Category and Tags are stored as strings
+ *     - PreviewSize is stored as a 64-bit integer in the format <tt>(width << 32) | height</tt>
+ *     - Any other property that is integer type (incl. bool) will be stored as an integer
+ *     - Any other property will be stored as <tt>[<i>TypeName</i>]</tt> and (possibly binary) data
+ *       for that property value. QImage data is stored as PNG (ie. <tt>[QImage]<i>png-data</i></tt>),
+ *       QString's as <tt>[QString]<i>the raw string</i></tt> as string format, QByteArray's
+ *       as <tt>[QByteArray]<i>the raw data</i></tt> as a blob, QDateTime's as
+ *       <tt>[QDateTime]<i>integer-epoch</i></tt> as for the DateTime property, and all other types
+ *       as <tt>[<i>TypeName</i>]</tt> and the binary data resulting from a QDataStream save of the
+ *       QVariant value (this includes KLFStyle).
+ *
+ */
+
+
+
 static QByteArray image_data(const QImage& img, const char *format)
 {
   QByteArray data;
@@ -1160,14 +1204,12 @@ QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
   int t = value.type();
   const char *ts = value.typeName();
   if (t == QVariant::Int || t == QVariant::UInt || t == QVariant::LongLong || t == QVariant::ULongLong ||
-      t == QVariant::Double)
+      t == QVariant::Double || t == QVariant::Bool)
     return value; // value is OK
 
   // these types are to be converted to string
   if (t == QVariant::String)
     return encaps(ts, value.toString());
-  if (t == QVariant::Bool)
-    return encaps(ts, value.toBool() ? QString("true") : QString("false"));
 
   // these types are to be converted by byte array
   if (t == QVariant::ByteArray)
@@ -1176,16 +1218,6 @@ QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
     return encaps(ts, value.value<QDateTime>().toString(Qt::ISODate).toLatin1());
   if (t == QVariant::Image)
     return encaps(ts, image_data(value.value<QImage>(), "PNG"));
-  if (t == QVariant::Point) {
-    QPoint p = value.value<QPoint>();
-    return encaps(ts, QString()+"("+QString::number(p.x())+","
-		  +QString::number(p.y())+")");
-  }
-  if (t == QVariant::Size) {
-    QSize s = value.value<QSize>();
-    return encaps(ts, QString()+"("+QString::number(s.width())+","
-		  +QString::number(s.height())+")");
-  }
 
   // any other case: convert metatype to QByteArray.
   QByteArray valuedata;
@@ -1215,7 +1247,7 @@ QVariant KLFLibDBEngine::convertVariantFromDBData(const QVariant& dbdata) const
 
   int t = dbdata.type();
   if (t == QVariant::Int || t == QVariant::UInt || t == QVariant::LongLong || t == QVariant::ULongLong ||
-      t == QVariant::Double)
+      t == QVariant::Double || t == QVariant::Bool)
     return dbdata; // value is OK
 
   if (t == QVariant::String)
@@ -1247,34 +1279,18 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
   const QByteArray valuedata = data.mid(k+1);
 
   if (typenam == "bool") {
-    QString svaluedata = QString::fromUtf8(valuedata);
-    return QVariant::fromValue<bool>(svaluedata[0].toLower() == 't' ||
-				     svaluedata[0].toLower() == 'y' ||
-				     svaluedata.toInt() != 0);
-  }
+    QString svaluedata = QString::fromUtf8(valuedata).trimmed();
+    return QVariant::fromValue<bool>(svaluedata[0] != '0' ||
+				     (svaluedata != "1" && (svaluedata[0].toLower() == 't' ||
+							    svaluedata[0].toLower() == 'y' ||
+							    svaluedata.toInt() != 0)) );
+}
   if (typenam == "QString")
     return QVariant::fromValue<QString>(QString::fromUtf8(valuedata));
   if (typenam == "QByteArray")
     return QVariant::fromValue<QByteArray>(valuedata);
   if (typenam == "QDateTime")
     return QDateTime::fromString(QString::fromLatin1(valuedata), Qt::ISODate);
-  if (typenam == "QPoint" || typenam == "QSize") {
-    bool wantPoint = (typenam == "QPoint");
-    static QRegExp rx("\\s*\\(\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\)");
-    if ( !rx.exactMatch(valuedata) ) {
-      qWarning()<<KLF_FUNC_NAME<<"QPoint: regexp not matched: "<< data;
-      return wantPoint ? QVariant::fromValue(QPoint(-1,-1)) : QVariant::fromValue(QSize(-1,-1));
-    }
-    QStringList cap = rx.capturedTexts();
-    if (cap.size() < 3) {
-      qWarning()<<KLF_FUNC_NAME<<"QPoint: bad captured texts: "<< cap;
-      return wantPoint ? QVariant::fromValue(QPoint(-1,-1)) : QVariant::fromValue(QSize(-1,-1));
-    }
-    if (wantPoint)
-      return QVariant::fromValue(QPoint(cap[1].toInt(), cap[2].toInt()));
-    //    klfDbg( ": Read a size: "<<QSize(cap[1].toInt(), cap[2].toInt()) ) ;
-    return QVariant::fromValue(QSize(cap[1].toInt(), cap[2].toInt()));
-  }
   if (typenam == "QImage") {
     QImage img;
     img.loadFromData(valuedata);

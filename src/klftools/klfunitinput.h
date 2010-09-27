@@ -136,12 +136,12 @@ Q_DECLARE_METATYPE(KLFUnitChooser::Unit) ;
  *
  * When units are changed, the minimum and maximum are adjusted to the value in the new units.
  *
- * The precision (\ref setDecimals()) is also adjusted to the right order of magnitude (power of 10).
- * For example, if the value of 18.3mm is displayed with 1 decimal place, and a unit is set with factor
- * of \c 1000 (m) then the presision is adjusted to 4 decimal places. And if a unit is set with factor
- * of \c 304.8 (foot) then the precision is adjusted to 3 decimal places. <i>Details: the number
- * of decimal places to adjust is determined by rounding the value <tt>log_10(unit-factor)</tt>
- * to the nearest integer.</i>
+ * The precision ( QDoubleSpinBox::setDecimals()) is also adjusted to the right order of magnitude
+ * (power of 10). For example, if the value of 18.3mm is displayed with 1 decimal place, and a unit is
+ * set with factor of \c 1000 (m) then the presision is adjusted to 4 decimal places. And if a unit is
+ * set with factor of \c 304.8 (foot) then the precision is adjusted to 3 decimal places.
+ * <i>Details: the number of decimal places to adjust is determined by rounding the value
+ * <tt>log_10(unit-factor)</tt> to the nearest integer.</i>
  *
  * \note 'unit-factor' of unit \a XYZ is defined as the number of ref units needed to amount to one
  *   \a XYZ.

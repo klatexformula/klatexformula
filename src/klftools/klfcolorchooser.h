@@ -164,7 +164,7 @@ protected:
    * */
   QColor colorFromValues(QColor color_base, int value_a, int value_b = -1);
 
-  /** Calls \ref colorFromNewValues() with the given values and with the current \ref _color, and
+  /** Calls \ref colorFromValues() with the given values and with the current \ref _color, and
    * sets \ref _color to the returned value.
    *
    * \returns TRUE if the color changed, FALSE otherwise.

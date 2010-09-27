@@ -38,6 +38,34 @@
 #include "klfliblegacyengine.h"
 #include "klfliblegacyengine_p.h"
 
+
+/** \page libfmt_legacy Library Export Format Specification
+ *
+ * \todo (needs doc..............)
+ *
+ * - refer to klfliblegacyengine.cpp
+ * - very basically: format is
+ *   \code
+ *  stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
+ *         << resources << library;
+ *  // additionally, save our meta-data at the end (this will be ignored by previous versions
+ *  // of KLF)
+ *  stream << metadata;
+ *   \endcode
+ * - resources is a KLFLegacyData::KLFLibraryResourceList
+ * - library is a KLFLegacyData::KLFLibrary
+ * - all current versions of KLF write the version '2.1', it's the compatiblity version that is
+ *   written, not the true version of the creating program.
+ * - since 3.2, additional metadata (a QVariantMap) is appended at end of stream, will silently
+ *   be ignored by previous versions of klf (klf 3.2 does not itself make use of the meta-data,
+ *   but it loads and saves it for compatibility with future versions will (as planned) will
+ *   support resource and sub-resource properties, stored in this data structure.
+ */
+
+
+
+
+
 quint32 KLFLegacyData::KLFLibraryItem::MaxId = 1;
 
 
@@ -178,6 +206,8 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
     qint16 vmaj, vmin;
     stream >> vmaj >> vmin; // these are not needed, format has not changed in .klf export files.
     stream >> resources >> library;
+    if (!stream.atEnd() && stream.status() == QDataStream::Ok)
+      stream >> metadata;
   } else if (s1 == "KLATEXFORMULA_LIBRARY") {
     // opening a library file (~/.klatexformula/library)
     legacyLibType = LocalLibraryType;
@@ -194,6 +224,10 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
     stream >> lib_max_id; // will not be used...
     // now read the library itself.
     stream >> resources >> library;
+    // the meta-data cannot have been written by KLF 3.0--3.1 but we may possibly already have
+    // written to this file with klf 3.2
+    if (!stream.atEnd() && stream.status() == QDataStream::Ok)
+      stream >> metadata;
   } else if (s1 == "KLATEXFORMULA_HISTORY") {
     // opening a post-2.0, pre-2.1 "history" file  (no "library" yet)
     legacyLibType = LocalHistoryType;
@@ -294,17 +328,24 @@ bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
       // don't save explicitely QDataStream version: we're writing KLF 2.1-compatible;
       // version explicitely saved only since KLF >= 3.x.
       stream << (quint32)KLFLegacyData::KLFLibraryItem::MaxId << resources << library;
+      // additionally, save our meta-data at the end (this will be ignored by previous versions
+      // of KLF)
+      stream << metadata;
       break;
     }
   case ExportLibraryType:
-    stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
-	   << resources << library;
-    break;
   default:
-    qWarning("%s: bad library type %d! Falling back to '.klf'-library-export type",
-	     KLF_FUNC_NAME, llt);
+    if (llt != ExportLibraryType) {
+      qWarning("%s: bad library type %d! Falling back to '.klf'-library-export type",
+	       KLF_FUNC_NAME, llt);
+    }
+
     stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
 	   << resources << library;
+    // additionally, save our meta-data at the end (this will be ignored by previous versions
+    // of KLF)
+    stream << metadata;
+    break;
   }
 
   if (fnm.isEmpty() || canonicalFilePath(fnm) == canonicalFilePath(filename))

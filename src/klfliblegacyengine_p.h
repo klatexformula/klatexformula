@@ -124,6 +124,14 @@ public:
   /** upon modification, DON'T FORGET to set \ref haschanges ! */
   KLFLegacyData::KLFLibraryResourceList resources;
 
+  /** Metadata, may be used for any purpose.
+   *
+   * upon modification, DON'T FORGET to set \ref haschanges !
+   *
+   * \todo In the future, this will be how resource and sub-resource properties will be supported.
+   */
+  QVariantMap metadata;
+
   LegacyLibType legacyLibType;
 
   QTimer *autoSaveTimer;

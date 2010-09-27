@@ -185,7 +185,7 @@ namespace KLFLib {
 
   /** Discribes a matching criterion for the value of a property ID. Although not assumed
    * in this definition, property IDs will eventually refer to KLFPropertizedObject property
-   * IDs, more specifically \ref KLFLibEntry-ies' property IDs.
+   * IDs, more specifically \ref KLFLibEntry property IDs.
    */
   struct PropertyMatch : public StringMatch {
     /** propId is the ID of the property which will have to match as given by \c match */
@@ -462,11 +462,14 @@ public:
 
   /** List of pre-defined properties that can be applied to sub-resources when the features
    * \ref FeatureSubResources and \ref FeatureSubResourceProps are implemented. See also
-   * \ref setSubResourceProperty(). */
+   * \ref setSubResourceProperty().
+   *
+   * \note These properties, by contrast to resource properties, have fixed numerical IDs, since
+   *   sub-resource properties are not backed by a KLFPropertizedObject object. */
   enum SubResourceProperty {
-    SubResPropTitle = 0,
-    SubResPropLocked,
-    SubResPropViewType
+    SubResPropTitle    = 0,
+    SubResPropLocked   = 1,
+    SubResPropViewType = 2
   };
 
   //! Features that may or may not be implemented by subclasses
@@ -569,8 +572,8 @@ public:
 
   //! Compare this resource's URL with another's
   /** Compares the URL of this resource with \c other, and returns a binary OR'ed value of
-   * \ref KlfUrlCompareFlag enum values of tests that have proved true (see \ref KlfUrlCompareFlag
-   * for a list of URL-comparision tests).
+   * KlfUrlCompareFlag enum values of tests that have proved true (see KlfUrlCompareFlag
+   * for a list of URL-comparision tests in klfutil.h in klftools).
    *
    * This function should return the following flag, if its corresponding tests turn out
    * to be true. This function should NOT return any other flag that is not listed here.
@@ -902,7 +905,7 @@ public:
    * matched, how, and to what value. Only entries that match the match condition set in \c query will
    * be returned by query(). Note that the match condition itself may be a complex condition, like an OR
    * and AND tree of property matching conditions with strings or regexps. See \ref KLFLib::EntryMatchCondition,
-   * and \ref PropertyMatch for more info. The idea is that engines can translate such conditions into,
+   * and \ref KLFLib::PropertyMatch for more info. The idea is that engines can translate such conditions into,
    * eg. a SQL WHERE condition for optimized entry queries.
    *
    * The default match condition (set automatically in constructor) matches all entries.
@@ -1599,7 +1602,7 @@ public:
   virtual QList<KLFLibEntryWithId> entries(const QString&, const QList<KLFLib::entryId>& idList,
 					   const QList<int>& wantedEntryProperties = QList<int>());
 
-  /** \brief Helper class to sort entries into a \ref QueryResult.
+  /** \brief Helper class to sort entries into a \ref KLFLibResourceEngine::QueryResult.
    */
   class QueryResultListSorter
   {
@@ -1621,7 +1624,7 @@ public:
     inline bool operator()(const KLFLibEntry& a, const KLFLibEntry& b)
     { return mSorter->operator()(a, b); }
 
-    /** \brief Compares \ref KLFLibEntryWithId's */
+    /** \brief Compares \ref KLFLibResourceEngine::KLFLibEntryWithId's */
     inline bool operator()(const KLFLibEntryWithId& a, const KLFLibEntryWithId& b)
     { return mSorter->operator()(a.entry, b.entry); }
 
