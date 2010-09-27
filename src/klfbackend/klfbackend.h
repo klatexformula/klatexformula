@@ -27,6 +27,7 @@
 #include <klfdefs.h>
 
 #include <qstring.h>
+#include <qstringlist.h>
 #ifdef KLFBACKEND_QT4
 #include <QByteArray>
 #else
@@ -129,7 +130,7 @@ public:
   struct klfSettings {
     /** A default constructor assigning default (empty) values to all fields */
     klfSettings() : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
-		    outlineFonts(true) { }
+		    outlineFonts(true), execenv() { }
     /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
     QString tempdir;
     /** the latex executable, path incl. if not in $PATH */
@@ -166,6 +167,10 @@ public:
      * Use this option to produce output that doens't embed fonts, eg. for Adobe Illustrator.
      */
     bool outlineFonts;
+
+    /** Extra environment variables to set (list of <tt>"NAME=value"</tt>) when executing latex,
+     * dvips, gs and epstopdf. */
+    QStringList execenv;
   };
 
   //! Specific input to KLFBackend::getLatexFormula()

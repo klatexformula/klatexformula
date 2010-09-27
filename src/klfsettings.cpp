@@ -962,6 +962,18 @@ void KLFSettings::apply()
   if (u->chkEpstopdf->isChecked()) {
     s.epstopdfexec = u->pathEpstopdf->path();
   }
+  // detect environment for those settings (in particular mgs.exe for ghostscript ...)
+
+  // detect mgs.exe as ghostscript and setup its environment properly
+  QFileInfo gsfi(s.gsexec);
+  if (gsfi.fileName() == "mgs.exe") {
+    QString mgsenv = QString("MIKTEX_GS_LIB=")
+      + QDir::toNativeSeparators(QFileInfo(gsfi.absolutePath()+"../../ghostscript/base").canonicalFilePath())
+      + ";"
+      + QDir::toNativeSeparators(QFileInfo(gsfi.absolutePath()+"../../fonts").canonicalFilePath());
+    s.execenv = QStringList() << mgsenv;
+  }
+
   s.lborderoffset = u->spnLBorderOffset->value();
   s.tborderoffset = u->spnTBorderOffset->value();
   s.rborderoffset = u->spnRBorderOffset->value();

@@ -271,6 +271,7 @@ void KLFConfig::loadDefaults()
   BackendSettings.execDvips = ".";
   BackendSettings.execGs = ".";
   BackendSettings.execEpstopdf = ".";
+  BackendSettings.execenv = QStringList();
 
   BackendSettings.lborderoffset = 0;
   BackendSettings.tborderoffset = 0;
@@ -494,6 +495,7 @@ int KLFConfig::readFromConfig_v2()
   klf_config_read(s, "dvipsexec", &BackendSettings.execDvips);
   klf_config_read(s, "gsexec", &BackendSettings.execGs);
   klf_config_read(s, "epstopdfexec", &BackendSettings.execEpstopdf);
+  klf_config_read(s, "execenv", &BackendSettings.execenv);
   klf_config_read(s, "lborderoffset", &BackendSettings.lborderoffset);
   klf_config_read(s, "tborderoffset", &BackendSettings.tborderoffset);
   klf_config_read(s, "rborderoffset", &BackendSettings.rborderoffset);
@@ -608,6 +610,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "dvipsexec", &BackendSettings.execDvips);
   klf_config_write(s, "gsexec", &BackendSettings.execGs);
   klf_config_write(s, "epstopdfexec", &BackendSettings.execEpstopdf);
+  klf_config_write(s, "execenv", &BackendSettings.execenv);
   klf_config_write(s, "lborderoffset", &BackendSettings.lborderoffset);
   klf_config_write(s, "tborderoffset", &BackendSettings.tborderoffset);
   klf_config_write(s, "rborderoffset", &BackendSettings.rborderoffset);

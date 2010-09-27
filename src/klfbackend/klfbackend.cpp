@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#include <qapplication.h>
 #include <qregexp.h>
 #include <qfile.h>
 #include <qdatetime.h>
@@ -72,25 +73,34 @@
 
 // some standard guess settings for system configurations
 
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-#  define PROG_LATEX "latex.exe"
-#  define PROG_DVIPS "dvips.exe"
-#  define PROG_GS "gswin32c.exe"
-#  define PROG_EPSTOPDF "epstopdf.exe"
-static QString standard_extra_paths
-/* */      = "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
-#elif defined(Q_WS_MAC)
-#  define PROG_LATEX "latex"
-#  define PROG_DVIPS "dvips"
-#  define PROG_GS "gs"
-#  define PROG_EPSTOPDF "epstopdf"
-static QString standard_extra_paths = "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin";
+#ifdef KLF_EXTRA_SEARCH_PATHS
+#  define EXTRA_PATHS_PRE KLF_EXTRA_SEARCH_PATHS ":"
+#  define EXTRA_PATHS KLF_EXTRA_SEARCH_PATHS
 #else
-#  define PROG_LATEX "latex"
-#  define PROG_DVIPS "dvips"
-#  define PROG_GS "gs"
-#  define PROG_EPSTOPDF "epstopdf"
-static QString standard_extra_paths = "";
+#  define EXTRA_PATHS_PRE
+#  define EXTRA_PATHS
+#endif
+
+
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+QStringList progLATEX = QStringList() << "latex.exe";
+QStringList progDVIPS = QStringList() << "dvips.exe";
+QStringList progGS = QStringList() << "gswin32c.exe" << "mgs.exe";
+QStringList progEPSTOPDF = QStringList() << "epstopdf.exe";
+static QString standard_extra_paths
+/* */      = EXTRA_PATHS_PRE "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
+#elif defined(Q_WS_MAC)
+QStringList progLATEX = QStringList() << "latex";
+QStringList progDVIPS = QStringList() << "dvips";
+QStringList progGS = QStringList() << "gs";
+QStringList progEPSTOPDF = QStringList() << "epstopdf";
+static QString standard_extra_paths = EXTRA_PATHS_PRE "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin";
+#else
+QStringList progLATEX = QStringList() << "latex";
+QStringList progDVIPS = QStringList() << "dvips";
+QStringList progGS = QStringList() << "gs";
+QStringList progEPSTOPDF = QStringList() << "epstopdf";
+static QString standard_extra_paths = EXTRA_PATHS "";
 #endif
 
 
@@ -245,14 +255,13 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     KLFBlockProcess proc;
     QStringList args;
-    QStringList env;
 
     proc.setWorkingDirectory(settings.tempdir);
 
     args << settings.latexexec << dir_native_separators(fnTex);
 
     qDebug("%s: %s:  about to exec latex...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
-    bool r = proc.startProcess(args, env);
+    bool r = proc.startProcess(args, settings.execenv);
     qDebug("%s: %s:  latex returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
     if (!r) {
@@ -289,7 +298,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
          << "-o" << dir_native_separators(fnRawEps);
 
     qDebug("%s: %s:  about to dvips...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
-    bool r = proc.startProcess(args);
+    bool r = proc.startProcess(args, settings.execenv);
     qDebug("%s: %s:  dvips returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
     if ( ! r ) {
@@ -394,7 +403,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     qDebug("%s: %s: about to gs (for outline fonts)...\n%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
 	   qPrintable(args.join(" ")));
-    bool r = proc.startProcess(args);
+    bool r = proc.startProcess(args, settings.execenv);
     qDebug("%s: %s:  gs returned (for outline fonts).", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
   
     if ( ! r ) {
@@ -449,7 +458,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
          << dir_native_separators(fnFinalEps);
 
     qDebug("%s: %s:  about to gs...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
-    bool r = proc.startProcess(args);
+    bool r = proc.startProcess(args, settings.execenv);
     qDebug("%s: %s:  gs returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
   
     if ( ! r ) {
@@ -531,7 +540,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	 << ("--outfile="+dir_native_separators(fnPdf));
 
     qDebug("%s: %s:  about to epstopdf...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
-    bool r = proc.startProcess(args);
+    bool r = proc.startProcess(args, settings.execenv);
     qDebug("%s: %s:  epstopdf returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 
     if ( ! r ) {
@@ -710,11 +719,37 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
   settings->rborderoffset = 1;
   settings->bborderoffset = 1;
   
-  // latex executable
-  settings->latexexec = klfSearchPath(PROG_LATEX, extra_paths);
-  settings->dvipsexec = klfSearchPath(PROG_DVIPS, extra_paths);
-  settings->gsexec = klfSearchPath(PROG_GS, extra_paths);
-  settings->epstopdfexec = klfSearchPath(PROG_EPSTOPDF, extra_paths);
+  // find executables
+  struct { QString * target_setting; QStringList prog_names; }  progs_to_find[] = {
+    { & settings->latexexec, progLATEX },
+    { & settings->dvipsexec, progDVIPS },
+    { & settings->gsexec, progGS },
+    { & settings->epstopdfexec, progEPSTOPDF },
+    { NULL, QStringList() }
+  };
+  // replace @executable_path in extra_paths
+  QString ourextrapaths = extra_paths;
+  ourextrapaths.replace("@executable_path", QApplication::applicationDirPath());
+  // and actually search for those executables
+  int k, j;
+  for (k = 0; progs_to_find[k].target_setting != NULL; ++k) {
+    for (j = 0; j < progs_to_find[k].prog_names.size(); ++j) {
+      *progs_to_find[k].target_setting
+	= klfSearchPath(progs_to_find[k].prog_names[j], ourextrapaths);
+      if (!progs_to_find[k].target_setting->isEmpty())
+	break; // found a program
+    }
+  }
+
+  // detect mgs.exe as ghostscript and setup its environment properly
+  QFileInfo gsfi(settings->gsexec);
+  if (gsfi.fileName() == "mgs.exe") {
+    QString mgsenv = QString("MIKTEX_GS_LIB=")
+      + dir_native_separators(QFileInfo(gsfi.absolutePath()+"../../ghostscript/base").canonicalFilePath())
+      + ";"
+      + dir_native_separators(QFileInfo(gsfi.absolutePath()+"../../fonts").canonicalFilePath());
+    settings->execenv.append(mgsenv);
+  }
 
   bool result_failure =
     settings->tempdir.isEmpty() || settings->latexexec.isEmpty() || settings->dvipsexec.isEmpty() ||

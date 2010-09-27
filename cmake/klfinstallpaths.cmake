@@ -337,7 +337,39 @@ message(STATUS "Will run the following post-install scripts (master switch KLF_I
 ")
 
 
+# Doxygen API Documentation Installation
+# --------------------------------------
+
 # see klfdoxygen.cmake for installation instructions of doxygen api doc
+
+
+# Install a distribution of LaTeX
+# -------------------------------
+
+# basically copies a directory containing a LaTeX distribution, to an installation location. This
+# is intentended to create "-with-latex" binary packages.
+
+set(KLF_INSTALL_LATEXDIST "" CACHE PATH "Path to a local latex installation to install")
+set(KLF_INSTALL_LATEXDIST_DIR "latex" CACHE STRING
+  "path to install the latex distribution KLF_INSTALL_LATEXDIST to. (rel. to prefix, or abs.)")
+
+if(KLF_INSTALL_LATEXDIST)
+  set(klfinstall_latexdist "${KLF_INSTALL_LATEXDIST}")
+  # Force terminating '/'
+  if(klfinstall_latexdist MATCHES "[^/]$")
+    set(klfinstall_latexdist "${klfinstall_latexdist}/")
+  endif(klfinstall_latexdist MATCHES "[^/]$")
+  install(DIRECTORY "${klfinstall_latexdist}" DESTINATION "${KLF_INSTALL_LATEXDIST_DIR}")
+
+  message(STATUS "Will use the local latex installation ${klfinstall_latexdist}
+    and install it to ${KLF_INSTALL_LATEXDIST_DIR}")
+
+endif(KLF_INSTALL_LATEXDIST)
+
+
+
+
+
 
 # ---------------------------------------------------
 

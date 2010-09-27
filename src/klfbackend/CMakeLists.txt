@@ -11,6 +11,14 @@ if(KLF_USE_QT4)
 include(${QT_USE_FILE})
 endif(KLF_USE_QT4)
 
+if(KLF_INSTALL_LATEXDIST)
+  # Tell detectSettings() to go find latex at our local latex distribution
+  KLFRelativePath(klf_latexdist_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${CMAKE_INSTALL_PREFIX}")
+  set(klf_latexdist_dir "@executable_path/${klf_latexdist_dir}")
+  add_definitions(-DKLF_EXTRA_SEARCH_PATHS="${klf_latexdist_dir}")
+endif(KLF_INSTALL_LATEXDIST)
+
+
 # Source files
 set(klfbackend_SRCS
 	klfdefs.cpp

@@ -566,6 +566,7 @@ void KLFMainWin::loadSettings()
   _settings.dvipsexec = klfconfig.BackendSettings.execDvips;
   _settings.gsexec = klfconfig.BackendSettings.execGs;
   _settings.epstopdfexec = klfconfig.BackendSettings.execEpstopdf;
+  _settings.execenv = klfconfig.BackendSettings.execenv;
 
   _settings.lborderoffset = klfconfig.BackendSettings.lborderoffset;
   _settings.tborderoffset = klfconfig.BackendSettings.tborderoffset;
@@ -585,6 +586,7 @@ void KLFMainWin::saveSettings()
     klfconfig.BackendSettings.execDvips = _settings.dvipsexec;
     klfconfig.BackendSettings.execGs = _settings.gsexec;
     klfconfig.BackendSettings.execEpstopdf = _settings.epstopdfexec;
+    klfconfig.BackendSettings.execenv = _settings.execenv;
     klfconfig.BackendSettings.lborderoffset = _settings.lborderoffset;
     klfconfig.BackendSettings.tborderoffset = _settings.tborderoffset;
     klfconfig.BackendSettings.rborderoffset = _settings.rborderoffset;

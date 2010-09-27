@@ -13,6 +13,9 @@ if(WIN32)
   # ... win32-x86 is a bit redundant ...
   set(klf_package_name "klatexformula-${KLF_VERSION}-${KLF_CMAKE_OS}")
 endif(WIN32)
+if(KLF_INSTALL_LATEXDIST)
+  set(klf_package_name "${klf_package_name}-with-latex")
+endif(KLF_INSTALL_LATEXDIST)
 
 # == Binary packages ==
 
@@ -103,7 +106,7 @@ if(KLF_USE_CPACK)
     endif(NOT CMAKE_SKIP_RPATH)
   endif(WIN32)
   if(KLF_MACOSX_BUNDLES)
-    KLFNote("NOT IMPLEMENTED......")
+    KLFNote("Bundle generation with CPack is NOT YET IMPLEMENTED......")
   endif(KLF_MACOSX_BUNDLES)
   
   KLFNote("You have configured to use CPack for generating packages.

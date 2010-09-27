@@ -218,6 +218,7 @@ public:
     QString execDvips;
     QString execGs;
     QString execEpstopdf;
+    QStringList execenv;
     double lborderoffset;
     double tborderoffset;
     double rborderoffset;
