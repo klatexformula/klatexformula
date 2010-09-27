@@ -968,10 +968,11 @@ void KLFSettings::apply()
   QFileInfo gsfi(s.gsexec);
   if (gsfi.fileName() == "mgs.exe") {
     QString mgsenv = QString("MIKTEX_GS_LIB=")
-      + QDir::toNativeSeparators(QFileInfo(gsfi.absolutePath()+"../../ghostscript/base").canonicalFilePath())
+      + QDir::toNativeSeparators(QFileInfo(gsfi.absolutePath()+"/../../ghostscript/base").canonicalFilePath())
       + ";"
-      + QDir::toNativeSeparators(QFileInfo(gsfi.absolutePath()+"../../fonts").canonicalFilePath());
+      + QDir::toNativeSeparators(QFileInfo(gsfi.absolutePath()+"/../../fonts").canonicalFilePath());
     s.execenv = QStringList() << mgsenv;
+    klfDbg("Detected mgs.exe: adding environment variable to sub-processes: "<<mgsenv) ;
   }
 
   s.lborderoffset = u->spnLBorderOffset->value();
