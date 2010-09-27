@@ -34,6 +34,7 @@
 #define dev_READONLY QIODevice::ReadOnly
 #define dev_write write
 #define fi_suffix suffix
+#define fi_absolutePath absolutePath
 #define f_open_fp(fp) open((fp), dev_WRITEONLY)
 #define f_setFileName setFileName
 #define f_error error
@@ -55,6 +56,7 @@
 #define dev_READONLY IO_ReadOnly
 #define dev_write writeBlock
 #define fi_suffix extension
+#define fi_absolutePath() dirPath(true)
 #define f_open_fp(fp) open(dev_WRITEONLY, (fp))
 #define f_setFileName setName
 #define f_error errorString

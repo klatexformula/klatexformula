@@ -729,11 +729,11 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
   };
   // replace @executable_path in extra_paths
   QString ourextrapaths = extra_paths;
-  ourextrapaths.replace("@executable_path", QApplication::applicationDirPath());
+  ourextrapaths.replace("@executable_path", qApp->applicationDirPath());
   // and actually search for those executables
   int k, j;
   for (k = 0; progs_to_find[k].target_setting != NULL; ++k) {
-    for (j = 0; j < progs_to_find[k].prog_names.size(); ++j) {
+    for (j = 0; j < (int)progs_to_find[k].prog_names.size(); ++j) {
       *progs_to_find[k].target_setting
 	= klfSearchPath(progs_to_find[k].prog_names[j], ourextrapaths);
       if (!progs_to_find[k].target_setting->isEmpty())
@@ -745,15 +745,15 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
   QFileInfo gsfi(settings->gsexec);
   if (gsfi.fileName() == "mgs.exe") {
     QString mgsenv = QString("MIKTEX_GS_LIB=")
-      + dir_native_separators(QFileInfo(gsfi.absolutePath()+"../../ghostscript/base").canonicalFilePath())
+      + dir_native_separators(QDir(gsfi.fi_absolutePath()+"/../../ghostscript/base").canonicalPath())
       + ";"
-      + dir_native_separators(QFileInfo(gsfi.absolutePath()+"../../fonts").canonicalFilePath());
+      + dir_native_separators(QDir(gsfi.fi_absolutePath()+"/../../fonts").canonicalPath());
     settings->execenv.append(mgsenv);
   }
 
   bool result_failure =
     settings->tempdir.isEmpty() || settings->latexexec.isEmpty() || settings->dvipsexec.isEmpty() ||
-    settings->gsexec.isEmpty(); //   settings->epstopdfexec.isEmpty() is NOT a failure
+    settings->gsexec.isEmpty(); // NOTE:  settings->epstopdfexec.isEmpty() is NOT a failure
 
   return !result_failure;
 }
