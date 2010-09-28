@@ -24,8 +24,9 @@ endif(NOT KLF_ROOT_CMAKE_READ)
 macro(klf_nokde4)
   set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build KTextEditor plugin" FORCE)
   KLFNote("KDE4 is required to build KTextEditor plugin.
-    The plugin has been disabled (KLF_BUILD_KTEXTEDITORPLUGIN).
-    Please re-run cmake to continue.")
+    Since KDE4 could not be found, the KLatexFormula KTextEditor plugin will not be built (KLF_BUILD_KTEXTEDITORPLUGIN).
+    KLatexFormula itself does not need KDE4 and will be compiled normally.
+    Please re-run cmake to proceed.")
   message(FATAL_ERROR "KDE4 not found.")
 endmacro(klf_nokde4)
 

@@ -1516,6 +1516,7 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
       }
       if (ke->key() == Qt::Key_F9) {
 	slotExpand(true);
+	u->tabsOptions->setCurrentWidget(u->tabLatexImage);
 	u->txtPreamble->setFocus();
 	return true;
       }

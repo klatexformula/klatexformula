@@ -410,7 +410,8 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	         <<attrlist.item(kk).toAttr().value());
 	}
 	// <-- */
-	//	klfDbg("<description>: lang="<<lang<<"; hasAttribute(xml:lang)="<<ee.hasAttribute("xml:lang"));
+	klfDbg("<description>: lang="<<lang<<"; hasAttribute(xml:lang)="<<ee.hasAttribute("xml:lang")
+	       <<"; current description="<<description<<",lang="<<curDescriptionLang) ;
 	if (description.isEmpty()) {
 	  // no description yet
 	  if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) {
