@@ -568,22 +568,46 @@
  * A less specific version number is considered as less than a more specific version number of
  * equal common numbers, eg. "3.1" < "3.1.2".
  *
- * When a suffix is appended to the version, it is attempted to be recognized as one of:
+ * When a suffix is appended to the version, it is attempted to be recognized:
  *  - "alpha" or "alphaN" is alpha version, eg. "3.1.1alpha2" < "3.1.1.alpha5" < "3.1.1"
  *  - "dev" is INTERNAL versioning, should not be published, it means further development after
  *    the given version number; for the next release, a higher version number has to be
  *    decided upon.
- *  - ... a few more, needs documentation ... 
  *  - unrecognized suffixes are compared lexicographically, case sensitive.
+ *  - after any non-empty suffix, you can add an optional integer number, which will be taken
+ *    into account when comparing same version numbers with same suffix words, see examples
+ *    below.
  *
- * \todo DOCUMENT the recognized suffixes
+ * The full list of recognized suffixes is, in order from "least" to "most" recent version:
+ *  - \c "a"
+ *  - \c "alpha"
+ *  - \c "b"
+ *  - \c "beta"
+ *  - \c "p"
+ *  - \c "pre"
+ *  - \c "preview"
+ *  - \c "RC"
+ *  - \c "rc"
+ *  - \c "" ( version number specified without prefix)
+ *  - \c "dev"
+ *  - \c "devel"
  *
- * Some examples:
+ * Some examples, where "<" represents a logical "less than", characterized by this function
+ * returning a strictly negative value when called with both arguments:
  * <pre>   "3.1.0" < "3.1.2"
  *   "2" < "2.1" < "2.1.1"
  *   "3.0.0alpha2" < "3.0.0"
  *   "3.0.2" < "3.0.3alpha0"
+ *   "3.2.0alpha" < "3.2.0beta"
+ *   "3.2.0alpha" < "3.2.0alpha0"
+ *   "3.2.0RC3" < "3.2.0RC4"
  * </pre>
+ *
+ * This function, when exchanging the arguments, returns a value that is of opposite sign, ie.
+ * \code
+ *  klfVersionCompare(v1, v2)  ==  - klfVersionCompare(v2, v1)
+ * \endcode
+ * Mathematically such a function would be called antisymmetric or skewsymmetric.
  */
 
 /** \namespace KLFSysInfo
@@ -1015,9 +1039,9 @@ KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
   qDebug("klfVersionCompare(): Comparing versions %s and %s", qPrintable(v1), qPrintable(v2));
   if (v1 == v2)
     return 0;
-  if (v1.isEmpty()) // v2 is not empty because of test above
+  if (v1.isEmpty()) // v1 is empty, but v2 is not empty because of test above
     return -1;
-  if (v2.isEmpty()) // same note with v1
+  if (v2.isEmpty()) // v2 is empty, but not v1 because of test above
     return 1;
   //           *1     2  *3     4  *5    *6
   QRegExp rx1("^(\\d+)(\\.(\\d+)(\\.(\\d+)([a-zA-Z]+\\d*)?)?)?$");
@@ -1087,6 +1111,7 @@ KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
   if (ns1.isEmpty()) {
     if (ns2.isEmpty())
       return 0; // equal
+    // with suffix number compares greater than without
     return -1;
   }
   if (ns2.isEmpty()) {

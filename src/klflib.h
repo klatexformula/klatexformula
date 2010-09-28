@@ -1467,9 +1467,9 @@ public slots:
    *
    * The \c newPath must be garanteed to have same schema as the previous url.
    *
-   * \bug ........ THIS FUNCTION IS NOT SUPPORTED IN KLFLibBrowser. ....... It is also not
-   *   very clear what it is meant to do (save sub-resources, resource as a whole [in which
-   *   case is it useful?]) ...............
+   * \bug ........ THIS FUNCTION IS NOT COMPLETELY SUPPORTED IN KLFLibBrowser. ....... It also
+   *   needs a "concept clarification", ie. what this is supposed to do exactly and how it is
+   *   supposed to be used.
    */
   virtual bool saveTo(const QUrl& newPath);
 

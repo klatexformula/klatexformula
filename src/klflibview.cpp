@@ -4823,9 +4823,7 @@ KLFLibWidgetFactory::Parameters
 	return Parameters();
       }
       // remove the previous file, because otherwise KLFLib*Engine may fail on existing files.
-      /** \bug DEBUG/TODO ........... remove comment next line for debugging safety blocking
-       *    \ref QFile::remove() ...... */
-      bool r = false; //bool r = QFile::remove(filename); DEBUG SAFETY
+      bool r = QFile::remove(filename);
       if ( !r ) {
 	QMessageBox::critical(widget, tr("Error"), tr("Failed to overwrite the file %1.")
 			      .arg(filename));
