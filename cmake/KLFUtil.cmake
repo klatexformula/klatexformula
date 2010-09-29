@@ -28,6 +28,14 @@ endmacro(KLFInstHeaders)
 # internal cache variable
 set(_klf_notices "" CACHE INTERNAL "no notices shown via KLFNote().")
 
+if(NOT WIN32)
+  set(_klf_path_sep ":")
+else(NOT WIN32)
+  set(_klf_path_sep ";")
+endif(NOT WIN32)
+set(KLF_CMAKE_PATH_SEP "${_klf_path_sep}"
+  CACHE INTERNAL "PATH entry separator character (':' on unix and ';' on win32)")
+
 #
 # Prints a note on the screen in such a way that the user will probably not miss it.
 #

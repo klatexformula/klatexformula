@@ -74,8 +74,8 @@
 // some standard guess settings for system configurations
 
 #ifdef KLF_EXTRA_SEARCH_PATHS
-#  define EXTRA_PATHS_PRE KLF_EXTRA_SEARCH_PATHS ":"
-#  define EXTRA_PATHS KLF_EXTRA_SEARCH_PATHS
+#  define EXTRA_PATHS_PRE	KLF_EXTRA_SEARCH_PATHS ,
+#  define EXTRA_PATHS		KLF_EXTRA_SEARCH_PATHS
 #else
 #  define EXTRA_PATHS_PRE
 #  define EXTRA_PATHS
@@ -87,20 +87,20 @@ QStringList progLATEX = QStringList() << "latex.exe";
 QStringList progDVIPS = QStringList() << "dvips.exe";
 QStringList progGS = QStringList() << "gswin32c.exe" << "mgs.exe";
 QStringList progEPSTOPDF = QStringList() << "epstopdf.exe";
-static QString standard_extra_paths
-/* */      = EXTRA_PATHS_PRE "C:\\Program Files\\MiKTeX*\\miktex\\bin;C:\\Program Files\\gs\\gs*\\bin";
+static const char * standard_extra_paths[]
+/* */      = { EXTRA_PATHS_PRE "C:\\Program Files\\MiKTeX*\\miktex\\bin", "C:\\Program Files\\gs\\gs*\\bin", NULL };
 #elif defined(Q_WS_MAC)
 QStringList progLATEX = QStringList() << "latex";
 QStringList progDVIPS = QStringList() << "dvips";
 QStringList progGS = QStringList() << "gs";
 QStringList progEPSTOPDF = QStringList() << "epstopdf";
-static QString standard_extra_paths = EXTRA_PATHS_PRE "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin";
+static const char * standard_extra_paths[] = { EXTRA_PATHS_PRE  "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin", NULL };
 #else
 QStringList progLATEX = QStringList() << "latex";
 QStringList progDVIPS = QStringList() << "dvips";
 QStringList progGS = QStringList() << "gs";
 QStringList progEPSTOPDF = QStringList() << "epstopdf";
-static QString standard_extra_paths = EXTRA_PATHS "";
+static const char * standard_extra_paths[] = { EXTRA_PATHS_PRE  NULL };
 #endif
 
 
@@ -696,7 +696,12 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
-  QString extra_paths = standard_extra_paths;
+  QStringList stdextrapaths;
+  int k, j;
+  for (k = 0; standard_extra_paths[k] != NULL; ++k) {
+    stdextrapaths.append(standard_extra_paths[k]);
+  }
+  QString extra_paths = stdextrapaths.join(QString("")+KLF_PATH_SEP);
   if (!extraPath.isEmpty())
     extra_paths += KLF_PATH_SEP + extraPath;
 
@@ -728,16 +733,21 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
     { NULL, QStringList() }
   };
   // replace @executable_path in extra_paths
+  klfDbg(klfFmtCC("Our base extra paths are: %s", qPrintable(extra_paths))) ;
   QString ourextrapaths = extra_paths;
   ourextrapaths.replace("@executable_path", qApp->applicationDirPath());
+  klfDbg(klfFmtCC("Our extra paths are: %s", qPrintable(ourextrapaths))) ;
   // and actually search for those executables
-  int k, j;
   for (k = 0; progs_to_find[k].target_setting != NULL; ++k) {
+    klfDbg("Looking for "+progs_to_find[k].prog_names.join(" or ")) ;
     for (j = 0; j < (int)progs_to_find[k].prog_names.size(); ++j) {
+      klfDbg("Testing `"+progs_to_find[k].prog_names[j]+"'") ;
       *progs_to_find[k].target_setting
 	= klfSearchPath(progs_to_find[k].prog_names[j], ourextrapaths);
-      if (!progs_to_find[k].target_setting->isEmpty())
+      if (!progs_to_find[k].target_setting->isEmpty()) {
+	klfDbg("Found! at `"+ *progs_to_find[k].target_setting+"'") ;
 	break; // found a program
+      }
     }
   }
 
@@ -745,10 +755,11 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
   QFileInfo gsfi(settings->gsexec);
   if (gsfi.fileName() == "mgs.exe") {
     QString mgsenv = QString("MIKTEX_GS_LIB=")
-      + dir_native_separators(QDir(gsfi.fi_absolutePath()+"/../../ghostscript/base").canonicalPath())
+      + dir_native_separators(gsfi.fi_absolutePath()+"/../../ghostscript/base")
       + ";"
-      + dir_native_separators(QDir(gsfi.fi_absolutePath()+"/../../fonts").canonicalPath());
+      + dir_native_separators(gsfi.fi_absolutePath()+"/../../fonts");
     settings->execenv.append(mgsenv);
+    klfDbg("Adjusting environment for mgs.exe: `"+mgsenv+"'") ;
   }
 
   bool result_failure =

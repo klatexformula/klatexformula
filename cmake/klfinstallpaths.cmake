@@ -353,6 +353,9 @@ set(KLF_INSTALL_LATEXDIST "" CACHE PATH "Path to a local latex installation to i
 set(KLF_INSTALL_LATEXDIST_DIR "latex" CACHE STRING
   "path to install the latex distribution KLF_INSTALL_LATEXDIST to. (rel. to prefix, or abs.)")
 
+KLFGetCMakeVarChanged(KLF_INSTALL_LATEXDIST)
+KLFGetCMakeVarChanged(KLF_INSTALL_LATEXDIST_DIR)
+
 if(KLF_INSTALL_LATEXDIST)
   set(klfinstall_latexdist "${KLF_INSTALL_LATEXDIST}")
   # Force terminating '/'
@@ -364,7 +367,29 @@ if(KLF_INSTALL_LATEXDIST)
   message(STATUS "Will use the local latex installation ${klfinstall_latexdist}
     and install it to ${KLF_INSTALL_LATEXDIST_DIR}")
 
+  KLFMakeAbsInstallPath(KLF_ABS_INSTALL_LATEXDIST_DIR  KLF_INSTALL_LATEXDIST_DIR)
 endif(KLF_INSTALL_LATEXDIST)
+
+if(KLF_INSTALL_LATEXDIST)
+  KLFRelativePath(klf_latexdist_reldir "${KLF_ABS_INSTALL_BIN_DIR}" "${KLF_ABS_INSTALL_LATEXDIST_DIR}")
+  set(klf_latexdist_reldir "@executable_path/${klf_latexdist_reldir}")
+  set(klf_extrasearchpaths
+    "${klf_latexdist_reldir}"
+    "${klf_latexdist_reldir}/*"
+    "${klf_latexdist_reldir}/*/*")
+else(KLF_INSTALL_LATEXDIST)
+  set(klf_extrasearchpaths "")
+endif(KLF_INSTALL_LATEXDIST)
+#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
+KLFDeclareCacheVarOptionFollowComplexN(KLF_EXTRA_SEARCH_PATHS
+  STRING "Extra paths klatexformula executable will search for latex/dvips/etc. in"
+  ON  # updatenotice
+  "${klf_extrasearchpaths}"  #calc. def. value
+  "KLF_INSTALL_LATEXDIST;KLF_INSTALL_LATEXDIST_DIR"
+  )
+
+message(STATUS "Will prepend \"${KLF_EXTRA_SEARCH_PATHS}\" to klatexformula's latex/dvips/gs search paths (KLF_EXTRA_SEARCH_PATHS)")
+
 
 
 

@@ -149,6 +149,11 @@ else(KLF_QT_VERSION EQUAL 3)
   set(KLF_USE_QT4 TRUE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4 (reflects KLF_QT_VERSION)")
 endif(KLF_QT_VERSION EQUAL 3)
 
+# see if user specified a QT_QMAKE_EXECUTABLE and set QT_QMAKE_EXECUTABLE_FINDQT too (FindQt4 bug?)
+if(QT_QMAKE_EXECUTABLE AND NOT QT_QMAKE_EXECUTABLE_FINDQT)
+  set(QT_QMAKE_EXECUTABLE_FINDQT "${QT_QMAKE_EXECUTABLE}" CACHE STRING "Qt QMake executable path" FORCE)
+endif(QT_QMAKE_EXECUTABLE AND NOT QT_QMAKE_EXECUTABLE_FINDQT)
+
 # Include that version of Qt
 set(QT_REQUIRED TRUE CACHE INTERNAL "Qt required.")
 set(DESIRED_QT_VERSION "${KLF_QT_VERSION}" CACHE INTERNAL "FindQt's Qt Version to use")
@@ -161,7 +166,7 @@ include(FindQt)
 if(NOT QT4_INSTALLED AND NOT QT3_INSTALLED)
   mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
   message(FATAL_ERROR
-    "Didn't find Qt${KLF_QT_VERSION}. Try setting the QT_QMAKE_EXECUTABLE and/or QT_QMAKE_EXECUTABLE_FINDQT cache variable(s)." )
+    "Didn't find Qt${KLF_QT_VERSION}. Try setting the QT_QMAKE_EXECUTABLE (and/or QT_QMAKE_EXECUTABLE_FINDQT) cache variable(s)." )
 endif()
 if(KLF_QT_VERSION EQUAL 3 AND NOT QT3_INSTALLED)
   mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)

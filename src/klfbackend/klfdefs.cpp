@@ -695,12 +695,12 @@
  * \brief Smart executable searching in a given path list with wildcards
  *
  * This function looks for an executable named \c programName. It looks in the directories given in
- * the system environment variable \c PATH and in argument \c extra_path. \c PATH and \c extra_path
+ * argument \c extra_path, and in the system environment variable \c PATH. \c extra_path and \c PATH
  * are assumed to be a colon-separated list of directories (semicolon-separated on windows, see
  * \ref KLF_PATH_SEP). Each given directory may contain wildcards (in particular, wildcards in
  * \c PATH are also parsed). \c programName itself may also contain wildcards.
  *
- * This function splits \c PATH and  \c extra_path into a directory list, and then, for each directory
+ * This function splits \c extra_path and \c PATH into a directory list, and then, for each directory
  * in that list, calls \ref klfSearchFind() with as argument the string
  * <tt><i>&quot;&lt;directory></i>/<i>&lt;programName></i>&quot;</tt>. This function then returns the
  * first result that is an executable file (this check is explicitely performed).
@@ -1173,6 +1173,8 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
 
 KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit)
 {
+  klfDbg("looking for "+wildcard_expression) ;
+
   QString expr;
 #ifdef KLFBACKEND_QT4
   expr = QDir::fromNativeSeparators(wildcard_expression);
@@ -1197,15 +1199,18 @@ KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extr
 
   QString path = PATH;
   if (!extra_path.isEmpty())
-    path += pathsep + extra_path;
+    path = extra_path + pathsep + path;
 
   const QStringList paths = str_split(path, pathsep, true);
   QString test;
   int k, j;
   for (k = 0; k < (int)paths.size(); ++k) {
+    klfDbg("searching in "+paths[k]) ;
     QStringList hits = klfSearchFind(paths[k]+"/"+programName);
+    klfDbg("\t...resulting in hits = "+hits.join(" ;; ")) ;
     for (j = 0; j < (int)hits.size(); ++j) {
       if ( QFileInfo(hits[j]).isExecutable() ) {
+	klfDbg("\tFound definitive (executable) hit at "+hits[j]) ;
 	return hits[j];
       }
     }

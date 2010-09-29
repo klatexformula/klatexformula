@@ -6,16 +6,25 @@
 configure_file("${CMAKE_SOURCE_DIR}/cmake/welcome_installer.txt.in"
 	       "${CMAKE_BINARY_DIR}/welcome_installer.txt"
 	       @ONLY)
-
+configure_file("${CMAKE_SOURCE_DIR}/cmake/welcome_installer_withlatex.txt.in"
+	       "${CMAKE_BINARY_DIR}/welcome_installer_withlatex.txt"
+	       @ONLY)
 
 set(klf_package_name "klatexformula-${KLF_VERSION}-${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}")
 if(WIN32)
   # ... win32-x86 is a bit redundant ...
   set(klf_package_name "klatexformula-${KLF_VERSION}-${KLF_CMAKE_OS}")
 endif(WIN32)
+
 if(KLF_INSTALL_LATEXDIST)
   set(klf_package_name "${klf_package_name}-with-latex")
 endif(KLF_INSTALL_LATEXDIST)
+if(KLF_INSTALL_LATEXDIST)
+  set(klf_welcome_installer_fname "${CMAKE_BINARY_DIR}/welcome_installer.txt")
+else(KLF_INSTALL_LATEXDIST)
+  set(klf_welcome_installer_fname "${CMAKE_BINARY_DIR}/welcome_installer_withlatex.txt")
+endif(KLF_INSTALL_LATEXDIST)
+file(TO_NATIVE_PATH "${klf_welcome_installer_fname}" klf_welcome_installer_fnpath)
 
 # == Binary packages ==
 
@@ -29,7 +38,7 @@ set(CPACK_PACKAGE_FILE_NAME "${klf_package_name}")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "KLatexFormula-${KLF_VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README")
-set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_BINARY_DIR}/welcome_installer.txt")
+set(CPACK_RESOURCE_FILE_WELCOME "${klf_welcome_installer_fnpath}")
 set(CPACK_MONOLITHIC_INSTALL TRUE)
 #set(CPACK_GENERATOR )
 #set(CPACK_OUTPUT_CONFIG_FILE )
