@@ -162,7 +162,7 @@ static Qt::WindowFlags klfpleasewait_flagsForSettings(bool alwaysAbove)
 }
 
 KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent, bool alwaysAbove)
-  : QLabel(text, parent->window(), klfpleasewait_flagsForSettings(alwaysAbove)),
+  : QLabel(text, ((parent!=NULL)?parent->window():NULL), klfpleasewait_flagsForSettings(alwaysAbove)),
     pParentWidget(parent), pDisableUi(false), pGotPaintEvent(false), pDiscarded(false)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
