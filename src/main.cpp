@@ -56,6 +56,20 @@
 #include "klfdbus.h"
 #include "klfpluginiface.h"
 
+/** \file
+ * \brief main() function for klatexformula [NOT part of klfapp]
+ *
+ * <span style="font-size: 14pt; font-weight: bold">NOTE: If this file appears
+ * in the klfapp library documentation, it is to be noted that all definitions
+ * contained in this file are compiled SEPARATELY into klatexformula itself,
+ * and NOT into the klfapp library. In other words, the functions defined here
+ * are NOT available in the klfapp API.</span>
+ *
+ * The documentation for this file is just provided for convenient source
+ * browsing. It is not meant to be part of a public API.
+ */
+
+
 // Name of the environment variable to check for paths to extra resources
 #ifndef KLF_RESOURCES_ENVNAM
 #define KLF_RESOURCES_ENVNAM "KLF_RESOURCES"

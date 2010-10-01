@@ -2493,11 +2493,13 @@ class _klf_block_progress_blocker
 public:
   _klf_block_progress_blocker(KLFLibResourceEngine *r) : res(r)
   {
-    res->blockProgressReporting(true);
+    if (res != NULL)
+      res->blockProgressReporting(true);
   }
   ~_klf_block_progress_blocker()
   {
-    res->blockProgressReporting(false);
+    if (res != NULL)
+      res->blockProgressReporting(false);
   }
 };
 
@@ -2515,7 +2517,10 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
 
 #ifdef Q_WS_MAC
   // block progress reporting on MAC to avoid repaint recursions
-  _klf_block_progress_blocker(qobject_cast<KLFLibModel*>(const_cast<QAbstractItemModel*>(index.model()))->resource());
+  KLFLibResource *rres = NULL;
+  KLFLibModel *rmodel = qobject_cast<KLFLibModel*>(const_cast<QAbstractItemModel*>(index.model()));
+  if (rmodel != NULL) res = model->resource();
+  _klf_block_progress_blocker(res);
 #endif
 
   painter->save();
