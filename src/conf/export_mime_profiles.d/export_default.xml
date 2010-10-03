@@ -18,6 +18,9 @@
 
     <export-type><mime-type>application/x-qt-image</mime-type></export-type>
     
+    <!-- Mac OS X likes PDF -->
+    <export-type><mime-type>application/pdf</mime-type></export-type>
+
     <!-- For Windows -->
     <export-type><mime-type>image/x-win-png-office-art</mime-type></export-type>
     <export-type><mime-type>image/x-win-jfif</mime-type></export-type>
@@ -62,5 +65,10 @@
       <mime-type>application/x-qt-image</mime-type>
     </export-type>
   </profile>
+
+  <!-- Some rules for converting Mac OS X types>
+  <add-macosx-type-rules>
+    <translate><mime-type>application/pdf</mime-type><macosx>com.adobe.pdf</macosx></translate>
+  </add-macosx-type-rules>
 
 </export-profile-list>

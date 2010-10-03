@@ -46,6 +46,11 @@
 
 #define OPENOFFICE_DRAWING_MIMETYPE "application/x-openoffice-drawing;windows_formatname=\"Drawing Format\""
 
+#ifndef Q_WS_MAC
+// provide empty non-functional function so that it can be called in any
+// context (also on linux, win: don't need #ifdef Q_WS_MAC)
+inline void __klf_init_the_macpasteboardmime() { }
+#endif
 
 // ---------------------------------------------------------------------
 
@@ -141,10 +146,8 @@ void KLFMimeExporter::initMimeExporterList()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   if (p_mimeExporterList.isEmpty()) {
-#ifdef Q_WS_MAC
     // ensure an instance of KLFMacPasteboardMime object
     __klf_init_the_macpasteboardmime();
-#endif
     p_mimeExporterList
       << new KLFMimeExporterImage(qApp)
       << new KLFMimeExporterUrilist(qApp)
@@ -515,6 +518,9 @@ KLFMimeData::KLFMimeData(const QString& exportProfile, const KLFBackend::klfOutp
   : QMimeData(), pExportProfile(KLFMimeExportProfile::findExportProfile(exportProfile))
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  // ensure an instance of KLFMacPasteboardMime object
+  __klf_init_the_macpasteboardmime();
 
   pOutput = output;
 

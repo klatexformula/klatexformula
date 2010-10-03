@@ -282,9 +282,15 @@ target_link_libraries(klatexformula ${QT_LIBRARIES} klfbackend klftools klfapp)
 
 if(KLF_MACOSX_BUNDLES)
   # Set up the application bundle under Mac OS X
+  set(KLF_BUNDLE_ICON_FILE "klficon.icns")
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/src/macosx/Info.plist.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+    @ONLY)
   set_target_properties(klatexformula PROPERTIES
         OUTPUT_NAME               klatexformula-${KLF_VERSION}
         MACOSX_BUNDLE_ICON_FILE   klficon.icns
+	MACOSX_BUNDLE_INFO_PLIST  "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
         MACOSX_BUNDLE_INFO_STRING "KLatexFormula version ${KLF_VERSION}"
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.klatexformula.klatexformula"
         MACOSX_BUNDLE_LONG_VERSION_STRING "${KLF_VERSION}"

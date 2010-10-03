@@ -32,7 +32,7 @@ class KLFMacPasteboardMime : public QMacPasteboardMime
 {
 public:
   KLFMacPasteboardMime();
-  virtual ~KLFMacPasteboardMime() { }
+  virtual ~KLFMacPasteboardMime();
 
   QString convertorName() { return QLatin1String("KLFMacPasteboardMime"); }
 

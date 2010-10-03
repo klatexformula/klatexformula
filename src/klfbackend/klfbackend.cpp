@@ -308,7 +308,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << settings.dvipsexec << "-E" << dir_native_separators(fnDvi)
          << "-o" << dir_native_separators(fnRawEps);
 
-    qDebug("%s: %s:  about to dvips...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
+    qDebug("%s: %s:  about to dvips... %s", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(args.join(" "))) ;
     bool r = proc.startProcess(args, settings.execenv);
     qDebug("%s: %s:  dvips returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
@@ -468,7 +468,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << "-sOutputFile="+dir_native_separators(fnPng) << "-q" << "-dBATCH"
          << dir_native_separators(fnFinalEps);
 
-    qDebug("%s: %s:  about to gs...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
+    qDebug("%s: %s:  about to gs... %s", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(args.join(" "))) ;
     bool r = proc.startProcess(args, settings.execenv);
     qDebug("%s: %s:  gs returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
   
@@ -550,7 +550,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << settings.epstopdfexec << dir_native_separators(fnFinalEps)
 	 << ("--outfile="+dir_native_separators(fnPdf));
 
-    qDebug("%s: %s:  about to epstopdf...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+    qDebug("%s: %s:  about to epstopdf... %s", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(args.join(" "))) ;    
     bool r = proc.startProcess(args, settings.execenv);
     qDebug("%s: %s:  epstopdf returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 

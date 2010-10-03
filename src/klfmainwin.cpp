@@ -1448,6 +1448,8 @@ void KLFMainWin::setQuitOnClose(bool quitOnClose)
 
 void KLFMainWin::quit()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   hide();
 
   if (mLibBrowser)
@@ -2255,10 +2257,10 @@ void KLFMainWin::slotDrag()
   QDrag *drag = new QDrag(this);
   KLFMimeData *mime = new KLFMimeData(klfconfig.UI.dragExportProfile, _output);
 
-  /** \bug .... Temporary solution for mac os X ... */
-#ifdef Q_WS_MAC
-  mime->setImageData(_output.result);
-#endif
+  //  / ** \bug .... Temporary solution for mac os X ... * /
+  //#ifdef Q_WS_MAC
+  //  mime->setImageData(_output.result);
+  //#endif
 
   drag->setMimeData(mime);
   QImage img;
@@ -2272,11 +2274,11 @@ void KLFMainWin::slotDrag()
 
 void KLFMainWin::slotCopy()
 {
-  /** \bug .... FIXME copy/drag formats on Mac OS X ... */
-#ifdef Q_WS_MAC
-  QApplication::clipboard()->setImage(_output.result, QClipboard::Clipboard);
-  return;
-#endif
+  //  /** \bug .... FIXME copy/drag formats on Mac OS X ... */
+  //#ifdef Q_WS_MAC
+  //  QApplication::clipboard()->setImage(_output.result, QClipboard::Clipboard);
+  //  return;
+  //#endif
 
 #ifdef Q_WS_WIN
   extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,

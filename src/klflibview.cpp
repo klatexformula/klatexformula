@@ -2517,10 +2517,10 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
 
 #ifdef Q_WS_MAC
   // block progress reporting on MAC to avoid repaint recursions
-  KLFLibResource *rres = NULL;
+  KLFLibResourceEngine *rres = NULL;
   KLFLibModel *rmodel = qobject_cast<KLFLibModel*>(const_cast<QAbstractItemModel*>(index.model()));
-  if (rmodel != NULL) res = model->resource();
-  _klf_block_progress_blocker(res);
+  if (rmodel != NULL) rres = rmodel->resource();
+  _klf_block_progress_blocker blocker(rres);
 #endif
 
   painter->save();
@@ -3054,6 +3054,8 @@ KLFLibDefaultView::~KLFLibDefaultView()
 
 QUrl KLFLibDefaultView::url() const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if (pModel == NULL)
     return QUrl();
   return pModel->url();

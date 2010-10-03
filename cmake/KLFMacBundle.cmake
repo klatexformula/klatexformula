@@ -96,8 +96,11 @@ macro(KLFInstallNameToolID TGT BUNDLE LIBRELPATH)
 endmacro()
 
 macro(KLFInstallNameToolChange TGT CHANGEFILENAMEREL BUNDLEPATH DEPRELPATH DEPFULLPATH)
+  string(REGEX REPLACE "^.*/([A-Za-z0-9_-]+)\\.framework" "\\1.framework"
+	 klfINTC_reltolibdir "${DEPFULLPATH}")
   add_custom_command(TARGET ${TGT}_maclibpacked POST_BUILD
     COMMAND "install_name_tool" -change "${DEPFULLPATH}" "@executable_path/../${DEPRELPATH}" "${BUNDLEPATH}/Contents/${CHANGEFILENAMEREL}"
+    COMMAND "install_name_tool" -change "${klfINTC_reltolibdir}" "@executable_path/../${DEPRELPATH}" "${BUNDLEPATH}/Contents/${CHANGEFILENAMEREL}"
     COMMENT "Updating ${CHANGEFILENAMEREL}'s dependency on ${DEPFULLPATH} to @executable_path/../${DEPRELPATH}"
     VERBATIM
   )
@@ -130,7 +133,12 @@ macro(KLFInstFrameworkUpdateId INSTALLEDLIB)
 endmacro()
 
 macro(KLFInstFrameworkUpdateLibChange INSTALLEDBIN OLDLIBID NEWLIBID)
+  string(REGEX REPLACE "^.*/([A-Za-z0-9_-]+)\\.framework" "\\1.framework"
+	 klfIFULC_reltolibdir "${OLDLIBID}")
   install(CODE "execute_process(COMMAND \"install_name_tool\" -change \"${OLDLIBID}\" \"${NEWLIBID}\" \"${INSTALLEDBIN}\")")
+  # in case the library is in /Library/Frameworks or other system path, it does not
+  # have the full path:
+  install(CODE "execute_process(COMMAND \"install_name_tool\" -change \"${klfIFULC_reltolibdir}\" \"${NEWLIBID}\" \"${INSTALLEDBIN}\")")
 endmacro()
 
 macro(KLFMakeBundle TGT BUNDLE)
