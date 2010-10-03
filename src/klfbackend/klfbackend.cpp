@@ -87,20 +87,31 @@ QStringList progLATEX = QStringList() << "latex.exe";
 QStringList progDVIPS = QStringList() << "dvips.exe";
 QStringList progGS = QStringList() << "gswin32c.exe" << "mgs.exe";
 QStringList progEPSTOPDF = QStringList() << "epstopdf.exe";
-static const char * standard_extra_paths[]
-/* */      = { EXTRA_PATHS_PRE "C:\\Program Files\\MiKTeX*\\miktex\\bin", "C:\\Program Files\\gs\\gs*\\bin", NULL };
+static const char * standard_extra_paths[] = {
+  EXTRA_PATHS_PRE
+  "C:\\Program Files\\MiKTeX*\\miktex\\bin",
+  "C:\\Program Files\\gs\\gs*\\bin",
+  NULL
+};
 #elif defined(Q_WS_MAC)
 QStringList progLATEX = QStringList() << "latex";
 QStringList progDVIPS = QStringList() << "dvips";
 QStringList progGS = QStringList() << "gs";
 QStringList progEPSTOPDF = QStringList() << "epstopdf";
-static const char * standard_extra_paths[] = { EXTRA_PATHS_PRE  "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin", NULL };
+static const char * standard_extra_paths[] = {
+  EXTRA_PATHS_PRE
+  "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin",
+  NULL
+};
 #else
 QStringList progLATEX = QStringList() << "latex";
 QStringList progDVIPS = QStringList() << "dvips";
 QStringList progGS = QStringList() << "gs";
 QStringList progEPSTOPDF = QStringList() << "epstopdf";
-static const char * standard_extra_paths[] = { EXTRA_PATHS_PRE  NULL };
+static const char * standard_extra_paths[] = {
+  EXTRA_PATHS_PRE
+  NULL
+};
 #endif
 
 

@@ -40,6 +40,12 @@ void __klf_init_the_macpasteboardmime()
 }
 
 
+// additionally : see
+// http://developer.apple.com/library/mac/#documentation/Miscellaneous/Reference/UTIRef/Articles/System-DeclaredUniformTypeIdentifiers.html
+//com.adobe.pdf
+//com.adobe.postscript
+//com.adobe.encapsulated-postscript
+
 
 KLFMacPasteboardMime::KLFMacPasteboardMime()
   : QMacPasteboardMime(MIME_ALL)
@@ -54,6 +60,8 @@ bool KLFMacPasteboardMime::canConvert(const QString& mime, QString flav)
   if (mime == "image/png" && flav == "public.png")
     return true;
   if (mime == "image/jpeg" && flav == "public.jpeg")
+    return true;
+  if (mime == "application/postscript" && flav == "public.ps")
     return true;
   klfDbg("can't convert.") ;
   return false;
