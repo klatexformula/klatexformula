@@ -112,6 +112,7 @@ class SkinPlugin : public QObject, public KLFPluginGenericInterface
   Q_OBJECT
   Q_INTERFACES(KLFPluginGenericInterface)
 public:
+  SkinPlugin() : QObject(qApp), _applyDelayed(false), _preventpleasewait(false) { }
   virtual ~SkinPlugin() { }
 
   virtual QVariant pluginInfo(PluginInfo which) const {
@@ -134,6 +135,8 @@ public:
 
   virtual Skin applySkin(KLFPluginConfigAccess *config, bool isStartup);
 
+  virtual bool eventFilter(QObject *object, QEvent *event);
+
 signals:
   void skinChanged(const QString& skin);
 
@@ -149,6 +152,9 @@ protected:
   QMap<QString,QString> _baseStyleSheets;
 
   KLFPluginConfigAccess *_config;
+
+  bool _applyDelayed;
+  bool _preventpleasewait;
 };
 
 

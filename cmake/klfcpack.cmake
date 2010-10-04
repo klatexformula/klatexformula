@@ -104,19 +104,16 @@ option(KLF_USE_CPACK
        "Use CPack to create packages with 'make packages'. Affects possibly CMAKE_INSTALL_PREFIX" OFF)
 
 if(KLF_USE_CPACK)
-  if(WIN32)
+  if(WIN32 OR KLF_MACOSX_BUNDLES)
     if(NOT CMAKE_INSTALL_PREFIX STREQUAL "/.")
       set(CMAKE_INSTALL_PREFIX "/." CACHE PATH "CMake install prefix for CPack" FORCE)
-      KLFNote("For windows CPack, CMAKE_INSTALL_PREFIX has to be '/.'. Corrected. Please re-run.")
+      KLFNote("For windows/macosx CPack, CMAKE_INSTALL_PREFIX has to be '/.'. Corrected. Please re-run.")
       message(FATAL_ERROR "Bad CMAKE_INSTALL_PREFIX detected and corrected. Please re-run.")
     endif(NOT CMAKE_INSTALL_PREFIX STREQUAL "/.")
     if(NOT CMAKE_SKIP_RPATH)
       KLFNote("You have not set CMAKE_SKIP_RPATH. For windows installers, installed RPATHs are incorrect.")
     endif(NOT CMAKE_SKIP_RPATH)
-  endif(WIN32)
-  if(KLF_MACOSX_BUNDLES)
-    KLFNote("Bundle generation with CPack is NOT YET IMPLEMENTED......")
-  endif(KLF_MACOSX_BUNDLES)
+  endif(WIN32 OR KLF_MACOSX_BUNDLES)
   
   KLFNote("You have configured to use CPack for generating packages.
     Run 'make package' to generate package(s).

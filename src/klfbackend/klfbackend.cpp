@@ -166,13 +166,70 @@ struct cleanup_caller {
   }
 };
 
+QString __klf_expand_env_vars(const QString& envexpr)
+{
+  QString s = envexpr;
+  QRegExp rx("\\$(?:(\\$|(?:[A-Za-z0-9_]+))|\\{([A-Za-z0-9_]+)\\})");
+  int i = 0;
+  while ( (i = rx.rx_indexin_i(s, i)) != -1 ) {
+    // match found, replace it
+    QString envvarname = rx.cap(1);
+    if (envvarname.isEmpty() || envvarname == QLatin1String("$")) {
+      // note: empty variable name expands to a literal '$'
+      s.replace(i, rx.matchedLength(), QLatin1String("$"));
+      i += 1;
+      continue;
+    }
+    const char *svalue = getenv(qPrintable(envvarname));
+    QString qsvalue = (svalue != NULL) ? QString::fromLocal8Bit(svalue) : QString();
+    s.replace(i, rx.matchedLength(), qsvalue);
+    i += qsvalue.length();
+  }
+  // replacements performed
+  return s;
+}
+
+void __klf_append_replace_env_var(QStringList *list, const QString& var, const QString& line)
+{
+  // search for declaration of var in list
+  int k;
+  for (k = 0; k < list->size(); ++k) {
+    if (list->operator[](k).startsWith(var+QString("="))) {
+      list->operator[](k) = line;
+      return;
+    }
+  }
+  // declaration not found, just append
+  list->append(line);
+}
+
+
+
 KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& settings)
 {
   // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
   QMutexLocker mutexlocker(&__mutex);
 
+  int k;
+
   qDebug("%s: %s: KLFBackend::getLatexFormula() called. latex=%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
 	 qPrintable(in.latex));
+
+  // get full, expanded exec environment
+  QStringList execenv = klf_cur_environ();
+  for (k = 0; k < settings.execenv.size(); ++k) {
+    int eqpos = settings.execenv[k].s_indexOf(QChar('='));
+    if (eqpos == -1) {
+      qWarning("%s: badly formed environment definition in `environ': %s", KLF_FUNC_NAME,
+	       qPrintable(settings.execenv[k]));
+      continue;
+    }
+    QString varname = settings.execenv[k].mid(0, eqpos);
+    QString newenvdef = __klf_expand_env_vars(settings.execenv[k]);
+    __klf_append_replace_env_var(&execenv, varname, newenvdef);
+  }
+
+  klfDbg("execution environment for sub-processes:\n"+execenv.join("\n")) ;
   
   klfOutput res;
   res.status = KLFERR_NOERROR;
@@ -272,7 +329,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     args << settings.latexexec << dir_native_separators(fnTex);
 
     qDebug("%s: %s:  about to exec latex...", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
-    bool r = proc.startProcess(args, settings.execenv);
+    bool r = proc.startProcess(args, execenv);
     qDebug("%s: %s:  latex returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
     if (!r) {
@@ -309,7 +366,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
          << "-o" << dir_native_separators(fnRawEps);
 
     qDebug("%s: %s:  about to dvips... %s", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(args.join(" "))) ;
-    bool r = proc.startProcess(args, settings.execenv);
+    bool r = proc.startProcess(args, execenv);
     qDebug("%s: %s:  dvips returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
 
     if ( ! r ) {
@@ -414,7 +471,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     qDebug("%s: %s: about to gs (for outline fonts)...\n%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
 	   qPrintable(args.join(" ")));
-    bool r = proc.startProcess(args, settings.execenv);
+    bool r = proc.startProcess(args, execenv);
     qDebug("%s: %s:  gs returned (for outline fonts).", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
   
     if ( ! r ) {
@@ -469,7 +526,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
          << dir_native_separators(fnFinalEps);
 
     qDebug("%s: %s:  about to gs... %s", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(args.join(" "))) ;
-    bool r = proc.startProcess(args, settings.execenv);
+    bool r = proc.startProcess(args, execenv);
     qDebug("%s: %s:  gs returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
   
     if ( ! r ) {
@@ -551,7 +608,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	 << ("--outfile="+dir_native_separators(fnPdf));
 
     qDebug("%s: %s:  about to epstopdf... %s", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(args.join(" "))) ;    
-    bool r = proc.startProcess(args, settings.execenv);
+    bool r = proc.startProcess(args, execenv);
     qDebug("%s: %s:  epstopdf returned.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
 
     if ( ! r ) {
@@ -762,16 +819,7 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
     }
   }
 
-  // detect mgs.exe as ghostscript and setup its environment properly
-  QFileInfo gsfi(settings->gsexec);
-  if (gsfi.fileName() == "mgs.exe") {
-    QString mgsenv = QString("MIKTEX_GS_LIB=")
-      + dir_native_separators(gsfi.fi_absolutePath()+"/../../ghostscript/base")
-      + ";"
-      + dir_native_separators(gsfi.fi_absolutePath()+"/../../fonts");
-    settings->execenv.append(mgsenv);
-    klfDbg("Adjusting environment for mgs.exe: `"+mgsenv+"'") ;
-  }
+  klf_detect_execenv(settings);
 
   bool result_failure =
     settings->tempdir.isEmpty() || settings->latexexec.isEmpty() || settings->dvipsexec.isEmpty() ||
@@ -780,3 +828,45 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
   return !result_failure;
 }
 
+
+/** \brief detects any additional settings to environment variables
+ *
+ * Detects whether the given values of latex, dvips, gs and epstopdf in the
+ * given (initialized) settings \c settings need extra environment set,
+ * and sets the \c execenv member of \c settings accordingly.
+ *
+ * Note that the environment settings already existing in \c settings->execenv are
+ * kept; only those variables for which new values are detected are updated, or if
+ * new declarations are needed they are appended.
+ *
+ * \note KLFBackend::detectSettings() already calls this function, you don't
+ *   have to call this function manually in that case.
+ *
+ * \return TRUE (success) or FALSE (failure). Currently there is no reason
+ * for failure, and returns always TRUE (as of 3.2.1).
+ */
+KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
+{
+  // detect mgs.exe as ghostscript and setup its environment properly
+  QFileInfo gsfi(settings->gsexec);
+  if (gsfi.fileName() == "mgs.exe") {
+    QString mgsenv = QString("MIKTEX_GS_LIB=")
+      + dir_native_separators(gsfi.fi_absolutePath()+"/../../ghostscript/base")
+      + ";"
+      + dir_native_separators(gsfi.fi_absolutePath()+"/../../fonts");
+    __klf_append_replace_env_var(& settings->execenv, "MIKTEX_GS_LIB", mgsenv);
+    klfDbg("Adjusting environment for mgs.exe: `"+mgsenv+"'") ;
+  }
+
+#ifdef Q_WS_MAC
+  // make sure that epstopdf's path is in PATH because it wants to all gs
+  // (eg fink distributions)
+  if (!settings->epstopdfexec.isEmpty()) {
+    QFileInfo epstopdf_fi(settings->epstopdfexec);
+    QString execenvpath = QString("PATH=%1:$PATH").arg(epstopdf_fi.fi_absolutePath());
+    __klf_append_replace_env_var(& settings->execenv, "PATH", execenvpath);
+  }
+#endif
+
+  return true;
+}

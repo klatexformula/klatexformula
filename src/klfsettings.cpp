@@ -951,8 +951,8 @@ void KLFSettings::apply()
   int k;
   // apply settings here
 
-  // create a temporary settings object
-  KLFBackend::klfSettings s;
+  // the settings object that we will fill, and set to _mainwin
+  KLFBackend::klfSettings s = _mainwin->currentSettings();
 
   s.tempdir = QDir::fromNativeSeparators(u->pathTempDir->path());
   s.latexexec = u->pathLatex->path();
@@ -964,16 +964,7 @@ void KLFSettings::apply()
   }
   // detect environment for those settings (in particular mgs.exe for ghostscript ...)
 
-  // detect mgs.exe as ghostscript and setup its environment properly
-  QFileInfo gsfi(s.gsexec);
-  if (gsfi.fileName() == "mgs.exe") {
-    QString mgsenv = QString("MIKTEX_GS_LIB=")
-      + QDir::toNativeSeparators(QFileInfo(gsfi.absolutePath()+"/../../ghostscript/base").canonicalFilePath())
-      + ";"
-      + QDir::toNativeSeparators(QFileInfo(gsfi.absolutePath()+"/../../fonts").canonicalFilePath());
-    s.execenv = QStringList() << mgsenv;
-    klfDbg("Detected mgs.exe: adding environment variable to sub-processes: "<<mgsenv) ;
-  }
+  klf_detect_execenv(&s);
 
   s.lborderoffset = u->spnLBorderOffset->value();
   s.tborderoffset = u->spnTBorderOffset->value();

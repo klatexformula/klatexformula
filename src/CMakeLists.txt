@@ -181,7 +181,18 @@ endif(KLF_LIBKLFTOOLS_STATIC)
 # we need relative path
 KLFRelativePath(klf_share_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${CMAKE_INSTALL_PREFIX}")
 KLFRelativePath(klf_share_rccresources_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${KLF_ABS_INSTALL_RCCRESOURCES_DIR}")
-add_definitions(-DKLF_SHARE_DIR="${klf_share_dir}" -DKLF_SHARE_RCCRESOURCES_DIR="${klf_share_rccresources_dir}")
+if(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_dir}")
+  set(klf_share_dir "") # let the program find out
+endif(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_dir}")
+if(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_rccresources_dir}")
+  set(klf_share_rccresources_dir "") # let the program find out
+endif(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_rccresources_dir}")
+if(klf_share_dir)
+  add_definitions(-DKLF_SHARE_DIR="${klf_share_dir}")
+endif(klf_share_dir)
+if(klf_share_rccresources_dir)
+  add_definitions(-DKLF_SHARE_RCCRESOURCES_DIR="${klf_share_rccresources_dir}")
+endif(klf_share_rccresources_dir)
 
 # Uis, Mocs
 qt4_wrap_ui(klfapp_UIS_H ${klfapp_UIS})

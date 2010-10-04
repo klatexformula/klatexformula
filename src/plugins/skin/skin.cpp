@@ -38,6 +38,8 @@
 SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
   : QWidget(parent), config(conf), _modified(false)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   setupUi(this);
 
   if (klfVersionCompare(qVersion(), "4.5.0") >= 0)
@@ -213,6 +215,8 @@ void SkinConfigWidget::loadSkinList(QString skinfn)
 
 void SkinConfigWidget::skinSelected(int index)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if (index < 0 || index >= cbxSkin->count())
     return;
 
@@ -229,6 +233,8 @@ void SkinConfigWidget::refreshSkin()
 
 void SkinConfigWidget::updateSkinDescription(const Skin& skin)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QString ds;
   ds =
     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
@@ -271,58 +277,30 @@ void SkinConfigWidget::updateSkinDescription(const Skin& skin)
 
 
 
-/* SKINS SHOULD BE INSTALLED VIA EXTENSIONS (Qt RCC FILES)
- * -------------------------------------------------------
-
-void SkinConfigWidget::installSkin()
-{
-  QString docs = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
-  QString fname =
-    QFileDialog::getOpenFileName(this, tr("Open Skin File"), docs,
-				 tr("Qt Style Sheet Files (*.qss);;All files (*)"));
-  if (fname.isEmpty())
-    return;
-  if ( ! QFile::exists(fname) ) {
-    qWarning()<<"SkinConfigWidget::installSkin: File "<<fname<<" does not exist.";
-    return;
-  }
-  QString target = config->homeConfigPluginDataDir(true) + "/stylesheets/" + QFileInfo(fname).fileName();
-  if ( QFile::exists(target) ) {
-    QMessageBox::StandardButton res =
-      QMessageBox::warning(this, tr("Skin Already Exists") ,
-			   tr("A Skin Named \"%1\" is already installed. Overwrite it?")
-			   .arg(QFileInfo(fname).fileName()) ,
-			   QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
-    if (res != QMessageBox::Yes)
-      return;
-    // yes, overwrite
-    QFile::remove(target);
-  }
-  bool ok = QFile::copy(fname, target);
-  if ( !ok ) {
-    QMessageBox::critical(this, tr("Error"),
-			  tr("Failed to install skin \"%1\".").arg(QFileInfo(fname).fileName()));
-  }
-  refreshSkin();
-}
-*/
-
-
 
 // --------------------------------------------------------------------------------
 
 
 void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   qDebug("Initializing Skin plugin (compiled for KLF version %s)", KLF_VERSION_STRING);
   Q_INIT_RESOURCE(skindata);
-
+  klfDbg("initialized skin resource data.") ;
   _mainwin = mainWin;
   _app = app;
+
+  _mainwin->installEventFilter(this);
+
   //  _defaultstyle = NULL;
   _defaultstyle = app->style();
+  if (_defaultstyle == NULL)
+    _defaultstyle = new QPlastiqueStyle();
   // aggressively take possession of this style object
   _defaultstyle->setParent(this);
+
+
+  klfDbg("Passed default-style considerations.") ;
 
   _config = rwconfig;
 
@@ -339,7 +317,9 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
 	   "klfaction:/skin_set?skin=:/plugindata/skin/skins/default.xml");
     _mainwin->addWhatsNewText(s);
     _mainwin->registerHelpLinkAction("/skin_set", this, "changeSkinHelpLinkAction", true);
+
   }
+  klfDbg("Registered links for what's new page") ;
 
   // ensure reasonable non-empty value in config
   if ( rwconfig->readValue("skinfilename").isNull() ||
@@ -347,6 +327,8 @@ void SkinPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginCon
     rwconfig->writeValue("skinfilename", QString(":/plugindata/skin/skins/default.xml"));
 
   rwconfig->makeDefaultValue("noSyntaxHighlightingChange", QVariant(false));
+
+  klfDbg("About to call applySkin().") ;
 
   applySkin(rwconfig, true);
 }
@@ -387,8 +369,14 @@ void SkinPlugin::changeSkinHelpLinkAction(const QUrl& link)
 }
 
 
-Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool /*isStartUp*/)
+Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
 {
+#ifdef Q_WS_MAC
+  if (isStartUp) {
+    _applyDelayed = true;
+    return Skin();
+  }
+#endif
   klfDbg("Applying skin!");
   QString ssfn = config->readValue("skinfilename").toString();
   Skin skin =  SkinConfigWidget::loadSkin(ssfn);
@@ -405,7 +393,7 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool /*isStartUp*/)
   KLFPleaseWaitPopup pleaseWaitPopup(tr("Applying skin <i>%1</i>, please wait ...").arg(skin.name),
 				     curWidget, false);
 
-  if (_mainwin->isVisible())
+  if (_mainwin->isVisible() && !_preventpleasewait)
     pleaseWaitPopup.showPleaseWait();
 
   if (_app->style() != _defaultstyle) {
@@ -432,23 +420,28 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool /*isStartUp*/)
     w->setAttribute(Qt::WA_StyledBackground);
     w->setStyleSheet(_baseStyleSheets[objnm] + "\n" + stylesheet);
   }
-  // #ifndef Q_WS_WIN
-  //   // BUG? tab widget in settings dialog is always un-skinned after an "apply"...?
-  //   KLFSettings *settingsDialog = _mainwin->findChild<KLFSettings*>();
-  //   if (settingsDialog) {
-  //     QTabWidget * tabs = settingsDialog->findChild<QTabWidget*>("tabs");
-  //     if (tabs) {
-  //       qDebug("Setting stylesheet to tabs");
-  //       tabs->setStyleSheet(stylesheet);
-  //     }
-  //   }
-  // #endif
 
   return skin;
 }
 
+bool SkinPlugin::eventFilter(QObject *object, QEvent *event)
+{
+  if (object == _mainwin && event->type() == QEvent::Show) {
+    // apply delayed style sheet, if required
+    if (_applyDelayed) {
+      _applyDelayed = false;
+      _preventpleasewait = true;
+      applySkin(_config, false);
+      _preventpleasewait = false;
+    }
+  }
+  return QObject::eventFilter(object, event);
+}
+
+
 QWidget * SkinPlugin::createConfigWidget(QWidget *parent)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QWidget *w = new SkinConfigWidget(parent, _config);
   w->setProperty("SkinConfigWidget", true);
   connect(this, SIGNAL(skinChanged(const QString&)), w, SLOT(loadSkinList(const QString&)));
@@ -457,6 +450,7 @@ QWidget * SkinPlugin::createConfigWidget(QWidget *parent)
 
 void SkinPlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   if (confwidget->property("SkinConfigWidget").toBool() != true) {
     fprintf(stderr, "Error: bad config widget given !!\n");
     return;
@@ -469,7 +463,7 @@ void SkinPlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *conf
 }
 void SkinPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
 {
-  klfDbg("called.");
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   if (confwidget->property("SkinConfigWidget").toBool() != true) {
     fprintf(stderr, "Error: bad config widget given !!\n");
     return;

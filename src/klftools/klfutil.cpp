@@ -1560,6 +1560,7 @@ KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode)
 
 KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference)
 {
+  klfDbg("path="<<path<<"; reference="<<reference) ;
   if (QFileInfo(path).isAbsolute())
     return path;
 
@@ -1567,11 +1568,13 @@ KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference
   if (ref.isEmpty())
     ref = QCoreApplication::applicationDirPath();
 
+  klfDbg("reference is "<<ref) ;
+
   // return path relative to reference
   if (!ref.endsWith("/"))
     ref += "/";
 
-  return ref + path;
+  return KLF_DEBUG_TEE( ref + path );
 }
 
 

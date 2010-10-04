@@ -43,16 +43,21 @@
 #include "klfconfig.h"
 
 
+static const char * __klf_fallback_share_dir =
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
+	"..";   // note: program is in a bin/ directory by default (this is for nsis-installer)
+#elif defined(Q_OS_MAC) || defined(Q_OS_DARWIN) // Mac OS X
+	"../Resources";
+#else  // unix-like system
+	"../share/klatexformula";
+#endif
+
 
 static const char * __klf_share_dir =
 #ifdef KLF_SHARE_DIR  // defined by the build system
 	KLF_SHARE_DIR;
-#elif defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
-	"..";   // note: program is in a bin/ directory by default (this is for nsis-installer)
-#elif defined(Q_WS_MAC) // Mac OS X
-	"../Resources";
-#else  // unix-like system
-	"../share/klatexformula";
+#else
+        NULL;
 #endif
 
 static QString __klf_share_dir_cached;
@@ -62,7 +67,16 @@ KLF_EXPORT QString klf_share_dir_abspath()
   if (!__klf_share_dir_cached.isEmpty())
     return __klf_share_dir_cached;
 
-  __klf_share_dir_cached = klfPrefixedPath(__klf_share_dir); // prefixed by app-dir-path
+  klfDbg(klfFmtCC("cmake-share-dir=%s; fallback-share-dir=%s\n", __klf_share_dir,
+		  __klf_fallback_share_dir)) ;
+
+  QString sharedir;
+  if (__klf_share_dir != NULL)
+    sharedir = QLatin1String(__klf_share_dir);
+  else
+    sharedir = QLatin1String(__klf_fallback_share_dir);
+
+  __klf_share_dir_cached = klfPrefixedPath(sharedir); // prefixed by app-dir-path
   klfDbg("share dir is "<<__klf_share_dir_cached) ;
   return __klf_share_dir_cached;
 }

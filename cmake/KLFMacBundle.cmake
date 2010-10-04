@@ -183,6 +183,10 @@ macro(KLFBundlePackage TGT BUNDLEXTRA)
   endif(KLF_MACOSX_BUNDLE_EXTRAS_${TGT})
 endmacro()
 
+macro(KLFMakeMacExtraBundledTarget TGT DEPS)
+  add_custom_target(${TGT}_maclibpacked DEPENDS ${DEPS})
+endmacro(KLFMakeMacExtraBundledTarget)
+
 macro(KLFMakeFramework TGT HEADERS)
 
   set_target_properties(${TGT} PROPERTIES

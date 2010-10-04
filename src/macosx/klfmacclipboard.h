@@ -27,6 +27,8 @@
 
 #include <QMacPasteboardMime>
 
+#include <QDomElement>
+
 
 class KLFMacPasteboardMime : public QMacPasteboardMime
 {
@@ -41,12 +43,29 @@ public:
   QVariant convertToMime(const QString& mime, QList<QByteArray> data, QString flav);
   QString flavorFor(const QString& mime);
   QString mimeFor(QString flav);
+
+
+  struct TranslateRule
+  {
+    TranslateRule(QString mime, QString flav) : mimetype(mime), macflavor(flav) { }
+    QString mimetype;
+    QString macflavor;
+  };
+
+
+  static void addTranslateTypeRule(const TranslateRule& rule);
+
+private:
+  static QList<TranslateRule> staticTranslateTypeRules;
+
 };
 
 
 
 void __klf_init_the_macpasteboardmime();
 
+
+void __klf_add_macosx_type_rules(const QString& xmlfname, const QDomElement& element);
 
 
 #endif

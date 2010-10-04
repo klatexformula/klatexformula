@@ -1,13 +1,12 @@
 <RCC>
   <!-- Qt Resource containing the base plugins included with KLatexFormula -->
   <qresource prefix="rccinfo">
-    <file alias="info.xml">@CMAKE_CURRENT_SOURCE_DIR@/info_baseplugins.xml</file>
+    <file alias="info.xml">info_baseplugins.xml</file>
   </qresource>
   <qresource prefix="/plugins/">
     <file>plugindirinfo.xml</file>
   </qresource>
   <qresource prefix="/plugins/@KLF_CMAKE_BASEPLUGINSSUBDIR@">
-    <file>@KLF_CMAKE_PLUGINS_LIBNAME_SKIN@</file>
-    <file>@KLF_CMAKE_PLUGINS_LIBNAME_SYSTRAYICON@</file>
+@KLF_CMAKE_PLUGINS_QRC_DEFS@
   </qresource>
 </RCC>

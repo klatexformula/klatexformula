@@ -70,8 +70,9 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   _runstatus = 0;
 
 #ifdef KLFBACKEND_QT4
-  if (env.size() > 0)
+  if (env.size() > 0) {
     setEnvironment(env);
+  }
 
   QString program = cmd.front();
   QStringList args = cmd;
@@ -114,4 +115,20 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   }
 
   return true;
+}
+
+
+
+KLF_EXPORT QStringList klf_cur_environ()
+{
+  QStringList curenvironment;
+#ifdef KLFBACKEND_QT4
+  curenvironment = QProcess::systemEnvironment();
+#else
+  extern char ** environ;
+  for (k = 0; environ[k] != NULL; ++k) {
+    curenvironment.append(QString::fromLocal8Bit(environ[k]));
+  }
+#endif
+  return curenvironment;
 }

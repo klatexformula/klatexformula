@@ -381,6 +381,14 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     QDomElement e = n.toElement(); // try to convert the node to an element.
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
+    if ( e.nodeName() == "add-macosx-type-rules" ) {
+#ifdef Q_WS_MAC
+      __klf_add_macosx_type_rules(fname, e);
+#else
+      klfDbg("Ignoring Mac OS X type rules on non-mac window system") ;
+#endif
+      continue;
+    }
     if ( e.nodeName() != "profile" ) {
       qWarning("%s: WARNING in parsing XML \"%s\" : ignoring unexpected tag `%s', expected <profile>.\n",
 	       KLF_FUNC_NAME, qPrintable(fname), qPrintable(e.nodeName()));

@@ -42,10 +42,12 @@
 #define s_toUpper toUpper
 #define s_toLatin1 toLatin1
 #define s_toLocal8Bit toLocal8Bit
+#define s_indexOf indexOf
 #define str_split(string, sep, boolAllowEmptyEntries)			\
   (string).split((sep), (boolAllowEmptyEntries) ? QString::KeepEmptyParts : QString::SkipEmptyParts)
 #define list_indexOf(x) indexOf((x))
 #define rx_indexin(str) indexIn((str))
+#define rx_indexin_i(str, i) indexIn((str), (i))
 #define img_settext(key, value)  setText((key), (value))
 #else
 #define qPrintable(x) (x).local8Bit().data()
@@ -64,10 +66,12 @@
 #define s_toUpper upper
 #define s_toLatin1 latin1
 #define s_toLocal8Bit local8Bit
+#define s_indexOf find
 #define str_split(string, sep, boolAllowEmptyEntries)		\
   QStringList::split((sep), (string), (boolAllowEmptyEntries))
 #define list_indexOf(x) findIndex((x))
 #define rx_indexin(str) search((str))
+#define rx_indexin_i(str, i) search((str), (i))
 #define img_settext(key, value)  setText((key), 0, (value))
 #endif
 

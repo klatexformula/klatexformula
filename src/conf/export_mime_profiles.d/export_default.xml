@@ -66,9 +66,16 @@
     </export-type>
   </profile>
 
-  <!-- Some rules for converting Mac OS X types>
+  <!-- Some rules for converting Mac OS X types -->
   <add-macosx-type-rules>
-    <translate><mime-type>application/pdf</mime-type><macosx>com.adobe.pdf</macosx></translate>
+    <!-- Insert type translation rules here, such as:
+           <translate>
+             <mime-type>application/pdf</mime-type>
+             <mac-flavor>com.adobe.pdf</mac-flavor>
+           </translate>
+         Note that some translation rules are built-in, such as:
+           PNG, JPEG, GIF, BMP, PDF, PostScript, EPS
+      -->
   </add-macosx-type-rules>
 
 </export-profile-list>

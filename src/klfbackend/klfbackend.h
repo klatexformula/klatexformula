@@ -387,5 +387,6 @@ private:
 /** Compare two inputs for equality */
 bool KLF_EXPORT operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b);
 
+bool KLF_EXPORT klf_detect_execenv(KLFBackend::klfSettings *settings);
 
 #endif
