@@ -759,7 +759,6 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
 }
 
 
-
 bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;

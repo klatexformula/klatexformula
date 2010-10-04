@@ -331,6 +331,7 @@ void KLFConfig::detectMissingSettings()
       BackendSettings.execGs = defaultsettings.gsexec;
     if (neededsettings & (1<<4))
       BackendSettings.execEpstopdf = defaultsettings.epstopdfexec;
+    BackendSettings.execenv << defaultsettings.execenv;
   }
 
 }
