@@ -51,7 +51,7 @@ endforeach(plugin)
 
 
 if(APPLE AND KLF_MACOSX_BUNDLE_PATH)
-  KLFMakeMacExtraBundledTarget(klfbaseplugins ${KLF_LOCAL_PLUGIN_LIBNAMES})
+  KLFMakeMacExtraBundledTarget(klfbaseplugins "${KLF_LOCAL_PLUGIN_LIBNAMES}")
 
   foreach(plugin_libname ${KLF_LOCAL_PLUGIN_LIBNAMES})
     KLFBundlePrivateLibUpdateQtDep(klfbaseplugins "${KLF_MACOSX_BUNDLE_PATH}"
