@@ -8,8 +8,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>833</width>
-    <height>409</height>
+    <width>869</width>
+    <height>444</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,7 +45,7 @@
      </property>
      <layout class="QVBoxLayout" name="lyt_frmMain">
       <property name="spacing">
-       <number>4</number>
+       <number>2</number>
       </property>
       <property name="margin">
        <number>4</number>
@@ -71,6 +71,22 @@
          <cstring>txtLatex</cstring>
         </property>
        </widget>
+      </item>
+      <item>
+       <spacer name="vspc2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>2</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
        <widget class="KLFLatexEdit" name="txtLatex">
@@ -435,6 +451,22 @@
          </item>
         </layout>
        </widget>
+      </item>
+      <item>
+       <spacer name="vspc">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>2</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
        <widget class="QPushButton" name="btnQuit">
