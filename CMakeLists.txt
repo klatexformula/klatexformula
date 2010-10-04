@@ -423,12 +423,14 @@ mark_as_advanced(
 	)
 
 # Manpage generation from --help and --version help text
-if(NOT DEFINED HELP2MAN OR HELP2MAN STREQUAL "")
-  find_program(HELP2MAN "help2man")
-endif(NOT DEFINED HELP2MAN OR HELP2MAN STREQUAL "")
+if(NOT KLF_MACOSX_BUNDLES)
+  if(NOT DEFINED HELP2MAN OR HELP2MAN STREQUAL "")
+    find_program(HELP2MAN "help2man")
+  endif(NOT DEFINED HELP2MAN OR HELP2MAN STREQUAL "")
+endif(NOT KLF_MACOSX_BUNDLES)
 if(HELP2MAN)
   message(STATUS "Manpage will be generated from --help text with help2man (HELP2MAN=OFF or /path/to/help2man)")
-else(HELP2MAN)
+elseif(NOT KLF_MACOSX_BUNDLES AND NOT WIN32)
   KLFNote("help2man was not found. Manpage will not be generated.
     set explicitely HELP2MAN to /path/.../to/help2man if needed.")
   message(STATUS "Manpage will not be generated with help2man (HELP2MAN=OFF or /path/to/help2man)")
