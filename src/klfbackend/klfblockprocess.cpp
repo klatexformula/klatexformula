@@ -126,6 +126,7 @@ KLF_EXPORT QStringList klf_cur_environ()
   curenvironment = QProcess::systemEnvironment();
 #else
   extern char ** environ;
+  int k;
   for (k = 0; environ[k] != NULL; ++k) {
     curenvironment.append(QString::fromLocal8Bit(environ[k]));
   }

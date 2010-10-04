@@ -193,7 +193,7 @@ void __klf_append_replace_env_var(QStringList *list, const QString& var, const Q
 {
   // search for declaration of var in list
   int k;
-  for (k = 0; k < list->size(); ++k) {
+  for (k = 0; k < (int)list->size(); ++k) {
     if (list->operator[](k).startsWith(var+QString("="))) {
       list->operator[](k) = line;
       return;
@@ -217,7 +217,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   // get full, expanded exec environment
   QStringList execenv = klf_cur_environ();
-  for (k = 0; k < settings.execenv.size(); ++k) {
+  for (k = 0; k < (int)settings.execenv.size(); ++k) {
     int eqpos = settings.execenv[k].s_indexOf(QChar('='));
     if (eqpos == -1) {
       qWarning("%s: badly formed environment definition in `environ': %s", KLF_FUNC_NAME,

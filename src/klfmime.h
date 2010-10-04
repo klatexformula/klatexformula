@@ -43,15 +43,14 @@
  * This helper class can be subclassed to implement exporting klatexformula output in a given
  * data format.
  *
+ * Under Windows, mime types are translated to a windows format name returned by \c windowsFormatName().
+ * Under Mac OS X, mime types are translated using KLFMacPasteboardMime, a QMacPasteboardMime subclass.
+ *
  * \note The mime-type \c "application/x-qt-image" has a special meaning. This key may be returned by
  *   keys() to indicate that a generic image data is to be exported in the native Qt-supported formats.
  *   When the data for that mime-type is requested, the image data should be returned in raw PNG, JPEG
  *   or BMP as a QByteArray, and then when this data is added to a QMimeData, QMimeData::setImageData()
  *   with the returned data will be used.
- *
- * \todo ........... DOCUMENT what to do under mac os x, once it's implemented :(
- * \note To export under Mac OS X, you may have to add ............ rules as XML file ?. .....
- *
  */
 class KLF_EXPORT KLFMimeExporter
 {
@@ -99,7 +98,8 @@ private:
   static QList<KLFMimeExporter*> p_mimeExporterList;
 };
 
-
+/** \brief An export profile grouping several mime types
+ */
 class KLF_EXPORT KLFMimeExportProfile
 {
 public:
