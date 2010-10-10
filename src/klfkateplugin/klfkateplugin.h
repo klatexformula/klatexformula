@@ -33,7 +33,9 @@
 #include <QMutex>
 #include <QPixmap>
 #include <QLabel>
+#include <QMenu>
 
+#include <kaction.h>
 #include <ktexteditor/plugin.h>
 #include <ktexteditor/view.h>
 #include <kxmlguiclient.h>
@@ -173,10 +175,16 @@ private:
   KLFKteLatexRunThread *pLatexRunThread;
   KLFKtePreviewWidget *pPreview;
 
+  KAction *aPreviewSel;
+  KAction *aInvokeKLF;
+
+  bool pPreventNextShow;
+
 private Q_SLOTS:
   void slotHighlightingModeChanged(KTextEditor::Document *document);
   void slotReparseCurrentContext();
   void slotSelectionChanged();
+  void slotContextMenuAboutToShow(KTextEditor::View *view, QMenu * menu);
 
   void slotPreview();
   void slotPreview(const MathContext& context);
@@ -184,7 +192,6 @@ private Q_SLOTS:
   void slotInvokeKLF();
 
   void slotReadyPreview(const QImage& img);
-
 };
 
 

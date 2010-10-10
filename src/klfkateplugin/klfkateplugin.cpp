@@ -336,15 +336,16 @@ void KLFKtePreviewWidget::showPreview(const QImage& preview, QWidget *view, cons
 KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
   : QObject(view),
     KXMLGUIClient(view),
-    pView(view)
+    pView(view),
+    pPreventNextShow(false)
 {
   setComponentData(KLFKtePluginFactory::componentData());
 
   KLFBackend::detectSettings(&klfsettings);
   
-  KAction *aPreviewSel = new KAction(i18n("Preview Selection or Current Equation"), this);
+  aPreviewSel = new KAction(i18n("Preview Selection or Current Equation"), this);
   aPreviewSel->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_K);
-  KAction *aInvokeKLF = new KAction(i18n("Invoke KLatexFormula"), this);
+  aInvokeKLF = new KAction(i18n("Invoke KLatexFormula"), this);
   actionCollection()->addAction("klf_preview_selection", aPreviewSel);
   actionCollection()->addAction("klf_invoke_klf", aInvokeKLF);
   connect(aPreviewSel, SIGNAL(triggered()), this, SLOT(slotPreview()));
@@ -362,6 +363,9 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
 	  this, SLOT(slotReparseCurrentContext()));
   connect(pView, SIGNAL(selectionChanged(KTextEditor::View *)),
 	  this, SLOT(slotSelectionChanged()));
+
+  connect(pView, SIGNAL(contextMenuAboutToShow(KTextEditor::View*, QMenu*)),
+	  this, SLOT(slotContextMenuAboutToShow(KTextEditor::View*, QMenu*)));
 
   pPreview = new KLFKtePreviewWidget(pView);
 
@@ -488,6 +492,19 @@ void KLFKtePluginView::slotSelectionChanged()
   pCurMathContext.klfmathmode = "\\[ ... \\]";
 }
 
+void KLFKtePluginView::slotContextMenuAboutToShow(KTextEditor::View */*view*/, QMenu * /*menu*/)
+{
+  pPreventNextShow = true; // don't show the preview
+
+  // Actually not needed, this is done via XML gui
+  /*
+    QMenu *klftoolsmenu = menu->addMenu(tr("KLatexFormula Tools"));
+    klftoolsmenu->addAction(aPreviewSel);
+    klftoolsmenu->addAction(aInvokeKLF);
+  */
+}
+
+
 void KLFKtePluginView::slotPreview()
 {
   slotPreview(pCurMathContext);
@@ -523,7 +540,11 @@ void KLFKtePluginView::slotReadyPreview(const QImage& preview)
   if (!pIsGoodHighlightingMode)
     return;
 
-  // qDebug()<<KLF_FUNC_NAME<<"()";
+  if (pPreventNextShow) {
+    pPreventNextShow = false; // reset this flag
+    return;
+  }
+
   pPreview->showPreview(preview, pView, pView->cursorPositionCoordinates());
 }
 
@@ -531,6 +552,7 @@ void KLFKtePluginView::slotReadyPreview(const QImage& preview)
 void KLFKtePluginView::slotInvokeKLF()
 {
   if (pCurMathContext.isValidMathContext) {
+    // given that we use startDetached(), --daemonize is superfluous
     KProcess::startDetached(QStringList()
 			    << KLFKteConfigData::inst()->klfpath
 			    << "-I"

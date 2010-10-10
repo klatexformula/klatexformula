@@ -177,6 +177,10 @@ if(KLF_LIBKLFTOOLS_STATIC)
   add_definitions(-DKLF_LIBKLFTOOLS_STATIC)
 endif(KLF_LIBKLFTOOLS_STATIC)
 
+if(KLF_NO_CMU_FONT)
+  add_definitions(-DKLF_NO_CMU_FONT)
+endif(KLF_NO_CMU_FONT)
+
 # Don't use CMAKE_INSTALL_PREFIX itself, as it is irrelevant for windows installers
 # we need relative path
 KLFRelativePath(klf_share_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${CMAKE_INSTALL_PREFIX}")

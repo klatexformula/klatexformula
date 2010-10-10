@@ -376,6 +376,20 @@ message(STATUS "Will include fonts into klatexformula's resources: \"${KLF_INCLU
 mark_as_advanced(KLF_INCLUDE_FONTS)
 KLFCMakeSetVarChanged(KLF_INCLUDE_FONTS)
 
+# Use system font rather than CMU font if available
+#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
+KLFDeclareCacheVarOptionFollowComplexN(KLF_NO_CMU_FONT
+  BOOL "Tells klatexformula to use system font instead of Computer Modern font"
+  TRUE   # updatenotice
+  OFF    # calcoptvalue
+  ""     # depvarlist
+  )
+if(KLF_NO_CMU_FONT)
+  message(STATUS "Will use system font instead of CMU font (KLF_NO_CMU_FONT)")
+else(KLF_NO_CMU_FONT)
+  message(STATUS "Will attempt to use Computer Modern unicode font (KLF_NO_CMU_FONT)")
+endif(KLF_NO_CMU_FONT)
+
 # Current System OS
 if(APPLE)
 set(internal_KLF_CMAKE_OS "macosx")

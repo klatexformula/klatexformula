@@ -431,6 +431,13 @@ KLFMainWin::KLFMainWin()
 		    +"</span></b></p>");
   }
 
+  klfDbg("Font is "<<font()<<", family is "<<fontInfo().family()) ;
+  if (QFontInfo(klfconfig.UI.applicationFont).family().contains("CMU")) {
+    addWhatsNewText("<p>"+tr("LaTeX' Computer Modern Sans Serif font is used as the <b>default application font</b>."
+			     " Don't like it? <a href=\"%1\">Choose your preferred application font</a>.")
+		    .arg("klfaction:/settings?control=AppFonts") + "</p>");
+  }
+
   // and load the library
 
   _loadedlibrary = true;

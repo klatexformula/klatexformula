@@ -169,11 +169,11 @@ void KLFConfig::loadDefaults()
 
     defaultStdFont = f;
 
-    QFont niceappfont = f;
+    QFont cmuappfont = f;
     if (fdb.families().contains("CMU Sans Serif")) {
       // CMU Sans Serif is available ;-)
       int ps = QFontInfo(f).pointSize();
-      niceappfont = QFont("CMU Sans Serif", ps);
+      cmuappfont = QFont("CMU Sans Serif", ps);
       // ideal height of the string "MX" in pixels. This value was CAREFULLY ADJUSTED.
       // please change it only if you feel sure. (fonts have to look nice on most platforms)
       int fIdealHeight = 15;
@@ -181,8 +181,8 @@ void KLFConfig::loadDefaults()
       ps -= 2;
       const int cutoff = 16; //just a cutoff to be sure
       // and increase font size up to something "ideal"
-      while (ps < cutoff && QFontMetrics(niceappfont).size(Qt::TextSingleLine, "MX").height() < fIdealHeight) {
-	niceappfont.setPointSize(++ps);
+      while (ps < cutoff && QFontMetrics(cmuappfont).size(Qt::TextSingleLine, "MX").height() < fIdealHeight) {
+	cmuappfont.setPointSize(++ps);
       }
       if (ps >= cutoff)
 	ps = 10; // the default
@@ -225,12 +225,16 @@ void KLFConfig::loadDefaults()
     Core.libraryFileName = "library.klf.db";
     Core.libraryLibScheme = "klf+sqlite";
 
-    defaultCMUFont = niceappfont;
+    defaultCMUFont = cmuappfont;
     defaultTTFont = fcode;
 
     UI.locale = QLocale::system().name();
     klfDbg("System locale: "<<QLocale::system().name());
-    UI.applicationFont = niceappfont;
+#ifdef KLF_NO_CMU_FONT
+    UI.applicationFont = defaultStdFont;
+#else
+    UI.applicationFont = cmuappfont;
+#endif
     UI.latexEditFont = fcodeMain;
     UI.preambleEditFont = fcode;
     UI.previewTooltipMaxSize = QSize(800, 600);

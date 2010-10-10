@@ -103,6 +103,7 @@ bool opt_quiet = false;
 char *opt_redirect_debug = NULL;
 bool opt_daemonize = false;
 bool opt_dbus_export_mainwin = false;
+bool opt_skip_plugins = false;
 
 int opt_outlinefonts = -1;
 int opt_lborderoffset = -1;
@@ -172,6 +173,7 @@ enum {
   OPT_EPSTOPDF,
 
   OPT_DBUS_EXPORT_MAINWIN,
+  OPT_SKIP_PLUGINS,
   OPT_REDIRECT_DEBUG
 };
 
@@ -199,6 +201,7 @@ static struct option klfcmdl_optlist[] = {
   { "redirect-debug", 1, NULL, OPT_REDIRECT_DEBUG },
   { "daemonize", 0, NULL, OPT_DAEMONIZE },
   { "dbus-export-mainwin", 0, NULL, OPT_DBUS_EXPORT_MAINWIN },
+  { "skip-plugins", 2, NULL, OPT_SKIP_PLUGINS },
   // -----
   { "outlinefonts", 2 /*optional arg*/, NULL, OPT_OUTLINEFONTS },
   { "lborderoffset", 1, NULL, OPT_LBORDEROFFSET },
@@ -1011,7 +1014,8 @@ int main(int argc, char **argv)
     app.setFont(klfconfig.UI.applicationFont);
     mainWin.refreshWindowSizes();
 
-    main_load_plugins(&app, &mainWin);
+    if (!opt_skip_plugins)
+      main_load_plugins(&app, &mainWin);
 
     mainWin.show();
 
@@ -1281,6 +1285,26 @@ FILE *main_msg_get_fp_arg(const char *arg)
   return stderr;
 }
 
+bool __klf_parse_bool_arg(const char * arg, bool defaultvalue)
+{
+  if (arg == NULL)
+    return defaultvalue;
+
+  QRegExp booltruerx = QRegExp("^\\s*on|y(es)?|1|t(rue)?\\s*", Qt::CaseInsensitive);
+  QRegExp boolfalserx = QRegExp("^\\s*off|n(o)?|0|f(alse)?\\s*", Qt::CaseInsensitive);
+
+  if ( booltruerx.exactMatch(arg) )
+    return true;
+  if ( boolfalserx.exactMatch(arg) )
+    return false;
+
+  qWarning()<<KLF_FUNC_NAME<<": Can't parse boolean argument: "<<QString(arg);
+  opt_error.has_error = true;
+  opt_error.retcode = -1;
+
+  return defaultvalue;
+}
+
 void main_parse_options(int argc, char *argv[])
 {
   // argument processing
@@ -1405,20 +1429,12 @@ void main_parse_options(int argc, char *argv[])
     case OPT_DBUS_EXPORT_MAINWIN:
       opt_dbus_export_mainwin = true;
       break;
+    case OPT_SKIP_PLUGINS:
+      // default value 'true' (default value if option is given)
+      opt_skip_plugins = __klf_parse_bool_arg(arg, true);
+      break;
     case OPT_OUTLINEFONTS:
-      if (arg != NULL) {
-	if ( QRegExp("^\\s*on|y(es)?|1|t(rue)?\\s*", Qt::CaseInsensitive).exactMatch(arg) )
-	  opt_outlinefonts = 1;
-	else if ( QRegExp("^\\s*off|n(o)?|0|f(alse)?\\s*", Qt::CaseInsensitive).exactMatch(arg) )
-	  opt_outlinefonts = 0;
-	else {
-	  qWarning()<<KLF_FUNC_NAME<<": Can't parse argument to value --outlinefonts: "<<QString(arg);
-	  opt_error.has_error = true;
-	  opt_error.retcode = -1;
-	}
-      } else {
-	opt_outlinefonts = 1; // no arg -> enable
-      }
+      opt_outlinefonts = __klf_parse_bool_arg(arg, true);
       break;
     case OPT_LBORDEROFFSET:
       opt_lborderoffset = atoi(arg);
