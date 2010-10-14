@@ -229,8 +229,7 @@ void KLFKtePixmapWidget::paintEvent(QPaintEvent */*e*/)
 
 
 KLFKtePreviewWidget::KLFKtePreviewWidget(KTextEditor::View *vparent)
-  : QWidget(vparent, Qt::ToolTip|Qt::FramelessWindowHint|Qt::CustomizeWindowHint|
-	    Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint)
+  : QWidget(vparent, Qt::ToolTip)
 {
   setAttribute(Qt::WA_ShowWithoutActivating, true);
   //setAttribute(Qt::WA_PaintOnScreen, true);
@@ -322,7 +321,8 @@ void KLFKtePreviewWidget::showPreview(const QImage& preview, QWidget *view, cons
        globViewPos.y()+pos.y()+35);
   show();
 
-  setWindowOpacity(1.0 - (KLFKteConfigData::inst()->transparencyPercent / 100.0));
+  if (KLFKteConfigData::inst()->transparencyPercent)
+    setWindowOpacity(1.0 - (KLFKteConfigData::inst()->transparencyPercent / 100.0));
   
   // schedule re-paint to workaround bug where label is not repainted some times
   QTimer::singleShot(20, lbl, SLOT(repaint()));
