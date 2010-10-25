@@ -142,6 +142,25 @@ KLFConfig::KLFConfig()
     found_fcode = true;							\
   }
 
+static int adjust_font_size(QFont f, int idealMXHeightPx)
+{
+  // idealMXHeightPx is the ideal height of the string "MX" in pixels.
+  int ps = QFontInfo(f).pointSize();
+  // start with a little bit smaller font
+  ps -= 3;
+  const int cutoff = 20; //just a cutoff to be sure
+  // and increase font size up to something "ideal"
+  while (ps < cutoff && QFontMetrics(f).size(Qt::TextSingleLine, "MX").height() < idealMXHeightPx) {
+    f.setPointSize(++ps);
+    klfDbg(f.family()<<": Will try instead with font size="<<ps) ;
+  }
+  if (ps >= cutoff)
+    ps = 10; // the default point size in bad case scenario
+
+  return ps;
+}
+
+
 void KLFConfig::loadDefaults()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
@@ -162,30 +181,27 @@ void KLFConfig::loadDefaults()
     QFontDatabase fdb;
     QFont f = QApplication::font();
 
-#ifdef Q_WS_X11
-    // setting pixel size avoids bug with Qt/X11 of fonts having their metrics badly calculated (...?)
-    f.setPixelSize(15);
-#endif
+    //#ifdef Q_WS_X11
+    //    // setting pixel size avoids bug with Qt/X11 of fonts having their metrics badly calculated (...?)
+    //    f.setPixelSize(15);
+    //#endif
 
     defaultStdFont = f;
 
     QFont cmuappfont = f;
     if (fdb.families().contains("CMU Sans Serif")) {
       // CMU Sans Serif is available ;-)
-      int ps = QFontInfo(f).pointSize();
-      cmuappfont = QFont("CMU Sans Serif", ps);
+      int fps = QFontInfo(f).pointSize();
+      cmuappfont = QFont("CMU Sans Serif", fps);
       // ideal height of the string "MX" in pixels. This value was CAREFULLY ADJUSTED.
       // please change it only if you feel sure. (fonts have to look nice on most platforms)
+#ifdef Q_WS_X11
+      int fIdealHeight = 17;
+#else
       int fIdealHeight = 15;
-      // start with a little bit smaller font
-      ps -= 2;
-      const int cutoff = 16; //just a cutoff to be sure
-      // and increase font size up to something "ideal"
-      while (ps < cutoff && QFontMetrics(cmuappfont).size(Qt::TextSingleLine, "MX").height() < fIdealHeight) {
-	cmuappfont.setPointSize(++ps);
-      }
-      if (ps >= cutoff)
-	ps = 10; // the default
+#endif
+      fps = adjust_font_size(cmuappfont, fIdealHeight);
+      cmuappfont.setPointSize(fps);
     }
 
     QFont fcode;
@@ -202,16 +218,15 @@ void KLFConfig::loadDefaults()
     if ( ! found_fcode )
       fcode = f;
     // guess good font size for code font
-    QFont fp1 = f, fp2 = f;
-    qreal ps1 = 5, ps2 = 20; // measurement points
-    int idealHeight = 18; // the ideal height of the string "MX" in pixels
-    fp1.setPointSize((int)(ps1+0.5f));
-    fp2.setPointSize((int)(ps2+0.5f));
-    qreal h1 = QFontMetrics(fp1).size(Qt::TextSingleLine, "MX").height();
-    qreal h2 = QFontMetrics(fp2).size(Qt::TextSingleLine, "MX").height();
-    // linear interpolation for a height of \c idealHeight pixels
-    ps = (int)(ps1 + (idealHeight-h1)*(ps2-ps1)/(h2-h1));
-    // and set that font size
+#ifdef Q_WS_X11
+    int fcodeIdealHeight = 20; // the ideal height of the string "MX" in pixels
+#else
+    int fcodeIdealHeight = 18; // the ideal height of the string "MX" in pixels
+#endif
+// #if QT_VERSION < 0x040500
+//     fcodeIdealHeight += 2; // fix for Qt 4.4
+// #endif
+    ps = adjust_font_size(fcode, fcodeIdealHeight);
     fcode.setPointSize(ps);
     QFont fcodeMain = fcode;
     fcodeMain.setPointSize(ps+1);

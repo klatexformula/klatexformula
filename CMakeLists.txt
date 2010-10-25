@@ -444,7 +444,7 @@ if(NOT KLF_MACOSX_BUNDLES)
 endif(NOT KLF_MACOSX_BUNDLES)
 if(HELP2MAN)
   message(STATUS "Manpage will be generated from --help text with help2man (HELP2MAN=OFF or /path/to/help2man)")
-elseif(NOT KLF_MACOSX_BUNDLES AND NOT WIN32)
+elseif(NOT KLF_MACOSX_BUNDLES AND NOT WIN32 AND HELP2MAN STREQUAL "")
   KLFNote("help2man was not found. Manpage will not be generated.
     set explicitely HELP2MAN to /path/.../to/help2man if needed.")
 endif(HELP2MAN)
