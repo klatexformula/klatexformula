@@ -818,51 +818,81 @@ void KLFSettings::importAddOn()
 				  QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation),
 				  "Qt Resource Files (*.rcc)");
   int i;
-  QString destination = klfconfig.homeConfigDir + "/rccresources/";
   for (i = 0; i < efnames.size(); ++i) {
-    QString destfpath = destination + QFileInfo(efnames[i]).fileName();
-    if ( QFile::exists(destfpath) ) {
-      QMessageBox::critical(this, tr("Error"),
-			    tr("An Add-On with the same file name has already been imported."));
-    } else {
-      bool r = QFile::copy(efnames[i], destfpath);
-      if ( r ) {
-	// import succeeded, show the add-on as fresh.
-	KLFAddOnInfo addoninfo(destfpath, true);
-	if (!addoninfo.klfminversion().isEmpty() &&
-	    klfVersionCompareLessThan(KLF_VERSION_STRING, addoninfo.klfminversion())) {
-	  // add-on too recent
-	  QMessageBox::critical(this, tr("Error"),
-				tr("This add-on requires a more recent version of KLatexFormula.\n"
-				   "Required version: %1\n"
-				   "This version: %2").arg(addoninfo.klfminversion(), KLF_VERSION_STRING));
-	  return;
-	}
-	// if we have new translations, add them to our translation combo box
-	int k;
-	bool changed = false;
-	QStringList trlist = addoninfo.translations();
-	for (k = 0; k < trlist.size(); ++k) {
-	  KLFI18nFile i18nfile(trlist[k]);
-	  if ( u->cbxLocale->findData(i18nfile.locale) == -1 ) {
-	    klf_add_avail_translation(i18nfile);
-	    changed = true;
-	  }
-	}
-	if (changed)
-	  populateLocaleCombo();
-	klf_addons.append(addoninfo);
-	refreshAddOnList();
-      } else {
-	QMessageBox::critical(this, tr("Error"), tr("Import of add-on file %1 failed.").arg(efnames[i]));
-      }
-    }
+    importAddOn(efnames[i]);
   }
   // display message to user to restart KLatexFormula, if needed
   if (i > 0) {
-    QMessageBox::information(this, tr("Import"),
-			     tr("Please restart KLatexFormula for changes to take effect."));
+    QMessageBox::information(this, tr("Import"), tr("Please restart KLatexFormula for changes to take effect."));
   }
+}
+
+void KLFSettings::importAddOn(const QString& fileName)
+{
+  QFileInfo fi(fileName);
+  if (!fi.exists() || !fi.isReadable()) {
+    QMessageBox::critical(this, tr("Error"), tr("File %1 cannot be accessed."));
+    return;
+  }
+  QString destination = klfconfig.homeConfigDir + "/rccresources/";
+  QString destfpath = destination + QFileInfo(fileName).fileName();
+  if ( QFile::exists(destfpath) ) {
+    QMessageBox::critical(this, tr("Error"),
+			  tr("An Add-On with the same file name has already been imported."));
+    return;
+  }
+  bool r = QFile::copy(fileName, destfpath);
+  if ( !r ) {
+    QMessageBox::critical(this, tr("Error"), tr("Import of add-on file %1 failed.").arg(fileName));
+    return;
+  }
+
+  // import succeeded, show the add-on as fresh.
+  KLFAddOnInfo addoninfo(destfpath, true);
+  if (!addoninfo.klfminversion().isEmpty() &&
+      klfVersionCompareLessThan(KLF_VERSION_STRING, addoninfo.klfminversion())) {
+    // add-on too recent
+    QMessageBox::critical(this, tr("Error"),
+			  tr("This add-on requires a more recent version of KLatexFormula.\n"
+			     "Required version: %1\n"
+			     "This version: %2").arg(addoninfo.klfminversion(), KLF_VERSION_STRING));
+    return;
+  }
+  // if we have new translations, add them to our translation combo box, and prompt user to change to that
+  // language. (It is highly reasonable that if he installed the translation add-on, it's to use it...!)
+  int k;
+  QStringList trlist = addoninfo.translations();
+  KLFI18nFile *detectedI18nFile = NULL;
+  for (k = 0; k < trlist.size(); ++k) {
+    KLFI18nFile i18nfile(trlist[k]);
+    if ( u->cbxLocale->findData(i18nfile.locale) == -1 ) {
+      klf_add_avail_translation(i18nfile);
+      if (detectedI18nFile == NULL)
+	detectedI18nFile = new KLFI18nFile(i18nfile);
+    }
+  }
+  if (detectedI18nFile != NULL) {
+    populateLocaleCombo();
+    // find the translation
+    for (k = 0; k < klf_avail_translations.size(); ++k) {
+      if (klf_avail_translations[k].localename == detectedI18nFile->locale)
+	break;
+    }
+    int cbxindex = u->cbxLocale->findData(detectedI18nFile->locale);
+    if (k >= 0 && k < klf_avail_translations.size() && cbxindex >= 0) {
+      if (QMessageBox::question(this, tr("Change Langugage"), tr("Change application language to <b>%1</b>?")
+				.arg(klf_avail_translations[k].translatedname),
+				QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes)
+	  == QMessageBox::Yes) {
+	u->cbxLocale->setCurrentIndex(cbxindex);
+	apply();
+      }
+    }
+    delete detectedI18nFile;
+    detectedI18nFile = NULL;
+  }
+  klf_addons.append(addoninfo);
+  refreshAddOnList();
 }
 
 void KLFSettings::removeAddOn()

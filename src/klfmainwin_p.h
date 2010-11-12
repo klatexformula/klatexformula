@@ -42,6 +42,7 @@
 
 #include <klflibview.h>
 #include "klfmain.h"
+#include "klfsettings.h"
 
 #include "klfmainwin.h"
 
@@ -360,6 +361,8 @@ public:
 
     // try to load library file
     bool result = mainWin()->openLibFile(file);
+
+    klfDbg("mainWin()->openLibFile("<<file<<") returned "<<result) ;
     if (result)
       return true;
 
@@ -528,6 +531,68 @@ private:
     return true;
   }
 };
+
+
+
+
+
+
+class KLFAddOnDataOpener : public QObject, public KLFAbstractDataOpener
+{
+  Q_OBJECT
+public:
+  KLFAddOnDataOpener(KLFMainWin *mainwin) : QObject(mainwin), KLFAbstractDataOpener(mainwin) { }
+  virtual ~KLFAddOnDataOpener() { }
+
+  virtual QStringList supportedMimeTypes()
+  {
+    return QStringList();
+  }
+
+  virtual bool canOpenFile(const QString& file)
+  {
+    if (QFileInfo(file).suffix() == "rcc")
+      return true;
+    QFile f(file);
+    bool r = f.open(QIODevice::ReadOnly);
+    if (!r) // can't open file
+      return false;
+    // check if file is RCC file (begins with 'qres')
+    if (f.read(4) == "qres")
+      return true;
+    // not a Qt RCC file
+    return false;
+  }
+
+  virtual bool canOpenData(const QByteArray& data)
+  {
+    // Dropped files are opened by the basic data opener, which handles "text/uri-list"
+    // by calling the main window's openFiles()
+    return false;
+  }
+
+  virtual bool openFile(const QString& file)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg("file="<<file);
+
+    if (!canOpenFile(file)) {
+      qWarning()<<KLF_FUNC_NAME<<": file is not openable by us: "<<file;
+      return false;
+    }
+
+    mainWin()->settingsDialog()->show();
+    mainWin()->settingsDialog()->showControl(KLFSettings::ManageAddOns);
+    mainWin()->settingsDialog()->importAddOn(file);
+    return true;
+  }
+
+  virtual bool openData(const QByteArray& /*data*/, const QString& /*mimetype*/)
+  {
+    return false;
+  }
+};
+
 
 
 

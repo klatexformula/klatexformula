@@ -444,6 +444,7 @@ KLFMainWin::KLFMainWin()
   loadLibrary();
 
   registerDataOpener(new KLFBasicDataOpener(this));
+  registerDataOpener(new KLFAddOnDataOpener(this));
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -2190,7 +2191,12 @@ bool KLFMainWin::openLibFile(const QString& fname, bool showLibrary)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   QUrl url = QUrl::fromLocalFile(fname);
-  url.setScheme(KLFLibBasicWidgetFactory::guessLocalFileScheme(fname));
+  QString scheme = KLFLibBasicWidgetFactory::guessLocalFileScheme(fname);
+  if (scheme.isEmpty()) {
+    klfDbg("Can't guess scheme for file "<<fname) ;
+    return false;
+  }
+  url.setScheme(scheme);
   QStringList subreslist = KLFLibEngineFactory::listSubResources(url);
   if ( subreslist.isEmpty() ) {
     // error reading sub-resources, or sub-resources not supported
