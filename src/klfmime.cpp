@@ -31,6 +31,7 @@
 #include <QDomNode>
 #include <QDomElement>
 #include <QPainter>
+#include <QTextCodec>
 
 #include <klfbackend.h>
 
@@ -151,6 +152,7 @@ void KLFMimeExporter::initMimeExporterList()
     p_mimeExporterList
       << new KLFMimeExporterImage(qApp)
       << new KLFMimeExporterUrilist(qApp)
+      << new KLFMimeExporterHTML(qApp)
       << new KLFMimeExporterLibFmts(qApp)
       << new KLFMimeExporterGlowImage(qApp)
       ;
@@ -758,12 +760,9 @@ QStringList KLFMimeExporterUrilist::keys() const
   return QStringList() << "text/x-moz-url" << "text/uri-list";
 }
 
-QByteArray KLFMimeExporterUrilist::data(const QString& key, const KLFBackend::klfOutput& output)
+// static
+QString KLFMimeExporterUrilist::tempFileForOutput(const KLFBackend::klfOutput& output)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  Q_UNUSED(key) ;
-  klfDbg("key="<<key) ;
   qint64 imgcachekey = output.result.cacheKey();
 
   QString tempfilename;
@@ -794,6 +793,17 @@ QByteArray KLFMimeExporterUrilist::data(const QString& key, const KLFBackend::kl
     }
   }
 
+  return tempfilename;
+}
+
+QByteArray KLFMimeExporterUrilist::data(const QString& key, const KLFBackend::klfOutput& output)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  Q_UNUSED(key) ;
+  klfDbg("key="<<key) ;
+
+  QString tempfilename = tempFileForOutput(output);
   QByteArray urilist = (QUrl::fromLocalFile(tempfilename).toString()+QLatin1String("\n")).toLatin1();
   return urilist;
 }
@@ -809,15 +819,13 @@ QString KLFMimeExporterUrilist::windowsFormatName(const QString& mime) const
 
 
 
-
 // -----------------------------------
 
-
-static QByteArray toAttrText(const QString& sbase)
+static QString toAttrTextS(const QString& sbase)
 {
   QString s = sbase; // we need a non-const string to .replace() on
   klfDbg("s="<<s);
-  QRegExp replaceCharsRX("([^a-zA-Z0-9 _-])");
+  QRegExp replaceCharsRX("([^a-zA-Z0-9/ ._-])");
   int pos = 0;
   while ((pos = replaceCharsRX.indexIn(s, pos)) != -1) {
     QString entity = "&#x"+QString::number(replaceCharsRX.cap(1)[0].unicode(), 16).toUpper()+";" ;
@@ -826,13 +834,65 @@ static QByteArray toAttrText(const QString& sbase)
     pos += entity.length();
   }
   klfDbg("final string: "<<s);
-  return s.toUtf8();
+  return s;
 
   //  QString s2 = sbase;
   //  return s2.replace("&", "&amp;").replace("\"", "&quot;").replace("'", "&apos;").replace("<", "&lt")
   //    .replace(">", "&gt;").replace("\r", "&#xD;").replace("\t", "&#x9;").replace("\n", "&#xA;")
   //    .replace("!", "&#x21;").toUtf8();
 }
+
+static QByteArray toAttrText(const QString& sbase)
+{
+  return toAttrTextS(sbase).toUtf8();
+}
+
+QStringList KLFMimeExporterHTML::keys() const
+{
+  return QStringList() << QLatin1String("text/html");
+}
+
+QByteArray KLFMimeExporterHTML::data(const QString& key, const KLFBackend::klfOutput& klfoutput)
+{
+  QString fname = KLFMimeExporterUrilist::tempFileForOutput(klfoutput);
+
+  QSize imgsize = klfoutput.result.size();
+  int imgDpi = klfoutput.input.dpi;
+  int dispDpi = 100;
+
+  QString latex = klfoutput.input.latex;
+  // remove initial comments from latex code...
+  QStringList latexlines = latex.split("\n");
+  while (latexlines.size() && QRegExp("\\s*\\%.*").exactMatch(latexlines[0]))
+    latexlines.removeAt(0);
+  latex = latexlines.join("\n");
+
+  QString fn = toAttrTextS(fname);
+  QString l = toAttrTextS(latex);
+  fn.replace("\"", "&#34;");
+  l.replace("\"", "&#34;");
+  QString w = QString::number((int)(1.5 * imgsize.width() * dispDpi/imgDpi));
+  QString h = QString::number((int)(1.5 * imgsize.height() * dispDpi/imgDpi));
+  QString win = QString::number(1.5 * imgsize.width() / imgDpi);
+  QString hin = QString::number(1.5 * imgsize.height() / imgDpi);
+
+  QTextCodec *codec = QTextCodec::codecForName("UTF-16");
+  QString html =
+    QString("<img src=\"file://%1\" alt=\"%2\" title=\"%3\" " //"width=\"%4\" height=\"%5\" "
+	    " style=\"width: %4in; height: %5in; vertical-align: middle;\">")
+    .arg(fn, l, l, win, hin);
+  return codec->fromUnicode(html);
+}
+
+QString KLFMimeExporterHTML::windowsFormatName(const QString& key) const
+{
+  if (key == QLatin1String("text/html"))
+    return "HTML";
+  return key;
+}
+
+
+// -----------------------------------
 
 
 QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput)

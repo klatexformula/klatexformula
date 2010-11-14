@@ -21,6 +21,9 @@
     <!-- Mac OS X likes PDF -->
     <export-type><mime-type>application/pdf</mime-type></export-type>
 
+    <!-- Never hurts to include HTML (eg. for Thunderbird) -->
+    <export-type><mime-type>text/html</mime-type></export-type>
+
     <!-- For Windows -->
     <export-type><mime-type>image/x-win-png-office-art</mime-type></export-type>
     <export-type><mime-type>image/x-win-jfif</mime-type></export-type>
@@ -49,6 +52,13 @@
 
     <export-type><mime-type>text/x-moz-url</mime-type><windows-type>FileName</windows-type></export-type>
     <export-type><mime-type>text/uri-list</mime-type></export-type>
+  </profile>
+
+  <profile name="html">
+    <description>HTML</description>
+    <description xml:lang="fr">HTML</description>
+
+    <export-type><mime-type>text/html</mime-type></export-type>
   </profile>
 
   <profile name="ooodrawing">

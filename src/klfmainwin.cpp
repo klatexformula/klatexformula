@@ -295,6 +295,9 @@ KLFMainWin::KLFMainWin()
   //  QShortcut *editorActivatorShortcut = 
   new QShortcut(QKeySequence(Qt::Key_F4), this, SLOT(slotActivateEditor()),
 		SLOT(slotActivateEditor()), Qt::ApplicationShortcut);
+  //  QShortcut *editorActivatorShortcut = 
+  new QShortcut(QKeySequence(Qt::Key_F4 | Qt::ShiftModifier), this, SLOT(slotActivateEditorSelectAll()),
+		SLOT(slotActivateEditorSelectAll()), Qt::ApplicationShortcut);
   // shortcut for big preview
   new QShortcut(QKeySequence(Qt::Key_F2), this, SLOT(slotShowBigPreview()),
 		SLOT(slotShowBigPreview()), Qt::WindowShortcut);
@@ -756,7 +759,10 @@ void KLFMainWin::loadStyles()
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
     KLFStyle s1(tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 600);
+    KLFStyle s2(tr("Inline"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 150);
+    s2.overrideBBoxExpand = KLFStyle::BBoxExpand(0,0,0,0);
     _styles.append(s1);
+    _styles.append(s2);
   }
 
   mStyleMenu = 0;
@@ -2491,6 +2497,12 @@ void KLFMainWin::slotActivateEditor()
   raise();
   activateWindow();
   u->txtLatex->setFocus();
+}
+
+void KLFMainWin::slotActivateEditorSelectAll()
+{
+  slotActivateEditor();
+  u->txtLatex->selectAll();
 }
 
 void KLFMainWin::slotShowBigPreview()

@@ -350,6 +350,7 @@ public slots:
   void slotSetExportProfile(const QString& exportProfile);
 
   void slotActivateEditor();
+  void slotActivateEditorSelectAll();
 
   void slotShowBigPreview();
 

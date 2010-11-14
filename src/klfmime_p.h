@@ -76,8 +76,26 @@ public:
 
   virtual QString windowsFormatName(const QString& key) const;
 
+  static QString tempFileForOutput(const KLFBackend::klfOutput& klfoutput);
+
 private:
   static QMap<qint64,QString> tempFilesForImageCacheKey;
+};
+
+/** Export HTML document with image and alt text ("text/html"). */
+class KLF_EXPORT KLFMimeExporterHTML : public QObject, public KLFMimeExporter
+{
+  Q_OBJECT
+public:
+  KLFMimeExporterHTML(QObject *parent) : QObject(parent) { }
+  virtual ~KLFMimeExporterHTML() { }
+
+  virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterHTML"); }
+
+  virtual QStringList keys() const;
+  virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+
+  virtual QString windowsFormatName(const QString& key) const;
 };
 
 
@@ -101,7 +119,7 @@ public:
 
 
 
-/** Alien equations ;) */
+/** Alien glow equations ;) */
 class KLFMimeExporterGlowImage : public QObject, public KLFMimeExporter
 {
   Q_OBJECT
