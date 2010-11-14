@@ -387,6 +387,7 @@ public:
       qint64 len;
       while ((len = buf.readLine(sbuf, sizeof(sbuf))) > 0) {
 	line = QByteArray(sbuf, len);
+	line = line.trimmed(); // gnome uses \r\n, and URLs don't have whitespace.
 	QUrl url = QUrl::fromEncoded(line);
 	if (url.scheme() != "file") {
 	  qWarning()<<KLF_FUNC_NAME<<": can't open URL "<<url.scheme()<<" (can only open local files)";
@@ -555,8 +556,9 @@ public:
       return true;
     QFile f(file);
     bool r = f.open(QIODevice::ReadOnly);
-    if (!r) // can't open file
+    if (!r) { // can't open file
       return false;
+    }
     // check if file is RCC file (begins with 'qres')
     if (f.read(4) == "qres")
       return true;
