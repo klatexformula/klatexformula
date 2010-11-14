@@ -175,6 +175,7 @@ public:
   struct {
 
     QString locale; //!< When setting this, don't forget to call QLocale::setDefault().
+    bool useSystemAppFont;
     QFont applicationFont;
     QFont latexEditFont;
     QFont preambleEditFont;
@@ -197,6 +198,9 @@ public:
     QColor glowEffectColor;
     int glowEffectRadius;
     QStringList customMathModes;
+    bool showExportProfilesLabel;
+    bool menuExportProfileAffectsDrag;
+    bool menuExportProfileAffectsCopy;
 
   } UI;
 
@@ -283,7 +287,7 @@ public:
   bool checkExePaths();
 
 private:
-  int readFromConfig_v2();
+  int readFromConfig_v2(const QString& fname);
   int readFromConfig_v1();
 
 };

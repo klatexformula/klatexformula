@@ -78,6 +78,8 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 
   _mainwin = parent;
 
+  pUserSetDefaultAppFont = false;
+
   u->cbxLibIconViewFlow->setEnumValues(QList<int>()<<QListView::TopToBottom<<QListView::LeftToRight,
 				       QStringList()<<tr("Top to Bottom")<<tr("Left to Right"));
 
@@ -157,6 +159,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Action"] = "Std";
   vmap["Font"] = klfconfig.defaultStdFont;
   vmap["Button"] = QVariant("AppFont");
+  vmap["isSystemDefaultAppFont"] = QVariant(true);
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
   pFontSetActions << a;
@@ -477,6 +480,7 @@ void KLFSettings::reset()
       _textformats[k].chkI->setCheckState(Qt::PartiallyChecked);
   }
 
+  pUserSetDefaultAppFont = klfconfig.UI.useSystemAppFont;
   u->btnAppFont->setFont(klfconfig.UI.applicationFont);
   u->btnAppFont->setProperty("selectedFont", QVariant(klfconfig.UI.applicationFont));
   u->btnEditorFont->setFont(klfconfig.UI.latexEditFont);
@@ -496,8 +500,13 @@ void KLFSettings::reset()
   u->chkClearLatexOnly->setChecked(klfconfig.UI.clearLatexOnly);
   u->chkGlowEffect->setChecked(klfconfig.UI.glowEffect);
 
-  u->cbxCopyExportProfile->setCurrentIndex(u->cbxCopyExportProfile->findData(QVariant(klfconfig.UI.copyExportProfile)));
-  u->cbxDragExportProfile->setCurrentIndex(u->cbxDragExportProfile->findData(QVariant(klfconfig.UI.dragExportProfile)));
+  int copyi = u->cbxCopyExportProfile->findData(QVariant(klfconfig.UI.copyExportProfile));
+  u->cbxCopyExportProfile->setCurrentIndex(copyi);
+  int dragi = u->cbxDragExportProfile->findData(QVariant(klfconfig.UI.dragExportProfile));
+  u->cbxDragExportProfile->setCurrentIndex(dragi);
+  //  u->chkShowExportProfilesLabel->setChecked(klfconfig.UI.showExportProfilesLabel);
+  u->chkMenuExportProfileAffectsDrag->setChecked(klfconfig.UI.menuExportProfileAffectsDrag);
+  u->chkMenuExportProfileAffectsCopy->setChecked(klfconfig.UI.menuExportProfileAffectsCopy);
 
   u->chkLibRestoreURLs->setChecked(klfconfig.LibraryBrowser.restoreURLs);
   u->chkLibConfirmClose->setChecked(klfconfig.LibraryBrowser.confirmClose);
@@ -954,11 +963,16 @@ void KLFSettings::slotChangeFontPresetSender()
   QAction *a = qobject_cast<QAction*>(sender());
   if (a == 0)
     return;
-  QVariantMap vmap = a->data().toMap();
+  const QVariantMap vmap = a->data().toMap();
+  klfDbg("Set font from action with data "<<vmap) ;
   QString btnkey = vmap["Button"].toString();
   KLF_ASSERT_CONDITION(pFontButtons.contains(btnkey), "Unknown button "<<btnkey<<" !", return ) ;
   QFont f = vmap["Font"].value<QFont>();
   slotChangeFont(pFontButtons[btnkey], f);
+  if (vmap.contains("isSystemDefaultAppFont") && vmap["isSystemDefaultAppFont"].toBool()) {
+    klfDbg("Set default application font.") ;
+    pUserSetDefaultAppFont = true;
+  }
 }
 void KLFSettings::slotChangeFontSender()
 {
@@ -974,6 +988,8 @@ void KLFSettings::slotChangeFont(QPushButton *w, const QFont& fnt)
     return;
   w->setFont(fnt);
   w->setProperty("selectedFont", QVariant(fnt));
+  if (w == u->btnAppFont)
+    pUserSetDefaultAppFont = false;
 }
 
 void KLFSettings::apply()
@@ -1071,9 +1087,13 @@ void KLFSettings::apply()
   // font settings
   QFont curAppFont = klfconfig.UI.applicationFont;
   QFont newAppFont = u->btnAppFont->property("selectedFont").value<QFont>();
-  if (curAppFont != newAppFont) {
+  if (curAppFont != newAppFont || pUserSetDefaultAppFont != klfconfig.UI.useSystemAppFont) {
+    klfconfig.UI.useSystemAppFont = pUserSetDefaultAppFont;
     klfconfig.UI.applicationFont = newAppFont;
-    qApp->setFont(klfconfig.UI.applicationFont);
+    if (klfconfig.UI.useSystemAppFont)
+      qApp->setFont(QFont());
+    else
+      qApp->setFont(klfconfig.UI.applicationFont);
     // Style sheet refresh is needed to force font (?)
     qApp->setStyleSheet(qApp->styleSheet());
     _mainwin->refreshAllWindowStyleSheets();
@@ -1082,8 +1102,6 @@ void KLFSettings::apply()
   _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
   klfconfig.UI.preambleEditFont = u->btnPreambleFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
-  // recalculate window sizes etc.
-  _mainwin->refreshWindowSizes();
 
   klfconfig.UI.labelOutputFixedSize = QSize(u->spnPreviewWidth->value(), u->spnPreviewHeight->value());
   klfconfig.UI.enableRealTimePreview = u->chkEnableRealTimePreview->isChecked();
@@ -1099,6 +1117,9 @@ void KLFSettings::apply()
     u->cbxCopyExportProfile->itemData(u->cbxCopyExportProfile->currentIndex()).toString();
   klfconfig.UI.dragExportProfile = 
     u->cbxDragExportProfile->itemData(u->cbxDragExportProfile->currentIndex()).toString();
+  //  klfconfig.UI.showExportProfilesLabel = u->chkShowExportProfilesLabel->isChecked();
+  klfconfig.UI.menuExportProfileAffectsDrag = u->chkMenuExportProfileAffectsDrag->isChecked();
+  klfconfig.UI.menuExportProfileAffectsCopy = u->chkMenuExportProfileAffectsCopy->isChecked();
 
   klfconfig.LibraryBrowser.restoreURLs = u->chkLibRestoreURLs->isChecked();
   klfconfig.LibraryBrowser.confirmClose = u->chkLibConfirmClose->isChecked();
@@ -1131,6 +1152,9 @@ void KLFSettings::apply()
 
   _mainwin->refreshShowCorrectClearButton();
   _mainwin->saveSettings();
+
+  // recalculate window sizes etc.
+  _mainwin->refreshWindowSizes();
 
   // in case eg. the plugins re-change klfconfig in some way (skin does this for syntax highlighting)
   // -> refresh

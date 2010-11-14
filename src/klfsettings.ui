@@ -1369,20 +1369,7 @@
           <property name="verticalSpacing">
            <number>4</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="lblCopyExportProfile">
-            <property name="text">
-             <string>Copy export profile:</string>
-            </property>
-            <property name="buddy">
-             <cstring>cbxCopyExportProfile</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="cbxCopyExportProfile"/>
-          </item>
-          <item row="1" column="1">
+          <item row="1" column="1" colspan="2">
            <widget class="QComboBox" name="cbxDragExportProfile"/>
           </item>
           <item row="1" column="0">
@@ -1394,6 +1381,40 @@
              <cstring>cbxDragExportProfile</cstring>
             </property>
            </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="lblCopyExportProfile">
+            <property name="text">
+             <string>Copy export profile:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cbxCopyExportProfile</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="lblMenuExportProfileAffects">
+            <property name="text">
+             <string>Menu Affects:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QCheckBox" name="chkMenuExportProfileAffectsDrag">
+            <property name="text">
+             <string>Drag</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QCheckBox" name="chkMenuExportProfileAffectsCopy">
+            <property name="text">
+             <string>Copy</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" colspan="2">
+           <widget class="QComboBox" name="cbxCopyExportProfile"/>
           </item>
          </layout>
         </widget>
@@ -1599,8 +1620,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>355</width>
-                <height>167</height>
+                <width>100</width>
+                <height>30</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1766,8 +1787,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>345</width>
-                   <height>215</height>
+                   <width>100</width>
+                   <height>30</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1831,8 +1852,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>557</width>
-            <height>502</height>
+            <width>94</width>
+            <height>24</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1940,7 +1961,6 @@
   <tabstop>spnTBorderOffset</tabstop>
   <tabstop>spnRBorderOffset</tabstop>
   <tabstop>spnBBorderOffset</tabstop>
-  <tabstop>cbxCopyExportProfile</tabstop>
   <tabstop>cbxDragExportProfile</tabstop>
   <tabstop>chkLibRestoreURLs</tabstop>
   <tabstop>chkLibConfirmClose</tabstop>

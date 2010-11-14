@@ -466,6 +466,10 @@ protected:
   /** The Thread that will create real-time previews of formulas. */
   KLFPreviewBuilderThread *mPreviewBuilderThread;
 
+  QLabel *mExportMsgLabel;
+  void showExportMsgLabel(const QString& msg, int timeout = 3000);
+  int pExportMsgLabelTimerId;
+
   /** Returns the input corresponding to the current GUI state. If \c isFinal is TRUE, then
    * the input data may be "remembered" as used (the exact effect depends on the setting), eg.
    * math mode is memorized into combo box choices. Typically \c isFinal is TRUE when called
@@ -485,6 +489,7 @@ protected:
   void closeEvent(QCloseEvent *e);
   void hideEvent(QHideEvent *e);
   void showEvent(QShowEvent *e);
+  void timerEvent(QTimerEvent *e);
 
   bool _ignore_close_event;
 

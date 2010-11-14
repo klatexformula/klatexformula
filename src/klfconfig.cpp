@@ -246,8 +246,10 @@ void KLFConfig::loadDefaults()
     UI.locale = QLocale::system().name();
     klfDbg("System locale: "<<QLocale::system().name());
 #ifdef KLF_NO_CMU_FONT
+    UI.useSystemAppFont = true;
     UI.applicationFont = defaultStdFont;
 #else
+    UI.useSystemAppFont = false;
     UI.applicationFont = cmuappfont;
 #endif
     UI.latexEditFont = fcodeMain;
@@ -281,6 +283,9 @@ void KLFConfig::loadDefaults()
     UI.glowEffectColor = QColor(128, 255, 128, 12);
     UI.glowEffectRadius = 4;
     UI.customMathModes = QStringList();
+    UI.showExportProfilesLabel = true;
+    UI.menuExportProfileAffectsDrag = true;
+    UI.menuExportProfileAffectsCopy = true;
 
     SyntaxHighlighter.configFlags = 0x05;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
@@ -388,16 +393,26 @@ bool KLFConfig::checkExePaths()
 
 int KLFConfig::readFromConfig()
 {
-  klfDbgT(" reading config") ;
+  klfDbgT(" reading config.") ;
 
   ensureHomeConfigDir();
 
+  QString globalconfig = globalShareDir+"/klatexformula.conf";
+  klfDbg("Testing for global config file "<<globalconfig);
+  if (QFile::exists(globalconfig)) {
+    klfDbg("Reading configuration from "<<globalconfig);
+    // pre-load global settings
+    readFromConfig_v2(globalconfig);
+  }
+
   if (QFile::exists(homeConfigSettingsFile)) {
-    return readFromConfig_v2();
+    klfDbg("Reading configuration from "<<homeConfigSettingsFile<<" ...");
+    return readFromConfig_v2(homeConfigSettingsFile);
   }
   if (QFile::exists(homeConfigSettingsFileIni)) {
     return readFromConfig_v1();
   }
+
   return -1;
 }
 
@@ -469,11 +484,11 @@ static QString firstRunConfigKey(int N)
   return s;
 }
 
-int KLFConfig::readFromConfig_v2()
+int KLFConfig::readFromConfig_v2(const QString& fname)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
-  QSettings s(homeConfigSettingsFile, QSettings::IniFormat);
+  QSettings s(fname, QSettings::IniFormat);
 
   qDebug("Reading base configuration");
 
@@ -488,6 +503,7 @@ int KLFConfig::readFromConfig_v2()
 
   s.beginGroup("UI");
   klf_config_read(s, "locale", &UI.locale);
+  klf_config_read(s, "usesystemfont", &UI.useSystemAppFont);
   klf_config_read(s, "applicationfont", &UI.applicationFont);
   klf_config_read(s, "latexeditfont", &UI.latexEditFont);
   klf_config_read(s, "preambleeditfont", &UI.preambleEditFont);
@@ -512,6 +528,9 @@ int KLFConfig::readFromConfig_v2()
 	 <<", alpha="<<UI.glowEffectColor.alpha());
   klf_config_read(s, "gloweffectradius", &UI.glowEffectRadius);
   klf_config_read(s, "custommathmodes", &UI.customMathModes);
+  klf_config_read(s, "showexportprofileslabel", &UI.showExportProfilesLabel);
+  klf_config_read(s, "menuexportprofileaffectsdrag", &UI.menuExportProfileAffectsDrag);
+  klf_config_read(s, "menuexportprofileaffectscopy", &UI.menuExportProfileAffectsCopy);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -605,6 +624,7 @@ int KLFConfig::writeToConfig()
 
   s.beginGroup("UI");
   klf_config_write(s, "locale", &UI.locale);
+  klf_config_write(s, "usesystemfont", &UI.useSystemAppFont);
   klf_config_write(s, "applicationfont", &UI.applicationFont);
   klf_config_write(s, "latexeditfont", &UI.latexEditFont);
   klf_config_write(s, "preambleeditfont", &UI.preambleEditFont);
@@ -627,6 +647,9 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "gloweffectcolor", &UI.glowEffectColor);
   klf_config_write(s, "gloweffectradius", &UI.glowEffectRadius);
   klf_config_write(s, "custommathmodes", &UI.customMathModes);
+  klf_config_write(s, "showexportprofileslabel", &UI.showExportProfilesLabel);
+  klf_config_write(s, "menuexportprofileaffectsdrag", &UI.menuExportProfileAffectsDrag);
+  klf_config_write(s, "menuexportprofileaffectscopy", &UI.menuExportProfileAffectsCopy);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");

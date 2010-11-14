@@ -72,7 +72,6 @@ static void klf_set_window_geometry(QWidget *w, QRect g)
 
 
 
-
 // ------------------------------------------------------------------------
 
 KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
@@ -275,6 +274,33 @@ KLFMainWin::KLFMainWin()
   h = u->btnCopy->sizeHint().height();  u->btnCopy->setFixedHeight(h - 5);
   h = u->btnSave->sizeHint().height();  u->btnSave->setFixedHeight(h - 5);
 
+  QGridLayout *lyt = new QGridLayout(u->lblOutput);
+  lyt->setSpacing(0);
+  lyt->setMargin(0);
+  mExportMsgLabel = new QLabel(u->lblOutput);
+  //mExportMsgLabel = new QLabel(frmOutput);
+  mExportMsgLabel->setObjectName("mExportMsgLabel");
+  QFont smallfont = mExportMsgLabel->font();
+  smallfont.setPointSize(QFontInfo(smallfont).pointSize() - 1);
+  mExportMsgLabel->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
+  mExportMsgLabel->setFont(smallfont);
+  mExportMsgLabel->setMargin(1);
+  mExportMsgLabel->setAlignment(Qt::AlignRight|Qt::AlignBottom);
+  QPalette pal = mExportMsgLabel->palette();
+  pal.setColor(QPalette::Window, QColor(180,180,180,200));
+  pal.setColor(QPalette::WindowText, QColor(0,0,0,255));
+  mExportMsgLabel->setPalette(pal);
+  mExportMsgLabel->setAutoFillBackground(true);
+  mExportMsgLabel->setProperty("defaultPalette", QVariant::fromValue<QPalette>(pal));
+  //u->lyt_frmOutput->addWidget(mExportMsgLabel, 5, 0, 1, 2, Qt::AlignRight|Qt::AlignBottom);
+  lyt->addItem(new QSpacerItem(1, 1, QSizePolicy::Fixed, QSizePolicy::Expanding), 0, 1, 2, 1);
+  //  lyt->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Fixed), 1, 0, 1, 1);
+  lyt->addWidget(mExportMsgLabel, 1, 0, 1, 2);
+
+  pExportMsgLabelTimerId = -1;
+
+  mExportMsgLabel->hide();
+
   refreshWindowSizes();
 
   u->frmDetails->hide();
@@ -286,6 +312,9 @@ KLFMainWin::KLFMainWin()
 
   u->btnEvaluate->installEventFilter(this);
 
+  // for appropriate tooltips
+  u->btnDrag->installEventFilter(this);
+  u->btnCopy->installEventFilter(this);
 
   // Shortcut for quit
   new QShortcut(QKeySequence(tr("Ctrl+Q")), this, SLOT(quit()), SLOT(quit()),
@@ -639,6 +668,9 @@ void KLFMainWin::saveSettings()
       pExportProfileQuickMenuActionList[k]->setChecked(false);
   }
 
+  u->btnSetExportProfile->setEnabled(klfconfig.UI.menuExportProfileAffectsDrag ||
+				     klfconfig.UI.menuExportProfileAffectsCopy);
+
   if (klfconfig.UI.enableRealTimePreview) {
     if ( ! mPreviewBuilderThread->isRunning() ) {
       delete mPreviewBuilderThread;
@@ -657,6 +689,22 @@ void KLFMainWin::saveSettings()
 				    klfconfig.UI.labelOutputFixedSize.width(),
 				    klfconfig.UI.labelOutputFixedSize.height());
     }
+  }
+}
+
+void KLFMainWin::showExportMsgLabel(const QString& msg, int timeout)
+{
+  mExportMsgLabel->show();
+  mExportMsgLabel->setPalette(mExportMsgLabel->property("defaultPalette").value<QPalette>());
+
+  mExportMsgLabel->setProperty("timeTotal", timeout);
+  mExportMsgLabel->setProperty("timeRemaining", timeout);
+  mExportMsgLabel->setProperty("timeInterval", 200);
+
+  mExportMsgLabel->setText(msg);
+
+  if (pExportMsgLabelTimerId == -1) {
+    pExportMsgLabelTimerId = startTimer(mExportMsgLabel->property("timeInterval").toInt());
   }
 }
 
@@ -759,10 +807,10 @@ void KLFMainWin::loadStyles()
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
     KLFStyle s1(tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 600);
-    KLFStyle s2(tr("Inline"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 150);
-    s2.overrideBBoxExpand = KLFStyle::BBoxExpand(0,0,0,0);
+    //    KLFStyle s2(tr("Inline"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 150);
+    //    s2.overrideBBoxExpand = KLFStyle::BBoxExpand(0,0,0,0);
     _styles.append(s1);
-    _styles.append(s2);
+    //    _styles.append(s2);
   }
 
   mStyleMenu = 0;
@@ -1480,6 +1528,12 @@ void KLFMainWin::quit()
 bool KLFMainWin::event(QEvent *e)
 {
   klfDbg("e->type() == "<<e->type());
+
+  if (e->type() == QEvent::ApplicationFontChange) {
+    klfDbg("Application font change.") ;
+    if (klfconfig.UI.useSystemAppFont)
+      klfconfig.UI.applicationFont = QApplication::font(); // refresh the font setting...
+  }
   
   return QWidget::event(e);
 }
@@ -1679,6 +1733,37 @@ void KLFMainWin::showEvent(QShowEvent *e)
 }
 
 
+void KLFMainWin::timerEvent(QTimerEvent *e)
+{
+  if (e->timerId() == pExportMsgLabelTimerId) {
+    int total = mExportMsgLabel->property("timeTotal").toInt();
+    int remaining = mExportMsgLabel->property("timeRemaining").toInt();
+    int interval = mExportMsgLabel->property("timeInterval").toInt();
+
+    int fadepercent = (100 * remaining / total) * 3; // 0 ... 300
+    if (fadepercent < 100 && fadepercent >= 0) {
+      QPalette pal = mExportMsgLabel->property("defaultPalette").value<QPalette>();
+      QColor c = pal.color(QPalette::Window);
+      c.setAlpha(c.alpha() * fadepercent / 100);
+      pal.setColor(QPalette::Window, c);
+      QColor c2 = pal.color(QPalette::WindowText);
+      c2.setAlpha(c2.alpha() * fadepercent / 100);
+      pal.setColor(QPalette::WindowText, c2);
+      mExportMsgLabel->setPalette(pal);
+    }
+
+    remaining -= interval;
+    if (remaining < 0) {
+      mExportMsgLabel->hide();
+      killTimer(pExportMsgLabelTimerId);
+      pExportMsgLabelTimerId = -1;
+    } else {
+      mExportMsgLabel->setProperty("timeRemaining", QVariant(remaining));
+    }
+  }
+}
+
+
 
 void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
 {
@@ -1875,52 +1960,74 @@ void KLFMainWin::slotEvaluate()
 
     KLFLibEntry newentry = KLFLibEntry(input.latex, QDateTime::currentDateTime(), sc.toImage(),
 				       currentStyle());
-    int eid = mHistoryLibResource->insertEntry(newentry);
-    bool result = (eid >= 0);
-    if ( ! result && mHistoryLibResource->locked() ) {
-      int r = QMessageBox::warning(this, tr("Warning"),
-				   tr("Can't add the item to history library because the history "
-				      "resource is locked. Do you want to unlock it?"),
-				   QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
-      if (r == QMessageBox::Yes) {
-	mHistoryLibResource->setLocked(false);
-	result = mHistoryLibResource->insertEntry(newentry); // retry inserting entry
-      }
-    }
-    uint fl = mHistoryLibResource->supportedFeatureFlags();
-    if ( ! result && (fl & KLFLibResourceEngine::FeatureSubResources) &&
-	 (fl & KLFLibResourceEngine::FeatureSubResourceProps) &&
-	 mHistoryLibResource->subResourceProperty(mHistoryLibResource->defaultSubResource(),
-						  KLFLibResourceEngine::SubResPropLocked).toBool() ) {
-      int r = QMessageBox::warning(this, tr("Warning"),
-				   tr("Can't add the item to history library because the history "
-				      "sub-resource is locked. Do you want to unlock it?"),
-				   QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
-      if (r == QMessageBox::Yes) {
-	mHistoryLibResource->setSubResourceProperty(mHistoryLibResource->defaultSubResource(),
-						    KLFLibResourceEngine::SubResPropLocked, false);
-	result = mHistoryLibResource->insertEntry(newentry); // retry inserting entry
-      }
-    }
-    if ( ! result && mHistoryLibResource->isReadOnly() ) {
-      qWarning("KLFMainWin::slotEvaluate: History resource is READ-ONLY !! Should NOT!");
-      QMessageBox::critical(this, tr("Error"),
-			    tr("Can't add the item to history library because the history "
-			       "resource is opened in read-only mode. This should not happen! "
-			       "You will need to manually copy and paste your Latex code somewhere "
-			       "else to save it."),
-			    QMessageBox::Ok, QMessageBox::Ok);
-    }
-    if ( ! result ) {
-      qWarning("KLFMainWin::slotEvaluate: History resource couldn't be written!");
-      QMessageBox::critical(this, tr("Error"),
-			    tr("An error occurred when trying to write the new entry into the "
-			       "history resource!"
-			       "You will need to manually copy and paste your Latex code somewhere "
-			       "else to save it."),
-			    QMessageBox::Ok, QMessageBox::Ok);
+    // check that this is not already the last entry. Perform a query to check this.
+    bool needInsertThisEntry = true;
+    KLFLibResourceEngine::Query query;
+    query.matchCondition = KLFLib::EntryMatchCondition::mkMatchAll();
+    query.skip = 0;
+    query.limit = 1;
+    query.orderPropId = KLFLibEntry::DateTime;
+    query.orderDirection = Qt::DescendingOrder;
+    query.wantedEntryProperties =
+      QList<int>() << KLFLibEntry::Latex << KLFLibEntry::Style << KLFLibEntry::Category << KLFLibEntry::Tags;
+    KLFLibResourceEngine::QueryResult queryResult(KLFLibResourceEngine::QueryResult::FillRawEntryList);
+    int num = mHistoryLibResource->query(mHistoryLibResource->defaultSubResource(), query, &queryResult);
+    if (num >= 1) {
+      KLFLibEntry e = queryResult.rawEntryList[0];
+      if (e.latex() == newentry.latex() &&
+	  e.category() == newentry.category() &&
+	  e.tags() == newentry.tags() &&
+	  e.style() == newentry.style())
+	needInsertThisEntry = false;
     }
 
+    if (needInsertThisEntry) {
+      int eid = mHistoryLibResource->insertEntry(newentry);
+      bool result = (eid >= 0);
+      if ( ! result && mHistoryLibResource->locked() ) {
+	int r = QMessageBox::warning(this, tr("Warning"),
+				     tr("Can't add the item to history library because the history "
+					"resource is locked. Do you want to unlock it?"),
+				     QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+	if (r == QMessageBox::Yes) {
+	  mHistoryLibResource->setLocked(false);
+	  result = mHistoryLibResource->insertEntry(newentry); // retry inserting entry
+	}
+      }
+      uint fl = mHistoryLibResource->supportedFeatureFlags();
+      if ( ! result && (fl & KLFLibResourceEngine::FeatureSubResources) &&
+	   (fl & KLFLibResourceEngine::FeatureSubResourceProps) &&
+	   mHistoryLibResource->subResourceProperty(mHistoryLibResource->defaultSubResource(),
+						    KLFLibResourceEngine::SubResPropLocked).toBool() ) {
+	int r = QMessageBox::warning(this, tr("Warning"),
+				     tr("Can't add the item to history library because the history "
+					"sub-resource is locked. Do you want to unlock it?"),
+				     QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+	if (r == QMessageBox::Yes) {
+	  mHistoryLibResource->setSubResourceProperty(mHistoryLibResource->defaultSubResource(),
+						      KLFLibResourceEngine::SubResPropLocked, false);
+	  result = mHistoryLibResource->insertEntry(newentry); // retry inserting entry
+      }
+      }
+      if ( ! result && mHistoryLibResource->isReadOnly() ) {
+	qWarning("KLFMainWin::slotEvaluate: History resource is READ-ONLY !! Should NOT!");
+	QMessageBox::critical(this, tr("Error"),
+			      tr("Can't add the item to history library because the history "
+				 "resource is opened in read-only mode. This should not happen! "
+				 "You will need to manually copy and paste your Latex code somewhere "
+				 "else to save it."),
+			    QMessageBox::Ok, QMessageBox::Ok);
+      }
+      if ( ! result ) {
+	qWarning("KLFMainWin::slotEvaluate: History resource couldn't be written!");
+	QMessageBox::critical(this, tr("Error"),
+			      tr("An error occurred when trying to write the new entry into the "
+				 "history resource!"
+				 "You will need to manually copy and paste your Latex code somewhere "
+				 "else to save it."),
+			    QMessageBox::Ok, QMessageBox::Ok);
+      }
+    }
   }
 
   u->btnEvaluate->setEnabled(true); // re-enable our button
@@ -2232,8 +2339,10 @@ void KLFMainWin::setApplicationLocale(const QString& locale)
 
 void KLFMainWin::slotSetExportProfile(const QString& exportProfile)
 {
-  klfconfig.UI.copyExportProfile = exportProfile;
-  klfconfig.UI.dragExportProfile = exportProfile;
+  if (klfconfig.UI.menuExportProfileAffectsCopy)
+    klfconfig.UI.copyExportProfile = exportProfile;
+  if (klfconfig.UI.menuExportProfileAffectsDrag)
+    klfconfig.UI.dragExportProfile = exportProfile;
   saveSettings();
 }
 
@@ -2282,8 +2391,33 @@ void KLFMainWin::slotDrag()
   //#endif
 
   drag->setMimeData(mime);
-  QImage img;
-  img = _output.result.scaled(QSize(200, 100), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+  QSize sz = QSize(200, 100);
+  QImage img = _output.result;
+  if (img.width() > sz.width() || img.height() > sz.height())
+    img = img.scaled(sz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  // imprint the export type on the drag pixmap
+  QString exportProfileText = KLFMimeExportProfile::findExportProfile(klfconfig.UI.dragExportProfile).description();
+  { QPainter painter(&img);
+    QFont smallfont = QFont("Helvetica", 8);
+    smallfont.setPixelSize(12);
+    painter.setFont(smallfont);
+    painter.setRenderHint(QPainter::TextAntialiasing, false);
+    QRect rall = QRect(QPoint(0,0), img.size());
+    QRect bb = painter.boundingRect(rall, Qt::AlignBottom|Qt::AlignRight, exportProfileText);
+    klfDbg("BB is "<<bb) ;
+    painter.setPen(QPen(QColor(255,255,255,0), 0, Qt::NoPen));
+    painter.fillRect(bb, QColor(150,150,150,128));
+    painter.setPen(QPen(QColor(0,0,0), 1, Qt::SolidLine));
+    painter.drawText(rall, Qt::AlignBottom|Qt::AlignRight, exportProfileText);
+    /*
+    QRect bb = painter.fontMetrics().boundingRect(exportProfileText);
+    QPoint translate = QPoint(img.width(), img.height()) - bb.bottomRight();
+    painter.setPen(QPen(QColor(255,255,255,0), 0, Qt::NoPen));
+    painter.fillRect(translate.x(), translate.y(), bb.width(), bb.height(), QColor(128,128,128,128));
+    painter.setPen(QPen(QColor(0,0,0), 1, Qt::SolidLine));
+    painter.drawText(translate, exportProfileText);*/
+  }
   QPixmap p = QPixmap::fromImage(img);
   drag->setPixmap(p);
   drag->setDragCursor(p, Qt::MoveAction);
@@ -2293,12 +2427,6 @@ void KLFMainWin::slotDrag()
 
 void KLFMainWin::slotCopy()
 {
-  //  /** \bug .... FIXME copy/drag formats on Mac OS X ... */
-  //#ifdef Q_WS_MAC
-  //  QApplication::clipboard()->setImage(_output.result, QClipboard::Clipboard);
-  //  return;
-  //#endif
-
 #ifdef Q_WS_WIN
   extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
 				  const QList<QByteArray>& datalist);
@@ -2333,6 +2461,9 @@ void KLFMainWin::slotCopy()
   KLFMimeData *mimedata = new KLFMimeData(klfconfig.UI.copyExportProfile, _output);
   QApplication::clipboard()->setMimeData(mimedata, QClipboard::Clipboard);
 #endif
+
+  KLFMimeExportProfile profile = KLFMimeExportProfile::findExportProfile(klfconfig.UI.copyExportProfile);
+  showExportMsgLabel(tr("Copied as <b>%1</b>").arg(profile.description()));
 }
 
 void KLFMainWin::slotSave(const QString& suggestfname)

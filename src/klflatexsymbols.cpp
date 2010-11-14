@@ -758,6 +758,9 @@ void KLFLatexSymbols::read_symbols_create_ui()
   // this will be a full list of symbols to feed to the cache
   QList<KLFLatexSymbol> allsymbols;
 
+  // same indexes as in mViews[]
+  QStringList categoryTitleLangs;
+
   // now read the file list
   for (k = 0; k < fxmllist.size(); ++k) {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"/fxmllist["+('0'+k)+"]");
@@ -798,17 +801,46 @@ void KLFLatexSymbols::read_symbols_create_ui()
       }
       // read category
       QString heading = e.attribute("name");
+      QString categoryTitle;
+      QString curCategoryTitleLang;
       QList<KLFLatexSymbol> l;
       QDomNode esym;
       for (esym = e.firstChild(); ! esym.isNull(); esym = esym.nextSibling() ) {
 	if ( esym.isNull() || esym.nodeType() != QDomNode::ElementNode )
 	  continue;
+	QDomElement eesym = esym.toElement();
+	klfDbg("read element "<<esym.nodeName());
+	if ( eesym.nodeName() == "category-title" ) {
+	  QString lang = eesym.hasAttribute("xml:lang") ? eesym.attribute("xml:lang") : QString() ;
+	  klfDbg("<category-title>: lang="<<lang<<"; hasAttribute(xml:lang)="<<eesym.hasAttribute("xml:lang")
+		 <<"; current category-title="<<categoryTitle<<",lang="<<curCategoryTitleLang) ;
+	  if (categoryTitle.isEmpty()) {
+	    // no category title yet
+	    if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) {
+	      // correct locale
+	      categoryTitle = eesym.text();
+	      curCategoryTitleLang = lang;
+	    }
+	    // otherwise skip this tag
+	  } else {
+	    // see if this locale is correct and more specific
+	    if ( (lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) &&
+		 (curCategoryTitleLang.isEmpty() || lang.startsWith(curCategoryTitleLang) ) ) {
+	      // then keep it and replace the other
+	      categoryTitle = eesym.text();
+	      curCategoryTitleLang = lang;
+	    }
+	    // otherwise skip this tag
+	  }
+	  continue;
+	}
 	if ( esym.nodeName() != "sym" ) {
 	  qWarning("%s: WARNING in parsing XML : ignoring unexpected tag `%s' in category `%s'!\n",
 		   KLF_FUNC_NAME, qPrintable(esym.nodeName()), qPrintable(heading));
 	  continue;
 	}
-	KLFLatexSymbol sym(esym.toElement());
+	// read symbol
+	KLFLatexSymbol sym(eesym);
 	l.append(sym);
 	allsymbols.append(sym);
       }
@@ -827,8 +859,21 @@ void KLFLatexSymbols::read_symbols_create_ui()
 		this, SIGNAL(insertSymbol(const KLFLatexSymbol&)));
 	mViews.append(view);
 	stkViews->addWidget(view);
-	u->cbxCategory->addItem(heading);
+	if (categoryTitle.isEmpty())
+	  categoryTitle = heading;
+	u->cbxCategory->addItem(categoryTitle, heading);
+	categoryTitleLangs << curCategoryTitleLang;
+      } else {
+	// possibly update the title if a better translation is available
+	if (!categoryTitle.isEmpty() &&
+	    (categoryTitleLangs[j].isEmpty() || curCategoryTitleLang.startsWith(categoryTitleLangs[j]))) {
+	  // update the title
+	  u->cbxCategory->setItemText(j, categoryTitle);
+	} else {
+	  // keep old title
+	}
       }
+
       view->appendSymbolList(l);
     } // iterate over categories in XML file
   } // iterate over XML files

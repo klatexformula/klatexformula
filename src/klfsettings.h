@@ -117,6 +117,8 @@ private:
 
   KLFMainWin *_mainwin;
 
+  bool pUserSetDefaultAppFont;
+
   QMap<QString,QPushButton*> pFontButtons;
   QMap<QString,QAction*> pFontBasePresetActions;
   QList<QAction*> pFontSetActions;

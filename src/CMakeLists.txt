@@ -183,7 +183,11 @@ endif(KLF_NO_CMU_FONT)
 
 # Don't use CMAKE_INSTALL_PREFIX itself, as it is irrelevant for windows installers
 # we need relative path
-KLFRelativePath(klf_share_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${CMAKE_INSTALL_PREFIX}")
+set(klf_share_dir_abs "${CMAKE_INSTALL_PREFIX}")
+if(UNIX AND NOT KLF_MACOSX_BUNDLES)
+  set(klf_share_dir_abs "${klf_share_dir_abs}/share/klatexformula")
+endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
+KLFRelativePath(klf_share_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${klf_share_dir_abs}")
 KLFRelativePath(klf_share_rccresources_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${KLF_ABS_INSTALL_RCCRESOURCES_DIR}")
 if(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_dir}")
   set(klf_share_dir "") # let the program find out

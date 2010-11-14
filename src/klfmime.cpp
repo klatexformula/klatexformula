@@ -377,6 +377,8 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     return;
   }
 
+  QStringList descriptionLangs;
+
   // read XML file
   QDomNode n;
   for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
@@ -414,15 +416,6 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
       QDomElement ee = en.toElement();
       if ( en.nodeName() == "description" ) {
 	QString lang = ee.hasAttribute("xml:lang") ? ee.attribute("xml:lang") : QString() ;
-	/* // DEBUG -->
-	klfDbg("got <description>:"); 
-	QDomNamedNodeMap attrlist = ee.attributes();
-	int kk;
-	for (kk = 0; kk < attrlist.size(); ++kk) {
-	  klfDbg("description attribute: "<<attrlist.item(kk).toAttr().name()<<" : "
-	         <<attrlist.item(kk).toAttr().value());
-	}
-	// <-- */
 	klfDbg("<description>: lang="<<lang<<"; hasAttribute(xml:lang)="<<ee.hasAttribute("xml:lang")
 	       <<"; current description="<<description<<",lang="<<curDescriptionLang) ;
 	if (description.isEmpty()) {
@@ -501,15 +494,18 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	p_exportProfileList.prepend(profile);
       } else {
 	p_exportProfileList << profile;
+	descriptionLangs << curDescriptionLang;
       }
     } else {
       // profile already exists, append data to it
       KLFMimeExportProfile oldp = p_exportProfileList[kp];
-      if (!description.isEmpty())
-	description = oldp.description()+"; "+description; // concatenate the descriptions
-      else
+      // see if this description provides a better translation
+      if (!description.isEmpty() &&
+	  (descriptionLangs[kp].isEmpty() || curDescriptionLang.startsWith(descriptionLangs[kp]))) {
+	// keep this description
+      } else {
 	description = oldp.description();
-
+      }
       KLFMimeExportProfile finalp(pname, description,
 				  oldp.exportTypes()+exporttypes // concatenate lists
 				  );

@@ -360,11 +360,23 @@
            <property name="frameShadow">
             <enum>QFrame::Plain</enum>
            </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
+           <property name="midLineWidth">
+            <number>0</number>
+           </property>
            <property name="text">
             <string/>
            </property>
            <property name="wordWrap">
             <bool>false</bool>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <property name="indent">
+            <number>0</number>
            </property>
           </widget>
          </item>

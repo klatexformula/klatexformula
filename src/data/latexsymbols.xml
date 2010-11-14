@@ -20,6 +20,9 @@
       to insert missing packages when that symbol is typed.
     -->
   <category name="Relation Symbols">
+    <category-title>Relation Symbols</category-title>
+    <category-title xml:lang="fr">Symbols relationnels</category-title>
+
     <sym><latex>\pm</latex></sym>
     <sym><latex>\cap</latex></sym>
     <sym><latex>\diamond</latex></sym>
@@ -331,6 +334,9 @@
     <sym><usepackage name="wasysym"/><latex>\unlhd</latex></sym>
   </category>
   <category name="Arrow Symbols">
+    <category-title>Arrow Symbols</category-title>
+    <category-title xml:lang="fr">Flèches</category-title>
+
     <sym><latex>\leftarrow</latex></sym>
     <sym><latex>\longleftarrow</latex></sym>
     <sym><latex>\uparrow</latex></sym>
@@ -402,6 +408,9 @@
     <sym><usepackage name="amsmath"/><latex>\xrightarrow[xyz]{abc}</latex></sym>
   </category>
   <category name="Miscellaneous Symbols">
+    <category-title>Miscellaneous Symbols</category-title>
+    <category-title xml:lang="fr">Divers Symboles</category-title>
+
     <sym><latex>\ldots</latex></sym>
     <sym><latex>\cdots</latex></sym>
     <sym><latex>\vdots</latex></sym>
@@ -466,6 +475,9 @@
     <sym><usepackage name="amsmath"/><latex>\stackrel{\text{\tiny def}}{=}</latex></sym>
   </category>
   <category name="Delimiters and Accents">
+    <category-title>Delimiters and Accents</category-title>
+    <category-title xml:lang="fr">Délimiteurs et accents</category-title>
+
     <sym><latex>\vert</latex></sym>
     <sym><latex>\Vert</latex></sym>
     <sym><latex>\lbrace</latex></sym>
@@ -525,6 +537,9 @@
     <sym><usepackage name="slashed"/><latex>\slashed{a}</latex></sym>
   </category>
   <category name="Greek Alphabet">
+    <category-title>Greek Alphabet</category-title>
+    <category-title xml:lang="fr">Alphabet grec</category-title>
+
     <sym><latex>\alpha</latex></sym>
     <sym><latex>\beta</latex></sym>
     <sym><latex>\gamma</latex></sym>
@@ -567,6 +582,9 @@
     <sym><latex>\Omega</latex></sym>
   </category>
   <category name="Math Alphabets">
+    <category-title>Math Alphabets and Fonts</category-title>
+    <category-title xml:lang="fr">Alphabets et polices mathématiques</category-title>
+
     <sym><latex>\mathcal{A}</latex></sym>
     <sym><latex>\mathcal{B}</latex></sym>
     <sym><latex>\mathcal{C}</latex></sym>
@@ -834,6 +852,9 @@
     <sym><latex>\textbf{A}</latex></sym>
   </category>
   <category name="Text Mode LaTeX Special Characters">
+    <category-title>Text Mode LaTeX Special Characters</category-title>
+    <category-title xml:lang="fr">Charactères spéciaux LaTeX en mode texte</category-title>
+
     <sym textmode="true"><latex>\$</latex></sym>
     <sym textmode="true"><latex>\%</latex></sym>
     <sym textmode="true"><usepackage name="textcomp"/><latex>\textperthousand</latex></sym>
