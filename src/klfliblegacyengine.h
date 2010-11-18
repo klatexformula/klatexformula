@@ -40,8 +40,8 @@
 
 /** Legacy data structures for KLatexFormula
  *
- * \warning This class is OBSOLETE. It has been replaced by the new KLFLib
- *   framework.
+ * \warning This class is NOT TO BE USED DIRECTLY, it is OBSOLETE. It has been replaced by the
+ *   new KLFLib framework. The "old" "legacy" library format is read/written with KLFLibLegacyEngine.
  */
 class KLF_EXPORT KLFLegacyData {
 public:

@@ -42,7 +42,7 @@
 #include "klflibbrowser_p.h"
 #include "klflibbrowser.h"
 #include <ui_klflibbrowser.h>
-
+#include "klfliblegacyengine.h"
 
 
 KLFLibBrowser::KLFLibBrowser(QWidget *parent)
@@ -124,10 +124,12 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pImportExportMenu = new QMenu(this);
   pImportExportMenu->addAction(u->aOpenAll);
   pImportExportMenu->addAction(u->aExport);
+  pImportExportMenu->addAction(u->aExportSelection);
   u->btnImportExport->setMenu(pImportExportMenu);
 
   connect(u->aOpenAll, SIGNAL(triggered()), this, SLOT(slotOpenAll()));
   connect(u->aExport, SIGNAL(triggered()), this, SLOT(slotExport()));
+  connect(u->aExportSelection, SIGNAL(triggered()), this, SLOT(slotExportSelection()));
   
 
   // CATEGORY/TAGS
@@ -1647,6 +1649,68 @@ bool KLFLibBrowser::slotExport()
   delete exportRes;
 
   return !fail;
+}
+
+bool KLFLibBrowser::slotExportSelection()
+{
+  /** \todo Needs implementation............... */
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
+  // need to fetch selection from current view
+  KLFAbstractLibView *view = curLibView();
+  if (view == NULL) {
+    qWarning("KLFLibBrowser::slotResourceProperties: NULL View!");
+    return false;
+  }
+
+  // select and open target file
+  KLFLibEngineFactory *factory = KLFLibLegacyEngineFactory::findFactoryFor("klf+legacy");
+  if (factory == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't create KLFLibLegacyEngineFactory object (\"klf+legacy\") ?!?";
+    return false;
+  }
+  QString filter = factory->schemeTitle(QLatin1String("klf+legacy")) + " (*.klf)";
+  QString path = klfconfig.LibraryBrowser.lastFileDialogPath;
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Export selection to file..."), path, filter);
+
+  if (fileName.isEmpty()) {
+    klfDbg("Canceled by user.");
+    return false;
+  }
+
+  if (QFile::exists(fileName)) {
+    // erase it. the file dialog already asked for overwrite confirmation.
+    if ( ! QFile::remove(fileName) ) {
+      QMessageBox::critical(this, tr("Error"), tr("Failed to overwrite file %1").arg(fileName));
+      qWarning()<<KLF_FUNC_NAME<<": Can't overwrite file "<<fileName;
+      return false;
+    }
+  }
+
+  klfDbg("Exporting to file "<<fileName);
+
+  // get selected entries
+  KLFLibEntryList entryList = view->selectedEntries();
+
+  // create file resource
+  KLFLibWidgetFactory::Parameters param;
+  param["klfScheme"] = QLatin1String("klf+legacy");
+  param["Filename"] = fileName;
+  param["klfDefaultSubResource"] = tr("Export", "[[export selection default sub-resource name]]");
+  KLFLibResourceEngine *resource = factory->createResource(QLatin1String("klf+legacy"), param, this);
+
+  if (resource == NULL) {
+    QMessageBox::critical(this, tr("Error"), tr("Failed to create export file %1!").arg(fileName));
+    return false;
+  }
+
+  resource->insertEntries(entryList);
+
+  // important, as it will cause save() to be called on legacy engines, otherwise we will just
+  // have a zombie resource waiting for something
+  delete resource;
+
+  return true;
 }
 
 void KLFLibBrowser::slotStartProgress(KLFProgressReporter *progressReporter, const QString& text)

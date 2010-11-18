@@ -203,6 +203,7 @@ protected slots:
 
   void slotOpenAll();
   bool slotExport();
+  bool slotExportSelection();
 
   void slotStartProgress(KLFProgressReporter *progressReporter, const QString& text);
 

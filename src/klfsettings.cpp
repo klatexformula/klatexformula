@@ -1090,10 +1090,12 @@ void KLFSettings::apply()
   if (curAppFont != newAppFont || pUserSetDefaultAppFont != klfconfig.UI.useSystemAppFont) {
     klfconfig.UI.useSystemAppFont = pUserSetDefaultAppFont;
     klfconfig.UI.applicationFont = newAppFont;
-    if (klfconfig.UI.useSystemAppFont)
+    if (klfconfig.UI.useSystemAppFont) {
+      qApp->setFont(klfconfig.defaultStdFont);
       qApp->setFont(QFont());
-    else
+    } else {
       qApp->setFont(klfconfig.UI.applicationFont);
+    }
     // Style sheet refresh is needed to force font (?)
     qApp->setStyleSheet(qApp->styleSheet());
     _mainwin->refreshAllWindowStyleSheets();

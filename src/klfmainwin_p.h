@@ -579,7 +579,7 @@ public:
     klfDbg("file="<<file);
 
     if (!canOpenFile(file)) {
-      qWarning()<<KLF_FUNC_NAME<<": file is not openable by us: "<<file;
+      klfDbg("file is not openable by us: "<<file);
       return false;
     }
 

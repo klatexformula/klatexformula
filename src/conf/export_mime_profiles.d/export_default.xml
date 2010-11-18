@@ -16,6 +16,7 @@
 
     <export-type><mime-type>application/x-klf-libentries</mime-type></export-type>
 
+    <!-- For Mac -->
     <export-type><mime-type>application/x-qt-image</mime-type></export-type>
     
     <!-- Mac OS X likes PDF -->

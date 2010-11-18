@@ -57,7 +57,7 @@
  * - all current versions of KLF write the version '2.1', it's the compatiblity version that is
  *   written, not the true version of the creating program.
  * - since 3.2, additional metadata (a QVariantMap) is appended at end of stream, will silently
- *   be ignored by previous versions of klf (klf 3.2 does not itself make use of the meta-data,
+ *   be ignored by previous versions of klf. Klf 3.2 does not itself make use of the meta-data,
  *   but it loads and saves it for compatibility with future versions will (as planned) will
  *   support resource and sub-resource properties, stored in this data structure.
  */
@@ -892,15 +892,14 @@ bool KLFLibLegacyEngine::saveResourceProperty(int propId, const QVariant& value)
 
 QString KLFLibLegacyLocalFileSchemeGuesser::guessScheme(const QString& fileName) const
 {
-  qDebug("KLFLibLegacyLocalFileSchemeGuesser::guessScheme: %s", qPrintable(fileName));
+  klfDbg("file "<<fileName);
 
   if (fileName.endsWith(".klf"))
     return QLatin1String("klf+legacy");
 
   QFile f(fileName);
   if ( ! f.open(QIODevice::ReadOnly) ) {
-    qWarning("KLFLibLegacyLocalFileSchemeGuesser::guessScheme: Can't open file: %s",
-	     qPrintable(fileName));
+    qWarning()<<KLF_FUNC_NAME<<": Can't open file: "<<fileName;
     return QString();
   }
   QDataStream stream(&f);
@@ -908,8 +907,7 @@ QString KLFLibLegacyLocalFileSchemeGuesser::guessScheme(const QString& fileName)
   stream.setVersion(QDataStream::Qt_3_3);
   QString s1;
   stream >> s1;
-  qDebug("KLFLibLegacyLocalFileSchemeGuesser::guessScheme: read line: got magic '%s'",
-	 qPrintable(s1));
+  klfDbg("read line: got magic "<<s1);
   if (s1 == QLatin1String("KLATEXFORMULA_LIBRARY_EXPORT") ||
       s1 == QLatin1String("KLATEXFORMULA_LIBRARY") ||
       s1 == QLatin1String("KLATEXFORMULA_HISTORY"))

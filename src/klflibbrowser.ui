@@ -414,6 +414,14 @@
     <string>Permanently delete the current sub-resource</string>
    </property>
   </action>
+  <action name="aExportSelection">
+   <property name="text">
+    <string>Export Selection</string>
+   </property>
+   <property name="toolTip">
+    <string>Export the current selection to a .klf file</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- MIME types for KLatexFormula  -->
+<!-- $Id$ -->
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
   <mime-type type="application/x-klatexformula">
     <comment>KLatexFormula Library Export</comment>
@@ -9,8 +11,8 @@
     </magic>
   </mime-type>
   <mime-type type="application/x-klatexformula-db">
-    <comment>KLatexFormula Library Export (Sqlite DB)</comment>
-    <comment xml:lang="fr">Bibliothèque KLatexFormula (BD Sqlite)</comment>
+    <comment>KLatexFormula Library Resource (Sqlite DB)</comment>
+    <comment xml:lang="fr">Ressource KLatexFormula (BD Sqlite)</comment>
     <!-- We still don't have a better magic signature, TODO.
          We need to match eg. a specific SQLite User Version so that we don't match
          every sqlite file (not related to KLF)

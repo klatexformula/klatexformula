@@ -1043,12 +1043,13 @@ QVariant KLFLibDBEngine::subResourceProperty(const QString& subResource, int pro
 
   QSqlQuery q = QSqlQuery(pDB);
   q.prepare("SELECT pvalue FROM klf_subresprops WHERE lower(subresource) = lower(?) AND pid = ?");
-  q.bindValue(0, subResource);
-  q.bindValue(1, propId);
+  q.addBindValue(QVariant::fromValue<QString>(subResource));
+  q.addBindValue(QVariant::fromValue<int>(propId));
   int r = q.exec();
   if ( !r || q.lastError().isValid() ) {
     qWarning()<<"KLFLibDBEngine::subResourceProperty("<<subResource<<","<<propId<<"): SQL Error: "
-	      <<q.lastError().text() << "\n\t\tBound values= "<<q.boundValues();
+	      <<q.lastError().text() << "\n\t\tSQL: "<<q.lastQuery()<<"\n\t\tBound values: "<<q.boundValues();
+    klfDbg("DB: "<<pDB.connectionName());
     return QVariant();
   }
   //klfDbg( "KLFLibDBEngine::subRes.Prop.(): SQL="<<q.lastQuery()<<"; vals="<<q.boundValues() ) ;
@@ -1718,21 +1719,30 @@ QString KLFLibDBLocalFileSchemeGuesser::guessScheme(const QString& fileName) con
 	0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00 }; // "SQLite format 3"
   char header[MAGIC_SQLITE_HEADER_LEN];
 
+  klfDbg("guessing scheme of "<<fileName) ;
+
   if (fileName.endsWith(".klf.db"))
     return QLatin1String("klf+sqlite");
 
   QFile f(fileName);
-  if ( ! f.open(QIODevice::ReadOnly) )
+  if ( ! f.open(QIODevice::ReadOnly) ) {
+    klfDbg("Yikes, can't read file "<<fileName);
     return QString();
+  }
 
-  int len = f.readLine(header, MAGIC_SQLITE_HEADER_LEN);
+  int len = f.read(header, MAGIC_SQLITE_HEADER_LEN);
 
-  if (len < MAGIC_SQLITE_HEADER_LEN)
+  if (len < MAGIC_SQLITE_HEADER_LEN) {
+    klfDbg("Nope-can't read header.");
     return QString(); // error reading
+  }
 
-  if (!strncmp(header, magic_sqlite_header, MAGIC_SQLITE_HEADER_LEN))
+  if (!strncmp(header, magic_sqlite_header, MAGIC_SQLITE_HEADER_LEN)) {
+    klfDbg("Yep, it's klf-sqlite!");
     return QLatin1String("klf+sqlite");
+  }
 
+  klfDbg("Nope-bad header.");
   return QString();
 }
 
