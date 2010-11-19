@@ -68,7 +68,7 @@ bool KLFMainWin::x11Event(XEvent *event)
 	  return true;
 	}
       } else {
-	printf("XGetWindowProperty fail (atom=%d).\n", (int)wm_state);
+	fprintf(stderr, "KLFMainWin::x11Event: XGetWindowProperty fail (atom=%d).\n", (int)wm_state);
       }
     }
   }
