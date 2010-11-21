@@ -85,7 +85,7 @@ public slots:
 
   void setDefaultPaths();
   void importAddOn();
-  void importAddOn(const QString& fileName);
+  void importAddOn(const QString& fileName, bool uiSuggestRestart = true);
   void removeAddOn();
   void removePlugin();
   /** \warning This method provides NO USER CONFIRMATION and NO AFTER-OPERATION REFRESH */

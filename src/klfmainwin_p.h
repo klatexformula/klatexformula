@@ -40,7 +40,8 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
-#include <klflibview.h>
+#include <klfutil.h>
+#include "klflibview.h"
 #include "klfmain.h"
 #include "klfsettings.h"
 
@@ -393,8 +394,8 @@ public:
 	  qWarning()<<KLF_FUNC_NAME<<": can't open URL "<<url.scheme()<<" (can only open local files)";
 	  continue;
 	}
-	flist << url.path();
-	klfDbg("... added file "<<url.path()) ;
+	flist << klfUrlLocalFilePath(url);
+	klfDbg("... added file "<<flist.last()) ;
       }
       if (flist.isEmpty()) {
 	klfDbg("file list is empty.") ;
@@ -585,7 +586,8 @@ public:
 
     mainWin()->settingsDialog()->show();
     mainWin()->settingsDialog()->showControl(KLFSettings::ManageAddOns);
-    mainWin()->settingsDialog()->importAddOn(file);
+    mainWin()->settingsDialog()->importAddOn(file, true);
+
     return true;
   }
 

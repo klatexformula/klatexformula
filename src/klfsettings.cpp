@@ -828,7 +828,7 @@ void KLFSettings::importAddOn()
 				  "Qt Resource Files (*.rcc)");
   int i;
   for (i = 0; i < efnames.size(); ++i) {
-    importAddOn(efnames[i]);
+    importAddOn(efnames[i], false);
   }
   // display message to user to restart KLatexFormula, if needed
   if (i > 0) {
@@ -836,11 +836,11 @@ void KLFSettings::importAddOn()
   }
 }
 
-void KLFSettings::importAddOn(const QString& fileName)
+void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
 {
   QFileInfo fi(fileName);
   if (!fi.exists() || !fi.isReadable()) {
-    QMessageBox::critical(this, tr("Error"), tr("File %1 cannot be accessed."));
+    QMessageBox::critical(this, tr("Error"), tr("File %1 cannot be accessed.").arg(fileName));
     return;
   }
   QString destination = klfconfig.homeConfigDir + "/rccresources/";
@@ -902,6 +902,10 @@ void KLFSettings::importAddOn(const QString& fileName)
   }
   klf_addons.append(addoninfo);
   refreshAddOnList();
+
+  if (suggestRestart) {
+    QMessageBox::information(this, tr("Import"), tr("Please restart KLatexFormula for changes to take effect."));
+  }
 }
 
 void KLFSettings::removeAddOn()
