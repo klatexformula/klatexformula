@@ -838,12 +838,15 @@ void KLFSettings::importAddOn()
 
 void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("fileName="<<fileName<<", suggestRestart="<<suggestRestart) ;
+
   QFileInfo fi(fileName);
   if (!fi.exists() || !fi.isReadable()) {
     QMessageBox::critical(this, tr("Error"), tr("File %1 cannot be accessed.").arg(fileName));
     return;
   }
-  QString destination = klfconfig.homeConfigDir + "/rccresources/";
+  QString destination = klfconfig.homeConfigDirRCCResources;
   QString destfpath = destination + QFileInfo(fileName).fileName();
   if ( QFile::exists(destfpath) ) {
     QMessageBox::critical(this, tr("Error"),
@@ -875,12 +878,14 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
   for (k = 0; k < trlist.size(); ++k) {
     KLFI18nFile i18nfile(trlist[k]);
     if ( u->cbxLocale->findData(i18nfile.locale) == -1 ) {
+      klfDbg("found translation: "<<i18nfile.locale) ;
       klf_add_avail_translation(i18nfile);
       if (detectedI18nFile == NULL)
 	detectedI18nFile = new KLFI18nFile(i18nfile);
     }
   }
   if (detectedI18nFile != NULL) {
+    klfDbg("adding detected translation: "<<detectedI18nFile->locale) ;
     populateLocaleCombo();
     // find the translation
     for (k = 0; k < klf_avail_translations.size(); ++k) {

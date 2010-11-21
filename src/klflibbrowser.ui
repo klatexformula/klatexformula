@@ -416,7 +416,7 @@
   </action>
   <action name="aExportSelection">
    <property name="text">
-    <string>Export Selection</string>
+    <string>Export Selection ...</string>
    </property>
    <property name="toolTip">
     <string>Export the current selection to a .klf file</string>

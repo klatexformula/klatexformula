@@ -1215,7 +1215,7 @@ QString KLFLibModelCache::nodeValue(NodeId n, int entryProperty)
 void KLFLibModelCache::sortCategory(NodeId category, KLFLibModelSorter *sorter, bool rootCall)
 {
   bool requireSimpleReverse = false;
-
+   
   // some optimizations based on the current sorting
   if (sorter->entrySorter()->propId() == pLastSortPropId) {
     // already sorting according to that column
@@ -1228,21 +1228,21 @@ void KLFLibModelCache::sortCategory(NodeId category, KLFLibModelSorter *sorter, 
       requireSimpleReverse = true;
     }
   }
-
+   
   int k;
   // sort this category's children
-
+   
   // This works both in LinearList and in CategoryTree display types. (In LinearList
   // display type, call this function on root category node)
-
+  
   if (category.kind != CategoryLabelKind)
     return;
   if (category.index < 0 || category.index >= pCategoryLabelCache.size())
     return;
-
+   
   if (sorter->entrySorter()->propId() < 0)
     return; // no sorting required
-
+   
   QList<NodeId>& childlistref = pCategoryLabelCache[category.index].children;
   if (requireSimpleReverse) {
     // reverse the child list (but not category list if flavor is to group them)
@@ -1260,7 +1260,7 @@ void KLFLibModelCache::sortCategory(NodeId category, KLFLibModelSorter *sorter, 
   } else {
     qSort(childlistref.begin(), childlistref.end(), *sorter); // normal sort
   }
-
+   
   // and sort all children's children
   for (k = 0; k < childlistref.size(); ++k)
     if (childlistref[k].kind == CategoryLabelKind)
@@ -2349,19 +2349,27 @@ void KLFLibModel::completeRefresh()
 void KLFLibModel::redoSort()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-  startLayoutChange();
 
-  KLFLibModelCache::KLFLibModelSorter srt = 
-    KLFLibModelCache::KLFLibModelSorter(pCache, pEntrySorter, pFlavorFlags & KLFLibModel::GroupSubCategories);
-
-  pCache->sortCategory(KLFLibModelCache::NodeId::rootNode(), &srt);
-
-  endLayoutChange();
+  // truly need to re-query the resource with our partial querying and fetching more system...
+  updateCacheSetupModel();
+  return;
+  /*
+   // this does not work with partial querying and fetching more, we truly need to re-query the resource
+   startLayoutChange();
+   
+   KLFLibModelCache::KLFLibModelSorter srt = 
+   KLFLibModelCache::KLFLibModelSorter(pCache, pEntrySorter, pFlavorFlags & KLFLibModel::GroupSubCategories);
+   
+   pCache->sortCategory(KLFLibModelCache::NodeId::rootNode(), &srt);
+  
+   endLayoutChange();
+  */
 }
 
 void KLFLibModel::sort(int column, Qt::SortOrder order)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   // select right property ID
   int propId = entryColumnContentsPropertyId(column);
   // if property ID is preview, then request sort by DateTime (user friendliness)
