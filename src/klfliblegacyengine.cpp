@@ -450,7 +450,7 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fname, QStr
 // private
 KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url,
 				       QObject *parent)
-  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureSaveTo|FeatureSubResources, parent)
+  : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureLocked|FeatureSaveTo|FeatureSubResources, parent)
 {
   KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
   KLFPropertizedObject::setProperty(PropTitle, QFileInfo(fileName).baseName());
@@ -462,6 +462,10 @@ KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& r
     return;
   }
   d->ref();
+
+  connect(d, SIGNAL(resourcePropertyChanged(int)), this, SLOT(updateResourceProperty(int)));
+
+  updateResourceProperty(-1);
 
   // add at least one resource (baptized resname) if the library is empty
   if (d->resources.isEmpty()) {
@@ -520,12 +524,14 @@ bool KLFLibLegacyEngine::canModifyData(const QString& subResource, ModifyType mo
 
 bool KLFLibLegacyEngine::canModifyProp(int propid) const
 {
-  return false;
+  // all resource properties are stored in QVariantMap
+  return KLFLibResourceEngine::canModifyProp(propid);
 }
 
 bool KLFLibLegacyEngine::canRegisterProperty(const QString& propName) const
 {
-  return false;
+  // all resource properties are stored in QVariantMap
+  return canModifyProp(-1);
 }
 
 KLFLibEntry KLFLibLegacyEngine::entry(const QString& resource, entryId id)
@@ -883,7 +889,23 @@ bool KLFLibLegacyEngine::saveTo(const QUrl& newPath)
 
 bool KLFLibLegacyEngine::saveResourceProperty(int propId, const QVariant& value)
 {
-  return false; // can't change anything.
+  QVariantMap m = d->metadata["ResProps"].toMap();
+
+  QString propName = propertyNameForId(propId);
+  if ( propName.isEmpty() )
+    return false;
+
+  m[propName] = value;
+
+  d->metadata["ResProps"] = QVariant(m);
+  d->haschanges = true;
+
+  return true;
+}
+
+void KLFLibLegacyEngine::updateResourceProperty(int /*propId*/)
+{
+  KLFPropertizedObject::setAllProperties(d->metadata["ResProps"].toMap());
 }
 
 

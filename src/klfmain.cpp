@@ -146,6 +146,19 @@ KLF_EXPORT QDebug& operator<<(QDebug& str, const KLFAddOnInfo::PluginSysInfo& i)
 	     << "; os="<<i.os<<"; arch="<<i.arch<<")";
 }
 
+
+bool KLFAddOnInfo::PluginSysInfo::isCompatibleWithCurrentSystem() const
+{
+  return
+    (klfminversion.isEmpty()
+     || klfVersionCompare(klfminversion, KLF_VERSION_STRING) <= 0) &&
+    (qtminversion.isEmpty()
+     || klfVersionCompare(qtminversion, qVersion()) <= 0) &&
+    os == KLFSysInfo::osString() &&
+    arch == KLFSysInfo::arch() ;
+}
+
+
 void KLFAddOnInfo::initPlugins()
 {
   // read plugin list
@@ -252,6 +265,17 @@ void KLFAddOnInfo::initPlugins()
   d->pluginList = fullList;
 
   klfDbg( "Loaded plugins: list="<<d->pluginList<<"; map="<<d->plugins ) ;
+}
+
+
+QStringList KLFAddOnInfo::localPluginList() const
+{
+  QStringList lplugins;
+  for (int k = 0; k < d->pluginList.size(); ++k) {
+    if ( d->plugins[d->pluginList[k]].isCompatibleWithCurrentSystem() )
+      lplugins << QDir::cleanPath(pluginLocalSubDirName(d->pluginList[k])+"/"+QFileInfo(d->pluginList[k]).fileName());
+  }
+  return lplugins;
 }
 
 

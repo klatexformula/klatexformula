@@ -2,7 +2,7 @@
 
 
 KLFDisplayLabel {
-	background-color: rgb(128,128,128,50);
+	background-color: rgb(180,180,180,80);
 }
 
 KLFDisplayLabel[realTimeLatexError=true] {

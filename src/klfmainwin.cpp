@@ -2049,6 +2049,11 @@ void KLFMainWin::slotLibrary(bool showlib)
 {
   klfDbg("showlib="<<showlib) ;
   mLibBrowser->setShown(showlib);
+  if (showlib) {
+    // already shown, raise the window
+    mLibBrowser->activateWindow();
+    mLibBrowser->raise();
+  }
 }
 
 void KLFMainWin::slotSymbols(bool showsymbs)

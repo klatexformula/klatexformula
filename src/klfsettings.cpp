@@ -923,8 +923,15 @@ void KLFSettings::removeAddOn()
   confirmdlg.setWindowTitle(tr("Remove Add-On?"));
   confirmdlg.setText(tr("<qt>Are you sure you want to remove Add-On <i>%1</i>?</qt>")
 		     .arg(klf_addons[k].title()));
-  confirmdlg.setDetailedText(tr("The Add-On File %1 will be removed from disk, along with plugin(s) %2.")
-			     .arg(klf_addons[k].fpath(), klf_addons[k].localPluginList().join(", ")));
+  QStringList ourplugins = klf_addons[k].localPluginList();
+  QString msg;
+  if (ourplugins.size()) {
+    msg = tr("The Add-On File %1 will be removed from disk, along with plugin(s) %2.")
+      .arg(klf_addons[k].fpath(), ourplugins.join(", "));
+  } else {
+    msg = tr("The Add-On File %1 will be removed from disk.").arg(klf_addons[k].fpath());
+  }
+  confirmdlg.setDetailedText(msg);
   confirmdlg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
   confirmdlg.setEscapeButton(QMessageBox::Cancel);
   confirmdlg.setDefaultButton(QMessageBox::Cancel);

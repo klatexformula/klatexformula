@@ -62,7 +62,7 @@ public:
   /** Create a copy of the add-on info structure \c other */
   KLFAddOnInfo(const KLFAddOnInfo& o);
 
-  struct PluginSysInfo {
+  struct KLF_EXPORT PluginSysInfo {
     /** The directory in question */
     QString dir;
     /** minimum Qt version required to load the plugin, in version string format (eg. "4.4"). An
@@ -75,6 +75,8 @@ public:
     QString os;
     /** The required value of \ref KLFSysInfo::arch() */
     QString arch;
+
+    bool isCompatibleWithCurrentSystem() const;
   };
 
   ~KLFAddOnInfo();
@@ -99,7 +101,7 @@ public:
   QString rccmountroot() { return d->rccmountroot; }
     
   /** The list of plugins provided by this add-on (list of files
-   * \c ":/plugins/<b>[&lt;dir>/]&lt;plugin-name></b>*.so|dll").
+   * \c ":/plugins/[<dir>/]<plugin-name>*.so|dll").
    *
    * This list stores full file names relative to plugin dir in add-on (e.g. \c "libskin.so" or
    * \c "linux-x86-klf3.1.1/libskin.so") .
@@ -120,14 +122,10 @@ public:
   /** A list of locally (ie. in <tt>~/.klatexformula/plugins/</tt>) installed plugins coming
    * from this add-on.
    *
-   * The path is relative to <tt>~/.klatexformula/plugins/</tt>. */
-  QStringList localPluginList() const
-  {
-    QStringList lplugins;
-    for (int k = 0; k < d->pluginList.size(); ++k)
-      lplugins << QDir::cleanPath(pluginLocalSubDirName(d->pluginList[k])+"/"+QFileInfo(d->pluginList[k]).fileName());
-    return lplugins;
-  }
+   * The path is relative to <tt>~/.klatexformula/plugins/</tt>.
+   *
+   * \note Only plugins for the current os/architecture is returned. */
+  QStringList localPluginList() const;
 
 
   /** The list of translation files provided by this add-on (list of files <tt>:/i18n/<b></b>*.qm</tt>)

@@ -1124,7 +1124,8 @@ KLFLibModelCache::IndexType
 
   int i;
   for (i = 0; i < pCategoryLabelCache.size(); ++i) {
-    if (pCategoryLabelCache[i].parent.valid() &&
+    if (pCategoryLabelCache.isAllocated(i) &&
+	pCategoryLabelCache[i].parent.valid() &&
 	pCategoryLabelCache[i].fullCategoryPath == catelpath) {
       // found the valid category label
       return i;
@@ -1182,7 +1183,7 @@ KLFLibModelCache::IndexType
 
   if (notifyQtApi)
     pModel->endInsertRows();
-  
+
   // and return the created category label index
   return this_index;
 }

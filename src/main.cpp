@@ -563,12 +563,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       klfDbg( "Testing plugin psinfo="<<psinfo<<"\n\tTo our system: qtver="<<qVersion()
 	      <<"; klfver="<<KLF_VERSION_STRING<<"; os="<<KLFSysInfo::osString()
 	      <<"; arch="<<KLFSysInfo::arch() ) ;
-      if ( (psinfo.klfminversion.isEmpty()
-	    || klfVersionCompare(psinfo.klfminversion, KLF_VERSION_STRING) <= 0) &&
-	   (psinfo.qtminversion.isEmpty()
-	    || klfVersionCompare(psinfo.qtminversion, qVersion()) <= 0) &&
-	   psinfo.os == KLFSysInfo::osString() &&
-	   psinfo.arch == KLFSysInfo::arch() ) {
+      if ( psinfo.isCompatibleWithCurrentSystem() ) {
 	// ok to install plugin
 	QString resfn = klf_addons[k].rccmountroot() + "/plugins/" + pluginList[j];
 	QString locsubdir = klf_addons[k].pluginLocalSubDirName(pluginList[j]);

@@ -128,6 +128,9 @@ public:
    *
    * upon modification, DON'T FORGET to set \ref haschanges !
    *
+   * List of properties:
+   *  - \c "ResProps" : a QVariantMap with all resource properties as { 'name' => value }
+   *
    * \todo In the future, this will be how resource and sub-resource properties will be supported.
    */
   QVariantMap metadata;
@@ -185,6 +188,9 @@ public:
     return style;
   }
 
+signals:
+  void resourcePropertyChanged(int propId);
+
 public slots:
   /** Loads the current object from the file.
    *
@@ -194,6 +200,8 @@ public slots:
 
   /** Saves the current object to the file */
   bool save(const QString& fname = QString());
+
+  void emitResourcePropertyChanged(int propId) { emit resourcePropertyChanged(propId); }
 
 private:
   KLFLibLegacyFileDataPrivate() { }

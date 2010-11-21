@@ -195,6 +195,9 @@ public slots:
 protected:
   virtual bool saveResourceProperty(int propId, const QVariant& value);
 
+protected slots:
+  void updateResourceProperty(int propId);
+
 private:
   KLFLibLegacyEngine(const QString& fileName, const QString& resname, const QUrl& url, QObject *parent);
 
