@@ -846,7 +846,7 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
     QMessageBox::critical(this, tr("Error"), tr("File %1 cannot be accessed.").arg(fileName));
     return;
   }
-  QString destination = klfconfig.homeConfigDirRCCResources;
+  QString destination = klfconfig.homeConfigDirRCCResources+"/";
   QString destfpath = destination + QFileInfo(fileName).fileName();
   if ( QFile::exists(destfpath) ) {
     QMessageBox::critical(this, tr("Error"),
