@@ -802,6 +802,7 @@ void KLFLatexSymbols::read_symbols_create_ui()
       // read category
       QString heading = e.attribute("name");
       QString categoryTitle;
+      // xml:lang attribute for category title is obsolete, we use now Qt-linguist translated value...
       QString curCategoryTitleLang;
       QList<KLFLatexSymbol> l;
       QDomNode esym;
@@ -811,6 +812,7 @@ void KLFLatexSymbols::read_symbols_create_ui()
 	QDomElement eesym = esym.toElement();
 	klfDbg("read element "<<esym.nodeName());
 	if ( eesym.nodeName() == "category-title" ) {
+	  // xml:lang attribute for category title is obsolete, we use now Qt-linguist translated value...
 	  QString lang = eesym.hasAttribute("xml:lang") ? eesym.attribute("xml:lang") : QString() ;
 	  klfDbg("<category-title>: lang="<<lang<<"; hasAttribute(xml:lang)="<<eesym.hasAttribute("xml:lang")
 		 <<"; current category-title="<<categoryTitle<<",lang="<<curCategoryTitleLang) ;
@@ -818,7 +820,8 @@ void KLFLatexSymbols::read_symbols_create_ui()
 	    // no category title yet
 	    if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) {
 	      // correct locale
-	      categoryTitle = eesym.text();
+	      categoryTitle = qApp->translate("xmltr_latexsymbols", eesym.text().toUtf8().constData(),
+					      "[[tag: <category-title>]]", QCoreApplication::UnicodeUTF8);
 	      curCategoryTitleLang = lang;
 	    }
 	    // otherwise skip this tag

@@ -406,6 +406,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     klfDbg("Reading profile "<<pname<<" ...") ;
     
     QString description;
+    // xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
     QString curDescriptionLang;
     QList<ExportType> exporttypes;
 
@@ -415,6 +416,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	continue;
       QDomElement ee = en.toElement();
       if ( en.nodeName() == "description" ) {
+	// xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
 	QString lang = ee.hasAttribute("xml:lang") ? ee.attribute("xml:lang") : QString() ;
 	klfDbg("<description>: lang="<<lang<<"; hasAttribute(xml:lang)="<<ee.hasAttribute("xml:lang")
 	       <<"; current description="<<description<<",lang="<<curDescriptionLang) ;
@@ -423,7 +425,9 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	  if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) {
 	    // correct locale
 	    //	    klfDbg("remembering description tag with lang="<<lang);
-	    description = ee.text();
+	    description = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
+					  "[[tag: <description>]]", QCoreApplication::UnicodeUTF8);
+	    // xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
 	    curDescriptionLang = lang;
 	  }
 	  // otherwise skip this tag
@@ -494,6 +498,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	p_exportProfileList.prepend(profile);
       } else {
 	p_exportProfileList << profile;
+	// xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
 	descriptionLangs << curDescriptionLang;
       }
     } else {
