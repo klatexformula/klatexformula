@@ -5271,43 +5271,43 @@ NOTES
 <context>
     <name>xmltr_exportprofiles</name>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="22"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="21"/>
         <source>Default</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Par Défaut</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="23"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="22"/>
         <source>Vector Formats</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Formats Vectoriels</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="24"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="23"/>
         <source>PNG</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>PNG</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="25"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="24"/>
         <source>PNG File</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Fichier PNG</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="26"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="25"/>
         <source>HTML</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>HTML</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="27"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="26"/>
         <source>OpenOffice.org format</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Format OpenOffice.org</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="28"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="27"/>
         <source>Alien Glow Image</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Image Luisante</translation>

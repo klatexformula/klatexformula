@@ -36,9 +36,6 @@ $xmltrrules =
 					     } ,
    "../data/latexsymbols.xml"		=> { SCOPE => "latexsymbols" ,
 					     TAGS => [ "category-title" ]
-					   } ,
-   "bad-file.xml"			=> { SCOPE => "badtype",
-					     TAGS => [ "sometag" ]
 					   }
   } ;
 
