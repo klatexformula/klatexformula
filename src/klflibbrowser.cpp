@@ -1653,7 +1653,6 @@ bool KLFLibBrowser::slotExport()
 
 bool KLFLibBrowser::slotExportSelection()
 {
-  /** \todo Needs implementation............... */
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
   // need to fetch selection from current view

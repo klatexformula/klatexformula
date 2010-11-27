@@ -429,9 +429,10 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fname, QStr
     qWarning()<<KLF_FUNC_NAME<<": file name "<<fileName<<" is empty!";
     return NULL;
   }
-  if (!QFileInfo(QFileInfo(fileName).absolutePath()).isWritable()) {
-    qWarning()<<KLF_FUNC_NAME<<": containing directory is not writable.";
-  }
+  //  if (!QFileInfo(QFileInfo(fileName).absolutePath()).isWritable()) {
+  //    qWarning()<<KLF_FUNC_NAME<<": containing directory "<<QFileInfo(fileName).absolutePath()<<" is not writable.";
+  //    return NULL;
+  //  }
 
   QUrl url = QUrl::fromLocalFile(fileName);
   url.setScheme("klf+legacy");
@@ -916,8 +917,10 @@ QString KLFLibLegacyLocalFileSchemeGuesser::guessScheme(const QString& fileName)
 {
   klfDbg("file "<<fileName);
 
-  if (fileName.endsWith(".klf"))
+  if (fileName.endsWith(".klf")) {
+    klfDbg("has .klf extension.") ;
     return QLatin1String("klf+legacy");
+  }
 
   QFile f(fileName);
   if ( ! f.open(QIODevice::ReadOnly) ) {

@@ -11,8 +11,11 @@ if(KLF_MACOSX_BUNDLES)
 endif(KLF_MACOSX_BUNDLES)
 
 if(WIN32)
-  # on debug versions, the application will open a console in which the debug output is shown.
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
+  # On debug versions, the application will open a console in which the debug output is shown.
+  # Add the -mwindows only if we are not compiling in debug mode.
+  if(NOT KLF_DEBUG)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
+  endif(NOT KLF_DEBUG)
   # Extra linker flags for win32 compilation
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-auto-import")

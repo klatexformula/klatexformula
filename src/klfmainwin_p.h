@@ -294,21 +294,32 @@ public:
 
   virtual bool canOpenFile(const QString& file)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg("file="<<file) ;
+
     QFile f(file);
     bool r = f.open(QIODevice::ReadOnly);
-    if (!r)
+    if (!r) {
+      klfDbg(" ... file cannot be accessed.") ;
       return false;
+    }
     bool isimage;
-    if (isKlfImage(&f, &isimage))
+    if (isKlfImage(&f, &isimage)) {
+      klfDbg(" ... is KLF-saved image.") ;
       return true;
-    if (isimage) // no try going further, we can't otherwise read image ...
+    }
+    if (isimage) { // no try going further, we can't otherwise read image ...
+      klfDbg(" ... is a non-KLF image.") ;
       return false;
+    }
 
     QString libscheme = KLFLibBasicWidgetFactory::guessLocalFileScheme(file);
     if (!libscheme.isEmpty()) {
+      klfDbg(" ... libscheme="<<libscheme) ;
       return true; // it is a library file
     }
     // by default, fail
+    klfDbg(" ... not recognized.") ;
     return false;
   }
 
@@ -342,20 +353,28 @@ public:
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     klfDbg("file="<<file);
     QFileInfo fi(file);
-    if (!fi.exists() || !fi.isReadable())
+    if (!fi.exists() || !fi.isReadable()) {
+      klfDbg(" ... file is not readable") ;
       return false;
+    }
     QString ext = fi.suffix().trimmed().toLower();
 
     { // try to open image
       QFile f(file);
       bool r = f.open(QIODevice::ReadOnly);
-      if (!r)
+      if (!r) {
+	klfDbg(" ... file cannot be opened") ;
 	return false;
+      }
       bool isimage = false;
-      if (tryOpenImageData(&f, &isimage))
+      if (tryOpenImageData(&f, &isimage)) {
+	klfDbg(" ... loaded image data!") ;
 	return true;
-      if (isimage) // no try going further, we can't otherwise read image ...
+      }
+      if (isimage) { // no try going further, we can't otherwise read image ...
+	klfDbg(" ... is non-KLF image...") ;
 	return false;
+      }
     }
 
     // open image failed, try the other formats...
@@ -428,12 +447,12 @@ private:
       klfDbg("format "<<imagereader->format()<<": canRead() returned FALSE!") ;
       return false;
     }
-    *isImage = true;
     *img = imagereader->read();
     if (img->isNull()) {
       klfDbg("read() returned a null qimage!") ;
       return false;
     }
+    *isImage = true;
     klfDbg("format: '"<<imagereader->format().constData()<<"': text keys set: "<<img->textKeys()
 	   <<"; error="<<imagereader->error()
 	   <<"; quality="<<imagereader->quality()

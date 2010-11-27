@@ -1639,7 +1639,7 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   // ----
   if ( obj == QApplication::instance() && e->type() == QEvent::FileOpen ) {
     // open a file
-    openLibFile(((QFileOpenEvent*)e)->file());
+    openFile(((QFileOpenEvent*)e)->file());
     return true;
   }
 
@@ -2308,6 +2308,7 @@ bool KLFMainWin::openLibFiles(const QStringList& files, bool showLibrary)
 bool KLFMainWin::openLibFile(const QString& fname, bool showLibrary)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("fname="<<fname<<"; showLibrary="<<showLibrary) ;
   QUrl url = QUrl::fromLocalFile(fname);
   QString scheme = KLFLibBasicWidgetFactory::guessLocalFileScheme(fname);
   if (scheme.isEmpty()) {
@@ -2315,8 +2316,10 @@ bool KLFMainWin::openLibFile(const QString& fname, bool showLibrary)
     return false;
   }
   url.setScheme(scheme);
+  klfDbg("url to open is "<<url) ;
   QStringList subreslist = KLFLibEngineFactory::listSubResources(url);
   if ( subreslist.isEmpty() ) {
+    klfDbg("no sub-resources...") ;
     // error reading sub-resources, or sub-resources not supported
     return mLibBrowser->openResource(url);
   }
