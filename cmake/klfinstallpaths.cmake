@@ -40,7 +40,7 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_LIB_DIR
 	"${install_lib_dir}"             # calculated value
 	KLF_LIB_SUFFIX                   # dependance variables
 )
-message(STATUS "Installing libraries to ${KLF_INSTALL_LIB_DIR} (KLF_INSTALL_LIB_DIR)")
+message(STATUS "Installing libraries to \"${KLF_INSTALL_LIB_DIR}\" (KLF_INSTALL_LIB_DIR)")
 if(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}"	)
   KLFNote("You have chosen an absolute KLF_INSTALL_LIB_DIR path. There is
     nothing wrong with that, but keep in mind that this value will
@@ -70,7 +70,7 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_BIN_DIR
 	"${install_bin_dir}"    # calculated value
 	DUMMY_DEPENDANCE_VARIABLE # dependance variable (as of now none!)
 )
-message(STATUS "Installing binary to ${KLF_INSTALL_BIN_DIR} (KLF_INSTALL_BIN_DIR)")
+message(STATUS "Installing binary to \"${KLF_INSTALL_BIN_DIR}\" (KLF_INSTALL_BIN_DIR)")
 if(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
   KLFNote("You have chosen an absolute KLF_INSTALL_BIN_DIR path. There is
     nothing wrong with that, but keep in mind that this value will
@@ -119,7 +119,7 @@ if(NOT CMAKE_SKIP_RPATH)
 	KLF_INSTALL_LIB_DIR
   )
   mark_as_advanced(CLEAR CMAKE_INSTALL_RPATH)
-  message(STATUS "RPATH for installed libraries and executables: ${CMAKE_INSTALL_RPATH} (CMAKE_SKIP_RPATH,CMAKE_INSTALL_RPATH)")
+  message(STATUS "RPATH for installed libraries and executables: \"${CMAKE_INSTALL_RPATH}\" (CMAKE_SKIP_RPATH,CMAKE_INSTALL_RPATH)")
 
 else(NOT CMAKE_SKIP_RPATH)
 
