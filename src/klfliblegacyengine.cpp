@@ -345,6 +345,14 @@ bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
     // additionally, save our meta-data at the end (this will be ignored by previous versions
     // of KLF)
     stream << metadata;
+
+    klfDbg("saved export-library type. resource count: "<<resources.size()) ;
+#ifdef KLF_DEBUG
+    if (resources.size()) {
+      KLFLegacyData::KLFLibraryList llll = ((const KLFLegacyData::KLFLibrary)library)[resources[0]];
+      klfDbg("in first resource wrote "<<llll.size()<<" items.");
+    }
+#endif
     break;
   }
 
@@ -492,6 +500,9 @@ KLFLibLegacyEngine::~KLFLibLegacyEngine()
   KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return ) ;
 
   if ( ! d->deref() ) {
+    klfDbg("last reference to the private liblegacyenginedataprivate object d="<<d<<", "
+	   "saving(?) and deleting. haschanges="<<d->haschanges) ;
+    klfDbg("resources dump:\n"<<d->resources<<"\nlibrary:\n"<<d->library) ;
     if (d->haschanges)
       d->save();
     delete d;
@@ -509,16 +520,22 @@ uint KLFLibLegacyEngine::compareUrlTo(const QUrl& other, uint interestFlags) con
 
 bool KLFLibLegacyEngine::canModifyData(const QString& subResource, ModifyType modifytype) const
 {
-  if ( ! KLFLibResourceEngine::canModifyData(subResource, modifytype) )
+  if ( ! KLFLibResourceEngine::canModifyData(subResource, modifytype) ) {
+    klfDbg("base cannot modify resource engine...") ;
     return false;
+  }
 
   KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
+
+#ifndef Q_WS_WIN
+  // seems like windows doesn't like to test directories to be writable ...?
 
   if ( QFile::exists(d->fileName())  // depending on whether the file itself exists, check if
        ?  ! QFileInfo(d->fileName()).isWritable() // file itself writable
        :  ! QFileInfo(QFileInfo(d->fileName()).absolutePath()).isWritable() ) { // or containing dir writable
     return false;
   }
+#endif
 
   return true;
 }
@@ -666,6 +683,9 @@ bool KLFLibLegacyEngine::renameSubResource(const QString& subResource, const QSt
 
 bool KLFLibLegacyEngine::deleteSubResource(const QString& subResource)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("sub-resource: "<<subResource) ;
+
   KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
   if (!canDeleteSubResource(subResource)) {
     klfDbg("Cannot delete sub-resource "<<subResource) ;
@@ -718,12 +738,16 @@ QList<KLFLibResourceEngine::entryId> KLFLibLegacyEngine::insertEntries(const QSt
 
   if ( entrylist.size() == 0 )
      return QList<entryId>();
-  if (!canModifyData(subResource, InsertData))
+  if (!canModifyData(subResource, InsertData)) {
+    klfDbg("cannot modify data.") ;
     return QList<entryId>();
+  }
 
   int index = d->findResourceName(subResource);
-  if (index < 0)
+  if (index < 0) {
+    klfDbg("cannot find sub-resource: "<<subResource) ;
     return QList<entryId>();
+  }
 
   QList<entryId> newIds;
 
@@ -737,7 +761,8 @@ QList<KLFLibResourceEngine::entryId> KLFLibLegacyEngine::insertEntries(const QSt
 
   emit dataChanged(subResource, InsertData, newIds);
 
-  klfDbg("finished inserting items. dumping resources:\n"<<d->resources<<"\nand library:\n"<<d->library) ;
+  klfDbg("finished inserting items. d="<<d<<"; dumping resources:\n"<<d->resources
+	 <<"\nand library:\n"<<d->library) ;
 
   return newIds;
 }
