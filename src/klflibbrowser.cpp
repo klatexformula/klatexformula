@@ -1637,7 +1637,10 @@ bool KLFLibBrowser::slotExport()
     for (j = 0; j < elistwid.size(); ++j)
       elist << elistwid[j].entry;
 
-    exportRes->insertEntries(subres, elist);
+    QList<KLFLib::entryId> insertedIds = exportRes->insertEntries(subres, elist);
+    if (!insertedIds.size() || insertedIds.contains(-1)) {
+      QMessageBox::critical(this, tr("Error"), tr("Error exporting items!"));
+    }
   }
 
   // remove our dummy sub-resource that was created with the resource
@@ -1703,7 +1706,10 @@ bool KLFLibBrowser::slotExportSelection()
     return false;
   }
 
-  resource->insertEntries(entryList);
+  QList<KLFLib::entryId> insertedIds = resource->insertEntries(entryList);
+  if (!insertedIds.size() || insertedIds.contains(-1)) {
+    QMessageBox::critical(this, tr("Error"), tr("Error exporting items!"));
+  }
 
   // important, as it will cause save() to be called on legacy engines, otherwise we will just
   // have a zombie resource waiting for something
