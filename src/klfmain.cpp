@@ -323,7 +323,13 @@ KLFI18nFile::KLFI18nFile(QString filepath)
 
 void klf_add_avail_translation(KLFI18nFile i18nfile)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("i18nfile.fpath="<<i18nfile.fpath<<" is translation to "<<i18nfile.locale) ;
+
   QFileInfo fi(i18nfile.fpath);
+
+  klfDbg("fi.canonicalPath()="<<fi.canonicalPath()<<", Qt translations location="
+	 <<QFileInfo(QLibraryInfo::location(QLibraryInfo::TranslationsPath)).canonicalFilePath()) ;
 
   if ( fi.canonicalPath() ==
        QFileInfo(QLibraryInfo::location(QLibraryInfo::TranslationsPath)).canonicalFilePath()
@@ -344,8 +350,11 @@ void klf_add_avail_translation(KLFI18nFile i18nfile)
       needsRegistration = false;
       alreadyRegisteredIndex = kk;
       needsNiceName = ! klf_avail_translations[kk].hasnicetranslatedname;
+      klfDbg("translation "<<i18nfile.locale<<" is already registered. needs nice name?="<< needsNiceName) ;
     }
   }
+
+  klfDbg("Needs registration?="<<needsRegistration<<"; needs nice name?="<<needsNiceName) ;
   if ( ! needsRegistration && ! needsNiceName ) {
     // needs nothing more !
     return;

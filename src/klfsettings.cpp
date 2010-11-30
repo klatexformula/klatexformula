@@ -279,6 +279,8 @@ KLFSettings::~KLFSettings()
 
 void KLFSettings::populateLocaleCombo()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   u->cbxLocale->clear();
   // application language : populate combo box
   u->cbxLocale->addItem( QLatin1String("English Default"), QVariant::fromValue<QString>("en_US") );
@@ -286,6 +288,12 @@ void KLFSettings::populateLocaleCombo()
   for (k = 0; k < klf_avail_translations.size(); ++k) {
     KLFTranslationInfo ti = klf_avail_translations[k];
     u->cbxLocale->addItem( ti.translatedname, QVariant(ti.localename) );
+    // Select the current locale. This is also done in reset(), but these lines are needed here
+    // for when this function is called within importAddOn().
+    if (klfconfig.UI.locale == ti.localename) {
+      u->cbxLocale->setCurrentIndex(u->cbxLocale->count());
+    }
+    klfDbg("Added translation "<< ti.translatedname <<" ("<<ti.localename<<")") ;
   }
 
 }
@@ -876,7 +884,7 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
   QStringList trlist = addoninfo.translations();
   KLFI18nFile *detectedI18nFile = NULL;
   for (k = 0; k < trlist.size(); ++k) {
-    KLFI18nFile i18nfile(trlist[k]);
+    KLFI18nFile i18nfile(addoninfo.rccmountroot()+"/i18n/"+trlist[k]);
     if ( u->cbxLocale->findData(i18nfile.locale) == -1 ) {
       klfDbg("found translation: "<<i18nfile.locale) ;
       klf_add_avail_translation(i18nfile);
@@ -885,7 +893,8 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
     }
   }
   if (detectedI18nFile != NULL) {
-    klfDbg("adding detected translation: "<<detectedI18nFile->locale) ;
+    klfDbg("translation(s) found. first one found was: "<<detectedI18nFile->locale) ;
+    // update the translation list
     populateLocaleCombo();
     // find the translation
     for (k = 0; k < klf_avail_translations.size(); ++k) {
@@ -900,6 +909,8 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
 	  == QMessageBox::Yes) {
 	u->cbxLocale->setCurrentIndex(cbxindex);
 	apply();
+	// a message warning the user to restart has already been displayed in the apply() above.
+	suggestRestart = false;
       }
     }
     delete detectedI18nFile;

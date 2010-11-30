@@ -81,9 +81,11 @@ public:
 
   ~KLFAddOnInfo();
 
+  /** Directory in which the RCC file resides */
   QString dir() { return d->dir; }
+  /** Name of the RCC file (no path) */
   QString fname() { return d->fname; };
-  /** in principle: absdir(dir) + "/" + fname */
+  /** in principle: <tt>absdir(dir()) + "/" + fname()</tt> */
   QString fpath() { return d->fpath; }
   /** local file: can be removed (e.g. not in a global path /usr/share/... ) */
   bool islocal() { return d->islocal; }
