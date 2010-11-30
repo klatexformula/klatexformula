@@ -577,6 +577,8 @@ QStringList KLFMimeData::formats() const
       pQtOwnedFormats = QMimeData::formats();
     fmts << pQtOwnedFormats;
   }
+
+  klfDbg("format list: "<<fmts) ;
   return fmts;
 }
 
@@ -589,9 +591,13 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
     return QMimeData::retrieveData(mimetype, type);
 
   int index = pExportProfile.indexOfMimeType(mimetype);
-  KLF_ASSERT_CONDITION(index >= 0,
-		       "Can't find mime-type "<<mimetype<<" in export profile ?!?",
-		       return QVariant() ) ;
+  if (index < 0) {
+    // do not treat this as an error since on windows we seem to have requests for 'text/uri-list' even
+    // if that mime type is not returned by formats()
+    klfDbg("Can't find mime-type "<<mimetype<<" in export profile "<<pExportProfile.profileName()
+	   <<" ?!?");
+    return QVariant();
+  }
 
   klfDbg("exporting "<<mimetype<<" ...");
   KLFMimeExporter *exporter = pExportProfile.exporterLookupFor(index);
