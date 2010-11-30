@@ -27,6 +27,7 @@
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLineEdit>
+#include <QFontDatabase>
 #include <QFontDialog>
 #include <QString>
 #include <QMessageBox>
@@ -135,6 +136,8 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   connect(u->btnPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFontSender()));
 
   // prepare some actions as shortcuts for standard fonts
+  QFontDatabase fdb;
+  u->aFontCMU->setEnabled( fdb.families().contains("CMU Sans Serif") );
   pFontBasePresetActions["CMU"] = u->aFontCMU;
   pFontBasePresetActions["TT"] = u->aFontTT;
   pFontBasePresetActions["Std"] = u->aFontStd;
@@ -152,6 +155,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Font"] = klfconfig.defaultCMUFont;
   vmap["Button"] = QVariant("AppFont");
   a->setData(QVariant(vmap));
+  a->setEnabled(u->aFontCMU->isEnabled());
   fontPresetMenu->addAction(a);
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
   pFontSetActions << a;
@@ -180,6 +184,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Font"] = klfconfig.defaultCMUFont;
   vmap["Button"] = QVariant("EditorFont");
   a->setData(QVariant(vmap));
+  a->setEnabled(u->aFontCMU->isEnabled());
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
   pFontSetActions << a;
   fontPresetMenu->addAction(a);
@@ -207,6 +212,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Font"] = klfconfig.defaultCMUFont;
   vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
+  a->setEnabled(u->aFontCMU->isEnabled());
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
   pFontSetActions << a;
   fontPresetMenu->addAction(a);
@@ -288,14 +294,16 @@ void KLFSettings::populateLocaleCombo()
   for (k = 0; k < klf_avail_translations.size(); ++k) {
     KLFTranslationInfo ti = klf_avail_translations[k];
     u->cbxLocale->addItem( ti.translatedname, QVariant(ti.localename) );
-    // Select the current locale. This is also done in reset(), but these lines are needed here
-    // for when this function is called within importAddOn().
-    if (klfconfig.UI.locale == ti.localename) {
-      u->cbxLocale->setCurrentIndex(u->cbxLocale->count());
-    }
     klfDbg("Added translation "<< ti.translatedname <<" ("<<ti.localename<<")") ;
   }
 
+  // Select the current locale. This is also done in reset(), but these lines are needed here
+  // for when this function is called within importAddOn().
+  k = u->cbxLocale->findData(klfconfig.UI.locale);
+  if (k == -1) {
+    k = 0;
+  }
+  u->cbxLocale->setCurrentIndex(k);
 }
 
 void KLFSettings::populateExportProfilesCombos()
