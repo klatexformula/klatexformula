@@ -1310,7 +1310,7 @@
             <item>
              <widget class="QPushButton" name="btnPathsReset">
               <property name="text">
-               <string>Reset defaults</string>
+               <string>Detect Settings</string>
               </property>
               <property name="icon">
                <iconset resource="klfres.qrc">
@@ -1620,8 +1620,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>100</width>
-                <height>30</height>
+                <width>355</width>
+                <height>167</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1787,8 +1787,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>100</width>
-                   <height>30</height>
+                   <width>345</width>
+                   <height>215</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1852,8 +1852,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>94</width>
-            <height>24</height>
+            <width>557</width>
+            <height>502</height>
            </rect>
           </property>
           <attribute name="label">

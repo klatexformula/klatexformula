@@ -360,6 +360,8 @@ void klf_add_avail_translation(KLFI18nFile i18nfile)
     return;
   }
 
+  klfDbg("will load translation file "<<fi.completeBaseName()<<", abs path="<<fi.absolutePath()) ;
+
   // needs something (registration and/or nice name)
   QTranslator translator;
   translator.load(fi.completeBaseName(), fi.absolutePath(), "_", "."+fi.suffix());
