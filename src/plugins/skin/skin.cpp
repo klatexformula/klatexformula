@@ -93,7 +93,8 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
     if ( e.nodeName() == "name" ) {
-      skin.name = e.text();
+      skin.name = qApp->translate("xmltr_pluginskins", e.text().toUtf8().constData(),
+				  "[[tag: <name>]]", QCoreApplication::UnicodeUTF8);
       continue;
     } else if ( e.nodeName() == "author" ) {
       skin.author = e.text();
@@ -106,7 +107,8 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
       else
 	qWarning()<<KLF_FUNC_NAME<<": file "<<fn<<": Illegal <def> name: "<<key;
     } else if ( e.nodeName() == "description" ) {
-      skin.description = e.text();
+      skin.description = qApp->translate("xmltr_pluginskins", e.text().toUtf8().constData(),
+				  "[[tag: <description>]]", QCoreApplication::UnicodeUTF8);
       continue;
     } else if ( e.nodeName() == "stylesheet" ) {
       QString fnqss = e.text().trimmed();

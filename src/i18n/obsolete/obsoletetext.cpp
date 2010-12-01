@@ -69,6 +69,7 @@ void dummy()
   QT_TRANSLATE_NOOP("KLFSettings", "Cancel");
   QT_TRANSLATE_NOOP("KLFSettings", "Apply");
   QT_TRANSLATE_NOOP("KLFSettings", "OK");
+  QT_TRANSLATE_NOOP("KLFSettings", "Reset defaults");
   QT_TRANSLATE_NOOP3("KLFSettings", "English Default", "[[first item of language graphical choice box]]");
   QT_TRANSLATE_NOOP3("KLFSettings", "%1 (%2)", "[[%1=Language (%2=Country)]]");
   QT_TRANSLATE_NOOP3("KLFSettings", "%1", "[[%1=Language, no country is specified]]");

@@ -461,9 +461,6 @@ KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& r
 				       QObject *parent)
   : KLFLibResourceSimpleEngine(url, FeatureReadOnly|FeatureLocked|FeatureSaveTo|FeatureSubResources, parent)
 {
-  KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
-  KLFPropertizedObject::setProperty(PropTitle, QFileInfo(fileName).baseName());
-
   // get the data object
   d = KLFLibLegacyFileDataPrivate::instanceFor(fileName, !isReadOnly());
   if (d == NULL) {
@@ -931,7 +928,18 @@ bool KLFLibLegacyEngine::saveResourceProperty(int propId, const QVariant& value)
 
 void KLFLibLegacyEngine::updateResourceProperty(int /*propId*/)
 {
+  // need KLFPropertizedObject:: explicit scopes to disambiguate from QObject's functions
+
+  // read and update all the properties
   KLFPropertizedObject::setAllProperties(d->metadata["ResProps"].toMap());
+
+  // set some default values for some properties if they have not been set
+  if (!KLFPropertizedObject::property(PropLocked).isValid())
+    KLFPropertizedObject::setProperty(PropLocked, QVariant(false));
+  if (!KLFPropertizedObject::property(PropAccessShared).isValid())
+    KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
+  if (!KLFPropertizedObject::property(PropTitle).isValid())
+    KLFPropertizedObject::setProperty(PropTitle, QFileInfo(d->fileName()).baseName());
 }
 
 
