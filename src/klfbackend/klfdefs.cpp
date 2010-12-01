@@ -1011,7 +1011,7 @@ KLF_EXPORT QString KLFSysInfo::osString(Os sysos)
 QStringList klf_version_suffixes =
   QStringList() << "a" << "alpha" << "b" << "beta" << "p" << "pre" << "preview" << "RC" << "rc"
 /* */           << "" // empty suffix or any unrecognized suffix
-/* */           << "dev" << "devel";
+/* */           << "post" << "dev" << "devel";
 
 static int __klf_version_compare_suffix_words(QString w1, QString w2)
 {
