@@ -912,34 +912,51 @@ bool KLFLibLegacyEngine::saveTo(const QUrl& newPath)
 
 bool KLFLibLegacyEngine::saveResourceProperty(int propId, const QVariant& value)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QVariantMap m = d->metadata["ResProps"].toMap();
 
   QString propName = propertyNameForId(propId);
   if ( propName.isEmpty() )
     return false;
 
+  if (m.contains(propName) && m[propName] == value)
+    return true; // nothing to do
+
   m[propName] = value;
 
   d->metadata["ResProps"] = QVariant(m);
   d->haschanges = true;
 
+  d->emitResourcePropertyChanged(propId);
+
   return true;
 }
 
-void KLFLibLegacyEngine::updateResourceProperty(int /*propId*/)
+void KLFLibLegacyEngine::updateResourceProperty(int propId)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("property id="<<propId) ;
+
   // need KLFPropertizedObject:: explicit scopes to disambiguate from QObject's functions
 
-  // read and update all the properties
-  KLFPropertizedObject::setAllProperties(d->metadata["ResProps"].toMap());
+  const QMap<QString,QVariant> resprops = d->metadata["ResProps"].toMap();
 
-  // set some default values for some properties if they have not been set
-  if (!KLFPropertizedObject::property(PropLocked).isValid())
-    KLFPropertizedObject::setProperty(PropLocked, QVariant(false));
-  if (!KLFPropertizedObject::property(PropAccessShared).isValid())
-    KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
-  if (!KLFPropertizedObject::property(PropTitle).isValid())
-    KLFPropertizedObject::setProperty(PropTitle, QFileInfo(d->fileName()).baseName());
+  if (propId < 0) {
+    // read and update all the properties
+    KLFPropertizedObject::setAllProperties(resprops);
+    // set some default values for some properties if they have not been set
+    if (!KLFPropertizedObject::property(PropLocked).isValid())
+      KLFPropertizedObject::setProperty(PropLocked, QVariant(false));
+    if (!KLFPropertizedObject::property(PropAccessShared).isValid())
+      KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
+    if (!KLFPropertizedObject::property(PropTitle).isValid())
+      KLFPropertizedObject::setProperty(PropTitle, QFileInfo(d->fileName()).baseName());
+  } else {
+    QString propName = KLFPropertizedObject::propertyNameForId(propId);
+    KLFPropertizedObject::setProperty(propId, resprops[propName]);
+  }
+  emit resourcePropertyChanged(propId);
 }
 
 

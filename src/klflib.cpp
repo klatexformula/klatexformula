@@ -835,6 +835,9 @@ KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::PropertyMatch& pmatch)
 }
 KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCondition& c)
 {
+#ifdef Q_WS_MAC
+  return dbg<<"EntryMatchCondition{...}";
+#endif
   dbg << "EntryMatchCondition{type=";
   if (c.type() == KLFLib::EntryMatchCondition::MatchAllType)
     return dbg << "match-all}";
@@ -919,6 +922,31 @@ QList<QVariant> KLFLibResourceSimpleEngine::queryValues(const QString& subResour
 }
 
 
+template<class T>
+static void qlist_skip_and_limit(QList<T> *list, int skip, int limit)
+{
+  KLF_ASSERT_NOT_NULL( list, "list is NULL!", return; ) ;
+
+  // skip `skip' first entries
+
+  if (skip <= 0) {
+    // nothing to do
+  } else if (list->size() <= skip) {
+    list->clear();
+  } else {
+    *list = list->mid(skip);
+  }
+
+  // and limit to `limit'
+  if (limit < 0)
+    return; // no limit
+
+  if (list->size() > limit)
+    *list = list->mid(0, limit);
+
+  return;
+}
+
 // static
 int KLFLibResourceSimpleEngine::queryImpl(KLFLibResourceEngine *resource, const QString& subResource,
 					  const Query& query, QueryResult *result)
@@ -927,6 +955,11 @@ int KLFLibResourceSimpleEngine::queryImpl(KLFLibResourceEngine *resource, const 
 
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbgSt("Query: "<<query);
+
+  if (result == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": expected valid `result' pointer";
+    return -1;
+  }
 
   QList<KLFLibEntryWithId> allEList = resource->allEntries(subResource);
 
@@ -948,19 +981,14 @@ int KLFLibResourceSimpleEngine::queryImpl(KLFLibResourceEngine *resource, const 
 
   // now we need to remove the first 'query.skip' number of results.
   // we can't do this while inserting because the order counts.
-  /** \bug the QList::mid() function does not document its behavior when the given position
-   * is out of range, we will see if this raises an error ....... */
-  result->entryIdList = result->entryIdList.mid(query.skip);
-  result->rawEntryList = result->rawEntryList.mid(query.skip);
-  result->entryWithIdList = result->entryWithIdList.mid(query.skip);
-  if (query.limit >= 0) {
-    // we may have had a limit, so remove any extra entries, too
-    result->entryIdList = result->entryIdList.mid(0, query.limit);
-    result->rawEntryList = result->rawEntryList.mid(0, query.limit);
-    result->entryWithIdList = result->entryWithIdList.mid(0, query.limit);
-  }
 
-  return lsorter.numberOfEntries();
+  qlist_skip_and_limit(&result->entryIdList, query.skip, query.limit);
+  qlist_skip_and_limit(&result->rawEntryList, query.skip, query.limit);
+  qlist_skip_and_limit(&result->entryWithIdList, query.skip, query.limit);
+
+  klfDbgSt("About to return. Number of entries in TEE VALUE.") ;
+
+  return KLF_DEBUG_TEE( lsorter.numberOfEntries() );
 }
 
 // static

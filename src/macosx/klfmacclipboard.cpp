@@ -22,6 +22,7 @@
 /* $Id$ */
 
 #include <QMacPasteboardMime>
+#include <QTextCodec>
 #include <QDebug>
 
 #include <klfdefs.h>
@@ -91,6 +92,7 @@ QList<KLFMacPasteboardMime::TranslateRule> KLFMacPasteboardMime::staticTranslate
   << KLFMacPasteboardMime::TranslateRule("application/postscript", "com.adobe.postscript")
   << KLFMacPasteboardMime::TranslateRule("application/eps", "com.adobe.encapsulated-postscript")
   << KLFMacPasteboardMime::TranslateRule("image/eps", "com.adobe.encapsulated-postscript")
+  << KLFMacPasteboardMime::TranslateRule("text/html", "public.html")
   ;
 
 // static

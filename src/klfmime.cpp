@@ -883,12 +883,17 @@ QByteArray KLFMimeExporterHTML::data(const QString& key, const KLFBackend::klfOu
   QString win = QString::number(1.5 * imgsize.width() / imgDpi);
   QString hin = QString::number(1.5 * imgsize.height() / imgDpi);
 
-  QTextCodec *codec = QTextCodec::codecForName("UTF-16");
   QString html =
     QString("<img src=\"file://%1\" alt=\"%2\" title=\"%3\" " //"width=\"%4\" height=\"%5\" "
 	    " style=\"width: %4in; height: %5in; vertical-align: middle;\">")
     .arg(fn, l, l, win, hin);
+
+#ifdef Q_WS_MAC
+  return html.toUtf8();
+#else
+  QTextCodec *codec = QTextCodec::codecForName("UTF-16");
   return codec->fromUnicode(html);
+#endif
 }
 
 QString KLFMimeExporterHTML::windowsFormatName(const QString& key) const
