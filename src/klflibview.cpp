@@ -2380,6 +2380,8 @@ void KLFLibModel::sort(int column, Qt::SortOrder order)
   pEntrySorter->setPropId(propId);
   pEntrySorter->setOrder(order);
 
+  pCache->setSortingBy(propId, order);
+
   redoSort();
 }
 

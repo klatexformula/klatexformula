@@ -314,8 +314,14 @@ public:
    * case-sensitivity \c cs. */
   bool searchNodeMatches(const NodeId& nodeId, const QString& searchString, Qt::CaseSensitivity cs);
 
+  /** Remembers the given sort parameters, but does NOT update anything. */
+  void setSortingBy(int propId, Qt::SortOrder order)
+  {
+    pLastSortPropId = propId;
+    pLastSortOrder = order;
+  }
 
-  /** Sort a category's children */
+  /** Sort a category's children -- DON'T USE---OBSOLETE, does not handle fetch-mores */
   void sortCategory(NodeId category, KLFLibModelSorter *sorter, bool rootCall = true);
 
   /** Walks the whole tree returning all the nodes one after the other, in the following order:
