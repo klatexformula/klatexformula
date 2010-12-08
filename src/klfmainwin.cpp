@@ -2156,8 +2156,10 @@ void KLFMainWin::slotSetBgColor(const QString& s)
 
 void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& format)
 {
-  if ( u->txtLatex->toPlainText().isEmpty() )
+  if ( u->txtLatex->toPlainText().isEmpty() ) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't evaluate: empty input";
     return;
+  }
 
   slotEvaluate();
 

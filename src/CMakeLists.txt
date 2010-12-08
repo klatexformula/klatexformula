@@ -11,11 +11,6 @@ if(KLF_MACOSX_BUNDLES)
 endif(KLF_MACOSX_BUNDLES)
 
 if(WIN32)
-  # On debug versions, the application will open a console in which the debug output is shown.
-  # Add the -mwindows only if we are not compiling in debug mode.
-  if(NOT KLF_DEBUG)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mwindows")
-  endif(NOT KLF_DEBUG)
   # Extra linker flags for win32 compilation
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-auto-import")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-auto-import")
@@ -237,7 +232,6 @@ set_target_properties(klfapp PROPERTIES
 )
 
 
-
 # klatexformula Executable
 # ------------------------
 
@@ -299,8 +293,25 @@ if(MINGW)
   set(klatexformula_ALLSRC ${klatexformula_ALLSRC}
 			      "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc.o")
 endif(MINGW)
+
 add_executable(klatexformula ${klatexformula_ALLSRC})
 target_link_libraries(klatexformula ${QT_LIBRARIES} klfbackend klftools klfapp)
+
+
+if(WIN32)
+  # On debug versions, the application will open a console in which the debug output is shown.
+  # Add the -mwindows only if we are not compiling in debug mode.
+  # Add also a separate target klatexformula_cmdl to build the cmdl version, keeping the shell
+  # window open.
+  if(NOT KLF_DEBUG)
+    add_executable(klatexformula_cmdl ${klatexformula_ALLSRC})
+    target_link_libraries(klatexformula_cmdl ${QT_LIBRARIES} klfbackend klftools klfapp)
+    set_target_properties(klatexformula  PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,windows")
+    set_target_properties(klatexformula_cmdl  PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,console")
+  endif(NOT KLF_DEBUG)
+endif(WIN32)
+
+
 
 if(KLF_MACOSX_BUNDLES)
   # Set up the application bundle under Mac OS X
@@ -404,6 +415,8 @@ if(KLF_MACOSX_BUNDLES)
   KLFCMakeDebug("Extras to be bundled are ${klatexformula_BUNDLEXTRA}")
   KLFBundlePackage(klatexformula   "${klatexformula_BUNDLEXTRA}")
 endif(KLF_MACOSX_BUNDLES)
+
+
 
 if(KLF_BUILD_PLUGINS)
   # Build Plugins
@@ -517,11 +530,7 @@ if(NOT KLF_MACOSX_BUNDLES)
 	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink \"klatexformula\" \"\$ENV{DESTDIR}${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl\")"
     )
   elseif(WIN32 AND KLF_INSTALL_KLATEXFORMULA_CMDL)
-    # win32: no symlinks, we have to copy the binary
-    install(CODE
-	  "message(STATUS \"Creating Copy \$ENV{DESTDIR}${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl.exe of klatexformula.exe\")
-	  execute_process(COMMAND \"${CMAKE_COMMAND}\" -E copy \"\$ENV{DESTDIR}${KLF_ABS_INSTALL_BIN_DIR}/klatexformula.exe\" \"\$ENV{DESTDIR}${KLF_ABS_INSTALL_BIN_DIR}/klatexformula_cmdl.exe\")"
-    )
+    install(TARGETS klatexformula_cmdl RUNTIME DESTINATION "${KLF_INSTALL_BIN_DIR}")
   endif(UNIX AND KLF_INSTALL_KLATEXFORMULA_CMDL)
 endif(NOT KLF_MACOSX_BUNDLES)
 if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLATEXFORMULA_BUNDLE)

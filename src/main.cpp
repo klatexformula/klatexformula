@@ -197,7 +197,7 @@ static struct option klfcmdl_optlist[] = {
   { "dpi", 1, NULL, OPT_DPI },
   { "mathmode", 1, NULL, OPT_MATHMODE },
   { "preamble", 1, NULL, OPT_PREAMBLE },
-  { "quiet", 1, NULL, OPT_QUIET },
+  { "quiet", 0, NULL, OPT_QUIET },
   { "redirect-debug", 1, NULL, OPT_REDIRECT_DEBUG },
   { "daemonize", 0, NULL, OPT_DAEMONIZE },
   { "dbus-export-mainwin", 0, NULL, OPT_DBUS_EXPORT_MAINWIN },
@@ -306,37 +306,46 @@ void klf_qt_message(QtMsgType type, const char *msg)
 
 #if defined Q_WS_WIN && defined KLF_DEBUG
 #  define   SAFECOUNTER_NUM   10
-    static int safecounter = SAFECOUNTER_NUM;
-    if ((safecounter-- >= 0) && !QString::fromLocal8Bit(msg).startsWith("MNG error")) { // ignore these "MNG" errors...
-      QMessageBox::warning(0, "Warning",
-			   QString("KLatexFormula System Warning:\n%1")
-			   .arg(QString::fromLocal8Bit(msg)));
+    // only show dialog after having created a QApplication
+    if (qApp != NULL && qApp->inherits("QApplication")) {
+      static int safecounter = SAFECOUNTER_NUM;
+      if (safecounter-- >= 0) {
+	if (!QString::fromLocal8Bit(msg).startsWith("MNG error")) { // ignore these "MNG" errors...
+	  QMessageBox::warning(0, "Warning",
+			       QString("KLatexFormula System Warning:\n%1")
+			       .arg(QString::fromLocal8Bit(msg)));
+	}
+      }
+      if (safecounter == -1) {
+	QMessageBox::information(0, "Information",
+				 QString("Shown %1 system warnings. Will stop displaying them.").arg(SAFECOUNTER_NUM));
+	safecounter = -2;
+      }
+      if (safecounter < -2) safecounter = -2;
     }
-    if (safecounter == -1) {
-      QMessageBox::information(0, "Information",
-			       QString("Shown %1 system warnings. Will stop displaying them.").arg(SAFECOUNTER_NUM));
-      safecounter = -2;
-    }
-    if (safecounter < -2) safecounter = -2;
 #endif
     break;
   case QtCriticalMsg:
     fprintf(fout, "Error: %s\n", msg);
 #ifdef Q_WS_WIN
-    QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
-			  QObject::tr("KLatexFormula System Error:\n%1",
-				      "[[KLF's Qt Message Handler: dialog text]]")
-			  .arg(QString::fromLocal8Bit(msg)));
+    if (qApp != NULL && qApp->inherits("QApplication")) {
+      QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
+			    QObject::tr("KLatexFormula System Error:\n%1",
+					"[[KLF's Qt Message Handler: dialog text]]")
+			    .arg(QString::fromLocal8Bit(msg)));
+    }
 #endif
     break;
   case QtFatalMsg:
     fprintf(fout, "Fatal: %s\n", msg);
 #ifdef Q_WS_WIN
-    QMessageBox::critical(0, QObject::tr("FATAL ERROR",
-					 "[[KLF's Qt Message Handler: dialog title]]"),
-			  QObject::tr("KLatexFormula System FATAL ERROR:\n%1",
-				      "[[KLF's Qt Message Handler: dialog text]]")
-			  .arg(QString::fromLocal8Bit(msg)));
+    if (qApp != NULL && qApp->inherits("QApplication")) {
+      QMessageBox::critical(0, QObject::tr("FATAL ERROR",
+					   "[[KLF's Qt Message Handler: dialog title]]"),
+			    QObject::tr("KLatexFormula System FATAL ERROR:\n%1",
+					"[[KLF's Qt Message Handler: dialog text]]")
+			    .arg(QString::fromLocal8Bit(msg)));
+    }
 #endif
     ::exit(255);
   default:
@@ -959,8 +968,9 @@ int main(int argc, char **argv)
       if (opt_epstopdf != NULL)
 	iface->setAlterSetting_s(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
       // will actually save only if output is non empty.
-      if (!opt_noeval || opt_output)
+      if (!opt_noeval || opt_output) {
 	iface->evaluateAndSave(QString::fromLocal8Bit(opt_output), QString::fromLocal8Bit(opt_format));
+      }
       // and import KLF files if wanted
       QStringList flist;
       for (int k = 0; klf_args[k] != NULL; ++k)
@@ -1031,6 +1041,11 @@ int main(int argc, char **argv)
 #endif
 
     // parse command-line given actions
+
+    // consistency check warning
+    if (opt_output && latexinput.isEmpty()) {
+      qWarning("%s", qPrintable(QObject::tr("Can't use --output without any input")));
+    }
 
     if ( ! latexinput.isNull() )
       mainWin.slotSetLatex(latexinput);
@@ -1367,7 +1382,7 @@ void main_parse_options(int argc, char *argv[])
     case OPT_PASTE_CLIPBOARD:
       if (opt_interactive <= 0) {
 	if (opt_interactive == 0)
-	  qWarning("--paste-clipboard requires interactive mode. Switching.");
+	  qWarning("%s", qPrintable(QObject::tr("--paste-clipboard requires interactive mode. Switching.")));
 	opt_interactive = 1;
       }
       opt_paste = 1;
@@ -1375,7 +1390,7 @@ void main_parse_options(int argc, char *argv[])
     case OPT_PASTE_SELECTION:
       if (opt_interactive <= 0) {
 	if (opt_interactive == 0)
-	  qWarning("--paste-selection requires interactive mode. Switching.");
+	  qWarning("%s", qPrintable(QObject::tr("--paste-selection requires interactive mode. Switching.")));
 	opt_interactive = 1;
       }
       opt_paste = 2;
