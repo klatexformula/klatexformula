@@ -8,7 +8,7 @@
 # $Id$
 
 $tsfile = $ARGV[0] if $#ARGV >= 0;
-if ($#ARGV < 0 || $tsfile eq ""  ||  ! -e $tsfile) {
+if ($#ARGV < 0 || $tsfile eq "") {
   print STDERR "Usage: $0 file.ts\n";
   exit 255;
 }

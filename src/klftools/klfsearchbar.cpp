@@ -35,6 +35,7 @@
 
 #include <ui_klfsearchbar.h>
 #include "klfsearchbar.h"
+#include "klfsearchbar_p.h"
 
 KLFSearchable::KLFSearchable()
 {
@@ -96,6 +97,8 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("parent: "<<parent) ;
 
+  d = new KLFSearchBarPrivate;
+
   u = new Ui::KLFSearchBar;
   u->setupUi(this);
 
@@ -122,20 +125,20 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   connect(u->btnHide, SIGNAL(clicked()), this, SLOT(hide()));
   setShowHideButton(false); // not shown by default
 
-  pWaitLabel = new KLFWaitAnimationOverlay(u->txtSearch);
-  pWaitLabel->setWaitMovie(":/pics/wait_anim.mng");
+  d->pWaitLabel = new KLFWaitAnimationOverlay(u->txtSearch);
+  d->pWaitLabel->setWaitMovie(":/pics/wait_anim.mng");
   /* // amusing test
-     pWaitLabel->setWaitMovie("/home/philippe/projects/klf/artwork/experimental/packman_anim.gif");
+     d->pWaitLabel->setWaitMovie("/home/philippe/projects/klf/artwork/experimental/packman_anim.gif");
   */
 
-  pShowOverlayMode = false;
+  d->pShowOverlayMode = false;
   // default relative geometry: position at (50%, 95%) (centered, quasi-bottom)
   //                            size     of (90%, 0%)   [remember: expanded to minimum size]
-  pShowOverlayRelativeGeometry = QRect(QPoint(50, 95), QSize(90, 0));
+  d->pShowOverlayRelativeGeometry = QRect(QPoint(50, 95), QSize(90, 0));
 
-  pFocusOutText = "  "+tr("Hit Ctrl-F, Ctrl-S or / to start searching");
+  d->pFocusOutText = "  "+tr("Hit Ctrl-F, Ctrl-S or / to start searching");
 
-  pSearchForward = true;
+  d->pSearchForward = true;
 
   setSearchTarget(NULL);
   slotSearchFocusOut();
@@ -144,6 +147,8 @@ KLFSearchBar::~KLFSearchBar()
 {
   if (pTarget != NULL)
     pTarget->pTargetOf.removeAll(this);
+
+  delete d;
 }
 
 QString KLFSearchBar::currentSearchText() const
@@ -228,9 +233,23 @@ void KLFSearchBar::setSearchText(const QString& text)
   u->lblSearch->setText(text);
 }
 
+bool KLFSearchBar::showOverlayMode() const
+{
+  return d->pShowOverlayMode;
+}
+QRect KLFSearchBar::showOverlayRelativeGeometry() const
+{
+  return d->pShowOverlayRelativeGeometry;
+}
+QString KLFSearchBar::focusOutText() const
+{
+  return d->pFocusOutText;
+}
+
+
 void KLFSearchBar::setFocusOutText(const QString& focusOutText)
 {
-  pFocusOutText = focusOutText;
+  d->pFocusOutText = focusOutText;
 }
 
 
@@ -266,12 +285,12 @@ QLineEdit * KLFSearchBar::editor()
 void KLFSearchBar::setShowOverlayMode(bool overlayMode)
 {
   klfDbg("setting show overlay mode to "<<overlayMode) ;
-  pShowOverlayMode = overlayMode;
-  if (pShowOverlayMode && !searchBarHasFocus())
+  d->pShowOverlayMode = overlayMode;
+  if (d->pShowOverlayMode && !searchBarHasFocus())
     hide();
-  setProperty("klfShowOverlayMode", QVariant::fromValue<bool>(pShowOverlayMode));
+  setProperty("klfShowOverlayMode", QVariant::fromValue<bool>(d->pShowOverlayMode));
   // cheat with klfTopLevelWidget property, set it always in show-overlay-mode
-  setProperty("klfTopLevelWidget", QVariant::fromValue<bool>(pShowOverlayMode));
+  setProperty("klfTopLevelWidget", QVariant::fromValue<bool>(d->pShowOverlayMode));
 
   /** \todo ..... the search bar should install an event filter on the parent to listen
    * for resize events, and to resize appropriately. */
@@ -279,7 +298,7 @@ void KLFSearchBar::setShowOverlayMode(bool overlayMode)
 
 void KLFSearchBar::setShowOverlayRelativeGeometry(const QRect& relativeGeometryPercent)
 {
-  pShowOverlayRelativeGeometry = relativeGeometryPercent;
+  d->pShowOverlayRelativeGeometry = relativeGeometryPercent;
 }
 void KLFSearchBar::setShowOverlayRelativeGeometry(int widthPercent, int heightPercent,
 						  int positionXPercent, int positionYPercent)
@@ -299,7 +318,7 @@ void KLFSearchBar::clear()
 
 void KLFSearchBar::focusOrNext(bool forward)
 {
-  pSearchForward = forward;
+  d->pSearchForward = forward;
 
   if (QApplication::focusWidget() == u->txtSearch) {
     klfDbgT("already have focus") ;
@@ -307,9 +326,9 @@ void KLFSearchBar::focusOrNext(bool forward)
     // -> either recall history (if empty search text)
     // -> or find next
     if (u->txtSearch->text().isEmpty()) {
-      u->txtSearch->setText(pLastSearchText);
+      u->txtSearch->setText(d->pLastSearchText);
     } else {
-      if (pSearchText.isEmpty())
+      if (d->pSearchText.isEmpty())
 	find(u->txtSearch->text(), forward);
       else
 	findNext(forward);
@@ -319,6 +338,11 @@ void KLFSearchBar::focusOrNext(bool forward)
     u->txtSearch->setText("");
     focus();
   }
+}
+
+void KLFSearchBar::find(const QString& string)
+{
+  find(string, d->pSearchForward);
 }
 
 void KLFSearchBar::find(const QString& text, bool forward)
@@ -331,12 +355,12 @@ void KLFSearchBar::find(const QString& text, bool forward)
 
   KLF_ASSERT_NOT_NULL( pTarget , "search target is NULL!", return ) ;
 
-  pWaitLabel->startWait();
+  d->pWaitLabel->startWait();
   bool found = pTarget->searchFind(text, forward);
   updateSearchFound(found);
-  pWaitLabel->stopWait();
-  pSearchText = text;
-  emitFoundSignals(found, pSearchText, forward);
+  d->pWaitLabel->stopWait();
+  d->pSearchText = text;
+  emitFoundSignals(found, d->pSearchText, forward);
 }
 
 void KLFSearchBar::findNext(bool forward)
@@ -347,11 +371,11 @@ void KLFSearchBar::findNext(bool forward)
   if (!searchBarHasFocus())
     focus();
 
-  if (pSearchText.isEmpty()) {
-    klfDbg("called but not in search mode. recalling history="<<pLastSearchText) ;
+  if (d->pSearchText.isEmpty()) {
+    klfDbg("called but not in search mode. recalling history="<<d->pLastSearchText) ;
     // we're not in search mode
     // recall history
-    showSearchBarText(pLastSearchText);
+    showSearchBarText(d->pLastSearchText);
 
     // and initiate search mode
     find(u->txtSearch->text(), forward);
@@ -360,19 +384,19 @@ void KLFSearchBar::findNext(bool forward)
 
   KLF_ASSERT_NOT_NULL( pTarget , "Search target is NULL!" , return ) ;
 
-  pWaitLabel->startWait();
+  d->pWaitLabel->startWait();
   bool found = pTarget->searchFindNext(forward);
   updateSearchFound(found);
-  pWaitLabel->stopWait();
-  pLastSearchText = pSearchText;
-  emitFoundSignals(found, pSearchText, forward);
+  d->pWaitLabel->stopWait();
+  d->pLastSearchText = d->pSearchText;
+  emitFoundSignals(found, d->pSearchText, forward);
 }
 
 void KLFSearchBar::abortSearch()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  pSearchText = QString();
+  d->pSearchText = QString();
   if ( ! u->txtSearch->text().isEmpty() ) {
     showSearchBarText("");
   }
@@ -395,14 +419,14 @@ void KLFSearchBar::focus()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  if (pShowOverlayMode) {
+  if (d->pShowOverlayMode) {
     QWidget *pw = parentWidget();
     if (pw != NULL) {
       // if we have a parent widget, adjust using our relative geometry
       QSize pws = pw->size();
       
-      QPoint relPos = pShowOverlayRelativeGeometry.topLeft();
-      QSize relSz = pShowOverlayRelativeGeometry.size();
+      QPoint relPos = d->pShowOverlayRelativeGeometry.topLeft();
+      QSize relSz = d->pShowOverlayRelativeGeometry.size();
       
       QSize sz = QSize(pws.width()*relSz.width()/100, pws.height()*relSz.height()/100);
       sz = sz.expandedTo(minimumSizeHint()) ;
@@ -439,7 +463,7 @@ void KLFSearchBar::slotSearchFocusOut()
 {
   klfDbgT("focus out") ;
   displayState(FocusOut);
-  if (pShowOverlayMode)
+  if (d->pShowOverlayMode)
     hide();
 }
 
@@ -485,7 +509,7 @@ void KLFSearchBar::displayState(SearchState s)
   u->txtSearch->update();
 
   if (s == FocusOut) {
-    showSearchBarText(pFocusOutText);
+    showSearchBarText(d->pFocusOutText);
   }
 }
 
@@ -494,10 +518,10 @@ void KLFSearchBar::emitFoundSignals(bool resultfound, const QString& searchstrin
   emit searchPerformed(resultfound);
   if (resultfound) {
     emit found();
-    emit found(pSearchText, forward);
+    emit found(d->pSearchText, forward);
   } else {
     emit didNotFind();
-    emit didNotFind(pSearchText, forward);
+    emit didNotFind(d->pSearchText, forward);
   }
 }
 

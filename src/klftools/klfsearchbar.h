@@ -139,6 +139,7 @@ private:
 };
 
 
+class KLFSearchBarPrivate;
 
 //! An Search Bar for Incremental Search
 /** This widget provides a set of controls an incremental search. This includes a line edit to input
@@ -191,9 +192,9 @@ public:
   virtual void setSearchTarget(KLFSearchable *object);
 
   QString currentSearchText() const;
-  inline bool showOverlayMode() const { return pShowOverlayMode; }
-  inline QRect showOverlayRelativeGeometry() const { return pShowOverlayRelativeGeometry; }
-  inline QString focusOutText() const { return pFocusOutText; }
+  bool showOverlayMode() const;
+  QRect showOverlayRelativeGeometry() const;
+  QString focusOutText() const;
   /** This value is read from the palette. It does not take into account style sheets. */
   QColor colorFound() const;
   /** This value is read from the palette. It does not take into account style sheets. */
@@ -231,7 +232,7 @@ public slots:
   /** If the search bar does not have focus, takes focus and clears the bar, preparing for a backwards
    * search. If it has focus, finds the previous occurence of the current or last search string. */
   void focusOrPrev() { focusOrNext(false); }
-  void find(const QString& string) { find(string, pSearchForward); }
+  void find(const QString& string);
   void find(const QString& string, bool forward);
   void findNext(bool forward = true);
   void findPrev() { findNext(false); }
@@ -269,22 +270,13 @@ private:
 
   KLFSearchable *pTarget;
 
-  /** This is set by focusOrNext() or focusOrPrev() to remember in which direction to
-   * search when text in search bar is changed and thus find() is called. */
-  bool pSearchForward;
-  QString pSearchText;
-  QString pLastSearchText;
-
-  KLFWaitAnimationOverlay *pWaitLabel;
-
-  bool pShowOverlayMode;
-  QRect pShowOverlayRelativeGeometry;
-
-  QString pFocusOutText;
+  KLFSearchBarPrivate *d;
 
   QString palettePropName(SearchState state) const;
   QString statePropValue(SearchState state) const;
 
+  // Needed so that KLFSearchable's can ensure \ref pTarget is valid, and set it to NULL
+  // when appropriate
   friend class KLFSearchable;
 
   KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE()

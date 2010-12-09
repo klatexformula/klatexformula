@@ -1087,7 +1087,7 @@ int main(int argc, char **argv)
     if (opt_epstopdf != NULL)
       mainWin.alterSetting(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
 
-    if (!opt_noeval) {
+    if (!opt_noeval && opt_output) {
       // will actually save only if output is non empty.
       mainWin.slotEvaluateAndSave(QString::fromLocal8Bit(opt_output),
 				  QString::fromLocal8Bit(opt_format));
