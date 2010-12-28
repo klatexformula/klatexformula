@@ -35,10 +35,20 @@
 
 struct KLFSearchBarPrivate
 {
+  KLFSearchBarPrivate() : pCurPos(KLFPosSearchable::Pos::staticInvalidPos()),
+			  pLastPos(KLFPosSearchable::Pos::staticInvalidPos())
+  {
+  }
+
   /** This is set by focusOrNext() or focusOrPrev() to remember in which direction to
    * search when text in search bar is changed and thus find() is called. */
   bool pSearchForward;
+  /** Is set to TRUE between the call of searchFind(...) and searchAbort(). */
+  bool pIsSearching;
   QString pSearchText;
+  KLFPosSearchable::Pos pCurPos;
+  KLFPosSearchable::Pos pLastPos;
+
   QString pLastSearchText;
 
   KLFWaitAnimationOverlay *pWaitLabel;
@@ -47,7 +57,59 @@ struct KLFSearchBarPrivate
   QRect pShowOverlayRelativeGeometry;
 
   QString pFocusOutText;
+
+
+  /** <i>Emacs-Style Backspace</i>: typing backspace key comes back to previous match if any, otherwise
+   * erases last char of search string. */
+  bool pUseEsbs;
+  
+  /** \internal
+   *
+   * For a given search string, eg. \c "fouri", stores the list of visited matching positions. Each time
+   * a new letter is typed, a new HistBuffer is allocated. The previous HistBuffer is recalled when backspace
+   * is called enough times (to 'undo' the searches). */
+  struct HistBuffer {
+    struct CurLastPosPair {
+      CurLastPosPair(const KLFPosSearchable::Pos& c = KLFPosSearchable::Pos::staticInvalidPos(),
+		     const KLFPosSearchable::Pos& l = KLFPosSearchable::Pos::staticInvalidPos())
+	: cur(c), last(l)  { }
+      KLFPosSearchable::Pos cur;
+      KLFPosSearchable::Pos last;
+    };
+    QString str; //!< Query String
+    QList<CurLastPosPair> poslist; //!< list of visited matching positions
+  };
+  /**
+   * This list stores for each typed letter a list corresponding to the history of the match positions. For
+   * example, if user types
+   * <pre>C-S   f   o    u    r   C-S   C-S   i    e    r   C-S   C-R   C-R</pre>
+   * this list might then be
+   * <pre>  ['f', 0]  ['fo',0]  ['fou',1]  ['four',1 3 4] ['fouri',4]  ['fourie',4]  ['fourier',4 7 4 3]</pre>
+   * Assuming the searched list is for example
+   * <pre> 0 foo
+   * 1 fourier
+   * 2 something else
+   * 3 fourier analysis
+   * 4 continuous fourier transform
+   * 5 ABC
+   * 6 ZZZ
+   * 7 fourier series
+   * </pre>
+   */
+  QList<HistBuffer> esbs_histbuffer;
+
 };
+
+
+inline QDebug& operator<<(QDebug& str, const KLFSearchBarPrivate::HistBuffer::CurLastPosPair& cl)
+{
+  return str << "curpos="<<cl.cur<<"/lastpos="<<cl.last;
+}
+inline QDebug& operator<<(QDebug& str, const KLFSearchBarPrivate::HistBuffer& hb)
+{
+  return str << "SearchHistBuffer("<<hb.str<<", "<<hb.poslist<<")";
+}
+
 
 
 #endif

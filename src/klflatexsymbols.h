@@ -124,6 +124,7 @@ public:
 
   virtual bool searchIterMatches(const SearchIterator& pos, const QString& queryString);
 
+  virtual void searchMoveToIterPos(const SearchIterator& pos);
   virtual void searchPerformed(const SearchIterator& result);
   virtual void searchAbort();
 

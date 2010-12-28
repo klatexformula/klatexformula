@@ -1591,3 +1591,38 @@ KLF_EXPORT QString klfUrlLocalFilePath(const QUrl& url)
   return url.path();
 #endif
 }
+
+// ------------------------------------------------------
+
+KLFTarget::~KLFTarget()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  int k;
+  const QList<KLFTargeter*> targeters = pTargetOf;
+  for (k = 0; k < targeters.size(); ++k) {
+    targeters[k]->pTarget = NULL;
+  }
+}
+
+KLFTargeter::~KLFTargeter()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  if (pTarget != NULL)
+    pTarget->pTargetOf.removeAll(this);
+}
+
+void KLFTargeter::setTarget(KLFTarget *target)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("target="<<target) ;
+
+  if (pTarget != NULL)
+    pTarget->pTargetOf.removeAll(this);
+
+  pTarget = target;
+
+  if (pTarget != NULL)
+    pTarget->pTargetOf.append(this);
+}

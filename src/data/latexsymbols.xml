@@ -523,10 +523,9 @@
     <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><hidden/><latex>\bra</latex></sym>
     <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex>\bra{\psi}</latex></sym>
     <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><hidden/><latex>\braket</latex></sym>    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex>\braket{\phi}{\psi}</latex></sym>
-    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right|
- #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><hidden/><latex>\matrixel</latex></sym>
-    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right|
- #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex>\matrixel{\phi}{H}{\psi}</latex></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><hidden/><latex>\matrixel</latex></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex>\matrixel{\phi}{H}{\psi}</latex></sym>
+    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><hidden/><latex>\ketbra</latex></sym>    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><latex>\ketbra{\phi}{\psi}</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
     <sym><usepackage name="slashed"/><hidden/><latex>\slashed</latex></sym>

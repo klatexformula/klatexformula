@@ -609,11 +609,15 @@ bool KLFLatexSymbolsView::searchIterMatches(const SearchIterator& pos, const QSt
   return false;
 }
 
+void KLFLatexSymbolsView::searchMoveToIterPos(const SearchIterator& pos)
+{
+  klfDbg("pos is "<<pos<<" valid="<<(pos<mSymbols.size())) ;
+  highlightSearchMatches(pos);
+}
 void KLFLatexSymbolsView::searchPerformed(const SearchIterator& result)
 {
   klfDbg("result is "<<result<<" valid="<<(result<mSymbols.size())) ;
-
-  highlightSearchMatches(result);
+  //  highlightSearchMatches(result);
 }
 void KLFLatexSymbolsView::searchAbort()
 {
@@ -631,6 +635,8 @@ void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch)
     "KLFPixmapButton { background-color: rgb(0,0,255); }"
   };
 
+  const QString curqstr = searchQueryString();
+
   if (currentMatch == -1) {
     // abort search
     stylesheets[0] = stylesheets[1] = stylesheets[2] = QString();
@@ -640,7 +646,7 @@ void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch)
     int which = 0;
     if (k == currentMatch)
       which = 2;
-    else if (searchIterMatches(k, searchQueryString()))
+    else if (curqstr.size() && searchIterMatches(k, curqstr))
       which = 1;
     mSymbols[k]->setStyleSheet(stylesheets[which]);
   }  
@@ -901,7 +907,7 @@ void KLFLatexSymbols::slotShowCategory(int c)
   klfDbg("current index="<<c) ;
 
   QWidget * w = stkViews->currentWidget();
-  KLFSearchable * target = NULL;
+  KLFPosSearchable * target = NULL;
   if (w != NULL) {
     KLFLatexSymbolsView *view = qobject_cast<KLFLatexSymbolsView*>(w);
     if (view != NULL)

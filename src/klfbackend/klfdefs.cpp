@@ -550,6 +550,39 @@
  * This macro is not affected by the KLF_DEBUG symbol. This macro is always defined and functional.
  */
 
+/** \def KLF_ASSERT_CONDITION_ELSE
+ * \hideinitializer
+ * \brief Asserting Conditions previous to block (NON-FATAL)
+ *
+ * Similar to \ref KLF_ASSERT_CONDITION, but expects a block of actions to perform if indeed
+ * the condition is met. An example:
+ * \code
+ * class MyObject {
+ *   MyTarget *pTarget;
+ *   int otherfield;
+ *   ...
+ *
+ *   void reinitialize();
+ * };
+ *
+ * void MyObject::reinitialize()
+ * {
+ *   ...
+ *   // if the condition is not met, print the message, and don't attempt to dereference
+ *   // the pointer, but proceed in this function, eg. assign `otherfield' etc.
+ *   KLF_ASSERT_CONDITION_ELSE( pTarget != NULL , "Warning n != 0 !!" , )
+ *   {
+ *     // for example...
+ *     pTarget->reinitializeTarget();
+ *   }
+ *
+ *   otherfield = ...;
+ *   ...
+ * }
+ * \endcode
+ */
+
+
 
 
 /** \fn KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)

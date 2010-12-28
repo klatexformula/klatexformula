@@ -268,6 +268,35 @@ KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference
 KLF_EXPORT QString klfUrlLocalFilePath(const QUrl& url);
 
 
+class KLFTargeter;
+
+class KLF_EXPORT KLFTarget {
+public:
+  KLFTarget() : pTargetOf() { }
+  virtual ~KLFTarget();
+
+protected:
+  QList<KLFTargeter*> pTargetOf;
+  friend class KLFTargeter;
+};
+
+class KLF_EXPORT KLFTargeter {
+public:
+  KLFTargeter() : pTarget(NULL) { }
+  virtual ~KLFTargeter();
+
+  virtual void setTarget(KLFTarget *target);
+
+protected:
+  KLFTarget *pTarget;
+  friend class KLFTarget;
+};
+
+
+
+
+
+
 
 /** Call this from your main program, so that the klftools resource is initialized. */
 #define KLFTOOLS_INIT				\

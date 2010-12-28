@@ -37,62 +37,115 @@
 #include "klfsearchbar.h"
 #include "klfsearchbar_p.h"
 
+
+
+QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos)
+{
+  QString s;
+  s.sprintf("%p", (const KLFPosSearchable::Pos::PosData*)pos.posdata);
+  return str << "Pos("<<pos.pos<<", "<<qPrintable(s)<<")";
+}
+
+
+KLFPosSearchableProxy::~KLFPosSearchableProxy()
+{
+}
+
+KLFPosSearchable::Pos KLFPosSearchableProxy::searchFind(const QString& queryString, const Pos& fromPos, bool forward)
+{
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return invalidPos() );
+  return target()->searchFind(queryString, fromPos, forward);
+}
+
+void KLFPosSearchableProxy::searchMoveToPos(const Pos& pos)
+{
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return ; );
+  return target()->searchMoveToPos(pos);
+}
+
+void KLFPosSearchableProxy::searchPerformed(const QString& queryString, bool found, const Pos& pos)
+{
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return ; );
+  return target()->searchPerformed(queryString, found, pos);
+}
+
+void KLFPosSearchableProxy::searchAbort()
+{
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return ; );
+  return target()->searchAbort();
+}
+
+KLFPosSearchable::Pos KLFPosSearchableProxy::invalidPos()
+{
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return invalidPos(); );
+  return target()->invalidPos();
+}
+
+
+// ---
+
+
 KLFSearchable::KLFSearchable()
 {
 }
 KLFSearchable::~KLFSearchable()
 {
-  int k;
-  QList<KLFSearchBar*> bars = pTargetOf;
-  for (k = 0; k < bars.size(); ++k) {
-    bars[k]->pTarget = NULL;
-  }
-  QList<KLFSearchableProxy*> pl = pTargetOfProxy;
-  for (k = 0; k < pl.size(); ++k) {
-    pl[k]->pTarget = NULL;
-  }
 }
+
+KLFPosSearchable::Pos KLFSearchable::searchFind(const QString& queryString, const Pos& fromPos, bool forward)
+{
+  bool r;
+  // simulate first search, then 'find next', by detecting if we're required to search from a given pos
+  // (heuristic that will fail in special cases!!)
+  if (!fromPos.valid())
+    r = searchFind(queryString, forward);
+  else
+    r = searchFindNext(forward);
+  Pos p = invalidPos();
+  if (!r)
+    return p;
+  // valid pos, return pos '0'
+  p.pos = 0;
+  return p;
+}
+
 
 // -----
 
 KLFSearchableProxy::~KLFSearchableProxy()
 {
-  if (pTarget != NULL)
-    pTarget->pTargetOfProxy.removeAll(this);
 }
 
-void KLFSearchableProxy::setSearchTarget(KLFSearchable *target)
+void KLFSearchableProxy::setTarget(KLFTarget *target)
 {
-  if (pTarget != NULL)
-    pTarget->pTargetOfProxy.removeAll(this);
-
-  pTarget = target;
-
-  if (pTarget != NULL)
-    pTarget->pTargetOfProxy.append(this);
+  KLFSearchable *s = dynamic_cast<KLFSearchable*>(target);
+  KLF_ASSERT_CONDITION( (s!=NULL) || (target==NULL),
+			"target is not a valid KLFSearchable object !",
+			return; ) ;
+  KLFTargeter::setTarget(s);
 }
 
 bool KLFSearchableProxy::searchFind(const QString& queryString, bool forward)
 {
-  KLF_ASSERT_NOT_NULL( pTarget, "Search target is NULL!", return false );
-  return pTarget->searchFind(queryString, forward);
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return false );
+  return target()->searchFind(queryString, forward);
 }
 bool KLFSearchableProxy::searchFindNext(bool forward)
 {
-  KLF_ASSERT_NOT_NULL( pTarget, "Search target is NULL!", return false );
-  return pTarget->searchFindNext(forward);
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return false );
+  return target()->searchFindNext(forward);
 }
 void KLFSearchableProxy::searchAbort()
 {
-  KLF_ASSERT_NOT_NULL( pTarget, "Search target is NULL!", return );
-  return pTarget->searchAbort();
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return );
+  return target()->searchAbort();
 }
 
 
 // ------------------------
 
 KLFSearchBar::KLFSearchBar(QWidget *parent)
-  : QFrame(parent), pTarget(NULL)
+  : QFrame(parent)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("parent: "<<parent) ;
@@ -139,15 +192,19 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   d->pFocusOutText = "  "+tr("Hit Ctrl-F, Ctrl-S or / to start searching");
 
   d->pSearchForward = true;
+  d->pSearchText = QString();
+  d->pIsSearching = false;
+  d->pCurPos = KLFPosSearchable::Pos::staticInvalidPos();
+  d->pLastPos = KLFPosSearchable::Pos::staticInvalidPos();
 
-  setSearchTarget(NULL);
+  klfDbg("pCurPos is "<<d->pCurPos<<"; pLastPos is "<<d->pLastPos) ;
+
+  d->pUseEsbs = true;
+
   slotSearchFocusOut();
 }
 KLFSearchBar::~KLFSearchBar()
 {
-  if (pTarget != NULL)
-    pTarget->pTargetOf.removeAll(this);
-
   delete d;
 }
 
@@ -172,6 +229,16 @@ bool KLFSearchBar::hideButtonShown() const
   return u->btnHide->isVisible();
 }
 
+bool KLFSearchBar::emacsStyleBackSpace() const
+{
+  return d->pUseEsbs;
+}
+
+KLFPosSearchable::Pos KLFSearchBar::currentSearchPos() const
+{
+  return d->pCurPos;
+}
+
 void KLFSearchBar::setColorFound(const QColor& color)
 {
   QPalette pal1 = u->txtSearch->property(palettePropName(Default).toAscii()).value<QPalette>();
@@ -180,6 +247,7 @@ void KLFSearchBar::setColorFound(const QColor& color)
   pal1.setColor(u->txtSearch->backgroundRole(), color);
   u->txtSearch->setProperty(palettePropName(Found).toAscii(), QVariant::fromValue<QPalette>(pal1));
 }
+
 void KLFSearchBar::setColorNotFound(const QColor& color)
 {
   QPalette pal2 = u->txtSearch->property(palettePropName(Default).toAscii()).value<QPalette>();
@@ -193,6 +261,14 @@ void KLFSearchBar::setShowHideButton(bool showHideButton)
 {
   u->btnHide->setShown(showHideButton);
 }
+
+void KLFSearchBar::setEmacsStyleBackSpace(bool on)
+{
+  if (d->pIsSearching)
+    abortSearch();
+  d->pUseEsbs = on;
+}
+
 
 /** \internal */
 #define DECLARE_SEARCH_SHORTCUT(shortcut, parent, slotmember)		\
@@ -210,22 +286,14 @@ void KLFSearchBar::registerShortcuts(QWidget *parent)
   // Esc will be captured through event filter so that it isn't too obstrusive...
 }
 
-void KLFSearchBar::setSearchTarget(KLFSearchable * object)
+void KLFSearchBar::setTarget(KLFTarget * target)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("target="<<object) ;
-
   abortSearch();
-
-  if (pTarget != NULL)
-    pTarget->pTargetOf.removeAll(this);
-
-  pTarget = object;
-
-  if (pTarget != NULL)
-    pTarget->pTargetOf.append(this);
-
-  setEnabled(pTarget != NULL);
+  KLFPosSearchable *s = dynamic_cast<KLFPosSearchable*>(target);
+  KLF_ASSERT_CONDITION( (s!=NULL) || (target==NULL),
+			"target is not a valid KLFPosSearchable object !",
+			return; ) ;
+  KLFTargeter::setTarget(s);
 }
 
 void KLFSearchBar::setSearchText(const QString& text)
@@ -255,6 +323,8 @@ void KLFSearchBar::setFocusOutText(const QString& focusOutText)
 
 bool KLFSearchBar::eventFilter(QObject *obj, QEvent *ev)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   if (obj == u->txtSearch) {
     if (ev->type() == QEvent::FocusIn) {
       klfDbg("focus-in event...") ;
@@ -266,13 +336,92 @@ bool KLFSearchBar::eventFilter(QObject *obj, QEvent *ev)
       abortSearch();
       // don't eat event
     } else if (ev->type() == QEvent::KeyPress) {
+      klfDbg("key press event!") ;
       QKeyEvent *ke = (QKeyEvent*)ev;
       if (ke->key() == Qt::Key_Escape) {
 	abortSearch();
 	emit escapePressed();
 	return true;
       }
-    }
+      // Emacs-Style Backspace handling
+      if (d->pUseEsbs) {
+	qWarning()<<KLF_FUNC_NAME<<": bs history="<<d->esbs_histbuffer;
+	// what kind of key press is this
+	if (ke->key() == Qt::Key_Backspace) {
+	  qWarning("search key press char: backspace");
+	  if ( ! d->esbs_histbuffer.size() ) {
+	    // back to beginning of text buffer...
+	    promptEmptySearch();
+	  } else {
+	    // there is a current history buffer
+	    KLFSearchBarPrivate::HistBuffer& histbuf = d->esbs_histbuffer.last();
+	    if (histbuf.poslist.size() > 1) {
+	      // jump to previous match
+	      histbuf.poslist.pop_back();
+	      const KLFSearchBarPrivate::HistBuffer::CurLastPosPair& pos = histbuf.poslist.last();
+	      // move to previous match
+	      KLF_ASSERT_CONDITION_ELSE(target()!=NULL, "Search Target is NULL!", ; )  {
+		d->pCurPos = pos.cur;
+		d->pLastPos = pos.last;
+		// move to given pos, and present found result
+		target()->searchMoveToPos(d->pCurPos);
+		target()->searchPerformed(d->pSearchText, d->pCurPos.valid(), d->pCurPos);
+		updateSearchFound(d->pCurPos.valid());
+	      }
+	    } else {
+	      qWarning("previous history buffer search string...");
+	      d->esbs_histbuffer.pop_back();
+	      // if there is left 
+	      if (!d->esbs_histbuffer.size()) {
+		// back to beginning of text buffer...
+		promptEmptySearch();
+	      } else {
+		// remove last item in buffer
+		d->pSearchText = d->esbs_histbuffer.last().str;
+		// check if there actually is text left
+		u->txtSearch->blockSignals(true);
+		u->txtSearch->setText(d->pSearchText);
+		u->txtSearch->blockSignals(false);
+		const QList<KLFSearchBarPrivate::HistBuffer::CurLastPosPair> poslist
+		  = d->esbs_histbuffer.last().poslist;
+		KLF_ASSERT_CONDITION_ELSE(poslist.size(), "No items in previous poslist!!", ;) {
+		  KLF_ASSERT_CONDITION_ELSE(target()!=NULL, "Search Target is NULL!", ; ) {
+		    // make sure query string is up-to-date
+		    target()->setSearchQueryString(d->pSearchText);
+		    // and go to last match position
+		    d->pCurPos = poslist.last().cur;
+		    d->pLastPos = poslist.last().last;
+		    target()->searchMoveToPos(d->pCurPos);
+		    target()->searchPerformed(d->pSearchText, d->pCurPos.valid(), d->pCurPos);
+		    updateSearchFound(d->pCurPos.valid());
+		  }
+		}
+	      }
+	    }
+	  }
+	  // in every case, eat the event
+	  return true;
+	} else if (ke->key() == Qt::Key_Left || ke->key() == Qt::Key_Right) {
+	  qWarning("search char: left/right");
+	  // no left/right navigation
+	  return true;
+	} else if (ke->key() == Qt::Key_Home || ke->key() == Qt::Key_End) {
+	  qWarning("other forbidden key");
+	  // don't allow text navigation
+	  return true;
+	} else if (ke->text().size() && ke->text()[0].isPrint()) {
+	  // pass on the event further to QLineEdit
+	  qWarning("search char: %s", qPrintable(ke->text()));
+	  // Also, it is in find() that will we will create a new HistBuffer for this exact
+	  // new partial search string.
+	}
+      } // if (use e-s-b-s)
+      else {
+	klfDbg("key press, but not using e-s-b-s.");
+	return false;
+      }
+    } // if (is key-press)
+
   }
   return QFrame::eventFilter(obj, ev);
 }
@@ -312,7 +461,7 @@ void KLFSearchBar::setShowOverlayRelativeGeometry(int widthPercent, int heightPe
 void KLFSearchBar::clear()
 {
   klfDbgT("clear") ;
-  u->txtSearch->setText("");
+  setSearchText("");
   focus();
 }
 
@@ -326,16 +475,17 @@ void KLFSearchBar::focusOrNext(bool forward)
     // -> either recall history (if empty search text)
     // -> or find next
     if (u->txtSearch->text().isEmpty()) {
-      u->txtSearch->setText(d->pLastSearchText);
+      setSearchText(d->pLastSearchText);
     } else {
-      if (d->pSearchText.isEmpty())
+      if (!d->pIsSearching) {
 	find(u->txtSearch->text(), forward);
-      else
+      } else {
 	findNext(forward);
+      }
     }
   } else {
     klfDbgT("setting focus") ;
-    u->txtSearch->setText("");
+    setSearchText("");
     focus();
   }
 }
@@ -347,20 +497,61 @@ void KLFSearchBar::find(const QString& string)
 
 void KLFSearchBar::find(const QString& text, bool forward)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klfDbgT("text="<<text<<", forward="<<forward) ;
-  if (text.isEmpty()) {
+  if ( text.isEmpty() ||
+       (d->pUseEsbs && text.mid(0, d->pSearchText.size()) != d->pSearchText) ) {
     abortSearch();
     return;
   }
 
-  KLF_ASSERT_NOT_NULL( pTarget , "search target is NULL!", return ) ;
+  KLF_ASSERT_NOT_NULL( target() , "search target is NULL!", return ) ;
+
+  if (!d->pIsSearching) {
+    // first find() call, started new search, start from suggested position
+    d->pCurPos = target()->searchStartFrom(forward);
+    d->pLastPos = d->pCurPos;
+    klfDbg("Starting from d->pCurPos="<<d->pCurPos) ;
+  }
+
+  d->pIsSearching = true;
+  d->pSearchText = text;
+  // prepare this esbs-hist-buffer
+  if (d->pUseEsbs) {
+    KLFSearchBarPrivate::HistBuffer buf;
+    buf.str = text;
+    d->esbs_histbuffer << buf;
+  }
+  performFind(forward);
+}
+
+// private
+void KLFSearchBar::performFind(bool forward)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLF_ASSERT_NOT_NULL( target() , "search target is NULL!", return ) ;
+
+  klfDbg("pSearchText="<<d->pSearchText<<"; pCurPos="<<d->pCurPos<<"; pLastPos="<<d->pLastPos) ;
 
   d->pWaitLabel->startWait();
-  bool found = pTarget->searchFind(text, forward);
-  updateSearchFound(found);
+  target()->setSearchQueryString(d->pSearchText);
+  d->pCurPos = target()->searchFind(d->pSearchText, d->pLastPos, forward);
+  target()->searchMoveToPos(d->pCurPos);
+  target()->searchPerformed(d->pSearchText, d->pCurPos.valid(), d->pCurPos);
+  updateSearchFound(d->pCurPos.valid());
   d->pWaitLabel->stopWait();
-  d->pSearchText = text;
-  emitFoundSignals(found, d->pSearchText, forward);
+  emitFoundSignals(d->pCurPos, d->pSearchText, forward);
+
+  klfDbg("Are now at position pCurPos="<<d->pCurPos) ;
+
+  if (d->pUseEsbs && d->pCurPos.valid()) {
+    KLF_ASSERT_CONDITION_ELSE(d->esbs_histbuffer.size(), "HistBuffer is empty!!", ;)  {
+      d->esbs_histbuffer.last().poslist
+	<< KLFSearchBarPrivate::HistBuffer::CurLastPosPair(d->pCurPos, d->pLastPos);
+    }
+  }
 }
 
 void KLFSearchBar::findNext(bool forward)
@@ -384,12 +575,24 @@ void KLFSearchBar::findNext(bool forward)
 
   KLF_ASSERT_NOT_NULL( pTarget , "Search target is NULL!" , return ) ;
 
-  d->pWaitLabel->startWait();
-  bool found = pTarget->searchFindNext(forward);
-  updateSearchFound(found);
-  d->pWaitLabel->stopWait();
+  d->pLastPos = d->pCurPos; // precisely, find _next_
+  performFind(forward);
   d->pLastSearchText = d->pSearchText;
-  emitFoundSignals(found, d->pSearchText, forward);
+}
+
+void KLFSearchBar::promptEmptySearch()
+{
+  displayState(Default);
+  u->txtSearch->blockSignals(true);
+  u->txtSearch->setText("");
+  u->txtSearch->blockSignals(false);
+  d->pSearchText = QString();
+  d->pCurPos = KLFPosSearchable::Pos::staticInvalidPos();
+  d->pLastPos = KLFPosSearchable::Pos::staticInvalidPos();
+  KLF_ASSERT_CONDITION_ELSE(target()!=NULL, "Search Target is NULL!", ;) {
+    target()->setSearchQueryString(QString());
+    target()->searchMoveToPos(d->pCurPos);
+  }
 }
 
 void KLFSearchBar::abortSearch()
@@ -397,18 +600,26 @@ void KLFSearchBar::abortSearch()
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   d->pSearchText = QString();
+  d->pIsSearching = false;
+  d->pCurPos = KLFPosSearchable::Pos::staticInvalidPos();
+  d->pLastPos = KLFPosSearchable::Pos::staticInvalidPos();
+  klfDbg("pCurPos="<<d->pCurPos) ;
+
   if ( ! u->txtSearch->text().isEmpty() ) {
     showSearchBarText("");
   }
+  if (d->pUseEsbs)
+    d->esbs_histbuffer.clear();
 
   if (searchBarHasFocus())
     displayState(Aborted);
   else
     displayState(FocusOut);
 
-  if (pTarget != NULL) {
+  if (target() != NULL) {
     klfDbg("telling target to abort search...") ;
-    pTarget->searchAbort();
+    target()->searchAbort();
+    target()->setSearchQueryString(QString());
     klfDbg("...done") ;
   }
 
@@ -513,12 +724,15 @@ void KLFSearchBar::displayState(SearchState s)
   }
 }
 
-void KLFSearchBar::emitFoundSignals(bool resultfound, const QString& searchstring, bool forward)
+void KLFSearchBar::emitFoundSignals(const KLFPosSearchable::Pos& pos, const QString& searchstring, bool forward)
 {
+  bool resultfound = pos.valid();
   emit searchPerformed(resultfound);
+  emit searchPerformed(searchstring, resultfound);
   if (resultfound) {
     emit found();
     emit found(d->pSearchText, forward);
+    emit found(d->pSearchText, forward, pos);
   } else {
     emit didNotFind();
     emit didNotFind(d->pSearchText, forward);
@@ -529,6 +743,8 @@ void KLFSearchBar::showSearchBarText(const QString& text)
 {
   u->txtSearch->blockSignals(true);
   u->txtSearch->setText(text);
+  if (d->pUseEsbs)
+    d->esbs_histbuffer.clear();
   u->txtSearch->blockSignals(false);
 }
 bool KLFSearchBar::searchBarHasFocus()

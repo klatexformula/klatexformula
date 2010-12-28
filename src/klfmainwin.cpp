@@ -690,6 +690,8 @@ void KLFMainWin::saveSettings()
 				    klfconfig.UI.labelOutputFixedSize.height());
     }
   }
+
+  emit klfConfigChanged();
 }
 
 void KLFMainWin::showExportMsgLabel(const QString& msg, int timeout)

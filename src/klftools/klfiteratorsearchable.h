@@ -24,9 +24,12 @@
 #ifndef KLF_ITERATORSEARCHABLE_H
 #define KLF_ITERATORSEARCHABLE_H
 
+#include <QObject>
 #include <QString>
-#include <QTime>
 #include <QApplication>
+#include <QTime>
+#include <QEvent>
+#include <QLineEdit>
 
 #include <klfdefs.h>
 #include <klfsearchbar.h>
@@ -66,11 +69,16 @@
  * KLFSearchable's base functions (for example by returning the match position!).
  */
 template<class Iter>
-class KLF_EXPORT KLFIteratorSearchable : public KLFSearchable
+class KLF_EXPORT KLFIteratorSearchable : public KLFPosSearchable
 {
 public:
-  KLFIteratorSearchable() : KLFSearchable(), pSearchAborted(false) { }
-  virtual ~KLFIteratorSearchable() { }
+  KLFIteratorSearchable() : KLFPosSearchable(), pSearchAborted(false)
+  {
+  }
+
+  virtual ~KLFIteratorSearchable()
+  {
+  }
 
   typedef Iter SearchIterator;
 
@@ -88,7 +96,8 @@ public:
 
   /** Increment or decrement iterator. The default implementation does <tt>pos+1</tt> or <tt>pos-1</tt>; you
    * can re-implement this function if your iterator cannot be incremented/decremented this way. */
-  virtual SearchIterator searchIterAdvance(const SearchIterator& pos, bool forward) { return forward ? (pos+1) : (pos-1); }
+  virtual SearchIterator searchIterAdvance(const SearchIterator& pos, bool forward)
+  { return forward ? (pos+1) : (pos-1); }
 
   /** Increment iterator. Shortcut for searchIterAdvance() with \c forward = TRUE. */
   inline SearchIterator searchIterNext(const SearchIterator& pos) { return searchIterAdvance(pos, true); }
@@ -102,10 +111,9 @@ public:
    * If \c forward is TRUE, then the search is about to be performed forward, otherwise it is about to
    * be performed in reverse direction.
    *
-   * The default implementation returns searchIterBegin() to search from beginning if \c forward is TRUE,
-   * or searchIterEnd() if \c forward is FALSE. */
+   * The default implementation returns searchIterEnd(). */
   virtual SearchIterator searchIterStartFrom(bool forward)
-  { return forward ? searchIterBegin() : searchIterEnd(); }
+  { return searchIterEnd(); }
 
   /** See if the data pointed at by \c pos matches the query string \c queryString. Return TRUE if it
    * does match, or FALSE if it does not match.
@@ -123,7 +131,55 @@ public:
    * calling searchFindNext() again will wrap the search).
    *
    * The base implementation does nothing. */
-  virtual void searchPerformed(const SearchIterator& resultMatchPosition) { Q_UNUSED(resultMatchPosition); }
+  virtual void searchPerformed(const SearchIterator& resultMatchPosition, bool found, const QString& queryString)
+  {  }
+
+  /** Virtual handler that is called when the current search position moves, eg. we moved to next match.
+   * For example, reimplement this function to select the corresponding item in a list (possibly scrolling the
+   * list) to display the matching item to the user.  */
+  virtual void searchMoveToIterPos(const SearchIterator& pos) { }
+
+  /** Virtual handler for the subclass to act upon the result of a search. Same as
+   * searchPerformed(const SearchIterator&, bool, const QString&), but with less pararmeters. This function
+   * is exactly called when the other function is called, too.
+   */
+  virtual void searchPerformed(const SearchIterator& resultMatchPosition) {  }
+
+
+  /* Aborts the search.
+   *
+   * If you reimplement this function to perform additional actions when aborting searches, make sure you
+   * call the base class implementation, since searchAbort() may be called by the event loop while
+   * refreshing the GUI during an active search, in which case the base implementation of this function
+   * tells the search to stop.
+   */
+  virtual void searchAbort()
+  {
+    pSearchAborted = true;
+  }
+
+
+
+  // REIMPLEMENTATIONS THAT TRANSLATE POS OBJECTS TO ITERATORS
+
+  virtual Pos searchStartFrom(bool forward)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    return posForIterator(searchIterStartFrom(forward));
+  }
+
+  /** Reimplemented from KLFPosSearchable. This function calls the searchPerformed(const SearchIterator&)
+   * functions. In subclasses, reimplement one of those instead. */
+  virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos)
+  {
+    searchPerformed(iteratorForPos(pos), found, queryString);
+    searchPerformed(iteratorForPos(pos));
+  }
+
+  virtual void searchMoveToPos(const Pos& pos)
+  {
+    searchMoveToIterPos(iteratorForPos(pos));
+  }
 
 
   // FUNCTIONS THAT PERFORM THE SEARCH (NO NEED TO REIMPLEMENT)
@@ -133,25 +189,16 @@ public:
    *
    * This function returns the position to the first match, or searchIterEnd() if no match was found.
    *
-   * This function starts searching from \c startPos \a inclusive, in forward direction, if \c forward is
-   * TRUE, and searches from \c startPos \a not inclusive [see reason below], in reverse direction, if
-   * \c forward is FALSE.
+   * This function starts searching immediately after \c startPos, in forward direction, if \c forward is
+   * TRUE, and searches immediately before from c startPos, in reverse direction, if \c forward is FALSE.
    *
-   * <i>Reason: iterators have an asymmetry, namely that 'begin' points on the first item while 'end' points
-   * to one-past-end. We want to be able to search forward naturally from 'begin' and search reverse from
-   * 'end', see also searchIterStartFrom().</i>
-   *
-   * This function need not be reimplemented, the default implementation should suffice for most cases. */
+   * This function need not be reimplemented, the default implementation should suffice for most cases.
+   */
   virtual SearchIterator searchIterFind(const SearchIterator& startPos, const QString& queryString, bool forward)
   {
     klfDbg( " s="<<queryString<<" from "<<startPos<<" forward="<<forward ) ;
-    // start searching from pCurPos _included_, but findNext() immediately increments to next position. so
-    // simply go back one position before calling findNext()
-    // however when finding reverse we are searching from pos _not inclusive_, see function dox doc
-    if (forward)
-      pCurPos = safe_cycl_advance_iterator(startPos, !forward);
     pSearchAborted = false;
-    pQString = queryString;
+    pCurPos = startPos;
     SearchIterator it = searchIterFindNext(forward);
     return it;
   }
@@ -166,7 +213,8 @@ public:
   {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
     pSearchAborted = false;
-    if (pQString.isEmpty())
+
+    if (searchQueryString().isEmpty())
       return tee_notify_search_result(searchIterEnd());
     
     QTime t;
@@ -183,7 +231,7 @@ public:
       
       // at this point pCurPos points on something valid
       
-      if ( searchIterMatches(pCurPos, pQString) ) {
+      if ( searchIterMatches(pCurPos, searchQueryString()) ) {
 	found = true;
 	break;
       }
@@ -197,7 +245,7 @@ public:
       }
     }
     if (found) {
-      klfDbg( "found "<<pQString<<" at "<<pCurPos ) ;
+      klfDbg( "found "<<searchQueryString()<<" at "<<pCurPos ) ;
       return tee_notify_search_result(pCurPos);
     }
     
@@ -206,39 +254,17 @@ public:
   }
 
 
-  // reimplemented from KLFSearchable (do not reimplement)
+  // reimplemented from KLFPosSearchable (do not reimplement)
 
-  /* Calls searchIterFind() with searchIterStartFrom() as start position.
-   *
-   * This function need not be reimplemented, the default implementation should suffice for most cases. */
-  virtual bool searchFind(const QString& queryString, bool forward)
+  virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    return KLF_DEBUG_TEE( ! (searchIterFind(searchIterStartFrom(forward), queryString, forward)
-			     == searchIterEnd()) );
+
+    SearchIterator startit = iteratorForPos(fromPos);
+    SearchIterator matchit = searchIterFind(startit, queryString, forward);
+    return posForIterator(matchit);
   }
 
-  /* Calls searchIterFindNext().
-   *
-   * This function need not be reimplemented, the default implementation should suffice for most cases. */
-  virtual bool searchFindNext(bool forward)
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    return KLF_DEBUG_TEE( ! (searchIterFindNext(forward) == searchIterEnd()) );
-  }
-
-  /* Aborts the search.
-   *
-   * If you reimplement this function to perform additional actions when aborting searches, make sure you
-   * call the base class implementation, since searchAbort() may be called by the event loop while
-   * refreshing the GUI during an active search, in which case the base implementation of this function
-   * tells the search to stop.
-   *
-   * This function need not be reimplemented, the default implementation should suffice for most cases. */
-  virtual void searchAbort()
-  {
-    pSearchAborted = true;
-  }
 
   /** Advances iterator \c it safely, that means it incremenets or decrements the iterator while always
    * making sure not to perform illegal operations like incremenet an iterator that has arrived at
@@ -264,17 +290,61 @@ public:
     return a;
   }
 
+  virtual Pos invalidPos()
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    Pos p = KLFPosSearchable::invalidPos();
+    p.posdata = new IterPosData(this, searchIterEnd());
+    return p;
+  };
+
 protected:
 
-  inline QString searchQueryString() const { return pQString; }
   inline SearchIterator searchCurrentIterPos() const { return pCurPos; }
 
 private:
-  QString pQString;
   /** The current I-Search position */
   SearchIterator pCurPos;
   /** Used as break condition on if when processing app events, one stops the search  */
   bool pSearchAborted;
+
+  class IterPosData : public KLFPosSearchable::Pos::PosData {
+    KLFIteratorSearchable<Iter> *pSObj;
+  public:
+    IterPosData(KLFIteratorSearchable<Iter> *sobj, Iter iterator) : pSObj(sobj), it(iterator) { }
+
+    Iter it;
+
+    virtual bool valid() const { return it != pSObj->searchIterEnd(); }
+    virtual bool equals(const KLFPosSearchable::Pos& other) const {
+      if (!other.valid())
+	return !valid(); // true if both are invalid, false if this one is valid and `other' isn't
+      const IterPosData *itpd = static_cast<const IterPosData*>(0+other.posdata);
+      KLF_ASSERT_NOT_NULL(itpd, "posdata of pos ptr `other' is NULL!", return false; ) ;
+      return  (it == itpd->it) ;
+    }
+
+    virtual bool wantDelete() { return true; }
+  };
+
+  SearchIterator iteratorForPos(const KLFPosSearchable::Pos& p)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    if (!p.valid())
+      return searchIterEnd();
+    const IterPosData *itpd = static_cast<const IterPosData*>(0+p.posdata);
+    KLF_ASSERT_NOT_NULL(itpd, "posdata of pos `p' is NULL!", return searchIterEnd() ) ;
+    return itpd->it;
+  }
+  KLFPosSearchable::Pos posForIterator(const SearchIterator& it)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    Pos p = invalidPos();
+    IterPosData *d = static_cast<IterPosData*>(0+p.posdata);
+    KLF_ASSERT_NOT_NULL(d, "Invalid pos data!", return Pos::staticInvalidPos();) ;
+    d->it = it;
+    return p;
+  }
 
   inline SearchIterator tee_notify_search_result(const SearchIterator& iter)
   {

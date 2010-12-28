@@ -302,6 +302,8 @@ signals:
 
   void applicationLocaleChanged(const QString& newLocale);
 
+  void klfConfigChanged();
+
 public slots:
 
   void slotEvaluate();

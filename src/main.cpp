@@ -295,10 +295,12 @@ void klf_qt_message(QtMsgType type, const char *msg)
     // only with debugging enabled
 #ifdef KLF_DEBUG
     fprintf(fout, "D: %s\n", msg);
+    fflush(fout);
 #endif
     break;
   case QtWarningMsg:
     fprintf(fout, "Warning: %s\n", msg);
+    fflush(fout);
 #ifdef KLF_DEBUG
     // in debug mode, also print warning messages to TTY (because they get lost in the debug messages!)
     if (klf_fp_tty) fprintf(klf_fp_tty, "Warning: %s\n", msg);
@@ -327,6 +329,7 @@ void klf_qt_message(QtMsgType type, const char *msg)
     break;
   case QtCriticalMsg:
     fprintf(fout, "Error: %s\n", msg);
+    fflush(fout);
 #ifdef Q_WS_WIN
     if (qApp != NULL && qApp->inherits("QApplication")) {
       QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
@@ -338,6 +341,7 @@ void klf_qt_message(QtMsgType type, const char *msg)
     break;
   case QtFatalMsg:
     fprintf(fout, "Fatal: %s\n", msg);
+    fflush(fout);
 #ifdef Q_WS_WIN
     if (qApp != NULL && qApp->inherits("QApplication")) {
       QMessageBox::critical(0, QObject::tr("FATAL ERROR",
@@ -350,6 +354,7 @@ void klf_qt_message(QtMsgType type, const char *msg)
     ::exit(255);
   default:
     fprintf(fout, "?????: %s\n", msg);
+    fflush(fout);
     break;
   }
 }

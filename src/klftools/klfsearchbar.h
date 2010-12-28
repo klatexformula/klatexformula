@@ -34,6 +34,8 @@
 
 #include <klfdefs.h>
 
+#include <klfutil.h>
+
 class QLineEdit;
 class KLFWaitAnimationOverlay;
 
@@ -41,8 +43,307 @@ class KLFSearchBar;
 class KLFSearchableProxy;
 namespace Ui { class KLFSearchBar; }
 
-//! An interface for objects that can be I-searched with a KLFSearchBar
-/** This class is the base skeleton interface for displays that will be targets for I-searches.
+
+
+
+template<class T>
+class KLFRefPtr {
+  typedef T* Pointer;
+
+  Pointer p;
+  bool autodelete;
+
+  void unset() {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    if (p != NULL) {
+      int n = p->deref();
+      klfDbg(p<<": deref()! n="<<n<<";  autodelete="<<autodelete) ;
+      if (autodelete && n <= 0) {
+	klfDbg("Deleting at refcount="<<n<<".") ;
+	delete p;
+      }
+      p = NULL;
+    }
+  }
+  void set() {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    if (p != NULL) {
+      int n = p->ref();
+      klfDbg(p<<": ref()! n="<<n) ;
+    }
+  }
+
+public:
+  KLFRefPtr() : p(NULL), autodelete(true)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  }
+
+  KLFRefPtr(const KLFRefPtr& copy) : p(copy.p), autodelete(copy.autodelete)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+" [copy]") ;
+    set();
+  }
+
+  ~KLFRefPtr()
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    unset();
+  }
+
+  T * ptr() { return p; }
+  const T * ptr() const { return p; }
+
+  bool autoDelete() const { return autodelete; }
+  void setAutoDelete(bool on) { autodelete = on; }
+
+  KLFRefPtr<T>& operator=(const KLFRefPtr<T>& other)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(KLFRefPtr<T*>)") ;
+    return this->operator=(other.p);
+  }
+  template<class OtherPtr> KLFRefPtr<T>& operator=(OtherPtr aptr)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(OtherPtr)") ;
+    return this->operator=(static_cast<Pointer>(aptr));
+  }
+  KLFRefPtr<T>& operator=(Pointer newptr)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(Pointer)") ;
+    klfDbg("new pointer: "<<newptr<<"; old pointer was "<<p) ;
+    if (newptr == p) // no change
+      return *this;
+    unset();
+    p = newptr;
+    set();
+    return *this;
+  };
+  
+  inline operator T *()
+  {  return p;  }
+  inline operator const T *() const
+  {  return p;  }
+
+  /*  inline T & operator*()
+      {  return *p; }
+      inline const T & operator*() const
+      {  return *p; } */
+
+  inline Pointer operator->()
+  {  return p;  }
+  inline const Pointer operator->() const
+  {  return p;  }
+
+  template<class OtherPtr>
+  inline OtherPtr dyn_cast() { return dynamic_cast<OtherPtr>(p); }
+
+  template<class OtherPtr>
+  inline const OtherPtr dyn_cast() const { return dynamic_cast<const OtherPtr>(p); }
+
+private:
+  void operator+=(int n) { }
+  void operator-=(int n) { }
+};
+
+
+//! An object that can be searched with a KLFSearchBar
+/**
+ */
+class KLF_EXPORT KLFPosSearchable : public KLFTarget
+{
+public:
+
+  struct Pos {
+    struct PosData {
+      PosData() : r(0) { }
+
+      virtual bool valid() const = 0;
+      virtual bool equals(const Pos& other) const = 0;
+
+      virtual QString toDebug() { return QString(); }
+
+      virtual int ref() { return ++r; }
+      virtual int deref() { return --r; }
+
+      /** Should return TRUE if this object should be \c delete'd when dereferenced. */
+      virtual bool wantDelete() { return false; }
+    private:
+      int r;
+    };
+
+    Pos(const Pos& other) : pos(other.pos), posdata(other.posdata)
+    {
+    }
+
+    ~Pos()
+    {
+      if (posdata != NULL)
+	posdata.setAutoDelete(posdata->wantDelete());
+    }
+
+    Pos& operator=(const Pos& other)
+    {
+      KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+      pos = other.pos;
+      posdata = other.posdata;
+      return *this;
+    }
+
+    /** Is valid either if:
+     * - \c posdata is non-NULL and the pointed PosData's valid() is true;
+     * - or \c posdata is NULL and \c pos is >= 0.
+     */
+    bool valid() const {
+      KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+      klfDbg("pos="<<pos<<"; posdata="<<posdata) ;
+      if (posdata != NULL) {
+	return posdata->valid();
+      }
+      return (pos >= 0);
+    };
+    /** Is equal to \c other if:
+     * - \c posdata is non-NULL and the pointed PosData's equals() test is true;
+     * - or \c posdata is NULL and \c pos is equal to the other's pos.
+     */
+    bool equals(const Pos& other) const {
+      if (posdata != NULL)
+	return posdata->equals(other);
+      return (pos == other.pos);
+    }
+
+    int pos; //!< Optional field, use as wanted/needed
+
+    //! Optional field, use as wanted/needed, see \ref PosData
+    /**
+     * \note \ref PosData::ref() and \ref PosData::deref() are handled automatically when
+     *   this field is assigned. See also \ref KLFRefPtr.
+     */
+    KLFRefPtr<PosData> posdata;
+
+    static Pos staticInvalidPos() { return Pos(); }
+
+  private:
+    /** Use staticInvalidPos() or KLFPosSearchable::invalidPos() to create a Pos object */
+    Pos() : pos(-1), posdata() { KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ; }
+  };
+
+  /** Returns the position from where we should start the search, given the current view situation. This
+   * can be reimplemented to start the search for example from the current scroll position in the display.
+   *
+   * If \c forward is TRUE, then the search is about to be performed forward, otherwise it is about to
+   * be performed in reverse direction.
+   *
+   * The search is performed AFTER the returned pos, and invalidPos() is regarded as being both before
+   * the beginning and after the end, ie. to search forward from the beginning, use invalidPos() as well
+   * as to search backward from the end.
+   *
+   * The default implementation returns invalidPos().
+   */
+  virtual Pos searchStartFrom(bool forward) { return invalidPos(); }
+
+  /** Search the content for \c queryString, from position \c fromPos, in direction \c forward.
+   * If found, return the position of the match, if not found, return an invalid position. Do not
+   * act upon the find (eg. select element in list), because the function searchMoveTo() and
+   * searchPerformed() will be called after a successful searchFind() automatically, while the
+   * function searchMoveTo() will be called with an invalid position and the function searchPerformed()
+   * will be called if the search failed.
+   *
+   * \note The search is performed \a AFTER \c fromPos, ie. do not return \c fromPos itself if it
+   *   matches.
+   *
+   * The reimplementation should call from time to time
+   * \code qApp->processEvents() \endcode
+   * to keep the GUI from freezing in long searches.
+   *
+   * \note If the reimplementation implements the above suggestion, note that the slot
+   *   \ref searchAbort() may be called during that time! It is best to take that into
+   *   account and provide a means to stop the search if that is the case.
+   */
+  virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward) = 0;
+
+  /** Called by the search bar to inform the searched object that the current search position
+   * is \c pos. */
+  virtual void searchMoveToPos(const Pos& pos)  {  }
+
+  /** Called by the search bar to inform that the \c queryString was reported either to be found
+   * (in which case \c found is TRUE), either not to be found (then \c found is FALSE), at
+   * position \c pos. This function call always immediately preceded by a searchMoveToPos().
+   * \c pos is invalid if the query string was not found (\c found==FALSE). */
+  virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos)  { }
+
+  /** Called by the search bar to inform the searched object that the search was aborted by the
+   * user. */
+  virtual void searchAbort() = 0;
+
+  /** Subclasses should override to use this function as Pos object factory. See also
+   * \ref Pos::valid().
+   *
+   * This function is used as constructor for \c Pos objects. You may derive it to initialize
+   * your Pos objects appropriately with PosData object instances if wanted, eg.
+   * \code
+   * class MyPosData : public KLFSearchable::Pos::PosData {
+   *   ... // data...
+   *   virtual bool valid() const { ... };
+   *   virtual bool equals(const Pos& other) const { ... };
+   * }
+   * KLFPosSearchable::Pos MyPosSearchable::invalidPos() {
+   *   Pos p = KLFPosSearchable::invalidPos();
+   *   p.posdata = new MyPosData;
+   *   return p;
+   * }
+   * \endcode
+   *
+   * Note that however, your subclass should also understand the \ref Pos object instance returned
+   * by Pos::staticInvalidPos() as being an invalid position.
+   *  */
+  virtual Pos invalidPos() { return Pos::staticInvalidPos(); };
+
+  /** \brief The current query string.
+   *
+   * This function can be used by subclasses to retrieve the current search string.
+   */
+  inline QString searchQueryString() const { return pQString; }
+
+
+  /** \internal
+   * Used internally to update the return value of searchQueryString().
+   */
+  inline void setSearchQueryString(const QString& s) { pQString = s; }
+private:
+  QString pQString;
+};
+
+KLF_EXPORT QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos);
+
+
+class KLFPosSearchableProxy : public KLFPosSearchable, public KLFTargeter
+{
+public:
+  KLFPosSearchableProxy() { }
+  virtual ~KLFPosSearchableProxy();
+
+  virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward);
+
+  virtual void searchMoveToPos(const Pos& pos);
+
+  virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos);
+
+  virtual void searchAbort();
+
+  virtual Pos invalidPos();
+
+protected:
+  virtual KLFPosSearchable *target() { return dynamic_cast<KLFPosSearchable*>(pTarget); }
+};
+
+
+
+
+//! An interface for objects that can be I-searched with a KLFSearchBar (OBSOLETE)
+/**
+ * <b>THIS CLASS IS OBSOLETE</b>. Use KLFPosSearchable instead.
+ *
+ * This class is the base skeleton interface for displays that will be targets for I-searches.
  * There are three functions to reimplement:
  * \code
  * virtual bool searchFind(const QString& queryString, bool forward);
@@ -59,7 +360,7 @@ namespace Ui { class KLFSearchBar; }
  * KLFIteratorSearchable (which itself is a KLFSearchable object and can also be used as target
  * for KLFSearchBar).
  */
-class KLF_EXPORT KLFSearchable
+class KLF_EXPORT KLFSearchable : public KLFPosSearchable
 {
 public:
   KLFSearchable();
@@ -108,35 +409,38 @@ public:
    */
   virtual void searchAbort() = 0;
 
-private:
-  QList<KLFSearchBar*> pTargetOf;
-  QList<KLFSearchableProxy*> pTargetOfProxy;
 
-  friend class KLFSearchBar;
-  friend class KLFSearchableProxy;
+  virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward);
+  virtual void searchMoveToPos(const Pos& pos) { }
+  virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos) { }
 };
 
-//! A proxy class that relays search queries to another searchable object
-/** This class may be used for example when you have global search bar, but many sub-windows or sub-displays
+
+//! A proxy class that relays search queries to another searchable object (OBSOLETE)
+/**
+ * THIS CLASS IS OBSOLETE. Use KLFPosSearchableProxy instead.
+ *
+ * This class may be used for example when you have global search bar, but many sub-windows or sub-displays
  * displaying different data, and the search bar should search within the active one.
  */
-class KLF_EXPORT KLFSearchableProxy : public KLFSearchable
+class KLF_EXPORT KLFSearchableProxy : public KLFSearchable, public KLFTargeter
 {
 public:
-  KLFSearchableProxy() : pTarget(NULL) { }
+  KLFSearchableProxy() : KLFTargeter() { }
   virtual ~KLFSearchableProxy();
   
-  void setSearchTarget(KLFSearchable *target);
+  void setSearchTarget(KLFPosSearchable *target) { setTarget(target); }
+  virtual void setTarget(KLFTarget *target);
 
   virtual bool searchFind(const QString& queryString, bool forward);
   virtual bool searchFindNext(bool forward);
   virtual void searchAbort();
 
-private:
-  KLFSearchable *pTarget;
-
-  friend class KLFSearchable;
+protected:
+  virtual KLFSearchable *target() { return dynamic_cast<KLFSearchable*>(pTarget); }
 };
+
+
 
 
 class KLFSearchBarPrivate;
@@ -170,7 +474,7 @@ class KLFSearchBarPrivate;
  * since the property \c searchState is set to one of \c "default", \c "focus-out", \c "found", \c "not-found",
  * or \c "aborted" depending on the current state.
  */
-class KLF_EXPORT KLFSearchBar : public QFrame
+class KLF_EXPORT KLFSearchBar : public QFrame, public KLFTargeter
 {
   Q_OBJECT
 
@@ -182,6 +486,7 @@ class KLF_EXPORT KLFSearchBar : public QFrame
   Q_PROPERTY(QColor colorFound READ colorFound WRITE setColorFound) ;
   Q_PROPERTY(QColor colorNotFound READ colorNotFound WRITE setColorNotFound) ;
   Q_PROPERTY(bool showHideButton READ hideButtonShown WRITE setShowHideButton) ;
+  Q_PROPERTY(bool emacsStyleBackSpace READ emacsStyleBackSpace WRITE setEmacsStyleBackSpace) ;
 public:
   KLFSearchBar(QWidget *parent = NULL);
   virtual ~KLFSearchBar();
@@ -189,7 +494,8 @@ public:
 
   /** Set the object upon which we will perform searches. As long as no object is
    * set this bar is unusable. */
-  virtual void setSearchTarget(KLFSearchable *object);
+  virtual void setSearchTarget(KLFPosSearchable *target) { setTarget(target); }
+  virtual void setTarget(KLFTarget *target);
 
   QString currentSearchText() const;
   bool showOverlayMode() const;
@@ -200,7 +506,17 @@ public:
   /** This value is read from the palette. It does not take into account style sheets. */
   QColor colorNotFound() const;
   bool hideButtonShown() const;
+  bool emacsStyleBackSpace() const;
 
+  /** Returns the current position in the searched object. This is useful only if you
+   * know how the searched object uses KLFPosSearchable::Pos structures. */
+  KLFPosSearchable::Pos currentSearchPos() const;
+
+  /** Sets the overlay mode. If overlay mode is on, then the search bar is displayed overlaying the
+   * parent widget, with no specific layout, possibly hiding other widgets. It is hidden as soon as
+   * the search is over.
+   *
+   * You may use, eg. the keyboard shortcuts to activate the search and show the search bar. */
   void setShowOverlayMode(bool showOverlayMode);
   void setShowOverlayRelativeGeometry(const QRect& relativeGeometryPercent);
   void setShowOverlayRelativeGeometry(int widthPercent, int heightPercent,
@@ -208,6 +524,7 @@ public:
   void setColorFound(const QColor& color);
   void setColorNotFound(const QColor& color);
   void setShowHideButton(bool showHideButton);
+  void setEmacsStyleBackSpace(bool on);
 
   virtual bool eventFilter(QObject *obj, QEvent *ev);
 
@@ -215,8 +532,10 @@ public:
 
 signals:
   void searchPerformed(bool found);
+  void searchPerformed(const QString& queryString, bool found);
   void found();
   void found(const QString& queryString, bool forward);
+  void found(const QString& queryString, bool forward, const KLFPosSearchable::Pos& pos);
   void didNotFind();
   void didNotFind(const QString& queryString, bool forward);
   void searchAborted();
@@ -250,11 +569,13 @@ protected:
   virtual void slotSearchFocusOut();
   virtual void updateSearchFound(bool found);
 
+  void promptEmptySearch();
+
   enum SearchState { Default, FocusOut, Found, NotFound, Aborted };
 
   virtual void displayState(SearchState state);
 
-  void emitFoundSignals(bool found, const QString& searchstring, bool forward);
+  void emitFoundSignals(const KLFPosSearchable::Pos& pos, const QString& searchstring, bool forward);
 
   /** sets the given \c text in the search bar, ensuring that the search bar will NOT emit
    * any textChanged() signals. */
@@ -268,7 +589,7 @@ protected:
 
 private:
 
-  KLFSearchable *pTarget;
+  inline KLFPosSearchable *target() { return dynamic_cast<KLFPosSearchable*>(pTarget); }
 
   KLFSearchBarPrivate *d;
 
@@ -278,6 +599,8 @@ private:
   // Needed so that KLFSearchable's can ensure \ref pTarget is valid, and set it to NULL
   // when appropriate
   friend class KLFSearchable;
+
+  void performFind(bool forward);
 
   KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE()
 };

@@ -77,7 +77,7 @@ namespace KLFLib {
  *   the pointer before using it! See \ref validResourceEngine().
  *
  * If the reimplementation of this view can be searched with a KLFSearchBar, reimplement
- * searchable() to return a KLFSearchable object for this view.
+ * searchable() to return a KLFPosSearchable object for this view.
  */
 class KLF_EXPORT KLFAbstractLibView : public QWidget
 {
@@ -164,7 +164,7 @@ public:
    * categories. */
   virtual QStringList getCategorySuggestions() = 0;
 
-  virtual KLFSearchable * searchable() { return NULL; }
+  virtual KLFPosSearchable * searchable() { return NULL; }
 
 signals:
   /** Is emitted (by subclasses) when a latex entry is selected to be restored (eg. the entry was
@@ -795,7 +795,7 @@ public:
 
   virtual QStringList getCategorySuggestions();
 
-  virtual KLFSearchable * searchable() { return this; }
+  virtual KLFPosSearchable * searchable() { return this; }
 
 public slots:
   //   virtual bool writeEntryProperty(int property, const QVariant& value);
