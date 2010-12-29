@@ -201,6 +201,7 @@ public:
     bool showExportProfilesLabel;
     bool menuExportProfileAffectsDrag;
     bool menuExportProfileAffectsCopy;
+    bool emacsStyleBackspaceSearch;
 
   } UI;
 

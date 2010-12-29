@@ -412,7 +412,7 @@ class KLF_EXPORT KLFSearchBar : public QFrame, public KLFTargeter
   Q_PROPERTY(QColor colorNotFound READ colorNotFound WRITE setColorNotFound) ;
   Q_PROPERTY(bool showHideButton READ hideButtonShown WRITE setShowHideButton) ;
   Q_PROPERTY(bool showSearchLabel READ showSearchLabel WRITE setShowSearchLabel) ;
-  Q_PROPERTY(bool emacsStyleBackSpace READ emacsStyleBackSpace WRITE setEmacsStyleBackSpace) ;
+  Q_PROPERTY(bool emacsStyleBackspace READ emacsStyleBackspace WRITE setEmacsStyleBackspace) ;
 public:
 
   enum SearchState { Default, FocusOut, Found, NotFound, Aborted };
@@ -437,7 +437,7 @@ public:
   QColor colorNotFound() const;
   bool hideButtonShown() const;
   bool showSearchLabel() const;
-  bool emacsStyleBackSpace() const;
+  bool emacsStyleBackspace() const;
 
   /** Returns the current position in the searched object. This is useful only if you
    * know how the searched object uses KLFPosSearchable::Pos structures. */
@@ -462,7 +462,7 @@ public:
   void setColorNotFound(const QColor& color);
   void setShowHideButton(bool showHideButton);
   void setShowSearchLabel(bool show);
-  void setEmacsStyleBackSpace(bool on);
+  void setEmacsStyleBackspace(bool on);
 
   virtual bool eventFilter(QObject *obj, QEvent *ev);
 

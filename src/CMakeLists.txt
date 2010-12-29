@@ -69,6 +69,7 @@ set(klfapp_SRCS
 set(klfapp_MOCHEADERS
 	klflatexedit.h
 	klflatexsymbols.h
+	klflatexsymbols_p.h
 	klflibentryeditor.h
 	klflibbrowser.h
 	klflibbrowser_p.h
@@ -92,7 +93,6 @@ set(klfapp_HEADERS
 	klfconfig.h
 	klfpluginiface.h
 	klflib_p.h
-	klflatexsymbols_p.h
 	${klfapp_MOCHEADERS}
 )
 # UI Forms

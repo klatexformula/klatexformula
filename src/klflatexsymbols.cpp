@@ -632,8 +632,6 @@ void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch, const QString
       which = 1;
     mSymbols[k]->setStyleSheet(stylesheets[which]);
   }  
-  if (currentMatch >= 0 && currentMatch < mSymbols.size())
-    ensureWidgetVisible(mSymbols[currentMatch]);
 }
 
 
@@ -685,6 +683,8 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
   connect(u->cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));
   connect(u->cbxCategory, SIGNAL(activated(int)), this, SLOT(slotShowCategory(int)));
   connect(u->btnClose, SIGNAL(clicked()), this, SLOT(close()));
+
+  slotKlfConfigChanged();
 }
 
 void KLFLatexSymbols::retranslateUi(bool alsoBaseUi)
@@ -697,6 +697,12 @@ KLFLatexSymbols::~KLFLatexSymbols()
 {
   KLFLatexSymbolsCache::saveTheCache();
 }
+
+void KLFLatexSymbols::slotKlfConfigChanged()
+{
+  pSearchBar->setEmacsStyleBackspace(klfconfig.UI.emacsStyleBackspaceSearch);
+}
+
 
 void KLFLatexSymbols::read_symbols_create_ui()
 {

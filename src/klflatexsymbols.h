@@ -173,6 +173,8 @@ public slots:
 
   void retranslateUi(bool alsoBaseUi = true);
 
+  void slotKlfConfigChanged();
+
 protected:
   QStackedWidget *stkViews;
 

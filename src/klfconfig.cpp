@@ -286,6 +286,7 @@ void KLFConfig::loadDefaults()
     UI.showExportProfilesLabel = true;
     UI.menuExportProfileAffectsDrag = true;
     UI.menuExportProfileAffectsCopy = true;
+    UI.emacsStyleBackspaceSearch = true;
 
     SyntaxHighlighter.configFlags = 0x05;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
@@ -531,6 +532,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "showexportprofileslabel", &UI.showExportProfilesLabel);
   klf_config_read(s, "menuexportprofileaffectsdrag", &UI.menuExportProfileAffectsDrag);
   klf_config_read(s, "menuexportprofileaffectscopy", &UI.menuExportProfileAffectsCopy);
+  klf_config_read(s, "emacsstylebackspacesearch", &UI.emacsStyleBackspaceSearch);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -650,6 +652,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "showexportprofileslabel", &UI.showExportProfilesLabel);
   klf_config_write(s, "menuexportprofileaffectsdrag", &UI.menuExportProfileAffectsDrag);
   klf_config_write(s, "menuexportprofileaffectscopy", &UI.menuExportProfileAffectsCopy);
+  klf_config_write(s, "emacsstylebackspacesearch", &UI.emacsStyleBackspaceSearch);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");

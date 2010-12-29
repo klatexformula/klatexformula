@@ -383,6 +383,8 @@ KLFMainWin::KLFMainWin()
   connect(mLatexSymbols, SIGNAL(insertSymbol(const KLFLatexSymbol&)),
 	  this, SLOT(insertSymbol(const KLFLatexSymbol&)));
 
+  connect(this, SIGNAL(klfConfigChanged()), mLatexSymbols, SLOT(slotKlfConfigChanged()));
+
 
   // our help/about dialog
   connect(u->btnHelp, SIGNAL(clicked()), this, SLOT(showAbout()));
@@ -516,14 +518,6 @@ KLFMainWin::~KLFMainWin()
 
 void KLFMainWin::startupFinished()
 {
-  //  if ( ! _loadedlibrary ) {
-  //    _loadedlibrary = true;
-  //
-  //    // load the library browser's saved state
-  //    QMetaObject::invokeMethod(this, "loadLibrary", Qt::QueuedConnection);
-  //  }
-
-
   // Export profiles selection list
 
   pExportProfileQuickMenuActionList.clear();

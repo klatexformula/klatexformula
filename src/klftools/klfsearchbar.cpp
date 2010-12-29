@@ -272,7 +272,7 @@ bool KLFSearchBar::showSearchLabel() const
   return u->lblSearch->isVisible();
 }
 
-bool KLFSearchBar::emacsStyleBackSpace() const
+bool KLFSearchBar::emacsStyleBackspace() const
 {
   return d->pUseEsbs;
 }
@@ -316,7 +316,7 @@ void KLFSearchBar::setShowSearchLabel(bool on)
   u->lblSearch->setShown(on);
 }
 
-void KLFSearchBar::setEmacsStyleBackSpace(bool on)
+void KLFSearchBar::setEmacsStyleBackspace(bool on)
 {
   if (d->pIsSearching)
     abortSearch();
@@ -795,7 +795,8 @@ void KLFSearchBar::focus()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  adjustOverlayGeometry();
+  if (d->pShowOverlayMode)
+    adjustOverlayGeometry();
 
   if (!isVisible()) {
     // show the search bar. This works with in overlay mode as well as when the widget is hidden

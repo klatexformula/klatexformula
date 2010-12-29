@@ -30,7 +30,14 @@
 #ifndef KLFLATEXSYMBOLS_P_H
 #define KLFLATEXSYMBOLS_P_H
 
+#include <QTimer>
+#include <QToolTip>
+#include <QScrollBar>
+
 #include <klfsearchbar.h>
+
+#include <ui_klflatexsymbols.h>
+#include "klflatexsymbols.h"
 
 struct KLFLatexSymbolsSearchIterator
 {
@@ -52,12 +59,31 @@ inline QDebug& operator<<(QDebug& str, const KLFLatexSymbolsSearchIterator& it)
 }
 
 
-class KLFLatexSymbolsSearchable : public KLFIteratorSearchable<KLFLatexSymbolsSearchIterator>
-{
-  KLFLatexSymbols *s;
-public:
-  KLFLatexSymbolsSearchable(KLFLatexSymbols *symb) : s(symb) { }
 
+class KLFLatexSymbolsSearchable : public QObject, public KLFIteratorSearchable<KLFLatexSymbolsSearchIterator>
+{
+  Q_OBJECT
+private:
+  KLFLatexSymbols *s;
+  QTimer tooltiptimer;
+  QPoint tooltippos;
+  QString tooltiptext;
+  QWidget *tooltipwidget;
+
+public:
+  KLFLatexSymbolsSearchable(KLFLatexSymbols *symb) : QObject(symb), s(symb)
+  {
+    connect(&tooltiptimer, SIGNAL(timeout()), this, SLOT(slotToolTip()));
+  }
+  virtual ~KLFLatexSymbolsSearchable() { }
+
+public slots:
+  void slotToolTip()
+  {
+    QToolTip::showText(tooltippos, tooltiptext, tooltipwidget);
+  }
+
+public:
 
   // reimplemented from KLFIteratorSearchable
 
@@ -116,20 +142,46 @@ public:
 
   virtual void searchMoveToIterPos(const SearchIterator& pos)
   {
+    QToolTip::hideText();
     if (!(pos == searchIterEnd())) {
       KLFLatexSymbolsView *v = view(pos);
       KLF_ASSERT_NOT_NULL(v, "View for "<<pos<<" is NULL!", return ; ) ;
       s->u->cbxCategory->setCurrentIndex(pos.iview);
       s->stkViews->setCurrentWidget(v);
+      QWidget *w = v->mSymbols[pos.isymb];
+      KLF_ASSERT_CONDITION_ELSE(pos.isymb >= 0 && pos.isymb < v->mSymbols.size(),
+				"Invalid pos object:"<<pos<<"; symb list size="<<v->mSymbols.size(),
+				;) {
+	v->ensureWidgetVisible(w);
+      }
       klfDbg("pos is "<<pos) ;
-      v->highlightSearchMatches(pos.isymb, searchQueryString());
-    } else {
-      searchReinitialized();
+      // show tooltip after some delay
+      tooltiptext = w->toolTip();
+      tooltippos = v->viewport()->mapToGlobal(w->geometry().center() -
+					      QPoint(v->horizontalScrollBar()->value(),
+						     v->verticalScrollBar()->value()));
+      tooltipwidget = w;
+      tooltiptimer.stop();
+      tooltiptimer.setSingleShot(true);
+      tooltiptimer.setInterval(1000);
+      tooltiptimer.start();
     }
   }
   virtual void searchPerformed(const SearchIterator& pos)
   {
-    klfDbg("result is "<<pos) ;
+    if (!(pos == searchIterEnd())) {
+      KLFLatexSymbolsView *v = view(pos);
+      KLF_ASSERT_NOT_NULL(v, "View for "<<pos<<" is NULL!", return ; ) ;
+      v->highlightSearchMatches(pos.isymb, searchQueryString());
+    } else {
+      int i = s->u->cbxCategory->currentIndex();
+      KLF_ASSERT_CONDITION_ELSE(i>=0 && i<s->mViews.size(), "bad current view index "<<i<<"!", ;) {
+	KLFLatexSymbolsView *v = s->mViews[i];
+	// `current match' at 1 past end, so as to highlight all other matches, too
+	v->highlightSearchMatches(v->mSymbols.size(), searchQueryString());
+      }
+    }
+    klfDbg("pos is is "<<pos) ;
     KLFIteratorSearchable<KLFLatexSymbolsSearchIterator>::searchPerformed(pos);
   }
   virtual void searchAborted()
@@ -157,8 +209,6 @@ public:
       return NULL;
     return s->mViews[it.iview];
   }
-
-
 
 };
 
