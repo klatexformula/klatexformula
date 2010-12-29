@@ -2995,6 +2995,8 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
   lyt->setSpacing(0);
   pDelegate = new KLFLibViewDelegate(this);
 
+  pSearchable = new KLFLibViewSearchable(this);
+
   // set icon size
   switch (pViewType) {
   case CategoryTreeView:
@@ -3061,6 +3063,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
 }
 KLFLibDefaultView::~KLFLibDefaultView()
 {
+  delete pSearchable;
 }
 
 QUrl KLFLibDefaultView::url() const
@@ -3479,6 +3482,12 @@ QStringList KLFLibDefaultView::getCategorySuggestions()
   return pModel->categoryList();
 }
 
+KLFPosSearchable * KLFLibDefaultView::searchable()
+{
+  return pSearchable;
+}
+
+
 // bool KLFLibDefaultView::writeEntryProperty(int property, const QVariant& value)
 // {
 //   return pModel->changeEntries(selectedEntryIndexes(), property, value);
@@ -3712,60 +3721,6 @@ void KLFLibDefaultView::updateDisplay()
 {
   KLF_ASSERT_NOT_NULL(pView, "view is NULL!", return ) ;
   pView->viewport()->update();
-}
-
-bool KLFLibDefaultView::searchFind(const QString& queryString, bool forward)
-{
-  QModelIndex fromIndex = currentVisibleIndex();
-  // take one index above in case it's partially shown
-  fromIndex = pModel->walkPrevIndex(fromIndex);
-  QModelIndex i = pModel->searchFind(queryString, fromIndex, forward);
-  pDelegate->setSearchString(queryString);
-  //  for (int col = 0; i.isValid() && col < pModel->columnCount(); ++col)
-  //    pView->update(pModel->index(i.row(), col, i.parent())); // searchFound will call updateDisplay()
-  searchFound(i);
-  return i.isValid();
-}
-
-bool KLFLibDefaultView::searchFindNext(bool forward)
-{
-  QModelIndex i = pModel->searchFindNext(forward);
-  searchFound(i);
-  return i.isValid();
-}
-
-void KLFLibDefaultView::searchAbort()
-{
-  pModel->searchAbort();
-  pDelegate->setSearchString(QString());
-  pDelegate->setSearchIndex(QModelIndex());
-  updateDisplay(); // repaint widget to update search underline
-
-  // don't un-select the found index...
-  //  searchFound(QModelIndex());
-}
-
-// private
-void KLFLibDefaultView::searchFound(const QModelIndex& i)
-{
-  pDelegate->setSearchIndex(i);
-  if ( ! i.isValid() ) {
-    pView->scrollToTop();
-    // unselect all
-    pView->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::Clear);
-    return;
-  } else {
-    pView->scrollTo(i, QAbstractItemView::EnsureVisible);
-  }
-  if (pViewType == CategoryTreeView) {
-    // if tree view, expand item
-    qobject_cast<QTreeView*>(pView)->expand(i);
-  }
-  // select the item
-  pView->selectionModel()->setCurrentIndex(i,
-					   QItemSelectionModel::ClearAndSelect|
-					   QItemSelectionModel::Rows);
-  updateDisplay();
 }
 
 

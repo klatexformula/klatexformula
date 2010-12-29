@@ -18,14 +18,11 @@
    <iconset resource="klfres.qrc">
     <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="lyt_KLFLatexSymbols">
-   <property name="spacing">
-    <number>3</number>
-   </property>
+  <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
     <number>5</number>
    </property>
-   <item>
+   <item row="0" column="0">
     <widget class="QFrame" name="frmMain">
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
@@ -36,14 +33,11 @@
      <property name="lineWidth">
       <number>0</number>
      </property>
-     <layout class="QVBoxLayout" name="lyt_frmMain">
-      <property name="spacing">
-       <number>3</number>
-      </property>
+     <layout class="QGridLayout" name="gridLayout_2">
       <property name="margin">
        <number>0</number>
       </property>
-      <item>
+      <item row="0" column="0" colspan="2">
        <widget class="QFrame" name="frmStackContainer">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -62,17 +56,50 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="2" column="0">
        <widget class="QComboBox" name="cbxCategory">
         <property name="toolTip">
          <string>Choose symbol category</string>
         </property>
        </widget>
       </item>
+      <item row="2" column="1">
+       <widget class="QToolButton" name="btnSearch">
+        <property name="toolTip">
+         <string>Search for Symbols ...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="klfres.qrc">
+          <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="KLFSearchBar" name="searchbar">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>10</height>
+         </size>
+        </property>
+        <property name="autoHide" stdset="0">
+         <bool>true</bool>
+        </property>
+        <property name="focusOutText" stdset="0">
+         <string>Search for Symbols ...</string>
+        </property>
+        <property name="showSearchLabel" stdset="0">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
-   <item>
+   <item row="1" column="0">
     <widget class="QPushButton" name="btnClose">
      <property name="toolTip">
       <string>Close this dialog</string>
@@ -92,6 +119,17 @@
   </layout>
  </widget>
  <layoutdefault spacing="2" margin="0"/>
+ <customwidgets>
+  <customwidget>
+   <class>KLFSearchBar</class>
+   <extends>QFrame</extends>
+   <header location="global">klfsearchbar.h</header>
+   <container>1</container>
+   <slots>
+    <signal>visibilityChanged(bool)</signal>
+   </slots>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>cbxCategory</tabstop>
   <tabstop>btnClose</tabstop>
@@ -99,5 +137,38 @@
  <resources>
   <include location="klfres.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>btnSearch</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>searchbar</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>483</x>
+     <y>450</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>475</x>
+     <y>423</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchbar</sender>
+   <signal>visibilityChanged(bool)</signal>
+   <receiver>btnSearch</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>491</x>
+     <y>426</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>488</x>
+     <y>441</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

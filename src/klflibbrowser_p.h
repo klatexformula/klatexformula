@@ -54,7 +54,7 @@
 #include "klflibbrowser.h"
 
 /** \internal */
-class KLFLibBrowserViewContainer : public QStackedWidget, public KLFSearchableProxy
+class KLFLibBrowserViewContainer : public QStackedWidget, public KLFPosSearchableProxy
 {
   Q_OBJECT
 public:

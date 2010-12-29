@@ -55,6 +55,8 @@
 #include "klfconfig.h"
 #include "klflatexsymbols.h"
 
+#include "klflatexsymbols_p.h"
+
 
 
 // ------------------
@@ -586,47 +588,29 @@ void KLFLatexSymbolsView::slotSymbolActivated()
 }
 
 
-bool KLFLatexSymbolsView::searchIterMatches(const SearchIterator& pos, const QString& queryString)
+bool KLFLatexSymbolsView::symbolMatches(int symbol, const QString& curqstr)
 {
-  // remember:  SearchIterator==int
-  if (pos < 0 || pos >= mSymbols.size())
+  if (symbol < 0 || symbol >= mSymbols.size())
     return false;
 
-  int symIndex = mSymbols[pos]->property("symbol").toInt();
+  int symIndex = mSymbols[symbol]->property("symbol").toInt();
   if (symIndex < 0 || symIndex >= _symbols.size()) {
     qWarning()<<KLF_FUNC_NAME<<": Inavlid symbol index "<<symIndex;
     return false;
   }
 
   // (X)Emacs-style: presence of capital letter triggers case sensitive search
-  Qt::CaseSensitivity cs = (queryString.contains(QRegExp("[A-Z]")) ? Qt::CaseSensitive : Qt::CaseInsensitive) ;
+  Qt::CaseSensitivity cs = (curqstr.contains(QRegExp("[A-Z]")) ? Qt::CaseSensitive : Qt::CaseInsensitive) ;
 
-  if ( _symbols[symIndex].symbol.contains(queryString, cs) ||
-       _symbols[symIndex].preamble.contains(queryString, cs) ) {
+  if ( _symbols[symIndex].symbol.contains(curqstr, cs) ||
+       _symbols[symIndex].preamble.contains(curqstr, cs) ) {
     klfDbg("found match at "<<symIndex<<": "<<_symbols[symIndex].symbol) ;
     return true;
   }
   return false;
 }
 
-void KLFLatexSymbolsView::searchMoveToIterPos(const SearchIterator& pos)
-{
-  klfDbg("pos is "<<pos<<" valid="<<(pos<mSymbols.size())) ;
-  highlightSearchMatches(pos);
-}
-void KLFLatexSymbolsView::searchPerformed(const SearchIterator& result)
-{
-  klfDbg("result is "<<result<<" valid="<<(result<mSymbols.size())) ;
-  //  highlightSearchMatches(result);
-}
-void KLFLatexSymbolsView::searchAbort()
-{
-  KLFIteratorSearchable<int>::searchAbort();
-  highlightSearchMatches(-1);
-  //  setFocus();
-}
-
-void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch)
+void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch, const QString& curqstr)
 {
   QString stylesheets[] = {
     // don't affect tooltips: give KLFPixmapButton { } scopes
@@ -634,8 +618,6 @@ void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch)
     "KLFPixmapButton { background-color: rgb(180,180,255); }",
     "KLFPixmapButton { background-color: rgb(0,0,255); }"
   };
-
-  const QString curqstr = searchQueryString();
 
   if (currentMatch == -1) {
     // abort search
@@ -646,7 +628,7 @@ void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch)
     int which = 0;
     if (k == currentMatch)
       which = 2;
-    else if (curqstr.size() && searchIterMatches(k, curqstr))
+    else if (curqstr.size() && symbolMatches(k, curqstr))
       which = 1;
     mSymbols[k]->setStyleSheet(stylesheets[which]);
   }  
@@ -674,13 +656,15 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
   setAttribute(Qt::WA_StyledBackground);
 
   // add our search bar
-  pSearchBar = new KLFSearchBar(this);
+  pSearchBar = u->searchbar; //new KLFSearchBar(this);
   KLF_DEBUG_ASSIGN_REF_INSTANCE(pSearchBar, "latexsymbols-searchbar") ;
-  pSearchBar->setShowOverlayMode(true);
+  //  pSearchBar->setShowOverlayMode(true);
   pSearchBar->registerShortcuts(this);
-  pSearchBar->setSearchText("");
   pSearchBar->setShowHideButton(true);
   connect(pSearchBar, SIGNAL(escapePressed()), pSearchBar, SLOT(hide()));
+
+  pSearchable = new KLFLatexSymbolsSearchable(this);
+  pSearchBar->setSearchTarget(pSearchable);
 
   klfDbg("prepared search bar.") ;
 
@@ -905,15 +889,6 @@ void KLFLatexSymbols::slotShowCategory(int c)
   stkViews->setCurrentIndex(c);
 
   klfDbg("current index="<<c) ;
-
-  QWidget * w = stkViews->currentWidget();
-  KLFPosSearchable * target = NULL;
-  if (w != NULL) {
-    KLFLatexSymbolsView *view = qobject_cast<KLFLatexSymbolsView*>(w);
-    if (view != NULL)
-      target = view;
-  }
-  pSearchBar->setSearchTarget(target);
 }
 
 void KLFLatexSymbols::closeEvent(QCloseEvent *e)

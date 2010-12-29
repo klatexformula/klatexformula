@@ -106,7 +106,10 @@ private:
 
 
 
-class KLF_EXPORT KLFLatexSymbolsView : public QScrollArea, public KLFIteratorSearchable<int>
+class KLFLatexSymbolsSearchable;
+
+
+class KLF_EXPORT KLFLatexSymbolsView : public QScrollArea
 {
   Q_OBJECT
 public:
@@ -116,17 +119,6 @@ public:
   void appendSymbolList(const QList<KLFLatexSymbol>& symbols);
 
   QString category() const { return _category; }
-
-  // reimplemented from KLFIteratorSearchable
-
-  virtual SearchIterator searchIterBegin() { return 0; }
-  virtual SearchIterator searchIterEnd() { return mSymbols.size(); }
-
-  virtual bool searchIterMatches(const SearchIterator& pos, const QString& queryString);
-
-  virtual void searchMoveToIterPos(const SearchIterator& pos);
-  virtual void searchPerformed(const SearchIterator& result);
-  virtual void searchAbort();
 
 signals:
   void symbolActivated(const KLFLatexSymbol& symb);
@@ -148,7 +140,10 @@ private:
   QSpacerItem *mSpacerItem;
   QList<QWidget*> mSymbols;
 
-  void highlightSearchMatches(int currentMatch);
+  friend class KLFLatexSymbolsSearchable;
+
+  bool symbolMatches(int symbol, const QString& qs);
+  void highlightSearchMatches(int currentMatch, const QString& qs);
 };
 
 
@@ -190,6 +185,9 @@ private:
   Ui::KLFLatexSymbols *u;
 
   KLFSearchBar * pSearchBar;
+
+  KLFLatexSymbolsSearchable * pSearchable;
+  friend class KLFLatexSymbolsSearchable;
 
   void read_symbols_create_ui();
 };

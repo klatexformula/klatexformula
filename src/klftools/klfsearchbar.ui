@@ -78,7 +78,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="4">
+   <item row="0" column="5">
     <widget class="QToolButton" name="btnFindPrev">
      <property name="toolTip">
       <string>Find Previous [Shift-F3]</string>
@@ -92,7 +92,15 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="5">
+   <item row="0" column="0">
+    <widget class="QToolButton" name="btnHide">
+     <property name="icon">
+      <iconset resource="../klftoolsres.qrc">
+       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
     <widget class="QToolButton" name="btnFindNext">
      <property name="toolTip">
       <string>Find Next [F3]</string>
@@ -106,22 +114,14 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0">
-    <widget class="QToolButton" name="btnHide">
-     <property name="icon">
-      <iconset resource="../klftoolsres.qrc">
-       <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>txtSearch</tabstop>
   <tabstop>btnFindNext</tabstop>
   <tabstop>btnFindPrev</tabstop>
-  <tabstop>btnSearchClear</tabstop>
   <tabstop>btnHide</tabstop>
+  <tabstop>btnSearchClear</tabstop>
  </tabstops>
  <resources>
   <include location="../klftoolsres.qrc"/>

@@ -92,6 +92,7 @@ set(klfapp_HEADERS
 	klfconfig.h
 	klfpluginiface.h
 	klflib_p.h
+	klflatexsymbols_p.h
 	${klfapp_MOCHEADERS}
 )
 # UI Forms

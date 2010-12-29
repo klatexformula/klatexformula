@@ -43,8 +43,9 @@ struct KLFSearchBarPrivate
   /** This is set by focusOrNext() or focusOrPrev() to remember in which direction to
    * search when text in search bar is changed and thus find() is called. */
   bool pSearchForward;
-  /** Is set to TRUE between the call of searchFind(...) and searchAbort(). */
   bool pIsSearching;
+  /** Current search bar state. */
+  KLFSearchBar::SearchState pState;
   QString pSearchText;
   KLFPosSearchable::Pos pCurPos;
   KLFPosSearchable::Pos pLastPos;
@@ -53,11 +54,17 @@ struct KLFSearchBarPrivate
 
   KLFWaitAnimationOverlay *pWaitLabel;
 
+  bool pAutoHide;
+
   bool pShowOverlayMode;
   QRect pShowOverlayRelativeGeometry;
 
   QString pFocusOutText;
 
+  bool pIsFinding;
+  bool pHasQueuedFind;
+  QString pQueuedFindString;
+  bool pQueuedFindForward;
 
   /** <i>Emacs-Style Backspace</i>: typing backspace key comes back to previous match if any, otherwise
    * erases last char of search string. */
@@ -71,10 +78,12 @@ struct KLFSearchBarPrivate
   struct HistBuffer {
     struct CurLastPosPair {
       CurLastPosPair(const KLFPosSearchable::Pos& c = KLFPosSearchable::Pos::staticInvalidPos(),
-		     const KLFPosSearchable::Pos& l = KLFPosSearchable::Pos::staticInvalidPos())
-	: cur(c), last(l)  { }
+		     const KLFPosSearchable::Pos& l = KLFPosSearchable::Pos::staticInvalidPos(),
+		     bool forward = true)
+	: cur(c), last(l), reachedForward(forward)  { }
       KLFPosSearchable::Pos cur;
       KLFPosSearchable::Pos last;
+      bool reachedForward;
     };
     QString str; //!< Query String
     QList<CurLastPosPair> poslist; //!< list of visited matching positions

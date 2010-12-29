@@ -45,107 +45,6 @@ namespace Ui { class KLFSearchBar; }
 
 
 
-
-template<class T>
-class KLFRefPtr {
-  typedef T* Pointer;
-
-  Pointer p;
-  bool autodelete;
-
-  void unset() {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    if (p != NULL) {
-      int n = p->deref();
-      klfDbg(p<<": deref()! n="<<n<<";  autodelete="<<autodelete) ;
-      if (autodelete && n <= 0) {
-	klfDbg("Deleting at refcount="<<n<<".") ;
-	delete p;
-      }
-      p = NULL;
-    }
-  }
-  void set() {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    if (p != NULL) {
-      int n = p->ref();
-      klfDbg(p<<": ref()! n="<<n) ;
-    }
-  }
-
-public:
-  KLFRefPtr() : p(NULL), autodelete(true)
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  }
-
-  KLFRefPtr(const KLFRefPtr& copy) : p(copy.p), autodelete(copy.autodelete)
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+" [copy]") ;
-    set();
-  }
-
-  ~KLFRefPtr()
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    unset();
-  }
-
-  T * ptr() { return p; }
-  const T * ptr() const { return p; }
-
-  bool autoDelete() const { return autodelete; }
-  void setAutoDelete(bool on) { autodelete = on; }
-
-  KLFRefPtr<T>& operator=(const KLFRefPtr<T>& other)
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(KLFRefPtr<T*>)") ;
-    return this->operator=(other.p);
-  }
-  template<class OtherPtr> KLFRefPtr<T>& operator=(OtherPtr aptr)
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(OtherPtr)") ;
-    return this->operator=(static_cast<Pointer>(aptr));
-  }
-  KLFRefPtr<T>& operator=(Pointer newptr)
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(Pointer)") ;
-    klfDbg("new pointer: "<<newptr<<"; old pointer was "<<p) ;
-    if (newptr == p) // no change
-      return *this;
-    unset();
-    p = newptr;
-    set();
-    return *this;
-  };
-  
-  inline operator T *()
-  {  return p;  }
-  inline operator const T *() const
-  {  return p;  }
-
-  /*  inline T & operator*()
-      {  return *p; }
-      inline const T & operator*() const
-      {  return *p; } */
-
-  inline Pointer operator->()
-  {  return p;  }
-  inline const Pointer operator->() const
-  {  return p;  }
-
-  template<class OtherPtr>
-  inline OtherPtr dyn_cast() { return dynamic_cast<OtherPtr>(p); }
-
-  template<class OtherPtr>
-  inline const OtherPtr dyn_cast() const { return dynamic_cast<const OtherPtr>(p); }
-
-private:
-  void operator+=(int n) { }
-  void operator-=(int n) { }
-};
-
-
 //! An object that can be searched with a KLFSearchBar
 /**
  */
@@ -256,7 +155,7 @@ public:
    * to keep the GUI from freezing in long searches.
    *
    * \note If the reimplementation implements the above suggestion, note that the slot
-   *   \ref searchAbort() may be called during that time! It is best to take that into
+   *   \ref searchAborted() may be called during that time! It is best to take that into
    *   account and provide a means to stop the search if that is the case.
    */
   virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward) = 0;
@@ -273,7 +172,7 @@ public:
 
   /** Called by the search bar to inform the searched object that the search was aborted by the
    * user. */
-  virtual void searchAbort() = 0;
+  virtual void searchAborted() = 0;
 
   /** Subclasses should override to use this function as Pos object factory. See also
    * \ref Pos::valid().
@@ -298,19 +197,30 @@ public:
    *  */
   virtual Pos invalidPos() { return Pos::staticInvalidPos(); };
 
+  /** Called when search bar has focus, but not text is typed. Typically if user hits
+   * backspace enough times to an empty string.
+   */
+  virtual void searchReinitialized() { }
+
+
   /** \brief The current query string.
    *
    * This function can be used by subclasses to retrieve the current search string.
    */
-  inline QString searchQueryString() const { return pQString; }
-
+  virtual QString searchQueryString() const { klfDbg("pQString="<<pQString) ; return pQString; }
 
   /** \internal
    * Used internally to update the return value of searchQueryString().
    */
-  inline void setSearchQueryString(const QString& s) { pQString = s; }
+  virtual void setSearchQueryString(const QString& s) { klfDbg("pQString="<<pQString<<"; setting to "<<s) ; pQString = s; }
+
+  virtual bool searchHasInterruptRequested() { return pInterruptRequested; }
+
+  virtual void setSearchInterruptRequested(bool on) { pInterruptRequested = on; }
+
 private:
   QString pQString;
+  bool pInterruptRequested;
 };
 
 KLF_EXPORT QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos);
@@ -328,12 +238,25 @@ public:
 
   virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos);
 
-  virtual void searchAbort();
+  virtual void searchAborted();
 
   virtual Pos invalidPos();
 
+  virtual void searchReinitialized();
+
+  virtual void setSearchTarget(KLFPosSearchable *t) { setTarget(t); }
+
+  virtual QString searchQueryString() const;
+
+  virtual void setSearchQueryString(const QString& s);
+
+  virtual bool searchHasInterruptRequested();
+
+  virtual void setSearchInterruptRequested(bool on);
+
 protected:
   virtual KLFPosSearchable *target() { return dynamic_cast<KLFPosSearchable*>(pTarget); }
+  virtual const KLFPosSearchable *target() const { return dynamic_cast<KLFPosSearchable*>(pTarget); }
 };
 
 
@@ -413,6 +336,7 @@ public:
   virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward);
   virtual void searchMoveToPos(const Pos& pos) { }
   virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos) { }
+  virtual void searchAborted() { searchAbort(); }
 };
 
 
@@ -479,6 +403,7 @@ class KLF_EXPORT KLFSearchBar : public QFrame, public KLFTargeter
   Q_OBJECT
 
   Q_PROPERTY(QString currentSearchText READ currentSearchText WRITE setSearchText) ;
+  Q_PROPERTY(bool autoHide READ autoHide WRITE setAutoHide) ;
   Q_PROPERTY(bool showOverlayMode READ showOverlayMode WRITE setShowOverlayMode) ;
   Q_PROPERTY(QRect showOverlayRelativeGeometry READ showOverlayRelativeGeometry
 	     WRITE setShowOverlayRelativeGeometry ) ;
@@ -486,8 +411,12 @@ class KLF_EXPORT KLFSearchBar : public QFrame, public KLFTargeter
   Q_PROPERTY(QColor colorFound READ colorFound WRITE setColorFound) ;
   Q_PROPERTY(QColor colorNotFound READ colorNotFound WRITE setColorNotFound) ;
   Q_PROPERTY(bool showHideButton READ hideButtonShown WRITE setShowHideButton) ;
+  Q_PROPERTY(bool showSearchLabel READ showSearchLabel WRITE setShowSearchLabel) ;
   Q_PROPERTY(bool emacsStyleBackSpace READ emacsStyleBackSpace WRITE setEmacsStyleBackSpace) ;
 public:
+
+  enum SearchState { Default, FocusOut, Found, NotFound, Aborted };
+
   KLFSearchBar(QWidget *parent = NULL);
   virtual ~KLFSearchBar();
   virtual void registerShortcuts(QWidget *parent);
@@ -498,6 +427,7 @@ public:
   virtual void setTarget(KLFTarget *target);
 
   QString currentSearchText() const;
+  bool autoHide() const;
   bool showOverlayMode() const;
   QRect showOverlayRelativeGeometry() const;
   QString focusOutText() const;
@@ -506,11 +436,18 @@ public:
   /** This value is read from the palette. It does not take into account style sheets. */
   QColor colorNotFound() const;
   bool hideButtonShown() const;
+  bool showSearchLabel() const;
   bool emacsStyleBackSpace() const;
 
   /** Returns the current position in the searched object. This is useful only if you
    * know how the searched object uses KLFPosSearchable::Pos structures. */
   KLFPosSearchable::Pos currentSearchPos() const;
+
+  SearchState currentState() const;
+
+  /** Hides the search bar when it does not have focus.
+   */
+  void setAutoHide(bool autohide);
 
   /** Sets the overlay mode. If overlay mode is on, then the search bar is displayed overlaying the
    * parent widget, with no specific layout, possibly hiding other widgets. It is hidden as soon as
@@ -524,6 +461,7 @@ public:
   void setColorFound(const QColor& color);
   void setColorNotFound(const QColor& color);
   void setShowHideButton(bool showHideButton);
+  void setShowSearchLabel(bool show);
   void setEmacsStyleBackSpace(bool on);
 
   virtual bool eventFilter(QObject *obj, QEvent *ev);
@@ -531,6 +469,7 @@ public:
   QLineEdit * editor();
 
 signals:
+  void stateChanged(SearchState state);
   void searchPerformed(bool found);
   void searchPerformed(const QString& queryString, bool found);
   void found();
@@ -540,6 +479,8 @@ signals:
   void didNotFind(const QString& queryString, bool forward);
   void searchAborted();
   void escapePressed();
+
+  void visibilityChanged(bool isShown);
 
 public slots:
   /** Clears the search bar and takes focus. */
@@ -571,9 +512,11 @@ protected:
 
   void promptEmptySearch();
 
-  enum SearchState { Default, FocusOut, Found, NotFound, Aborted };
-
+  /** Does not change d->pState. Only sets up UI for the given state. */
   virtual void displayState(SearchState state);
+
+  /** Updates d->pState, emits the stateChanged() signal, and calls displayState(). */
+  void setCurrentState(SearchState state);
 
   void emitFoundSignals(const KLFPosSearchable::Pos& pos, const QString& searchstring, bool forward);
 
@@ -593,6 +536,8 @@ private:
 
   KLFSearchBarPrivate *d;
 
+  void adjustOverlayGeometry();
+
   QString palettePropName(SearchState state) const;
   QString statePropValue(SearchState state) const;
 
@@ -600,7 +545,7 @@ private:
   // when appropriate
   friend class KLFSearchable;
 
-  void performFind(bool forward);
+  void performFind(bool forward, bool isFindNext = false);
 
   KLF_DEBUG_DECLARE_ASSIGNABLE_REF_INSTANCE()
 };

@@ -295,6 +295,185 @@ protected:
 
 
 
+/** \brief Stores a pointer to an object with refcount
+ *
+ * This class provides a normal datatype (with default constructor,
+ * copy constructor, assignment, ...) that stores a pointer to a
+ * structure that provides the functions ref() and deref() to track
+ * reference counts.
+ *
+ * When this object is copied, or a pointer is assigned, then the
+ * pointed object's ref() function is called. When another pointer
+ * is assigned, or when this object is destroyed, then the function
+ * deref() is called on the previously pointed object, and the
+ * object is possibly \c delete'd if needed and required.
+ *
+ * Automatic object deletion upon zero refcount is optional, see
+ * \ref autoDelete() and \ref setAutoDelete(). It is on by default.
+ *
+ * When constructed with the default constructor, pointers are initialized
+ * to NULL.
+ *
+ * The copy constructor and the assignment operator also preserves autodelete
+ * setting, eg.
+ * \code
+ *  KLFRefPtr<Obj> ptr1 = ...;
+ *  ptr1.setAutoDelete(false);
+ *  KLFRefPtr<Obj> ptr2(ptr1);
+ *  // ptr2.autoDelete() == false
+ * \endcode
+ *
+ * The pointed/referenced object must:
+ *  - provide a ref() function (no arguments, return type unimportant)
+ *  - provide a deref() function (no arguments). Its return type, when
+ *    cast into an \c int, is strictly positive as long as the object
+ *    is still referenced.
+ *
+ * Example:
+ * \code
+ * class MyObj {
+ *   QString name;
+ *   int refcount;
+ * public:
+ *   MyObj(const QString& s) : name(s), refcount(0) { }
+ *   int ref() { return ++refcount; }
+ *   int deref() { return --refcount; }
+ *   ...
+ *   QString objname() const { return name; }
+ * };
+ * 
+ * int main() {
+ *   KLFRefPtr<MyObj> ptr;
+ *   KLFRefPtr<MyObj> ptr2;
+ *   ptr = new MyObj("Alice");
+ *   ptr2 = ptr;  // this will increase "Alice"'s refcount by one
+ *   ptr = new MyObj("Bob"); // "Alice" is still pointed by ptr2, so it is not yet deleted.
+ *   ptr2 = NULL; // now "Alice" is deleted (refcount reached zero)
+ *   ptr = obj_random_name();
+ *   ptr2 = obj_random_name();
+ *   do_something(ptr):
+ *   do_something_2(ptr2);
+ *   // ptr->field works as expected:
+ *   printf("ptr points on object name=%s\n", qPrintable(ptr->objname()));
+ * }
+ * KLFRefPtr<MyObj> obj_random_name() {
+ *   static QStringList names
+ *      = QStringList()<<"Marty"<<"Jane"<<"Don"<<"John"<<"Phoebe"<<"Matthew"<<"Melissa"<<"Jessica"
+ *   KLFRefPtr<MyObj> o = new MyObj(names[rand()%names.size()]);
+ *   return o;
+ * }
+ * void do_something(MyObj *object)  {  ...  }
+ * void do_something_2(KLFRefPtr<MyObj> ptr)  {  ...  }
+ * 
+ * \endcode
+ */
+template<class T> class KLFRefPtr
+{
+public:
+  /** The pointer type. Alias for <tt>T *</tt>. */
+  typedef T* Pointer;
+
+  KLFRefPtr() : p(NULL), autodelete(true)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  }
+
+  KLFRefPtr(const KLFRefPtr& copy) : p(copy.p), autodelete(copy.autodelete)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+" [copy]") ;
+    set();
+  }
+
+  ~KLFRefPtr()
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    unset();
+  }
+
+  T * ptr() { return p; }
+  const T * ptr() const { return p; }
+
+  bool autoDelete() const { return autodelete; }
+  void setAutoDelete(bool on) { autodelete = on; }
+
+  KLFRefPtr<T>& operator=(const KLFRefPtr<T>& other)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(KLFRefPtr<T*>)") ;
+    this->operator=(other.p);
+    autodelete = other.autodelete;
+    return *this;
+  }
+  template<class OtherPtr> KLFRefPtr<T>& operator=(OtherPtr aptr)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(OtherPtr)") ;
+    return this->operator=(static_cast<Pointer>(aptr));
+  }
+  KLFRefPtr<T>& operator=(Pointer newptr)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(Pointer)") ;
+    klfDbg("new pointer: "<<newptr<<"; old pointer was "<<p) ;
+    if (newptr == p) // no change
+      return *this;
+    unset();
+    p = newptr;
+    set();
+    return *this;
+  };
+  
+  inline operator T *()
+  {  return p;  }
+  inline operator const T *() const
+  {  return p;  }
+
+  /*  inline T & operator*()
+      {  return *p; }
+      inline const T & operator*() const
+      {  return *p; } */
+
+  inline Pointer operator->()
+  {  return p;  }
+  inline const Pointer operator->() const
+  {  return p;  }
+
+  template<class OtherPtr>
+  inline OtherPtr dyn_cast() { return dynamic_cast<OtherPtr>(p); }
+
+  template<class OtherPtr>
+  inline const OtherPtr dyn_cast() const { return dynamic_cast<const OtherPtr>(p); }
+
+private:
+  void operator+=(int n) { }
+  void operator-=(int n) { }
+
+  /** The pointer itself */
+  Pointer p;
+  /** Whether to auto-delete the object once its deref() function
+   * returns <= 0. */
+  bool autodelete;
+
+  void unset() {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    if (p != NULL) {
+      int n = p->deref();
+      klfDbg(p<<": deref()! n="<<n<<";  autodelete="<<autodelete) ;
+      if (autodelete && n <= 0) {
+	klfDbg("Deleting at refcount="<<n<<".") ;
+	delete p;
+      }
+      p = NULL;
+    }
+  }
+  void set() {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    if (p != NULL) {
+      int n = p->ref();
+      klfDbg(p<<": ref()! n="<<n) ;
+    }
+  }
+
+};
+
+
 
 
 

@@ -96,8 +96,7 @@ public:
 
   /** Increment or decrement iterator. The default implementation does <tt>pos+1</tt> or <tt>pos-1</tt>; you
    * can re-implement this function if your iterator cannot be incremented/decremented this way. */
-  virtual SearchIterator searchIterAdvance(const SearchIterator& pos, bool forward)
-  { return forward ? (pos+1) : (pos-1); }
+  virtual SearchIterator searchIterAdvance(const SearchIterator& pos, bool forward) = 0;
 
   /** Increment iterator. Shortcut for searchIterAdvance() with \c forward = TRUE. */
   inline SearchIterator searchIterNext(const SearchIterator& pos) { return searchIterAdvance(pos, true); }
@@ -153,7 +152,7 @@ public:
    * refreshing the GUI during an active search, in which case the base implementation of this function
    * tells the search to stop.
    */
-  virtual void searchAbort()
+  virtual void searchAborted()
   {
     pSearchAborted = true;
   }
@@ -161,6 +160,7 @@ public:
 
 
   // REIMPLEMENTATIONS THAT TRANSLATE POS OBJECTS TO ITERATORS
+  // ... don't reimplement unless really necessary.
 
   virtual Pos searchStartFrom(bool forward)
   {
@@ -182,7 +182,8 @@ public:
   }
 
 
-  // FUNCTIONS THAT PERFORM THE SEARCH (NO NEED TO REIMPLEMENT)
+  // FUNCTIONS THAT PERFORM THE SEARCH
+  // ... don't reimplement unless _ABSOLUTELY_ necessary.
 
   //! Find occurence of a search string
   /** Extension of searchFind(). Looks for \c queryString starting at position \c startPos.
@@ -196,7 +197,9 @@ public:
    */
   virtual SearchIterator searchIterFind(const SearchIterator& startPos, const QString& queryString, bool forward)
   {
-    klfDbg( " s="<<queryString<<" from "<<startPos<<" forward="<<forward ) ;
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg( " s="<<queryString<<" from "<<startPos<<" forward="<<forward
+	    <<"; searchQueryString()="<<searchQueryString() ) ;
     pSearchAborted = false;
     pCurPos = startPos;
     SearchIterator it = searchIterFindNext(forward);
@@ -214,13 +217,16 @@ public:
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
     pSearchAborted = false;
 
-    if (searchQueryString().isEmpty())
+    if (searchQueryString().isEmpty()) {
+      klfDbg("empty search query string.") ;
       return tee_notify_search_result(searchIterEnd());
+    }
     
     QTime t;
     
     bool found = false;
     while ( ! found ) {
+      klfDbg("advancing iterator in search...") ;
       // advance iterator.
       
       pCurPos = safe_cycl_advance_iterator(pCurPos, forward);
@@ -259,7 +265,7 @@ public:
   virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
+    klfDbg("queryString="<<queryString<<"; searchQueryString="<<searchQueryString()) ;
     SearchIterator startit = iteratorForPos(fromPos);
     SearchIterator matchit = searchIterFind(startit, queryString, forward);
     return posForIterator(matchit);
@@ -315,7 +321,7 @@ private:
 
     Iter it;
 
-    virtual bool valid() const { return it != pSObj->searchIterEnd(); }
+    virtual bool valid() const { return !(it == pSObj->searchIterEnd()); }
     virtual bool equals(const KLFPosSearchable::Pos& other) const {
       if (!other.valid())
 	return !valid(); // true if both are invalid, false if this one is valid and `other' isn't
