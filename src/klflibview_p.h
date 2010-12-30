@@ -433,6 +433,7 @@ public:
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     KLF_ASSERT_NOT_NULL(m(), "Model is NULL!", return QModelIndex() ) ;
+    /** \bug Start search from current scroll location */
     return searchIterEnd();
   }
 
@@ -454,9 +455,9 @@ public:
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     v->pDelegate->setSearchIndex(pos);
     if ( ! pos.isValid() ) {
-      v->pView->scrollToTop();
-      // unselect all
-      v->pView->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::Clear);
+      //      v->pView->scrollToTop();
+      //      // unselect all
+      //      v->pView->selectionModel()->setCurrentIndex(QModelIndex(), QItemSelectionModel::Clear);
       return;
     } else {
       v->pView->scrollTo(pos, QAbstractItemView::EnsureVisible);

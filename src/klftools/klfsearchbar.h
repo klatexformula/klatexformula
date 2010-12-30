@@ -216,7 +216,7 @@ public:
 
   virtual bool searchHasInterruptRequested() { return pInterruptRequested; }
 
-  virtual void setSearchInterruptRequested(bool on) { pInterruptRequested = on; }
+  virtual void setSearchInterruptRequested(bool on);
 
 private:
   QString pQString;

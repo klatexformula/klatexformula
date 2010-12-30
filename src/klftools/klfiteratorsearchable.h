@@ -72,7 +72,7 @@ template<class Iter>
 class KLF_EXPORT KLFIteratorSearchable : public KLFPosSearchable
 {
 public:
-  KLFIteratorSearchable() : KLFPosSearchable(), pSearchAborted(false)
+  KLFIteratorSearchable() : KLFPosSearchable()
   {
   }
 
@@ -154,7 +154,7 @@ public:
    */
   virtual void searchAborted()
   {
-    pSearchAborted = true;
+    setSearchInterruptRequested(true);
   }
 
 
@@ -200,7 +200,6 @@ public:
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     klfDbg( " s="<<queryString<<" from "<<startPos<<" forward="<<forward
 	    <<"; searchQueryString()="<<searchQueryString() ) ;
-    pSearchAborted = false;
     pCurPos = startPos;
     SearchIterator it = searchIterFindNext(forward);
     return it;
@@ -215,7 +214,6 @@ public:
   virtual SearchIterator searchIterFindNext(bool forward)
   {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-    pSearchAborted = false;
 
     if (searchQueryString().isEmpty()) {
       klfDbg("empty search query string.") ;
@@ -226,10 +224,12 @@ public:
     
     bool found = false;
     while ( ! found ) {
-      klfDbg("advancing iterator in search...") ;
+      klfDbg("advancing iterator in search... pCurPos="<<pCurPos) ;
       // advance iterator.
       
       pCurPos = safe_cycl_advance_iterator(pCurPos, forward);
+
+      klfDbg("advanced. pCurPos="<<pCurPos) ;
 
       // stop if we reached the end
       if (pCurPos == searchIterEnd())
@@ -245,8 +245,10 @@ public:
       // call application's processEvents() from time to time to prevent GUI from freezing
       if (t.elapsed() > 150) {
 	qApp->processEvents();
-	if (pSearchAborted)
+	if (searchHasInterruptRequested()) {
+	  klfDbg("interrupting...") ;
 	  break;
+	}
 	t.restart();
       }
     }
@@ -311,8 +313,7 @@ protected:
 private:
   /** The current I-Search position */
   SearchIterator pCurPos;
-  /** Used as break condition on if when processing app events, one stops the search  */
-  bool pSearchAborted;
+
 
   class IterPosData : public KLFPosSearchable::Pos::PosData {
     KLFIteratorSearchable<Iter> *pSObj;

@@ -100,6 +100,11 @@ public:
   {
     klfDbg("pos="<<pos<<"; forward="<<forward);
     SearchIterator it = pos;
+    // sanity
+    KLF_ASSERT_CONDITION( !(forward && it == searchIterEnd()), "Attempt to advance 'end' iterator!",
+			  return searchIterEnd() ) ;
+    KLF_ASSERT_CONDITION( !(!forward && it == searchIterBegin()), "Attempt to decrement 'begin' iterator!",
+			  return searchIterBegin() ) ;
     KLFLatexSymbolsView *v = view(it);
     if (forward) {
       // advance

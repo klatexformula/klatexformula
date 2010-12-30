@@ -516,6 +516,22 @@ void KLFLibModelCache::rebuildCache()
       insertCategoryStringInSuggestionCache(catelements);
     }
     klfDbgT("... ins catnodes done.") ;
+
+    /** \bug This does not work as expected. TODO: * Make sure the root elements are prefetched
+     *    * Maybe translate these few lines of code in NodeId's instead of QModelIndex'es
+     */
+    // prefetch root items if they contain little number of children
+    // or if there are little number of root items
+    int numRootItems = pModel->rowCount(QModelIndex());
+    int k;
+    for (k = 0; k < pModel->rowCount(QModelIndex()); ++k) {
+      QModelIndex i = pModel->index(k, 0, QModelIndex());
+      if (pModel->rowCount(i) < 6 || numRootItems < 6) {
+	if (pModel->canFetchMore(i))
+	  pModel->fetchMore(i);
+      }
+    }
+
   }
 
   fullDump(); // DEBUG
@@ -3410,20 +3426,30 @@ void KLFLibDefaultView::updateResourceEngine()
     QAction *menuAction = new QAction(tr("Show/Hide Columns", "[[menu with sub-menu]]"), this);
     menuAction->setMenu(colMenu);
     pShowColumnActions = QList<QAction*>() << menuAction;
-    // expand root items if they contain little number of children
-    // or if there are little number of root items
-    int numRootItems = pModel->rowCount(QModelIndex());
-    for (k = 0; k < pModel->rowCount(QModelIndex()); ++k) {
-      QModelIndex i = pModel->index(k, 0, QModelIndex());
-      if (pModel->rowCount(i) < 6 || numRootItems < 6)
-	treeView->expand(i);
-    }
+
+    expandRootNice();
   }
 
   updateResourceProp(-1); // update all with respect to resource changes..
   updateResourceOwnData(QList<KLFLib::entryId>());
 
   wantMoreCategorySuggestions();
+}
+
+void KLFLibDefaultView::expandRootNice()
+{
+  if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
+    QTreeView *treeView = qobject_cast<QTreeView*>(pView);
+    // expand root items if they contain little number of children
+    // or if there are little number of root items
+    int numRootItems = pModel->rowCount(QModelIndex());
+    int k;
+    for (k = 0; k < pModel->rowCount(QModelIndex()); ++k) {
+      QModelIndex i = pModel->index(k, 0, QModelIndex());
+      if (pModel->rowCount(i) < 6 || numRootItems < 6)
+	treeView->expand(i);
+    }
+  }
 }
 
 void KLFLibDefaultView::updateResourceData(const QString& subRes, int modifyType,
@@ -3487,31 +3513,6 @@ KLFPosSearchable * KLFLibDefaultView::searchable()
   return pSearchable;
 }
 
-
-// bool KLFLibDefaultView::writeEntryProperty(int property, const QVariant& value)
-// {
-//   return pModel->changeEntries(selectedEntryIndexes(), property, value);
-// }
-// bool KLFLibDefaultView::deleteSelected(bool requireConfirm)
-// {
-//   QModelIndexList sel = selectedEntryIndexes();
-//   if (sel.size() == 0)
-//     return true;
-//   if (requireConfirm) {
-//     QMessageBox::StandardButton res
-//       = QMessageBox::question(this, tr("Delete?"),
-// 			      tr("Delete %n selected item(s) from resource \"%1\"?", "", sel.size())
-// 			      .arg(pModel->resource()->title()),
-// 			      QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
-//     if (res != QMessageBox::Yes)
-//       return false; // abort action
-//   }
-//   return pModel->deleteEntries(sel);
-// }
-// bool KLFLibDefaultView::insertEntries(const KLFLibEntryList& entries)
-// {
-//   return pModel->insertEntries(entries);
-// }
 bool KLFLibDefaultView::selectEntries(const QList<KLFLib::entryId>& idList)
 {
   klfDbg("selecting entries: "<<idList) ;

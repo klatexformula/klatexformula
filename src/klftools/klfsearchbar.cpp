@@ -43,8 +43,19 @@ QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos)
 {
   QString s;
   s.sprintf("%p", (const KLFPosSearchable::Pos::PosData*)pos.posdata);
-  return str << "Pos("<<pos.pos<<", "<<qPrintable(s)<<")";
+  return str << "Pos("<<pos.pos<<", "<<qPrintable(s)<<";valid="<<pos.valid()<<")";
 }
+
+// --
+
+void KLFPosSearchable::setSearchInterruptRequested(bool on)
+{
+  klfDbg("on="<<on) ;
+  pInterruptRequested = on;
+}
+
+
+// ------------------------------------------------
 
 
 KLFPosSearchableProxy::~KLFPosSearchableProxy()
@@ -342,7 +353,9 @@ void KLFSearchBar::registerShortcuts(QWidget *parent)
 
 void KLFSearchBar::setTarget(KLFTarget * target)
 {
-  abortSearch();
+  if (d->pIsSearching)
+    abortSearch();
+
   KLFPosSearchable *s = dynamic_cast<KLFPosSearchable*>(target);
   KLF_ASSERT_CONDITION( (s!=NULL) || (target==NULL),
 			"target is not a valid KLFPosSearchable object !",
@@ -639,17 +652,25 @@ void KLFSearchBar::performFind(bool forward, bool isfindnext)
 
   klfDbg("pSearchText="<<d->pSearchText<<"; pCurPos="<<d->pCurPos<<"; pLastPos="<<d->pLastPos) ;
 
-  d->pIsFinding = true;
+  // reset the interrupt request flag
+  target()->setSearchInterruptRequested(false);
 
+  d->pIsFinding = true;
   d->pWaitLabel->startWait();
   target()->setSearchQueryString(d->pSearchText);
   klfDbg("pSearchText="<<d->pSearchText<<"; target()->searchQueryString()="<<target()->searchQueryString()) ;
-  d->pCurPos = target()->searchFind(d->pSearchText, d->pLastPos, forward);
+  KLFPosSearchable::Pos pos = target()->searchFind(d->pSearchText, d->pLastPos, forward);
   d->pWaitLabel->stopWait();
   d->pIsFinding = false;
 
+  if (!d->pIsSearching) {
+    // search was aborted.
+    return;
+  }
+
+  d->pCurPos = pos;
+
   if (target()->searchHasInterruptRequested()) {
-    target()->setSearchInterruptRequested(false);
     // perform queued find
     if (d->pHasQueuedFind) {
       QString s = d->pQueuedFindString;
@@ -724,6 +745,9 @@ void KLFSearchBar::promptEmptySearch()
   d->pCurPos = KLFPosSearchable::Pos::staticInvalidPos();
   d->pLastPos = KLFPosSearchable::Pos::staticInvalidPos();
   if (target() != NULL) {
+    klfDbg("telling target to reinitialize search...") ;
+    if (d->pIsFinding)
+      target()->setSearchInterruptRequested(true);
     target()->setSearchQueryString(QString());
     target()->searchMoveToPos(d->pCurPos);
     target()->searchReinitialized();
@@ -754,6 +778,8 @@ void KLFSearchBar::abortSearch()
 
   if (target() != NULL) {
     klfDbg("telling target to abort search...") ;
+    if (d->pIsFinding)
+      target()->setSearchInterruptRequested(true);
     target()->searchAborted();
     target()->setSearchQueryString(QString());
     klfDbg("...done") ;
