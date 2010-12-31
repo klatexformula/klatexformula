@@ -48,6 +48,12 @@ QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos)
 
 // --
 
+KLFPosSearchable::Pos KLFPosSearchable::searchStartFrom(bool forward)
+{
+  klfDbg("start from: base implementation, will return invalid. forward="<<forward) ;
+  return invalidPos();
+}
+
 void KLFPosSearchable::setSearchInterruptRequested(bool on)
 {
   klfDbg("on="<<on) ;
@@ -60,6 +66,12 @@ void KLFPosSearchable::setSearchInterruptRequested(bool on)
 
 KLFPosSearchableProxy::~KLFPosSearchableProxy()
 {
+}
+
+KLFPosSearchable::Pos KLFPosSearchableProxy::searchStartFrom(bool forward)
+{
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return invalidPos() );
+  return target()->searchStartFrom(forward);
 }
 
 KLFPosSearchable::Pos KLFPosSearchableProxy::searchFind(const QString& queryString, const Pos& fromPos, bool forward)
@@ -622,6 +634,7 @@ void KLFSearchBar::find(const QString& text, bool forward)
   }
 
   if (!d->pIsSearching) {
+    klfDbg("new search. find start from position.") ;
     // first find() call, started new search, start from suggested position
     d->pCurPos = target()->searchStartFrom(forward);
     d->pLastPos = d->pCurPos;

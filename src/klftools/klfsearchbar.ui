@@ -94,6 +94,9 @@
    </item>
    <item row="0" column="0">
     <widget class="QToolButton" name="btnHide">
+     <property name="toolTip">
+      <string>Close Search Bar</string>
+     </property>
      <property name="icon">
       <iconset resource="../klftoolsres.qrc">
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>

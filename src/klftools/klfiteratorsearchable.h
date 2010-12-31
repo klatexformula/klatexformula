@@ -24,6 +24,7 @@
 #ifndef KLF_ITERATORSEARCHABLE_H
 #define KLF_ITERATORSEARCHABLE_H
 
+#include <QDebug>
 #include <QObject>
 #include <QString>
 #include <QApplication>

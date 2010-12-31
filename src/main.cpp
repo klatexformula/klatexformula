@@ -806,6 +806,7 @@ int main(int argc, char **argv)
   // error handling
   if (opt_error.has_error) {
     qCritical("Error while parsing command-line arguments.");
+    qCritical("Use --help to display command-line help.");
     main_exit(EXIT_ERR_OPT);
   }
 

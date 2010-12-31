@@ -138,7 +138,7 @@ public:
    *
    * The default implementation returns invalidPos().
    */
-  virtual Pos searchStartFrom(bool forward) { return invalidPos(); }
+  virtual Pos searchStartFrom(bool forward);
 
   /** Search the content for \c queryString, from position \c fromPos, in direction \c forward.
    * If found, return the position of the match, if not found, return an invalid position. Do not
@@ -232,27 +232,19 @@ public:
   KLFPosSearchableProxy() { }
   virtual ~KLFPosSearchableProxy();
 
+  virtual Pos searchStartFrom(bool forward);
   virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward);
-
   virtual void searchMoveToPos(const Pos& pos);
-
   virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos);
-
   virtual void searchAborted();
-
   virtual Pos invalidPos();
-
   virtual void searchReinitialized();
+  virtual QString searchQueryString() const;
+  virtual void setSearchQueryString(const QString& s);
+  virtual bool searchHasInterruptRequested();
+  virtual void setSearchInterruptRequested(bool on);
 
   virtual void setSearchTarget(KLFPosSearchable *t) { setTarget(t); }
-
-  virtual QString searchQueryString() const;
-
-  virtual void setSearchQueryString(const QString& s);
-
-  virtual bool searchHasInterruptRequested();
-
-  virtual void setSearchInterruptRequested(bool on);
 
 protected:
   virtual KLFPosSearchable *target() { return dynamic_cast<KLFPosSearchable*>(pTarget); }

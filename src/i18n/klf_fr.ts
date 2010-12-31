@@ -430,27 +430,27 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFLibBasicWidgetFactory</name>
     <message>
-        <location filename="../klflibview.cpp" line="4730"/>
+        <location filename="../klflibview.cpp" line="4746"/>
         <source>Local File</source>
         <translation>Fichier sur le disque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4788"/>
+        <location filename="../klflibview.cpp" line="4804"/>
         <source>Overwrite?</source>
         <translation>Ecraser ?</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4789"/>
+        <location filename="../klflibview.cpp" line="4805"/>
         <source>The specified file already exists. Overwrite it?</source>
         <translation>Le fichier existe déjà. L&apos;écraser ?</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4801"/>
+        <location filename="../klflibview.cpp" line="4817"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4801"/>
+        <location filename="../klflibview.cpp" line="4817"/>
         <source>Failed to overwrite the file %1.</source>
         <translation>Erreur : Impossible d&apos;écraser le fichier `%1&apos;.</translation>
     </message>
@@ -943,19 +943,19 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFLibCreateResourceDlg</name>
     <message>
-        <location filename="../klflibview.cpp" line="4064"/>
+        <location filename="../klflibview.cpp" line="4080"/>
         <source>Create New Library Resource</source>
         <comment>[[dialog label title]]</comment>
         <translation>Créer une nouvelle ressource bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4065"/>
+        <location filename="../klflibview.cpp" line="4081"/>
         <source>Create New Library Resource</source>
         <comment>[[dialog window title]]</comment>
         <translation>Créer une nouvelle ressource bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4070"/>
+        <location filename="../klflibview.cpp" line="4086"/>
         <source>SubResource1</source>
         <translation>SousRessource1</translation>
     </message>
@@ -1038,55 +1038,55 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibDefaultView</name>
     <message>
-        <location filename="../klflibview.cpp" line="3344"/>
+        <location filename="../klflibview.cpp" line="3362"/>
         <source>Select All</source>
         <comment>[[menu action]]</comment>
         <translation>Tout sélectionner</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3347"/>
+        <location filename="../klflibview.cpp" line="3365"/>
         <source>Refresh</source>
         <comment>[[menu action]]</comment>
         <translation>Rafraîchir</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3353"/>
+        <location filename="../klflibview.cpp" line="3371"/>
         <source>Large</source>
         <comment>[[icon preview size menu item]]</comment>
         <translation>Grande</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3357"/>
+        <location filename="../klflibview.cpp" line="3375"/>
         <source>Medium</source>
         <comment>[[icon preview size menu item]]</comment>
         <translation>Moyenne</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3361"/>
+        <location filename="../klflibview.cpp" line="3379"/>
         <source>Small</source>
         <comment>[[icon preview size menu item]]</comment>
         <translation>Petite</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3371"/>
+        <location filename="../klflibview.cpp" line="3389"/>
         <source>Icon Size</source>
         <comment>[[icon preview size option menu]]</comment>
         <translation>Taille des icônes</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3381"/>
+        <location filename="../klflibview.cpp" line="3399"/>
         <source>Relayout All Icons</source>
         <comment>[[menu action]]</comment>
         <translation>Redisposer toutes les icônes</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3410"/>
+        <location filename="../klflibview.cpp" line="3428"/>
         <source>Show/Hide Columns</source>
         <comment>[[menu with sub-menu]]</comment>
         <translation>Colonnes Affichées</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3586"/>
+        <location filename="../klflibview.cpp" line="3595"/>
         <source>Fetching and selecting all, please wait ...</source>
         <translation>Requête et sélection en cours, veuillez patienter ...</translation>
     </message>
@@ -1094,17 +1094,17 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibDefaultViewFactory</name>
     <message>
-        <location filename="../klflibview.cpp" line="3883"/>
+        <location filename="../klflibview.cpp" line="3899"/>
         <source>Category Tree View</source>
         <translation>Arbre de catégories</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3885"/>
+        <location filename="../klflibview.cpp" line="3901"/>
         <source>List View</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3887"/>
+        <location filename="../klflibview.cpp" line="3903"/>
         <source>Icon View</source>
         <translation>Icônes</translation>
     </message>
@@ -1303,17 +1303,17 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibLocalFileOpenWidget</name>
     <message>
-        <location filename="../klflibview_p.h" line="1057"/>
+        <location filename="../klflibview_p.h" line="1069"/>
         <source>All Known Files (%1)</source>
         <translation>Fichiers connus (%1)</translation>
     </message>
     <message>
-        <location filename="../klflibview_p.h" line="1066"/>
+        <location filename="../klflibview_p.h" line="1078"/>
         <source>All Files (*)</source>
         <translation>Tous les fichiers (*)</translation>
     </message>
     <message>
-        <location filename="../klflibview_p.h" line="1068"/>
+        <location filename="../klflibview_p.h" line="1080"/>
         <source>Select Library Resource File</source>
         <translation>Saisissez le fichier de ressource bibliothèque</translation>
     </message>
@@ -1334,14 +1334,14 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibModel</name>
     <message>
-        <location filename="../klflibview.cpp" line="2041"/>
+        <location filename="../klflibview.cpp" line="2058"/>
         <source>Drop Error</source>
         <comment>[[message box title]]</comment>
         <translatorcomment>[NOT TRANSLATED]</translatorcomment>
         <translation>Drop Error</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="2042"/>
+        <location filename="../klflibview.cpp" line="2059"/>
         <source>Error dropping data.</source>
         <translation>Erreur lors du collage des données.</translation>
     </message>
@@ -1462,72 +1462,72 @@ Erreur: %3</translation>
         <translation>Appliquer les modifications</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4225"/>
-        <location filename="../klflibview.cpp" line="4234"/>
+        <location filename="../klflibview.cpp" line="4241"/>
+        <location filename="../klflibview.cpp" line="4250"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4225"/>
-        <location filename="../klflibview.cpp" line="4234"/>
+        <location filename="../klflibview.cpp" line="4241"/>
+        <location filename="../klflibview.cpp" line="4250"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4297"/>
-        <location filename="../klflibview.cpp" line="4306"/>
         <location filename="../klflibview.cpp" line="4313"/>
-        <location filename="../klflibview.cpp" line="4323"/>
-        <location filename="../klflibview.cpp" line="4331"/>
-        <location filename="../klflibview.cpp" line="4338"/>
-        <location filename="../klflibview.cpp" line="4345"/>
-        <location filename="../klflibview.cpp" line="4438"/>
-        <location filename="../klflibview.cpp" line="4496"/>
+        <location filename="../klflibview.cpp" line="4322"/>
+        <location filename="../klflibview.cpp" line="4329"/>
+        <location filename="../klflibview.cpp" line="4339"/>
+        <location filename="../klflibview.cpp" line="4347"/>
+        <location filename="../klflibview.cpp" line="4354"/>
+        <location filename="../klflibview.cpp" line="4361"/>
+        <location filename="../klflibview.cpp" line="4454"/>
+        <location filename="../klflibview.cpp" line="4512"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4297"/>
+        <location filename="../klflibview.cpp" line="4313"/>
         <source>Can&apos;t rename a locked resource!</source>
         <translation>Impossible de renommer une ressource verrouillée !</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4306"/>
+        <location filename="../klflibview.cpp" line="4322"/>
         <source>Failed to unlock resource.</source>
         <translation>Impossible de déverouiller la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4313"/>
+        <location filename="../klflibview.cpp" line="4329"/>
         <source>Failed to unlock sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de déverrouiller la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4323"/>
+        <location filename="../klflibview.cpp" line="4339"/>
         <source>Failed to rename resource.</source>
         <translation>Impossible de renommer la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4331"/>
+        <location filename="../klflibview.cpp" line="4347"/>
         <source>Failed to rename sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de renommer la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4338"/>
+        <location filename="../klflibview.cpp" line="4354"/>
         <source>Failed to lock resource.</source>
         <translation>Impossible de verrouiller la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4345"/>
+        <location filename="../klflibview.cpp" line="4361"/>
         <source>Failed to lock sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de verrouiller la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4439"/>
+        <location filename="../klflibview.cpp" line="4455"/>
         <source>Failed to set resource property &quot;%1&quot;.</source>
         <translation>Impossible d&apos;attribuer la nouvelle valeur à la propriété de ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4497"/>
+        <location filename="../klflibview.cpp" line="4513"/>
         <source>Failed to set sub-resource &quot;%1&quot;&apos;s property &quot;%2&quot;.</source>
         <translation>Impossible d&apos;attribuer la nouvelle valeur à la propriété &quot;%2&quot; de la sous-ressource &quot;%1&quot;.</translation>
     </message>
@@ -3193,52 +3193,57 @@ p, li { white-space: pre-wrap; }
         <translation>Trouver l&apos;apparition précédente du critère de recherche</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.ui" line="106"/>
+        <location filename="../klftools/klfsearchbar.ui" line="98"/>
+        <source>Close Search Bar</source>
+        <translation>Fermer la barre de recherche</translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfsearchbar.ui" line="109"/>
         <source>Find Next [F3]</source>
         <translation>Trouver suivant [F3]</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.ui" line="109"/>
+        <location filename="../klftools/klfsearchbar.ui" line="112"/>
         <source>Find Next occurrence of search string</source>
         <translation>Trouver l&apos;apparition suivante du critère de recherche</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="236"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="248"/>
         <source>Hit Ctrl-F, Ctrl-S or / to start searching</source>
         <translation>Appuyez sur Ctrl-F, Ctrl-S ou / pour démarrer une recherche</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="345"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="357"/>
         <source>Ctrl+F</source>
         <comment>[[find]]</comment>
         <translation>Ctrl+F</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="346"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="358"/>
         <source>Ctrl+S</source>
         <comment>[[find]]</comment>
         <translation>Ctrl+S</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="347"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="359"/>
         <source>/</source>
         <comment>[[find]]</comment>
         <translation>/</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="348"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="360"/>
         <source>F3</source>
         <comment>[[find next]]</comment>
         <translation>F3</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="349"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="361"/>
         <source>Shift+F3</source>
         <comment>[[find prev]]</comment>
         <translation>Shift+F3</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="350"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="362"/>
         <source>Ctrl+R</source>
         <comment>[[find rev]]</comment>
         <translation>Ctrl+R</translation>
@@ -4515,54 +4520,54 @@ Version actuelle: %2</translation>
         <translation>--paste-{clipboard|selection} ne fonctionne qu&apos;en mode interactif. Cette option sera ignorée.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="925"/>
+        <location filename="../main.cpp" line="926"/>
         <source>KLatexFormula Daemon Process successfully launched with pid %1
 </source>
         <translation>Processus démon KLatexFormula exécuté avec succès avec pid %1
 </translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="929"/>
+        <location filename="../main.cpp" line="930"/>
         <source>Failed to launch daemon process. Not daemonizing.</source>
         <translation>Echec d&apos;exécution du processus démon. Exécution en mode normal.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1052"/>
+        <location filename="../main.cpp" line="1053"/>
         <source>Can&apos;t use --output without any input</source>
         <translation>Il n&apos;est pas possible d&apos;utiliser --output sans saisie</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1168"/>
+        <location filename="../main.cpp" line="1169"/>
         <source>Damonize option can only be used in interactive mode!.</source>
         <translation>L&apos;option d&apos;exécution en mode démon ne peut être utilisé qu&apos;en mode interactif.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1173"/>
+        <location filename="../main.cpp" line="1174"/>
         <source>[Non-Interactive Mode] Ignoring additional command-line argument: %1</source>
         <translation>[Mode non interactif] Le paramètre supplémentaire donné ne sera pas pris en compte: %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1390"/>
+        <location filename="../main.cpp" line="1391"/>
         <source>--paste-clipboard requires interactive mode. Switching.</source>
         <translation>L&apos;option --paste-clipboard requiert le mode interactif. Changement de mode.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1398"/>
+        <location filename="../main.cpp" line="1399"/>
         <source>--paste-selection requires interactive mode. Switching.</source>
         <translation>L&apos;option --paste-selection requiert le mode interactif. Changement de mode.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1524"/>
+        <location filename="../main.cpp" line="1525"/>
         <source>--noeval is relevant only in interactive mode.</source>
         <translation>--noeval ne peut être utilisé qu&apos;en mode interactif.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1528"/>
+        <location filename="../main.cpp" line="1529"/>
         <source>--noeval may not be used when --output is present.</source>
         <translation>--noeval ne peut pas être utilisé quand --output est donné.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1532"/>
+        <location filename="../main.cpp" line="1533"/>
         <source>Ignoring --format without --output.</source>
         <translation>Option --format ignorée en l&apos;absence de --output.</translation>
     </message>
@@ -5069,7 +5074,7 @@ NOTES
     </message>
     <message>
         <location filename="../klflibview.cpp" line="435"/>
-        <location filename="../klflibview.cpp" line="865"/>
+        <location filename="../klflibview.cpp" line="881"/>
         <source>Updating View...</source>
         <comment>[[KLFLibModelCache, progress text]]</comment>
         <translation>Mise à jour de l&apos;affichage ...</translation>

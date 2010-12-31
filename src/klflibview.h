@@ -790,7 +790,9 @@ public:
   virtual bool restoreGuiState(const QVariantMap& state);
 
   //! The first index that is currently visible in the current scrolling position
-  virtual QModelIndex currentVisibleIndex() const;
+  virtual QModelIndex currentVisibleIndex() const { return currentVisibleIndex(true); }
+  //! The first (forward=TRUE) or last (forward=FALSE) currently visible index in scroll area
+  virtual QModelIndex currentVisibleIndex(bool forward) const;
 
   bool autoBackgroundItems() const { return pDelegate->autoBackgroundItems(); }
   QColor autoBackgroundColor() const { return pDelegate->autoBackgroundColor(); }
@@ -865,6 +867,7 @@ protected slots:
   void slotShowColumnSenderAction(bool showCol);
 
   // called from model
+  void slotResourceModelReset();
   void slotResourceDataChanged(const QModelIndex& topLeft, const QModelIndex& botRight);
 
   void slotPreviewSizeFromActionSender();

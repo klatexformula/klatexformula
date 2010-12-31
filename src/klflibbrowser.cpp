@@ -1764,6 +1764,7 @@ void KLFLibBrowser::showEvent(QShowEvent *event)
     u->tabResources->refreshTabReadOnly(u->tabResources->indexOf(viewc),
 					!resource->canModifyData(KLFLibResourceEngine::AllActionsData));
   }
+  u->tabResources->setFocus();
   // and call superclass
   QWidget::showEvent(event);
 }
