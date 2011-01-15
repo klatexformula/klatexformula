@@ -71,7 +71,9 @@ QString KLFSearchBarDesPlugin::whatsThis() const
 }
 QWidget *KLFSearchBarDesPlugin::createWidget(QWidget *parent)
 {
-  return new KLFSearchBar(parent);
+  KLFSearchBar *searchbar = new KLFSearchBar(parent);
+  searchbar->_isInQtDesigner = true;
+  return searchbar;
 }
 void KLFSearchBarDesPlugin::initialize(QDesignerFormEditorInterface *core)
 {

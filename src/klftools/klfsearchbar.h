@@ -532,6 +532,9 @@ protected:
   virtual bool event(QEvent *event);
 
 
+  bool _isInQtDesigner;
+  friend class KLFSearchBarDesPlugin;
+
 private:
 
   inline KLFPosSearchable *target() { return dynamic_cast<KLFPosSearchable*>(pTarget); }

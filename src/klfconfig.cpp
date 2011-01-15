@@ -288,7 +288,10 @@ void KLFConfig::loadDefaults()
     UI.menuExportProfileAffectsCopy = true;
     UI.emacsStyleBackspaceSearch = true;
 
-    SyntaxHighlighter.configFlags = 0x05;
+    SyntaxHighlighter.enabled = true;
+    SyntaxHighlighter.highlightParensOnly = false;
+    SyntaxHighlighter.highlightLonelyParens = true;
+    SyntaxHighlighter.matchParenTypes = true;
     SyntaxHighlighter.fmtKeyword = QTextCharFormat();
     SyntaxHighlighter.fmtKeyword.setForeground(QColor(0, 0, 128));
     SyntaxHighlighter.fmtComment = QTextCharFormat();
@@ -536,7 +539,10 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
-  klf_config_read(s, "configflags", &SyntaxHighlighter.configFlags);
+  klf_config_read(s, "enabled", &SyntaxHighlighter.enabled);
+  klf_config_read(s, "highlightparensonly", &SyntaxHighlighter.highlightParensOnly);
+  klf_config_read(s, "highlightlonelyparens", &SyntaxHighlighter.highlightLonelyParens);
+  klf_config_read(s, "matchparentypes", &SyntaxHighlighter.matchParenTypes);
   klf_config_read<QTextCharFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
   klf_config_read<QTextCharFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
   klf_config_read<QTextCharFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
@@ -656,7 +662,10 @@ int KLFConfig::writeToConfig()
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
-  klf_config_write(s, "configflags", &SyntaxHighlighter.configFlags);
+  klf_config_write(s, "enabled", &SyntaxHighlighter.enabled);
+  klf_config_write(s, "highlightparensonly", &SyntaxHighlighter.highlightParensOnly);
+  klf_config_write(s, "highlightlonelyparens", &SyntaxHighlighter.highlightLonelyParens);
+  klf_config_write(s, "matchparentypes", &SyntaxHighlighter.matchParenTypes);
   klf_config_write<QTextFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
   klf_config_write<QTextFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
   klf_config_write<QTextFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
@@ -869,7 +878,10 @@ int KLFConfig::readFromConfig_v1()
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
-  SyntaxHighlighter.configFlags = s.value("configflags", SyntaxHighlighter.configFlags).toUInt();
+  uint configFlags = s.value("configflags", 0x5).toUInt();
+  SyntaxHighlighter.enabled = (configFlags &  0x01);
+  SyntaxHighlighter.highlightParensOnly = (configFlags & 0x02);
+  SyntaxHighlighter.highlightLonelyParens = (configFlags & 0x04);
   SyntaxHighlighter.fmtKeyword = settings_read_QTextCharFormat(s, "keyword", SyntaxHighlighter.fmtKeyword);
   SyntaxHighlighter.fmtComment = settings_read_QTextCharFormat(s, "comment", SyntaxHighlighter.fmtComment);
   SyntaxHighlighter.fmtParenMatch = settings_read_QTextCharFormat(s, "parenmatch", SyntaxHighlighter.fmtParenMatch);

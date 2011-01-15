@@ -11,7 +11,7 @@
     <x>0</x>
     <y>0</y>
     <width>585</width>
-    <height>620</height>
+    <height>630</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -407,9 +407,6 @@
             <property name="text">
              <string>Highlight parens only, not whole expression</string>
             </property>
-            <property name="shortcut">
-             <string>Alt+A</string>
-            </property>
            </widget>
           </item>
           <item>
@@ -417,8 +414,15 @@
             <property name="text">
              <string>Highlight parens that aren't closed</string>
             </property>
-            <property name="shortcut">
-             <string/>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chkSHNoMatchParenTypes">
+            <property name="toolTip">
+             <string>Don't try to match similar parenthesis delimiter types, prefer reporting mismatching adjacent delimiters.</string>
+            </property>
+            <property name="text">
+             <string>Don't try to match parenthesis types</string>
             </property>
            </widget>
           </item>
@@ -1621,7 +1625,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>355</width>
-                <height>167</height>
+                <height>171</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1788,7 +1792,7 @@
                    <x>0</x>
                    <y>0</y>
                    <width>345</width>
-                   <height>215</height>
+                   <height>221</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1853,7 +1857,7 @@
             <x>0</x>
             <y>0</y>
             <width>557</width>
-            <height>502</height>
+            <height>512</height>
            </rect>
           </property>
           <attribute name="label">

@@ -268,6 +268,25 @@ KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference
 KLF_EXPORT QString klfUrlLocalFilePath(const QUrl& url);
 
 
+/** Applies operation \c MapOp to each element of list \c list, and returns the 'mapped' list.
+ * This utility can be considered a simplistic version of the 'map' primitive in PERL. */
+template<class T, class MapOp>
+inline QList<T> klfListMap(const QList<T>& list, MapOp op)
+{
+  QList<T> l;
+  for(typename QList<T>::const_iterator it = list.begin(); it != list.end(); ++it) {
+    l << op(*it);
+  }
+  return l;
+}
+
+template<class T> inline QList<T> klfMkList(const T& a) { return QList<T>()<<a; }
+template<class T> inline QList<T> klfMkList(const T& a, const T& b) { return QList<T>()<<a<<b; }
+template<class T> inline QList<T> klfMkList(const T& a, const T& b, const T& c) { return QList<T>()<<a<<b<<c; }
+template<class T>
+inline QList<T> klfMkList(const T& a, const T& b, const T& c, const T& d) { return QList<T>()<<a<<b<<c<<d; }
+
+
 class KLFTargeter;
 
 class KLF_EXPORT KLFTarget {

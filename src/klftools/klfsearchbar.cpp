@@ -204,6 +204,8 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("parent: "<<parent) ;
 
+  _isInQtDesigner = false;
+
   d = new KLFSearchBarPrivate;
 
   u = new Ui::KLFSearchBar;
@@ -548,7 +550,7 @@ void KLFSearchBar::setAutoHide(bool autohide)
 {
   klfDbg("autohide="<<autohide) ;
   d->pAutoHide = autohide;
-  if (d->pAutoHide && !searchBarHasFocus())
+  if (d->pAutoHide && !searchBarHasFocus() && !_isInQtDesigner)
     hide();
 }
 
@@ -867,7 +869,7 @@ void KLFSearchBar::slotSearchFocusIn()
 void KLFSearchBar::slotSearchFocusOut()
 {
   klfDbgT("focus out") ;
-  if (d->pAutoHide)
+  if (d->pAutoHide && !_isInQtDesigner)
     hide();
 
   abortSearch();

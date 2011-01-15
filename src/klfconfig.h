@@ -207,7 +207,10 @@ public:
 
   struct {
 
-    unsigned int configFlags;
+    bool enabled;
+    bool highlightParensOnly;
+    bool highlightLonelyParens;
+    bool matchParenTypes;
     QTextCharFormat fmtKeyword;
     QTextCharFormat fmtComment;
     QTextCharFormat fmtParenMatch;

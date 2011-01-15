@@ -136,9 +136,9 @@ public:
 
   virtual void highlightBlock(const QString& text);
 
-  enum { Enabled = 0x01,
-	 HighlightParensOnly = 0x02,
-	 HighlightLonelyParen = 0x04 };
+  /*  enum { Enabled = 0x01,
+      HighlightParensOnly = 0x02,
+      HighlightLonelyParen = 0x04 }; */
 
 signals:
   void newSymbolTyped(const QString& symbolName);
@@ -159,7 +159,13 @@ private:
 
   struct FormatRule {
     FormatRule(int ps = -1, int l = 0, Format f = FNormal, bool needsfocus = false)
-      : pos(ps), len(l), format(f), onlyIfFocus(needsfocus) { }
+      : pos(ps), len(l), format(f), onlyIfFocus(needsfocus)
+    {
+      if (len < 0) {
+	len = -len; // len is now positive
+	pos -= len; // pos is now at beginning of the region
+      }
+    }
     int pos;
     int len;
     int end() const { return pos + len; }

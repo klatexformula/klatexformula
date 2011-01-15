@@ -36,8 +36,14 @@
 
 
 // declared in klflatexedit_p.h
-const char ParenItem::openparenlist[]  = "({[";
-const char ParenItem::closeparenlist[] = ")}]";
+QStringList ParenItem::openParenList =
+  QStringList() << "(" << "[" << "{";
+QStringList ParenItem::closeParenList =
+  QStringList() << ")" << "]" << "}";
+QStringList ParenItem::openParenModifiers =
+  QStringList() << "\\" << "\\left";
+QStringList ParenItem::closeParenModifiers =
+  QStringList() << "\\" << "\\right";
 
 
 
@@ -246,9 +252,22 @@ void KLFLatexSyntaxHighlighter::parseEverything()
   int blockpos;
   QList<uint> blocklens; // the length of each block
   QStack<ParenItem> parens; // the parens that we'll meet
-  QList<ParenItem> lonelyparens; // extra lonely parens that we can't close within the text
+  QList<LonelyParenItem> lonelyparens; // extra lonely parens that we can't close within the text
 
   QTextBlock block = document()->firstBlock();
+
+  QString sopenrx =
+    "^(?:("+QStringList(klfListMap(ParenItem::openParenModifiers, &QRegExp::escape)).join("|")+")\\s*)?"
+    "(" + QStringList(klfListMap(ParenItem::openParenList, &QRegExp::escape)).join("|")+")";
+  QString scloserx =
+    "^(?:("+QStringList(klfListMap(ParenItem::closeParenModifiers, &QRegExp::escape)).join("|")+")\\s*)?"
+    "(" + QStringList(klfListMap(ParenItem::closeParenList, &QRegExp::escape)).join("|")+")";
+  klfDbg("open-paren-rx string: "<<sopenrx<<"; close-paren-rx string: "<<scloserx);
+  QRegExp rx_open(sopenrx);
+  QRegExp rx_close(scloserx);
+
+  // needed to avoid double-parsing of eg. "\\left(" when parsing "\\left(" and then "("
+  int lastparenparsingendpos = 0;
   
   _rulestoapply.clear();
   int k;
@@ -262,9 +281,6 @@ void KLFLatexSyntaxHighlighter::parseEverything()
       text += "\n";
     }
 
-    static QRegExp bsleft("^\\\\left(?!\\w)");
-    static QRegExp bsright("^\\\\right(?!\\w)");
-
     i = 0;
     while ( i < text.length() ) {
       if (text[i] == '%') {
@@ -275,33 +291,28 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	i += k + 1;
 	continue;
       }
-      if (bsleft.indexIn(text.mid(i)) != -1 ||
-	  strchr(ParenItem::openparenlist, text[i].toAscii()) != NULL) {
-	bool l = (text.mid(i, 5) == "\\left");
-	if (l)
-	  i += 5;
-	if (i == text.length()) // ignore a \left with no following character
-	  continue;
-	if (text.mid(i,2) == "\\{")
-	  ++i; // focus on the '{' sign, not the \\ sign
-	parens.push(ParenItem(blockpos+i, (_caretpos == blockpos+i), text[i].toAscii(), l));
-	if (i > 0 && text[i-1] == '\\') {
-	  --i; // allow the next-next if-block for keywords to highlight this "\\{"
-	}
+      if ( blockpos+i >= lastparenparsingendpos && rx_open.indexIn(text.mid(i)) != -1) {
+	ParenItem p;
+	p.isopening = true;
+	p.parenstr = rx_open.cap(2);
+	p.modifier = rx_open.cap(1);
+	p.beginpos = blockpos+i;
+	p.endpos = blockpos+i+rx_open.matchedLength();
+	p.pos = blockpos+i+p.modifier.length();
+	p.highlight = (_caretpos == p.caretHoverPos());
+	parens.push(p);
+	lastparenparsingendpos = p.endpos;
       }
-      if (bsright.indexIn(text.mid(i)) != -1 ||
-	  strchr(ParenItem::closeparenlist, text[i].toAscii())) {
-	// first determine this closing paren type (char and is-'\left/\right')
-	char cp_ch = '!';
-	bool cp_left = ( text.mid(i, 6) == "\\right" );
-	if (cp_left) {
-	  i += 6;
-	}
-	if (i == text.length()) // ignore a \right with no following character
-	  continue;
-	if (text.mid(i,2) == "\\}")
-	  ++i; // focus on the '}' sign, not the \\ sign
-	cp_ch = text[i].toAscii();
+      else if ( blockpos+i >= lastparenparsingendpos && rx_close.indexIn(text.mid(i)) != -1) {
+	ParenItem cp;
+	cp.isopening = false;
+	cp.parenstr = rx_close.cap(2);
+	cp.modifier = rx_close.cap(1);
+	cp.beginpos = blockpos+i;
+	cp.pos = blockpos+i+cp.modifier.length();
+	cp.endpos = blockpos+i+rx_close.matchedLength();
+	cp.highlight = (_caretpos == cp.caretHoverPos());
+	lastparenparsingendpos = cp.endpos;
 	
 	ParenItem p;
 	if (!parens.empty()) {
@@ -309,9 +320,9 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	  // eg. in "sin[\theta(1+t]", match both square brackets leaving the paren lonely.
 	  // Do this on a copy of the stack, in case we don't find a matching paren
 	  QStack<ParenItem> ptrymatch = parens;
-	  QList<ParenItem> extralonelyparens;
-	  while (ptrymatch.size() && !ParenItem::match(ptrymatch.top().ch, ptrymatch.top().left, cp_ch, cp_left)) {
-	    extralonelyparens << ptrymatch.top();
+	  QList<LonelyParenItem> extralonelyparens;
+	  while (ptrymatch.size() && !cp.matches(ptrymatch.top())) {
+	    extralonelyparens << LonelyParenItem(ptrymatch.top(), cp.beginpos);
 	    ptrymatch.pop();
 	  }
 	  if (ptrymatch.size()) { // found match
@@ -323,35 +334,29 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	    // No match found, report a lonely paren.
 	    int topparenstackpos = 0;
 	    if (parens.size()) {
-	      topparenstackpos = parens.top().pos + 1;
+	      topparenstackpos = parens.top().endpos;
 	    }
-	    p = ParenItem(topparenstackpos, false, '!'); // simulate an item
-	    if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen)
-	      _rulestoapply.append(FormatRule(blockpos+i, 1, FLonelyParen));
+	    lonelyparens << LonelyParenItem(cp, topparenstackpos);
+	    continue; // mismatch will be reported when processing lonely parens
 	  }
 	} else {
-	  p = ParenItem(0, false, '!'); // simulate an item
-	  if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen)
-	    _rulestoapply.append(FormatRule(blockpos+i, 1, FLonelyParen));
+	  lonelyparens << LonelyParenItem(cp, 0);
+	  continue; // mismatch will be reported when processing lonely parens
 	}
 	Format col;
-	if (ParenItem::match(p.ch, p.left, cp_ch, cp_left))
+	if (cp.matches(p))
 	  col = FParenMatch;
 	else
 	  col = FParenMismatch;
 
 	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)
-	if (p.highlight || (_caretpos == blockpos+i+1)) {
-	  if ((klfconfig.SyntaxHighlighter.configFlags & HighlightParensOnly) == 0) {
-	    _rulestoapply.append(FormatRule(p.pos, blockpos+i+1-p.pos, col, true));
+	if (p.highlight || cp.highlight) {
+	  if (klfconfig.SyntaxHighlighter.highlightParensOnly) {
+	    _rulestoapply.append(FormatRule(p.pos, p.poslength(), col, true));
+	    _rulestoapply.append(FormatRule(cp.pos, cp.poslength(), col, true));
 	  } else {
-	    if (p.ch != '!') // simulated item for first pos
-	      _rulestoapply.append(FormatRule(p.pos, 1, col));
-	    _rulestoapply.append(FormatRule(blockpos+i, 1, col, true));
+	    _rulestoapply.append(FormatRule(p.pos, cp.endpos - p.pos, col, true));
 	  }
-	}
-	if (i > 0 && text[i-1] == '\\') {
-	  --i; // allow the next if-block for keywords to highlight this "\\}"
 	}
       }
 
@@ -388,26 +393,31 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 
   QTextBlock lastblock = document()->lastBlock();
 
+  int globendpos = lastblock.position()+lastblock.length();
+
   // collect lonely parens list: all unclosed parens should be added to the list of collected
   // unclosed parens.
   while (!parens.empty()) {
-    lonelyparens << parens.top();
+    lonelyparens << LonelyParenItem(parens.top(), globendpos);
     parens.pop();
   }
 
   for (k = 0; k < lonelyparens.size(); ++k) {
     // for each unclosed paren
-    ParenItem p = lonelyparens[k];
-    if (_caretpos == p.pos) {
-      if ( (klfconfig.SyntaxHighlighter.configFlags & HighlightParensOnly) != 0 )
-	_rulestoapply.append(FormatRule(p.pos, 1, FParenMismatch, true));
-      else
-	_rulestoapply.append(FormatRule(p.pos, lastblock.position()+lastblock.length()-p.pos,
+    LonelyParenItem p = lonelyparens[k];
+    int chp = p.caretHoverPos();
+    if (chp == _caretpos) {
+      if (klfconfig.SyntaxHighlighter.highlightParensOnly) {
+	_rulestoapply.append(FormatRule(p.pos, p.poslength(), FParenMismatch, true));
+      } else {
+	// FormatRule will accept a negative length
+	_rulestoapply.append(FormatRule(chp, p.unmatchedpos-chp,
 					FParenMismatch, true));
-    } else { // not on caret positions
-      if (klfconfig.SyntaxHighlighter.configFlags & HighlightLonelyParen)
-	_rulestoapply.append(FormatRule(p.pos, 1, FLonelyParen));
+      }
     }
+    // highlight the lonely paren
+    if (klfconfig.SyntaxHighlighter.highlightLonelyParens)
+      _rulestoapply.append(FormatRule(p.pos, p.poslength(), FLonelyParen));
   }
 
 }
@@ -446,7 +456,7 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
 {
   klfDbg("text is "<<text);
 
-  if ( ( klfconfig.SyntaxHighlighter.configFlags & Enabled ) == 0)
+  if ( ! klfconfig.SyntaxHighlighter.enabled )
     return; // forget everything about synt highlight if we don't want it.
 
   QTextBlock block = currentBlock();
@@ -469,6 +479,9 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
   for (k = 0; k < _rulestoapply.size(); ++k) {
     int start = _rulestoapply[k].pos - block.position();
     int len = _rulestoapply[k].len;
+
+    if (len <= 0)
+      continue; // empty rule...
     
     if (start < 0) {
       len += start; // +, start being negative

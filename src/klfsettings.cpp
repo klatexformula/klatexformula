@@ -470,12 +470,10 @@ void KLFSettings::reset()
   u->spnBBorderOffset->setValue( (int)(s.bborderoffset+0.5) );
   u->chkOutlineFonts->setChecked( s.outlineFonts );
 
-  u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.configFlags
-			  &  KLFLatexSyntaxHighlighter::Enabled);
-  u->chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.configFlags
-				       &  KLFLatexSyntaxHighlighter::HighlightParensOnly);
-  u->chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.configFlags
-					&  KLFLatexSyntaxHighlighter::HighlightLonelyParen);
+  u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.enabled);
+  u->chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.highlightParensOnly);
+  u->chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.highlightLonelyParens);
+  u->chkSHNoMatchParenTypes->setChecked( ! klfconfig.SyntaxHighlighter.matchParenTypes );
 
   for (k = 0; k < _textformats.size(); ++k) {
     if (_textformats[k].fmt->hasProperty(QTextFormat::ForegroundBrush))
@@ -1055,18 +1053,11 @@ void KLFSettings::apply()
 
   _mainwin->applySettings(s);
 
-  if (u->chkSHEnable->isChecked())
-    klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::Enabled;
-  else
-    klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::Enabled;
-  if (u->chkSHHighlightParensOnly->isChecked())
-    klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::HighlightParensOnly;
-  else
-    klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightParensOnly;
-  if (u->chkSHHighlightLonelyParen->isChecked())
-    klfconfig.SyntaxHighlighter.configFlags |= KLFLatexSyntaxHighlighter::HighlightLonelyParen;
-  else
-    klfconfig.SyntaxHighlighter.configFlags &= ~KLFLatexSyntaxHighlighter::HighlightLonelyParen;
+  klfconfig.SyntaxHighlighter.enabled = u->chkSHEnable->isChecked();
+  klfconfig.SyntaxHighlighter.highlightParensOnly = u->chkSHHighlightParensOnly->isChecked();
+  klfconfig.SyntaxHighlighter.highlightLonelyParens = u->chkSHHighlightLonelyParen->isChecked();
+  klfconfig.SyntaxHighlighter.matchParenTypes = ! u->chkSHNoMatchParenTypes->isChecked();
+
 
   for (k = 0; k < _textformats.size(); ++k) {
     QColor c = _textformats[k].fg->color();

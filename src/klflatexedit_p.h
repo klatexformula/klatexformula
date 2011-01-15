@@ -25,33 +25,78 @@
 
 
 struct ParenItem {
-  ParenItem(int ps = -1, bool h = false, char c = 0, bool l = false)
-    : pos(ps), highlight(h), ch(c), left(l) { }
-  int pos;
-  bool highlight;
-  char ch;
-  bool left; //!< if it's \left( instead of (
+  ParenItem(int i = -1, bool isopen = true, const QString& ps = QString(),
+	    const QString& mod = QString())
+    : isopening(isopen), pos(i), beginpos(i), endpos(i), highlight(false), parenstr(ps), modifier(mod)
+  {
+  }
 
+  ParenItem(QList<int> ibeginposend, bool isopen = true, const QString& ps = QString(),
+	    const QString& mod = QString())
+    : isopening(isopen), highlight(false), parenstr(ps), modifier(mod)
+  {
+    int i = 0;
+    beginpos = pos = endpos = -1;
+    if (i < ibeginposend.size()) { beginpos = ibeginposend[i]; ++i; }
+    if (i < ibeginposend.size()) { pos = ibeginposend[i]; ++i; }
+    if (i < ibeginposend.size()) { endpos = ibeginposend[i]; }
+    if (pos < beginpos) pos = beginpos;
+    if (endpos < pos) endpos = pos;
+  }
+
+  int isopening;
+  int pos;
+  int beginpos;
+  int endpos;
+  bool highlight;
+  QString parenstr;
+  QString modifier; //!< possible modifier, eg. "\left" for "\left(", or "\" for "\{"
+
+  inline int length() const { return endpos-beginpos; }
+  inline int poslength() const { return endpos-pos; }
+
+  inline int caretHoverPos() const
+  {  return isopening ? pos : endpos;   }
+
+  inline bool matches(const ParenItem& other)
+  {
+    if (isopening == other.isopening)
+      return false;
+    return isopening
+      ? match(parenstr, modifier, other.parenstr, other.modifier)
+      : match(other.parenstr, other.modifier, parenstr, modifier) ;
+  }
 
   // defined in klflatexedit.cpp
-  static const char openparenlist[];
-  static const char closeparenlist[];
+  static QStringList openParenList;
+  static QStringList closeParenList;
+  static QStringList openParenModifiers;
+  static QStringList closeParenModifiers;
 
-  static bool match(char a_ch, bool a_left, char b_ch, bool b_right)
+  /** Returns TRUE if paren string \c a_ch matches the paren string \c b_ch with their respective modifiers.
+   * a_ch/a_mod is expected to be an opening paren, and b_* a closing paren. Note that b_mod should be given
+   * '\\right', not '\\left'.   */
+  static bool match(const QString& a_ch, const QString& a_mod, const QString& b_ch, const QString& b_mod)
   {
-    if (a_left != b_right)
+    QString trbmod = b_mod;
+    // translate modifiers
+    if (trbmod == "\\right")
+      trbmod = "\\left";
+
+    if (a_mod != trbmod)
       return false;
-    if ( a_left && (a_ch == '.' || b_ch == '.') ) {
+
+    if ( a_mod == "\\left" && (a_ch == "." || b_ch == ".") ) {
       // special case with \left( blablabla \right.  or  \left. blablabla \right)
       // so report a match
       return true;
     }
     int k;
-    for (k = 0; openparenlist[k] != '\0' && closeparenlist[k] != '\0'; ++k) {
-      if (a_ch == openparenlist[k])
-	return  (b_ch == closeparenlist[k]);
-      if (b_ch == closeparenlist[k])
-	return false; // because a_ch != openparenlist[k]
+    for (k = 0; k < openParenList.size() && k < closeParenList.size(); ++k) {
+      if (a_ch == openParenList[k])
+	return  (b_ch == closeParenList[k]);
+      if (b_ch == closeParenList[k])
+	return false; // because a_ch != openParenList[k]
     }
     if (a_ch == b_ch)
       return true;
@@ -61,3 +106,12 @@ struct ParenItem {
   }
 };
 
+
+struct LonelyParenItem : public ParenItem
+{
+  LonelyParenItem(const ParenItem& p = ParenItem(), int umpos = -1)
+    : ParenItem(p), unmatchedpos(umpos) { }
+
+  int unmatchedpos;
+
+};
