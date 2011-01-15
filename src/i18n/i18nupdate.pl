@@ -34,8 +34,8 @@ $xmltrrules =
    "../conf/export_mime_profiles.d/*.xml" => { SCOPE => "exportprofiles" ,
 					       TAGS => [ "description" ]
 					     } ,
-   "../data/latexsymbols.xml"		=> { SCOPE => "latexsymbols" ,
-					     TAGS => [ "category-title" ]
+   "../conf/latexsymbols.d/latexsymbols.xml" => { SCOPE => "klfsymbollist" ,
+						  TAGS => [ "category-title", "keywords" ]
 					   } ,
    "../plugins/skin/skins/*.xml" => { SCOPE => "pluginskins" ,
 				      TAGS => [ "name", "description" ] }

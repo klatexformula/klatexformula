@@ -35,24 +35,38 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QDomElement>
+#include <QHash>
 
 #include <klfbackend.h>
 
 #include <klfsearchbar.h>
 #include <klfiteratorsearchable.h>
 
+
 /** A Latex Symbol. */
 struct KLF_EXPORT KLFLatexSymbol
 {
-  KLFLatexSymbol() : symbol(), preamble(), textmode(false), hidden(true) { }
+  KLFLatexSymbol()
+    : symbol(), symbol_numargs(0), symbol_option(false), previewlatex(), preamble(), textmode(false),
+      hidden(true), keywords()  {  }
   KLFLatexSymbol(const QString& s, const QStringList& p, bool txtmod)
-    : symbol(s), preamble(p), textmode(txtmod), hidden(false) { }
+    : symbol(s), symbol_numargs(0), symbol_option(false), previewlatex(), preamble(p), textmode(txtmod),
+      hidden(false), keywords()  {  }
   KLFLatexSymbol(const QDomElement& e);
 
   inline bool valid() const { return !symbol.isEmpty(); }
 
-  QString symbol;
-  QStringList preamble;
+  QString symbol; //!< "<latex>" in XML def
+  int symbol_numargs; //!< "numargs=###" in XML "<latex>" def
+  bool symbol_option; //!< "option=[yes|no]" in XML "<latex>" def
+  QString previewlatex; //!< "<preview-latex>" in XML def
+
+  //! Returns the symbol with empty arguments, eg. "\sqrt[]{}". Ignores previewlatex.
+  QString symbolWithArgs() const;
+  //! Returns \ref previewlatex or \ref symbol with dummy args
+  QString latexCodeForPreview() const;
+
+  QStringList preamble; //!< all "<preambleline>"'s and "<usepackage>"
   bool textmode;
   struct BBOffset {
     BBOffset(int top = 0, int ri = 0, int bo = 0, int le = 0) : t(top), r(ri), b(bo), l(le) { }
@@ -60,26 +74,43 @@ struct KLF_EXPORT KLFLatexSymbol
   } bbexpand;
 
   bool hidden;
+
+  QStringList keywords; //!< "<keywords>"---add symbol search terms or alternative denomination
 };
 
+KLF_EXPORT QDebug operator<<(QDebug str, const KLFLatexSymbol& symbol);
 
+//! A Hash function for a KLFLatexSymbol
+inline uint qHash(const KLFLatexSymbol& symb)
+{
+  return qHash(symb.symbol);
+}
+
+
+
+class KLFLatexSymbolsCachePrivate;
 
 class KLF_EXPORT KLFLatexSymbolsCache
 {
 public:
   enum { Ok = 0, BadHeader, BadVersion };
 
-  inline bool cacheNeedsSave() const { return flag_modified; }
+  ~KLFLatexSymbolsCache();
 
-  QPixmap getPixmap(const KLFLatexSymbol& sym, bool fromcacheonly = true);
+  bool cacheNeedsSave() const;
+
+  QPixmap getPixmap(const KLFLatexSymbol& sym, bool fromCache = true);
 
   int precacheList(const QList<KLFLatexSymbol>& list, bool userfeedback, QWidget *parent = NULL);
 
   void setBackendSettings(const KLFBackend::klfSettings& settings);
 
   KLFLatexSymbol findSymbol(const QString& symbolCode);
+  QList<KLFLatexSymbol> findSymbols(const QString& symbolCode);
   QStringList symbolCodeList();
   QPixmap findSymbolPixmap(const QString& symbolCode);
+
+  void debugDump();
 
   static KLFLatexSymbolsCache * theCache();
   static void saveTheCache();
@@ -90,9 +121,7 @@ private:
   /** No copy constructor */
   KLFLatexSymbolsCache(const KLFLatexSymbolsCache& /*other*/) { }
 
-  QMap<KLFLatexSymbol,QPixmap> cache;
-  bool flag_modified;
-  KLFBackend::klfSettings backendsettings;
+  KLFLatexSymbolsCachePrivate *d;
 
   int loadCacheStream(QDataStream& stream);
   int saveCacheStream(QDataStream& stream);
@@ -170,10 +199,10 @@ signals:
 public slots:
 
   void slotShowCategory(int cat);
-
   void retranslateUi(bool alsoBaseUi = true);
-
   void slotKlfConfigChanged();
+
+  void emitInsertSymbol(const KLFLatexSymbol& symbol);
 
 protected:
   QStackedWidget *stkViews;

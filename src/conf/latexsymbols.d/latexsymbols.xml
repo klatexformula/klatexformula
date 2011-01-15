@@ -1,12 +1,18 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Latex Symbol List for KLatexFormula symbol palette -->
 <!-- $Id$ -->
-<latexsymbollist version="1.0" >
+<klf-symbol-list minklfversion="3.3.0a">
   <!-- Notes
     * Symbols are grouped in categories, which will be shown on different
       pages in the symbols palette.
     * Generally the order of the different element types inside a
       <sym>...</sym> declaration isn't important
+    * <latex>...</latex> should contain the basic symbol code without any
+      arguments, eg. `\frac'.
+    * Specify the number of latex arguments to given with <latex numargs="N">
+      eg. <latex numargs="2">\frac</latex> or <latex numargs="1">\sqrt</latex>
+    * Specify if the symbol needs an option argument (eg. \sqrt[]{}) with
+      <latex option="yes">, eg. <latex option="yes" numargs="1">\sqrt</latex>
     * Packages can be included with a <usepackage name="...">
     * Arbitrary lines in the preamble can be inserted with
       <preambleline>...</preambleline>
@@ -18,6 +24,8 @@
     * Symbols that are marked <hidden/> won't display in the symbols palette,
       however they will be recognized by the editor and a popup will suggest
       to insert missing packages when that symbol is typed.
+    * Use <keywords>foo bar</keywords> to specify a space-separated list of
+      tags/keywords use for symbol search
     -->
   <category name="Relation Symbols">
     <category-title>Relation Symbols</category-title>
@@ -402,8 +410,10 @@
     <sym><usepackage name="amssymb"/><latex>\nleftrightarrow</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\nLeftrightarrow</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\leadsto</latex></sym>
-    <sym><usepackage name="amsmath"/><latex>\xleftarrow[xyz]{abc}</latex></sym>
-    <sym><usepackage name="amsmath"/><latex>\xrightarrow[xyz]{abc}</latex></sym>
+    <sym><usepackage name="amsmath"/><latex option="1" numargs="1">\xleftarrow</latex>
+         <preview-latex>\xleftarrow[xyz]{abc}</preview-latex></sym>
+    <sym><usepackage name="amsmath"/><latex option="1" numargs="1">\xrightarrow</latex>
+         <preview-latex>\xrightarrow[xyz]{abc}</preview-latex></sym>
   </category>
   <category name="Miscellaneous Symbols">
     <category-title>Miscellaneous Symbols</category-title>
@@ -484,14 +494,14 @@
     <sym><latex>\rceil</latex></sym>
     <sym><latex>\langle</latex></sym>
     <sym><latex>\rangle</latex></sym>
-    <sym><latex>\overbrace{xyz}</latex></sym>
-    <sym><latex>\underbrace{xyz}</latex></sym>
-    <sym><latex>\overline{xyz}</latex></sym>
-    <sym><latex>\underline{xyz}</latex></sym>
-    <sym><latex>\overleftarrow{xyz}</latex></sym>
-    <sym><latex>\overrightarrow{xyz}</latex></sym>
-    <sym><latex>\widehat{xyz}</latex></sym>
-    <sym><latex>\widetilde{xyz}</latex></sym>
+    <sym><latex numargs="1">\overbrace</latex><preview-latex>\overbrace{xyz}</preview-latex></sym>
+    <sym><latex numargs="1">\underbrace</latex><preview-latex>\underbrace{xyz}</preview-latex></sym>
+    <sym><latex numargs="1">\overline</latex><preview-latex>\overline{xyz}</preview-latex></sym>
+    <sym><latex numargs="1">\underline</latex><preview-latex>\underline{xyz}</preview-latex></sym>
+    <sym><latex numargs="1">\overleftarrow</latex><preview-latex>\overleftarrow{xyz}</preview-latex></sym>
+    <sym><latex numargs="1">\overrightarrow</latex><preview-latex>\overrightarrow{xyz}</preview-latex></sym>
+    <sym><latex numargs="1">\widehat</latex><preview-latex>\widehat{xyz}</preview-latex></sym>
+    <sym><latex numargs="1">\widetilde</latex><preview-latex>\widetilde{xyz}</preview-latex></sym>
     <sym><usepackage name="amssymb"/><latex>\ulcorner</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\urcorner</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\llcorner</latex></sym>
@@ -503,33 +513,30 @@
     <sym><latex>\arrowvert</latex></sym>
     <sym><latex>\Arrowvert</latex></sym>
     <sym><latex>\bracevert</latex></sym>
-    <sym><latex>\sqrt{xyz}</latex></sym>
-    <sym><latex>\sqrt[n]{xyz}</latex></sym>
-    <sym><latex>\frac{a}{b}</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><hidden/><latex>\abs</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex>\abs{x}</latex></sym>
-        <sym><latex>\bar{a}</latex></sym>
-    <sym><latex>\vec{a}</latex></sym>
-    <sym><latex>\dot{a}</latex></sym>
-    <sym><latex>\ddot{a}</latex></sym>
-    <sym><latex>\hat{a}</latex></sym>
-    <sym><latex>\check{a}</latex></sym>
-    <sym><latex>\breve{a}</latex></sym>
-    <sym><latex>\tilde{a}</latex></sym>
-    <sym><latex>\acute{a}</latex></sym>
-    <sym><latex>\grave{a}</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><hidden/><latex>\ket</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex>\ket{\psi}</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><hidden/><latex>\bra</latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex>\bra{\psi}</latex></sym>
-    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><hidden/><latex>\braket</latex></sym>    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex>\braket{\phi}{\psi}</latex></sym>
-    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><hidden/><latex>\matrixel</latex></sym>
-    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex>\matrixel{\phi}{H}{\psi}</latex></sym>
-    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><hidden/><latex>\ketbra</latex></sym>    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><latex>\ketbra{\phi}{\psi}</latex></sym>
+    <sym><latex numargs="1">\sqrt</latex></sym>
+    <sym><latex option="yes" numargs="1">\sqrt</latex></sym>
+    <sym><latex numargs="2">\frac</latex><preview-latex>\frac{a}{b}</preview-latex>
+      <keywords>fraction bar</keywords>
+    </sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex numargs="1">\abs</latex><preview-latex>\abs{x}</preview-latex></sym>
+    <sym><latex numargs="1">\bar</latex><preview-latex>\bar{a}</preview-latex></sym>
+    <sym><latex numargs="1">\vec</latex><preview-latex>\vec{a}</preview-latex></sym>
+    <sym><latex numargs="1">\dot</latex><preview-latex>\dot{a}</preview-latex></sym>
+    <sym><latex numargs="1">\ddot</latex><preview-latex>\ddot{a}</preview-latex></sym>
+    <sym><latex numargs="1">\hat</latex><preview-latex>\hat{a}</preview-latex></sym>
+    <sym><latex numargs="1">\check</latex><preview-latex>\check{a}</preview-latex></sym>
+    <sym><latex numargs="1">\breve</latex><preview-latex>\breve{a}</preview-latex></sym>
+    <sym><latex numargs="1">\tilde</latex><preview-latex>\tilde{a}</preview-latex></sym>
+    <sym><latex numargs="1">\acute</latex><preview-latex>\acute{a}</preview-latex></sym>
+    <sym><latex numargs="1">\grave</latex><preview-latex>\grave{a}</preview-latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex numargs="1">\ket</latex><preview-latex>\ket\psi</preview-latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex numargs="1">\bra</latex><preview-latex>\bra\psi</preview-latex></sym>
+    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex numargs="2">\braket</latex><preview-latex>\braket\phi\psi</preview-latex></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex numargs="3">\matrixel</latex><preview-latex>\matrixel{\phi}{\mathcal H}{\psi}</preview-latex></sym>
+    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><latex numargs="2">\ketbra</latex><preview-latex>\ketbra{\phi}{\psi}</preview-latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
-    <sym><usepackage name="slashed"/><hidden/><latex>\slashed</latex></sym>
-    <sym><usepackage name="slashed"/><latex>\slashed{a}</latex></sym>
+    <sym><usepackage name="slashed"/><latex numargs="1">\slashed</latex></sym>
   </category>
   <category name="Greek Alphabet">
     <category-title>Greek Alphabet</category-title>
@@ -765,7 +772,6 @@
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{X}</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{Y}</latex></sym>
     <sym><usepackage name="amsfonts"/><latex>\mathfrak{Z}</latex></sym>
-    <sym><usepackage name="amsmath"/><hidden/><latex>\boldsymbol</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{A}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{B}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{C}</latex></sym>
@@ -834,15 +840,14 @@
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{\Omega}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{\nabla}</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\boldsymbol{\infty}</latex></sym>
-    <sym><usepackage name="amsmath"/><latex>\boldsymbol{[bold\ symbol]}</latex></sym>
-    <sym><usepackage name="amsmath"/><hidden/><latex>\text</latex></sym>
-    <sym><usepackage name="amsmath"/><latex>\text{[Regular text]}</latex></sym>
-    <sym><latex>\mathrm{A}</latex></sym>
-    <sym><latex>\mathit{A}</latex></sym>
-    <sym><latex>\textrm{A}</latex></sym>
-    <sym><latex>\textit{A}</latex></sym>
-    <sym><latex>\textsl{A}</latex></sym>
-    <sym><latex>\textbf{A}</latex></sym>
+    <sym><usepackage name="amsmath"/><latex numargs="1">\boldsymbol</latex><preview-latex>\boldsymbol{[bold\ symbol]}</preview-latex></sym>
+    <sym><usepackage name="amsmath"/><hidden/><latex numargs="1">\text</latex><preview-latex>\text{[Regular text]}</preview-latex></sym>
+    <sym><latex numargs="1">\mathrm</latex></sym>
+    <sym><latex numargs="1">\mathit</latex></sym>
+    <sym><latex numargs="1">\textrm</latex></sym>
+    <sym><latex numargs="1">\textit</latex></sym>
+    <sym><latex numargs="1">\textsl</latex></sym>
+    <sym><latex numargs="1">\textbf</latex></sym>
   </category>
   <category name="Text Mode LaTeX Special Characters">
     <category-title>Text Mode LaTeX Special Characters</category-title>
@@ -914,4 +919,4 @@
     <sym textmode="true"><preambleline>\usepackage[T1]{fontenc}</preambleline><latex>\guilsinglright</latex></sym>
     <sym textmode="true"><preambleline>\usepackage[T1]{fontenc}</preambleline><latex>\quotesinglbase</latex></sym>
   </category>
-</latexsymbollist>
+</klf-symbol-list>

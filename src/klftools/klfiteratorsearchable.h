@@ -299,6 +299,23 @@ public:
     return a;
   }
 
+  /** Advances the iterator \c it by \c n steps (which may be negative). If the end is reached,
+   * the iterator wraps back to the beginning. if \c skipEnd is true, then the position when
+   * it is equal to searchIterEnd() is skipped. */
+  SearchIterator searchAdvanceIteratorCycle(const SearchIterator& it, int n = 1, bool skipEnd = false)
+  {
+    bool forward = (n >= 0);
+    if (!forward)
+      n = -n;
+    SearchIterator it2 = it;
+    while (n--) {
+      it2 = safe_cycl_advance_iterator(it2, forward);
+      if (it2 == searchIterEnd() && skipEnd)
+	it2 = safe_cycl_advance_iterator(it2, forward);
+    }
+    return it2;
+  }
+
   virtual Pos invalidPos()
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;

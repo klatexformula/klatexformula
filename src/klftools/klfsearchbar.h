@@ -376,6 +376,7 @@ class KLFSearchBarPrivate;
  *    from the end)
  *
  * Shortcuts can be enabled so that Ctrl-F, Ctrl-S, F3, and such other keys work. See registerShortcuts().
+ * The shortcuts are NOT enabled by default, you need to call registerShortcuts().
  *
  * The search bar will turn red or green depending on whether the query string is found or not, you can
  * customize these colors with setColorFound() and setColorNotFound(). To customize these colors using
@@ -394,7 +395,7 @@ class KLF_EXPORT KLFSearchBar : public QFrame, public KLFTargeter
 {
   Q_OBJECT
 
-  Q_PROPERTY(QString currentSearchText READ currentSearchText WRITE setSearchText) ;
+  Q_PROPERTY(QString currentSearchText READ currentSearchText) ;
   Q_PROPERTY(bool autoHide READ autoHide WRITE setAutoHide) ;
   Q_PROPERTY(bool showOverlayMode READ showOverlayMode WRITE setShowOverlayMode) ;
   Q_PROPERTY(QRect showOverlayRelativeGeometry READ showOverlayRelativeGeometry
@@ -411,6 +412,8 @@ public:
 
   KLFSearchBar(QWidget *parent = NULL);
   virtual ~KLFSearchBar();
+  /** Enables shortcuts such as C-F, C-S, /, F3 etc. The \c parent is given to the
+   * \ref QShortcut constructor. */
   virtual void registerShortcuts(QWidget *parent);
 
   /** Set the object upon which we will perform searches. As long as no object is
@@ -471,6 +474,13 @@ signals:
   void didNotFind(const QString& queryString, bool forward);
   void searchAborted();
   void escapePressed();
+  void searchReinitialized();
+
+  //! Reflects whether the search is currently pointing on a valid result
+  /** Emitted with argument TRUE each time that a successful search is performed; emitted with
+   * FALSE if the query string is not found, or if the search is aborted, or if the user
+   * resets the search. */
+  void hasMatch(bool hasmatch);
 
   void visibilityChanged(bool isShown);
 

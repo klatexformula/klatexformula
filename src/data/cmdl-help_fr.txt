@@ -91,8 +91,8 @@ Options:
   --gs <gs executable>
   --epstopdf <epstopdf executable>
       Précise le chemin d'accès pour l'exécutable latex, dvips, gs ou epstopdf respectivement. Par
-      défaut, ces programmes sont cherchés dans les chemins $PATH et/ou dans des dossiers
-      courants.
+      défaut, ces programmes sont cherchés dans les chemins $PATH et dans des dossiers
+      habituels.
 
   -Q, --qtoption <qt-option>
       Précise une option Qt. Par exemple, pour exécuter KLatexFormula en utilisant le
@@ -108,9 +108,9 @@ Options:
       numéro N. (Rappel: N=1 est la sortie standard 'stdout', N=2 est la sortie d'erreur 'stderr')
   -V, --version [<fichier|&N>][:<format>]
       Affiche la version de ce KLatexFormula et quitte.
-      L'argument de sortie facultatif est géré comme pour --help, mais il peut être succédé par
-      un argument de format (séparé par un ':'), où %k, %q et %% sont remplacés par la version
-      complète de klatexformula, la version complete de Qt et le caractère %.
+      L'argument de sortie facultatif est géré comme pour --help, mais il peut aussi être succédé
+      par un argument de format (séparé par un ':'), où %k, %q et %% sont remplacés par la version
+      complète de klatexformula, la version complete de Qt et le caractère %, respectivement.
 
 Exemples:
   Créer une image appelée fichier.png de l'équation 'a^2+b^2=c^2' :

@@ -89,6 +89,7 @@ set(klfapp_MOCHEADERS
 )
 #  * all headers
 set(klfapp_HEADERS
+	klflatexedit_p.h
 	klfmain.h
 	klfconfig.h
 	klfpluginiface.h
@@ -304,9 +305,9 @@ if(WIN32)
   # Add the -mwindows only if we are not compiling in debug mode.
   # Add also a separate target klatexformula_cmdl to build the cmdl version, keeping the shell
   # window open.
+  add_executable(klatexformula_cmdl ${klatexformula_ALLSRC})
+  target_link_libraries(klatexformula_cmdl ${QT_LIBRARIES} klfbackend klftools klfapp)
   if(NOT KLF_DEBUG)
-    add_executable(klatexformula_cmdl ${klatexformula_ALLSRC})
-    target_link_libraries(klatexformula_cmdl ${QT_LIBRARIES} klfbackend klftools klfapp)
     set_target_properties(klatexformula  PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,windows")
     set_target_properties(klatexformula_cmdl  PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,console")
   endif(NOT KLF_DEBUG)

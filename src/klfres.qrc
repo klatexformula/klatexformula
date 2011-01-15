@@ -52,10 +52,10 @@
     <file>data/cmdl-help.txt</file>
     <file>data/about.html</file>
     <file>data/whats-new-3.2.html</file>
-    <file>data/latexsymbols.xml</file>
     <file>data/symbolspixmapcache_base</file>
     <file>data/defaultlibrary.klf</file>
     <file>data/ooodrawingtemplate</file>
+    <file>conf/latexsymbols.d/latexsymbols.xml</file>
     <file>conf/export_mime_profiles.d/export_default.xml</file>
   </qresource>
   <qresource>

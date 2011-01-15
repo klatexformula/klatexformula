@@ -167,15 +167,6 @@ private:
     bool onlyIfFocus;
   };
 
-  struct ParenItem {
-    ParenItem(int ps = -1, bool h = false, char c = 0, bool l = false)
-      : pos(ps), highlight(h), ch(c), left(l) { }
-    int pos;
-    bool highlight;
-    char ch;
-    bool left; //!< if it's \left( instead of (
-  };
-
   QList<FormatRule> _rulestoapply;
 
   void parseEverything();

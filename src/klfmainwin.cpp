@@ -150,8 +150,10 @@ void KLFPreviewBuilderThread::run()
       output = KLFBackend::getLatexFormula(input, settings);
       img = output.result;
       if (output.status == 0) {
-	if (img.width() > lwid || img.height() > lhgt)
-	  img = img.scaled(QSize(lwid, lhgt), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	// don't scale image, report the full-sized image (eg. for tooltip)
+	//	if (img.width() > lwid || img.height() > lhgt)
+	//	  img = img.scaled(QSize(lwid, lhgt), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+	// ALL OK, proceed
       } else {
 	img = QImage();
       }
@@ -467,8 +469,9 @@ KLFMainWin::KLFMainWin()
 
   klfDbg("Font is "<<font()<<", family is "<<fontInfo().family()) ;
   if (QFontInfo(klfconfig.UI.applicationFont).family().contains("CMU")) {
-    addWhatsNewText("<p>"+tr("LaTeX' Computer Modern Sans Serif font is used as the <b>default application font</b>."
-			     " Don't like it? <a href=\"%1\">Choose your preferred application font</a>.")
+    addWhatsNewText("<p>" +
+		    tr("LaTeX' Computer Modern Sans Serif font is used as the <b>default application font</b>."
+		       " Don't like it? <a href=\"%1\">Choose your preferred application font</a>.")
 		    .arg("klfaction:/settings?control=AppFonts") + "</p>");
   }
 
@@ -802,7 +805,8 @@ void KLFMainWin::loadStyles()
 
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
-    KLFStyle s1(tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 600);
+    KLFStyle s1(tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0),
+		"\\begin{align*} ... \\end{align*}", "", 600);
     //    KLFStyle s2(tr("Inline"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 150);
     //    s2.overrideBBoxExpand = KLFStyle::BBoxExpand(0,0,0,0);
     _styles.append(s1);
@@ -1122,14 +1126,46 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
     slotEnsurePreambleCmd(cmds[k]);
   }
 
-  // only after actually insert the symbol, so as not to interfere with popup package suggestions.
+  // only after that actually insert the symbol, so as not to interfere with popup package suggestions.
 
-  QTextCursor c1(u->txtLatex->document());
-  c1.beginEditBlock();
-  c1.setPosition(u->txtLatex->textCursor().position());
-  c1.insertText(s.symbol+"\n");
-  c1.deletePreviousChar(); // small hack for forcing a separate undo command when two symbols are inserted
-  c1.endEditBlock();
+  // if we have a selection, insert it into the symbol arguments
+  QTextCursor cur = u->txtLatex->textCursor();
+  QString sel = cur.selectedText(); //.replace(QChar(0x2029), "\n"); // Qt's Unicode paragraph separators->\n
+
+  cur.beginEditBlock();
+
+  QString insertsymbol = s.symbol;
+  int nmoveleft = -1;
+  if (s.symbol_option)
+    insertsymbol += "[]";
+  if (s.symbol_numargs >= 0) {
+    int n = s.symbol_numargs;
+    if (sel.size()) {
+      insertsymbol += "{"+sel+"}";
+      --n;
+    }
+    while (n--) {
+      insertsymbol += "{}";
+      nmoveleft += 2;
+    }
+  }
+  cur.insertText(insertsymbol);
+  if (nmoveleft > 0) {
+    cur.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, nmoveleft);
+  } else {
+    // select char next to what we inserted, to see if we need to add a space
+    QTextCursor cur2 = cur;
+    cur2.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, 1);
+    if (cur2.selectedText().size()) {
+      int c = cur2.selectedText()[0].unicode();
+      if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+	// have to insert space to separate from the ascii char that follows
+	cur.insertText(" ");
+      }
+    }
+  }
+  cur.endEditBlock();
+  u->txtLatex->setTextCursor(cur);
 
   activateWindow();
   raise();
@@ -1160,9 +1196,17 @@ void KLFMainWin::getMissingCmdsFor(const QString& symbol, QStringList * missingC
   if (symbol.isEmpty())
     return;
 
-  KLFLatexSymbol sym = KLFLatexSymbolsCache::theCache()->findSymbol(symbol);
-  if (!sym.valid())
+  QList<KLFLatexSymbol> syms = KLFLatexSymbolsCache::theCache()->findSymbols(symbol);
+  if (syms.isEmpty())
     return;
+
+  // choose the symbol that requires the least extra packages...
+  int k, kbest = 0;
+  for (k = 0; k < syms.size(); ++k) {
+    if (syms[k].preamble.size() < syms[kbest].preamble.size())
+      kbest = k;
+  }
+  KLFLatexSymbol sym = syms[kbest];
 
   QStringList cmds = sym.preamble;
   klfDbg("Got symbol for "<<symbol<<"; cmds is "<<cmds);
@@ -1173,7 +1217,6 @@ void KLFMainWin::getMissingCmdsFor(const QString& symbol, QStringList * missingC
   QString curpreambletext = u->txtPreamble->toPlainText();
   QStringList packages;
   bool moreDefinitions = false;
-  int k;
   for (k = 0; k < cmds.size(); ++k) {
     if (curpreambletext.indexOf(cmds[k]) >= 0)
       continue; // this line is already included
@@ -1851,10 +1894,17 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
   if (_evaloutput_uptodate)
     return;
 
-  if (latexerror)
+  if (latexerror) {
     u->lblOutput->displayError(/*labelenabled:*/false);
-  else
-    u->lblOutput->display(preview, preview, false);
+  } else if (preview.isNull() || preview.size() == QSize(0, 0)) {
+    u->lblOutput->displayClear();
+  } else {
+    QImage img = preview;
+    if (img.width() > u->lblOutput->width() || img.height() > u->lblOutput->height())
+      img = img.scaled(u->lblOutput->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    u->lblOutput->display(img, preview, false);
+  }
 
 }
 

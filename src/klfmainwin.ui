@@ -483,7 +483,7 @@
       <item>
        <widget class="QPushButton" name="btnQuit">
         <property name="toolTip">
-         <string comment="tooltip">Quit KLatexFormula</string>
+         <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</string>
         </property>
         <property name="whatsThis">
          <string comment="whatsthis">Exit KLatexFormula</string>
@@ -656,7 +656,7 @@
             </item>
             <item>
              <property name="text">
-              <string notr="true">\[ \begin{aligned} ... \end{aligned} \]</string>
+              <string notr="true">\begin{align*} ... \end{align*}</string>
              </property>
             </item>
             <item>

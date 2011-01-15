@@ -271,6 +271,8 @@ KLFSearchBar::~KLFSearchBar()
 
 QString KLFSearchBar::currentSearchText() const
 {
+  if (d->pState == FocusOut)
+    return QString();
   return u->txtSearch->text();
 }
 
@@ -402,6 +404,10 @@ QString KLFSearchBar::focusOutText() const
 void KLFSearchBar::setFocusOutText(const QString& focusOutText)
 {
   d->pFocusOutText = focusOutText;
+  if (d->pState == FocusOut) {
+    // re-display focus-out state
+    displayState(FocusOut);
+  }
 }
 
 
@@ -470,6 +476,7 @@ bool KLFSearchBar::eventFilter(QObject *obj, QEvent *ev)
 		target()->searchMoveToPos(d->pCurPos);
 		target()->searchPerformed(d->pSearchText, d->pCurPos.valid(), d->pCurPos);
 		updateSearchFound(d->pCurPos.valid());
+		emit hasMatch(d->pCurPos.valid());
 	      }
 	    } else {
 	      d->esbs_histbuffer.pop_back();
@@ -501,6 +508,8 @@ bool KLFSearchBar::eventFilter(QObject *obj, QEvent *ev)
 		    target()->searchMoveToPos(d->pCurPos);
 		    target()->searchPerformed(d->pSearchText, d->pCurPos.valid(), d->pCurPos);
 		    updateSearchFound(d->pCurPos.valid());
+		    emitFoundSignals(d->pCurPos, d->pSearchText, clpos.reachedForward);
+		    emit hasMatch(d->pCurPos.valid());
 		  }
 		}
 	      }
@@ -699,8 +708,8 @@ void KLFSearchBar::performFind(bool forward, bool isfindnext)
   target()->searchMoveToPos(d->pCurPos);
   target()->searchPerformed(d->pSearchText, d->pCurPos.valid(), d->pCurPos);
   updateSearchFound(d->pCurPos.valid());
-
   emitFoundSignals(d->pCurPos, d->pSearchText, forward);
+  emit hasMatch(d->pCurPos.valid());
 
   klfDbg("Are now at position pCurPos="<<d->pCurPos) ;
 
@@ -764,6 +773,8 @@ void KLFSearchBar::promptEmptySearch()
     target()->setSearchQueryString(QString());
     target()->searchMoveToPos(d->pCurPos);
     target()->searchReinitialized();
+    emit searchReinitialized();
+    emit hasMatch(d->pCurPos.valid());
   }
 }
 
@@ -799,6 +810,7 @@ void KLFSearchBar::abortSearch()
   }
 
   emit searchAborted();
+  emit hasMatch(false);
 }
 
 void KLFSearchBar::adjustOverlayGeometry()

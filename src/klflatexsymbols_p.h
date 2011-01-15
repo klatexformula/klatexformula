@@ -39,6 +39,41 @@
 #include <ui_klflatexsymbols.h>
 #include "klflatexsymbols.h"
 
+
+
+struct SymbolInfo
+{
+  SymbolInfo() : pix(), confirmed(false) { }
+  
+  QPixmap pix;
+  bool confirmed;
+};
+
+struct KLFLatexSymbolsCachePrivate
+{
+  QHash<KLFLatexSymbol,SymbolInfo> cache;
+  bool flag_modified;
+  KLFBackend::klfSettings backendsettings;
+};
+
+// WARNING: Does NOT write s.confirmed (!)
+inline QDataStream& operator<<(QDataStream& stream, const SymbolInfo& s)
+{
+  return stream << s.pix;
+}
+
+// WARNING: Does NOT read s.confirmed (!), sets to false.
+inline QDataStream& operator>>(QDataStream& stream, SymbolInfo& s)
+{
+  s.confirmed = false;
+  return stream >> s.pix;
+}
+
+
+
+
+
+
 struct KLFLatexSymbolsSearchIterator
 {
   KLFLatexSymbolsSearchIterator(int iv = 0, int is = 0)
@@ -81,6 +116,18 @@ public slots:
   void slotToolTip()
   {
     QToolTip::showText(tooltippos, tooltiptext, tooltipwidget);
+  }
+
+  void slotInsertCurrentMatch()
+  {
+    SearchIterator cur = searchCurrentIterPos();
+    if (cur == searchIterEnd())
+      return;
+    KLFLatexSymbolsView *v = view(cur);
+    if (v == NULL)
+      return;
+    if (cur.isymb >= 0 && cur.isymb < v->_symbols.size())
+      s->emitInsertSymbol(v->_symbols[cur.isymb]);
   }
 
 public:
@@ -127,13 +174,19 @@ public:
     }
   }
 
-  virtual SearchIterator searchIterStartFrom()
+  virtual SearchIterator searchIterStartFrom(bool forward)
   {
     // current symbols page
     int i = s->u->cbxCategory->currentIndex();
     KLFLatexSymbolsSearchIterator it(i, 0);
     while (it.iview < s->mViews.size() && s->mViews[it.iview]->mSymbols.isEmpty())
       ++it.iview;
+    // if reverse, set on last symbol of page
+    if (!forward && it.iview < s->mViews.size()) {
+      it.isymb = s->mViews[it.iview]->mSymbols.size();
+    }
+    it = searchAdvanceIteratorCycle(it, forward ? -1 : 1);
+    klfDbg("Starting search from "<<it) ;
     return it;
   }
 

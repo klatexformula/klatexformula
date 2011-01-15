@@ -65,6 +65,7 @@ void KLFDisplayLabel::setLabelFixedSize(const QSize& size)
 
 void KLFDisplayLabel::displayClear()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   setPixmap(QPixmap());
   setText(QString());
   setEnabled(false);
@@ -73,6 +74,7 @@ void KLFDisplayLabel::displayClear()
 
 void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool labelenabled)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QImage img = displayimg;
   QPixmap pix;
   if (labelenabled && pGE) {
@@ -137,6 +139,7 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
 
 void KLFDisplayLabel::displayError(bool labelenabled)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   set_error(true);
   setEnabled(labelenabled);
 }
@@ -144,6 +147,7 @@ void KLFDisplayLabel::displayError(bool labelenabled)
 
 void KLFDisplayLabel::set_error(bool error_on)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   setProperty("realTimeLatexError", QVariant(error_on));
   QPalette *p;
   if (error_on) {
