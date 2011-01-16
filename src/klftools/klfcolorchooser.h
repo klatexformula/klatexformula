@@ -48,14 +48,19 @@ class KLF_EXPORT KLFColorClickSquare : public QWidget
 {
   Q_OBJECT
 
-  Q_PROPERTY(QColor color READ color WRITE setColor USER true)
+  Q_PROPERTY(QColor color READ color WRITE setColor USER true) ;
+  Q_PROPERTY(int sqSize READ sqSize WRITE setSqSize) ;
+  Q_PROPERTY(bool removable READ removable WRITE setRemovable) ;
 public:
   KLFColorClickSquare(QColor color = Qt::white, int size = 16, bool removable = true, QWidget *parent = 0);
+  explicit KLFColorClickSquare(QWidget *parent);
 
   virtual QSize sizeHint() { return QSize(_size, _size); }
 
-  QColor color() const { return _color; }
-
+  inline QColor color() const { return _color; }
+  inline int sqSize() const { return _size; }
+  inline bool removable() const { return _removable; }
+  
 signals:
   void activated();
   void colorActivated(const QColor& color);
@@ -68,6 +73,8 @@ public slots:
     emit activated();
     emit colorActivated(_color);
   }
+  void setSqSize(int sqsize);
+  void setRemovable(bool removable);
 
 protected:
   void paintEvent(QPaintEvent *event);
@@ -79,6 +86,8 @@ private:
   QColor _color;
   int _size;
   bool _removable;
+
+  void initwidget();
 
 private slots:
   void internalWantRemove();
@@ -273,6 +282,9 @@ public:
   QString paneType() const { return _colorcomponent + "+" + _colorcomponent_b; }
   QColor color() const { return _color; }
 
+  QSize sizeHint() const;
+  QSize minimumSizeHint() const;
+
 signals:
   void colorChanged(const QColor& color);
 
@@ -285,6 +297,7 @@ protected:
   virtual void mousePressEvent(QMouseEvent *e);
   virtual void mouseMoveEvent(QMouseEvent *e);
   virtual void wheelEvent(QWheelEvent *e);
+  virtual void keyPressEvent(QKeyEvent *e);
 
 private:
   QImage _img;

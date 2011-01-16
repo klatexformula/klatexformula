@@ -103,15 +103,15 @@ if(NOT KLF_LIBKLFBACKEND_STATIC AND NOT KLF_LIBKLFTOOLS_STATIC)
 endif(NOT KLF_LIBKLFBACKEND_STATIC AND NOT KLF_LIBKLFTOOLS_STATIC)
 if(build_desplugin)
   include_directories("${QT_QTDESIGNER_INCLUDE_DIR}")
-  qt4_wrap_cpp(klfsearchbardesplugin_MOC_CPPS  klfsearchbar_desplugin.h)
-  add_library(klfsearchbardesplugin MODULE  klfsearchbar_desplugin.cpp ${klfsearchbardesplugin_MOC_CPPS})
-  set_target_properties(klfsearchbardesplugin PROPERTIES
+  qt4_wrap_cpp(klftoolsdesplugin_MOC_CPPS  klftools_desplugin.h)
+  add_library(klftoolsdesplugin MODULE  klftools_desplugin.cpp ${klftoolsdesplugin_MOC_CPPS})
+  set_target_properties(klftoolsdesplugin PROPERTIES
     COMPILE_DEFINITIONS "QT_PLUGIN;QT_NO_DEBUG;QDESIGNER_EXPORT_WIDGETS"
     SKIP_RPATH FALSE  INSTALL_RPATH "${QT_PLUGINS_DIR}/designer"
     COMPILE_FLAGS "-O2 -g"
     LINK_FLAGS "-O2 -g"
     )
-  target_link_libraries(klfsearchbardesplugin  klftools klfbackend ${QT_QTCORE_LIBRARY}
+  target_link_libraries(klftoolsdesplugin  klftools klfbackend ${QT_QTCORE_LIBRARY}
     ${QT_QTGUI_LIBRARY} ${QT_QTDESIGNER_LIBRARY} ${QT_QTDESIGNERCOMPONENTS_LIBRARY})
 endif(build_desplugin)
 
@@ -132,5 +132,5 @@ if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFTOOLS_FRAMEWORK)
 endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFTOOLS_FRAMEWORK)
 
 if(build_desplugin)
-  install(TARGETS klfsearchbardesplugin  LIBRARY DESTINATION "${QT_PLUGINS_DIR}/designer")
+  install(TARGETS klftoolsdesplugin  LIBRARY DESTINATION "${QT_PLUGINS_DIR}/designer")
 endif(build_desplugin)

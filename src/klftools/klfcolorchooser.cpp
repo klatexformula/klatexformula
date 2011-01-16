@@ -25,6 +25,7 @@
 
 #include <QAction>
 #include <QMenu>
+#include <QDebug>
 #include <QStylePainter>
 #include <QColorDialog>
 #include <QPaintEvent>
@@ -33,6 +34,7 @@
 #include <QStyleOptionButton>
 #include <QRegExp>
 
+#include <klfdefs.h>
 #include "klfcolorchooser.h"
 #include "klfcolorchooser_p.h"
 #include "klfguiutil.h"
@@ -79,10 +81,35 @@ QColor KLFColorDialog::getColor(QColor startwith, bool alphaenabled, QWidget *pa
 KLFColorClickSquare::KLFColorClickSquare(QColor color, int size, bool removable, QWidget *parent)
   : QWidget(parent), _color(color), _size(size), _removable(removable)
 {
+  initwidget();
+  setSqSize(_size);
+}
+KLFColorClickSquare::KLFColorClickSquare(QWidget *parent)
+  : QWidget(parent), _color(Qt::white), _size(16), _removable(false)
+{
+  initwidget();
+  setSqSize(_size);
+}
+void KLFColorClickSquare::initwidget()
+{
   setFocusPolicy(Qt::StrongFocus);
-  setFixedSize(_size, _size);
   setContextMenuPolicy(Qt::DefaultContextMenu);
 }
+
+void KLFColorClickSquare::setSqSize(int sz)
+{
+  if (_size == sz)
+    return;
+
+  _size = sz;
+  setFixedSize(_size, _size);
+}
+
+void KLFColorClickSquare::setRemovable(bool removable)
+{
+  _removable = removable;
+}
+
 void KLFColorClickSquare::paintEvent(QPaintEvent */*event*/)
 {
   QStylePainter p(this);
@@ -124,23 +151,53 @@ void KLFColorClickSquare::internalWantRemove()
 KLFColorChooseWidgetPane::KLFColorChooseWidgetPane(QWidget *parent)
   : QWidget(parent), _img()
 {
+  setPaneType("red+fix");
+  _color = Qt::black;
+}
+
+QSize KLFColorChooseWidgetPane::sizeHint() const
+{
+  return QSize((_colorcomponent == "fix") ? 16 : 50, (_colorcomponent_b == "fix") ? 16 : 50);
+}
+QSize KLFColorChooseWidgetPane::minimumSizeHint() const
+{
+  return QSize(16, 16);
 }
 
 void KLFColorChooseWidgetPane::setColor(const QColor& newcolor)
 {
+  if (_color == newcolor)
+    return;
+
   _color = newcolor;
   update();
   emit colorChanged(_color);
 }
 void KLFColorChooseWidgetPane::setPaneType(const QString& panetype)
 {
+  static QStringList okvals =
+    QStringList() << "hue"<<"sat"<<"val"<<"red"<<"green"<<"blue"<<"alpha"<<"fix";
+
   QStringList strlist = panetype.split("+");
+  if (strlist.size() != 2) {
+    qWarning()<<KLF_FUNC_NAME<<": expected a pane-type string \"<pane1type>+<pane2type>\"!";
+    return;
+  }
   _colorcomponent = strlist[0].toLower();
   _colorcomponent_b = strlist[1].toLower();
+  if (!okvals.contains(_colorcomponent))
+    _colorcomponent = "fix";
+  if (!okvals.contains(_colorcomponent_b))
+    _colorcomponent_b = "fix";
+
+  if (_colorcomponent == "fix" && _colorcomponent_b == "fix")
+    setFocusPolicy(Qt::NoFocus);
+  else
+    setFocusPolicy(Qt::WheelFocus);
 }
 void KLFColorChooseWidgetPane::paintEvent(QPaintEvent */*e*/)
 {
-  QPainter p(this);
+  QStylePainter p(this);
   // background: a checker grid to distinguish transparency
   p.fillRect(0,0,width(),height(), QBrush(QPixmap(":/pics/checker.png")));
   // then prepare an image for our gradients
@@ -151,23 +208,30 @@ void KLFColorChooseWidgetPane::paintEvent(QPaintEvent */*e*/)
   double yfac = (double)valueBMax() / (_img.height()-1);
   for (x = 0; x < _img.width(); ++x) {
     for (y = 0; y < _img.height(); ++y) {
-      _img.setPixel(x, y, colorFromValues(_color, (int)(xfac*x), (int)(yfac*y)).rgba());
+      _img.setPixel(x, _img.height()-y-1, colorFromValues(_color, (int)(xfac*x), (int)(yfac*y)).rgba());
     }
   }
   p.drawImage(0, 0, _img);
   // draw crosshairs
-  QColor hairscol = qGray(_color.rgb()) > 80 ? Qt::black : Qt::white;
-  if ( ! _colorcomponent.isEmpty() && _colorcomponent != "fix" ) {
+  QColor hairscol = qGray(_color.rgb()) > 80 ? QColor(0,0,0,180) : QColor(255,255,255,180);
+  if ( _colorcomponent != "fix" ) {
     p.setPen(QPen(hairscol, 1.f, Qt::DotLine));
     x = (int)(valueA()/xfac);
     if (x < 0) x = 0; if (x >= width()) x = width()-1;
     p.drawLine(x, 0, x, height());
   }
-  if ( ! _colorcomponent_b.isEmpty() && _colorcomponent_b != "fix" ) {
+  if ( _colorcomponent_b != "fix" ) {
     p.setPen(QPen(hairscol, 1.f, Qt::DotLine));
     y = (int)(valueB()/yfac);
     if (y < 0) y = 0; if (y >= height()) y = height()-1;
-    p.drawLine(0, y, width(), y);
+    p.drawLine(0, height()-y-1, width(), height()-y-1);
+  }
+  // draw a focus rectangle if we have focus
+  if (hasFocus()) {
+    QStyleOptionFocusRect option;
+    option.initFrom(this);
+    option.backgroundColor = QColor(0,0,0,0);
+    p.drawPrimitive(QStyle::PE_FrameFocusRect, option);
   }
 }
 void KLFColorChooseWidgetPane::mousePressEvent(QMouseEvent *e)
@@ -175,7 +239,7 @@ void KLFColorChooseWidgetPane::mousePressEvent(QMouseEvent *e)
   double xfac = (double)valueAMax() / (_img.width()-1);
   double yfac = (double)valueBMax() / (_img.height()-1);
   int x = e->pos().x();
-  int y = e->pos().y();
+  int y = height() - e->pos().y() - 1;
 
   setColor(colorFromValues(_color, (int)(x*xfac), (int)(y*yfac)));
 }
@@ -184,7 +248,7 @@ void KLFColorChooseWidgetPane::mouseMoveEvent(QMouseEvent *e)
   double xfac = (double)valueAMax() / (_img.width()-1);
   double yfac = (double)valueBMax() / (_img.height()-1);
   int x = e->pos().x();
-  int y = e->pos().y();
+  int y = height() - e->pos().y() - 1;
   if (x < 0) x = 0; if (x >= width()) x = width()-1;
   if (y < 0) y = 0; if (y >= height()) y = height()-1;
 
@@ -192,9 +256,14 @@ void KLFColorChooseWidgetPane::mouseMoveEvent(QMouseEvent *e)
 }
 void KLFColorChooseWidgetPane::wheelEvent(QWheelEvent *e)
 {
-  int step = - 10 * e->delta() / 120;
-  // isA: TRUE if we are modifying component A, if FALSE then modifying component B
+  double step = - 7.5 * e->delta() / 120;
 
+  if (e->modifiers() == Qt::ShiftModifier)
+    step = step / 5.0;
+  if (e->modifiers() == Qt::ControlModifier)
+    step = step * 2.5;
+
+  // isA: TRUE if we are modifying component A, if FALSE then modifying component B
   bool isA =  (e->orientation() == Qt::Horizontal);
   if (isA && _colorcomponent=="fix")
     isA = false;
@@ -202,11 +271,65 @@ void KLFColorChooseWidgetPane::wheelEvent(QWheelEvent *e)
     isA = true;
   if (isA) {
     // the first component
-    setColor(colorFromValues(_color, valueA()+step, valueB()));
+    int x = (int)(valueA()+step);
+    if (x < 0) x = 0;
+    if (x > valueAMax()) x = valueAMax();
+    setColor(colorFromValues(_color, x, valueB()));
   } else {
-    setColor(colorFromValues(_color, valueA(), valueB()+step));
+    int x = (int)(valueB() - step);
+    if (x < 0) x = 0;
+    if (x > valueBMax()) x = valueBMax();
+    setColor(colorFromValues(_color, valueA(), x));
   }
   e->accept();
+}
+void KLFColorChooseWidgetPane::keyPressEvent(QKeyEvent *e)
+{
+  const int dir_step = 5;
+  double xstep = 0;
+  double ystep = 0;
+
+  if (e->key() == Qt::Key_Left)
+    xstep -= dir_step;
+  if (e->key() == Qt::Key_Right)
+    xstep += dir_step;
+  if (e->key() == Qt::Key_Up)
+    ystep += dir_step;
+  if (e->key() == Qt::Key_Down)
+    ystep -= dir_step;
+  if (e->key() == Qt::Key_Home)
+    xstep = -10000;
+  if (e->key() == Qt::Key_End)
+    xstep = 10000;
+  if (e->key() == Qt::Key_PageUp)
+    ystep = 10000;
+  if (e->key() == Qt::Key_PageDown)
+    ystep = -10000;
+
+  // if a component is set to 'fix', add the deltas to the other component...
+  if (_colorcomponent == "fix") {
+    ystep += xstep;
+    xstep = 0;
+  } else if (_colorcomponent_b == "fix") {
+    xstep += ystep;
+    ystep = 0;
+  }
+
+  if (e->modifiers() == Qt::ShiftModifier) {
+    xstep = xstep / 5; ystep = ystep / 5;
+  }
+  if (e->modifiers() == Qt::ControlModifier) {
+    xstep = xstep * 2.5; ystep = ystep * 2.5;
+  }
+
+  int x = (int)(valueA() + xstep);
+  int y = (int)(valueB() + ystep);
+  if (x < 0) x = 0;
+  if (x > valueAMax()) x = valueAMax();
+  if (y < 0) y = 0;
+  if (y > valueBMax()) y = valueBMax();
+
+  setColor(colorFromValues(_color, x, y));
 }
 
 
@@ -398,6 +521,8 @@ void KLFColorComponentSpinBox::internalChanged(int newvalue)
 
 void KLFColorComponentSpinBox::setColor(const QColor& color)
 {
+  if (_color == color)
+    return;
   int value = valueAFromNewColor(color);
   /*  printf("My components:(%s+%s); setColor(%s/alpha=%d); new value = %d\n",
       _colorcomponent.toLocal8Bit().constData(), _colorcomponent_b.toLocal8Bit().constData(),
