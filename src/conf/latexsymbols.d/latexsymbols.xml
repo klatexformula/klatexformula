@@ -513,12 +513,12 @@
     <sym><latex>\arrowvert</latex></sym>
     <sym><latex>\Arrowvert</latex></sym>
     <sym><latex>\bracevert</latex></sym>
-    <sym><latex numargs="1">\sqrt</latex></sym>
-    <sym><latex option="yes" numargs="1">\sqrt</latex></sym>
+    <sym><latex numargs="1">\sqrt</latex><keywords>square root</keywords></sym>
+    <sym><latex option="yes" numargs="1">\sqrt</latex><keywords>root</keywords></sym>
     <sym><latex numargs="2">\frac</latex><preview-latex>\frac{a}{b}</preview-latex>
-      <keywords>fraction bar</keywords>
+      <keywords>fraction bar over</keywords>
     </sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex numargs="1">\abs</latex><preview-latex>\abs{x}</preview-latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex numargs="1">\abs</latex><preview-latex>\abs{x}</preview-latex><keywords>absolute value</keywords></sym>
     <sym><latex numargs="1">\bar</latex><preview-latex>\bar{a}</preview-latex></sym>
     <sym><latex numargs="1">\vec</latex><preview-latex>\vec{a}</preview-latex></sym>
     <sym><latex numargs="1">\dot</latex><preview-latex>\dot{a}</preview-latex></sym>
@@ -529,11 +529,11 @@
     <sym><latex numargs="1">\tilde</latex><preview-latex>\tilde{a}</preview-latex></sym>
     <sym><latex numargs="1">\acute</latex><preview-latex>\acute{a}</preview-latex></sym>
     <sym><latex numargs="1">\grave</latex><preview-latex>\grave{a}</preview-latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex numargs="1">\ket</latex><preview-latex>\ket\psi</preview-latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex numargs="1">\bra</latex><preview-latex>\bra\psi</preview-latex></sym>
-    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex numargs="2">\braket</latex><preview-latex>\braket\phi\psi</preview-latex></sym>
-    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex numargs="3">\matrixel</latex><preview-latex>\matrixel{\phi}{\mathcal H}{\psi}</preview-latex></sym>
-    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><latex numargs="2">\ketbra</latex><preview-latex>\ketbra{\phi}{\psi}</preview-latex></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex numargs="1">\ket</latex><preview-latex>\ket\psi</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex numargs="1">\bra</latex><preview-latex>\bra\psi</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
+    <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex numargs="2">\braket</latex><preview-latex>\braket\phi\psi</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex numargs="3">\matrixel</latex><preview-latex>\matrixel{\phi}{\mathcal H}{\psi}</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
+    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><latex numargs="2">\ketbra</latex><preview-latex>\ketbra{\phi}{\psi}</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
     <sym><usepackage name="slashed"/><latex numargs="1">\slashed</latex></sym>

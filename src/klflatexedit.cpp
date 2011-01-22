@@ -247,6 +247,8 @@ void KLFLatexSyntaxHighlighter::refreshAll()
 
 void KLFLatexSyntaxHighlighter::parseEverything()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QString text;
   int i = 0;
   int blockpos;
@@ -395,12 +397,16 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 
   int globendpos = lastblock.position()+lastblock.length();
 
+  klfDbg("maybe have some parens left, that are to be shown as lonely? "<<!parens.empty()) ;
+
   // collect lonely parens list: all unclosed parens should be added to the list of collected
   // unclosed parens.
   while (!parens.empty()) {
     lonelyparens << LonelyParenItem(parens.top(), globendpos);
     parens.pop();
   }
+
+  klfDbg("about to treat "<<lonelyparens.size()<<" lonely parens...") ;
 
   for (k = 0; k < lonelyparens.size(); ++k) {
     // for each unclosed paren
@@ -454,6 +460,8 @@ QTextCharFormat KLFLatexSyntaxHighlighter::charfmtForFormat(Format f)
 
 void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klfDbg("text is "<<text);
 
   if ( ! klfconfig.SyntaxHighlighter.enabled )
@@ -469,9 +477,6 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
   }
 
   QList<FormatRule> blockfmtrules;
-  QVector<QTextCharFormat> charformats;
-
-  charformats.resize(text.length());
 
   blockfmtrules.append(FormatRule(0, text.length(), FNormal));
 
@@ -480,28 +485,37 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
     int start = _rulestoapply[k].pos - block.position();
     int len = _rulestoapply[k].len;
 
-    if (len <= 0)
-      continue; // empty rule...
-    
-    if (start < 0) {
-      len += start; // +, start being negative
+    if (start < 0) { // the rule starts before current paragraph
+      len += start; // "+" because start is negative
       start = 0;
     }
     if (start > text.length())
       continue;
     if (len > text.length() - start)
       len = text.length() - start;
+
+    if (len <= 0)
+      continue; // empty rule...
+    
     // apply rule
+    klfDbg("Applying rule start="<<start<<", len="<<len<<", ...") ;
     blockfmtrules.append(FormatRule(start, len, _rulestoapply[k].format, _rulestoapply[k].onlyIfFocus));
   }
 
   bool hasfocus = _textedit->hasFocus();
+
+  klfDbg("About to merge text formats... text.length()="<<text.length()) ;
+  QVector<QTextCharFormat> charformats;
+  charformats.resize(text.length());
   for (k = 0; k < blockfmtrules.size(); ++k) {
+    klfDbg("got block-fmt-rule #"<<k<<"; start="<<blockfmtrules[k].pos<<", len="<<blockfmtrules[k].len
+	   <<", end="<<blockfmtrules[k].end()) ;
     for (j = blockfmtrules[k].pos; j < blockfmtrules[k].end(); ++j) {
       if ( ! blockfmtrules[k].onlyIfFocus || hasfocus )
 	charformats[j].merge(charfmtForFormat(blockfmtrules[k].format));
     }
   }
+  klfDbg("About to apply char formats...") ;
   for (j = 0; j < charformats.size(); ++j) {
     setFormat(j, 1, charformats[j]);
   }

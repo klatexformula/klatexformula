@@ -336,7 +336,8 @@ void KLFMimeExportProfile::ensureLoadedExportProfileList()
   KLFMimeExporterImage imgexporter(NULL);
   QStringList mimetypes = imgexporter.keys();
   for (k = 0; k < mimetypes.size(); ++k) {
-    exporttypes << ExportType(mimetypes[k], imgexporter.windowsFormatName(mimetypes[k]));
+    if (mimetypes[k].startsWith("image/") || mimetypes[k] == "application/x-qt-image")
+      exporttypes << ExportType(mimetypes[k], imgexporter.windowsFormatName(mimetypes[k]));
   }
   KLFMimeExportProfile allimgfmts
     = KLFMimeExportProfile("all_image_formats",
@@ -949,8 +950,8 @@ QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput)
 
   templ.replace(QByteArray("<!--KLF_OOOLATEX_ARGS-->"), toAttrText("12§display§"+klfoutput.input.latex));
 
-  // make the equationn larger, so it is not too cramped up
-  const double DPI_FACTOR = 2.0;
+  // make the equations larger, so it is not too cramped up
+  const double DPI_FACTOR = 1.6;
   // cm/inch = 2.54
   // include an elargment factor in these tags
   templ.replace(QByteArray("<!--KLF_IMAGE_WIDTH_CM-->"),
