@@ -41,9 +41,9 @@ QStringList ParenItem::openParenList =
 QStringList ParenItem::closeParenList =
   QStringList() << ")" << "]" << "}";
 QStringList ParenItem::openParenModifiers =
-  QStringList() << "\\" << "\\left";
+  QStringList() << "\\" << "\\left"  << "\\bigl" << "\\Bigl";
 QStringList ParenItem::closeParenModifiers =
-  QStringList() << "\\" << "\\right";
+  QStringList() << "\\" << "\\right" << "\\bigr" << "\\Bigr";
 
 
 

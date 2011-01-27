@@ -80,8 +80,15 @@ struct ParenItem {
   {
     QString trbmod = b_mod;
     // translate modifiers
-    if (trbmod == "\\right")
-      trbmod = "\\left";
+    int ind = closeParenModifiers.indexOf(trbmod);
+    if (ind >= 0) {
+      KLF_ASSERT_CONDITION_ELSE(closeParenModifiers.size()==openParenModifiers.size(),
+				"close paren modifier list size="<<closeParenModifiers.size()
+				<<" does not match the open paren modifier list size="<<openParenModifiers.size()
+				<<"!", ; ) {
+	trbmod = openParenModifiers[ind];
+      }
+    }
 
     if (a_mod != trbmod)
       return false;
