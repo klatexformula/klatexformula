@@ -3684,7 +3684,7 @@ void KLFLibDefaultView::slotPreviewSizeActionsRefreshChecked()
   KLF_ASSERT_NOT_NULL(pPreviewSizeMenu, "pPreviewSizeMenu is NULL!", return ) ;
 
   int curPreviewSizePercent
-    = pDelegate->previewSize().width() * 100 / klfconfig.UI.labelOutputFixedSize.width();
+    = pDelegate->previewSize().width() * 100 / klfconfig.UI.labelOutputFixedSize().width();
   // round off to 5 units (for comparision with some threshold)
   curPreviewSizePercent = (int)(curPreviewSizePercent/5 +0.5)*5;
 

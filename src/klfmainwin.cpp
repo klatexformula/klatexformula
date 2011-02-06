@@ -394,8 +394,8 @@ KLFMainWin::KLFMainWin()
   // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
 
   mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(false), _settings,
-						      klfconfig.UI.labelOutputFixedSize.width(),
-						      klfconfig.UI.labelOutputFixedSize.height());
+						      klfconfig.UI.labelOutputFixedSize().width(),
+						      klfconfig.UI.labelOutputFixedSize().height());
 
   connect(u->txtLatex, SIGNAL(textChanged()), this,
 	  SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
@@ -535,8 +535,8 @@ void KLFMainWin::startupFinished()
     action->setText(eplist[k].description());
     action->setData(eplist[k].profileName());
     action->setCheckable(true);
-    action->setChecked( (klfconfig.UI.dragExportProfile==klfconfig.UI.copyExportProfile) &&
-			(klfconfig.UI.dragExportProfile==eplist[k].profileName()) );
+    action->setChecked( (klfconfig.UI.dragExportProfile()==klfconfig.UI.copyExportProfile()) &&
+			(klfconfig.UI.dragExportProfile()==eplist[k].profileName()) );
     menu->addAction(action);
     smapper->setMapping(action, eplist[k].profileName());
     connect(action, SIGNAL(triggered()), smapper, SLOT(map()));
@@ -637,8 +637,8 @@ void KLFMainWin::saveSettings()
 
   klfconfig.writeToConfig();
 
-  mPreviewBuilderThread->settingsChanged(_settings, klfconfig.UI.labelOutputFixedSize.width(),
-					 klfconfig.UI.labelOutputFixedSize.height());
+  mPreviewBuilderThread->settingsChanged(_settings, klfconfig.UI.labelOutputFixedSize().width(),
+					 klfconfig.UI.labelOutputFixedSize().height());
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
@@ -673,8 +673,8 @@ void KLFMainWin::saveSettings()
       delete mPreviewBuilderThread;
       mPreviewBuilderThread =
 	new KLFPreviewBuilderThread(this, collectInput(false), _settings,
-				    klfconfig.UI.labelOutputFixedSize.width(),
-				    klfconfig.UI.labelOutputFixedSize.height());
+				    klfconfig.UI.labelOutputFixedSize().width(),
+				    klfconfig.UI.labelOutputFixedSize().height());
       mPreviewBuilderThread->start();
     }
   } else {
@@ -683,8 +683,8 @@ void KLFMainWin::saveSettings()
       // do NOT leave a NULL mPreviewBuilderThread !
       mPreviewBuilderThread =
 	new KLFPreviewBuilderThread(this, collectInput(false), _settings,
-				    klfconfig.UI.labelOutputFixedSize.width(),
-				    klfconfig.UI.labelOutputFixedSize.height());
+				    klfconfig.UI.labelOutputFixedSize().width(),
+				    klfconfig.UI.labelOutputFixedSize().height());
     }
   }
 
@@ -1918,7 +1918,7 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
     input.mathmode = u->cbxMathMode->currentText();
     if (final && u->cbxMathMode->findText(input.mathmode) == -1) {
       u->cbxMathMode->addItem(input.mathmode);
-      klfconfig.UI.customMathModes.append(input.mathmode);
+      klfconfig.UI.customMathModes = klfconfig.UI.customMathModes() << input.mathmode;
     }
   } else {
     input.mathmode = "...";
@@ -1994,8 +1994,8 @@ void KLFMainWin::slotEvaluate()
     QSize goodsize = _output.result.size();
     QImage tooltipimg = _output.result;
     if ( klfconfig.UI.previewTooltipMaxSize != QSize(0, 0) && // QSize(0,0) meaning no resize
-	 ( tooltipimg.width() > klfconfig.UI.previewTooltipMaxSize.width() ||
-	   tooltipimg.height() > klfconfig.UI.previewTooltipMaxSize.height() ) ) {
+	 ( tooltipimg.width() > klfconfig.UI.previewTooltipMaxSize().width() ||
+	   tooltipimg.height() > klfconfig.UI.previewTooltipMaxSize().height() ) ) {
       tooltipimg =
 	_output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio,
 			      Qt::SmoothTransformation);

@@ -43,6 +43,62 @@
 #include "klfconfig.h"
 
 
+
+
+bool KLFConfigBase::okChangeProperty(KLFConfigPropBase */*property*/, const QVariant& /*oldValue*/,
+				     const QVariant& /*newValue*/)
+{
+  return true;
+}
+
+void KLFConfigBase::propertyChanged(KLFConfigPropBase */*property*/, const QVariant& /*oldValue*/,
+				    const QVariant& /*newValue*/)
+{
+}
+
+void KLFConfigBase::propertyValueRequested(const KLFConfigPropBase */*property*/)
+{
+}
+
+void KLFConfigBase::connectQObjectProperty(const QString& configPropertyName, QObject *object,
+				      const QString& objPropName)
+{
+  ObjPropConnection c;
+  c.confPropName = configPropertyName;
+  c.object = object;
+  c.objPropName = objPropName;
+
+  for (QList<ObjPropConnection>::const_iterator it = pObjPropConnections.begin();
+       it != pObjPropConnections.end(); ++it) {
+    if (*it == c) {
+      qWarning()<<KLF_FUNC_NAME<<": "<<configPropertyName<<" already connected to "<<object<<"/"<<objPropName;
+      return;
+    }
+  }
+
+  pObjPropConnections.append(c);
+}
+void KLFConfigBase::disconnectQObjectProperty(const QString& configPropertyName, QObject *object,
+					 const QString& objPropName)
+{
+  ObjPropConnection c;
+  c.confPropName = configPropertyName;
+  c.object = object;
+  c.objPropName = objPropName;
+
+  for (QList<ObjPropConnection>::iterator it = pObjPropConnections.begin(); it != pObjPropConnections.end(); ++it) {
+    if (*it == c) {
+      pObjPropConnections.erase(it);
+      return;
+    }
+  }
+
+  qWarning()<<KLF_FUNC_NAME<<": "<<configPropertyName<<" is not connected to "<<object<<"/"<<objPropName;
+}
+
+
+
+
 static const char * __klf_fallback_share_dir =
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
 	"..";   // note: program is in a bin/ directory by default (this is for nsis-installer)
@@ -131,10 +187,6 @@ static QList<T> settings_read_list(QSettings& s, const QString& basename, const 
 // -----------------------------------------------------
 
 
-KLFConfig::KLFConfig()
-{
-}
-
 
 #define KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, f, fps)	\
   if (!found_fcode && fdb.isFixedPitch(f)) {				\
@@ -165,6 +217,8 @@ void KLFConfig::loadDefaults()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
+  KLFCONFIGPROP_INIT_CONFIG(this) ;
+
   homeConfigDir = QDir::homePath() + "/.klatexformula";
   globalShareDir = klf_share_dir_abspath();
   homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
@@ -175,6 +229,9 @@ void KLFConfig::loadDefaults()
   homeConfigDirI18n = homeConfigDir + "/i18n";
 
   //debug: QMessageBox::information(0, "", QString("global share dir=")+globalShareDir);
+
+  QFont cmuappfont = QFont();
+  QFont fcodeMain = QFont();
 
   if (qApp->inherits("QApplication")) { // and not QCoreApplication...
 
@@ -188,7 +245,7 @@ void KLFConfig::loadDefaults()
 
     defaultStdFont = f;
 
-    QFont cmuappfont = f;
+    cmuappfont = f;
     if (fdb.families().contains("CMU Sans Serif")) {
       // CMU Sans Serif is available ;-)
       int fps = QFontInfo(f).pointSize();
@@ -228,123 +285,133 @@ void KLFConfig::loadDefaults()
 // #endif
     ps = adjust_font_size(fcode, fcodeIdealHeight);
     fcode.setPointSize(ps);
-    QFont fcodeMain = fcode;
+    fcodeMain = fcode;
     fcodeMain.setPointSize(ps+1);
-
-    // by default, this is first run!
-    Core.thisVersionMajFirstRun = true;
-    Core.thisVersionMajMinFirstRun = true;
-    Core.thisVersionMajMinRelFirstRun = true;
-    Core.thisVersionExactFirstRun = true;
-
-    Core.libraryFileName = "library.klf.db";
-    Core.libraryLibScheme = "klf+sqlite";
 
     defaultCMUFont = cmuappfont;
     defaultTTFont = fcode;
-
-    UI.locale = QLocale::system().name();
-    klfDbg("System locale: "<<QLocale::system().name());
-#ifdef KLF_NO_CMU_FONT
-    UI.useSystemAppFont = true;
-    UI.applicationFont = defaultStdFont;
-#else
-    UI.useSystemAppFont = false;
-    UI.applicationFont = cmuappfont;
-#endif
-    UI.latexEditFont = fcodeMain;
-    UI.preambleEditFont = fcode;
-    UI.previewTooltipMaxSize = QSize(800, 600);
-    UI.labelOutputFixedSize = QSize(280, 80);
-    UI.lastSaveDir = QDir::homePath();
-    UI.symbolsPerLine = 6;
-    UI.userColorList = QList<QColor>();
-    UI.userColorList.append(QColor(0,0,0));
-    UI.userColorList.append(QColor(255,255,255));
-    UI.userColorList.append(QColor(170,0,0));
-    UI.userColorList.append(QColor(0,0,128));
-    UI.userColorList.append(QColor(0,0,255));
-    UI.userColorList.append(QColor(0,85,0));
-    UI.userColorList.append(QColor(255,85,0));
-    UI.userColorList.append(QColor(0,255,255));
-    UI.userColorList.append(QColor(85,0,127));
-    UI.userColorList.append(QColor(128,255,255));
-    UI.colorChooseWidgetRecent = QList<QColor>();
-    UI.colorChooseWidgetCustom = QList<QColor>();
-    UI.maxUserColors = 12;
-    UI.enableToolTipPreview = false;
-    UI.enableRealTimePreview = true;
-    UI.autosaveLibraryMin = 5;
-    UI.showHintPopups = true;
-    UI.clearLatexOnly = false;
-    UI.copyExportProfile = "default";
-    UI.dragExportProfile = "default";
-    UI.glowEffect = false;
-    UI.glowEffectColor = QColor(128, 255, 128, 12);
-    UI.glowEffectRadius = 4;
-    UI.customMathModes = QStringList();
-    UI.showExportProfilesLabel = true;
-    UI.menuExportProfileAffectsDrag = true;
-    UI.menuExportProfileAffectsCopy = true;
-    UI.emacsStyleBackspaceSearch = true;
-
-    SyntaxHighlighter.enabled = true;
-    SyntaxHighlighter.highlightParensOnly = false;
-    SyntaxHighlighter.highlightLonelyParens = true;
-    SyntaxHighlighter.matchParenTypes = true;
-    SyntaxHighlighter.fmtKeyword = QTextCharFormat();
-    SyntaxHighlighter.fmtKeyword.setForeground(QColor(0, 0, 128));
-    SyntaxHighlighter.fmtComment = QTextCharFormat();
-    SyntaxHighlighter.fmtComment.setForeground(QColor(180, 0, 0));
-    SyntaxHighlighter.fmtComment.setFontItalic(true);
-    SyntaxHighlighter.fmtParenMatch = QTextCharFormat();
-    SyntaxHighlighter.fmtParenMatch.setBackground(QColor(180, 238, 180));
-    SyntaxHighlighter.fmtParenMismatch = QTextCharFormat();
-    SyntaxHighlighter.fmtParenMismatch.setBackground(QColor(255, 20, 147));
-    SyntaxHighlighter.fmtLonelyParen = QTextCharFormat();
-    SyntaxHighlighter.fmtLonelyParen.setForeground(QColor(255, 0, 255));
-    SyntaxHighlighter.fmtLonelyParen.setFontWeight(QFont::Bold);
+  } else {
+    defaultStdFont = QFont();
+    defaultCMUFont = QFont();
+    defaultTTFont = QFont();
   }
+
+  // by default, this is first run!
+  KLFCONFIGPROP_INIT(Core.thisVersionMajFirstRun, true);
+  KLFCONFIGPROP_INIT(Core.thisVersionMajMinFirstRun, true) ;
+  KLFCONFIGPROP_INIT(Core.thisVersionMajMinRelFirstRun, true) ;
+  KLFCONFIGPROP_INIT(Core.thisVersionExactFirstRun, true) ;
+  
+  KLFCONFIGPROP_INIT(Core.libraryFileName, "library.klf.db") ;
+  KLFCONFIGPROP_INIT(Core.libraryLibScheme, "klf+sqlite") ;
+  
+  KLFCONFIGPROP_INIT(UI.locale, QLocale::system().name()) ;
+  klfDbg("System locale: "<<QLocale::system().name());
+#ifdef KLF_NO_CMU_FONT
+  KLFCONFIGPROP_INIT(UI.useSystemAppFont, true) ;
+  KLFCONFIGPROP_INIT(UI.applicationFont, defaultStdFont) ;
+#else
+  KLFCONFIGPROP_INIT(UI.useSystemAppFont, false) ;
+  KLFCONFIGPROP_INIT(UI.applicationFont, cmuappfont) ;
+#endif
+  KLFCONFIGPROP_INIT(UI.latexEditFont, fcodeMain) ;
+  KLFCONFIGPROP_INIT(UI.preambleEditFont, defaultTTFont) ;
+  KLFCONFIGPROP_INIT(UI.previewTooltipMaxSize, QSize(800, 600)) ;
+  KLFCONFIGPROP_INIT(UI.labelOutputFixedSize, QSize(280, 80)) ;
+  KLFCONFIGPROP_INIT(UI.lastSaveDir, QDir::homePath()) ;
+  KLFCONFIGPROP_INIT(UI.symbolsPerLine, 6) ;
+  QList<QColor> colorlist;
+  colorlist.append(QColor(0,0,0));
+  colorlist.append(QColor(255,255,255));
+  colorlist.append(QColor(170,0,0));
+  colorlist.append(QColor(0,0,128));
+  colorlist.append(QColor(0,0,255));
+  colorlist.append(QColor(0,85,0));
+  colorlist.append(QColor(255,85,0));
+  colorlist.append(QColor(0,255,255));
+  colorlist.append(QColor(85,0,127));
+  colorlist.append(QColor(128,255,255));
+  KLFCONFIGPROP_INIT(UI.userColorList, colorlist) ;
+  KLFCONFIGPROP_INIT(UI.colorChooseWidgetRecent, QList<QColor>()) ;
+  KLFCONFIGPROP_INIT(UI.colorChooseWidgetCustom, QList<QColor>()) ;
+  KLFCONFIGPROP_INIT(UI.maxUserColors, 12) ;
+  KLFCONFIGPROP_INIT(UI.enableToolTipPreview, false) ;
+  KLFCONFIGPROP_INIT(UI.enableRealTimePreview, true) ;
+  KLFCONFIGPROP_INIT(UI.autosaveLibraryMin, 5) ;
+  KLFCONFIGPROP_INIT(UI.showHintPopups, true) ;
+  KLFCONFIGPROP_INIT(UI.clearLatexOnly, false) ;
+  KLFCONFIGPROP_INIT(UI.copyExportProfile, "default") ;
+  KLFCONFIGPROP_INIT(UI.dragExportProfile, "default") ;
+  KLFCONFIGPROP_INIT(UI.glowEffect, false) ;
+  KLFCONFIGPROP_INIT(UI.glowEffectColor, QColor(128, 255, 128, 12)) ;
+  KLFCONFIGPROP_INIT(UI.glowEffectRadius, 4) ;
+  KLFCONFIGPROP_INIT(UI.customMathModes, QStringList()) ;
+  KLFCONFIGPROP_INIT(UI.showExportProfilesLabel, true) ;
+  KLFCONFIGPROP_INIT(UI.menuExportProfileAffectsDrag, true) ;
+  KLFCONFIGPROP_INIT(UI.menuExportProfileAffectsCopy, true) ;
+  KLFCONFIGPROP_INIT(UI.emacsStyleBackspaceSearch, true) ;
+
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.enabled, true) ;
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.highlightParensOnly, false) ;
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.highlightLonelyParens, true) ;
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.matchParenTypes, true) ;
+  QTextCharFormat f_keyword;
+  QTextCharFormat f_comment;
+  QTextCharFormat f_parenmatch;
+  QTextCharFormat f_parenmismatch;
+  QTextCharFormat f_lonelyparen;
+  f_keyword.setForeground(QColor(0, 0, 128));
+  f_comment.setForeground(QColor(180, 0, 0));
+  f_comment.setFontItalic(true);
+  f_parenmatch.setBackground(QColor(180, 238, 180));
+  f_parenmismatch.setBackground(QColor(255, 20, 147));
+  f_lonelyparen.setForeground(QColor(255, 0, 255));
+  f_lonelyparen.setFontWeight(QFont::Bold);
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.fmtKeyword, f_keyword) ;
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.fmtComment, f_comment) ;
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.fmtParenMatch, f_parenmatch) ;
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.fmtParenMismatch, f_parenmismatch) ;
+  KLFCONFIGPROP_INIT(SyntaxHighlighter.fmtLonelyParen, f_lonelyparen) ;
 
   // invalid value, by convention ".". if the config is not read from file, then settings will
   // be detected in detectMissingSettings()
-  BackendSettings.tempDir = ".";
-  BackendSettings.execLatex = ".";
-  BackendSettings.execDvips = ".";
-  BackendSettings.execGs = ".";
-  BackendSettings.execEpstopdf = ".";
-  BackendSettings.execenv = QStringList();
+  KLFCONFIGPROP_INIT(BackendSettings.tempDir, ".") ;
+  KLFCONFIGPROP_INIT(BackendSettings.execLatex, ".") ;
+  KLFCONFIGPROP_INIT(BackendSettings.execDvips, ".") ;
+  KLFCONFIGPROP_INIT(BackendSettings.execGs, ".") ;
+  KLFCONFIGPROP_INIT(BackendSettings.execEpstopdf, ".") ;
+  KLFCONFIGPROP_INIT(BackendSettings.execenv, QStringList()) ;
 
-  BackendSettings.lborderoffset = 0;
-  BackendSettings.tborderoffset = 0;
-  BackendSettings.rborderoffset = 0;
-  BackendSettings.bborderoffset = 0;
-  BackendSettings.outlineFonts = true;
+  KLFCONFIGPROP_INIT(BackendSettings.lborderoffset, 0) ;
+  KLFCONFIGPROP_INIT(BackendSettings.tborderoffset, 0) ;
+  KLFCONFIGPROP_INIT(BackendSettings.rborderoffset, 0) ;
+  KLFCONFIGPROP_INIT(BackendSettings.bborderoffset, 0) ;
+  KLFCONFIGPROP_INIT(BackendSettings.outlineFonts, true) ;
 
-  LibraryBrowser.colorFound = QColor(128, 255, 128);
-  LibraryBrowser.colorNotFound = QColor(255, 128, 128);
-  LibraryBrowser.restoreURLs = false;
-  LibraryBrowser.confirmClose = true;
-  LibraryBrowser.groupSubCategories = true;
-  LibraryBrowser.iconViewFlow = QListView::TopToBottom;
-  LibraryBrowser.historyTagCopyToArchive = true;
-  LibraryBrowser.lastFileDialogPath = // "My Documents":
-    QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
-  LibraryBrowser.treePreviewSizePercent = 75;
-  LibraryBrowser.listPreviewSizePercent = 75;
-  LibraryBrowser.iconPreviewSizePercent = 100;
+  KLFCONFIGPROP_INIT(LibraryBrowser.colorFound, QColor(128, 255, 128)) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.colorNotFound, QColor(255, 128, 128)) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.restoreURLs, false) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.confirmClose, true) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.groupSubCategories, true) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.iconViewFlow, QListView::TopToBottom) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.historyTagCopyToArchive, true) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.lastFileDialogPath,
+		     QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation)) ; // "My Documents"
+  KLFCONFIGPROP_INIT(LibraryBrowser.treePreviewSizePercent, 75) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.listPreviewSizePercent, 75) ;
+  KLFCONFIGPROP_INIT(LibraryBrowser.iconPreviewSizePercent, 100) ;
 
-  Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >();
+  Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >() ;
 }
 
 void KLFConfig::detectMissingSettings()
 {
   int neededsettings = 
-    !BackendSettings.tempDir.compare(".")      << 0 |
-    !BackendSettings.execLatex.compare(".")    << 1 |
-    !BackendSettings.execDvips.compare(".")    << 2 |
-    !BackendSettings.execGs.compare(".")       << 3 |
-    !BackendSettings.execEpstopdf.compare(".") << 4 ;
+    !BackendSettings.tempDir().compare(".")      << 0 |
+    !BackendSettings.execLatex().compare(".")    << 1 |
+    !BackendSettings.execDvips().compare(".")    << 2 |
+    !BackendSettings.execGs().compare(".")       << 3 |
+    !BackendSettings.execEpstopdf().compare(".") << 4 ;
 
   if (neededsettings) {
     KLFBackend::klfSettings defaultsettings;
@@ -359,7 +426,7 @@ void KLFConfig::detectMissingSettings()
       BackendSettings.execGs = defaultsettings.gsexec;
     if (neededsettings & (1<<4))
       BackendSettings.execEpstopdf = defaultsettings.epstopdfexec;
-    BackendSettings.execenv << defaultsettings.execenv;
+    BackendSettings.execenv = BackendSettings.execenv() << defaultsettings.execenv;
   }
 
 }
@@ -388,7 +455,7 @@ bool KLFConfig::checkExePaths()
   return QFileInfo(BackendSettings.execLatex).isExecutable() &&
     QFileInfo(BackendSettings.execDvips).isExecutable() &&
     QFileInfo(BackendSettings.execGs).isExecutable() &&
-    ( BackendSettings.execEpstopdf.isEmpty() ||
+    ( BackendSettings.execEpstopdf().isEmpty() ||
       QFileInfo(BackendSettings.execEpstopdf).isExecutable()) ;
 }
 
@@ -418,59 +485,6 @@ int KLFConfig::readFromConfig()
   }
 
   return -1;
-}
-
-template<class T>
-static void klf_config_read(QSettings &s, const QString& baseName, T *target,
-			      const char * listOrMapType = NULL)
-{
-  //  qDebug("klf_config_read<...>(%s)", qPrintable(baseName));
-  QVariant defVal = QVariant::fromValue<T>(*target);
-  QVariant valstrv = s.value(baseName, QVariant());
-  //  klfDbg( "\tRead value "<<valstr ) ;
-  if (valstrv.isNull()) {
-    // no such entry in config
-    klfDbg("No entry "<<baseName<<" in config.") ;
-    return;
-  }
-  QString valstr = valstrv.toString();
-  QVariant val = klfLoadVariantFromText(valstr.toLatin1(), defVal.typeName(), listOrMapType);
-  if (val.isValid())
-    *target = val.value<T>();
-}
-template<>
-void klf_config_read<QTextCharFormat>(QSettings &s, const QString& baseName,
-					QTextCharFormat *target,
-					const char * listOrMapType)
-{
-  qDebug("klf_config_read<QTextCharFormat>(%s)", qPrintable(baseName));
-  QTextFormat fmt = *target;
-  klf_config_read(s, baseName, &fmt);
-  *target = fmt.toCharFormat();
-}
-
-template<class T>
-static void klf_config_read_list(QSettings &s, const QString& baseName, QList<T> *target)
-{
-  QVariantList vlist = klfListToVariantList(*target);
-  klf_config_read(s, baseName, &vlist, QVariant::fromValue<T>(T()).typeName());
-  *target = klfVariantListToList<T>(vlist);
-}
-
-
-template<class T>
-static void klf_config_write(QSettings &s, const QString& baseName, const T * value)
-{
-  QVariant val = QVariant::fromValue<T>(*value);
-  QByteArray datastr = klfSaveVariantToText(val);
-  s.setValue(baseName, QVariant::fromValue<QString>(QString::fromLocal8Bit(datastr)));
-}
-
-template<class T>
-static void klf_config_write_list(QSettings &s, const QString& baseName, const QList<T> * target)
-{
-  QVariantList vlist = klfListToVariantList(*target);
-  klf_config_write(s, baseName, &vlist);
 }
 
 static QString firstRunConfigKey(int N)
@@ -529,7 +543,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "gloweffect", &UI.glowEffect);
   klf_config_read(s, "gloweffectcolor", &UI.glowEffectColor);
   klfDbg("Read glow effect color from config: color="<<UI.glowEffectColor
-	 <<", alpha="<<UI.glowEffectColor.alpha());
+	 <<", alpha="<<UI.glowEffectColor().alpha());
   klf_config_read(s, "gloweffectradius", &UI.glowEffectRadius);
   klf_config_read(s, "custommathmodes", &UI.customMathModes);
   klf_config_read(s, "showexportprofileslabel", &UI.showExportProfilesLabel);
@@ -605,10 +619,10 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   // POST-CONFIG-READ SETUP
 
   // forbid empty locale
-  if (klfconfig.UI.locale.isEmpty())
+  if (klfconfig.UI.locale().isEmpty())
     klfconfig.UI.locale = "en_US";
   // set Qt default locale to ours
-  QLocale::setDefault(klfconfig.UI.locale);
+  QLocale::setDefault(klfconfig.UI.locale());
 
   return 0;
 }
@@ -622,10 +636,10 @@ int KLFConfig::writeToConfig()
   bool thisVersionFirstRunFalse = false;
 
   s.beginGroup("Core");
-  klf_config_write(s, firstRunConfigKey(1), &thisVersionFirstRunFalse);
-  klf_config_write(s, firstRunConfigKey(2), &thisVersionFirstRunFalse);
-  klf_config_write(s, firstRunConfigKey(3), &thisVersionFirstRunFalse);
-  klf_config_write(s, firstRunConfigKey(4), &thisVersionFirstRunFalse);
+  klf_config_write_value(s, firstRunConfigKey(1), &thisVersionFirstRunFalse);
+  klf_config_write_value(s, firstRunConfigKey(2), &thisVersionFirstRunFalse);
+  klf_config_write_value(s, firstRunConfigKey(3), &thisVersionFirstRunFalse);
+  klf_config_write_value(s, firstRunConfigKey(4), &thisVersionFirstRunFalse);
   klf_config_write(s, "libraryfilename", &Core.libraryFileName);
   klf_config_write(s, "librarylibscheme", &Core.libraryLibScheme);
   s.endGroup();
@@ -666,11 +680,11 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "highlightparensonly", &SyntaxHighlighter.highlightParensOnly);
   klf_config_write(s, "highlightlonelyparens", &SyntaxHighlighter.highlightLonelyParens);
   klf_config_write(s, "matchparentypes", &SyntaxHighlighter.matchParenTypes);
-  klf_config_write<QTextFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
-  klf_config_write<QTextFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
-  klf_config_write<QTextFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
-  klf_config_write<QTextFormat>(s, "parenmismatch", &SyntaxHighlighter.fmtParenMismatch);
-  klf_config_write<QTextFormat>(s, "lonelyparen", &SyntaxHighlighter.fmtLonelyParen);
+  klf_config_write(s, "keyword", &SyntaxHighlighter.fmtKeyword);
+  klf_config_write(s, "comment", &SyntaxHighlighter.fmtComment);
+  klf_config_write(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
+  klf_config_write(s, "parenmismatch", &SyntaxHighlighter.fmtParenMismatch);
+  klf_config_write(s, "lonelyparen", &SyntaxHighlighter.fmtLonelyParen);
   s.endGroup();
 
   s.beginGroup("BackendSettings");
@@ -859,22 +873,22 @@ int KLFConfig::readFromConfig_v1()
   QSettings s(homeConfigSettingsFileIni, QSettings::IniFormat);
 
   s.beginGroup("UI");
-  UI.locale = s.value("locale", UI.locale).toString();
+  UI.locale = s.value("locale", UI.locale.toVariant()).toString();
   // ingnore KLF 3.1 app font setting, we have our nice CMU Sans Serif font ;-)
   //  UI.applicationFont = s.value("applicationfont", UI.applicationFont).value<QFont>();
-  UI.latexEditFont = s.value("latexeditfont", UI.latexEditFont).value<QFont>();
-  UI.preambleEditFont = s.value("preambleeditfont", UI.preambleEditFont).value<QFont>();
-  UI.previewTooltipMaxSize = s.value("previewtooltipmaxsize", UI.previewTooltipMaxSize).toSize();
-  UI.labelOutputFixedSize = s.value("lbloutputfixedsize", UI.labelOutputFixedSize ).toSize();
-  UI.lastSaveDir = s.value("lastsavedir", UI.lastSaveDir).toString();
-  UI.symbolsPerLine = s.value("symbolsperline", UI.symbolsPerLine).toInt();
-  UI.userColorList = settings_read_list(s, "usercolorlist", UI.userColorList);
-  UI.colorChooseWidgetRecent = settings_read_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent);
-  UI.colorChooseWidgetCustom = settings_read_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom);
-  UI.maxUserColors = s.value("maxusercolors", UI.maxUserColors).toInt();
-  UI.enableToolTipPreview = s.value("enabletooltippreview", UI.enableToolTipPreview).toBool();
-  UI.enableRealTimePreview = s.value("enablerealtimepreview", UI.enableRealTimePreview).toBool();
-  UI.autosaveLibraryMin = s.value("autosavelibrarymin", UI.autosaveLibraryMin).toInt();
+  UI.latexEditFont = s.value("latexeditfont", UI.latexEditFont.toVariant()).value<QFont>();
+  UI.preambleEditFont = s.value("preambleeditfont", UI.preambleEditFont.toVariant()).value<QFont>();
+  UI.previewTooltipMaxSize = s.value("previewtooltipmaxsize", UI.previewTooltipMaxSize.toVariant()).toSize();
+  UI.labelOutputFixedSize = s.value("lbloutputfixedsize", UI.labelOutputFixedSize.toVariant() ).toSize();
+  UI.lastSaveDir = s.value("lastsavedir", UI.lastSaveDir.toVariant()).toString();
+  UI.symbolsPerLine = s.value("symbolsperline", UI.symbolsPerLine.toVariant()).toInt();
+  UI.userColorList = settings_read_list(s, "usercolorlist", UI.userColorList());
+  UI.colorChooseWidgetRecent = settings_read_list(s, "colorchoosewidgetrecent", UI.colorChooseWidgetRecent());
+  UI.colorChooseWidgetCustom = settings_read_list(s, "colorchoosewidgetcustom", UI.colorChooseWidgetCustom());
+  UI.maxUserColors = s.value("maxusercolors", UI.maxUserColors.toVariant()).toInt();
+  UI.enableToolTipPreview = s.value("enabletooltippreview", UI.enableToolTipPreview.toVariant()).toBool();
+  UI.enableRealTimePreview = s.value("enablerealtimepreview", UI.enableRealTimePreview.toVariant()).toBool();
+  UI.autosaveLibraryMin = s.value("autosavelibrarymin", UI.autosaveLibraryMin.toVariant()).toInt();
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -882,28 +896,31 @@ int KLFConfig::readFromConfig_v1()
   SyntaxHighlighter.enabled = (configFlags &  0x01);
   SyntaxHighlighter.highlightParensOnly = (configFlags & 0x02);
   SyntaxHighlighter.highlightLonelyParens = (configFlags & 0x04);
-  SyntaxHighlighter.fmtKeyword = settings_read_QTextCharFormat(s, "keyword", SyntaxHighlighter.fmtKeyword);
-  SyntaxHighlighter.fmtComment = settings_read_QTextCharFormat(s, "comment", SyntaxHighlighter.fmtComment);
-  SyntaxHighlighter.fmtParenMatch = settings_read_QTextCharFormat(s, "parenmatch", SyntaxHighlighter.fmtParenMatch);
-  SyntaxHighlighter.fmtParenMismatch = settings_read_QTextCharFormat(s, "parenmismatch", SyntaxHighlighter.fmtParenMismatch);
-  SyntaxHighlighter.fmtLonelyParen = settings_read_QTextCharFormat(s, "lonelyparen", SyntaxHighlighter.fmtLonelyParen);
+  SyntaxHighlighter.fmtKeyword = settings_read_QTextCharFormat(s, "keyword", SyntaxHighlighter.fmtKeyword());
+  SyntaxHighlighter.fmtComment = settings_read_QTextCharFormat(s, "comment", SyntaxHighlighter.fmtComment());
+  SyntaxHighlighter.fmtParenMatch = settings_read_QTextCharFormat(s, "parenmatch",
+								  SyntaxHighlighter.fmtParenMatch());
+  SyntaxHighlighter.fmtParenMismatch = settings_read_QTextCharFormat(s, "parenmismatch",
+								     SyntaxHighlighter.fmtParenMismatch());
+  SyntaxHighlighter.fmtLonelyParen = settings_read_QTextCharFormat(s, "lonelyparen",
+								   SyntaxHighlighter.fmtLonelyParen());
   s.endGroup();
 
   s.beginGroup("BackendSettings");
-  BackendSettings.tempDir = s.value("tempdir", BackendSettings.tempDir).toString();
-  BackendSettings.execLatex = s.value("latexexec", BackendSettings.execLatex).toString();
-  BackendSettings.execDvips = s.value("dvipsexec", BackendSettings.execDvips).toString();
-  BackendSettings.execGs = s.value("gsexec", BackendSettings.execGs).toString();
-  BackendSettings.execEpstopdf = s.value("epstopdfexec", BackendSettings.execEpstopdf).toString();
-  BackendSettings.lborderoffset = s.value("lborderoffset", BackendSettings.lborderoffset).toInt();
-  BackendSettings.tborderoffset = s.value("tborderoffset", BackendSettings.tborderoffset).toInt();
-  BackendSettings.rborderoffset = s.value("rborderoffset", BackendSettings.rborderoffset).toInt();
-  BackendSettings.bborderoffset = s.value("bborderoffset", BackendSettings.bborderoffset).toInt();
+  BackendSettings.tempDir = s.value("tempdir", BackendSettings.tempDir.toVariant()).toString();
+  BackendSettings.execLatex = s.value("latexexec", BackendSettings.execLatex.toVariant()).toString();
+  BackendSettings.execDvips = s.value("dvipsexec", BackendSettings.execDvips.toVariant()).toString();
+  BackendSettings.execGs = s.value("gsexec", BackendSettings.execGs.toVariant()).toString();
+  BackendSettings.execEpstopdf = s.value("epstopdfexec", BackendSettings.execEpstopdf.toVariant()).toString();
+  BackendSettings.lborderoffset = s.value("lborderoffset", BackendSettings.lborderoffset.toVariant()).toInt();
+  BackendSettings.tborderoffset = s.value("tborderoffset", BackendSettings.tborderoffset.toVariant()).toInt();
+  BackendSettings.rborderoffset = s.value("rborderoffset", BackendSettings.rborderoffset.toVariant()).toInt();
+  BackendSettings.bborderoffset = s.value("bborderoffset", BackendSettings.bborderoffset.toVariant()).toInt();
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
-  LibraryBrowser.colorFound = s.value("colorfound", LibraryBrowser.colorFound).value<QColor>();
-  LibraryBrowser.colorNotFound = s.value("colornotfound", LibraryBrowser.colorNotFound).value<QColor>();
+  LibraryBrowser.colorFound = s.value("colorfound", LibraryBrowser.colorFound.toVariant()).value<QColor>();
+  LibraryBrowser.colorNotFound = s.value("colornotfound", LibraryBrowser.colorNotFound.toVariant()).value<QColor>();
   s.endGroup();
 
   // Special treatment for Plugins.pluginConfig

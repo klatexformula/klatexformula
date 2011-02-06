@@ -32,8 +32,214 @@
 #include <QSettings>
 #include <QTextCharFormat>
 #include <QMap>
+#include <QSettings>
 
 #include <klfbackend.h>
+#include <klfutil.h>
+
+class KLFConfigPropBase
+{
+public:
+  virtual QString propName() const { return pname; }
+  virtual QVariant toVariant() const = 0;
+
+protected:
+  QString pname;
+};
+
+class KLFConfigBase
+{
+public:
+  virtual bool okChangeProperty(KLFConfigPropBase *property, const QVariant& oldValue, const QVariant& newValue);
+
+  virtual void propertyChanged(KLFConfigPropBase *property, const QVariant& oldValue, const QVariant& newValue);
+
+  virtual void propertyValueRequested(const KLFConfigPropBase *property);
+
+  virtual void connectQObjectProperty(const QString& configPropertyName, QObject *object,
+				      const QString& objPropName);
+  virtual void disconnectQObjectProperty(const QString& configPropertyName, QObject *object,
+					 const QString& objPropName);
+
+protected:
+  struct ObjPropConnection {
+    QString confPropName;
+    QObject *object;
+    QString objPropName;
+    inline bool operator==(const ObjPropConnection& b) const {
+      return object == b.object && confPropName == b.confPropName && objPropName == b.objPropName;
+    }
+  };
+  QList<ObjPropConnection> pObjPropConnections;
+};
+
+template<class T>
+struct KLFConfigVariantConverter {
+  QVariant convert(const T& value)
+  {
+    return QVariant(value);
+  }
+};
+template<class T>
+struct KLFConfigVariantConverter<QList<T> > {
+  QVariant convert(const QList<T>& list)
+  {
+    return QVariant(klfListToVariantList(list));
+  }
+};
+
+
+template<class T>
+class KLFConfigProp : public KLFConfigPropBase
+{
+public:
+  typedef T Type;
+
+  KLFConfigProp() : config(NULL), val(T()), defval(T()) { }
+
+  operator Type () const
+  {
+    return value();
+  }
+  Type operator()() const
+  {
+    return value();
+  }
+  const Type& operator=(const Type& newvalue)
+  {
+    setValue(newvalue);
+    return newvalue;
+  };
+  bool operator==(const Type& compareValue)
+  {
+    return val == compareValue;
+  }
+  bool operator!=(const Type& compareValue)
+  {
+    return val != compareValue;
+  }
+  
+  void setValue(const Type& newvalue)
+  {
+    Type oldvalue = val;
+    KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") have not been initialized!", return ; ) ;
+    KLFConfigVariantConverter<Type> vc;
+    if (!config->okChangeProperty(this, vc.convert(oldvalue), vc.convert(newvalue)))
+      return;
+    val = newvalue;
+    config->propertyChanged(this, vc.convert(oldvalue), vc.convert(newvalue));
+  }
+
+  Type defaultValue() const
+  {
+    return defval;
+  }
+  Type value() const
+  {
+    KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") have not been initialized!", return Type(); ) ;
+    config->propertyValueRequested(this);
+    return val;
+  }
+  virtual QVariant toVariant() const
+  {
+    KLFConfigVariantConverter<Type> v;
+    return v.convert(value());
+  }
+  
+  void initialize(KLFConfigBase *confptr, const QString& propName, const Type& defaultValue)
+  {
+    config = confptr;
+    pname = propName;
+    defval = defaultValue;
+  }
+
+private:
+  KLFConfigBase *config;
+
+  Type val;
+  Type defval;
+};
+
+#define KLFCONFIGPROP_INIT_CONFIG(configptr)  KLFConfigBase *__klfconfigprop_configbase = (configptr) ;
+#define KLFCONFIGPROP_INIT(var, defval) (var).initialize(__klfconfigprop_configbase, #var, (defval))
+
+
+template<class T>
+inline bool klf_config_read_value(QSettings &s, const QString& baseName, T * target,
+				  const char * listOrMapType  = NULL)
+{
+  QVariant defVal = QVariant::fromValue<T>(*target);
+  QVariant valstrv = s.value(baseName, QVariant());
+  if (valstrv.isNull()) {
+    klfDbg("No entry "<<baseName<<" in config.") ;
+    return false;
+  }
+  QString valstr = valstrv.toString();
+  QVariant val = klfLoadVariantFromText(valstr.toLatin1(), defVal.typeName(), listOrMapType);
+  if (val.isValid()) {
+    *target = val.value<T>();
+    return true;
+  }
+  return false;
+}
+
+template<class T>
+inline void klf_config_read(QSettings &s, const QString& baseName, KLFConfigProp<T> *target,
+			    const char * listOrMapType = NULL)
+{
+  T value = *target;
+  if (klf_config_read_value(s, baseName, &value, listOrMapType))
+    *target = value;
+}
+template<>
+inline void klf_config_read<QTextCharFormat>(QSettings &s, const QString& baseName,
+					     KLFConfigProp<QTextCharFormat> *target,
+					     const char * listOrMapType)
+{
+  qDebug("klf_config_read<QTextCharFormat>(%s)", qPrintable(baseName));
+  QTextFormat fmt = *target;
+  klf_config_read_value(s, baseName, &fmt);
+  *target = fmt.toCharFormat();
+}
+
+template<class T>
+inline void klf_config_read_list(QSettings &s, const QString& baseName, KLFConfigProp<QList<T> > *target)
+{
+  QVariantList vlist = klfListToVariantList(target->value());
+  klf_config_read_value(s, baseName, &vlist, QVariant::fromValue<T>(T()).typeName());
+  *target = klfVariantListToList<T>(vlist);
+}
+
+
+template<class T>
+inline void klf_config_write_value(QSettings &s, const QString& baseName, const T * value)
+{
+  QVariant val = QVariant::fromValue<T>(*value);
+  QByteArray datastr = klfSaveVariantToText(val);
+  s.setValue(baseName, QVariant::fromValue<QString>(QString::fromLocal8Bit(datastr)));
+}
+template<class T>
+inline void klf_config_write(QSettings &s, const QString& baseName, const KLFConfigProp<T> * target)
+{
+  T temp = *target;
+  klf_config_write_value(s, baseName, &temp);
+}
+template<>
+inline void klf_config_write<QTextCharFormat>(QSettings &s, const QString& baseName,
+					      const KLFConfigProp<QTextCharFormat> * target)
+{
+  klfDbg("<QTextCharFormat>, baseName="<<baseName) ;
+  QTextFormat f = *target;
+  klf_config_write_value(s, baseName, &f);
+}
+template<class T>
+inline void klf_config_write_list(QSettings &s, const QString& baseName, const KLFConfigProp<QList<T> > * target)
+{
+  QVariantList vlist = klfListToVariantList(target->value());
+  klf_config_write_value(s, baseName, &vlist);
+}
+
+
 
 class KLFConfig;
 
@@ -138,15 +344,9 @@ public:
  *
  * See also \ref KLFSettings for a graphical interface for editing these settings.
  */
-class KLF_EXPORT KLFConfig {
+class KLF_EXPORT KLFConfig : public KLFConfigBase
+{
 public:
-
-  /** this doesn't do anything. It actually leaves every entry with undefined values.
-      This is why it's important to call loadDefaults() quickly after building an instance
-      of KLFConfig. readFromConfig() isn't enough, beacause it assumes the default values
-      are already stored in the current fields. */
-  KLFConfig();
-
 
   QString homeConfigDir;
   QString globalShareDir;
@@ -159,97 +359,97 @@ public:
 
   struct {
 
-    bool thisVersionMajFirstRun;
-    bool thisVersionMajMinFirstRun;
-    bool thisVersionMajMinRelFirstRun;
-    bool thisVersionExactFirstRun;
+    KLFConfigProp<bool> thisVersionMajFirstRun;
+    KLFConfigProp<bool> thisVersionMajMinFirstRun;
+    KLFConfigProp<bool> thisVersionMajMinRelFirstRun;
+    KLFConfigProp<bool> thisVersionExactFirstRun;
 
     /** The library file name, relative to homeConfigDir. */
-    QString libraryFileName;
+    KLFConfigProp<QString> libraryFileName;
     /** The lib scheme to use to store the library. This scheme will be given the full path
      * to the library in the URL path part. */
-    QString libraryLibScheme;
+    KLFConfigProp<QString> libraryLibScheme;
 
   } Core;
 
   struct {
 
-    QString locale; //!< When setting this, don't forget to call QLocale::setDefault().
-    bool useSystemAppFont;
-    QFont applicationFont;
-    QFont latexEditFont;
-    QFont preambleEditFont;
-    QSize previewTooltipMaxSize;
-    QSize labelOutputFixedSize;
-    QString lastSaveDir;
-    int symbolsPerLine;
-    QList<QColor> userColorList;
-    QList<QColor> colorChooseWidgetRecent;
-    QList<QColor> colorChooseWidgetCustom;
-    int maxUserColors;
-    bool enableToolTipPreview;
-    bool enableRealTimePreview;
-    int autosaveLibraryMin;
-    bool showHintPopups;
-    bool clearLatexOnly;
-    QString copyExportProfile;
-    QString dragExportProfile;
-    bool glowEffect;
-    QColor glowEffectColor;
-    int glowEffectRadius;
-    QStringList customMathModes;
-    bool showExportProfilesLabel;
-    bool menuExportProfileAffectsDrag;
-    bool menuExportProfileAffectsCopy;
-    bool emacsStyleBackspaceSearch;
+    KLFConfigProp<QString> locale; //!< When setting this, don't forget to call QLocale::setDefault().
+    KLFConfigProp<bool> useSystemAppFont;
+    KLFConfigProp<QFont> applicationFont;
+    KLFConfigProp<QFont> latexEditFont;
+    KLFConfigProp<QFont> preambleEditFont;
+    KLFConfigProp<QSize> previewTooltipMaxSize;
+    KLFConfigProp<QSize> labelOutputFixedSize;
+    KLFConfigProp<QString> lastSaveDir;
+    KLFConfigProp<int> symbolsPerLine;
+    KLFConfigProp<QList<QColor> > userColorList;
+    KLFConfigProp<QList<QColor> > colorChooseWidgetRecent;
+    KLFConfigProp<QList<QColor> > colorChooseWidgetCustom;
+    KLFConfigProp<int> maxUserColors;
+    KLFConfigProp<bool> enableToolTipPreview;
+    KLFConfigProp<bool> enableRealTimePreview;
+    KLFConfigProp<int> autosaveLibraryMin;
+    KLFConfigProp<bool> showHintPopups;
+    KLFConfigProp<bool> clearLatexOnly;
+    KLFConfigProp<QString> copyExportProfile;
+    KLFConfigProp<QString> dragExportProfile;
+    KLFConfigProp<bool> glowEffect;
+    KLFConfigProp<QColor> glowEffectColor;
+    KLFConfigProp<int> glowEffectRadius;
+    KLFConfigProp<QStringList> customMathModes;
+    KLFConfigProp<bool> showExportProfilesLabel;
+    KLFConfigProp<bool> menuExportProfileAffectsDrag;
+    KLFConfigProp<bool> menuExportProfileAffectsCopy;
+    KLFConfigProp<bool> emacsStyleBackspaceSearch;
 
   } UI;
 
   struct {
 
-    bool enabled;
-    bool highlightParensOnly;
-    bool highlightLonelyParens;
-    bool matchParenTypes;
-    QTextCharFormat fmtKeyword;
-    QTextCharFormat fmtComment;
-    QTextCharFormat fmtParenMatch;
-    QTextCharFormat fmtParenMismatch;
-    QTextCharFormat fmtLonelyParen;
+    KLFConfigProp<bool> enabled;
+    KLFConfigProp<bool> highlightParensOnly;
+    KLFConfigProp<bool> highlightLonelyParens;
+    KLFConfigProp<bool> matchParenTypes;
+    KLFConfigProp<QTextCharFormat> fmtKeyword;
+    KLFConfigProp<QTextCharFormat> fmtComment;
+    KLFConfigProp<QTextCharFormat> fmtParenMatch;
+    KLFConfigProp<QTextCharFormat> fmtParenMismatch;
+    KLFConfigProp<QTextCharFormat> fmtLonelyParen;
 
   } SyntaxHighlighter;
 
   struct {
 
-    QString tempDir;
-    QString execLatex;
-    QString execDvips;
-    QString execGs;
-    QString execEpstopdf;
-    QStringList execenv;
-    double lborderoffset;
-    double tborderoffset;
-    double rborderoffset;
-    double bborderoffset;
-    bool outlineFonts;
+    KLFConfigProp<QString> tempDir;
+    KLFConfigProp<QString> execLatex;
+    KLFConfigProp<QString> execDvips;
+    KLFConfigProp<QString> execGs;
+    KLFConfigProp<QString> execEpstopdf;
+    KLFConfigProp<QStringList> execenv;
+    KLFConfigProp<double> lborderoffset;
+    KLFConfigProp<double> tborderoffset;
+    KLFConfigProp<double> rborderoffset;
+    KLFConfigProp<double> bborderoffset;
+    KLFConfigProp<bool> outlineFonts;
 
   } BackendSettings;
 
   struct {
 
-    QColor colorFound;
-    QColor colorNotFound;
+    KLFConfigProp<QColor> colorFound;
+    KLFConfigProp<QColor> colorNotFound;
 
-    bool restoreURLs;
-    bool confirmClose;
-    bool groupSubCategories;
-    int iconViewFlow;
-    bool historyTagCopyToArchive;
-    QString lastFileDialogPath;
+    KLFConfigProp<bool> restoreURLs;
+    KLFConfigProp<bool> confirmClose;
+    KLFConfigProp<bool> groupSubCategories;
+    KLFConfigProp<int> iconViewFlow;
+    KLFConfigProp<bool> historyTagCopyToArchive;
+    KLFConfigProp<QString> lastFileDialogPath;
 
-    int treePreviewSizePercent;
-    int listPreviewSizePercent;
-    int iconPreviewSizePercent;
+    KLFConfigProp<int> treePreviewSizePercent;
+    KLFConfigProp<int> listPreviewSizePercent;
+    KLFConfigProp<int> iconPreviewSizePercent;
 
   } LibraryBrowser;
 

@@ -996,7 +996,7 @@ void KLFLatexSymbols::read_symbols_create_ui()
 		 <<"; current category-title="<<categoryTitle<<",lang="<<curCategoryTitleLang) ;
 	  if (categoryTitle.isEmpty()) {
 	    // no category title yet
-	    if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) {
+	    if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale().startsWith(lang)) {
 	      // correct locale
 	      categoryTitle = qApp->translate("xmltr_latexsymbols", eesym.text().toUtf8().constData(),
 					      "[[tag: <category-title>]]", QCoreApplication::UnicodeUTF8);
@@ -1005,7 +1005,7 @@ void KLFLatexSymbols::read_symbols_create_ui()
 	    // otherwise skip this tag
 	  } else {
 	    // see if this locale is correct and more specific
-	    if ( (lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) &&
+	    if ( (lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale().startsWith(lang)) &&
 		 (curCategoryTitleLang.isEmpty() || lang.startsWith(curCategoryTitleLang) ) ) {
 	      // then keep it and replace the other
 	      categoryTitle = eesym.text();

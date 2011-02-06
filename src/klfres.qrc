@@ -51,7 +51,7 @@
     <file>data/cmunsx.otf</file>
     <file>data/cmdl-help.txt</file>
     <file>data/about.html</file>
-    <file>data/whats-new-3.2.html</file>
+    <file>data/whats-new-3.3.html</file>
     <file>data/symbolspixmapcache_base</file>
     <file>data/defaultlibrary.klf</file>
     <file>data/ooodrawingtemplate</file>
@@ -61,6 +61,6 @@
   <qresource>
     <file>data/cmdl-help_fr.txt</file>
     <file>data/about_fr.html</file>
-    <file>data/whats-new-3.2_fr.html</file>
+    <file>data/whats-new-3.3_fr.html</file>
   </qresource>
 </RCC>

@@ -299,7 +299,7 @@ void KLFSettings::populateLocaleCombo()
 
   // Select the current locale. This is also done in reset(), but these lines are needed here
   // for when this function is called within importAddOn().
-  k = u->cbxLocale->findData(klfconfig.UI.locale);
+  k = u->cbxLocale->findData(klfconfig.UI.locale.value());
   if (k == -1) {
     k = 0;
   }
@@ -450,7 +450,7 @@ void KLFSettings::reset()
   int k;
   KLFBackend::klfSettings s = _mainwin->currentSettings();
 
-  k = u->cbxLocale->findData(klfconfig.UI.locale);
+  k = u->cbxLocale->findData(klfconfig.UI.locale.toVariant());
   if (k == -1) {
     k = 0;
   }
@@ -476,39 +476,39 @@ void KLFSettings::reset()
   u->chkSHNoMatchParenTypes->setChecked( ! klfconfig.SyntaxHighlighter.matchParenTypes );
 
   for (k = 0; k < _textformats.size(); ++k) {
-    if (_textformats[k].fmt->hasProperty(QTextFormat::ForegroundBrush))
-      _textformats[k].fg->setColor(_textformats[k].fmt->foreground().color());
+    if ((*_textformats[k].fmt)().hasProperty(QTextFormat::ForegroundBrush))
+      _textformats[k].fg->setColor((*_textformats[k].fmt)().foreground().color());
     else
       _textformats[k].fg->setColor(QColor());
-    if (_textformats[k].fmt->hasProperty(QTextFormat::BackgroundBrush))
-      _textformats[k].bg->setColor(_textformats[k].fmt->background().color());
+    if ((*_textformats[k].fmt)().hasProperty(QTextFormat::BackgroundBrush))
+      _textformats[k].bg->setColor((*_textformats[k].fmt)().background().color());
     else
       _textformats[k].bg->setColor(QColor());
-    if (_textformats[k].fmt->hasProperty(QTextFormat::FontWeight))
-      _textformats[k].chkB->setChecked(_textformats[k].fmt->fontWeight() > 60);
+    if ((*_textformats[k].fmt)().hasProperty(QTextFormat::FontWeight))
+      _textformats[k].chkB->setChecked((*_textformats[k].fmt)().fontWeight() > 60);
     else
       _textformats[k].chkB->setCheckState(Qt::PartiallyChecked);
-    if (_textformats[k].fmt->hasProperty(QTextFormat::FontItalic))
-      _textformats[k].chkI->setChecked(_textformats[k].fmt->fontItalic());
+    if ((*_textformats[k].fmt)().hasProperty(QTextFormat::FontItalic))
+      _textformats[k].chkI->setChecked((*_textformats[k].fmt)().fontItalic());
     else
       _textformats[k].chkI->setCheckState(Qt::PartiallyChecked);
   }
 
   pUserSetDefaultAppFont = klfconfig.UI.useSystemAppFont;
   u->btnAppFont->setFont(klfconfig.UI.applicationFont);
-  u->btnAppFont->setProperty("selectedFont", QVariant(klfconfig.UI.applicationFont));
+  u->btnAppFont->setProperty("selectedFont", klfconfig.UI.applicationFont.toVariant());
   u->btnEditorFont->setFont(klfconfig.UI.latexEditFont);
-  u->btnEditorFont->setProperty("selectedFont", QVariant(klfconfig.UI.latexEditFont));
+  u->btnEditorFont->setProperty("selectedFont", klfconfig.UI.latexEditFont.toVariant());
   u->btnPreambleFont->setFont(klfconfig.UI.preambleEditFont);
-  u->btnPreambleFont->setProperty("selectedFont", QVariant(klfconfig.UI.preambleEditFont));
+  u->btnPreambleFont->setProperty("selectedFont", klfconfig.UI.preambleEditFont.toVariant());
 
   u->chkEnableRealTimePreview->setChecked(klfconfig.UI.enableRealTimePreview);
-  u->spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize.width());
-  u->spnPreviewHeight->setValue(klfconfig.UI.labelOutputFixedSize.height());
+  u->spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize().width());
+  u->spnPreviewHeight->setValue(klfconfig.UI.labelOutputFixedSize().height());
 
   u->chkEnableToolTipPreview->setChecked(klfconfig.UI.enableToolTipPreview);
-  u->spnToolTipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize.width());
-  u->spnToolTipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize.height());
+  u->spnToolTipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize().width());
+  u->spnToolTipMaxHeight->setValue(klfconfig.UI.previewTooltipMaxSize().height());
 
   u->chkShowHintPopups->setChecked(klfconfig.UI.showHintPopups);
   u->chkClearLatexOnly->setChecked(klfconfig.UI.clearLatexOnly);
@@ -1060,28 +1060,31 @@ void KLFSettings::apply()
 
 
   for (k = 0; k < _textformats.size(); ++k) {
+    QTextCharFormat fmt = *_textformats[k].fmt;
     QColor c = _textformats[k].fg->color();
     if (c.isValid())
-      _textformats[k].fmt->setForeground(c);
+      fmt.setForeground(c);
     else
-      _textformats[k].fmt->clearForeground();
+      fmt.clearForeground();
     c = _textformats[k].bg->color();
     if (c.isValid())
-      _textformats[k].fmt->setBackground(c);
+      fmt.setBackground(c);
     else
-      _textformats[k].fmt->clearBackground();
+      fmt.clearBackground();
     Qt::CheckState b = _textformats[k].chkB->checkState();
     if (b == Qt::PartiallyChecked)
-      _textformats[k].fmt->clearProperty(QTextFormat::FontWeight);
+      fmt.clearProperty(QTextFormat::FontWeight);
     else if (b == Qt::Checked)
-      _textformats[k].fmt->setFontWeight(QFont::Bold);
+      fmt.setFontWeight(QFont::Bold);
     else
-      _textformats[k].fmt->setFontWeight(QFont::Normal);
+      fmt.setFontWeight(QFont::Normal);
     Qt::CheckState it = _textformats[k].chkI->checkState();
     if (it == Qt::PartiallyChecked)
-      _textformats[k].fmt->clearProperty(QTextFormat::FontItalic);
+      fmt.clearProperty(QTextFormat::FontItalic);
     else
-      _textformats[k].fmt->setFontItalic( it == Qt::Checked );
+      fmt.setFontItalic( it == Qt::Checked );
+
+    *_textformats[k].fmt = fmt;
   }
 
   // language settings
@@ -1089,12 +1092,12 @@ void KLFSettings::apply()
   klfDbg("New locale name: "<<localename);
   bool localechanged = false;
   if (klfconfig.UI.locale != localename) {
-    if ((!klfconfig.UI.locale.isEmpty() && klfconfig.UI.locale != "C" && klfconfig.UI.locale != "en_US") ||
+    if ((!klfconfig.UI.locale().isEmpty() && klfconfig.UI.locale != "C" && klfconfig.UI.locale != "en_US") ||
 	(!localename.isEmpty() && localename != "C" && localename != "en_US"))
       localechanged = true; // not just switching from "C" to "en_US" which is not a locale change...
   }
   klfconfig.UI.locale = localename;
-  QLocale::setDefault(klfconfig.UI.locale);
+  QLocale::setDefault(klfconfig.UI.locale());
   _mainwin->setApplicationLocale(localename);
   if (localechanged) {
     QMessageBox::information(this, tr("Language changed"),

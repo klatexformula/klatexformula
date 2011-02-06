@@ -423,7 +423,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	       <<"; current description="<<description<<",lang="<<curDescriptionLang) ;
 	if (description.isEmpty()) {
 	  // no description yet
-	  if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) {
+	  if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale().startsWith(lang)) {
 	    // correct locale
 	    //	    klfDbg("remembering description tag with lang="<<lang);
 	    description = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
@@ -434,7 +434,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	  // otherwise skip this tag
 	} else {
 	  // see if this locale is correct and more specific
-	  if ( (lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale.startsWith(lang)) &&
+	  if ( (lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale().startsWith(lang)) &&
 	       (curDescriptionLang.isEmpty() || lang.startsWith(curDescriptionLang) ) ) {
 	    // then keep it and replace the other
 	    //	    klfDbg("remembering description tag with lang="<<lang);
@@ -675,7 +675,7 @@ QStringList KLFMimeExporterImage::keys() const
 
   QStringList keys = staticKeys;
 
-  if (!klfconfig.BackendSettings.execEpstopdf.isEmpty())
+  if (!klfconfig.BackendSettings.execEpstopdf().isEmpty())
     keys <<"application/pdf"; // add PDF only if we have PDF
 
   keys << imageFormats.keys();

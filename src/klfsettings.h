@@ -30,6 +30,7 @@
 #include <QPushButton>
 
 #include <klfbackend.h>
+#include <klfconfig.h>
 
 class QTreeWidgetItem;
 class KLFColorChooser;
@@ -124,11 +125,11 @@ private:
   QList<QAction*> pFontSetActions;
 
   struct TextFormatEnsemble {
-    TextFormatEnsemble(QTextCharFormat *format,
+    TextFormatEnsemble(KLFConfigProp<QTextCharFormat> *format,
 		       KLFColorChooser *foreground, KLFColorChooser *background,
 		       QCheckBox *chkBold, QCheckBox *chkItalic)
       : fmt(format), fg(foreground), bg(background), chkB(chkBold), chkI(chkItalic) { }
-    QTextCharFormat *fmt;
+    KLFConfigProp<QTextCharFormat> *fmt;
     KLFColorChooser *fg;
     KLFColorChooser *bg;
     QCheckBox *chkB;
