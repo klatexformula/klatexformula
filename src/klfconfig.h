@@ -25,6 +25,7 @@
 #define KLFCONFIG_H
 
 #include <qglobal.h>
+#include <QDebug>
 #include <QString>
 #include <QFont>
 #include <QSize>
