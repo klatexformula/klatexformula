@@ -228,12 +228,68 @@ KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObjec
 {
   setDocument(textedit->document());
 
+  // some reasonable defaults for our config...
+  pConf.enabled = true;
+  pConf.highlightParensOnly = false;
+  pConf.highlightLonelyParens = true;
+  pConf.matchParenTypes = true;
+
+  pConf.fmtKeyword.setForeground(QColor(0, 0, 128));
+  pConf.fmtComment.setForeground(QColor(180, 0, 0));
+  pConf.fmtComment.setFontItalic(true);
+  pConf.fmtParenMatch.setBackground(QColor(180, 238, 180));
+  pConf.fmtParenMismatch.setBackground(QColor(255, 20, 147));
+  pConf.fmtLonelyParen.setForeground(QColor(255, 0, 255));
+  pConf.fmtLonelyParen.setFontWeight(QFont::Bold);
+
   _caretpos = 0;
 }
 
 KLFLatexSyntaxHighlighter::~KLFLatexSyntaxHighlighter()
 {
 }
+
+
+void KLFLatexSyntaxHighlighter::setHighlightEnabled(bool on)
+{
+  pConf.enabled = on;
+}
+
+void KLFLatexSyntaxHighlighter::setHighlightParensOnly(bool on)
+{
+  pConf.highlightParensOnly = on;
+}
+void KLFLatexSyntaxHighlighter::setHighlightLonelyParens(bool on)
+{
+  pConf.highlightLonelyParens = on;
+}
+void KLFLatexSyntaxHighlighter::setFmtKeyword(const QTextFormat& f)
+{
+  KLF_ASSERT_CONDITION(f.isCharFormat(), "Format "<<f<<" is not a QTextCharFormat.", return ; ) ;
+  pConf.fmtKeyword = f.toCharFormat();
+}
+void KLFLatexSyntaxHighlighter::setFmtComment(const QTextFormat& f)
+{
+  KLF_ASSERT_CONDITION(f.isCharFormat(), "Format "<<f<<" is not a QTextCharFormat.", return ; ) ;
+  pConf.fmtComment = f.toCharFormat();
+}
+void KLFLatexSyntaxHighlighter::setFmtParenMatch(const QTextFormat& f)
+{
+  KLF_ASSERT_CONDITION(f.isCharFormat(), "Format "<<f<<" is not a QTextCharFormat.", return ; ) ;
+  pConf.fmtParenMatch = f.toCharFormat();
+}
+void KLFLatexSyntaxHighlighter::setFmtParenMismatch(const QTextFormat& f)
+{
+  KLF_ASSERT_CONDITION(f.isCharFormat(), "Format "<<f<<" is not a QTextCharFormat.", return ; ) ;
+  pConf.fmtParenMismatch = f.toCharFormat();
+}
+void KLFLatexSyntaxHighlighter::setFmtLonelyParen(const QTextFormat& f)
+{
+  KLF_ASSERT_CONDITION(f.isCharFormat(), "Format "<<f<<" is not a QTextCharFormat.", return ; ) ;
+  pConf.fmtLonelyParen = f.toCharFormat();
+}
+
+
 
 void KLFLatexSyntaxHighlighter::setCaretPos(int position)
 {
@@ -353,7 +409,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 
 	// does this rule span multiple paragraphs, and do we need to show it (eg. cursor right after paren)
 	if (p.highlight || cp.highlight) {
-	  if (klfconfig.SyntaxHighlighter.highlightParensOnly) {
+	  if (pConf.highlightParensOnly) {
 	    _rulestoapply.append(FormatRule(p.pos, p.poslength(), col, true));
 	    _rulestoapply.append(FormatRule(cp.pos, cp.poslength(), col, true));
 	  } else {
@@ -413,7 +469,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
     LonelyParenItem p = lonelyparens[k];
     int chp = p.caretHoverPos();
     if (chp == _caretpos) {
-      if (klfconfig.SyntaxHighlighter.highlightParensOnly) {
+      if (pConf.highlightParensOnly) {
 	_rulestoapply.append(FormatRule(p.pos, p.poslength(), FParenMismatch, true));
       } else {
 	// FormatRule will accept a negative length
@@ -422,7 +478,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
       }
     }
     // highlight the lonely paren
-    if (klfconfig.SyntaxHighlighter.highlightLonelyParens)
+    if (pConf.highlightLonelyParens)
       _rulestoapply.append(FormatRule(p.pos, p.poslength(), FLonelyParen));
   }
 
@@ -436,19 +492,19 @@ QTextCharFormat KLFLatexSyntaxHighlighter::charfmtForFormat(Format f)
     fmt = QTextCharFormat();
     break;
   case FKeyWord:
-    fmt = klfconfig.SyntaxHighlighter.fmtKeyword;
+    fmt = pConf.fmtKeyword;
     break;
   case FComment:
-    fmt = klfconfig.SyntaxHighlighter.fmtComment;
+    fmt = pConf.fmtComment;
     break;
   case FParenMatch:
-    fmt = klfconfig.SyntaxHighlighter.fmtParenMatch;
+    fmt = pConf.fmtParenMatch;
     break;
   case FParenMismatch:
-    fmt = klfconfig.SyntaxHighlighter.fmtParenMismatch;
+    fmt = pConf.fmtParenMismatch;
     break;
   case FLonelyParen:
-    fmt = klfconfig.SyntaxHighlighter.fmtLonelyParen;
+    fmt = pConf.fmtLonelyParen;
     break;
   default:
     fmt = QTextCharFormat();
@@ -464,7 +520,7 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
 
   klfDbg("text is "<<text);
 
-  if ( ! klfconfig.SyntaxHighlighter.enabled )
+  if ( ! pConf.enabled )
     return; // forget everything about synt highlight if we don't want it.
 
   QTextBlock block = currentBlock();

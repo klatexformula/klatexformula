@@ -128,6 +128,16 @@ private:
 class KLF_EXPORT KLFLatexSyntaxHighlighter : public QSyntaxHighlighter
 {
   Q_OBJECT
+
+  Q_PROPERTY(bool highlightEnabled READ highlightEnabled WRITE setHighlightEnabled) ;
+  Q_PROPERTY(bool highlightParensOnly READ highlightParensOnly WRITE setHighlightParensOnly) ;
+  Q_PROPERTY(bool highlightLonelyParens READ highlightLonelyParens WRITE setHighlightLonelyParens) ;
+  Q_PROPERTY(QTextFormat fmtKeyword READ fmtKeyword WRITE setFmtKeyword) ;
+  Q_PROPERTY(QTextFormat fmtComment READ fmtComment WRITE setFmtComment) ;
+  Q_PROPERTY(QTextFormat fmtParenMatch READ fmtParenMatch WRITE setFmtParenMatch) ;
+  Q_PROPERTY(QTextFormat fmtParenMismatch READ fmtParenMismatch WRITE setFmtParenMismatch) ;
+  Q_PROPERTY(QTextFormat fmtLonelyParen READ fmtLonelyParen WRITE setFmtLonelyParen) ;
+
 public:
   KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent);
   virtual ~KLFLatexSyntaxHighlighter();
@@ -136,9 +146,14 @@ public:
 
   virtual void highlightBlock(const QString& text);
 
-  /*  enum { Enabled = 0x01,
-      HighlightParensOnly = 0x02,
-      HighlightLonelyParen = 0x04 }; */
+  bool highlightEnabled() const { return pConf.enabled; }
+  bool highlightParensOnly() const { return pConf.highlightParensOnly; }
+  bool highlightLonelyParens() const { return pConf.highlightLonelyParens; }
+  QTextCharFormat fmtKeyword() const { return pConf.fmtKeyword; }
+  QTextCharFormat fmtComment() const { return pConf.fmtComment; }
+  QTextCharFormat fmtParenMatch() const { return pConf.fmtParenMatch; }
+  QTextCharFormat fmtParenMismatch() const { return pConf.fmtParenMismatch; }
+  QTextCharFormat fmtLonelyParen() const { return pConf.fmtLonelyParen; }
 
 signals:
   void newSymbolTyped(const QString& symbolName);
@@ -148,6 +163,15 @@ public slots:
 
   /** This clears for example the list of already typed symbols. */
   void resetEditing();
+
+  void setHighlightEnabled(bool on);
+  void setHighlightParensOnly(bool on);
+  void setHighlightLonelyParens(bool on);
+  void setFmtKeyword(const QTextFormat& f);
+  void setFmtComment(const QTextFormat& f);
+  void setFmtParenMatch(const QTextFormat& f);
+  void setFmtParenMismatch(const QTextFormat& f);
+  void setFmtLonelyParen(const QTextFormat& f);
 
 private:
 
@@ -182,6 +206,19 @@ private:
   /** symbols that have already been typed and that newSymbolTyped() should not
    * be emitted for any more. */
   QStringList pTypedSymbols;
+
+  struct Conf {
+    bool enabled;
+    bool highlightParensOnly;
+    bool highlightLonelyParens;
+    bool matchParenTypes;
+    QTextCharFormat fmtKeyword;
+    QTextCharFormat fmtComment;
+    QTextCharFormat fmtParenMatch;
+    QTextCharFormat fmtParenMismatch;
+    QTextCharFormat fmtLonelyParen;
+  };
+  Conf pConf;
 };
 
 
