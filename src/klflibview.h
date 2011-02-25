@@ -424,7 +424,7 @@ public:
   virtual Parameters retrieveCreateParametersFromWidget(const QString& wtype, QWidget *widget);
 
   /** Returns TRUE if this widget type (\c wtype) can create user-interface widgets to save an
-   * existing open resource as a new name (eg. to an other (new) library sqlite file, etc.) */
+   * existing open resource as a new name (eg. to another (new) library sqlite file, etc.) */
   virtual bool hasSaveToWidget(const QString& wtype) const;
   /** Creates a widget to prompt the user to save the resource \c resource to a different location,
    * by default \c defaultUrl.
@@ -786,7 +786,9 @@ public:
   virtual bool restoreGuiState(const QVariantMap& state);
 
   //! The first index that is currently visible in the current scrolling position
-  virtual QModelIndex currentVisibleIndex() const;
+  virtual QModelIndex currentVisibleIndex() const { return currentVisibleIndex(true); }
+  //! The first (forward=TRUE) or last (forward=FALSE) currently visible index in scroll area
+  virtual QModelIndex currentVisibleIndex(bool forward) const;
 
   bool autoBackgroundItems() const { return pDelegate->autoBackgroundItems(); }
   QColor autoBackgroundColor() const { return pDelegate->autoBackgroundColor(); }

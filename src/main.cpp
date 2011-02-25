@@ -197,7 +197,7 @@ static struct option klfcmdl_optlist[] = {
   { "dpi", 1, NULL, OPT_DPI },
   { "mathmode", 1, NULL, OPT_MATHMODE },
   { "preamble", 1, NULL, OPT_PREAMBLE },
-  { "quiet", 0, NULL, OPT_QUIET },
+  { "quiet", 2, NULL, OPT_QUIET },
   { "redirect-debug", 1, NULL, OPT_REDIRECT_DEBUG },
   { "daemonize", 0, NULL, OPT_DAEMONIZE },
   { "dbus-export-mainwin", 0, NULL, OPT_DBUS_EXPORT_MAINWIN },
@@ -1303,7 +1303,7 @@ FILE *main_msg_get_fp_arg(const char *arg)
   return stderr;
 }
 
-bool __klf_parse_bool_arg(const char * arg, bool defaultvalue)
+static bool __klf_parse_bool_arg(const char * arg, bool defaultvalue)
 {
   if (arg == NULL)
     return defaultvalue;
@@ -1436,7 +1436,7 @@ void main_parse_options(int argc, char *argv[])
       opt_preamble = arg;
       break;
     case OPT_QUIET:
-      opt_quiet = true;
+      opt_quiet = __klf_parse_bool_arg(arg, true);
       break;
     case OPT_REDIRECT_DEBUG:
       opt_redirect_debug = arg;

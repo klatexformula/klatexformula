@@ -911,7 +911,7 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
     }
     int cbxindex = u->cbxLocale->findData(detectedI18nFile->locale);
     if (k >= 0 && k < klf_avail_translations.size() && cbxindex >= 0) {
-      if (QMessageBox::question(this, tr("Change Langugage"), tr("Change application language to <b>%1</b>?")
+      if (QMessageBox::question(this, tr("Change Language"), tr("Change application language to <b>%1</b>?")
 				.arg(klf_avail_translations[k].translatedname),
 				QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes)
 	  == QMessageBox::Yes) {

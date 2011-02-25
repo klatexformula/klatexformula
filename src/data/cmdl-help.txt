@@ -67,7 +67,7 @@ Options:
   -p, --preamble <LaTeX code>
       Any LaTeX code that will be inserted before \begin{document}. Useful for
       including custom packages with \usepackage{...}.
-  -q, --quiet
+  -q, --quiet [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
       Disable console output of warnings and errors.
   --redirect-debug <file>
       Redirects debugging output to the given <file>. If the file name does not
@@ -113,7 +113,7 @@ Options:
   -V, --version [<filename|&N>][:<format>]
       Display KLatexFormula version information and exit.
       The optional output argument is handled as with --help, however it may also
-      contain a version string format preceeded by a colon where %k, and %q and
+      contain a version string format preceded by a colon where %k, and %q and
       %% are respectively replaced by klatexformula version, Qt version and a
       literal %.
 
