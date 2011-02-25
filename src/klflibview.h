@@ -838,6 +838,7 @@ public slots:
 protected:
   virtual void updateResourceEngine();
   virtual void updateResourceProp(int propId);
+  virtual void expandRootNice();
   virtual void updateResourceData(const QString& subRes, int modifyType,
 				  const QList<KLFLib::entryId>& entryIdList);
   virtual void updateResourceOwnData(const QList<KLFLib::entryId>& entryIdList);
@@ -864,6 +865,7 @@ protected slots:
   void slotShowColumnSenderAction(bool showCol);
 
   // called from model
+  void slotResourceModelReset();
   void slotResourceDataChanged(const QModelIndex& topLeft, const QModelIndex& botRight);
 
   void slotPreviewSizeFromActionSender();

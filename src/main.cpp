@@ -197,7 +197,7 @@ static struct option klfcmdl_optlist[] = {
   { "dpi", 1, NULL, OPT_DPI },
   { "mathmode", 1, NULL, OPT_MATHMODE },
   { "preamble", 1, NULL, OPT_PREAMBLE },
-  { "quiet", 1, NULL, OPT_QUIET },
+  { "quiet", 0, NULL, OPT_QUIET },
   { "redirect-debug", 1, NULL, OPT_REDIRECT_DEBUG },
   { "daemonize", 0, NULL, OPT_DAEMONIZE },
   { "dbus-export-mainwin", 0, NULL, OPT_DBUS_EXPORT_MAINWIN },
@@ -295,10 +295,12 @@ void klf_qt_message(QtMsgType type, const char *msg)
     // only with debugging enabled
 #ifdef KLF_DEBUG
     fprintf(fout, "D: %s\n", msg);
+    fflush(fout);
 #endif
     break;
   case QtWarningMsg:
     fprintf(fout, "Warning: %s\n", msg);
+    fflush(fout);
 #ifdef KLF_DEBUG
     // in debug mode, also print warning messages to TTY (because they get lost in the debug messages!)
     if (klf_fp_tty) fprintf(klf_fp_tty, "Warning: %s\n", msg);
@@ -306,41 +308,53 @@ void klf_qt_message(QtMsgType type, const char *msg)
 
 #if defined Q_WS_WIN && defined KLF_DEBUG
 #  define   SAFECOUNTER_NUM   10
-    static int safecounter = SAFECOUNTER_NUM;
-    if ((safecounter-- >= 0) && !QString::fromLocal8Bit(msg).startsWith("MNG error")) { // ignore these "MNG" errors...
-      QMessageBox::warning(0, "Warning",
-			   QString("KLatexFormula System Warning:\n%1")
-			   .arg(QString::fromLocal8Bit(msg)));
+    // only show dialog after having created a QApplication
+    if (qApp != NULL && qApp->inherits("QApplication")) {
+      static int safecounter = SAFECOUNTER_NUM;
+      if (safecounter-- >= 0) {
+	if (!QString::fromLocal8Bit(msg).startsWith("MNG error")) { // ignore these "MNG" errors...
+	  QMessageBox::warning(0, "Warning",
+			       QString("KLatexFormula System Warning:\n%1")
+			       .arg(QString::fromLocal8Bit(msg)));
+	}
+      }
+      if (safecounter == -1) {
+	QMessageBox::information(0, "Information",
+				 QString("Shown %1 system warnings. Will stop displaying them.").arg(SAFECOUNTER_NUM));
+	safecounter = -2;
+      }
+      if (safecounter < -2) safecounter = -2;
     }
-    if (safecounter == -1) {
-      QMessageBox::information(0, "Information",
-			       QString("Shown %1 system warnings. Will stop displaying them.").arg(SAFECOUNTER_NUM));
-      safecounter = -2;
-    }
-    if (safecounter < -2) safecounter = -2;
 #endif
     break;
   case QtCriticalMsg:
     fprintf(fout, "Error: %s\n", msg);
+    fflush(fout);
 #ifdef Q_WS_WIN
-    QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
-			  QObject::tr("KLatexFormula System Error:\n%1",
-				      "[[KLF's Qt Message Handler: dialog text]]")
-			  .arg(QString::fromLocal8Bit(msg)));
+    if (qApp != NULL && qApp->inherits("QApplication")) {
+      QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
+			    QObject::tr("KLatexFormula System Error:\n%1",
+					"[[KLF's Qt Message Handler: dialog text]]")
+			    .arg(QString::fromLocal8Bit(msg)));
+    }
 #endif
     break;
   case QtFatalMsg:
     fprintf(fout, "Fatal: %s\n", msg);
+    fflush(fout);
 #ifdef Q_WS_WIN
-    QMessageBox::critical(0, QObject::tr("FATAL ERROR",
-					 "[[KLF's Qt Message Handler: dialog title]]"),
-			  QObject::tr("KLatexFormula System FATAL ERROR:\n%1",
-				      "[[KLF's Qt Message Handler: dialog text]]")
-			  .arg(QString::fromLocal8Bit(msg)));
+    if (qApp != NULL && qApp->inherits("QApplication")) {
+      QMessageBox::critical(0, QObject::tr("FATAL ERROR",
+					   "[[KLF's Qt Message Handler: dialog title]]"),
+			    QObject::tr("KLatexFormula System FATAL ERROR:\n%1",
+					"[[KLF's Qt Message Handler: dialog text]]")
+			    .arg(QString::fromLocal8Bit(msg)));
+    }
 #endif
     ::exit(255);
   default:
     fprintf(fout, "?????: %s\n", msg);
+    fflush(fout);
     break;
   }
 }
@@ -792,6 +806,7 @@ int main(int argc, char **argv)
   // error handling
   if (opt_error.has_error) {
     qCritical("Error while parsing command-line arguments.");
+    qCritical("Use --help to display command-line help.");
     main_exit(EXIT_ERR_OPT);
   }
 
@@ -959,8 +974,9 @@ int main(int argc, char **argv)
       if (opt_epstopdf != NULL)
 	iface->setAlterSetting_s(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
       // will actually save only if output is non empty.
-      if (!opt_noeval || opt_output)
+      if (!opt_noeval || opt_output) {
 	iface->evaluateAndSave(QString::fromLocal8Bit(opt_output), QString::fromLocal8Bit(opt_format));
+      }
       // and import KLF files if wanted
       QStringList flist;
       for (int k = 0; klf_args[k] != NULL; ++k)
@@ -1032,6 +1048,11 @@ int main(int argc, char **argv)
 
     // parse command-line given actions
 
+    // consistency check warning
+    if (opt_output && latexinput.isEmpty()) {
+      qWarning("%s", qPrintable(QObject::tr("Can't use --output without any input")));
+    }
+
     if ( ! latexinput.isNull() )
       mainWin.slotSetLatex(latexinput);
 
@@ -1072,7 +1093,7 @@ int main(int argc, char **argv)
     if (opt_epstopdf != NULL)
       mainWin.alterSetting(KLFMainWin::altersetting_Epstopdf, QString::fromLocal8Bit(opt_epstopdf));
 
-    if (!opt_noeval) {
+    if (!opt_noeval && opt_output) {
       // will actually save only if output is non empty.
       mainWin.slotEvaluateAndSave(QString::fromLocal8Bit(opt_output),
 				  QString::fromLocal8Bit(opt_format));
@@ -1367,7 +1388,7 @@ void main_parse_options(int argc, char *argv[])
     case OPT_PASTE_CLIPBOARD:
       if (opt_interactive <= 0) {
 	if (opt_interactive == 0)
-	  qWarning("--paste-clipboard requires interactive mode. Switching.");
+	  qWarning("%s", qPrintable(QObject::tr("--paste-clipboard requires interactive mode. Switching.")));
 	opt_interactive = 1;
       }
       opt_paste = 1;
@@ -1375,7 +1396,7 @@ void main_parse_options(int argc, char *argv[])
     case OPT_PASTE_SELECTION:
       if (opt_interactive <= 0) {
 	if (opt_interactive == 0)
-	  qWarning("--paste-selection requires interactive mode. Switching.");
+	  qWarning("%s", qPrintable(QObject::tr("--paste-selection requires interactive mode. Switching.")));
 	opt_interactive = 1;
       }
       opt_paste = 2;

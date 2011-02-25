@@ -9,7 +9,7 @@
     <x>0</x>
     <y>0</y>
     <width>793</width>
-    <height>388</height>
+    <height>411</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,9 +18,6 @@
   <property name="windowIcon">
    <iconset resource="klfres.qrc">
     <normaloff>:/pics/klatexformula-64.png</normaloff>:/pics/klatexformula-64.png</iconset>
-  </property>
-  <property name="styleSheet">
-   <string notr="true"/>
   </property>
   <layout class="QHBoxLayout" name="lyt_KLFMainWinUI">
    <property name="spacing">
@@ -483,7 +480,7 @@
       <item>
        <widget class="QPushButton" name="btnQuit">
         <property name="toolTip">
-         <string comment="tooltip">Quit KLatexFormula</string>
+         <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</string>
         </property>
         <property name="whatsThis">
          <string comment="whatsthis">Exit KLatexFormula</string>
@@ -551,7 +548,7 @@
          </item>
          <item row="0" column="1">
           <widget class="KLFColorChooser" name="colFg">
-           <property name="alphaEnabled" stdset="0">
+           <property name="alphaEnabled">
             <bool>false</bool>
            </property>
           </widget>
@@ -593,7 +590,7 @@
            <property name="enabled">
             <bool>false</bool>
            </property>
-           <property name="alphaEnabled" stdset="0">
+           <property name="alphaEnabled">
             <bool>false</bool>
            </property>
           </widget>
@@ -656,7 +653,7 @@
             </item>
             <item>
              <property name="text">
-              <string notr="true">\[ \begin{aligned} ... \end{aligned} \]</string>
+              <string notr="true">\begin{align*} ... \end{align*}</string>
              </property>
             </item>
             <item>

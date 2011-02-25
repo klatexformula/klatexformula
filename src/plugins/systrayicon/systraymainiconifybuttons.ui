@@ -58,7 +58,7 @@
       </sizepolicy>
      </property>
      <property name="toolTip">
-      <string>Quit KLatexFormula [Ctrl+Q]</string>
+      <string>&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</string>
      </property>
      <property name="whatsThis">
       <string>This button quits KLatexFormula, instead of minimizing the window to the system tray.</string>
@@ -67,7 +67,7 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="../../klfres.qrc">
+      <iconset>
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
      </property>
      <property name="shortcut">

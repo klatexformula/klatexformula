@@ -531,7 +531,7 @@ public:
   }
 
 
-  QModelIndex curVisibleIndex() const {
+  QModelIndex curVisibleIndex(bool firstOrLast) const {
     /*
       int off_y = scrollOffset().y();
       klfDbg( "curVisibleIndex: offset y is "<<off_y ) ;
@@ -547,19 +547,30 @@ public:
     QModelIndex index;
     QPoint offset = scrollOffset();
     klfDbg( " offset="<<offset ) ;
-    int xStep = 40;
-    int yStep = 40;
+    int xStart, yStart;
+    int xStep, yStep;
+    if (firstOrLast) {
+      xStep = 40;
+      yStep = 40;
+      xStart = xStep/2;
+      yStart = yStep/2;
+    } else {
+      xStep = -40;
+      yStep = -40;
+      xStart = thisConstView()->width() - xStep/2;
+      yStart = thisConstView()->height() - yStep/2;
+    }
     int xpos, ypos;
-    for (xpos = xStep/2; xpos < thisConstView()->width(); xpos += xStep) {
-      for (ypos = yStep/2; ypos < thisConstView()->height(); ypos += yStep) {
+    for (xpos = xStart; xpos > 0 && xpos < thisConstView()->width(); xpos += xStep) {
+      for (ypos = yStart; ypos > 0 && ypos < thisConstView()->height(); ypos += yStep) {
 	if ((index = thisConstView()->indexAt(QPoint(xpos,ypos))).isValid()) {
 	  klfDbg( ": Found index = "<<index<<" at pos=("<<xpos<<","<<ypos<<"); "
 		  <<" with offset "<<offset ) ;
-	  return index;
+	  return firstOrLast ? pModel->walkPrevIndex(index) : pModel->walkNextIndex(index);
 	}
       }
     }
-    return pModel->walkNextIndex(QModelIndex());
+    return firstOrLast ? pModel->walkNextIndex(QModelIndex()) : pModel->walkPrevIndex(QModelIndex());
   }
 
   virtual void modelInitialized() { }

@@ -520,7 +520,7 @@ void KLFLibModelCache::rebuildCache()
 
   fullDump(); // DEBUG
 
-  emit pModel->reset();
+  pModel->reset();
 
   klfDbg("restoring persistent indexes ...");
   QModelIndexList newPersistentIndexes = pModel->newPersistentIndexList(persistentIndexIds);
@@ -1354,6 +1354,7 @@ KLFLibModelCache::NodeId KLFLibModelCache::lastNode(NodeId n)
       break;
     }
     fetchMore(n);
+    nn = getNode(n);
   }
 
   if (nn.children.size() == 0)
@@ -3244,7 +3245,7 @@ bool KLFLibDefaultView::restoreGuiState(const QVariantMap& vstate)
   return true;
 }
 
-QModelIndex KLFLibDefaultView::currentVisibleIndex() const
+QModelIndex KLFLibDefaultView::currentVisibleIndex(bool forward) const
 {
   QModelIndex index;
   if (pViewType == IconView) {
@@ -3252,13 +3253,13 @@ QModelIndex KLFLibDefaultView::currentVisibleIndex() const
     KLF_ASSERT_NOT_NULL( lv, "KLFLibDefListView List View is NULL in view type "<<pViewType<<" !!",
 			 return QModelIndex() )
       ;
-    index = lv->curVisibleIndex();
+    index = lv->curVisibleIndex(forward);
   } else if (pViewType == CategoryTreeView || pViewType == ListTreeView) {
     KLFLibDefTreeView *tv = qobject_cast<KLFLibDefTreeView*>(pView);
     KLF_ASSERT_NOT_NULL( tv, "KLFLibDefTreeView List View is NULL in view type "<<pViewType<<" !!",
 			 return QModelIndex() )
       ;
-    index = tv->curVisibleIndex();
+    index = tv->curVisibleIndex(forward);
   } else {
     index = QModelIndex();
   }
@@ -3325,6 +3326,7 @@ void KLFLibDefaultView::updateResourceEngine()
   connect(s, SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
 	  this, SLOT(slotViewSelectionChanged(const QItemSelection&, const QItemSelection&)));
 
+  connect(pModel, SIGNAL(modelReset()), this, SLOT(slotResourceModelReset()));
   connect(pModel, SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)),
 	  this, SLOT(slotResourceDataChanged(const QModelIndex&, const QModelIndex&)));
 
@@ -3407,20 +3409,36 @@ void KLFLibDefaultView::updateResourceEngine()
     QAction *menuAction = new QAction(tr("Show/Hide Columns", "[[menu with sub-menu]]"), this);
     menuAction->setMenu(colMenu);
     pShowColumnActions = QList<QAction*>() << menuAction;
-    // expand root items if they contain little number of children
-    // or if there are little number of root items
-    int numRootItems = pModel->rowCount(QModelIndex());
-    for (k = 0; k < pModel->rowCount(QModelIndex()); ++k) {
-      QModelIndex i = pModel->index(k, 0, QModelIndex());
-      if (pModel->rowCount(i) < 6 || numRootItems < 6)
-	treeView->expand(i);
-    }
+
+    expandRootNice();
   }
 
   updateResourceProp(-1); // update all with respect to resource changes..
   updateResourceOwnData(QList<KLFLib::entryId>());
 
   wantMoreCategorySuggestions();
+}
+
+void KLFLibDefaultView::expandRootNice()
+{
+  if (pViewType == CategoryTreeView) {
+    klfDbg("is category view.") ;
+    QTreeView *treeView = qobject_cast<QTreeView*>(pView);
+    // expand root items if they contain little number of children
+    // or if there are little number of root items
+    int numRootItems = pModel->rowCount(QModelIndex());
+    int k;
+    for (k = 0; k < pModel->rowCount(QModelIndex()); ++k) {
+      QModelIndex i = pModel->index(k, 0, QModelIndex());
+      klfDbg("i="<<i<<"; i/rowCount="<<pModel->rowCount(i)<<"; numRootItems="<<numRootItems) ;
+      if (pModel->rowCount(i) < 6 || numRootItems < 6) {
+	klfDbg("expanding item i="<<i) ;
+	//	if (pModel->canFetchMore(i))
+	//	  pModel->fetchMore(i);
+	treeView->expand(i);
+      }
+    }
+  }
 }
 
 void KLFLibDefaultView::updateResourceData(const QString& subRes, int modifyType,
@@ -3779,6 +3797,13 @@ void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selecte
 #endif
   
   emit entriesSelected(selectedEntries());
+}
+
+void KLFLibDefaultView::slotResourceModelReset()
+{
+  if (pViewType == CategoryTreeView) {
+    expandRootNice();
+  }
 }
 
 void KLFLibDefaultView::slotResourceDataChanged(const QModelIndex& topLeft,
