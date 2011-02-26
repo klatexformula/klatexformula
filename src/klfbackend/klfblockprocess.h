@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file klfblockprocess.h
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2007 by Philippe Faist
+ *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist@bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
