@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file main.cpp
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2010 by Philippe Faist
+ *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist@bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -988,7 +988,7 @@ int main(int argc, char **argv)
 #endif
 
     if ( ! opt_quiet )
-      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2010\n"
+      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2011\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      KLF_VERSION_STRING);
 
@@ -1161,7 +1161,7 @@ int main(int argc, char **argv)
     }
 
     if ( ! opt_quiet )
-      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2010\n"
+      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2011\n"
 	      "Licensed under the terms of the GNU Public License GPL\n\n",
 	      KLF_VERSION_STRING);
 
