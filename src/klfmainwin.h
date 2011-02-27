@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file klfmainwin.h
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2007 by Philippe Faist
+ *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -145,7 +145,7 @@ public:
    *
    * Note: this function will be called for every file the main window tries to open. Do NOT assume
    *   that the file given here is a file that passed the canOpenFile() function test. (Reason:
-   *   calling both canOpenFile() and openFile() may result into ressources being loaded twice, which
+   *   calling both canOpenFile() and openFile() may result into resources being loaded twice, which
    *   is not optimal).
    *
    * This function should return FALSE if it is not capable of loading the given \c file.

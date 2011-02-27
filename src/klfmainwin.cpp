@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file klfmainwin.cpp
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2007 by Philippe Faist
+ *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -1689,7 +1689,7 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
       tooltipText = tr("Copy the formula to the clipboard. Current export profile: %1")
 	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.UI.copyExportProfile).description());
     } else if (obj == u->btnDrag) {
-      tooltipText = tr("Click and keep mouse button pressed to drag your formula to an other application. "
+      tooltipText = tr("Click and keep mouse button pressed to drag your formula to another application. "
 		       "Current export profile: %1")
 	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.UI.dragExportProfile).description());
     }

@@ -1,5 +1,5 @@
 /*
- * This file was very Slightly modified by Philippe Faist for KLatexFormula. (april 2009)
+ * This file was very slightly modified by Philippe Faist for KLatexFormula. (april 2009)
  * In order for integration into KLatexFormula, this code is relicensed
  * to **GPL Version 2.1 or higher** as described in the footnote to the GPL
  * compatibility table found at

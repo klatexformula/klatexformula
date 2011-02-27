@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file klflibview.h
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2010 by Philippe Faist
+ *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -424,7 +424,7 @@ public:
   virtual Parameters retrieveCreateParametersFromWidget(const QString& wtype, QWidget *widget);
 
   /** Returns TRUE if this widget type (\c wtype) can create user-interface widgets to save an
-   * existing open resource as a new name (eg. to an other (new) library sqlite file, etc.) */
+   * existing open resource as a new name (eg. to another (new) library sqlite file, etc.) */
   virtual bool hasSaveToWidget(const QString& wtype) const;
   /** Creates a widget to prompt the user to save the resource \c resource to a different location,
    * by default \c defaultUrl.

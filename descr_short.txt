@@ -1,1 +1,4 @@
+
+KLatexFormula is an easy-to-use graphical application for generating images from LaTeX equations.
+
 KLatexFormula is an easy-to-use graphical application for generating images (that you can drag and drop, copy and paste or save to disk) from LaTeX equations.

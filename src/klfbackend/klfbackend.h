@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file klfbackend.h
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2007 by Philippe Faist
+ *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist@bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -218,7 +218,7 @@ public:
     /** \brief A code describing the status of the request.
      *
      * A zero value means success for everything. A positive value means that a program (latex, dvips,
-     * ...) returned a non-zero exit code. A negative status indicates an other error.
+     * ...) returned a non-zero exit code. A negative status indicates another error.
      *
      * \c status will be exactly one of the KLFERR_* constants, defined in \ref klfbackend.h .
      *

@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file klflibview.cpp
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2010 by Philippe Faist
+ *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *

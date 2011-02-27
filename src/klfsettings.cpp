@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file klfsettings.cpp
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2007 by Philippe Faist
+ *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist@bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -909,7 +909,7 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
     }
     int cbxindex = u->cbxLocale->findData(detectedI18nFile->locale);
     if (k >= 0 && k < klf_avail_translations.size() && cbxindex >= 0) {
-      if (QMessageBox::question(this, tr("Change Langugage"), tr("Change application language to <b>%1</b>?")
+      if (QMessageBox::question(this, tr("Change Language"), tr("Change application language to <b>%1</b>?")
 				.arg(klf_avail_translations[k].translatedname),
 				QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes)
 	  == QMessageBox::Yes) {

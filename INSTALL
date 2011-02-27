@@ -8,7 +8,7 @@ build> make
 build> sudo make install
 Password:
 
-Where the cmake step can be repeated with options to set cache variables, like
+The cmake step can be repeated with options to set cache variables, like
 build> cmake .. -DCMAKE_INSTALL_PREFIX=/usr
 
 
