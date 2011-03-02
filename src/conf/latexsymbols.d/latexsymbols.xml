@@ -2,7 +2,7 @@
 <!-- Latex Symbol List for KLatexFormula symbol palette -->
 <!-- $Id$ -->
 <klf-symbol-list minklfversion="3.3.0a">
-  <!-- Notes
+  <!-- Notes   ** note format changes since version 3.3 **
     * Symbols are grouped in categories, which will be shown on different
       pages in the symbols palette.
     * Generally the order of the different element types inside a
@@ -55,19 +55,19 @@
     <sym><latex>\bigcirc</latex></sym>
     <sym><latex>\circ</latex></sym>
     <sym><latex>\wedge</latex></sym>
-    <sym><latex>\dagger</latex></sym>
+    <sym><latex>\dagger</latex><keywords>operator adjoint</keywords></sym>
     <sym><latex>\bullet</latex></sym>
     <sym><latex>\setminus</latex></sym>
     <sym><latex>\ddagger</latex></sym>
     <sym><latex>\cdot</latex></sym>
     <sym><latex>\wr</latex></sym>
     <sym><latex>\amalg</latex></sym>
-    <sym><latex>\leq</latex></sym>
-    <sym><latex>\geq</latex></sym>
+    <sym><latex>\leq</latex><keywords>less smaller than equals</keywords></sym>
+    <sym><latex>\geq</latex><keywords>greater more larger than equals</keywords></sym>
     <sym><latex>\equiv</latex></sym>
     <sym><latex>\models</latex></sym>
-    <sym><latex>\prec</latex></sym>
-    <sym><latex>\succ</latex></sym>
+    <sym><latex>\prec</latex><keywords>majorization</keywords></sym>
+    <sym><latex>\succ</latex><keywords>majorization</keywords></sym>
     <sym><latex>\sim</latex></sym>
     <sym><latex>\perp</latex></sym>
     <sym><latex>\preceq</latex></sym>
@@ -80,7 +80,7 @@
     <sym><latex>\parallel</latex></sym>
     <sym><latex>\subset</latex></sym>
     <sym><latex>\supset</latex></sym>
-    <sym><latex>\approx</latex></sym>
+    <sym><latex>\approx</latex><keywords>approximate approximation</keywords></sym>
     <sym><latex>\bowtie</latex></sym>
     <sym><latex>\subseteq</latex></sym>
     <sym><latex>\supseteq</latex></sym>
@@ -479,7 +479,7 @@
     <sym><preambleline>\DeclareSymbolFont{myvarlaplacian}{OT1}{txr}{m}{sl}\DeclareMathSymbol{\varlaplacian}{\mathalpha}{myvarlaplacian}{"01}</preambleline><latex>\varlaplacian</latex></sym>
     <sym><usepackage name="mathtools"/><latex>\coloneqq</latex></sym>
     <sym><usepackage name="mathtools"/><latex>\Coloneqq</latex></sym>
-    <sym><usepackage name="amsmath"/><latex>\stackrel{\text{\tiny def}}{=}</latex></sym>
+    <sym><usepackage name="amsmath"/><latex>\stackrel{\text{\tiny def}}{=}</latex><keywords>definition</keywords></sym>
   </category>
   <category name="Delimiters and Accents">
     <category-title>Delimiters and Accents</category-title>
@@ -516,9 +516,9 @@
     <sym><latex numargs="1">\sqrt</latex><keywords>square root</keywords></sym>
     <sym><latex option="yes" numargs="1">\sqrt</latex><keywords>root</keywords></sym>
     <sym><latex numargs="2">\frac</latex><preview-latex>\frac{a}{b}</preview-latex>
-      <keywords>fraction bar over</keywords>
+      <keywords>fraction bar over division</keywords>
     </sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex numargs="1">\abs</latex><preview-latex>\abs{x}</preview-latex><keywords>absolute value</keywords></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex numargs="1">\abs</latex><preview-latex>\abs{x}</preview-latex><keywords>absolute value magnitude modulus</keywords></sym>
     <sym><latex numargs="1">\bar</latex><preview-latex>\bar{a}</preview-latex></sym>
     <sym><latex numargs="1">\vec</latex><preview-latex>\vec{a}</preview-latex></sym>
     <sym><latex numargs="1">\dot</latex><preview-latex>\dot{a}</preview-latex></sym>
@@ -536,7 +536,7 @@
     <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><latex numargs="2">\ketbra</latex><preview-latex>\ketbra{\phi}{\psi}</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
-    <sym><usepackage name="slashed"/><latex numargs="1">\slashed</latex></sym>
+    <sym><usepackage name="slashed"/><latex numargs="1">\slashed</latex><preview-latex>\slashed{\gamma}</preview-latex><keywords>Feynman slash quantum field theory QFT</keywords></sym>
   </category>
   <category name="Greek Alphabet">
     <category-title>Greek Alphabet</category-title>
