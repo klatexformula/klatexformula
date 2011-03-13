@@ -30,18 +30,18 @@
   <category name="Relation Symbols">
     <category-title>Relation Symbols</category-title>
 
-    <sym><latex>\pm</latex></sym>
-    <sym><latex>\cap</latex></sym>
+    <sym><latex>\pm</latex><keywords>plus minus error</keywords></sym>
+    <sym><latex>\cap</latex><keywords>set intersection</keywords></sym>
     <sym><latex>\diamond</latex></sym>
-    <sym><latex>\oplus</latex></sym>
+    <sym><latex>\oplus</latex><keywords>direct sum</keywords></sym>
     <sym><latex>\mp</latex></sym>
-    <sym><latex>\cup</latex></sym>
+    <sym><latex>\cup</latex><keywords>set union</keywords></sym>
     <sym><latex>\bigtriangleup</latex></sym>
     <sym><latex>\ominus</latex></sym>
-    <sym><latex>\times</latex></sym>
+    <sym><latex>\times</latex><keywords>multiplication product</keywords></sym>
     <sym><latex>\uplus</latex></sym>
     <sym><latex>\bigtriangledown</latex></sym>
-    <sym><latex>\otimes</latex></sym>
+    <sym><latex>\otimes</latex><keyword>tensor product</keywords></sym>
     <sym><latex>\div</latex></sym>
     <sym><latex>\sqcap</latex></sym>
     <sym><latex>\triangleleft</latex></sym>
@@ -59,7 +59,7 @@
     <sym><latex>\bullet</latex></sym>
     <sym><latex>\setminus</latex></sym>
     <sym><latex>\ddagger</latex></sym>
-    <sym><latex>\cdot</latex></sym>
+    <sym><latex>\cdot</latex><keywords>multiplication scalar product</keywords></sym>
     <sym><latex>\wr</latex></sym>
     <sym><latex>\amalg</latex></sym>
     <sym><latex>\leq</latex><keywords>less smaller than equals</keywords></sym>
@@ -69,13 +69,13 @@
     <sym><latex>\prec</latex><keywords>majorization</keywords></sym>
     <sym><latex>\succ</latex><keywords>majorization</keywords></sym>
     <sym><latex>\sim</latex></sym>
-    <sym><latex>\perp</latex></sym>
+    <sym><latex>\perp</latex><keywords>perpendicular orthogonal normal</keywords></sym>
     <sym><latex>\preceq</latex></sym>
     <sym><latex>\succeq</latex></sym>
     <sym><latex>\simeq</latex></sym>
     <sym><latex>\mid</latex></sym>
-    <sym><latex>\ll</latex></sym>
-    <sym><latex>\gg</latex></sym>
+    <sym><latex>\ll</latex><keywords>much very smaller less order of magnitude</keywords></sym>
+    <sym><latex>\gg</latex><keywords>much very larger greater order of magnitude</keywords></sym>
     <sym><latex>\asymp</latex></sym>
     <sym><latex>\parallel</latex></sym>
     <sym><latex>\subset</latex></sym>
@@ -91,9 +91,9 @@
     <sym><latex>\sqsupseteq</latex></sym>
     <sym><latex>\doteq</latex></sym>
     <sym><latex>\frown</latex></sym>
-    <sym><latex>\in</latex></sym>
-    <sym><latex>\ni</latex></sym>
-    <sym><latex>\propto</latex></sym>
+    <sym><latex>\in</latex><keywords>set element in</keywords></sym>
+    <sym><latex>\ni</latex><keywords>set element contains</keywords></sym>
+    <sym><latex>\propto</latex><keywords>proportional</keywords></sym>
     <sym><latex>\vdash</latex></sym>
     <sym><latex>\dashv</latex></sym>
     <sym><latex>\sum</latex></sym>
@@ -108,7 +108,7 @@
     <sym><latex>\bigwedge</latex></sym>
     <sym><latex>\bigvee</latex></sym>
     <sym><latex>\biguplus</latex></sym>
-    <sym><bb expand="1,4,1,1"/><latex>\int</latex></sym>
+    <sym><bb expand="1,4,1,1"/><latex>\int</latex><keywords>integral</keywords></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iint</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,5,1,1"/><latex>\iiint</latex></sym>
     <sym><usepackage name="amsmath"/><bb expand="1,4,1,1"/><latex>\iiiint</latex></sym>
