@@ -528,7 +528,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     return QByteArray();
 
   // values of value.type() are QMetaType::Type enum entries. See qt's doc.
-  switch (value.type()) {
+  switch ((int)value.type()) {
   case QMetaType::Bool:
     data = value.toBool() ? "true" : "false";
     break;
