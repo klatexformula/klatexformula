@@ -830,23 +830,35 @@ KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::StringMatch& smatch)
 }
 KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::PropertyMatch& pmatch)
 {
+  //  KLF_DEBUG_BLOCK("operator<<(QDebug, KLFLib::PropertyMatch)") ;
+  //  klfDbg("prop-id="<<pmatch.propertyId());
   return dbg << "PropertyMatch[prop-id="<<pmatch.propertyId()<<"; ref="<<pmatch.matchValueString()
 	     <<"; flags="<<pmatch.matchFlags()<<"]";
 }
 KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCondition& c)
 {
+  //  KLF_DEBUG_BLOCK("operator<<(QDebug, KLFLib::EntryMatchCondition)") ;
+  klfDbg("type="<<c.type()) ;
 #ifdef Q_WS_MAC
   return dbg<<"EntryMatchCondition{...}";
 #endif
   dbg << "EntryMatchCondition{type=";
-  if (c.type() == KLFLib::EntryMatchCondition::MatchAllType)
+  if (c.type() == KLFLib::EntryMatchCondition::MatchAllType) {
     return dbg << "match-all}";
-  if (c.type() == KLFLib::EntryMatchCondition::PropertyMatchType)
-    return dbg << "property-match; "<<c.propertyMatch()<<"}";
+  }
+  if (c.type() == KLFLib::EntryMatchCondition::PropertyMatchType) {
+    //    KLF_DEBUG_BLOCK("if-block...") ;
+    dbg << "property-match; "<<c.propertyMatch();
+    //    klfDbg("printed into dbg...") ;
+    dbg <<"}";
+    //    klfDbg("printed into dbg...") ;
+    return dbg;
+  }
   if (c.type() != KLFLib::EntryMatchCondition::NegateMatchType &&
       c.type() != KLFLib::EntryMatchCondition::AndMatchType &&
-      c.type() != KLFLib::EntryMatchCondition::OrMatchType)
+      c.type() != KLFLib::EntryMatchCondition::OrMatchType) {
     return dbg << "unknown-type}";
+  }
   // NOT, AND or OR type:
   static const char *w_and = " AND ";
   static const char *w_or  = " OR ";
@@ -871,6 +883,7 @@ KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::KLFLibEn
 }
 KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLibResourceEngine::Query& q)
 {
+  //  KLF_DEBUG_BLOCK("operator<<(QDebug, KLFLibRes.Eng.::Query)") ;
   return dbg << "Query(cond.="<<q.matchCondition<<"; skip="<<q.skip<<",limit="<<q.limit
 	     <<"; orderpropid="<<q.orderPropId<<"/"<<(q.orderDirection==Qt::AscendingOrder ? "Asc":"Desc")
 	     <<"; wanted props="<<q.wantedEntryProperties<<")" ;

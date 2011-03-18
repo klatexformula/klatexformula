@@ -681,8 +681,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	}
 	// plugin file successfully loaded.
 	QString nm = pluginInstance->pluginName();
-	qDebug("Successfully loaded plugin library %s (%s) from file %s", qPrintable(nm),
-	       qPrintable(pluginInstance->pluginDescription()), qPrintable(pluginfname));
+	klfDbg("Successfully loaded plugin library "<<nm<<" ("<<qPrintable(pluginInstance->pluginDescription())
+	       <<") from file "<<pluginfnamebaserel);
 
 	if ( ! klfconfig.Plugins.pluginConfig.contains(nm) ) {
 	  // create default plugin configuration if non-existant
@@ -698,7 +698,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	for (k = 0; k < klf_plugins.size(); ++k) {
 	  if (klf_plugins[k].name == nm) {
 	    klfDbg( "Rejecting loading of plugin "<<nm<<" in "<<pluginfname<<"; already loaded." ) ;
-	    delete pluginInstance;
+	    pluginLoader.unload();
 	    pluginRejected = true;
 	    break;
 	  }
