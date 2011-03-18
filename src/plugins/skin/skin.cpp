@@ -415,12 +415,13 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
   for (k = 0; k < toplevelwidgets.size(); ++k) {
     QWidget *w = toplevelwidgets[k];
     QString objnm = w->objectName();
+    // save style sheets that are already defined on that widget (eg. Help/About dialog)
     if (!_baseStyleSheets.contains(objnm))
       _baseStyleSheets[objnm] = w->styleSheet();
 
     w->setProperty("klfTopLevelWidget", QVariant(true));
-    w->setAttribute(Qt::WA_StyledBackground);
     w->setStyleSheet(_baseStyleSheets[objnm] + "\n" + stylesheet);
+    w->setAttribute(Qt::WA_StyledBackground);
   }
 
   return skin;
