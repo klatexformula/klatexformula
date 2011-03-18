@@ -41,7 +41,7 @@
     <sym><latex>\times</latex><keywords>multiplication product</keywords></sym>
     <sym><latex>\uplus</latex></sym>
     <sym><latex>\bigtriangledown</latex></sym>
-    <sym><latex>\otimes</latex><keyword>tensor product</keywords></sym>
+    <sym><latex>\otimes</latex><keywords>tensor product</keywords></sym>
     <sym><latex>\div</latex></sym>
     <sym><latex>\sqcap</latex></sym>
     <sym><latex>\triangleleft</latex></sym>
@@ -517,6 +517,9 @@
     <sym><latex option="yes" numargs="1">\sqrt</latex><keywords>root</keywords></sym>
     <sym><latex numargs="2">\frac</latex><preview-latex>\frac{a}{b}</preview-latex>
       <keywords>fraction bar over division</keywords>
+    </sym>
+    <sym><latex numargs="2">\nicefrac</latex><usepackage name="nicefrac"/><preview-latex>\nicefrac{a}{b}</preview-latex>
+      <keywords>slanted fraction bar over division</keywords>
     </sym>
     <sym><usepackage name="amsmath"/><preambleline>\newcommand{\abs}[1]{\left\lvert#1\right\rvert}</preambleline><latex numargs="1">\abs</latex><preview-latex>\abs{x}</preview-latex><keywords>absolute value magnitude modulus</keywords></sym>
     <sym><latex numargs="1">\bar</latex><preview-latex>\bar{a}</preview-latex></sym>

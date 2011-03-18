@@ -737,6 +737,7 @@ int KLFConfig::writeToConfig()
 
 KLFPluginConfigAccess KLFConfig::getPluginConfigAccess(const QString& name)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ; klfDbg("... for plugin: "<<name) ;
   return KLFPluginConfigAccess(this, name);
 }
 
@@ -754,6 +755,10 @@ KLFPluginConfigAccess::KLFPluginConfigAccess()
 KLFPluginConfigAccess::KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
   : _config(other._config), _pluginname(other._pluginname)
 {
+  klfDbg("made copy. _config="<<_config<<"; _pluginname="<<_pluginname) ;
+  if (_config != NULL) {
+    klfDbg("_config->homeConfigDir: "<<_config->homeConfigDir) ;
+  }
 }
 KLFPluginConfigAccess::~KLFPluginConfigAccess()
 {
@@ -763,6 +768,11 @@ KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QStr
 {
   _config = configObject;
   _pluginname = pluginName;
+
+  klfDbg("_config="<<_config<<", _pluginname="<<_pluginname) ;
+  if (_config != NULL) {
+    klfDbg("_config->homeConfigDir: "<<_config->homeConfigDir) ;
+  }
 }
 
 
@@ -773,7 +783,7 @@ QString KLFPluginConfigAccess::homeConfigDir() const
     qWarning("KLFPluginConfigAccess::homeConfigDir: Invalid Config Pointer!\n");
     return QString();
   }
-
+  klfDbg("_config->homeConfigDir="<<_config->homeConfigDir) ;
   return _config->homeConfigDir;
 }
 
@@ -803,6 +813,7 @@ QString KLFPluginConfigAccess::homeConfigPluginDataDir(bool createIfNeeded) cons
     qWarning("KLFPluginConfigAccess::homeConfigPluginDataDir: Invalid Config Pointer!\n");
     return QString();
   }
+  klfDbg("_config->homeConfigDirPluginData is "<<_config->homeConfigDirPluginData) ;
 
   QString d = _config->homeConfigDirPluginData + "/" + _pluginname;
   if ( createIfNeeded && ! klfEnsureDir(d) ) {
