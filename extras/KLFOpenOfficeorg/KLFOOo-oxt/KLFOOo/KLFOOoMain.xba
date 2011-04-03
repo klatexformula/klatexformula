@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="KLFOOoMain" script:language="StarBasic">REM  *****  BASIC  *****
+
+Sub Main
+	MsgBox "klatexformula OpenOffice.org integration"
+End Sub
+
+
+' Thank you OOoLatex for examples of OOoBasic usage, syntax and tricks !
+'		http://ooolatex.sourceforge.net/
+
+
+Sub KLFLaunch
+
+	oDoc = ThisComponent
+	oDocCtrl = oDoc.getCurrentController()
+
+	If isEmpty(oDocCtrl.selection()) Then
+		MsgBox "You have not selected anything"
+		Exit Sub
+	End If
+
+	oSelection = oDocCtrl.getSelection()
+	
+	If oSelection.supportsService("com.sun.star.text.TextRanges") Then
+		Dim curString As String
+		nCount = oSelection.Count()
+		If nCount &lt;= 0 Then
+			MsgBox "No text selected"
+			Exit Sub
+		End If
+		For i = 0 to nCount - 1
+			curString = curString &amp; oSelection.getByIndex(i).getString()
+		Next i
+		' Run klatexformula with the selected string
+		latexb64 = klfBase64Encode(curString)
+		cmd = "klatexformula --interactive -B --latexinput=" &amp; latexb64 &amp; " --tborderoffset=0 --rborderoffset=0 --bborderoffset=0 --lborderoffset=0"
+		Shell(cmd)
+		Exit Sub
+    End If
+
+	If oSelection.getImplementationName() &lt;&gt; "com.sun.star.drawing.SvxShapeCollection" Then
+		MsgBox "You have not selected a KLatexFormula equation"
+		Exit Sub
+	End If
+
+	If oSelection.getCount() &lt;&gt; 1 Then
+		MsgBox "Cannot edit multiple equations at once"
+		Exit Sub
+	End If
+
+	oShape = oSelection.getByIndex(0)
+    oAttributes = oShape.UserDefinedAttributes()
+	isKlf = oAttributes.hasByName("IsKLF")
+	If  Not isKlf  Then
+		hasOOoLatexArgs = oAttributes.hasByName("OOoLatexArgs")
+		If  Not hasOOoLatexArgs  Then
+			MsgBox "The selected object is not a KLatexFormula equation."
+			Exit Sub
+		End If
+		' We have a OOoLatex object
+		oooLatexArgs = oAttributes.getByName("OOoLatexArgs").Value()
+		If oooLatexArgs = "" Then
+			MsgBox "The selected object does not have any OOoLatex information."
+			Exit Sub
+		End If
+		Dim args()
+		args = Split(oooLatexArgs,"§",3)
+		mathmode = "XFsgLi4uIFxd"        '  \[ ... \]
+		If args(1) = "inline" Then
+			mathmode = "JCAuLi4gJA=="    '  $ ... $
+		End If
+		latexb64 = klfBase64Encode(args(2))
+		cmd = "klatexformula --interactive -B --latexinput=" &amp; latexb64 &amp; " -B --mathmode=" &amp; mathmode
+		Shell(cmd)
+		Exit Sub
+	End If
+	' We have a KLF object
+	cmd = "klatexformula --interactive -B --latexinput=" &amp; oAttributes.getByName("KLFInputLatexBase64").value() &amp; " -B --preamble=" &amp; oAttributes.getByName("KLFInputPreambleBase64").value() &amp; " -B --mathmode=" &amp; oAttributes.getByName("KLFInputMathModeBase64").value() &amp; " -B --fgcolor=" &amp; oAttributes.getByName("KLFInputFgColorBase64").value() &amp; " -B --bgcolor=" &amp; oAttributes.getByName("KLFInputBgColorBase64").Value() &amp; " --dpi=" &amp; oAttributes.getByName("KLFInputDPI").Value() &amp; " --tborderoffset=" &amp; oAttributes.getByName("KLFSettingsTBorderOffsetPsPt").Value() &amp; " --rborderoffset=" &amp; oAttributes.getByName("KLFSettingsRBorderOffsetPsPt").Value() &amp; " --bborderoffset=" &amp; oAttributes.getByName("KLFSettingsBBorderOffsetPsPt").Value() &amp; " --lborderoffset=" &amp; oAttributes.getByName("KLFSettingsLBorderOffsetPsPt").Value()
+	Shell(cmd)
+	Exit sub
+	
+End Sub
+
+
+
+Sub KLFFixShapeAspectRatio
+
+	oDoc = ThisComponent
+	oDocCtrl = oDoc.getCurrentController()
+
+	If isEmpty(oDocCtrl.selection()) Then
+		MsgBox "Nothing is selected"
+		Exit Sub
+	End If
+	
+	oSelection = oDocCtrl.getSelection()
+
+	If oSelection.getImplementationName() &lt;&gt; "com.sun.star.drawing.SvxShapeCollection" Then
+		MsgBox "You have not selected a klatexformula equation."
+		Exit Sub
+	End If
+
+	If oSelection.getCount() &lt;&gt; 1 Then
+		MsgBox "Please select exactly one formula to fix aspect ratio"
+	End If
+	
+	oShape = oSelection.getByIndex(0)
+
+	' Got Shape
+
+	oAttributes = oShape.UserDefinedAttributes()
+
+	Dim ratio as Single
+	ratio = oAttributes.getByName("KLFImageAspectRatio").Value()
+
+	Dim newSize
+	newSize = createUnoStruct("com.sun.star.awt.Size")
+	newSize.Width = oShape.size().Width
+	newSize.Height = newSize.Width / ratio
+
+	oShape.setSize(newSize)
+
+End Sub
+
+Sub KLFFormatForInline
+
+	oDoc = ThisComponent
+	oDocCtrl = oDoc.getCurrentController()
+
+	If isEmpty(oDocCtrl.selection()) Then
+		MsgBox "Nothing is selected"
+		Exit Sub
+	End If
+	
+	oSelection = oDocCtrl.getSelection()
+
+	If oSelection.getImplementationName() &lt;&gt; "com.sun.star.drawing.SvxShapeCollection" Then
+		MsgBox "You have not selected a klatexformula equation."
+		Exit Sub
+	End If
+
+	If oSelection.getCount() &lt;&gt; 1 Then
+		MsgBox "Please select exactly one formula to fix aspect ratio"
+		Exit Sub
+	End If
+	
+	oShape = oSelection.getByIndex(0)
+
+	' Got Shape
+	oAttributes = oShape.UserDefinedAttributes()
+
+	If Not oAttributes.hasByName("IsKLF") Then
+		MsgBox "The object you selected is not a klatexformula equation."
+		Exit Sub
+	End If
+	
+	Dim bborderoffset as Integer
+	bborderoffset = oAttributes.getByName("KLFSettingsBBorderOffsetPsPt").Value()
+	If  bborderoffset &lt;&gt; 0  Then
+		MsgBox "Inline mode best works when the image border offsets are set to zero." &amp; Chr(10) &amp; _
+			   "You can do this by re-opening KLatexFormula and adjusting your settings."
+	End If
+
+	Dim w as Single, h as Single
+	w = oAttributes.getByName("KLFImageOrigWidthCm").Value()
+	h = oAttributes.getByName("KLFImageOrigHeightCm").Value()
+
+	Dim origSize
+	origSize = createUnoStruct("com.sun.star.awt.Size")
+	origSize.Width = w*1000   ' Units: 1/100 of mm
+	origSize.Height = h*1000 ' Units: 1/100 of mm
+	oShape.setSize(origSize)
+
+	oShape.AnchorType = com.sun.star.text.TextContentAnchorType.AS_CHARACTER
+	oShape.TopMargin = 0
+	oShape.BottomMargin = 0
+	oShape.VertOrient = com.sun.star.text.VertOrientation.CHAR_CENTER
+
+
+End Sub
+
+
+Sub KLFRePaste
+
+	oDoc = ThisComponent
+	oDocCtrl = oDoc.getCurrentController()
+	
+	'MsgBox "Repaste!"
+
+	If isEmpty(oDocCtrl.selection()) Then
+		MsgBox "Nothing is selected"
+		Exit Sub
+	End If
+	
+	oSelection = oDocCtrl.getSelection()
+
+	If oSelection.getImplementationName() &lt;&gt; "com.sun.star.drawing.SvxShapeCollection" Then
+		MsgBox "You have not selected a klatexformula equation."
+		Exit Sub
+	End If
+
+	If oSelection.getCount() &lt;&gt; 1 Then
+		MsgBox "Please select exactly one formula to re-paste over"
+	End If
+	
+	oShape = oSelection.getByIndex(0)
+
+	' Got Shape
+
+	oAttributes = oShape.UserDefinedAttributes()
+
+	'Dim ratio as Single
+	Dim imgW as Single
+	Dim imgH as Single
+	Dim dpi as Single
+	Dim displaySizeFactorW as Single
+	Dim displaySizeFactorH as Single
+	Dim position
+    dpi = oAttributes.getByName("KLFInputDPI").Value()
+	imgW = oAttributes.getByName("KLFImageWidthPx").Value()
+	imgW = imgW / dpi
+	displaySizeFactorW = oShape.size().Width / imgW
+	imgH = oAttributes.getByName("KLFImageHeightPx").Value()
+	imgH = imgH / dpi
+	displaySizeFactorH = oShape.size().Height / imgH
+	position = createUnoStruct("com.sun.star.awt.Point")
+	position.X = oShape.position().X
+	position.Y = oShape.position().Y
+
+	'Dim saveAnchorType, saveTopMargin, saveBottomMargin, saveVertOrient
+	'saveAnchorType = oShape.AnchorType
+	'saveTopMargin = oShape.TopMargin
+	'saveBottomMargin = oShape.BottomMargin
+	'saveVertOrient = oShape.VertOrient
+	
+	Dim dispatcher
+	dispatcher = createUnoService("com.sun.star.frame.DispatchHelper")
+	' Now Remove Old Object
+	dispatcher.executeDispatch(oDoc.getCurrentController.getFrame(), ".uno:Delete", "", 0, Array())
+	' And Paste New Object
+	dispatcher.executeDispatch(oDoc.getCurrentController.getFrame(), ".uno:Paste", "", 0, Array())
+
+	oPastedSelection = oDocCtrl.getSelection()
+	If oPastedSelection.getImplementationName() &lt;&gt; "com.sun.star.drawing.SvxShapeCollection" Then
+		MsgBox "You have not pasted a klatexformula equation."
+		Exit Sub
+	End If
+	If oPastedSelection.getCount() &lt;&gt; 1 Then
+		MsgBox "Please paste only one object."
+		Exit Sub
+	End If
+	oPastedShape = oPastedSelection.getByIndex(0)
+	
+	' Set attributes correctly now
+	Dim oPastedAttributes
+	oPastedAttributes = oPastedShape.UserDefinedAttributes()
+	Dim newWpx as Single, newHpx as Single, newDpi as Single, newW as Single, newH as Single
+	newDpi = oPastedAttributes.getByName("KLFInputDPI").Value()
+	newWpx = oPastedAttributes.getByName("KLFImageWidthPx").Value()
+	newHpx = oPastedAttributes.getByName("KLFImageHeightPx").Value()
+	newW = newWpx / newDpi
+	newH = newHpx / newDpi
+	Dim newSize
+	newSize = createUnoStruct("com.sun.star.awt.Size")
+	newSize.Width = displaySizeFactorW * newW
+	newSize.Height = displaySizeFactorH * newH
+	Dim newPosition
+	newPosition = createUnoStruct("com.sun.star.awt.Point")
+	newPosition.X = position.X
+	newPosition.Y = position.Y
+	
+	oPastedShape.setSize(newSize)
+	oPastedShape.setPosition(newPosition)
+	
+	'oPastedShape.AnchorType = saveAnchorType
+	'oPastedShape.TopMargin = saveTopMargin
+	'oPastedShape.BottomMargin = saveBottomMargin
+	'oPastedShape.VertOrient = saveVertOrient
+
+End Sub
+
+
+
+
+' Function Code taken from
+'		http://www.motobit.com/tips/detpg_Base64Encode/
+'
+Function klfBase64Encode(inData)
+  'rfc1521
+  '2001 Antonin Foller, Motobit Software, http://Motobit.cz
+  Const Base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  Dim cOut, sOut, I
+  
+  'For each group of 3 bytes
+  For I = 1 To Len(inData) Step 3
+    Dim nGroup, pOut, sGroup
+    
+    'Create one long from this 3 bytes.
+    nGroup = &amp;H10000 * Asc(Mid(inData, I, 1)) + _
+      &amp;H100 * klfMyASC(Mid(inData, I + 1, 1)) + klfMyASC(Mid(inData, I + 2, 1))
+    
+    'Oct splits the long To 8 groups with 3 bits
+    nGroup = Oct(nGroup)
+    
+    'Add leading zeros
+    nGroup = String(8 - Len(nGroup), "0") &amp; nGroup
+    
+    'Convert To base64
+    pOut = Mid(Base64, CLng("&amp;o" &amp; Mid(nGroup, 1, 2)) + 1, 1) + _
+      Mid(Base64, CLng("&amp;o" &amp; Mid(nGroup, 3, 2)) + 1, 1) + _
+      Mid(Base64, CLng("&amp;o" &amp; Mid(nGroup, 5, 2)) + 1, 1) + _
+      Mid(Base64, CLng("&amp;o" &amp; Mid(nGroup, 7, 2)) + 1, 1)
+    
+    'Add the part To OutPut string
+    sOut = sOut + pOut
+    
+    'Add a new line For Each 76 chars In dest (76*3/4 = 57)
+    'If (I + 2) Mod 57 = 0 Then sOut = sOut + vbCrLf
+  Next
+  Select Case Len(inData) Mod 3
+    Case 1: '8 bit final
+      sOut = Left(sOut, Len(sOut) - 2) + "=="
+    Case 2: '16 bit final
+      sOut = Left(sOut, Len(sOut) - 1) + "="
+  End Select
+  klfBase64Encode = sOut
+End Function
+Function klfMyASC(OneChar)
+  If OneChar = "" Then klfMyASC = 0 Else klfMyASC = Asc(OneChar)
+End Function
+
+
+</script:module>

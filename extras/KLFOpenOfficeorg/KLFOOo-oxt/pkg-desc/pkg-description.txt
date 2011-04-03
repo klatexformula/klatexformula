@@ -1,0 +1,4 @@
+KLFOOo-1.0.3.oxt
+Copyright (c) 2011
+
+KLatexFormula integration for OpenOffice.org/LibreOffice
