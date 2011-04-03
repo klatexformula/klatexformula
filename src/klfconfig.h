@@ -33,6 +33,7 @@
 #include <QSettings>
 #include <QTextCharFormat>
 #include <QMap>
+#include <QHash>
 #include <QSettings>
 
 #include <klfbackend.h>
@@ -58,20 +59,23 @@ public:
   virtual void propertyValueRequested(const KLFConfigPropBase *property);
 
   virtual void connectQObjectProperty(const QString& configPropertyName, QObject *object,
-				      const QString& objPropName);
+				      const QByteArray& objPropName);
   virtual void disconnectQObjectProperty(const QString& configPropertyName, QObject *object,
-					 const QString& objPropName);
+					 const QByteArray& objPropName);
 
+  // ONLY TO BE CALLED BY KLFConfigProp !!
+  inline void registerConfigProp(KLFConfigPropBase *p) { pProperties.append(p); }
 protected:
   struct ObjPropConnection {
-    QString confPropName;
     QObject *object;
-    QString objPropName;
+    QByteArray objPropName;
     inline bool operator==(const ObjPropConnection& b) const {
-      return object == b.object && confPropName == b.confPropName && objPropName == b.objPropName;
+      return object == b.object && objPropName == b.objPropName;
     }
   };
-  QList<ObjPropConnection> pObjPropConnections;
+  QHash<QString, QList<ObjPropConnection> > pObjPropConnections;
+
+  QList<KLFConfigPropBase*> pProperties;
 };
 
 template<class T>
@@ -149,9 +153,19 @@ public:
   
   void initialize(KLFConfigBase *confptr, const QString& propName, const Type& defaultValue)
   {
+    KLF_ASSERT_NOT_NULL(confptr, "Cannot use a NULL config pointer!!", ; );
     config = confptr;
+    config->registerConfigProp(this);
     pname = propName;
     defval = defaultValue;
+    val = defaultValue;
+  }
+
+  void connectQObjectProperty(QObject *object, const QByteArray& propName)
+  {
+    KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") are not initialized!", return; ) ;
+
+    config->connectQObjectProperty(pname, object, propName) ;
   }
 
 private:
@@ -402,6 +416,7 @@ public:
     KLFConfigProp<bool> showExportProfilesLabel;
     KLFConfigProp<bool> menuExportProfileAffectsDrag;
     KLFConfigProp<bool> menuExportProfileAffectsCopy;
+    KLFConfigProp<double> oooExportScale;
     KLFConfigProp<bool> emacsStyleBackspaceSearch;
 
   } UI;
@@ -502,6 +517,26 @@ private:
 
 KLF_EXPORT extern KLFConfig klfconfig;
 
+
+
+
+#define KLF_CONNECT_CONFIG_SH_LATEXEDIT(latexedit)				\
+  klfconfig.SyntaxHighlighter.enabled					\
+  .connectQObjectProperty((latexedit)->syntaxHighlighter(), "highlightEnabled") ; \
+  klfconfig.SyntaxHighlighter.highlightParensOnly			\
+  .connectQObjectProperty((latexedit)->syntaxHighlighter(), "highlightParensOnly") ; \
+  klfconfig.SyntaxHighlighter.highlightLonelyParens			\
+  .connectQObjectProperty((latexedit)->syntaxHighlighter(), "highlightLonelyParens") ; \
+  klfconfig.SyntaxHighlighter.fmtKeyword				\
+  .connectQObjectProperty((latexedit)->syntaxHighlighter(), "fmtKeyword") ; \
+  klfconfig.SyntaxHighlighter.fmtComment				\
+  .connectQObjectProperty((latexedit)->syntaxHighlighter(), "fmtComment") ; \
+  klfconfig.SyntaxHighlighter.fmtParenMatch				\
+  .connectQObjectProperty((latexedit)->syntaxHighlighter(), "fmtParenMatch") ; \
+  klfconfig.SyntaxHighlighter.fmtParenMismatch				\
+  .connectQObjectProperty((latexedit)->syntaxHighlighter(), "fmtParenMismatch") ; \
+  klfconfig.SyntaxHighlighter.fmtLonelyParen				\
+  .connectQObjectProperty((latexedit)->syntaxHighlighter(), "fmtLonelyParen") ;
 
 
 

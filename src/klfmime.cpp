@@ -950,8 +950,9 @@ QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput)
 
   templ.replace(QByteArray("<!--KLF_OOOLATEX_ARGS-->"), toAttrText("12§display§"+klfoutput.input.latex));
 
-  // make the equations larger, so it is not too cramped up
-  const double DPI_FACTOR = 1.6;
+  // scale equation (eg. make them larger, so it is not too cramped up)
+  const double DPI_FACTOR = klfconfig.UI.oooExportScale;
+
   // cm/inch = 2.54
   // include an elargment factor in these tags
   templ.replace(QByteArray("<!--KLF_IMAGE_WIDTH_CM-->"),

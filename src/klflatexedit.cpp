@@ -28,7 +28,7 @@
 #include <QTextDocumentFragment>
 #include <QTextCursor>
 
-#include "klfconfig.h"
+//#include "klfconfig.h"
 #include "klfmainwin.h"
 
 #include "klflatexedit.h"
@@ -265,6 +265,7 @@ void KLFLatexSyntaxHighlighter::setHighlightLonelyParens(bool on)
 }
 void KLFLatexSyntaxHighlighter::setFmtKeyword(const QTextFormat& f)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   KLF_ASSERT_CONDITION(f.isCharFormat(), "Format "<<f<<" is not a QTextCharFormat.", return ; ) ;
   pConf.fmtKeyword = f.toCharFormat();
 }

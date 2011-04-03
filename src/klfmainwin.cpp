@@ -310,6 +310,10 @@ KLFMainWin::KLFMainWin()
   u->txtLatex->installEventFilter(this);
   u->txtLatex->setMainWinDataOpener(this);
 
+  // configure syntax highlighting colors
+  KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtLatex) ;
+  KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtPreamble) ;
+
   setFixedSize(_shrinkedsize);
 
   u->btnEvaluate->installEventFilter(this);
