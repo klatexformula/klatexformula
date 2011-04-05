@@ -210,5 +210,10 @@ void dummy()
   QT_TRANSLATE_NOOP3("SkinConfigWidget", "Delete skin?", "[[confirmation messagebox title]]");
   QT_TRANSLATE_NOOP("SkinConfigWidget", "Are you sure you want to delete the skin named `%1' ?");
 
+  QT_TRANSLATE_NOOP("KLFMainWin", "Click and keep mouse button pressed to drag your formula to an other application. Current export profile: %1");
+  QT_TRANSLATE_NOOP("KLFSettings", "Change Langugage");
+  
+  QT_TRANSLATE_NOOP("SysTrayMainIconifyButtons", "Quit KLatexFormula [Ctrl+Q]");
+  QT_TRANSLATE_NOOP3("KLFMainWin", "Quit KLatexFormula", "tooltip");
 }
 

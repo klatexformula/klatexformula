@@ -424,27 +424,27 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFLibBasicWidgetFactory</name>
     <message>
-        <location filename="../klflibview.cpp" line="4800"/>
+        <location filename="../klflibview.cpp" line="4802"/>
         <source>Local File</source>
         <translation>Fichier sur le disque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4858"/>
+        <location filename="../klflibview.cpp" line="4860"/>
         <source>Overwrite?</source>
         <translation>Ecraser ?</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4859"/>
+        <location filename="../klflibview.cpp" line="4861"/>
         <source>The specified file already exists. Overwrite it?</source>
         <translation>Le fichier existe déjà. L&apos;écraser ?</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4871"/>
+        <location filename="../klflibview.cpp" line="4873"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4871"/>
+        <location filename="../klflibview.cpp" line="4873"/>
         <source>Failed to overwrite the file %1.</source>
         <translation>Erreur : Impossible d&apos;écraser le fichier `%1&apos;.</translation>
     </message>
@@ -937,19 +937,19 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFLibCreateResourceDlg</name>
     <message>
-        <location filename="../klflibview.cpp" line="4134"/>
+        <location filename="../klflibview.cpp" line="4136"/>
         <source>Create New Library Resource</source>
         <comment>[[dialog label title]]</comment>
         <translation>Créer une nouvelle ressource bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4135"/>
+        <location filename="../klflibview.cpp" line="4137"/>
         <source>Create New Library Resource</source>
         <comment>[[dialog window title]]</comment>
         <translation>Créer une nouvelle ressource bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4140"/>
+        <location filename="../klflibview.cpp" line="4142"/>
         <source>SubResource1</source>
         <translation>SousRessource1</translation>
     </message>
@@ -1080,7 +1080,7 @@ Erreur: %3</translation>
         <translation>Colonnes Affichées</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3595"/>
+        <location filename="../klflibview.cpp" line="3597"/>
         <source>Fetching and selecting all, please wait ...</source>
         <translation>Requête et sélection en cours, veuillez patienter ...</translation>
     </message>
@@ -1088,17 +1088,17 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibDefaultViewFactory</name>
     <message>
-        <location filename="../klflibview.cpp" line="3953"/>
+        <location filename="../klflibview.cpp" line="3955"/>
         <source>Category Tree View</source>
         <translation>Arbre de catégories</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3955"/>
+        <location filename="../klflibview.cpp" line="3957"/>
         <source>List View</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3957"/>
+        <location filename="../klflibview.cpp" line="3959"/>
         <source>Icon View</source>
         <translation>Icônes</translation>
     </message>
@@ -1456,72 +1456,72 @@ Erreur: %3</translation>
         <translation>Appliquer les modifications</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4295"/>
-        <location filename="../klflibview.cpp" line="4304"/>
+        <location filename="../klflibview.cpp" line="4297"/>
+        <location filename="../klflibview.cpp" line="4306"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4295"/>
-        <location filename="../klflibview.cpp" line="4304"/>
+        <location filename="../klflibview.cpp" line="4297"/>
+        <location filename="../klflibview.cpp" line="4306"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4367"/>
-        <location filename="../klflibview.cpp" line="4376"/>
-        <location filename="../klflibview.cpp" line="4383"/>
-        <location filename="../klflibview.cpp" line="4393"/>
-        <location filename="../klflibview.cpp" line="4401"/>
-        <location filename="../klflibview.cpp" line="4408"/>
-        <location filename="../klflibview.cpp" line="4415"/>
-        <location filename="../klflibview.cpp" line="4508"/>
-        <location filename="../klflibview.cpp" line="4566"/>
+        <location filename="../klflibview.cpp" line="4369"/>
+        <location filename="../klflibview.cpp" line="4378"/>
+        <location filename="../klflibview.cpp" line="4385"/>
+        <location filename="../klflibview.cpp" line="4395"/>
+        <location filename="../klflibview.cpp" line="4403"/>
+        <location filename="../klflibview.cpp" line="4410"/>
+        <location filename="../klflibview.cpp" line="4417"/>
+        <location filename="../klflibview.cpp" line="4510"/>
+        <location filename="../klflibview.cpp" line="4568"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4367"/>
+        <location filename="../klflibview.cpp" line="4369"/>
         <source>Can&apos;t rename a locked resource!</source>
         <translation>Impossible de renommer une ressource verrouillée !</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4376"/>
+        <location filename="../klflibview.cpp" line="4378"/>
         <source>Failed to unlock resource.</source>
         <translation>Impossible de déverouiller la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4383"/>
+        <location filename="../klflibview.cpp" line="4385"/>
         <source>Failed to unlock sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de déverrouiller la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4393"/>
+        <location filename="../klflibview.cpp" line="4395"/>
         <source>Failed to rename resource.</source>
         <translation>Impossible de renommer la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4401"/>
+        <location filename="../klflibview.cpp" line="4403"/>
         <source>Failed to rename sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de renommer la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4408"/>
+        <location filename="../klflibview.cpp" line="4410"/>
         <source>Failed to lock resource.</source>
         <translation>Impossible de verrouiller la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4415"/>
+        <location filename="../klflibview.cpp" line="4417"/>
         <source>Failed to lock sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de verrouiller la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4509"/>
+        <location filename="../klflibview.cpp" line="4511"/>
         <source>Failed to set resource property &quot;%1&quot;.</source>
         <translation>Impossible d&apos;attribuer la nouvelle valeur à la propriété de ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4567"/>
+        <location filename="../klflibview.cpp" line="4569"/>
         <source>Failed to set sub-resource &quot;%1&quot;&apos;s property &quot;%2&quot;.</source>
         <translation>Impossible d&apos;attribuer la nouvelle valeur à la propriété &quot;%2&quot; de la sous-ressource &quot;%1&quot;.</translation>
     </message>
@@ -2177,9 +2177,10 @@ Le chargement peut echouer.</translation>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher une fenêtre de prévisualisation plus grande [touche &lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
+        <location filename="obsolete/obsoletetext.cpp" line="217"/>
         <source>Quit KLatexFormula</source>
         <comment>tooltip</comment>
-        <translation type="obsolete">Quitter KLatexFormula</translation>
+        <translation>Quitter KLatexFormula</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="486"/>
@@ -2240,7 +2241,7 @@ Le chargement peut echouer.</translation>
         <location filename="../klfmainwin.ui" line="483"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Quitter KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="524"/>
@@ -2552,13 +2553,14 @@ Le chargement peut echouer.</translation>
         <translation>Copier la formule sur le presse-papiers. Profil d&apos;exportation: %1</translation>
     </message>
     <message>
+        <location filename="obsolete/obsoletetext.cpp" line="213"/>
         <source>Click and keep mouse button pressed to drag your formula to an other application. Current export profile: %1</source>
-        <translation type="obsolete">Cliquez et en maintenant appuyé le bouton de souris traînez l&apos;image dans une autre application ou sur le bureau. Profil d&apos;exportation: %1</translation>
+        <translation>Cliquez et en maintenant appuyé le bouton de souris traînez l&apos;image dans une autre application ou sur le bureau. Profil d&apos;exportation: %1</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1653"/>
         <source>Click and keep mouse button pressed to drag your formula to another application. Current export profile: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Cliquez et en maintenant appuyé le bouton de souris traînez l&apos;image dans une autre application ou sur le bureau. Profil d&apos;exportation: %1</translation>
     </message>
     <message>
         <location filename="../klfmainwin.cpp" line="1988"/>
@@ -3503,8 +3505,9 @@ Version actuelle: %2</translation>
         <translation>Veuillez redémarrer KLatexFormula pour appliquer les modifications.</translation>
     </message>
     <message>
+        <location filename="obsolete/obsoletetext.cpp" line="214"/>
         <source>Change Langugage</source>
-        <translation type="obsolete">Changer la langue</translation>
+        <translation>Changer la langue</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="914"/>
@@ -3514,7 +3517,7 @@ Version actuelle: %2</translation>
     <message>
         <location filename="../klfsettings.cpp" line="914"/>
         <source>Change Language</source>
-        <translation type="unfinished"></translation>
+        <translation>Changer la Langue</translation>
     </message>
     <message>
         <location filename="../klfsettings.cpp" line="951"/>
@@ -4536,7 +4539,7 @@ Version actuelle: %2</translation>
     <message>
         <location filename="../main.cpp" line="1053"/>
         <source>Can&apos;t use --output without any input</source>
-        <translation type="unfinished"></translation>
+        <translation>N&apos;utiliser --output qu&apos;avec --input ou --latexinput</translation>
     </message>
     <message>
         <location filename="../main.cpp" line="1169"/>
@@ -4551,12 +4554,12 @@ Version actuelle: %2</translation>
     <message>
         <location filename="../main.cpp" line="1391"/>
         <source>--paste-clipboard requires interactive mode. Switching.</source>
-        <translation type="unfinished"></translation>
+        <translation>Changement en mode intéractif, requis par --paste-clipboard.</translation>
     </message>
     <message>
         <location filename="../main.cpp" line="1399"/>
         <source>--paste-selection requires interactive mode. Switching.</source>
-        <translation type="unfinished"></translation>
+        <translation>Changement en mode intéractif, requis par --paste-selection.</translation>
     </message>
     <message>
         <location filename="../main.cpp" line="1525"/>
@@ -5305,8 +5308,9 @@ NOTES
         <translation>Ctrl+Q</translation>
     </message>
     <message>
+        <location filename="obsolete/obsoletetext.cpp" line="216"/>
         <source>Quit KLatexFormula [Ctrl+Q]</source>
-        <translation type="obsolete">Quitter KLatexFormula [Ctrl+Q]</translation>
+        <translation>Quitter KLatexFormula [Ctrl+Q]</translation>
     </message>
     <message>
         <location filename="../plugins/systrayicon/systraymainiconifybuttons.ui" line="64"/>
@@ -5331,7 +5335,7 @@ NOTES
     <message>
         <location filename="../plugins/systrayicon/systraymainiconifybuttons.ui" line="61"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Quitter KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
 </context>
 <context>
