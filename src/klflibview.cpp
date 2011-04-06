@@ -3440,6 +3440,8 @@ void KLFLibDefaultView::updateResourceEngine()
 
 void KLFLibDefaultView::expandRootNice()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   if (pViewType == CategoryTreeView) {
     klfDbg("is category view.") ;
     QTreeView *treeView = qobject_cast<QTreeView*>(pView);

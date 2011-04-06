@@ -1904,10 +1904,16 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
     u->lblOutput->displayClear();
   } else {
     QImage img = preview;
-    if (img.width() > u->lblOutput->width() || img.height() > u->lblOutput->height())
+    if (img.width() > u->lblOutput->width() || img.height() > u->lblOutput->height()) {
       img = img.scaled(u->lblOutput->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+    QImage imgpreview = preview;
+    const QSize tooltipSize = klfconfig.UI.previewTooltipMaxSize;
+    if (imgpreview.width() > tooltipSize.width() || imgpreview.height() > tooltipSize.height()) {
+      imgpreview = imgpreview.scaled(tooltipSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
 
-    u->lblOutput->display(img, preview, false);
+    u->lblOutput->display(img, imgpreview, false);
   }
 
 }

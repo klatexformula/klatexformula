@@ -124,6 +124,9 @@ public:
   /** upon modification, DON'T FORGET to set \ref haschanges ! */
   KLFLegacyData::KLFLibraryResourceList resources;
 
+  /** eg. if we read a corrupt file, leave it corrupt. */
+  bool flagForceReadOnly;
+
   /** Metadata, may be used for any purpose.
    *
    * upon modification, DON'T FORGET to set \ref haschanges !
@@ -209,6 +212,8 @@ private:
   KLFLibLegacyFileDataPrivate(const QString& fname) : refcount(0), filename(fname)
   {
     klfDbg(" filename is "<<filename ) ;
+
+    flagForceReadOnly = true;
 
     staticFileDataObjects[filename] = this;
 

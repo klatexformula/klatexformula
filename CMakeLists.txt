@@ -57,6 +57,7 @@ else(NOT KLF_WELCOME_MSG_SILENT)
   message(STATUS "Skipped welcome message (KLF_WELCOME_MSG_SILENT)")
 endif(NOT KLF_WELCOME_MSG_SILENT)
 
+
 # Extract KLF Version from VERSION file
 set(klfversion_regex "([0-9]+)\\.([0-9]+)\\.([0-9]+)(.*)")
 string(REGEX REPLACE "${klfversion_regex}" "\\1" KLF_VERSION_MAJ "${KLF_VERSION}")
@@ -68,6 +69,13 @@ string(REGEX REPLACE "${klfversion_regex}" "\\4" KLF_VERSION_SUFFIX "${KLF_VERSI
 set(KLF_LIB_VERSION "${KLF_VERSION_MAJ}.${KLF_VERSION_MIN}")
 
 include(KLFUtil)
+
+
+# Warn the user for defined cache variables that are not standard,
+# i.e. may be a user's typo
+include(klfValidOptions)
+
+
 
 # Set some project settings
 # -------------------------
@@ -161,6 +169,7 @@ set(QT4_INSTALLED)
 set(QT3_INSTALLED)
 mark_as_advanced(QT_REQUIRED DESIRED_QT_VERSION QT3_INSTALLED QT4_INSTALLED)
 KLFCMakeDebug("QT3_QGLOBAL_H_FILE is ${QT3_QGLOBAL_H_FILE}")
+# FINDQT
 include(FindQt)
 
 if(NOT QT4_INSTALLED AND NOT QT3_INSTALLED)
@@ -179,6 +188,10 @@ if(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
     "Didn't find required Qt4. You may try setting QT_QMAKE_EXECUTABLE or using Qt3 by chaning the KLF_QT_VERSION cache variable.")
 endif(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
 message(STATUS "Using Qt ${KLF_QT_VERSION} (KLF_QT_VERSION=\"${KLF_QT_VERSION}\")")
+
+# Current Qt Version "MAJ.MIN"
+set(KLF_CMAKE_QTVERSION "${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}" CACHE INTERNAL "Qt Version, Maj.Min")
+
 
 # variables that FindQt obviously forgets to set to advanced
 mark_as_advanced(QT_QTMOTIF_INCLUDE_DIR QT_QTMOTIF_LIBRARY_DEBUG QT_QTMOTIF_LIBRARY_RELEASE)

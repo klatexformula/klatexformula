@@ -80,6 +80,9 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
   u->txtPreviewLatex->setFont(klfconfig.UI.preambleEditFont);
   u->txtStyPreamble->setFont(klfconfig.UI.preambleEditFont);
   u->txtStyPreamble->setHeightHintLines(4);
+
+  KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtPreviewLatex) ;
+  KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtStyPreamble) ;
 }
 void KLFLibEntryEditor::retranslateUi(bool alsoBaseUi)
 {

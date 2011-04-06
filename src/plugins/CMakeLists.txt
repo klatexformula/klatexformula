@@ -9,9 +9,6 @@
 remove_definitions(-DKLF_SRC_BUILD)
 
 
-# Current Qt Version "MAJ.MIN"
-set(KLF_CMAKE_QTVERSION "${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}" CACHE INTERNAL "Qt Version")
-
 # The subdir in which to put plugins
 set(KLF_CMAKE_BASEPLUGINSSUBDIR "${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}"
 					CACHE INTERNAL "(internal) Base Plugins RCC sub-dir")

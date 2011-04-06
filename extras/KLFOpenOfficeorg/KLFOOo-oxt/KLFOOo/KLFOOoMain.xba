@@ -35,7 +35,7 @@ Sub KLFLaunch
 		Next i
 		' Run klatexformula with the selected string
 		latexb64 = klfBase64Encode(curString)
-		cmd = "klatexformula --interactive -B --latexinput=" &amp; latexb64 &amp; " --tborderoffset=0 --rborderoffset=0 --bborderoffset=0 --lborderoffset=0"
+		cmd = "klatexformula --noeval --interactive -B --latexinput=" &amp; latexb64 &amp; " --tborderoffset=0 --rborderoffset=0 --bborderoffset=0 --lborderoffset=0"
 		Shell(cmd)
 		Exit Sub
     End If
@@ -330,6 +330,5 @@ End Function
 Function klfMyASC(OneChar)
   If OneChar = "" Then klfMyASC = 0 Else klfMyASC = Asc(OneChar)
 End Function
-
 
 </script:module>

@@ -1,0 +1,65 @@
+Index: about.html
+===================================================================
+--- about.html	(.../tags/KLF_3-2-2/src/data/about.html)	(revision 583)
++++ about.html	(.../branches/klatexformula-3.2/src/data/about.html)	(revision 616)
+@@ -19,7 +19,7 @@
+   </head><body>
+     <p style="margin-top: 0px; padding-top: 0px; margin-bottom: 0px;"><b>About KLatexFormula</b></p>
+     <p><i>Version: <!--KLF_VERSION--></i></p>
+-    <p>KLatexFormula was written by Philippe Faist, currently (2010) studying physics in Switzerland. First released in 2006 written in KDE3 environment, the program has seen many improvements and restructuring since then, leading to the current version, written in Qt 4.</p>
++    <p>KLatexFormula was written by Philippe Faist, currently (2011) studying physics in Switzerland. First released in 2006 written in KDE3 environment, the program has seen many improvements and restructuring since then, leading to the current version, written in Qt 4.</p>
+     <p><a href="klfaction:///whats_new"><b>What's New In KLatexFormula 3.2</b></a></p>
+     <p><b>Author</b></p>
+     <p>Philippe Faist, philippe.faist@bluewin.ch</p>
+Index: cmdl-help.txt
+===================================================================
+--- cmdl-help.txt	(.../tags/KLF_3-2-2/src/data/cmdl-help.txt)	(revision 583)
++++ cmdl-help.txt	(.../branches/klatexformula-3.2/src/data/cmdl-help.txt)	(revision 616)
+@@ -67,7 +67,7 @@
+   -p, --preamble <LaTeX code>
+       Any LaTeX code that will be inserted before \begin{document}. Useful for
+       including custom packages with \usepackage{...}.
+-  -q, --quiet
++  -q, --quiet [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+       Disable console output of warnings and errors.
+   --redirect-debug <file>
+       Redirects debugging output to the given <file>. If the file name does not
+@@ -95,7 +95,7 @@
+   --gs <gs executable>
+   --epstopdf <epstopdf executable>
+       Specifiy the executable for latex, dvips, gs or epstopdf. By default, they
+-      are searched for in $PATH and/or in common system directories.
++      are searched for in $PATH and in common system directories.
+ 
+   -Q, --qtoption <qt-option>
+       Specify a Qt-specific option. For example, to launch KLatexFormula in
+@@ -112,9 +112,10 @@
+       output 'stderr')
+   -V, --version [<filename|&N>][:<format>]
+       Display KLatexFormula version information and exit.
+-      The optional output argument is handled as with --help, however it may contain
+-      a version string format preceeded by a colon where %k, and %q and %% are
+-      respectively replaced by klatexformula version, Qt version and a literal %.
++      The optional output argument is handled as with --help, however it may also
++      contain a version string format preceded by a colon where %k, and %q and
++      %% are respectively replaced by klatexformula version, Qt version and a
++      literal %.
+ 
+ Examples:
+   Create an image named filename.png from the equation 'a^2+b^2=c^2':
+@@ -135,10 +136,11 @@
+   
+   When not run in interactive mode, no X11 server is needed.
+   
+-  Additional translation files and/or data can be provided to klatexformula by specifying
+-  a list of Qt rcc files or directories containing such files to import in the KLF_RESOURCES
+-  environment variable. Separate the file names with ':' on unix/mac, or ';' on windows. The
+-  default paths can be included with an empty section ('::') or leading or trailing ':'.
++  Additional translation files and/or data can be provided to klatexformula by
++  specifying a list of Qt rcc files or directories containing such files to
++  import in the KLF_RESOURCES environment variable. Separate the file names with
++  ':' on unix/mac, or ';' on windows. The default paths can be included with an
++  empty section ('::') or leading or trailing ':'.
+     
+   Please report any bugs and malfunctions to the author.
+ 

@@ -186,7 +186,9 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"("+fnm+")") ;
 
-  QString fname = (!fnm.isEmpty() ? fnm : filename);    
+  QString fname = (!fnm.isEmpty() ? fnm : filename);
+
+  flagForceReadOnly = false;
 
   klfDbg("loading from file "<<fname<<" (our filename="<<filename<<")") ;
 
@@ -247,6 +249,7 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
 	  
   } else {
     qWarning("Error: Library file `%s' is invalid library file or corrupt!", qPrintable(fname));
+    flagForceReadOnly = true;
     return false;
   }
 
@@ -267,6 +270,11 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
 bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"("+fnm+")") ;
+
+  if (flagForceReadOnly) {
+    qWarning()<<KLF_FUNC_NAME<<": attempt to save a forced-read-only file "<<fnm<<" !";
+    return false;
+  }
 
   QString fname = (!fnm.isEmpty() ? fnm : filename) ;
   klfDbg(" saving to file "<<fname<<" a "<<legacyLibType<<"-type library with N="<<resources.size()
@@ -485,6 +493,8 @@ KLFLibLegacyEngine::KLFLibLegacyEngine(const QString& fileName, const QString& r
     d->library[res] = KLFLegacyData::KLFLibraryList();
     d->haschanges = true;
   }
+
+  setReadOnly(isReadOnly() || d->flagForceReadOnly);
 
   klfDbg("Opened KLFLibLegacyEngine resource `"<<fileName<<"': d="<<d<<"; resources="<<d->resources
 	 <<" (me="<<this<<", d="<<d<<")\n") ;

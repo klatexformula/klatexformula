@@ -7,16 +7,23 @@
 #
 # $Id$
 
+use Getopt::Long qw /:config bundling /;
+
+# If 1, obsolete texts are kept to be translated.
+$use_obsolete = 1;
+
+sub print_usage {
+  print STDERR "Usage: $0 [--(no)obsolete] file.ts\n";
+};
+
+GetOptions('obsolete!' => \$use_obsolete, 'help' => sub { print_usage; exit(0); } );
+
 $tsfile = $ARGV[0] if $#ARGV >= 0;
 if ($#ARGV < 0 || $tsfile eq "") {
-  print STDERR "Usage: $0 file.ts\n";
+  print_usage();
   exit 255;
 }
 
-# If 1, obsolete texts are kept to be translated.
-# Comment out the unrelevant line.
-$use_obsolete = 1;
-#$use_obsolete = 0;
 
 $sourceslist = "../*.cpp ../klftools/*.cpp ../klfbackend/*.cpp ../plugins/skin/*.cpp ../plugins/systrayicon/*.cpp";
 $sourceslist .= " obsolete/*.cpp"  if ($use_obsolete);
