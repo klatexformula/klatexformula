@@ -646,6 +646,7 @@ QStringList KLFMimeExporterImage::keys() const
   // image formats that are always supported. Qt image formats are added too.
   static QStringList staticKeys
     = QStringList() << "image/png" << "image/eps" << "application/eps" << "application/postscript"
+		    << "application/pdf" << "image/svg+xml"
 		    << OPENOFFICE_DRAWING_MIMETYPE << "application/x-qt-image"
 		    // add duplicate for png, see below
 		    << "image/x-win-png-office-art";
@@ -674,9 +675,6 @@ QStringList KLFMimeExporterImage::keys() const
   }
 
   QStringList keys = staticKeys;
-
-  if (!klfconfig.BackendSettings.execEpstopdf().isEmpty())
-    keys <<"application/pdf"; // add PDF only if we have PDF
 
   keys << imageFormats.keys();
 
@@ -734,6 +732,13 @@ QByteArray KLFMimeExporterImage::data(const QString& keymime, const KLFBackend::
       klfDbg("---warning: don't have PDF data ---") ;
 #endif
     return klfoutput.pdfdata;
+  }
+  if (key == "image/svg+xml") {
+#ifdef KLF_DEBUG
+    if (klfoutput.svgdata.isEmpty())
+      klfDbg("---warning: don't have SVG data ---") ;
+#endif
+    return klfoutput.svgdata;
   }
   if (key == OPENOFFICE_DRAWING_MIMETYPE)
     return klf_openoffice_drawing(klfoutput);

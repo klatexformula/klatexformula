@@ -133,7 +133,9 @@ void KLFPreviewBuilderThread::run()
     _mutex.lock();
     input = _input;
     settings = _settings;
-    settings.epstopdfexec = "";
+    settings.wantPDF = false;
+    settings.wantSVG = false;
+    settings.wantRaw = false;
     lwid = _lwidth;
     lhgt = _lheight;
     _hasnewinfo = false;
@@ -155,6 +157,8 @@ void KLFPreviewBuilderThread::run()
 	//	  img = img.scaled(QSize(lwid, lhgt), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	// ALL OK, proceed
       } else {
+	// error... just debug
+	klfDbg("Real-Time preview failed; status="<<output.status<<".\n"<<output.errorstr) ;
 	img = QImage();
       }
     }
@@ -1823,6 +1827,7 @@ void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
   case altersetting_OutlineFonts:
     _settings.outlineFonts = (bool)ivalue; break;
   default:
+    qWarning()<<KLF_FUNC_NAME<<": Unknown setting to alter: "<<which<<", maybe you should give a string instead?";
     break;
   }
 }
@@ -1840,7 +1845,16 @@ void KLFMainWin::alterSetting(altersetting_which which, QString svalue)
     _settings.gsexec = svalue; break;
   case altersetting_Epstopdf:
     _settings.epstopdfexec = svalue; break;
+  case altersetting_LBorderOffset:
+    _settings.lborderoffset = svalue.toDouble(); break;
+  case altersetting_TBorderOffset:
+    _settings.tborderoffset = svalue.toDouble(); break;
+  case altersetting_RBorderOffset:
+    _settings.rborderoffset = svalue.toDouble(); break;
+  case altersetting_BBorderOffset:
+    _settings.bborderoffset = svalue.toDouble(); break;
   default:
+    qWarning()<<KLF_FUNC_NAME<<": Unknown setting to alter: "<<which<<", maybe you should give an int instead?";
     break;
   }
 }
@@ -1970,10 +1984,9 @@ void KLFMainWin::slotEvaluate()
   if (_output.status < 0) {
     QString comment = "";
     bool showSettingsPaths = false;
-    if (_output.status == KLFERR_NOLATEXPROG ||
-	_output.status == KLFERR_NODVIPSPROG ||
-	_output.status == KLFERR_NOGSPROG ||
-	_output.status == KLFERR_NOEPSTOPDFPROG) {
+    if (_output.status == KLFERR_LATEX_NORUN ||
+	_output.status == KLFERR_DVIPS_NORUN ||
+	_output.status == KLFERR_GSBBOX_NORUN) {
       comment = "\n"+tr("Are you sure you configured your system paths correctly in the settings dialog ?");
       showSettingsPaths = true;
     }
@@ -2566,10 +2579,18 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   }
 
   QString s;
+  s = tr("LaTeX DVI (*.dvi)");
+  filterformatlist.push_front(s);
+  formatlist.push_front("dvi");
+  formatsByFilterName[s] = "dvi";
   s = tr("EPS PostScript (*.eps)");
   filterformatlist.push_front(s);
   formatlist.push_front("eps");
   formatsByFilterName[s] = "eps";
+  s = tr("Scalable Vector Graphics SVG (*.svg)");
+  filterformatlist.push_front(s);
+  formatlist.push_front("svg");
+  formatsByFilterName[s] = "svg";
   s = tr("PDF Portable Document Format (*.pdf)");
   filterformatlist.push_front(s);
   formatlist.push_front("pdf");

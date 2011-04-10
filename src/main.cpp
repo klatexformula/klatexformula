@@ -106,10 +106,10 @@ bool opt_dbus_export_mainwin = false;
 bool opt_skip_plugins = false;
 
 int opt_outlinefonts = -1;
-int opt_lborderoffset = -1;
-int opt_tborderoffset = -1;
-int opt_rborderoffset = -1;
-int opt_bborderoffset = -1;
+QString opt_lborderoffset = QString();
+QString opt_tborderoffset = QString();
+QString opt_rborderoffset = QString();
+QString opt_bborderoffset = QString();
 
 char *opt_tempdir;
 char *opt_latex;
@@ -162,10 +162,12 @@ enum {
   OPT_QTOPT = 'Q',
 
   OPT_OUTLINEFONTS = 127,
+  OPT_NOOUTLINEFONTS,
   OPT_LBORDEROFFSET,
   OPT_TBORDEROFFSET,
   OPT_RBORDEROFFSET,
   OPT_BBORDEROFFSET,
+  OPT_BORDEROFFSETS,
   OPT_TEMPDIR,
   OPT_LATEX,
   OPT_DVIPS,
@@ -204,10 +206,12 @@ static struct option klfcmdl_optlist[] = {
   { "skip-plugins", 2, NULL, OPT_SKIP_PLUGINS },
   // -----
   { "outlinefonts", 2 /*optional arg*/, NULL, OPT_OUTLINEFONTS },
+  { "nooutlinefonts", 0, NULL, OPT_NOOUTLINEFONTS },
   { "lborderoffset", 1, NULL, OPT_LBORDEROFFSET },
   { "tborderoffset", 1, NULL, OPT_TBORDEROFFSET },
   { "rborderoffset", 1, NULL, OPT_RBORDEROFFSET },
   { "bborderoffset", 1, NULL, OPT_BBORDEROFFSET },
+  { "borderoffsets", 1, NULL, OPT_BORDEROFFSETS },
   // -----
   { "tempdir", 1, NULL, OPT_TEMPDIR },
   { "latex", 1, NULL, OPT_LATEX },
@@ -892,14 +896,14 @@ int main(int argc, char **argv)
 	args << "--redirect-debug="+QString::fromLocal8Bit(opt_redirect_debug);
       if (opt_outlinefonts >= 0)
 	args << "--outlinefonts="+QString::fromLatin1(opt_outlinefonts?"TRUE":"FALSE");
-      const struct { char c; int optval; } borderoffsets[] =
-					     { {'t', opt_tborderoffset}, {'r', opt_rborderoffset},
-					       {'b', opt_bborderoffset}, {'l', opt_lborderoffset},
-					       {'\0', -1} };
+      const struct { char c; QString optval; } borderoffsets[] =
+						{ {'t', opt_tborderoffset}, {'r', opt_rborderoffset},
+						  {'b', opt_bborderoffset}, {'l', opt_lborderoffset},
+						  {'\0', QString() } };
       for (k = 0; borderoffsets[k].c != 0; ++k)
-	if (borderoffsets[k].optval != -1)
+	if (borderoffsets[k].optval.length())
 	  args << (QString::fromLatin1("--")+QLatin1Char(borderoffsets[k].c)+"borderoffset="
-		   +QString::number(borderoffsets[k].optval)) ;
+		   +borderoffsets[k].optval) ;
       if (opt_tempdir != NULL)
 	args << "--tempdir="+QString::fromLocal8Bit(opt_tempdir);
       if (opt_latex != NULL)
@@ -955,14 +959,14 @@ int main(int argc, char **argv)
 	iface->setInputData("latex", latexinput);
       if (opt_outlinefonts >= 0)
 	iface->setAlterSetting_i(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
-      if (opt_lborderoffset != -1)
-	iface->setAlterSetting_i(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
-      if (opt_tborderoffset != -1)
-	iface->setAlterSetting_i(KLFMainWin::altersetting_TBorderOffset, opt_tborderoffset);
-      if (opt_rborderoffset != -1)
-	iface->setAlterSetting_i(KLFMainWin::altersetting_RBorderOffset, opt_rborderoffset);
-      if (opt_bborderoffset != -1)
-	iface->setAlterSetting_i(KLFMainWin::altersetting_BBorderOffset, opt_bborderoffset);
+      if (opt_lborderoffset.length())
+	iface->setAlterSetting_s(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
+      if (opt_tborderoffset.length())
+	iface->setAlterSetting_s(KLFMainWin::altersetting_TBorderOffset, opt_tborderoffset);
+      if (opt_rborderoffset.length())
+	iface->setAlterSetting_s(KLFMainWin::altersetting_RBorderOffset, opt_rborderoffset);
+      if (opt_bborderoffset.length())
+	iface->setAlterSetting_s(KLFMainWin::altersetting_BBorderOffset, opt_bborderoffset);
       if (opt_tempdir != NULL)
 	iface->setAlterSetting_s(KLFMainWin::altersetting_TempDir, QString::fromLocal8Bit(opt_tempdir));
       if (opt_latex != NULL)
@@ -1074,13 +1078,13 @@ int main(int argc, char **argv)
     }
     if (opt_outlinefonts >= 0)
       mainWin.alterSetting(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
-    if (opt_lborderoffset != -1)
+    if (opt_lborderoffset.length())
       mainWin.alterSetting(KLFMainWin::altersetting_LBorderOffset, opt_lborderoffset);
-    if (opt_tborderoffset != -1)
+    if (opt_tborderoffset.length())
       mainWin.alterSetting(KLFMainWin::altersetting_TBorderOffset, opt_tborderoffset);
-    if (opt_rborderoffset != -1)
+    if (opt_rborderoffset.length())
       mainWin.alterSetting(KLFMainWin::altersetting_RBorderOffset, opt_rborderoffset);
-    if (opt_bborderoffset != -1)
+    if (opt_bborderoffset.length())
       mainWin.alterSetting(KLFMainWin::altersetting_BBorderOffset, opt_bborderoffset);
     if (opt_tempdir != NULL)
       mainWin.alterSetting(KLFMainWin::altersetting_TempDir, QString::fromLocal8Bit(opt_tempdir));
@@ -1226,14 +1230,14 @@ int main(int argc, char **argv)
       settings.outlineFonts = (bool)opt_outlinefonts;
     settings.lborderoffset = settings.tborderoffset
       = settings.rborderoffset = settings.bborderoffset = 1;
-    if (opt_lborderoffset != -1)
-      settings.lborderoffset = opt_lborderoffset;
-    if (opt_tborderoffset != -1)
-      settings.tborderoffset = opt_tborderoffset;
-    if (opt_rborderoffset != -1)
-      settings.rborderoffset = opt_rborderoffset;
-    if (opt_bborderoffset != -1)
-      settings.bborderoffset = opt_bborderoffset;
+    if (opt_lborderoffset.length())
+      settings.lborderoffset = opt_lborderoffset.toDouble();
+    if (opt_tborderoffset.length())
+      settings.tborderoffset = opt_tborderoffset.toDouble();
+    if (opt_rborderoffset.length())
+      settings.rborderoffset = opt_rborderoffset.toDouble();
+    if (opt_bborderoffset.length())
+      settings.bborderoffset = opt_bborderoffset.toDouble();
     settings.latexexec = klfconfig.BackendSettings.execLatex;
     settings.dvipsexec = klfconfig.BackendSettings.execDvips;
     settings.gsexec = klfconfig.BackendSettings.execGs;
@@ -1316,12 +1320,72 @@ static bool __klf_parse_bool_arg(const char * arg, bool defaultvalue)
   if ( boolfalserx.exactMatch(arg) )
     return false;
 
-  qWarning()<<KLF_FUNC_NAME<<": Can't parse boolean argument: "<<QString(arg);
+  qWarning("%s", qPrintable(QObject::tr("Can't parse boolean argument: `%1'").arg(arg)));
   opt_error.has_error = true;
   opt_error.retcode = -1;
 
   return defaultvalue;
 }
+
+#define D_RX "([0-9eE.-]+)"
+#define SEP "[ \t,;]+"
+
+static void klf_warn_parse_double(const QString& s)
+{
+  bool ok;
+  (void)s.toDouble(&ok);
+  if (!ok) {
+    qWarning("%s", qPrintable(QObject::tr("Can't parse number argument: `%1'").arg(s)));
+  }
+}
+
+static void klf_read_borderoffsets(const char * arg)
+{
+  if (arg == NULL)
+    return;
+
+  QRegExp rx("" D_RX "(?:" SEP D_RX "(?:" SEP D_RX "(?:" SEP D_RX ")?)?)?");
+
+  if (rx.indexIn(QString::fromLocal8Bit(arg)) < 0) {
+    qWarning("%s", qPrintable(QObject::tr("--paste-clipboard requires interactive mode. Switching.")));
+    return;
+  }
+
+  QString l, t, r, b;
+  l = rx.cap(1);
+  t = rx.cap(2);
+  r = rx.cap(3);
+  b = rx.cap(4);
+  klf_warn_parse_double(l);
+  opt_lborderoffset = l;
+
+  if (t.isEmpty()) {
+    opt_tborderoffset = opt_rborderoffset = opt_bborderoffset = l;
+    return;
+  }
+  // t is set
+  klf_warn_parse_double(t);
+  opt_tborderoffset = t;
+
+  if (r.isEmpty()) {
+    opt_rborderoffset = opt_lborderoffset;
+    opt_bborderoffset = opt_tborderoffset;
+    return;
+  }
+  // r is set
+  klf_warn_parse_double(r);
+  opt_rborderoffset = r;
+
+  if (b.isEmpty()) {
+    opt_bborderoffset = opt_tborderoffset;
+    return;
+  }
+  // b is set
+  opt_bborderoffset = b;
+
+  return;
+}
+
 
 void main_parse_options(int argc, char *argv[])
 {
@@ -1454,6 +1518,9 @@ void main_parse_options(int argc, char *argv[])
     case OPT_OUTLINEFONTS:
       opt_outlinefonts = __klf_parse_bool_arg(arg, true);
       break;
+    case OPT_NOOUTLINEFONTS:
+      opt_outlinefonts = 0;
+      break;
     case OPT_LBORDEROFFSET:
       opt_lborderoffset = atoi(arg);
       break;
@@ -1465,6 +1532,9 @@ void main_parse_options(int argc, char *argv[])
       break;
     case OPT_BBORDEROFFSET:
       opt_bborderoffset = atoi(arg);
+      break;
+    case OPT_BORDEROFFSETS:
+      klf_read_borderoffsets(arg);
       break;
     case OPT_TEMPDIR:
       opt_tempdir = arg;

@@ -96,6 +96,8 @@ namespace KLFSysInfo
 
 
 
+KLF_EXPORT bool klfIsValidVersion(const QString& v);
+
 KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2);
 
 KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);

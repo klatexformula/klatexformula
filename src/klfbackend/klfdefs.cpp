@@ -1066,6 +1066,13 @@ static int __klf_version_compare_suffix_words(QString w1, QString w2)
   return i1 - i2;
 }
 
+#define VERSION_RX "^(\\d+)(\\.(\\d+)(\\.(\\d+)([a-zA-Z]+\\d*)?)?)?$"
+
+KLF_EXPORT bool klfIsValidVersion(const QString& v)
+{
+  QRegExp rx(VERSION_RX);
+  return rx.exactMatch(v);
+}
 
 KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
 {
@@ -1077,7 +1084,7 @@ KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2)
   if (v2.isEmpty()) // v2 is empty, but not v1 because of test above
     return 1;
   //           *1     2  *3     4  *5    *6
-  QRegExp rx1("^(\\d+)(\\.(\\d+)(\\.(\\d+)([a-zA-Z]+\\d*)?)?)?$");
+  QRegExp rx1(VERSION_RX);
   QRegExp rx2(rx1);
   if (!rx1.exactMatch(v1)) {
     qWarning("klfVersionLessThan: Invalid version number format: %s", qPrintable(v1));
