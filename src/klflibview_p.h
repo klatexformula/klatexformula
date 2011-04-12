@@ -535,8 +535,7 @@ public:
     Q_UNUSED(firstOrLast)
 
     // In the future, firstOrLast will be used to search forwards or backwards from the right point
-    int off_y = scrollOffset().y();
-    klfDbg( "curVisibleIndex: offset y is "<<off_y ) ;
+    klfDbg( "curVisibleIndex: offset y is "<<scrollOffset().y() ) ;
     QModelIndex it = QModelIndex();
     while ((it = pModel->walkNextIndex(it)).isValid()) {
       klfDbg( "\texploring item it="<<it<<"; bottom="<<thisConstView()->visualRect(it).bottom() ) ;

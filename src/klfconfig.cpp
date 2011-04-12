@@ -436,8 +436,8 @@ static void klf_config_read(QSettings &s, const QString& baseName, T *target,
 }
 template<>
 void klf_config_read<QTextCharFormat>(QSettings &s, const QString& baseName,
-					QTextCharFormat *target,
-					const char * listOrMapType)
+				      QTextCharFormat *target,
+				      const char * /*listOrMapType*/)
 {
   qDebug("klf_config_read<QTextCharFormat>(%s)", qPrintable(baseName));
   QTextFormat fmt = *target;

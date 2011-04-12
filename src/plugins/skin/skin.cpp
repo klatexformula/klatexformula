@@ -378,6 +378,8 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
     _applyDelayed = true;
     return Skin();
   }
+#else
+  Q_UNUSED(isStartUp) ;
 #endif
   klfDbg("Applying skin!");
   QString ssfn = config->readValue("skinfilename").toString();

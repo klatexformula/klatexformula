@@ -494,10 +494,10 @@ void KLFSearchBar::emitFoundSignals(bool resultfound, const QString& searchstrin
   emit searchPerformed(resultfound);
   if (resultfound) {
     emit found();
-    emit found(pSearchText, forward);
+    emit found(searchstring, forward);
   } else {
     emit didNotFind();
-    emit didNotFind(pSearchText, forward);
+    emit didNotFind(searchstring, forward);
   }
 }
 
