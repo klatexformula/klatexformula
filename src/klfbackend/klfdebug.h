@@ -143,6 +143,7 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #  define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(QString("")+msg)
 #  define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(QString("")+msg)
 #  define KLF_DEBUG_TEE(expr) __klf_debug_tee(expr)
+#  define klfDebugf( arglist ) qDebug arglist
 #  ifdef KLFBACKEND_QT4
 #    define klfDbg( streamableItems )				\
   __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, qPrintable(__klf_debug_ref_instance()), NULL) << streamableItems
@@ -184,6 +185,8 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #  define KLF_DEBUG_BLOCK(msg)
 
 #  define KLF_DEBUG_TEE(expr) (expr)
+
+#  define klfDebugf(arglist)
 
 #  define klfDbg( streamableItems )
 #  define klfDbgT( streamableItems )
@@ -236,7 +239,7 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #else
 #define KLF_ASSERT_CONDITION(expr, msg, failaction)			\
   if ( !(expr) ) {							\
-    qWarning("In function %s:\n\t%s", (QString("")+msg).local8Bit().data()); \
+    qWarning("In function %s:\n\t%s", KLF_FUNC_NAME, (QString("")+msg).local8Bit().data()); \
     failaction;								\
   }
 #endif

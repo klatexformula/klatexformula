@@ -447,6 +447,8 @@ public:
     KLFConfigProp<double> tborderoffset;
     KLFConfigProp<double> rborderoffset;
     KLFConfigProp<double> bborderoffset;
+    KLFConfigProp<bool> calcEpsBoundingBox;
+    KLFConfigProp<bool> wantPostProcessedEps;
     KLFConfigProp<bool> outlineFonts;
 
   } BackendSettings;

@@ -618,6 +618,8 @@ void KLFMainWin::loadSettings()
   _settings.rborderoffset = klfconfig.BackendSettings.rborderoffset;
   _settings.bborderoffset = klfconfig.BackendSettings.bborderoffset;
 
+  _settings.calcEpsBoundingBox = klfconfig.BackendSettings.calcEpsBoundingBox;
+  _settings.wantPostProcessedEps = klfconfig.BackendSettings.wantPostProcessedEps;
   _settings.outlineFonts = klfconfig.BackendSettings.outlineFonts;
 
   _settings_altered = false;
@@ -636,6 +638,8 @@ void KLFMainWin::saveSettings()
     klfconfig.BackendSettings.tborderoffset = _settings.tborderoffset;
     klfconfig.BackendSettings.rborderoffset = _settings.rborderoffset;
     klfconfig.BackendSettings.bborderoffset = _settings.bborderoffset;
+    klfconfig.BackendSettings.calcEpsBoundingBox = _settings.calcEpsBoundingBox;
+    klfconfig.BackendSettings.wantPostProcessedEps = _settings.wantPostProcessedEps;
     klfconfig.BackendSettings.outlineFonts = _settings.outlineFonts;
   }
 
@@ -1824,6 +1828,10 @@ void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
     _settings.rborderoffset = ivalue; break;
   case altersetting_BBorderOffset:
     _settings.bborderoffset = ivalue; break;
+  case altersetting_CalcEpsBoundingBox:
+    _settings.calcEpsBoundingBox = (bool)ivalue; break;
+  case altersetting_WantPostProcessedEps:
+    _settings.wantPostProcessedEps = (bool)ivalue; break;
   case altersetting_OutlineFonts:
     _settings.outlineFonts = (bool)ivalue; break;
   default:

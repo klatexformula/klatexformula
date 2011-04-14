@@ -77,6 +77,9 @@
 //! Error while opening .eps file for reading
 #define KLFERR_DVIPS_OUTPUTREADFAIL -10
 #define KLFERR_EPSREADFAIL KLFERR_DVIPS_OUTPUTREADFAIL //!< obsolete, same as KLFERR_DVIPS_OUTPUTREADFAIL
+//! Error while reading/parsing %%BoundingBox: in dvips output
+#define KLFERR_DVIPS_OUTPUTNOBBOX -11
+#define KLFERR_NOEPSBBOX KLFERR_DVIPS_OUTPUTNOBBOX //!< obsolete, same as \ref KLFERR_DVIPS_OUTPUTNOBBOX
 //! Program 'gs' cannot be executed to calculate bounding box
 #define KLFERR_GSBBOX_NORUN -25
 //! Program 'gs' crashed while calculating bbox (see also \ref KLFERR_PROGERR_GSBBOX)
@@ -175,7 +178,8 @@ public:
   struct klfSettings {
     /** A default constructor assigning default (empty) values to all fields */
     klfSettings() : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
-		    outlineFonts(true), wantRaw(false), wantPDF(true), wantSVG(true), execenv() { }
+		    calcEpsBoundingBox(true), wantPostProcessedEps(true), outlineFonts(true),
+		    wantRaw(false), wantPDF(true), wantSVG(true), execenv() { }
 
     /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
     QString tempdir;
@@ -213,9 +217,27 @@ public:
      *   just an anticipation of hi-resolution bounding box adjustment. */
     double lborderoffset;
 
+    /** Call GS to recalculate EPS bounding box instead of assuming dvips' one. This setting
+     * is ignored with a non-white or non-transparent background color. */
+    bool calcEpsBoundingBox;
+
+    /** Post-process EPS file to fix page size? If \c outlineFonts is also set, then fonts
+     * are translated to paths in this process. Note that if \c outlineFonts and \c wantPDF
+     * are both TRUE, then EPS is post-processed regardless of the value given here.
+     * <i>Reason: gs won't use the option \c -dNOCACHE (font to paths) with pdfwrite
+     * device.</i>
+     *
+     * This will in most cases NOT be useful.
+     * \todo Test for possible speed-up when generating eg. PNG where we don't need really this?
+     */
+    bool wantPostProcessedEps;
+
     /** Strip away fonts in favor of vectorially outlining them with gs.
      *
      * Use this option to produce output that doens't embed fonts, eg. for Adobe Illustrator.
+     *
+     * \note This option is ignored when generating SVG with ghostscript and fonts are always
+     *   outlined. <i>Reason: otherwise, \c gs just rasterizes the fonts very uglyly (!!).</i>
      */
     bool outlineFonts;
 

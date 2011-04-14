@@ -251,7 +251,9 @@ public:
 			    altersetting_Dvips,
 			    altersetting_Gs,
 			    altersetting_Epstopdf,
-			    altersetting_OutlineFonts //!< bool given as an int value
+			    altersetting_OutlineFonts, //!< bool given as an int value
+			    altersetting_CalcEpsBoundingBox, //!< bool given as an int value
+			    altersetting_WantPostProcessedEps //!< bool given as an int value
   };
   /** This function allows to temporarily modify a given setting with a new value. KLatexFormula
    * will NOT remember the new setting in later executions.

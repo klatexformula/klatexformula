@@ -395,6 +395,23 @@
  * however printing the result while returning it.
  */
 
+/** \def klfDebugf
+ * \hideinitializer
+ *
+ * \brief print debug stream items
+ *
+ * This macro expands to <tt>qDebug(msg, args...)</tt> if KLF_DEBUG is defined, or otherwise expands
+ * to nothing.
+ *
+ * The usage is a bit special, to honor many-argument processing:
+ * \code
+ * klfDebugf(("%s: this is a debug message. value=%d", KLF_FUNC_NAME, somevalue)) ;
+ * \endcode
+ * Note the double-parenthesis.
+ *
+ * This macro functions exactly the same way in both Qt3 and Qt4.
+ */
+
 /** \def klfDbg
  * \hideinitializer
  *

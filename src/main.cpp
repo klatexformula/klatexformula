@@ -105,6 +105,7 @@ bool opt_daemonize = false;
 bool opt_dbus_export_mainwin = false;
 bool opt_skip_plugins = false;
 
+int opt_calcepsbbox = -1;
 int opt_outlinefonts = -1;
 QString opt_lborderoffset = QString();
 QString opt_tborderoffset = QString();
@@ -161,7 +162,9 @@ enum {
 
   OPT_QTOPT = 'Q',
 
-  OPT_OUTLINEFONTS = 127,
+  OPT_CALCEPSBBOX = 127,
+  OPT_NOCALCEPSBBOX,
+  OPT_OUTLINEFONTS,
   OPT_NOOUTLINEFONTS,
   OPT_LBORDEROFFSET,
   OPT_TBORDEROFFSET,
@@ -199,13 +202,15 @@ static struct option klfcmdl_optlist[] = {
   { "dpi", 1, NULL, OPT_DPI },
   { "mathmode", 1, NULL, OPT_MATHMODE },
   { "preamble", 1, NULL, OPT_PREAMBLE },
-  { "quiet", 2, NULL, OPT_QUIET },
+  { "quiet", 2 /*optional arg*/, NULL, OPT_QUIET },
   { "redirect-debug", 1, NULL, OPT_REDIRECT_DEBUG },
   { "daemonize", 0, NULL, OPT_DAEMONIZE },
   { "dbus-export-mainwin", 0, NULL, OPT_DBUS_EXPORT_MAINWIN },
   { "skip-plugins", 2, NULL, OPT_SKIP_PLUGINS },
   // -----
-  { "outlinefonts", 2 /*optional arg*/, NULL, OPT_OUTLINEFONTS },
+  { "calcepsbbox", 2, NULL, OPT_CALCEPSBBOX },
+  { "nocalcepsbbox", 2, NULL, OPT_NOCALCEPSBBOX },
+  { "outlinefonts", 2, NULL, OPT_OUTLINEFONTS },
   { "nooutlinefonts", 0, NULL, OPT_NOOUTLINEFONTS },
   { "lborderoffset", 1, NULL, OPT_LBORDEROFFSET },
   { "tborderoffset", 1, NULL, OPT_TBORDEROFFSET },
@@ -894,8 +899,10 @@ int main(int argc, char **argv)
 	args << "--quiet";
       if (opt_redirect_debug != NULL)
 	args << "--redirect-debug="+QString::fromLocal8Bit(opt_redirect_debug);
+      if (opt_calcepsbbox >= 0)
+	args << "--calcepsbbox="+QString::fromLatin1(opt_calcepsbbox?"1":"0");
       if (opt_outlinefonts >= 0)
-	args << "--outlinefonts="+QString::fromLatin1(opt_outlinefonts?"TRUE":"FALSE");
+	args << "--outlinefonts="+QString::fromLatin1(opt_outlinefonts?"1":"0");
       const struct { char c; QString optval; } borderoffsets[] =
 						{ {'t', opt_tborderoffset}, {'r', opt_rborderoffset},
 						  {'b', opt_bborderoffset}, {'l', opt_lborderoffset},
@@ -920,7 +927,7 @@ int main(int argc, char **argv)
       for (k = 0; klf_args[k] != NULL; ++k)
 	args << QString::fromLocal8Bit(klf_args[k]);
 
-      klfDbg("Prepared damonized process' command-line: progexe="<<progexe<<"; args="<<args) ;
+      klfDbg("Prepared daemonized process' command-line: progexe="<<progexe<<"; args="<<args) ;
       // now launch the klatexformula 'daemon' process
       qint64 pid;
       bool result = QProcess::startDetached(progexe, args, QDir::currentPath(), &pid);
@@ -957,6 +964,8 @@ int main(int argc, char **argv)
       // load latex after preamble, so that the interface doesn't prompt to include missing packages
       if ( ! latexinput.isNull() )
 	iface->setInputData("latex", latexinput);
+      if (opt_calcepsbbox >= 0)
+	iface->setAlterSetting_i(KLFMainWin::altersetting_CalcEpsBoundingBox, opt_calcepsbbox);
       if (opt_outlinefonts >= 0)
 	iface->setAlterSetting_i(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
       if (opt_lborderoffset.length())
@@ -1076,6 +1085,8 @@ int main(int argc, char **argv)
       qDebug("opt_preamble != NULL, gui mode, preamble=%s", opt_preamble);
       mainWin.slotSetPreamble(QString::fromLocal8Bit(opt_preamble));
     }
+    if (opt_calcepsbbox >= 0)
+      mainWin.alterSetting(KLFMainWin::altersetting_CalcEpsBoundingBox, opt_calcepsbbox);
     if (opt_outlinefonts >= 0)
       mainWin.alterSetting(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
     if (opt_lborderoffset.length())
@@ -1170,7 +1181,7 @@ int main(int argc, char **argv)
 	      KLF_VERSION_STRING);
 
     if ( opt_daemonize ) {
-      qWarning()<<qPrintable(QObject::tr("Damonize option can only be used in interactive mode!."));
+      qWarning()<<qPrintable(QObject::tr("The option --daemonize can only be used in interactive mode."));
     }
   
     // warn for ignored arguments
@@ -1225,6 +1236,9 @@ int main(int argc, char **argv)
 
     input.dpi = (opt_dpi > 0) ? opt_dpi : 1200;
 
+    settings.calcEpsBoundingBox = true;
+    if (opt_calcepsbbox >= 0)
+      settings.calcEpsBoundingBox = (bool)opt_calcepsbbox;
     settings.outlineFonts = true;
     if (opt_outlinefonts >= 0)
       settings.outlineFonts = (bool)opt_outlinefonts;
@@ -1347,7 +1361,7 @@ static void klf_read_borderoffsets(const char * arg)
   QRegExp rx("" D_RX "(?:" SEP D_RX "(?:" SEP D_RX "(?:" SEP D_RX ")?)?)?");
 
   if (rx.indexIn(QString::fromLocal8Bit(arg)) < 0) {
-    qWarning("%s", qPrintable(QObject::tr("--paste-clipboard requires interactive mode. Switching.")));
+    qWarning("%s", qPrintable(QObject::tr("Expected --borderoffsets=L[,T[,R[,B]]]")));
     return;
   }
 
@@ -1514,6 +1528,12 @@ void main_parse_options(int argc, char *argv[])
     case OPT_SKIP_PLUGINS:
       // default value 'true' (default value if option is given)
       opt_skip_plugins = __klf_parse_bool_arg(arg, true);
+      break;
+    case OPT_CALCEPSBBOX:
+      opt_calcepsbbox = __klf_parse_bool_arg(arg, true);
+      break;
+    case OPT_NOCALCEPSBBOX:
+      opt_calcepsbbox = 0;
       break;
     case OPT_OUTLINEFONTS:
       opt_outlinefonts = __klf_parse_bool_arg(arg, true);

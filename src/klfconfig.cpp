@@ -415,6 +415,8 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(BackendSettings.tborderoffset, 0) ;
   KLFCONFIGPROP_INIT(BackendSettings.rborderoffset, 0) ;
   KLFCONFIGPROP_INIT(BackendSettings.bborderoffset, 0) ;
+  KLFCONFIGPROP_INIT(BackendSettings.calcEpsBoundingBox, true) ;
+  KLFCONFIGPROP_INIT(BackendSettings.wantPostProcessedEps, true) ;
   KLFCONFIGPROP_INIT(BackendSettings.outlineFonts, true) ;
 
   KLFCONFIGPROP_INIT(LibraryBrowser.colorFound, QColor(128, 255, 128)) ;
@@ -605,6 +607,8 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "tborderoffset", &BackendSettings.tborderoffset);
   klf_config_read(s, "rborderoffset", &BackendSettings.rborderoffset);
   klf_config_read(s, "bborderoffset", &BackendSettings.bborderoffset);
+  klf_config_read(s, "calcepsboundingbox", &BackendSettings.calcEpsBoundingBox);
+  klf_config_read(s, "wantpostprocessedeps", &BackendSettings.wantPostProcessedEps);
   klf_config_read(s, "outlinefonts", &BackendSettings.outlineFonts);
   s.endGroup();
 
@@ -729,6 +733,8 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "tborderoffset", &BackendSettings.tborderoffset);
   klf_config_write(s, "rborderoffset", &BackendSettings.rborderoffset);
   klf_config_write(s, "bborderoffset", &BackendSettings.bborderoffset); 
+  klf_config_write(s, "calcepsboundingbox", &BackendSettings.calcEpsBoundingBox);
+  klf_config_write(s, "wantpostprocessedeps", &BackendSettings.wantPostProcessedEps);
   klf_config_write(s, "outlinefonts", &BackendSettings.outlineFonts);
   s.endGroup();
 

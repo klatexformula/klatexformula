@@ -29,9 +29,15 @@
 
 #ifdef KLFBACKEND_QT4
 #define dir_native_separators(x) QDir::toNativeSeparators(x)
+#define dir_entry_list(namefilter) entryList(QStringList()<<(namefilter))
 #define ba_assign(otherba) operator=(otherba)
+#define ba_cat(baptr, moredata) (*(baptr) += (moredata))
+//! Usage: <tt>buf_decl_ba(QBuffer buffer, mybytearray)</tt>
+/** will expand to <tt>QBuffer buffer(&mybytearray)</tt> on Qt4. */
+#define buf_decl_ba(bufdecl, ba) bufdecl(&(ba));
 #define dev_WRITEONLY QIODevice::WriteOnly
 #define dev_READONLY QIODevice::ReadOnly
+#define dev_TEXTTRANSLATE QIODevice::Text
 #define dev_write write
 #define fi_suffix suffix
 #define fi_absolutePath absolutePath
@@ -53,9 +59,15 @@
 #define qPrintable(x) (x).local8Bit().data()
 #define QLatin1String QString::fromLatin1
 #define dir_native_separators(x) QDir::convertSeparators(x)
+#define dir_entry_list(namefilter) entryList((namefilter))
 #define ba_assign(otherba) duplicate((otherba).data(), (otherba).size())
+#define ba_cat(baptr, moredata) klfqt3_ba_cat(baptr, moredata)
+//! Usage: <tt>buf_decl_ba(QBuffer buffer, mybytearray)</tt>
+/** will expand to <tt>QBuffer buffer(&mybytearray)</tt> on Qt4. */
+#define buf_decl_ba(bufdecl, ba) bufdecl((ba));
 #define dev_WRITEONLY IO_WriteOnly
 #define dev_READONLY IO_ReadOnly
+#define dev_TEXTTRANSLATE IO_Translate
 #define dev_write writeBlock
 #define fi_suffix extension
 #define fi_absolutePath() dirPath(true)
@@ -95,6 +107,24 @@ template <>    struct __klf_integer_for_size<8> { typedef Q_UINT64 Unsigned; typ
 template <class T> struct __klf_integer_for_sizeof: __klf_integer_for_size<sizeof(T)> { };
 typedef __klf_integer_for_sizeof<void*>::Unsigned quintptr;
 typedef __klf_integer_for_sizeof<void*>::Signed qptrdiff;
+
+
+/* concatenate QByteArray's */
+inline void klfqt3_ba_cat(QByteArray *ba, const QByteArray& moredata)
+{
+  int s1 = ba->size();
+  ba->resize(s1 + moredata.size());
+  char *it1, *it2;
+  // copy contents of moredata into second part of ba
+  it1 = ba->data() + s1;
+  it2 = moredata.data();
+  KLF_ASSERT_NOT_NULL(it1, "QByteArray data it1 is NULL in klfqt3_ba_cat!", return; ) ;
+  KLF_ASSERT_NOT_NULL(it2, "QByteArray data it2 is NULL in klfqt3_ba_cat!", return; ) ;
+  while ((it1 - ba->data()) < ba->size()) {
+    *it1++ = *it2++;
+  }
+}
+
 #endif
 
 
