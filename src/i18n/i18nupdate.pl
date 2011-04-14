@@ -19,7 +19,7 @@ sub print_usage {
 GetOptions('obsolete!' => \$use_obsolete, 'help' => sub { print_usage; exit(0); } );
 
 $tsfile = $ARGV[0] if $#ARGV >= 0;
-if ($#ARGV < 0 || $tsfile eq ""  ||  ! -e $tsfile) {
+if ($#ARGV < 0 || $tsfile eq "") {
   print_usage();
   exit 255;
 }

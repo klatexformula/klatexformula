@@ -303,7 +303,7 @@ public:
       klfDbg(" ... file cannot be accessed.") ;
       return false;
     }
-    bool isimage;
+    bool isimage = false;
     if (isKlfImage(&f, &isimage)) {
       klfDbg(" ... is KLF-saved image.") ;
       return true;
