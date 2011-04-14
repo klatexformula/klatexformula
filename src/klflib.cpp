@@ -653,7 +653,7 @@ void KLFLibResourceEngine::blockProgressReportingForNextOperation()
 
 void KLFLibResourceEngine::blockProgressReporting(bool block)
 {
-  pProgressBlocked = true;
+  pProgressBlocked = block;
   pThisOperationProgressBlockedOnly = false;
 }
 

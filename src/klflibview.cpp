@@ -423,10 +423,8 @@ bool KLFLibModelCache::KLFLibModelSorter::operator()(const NodeId& a, const Node
 
 void KLFLibModelCache::rebuildCache()
 {
-  uint flavorFlags = pModel->pFlavorFlags;
-
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg(klfFmtCC("flavorFlags=%#010x", flavorFlags));
+  klfDbg(klfFmtCC("flavorFlags=%#010x", pModel->pFlavorFlags));
   int k;
 
   // report progress
@@ -3495,6 +3493,7 @@ void KLFLibDefaultView::showEvent(QShowEvent *event)
 {
   if (pModel)
     pModel->setFetchBatchCount(80);
+  KLFAbstractLibView::showEvent(event);
 }
 
 
@@ -4517,7 +4516,7 @@ void KLFLibResPropEditor::advSubResPropEdited(QStandardItem *item)
   }
   // slotSubResourcePropertyChanged will be called.
 }
-void KLFLibResPropEditor::on_cbxSubResource_currentIndexChanged(int newSubResItemIndex)
+void KLFLibResPropEditor::on_cbxSubResource_currentIndexChanged(int /*newSubResItemIndex*/)
 {
   slotSubResourcePropertyChanged(curSubResource(), -2);
   U->txtSubResTitle->setText(pResource->subResourceProperty(curSubResource(),
@@ -4666,7 +4665,7 @@ QString KLFLibNewSubResDlg::makeSubResInternalName(const QString& title)
   QString nm = title;
   // replace "string of words-hello" with "stringOfWordsHello"
   QRegExp rx("(?:\\s|-)([a-z])");
-  int i;
+  int i = 0;
   while ((i = rx.indexIn(nm,i+1)) >= 0) {
     QChar c = rx.cap(1).length() ? rx.cap(1)[0] : QChar('_');
     nm.replace(i, rx.matchedLength(), c.toUpper());

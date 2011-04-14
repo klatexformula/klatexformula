@@ -928,6 +928,7 @@ int main(int argc, char **argv)
 	args << QString::fromLocal8Bit(klf_args[k]);
 
       klfDbg("Prepared daemonized process' command-line: progexe="<<progexe<<"; args="<<args) ;
+
       // now launch the klatexformula 'daemon' process
       qint64 pid;
       bool result = QProcess::startDetached(progexe, args, QDir::currentPath(), &pid);
@@ -1295,7 +1296,7 @@ int main(int argc, char **argv)
 
 FILE *main_msg_get_fp_arg(const char *arg)
 {
-  FILE *fp;
+  FILE *fp = NULL;
   if (arg != NULL) {
     if (arg[0] == '&') { // file descriptor number
       int fd = atoi(&arg[1]);

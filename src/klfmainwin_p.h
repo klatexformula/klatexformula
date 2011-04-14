@@ -303,7 +303,7 @@ public:
       klfDbg(" ... file cannot be accessed.") ;
       return false;
     }
-    bool isimage;
+    bool isimage = false;
     if (isKlfImage(&f, &isimage)) {
       klfDbg(" ... is KLF-saved image.") ;
       return true;
@@ -586,7 +586,7 @@ public:
     return false;
   }
 
-  virtual bool canOpenData(const QByteArray& data)
+  virtual bool canOpenData(const QByteArray& /*data*/)
   {
     // Dropped files are opened by the basic data opener, which handles "text/uri-list"
     // by calling the main window's openFiles()

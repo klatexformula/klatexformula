@@ -553,7 +553,7 @@ bool KLFLibLegacyEngine::canModifyProp(int propid) const
   return KLFLibResourceEngine::canModifyProp(propid);
 }
 
-bool KLFLibLegacyEngine::canRegisterProperty(const QString& propName) const
+bool KLFLibLegacyEngine::canRegisterProperty(const QString& /*propName*/) const
 {
   // all resource properties are stored in QVariantMap
   return canModifyProp(-1);
@@ -582,7 +582,7 @@ KLFLibEntry KLFLibLegacyEngine::entry(const QString& resource, entryId id)
 
 
 QList<KLFLibResourceEngine::KLFLibEntryWithId>
-/* */ KLFLibLegacyEngine::allEntries(const QString& resource, const QList<int>& wantedEntryProperties)
+/* */ KLFLibLegacyEngine::allEntries(const QString& resource, const QList<int>& /*wantedEntryProperties*/)
 {
   KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return QList<KLFLibEntryWithId>() ) ;
 
@@ -630,7 +630,7 @@ bool KLFLibLegacyEngine::canDeleteSubResource(const QString& subResource) const
 }
 
 bool KLFLibLegacyEngine::createSubResource(const QString& subResource,
-					   const QString& subResourceTitle)
+					   const QString& /*subResourceTitle*/)
 {
   KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
 

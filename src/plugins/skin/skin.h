@@ -98,7 +98,7 @@ public slots:
 
   void updateSkinDescription(const Skin& skin);
 
-  void on_chkNoSyntaxHighlightingChange_toggled(bool value)
+  void on_chkNoSyntaxHighlightingChange_toggled(bool /*value*/)
   { _modified = true; }
 
 private:

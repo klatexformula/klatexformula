@@ -867,6 +867,11 @@ QStringList KLFMimeExporterHTML::keys() const
 
 QByteArray KLFMimeExporterHTML::data(const QString& key, const KLFBackend::klfOutput& klfoutput)
 {
+  if (key != QLatin1String("text/html")) {
+    qWarning()<<KLF_FUNC_NAME<<": key="<<key<<" is not \"text/html\"";
+    return QByteArray();
+  }
+
   QString fname = KLFMimeExporterUrilist::tempFileForOutput(klfoutput);
 
   QSize imgsize = klfoutput.result.size();
