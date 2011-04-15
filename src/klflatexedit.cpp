@@ -27,9 +27,11 @@
 #include <QTextEdit>
 #include <QTextDocumentFragment>
 #include <QTextCursor>
+#include <QAction>
+#include <QMenu>
 
-//#include "klfconfig.h"
-#include "klfmainwin.h"
+#include <klfguiutil.h>
+
 
 #include "klflatexedit.h"
 #include "klflatexedit_p.h"
@@ -48,7 +50,7 @@ QStringList ParenItem::closeParenModifiers =
 
 
 KLFLatexEdit::KLFLatexEdit(QWidget *parent)
-  : QTextEdit(parent), mMainWin(NULL), pHeightHintLines(-1)
+  : QTextEdit(parent), mDropHandler(NULL), pHeightHintLines(-1)
 {
   mSyntaxHighlighter = new KLFLatexSyntaxHighlighter(this, this);
 
@@ -99,6 +101,7 @@ void KLFLatexEdit::setHeightHintLines(int lines)
 void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
 {
   QPoint pos = event->pos();
+  int k;
 
   if ( ! textCursor().hasSelection() ) {
     // move cursor at that point, but not if we have a selection
@@ -107,11 +110,12 @@ void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
 
   QMenu * menu = createStandardContextMenu(mapToGlobal(pos));
 
+  /*
   menu->addSeparator();
 
-  /** \todo ....make this more flexible ..... ideally integrate into KLFLatexSymbolCache... with XML description,
+  / ** \todo ....make this more flexible ..... ideally integrate into KLFLatexSymbolCache... with XML description,
    *    "symbols" that would be delimiters would have a "display latex" and an "insert latex" with instructions
-   *    in if we need to go back spaces, etc.. */
+   *    in if we need to go back spaces, etc.. * /
   static const struct { const char * instext; int charsback; const char * iconsymb; } delimList[] = {
     { "\\frac{}{}", 3, "\\frac{a}{b}" },
     { "\\sqrt{}", 1, "\\sqrt{xyz}" },
@@ -126,7 +130,6 @@ void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
   };
 
   QMenu *delimmenu = new QMenu(menu);
-  int k;
   for (k = 0; delimList[k].instext != NULL; ++k) {
     QAction *a = new QAction(delimmenu);
     a->setText(delimList[k].instext);
@@ -141,6 +144,7 @@ void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
 
   QAction *delimaction = menu->addAction(tr("Insert Delimiter"));
   delimaction->setMenu(delimmenu);
+  */
 
   QList<QAction*> actionList;
   emit insertContextMenuActions(pos, &actionList);
@@ -160,8 +164,8 @@ void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
 bool KLFLatexEdit::canInsertFromMimeData(const QMimeData *data) const
 {
   klfDbg("formats: "<<data->formats());
-  if (mMainWin != NULL)
-    if (mMainWin->canOpenData(data))
+  if (mDropHandler != NULL)
+    if (mDropHandler->canOpenDropData(data))
       return true; // data can be opened by main window
 
   // or check if we can insert the data ourselves
@@ -170,17 +174,18 @@ bool KLFLatexEdit::canInsertFromMimeData(const QMimeData *data) const
 
 void KLFLatexEdit::insertFromMimeData(const QMimeData *data)
 {
-  bool openerfound = false;
   klfDbg("formats: "<<data->formats());
-  if (mMainWin != NULL)
-    if (mMainWin->openData(data, &openerfound))
+  if (mDropHandler != NULL) {
+    int res = mDropHandler->openDropData(data);
+    if (res == KLFDropDataHandler::OpenDataOk)
       return; // data was opened by main window
-  if (openerfound) {
-    // failed to open data, don't insist.
-    return;
+    if (res == KLFDropDataHandler::OpenDataFailed) {
+      // failed to open data, don't insist.
+      return;
+    }
   }
 
-  klfDbg("mMainWin="<<mMainWin<<" did not handle the paste, doing it ourselves.") ;
+  klfDbg("mDropHandler="<<mDropHandler<<" did not handle the paste, doing it ourselves.") ;
 
   // insert the data ourselves
   QTextEdit::insertFromMimeData(data);

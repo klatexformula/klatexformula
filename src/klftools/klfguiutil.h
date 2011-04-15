@@ -521,6 +521,26 @@ private:
 
 
 
+/** \brief An abstract handler for when data is dropped.
+ */
+class KLF_EXPORT KLFDropDataHandler
+{
+public:
+  enum OpenDataError {
+    OpenDataOk = 0, //!< Opened the data Ok.
+    OpenDataFailed = 1, //!< Could handle data format, but failed to open (no further processing)
+    OpenDataCantHandle = 2 //!< Couldn't handle the given data. Try further processing
+  };
+
+  virtual bool canOpenDropData(const QMimeData * data) = 0;
+  /** Should return one of \ref OpenDataError codes */
+  virtual int openDropData(const QMimeData *data) = 0;
+};
+
+
+
+
+
 
 /** \brief Draws the given image with a glow effect.
  *

@@ -266,6 +266,7 @@ struct KLFFilterProgram {
     exitStatus = 0;
 
     KLF_ASSERT_CONDITION(argv.size() > 0, "argv array is empty! No program is given!", return false; ) ;
+    KLF_ASSERT_NOT_NULL(outdata, "Please provide a valid QByteArray outdata pointer!", return false; ) ;
 
     proc.setWorkingDirectory(programCwd);
 
@@ -333,6 +334,8 @@ struct KLFFilterProgram {
 	return false;
       }
       *outdata = outfile.readAll();
+      qDebug("KLFBackend/%s: Read file `%s', got data, length=%d", KLF_FUNC_NAME, qPrintable(outfile.fileName()),
+	     outdata->size());
     } else {
       // output file name is empty, read standard output
       *outdata = QByteArray();
@@ -573,6 +576,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     if (!ok) {
       return res;
     }
+    qDebug("%s: read raw EPS; rawepsdata/length=%d", KLF_FUNC_NAME, rawepsdata.size());
   } // end of 'dvips' block
 
   // width and height of the (final) EPS bbox in postscript points
@@ -628,7 +632,10 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
       // Read dvips' bounding box.
       buf_decl_ba(QBuffer buf, rawepsdata);
-      buf.open(dev_READONLY | dev_TEXTTRANSLATE);
+      bool r = buf.open(dev_READONLY | dev_TEXTTRANSLATE);
+      if (!r) {
+	qWarning("%s: %s: What's going on!!?! can't open buffer for reading?", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
+      }
 
       bool havebbox = false;
 
@@ -698,21 +705,34 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       }
     }
 
+#ifdef KLF_DEBUG
+    {    // DUMP RAW EPS file
+      fprintf(stderr, "Raw EPS (dvips output) file contents is:\n");
+      fwrite(rawepsdata.data(), sizeof(const char*), rawepsdata.size(), stderr);
+      fprintf(stderr, "\n");
+    }
+#endif
+
     // recall that '%%' in printf is replaced by a single '%'...
     int wi = (int)(bbox_corrected.x2 + 0.99999) ;
     int hi = (int)(bbox_corrected.y2 + 0.99999) ;
-    char buffer[256];
-    snprintf(buffer, 255,
+    char buffer[512];
+    snprintf(buffer, 511,
 	     "%%%%BoundingBox: 0 0 %d %d%s"
 	     "%%%%HiResBoundingBox: 0 0 %.6g %.6g%s"
-	     "%.6g %.6g translate%s", 	     //	 could do w/ a gsave too: "gsave %.6g %.6g translate%s",
+	     "gsave %.6g %.6g translate%s", 	     //	 could do w/ a gsave too: "gsave %.6g %.6g translate%s",
 	     wi, hi, nl, bbox_corrected.x2, bbox_corrected.y2, nl, offx, offy, nl);
-    //    char buffer2[64];
-    //    snprintf(buffer2, 64, "%sgrestore%s", nl, nl);
+    char buffer2[128];
+    snprintf(buffer2, 127, "%sgrestore%s", nl, nl);
+
+    qDebug("%s: %s: rawepsdata has length=%d", KLF_FUNC_NAME, KLF_SHORT_TIME, rawepsdata.size());
 
     // and modify the raw EPS data, to replace "%%BoundingBox:" instruction by our stuff...
     rawepsdata.replace(i, len, buffer);
-    //    rawepsdata += buffer2; // no need for grestore wo/ gsave...
+    rawepsdata += buffer2; // no need for grestore wo/ gsave...
+    //    rawepsdata += ""; // no need for grestore wo/ gsave...
+
+    qDebug("%s: %s: rawepsdata has now length=%d", KLF_FUNC_NAME, KLF_SHORT_TIME, rawepsdata.size());
 
     qDebug("%s: %s: New eps bbox is [0 0 %.6g %.6g] with translate [%.6g %.6g].", KLF_FUNC_NAME, KLF_SHORT_TIME,
 	   bbox_corrected.x2, bbox_corrected.y2, offx, offy);
@@ -738,12 +758,20 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       // what's going on ...
       p.argv << "-dNOCACHE";
     }
-    p.argv << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=ps2write"
+    p.argv << "-dNOPAUSE" << "-dSAFER"
+	   << "-dDEVICEWIDTHPOINTS="+QString::number(width_pt)
+	   << "-dDEVICEHEIGHTPOINTS="+QString::number(height_pt)
+	   << "-dFIXEDMEDIA" << "-dEPSCrop" << "-sDEVICE=ps2write"
 	   << "-sOutputFile="+dir_native_separators(fnProcessedEps)
 	   << "-q" << "-dBATCH" << "-";
 
-    fprintf(stderr, "Corrected BBox EPS file contents is:\n");
-    fwrite(rawepsdata.data(), sizeof(const char*), rawepsdata.size(), stderr);
+#ifdef KLF_DEBUG
+    {    // DUMP EPS file
+      fprintf(stderr, "Corrected BBox EPS file contents is:\n");
+      fwrite(rawepsdata.data(), sizeof(const char*), rawepsdata.size(), stderr);
+      fprintf(stderr, "\n");
+    }
+#endif
 
     ok = p.run(rawepsdata, fnProcessedEps, &res.epsdata, &res);
     if (!ok) {
@@ -764,7 +792,10 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     p.argv << settings.gsexec
 	   << "-dNOPAUSE" << "-dSAFER" << "-dTextAlphaBits=4" << "-dGraphicsAlphaBits=4"
-	   << "-r"+QString::number(in.dpi) << "-dEPSCrop";
+	   << "-r"+QString::number(in.dpi)
+	   << "-dDEVICEWIDTHPOINTS="+QString::number(width_pt)
+	   << "-dDEVICEHEIGHTPOINTS="+QString::number(height_pt)
+	   << "-dFIXEDMEDIA" << "-dEPSCrop";
     if (qAlpha(in.bg_color) > 0) { // we're forcing a background color
       p.argv << "-sDEVICE=png16m";
     } else {
@@ -827,7 +858,10 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPDF_OUTPUTREADFAIL;
 
     p.argv << settings.gsexec
-	   << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=pdfwrite"
+	   << "-dNOPAUSE" << "-dSAFER"
+	   << "-dDEVICEWIDTHPOINTS="+QString::number(width_pt)
+	   << "-dDEVICEHEIGHTPOINTS="+QString::number(height_pt)
+	   << "-dFIXEDMEDIA" << "-dEPSCrop" << "-sDEVICE=pdfwrite"
 	   << "-sOutputFile="+dir_native_separators(fnPdf)
 	   << "-q" << "-dBATCH" << "-";
 

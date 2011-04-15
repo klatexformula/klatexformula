@@ -312,7 +312,7 @@ KLFMainWin::KLFMainWin()
   u->frmDetails->hide();
 
   u->txtLatex->installEventFilter(this);
-  u->txtLatex->setMainWinDataOpener(this);
+  u->txtLatex->setDropDataHandler(this);
 
   // configure syntax highlighting colors
   KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtLatex) ;
@@ -2332,29 +2332,46 @@ bool KLFMainWin::openFiles(const QStringList& fileList)
   return result;
 }
 
-bool KLFMainWin::openData(const QMimeData *mimeData, bool *openerFound)
+int KLFMainWin::openDropData(const QMimeData *mimeData)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("mime data, formats="<<mimeData->formats()) ;
   int k;
   QString mimetype;
   QStringList fmts = mimeData->formats();
-  if (openerFound != NULL)
-    *openerFound = false;
+
   for (k = 0; k < pDataOpeners.size(); ++k) {
     mimetype = find_list_agreement(fmts, pDataOpeners[k]->supportedMimeTypes());
     if (!mimetype.isEmpty()) {
-      if (openerFound != NULL)
-	*openerFound = true;
       // mime types intersect.
       klfDbg("Opening mimetype "<<mimetype) ;
       QByteArray data = mimeData->data(mimetype);
       if (pDataOpeners[k]->openData(data, mimetype))
-	return true;
+	return OpenDataOk;
+      return OpenDataFailed;
     }
   }
 
+  return OpenDataCantHandle;
+}
+bool KLFMainWin::openData(const QMimeData *mimeData, bool *openerFound)
+{
+  int r = openDropData(mimeData);
+  if (r == OpenDataOk) {
+    if (openerFound != NULL)
+      *openerFound = true;
+    return true;
+  }
+  if (r == OpenDataCantHandle) {
+    if (openerFound != NULL)
+      *openerFound = false;
+    return false;
+  }
+  //  if (r == OpenDataFailed) { // only remaining case
+  if (openerFound != NULL)
+    *openerFound = true;
   return false;
+  //  }
 }
 bool KLFMainWin::openData(const QByteArray& data)
 {

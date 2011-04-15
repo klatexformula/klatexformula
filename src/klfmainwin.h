@@ -41,6 +41,8 @@
 
 #include <klfbackend.h>
 
+#include <klfguiutil.h>
+
 #include <klflib.h>
 #include <klfconfig.h>
 #include <klflatexsymbols.h>
@@ -215,7 +217,7 @@ class KLFMainWinPopup;
  * KLatexFormula Main Window
  * \author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
  */
-class KLF_EXPORT KLFMainWin : public QWidget
+class KLF_EXPORT KLFMainWin : public QWidget, public KLFDropDataHandler
 {
   Q_OBJECT
   Q_PROPERTY(QString widgetStyle READ widgetStyle WRITE setWidgetStyle)
@@ -295,6 +297,9 @@ public:
   bool canOpenData(const QByteArray& data);
   bool canOpenData(const QMimeData *mimeData);
 
+  //! Reimplemented from KLFDropDataHandler
+  bool canOpenDropData(const QMimeData * data) { return canOpenData(data); }
+
 signals:
 
   void evaluateFinished(const KLFBackend::klfOutput& output);
@@ -336,6 +341,8 @@ public slots:
   bool openFile(const QString& file);
   bool openFiles(const QStringList& fileList);
   bool openData(const QMimeData *mimeData, bool *openerFound = NULL);
+  //! Reimplemented from KLFDropDataHandler
+  int openDropData(const QMimeData *mimeData);
   bool openData(const QByteArray& data);
 
   bool openLibFiles(const QStringList& files, bool showLibrary = true);

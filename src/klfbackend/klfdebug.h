@@ -104,12 +104,12 @@ private:
 };
 
 
+#ifdef KLFBACKEND_QT4
+// needed anyways for eg. KLF_ASSERT_CONDITION
+#  include <QDebug>
+#endif
 
 #ifdef KLF_DEBUG
-
-#  ifdef KLFBACKEND_QT4
-#    include <QDebug>
-#  endif
 
 template<class T>
 inline const T& __klf_debug_tee(const T& expr)
@@ -231,13 +231,13 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 
 
 #ifdef KLFBACKEND_QT4
-#define KLF_ASSERT_CONDITION(expr, msg, failaction)		       \
+#  define KLF_ASSERT_CONDITION(expr, msg, failaction)		       \
   if ( !(expr) ) {						       \
     qWarning().nospace()<<"In function "<<KLF_FUNC_NAME<<":\n\t"<<msg; \
     failaction;							       \
   }
 #else
-#define KLF_ASSERT_CONDITION(expr, msg, failaction)			\
+#  define KLF_ASSERT_CONDITION(expr, msg, failaction)			\
   if ( !(expr) ) {							\
     qWarning("In function %s:\n\t%s", KLF_FUNC_NAME, (QString("")+msg).local8Bit().data()); \
     failaction;								\

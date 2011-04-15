@@ -36,11 +36,10 @@
 
 
 class KLFLatexSyntaxHighlighter;
-class KLFMainWin;
+class KLFDropDataHandler;
 
 
 // ------------------------------------------------
-
 
 
 
@@ -54,18 +53,18 @@ class KLF_EXPORT KLFLatexEdit : public QTextEdit
 
   Q_PROPERTY(int heightHintLines READ heightHintLines WRITE setHeightHintLines) ;
 public:
-  KLFLatexEdit(QWidget *mainwin);
+  KLFLatexEdit(QWidget *parent);
   virtual ~KLFLatexEdit();
 
   KLFLatexSyntaxHighlighter *syntaxHighlighter() { return mSyntaxHighlighter; }
 
-  /** This function may be used to give a pointer to a KLFMainWin that we will call
+  /** This function may be used to give a pointer to a KLFDropDataHandler that we will call
    * to open data when we get a paste/drop. If they can open the data, then we consider
    * the data pasted. Otherwise, rely on the QTextEdit built-in functionality.
    *
    * This pointer may also be NULL, in which case we will only rely on QTextEdit built-in
    * functionality. */
-  void setMainWinDataOpener(KLFMainWin *mainwin) { mMainWin = mainwin; }
+  void setDropDataHandler(KLFDropDataHandler *handler) { mDropHandler = handler; }
 
   /** See sizeHint(). This gets the preferred height of this widget in number of text lines,
    * as set by setHeightHintLints(). */
@@ -113,7 +112,7 @@ private:
   KLFLatexSyntaxHighlighter *mSyntaxHighlighter;
 
   /** This is used to open data if needed */
-  KLFMainWin *mMainWin;
+  KLFDropDataHandler *mDropHandler;
 
   int pHeightHintLines;
 };
