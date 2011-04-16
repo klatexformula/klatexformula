@@ -28,6 +28,8 @@
 #include <QTimer>
 
 #include <ktexteditor/document.h>
+#include <ktexteditor/highlightinterface.h>
+#include <ktexteditor/attribute.h>
 
 #include <kpluginfactory.h>
 #include <kpluginloader.h>
@@ -406,6 +408,17 @@ void KLFKtePluginView::slotReparseCurrentContext()
 
   KTextEditor::Document *doc = pView->document();
 
+  slotReparseCurrentContext_KatePart(doc);
+  return;
+
+
+
+
+
+
+  // ------------------
+
+
   KTextEditor::Cursor curPos = pView->cursorPosition();
 
   if (pView->selectionRange().isValid()) {
@@ -477,6 +490,71 @@ void KLFKtePluginView::slotReparseCurrentContext()
   if (KLFKteConfigData::inst()->autopopup)
     slotPreview();
 }
+
+
+#define KatePartAttrNameProperty KTextEditor::Attribute::AttributeInternalProperty
+
+
+#ifdef KLF_DEBUG
+void debug_context(KTextEditor::Document * doc, const KTextEditor::Cursor & curPos)
+{
+  KTextEditor::HighlightInterface *hiface = qobject_cast<KTextEditor::HighlightInterface*>(doc);
+
+  KLF_ASSERT_NOT_NULL(hiface, "highlightiface is NULL!", return; ) ;
+
+  QList<KTextEditor::HighlightInterface::AttributeBlock> attlist = hiface->lineAttributes(curPos.line());
+
+  qDebug("Curpos is line=%d, col=%d", curPos.line(), curPos.column());
+
+  int k;
+  for (k = 0; k < attlist.size(); ++k) {
+    if (attlist[k].start > curPos.column() || attlist[k].start + attlist[k].length < curPos.column())
+      continue;
+
+    qDebug("-- Attribute %d,  %d+%d", k, attlist[k].start, attlist[k].length);
+
+    const KTextEditor::Attribute& attr = * attlist[k].attribute.data();
+    QMap<int,QVariant> props = attr.properties();
+    
+    for (QMap<int,QVariant>::const_iterator it = props.begin(); it != props.end(); ++it) {
+      if (it.key() != KatePartAttrNameProperty)
+	continue;
+      qDebug("   - [%d]: %s", (int)it.key(), qPrintable(QVariant(it.value()).toString()));
+    }
+  }
+  qDebug("--\n");
+}
+#endif
+
+void KLFKtePluginView::slotReparseCurrentContext_KatePart(KTextEditor::Document * doc)
+{
+  KLF_ASSERT_NOT_NULL(doc, "katedoc is NULL!", return; ) ;
+
+  QRegExp startmath = QRegExp("(\\$|\\$\\$|\\\\\\(|\\\\\\[|\\begin\\{[a-zA-Z]+\\*?\\})");
+  QRegExp endmath   = QRegExp("(\\$|\\$\\$|\\\\\\)|\\\\\\]|\\end\\{[a-zA-Z]+\\*?\\})");
+
+  KTextEditor::Cursor curPos = pView->cursorPosition();
+  
+#ifdef KLF_DEBUG
+  debug_context(doc, curPos);
+#endif
+  /*
+  KTextEditor::HighlightInterface *hiface = qobject_cast<KTextEditor::HighlightInterface*>(doc);
+  KLF_ASSERT_NOT_NULL(hiface, "highlightiface is NULL!", return; ) ;
+
+  int headline = curPos.line();
+  int headpos = curPos.column();
+  int tailline = curPos.line();
+  int tailpos = curPos.column();
+
+  while (headline >= 0) {
+    QList<KTextEditor::HighlightInterface::AttributeBlock> attlist = hiface->lineAttributes(headline);
+     ... 
+    --headline;
+  }
+  */
+}
+
 
 void KLFKtePluginView::slotSelectionChanged()
 {

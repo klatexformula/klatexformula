@@ -21,6 +21,28 @@ if(NOT KLF_ROOT_CMAKE_READ)
   include(../../cmake/KLFUtil.cmake)
 endif(NOT KLF_ROOT_CMAKE_READ)
 
+
+
+
+
+
+
+#### FIXME, TEMPORARY, BUG, DEBUG ###########
+set(klf_katepart_headers_dir "/home/philippe/divers/downloads/kdelibs-4.5.2")
+include_directories("${klf_katepart_headers_dir}" "${klf_katepart_headers_dir}/kate"
+  "${klf_katepart_headers_dir}/kate/document" "${klf_katepart_headers_dir}/kate/buffer"
+  "${klf_katepart_headers_dir}/kate/syntax")
+add_definitions(-DKLF_KATEPART_HEADERS)
+
+
+
+
+
+
+
+
+
+
 macro(klf_nokde4)
   set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build KTextEditor plugin" FORCE)
   KLFNote("KDE4 is required to build KTextEditor plugin.
@@ -84,6 +106,19 @@ kde4_add_plugin(ktexteditor_klf ${ktexteditor_klf_PART_SRCS} )
 
 target_link_libraries(ktexteditor_klf ${KDE4_KDECORE_LIBS} ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS}
 				       -lktexteditor )
+
+
+
+######** FIXME, BUG, DEBUG, TODO *######
+target_link_libraries(ktexteditor_klf  /usr/lib64/kde4/katepart.so)
+
+
+
+
+
+
+
+
 if(KLF_ROOT_CMAKE_READ AND NOT KLF_LIBKLFBACKEND_STATIC)
   # link to our klfbackend
   target_link_libraries(ktexteditor_klf  klfbackend)

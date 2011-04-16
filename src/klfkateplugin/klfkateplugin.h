@@ -149,7 +149,6 @@ private:
 };
 
 
-
 class KLFKtePluginView  :  public QObject, public KXMLGUIClient
 {
   Q_OBJECT
@@ -183,6 +182,7 @@ private:
 private Q_SLOTS:
   void slotHighlightingModeChanged(KTextEditor::Document *document);
   void slotReparseCurrentContext();
+  void slotReparseCurrentContext_KatePart(KTextEditor::Document *document);
   void slotSelectionChanged();
   void slotContextMenuAboutToShow(KTextEditor::View *view, QMenu * menu);
 
