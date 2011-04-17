@@ -543,8 +543,8 @@ void KLFMainWin::startupFinished()
     action->setText(eplist[k].description());
     action->setData(eplist[k].profileName());
     action->setCheckable(true);
-    action->setChecked( (klfconfig.UI.dragExportProfile()==klfconfig.UI.copyExportProfile()) &&
-			(klfconfig.UI.dragExportProfile()==eplist[k].profileName()) );
+    action->setChecked( (klfconfig.ExportData.dragExportProfile()==klfconfig.ExportData.copyExportProfile()) &&
+			(klfconfig.ExportData.dragExportProfile()==eplist[k].profileName()) );
     menu->addAction(action);
     smapper->setMapping(action, eplist[k].profileName());
     connect(action, SIGNAL(triggered()), smapper, SLOT(map()));
@@ -619,7 +619,6 @@ void KLFMainWin::loadSettings()
   _settings.bborderoffset = klfconfig.BackendSettings.bborderoffset;
 
   _settings.calcEpsBoundingBox = klfconfig.BackendSettings.calcEpsBoundingBox;
-  _settings.wantPostProcessedEps = klfconfig.BackendSettings.wantPostProcessedEps;
   _settings.outlineFonts = klfconfig.BackendSettings.outlineFonts;
 
   _settings_altered = false;
@@ -639,7 +638,6 @@ void KLFMainWin::saveSettings()
     klfconfig.BackendSettings.rborderoffset = _settings.rborderoffset;
     klfconfig.BackendSettings.bborderoffset = _settings.bborderoffset;
     klfconfig.BackendSettings.calcEpsBoundingBox = _settings.calcEpsBoundingBox;
-    klfconfig.BackendSettings.wantPostProcessedEps = _settings.wantPostProcessedEps;
     klfconfig.BackendSettings.outlineFonts = _settings.outlineFonts;
   }
 
@@ -660,11 +658,11 @@ void KLFMainWin::saveSettings()
   u->lblOutput->setGlowEffectRadius(klfconfig.UI.glowEffectRadius);
 
   int k;
-  if (klfconfig.UI.dragExportProfile == klfconfig.UI.copyExportProfile) {
-    klfDbg("checking quick menu action item export profile="<<klfconfig.UI.copyExportProfile) ;
+  if (klfconfig.ExportData.dragExportProfile == klfconfig.ExportData.copyExportProfile) {
+    klfDbg("checking quick menu action item export profile="<<klfconfig.ExportData.copyExportProfile) ;
     // check this export profile in the quick export profile menu
     for (k = 0; k < pExportProfileQuickMenuActionList.size(); ++k) {
-      if (pExportProfileQuickMenuActionList[k]->data().toString() == klfconfig.UI.copyExportProfile) {
+      if (pExportProfileQuickMenuActionList[k]->data().toString() == klfconfig.ExportData.copyExportProfile) {
 	klfDbg("checking item #"<<k<<": "<<pExportProfileQuickMenuActionList[k]->data()) ;
 	// found the one
 	pExportProfileQuickMenuActionList[k]->setChecked(true);
@@ -677,8 +675,8 @@ void KLFMainWin::saveSettings()
       pExportProfileQuickMenuActionList[k]->setChecked(false);
   }
 
-  u->btnSetExportProfile->setEnabled(klfconfig.UI.menuExportProfileAffectsDrag ||
-				     klfconfig.UI.menuExportProfileAffectsCopy);
+  u->btnSetExportProfile->setEnabled(klfconfig.ExportData.menuExportProfileAffectsDrag ||
+				     klfconfig.ExportData.menuExportProfileAffectsCopy);
 
   if (klfconfig.UI.enableRealTimePreview) {
     if ( ! mPreviewBuilderThread->isRunning() ) {
@@ -1699,11 +1697,11 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
     QString tooltipText;
     if (obj == u->btnCopy) {
       tooltipText = tr("Copy the formula to the clipboard. Current export profile: %1")
-	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.UI.copyExportProfile).description());
+	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.copyExportProfile).description());
     } else if (obj == u->btnDrag) {
       tooltipText = tr("Click and keep mouse button pressed to drag your formula to another application. "
 		       "Current export profile: %1")
-	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.UI.dragExportProfile).description());
+	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.dragExportProfile).description());
     }
     QToolTip::showText(((QHelpEvent*)e)->globalPos(), tooltipText, qobject_cast<QWidget*>(obj));
     return true;
@@ -1830,8 +1828,6 @@ void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
     _settings.bborderoffset = ivalue; break;
   case altersetting_CalcEpsBoundingBox:
     _settings.calcEpsBoundingBox = (bool)ivalue; break;
-  case altersetting_WantPostProcessedEps:
-    _settings.wantPostProcessedEps = (bool)ivalue; break;
   case altersetting_OutlineFonts:
     _settings.outlineFonts = (bool)ivalue; break;
   default:
@@ -2443,10 +2439,10 @@ void KLFMainWin::setApplicationLocale(const QString& locale)
 
 void KLFMainWin::slotSetExportProfile(const QString& exportProfile)
 {
-  if (klfconfig.UI.menuExportProfileAffectsCopy)
-    klfconfig.UI.copyExportProfile = exportProfile;
-  if (klfconfig.UI.menuExportProfileAffectsDrag)
-    klfconfig.UI.dragExportProfile = exportProfile;
+  if (klfconfig.ExportData.menuExportProfileAffectsCopy)
+    klfconfig.ExportData.copyExportProfile = exportProfile;
+  if (klfconfig.ExportData.menuExportProfileAffectsDrag)
+    klfconfig.ExportData.dragExportProfile = exportProfile;
   saveSettings();
 }
 
@@ -2487,7 +2483,7 @@ void KLFMainWin::slotDrag()
     return;
 
   QDrag *drag = new QDrag(this);
-  KLFMimeData *mime = new KLFMimeData(klfconfig.UI.dragExportProfile, _output);
+  KLFMimeData *mime = new KLFMimeData(klfconfig.ExportData.dragExportProfile, _output);
 
   //  / ** \bug .... Temporary solution for mac os X ... * /
   //#ifdef Q_WS_MAC
@@ -2501,7 +2497,7 @@ void KLFMainWin::slotDrag()
   if (img.width() > sz.width() || img.height() > sz.height())
     img = img.scaled(sz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   // imprint the export type on the drag pixmap
-  QString exportProfileText = KLFMimeExportProfile::findExportProfile(klfconfig.UI.dragExportProfile).description();
+  QString exportProfileText = KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.dragExportProfile).description();
   { QPainter painter(&img);
     QFont smallfont = QFont("Helvetica", 8);
     smallfont.setPixelSize(12);
@@ -2535,7 +2531,7 @@ void KLFMainWin::slotCopy()
   extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
 				  const QList<QByteArray>& datalist);
 
-  QString profilename = klfconfig.UI.copyExportProfile;
+  QString profilename = klfconfig.ExportData.copyExportProfile;
   KLFMimeExportProfile p = KLFMimeExportProfile::findExportProfile(profilename);
 
   QStringList mimetypes = p.mimeTypes();
@@ -2562,11 +2558,11 @@ void KLFMainWin::slotCopy()
   klfWinClipboardCopy(winId(), wintypes, datalist);
 
 #else
-  KLFMimeData *mimedata = new KLFMimeData(klfconfig.UI.copyExportProfile, _output);
+  KLFMimeData *mimedata = new KLFMimeData(klfconfig.ExportData.copyExportProfile, _output);
   QApplication::clipboard()->setMimeData(mimedata, QClipboard::Clipboard);
 #endif
 
-  KLFMimeExportProfile profile = KLFMimeExportProfile::findExportProfile(klfconfig.UI.copyExportProfile);
+  KLFMimeExportProfile profile = KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.copyExportProfile);
   showExportMsgLabel(tr("Copied as <b>%1</b>").arg(profile.description()));
 }
 

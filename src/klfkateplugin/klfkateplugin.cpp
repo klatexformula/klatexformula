@@ -526,6 +526,16 @@ void debug_context(KTextEditor::Document * doc, const KTextEditor::Cursor & curP
 }
 #endif
 
+
+void ensure_attr_order_start(QList<KTextEditor::HighlightInterface::AttributeBlock> * attlist)
+{
+  for (int k = 1; k < attlist->size(); ++k) {
+    if (attlist->at(k).start < attlist->at(k-1).start) {
+      fprintf(stderr, "ERROR: att list is not sorted!!") ;
+    }
+  }
+}
+
 void KLFKtePluginView::slotReparseCurrentContext_KatePart(KTextEditor::Document * doc)
 {
   KLF_ASSERT_NOT_NULL(doc, "katedoc is NULL!", return; ) ;
@@ -534,11 +544,11 @@ void KLFKtePluginView::slotReparseCurrentContext_KatePart(KTextEditor::Document 
   QRegExp endmath   = QRegExp("(\\$|\\$\\$|\\\\\\)|\\\\\\]|\\end\\{[a-zA-Z]+\\*?\\})");
 
   KTextEditor::Cursor curPos = pView->cursorPosition();
-  
+
 #ifdef KLF_DEBUG
   debug_context(doc, curPos);
 #endif
-  /*
+
   KTextEditor::HighlightInterface *hiface = qobject_cast<KTextEditor::HighlightInterface*>(doc);
   KLF_ASSERT_NOT_NULL(hiface, "highlightiface is NULL!", return; ) ;
 
@@ -546,10 +556,31 @@ void KLFKtePluginView::slotReparseCurrentContext_KatePart(KTextEditor::Document 
   int headpos = curPos.column();
   int tailline = curPos.line();
   int tailpos = curPos.column();
+  /*
+  QList<KTextEditor::HighlightInterface::AttributeBlock> curattlist = hiface->lineAttributes(curPos.line());
+  int k;
+  // check that we are in math mode
+  for (
 
   while (headline >= 0) {
     QList<KTextEditor::HighlightInterface::AttributeBlock> attlist = hiface->lineAttributes(headline);
-     ... 
+
+    ensure_attr_order_start(&attlist);
+
+    k = attlist.size() - 1;
+    if (headpos >= 0) {
+      // find the attribute corresponding to this position
+      while (k >= 0) {
+	if (attlist[k].start <= headpos && attlist[k].start+attlist[k].length >= headpos)
+	  break;
+	--k;
+      }
+    }
+    // now, decrease k to previous attributes until we reach a non-math mode element
+    while (k >= 0) {
+      
+    }
+
     --headline;
   }
   */

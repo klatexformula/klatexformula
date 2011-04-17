@@ -407,19 +407,26 @@ public:
     KLFConfigProp<int> autosaveLibraryMin;
     KLFConfigProp<bool> showHintPopups;
     KLFConfigProp<bool> clearLatexOnly;
-    KLFConfigProp<QString> copyExportProfile;
-    KLFConfigProp<QString> dragExportProfile;
     KLFConfigProp<bool> glowEffect;
     KLFConfigProp<QColor> glowEffectColor;
     KLFConfigProp<int> glowEffectRadius;
     KLFConfigProp<QStringList> customMathModes;
+    KLFConfigProp<bool> emacsStyleBackspaceSearch;
+
+  } UI;
+
+  struct {
+
+    KLFConfigProp<QString> copyExportProfile;
+    KLFConfigProp<QString> dragExportProfile;
     KLFConfigProp<bool> showExportProfilesLabel;
     KLFConfigProp<bool> menuExportProfileAffectsDrag;
     KLFConfigProp<bool> menuExportProfileAffectsCopy;
     KLFConfigProp<double> oooExportScale;
-    KLFConfigProp<bool> emacsStyleBackspaceSearch;
+    KLFConfigProp<int> htmlExportDpi;
+    KLFConfigProp<int> htmlExportDisplayDpi;
 
-  } UI;
+  } ExportData;
 
   struct {
 
@@ -448,7 +455,6 @@ public:
     KLFConfigProp<double> rborderoffset;
     KLFConfigProp<double> bborderoffset;
     KLFConfigProp<bool> calcEpsBoundingBox;
-    KLFConfigProp<bool> wantPostProcessedEps;
     KLFConfigProp<bool> outlineFonts;
 
   } BackendSettings;

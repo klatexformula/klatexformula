@@ -76,10 +76,10 @@ public:
 
   virtual QString windowsFormatName(const QString& key) const;
 
-  static QString tempFileForOutput(const KLFBackend::klfOutput& klfoutput);
+  static QString tempFileForOutput(const KLFBackend::klfOutput& klfoutput, int targetDpi = -1);
 
 private:
-  static QMap<qint64,QString> tempFilesForImageCacheKey;
+  static QMap<qint64,QMap<int,QString> > tempFilesForImageCacheKey;
 };
 
 /** Export HTML document with image and alt text ("text/html"). */

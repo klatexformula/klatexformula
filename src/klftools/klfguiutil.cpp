@@ -488,3 +488,19 @@ KLF_EXPORT void klfDrawGlowedImage(QPainter *p, const QImage& foreground, const 
   if (also_draw_image)
     p->drawImage(QPoint(0,0), fg);
 }
+
+
+
+// --------------------------
+
+QImage klfImageScaled(const QImage& source, const QSize& newSize)
+{
+  QImage img = source.scaled(newSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  // set text attributes
+  QStringList keys = source.textKeys();
+  int k;
+  for (k = 0; k < keys.size(); ++k) {
+    img.setText(keys[k], source.text(keys[k]));
+  }
+  return img;
+}

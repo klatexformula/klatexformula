@@ -35,6 +35,7 @@
 #include <QListView> // icon view flow
 #include <QLocale>
 #include <QDesktopServices> // "My Documents" or "Documents" directory
+#include <QDesktopWidget>
 
 #include <klfmainwin.h>
 
@@ -368,17 +369,28 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.autosaveLibraryMin, 5) ;
   KLFCONFIGPROP_INIT(UI.showHintPopups, true) ;
   KLFCONFIGPROP_INIT(UI.clearLatexOnly, false) ;
-  KLFCONFIGPROP_INIT(UI.copyExportProfile, "default") ;
-  KLFCONFIGPROP_INIT(UI.dragExportProfile, "default") ;
   KLFCONFIGPROP_INIT(UI.glowEffect, false) ;
   KLFCONFIGPROP_INIT(UI.glowEffectColor, QColor(128, 255, 128, 12)) ;
   KLFCONFIGPROP_INIT(UI.glowEffectRadius, 4) ;
   KLFCONFIGPROP_INIT(UI.customMathModes, QStringList()) ;
-  KLFCONFIGPROP_INIT(UI.showExportProfilesLabel, true) ;
-  KLFCONFIGPROP_INIT(UI.menuExportProfileAffectsDrag, true) ;
-  KLFCONFIGPROP_INIT(UI.menuExportProfileAffectsCopy, true) ;
-  KLFCONFIGPROP_INIT(UI.oooExportScale, 1.6) ;
   KLFCONFIGPROP_INIT(UI.emacsStyleBackspaceSearch, true) ;
+  KLFCONFIGPROP_INIT(ExportData.copyExportProfile, "default") ;
+  KLFCONFIGPROP_INIT(ExportData.dragExportProfile, "default") ;
+  KLFCONFIGPROP_INIT(ExportData.showExportProfilesLabel, true) ;
+  KLFCONFIGPROP_INIT(ExportData.menuExportProfileAffectsDrag, true) ;
+  KLFCONFIGPROP_INIT(ExportData.menuExportProfileAffectsCopy, true) ;
+  KLFCONFIGPROP_INIT(ExportData.oooExportScale, 1.6) ;
+  KLFCONFIGPROP_INIT(ExportData.htmlExportDpi, 150);
+  // query display DPI
+  int dispdpi = 96;
+  /*  if (qApp->inherits("QApplication")) {
+      QDesktopWidget *w = QApplication::desktop();
+      if (w != NULL) {
+      // dispdpi = (w->physicalDpiX() + w->physicalDpiY()) / 2;
+      dispdpi = w->physicalDpiX();
+      }
+      } */
+  KLFCONFIGPROP_INIT(ExportData.htmlExportDisplayDpi, dispdpi);
 
   KLFCONFIGPROP_INIT(SyntaxHighlighter.enabled, true) ;
   KLFCONFIGPROP_INIT(SyntaxHighlighter.highlightParensOnly, false) ;
@@ -416,7 +428,6 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(BackendSettings.rborderoffset, 0) ;
   KLFCONFIGPROP_INIT(BackendSettings.bborderoffset, 0) ;
   KLFCONFIGPROP_INIT(BackendSettings.calcEpsBoundingBox, true) ;
-  KLFCONFIGPROP_INIT(BackendSettings.wantPostProcessedEps, true) ;
   KLFCONFIGPROP_INIT(BackendSettings.outlineFonts, true) ;
 
   KLFCONFIGPROP_INIT(LibraryBrowser.colorFound, QColor(128, 255, 128)) ;
@@ -569,19 +580,31 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
   klf_config_read(s, "showhintpopups", &UI.showHintPopups);
   klf_config_read(s, "clearlatexonly", &UI.clearLatexOnly);
-  klf_config_read(s, "copyexportprofile", &UI.copyExportProfile);
-  klf_config_read(s, "dragexportprofile", &UI.dragExportProfile);
   klf_config_read(s, "gloweffect", &UI.glowEffect);
   klf_config_read(s, "gloweffectcolor", &UI.glowEffectColor);
   klfDbg("Read glow effect color from config: color="<<UI.glowEffectColor
 	 <<", alpha="<<UI.glowEffectColor().alpha());
   klf_config_read(s, "gloweffectradius", &UI.glowEffectRadius);
   klf_config_read(s, "custommathmodes", &UI.customMathModes);
-  klf_config_read(s, "showexportprofileslabel", &UI.showExportProfilesLabel);
-  klf_config_read(s, "menuexportprofileaffectsdrag", &UI.menuExportProfileAffectsDrag);
-  klf_config_read(s, "menuexportprofileaffectscopy", &UI.menuExportProfileAffectsCopy);
-  klf_config_read(s, "oooexportscale", &UI.oooExportScale);
   klf_config_read(s, "emacsstylebackspacesearch", &UI.emacsStyleBackspaceSearch);
+  // backwards-compatible (v 3.2): read first in UI group, then overwrite with settings in ExportData group
+  klf_config_read(s, "copyexportprofile", &ExportData.copyExportProfile);
+  klf_config_read(s, "dragexportprofile", &ExportData.dragExportProfile);
+  klf_config_read(s, "showexportprofileslabel", &ExportData.showExportProfilesLabel);
+  klf_config_read(s, "menuexportprofileaffectsdrag", &ExportData.menuExportProfileAffectsDrag);
+  klf_config_read(s, "menuexportprofileaffectscopy", &ExportData.menuExportProfileAffectsCopy);
+  klf_config_read(s, "oooexportscale", &ExportData.oooExportScale);
+  s.endGroup();
+
+  s.beginGroup("ExportData");
+  klf_config_read(s, "copyexportprofile", &ExportData.copyExportProfile);
+  klf_config_read(s, "dragexportprofile", &ExportData.dragExportProfile);
+  klf_config_read(s, "showexportprofileslabel", &ExportData.showExportProfilesLabel);
+  klf_config_read(s, "menuexportprofileaffectsdrag", &ExportData.menuExportProfileAffectsDrag);
+  klf_config_read(s, "menuexportprofileaffectscopy", &ExportData.menuExportProfileAffectsCopy);
+  klf_config_read(s, "oooexportscale", &ExportData.oooExportScale);
+  klf_config_read(s, "htmlexportdpi", &ExportData.htmlExportDpi);
+  klf_config_read(s, "htmlexportdisplaydpi", &ExportData.htmlExportDisplayDpi);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -608,7 +631,6 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "rborderoffset", &BackendSettings.rborderoffset);
   klf_config_read(s, "bborderoffset", &BackendSettings.bborderoffset);
   klf_config_read(s, "calcepsboundingbox", &BackendSettings.calcEpsBoundingBox);
-  klf_config_read(s, "wantpostprocessedeps", &BackendSettings.wantPostProcessedEps);
   klf_config_read(s, "outlinefonts", &BackendSettings.outlineFonts);
   s.endGroup();
 
@@ -697,17 +719,22 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
   klf_config_write(s, "showhintpopups", &UI.showHintPopups);
   klf_config_write(s, "clearlatexonly", &UI.clearLatexOnly);
-  klf_config_write(s, "copyexportprofile", &UI.copyExportProfile);
-  klf_config_write(s, "dragexportprofile", &UI.dragExportProfile);
   klf_config_write(s, "gloweffect", &UI.glowEffect);
   klf_config_write(s, "gloweffectcolor", &UI.glowEffectColor);
   klf_config_write(s, "gloweffectradius", &UI.glowEffectRadius);
   klf_config_write(s, "custommathmodes", &UI.customMathModes);
-  klf_config_write(s, "showexportprofileslabel", &UI.showExportProfilesLabel);
-  klf_config_write(s, "menuexportprofileaffectsdrag", &UI.menuExportProfileAffectsDrag);
-  klf_config_write(s, "menuexportprofileaffectscopy", &UI.menuExportProfileAffectsCopy);
-  klf_config_write(s, "oooexportscale", &UI.oooExportScale);
   klf_config_write(s, "emacsstylebackspacesearch", &UI.emacsStyleBackspaceSearch);
+  s.endGroup();
+
+  s.beginGroup("ExportData");
+  klf_config_write(s, "copyexportprofile", &ExportData.copyExportProfile);
+  klf_config_write(s, "dragexportprofile", &ExportData.dragExportProfile);
+  klf_config_write(s, "showexportprofileslabel", &ExportData.showExportProfilesLabel);
+  klf_config_write(s, "menuexportprofileaffectsdrag", &ExportData.menuExportProfileAffectsDrag);
+  klf_config_write(s, "menuexportprofileaffectscopy", &ExportData.menuExportProfileAffectsCopy);
+  klf_config_write(s, "oooexportscale", &ExportData.oooExportScale);
+  klf_config_write(s, "htmlexportdpi", &ExportData.htmlExportDpi);
+  klf_config_write(s, "htmlexportdisplaydpi", &ExportData.htmlExportDisplayDpi);
   s.endGroup();
 
   s.beginGroup("SyntaxHighlighter");
@@ -734,7 +761,6 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "rborderoffset", &BackendSettings.rborderoffset);
   klf_config_write(s, "bborderoffset", &BackendSettings.bborderoffset); 
   klf_config_write(s, "calcepsboundingbox", &BackendSettings.calcEpsBoundingBox);
-  klf_config_write(s, "wantpostprocessedeps", &BackendSettings.wantPostProcessedEps);
   klf_config_write(s, "outlinefonts", &BackendSettings.outlineFonts);
   s.endGroup();
 

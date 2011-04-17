@@ -563,6 +563,17 @@ KLF_EXPORT void klfDrawGlowedImage(QPainter *painter, const QImage& foreground,
 
 
 
+/** \brief Scale image, preserve aspect ratio and meta-information
+ *
+ * Calls QImage::scaled(), with instruction to keep aspect ratio, to scale
+ * to new size, with a smooth (not fast) transformation.
+ *
+ * Then copies the original image's meta-information to the returned image
+ * with QImage::setText().
+ */
+KLF_EXPORT QImage klfImageScaled(const QImage& source, const QSize& newSize);
+
+
 
 
 #endif

@@ -514,13 +514,13 @@ void KLFSettings::reset()
   u->chkClearLatexOnly->setChecked(klfconfig.UI.clearLatexOnly);
   u->chkGlowEffect->setChecked(klfconfig.UI.glowEffect);
 
-  int copyi = u->cbxCopyExportProfile->findData(QVariant(klfconfig.UI.copyExportProfile));
+  int copyi = u->cbxCopyExportProfile->findData(QVariant(klfconfig.ExportData.copyExportProfile));
   u->cbxCopyExportProfile->setCurrentIndex(copyi);
-  int dragi = u->cbxDragExportProfile->findData(QVariant(klfconfig.UI.dragExportProfile));
+  int dragi = u->cbxDragExportProfile->findData(QVariant(klfconfig.ExportData.dragExportProfile));
   u->cbxDragExportProfile->setCurrentIndex(dragi);
-  //  u->chkShowExportProfilesLabel->setChecked(klfconfig.UI.showExportProfilesLabel);
-  u->chkMenuExportProfileAffectsDrag->setChecked(klfconfig.UI.menuExportProfileAffectsDrag);
-  u->chkMenuExportProfileAffectsCopy->setChecked(klfconfig.UI.menuExportProfileAffectsCopy);
+  //  u->chkShowExportProfilesLabel->setChecked(klfconfig.ExportData.showExportProfilesLabel);
+  u->chkMenuExportProfileAffectsDrag->setChecked(klfconfig.ExportData.menuExportProfileAffectsDrag);
+  u->chkMenuExportProfileAffectsCopy->setChecked(klfconfig.ExportData.menuExportProfileAffectsCopy);
 
   u->chkLibRestoreURLs->setChecked(klfconfig.LibraryBrowser.restoreURLs);
   u->chkLibConfirmClose->setChecked(klfconfig.LibraryBrowser.confirmClose);
@@ -1144,13 +1144,13 @@ void KLFSettings::apply()
   klfconfig.UI.clearLatexOnly = u->chkClearLatexOnly->isChecked();
   klfconfig.UI.glowEffect = u->chkGlowEffect->isChecked();
 
-  klfconfig.UI.copyExportProfile = 
+  klfconfig.ExportData.copyExportProfile = 
     u->cbxCopyExportProfile->itemData(u->cbxCopyExportProfile->currentIndex()).toString();
-  klfconfig.UI.dragExportProfile = 
+  klfconfig.ExportData.dragExportProfile = 
     u->cbxDragExportProfile->itemData(u->cbxDragExportProfile->currentIndex()).toString();
-  //  klfconfig.UI.showExportProfilesLabel = u->chkShowExportProfilesLabel->isChecked();
-  klfconfig.UI.menuExportProfileAffectsDrag = u->chkMenuExportProfileAffectsDrag->isChecked();
-  klfconfig.UI.menuExportProfileAffectsCopy = u->chkMenuExportProfileAffectsCopy->isChecked();
+  //  klfconfig.ExportData.showExportProfilesLabel = u->chkShowExportProfilesLabel->isChecked();
+  klfconfig.ExportData.menuExportProfileAffectsDrag = u->chkMenuExportProfileAffectsDrag->isChecked();
+  klfconfig.ExportData.menuExportProfileAffectsCopy = u->chkMenuExportProfileAffectsCopy->isChecked();
 
   klfconfig.LibraryBrowser.restoreURLs = u->chkLibRestoreURLs->isChecked();
   klfconfig.LibraryBrowser.confirmClose = u->chkLibConfirmClose->isChecked();

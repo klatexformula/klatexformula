@@ -765,7 +765,10 @@ QByteArray KLFMimeExporterImage::data(const QString& keymime, const KLFBackend::
 
 // ---------------------------------------------------------------------
 
-QMap<qint64,QString> KLFMimeExporterUrilist::tempFilesForImageCacheKey = QMap<qint64,QString>();
+inline qint64 qHash(const QRegExp& rx) { return qHash(rx.pattern()); }
+
+QMap<qint64,QMap<int,QString> > KLFMimeExporterUrilist::tempFilesForImageCacheKey =
+  QMap<qint64,QMap<int,QString> >();
 
 QStringList KLFMimeExporterUrilist::keys() const
 {
@@ -774,37 +777,50 @@ QStringList KLFMimeExporterUrilist::keys() const
 }
 
 // static
-QString KLFMimeExporterUrilist::tempFileForOutput(const KLFBackend::klfOutput& output)
+QString KLFMimeExporterUrilist::tempFileForOutput(const KLFBackend::klfOutput& output, int targetDpi)
 {
   qint64 imgcachekey = output.result.cacheKey();
 
   QString tempfilename;
 
-  if (tempFilesForImageCacheKey.contains(imgcachekey)) {
-    tempfilename = tempFilesForImageCacheKey[imgcachekey];
-  } else {
-    QString templ = klfconfig.BackendSettings.tempDir +
-      QString("/klf_%1_XXXXXX.png").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm"));
-    QTemporaryFile *tempfile = new QTemporaryFile(templ, qApp);
-    tempfile->setAutoRemove(true); // will be deleted when klatexformula exists (= qApp destroyed)
-    if (tempfile->open() == false) {
-      qWarning("Can't open temp png file for mimetype text/uri-list: template is %s",
-	       qPrintable(templ));
-      return QByteArray();
-    } else {
-      QString errStr;
-      bool res = KLFBackend::saveOutputToFile(output, tempfile->fileName(), "PNG", &errStr);
-      if (!res) {
-	qWarning()<<KLF_FUNC_NAME<<": Can't save to temp file "<<tempfile->fileName()<<": "<<errStr;
-      } else {
-	tempfilename = tempfile->fileName();
-	tempfile->write(output.pngdata);
-	tempfile->close();
-	// cache this temp file for other formats' use or other QMimeData instantiation...
-	tempFilesForImageCacheKey[imgcachekey] = tempfilename;
-      }
-    }
+  if (targetDpi <= 0)
+    targetDpi = output.input.dpi;
+
+  if (tempFilesForImageCacheKey.contains(imgcachekey) &&
+      tempFilesForImageCacheKey[imgcachekey].contains(targetDpi)) {
+    return tempFilesForImageCacheKey[imgcachekey][targetDpi];
   }
+
+  QString templ = klfconfig.BackendSettings.tempDir +
+    QString::fromLatin1("/klf_%2_XXXXXX.%1.png")
+    .arg(targetDpi).arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm"));
+  QTemporaryFile *tempfile = new QTemporaryFile(templ, qApp);
+  tempfile->setAutoRemove(true); // will be deleted when klatexformula exists (= qApp destroyed)
+  if (tempfile->open() == false) {
+    qWarning("Can't open temp png file for mimetype text/uri-list: template is %s",
+	     qPrintable(templ));
+    return QByteArray();
+  }
+  QString errStr;
+  QImage img = output.result;
+  if (targetDpi > 0 && targetDpi != output.input.dpi) {
+    // scale image as needed
+    QSize targetSize = img.size();
+    targetSize *= (float) targetDpi / output.input.dpi;
+    klfDbg("scaling to "<<targetDpi<<" DPI from "<<output.input.dpi<<" DPI... targetSize="<<targetSize) ;
+    img = klfImageScaled(img, targetSize);
+  }
+
+  bool res = img.save(tempfile, "PNG");
+  if (!res) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't save to temp file "<<tempfile->fileName()<<": "<<errStr;
+    return QString();
+  }
+
+  tempfilename = tempfile->fileName();
+  tempfile->close();
+  // cache this temp file for other formats' use or other QMimeData instantiation...
+  tempFilesForImageCacheKey[imgcachekey][targetDpi] = tempfilename;
 
   return tempfilename;
 }
@@ -865,6 +881,24 @@ QStringList KLFMimeExporterHTML::keys() const
   return QStringList() << QLatin1String("text/html");
 }
 
+static QHash<QRegExp, QString> klf_getReplaceDisplayLatex()
+{
+  static QHash<QRegExp, QString> replaceDisplayLatex;
+  if (replaceDisplayLatex.isEmpty()) {
+    // fill it up !
+
+    //    \! \, \; \:  -> simple space
+    replaceDisplayLatex[QRegExp("\\\\[,;:!]")] = " ";
+    //    \text{Hello}, \mathrm{Hilbert-Einstein}  -->  {the text}
+    replaceDisplayLatex[QRegExp("\\\\(?:text|mathrm)\\{((?:\\w|\\s|[._-])*)\\}")] = "{\\1}";
+
+    //    \var(epsilon|phi|...)    ->   \epsilon,\phi,...
+    replaceDisplayLatex[QRegExp("\\\\var([a-zA-Z]+)")] = "\\\\1";
+
+  }
+  return replaceDisplayLatex;
+}
+
 QByteArray KLFMimeExporterHTML::data(const QString& key, const KLFBackend::klfOutput& klfoutput)
 {
   if (key != QLatin1String("text/html")) {
@@ -872,11 +906,16 @@ QByteArray KLFMimeExporterHTML::data(const QString& key, const KLFBackend::klfOu
     return QByteArray();
   }
 
-  QString fname = KLFMimeExporterUrilist::tempFileForOutput(klfoutput);
+  int htmldpi = klfconfig.ExportData.htmlExportDpi;
+  if (klfoutput.input.dpi < htmldpi * 1.25f)
+    htmldpi = klfoutput.input.dpi;
+
+  QString fname = KLFMimeExporterUrilist::tempFileForOutput(klfoutput, htmldpi);
+
+  int dispDpi = klfconfig.ExportData.htmlExportDisplayDpi;
 
   QSize imgsize = klfoutput.result.size();
-  int imgDpi = klfoutput.input.dpi;
-  int dispDpi = 100;
+  imgsize *= (float) htmldpi / klfoutput.input.dpi;
 
   QString latex = klfoutput.input.latex;
   // remove initial comments from latex code...
@@ -885,14 +924,22 @@ QByteArray KLFMimeExporterHTML::data(const QString& key, const KLFBackend::klfOu
     latexlines.removeAt(0);
   latex = latexlines.join("\n");
 
+  // format LaTeX code nicely to be displayed
+  QHash<QRegExp, QString> replaceDisplayLatex = klf_getReplaceDisplayLatex();
+  for (QHash<QRegExp, QString>::iterator it = replaceDisplayLatex.begin();
+       it != replaceDisplayLatex.end(); ++it) {
+    latex.replace(it.key(), it.value());
+  }
+
   QString fn = toAttrTextS(fname);
   QString l = toAttrTextS(latex);
-  fn.replace("\"", "&#34;");
-  l.replace("\"", "&#34;");
-  QString w = QString::number((int)(1.5 * imgsize.width() * dispDpi/imgDpi));
-  QString h = QString::number((int)(1.5 * imgsize.height() * dispDpi/imgDpi));
-  QString win = QString::number(1.5 * imgsize.width() / imgDpi);
-  QString hin = QString::number(1.5 * imgsize.height() / imgDpi);
+  //  QString w = QString::number((int)(imgsize.width() * dispDpi/htmldpi));
+  //  QString h = QString::number((int)(imgsize.height() * dispDpi/htmldpi));
+  QString win = QString::number((float)imgsize.width() / dispDpi, 'f', 3);
+  QString hin = QString::number((float)imgsize.height() / dispDpi, 'f', 3);
+
+  klfDbg("origimg/size="<<klfoutput.result.size()<<"; origDPI="<<klfoutput.input.dpi<<"; htmldpi="<<htmldpi
+	 <<"; dispDPI="<<dispDpi<<"; imgsize="<<imgsize<<"; win="<<win<<"; hin="<<hin) ;
 
   QString html =
     QString("<img src=\"file://%1\" alt=\"%2\" title=\"%3\" " //"width=\"%4\" height=\"%5\" "
@@ -961,7 +1008,7 @@ QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput)
   templ.replace(QByteArray("<!--KLF_OOOLATEX_ARGS-->"), toAttrText("12§display§"+klfoutput.input.latex));
 
   // scale equation (eg. make them larger, so it is not too cramped up)
-  const double DPI_FACTOR = klfconfig.UI.oooExportScale;
+  const double DPI_FACTOR = klfconfig.ExportData.oooExportScale;
 
   // cm/inch = 2.54
   // include an elargment factor in these tags
