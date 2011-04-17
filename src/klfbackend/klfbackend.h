@@ -178,7 +178,7 @@ public:
   struct klfSettings {
     /** A default constructor assigning default (empty) values to all fields */
     klfSettings() : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
-		    calcEpsBoundingBox(true), wantPostProcessedEps(true), outlineFonts(true),
+		    calcEpsBoundingBox(true), outlineFonts(true),
 		    wantRaw(false), wantPDF(true), wantSVG(true), execenv() { }
 
     /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
@@ -220,17 +220,6 @@ public:
     /** Call GS to recalculate EPS bounding box instead of assuming dvips' one. This setting
      * is ignored with a non-white or non-transparent background color. */
     bool calcEpsBoundingBox;
-
-    /** Post-process EPS file to fix page size? If \c outlineFonts is also set, then fonts
-     * are translated to paths in this process. Note that if \c outlineFonts and \c wantPDF
-     * are both TRUE, then EPS is post-processed regardless of the value given here.
-     * <i>Reason: gs won't use the option \c -dNOCACHE (font to paths) with pdfwrite
-     * device.</i>
-     *
-     * This will in most cases NOT be useful.
-     * \todo Test for possible speed-up when generating eg. PNG where we don't need really this?
-     */
-    bool wantPostProcessedEps;
 
     /** Strip away fonts in favor of vectorially outlining them with gs.
      *

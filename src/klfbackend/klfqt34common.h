@@ -24,6 +24,7 @@
 #ifndef KLFQT34COMMON_H
 #define KLFQT34COMMON_H
 
+#include <string.h>
 
 // some convenient #define's for Qt3/4 compatibility
 
@@ -32,6 +33,8 @@
 #define dir_entry_list(namefilter) entryList(QStringList()<<(namefilter))
 #define ba_assign(otherba) operator=(otherba)
 #define ba_cat(baptr, moredata) (*(baptr) += (moredata))
+#define ba_indexOf klfqt4_ba_indexof
+#define ba_replace(baptr, start, len, replacement) (baptr)->replace((start), (len), (replacement))
 //! Usage: <tt>buf_decl_ba(QBuffer buffer, mybytearray)</tt>
 /** will expand to <tt>QBuffer buffer(&mybytearray)</tt> on Qt4. */
 #define buf_decl_ba(bufdecl, ba) bufdecl(&(ba));
@@ -43,6 +46,7 @@
 #define fi_absolutePath absolutePath
 #define f_open_fp(fp) open((fp), dev_WRITEONLY)
 #define f_setFileName setFileName
+#define f_filename fileName
 #define f_error error
 #define s_trimmed trimmed
 #define s_toUpper toUpper
@@ -61,7 +65,9 @@
 #define dir_native_separators(x) QDir::convertSeparators(x)
 #define dir_entry_list(namefilter) entryList((namefilter))
 #define ba_assign(otherba) duplicate((otherba).data(), (otherba).size())
-#define ba_cat(baptr, moredata) klfqt3_ba_cat(baptr, moredata)
+#define ba_cat(baptr, moredata) klfqt3_ba_cat((baptr), (moredata))
+#define ba_indexOf klfqt3_ba_indexof
+#define ba_replace(baptr, start, len, replacement) klfqt3_ba_replace((baptr), (start), (len), (replacement))
 //! Usage: <tt>buf_decl_ba(QBuffer buffer, mybytearray)</tt>
 /** will expand to <tt>QBuffer buffer(&mybytearray)</tt> on Qt4. */
 #define buf_decl_ba(bufdecl, ba) bufdecl((ba));
@@ -73,6 +79,7 @@
 #define fi_absolutePath() dirPath(true)
 #define f_open_fp(fp) open(dev_WRITEONLY, (fp))
 #define f_setFileName setName
+#define f_filename name
 #define f_error errorString
 #define s_trimmed stripWhiteSpace
 #define s_toUpper upper
@@ -91,6 +98,8 @@
 // EXTRA DEFINITIONS
 
 #ifndef KLFBACKEND_QT4
+// QT 3
+
 // The following lines defining quintptr/qptrdiff are taken from Qt's corelib/global/qglobal.h
 // source file. (changed QIntegerForSize -> __klf_integer_for_size)
 /*
@@ -112,6 +121,9 @@ typedef __klf_integer_for_sizeof<void*>::Signed qptrdiff;
 /* concatenate QByteArray's */
 inline void klfqt3_ba_cat(QByteArray *ba, const QByteArray& moredata)
 {
+  if (moredata.isNull())
+    return; // nothing to do
+
   int s1 = ba->size();
   ba->resize(s1 + moredata.size());
   char *it1, *it2;
@@ -124,6 +136,62 @@ inline void klfqt3_ba_cat(QByteArray *ba, const QByteArray& moredata)
     *it1++ = *it2++;
   }
 }
+
+inline int klfqt3_ba_indexof(const QByteArray& ba, const char *str, int from = 0)
+{
+  int l = strlen(str);
+  while (from < (int)ba.size()) {
+    if (!strncmp(ba.data()+from, str, l))
+      return from;
+    ++from;
+  }
+  return -1;
+}
+
+inline void klfqt3_ba_replace_ba(QByteArray *ba, int start, int length, const QByteArray & replacement)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  int s1 = ba->size();
+  int k;
+  int delta = replacement.size() - length;
+
+  // see if we must grow or shrink
+  if (delta > 0) {
+    // we grow, copy the data further down, possibly overlapping; copy from end of shifted data
+    ba->resize(s1 + delta);
+    // k points to the "source" data
+    for (k = s1 - 1; k >= start+length; --k)
+      ba->at(k+delta) = ba->at(k);
+  }
+  if (delta < 0) {
+    // we shrink, copy the data back up, possibly overlapping; copy from beginning of shifted data
+    // k points to the "source" data
+    for (k = start+length; k < s1; ++k)
+      ba->at(k+delta) = ba->at(k); // !!! delta<0: i.e. k+delta == k-abs(delta) !!!
+    ba->resize(s1 + delta);
+  }
+
+  // now, just copy replacement onto [start+length]
+  for (k = 0; k < (int)replacement.size(); ++k)
+    ba->at(start+k) = replacement.at(k);
+  return;
+
+}
+inline void klfqt3_ba_replace(QByteArray *ba, int start, int length, const char * replacementstr)
+{
+  QByteArray replacement;
+  int l = strlen(replacementstr);
+  replacement.setRawData(replacementstr, l);
+  klfDebugf(("replacement: '%s', size=%d", replacementstr, replacement.size())) ;
+  klfqt3_ba_replace_ba(ba, start, length, replacement);
+  replacement.resetRawData(replacementstr, l);
+}
+
+#else
+// QT 4
+
+inline int klfqt4_ba_indexof(const QByteArray& ba, const char *str, int from = 0)
+{ return ba.indexOf(str, from); }
 
 #endif
 
