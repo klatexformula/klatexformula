@@ -50,7 +50,6 @@ endif(NOT KLF_BUILD_GUI)
 # Sources
 set(klfapp_SRCS
 	klfconfig.cpp
-	klflatexedit.cpp
 	klflatexsymbols.cpp
 	klflibentryeditor.cpp
 	klflibbrowser.cpp
@@ -67,7 +66,6 @@ set(klfapp_SRCS
 # Headers
 #  * with QObject classes (needs moc)
 set(klfapp_MOCHEADERS
-	klflatexedit.h
 	klflatexsymbols.h
 	klflatexsymbols_p.h
 	klflibentryeditor.h
@@ -89,7 +87,6 @@ set(klfapp_MOCHEADERS
 )
 #  * all headers
 set(klfapp_HEADERS
-	klflatexedit_p.h
 	klfmain.h
 	klfconfig.h
 	klfpluginiface.h

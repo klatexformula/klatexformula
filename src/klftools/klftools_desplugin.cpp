@@ -401,6 +401,71 @@ void KLFColorChooserDesPlugin::initialize(QDesignerFormEditorInterface *core)
 
 
 
+// -----------
+
+
+KLFLatexEditDesPlugin::KLFLatexEditDesPlugin(QObject *parent)
+{
+  Q_UNUSED(parent) ;
+}
+
+bool KLFLatexEditDesPlugin::isContainer() const
+{
+  return false;
+}
+bool KLFLatexEditDesPlugin::isInitialized() const
+{
+  return pInitialized;
+}
+QIcon KLFLatexEditDesPlugin::icon() const
+{
+  return QIcon();
+}
+QString KLFLatexEditDesPlugin::domXml() const
+{
+  return "<widget class=\"KLFLatexEdit\" name=\"latexEdit\"></widget>\n";
+}
+QString KLFLatexEditDesPlugin::group() const
+{
+  return "Utilities";
+}
+QString KLFLatexEditDesPlugin::includeFile() const
+{
+  return "klflatexedit.h";
+}
+QString KLFLatexEditDesPlugin::name() const
+{
+  return "KLFLatexEdit";
+}
+QString KLFLatexEditDesPlugin::toolTip() const
+{
+  return "A latex code editor";
+}
+QString KLFLatexEditDesPlugin::whatsThis() const
+{
+  return "A simple latex code editor";
+}
+QWidget *KLFLatexEditDesPlugin::createWidget(QWidget *parent)
+{
+  KLFLatexEdit * w = new KLFLatexEdit(parent);
+  return w;
+}
+void KLFLatexEditDesPlugin::initialize(QDesignerFormEditorInterface *core)
+{
+  Q_UNUSED(core) ;
+  if (pInitialized)
+    return;
+
+  // initialize ... :)
+
+  pInitialized = true;
+}
+
+
+
+
+
+
 // -----------------------------------------------------------
 
 KLFToolsDesPlugin::KLFToolsDesPlugin(QObject* parent)
@@ -412,6 +477,7 @@ KLFToolsDesPlugin::KLFToolsDesPlugin(QObject* parent)
   _widgetPlugins.push_back(new KLFColorClickSquareDesPlugin(this));
   _widgetPlugins.push_back(new KLFColorChooseWidgetDesPlugin(this));
   _widgetPlugins.push_back(new KLFColorChooserDesPlugin(this));
+  _widgetPlugins.push_back(new KLFLatexEditDesPlugin(this));
 }
 
 KLFToolsDesPlugin::~KLFToolsDesPlugin()

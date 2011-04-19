@@ -19,6 +19,7 @@ set(klftools_SRCS
 	klfstyle.cpp
 	klfsearchbar.cpp
 	klfunitinput.cpp
+	klflatexedit.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -32,6 +33,7 @@ set(klftools_MOCHEADERS
 	klfdisplaylabel.h
 	klfunitinput.h
 	klfsearchbar.h
+	klflatexedit.h
 )
 #  * all headers
 set(klftools_HEADERS
@@ -41,6 +43,7 @@ set(klftools_HEADERS
 	klfstyle.h
 	klfiteratorsearchable.h
 	klfsearchbar_p.h
+	klflatexedit_p.h
 	${klftools_MOCHEADERS}
 )
 # UI Forms
