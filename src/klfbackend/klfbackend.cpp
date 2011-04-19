@@ -732,8 +732,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     int buffer_len;
     snprintf(buffer, 255,
 	     "%%%%BoundingBox: 0 0 %d %d%s"
-	     "%%%%HiResBoundingBox: 0 0 %.6g %.6g%s",
-	     wi, hi, nl, bbox_corrected.x2, bbox_corrected.y2, nl);
+	     "%%%%HiResBoundingBox: 0 0 %s %s%s",
+	     wi, hi, nl, klfFmtDoubleCC(bbox_corrected.x2, 'g', 6), klfFmtDoubleCC(bbox_corrected.y2, 'g', 6), nl);
     buffer_len = strlen(buffer);
 
     char buffer2[256];
@@ -743,12 +743,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	     "%%%%Page 1 1%s"
 	     "%%%%PageBoundingBox 0 0 %d %d%s"
 	     "<< /PageSize [%d %d] >> setpagedevice%s"
-	     "%.6f %.6f translate%s",
+	     "%s %s translate%s",
 	     nl,
 	     nl,
 	     wi, hi, nl,
 	     wi, hi, nl,
-	     offx, offy, nl);
+	     klfFmtDoubleCC(offx, 'f'), klfFmtDoubleCC(offy, 'f'), nl);
     buffer2_len = strlen(buffer2);
 
     //    char buffer2[128];
@@ -972,7 +972,7 @@ static void replace_svg_width_or_height(QByteArray *svgdata, const char * attreq
     ++j;
 
   char buffer[256];
-  snprintf(buffer, 256, "%s'%.6f'", attreq, val);
+  snprintf(buffer, 256, "%s'%s'", attreq, klfFmtDoubleCC(val, 'f', 3));
 
   ba_replace(svgdata, i, j-i, buffer);
 }

@@ -71,6 +71,10 @@ KLF_EXPORT QByteArray klfFmt(const char * fmt, ...)
 
 KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp) ;
 
+KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6);
+
+#define klfFmtDoubleCC (const char*)klfFmtDouble
+
 
 #define KLF_FUNC_SINGLE_RUN						\
   { static bool first_run = true;  if ( ! first_run )  return; first_run = false; }

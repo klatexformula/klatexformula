@@ -923,6 +923,23 @@ KLF_EXPORT QByteArray klfFmt(const char * fmt, ...)
 }
 
 
+KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt, int precision)
+{
+  QString s = QString::number(num, fmt, precision);
+
+  QByteArray data;
+#ifdef KLFBACKEND_QT4
+  data = s.toLatin1();
+#else
+  const char * latin1 = s.latin1();
+  data.duplicate(latin1, strlen(latin1));
+#endif
+  return data;
+}
+
+
+
+
 KLF_EXPORT QString klfTimeOfDay(bool shortfmt)
 {
   struct timeval tv;
