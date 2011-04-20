@@ -149,6 +149,8 @@ private:
 };
 
 
+class KLFKteParser;
+
 class KLFKtePluginView  :  public QObject, public KXMLGUIClient
 {
   Q_OBJECT
@@ -159,6 +161,8 @@ public:
 private:
   KTextEditor::View *pView;
   bool pIsGoodHighlightingMode;
+
+  KLFKteParser *pParser;
   
   struct MathContext {
     bool isValidMathContext;
