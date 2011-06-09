@@ -9,7 +9,7 @@
     <key>CFBundleIdentifier</key>
     <string>org.klatexformula.klatexformula-@KLF_VERSION@</string>
     <key>CFBundleName</key>
-    <string>klatexformula-@KLF_VERSION@</string>
+    <string>klatexformula</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

@@ -215,11 +215,6 @@ KLFMainWin::KLFMainWin()
   setObjectName("KLFMainWin");
   setAttribute(Qt::WA_StyledBackground);
 
-#ifdef Q_WS_MAC
-  // watch for QFileOpenEvent s on mac
-  QApplication::instance()->installEventFilter(this);
-#endif
-
   mPopup = NULL;
 
   loadSettings();
@@ -382,7 +377,7 @@ KLFMainWin::KLFMainWin()
   connect(u->btnDrag, SIGNAL(released()), this, SLOT(slotDrag()));
   connect(u->btnSave, SIGNAL(clicked()), this, SLOT(slotSave()));
   connect(u->btnSettings, SIGNAL(clicked()), this, SLOT(slotSettings()));
-  connect(u->btnSaveStyle, SIGNAL(clicked()), this, SLOT(slotSaveStyle()));
+  //  connect(u->btnSaveStyle, SIGNAL(clicked()), this, SLOT(slotSaveStyle()));
 
   connect(u->btnQuit, SIGNAL(clicked()), this, SLOT(quit()));
 
@@ -439,6 +434,21 @@ KLFMainWin::KLFMainWin()
   mLatexSymbols->installEventFilter(this);
   mStyleManager->installEventFilter(this);
   mSettingsDialog->installEventFilter(this);
+
+
+  // ADDITIONAL SETUP
+
+#ifdef Q_WS_MAC
+  // watch for QFileOpenEvent s on mac
+  QApplication::instance()->installEventFilter(this);
+
+  setAttribute(Qt::WA_MacBrushedMetal);
+  u->txtLatex->setAttribute(Qt::WA_MacBrushedMetal);
+
+  QMenuBar *macOSXMenu = new QMenuBar(this);
+  macOSXMenu->setNativeMenuBar(true);
+  macOSXMenu->addAction(tr("Preferences"), this, SLOT(slotSettings()));
+#endif
 
 
   // INTERNAL FLAGS
@@ -731,6 +741,8 @@ void KLFMainWin::refreshStylePopupMenus()
   }
 
   mStyleMenu->addSeparator();
+  mStyleMenu->addAction(QIcon(":/pics/savestyle.png"), tr("Save Style"),
+			this, SLOT(slotSaveStyle()));
   mStyleMenu->addAction(QIcon(":/pics/managestyles.png"), tr("Manage Styles"),
 			 this, SLOT(slotStyleManager()), 0 /* accel */);
 

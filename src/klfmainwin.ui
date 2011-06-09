@@ -8,8 +8,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>793</width>
-    <height>411</height>
+    <width>744</width>
+    <height>439</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,10 +35,13 @@
       </sizepolicy>
      </property>
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
      </property>
      <layout class="QVBoxLayout" name="lyt_frmMain">
       <property name="spacing">
@@ -267,10 +270,10 @@
       <item>
        <widget class="QFrame" name="frmOutput">
         <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+         <enum>QFrame::NoFrame</enum>
         </property>
         <property name="frameShadow">
-         <enum>QFrame::Sunken</enum>
+         <enum>QFrame::Plain</enum>
         </property>
         <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="1,0">
          <property name="horizontalSpacing">
@@ -506,10 +509,13 @@
       </sizepolicy>
      </property>
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
      </property>
      <layout class="QVBoxLayout" name="lyt_frmDetails">
       <property name="spacing">
@@ -548,7 +554,7 @@
          </item>
          <item row="0" column="1">
           <widget class="KLFColorChooser" name="colFg">
-           <property name="alphaEnabled">
+           <property name="alphaEnabled" stdset="0">
             <bool>false</bool>
            </property>
           </widget>
@@ -590,7 +596,7 @@
            <property name="enabled">
             <bool>false</bool>
            </property>
-           <property name="alphaEnabled">
+           <property name="alphaEnabled" stdset="0">
             <bool>false</bool>
            </property>
           </widget>
@@ -930,7 +936,7 @@
       <item>
        <layout class="QHBoxLayout" name="lytStyleSettingsButtons">
         <property name="spacing">
-         <number>2</number>
+         <number>5</number>
         </property>
         <item>
          <widget class="QPushButton" name="btnLoadStyle">
@@ -944,7 +950,7 @@
            <string>Load a previously saved style</string>
           </property>
           <property name="text">
-           <string>Load St&amp;yle</string>
+           <string>St&amp;yle</string>
           </property>
           <property name="icon">
            <iconset resource="klfres.qrc">
@@ -952,29 +958,6 @@
           </property>
           <property name="shortcut">
            <string>Alt+L</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSaveStyle">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>1</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Save current style (colors, etc.)</string>
-          </property>
-          <property name="text">
-           <string>Sa&amp;ve Style</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/savestyle.png</normaloff>:/pics/savestyle.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string/>
           </property>
          </widget>
         </item>
@@ -1000,6 +983,19 @@
            <string>Alt+N</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="vspc_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item>
          <widget class="QPushButton" name="btnHelp">
@@ -1172,7 +1168,6 @@
   <tabstop>spnMarginBottom</tabstop>
   <tabstop>spnMarginLeft</tabstop>
   <tabstop>btnLoadStyle</tabstop>
-  <tabstop>btnSaveStyle</tabstop>
   <tabstop>btnSettings</tabstop>
   <tabstop>btnHelp</tabstop>
  </tabstops>
