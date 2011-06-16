@@ -113,6 +113,9 @@ macro(KLFBundlePrivateLibUpdateQtDep TGT BUNDLE LIBNAME QTDEPS)
     KLFInstallNameToolChange(${TGT} ${LIBNAME}
 	"${BUNDLE}" "Frameworks/Qt${dep}.framework/Versions/4/Qt${dep}"
 	${qtdepfullpath}/Versions/4/Qt${dep})
+    KLFInstallNameToolChange(${TGT} ${LIBNAME}
+	"${BUNDLE}" "Frameworks/Qt${dep}.framework/Versions/Current/Qt${dep}"
+	${qtdepfullpath}/Versions/Current/Qt${dep})
   endforeach()
 endmacro()
 
@@ -123,8 +126,12 @@ macro(KLFBundlePrivateImportQtLib TGT BUNDLE VAR_SRCS QTLIBBASENAME DEPS)
 			 ${QTLIBFULLPATH} Frameworks)
   KLFInstallNameToolID(${TGT} ${BUNDLE}
       Frameworks/Qt${QTLIBBASENAME}.framework/Versions/4/Qt${QTLIBBASENAME})
+  KLFInstallNameToolID(${TGT} ${BUNDLE}
+      Frameworks/Qt${QTLIBBASENAME}.framework/Versions/Current/Qt${QTLIBBASENAME})
   KLFBundlePrivateLibUpdateQtDep(${TGT} ${BUNDLE}
       Frameworks/Qt${QTLIBBASENAME}.framework/Versions/4/Qt${QTLIBBASENAME}  "${DEPS}")
+  KLFBundlePrivateLibUpdateQtDep(${TGT} ${BUNDLE}
+      Frameworks/Qt${QTLIBBASENAME}.framework/Versions/Current/Qt${QTLIBBASENAME}  "${DEPS}")
 endmacro()
 
 

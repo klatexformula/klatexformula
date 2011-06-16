@@ -215,6 +215,25 @@ else(KLF_BUILD_TOOLS)
   message(STATUS "Will not build the klftools library (KLF_BUILD_TOOLS)")
 endif(KLF_BUILD_TOOLS)
 
+set(KLF_BUILD_TOOLSDESPLUGIN TRUE CACHE BOOL "Build Qt Designer Plugin for klftools library widgets")
+mark_as_advanced(KLF_BUILD_TOOLSDESPLUGIN)
+# ...
+KLFTestCondition(_klf_allow_toolsdesplugin
+  "KLF_BUILD_TOOLS AND NOT KLF_LIBKLFBACKEND_STATIC AND NOT KLF_LIBKLFTOOLS_STATIC")
+KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLSDESPLUGIN
+	BOOL "Build klatexformula tools library (klftools), requires Qt4"          # cache info
+	"Building klftools library requires Qt 4. Not building klftools library."  # update notify message
+	_klf_allow_toolsdesplugin  # the condition
+	OFF                        # the forced value if condition is not met
+	${KLF_BUILD_TOOLS}         # the default value at beginning
+)
+mark_as_advanced(KLF_BUILD_TOOLSDESPLUGIN) # advanced...
+if(KLF_BUILD_TOOLSDESPLUGIN)
+#  message(STATUS "Will build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
+else(KLF_BUILD_TOOLSDESPLUGIN)
+  message(STATUS "Will not build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
+endif(KLF_BUILD_TOOLSDESPLUGIN)
+
 
 #KLFDeclareCacheVarOptionCondition(spec.option cachetype cachestr updatemsg cond. forceval def.val.)
 KLFDeclareCacheVarOptionCondition(KLF_BUILD_GUI
@@ -290,18 +309,45 @@ endif(KLF_BUILD_GUI)
 # Target architecture (allows compile for 32-bit on 64-bit architectures)
 KLFGetCMakeVarChanged(KLF_TARGET_ARCH_64)  # detect changes, for KLF_LIB_SUFFIX later on
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(KLF_TARGET_ARCH_64 TRUE CACHE BOOL "Build for 64-bit platform")
+  set(klf_host_arch_64 TRUE)
 else(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(KLF_TARGET_ARCH_64 FALSE CACHE BOOL "Build for 64-bit platform")
+  set(klf_host_arch_64 FALSE)
 endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+set(KLF_TARGET_ARCH_64 ${klf_host_arch_64} CACHE BOOL "Configure build for 64-bit arch")
 if(KLF_TARGET_ARCH_64)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
   message(STATUS "Compiling for 64-bit architecture (KLF_TARGET_ARCH_64=ON/OFF)")
 else(KLF_TARGET_ARCH_64)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
   message(STATUS "Compiling for 32-bit architecture (KLF_TARGET_ARCH_64=ON/OFF)")
 endif(KLF_TARGET_ARCH_64)
 KLFCMakeSetVarChanged(KLF_TARGET_ARCH_64)
+
+KLFGetCMakeVarChanged(KLF_ARCH_FLAGS)
+set(the_arch_flags "")
+if(KLF_TARGET_ARCH_64)
+  if(klf_host_arch_64)
+    set(the_arch_flags "")
+  else(klf_host_arch_64)
+    set(the_arch_flags "-m64")
+  endif(klf_host_arch_64)
+else(KLF_TARGET_ARCH_64)
+  if(klf_host_arch_64)
+    set(the_arch_flags "-m32")
+  else(klf_host_arch_64)
+    set(the_arch_flags "")
+  endif(klf_host_arch_64)
+endif(KLF_TARGET_ARCH_64)
+#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
+KLFDeclareCacheVarOptionFollowComplexN(KLF_ARCH_FLAGS
+  STRING "Additional architecture flags for gcc"
+  TRUE                     # updatenotice
+  "${the_arch_flags}"      # calcoptvalue
+  "KLF_TARGET_ARCH_64"     # depvarlist
+  )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${KLF_ARCH_FLAGS}")
+if(KLF_ARCH_FLAGS)
+  message(STATUS "Additional architecture flags for gcc: ${KLF_ARCH_FLAGS} (KLF_ARCH_FLAGS)")
+endif(KLF_ARCH_FLAGS)
+
 
 KLFGetCMakeVarChanged(KLF_LIB_SUFFIX)  # Also used later in klfinstallpaths.cmake
 # Guess lib dir suffix on linux/unix
@@ -419,6 +465,9 @@ set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
   set(internal_KLF_CMAKE_ARCH "x86")
 endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+if(NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
+  set(internal_KLF_CMAKE_ARCH "x86") # we are building for x86
+endif(NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
 set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}" CACHE INTERNAL "Current Build Processor Arch")
 
 # Find KDE4 for KTextEditor Plugin
@@ -499,7 +548,11 @@ if(KLF_MACOSX_BUNDLES)
 	sqldrivers/libqsqlodbc.dylib)
   set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}"
 					  CACHE STRING "Qt plugins to incorporate into Mac bundle")
-  message("Will Package Qt Plugins in bundle --> ${KLF_BUNDLE_QT_PLUGINS} (KLF_BUNDLE_QT_PLUGINS)")
+  string(REGEX REPLACE ";" "
+    * " klf_display_bundle_qt_plugins "${KLF_BUNDLE_QT_PLUGINS}")
+  message(STATUS "Will Package Qt Plugins in bundle
+    * ${klf_display_bundle_qt_plugins}
+    (KLF_BUNDLE_QT_PLUGINS)")
 endif(KLF_MACOSX_BUNDLES)
 
 

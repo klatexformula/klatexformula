@@ -101,10 +101,7 @@ add_dependencies(klftools  klfbackend)
 
 # Qt Designer Plugin
 # ------------------
-if(NOT KLF_LIBKLFBACKEND_STATIC AND NOT KLF_LIBKLFTOOLS_STATIC)
-  set(build_desplugin TRUE)
-endif(NOT KLF_LIBKLFBACKEND_STATIC AND NOT KLF_LIBKLFTOOLS_STATIC)
-if(build_desplugin)
+if(KLF_BUILD_TOOLSDESPLUGIN)
   include_directories("${QT_QTDESIGNER_INCLUDE_DIR}")
   qt4_wrap_cpp(klftoolsdesplugin_MOC_CPPS  klftools_desplugin.h)
   add_library(klftoolsdesplugin MODULE  klftools_desplugin.cpp ${klftoolsdesplugin_MOC_CPPS})
@@ -116,7 +113,7 @@ if(build_desplugin)
     )
   target_link_libraries(klftoolsdesplugin  klftools klfbackend ${QT_QTCORE_LIBRARY}
     ${QT_QTGUI_LIBRARY} ${QT_QTDESIGNER_LIBRARY} ${QT_QTDESIGNERCOMPONENTS_LIBRARY})
-endif(build_desplugin)
+endif(KLF_BUILD_TOOLSDESPLUGIN)
 
 # Install Targets
 # ---------------
@@ -134,6 +131,6 @@ if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFTOOLS_FRAMEWORK)
   )
 endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFTOOLS_FRAMEWORK)
 
-if(build_desplugin)
-  install(TARGETS klftoolsdesplugin  LIBRARY DESTINATION "${QT_PLUGINS_DIR}/designer")
-endif(build_desplugin)
+if(KLF_BUILD_TOOLSDESPLUGIN)
+  install(TARGETS klftoolsdesplugin  LIBRARY DESTINATION "${KLF_INSTALL_DESPLUGIN_DIR}")
+endif(KLF_BUILD_TOOLSDESPLUGIN)

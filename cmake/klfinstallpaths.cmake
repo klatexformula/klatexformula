@@ -25,7 +25,7 @@ message(STATUS "'make install' will install to \"${CMAKE_INSTALL_PREFIX}\" (CMAK
 set(install_lib_dir "lib${KLF_LIB_SUFFIX}")
 if(WIN32)
   # install all in binary directory on MS Windows
-  set(install_lib_dir "bin")
+  set(install_lib_dir "bin") # yes, install to "bin"!
 endif(WIN32)
 if(APPLE AND KLF_MACOSX_BUNDLES)
   # install to /Library/Frameworks on mac OS X
@@ -80,6 +80,27 @@ endif(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
 # Utility variable. Same as KLF_INSTALL_BIN_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
 KLFMakeAbsInstallPath(KLF_ABS_INSTALL_BIN_DIR KLF_INSTALL_BIN_DIR)
+
+
+# Designer Plugin Library Dir
+# ...
+#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvars)
+KLFDeclareCacheVarOptionFollowComplexN(KLF_INSTALL_DESPLUGIN_DIR
+	STRING "Qt Designer Plugin installation directory (relative to install prefix, or absolute)" # cache info
+	ON                            # updatenotice
+	"${QT_PLUGINS_DIR}/designer"  # calculated value
+	""     # dependance variables
+)
+message(STATUS "Installing klftools designer plugin to \"${KLF_INSTALL_DESPLUGIN_DIR}\" (KLF_INSTALL_DESPLUGIN_DIR)")
+if(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
+  KLFNote("You have chosen an absolute KLF_INSTALL_DESPLUGIN_DIR path. There is
+    nothing wrong with that, but keep in mind that this value will
+    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
+endif(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
+
+# Utility variable. Same as KLF_INSTALL_DESPLUGIN_DIR, but garanteed to be absolute path.
+# Not kept in cache, it is (trivially) computed here
+KLFMakeAbsInstallPath(KLF_ABS_INSTALL_DESPLUGIN_DIR KLF_INSTALL_DESPLUGIN_DIR)
 
 
 # rccresources dir
@@ -161,6 +182,10 @@ if(KLF_BUILD_TOOLS)
 		    KLF_INSTALL_KLFTOOLS_FRAMEWORK
   )
 endif(KLF_BUILD_TOOLS)
+if(KLF_BUILD_TOOLSDESPLUGIN)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFTOOLSDESPLUGIN  KLF_INSTALL_DEVEL "Install klftoolsdesplugin Qt Designer Plugin")
+  mark_as_advanced( KLF_INSTALL_KLFTOOLSDESPLUGIN )
+endif(KLF_BUILD_TOOLSDESPLUGIN)
 
 if(KLF_BUILD_GUI)
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFAPP_HEADERS      KLF_INSTALL_DEVEL   "Install klfapp headers")
