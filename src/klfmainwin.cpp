@@ -206,9 +206,24 @@ void KLFPreviewBuilderThread::settingsChanged(const KLFBackend::klfSettings& set
 
 // ----------------------------------------------------------------------------
 
+static void set_property_children(QObject *object, const char *inherits, const char *propName,
+				  const QVariant& value)
+{
+  bool wantinherits  =  (inherits != NULL && *inherits != '\0') ;
+  QObjectList children = object->children();
+  Q_FOREACH(QObject *obj, children) {
+    if (!wantinherits || obj->inherits(inherits)) {
+      obj->setProperty(propName, value);
+      set_property_children(obj, inherits, propName, value);
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+
 
 KLFMainWin::KLFMainWin()
-  : QWidget(0, Qt::Window)
+  : QMainWindow()
 {
   u = new Ui::KLFMainWin;
   u->setupUi(this);
@@ -306,6 +321,24 @@ KLFMainWin::KLFMainWin()
 
   u->frmDetails->hide();
 
+#ifdef Q_WS_MAC
+  {
+    // Qt 4.7.3: src/gui/kernel/qwidget_mac.mm
+    extern bool qt_mac_is_macdrawer(const QWidget *);
+    // make the details frame a drawer
+    u->frmDetails->setParent(this);
+    u->frmDetails->hide();
+    u->frmDetails->setWindowFlags(Qt::Drawer);
+    //    fprintf(stderr, "widget is drawer=%d\n", (int)qt_mac_is_macdrawer(u->frmDetails)) ;
+    // adjust to smaller font
+    QFont f = u->frmDetails->font();
+    f.setPointSize(QFontInfo(f).pointSize()-2);
+    u->frmDetails->setFont(f);
+    set_property_children(u->frmDetails, "QWidget", "font", QVariant(f));
+    resize(u->frmMain->sizeHint()+QSize(10,10));
+  }
+#endif
+
   u->txtLatex->installEventFilter(this);
   u->txtLatex->setDropDataHandler(this);
 
@@ -313,7 +346,9 @@ KLFMainWin::KLFMainWin()
   KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtLatex) ;
   KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtPreamble) ;
 
+#ifndef Q_WS_MAC
   setFixedSize(_shrinkedsize);
+#endif
 
   u->btnEvaluate->installEventFilter(this);
 
@@ -411,8 +446,8 @@ KLFMainWin::KLFMainWin()
 	  Qt::QueuedConnection);
   connect(u->colFg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
-  connect(u->chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
-	  Qt::QueuedConnection);
+  //  connect(u->chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
+  //	  Qt::QueuedConnection);
   connect(u->colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
 	  Qt::QueuedConnection);
 
@@ -445,9 +480,11 @@ KLFMainWin::KLFMainWin()
   setAttribute(Qt::WA_MacBrushedMetal);
   u->txtLatex->setAttribute(Qt::WA_MacBrushedMetal);
 
-  QMenuBar *macOSXMenu = new QMenuBar(this);
+  QMenuBar *macOSXMenu = new QMenuBar(0);
   macOSXMenu->setNativeMenuBar(true);
-  macOSXMenu->addAction(tr("Preferences"), this, SLOT(slotSettings()));
+  // this is a virtual menu...
+  QMenu *filemenu = macOSXMenu->addMenu("File");
+  filemenu->addAction("Preferences", this, SLOT(slotSettings()));
 #endif
 
 
@@ -569,6 +606,8 @@ void KLFMainWin::startupFinished()
 
 void KLFMainWin::refreshWindowSizes()
 {
+
+#ifndef Q_WS_MAC
   bool curstate_shown = u->frmDetails->isVisible();
   u->frmDetails->show();
   _shrinkedsize = u->frmMain->sizeHint() + QSize(3, 3);
@@ -582,6 +621,7 @@ void KLFMainWin::refreshWindowSizes()
     u->frmDetails->hide();
   }
   updateGeometry();
+#endif
 }
 
 void KLFMainWin::refreshShowCorrectClearButton()
@@ -741,7 +781,7 @@ void KLFMainWin::refreshStylePopupMenus()
   }
 
   mStyleMenu->addSeparator();
-  mStyleMenu->addAction(QIcon(":/pics/savestyle.png"), tr("Save Style"),
+  mStyleMenu->addAction(QIcon(":/pics/savestyle.png"), tr("Save Current Style"),
 			this, SLOT(slotSaveStyle()));
   mStyleMenu->addAction(QIcon(":/pics/managestyles.png"), tr("Manage Styles"),
 			 this, SLOT(slotStyleManager()), 0 /* accel */);
@@ -1573,6 +1613,8 @@ void KLFMainWin::quit()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  // especially on mac if it's a drawer
+  u->frmDetails->hide();
   hide();
 
   if (mLibBrowser)
@@ -1965,10 +2007,12 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   }
   input.preamble = u->txtPreamble->toPlainText();
   input.fg_color = u->colFg->color().rgb();
-  if (u->chkBgTransparent->isChecked() == false)
-    input.bg_color = u->colBg->color().rgb();
+  QColor bgcolor = u->colBg->color();
+  if (bgcolor.isValid())
+    input.bg_color = bgcolor.rgb();
   else
     input.bg_color = qRgba(255, 255, 255, 0);
+  klfDbg("input.bg_color="<<klfFmtCC("#%08lx", (ulong)input.bg_color)) ;
 
   input.dpi = u->spnDPI->value();
 
@@ -2151,6 +2195,8 @@ void KLFMainWin::slotSymbols(bool showsymbs)
 
 void KLFMainWin::slotExpandOrShrink()
 {
+  klfDbg("u->frmDetails = "<<u->frmDetails<<"; */isVisible="<<u->frmDetails->isVisible()) ;
+#if !defined(Q_WS_MAC)
   if (u->frmDetails->isVisible()) {
     u->frmDetails->hide();
     setFixedSize(_shrinkedsize);
@@ -2162,7 +2208,13 @@ void KLFMainWin::slotExpandOrShrink()
     //    adjustSize();
     u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.png"));
   }
+#else
+  extern bool qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
+  qt_mac_set_drawer_preferred_edge(u->frmDetails, Qt::RightDockWidgetArea);
+  u->frmDetails->setVisible(!u->frmDetails->isVisible());
+#endif
 }
+
 void KLFMainWin::slotExpand(bool expanded)
 {
   if (u->frmDetails->isVisible() == expanded)
@@ -2227,7 +2279,11 @@ void KLFMainWin::slotSetFgColor(const QString& s)
 }
 void KLFMainWin::slotSetBgColor(const QColor& bg)
 {
-  u->colBg->setColor(bg);
+  klfDbg("Setting background color "<<bg) ;
+  if (bg.alpha() < 100)
+    u->colBg->setColor(QColor()); // transparent
+  else
+    u->colBg->setColor(bg);
 }
 void KLFMainWin::slotSetBgColor(const QString& s)
 {
@@ -2788,7 +2844,10 @@ KLFStyle KLFMainWin::currentStyle() const
   sty.name = QString::null;
   sty.fg_color = u->colFg->color().rgb();
   QColor bgc = u->colBg->color();
-  sty.bg_color = qRgba(bgc.red(), bgc.green(), bgc.blue(), u->chkBgTransparent->isChecked() ? 0 : 255 );
+  if (bgc.isValid())
+    sty.bg_color = qRgba(bgc.red(), bgc.green(), bgc.blue(), 255);
+  else
+    sty.bg_color = qRgba(255, 255, 255, 0);
   sty.mathmode = (u->chkMathMode->isChecked() ? u->cbxMathMode->currentText() : "...");
   sty.preamble = u->txtPreamble->toPlainText();
   sty.dpi = u->spnDPI->value();
@@ -2799,6 +2858,8 @@ KLFStyle KLFMainWin::currentStyle() const
     sty.overrideBBoxExpand.bottom = u->spnMarginBottom->valueInRefUnit();
     sty.overrideBBoxExpand.left = u->spnMarginLeft->valueInRefUnit();
   }
+
+  klfDbg("Returning style; bgcol="<<klfFmtCC("#%08lx", (ulong)sty.bg_color)) ;
 
   return sty;
 }
@@ -2826,8 +2887,10 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
   cfg.setRgb(style.fg_color);
   cbg.setRgb(style.bg_color);
   u->colFg->setColor(cfg);
+  if (cbg.alpha() < 100)
+    cbg = QColor(); // transparent
+  klfDbg("setting color: "<<cbg) ;
   u->colBg->setColor(cbg);
-  u->chkBgTransparent->setChecked(qAlpha(style.bg_color) == 0);
   u->chkMathMode->setChecked(style.mathmode.simplified() != "...");
   if (style.mathmode.simplified() != "...")
     u->cbxMathMode->setEditText(style.mathmode);

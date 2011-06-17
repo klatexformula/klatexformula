@@ -3,926 +3,459 @@
  <author>Philippe Faist</author>
  <comment>KLatexFormula main window UI</comment>
  <class>KLFMainWin</class>
- <widget class="QWidget" name="KLFMainWin">
+ <widget class="QMainWindow" name="KLFMainWin">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>744</width>
-    <height>439</height>
+    <width>746</width>
+    <height>421</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string notr="true" comment="window title">KLatexFormula</string>
+   <string comment="window title">KLatexFormula</string>
   </property>
   <property name="windowIcon">
    <iconset resource="klfres.qrc">
     <normaloff>:/pics/klatexformula-64.png</normaloff>:/pics/klatexformula-64.png</iconset>
   </property>
-  <layout class="QHBoxLayout" name="lyt_KLFMainWinUI">
-   <property name="spacing">
-    <number>2</number>
-   </property>
-   <property name="margin">
-    <number>2</number>
-   </property>
-   <item>
-    <widget class="QFrame" name="frmMain">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>1</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>0</number>
-     </property>
-     <layout class="QVBoxLayout" name="lyt_frmMain">
-      <property name="spacing">
-       <number>2</number>
+  <widget class="QWidget" name="wCentralWidget">
+   <layout class="QHBoxLayout" name="lyt_KLFMainWinUI">
+    <property name="spacing">
+     <number>2</number>
+    </property>
+    <property name="margin">
+     <number>2</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="frmMain">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="margin">
-       <number>4</number>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
       </property>
-      <item>
-       <widget class="QLabel" name="lblPromptMain">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Enter &amp;LaTeX expression:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-        <property name="wordWrap">
-         <bool>false</bool>
-        </property>
-        <property name="buddy">
-         <cstring>txtLatex</cstring>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="vspc2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>10</width>
-          <height>2</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="KLFLatexEdit" name="txtLatex">
-        <property name="acceptDrops">
-         <bool>true</bool>
-        </property>
-        <property name="toolTip">
-         <string>&lt;p style=&quot;white-space: pre&quot;&gt;Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.&lt;/p&gt;</string>
-        </property>
-        <property name="autoFormatting">
-         <set>QTextEdit::AutoNone</set>
-        </property>
-        <property name="tabChangesFocus">
-         <bool>true</bool>
-        </property>
-        <property name="undoRedoEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="lineWrapMode">
-         <enum>QTextEdit::WidgetWidth</enum>
-        </property>
-        <property name="readOnly">
-         <bool>false</bool>
-        </property>
-        <property name="acceptRichText">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="lytMiddle">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item>
-         <widget class="QPushButton" name="btnClearLatex">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string comment="tooltip">Clear the above field</string>
-          </property>
-          <property name="whatsThis">
-           <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnClearAll">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string comment="tooltip">Clear the above field and set the default style</string>
-          </property>
-          <property name="whatsThis">
-           <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnEvaluate">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</string>
-          </property>
-          <property name="whatsThis">
-           <string comment="whatsthistext">Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</string>
-          </property>
-          <property name="text">
-           <string>&amp;Evaluate</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/evaluate.png</normaloff>:/pics/evaluate.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string notr="true">Shift+Return, Ctrl+Return</string>
-          </property>
-          <property name="default">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSymbols">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette  [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
-          </property>
-          <property name="whatsThis">
-           <string comment="whatsthis text">Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string>F7</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnLibrary">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Library [&lt;strong&gt;F8&lt;/strong&gt;]&lt;/p&gt;</string>
-          </property>
-          <property name="whatsThis">
-           <string comment="whatsthis text">Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string>F8</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnExpand">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</string>
-          </property>
-          <property name="whatsThis">
-           <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/switchexpanded.png</normaloff>:/pics/switchexpanded.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string>F5</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QFrame" name="frmOutput">
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="1,0">
-         <property name="horizontalSpacing">
-          <number>6</number>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
+      </property>
+      <layout class="QVBoxLayout" name="lyt_frmMain">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="margin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblPromptMain">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="verticalSpacing">
-          <number>0</number>
+         <property name="text">
+          <string>Enter &amp;LaTeX expression:</string>
          </property>
-         <property name="margin">
-          <number>1</number>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
-         <item row="0" column="1">
-          <widget class="QPushButton" name="btnDrag">
-           <property name="text">
-            <string>&amp;DRAG</string>
+         <property name="wordWrap">
+          <bool>false</bool>
+         </property>
+         <property name="buddy">
+          <cstring>txtLatex</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="vspc2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>10</width>
+           <height>2</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="KLFLatexEdit" name="txtLatex">
+         <property name="acceptDrops">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>&lt;p style=&quot;white-space: pre&quot;&gt;Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.&lt;/p&gt;</string>
+         </property>
+         <property name="autoFormatting">
+          <set>QTextEdit::AutoNone</set>
+         </property>
+         <property name="tabChangesFocus">
+          <bool>true</bool>
+         </property>
+         <property name="undoRedoEnabled">
+          <bool>true</bool>
+         </property>
+         <property name="lineWrapMode">
+          <enum>QTextEdit::WidgetWidth</enum>
+         </property>
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+         <property name="acceptRichText">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="lytMiddle">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="btnClearLatex">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="btnCopy">
-           <property name="text">
-            <string>&amp;COPY</string>
-           </property>
-           <property name="shortcut">
-            <string>Alt+Y</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QPushButton" name="btnSave">
            <property name="toolTip">
-            <string>Save formula to disk</string>
+            <string comment="tooltip">Clear the above field</string>
            </property>
-           <property name="text">
-            <string>&amp;SAVE</string>
+           <property name="whatsThis">
+            <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
+           </property>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
-          <spacer name="spcOutputButtons">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
+         <item>
+          <widget class="QPushButton" name="btnClearAll">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Expanding</enum>
+           <property name="toolTip">
+            <string comment="tooltip">Clear the above field and set the default style</string>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>5</height>
-            </size>
+           <property name="whatsThis">
+            <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
            </property>
-          </spacer>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
+           </property>
+          </widget>
          </item>
-         <item row="0" column="0" rowspan="5">
-          <widget class="KLFDisplayLabel" name="lblOutput">
+         <item>
+          <widget class="QPushButton" name="btnEvaluate">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>280</width>
-             <height>75</height>
-            </size>
-           </property>
-           <property name="acceptDrops">
-            <bool>true</bool>
-           </property>
            <property name="toolTip">
-            <string comment="tooltip">The resulting image will be displayed here</string>
+            <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</string>
            </property>
            <property name="whatsThis">
-            <string comment="whatsthis">Here you can see the image you get after evaluating your LaTeX code.</string>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <property name="lineWidth">
-            <number>0</number>
-           </property>
-           <property name="midLineWidth">
-            <number>0</number>
+            <string comment="whatsthistext">Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</string>
            </property>
            <property name="text">
-            <string/>
+            <string>&amp;Evaluate</string>
            </property>
-           <property name="wordWrap">
-            <bool>false</bool>
-           </property>
-           <property name="margin">
-            <number>0</number>
-           </property>
-           <property name="indent">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QWidget" name="wForBigPreviewButton" native="true">
-           <layout class="QHBoxLayout" name="lyt_wForBigPreviewButton">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="margin">
-             <number>0</number>
-            </property>
-            <item>
-             <spacer name="spcPreviewButton">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>5</width>
-                <height>5</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnShowBigPreview">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</string>
-              </property>
-              <property name="text">
-               <string notr="true"/>
-              </property>
-              <property name="icon">
-               <iconset resource="klfres.qrc">
-                <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="spcLeftExportProfile">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>6</width>
-                <height>10</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnSetExportProfile">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>&lt;p style=&quot;white-space: pre&quot;&gt;Select the export profile to use for Copy and Drag operations&lt;/p&gt;</string>
-              </property>
-              <property name="text">
-               <string notr="true"/>
-              </property>
-              <property name="icon">
-               <iconset resource="klfres.qrc">
-                <normaloff>:/pics/exportprofile.png</normaloff>:/pics/exportprofile.png</iconset>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <spacer name="vspc">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>10</width>
-          <height>2</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnQuit">
-        <property name="toolTip">
-         <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</string>
-        </property>
-        <property name="whatsThis">
-         <string comment="whatsthis">Exit KLatexFormula</string>
-        </property>
-        <property name="text">
-         <string>Quit</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QFrame" name="frmDetails">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>1</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
-     </property>
-     <property name="lineWidth">
-      <number>0</number>
-     </property>
-     <layout class="QVBoxLayout" name="lyt_frmDetails">
-      <property name="spacing">
-       <number>4</number>
-      </property>
-      <property name="margin">
-       <number>3</number>
-      </property>
-      <item>
-       <widget class="QGroupBox" name="gbxColors">
-        <property name="title">
-         <string>Colors</string>
-        </property>
-        <layout class="QGridLayout" name="lyt_gbxColors">
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>9</number>
-         </property>
-         <property name="verticalSpacing">
-          <number>4</number>
-         </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="lblFg">
-           <property name="text">
-            <string>&amp;Foreground color:</string>
-           </property>
-           <property name="wordWrap">
-            <bool>false</bool>
-           </property>
-           <property name="buddy">
-            <cstring>colFg</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="KLFColorChooser" name="colFg">
-           <property name="alphaEnabled" stdset="0">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0" colspan="2">
-          <widget class="QCheckBox" name="chkBgTransparent">
-           <property name="toolTip">
-            <string>Check this if you want your formula to have a transparent background</string>
-           </property>
-           <property name="text">
-            <string>Use &amp;transparent background</string>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/evaluate.png</normaloff>:/pics/evaluate.png</iconset>
            </property>
            <property name="shortcut">
-            <string>Alt+U</string>
+            <string notr="true">Shift+Return, Ctrl+Return</string>
            </property>
-           <property name="checked">
+           <property name="default">
             <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="lblBg">
-           <property name="enabled">
-            <bool>false</bool>
+         <item>
+          <widget class="QPushButton" name="btnSymbols">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <property name="text">
-            <string>&amp;Background color:</string>
+           <property name="toolTip">
+            <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette  [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
            </property>
-           <property name="wordWrap">
-            <bool>false</bool>
+           <property name="whatsThis">
+            <string comment="whatsthis text">Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</string>
            </property>
-           <property name="buddy">
-            <cstring>colBg</cstring>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
+           </property>
+           <property name="shortcut">
+            <string>F7</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="KLFColorChooser" name="colBg">
-           <property name="enabled">
-            <bool>false</bool>
+         <item>
+          <widget class="QPushButton" name="btnLibrary">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <property name="alphaEnabled" stdset="0">
-            <bool>false</bool>
+           <property name="toolTip">
+            <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Library [&lt;strong&gt;F8&lt;/strong&gt;]&lt;/p&gt;</string>
+           </property>
+           <property name="whatsThis">
+            <string comment="whatsthis text">Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</string>
+           </property>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
+           </property>
+           <property name="shortcut">
+            <string>F8</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnExpand">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</string>
+           </property>
+           <property name="whatsThis">
+            <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
+           </property>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/switchexpanded.png</normaloff>:/pics/switchexpanded.png</iconset>
+           </property>
+           <property name="shortcut">
+            <string>F5</string>
            </property>
           </widget>
          </item>
         </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTabWidget" name="tabsOptions">
-        <property name="tabPosition">
-         <enum>QTabWidget::West</enum>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="tabLatexImage">
-         <attribute name="title">
-          <string>LaTeX</string>
-         </attribute>
-         <layout class="QGridLayout" name="lyt_gbxLatexImage">
-          <property name="leftMargin">
-           <number>10</number>
+       </item>
+       <item>
+        <widget class="QFrame" name="frmOutput">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="1,0">
+          <property name="horizontalSpacing">
+           <number>6</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="chkMathMode">
-            <property name="toolTip">
-             <string>Check this to use a LaTeX math mode</string>
-            </property>
+          <property name="verticalSpacing">
+           <number>0</number>
+          </property>
+          <property name="margin">
+           <number>1</number>
+          </property>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="btnDrag">
             <property name="text">
-             <string>Use &amp;Math mode:</string>
+             <string>&amp;DRAG</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="btnCopy">
+            <property name="text">
+             <string>&amp;COPY</string>
             </property>
             <property name="shortcut">
-             <string/>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
+             <string>Alt+Y</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1" colspan="2">
-           <widget class="QComboBox" name="cbxMathMode">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="editable">
-             <bool>true</bool>
-            </property>
-            <item>
-             <property name="text">
-              <string notr="true">\[ ... \]</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">$ ... $</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">\begin{align*} ... \end{align*}</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">\begin{eqnarray*} ... \end{eqnarray*}</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="1" column="0" colspan="3">
-           <widget class="QLabel" name="lblPreamble">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+          <item row="2" column="1">
+           <widget class="QPushButton" name="btnSave">
+            <property name="toolTip">
+             <string>Save formula to disk</string>
             </property>
             <property name="text">
-             <string>Edit LaTeX &amp;preamble:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>txtPreamble</cstring>
+             <string>&amp;SAVE</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0" colspan="3">
-           <widget class="KLFLatexEdit" name="txtPreamble">
+          <item row="3" column="1">
+           <spacer name="spcOutputButtons">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Expanding</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>5</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0" rowspan="5">
+           <widget class="KLFDisplayLabel" name="lblOutput">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
-             <font>
-              <pointsize>8</pointsize>
-             </font>
+            <property name="minimumSize">
+             <size>
+              <width>280</width>
+              <height>75</height>
+             </size>
             </property>
-            <property name="acceptRichText">
+            <property name="acceptDrops">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string comment="tooltip">The resulting image will be displayed here</string>
+            </property>
+            <property name="whatsThis">
+             <string comment="whatsthis">Here you can see the image you get after evaluating your LaTeX code.</string>
+            </property>
+            <property name="autoFillBackground">
              <bool>false</bool>
             </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tabMargins">
-         <attribute name="title">
-          <string>Image &amp;&amp; Margins</string>
-         </attribute>
-         <layout class="QGridLayout" name="lyt_tabMargins">
-          <property name="leftMargin">
-           <number>10</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="lblDPI">
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Plain</enum>
+            </property>
+            <property name="lineWidth">
+             <number>0</number>
+            </property>
+            <property name="midLineWidth">
+             <number>0</number>
+            </property>
             <property name="text">
-             <string>DPI &amp;Resolution:</string>
+             <string/>
             </property>
             <property name="wordWrap">
              <bool>false</bool>
             </property>
-            <property name="buddy">
-             <cstring>spnDPI</cstring>
+            <property name="margin">
+             <number>0</number>
+            </property>
+            <property name="indent">
+             <number>0</number>
             </property>
            </widget>
           </item>
-          <item row="0" column="1" colspan="2">
-           <layout class="QHBoxLayout" name="lytDPIInput">
-            <item>
-             <widget class="QPushButton" name="btnDPIPresets">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Presets</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spnDPI">
-              <property name="minimum">
-               <number>10</number>
-              </property>
-              <property name="maximum">
-               <number>10000</number>
-              </property>
-              <property name="singleStep">
-               <number>50</number>
-              </property>
-              <property name="value">
-               <number>1200</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="2" column="0">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>118</width>
-              <height>16</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="0" colspan="3">
-           <widget class="QGroupBox" name="gbxOverrideMargins">
-            <property name="title">
-             <string>Override settings margins</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <layout class="QGridLayout" name="lyt_gbxOverrideMargins">
-             <item row="2" column="0" colspan="2">
-              <widget class="QFrame" name="frmMargins">
-               <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
+          <item row="4" column="1">
+           <widget class="QWidget" name="wForBigPreviewButton" native="true">
+            <layout class="QHBoxLayout" name="lyt_wForBigPreviewButton">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <spacer name="spcPreviewButton">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
                </property>
-               <property name="frameShadow">
-                <enum>QFrame::Plain</enum>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>5</width>
+                 <height>5</height>
+                </size>
                </property>
-               <layout class="QGridLayout" name="lyt_frmMargins" columnstretch="1,2">
-                <property name="horizontalSpacing">
-                 <number>0</number>
-                </property>
-                <property name="verticalSpacing">
-                 <number>2</number>
-                </property>
-                <property name="margin">
-                 <number>3</number>
-                </property>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="lblMarginTop">
-                  <property name="text">
-                   <string>Top:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="KLFUnitSpinBox" name="spnMarginTop">
-                  <property name="decimals">
-                   <number>1</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>1.000000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="lblMarginLeft">
-                  <property name="text">
-                   <string>Left:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="1">
-                 <widget class="KLFUnitSpinBox" name="spnMarginLeft">
-                  <property name="decimals">
-                   <number>1</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>1.000000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="lblMarginRight">
-                  <property name="text">
-                   <string>Right:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="KLFUnitSpinBox" name="spnMarginRight">
-                  <property name="decimals">
-                   <number>1</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>1.000000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="KLFUnitSpinBox" name="spnMarginBottom">
-                  <property name="decimals">
-                   <number>1</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.000000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>100.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>1.000000000000000</double>
-                  </property>
-                  <property name="value">
-                   <double>0.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="lblMarginBottom">
-                  <property name="text">
-                   <string>Bottom:</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
+              </spacer>
              </item>
-             <item row="1" column="1">
-              <widget class="KLFUnitChooser" name="cbxMarginsUnit">
-               <property name="klfUnits" stdset="0">
-                <string>Postscript Point=pt=1;Millimeter=mm=2.835;Centimeter=cm=28.35;1/8 th inch=1/8 in=9;Inch=in=72</string>
+             <item>
+              <widget class="QPushButton" name="btnShowBigPreview">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="lblMarginsUnits">
+               <property name="toolTip">
+                <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</string>
+               </property>
                <property name="text">
-                <string>Units:</string>
+                <string notr="true"/>
+               </property>
+               <property name="icon">
+                <iconset resource="klfres.qrc">
+                 <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="spcLeftExportProfile">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>6</width>
+                 <height>10</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QToolButton" name="btnSetExportProfile">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>&lt;p style=&quot;white-space: pre&quot;&gt;Select the export profile to use for Copy and Drag operations&lt;/p&gt;</string>
+               </property>
+               <property name="text">
+                <string notr="true"/>
+               </property>
+               <property name="icon">
+                <iconset resource="klfres.qrc">
+                 <normaloff>:/pics/exportprofile.png</normaloff>:/pics/exportprofile.png</iconset>
                </property>
               </widget>
              </item>
@@ -931,176 +464,626 @@
           </item>
          </layout>
         </widget>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="lytStyleSettingsButtons">
-        <property name="spacing">
-         <number>5</number>
-        </property>
-        <item>
-         <widget class="QPushButton" name="btnLoadStyle">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>1</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+       </item>
+       <item>
+        <spacer name="vspc">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>10</width>
+           <height>2</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnQuit">
+         <property name="toolTip">
+          <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</string>
+         </property>
+         <property name="whatsThis">
+          <string comment="whatsthis">Exit KLatexFormula</string>
+         </property>
+         <property name="text">
+          <string>Quit</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="frmDetails" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QVBoxLayout" name="lyt_frmDetails">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <property name="margin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="gbxColors">
+         <property name="title">
+          <string>Colors</string>
+         </property>
+         <layout class="QGridLayout" name="lyt_gbxColors">
+          <property name="topMargin">
+           <number>0</number>
           </property>
-          <property name="toolTip">
-           <string>Load a previously saved style</string>
+          <property name="bottomMargin">
+           <number>9</number>
           </property>
-          <property name="text">
-           <string>St&amp;yle</string>
+          <property name="verticalSpacing">
+           <number>4</number>
           </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/loadstyle.png</normaloff>:/pics/loadstyle.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string>Alt+L</string>
-          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="lblFg">
+            <property name="text">
+             <string>&amp;Foreground color:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="KLFColorChooser" name="colFg">
+            <property name="alphaEnabled" stdset="0">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblBg">
+            <property name="text">
+             <string>&amp;Background color:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="KLFColorChooser" name="colBg">
+            <property name="alphaEnabled" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="allowDefaultState" stdset="0">
+             <bool>true</bool>
+            </property>
+            <property name="defaultStateString" stdset="0">
+             <string extracomment="background color selector">Transparent</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTabWidget" name="tabsOptions">
+         <property name="tabPosition">
+          <enum>QTabWidget::West</enum>
+         </property>
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tabLatexImage">
+          <attribute name="title">
+           <string>LaTeX</string>
+          </attribute>
+          <layout class="QGridLayout" name="lyt_gbxLatexImage">
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="chkMathMode">
+             <property name="toolTip">
+              <string>Check this to use a LaTeX math mode</string>
+             </property>
+             <property name="text">
+              <string>Use &amp;Math mode:</string>
+             </property>
+             <property name="shortcut">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="2">
+            <widget class="QComboBox" name="cbxMathMode">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+             <item>
+              <property name="text">
+               <string notr="true">\[ ... \]</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string notr="true">$ ... $</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string notr="true">\begin{align*} ... \end{align*}</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string notr="true">\begin{eqnarray*} ... \end{eqnarray*}</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="3">
+            <widget class="QLabel" name="lblPreamble">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Edit LaTeX &amp;preamble:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+             </property>
+             <property name="wordWrap">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="3">
+            <widget class="KLFLatexEdit" name="txtPreamble">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
+             <property name="acceptRichText">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSettings">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>1</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Edit KLatexFormula settings</string>
-          </property>
-          <property name="text">
-           <string>Settings...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/settings.png</normaloff>:/pics/settings.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string>Alt+N</string>
-          </property>
+         <widget class="QWidget" name="tabMargins">
+          <attribute name="title">
+           <string>Image &amp;&amp; Margins</string>
+          </attribute>
+          <layout class="QGridLayout" name="lyt_tabMargins">
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <item row="0" column="0" colspan="3">
+            <layout class="QHBoxLayout" name="lytDPIInput" stretch="1,0,0">
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="lblDPI">
+               <property name="text">
+                <string>DPI &amp;Resolution:</string>
+               </property>
+               <property name="wordWrap">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnDPIPresets">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Presets</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spnDPI">
+               <property name="minimum">
+                <number>10</number>
+               </property>
+               <property name="maximum">
+                <number>10000</number>
+               </property>
+               <property name="singleStep">
+                <number>50</number>
+               </property>
+               <property name="value">
+                <number>1200</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="0">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>118</width>
+               <height>16</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="0" colspan="3">
+            <widget class="QGroupBox" name="gbxOverrideMargins">
+             <property name="title">
+              <string>Override settings margins</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <layout class="QGridLayout" name="lyt_gbxOverrideMargins">
+              <property name="leftMargin">
+               <number>6</number>
+              </property>
+              <property name="topMargin">
+               <number>3</number>
+              </property>
+              <property name="rightMargin">
+               <number>6</number>
+              </property>
+              <property name="bottomMargin">
+               <number>3</number>
+              </property>
+              <item row="2" column="0" colspan="2">
+               <widget class="QFrame" name="frmMargins">
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Plain</enum>
+                </property>
+                <layout class="QGridLayout" name="lyt_frmMargins" columnstretch="1,2">
+                 <property name="horizontalSpacing">
+                  <number>0</number>
+                 </property>
+                 <property name="verticalSpacing">
+                  <number>2</number>
+                 </property>
+                 <property name="margin">
+                  <number>3</number>
+                 </property>
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="lblMarginTop">
+                   <property name="text">
+                    <string>Top:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="KLFUnitSpinBox" name="spnMarginTop">
+                   <property name="decimals">
+                    <number>1</number>
+                   </property>
+                   <property name="minimum">
+                    <double>0.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0">
+                  <widget class="QLabel" name="lblMarginLeft">
+                   <property name="text">
+                    <string>Left:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="KLFUnitSpinBox" name="spnMarginLeft">
+                   <property name="decimals">
+                    <number>1</number>
+                   </property>
+                   <property name="minimum">
+                    <double>0.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="lblMarginRight">
+                   <property name="text">
+                    <string>Right:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="KLFUnitSpinBox" name="spnMarginRight">
+                   <property name="decimals">
+                    <number>1</number>
+                   </property>
+                   <property name="minimum">
+                    <double>0.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="KLFUnitSpinBox" name="spnMarginBottom">
+                   <property name="decimals">
+                    <number>1</number>
+                   </property>
+                   <property name="minimum">
+                    <double>0.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>100.000000000000000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>0.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="lblMarginBottom">
+                   <property name="text">
+                    <string>Bottom:</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="KLFUnitChooser" name="cbxMarginsUnit">
+                <property name="klfUnits" stdset="0">
+                 <string>Postscript Point=pt=1;Millimeter=mm=2.835;Centimeter=cm=28.35;1/8 th inch=1/8 in=9;Inch=in=72</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="lblMarginsUnits">
+                <property name="text">
+                 <string>Units:</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item>
-         <spacer name="vspc_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnHelp">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Edit KLatexFormula settings</string>
-          </property>
-          <property name="icon">
-           <iconset resource="klfres.qrc">
-            <normaloff>:/pics/help.png</normaloff>:/pics/help.png</iconset>
-          </property>
-          <property name="shortcut">
-           <string>F1</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-  </layout>
-  <action name="aDPI1200">
-   <property name="text">
-    <string>High Resolution (1200)</string>
-   </property>
-   <property name="toolTip">
-    <string>Very good resolution</string>
-   </property>
-  </action>
-  <action name="aDPI600">
-   <property name="text">
-    <string>Good Resolution (600)</string>
-   </property>
-   <property name="toolTip">
-    <string>Pretty good resolution</string>
-   </property>
-  </action>
-  <action name="aDPI300">
-   <property name="text">
-    <string>Medium Resolution (300)</string>
-   </property>
-   <property name="toolTip">
-    <string>Medium resolution</string>
-   </property>
-  </action>
-  <action name="aDPI150">
-   <property name="text">
-    <string>Low Resolution (150)</string>
-   </property>
-   <property name="toolTip">
-    <string>Low resolution</string>
-   </property>
-  </action>
-  <action name="aShowSymbols">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Insert Symbol</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
-   </property>
-  </action>
-  <action name="aShowLibrary">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show Library</string>
-   </property>
-   <property name="toolTip">
-    <string>Show Library Browser Window</string>
-   </property>
-  </action>
-  <action name="aClearLatex">
-   <property name="icon">
-    <iconset resource="klfres.qrc">
-     <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
-   </property>
-   <property name="text">
-    <string>Clear LaTeX</string>
-   </property>
-   <property name="toolTip">
-    <string>Clear the LaTeX code field above</string>
-   </property>
-  </action>
-  <action name="aClearAll">
-   <property name="icon">
-    <iconset resource="klfres.qrc">
-     <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
-   </property>
-   <property name="text">
-    <string>Clear LaTeX and reset default style</string>
-   </property>
-   <property name="toolTip">
-    <string>Clear the LaTeX field above, and reset the style to the default style</string>
-   </property>
-  </action>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="lytStyleSettingsButtons">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="btnLoadStyle">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Load a previously saved style</string>
+           </property>
+           <property name="text">
+            <string>St&amp;yle</string>
+           </property>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/loadstyle.png</normaloff>:/pics/loadstyle.png</iconset>
+           </property>
+           <property name="shortcut">
+            <string>Alt+L</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnSettings">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Edit KLatexFormula settings</string>
+           </property>
+           <property name="text">
+            <string>Settings...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/settings.png</normaloff>:/pics/settings.png</iconset>
+           </property>
+           <property name="shortcut">
+            <string>Alt+N</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="vspc_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnHelp">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Edit KLatexFormula settings</string>
+           </property>
+           <property name="icon">
+            <iconset resource="klfres.qrc">
+             <normaloff>:/pics/help.png</normaloff>:/pics/help.png</iconset>
+           </property>
+           <property name="shortcut">
+            <string>F1</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+   <action name="aDPI1200">
+    <property name="text">
+     <string>High Resolution (1200)</string>
+    </property>
+    <property name="toolTip">
+     <string>Very good resolution</string>
+    </property>
+   </action>
+   <action name="aDPI600">
+    <property name="text">
+     <string>Good Resolution (600)</string>
+    </property>
+    <property name="toolTip">
+     <string>Pretty good resolution</string>
+    </property>
+   </action>
+   <action name="aDPI300">
+    <property name="text">
+     <string>Medium Resolution (300)</string>
+    </property>
+    <property name="toolTip">
+     <string>Medium resolution</string>
+    </property>
+   </action>
+   <action name="aDPI150">
+    <property name="text">
+     <string>Low Resolution (150)</string>
+    </property>
+    <property name="toolTip">
+     <string>Low resolution</string>
+    </property>
+   </action>
+   <action name="aShowSymbols">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Insert Symbol</string>
+    </property>
+    <property name="toolTip">
+     <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
+    </property>
+   </action>
+   <action name="aShowLibrary">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Show Library</string>
+    </property>
+    <property name="toolTip">
+     <string>Show Library Browser Window</string>
+    </property>
+   </action>
+   <action name="aClearLatex">
+    <property name="icon">
+     <iconset resource="klfres.qrc">
+      <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
+    </property>
+    <property name="text">
+     <string>Clear LaTeX</string>
+    </property>
+    <property name="toolTip">
+     <string>Clear the LaTeX code field above</string>
+    </property>
+   </action>
+   <action name="aClearAll">
+    <property name="icon">
+     <iconset resource="klfres.qrc">
+      <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
+    </property>
+    <property name="text">
+     <string>Clear LaTeX and reset default style</string>
+    </property>
+    <property name="toolTip">
+     <string>Clear the LaTeX field above, and reset the style to the default style</string>
+    </property>
+   </action>
+  </widget>
  </widget>
  <layoutdefault spacing="2" margin="3"/>
  <customwidgets>
@@ -1153,7 +1136,6 @@
   <tabstop>btnSetExportProfile</tabstop>
   <tabstop>btnQuit</tabstop>
   <tabstop>colFg</tabstop>
-  <tabstop>chkBgTransparent</tabstop>
   <tabstop>colBg</tabstop>
   <tabstop>tabsOptions</tabstop>
   <tabstop>chkMathMode</tabstop>
@@ -1175,38 +1157,6 @@
   <include location="klfres.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>chkBgTransparent</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>lblBg</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>817</x>
-     <y>75</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>612</x>
-     <y>106</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chkBgTransparent</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>colBg</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>817</x>
-     <y>75</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>817</x>
-     <y>106</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>btnLibrary</sender>
    <signal>toggled(bool)</signal>
@@ -1316,86 +1266,6 @@
     <hint type="destinationlabel">
      <x>388</x>
      <y>366</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbxMarginsUnit</sender>
-   <signal>unitChanged(double,QString)</signal>
-   <receiver>spnMarginTop</receiver>
-   <slot>setUnitWithSuffix(double,QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>541</x>
-     <y>168</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>541</x>
-     <y>168</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbxMarginsUnit</sender>
-   <signal>unitChanged(double,QString)</signal>
-   <receiver>spnMarginRight</receiver>
-   <slot>setUnitWithSuffix(double,QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>541</x>
-     <y>168</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>541</x>
-     <y>168</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbxMarginsUnit</sender>
-   <signal>unitChanged(double,QString)</signal>
-   <receiver>spnMarginBottom</receiver>
-   <slot>setUnitWithSuffix(double,QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>541</x>
-     <y>168</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>541</x>
-     <y>168</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbxMarginsUnit</sender>
-   <signal>unitChanged(double,QString)</signal>
-   <receiver>spnMarginLeft</receiver>
-   <slot>setUnitWithSuffix(double,QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>541</x>
-     <y>168</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>541</x>
-     <y>168</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chkMathMode</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>cbxMathMode</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>559</x>
-     <y>146</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>584</x>
-     <y>142</y>
     </hint>
    </hints>
   </connection>

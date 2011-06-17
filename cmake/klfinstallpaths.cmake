@@ -221,10 +221,11 @@ message(STATUS "Will install targets:
                \theaders\t\tstatic,\t    shared libraries   \tframework
    klfbackend: \t  ${KLF_INSTALL_KLFBACKEND_HEADERS}\t\t  ${KLF_INSTALL_KLFBACKEND_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_FRAMEWORK}
    klftools:   \t  ${KLF_INSTALL_KLFTOOLS_HEADERS}\t\t  ${KLF_INSTALL_KLFTOOLS_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_SO_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_FRAMEWORK}
+   klftoolsdesplugin:\t --\t\t  --\t\t${KLF_INSTALL_KLFTOOLSDESPLUGIN}  \t (KLF_INSTALL_KLFTOOLSDESPLUGIN)
    klfapp:     \t  ${KLF_INSTALL_KLFAPP_HEADERS}\t\t  ${KLF_INSTALL_KLFAPP_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_SO_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_FRAMEWORK}
 
-   klatexformula: \t${KLF_INSTALL_KLATEXFORMULA_BIN}
-   klatexformula_cmdl: \t${KLF_INSTALL_KLATEXFORMULA_CMDL}
+   klatexformula:        \t${KLF_INSTALL_KLATEXFORMULA_BIN}
+   klatexformula_cmdl:   \t${KLF_INSTALL_KLATEXFORMULA_CMDL}
    klatexformula bundle: \t${KLF_INSTALL_KLATEXFORMULA_BUNDLE}
 
    individual installs can be fine-tuned with

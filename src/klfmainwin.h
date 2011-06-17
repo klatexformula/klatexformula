@@ -38,6 +38,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QDialog>
+#include <QMainWindow>
 
 #include <klfbackend.h>
 
@@ -217,7 +218,7 @@ class KLFMainWinPopup;
  * KLatexFormula Main Window
  * \author Philippe Faist &lt;philippe.faist@bluewin.ch&gt;
  */
-class KLF_EXPORT KLFMainWin : public QWidget, public KLFDropDataHandler
+class KLF_EXPORT KLFMainWin : public QMainWindow, public KLFDropDataHandler
 {
   Q_OBJECT
   Q_PROPERTY(QString widgetStyle READ widgetStyle WRITE setWidgetStyle)

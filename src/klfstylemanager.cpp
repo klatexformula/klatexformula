@@ -136,7 +136,13 @@ bool KLFStyleListModel::dropMimeData(const QMimeData *mdata, Qt::DropAction acti
 
 
 KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
-  : QWidget(parent, Qt::Dialog)
+  : QWidget(parent, 
+#ifdef Q_WS_MAC
+	    Qt::Sheet
+#else
+	    Qt::Dialog
+#endif
+	    )
 {
   u = new Ui::KLFStyleManager;
   u->setupUi(this);

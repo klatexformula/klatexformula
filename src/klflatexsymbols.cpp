@@ -803,7 +803,7 @@ void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch, const QString
 
 KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings& baseSettings)
   : QWidget(
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN32) || defined(Q_WS_MAC)
 	    0 /* parent */
 #else
 	    parent /* 0 */
