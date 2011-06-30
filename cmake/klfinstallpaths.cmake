@@ -221,7 +221,7 @@ message(STATUS "Will install targets:
                \theaders\t\tstatic,\t    shared libraries   \tframework
    klfbackend: \t  ${KLF_INSTALL_KLFBACKEND_HEADERS}\t\t  ${KLF_INSTALL_KLFBACKEND_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_FRAMEWORK}
    klftools:   \t  ${KLF_INSTALL_KLFTOOLS_HEADERS}\t\t  ${KLF_INSTALL_KLFTOOLS_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_SO_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_FRAMEWORK}
-   klftoolsdesplugin:\t --\t\t  --\t\t${KLF_INSTALL_KLFTOOLSDESPLUGIN}  \t (KLF_INSTALL_KLFTOOLSDESPLUGIN)
+   klftoolsdesplugin: --\t  --\t\t  ${KLF_INSTALL_KLFTOOLSDESPLUGIN}\t\t  --
    klfapp:     \t  ${KLF_INSTALL_KLFAPP_HEADERS}\t\t  ${KLF_INSTALL_KLFAPP_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_SO_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_FRAMEWORK}
 
    klatexformula:        \t${KLF_INSTALL_KLATEXFORMULA_BIN}
@@ -229,7 +229,8 @@ message(STATUS "Will install targets:
    klatexformula bundle: \t${KLF_INSTALL_KLATEXFORMULA_BUNDLE}
 
    individual installs can be fine-tuned with
-          KLF_INSTALL_KLF{BACKEND|TOOLS|APP}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK}
+          KLF_INSTALL_KLF{BACKEND|TOOLS|APP}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK},
+          KLF_INSTALL_KLFTOOLSDESPLUGIN,
    and    KLF_INSTALL_KLATEXFORMULA_{BIN|CMDL|BUNDLE}
 
    Irrelevant settings, eg. installing os X bundles on linux, or KLF{TOOLS|APP} library install

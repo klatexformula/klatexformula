@@ -6,9 +6,9 @@
 
 macro(KLFMessageBundleExtraDeps var textname)
   if(${var})
-    message(STATUS "Will bundle library and framework dependencies into ${textname}")
+    message(STATUS "Will bundle library and framework dependencies into ${textname} (${var})")
   else(${var})
-    message(STATUS "Will not bundle library and framework dependencies into ${textname}")
+    message(STATUS "Will not bundle library and framework dependencies into ${textname} (${var})")
   endif(${var})
 endmacro(KLFMessageBundleExtraDeps var textname)
 

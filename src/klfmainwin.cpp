@@ -323,7 +323,8 @@ KLFMainWin::KLFMainWin()
 
 #ifdef Q_WS_MAC
   {
-    // Qt 4.7.3: src/gui/kernel/qwidget_mac.mm
+    // taken from Qt 4.7.3: src/gui/kernel/qwidget_mac.mm
+    // but defined in our own src/macosx/klfdrawerdefs.mm
     extern bool qt_mac_is_macdrawer(const QWidget *);
     // make the details frame a drawer
     u->frmDetails->setParent(this);
@@ -336,6 +337,7 @@ KLFMainWin::KLFMainWin()
     u->frmDetails->setFont(f);
     set_property_children(u->frmDetails, "QWidget", "font", QVariant(f));
     resize(u->frmMain->sizeHint()+QSize(10,10));
+    u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
   }
 #endif
 
@@ -2212,6 +2214,11 @@ void KLFMainWin::slotExpandOrShrink()
   extern bool qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
   qt_mac_set_drawer_preferred_edge(u->frmDetails, Qt::RightDockWidgetArea);
   u->frmDetails->setVisible(!u->frmDetails->isVisible());
+  if (u->frmDetails->isVisible()) {
+    u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.png"));
+  } else {
+    u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
+  }
 #endif
 }
 
@@ -2884,8 +2891,8 @@ void KLFMainWin::slotLoadStyleAct()
 void KLFMainWin::slotLoadStyle(const KLFStyle& style)
 {
   QColor cfg, cbg;
-  cfg.setRgb(style.fg_color);
-  cbg.setRgb(style.bg_color);
+  cfg.setRgba(style.fg_color);
+  cbg.setRgba(style.bg_color);
   u->colFg->setColor(cfg);
   if (cbg.alpha() < 100)
     cbg = QColor(); // transparent

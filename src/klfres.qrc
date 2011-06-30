@@ -31,6 +31,8 @@
     <file>pics/library.png</file>
     <file>pics/switchshrinked.png</file>
     <file>pics/switchexpanded.png</file>
+    <file>pics/switchshrinked_drawer.png</file>
+    <file>pics/switchexpanded_drawer.png</file>
     <file>pics/cut.png</file>
     <file>pics/copy.png</file>
     <file>pics/paste.png</file>

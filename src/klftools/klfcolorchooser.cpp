@@ -1013,11 +1013,66 @@ QPixmap KLFColorChooser::colorPixmap(const QColor& color, const QSize& size)
     p.fillRect(0,0,pix.width(),pix.height(), QBrush(color));
     //    pix.fill(color);
   } else {
-    // draw "transparent"-representing pixmap
-    pix.fill(QColor(127,127,127,80));
+    /*
+     // draw "transparent"-representing pixmap
+     pix.fill(QColor(127,127,127,80));
+     QPainter p(&pix);
+     p.setPen(QPen(QColor(255,0,0), 2));
+     p.drawLine(0,0,size.width(),size.height());
+    */
+    // draw "default"/"transparent" pixmap
     QPainter p(&pix);
-    p.setPen(QPen(QColor(255,0,0), 2));
-    p.drawLine(0,0,size.width(),size.height());
+    p.setRenderHint(QPainter::Antialiasing);
+    QLinearGradient pgrad(0, 0, 0, 1);
+    pgrad.setColorAt(0, QColor(160,160,185));
+    pgrad.setColorAt(1, QColor(220,220,230));
+    pgrad.setCoordinateMode(QGradient::StretchToDeviceMode);
+    p.fillRect(0, 0, pix.width(), pix.height(), pgrad);
+
+    //    p.scale((qreal)pix.width(), (qreal)pix.height());
+
+    QRectF dashrect(QPointF(0.34*pix.width(), 0.40*pix.height()),
+    		    QPointF(0.67*pix.width(), 0.60*pix.height()));
+    //    QRectF dashrect(QPointF(0.1*pix.width(), 0.10*pix.height()),
+    //    		    QPointF(0.9*pix.width(), 0.90*pix.height()));
+    p.setClipRect(dashrect);
+    p.translate(dashrect.topLeft());
+    p.scale(dashrect.width(), dashrect.height());
+
+    p.drawLine(0,0,1,1);
+
+    QRadialGradient dashgrad(QPointF(0.75, 0.3), 0.4, QPointF(0.95, 0.2));
+    dashgrad.setColorAt(0, QColor(180, 180, 240));
+    dashgrad.setColorAt(1, QColor(40, 40, 50));
+    dashgrad.setCoordinateMode(QGradient::LogicalMode);
+    p.setPen(Qt::NoPen);
+    p.setBrush(dashgrad);
+    p.fillRect(QRectF(0,0,1,1), dashgrad);
+    //    qreal yrad = 2;
+    //    qreal xrad = 2;//yrad * dashrect.height()/dashrect.width();
+    //    p.drawRoundedRect(QRectF(0,0,1,1), xrad, yrad, Qt::AbsoluteSize);
+
+    /*
+    //    QLinearGradient pdashgrad(0, 0, 1, 0);
+    //    pdashgrad.setColorAt(0, QColor(120, 0, 40));
+    //    pdashgrad.setColorAt(1, QColor(120, 0, 40));
+    QRadialGradient dashgrad(QPointF(1.75, 1.9), 0.6, QPointF(1.9, 1.8));
+    //    QLinearGradient dashgrad(QPointF(0,0), QPointF(1,0));
+    dashgrad.setColorAt(0, QColor(255, 0, 0));
+    dashgrad.setColorAt(1, QColor(0, 255, 0));
+    dashgrad.setCoordinateMode(QGradient::StretchToDeviceMode);
+    //    dashgrad.setColorAt(0, QColor(255, 255, 255));
+    //    dashgrad.setColorAt(1, QColor(40, 40, 50));
+    //    QPen pen(QBrush(dashgrad), pix.height()/5.f, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    p.setPen(Qt::NoPen);
+    p.setBrush(dashgrad);
+    QRectF dashrect(QPointF(0.34*pix.width(), 0.40*pix.height()),
+		    QPointF(0.67*pix.width(), 0.65*pix.height()));
+    qreal rad = pix.height()/8.;
+    p.drawRoundedRect(dashrect, 1.2*rad, rad, Qt::AbsoluteSize);
+    //    p.drawLine(pix.width()*3./8., pix.height()/2., pix.width()*5./8., pix.height()/2.);
+    //    p.fillRect(0, 0, pix.width(), pix.height(), dashgrad); // debug this gradient
+    */
   }
   return pix;
 }

@@ -51,8 +51,10 @@ if(APPLE AND KLF_MACOSX_BUNDLE_PATH)
   KLFMakeMacExtraBundledTarget(klfbaseplugins "${KLF_LOCAL_PLUGIN_LIBNAMES}")
 
   foreach(plugin_libname ${KLF_LOCAL_PLUGIN_LIBNAMES})
-    KLFBundlePrivateLibUpdateQtDep(klfbaseplugins "${KLF_MACOSX_BUNDLE_PATH}"
+    if(KLF_MACOSX_BUNDLE_EXTRAS_klatexformula)
+      KLFBundlePrivateLibUpdateQtDep(klfbaseplugins "${KLF_MACOSX_BUNDLE_PATH}"
 	"../../plugins/${plugin_libname}" "Core;Gui;Xml;Sql;DBus")
+    endif(KLF_MACOSX_BUNDLE_EXTRAS_klatexformula)
     KLFInstallNameToolChange(klfbaseplugins "../../plugins/${plugin_libname}"
         "${KLF_MACOSX_BUNDLE_PATH}" "Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
         "${CMAKE_BINARY_DIR}/src/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend")
