@@ -340,6 +340,18 @@
     <sym><usepackage name="wasysym"/><latex>\rhd</latex></sym>
     <sym><usepackage name="wasysym"/><latex>\unlhd</latex></sym>
   </category>
+  <category name="Operators">
+    <sym><latex>\sin</latex></sym>
+    <sym><latex>\cos</latex></sym>
+    <sym><latex>\tan</latex></sym>
+    <sym><latex>\ln</latex></sym>
+    <sym><latex>\log</latex></sym>
+    <sym><latex>\lim</latex><preview-latex>\lim_{n\rightarrow\infty}</preview-latex></sym>
+    <sym><preambleline>\DeclareMathOperator{\tr}{tr}</preambleline><latex>\tr</latex><keywords>trace</keywords></sym>
+    <sym><preambleline>\DeclareMathOperator{\supp}{supp}</preambleline><latex>\supp</latex><keywords>support</keywords></sym>
+    <sym><preambleline>\DeclareMathOperator{\rank}{rank}</preambleline><latex>\rank</latex><keywords>rank operator matrix</keywords></sym>
+
+  </category>
   <category name="Arrow Symbols">
     <category-title>Arrow Symbols</category-title>
 
@@ -532,11 +544,14 @@
     <sym><latex numargs="1">\tilde</latex><preview-latex>\tilde{a}</preview-latex></sym>
     <sym><latex numargs="1">\acute</latex><preview-latex>\acute{a}</preview-latex></sym>
     <sym><latex numargs="1">\grave</latex><preview-latex>\grave{a}</preview-latex></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex numargs="1">\ket</latex><preview-latex>\ket\psi</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
-    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex numargs="1">\bra</latex><preview-latex>\bra\psi</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\sket}[1]{\vert#1\rangle}</preambleline><latex numargs="1">\sket</latex><preview-latex>\ket{\tilde\psi}</preview-latex><keywords>quantum mechanics Dirac ket</keywords></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\ket}[1]{\left\lvert#1\right\rangle}</preambleline><latex numargs="1">\ket</latex><preview-latex>\ket\psi</preview-latex><keywords>quantum mechanics Dirac ket</keywords></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\bra}[1]{\left\langle#1\right\rvert}</preambleline><latex numargs="1">\bra</latex><preview-latex>\bra\psi</preview-latex><keywords>quantum mechanics Dirac bra</keywords></sym>
+    <sym><usepackage name="amsmath"/><preambleline>\newcommand{\sbra}[1]{\langle#1\vert}</preambleline><latex numargs="1">\sbra</latex><preview-latex>\sbra{\tilde\psi}</preview-latex><keywords>quantum mechanics Dirac bra</keywords></sym>
     <sym><preambleline>\newcommand{\braket}[2]{\left\langle#1\vphantom{#2}\right|\hspace{-0.9mm}\left.#2\vphantom{#1}\right\rangle}</preambleline><latex numargs="2">\braket</latex><preview-latex>\braket\phi\psi</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
-    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex numargs="3">\matrixel</latex><preview-latex>\matrixel{\phi}{\mathcal H}{\psi}</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
-    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><latex numargs="2">\ketbra</latex><preview-latex>\ketbra{\phi}{\psi}</preview-latex><keywords>quantum mechanics Dirac</keywords></sym>
+    <sym><preambleline>\newcommand{\matrixel}[3]{\left\langle#1\vphantom{#2#3}\right| #2 \left|#3\vphantom{#1#2}\right\rangle}</preambleline><latex numargs="3">\matrixel</latex><preview-latex>\matrixel{\phi}{\mathcal H}{\psi}</preview-latex><keywords>quantum mechanics Dirac matrix element</keywords></sym>
+    <sym><preambleline>\newcommand{\ketbra}[2]{\left\vert#1\vphantom{#2}\right\rangle\hspace{-0.8mm}\left\langle#2\vphantom{#1}\right\vert}</preambleline><latex numargs="2">\ketbra</latex><preview-latex>\ketbra{\phi}{\psi}</preview-latex><keywords>quantum mechanics Dirac matrix element</keywords></sym>
+    <sym><preambleline>\newcommand{\sketbra}[2]{\vert#1\rangle\hspace{-0.2mm}\langle#2\vphantom{#1}\vert}</preambleline><latex numargs="2">\sketbra</latex><preview-latex>\sketbra{\tilde\phi}{\tilde\psi}</preview-latex><keywords>quantum mechanics Dirac matrix element</keywords></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
     <sym><usepackage name="slashed"/><latex numargs="1">\slashed</latex><preview-latex>\slashed{\gamma}</preview-latex><keywords>Feynman slash quantum field theory QFT</keywords></sym>

@@ -20,6 +20,7 @@ set(klftools_SRCS
 	klfsearchbar.cpp
 	klfunitinput.cpp
 	klflatexedit.cpp
+	klfrelativefont.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -34,6 +35,7 @@ set(klftools_MOCHEADERS
 	klfunitinput.h
 	klfsearchbar.h
 	klflatexedit.h
+	klfrelativefont.h
 )
 #  * all headers
 set(klftools_HEADERS

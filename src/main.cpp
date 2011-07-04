@@ -851,11 +851,14 @@ int main(int argc, char **argv)
       qtargvlist << QString::fromLocal8Bit(qt_argv[k]);
 
     // Create the QApplication
+    QApplication::setDesktopSettingsAware(false);
     QApplication app(qt_argc, qt_argv);
 
 #ifdef Q_WS_MAC
     extern void __klf_init_the_macpasteboardmime();
     __klf_init_the_macpasteboardmime();
+    //    extern void qt_set_sequence_auto_mnemonic(bool b);
+    //    qt_set_sequence_auto_mnemonic(true);
 #endif
 
     // add our default application font(s) ;-)

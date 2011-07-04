@@ -31,10 +31,11 @@
 #include <ui_klfprogerr.h>
 #include <ui_klfmainwin.h>
 
-#include <klflibview.h>
 #include <klfguiutil.h>
+#include <klfrelativefont.h>
+#include <klflatexedit.h>
 
-#include "klflatexedit.h"
+#include "klflibview.h"
 #include "klflibbrowser.h"
 #include "klflatexsymbols.h"
 #include "klfsettings.h"
@@ -325,17 +326,19 @@ KLFMainWin::KLFMainWin()
   {
     // taken from Qt 4.7.3: src/gui/kernel/qwidget_mac.mm
     // but defined in our own src/macosx/klfdrawerdefs.mm
-    extern bool qt_mac_is_macdrawer(const QWidget *);
+    //    extern bool qt_mac_is_macdrawer(const QWidget *);
     // make the details frame a drawer
     u->frmDetails->setParent(this);
     u->frmDetails->hide();
     u->frmDetails->setWindowFlags(Qt::Drawer);
     //    fprintf(stderr, "widget is drawer=%d\n", (int)qt_mac_is_macdrawer(u->frmDetails)) ;
     // adjust to smaller font
-    QFont f = u->frmDetails->font();
-    f.setPointSize(QFontInfo(f).pointSize()-2);
-    u->frmDetails->setFont(f);
-    set_property_children(u->frmDetails, "QWidget", "font", QVariant(f));
+    //    QFont f = u->frmDetails->font();
+    //    f.setPointSize(QFontInfo(f).pointSize()-2);
+    KLFRelativeFont *rf = new KLFRelativeFont(u->frmDetails);
+    rf->setRelPointSize(-1);
+    //    u->frmDetails->setFont(f);
+    //    set_property_children(u->frmDetails, "QWidget", "font", QVariant(f));
     resize(u->frmMain->sizeHint()+QSize(10,10));
     u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
   }

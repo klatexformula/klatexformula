@@ -534,7 +534,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="lblFg">
             <property name="text">
-             <string>&amp;Foreground color:</string>
+             <string>Foreground color:</string>
             </property>
             <property name="wordWrap">
              <bool>false</bool>
@@ -551,7 +551,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="lblBg">
             <property name="text">
-             <string>&amp;Background color:</string>
+             <string>Background color:</string>
             </property>
             <property name="wordWrap">
              <bool>false</bool>
@@ -648,7 +648,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Edit LaTeX &amp;preamble:</string>
+              <string>Edit LaTeX preamble:</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -697,7 +697,7 @@
              <item>
               <widget class="QLabel" name="lblDPI">
                <property name="text">
-                <string>DPI &amp;Resolution:</string>
+                <string>DPI Resolution:</string>
                </property>
                <property name="wordWrap">
                 <bool>false</bool>

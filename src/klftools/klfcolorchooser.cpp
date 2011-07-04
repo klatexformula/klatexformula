@@ -973,6 +973,7 @@ void KLFColorChooser::_makemenu()
 
   mMenu->addAction(tr("Custom ..."), this, SLOT(requestColor()));
 
+  mMenu->setFont(font()); // needed on Mac OS X
   setMenu(mMenu);
 }
 
@@ -1029,25 +1030,33 @@ QPixmap KLFColorChooser::colorPixmap(const QColor& color, const QSize& size)
     pgrad.setCoordinateMode(QGradient::StretchToDeviceMode);
     p.fillRect(0, 0, pix.width(), pix.height(), pgrad);
 
-    //    p.scale((qreal)pix.width(), (qreal)pix.height());
+    QPen pen(QColor(127,0,0), 0.5f, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    p.setPen(pen);
+    p.drawLine(QPointF(0,0), QPointF(pix.width(), pix.height()));
+    p.drawLine(QPointF(0,pix.height()), QPointF(pix.width(), 0));
 
-    QRectF dashrect(QPointF(0.34*pix.width(), 0.40*pix.height()),
-    		    QPointF(0.67*pix.width(), 0.60*pix.height()));
-    //    QRectF dashrect(QPointF(0.1*pix.width(), 0.10*pix.height()),
-    //    		    QPointF(0.9*pix.width(), 0.90*pix.height()));
-    p.setClipRect(dashrect);
-    p.translate(dashrect.topLeft());
-    p.scale(dashrect.width(), dashrect.height());
+    /*
+     //    p.scale((qreal)pix.width(), (qreal)pix.height());
+     
+     QRectF dashrect(QPointF(0.34*pix.width(), 0.40*pix.height()),
+     QPointF(0.67*pix.width(), 0.60*pix.height()));
+     //    QRectF dashrect(QPointF(0.1*pix.width(), 0.10*pix.height()),
+     //    		    QPointF(0.9*pix.width(), 0.90*pix.height()));
+     p.setClipRect(dashrect);
+     p.translate(dashrect.topLeft());
+     p.scale(dashrect.width(), dashrect.height());
+     
+     p.drawLine(0,0,1,1);
+     
+     QRadialGradient dashgrad(QPointF(0.75, 0.3), 0.4, QPointF(0.95, 0.2));
+     dashgrad.setColorAt(0, QColor(180, 180, 240));
+     dashgrad.setColorAt(1, QColor(40, 40, 50));
+     dashgrad.setCoordinateMode(QGradient::LogicalMode);
+     p.setPen(Qt::NoPen);
+     p.setBrush(dashgrad);
+     p.fillRect(QRectF(0,0,1,1), dashgrad);
+    */
 
-    p.drawLine(0,0,1,1);
-
-    QRadialGradient dashgrad(QPointF(0.75, 0.3), 0.4, QPointF(0.95, 0.2));
-    dashgrad.setColorAt(0, QColor(180, 180, 240));
-    dashgrad.setColorAt(1, QColor(40, 40, 50));
-    dashgrad.setCoordinateMode(QGradient::LogicalMode);
-    p.setPen(Qt::NoPen);
-    p.setBrush(dashgrad);
-    p.fillRect(QRectF(0,0,1,1), dashgrad);
     //    qreal yrad = 2;
     //    qreal xrad = 2;//yrad * dashrect.height()/dashrect.width();
     //    p.drawRoundedRect(QRectF(0,0,1,1), xrad, yrad, Qt::AbsoluteSize);
