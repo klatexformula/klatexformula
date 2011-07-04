@@ -360,6 +360,7 @@ void KLFSearchBar::registerShortcuts(QWidget *parent)
 {
   DECLARE_SEARCH_SHORTCUT(tr("Ctrl+F", "[[find]]"), parent, SLOT(focusOrNext()));
   DECLARE_SEARCH_SHORTCUT(tr("Ctrl+S", "[[find]]"), parent, SLOT(focusOrNext()));
+  DECLARE_SEARCH_SHORTCUT(tr("Ctrl+G", "[[find]]"), parent, SLOT(focusOrNext()));
   DECLARE_SEARCH_SHORTCUT(tr("/", "[[find]]"), parent, SLOT(clear()));
   DECLARE_SEARCH_SHORTCUT(tr("F3", "[[find next]]"), parent, SLOT(findNext()));
   DECLARE_SEARCH_SHORTCUT(tr("Shift+F3", "[[find prev]]"), parent, SLOT(findPrev()));

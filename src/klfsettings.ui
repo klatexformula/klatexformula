@@ -492,26 +492,26 @@
           </item>
           <item row="1" column="1">
            <widget class="KLFColorChooser" name="colSHKeyword">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
           </item>
           <item row="1" column="2">
            <widget class="KLFColorChooser" name="colSHKeywordBg">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
@@ -574,26 +574,26 @@
           </item>
           <item row="2" column="1">
            <widget class="KLFColorChooser" name="colSHComment">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
           </item>
           <item row="2" column="2">
            <widget class="KLFColorChooser" name="colSHCommentBg">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
@@ -656,26 +656,26 @@
           </item>
           <item row="4" column="1">
            <widget class="KLFColorChooser" name="colSHParenMatch">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
           </item>
           <item row="4" column="2">
            <widget class="KLFColorChooser" name="colSHParenMatchBg">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
@@ -738,26 +738,26 @@
           </item>
           <item row="5" column="1">
            <widget class="KLFColorChooser" name="colSHParenMismatch">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
           </item>
           <item row="5" column="2">
            <widget class="KLFColorChooser" name="colSHParenMismatchBg">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
@@ -820,26 +820,26 @@
           </item>
           <item row="7" column="1">
            <widget class="KLFColorChooser" name="colSHLonelyParen">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
           </item>
           <item row="7" column="2">
            <widget class="KLFColorChooser" name="colSHLonelyParenBg">
-            <property name="showSize">
+            <property name="showSize" stdset="0">
              <size>
               <width>50</width>
               <height>16</height>
              </size>
             </property>
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
            </widget>
@@ -1264,36 +1264,7 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0">
-           <widget class="QCheckBox" name="chkEpstopdf">
-            <property name="text">
-             <string>Have epstopdf :</string>
-            </property>
-            <property name="shortcut">
-             <string>Alt+A</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item row="4" column="1">
-           <widget class="KLFPathChooser" name="pathEpstopdf">
-            <property name="mode" stdset="0">
-             <number>0</number>
-            </property>
-            <property name="caption" stdset="0">
-             <string>Choose epstopdf executable</string>
-            </property>
-            <property name="filter" stdset="0">
-             <string/>
-            </property>
-            <property name="path" stdset="0">
-             <string notr="true">epstopdf</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
            <layout class="QHBoxLayout" name="lyt_resetdefaults">
             <item>
              <spacer name="spcHbtnresetdflts">
@@ -1624,8 +1595,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>355</width>
-                <height>174</height>
+                <width>330</width>
+                <height>149</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1791,8 +1762,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>345</width>
-                   <height>226</height>
+                   <width>310</width>
+                   <height>191</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1856,8 +1827,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>557</width>
-            <height>514</height>
+            <width>515</width>
+            <height>483</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1957,8 +1928,6 @@
   <tabstop>pathLatex</tabstop>
   <tabstop>pathDvips</tabstop>
   <tabstop>pathGs</tabstop>
-  <tabstop>chkEpstopdf</tabstop>
-  <tabstop>pathEpstopdf</tabstop>
   <tabstop>btnPathsReset</tabstop>
   <tabstop>chkOutlineFonts</tabstop>
   <tabstop>spnLBorderOffset</tabstop>
@@ -1982,22 +1951,6 @@
   <include location="klfres.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>chkEpstopdf</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>pathEpstopdf</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>141</x>
-     <y>236</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>212</x>
-     <y>238</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>chkSHEnable</sender>
    <signal>toggled(bool)</signal>

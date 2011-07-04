@@ -591,3 +591,18 @@ macro(KLFGetTargetFileName var target)
   KLFGetTargetLocation(${var} ${target})
   string(REGEX REPLACE "^.*/([^/]+)$" "\\1" ${var} "${${var}}")
 endmacro(KLFGetTargetFileName)
+
+
+macro(KLFNoShlibUndefined target)
+  if(APPLE)
+    get_target_property(lflags ${target} LINK_FLAGS)
+    if(lflags)
+      set(lflags "${lflags} ")
+    else(lflags)
+      set(lflags "")
+    endif(lflags)
+    set_target_properties(${target} PROPERTIES
+      LINK_FLAGS "${lflags}-undefined dynamic_lookup"
+      )
+  endif(APPLE)
+endmacro(KLFNoShlibUndefined)

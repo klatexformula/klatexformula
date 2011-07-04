@@ -47,7 +47,7 @@
 
 KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   : QWidget(
-#if defined(Q_OS_WIN32)
+#if defined(Q_WS_WIN) || defined(Q_WS_MAC)
 	    0 /* parent */
 #else
 	    parent /* 0 */

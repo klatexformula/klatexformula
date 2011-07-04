@@ -75,6 +75,9 @@ public:
 
   static void showError(QWidget *parent, QString text);
 
+protected:
+  virtual void showEvent(QShowEvent *e);
+
 private:
   Ui::KLFProgErr *u;
 };

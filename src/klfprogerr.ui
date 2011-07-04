@@ -21,9 +21,6 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
-  <property name="modal">
-   <bool>true</bool>
-  </property>
   <layout class="QVBoxLayout" name="lyt_KLFProgErr">
    <item>
     <widget class="QLabel" name="lbl">

@@ -81,12 +81,20 @@ KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
   u->setupUi(this);
   setObjectName("KLFProgErr");
 
+  setWindowFlags(Qt::Sheet);
+
+  setWindowModality(Qt::WindowModal);
+
   u->txtError->setText(errtext);
 }
 
 KLFProgErr::~KLFProgErr()
 {
   delete u;
+}
+
+void KLFProgErr::showEvent(QShowEvent */*e*/)
+{
 }
 
 void KLFProgErr::showError(QWidget *parent, QString errtext)

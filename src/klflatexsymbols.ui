@@ -19,6 +19,9 @@
     <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
   <layout class="QGridLayout" name="lyt_KLFLatexSymbols">
+   <property name="verticalSpacing">
+    <number>4</number>
+   </property>
    <property name="margin">
     <number>5</number>
    </property>
@@ -51,11 +54,20 @@
       <number>0</number>
      </property>
      <layout class="QGridLayout" name="lyt_frmMain">
+      <property name="leftMargin">
+       <number>2</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>2</number>
+      </property>
+      <property name="bottomMargin">
+       <number>10</number>
+      </property>
       <property name="horizontalSpacing">
        <number>4</number>
-      </property>
-      <property name="margin">
-       <number>0</number>
       </property>
       <item row="0" column="0" colspan="3">
        <widget class="QFrame" name="frmStackContainer">

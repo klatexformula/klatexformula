@@ -468,8 +468,8 @@ void KLFSettings::reset()
   u->pathLatex->setPath(s.latexexec);
   u->pathDvips->setPath(s.dvipsexec);
   u->pathGs->setPath(s.gsexec);
-  u->pathEpstopdf->setPath(s.epstopdfexec);
-  u->chkEpstopdf->setChecked( ! s.epstopdfexec.isEmpty() );
+  //  u->pathEpstopdf->setPath(s.epstopdfexec);
+  //  u->chkEpstopdf->setChecked( ! s.epstopdfexec.isEmpty() );
   /** \todo .... these settings should be shown in double when the corresponding
    * functionality will be implemented in klfbackend. */
   u->spnLBorderOffset->setValue( (int)(s.lborderoffset+0.5) );
@@ -768,8 +768,8 @@ void KLFSettings::setDefaultPaths()
   setDefaultFor("latex", defaultsettings.latexexec, true, u->pathLatex);
   setDefaultFor("dvips", defaultsettings.dvipsexec, true, u->pathDvips);
   setDefaultFor("gs", defaultsettings.gsexec, true, u->pathGs);
-  bool r = setDefaultFor("epstopdf", defaultsettings.epstopdfexec, false, u->pathEpstopdf);
-  u->chkEpstopdf->setChecked(r);
+  //  bool r = setDefaultFor("epstopdf", defaultsettings.epstopdfexec, false, u->pathEpstopdf);
+  //  u->chkEpstopdf->setChecked(r);
 }
 
 
@@ -1045,10 +1045,10 @@ void KLFSettings::apply()
   s.latexexec = u->pathLatex->path();
   s.dvipsexec = u->pathDvips->path();
   s.gsexec = u->pathGs->path();
-  s.epstopdfexec = QString();
-  if (u->chkEpstopdf->isChecked()) {
-    s.epstopdfexec = u->pathEpstopdf->path();
-  }
+  //  s.epstopdfexec = QString();
+  //  if (u->chkEpstopdf->isChecked()) {
+  //    s.epstopdfexec = u->pathEpstopdf->path();
+  //  }
   // detect environment for those settings (in particular mgs.exe for ghostscript ...)
 
   klf_detect_execenv(&s);

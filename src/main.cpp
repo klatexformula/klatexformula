@@ -851,10 +851,15 @@ int main(int argc, char **argv)
       qtargvlist << QString::fromLocal8Bit(qt_argv[k]);
 
     // Create the QApplication
+#ifdef Q_WS_MAC
+    // this is needed to avoid having default app font set right after window activation :(
     QApplication::setDesktopSettingsAware(false);
+#endif
     QApplication app(qt_argc, qt_argv);
 
 #ifdef Q_WS_MAC
+    app.setFont(QFont("Lucida Grande", 13));
+
     extern void __klf_init_the_macpasteboardmime();
     __klf_init_the_macpasteboardmime();
     //    extern void qt_set_sequence_auto_mnemonic(bool b);
