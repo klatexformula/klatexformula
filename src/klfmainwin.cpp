@@ -295,12 +295,10 @@ KLFMainWin::KLFMainWin()
   lyt->setSpacing(0);
   lyt->setMargin(0);
   mExportMsgLabel = new QLabel(u->lblOutput);
-  //mExportMsgLabel = new QLabel(frmOutput);
   mExportMsgLabel->setObjectName("mExportMsgLabel");
-  QFont smallfont = mExportMsgLabel->font();
-  smallfont.setPointSize(QFontInfo(smallfont).pointSize() - 1);
+  KLFRelativeFont *exportmsglabelRelFont = new KLFRelativeFont(u->lblOutput, mExportMsgLabel);
+  exportmsglabelRelFont->setRelPointSize(-1);
   mExportMsgLabel->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed));
-  mExportMsgLabel->setFont(smallfont);
   mExportMsgLabel->setMargin(1);
   mExportMsgLabel->setAlignment(Qt::AlignRight|Qt::AlignBottom);
   QPalette pal = mExportMsgLabel->palette();
@@ -320,7 +318,11 @@ KLFMainWin::KLFMainWin()
 
   refreshWindowSizes();
 
+  KLFRelativeFont *rf = new KLFRelativeFont(u->frmDetails);
+  rf->setRelPointSize(-2);
+
   u->frmDetails->hide();
+
 
 #ifdef Q_WS_MAC
   {
@@ -328,15 +330,13 @@ KLFMainWin::KLFMainWin()
     // but defined in our own src/macosx/klfdrawerdefs.mm
     //    extern bool qt_mac_is_macdrawer(const QWidget *);
     // make the details frame a drawer
-    u->frmDetails->setParent(this);
     u->frmDetails->hide();
+    u->frmDetails->setParent(this);
     u->frmDetails->setWindowFlags(Qt::Drawer);
     //    fprintf(stderr, "widget is drawer=%d\n", (int)qt_mac_is_macdrawer(u->frmDetails)) ;
     // adjust to smaller font
     //    QFont f = u->frmDetails->font();
     //    f.setPointSize(QFontInfo(f).pointSize()-2);
-    KLFRelativeFont *rf = new KLFRelativeFont(u->frmDetails);
-    rf->setRelPointSize(-1);
     //    u->frmDetails->setFont(f);
     //    set_property_children(u->frmDetails, "QWidget", "font", QVariant(f));
     resize(u->frmMain->sizeHint()+QSize(10,10));
@@ -1648,6 +1648,7 @@ bool KLFMainWin::event(QEvent *e)
 
 void KLFMainWin::childEvent(QChildEvent *e)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QObject *child = e->child();
   if (e->type() == QEvent::ChildAdded && child->isWidgetType()) {
     QWidget *w = qobject_cast<QWidget*>(child);
@@ -2577,7 +2578,7 @@ void KLFMainWin::slotDrag()
   // imprint the export type on the drag pixmap
   QString exportProfileText = KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.dragExportProfile).description();
   { QPainter painter(&img);
-    QFont smallfont = QFont("Helvetica", 8);
+    QFont smallfont = QFont("Helvetica", 6);
     smallfont.setPixelSize(12);
     painter.setFont(smallfont);
     painter.setRenderHint(QPainter::TextAntialiasing, false);

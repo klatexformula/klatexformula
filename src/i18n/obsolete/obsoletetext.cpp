@@ -104,6 +104,7 @@ void dummy()
   QObject::tr("<b>Math Mode</b>: %1<br><b>DPI Resolution</b>: %2<br><b>Foreground Color</b>: %3 <font color=\"%4\"><b>[SAMPLE]</b></font><br><b>Background is Transparent</b>: %5<br><b>Background Color</b>: %6 <font color=\"%7\"><b>[SAMPLE]</b></font><br><b>LaTeX Preamble:</b><br><pre>%8</pre>");
   QObject::tr("ERROR: Can't generate preview for symbol %1 : status %2 !\n	Error: %3\n");
   QObject::tr("YES"); QObject::tr("NO");
+  QObject::tr("Damonize option can only be used in interactive mode!.");
   QT_TRANSLATE_NOOP3("QObject",
 		     "\n"
 		     "KLatexFormula by Philippe Faist\n"

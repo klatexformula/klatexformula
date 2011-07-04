@@ -30,6 +30,7 @@
 #include <QDebug>
 
 #include "klfutil.h"
+#include "klfrelativefont.h"
 #include "klfguiutil.h"
 
 
@@ -166,9 +167,9 @@ KLFPleaseWaitPopup::KLFPleaseWaitPopup(const QString& text, QWidget *parent, boo
     pParentWidget(parent), pDisableUi(false), pGotPaintEvent(false), pDiscarded(false)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  QFont f = font();
-  f.setPointSize(QFontInfo(f).pointSize() + 2);
-  setFont(f);
+  KLFRelativeFont *relfont = new KLFRelativeFont(this);
+  relfont->setRelPointSize(+2);
+
   setAlignment(Qt::AlignHCenter|Qt::AlignVCenter);
   setWindowModality(Qt::ApplicationModal);
   // let this window be styled by skins

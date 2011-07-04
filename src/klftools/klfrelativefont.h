@@ -36,6 +36,7 @@ class KLF_EXPORT KLFRelativeFontBase : public QObject
   Q_OBJECT
 public:
   KLFRelativeFontBase(QWidget *parent);
+  KLFRelativeFontBase(QWidget *reference, QWidget *target);
   virtual ~KLFRelativeFontBase();
 
   bool eventFilter(QObject *object, QEvent *event);
@@ -43,7 +44,18 @@ public:
 protected:
   virtual QFont calculateRelativeFont(const QFont& baseFont) = 0;
 
-  inline QWidget * parentWidget() { return qobject_cast<QWidget*>(parent()); }
+  inline QWidget * referenceWidget() { return pReference; }
+  inline QWidget * targetWidget() { return pTarget; }
+
+private:
+  void calculateAndApplyNewFont();
+
+private:
+  QWidget *pReference;
+  QWidget *pTarget;
+
+  bool pInhibitFontChangeRecursion;
+  bool pHasAppliedFont;
 };
 
 
@@ -55,14 +67,25 @@ class KLF_EXPORT KLFRelativeFont : public KLFRelativeFontBase
   Q_OBJECT
 public:
   KLFRelativeFont(QWidget *parent);
+  KLFRelativeFont(QWidget *reference, QWidget *target);
+
   virtual ~KLFRelativeFont();
 
   inline QString forceFamily() const { return pForceFamily; }
   inline int relPointSize() const { return pRelPointSize; }
 
   void setRelPointSize(int relps);
+
   void setForceFamily(const QString& family);
   void releaseForceFamily() { setForceFamily(QString()); }
+
+  void setForceBold(bool bold) { setForceWeight(bold ? QFont::Bold : QFont::Normal); }
+  void setForceWeight(int weight);
+  void releaseForceWeight() { setForceWeight(-1); }
+
+  void setForceItalic(bool it) { setForceStyle(it ? QFont::StyleItalic : QFont::StyleNormal); }
+  void setForceStyle(int style);
+  void releaseForceStyle() { setForceStyle(-1); }
 
 protected:
   virtual QFont calculateRelativeFont(const QFont& baseFont);
@@ -70,6 +93,10 @@ protected:
 private:
   QString pForceFamily;
   int pRelPointSize;
+  int pForceWeight;
+  int pForceStyle;
+
+  void rfinit();
 };
 
 

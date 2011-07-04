@@ -423,6 +423,7 @@ private:
 // ------------------------------------------------------------------------------------
 
 class QStyle;
+class KLFRelativeFont;
 
 class KLF_EXPORT KLFColorChooser : public QPushButton
 {
@@ -505,6 +506,7 @@ private:
   bool _alphaenabled;
 
   QMenu *mMenu;
+  KLFRelativeFont *menuRelFont;
 
   void _setpix();
 

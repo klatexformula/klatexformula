@@ -38,6 +38,7 @@
 #include "klfcolorchooser.h"
 #include "klfcolorchooser_p.h"
 #include "klfguiutil.h"
+#include "klfrelativefont.h"
 
 #include <ui_klfcolorchoosewidget.h>
 #include <ui_klfcolordialog.h>
@@ -830,7 +831,7 @@ QStyle *KLFColorChooser::mReplaceButtonStyle = NULL;
 KLFColorChooser::KLFColorChooser(QWidget *parent)
   : QPushButton(parent), _color(0,0,0,255), _pix(), _allowdefaultstate(false),
     _defaultstatestring(tr("[ Default ]")), _autoadd(true), _size(120, 20),
-    _xalignfactor(0.5f), _yalignfactor(0.5f), _alphaenabled(true), mMenu(0)
+    _xalignfactor(0.5f), _yalignfactor(0.5f), _alphaenabled(true), mMenu(NULL), menuRelFont(NULL)
 {
   ensureColorListInstance();
   connect(_colorlist, SIGNAL(listChanged()), this, SLOT(_makemenu()));
@@ -973,7 +974,10 @@ void KLFColorChooser::_makemenu()
 
   mMenu->addAction(tr("Custom ..."), this, SLOT(requestColor()));
 
-  mMenu->setFont(font()); // needed on Mac OS X
+  if (menuRelFont != NULL)
+    delete menuRelFont;
+  menuRelFont = new KLFRelativeFont(this, mMenu);
+  menuRelFont->setRelPointSize(-1);
   setMenu(mMenu);
 }
 

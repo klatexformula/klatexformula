@@ -46,6 +46,9 @@
 
 #include <klfbackend.h>
 
+#include <klfrelativefont.h>
+#include <klflatexedit.h>
+
 #include <ui_klfsettings.h>
 
 #include "klfmain.h"
@@ -53,7 +56,6 @@
 #include "klfconfig.h"
 #include "klfmime.h"
 #include "klfpluginiface.h"
-#include "klflatexedit.h"
 #include "klfsettings.h"
 
 
@@ -113,11 +115,17 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   populateExportProfilesCombos();
 
   // set some smaller fonts for small titles
-  QFont f = this->font();
-  f.setPointSize(QFontInfo(f).pointSize() - 1);
-  u->lblSHForeground->setFont(f);
-  u->lblSHBackground->setFont(f);
-
+  KLFRelativeFont *relfontSHF = new KLFRelativeFont(this, u->lblSHForeground);
+  relfontSHF->setRelPointSize(-2);
+  KLFRelativeFont *relfontSHB = new KLFRelativeFont(this, u->lblSHBackground);
+  relfontSHB->setRelPointSize(-2);
+  KLFRelativeFont *relfontSHBold = new KLFRelativeFont(this, u->lblSHBold);
+  relfontSHBold->setRelPointSize(-1);
+  relfontSHBold->setForceBold(true);
+  KLFRelativeFont *relfontSHItalic = new KLFRelativeFont(this, u->lblSHItalic);
+  relfontSHItalic->setRelPointSize(-1);
+  relfontSHItalic->setForceStyle(QFont::StyleItalic);
+  
   connect(u->btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
 
   connect(u->lstPlugins, SIGNAL(itemSelectionChanged()), this, SLOT(refreshPluginSelected()));

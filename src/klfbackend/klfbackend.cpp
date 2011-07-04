@@ -537,7 +537,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     QTextStream stream(&file);
     if (!in.bypassTemplate) {
-      stream << "\\documentclass{article}\n"
+      //      stream << "\\documentclass{article}\n"
+      stream << "\\documentclass{minimal}\n"
 	     << "\\usepackage[dvips]{color}\n"
 	     << in.preamble << "\n"
 	     << "\\begin{document}\n"

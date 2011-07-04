@@ -52,6 +52,8 @@
 #include <ui_klflatexsymbols.h>
 
 #include <klfpixmapbutton.h>
+#include <klfrelativefont.h>
+
 #include "klfmain.h"
 #include "klfconfig.h"
 #include "klflatexsymbols.h"
@@ -838,12 +840,8 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
 
   slotShowCategory(0);
 
-  QFont f = u->cbxCategory->font();
-  int ps = f.pointSize();
-  if (ps < 8)
-    ps = QFontInfo(f).pointSize();
-  f.setPointSize(ps+1);
-  u->cbxCategory->setFont(f);
+  KLFRelativeFont *relfont = new KLFRelativeFont(u->cbxCategory);
+  relfont->setRelPointSize(+2);
 
   connect(u->cbxCategory, SIGNAL(highlighted(int)), this, SLOT(slotShowCategory(int)));
   connect(u->cbxCategory, SIGNAL(activated(int)), this, SLOT(slotShowCategory(int)));

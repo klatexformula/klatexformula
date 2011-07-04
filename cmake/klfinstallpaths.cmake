@@ -92,11 +92,12 @@ KLFDeclareCacheVarOptionFollowComplexN(KLF_INSTALL_DESPLUGIN_DIR
 	""     # dependance variables
 )
 message(STATUS "Installing klftools designer plugin to \"${KLF_INSTALL_DESPLUGIN_DIR}\" (KLF_INSTALL_DESPLUGIN_DIR)")
-if(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
-  KLFNote("You have chosen an absolute KLF_INSTALL_DESPLUGIN_DIR path. There is
-    nothing wrong with that, but keep in mind that this value will
-    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
-endif(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
+# this is deduced from Qt paths, so it is automatically absolute by default... don't harass the user...
+#if(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
+#  KLFNote("You have chosen an absolute KLF_INSTALL_DESPLUGIN_DIR path. There is
+#    nothing wrong with that, but keep in mind that this value will
+#    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
+#endif(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
 
 # Utility variable. Same as KLF_INSTALL_DESPLUGIN_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
