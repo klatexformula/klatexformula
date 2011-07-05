@@ -44,6 +44,8 @@
 
 #include <klfbackend.h>
 
+#include <klfkteparser.h>
+
 
 class KLFKtePluginView;
 
@@ -87,11 +89,15 @@ signals:
 
 public slots:
   bool setNewInput(const KLFBackend::klfInput& input);
+  void reemitPreviewAvailable();
   void setSettings(const KLFBackend::klfSettings& settings);
 
 protected:
   KLFBackend::klfInput _input;
   KLFBackend::klfSettings _settings;
+
+  KLFBackend::klfOutput _output;
+  QImage _popup_img;
 
   QMutex _mutex;
   QWaitCondition _condnewinfoavail;
@@ -149,7 +155,9 @@ private:
 };
 
 
-class KLFKteParser;
+
+// -----
+
 
 class KLFKtePluginView  :  public QObject, public KXMLGUIClient
 {
@@ -164,14 +172,7 @@ private:
 
   KLFKteParser *pParser;
   
-  struct MathContext {
-    bool isValidMathContext;
-    QString latexequation;
-    QString mathmodebegin;
-    QString mathmodeend;
-    QString klfmathmode;
-  };
-  MathContext pCurMathContext;
+  MathModeContext pCurMathContext;
 
   KLFBackend::klfSettings klfsettings;
 
@@ -190,7 +191,8 @@ private Q_SLOTS:
   void slotContextMenuAboutToShow(KTextEditor::View *view, QMenu * menu);
 
   void slotPreview();
-  void slotPreview(const MathContext& context);
+  void slotSamePreview();
+  void slotPreview(const MathModeContext& context);
   void slotHidePreview();
   void slotInvokeKLF();
 

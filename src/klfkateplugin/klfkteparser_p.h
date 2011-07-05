@@ -25,22 +25,13 @@
 #ifndef KLFKTEPARSER_P_H
 #define KLFKTEPARSER_P_H
 
-#include <ktexteditor/document.h>
-#include <ktexteditor/highlightinterface.h>
-#include <ktexteditor/attribute.h>
-
+#include "klfkteparser.h"
 
 // handy shorthand
 
 inline QString my_str_replaced(const QString& s, const QRegExp& rx, const QString& replacement)
 { QString copy = s; copy.replace(rx, replacement); return copy; }
 
-
-
-// some little shorthands ;-)
-
-typedef KTextEditor::Document Doc;
-typedef KTextEditor::Cursor Cur;
 
 
 static Cur step_cur(KTextEditor::Document * doc, const Cur& c, bool forward)
@@ -58,24 +49,7 @@ static Cur step_cur(KTextEditor::Document * doc, const Cur& c, bool forward)
 }
 
 
-struct MathModeContext
-{
-  MathModeContext()
-    : start(Cur::invalid()), end(Cur::invalid()), startcmd(), endcmd(), latexmath()
-  {  }
-
-  inline bool isValid() const { return start.isValid() && end.isValid(); }
-
-  Cur start;
-  Cur end;
-
-  QString startcmd;
-  QString endcmd;
-
-  QString latexmath;
-};
-
-static QDebug operator<<(QDebug dbg, const MathModeContext& m)
+QDebug operator<<(QDebug dbg, const MathModeContext& m)
 {
   if (m.start.line() == m.end.line())
     dbg.nospace() << "MathModeContext{l."<<m.start.line()<<" "<<m.start.column()<<"--"<<m.end.column();
@@ -84,21 +58,6 @@ static QDebug operator<<(QDebug dbg, const MathModeContext& m)
 		  << ":"<<m.end.column();
   return dbg << " "<<m.startcmd<<"--"<<m.endcmd<<" math="<<m.latexmath;
 }
-
-class KLFKteParser
-{
-public:
-  KLFKteParser(Doc *doc) : pDoc(doc)
-  {
-    KLF_ASSERT_NOT_NULL(doc, "doc is NULL!", ; ) ;
-  }
-  virtual ~KLFKteParser() { }
-
-  virtual MathModeContext parseContext(const Cur& cur) = 0;
-
-protected:
-  Doc *pDoc;
-};
 
 
 
@@ -117,6 +76,13 @@ public:
     return MathModeContext();
   }
 };
+
+
+// -----------
+
+
+
+
 
 
 
@@ -366,16 +332,20 @@ private:
       }
       
       ensure_attr_fill_order_start(line, &attlist);
+
+      klfDbg("start attr. parsing...") ;
       
       if (col >= 0) {
 	// find the next/prev. attribute corresponding to this position
 	if (forward) {
 	  for (k = attlist.size()-1; k >= 0 && attlist[k].start >= col; --k)
 	    ;
+	  if (k < 0) k = 0;
 	} else {
 	  for (k = 0; k < attlist.size() && attlist[k].start+attlist[k].length < col; ++k)
 	    ;
 	}
+	klfDbg("forward="<<forward<<", k="<<k) ;
 	// initialize prevAtt
 	prevAtt = attlist[k];
 	prevAtt.line = line;
@@ -482,6 +452,23 @@ private:
   
 };
 
+
+
+
+
+
+// -----------------------------
+
+
+KLFKteParser * createDummyParser(Doc * doc)
+{
+  return new KLFKteParser_Dummy(doc);
+}
+
+KLFKteParser * createKatePartParser(Doc * doc, KTextEditor::HighlightInterface * hiface)
+{
+  return new KLFKteParser_KatePart(doc, hiface);
+}
 
 
 

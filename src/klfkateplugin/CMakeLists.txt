@@ -58,7 +58,7 @@ mark_as_advanced(
 
 # klfkateplugin plugin target
 
-set(ktexteditor_klf_PART_SRCS klfkateplugin.cpp klfkateplugin_config.cpp )
+set(ktexteditor_klf_PART_SRCS klfkateplugin.cpp klfkteparser.cpp klfkateplugin_config.cpp )
 
 if(KLF_LIBKLFBACKEND_STATIC)
   # Can't link the plugin to a static klfbackend library. We need to re-compile the klfbackend

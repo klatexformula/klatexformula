@@ -44,7 +44,6 @@
 
 #include "klfkateplugin.h"
 #include "klfkateplugin_config.h"
-#include "klfkteparser_p.h"
 
 
 KLFKtePlugin *KLFKtePlugin::plugin = NULL;
@@ -158,6 +157,8 @@ void KLFKteLatexRunThread::run()
     }
 
     _mutex.lock();
+    _output = output; // save output for possible future use
+    _popup_img = img; // same...
     bool abort = _abort;
     bool hasnewinfo = _hasnewinfo;
     _mutex.unlock();
@@ -185,7 +186,17 @@ bool KLFKteLatexRunThread::setNewInput(const KLFBackend::klfInput& input)
   _input = input;
   _hasnewinfo = true;
   _condnewinfoavail.wakeOne();
+  _output = KLFBackend::klfOutput();
+  _popup_img = QImage();
   return true;
+}
+void KLFKteLatexRunThread::reemitPreviewAvailable()
+{
+  QMutexLocker mutexlocker(&_mutex);
+  if (!_popup_img.isNull())
+    emit previewAvailable(_popup_img);
+  else
+    emit previewError(_output.errorstr, _output.status);
 }
 void KLFKteLatexRunThread::setSettings(const KLFBackend::klfSettings& settings)
 {
@@ -349,9 +360,9 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
 
   KLFBackend::detectSettings(&klfsettings);
   
-  aPreviewSel = new KAction(i18n("Preview Selection or Current Equation"), this);
-  aPreviewSel->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_K);
+  aPreviewSel = new KAction(i18n("Show Popup For Current Equation"), this);
   aInvokeKLF = new KAction(i18n("Invoke KLatexFormula"), this);
+  aInvokeKLF->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_K);
   actionCollection()->addAction("klf_preview_selection", aPreviewSel);
   actionCollection()->addAction("klf_invoke_klf", aInvokeKLF);
   connect(aPreviewSel, SIGNAL(triggered()), this, SLOT(slotPreview()));
@@ -368,7 +379,7 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
   connect(pView, SIGNAL(cursorPositionChanged(KTextEditor::View*, const KTextEditor::Cursor&)),
 	  this, SLOT(slotReparseCurrentContext()));
   connect(pView, SIGNAL(selectionChanged(KTextEditor::View *)),
-	  this, SLOT(slotSelectionChanged()));
+  	  this, SLOT(slotReparseCurrentContext()));
 
   connect(pView, SIGNAL(contextMenuAboutToShow(KTextEditor::View*, QMenu*)),
 	  this, SLOT(slotContextMenuAboutToShow(KTextEditor::View*, QMenu*)));
@@ -381,8 +392,8 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
 
   connect(pLatexRunThread, SIGNAL(previewAvailable(const QImage&)),
 	  this, SLOT(slotReadyPreview(const QImage&)), Qt::QueuedConnection);
-  connect(pLatexRunThread, SIGNAL(previewError(const QString&, int)),
-	  this, SLOT(slotHidePreview()), Qt::QueuedConnection);
+  //  connect(pLatexRunThread, SIGNAL(previewError(const QString&, int)),
+  //	  this, SLOT(slotHidePreview()), Qt::QueuedConnection);
 
   connect(pPreview, SIGNAL(invokeKLF()), this, SLOT(slotInvokeKLF()));
 
@@ -391,9 +402,9 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
   if (pView->document()->inherits("KateDocument")) {
     // OK, we got a KatePart editor.
     KTextEditor::HighlightInterface *hiface = qobject_cast<KTextEditor::HighlightInterface*>(pView->document());
-    pParser = new KLFKteParser_KatePart(pView->document(), hiface);
+    pParser = createKatePartParser(pView->document(), hiface);
   } else {
-    pParser = new KLFKteParser_Dummy(pView->document());
+    pParser = createDummyParser(pView->document());
   }
 }
 
@@ -420,33 +431,37 @@ void KLFKtePluginView::slotReparseCurrentContext()
   if (!pIsGoodHighlightingMode)
     return;
 
-  KTextEditor::Document *doc = pView->document();
-
   KLF_ASSERT_NOT_NULL(pParser, "parser object is NULL!", return; ) ;
 
   Cur curPos = pView->cursorPosition();
 
-  MathModeContext m = pParser->parseContext(curPos);
+  MathModeContext context = pParser->parseContext(curPos);
 
-  klfDbg("parsed math mode context : "<<m) ;
+  if (context == pCurMathContext) {
+    if (KLFKteConfigData::inst()->autopopup)
+      slotSamePreview();
+    return;
+  }
 
-  if (!m.isValid()) {
+  pCurMathContext = context;
+
+  klfDbg("parsed math mode context : "<<pCurMathContext) ;
+
+  if (!pCurMathContext.isValid()) {
+    slotHidePreview();
     klfDbg("Not in math mode.") ;
     return;
   }
 
-  QMessageBox::information(NULL, "Latex string", m.latexmath) ;
+  if (KLFKteConfigData::inst()->autopopup)
+    slotPreview();
 
   return;
 
+  /*
+  KTextEditor::Document *doc = pView->document();
 
   // ------------------
-
-
-  if (pView->selectionRange().isValid()) {
-    slotSelectionChanged();
-    return;
-  }
 
   // math-mode regex
   //  QRegExp rxmm("[^\\](\\\\(begin\\{(equation|eqnarray)\\*?\\}|\\(|\\[)|\\$|\\$\\$)"
@@ -511,45 +526,11 @@ void KLFKtePluginView::slotReparseCurrentContext()
 
   if (KLFKteConfigData::inst()->autopopup)
     slotPreview();
+  */
 }
 
 
 
-
-
-
-
-
-#ifdef KLF_DEBUG
-void debug_context(KTextEditor::Document * doc, const KTextEditor::Cursor & curPos)
-{
-  KTextEditor::HighlightInterface *hiface = qobject_cast<KTextEditor::HighlightInterface*>(doc);
-
-  KLF_ASSERT_NOT_NULL(hiface, "highlightiface is NULL!", return; ) ;
-
-  QList<KTextEditor::HighlightInterface::AttributeBlock> attlist = hiface->lineAttributes(curPos.line());
-
-  qDebug("Curpos is line=%d, col=%d", curPos.line(), curPos.column());
-
-  int k;
-  for (k = 0; k < attlist.size(); ++k) {
-    if (attlist[k].start > curPos.column() || attlist[k].start + attlist[k].length < curPos.column())
-      continue;
-
-    qDebug("-- Attribute %d,  %d+%d", k, attlist[k].start, attlist[k].length);
-
-    const KTextEditor::Attribute& attr = * attlist[k].attribute.data();
-    QMap<int,QVariant> props = attr.properties();
-    
-    for (QMap<int,QVariant>::const_iterator it = props.begin(); it != props.end(); ++it) {
-      if (it.key() != KatePartAttrNameProperty)
-	continue;
-      qDebug("   - [%d]: %s", (int)it.key(), qPrintable(QVariant(it.value()).toString()));
-    }
-  }
-  qDebug("--\n");
-}
-#endif
 
 
 
@@ -560,11 +541,13 @@ void KLFKtePluginView::slotSelectionChanged()
   if (!pIsGoodHighlightingMode)
     return;
 
-  pCurMathContext.isValidMathContext = true; // ....... hack .........
-  pCurMathContext.latexequation = pView->selectionText();
-  pCurMathContext.mathmodebegin = "\\[";
-  pCurMathContext.mathmodeend = "\\]";
-  pCurMathContext.klfmathmode = "\\[ ... \\]";
+  pCurMathContext = MathModeContext();
+  KTextEditor::Range selrange = pView->selectionRange();
+  pCurMathContext.start = selrange.start();
+  pCurMathContext.end = selrange.end();
+  pCurMathContext.latexmath = pView->selectionText();
+  pCurMathContext.startcmd = "\\[";
+  pCurMathContext.endcmd = "\\]";
 }
 
 void KLFKtePluginView::slotContextMenuAboutToShow(KTextEditor::View */*view*/, QMenu * /*menu*/)
@@ -582,10 +565,22 @@ void KLFKtePluginView::slotContextMenuAboutToShow(KTextEditor::View */*view*/, Q
 
 void KLFKtePluginView::slotPreview()
 {
+  if (pView->selectionRange().isValid()) {
+    slotSelectionChanged(); // make the selection the current math mode context
+  }
+
   slotPreview(pCurMathContext);
 }
 
-void KLFKtePluginView::slotPreview(const MathContext& context)
+void KLFKtePluginView::slotSamePreview()
+{
+  if (pCurMathContext.isValid())
+    pLatexRunThread->reemitPreviewAvailable();
+  else
+    slotHidePreview();
+}
+
+void KLFKtePluginView::slotPreview(const MathModeContext& context)
 {
   if (!pIsGoodHighlightingMode)
     return;
@@ -595,8 +590,8 @@ void KLFKtePluginView::slotPreview(const MathContext& context)
   // if the cursor is on the "and", then it sees the (wrong) inlined equation "$ and $"
 
   KLFBackend::klfInput klfinput;
-  klfinput.latex = context.latexequation;
-  klfinput.mathmode = context.klfmathmode;
+  klfinput.latex = context.latexmath;
+  klfinput.mathmode = context.fullMathModeWithoutNumbering();
   klfinput.preamble = KLFKteConfigData::inst()->preamble;
   klfinput.fg_color = qRgb(0, 0, 0); // black
   klfinput.bg_color = qRgba(255, 255, 255, 0); // transparent
@@ -626,13 +621,13 @@ void KLFKtePluginView::slotReadyPreview(const QImage& preview)
 
 void KLFKtePluginView::slotInvokeKLF()
 {
-  if (pCurMathContext.isValidMathContext) {
+  if (pCurMathContext.isValid()) {
     // given that we use startDetached(), --daemonize is superfluous
     KProcess::startDetached(QStringList()
 			    << KLFKteConfigData::inst()->klfpath
 			    << "-I"
-			    << "--latexinput="+pCurMathContext.latexequation
-			    << "--mathmode="+pCurMathContext.klfmathmode
+			    << "--latexinput="+pCurMathContext.latexmath.trimmed()
+			    << "--mathmode="+pCurMathContext.fullMathModeWithoutNumbering()
 			    );
   } else {
     KProcess::startDetached(QStringList()

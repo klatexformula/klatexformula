@@ -548,7 +548,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	     << QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.bg_color)/255.0)
 	.arg(qGreen(in.bg_color)/255.0).arg(qBlue(in.bg_color)/255.0)
 	     << ( (qAlpha(in.bg_color)>0) ? "\\pagecolor{klfbgcolor}\n" : "" )
-	     << "{\\color{klffgcolor} " << latexin << " }\n"
+	     << "{\\color{klffgcolor} " << latexin
+	     << "\n}\n"
 	     << "\\end{document}\n";
     } else {
       stream << in.latex;
