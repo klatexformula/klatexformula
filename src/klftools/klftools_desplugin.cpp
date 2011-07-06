@@ -461,7 +461,65 @@ void KLFLatexEditDesPlugin::initialize(QDesignerFormEditorInterface *core)
   pInitialized = true;
 }
 
+// -------------------
 
+
+KLFEnumListWidgetDesPlugin::KLFEnumListWidgetDesPlugin(QObject *parent)
+{
+  Q_UNUSED(parent) ;
+}
+
+bool KLFEnumListWidgetDesPlugin::isContainer() const
+{
+  return false;
+}
+bool KLFEnumListWidgetDesPlugin::isInitialized() const
+{
+  return pInitialized;
+}
+QIcon KLFEnumListWidgetDesPlugin::icon() const
+{
+  return QIcon();
+}
+QString KLFEnumListWidgetDesPlugin::domXml() const
+{
+  return "<widget class=\"KLFEnumListWidget\" name=\"enumListWidget\"></widget>\n";
+}
+QString KLFEnumListWidgetDesPlugin::group() const
+{
+  return "Utilities";
+}
+QString KLFEnumListWidgetDesPlugin::includeFile() const
+{
+  return "klfenumlistwidget.h";
+}
+QString KLFEnumListWidgetDesPlugin::name() const
+{
+  return "KLFEnumListWidget";
+}
+QString KLFEnumListWidgetDesPlugin::toolTip() const
+{
+  return "A list of strings displayed in a flow layout (e.g. tags)";
+}
+QString KLFEnumListWidgetDesPlugin::whatsThis() const
+{
+  return "A list of strings displayed in a flow layout (e.g. tags)";
+}
+QWidget *KLFEnumListWidgetDesPlugin::createWidget(QWidget *parent)
+{
+  KLFEnumListWidget * w = new KLFEnumListWidget(parent);
+  return w;
+}
+void KLFEnumListWidgetDesPlugin::initialize(QDesignerFormEditorInterface *core)
+{
+  Q_UNUSED(core) ;
+  if (pInitialized)
+    return;
+
+  // initialize ... :)
+
+  pInitialized = true;
+}
 
 
 
@@ -478,6 +536,7 @@ KLFToolsDesPlugin::KLFToolsDesPlugin(QObject* parent)
   _widgetPlugins.push_back(new KLFColorChooseWidgetDesPlugin(this));
   _widgetPlugins.push_back(new KLFColorChooserDesPlugin(this));
   _widgetPlugins.push_back(new KLFLatexEditDesPlugin(this));
+  _widgetPlugins.push_back(new KLFEnumListWidgetDesPlugin(this));
 }
 
 KLFToolsDesPlugin::~KLFToolsDesPlugin()

@@ -326,14 +326,14 @@ KLFMainWin::KLFMainWin()
 
   refreshWindowSizes();
 
-  KLFRelativeFont *rf = new KLFRelativeFont(u->frmDetails);
-  rf->setRelPointSize(-2);
-
   u->frmDetails->hide();
 
 
 #ifdef Q_WS_MAC
   {
+    KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
+    rf->setRelPointSize(-2);
+
     // taken from Qt 4.7.3: src/gui/kernel/qwidget_mac.mm
     // but defined in our own src/macosx/klfdrawerdefs.mm
     //    extern bool qt_mac_is_macdrawer(const QWidget *);
@@ -1464,6 +1464,34 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
 					    tr("Insert Symbol ...", "[[context menu entry]]"), latexEdit);
   connect(insertSymbolAction, SIGNAL(triggered()), this, SLOT(slotSymbols()));
   *actionList << insertSymbolAction;
+
+  QList<KLFLatexSyntaxHighlighter::ParsedBlock> blocks = latexEdit->syntaxHighlighter()->parsedBlocksForPos(curpos);
+  klfDbg("got blocks: "<<blocks) ;
+  int k;
+  for (k = 0; k < blocks.size(); ++k) {
+    if (blocks[k].type == KLFLatexSyntaxHighlighter::ParsedBlock::Paren
+	&& !blocks[k].isLatexBrace()) {
+      QAction *amenu = new QAction(latexEdit);
+      amenu->setText(tr("Change to ..."));
+      QMenu *changemenu = new QMenu(latexEdit);
+      QVariantMap vmap;
+      vmap["pos"] = blocks[k].pos;
+      vmap["len"] = blocks[k].len;
+      QStringList openings, closings;
+      openings << "\\left(" << "\\left[" << "\\left\\{" << "\\Bigl(" << "\\Bigl[" << "\\Bigl\\{";
+      closings << "\\right)" << "\\right]" << "\\right\\}" << "\\Bigr)" << "\\Big]" << "\\Bigr\\}";
+      const QStringList& slist = blocks[k].parenisopening ? openings: closings;
+      int kl;
+      for (kl = 0; kl < slist.size(); ++kl) {
+	QAction *a = changemenu->addAction(slist[kl], this, SLOT(slotChangeParenFromActionSender()));
+	vmap["newstring"] = slist[kl];
+	a->setData(vmap);
+      }
+      amenu->setMenu(changemenu);
+      *actionList << amenu;
+      break;
+    }
+  }
 }
 
 
@@ -1480,6 +1508,25 @@ void KLFMainWin::slotInsertMissingPackagesFromActionSender()
   for (k = 0; k < cmds.size(); ++k) {
     slotEnsurePreambleCmd(cmds[k]);
   }
+}
+
+void KLFMainWin::slotChangeParenFromActionSender()
+{
+  QAction * a = qobject_cast<QAction*>(sender());
+  if (a == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": NULL QAction sender!";
+    return;
+  }
+  QVariant v = a->data();
+  QVariantMap data = v.toMap();
+
+  int pos = data["pos"].toInt();
+  int len = data["len"].toInt();
+  QString s = data["newstring"].toString();
+
+  QString fulltext = u->txtLatex->toPlainText();
+  fulltext.replace(pos, len, s);
+  slotSetLatex(fulltext);
 }
 
 

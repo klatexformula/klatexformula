@@ -131,8 +131,8 @@
     <sym><bb expand="1,4,1,1"/><usepackage name="esint"/><latex>\varoiint</latex></sym>
     <sym><bb expand="1,4,1,1"/><usepackage name="esint"/><latex>\varointclockwise</latex></sym>
     <sym><bb expand="1,4,1,1"/><usepackage name="esint"/><latex>\varointctrclockwise</latex></sym>
-    <sym><usepackage name="amssymb"/><latex>\leqslant</latex></sym>
-    <sym><usepackage name="amssymb"/><latex>\geqslant</latex></sym>
+    <sym><usepackage name="amssymb"/><latex>\leqslant</latex><keywords>less smaller than equals slant</keywords></sym>
+    <sym><usepackage name="amssymb"/><latex>\geqslant</latex><keywords>greater more larger than equals slant</keywords></sym>
     <sym><usepackage name="amssymb"/><latex>\lhd</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\rhd</latex></sym>
     <sym><usepackage name="amssymb"/><latex>\unlhd</latex></sym>

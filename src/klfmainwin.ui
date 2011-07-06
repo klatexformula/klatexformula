@@ -543,7 +543,7 @@
           </item>
           <item row="0" column="1">
            <widget class="KLFColorChooser" name="colFg">
-            <property name="alphaEnabled" stdset="0">
+            <property name="alphaEnabled">
              <bool>false</bool>
             </property>
            </widget>
@@ -560,14 +560,14 @@
           </item>
           <item row="1" column="1">
            <widget class="KLFColorChooser" name="colBg">
-            <property name="alphaEnabled" stdset="0">
-             <bool>false</bool>
-            </property>
-            <property name="allowDefaultState" stdset="0">
+            <property name="allowDefaultState">
              <bool>true</bool>
             </property>
-            <property name="defaultStateString" stdset="0">
+            <property name="defaultStateString">
              <string extracomment="background color selector">Transparent</string>
+            </property>
+            <property name="alphaEnabled">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -1093,14 +1093,14 @@
    <header>klfcolorchooser.h</header>
   </customwidget>
   <customwidget>
-   <class>KLFDisplayLabel</class>
-   <extends>QLabel</extends>
-   <header location="global">klfdisplaylabel.h</header>
-  </customwidget>
-  <customwidget>
    <class>KLFLatexEdit</class>
    <extends>QTextEdit</extends>
    <header>klflatexedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KLFDisplayLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">klfdisplaylabel.h</header>
   </customwidget>
   <customwidget>
    <class>KLFUnitSpinBox</class>

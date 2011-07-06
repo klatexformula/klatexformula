@@ -141,7 +141,31 @@ public:
   KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent);
   virtual ~KLFLatexSyntaxHighlighter();
 
-  void setCaretPos(int position);
+  struct ParsedBlock {
+    enum Type { Normal = 0, Keyword, Comment, Paren };
+    enum ParenMatch { None = 0, Matched, Mismatched, Lonely };
+
+    ParsedBlock(Type t = Normal, int a = -1, int l = -1)
+      :  type(t), pos(a), len(l), keyword(), parenmatch(None), parenisopening(false),
+	 parenstr(), parenotherpos(-1)
+    { }
+    
+    Type type;
+
+    int pos;
+    int len;
+
+    QString keyword;
+
+    ParenMatch parenmatch;
+    bool parenisopening;
+    QString parenstr;
+    int parenotherpos;
+    bool isLatexBrace() const { return parenstr=="{" || parenstr=="}"; }
+  };
+
+  QList<ParsedBlock> parsedContent() const { return pParsedBlocks; }
+  QList<ParsedBlock> parsedBlocksForPos(int pos) const;
 
   virtual void highlightBlock(const QString& text);
 
@@ -158,6 +182,8 @@ signals:
   void newSymbolTyped(const QString& symbolName);
 
 public slots:
+  void setCaretPos(int position);
+
   void refreshAll();
 
   /** This clears for example the list of already typed symbols. */
@@ -198,6 +224,8 @@ private:
 
   QList<FormatRule> _rulestoapply;
 
+  QList<ParsedBlock> pParsedBlocks;
+
   void parseEverything();
 
   QTextCharFormat charfmtForFormat(Format f);
@@ -219,6 +247,9 @@ private:
   };
   Conf pConf;
 };
+
+
+KLF_EXPORT QDebug operator<<(QDebug str, const KLFLatexSyntaxHighlighter::ParsedBlock& p);
 
 
 

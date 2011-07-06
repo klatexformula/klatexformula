@@ -296,6 +296,19 @@ void KLFLatexSyntaxHighlighter::setFmtLonelyParen(const QTextFormat& f)
 }
 
 
+QList<KLFLatexSyntaxHighlighter::ParsedBlock>
+/* */ KLFLatexSyntaxHighlighter::parsedBlocksForPos(int pos) const
+{
+  int k;
+  QList<ParsedBlock> blocks;
+  for (k = 0; k < pParsedBlocks.size(); ++k) {
+    if (pParsedBlocks[k].pos <= pos  &&  pParsedBlocks[k].pos+pParsedBlocks[k].len >= pos-1)
+      blocks << pParsedBlocks[k];
+  }
+  return blocks; // return only the relevant blocks that intersect with position 'pos'
+}
+
+
 
 void KLFLatexSyntaxHighlighter::setCaretPos(int position)
 {
@@ -334,6 +347,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
   int lastparenparsingendpos = 0;
   
   _rulestoapply.clear();
+  pParsedBlocks.clear();
   int k;
   while (block.isValid()) {
     text = block.text();
@@ -352,6 +366,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	while (i+k < text.length() && text[i+k] != '\n')
 	  ++k;
 	_rulestoapply.append(FormatRule(blockpos+i, k, FComment));
+	pParsedBlocks.append(ParsedBlock(ParsedBlock::Comment, blockpos+i, k));
 	i += k + 1;
 	continue;
       }
@@ -421,6 +436,18 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	  } else {
 	    _rulestoapply.append(FormatRule(p.pos, cp.endpos - p.pos, col, true));
 	  }
+	  ParsedBlock pblk1(ParsedBlock::Paren, p.pos, p.poslength());
+	  ParsedBlock pblk2(ParsedBlock::Paren, cp.pos, cp.poslength());
+	  pblk1.parenmatch = ((col == FParenMatch) ? ParsedBlock::Matched : ParsedBlock::Mismatched);
+	  pblk1.parenisopening = true;
+	  pblk1.parenstr = p.parenstr;
+	  pblk1.parenotherpos = cp.pos;
+	  pblk2.parenmatch = pblk1.parenmatch;
+	  pblk2.parenisopening = false;
+	  pblk2.parenstr = cp.parenstr;
+	  pblk2.parenotherpos = p.pos;
+	  pParsedBlocks.append(pblk1);
+	  pParsedBlocks.append(pblk2);
 	}
       }
 
@@ -434,8 +461,14 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	  ++k;
 	if (k == 0 && i+1 < text.length())
 	  k = 1;
-	_rulestoapply.append(FormatRule(blockpos+i-1, k+1, FKeyWord));
+
 	QString symbol = text.mid(i-1,k+1); // from i-1, length k+1
+
+	_rulestoapply.append(FormatRule(blockpos+i-1, k+1, FKeyWord));
+	ParsedBlock pblk(ParsedBlock::Keyword, blockpos+i-1, k+1);
+	pblk.keyword = symbol;
+	pParsedBlocks.append(pblk);
+
 	if (symbol.size() > 1) { // no empty backslash
 	  klfDbg("symbol="<<symbol<<" i="<<i<<" k="<<k<<" caretpos="<<_caretpos<<" blockpos="<<blockpos);
 	  if ( (_caretpos < blockpos+i ||_caretpos >= blockpos+i+k+1) &&
@@ -486,6 +519,13 @@ void KLFLatexSyntaxHighlighter::parseEverything()
     // highlight the lonely paren
     if (pConf.highlightLonelyParens)
       _rulestoapply.append(FormatRule(p.pos, p.poslength(), FLonelyParen));
+
+    ParsedBlock pblk(ParsedBlock::Paren, p.pos, p.poslength());
+    pblk.parenmatch = ParsedBlock::Lonely;
+    pblk.parenisopening = p.isopening;
+    pblk.parenstr = p.parenstr;
+    pblk.parenotherpos = -1;
+    pParsedBlocks.append(pblk);
   }
 
 }
@@ -589,4 +629,35 @@ void KLFLatexSyntaxHighlighter::highlightBlock(const QString& text)
 void KLFLatexSyntaxHighlighter::resetEditing()
 {
   pTypedSymbols = QStringList();
+}
+
+
+
+
+QDebug operator<<(QDebug str, const KLFLatexSyntaxHighlighter::ParsedBlock& p)
+{
+  QString stype;
+  switch (p.type) {
+  case KLFLatexSyntaxHighlighter::ParsedBlock::Normal: stype = "-"; break;
+  case KLFLatexSyntaxHighlighter::ParsedBlock::Keyword: stype = "Keyword"; break;
+  case KLFLatexSyntaxHighlighter::ParsedBlock::Comment: stype = "Comment"; break;
+  case KLFLatexSyntaxHighlighter::ParsedBlock::Paren: stype = "Paren"; break;
+  default: stype = "<error>"; break;
+  }
+  QString smatched;
+  switch (p.parenmatch) {
+  case KLFLatexSyntaxHighlighter::ParsedBlock::None: smatched = "-"; break;
+  case KLFLatexSyntaxHighlighter::ParsedBlock::Matched: smatched = "Matched"; break;
+  case KLFLatexSyntaxHighlighter::ParsedBlock::Mismatched: smatched = "Mismatched"; break;
+  case KLFLatexSyntaxHighlighter::ParsedBlock::Lonely: smatched = "Lonely"; break;
+  default: smatched = "<error>"; break;
+  }
+  str << "ParsedBlock["<<stype.toLatin1()<<": "<<p.pos<<"+"<<p.len;
+  if (p.type == KLFLatexSyntaxHighlighter::ParsedBlock::Keyword) {
+    str << ", "<<p.keyword;
+  } else if (KLFLatexSyntaxHighlighter::ParsedBlock::Paren) {
+    str << ", "<<smatched.toLatin1()<<(p.parenisopening?"(opening)":"(closing)")<<p.parenstr
+	<<" otherpos="<<p.parenotherpos;
+  }
+  return str << "]";
 }
