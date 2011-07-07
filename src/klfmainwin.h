@@ -434,6 +434,12 @@ private slots:
   void slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAction*> *actionList);
   void slotInsertMissingPackagesFromActionSender();
   void slotChangeParenFromActionSender();
+  void slotChangeParenFromVariantMap(const QVariantMap& data);
+
+  void slotCycleParenModifiers();
+  void slotCycleParenTypes();
+
+  void latexEditReplace(int pos, int len, const QString& text);
 
 protected:
   Ui::KLFMainWin *u;
@@ -527,6 +533,9 @@ protected:
 
   QList<KLFAbstractOutputSaver*> pOutputSavers;
   QList<KLFAbstractDataOpener*> pDataOpeners;
+
+
+  QVariantMap parseLatexEditPosParenInfo(KLFLatexEdit *editor, int pos);
 };
 
 #endif

@@ -54,6 +54,7 @@ struct ParenItem {
 
   inline int length() const { return endpos-beginpos; }
   inline int poslength() const { return endpos-pos; }
+  inline int beginposlength() const { return endpos-beginpos; }
 
   inline int caretHoverPos() const
   {  return isopening ? pos : endpos;   }
@@ -67,11 +68,6 @@ struct ParenItem {
       : match(other.parenstr, other.modifier, parenstr, modifier) ;
   }
 
-  // defined in klflatexedit.cpp
-  static QStringList openParenList;
-  static QStringList closeParenList;
-  static QStringList openParenModifiers;
-  static QStringList closeParenModifiers;
 
   /** Returns TRUE if paren string \c a_ch matches the paren string \c b_ch with their respective modifiers.
    * a_ch/a_mod is expected to be an opening paren, and b_* a closing paren. Note that b_mod should be given
@@ -80,13 +76,13 @@ struct ParenItem {
   {
     QString trbmod = b_mod;
     // translate modifiers
-    int ind = closeParenModifiers.indexOf(trbmod);
+    int ind = ParsedBlock::closeParenModifiers.indexOf(trbmod);
     if (ind >= 0) {
-      KLF_ASSERT_CONDITION_ELSE(closeParenModifiers.size()==openParenModifiers.size(),
-				"close paren modifier list size="<<closeParenModifiers.size()
-				<<" does not match the open paren modifier list size="<<openParenModifiers.size()
-				<<"!", ; ) {
-	trbmod = openParenModifiers[ind];
+      KLF_ASSERT_CONDITION_ELSE(ParsedBlock::closeParenModifiers.size()==ParsedBlock::openParenModifiers.size(),
+				"close paren modifier list size="<<ParsedBlock::closeParenModifiers.size()
+				<<" does not match the open paren modifier list size="
+				<<ParsedBlock::openParenModifiers.size()<<"!", ; ) {
+	trbmod = ParsedBlock::openParenModifiers[ind];
       }
     }
 
@@ -99,11 +95,11 @@ struct ParenItem {
       return true;
     }
     int k;
-    for (k = 0; k < openParenList.size() && k < closeParenList.size(); ++k) {
-      if (a_ch == openParenList[k])
-	return  (b_ch == closeParenList[k]);
-      if (b_ch == closeParenList[k])
-	return false; // because a_ch != openParenList[k]
+    for (k = 0; k < ParsedBlock::openParenList.size() && k < ParsedBlock::closeParenList.size(); ++k) {
+      if (a_ch == ParsedBlock::openParenList[k])
+	return  (b_ch == ParsedBlock::closeParenList[k]);
+      if (b_ch == ParsedBlock::closeParenList[k])
+	return false; // because a_ch != ParsedBlock::openParenList[k]
     }
     if (a_ch == b_ch)
       return true;
@@ -111,6 +107,9 @@ struct ParenItem {
     // otherwise, mismatch
     return false;
   }
+
+private:
+  typedef KLFLatexSyntaxHighlighter::ParsedBlock ParsedBlock;
 };
 
 

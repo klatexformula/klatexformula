@@ -143,11 +143,15 @@ public:
 
   struct ParsedBlock {
     enum Type { Normal = 0, Keyword, Comment, Paren };
+    enum TypeMask { NoMask = 0,
+		    KeywordMask = 1 << Keyword,
+		    CommentMask = 1 << Comment,
+		    ParenMask = 1 << Paren };
     enum ParenMatch { None = 0, Matched, Mismatched, Lonely };
 
     ParsedBlock(Type t = Normal, int a = -1, int l = -1)
       :  type(t), pos(a), len(l), keyword(), parenmatch(None), parenisopening(false),
-	 parenstr(), parenotherpos(-1)
+	 parenmodifier(), parenstr(), parenotherpos(-1)
     { }
     
     Type type;
@@ -159,13 +163,23 @@ public:
 
     ParenMatch parenmatch;
     bool parenisopening;
+    QString parenmodifier;
     QString parenstr;
     int parenotherpos;
-    bool isLatexBrace() const { return parenstr=="{" || parenstr=="}"; }
+    bool parenIsLatexBrace() const { return parenstr=="{" || parenstr=="}"; }
+
+    // defined in klflatexedit.cpp
+    static QStringList openParenList;
+    static QStringList closeParenList;
+    static QStringList openParenModifiers;
+    static QStringList closeParenModifiers;
   };
 
   QList<ParsedBlock> parsedContent() const { return pParsedBlocks; }
-  QList<ParsedBlock> parsedBlocksForPos(int pos) const;
+  /** \param pos is the position in the text to look for parsed blocks
+   * \param filter_type is a OR'ed binary mask of wanted ParsedBlock::TypeMask. Only those
+   *   parsed-block types will be returned, the others will be filtered out.  */
+  QList<ParsedBlock> parsedBlocksForPos(int pos, unsigned int filter_type = 0xffffffff) const;
 
   virtual void highlightBlock(const QString& text);
 

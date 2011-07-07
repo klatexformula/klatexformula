@@ -38,14 +38,14 @@
 
 
 // declared in klflatexedit_p.h
-QStringList ParenItem::openParenList =
-  QStringList() << "(" << "[" << "{";
-QStringList ParenItem::closeParenList =
-  QStringList() << ")" << "]" << "}";
-QStringList ParenItem::openParenModifiers =
-  QStringList() << "\\" << "\\left"  << "\\bigl" << "\\Bigl";
-QStringList ParenItem::closeParenModifiers =
-  QStringList() << "\\" << "\\right" << "\\bigr" << "\\Bigr";
+QStringList KLFLatexSyntaxHighlighter::ParsedBlock::openParenList =
+  QStringList() << "(" << "[" << "{" << "\\{";
+QStringList KLFLatexSyntaxHighlighter::ParsedBlock::closeParenList =
+  QStringList() << ")" << "]" << "}" << "\\}";
+QStringList KLFLatexSyntaxHighlighter::ParsedBlock::openParenModifiers =
+  QStringList() << "\\left"  << "\\bigl" << "\\Bigl";
+QStringList KLFLatexSyntaxHighlighter::ParsedBlock::closeParenModifiers =
+  QStringList() << "\\right" << "\\bigr" << "\\Bigr";
 
 
 
@@ -297,13 +297,21 @@ void KLFLatexSyntaxHighlighter::setFmtLonelyParen(const QTextFormat& f)
 
 
 QList<KLFLatexSyntaxHighlighter::ParsedBlock>
-/* */ KLFLatexSyntaxHighlighter::parsedBlocksForPos(int pos) const
+/* */ KLFLatexSyntaxHighlighter::parsedBlocksForPos(int pos, unsigned int filter_mask) const
 {
+  klfDbg("pos="<<pos<<", filter_mask="<<klfFmtCC("%06x", filter_mask)<<"; total # of blocks="
+	 <<pParsedBlocks.size()) ;
   int k;
   QList<ParsedBlock> blocks;
   for (k = 0; k < pParsedBlocks.size(); ++k) {
-    if (pParsedBlocks[k].pos <= pos  &&  pParsedBlocks[k].pos+pParsedBlocks[k].len >= pos-1)
-      blocks << pParsedBlocks[k];
+    klfDbg("testing block #"<<k<<": "<<pParsedBlocks[k]<<"; block/pos+block/len="
+	   <<pParsedBlocks[k].pos+pParsedBlocks[k].len<<" compared to pos="<<pos) ;
+    if (pParsedBlocks[k].pos <= pos  &&  pos <= pParsedBlocks[k].pos+pParsedBlocks[k].len) {
+      if (filter_mask & (1 << pParsedBlocks[k].type)) {
+	blocks << pParsedBlocks[k];
+	klfDbg("... added #"<<k) ;
+      }
+    }
   }
   return blocks; // return only the relevant blocks that intersect with position 'pos'
 }
@@ -334,11 +342,11 @@ void KLFLatexSyntaxHighlighter::parseEverything()
   QTextBlock block = document()->firstBlock();
 
   QString sopenrx =
-    "^(?:("+QStringList(klfListMap(ParenItem::openParenModifiers, &QRegExp::escape)).join("|")+")\\s*)?"
-    "(" + QStringList(klfListMap(ParenItem::openParenList, &QRegExp::escape)).join("|")+")";
+    "^(?:("+QStringList(klfListMap(ParsedBlock::openParenModifiers, &QRegExp::escape)).join("|")+")\\s*)?"
+    "(" + QStringList(klfListMap(ParsedBlock::openParenList, &QRegExp::escape)).join("|")+")";
   QString scloserx =
-    "^(?:("+QStringList(klfListMap(ParenItem::closeParenModifiers, &QRegExp::escape)).join("|")+")\\s*)?"
-    "(" + QStringList(klfListMap(ParenItem::closeParenList, &QRegExp::escape)).join("|")+")";
+    "^(?:("+QStringList(klfListMap(ParsedBlock::closeParenModifiers, &QRegExp::escape)).join("|")+")\\s*)?"
+    "(" + QStringList(klfListMap(ParsedBlock::closeParenList, &QRegExp::escape)).join("|")+")";
   klfDbg("open-paren-rx string: "<<sopenrx<<"; close-paren-rx string: "<<scloserx);
   QRegExp rx_open(sopenrx);
   QRegExp rx_close(scloserx);
@@ -436,19 +444,21 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	  } else {
 	    _rulestoapply.append(FormatRule(p.pos, cp.endpos - p.pos, col, true));
 	  }
-	  ParsedBlock pblk1(ParsedBlock::Paren, p.pos, p.poslength());
-	  ParsedBlock pblk2(ParsedBlock::Paren, cp.pos, cp.poslength());
-	  pblk1.parenmatch = ((col == FParenMatch) ? ParsedBlock::Matched : ParsedBlock::Mismatched);
-	  pblk1.parenisopening = true;
-	  pblk1.parenstr = p.parenstr;
-	  pblk1.parenotherpos = cp.pos;
-	  pblk2.parenmatch = pblk1.parenmatch;
-	  pblk2.parenisopening = false;
-	  pblk2.parenstr = cp.parenstr;
-	  pblk2.parenotherpos = p.pos;
-	  pParsedBlocks.append(pblk1);
-	  pParsedBlocks.append(pblk2);
 	}
+	ParsedBlock pblk1(ParsedBlock::Paren, p.beginpos, p.beginposlength());
+	ParsedBlock pblk2(ParsedBlock::Paren, cp.beginpos, cp.beginposlength());
+	pblk1.parenmatch = ((col == FParenMatch) ? ParsedBlock::Matched : ParsedBlock::Mismatched);
+	pblk1.parenisopening = true;
+	pblk1.parenstr = p.parenstr;
+	pblk1.parenmodifier = p.modifier;
+	pblk1.parenotherpos = cp.beginpos;
+	pblk2.parenmatch = pblk1.parenmatch;
+	pblk2.parenisopening = false;
+	pblk2.parenstr = cp.parenstr;
+	pblk2.parenmodifier = cp.modifier;
+	pblk2.parenotherpos = p.beginpos;
+	pParsedBlocks.append(pblk1);
+	pParsedBlocks.append(pblk2);
       }
 
       if (text[i] == '\\') { // a keyword ("\symbol")
@@ -520,10 +530,11 @@ void KLFLatexSyntaxHighlighter::parseEverything()
     if (pConf.highlightLonelyParens)
       _rulestoapply.append(FormatRule(p.pos, p.poslength(), FLonelyParen));
 
-    ParsedBlock pblk(ParsedBlock::Paren, p.pos, p.poslength());
+    ParsedBlock pblk(ParsedBlock::Paren, p.beginpos, p.beginposlength());
     pblk.parenmatch = ParsedBlock::Lonely;
     pblk.parenisopening = p.isopening;
     pblk.parenstr = p.parenstr;
+    pblk.parenmodifier = p.modifier;
     pblk.parenotherpos = -1;
     pParsedBlocks.append(pblk);
   }
@@ -656,7 +667,7 @@ QDebug operator<<(QDebug str, const KLFLatexSyntaxHighlighter::ParsedBlock& p)
   if (p.type == KLFLatexSyntaxHighlighter::ParsedBlock::Keyword) {
     str << ", "<<p.keyword;
   } else if (KLFLatexSyntaxHighlighter::ParsedBlock::Paren) {
-    str << ", "<<smatched.toLatin1()<<(p.parenisopening?"(opening)":"(closing)")<<p.parenstr
+    str << ", "<<smatched.toLatin1()<<(p.parenisopening?"(opening)":"(closing)")<<p.parenmodifier<<p.parenstr
 	<<" otherpos="<<p.parenotherpos;
   }
   return str << "]";

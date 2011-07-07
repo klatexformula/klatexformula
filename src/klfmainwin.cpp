@@ -384,6 +384,12 @@ KLFMainWin::KLFMainWin()
   new QShortcut(QKeySequence(Qt::Key_F2), this, SLOT(slotShowBigPreview()),
 		SLOT(slotShowBigPreview()), Qt::WindowShortcut);
 
+  // Shortcut for parens mod/type cycle
+  new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketLeft), this, SLOT(slotCycleParenTypes()),
+		SLOT(slotCycleParenTypes()), Qt::WindowShortcut);
+  new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketLeft), this, SLOT(slotCycleParenModifiers()),
+		SLOT(slotCycleParenModifiers()), Qt::WindowShortcut);
+
   // Create our style manager
   mStyleManager = new KLFStyleManager(&_styles, this);
   connect(mStyleManager, SIGNAL(refreshStyles()), this, SLOT(refreshStylePopupMenus()));
@@ -1431,6 +1437,108 @@ void KLFMainWin::slotPopupAcceptAll()
   slotPopupClose();
 }
 
+// ---
+
+static QStringList open_paren_modifiers;
+static QStringList close_paren_modifiers;
+static QStringList open_paren_types;
+static QStringList close_paren_types;
+
+static void init_paren_modifiers_and_types()
+{
+  if (!open_paren_modifiers.isEmpty())
+    return;
+
+  open_paren_modifiers  = KLFLatexSyntaxHighlighter::ParsedBlock::openParenModifiers;
+  close_paren_modifiers = KLFLatexSyntaxHighlighter::ParsedBlock::closeParenModifiers;
+  open_paren_types  = KLFLatexSyntaxHighlighter::ParsedBlock::openParenList;
+  close_paren_types = KLFLatexSyntaxHighlighter::ParsedBlock::closeParenList;
+  // add 'no modifier' possibility :
+  open_paren_modifiers.prepend( QString() );
+  close_paren_modifiers.prepend( QString() );
+  // and remove "{","}" pair because that's a LaTeX argument, don't offer to change those parens
+  open_paren_types.removeAll("{");
+  close_paren_types.removeAll("}");
+}
+
+QVariantMap KLFMainWin::parseLatexEditPosParenInfo(KLFLatexEdit *latexEdit, int curpos)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  QString text = latexEdit->toPlainText();
+
+  KLFLatexSyntaxHighlighter *sh = latexEdit->syntaxHighlighter();
+  KLF_ASSERT_NOT_NULL(sh, "syntax highlighter is NULL! ", return QVariantMap(); ) ;
+
+  QList<KLFLatexSyntaxHighlighter::ParsedBlock> blocks =
+    sh->parsedBlocksForPos(curpos, KLFLatexSyntaxHighlighter::ParsedBlock::ParenMask);
+  klfDbg("got blocks: "<<blocks) ;
+  int k;
+  for (k = 0; k < blocks.size(); ++k) {
+    KLFLatexSyntaxHighlighter::ParsedBlock block = blocks[k];
+
+    if (block.parenIsLatexBrace())
+      continue;
+
+    QVariantMap vmap;
+    vmap["has_paren"] = true;
+
+    vmap["pos"] = block.pos;
+    vmap["len"] = block.len;
+    vmap["parenisopening"] = block.parenisopening;
+    vmap["parenmod"] = block.parenmodifier;
+    vmap["parenstr"] = block.parenstr;
+
+    // find corresponding opening/closing paren
+    QList<KLFLatexSyntaxHighlighter::ParsedBlock> otherblocks;
+    if (block.parenotherpos >= 0)
+      otherblocks = sh->parsedBlocksForPos(block.parenotherpos, KLFLatexSyntaxHighlighter::ParsedBlock::ParenMask);
+    KLFLatexSyntaxHighlighter::ParsedBlock otherblock, openblock, closeblock;
+    bool hasotherblock = false;
+    for (int klj = 0; klj < otherblocks.size(); ++klj) {
+      if (otherblocks[klj].parenotherpos == block.pos) { // found the other block
+	otherblock = otherblocks[klj];
+	hasotherblock = true;
+	if (block.parenisopening) {
+	  openblock = block; closeblock = otherblock;
+	} else {
+	  openblock = otherblock; closeblock = block;
+	}
+      }
+    }
+    if (hasotherblock) { // all ok, exists
+      vmap["hasotherparen"] = true;
+      vmap["otherpos"] = otherblock.pos;
+      vmap["otherlen"] = otherblock.len;
+      vmap["othermod"] = otherblock.parenmodifier;
+      vmap["otherstr"] = otherblock.parenstr;
+    }
+
+    vmap["openparenmod"] = openblock.parenmodifier;
+    vmap["openparenstr"] = openblock.parenstr;
+    vmap["closeparenmod"] = closeblock.parenmodifier;
+    vmap["closeparenstr"] = closeblock.parenstr;
+
+    KLF_ASSERT_CONDITION(open_paren_modifiers.size() == close_paren_modifiers.size(),
+			 "Open and Close paren modifiers list do NOT have same size !!!", return QVariantMap(); ) ;
+    KLF_ASSERT_CONDITION(open_paren_types.size() == close_paren_types.size(),
+			 "Open and Close paren types list do NOT have same size !!!", return QVariantMap(); ) ;
+
+    init_paren_modifiers_and_types();
+
+    // Qt's implicit sharing system should speed this up, this is probably not _that_ dumb...
+    vmap["open_paren_modifiers"] = open_paren_modifiers;
+    vmap["close_paren_modifiers"] = close_paren_modifiers;
+    vmap["open_paren_types"] = open_paren_types;
+    vmap["close_paren_types"] = close_paren_types;
+
+    return vmap;
+  }
+
+  return QVariantMap();
+}
+
+
 void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAction*> *actionList)
 {
   KLFLatexEdit *latexEdit = qobject_cast<KLFLatexEdit*>(sender());
@@ -1460,37 +1568,60 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
     }
   }
 
-  QAction *insertSymbolAction = new QAction(QIcon(":/pics/symbols.png"),
-					    tr("Insert Symbol ...", "[[context menu entry]]"), latexEdit);
-  connect(insertSymbolAction, SIGNAL(triggered()), this, SLOT(slotSymbols()));
-  *actionList << insertSymbolAction;
+  /*
+    QAction *insertSymbolAction = new QAction(QIcon(":/pics/symbols.png"),
+    tr("Insert Symbol ...", "[[context menu entry]]"), latexEdit);
+    connect(insertSymbolAction, SIGNAL(triggered()), this, SLOT(slotSymbols()));
+    *actionList << insertSymbolAction;
+    */
 
-  QList<KLFLatexSyntaxHighlighter::ParsedBlock> blocks = latexEdit->syntaxHighlighter()->parsedBlocksForPos(curpos);
-  klfDbg("got blocks: "<<blocks) ;
-  int k;
-  for (k = 0; k < blocks.size(); ++k) {
-    if (blocks[k].type == KLFLatexSyntaxHighlighter::ParsedBlock::Paren
-	&& !blocks[k].isLatexBrace()) {
-      QAction *amenu = new QAction(latexEdit);
-      amenu->setText(tr("Change to ..."));
-      QMenu *changemenu = new QMenu(latexEdit);
-      QVariantMap vmap;
-      vmap["pos"] = blocks[k].pos;
-      vmap["len"] = blocks[k].len;
-      QStringList openings, closings;
-      openings << "\\left(" << "\\left[" << "\\left\\{" << "\\Bigl(" << "\\Bigl[" << "\\Bigl\\{";
-      closings << "\\right)" << "\\right]" << "\\right\\}" << "\\Bigr)" << "\\Big]" << "\\Bigr\\}";
-      const QStringList& slist = blocks[k].parenisopening ? openings: closings;
-      int kl;
-      for (kl = 0; kl < slist.size(); ++kl) {
-	QAction *a = changemenu->addAction(slist[kl], this, SLOT(slotChangeParenFromActionSender()));
-	vmap["newstring"] = slist[kl];
-	a->setData(vmap);
+  const QVariantMap vmap = parseLatexEditPosParenInfo(latexEdit, curpos);
+
+  if (!vmap.isEmpty() && vmap.value("has_paren", false).toBool()) {
+
+    QAction *amenumod = new QAction(latexEdit);
+    QAction *amenutyp = new QAction(latexEdit);
+    amenumod->setText(tr("Paren Modifier..."));
+    amenutyp->setText(tr("Change Paren..."));
+    QMenu *changemenumod = new QMenu(latexEdit);
+    QMenu *changemenutyp = new QMenu(latexEdit);
+
+    QStringList open_paren_modifiers = vmap["open_paren_modifiers"].toStringList();
+    QStringList close_paren_modifiers = vmap["close_paren_modifiers"].toStringList();
+    QStringList open_paren_types = vmap["open_paren_types"].toStringList();
+    QStringList close_paren_types = vmap["close_paren_types"].toStringList();
+
+    // now create our menus
+    int kl;
+    for (kl = 0; kl < open_paren_modifiers.size(); ++kl) {
+      QString title = vmap["parenisopening"].toBool() ? open_paren_modifiers[kl] : close_paren_modifiers[kl];
+      if (title.isEmpty()) {
+	title = tr("<no modifier>", "[[in editor context menu]]");
+      } else if (vmap["hasotherparen"].toBool()) {
+	title = open_paren_modifiers[kl] + vmap["openparenstr"].toString() + " ... "
+	  + close_paren_modifiers[kl] + vmap["closeparenstr"].toString();
       }
-      amenu->setMenu(changemenu);
-      *actionList << amenu;
-      break;
+      QAction *a = changemenumod->addAction(title, this, SLOT(slotChangeParenFromActionSender()));
+      QVariantMap data = vmap;
+      data["newparenmod_index"] = kl;
+      a->setData(data);
     }
+    for (kl = 0; kl < open_paren_types.size(); ++kl) {
+      QString title;
+      if (vmap["hasotherparen"].toBool()) {
+	title = vmap["openparenmod"].toString() + open_paren_types[kl] + " ... "
+	  + vmap["closeparenmod"].toString() + close_paren_types[kl];
+      } else {
+	title = vmap["parenisopening"].toBool() ? open_paren_types[kl] : close_paren_types[kl];
+      }
+      QAction *a = changemenutyp->addAction(title, this, SLOT(slotChangeParenFromActionSender()));
+      QVariantMap data = vmap;
+      data["newparenstr_index"] = kl;
+      a->setData(data);
+    }
+    amenumod->setMenu(changemenumod);
+    amenutyp->setMenu(changemenutyp);
+    *actionList << amenumod << amenutyp;
   }
 }
 
@@ -1520,14 +1651,125 @@ void KLFMainWin::slotChangeParenFromActionSender()
   QVariant v = a->data();
   QVariantMap data = v.toMap();
 
+  slotChangeParenFromVariantMap(data);
+}
+void KLFMainWin::slotChangeParenFromVariantMap(const QVariantMap& data)
+{
   int pos = data["pos"].toInt();
   int len = data["len"].toInt();
-  QString s = data["newstring"].toString();
+  bool isopening = data.value("parenisopening", QVariant(false)).toBool();
+  QString mod = data["parenmod"].toString();
+  QString str = data["parenstr"].toString();
+  QString othermod, otherstr;
+  int mod_index = data.value("newparenmod_index", QVariant(-1)).toInt();
+  int str_index = data.value("newparenstr_index", QVariant(-1)).toInt();
 
-  QString fulltext = u->txtLatex->toPlainText();
-  fulltext.replace(pos, len, s);
-  slotSetLatex(fulltext);
+  QStringList open_paren_modifiers = data["open_paren_modifiers"].toStringList();
+  QStringList close_paren_modifiers = data["close_paren_modifiers"].toStringList();
+  QStringList open_paren_types = data["open_paren_types"].toStringList();
+  QStringList close_paren_types = data["close_paren_types"].toStringList();
+
+  if (mod_index >= 0) {
+    mod = open_paren_modifiers[mod_index];
+    othermod = close_paren_modifiers[mod_index];
+    if (!isopening)
+      qSwap(mod, othermod);
+  }
+  if (str_index >= 0) {
+    str = open_paren_types[str_index];
+    otherstr = close_paren_types[str_index];
+    if (!isopening)
+      qSwap(str, otherstr);
+  }
+
+  QString s = mod + str;
+  latexEditReplace(pos, len, s);
+  // and correct the 'other' pos index by a delta, in case the 'other' pos index
+  // is _after_ our first replacement... (yes, indexes have been shifted by our
+  // first replacement)
+  int delta =  isopening ? s.length() - len : 0;
+
+  bool hasother = data["hasotherparen"].toBool();
+  if (hasother) {
+    int opos = data["otherpos"].toInt() + delta;
+    int olen = data["otherlen"].toInt();
+    QString omod = data["othermod"].toString();
+    QString ostr = data["otherstr"].toString();
+
+    if (mod_index >= 0)
+      omod = othermod;
+    if (str_index >= 0)
+      ostr = otherstr;
+
+    latexEditReplace(opos, olen, omod+ostr);
+  }
 }
+
+void KLFMainWin::slotCycleParenModifiers()
+{
+  int curpos = u->txtLatex->textCursor().position();
+  const QVariantMap vmap = parseLatexEditPosParenInfo(u->txtLatex, curpos);
+
+  if (vmap.isEmpty() || !vmap.value("has_paren", false).toBool())
+    return;
+
+  bool isopening = vmap["parenisopening"].toBool();
+  QString mod = vmap["parenmod"].toString();
+
+  const QStringList& paren_mod_list = isopening
+    ? vmap["open_paren_modifiers"].toStringList()
+    : vmap["close_paren_modifiers"].toStringList();
+
+  int mod_index = paren_mod_list.indexOf(mod);
+  if (mod_index < 0) {
+    qWarning()<<KLF_FUNC_NAME<<": failed to find paren modifier "<<mod<<" in list "<<paren_mod_list;
+    return;
+  }
+
+  QVariantMap data = vmap;
+  data["newparenmod_index"] = (mod_index + 1) % paren_mod_list.size();
+
+  slotChangeParenFromVariantMap(data);
+}
+
+void KLFMainWin::slotCycleParenTypes()
+{
+  int curpos = u->txtLatex->textCursor().position();
+  const QVariantMap vmap = parseLatexEditPosParenInfo(u->txtLatex, curpos);
+
+  if (vmap.isEmpty() || !vmap.value("has_paren", false).toBool())
+    return;
+
+  bool isopening = vmap["parenisopening"].toBool();
+  QString str = vmap["parenstr"].toString();
+
+  const QStringList& paren_typ_list = isopening
+    ? vmap["open_paren_types"].toStringList()
+    : vmap["close_paren_types"].toStringList();
+
+  int str_index = paren_typ_list.indexOf(str);
+  if (str_index < 0) {
+    qWarning()<<KLF_FUNC_NAME<<": failed to find paren str "<<str<<" in list "<<paren_typ_list;
+    return;
+  }
+
+  QVariantMap data = vmap;
+  data["newparenstr_index"] = (str_index + 1) % paren_typ_list.size();
+
+  slotChangeParenFromVariantMap(data);
+}
+
+void KLFMainWin::latexEditReplace(int pos, int len, const QString& text)
+{
+  QTextCursor c = u->txtLatex->textCursor();
+  c.setPosition(pos);
+  c.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, len);
+  c.removeSelectedText();
+  c.insertFragment(QTextDocumentFragment::fromPlainText(text));
+  u->txtLatex->setTextCursor(c);
+}
+
+
 
 
 
