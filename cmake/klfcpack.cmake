@@ -111,7 +111,7 @@ set(CPACK_PACKAGE_VERSION "${KLF_VERSION}")
 # --------------------------------
 
 option(KLF_USE_CPACK
-       "Use CPack to create packages with 'make packages'. Affects possibly CMAKE_INSTALL_PREFIX" OFF)
+       "Use CPack to create packages with 'make package'. Affects possibly CMAKE_INSTALL_PREFIX" OFF)
 
 if(KLF_USE_CPACK)
   if(WIN32)

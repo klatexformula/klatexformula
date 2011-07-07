@@ -221,8 +221,9 @@ mark_as_advanced(KLF_BUILD_TOOLSDESPLUGIN)
 KLFTestCondition(_klf_allow_toolsdesplugin
   "KLF_BUILD_TOOLS AND NOT KLF_LIBKLFBACKEND_STATIC AND NOT KLF_LIBKLFTOOLS_STATIC")
 KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLSDESPLUGIN
-	BOOL "Build klatexformula tools library (klftools), requires Qt4"          # cache info
-	"Building klftools library requires Qt 4. Not building klftools library."  # update notify message
+	BOOL "Build klatexformula tools designer plug-in; requires building dynamic libraries."          # cache info
+	"Build klatexformula tools designer plug-in requires building dynamic libraries.
+    Not building the klftools designer plug-in."  # update notify message
 	_klf_allow_toolsdesplugin  # the condition
 	OFF                        # the forced value if condition is not met
 	${KLF_BUILD_TOOLS}         # the default value at beginning
