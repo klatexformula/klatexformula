@@ -27,14 +27,16 @@
 
 
 KLFRelativeFontBase::KLFRelativeFontBase(QWidget *parent)
-  : QObject(parent), pReference(parent), pTarget(parent), pInhibitFontChangeRecursion(false), pHasAppliedFont(false)
+  : QObject(parent), pReference(parent), pTarget(parent), pInhibitFontChangeRecursion(false),
+    pHasAppliedFont(false), pThorough(false)
 {
   klfDbg("constructor. Parent="<<parent) ;
   parent->installEventFilter(this);
 }
 
 KLFRelativeFontBase::KLFRelativeFontBase(QWidget *ref, QWidget *target)
-  : QObject(target), pReference(ref), pTarget(target), pInhibitFontChangeRecursion(false), pHasAppliedFont(false)
+  : QObject(target), pReference(ref), pTarget(target), pInhibitFontChangeRecursion(false),
+    pHasAppliedFont(false), pThorough(false)
 {
   klfDbg("constructor. Ref="<<ref<<", tgt="<<target) ;
   ref->installEventFilter(this);
@@ -45,6 +47,12 @@ KLFRelativeFontBase::KLFRelativeFontBase(QWidget *ref, QWidget *target)
 KLFRelativeFontBase::~KLFRelativeFontBase()
 {
 }
+
+void KLFRelativeFontBase::setThorough(bool thorough)
+{
+  pThorough = thorough;
+}
+
 
 bool KLFRelativeFontBase::eventFilter(QObject *object, QEvent *event)
 {
@@ -85,6 +93,25 @@ bool KLFRelativeFontBase::eventFilter(QObject *object, QEvent *event)
   return false; // never eat an event
 }
 
+
+static void set_property_children(QObject *object, const char *inherits, const char *propName,
+				  const QVariant& value)
+{
+  bool wantinherits  =  (inherits != NULL && *inherits != '\0') ;
+  QObjectList children = object->children();
+  Q_FOREACH(QObject *obj, children) {
+    if (!wantinherits || obj->inherits(inherits)) {
+      QString dontchangepropname = QString("klfDontChange_") + propName;
+      QVariant v = obj->property(dontchangepropname.toLatin1().constData());
+      if (!v.isValid() || !v.toBool()) {
+	obj->setProperty(propName, value);
+	set_property_children(obj, inherits, propName, value);
+      }
+    }
+  }
+}
+
+
 void KLFRelativeFontBase::calculateAndApplyNewFont()
 {
   QWidget *ref = referenceWidget();
@@ -96,6 +123,8 @@ void KLFRelativeFontBase::calculateAndApplyNewFont()
     pInhibitFontChangeRecursion = true;
   }
   target->setFont(f);
+  if (pThorough)
+    set_property_children(target, "QWidget", "font", QVariant(f));
 
   pHasAppliedFont = true;
 }

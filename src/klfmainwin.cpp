@@ -215,21 +215,6 @@ void KLFPreviewBuilderThread::settingsChanged(const KLFBackend::klfSettings& set
 
 // ----------------------------------------------------------------------------
 
-static void set_property_children(QObject *object, const char *inherits, const char *propName,
-				  const QVariant& value)
-{
-  bool wantinherits  =  (inherits != NULL && *inherits != '\0') ;
-  QObjectList children = object->children();
-  Q_FOREACH(QObject *obj, children) {
-    if (!wantinherits || obj->inherits(inherits)) {
-      obj->setProperty(propName, value);
-      set_property_children(obj, inherits, propName, value);
-    }
-  }
-}
-
-// ----------------------------------------------------------------------------
-
 
 KLFMainWin::KLFMainWin()
   : QMainWindow()
@@ -333,20 +318,11 @@ KLFMainWin::KLFMainWin()
   {
     KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
     rf->setRelPointSize(-2);
+    rf->setThorough(true);
 
-    // taken from Qt 4.7.3: src/gui/kernel/qwidget_mac.mm
-    // but defined in our own src/macosx/klfdrawerdefs.mm
-    //    extern bool qt_mac_is_macdrawer(const QWidget *);
-    // make the details frame a drawer
     u->frmDetails->hide();
     u->frmDetails->setParent(this);
     u->frmDetails->setWindowFlags(Qt::Drawer);
-    //    fprintf(stderr, "widget is drawer=%d\n", (int)qt_mac_is_macdrawer(u->frmDetails)) ;
-    // adjust to smaller font
-    //    QFont f = u->frmDetails->font();
-    //    f.setPointSize(QFontInfo(f).pointSize()-2);
-    //    u->frmDetails->setFont(f);
-    //    set_property_children(u->frmDetails, "QWidget", "font", QVariant(f));
     resize(u->frmMain->sizeHint()+QSize(10,10));
     u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
   }

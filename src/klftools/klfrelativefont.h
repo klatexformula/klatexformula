@@ -41,6 +41,8 @@ public:
 
   bool eventFilter(QObject *object, QEvent *event);
 
+  void setThorough(bool thorough);
+
 protected:
   virtual QFont calculateRelativeFont(const QFont& baseFont) = 0;
 
@@ -56,6 +58,8 @@ private:
 
   bool pInhibitFontChangeRecursion;
   bool pHasAppliedFont;
+
+  bool pThorough;
 };
 
 

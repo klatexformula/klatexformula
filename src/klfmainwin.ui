@@ -543,7 +543,7 @@
           </item>
           <item row="0" column="1">
            <widget class="KLFColorChooser" name="colFg">
-            <property name="alphaEnabled">
+            <property name="alphaEnabled" stdset="0">
              <bool>false</bool>
             </property>
            </widget>
@@ -560,13 +560,13 @@
           </item>
           <item row="1" column="1">
            <widget class="KLFColorChooser" name="colBg">
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="defaultStateString">
+            <property name="defaultStateString" stdset="0">
              <string extracomment="background color selector">Transparent</string>
             </property>
-            <property name="alphaEnabled">
+            <property name="alphaEnabled" stdset="0">
              <bool>false</bool>
             </property>
            </widget>
@@ -589,6 +589,15 @@
           <layout class="QGridLayout" name="lyt_gbxLatexImage">
            <property name="leftMargin">
             <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
+           </property>
+           <property name="horizontalSpacing">
+            <number>12</number>
            </property>
            <item row="0" column="0">
             <widget class="QCheckBox" name="chkMathMode">
@@ -685,6 +694,12 @@
           <layout class="QGridLayout" name="lyt_tabMargins">
            <property name="leftMargin">
             <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
            </property>
            <item row="0" column="0" colspan="3">
             <layout class="QHBoxLayout" name="lytDPIInput" stretch="1,0,0">

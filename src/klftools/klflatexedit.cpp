@@ -58,6 +58,8 @@ KLFLatexEdit::KLFLatexEdit(QWidget *parent)
 	  mSyntaxHighlighter, SLOT(refreshAll()));
 
   setContextMenuPolicy(Qt::DefaultContextMenu);
+
+  setProperty("klfDontChange_font", QVariant(true));
 }
 
 KLFLatexEdit::~KLFLatexEdit()
