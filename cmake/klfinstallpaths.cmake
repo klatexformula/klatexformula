@@ -91,7 +91,9 @@ KLFDeclareCacheVarOptionFollowComplexN(KLF_INSTALL_DESPLUGIN_DIR
 	"${QT_PLUGINS_DIR}/designer"  # calculated value
 	""     # dependance variables
 )
-message(STATUS "Installing klftools designer plugin to \"${KLF_INSTALL_DESPLUGIN_DIR}\" (KLF_INSTALL_DESPLUGIN_DIR)")
+if(KLF_BUILD_TOOLSDESPLUGIN)
+  message(STATUS "Installing klftools designer plugin to \"${KLF_INSTALL_DESPLUGIN_DIR}\" (KLF_INSTALL_DESPLUGIN_DIR)")
+endif(KLF_BUILD_TOOLSDESPLUGIN)
 # this is deduced from Qt paths, so it is automatically absolute by default... don't harass the user...
 #if(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
 #  KLFNote("You have chosen an absolute KLF_INSTALL_DESPLUGIN_DIR path. There is
