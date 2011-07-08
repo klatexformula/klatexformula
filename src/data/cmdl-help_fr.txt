@@ -70,7 +70,8 @@ Options:
       N'affiche pas les avertissements et les erreurs.
   --redirect-debug <fichier>
       Redirige les messages de debug vers le <fichier> donné. Si le nom de fichier ne se termine pas
-      par .klfdebug, ce suffix est rajouté. Si le fichier existe déjà, il est écrasé sans avertissement.
+      par .klfdebug, ce suffix est rajouté automatiquement. Si le fichier existe déjà, il est écrasé
+      sans avertissement.
   -d, --daemonize
       Démarre un processus détaché comme un démon. Toutes les autres options (p. ex. --latexinput)
       sont transmises au démon et sont donc prises en compte.

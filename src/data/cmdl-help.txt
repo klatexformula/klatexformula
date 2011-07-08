@@ -71,8 +71,8 @@ Options:
       Disable console output of warnings and errors.
   --redirect-debug <file>
       Redirects debugging output to the given <file>. If the file name does not
-      end with .klfdebug, this suffix is enforced. If the file exists, it is
-      silently overwritten.
+      end with .klfdebug, this suffix is automatically appended to the file name.
+      If the file exists, it is silently overwritten.
   -d, --daemonize
       Run a separate, detached, klatexformula process and return immediately. All
       other options, like --latexinput, may still be given. They will be forwared
