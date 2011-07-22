@@ -198,7 +198,7 @@ void SysTrayIconPlugin::restore()
 
 void SysTrayIconPlugin::minimize()
 {
-  _mainwin->hide();
+  _mainwin->close();
 }
 
 void SysTrayIconPlugin::slotSysTrayActivated(QSystemTrayIcon::ActivationReason reason)

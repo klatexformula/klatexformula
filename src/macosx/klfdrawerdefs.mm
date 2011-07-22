@@ -9,6 +9,7 @@
 #include <Cocoa/Cocoa.h>
 #ifdef QT_MAC_USE_COCOA
 #include <objc/runtime.h>
+//#include <NSAutoreleasePool.h>
 #endif // QT_MAC_USE_COCOA
 #endif
 
@@ -17,7 +18,10 @@
 #include <Carbon/Carbon.h>
 
 
-Q_GUI_EXPORT OSWindowRef qt_mac_window_for(OSViewRef view)
+#include <klfdefs.h>
+
+
+static OSWindowRef qt_mac_window_for(OSViewRef view)
 {
 #ifdef QT_MAC_USE_COCOA
     if (view)
@@ -29,86 +33,142 @@ Q_GUI_EXPORT OSWindowRef qt_mac_window_for(OSViewRef view)
 }
 
 #ifdef QT_MAC_USE_COCOA
-static NSDrawer *qt_mac_drawer_for(const QWidget *widget)
+static NSDrawer * qt_mac_drawer_for(const QWidget *widget)
 {
-    // This only goes one level below the content view so start with the window.
-    // This works fine for straight Qt stuff, but runs into problems if we are
-    // embedding, but if that's the case, they probably want to be using
-    // NSDrawer directly.
-    NSView *widgetView = reinterpret_cast<NSView *>(widget->window()->winId());
-    NSArray *windows = [NSApp windows];
-    for (NSWindow *window in windows) {
-        NSArray *drawers = [window drawers];
-        for (NSDrawer *drawer in drawers) {
-            NSArray *views = [[drawer contentView] subviews];
-            for (NSView *view in views) {
-                if (view == widgetView)
-                    return drawer;
-            }
-        }
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  // This only goes one level below the content view so start with the window.
+  // This works fine for straight Qt stuff, but runs into problems if we are
+  // embedding, but if that's the case, they probably want to be using
+  // NSDrawer directly.
+  NSView *widgetView = reinterpret_cast<NSView *>(widget->window()->winId());
+  NSArray *windows = [NSApp windows];
+  for (NSWindow *window in windows) {
+    NSArray *drawers = [window drawers];
+    for (NSDrawer *drawer in drawers) {
+      NSArray *views = [[drawer contentView] subviews];
+      for (NSView *view in views) {
+	if (view == widgetView) {
+	  klfDbg("found drawer. ptr="<<drawer) ;
+	  //	  [autoreleasepool release];
+	  return drawer;
+	}
+      }
     }
-    return 0;
+  }
+
+  klfDbg("not found.") ;
+  //  [autoreleasepool release];
+  return 0;
 }
 #endif
 
 
-bool qt_mac_is_macdrawer(const QWidget *w)
+static bool qt_mac_is_macdrawer(const QWidget *w)
 {
     return (w && w->parentWidget() && w->windowType() == Qt::Drawer);
 }
 
-bool qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where) //users of Qt for Mac OS X can use this..
+bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
 {
-    if(!qt_mac_is_macdrawer(w))
-        return false;
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  if(!qt_mac_is_macdrawer(w)) {
+    klfDbg("Not a drawer.") ;
+    return false;
+  }
+  
 #if QT_MAC_USE_COCOA
-    NSDrawer *drawer = qt_mac_drawer_for(w);
-    if (!drawer)
-        return false;
-	NSRectEdge	edge;
-    if (where & Qt::LeftDockWidgetArea)
-        edge = NSMinXEdge;
-    else if (where & Qt::RightDockWidgetArea)
-        edge = NSMaxXEdge;
-    else if (where & Qt::TopDockWidgetArea)
-		edge = NSMaxYEdge;
-    else if (where & Qt::BottomDockWidgetArea)
-        edge = NSMinYEdge;
-    else
-        return false;
-
-    if (edge == [drawer preferredEdge]) //no-op
-        return false;
-
-    if (w->isVisible()) {
-	    [drawer close];
-	    [drawer openOnEdge:edge];
-	}
-	[drawer setPreferredEdge:edge];
+  NSDrawer *drawer = qt_mac_drawer_for(w);
+  if (!drawer)
+    return false;
+  NSRectEdge edge;
+  if (where & Qt::LeftDockWidgetArea)
+    edge = NSMinXEdge;
+  else if (where & Qt::RightDockWidgetArea)
+    edge = NSMaxXEdge;
+  else if (where & Qt::TopDockWidgetArea)
+    edge = NSMaxYEdge;
+  else if (where & Qt::BottomDockWidgetArea)
+    edge = NSMinYEdge;
+  else
+    return false;
+  
+  if (edge == [drawer preferredEdge]) //no-op
+    return false;
+  
+  if (w->isVisible()) {
+    [drawer close];
+    [drawer setPreferredEdge:edge];
+    [drawer openOnEdge:edge];
+  } else {
+    [drawer setPreferredEdge:edge];
+  }
 #else
-    OSWindowRef window = qt_mac_window_for(w);
-    OptionBits edge;
-    if(where & Qt::LeftDockWidgetArea)
-        edge = kWindowEdgeLeft;
-    else if(where & Qt::RightDockWidgetArea)
-        edge = kWindowEdgeRight;
-    else if(where & Qt::TopDockWidgetArea)
-        edge = kWindowEdgeTop;
-    else if(where & Qt::BottomDockWidgetArea)
-        edge = kWindowEdgeBottom;
-    else
-        return false;
-
-    if(edge == GetDrawerPreferredEdge(window)) //no-op
-        return false;
-
-    //do it
-    SetDrawerPreferredEdge(window, edge);
-    if(w->isVisible()) {
-        CloseDrawer(window, false);
-        OpenDrawer(window, edge, true);
-    }
+  OSWindowRef window = qt_mac_window_for(w);
+  OptionBits edge;
+  if(where & Qt::LeftDockWidgetArea)
+    edge = kWindowEdgeLeft;
+  else if(where & Qt::RightDockWidgetArea)
+    edge = kWindowEdgeRight;
+  else if(where & Qt::TopDockWidgetArea)
+    edge = kWindowEdgeTop;
+  else if(where & Qt::BottomDockWidgetArea)
+    edge = kWindowEdgeBottom;
+  else
+    return false;
+  
+  if(edge == GetDrawerPreferredEdge(window)) //no-op
+    return false;
+  
+  //do it
+  SetDrawerPreferredEdge(window, edge);
+  if(w->isVisible()) {
+    CloseDrawer(window, false);
+    OpenDrawer(window, edge, true);
+  }
 #endif
-    return true;
+  return true;
+}
+
+
+void klf_qt_mac_close_drawer(QWidget *w, QObject *obj, const char *member)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  if(!qt_mac_is_macdrawer(w)) {
+    klfDbg("Not a drawer.") ;
+    return;
+  }
+  
+#if QT_MAC_USE_COCOA
+  NSDrawer *drawer = qt_mac_drawer_for(w);
+  if (!drawer)
+    return;
+  
+  [drawer close];
+  while ([drawer state] != NSDrawerClosedState) {
+    qApp->processEvents();
+  }
+  if (obj != NULL && member != NULL) {
+    QMetaObject::invokeMethod(obj, member);
+  }
+#else
+  OSWindowRef window = qt_mac_window_for(w);
+  if(w->isVisible()) {
+    CloseDrawer(window, false);
+  }
+#endif
+}
+
+
+void * klf_qt_mac_app_start()
+{
+  NSApplicationLoad();
+  NSAutoreleasePool *autoreleasepool = [[NSAutoreleasePool alloc] init];
+  return (void*) autoreleasepool;
+}
+void klf_qt_mac_app_end(void * ptr)
+{
+  NSAutoreleasePool * pool = (NSAutoreleasePool*) ptr;
+  [pool release];
 }

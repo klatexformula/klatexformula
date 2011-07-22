@@ -787,12 +787,30 @@ void main_setup_app(QCoreApplication *a)
 }
 
 
+// ... may have been needed to create an NSAutoreleasePool ...
+// #ifdef QT_MAC_USE_COCOA
+// extern void * klf_qt_mac_app_start();
+// extern void klf_qt_mac_app_end(void*);
+// class MainStartEnd {
+//   void *ptr;
+// public:
+//   MainStartEnd() { ptr = klf_qt_mac_app_start(); }
+//   ~MainStartEnd() { klf_qt_mac_app_end(ptr); }
+// };
+// #endif
+
+
+
 // OUR MAIN FUNCTION
 
 int main(int argc, char **argv)
 {
   int k;
   klfDbgT("$$main()$$") ;
+
+// #ifdef QT_MAC_USE_COCOA
+//   MainStartEnd klf_mainstartendinstance;
+// #endif
 
   qInstallMsgHandler(klf_qt_message);
 

@@ -225,6 +225,7 @@ KLFMainWin::KLFMainWin()
   setAttribute(Qt::WA_StyledBackground);
 
   mPopup = NULL;
+  mMacDetailsDrawer = NULL;
 
   loadSettings();
 
@@ -311,21 +312,40 @@ KLFMainWin::KLFMainWin()
 
   refreshWindowSizes();
 
-  u->frmDetails->hide();
-
-
 #ifdef Q_WS_MAC
   {
+    klfDbg("Creating Mac Drawer...") ;
+    extern bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
+
+    //    QDockWidget *w = new QDockWidget(tr("Style & Settings"), this, Qt::Drawer);
+    //    mMacDetailsDrawer = w;
+    //    w/*mMacDetailsDrawer*/->setAllowedAreas(Qt::RightDockWidgetArea);
+    mMacDetailsDrawer = new QWidget(this, Qt::Drawer);
+    mMacDetailsDrawer->hide();
+    //klf_qt_mac_set_drawer_preferred_edge(mMacDetailsDrawer, Qt::RightDockWidgetArea);
+
+    klfDbg("setting up details widget in drawer...") ;
+    QVBoxLayout *layout = new QVBoxLayout(mMacDetailsDrawer);
+    //    u->frmDetails->setParent(mMacDetailsDrawer);
+    //    layout->addWidget(mMacDetailsDrawer);
+    //    QLabel *helloworldDEBUG = new QLabel("Hello World!", mMacDetailsDrawer);
+    //    layout->addWidget(helloworldDEBUG);
+
+    u->frmDetails->setParent(NULL);
+    u->frmDetails->setParent(mMacDetailsDrawer);
+    layout->addWidget(u->frmDetails);
+
+    klfDbg("setting up relative font...") ;
     KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
     rf->setRelPointSize(-2);
     rf->setThorough(true);
 
-    u->frmDetails->hide();
-    u->frmDetails->setParent(this);
-    u->frmDetails->setWindowFlags(Qt::Drawer);
     resize(u->frmMain->sizeHint()+QSize(10,10));
     u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
+    klfDbg("created mac drawer!") ;
   }
+#else
+  u->frmDetails->hide();
 #endif
 
   u->txtLatex->installEventFilter(this);
@@ -1891,8 +1911,11 @@ void KLFMainWin::quit()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  // especially on mac if it's a drawer
-  u->frmDetails->hide();
+#ifdef Q_WS_MAC
+  if (mMacDetailsDrawer != NULL)
+    mMacDetailsDrawer->hide();
+#endif
+
   hide();
 
   if (mLibBrowser)
@@ -2084,6 +2107,8 @@ void KLFMainWin::setWindowShownStatus(const QHash<QWidget*,bool>& shownStatus)
 
 void KLFMainWin::hideEvent(QHideEvent *e)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if ( ! e->spontaneous() ) {
     pSavedWindowShownStatus = currentWindowShownStatus(false);
     pLastWindowGeometries[this] = klf_get_window_geometry(this);
@@ -2474,7 +2499,7 @@ void KLFMainWin::slotSymbols(bool showsymbs)
 
 void KLFMainWin::slotExpandOrShrink()
 {
-  klfDbg("u->frmDetails = "<<u->frmDetails<<"; */isVisible="<<u->frmDetails->isVisible()) ;
+  klfDbg("u->frmDetails = "<<u->frmDetails<<"; mMacDetailsDrawer="<<mMacDetailsDrawer);
 #if !defined(Q_WS_MAC)
   if (u->frmDetails->isVisible()) {
     u->frmDetails->hide();
@@ -2488,10 +2513,19 @@ void KLFMainWin::slotExpandOrShrink()
     u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.png"));
   }
 #else
-  extern bool qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
-  qt_mac_set_drawer_preferred_edge(u->frmDetails, Qt::RightDockWidgetArea);
-  u->frmDetails->setVisible(!u->frmDetails->isVisible());
-  if (u->frmDetails->isVisible()) {
+  extern bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
+  KLF_ASSERT_NOT_NULL(mMacDetailsDrawer, "Mac Details Drawer pointer is NULL!", return;) ;
+  klfDbg("drawer/isVisible="<<mMacDetailsDrawer->isVisible()) ;
+  //  // refresh the thing, there are too many small bugs...
+  if (mMacDetailsDrawer->isVisible()) {
+    klfDbg("Hide!") ;
+    mMacDetailsDrawer->hide();
+  } else {
+    klfDbg("Show!") ;
+    klf_qt_mac_set_drawer_preferred_edge(mMacDetailsDrawer, Qt::RightDockWidgetArea);
+    mMacDetailsDrawer->show();
+  }
+  if (mMacDetailsDrawer->isVisible()) {
     u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.png"));
   } else {
     u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
@@ -3260,8 +3294,22 @@ void KLFMainWin::slotSettings()
 
 void KLFMainWin::closeEvent(QCloseEvent *event)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+
   if (_ignore_close_event) {
     // simple hide, not close
+
+#ifdef QT_MAC_USE_COCOA
+    if (mMacDetailsDrawer != NULL) {
+      extern void klf_qt_mac_close_drawer(QWidget *, QObject *, const char *);
+      klfDbg("Hide details drawer!") ;
+      klf_qt_mac_close_drawer(mMacDetailsDrawer, this, "hide");
+      event->ignore();
+      return;
+    }
+#endif
+
     hide();
 
     event->ignore();

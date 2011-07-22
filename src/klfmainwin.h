@@ -453,6 +453,8 @@ protected:
 
   KLFMainWinPopup *mPopup;
 
+  QWidget *mMacDetailsDrawer;
+
   /** \internal */
   struct HelpLinkAction {
     HelpLinkAction(const QString& p, QObject *obj, const char *func, bool param)
