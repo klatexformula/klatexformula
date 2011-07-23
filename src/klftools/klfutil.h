@@ -379,6 +379,7 @@ protected:
  *   static QStringList names
  *      = QStringList()<<"Marty"<<"Jane"<<"Don"<<"John"<<"Phoebe"<<"Matthew"<<"Melissa"<<"Jessica"
  *   KLFRefPtr<MyObj> o = new MyObj(names[rand()%names.size()]);
+ *   // the pointer survives the `return' statement because of refcount increase in copy constructor
  *   return o;
  * }
  * void do_something(MyObj *object)  {  ...  }
@@ -451,7 +452,7 @@ public:
 
   inline Pointer operator->()
   {  return p;  }
-  inline const Pointer operator->() const
+  inline Pointer operator->() const
   {  return p;  }
 
   template<class OtherPtr>

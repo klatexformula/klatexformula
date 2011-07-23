@@ -113,7 +113,7 @@ public:
    *
    * The default implementation returns searchIterEnd(). */
   virtual SearchIterator searchIterStartFrom(bool forward)
-  { return searchIterEnd(); }
+  {  Q_UNUSED(forward);  return searchIterEnd();  }
 
   /** See if the data pointed at by \c pos matches the query string \c queryString. Return TRUE if it
    * does match, or FALSE if it does not match.
@@ -132,18 +132,20 @@ public:
    *
    * The base implementation does nothing. */
   virtual void searchPerformed(const SearchIterator& resultMatchPosition, bool found, const QString& queryString)
-  {  }
+  {  Q_UNUSED(resultMatchPosition); Q_UNUSED(found); Q_UNUSED(queryString);  }
 
   /** Virtual handler that is called when the current search position moves, eg. we moved to next match.
    * For example, reimplement this function to select the corresponding item in a list (possibly scrolling the
    * list) to display the matching item to the user.  */
-  virtual void searchMoveToIterPos(const SearchIterator& pos) { }
+  virtual void searchMoveToIterPos(const SearchIterator& pos)
+  {  Q_UNUSED(pos);  }
 
   /** Virtual handler for the subclass to act upon the result of a search. Same as
    * searchPerformed(const SearchIterator&, bool, const QString&), but with less pararmeters. This function
    * is exactly called when the other function is called, too.
    */
-  virtual void searchPerformed(const SearchIterator& resultMatchPosition) {  }
+  virtual void searchPerformed(const SearchIterator& resultMatchPosition)
+  {  Q_UNUSED(resultMatchPosition);  }
 
 
   /* Aborts the search.
@@ -275,14 +277,16 @@ public:
   }
 
 
-  /** Advances iterator \c it safely, that means it incremenets or decrements the iterator while always
-   * making sure not to perform illegal operations like incremenet an iterator that has arrived at
+  /** Advances iterator \c it safely, that means it increments or decrements the iterator while always
+   * making sure not to perform illegal operations like increment an iterator that has arrived at
    * searchIterEnd() and making sure not to decrement an iterator that has arrived at searchIterBegin().
    *
    * Iterators that have arrived to searchIterEnd() or searchIterBegin(), when again incremented (resp.
    * decremented), wrap around and start again from the other end. Namely decrementing an iterator equal
    * to searchIterBegin() will give you searchIterEnd() and incrementing searchIterEnd() will yield
    * searchIterBegin().
+   *
+   * \bug THIS FUNCITON IS _VERY_ CLOSE TO \ref searchAdvanceIteratorCycle ! DON'T DUPLICATE CODE !
    */
   SearchIterator searchAdvanceIteratorSafe(const SearchIterator& it, int n = 1)
   {

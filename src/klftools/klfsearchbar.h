@@ -162,13 +162,14 @@ public:
 
   /** Called by the search bar to inform the searched object that the current search position
    * is \c pos. */
-  virtual void searchMoveToPos(const Pos& pos)  {  }
+  virtual void searchMoveToPos(const Pos& pos)  { Q_UNUSED(pos);  }
 
   /** Called by the search bar to inform that the \c queryString was reported either to be found
    * (in which case \c found is TRUE), either not to be found (then \c found is FALSE), at
    * position \c pos. This function call always immediately preceded by a searchMoveToPos().
    * \c pos is invalid if the query string was not found (\c found==FALSE). */
-  virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos)  { }
+  virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos)
+  {  Q_UNUSED(queryString); Q_UNUSED(found); Q_UNUSED(pos);  }
 
   /** Called by the search bar to inform the searched object that the search was aborted by the
    * user. */
@@ -326,8 +327,10 @@ public:
 
 
   virtual Pos searchFind(const QString& queryString, const Pos& fromPos, bool forward);
-  virtual void searchMoveToPos(const Pos& pos) { }
-  virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos) { }
+  virtual void searchMoveToPos(const Pos& pos)
+  {  Q_UNUSED(pos);  }
+  virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos)
+  {  Q_UNUSED(queryString); Q_UNUSED(found); Q_UNUSED(pos);  }
   virtual void searchAborted() { searchAbort(); }
 };
 
