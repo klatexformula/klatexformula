@@ -430,29 +430,12 @@ KLFFlowLayout::~KLFFlowLayout()
 
 bool KLFFlowLayout::event(QEvent *event)
 {
-  //   if (event->type() == QEvent::ParentChange) {
-  //     d->dirty = true;
-  //     d->mainLayout->setParent(parentWidget());
-  //     // don't eat the event, propagate it to parent layout object
-  //   }
-
   return QLayout::event(event);
 }
 
-bool KLFFlowLayout::eventFilter(QObject */*obj*/, QEvent */*event*/)
+bool KLFFlowLayout::eventFilter(QObject *obj, QEvent *event)
 {
-  /*
-  QWidget * w = qobject_cast<QWidget*>(obj);
-  if (w != NULL && w->parentWidget() == parentWidget()) {
-    if (event->type() == QEvent::Resize) {
-      klfDbg("child "<<w<<" got new size "<<((QResizeEvent*)event)->size()) ;
-    }
-    if (event->type() == QEvent::Move) {
-      klfDbg("child "<<w<<" moved to "<<((QMoveEvent*)event)->pos()) ;
-    }
-  }
-  */
-  return false;
+  return QLayout::eventFilter(obj, event);
 }
 
 void KLFFlowLayout::addItem(QLayoutItem *item, int hstretch, int vstretch)
@@ -513,10 +496,7 @@ int KLFFlowLayout::count() const
 }
 QLayoutItem *KLFFlowLayout::itemAt(int index) const
 {
-  // ### this is not an error, it is documented in Qt API...
-  //  KLF_ASSERT_CONDITION(index >= 0 && index < d->items.size(),
-  //		       "index "<<index<<" out of bounds [0,"<<d->items.size()-1<<"] !",
-  //		       return NULL; ) ;
+  // this is not an error, it is documented in Qt API... just return NULL.
   if (index < 0 || index >= d->items.size())
     return NULL;
 
@@ -524,10 +504,7 @@ QLayoutItem *KLFFlowLayout::itemAt(int index) const
 }
 QLayoutItem *KLFFlowLayout::takeAt(int index)
 {
-  // ### this is not an error, it is documented in Qt API...
-  //  KLF_ASSERT_CONDITION(index >= 0 && index < d->items.size(),
-  //		       "index "<<index<<" out of bounds [0,"<<d->items.size()-1<<"] !",
-  //		       return NULL; ) ;
+  // this is not an error, it is documented in Qt API... just return NULL.
   if (index < 0 || index >= d->items.size())
     return NULL;
 
@@ -593,7 +570,6 @@ QSize KLFFlowLayout::sizeHint() const
 
 void KLFFlowLayout::invalidate()
 {
-  //  klfDbg("invalidate") ;
   d->dirty = true;
   QLayout::invalidate();
   d->mainLayout->invalidate();
