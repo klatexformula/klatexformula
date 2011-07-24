@@ -209,7 +209,7 @@ inline void klf_config_read(QSettings &s, const QString& baseName, KLFConfigProp
 template<>
 inline void klf_config_read<QTextCharFormat>(QSettings &s, const QString& baseName,
 					     KLFConfigProp<QTextCharFormat> *target,
-					     const char * listOrMapType)
+					     const char * /*listOrMapType*/)
 {
   qDebug("klf_config_read<QTextCharFormat>(%s)", qPrintable(baseName));
   QTextFormat fmt = *target;

@@ -429,7 +429,7 @@ public:
     return forward ? m()->walkNextIndex(pos) : m()->walkPrevIndex(pos);
   }
 
-  virtual SearchIterator searchIterStartFrom(bool forward)
+  virtual SearchIterator searchIterStartFrom(bool /*forward*/)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     KLF_ASSERT_NOT_NULL(m(), "Model is NULL!", return QModelIndex() ) ;

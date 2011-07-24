@@ -11,5 +11,6 @@
     <file>pics/huepane.png</file>
     <file>pics/colortriangle.png</file>
     <file>pics/wait_anim.mng</file>
+    <file>pics/smallcross.png</file>
   </qresource>
 </RCC>

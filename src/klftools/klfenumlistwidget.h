@@ -74,7 +74,7 @@ private slots:
   void labelActionLink(const QString& link);
 
 private:
-  inline int simple_wrapped_item_index(int i) const { return (i >= 0) ? i : pItems.size() - i; }
+  inline int simple_wrapped_item_index(int i) const { return (i >= 0) ? i : pItems.size() + i; }
 };
 
 

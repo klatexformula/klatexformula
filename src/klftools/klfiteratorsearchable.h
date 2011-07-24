@@ -320,13 +320,13 @@ public:
     return it2;
   }
 
-  virtual Pos invalidPos()
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    Pos p = KLFPosSearchable::invalidPos();
-    p.posdata = new IterPosData(this, searchIterEnd());
-    return p;
-  };
+  //  virtual Pos invalidPos()
+  //   {
+  //     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  //     Pos p = KLFPosSearchable::invalidPos();
+  //     p.posdata = new IterPosData(this, searchIterEnd());
+  //     return p;
+  //   };
 
 protected:
 
@@ -337,23 +337,17 @@ private:
   SearchIterator pCurPos;
 
 
-  class IterPosData : public KLFPosSearchable::Pos::PosData {
-    KLFIteratorSearchable<Iter> *pSObj;
-  public:
-    IterPosData(KLFIteratorSearchable<Iter> *sobj, Iter iterator) : pSObj(sobj), it(iterator) { }
+  struct IterPosData : public KLFPosSearchable::Pos::PosData {
+    IterPosData(Iter iterator) : it(iterator) { }
 
     Iter it;
 
-    virtual bool valid() const { return !(it == pSObj->searchIterEnd()); }
-    virtual bool equals(const KLFPosSearchable::Pos& other) const {
-      if (!other.valid())
-	return !valid(); // true if both are invalid, false if this one is valid and `other' isn't
-      const IterPosData *itpd = static_cast<const IterPosData*>(0+other.posdata);
+    virtual bool equals(KLFPosSearchable::Pos::PosData * other) const
+    {
+      IterPosData * itpd = dynamic_cast<IterPosData*>(other);
       KLF_ASSERT_NOT_NULL(itpd, "posdata of pos ptr `other' is NULL!", return false; ) ;
       return  (it == itpd->it) ;
     }
-
-    virtual bool wantDelete() { return true; }
   };
 
   SearchIterator iteratorForPos(const KLFPosSearchable::Pos& p)
@@ -361,17 +355,17 @@ private:
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     if (!p.valid())
       return searchIterEnd();
-    const IterPosData *itpd = static_cast<const IterPosData*>(0+p.posdata);
+    IterPosData *itpd = p.data<IterPosData>();
     KLF_ASSERT_NOT_NULL(itpd, "posdata of pos `p' is NULL!", return searchIterEnd() ) ;
     return itpd->it;
   }
   KLFPosSearchable::Pos posForIterator(const SearchIterator& it)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    Pos p = invalidPos();
-    IterPosData *d = static_cast<IterPosData*>(0+p.posdata);
-    KLF_ASSERT_NOT_NULL(d, "Invalid pos data!", return Pos::staticInvalidPos();) ;
-    d->it = it;
+    Pos p = Pos::staticInvalidPos();
+    if (it == searchIterEnd())
+      return p; // an invalid pos
+    p.posdata = new IterPosData(it);
     return p;
   }
 

@@ -119,6 +119,54 @@ static const char * standard_extra_paths[] = {
 
 // ---------------------------------
 
+
+KLFBackend::TemplateGenerator::TemplateGenerator()
+{
+}
+KLFBackend::TemplateGenerator::~TemplateGenerator()
+{
+}
+
+KLFBackend::DefaultTemplateGenerator::DefaultTemplateGenerator()
+{
+}
+KLFBackend::DefaultTemplateGenerator::~DefaultTemplateGenerator()
+{
+}
+
+QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& in, const klfSettings& /*settings*/)
+{
+  QString latexin;
+  QString s;
+
+  latexin = in.mathmode;
+  latexin.replace("...", in.latex);
+
+  s += "\\documentclass{minimal}\n"
+    "\\usepackage[dvips]{color}\n";
+  s += in.preamble;
+  s += "\n"
+    "\\begin{document}\n"
+    "\\thispagestyle{empty}\n";
+  s += QString("\\definecolor{klffgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.fg_color)/255.0)
+    .arg(qGreen(in.fg_color)/255.0).arg(qBlue(in.fg_color)/255.0);
+  s += QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.bg_color)/255.0)
+    .arg(qGreen(in.bg_color)/255.0).arg(qBlue(in.bg_color)/255.0);
+  if (qAlpha(in.bg_color)>0)
+    s += "\\pagecolor{klfbgcolor}\n";
+  s += "{\\color{klffgcolor} ";
+  s += latexin;
+  s += "\n}\n"
+    "\\end{document}\n";
+
+  return s;
+}
+
+
+
+
+// ---------------------------------
+
 KLFBackend::KLFBackend()
 {
 }
@@ -515,15 +563,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     return res;
   }
 
-  QString latexin;
   if (!in.bypassTemplate) {
     if (in.mathmode.contains("...") == 0) {
       res.status = KLFERR_MISSINGMATHMODETHREEDOTS;
       res.errorstr = QObject::tr("The math mode string doesn't contain '...'!", "KLFBackend");
       return res;
     }
-    latexin = in.mathmode;
-    latexin.replace("...", in.latex);
   }
 
   { // prepare latex file
@@ -537,20 +582,16 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     QTextStream stream(&file);
     if (!in.bypassTemplate) {
-      //      stream << "\\documentclass{article}\n"
-      stream << "\\documentclass{minimal}\n"
-	     << "\\usepackage[dvips]{color}\n"
-	     << in.preamble << "\n"
-	     << "\\begin{document}\n"
-	     << "\\thispagestyle{empty}\n"
-	     << QString("\\definecolor{klffgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.fg_color)/255.0)
-	.arg(qGreen(in.fg_color)/255.0).arg(qBlue(in.fg_color)/255.0)
-	     << QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.bg_color)/255.0)
-	.arg(qGreen(in.bg_color)/255.0).arg(qBlue(in.bg_color)/255.0)
-	     << ( (qAlpha(in.bg_color)>0) ? "\\pagecolor{klfbgcolor}\n" : "" )
-	     << "{\\color{klffgcolor} " << latexin
-	     << "\n}\n"
-	     << "\\end{document}\n";
+      TemplateGenerator *t = NULL;
+      DefaultTemplateGenerator deft;
+      if (settings.templateGenerator != NULL) {
+	klfDbg("using custom template generator") ;
+	t = settings.templateGenerator;
+	KLF_ASSERT_NOT_NULL(t, "Template Generator is NULL! Using default!",  t = &deft; ) ;
+      } else {
+	t = &deft;
+      }
+      stream << t->generateTemplate(in, settings);
     } else {
       stream << in.latex;
     }

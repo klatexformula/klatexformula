@@ -39,11 +39,109 @@
 
 
 
+/** \page searchExample KLFPosSearchable minimal example
+ *
+ * This example lets you search with arbitrary regular expressions inside a QTextBrowser. It will
+ * present matches as selected text.
+ *
+ * \code
+ *
+ * class TextDocumentSearchable : public KLFPosSearchable, public QObject
+ * {
+ * public:
+ *   struct TextCursorPosData : public Pos::PosData
+ *   {
+ *     TextCursorPosData(const QTextCursor& c = QTextCursor()) : cursor(c) { }
+ *
+ *     QTextCursor cursor;
+ * 
+ *     bool equals(Pos::PosData * other) const {
+ *       return cursor == dynamic_cast<TextCursorPosData*>(other)->cursor;
+ *     }
+ *   };
+ * 
+ *   TextDocumentSearchable(QTextBrowser *b) : QObject(b), br(b), doc(br->document()) { }
+ * 
+ *   Pos searchFind(const QString& querystring, const Pos& fromPos, bool forward)
+ *   {
+ *     QTextCursor pos;
+ *     if (fromPos.valid()) {
+ *       pos = fromPos.data<TextCursorPosData>()->cursor;
+ *       // don't return 'fromPos' if it matches
+ *       pos.movePosition(forward?QTextCursor::Right:QTextCursor::Left);
+ *     }
+ * 
+ *     QRegExp rx(querystring);
+ *     rx.setCaseSensitivity(querystring.contains(QRegExp("[A-Z]"))?Qt::CaseSensitive:Qt::CaseInsensitive);
+ *     if (!forward && pos.isNull()) {
+ *       pos = QTextCursor(doc); pos.movePosition(QTextCursor::End);
+ *     }
+ *     // *** Perform the Search ***
+ *     pos = doc->find(rx, pos, (!forward)?QTextDocument::FindBackward:(QTextDocument::FindFlags)0);
+ *     klfDbg("searched, returned pos="<<pos.position()) ;
+ *     if (pos.isNull()) {
+ *       return Pos::staticInvalidPos();
+ *     }
+ *     // store into pos cursor the exact match position and length
+ *     pos.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, rx.matchedLength());
+ *     // and now, return the position
+ *     Pos foundPos = Pos::staticInvalidPos();
+ *     foundPos.posdata = new TextCursorPosData(pos);
+ *     return foundPos;
+ *   }
+ *   void searchAborted()
+ *   {
+ *     br->setTextCursor(QTextCursor(doc));
+ *   }
+ *   void searchMoveToPos(const Pos& p)
+ *   {
+ *     if (p.valid())
+ *       br->setTextCursor(p.data<TextCursorPosData>()->cursor);
+ *     else
+ *       br->setTextCursor(QTextCursor(doc));
+ *   }
+ * 
+ * private:
+ *   QTextBrowser *br;
+ *   QTextDocument *doc;
+ * };
+ * \endcode
+ *
+ * You could then use that class as follows:
+ * \code
+ *
+ *   // ... for example, in a dialog constructor ...
+ *
+ *   QTextBrowser *textBrowser = new QTextBrowser(this);
+ *   textBrowser->setPlainText(...);
+ *
+ *   TextDocumentSearchable * s = new TextDocumentSearchable(textBrowser);
+ *
+ *   KLFSearchBar *searchbar = new KLFSearchBar(this);
+ *   searchbar->setSearchTarget(s);
+ *
+ *   // ...
+ *
+ * \endcode
+ *
+ */
+
+
+
+
+
+
 QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos)
 {
   QString s;
   s.sprintf("%p", (const KLFPosSearchable::Pos::PosData*)pos.posdata);
-  return str << "Pos("<<pos.pos<<", "<<qPrintable(s)<<";valid="<<pos.valid()<<")";
+  str << "Pos("<<qPrintable(s);
+  if (pos.posdata != NULL) {
+    QString desc;
+    if (!(desc = pos.posdata->toDebug()).isEmpty())
+      str << " " << qPrintable(desc);
+  }
+  return str <<")";
 }
 
 // --
@@ -138,6 +236,11 @@ void KLFPosSearchableProxy::setSearchInterruptRequested(bool on)
 
 // ---
 
+struct DummySearchPosData : public KLFPosSearchable::Pos::PosData
+{
+  bool equals(PosData *) const { return true; }
+};
+
 
 KLFSearchable::KLFSearchable()
 {
@@ -158,8 +261,8 @@ KLFPosSearchable::Pos KLFSearchable::searchFind(const QString& queryString, cons
   Pos p = invalidPos();
   if (!r)
     return p;
-  // valid pos, return pos '0'
-  p.pos = 0;
+  // return dummy valid pos
+  p.posdata = new DummySearchPosData;
   return p;
 }
 

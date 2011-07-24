@@ -1,3 +1,26 @@
+/***************************************************************************
+ *   file klfflowlayout.cpp
+ *   This file is part of the KLatexFormula Project.
+ *   Copyright (C) 2011 by Philippe Faist
+ *   philippe.faist at bluewin.ch
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+/* $Id$ */
+
 
 #include <math.h>
 
@@ -138,6 +161,7 @@ struct KLFFlowLayoutPrivate
   int hfw_w;
   int hfw_h;
   QSize min_size;
+  QSize size_hint;
   QSize max_size;
 
   // -------
@@ -151,6 +175,22 @@ struct KLFFlowLayoutPrivate
       return;
 
     doLayout();
+  }
+
+  void removeItemFromSubLayouts(KLFFlowLayoutItem* fi)
+  {
+    int k, n;
+    QLayoutItem *item;
+    for (k = 0; k < layoutLines.size(); ++k) {
+      n = 0;
+      while ((item = layoutLines[k]->itemAt(n)) != NULL) {
+	if (item == fi) {
+	  layoutLines[k]->takeAt(n);
+	  return;
+	}
+	n++;
+      }
+    }
   }
 
   void clean()
@@ -178,6 +218,7 @@ struct KLFFlowLayoutPrivate
   struct CalcData
   {
     QSize minsize;
+    QSize sizehint;
     QSize maxsize;
     int height;
   };
@@ -192,6 +233,7 @@ struct KLFFlowLayoutPrivate
     int maxminheight = 0;
     int summinheight = 0;
     int maxheight = 0;
+    int shwidth = 0;
 
     ItemLine line;
 
@@ -234,6 +276,7 @@ struct KLFFlowLayoutPrivate
 
       if (x + sh.width() > fitwidth) {
 	lines << line; // flush this line
+	shwidth = qMax(shwidth, x);
 	height += spaceY + thislheight;
 	thislheight = 0;
 	line.clear(); // clear line buffer
@@ -270,6 +313,7 @@ struct KLFFlowLayoutPrivate
       //--
       //      if (lines.count() <= 3)
       data->minsize = QSize(maxminwidth, height);
+      data->sizehint = QSize(shwidth, height);
       //      else
       //	data->minsize = QSize(maxminwidth, (int)(height*0.50));
 
@@ -345,6 +389,7 @@ struct KLFFlowLayoutPrivate
     hfw_h = sizedat.height;
 
     min_size = sizedat.minsize;
+    size_hint = sizedat.sizehint;
     max_size = sizedat.maxsize;
 
     //    QWidget *pwidget = K->parentWidget();
@@ -379,18 +424,7 @@ KLFFlowLayout::KLFFlowLayout(QWidget *parent, int margin, int hspacing, int vspa
 
 KLFFlowLayout::~KLFFlowLayout()
 {
-  /// \bug PROPER DELETE HERE: MAY HAVE BEEN DIRTY and not items deleted? remove all items
-  ///   and delete them individually ?
   delete d->mainLayout;
-
-  int k;
-  for (k = 0; k < d->items.size(); ++k) {
-    // don't delete the QLayoutItems, they have already been deleted when
-    // deleting the mainLayout recursively.
-    //    delete d->items[k]->item;
-    delete d->items[k];
-  }
-
   delete d;
 }
 
@@ -405,8 +439,9 @@ bool KLFFlowLayout::event(QEvent *event)
   return QLayout::event(event);
 }
 
-bool KLFFlowLayout::eventFilter(QObject *obj, QEvent *event)
+bool KLFFlowLayout::eventFilter(QObject */*obj*/, QEvent */*event*/)
 {
+  /*
   QWidget * w = qobject_cast<QWidget*>(obj);
   if (w != NULL && w->parentWidget() == parentWidget()) {
     if (event->type() == QEvent::Resize) {
@@ -416,7 +451,7 @@ bool KLFFlowLayout::eventFilter(QObject *obj, QEvent *event)
       klfDbg("child "<<w<<" moved to "<<((QMoveEvent*)event)->pos()) ;
     }
   }
-
+  */
   return false;
 }
 
@@ -497,6 +532,7 @@ QLayoutItem *KLFFlowLayout::takeAt(int index)
     return NULL;
 
   KLFFlowLayoutItem *fi = d->items.takeAt(index);
+  d->removeItemFromSubLayouts(fi);
   QLayoutItem *item = fi->item;
   delete fi;
   return item;
@@ -524,7 +560,7 @@ QSize KLFFlowLayout::minimumSize() const
 {
   d->calc();
   //  QSize s = d->mainLayout->minimumSize() + d->marginsSize;
-  QSize s = d->min_size;
+  QSize s = d->min_size + d->marginsSize;
   klfDbg("minimumSize is "<<s) ;
   return s;
 }
@@ -550,7 +586,7 @@ void KLFFlowLayout::setGeometry(const QRect &rect)
 QSize KLFFlowLayout::sizeHint() const
 {
   d->calc();
-  QSize s = d->mainLayout->sizeHint() + d->marginsSize;
+  QSize s = d->size_hint + d->marginsSize;//d->mainLayout->sizeHint() + d->marginsSize;
   klfDbg("sizeHint is "<<s) ;
   return s;
 }

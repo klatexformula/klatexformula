@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfcolorchooser_p.h
+ *   file klfflowlistwidget.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,43 +21,54 @@
  ***************************************************************************/
 /* $Id$ */
 
-/** \file
- * This file contains internal definitions for file klfcolorchooser.cpp.
- * \internal
- */
+#ifndef KLFFLOWLISTWIDGET_H
+#define KLFFLOWLISTWIDGET_H
 
-#ifndef KLFCOLORCHOOSER_P_H
-#define KLFCOLORCHOOSER_P_H
+#include <QVariant>
+#include <QWidget>
 
-#include "klfcolorchooser.h"
+class QLabel;
+class KLFFlowLayout;
+class KLFFlowListItemWidget;
 
-#define MAX_RECENT_COLORS 128
-
-
-class KLF_EXPORT KLFColorList : public QObject
+class KLFFlowListWidget : public QWidget
 {
   Q_OBJECT
-
-  Q_PROPERTY(int maxSize READ maxSize WRITE setMaxSize)
 public:
-  KLFColorList(int maxsize) : QObject(qApp) { _maxsize = maxsize; }
+  KLFFlowListWidget(QWidget *parent = NULL);
+  virtual ~KLFFlowListWidget();  
 
-  int maxSize() const { return _maxsize; }
+  inline int itemCount() const { return pWidgets.size(); }
 
-  QList<QColor> list;
+  QString itemAt(int i) const;
+  QVariant itemDataAt(int i) const;
+
+  QStringList itemList() const;
+  QVariantList itemDataList() const;
 
 signals:
-  void listChanged();
+  void itemActivated(const QString& s, const QVariant& data);
+  void itemActivated(int i, const QString& s, const QVariant& data);
 
 public slots:
-  void setMaxSize(int maxsize) { _maxsize = maxsize; }
-  void addColor(const QColor& color);
-  void removeColor(const QColor& color);
-  void notifyListChanged() { emit listChanged(); }
+  void setItems(const QStringList& strings, const QVariantList& datalist = QVariantList());
+  void addItem(const QString& string, const QVariant& data = QVariant());
+
+  void removeItem(int i);
+  void insertItem(int i, const QString& s, const QVariant& data = QVariant()) ;
+
+private slots:
+  void itemClosed();
 
 private:
-  int _maxsize;
+  KLFFlowLayout *pLayout;
+
+  QList<QWidget*> pWidgets;
+
+  inline int simple_wrapped_item_index(int i) const { return (i >= 0) ? i : pWidgets.size() - (-i) + 1; }
 };
+
+
 
 
 #endif

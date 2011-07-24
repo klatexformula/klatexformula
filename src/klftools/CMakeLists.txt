@@ -22,6 +22,8 @@ set(klftools_SRCS
 	klflatexedit.cpp
 	klfrelativefont.cpp
 	klfenumlistwidget.cpp
+	klfflowlayout.cpp
+	klfflowlistwidget.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -38,6 +40,9 @@ set(klftools_MOCHEADERS
 	klflatexedit.h
 	klfrelativefont.h
 	klfenumlistwidget.h
+	klfflowlayout.h
+	klfflowlistwidget.h
+	klfflowlistwidget_p.h
 )
 #  * all headers
 set(klftools_HEADERS

@@ -1758,10 +1758,17 @@ void KLFMainWin::slotCycleParenTypes()
 void KLFMainWin::latexEditReplace(int pos, int len, const QString& text)
 {
   QTextCursor c = u->txtLatex->textCursor();
+  int cpos = c.position();
+  // account for changed text in cpos
+  if (cpos > pos + len)
+    cpos += (text.length() - len);
+  else if (cpos > pos)
+    cpos = pos + text.length(); // end of edited text
   c.setPosition(pos);
   c.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, len);
   c.removeSelectedText();
   c.insertFragment(QTextDocumentFragment::fromPlainText(text));
+  c.setPosition(cpos);
   u->txtLatex->setTextCursor(c);
 }
 

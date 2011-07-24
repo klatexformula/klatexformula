@@ -953,52 +953,56 @@ KLF_EXPORT QString klfTimeOfDay(bool shortfmt)
 }
 
 
-#ifdef KLF_DEBUG
+//#ifdef KLF_DEBUG // see comment in KLFDebugBlock::KLFDebugBlock()
 static int __klf_dbg_block_depth_counter = 0;
-#endif
+//#endif
 
 KLFDebugBlock::KLFDebugBlock(const QString& blockName)
   : pBlockName(blockName), pPrintMsg(true)
 {
-#ifdef KLF_DEBUG
+  // unconditionally display the debug message. If we compile the library without KLF_DEBUG
+  // and then use this feature in a program /with/ KLF_DEBUG, then we want the debug message
+  // to display.
+
+  //#ifdef KLF_DEBUG
   qDebug("%s: [%02d]block begin", qPrintable(pBlockName), ++__klf_dbg_block_depth_counter);
-#endif
+  //#endif
 }
 KLFDebugBlock::KLFDebugBlock(bool printmsg, const QString& blockName)
   : pBlockName(blockName), pPrintMsg(printmsg)
 {
-#ifdef KLF_DEBUG
+  //#ifdef KLF_DEBUG // see comment in other constructor.
   // convention: __klf_dbg_block_depth_counter is incremented/decremented only when displayed
   if (printmsg)
     qDebug("%s: [%02d]block begin", qPrintable(pBlockName), ++__klf_dbg_block_depth_counter);
-#endif
+  //#endif
 }
 KLFDebugBlock::~KLFDebugBlock()
 {
-#ifdef KLF_DEBUG
+  //#ifdef KLF_DEBUG // see comment in KLFDebugBlock::KLFDebugBlock()
   // convention: __klf_dbg_block_depth_counter is incremented/decremented only when displayed
   if (pPrintMsg)
     qDebug("%s: [%02d]block end", qPrintable(pBlockName), __klf_dbg_block_depth_counter--);
-#endif
+  //#endif
 }
 KLFDebugBlockTimer::KLFDebugBlockTimer(const QString& blockName)
   : KLFDebugBlock(false, blockName)
 {
-#ifdef KLF_DEBUG
+  //#ifdef KLF_DEBUG // see comment in KLFDebugBlock::KLFDebugBlock()
   // convention: __klf_dbg_block_depth_counter is incremented/decremented only when displayed
   qDebug("+T:%s: %s: [%02d]block begin", KLF_SHORT_TIME, qPrintable(pBlockName), ++__klf_dbg_block_depth_counter);
-#endif
+  //#endif
 }
 KLFDebugBlockTimer::~KLFDebugBlockTimer()
 {
-#ifdef KLF_DEBUG
+  //#ifdef KLF_DEBUG // see comment in KLFDebugBlock::KLFDebugBlock()
   // convention: __klf_dbg_block_depth_counter is incremented/decremented only when displayed
   qDebug("+T:%s: %s: [%02d]block end", KLF_SHORT_TIME, qPrintable(pBlockName), __klf_dbg_block_depth_counter--);
-#endif
+  //#endif
 }
 
-// the following is defined for both debug and non-debug modes. In non-debug modes, it provides the symbol __klf_dbg_hdr
-// for debugging eg. plugins compiled in debug mode (NEEDS TESTING...?)
+// the following is defined for both debug and non-debug modes. In non-debug modes, it provides the symbol
+// __klf_dbg_hdr for debugging eg. plugins compiled in debug mode (NEEDS TESTING...?)
 #ifdef KLFBACKEND_QT4
 // QT 4 >>
 KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime)

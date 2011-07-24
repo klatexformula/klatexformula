@@ -169,6 +169,8 @@ class KLF_EXPORT KLFBackend
 {
 public:
 
+  class TemplateGenerator;
+
   //! General settings for KLFBackend::getLatexFormula()
   /** Some global settings to pass on when calling getLatexFormula(). In this struct you specify
    * some system settings, like a temp directory and some paths
@@ -179,7 +181,8 @@ public:
     /** A default constructor assigning default (empty) values to all fields */
     klfSettings() : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
 		    calcEpsBoundingBox(true), outlineFonts(true),
-		    wantRaw(false), wantPDF(true), wantSVG(true), execenv() { }
+		    wantRaw(false), wantPDF(true), wantSVG(true), execenv(),
+		    templateGenerator(NULL) { }
 
     /** A temporary directory in which we have write access, e.g. <tt>/tmp/</tt> */
     QString tempdir;
@@ -245,6 +248,11 @@ public:
     /** Extra environment variables to set (list of <tt>"NAME=value"</tt>) when executing latex,
      * dvips, gs and epstopdf. */
     QStringList execenv;
+
+    /** The TemplateGenerator object that will be used to generate the base document template.
+     * Can be \c NULL, in which case the default generator is used, see
+     * \ref DefaultTemplateGenerator. */
+    TemplateGenerator *templateGenerator;
   };
 
   //! Specific input to KLFBackend::getLatexFormula()
@@ -457,6 +465,24 @@ public:
    * The temporary directory is set to the system temporary directory.
    */
   static bool detectSettings(klfSettings *settings, const QString& extraPath = QString());
+
+
+  class TemplateGenerator {
+  public:
+    TemplateGenerator();
+    virtual ~TemplateGenerator();
+
+    virtual QString generateTemplate(const klfInput& input, const klfSettings& settings) = 0;
+  };
+
+  class DefaultTemplateGenerator : public TemplateGenerator {
+  public:
+    DefaultTemplateGenerator();
+    virtual ~DefaultTemplateGenerator();
+
+    virtual QString generateTemplate(const klfInput& input, const klfSettings& settings);
+  };
+
 
 
 private:

@@ -52,7 +52,7 @@ bool KLFConfigBase::okChangeProperty(KLFConfigPropBase */*property*/, const QVar
   return true;
 }
 
-void KLFConfigBase::propertyChanged(KLFConfigPropBase *property, const QVariant& oldValue,
+void KLFConfigBase::propertyChanged(KLFConfigPropBase *property, const QVariant& /*oldValue*/,
 				    const QVariant& newValue)
 {
   KLF_ASSERT_NOT_NULL(property, "property is NULL!!", return; ) ;

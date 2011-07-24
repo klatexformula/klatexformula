@@ -46,84 +46,176 @@ namespace Ui { class KLFSearchBar; }
 
 
 //! An object that can be searched with a KLFSearchBar
-/**
+/** This class is provides an interface for an object to be searched with a KLFSearchBar.
+ *
+ * An abstract positioning scheme is introduced with the class \ref Pos. This class handles
+ * \c Pos objects without asking to what they refer to or point to, they could contain an index
+ * in a list, or a QTextCursor in a document, or a pointer to some arbitrary data. A \c Pos is
+ * valid if it has non-NULL \c posdata. You should subclass PosData to store some relevant data,
+ * as well as provide an equality-test function.
+ *
+ * This interface, in conjunction with KLFSearchBar, handles the different search states,
+ * searching forward/backwards, returning to previous results (e.g. with Emacs-style backspace key).
+ *
+ * How the search is performed, which logic is used, which order of elements is used, case sensitivity,
+ * etc., is up to the subclass implementation. \c Pos objects do not have a sense of "order", the
+ * interface just queries the "next match" from a given position, which can then be described by another
+ * position object.
+ *
+ * Minimal example:
+ * \todo MINIMAL EXAMPLE
+ *
+ * \note If you have data that is "linearly ordered", i.e. that you can describe the possible search
+ *   results with a C++/STL-like iterator concept (for example a list of strings or values, etc.), then
+ *   consider using KLFIteratorSearchable which takes this into account and requires you to write less
+ *   code.
  */
 class KLF_EXPORT KLFPosSearchable : public KLFTarget
 {
 public:
 
+  /** \brief An abstract position in a searchable object
+   *
+   * Used by KLFPosSearchable to store search result positions.
+   *
+   * A position can be \a invalid, or \a valid. The actual data representing the position is stored
+   * in a custom sub-class of PosData, to which a pointer is held in \c posdata.
+   *
+   * You can construct an invalid position with staticInvalidPos(). Then just assign a data pointer
+   * to it and it becomes valid, e.g.
+   * \code
+   *   Pos p = Pos::staticInvalidPos();
+   *   // p is invalid
+   *   MyPosData *d = new MyPosData;
+   *   d->somefield = some_data;
+   *   d->someotherfield = some_other_data;
+   *   p.posdata = d;
+   *   // now p is a valid position object, storing the position represented
+   *   // by data stored in 'somefield' and 'someotherfield'
+   * \endcode
+   */
   struct Pos {
+    /** \brief A Base class for storing abstract position data
+     *
+     * See \ref KLFPosSearchable::Pos. Derive this class to store relevant data to represent
+     * you position and an equality tester function.
+     *
+     * Minimal Example:
+     * \code
+     *  class MySearchable : public KLFPosSearchable
+     *  {
+     *  public:
+     *    // ...
+     *    class MyPosData : public Pos::PosData {
+     *      QTextCursor cursor;
+     *
+     *      bool equals(PosData * other) const {
+     *        return cursor == dynamic_cast<MyPosData*>(other)->cursor;
+     *      }
+     *    };
+     *    // ...
+     *  };
+     * \endcode
+     *
+     * Additionally, this class handles ref()/deref() referencing mechanism that is used by
+     * \ref KLFRefPtr. It handles automatically reference counts, and you don't have to worry
+     * about deleting the object.
+     */
     struct PosData {
       PosData() : r(0) { }
 
-      virtual bool valid() const = 0;
-      virtual bool equals(const Pos& other) const = 0;
+      /** tests for equality with other position. */
+      virtual bool equals(PosData *other) const = 0;
 
-      virtual QString toDebug() { return QString(); }
+      /** Subclasses may reimplement to return a string describing the current position
+       * for debugging messages. */
+      virtual QString toDebug() { return QLatin1String("<PosData>"); }
 
-      virtual int ref() { return ++r; }
-      virtual int deref() { return --r; }
+      int ref() { return ++r; }
+      int deref() { return --r; }
 
-      /** Should return TRUE if this object should be \c delete'd when dereferenced. */
-      virtual bool wantDelete() { return false; }
+      /** Subclasses should reimplement to return FALSE if this object should NOT be \c delete'd when no
+       * longer referenced. There should be no reason to do so, however. */
+      virtual bool wantAutoDelete() { return true; }
     private:
       int r;
     };
 
-    Pos(const Pos& other) : pos(other.pos), posdata(other.posdata)
+    Pos(const Pos& other) : posdata(other.posdata)
     {
     }
 
     ~Pos()
     {
       if (posdata != NULL)
-	posdata.setAutoDelete(posdata->wantDelete());
+	posdata.setAutoDelete(posdata->wantAutoDelete());
     }
 
     Pos& operator=(const Pos& other)
     {
       KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-      pos = other.pos;
       posdata = other.posdata;
       return *this;
     }
 
-    /** Is valid either if:
-     * - \c posdata is non-NULL and the pointed PosData's valid() is true;
-     * - or \c posdata is NULL and \c pos is >= 0.
-     */
+    /** A position is valid if it has a non-NULL posdata pointer. It is invalid otherwise. */
     bool valid() const {
       KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-      klfDbg("pos="<<pos<<"; posdata="<<posdata) ;
-      if (posdata != NULL) {
-	return posdata->valid();
-      }
-      return (pos >= 0);
+      klfDbg("posdata="<<posdata) ;
+      return  (posdata != NULL) ;
     };
     /** Is equal to \c other if:
-     * - \c posdata is non-NULL and the pointed PosData's equals() test is true;
-     * - or \c posdata is NULL and \c pos is equal to the other's pos.
+     * - both this and the other position are valid, and \c posdata 's equals() test is true;
+     * - or both are invalid.
+     *
+     * \note \c PosData's equals() test called if and only if both this and the other position
+     *   are valid, i.e. have non-NULL \c posdata pointer.
      */
     bool equals(const Pos& other) const {
-      if (posdata != NULL)
-	return posdata->equals(other);
-      return (pos == other.pos);
+      if (valid() && other.valid())
+	return posdata->equals(other.data<PosData>());
+      // if both are invalid, they are equal. If one only is valid, they are not equal.
+      return (valid() == other.valid());
     }
 
-    int pos; //!< Optional field, use as wanted/needed
-
-    //! Optional field, use as wanted/needed, see \ref PosData
+    //! Stores the actual position data, see \ref PosData
     /**
+     * This pointer is set up by KLFPosSearchable subclasses to instanciate valid Pos objects.
+     * They may use this object transparently, just as a regular <tt>PosData*</tt> pointer, see
+     * \ref KLFRefPtr.
+     *
      * \note \ref PosData::ref() and \ref PosData::deref() are handled automatically when
      *   this field is assigned. See also \ref KLFRefPtr.
      */
     KLFRefPtr<PosData> posdata;
 
+    /** \brief A shorthand for retrieving the \c posdata cast into the custom type.
+     *
+     * Example:
+     * \code
+     *   // Instead of:
+     *   MyPosData * myposdata = dynamic_cast<MyPosData*>(pos.posdata);
+     *   // we can use
+     *   MyPosData * myposdata = pos.data<MyPosData>();
+     * \endcode
+     *
+     * Additionally, a warning is issued if \c posdata is \c NULL or if \c posdata cannot
+     * by cast (with \c dynamic_cast<>) to the required type.
+     */
+    template<class TT>
+    inline TT * data() const
+    {
+      TT *ptr = posdata.dyn_cast<TT*>();
+      KLF_ASSERT_NOT_NULL(ptr, "accessing a posdata that is NULL or of incompatible type!", return NULL;) ;
+      return ptr;
+    }
+
+    /** Returns an invalid Pos. */
     static Pos staticInvalidPos() { return Pos(); }
 
   private:
     /** Use staticInvalidPos() or KLFPosSearchable::invalidPos() to create a Pos object */
-    Pos() : pos(-1), posdata() { KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ; }
+    Pos() : posdata() { KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ; }
   };
 
   /** Returns the position from where we should start the search, given the current view situation. This
