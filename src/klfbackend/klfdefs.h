@@ -80,6 +80,37 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
   { static bool first_run = true;  if ( ! first_run )  return; first_run = false; }
 
 
+#define KLF_DECLARE_PRIVATE(ClassName)	\
+  private:				\
+  ClassName##Private *d;
+
+#define KLF_PRIVATE_HEAD(ClassName)				\
+  private: ClassName *K;					\
+  public:  ClassName##Private (ClassName * ptr) : K(ptr)
+#define KLF_PRIVATE_QOBJ_HEAD(ClassName, QObj)				\
+  Q_OBJECT								\
+  private: ClassName *K;						\
+  public:  ClassName##Private (ClassName * ptr) : QObj(ptr), K(ptr)
+
+#define KLF_INIT_PRIVATE(ClassName)		\
+  d = new ClassName##Private(this)
+#define KLF_DELETE_PRIVATE			\
+  delete d
+
+
+
+#define KLF_PROPERTY_GETSET(type, prop, Prop)			\
+  public: type prop() const;						\
+  public slots: void set##Prop(const type& value);
+
+#define KLF_DEFINE_PROPERTY_GET(ClassName, type, prop, Prop)	\
+  type ClassName::prop() const { return d->prop; }
+
+#define KLF_DEFINE_PROPERTY_GETSET(ClassName, type, prop, Prop)	       \
+  KLF_DEFINE_PROPERTY_GET(ClassName, type, prop, Prop)	       \
+  void ClassName::set##Prop(const type& value) { d->prop = value; }
+
+
 
 // utility functions
 

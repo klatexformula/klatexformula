@@ -495,6 +495,148 @@
  * \endcode
  */
 
+
+/** \def KLF_DECLARE_PRIVATE(ClassName)
+ * \hideinitializer
+ *
+ * To be used inside a class declaration. Declares a private member pointer \c d as type
+ * <tt><i>ClassName</i>Private *</tt>.
+ *
+ * Minimal Example:
+ * \code
+ *  // myclass.h
+ *  // ...
+ *  class MyClassPrivate;
+ *  class MyClass {
+ *  public:
+ *    MyClass(...);
+ *    ~MyClass(...);
+ *    // ...
+ *    some_method();
+ *    // ...
+ *    KLF_DECLARE_PRIVATE(MyClass) ;
+ *  }
+ *
+ *  // myclass.cpp
+ *  struct MyClassPrivate {
+ *    KLF_PRIVATE_HEAD(MyClass) {
+ *      // initialize our properties, this is the constructor
+ *      someproperty = false;
+ *    }
+ *
+ *    bool someproperty;
+ *
+ *    void somelocalmethod() {
+ *      // can access MyClass instance with the 'K' pointer object
+ *      K->some_method();
+ *    }
+ *  }
+ *
+ *  MyClass::MyClass()
+ *  {
+ *    KLF_INIT_PRIVATE(MyClass) ;    
+ *  }
+ *  MyClass::~MyClass()
+ *  {
+ *    KLF_DELETE_PRIVATE ;
+ *  }
+ *  MyClass::some_method()
+ *  {
+ *    // may access the private class as 'd' pointer
+ *    do_something_with(d->someproperty);
+ *  }
+ *  // ...
+ * \endcode
+ *
+ * See also \ref KLF_PRIVATE_HEAD, \ref KLF_INIT_PRIVATE, \ref KLF_DELETE_PRIVATE.
+ */
+
+/** \def KLF_PRIVATE_HEAD
+ * \hideinitializer
+ *
+ * Declare the first lines with constructor of the private struct/class. This declaration
+ * must be followed by a pair of braces containing constructor content, like shown
+ * in the example given for \ref KLF_DECLARE_PRIVATE.
+ *
+ * This method makes sure a local pointer named <tt>K</tt> points back to the main class.
+ */
+
+/** \def KLF_PRIVATE_QOBJ_HEAD
+ * \hideinitializer
+ *
+ * Same as \ref KLF_PRIVATE_HEAD, except use this if your private class is a QObject subclass, and
+ * you want to initialize it with the parent being the main class instance. The pointer <tt>K</tt>
+ * is also initialized.
+ */
+
+/** \def KLF_INIT_PRIVATE
+ * \hideinitializer
+ *
+ * Use this in the constructor of your main class to initialize the \c d pointer. See example
+ * given in \ref KLF_DECLARE_PRIVATE.
+ */
+
+/** \def KLF_DELETE_PRIVATE
+ * \hideinitializer
+ *
+ * Use this in the destructor of your main class to delete the \c d private object. See example
+ * given in \ref KLF_DECLARE_PRIVATE.
+ *
+ * \note this is not needed if your private class object is a QObject-subclass (not as in the
+ *   example), and you used KLF_PRIVATE_QOBJ_HEAD.
+ */
+
+
+/** \def KLF_PROPERTY_GETSET
+ * \hideinitializer
+ *
+ * Declares two functions, one public, the other a public slot, designed to get and
+ * set a property value. This macro is to be used within a class.
+ *
+ * Useful in conjunction with Q_PROPERTY declarations.
+ *
+ * This macro expands to
+ * \code 
+ *   public: <type> <propertyName>() const;
+ *   public slots: void set<PropertyName>(const <type>& value);
+ * \endcode
+ *
+ * \param type is the type of the property.
+ * \param prop is the property name (typically first letter is lower case)
+ * \param Prop the same property name, but with a capital first letter. This is just used
+ *   for the setter function name, <tt>set<PropertyName></tt>
+ *
+ * Possible definitions of these functions are provided with the macros \ref KLF_DEFINE_PROPERTY_GET
+ * and \ref KLF_DEFINE_PROPERTY_GETSET.
+ */
+
+/** \def KLF_DEFINE_PROPERTY_GET
+ * \hideinitializer
+ *
+ * Use this to define a getter function (whose prototype matches one declared by
+ * \ref KLF_PROPERTY_GETSET). The property value is assumed to be stored
+ * in a Private class instance as declared by KLF_DECLARE_PRIVATE and friends. The
+ * member name in the Private class is assumed to be exactly the property name.
+ *
+ * This macro expands to
+ * \code
+ *  <type> ClassName::<propertyName>() const { return d-><propertyName>; }
+ * \endcode
+ */
+/** \def KLF_DEFINE_PROPERTY_GETSET
+ * \hideinitializer
+ *
+ * Same as \ref KLF_DEFINE_PROPERTY_GET, but also defines a setter function.
+ *
+ * This macro expands to
+ * \code
+ *  <type> ClassName::<propertyName>() const { return d-><propertyName>; }
+ *  void ClassName::set<PropertyName>(const <type>& value) { d-><propertyName> = value; }
+ * \endcode
+ */
+
+
+
 /** \def KLF_FUNC_NAME
  * \hideinitializer
  * This macro expands to the function name this macro is called in.
