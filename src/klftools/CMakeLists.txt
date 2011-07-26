@@ -24,6 +24,7 @@ set(klftools_SRCS
 	klfenumlistwidget.cpp
 	klfflowlayout.cpp
 	klfflowlistwidget.cpp
+	klfsidewidget.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -43,6 +44,7 @@ set(klftools_MOCHEADERS
 	klfflowlayout.h
 	klfflowlistwidget.h
 	klfflowlistwidget_p.h
+	klfsidewidget.h
 )
 #  * all headers
 set(klftools_HEADERS

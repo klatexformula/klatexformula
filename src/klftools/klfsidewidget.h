@@ -32,17 +32,19 @@
 #include <klfdefs.h>
 
 
-class KLFSideWidgetManagerPrivate;
-class KLFSideWidgetManager : public QObject
+class KLFSideWidgetManagerBasePrivate;
+class KLFSideWidgetManagerBase : public QObject
 {
   Q_OBJECT
 public:
-  KLFSideWidgetManager(QWidget *sideWidget = NULL, QObject *parent = NULL);
-  virtual ~KLFSideWidgetManager();
+  KLFSideWidgetManagerBase(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
+  virtual ~KLFSideWidgetManagerBase();
 
   inline QWidget * sideWidget() { return pSideWidget; }
+  inline QWidget * ourParentWidget() { return pParentWidget; }
 
   void setSideWidget(QWidget *widget);
+  void setOurParentWidget(QWidget *widget);
 
 public slots:
   virtual void showSideWidget(bool show) = 0;
@@ -52,17 +54,20 @@ public slots:
 protected:
   virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget)
   {  Q_UNUSED(oldSideWidget); Q_UNUSED(newSideWidget);  }
+  virtual void newParentWidgetSet(QWidget *oldParentWidget, QWidget *newParentWidget)
+  {  Q_UNUSED(oldParentWidget); Q_UNUSED(newParentWidget); }
 
 private:
 
   QWidget *pSideWidget;
+  QWidget *pParentWidget;
 
-  KLF_DECLARE_PRIVATE(KLFSideWidgetManager);
+  KLF_DECLARE_PRIVATE(KLFSideWidgetManagerBase);
 };
 
 
 class KLFShowHideSideWidgetManagerPrivate;
-class KLFShowHideSideWidgetManager : public KLFSideWidgetManager
+class KLFShowHideSideWidgetManager : public KLFSideWidgetManagerBase
 {
   Q_OBJECT
 
@@ -71,7 +76,7 @@ class KLFShowHideSideWidgetManager : public KLFSideWidgetManager
   KLF_PROPERTY_GETSET(Qt::Orientation, orientation, Orientation) ;
   KLF_PROPERTY_GETSET(int, calcSpacing, CalcSpacing) ;
 public:
-  KLFShowHideSideWidgetManager(QWidget *sideWidget = NULL, QObject *parent = NULL);
+  KLFShowHideSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
   virtual ~KLFShowHideSideWidgetManager();
 
   virtual bool eventFilter(QObject *obj, QEvent *event);
@@ -83,6 +88,7 @@ protected:
   virtual bool event(QEvent *event);
 
   virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget);
+  virtual void newParentWidgetSet(QWidget *oldParentWidget, QWidget *newParentWidget);
 
 private slots:
   void resizeParentWidget(const QSize& size);
@@ -93,7 +99,28 @@ private:
 
 
 
+class KLFDrawerSideWidgetManagerPrivate;
+class KLFDrawerSideWidgetManager : public KLFSideWidgetManagerBase
+{
+  Q_OBJECT
+public:
+  KLFDrawerSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
+  virtual ~KLFDrawerSideWidgetManager();
 
+  virtual bool eventFilter(QObject *obj, QEvent *event);
+
+public slots:
+  virtual void showSideWidget(bool show);
+
+protected:
+  virtual bool event(QEvent *event);
+
+  virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget);
+  virtual void newParentWidgetSet(QWidget *oldWidget, QWidget *newWidget);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFDrawerSideWidgetManager) ;
+};
 
 
 

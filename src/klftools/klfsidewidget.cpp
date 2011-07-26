@@ -26,6 +26,7 @@
 #include <QLayout>
 #include <QEvent>
 #include <QResizeEvent>
+#include <QVBoxLayout>
 
 #include <klfdefs.h>
 
@@ -34,9 +35,9 @@
 
 
 
-struct KLFSideWidgetManagerPrivate
+struct KLFSideWidgetManagerBasePrivate
 {
-  KLF_PRIVATE_HEAD(KLFSideWidgetManager)
+  KLF_PRIVATE_HEAD(KLFSideWidgetManagerBase)
   {
   }
 
@@ -44,34 +45,36 @@ struct KLFSideWidgetManagerPrivate
 };
 
 
-KLFSideWidgetManager::KLFSideWidgetManager(QWidget *sideWidget, QObject *parent)
-  : QObject(parent)
+KLFSideWidgetManagerBase::KLFSideWidgetManagerBase(QWidget *parentWidget, QWidget *sideWidget)
+  : QObject(parentWidget)
 {
-  KLF_INIT_PRIVATE(KLFSideWidgetManager) ;
+  KLF_INIT_PRIVATE(KLFSideWidgetManagerBase) ;
 
   pSideWidget = NULL;
+  pParentWidget = NULL;
+  setOurParentWidget(parentWidget);
   setSideWidget(sideWidget);
 }
 
-KLFSideWidgetManager::~KLFSideWidgetManager()
+KLFSideWidgetManagerBase::~KLFSideWidgetManagerBase()
 {
   KLF_DELETE_PRIVATE ;
 }
 
-void KLFSideWidgetManager::setSideWidget(QWidget *sideWidget)
+void KLFSideWidgetManagerBase::setOurParentWidget(QWidget *p)
+{
+  QWidget *oldpw = pParentWidget;
+  pParentWidget = p;
+  newParentWidgetSet(oldpw, pParentWidget);
+}
+
+void KLFSideWidgetManagerBase::setSideWidget(QWidget *sideWidget)
 {
   QWidget *oldw = pSideWidget;
-
-  if (pSideWidget != NULL) {
-    pSideWidget->hide();
-  }
   pSideWidget = sideWidget;
-  if (pSideWidget != NULL) {
-    pSideWidget->hide();
-  }
-
   newSideWidgetSet(oldw, pSideWidget);
 }
+
 
 
 
@@ -97,32 +100,13 @@ struct KLFShowHideSideWidgetManagerPrivate
 
   Qt::Orientation orientation;
   int calcSpacing;
-
-  // --
-
-  void setupNewParent()
-  {
-    KLF_ASSERT_NOT_NULL(K->sideWidget(), "sideWidget is NULL!", return; ) ;
-    QWidget * pw = K->sideWidget()->parentWidget();
-    if (oldParent != NULL)
-      oldParent->removeEventFilter(K);
-    if (pw == NULL) {
-      msize = QSize(-1, -1);
-      return;
-    }
-    msize = pw->size();
-    pw->installEventFilter(K);
-  }
 };
 
 
-KLFShowHideSideWidgetManager::KLFShowHideSideWidgetManager(QWidget *sideWidget, QObject *parent)
-  : KLFSideWidgetManager(sideWidget, parent)
+KLFShowHideSideWidgetManager::KLFShowHideSideWidgetManager(QWidget *parentWidget, QWidget *sideWidget)
+  : KLFSideWidgetManagerBase(parentWidget, sideWidget)
 {
   KLF_INIT_PRIVATE(KLFShowHideSideWidgetManager) ;
-
-  if (parent != NULL)
-    d->setupNewParent();
 }
 
 KLFShowHideSideWidgetManager::~KLFShowHideSideWidgetManager()
@@ -133,17 +117,40 @@ KLFShowHideSideWidgetManager::~KLFShowHideSideWidgetManager()
 // protected
 void KLFShowHideSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww)
 {
-  if (oldw != NULL)
+  KLF_ASSERT_CONDITION(ourParentWidget() == neww,
+		   "Adding a widget that is not a child of our 'parent widget' ! Correcting parent.",
+		   setOurParentWidget(neww); ) ;
+
+  if (oldw != NULL) {
     oldw->removeEventFilter(this);
-  if (neww != NULL)
+    oldw->hide();
+  }
+  if (neww != NULL) {
+    neww->hide();
     neww->installEventFilter(this);
+  }
 }
 
+// protected
+void KLFShowHideSideWidgetManager::newParentWidgetSet(QWidget *oldParent, QWidget *pw)
+{
+  if (d->oldParent != NULL)
+    d->oldParent->removeEventFilter(this);
+  if (pw == NULL) {
+    d->msize = QSize(-1, -1);
+    return;
+  }
+  d->msize = pw->size();
+  pw->installEventFilter(this);
+}
 
 
 bool KLFShowHideSideWidgetManager::eventFilter(QObject *obj, QEvent *event)
 {
   if (sideWidget() != NULL) {
+    KLF_ASSERT_CONDITION(ourParentWidget() == sideWidget()->parentWidget(),
+		     "We have a side widget that is not a child of our 'parent widget' ! Correcting parent.",
+		     setOurParentWidget(sideWidget()->parentWidget()); ) ;
     QWidget * pw = sideWidget()->parentWidget();
     if (pw != NULL && obj == pw) {
       if (event->type() == QEvent::Resize) {
@@ -160,7 +167,7 @@ bool KLFShowHideSideWidgetManager::eventFilter(QObject *obj, QEvent *event)
       if (event->type() == QEvent::ParentAboutToChange) {
 	d->oldParent = sideWidget()->parentWidget();
       } else if (event->type() == QEvent::ParentChange) {
-	d->setupNewParent();
+	setOurParentWidget(pw);
       }
     }
   }
@@ -178,6 +185,8 @@ void KLFShowHideSideWidgetManager::showSideWidget(bool show)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   
+  KLF_ASSERT_NOT_NULL(sideWidget(), "Side Widget is NULL!", return; ) ;
+
   if (show == sideWidget()->isVisible())
     return;
 
@@ -185,6 +194,9 @@ void KLFShowHideSideWidgetManager::showSideWidget(bool show)
   QWidget *pw = sideWidget()->parentWidget();
 
   KLF_ASSERT_NOT_NULL(pw, "Parent Widget of Side Widget is NULL!", return; ) ;
+  KLF_ASSERT_CONDITION(ourParentWidget() == sideWidget()->parentWidget(),
+		   "We have a side widget that is not a child of our 'parent widget' ! Correcting parent.",
+		   setOurParentWidget(sideWidget()->parentWidget()); ) ;
 
   QSize newSize;
   if (show) {
@@ -205,39 +217,6 @@ void KLFShowHideSideWidgetManager::showSideWidget(bool show)
   QMetaObject::invokeMethod(this, "resizeParentWidget", Qt::QueuedConnection, Q_ARG(QSize, newSize));
 }
 
-/*
-void KLFShowHideSideWidgetManager::setVisible(bool on)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  if (on == isVisible())
-    return;
-
-  klfDbg("on="<<on) ;
-  QWidget *pw = parentWidget();
-  QSize newSize;
-
-  if (pw != NULL) {
-    if (on) {
-      d->msize = pw->size();
-      klfDbg("Store inner widget size as "<<d->msize) ;
-      newSize = d->msize;
-      if (d->orientation & Qt::Horizontal)
-	newSize += QSize(d->calcSpacing + sizeHint().width(), 0);
-      if (d->orientation & Qt::Vertical)
-	newSize += QSize(0, d->calcSpacing + sizeHint().height());
-    } else {
-      newSize = d->msize;
-    }
-  }
-  klfDbg("newSize is "<<newSize) ;
-  QWidget::setVisible(on);
-  if (pw != NULL) {
-    d->infunction = true;
-    QMetaObject::invokeMethod(this, "resizeParentWidget", Qt::QueuedConnection, Q_ARG(QSize, newSize));
-  }
-}
-*/
 
 void KLFShowHideSideWidgetManager::resizeParentWidget(const QSize& size)
 {
@@ -250,19 +229,98 @@ void KLFShowHideSideWidgetManager::resizeParentWidget(const QSize& size)
 }
 
 
-
-#undef KLF_DEFINE_PROPERTY_GET
-#undef KLF_DEFINE_PROPERTY_GETSET
-
-#define KLF_DEFINE_PROPERTY_GET(ClassName, type, prop, Prop)	\
-  type ClassName::prop() const { return d->prop; }
-
-#define KLF_DEFINE_PROPERTY_GETSET(ClassName, type, prop, Prop)	       \
-  KLF_DEFINE_PROPERTY_GET(ClassName, type, prop, Prop)	       \
-  void ClassName::set##Prop(const type& value) { d->prop = value; }
-
-
 KLF_DEFINE_PROPERTY_GETSET(KLFShowHideSideWidgetManager, Qt::Orientation, orientation, Orientation) ;
 
 KLF_DEFINE_PROPERTY_GETSET(KLFShowHideSideWidgetManager, int, calcSpacing, CalcSpacing) ;
+
+
+// ------------------
+
+
+
+
+struct KLFDrawerSideWidgetManagerPrivate
+{
+  KLF_PRIVATE_HEAD(KLFDrawerSideWidgetManager)
+  {
+    dwidget = NULL;
+  }
+
+  QWidget *dwidget;
+  QBoxLayout *dlayout;
+};
+
+KLFDrawerSideWidgetManager::KLFDrawerSideWidgetManager(QWidget *pw, QWidget *sideWidget)
+  : KLFSideWidgetManagerBase(pw, sideWidget)
+{
+  KLF_INIT_PRIVATE(KLFDrawerSideWidgetManager) ;
+
+  d->dwidget = new QWidget(ourParentWidget(), Qt::Drawer);
+  d->dlayout = new QVBoxLayout(d->dwidget);
+  d->dlayout->setContentsMargins(0,0,0,0);
+  d->dlayout->setSpacing(0);
+}
+
+KLFDrawerSideWidgetManager::~KLFDrawerSideWidgetManager()
+{
+  KLF_DELETE_PRIVATE ;
+}
+
+// protected
+void KLFDrawerSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww)
+{
+  if (oldw != NULL) {
+    d->dlayout->removeWidget(oldw);
+    //    oldw->hide(); // setParent() automatically hides the widget
+    oldw->setParent(NULL);
+  }
+  if (neww != NULL) {
+    neww->setParent(d->dwidget);
+    d->dlayout->addWidget(neww);
+    neww->show();
+  }
+}
+
+// protected
+void KLFDrawerSideWidgetManager::newParentWidgetSet(QWidget *, QWidget *newWidget)
+{
+  d->dwidget->setParent(newWidget);
+}
+
+
+bool KLFDrawerSideWidgetManager::eventFilter(QObject *obj, QEvent *event)
+{
+  return QObject::eventFilter(obj, event);
+}
+
+bool KLFDrawerSideWidgetManager::event(QEvent *event)
+{
+  return QObject::event(event);
+}
+
+
+void KLFDrawerSideWidgetManager::showSideWidget(bool show)
+{
+#ifdef Q_WS_MAC
+  //  extern bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
+#endif
+
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLF_ASSERT_NOT_NULL(sideWidget(), "Side Widget is NULL!", return; ) ;
+  
+  if (show == sideWidget()->isVisible())
+    return;
+
+  klfDbg("show="<<show) ;
+
+#ifdef Q_WS_MAC
+  //  if (show)
+  //    klf_qt_mac_set_drawer_preferred_edge(mMacDetailsDrawer, Qt::RightDockWidgetArea);
+#endif
+
+  d->dwidget->setVisible(show);
+}
+
+
 

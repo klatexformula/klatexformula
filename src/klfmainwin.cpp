@@ -326,6 +326,8 @@ KLFMainWin::KLFMainWin()
 
     klfDbg("setting up details widget in drawer...") ;
     QVBoxLayout *layout = new QVBoxLayout(mMacDetailsDrawer);
+    layout->setContentsMargins(0,0,0,0);
+    layout->setSpacing(0);
     //    u->frmDetails->setParent(mMacDetailsDrawer);
     //    layout->addWidget(mMacDetailsDrawer);
     //    QLabel *helloworldDEBUG = new QLabel("Hello World!", mMacDetailsDrawer);

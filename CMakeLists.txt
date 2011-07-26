@@ -430,7 +430,12 @@ endif(KLF_DEBUG_USE_MODELTEST)
 
 # Include some extra data files/fonts into KLatexFormula
 KLFGetCMakeVarChanged(KLF_INCLUDE_FONTS)
-set(KLF_INCLUDE_FONTS "data/cmunsi.otf;data/cmunso.otf;data/cmunss.otf;data/cmunsx.otf"
+set(klf_def_incl_fonts "data/cmunsi.otf;data/cmunso.otf;data/cmunss.otf;data/cmunsx.otf") # CMU Sans Serif
+if(APPLE)
+  set(klf_def_incl_fonts
+    "data/cmunbbx.otf;data/cmunbmo.otf;data/cmunbmr.otf;data/cmunbso.otf;data/cmunbsr.otf;data/cmunbxo.otf") # CMU Bright
+endif(APPLE)
+set(KLF_INCLUDE_FONTS "${klf_def_incl_fonts}"
   CACHE STRING "Include some extra fonts into KLF's internal resources (absolute or relative to src/)")
 message(STATUS "Will include fonts into klatexformula's resources: \"${KLF_INCLUDE_FONTS}\" (KLF_INCLUDE_FONTS)")
 mark_as_advanced(KLF_INCLUDE_FONTS)

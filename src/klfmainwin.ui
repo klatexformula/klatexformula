@@ -119,9 +119,6 @@
        </item>
        <item>
         <layout class="QHBoxLayout" name="lytMiddle">
-         <property name="spacing">
-          <number>2</number>
-         </property>
          <item>
           <widget class="QPushButton" name="btnClearLatex">
            <property name="sizePolicy">
@@ -776,7 +773,7 @@
                <number>6</number>
               </property>
               <property name="topMargin">
-               <number>3</number>
+               <number>4</number>
               </property>
               <property name="rightMargin">
                <number>6</number>

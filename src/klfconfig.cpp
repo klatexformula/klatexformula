@@ -274,6 +274,7 @@ void KLFConfig::loadDefaults()
 
     defaultStdFont = f;
 
+#ifndef Q_WS_MAC
     cmuappfont = f;
     if (fdb.families().contains("CMU Sans Serif")) {
       // CMU Sans Serif is available ;-)
@@ -281,14 +282,17 @@ void KLFConfig::loadDefaults()
       cmuappfont = QFont("CMU Sans Serif", fps);
       // ideal height of the string "MX" in pixels. This value was CAREFULLY ADJUSTED.
       // please change it only if you feel sure. (fonts have to look nice on most platforms)
-#ifdef Q_WS_X11
+#  ifdef Q_WS_X11
       int fIdealHeight = 17;
-#else
+#  else
       int fIdealHeight = 15;
-#endif
+#  endif
       fps = adjust_font_size(cmuappfont, fIdealHeight);
       cmuappfont.setPointSize(fps);
     }
+#else
+    cmuappfont = QFont("CMU Bright", 14, QFont::DemiBold);
+#endif // Q_WS_MAC
 
     QFont fcode;
     bool found_fcode = false;
