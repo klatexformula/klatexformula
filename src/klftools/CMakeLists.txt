@@ -69,6 +69,11 @@ set(klftools_QRCS
 )
 
 
+if(APPLE)
+  set(klftools_SRCS ${klftools_SRCS}
+    macosx/klfdrawerdefs.mm
+    )
+endif(APPLE)
 
 
 KLFInstHeaders(klftools_INSTHEADERS "${klftools_HEADERS}")
@@ -105,6 +110,11 @@ set_target_properties(klftools PROPERTIES
 		#	    DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
 	    PUBLIC_HEADER "${klftools_INSTHEADERS}"
 )
+
+if(APPLE)
+  set(KLF_APPKIT "/System/Library/Frameworks/AppKit.framework" CACHE FILEPATH "Path to AppKit framework")
+  target_link_libraries(klftools "${KLF_APPKIT}")
+endif(APPLE)
 
 # add dependency on klfbackend
 add_dependencies(klftools  klfbackend)

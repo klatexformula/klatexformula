@@ -37,6 +37,11 @@ class KLFSideWidgetManagerBase : public QObject
 {
   Q_OBJECT
 public:
+  /**
+   * \warning This function does NOT initialize its internal pParentWidget and pSideWidget members---they
+   *   are always initialized to NULL. Reason: subclasses should set these in their constructors via
+   *   setSideWidget() and setOurParentWidget(), which then call newSideWidgetSet() etc., which passes
+   *   through the virtual call (it does not in the base class constructor). */
   KLFSideWidgetManagerBase(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
   virtual ~KLFSideWidgetManagerBase();
 
@@ -46,10 +51,13 @@ public:
   void setSideWidget(QWidget *widget);
   void setOurParentWidget(QWidget *widget);
 
+  virtual bool sideWidgetVisible() = 0;
+
 public slots:
   virtual void showSideWidget(bool show) = 0;
   void showSideWidget() { showSideWidget(true); }
   void hideSideWidget(bool hide = true) { showSideWidget(!hide); }
+  void toggleSideWidget() { showSideWidget(!sideWidgetVisible()); }
 
 protected:
   virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget)
@@ -73,16 +81,20 @@ class KLFShowHideSideWidgetManager : public KLFSideWidgetManagerBase
 
   Q_PROPERTY(Qt::Orientation orientation READ orientation WRITE setOrientation) ;
   Q_PROPERTY(int calcSpacing READ calcSpacing WRITE setCalcSpacing) ;
-  KLF_PROPERTY_GETSET(Qt::Orientation, orientation, Orientation) ;
-  KLF_PROPERTY_GETSET(int, calcSpacing, CalcSpacing) ;
+  KLF_PROPERTY_GET(Qt::Orientation orientation) ;
+  KLF_PROPERTY_GET(int calcSpacing) ;
 public:
   KLFShowHideSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
   virtual ~KLFShowHideSideWidgetManager();
 
   virtual bool eventFilter(QObject *obj, QEvent *event);
 
+  virtual bool sideWidgetVisible();
+
 public slots:
   virtual void showSideWidget(bool show);
+  void setOrientation(Qt::Orientation o);
+  void setCalcSpacing(int cs);
 
 protected:
   virtual bool event(QEvent *event);
@@ -103,14 +115,20 @@ class KLFDrawerSideWidgetManagerPrivate;
 class KLFDrawerSideWidgetManager : public KLFSideWidgetManagerBase
 {
   Q_OBJECT
+
+  Q_PROPERTY(Qt::DockWidgetArea openEdge READ openEdge WRITE setOpenEdge) ;
+  KLF_PROPERTY_GET(Qt::DockWidgetArea openEdge) ;
 public:
   KLFDrawerSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
   virtual ~KLFDrawerSideWidgetManager();
 
   virtual bool eventFilter(QObject *obj, QEvent *event);
 
+  virtual bool sideWidgetVisible();
+
 public slots:
   virtual void showSideWidget(bool show);
+  void setOpenEdge(Qt::DockWidgetArea edge);
 
 protected:
   virtual bool event(QEvent *event);

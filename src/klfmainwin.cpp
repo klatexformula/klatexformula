@@ -3311,9 +3311,9 @@ void KLFMainWin::closeEvent(QCloseEvent *event)
 
 #ifdef QT_MAC_USE_COCOA
     if (mMacDetailsDrawer != NULL) {
-      extern void klf_qt_mac_close_drawer(QWidget *, QObject *, const char *);
+      extern void klf_qt_mac_close_drawer_and_act(QWidget *, QObject *, const char *);
       klfDbg("Hide details drawer!") ;
-      klf_qt_mac_close_drawer(mMacDetailsDrawer, this, "hide");
+      klf_qt_mac_close_drawer_and_act(mMacDetailsDrawer, this, "hide");
       event->ignore();
       return;
     }

@@ -120,11 +120,10 @@ if(WIN32)
 endif(WIN32)
 if(APPLE)
   set(klfapp_HEADERS ${klfapp_HEADERS}
-        macosx/klfmacclipboard.h
+	macosx/klfmacclipboard.h
   )
   set(klfapp_SRCS ${klfapp_SRCS}
-        macosx/klfmacclipboard.cpp
-	macosx/klfdrawerdefs.mm
+	macosx/klfmacclipboard.cpp
   )
 endif(APPLE)
 # * X11
@@ -226,10 +225,6 @@ else(KLF_LIBKLFAPP_STATIC)
 endif(KLF_LIBKLFAPP_STATIC)
 add_dependencies(klfapp klftools klfbackend)
 target_link_libraries(klfapp ${QT_LIBRARIES} klfbackend klftools)
-if(APPLE)
-  set(KLF_APPKIT "/System/Library/Frameworks/AppKit.framework" CACHE FILEPATH "Path to AppKit framework")
-  target_link_libraries(klfapp "${KLF_APPKIT}")
-endif(APPLE)
 set_target_properties(klfapp PROPERTIES
 	#	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
 	PUBLIC_HEADER "${klfapp_INSTHEADERS}"

@@ -9,7 +9,6 @@
 #include <Cocoa/Cocoa.h>
 #ifdef QT_MAC_USE_COCOA
 #include <objc/runtime.h>
-//#include <NSAutoreleasePool.h>
 #endif // QT_MAC_USE_COCOA
 #endif
 
@@ -21,7 +20,7 @@
 #include <klfdefs.h>
 
 
-static OSWindowRef qt_mac_window_for(OSViewRef view)
+static OSWindowRef klf_qt_mac_window_for(OSViewRef view)
 {
 #ifdef QT_MAC_USE_COCOA
     if (view)
@@ -33,7 +32,7 @@ static OSWindowRef qt_mac_window_for(OSViewRef view)
 }
 
 #ifdef QT_MAC_USE_COCOA
-static NSDrawer * qt_mac_drawer_for(const QWidget *widget)
+static NSDrawer * klf_qt_mac_drawer_for(const QWidget *widget)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   // This only goes one level below the content view so start with the window.
@@ -63,7 +62,7 @@ static NSDrawer * qt_mac_drawer_for(const QWidget *widget)
 #endif
 
 
-static bool qt_mac_is_macdrawer(const QWidget *w)
+static bool klf_qt_mac_is_macdrawer(const QWidget *w)
 {
     return (w && w->parentWidget() && w->windowType() == Qt::Drawer);
 }
@@ -72,13 +71,13 @@ bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  if(!qt_mac_is_macdrawer(w)) {
+  if(!klf_qt_mac_is_macdrawer(w)) {
     klfDbg("Not a drawer.") ;
     return false;
   }
   
 #if QT_MAC_USE_COCOA
-  NSDrawer *drawer = qt_mac_drawer_for(w);
+  NSDrawer *drawer = klf_qt_mac_drawer_for(w);
   if (!drawer)
     return false;
   NSRectEdge edge;
@@ -104,7 +103,7 @@ bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
     [drawer setPreferredEdge:edge];
   }
 #else
-  OSWindowRef window = qt_mac_window_for(w);
+  OSWindowRef window = klf_qt_mac_window_for(w);
   OptionBits edge;
   if(where & Qt::LeftDockWidgetArea)
     edge = kWindowEdgeLeft;
@@ -131,17 +130,17 @@ bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
 }
 
 
-void klf_qt_mac_close_drawer(QWidget *w, QObject *obj, const char *member)
+void klf_qt_mac_close_drawer_and_act(QWidget *w, QObject *obj, const char *member)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  if(!qt_mac_is_macdrawer(w)) {
+  if(!klf_qt_mac_is_macdrawer(w)) {
     klfDbg("Not a drawer.") ;
     return;
   }
   
 #if QT_MAC_USE_COCOA
-  NSDrawer *drawer = qt_mac_drawer_for(w);
+  NSDrawer *drawer = klf_qt_mac_drawer_for(w);
   if (!drawer)
     return;
   
@@ -153,22 +152,10 @@ void klf_qt_mac_close_drawer(QWidget *w, QObject *obj, const char *member)
     QMetaObject::invokeMethod(obj, member);
   }
 #else
-  OSWindowRef window = qt_mac_window_for(w);
+  OSWindowRef window = klf_qt_mac_window_for(w);
   if(w->isVisible()) {
     CloseDrawer(window, false);
   }
 #endif
 }
 
-
-void * klf_qt_mac_app_start()
-{
-  NSApplicationLoad();
-  NSAutoreleasePool *autoreleasepool = [[NSAutoreleasePool alloc] init];
-  return (void*) autoreleasepool;
-}
-void klf_qt_mac_app_end(void * ptr)
-{
-  NSAutoreleasePool * pool = (NSAutoreleasePool*) ptr;
-  [pool release];
-}

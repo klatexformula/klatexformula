@@ -587,26 +587,22 @@
  */
 
 
-/** \def KLF_PROPERTY_GETSET
+/** \def KLF_PROPERTY_GET
  * \hideinitializer
  *
- * Declares two functions, one public, the other a public slot, designed to get and
- * set a property value. This macro is to be used within a class.
+ * Declares a functions, one public designed to get a property value. This macro is to be used
+ * within a class declaration.
  *
  * Useful in conjunction with Q_PROPERTY declarations.
  *
  * This macro expands to
  * \code 
- *   public: <type> <propertyName>() const;
- *   public slots: void set<PropertyName>(const <type>& value);
+ *   public: <type and propertyName>() const;
  * \endcode
  *
- * \param type is the type of the property.
- * \param prop is the property name (typically first letter is lower case)
- * \param Prop the same property name, but with a capital first letter. This is just used
- *   for the setter function name, <tt>set<PropertyName></tt>
+ * \param type_and_prop is the type and the name of the property, separated by space
  *
- * Possible definitions of these functions are provided with the macros \ref KLF_DEFINE_PROPERTY_GET
+ * Possible definitions of this functions are provided with the macros \ref KLF_DEFINE_PROPERTY_GET
  * and \ref KLF_DEFINE_PROPERTY_GETSET.
  */
 
@@ -631,8 +627,17 @@
  * This macro expands to
  * \code
  *  <type> ClassName::<propertyName>() const { return d-><propertyName>; }
- *  void ClassName::set<PropertyName>(const <type>& value) { d-><propertyName> = value; }
+ *  void ClassName::set<PropertyName>(<type> value) { d-><propertyName> = value; }
  * \endcode
+ *
+ * See also \ref KLF_DEFINE_PROPERTY_GETSET_C.
+ */
+
+/** \def KLF_DEFINE_PROPERTY_GETSET_C
+ * \hideinitializer
+ *
+ * Same as \ref KLF_DEFINE_PROPERTY_GETSET, but defines the setter with a <tt>const &lt;type&gt;&</tt>
+ * argument. Use this with properties of class type.
  */
 
 
