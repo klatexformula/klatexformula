@@ -77,7 +77,7 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QImage img = displayimg;
   QPixmap pix;
-  if (labelenabled && pGE) {
+  if (/*labelenabled && */ pGE) {
     int r = pGEradius;
     QSize msz = QSize(2*r, 2*r);
     if (img.width()+msz.width() > width() || img.height()+msz.height() > height())
@@ -143,6 +143,7 @@ void KLFDisplayLabel::displayError(const QString& errorMessage, bool labelenable
   set_error(true);
   setEnabled(labelenabled);
   setToolTip(errorMessage);
+  _bigPreviewText = errorMessage;
 }
 
 

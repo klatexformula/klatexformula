@@ -60,6 +60,8 @@ KLFSideWidgetManagerBase::KLFSideWidgetManagerBase(QWidget *parentWidget, QWidge
   pParentWidget = NULL;
   //  pSideWidget = sideWidget;
   //  pParentWidget = parentWidget;
+
+  Q_UNUSED(sideWidget);
 }
 
 KLFSideWidgetManagerBase::~KLFSideWidgetManagerBase()
@@ -175,7 +177,7 @@ void KLFShowHideSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww
 
 
 // protected
-void KLFShowHideSideWidgetManager::newParentWidgetSet(QWidget *oldParent, QWidget *pw)
+void KLFShowHideSideWidgetManager::newParentWidgetSet(QWidget */*oldParent*/, QWidget *pw)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 

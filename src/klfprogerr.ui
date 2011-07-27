@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>811</width>
-    <height>423</height>
+    <width>570</width>
+    <height>260</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,44 +18,56 @@
    <iconset resource="klfres.qrc">
     <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
-  <property name="styleSheet">
-   <string notr="true"/>
-  </property>
   <layout class="QVBoxLayout" name="lyt_KLFProgErr">
    <item>
-    <widget class="QLabel" name="lbl">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>20</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>An error occured!</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-     <property name="wordWrap">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QTextBrowser" name="txtError">
-     <property name="styleSheet">
+     <property name="palette">
+      <palette>
+       <active>
+        <colorrole role="Base">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>230</red>
+           <green>230</green>
+           <blue>230</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </active>
+       <inactive>
+        <colorrole role="Base">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>230</red>
+           <green>230</green>
+           <blue>230</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </inactive>
+       <disabled>
+        <colorrole role="Base">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>224</red>
+           <green>223</green>
+           <blue>216</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </disabled>
+      </palette>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Panel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="tabChangesFocus">
+      <bool>true</bool>
+     </property>
+     <property name="documentTitle">
       <string notr="true"/>
      </property>
     </widget>
@@ -72,7 +84,7 @@
       <string>Close</string>
      </property>
      <property name="icon">
-      <iconset>
+      <iconset resource="klftoolsres.qrc">
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
      </property>
      <property name="default">
@@ -85,6 +97,7 @@
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="klfres.qrc"/>
+  <include location="klftoolsres.qrc"/>
  </resources>
  <connections>
   <connection>

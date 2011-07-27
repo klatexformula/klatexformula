@@ -139,23 +139,13 @@ void KLFLatexPreviewThread::run()
       ouroutput = KLFBackend::getLatexFormula(ourinput, oursettings);
       img = ouroutput.result;
 
-      _mutex.lock();
-      abrt = d->abort;
-      bool hasnewinfo = d->hasnewinfo;
-      _mutex.unlock();
-
-      if (abrt)
-        return;
-      if (hasnewinfo)
-        continue;
-
       if (ouroutput.status != 0) {
         // error... just debug.
-        klfDbg("Real-Time preview failed; status="<<ouroutput.status<<".\n"<<ouroutput.errorstr) ;
         QMetaObject::invokeMethod(this, "previewError", Qt::QueuedConnection, Q_ARG(QString, ouroutput.errorstr),
-			    Q_ARG(int, ouroutput.status));
+				  Q_ARG(int, ouroutput.status));
       } else {
-	QMetaObject::invokeMethod(this, "outputAvailable", Qt::QueuedConnection, Q_ARG(KLFBackend::klfOutput, ouroutput));
+	QMetaObject::invokeMethod(this, "outputAvailable", Qt::QueuedConnection,
+				  Q_ARG(KLFBackend::klfOutput, ouroutput));
 	if (ps.isValid()) {
 	  prev = img;
 	  if (prev.width() > ps.width() || prev.height() > ps.height())
@@ -166,7 +156,7 @@ void KLFLatexPreviewThread::run()
 	  if (lprev.width() > lps.width() || lprev.height() > lps.height())
 	    lprev = img.scaled(lps, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 	}
-
+	
 	QMetaObject::invokeMethod(this, "previewAvailable", Qt::QueuedConnection, Q_ARG(QImage, prev),
 				  Q_ARG(QImage, lprev), Q_ARG(QImage, img));
 	if (ps.isValid())
@@ -176,7 +166,17 @@ void KLFLatexPreviewThread::run()
 	QMetaObject::invokeMethod(this, "previewFullImageAvailable", Qt::QueuedConnection, Q_ARG(QImage, img));
       }
     }
-
+    
+    _mutex.lock();
+    abrt = d->abort;
+    bool hasnewinfo = d->hasnewinfo;
+    _mutex.unlock();
+    
+    if (abrt)
+      return;
+    if (hasnewinfo)
+      continue;
+      
     _mutex.lock();
     d->condnewinfoavail.wait(&_mutex);
     _mutex.unlock();
@@ -187,8 +187,9 @@ void KLFLatexPreviewThread::run()
 
 bool KLFLatexPreviewThread::setInput(const KLFBackend::klfInput& input)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QMutexLocker mutexlocker(&_mutex);
-  d->mainThreadNewInfo(&d->input, input);
+  return d->mainThreadNewInfo(&d->input, input);
 }
 bool KLFLatexPreviewThread::setSettings(const KLFBackend::klfSettings& settings, bool disableExtraFormats/* = true*/)
 {
@@ -200,18 +201,18 @@ bool KLFLatexPreviewThread::setSettings(const KLFBackend::klfSettings& settings,
   }
 
   QMutexLocker mutexlocker(&_mutex);
-  d->mainThreadNewInfo(&d->settings, s);
+  return d->mainThreadNewInfo(&d->settings, s);
 }
 
 bool KLFLatexPreviewThread::setPreviewSize(const QSize& previewSize)
 {
   QMutexLocker mutexlocker(&_mutex);
-  d->mainThreadNewInfo(&d->previewSize, previewSize);
+  return d->mainThreadNewInfo(&d->previewSize, previewSize);
 }
 bool KLFLatexPreviewThread::setLargePreviewSize(const QSize& largePreviewSize)
 {
   QMutexLocker mutexlocker(&_mutex);
-  d->mainThreadNewInfo(&d->largePreviewSize, largePreviewSize);
+  return d->mainThreadNewInfo(&d->largePreviewSize, largePreviewSize);
 }
 
 

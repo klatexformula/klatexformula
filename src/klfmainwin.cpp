@@ -76,6 +76,21 @@ static void klf_set_window_geometry(QWidget *w, QRect g)
 
 // ------------------------------------------------------------------------
 
+
+static QString extract_latex_error(const QString& str)
+{
+  // if it was LaTeX, attempt to parse the error...
+  QRegExp latexerr("\\n(\\!.*)\\?[^?]*");
+  if (latexerr.indexIn(str)) {
+    QString s = latexerr.cap(1);
+    s.replace(QRegExp("^([^\\n]+)"), "<b>\\1</b>"); // make first line boldface
+    return "<pre>"+s+"</pre>";
+  }
+  return str;
+}
+
+
+
 KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
 {
   u = new Ui::KLFProgErr;
@@ -164,9 +179,9 @@ KLFMainWin::KLFMainWin()
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
-  u->lblOutput->setGlowEffect(klfconfig.UI.glowEffect);
-  u->lblOutput->setGlowEffectColor(klfconfig.UI.glowEffectColor);
-  u->lblOutput->setGlowEffectRadius(klfconfig.UI.glowEffectRadius);
+  klfconfig.UI.glowEffect.connectQObjectProperty(u->lblOutput, "glowEffect");
+  klfconfig.UI.glowEffectColor.connectQObjectProperty(u->lblOutput, "glowEffectColor");
+  klfconfig.UI.glowEffectRadius.connectQObjectProperty(u->lblOutput, "glowEffectRadius");
 
   connect(u->lblOutput, SIGNAL(labelDrag()), this, SLOT(slotDrag()));
 
@@ -363,11 +378,10 @@ KLFMainWin::KLFMainWin()
 	  Qt::QueuedConnection);
 
   connect(pLatexPreviewThread, SIGNAL(previewError(const QString&, int)),
-	  this, SLOT(showRealTimeError(const QString&, int)), Qt::QueuedConnection);
+	  this, SLOT(showRealTimeError(const QString&, int)));
   connect(pLatexPreviewThread, SIGNAL(previewAvailable(const QImage&, const QImage&, const QImage&)),
-	  this, SLOT(showRealTimePreview(const QImage&, const QImage&)), Qt::QueuedConnection);
-  connect(pLatexPreviewThread, SIGNAL(previewAvailable(const QImage&, const QImage&, const QImage&)),
-	  this, SLOT(showRealTimePreview(const QImage&, const QImage&)), Qt::QueuedConnection);
+	  this, SLOT(showRealTimePreview(const QImage&, const QImage&)));
+  connect(pLatexPreviewThread, SIGNAL(previewReset()), this, SLOT(showRealTimeReset()));
 
   if (klfconfig.UI.enableRealTimePreview) {
     pLatexPreviewThread->start();
@@ -624,10 +638,6 @@ void KLFMainWin::saveSettings()
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
-
-  u->lblOutput->setGlowEffect(klfconfig.UI.glowEffect);
-  u->lblOutput->setGlowEffectColor(klfconfig.UI.glowEffectColor);
-  u->lblOutput->setGlowEffectRadius(klfconfig.UI.glowEffectRadius);
 
   int k;
   if (klfconfig.ExportData.dragExportProfile == klfconfig.ExportData.copyExportProfile) {
@@ -1850,23 +1860,26 @@ void KLFMainWin::childEvent(QChildEvent *e)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QObject *child = e->child();
+  klfDbg("Child list looks like: "<<pWindowList) ;
   if (e->type() == QEvent::ChildAdded && child->isWidgetType()) {
     QWidget *w = qobject_cast<QWidget*>(child);
-    if (w->windowFlags() & Qt::Window) {
+    if (w->windowFlags() & Qt::Window && !w->inherits("QMenu")) {
       // note that all Qt::Tool, Qt::SplashScreen etc. all have the Qt::Window bit set, but
       // not Qt::Widget (!)
-      pWindowList.append(w);
-      klfDbg( ": Added child "<<w<<" ("<<w->objectName()<<")" ) ;
+      if (pWindowList.indexOf(w) == -1) // if not already present
+	pWindowList.append(w);
+      klfDbg( "Added child "<<w<<" ("<<w->objectName()<<")" ) ;
     }
   } else if (e->type() == QEvent::ChildRemoved && child->isWidgetType()) {
     QWidget *w = qobject_cast<QWidget*>(child);
     int k;
     if ((k = pWindowList.indexOf(w)) >= 0) {
-      klfDbg( ": Removing child "<<w<<" ("<<w->objectName()<<")"
+      klfDbg( "Removing child "<<w<<" ("<<w->objectName()<<")"
 	      <<" at position k="<<k ) ;
       pWindowList.removeAt(k);
     }
   }
+  klfDbg("Child list now looks like: "<<pWindowList) ;
 
   QWidget::childEvent(e);
 }
@@ -1983,6 +1996,7 @@ void KLFMainWin::refreshAllWindowStyleSheets()
 
 QHash<QWidget*,bool> KLFMainWin::currentWindowShownStatus(bool mainWindowToo)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QHash<QWidget*,bool> status;
   if (mainWindowToo)
     status[this] = isVisible();
@@ -1993,6 +2007,7 @@ QHash<QWidget*,bool> KLFMainWin::currentWindowShownStatus(bool mainWindowToo)
 }
 QHash<QWidget*,bool> KLFMainWin::prepareAllWindowShownStatus(bool visibleStatus, bool mainWindowToo)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QHash<QWidget*,bool> status;
   if (mainWindowToo)
     status[this] = visibleStatus;
@@ -2004,8 +2019,12 @@ QHash<QWidget*,bool> KLFMainWin::prepareAllWindowShownStatus(bool visibleStatus,
 
 void KLFMainWin::setWindowShownStatus(const QHash<QWidget*,bool>& shownStatus)
 {
-  for (QHash<QWidget*,bool>::const_iterator it = shownStatus.begin(); it != shownStatus.end(); ++it)
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  for (QHash<QWidget*,bool>::const_iterator it = shownStatus.begin(); it != shownStatus.end(); ++it) {
+    klfDbg("...") ;
+    klfDbg("widget: "<<it.key()) ;
     QMetaObject::invokeMethod(it.key(), "setVisible", Qt::QueuedConnection, Q_ARG(bool, it.value()));
+  }
 }
 
 
@@ -2019,6 +2038,7 @@ void KLFMainWin::hideEvent(QHideEvent *e)
     setWindowShownStatus(prepareAllWindowShownStatus(false, false)); // hide all windows
   }
 
+  klfDbg("...") ;
   QWidget::hideEvent(e);
 }
 
@@ -2174,6 +2194,7 @@ void KLFMainWin::setTxtPreambleFont(const QFont& f)
 
 void KLFMainWin::showRealTimeReset()
 {
+  klfDbg("reset.") ;
   u->lblOutput->display(QImage(), QImage(), false);
 }
 
@@ -2189,7 +2210,12 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, const QImage& largeP
 void KLFMainWin::showRealTimeError(const QString& errmsg, int errcode)
 {
   klfDbg("errormsg[0..99]="<<errmsg.mid(0,99)<<", code="<<errcode) ;
-  u->lblOutput->displayError(errmsg, /*labelenabled:*/false);
+  QString s = errmsg;
+  if (errcode == KLFERR_PROGERR_LATEX)
+    s = extract_latex_error(errmsg);
+  if (s.length() > 800)
+    s = tr("LaTeX error, click 'Evaluate' to see error message.", "[[real-time preview tooltip]]");
+  u->lblOutput->displayError(s, /*labelenabled:*/false);
 }
 
 
@@ -2199,6 +2225,8 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   KLFBackend::klfInput input;
 
   input.latex = u->txtLatex->toPlainText();
+  klfDbg("latex="<<input.latex) ;
+
   if (u->chkMathMode->isChecked()) {
     input.mathmode = u->cbxMathMode->currentText();
     if (final && u->cbxMathMode->findText(input.mathmode) == -1) {
@@ -2262,7 +2290,11 @@ void KLFMainWin::slotEvaluate()
     }
   }
   if (_output.status > 0) {
-    KLFProgErr::showError(this, _output.errorstr);
+    QString s = _output.errorstr;
+    if (_output.status == KLFERR_PROGERR_LATEX) {
+      s = extract_latex_error(_output.errorstr);
+    }
+    KLFProgErr::showError(this, s);
     u->frmOutput->setEnabled(false);
   }
   if (_output.status == 0) {
