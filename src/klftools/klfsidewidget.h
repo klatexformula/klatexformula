@@ -42,16 +42,17 @@ public:
    *   are always initialized to NULL. Reason: subclasses should set these in their constructors via
    *   setSideWidget() and setOurParentWidget(), which then call newSideWidgetSet() etc., which passes
    *   through the virtual call (it does not in the base class constructor). */
-  KLFSideWidgetManagerBase(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
+  KLFSideWidgetManagerBase(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL,
+		       bool requireSideWidgetParentConsistency = false);
   virtual ~KLFSideWidgetManagerBase();
 
-  inline QWidget * sideWidget() { return pSideWidget; }
-  inline QWidget * ourParentWidget() { return pParentWidget; }
+  inline QWidget * sideWidget() const { return pSideWidget; }
+  inline QWidget * ourParentWidget() const { return pParentWidget; }
 
   void setSideWidget(QWidget *widget);
   void setOurParentWidget(QWidget *widget);
 
-  virtual bool sideWidgetVisible() = 0;
+  virtual bool sideWidgetVisible() const = 0;
 
 public slots:
   virtual void showSideWidget(bool show) = 0;
@@ -89,7 +90,7 @@ public:
 
   virtual bool eventFilter(QObject *obj, QEvent *event);
 
-  virtual bool sideWidgetVisible();
+  virtual bool sideWidgetVisible() const;
 
 public slots:
   virtual void showSideWidget(bool show);
@@ -124,7 +125,7 @@ public:
 
   virtual bool eventFilter(QObject *obj, QEvent *event);
 
-  virtual bool sideWidgetVisible();
+  virtual bool sideWidgetVisible() const;
 
 public slots:
   virtual void showSideWidget(bool show);
@@ -140,6 +141,30 @@ private:
   KLF_DECLARE_PRIVATE(KLFDrawerSideWidgetManager) ;
 };
 
+
+class KLFFloatSideWidgetManagerPrivate;
+class KLFFloatSideWidgetManager : public KLFSideWidgetManagerBase
+{
+  Q_OBJECT
+
+  Q_PROPERTY(Qt::WindowFlags wflags READ wflags WRITE setWFlags) ;
+  KLF_PROPERTY_GET(Qt::WindowFlags wflags) ;
+public:
+  KLFFloatSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
+  virtual ~KLFFloatSideWidgetManager();
+
+  virtual bool sideWidgetVisible() const;
+
+public slots:
+  virtual void showSideWidget(bool show);
+  void setWFlags(Qt::WindowFlags wflags);
+
+protected:
+  void newSideWidgetSet(QWidget *oldw, QWidget *w);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFFloatSideWidgetManager) ;
+};
 
 
 #endif
