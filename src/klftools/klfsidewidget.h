@@ -28,8 +28,8 @@
 #include <QObject>
 #include <QWidget>
 
-
 #include <klfdefs.h>
+#include <klffactory.h>
 
 
 class KLFSideWidgetManagerBasePrivate;
@@ -75,6 +75,9 @@ private:
 };
 
 
+// -----
+
+
 class KLFShowHideSideWidgetManagerPrivate;
 class KLFShowHideSideWidgetManager : public KLFSideWidgetManagerBase
 {
@@ -111,6 +114,8 @@ private:
 };
 
 
+// ------
+
 
 class KLFDrawerSideWidgetManagerPrivate;
 class KLFDrawerSideWidgetManager : public KLFSideWidgetManagerBase
@@ -142,6 +147,8 @@ private:
 };
 
 
+// -------
+
 class KLFFloatSideWidgetManagerPrivate;
 class KLFFloatSideWidgetManager : public KLFSideWidgetManagerBase
 {
@@ -165,6 +172,63 @@ protected:
 private:
   KLF_DECLARE_PRIVATE(KLFFloatSideWidgetManager) ;
 };
+
+
+
+// ------
+
+
+/**
+ * \note This class acts as base class for any factory of side-widget-managers, as well as
+ *   a functional instantiable factory for the built-in types.
+ *
+ * \note When reimplementing this class, it is automatically registered upon instanciation by
+ *   the KLFFactoryBase base class.
+ */
+class KLFSideWidgetManagerFactory : public KLFFactoryBase
+{
+public:
+  KLFSideWidgetManagerFactory();
+  virtual ~KLFSideWidgetManagerFactory();
+
+  virtual QStringList supportedTypes() const;
+  virtual KLFSideWidgetManagerBase * createSideWidgetManager(const QString& type, QWidget *parentWidget,
+						 QWidget *sideWidget);
+
+  static KLFSideWidgetManagerFactory * findFactoryFor(const QString& managertype);
+
+private:
+  static KLFFactoryManager pFactoryManager;
+};
+
+
+
+
+// -----------------------------
+
+/*
+
+class KLFSideWidgetPrivate;
+class KLFSideWidget : public QWidget
+{
+  Q_OBJECT
+public:
+  enum SideWidgetManager { ShowHide = 1, Float, Drawer } ;
+
+  KLFSideWidget(SideWidgetManager mtype = Float, QWidget *parent = NULL);
+  KLFSideWidget(const QString& mtype = QLatin1String("Float"), QWidget *parent = NULL);
+  virtual ~KLFSideWidget();
+
+  KLFSideWidgetManagerBase * sideWidgetManager();
+
+  void setSideWidgetManager(SideWidgetManager mtype);
+  void setSideWidgetManager(const QString& mtype);
+private:
+
+  KLF_DECLARE_PRIVATE(KLFSideWidget) ;
+};
+
+*/
 
 
 #endif

@@ -7,7 +7,9 @@
 # -------------------------
 
 if(NOT DEFINED DOXYGEN OR DOXYGEN STREQUAL "")
-  find_program(DOXYGEN "doxygen")
+  #  find_program(DOXYGEN "doxygen" /Applications/Doxygen.app/Contents/Resources)
+  include(FindDoxygen)
+  set(DOXYGEN "${DOXYGEN_EXECUTABLE}" CACHE FILEPATH "Path to doxygen executable (optional)")
 endif(NOT DEFINED DOXYGEN OR DOXYGEN STREQUAL "")
 
 if(DOXYGEN)

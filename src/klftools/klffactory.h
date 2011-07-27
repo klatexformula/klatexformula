@@ -62,20 +62,21 @@ private:
  * Factories need to be explicitely registered and unregistered, they are done so in the
  * KLFFactoryBase constructor and destructor.
  *
- * The usage of KLFFactoryManager and KLFFactoryBase is for example:
+ * Example usage of KLFFactoryManager and KLFFactoryBase. Note that MyFactory is a base class
+ * which can be derived to actually implement your factories.
  * \code
  *  // in .h:
  *  class MyFactory : public KLFFactoryBase {
  *  public:
  *    MyFactory() : KLFFactoryBase(&pFactoryManager) { }
  *
- *    virtual QStringList supportedTypes() const { ..... }
+ *    virtual QStringList supportedTypes() const = 0;
  *
- *    ... virtual MyObject * createMyObject(const QString& ofThisObjectType) = 0; ...
+ *    virtual MyObject * createMyObject(const QString& ofThisObjectType, ...params...) = 0;
  *
  *    ...
  *
- *    MyFactory * findFactoryFor(...) {
+ *    static MyFactory * findFactoryFor(...) {
  *      return dynamic_cast<MyFactory*>(pFactoryManager.findFactoryFor(...));
  *    }
  *

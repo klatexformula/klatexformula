@@ -21,8 +21,9 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include <QDebug>
 #include <QStringList>
+
+#include <klfdefs.h>
 
 #include "klffactory.h"
 
@@ -30,12 +31,16 @@
 KLFFactoryBase::KLFFactoryBase(KLFFactoryManager *factoryManager)
   : pFactoryManager(factoryManager)
 {
+  KLF_ASSERT_NOT_NULL(pFactoryManager, "NULL factory manager given!", return; ) ;
   pFactoryManager->registerFactory(this);
 }
 KLFFactoryBase::~KLFFactoryBase()
 {
+  KLF_ASSERT_NOT_NULL(pFactoryManager, "NULL factory manager!", return; ) ;
   pFactoryManager->unRegisterFactory(this);
 }
+
+// --
 
 KLFFactoryManager::KLFFactoryManager()
 {

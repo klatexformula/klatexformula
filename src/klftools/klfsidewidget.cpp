@@ -159,12 +159,15 @@ void KLFShowHideSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww
 		   "Adding a widget that is not a child of our 'parent widget' ! Correcting parent.",
 		   setOurParentWidget(neww->parentWidget()); ) ;
 
+  bool shown = false;
+
   if (oldw != NULL) {
+    shown = oldw->isVisible();
     oldw->removeEventFilter(this);
     oldw->hide();
   }
   if (neww != NULL) {
-    neww->hide();
+    neww->setVisible(shown);
     neww->installEventFilter(this);
   }
   d->msize = QSize();
@@ -514,3 +517,59 @@ void KLFFloatSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww)
   }
 }
 
+
+
+
+
+
+// ---------------------------------------------
+
+// static
+KLFFactoryManager KLFSideWidgetManagerFactory::pFactoryManager;
+
+
+KLFSideWidgetManagerFactory::KLFSideWidgetManagerFactory()
+  : KLFFactoryBase(&pFactoryManager)
+{
+}
+KLFSideWidgetManagerFactory::~KLFSideWidgetManagerFactory()
+{
+}
+
+// static
+KLFSideWidgetManagerFactory * KLFSideWidgetManagerFactory::findFactoryFor(const QString& managertype)
+{
+  return dynamic_cast<KLFSideWidgetManagerFactory*>(pFactoryManager.findFactoryFor(managertype));
+}
+
+QStringList KLFSideWidgetManagerFactory::supportedTypes() const
+{
+  return QStringList()
+    << QLatin1String("ShowHide")
+    << QLatin1String("Float")
+#ifdef Q_WS_MAC
+    << QLatin1String("Drawer")
+#endif
+    ;
+}
+
+KLFSideWidgetManagerBase *
+/* */  KLFSideWidgetManagerFactory::createSideWidgetManager(const QString& type, QWidget *parentWidget,
+						QWidget *sideWidget)
+{
+  if (type == QLatin1String("ShowHide")) {
+    return new KLFShowHideSideWidgetManager(parentWidget, sideWidget);
+  }
+  if (type == QLatin1String("Float")) {
+    return new KLFFloatSideWidgetManager(parentWidget, sideWidget);
+  }
+#ifdef Q_WS_MAC
+  if (type == QLatin1String("Drawer")) {
+    return new KLFDrawerSideWidgetManager(parentWidget, sideWidget);
+  }
+#endif
+
+  qWarning()<<KLF_FUNC_NAME<<": Unknown side-widget-manager type "<<type;
+
+  return NULL;
+}
