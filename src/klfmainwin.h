@@ -34,9 +34,6 @@
 #include <QTextEdit>
 #include <QWidget>
 #include <QMimeData>
-#include <QThread>
-#include <QMutex>
-#include <QWaitCondition>
 #include <QDialog>
 #include <QMainWindow>
 
@@ -179,40 +176,8 @@ private:
   KLFMainWin *mMainWin;
 };
 
-/**
- * A helper that runs in a different thread that generates previews in real-time as user types text,
- * without blocking the GUI.
- */
-class KLF_EXPORT KLFPreviewBuilderThread : public QThread
-{
-  Q_OBJECT
 
-public:
-  KLFPreviewBuilderThread(QObject *parent, KLFBackend::klfInput input, KLFBackend::klfSettings settings,
-			  int labelwidth, int labelheight);
-  virtual ~KLFPreviewBuilderThread();
-  void run();
-
-signals:
-  void previewAvailable(const QImage& preview, bool latexerror);
-
-public slots:
-  bool inputChanged(const KLFBackend::klfInput& input);
-  void settingsChanged(const KLFBackend::klfSettings& settings, int labelwidth, int labelheight);
-
-protected:
-  KLFBackend::klfInput _input;
-  KLFBackend::klfSettings _settings;
-  int _lwidth, _lheight;
-
-  QMutex _mutex;
-  QWaitCondition _condnewinfoavail;
-
-  bool _hasnewinfo;
-  bool _abort;
-};
-
-
+class KLFLatexPreviewThread;
 class KLFAboutDialog;
 class KLFWhatsNewDialog;
 class KLFMainWinPopup;
@@ -406,9 +371,11 @@ public slots:
   void setTxtLatexFont(const QFont& f);
   void setTxtPreambleFont(const QFont& f);
 
-  void showRealTimePreview(const QImage& preview, bool latexerror);
+  void showRealTimeReset();
+  void showRealTimePreview(const QImage& preview, const QImage& largePreview);
+  void showRealTimeError(const QString& errorstr, int errcode);
 
-  void updatePreviewBuilderThreadInput();
+  void updatePreviewThreadInput();
 
   void displayError(const QString& errormsg);
 
@@ -487,7 +454,7 @@ protected:
    * _output.result instead of the image given by mPreviewBuilderThread. */
   bool _evaloutput_uptodate;
   /** The Thread that will create real-time previews of formulas. */
-  KLFPreviewBuilderThread *mPreviewBuilderThread;
+  KLFLatexPreviewThread *pLatexPreviewThread;
 
   QLabel *mExportMsgLabel;
   void showExportMsgLabel(const QString& msg, int timeout = 3000);
@@ -524,9 +491,6 @@ protected:
   /** "saved" window status flags are used in hideEvent() to save the individual dialog visible
    * states, as the "last" status flags will be overridden by all the windows hiding. */
   QHash<QWidget*,bool> pSavedWindowShownStatus;
-  //  QHash<QWidget*, bool> _lastwindowshownstatus;
-  //  QHash<QWidget*, QRect> _lastwindowgeometries;
-  //  QHash<QWidget*, bool> _savedwindowshownstatus;
 
   QString _widgetstyle;
 

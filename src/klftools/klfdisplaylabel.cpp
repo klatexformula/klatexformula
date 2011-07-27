@@ -137,11 +137,12 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
   setEnabled(labelenabled);
 }
 
-void KLFDisplayLabel::displayError(bool labelenabled)
+void KLFDisplayLabel::displayError(const QString& errorMessage, bool labelenabled)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   set_error(true);
   setEnabled(labelenabled);
+  setToolTip(errorMessage);
 }
 
 

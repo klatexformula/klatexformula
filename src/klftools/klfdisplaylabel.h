@@ -64,7 +64,9 @@ public slots:
 
   virtual void displayClear();
   virtual void display(QImage displayimg, QImage tooltipimage, bool labelenabled = true);
-  virtual void displayError(bool labelenabled = false);
+  virtual void displayError(bool labelenabled = false)
+  { displayError(QString(), labelenabled); }
+  virtual void displayError(const QString& errorMessage, bool labelenabled = false);
 
   /** \note takes effect only upon next call of display() */
   void setGlowEffect(bool on) { pGE = on; }

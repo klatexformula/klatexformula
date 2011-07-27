@@ -58,6 +58,7 @@ public:
 
   virtual void propertyValueRequested(const KLFConfigPropBase *property);
 
+  /** \note the \c object's property \c objPropName is initialized to the current configuration value. */
   virtual void connectQObjectProperty(const QString& configPropertyName, QObject *object,
 				      const QByteArray& objPropName);
   virtual void disconnectQObjectProperty(const QString& configPropertyName, QObject *object,
@@ -412,6 +413,7 @@ public:
     KLFConfigProp<int> glowEffectRadius;
     KLFConfigProp<QStringList> customMathModes;
     KLFConfigProp<bool> emacsStyleBackspaceSearch;
+    KLFConfigProp<bool> macBrushedMetalLook;
 
   } UI;
 

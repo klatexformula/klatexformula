@@ -33,7 +33,7 @@
 
 
 class KLFSideWidgetManagerBasePrivate;
-class KLFSideWidgetManagerBase : public QObject
+class KLF_EXPORT KLFSideWidgetManagerBase : public QObject
 {
   Q_OBJECT
 public:
@@ -79,7 +79,7 @@ private:
 
 
 class KLFShowHideSideWidgetManagerPrivate;
-class KLFShowHideSideWidgetManager : public KLFSideWidgetManagerBase
+class KLF_EXPORT KLFShowHideSideWidgetManager : public KLFSideWidgetManagerBase
 {
   Q_OBJECT
 
@@ -118,7 +118,7 @@ private:
 
 
 class KLFDrawerSideWidgetManagerPrivate;
-class KLFDrawerSideWidgetManager : public KLFSideWidgetManagerBase
+class KLF_EXPORT KLFDrawerSideWidgetManager : public KLFSideWidgetManagerBase
 {
   Q_OBJECT
 
@@ -150,7 +150,7 @@ private:
 // -------
 
 class KLFFloatSideWidgetManagerPrivate;
-class KLFFloatSideWidgetManager : public KLFSideWidgetManagerBase
+class KLF_EXPORT KLFFloatSideWidgetManager : public KLFSideWidgetManagerBase
 {
   Q_OBJECT
 
@@ -185,7 +185,7 @@ private:
  * \note When reimplementing this class, it is automatically registered upon instanciation by
  *   the KLFFactoryBase base class.
  */
-class KLFSideWidgetManagerFactory : public KLFFactoryBase
+class KLF_EXPORT KLFSideWidgetManagerFactory : public KLFFactoryBase
 {
 public:
   KLFSideWidgetManagerFactory();
@@ -209,7 +209,7 @@ private:
 /*
 
 class KLFSideWidgetPrivate;
-class KLFSideWidget : public QWidget
+class KLF_EXPORT KLFSideWidget : public QWidget
 {
   Q_OBJECT
 public:

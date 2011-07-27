@@ -1050,8 +1050,31 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
     a.preamble == b.preamble &&
     a.fg_color == b.fg_color &&
     a.bg_color == b.bg_color &&
-    a.dpi == b.dpi;
+    a.dpi == b.dpi &&
+    a.bypassTemplate == b.bypassTemplate;
 }
+
+KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::klfSettings& b)
+{
+  return
+    a.tempdir == b.tempdir &&
+    a.latexexec == b.latexexec &&
+    a.dvipsexec == b.dvipsexec &&
+    a.gsexec == b.gsexec &&
+    a.epstopdfexec == b.epstopdfexec &&
+    a.tborderoffset == b.tborderoffset &&
+    a.rborderoffset == b.rborderoffset &&
+    a.bborderoffset == b.bborderoffset &&
+    a.lborderoffset == b.lborderoffset &&
+    a.calcEpsBoundingBox == b.calcEpsBoundingBox &&
+    a.outlineFonts == b.outlineFonts &&
+    a.wantRaw == b.wantRaw &&
+    a.wantPDF == b.wantPDF &&
+    a.wantSVG == b.wantSVG &&
+    a.execenv == b.execenv &&
+    a.templateGenerator == b.templateGenerator ;
+}
+
 
 
 bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *device,

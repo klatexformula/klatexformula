@@ -378,6 +378,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.glowEffectRadius, 4) ;
   KLFCONFIGPROP_INIT(UI.customMathModes, QStringList()) ;
   KLFCONFIGPROP_INIT(UI.emacsStyleBackspaceSearch, true) ;
+  KLFCONFIGPROP_INIT(UI.macBrushedMetalLook, true) ;
   KLFCONFIGPROP_INIT(ExportData.copyExportProfile, "default") ;
   KLFCONFIGPROP_INIT(ExportData.dragExportProfile, "default") ;
   KLFCONFIGPROP_INIT(ExportData.showExportProfilesLabel, true) ;
@@ -591,6 +592,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "gloweffectradius", &UI.glowEffectRadius);
   klf_config_read(s, "custommathmodes", &UI.customMathModes);
   klf_config_read(s, "emacsstylebackspacesearch", &UI.emacsStyleBackspaceSearch);
+  klf_config_read(s, "macbrushedmetallook", &UI.macBrushedMetalLook);
   // backwards-compatible (v 3.2): read first in UI group, then overwrite with settings in ExportData group
   klf_config_read(s, "copyexportprofile", &ExportData.copyExportProfile);
   klf_config_read(s, "dragexportprofile", &ExportData.dragExportProfile);
@@ -728,6 +730,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "gloweffectradius", &UI.glowEffectRadius);
   klf_config_write(s, "custommathmodes", &UI.customMathModes);
   klf_config_write(s, "emacsstylebackspacesearch", &UI.emacsStyleBackspaceSearch);
+  klf_config_write(s, "macbrushedmetallook", &UI.macBrushedMetalLook);
   s.endGroup();
 
   s.beginGroup("ExportData");

@@ -500,8 +500,9 @@ private:
 
 
 /** Compare two inputs for equality */
-bool KLF_EXPORT operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b);
+KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b);
+KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::klfSettings& b);
 
-bool KLF_EXPORT klf_detect_execenv(KLFBackend::klfSettings *settings);
+KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings);
 
 #endif

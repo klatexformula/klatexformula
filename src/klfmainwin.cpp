@@ -34,6 +34,7 @@
 #include <klfguiutil.h>
 #include <klfrelativefont.h>
 #include <klflatexedit.h>
+#include <klflatexpreviewthread.h>
 
 #include "klflibview.h"
 #include "klflibbrowser.h"
@@ -103,114 +104,6 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
   dlg.exec();
 }
 
-
-
-// ----------------------------------------------------------------------------
-
-KLFPreviewBuilderThread::KLFPreviewBuilderThread(QObject *parent, KLFBackend::klfInput input,
-						 KLFBackend::klfSettings settings, int labelwidth,
-						 int labelheight)
-  : QThread(parent), _input(input), _settings(settings), _lwidth(labelwidth), _lheight(labelheight),
-    _hasnewinfo(false), _abort(false)
-{
-}
-KLFPreviewBuilderThread::~KLFPreviewBuilderThread()
-{
-  _mutex.lock();
-  _abort = true;
-  _condnewinfoavail.wakeOne();
-  _mutex.unlock();
-  wait();
-}
-
-void KLFPreviewBuilderThread::run()
-{
-  KLFBackend::klfInput input;
-  KLFBackend::klfSettings settings;
-  KLFBackend::klfOutput output;
-  QImage img;
-  int lwid, lhgt;
-
-  for (;;) {
-    _mutex.lock();
-    bool abrt = _abort;
-    _mutex.unlock();
-    if (abrt)
-      return;
-  
-    // fetch info
-    _mutex.lock();
-    input = _input;
-    settings = _settings;
-    settings.wantPDF = false;
-    settings.wantSVG = false;
-    settings.wantRaw = false;
-    lwid = _lwidth;
-    lhgt = _lheight;
-    _hasnewinfo = false;
-    _mutex.unlock();
-    // render equation
-    //  no performance improvement noticed with lower DPI:
-    //    // force 240 DPI (we're only a preview...)
-    //    input.dpi = 240;
-
-    if ( input.latex.trimmed().isEmpty() ) {
-      emit previewAvailable(QImage(), 0);
-    } else {
-      // and GO!
-      output = KLFBackend::getLatexFormula(input, settings);
-      img = output.result;
-      if (output.status == 0) {
-	// don't scale image, report the full-sized image (eg. for tooltip)
-	//	if (img.width() > lwid || img.height() > lhgt)
-	//	  img = img.scaled(QSize(lwid, lhgt), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-	// ALL OK, proceed
-      } else {
-	// error... just debug
-	klfDbg("Real-Time preview failed; status="<<output.status<<".\n"<<output.errorstr) ;
-	img = QImage();
-      }
-    }
-
-    _mutex.lock();
-    bool abort = _abort;
-    bool hasnewinfo = _hasnewinfo;
-    _mutex.unlock();
-
-    if (abort)
-      return;
-    if (hasnewinfo)
-      continue;
-
-    emit previewAvailable(img, output.status != 0);
-
-    _mutex.lock();
-    _condnewinfoavail.wait(&_mutex);
-    _mutex.unlock();
-  }
-}
-bool KLFPreviewBuilderThread::inputChanged(const KLFBackend::klfInput& input)
-{
-  QMutexLocker mutexlocker(&_mutex);
-  if (_input == input) {
-    return false;
-  }
-  _input = input;
-  _hasnewinfo = true;
-  _condnewinfoavail.wakeOne();
-  return true;
-}
-void KLFPreviewBuilderThread::settingsChanged(const KLFBackend::klfSettings& settings,
-					      int lwidth, int lheight)
-{
-  _mutex.lock();
-  _settings = settings;
-  if (lwidth > 0) _lwidth = lwidth;
-  if (lheight > 0) _lheight = lheight;
-  _hasnewinfo = true;
-  _condnewinfoavail.wakeOne();
-  _mutex.unlock();
-}
 
 
 // ----------------------------------------------------------------------------
@@ -448,31 +341,36 @@ KLFMainWin::KLFMainWin()
 
   // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
 
-  mPreviewBuilderThread = new KLFPreviewBuilderThread(this, collectInput(false), _settings,
-						      klfconfig.UI.labelOutputFixedSize().width(),
-						      klfconfig.UI.labelOutputFixedSize().height());
+  pLatexPreviewThread = new KLFLatexPreviewThread(this);
+  klfconfig.UI.labelOutputFixedSize.connectQObjectProperty(pLatexPreviewThread, "previewSize");
+  klfconfig.UI.previewTooltipMaxSize.connectQObjectProperty(pLatexPreviewThread, "largePreviewSize");
+  pLatexPreviewThread->setInput(collectInput(false));
+  pLatexPreviewThread->setSettings(_settings);
 
-  connect(u->txtLatex, SIGNAL(textChanged()), this,
-	  SLOT(updatePreviewBuilderThreadInput()), Qt::QueuedConnection);
   connect(u->txtLatex, SIGNAL(insertContextMenuActions(const QPoint&, QList<QAction*> *)),
 	  this, SLOT(slotEditorContextMenuInsertActions(const QPoint&, QList<QAction*> *)));
+  connect(u->txtLatex, SIGNAL(textChanged()), this,
+	  SLOT(updatePreviewThreadInput()), Qt::QueuedConnection);
   connect(u->cbxMathMode, SIGNAL(editTextChanged(const QString&)),
-	  this, SLOT(updatePreviewBuilderThreadInput()),
+	  this, SLOT(updatePreviewThreadInput()), Qt::QueuedConnection);
+  connect(u->chkMathMode, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
-  connect(u->chkMathMode, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
+  connect(u->colFg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
-  connect(u->colFg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
-	  Qt::QueuedConnection);
-  //  connect(u->chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewBuilderThreadInput()),
+  //  connect(u->chkBgTransparent, SIGNAL(stateChanged(int)), this, SLOT(updatePreviewThreadInput()),
   //	  Qt::QueuedConnection);
-  connect(u->colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewBuilderThreadInput()),
+  connect(u->colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
 
-  connect(mPreviewBuilderThread, SIGNAL(previewAvailable(const QImage&, bool)),
-	  this, SLOT(showRealTimePreview(const QImage&, bool)), Qt::QueuedConnection);
+  connect(pLatexPreviewThread, SIGNAL(previewError(const QString&, int)),
+	  this, SLOT(showRealTimeError(const QString&, int)), Qt::QueuedConnection);
+  connect(pLatexPreviewThread, SIGNAL(previewAvailable(const QImage&, const QImage&, const QImage&)),
+	  this, SLOT(showRealTimePreview(const QImage&, const QImage&)), Qt::QueuedConnection);
+  connect(pLatexPreviewThread, SIGNAL(previewAvailable(const QImage&, const QImage&, const QImage&)),
+	  this, SLOT(showRealTimePreview(const QImage&, const QImage&)), Qt::QueuedConnection);
 
   if (klfconfig.UI.enableRealTimePreview) {
-    mPreviewBuilderThread->start();
+    pLatexPreviewThread->start();
   }
 
   // CREATE SETTINGS DIALOG
@@ -494,13 +392,18 @@ KLFMainWin::KLFMainWin()
   // watch for QFileOpenEvent s on mac
   QApplication::instance()->installEventFilter(this);
 
-  setAttribute(Qt::WA_MacBrushedMetal);
-  u->txtLatex->setAttribute(Qt::WA_MacBrushedMetal);
+  if (klfconfig.UI.macBrushedMetalLook) {
+    // Mac Brushed Metal Look
+    setAttribute(Qt::WA_MacBrushedMetal);
+    //    u->txtLatex->setAttribute(Qt::WA_MacBrushedMetal);
+  }
 
+  // And add a native Mac OS X menu bar
   QMenuBar *macOSXMenu = new QMenuBar(0);
   macOSXMenu->setNativeMenuBar(true);
   // this is a virtual menu...
   QMenu *filemenu = macOSXMenu->addMenu("File");
+  // ... because the 'Preferences' action is detected and is sent to the 'klatexformula' menu...
   filemenu->addAction("Preferences", this, SLOT(slotSettings()));
 #endif
 
@@ -508,6 +411,9 @@ KLFMainWin::KLFMainWin()
   // INTERNAL FLAGS
 
   _evaloutput_uptodate = true;
+
+
+  // OTHER STUFF
 
   retranslateUi(false);
 
@@ -585,8 +491,8 @@ KLFMainWin::~KLFMainWin()
   if (mSettingsDialog)
     delete mSettingsDialog;
 
-  if (mPreviewBuilderThread)
-    delete mPreviewBuilderThread;
+  if (pLatexPreviewThread)
+    delete pLatexPreviewThread;
 
   delete u;
 }
@@ -714,8 +620,7 @@ void KLFMainWin::saveSettings()
 
   klfconfig.writeToConfig();
 
-  mPreviewBuilderThread->settingsChanged(_settings, klfconfig.UI.labelOutputFixedSize().width(),
-					 klfconfig.UI.labelOutputFixedSize().height());
+  pLatexPreviewThread->setSettings(_settings);
 
   u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
@@ -746,22 +651,12 @@ void KLFMainWin::saveSettings()
 				     klfconfig.ExportData.menuExportProfileAffectsCopy);
 
   if (klfconfig.UI.enableRealTimePreview) {
-    if ( ! mPreviewBuilderThread->isRunning() ) {
-      delete mPreviewBuilderThread;
-      mPreviewBuilderThread =
-	new KLFPreviewBuilderThread(this, collectInput(false), _settings,
-				    klfconfig.UI.labelOutputFixedSize().width(),
-				    klfconfig.UI.labelOutputFixedSize().height());
-      mPreviewBuilderThread->start();
+    if ( ! pLatexPreviewThread->isRunning() ) {
+      pLatexPreviewThread->start();
     }
   } else {
-    if ( mPreviewBuilderThread->isRunning() ) {
-      delete mPreviewBuilderThread;
-      // do NOT leave a NULL mPreviewBuilderThread !
-      mPreviewBuilderThread =
-	new KLFPreviewBuilderThread(this, collectInput(false), _settings,
-				    klfconfig.UI.labelOutputFixedSize().width(),
-				    klfconfig.UI.labelOutputFixedSize().height());
+    if ( pLatexPreviewThread->isRunning() ) {
+      pLatexPreviewThread->stop();
     }
   }
 
@@ -2260,9 +2155,9 @@ void KLFMainWin::displayError(const QString& error)
 }
 
 
-void KLFMainWin::updatePreviewBuilderThreadInput()
+void KLFMainWin::updatePreviewThreadInput()
 {
-  bool reallyinputchanged = mPreviewBuilderThread->inputChanged(collectInput(false));
+  bool reallyinputchanged = pLatexPreviewThread->setInput(collectInput(false));
   if (reallyinputchanged) {
     _evaloutput_uptodate = false;
   }
@@ -2277,31 +2172,26 @@ void KLFMainWin::setTxtPreambleFont(const QFont& f)
   u->txtPreamble->setFont(f);
 }
 
-void KLFMainWin::showRealTimePreview(const QImage& preview, bool latexerror)
+void KLFMainWin::showRealTimeReset()
 {
-  klfDbg("preview.size=" << preview.size()<< "  latexerror=" << latexerror);
-  if (_evaloutput_uptodate)
+  u->lblOutput->display(QImage(), QImage(), false);
+}
+
+void KLFMainWin::showRealTimePreview(const QImage& preview, const QImage& largePreview)
+{
+  klfDbg("preview.size=" << preview.size()<< "  largepreview.size=" << largePreview.size());
+  if (_evaloutput_uptodate) // we have clicked on 'Evaluate' button, use that image!
     return;
 
-  if (latexerror) {
-    u->lblOutput->displayError(/*labelenabled:*/false);
-  } else if (preview.isNull() || preview.size() == QSize(0, 0)) {
-    u->lblOutput->displayClear();
-  } else {
-    QImage img = preview;
-    if (img.width() > u->lblOutput->width() || img.height() > u->lblOutput->height()) {
-      img = img.scaled(u->lblOutput->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
-    QImage imgpreview = preview;
-    const QSize tooltipSize = klfconfig.UI.previewTooltipMaxSize;
-    if (imgpreview.width() > tooltipSize.width() || imgpreview.height() > tooltipSize.height()) {
-      imgpreview = imgpreview.scaled(tooltipSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
-
-    u->lblOutput->display(img, imgpreview, false);
-  }
-
+  u->lblOutput->display(preview, largePreview, false);
 }
+
+void KLFMainWin::showRealTimeError(const QString& errmsg, int errcode)
+{
+  klfDbg("errormsg[0..99]="<<errmsg.mid(0,99)<<", code="<<errcode) ;
+  u->lblOutput->displayError(errmsg, /*labelenabled:*/false);
+}
+
 
 KLFBackend::klfInput KLFMainWin::collectInput(bool final)
 {
