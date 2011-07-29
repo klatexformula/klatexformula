@@ -452,10 +452,12 @@ struct KLFFloatSideWidgetManagerPrivate
   {
     dwidget = NULL;
     dlayout = NULL;
+    dwgeom = QRect();
   }
 
   QWidget *dwidget;
   QBoxLayout *dlayout;
+  QRect dwgeom;
 };
 
 
@@ -499,6 +501,14 @@ void KLFFloatSideWidgetManager::setWFlags(Qt::WindowFlags wf)
 
 void KLFFloatSideWidgetManager::showSideWidget(bool show)
 {
+  if (sideWidgetVisible()) {
+    // save position and size
+    d->dwgeom = d->dwidget->geometry();
+  }
+  if (show && d->dwgeom.isValid()) {
+    // set saved position and size
+    d->dwidget->setGeometry(d->dwgeom);
+  }
   d->dwidget->setVisible(show);
 }
 
@@ -544,6 +554,18 @@ KLFSideWidgetManagerFactory * KLFSideWidgetManagerFactory::findFactoryFor(const 
   return dynamic_cast<KLFSideWidgetManagerFactory*>(pFactoryManager.findFactoryFor(managertype));
 }
 
+// static
+KLFSideWidgetManagerBase *
+/* */ KLFSideWidgetManagerFactory::findCreateSideWidgetManager(const QString& type, QWidget *pw, QWidget *sw)
+{
+  KLFSideWidgetManagerFactory * f = findFactoryFor(type);
+
+  KLF_ASSERT_NOT_NULL(f, "Can't find factory for side widget manager type="<<type<<"!", return NULL; ) ;
+
+  return f->createSideWidgetManager(type, pw, sw);
+}
+
+
 QStringList KLFSideWidgetManagerFactory::supportedTypes() const
 {
   return QStringList()
@@ -557,7 +579,7 @@ QStringList KLFSideWidgetManagerFactory::supportedTypes() const
 
 KLFSideWidgetManagerBase *
 /* */  KLFSideWidgetManagerFactory::createSideWidgetManager(const QString& type, QWidget *parentWidget,
-						QWidget *sideWidget)
+							    QWidget *sideWidget)
 {
   if (type == QLatin1String("ShowHide")) {
     return new KLFShowHideSideWidgetManager(parentWidget, sideWidget);
@@ -574,4 +596,84 @@ KLFSideWidgetManagerBase *
   qWarning()<<KLF_FUNC_NAME<<": Unknown side-widget-manager type "<<type;
 
   return NULL;
+}
+
+
+// an instance of the factory
+KLFSideWidgetManagerFactory __klf_side_widget_manager_factory;
+
+
+// ---------
+
+struct KLFSideWidgetPrivate
+{
+  KLF_PRIVATE_HEAD(KLFSideWidget) {
+    manager = NULL;
+  }
+
+  KLFSideWidgetManagerBase * manager;
+};
+
+
+/*KLFSideWidget::KLFSideWidget(SideWidgetManager mtype, QWidget *parent)
+  : QWidget(parent)
+{
+  KLF_INIT_PRIVATE(KLFSideWidget) ;
+  setSideWidgetManager(mtype);
+}
+KLFSideWidget::KLFSideWidget(const QString& mtype, QWidget *parent)
+{
+  KLF_INIT_PRIVATE(KLFSideWidget) ;
+  setSideWidgetManager(mtype);
+  }*/
+
+KLFSideWidget::KLFSideWidget(QWidget *parent)
+  : QWidget(parent)
+{
+  KLF_INIT_PRIVATE(KLFSideWidget) ;
+}
+KLFSideWidget::~KLFSideWidget()
+{
+  KLF_DELETE_PRIVATE ;
+}
+
+KLFSideWidgetManagerBase * KLFSideWidget::sideWidgetManager()
+{
+  return d->manager;
+}
+
+bool KLFSideWidget::sideWidgetVisible() const
+{
+  KLF_ASSERT_NOT_NULL(d->manager, "Manager is NULL!", return false) ;
+  return d->manager->sideWidgetVisible();
+}
+
+
+void KLFSideWidget::setSideWidgetManager(SideWidgetManager mtype)
+{
+  QString s;
+  switch (mtype) {
+  case ShowHide: s = "ShowHide"; break;
+  case Float: s = "Float"; break;
+  case Drawer: s = "Drawer"; break;
+  default: break;
+  }
+
+  KLF_ASSERT_CONDITION(!s.isEmpty(), "Invalid mtype: "<<mtype<<"!", return;)
+  setSideWidgetManager(s);
+}
+void KLFSideWidget::setSideWidgetManager(const QString& mtype)
+{
+  if (d->manager != NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": Warning: this side widget already has a manager!"
+      "Manager switching not supported.";
+  }
+
+  d->manager =
+    KLFSideWidgetManagerFactory::findCreateSideWidgetManager(mtype, parentWidget(), this);
+}
+
+void KLFSideWidget::showSideWidget(bool show)
+{
+  d->manager->showSideWidget(show);
 }

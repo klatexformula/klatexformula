@@ -43,7 +43,7 @@ public:
    *   setSideWidget() and setOurParentWidget(), which then call newSideWidgetSet() etc., which passes
    *   through the virtual call (it does not in the base class constructor). */
   KLFSideWidgetManagerBase(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL,
-		       bool requireSideWidgetParentConsistency = false);
+			   bool requireSideWidgetParentConsistency = false);
   virtual ~KLFSideWidgetManagerBase();
 
   inline QWidget * sideWidget() const { return pSideWidget; }
@@ -193,8 +193,10 @@ public:
 
   virtual QStringList supportedTypes() const;
   virtual KLFSideWidgetManagerBase * createSideWidgetManager(const QString& type, QWidget *parentWidget,
-						 QWidget *sideWidget);
+							     QWidget *sideWidget);
 
+  static KLFSideWidgetManagerBase * findCreateSideWidgetManager(const QString& type, QWidget *parentWidget,
+								QWidget *sideWidget);
   static KLFSideWidgetManagerFactory * findFactoryFor(const QString& managertype);
 
 private:
@@ -206,7 +208,7 @@ private:
 
 // -----------------------------
 
-/*
+
 
 class KLFSideWidgetPrivate;
 class KLF_EXPORT KLFSideWidget : public QWidget
@@ -215,20 +217,29 @@ class KLF_EXPORT KLFSideWidget : public QWidget
 public:
   enum SideWidgetManager { ShowHide = 1, Float, Drawer } ;
 
-  KLFSideWidget(SideWidgetManager mtype = Float, QWidget *parent = NULL);
-  KLFSideWidget(const QString& mtype = QLatin1String("Float"), QWidget *parent = NULL);
+  //  KLFSideWidget(SideWidgetManager mtype = Float, QWidget *parent = NULL);
+  //  KLFSideWidget(const QString& mtype = QLatin1String("Float"), QWidget *parent = NULL);
+  KLFSideWidget(QWidget *parent = NULL);
   virtual ~KLFSideWidget();
+
+  bool sideWidgetVisible() const;
 
   KLFSideWidgetManagerBase * sideWidgetManager();
 
   void setSideWidgetManager(SideWidgetManager mtype);
   void setSideWidgetManager(const QString& mtype);
+
+public slots:
+  void showSideWidget(bool show = true);
+  void hideSideWidget(bool hide = true) { showSideWidget(!hide); }
+  void toggleSideWidget() { showSideWidget(!sideWidgetVisible()); }
+
 private:
 
   KLF_DECLARE_PRIVATE(KLFSideWidget) ;
 };
 
-*/
+
 
 
 #endif

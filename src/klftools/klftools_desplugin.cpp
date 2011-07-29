@@ -523,6 +523,71 @@ void KLFEnumListWidgetDesPlugin::initialize(QDesignerFormEditorInterface *core)
 
 
 
+// -----
+
+
+KLFSideWidgetDesPlugin::KLFSideWidgetDesPlugin(QObject *parent)
+{
+  Q_UNUSED(parent) ;
+}
+
+bool KLFSideWidgetDesPlugin::isContainer() const
+{
+  return true;
+}
+bool KLFSideWidgetDesPlugin::isInitialized() const
+{
+  return pInitialized;
+}
+QIcon KLFSideWidgetDesPlugin::icon() const
+{
+  return QIcon();
+}
+QString KLFSideWidgetDesPlugin::domXml() const
+{
+  return "<widget class=\"KLFSideWidget\" name=\"sideWidget\"></widget>\n";
+}
+QString KLFSideWidgetDesPlugin::group() const
+{
+  return "Utilities";
+}
+QString KLFSideWidgetDesPlugin::includeFile() const
+{
+  return "klfsidewidget.h";
+}
+QString KLFSideWidgetDesPlugin::name() const
+{
+  return "KLFSideWidget";
+}
+QString KLFSideWidgetDesPlugin::toolTip() const
+{
+  return "A widget that pops into the side of a window (in different variants)";
+}
+QString KLFSideWidgetDesPlugin::whatsThis() const
+{
+  return "A widget that pops into the side of a window (in different variants)";
+}
+QWidget *KLFSideWidgetDesPlugin::createWidget(QWidget *parent)
+{
+  KLFSideWidget * w = new KLFSideWidget(parent);
+  return w;
+}
+void KLFSideWidgetDesPlugin::initialize(QDesignerFormEditorInterface *core)
+{
+  Q_UNUSED(core) ;
+  if (pInitialized)
+    return;
+
+  // initialize ... :)
+
+  pInitialized = true;
+}
+
+
+
+
+
+
 
 // -----------------------------------------------------------
 
@@ -537,6 +602,7 @@ KLFToolsDesPlugin::KLFToolsDesPlugin(QObject* parent)
   _widgetPlugins.push_back(new KLFColorChooserDesPlugin(this));
   _widgetPlugins.push_back(new KLFLatexEditDesPlugin(this));
   _widgetPlugins.push_back(new KLFEnumListWidgetDesPlugin(this));
+  _widgetPlugins.push_back(new KLFSideWidgetDesPlugin(this));
 }
 
 KLFToolsDesPlugin::~KLFToolsDesPlugin()

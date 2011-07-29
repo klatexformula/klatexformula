@@ -35,6 +35,7 @@
 #include <klfcolorchooser.h>
 #include <klflatexedit.h>
 #include <klfenumlistwidget.h>
+#include <klfsidewidget.h>
 
 
 /** \bug **** PROPER CMAKE VARIABLES FOR KLFSEARCHBAR_DESPLUGIN CMAKE TARGET ******  */
@@ -231,6 +232,31 @@ class KLFEnumListWidgetDesPlugin : public QObject, public QDesignerCustomWidgetI
     ;
 public:
   KLFEnumListWidgetDesPlugin(QObject *parent = 0);
+
+  bool isContainer() const;
+  bool isInitialized() const;
+  QIcon icon() const;
+  QString domXml() const;
+  QString group() const;
+  QString includeFile() const;
+  QString name() const;
+  QString toolTip() const;
+  QString whatsThis() const;
+  QWidget *createWidget(QWidget *parent);
+  void initialize(QDesignerFormEditorInterface *core);
+
+private:
+  bool pInitialized;
+};
+
+
+class KLFSideWidgetDesPlugin : public QObject, public QDesignerCustomWidgetInterface
+{
+  Q_OBJECT
+  Q_INTERFACES(QDesignerCustomWidgetInterface)
+    ;
+public:
+  KLFSideWidgetDesPlugin(QObject *parent = 0);
 
   bool isContainer() const;
   bool isInitialized() const;
