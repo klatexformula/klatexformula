@@ -42,9 +42,13 @@ class KLF_EXPORT KLFDisplayLabel : public QLabel
   Q_PROPERTY(bool glowEffect READ glowEffect WRITE setGlowEffect) ;
   Q_PROPERTY(QColor glowEffectColor READ glowEffectColor WRITE setGlowEffectColor) ;
   Q_PROPERTY(int glowEffectRadius READ glowEffectRadius WRITE setGlowEffectRadius) ;
+  Q_PROPERTY(bool labelEnabled READ labelEnabled WRITE setLabelEnabled) ;
 public:
   KLFDisplayLabel(QWidget *parent);
   virtual ~KLFDisplayLabel();
+
+  enum DisplayState { Clear = 0, Ok, Error };
+  virtual DisplayState currentDisplayState() const { return pDisplayState; }
 
   virtual QSize labelFixedSize() const { return pLabelFixedSize; }
   virtual bool enableToolTipPreview() const { return pEnableToolTipPreview; }
@@ -55,12 +59,14 @@ public:
   inline QColor glowEffectColor() const { return pGEcolor; }
   inline int glowEffectRadius() const { return pGEradius; }
 
+  inline bool labelEnabled() const { return pLabelEnabled; }
+
 signals:
   void labelDrag();
 
 public slots:
   virtual void setLabelFixedSize(const QSize& size);
-  virtual void setEnableToolTipPreview(bool enable) { pEnableToolTipPreview = enable; }
+  virtual void setEnableToolTipPreview(bool enable) { pEnableToolTipPreview = enable; display_state(pDisplayState); }
 
   virtual void displayClear();
   virtual void display(QImage displayimg, QImage tooltipimage, bool labelenabled = true);
@@ -69,16 +75,25 @@ public slots:
   virtual void displayError(const QString& errorMessage, bool labelenabled = false);
 
   /** \note takes effect only upon next call of display() */
-  void setGlowEffect(bool on) { pGE = on; }
+  void setGlowEffect(bool on) { pGE = on; display_state(pDisplayState); }
   /** \note takes effect only upon next call of display() */
-  void setGlowEffectColor(const QColor& color) { pGEcolor = color; }
+  void setGlowEffectColor(const QColor& color) { pGEcolor = color; display_state(pDisplayState); }
   /** \note takes effect only upon next call of display() */
-  void setGlowEffectRadius(int r) { pGEradius = r; }
+  void setGlowEffectRadius(int r) { pGEradius = r; display_state(pDisplayState); }
+
+  void setLabelEnabled(bool enabled) { pLabelEnabled = enabled; display_state(pDisplayState); }
 
 protected:
   virtual void mouseMoveEvent(QMouseEvent *e);
 
 private:
+
+  void display_state(DisplayState state);
+
+  DisplayState pDisplayState;
+  QString pDisplayError;
+  QImage pDisplayImage;
+  QImage pDisplayTooltip;
 
   QSize pLabelFixedSize;
   bool pEnableToolTipPreview;
@@ -94,6 +109,8 @@ private:
   int pGEradius;
 
   void set_error(bool error_on);
+
+  bool pLabelEnabled;
 };
 
 

@@ -396,6 +396,11 @@ private slots:
   // private : only as slot to an action containing the style # as user data
   void slotLoadStyleAct();
 
+  /** controls the enabled state of the 'see larger preview button' widget */
+  void slotSetViewControlsEnabled(bool enabled);
+  /** controls the enabled state of the DRAG/COPY/SAVE & Format widgets */
+  void slotSetSaveControlsEnabled(bool enabled);
+
   void slotOpenHistoryLibraryResource();
 
   void slotNewSymbolTyped(const QString& symbol);

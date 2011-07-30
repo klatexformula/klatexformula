@@ -151,7 +151,9 @@ KLFMainWin::KLFMainWin()
   u->txtLatex->setFont(klfconfig.UI.latexEditFont);
   u->txtPreamble->setFont(klfconfig.UI.preambleEditFont);
 
-  u->frmOutput->setEnabled(false);
+  //  u->frmOutput->setEnabled(false);
+  slotSetViewControlsEnabled(false);
+  slotSetSaveControlsEnabled(false);
 
   QMenu *DPIPresets = new QMenu(this);
   // 1200 DPI
@@ -1090,7 +1092,9 @@ void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
   }
 
   u->lblOutput->display(entry.preview(), entry.preview(), false);
-  u->frmOutput->setEnabled(false);
+  //  u->frmOutput->setEnabled(false);
+  slotSetViewControlsEnabled(true);
+  slotSetSaveControlsEnabled(false);
   activateWindow();
   raise();
   u->txtLatex->setFocus();
@@ -2220,6 +2224,8 @@ void KLFMainWin::showRealTimeReset()
 {
   klfDbg("reset.") ;
   u->lblOutput->display(QImage(), QImage(), false);
+  slotSetViewControlsEnabled(false);
+  slotSetSaveControlsEnabled(false);
 }
 
 void KLFMainWin::showRealTimePreview(const QImage& preview, const QImage& largePreview)
@@ -2229,6 +2235,8 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, const QImage& largeP
     return;
 
   u->lblOutput->display(preview, largePreview, false);
+  slotSetViewControlsEnabled(true);
+  slotSetSaveControlsEnabled(false);
 }
 
 void KLFMainWin::showRealTimeError(const QString& errmsg, int errcode)
@@ -2240,6 +2248,8 @@ void KLFMainWin::showRealTimeError(const QString& errmsg, int errcode)
   if (s.length() > 800)
     s = tr("LaTeX error, click 'Evaluate' to see error message.", "[[real-time preview tooltip]]");
   u->lblOutput->displayError(s, /*labelenabled:*/false);
+  slotSetViewControlsEnabled(false);
+  slotSetSaveControlsEnabled(false);
 }
 
 
@@ -2307,7 +2317,9 @@ void KLFMainWin::slotEvaluate()
     }
     QMessageBox::critical(this, tr("Error"), _output.errorstr+comment);
     u->lblOutput->displayClear();
-    u->frmOutput->setEnabled(false);
+    //    u->frmOutput->setEnabled(false);
+    slotSetViewControlsEnabled(false);
+    slotSetSaveControlsEnabled(false);
     if (showSettingsPaths) {
       mSettingsDialog->show();
       mSettingsDialog->showControl(KLFSettings::ExecutablePaths);
@@ -2319,7 +2331,9 @@ void KLFMainWin::slotEvaluate()
       s = extract_latex_error(_output.errorstr);
     }
     KLFProgErr::showError(this, s);
-    u->frmOutput->setEnabled(false);
+    //    u->frmOutput->setEnabled(false);
+    slotSetViewControlsEnabled(false);
+    slotSetSaveControlsEnabled(false);
   }
   if (_output.status == 0) {
     // ALL OK
@@ -2344,7 +2358,9 @@ void KLFMainWin::slotEvaluate()
     }
     emit evaluateFinished(_output);
     u->lblOutput->display(sc.toImage(), tooltipimg, true);
-    u->frmOutput->setEnabled(true);
+    //    u->frmOutput->setEnabled(true);
+    slotSetViewControlsEnabled(true);
+    slotSetSaveControlsEnabled(true);
 
     KLFLibEntry newentry = KLFLibEntry(input.latex, QDateTime::currentDateTime(), sc.toImage(),
 				       currentStyle());
@@ -3250,6 +3266,19 @@ void KLFMainWin::slotStyleManager()
 void KLFMainWin::slotSettings()
 {
   mSettingsDialog->show();
+}
+
+
+void KLFMainWin::slotSetViewControlsEnabled(bool enabled)
+{
+  u->btnShowBigPreview->setEnabled(enabled);
+}
+
+void KLFMainWin::slotSetSaveControlsEnabled(bool enabled)
+{
+  u->btnDrag->setEnabled(enabled);
+  u->btnCopy->setEnabled(enabled);
+  u->btnSave->setEnabled(enabled);
 }
 
 

@@ -65,87 +65,118 @@ void KLFDisplayLabel::setLabelFixedSize(const QSize& size)
 
 void KLFDisplayLabel::displayClear()
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  setPixmap(QPixmap());
-  setText(QString());
-  setEnabled(false);
-  set_error(false);
+  display_state(Clear);
+  //  setEnabled(false);
+  setLabelEnabled(false);
 }
 
 void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool labelenabled)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  QImage img = displayimg;
-  QPixmap pix;
-  if (/*labelenabled && */ pGE) {
-    int r = pGEradius;
-    QSize msz = QSize(2*r, 2*r);
-    if (img.width()+msz.width() > width() || img.height()+msz.height() > height())
-      img = displayimg.scaled(size()-msz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    pix = QPixmap(img.size()+msz);
-    pix.fill(QColor(0,0,0,0));
-    QPainter painter(&pix);
-    painter.translate(QPoint(r, r));
-    klfDrawGlowedImage(&painter, img, pGEcolor, r);
-  } else {
-    if (img.width() > width() || img.height() > height())
-      img = displayimg.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    pix = QPixmap::fromImage(img);
-  }
-  setPixmap(pix);
 
-  // un-set any error
-  set_error(false);
+  pDisplayImage = displayimg;
+  pDisplayTooltip = tooltipimage;
 
-  if (mToolTipFile) {
-    delete mToolTipFile;
-    mToolTipFile = 0;
-  }
-  // no big preview by default
-  _bigPreviewText = "";
-  // but if one is given then prepare it (prepare it even if "enableToolTipPreview" is false,
-  // because we will need it for the "showBigPreview" button)
-  if ( ! tooltipimage.isNull() ) {
-    QString tempdir = QDir::tempPath();
-    mToolTipFile = new QTemporaryFile(tempdir+"/klf_tooltip_XXXXXX.png", this);
-    if ( ! mToolTipFile->open() ) {
-      qWarning("WARNING: Failed open for ToolTip Temp Image!\n%s\n",
-	       qPrintable(mToolTipFile->fileTemplate()));
-      delete mToolTipFile;
-      mToolTipFile = 0;
-    } else {
-      mToolTipFile->setAutoRemove(true);
-      bool res = tooltipimage.save(mToolTipFile, "PNG");
-      if ( ! res ) {
-	QMessageBox::critical(this, tr("Error"), tr("Failed write to ToolTip Temp Image file %1!")
-			      .arg(mToolTipFile->fileName()));
-	qWarning("WARNING: Failed write to Tooltip temp image to temporary file `%s' !\n",
-		 qPrintable(mToolTipFile->fileTemplate()));
-	delete mToolTipFile;
-	mToolTipFile = 0;
-      } else {
-	_bigPreviewText = QString("<img src=\"%1\">").arg(mToolTipFile->fileName());
-      }
-    }
-  }
-  if (pEnableToolTipPreview) {
-    setToolTip(QString("<p style=\"padding: 8px 8px 8px 8px;\">%1</p>").arg(_bigPreviewText));
-  } else {
-    setToolTip(QString(""));
-  }
+  display_state(Ok);
 
-  setEnabled(labelenabled);
+  //  setEnabled(labelenabled);
+  setLabelEnabled(labelenabled);
 }
 
 void KLFDisplayLabel::displayError(const QString& errorMessage, bool labelenabled)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  set_error(true);
-  setEnabled(labelenabled);
-  setToolTip(errorMessage);
-  _bigPreviewText = errorMessage;
+  pDisplayError = errorMessage;
+  display_state(Error);
+  //  setEnabled(labelenabled);
+  setLabelEnabled(labelenabled);
 }
 
+
+
+void KLFDisplayLabel::display_state(DisplayState state)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  pDisplayState = state;
+  if (state == Error) {
+    set_error(true);
+    setToolTip(pDisplayError);
+    _bigPreviewText = pDisplayError;
+  }
+  if (state == Clear) {
+    setPixmap(QPixmap());
+    setText(QString());
+    set_error(false);
+  }
+  if (state == Ok) {
+    QImage img = pDisplayImage;
+    QPixmap pix;
+    if (/*labelenabled && */ pGE) {
+      int r = pGEradius;
+      QSize msz = QSize(2*r, 2*r);
+      if (img.width()+msz.width() > width() || img.height()+msz.height() > height())
+	img = pDisplayImage.scaled(size()-msz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      pix = QPixmap(img.size()+msz);
+      pix.fill(QColor(0,0,0,0));
+      QPainter painter(&pix);
+      painter.translate(QPoint(r, r));
+      klfDrawGlowedImage(&painter, img, pGEcolor, r);
+    } else {
+      if (img.width() > width() || img.height() > height())
+	img = pDisplayImage.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      pix = QPixmap::fromImage(img);
+    }
+    QPixmap labelpix(size());
+    labelpix.fill(QColor(255,255,255,0));
+    QPainter pp(&labelpix);
+    pp.drawPixmap(QPoint((labelpix.width()-pix.width())/2, (labelpix.height()-pix.height())/2),
+		  pix);
+    // desaturate/grayify the pixmap if we are label-disabled
+    if (!pLabelEnabled) {
+      pp.fillRect(QRect(QPoint(0,0), labelpix.size()), QColor(255,255,255, 90));
+    }
+    setPixmap(labelpix);
+
+    // un-set any error
+    set_error(false);
+
+    if (mToolTipFile) {
+      delete mToolTipFile;
+      mToolTipFile = 0;
+    }
+    // no big preview by default
+    _bigPreviewText = "";
+    // but if one is given then prepare it (prepare it even if "enableToolTipPreview" is false,
+    // because we will need it for the "showBigPreview" button)
+    if ( ! pDisplayTooltip.isNull() ) {
+      QString tempdir = QDir::tempPath();
+      mToolTipFile = new QTemporaryFile(tempdir+"/klf_tooltip_XXXXXX.png", this);
+      if ( ! mToolTipFile->open() ) {
+	qWarning("WARNING: Failed open for ToolTip Temp Image!\n%s\n",
+		 qPrintable(mToolTipFile->fileTemplate()));
+	delete mToolTipFile;
+	mToolTipFile = 0;
+      } else {
+	mToolTipFile->setAutoRemove(true);
+	bool res = pDisplayTooltip.save(mToolTipFile, "PNG");
+	if ( ! res ) {
+	  QMessageBox::critical(this, tr("Error"), tr("Failed write to ToolTip Temp Image file %1!")
+				.arg(mToolTipFile->fileName()));
+	  qWarning("WARNING: Failed write to Tooltip temp image to temporary file `%s' !\n",
+		   qPrintable(mToolTipFile->fileTemplate()));
+	  delete mToolTipFile;
+	  mToolTipFile = 0;
+	} else {
+	  _bigPreviewText = QString("<img src=\"%1\">").arg(mToolTipFile->fileName());
+	}
+      }
+    }
+    if (pEnableToolTipPreview) {
+      setToolTip(QString("<p style=\"padding: 8px 8px 8px 8px;\">%1</p>").arg(_bigPreviewText));
+    } else {
+      setToolTip(QString(""));
+    }
+  }
+}
 
 void KLFDisplayLabel::set_error(bool error_on)
 {
@@ -157,12 +188,14 @@ void KLFDisplayLabel::set_error(bool error_on)
   } else {
     p = &pDefaultPalette;
   }
-  setAutoFillBackground(true);
+  //  setAutoFillBackground(true);
   setStyleSheet(styleSheet()); // force style sheet refresh
   setPalette(*p);
 }
 
+
 void KLFDisplayLabel::mouseMoveEvent(QMouseEvent */*e*/)
 {
-  emit labelDrag();
+  if (pLabelEnabled)
+    emit labelDrag();
 }
