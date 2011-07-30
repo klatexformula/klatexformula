@@ -35,8 +35,8 @@
 
 struct KLFSearchBarPrivate
 {
-  KLFSearchBarPrivate() : pCurPos(KLFPosSearchable::Pos::staticInvalidPos()),
-			  pLastPos(KLFPosSearchable::Pos::staticInvalidPos())
+  KLFSearchBarPrivate() : pCurPos(KLFPosSearchable::Pos()),
+			  pLastPos(KLFPosSearchable::Pos())
   {
   }
 
@@ -77,8 +77,8 @@ struct KLFSearchBarPrivate
    * is called enough times (to 'undo' the searches). */
   struct HistBuffer {
     struct CurLastPosPair {
-      CurLastPosPair(const KLFPosSearchable::Pos& c = KLFPosSearchable::Pos::staticInvalidPos(),
-		     const KLFPosSearchable::Pos& l = KLFPosSearchable::Pos::staticInvalidPos(),
+      CurLastPosPair(const KLFPosSearchable::Pos& c = KLFPosSearchable::Pos(),
+		     const KLFPosSearchable::Pos& l = KLFPosSearchable::Pos(),
 		     bool forward = true)
 	: cur(c), last(l), reachedForward(forward)  { }
       KLFPosSearchable::Pos cur;

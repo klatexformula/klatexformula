@@ -92,6 +92,7 @@ if(DOXYGEN)
   add_custom_target(doc
     COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/index.html" "${KLF_APIDOC_DIR}/index.html"
     COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/f.gif" "${KLF_APIDOC_DIR}/f.gif"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/headerbg.jpg" "${KLF_APIDOC_DIR}/headerbg.jpg"
     COMMAND "${CMAKE_COMMAND}" -E create_symlink "${klfapidocdirname}" "${klf_tar_dirname}"
     COMMAND tar cvhfj "${klf_tar_dirname}.tar.bz2" "${klf_tar_dirname}"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"

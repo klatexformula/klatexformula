@@ -320,14 +320,6 @@ public:
     return it2;
   }
 
-  //  virtual Pos invalidPos()
-  //   {
-  //     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  //     Pos p = KLFPosSearchable::invalidPos();
-  //     p.posdata = new IterPosData(this, searchIterEnd());
-  //     return p;
-  //   };
-
 protected:
 
   inline SearchIterator searchCurrentIterPos() const { return pCurPos; }
@@ -362,7 +354,7 @@ private:
   KLFPosSearchable::Pos posForIterator(const SearchIterator& it)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    Pos p = Pos::staticInvalidPos();
+    Pos p = Pos();
     if (it == searchIterEnd())
       return p; // an invalid pos
     p.posdata = new IterPosData(it);

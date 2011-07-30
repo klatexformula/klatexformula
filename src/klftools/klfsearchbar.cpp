@@ -80,12 +80,12 @@
  *     pos = doc->find(rx, pos, (!forward)?QTextDocument::FindBackward:(QTextDocument::FindFlags)0);
  *     klfDbg("searched, returned pos="<<pos.position()) ;
  *     if (pos.isNull()) {
- *       return Pos::staticInvalidPos();
+ *       return Pos();
  *     }
  *     // store into pos cursor the exact match position and length
  *     pos.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, rx.matchedLength());
  *     // and now, return the position
- *     Pos foundPos = Pos::staticInvalidPos();
+ *     Pos foundPos = Pos();
  *     foundPos.posdata = new TextCursorPosData(pos);
  *     return foundPos;
  *   }
@@ -149,7 +149,7 @@ QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos)
 KLFPosSearchable::Pos KLFPosSearchable::searchStartFrom(bool forward)
 {
   klfDbg("start from: base implementation, will return invalid. forward="<<forward) ;
-  return invalidPos();
+  return Pos();
 }
 
 void KLFPosSearchable::setSearchInterruptRequested(bool on)
@@ -168,13 +168,13 @@ KLFPosSearchableProxy::~KLFPosSearchableProxy()
 
 KLFPosSearchable::Pos KLFPosSearchableProxy::searchStartFrom(bool forward)
 {
-  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return invalidPos() );
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return Pos() );
   return target()->searchStartFrom(forward);
 }
 
 KLFPosSearchable::Pos KLFPosSearchableProxy::searchFind(const QString& queryString, const Pos& fromPos, bool forward)
 {
-  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return invalidPos() );
+  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return Pos() );
   return target()->searchFind(queryString, fromPos, forward);
 }
 
@@ -194,12 +194,6 @@ void KLFPosSearchableProxy::searchAborted()
 {
   KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return ; );
   target()->searchAborted();
-}
-
-KLFPosSearchable::Pos KLFPosSearchableProxy::invalidPos()
-{
-  KLF_ASSERT_NOT_NULL( target(), "Search target is NULL!", return invalidPos(); );
-  return target()->invalidPos();
 }
 
 void KLFPosSearchableProxy::searchReinitialized()
@@ -258,7 +252,7 @@ KLFPosSearchable::Pos KLFSearchable::searchFind(const QString& queryString, cons
     r = searchFind(queryString, forward);
   else
     r = searchFindNext(forward);
-  Pos p = invalidPos();
+  Pos p = Pos();
   if (!r)
     return p;
   // return dummy valid pos
@@ -355,8 +349,8 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   d->pSearchForward = true;
   d->pSearchText = QString();
   d->pIsSearching = false;
-  d->pCurPos = KLFPosSearchable::Pos::staticInvalidPos();
-  d->pLastPos = KLFPosSearchable::Pos::staticInvalidPos();
+  d->pCurPos = KLFPosSearchable::Pos();
+  d->pLastPos = KLFPosSearchable::Pos();
   d->pState = FocusOut;
   displayState(FocusOut);
 
@@ -521,8 +515,8 @@ static KLFSearchBarPrivate::HistBuffer::CurLastPosPair
 /* */ esbs_get_last_pos(const QList<KLFSearchBarPrivate::HistBuffer>& hb, int offset = 0)
 {
   if (hb.size() <= offset) { // there is no preceeding histbuffer
-    return KLFSearchBarPrivate::HistBuffer::CurLastPosPair(KLFPosSearchable::Pos::staticInvalidPos(),
-							   KLFPosSearchable::Pos::staticInvalidPos());
+    return KLFSearchBarPrivate::HistBuffer::CurLastPosPair(KLFPosSearchable::Pos(),
+							   KLFPosSearchable::Pos());
   }
   const QList<KLFSearchBarPrivate::HistBuffer::CurLastPosPair>& poslist = hb[hb.size()-1 - offset].poslist;
 
@@ -870,8 +864,8 @@ void KLFSearchBar::promptEmptySearch()
   u->txtSearch->setText("");
   u->txtSearch->blockSignals(false);
   d->pSearchText = QString();
-  d->pCurPos = KLFPosSearchable::Pos::staticInvalidPos();
-  d->pLastPos = KLFPosSearchable::Pos::staticInvalidPos();
+  d->pCurPos = KLFPosSearchable::Pos();
+  d->pLastPos = KLFPosSearchable::Pos();
   if (target() != NULL) {
     klfDbg("telling target to reinitialize search...") ;
     if (d->pIsFinding)
@@ -890,8 +884,8 @@ void KLFSearchBar::abortSearch()
 
   d->pSearchText = QString();
   d->pIsSearching = false;
-  d->pCurPos = KLFPosSearchable::Pos::staticInvalidPos();
-  d->pLastPos = KLFPosSearchable::Pos::staticInvalidPos();
+  d->pCurPos = KLFPosSearchable::Pos();
+  d->pLastPos = KLFPosSearchable::Pos();
   klfDbg("pCurPos="<<d->pCurPos) ;
 
   if ( ! u->txtSearch->text().isEmpty() ) {

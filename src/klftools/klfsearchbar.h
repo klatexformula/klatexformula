@@ -81,10 +81,10 @@ public:
    * A position can be \a invalid, or \a valid. The actual data representing the position is stored
    * in a custom sub-class of PosData, to which a pointer is held in \c posdata.
    *
-   * You can construct an invalid position with staticInvalidPos(). Then just assign a data pointer
+   * You can construct an invalid position with the default constructor. Then just assign a data pointer
    * to it and it becomes valid, e.g.
    * \code
-   *   Pos p = Pos::staticInvalidPos();
+   *   Pos p = Pos();
    *   // p is invalid
    *   MyPosData *d = new MyPosData;
    *   d->somefield = some_data;
@@ -140,6 +140,11 @@ public:
     private:
       int r;
     };
+
+    /** Constructs an invalid position. This initializes the data pointer to NULL. */
+    Pos() : posdata()
+    {
+    }
 
     Pos(const Pos& other) : posdata(other.posdata)
     {
@@ -209,13 +214,6 @@ public:
       KLF_ASSERT_NOT_NULL(ptr, "accessing a posdata that is NULL or of incompatible type!", return NULL;) ;
       return ptr;
     }
-
-    /** Returns an invalid Pos. */
-    static Pos staticInvalidPos() { return Pos(); }
-
-  private:
-    /** Use staticInvalidPos() or KLFPosSearchable::invalidPos() to create a Pos object */
-    Pos() : posdata() { KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ; }
   };
 
   /** Returns the position from where we should start the search, given the current view situation. This
@@ -224,11 +222,11 @@ public:
    * If \c forward is TRUE, then the search is about to be performed forward, otherwise it is about to
    * be performed in reverse direction.
    *
-   * The search is performed AFTER the returned pos, and invalidPos() is regarded as being both before
-   * the beginning and after the end, ie. to search forward from the beginning, use invalidPos() as well
-   * as to search backward from the end.
+   * The search is performed AFTER the returned pos, and an invalid Pos is regarded as being both before
+   * the beginning and after the end, ie. to search forward from the beginning, use an invalid position
+   * as well as to search backward from the end.
    *
-   * The default implementation returns invalidPos().
+   * The default implementation returns an invalid position.
    */
   virtual Pos searchStartFrom(bool forward);
 
@@ -266,29 +264,6 @@ public:
   /** Called by the search bar to inform the searched object that the search was aborted by the
    * user. */
   virtual void searchAborted() = 0;
-
-  /** Subclasses should override to use this function as Pos object factory. See also
-   * \ref Pos::valid().
-   *
-   * This function is used as constructor for \c Pos objects. You may derive it to initialize
-   * your Pos objects appropriately with PosData object instances if wanted, eg.
-   * \code
-   * class MyPosData : public KLFSearchable::Pos::PosData {
-   *   ... // data...
-   *   virtual bool valid() const { ... };
-   *   virtual bool equals(const Pos& other) const { ... };
-   * }
-   * KLFPosSearchable::Pos MyPosSearchable::invalidPos() {
-   *   Pos p = KLFPosSearchable::invalidPos();
-   *   p.posdata = new MyPosData;
-   *   return p;
-   * }
-   * \endcode
-   *
-   * Note that however, your subclass should also understand the \ref Pos object instance returned
-   * by Pos::staticInvalidPos() as being an invalid position.
-   *  */
-  virtual Pos invalidPos() { return Pos::staticInvalidPos(); };
 
   /** Called when search bar has focus, but not text is typed. Typically if user hits
    * backspace enough times to an empty string.
@@ -330,7 +305,6 @@ public:
   virtual void searchMoveToPos(const Pos& pos);
   virtual void searchPerformed(const QString& queryString, bool found, const Pos& pos);
   virtual void searchAborted();
-  virtual Pos invalidPos();
   virtual void searchReinitialized();
   virtual QString searchQueryString() const;
   virtual void setSearchQueryString(const QString& s);

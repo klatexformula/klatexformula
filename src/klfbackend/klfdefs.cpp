@@ -836,7 +836,8 @@
 /** \fn KLF_EXPORT QString KLFSysInfo::arch()
  * \brief The architecture of this sytem
  *
- * \returns One of \c "x86" or \c "x86_64", or \c QString() for other/unknown.
+ * \returns The current architecture, typically \c "x86" or \c "x86_64", stored
+ *   in the CMake variable KLF_CMAKE_ARCH.
  */
 /** \fn KLF_EXPORT KLFSysInfo::Os KLFSysInfo::os()
  * \brief Which operating system this system is running
