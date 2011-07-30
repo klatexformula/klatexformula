@@ -570,6 +570,7 @@ QString KLFSideWidgetDesPlugin::whatsThis() const
 QWidget *KLFSideWidgetDesPlugin::createWidget(QWidget *parent)
 {
   KLFSideWidget * w = new KLFSideWidget(parent);
+  w->_inqtdesigner = true;
   return w;
 }
 void KLFSideWidgetDesPlugin::initialize(QDesignerFormEditorInterface *core)

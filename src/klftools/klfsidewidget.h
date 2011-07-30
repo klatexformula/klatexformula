@@ -27,6 +27,7 @@
 
 #include <QObject>
 #include <QWidget>
+#include <QPointer>
 
 #include <klfdefs.h>
 #include <klffactory.h>
@@ -43,7 +44,7 @@ public:
    *   setSideWidget() and setOurParentWidget(), which then call newSideWidgetSet() etc., which passes
    *   through the virtual call (it does not in the base class constructor). */
   KLFSideWidgetManagerBase(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL,
-			   bool requireSideWidgetParentConsistency = false);
+			   bool requireSideWidgetParentConsistency = false, QObject *managerParent = NULL);
   virtual ~KLFSideWidgetManagerBase();
 
   inline QWidget * sideWidget() const { return pSideWidget; }
@@ -68,8 +69,8 @@ protected:
 
 private:
 
-  QWidget *pSideWidget;
-  QWidget *pParentWidget;
+  QPointer<QWidget> pSideWidget;
+  QPointer<QWidget> pParentWidget;
 
   KLF_DECLARE_PRIVATE(KLFSideWidgetManagerBase);
 };
@@ -88,7 +89,8 @@ class KLF_EXPORT KLFShowHideSideWidgetManager : public KLFSideWidgetManagerBase
   KLF_PROPERTY_GET(Qt::Orientation orientation) ;
   KLF_PROPERTY_GET(int calcSpacing) ;
 public:
-  KLFShowHideSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
+  KLFShowHideSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL,
+			       QObject *managerParent = NULL);
   virtual ~KLFShowHideSideWidgetManager();
 
   virtual bool eventFilter(QObject *obj, QEvent *event);
@@ -116,19 +118,55 @@ private:
 
 // ------
 
+class KLFContainerSideWidgetManagerPrivate;
+
+class KLFContainerSideWidgetManager : public KLFSideWidgetManagerBase
+{
+  Q_OBJECT
+
+public:
+  KLFContainerSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL,
+				QObject *managerParent = NULL);
+  virtual ~KLFContainerSideWidgetManager();
+
+  virtual bool sideWidgetVisible() const;
+
+public slots:
+  virtual void showSideWidget(bool show);
+
+protected:
+  /** Must be called in subclasses' constructor */
+  void init();
+
+  /** Must be reimplemented to create the container widget */
+  virtual QWidget * createContainerWidget(QWidget * pw) = 0;
+
+  virtual QWidget * containerWidget() const;
+
+  virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget);
+  virtual void newParentWidgetSet(QWidget *oldWidget, QWidget *newWidget);
+
+private slots:
+  void aWidgetDestroyed(QObject *);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFContainerSideWidgetManager) ;
+};
+
+
+// ------
 
 class KLFDrawerSideWidgetManagerPrivate;
-class KLF_EXPORT KLFDrawerSideWidgetManager : public KLFSideWidgetManagerBase
+class KLF_EXPORT KLFDrawerSideWidgetManager : public KLFContainerSideWidgetManager
 {
   Q_OBJECT
 
   Q_PROPERTY(Qt::DockWidgetArea openEdge READ openEdge WRITE setOpenEdge) ;
   KLF_PROPERTY_GET(Qt::DockWidgetArea openEdge) ;
 public:
-  KLFDrawerSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
+  KLFDrawerSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL,
+			     QObject *managerParent = NULL);
   virtual ~KLFDrawerSideWidgetManager();
-
-  virtual bool eventFilter(QObject *obj, QEvent *event);
 
   virtual bool sideWidgetVisible() const;
 
@@ -137,7 +175,7 @@ public slots:
   void setOpenEdge(Qt::DockWidgetArea edge);
 
 protected:
-  virtual bool event(QEvent *event);
+  virtual QWidget * createContainerWidget(QWidget * pw);
 
   virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget);
   virtual void newParentWidgetSet(QWidget *oldWidget, QWidget *newWidget);
@@ -150,14 +188,15 @@ private:
 // -------
 
 class KLFFloatSideWidgetManagerPrivate;
-class KLF_EXPORT KLFFloatSideWidgetManager : public KLFSideWidgetManagerBase
+class KLF_EXPORT KLFFloatSideWidgetManager : public KLFContainerSideWidgetManager
 {
   Q_OBJECT
 
   Q_PROPERTY(Qt::WindowFlags wflags READ wflags WRITE setWFlags) ;
   KLF_PROPERTY_GET(Qt::WindowFlags wflags) ;
 public:
-  KLFFloatSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL);
+  KLFFloatSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL,
+			    QObject *managerParent = NULL);
   virtual ~KLFFloatSideWidgetManager();
 
   virtual bool sideWidgetVisible() const;
@@ -168,6 +207,8 @@ public slots:
 
 protected:
   void newSideWidgetSet(QWidget *oldw, QWidget *w);
+
+  virtual QWidget * createContainerWidget(QWidget * pw);
 
 private:
   KLF_DECLARE_PRIVATE(KLFFloatSideWidgetManager) ;
@@ -193,10 +234,10 @@ public:
 
   virtual QStringList supportedTypes() const;
   virtual KLFSideWidgetManagerBase * createSideWidgetManager(const QString& type, QWidget *parentWidget,
-							     QWidget *sideWidget);
+							     QWidget *sideWidget, QObject *parent);
 
   static KLFSideWidgetManagerBase * findCreateSideWidgetManager(const QString& type, QWidget *parentWidget,
-								QWidget *sideWidget);
+								QWidget *sideWidget, QObject *parent);
   static KLFSideWidgetManagerFactory * findFactoryFor(const QString& managertype);
 
 private:
@@ -214,6 +255,8 @@ class KLFSideWidgetPrivate;
 class KLF_EXPORT KLFSideWidget : public QWidget
 {
   Q_OBJECT
+
+  Q_PROPERTY(QString sideWidgetManagerType READ sideWidgetManagerType WRITE setSideWidgetManager) ;
 public:
   enum SideWidgetManager { ShowHide = 1, Float, Drawer } ;
 
@@ -224,19 +267,26 @@ public:
 
   bool sideWidgetVisible() const;
 
-  KLFSideWidgetManagerBase * sideWidgetManager();
+  QString sideWidgetManagerType() const;
 
-  void setSideWidgetManager(SideWidgetManager mtype);
-  void setSideWidgetManager(const QString& mtype);
+  KLFSideWidgetManagerBase * sideWidgetManager();
 
 public slots:
   void showSideWidget(bool show = true);
   void hideSideWidget(bool hide = true) { showSideWidget(!hide); }
   void toggleSideWidget() { showSideWidget(!sideWidgetVisible()); }
 
+  void setSideWidgetManager(SideWidgetManager mtype);
+  void setSideWidgetManager(const QString& mtype);
+
+  void debug_unlock_qtdesigner();
+
 private:
 
   KLF_DECLARE_PRIVATE(KLFSideWidget) ;
+
+  friend class KLFSideWidgetDesPlugin;
+  bool _inqtdesigner;
 };
 
 
