@@ -34,6 +34,11 @@
 #include <ui_systraymainiconifybuttons.h>
 
 
+#if defined(Q_WS_MAC) && defined(QT_MAC_USE_COCOA)
+#define KLF_MAC_HIDE_INSTEAD
+#endif
+
+
 class SysTrayIconConfigWidget : public QWidget, public Ui::SysTrayIconConfigWidget
 {
   Q_OBJECT

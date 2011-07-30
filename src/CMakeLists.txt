@@ -124,6 +124,7 @@ if(APPLE)
   )
   set(klfapp_SRCS ${klfapp_SRCS}
 	macosx/klfmacclipboard.cpp
+	macosx/klfmainwin_mac.mm
   )
 endif(APPLE)
 # * X11

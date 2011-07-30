@@ -36,6 +36,10 @@ SysTrayMainIconifyButtons::SysTrayMainIconifyButtons(QWidget *parent) : QWidget(
 {
   setupUi(this);
   btnQuit->setShortcut(QKeySequence(tr("Ctrl+Q", "SysTrayMainIconifyButtons->Quit")));
+
+#ifdef Q_WS_MAC
+  btnIconify->setText(tr("Hide", "[[iconify button text on mac]]"));
+#endif
 }
 
 
@@ -43,6 +47,13 @@ SysTrayIconConfigWidget::SysTrayIconConfigWidget(QWidget *parent)
   : QWidget(parent)
 {
   setupUi(this);
+
+#ifdef KLF_MAC_HIDE_INSTEAD
+  chkSysTrayOn->setText(tr("Offer to hide application", "[[systrayicon config setting on Mac OS X]]"));
+  chkRestoreOnHover->hide();
+  chkReplaceQuitButton->hide();
+  chkMinToSysTray->hide();
+#endif
 
 #if !defined(Q_WS_X11)
   chkRestoreOnHover->hide();
@@ -76,15 +87,18 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
 #endif
   menu->addAction(QIcon(":/pics/closehide.png"), tr("Quit"), mainWin, SLOT(quit()));
 
+#ifndef KLF_MAC_HIDE_INSTEAD
   _systrayicon = new QSystemTrayIcon(QIcon(":/pics/klatexformula-32.png"), mainWin);
   _systrayicon->setToolTip("KLatexFormula");
   _systrayicon->setContextMenu(menu);
-
   _systrayicon->installEventFilter(this);
-  _mainwin->installEventFilter(this);
-
   connect(_systrayicon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 	  this, SLOT(slotSysTrayActivated(QSystemTrayIcon::ActivationReason)));
+#else
+  _systrayicon = NULL;
+#endif
+
+  _mainwin->installEventFilter(this);
 
   apply();
 }
@@ -93,12 +107,14 @@ void SysTrayIconPlugin::apply()
 {
   bool systrayon = _config->readValue("systrayon").toBool();
 
-  if (systrayon && QSystemTrayIcon::isSystemTrayAvailable()) {
-    _systrayicon->show();
-    _mainwin->setQuitOnClose(false);
-  } else {
-    _systrayicon->hide();
-    _mainwin->setQuitOnClose(true);
+  if (_systrayicon != NULL) {
+    if (systrayon && QSystemTrayIcon::isSystemTrayAvailable()) {
+      _systrayicon->show();
+      _mainwin->setQuitOnClose(false);
+    } else {
+      _systrayicon->hide();
+      _mainwin->setQuitOnClose(true);
+    }
   }
 
   // replace main window's quit button by a close button or restore quit button if option was unchecked.
@@ -112,7 +128,17 @@ void SysTrayIconPlugin::apply()
     connect(_mainButtonBar->btnIconify, SIGNAL(clicked()), this, SLOT(minimize()));
     connect(_mainButtonBar->btnQuit, SIGNAL(clicked()), _mainwin, SLOT(quit()));
   }
-  if ( systrayon && _config->readValue("replacequitbutton").toBool() == true) {
+
+  bool wantreplacequitbutton;
+#ifdef KLF_MAC_HIDE_INSTEAD
+  // the user should disable "Dock into systray" altogether if he doesn't want this
+  // as the only way he would have to hide the app is through the mac menu anyway
+  wantreplacequitbutton = true;
+#else
+  wantreplacequitbutton = _config->readValue("replacequitbutton").toBool();
+#endif
+    
+  if ( systrayon && wantreplacequitbutton ) {
     mainBtnQuit->hide();
     _mainButtonBar->show();
   } else if (_mainButtonBar != NULL) {
@@ -183,8 +209,7 @@ void SysTrayIconPlugin::saveToConfig(QWidget *confqwidget, KLFPluginConfigAccess
 void SysTrayIconPlugin::latexFromClipboard(QClipboard::Mode mode)
 {
   restore();
-  QString cliptext = QApplication::clipboard()->text(mode);
-  _mainwin->slotSetLatex(cliptext);
+  _mainwin->pasteLatexFromClipboard(mode);
 }
 
 
@@ -198,7 +223,11 @@ void SysTrayIconPlugin::restore()
 
 void SysTrayIconPlugin::minimize()
 {
+#ifdef KLF_MAC_HIDE_INSTEAD
+  _mainwin->macHideApplication();
+#else
   _mainwin->close();
+#endif
 }
 
 void SysTrayIconPlugin::slotSysTrayActivated(QSystemTrayIcon::ActivationReason reason)

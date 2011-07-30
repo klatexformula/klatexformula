@@ -36,6 +36,7 @@
 #include <QMimeData>
 #include <QDialog>
 #include <QMainWindow>
+#include <QClipboard>
 
 #include <klfbackend.h>
 
@@ -306,6 +307,8 @@ public slots:
   // will actually save only if output non empty.
   void slotEvaluateAndSave(const QString& output, const QString& format);
 
+  void pasteLatexFromClipboard(QClipboard::Mode mode = QClipboard::Clipboard);
+
   bool openFile(const QString& file);
   bool openFiles(const QStringList& fileList);
   bool openData(const QMimeData *mimeData, bool *openerFound = NULL);
@@ -384,6 +387,8 @@ public slots:
   void refreshAllWindowStyleSheets();
 
   void setQuitOnClose(bool quitOnClose);
+
+  void macHideApplication();
 
   void quit();
 

@@ -279,6 +279,7 @@ public:
     types << "image/png"
 	  << "image/jpeg"
 	  << "text/uri-list"
+	  << "text/plain"
 	  << "application/x-klf-libentries"
 	  << "application/x-klatexformula"
 	  << "application/x-klatexformula-db" ;
@@ -421,6 +422,12 @@ public:
 	return true;
       }
       return  mainWin()->openFiles(flist);
+    }
+
+    if (mimetype == "text/plain") {
+      mainWin()->loadDefaultStyle();
+      mainWin()->slotSetLatex(QString::fromLocal8Bit(data));
+      return true;
     }
 
     bool isimage = false;

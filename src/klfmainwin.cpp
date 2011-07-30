@@ -419,6 +419,9 @@ KLFMainWin::KLFMainWin()
   QMenu *filemenu = macOSXMenu->addMenu("File");
   // ... because the 'Preferences' action is detected and is sent to the 'klatexformula' menu...
   filemenu->addAction("Preferences", this, SLOT(slotSettings()));
+
+  // dock menu will be added once shown only, to avoid '...autoreleased without NSAutoreleasePool...'
+  // annoying messages
 #endif
 
 
@@ -1820,6 +1823,15 @@ void KLFMainWin::setQuitOnClose(bool quitOnClose)
   _ignore_close_event = ! quitOnClose;
 }
 
+void KLFMainWin::macHideApplication()
+{
+#ifdef Q_WS_MAC
+  extern void klf_mac_hide_application(KLFMainWin *);
+  klf_mac_hide_application(this);
+#else
+  qWarning()<<KLF_FUNC_NAME<<": this function is only available on Mac OS X.";
+#endif
+}
 
 void KLFMainWin::quit()
 {
@@ -1964,6 +1976,9 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
     openFile(((QFileOpenEvent*)e)->file());
     return true;
   }
+  //  if (obj == QApplication::instance()) {
+  //    klfDbg("got application event="<<e<<"; type="<<e->type());
+  //  }
 
   // ----
   if ( (obj == u->btnCopy || obj == u->btnDrag) && e->type() == QEvent::ToolTip ) {
@@ -2051,6 +2066,15 @@ void KLFMainWin::showEvent(QShowEvent *e)
     if ( klfconfig.Core.thisVersionMajMinFirstRun ) {
       QMetaObject::invokeMethod(this, "showWhatsNew", Qt::QueuedConnection);
     }
+
+#ifdef Q_WS_MAC
+    // add a menu item in dock to paste from clipboard
+    QMenu *adddockmenu = new QMenu;
+    adddockmenu->addAction(tr("Paste Clipboard Contents", "[[Dock Menu Entry on MacOSX]]"),
+			   this, SLOT(pasteLatexFromClipboard()));
+    extern void qt_mac_set_dock_menu(QMenu *);
+    qt_mac_set_dock_menu(adddockmenu);
+#endif
   }
 
   if ( ! e->spontaneous() ) {
@@ -2563,6 +2587,12 @@ void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& forma
 
 }
 
+
+void KLFMainWin::pasteLatexFromClipboard(QClipboard::Mode mode)
+{
+  QString cliptext = QApplication::clipboard()->text(mode);
+  slotSetLatex(cliptext);
+}
 
 
 
