@@ -51,7 +51,7 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
 
   pCurrentStyle = KLFStyle();
 
-  u->lblPreview->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
+  u->lblPreview->setFixedSize(klfconfig.UI.smallPreviewSize);
 
   u->cbxCategory->setInsertPolicy(QComboBox::InsertAlphabetically);
   u->cbxCategory->setDuplicatesEnabled(false);

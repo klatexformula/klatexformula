@@ -158,6 +158,11 @@ bool KLFAddOnInfo::PluginSysInfo::isCompatibleWithCurrentSystem() const
     arch == KLFSysInfo::arch() ;
 }
 
+void KLFAddOnInfo::addError(const QString& s)
+{
+  if (d->errors.indexOf(s) == -1)
+    d->errors << s;
+}
 
 void KLFAddOnInfo::initPlugins()
 {
@@ -437,7 +442,7 @@ KLF_EXPORT void klf_reload_translations(QCoreApplication *app, const QString& cu
       //	     qPrintable(i18nfile.name), qPrintable(i18nfile.locale), i18nfile.locale_specificity);
       i18nFiles[i18nfile.name][i18nfile.locale_specificity] << i18nfile;
       names << i18nfile.name;
-      qDebug("Found translation %s", qPrintable(i18nfile.fpath));
+      klfDbg("Found translation "<<i18nfile.fpath);
       klf_add_avail_translation(i18nfile);
     }
   }

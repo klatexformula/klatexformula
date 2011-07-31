@@ -84,9 +84,15 @@ signals:
   void previewError(const QString& errorString, int errorCode);
 
 public slots:
+  /** \returns TRUE if the input was set, FALSE if current input is already equal to \c input */
   bool setInput(const KLFBackend::klfInput& input);
+  /** \returns TRUE if the settings were set, FALSE if current settings are already equal to \c settings */
   bool setSettings(const KLFBackend::klfSettings& settings, bool disableExtraFormats = true);
+  /** \returns TRUE if the previewSize was set, FALSE if current preview size is already equal to
+   * \c previewSize */
   bool setPreviewSize(const QSize& previewSize);
+  /** \returns TRUE if the largePreviewSize was set, FALSE if current large preview size is already equal to
+   * \c largePreviewSize */
   bool setLargePreviewSize(const QSize& largePreviewSize);
 
 protected:

@@ -511,8 +511,8 @@ void KLFSettings::reset()
   u->btnPreambleFont->setProperty("selectedFont", klfconfig.UI.preambleEditFont.toVariant());
 
   u->chkEnableRealTimePreview->setChecked(klfconfig.UI.enableRealTimePreview);
-  u->spnPreviewWidth->setValue(klfconfig.UI.labelOutputFixedSize().width());
-  u->spnPreviewHeight->setValue(klfconfig.UI.labelOutputFixedSize().height());
+  u->spnPreviewWidth->setValue(klfconfig.UI.smallPreviewSize().width());
+  u->spnPreviewHeight->setValue(klfconfig.UI.smallPreviewSize().height());
 
   u->chkEnableToolTipPreview->setChecked(klfconfig.UI.enableToolTipPreview);
   u->spnToolTipMaxWidth->setValue(klfconfig.UI.previewTooltipMaxSize().width());
@@ -628,22 +628,37 @@ void KLFSettings::refreshPluginSelected()
     return;
   }
 
-  //  u->btnRemovePlugin->setEnabled(true);
-  int smallpointsize = QFontInfo(font()).pointSize() - 1;
-  u->lblPluginInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;\">\n"
-			       "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
-			       "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
-			       "<tt>Description:</tt></p>\n"
-			       "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;"
-			       "   margin-bottom: 0px;\">%3</p>\n"
-			       "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
-			       "<tt>File Location:</tt> <span style=\"font-size: %4pt;\">%5</span>\n")
-			    .arg(Qt::escape(klf_plugins[k].title)).arg(Qt::escape(klf_plugins[k].author))
-			    .arg(Qt::escape(klf_plugins[k].description))
-			    .arg(smallpointsize)
-			    .arg(Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_plugins[k].fpath)
-								     .canonicalFilePath())))
-			    );
+  int textpointsize = QFontInfo(font()).pointSize() - 2;
+  QString textpointsize_s = QString::number(textpointsize);
+  int smallpointsize = QFontInfo(font()).pointSize() - 3;
+  QString smallpointsize_s = QString::number(smallpointsize);
+  
+  QString plugininfotext =
+    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+    "p, li { white-space: pre-wrap; }\n"
+    "</style></head>\n"
+    "<body style=\"font-size:" + textpointsize_s + "pt;\">\n"
+    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
+    // the name
+    "<tt>" + tr("Name:", "[[settings dialog plugin info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(klf_plugins[k].title) + "</span><br />\n"
+    // the author
+    "<tt>" + tr("Author:", "[[settings dialog plugin info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(klf_plugins[k].author) + "</span><br />\n"
+    // the description
+    "<tt>" + tr("Description:", "[[settings dialog plugin info text]]") + "</tt></p>\n"
+    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;   margin-bottom: 0px;\">"
+    + Qt::escape(klf_plugins[k].description) + "</p>\n"
+    // file location
+    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
+    "<tt>" + tr("File Location:", "[[settings dialog plugin info text]]") + "</tt><br />"
+    "<span style=\"font-size: "+smallpointsize_s+"pt;\">"
+    + Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_plugins[k].fpath).canonicalFilePath()))
+    + "</span><br />\n"
+    "</body></html>";
+
+  u->lblPluginInfo->setText(plugininfotext);
 }
 
 void KLFSettings::removePlugin()
@@ -818,27 +833,54 @@ void KLFSettings::refreshAddOnSelected()
   // enable remove button only if this addon is "local", i.e. precisely removable
   u->btnRemoveAddOn->setEnabled(klf_addons[k].islocal());
 
-  int smallpointsize = QFontInfo(font()).pointSize() - 1;
-  u->lblAddOnInfo->setText(tr("<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
-			   "<tt>Name:</tt> <span style=\"font-weight:600;\">%1</span><br />\n"
-			   "<tt>Author:</tt> <span style=\"font-weight:600;\">%2</span><br />\n"
-			   "<tt>Description:</tt></p>\n"
-			    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;"
-			   "   margin-bottom: 0px;\">%3</p>\n"
-			   "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
-			   "<tt>File Name:</tt> <span style=\"font-size: %5pt;\">%4</span><br />\n"
-			   "<tt>File Location:</tt> <span style=\"font-size: %5pt;\">%6</span><br />\n"
-			   "<tt><i>%7</i></tt>").arg(Qt::escape(klf_addons[k].title()))
-			.arg(Qt::escape(klf_addons[k].author())).arg(Qt::escape(klf_addons[k].description()))
-			.arg(Qt::escape(klf_addons[k].fname()))
-			.arg(smallpointsize)
-			.arg(Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_addons[k].dir())
-								 .canonicalFilePath()) + QDir::separator()))
-			.arg( klf_addons[k].islocal() ?
-			      tr("Add-On installed locally") :
-			      tr("Add-On installed globally on system") )
-			);
+  int textpointsize = QFontInfo(font()).pointSize() - 2;
+  QString textpointsize_s = QString::number(textpointsize);
+  int smallpointsize = QFontInfo(font()).pointSize() - 3;
+  QString smallpointsize_s = QString::number(smallpointsize);
 
+  // prepare add-on load error messages
+  QStringList elist = klf_addons[k].errors();
+  QString errorshtml;
+  for (int kkl = 0; kkl < elist.size(); ++kkl) {
+    errorshtml += "<span style=\"color: #a00000; font-style=italic; font-weight: bold\">"
+      + Qt::escape(elist[kkl]) + "</span><br />";
+  }
+  
+  QString addoninfotext =
+    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+    "p, li { white-space: pre-wrap; }\n"
+    "</style></head>\n"
+    "<body style=\"font-size:" + textpointsize_s + "pt;\">\n"
+    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
+    // errors on top, so that one can easily see them
+    + errorshtml +
+    // the name
+    "<tt>" + tr("Name:", "[[settings dialog add-on info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(klf_addons[k].title()) + "</span><br />\n"
+    // the author
+    "<tt>" + tr("Author:", "[[settings dialog add-on info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(klf_addons[k].author()) + "</span><br />\n"
+    // the description
+    "<tt>" + tr("Description:", "[[settings dialog add-on info text]]") + "</tt></p>\n"
+    "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;   margin-bottom: 0px;\">"
+    + Qt::escape(klf_addons[k].description()) + "</p>\n"
+    // file name
+    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
+    "<tt>" + tr("File Name:", "[[settings dialog add-on info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-size: "+smallpointsize_s+"pt;\">" + klf_addons[k].fname() + "</span><br />\n"
+    // file location
+    "<tt>" + tr("File Location:", "[[settings dialog add-on info text]]") + "</tt><br />"
+    "<span style=\"font-size: "+smallpointsize_s+"pt;\">"
+    + QDir::toNativeSeparators(QFileInfo(klf_addons[k].dir()).canonicalFilePath()) + QDir::separator()
+    + "</span><br />\n"
+    // installed locally ?
+    "<tt><i>" +
+    (klf_addons[k].islocal()? tr("Add-On installed locally") : tr("Add-On installed globally on system"))
+    + "</i></tt>"
+    "</body></html>";
+
+  u->lblAddOnInfo->setText(addoninfotext);
 }
 
 
@@ -1035,6 +1077,8 @@ void KLFSettings::slotChangeFont(QPushButton *w, const QFont& fnt)
 
 void KLFSettings::apply()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   int k;
   // apply settings here
 
@@ -1120,6 +1164,7 @@ void KLFSettings::apply()
   //    uilist[k]->retranlsateUi(uilist[k]);
   //  }
 
+  klfDbg("Applying font settings etc.") ;
 
   // font settings
   QFont curAppFont = klfconfig.UI.applicationFont;
@@ -1142,7 +1187,7 @@ void KLFSettings::apply()
   klfconfig.UI.preambleEditFont = u->btnPreambleFont->property("selectedFont").value<QFont>();
   _mainwin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
 
-  klfconfig.UI.labelOutputFixedSize = QSize(u->spnPreviewWidth->value(), u->spnPreviewHeight->value());
+  klfconfig.UI.smallPreviewSize = QSize(u->spnPreviewWidth->value(), u->spnPreviewHeight->value());
   klfconfig.UI.enableRealTimePreview = u->chkEnableRealTimePreview->isChecked();
 
   klfconfig.UI.previewTooltipMaxSize = QSize(u->spnToolTipMaxWidth->value(), u->spnToolTipMaxHeight->value());
@@ -1192,8 +1237,8 @@ void KLFSettings::apply()
   _mainwin->refreshShowCorrectClearButton();
   _mainwin->saveSettings();
 
-  // recalculate window sizes etc.
-  _mainwin->refreshWindowSizes();
+  //  // recalculate window sizes etc.
+  //  _mainwin->refreshWindowSizes();
 
   // in case eg. the plugins re-change klfconfig in some way (skin does this for syntax highlighting)
   // -> refresh

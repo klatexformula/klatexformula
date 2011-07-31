@@ -545,7 +545,13 @@ QIcon KLFSideWidgetDesPlugin::icon() const
 }
 QString KLFSideWidgetDesPlugin::domXml() const
 {
-  return "<widget class=\"KLFSideWidget\" name=\"sideWidget\"></widget>\n";
+  // make sure sideWidgetManagerType is NON-translatable (so that it is not reset
+  // at language change time !)
+  return "<widget class=\"KLFSideWidget\" name=\"sideWidget\">\n"
+    "  <property name=\"sideWidgetManagerType\">\n"
+    "    <string notr=\"true\">ShowHide</string>\n"
+    "  </property>\n"
+    "</widget>" ;
 }
 QString KLFSideWidgetDesPlugin::group() const
 {

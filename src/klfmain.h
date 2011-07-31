@@ -49,6 +49,8 @@
 #endif
 
 
+class KLFMainWin;
+class QApplication;
 
 // SOME DECLARATIONS FOR ADD-ONS
 
@@ -139,6 +141,8 @@ public:
    * to \c TRUE if needed (e.g. in KLFSettings). */
   bool isfresh() { return d->isfresh; }
 
+  QStringList errors() { return d->errors; }
+
 private:
 
   /** \internal */
@@ -163,9 +167,14 @@ private:
     QStringList translations;
     
     bool isfresh;
+
+    QStringList errors;
   };
 
   Private *d;
+
+  friend void main_load_plugins(QApplication *app, KLFMainWin *mainWin);
+  void addError(const QString& s);
 
   void initPlugins();
 };

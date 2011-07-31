@@ -396,7 +396,10 @@ public:
     KLFConfigProp<QFont> latexEditFont;
     KLFConfigProp<QFont> preambleEditFont;
     KLFConfigProp<QSize> previewTooltipMaxSize;
-    KLFConfigProp<QSize> labelOutputFixedSize;
+    KLFConfigProp<QSize> labelOutputFixedSize; //!< No Longer used (3.3.0alpha)
+    KLFConfigProp<QSize> smallPreviewSize; //!< Size of preview to store e.g. in history/library items
+    //    KLFConfigProp<QSize> savedWindowSize;
+    KLFConfigProp<QString> detailsSideWidgetType; //!< "ShowHide","Drawer", or "Float" (or any custom type!)
     KLFConfigProp<QString> lastSaveDir;
     KLFConfigProp<int> symbolsPerLine;
     KLFConfigProp<QList<QColor> > userColorList;

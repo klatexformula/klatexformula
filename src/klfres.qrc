@@ -39,6 +39,8 @@
     <file>pics/move.png</file>
     <file>pics/refresh.png</file>
     <file>pics/transparenticon16.png</file>
+    <file>pics/showtoolwindow.png</file>
+    <file>pics/hidetoolwindow.png</file>
   </qresource>
   <qresource prefix="/pics">
     <file>klatexformula-16.png</file>

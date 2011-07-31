@@ -55,17 +55,28 @@ public:
 
   virtual bool sideWidgetVisible() const = 0;
 
+signals:
+  /** \brief Emitted whenever the shown status of the side widget has changed.
+   *
+   * Subclasses must emit this signal in their showSideWidget() implementation. It is also up to the
+   * subclass to emit it in their newSideWidgetSet() implementation with a consistent initial value.  */
+  void sideWidgetShown(bool shown);
+
 public slots:
   virtual void showSideWidget(bool show) = 0;
   void showSideWidget() { showSideWidget(true); }
   void hideSideWidget(bool hide = true) { showSideWidget(!hide); }
   void toggleSideWidget() { showSideWidget(!sideWidgetVisible()); }
 
+  virtual void waitForShowHideActionFinished(int timeout_ms = 2000);
+
 protected:
   virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget)
   {  Q_UNUSED(oldSideWidget); Q_UNUSED(newSideWidget);  }
   virtual void newParentWidgetSet(QWidget *oldParentWidget, QWidget *newParentWidget)
   {  Q_UNUSED(oldParentWidget); Q_UNUSED(newParentWidget); }
+
+  virtual bool showHideIsAnimating() { return false; }
 
 private:
 
@@ -131,6 +142,8 @@ public:
 
   virtual bool sideWidgetVisible() const;
 
+  bool eventFilter(QObject *obj, QEvent *event);
+
 public slots:
   virtual void showSideWidget(bool show);
 
@@ -179,6 +192,8 @@ protected:
 
   virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget);
   virtual void newParentWidgetSet(QWidget *oldWidget, QWidget *newWidget);
+
+  virtual bool showHideIsAnimating();
 
 private:
   KLF_DECLARE_PRIVATE(KLFDrawerSideWidgetManager) ;
@@ -270,6 +285,10 @@ public:
   QString sideWidgetManagerType() const;
 
   KLFSideWidgetManagerBase * sideWidgetManager();
+
+signals:
+  void sideWidgetShown(bool shown);
+  void sideWidgetManagerTypeChanged(const QString& managerType);
 
 public slots:
   void showSideWidget(bool show = true);

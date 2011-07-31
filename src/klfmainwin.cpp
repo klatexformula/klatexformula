@@ -133,7 +133,7 @@ KLFMainWin::KLFMainWin()
   setAttribute(Qt::WA_StyledBackground);
 
   mPopup = NULL;
-  mMacDetailsDrawer = NULL;
+  //  mMacDetailsDrawer = NULL;
 
   loadSettings();
 
@@ -179,7 +179,7 @@ KLFMainWin::KLFMainWin()
   connect(u->txtLatex->syntaxHighlighter(), SIGNAL(newSymbolTyped(const QString&)),
 	  this, SLOT(slotNewSymbolTyped(const QString&)));
 
-  u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
+  //  u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
   klfconfig.UI.glowEffect.connectQObjectProperty(u->lblOutput, "glowEffect");
   klfconfig.UI.glowEffectColor.connectQObjectProperty(u->lblOutput, "glowEffectColor");
@@ -220,8 +220,22 @@ KLFMainWin::KLFMainWin()
 
   mExportMsgLabel->hide();
 
-  refreshWindowSizes();
+  //  refreshWindowSizes();
 
+  connect(u->frmDetails, SIGNAL(sideWidgetShown(bool)), this, SLOT(slotDetailsSideWidgetShown(bool)));
+#ifdef Q_WS_MAC
+  klfDbg("setting up relative font...") ;
+  KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
+  rf->setRelPointSize(-2);
+  rf->setThorough(true);
+  //  u->frmDetails->setSideWidgetManager(KLFSideWidget::Drawer);
+  //  u->frmDetails->setSideWidgetManager(KLFSideWidget::ShowHide);
+  u->frmDetails->setSideWidgetManager(klfconfig.UI.detailsSideWidgetType);
+  //  u->frmDetails->sideWidgetManager()->setProperty("calcSpacing", QVariant(u->lyt_KLFMainWin->spacing()));
+#endif
+
+
+  /*
 #ifdef Q_WS_MAC
   {
     klfDbg("Creating Mac Drawer...") ;
@@ -229,7 +243,7 @@ KLFMainWin::KLFMainWin()
 
     //    QDockWidget *w = new QDockWidget(tr("Style & Settings"), this, Qt::Drawer);
     //    mMacDetailsDrawer = w;
-    //    w/*mMacDetailsDrawer*/->setAllowedAreas(Qt::RightDockWidgetArea);
+    //    w/ *mMacDetailsDrawer* /->setAllowedAreas(Qt::RightDockWidgetArea);
     mMacDetailsDrawer = new QWidget(this, Qt::Drawer);
     mMacDetailsDrawer->hide();
     //klf_qt_mac_set_drawer_preferred_edge(mMacDetailsDrawer, Qt::RightDockWidgetArea);
@@ -247,11 +261,6 @@ KLFMainWin::KLFMainWin()
     u->frmDetails->setParent(mMacDetailsDrawer);
     layout->addWidget(u->frmDetails);
 
-    klfDbg("setting up relative font...") ;
-    KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
-    rf->setRelPointSize(-2);
-    rf->setThorough(true);
-
     resize(u->frmMain->sizeHint()+QSize(10,10));
     u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
     klfDbg("created mac drawer!") ;
@@ -259,6 +268,7 @@ KLFMainWin::KLFMainWin()
 #else
   u->frmDetails->hide();
 #endif
+  */
 
   u->txtLatex->installEventFilter(this);
   u->txtLatex->setDropDataHandler(this);
@@ -359,7 +369,7 @@ KLFMainWin::KLFMainWin()
   // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
 
   pLatexPreviewThread = new KLFLatexPreviewThread(this);
-  klfconfig.UI.labelOutputFixedSize.connectQObjectProperty(pLatexPreviewThread, "previewSize");
+  //  klfconfig.UI.labelOutputFixedSize.connectQObjectProperty(pLatexPreviewThread, "previewSize");
   klfconfig.UI.previewTooltipMaxSize.connectQObjectProperty(pLatexPreviewThread, "largePreviewSize");
   pLatexPreviewThread->setInput(collectInput(false));
   pLatexPreviewThread->setSettings(_settings);
@@ -479,6 +489,9 @@ KLFMainWin::KLFMainWin()
 
   registerDataOpener(new KLFBasicDataOpener(this));
   registerDataOpener(new KLFAddOnDataOpener(this));
+
+  // and present a cool window size
+  adjustSize();
 }
 
 void KLFMainWin::retranslateUi(bool alsoBaseUi)
@@ -548,22 +561,6 @@ void KLFMainWin::startupFinished()
 
 void KLFMainWin::refreshWindowSizes()
 {
-
-#ifndef Q_WS_MAC
-  bool curstate_shown = u->frmDetails->isVisible();
-  u->frmDetails->show();
-  _shrinkedsize = u->frmMain->sizeHint() + QSize(3, 3);
-  _expandedsize.setWidth(u->frmMain->sizeHint().width() + u->frmDetails->sizeHint().width() + 3);
-  _expandedsize.setHeight(u->frmMain->sizeHint().height() + 3);
-  if (curstate_shown) {
-    setFixedSize(_expandedsize);
-    u->frmDetails->show();
-  } else {
-    setFixedSize(_shrinkedsize);
-    u->frmDetails->hide();
-  }
-  updateGeometry();
-#endif
 }
 
 void KLFMainWin::refreshShowCorrectClearButton()
@@ -641,7 +638,7 @@ void KLFMainWin::saveSettings()
 
   pLatexPreviewThread->setSettings(_settings);
 
-  u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
+  //  u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
 
   int k;
@@ -1841,10 +1838,8 @@ void KLFMainWin::quit()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-#ifdef Q_WS_MAC
-  if (mMacDetailsDrawer != NULL)
-    mMacDetailsDrawer->hide();
-#endif
+  u->frmDetails->showSideWidget(false);
+  u->frmDetails->sideWidgetManager()->waitForShowHideActionFinished();
 
   hide();
 
@@ -2205,8 +2200,9 @@ void KLFMainWin::displayError(const QString& error)
 
 void KLFMainWin::updatePreviewThreadInput()
 {
-  bool reallyinputchanged = pLatexPreviewThread->setInput(collectInput(false));
-  if (reallyinputchanged) {
+  bool changed = pLatexPreviewThread->setPreviewSize(u->lblOutput->size());
+  bool inputchanged = pLatexPreviewThread->setInput(collectInput(false));
+  if (changed || inputchanged) {
     _evaloutput_uptodate = false;
   }
 }
@@ -2341,11 +2337,12 @@ void KLFMainWin::slotEvaluate()
 
     QPixmap sc;
     // scale to view size (klfconfig.UI.labelOutputFixedSize)
-    QSize fsize = klfconfig.UI.labelOutputFixedSize;
+    QSize fsize = u->lblOutput->labelSize(); //klfconfig.UI.labelOutputFixedSize;
+    QImage scimg = _output.result;
     if (_output.result.width() > fsize.width() || _output.result.height() > fsize.height())
-      sc = QPixmap::fromImage(_output.result.scaled(fsize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    else
-      sc = QPixmap::fromImage(_output.result);
+      scimg = _output.result.scaled(fsize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    sc = QPixmap::fromImage(scimg);
 
     QSize goodsize = _output.result.size();
     QImage tooltipimg = _output.result;
@@ -2357,12 +2354,25 @@ void KLFMainWin::slotEvaluate()
 			      Qt::SmoothTransformation);
     }
     emit evaluateFinished(_output);
-    u->lblOutput->display(sc.toImage(), tooltipimg, true);
+    u->lblOutput->display(scimg, tooltipimg, true);
     //    u->frmOutput->setEnabled(true);
     slotSetViewControlsEnabled(true);
     slotSetSaveControlsEnabled(true);
 
-    KLFLibEntry newentry = KLFLibEntry(input.latex, QDateTime::currentDateTime(), sc.toImage(),
+    QImage smallPreview = _output.result;
+    if (_output.result.width() < klfconfig.UI.smallPreviewSize().width() &&
+	_output.result.height() < klfconfig.UI.smallPreviewSize().height()) {
+      // OK, keep full sized image
+    } else if (scimg.size() == klfconfig.UI.smallPreviewSize) {
+      // use already-scaled image, don't scale it twice !
+      smallPreview = scimg;
+    } else {
+      // scale to small-preview size
+      smallPreview = _output.result.scaled(klfconfig.UI.smallPreviewSize, Qt::KeepAspectRatio,
+					   Qt::SmoothTransformation);
+    }
+
+    KLFLibEntry newentry = KLFLibEntry(input.latex, QDateTime::currentDateTime(), smallPreview,
 				       currentStyle());
     // check that this is not already the last entry. Perform a query to check this.
     bool needInsertThisEntry = true;
@@ -2470,6 +2480,8 @@ void KLFMainWin::slotSymbols(bool showsymbs)
 
 void KLFMainWin::slotExpandOrShrink()
 {
+  slotExpand(!isExpandedMode());
+  /*
   klfDbg("u->frmDetails = "<<u->frmDetails<<"; mMacDetailsDrawer="<<mMacDetailsDrawer);
 #if !defined(Q_WS_MAC)
   if (u->frmDetails->isVisible()) {
@@ -2502,14 +2514,13 @@ void KLFMainWin::slotExpandOrShrink()
     u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
   }
 #endif
+  */
 }
 
 void KLFMainWin::slotExpand(bool expanded)
 {
-  if (u->frmDetails->isVisible() == expanded)
-    return; // nothing to change
-  // change
-  slotExpandOrShrink();
+  klfDbg("expanded="<<expanded<<"; sideWidgetVisible="<<u->frmDetails->sideWidgetVisible()) ;
+  u->frmDetails->showSideWidget(expanded);
 }
 
 
@@ -2795,6 +2806,8 @@ bool KLFMainWin::openLibFile(const QString& fname, bool showLibrary)
 
 void KLFMainWin::setApplicationLocale(const QString& locale)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klf_reload_translations(qApp, locale);
 
   emit applicationLocaleChanged(locale);
@@ -3132,6 +3145,11 @@ void KLFMainWin::slotPresetDPISender()
 }
 
 
+bool KLFMainWin::isExpandedMode() const
+{
+  return u->frmDetails->sideWidgetVisible();
+}
+
 KLFStyle KLFMainWin::currentStyle() const
 {
   KLFStyle sty;
@@ -3173,6 +3191,27 @@ void KLFMainWin::slotLoadStyleAct()
   QAction *a = qobject_cast<QAction*>(sender());
   if (a) {
     slotLoadStyle(a->data().toInt());
+  }
+}
+
+void KLFMainWin::slotDetailsSideWidgetShown(bool shown)
+{
+  if (u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
+    if (shown)
+      u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.png"));
+    else
+      u->btnExpand->setIcon(QIcon(":/pics/switchexpanded.png"));
+  } else if (u->frmDetails->sideWidgetManagerType() == QLatin1String("Drawer")) {
+    if (shown)
+      u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.png"));
+    else
+      u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
+  } else {
+    // "Float", or any possible custom side widget type
+    if (shown)
+      u->btnExpand->setIcon(QIcon(":/pics/hidetoolwindow.png"));
+    else
+      u->btnExpand->setIcon(QIcon(":/pics/showtoolwindow.png"));
   }
 }
 
@@ -3276,6 +3315,7 @@ void KLFMainWin::slotSetViewControlsEnabled(bool enabled)
 
 void KLFMainWin::slotSetSaveControlsEnabled(bool enabled)
 {
+  u->btnSetExportProfile->setEnabled(enabled);
   u->btnDrag->setEnabled(enabled);
   u->btnCopy->setEnabled(enabled);
   u->btnSave->setEnabled(enabled);
@@ -3286,20 +3326,12 @@ void KLFMainWin::closeEvent(QCloseEvent *event)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  // close side widget and wait for it
+  u->frmDetails->showSideWidget(false);
+  u->frmDetails->sideWidgetManager()->waitForShowHideActionFinished();
 
   if (_ignore_close_event) {
     // simple hide, not close
-
-#ifdef QT_MAC_USE_COCOA
-    if (mMacDetailsDrawer != NULL) {
-      extern void klf_qt_mac_close_drawer_and_act(QWidget *, QObject *, const char *);
-      klfDbg("Hide details drawer!") ;
-      klf_qt_mac_close_drawer_and_act(mMacDetailsDrawer, this, "hide");
-      event->ignore();
-      return;
-    }
-#endif
-
     hide();
 
     event->ignore();

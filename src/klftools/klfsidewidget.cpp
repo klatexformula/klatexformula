@@ -22,12 +22,15 @@
 /* $Id$ */
 
 
+#include <QApplication>
 #include <QtGlobal>
 #include <QLayout>
 #include <QEvent>
 #include <QResizeEvent>
 #include <QStackedLayout>
 #include <QPointer>
+#include <QTime>
+#include <QTimer>
 
 #include <klfdefs.h>
 
@@ -123,6 +126,29 @@ void KLFSideWidgetManagerBase::setSideWidget(QWidget *sideWidget)
 }
 
 
+void KLFSideWidgetManagerBase::waitForShowHideActionFinished(int timeout_ms)
+{
+  if (!showHideIsAnimating())
+    return; // we're not animated, we're immediately done.
+
+  QTime tm;
+
+  tm.start();
+
+  // Don't reinitialize to false here, since slotSideWidgetShownActionFinished() could have
+  // already been called.
+  //  d->actionFinishedSignalReceived = false; 
+  while (showHideIsAnimating()) {
+    qApp->processEvents();
+    if (tm.elapsed() > timeout_ms) {
+      klfDbg("timeout while waiting for action-finished signal. timeout_ms="<<timeout_ms) ;
+      break;
+    }
+  }
+
+  klfDbg("finished.");
+}
+
 
 
 // ------------------
@@ -143,6 +169,7 @@ struct KLFShowHideSideWidgetManagerPrivate
 
   bool infunction;
   QWidget *oldParent;
+  // msie is only used when the side widget is visible
   QSize msize;
 
   Qt::Orientation orientation;
@@ -170,10 +197,12 @@ void KLFShowHideSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  bool preserveshown = false;
   bool shown = false;
 
   if (oldw != NULL) {
     klfDbg("old="<<oldw) ;
+    preserveshown = true;
     shown = oldw->isVisible();
     oldw->removeEventFilter(this);
     oldw->hide();
@@ -183,8 +212,28 @@ void KLFShowHideSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww
 		       "Adding a widget that is not a child of our 'parent widget' ! Correcting parent.",
 		       setOurParentWidget(neww->parentWidget()); ) ;
     klfDbg("new="<<neww) ;
-    neww->setVisible(shown);
+    //     if (neww->isVisible()) {
+    //       d->msize = neww->parentWidget()->size();
+    //       klfDbg("parent size is "<<d->msize);
+    //       if (d->orientation & Qt::Horizontal)
+    // 	d->msize.setWidth(d->msize.width() - d->calcSpacing + neww->width());
+    //       if (d->orientation & Qt::Vertical)
+    // 	d->msize.setHeight(d->msize.height() - d->calcSpacing + neww->height());
+    //       klfDbg("initialized size to "<<d->msize) ;
+    //     } else {
+    //       // if widget is about to be shown in initialization process, we will recieve a resizeEvent.
+    //       // will calculate proper size there.
+    //       d->msize = QSize();
+    //     }
+    if (neww->parentWidget()->layout() != NULL) {
+      setCalcSpacing(neww->parentWidget()->layout()->spacing());
+    }
+    neww->hide(); //unconditionally hide!
+    //    showSideWidget(false);
+    //    if (preserveshown && shown)
+    //      showSideWidget(true);
     neww->installEventFilter(this);
+    emit sideWidgetShown(false);
   }
   d->msize = QSize();
 }
@@ -221,7 +270,8 @@ bool KLFShowHideSideWidgetManager::eventFilter(QObject *obj, QEvent *event)
     if (pw != NULL && obj == pw) {
       if (event->type() == QEvent::Resize) {
 	QResizeEvent *re = (QResizeEvent*) event;
-	klfDbg("resize event, new size="<<re->size()<<", old size="<<re->oldSize()) ;
+	klfDbg("resize event, new size="<<re->size()<<", old size="<<re->oldSize()
+	       <<"; sidewidget->isvisible="<<sideWidget()->isVisible()) ;
 	if (sideWidget()->isVisible() && !d->infunction) {
 	  // only relevant if we are visible and not ourselves resizing the widget
 	  klfDbg("Readjusting inner widget size") ;
@@ -281,18 +331,30 @@ void KLFShowHideSideWidgetManager::showSideWidget(bool show)
   sideWidget()->setVisible(show);
 
   d->infunction = true;
-  klfDbg("newSize is "<<newSize) ;
-  QMetaObject::invokeMethod(this, "resizeParentWidget", Qt::QueuedConnection, Q_ARG(QSize, newSize));
+  klfDbg("newSize is "<<newSize<<"; d->msize is "<<d->msize) ;
+  if (newSize.isValid()) {
+    QMetaObject::invokeMethod(this, "resizeParentWidget", Qt::QueuedConnection, Q_ARG(QSize, newSize));
+  }
+  // will probably(?) emit sideWidgetShown _after_ we resized, which is possibly a more desirable behavior (?)
+  QMetaObject::invokeMethod(this, "sideWidgetShown", Qt::QueuedConnection, Q_ARG(bool, show));
 }
 
 
 void KLFShowHideSideWidgetManager::resizeParentWidget(const QSize& size)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("size="<<size) ;
   QWidget * sw = sideWidget();
   KLF_ASSERT_NOT_NULL(sw, "Side Widget is NULL!", return; ) ;
   KLF_ASSERT_NOT_NULL(sw->parentWidget(), "Side Widget is NULL!", return; ) ;
 
-  sw->parentWidget()->resize(size);
+  QWidget *window = sw->window();
+  KLF_ASSERT_NOT_NULL(window, "hey, side-widget->window() is NULL!", return; ) ;
+  QSize diffsize = size - sw->parentWidget()->size();
+  QSize winsize = window->size() + diffsize;
+  klfDbg("resizing window to "<<winsize) ;
+  window->setFixedSize(winsize);
+  window->setFixedSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX));
   d->infunction = false;
 }
 
@@ -363,6 +425,8 @@ void KLFContainerSideWidgetManager::init()
   d->dwidget = createContainerWidget(d->init_pw);
   connect(d->dwidget, SIGNAL(destroyed(QObject*)), this, SLOT(aWidgetDestroyed(QObject*)));
 
+  d->dwidget->installEventFilter(this); // intercept close events
+
   KLF_ASSERT_NOT_NULL(d->dwidget, "Created Container Widget is NULL!", return; ) ;
 
   d->dlayout = new QStackedLayout(d->dwidget);
@@ -403,6 +467,20 @@ KLFContainerSideWidgetManager::~KLFContainerSideWidgetManager()
   KLF_DELETE_PRIVATE ;
 }
 
+bool KLFContainerSideWidgetManager::eventFilter(QObject *obj, QEvent *event)
+{
+  if (obj == d->dwidget) {
+    if (event->type() == QEvent::Close) {
+      klfDbg("intercepting close event.") ;
+      // close button clicked, eg. in floating window; make sure to hide the widget
+      // appropriately, emitting sideWidgetShown(bool) too, or saving its geometry etc.
+      showSideWidget(false);
+      return true;
+    }
+  }
+  return KLFSideWidgetManagerBase::eventFilter(obj, event);
+}
+
 bool KLFContainerSideWidgetManager::sideWidgetVisible() const
 {
   KLF_ASSERT_NOT_NULL(d->dwidget, "Container Widget is NULL! Did you forget to call init()?", return false; ) ;
@@ -415,6 +493,7 @@ void KLFContainerSideWidgetManager::showSideWidget(bool show)
 
   // and actually show/hide the container widget
   d->dwidget->setVisible(show);
+  emit sideWidgetShown(show);
 }
 
 // protected
@@ -449,6 +528,7 @@ void KLFContainerSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *new
     neww->setParent(d->dwidget);
     d->dlayout->addWidget(neww);
     neww->show();
+    emit sideWidgetShown(d->dwidget->isVisible());
   }
 }
 
@@ -554,8 +634,9 @@ void KLFDrawerSideWidgetManager::showSideWidget(bool show)
 
   QWidget * w = containerWidget();
 
-  if (show == sideWidgetVisible())
+  if (show == sideWidgetVisible()) {
     return;
+  }
 
   if (sideWidgetVisible() && !show) {
     klfDbg("about to maybe save size. d->openEdge="<<d->openEdge<<", _klf_openEdge="
@@ -581,9 +662,19 @@ void KLFDrawerSideWidgetManager::showSideWidget(bool show)
   }
 #endif
 
-  w->setVisible(show);
+  KLFContainerSideWidgetManager::showSideWidget(show);
 }
 
+bool KLFDrawerSideWidgetManager::showHideIsAnimating()
+{
+  klfDbg("checking for drawer finished animating...") ;
+#ifdef Q_WS_MAC
+  extern bool klf_qt_mac_drawer_is_still_animating(QWidget *w);
+  return klf_qt_mac_drawer_is_still_animating(containerWidget());
+#else
+  return false;
+#endif
+}
 
 
 KLF_DEFINE_PROPERTY_GET(KLFDrawerSideWidgetManager, Qt::DockWidgetArea, openEdge, OpenEdge) ;
@@ -644,7 +735,7 @@ bool KLFFloatSideWidgetManager::sideWidgetVisible() const
 
 QWidget * KLFFloatSideWidgetManager::createContainerWidget(QWidget *pw)
 {
-  return  new QWidget(pw, Qt::Tool);
+  return  new QWidget(pw, Qt::Tool|Qt::CustomizeWindowHint|Qt::WindowTitleHint|Qt::WindowSystemMenuHint);
 }
 
 void KLFFloatSideWidgetManager::setWFlags(Qt::WindowFlags wf)
@@ -665,7 +756,8 @@ void KLFFloatSideWidgetManager::showSideWidget(bool show)
     // set saved position and size
     w->setGeometry(d->dwgeom);
   }
-  w->setVisible(show);
+  // this automatically emits sideWidgetShown
+  KLFContainerSideWidgetManager::showSideWidget(show);
 }
 
 
@@ -834,6 +926,11 @@ void KLFSideWidget::setSideWidgetManager(const QString& mtype)
     return;
   }
 
+  if (d->swmtype == mtype) {
+    klfDbg("no-op");
+    return;
+  }
+
   if (d->manager != NULL) {
     klfDbg("deleting current manager") ;
     //    d->manager->setSideWidget(NULL) ; // re-take the side widget
@@ -844,6 +941,12 @@ void KLFSideWidget::setSideWidgetManager(const QString& mtype)
 
   d->swmtype = mtype;
   d->manager = KLFSideWidgetManagerFactory::findCreateSideWidgetManager(mtype, parentWidget(), this, this);
+  KLF_ASSERT_NOT_NULL(d->manager, "Factory returned NULL manager for type "<<mtype<<"!", return; ) ;
+
+  connect(d->manager, SIGNAL(sideWidgetShown(bool)), this, SIGNAL(sideWidgetShown(bool)));
+
+  emit sideWidgetManagerTypeChanged(mtype);
+  emit sideWidgetShown(d->manager->sideWidgetVisible());
 }
 
 void KLFSideWidget::showSideWidget(bool show)

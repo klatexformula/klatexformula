@@ -130,7 +130,7 @@ bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
 }
 
 
-void klf_qt_mac_close_drawer_and_act(QWidget *w, QObject *obj, const char *member)
+void klf_qt_mac_close_drawer_and_act(QWidget *w, QObject *obj, const char *member, int timeout_ms)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -141,8 +141,10 @@ void klf_qt_mac_close_drawer_and_act(QWidget *w, QObject *obj, const char *membe
   
 #if QT_MAC_USE_COCOA
   NSDrawer *drawer = klf_qt_mac_drawer_for(w);
-  if (!drawer)
+  if (!drawer) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't find drawer for widget "<<w;
     return;
+  }
   
   [drawer close];
   while ([drawer state] != NSDrawerClosedState) {
@@ -159,3 +161,29 @@ void klf_qt_mac_close_drawer_and_act(QWidget *w, QObject *obj, const char *membe
 #endif
 }
 
+
+bool klf_qt_mac_drawer_is_still_animating(QWidget *w)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  if(!klf_qt_mac_is_macdrawer(w)) {
+    klfDbg("Not a drawer.") ;
+    return false;
+  }
+  
+#if QT_MAC_USE_COCOA
+  NSDrawer *drawer = klf_qt_mac_drawer_for(w);
+  if (!drawer) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't find drawer for widget "<<w;
+    return false;
+  }
+
+  return
+    [drawer state] != NSDrawerClosedState &&
+    [drawer state] != NSDrawerOpenState ;
+
+#else
+  /** \todo ... CARBON IMPLEMENTATION .... */
+  return false;
+#endif
+}

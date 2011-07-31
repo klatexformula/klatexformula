@@ -586,36 +586,39 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       klfDbg( "Testing plugin psinfo="<<psinfo<<"\n\tTo our system: qtver="<<qVersion()
 	      <<"; klfver="<<KLF_VERSION_STRING<<"; os="<<KLFSysInfo::osString()
 	      <<"; arch="<<KLFSysInfo::arch() ) ;
-      if ( psinfo.isCompatibleWithCurrentSystem() ) {
-	// ok to install plugin
-	QString resfn = klf_addons[k].rccmountroot() + "/plugins/" + pluginList[j];
-	QString locsubdir = klf_addons[k].pluginLocalSubDirName(pluginList[j]);
-	QString locfn = klfconfig.homeConfigDirPlugins + "/" + locsubdir + "/"
-	  + QFileInfo(pluginList[j]).fileName();
-	QDateTime installedplugin_dt = QFileInfo(locfn).lastModified();
-	QDateTime resourceplugin_dt = QFileInfo(klf_addons[k].fpath()).lastModified();
-	qDebug("Comparing resource datetime (%s) with installed plugin datetime (%s)",
-	       qPrintable(resourceplugin_dt.toString()), qPrintable(installedplugin_dt.toString()));
-	if (  ! QFile::exists( locfn ) ||
-	      installedplugin_dt.isNull() || resourceplugin_dt.isNull() ||
-	      ( resourceplugin_dt > installedplugin_dt )  ) {
-	  // create path to that plugin dir
-	  if (!locsubdir.isEmpty() &&
-	      !QDir(klfconfig.homeConfigDirPlugins + "/plugins/" + locsubdir).exists())
-	    QDir(klfconfig.homeConfigDirPlugins).mkpath(locsubdir);
-	  // remove old version if exists
-	  if (QFile::exists(locfn)) QFile::remove(locfn);
-	  // copy plugin to local plugin dir
-	  klfDbg( "\tcopy "<<resfn<<" to "<<locfn ) ;
-	  bool res = QFile::copy( resfn , locfn );
-	  if ( ! res ) {
-	    qWarning("Unable to copy plugin '%s' to local directory!", qPrintable(pluginList[j]));
-	  } else {
-	    QFile::setPermissions(locfn, QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|
-				  QFile::ReadUser|QFile::WriteUser|QFile::ExeUser|
-				  QFile::ReadGroup|QFile::ExeGroup|QFile::ReadOther|QFile::ExeOther);
-	    qDebug("Copied plugin %s to local directory %s.", qPrintable(resfn), qPrintable(locfn));
-	  }
+      if ( ! psinfo.isCompatibleWithCurrentSystem() ) {
+	klf_addons[k].addError(QObject::tr("Plugin not compatible with current system.", "[[plugin error message]]"));
+	continue;
+      }
+      // ok to install plugin
+      QString resfn = klf_addons[k].rccmountroot() + "/plugins/" + pluginList[j];
+      QString locsubdir = klf_addons[k].pluginLocalSubDirName(pluginList[j]);
+      QString locfn = klfconfig.homeConfigDirPlugins + "/" + locsubdir + "/"
+	+ QFileInfo(pluginList[j]).fileName();
+      QDateTime installedplugin_dt = QFileInfo(locfn).lastModified();
+      QDateTime resourceplugin_dt = QFileInfo(klf_addons[k].fpath()).lastModified();
+      qDebug("Comparing resource datetime (%s) with installed plugin datetime (%s)",
+	     qPrintable(resourceplugin_dt.toString()), qPrintable(installedplugin_dt.toString()));
+      if (  ! QFile::exists( locfn ) ||
+	    installedplugin_dt.isNull() || resourceplugin_dt.isNull() ||
+	    ( resourceplugin_dt > installedplugin_dt )  ) {
+	// create path to that plugin dir
+	if (!locsubdir.isEmpty() &&
+	    !QDir(klfconfig.homeConfigDirPlugins + "/plugins/" + locsubdir).exists())
+	  QDir(klfconfig.homeConfigDirPlugins).mkpath(locsubdir);
+	// remove old version if exists
+	if (QFile::exists(locfn)) QFile::remove(locfn);
+	// copy plugin to local plugin dir
+	klfDbg( "\tcopy "<<resfn<<" to "<<locfn ) ;
+	bool res = QFile::copy( resfn , locfn );
+	if ( ! res ) {
+	  klf_addons[k].addError(QObject::tr("Failed to install plugin locally.", "[[plugin error message]]"));
+	  qWarning("Unable to copy plugin '%s' to local directory!", qPrintable(pluginList[j]));
+	} else {
+	  QFile::setPermissions(locfn, QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|
+				QFile::ReadUser|QFile::WriteUser|QFile::ExeUser|
+				QFile::ReadGroup|QFile::ExeGroup|QFile::ReadOther|QFile::ExeOther);
+	  qDebug("Copied plugin %s to local directory %s.", qPrintable(resfn), qPrintable(locfn));
 	}
       }
       // OK, plugin locally installed.
@@ -675,17 +678,16 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	QPluginLoader pluginLoader(pluginpath, app);
 	bool loaded = pluginLoader.load();
 	if (!loaded) {
+	  klf_addons[k].addError(QObject::tr("Failed to load plugin.", "[[plugin error message]]"));
 	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<". Skipping.");
 	  continue;
 	}
 	QObject *pluginInstObject = pluginLoader.instance();
-	if (pluginInstObject == NULL) {
-	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<" (object is NULL). Skipping.");
-	  continue;
-	}
 	pluginInstance = qobject_cast<KLFPluginGenericInterface *>(pluginInstObject);
-	if (pluginInstance == NULL) {
-	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<" (instance is NULL). Skipping.");
+	klfDbg("pluginInstObject="<<pluginInstObject<<", pluginInst="<<pluginInstance) ;
+	if (pluginInstObject == NULL || pluginInstance == NULL) {
+	  klf_addons[k].addError(QObject::tr("Invalid plugin, failed to load correctly.", "[[plugin error message]]"));
+	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<" (object or instance is NULL). Skipping.");
 	  continue;
 	}
 	// plugin file successfully loaded.

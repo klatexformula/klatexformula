@@ -36,13 +36,15 @@ KLFDisplayLabel::KLFDisplayLabel(QWidget *parent)
   : QLabel(parent), pEnableToolTipPreview(true), mToolTipFile(NULL)
 {
   setText(QString());
-  setLabelFixedSize(QSize(120,80));
+  //  setLabelFixedSize(QSize(120,80));
 
   setAlignment(Qt::AlignCenter);
 
   pDefaultPalette = palette();
   pErrorPalette = pDefaultPalette;
-  pErrorPalette.setColor(QPalette::Window, QColor(255, 200, 200));
+
+  pDefaultPalette.setColor(QPalette::Window, QColor(255, 255, 255, 0)); // fully transparent
+  pErrorPalette.setColor(QPalette::Window, QColor(255, 0, 0, 60)); // red color, semi-transparent
 
   pGE = false;
   pGEcolor = QColor(128, 255, 128, 8);
@@ -55,13 +57,14 @@ KLFDisplayLabel::~KLFDisplayLabel()
     delete mToolTipFile;
 }
 
+/*
 void KLFDisplayLabel::setLabelFixedSize(const QSize& size)
 {
   pLabelFixedSize = size;
   setMinimumSize(size);
   setFixedSize(size);
 }
-
+*/
 
 void KLFDisplayLabel::displayClear()
 {
@@ -92,48 +95,54 @@ void KLFDisplayLabel::displayError(const QString& errorMessage, bool labelenable
 }
 
 
+QPixmap KLFDisplayLabel::calc_display_pixmap()
+{
+  QImage img = pDisplayImage;
+  QPixmap pix;
+  if (/*labelenabled && */ pGE) {
+    int r = pGEradius;
+    QSize msz = QSize(2*r, 2*r);
+    if (img.width()+msz.width() > width() || img.height()+msz.height() > height())
+      img = pDisplayImage.scaled(size()-msz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    pix = QPixmap(img.size()+msz);
+    pix.fill(QColor(0,0,0,0));
+    QPainter painter(&pix);
+    painter.translate(QPoint(r, r));
+    klfDrawGlowedImage(&painter, img, pGEcolor, r);
+  } else {
+    if (img.width() > width() || img.height() > height())
+      img = pDisplayImage.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    pix = QPixmap::fromImage(img);
+  }
+  QPixmap labelpix(size());
+  labelpix.fill(QColor(255,255,255,0));
+  QPainter pp(&labelpix);
+  pp.drawPixmap(QPoint((labelpix.width()-pix.width())/2, (labelpix.height()-pix.height())/2),
+		pix);
+  // desaturate/grayify the pixmap if we are label-disabled
+  if (!pLabelEnabled) {
+    pp.fillRect(QRect(QPoint(0,0), labelpix.size()), QColor(255,255,255, 90));
+  }
+  return labelpix;
+}
 
 void KLFDisplayLabel::display_state(DisplayState state)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   pDisplayState = state;
-  if (state == Error) {
-    set_error(true);
-    setToolTip(pDisplayError);
-    _bigPreviewText = pDisplayError;
-  }
   if (state == Clear) {
     setPixmap(QPixmap());
     setText(QString());
     set_error(false);
   }
+  QPixmap pix = calc_display_pixmap();
+  if (state == Error) {
+    set_error(true);
+    setToolTip(pDisplayError);
+    _bigPreviewText = pDisplayError;
+  }
   if (state == Ok) {
-    QImage img = pDisplayImage;
-    QPixmap pix;
-    if (/*labelenabled && */ pGE) {
-      int r = pGEradius;
-      QSize msz = QSize(2*r, 2*r);
-      if (img.width()+msz.width() > width() || img.height()+msz.height() > height())
-	img = pDisplayImage.scaled(size()-msz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-      pix = QPixmap(img.size()+msz);
-      pix.fill(QColor(0,0,0,0));
-      QPainter painter(&pix);
-      painter.translate(QPoint(r, r));
-      klfDrawGlowedImage(&painter, img, pGEcolor, r);
-    } else {
-      if (img.width() > width() || img.height() > height())
-	img = pDisplayImage.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-      pix = QPixmap::fromImage(img);
-    }
-    QPixmap labelpix(size());
-    labelpix.fill(QColor(255,255,255,0));
-    QPainter pp(&labelpix);
-    pp.drawPixmap(QPoint((labelpix.width()-pix.width())/2, (labelpix.height()-pix.height())/2),
-		  pix);
-    // desaturate/grayify the pixmap if we are label-disabled
-    if (!pLabelEnabled) {
-      pp.fillRect(QRect(QPoint(0,0), labelpix.size()), QColor(255,255,255, 90));
-    }
+    QPixmap labelpix = calc_display_pixmap();
     setPixmap(labelpix);
 
     // un-set any error
@@ -188,7 +197,7 @@ void KLFDisplayLabel::set_error(bool error_on)
   } else {
     p = &pDefaultPalette;
   }
-  //  setAutoFillBackground(true);
+  setAutoFillBackground(true);
   setStyleSheet(styleSheet()); // force style sheet refresh
   setPalette(*p);
 }

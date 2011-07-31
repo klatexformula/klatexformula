@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>570</width>
-    <height>260</height>
+    <width>559</width>
+    <height>192</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -81,7 +81,7 @@
       <string>Close dialog</string>
      </property>
      <property name="text">
-      <string>Close</string>
+      <string>Dismiss</string>
      </property>
      <property name="icon">
       <iconset resource="klftoolsres.qrc">

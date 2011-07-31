@@ -201,6 +201,8 @@ public:
 
   bool eventFilter(QObject *obj, QEvent *event);
 
+  bool isExpandedMode() const;
+
   KLFStyle currentStyle() const;
 
   KLFBackend::klfSettings backendSettings() const { return _settings; }
@@ -396,6 +398,8 @@ private slots:
   // private : only as slot to an action containing the style # as user data
   void slotLoadStyleAct();
 
+  void slotDetailsSideWidgetShown(bool shown);
+
   /** controls the enabled state of the 'see larger preview button' widget */
   void slotSetViewControlsEnabled(bool enabled);
   /** controls the enabled state of the DRAG/COPY/SAVE & Format widgets */
@@ -430,7 +434,7 @@ protected:
 
   KLFMainWinPopup *mPopup;
 
-  QWidget *mMacDetailsDrawer;
+  //  QWidget *mMacDetailsDrawer;
 
   /** \internal */
   struct HelpLinkAction {

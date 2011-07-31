@@ -25,17 +25,28 @@
 #define KLFDISPLAYLABEL_H
 
 #include <QLabel>
+#include <QPixmap>
 #include <QTemporaryFile>
 
 #include <klfdefs.h>
 
 /** \brief A label to display a LaTeX-formula-output-like image
+ *
+ * This widget displays an image, and sets another image as tooltip. It can also set itself
+ * in "display error" mode, changing its look and displaying the error message as tooltip.
+ *
+ * It emits \ref labelDrag() whenever the user drags the display's contents, but only if
+ * the display's property \c labelEnabled is TRUE (see setLabelEnabled()).
+ *
+ * As a gadget, it can add an alien glow to the images it displays.
+ *
+ * \note As of version 3.3.0, the \c labelFixedSize property dissapeared, it is no longer
+ *   used. Use QWidget::setFixedSize() directly instead.
  */
 class KLF_EXPORT KLFDisplayLabel : public QLabel
 {
   Q_OBJECT
 
-  Q_PROPERTY(QSize labelFixedSize READ labelFixedSize WRITE setLabelFixedSize) ;
   Q_PROPERTY(bool enableToolTipPreview READ enableToolTipPreview WRITE setEnableToolTipPreview) ;
 
   Q_PROPERTY(QString bigPreviewText READ bigPreviewText) ;
@@ -50,7 +61,14 @@ public:
   enum DisplayState { Clear = 0, Ok, Error };
   virtual DisplayState currentDisplayState() const { return pDisplayState; }
 
-  virtual QSize labelFixedSize() const { return pLabelFixedSize; }
+  /** \brief maximum pixmap size we can display
+   *
+   * For now, it just returns size().
+   *
+   * \todo subtract margins/frame border width/etc.
+   * */
+  virtual QSize labelSize() const { return size(); }
+
   virtual bool enableToolTipPreview() const { return pEnableToolTipPreview; }
 
   virtual QString bigPreviewText() const { return _bigPreviewText; }
@@ -65,7 +83,6 @@ signals:
   void labelDrag();
 
 public slots:
-  virtual void setLabelFixedSize(const QSize& size);
   virtual void setEnableToolTipPreview(bool enable) { pEnableToolTipPreview = enable; display_state(pDisplayState); }
 
   virtual void displayClear();
@@ -74,11 +91,8 @@ public slots:
   { displayError(QString(), labelenabled); }
   virtual void displayError(const QString& errorMessage, bool labelenabled = false);
 
-  /** \note takes effect only upon next call of display() */
   void setGlowEffect(bool on) { pGE = on; display_state(pDisplayState); }
-  /** \note takes effect only upon next call of display() */
   void setGlowEffectColor(const QColor& color) { pGEcolor = color; display_state(pDisplayState); }
-  /** \note takes effect only upon next call of display() */
   void setGlowEffectRadius(int r) { pGEradius = r; display_state(pDisplayState); }
 
   void setLabelEnabled(bool enabled) { pLabelEnabled = enabled; display_state(pDisplayState); }
@@ -88,6 +102,7 @@ protected:
 
 private:
 
+  QPixmap calc_display_pixmap();
   void display_state(DisplayState state);
 
   DisplayState pDisplayState;

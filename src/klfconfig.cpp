@@ -351,6 +351,15 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.preambleEditFont, defaultTTFont) ;
   KLFCONFIGPROP_INIT(UI.previewTooltipMaxSize, QSize(800, 600)) ;
   KLFCONFIGPROP_INIT(UI.labelOutputFixedSize, QSize(280, 80)) ;
+  KLFCONFIGPROP_INIT(UI.smallPreviewSize, QSize(280, 80));
+  //  KLFCONFIGPROP_INIT(UI.savedWindowSize, QSize());
+  QString swtype;
+#ifdef Q_WS_MAC
+  swtype = QLatin1String("Drawer");
+#else
+  swtype = QLatin1String("ShowHide");
+#endif
+  KLFCONFIGPROP_INIT(UI.detailsSideWidgetType, swtype) ;
   KLFCONFIGPROP_INIT(UI.lastSaveDir, QDir::homePath()) ;
   KLFCONFIGPROP_INIT(UI.symbolsPerLine, 6) ;
   QList<QColor> colorlist;
@@ -574,6 +583,9 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "preambleeditfont", &UI.preambleEditFont);
   klf_config_read(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
   klf_config_read(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
+  klf_config_read(s, "smallpreviewsize", &UI.smallPreviewSize);
+  //  klf_config_read(s, "savedwindowsize", &UI.savedWindowSize);
+  klf_config_read(s, "detailssidewidgettype", &UI.detailsSideWidgetType);
   klf_config_read(s, "lastsavedir", &UI.lastSaveDir);
   klf_config_read(s, "symbolsperline", &UI.symbolsPerLine);
   klf_config_read_list(s, "usercolorlist", &UI.userColorList);
@@ -714,6 +726,9 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "preambleeditfont", &UI.preambleEditFont);
   klf_config_write(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
   klf_config_write(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
+  klf_config_write(s, "smallpreviewsize", &UI.smallPreviewSize);
+  //  klf_config_write(s, "savedwindowsize", &UI.savedWindowSize);
+  klf_config_write(s, "detailssidewidgettype", &UI.detailsSideWidgetType);
   klf_config_write(s, "lastsavedir", &UI.lastSaveDir);
   klf_config_write(s, "symbolsperline", &UI.symbolsPerLine);
   klf_config_write_list(s, "usercolorlist", &UI.userColorList);
