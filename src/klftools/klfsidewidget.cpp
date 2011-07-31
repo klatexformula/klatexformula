@@ -735,7 +735,8 @@ bool KLFFloatSideWidgetManager::sideWidgetVisible() const
 
 QWidget * KLFFloatSideWidgetManager::createContainerWidget(QWidget *pw)
 {
-  return  new QWidget(pw, Qt::Tool|Qt::CustomizeWindowHint|Qt::WindowTitleHint|Qt::WindowSystemMenuHint);
+  return  new QWidget(pw, Qt::Tool|Qt::CustomizeWindowHint|Qt::WindowTitleHint
+		      |Qt::WindowSystemMenuHint|Qt::WindowCloseButtonHint);
 }
 
 void KLFFloatSideWidgetManager::setWFlags(Qt::WindowFlags wf)

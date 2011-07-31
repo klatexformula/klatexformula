@@ -117,12 +117,15 @@ QPixmap KLFDisplayLabel::calc_display_pixmap()
   QPixmap labelpix(size());
   labelpix.fill(QColor(255,255,255,0));
   QPainter pp(&labelpix);
+  if (!pLabelEnabled) {
+    pp.setOpacity(0.5f);
+  }
   pp.drawPixmap(QPoint((labelpix.width()-pix.width())/2, (labelpix.height()-pix.height())/2),
 		pix);
-  // desaturate/grayify the pixmap if we are label-disabled
-  if (!pLabelEnabled) {
-    pp.fillRect(QRect(QPoint(0,0), labelpix.size()), QColor(255,255,255, 90));
-  }
+  //  // desaturate/grayify the pixmap if we are label-disabled
+  //  if (!pLabelEnabled) {
+  //    pp.fillRect(QRect(QPoint(0,0), labelpix.size()), QColor(255,255,255, 90));
+  //  }
   return labelpix;
 }
 

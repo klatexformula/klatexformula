@@ -142,7 +142,8 @@ QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& i
   latexin = in.mathmode;
   latexin.replace("...", in.latex);
 
-  s += "\\documentclass{minimal}\n"
+  /// \todo 'minimal' or 'article' by default ???
+  s += "\\documentclass{article}\n"
     "\\usepackage[dvips]{color}\n";
   s += in.preamble;
   s += "\n"
@@ -489,9 +490,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   // force some rules on settings
 
   // calcEpsBoundingBox may not be used if the bg is not white or transparent
-  qDebug("%s: settings.calcEpsBoundingBox=%d, in.bg_color=[RGBA %d,%d,%d,%d]", KLF_FUNC_NAME,
-	 settings.calcEpsBoundingBox, qRed(in.bg_color), qGreen(in.bg_color), qBlue(in.bg_color),
-	 qAlpha(in.bg_color));
+  klfDebugf(("%s: settings.calcEpsBoundingBox=%d, in.bg_color=[RGBA %d,%d,%d,%d]", KLF_FUNC_NAME,
+	     settings.calcEpsBoundingBox, qRed(in.bg_color), qGreen(in.bg_color), qBlue(in.bg_color),
+	     qAlpha(in.bg_color)));
   if (qAlpha(in.bg_color) != 0 && (in.bg_color & qRgb(255,255,255)) != qRgb(255,255,255)) {
     // bg not transparent AND bg not white
     klfDebugf(("%s: forcing calcEpsBoundingBox to FALSE because you have non-transparent/non-white bg",
@@ -505,6 +506,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   // - generate LaTeX file
   //
   // - latex                            --> get DVI file
+  //             EXCEPT: if a user wrapper script is given, run that instead.
   //
   // - dvips -E file.dvi -o file.eps    --> get (first) EPS file
   //
@@ -597,7 +599,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
   }
 
-  { // execute latex
+  if (in.wrapperScript.isEmpty()) {
+    // execute latex
     KLFFilterProgram p(QLatin1String("LaTeX"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_LATEX_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_LATEX_NONORMALEXIT;
@@ -612,6 +615,85 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       return res;
     }
   } // end of 'latex' block
+  else {
+    // user has provided us a wrapper script. Query it and use it
+    QByteArray scriptinfo;
+    QString scriptname;
+    //    bool want_full_template = true;
+    { // Query Script Info phase
+      KLFFilterProgram p(QLatin1String("User-Wrapper-Script"), &settings);
+      p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERWRAPPERSCRIPT_NORUN;
+      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERWRAPPERSCRIPT_NONORMALEXIT;
+      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERWRAPPERSCRIPT;
+      p.resErrCodes[KLFFP_NODATA] = KLFERR_USERWRAPPERSCRIPT_NOSCRIPTINFO;
+      p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERWRAPPERSCRIPT_NOSCRIPTINFO;
+      
+      p.argv << in.wrapperScript << "--scriptinfo";
+      
+      ok = p.run(QString(), &scriptinfo, &res);
+      if (!ok) {
+	return res;
+      }
+    }
+    scriptinfo.replace("\r\n", "\n");
+    if (scriptinfo.isEmpty()) {
+      scriptinfo = "ScriptInfo\n";
+    }
+    // parse scriptinfo
+    if (!scriptinfo.startsWith("ScriptInfo\n")) {
+      qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.";
+      res.status = KLFERR_USERWRAPPERSCRIPT_INVALIDSCRIPTINFO;
+      res.errorstr = QObject::tr("User wrapper script provided invalid --scriptinfo output.", "KLFBackend");
+      return res;
+    }
+    QList<QByteArray> lines = scriptinfo.split('\n');
+    lines.removeAt(0); // skip of course the 'ScriptInfo\n' line !
+    int kkl;
+    for (kkl = 0; kkl < lines.size(); ++kkl) {
+      QString line = QString::fromLocal8Bit(lines[kkl]);
+      if (line.trimmed().isEmpty())
+	continue;
+      QRegExp rx("(\\w+):\\s*(.*)");
+      QRegExp boolrxtrue("(t(rue)?|y(es)?|on|1)");
+      if (!rx.exactMatch(line)) {
+	klfDbg("Buggy line: "<<line);
+	qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.";
+	res.status = KLFERR_USERWRAPPERSCRIPT_INVALIDSCRIPTINFO;
+	res.errorstr = QObject::tr("User wrapper script provided invalid --scriptinfo output.", "KLFBackend");
+	return res;
+      }
+      QString key = rx.cap(1);
+      QString val = rx.cap(2).trimmed();
+      if (key == QLatin1String("Name")) {
+	scriptname = val;
+      } else {
+	klfDbg("Unknown userscript info key: "<<key<<", in line:\n"<<line);
+	qWarning()<<KLF_FUNC_NAME<<": Ignoring unknown user script info key "<<key<<".";
+      }
+    }
+    // and run the script with the latex input
+    QStringList addenv;
+    addenv << "KLF_TEMPDIR="+settings.tempdir
+	   << "KLF_LATEX="+settings.latexexec
+	   << "KLF_DVIPS="+settings.dvipsexec
+	   << "KLF_GS="+settings.gsexec
+	   << "KLF_INPUT_LATEX=" + in.latex;
+    { // now run the script
+      KLFFilterProgram p(QLatin1String("User Wrapper Script"), &settings);
+      p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERWRAPPERSCRIPT_NORUN;
+      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERWRAPPERSCRIPT_NONORMALEXIT;
+      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERWRAPPERSCRIPT;
+      p.resErrCodes[KLFFP_NODATA] = KLFERR_USERWRAPPERSCRIPT_NOOUTPUT;
+      p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERWRAPPERSCRIPT_OUTPUTREADFAIL;
+      
+      p.argv << in.wrapperScript << dir_native_separators(fnTex);
+      
+      ok = p.run(fnDvi, &res.dvidata, &res);
+      if (!ok) {
+	return res;
+      }
+    }
+  }
 
   QByteArray rawepsdata;
 

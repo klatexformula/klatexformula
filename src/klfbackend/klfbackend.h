@@ -133,7 +133,15 @@
 #define KLFERR_GSSVG_NOOUTPUT -36
 //! Failed to read SVG file produced by 'gs'
 #define KLFERR_GSSVG_OUTPUTREADFAIL -37
-// last error defined: -37
+//! Failed to execute user wrapper script
+#define KLFERR_USERWRAPPERSCRIPT_NORUN -38
+#define KLFERR_USERWRAPPERSCRIPT_NONORMALEXIT -39
+#define KLFERR_USERWRAPPERSCRIPT_NOSCRIPTINFO -40
+#define KLFERR_USERWRAPPERSCRIPT_INVALIDSCRIPTINFO -41
+#define KLFERR_USERWRAPPERSCRIPT_NOOUTPUT -42
+#define KLFERR_USERWRAPPERSCRIPT_OUTPUTREADFAIL -43
+// last error defined: -43
+
 
 
 //! \c latex exited with a non-zero status
@@ -153,7 +161,9 @@
 #define KLFERR_PROGERR_EPSTOPDF KLFERR_PROGERR_GSPDF //!< obsolete, same as \ref KLFERR_PROGERR_GSPDF
 //! \c gs exited with non-zero status while producing SVG
 #define KLFERR_PROGERR_GSSVG 7
-// last error defined: 7
+//! user wrapper script exited with non-zero status
+#define KLFERR_PROGERR_USERWRAPPERSCRIPT 8
+// last error defined: 8
 
 
 //! The main engine for KLatexFormula
@@ -292,6 +302,14 @@ public:
      *
      * This property is FALSE by default. */
     bool bypassTemplate;
+
+    /** \brief A Path to a script that acts as wrapper around LaTeX
+     *
+     * In short, we will call this script instead of latex. This script should understand
+     * some command-line arguments and environment vars, TO BE DOCUMENTED.
+     * \bug ......... DOC ........... & IMPLEMENT ................
+     */
+    QString wrapperScript;
   };
 
   //! KLFBackend::getLatexFormula() result

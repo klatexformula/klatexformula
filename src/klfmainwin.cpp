@@ -228,47 +228,10 @@ KLFMainWin::KLFMainWin()
   KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
   rf->setRelPointSize(-2);
   rf->setThorough(true);
-  //  u->frmDetails->setSideWidgetManager(KLFSideWidget::Drawer);
-  //  u->frmDetails->setSideWidgetManager(KLFSideWidget::ShowHide);
+#endif
+
   u->frmDetails->setSideWidgetManager(klfconfig.UI.detailsSideWidgetType);
-  //  u->frmDetails->sideWidgetManager()->setProperty("calcSpacing", QVariant(u->lyt_KLFMainWin->spacing()));
-#endif
-
-
-  /*
-#ifdef Q_WS_MAC
-  {
-    klfDbg("Creating Mac Drawer...") ;
-    extern bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
-
-    //    QDockWidget *w = new QDockWidget(tr("Style & Settings"), this, Qt::Drawer);
-    //    mMacDetailsDrawer = w;
-    //    w/ *mMacDetailsDrawer* /->setAllowedAreas(Qt::RightDockWidgetArea);
-    mMacDetailsDrawer = new QWidget(this, Qt::Drawer);
-    mMacDetailsDrawer->hide();
-    //klf_qt_mac_set_drawer_preferred_edge(mMacDetailsDrawer, Qt::RightDockWidgetArea);
-
-    klfDbg("setting up details widget in drawer...") ;
-    QVBoxLayout *layout = new QVBoxLayout(mMacDetailsDrawer);
-    layout->setContentsMargins(0,0,0,0);
-    layout->setSpacing(0);
-    //    u->frmDetails->setParent(mMacDetailsDrawer);
-    //    layout->addWidget(mMacDetailsDrawer);
-    //    QLabel *helloworldDEBUG = new QLabel("Hello World!", mMacDetailsDrawer);
-    //    layout->addWidget(helloworldDEBUG);
-
-    u->frmDetails->setParent(NULL);
-    u->frmDetails->setParent(mMacDetailsDrawer);
-    layout->addWidget(u->frmDetails);
-
-    resize(u->frmMain->sizeHint()+QSize(10,10));
-    u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
-    klfDbg("created mac drawer!") ;
-  }
-#else
-  u->frmDetails->hide();
-#endif
-  */
+  u->frmDetails->showSideWidget(false);
 
   u->txtLatex->installEventFilter(this);
   u->txtLatex->setDropDataHandler(this);
@@ -276,10 +239,6 @@ KLFMainWin::KLFMainWin()
   // configure syntax highlighting colors
   KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtLatex) ;
   KLF_CONNECT_CONFIG_SH_LATEXEDIT(u->txtPreamble) ;
-
-#ifndef Q_WS_MAC
-  setFixedSize(_shrinkedsize);
-#endif
 
   u->btnEvaluate->installEventFilter(this);
 
@@ -2257,6 +2216,9 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   input.latex = u->txtLatex->toPlainText();
   klfDbg("latex="<<input.latex) ;
 
+  //  / ** \bug **** !!!! DEBUG !!!!! **** * /
+  //  input.wrapperScript = "/home/philippe/temp/latexwrapperscript.py";
+
   if (u->chkMathMode->isChecked()) {
     input.mathmode = u->cbxMathMode->currentText();
     if (final && u->cbxMathMode->findText(input.mathmode) == -1) {
@@ -2481,40 +2443,6 @@ void KLFMainWin::slotSymbols(bool showsymbs)
 void KLFMainWin::slotExpandOrShrink()
 {
   slotExpand(!isExpandedMode());
-  /*
-  klfDbg("u->frmDetails = "<<u->frmDetails<<"; mMacDetailsDrawer="<<mMacDetailsDrawer);
-#if !defined(Q_WS_MAC)
-  if (u->frmDetails->isVisible()) {
-    u->frmDetails->hide();
-    setFixedSize(_shrinkedsize);
-    //    adjustSize();
-    u->btnExpand->setIcon(QIcon(":/pics/switchexpanded.png"));
-  } else {
-    setFixedSize(_expandedsize);
-    u->frmDetails->show();
-    //    adjustSize();
-    u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.png"));
-  }
-#else
-  extern bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
-  KLF_ASSERT_NOT_NULL(mMacDetailsDrawer, "Mac Details Drawer pointer is NULL!", return;) ;
-  klfDbg("drawer/isVisible="<<mMacDetailsDrawer->isVisible()) ;
-  //  // refresh the thing, there are too many small bugs...
-  if (mMacDetailsDrawer->isVisible()) {
-    klfDbg("Hide!") ;
-    mMacDetailsDrawer->hide();
-  } else {
-    klfDbg("Show!") ;
-    klf_qt_mac_set_drawer_preferred_edge(mMacDetailsDrawer, Qt::RightDockWidgetArea);
-    mMacDetailsDrawer->show();
-  }
-  if (mMacDetailsDrawer->isVisible()) {
-    u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.png"));
-  } else {
-    u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
-  }
-#endif
-  */
 }
 
 void KLFMainWin::slotExpand(bool expanded)
@@ -2860,11 +2788,6 @@ void KLFMainWin::slotDrag()
 
   QDrag *drag = new QDrag(this);
   KLFMimeData *mime = new KLFMimeData(klfconfig.ExportData.dragExportProfile, _output);
-
-  //  / ** \bug .... Temporary solution for mac os X ... * /
-  //#ifdef Q_WS_MAC
-  //  mime->setImageData(_output.result);
-  //#endif
 
   drag->setMimeData(mime);
 
