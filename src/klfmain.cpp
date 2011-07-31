@@ -599,3 +599,31 @@ KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList p
   // the stream is ready to read data from
   return true;
 }
+
+
+
+// -----
+
+// user scripts
+
+KLF_EXPORT QStringList klf_user_scripts;
+
+void klf_reload_user_scripts()
+{
+  QStringList pathlist;
+  pathlist << klfconfig.globalShareDir+"/userscripts/*"
+	   << klfconfig.homeConfigDir+"/userscripts/*";
+  klf_user_scripts.clear();
+  for (int kkl = 0; kkl < pathlist.size(); ++kkl) {
+    QStringList l = klfSearchFind(pathlist[kkl]);
+    // filter out some unwanted entries
+    for (int j = 0; j < l.size(); ++j) {
+      if (l[j].endsWith("/.") || l[j].endsWith("/.."))
+	continue;
+      if (!QFileInfo(l[j]).isFile())
+	continue;
+      klf_user_scripts << l[j];
+    }
+  }
+  klfDbg("Searched in path="<<pathlist<<"; scripts="<<klf_user_scripts) ;
+}

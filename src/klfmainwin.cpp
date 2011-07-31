@@ -347,6 +347,8 @@ KLFMainWin::KLFMainWin()
   //	  Qt::QueuedConnection);
   connect(u->colBg, SIGNAL(colorChanged(const QColor&)), this, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
+  connect(u->cbxUserScript, SIGNAL(activated(const QString&)), this, SLOT(updatePreviewThreadInput()),
+	  Qt::QueuedConnection);
 
   connect(pLatexPreviewThread, SIGNAL(previewError(const QString&, int)),
 	  this, SLOT(showRealTimeError(const QString&, int)));
@@ -369,6 +371,16 @@ KLFMainWin::KLFMainWin()
   mLatexSymbols->installEventFilter(this);
   mStyleManager->installEventFilter(this);
   mSettingsDialog->installEventFilter(this);
+
+
+  // LOAD USER SCRIPTS
+
+  QStringList userscripts = klf_user_scripts;
+  u->cbxUserScript->clear();
+  u->cbxUserScript->addItem(tr("<none>", "[[no user script]]"), QVariant(QString()));
+  for (int kkl = 0; kkl < userscripts.size(); ++kkl) {
+    u->cbxUserScript->addItem(QFileInfo(userscripts[kkl]).baseName(), QVariant(userscripts[kkl]));
+  }
 
 
   // ADDITIONAL SETUP
@@ -2216,8 +2228,7 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   input.latex = u->txtLatex->toPlainText();
   klfDbg("latex="<<input.latex) ;
 
-  //  / ** \bug **** !!!! DEBUG !!!!! **** * /
-  //  input.wrapperScript = "/home/philippe/temp/latexwrapperscript.py";
+  input.wrapperScript = u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString();
 
   if (u->chkMathMode->isChecked()) {
     input.mathmode = u->cbxMathMode->currentText();

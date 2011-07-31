@@ -619,6 +619,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // user has provided us a wrapper script. Query it and use it
     QByteArray scriptinfo;
     QString scriptname;
+    QString scriptversion;
     //    bool want_full_template = true;
     { // Query Script Info phase
       KLFFilterProgram p(QLatin1String("User-Wrapper-Script"), &settings);
@@ -641,7 +642,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
     // parse scriptinfo
     if (!scriptinfo.startsWith("ScriptInfo\n")) {
-      qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.";
+      qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo (missing header line).";
       res.status = KLFERR_USERWRAPPERSCRIPT_INVALIDSCRIPTINFO;
       res.errorstr = QObject::tr("User wrapper script provided invalid --scriptinfo output.", "KLFBackend");
       return res;
@@ -656,8 +657,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       QRegExp rx("(\\w+):\\s*(.*)");
       QRegExp boolrxtrue("(t(rue)?|y(es)?|on|1)");
       if (!rx.exactMatch(line)) {
-	klfDbg("Buggy line: "<<line);
-	qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.";
+	qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.\nCannot parse line: "<<line;
 	res.status = KLFERR_USERWRAPPERSCRIPT_INVALIDSCRIPTINFO;
 	res.errorstr = QObject::tr("User wrapper script provided invalid --scriptinfo output.", "KLFBackend");
 	return res;
@@ -666,6 +666,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       QString val = rx.cap(2).trimmed();
       if (key == QLatin1String("Name")) {
 	scriptname = val;
+      } else if (key == QLatin1String("Version")) {
+	scriptversion = val;
       } else {
 	klfDbg("Unknown userscript info key: "<<key<<", in line:\n"<<line);
 	qWarning()<<KLF_FUNC_NAME<<": Ignoring unknown user script info key "<<key<<".";
@@ -1133,7 +1135,8 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
     a.fg_color == b.fg_color &&
     a.bg_color == b.bg_color &&
     a.dpi == b.dpi &&
-    a.bypassTemplate == b.bypassTemplate;
+    a.bypassTemplate == b.bypassTemplate &&
+    a.wrapperScript == b.wrapperScript;
 }
 
 KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::klfSettings& b)

@@ -1044,6 +1044,8 @@ int main(int argc, char **argv)
     klfDbgT("$$About to main_load_extra_resources$$");
     main_load_extra_resources();
 
+    klf_reload_user_scripts();
+
     klfDbgT("$$About to main_reload_translations$$");
     klf_reload_translations(&app, klfconfig.UI.locale);
 

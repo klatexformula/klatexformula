@@ -318,5 +318,11 @@ KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList p
 					QString * readHeader = NULL, QString * readCompatKLFVersion = NULL) ;
 
 
+// -- 
+// user scripts
+
+KLF_EXPORT void klf_reload_user_scripts();
+extern QStringList klf_user_scripts;
+
 
 #endif 

@@ -1366,6 +1366,9 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
   if (limit < 0)
     limit = -1; // normalize negative values to -1 (mostly cosmetic...)
 
+  klfDebugf(("root=`%s', pathlist=`%s', level=%d, limit=%d", qPrintable(root), qPrintable(pathlist.join("\t")),
+	     level, limit));
+
   QStringList newpathlist = pathlist;
   // our level: levelpathlist contains items in pathlist from 0 to level-1 inclusive.
   QStringList levelpathlist;
@@ -1373,15 +1376,20 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
   for (k = 0; k < level; ++k) { levelpathlist << newpathlist[k]; }
   // the dir/file at our level:
   QString flpath = root+levelpathlist.join("/");
+  klfDebugf(("our path = `%s' ...", qPrintable(flpath)));
   QFileInfo flinfo(flpath);
-  if (flinfo.isDir()) {
+  if (flinfo.isDir() && level < pathlist.size()) { // is dir, and we still have path level to explore
+    klfDebugf(("... is dir.")) ;
     QDir d(flpath);
     QStringList entries;
 #ifdef KLFBACKEND_QT4
-    entries = d.entryList(QStringList()<<pathlist[level]);
+    entries = d.entryList(QStringList()<<pathlist[level], QDir::Drives|QDir::Files|QDir::Dirs|QDir::Hidden);
 #else
     entries = d.entryList(pathlist[level]);
 #endif
+    if (entries.size()) {
+      klfDebugf(("got entry list: %s", qPrintable(entries.join("\t"))));
+    }
     QStringList hitlist;
     for (k = 0; k < (int)entries.size(); ++k) {
       newpathlist[level] = entries[k];
@@ -1392,8 +1400,10 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
     return hitlist;
   }
   if (flinfo.exists()) {
+    klfDebugf(("... is existing file.")) ;
     return QStringList() << dir_native_separators(root+pathlist.join("/"));
   }
+  klfDebugf(("... is invalid.")) ;
   return QStringList();
 }
 
