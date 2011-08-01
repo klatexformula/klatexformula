@@ -35,6 +35,7 @@
 #endif
 #include <qimage.h>
 #include <qmutex.h>
+#include <qmap.h>
 
 
 
@@ -134,13 +135,14 @@
 //! Failed to read SVG file produced by 'gs'
 #define KLFERR_GSSVG_OUTPUTREADFAIL -37
 //! Failed to execute user wrapper script
-#define KLFERR_USERWRAPPERSCRIPT_NORUN -38
-#define KLFERR_USERWRAPPERSCRIPT_NONORMALEXIT -39
-#define KLFERR_USERWRAPPERSCRIPT_NOSCRIPTINFO -40
-#define KLFERR_USERWRAPPERSCRIPT_INVALIDSCRIPTINFO -41
-#define KLFERR_USERWRAPPERSCRIPT_NOOUTPUT -42
-#define KLFERR_USERWRAPPERSCRIPT_OUTPUTREADFAIL -43
-// last error defined: -43
+#define KLFERR_USERSCRIPT_NORUN -38
+#define KLFERR_USERSCRIPT_NONORMALEXIT -39
+#define KLFERR_USERSCRIPT_NOSCRIPTINFO -40
+#define KLFERR_USERSCRIPT_INVALIDSCRIPTINFO -41
+#define KLFERR_USERSCRIPT_NOOUTPUT -42
+#define KLFERR_USERSCRIPT_OUTPUTREADFAIL -43
+#define KLFERR_USERSCRIPT_BADKLFVERSION -44
+// last error defined: -44
 
 
 
@@ -162,7 +164,7 @@
 //! \c gs exited with non-zero status while producing SVG
 #define KLFERR_PROGERR_GSSVG 7
 //! user wrapper script exited with non-zero status
-#define KLFERR_PROGERR_USERWRAPPERSCRIPT 8
+#define KLFERR_PROGERR_USERSCRIPT 8
 // last error defined: 8
 
 
@@ -303,13 +305,21 @@ public:
      * This property is FALSE by default. */
     bool bypassTemplate;
 
-    /** \brief A Path to a script that acts as wrapper around LaTeX
+    /** \brief A Path to a user script that acts as wrapper around LaTeX
      *
      * In short, we will call this script instead of latex. This script should understand
      * some command-line arguments and environment vars, TO BE DOCUMENTED.
      * \bug ......... DOC ........... & IMPLEMENT ................
      */
-    QString wrapperScript;
+    QString userScript;
+
+    /** \brief Arbitrary parameters to pass to user script
+     *
+     * Only relevant if a \c userScript is set.
+     *
+     * These parameters will be set as environment variables of the form \c "KLF_ARG_<map-key>".
+     */
+    QMap<QString,QString> userScriptParam;
   };
 
   //! KLFBackend::getLatexFormula() result
@@ -514,6 +524,30 @@ private:
   // cache gs version (for each gs executable, in case there are several)
   static QMap<QString,QString> gsVersion;
   static void initGsVersion(const KLFBackend::klfSettings *settings);
+};
+
+
+class KLFUserScriptInfo
+{
+public:
+  KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings);
+  KLFUserScriptInfo(const KLFUserScriptInfo& copy);
+  ~KLFUserScriptInfo();
+
+  int scriptInfoError() const;
+  QString scriptInfoErrorString() const;
+
+  QString fileName() const;
+
+  QString name() const;
+  QString version() const;
+  QString klfMinVersion() const;
+  QString klfMaxVersion() const;
+
+private:
+  class Private;
+
+  Private *d;
 };
 
 

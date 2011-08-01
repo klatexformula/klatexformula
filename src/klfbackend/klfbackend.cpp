@@ -33,6 +33,7 @@
 #include <qtextstream.h>
 #include <qbuffer.h>
 #include <qdir.h>
+#include <qcolor.h>
 
 
 #include "klfblockprocess.h"
@@ -358,6 +359,12 @@ struct KLFFilterProgram {
       return false;
     }
 
+    QByteArray stdoutdata = proc.getAllStdout();
+    QByteArray stderrdata = proc.getAllStderr();
+
+    klfDbg("stdoutdata = "<<stdoutdata) ;
+    klfDbg("stderrdata = "<<stderrdata) ;
+
     if ( ! outFileName.isEmpty() ) {
       if (!QFile::exists(outFileName)) {
 	qDebug("%s: File `%s' did not appear after running %s", KLF_FUNC_NAME, qPrintable(outFileName),
@@ -389,11 +396,9 @@ struct KLFFilterProgram {
       // output file name is empty, read standard output
       *outdata = QByteArray();
       if (outputStdout) {
-	QByteArray stdoutdata = proc.getAllStdout();
 	ba_cat(outdata, stdoutdata);
       }
       if (outputStderr) {
-	QByteArray stderrdata = proc.getAllStderr();
 	ba_cat(outdata, stderrdata);
       }
 
@@ -599,7 +604,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
   }
 
-  if (in.wrapperScript.isEmpty()) {
+  if (in.userScript.isEmpty()) {
     // execute latex
     KLFFilterProgram p(QLatin1String("LaTeX"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_LATEX_NORUN;
@@ -617,78 +622,75 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   } // end of 'latex' block
   else {
     // user has provided us a wrapper script. Query it and use it
-    QByteArray scriptinfo;
-    QString scriptname;
-    QString scriptversion;
-    //    bool want_full_template = true;
-    { // Query Script Info phase
-      KLFFilterProgram p(QLatin1String("User-Wrapper-Script"), &settings);
-      p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERWRAPPERSCRIPT_NORUN;
-      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERWRAPPERSCRIPT_NONORMALEXIT;
-      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERWRAPPERSCRIPT;
-      p.resErrCodes[KLFFP_NODATA] = KLFERR_USERWRAPPERSCRIPT_NOSCRIPTINFO;
-      p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERWRAPPERSCRIPT_NOSCRIPTINFO;
-      
-      p.argv << in.wrapperScript << "--scriptinfo";
-      
-      ok = p.run(QString(), &scriptinfo, &res);
-      if (!ok) {
-	return res;
-      }
-    }
-    scriptinfo.replace("\r\n", "\n");
-    if (scriptinfo.isEmpty()) {
-      scriptinfo = "ScriptInfo\n";
-    }
-    // parse scriptinfo
-    if (!scriptinfo.startsWith("ScriptInfo\n")) {
-      qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo (missing header line).";
-      res.status = KLFERR_USERWRAPPERSCRIPT_INVALIDSCRIPTINFO;
-      res.errorstr = QObject::tr("User wrapper script provided invalid --scriptinfo output.", "KLFBackend");
+
+    KLFUserScriptInfo scriptinfo(in.userScript, &settings);
+
+    if (scriptinfo.scriptInfoError() != KLFERR_NOERROR) {
+      res.status = scriptinfo.scriptInfoError();
+      res.errorstr = scriptinfo.scriptInfoErrorString();
       return res;
     }
-    QList<QByteArray> lines = scriptinfo.split('\n');
-    lines.removeAt(0); // skip of course the 'ScriptInfo\n' line !
-    int kkl;
-    for (kkl = 0; kkl < lines.size(); ++kkl) {
-      QString line = QString::fromLocal8Bit(lines[kkl]);
-      if (line.trimmed().isEmpty())
-	continue;
-      QRegExp rx("(\\w+):\\s*(.*)");
-      QRegExp boolrxtrue("(t(rue)?|y(es)?|on|1)");
-      if (!rx.exactMatch(line)) {
-	qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.\nCannot parse line: "<<line;
-	res.status = KLFERR_USERWRAPPERSCRIPT_INVALIDSCRIPTINFO;
-	res.errorstr = QObject::tr("User wrapper script provided invalid --scriptinfo output.", "KLFBackend");
-	return res;
-      }
-      QString key = rx.cap(1);
-      QString val = rx.cap(2).trimmed();
-      if (key == QLatin1String("Name")) {
-	scriptname = val;
-      } else if (key == QLatin1String("Version")) {
-	scriptversion = val;
-      } else {
-	klfDbg("Unknown userscript info key: "<<key<<", in line:\n"<<line);
-	qWarning()<<KLF_FUNC_NAME<<": Ignoring unknown user script info key "<<key<<".";
-      }
+
+    if ( (!scriptinfo.klfMinVersion().isEmpty()
+	  && klfVersionCompare(scriptinfo.klfMinVersion(), KLF_VERSION_STRING) > 0) ||
+	 (!scriptinfo.klfMaxVersion().isEmpty()
+	  && klfVersionCompare(scriptinfo.klfMaxVersion(), KLF_VERSION_STRING) < 0) ) {
+      res.status = KLFERR_USERSCRIPT_BADKLFVERSION;
+      res.errorstr = QObject::tr("User Script is not compatible with current version of KLatexFormula.",
+				 "KLFBackend");
+      return res;
     }
+
     // and run the script with the latex input
+    QString fgcol = QString("rgba(%1,%2,%3,%4)").arg(qRed(in.fg_color))
+      .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)).arg(qAlpha(in.fg_color));
+    QString bgcol = QString("rgba(%1,%2,%3,%4)").arg(qRed(in.bg_color))
+      .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color)).arg(qAlpha(in.bg_color));
     QStringList addenv;
-    addenv << "KLF_TEMPDIR="+settings.tempdir
-	   << "KLF_LATEX="+settings.latexexec
-	   << "KLF_DVIPS="+settings.dvipsexec
-	   << "KLF_GS="+settings.gsexec
-	   << "KLF_INPUT_LATEX=" + in.latex;
+    addenv
+      // program executables
+      << "KLF_TEMPDIR=" + settings.tempdir
+      << "KLF_LATEX=" + settings.latexexec
+      << "KLF_DVIPS=" + settings.dvipsexec
+      << "KLF_GS=" + settings.gsexec
+      << "KLF_GS_VERSION=" + gsVersion.value(settings.gsexec)
+      // input
+      << "KLF_INPUT_LATEX=" + in.latex
+      << "KLF_INPUT_MATHMODE=" + in.mathmode
+      << "KLF_INPUT_PREAMBLE=" + in.preamble
+      << "KLF_INPUT_FG_COLOR_WEB=" + QColor(in.fg_color).name()
+      << "KLF_INPUT_FG_COLOR_RGBA=" + fgcol
+      << "KLF_INPUT_BG_COLOR_TRANSPARENT=" + QString::fromLatin1(qAlpha(in.bg_color) > 50 ? "1" : "0")
+      << "KLF_INPUT_BG_COLOR_WEB=" + QColor(in.bg_color).name()
+      << "KLF_INPUT_BG_COLOR_RGBA=" + bgcol
+      << "KLF_INPUT_DPI=" + QString::number(in.dpi)
+      << "KLF_INPUT_USERSCRIPT=" + in.userScript
+      << "KLF_INPUT_BYPASS_TEMPLATE=" + in.bypassTemplate
+      // more advanced settings
+      << "KLF_SETTINGS_BORDEROFFSET=" + klfFmt("%.3g,%.3g,%.3g,%.3g pt", settings.tborderoffset,
+					       settings.rborderoffset, settings.bborderoffset, settings.lborderoffset)
+      << "KLF_SETTINGS_OUTLINEFONTS=" + QString::fromLatin1(settings.outlineFonts ? "1" : "0")
+      << "KLF_SETTINGS_CALCEPSBOUNDINGBOX=" + QString::fromLatin1(settings.calcEpsBoundingBox ? "1" : "0")
+      << "KLF_SETTINGS_WANT_RAW=" + QString::fromLatin1(settings.wantRaw ? "1" : "0")
+      << "KLF_SETTINGS_WANT_PDF=" + QString::fromLatin1(settings.wantPDF ? "1" : "0")
+      << "KLF_SETTINGS_WANT_SVG=" + QString::fromLatin1(settings.wantSVG ? "1" : "0");
+
+    // and add custom user parameters
+    QMap<QString,QString>::const_iterator cit;
+    for (cit = in.userScriptParam.constBegin(); cit != in.userScriptParam.constEnd(); ++cit) {
+      addenv << "KLF_ARG_"+cit.key() + "=" + cit.value();
+    }
+
     { // now run the script
-      KLFFilterProgram p(QLatin1String("User Wrapper Script"), &settings);
-      p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERWRAPPERSCRIPT_NORUN;
-      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERWRAPPERSCRIPT_NONORMALEXIT;
-      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERWRAPPERSCRIPT;
-      p.resErrCodes[KLFFP_NODATA] = KLFERR_USERWRAPPERSCRIPT_NOOUTPUT;
-      p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERWRAPPERSCRIPT_OUTPUTREADFAIL;
+      KLFFilterProgram p("["+scriptinfo.name()+" user script]", &settings);
+      p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
+      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
+      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
+      p.resErrCodes[KLFFP_NODATA] = KLFERR_USERSCRIPT_NOOUTPUT;
+      p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERSCRIPT_OUTPUTREADFAIL;
+      p.execEnviron << addenv;
       
-      p.argv << in.wrapperScript << dir_native_separators(fnTex);
+      p.argv << in.userScript << dir_native_separators(fnTex);
       
       ok = p.run(fnDvi, &res.dvidata, &res);
       if (!ok) {
@@ -1136,7 +1138,7 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
     a.bg_color == b.bg_color &&
     a.dpi == b.dpi &&
     a.bypassTemplate == b.bypassTemplate &&
-    a.wrapperScript == b.wrapperScript;
+    a.userScript == b.userScript;
 }
 
 KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::klfSettings& b)
@@ -1408,4 +1410,159 @@ void KLFBackend::initGsVersion(const KLFBackend::klfSettings *settings)
       }
     }
   }
+}
+
+
+struct KLFUserScriptInfo::Private
+{
+  Private()
+  {
+    refcount = 0;
+    settings = NULL;
+    scriptInfoError = KLFERR_NOERROR;
+  }
+
+  int refcount;
+
+  KLFBackend::klfSettings *settings;
+
+  QString fname;
+  int scriptInfoError;
+  QString scriptInfoErrorString;
+  QString name;
+  QString version;
+  QString klfminversion;
+  QString klfmaxversion;
+
+  void query_script_info()
+  {
+    scriptInfoError = 0;
+    scriptInfoErrorString = QString();
+
+    QByteArray scriptinfo;
+    //    bool want_full_template = true;
+    { // Query Script Info phase
+      KLFFilterProgram p(QObject::tr("User Wrapper Script (ScriptInfo)"), settings);
+      p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
+      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
+      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
+      p.resErrCodes[KLFFP_NODATA] = KLFERR_USERSCRIPT_NOSCRIPTINFO;
+      p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERSCRIPT_NOSCRIPTINFO;
+      
+      p.argv << fname << "--scriptinfo";
+      
+      KLFBackend::klfOutput res; // for error messages
+
+      bool ok = p.run(QString(), &scriptinfo, &res);
+      if (!ok) {
+	scriptInfoError = res.status;
+	scriptInfoErrorString = res.errorstr;
+	return;
+      }
+    }
+    scriptinfo.replace("\r\n", "\n");
+    if (scriptinfo.isEmpty()) {
+      scriptinfo = "ScriptInfo\n";
+    }
+    klfDbg("got scriptinfo="<<scriptinfo) ;
+    // parse scriptinfo
+    if (!scriptinfo.startsWith("ScriptInfo\n")) {
+      scriptInfoError = KLFERR_USERSCRIPT_INVALIDSCRIPTINFO;
+      scriptInfoErrorString = QObject::tr("User script did not provide valid --scriptinfo output.");
+      qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo (missing header line).";
+      return;
+    }
+    QList<QByteArray> lines = scriptinfo.split('\n');
+    lines.removeAt(0); // skip of course the 'ScriptInfo\n' line !
+    int k;
+    for (k = 0; k < lines.size(); ++k) {
+      QString line = QString::fromLocal8Bit(lines[k]);
+      if (line.trimmed().isEmpty())
+	continue;
+      QRegExp rx("(\\w+):\\s*(.*)");
+      QRegExp boolrxtrue("(t(rue)?|y(es)?|on|1)");
+      if (!rx.exactMatch(line)) {
+	qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.\nCannot parse line: "<<line;
+	scriptInfoError = KLFERR_USERSCRIPT_INVALIDSCRIPTINFO;
+	scriptInfoErrorString = QObject::tr("User wrapper script provided invalid --scriptinfo output.", "KLFBackend");
+	return;
+      }
+      QString key = rx.cap(1);
+      QString val = rx.cap(2).trimmed();
+      if (val.isEmpty())
+	val = QString(); // empty value is null string
+      if (key == QLatin1String("Name")) {
+	name = val;
+	klfDbg("Read name: "<<name) ;
+      } else if (key == QLatin1String("Version")) {
+	version = val;
+	klfDbg("Read version: "<<version) ;
+      } else if (key == QLatin1String("KLFMinVersion")) {
+	klfminversion = val;
+	klfDbg("Read klfminversion: "<<klfminversion) ;
+      } else if (key == QLatin1String("KLFMaxVersion")) {
+	klfmaxversion = val;
+	klfDbg("Read klfmaxversion: "<<klfmaxversion) ;
+      } else {
+	klfDbg("Unknown userscript info key: "<<key<<", in line:\n"<<line);
+	qWarning()<<KLF_FUNC_NAME<<": Ignoring unknown user script info key "<<key<<".";
+      }
+    }
+  }
+};
+
+
+KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings)
+{
+  d = new KLFUserScriptInfo::Private;
+  d->refcount++;
+
+  d->settings = settings;
+  d->fname = scriptFileName;
+
+  d->query_script_info();
+}
+
+KLFUserScriptInfo::KLFUserScriptInfo(const KLFUserScriptInfo& copy)
+{
+  d = copy.d;
+  d->refcount++;
+}
+
+KLFUserScriptInfo::~KLFUserScriptInfo()
+{
+  d->refcount--;
+  if (d->refcount == 0)
+    delete d;
+}
+
+QString KLFUserScriptInfo::fileName() const
+{
+  return d->fname;
+}
+
+int KLFUserScriptInfo::scriptInfoError() const
+{
+  return d->scriptInfoError;
+}
+QString KLFUserScriptInfo::scriptInfoErrorString() const
+{
+  return d->scriptInfoErrorString;
+}
+
+QString KLFUserScriptInfo::name() const
+{
+  return d->name;
+}
+QString KLFUserScriptInfo::version() const
+{
+  return d->version;
+}
+QString KLFUserScriptInfo::klfMinVersion() const
+{
+  return d->klfminversion;
+}
+QString KLFUserScriptInfo::klfMaxVersion() const
+{
+  return d->klfmaxversion;
 }

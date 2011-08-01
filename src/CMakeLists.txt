@@ -62,6 +62,7 @@ set(klfapp_SRCS
 	klfsettings.cpp
 	klfstylemanager.cpp
 	klfmain.cpp
+	klfcmdiface.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -84,6 +85,7 @@ set(klfapp_MOCHEADERS
 	klfmainwin_p.h
 	klfsettings.h
 	klfstylemanager.h
+	klfcmdiface.h
 )
 #  * all headers
 set(klfapp_HEADERS
@@ -125,6 +127,7 @@ if(APPLE)
   set(klfapp_SRCS ${klfapp_SRCS}
 	macosx/klfmacclipboard.cpp
 	macosx/klfmainwin_mac.mm
+	macosx/klfcmdifacedispatch_mac.mm
   )
 endif(APPLE)
 # * X11

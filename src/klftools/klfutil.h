@@ -497,7 +497,9 @@ private:
 
 
 
-/** Call this from your main program, so that the klftools resource is initialized. */
+/** \brief Call this from your main program, so that the klftools resource is initialized.
+ * \hideinitializer
+ */
 #define KLFTOOLS_INIT				\
   Q_INIT_RESOURCE(klftoolsres)
 

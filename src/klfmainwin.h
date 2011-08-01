@@ -53,7 +53,7 @@ class KLFStyleManager;
 class KLFSettings;
 class KLFLatexSyntaxHighlighter;
 class KLFLatexEdit;
-
+class KLFCmdIface;
 
 
 namespace Ui {
@@ -228,17 +228,6 @@ public:
 			    altersetting_OutlineFonts, //!< bool given as an int value
 			    altersetting_CalcEpsBoundingBox //!< bool given as an int value
   };
-  /** This function allows to temporarily modify a given setting with a new value. KLatexFormula
-   * will NOT remember the new setting in later executions.
-   *
-   * Used eg. for command-line mode.
-   *
-   * Note you have to use the correct function for each setting, if the setting requires an int
-   * use this function, if it requires a string use alterSetting(altersetting_which, QString).
-   */
-  void alterSetting(altersetting_which, int ivalue);
-  /** See alterSetting(altersetting_which, int) */
-  void alterSetting(altersetting_which, QString svalue);
 
   KLFLibBrowser * libBrowserWidget() { return mLibBrowser; }
   KLFLatexSymbols * latexSymbolsWidget() { return mLatexSymbols; }
@@ -305,6 +294,18 @@ public slots:
   void slotSetFgColor(const QString& fgcolor);
   void slotSetBgColor(const QColor& bgcolor);
   void slotSetBgColor(const QString& bgcolor);
+
+  /** This function allows to temporarily modify a given setting with a new value. KLatexFormula
+   * will NOT remember the new setting in later executions.
+   *
+   * Used eg. for command-line mode.
+   *
+   * Note you have to use the correct function for each setting, if the setting requires an int
+   * use this function, if it requires a string use alterSetting(altersetting_which, QString).
+   */
+  void alterSetting(int altersettingWhich, int ivalue);
+  /** See alterSetting(altersetting_which, int) */
+  void alterSetting(int altersettingWhich, QString svalue);
 
   // will actually save only if output non empty.
   void slotEvaluateAndSave(const QString& output, const QString& format);
@@ -391,6 +392,8 @@ public slots:
   void setQuitOnClose(bool quitOnClose);
 
   void macHideApplication();
+
+  bool executeURLCommandsFromFile(const QString& fname);
 
   void quit();
 
@@ -514,6 +517,7 @@ protected:
   QList<KLFAbstractOutputSaver*> pOutputSavers;
   QList<KLFAbstractDataOpener*> pDataOpeners;
 
+  KLFCmdIface *pCmdIface;
 
   QVariantMap parseLatexEditPosParenInfo(KLFLatexEdit *editor, int pos);
 };

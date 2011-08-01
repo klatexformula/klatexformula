@@ -135,6 +135,8 @@ void KLFSideWidgetManagerBase::waitForShowHideActionFinished(int timeout_ms)
 
   tm.start();
 
+  //  connect(this, SIGNAL(sideWidgetShown(bool)), this, SLOT(slotSideWidgetShown(bool)));
+
   // Don't reinitialize to false here, since slotSideWidgetShownActionFinished() could have
   // already been called.
   //  d->actionFinishedSignalReceived = false; 

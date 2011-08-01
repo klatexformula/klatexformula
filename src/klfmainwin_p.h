@@ -304,6 +304,9 @@ public:
       klfDbg(" ... file cannot be accessed.") ;
       return false;
     }
+    if (file.endsWith(".klfcommands")) {
+      return true;
+    }
     bool isimage = false;
     if (isKlfImage(&f, &isimage)) {
       klfDbg(" ... is KLF-saved image.") ;
@@ -359,6 +362,11 @@ public:
       return false;
     }
     QString ext = fi.suffix().trimmed().toLower();
+
+    if (ext == "klfcommands") {
+      // execute commands
+      return mainWin()->executeURLCommandsFromFile(file);
+    }
 
     { // try to open image
       QFile f(file);

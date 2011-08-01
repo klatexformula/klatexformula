@@ -43,9 +43,11 @@
 #include "klfmain.h"
 #include "klfstylemanager.h"
 #include "klfmime.h"
+#include "klfcmdiface.h"
 
 #include "klfmainwin.h"
 #include "klfmainwin_p.h"
+
 
 
 #define DEBUG_GEOM_ARGS(g) (g).topLeft().x(), (g).topLeft().y(), (g).size().width(), (g).size().height()
@@ -142,6 +144,8 @@ KLFMainWin::KLFMainWin()
   _output.status = 0;
   _output.errorstr = QString();
 
+  pCmdIface = new KLFCmdIface(this);
+  pCmdIface->registerObject(this, QLatin1String("klfmainwin.klfapp.klf"));
 
   // load styless
   loadStyles();
@@ -379,7 +383,8 @@ KLFMainWin::KLFMainWin()
   u->cbxUserScript->clear();
   u->cbxUserScript->addItem(tr("<none>", "[[no user script]]"), QVariant(QString()));
   for (int kkl = 0; kkl < userscripts.size(); ++kkl) {
-    u->cbxUserScript->addItem(QFileInfo(userscripts[kkl]).baseName(), QVariant(userscripts[kkl]));
+    KLFUserScriptInfo scriptinfo(userscripts[kkl], &_settings);
+    u->cbxUserScript->addItem(scriptinfo.name(), QVariant(userscripts[kkl]));
   }
 
 
@@ -1795,6 +1800,58 @@ void KLFMainWin::setQuitOnClose(bool quitOnClose)
   _ignore_close_event = ! quitOnClose;
 }
 
+bool KLFMainWin::executeURLCommandsFromFile(const QString& fname)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("fname="<<fname) ;
+
+  QFile f(fname);
+  if (!f.open(QIODevice::ReadOnly)) {
+    klfDbg("Unable to open file "<<fname) ;
+    return false;
+  }
+  // read commands and execute them
+  QByteArray header = f.readLine();
+  if (!header.startsWith("KLFCmdIface/URL: ")) {
+    klfDbg("Bad file header "<<fname) ;
+    return false;
+  }
+
+  /** \bug TODO..... parse header, allow empty lines before header etc. */
+
+  bool wantautoremove = false;
+
+  while (!f.atEnd()) {
+    QByteArray s = f.readLine();
+    //    if (!f.errorString().isEmpty()) {
+    //      qWarning()<<KLF_FUNC_NAME<<": Error : "<<f.errorString();
+    //      return false;
+    //    }
+    klfDbg("read line: "<<s) ;
+    if (s.isEmpty())
+      continue;
+    if (s.endsWith("\n"))
+      s = s.mid(0, s.length()-1);
+    if (!s.startsWith("_")) {
+      QUrl url = QUrl::fromEncoded(s);
+      klfDbg("command: "<<url) ;
+      pCmdIface->executeCommand(url);
+    } else if (s == "_autoremovefile") {
+      wantautoremove = true;
+    } else {
+      qWarning()<<KLF_FUNC_NAME<<": Unknown pragma: "<<s;
+    }
+  }
+  f.close();
+
+  if (wantautoremove) {
+    klfDbg("removing file.") ;
+    QFile::remove(fname);
+  }
+
+  return true;
+}
+
 void KLFMainWin::macHideApplication()
 {
 #ifdef Q_WS_MAC
@@ -1941,9 +1998,21 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   }
 
   // ----
+  if ( obj == QApplication::instance() ) {
+    klfDbg("Application event: type="<<e->type()) ;
+  }
   if ( obj == QApplication::instance() && e->type() == QEvent::FileOpen ) {
-    // open a file
-    openFile(((QFileOpenEvent*)e)->file());
+    // open a URL or file
+    QFileOpenEvent *fe = (QFileOpenEvent*)e;
+    klfDbg("QFileOpenEvent: Opening: "<<fe->file()<<"; URL="<<fe->url()) ;
+#if QT_VERSION >= 0x040600 // for QFileOpenEvent::url()
+    if (fe->url().scheme() == "klfcommand") {
+      // this is a KLFCmdIface-command
+      pCmdIface->executeCommand(fe->url());
+      return true;
+    }
+#endif
+    openFile(fe->file());
     return true;
   }
   //  if (obj == QApplication::instance()) {
@@ -2090,7 +2159,7 @@ void KLFMainWin::timerEvent(QTimerEvent *e)
 
 
 
-void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
+void KLFMainWin::alterSetting(int which, int ivalue)
 {
   _settings_altered = true;
   switch (which) {
@@ -2111,7 +2180,7 @@ void KLFMainWin::alterSetting(altersetting_which which, int ivalue)
     break;
   }
 }
-void KLFMainWin::alterSetting(altersetting_which which, QString svalue)
+void KLFMainWin::alterSetting(int which, QString svalue)
 {
   _settings_altered = true;
   switch (which) {
@@ -2228,7 +2297,7 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   input.latex = u->txtLatex->toPlainText();
   klfDbg("latex="<<input.latex) ;
 
-  input.wrapperScript = u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString();
+  input.userScript = u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString();
 
   if (u->chkMathMode->isChecked()) {
     input.mathmode = u->cbxMathMode->currentText();

@@ -55,6 +55,7 @@
 #include "klfmainwin.h"
 #include "klfdbus.h"
 #include "klfpluginiface.h"
+#include "klfcmdiface.h"
 
 /** \file
  * \brief main() function for klatexformula [NOT part of klfapp]
@@ -789,19 +790,6 @@ void main_setup_app(QCoreApplication *a)
 }
 
 
-// ... may have been needed to create an NSAutoreleasePool ...
-// #ifdef QT_MAC_USE_COCOA
-// extern void * klf_qt_mac_app_start();
-// extern void klf_qt_mac_app_end(void*);
-// class MainStartEnd {
-//   void *ptr;
-// public:
-//   MainStartEnd() { ptr = klf_qt_mac_app_start(); }
-//   ~MainStartEnd() { klf_qt_mac_app_end(ptr); }
-// };
-// #endif
-
-
 
 // OUR MAIN FUNCTION
 
@@ -971,6 +959,75 @@ int main(int argc, char **argv)
     }
 
     main_setup_app(&app);
+
+#if defined(Q_WS_MAC) && defined(QT_MAC_USE_COCOA)
+    extern bool klf_mac_find_open_klf();
+    extern bool klf_mac_dispatch_commands(const QList<QUrl>& urls);
+    if (klf_mac_find_open_klf()) {
+      // there is another instance of KLF running, dispatch commands to it.
+      QList<QUrl> cmds;
+
+      // convenience #define:
+#define CMDURL_MW(slot, argstream)					\
+      KLFCmdIface::encodeCommand(KLFCmdIface::Command(QLatin1String("klfmainwin.klfapp.klf"), \
+						      QLatin1String(#slot), \
+						      QVariantList()<<argstream))
+      // ---------
+
+      if ( ! latexinput.isNull() )
+	cmds << CMDURL_MW(slotSetLatex, latexinput);
+      if ( opt_fgcolor != NULL )
+	cmds << CMDURL_MW(slotSetFgColor, QString::fromLocal8Bit(opt_fgcolor));
+      if ( opt_bgcolor != NULL )
+	cmds << CMDURL_MW(slotSetBgColor, QString::fromLocal8Bit(opt_bgcolor));
+      if ( opt_dpi > 0 )
+	cmds << CMDURL_MW(slotSetDPI, opt_dpi);
+      if (opt_mathmode != NULL)
+	cmds << CMDURL_MW(slotSetMathMode, QString::fromLocal8Bit(opt_mathmode));
+      if (opt_preamble != NULL)
+	cmds << CMDURL_MW(slotSetPreamble, QString::fromLocal8Bit(opt_preamble));
+      if (opt_calcepsbbox >= 0)
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_CalcEpsBoundingBox<<(int)opt_calcepsbbox);
+      if (opt_outlinefonts >= 0)
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_OutlineFonts<<(int)opt_outlinefonts);
+      if (opt_lborderoffset.length())
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_LBorderOffset<<opt_lborderoffset);
+      if (opt_tborderoffset.length())
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_TBorderOffset<<opt_tborderoffset);
+      if (opt_rborderoffset.length())
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_RBorderOffset<<opt_rborderoffset);
+      if (opt_bborderoffset.length())
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_BBorderOffset<<opt_bborderoffset);
+      if (opt_tempdir != NULL)
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_TempDir<<QString::fromLocal8Bit(opt_tempdir));
+      if (opt_latex != NULL)
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_Latex<<QString::fromLocal8Bit(opt_latex));
+      if (opt_dvips != NULL)
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_Dvips<<QString::fromLocal8Bit(opt_dvips));
+      if (opt_gs != NULL)
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_Gs<<QString::fromLocal8Bit(opt_gs));
+      
+      if (!opt_noeval && opt_output) {
+	// will actually save only if output is non empty.
+	cmds << CMDURL_MW(slotEvaluateAndSave,
+			  QString::fromLocal8Bit(opt_output)<<QString::fromLocal8Bit(opt_format));
+      }
+      
+      // IMPORT .klf (or other) files passed as arguments
+      QStringList flist;
+      for (int k = 0; klf_args[k] != NULL; ++k)
+	flist << QString::fromLocal8Bit(klf_args[k]);
+
+      cmds << CMDURL_MW(openFiles, flist);
+
+      // and dispatch these commands to the other instance
+      bool result = klf_mac_dispatch_commands(cmds);
+      if (!result) {
+	qWarning()<<KLF_FUNC_NAME<<": Warning: failed to dispatch commands!";
+      }
+      return 0;
+    }
+#endif
 
 #if defined(KLF_USE_DBUS)
     // see if an instance of KLatexFormula is running...
