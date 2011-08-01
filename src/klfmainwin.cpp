@@ -2549,6 +2549,27 @@ void KLFMainWin::slotSetPreamble(const QString& preamble)
   u->txtPreamble->setLatex(preamble);
 }
 
+void KLFMainWin::slotSetUserScript(const QString& userScript)
+{
+  int k = 0;
+  while (k < u->cbxUserScript->count()) {
+    if (QFileInfo(u->cbxUserScript->itemData(k).toString()) == QFileInfo(userScript)) {
+      // set this item
+      u->cbxUserScript->setCurrentIndex(k);
+      return;
+    }
+  }
+  // append our new item
+  KLFUserScriptInfo us(userScript, &_settings);
+  if (us.scriptInfoError()) {
+    qWarning()<<KLF_FUNC_NAME<<": Can't get info for user script "<<userScript<<": "<<us.scriptInfoErrorString();
+    return;
+  }
+  u->cbxUserScript->addItem(us.name(), QVariant(userScript));
+  u->cbxUserScript->setCurrentIndex(u->cbxUserScript->count()-1);
+}
+
+
 void KLFMainWin::slotEnsurePreambleCmd(const QString& line)
 {
   QTextCursor c = u->txtPreamble->textCursor();

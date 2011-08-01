@@ -286,6 +286,7 @@ public slots:
   void slotSetLatex(const QString& latex);
   void slotSetMathMode(const QString& mathmode);
   void slotSetPreamble(const QString& preamble);
+  void slotSetUserScript(const QString& userScript);
   /** If \c line is already in the preamble, then does nothing. Otherwise appends
    * \c line to the preamble text. */
   void slotEnsurePreambleCmd(const QString& line);

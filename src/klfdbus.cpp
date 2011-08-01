@@ -62,6 +62,8 @@ void KLFDBusAppAdaptor::setInputData(const QString& key, const QString& svalue, 
     _mainwin->slotSetMathMode(svalue);
   } else if (key == "preamble") {
     _mainwin->slotSetPreamble(svalue);
+  } else if (key == "userscript") {
+    _mainwin->slotSetUserScript(svalue);
   } else if (key == "dpi") {
     _mainwin->slotSetDPI(ivalue);
   }

@@ -499,7 +499,7 @@
      </widget>
     </item>
     <item>
-     <widget class="KLFSideWidget" name="frmDetails">
+     <widget class="KLFSideWidget" name="frmDetails" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>1</horstretch>
@@ -543,7 +543,7 @@
           </item>
           <item row="0" column="1">
            <widget class="KLFColorChooser" name="colFg">
-            <property name="alphaEnabled">
+            <property name="alphaEnabled" stdset="0">
              <bool>false</bool>
             </property>
            </widget>
@@ -560,13 +560,13 @@
           </item>
           <item row="1" column="1">
            <widget class="KLFColorChooser" name="colBg">
-            <property name="allowDefaultState">
+            <property name="allowDefaultState" stdset="0">
              <bool>true</bool>
             </property>
-            <property name="defaultStateString">
+            <property name="defaultStateString" stdset="0">
              <string extracomment="background color selector">Transparent</string>
             </property>
-            <property name="alphaEnabled">
+            <property name="alphaEnabled" stdset="0">
              <bool>false</bool>
             </property>
            </widget>
@@ -1276,8 +1276,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>309</x>
-     <y>235</y>
+     <x>301</x>
+     <y>250</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1296,8 +1296,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>309</x>
-     <y>235</y>
+     <x>301</x>
+     <y>250</y>
     </hint>
    </hints>
   </connection>
@@ -1308,8 +1308,8 @@
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>67</x>
-     <y>235</y>
+     <x>129</x>
+     <y>250</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1340,12 +1340,28 @@
    <slot>showMenu()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>388</x>
-     <y>366</y>
+     <x>415</x>
+     <y>357</y>
     </hint>
     <hint type="destinationlabel">
-     <x>388</x>
-     <y>366</y>
+     <x>415</x>
+     <y>357</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkMathMode</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>cbxMathMode</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>549</x>
+     <y>110</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>629</x>
+     <y>107</y>
     </hint>
    </hints>
   </connection>

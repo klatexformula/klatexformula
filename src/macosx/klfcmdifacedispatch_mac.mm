@@ -31,6 +31,7 @@
 #include <QString>
 #include <QTemporaryFile>
 #include <QTextStream>
+#include <QCoreApplication>
 #include <QDir>
 
 
@@ -42,19 +43,73 @@
 
 
 static bool klf_has_other_app = false;
+static QString klf_otherinstance_app_path = QString();
 
 
 KLF_EXPORT bool klf_mac_find_open_klf()
 {
+  // Found no better way to do this!
+#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED) || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1060
+
+  // Code snipplet inspired from http://www.cocoadev.com/index.pl?NSTask
+
+  // Launch "ps x -o pid= -o comm= | egrep 'klatexformula.*'" in the current directory and check for output
+
+  NSTask *task = [NSTask new];
+  [task setLaunchPath:@"/bin/bash"];
+  [task setArguments:[NSArray arrayWithObjects:@"-c", @"ps x -o pid= -o comm= | egrep 'klatexformula.*'", nil]];
+  
+  NSPipe *pipe = [NSPipe pipe];
+  [task setStandardOutput:pipe];
+
+  [task launch];
+
+  NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
+
+  [task waitUntilExit];
+  [task release];
+
+  NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+  QString resultstring = QString::fromUtf8([string UTF8String]);
+  [string release];
+
+  // now parse the result string
+  klf_has_other_app = false;
+  QStringList lines = resultstring.split('\n');
+  for (int i = 0; i < lines.size(); ++i) {
+    QRegExp rx("(\\d+)\\s+(.*)\\s*");
+    if (!rx.exactMatch(lines[i])) {
+      qWarning()<<KLF_FUNC_NAME<<": ps spit out an unparsable line: "<<lines[i];
+      continue;
+    }
+    if (rx.cap(1).toInt() == QCoreApplication::applicationPid()) {
+      // skip our own process
+      continue;
+    }
+    // this is another instance of klatexformula
+    klf_has_other_app = true;
+    klf_otherinstance_app_path = rx.cap(2).trimmed();
+  }
+
+  if (!klf_has_other_app)
+    return false;
+
+  klfDbg("Found app: "<<klf_otherinstance_app_path) ;
+
+  return true;
+
+#else
+  // use NSRunningApplication
   NSArray *applist =
     [NSRunningApplication runningApplicationsWithBundleIdentifier:@"org.klatexformula.klatexformula"];
 
-  klf_has_other_app = false;
+  klf_otherinstance_app_path = false;
 
   int k = 0;
   while (k < [applist count]) {
     NSRunningApplication *app = [applist objectAtIndex:0];
     if ([app processIdentifier] == [[NSRunningApplication currentApplication] processIdentifier]) {
+      // skip this current process!
       ++k;
       continue;
     }
@@ -65,6 +120,7 @@ KLF_EXPORT bool klf_mac_find_open_klf()
 
   // return our result
   return klf_has_other_app;
+#endif
 }
 
 

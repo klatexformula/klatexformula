@@ -67,6 +67,10 @@ Options:
   -p, --preamble <LaTeX code>
       Any LaTeX code that will be inserted before \begin{document}. Useful for
       including custom packages with \usepackage{...}.
+  -s, --userscript <user script>
+      Call a specific user script instead of regular 'latex' executable. See the
+      documentation in libklfbackend for more information. The script must understand
+      and respond to the "--scriptinfo" option.
   -q, --quiet [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
       Disable console output of warnings and errors.
   --redirect-debug <file>

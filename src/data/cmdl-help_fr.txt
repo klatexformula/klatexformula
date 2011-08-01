@@ -66,6 +66,10 @@ Options:
   -p, --preamble <code LaTeX>
       Du texte à insérer avant \begin{document}. Peut s'avérer utile pour des inclusions de paquets
       avec des instructions \usepackage{...}.
+  -s, --userscript <script utilisateur>
+      Appeler le script donné au lieu de l'exécutable 'latex'. Se référer à la documentation de
+      libklfbackend pour plus de détails sur les scripts utilisateur. Le script doit comprendre
+      et réagir à l'option « --scriptinfo ».
   -q, --quiet
       N'affiche pas les avertissements et les erreurs.
   --redirect-debug <fichier>

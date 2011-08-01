@@ -100,6 +100,7 @@ char *opt_bgcolor = NULL;
 int opt_dpi = -1;
 char *opt_mathmode = NULL;
 char *opt_preamble = NULL;
+char *opt_userscript = NULL;
 bool opt_quiet = false;
 char *opt_redirect_debug = NULL;
 bool opt_daemonize = false;
@@ -155,6 +156,7 @@ enum {
   OPT_DPI = 'X',
   OPT_MATHMODE = 'm',
   OPT_PREAMBLE = 'p',
+  OPT_USERSCRIPT = 's',
   OPT_QUIET = 'q',
   OPT_DAEMONIZE = 'd',
 
@@ -203,6 +205,7 @@ static struct option klfcmdl_optlist[] = {
   { "dpi", 1, NULL, OPT_DPI },
   { "mathmode", 1, NULL, OPT_MATHMODE },
   { "preamble", 1, NULL, OPT_PREAMBLE },
+  { "userscript", 1, NULL, OPT_USERSCRIPT },
   { "quiet", 2 /*optional arg*/, NULL, OPT_QUIET },
   { "redirect-debug", 1, NULL, OPT_REDIRECT_DEBUG },
   { "daemonize", 0, NULL, OPT_DAEMONIZE },
@@ -911,6 +914,8 @@ int main(int argc, char **argv)
 	args << "--mathmode="+QString::fromLocal8Bit(opt_mathmode);
       if (opt_preamble != NULL)
 	args << "--preamble="+QString::fromLocal8Bit(opt_preamble);
+      if (opt_userscript != NULL)
+	args << "--userscript="+QString::fromLocal8Bit(opt_userscript);
       if (opt_quiet)
 	args << "--quiet";
       if (opt_redirect_debug != NULL)
@@ -986,6 +991,8 @@ int main(int argc, char **argv)
 	cmds << CMDURL_MW(slotSetMathMode, QString::fromLocal8Bit(opt_mathmode));
       if (opt_preamble != NULL)
 	cmds << CMDURL_MW(slotSetPreamble, QString::fromLocal8Bit(opt_preamble));
+      if (opt_userscript != NULL)
+	cmds << CMDURL_MW(slotSetUserScript, QString::fromLocal8Bit(opt_userscript));
       if (opt_calcepsbbox >= 0)
 	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_CalcEpsBoundingBox<<(int)opt_calcepsbbox);
       if (opt_outlinefonts >= 0)
@@ -1047,6 +1054,8 @@ int main(int argc, char **argv)
 	iface->setInputData("mathmode", QString::fromLocal8Bit(opt_mathmode));
       if (opt_preamble != NULL)
 	iface->setInputData("preamble", QString::fromLocal8Bit(opt_preamble));
+      if (opt_userscript != NULL)
+	iface->setInputData("userscript", QString::fromLocal8Bit(opt_userscript));
       // load latex after preamble, so that the interface doesn't prompt to include missing packages
       if ( ! latexinput.isNull() )
 	iface->setInputData("latex", latexinput);
@@ -1172,6 +1181,9 @@ int main(int argc, char **argv)
     if (opt_preamble != NULL) {
       qDebug("opt_preamble != NULL, gui mode, preamble=%s", opt_preamble);
       mainWin.slotSetPreamble(QString::fromLocal8Bit(opt_preamble));
+    }
+    if (opt_userscript != NULL) {
+      mainWin.slotSetUserScript(QString::fromLocal8Bit(opt_userscript));
     }
     if (opt_calcepsbbox >= 0)
       mainWin.alterSetting(KLFMainWin::altersetting_CalcEpsBoundingBox, opt_calcepsbbox);
@@ -1302,6 +1314,12 @@ int main(int argc, char **argv)
       input.preamble = QString::fromLocal8Bit(opt_preamble);
     } else {
       input.preamble = "";
+    }
+
+    if (opt_userscript != NULL) {
+      input.userScript = QString::fromLocal8Bit(opt_userscript);
+    } else {
+      input.userScript = QString();
     }
 
     if ( ! opt_fgcolor ) {
@@ -1600,6 +1618,9 @@ void main_parse_options(int argc, char *argv[])
 	break;
 #endif
       opt_preamble = arg;
+      break;
+    case OPT_USERSCRIPT:
+      opt_userscript = arg;
       break;
     case OPT_QUIET:
       opt_quiet = __klf_parse_bool_arg(arg, true);
