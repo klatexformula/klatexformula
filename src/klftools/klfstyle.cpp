@@ -25,6 +25,8 @@
 
 #include "klfstyle.h"
 
+/** \bug BUG/TODO: save user-script in style. Think: full path, only basename, ... ? */
+
 
 KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle::BBoxExpand& b)
 {
