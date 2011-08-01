@@ -77,6 +77,9 @@ KLF_EXPORT bool klf_mac_find_open_klf()
   klf_has_other_app = false;
   QStringList lines = resultstring.split('\n');
   for (int i = 0; i < lines.size(); ++i) {
+    if (lines[i].trimmed().isEmpty())
+      continue;
+
     QRegExp rx("(\\d+)\\s+(.*)\\s*");
     if (!rx.exactMatch(lines[i])) {
       qWarning()<<KLF_FUNC_NAME<<": ps spit out an unparsable line: "<<lines[i];

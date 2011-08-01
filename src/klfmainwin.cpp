@@ -155,6 +155,15 @@ KLFMainWin::KLFMainWin()
   u->txtLatex->setFont(klfconfig.UI.latexEditFont);
   u->txtPreamble->setFont(klfconfig.UI.preambleEditFont);
 
+#ifdef Q_WS_MAC
+  if (klfconfig.UI.macBrushedMetalLook) {
+    // adjust main latex editor palette to transparent bg
+    QPalette pal = u->txtLatex->palette();
+    pal.setColor(QPalette::Base, QColor(255, 255, 255, 80)); // quite transparent, but lighter
+    u->txtLatex->setPalette(pal);
+  }
+#endif
+
   //  u->frmOutput->setEnabled(false);
   slotSetViewControlsEnabled(false);
   slotSetSaveControlsEnabled(false);
