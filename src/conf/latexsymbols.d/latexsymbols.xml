@@ -57,7 +57,7 @@
     <sym><latex>\wedge</latex></sym>
     <sym><latex>\dagger</latex><keywords>operator adjoint</keywords></sym>
     <sym><latex>\bullet</latex></sym>
-    <sym><latex>\setminus</latex></sym>
+    <sym><latex>\setminus</latex><keywords>set exclude subtract complement</keywords></sym>
     <sym><latex>\ddagger</latex></sym>
     <sym><latex>\cdot</latex><keywords>multiplication scalar product</keywords></sym>
     <sym><latex>\wr</latex></sym>
@@ -78,13 +78,13 @@
     <sym><latex>\gg</latex><keywords>much very larger greater order of magnitude</keywords></sym>
     <sym><latex>\asymp</latex></sym>
     <sym><latex>\parallel</latex></sym>
-    <sym><latex>\subset</latex></sym>
-    <sym><latex>\supset</latex></sym>
-    <sym><latex>\approx</latex><keywords>approximate approximation</keywords></sym>
+    <sym><latex>\subset</latex><keywords>set contained included</keywords></sym>
+    <sym><latex>\supset</latex><keywords>set contains includes</keywords></sym>
+    <sym><latex>\approx</latex><keywords>estimation about approximate approximation</keywords></sym>
     <sym><latex>\bowtie</latex></sym>
-    <sym><latex>\subseteq</latex></sym>
-    <sym><latex>\supseteq</latex></sym>
-    <sym><latex>\cong</latex></sym>
+    <sym><latex>\subseteq</latex><keywords>set contained included equal</keywords></sym>
+    <sym><latex>\supseteq</latex><keywords>set contains includes equal</keywords></sym>
+    <sym><latex>\cong</latex><keywords>approximately equals</keywords></sym>
     <sym><latex>\neq</latex></sym>
     <sym><latex>\smile</latex></sym>
     <sym><latex>\sqsubseteq</latex></sym>

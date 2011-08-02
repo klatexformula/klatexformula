@@ -26,6 +26,7 @@
 #include <ctype.h> // isspace()
 #include <sys/time.h>
 
+#include <QtGlobal>
 #include <qapplication.h>
 #include <qregexp.h>
 #include <qfile.h>
@@ -34,6 +35,7 @@
 #include <qbuffer.h>
 #include <qdir.h>
 #include <qcolor.h>
+#include <QTextDocument>
 
 
 #include "klfblockprocess.h"
@@ -278,6 +280,9 @@ struct KLFFilterProgram {
       programCwd = settings->tempdir;
       execEnviron = settings->execenv;
     }
+
+    collectStdout = NULL;
+    collectStderr = NULL;
   }
 
   QString progTitle;
@@ -292,6 +297,9 @@ struct KLFFilterProgram {
   /** Set this to true to also read stderr as part of the output. If false (the default), stderr
    * output is only reported in the error message in case nothing came out on stdout. */
   bool outputStderr;
+
+  QByteArray *collectStdout;
+  QByteArray *collectStderr;
 
   // these fields are set after calling run()
   int exitStatus;
@@ -359,11 +367,10 @@ struct KLFFilterProgram {
       return false;
     }
 
-    QByteArray stdoutdata = proc.getAllStdout();
-    QByteArray stderrdata = proc.getAllStderr();
-
-    klfDbg("stdoutdata = "<<stdoutdata) ;
-    klfDbg("stderrdata = "<<stderrdata) ;
+    if (collectStdout != NULL)
+      *collectStdout = proc.getAllStdout();
+    if (collectStderr != NULL)
+      *collectStderr = proc.getAllStderr();
 
     if ( ! outFileName.isEmpty() ) {
       if (!QFile::exists(outFileName)) {
@@ -396,9 +403,11 @@ struct KLFFilterProgram {
       // output file name is empty, read standard output
       *outdata = QByteArray();
       if (outputStdout) {
+	QByteArray stdoutdata = (collectStdout != NULL) ? *collectStdout : proc.getAllStdout();
 	ba_cat(outdata, stdoutdata);
       }
       if (outputStderr) {
+	QByteArray stderrdata = (collectStderr != NULL) ? *collectStderr : proc.getAllStderr();
 	ba_cat(outdata, stderrdata);
       }
 
@@ -429,7 +438,11 @@ struct KLFFilterProgram {
 
 
 static void replace_svg_width_or_height(QByteArray *svgdata, const char * attr, double val);
-    
+
+
+// for user debugging...
+KLF_EXPORT QString klfbackend_last_userscript_output;
+
 
 KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& usersettings)
 {
@@ -689,10 +702,20 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       p.resErrCodes[KLFFP_NODATA] = KLFERR_USERSCRIPT_NOOUTPUT;
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERSCRIPT_OUTPUTREADFAIL;
       p.execEnviron << addenv;
+
+      QByteArray stderr, stdout;
+      p.collectStderr = &stderr;
+      p.collectStdout = &stdout;
       
       p.argv << in.userScript << dir_native_separators(fnTex);
       
       ok = p.run(fnDvi, &res.dvidata, &res);
+
+      // for user script debugging
+      klfbackend_last_userscript_output
+	= "<b>STDOUT</b>\n<pre>" + Qt::escape(stdout) + "</pre>\n<br/><b>STDERR</b>\n<pre>"
+	+ Qt::escape(stderr) + "</pre>";
+
       if (!ok) {
 	return res;
       }
@@ -1442,7 +1465,7 @@ struct KLFUserScriptInfo::Private
     QByteArray scriptinfo;
     //    bool want_full_template = true;
     { // Query Script Info phase
-      KLFFilterProgram p(QObject::tr("User Wrapper Script (ScriptInfo)"), settings);
+      KLFFilterProgram p(QObject::tr("User Script (ScriptInfo)"), settings);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
@@ -1484,7 +1507,7 @@ struct KLFUserScriptInfo::Private
       if (!rx.exactMatch(line)) {
 	qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.\nCannot parse line: "<<line;
 	scriptInfoError = KLFERR_USERSCRIPT_INVALIDSCRIPTINFO;
-	scriptInfoErrorString = QObject::tr("User wrapper script provided invalid --scriptinfo output.", "KLFBackend");
+	scriptInfoErrorString = QObject::tr("User script provided invalid --scriptinfo output.", "KLFBackend");
 	return;
       }
       QString key = rx.cap(1);

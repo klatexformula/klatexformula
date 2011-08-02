@@ -305,6 +305,12 @@ KLFMainWin::KLFMainWin()
 
   // load library
   mLibBrowser = new KLFLibBrowser(this);
+  // #ifdef Q_WS_MAC
+  //   // library browser relative font
+  //   KLFRelativeFont *rf_libbrowser = new KLFRelativeFont(this, mLibBrowser);
+  //   rf_libbrowser->setRelPointSize(-2);
+  //   rf_libbrowser->setThorough(true);
+  // #endif
 
   refreshShowCorrectClearButton();
 
@@ -363,6 +369,8 @@ KLFMainWin::KLFMainWin()
   connect(u->cbxUserScript, SIGNAL(activated(const QString&)), this, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
 
+  connect(u->btnShowLastUserScriptOutput, SIGNAL(clicked()), this, SLOT(slotShowLastUserScriptOutput()));
+
   connect(pLatexPreviewThread, SIGNAL(previewError(const QString&, int)),
 	  this, SLOT(showRealTimeError(const QString&, int)));
   connect(pLatexPreviewThread, SIGNAL(previewAvailable(const QImage&, const QImage&, const QImage&)),
@@ -415,7 +423,25 @@ KLFMainWin::KLFMainWin()
   // this is a virtual menu...
   QMenu *filemenu = macOSXMenu->addMenu("File");
   // ... because the 'Preferences' action is detected and is sent to the 'klatexformula' menu...
+  // (and don't translate it, Qt will replace it by the default mac 'preferences' menu item)
   filemenu->addAction("Preferences", this, SLOT(slotSettings()));
+
+  QMenu *shortmenu = macOSXMenu->addMenu("Shortcuts");
+  // remember, on Qt/Mac Ctrl key is mapped to Command
+  shortmenu->addAction(tr("LaTeX Symbols Palette"), this, SLOT(slotToggleSymbols()), QKeySequence("Ctrl+1"));
+  shortmenu->addAction(tr("Equation Library Browser"), this, SLOT(slotToggleLibrary()), QKeySequence("Ctrl+2"));
+  shortmenu->addAction(tr("Show Details"), this, SLOT(slotExpandOrShrink()), QKeySequence("Ctrl+D"));
+  shortmenu->addAction(tr("Activate Editor"), this, SLOT(slotActivateEditor()), QKeySequence("Ctrl+L"));
+  shortmenu->addAction(tr("Activate Editor and Select All"), this, SLOT(slotActivateEditorSelectAll()),
+		       QKeySequence("Ctrl+Shift+L"));
+  shortmenu->addAction(tr("Show Big Preview"), this, SLOT(slotShowBigPreview()), QKeySequence("Ctrl+P"));
+
+  // Shortcut for parens mod/type cycle
+  new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketLeft), this, SLOT(slotCycleParenTypes()),
+		SLOT(slotCycleParenTypes()), Qt::WindowShortcut);
+  new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketLeft), this, SLOT(slotCycleParenModifiers()),
+		SLOT(slotCycleParenModifiers()), Qt::WindowShortcut);
+
 
   // dock menu will be added once shown only, to avoid '...autoreleased without NSAutoreleasePool...'
   // annoying messages
@@ -2510,6 +2536,10 @@ void KLFMainWin::slotClearAll()
 }
 
 
+void KLFMainWin::slotToggleLibrary()
+{
+  slotLibrary(!mLibBrowser->isVisible());
+}
 void KLFMainWin::slotLibrary(bool showlib)
 {
   klfDbg("showlib="<<showlib) ;
@@ -2521,6 +2551,10 @@ void KLFMainWin::slotLibrary(bool showlib)
   }
 }
 
+void KLFMainWin::slotToggleSymbols()
+{
+  slotSymbols(!mLatexSymbols->isVisible());
+}
 void KLFMainWin::slotSymbols(bool showsymbs)
 {
   mLatexSymbols->setShown(showsymbs);
@@ -2576,6 +2610,12 @@ void KLFMainWin::slotSetUserScript(const QString& userScript)
   }
   u->cbxUserScript->addItem(us.name(), QVariant(userScript));
   u->cbxUserScript->setCurrentIndex(u->cbxUserScript->count()-1);
+}
+
+void KLFMainWin::slotShowLastUserScriptOutput()
+{
+  extern QString klfbackend_last_userscript_output;
+  KLFProgErr::showError(this, klfbackend_last_userscript_output);
 }
 
 

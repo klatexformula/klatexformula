@@ -54,6 +54,33 @@ QList<KLFPluginInfo> klf_plugins;
 QList<KLFAddOnInfo> klf_addons;
 bool klf_addons_canimport = false;
 
+/** \internal */
+struct KLFAddOnInfo::Private {
+  int ref; // number of times this data structure is referenced
+  
+  QString dir;
+  QString fname;
+  QString fpath;
+  bool islocal;
+  
+  QString title;
+  QString author;
+  QString description;
+  QString klfminversion;
+  
+  QString rccmountroot;
+    
+  QStringList pluginList;
+  QMap<QString,PluginSysInfo> plugins;
+  
+  QStringList translations;
+
+  QStringList userScripts;
+  
+  bool isfresh;
+  
+  QStringList errors;
+};
 
 
 KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
@@ -100,6 +127,9 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
   QDir i18ndir(mountroot+QLatin1String("/i18n/"));
   d->translations = i18ndir.entryList(QStringList() << "*.qm", QDir::Files);
 
+  QDir userscriptdir(mountroot+QLatin1String("/userscripts/"));
+  d->userScripts = userscriptdir.entryList(QStringList() << "*", QDir::Files);
+
   // set default values for title, author, description, and klfminversion in case the XML file
   // does not provide any
   d->title = QObject::tr("(Name Not Provided)", "[KLFAddOnInfo: add-on information XML data is invalid]");
@@ -139,6 +169,53 @@ KLFAddOnInfo::KLFAddOnInfo(QString rccfpath, bool isFresh)
 
   initPlugins();
 }
+
+KLFAddOnInfo::KLFAddOnInfo(const KLFAddOnInfo& other)
+{
+  d = other.d;
+  if (d)
+    d->ref++;
+}
+
+KLFAddOnInfo::~KLFAddOnInfo()
+{
+  if (d) {
+    d->ref--;
+    if (d->ref <= 0) {
+      // finished reading this resource, un-register it.
+      QResource::unregisterResource(d->fpath, d->rccmountroot);
+      delete d;
+    }
+  }
+}
+
+
+
+QString KLFAddOnInfo::dir() const { return d->dir; }
+QString KLFAddOnInfo::fname() const { return d->fname; }
+QString KLFAddOnInfo::fpath() const { return d->fpath; }
+bool KLFAddOnInfo::islocal() const { return d->islocal; }
+QString KLFAddOnInfo::title() const { return d->title; }
+QString KLFAddOnInfo::author() const { return d->author; }
+QString KLFAddOnInfo::description() const { return d->description; }
+QString KLFAddOnInfo::klfminversion() const { return d->klfminversion; }
+QString KLFAddOnInfo::rccmountroot() const { return d->rccmountroot; }
+
+QStringList KLFAddOnInfo::translations() const { return d->translations; }
+bool KLFAddOnInfo::isfresh() const { return d->isfresh; }
+QStringList KLFAddOnInfo::errors() const { return d->errors; }
+QStringList KLFAddOnInfo::pluginList() const { return d->pluginList; }
+KLFAddOnInfo::PluginSysInfo KLFAddOnInfo::pluginSysInfo(const QString& plugin) const
+{ return d->plugins[plugin]; }
+QString KLFAddOnInfo::pluginLocalSubDirName(const QString& plugin) const
+{
+  if ( ! d->plugins[plugin].klfminversion.isEmpty() )
+    return QString("klf%1").arg(d->plugins[plugin].klfminversion);
+  return QString(".");
+}
+QStringList KLFAddOnInfo::userScripts() const { return d->userScripts; }
+
+
 
 KLF_EXPORT QDebug& operator<<(QDebug& str, const KLFAddOnInfo::PluginSysInfo& i)
 {
@@ -284,24 +361,11 @@ QStringList KLFAddOnInfo::localPluginList() const
 }
 
 
-KLFAddOnInfo::KLFAddOnInfo(const KLFAddOnInfo& other)
-{
-  d = other.d;
-  if (d)
-    d->ref++;
-}
 
-KLFAddOnInfo::~KLFAddOnInfo()
-{
-  if (d) {
-    d->ref--;
-    if (d->ref <= 0) {
-      // finished reading this resource, un-register it.
-      QResource::unregisterResource(d->fpath, d->rccmountroot);
-      delete d;
-    }
-  }
-}
+
+
+
+// -------
 
 
 
@@ -608,11 +672,71 @@ KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList p
 
 KLF_EXPORT QStringList klf_user_scripts;
 
+
 void klf_reload_user_scripts()
 {
   QStringList pathlist;
-  pathlist << klfconfig.globalShareDir+"/userscripts/*"
-	   << klfconfig.homeConfigDir+"/userscripts/*";
+  pathlist << klfconfig.homeConfigDir+"/userscripts/*"
+	   << klfconfig.globalShareDir+"/userscripts/*";
+
+  klfDbg("looking for user scripts in "<<pathlist) ;
+
+  // First, look to see if there are any user scripts to install from add-on resources
+
+  int i, j, k;
+  for (k = 0; k < klf_addons.size(); ++k) {
+    QStringList uscripts = klf_addons[k].userScripts();
+    for (j = 0; j < uscripts.size(); ++j) {
+      // maybe install this user script
+      // so check at filesystem locations to see if it's there
+      QString foundpath = QString();
+      QString resfn = klf_addons[k].rccmountroot() + "/userscripts/" + uscripts[j];
+      QString locfn = klfconfig.homeConfigDir + "/userscripts/" + uscripts[j];
+      for (i = 0; i < pathlist.size(); ++i) {
+	QString s = pathlist[i]+"/"+uscripts[j];
+	if (QFile::exists(s)) { // found
+	  foundpath = s;
+	  break;
+	}
+      }
+      bool needsinstall = false;
+      if (foundpath.isEmpty()) {
+	needsinstall = true;
+      } else {
+	// compare modification times to see whether we need to reupdate userscript
+	QDateTime installeduserscript_dt = QFileInfo(foundpath).lastModified();
+	QDateTime resourceuserscript_dt = QFileInfo(klf_addons[k].fpath()).lastModified();
+	klfDbg("Comparing resource datetime ("<<qPrintable(resourceuserscript_dt.toString())
+	       <<") with installed userscript datetime ("<<qPrintable(installeduserscript_dt.toString())<<")") ;
+	needsinstall = (installeduserscript_dt.isNull() || resourceuserscript_dt.isNull() ||
+			( resourceuserscript_dt > installeduserscript_dt ));
+      }
+      if (!needsinstall)
+	continue;
+      // now install that user script
+      if (QFile::exists(locfn)) QFile::remove(locfn);
+      // copy userscript to local userscript dir
+      klfDbg( "\tcopy "<<resfn<<" to "<<locfn ) ;
+      bool res = QFile::copy( resfn , locfn );
+      if ( ! res ) {
+	klf_addons[k].addError(QObject::tr("Failed to install userscript '%1' locally.",
+					   "[[userscript error message]]").arg(uscripts[j]));
+	qWarning("Unable to copy plugin '%s' to local directory!", qPrintable(uscripts[j]));
+	continue;
+      } else {
+	QFile::setPermissions(locfn, QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner|
+			      QFile::ReadUser|QFile::WriteUser|QFile::ExeUser|
+			      QFile::ReadGroup|QFile::ExeGroup|QFile::ReadOther|QFile::ExeOther);
+	klfDbg("Copied userscript "<<resfn<<" to local directory "<<locfn<<".") ;
+      }
+
+      if (!foundpath.isEmpty() && !needsinstall)
+	locfn = foundpath;
+    } // loop over add-on's userscripts
+  } // loop over add-ons
+
+  // now find all user scripts
+
   klf_user_scripts.clear();
   for (int kkl = 0; kkl < pathlist.size(); ++kkl) {
     QStringList l = klfSearchFind(pathlist[kkl]);
@@ -622,8 +746,13 @@ void klf_reload_user_scripts()
 	continue;
       if (!QFileInfo(l[j]).isFile())
 	continue;
+      if (!QFileInfo(l[j]).isExecutable()) {
+	qWarning()<<KLF_FUNC_NAME<<": User script "<<l[j]<<" is not executable.";
+	continue;
+      }
       klf_user_scripts << l[j];
     }
   }
   klfDbg("Searched in path="<<pathlist<<"; scripts="<<klf_user_scripts) ;
 }
+

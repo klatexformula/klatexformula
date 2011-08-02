@@ -278,8 +278,10 @@ public slots:
   void slotClearLatex();
   void slotClearAll();
   void slotLibrary(bool showlib);
+  void slotToggleLibrary();
   void slotLibraryButtonRefreshState(bool on);
   void slotSymbols(bool showsymbs = true);
+  void slotToggleSymbols();
   void slotSymbolsButtonRefreshState(bool on);
   void slotExpandOrShrink();
   void slotExpand(bool expanded = true);
@@ -287,6 +289,7 @@ public slots:
   void slotSetMathMode(const QString& mathmode);
   void slotSetPreamble(const QString& preamble);
   void slotSetUserScript(const QString& userScript);
+  void slotShowLastUserScriptOutput();
   /** If \c line is already in the preamble, then does nothing. Otherwise appends
    * \c line to the preamble text. */
   void slotEnsurePreambleCmd(const QString& line);

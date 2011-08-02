@@ -754,8 +754,6 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 }
 
 
-
-
 // function to set up the Q[Core]Application correctly
 void main_setup_app(QCoreApplication *a)
 {

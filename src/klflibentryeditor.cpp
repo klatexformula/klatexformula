@@ -30,14 +30,14 @@
 #include <QPixmap>
 
 #include <klfdisplaylabel.h>
+#include <klflatexedit.h>
+#include <klfrelativefont.h>
 
 #include "klfconfig.h"
 #include "klflib.h"
-#include "klflatexedit.h"
 
 #include <ui_klflibentryeditor.h>
 #include "klflibentryeditor.h"
-
 
 
 
@@ -50,6 +50,11 @@ KLFLibEntryEditor::KLFLibEntryEditor(QWidget *parent)
   setAutoFillBackground(false);
 
   pCurrentStyle = KLFStyle();
+
+  KLFRelativeFont *rf = new KLFRelativeFont(this, u->tabsEntry);
+  /** \bug ###: only on mac? */
+  rf->setRelPointSize(-2);
+  rf->setThorough(true);
 
   u->lblPreview->setFixedSize(klfconfig.UI.smallPreviewSize);
 
