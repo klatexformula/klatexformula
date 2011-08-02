@@ -507,6 +507,12 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
   install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
 	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll" REGEX "/mingw.*\\.dll"
 	 )
+elsif(KLF_INSTALL_QTLIBS)
+  # Install Prereq libs
+  KLFError("Not supported on non-windows system. TODO: write me. Actually, write a more general
+    framework to import needed libraries, which could also replace the win32-specific code.")
+endif(WIN32 AND KLF_INSTALL_QTLIBS)
+if(KLF_INSTALL_QTPLUGINS)
   set(qtplugin_list ${KLF_INSTALL_QTPLUGINS_LIST})
   set(qtplugin_list "dummyitem" ${qtplugin_list})
   string(REGEX REPLACE ";" ";${QT_PLUGINS_DIR}/" qtplugin_list_temp "${qtplugin_list}")
@@ -518,7 +524,7 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
     install(FILES "${QT_PLUGINS_DIR}/${qtplugin}"
 	    DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/${qtplugin_dir}")
   endforeach(qtplugin)
-endif(WIN32 AND KLF_INSTALL_QTLIBS)
+endif(KLF_INSTALL_QTPLUGINS)
 
 
 # klatexformula bin

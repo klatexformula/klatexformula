@@ -315,29 +315,45 @@ else(KLF_INSTALL_DESKTOP)
 endif(KLF_INSTALL_DESKTOP)
 
 if(WIN32)
-  option(KLF_INSTALL_QTLIBS "Copy Qt Libs next to installed executable" ON)
-
-  if(KLF_INSTALL_QTLIBS)
-
-    message(STATUS "Will install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
-
-    set(KLF_INSTALL_QTPLUGINS_DIR "qt-plugins/" CACHE STRING
-	"Where to install Qt Plugins to deploy with application (relative to prefix, or absolute)")
-    KLFGetCMakeVarChanged(KLF_INSTALL_QTPLUGINS_LIST)
-    if(NOT DEFINED KLF_INSTALL_QTPLUGINS_LIST OR KLF_INSTALL_QTPLUGINS_LIST STREQUAL "")
-      file(GLOB_RECURSE qtplugins_list RELATIVE "${QT_PLUGINS_DIR}"
-	"${QT_PLUGINS_DIR}/*.dll")
-      set(KLF_INSTALL_QTPLUGINS_LIST "${qtplugins_list}" CACHE STRING
-	"List of Qt plugins, relative to ${QT_PLUGINS_DIR}, to deploy with exe" FORCE)
-    endif(NOT DEFINED KLF_INSTALL_QTPLUGINS_LIST OR KLF_INSTALL_QTPLUGINS_LIST STREQUAL "")
-    message(STATUS "Will install given Qt plugins next to installed executable, in ${KLF_INSTALL_QTPLUGINS_DIR} (KLF_INSTALL_QTPLUGINS_DIR,KLF_INSTALL_QTPLUGINS_LIST)")
-  else(KLF_INSTALL_QTLIBS)
-
-    message(STATUS "Will NOT install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
-
-  endif(KLF_INSTALL_QTLIBS)
-
+  set(default_install_qtlibs ON)
+  set(default_install_qtplugins ON)
+else(WIN32)
+  set(default_install_qtlibs OFF)
+  set(default_install_qtplugins OFF)
 endif(WIN32)
+
+option(KLF_INSTALL_QTLIBS "Copy Qt Libs next to installed executable" ${default_install_qtlibs})
+option(KLF_INSTALL_QTPLUGINS "Copy Qt Plugins next to installed executable" ${default_install_qtplugins})
+
+if(APPLE AND KLF_INSTALL_QTLIBS)
+  KLFNote("You should not set KLF_INSTALL_QTLIBS on Mac. Qt frameworks can be imported into
+    the application bundle (KLF_MACOSX_BUNDLE_EXTRAS)")
+endif(APPLE AND KLF_INSTALL_QTLIBS)
+if(APPLE AND KLF_INSTALL_QTLIBS)
+  KLFNote("You should not set KLF_INSTALL_QTPLUGINS on Mac. Qt plugins should be bundled into
+    the application bundle (KLF_BUNDLE_QT_PLUGINS)")
+endif(APPLE AND KLF_INSTALL_QTLIBS)
+
+if(KLF_INSTALL_QTLIBS)
+  message(STATUS "Will install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
+elseif(WIN32)
+  message(STATUS "Will NOT install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
+endif(KLF_INSTALL_QTLIBS)
+if(KLF_INSTALL_QTPLUGINS)
+  set(KLF_INSTALL_QTPLUGINS_DIR "qt-plugins/" CACHE STRING
+    "Where to install Qt Plugins to deploy with application (relative to prefix, or absolute)")
+  KLFGetCMakeVarChanged(KLF_INSTALL_QTPLUGINS_LIST)
+  if(NOT DEFINED KLF_INSTALL_QTPLUGINS_LIST OR KLF_INSTALL_QTPLUGINS_LIST STREQUAL "")
+    file(GLOB_RECURSE qtplugins_list RELATIVE "${QT_PLUGINS_DIR}"
+      "${QT_PLUGINS_DIR}/*.dll" "${QT_PLUGINS_DIR}/*.so")
+    set(KLF_INSTALL_QTPLUGINS_LIST "${qtplugins_list}" CACHE STRING
+      "List of Qt plugins, relative to ${QT_PLUGINS_DIR}, to deploy with exe" FORCE)
+  endif(NOT DEFINED KLF_INSTALL_QTPLUGINS_LIST OR KLF_INSTALL_QTPLUGINS_LIST STREQUAL "")
+  message(STATUS "Will install given Qt plugins next to installed executable, in ${KLF_INSTALL_QTPLUGINS_DIR} (KLF_INSTALL_QTPLUGINS_DIR,KLF_INSTALL_QTPLUGINS_LIST)")
+elseif(WIN32)
+  message(STATUS "Will NOT install Qt plugins next to installed executable (QT_INSTALL_QTPLUGINS)")
+endif(KLF_INSTALL_QTPLUGINS)
+
 
 
 # Run Post-Install Scripts?
