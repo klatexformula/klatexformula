@@ -1119,7 +1119,7 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   // see if we need to insert the xtrapreamble
   QStringList cmds = s.preamble;
   int k;
-  QString preambletext = u->txtPreamble->toPlainText();
+  QString preambletext = u->txtPreamble->latex();
   QString addtext;
   for (k = 0; k < cmds.size(); ++k) {
     slotEnsurePreambleCmd(cmds[k]);
@@ -1213,7 +1213,7 @@ void KLFMainWin::getMissingCmdsFor(const QString& symbol, QStringList * missingC
     return; // no need to include anything
   }
 
-  QString curpreambletext = u->txtPreamble->toPlainText();
+  QString curpreambletext = u->txtPreamble->latex();
   QStringList packages;
   bool moreDefinitions = false;
   for (k = 0; k < cmds.size(); ++k) {
@@ -1383,7 +1383,7 @@ QVariantMap KLFMainWin::parseLatexEditPosParenInfo(KLFLatexEdit *latexEdit, int 
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QString text = latexEdit->toPlainText();
+  QString text = latexEdit->latex();
 
   KLFLatexSyntaxHighlighter *sh = latexEdit->syntaxHighlighter();
   KLF_ASSERT_NOT_NULL(sh, "syntax highlighter is NULL! ", return QVariantMap(); ) ;
@@ -1465,7 +1465,7 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
   // try to determine if we clicked on a symbol, and suggest to include the corresponding package
 
   QTextCursor cur = latexEdit->cursorForPosition(pos);
-  QString text = latexEdit->toPlainText();
+  QString text = latexEdit->latex();
   int curpos = cur.position();
 
   QRegExp rxSym("\\\\(\\w+|.)");
@@ -2329,7 +2329,7 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   // KLFBackend input
   KLFBackend::klfInput input;
 
-  input.latex = u->txtLatex->toPlainText();
+  input.latex = u->txtLatex->latex();
   klfDbg("latex="<<input.latex) ;
 
   input.userScript = u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString();
@@ -2343,7 +2343,7 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   } else {
     input.mathmode = "...";
   }
-  input.preamble = u->txtPreamble->toPlainText();
+  input.preamble = u->txtPreamble->latex();
   input.fg_color = u->colFg->color().rgb();
   QColor bgcolor = u->colBg->color();
   if (bgcolor.isValid())
@@ -2622,11 +2622,11 @@ void KLFMainWin::slotShowLastUserScriptOutput()
 void KLFMainWin::slotEnsurePreambleCmd(const QString& line)
 {
   QTextCursor c = u->txtPreamble->textCursor();
-  //  qDebug("Begin preamble edit: preamble text is %s", qPrintable(u->txtPreamble->toPlainText()));
+  //  qDebug("Begin preamble edit: preamble text is %s", qPrintable(u->txtPreamble->latex()));
   c.beginEditBlock();
   c.movePosition(QTextCursor::End);
 
-  QString preambletext = u->txtPreamble->toPlainText();
+  QString preambletext = u->txtPreamble->latex();
   if (preambletext.indexOf(line) == -1) {
     QString addtext = "";
     if (preambletext.length() > 0 &&
@@ -2675,7 +2675,7 @@ void KLFMainWin::slotSetBgColor(const QString& s)
 
 void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& format)
 {
-  if ( u->txtLatex->toPlainText().isEmpty() ) {
+  if ( u->txtLatex->latex().isEmpty() ) {
     qWarning()<<KLF_FUNC_NAME<<": Can't evaluate: empty input";
     return;
   }
@@ -3235,7 +3235,7 @@ KLFStyle KLFMainWin::currentStyle() const
   else
     sty.bg_color = qRgba(255, 255, 255, 0);
   sty.mathmode = (u->chkMathMode->isChecked() ? u->cbxMathMode->currentText() : "...");
-  sty.preamble = u->txtPreamble->toPlainText();
+  sty.preamble = u->txtPreamble->latex();
   sty.dpi = u->spnDPI->value();
 
   if (u->gbxOverrideMargins->isChecked()) {
@@ -3257,6 +3257,11 @@ QFont KLFMainWin::txtLatexFont() const
 QFont KLFMainWin::txtPreambleFont() const
 {
   return u->txtPreamble->font();
+}
+
+QString KLFMainWin::currentInputLatex() const
+{
+  return u->txtLatex->latex();
 }
 
 void KLFMainWin::slotLoadStyleAct()

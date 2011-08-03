@@ -182,8 +182,9 @@ void KLFLatexEdit::insertFromMimeData(const QMimeData *data)
     if (res == KLFDropDataHandler::OpenDataOk)
       return; // data was opened by main window
     if (res == KLFDropDataHandler::OpenDataFailed) {
-      // failed to open data, don't insist.
-      return;
+      // NO: eg. for plain text, try again with QTextEdit's paste
+      //      // failed to open data, don't insist.
+      //      return;
     }
   }
 

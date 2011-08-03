@@ -9,4 +9,7 @@
   <qresource prefix="/plugins/@KLF_CMAKE_BASEPLUGINSSUBDIR@">
 @KLF_CMAKE_PLUGINS_QRC_DEFS@
   </qresource>
+  <qresource prefix="/">
+    <file alias="userscripts/klffeynmf.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/klffeynmf.py</file>
+  </qresource>
 </RCC>

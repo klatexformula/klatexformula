@@ -307,47 +307,52 @@ if(KLF_BUILD_GUI)
   endif(KLF_LIBKLFAPP_STATIC)
 endif(KLF_BUILD_GUI)
 
-# Target architecture (allows compile for 32-bit on 64-bit architectures)
-KLFGetCMakeVarChanged(KLF_TARGET_ARCH_64)  # detect changes, for KLF_LIB_SUFFIX later on
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(klf_host_arch_64 TRUE)
-else(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(klf_host_arch_64 FALSE)
-endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-set(KLF_TARGET_ARCH_64 ${klf_host_arch_64} CACHE BOOL "Configure build for 64-bit arch")
-if(KLF_TARGET_ARCH_64)
-  message(STATUS "Compiling for 64-bit architecture (KLF_TARGET_ARCH_64=ON/OFF)")
-else(KLF_TARGET_ARCH_64)
-  message(STATUS "Compiling for 32-bit architecture (KLF_TARGET_ARCH_64=ON/OFF)")
-endif(KLF_TARGET_ARCH_64)
-KLFCMakeSetVarChanged(KLF_TARGET_ARCH_64)
+if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+  # These settings override on Mac OS X
+  message(STATUS "Compiling for Mac OS X Architectures: ${CMAKE_OSX_ARCHITECTURES} (CMAKE_OSX_ARCHITECTURES)")
+else(APPLE AND CMAKE_OSX_ARCHITECTURES)
+  # Target architecture (allows compile for 32-bit on 64-bit architectures)
+  KLFGetCMakeVarChanged(KLF_TARGET_ARCH_64)  # detect changes, for KLF_LIB_SUFFIX later on
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(klf_host_arch_64 TRUE)
+  else(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(klf_host_arch_64 FALSE)
+  endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(KLF_TARGET_ARCH_64 ${klf_host_arch_64} CACHE BOOL "Configure build for 64-bit arch")
+  if(KLF_TARGET_ARCH_64)
+    message(STATUS "Compiling for 64-bit architecture (KLF_TARGET_ARCH_64=ON/OFF)")
+  else(KLF_TARGET_ARCH_64)
+    message(STATUS "Compiling for 32-bit architecture (KLF_TARGET_ARCH_64=ON/OFF)")
+  endif(KLF_TARGET_ARCH_64)
+  KLFCMakeSetVarChanged(KLF_TARGET_ARCH_64)
 
-KLFGetCMakeVarChanged(KLF_ARCH_FLAGS)
-set(the_arch_flags "")
-if(KLF_TARGET_ARCH_64)
-  if(klf_host_arch_64)
-    set(the_arch_flags "")
-  else(klf_host_arch_64)
-    set(the_arch_flags "-m64")
-  endif(klf_host_arch_64)
-else(KLF_TARGET_ARCH_64)
-  if(klf_host_arch_64)
-    set(the_arch_flags "-m32")
-  else(klf_host_arch_64)
-    set(the_arch_flags "")
-  endif(klf_host_arch_64)
-endif(KLF_TARGET_ARCH_64)
-#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
-KLFDeclareCacheVarOptionFollowComplexN(KLF_ARCH_FLAGS
-  STRING "Additional architecture flags for gcc"
-  TRUE                     # updatenotice
-  "${the_arch_flags}"      # calcoptvalue
-  "KLF_TARGET_ARCH_64"     # depvarlist
-  )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${KLF_ARCH_FLAGS}")
-if(KLF_ARCH_FLAGS)
-  message(STATUS "Additional architecture flags for gcc: ${KLF_ARCH_FLAGS} (KLF_ARCH_FLAGS)")
-endif(KLF_ARCH_FLAGS)
+  KLFGetCMakeVarChanged(KLF_ARCH_FLAGS)
+  set(the_arch_flags "")
+  if(KLF_TARGET_ARCH_64)
+    if(klf_host_arch_64)
+      set(the_arch_flags "")
+    else(klf_host_arch_64)
+      set(the_arch_flags "-m64")
+    endif(klf_host_arch_64)
+  else(KLF_TARGET_ARCH_64)
+    if(klf_host_arch_64)
+      set(the_arch_flags "-m32")
+    else(klf_host_arch_64)
+      set(the_arch_flags "")
+    endif(klf_host_arch_64)
+  endif(KLF_TARGET_ARCH_64)
+  #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
+  KLFDeclareCacheVarOptionFollowComplexN(KLF_ARCH_FLAGS
+    STRING "Additional architecture flags for gcc"
+    TRUE                     # updatenotice
+    "${the_arch_flags}"      # calcoptvalue
+    "KLF_TARGET_ARCH_64"     # depvarlist
+    )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${KLF_ARCH_FLAGS}")
+  if(KLF_ARCH_FLAGS)
+    message(STATUS "Additional architecture flags for gcc: ${KLF_ARCH_FLAGS} (KLF_ARCH_FLAGS)")
+  endif(KLF_ARCH_FLAGS)
+endif(APPLE AND CMAKE_OSX_ARCHITECTURES)
 
 
 KLFGetCMakeVarChanged(KLF_LIB_SUFFIX)  # Also used later in klfinstallpaths.cmake
@@ -467,14 +472,22 @@ set(internal_KLF_CMAKE_OS "unknown")
 endif(APPLE)
 set(KLF_CMAKE_OS "${internal_KLF_CMAKE_OS}" CACHE INTERNAL "Current Build OS")
 # Current System Arch
-set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
-  set(internal_KLF_CMAKE_ARCH "x86")
-endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
-if(NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
-  set(internal_KLF_CMAKE_ARCH "x86") # we are building for x86
-endif(NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
-set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}" CACHE INTERNAL "Current Build Processor Arch")
+if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+  set(internal_KLF_CMAKE_ARCH "${CMAKE_OSX_ARCHITECTURES}")
+  string(REGEX REPLACE ";" "," internal_KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}")
+else(APPLE AND CMAKE_OSX_ARCHITECTURES)
+  # CMAKE_SYSTEM_PROCESSOR is the processor we're building _for_.
+  set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}") 
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+    set(internal_KLF_CMAKE_ARCH "x86")
+  endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+  if(NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
+    set(internal_KLF_CMAKE_ARCH "x86") # we are building for x86
+  endif(NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
+endif(APPLE AND CMAKE_OSX_ARCHITECTURES)
+set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}"
+  CACHE STRING "Build Target Processor Arch (Mac OS X universal: separated by commas)")
+mark_as_advanced(KLF_CMAKE_ARCH)
 
 # Find KDE4 for KTextEditor Plugin
 if(KLF_USE_QT4)

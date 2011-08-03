@@ -86,7 +86,7 @@ set(klf_valid_cache_variables
 
 get_directory_property(klf_defined_cache_variables CACHE_VARIABLES)
 
-message(STATUS "Checking for unrecognized KLF_* cache variables")
+#message(STATUS "Checking for unrecognized KLF_* cache variables")
 foreach(varname ${klf_defined_cache_variables})
   if(varname MATCHES "^KLF_.*")
     list(FIND klf_valid_cache_variables "${varname}" varname_valid_index)

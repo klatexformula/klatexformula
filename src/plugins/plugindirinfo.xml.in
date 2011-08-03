@@ -14,7 +14,7 @@
     <klfminversion>@KLF_VERSION@</klfminversion>
     <!-- linux|macosx|win32   see KLFSysInfo::osString() -->
     <os>@KLF_CMAKE_OS@</os>
-    <!-- architecture: x86|x86_64   see KLFSysInfo::arch() -->
+    <!-- architecture: x86|x86_64|...   see KLFSysInfo::arch() -->
     <arch>@KLF_CMAKE_ARCH@</arch>
   </klfplugindir>
 </klfplugindirs>

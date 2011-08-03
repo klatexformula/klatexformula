@@ -433,6 +433,11 @@ public:
     }
 
     if (mimetype == "text/plain") {
+      if (!mainWin()->currentInputLatex().isEmpty()) {
+	// do NOT overwrite current editing text with local copy/paste operations
+	// inside editor!! Simply put, only paste if the editor is empty!
+	return false;
+      }
       mainWin()->loadDefaultStyle();
       mainWin()->slotSetLatex(QString::fromLocal8Bit(data));
       return true;

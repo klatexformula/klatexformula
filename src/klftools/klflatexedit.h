@@ -76,6 +76,7 @@ public:
    */
   virtual QSize sizeHint() const;
 
+  QString latex() const { return toPlainText(); }
 
 signals:
   /** This signal is emitted just before the context menu is shown. If someone wants

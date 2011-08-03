@@ -216,6 +216,10 @@ public:
 
   KLFBackend::klfOutput currentKLFBackendOutput() const { return _output; }
 
+  KLFBackend::klfInput currentInputState() { return collectInput(false); }
+
+  QString currentInputLatex() const;
+
   enum altersetting_which { altersetting_LBorderOffset = 100,
 			    altersetting_TBorderOffset,
 			    altersetting_RBorderOffset,
