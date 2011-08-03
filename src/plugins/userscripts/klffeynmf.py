@@ -60,6 +60,7 @@ if (res != 0):
 
 # remove temp file
 print "rm "+mfbasefname+".mf";
+os.system("rm "+mfbasefname+".mf");
 
 
 exit(0);
