@@ -93,6 +93,9 @@ QList<KLFMacPasteboardMime::TranslateRule> KLFMacPasteboardMime::staticTranslate
   << KLFMacPasteboardMime::TranslateRule("application/eps", "com.adobe.encapsulated-postscript")
   << KLFMacPasteboardMime::TranslateRule("image/eps", "com.adobe.encapsulated-postscript")
   << KLFMacPasteboardMime::TranslateRule("text/html", "public.html")
+//  << KLFMacPasteboardMime::TranslateRule("text/uri-list", "public.file-url")
+  << KLFMacPasteboardMime::TranslateRule("text/x-klf-mac-fileurl", "public.file-url")
+//  << KLFMacPasteboardMime::TranslateRule("text/x-moz-url", "public.file-url")
   << KLFMacPasteboardMime::TranslateRule("text/plain", "public.plain-text")
   ;
 

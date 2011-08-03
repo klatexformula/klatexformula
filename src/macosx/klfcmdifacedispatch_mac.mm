@@ -106,7 +106,7 @@ KLF_EXPORT bool klf_mac_find_open_klf()
   NSArray *applist =
     [NSRunningApplication runningApplicationsWithBundleIdentifier:@"org.klatexformula.klatexformula"];
 
-  klf_otherinstance_app_path = false;
+  klf_otherinstance_app_path = QString();
 
   int k = 0;
   while (k < [applist count]) {
@@ -164,7 +164,13 @@ KLF_EXPORT bool klf_mac_dispatch_commands(const QList<QUrl>& commands)
   }
   tempf.close();
 
-  QString appPath = QDir(QCoreApplication::applicationDirPath()+"/../..").canonicalPath();
+  QString appPath;
+  if (!klf_otherinstance_app_path.isEmpty()) {
+    appPath = klf_otherinstance_app_path;
+  } else {
+    // find our app path
+    appPath = QDir(QCoreApplication::applicationDirPath()+"/../..").canonicalPath();
+  }
   if (appPath.endsWith("/"))
     appPath = appPath.mid(0, appPath.length()-1);
 

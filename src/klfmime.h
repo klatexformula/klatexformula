@@ -201,7 +201,7 @@ private:
   KLFMimeExportProfile pExportProfile;
   KLFBackend::klfOutput pOutput;
 
-  void set_possible_qt_image_data();
+  void set_possible_qt_handled_data();
 
   mutable QStringList pQtOwnedFormats;
 };

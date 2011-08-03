@@ -536,7 +536,7 @@ KLFMimeData::KLFMimeData(const QString& exportProfile, const KLFBackend::klfOutp
 
   pOutput = output;
 
-  set_possible_qt_image_data();
+  set_possible_qt_handled_data();
 }
 KLFMimeData::~KLFMimeData()
 {
@@ -544,14 +544,14 @@ KLFMimeData::~KLFMimeData()
 }
 
 // private
-void KLFMimeData::set_possible_qt_image_data()
+void KLFMimeData::set_possible_qt_handled_data()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   // Handle platform-specific default image type with 'application/x-qt-image' and setImage()
   int index;
   if ( (index=pExportProfile.indexOfMimeType(QLatin1String("application/x-qt-image"))) >= 0) {
-    // set the image data form the exporter
+    // set the image data from the exporter
     KLFMimeExporter * exporter = pExportProfile.exporterLookupFor(index);
     if (exporter != NULL) {
       QByteArray img_data = exporter->data(QLatin1String("application/x-qt-image"), pOutput);
@@ -566,6 +566,26 @@ void KLFMimeData::set_possible_qt_image_data()
       setImageData(img);
     }
   }
+
+  // Also let Qt handle URLs
+  if ( (index=pExportProfile.indexOfMimeType(QLatin1String("text/uri-list"))) >= 0) {
+    KLFMimeExporter * exporter = pExportProfile.exporterLookupFor(index);
+    if (exporter != NULL) {
+      QByteArray urls_data = exporter->data(QLatin1String("text/uri-list"), pOutput);
+      QList<QUrl> urls;
+      QList<QByteArray> urlsdatalist = urls_data.split('\n');
+      int k;
+      for (k = 0; k < urlsdatalist.size(); ++k) {
+	if (urlsdatalist[k].trimmed().isEmpty())
+	  continue;
+	urls << QUrl::fromEncoded(urlsdatalist[k]);
+      }
+      klfDbg("setting qt-handled url list: "<<urls) ;
+      setUrls(urls);
+    }
+  }
+
+  klfDbg("have formats: "<<formats()) ;
 }
 
 QStringList KLFMimeData::formats() const
@@ -573,9 +593,10 @@ QStringList KLFMimeData::formats() const
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   QStringList fmts = pExportProfile.availableExporterMimeTypes();
-  if (fmts.contains("application/x-qt-image")) {
+  if (true/*fmts.contains("application/x-qt-image")*/) {
     if (pQtOwnedFormats.size() == 0)
       pQtOwnedFormats = QMimeData::formats();
+    klfDbg("Formats added by qt: "<<pQtOwnedFormats) ;
     fmts << pQtOwnedFormats;
   }
 
@@ -587,9 +608,21 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  if (mimetype == QLatin1String("application/x-qt-image") ||
-      pQtOwnedFormats.contains(mimetype))
+  klfDbg("retrieveData: mimetype="<<mimetype<<"; type="<<type) ;
+
+  if (mimetype == QLatin1String("application/x-qt-mime-type-name")) {
+    // looks like this is some Qt-specific thing that returns the handcrafted
+    // wrapper mime type name; let qt do the job
+    klfDbg("Letting Qt handle "<<mimetype<<" w/ type="<<type) ;
     return QMimeData::retrieveData(mimetype, type);
+  }
+
+  if (mimetype == QLatin1String("application/x-qt-image") ||
+      pQtOwnedFormats.contains(mimetype)) {
+    // these types are handled directly by QMimeData
+    klfDbg("Letting Qt handle "<<mimetype<<" w/ type="<<type) ;
+    return QMimeData::retrieveData(mimetype, type);
+  }
 
   int index = pExportProfile.indexOfMimeType(mimetype);
   if (index < 0) {
@@ -597,7 +630,7 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
     // if that mime type is not returned by formats()
     klfDbg("Can't find mime-type "<<mimetype<<" in export profile "<<pExportProfile.profileName()
 	   <<" ?!?");
-    return QVariant();
+    return QMimeData::retrieveData(mimetype, type);
   }
 
   klfDbg("exporting "<<mimetype<<" ...");
@@ -773,7 +806,7 @@ QMap<qint64,QMap<int,QString> > KLFMimeExporterUrilist::tempFilesForImageCacheKe
 QStringList KLFMimeExporterUrilist::keys() const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  return QStringList() << "text/x-moz-url" << "text/uri-list";
+  return QStringList() << "text/x-moz-url" << "text/uri-list" << "text/x-klf-mac-fileurl";
 }
 
 // static
@@ -833,7 +866,13 @@ QByteArray KLFMimeExporterUrilist::data(const QString& key, const KLFBackend::kl
   klfDbg("key="<<key) ;
 
   QString tempfilename = tempFileForOutput(output);
-  QByteArray urilist = (QUrl::fromLocalFile(tempfilename).toString()+QLatin1String("\n")).toLatin1();
+  QUrl url = QUrl::fromLocalFile(tempfilename);
+#ifdef Q_WS_MAC
+  //  if (key == "text/x-klf-mac-fileurl") {
+  //  url.setHost("localhost");
+  //  }
+#endif
+  QByteArray urilist = (url.toString()+QLatin1String("\n")).toLatin1();
   return urilist;
 }
 

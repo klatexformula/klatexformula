@@ -2949,7 +2949,7 @@ void KLFMainWin::slotDrag()
   QString exportProfileText = KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.dragExportProfile).description();
   { QPainter painter(&img);
     QFont smallfont = QFont("Helvetica", 6);
-    smallfont.setPixelSize(12);
+    smallfont.setPixelSize(11);
     painter.setFont(smallfont);
     painter.setRenderHint(QPainter::TextAntialiasing, false);
     QRect rall = QRect(QPoint(0,0), img.size());
