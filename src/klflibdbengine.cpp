@@ -1222,8 +1222,12 @@ QVariant KLFLibDBEngine::convertVariantToDBData(const QVariant& value) const
 
   // any other case: convert metatype to QByteArray.
   QByteArray valuedata;
-  { QDataStream stream(&valuedata, QIODevice::WriteOnly);
+  { QBuffer buf(&valuedata);
+    buf.open(QIODevice::WriteOnly);
+    QDataStream stream(&buf);
     stream.setVersion(QDataStream::Qt_4_4);
+    /** \todo: TAKE CARE OF STREAM VERSION !!! */
+    buf.setProperty("klfDataStreamAppVersion", "3.3");
     stream << value; }
   return encaps(ts, valuedata);
 }
@@ -1301,8 +1305,13 @@ QVariant KLFLibDBEngine::decaps(const QByteArray& data) const
   // OTHERWISE, load from datastream save:
 
   QVariant value;
-  { QDataStream stream(valuedata);
+  { QByteArray vdata = valuedata;
+    QBuffer buf(&vdata);
+    buf.open(QIODevice::ReadOnly);
+    QDataStream stream(&buf);
     stream.setVersion(QDataStream::Qt_4_4);
+    /** \todo: TAKE CARE OF STREAM VERSION !!! */
+    buf.setProperty("klfDataStreamAppVersion", "3.3");
     stream >> value; }
   return value;
 }

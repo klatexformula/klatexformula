@@ -64,24 +64,24 @@ struct KLF_EXPORT KLFStyle {
   };
 
   KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
-	   unsigned long bgcol = qRgba(255,255,255,0),
-	   const QString& mmode = QString(),
-	   const QString& pre = QString(),
-	   int dotsperinch = -1)
+	   unsigned long bgcol = qRgba(255,255,255,0), const QString& mmode = QString(),
+	   const QString& pre = QString(), int dotsperinch = -1,
+	   const BBoxExpand& bb = BBoxExpand(), const QString& us = QString())
     : name(nm), fg_color(fgcol), bg_color(bgcol), mathmode(mmode), preamble(pre),
-      dpi(dotsperinch)
+      dpi(dotsperinch), overrideBBoxExpand(bb), userScript(us)
   {
   }
 
   KLFStyle(const KLFBackend::klfInput& input)
     : name(), fg_color(input.fg_color), bg_color(input.bg_color), mathmode(input.mathmode),
-      preamble(input.preamble), dpi(input.dpi), overrideBBoxExpand()
+      preamble(input.preamble), dpi(input.dpi), overrideBBoxExpand(), userScript(input.userScript)
   {
   }
 
   KLFStyle(const KLFStyle& o)
     : name(o.name), fg_color(o.fg_color), bg_color(o.bg_color), mathmode(o.mathmode),
-      preamble(o.preamble), dpi(o.dpi), overrideBBoxExpand(o.overrideBBoxExpand)
+      preamble(o.preamble), dpi(o.dpi), overrideBBoxExpand(o.overrideBBoxExpand),
+      userScript(o.userScript)
   {
   }
 
@@ -92,10 +92,12 @@ struct KLF_EXPORT KLFStyle {
   QString preamble;
   int dpi;
   BBoxExpand overrideBBoxExpand;
+  QString userScript;
 
   inline const KLFStyle& operator=(const KLFStyle& o) {
     name = o.name; fg_color = o.fg_color; bg_color = o.bg_color; mathmode = o.mathmode;
     preamble = o.preamble; dpi = o.dpi; overrideBBoxExpand = o.overrideBBoxExpand;
+    userScript = o.userScript;
     return *this;
   }
 };

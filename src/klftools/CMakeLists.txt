@@ -5,8 +5,16 @@
 # ################################################# #
 
 
+# Include our UseQt file here, so that we can require other configuration (not depend
+# on so much qt libraries) as the main project.
+set(QT_USE_QTXML TRUE)
+include(${QT_USE_FILE})
+
+
 # Sources
 set(klftools_SRCS
+	klfdefs.cpp
+	klfdebug.cpp
 	klfcolorchooser.cpp
 	klfpobj.cpp
 	klfutil.cpp
@@ -25,11 +33,11 @@ set(klftools_SRCS
 	klfflowlayout.cpp
 	klfflowlistwidget.cpp
 	klfsidewidget.cpp
-	klflatexpreviewthread.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
 set(klftools_MOCHEADERS
+	klfdebug.h
 	klfcolorchooser.h
 	klfcolorchooser_p.h
 	klfpixmapbutton.h
@@ -46,10 +54,10 @@ set(klftools_MOCHEADERS
 	klfflowlistwidget.h
 	klfflowlistwidget_p.h
 	klfsidewidget.h
-	klflatexpreviewthread.h
 )
 #  * all headers
 set(klftools_HEADERS
+	klfdefs.h
 	klfutil.h
 	klfpobj.h
 	klffactory.h
@@ -89,6 +97,7 @@ qt4_wrap_ui(klftools_UIS_H ${klftools_UIS})
 qt4_wrap_cpp(klftools_MOC_CPPS ${klftools_MOCHEADERS})
 qt4_add_resources(klftools_QRC_CPPS ${klftools_QRCS})
 
+
 set(klftools_allsrc ${klftools_SRCS} ${klftools_QRC_CPPS} ${klftools_UIS_H} ${klftools_MOC_CPPS})
 if (KLF_LIBKLFTOOLS_STATIC)
   add_library(klftools STATIC ${klftools_allsrc})
@@ -97,7 +106,7 @@ if (KLF_LIBKLFTOOLS_STATIC)
   )
 else(KLF_LIBKLFTOOLS_STATIC)
   add_library(klftools SHARED ${klftools_allsrc})
-  target_link_libraries(klftools ${QT_LIBRARIES} klfbackend)
+  target_link_libraries(klftools ${QT_LIBRARIES})
   set_target_properties(klftools PROPERTIES
 	    VERSION		${KLF_LIB_VERSION}
 	    SOVERSION		${KLF_LIB_VERSION}
@@ -118,8 +127,6 @@ if(APPLE)
   target_link_libraries(klftools "${KLF_APPKIT}")
 endif(APPLE)
 
-# add dependency on klfbackend
-add_dependencies(klftools  klfbackend)
 
 
 # Qt Designer Plugin

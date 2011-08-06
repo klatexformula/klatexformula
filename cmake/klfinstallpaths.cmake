@@ -21,6 +21,14 @@ message(STATUS "'make install' will install to \"${CMAKE_INSTALL_PREFIX}\" (CMAK
 # Installation Paths
 # ------------------
 
+macro(KLFWarnAbsInstallPath var)
+  if(klf_changed_CMAKE_INSTALL_PREFIX AND IS_ABSOLUTE "${${var}}")
+    KLFNote("You have chosen an absolute ${var} path. The change
+    to CMAKE_INSTALL_PREFIX will NOT be reflected there; you may have to change
+    the variable manually.")
+  endif(klf_changed_CMAKE_INSTALL_PREFIX AND IS_ABSOLUTE "${${var}}")
+endmacro(KLFWarnAbsInstallPath)
+
 # Lib Dir
 set(install_lib_dir "lib${KLF_LIB_SUFFIX}")
 if(WIN32)
@@ -41,11 +49,7 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_LIB_DIR
 	KLF_LIB_SUFFIX                   # dependance variables
 )
 message(STATUS "Installing libraries to \"${KLF_INSTALL_LIB_DIR}\" (KLF_INSTALL_LIB_DIR)")
-if(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}"	)
-  KLFNote("You have chosen an absolute KLF_INSTALL_LIB_DIR path. There is
-    nothing wrong with that, but keep in mind that this value will
-    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
-endif(IS_ABSOLUTE "${KLF_INSTALL_LIB_DIR}")
+KLFWarnAbsInstallPath(KLF_INSTALL_LIB_DIR)
 
 # Utility variable. Same as KLF_INSTALL_LIB_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
@@ -71,11 +75,7 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_BIN_DIR
 	DUMMY_DEPENDANCE_VARIABLE # dependance variable (as of now none!)
 )
 message(STATUS "Installing binary to \"${KLF_INSTALL_BIN_DIR}\" (KLF_INSTALL_BIN_DIR)")
-if(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
-  KLFNote("You have chosen an absolute KLF_INSTALL_BIN_DIR path. There is
-    nothing wrong with that, but keep in mind that this value will
-    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
-endif(IS_ABSOLUTE "${KLF_INSTALL_BIN_DIR}")
+KLFWarnAbsInstallPath(KLF_INSTALL_BIN_DIR)
 
 # Utility variable. Same as KLF_INSTALL_BIN_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
@@ -94,12 +94,7 @@ KLFDeclareCacheVarOptionFollowComplexN(KLF_INSTALL_DESPLUGIN_DIR
 if(KLF_BUILD_TOOLSDESPLUGIN)
   message(STATUS "Installing klftools designer plugin to \"${KLF_INSTALL_DESPLUGIN_DIR}\" (KLF_INSTALL_DESPLUGIN_DIR)")
 endif(KLF_BUILD_TOOLSDESPLUGIN)
-# this is deduced from Qt paths, so it is automatically absolute by default... don't harass the user...
-#if(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
-#  KLFNote("You have chosen an absolute KLF_INSTALL_DESPLUGIN_DIR path. There is
-#    nothing wrong with that, but keep in mind that this value will
-#    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
-#endif(IS_ABSOLUTE "${KLF_INSTALL_DESPLUGIN_DIR}")
+KLFWarnAbsInstallPath(KLF_INSTALL_DESPLUGIN_DIR)
 
 # Utility variable. Same as KLF_INSTALL_DESPLUGIN_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
@@ -112,11 +107,7 @@ if(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
 			    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
   mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
-  if(IS_ABSOLUTE "${KLF_INSTALL_RCCRESOURCES_DIR}")
-    KLFNote("You have chosen an absolute KLF_INSTALL_RCCRESOURCES_DIR. There is
-    nothing wrong with that, but keep in mind that this value will
-    NOT be updated if you change CMAKE_INSTALL_PREFIX.")
-  endif(IS_ABSOLUTE "${KLF_INSTALL_RCCRESOURCES_DIR}")
+  KLFWarnAbsInstallPath(KLF_INSTALL_RCCRESOURCES_DIR)
 
 else(WIN32)
   set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
@@ -414,9 +405,7 @@ if(KLF_INSTALL_LATEXDIST)
     and install it to ${KLF_INSTALL_LATEXDIST_DIR}")
 
   KLFMakeAbsInstallPath(KLF_ABS_INSTALL_LATEXDIST_DIR  KLF_INSTALL_LATEXDIST_DIR)
-endif(KLF_INSTALL_LATEXDIST)
 
-if(KLF_INSTALL_LATEXDIST)
   KLFRelativePath(klf_latexdist_reldir "${KLF_ABS_INSTALL_BIN_DIR}" "${KLF_ABS_INSTALL_LATEXDIST_DIR}")
   set(klf_latexdist_reldir "@executable_path/${klf_latexdist_reldir}")
   set(klf_extrasearchpaths
@@ -426,6 +415,7 @@ if(KLF_INSTALL_LATEXDIST)
 else(KLF_INSTALL_LATEXDIST)
   set(klf_extrasearchpaths "")
 endif(KLF_INSTALL_LATEXDIST)
+
 #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
 KLFDeclareCacheVarOptionFollowComplexN(KLF_EXTRA_SEARCH_PATHS
   STRING "Extra paths klatexformula executable will search for latex/dvips/etc. in"

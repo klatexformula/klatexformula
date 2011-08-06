@@ -43,13 +43,18 @@ KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 {
   // yes, QIODevice inherits QObject and we can use dynamic properties...
   QString compat_klfversion = stream.device()->property("klfDataStreamAppVersion").toString();
-  if (klfVersionCompare(compat_klfversion, "3.1") <= 0)
+  if (klfVersionCompare(compat_klfversion, "3.1") <= 0) {
     return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
 		  << style.mathmode << style.preamble << (quint16)style.dpi;
-  else
+  } else if (klfVersionCompare(compat_klfversion, "3.3") < 0) {
     return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
 		  << style.mathmode << style.preamble << (quint16)style.dpi
 		  << style.overrideBBoxExpand;
+  } else {
+    return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
+		  << style.mathmode << style.preamble << (quint16)style.dpi
+      		  << style.overrideBBoxExpand << style.userScript;
+  }
 }
 KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
 {
@@ -63,6 +68,16 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
     style.bg_color = bg;
     style.dpi = dpi;
     return stream;
+  } else if (klfVersionCompare(compat_klfversion, "3.3") < 0) {
+    quint32 fg, bg;
+    quint16 dpi;
+    stream >> style.name;
+    stream >> fg >> bg >> style.mathmode >> style.preamble >> dpi;
+    style.fg_color = fg;
+    style.bg_color = bg;
+    style.dpi = dpi;
+    stream >> style.overrideBBoxExpand;
+    return stream;
   } else {
     quint32 fg, bg;
     quint16 dpi;
@@ -72,6 +87,7 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
     style.bg_color = bg;
     style.dpi = dpi;
     stream >> style.overrideBBoxExpand;
+    stream >> style.userScript;
     return stream;
   }
 }
@@ -84,34 +100,9 @@ KLF_EXPORT bool operator==(const KLFStyle& a, const KLFStyle& b)
     a.mathmode == b.mathmode &&
     a.preamble == b.preamble &&
     a.dpi == b.dpi &&
-    a.overrideBBoxExpand == b.overrideBBoxExpand;
+    a.overrideBBoxExpand == b.overrideBBoxExpand &&
+    a.userScript == b.userScript;
 }
-
-
-// No longer needed with new KLFLibEntryEditor widget
-//
-// KLF_EXPORT QString prettyPrintStyle(const KLFStyle& sty)
-// {
-//   QString s = "";
-//   if (sty.name != QString::null)
-//     s = QObject::tr("<b>Style Name</b>: %1<br>").arg(sty.name);
-//   return s + QObject::tr("<b>Math Mode</b>: %1<br>"
-// 			 "<b>DPI Resolution</b>: %2<br>"
-// 			 "<b>Foreground Color</b>: %3 <font color=\"%4\"><b>[SAMPLE]</b></font><br>"
-// 			 "<b>Background is Transparent</b>: %5<br>"
-// 			 "<b>Background Color</b>: %6 <font color=\"%7\"><b>[SAMPLE]</b></font><br>"
-// 			 "<b>LaTeX Preamble:</b><br><pre>%8</pre>")
-//     .arg(sty.mathmode)
-//     .arg(sty.dpi)
-//     .arg(QColor(sty.fg_color).name()).arg(QColor(sty.fg_color).name())
-//     .arg( (qAlpha(sty.bg_color) != 255) ? QObject::tr("YES") : QObject::tr("NO") )
-//     .arg(QColor(sty.bg_color).name()).arg(QColor(sty.bg_color).name())
-//     .arg(sty.preamble)
-//     ;
-// }
-
-
-
 
 
 

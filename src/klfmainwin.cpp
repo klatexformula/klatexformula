@@ -3245,7 +3245,9 @@ KLFStyle KLFMainWin::currentStyle() const
     sty.overrideBBoxExpand.left = u->spnMarginLeft->valueInRefUnit();
   }
 
-  klfDbg("Returning style; bgcol="<<klfFmtCC("#%08lx", (ulong)sty.bg_color)) ;
+  sty.userScript = QFileInfo(u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString()).fileName();
+
+  klfDbg("Returning style; bgcol="<<klfFmtCC("#%08lx", (ulong)sty.bg_color)<<": us="<<sty.userScript) ;
 
   return sty;
 }
@@ -3317,6 +3319,30 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
     u->spnMarginLeft->setValueInRefUnit(style.overrideBBoxExpand.left);
   } else {
     u->gbxOverrideMargins->setChecked(false);
+  }
+
+  /** \todo ###: when saving/loading user script in style, consider only BASENAME so that
+   *        we don't get problems from one installation to another. */
+  klfDbg("About to load us="<<style.userScript) ;
+  if (style.userScript.isEmpty()) {
+    u->cbxUserScript->setCurrentIndex(0);
+  } else {
+    int k;
+    bool ok = false;
+    for (k = 0; k < u->cbxUserScript->count(); ++k) {
+      if (QFileInfo(u->cbxUserScript->itemData(k).toString()).fileName() == style.userScript) {
+	// found
+	ok = true;
+	u->cbxUserScript->setCurrentIndex(k);
+	break;
+      }
+    }
+    if (!ok) {
+      QMessageBox::warning(this, tr("User Script Not Available"),
+			   tr("The user script %1 is not available. The equation might not compile.")
+			   .arg(style.userScript));
+      qWarning()<<KLF_FUNC_NAME<<": Can't find user script "<<style.userScript;
+    }
   }
 }
 

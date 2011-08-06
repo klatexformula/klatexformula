@@ -136,16 +136,16 @@ endmacro()
 
 
 macro(KLFInstFrameworkUpdateId INSTALLEDLIB)
-  install(CODE "execute_process(COMMAND \"install_name_tool\" -id \"${INSTALLEDLIB}\" \"${INSTALLEDLIB}\")")
+  install(CODE "execute_process(COMMAND \"install_name_tool\" -id \"${INSTALLEDLIB}\" \"$ENV{DESTDIR}${INSTALLEDLIB}\")")
 endmacro()
 
 macro(KLFInstFrameworkUpdateLibChange INSTALLEDBIN OLDLIBID NEWLIBID)
   string(REGEX REPLACE "^.*/([A-Za-z0-9_-]+)\\.framework" "\\1.framework"
 	 klfIFULC_reltolibdir "${OLDLIBID}")
-  install(CODE "execute_process(COMMAND \"install_name_tool\" -change \"${OLDLIBID}\" \"${NEWLIBID}\" \"${INSTALLEDBIN}\")")
+  install(CODE "execute_process(COMMAND \"install_name_tool\" -change \"${OLDLIBID}\" \"${NEWLIBID}\" \"$ENV{DESTDIR}${INSTALLEDBIN}\")")
   # in case the library is in /Library/Frameworks or other system path, it does not
   # have the full path:
-  install(CODE "execute_process(COMMAND \"install_name_tool\" -change \"${klfIFULC_reltolibdir}\" \"${NEWLIBID}\" \"${INSTALLEDBIN}\")")
+  install(CODE "execute_process(COMMAND \"install_name_tool\" -change \"${klfIFULC_reltolibdir}\" \"${NEWLIBID}\" \"$ENV{DESTDIR}${INSTALLEDBIN}\")")
 endmacro()
 
 macro(KLFMakeBundle TGT BUNDLE)

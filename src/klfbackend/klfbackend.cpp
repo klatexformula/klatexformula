@@ -560,8 +560,10 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   //
   // - }
 
-  QString tempfname = settings.tempdir + "/klatexformulatmp" KLF_VERSION_STRING "-"
-    + QDateTime::currentDateTime().toString("hh-mm-ss");
+  QString ver = KLF_VERSION_STRING;
+  ver.replace(".", "x"); // make friendly names with chars in [a-zA-Z0-9]
+  // the base name for all our temp files
+  QString tempfname = settings.tempdir + "/klftmp" + ver + "t" + QDateTime::currentDateTime().toString("hhmmss");
 
   QString fnTex = tempfname + ".tex";
   QString fnDvi = tempfname + ".dvi";
@@ -663,6 +665,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     addenv
       // program executables
       << "KLF_TEMPDIR=" + settings.tempdir
+      << "KLF_TEMPFNAME=" + tempfname // the base name for all our temp files
       << "KLF_LATEX=" + settings.latexexec
       << "KLF_DVIPS=" + settings.dvipsexec
       << "KLF_GS=" + settings.gsexec

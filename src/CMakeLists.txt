@@ -17,13 +17,15 @@ if(WIN32)
 endif(WIN32)
 
 
-# include SUBDIR: our klfbackend
-add_subdirectory(klfbackend)
+# include these subprojects...
 
+if(KLF_BUILD_TOOLS)
+  add_subdirectory(klftools)
+endif(KLF_BUILD_TOOLS)
 
-if(NOT KLF_BUILD_TOOLS)
-  return()
-endif(NOT KLF_BUILD_TOOLS)
+if(KLF_BUILD_BACKEND)
+  add_subdirectory(klfbackend)
+endif(KLF_BUILD_BACKEND)
 
 # Re-Include what we need from Qt for GUI KLF core+gui+xml+sql(+dbus)
 set(QT_USE_QTXML TRUE)
@@ -31,15 +33,8 @@ set(QT_USE_QTSQL TRUE)
 if(KLF_USE_DBUS)
   set(QT_USE_QTDBUS TRUE)
 endif(KLF_USE_DBUS)
-# include our Qt4 stuff; Qt3 needs nothing.
-if(KLF_USE_QT4)
 include(${QT_USE_FILE})
-endif(KLF_USE_QT4)
 
-
-
-# include SUBDIR: our klftools
-add_subdirectory(klftools)
 
 
 if(NOT KLF_BUILD_GUI)
@@ -345,8 +340,10 @@ if(KLF_MACOSX_BUNDLES)
 	klatexformula_BUNDLEXTRA  Xml   Core)
   KLFBundlePrivateImportQtLib(klatexformula "${KLF_MACOSX_BUNDLE_PATH}"
 	klatexformula_BUNDLEXTRA  Sql   Core)
-  KLFBundlePrivateImportQtLib(klatexformula "${KLF_MACOSX_BUNDLE_PATH}"
-	klatexformula_BUNDLEXTRA  DBus  "Core;Xml")
+  if(KLF_USE_DBUS)
+    KLFBundlePrivateImportQtLib(klatexformula "${KLF_MACOSX_BUNDLE_PATH}"
+      klatexformula_BUNDLEXTRA  DBus  "Core;Xml")
+  endif(KLF_USE_DBUS)
   foreach(plugin ${KLF_BUNDLE_QT_PLUGINS})
     KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" klatexformula_BUNDLEXTRA
 			"${plugin}" "${QT_PLUGINS_DIR}/${plugin}" plugins)
@@ -368,9 +365,9 @@ if(KLF_MACOSX_BUNDLES)
   KLFBundlePrivateLibUpdateQtDep(klatexformula "${KLF_MACOSX_BUNDLE_PATH}"
 	"Frameworks/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"  "Core;Gui;Xml;Sql;DBus")
   KLFInstallNameToolChange(klatexformula
-	"Frameworks/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-	"${KLF_MACOSX_BUNDLE_PATH}"  "Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-	"${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend")
+	"Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+	"${KLF_MACOSX_BUNDLE_PATH}"  "Frameworks/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
+	"${CMAKE_CURRENT_BINARY_DIR}/klftools/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools")
   # Import&Setup klfapp framework
   KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" klatexformula_BUNDLEXTRA
 	"klfapp.framework" "${CMAKE_CURRENT_BINARY_DIR}/klfapp.framework"  Frameworks)
@@ -509,7 +506,7 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
 	 )
 elsif(KLF_INSTALL_QTLIBS)
   # Install Prereq libs
-  KLFError("Not supported on non-windows system. TODO: write me. Actually, write a more general
+  message(ERROR "Not supported on non-windows system. TODO: write me. Actually, write a more general
     framework to import needed libraries, which could also replace the win32-specific code.")
 endif(WIN32 AND KLF_INSTALL_QTLIBS)
 if(KLF_INSTALL_QTPLUGINS)

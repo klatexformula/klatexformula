@@ -120,74 +120,20 @@ set(CMAKE_DEBUG_POSTFIX "${klf_default_debug_postfix}"
 	    CACHE STRING "Suffix to add to target names when built in 'Debug' build configuration")
 mark_as_advanced(CMAKE_DEBUG_POSTFIX)
 
-# Choose a Qt Version to use
-set(KLF_QT_VERSION 4 CACHE STRING "Qt major version to build with (4 or 3)")
-KLFGetCMakeVarChanged(KLF_QT_VERSION)
-if(NOT KLF_QT_VERSION STREQUAL "3" AND NOT KLF_QT_VERSION STREQUAL "4")
-  KLFNote("KLF_QT_VERSION has to be \"3\" (for Qt 3) or \"4\" (for Qt 4) (major version number)")
-  message(FATAL_ERROR "Invalid value for KLF_QT_VERSION")
-endif(NOT KLF_QT_VERSION STREQUAL "3" AND NOT KLF_QT_VERSION STREQUAL "4")
-if(klf_changed_KLF_QT_VERSION)
-  # the KLF_QT_VERSION variable has changed value
-  #  -> Reset some variables to let FindQt() find the right qmake and other executables (eg. moc)
-  unset(QT_INCLUDE_DIR CACHE)
-  unset(QT_INCLUDE_DIR)
-  unset(QT_LIBRARIES CACHE)
-  unset(QT_LIBRARIES)
-  unset(QT_DEFINITIONS CACHE)
-  unset(QT_DEFINITIONS)
-  unset(QT_FOUND CACHE)
-  unset(QT_FOUND)
-  unset(QT_MOC_EXECUTABLE CACHE)
-  unset(QT_MOC_EXECUTABLE)
-  unset(QT_UIC_EXECUTABLE CACHE)
-  unset(QT_UIC_EXECUTABLE)
-  unset(QT_QT_LIBRARY CACHE)
-  unset(QT_QT_LIBRARY)
-  unset(QT_QMAKE_EXECUTABLE CACHE)
-  unset(QT_QMAKE_EXECUTABLE)
-  unset(QT3_QGLOBAL_H_FILE CACHE)
-  unset(QT3_QGLOBAL_H_FILE)
-endif(klf_changed_KLF_QT_VERSION)
-KLFMarkVarAdvancedIf(QT_QMAKE_EXECUTABLE "NOT KLF_QT_VERSION EQUAL 4")
-# and set KLF_USE_QT4 (internal to us, mirror of KLF_QT_VERSION==4)
-if(KLF_QT_VERSION EQUAL 3)
-  set(KLF_USE_QT4 FALSE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4 (reflects KLF_QT_VERSION)")
-else(KLF_QT_VERSION EQUAL 3)
-  set(KLF_USE_QT4 TRUE CACHE INTERNAL "TRUE if klatexformula is compiled with Qt4 (reflects KLF_QT_VERSION)")
-endif(KLF_QT_VERSION EQUAL 3)
 
 # see if user specified a QT_QMAKE_EXECUTABLE and set QT_QMAKE_EXECUTABLE_FINDQT too (FindQt4 bug?)
 if(QT_QMAKE_EXECUTABLE AND NOT QT_QMAKE_EXECUTABLE_FINDQT)
   set(QT_QMAKE_EXECUTABLE_FINDQT "${QT_QMAKE_EXECUTABLE}" CACHE STRING "Qt QMake executable path" FORCE)
 endif(QT_QMAKE_EXECUTABLE AND NOT QT_QMAKE_EXECUTABLE_FINDQT)
 
-# Include that version of Qt
-set(QT_REQUIRED TRUE CACHE INTERNAL "Qt required.")
-set(DESIRED_QT_VERSION "${KLF_QT_VERSION}" CACHE INTERNAL "FindQt's Qt Version to use")
-set(QT4_INSTALLED)
-set(QT3_INSTALLED)
-mark_as_advanced(QT_REQUIRED DESIRED_QT_VERSION QT3_INSTALLED QT4_INSTALLED)
-KLFCMakeDebug("QT3_QGLOBAL_H_FILE is ${QT3_QGLOBAL_H_FILE}")
-# FINDQT
-include(FindQt)
+# Find Qt 4 and Include it
+find_package(Qt4 4.4.0 COMPONENTS QtCore QtGui REQUIRED)
 
-if(NOT QT4_INSTALLED AND NOT QT3_INSTALLED)
+if(NOT QT4_FOUND)
   mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
   message(FATAL_ERROR
-    "Didn't find Qt${KLF_QT_VERSION}. Try setting the QT_QMAKE_EXECUTABLE (and/or QT_QMAKE_EXECUTABLE_FINDQT) cache variable(s)." )
-endif()
-if(KLF_QT_VERSION EQUAL 3 AND NOT QT3_INSTALLED)
-  mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
-  message(FATAL_ERROR
-    "Didn't find required Qt3. You may try setting QT_QMAKE_EXECUTABLE or using Qt4 by chaning the KLF_QT_VERSION cache variable.")
-endif(KLF_QT_VERSION EQUAL 3 AND NOT QT3_INSTALLED)
-if(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
-  mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
-  message(FATAL_ERROR
-    "Didn't find required Qt4. You may try setting QT_QMAKE_EXECUTABLE or using Qt3 by chaning the KLF_QT_VERSION cache variable.")
-endif(KLF_QT_VERSION EQUAL 4 AND NOT QT4_INSTALLED)
-message(STATUS "Using Qt ${KLF_QT_VERSION} (KLF_QT_VERSION=\"${KLF_QT_VERSION}\")")
+    "Didn't find Qt4. Try setting the QT_QMAKE_EXECUTABLE (and/or QT_QMAKE_EXECUTABLE_FINDQT) cache variable(s)." )
+endif(NOT QT4_FOUND)
 
 # Current Qt Version "MAJ.MIN"
 set(KLF_CMAKE_QTVERSION "${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}" CACHE INTERNAL "Qt Version, Maj.Min")
@@ -200,19 +146,18 @@ if(WIN32)
 endif(WIN32)
 
 
-
 #KLFDeclareCacheVarOptionCondition(specificoption cachetype cachestring updatenoticestring condition forcedvalue defaultvalue)
 KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLS
-	BOOL "Build klatexformula tools library (klftools), requires Qt4"          # cache info
-	"Building klftools library requires Qt 4. Not building klftools library."  # update notify message
-	KLF_USE_QT4           # the condition
-	OFF                   # the forced value if condition is not met
-	${KLF_USE_QT4}        # the default value at beginning
+	BOOL "Build klatexformula tools library (klftools)"          # cache info
+	"Not building klftools library... should never happen."  # update notify message
+	1              # the condition (1=no condition)
+	OFF            # the forced value if condition is not met
+	1              # the default value at beginning
 )
 if(KLF_BUILD_TOOLS)
   message(STATUS "Will build the klftools library (KLF_BUILD_TOOLS)")
 else(KLF_BUILD_TOOLS)
-  message(STATUS "Will not build the klftools library (KLF_BUILD_TOOLS)")
+  message(FATAL_ERROR "There is nothing to build. You must set at least KLF_BUILD_TOOLS.")
 endif(KLF_BUILD_TOOLS)
 
 set(KLF_BUILD_TOOLSDESPLUGIN TRUE CACHE BOOL "Build Qt Designer Plugin for klftools library widgets")
@@ -230,19 +175,34 @@ KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLSDESPLUGIN
 )
 mark_as_advanced(KLF_BUILD_TOOLSDESPLUGIN) # advanced...
 if(KLF_BUILD_TOOLSDESPLUGIN)
-#  message(STATUS "Will build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
+  message(STATUS "Will build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
 else(KLF_BUILD_TOOLSDESPLUGIN)
   message(STATUS "Will not build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
 endif(KLF_BUILD_TOOLSDESPLUGIN)
 
 
+#KLFDeclareCacheVarOptionCondition(specificoption cachetype cachestring updatenoticestring condition forcedvalue defaultvalue)
+KLFDeclareCacheVarOptionCondition(KLF_BUILD_BACKEND
+	BOOL "Build klatexformula backend library (klfbackend)"                  # cache info
+	"Building klfbackend library requires klftools. Not building klfbackend library."  # update notify message
+	KLF_BUILD_TOOLS       # the condition
+	OFF                   # the forced value if condition is not met
+	TRUE                  # the default value at beginning
+)
+if(KLF_BUILD_BACKEND)
+  message(STATUS "Will build the klfbackend library (KLF_BUILD_BACKEND)")
+else(KLF_BUILD_BACKEND)
+  message(STATUS "Will not build the klfbackend library (KLF_BUILD_BACKEND)")
+endif(KLF_BUILD_BACKEND)
+
+
 #KLFDeclareCacheVarOptionCondition(spec.option cachetype cachestr updatemsg cond. forceval def.val.)
 KLFDeclareCacheVarOptionCondition(KLF_BUILD_GUI
-	BOOL "Build klatexformula GUI (klfapp+klatexformula), requires Qt4 and klftools" # cache info
-	"Building klatexformula GUI requires Qt 4 and klftools libraries. Not building GUI." # notify message
-	"KLF_USE_QT4 AND KLF_BUILD_TOOLS"  # the condition
-	OFF                                # the forced value if condition is not met
-	${KLF_BUILD_TOOLS}                 # the default value at beginning (here this is a boolean)
+	BOOL "Build klatexformula GUI (klfapp+klatexformula), requires klftools and klfbackend." # cache info
+	"Building klatexformula GUI requires klftools and klfbackend libraries. Not building GUI." # notify message
+	"KLF_BUILD_BACKEND AND KLF_BUILD_TOOLS"  # the condition
+	OFF                                      # the forced value if condition is not met
+	TRUE                                     # the default value at beginning (here this is a boolean)
 )
 if(KLF_BUILD_GUI)
   message(STATUS "Will build the GUI interface (klatexformula, klfapp) (KLF_BUILD_GUI)")
@@ -253,7 +213,7 @@ endif(KLF_BUILD_GUI)
 
 #KLFDeclareCacheVarOptionCondition(spec.option cachetype cachestr updatemsg cond. forceval def.val.)
 KLFDeclareCacheVarOptionCondition(KLF_BUILD_PLUGINS
-	BOOL "Build klatexformula plugins; requires Qt4, klftools and GUI" # cache info
+	BOOL "Build klatexformula plugins; requires klftools, klfbackend and GUI" # cache info
 	"Building klatexformula plugins requires klatexformula GUI. Not building plugins." # notify message
 	"KLF_BUILD_GUI"                    # the condition (GUI depends on klftools and Qt4)
 	OFF                                # the forced value if condition is not met
@@ -266,7 +226,7 @@ else(KLF_BUILD_PLUGINS)
 endif(KLF_BUILD_PLUGINS)
 
 
-# Static/Shared libklfbackend
+# Static/Shared libraries
 set(default_library_static FALSE)
 if(WIN32 OR APPLE)
   set(default_library_static FALSE)
@@ -276,14 +236,6 @@ else(WIN32 OR APPLE)
   # references, so it's ok
   set(default_library_static TRUE)
 endif(WIN32 OR APPLE)
-option(KLF_LIBKLFBACKEND_STATIC "Compile static libklfbackend backend library instead of shared."
-       ${default_library_static})
-# status message
-if(KLF_LIBKLFBACKEND_STATIC)
-  message(STATUS "Building a static KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
-else(KLF_LIBKLFBACKEND_STATIC)
-  message(STATUS "Building a shared KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
-endif(KLF_LIBKLFBACKEND_STATIC)
 
 # Build a shared or static klftools library
 set(KLF_LIBKLFTOOLS_STATIC ${default_library_static} CACHE BOOL "Build a static klftools library")
@@ -295,6 +247,16 @@ if(KLF_BUILD_TOOLS)
     message(STATUS "Building a shared KLatexFormula tools library (klftools) (KLF_LIBKLFTOOLS_STATIC)")
   endif(KLF_LIBKLFTOOLS_STATIC)
 endif(KLF_BUILD_TOOLS)
+
+# Build a shared or static klfbackend library
+option(KLF_LIBKLFBACKEND_STATIC "Compile static libklfbackend backend library instead of shared."
+       ${default_library_static})
+# status message
+if(KLF_LIBKLFBACKEND_STATIC)
+  message(STATUS "Building a static KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
+else(KLF_LIBKLFBACKEND_STATIC)
+  message(STATUS "Building a shared KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
+endif(KLF_LIBKLFBACKEND_STATIC)
 
 # Build a shared or static source klfapp library (for plugins to link to)
 set(KLF_LIBKLFAPP_STATIC ${default_library_static} CACHE BOOL "Build a static klfapp library")
@@ -490,23 +452,16 @@ set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}"
 mark_as_advanced(KLF_CMAKE_ARCH)
 
 # Find KDE4 for KTextEditor Plugin
-if(KLF_USE_QT4)
-  if(UNIX AND NOT APPLE)
-    set(KLF_BUILD_KTEXTEDITORPLUGIN ON CACHE BOOL "Build the KTextEditor plugin")
-  else(UNIX AND NOT APPLE)
-    set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build the KTextEditor Plugin")
-  endif(UNIX AND NOT APPLE)
-  if(KLF_BUILD_KTEXTEDITORPLUGIN)
-    message(STATUS "Will build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
-  else(KLF_BUILD_KTEXTEDITORPLUGIN)
-    message(STATUS "Will NOT build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
-  endif(KLF_BUILD_KTEXTEDITORPLUGIN)
-else(KLF_USE_QT4)
-  if(KLF_BUILD_KTEXTEDITORPLUGIN)
-    set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build the KTextEditor Plugin" FORCE)
-    KLFNote("Not building the KTextEditor plugin because we're using Qt3.")
-  endif(KLF_BUILD_KTEXTEDITORPLUGIN)
-endif(KLF_USE_QT4)
+if(UNIX AND NOT APPLE)
+  set(KLF_BUILD_KTEXTEDITORPLUGIN ON CACHE BOOL "Build the KTextEditor plugin")
+else(UNIX AND NOT APPLE)
+  set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build the KTextEditor Plugin")
+endif(UNIX AND NOT APPLE)
+if(KLF_BUILD_KTEXTEDITORPLUGIN)
+  message(STATUS "Will build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
+else(KLF_BUILD_KTEXTEDITORPLUGIN)
+  message(STATUS "Will NOT build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
+endif(KLF_BUILD_KTEXTEDITORPLUGIN)
 
 
 # some additional variables that get shown in some versions of CMake that could be hidden

@@ -7,6 +7,7 @@ set(klf_valid_cache_variables
   KLF_QT_VERSION
   KLF_BUILD_TOOLS
   KLF_BUILD_TOOLSDESPLUGIN
+  KLF_BUILD_BACKEND
   KLF_BUILD_GUI
   KLF_BUILD_PLUGINS
   KLF_LIBKLFBACKEND_STATIC
@@ -66,7 +67,6 @@ set(klf_valid_cache_variables
   KLF_LOCAL_QT_FRAMEWORKS
   KLF_LOCAL_QT_PLUGINS
   KLF_ROOT_CMAKE_READ
-  KLF_USE_QT4
   KLF_USE_CPACK
   KLF_CMAKE_BASEPLUGINSSUBDIR
   KLF_CMAKE_DEBUG
@@ -84,15 +84,22 @@ set(klf_valid_cache_variables
   KLF_INSTALL_QTPLUGINS_LIST
 )
 
+set(klf_obsolete_cache_variables
+  KLF_USE_QT4
+)
+
 get_directory_property(klf_defined_cache_variables CACHE_VARIABLES)
 
 #message(STATUS "Checking for unrecognized KLF_* cache variables")
 foreach(varname ${klf_defined_cache_variables})
   if(varname MATCHES "^KLF_.*")
+    # check for unrecognized and obsolete cache variables
     list(FIND klf_valid_cache_variables "${varname}" varname_valid_index)
-    if(varname_valid_index EQUAL -1)
+    list(FIND klf_obsolete_cache_variables "${varname}" varname_obsolete_index)
+    if(varname_valid_index EQUAL -1 AND varname_obsolete_index EQUAL -1)
       KLFNote("Variable ${varname} is defined in cache but not recognized.")
-    endif(varname_valid_index EQUAL -1)
+    elseif(NOT varname_obsolete_index EQUAL -1)
+      KLFNote("Variable ${varname} is now obsolete. Its value will have no effect.")
+    endif()
   endif(varname MATCHES "^KLF_.*")
 endforeach(varname)
-

@@ -797,6 +797,13 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     map["mathmode"] = klfSaveVariantToText(style.mathmode);
     map["preamble"] = klfSaveVariantToText(style.preamble);
     map["dpi"] = klfSaveVariantToText(QVariant::fromValue(style.dpi));
+    QVariantList bbox;
+    bbox << QVariant::fromValue<double>(style.overrideBBoxExpand.top)
+	 << QVariant::fromValue<double>(style.overrideBBoxExpand.right)
+	 << QVariant::fromValue<double>(style.overrideBBoxExpand.bottom)
+	 << QVariant::fromValue<double>(style.overrideBBoxExpand.left);
+    map["overrideBBox"] = klfSaveVariantToText(QVariant::fromValue(bbox));
+    map["userScript"] = klfSaveVariantToText(style.userScript);
     // now, save the map itself.
     // use 'return', not 'data = ', because this call to klfSaveVariantToText() is already "finalizing"
     return klfSaveVariantToText(map);
@@ -1390,6 +1397,17 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     style.mathmode = klfLoadVariantFromText(map["mathmode"].toByteArray(), "QString").toString();
     style.preamble = klfLoadVariantFromText(map["preamble"].toByteArray(), "QString").toString();
     style.dpi = klfLoadVariantFromText(map["dpi"].toByteArray(), "int").toInt();
+    QVariantList bbox = klfLoadVariantFromText(map["overrideBBoxExpand"].toByteArray(),
+					       "QVariantList", "double").toList();
+    if (bbox.size() != 4) {
+      qWarning()<<KLF_FUNC_NAME<<": failed reading a bbox-expand value : "<<bbox;
+    } else {
+      style.overrideBBoxExpand.top = bbox[0].toDouble();
+      style.overrideBBoxExpand.top = bbox[0].toDouble();
+      style.overrideBBoxExpand.top = bbox[0].toDouble();
+      style.overrideBBoxExpand.top = bbox[0].toDouble();
+    }
+    style.userScript = klfLoadVariantFromText(map["userScript"].toByteArray(), "QString").toString();
     return QVariant::fromValue<KLFStyle>(style);
   }
 

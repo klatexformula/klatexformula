@@ -156,6 +156,8 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
       restore();
     }
   }
+
+#ifndef KLF_MAC_HIDE_INSTEAD
   if (obj == _mainwin && e->type() == QEvent::WindowStateChange) {
     if ( _mainwin->property("x11WindowShaded").toBool() )
       return false; // don't take action if the window is just shaded
@@ -170,6 +172,8 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
       QTimer::singleShot(20, this, SLOT(minimize()));
     }
   }
+#endif // KLF_MAC_HIDE_INSTEAD
+
   return false;
 }
 
