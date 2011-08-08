@@ -3040,6 +3040,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     listView->setMovement(QListView::Free);
     // icon view flow is set later with setIconViewFlow()
     listView->setResizeMode(QListView::Adjust);
+    listView->setFrameStyle(QFrame::NoFrame|QFrame::Plain);
     klfDbg( "prepared list view." ) ;
     pView = listView;
     break;
@@ -3050,6 +3051,7 @@ KLFLibDefaultView::KLFLibDefaultView(QWidget *parent, ViewType view)
     treeView->setSortingEnabled(true);
     treeView->setIndentation(16);
     treeView->setAllColumnsShowFocus(true);
+    treeView->setFrameStyle(QFrame::NoFrame|QFrame::Plain);
     //    treeView->setUniformRowHeights(true);   // optimization, but is ugly...
     pDelegate->setTheTreeView(treeView);
     pView = treeView;

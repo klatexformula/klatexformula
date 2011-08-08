@@ -6,6 +6,7 @@
 
 # Include our UseQt file here, so that we can require other configuration (not depend
 # on so much qt libraries) as the main project.
+set(QT_USE_QTXML TRUE)
 include(${QT_USE_FILE})
 
 
@@ -51,7 +52,7 @@ else(KLF_LIBKLFBACKEND_STATIC)
     )
   if(KLF_MACOSX_BUNDLES)
     set(klfbackend_FRAMEWORKS ${KLF_BUNDLE_QT_FRAMEWORKS})
-    KLFMakeFramework(klfbackend "${klfbackend_FRAMEWORKS}" "${klfbackend_INSTHEADERS}")
+    KLFMMakeFramework(klfbackend "${klfbackend_FRAMEWORKS}" "${klfbackend_INSTHEADERS}")
   endif(KLF_MACOSX_BUNDLES)
 endif(KLF_LIBKLFBACKEND_STATIC)
 set_target_properties(klfbackend PROPERTIES
@@ -69,7 +70,14 @@ add_dependencies(klfbackend klftools)
 
 KLFInstallLibrary(klfbackend KLF_INSTALL_KLFBACKEND_ "${KLF_INSTALL_LIB_DIR}" "include/klfbackend")
 if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
-  KLFInstFrameworkUpdateId(
+  KLFMInstFrameworkUpdateId(
     "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
     )
+  # Installed library's dependency on klftools should be updated
+  KLFMInstFrameworkUpdateLibChange(
+    "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+    "${CMAKE_CURRENT_BINARY_DIR}/klftools/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
+    "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
+  )
+
 endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)

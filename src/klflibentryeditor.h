@@ -72,6 +72,8 @@ public slots:
 
   void retranslateUi(bool alsoBaseUi = true);
 
+  void slotCopy();
+
 protected slots:
 
   void slotUpdateFromCbx(QComboBox *cbx);

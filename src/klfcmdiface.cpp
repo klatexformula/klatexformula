@@ -23,7 +23,7 @@
 
 #include <QGenericArgument>
 
-#include <klfutil.h>
+#include <klfdatautil.h>
 
 #include "klfcmdiface.h"
 

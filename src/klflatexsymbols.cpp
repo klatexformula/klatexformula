@@ -226,6 +226,7 @@ KLF_EXPORT bool operator==(const KLFLatexSymbol& a, const KLFLatexSymbol& b)
 
 QDataStream& operator<<(QDataStream& stream, const KLFLatexSymbol& s)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   return stream << s.symbol
 		<< (quint8)s.symbol_option
 		<< (quint8)s.symbol_numargs
@@ -576,6 +577,7 @@ KLFLatexSymbolsCache * KLFLatexSymbolsCache::theCache()
 // static
 void KLFLatexSymbolsCache::saveTheCache()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   if (staticCache->cacheNeedsSave()) {
     QString s = klfconfig.homeConfigDir + relcachefile();
     QFile f(s);
@@ -861,6 +863,7 @@ void KLFLatexSymbols::retranslateUi(bool alsoBaseUi)
 
 KLFLatexSymbols::~KLFLatexSymbols()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   KLFLatexSymbolsCache::saveTheCache();
 }
 

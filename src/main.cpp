@@ -778,7 +778,9 @@ void main_setup_app(QCoreApplication *a)
 
   qRegisterMetaType< QImage >("QImage");
   qRegisterMetaType< KLFStyle >();
+  qRegisterMetaType< KLFStyle::BBoxExpand >();
   qRegisterMetaTypeStreamOperators< KLFStyle >("KLFStyle");
+  qRegisterMetaTypeStreamOperators< KLFStyle::BBoxExpand >("KLFStyle::BBoxExpand");
   qRegisterMetaType< KLFLibEntry >();
   qRegisterMetaTypeStreamOperators< KLFLibEntry >("KLFLibEntry");
   qRegisterMetaType< KLFLibResourceEngine::KLFLibEntryWithId >();

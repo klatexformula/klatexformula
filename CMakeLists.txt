@@ -545,9 +545,6 @@ add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}"
 		-DKLF_VERSION_REL=${KLF_VERSION_REL}
 		-DKLF_SRC_BUILD
 		-DKLF_CMAKE_ARCH="${KLF_CMAKE_ARCH}")
-if(KLF_USE_QT4)
-  add_definitions(-DKLFBACKEND_QT4)
-endif(KLF_USE_QT4)
 # Add flags for DEBUG build configuration
 set(CMAKE_CXX_FLAGS_DEBUG
   "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wformat=2 -Wno-format-extra-args -Winit-self")

@@ -26,16 +26,12 @@
 
 #include <klfdefs.h>
 
-#include <qstring.h>
-#include <qstringlist.h>
-#ifdef KLFBACKEND_QT4
+#include <QString>
+#include <QStringList>
 #include <QByteArray>
-#else
-#include <qmemarray.h>
-#endif
-#include <qimage.h>
-#include <qmutex.h>
-#include <qmap.h>
+#include <QImage>
+#include <QMutex>
+#include <QMap>
 
 
 

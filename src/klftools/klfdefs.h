@@ -24,18 +24,9 @@
 #ifndef KLFDEFS_H_
 #define KLFDEFS_H_
 
-#include <qobject.h>
-
-// first, detect a missing KLFBACKEND_QT4 definition
-#if defined(QT_VERSION) && QT_VERSION >= 0x040000
-#  ifndef KLFBACKEND_QT4
-#    define KLFBACKEND_QT4
-#   endif
-#endif
-
-
-#include <qstring.h>
-#include <qvariant.h>
+#include <QObject>
+#include <QString>
+#include <QVariant>
 
 
 // EXPORTING SYMBOLS TO E.G. PLUGINS ...
@@ -148,15 +139,9 @@ KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);
 #  define KLF_PATH_SEP ':'
 #endif
 
-KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1);
-KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "");
-
-
 
 // Import debugging utilities
-
 #include <klfdebug.h>
-
 
 
 #endif

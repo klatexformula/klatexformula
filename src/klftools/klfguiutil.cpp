@@ -505,3 +505,71 @@ QImage klfImageScaled(const QImage& source, const QSize& newSize)
   }
   return img;
 }
+
+
+// --------------------
+
+
+KLFWindowGeometryRestorer::KLFWindowGeometryRestorer(QWidget *window)
+  : QObject(window), pWindow(window)
+{
+  window->installEventFilter(this);
+}
+
+KLFWindowGeometryRestorer::~KLFWindowGeometryRestorer()
+{
+}
+
+bool KLFWindowGeometryRestorer::eventFilter(QObject *obj, QEvent *event)
+{
+  if (obj == pWindow) {
+    if (event->type() == QEvent::Hide) {
+      // save geometry
+      pWindow->setProperty("klf_saved_geometry", pWindow->geometry());
+    } else if (event->type() == QEvent::Show) {
+      QVariant val;
+      if ((val = pWindow->property("klf_saved_geometry")).isValid())
+	pWindow->setGeometry(val.value<QRect>());
+    }
+  }
+
+  return false;
+}
+
+
+
+/** \internal
+ * Important: remember that the keys in the hash windowShownStates may be a dangling pointer.
+ * do _not_ reference it explicitely but use to find info for existing widgets!
+ */
+static QHash<QWidget*,bool> windowShownStates;
+
+KLF_EXPORT void klfHideWindows()
+{
+  // save the window states, while checking that not all the windows are already hidden
+  QHash<QWidget*,bool> states;
+  bool allalreadyhidden = true;
+  QWidgetList wlist = QApplication::topLevelWidgets();
+  foreach (QWidget *w, wlist) {
+    bool shown = w->isVisible();
+    states[w] = shown;
+    if (shown)
+      allalreadyhidden = false;
+  }
+  if (!allalreadyhidden) {
+    // don't overwrite the saved status list with an all-hidden state list
+    windowShownStates = states;
+  }
+}
+
+KLF_EXPORT void klfRestoreWindows()
+{
+  QWidgetList wlist = QApplication::topLevelWidgets();
+  foreach (QWidget *w, wlist) {
+    if (!windowShownStates.contains(w))
+      continue;
+    // restore this window
+    if (!w->isVisible())
+      w->setVisible(windowShownStates[w]);
+  }
+}

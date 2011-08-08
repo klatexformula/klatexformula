@@ -509,3 +509,28 @@ HR {
 	vertical-align: -30%; 
 }
 
+
+
+
+/* No header, hidden. */
+.header { 
+  visibility: hidden;
+  width: 0px; height: 0px;
+/*  width: 100%;*/
+  background-image: url('../../headerbg.jpg');
+  background-repeat: x-repeat;
+}
+/*.headertitle {
+  width: 70%;
+  margin: 0px 0px 5px;
+  padding: 3px 20px 1px;
+  text-align: center;
+}
+.header .title {
+  font-weight: bold
+}*/
+
+
+.contents {
+  margin-top: 8px;
+}

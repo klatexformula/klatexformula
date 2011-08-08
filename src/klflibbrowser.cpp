@@ -1464,6 +1464,15 @@ void KLFLibBrowser::slotCopy()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  // first determine who had widget focus
+  QWidget *focusWidget = QApplication::focusWidget();
+  if (u->wEntryEditor->isAncestorOf(focusWidget)) {
+    u->wEntryEditor->slotCopy();
+    return;
+  }
+
+  // otherwise perform the copy from the visible lib view
+
   KLFAbstractLibView * view = curLibView();
   if ( view == NULL )
     return;

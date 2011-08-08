@@ -18,13 +18,14 @@ set(klftools_SRCS
 	klfcolorchooser.cpp
 	klfpobj.cpp
 	klfutil.cpp
+	klfdatautil.cpp
+	klfconfigbase.cpp
 	klfguiutil.cpp
 	klffactory.cpp
 	klfpixmapbutton.cpp
 	klfpathchooser.cpp
 	qtcolortriangle.cpp
 	klfdisplaylabel.cpp
-	klfstyle.cpp
 	klfsearchbar.cpp
 	klfunitinput.cpp
 	klflatexedit.cpp
@@ -59,9 +60,11 @@ set(klftools_MOCHEADERS
 set(klftools_HEADERS
 	klfdefs.h
 	klfutil.h
+	klfdatautil.h
+	klfdatautil_p.h
+	klfconfigbase.h
 	klfpobj.h
 	klffactory.h
-	klfstyle.h
 	klfiteratorsearchable.h
 	klfsearchbar_p.h
 	klflatexedit_p.h
@@ -89,8 +92,7 @@ endif(APPLE)
 KLFInstHeaders(klftools_INSTHEADERS "${klftools_HEADERS}")
 
 # our include directories
-include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}"
-		    "${CMAKE_CURRENT_SOURCE_DIR}/../klfbackend")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Uis, Mocs, Qrcs
 qt4_wrap_ui(klftools_UIS_H ${klftools_UIS})
@@ -113,7 +115,7 @@ else(KLF_LIBKLFTOOLS_STATIC)
   )
   if(KLF_MACOSX_BUNDLES)
     set(klftools_FRAMEWORKS ${KLF_BUNDLE_QT_FRAMEWORKS})
-    KLFMakeFramework(klftools "${klftools_FRAMEWORKS}" "${klftools_INSTHEADERS}")
+    KLFMMakeFramework(klftools "${klftools_FRAMEWORKS}" "${klftools_INSTHEADERS}")
   endif(KLF_MACOSX_BUNDLES)
 endif(KLF_LIBKLFTOOLS_STATIC)
 
@@ -141,7 +143,7 @@ if(KLF_BUILD_TOOLSDESPLUGIN)
     COMPILE_FLAGS "-O2 -g"
     LINK_FLAGS "-O2 -g"
     )
-  target_link_libraries(klftoolsdesplugin  klftools klfbackend ${QT_QTCORE_LIBRARY}
+  target_link_libraries(klftoolsdesplugin  klftools ${QT_QTCORE_LIBRARY}
     ${QT_QTGUI_LIBRARY} ${QT_QTDESIGNER_LIBRARY} ${QT_QTDESIGNERCOMPONENTS_LIBRARY})
 endif(KLF_BUILD_TOOLSDESPLUGIN)
 
@@ -150,13 +152,7 @@ endif(KLF_BUILD_TOOLSDESPLUGIN)
 
 KLFInstallLibrary(klftools KLF_INSTALL_KLFTOOLS_ "${KLF_INSTALL_LIB_DIR}" "include/klftools")
 if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFTOOLS_FRAMEWORK)
-  KLFInstFrameworkUpdateId(
-    "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-  )
-  # Installed library's dependency on klfbackend should be updated
-  KLFInstFrameworkUpdateLibChange(
-    "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-    "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+  KLFMInstFrameworkUpdateId(
     "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
   )
 endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFTOOLS_FRAMEWORK)

@@ -26,19 +26,16 @@
 #include <stdarg.h> // va_list, va_arg, va_end in klfFmt()
 #include <sys/time.h>
 
-#include <qdir.h>
-#include <qfile.h>
-#include <qfileinfo.h>
-#include <qregexp.h>
-#include <qapplication.h>
-#include <qmetaobject.h>
-
-#ifdef KLFBACKEND_QT4
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QRegExp>
+#include <QApplication>
+#include <QMetaObject>
 #include <QDebug>
-#endif
 
+#include "klflegacymacros_p.h"
 #include "klfdefs.h"
-#include "klfqt34common.h"
 
 /** \file klfdefs.h
  * \brief Base declarations for klatexformula and some utilities
@@ -49,6 +46,8 @@
  * \brief Debugging utilities
  *
  */
+
+/** \bug Remove Qt3 support w/ KLFBACKEND_QT4 in all files */
 
 
 /** \fn int klfVersion()
@@ -408,8 +407,6 @@
  * klfDebugf(("%s: this is a debug message. value=%d", KLF_FUNC_NAME, somevalue)) ;
  * \endcode
  * Note the double-parenthesis.
- *
- * This macro functions exactly the same way in both Qt3 and Qt4.
  */
 
 /** \def klfDbg
@@ -431,17 +428,6 @@
  * call this macro are truly "erased" (the macro itself, with all its arguments, expands to
  * nothing), and result into no overhead of having to go eg. through null-streams. Additionally,
  * all macro arguments are NOT evaluated in non-debug mode.
- *
- * \warning This macro in its full-featured version requires Qt4. When used with Qt3, the
- *   argument may no longer be "any streamable items" because Qt3 does not support qDebug()
- *   streaming. However this macro still works, with the limitation that the argument must
- *   be a QString, or an expression that can be cast into a QString. (see also klfFmtCC())
- * \code
- * // Qt3 Usage Example
- * klfDbg("debug message") ;
- * klfDbg(QString("debug message. value is %1.").arg(value)) ;
- * klfDbg(klfFmtCC("debug. value is %d, string is %s, and flags are %#010x.", intvalue, strvalue, flags)) ;
- * \endcode
  */
 
 /** \def klfDbgT
@@ -589,6 +575,8 @@
 
 /** \def KLF_PROPERTY_GET
  * \hideinitializer
+ *
+ * \bug DOES THIS MACRO PREVENT DOXYGEN DOCUMENTATION ?
  *
  * Declares a functions, one public designed to get a property value. This macro is to be used
  * within a class declaration.
@@ -868,41 +856,7 @@
  * Note that the character is given as a \c char (observe the single-quotes), not in a string.
  */
 
-/** \fn KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1)
- * \brief Find files matching a path with wildcards
- *
- * This function returns at most \c limit file names that match the given \c wildcard_expression.
- * The latter may be any absolute path in which (any number of) \c * and \c ? wildcards may be
- * placed.
- *
- * This function splits the \c wildcard_expression at \c '/' characters, and by starting at the
- * root directory, recursively exploring all directories matching the given section of the pattern.
- * (native '\\' separators on windows are appropriately converted to universal \c '/', so you don't
- * have to worry about passing '\\'-style paths).
- *
- * For example, searching for <tt>&quot;/usr/lib*</tt><tt>/kde4/kate*.so&quot;</tt> will start looking in
- * the root directory for a directory named \c "usr", in which a directory matching \c "lib*" is
- * searched for. In each of those matches, a directory named \c "kde4" is searched for, in which
- * files named \c "lib*.so.*" are listed. All found matches are returned (up to a given \c limit
- * number of entries if \c limit is positive).
- *
- * The drive letter in \c wildcard_expression on windows may not contain a wildcard.
- */
 
-/** \fn KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extra_path = "")
- * \brief Smart executable searching in a given path list with wildcards
- *
- * This function looks for an executable named \c programName. It looks in the directories given in
- * argument \c extra_path, and in the system environment variable \c PATH. \c extra_path and \c PATH
- * are assumed to be a colon-separated list of directories (semicolon-separated on windows, see
- * \ref KLF_PATH_SEP). Each given directory may contain wildcards (in particular, wildcards in
- * \c PATH are also parsed). \c programName itself may also contain wildcards.
- *
- * This function splits \c extra_path and \c PATH into a directory list, and then, for each directory
- * in that list, calls \ref klfSearchFind() with as argument the string
- * <tt><i>&quot;&lt;directory></i>/<i>&lt;programName></i>&quot;</tt>. This function then returns the
- * first result that is an executable file (this check is explicitely performed).
- */
 
 
 
@@ -1007,13 +961,8 @@ KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
   QString funcname(ba_funcname);
   // returns the section between the last space before the first open paren and the first open paren
   int iSpc, iParen;
-#ifdef KLFBACKEND_QT4
   iParen = funcname.indexOf('(');
   iSpc = funcname.lastIndexOf(' ', iParen-2);
-#else
-  iParen = funcname.find('(');
-  iSpc = funcname.findRev(' ', iParen-2);
-#endif
   // if iSpc is -1, leave it at -1 (eg. constructor signature), the following code still works.
   if (iParen == -1 || iSpc > iParen) {
     qWarning("klfShortFuncSignature('%s'): Signature parse error!", qPrintable(funcname));
@@ -1053,11 +1002,7 @@ KLF_EXPORT QByteArray klfFmt(const char * fmt, va_list pp)
 
   // create a QByteArray
   QByteArray data;
-#ifdef KLFBACKEND_QT4
   data = QByteArray(buffer, len);
-#else
-  data.duplicate(buffer, len);
-#endif
   return data;
 }
 
@@ -1076,12 +1021,7 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt, int precision)
   QString s = QString::number(num, fmt, precision);
 
   QByteArray data;
-#ifdef KLFBACKEND_QT4
   data = s.toLatin1();
-#else
-  const char * latin1 = s.latin1();
-  data.duplicate(latin1, strlen(latin1));
-#endif
   return data;
 }
 
@@ -1150,9 +1090,7 @@ KLFDebugBlockTimer::~KLFDebugBlockTimer()
 }
 
 // the following is defined for both debug and non-debug modes. In non-debug modes, it provides the symbol
-// __klf_dbg_hdr for debugging eg. plugins compiled in debug mode (NEEDS TESTING...?)
-#ifdef KLFBACKEND_QT4
-// QT 4 >>
+// __klf_dbg_hdr for debugging eg. plugins compiled in debug mode
 KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime)
 {
   if (shorttime == NULL)
@@ -1160,32 +1098,6 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *r
   else
     return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"():"<<refinstance<<"\n        ";
 }
-// << QT 4
-#else
-// QT 3 >>
-int __klf_dbg_string_obj::operator=(const QString& msg)
-{
-#  ifdef KLF_DEBUG
-  qDebug("%s", qPrintable(hdr + msg));
-#  endif
-  return 0;
-}
-KLF_EXPORT __klf_dbg_string_obj
-/* */ __klf_dbg_hdr_qt3(const char *funcname, const char *refinstance, const char *shorttime)
-{
-#  ifdef KLF_DEBUG
-  QString s;
-  if (shorttime == NULL)
-    s = QString::fromLocal8Bit(funcname) + "():" + refinstance + "\n  ";
-  else
-    s = QString::fromLocal8Bit("+T:") + shorttime + ": " + funcname + "(): " + refinstance + "\n  ";
-  return  __klf_dbg_string_obj(s);
-#  else
-  return  __klf_dbg_string_obj(QString());
-#  endif
-}
-// << QT 3
-#endif
 
 
 
@@ -1353,108 +1265,5 @@ KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2)
 {
   return klfVersionCompare(v1,v2) < 0;
 }
-
-
-
-// negative limit means "no limit"
-static QStringList __search_find_test(const QString& root, const QStringList& pathlist,
-				      int level, int limit)
-{
-  if (limit == 0)
-    return QStringList();
-
-  if (limit < 0)
-    limit = -1; // normalize negative values to -1 (mostly cosmetic...)
-
-  klfDebugf(("root=`%s', pathlist=`%s', level=%d, limit=%d", qPrintable(root), qPrintable(pathlist.join("\t")),
-	     level, limit));
-
-  QStringList newpathlist = pathlist;
-  // our level: levelpathlist contains items in pathlist from 0 to level-1 inclusive.
-  QStringList levelpathlist;
-  int k;
-  for (k = 0; k < level; ++k) { levelpathlist << newpathlist[k]; }
-  // the dir/file at our level:
-  QString flpath = root+levelpathlist.join("/");
-  klfDebugf(("our path = `%s' ...", qPrintable(flpath)));
-  QFileInfo flinfo(flpath);
-  if (flinfo.isDir() && level < pathlist.size()) { // is dir, and we still have path level to explore
-    klfDebugf(("... is dir.")) ;
-    QDir d(flpath);
-    QStringList entries;
-#ifdef KLFBACKEND_QT4
-    entries = d.entryList(QStringList()<<pathlist[level], QDir::Drives|QDir::Files|QDir::Dirs|QDir::Hidden);
-#else
-    entries = d.entryList(pathlist[level]);
-#endif
-    if (entries.size()) {
-      klfDebugf(("got entry list: %s", qPrintable(entries.join("\t"))));
-    }
-    QStringList hitlist;
-    for (k = 0; k < (int)entries.size(); ++k) {
-      newpathlist[level] = entries[k];
-      hitlist += __search_find_test(root, newpathlist, level+1, limit - hitlist.size());
-      if (limit >= 0 && (int)hitlist.size() >= limit) // reached limit
-	break;
-    }
-    return hitlist;
-  }
-  if (flinfo.exists()) {
-    klfDebugf(("... is existing file.")) ;
-    return QStringList() << dir_native_separators(root+pathlist.join("/"));
-  }
-  klfDebugf(("... is invalid.")) ;
-  return QStringList();
-}
-
-KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit)
-{
-  klfDbg("looking for "+wildcard_expression) ;
-
-  QString expr;
-#ifdef KLFBACKEND_QT4
-  expr = QDir::fromNativeSeparators(wildcard_expression);
-#else
-  expr = wildcard_expression;  expr.replace(QDir::separator(), "/");
-#endif
-  QStringList pathlist = str_split(expr, "/", false);
-  QString root = "/";
-  static QRegExp driveregexp("^[A-Za-z]:$");
-  if (driveregexp.exactMatch(pathlist[0])) {
-    // Windows System with X: drive letter
-    root = pathlist[0]+"/";
-    pathlist.pop_front();
-  }
-  return __search_find_test(root, pathlist, 0, limit);
-}
-
-KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extra_path)
-{
-  static const QString PATH = getenv("PATH");
-  static const QString pathsep = QString("")+KLF_PATH_SEP;
-
-  QString path = PATH;
-  if (!extra_path.isEmpty())
-    path = extra_path + pathsep + path;
-
-  const QStringList paths = str_split(path, pathsep, true);
-  QString test;
-  int k, j;
-  for (k = 0; k < (int)paths.size(); ++k) {
-    klfDbg("searching in "+paths[k]) ;
-    QStringList hits = klfSearchFind(paths[k]+"/"+programName);
-    klfDbg("\t...resulting in hits = "+hits.join(" ;; ")) ;
-    for (j = 0; j < (int)hits.size(); ++j) {
-      if ( QFileInfo(hits[j]).isExecutable() ) {
-	klfDbg("\tFound definitive (executable) hit at "+hits[j]) ;
-	return hits[j];
-      }
-    }
-  }
-  return QString::null;
-}
-
-
-
 
 

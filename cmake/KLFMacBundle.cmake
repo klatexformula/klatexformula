@@ -66,80 +66,85 @@ add_custom_target(bundleclean
 
 
 
-macro(KLFBundlePrivateImport TGT BUNDLE VAR_SRCS FILE FULLLOCATION LOCAL)
+macro(KLFMBundlePrivateImport TGT FILE FULLLOCATION LOCAL)
 
   # Add this to the list of sources
-  list(APPEND ${VAR_SRCS} "${BUNDLE}/Contents/${LOCAL}/${FILE}")
+  list(APPEND ${TGT}_BUNDLEXTRA "${klfbundlelocation_${TGT}}/Contents/${LOCAL}/${FILE}")
 
-  set(localtarget "${BUNDLE}/Contents/${LOCAL}/${FILE}")
+  set(localtarget "${klfbundlelocation_${TGT}}/Contents/${LOCAL}/${FILE}")
   string(REGEX REPLACE "(.*)/[^/]+$" "\\1" dirnamelocaltarget ${localtarget})
 
   # add the command to copy the file or directory into the bundle
   add_custom_command(TARGET ${TGT}_maclibpacked PRE_BUILD
 	# cmake -E ... doesn't work well enough for us, plus anyway mac OS X is a unix-like platform
 	COMMAND mkdir -p "${dirnamelocaltarget}"
-	COMMAND rm -Rf "${BUNDLE}/Contents/${LOCAL}/${FILE}"
+	COMMAND rm -Rf "${klfbundlelocation_${TGT}}/Contents/${LOCAL}/${FILE}"
 	COMMAND cp -Rf "${FULLLOCATION}"
-		  "${BUNDLE}/Contents/${LOCAL}/${FILE}"
+		  "${klfbundlelocation_${TGT}}/Contents/${LOCAL}/${FILE}"
 	COMMENT "Importing ${FILE} into Mac OS X bundle"
+	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 	VERBATIM
   )
   
 endmacro()
 
-macro(KLFInstallNameToolID TGT BUNDLE LIBRELPATH)
+macro(KLFMInstallNameToolID TGT LIBRELPATH)
   add_custom_command(TARGET ${TGT}_maclibpacked PRE_BUILD
-    COMMAND "install_name_tool" -id "@executable_path/../${LIBRELPATH}" "${BUNDLE}/Contents/${LIBRELPATH}"
+    COMMAND "install_name_tool" -id "@executable_path/../${LIBRELPATH}" "${klfbundlelocation_${TGT}}/Contents/${LIBRELPATH}"
     COMMENT "Updating framework or library ID of ${LIBRELPATH}"
     VERBATIM
   )
 endmacro()
 
-macro(KLFInstallNameToolChange TGT CHANGEFILENAMEREL BUNDLEPATH DEPRELPATH DEPFULLPATH)
+macro(KLFMInstallNameToolChange TGT CHANGEFILENAMEREL DEPRELPATH DEPFULLPATH)
   string(REGEX REPLACE "^.*/([A-Za-z0-9_-]+)\\.framework" "\\1.framework"
 	 klfINTC_reltolibdir "${DEPFULLPATH}")
+  set(klflibnamepath "${CHANGEFILENAMEREL}")
+  if(NOT IS_ABSOLUTE "${klflibnamepath}")
+    set(klflibnamepath "${klfbundlelocation_${TGT}}/Contents/${CHANGEFILENAMEREL}")
+  endif(NOT IS_ABSOLUTE "${klflibnamepath}")
   add_custom_command(TARGET ${TGT}_maclibpacked POST_BUILD
-    COMMAND "install_name_tool" -change "${DEPFULLPATH}" "@executable_path/../${DEPRELPATH}" "${BUNDLEPATH}/Contents/${CHANGEFILENAMEREL}"
-    COMMAND "install_name_tool" -change "${klfINTC_reltolibdir}" "@executable_path/../${DEPRELPATH}" "${BUNDLEPATH}/Contents/${CHANGEFILENAMEREL}"
+    COMMAND "install_name_tool" -change "${DEPFULLPATH}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
+    COMMAND "install_name_tool" -change "${klfINTC_reltolibdir}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
     COMMENT "Updating ${CHANGEFILENAMEREL}'s dependency on ${DEPFULLPATH} to @executable_path/../${DEPRELPATH}"
     VERBATIM
   )
 endmacro()
 
-macro(KLFBundlePrivateLibUpdateQtDep TGT BUNDLE LIBNAME QTDEPS)
+macro(KLFMBundlePrivateLibUpdateQtDep TGT LIBNAME QTDEPS)
   foreach(dep ${QTDEPS})
     string(TOUPPER ${dep} dep_upper)
     set(qtdepfullpath "${QT_QT${dep_upper}_LIBRARY}")
-    KLFInstallNameToolChange(${TGT} ${LIBNAME}
-	"${BUNDLE}" "Frameworks/Qt${dep}.framework/Versions/4/Qt${dep}"
-	${qtdepfullpath}/Versions/4/Qt${dep})
-    KLFInstallNameToolChange(${TGT} ${LIBNAME}
-	"${BUNDLE}" "Frameworks/Qt${dep}.framework/Versions/Current/Qt${dep}"
-	${qtdepfullpath}/Versions/Current/Qt${dep})
+    KLFMInstallNameToolChange(${TGT} ${LIBNAME}
+      "Frameworks/Qt${dep}.framework/Versions/4/Qt${dep}"
+      ${qtdepfullpath}/Versions/4/Qt${dep})
+    KLFMInstallNameToolChange(${TGT} ${LIBNAME}
+      "Frameworks/Qt${dep}.framework/Versions/Current/Qt${dep}"
+      ${qtdepfullpath}/Versions/Current/Qt${dep})
   endforeach()
 endmacro()
 
-macro(KLFBundlePrivateImportQtLib TGT BUNDLE VAR_SRCS QTLIBBASENAME DEPS)
+macro(KLFMBundlePrivateImportQtLib TGT QTLIBBASENAME DEPS)
   string(TOUPPER ${QTLIBBASENAME} QTLIBBASENAMEUPPER)
   set(QTLIBFULLPATH "${QT_QT${QTLIBBASENAMEUPPER}_LIBRARY}")
-  KLFBundlePrivateImport(${TGT} ${BUNDLE} ${VAR_SRCS} Qt${QTLIBBASENAME}.framework
+  KLFMBundlePrivateImport(${TGT} Qt${QTLIBBASENAME}.framework
 			 ${QTLIBFULLPATH} Frameworks)
-  KLFInstallNameToolID(${TGT} ${BUNDLE}
+  KLFMInstallNameToolID(${TGT}
       Frameworks/Qt${QTLIBBASENAME}.framework/Versions/4/Qt${QTLIBBASENAME})
-  KLFInstallNameToolID(${TGT} ${BUNDLE}
+  KLFMInstallNameToolID(${TGT}
       Frameworks/Qt${QTLIBBASENAME}.framework/Versions/Current/Qt${QTLIBBASENAME})
-  KLFBundlePrivateLibUpdateQtDep(${TGT} ${BUNDLE}
+  KLFMBundlePrivateLibUpdateQtDep(${TGT}
       Frameworks/Qt${QTLIBBASENAME}.framework/Versions/4/Qt${QTLIBBASENAME}  "${DEPS}")
-  KLFBundlePrivateLibUpdateQtDep(${TGT} ${BUNDLE}
+  KLFMBundlePrivateLibUpdateQtDep(${TGT}
       Frameworks/Qt${QTLIBBASENAME}.framework/Versions/Current/Qt${QTLIBBASENAME}  "${DEPS}")
 endmacro()
 
 
-macro(KLFInstFrameworkUpdateId INSTALLEDLIB)
+macro(KLFMInstFrameworkUpdateId INSTALLEDLIB)
   install(CODE "execute_process(COMMAND \"install_name_tool\" -id \"${INSTALLEDLIB}\" \"$ENV{DESTDIR}${INSTALLEDLIB}\")")
 endmacro()
 
-macro(KLFInstFrameworkUpdateLibChange INSTALLEDBIN OLDLIBID NEWLIBID)
+macro(KLFMInstFrameworkUpdateLibChange INSTALLEDBIN OLDLIBID NEWLIBID)
   string(REGEX REPLACE "^.*/([A-Za-z0-9_-]+)\\.framework" "\\1.framework"
 	 klfIFULC_reltolibdir "${OLDLIBID}")
   install(CODE "execute_process(COMMAND \"install_name_tool\" -change \"${OLDLIBID}\" \"${NEWLIBID}\" \"$ENV{DESTDIR}${INSTALLEDBIN}\")")
@@ -148,14 +153,21 @@ macro(KLFInstFrameworkUpdateLibChange INSTALLEDBIN OLDLIBID NEWLIBID)
   install(CODE "execute_process(COMMAND \"install_name_tool\" -change \"${klfIFULC_reltolibdir}\" \"${NEWLIBID}\" \"$ENV{DESTDIR}${INSTALLEDBIN}\")")
 endmacro()
 
-macro(KLFMakeBundle TGT BUNDLE)
+macro(KLFMMakeBundle TGT)
   set_target_properties(${TGT} PROPERTIES
-	MACOSX_BUNDLE	true
+    MACOSX_BUNDLE	true
   )
+
+  KLFGetTargetLocation(klfbundleexetarget ${TGT})
+  set(klfbundleexetarget_${TGT} "${klfbundleexetarget}" CACHE INTERNAL "${TGT} target name")
+  string(REGEX REPLACE "/Contents/MacOS/[^/]+$" "" klfbundlelocation "${klfbundleexetarget_${TGT}}")
+  set(klfbundlelocation_${TGT} "${klfbundlelocation}" CACHE INTERNAL "${TGT} bundle location (path to incl. .app dir)")
+  KLFGetTargetFileName(klfbundlename ${TGT})
+  set(klfbundlename_${TGT} "${klfbundlename}" CACHE INTERNAL "${TGT} bundle name (abc.app)")
 
   # Add Proper bundle clean target 
   add_custom_target(${TGT}_clean
-	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${BUNDLE}"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${klfbundlelocation_${TGT}}"
 	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 	COMMENT "Removing bundle ${TGT}"
 	VERBATIM
@@ -167,21 +179,24 @@ macro(KLFMakeBundle TGT BUNDLE)
 	COMMENT "Packaging non-system libraries into bundle ${TGT}"
   )
   
+endmacro()
+
+macro(KLFMBundleMkPrivateDir TGT SUBDIR)
   add_custom_command(TARGET ${TGT} POST_BUILD
-	COMMAND mkdir -p Contents/Resources/rccresources
-	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${BUNDLE}"
-	COMMENT "Setting up bundled target ${BUNDLE}"
+	COMMAND mkdir -p "${SUBDIR}"
+	WORKING_DIRECTORY "${klfbundlelocation_${TGT}}"
+	COMMENT "Creating subdir ${SUBDIR} in ${TGT} bundle"
 	VERBATIM
   )
 endmacro()
 
-macro(KLFBundlePackage TGT BUNDLEXTRA)
+macro(KLFMBundlePackage TGT)
   #KLFDeclareCacheVarOptionFollow(specificoption genericoption cachestring)
   KLFDeclareCacheVarOptionFollow(KLF_MACOSX_BUNDLE_EXTRAS_${TGT} KLF_MACOSX_BUNDLE_EXTRAS
 	"Bundle dependency frameworks into bundle ${TGT}")
   KLFMessageBundleExtraDeps(KLF_MACOSX_BUNDLE_EXTRAS_${TGT} "${TGT}")
 
-  add_dependencies(${TGT}_maclibpacked ${BUNDLEXTRA})
+  add_dependencies(${TGT}_maclibpacked ${${TGT}_BUNDLEXTRA})
   
   if(KLF_MACOSX_BUNDLE_EXTRAS_${TGT})
     # perform ${TGT}_maclibpacked in ALL. Just make it depend on a target that is built in ALL
@@ -190,19 +205,32 @@ macro(KLFBundlePackage TGT BUNDLEXTRA)
   endif(KLF_MACOSX_BUNDLE_EXTRAS_${TGT})
 endmacro()
 
-macro(KLFMakeMacExtraBundledTarget TGT DEPS)
+macro(KLFMMakeMacExtraBundledTarget TGT BUNDLETARGET DEPS)
   add_custom_target(${TGT}_maclibpacked DEPENDS ${DEPS})
-endmacro(KLFMakeMacExtraBundledTarget)
+  set(klfbundlelocation_${TGT} ${klfbundlelocation_${BUNDLETARGET}}
+    CACHE INTERNAL "target ${TGT} to be included in ${BUNDLETARGET}")
+  set(klfbundleexetarget_${TGT} ${klfbundleexetarget_${BUNDLETARGET}}
+    CACHE INTERNAL "target ${TGT} to be included in ${BUNDLETARGET}")
+  set(klfbundlename_${TGT} ${klfbundlename_${BUNDLETARGET}}
+    CACHE INTERNAL "target ${TGT} to be included in ${BUNDLETARGET}")
+endmacro(KLFMMakeMacExtraBundledTarget)
 
-macro(KLFMakeFramework TGT HEADERS)
+macro(KLFMMakeFramework TGT HEADERS)
 
   set_target_properties(${TGT} PROPERTIES
 	FRAMEWORK	TRUE
   )
 
+  KLFGetTargetLocation(klffwlibtarget ${TGT})
+  set(klffwlibtarget_${TGT} "${klffwlibtarget}" CACHE INTERNAL "${TGT} target name")
+  string(REGEX REPLACE "/Contents/MacOS/[^/]+$" "" klffwlocation "${klffwexetarget_${TGT}}")
+  set(klffwlocation_${TGT} "${klffwlocation}" CACHE INTERNAL "${TGT} fw location (path to incl. .app dir)")
+  KLFGetTargetFileName(klffwname ${TGT})
+  set(klffwname_${TGT} "${klffwname}" CACHE INTERNAL "${TGT} fw name (abc.app)")
+
   # Add Proper bundle clean target 
   add_custom_target(${TGT}_clean
-	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${TGT}.framework"
+	COMMAND "${CMAKE_COMMAND}" -E remove_directory "${klffwlocation_${TGT}}"
 	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 	COMMENT "Removing Framework ${TGT}"
 	VERBATIM

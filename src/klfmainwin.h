@@ -244,9 +244,6 @@ public:
 
   KLFConfig * klfConfig() { return & klfconfig; }
 
-  QHash<QWidget*,bool> currentWindowShownStatus(bool mainWindowToo = false);
-  QHash<QWidget*,bool> prepareAllWindowShownStatus(bool visibleStatus, bool mainWindowToo = false);
-
   QString widgetStyle() const { return _widgetstyle; }
 
   void registerHelpLinkAction(const QString& path, QObject *object, const char * member, bool wantUrlParam);
@@ -393,8 +390,6 @@ public slots:
 
   void displayError(const QString& errormsg);
 
-  void setWindowShownStatus(const QHash<QWidget*,bool>& windowshownflags);
-
   void refreshAllWindowStyleSheets();
 
   void setQuitOnClose(bool quitOnClose);
@@ -508,14 +503,13 @@ protected:
 
   bool _ignore_close_event;
 
-  QList<QWidget*> pWindowList;
-  /** "last" window status flags are used in eventFilter() to detect individual dialog
-   * geometries resetting */
-  QHash<QWidget*,bool> pLastWindowShownStatus;
-  QHash<QWidget*,QRect> pLastWindowGeometries;
-  /** "saved" window status flags are used in hideEvent() to save the individual dialog visible
-   * states, as the "last" status flags will be overridden by all the windows hiding. */
-  QHash<QWidget*,bool> pSavedWindowShownStatus;
+  //   /** "last" window status flags are used in eventFilter() to detect individual dialog
+  //    * geometries resetting */
+  //   QHash<QWidget*,bool> pLastWindowShownStatus;
+  //   QHash<QWidget*,QRect> pLastWindowGeometries;
+  //   /** "saved" window status flags are used in hideEvent() to save the individual dialog visible
+  //    * states, as the "last" status flags will be overridden by all the windows hiding. */
+  //   QHash<QWidget*,bool> pSavedWindowShownStatus;
 
   QString _widgetstyle;
 

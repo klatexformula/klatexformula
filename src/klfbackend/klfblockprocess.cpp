@@ -29,13 +29,8 @@
 
 KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)
 {
-#ifdef KLFBACKEND_QT4
   mProcessAppEvents = true;
   connect(this, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ourProcExited()));
-#else
-  connect(this, SIGNAL(wroteToStdin()), this, SLOT(ourProcGotOurStdinData()));
-  connect(this, SIGNAL(processExited()), this, SLOT(ourProcExited()));
-#endif
 }
 
 
@@ -45,21 +40,12 @@ KLFBlockProcess::~KLFBlockProcess()
 
 void KLFBlockProcess::ourProcGotOurStdinData()
 {
-#ifndef KLFBACKEND_QT4
-  closeStdin();
-#endif
 }
 
 void KLFBlockProcess::ourProcExited()
 {
   _runstatus = 1; // exited
 }
-#ifndef KLFBACKEND_QT4
-bool KLFBlockProcess::startProcess(QStringList cmd, QCString str, QStringList env)
-{
-  return startProcess(cmd, QByteArray().duplicate(str.data(), str.length()), env);
-}
-#endif
 bool KLFBlockProcess::startProcess(QStringList cmd, QStringList env)
 {
   return startProcess(cmd, QByteArray(), env);
@@ -69,7 +55,6 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 {
   _runstatus = 0;
 
-#ifdef KLFBACKEND_QT4
   if (env.size() > 0) {
     setEnvironment(env);
   }
@@ -83,20 +68,7 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 
   write(stdindata.constData(), stdindata.size());
   closeWriteChannel();
-#else
-  setArguments(cmd);
-  QStringList *e = &env;
-  if (e->size() == 0)
-    e = 0;
 
-  if (! start(e) )
-    return false;
-
-  writeToStdin(stdindata);
-  // slot ourProcGotOutStdinData() should be called, which closes input
-#endif
-
-#ifdef KLFBACKEND_QT4
   if (mProcessAppEvents) {
     while (_runstatus == 0) {
       qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
@@ -104,11 +76,6 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   } else {
     waitForFinished();
   }
-#else
-  while (_runstatus == 0) {
-    qApp->processEvents(QEventLoop::ExcludeUserInput);
-  }
-#endif
 
   if (_runstatus < 0) { // some error occurred somewhere
     return false;
@@ -122,14 +89,6 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 KLF_EXPORT QStringList klf_cur_environ()
 {
   QStringList curenvironment;
-#ifdef KLFBACKEND_QT4
   curenvironment = QProcess::systemEnvironment();
-#else
-  extern char ** environ;
-  int k;
-  for (k = 0; environ[k] != NULL; ++k) {
-    curenvironment.append(QString::fromLocal8Bit(environ[k]));
-  }
-#endif
   return curenvironment;
 }

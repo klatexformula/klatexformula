@@ -33,6 +33,7 @@
 #include <QProgressDialog>
 #include <QLabel>
 #include <QDomElement>
+#include <QTextFormat>
 
 #include <klfdefs.h>
 
@@ -165,52 +166,6 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
 KLF_EXPORT bool klfMatch(const QVariant& testForHitCandidateValue, const QVariant& queryValue,
 			 Qt::MatchFlags flags, const QString& queryStringCache = QString());
 
-/** Escapes every character in \c data that is not in the range 32-126 (included) as
- * \\xHH whith HH the hex code of the character. Backslashes are replaced by double-backslashes.
- */
-KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& data);
-/** Performs the exact inverse of \ref klfDataToEscaped().
- */
-KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped);
-
-/** Saves the variant \c value into a string, stored in Local 8-bit encoding text in QByteArray.
- * The saved string is both human and machine readable, ie. the exact string can be recast again
- * to a variant with \ref klfLoadVariantFromText().
- *
- * This function is aware of various QVariant formats, however maybe not all of them. The unknown
- * formats are stored machine-readable only, by sending the variant in a datastream, and protecting
- * the special characters from encoding artifacts (ascii chars only, proper escape sequences).
- *
- * If \c saveListAndMapsAsXML is FALSE (the default), then variant-lists and -maps are saved in
- * a format like \c "[element-1,element-2,...]" or \c "{key1=value1,key2=value2,....}", assuming
- * that all elements are of the same QVariant type. If \c saveListAndMapsAsXML is TRUE, then
- * variant lists and maps are saved with klfSaveVariantListToXML() and klfSaveVariantMapToXML(),
- * which enables you to save arbitrary combination of types.
- *
- * \note Note however that the saved string does NOT save the type. The data type must be known
- *   when loading the value. See \ref klfLoadVariantFromText().
- * */
-KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML = false);
-
-/** Loads the value stored in \c string into a variant of data type \c dataTypeName. The string
- * is parsed and the returned variant will by of the given type name, or invalid if the string
- * could not be parsed.
- *
- * \note The data type must be known when loading the value. It may not necessarily exactly be
- *   guessed by looking at \c string.
- *
- * Example use: to save/store settings values in QSettings in a human-read/writable format.
- *
- * If \c dataTypeName is a variant list or map, then please specify the type of the values in
- * the list or map (this function assumes all objects in list or map have the same type). As
- * a special case, you can pass \c "XML" to load the list or map data with klfLoadVariantListFromXML()
- * or klfLoadVariantMapFromXML(), which enables you to save arbitrary combination of types.
- *
- * See also \ref klfSaveVariantToText().
- */
-KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& string, const char * dataTypeName,
-					   const char *listOrMapTypeName = NULL);
-
 
 
 template<class T>
@@ -236,15 +191,43 @@ inline QList<T> klfVariantListToList(const QVariantList& vlist)
   return list;
 }
 
-//! Lossless save of full map to XML with type information
-KLF_EXPORT QDomElement klfSaveVariantMapToXML(const QVariantMap& vmap, QDomElement xmlNode);
-//! Load a map saved with klfSaveVariantMapToXML()
-KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode);
 
-//! Lossless save of full list to XML with type information
-KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomElement xmlNode);
-//! Load a list saved with klfSaveVariantListToXML()
-KLF_EXPORT QVariantList klfLoadVariantListFromXML(const QDomElement& xmlNode);
+
+/** \brief Find files matching a path with wildcards
+ *
+ * This function returns at most \c limit file names that match the given \c wildcard_expression.
+ * The latter may be any absolute path in which (any number of) \c * and \c ? wildcards may be
+ * placed.
+ *
+ * This function splits the \c wildcard_expression at \c '/' characters, and by starting at the
+ * root directory, recursively exploring all directories matching the given section of the pattern.
+ * (native '\\' separators on windows are appropriately converted to universal \c '/', so you don't
+ * have to worry about passing '\\'-style paths).
+ *
+ * For example, searching for <tt>&quot;/usr/lib*</tt><tt>/kde4/kate*.so&quot;</tt> will start looking in
+ * the root directory for a directory named \c "usr", in which a directory matching \c "lib*" is
+ * searched for. In each of those matches, a directory named \c "kde4" is searched for, in which
+ * files named \c "lib*.so.*" are listed. All found matches are returned (up to a given \c limit
+ * number of entries if \c limit is positive).
+ *
+ * The drive letter in \c wildcard_expression on windows may not contain a wildcard.
+ */
+KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int limit = -1);
+
+/** \brief Smart executable searching in a given path list with wildcards
+ *
+ * This function looks for an executable named \c programName. It looks in the directories given in
+ * argument \c extra_path, and in the system environment variable \c PATH. \c extra_path and \c PATH
+ * are assumed to be a colon-separated list of directories (semicolon-separated on windows, see
+ * \ref KLF_PATH_SEP). Each given directory may contain wildcards (in particular, wildcards in
+ * \c PATH are also parsed). \c programName itself may also contain wildcards.
+ *
+ * This function splits \c extra_path and \c PATH into a directory list, and then, for each directory
+ * in that list, calls \ref klfSearchFind() with as argument the string
+ * <tt><i>&quot;&lt;directory></i>/<i>&lt;programName></i>&quot;</tt>. This function then returns the
+ * first result that is an executable file (this check is explicitely performed).
+ */
+KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "");
 
 
 
@@ -493,6 +476,44 @@ private:
 
 };
 
+
+// -----
+
+
+
+template<class T>
+struct KLFVariantConverter {
+  static QVariant convert(const T& value)
+  {
+    return QVariant::fromValue<T>(value);
+  }
+  static T recover(const QVariant& variant)
+  {
+    return variant.value<T>();
+  }
+};
+template<class T>
+struct KLFVariantConverter<QList<T> > {
+  static QVariant convert(const QList<T>& list)
+  {
+    return QVariant::fromValue<QVariantList>(klfListToVariantList(list));
+  }
+  static QList<T> recover(const QVariant& variant)
+  {
+    return klfVariantListToList<T>(variant.toList());
+  }
+};
+template<>
+struct KLFVariantConverter<QTextCharFormat> {
+  static QVariant convert(const QTextCharFormat& value)
+  {
+    return QVariant::fromValue<QTextFormat>(value);
+  }
+  static QTextCharFormat recover(const QVariant& variant)
+  {
+    return variant.value<QTextFormat>().toCharFormat();
+  }
+};
 
 
 

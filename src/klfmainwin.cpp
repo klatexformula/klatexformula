@@ -243,7 +243,8 @@ KLFMainWin::KLFMainWin()
   rf->setThorough(true);
 #endif
 
-  u->frmDetails->setSideWidgetManager(klfconfig.UI.detailsSideWidgetType);
+  //  u->frmDetails->setSideWidgetManager(klfconfig.UI.detailsSideWidgetType);
+  klfconfig.UI.detailsSideWidgetType.connectQObjectProperty(u->frmDetails, "sideWidgetManagerType");
   u->frmDetails->showSideWidget(false);
 
   u->txtLatex->installEventFilter(this);
@@ -519,24 +520,30 @@ void KLFMainWin::retranslateUi(bool alsoBaseUi)
 
 KLFMainWin::~KLFMainWin()
 {
-  klfDbg( "()" ) ;
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   saveLibraryState();
   saveSettings();
   saveStyles();
 
+  klfDbg("deleting style menu...") ;
   if (mStyleMenu)
     delete mStyleMenu;
+  klfDbg("deleting latex symbols...") ;
   if (mLatexSymbols)
     delete mLatexSymbols;
+  klfDbg("deleting library browser...") ;
   if (mLibBrowser)
-    delete mLibBrowser; // we aren't its parent
+    delete mLibBrowser; // we aren't necessarily its parent
+  klfDbg("deleting settings dialog...") ;
   if (mSettingsDialog)
     delete mSettingsDialog;
 
+  klfDbg("deleting latex preview thread...") ;
   if (pLatexPreviewThread)
     delete pLatexPreviewThread;
 
+  klfDbg("deleting interface...") ;
   delete u;
 }
 
@@ -626,6 +633,8 @@ void KLFMainWin::loadSettings()
 
 void KLFMainWin::saveSettings()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if ( ! _settings_altered ) {    // don't save altered settings
     klfconfig.BackendSettings.tempDir = _settings.tempdir;
     klfconfig.BackendSettings.execLatex = _settings.latexexec;
@@ -818,6 +827,8 @@ void KLFMainWin::loadStyles()
 
 void KLFMainWin::saveStyles()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klfconfig.ensureHomeConfigDir();
   QString s = klfconfig.homeConfigDir + QString("/styles-klf%1").arg(KLF_DATA_STREAM_APP_VERSION);
   QFile f(s);
@@ -1049,6 +1060,8 @@ void KLFMainWin::loadLibrarySavedState()
 
 void KLFMainWin::saveLibraryState()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QString fname = klfconfig.homeConfigDir + "/libbrowserstate.xml";
 
   QVariantMap statemap = mLibBrowser->saveGuiState();
@@ -1933,28 +1946,6 @@ bool KLFMainWin::event(QEvent *e)
 void KLFMainWin::childEvent(QChildEvent *e)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  QObject *child = e->child();
-  klfDbg("Child list looks like: "<<pWindowList) ;
-  if (e->type() == QEvent::ChildAdded && child->isWidgetType()) {
-    QWidget *w = qobject_cast<QWidget*>(child);
-    if (w->windowFlags() & Qt::Window && !w->inherits("QMenu")) {
-      // note that all Qt::Tool, Qt::SplashScreen etc. all have the Qt::Window bit set, but
-      // not Qt::Widget (!)
-      if (pWindowList.indexOf(w) == -1) // if not already present
-	pWindowList.append(w);
-      klfDbg( "Added child "<<w<<" ("<<w->objectName()<<")" ) ;
-    }
-  } else if (e->type() == QEvent::ChildRemoved && child->isWidgetType()) {
-    QWidget *w = qobject_cast<QWidget*>(child);
-    int k;
-    if ((k = pWindowList.indexOf(w)) >= 0) {
-      klfDbg( "Removing child "<<w<<" ("<<w->objectName()<<")"
-	      <<" at position k="<<k ) ;
-      pWindowList.removeAt(k);
-    }
-  }
-  klfDbg("Child list now looks like: "<<pWindowList) ;
-
   QWidget::childEvent(e);
 }
 
@@ -2008,23 +1999,6 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
   }
 
   // ----
-  if ( obj->isWidgetType() && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
-    // shown/hidden windows: save/restore geometry
-    int k = pWindowList.indexOf(qobject_cast<QWidget*>(obj));
-    if (k >= 0) {
-      QWidget *w = qobject_cast<QWidget*>(obj);
-      // this widget is one of our monitored top-level children.
-      if (e->type() == QEvent::Hide && !((QHideEvent*)e)->spontaneous()) {
-	if (pLastWindowShownStatus[w])
-	  pLastWindowGeometries[w] = klf_get_window_geometry(w);
-	pLastWindowShownStatus[w] = false;
-      } else if (e->type() == QEvent::Show && !((QShowEvent*)e)->spontaneous()) {
-	pLastWindowShownStatus[w] = true;
-	klf_set_window_geometry(w, pLastWindowGeometries[w]);
-      }
-    }
-  }
-  // ----
   if ( obj == mLibBrowser && (e->type() == QEvent::Hide || e->type() == QEvent::Show) ) {
     slotLibraryButtonRefreshState(mLibBrowser->isVisible());
   }
@@ -2075,44 +2049,11 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 
 void KLFMainWin::refreshAllWindowStyleSheets()
 {
-  int k;
-  for (k = 0; k < pWindowList.size(); ++k)
-    pWindowList[k]->setStyleSheet(pWindowList[k]->styleSheet());
-  // me too!
-  setStyleSheet(styleSheet());
-}
-
-
-QHash<QWidget*,bool> KLFMainWin::currentWindowShownStatus(bool mainWindowToo)
-{
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  QHash<QWidget*,bool> status;
-  if (mainWindowToo)
-    status[this] = isVisible();
   int k;
-  for (k = 0; k < pWindowList.size(); ++k)
-    status[pWindowList[k]] = pWindowList[k]->isVisible();
-  return status;
-}
-QHash<QWidget*,bool> KLFMainWin::prepareAllWindowShownStatus(bool visibleStatus, bool mainWindowToo)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  QHash<QWidget*,bool> status;
-  if (mainWindowToo)
-    status[this] = visibleStatus;
-  int k;
-  for (k = 0; k < pWindowList.size(); ++k)
-    status[pWindowList[k]] = visibleStatus;
-  return status;
-}
-
-void KLFMainWin::setWindowShownStatus(const QHash<QWidget*,bool>& shownStatus)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  for (QHash<QWidget*,bool>::const_iterator it = shownStatus.begin(); it != shownStatus.end(); ++it) {
-    klfDbg("...") ;
-    klfDbg("widget: "<<it.key()) ;
-    QMetaObject::invokeMethod(it.key(), "setVisible", Qt::QueuedConnection, Q_ARG(bool, it.value()));
+  QWidgetList wlist = QApplication::topLevelWidgets();
+  foreach (QWidget *w, wlist) {
+    w->setStyleSheet(w->styleSheet());
   }
 }
 
@@ -2120,12 +2061,6 @@ void KLFMainWin::setWindowShownStatus(const QHash<QWidget*,bool>& shownStatus)
 void KLFMainWin::hideEvent(QHideEvent *e)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  if ( ! e->spontaneous() ) {
-    pSavedWindowShownStatus = currentWindowShownStatus(false);
-    pLastWindowGeometries[this] = klf_get_window_geometry(this);
-    setWindowShownStatus(prepareAllWindowShownStatus(false, false)); // hide all windows
-  }
 
   klfDbg("...") ;
   QWidget::hideEvent(e);
@@ -2149,13 +2084,6 @@ void KLFMainWin::showEvent(QShowEvent *e)
     extern void qt_mac_set_dock_menu(QMenu *);
     qt_mac_set_dock_menu(adddockmenu);
 #endif
-  }
-
-  if ( ! e->spontaneous() ) {
-    // restore shown windows ...
-    if (pLastWindowGeometries.contains(this))
-      klf_set_window_geometry(this, pLastWindowGeometries[this]);
-    setWindowShownStatus(pSavedWindowShownStatus);
   }
 
   QWidget::showEvent(e);
@@ -3239,15 +3167,15 @@ KLFStyle KLFMainWin::currentStyle() const
   sty.dpi = u->spnDPI->value();
 
   if (u->gbxOverrideMargins->isChecked()) {
-    sty.overrideBBoxExpand.top = u->spnMarginTop->valueInRefUnit();
-    sty.overrideBBoxExpand.right = u->spnMarginRight->valueInRefUnit();
-    sty.overrideBBoxExpand.bottom = u->spnMarginBottom->valueInRefUnit();
-    sty.overrideBBoxExpand.left = u->spnMarginLeft->valueInRefUnit();
+    sty.overrideBBoxExpand().top = u->spnMarginTop->valueInRefUnit();
+    sty.overrideBBoxExpand().right = u->spnMarginRight->valueInRefUnit();
+    sty.overrideBBoxExpand().bottom = u->spnMarginBottom->valueInRefUnit();
+    sty.overrideBBoxExpand().left = u->spnMarginLeft->valueInRefUnit();
   }
 
   sty.userScript = QFileInfo(u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString()).fileName();
 
-  klfDbg("Returning style; bgcol="<<klfFmtCC("#%08lx", (ulong)sty.bg_color)<<": us="<<sty.userScript) ;
+  klfDbg("Returning style; bgcol="<<klfFmtCC("#%08lx", (ulong)sty.bg_color)<<": us="<<sty.userScript()) ;
 
   return sty;
 }
@@ -3305,26 +3233,24 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
     cbg = QColor(); // transparent
   klfDbg("setting color: "<<cbg) ;
   u->colBg->setColor(cbg);
-  u->chkMathMode->setChecked(style.mathmode.simplified() != "...");
-  if (style.mathmode.simplified() != "...")
+  u->chkMathMode->setChecked(style.mathmode().simplified() != "...");
+  if (style.mathmode().simplified() != "...")
     u->cbxMathMode->setEditText(style.mathmode);
   slotSetPreamble(style.preamble); // to preserve text edit undo/redo
   u->spnDPI->setValue(style.dpi);
 
-  if (style.overrideBBoxExpand.valid()) {
+  if (style.overrideBBoxExpand().valid()) {
     u->gbxOverrideMargins->setChecked(true);
-    u->spnMarginTop->setValueInRefUnit(style.overrideBBoxExpand.top);
-    u->spnMarginRight->setValueInRefUnit(style.overrideBBoxExpand.right);
-    u->spnMarginBottom->setValueInRefUnit(style.overrideBBoxExpand.bottom);
-    u->spnMarginLeft->setValueInRefUnit(style.overrideBBoxExpand.left);
+    u->spnMarginTop->setValueInRefUnit(style.overrideBBoxExpand().top);
+    u->spnMarginRight->setValueInRefUnit(style.overrideBBoxExpand().right);
+    u->spnMarginBottom->setValueInRefUnit(style.overrideBBoxExpand().bottom);
+    u->spnMarginLeft->setValueInRefUnit(style.overrideBBoxExpand().left);
   } else {
     u->gbxOverrideMargins->setChecked(false);
   }
 
-  /** \todo ###: when saving/loading user script in style, consider only BASENAME so that
-   *        we don't get problems from one installation to another. */
-  klfDbg("About to load us="<<style.userScript) ;
-  if (style.userScript.isEmpty()) {
+  klfDbg("About to load us="<<style.userScript()) ;
+  if (style.userScript().isEmpty()) {
     u->cbxUserScript->setCurrentIndex(0);
   } else {
     int k;
@@ -3341,7 +3267,7 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
       QMessageBox::warning(this, tr("User Script Not Available"),
 			   tr("The user script %1 is not available. The equation might not compile.")
 			   .arg(style.userScript));
-      qWarning()<<KLF_FUNC_NAME<<": Can't find user script "<<style.userScript;
+      qWarning()<<KLF_FUNC_NAME<<": Can't find user script "<<style.userScript();
     }
   }
 }
@@ -3366,7 +3292,7 @@ void KLFMainWin::slotSaveStyle()
   // check to see if style exists already
   int found_i = -1;
   for (int kl = 0; found_i == -1 && kl < _styles.size(); ++kl) {
-    if (_styles[kl].name.trimmed() == name.trimmed()) {
+    if (_styles[kl].name().trimmed() == name.trimmed()) {
       found_i = kl;
       // style exists already
       int r = QMessageBox::question(this, tr("Overwrite Style"),
@@ -3408,6 +3334,10 @@ void KLFMainWin::slotStyleManager()
 
 void KLFMainWin::slotSettings()
 {
+  //  /** \bug DEBUG...... */
+  //  extern void klf_show_advanced_config_editor();
+  //  klf_show_advanced_config_editor();
+
   mSettingsDialog->show();
 }
 

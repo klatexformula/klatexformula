@@ -37,95 +37,20 @@
 #include <QDesktopServices> // "My Documents" or "Documents" directory
 #include <QDesktopWidget>
 
-#include <klfmainwin.h>
-
+#include <klfconfigbase.h>
 #include <klfutil.h>
 #include "klfmain.h"
+#include "klfmainwin.h"
 #include "klfconfig.h"
+#include "klfconfig_p.h"
 
 
 
-
-bool KLFConfigBase::okChangeProperty(KLFConfigPropBase */*property*/, const QVariant& /*oldValue*/,
-				     const QVariant& /*newValue*/)
+void klf_show_advanced_config_editor()
 {
-  return true;
+  KLFAdvancedConfigEditor *edit = new KLFAdvancedConfigEditor(NULL, &klfconfig);
+  edit->show();
 }
-
-void KLFConfigBase::propertyChanged(KLFConfigPropBase *property, const QVariant& /*oldValue*/,
-				    const QVariant& newValue)
-{
-  KLF_ASSERT_NOT_NULL(property, "property is NULL!!", return; ) ;
-
-  const QString pname = property->propName();
-  if (pObjPropConnections.contains(pname)) {
-    // set connected QObject properties
-    const QList<ObjPropConnection> clist = pObjPropConnections[pname];
-    for (QList<ObjPropConnection>::const_iterator it = clist.begin(); it != clist.end(); ++it) {
-      (*it).object->setProperty((*it).objPropName, newValue);
-    }
-  }
-}
-
-void KLFConfigBase::propertyValueRequested(const KLFConfigPropBase */*property*/)
-{
-}
-
-void KLFConfigBase::connectQObjectProperty(const QString& configPropertyName, QObject *object,
-				      const QByteArray& objPropName)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("Connecting prop "<<configPropertyName<<" to object "<<object<<", objPropName="<<objPropName ) ;
-
-  // check that configPropertyName is valid
-  KLFConfigPropBase *p = NULL;
-  for (QList<KLFConfigPropBase*>::const_iterator it = pProperties.begin(); it != pProperties.end(); ++it) {
-    if ((*it)->propName() == configPropertyName) {
-      p = (*it);
-      break;
-    }
-  }
-  KLF_ASSERT_NOT_NULL(p, "Invalid config property name: "<<configPropertyName<<".", return; ) ;
-
-  ObjPropConnection c;
-  c.object = object;
-  c.objPropName = objPropName;
-
-  QList<ObjPropConnection> clist = pObjPropConnections[configPropertyName];
-
-  for (QList<ObjPropConnection>::const_iterator it = clist.begin(); it != clist.end(); ++it) {
-    if (*it == c) {
-      qWarning()<<KLF_FUNC_NAME<<": "<<configPropertyName<<" already connected to "<<object<<"/"<<objPropName;
-      return;
-    }
-  }
-
-  pObjPropConnections[configPropertyName].append(c);
-
-  // and initialize the QObject property to the current value of that property
-  QVariant value = p->toVariant();
-  object->setProperty(objPropName, value);
-}
-void KLFConfigBase::disconnectQObjectProperty(const QString& configPropertyName, QObject *object,
-					 const QByteArray& objPropName)
-{
-  ObjPropConnection c;
-  c.object = object;
-  c.objPropName = objPropName;
-
-  QList<ObjPropConnection> & clistref = pObjPropConnections[configPropertyName];
-
-  for (QList<ObjPropConnection>::iterator it = clistref.begin(); it != clistref.end(); ++it) {
-    if (*it == c) {
-      clistref.erase(it);
-      return;
-    }
-  }
-
-  qWarning()<<KLF_FUNC_NAME<<": "<<configPropertyName<<" is not connected to "<<object<<"/"<<objPropName;
-}
-
-
 
 
 static const char * __klf_fallback_share_dir =
@@ -383,7 +308,12 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.showHintPopups, true) ;
   KLFCONFIGPROP_INIT(UI.clearLatexOnly, false) ;
   KLFCONFIGPROP_INIT(UI.glowEffect, false) ;
-  KLFCONFIGPROP_INIT(UI.glowEffectColor, QColor(128, 255, 128, 12)) ;
+#ifdef Q_WS_MAC
+  QColor glowcolor = QColor(155, 207, 255, 62);
+#else
+  QColor glowcolor = QColor(128, 255, 128, 12);
+#endif
+  KLFCONFIGPROP_INIT(UI.glowEffectColor, glowcolor) ;
   KLFCONFIGPROP_INIT(UI.glowEffectRadius, 4) ;
   KLFCONFIGPROP_INIT(UI.customMathModes, QStringList()) ;
   KLFCONFIGPROP_INIT(UI.emacsStyleBackspaceSearch, true) ;

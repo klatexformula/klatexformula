@@ -37,12 +37,14 @@
 #include <qcolor.h>
 #include <QTextDocument>
 
+#include <klfutil.h>
 
 #include "klfblockprocess.h"
 #include "klfbackend.h"
 
-// write Qt 3/4 compatible code
-#include "klfqt34common.h"
+// legacy macros that used to be universal for both Qt 3 and 4
+// but qt3 support was dropped as of klf 3.3
+#include "../klftools/klflegacymacros_p.h"
 
 
 /** \mainpage

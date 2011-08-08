@@ -24,6 +24,7 @@
 #include <QtCore>
 #include <QtGui>
 
+#include <klfguiutil.h>
 #include <klfmainwin.h>
 //#include <klflibrary.h>
 #include <klflatexsymbols.h>
@@ -219,7 +220,8 @@ void SysTrayIconPlugin::latexFromClipboard(QClipboard::Mode mode)
 
 void SysTrayIconPlugin::restore()
 {
-  _mainwin->showNormal();
+  klfRestoreWindows();
+  //  _mainwin->showNormal();
   _mainwin->raise();
   _mainwin->activateWindow();
   qApp->alert(_mainwin);
@@ -230,7 +232,8 @@ void SysTrayIconPlugin::minimize()
 #ifdef KLF_MAC_HIDE_INSTEAD
   _mainwin->macHideApplication();
 #else
-  _mainwin->close();
+  klfHideWindows();
+  //  _mainwin->close();
 #endif
 }
 

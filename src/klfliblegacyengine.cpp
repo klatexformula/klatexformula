@@ -350,8 +350,8 @@ bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
 
     stream << QString("KLATEXFORMULA_LIBRARY_EXPORT") << (qint16)2 << (qint16)1
 	   << resources << library;
-    // additionally, save our meta-data at the end (this will be ignored by previous versions
-    // of KLF)
+    // additionally, save our meta-data at the end (this will be ignored by versions of KLF which
+    // don't know about metadata...)
     stream << metadata;
 
     klfDbg("saved export-library type. resource count: "<<resources.size()) ;
@@ -616,7 +616,7 @@ QStringList KLFLibLegacyEngine::subResourceList() const
 
 bool KLFLibLegacyEngine::canCreateSubResource() const
 {
-  // canModifyData is not sensitive to thses arguments...
+  // canModifyData is not sensitive to these arguments...
   return canModifyData(QString(), ChangeData);
 }
 bool KLFLibLegacyEngine::canRenameSubResource(const QString& subResource) const
@@ -957,14 +957,14 @@ void KLFLibLegacyEngine::updateResourceProperty(int propId)
     KLFPropertizedObject::setAllProperties(resprops);
     // set some default values for some properties if they have not been set
     if (!KLFPropertizedObject::property(PropLocked).isValid())
-      KLFPropertizedObject::setProperty(PropLocked, QVariant(false));
+      KLFPropertizedObject::doSetProperty(PropLocked, QVariant(false));
     if (!KLFPropertizedObject::property(PropAccessShared).isValid())
-      KLFPropertizedObject::setProperty(PropAccessShared, QVariant::fromValue(false));
+      KLFPropertizedObject::doSetProperty(PropAccessShared, QVariant::fromValue(false));
     if (!KLFPropertizedObject::property(PropTitle).isValid())
-      KLFPropertizedObject::setProperty(PropTitle, QFileInfo(d->fileName()).baseName());
+      KLFPropertizedObject::doSetProperty(PropTitle, QFileInfo(d->fileName()).baseName());
   } else {
     QString propName = KLFPropertizedObject::propertyNameForId(propId);
-    KLFPropertizedObject::setProperty(propId, resprops[propName]);
+    KLFPropertizedObject::doSetProperty(propId, resprops[propName]);
   }
   emit resourcePropertyChanged(propId);
 }

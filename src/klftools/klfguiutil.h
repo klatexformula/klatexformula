@@ -575,5 +575,24 @@ KLF_EXPORT QImage klfImageScaled(const QImage& source, const QSize& newSize);
 
 
 
+/** \brief Helper class that restores window geometry after show/hide events.
+ */
+class KLFWindowGeometryRestorer : public QObject
+{
+  Q_OBJECT
+public:
+  KLFWindowGeometryRestorer(QWidget *window);
+  virtual ~KLFWindowGeometryRestorer();
+
+  virtual bool eventFilter(QObject *obj, QEvent *event);
+private:
+  QWidget *pWindow;
+};
+
+
+KLF_EXPORT void klfHideWindows();
+KLF_EXPORT void klfRestoreWindows();
+
+
 
 #endif

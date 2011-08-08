@@ -28,6 +28,8 @@
 #include <QEvent>
 #include <QKeyEvent>
 #include <QPixmap>
+#include <QApplication>
+#include <QClipboard>
 
 #include <klfdisplaylabel.h>
 #include <klflatexedit.h>
@@ -233,6 +235,12 @@ void KLFLibEntryEditor::displayStyle(bool valid, const KLFStyle& style)
     }
     u->lblStyMathMode->setText(style.mathmode);
     u->txtStyPreamble->setPlainText(style.preamble);
+    if (style.userScript().isEmpty()) {
+      u->frmUserScript->hide();
+    } else {
+      u->frmUserScript->show();
+      u->lblUserScript->setText(style.userScript);
+    }
   } else {
     u->lblStyDPI->setText(QLatin1String("-"));
     u->lblStyColFg->setText(QString());
@@ -241,6 +249,27 @@ void KLFLibEntryEditor::displayStyle(bool valid, const KLFStyle& style)
     u->lblStyColBg->setPixmap(QPixmap());
     u->lblStyMathMode->setText(QString());
     u->txtStyPreamble->setPlainText(QString());
+    u->frmUserScript->hide();
+  }
+}
+
+void KLFLibEntryEditor::slotCopy()
+{
+  QWidget *fw = QApplication::focusWidget();
+  if (!isAncestorOf(fw))
+    return;
+
+  if (fw->inherits("QTextEdit")) {
+    qobject_cast<QTextEdit*>(fw)->copy();
+  } else if (fw->inherits("QLineEdit")) {
+    qobject_cast<QLineEdit*>(fw)->copy();
+  } else if (fw->inherits("QLabel")) {
+#if QT_VERSION >= 0x040700
+    QLabel *lbl = qobject_cast<QLabel*>(fw);
+    if (lbl->hasSelectedText()) {
+      QApplication::clipboard()->setText(lbl->selectedText());
+    }
+#endif
   }
 }
 

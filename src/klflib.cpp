@@ -91,16 +91,21 @@ KLFLibEntry::~KLFLibEntry()
 
 int KLFLibEntry::setEntryProperty(const QString& propName, const QVariant& value)
 {
-  int propId = propertyIdForName(propName);
-  if (propId < 0) {
-    // register the property
-    propId = registerProperty(propName);
-    if (propId < 0)
-      return -1;
-  }
-  // and set the property
-  setProperty(propId, value);
-  return propId;
+  //   int propId = propertyIdForName(propName);
+  //   if (propId < 0) {
+  //     // register the property
+  //     propId = registerProperty(propName);
+  //     if (propId < 0)
+  //       return -1;
+  //   }
+  //   // and set the property
+  //   setProperty(propId, value);
+  //   return propId;
+  // call KLFPropertizedObject's setProperty() to do the job for us
+  bool ok = setProperty(propName, value);
+  if (!ok)
+    return -1;
+  return propertyIdForName(propName);
 }
 
 // private, static
@@ -742,7 +747,7 @@ bool KLFLibResourceEngine::setResourceProperty(int propId, const QVariant& value
     return false;
 
   // operation succeeded: set KLFPropertizedObject-based property.
-  KLFPropertizedObject::setProperty(propId, value);
+  KLFPropertizedObject::doSetProperty(propId, value);
   emit resourcePropertyChanged(propId);
   return true;
 }
