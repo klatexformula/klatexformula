@@ -1236,7 +1236,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   // maybe load a propertized object.
   if (KLFPObjRegisteredType::registeredTypes().contains(tname)) {
     // construct a default such wanted object of requried type
-    QVariant value(QMetaType::type(dataTypeName), NULL);
+    QVariant value(QMetaType::type(dataTypeName), (const void*)NULL);
     KLFAbstractPropertizedObject * obj =
       const_cast<KLFAbstractPropertizedObject*>(static_cast<const KLFAbstractPropertizedObject*>(value.data()));
 

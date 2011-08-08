@@ -23,7 +23,7 @@
 
 #include <QColor>
 
-#include <util.h>
+#include <klfutil.h>
 #include <klfdatautil.h>
 
 #include "klfstyle.h"
