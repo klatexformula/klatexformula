@@ -39,6 +39,10 @@ static QByteArray textvariantmap_header = QByteArray("TextVariantMap:");
 class KLFBaseFormatsPropertizedObjectSaver : public KLFAbstractPropertizedObjectSaver
 {
 public:
+  KLFBaseFormatsPropertizedObjectSaver()
+  {
+  }
+
   QStringList supportedTypes() const
   {
     return QStringList() << QLatin1String("XML") << QLatin1String("CompressedXML")
@@ -47,6 +51,7 @@ public:
   QString recognizeDataFormat(const QByteArray& data) const
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg("data="<<data) ;
     { // try to recognize XML
       int j, k;
       for (k = 0; k < data.size() && QChar(data[k]).isSpace(); ++k)
@@ -100,6 +105,7 @@ public:
       QDataStream stream(&buf);
       //klfDbg("saving binary... typeName(259)="<<QMetaType::typeName(259));
       stream << binary_magic << propdata;
+      return b;
     } else if (format == QLatin1String("TextVariantMap")) {
       QByteArray data;
       // see if all values are of the same type, and is a simple type (i.e., not map or list)
@@ -140,6 +146,8 @@ public:
       qWarning()<<KLF_FUNC_NAME<<": Unknown format `"<<format<<"'";
       return QByteArray();
     }
+    qWarning()<<KLF_FUNC_NAME<<": Should never reach this point in function!";
+    return QByteArray();
   }
   bool load(const QByteArray& data, KLFAbstractPropertizedObject * obj, const QString& format)
   {

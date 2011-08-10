@@ -798,6 +798,9 @@ void main_setup_app(QCoreApplication *a)
 
 int main(int argc, char **argv)
 {
+#ifdef KLF_DEBUG
+  fprintf(stderr, "main()!");
+#endif
   int k;
   klfDbgT("$$main()$$") ;
 

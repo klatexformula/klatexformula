@@ -509,6 +509,24 @@ QImage klfImageScaled(const QImage& source, const QSize& newSize)
 
 // --------------------
 
+KLF_EXPORT QRect klf_get_window_geometry(QWidget *w)
+{
+#if defined(Q_WS_X11)
+  QRect g = w->frameGeometry();
+#else
+  QRect g = w->geometry();
+#endif
+  return g;
+}
+
+KLF_EXPORT void klf_set_window_geometry(QWidget *w, QRect g)
+{
+  if ( ! g.isValid() )
+    return;
+
+  w->setGeometry(g);
+}
+
 
 KLFWindowGeometryRestorer::KLFWindowGeometryRestorer(QWidget *window)
   : QObject(window), pWindow(window)
@@ -525,11 +543,11 @@ bool KLFWindowGeometryRestorer::eventFilter(QObject *obj, QEvent *event)
   if (obj == pWindow) {
     if (event->type() == QEvent::Hide) {
       // save geometry
-      pWindow->setProperty("klf_saved_geometry", pWindow->geometry());
+      pWindow->setProperty("klf_saved_geometry", klf_get_window_geometry(pWindow));
     } else if (event->type() == QEvent::Show) {
       QVariant val;
       if ((val = pWindow->property("klf_saved_geometry")).isValid())
-	pWindow->setGeometry(val.value<QRect>());
+	klf_set_window_geometry(pWindow, val.value<QRect>());
     }
   }
 
@@ -544,8 +562,10 @@ bool KLFWindowGeometryRestorer::eventFilter(QObject *obj, QEvent *event)
  */
 static QHash<QWidget*,bool> windowShownStates;
 
+
 KLF_EXPORT void klfHideWindows()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   // save the window states, while checking that not all the windows are already hidden
   QHash<QWidget*,bool> states;
   bool allalreadyhidden = true;
@@ -553,8 +573,10 @@ KLF_EXPORT void klfHideWindows()
   foreach (QWidget *w, wlist) {
     bool shown = w->isVisible();
     states[w] = shown;
-    if (shown)
+    if (shown) {
+      w->hide();
       allalreadyhidden = false;
+    }
   }
   if (!allalreadyhidden) {
     // don't overwrite the saved status list with an all-hidden state list
@@ -564,6 +586,7 @@ KLF_EXPORT void klfHideWindows()
 
 KLF_EXPORT void klfRestoreWindows()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QWidgetList wlist = QApplication::topLevelWidgets();
   foreach (QWidget *w, wlist) {
     if (!windowShownStates.contains(w))

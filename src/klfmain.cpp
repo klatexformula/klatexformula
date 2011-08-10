@@ -676,7 +676,7 @@ KLF_EXPORT QStringList klf_user_scripts;
 void klf_reload_user_scripts()
 {
   QStringList pathlist;
-  pathlist << klfconfig.homeConfigDir+"/userscripts/*"
+  pathlist << klfconfig.homeConfigDirUserScripts
 	   << klfconfig.globalShareDir+"/userscripts/*";
 
   klfDbg("looking for user scripts in "<<pathlist) ;
@@ -691,7 +691,7 @@ void klf_reload_user_scripts()
       // so check at filesystem locations to see if it's there
       QString foundpath = QString();
       QString resfn = klf_addons[k].rccmountroot() + "/userscripts/" + uscripts[j];
-      QString locfn = klfconfig.homeConfigDir + "/userscripts/" + uscripts[j];
+      QString locfn = klfconfig.homeConfigDirUserScripts + "/" + uscripts[j];
       for (i = 0; i < pathlist.size(); ++i) {
 	QString s = pathlist[i]+"/"+uscripts[j];
 	if (QFile::exists(s)) { // found

@@ -967,6 +967,7 @@ void KLFColorChooser::_makemenu()
 
     QAction *a = mMenu->addAction(QIcon(colorPixmap(col, menuIconSize)), collabel,
 				  this, SLOT(setSenderPropertyColor()));
+    a->setIconVisibleInMenu(true);
     a->setProperty("setColor", QVariant::fromValue<QColor>(col));
   }
   if (k > 0)

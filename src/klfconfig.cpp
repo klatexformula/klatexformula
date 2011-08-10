@@ -181,6 +181,7 @@ void KLFConfig::loadDefaults()
   homeConfigDirPlugins = homeConfigDir + "/plugins";
   homeConfigDirPluginData = homeConfigDir + "/plugindata";
   homeConfigDirI18n = homeConfigDir + "/i18n";
+  homeConfigDirUserScripts = homeConfigDir + "/userscripts";
 
   //debug: QMessageBox::information(0, "", QString("global share dir=")+globalShareDir);
 
@@ -430,6 +431,8 @@ int KLFConfig::ensureHomeConfigDir()
   if ( !klfEnsureDir(homeConfigDirPluginData) )
     return -1;
   if ( !klfEnsureDir(homeConfigDirI18n) )
+    return -1;
+  if ( !klfEnsureDir(homeConfigDirUserScripts) )
     return -1;
 
   return 0;

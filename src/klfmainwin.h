@@ -394,7 +394,7 @@ public slots:
 
   void setQuitOnClose(bool quitOnClose);
 
-  void macHideApplication();
+  void hideApplication();
 
   bool executeURLCommandsFromFile(const QString& fname);
 

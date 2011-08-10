@@ -633,7 +633,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
 
   QByteArray typeName = value.typeName();
 
-  if (KLFPObjRegisteredType::registeredTypes().contains(typeName)) {
+  if (KLFPObjRegisteredType::isRegistered(typeName)) {
    KLFAbstractPropertizedObject * obj =
       const_cast<KLFAbstractPropertizedObject*>(static_cast<const KLFAbstractPropertizedObject*>(value.data()));
 
@@ -1234,7 +1234,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   QByteArray tname = dataTypeName;
 
   // maybe load a propertized object.
-  if (KLFPObjRegisteredType::registeredTypes().contains(tname)) {
+  if (KLFPObjRegisteredType::isRegistered(tname)) {
     // construct a default such wanted object of requried type
     QVariant value(QMetaType::type(dataTypeName), (const void*)NULL);
     KLFAbstractPropertizedObject * obj =
@@ -1447,7 +1447,6 @@ KLFFactoryManager KLFAbstractPropertizedObjectSaver::pFactoryManager;
 KLFAbstractPropertizedObjectSaver *
 /* */ KLFAbstractPropertizedObjectSaver::findRecognizedFormat(const QByteArray& data, QString * format)
 {
-  int k;
   QList<KLFFactoryBase*> allFactories = pFactoryManager.registeredFactories();
   QString s;
   foreach (KLFFactoryBase * ff, allFactories) {
@@ -1474,7 +1473,6 @@ KLFAbstractPropertizedObjectSaver *
 
 // this is not a class member
 KLFBaseFormatsPropertizedObjectSaver __klf_baseformats_pobj_saver; // this will automatically register it...
-
 
 
 KLF_EXPORT QByteArray klfSave(const KLFAbstractPropertizedObject * obj, const QString& format)

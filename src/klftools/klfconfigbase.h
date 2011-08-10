@@ -41,7 +41,7 @@ public:
   virtual QString propName() const { return pname; }
   virtual QVariant toVariant() const = 0;
 
-  virtual bool setValue(const QVariant& newvalue) { return false; }
+  virtual bool setValue(const QVariant& newvalue) { Q_UNUSED(newvalue); return false; }
 
 protected:
   QString pname;

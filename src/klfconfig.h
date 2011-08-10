@@ -234,6 +234,7 @@ public:
   QString homeConfigDirPlugins;
   QString homeConfigDirPluginData;
   QString homeConfigDirI18n;
+  QString homeConfigDirUserScripts;
 
   struct {
 

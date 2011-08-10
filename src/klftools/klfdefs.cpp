@@ -956,22 +956,24 @@ void KLFDebugObjectWatcher::debugObjectDestroyed(QObject *object)
 
 
 
-KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& ba_funcname)
+KLF_EXPORT QByteArray klfShortFuncSignature(const QByteArray& funcname)
 {
-  QString funcname(ba_funcname);
   // returns the section between the last space before the first open paren and the first open paren
   int iSpc, iParen;
   iParen = funcname.indexOf('(');
   iSpc = funcname.lastIndexOf(' ', iParen-2);
   // if iSpc is -1, leave it at -1 (eg. constructor signature), the following code still works.
   if (iParen == -1 || iSpc > iParen) {
-    qWarning("klfShortFuncSignature('%s'): Signature parse error!", qPrintable(funcname));
-    return ba_funcname;
+    qWarning("klfShortFuncSignature('%s'): Signature parse error!", funcname.constData());
+    return funcname;
   }
   // shorten name
-  QString f = funcname.mid(iSpc+1, iParen-(iSpc+1));
-  QByteArray data = f.s_toLocal8Bit();
-  return data;
+  QByteArray f = funcname.mid(iSpc+1, iParen-(iSpc+1));
+  // special case: if 'operator...' then keep the arguments, because it doesn't help us much otherwise!
+  if (f.startsWith("operator")) {
+    return funcname.mid(iSpc+1);
+  }
+  return f;
 }
 
 

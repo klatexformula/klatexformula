@@ -156,7 +156,7 @@ static void set_xtra_from_preamble(KLFStyle * style)
 
 KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME +"(QDataStream,KLFStyle)") ;
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   // yes, QIODevice inherits QObject and we can use dynamic properties...
   QString compat_klfversion = stream.device()->property("klfDataStreamAppVersion").toString();
   if (klfVersionCompare(compat_klfversion, "3.1") <= 0) {
@@ -184,6 +184,7 @@ KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 }
 KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(QDataStream,KLFStyle&)") ;
   QString compat_klfversion = stream.device()->property("klfDataStreamAppVersion").toString();
   if (klfVersionCompare(compat_klfversion, "3.1") <= 0) {
     quint32 fg, bg;
@@ -223,6 +224,7 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
     // use Compressed XML
     QByteArray data;
     stream >> data;
+    klfDbg("loading from data="<<data) ;
     bool loadOk = klfLoad(data, &style); // guessed format from magic header
     KLF_ASSERT_CONDITION(loadOk, "Failed to load style data", return stream; ) ;
     return stream;

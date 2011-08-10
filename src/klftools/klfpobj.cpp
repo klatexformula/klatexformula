@@ -66,6 +66,11 @@ bool KLFAbstractPropertizedObject::setAllProperties(const QMap<QString,QVariant>
 KLFPropertizedObject::KLFPropertizedObject(const QString& propNameSpace)
   : pPropNameSpace(propNameSpace)
 {
+  // ensure the property name space exists
+  if (!pRegisteredProperties.contains(propNameSpace))
+    pRegisteredProperties[propNameSpace] = QMap<QString,int>();
+  if (!pRegisteredPropertiesMaxId.contains(propNameSpace))
+    pRegisteredPropertiesMaxId[propNameSpace] = -1;
 }
 
 KLFPropertizedObject::~KLFPropertizedObject()
@@ -147,6 +152,7 @@ bool KLFPropertizedObject::doSetProperty(int propId, const QVariant& value)
 }
 int KLFPropertizedObject::doLoadProperty(const QString& propname, const QVariant& value)
 {
+  klfDbg("propname="<<propname<<" value="<<value) ;
   int propId = propertyIdForName(propname);
   if ( propId < 0 ) {
     // register property
@@ -199,7 +205,7 @@ QMap<QString,QVariant> KLFPropertizedObject::allProperties() const
 
 bool KLFPropertizedObject::setProperty(const QString& propname, const QVariant& value)
 {
-  return doLoadProperty(propname, value);
+  return doLoadProperty(propname, value) >= 0;
 }
 
 bool KLFPropertizedObject::setProperty(int propId, const QVariant& value)
@@ -220,11 +226,11 @@ bool KLFPropertizedObject::setAllProperties(const QMap<QString, QVariant>& propV
   QStringList propKeys = propValues.keys();
   int k;
   for (k = 0; k < propKeys.size(); ++k) {
-    // bypass check
-    bool ok = doLoadProperty(propKeys[k], propValues[propKeys[k]]);
+    // bypass check, set property anyway
+    bool ok = (doLoadProperty(propKeys[k], propValues[propKeys[k]]) >= 0);
     if (!ok) {
       allok = false;
-      qWarning()<<KLF_FUNC_NAME<<": Failed to load property "<<propKeys[k]<<" with value "<<propKeys[k];
+      qWarning()<<KLF_FUNC_NAME<<": Failed to load property "<<propKeys[k]<<" with value "<<propValues[propKeys[k]];
     }
   }
   return allok;
@@ -567,5 +573,3 @@ QDebug& operator<<(QDebug& stream, const KLFPropertizedObject& obj)
 
 
 
-//static
-QStringList KLFPObjRegisteredType::pRegisteredTypes;

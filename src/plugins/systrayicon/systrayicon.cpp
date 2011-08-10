@@ -230,8 +230,10 @@ void SysTrayIconPlugin::restore()
 void SysTrayIconPlugin::minimize()
 {
 #ifdef KLF_MAC_HIDE_INSTEAD
-  _mainwin->macHideApplication();
+  klfDbg("Hiding application...") ;
+  _mainwin->hideApplication();
 #else
+  klfDbg("Hiding windows...") ;
   klfHideWindows();
   //  _mainwin->close();
 #endif

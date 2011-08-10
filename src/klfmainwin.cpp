@@ -52,26 +52,6 @@
 
 #define DEBUG_GEOM_ARGS(g) (g).topLeft().x(), (g).topLeft().y(), (g).size().width(), (g).size().height()
 
-static QRect klf_get_window_geometry(QWidget *w)
-{
-#if defined(Q_WS_X11)
-  QRect g = w->frameGeometry();
-#else
-  QRect g = w->geometry();
-#endif
-  return g;
-}
-
-static void klf_set_window_geometry(QWidget *w, QRect g)
-{
-  if ( ! g.isValid() )
-    return;
-
-  w->setGeometry(g);
-}
-
-
-
 
 
 
@@ -787,6 +767,8 @@ bool KLFMainWin::try_load_style_list(const QString& styfname)
 
 void KLFMainWin::loadStyles()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   _styles = KLFStyleList(); // empty list to start with
 
   QStringList styfnamecandidates;
@@ -1900,13 +1882,14 @@ bool KLFMainWin::executeURLCommandsFromFile(const QString& fname)
   return true;
 }
 
-void KLFMainWin::macHideApplication()
+void KLFMainWin::hideApplication()
 {
 #ifdef Q_WS_MAC
   extern void klf_mac_hide_application(KLFMainWin *);
   klf_mac_hide_application(this);
 #else
-  qWarning()<<KLF_FUNC_NAME<<": this function is only available on Mac OS X.";
+  klfHideWindows();
+  //  qWarning()<<KLF_FUNC_NAME<<": this function is only available on Mac OS X.";
 #endif
 }
 
@@ -2050,7 +2033,6 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
 void KLFMainWin::refreshAllWindowStyleSheets()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  int k;
   QWidgetList wlist = QApplication::topLevelWidgets();
   foreach (QWidget *w, wlist) {
     w->setStyleSheet(w->styleSheet());
