@@ -794,7 +794,9 @@ void KLFMainWin::loadStyles()
   if (_styles.isEmpty()) {
     // if stylelist is empty, populate with default style
     KLFStyle s1(tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0),
-		"\\begin{align*} ... \\end{align*}", "", 600);
+		"\\begin{align*} ... \\end{align*}",
+		"\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\n",
+		600);
     //    KLFStyle s2(tr("Inline"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0), "\\[ ... \\]", "", 150);
     //    s2.overrideBBoxExpand = KLFStyle::BBoxExpand(0,0,0,0);
     _styles.append(s1);
