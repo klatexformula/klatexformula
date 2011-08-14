@@ -167,7 +167,8 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
 
     klfDbg("main win window state changed: oldState="<<((QWindowStateChangeEvent*)e)->oldState()
 	   <<" new state="<<_mainwin->windowState()) ;
-    if (_config->readValue("mintosystray").toBool() &&
+    if ( _config->readValue("systrayon").toBool() &&
+	 _config->readValue("mintosystray").toBool() &&
 	(_mainwin->windowState() & Qt::WindowMinimized) &&
 	!(((QWindowStateChangeEvent*)e)->oldState() & Qt::WindowMinimized)
 	) {
@@ -264,8 +265,7 @@ void SysTrayIconPlugin::slotSysTrayActivated(QSystemTrayIcon::ActivationReason r
       if ( QApplication::activeWindow() != NULL ) {
 	minimize();
       } else {
-	_mainwin->raise();
-	_mainwin->activateWindow();
+	restore();
       }
     }
   }
