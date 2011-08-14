@@ -48,6 +48,7 @@
 
 #include <klfrelativefont.h>
 #include <klflatexedit.h>
+#include <klfsidewidget.h>
 
 #include <ui_klfsettings.h>
 
@@ -111,8 +112,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   b->setIcon(QIcon(":/pics/ok.png"));
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
-  populateLocaleCombo();
-  populateExportProfilesCombos();
+  populateSettingsCombos();
 
   // set some smaller fonts for small titles
   KLFRelativeFont *relfontSHF = new KLFRelativeFont(this, u->lblSHForeground);
@@ -291,6 +291,14 @@ KLFSettings::~KLFSettings()
   delete u;
 }
 
+
+void KLFSettings::populateSettingsCombos()
+{
+  populateLocaleCombo();
+  populateExportProfilesCombos();
+  populateDetailsSideWidgetTypeCombo();
+}
+
 void KLFSettings::populateLocaleCombo()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -327,11 +335,21 @@ void KLFSettings::populateExportProfilesCombos()
   }
 }
 
+void KLFSettings::populateDetailsSideWidgetTypeCombo()
+{
+  QStringList tlist = KLFSideWidgetManagerFactory::allSupportedTypes();
+  u->cbxDetailsSideWidgetType->clear();
+  foreach (QString s, tlist) {
+    KLFSideWidgetManagerFactory * factory = KLFSideWidgetManagerFactory::findFactoryFor(s);
+    KLF_ASSERT_NOT_NULL(factory, "Factory is NULL!?!", continue; ) ;
+    u->cbxDetailsSideWidgetType->addItem(factory->getTitleFor(s), QVariant(s));
+  }
+}
 
 void KLFSettings::show()
 {
   klfDbg("show called.") ;
-  populateExportProfilesCombos();
+  populateSettingsCombos();
 
   reset();
 
@@ -521,6 +539,8 @@ void KLFSettings::reset()
   u->chkShowHintPopups->setChecked(klfconfig.UI.showHintPopups);
   u->chkClearLatexOnly->setChecked(klfconfig.UI.clearLatexOnly);
   u->chkGlowEffect->setChecked(klfconfig.UI.glowEffect);
+  int sidewidgettypei = u->cbxDetailsSideWidgetType->findData(QVariant(klfconfig.UI.detailsSideWidgetType()));
+  u->cbxDetailsSideWidgetType->setCurrentIndex(sidewidgettypei);
 
   int copyi = u->cbxCopyExportProfile->findData(QVariant(klfconfig.ExportData.copyExportProfile));
   u->cbxCopyExportProfile->setCurrentIndex(copyi);
@@ -1196,6 +1216,9 @@ void KLFSettings::apply()
   klfconfig.UI.showHintPopups = u->chkShowHintPopups->isChecked();
   klfconfig.UI.clearLatexOnly = u->chkClearLatexOnly->isChecked();
   klfconfig.UI.glowEffect = u->chkGlowEffect->isChecked();
+
+  klfconfig.UI.detailsSideWidgetType =
+    u->cbxDetailsSideWidgetType->itemData(u->cbxDetailsSideWidgetType->currentIndex()).toString();
 
   klfconfig.ExportData.copyExportProfile = 
     u->cbxCopyExportProfile->itemData(u->cbxCopyExportProfile->currentIndex()).toString();

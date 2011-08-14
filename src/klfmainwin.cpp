@@ -1884,10 +1884,22 @@ bool KLFMainWin::executeURLCommandsFromFile(const QString& fname)
   return true;
 }
 
+bool KLFMainWin::isApplicationVisible() const
+{
+#ifdef Q_WS_MAC
+  klfDbg("(mac version)") ;
+  extern bool klf_mac_application_hidden(const KLFMainWin *);
+  return KLF_DEBUG_TEE( ! klf_mac_application_hidden(this) ) ;
+#else
+  klfDbg("(non-mac version)") ;
+  return KLF_DEBUG_TEE( isVisible() ) ;
+#endif
+}
+
 void KLFMainWin::hideApplication()
 {
 #ifdef Q_WS_MAC
-  extern void klf_mac_hide_application(KLFMainWin *);
+  extern void klf_mac_hide_application(const KLFMainWin *);
   klf_mac_hide_application(this);
 #else
   klfHideWindows();
@@ -2440,11 +2452,13 @@ void KLFMainWin::slotEvaluate()
 void KLFMainWin::slotClearLatex()
 {
   u->txtLatex->clearLatex();
+  emit userActivity();
 }
 void KLFMainWin::slotClearAll()
 {
   slotClearLatex();
   loadDefaultStyle();
+  emit userActivity();
 }
 
 
@@ -2489,7 +2503,11 @@ void KLFMainWin::slotExpand(bool expanded)
 
 void KLFMainWin::slotSetLatex(const QString& latex)
 {
+  if (latex == u->txtLatex->latex())
+    return;
+
   u->txtLatex->setLatex(latex);
+  emit userActivity();
 }
 
 void KLFMainWin::slotSetMathMode(const QString& mathmode)
@@ -2602,6 +2620,7 @@ void KLFMainWin::slotEvaluateAndSave(const QString& output, const QString& forma
     }
   }
 
+  emit userActivity();
 }
 
 
@@ -2609,6 +2628,8 @@ void KLFMainWin::pasteLatexFromClipboard(QClipboard::Mode mode)
 {
   QString cliptext = QApplication::clipboard()->text(mode);
   slotSetLatex(cliptext);
+  // already in slotSetLatex()
+  //  emit userActivity();
 }
 
 

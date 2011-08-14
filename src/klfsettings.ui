@@ -202,14 +202,14 @@
           <string>Interface Options</string>
          </property>
          <layout class="QGridLayout" name="lyt_gbxInterfaceOptions">
-          <item row="0" column="0">
+          <item row="2" column="0" colspan="2">
            <widget class="QCheckBox" name="chkShowHintPopups">
             <property name="text">
              <string>Suggest inclusion of detected missing packages</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="3" column="0" colspan="2">
            <widget class="QCheckBox" name="chkClearLatexOnly">
             <property name="toolTip">
              <string extracomment="[[tooltip]]">&lt;p&gt;If this box is left unchecked, the clear button under to the LaTeX code editor clears the editor and resets the default style. By enabling this option, only the LaTeX field is cleared and the style is not modified.&lt;/p&gt;</string>
@@ -219,12 +219,22 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="4" column="0" colspan="2">
            <widget class="QCheckBox" name="chkGlowEffect">
             <property name="text">
              <string>Display Equations Glow Effect</string>
             </property>
            </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblDetailsSideWidgetType">
+            <property name="text">
+             <string>Detailed LaTeX settings window type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="cbxDetailsSideWidgetType"/>
           </item>
          </layout>
         </widget>
@@ -1418,7 +1428,7 @@
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="lblLibIconViewFlow">
             <property name="minimumSize">
              <size>
               <width>150</width>

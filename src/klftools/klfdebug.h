@@ -91,13 +91,19 @@ private:
 
 #ifdef KLF_DEBUG
 
+
+KLF_EXPORT  QDebug
+/* */ __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime);
+
 template<class T>
 inline const T& __klf_debug_tee(const T& expr)
 { qDebug()<<"TEE VALUE: "<<expr; return expr; }
 
-
-KLF_EXPORT  QDebug
-/* */ __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime);
+template<class T>
+inline const T& __klf_debug_tee2(const T& expr, QDebug dbg, const char *where, const char *what)
+/* NOTE: No ref-inst, because we would then have to provide both KLF_DEBUG_TEE() and KLF_DEBUG_TEE_ST()
+ * or similar, like klfDbgSt(). */
+{ __klf_dbg_hdr(dbg, where, NULL, NULL)<<"`"<<what<<"': "<<expr; return expr; }
 
 
 inline QString __klf_debug_ref_instance() { return QString(); }
@@ -114,7 +120,8 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 
 #  define KLF_DEBUG_TIME_BLOCK(msg) KLFDebugBlockTimer __klf_debug_timer_block(QString("")+msg)
 #  define KLF_DEBUG_BLOCK(msg) KLFDebugBlock __klf_debug_block(QString("")+msg)
-#  define KLF_DEBUG_TEE(expr) __klf_debug_tee(expr)
+#  define KLF_DEBUG_TEE(expr)						\
+  __klf_debug_tee2(expr, qDebug(), KLF_FUNC_NAME, #expr)
 #  define klfDebugf( arglist ) qDebug arglist
 #  define klfDbg( streamableItems )				\
   __klf_dbg_hdr(qDebug(), KLF_FUNC_NAME, qPrintable(__klf_debug_ref_instance()), NULL) << streamableItems

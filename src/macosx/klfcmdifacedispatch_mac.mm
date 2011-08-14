@@ -80,7 +80,7 @@ KLF_EXPORT bool klf_mac_find_open_klf()
     if (lines[i].trimmed().isEmpty())
       continue;
 
-    QRegExp rx("(\\d+)\\s+(.*)\\s*");
+    QRegExp rx("\\s*(\\d+)\\s+(.*)\\s*");
     if (!rx.exactMatch(lines[i])) {
       qWarning()<<KLF_FUNC_NAME<<": ps spit out an unparsable line: "<<lines[i];
       continue;

@@ -791,6 +791,12 @@ KLFSideWidgetManagerFactory::~KLFSideWidgetManagerFactory()
 }
 
 // static
+QStringList KLFSideWidgetManagerFactory::allSupportedTypes()
+{
+  return pFactoryManager.allSupportedTypes();
+}
+
+// static
 KLFSideWidgetManagerFactory * KLFSideWidgetManagerFactory::findFactoryFor(const QString& managertype)
 {
   return dynamic_cast<KLFSideWidgetManagerFactory*>(pFactoryManager.findFactoryFor(managertype));
@@ -818,6 +824,18 @@ QStringList KLFSideWidgetManagerFactory::supportedTypes() const
     << QLatin1String("Drawer")
 #endif
     ;
+}
+
+QString KLFSideWidgetManagerFactory::getTitleFor(const QString& type) const
+{
+  if (type == QLatin1String("ShowHide"))
+    return QObject::tr("Expand/Shrink Window", "[[KLFSideWidgetManagerFactory]]");
+  if (type == QLatin1String("Float"))
+    return QObject::tr("Floating Tool Window", "[[KLFSideWidgetManagerFactory]]");
+  if (type == QLatin1String("Drawer"))
+    return QObject::tr("Side Drawer", "[[KLFSideWidgetManagerFactory]]");
+
+  return QString();
 }
 
 KLFSideWidgetManagerBase *

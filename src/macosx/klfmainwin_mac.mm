@@ -29,26 +29,47 @@
 
 #ifdef QT_MAC_USE_COCOA
 
+/*
 // WORKS!
 void DEBUG_test()
 {
   NSWorkspace *w = [NSWorkspace sharedWorkspace];
   [w openFile:@"/Users/philippe/temp/schrodinger-equation.png" withApplication:@"/Users/philippe/projects/klf/klatexformula/build/src/klatexformula-3.3.0alpha.app"];
 }
+*/
 
-void klf_mac_hide_application(KLFMainWin *mw)
+void klf_mac_hide_application(const KLFMainWin *mw, bool hide)
 {
   NSApplication * a = [NSApplication sharedApplication];
-
   NSView *mw_mac = reinterpret_cast<NSView *>(mw->window()->winId());
 
-  [a hide:mw_mac];
+  if (hide)
+    [a hide:mw_mac];
+  else
+    [a unhide:mw_mac];
 }
 
+void klf_mac_hide_application(const KLFMainWin *mw)
+{
+  klf_mac_hide_application(mw, true);
+}
+
+bool klf_mac_unhide_application(const KLFMainWin *mw)
+{
+  klf_mac_hide_application(mw, false);
+}
+
+bool klf_mac_application_hidden(const KLFMainWin *mw)
+{
+  NSApplication * a = [NSApplication sharedApplication];
+  NSView *mw_mac = reinterpret_cast<NSView *>(mw->window()->winId());
+
+  return ([a isHidden] == YES);
+}
 
 #else // QT_MAC_USE_COCOA
 
-void klf_mac_hide_application(KLFMainWin *mw)
+void klf_mac_hide_application(const KLFMainWin *mw)
 {
   klfDbg("Not implemented without Cocoa.") ;
 }

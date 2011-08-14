@@ -352,7 +352,7 @@ if(KLF_MACOSX_BUNDLES)
   # Import&Setup klfbackend framework
   KLFMBundlePrivateImport(klatexformula "klfbackend.framework"
     "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework"  Frameworks)
-  KLFMInstallNameToolID(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" "Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend")
+  KLFMInstallNameToolID(klatexformula "Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend")
   KLFMBundlePrivateLibUpdateQtDep(klatexformula "Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"  "Core;Gui;Xml;Sql;DBus")
   # Import&Setup klftools framework
   KLFMBundlePrivateImport(klatexformula "klftools.framework"

@@ -101,6 +101,8 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
 
   _mainwin->installEventFilter(this);
 
+  connect(_mainwin, SIGNAL(userActivity()), this, SLOT(restore()));
+
   apply();
 }
 
@@ -217,11 +219,19 @@ void SysTrayIconPlugin::latexFromClipboard(QClipboard::Mode mode)
   _mainwin->pasteLatexFromClipboard(mode);
 }
 
+bool SysTrayIconPlugin::isMinimized()
+{
+  return !_mainwin->isApplicationVisible();
+}
 
 void SysTrayIconPlugin::restore()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  if (!isMinimized() || !_config->readValue("systrayon").toBool())
+    return;
+
+  klfDbg("debug... restoring.") ;
   klfRestoreWindows();
-  //  _mainwin->showNormal();
   _mainwin->raise();
   _mainwin->activateWindow();
   qApp->alert(_mainwin);

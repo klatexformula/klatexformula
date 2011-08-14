@@ -98,8 +98,11 @@ protected:
 
 protected slots:
 
+  void populateSettingsCombos();
+  // ... in particular:
   void populateLocaleCombo();
   void populateExportProfilesCombos();
+  void populateDetailsSideWidgetTypeCombo();
 
   void initPluginControls();
   void resetPluginControls();

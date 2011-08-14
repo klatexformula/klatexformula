@@ -85,6 +85,8 @@ public:
 
   virtual bool eventFilter(QObject *obj, QEvent *e);
 
+  virtual bool isMinimized();
+
 signals:
 
   void setLatexText(const QString& text);

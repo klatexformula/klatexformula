@@ -248,9 +248,12 @@ public:
   virtual ~KLFSideWidgetManagerFactory();
 
   virtual QStringList supportedTypes() const;
+  /** \brief A human-readable title to display as label of given type, e.g. in combo box */
+  virtual QString getTitleFor(const QString& type) const;
   virtual KLFSideWidgetManagerBase * createSideWidgetManager(const QString& type, QWidget *parentWidget,
 							     QWidget *sideWidget, QObject *parent);
 
+  static QStringList allSupportedTypes();
   static KLFSideWidgetManagerBase * findCreateSideWidgetManager(const QString& type, QWidget *parentWidget,
 								QWidget *sideWidget, QObject *parent);
   static KLFSideWidgetManagerFactory * findFactoryFor(const QString& managertype);

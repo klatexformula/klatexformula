@@ -261,6 +261,8 @@ public:
   //! Reimplemented from KLFDropDataHandler
   bool canOpenDropData(const QMimeData * data) { return canOpenData(data); }
 
+  bool isApplicationVisible() const;
+
 signals:
 
   void evaluateFinished(const KLFBackend::klfOutput& output);
@@ -271,6 +273,8 @@ signals:
   void applicationLocaleChanged(const QString& newLocale);
 
   void klfConfigChanged();
+
+  void userActivity();
 
 public slots:
 
