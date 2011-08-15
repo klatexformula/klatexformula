@@ -41,6 +41,7 @@ if(NOT klf_kde4defaults_found)
   klf_nokde4()
 endif(NOT klf_kde4defaults_found)
 include_directories(${KDE4_INCLUDES})
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../klftools")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../klfbackend")
 
 mark_as_advanced(
@@ -59,6 +60,12 @@ mark_as_advanced(
 # klfkateplugin plugin target
 
 set(ktexteditor_klf_PART_SRCS klfkateplugin.cpp klfkteparser.cpp klfkateplugin_config.cpp )
+
+if(KLF_LIBKLFTOOLS_STATIC OR KLF_LIBKLFBACKEND_STATIC)
+  # ###TODO: do this better!
+  message(FATAL_ERROR "Can't build kate plugin with static klftools/klfbackend libraries.")
+endif()
+
 
 if(KLF_LIBKLFBACKEND_STATIC)
   # Can't link the plugin to a static klfbackend library. We need to re-compile the klfbackend
