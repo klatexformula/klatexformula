@@ -199,17 +199,17 @@
        <item row="5" column="0" colspan="2">
         <widget class="QGroupBox" name="gbxInterfaceOptions">
          <property name="title">
-          <string>Interface Options</string>
+          <string>Misc Interface Options</string>
          </property>
          <layout class="QGridLayout" name="lyt_gbxInterfaceOptions">
-          <item row="2" column="0" colspan="2">
+          <item row="3" column="0" colspan="2">
            <widget class="QCheckBox" name="chkShowHintPopups">
             <property name="text">
              <string>Suggest inclusion of detected missing packages</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="2">
+          <item row="4" column="0" colspan="2">
            <widget class="QCheckBox" name="chkClearLatexOnly">
             <property name="toolTip">
              <string extracomment="[[tooltip]]">&lt;p&gt;If this box is left unchecked, the clear button under to the LaTeX code editor clears the editor and resets the default style. By enabling this option, only the LaTeX field is cleared and the style is not modified.&lt;/p&gt;</string>
@@ -219,7 +219,7 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="2">
+          <item row="5" column="0" colspan="2">
            <widget class="QCheckBox" name="chkGlowEffect">
             <property name="text">
              <string>Display Equations Glow Effect</string>
@@ -235,6 +235,13 @@
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="cbxDetailsSideWidgetType"/>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QCheckBox" name="chkMacBrushedMetalLook">
+            <property name="text">
+             <string>Use Mac OS X &quot;Metal&quot; Look</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

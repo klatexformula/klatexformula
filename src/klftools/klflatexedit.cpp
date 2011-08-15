@@ -60,6 +60,11 @@ KLFLatexEdit::KLFLatexEdit(QWidget *parent)
   setContextMenuPolicy(Qt::DefaultContextMenu);
 
   setProperty("klfDontChange_font", QVariant(true));
+
+  setProperty("paletteDefault", QVariant::fromValue<QPalette>(palette()));
+  QPalette pal = palette();
+  pal.setColor(QPalette::Base, QColor(255, 255, 255, 80)); // quite transparent, but lighter
+  setProperty("paletteMacBrushedMetalLook", QVariant::fromValue<QPalette>(pal));
 }
 
 KLFLatexEdit::~KLFLatexEdit()
@@ -214,6 +219,10 @@ void KLFLatexEdit::insertDelimiter(const QString& delim, int charsBack)
   setFocus();
 }
 
+void KLFLatexEdit::setPalette(const QPalette& pal)
+{
+  QTextEdit::setPalette(pal);
+}
 
 void KLFLatexEdit::slotInsertFromActionSender()
 {

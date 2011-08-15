@@ -101,6 +101,9 @@ public slots:
    * back. Eg. you can insert \c "\mathrm{}" and bring the cursor 1 space back. */
   void insertDelimiter(const QString& delim, int charsBack = 1);
 
+  /** Directly calls the superclass' method. This is just used so that we have a slot. */
+  void setPalette(const QPalette& palette);
+
 protected:
   virtual void contextMenuEvent(QContextMenuEvent *event);
   virtual bool canInsertFromMimeData(const QMimeData *source) const;

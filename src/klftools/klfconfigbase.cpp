@@ -46,11 +46,18 @@ void KLFConfigBase::propertyChanged(KLFConfigPropBase *property, const QVariant&
   KLF_ASSERT_NOT_NULL(property, "property is NULL!!", return; ) ;
 
   const QString pname = property->propName();
-  if (pObjPropConnections.contains(pname)) {
+  if (pObjConnections.contains(pname)) {
     // set connected QObject properties
-    const QList<ObjPropConnection> clist = pObjPropConnections[pname];
-    for (QList<ObjPropConnection>::const_iterator it = clist.begin(); it != clist.end(); ++it) {
-      (*it).object->setProperty((*it).objPropName, newValue);
+    const QList<ObjConnection> clist = pObjConnections[pname];
+    for (QList<ObjConnection>::const_iterator it = clist.begin(); it != clist.end(); ++it) {
+      if ((*it).target == Property) {
+	(*it).object->setProperty((*it).targetName, newValue);
+      } else if ((*it).target == Slot) {
+	QMetaObject::invokeMethod((*it).object, (*it).targetName,
+				  QGenericArgument(newValue.typeName(), newValue.data()));
+      } else {
+	qWarning()<<KLF_FUNC_NAME<<": Unknown target type "<<(*it).target<<" !";
+      }
     }
   }
 }
@@ -59,11 +66,34 @@ void KLFConfigBase::propertyValueRequested(const KLFConfigPropBase */*property*/
 {
 }
 
+
 void KLFConfigBase::connectQObjectProperty(const QString& configPropertyName, QObject *object,
-				      const QByteArray& objPropName)
+					   const QByteArray& objPropName)
+{
+  connectQObject(configPropertyName, object, Property, objPropName);
+}
+void KLFConfigBase::connectQObjectSlot(const QString& configPropertyName, QObject *object,
+					   const QByteArray& slotName)
+{
+  connectQObject(configPropertyName, object, Slot, slotName);
+}
+void KLFConfigBase::disconnectQObjectProperty(const QString& configPropertyName, QObject *object,
+					      const QByteArray& objPropName)
+{
+  disconnectQObject(configPropertyName, object, Property, objPropName);
+}
+void KLFConfigBase::disconnectQObjectSlot(const QString& configPropertyName, QObject *object,
+					   const QByteArray& slotName)
+{
+  disconnectQObject(configPropertyName, object, Slot, slotName);
+}
+
+void KLFConfigBase::connectQObject(const QString& configPropertyName, QObject *object,
+				   ConnectionTarget target, const QByteArray& targetName)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("Connecting prop "<<configPropertyName<<" to object "<<object<<", objPropName="<<objPropName ) ;
+  klfDbg("Connecting prop "<<configPropertyName<<" to object "<<object<<", targettype="<<target
+	 <<", targetName="<<targetName ) ;
 
   // check that configPropertyName is valid
   KLFConfigPropBase *p = NULL;
@@ -75,53 +105,61 @@ void KLFConfigBase::connectQObjectProperty(const QString& configPropertyName, QO
   }
   KLF_ASSERT_NOT_NULL(p, "Invalid config property name: "<<configPropertyName<<".", return; ) ;
 
-  ObjPropConnection c;
+  ObjConnection c;
+  c.target = target;
   c.object = object;
-  c.objPropName = objPropName;
+  c.targetName = targetName;
 
-  QList<ObjPropConnection> clist = pObjPropConnections[configPropertyName];
+  QList<ObjConnection> clist = pObjConnections[configPropertyName];
 
-  for (QList<ObjPropConnection>::const_iterator it = clist.begin(); it != clist.end(); ++it) {
+  for (QList<ObjConnection>::const_iterator it = clist.begin(); it != clist.end(); ++it) {
     if (*it == c) {
-      qWarning()<<KLF_FUNC_NAME<<": "<<configPropertyName<<" already connected to "<<object<<"/"<<objPropName;
+      qWarning()<<KLF_FUNC_NAME<<": "<<configPropertyName<<" already connected to "<<object<<"/"<<targetName;
       return;
     }
   }
 
-  pObjPropConnections[configPropertyName].append(c);
+  pObjConnections[configPropertyName].append(c);
 
-  // and initialize the QObject property to the current value of that property
+  // and initialize the QObject property/slot to the current value of that config property
   QVariant value = p->toVariant();
-  object->setProperty(objPropName, value);
+  if (c.target == Property) {
+    object->setProperty(targetName, value);
+  } else if (c.target == Slot) {
+    QMetaObject::invokeMethod(object, targetName, QGenericArgument(value.typeName(), value.data()));
+  }
 }
-void KLFConfigBase::disconnectQObjectProperty(const QString& configPropertyName, QObject *object,
-					 const QByteArray& objPropName)
+
+void KLFConfigBase::disconnectQObject(const QString& configPropertyName, QObject *object,
+				      ConnectionTarget target, const QByteArray& targetName)
 {
-  ObjPropConnection c;
+  ObjConnection c;
+  c.target = target;
   c.object = object;
-  c.objPropName = objPropName;
+  c.targetName = targetName;
 
-  QList<ObjPropConnection> & clistref = pObjPropConnections[configPropertyName];
+  QList<ObjConnection> & clistref = pObjConnections[configPropertyName];
 
-  for (QList<ObjPropConnection>::iterator it = clistref.begin(); it != clistref.end(); ++it) {
+  for (QList<ObjConnection>::iterator it = clistref.begin(); it != clistref.end(); ++it) {
     if (*it == c) {
+      klfDbg("removed QObject-connection target-type "<<(*it).target<<", target-name "<<(*it).targetName) ;
       clistref.erase(it);
       return;
     }
   }
 
-  qWarning()<<KLF_FUNC_NAME<<": "<<configPropertyName<<" is not connected to "<<object<<"/"<<objPropName;
+  qWarning()<<KLF_FUNC_NAME<<": "<<configPropertyName<<" is not connected to "<<object<<"/"<<targetName;
 }
 
 void KLFConfigBase::disconnectQObject(QObject * object)
 {
-  QHash<QString,QList<ObjPropConnection> >::iterator pit;
-  for (pit = pObjPropConnections.begin(); pit != pObjPropConnections.end(); ++pit) {
+  QHash<QString,QList<ObjConnection> >::iterator pit;
+  for (pit = pObjConnections.begin(); pit != pObjConnections.end(); ++pit) {
     const QString& pname = pit.key();
-    QList<ObjPropConnection> & clistref = pit.value();
-    for (QList<ObjPropConnection>::iterator it = clistref.begin(); it != clistref.end(); ++it) {
+    QList<ObjConnection> & clistref = pit.value();
+    for (QList<ObjConnection>::iterator it = clistref.begin(); it != clistref.end(); ++it) {
       if ((*it).object == object) {
-	klfDbg("Removing connection between object "<<object<<" and property "<<pname) ;
+	klfDbg("Removing connection between object "<<object<<" and config property "<<pname) ;
 	clistref.erase(it);
       }
     }

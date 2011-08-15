@@ -66,6 +66,16 @@ public:
 				      const QByteArray& objPropName);
   virtual void disconnectQObjectProperty(const QString& configPropertyName, QObject *object,
 					 const QByteArray& objPropName);
+  /**
+   * \warning The caller must garantee that \c object will not be destroyed! If this will be the case,
+   *   disconnect it first with disconnectQObjectProperty() !
+   *
+   * \note the \c object's slot \c slotMethodName is called immediately, too, with the current configuration
+   *   value. */
+  virtual void connectQObjectSlot(const QString& configPropertyName, QObject *object,
+				  const QByteArray& slotMethodName);
+  virtual void disconnectQObjectSlot(const QString& configPropertyName, QObject *object,
+				     const QByteArray& slotMethodName);
 
   /** disconnects all connections concerning this object */
   virtual void disconnectQObject(QObject * object);
@@ -77,14 +87,21 @@ public:
   inline void registerConfigProp(KLFConfigPropBase *p) { pProperties.append(p); }
 
 protected:
-  struct ObjPropConnection {
+  enum ConnectionTarget { Property, Slot };
+  struct ObjConnection {
+    ConnectionTarget target;
     QObject *object;
-    QByteArray objPropName;
-    inline bool operator==(const ObjPropConnection& b) const {
-      return object == b.object && objPropName == b.objPropName;
+    QByteArray targetName;
+    inline bool operator==(const ObjConnection& b) const {
+      return target == b.target && object == b.object && targetName == b.targetName;
     }
   };
-  QHash<QString, QList<ObjPropConnection> > pObjPropConnections;
+  QHash<QString, QList<ObjConnection> > pObjConnections;
+
+  void connectQObject(const QString& configPropertyName, QObject *object,
+		      ConnectionTarget target, const QByteArray& targetName);
+  void disconnectQObject(const QString& configPropertyName, QObject *object,
+			 ConnectionTarget target, const QByteArray& targetName);
 
   QList<KLFConfigPropBase*> pProperties;
 };
@@ -171,6 +188,25 @@ public:
     KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") are not initialized!", return; ) ;
 
     config->connectQObjectProperty(pname, object, propName) ;
+  }
+  void disconnectQObjectProperty(QObject *object, const QByteArray& propName)
+  {
+    KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") are not initialized!", return; ) ;
+
+    config->disconnectQObjectProperty(pname, object, propName) ;
+  }
+
+  void connectQObjectSlot(QObject *object, const QByteArray& slotName)
+  {
+    KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") are not initialized!", return; ) ;
+
+    config->connectQObjectSlot(pname, object, slotName) ;
+  }
+  void disconnectQObjectSlot(QObject *object, const QByteArray& slotName)
+  {
+    KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") are not initialized!", return; ) ;
+
+    config->disconnectQObjectSlot(pname, object, slotName) ;
   }
 
 private:

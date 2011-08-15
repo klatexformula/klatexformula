@@ -541,6 +541,10 @@ void KLFSettings::reset()
   u->chkGlowEffect->setChecked(klfconfig.UI.glowEffect);
   int sidewidgettypei = u->cbxDetailsSideWidgetType->findData(QVariant(klfconfig.UI.detailsSideWidgetType()));
   u->cbxDetailsSideWidgetType->setCurrentIndex(sidewidgettypei);
+  u->chkMacBrushedMetalLook->setChecked(klfconfig.UI.macBrushedMetalLook);
+#ifndef Q_WS_MAC
+  u->chkMacBrushedMetalLook->hide();
+#endif
 
   int copyi = u->cbxCopyExportProfile->findData(QVariant(klfconfig.ExportData.copyExportProfile));
   u->cbxCopyExportProfile->setCurrentIndex(copyi);
@@ -1102,6 +1106,8 @@ void KLFSettings::apply()
   int k;
   // apply settings here
 
+  bool warnneedrestart = false;
+
   // the settings object that we will fill, and set to _mainwin
   KLFBackend::klfSettings s = _mainwin->currentSettings();
 
@@ -1219,6 +1225,7 @@ void KLFSettings::apply()
 
   klfconfig.UI.detailsSideWidgetType =
     u->cbxDetailsSideWidgetType->itemData(u->cbxDetailsSideWidgetType->currentIndex()).toString();
+  klfconfig.UI.macBrushedMetalLook = u->chkMacBrushedMetalLook->isChecked();
 
   klfconfig.ExportData.copyExportProfile = 
     u->cbxCopyExportProfile->itemData(u->cbxCopyExportProfile->currentIndex()).toString();
@@ -1235,7 +1242,6 @@ void KLFSettings::apply()
   klfconfig.LibraryBrowser.iconViewFlow =  u->cbxLibIconViewFlow->selectedValue();
 
   // save plugin config
-  bool warnneedrestart = false;
   QTreeWidgetItemIterator it(u->lstPlugins);
   while (*it) {
     int j = (*it)->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();

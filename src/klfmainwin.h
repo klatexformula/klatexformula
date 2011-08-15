@@ -386,6 +386,8 @@ public slots:
   void setTxtLatexFont(const QFont& f);
   void setTxtPreambleFont(const QFont& f);
 
+  void setMacBrushedMetalLook(bool metallook);
+
   void showRealTimeReset();
   void showRealTimePreview(const QImage& preview, const QImage& largePreview);
   void showRealTimeError(const QString& errorstr, int errcode);

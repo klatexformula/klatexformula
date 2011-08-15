@@ -127,6 +127,8 @@ KLFMainWin::KLFMainWin()
   pCmdIface = new KLFCmdIface(this);
   pCmdIface->registerObject(this, QLatin1String("klfmainwin.klfapp.klf"));
 
+  setProperty("defaultPalette", QVariant::fromValue<QPalette>(palette()));
+
   // load styless
   loadStyles();
 
@@ -134,15 +136,6 @@ KLFMainWin::KLFMainWin()
 
   u->txtLatex->setFont(klfconfig.UI.latexEditFont);
   u->txtPreamble->setFont(klfconfig.UI.preambleEditFont);
-
-#ifdef Q_WS_MAC
-  if (klfconfig.UI.macBrushedMetalLook) {
-    // adjust main latex editor palette to transparent bg
-    QPalette pal = u->txtLatex->palette();
-    pal.setColor(QPalette::Base, QColor(255, 255, 255, 80)); // quite transparent, but lighter
-    u->txtLatex->setPalette(pal);
-  }
-#endif
 
   //  u->frmOutput->setEnabled(false);
   slotSetViewControlsEnabled(false);
@@ -392,11 +385,7 @@ KLFMainWin::KLFMainWin()
   // watch for QFileOpenEvent s on mac
   QApplication::instance()->installEventFilter(this);
 
-  if (klfconfig.UI.macBrushedMetalLook) {
-    // Mac Brushed Metal Look
-    setAttribute(Qt::WA_MacBrushedMetal);
-    //    u->txtLatex->setAttribute(Qt::WA_MacBrushedMetal);
-  }
+  klfconfig.UI.macBrushedMetalLook.connectQObjectSlot(this, "setMacBrushedMetalLook");
 
   // And add a native Mac OS X menu bar
   QMenuBar *macOSXMenu = new QMenuBar(0);
@@ -2214,6 +2203,45 @@ void KLFMainWin::setTxtPreambleFont(const QFont& f)
 {
   u->txtPreamble->setFont(f);
 }
+
+// --------------------------------------
+#define KLF_SET_LATEXEDIT_PALETTE(cond, w)				\
+  QMetaObject::invokeMethod((w), "setPalette", Qt::QueuedConnection,	\
+			    Q_ARG(QPalette, (cond)			\
+				  ? (w)->property("paletteMacBrushedMetalLook").value<QPalette>() \
+				  : (w)->property("paletteDefault").value<QPalette>()) );
+// --------------------------------------
+void KLFMainWin::setMacBrushedMetalLook(bool metallook)
+{
+#ifdef Q_WS_MAC
+
+  /** \bug .... this does not work... :( */
+
+  // adjust main latex editor palette to correct bg
+  if (metallook) {
+    KLF_SET_LATEXEDIT_PALETTE(metallook, u->txtLatex) ;
+    if (u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
+      KLF_SET_LATEXEDIT_PALETTE(metallook, u->txtPreamble) ;
+    }
+  }
+
+  setAttribute(Qt::WA_MacBrushedMetal, metallook);
+
+  if (!metallook) {
+    setPalette(property("defaultPalette").value<QPalette>());
+
+    KLF_SET_LATEXEDIT_PALETTE(metallook, u->txtLatex) ;
+    if (u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
+      KLF_SET_LATEXEDIT_PALETTE(metallook, u->txtPreamble) ;
+    }
+  }
+
+#else
+  Q_UNUSED(metallook);
+  qWarning()<<KLF_FUNC_NAME<<": Only implemented under Mac OS X !";
+#endif
+}
+
 
 void KLFMainWin::showRealTimeReset()
 {
