@@ -373,8 +373,12 @@ struct KLFFlowLayoutPrivate
 	linelyt->addItem(lines[k][n]);
 	for (i = 0; i < linelyt->count() && linelyt->itemAt(i) != lines[k][n]; ++i)
 	  ;
-	if (i < linelyt->count())
+#if QT_VERSION >= 0x040500
+	// setStretch(...) was introduced in Qt 4.5
+	if (i < linelyt->count()) {
 	  linelyt->setStretch(i, lines[k][n]->hstretch);
+	}
+#endif
 	linevstretch = qMax(linevstretch, lines[k][n]->vstretch);
       }
       if (flush == KLFFlowLayout::FlushBegin) {

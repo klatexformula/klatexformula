@@ -285,6 +285,12 @@
           </property>
           <item row="0" column="1">
            <widget class="QPushButton" name="btnDrag">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>&amp;DRAG</string>
             </property>
@@ -292,6 +298,12 @@
           </item>
           <item row="1" column="1">
            <widget class="QPushButton" name="btnCopy">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>&amp;COPY</string>
             </property>
@@ -302,6 +314,12 @@
           </item>
           <item row="2" column="1">
            <widget class="QPushButton" name="btnSave">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="toolTip">
              <string>Save formula to disk</string>
             </property>
@@ -330,7 +348,7 @@
            <widget class="KLFDisplayLabel" name="lblOutput">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-              <horstretch>0</horstretch>
+              <horstretch>99</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>

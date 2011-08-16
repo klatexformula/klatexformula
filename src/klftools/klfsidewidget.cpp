@@ -737,8 +737,13 @@ bool KLFFloatSideWidgetManager::sideWidgetVisible() const
 
 QWidget * KLFFloatSideWidgetManager::createContainerWidget(QWidget *pw)
 {
+  /** \bug .... FIND OUT FROM WHICH QT_VERSION WE HAVE Qt::WindowCloseButtonHint */
   return  new QWidget(pw, Qt::Tool|Qt::CustomizeWindowHint|Qt::WindowTitleHint
-		      |Qt::WindowSystemMenuHint|Qt::WindowCloseButtonHint);
+		      |Qt::WindowSystemMenuHint
+#if QT_VERSION >= 0x040500
+		      |Qt::WindowCloseButtonHint
+#endif
+		      );
 }
 
 void KLFFloatSideWidgetManager::setWFlags(Qt::WindowFlags wf)

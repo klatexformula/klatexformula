@@ -562,15 +562,41 @@ bool KLFWindowGeometryRestorer::eventFilter(QObject *obj, QEvent *event)
  */
 static QHash<QWidget*,bool> windowShownStates;
 
+/*
+inline bool has_ancestor_of_type(QObject *testobj, const char * type)
+{
+  klfDbg("testing if "<<testobj<<" is (grand-)child of object inheriting "<<type) ;
+  if (testobj == NULL)
+    return false;
+  do {
+    if (testobj->inherits(type)) {
+      klfDbg("inherits "<<type<<"!") ;
+      return true;
+    }
+  } while ((testobj = testobj->parent()) != NULL) ;
+  klfDbg("no.") ;
+  return false;
+}
+*/
 
 KLF_EXPORT void klfHideWindows()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  //  / ** \todo don't _FORCE_ this setting, remember and restore it.... * /
+  //  qApp->setQuitOnLastWindowClosed(false);
+
   // save the window states, while checking that not all the windows are already hidden
   QHash<QWidget*,bool> states;
   bool allalreadyhidden = true;
   QWidgetList wlist = QApplication::topLevelWidgets();
   foreach (QWidget *w, wlist) {
+    uint wflags = w->windowFlags();
+    klfDbg("next widget in line: "<<w<<", wflags="<<wflags) ;
+    // filter the kind of windows, e.g. don't hide system tray icon :)
+    if ((wflags & Qt::Window) == 0 ||
+	wflags & Qt::X11BypassWindowManagerHint)
+      continue;
+    klfDbg("dealing with widget "<<w) ;
     bool shown = w->isVisible();
     states[w] = shown;
     if (shown) {

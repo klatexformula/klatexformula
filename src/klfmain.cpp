@@ -32,6 +32,7 @@
 #include <QDir>
 #include <QTranslator>
 #include <QLibraryInfo>
+#include <QDateTime>
 
 #include <klfutil.h>
 #include "klfpluginiface.h"
@@ -676,7 +677,7 @@ KLF_EXPORT QStringList klf_user_scripts;
 void klf_reload_user_scripts()
 {
   QStringList pathlist;
-  pathlist << klfconfig.homeConfigDirUserScripts
+  pathlist << klfconfig.homeConfigDirUserScripts + "/*"
 	   << klfconfig.globalShareDir+"/userscripts/*";
 
   klfDbg("looking for user scripts in "<<pathlist) ;
