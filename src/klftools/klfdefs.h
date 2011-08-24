@@ -118,6 +118,9 @@ namespace KLFSysInfo
 
   KLF_EXPORT QString arch();
 
+  KLF_EXPORT QString makeSysArch(const QString& os, const QString& arch);
+  KLF_EXPORT bool isCompatibleSysArch(const QString& sysarch);
+
   KLF_EXPORT KLFSysInfo::Os os();
 
   KLF_EXPORT QString osString(KLFSysInfo::Os sysos = os());

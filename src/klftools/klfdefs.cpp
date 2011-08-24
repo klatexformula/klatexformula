@@ -824,8 +824,7 @@
 /** \fn KLF_EXPORT QString KLFSysInfo::arch()
  * \brief The architecture of this sytem
  *
- * \returns The current architecture, typically \c "x86" or \c "x86_64", stored
- *   in the CMake variable KLF_CMAKE_ARCH.
+ * \returns The current running system architecture.
  */
 /** \fn KLF_EXPORT KLFSysInfo::Os KLFSysInfo::os()
  * \brief Which operating system this system is running
@@ -1111,7 +1110,30 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *r
 
 KLF_EXPORT QString KLFSysInfo::arch()
 {
-  return KLF_CMAKE_ARCH;
+  extern QString klf_defs_sysinfo_arch();
+  return klf_defs_sysinfo_arch();
+}
+
+KLF_EXPORT QString KLFSysInfo::makeSysArch(const QString& os, const QString& arch)
+{
+  return os+":"+arch;
+}
+KLF_EXPORT bool KLFSysInfo::isCompatibleSysArch(const QString& sysarch)
+{
+  int ic = sysarch.indexOf(':');
+  if (ic == -1) {
+    qWarning()<<KLF_FUNC_NAME<<": Invalid sysarch string "<<sysarch;
+    return false;
+  }
+  QString thisos = osString();
+  if (thisos != sysarch.left(ic)) {
+    klfDbg("incompatible architectures (this one)="<<thisos<<" and (tested)="<<sysarch) ;
+    return false;
+  }
+  QStringList archlist = sysarch.mid(ic+1).split(',');
+  QString thisarch = arch();
+  klfDbg("testing if our arch="<<thisarch<<" is in the compatible arch list="<<archlist) ;
+  return KLF_DEBUG_TEE( archlist.contains(thisarch) );
 }
 
 KLF_EXPORT KLFSysInfo::Os KLFSysInfo::os()

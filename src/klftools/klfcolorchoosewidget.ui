@@ -47,7 +47,7 @@
         <number>4</number>
        </property>
        <item row="0" column="0">
-        <widget class="KLFColorChooseWidgetPane" name="mHueSatPane" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mHueSatPane">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -66,10 +66,10 @@
            <height>128</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Hue+Sat</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">hue+sat</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -79,7 +79,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="KLFColorChooseWidgetPane" name="mValPane" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mValPane">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -98,10 +98,10 @@
            <height>128</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Fix+Val</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">fix+val</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -111,7 +111,7 @@
         </widget>
        </item>
        <item row="1" column="0" colspan="2">
-        <widget class="KLFColorChooseWidgetPane" name="mAlphaPane" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mAlphaPane">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -130,10 +130,10 @@
            <height>20</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Alpha+Fix</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">alpha+fix</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -242,7 +242,7 @@
       </attribute>
       <layout class="QGridLayout" name="lyt_mSlidersTab">
        <item row="0" column="7">
-        <widget class="KLFColorChooseWidgetPane" name="mHueSlider" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mHueSlider">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -261,10 +261,10 @@
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Hue+Fix</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">hue+fix</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -274,7 +274,7 @@
         </widget>
        </item>
        <item row="1" column="7">
-        <widget class="KLFColorChooseWidgetPane" name="mSatSlider" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mSatSlider">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -293,10 +293,10 @@
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Sat+Fix</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">sat+fix</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -306,7 +306,7 @@
         </widget>
        </item>
        <item row="2" column="7">
-        <widget class="KLFColorChooseWidgetPane" name="mValSlider" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mValSlider">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -325,10 +325,10 @@
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Val+Fix</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">val+fix</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -338,7 +338,7 @@
         </widget>
        </item>
        <item row="3" column="7">
-        <widget class="KLFColorChooseWidgetPane" name="mRedSlider" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mRedSlider">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -357,10 +357,10 @@
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Red+Fix</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">red+fix</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -370,7 +370,7 @@
         </widget>
        </item>
        <item row="4" column="7">
-        <widget class="KLFColorChooseWidgetPane" name="mGreenSlider" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mGreenSlider">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -389,10 +389,10 @@
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Green+Fix</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">green+fix</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -402,7 +402,7 @@
         </widget>
        </item>
        <item row="5" column="7">
-        <widget class="KLFColorChooseWidgetPane" name="mBlueSlider" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mBlueSlider">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -421,10 +421,10 @@
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Blue+Fix</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">blue+fix</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -434,7 +434,7 @@
         </widget>
        </item>
        <item row="6" column="7">
-        <widget class="KLFColorChooseWidgetPane" name="mAlphaSlider" native="true">
+        <widget class="KLFColorChooseWidgetPane" name="mAlphaSlider">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -453,10 +453,10 @@
            <height>15</height>
           </size>
          </property>
-         <property name="paneType" stdset="0">
-          <string notr="true" extracomment="Please do not translate.">Alpha+Fix</string>
+         <property name="paneType">
+          <string notr="true" extracomment="Please do not translate.">alpha+fix</string>
          </property>
-         <property name="color" stdset="0">
+         <property name="color">
           <color>
            <red>0</red>
            <green>0</green>
@@ -602,7 +602,7 @@
      </widget>
     </widget>
    </item>
-   <item row="0" column="2">
+   <item row="0" column="3">
     <layout class="QGridLayout" name="lytSpinValues">
      <property name="sizeConstraint">
       <enum>QLayout::SetNoConstraint</enum>
@@ -647,20 +647,20 @@
         <bool>true</bool>
        </property>
        <property name="maximum">
-        <number>255</number>
+        <number>359</number>
        </property>
        <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0">
+       <property name="colorComponent">
+        <string notr="true" extracomment="Please do not translate.">hue</string>
+       </property>
+       <property name="color">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
-       </property>
-       <property name="colorComponent" stdset="0">
-        <string notr="true" extracomment="Please do not translate.">Hue</string>
        </property>
       </widget>
      </item>
@@ -703,15 +703,15 @@
        <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0">
+       <property name="colorComponent">
+        <string notr="true" extracomment="Please do not translate.">sat</string>
+       </property>
+       <property name="color">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
-       </property>
-       <property name="colorComponent" stdset="0">
-        <string notr="true" extracomment="Please do not translate.">Sat</string>
        </property>
       </widget>
      </item>
@@ -735,15 +735,15 @@
        <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0">
+       <property name="colorComponent">
+        <string notr="true" extracomment="Please do not translate.">val</string>
+       </property>
+       <property name="color">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
-       </property>
-       <property name="colorComponent" stdset="0">
-        <string notr="true" extracomment="Please do not translate.">Val</string>
        </property>
       </widget>
      </item>
@@ -786,15 +786,15 @@
        <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0">
+       <property name="colorComponent">
+        <string notr="true" extracomment="Please do not translate.">red</string>
+       </property>
+       <property name="color">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
-       </property>
-       <property name="colorComponent" stdset="0">
-        <string notr="true" extracomment="Please do not translate.">Red</string>
        </property>
       </widget>
      </item>
@@ -837,15 +837,15 @@
        <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0">
+       <property name="colorComponent">
+        <string notr="true" extracomment="Please do not translate.">green</string>
+       </property>
+       <property name="color">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
-       </property>
-       <property name="colorComponent" stdset="0">
-        <string notr="true" extracomment="Please do not translate.">Green</string>
        </property>
       </widget>
      </item>
@@ -888,15 +888,15 @@
        <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0">
+       <property name="colorComponent">
+        <string notr="true" extracomment="Please do not translate.">blue</string>
+       </property>
+       <property name="color">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
-       </property>
-       <property name="colorComponent" stdset="0">
-        <string notr="true" extracomment="Please do not translate.">Blue</string>
        </property>
       </widget>
      </item>
@@ -958,22 +958,22 @@
        <property name="singleStep">
         <number>10</number>
        </property>
-       <property name="color" stdset="0">
+       <property name="colorComponent">
+        <string notr="true" extracomment="Please do not translate.">alpha</string>
+       </property>
+       <property name="color">
         <color>
          <red>0</red>
          <green>0</green>
          <blue>0</blue>
         </color>
        </property>
-       <property name="colorComponent" stdset="0">
-        <string notr="true" extracomment="Please do not translate.">Alpha</string>
-       </property>
       </widget>
      </item>
     </layout>
    </item>
    <item row="1" column="0">
-    <widget class="KLFColorChooseWidgetPane" name="mDisplayColor" native="true">
+    <widget class="KLFColorChooseWidgetPane" name="mDisplayColor">
      <property name="minimumSize">
       <size>
        <width>64</width>
@@ -986,10 +986,10 @@
        <height>128</height>
       </size>
      </property>
-     <property name="paneType" stdset="0">
-      <string notr="true" extracomment="Please do not translate.">Fix+Fix</string>
+     <property name="paneType">
+      <string notr="true" extracomment="Please do not translate.">fix+fix</string>
      </property>
-     <property name="color" stdset="0">
+     <property name="color">
       <color>
        <red>0</red>
        <green>0</green>
@@ -998,7 +998,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1" colspan="2">
+   <item row="1" column="1" colspan="3">
     <widget class="QTabWidget" name="mTabs">
      <property name="minimumSize">
       <size>
@@ -1010,7 +1010,7 @@
       <enum>QTabWidget::South</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="mRecentTab">
       <attribute name="title">
@@ -1042,8 +1042,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>249</width>
-            <height>91</height>
+            <width>250</width>
+            <height>93</height>
            </rect>
           </property>
          </widget>
@@ -1081,8 +1081,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>249</width>
-            <height>91</height>
+            <width>250</width>
+            <height>93</height>
            </rect>
           </property>
          </widget>
@@ -1134,8 +1134,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>224</width>
-            <height>91</height>
+            <width>225</width>
+            <height>93</height>
            </rect>
           </property>
          </widget>
@@ -1145,24 +1145,40 @@
      </widget>
     </widget>
    </item>
+   <item row="0" column="2">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>3</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QtColorTriangle</class>
-   <extends>QWidget</extends>
-   <header>qtcolortriangle.h</header>
-  </customwidget>
-  <customwidget>
    <class>KLFColorChooseWidgetPane</class>
    <extends>QWidget</extends>
-   <header location="global">QWidget</header>
+   <header>klfcolorchooser.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>KLFColorComponentSpinBox</class>
    <extends>QSpinBox</extends>
-   <header location="global">QWidget</header>
+   <header>klfcolorchooser.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QtColorTriangle</class>
+   <extends>QWidget</extends>
+   <header>qtcolortriangle.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

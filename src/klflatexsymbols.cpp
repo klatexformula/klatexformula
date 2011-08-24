@@ -815,6 +815,7 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
 	    , /*Qt::Tool*/ Qt::Window /*0*/)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+  Q_UNUSED(parent) ;
 
   u = new Ui::KLFLatexSymbols;
   u->setupUi(this);

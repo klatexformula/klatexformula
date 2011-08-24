@@ -590,16 +590,24 @@ KLF_EXPORT void klfHideWindows()
   bool allalreadyhidden = true;
   QWidgetList wlist = QApplication::topLevelWidgets();
   foreach (QWidget *w, wlist) {
+    //    if (w->inherits("QMenu"))
+    //      continue;
     uint wflags = w->windowFlags();
     klfDbg("next widget in line: "<<w<<", wflags="<<wflags) ;
-    // filter the kind of windows, e.g. don't hide system tray icon :)
-    if ((wflags & Qt::Window) == 0 ||
-	wflags & Qt::X11BypassWindowManagerHint)
+    if ((wflags & Qt::Window) == 0) {
       continue;
+    }
+    if (wflags & Qt::X11BypassWindowManagerHint) {
+      /** \todo THIS IS A WORKAROUND to avoid "hiding" the system tray icon when hiding all windows (which
+       *    is of course not what we want!). This also has the undesirable effect of not hiding all windows
+       *    which have the x11-bypass-window-manager flag on. TODO: write some more intelligent code. */
+      continue;
+    }
     klfDbg("dealing with widget "<<w) ;
     bool shown = w->isVisible();
     states[w] = shown;
     if (shown) {
+      klfDbg("hiding window "<<w<<", wflags="<<w->windowFlags()) ;
       w->hide();
       allalreadyhidden = false;
     }
@@ -618,7 +626,11 @@ KLF_EXPORT void klfRestoreWindows()
     if (!windowShownStates.contains(w))
       continue;
     // restore this window
-    if (!w->isVisible())
+    if (!w->isVisible()) {
+      klfDbg("Restoring window "<<w) ;
       w->setVisible(windowShownStates[w]);
+    }
   }
 }
+
+------- DIFF -------

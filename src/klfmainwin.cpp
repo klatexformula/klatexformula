@@ -209,11 +209,13 @@ KLFMainWin::KLFMainWin()
   //  refreshWindowSizes();
 
   connect(u->frmDetails, SIGNAL(sideWidgetShown(bool)), this, SLOT(slotDetailsSideWidgetShown(bool)));
-#ifdef Q_WS_MAC
   klfDbg("setting up relative font...") ;
   KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
+#ifdef Q_WS_MAC
   rf->setRelPointSize(-2);
   rf->setThorough(true);
+#else
+  rf->setRelPointSize(-1);
 #endif
 
   //  u->frmDetails->setSideWidgetManager(klfconfig.UI.detailsSideWidgetType);
@@ -2188,9 +2190,14 @@ void KLFMainWin::displayError(const QString& error)
 
 void KLFMainWin::updatePreviewThreadInput()
 {
-  bool changed = pLatexPreviewThread->setPreviewSize(u->lblOutput->size());
   bool inputchanged = pLatexPreviewThread->setInput(collectInput(false));
-  if (changed || inputchanged) {
+  if (_evaloutput_uptodate && !inputchanged) {
+    // if we are in 'evaluated' mode, with a displayed result, then don't allow a window resize
+    // to invalidate evaluated contents
+    return;
+  }
+  bool sizechanged = pLatexPreviewThread->setPreviewSize(u->lblOutput->size());
+  if (inputchanged || sizechanged) {
     _evaloutput_uptodate = false;
   }
 }

@@ -12,7 +12,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Error</string>
+   <string>Program Output</string>
   </property>
   <property name="windowIcon">
    <iconset resource="klfres.qrc">
@@ -59,7 +59,7 @@
       </palette>
      </property>
      <property name="frameShape">
-      <enum>QFrame::Panel</enum>
+      <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Sunken</enum>

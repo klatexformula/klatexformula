@@ -55,6 +55,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
 	    , Qt::Window)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  Q_UNUSED(parent) ;
 
   u = new Ui::KLFLibBrowser;
   u->setupUi(this);
@@ -63,8 +64,8 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   KLF_DEBUG_ASSIGN_REF_INSTANCE(u->searchBar, "libbrowser-searchbar") ;
   u->searchBar->registerShortcuts(this);
   // set found/not-found colors
-  u->searchBar->setColorFound(klfconfig.LibraryBrowser.colorFound);
-  u->searchBar->setColorNotFound(klfconfig.LibraryBrowser.colorNotFound);
+  klfconfig.LibraryBrowser.colorFound.connectQObjectProperty(u->searchBar, "colorFound");
+  klfconfig.LibraryBrowser.colorNotFound.connectQObjectProperty(u->searchBar, "colorNotFound");
 
   pResourceMenu = new QMenu(u->tabResources);
   // connect actions

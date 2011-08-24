@@ -75,7 +75,11 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
 #ifdef Q_WS_X11
   _config->makeDefaultValue("restoreonhover", true);
 #endif
+#ifndef KLF_MAC_HIDE_INSTEAD
   _config->makeDefaultValue("mintosystray", true);
+#else
+  _config->makeDefaultValue("mintosystray", false);
+#endif
 
   QMenu *menu = new QMenu(mainWin);
   menu->addAction(tr("Minimize"), this, SLOT(minimize()));
@@ -160,7 +164,7 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
     }
   }
 
-#ifndef KLF_MAC_HIDE_INSTEAD
+  //#ifndef KLF_MAC_HIDE_INSTEAD ... well yes do this too, except by default disable this option
   if (obj == _mainwin && e->type() == QEvent::WindowStateChange) {
     if ( _mainwin->property("x11WindowShaded").toBool() )
       return false; // don't take action if the window is just shaded
@@ -176,7 +180,7 @@ bool SysTrayIconPlugin::eventFilter(QObject *obj, QEvent *e)
       QTimer::singleShot(20, this, SLOT(minimize()));
     }
   }
-#endif // KLF_MAC_HIDE_INSTEAD
+  //#endif // KLF_MAC_HIDE_INSTEAD
 
   return false;
 }

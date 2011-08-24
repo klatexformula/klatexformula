@@ -78,6 +78,7 @@ public slots:
 
 protected:
   void paintEvent(QPaintEvent *event);
+  void resizeEvent(QResizeEvent *event);
   void keyPressEvent(QKeyEvent *event);
   void mousePressEvent(QMouseEvent *event);
   void contextMenuEvent(QContextMenuEvent *event);
@@ -476,10 +477,10 @@ public slots:
   void setColor(const QColor& color);
   void setAllowDefaultState(bool allow);
   void setDefaultStateString(const QString& str);
-  void setAutoAddToList(bool autoadd) { _autoadd = autoadd; }
-  void setShowSize(const QSize& size) { _size = size; }
-  void setPixXAlignFactor(float xalignfactor) { _xalignfactor = xalignfactor; }
-  void setPixYAlignFactor(float yalignfactor) { _yalignfactor = yalignfactor; }
+  void setAutoAddToList(bool autoadd);
+  void setShowSize(const QSize& size);
+  void setPixXAlignFactor(float xalignfactor);
+  void setPixYAlignFactor(float yalignfactor);
   void setAlphaEnabled(bool alpha_enabled);
   /** equivalent to \code setColor(QColor()) \endcode */
   void setDefaultColor();

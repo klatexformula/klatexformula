@@ -75,7 +75,8 @@ public:
     QString klfminversion;
     /** The required value of \ref KLFSysInfo::osString() */
     QString os;
-    /** The required value of \ref KLFSysInfo::arch() */
+    /** The architecture(s) on which this plugin can run \ref KLFSysInfo::arch(). For
+     * Mac OS X universal binaries this can be comma-separated list of architectures. */
     QString arch;
 
     bool isCompatibleWithCurrentSystem() const;

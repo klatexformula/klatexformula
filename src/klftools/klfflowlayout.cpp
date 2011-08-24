@@ -579,4 +579,20 @@ void KLFFlowLayout::invalidate()
   d->mainLayout->invalidate();
 }
 
+void KLFFlowLayout::clearAll(bool deleteItems)
+{
+  QList<QLayoutItem*> todelete;
+  QLayoutItem *it;
+  while ((it = takeAt(0)) != NULL) {
+    if (deleteItems && it->widget() != NULL)
+      it->widget()->deleteLater();
+    if (deleteItems && it->layout() != NULL)
+      todelete << it->layout();
+    if (deleteItems)
+      todelete << it;
+  }
 
+  foreach (QLayoutItem *item, todelete) {
+    delete item;
+  }
+}

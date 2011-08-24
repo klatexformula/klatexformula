@@ -35,10 +35,11 @@
 #include <QRegExp>
 
 #include <klfdefs.h>
-#include "klfcolorchooser.h"
-#include "klfcolorchooser_p.h"
+#include "klfflowlayout.h"
 #include "klfguiutil.h"
 #include "klfrelativefont.h"
+#include "klfcolorchooser.h"
+#include "klfcolorchooser_p.h"
 
 #include <ui_klfcolorchoosewidget.h>
 #include <ui_klfcolordialog.h>
@@ -80,21 +81,23 @@ QColor KLFColorDialog::getColor(QColor startwith, bool alphaenabled, QWidget *pa
 // -------------------------------------------------------------------
 
 KLFColorClickSquare::KLFColorClickSquare(QColor color, int size, bool removable, QWidget *parent)
-  : QWidget(parent), _color(color), _size(size), _removable(removable)
+  : QWidget(parent), _color(color), _removable(removable)
 {
   initwidget();
-  setSqSize(_size);
+  setSqSize(size);
 }
 KLFColorClickSquare::KLFColorClickSquare(QWidget *parent)
-  : QWidget(parent), _color(Qt::white), _size(16), _removable(false)
+  : QWidget(parent), _color(Qt::white), _removable(false)
 {
   initwidget();
-  setSqSize(_size);
+  setSqSize(16);
 }
 void KLFColorClickSquare::initwidget()
 {
   setFocusPolicy(Qt::StrongFocus);
   setContextMenuPolicy(Qt::DefaultContextMenu);
+  //  setAutoFillBackground(true);
+  //  update();
 }
 
 void KLFColorClickSquare::setSqSize(int sz)
@@ -111,17 +114,28 @@ void KLFColorClickSquare::setRemovable(bool removable)
   _removable = removable;
 }
 
-void KLFColorClickSquare::paintEvent(QPaintEvent */*event*/)
+void KLFColorClickSquare::paintEvent(QPaintEvent *event)
 {
-  QStylePainter p(this);
-  p.fillRect(0, 0, width(), height(), QBrush(_color));
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  Q_UNUSED(event) ;
+  klfDbg("event->rect="<<event->rect()) ;
+  {
+    QPainter p(this);
+    p.fillRect(0, 0, width(), height(), QBrush(_color));
+  }
   if (hasFocus()) {
+    QStylePainter p(this);
     QStyleOptionFocusRect option;
     option.initFrom(this);
     option.backgroundColor = QColor(0,0,0,0);
     p.drawPrimitive(QStyle::PE_FrameFocusRect, option);
   }
 }
+void KLFColorClickSquare::resizeEvent(QResizeEvent *event)
+{
+  Q_UNUSED(event) ;
+}
+
 void KLFColorClickSquare::mousePressEvent(QMouseEvent */*event*/)
 {
   activate();
@@ -552,11 +566,14 @@ void KLFColorChooseWidget::setRecentCustomColors(QList<QColor> recentcolors, QLi
 // static
 QList<QColor> KLFColorChooseWidget::recentColors()
 {
-  ensureColorListsInstance(); return _recentcolors->list;
+  ensureColorListsInstance();
+  return _recentcolors->list;
 }
 // static
-QList<QColor> KLFColorChooseWidget::customColors() {
-  ensureColorListsInstance(); return _customcolors->list;
+QList<QColor> KLFColorChooseWidget::customColors()
+{
+  ensureColorListsInstance();
+  return _customcolors->list;
 }
 
 
@@ -606,12 +623,22 @@ KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)
   _connectedColorChoosers.append(u->spnBlue);
   _connectedColorChoosers.append(u->spnAlpha);
 
-  KLFGridFlowLayout *lytRecent = new KLFGridFlowLayout(12, u->mRecentColorsPalette);
-  lytRecent->setSpacing(2);
-  KLFGridFlowLayout *lytStandard = new KLFGridFlowLayout(12, u->mStandardColorsPalette);
-  lytStandard->setSpacing(2);
-  KLFGridFlowLayout *lytCustom = new KLFGridFlowLayout(12, u->mCustomColorsPalette);
-  lytCustom->setSpacing(2);
+  /*  KLFGridFlowLayout *lytRecent = new KLFGridFlowLayout(12, u->mRecentColorsPalette);
+      lytRecent->setSpacing(2);
+      //  lytRecent->setSizeConstraint(QLayout::SetMinAndMaxSize);
+      KLFGridFlowLayout *lytStandard = new KLFGridFlowLayout(12, u->mStandardColorsPalette);
+      lytStandard->setSpacing(2);
+      //  lytStandard->setSizeConstraint(QLayout::SetFixedSize);
+      KLFGridFlowLayout *lytCustom = new KLFGridFlowLayout(12, u->mCustomColorsPalette);
+      lytCustom->setSpacing(2);
+      //  lytCustom->setSizeConstraint(QLayout::SetFixedSize);
+      */
+  KLFFlowLayout *lytRecent = new KLFFlowLayout(u->mRecentColorsPalette, 11, 2, 2);
+  lytRecent->setFlush(KLFFlowLayout::FlushBegin);
+  KLFFlowLayout *lytStandard = new KLFFlowLayout(u->mStandardColorsPalette, 11, 2, 2);
+  lytStandard->setFlush(KLFFlowLayout::FlushBegin);
+  KLFFlowLayout *lytCustom = new KLFFlowLayout(u->mCustomColorsPalette, 11, 2, 2);
+  lytCustom->setFlush(KLFFlowLayout::FlushBegin);
 
   connect(_recentcolors, SIGNAL(listChanged()), this, SLOT(updatePaletteRecent()));
   connect(_standardcolors, SIGNAL(listChanged()), this, SLOT(updatePaletteStandard()));
@@ -629,6 +656,12 @@ KLFColorChooseWidget::KLFColorChooseWidget(QWidget *parent)
 	  this, SLOT(internalColorNameSelected(QListWidgetItem*)));
   connect(u->txtHex, SIGNAL(textChanged(const QString&)),
 	  this, SLOT(internalColorNameSet(const QString&)));
+
+  QPalette p = u->txtHex->palette();
+  u->txtHex->setProperty("paletteDefault", QVariant::fromValue<QPalette>(p));
+  p.setColor(QPalette::Base, QColor(255,169, 184,128));
+  u->txtHex->setProperty("paletteInvalidInput", QVariant::fromValue<QPalette>(p));
+  
 
   connect(u->btnAddCustomColor, SIGNAL(clicked()),
 	  this, SLOT(setCurrentToCustomColor()));
@@ -677,19 +710,58 @@ void KLFColorChooseWidget::internalColorNameSelected(QListWidgetItem *item)
 
 void KLFColorChooseWidget::internalColorNameSet(const QString& n)
 {
+  klfDbg("name set: "<<n) ;
   QString name = n;
-  static QRegExp rx("\\#?[0-9A-Za-z]{6}");
-  if (!rx.exactMatch(name)) {
-    u->txtHex->setProperty("invalidInput", true);
-    u->txtHex->setStyleSheet("background-color: rgb(255,128,128)");
-    return;
+  static QRegExp rx("\\#?[0-9A-Fa-f]{6}");
+  bool validinput = false;
+  bool setcolor = false;
+  int listselect = -1;
+  QColor color;
+  if (rx.exactMatch(name)) {
+    if (name[0] != QLatin1Char('#'))
+      name = "#"+name;
+    validinput = setcolor = true;
+    color = QColor(name);
+  } else {
+    // try to match a color name, or the beginning of a color name
+    int k;
+    for (k = 0; k < u->lstNames->count(); ++k) {
+      QString s = u->lstNames->item(k)->text();
+      if (s == name) {
+	// found an exact match. Select it and set color
+	validinput = true;
+	listselect = k;
+	setcolor = true;
+	color = QColor(name);
+	break;
+      }
+      if (s.startsWith(n)) {
+	// found a matching name. Just select it for user feedback
+	validinput = true;
+	listselect = k;
+	setcolor = false;
+	break;
+      }
+    }
   }
-  u->txtHex->setProperty("invalidInput", QVariant());
-  u->txtHex->setStyleSheet("");
-  if (name[0] != QLatin1Char('#'))
-    name = "#"+name;
-  QColor color(name);
-  internalColorChanged(color);
+  // now set the background color of the text input correctly (valid input or not)
+  if (!validinput) {
+    u->txtHex->setProperty("invalidInput", true);
+    u->txtHex->setStyleSheet(u->txtHex->styleSheet()); // style sheet recalc
+    u->txtHex->setPalette(u->txtHex->property("paletteInvalidInput").value<QPalette>());
+  } else {
+    u->txtHex->setProperty("invalidInput", QVariant());
+    u->txtHex->setStyleSheet(u->txtHex->styleSheet()); // style sheet recalc
+    u->txtHex->setPalette(u->txtHex->property("paletteDefault").value<QPalette>());
+  }
+  // select the appropriate list item if needed
+  if (listselect >= 0) {
+    u->lstNames->blockSignals(true);
+    u->lstNames->setCurrentRow(listselect, QItemSelectionModel::ClearAndSelect);
+    u->lstNames->blockSignals(false);
+  }
+  if (setcolor)
+    internalColorChanged(color);
 }
 
 void KLFColorChooseWidget::setColor(const QColor& color)
@@ -710,16 +782,26 @@ void KLFColorChooseWidget::setAlphaEnabled(bool enabled)
   u->mAlphaPane->setShown(enabled);
   u->lblsAlpha->setShown(enabled);
   u->mAlphaSlider->setShown(enabled);
-  _color.setAlpha(255);
-  setColor(_color);
+  if (!enabled) {
+    _color.setAlpha(255);
+    setColor(_color);
+  }
 }
 
 void KLFColorChooseWidget::fillPalette(KLFColorList *colorlist, QWidget *w)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("colorlist is "<<colorlist<<", _customcolors is "<<_customcolors<<", _recentcolors is "<<_recentcolors) ;
   int k;
-  KLFGridFlowLayout *lyt = dynamic_cast<KLFGridFlowLayout*>( w->layout() );
+  //  KLFGridFlowLayout *lyt = dynamic_cast<KLFGridFlowLayout*>( w->layout() );
+  // KLF_ASSERT_NOT_NULL(lyt, "Layout is not a KLFGridFlowLayout !", return; ) ;
+  KLFFlowLayout *lyt = dynamic_cast<KLFFlowLayout*>( w->layout() );
+  KLF_ASSERT_NOT_NULL(lyt, "Layout is not a KLFFlowLayout !", return; ) ;
+
   lyt->clearAll();
   for (k = 0; k < colorlist->list.size(); ++k) {
+    klfDbg("Adding a KLFColorClickSquare for color: "<<colorlist->list[k]) ;
+    
     KLFColorClickSquare *sq = new KLFColorClickSquare(colorlist->list[k], 12,
 						      (colorlist == _customcolors ||
 						       colorlist == _recentcolors),
@@ -727,11 +809,12 @@ void KLFColorChooseWidget::fillPalette(KLFColorList *colorlist, QWidget *w)
     connect(sq, SIGNAL(colorActivated(const QColor&)),
 	    this, SLOT(internalColorChanged(const QColor&)));
     connect(sq, SIGNAL(wantRemoveColor(const QColor&)),
-	      colorlist, SLOT(removeColor(const QColor&)));
-    lyt->insertGridFlowWidget(sq);
+    colorlist, SLOT(removeColor(const QColor&)));
+    // lyt->insertGridFlowWidget(sq);
+    lyt->addWidget(sq);
     sq->show();
   }
-  w->adjustSize();
+  w->adjustSize(); // the widget is inside a scroll area
 }
 
 void KLFColorChooseWidget::setCurrentToCustomColor()
@@ -909,6 +992,27 @@ void KLFColorChooser::setDefaultStateString(const QString& str)
 {
   _defaultstatestring = str;
   _makemenu();
+}
+
+void KLFColorChooser::setAutoAddToList(bool autoadd)
+{
+  _autoadd = autoadd;
+}
+void KLFColorChooser::setShowSize(const QSize& size)
+{
+  _size = size;
+  _setpix();
+  if (size.isValid())
+    setMinimumSize(sizeHint());
+  else
+    setMinimumSize(QSize());
+}
+void KLFColorChooser::setPixXAlignFactor(float xalignfactor)
+{
+  _xalignfactor = xalignfactor;
+}
+void KLFColorChooser::setPixYAlignFactor(float yalignfactor) {
+  _yalignfactor = yalignfactor;
 }
 
 void KLFColorChooser::setAlphaEnabled(bool on)

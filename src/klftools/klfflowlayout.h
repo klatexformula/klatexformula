@@ -64,11 +64,8 @@ public:
   virtual void addLayout(QLayout *l, int hstretch = 0, int vstretch = 0);
   virtual void addWidget(QWidget *w, int hstretch = 0, int vstretch = 0, Qt::Alignment align = 0);
   int horizontalSpacing() const;
-  void setHorizontalSpacing(int spacing);
   int verticalSpacing() const;
-  void setVerticalSpacing(int spacing);
   Flush flush() const;
-  void setFlush(Flush f);
   virtual int count() const;
   virtual QLayoutItem *itemAt(int index) const;
   virtual QLayoutItem *takeAt(int index);
@@ -86,6 +83,12 @@ public:
   virtual bool event(QEvent *event);
   virtual bool eventFilter(QObject *obj, QEvent *event);
   
+public slots:
+  void clearAll(bool deleteItems = true);
+  void setHorizontalSpacing(int spacing);
+  void setVerticalSpacing(int spacing);
+  void setFlush(Flush f);
+
 private:
 
   KLFFlowLayoutPrivate *d;

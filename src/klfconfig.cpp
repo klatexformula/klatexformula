@@ -187,6 +187,7 @@ void KLFConfig::loadDefaults()
 
   QFont cmuappfont = QFont();
   QFont fcodeMain = QFont();
+  QFont fcodePreamble = QFont();
 
   if (qApp->inherits("QApplication")) { // and not QCoreApplication...
 
@@ -239,13 +240,14 @@ void KLFConfig::loadDefaults()
 #else
     int fcodeIdealHeight = 18; // the ideal height of the string "MX" in pixels
 #endif
-// #if QT_VERSION < 0x040500
-//     fcodeIdealHeight += 2; // fix for Qt 4.4
-// #endif
+    // #if QT_VERSION < 0x040500
+    //     fcodeIdealHeight += 2; // fix for Qt 4.4
+    // #endif
     ps = adjust_font_size(fcode, fcodeIdealHeight);
     fcode.setPointSize(ps);
     fcodeMain = fcode;
-    fcodeMain.setPointSize(ps+1);
+    fcodePreamble = fcode;
+    fcodePreamble.setPointSize(ps-1);
 
     defaultCMUFont = cmuappfont;
     defaultTTFont = fcode;
@@ -274,7 +276,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.applicationFont, cmuappfont) ;
 #endif
   KLFCONFIGPROP_INIT(UI.latexEditFont, fcodeMain) ;
-  KLFCONFIGPROP_INIT(UI.preambleEditFont, defaultTTFont) ;
+  KLFCONFIGPROP_INIT(UI.preambleEditFont, fcodePreamble) ;
   KLFCONFIGPROP_INIT(UI.previewTooltipMaxSize, QSize(800, 600)) ;
   KLFCONFIGPROP_INIT(UI.labelOutputFixedSize, QSize(280, 80)) ;
   KLFCONFIGPROP_INIT(UI.smallPreviewSize, QSize(280, 80));

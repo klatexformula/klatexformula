@@ -211,7 +211,9 @@ KLFAddOnInfo::PluginSysInfo KLFAddOnInfo::pluginSysInfo(const QString& plugin) c
 QString KLFAddOnInfo::pluginLocalSubDirName(const QString& plugin) const
 {
   if ( ! d->plugins[plugin].klfminversion.isEmpty() )
-    return QString("klf%1").arg(d->plugins[plugin].klfminversion);
+    return QString("%1/klf%2").arg(QLatin1String("sysarch_")+KLFSysInfo::makeSysArch(d->plugins[plugin].os,
+										     d->plugins[plugin].arch),
+				   d->plugins[plugin].klfminversion);
   return QString(".");
 }
 QStringList KLFAddOnInfo::userScripts() const { return d->userScripts; }
@@ -233,7 +235,7 @@ bool KLFAddOnInfo::PluginSysInfo::isCompatibleWithCurrentSystem() const
     (qtminversion.isEmpty()
      || klfVersionCompare(qtminversion, qVersion()) <= 0) &&
     os == KLFSysInfo::osString() &&
-    arch == KLFSysInfo::arch() ;
+    arch.split(',').contains(KLFSysInfo::arch()) ;
 }
 
 void KLFAddOnInfo::addError(const QString& s)

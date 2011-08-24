@@ -21,13 +21,18 @@ if(NOT KLF_ROOT_CMAKE_READ)
   include(../../cmake/KLFUtil.cmake)
 endif(NOT KLF_ROOT_CMAKE_READ)
 
-macro(klf_nokde4)
+macro(klf_nokateplugin shortreason longreason)
   set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build KTextEditor plugin" FORCE)
-  KLFNote("KDE4 is required to build KTextEditor plugin.
-    Since KDE4 could not be found, the KLatexFormula KTextEditor plugin will not be built (KLF_BUILD_KTEXTEDITORPLUGIN).
-    KLatexFormula itself does not need KDE4 and will be compiled normally.
+  KLFNote("${longreason}
     Please re-run cmake to proceed.")
-  message(FATAL_ERROR "KDE4 not found.")
+  message(FATAL_ERROR "${shortreason}")
+endmacro(klf_nokateplugin)
+
+macro(klf_nokde4)
+  klf_nokateplugin("KDE4 not found."
+    "KDE4 is required to build KTextEditor plugin.
+    Since KDE4 could not be found, the KLatexFormula KTextEditor plugin will not be built (KLF_BUILD_KTEXTEDITORPLUGIN).
+    KLatexFormula itself does not need KDE4 and will be compiled normally.")
 endmacro(klf_nokde4)
 
 # find KDE4
@@ -62,28 +67,32 @@ mark_as_advanced(
 set(ktexteditor_klf_PART_SRCS klfkateplugin.cpp klfkteparser.cpp klfkateplugin_config.cpp )
 
 if(KLF_LIBKLFTOOLS_STATIC OR KLF_LIBKLFBACKEND_STATIC)
-  # ###TODO: do this better!
-  message(FATAL_ERROR "Can't build kate plugin with static klftools/klfbackend libraries.")
+  klf_nokateplugin("Can't build kate plugin with static klftools/klfbackend libraries."
+    "KTextEditor plugin needs shared klftools and klfbackend libraries, but one or more of those libraries
+    are being built statically. The KLatexFormula KTextEditor plugin will not be built (KLF_BUILD_KTEXTEDITORPLUGIN).
+    KLatexFormula itself does not need the KTextEditor plugin and will be compiled normally.")
 endif()
 
 
-if(KLF_LIBKLFBACKEND_STATIC)
-  # Can't link the plugin to a static klfbackend library. We need to re-compile the klfbackend
-  # sources for this target.
-  get_target_property(klfbackend_sources klfbackend SOURCES)
-  foreach(klfbackend_sourcefile ${klfbackend_sources})
-    # TODO: this assumes that absolute paths are auto-generated sources (moc) and relative are
-    #       real sources...
-    if(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
-      set(ktexteditor_klf_PART_SRCS ${ktexteditor_klf_PART_SRCS}
-				    "${CMAKE_SOURCE_DIR}/src/klfbackend/${klfbackend_sourcefile}")
-    else(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
-    endif(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
-  endforeach(klfbackend_sourcefile)
-  # add the moc file for klfdebug.h manually for automoc, since there isn't a klfdebug.cpp
-  set(ktexteditor_klf_PART_SRCS ${ktexteditor_klf_PART_SRCS}
-				    "${CMAKE_SOURCE_DIR}/src/klfbackend/klfdebug.h")
-endif(KLF_LIBKLFBACKEND_STATIC)
+# This is not nice... just force user to build dynamic libraries.
+#
+#if(KLF_LIBKLFBACKEND_STATIC)
+#  # Can't link the plugin to a static klfbackend library. We need to re-compile the klfbackend
+#  # sources for this target.
+#  get_target_property(klfbackend_sources klfbackend SOURCES)
+#  foreach(klfbackend_sourcefile ${klfbackend_sources})
+#    # TODO: this assumes that absolute paths are auto-generated sources (moc) and relative are
+#    #       real sources...
+#    if(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
+#      set(ktexteditor_klf_PART_SRCS ${ktexteditor_klf_PART_SRCS}
+#				    "${CMAKE_SOURCE_DIR}/src/klfbackend/${klfbackend_sourcefile}")
+#    else(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
+#    endif(NOT IS_ABSOLUTE ${klfbackend_sourcefile})
+#  endforeach(klfbackend_sourcefile)
+#  # add the moc file for klfdebug.h manually for automoc, since there isn't a klfdebug.cpp
+#  set(ktexteditor_klf_PART_SRCS ${ktexteditor_klf_PART_SRCS}
+#				    "${CMAKE_SOURCE_DIR}/src/klfbackend/klfdebug.h")
+#endif(KLF_LIBKLFBACKEND_STATIC)
 
 kde4_add_ui_files(ktexteditor_klf_PART_SRCS klfkatepluginconfigwidget.ui)
 kde4_install_icons(${ICON_INSTALL_DIR})

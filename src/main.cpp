@@ -585,16 +585,17 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
   int i, k, j;
   for (k = 0; k < klf_addons.size(); ++k) {
     QStringList pluginList = klf_addons[k].pluginList();
+    bool hadatleastonecompatibleplugin = false;
     for (j = 0; j < pluginList.size(); ++j) {
       KLFAddOnInfo::PluginSysInfo psinfo = klf_addons[k].pluginSysInfo(pluginList[j]);
       klfDbg( "Testing plugin psinfo="<<psinfo<<"\n\tTo our system: qtver="<<qVersion()
 	      <<"; klfver="<<KLF_VERSION_STRING<<"; os="<<KLFSysInfo::osString()
 	      <<"; arch="<<KLFSysInfo::arch() ) ;
       if ( ! psinfo.isCompatibleWithCurrentSystem() ) {
-	klf_addons[k].addError(QObject::tr("Plugin not compatible with current system.", "[[plugin error message]]"));
 	continue;
       }
       // ok to install plugin
+      hadatleastonecompatibleplugin = true;
       QString resfn = klf_addons[k].rccmountroot() + "/plugins/" + pluginList[j];
       QString locsubdir = klf_addons[k].pluginLocalSubDirName(pluginList[j]);
       QString locfn = klfconfig.homeConfigDirPlugins + "/" + locsubdir + "/"
@@ -626,34 +627,51 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	}
       }
       // OK, plugin locally installed.
+    } // for(j) in pluginList
+    if (!hadatleastonecompatibleplugin) {
+      klf_addons[k].addError(QObject::tr("Plugin not compatible with current system.", "[[plugin error message]]"));
     }
-  }
+  } // for(k) in klf_addons
 
-  // explore all base plugins dir, eg. /usr/share/klatexformula/plugins, and ~/.klatexformula/plugins/
+  // explore all base plugins dir with compatible architectures, eg.
+  // /usr/share/klatexformula/plugins, and ~/.klatexformula/plugins/
   int n;
   for (n = 0; n < baseplugindirs.size(); ++n) {
-    QString baseplugindir = baseplugindirs[n];
-    klfDbg("exploring base plugin directory "<<baseplugindir) ;
-    // build a list of plugin directories to search. We will need to load plugins in our version directory
-    // + all prior version directories + root plugin path.
+    // build a list of plugin directories to search.
     QStringList pluginsdirs;
-    // For each path in pluginsdirs, in this array (at same index pos) we have the relative path from baseplugindir.
+    // For each path in pluginsdirs, in this array (at same index pos) we have the
+    // relative path from baseplugindir.
     QStringList pluginsdirsbaserel;
-    QDir pdir(baseplugindir);
-    QStringList pdirlist = pdir.entryList(QStringList()<<"klf*", QDir::Dirs);
-    // sort plugin dirs so that for a plugin existing in multiple versions, we load the one for the
-    // most recent first, then ignore the others.
-    qSort(pdirlist.begin(), pdirlist.end(), VersionCompareWithPrefixGreaterThan("klf"));
-    for (i = 0; i < pdirlist.size(); ++i) {
-      klfDbg( "maybe adding plugin dir"<<pdirlist[i]<<"; klfver="<<pdirlist[i].mid(3) ) ;
-      if (klfVersionCompare(pdirlist[i].mid(3), KLF_VERSION_STRING) <= 0) { // Version OK
-	pluginsdirs << pdir.absoluteFilePath(pdirlist[i]) ;
-	pluginsdirsbaserel << pdirlist[i]+"/";
+    
+    QString basebaseplugindir = baseplugindirs[n];
+    klfDbg("exploring base plugin directory "<<basebaseplugindir) ;
+    // explore all compatible architecture directores
+    QDir dbaseplugindir(basebaseplugindir);
+    QStringList arches = dbaseplugindir.entryList(QStringList()<<"sysarch_*", QDir::Dirs);
+    foreach(QString pluginarchdir, arches) {
+      QString thissysarch = pluginarchdir.mid(strlen("sysarch_"));
+      klfDbg("testing directory "<<pluginarchdir<<" of sysarch "<<thissysarch<<" for current os="
+	     <<KLFSysInfo::osString()<<"/arch="<<KLFSysInfo::arch()) ;
+      if (KLFSysInfo::isCompatibleSysArch(thissysarch)) {
+	klfDbg("...is compatible. looking for plugin to load...") ;
+	QString baseplugindir = basebaseplugindir+"/"+pluginarchdir;
+	// ok. this is compatible arch
+	// now look into klf-version directories
+	QDir pdir(baseplugindir);
+	QStringList pdirlist = pdir.entryList(QStringList()<<"klf*", QDir::Dirs);
+	klfDbg("pdirlist="<<pdirlist) ;
+	// sort plugin dirs so that for a plugin existing in multiple versions, we load the
+	// one for the most recent first, then ignore the others.
+	qSort(pdirlist.begin(), pdirlist.end(), VersionCompareWithPrefixGreaterThan("klf"));
+	for (i = 0; i < pdirlist.size(); ++i) {
+	  klfDbg( "maybe adding plugin dir"<<pdirlist[i]<<"; klfver="<<pdirlist[i].mid(3) ) ;
+	  if (klfVersionCompare(pdirlist[i].mid(3), KLF_VERSION_STRING) <= 0) { // Version OK
+	    pluginsdirs << pdir.absoluteFilePath(pdirlist[i]) ;
+	    pluginsdirsbaserel << pdirlist[i]+"/";
+	  }
+	}
       }
     }
-    pluginsdirs << klfconfig.homeConfigDirPlugins ;
-    pluginsdirsbaserel << "" ;
-
     klfDbg( "pluginsdirs="<<pluginsdirs ) ;
     
     for (i = 0; i < pluginsdirs.size(); ++i) {
