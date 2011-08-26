@@ -59,7 +59,7 @@ void KLFProgressReporter::doReportProgress(int value)
     return;
   }
   emit progress(value);
-  if (value == pMax) {
+  if (value >= pMax) {
     emit finished();
     pFinished = true;
   }
@@ -632,5 +632,3 @@ KLF_EXPORT void klfRestoreWindows()
     }
   }
 }
-
-------- DIFF -------
