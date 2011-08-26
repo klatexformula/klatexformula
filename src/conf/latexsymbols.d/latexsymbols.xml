@@ -492,6 +492,7 @@
     <sym><usepackage name="mathtools"/><latex>\coloneqq</latex></sym>
     <sym><usepackage name="mathtools"/><latex>\Coloneqq</latex></sym>
     <sym><usepackage name="amsmath"/><latex>\stackrel{\text{\tiny def}}{=}</latex><keywords>definition</keywords></sym>
+    <sym><usepackage name="amsmath"/><latex>\stackrel{\varepsilon}{\approx}</latex><keywords>epsilon close approximately</keywords></sym>
   </category>
   <category name="Delimiters and Accents">
     <category-title>Delimiters and Accents</category-title>
