@@ -465,6 +465,21 @@
  * Same as klfDbgSt(), but prints also the time like klfDbgT() does.
  */
 
+/** \def klfWarning
+ * \hideinitializer
+ *
+ * Emit a warning to the standard error. Will do so regardless of whether KLF_DEBUG is defined or not.
+ * Its usage is identical to \ref klfDbg:
+ * \code
+ *   int some_function(int x)
+ *   {
+ *     if (x < 0) {
+ *       klfWarning("Expected positive x; I was given x="<<x) ;
+ *     }
+ *   }
+ * \endcode
+ */
+
 /** \def KLF_FUNC_SINGLE_RUN
  * \hideinitializer
  * \brief Simple test for one-time-run functions
@@ -1090,14 +1105,32 @@ KLFDebugBlockTimer::~KLFDebugBlockTimer()
   //#endif
 }
 
+inline QString func_name_w_parens(const char *f)
+{
+  QString s = QLatin1String(f);
+  if (s.indexOf('(') == -1)
+    return s+"()";
+  return s;
+}
+
 // the following is defined for both debug and non-debug modes. In non-debug modes, it provides the symbol
 // __klf_dbg_hdr for debugging eg. plugins compiled in debug mode
 KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *refinstance, const char * shorttime)
 {
   if (shorttime == NULL)
-    return dbg.nospace()<<funcname<<"():"<<refinstance<<"\n        ";
+    return dbg.nospace()<<qPrintable(func_name_w_parens(funcname))<<":"<<refinstance
+			<<"\n        ";
   else
-    return dbg.nospace()<<"+T:"<<shorttime<<": "<<funcname<<"():"<<refinstance<<"\n        ";
+    return dbg.nospace()<<"+T:"<<shorttime<<": "<<qPrintable(func_name_w_parens(funcname))<<":"<<refinstance
+			<<"\n        ";
+}
+
+KLF_EXPORT QDebug __klf_warning_hdr(QDebug warndbg, const char * funcname, const char * shorttime)
+{
+  Q_UNUSED(shorttime) ; // maybe if I one day decide to change the format to include shorttime... (?)
+  return warndbg.nospace()<<"***** In function "<<qPrintable(func_name_w_parens(funcname))<<" *****"
+			  <<"\n        ";
+
 }
 
 

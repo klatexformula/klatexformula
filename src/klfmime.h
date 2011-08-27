@@ -75,16 +75,45 @@ public:
    * \returns true if key is in \ref keys() list. */
   virtual bool supportsKey(const QString& key) const;
 
-  /** Looks up an exporter supporting type \c key. The first exporter in the list
-   * is returned. If no exporter is found, NULL is returned. */
+
+
+  /** \brief Convenience function to look up an exporter and export the given data.
+   *
+   * If \c exporter is a non-empty string, that exporter is looked up, making sure it can export
+   * the given type \c key, and its \ref data() function is called to export the given \c klfoutput.
+   * In case of failure an empty QByteArray is returned.
+   *
+   * If \c exporter is an empty string, then the data given by the first exporter which supports type \c key
+   * and which successfully exported the data is returned. If no exporter was found, or all exporters
+   * that support type \c key failed to export the data, then an empty QByteArray is returned.
+   */
+  static QByteArray exportData(const QString& key, const KLFBackend::klfOutput& klfoutput,
+			       const QString& exporter = QString());
+
+  /** \brief Looks up an exporter supporting type key.
+   *
+   * The first exporter in the list is returned. If no exporter is found, NULL is returned.
+   *
+   * \warning the returned exporter may fail at exporting the requested type (for some reason), whereas
+   *   there may be another exporter with the providing the same key, which, for some other reason will
+   *   succeed. For this purpose it may be better to try all the exporters supporting a given key, see
+   *   also \ref mimeExporterFullLookup(). */
   static KLFMimeExporter * mimeExporterLookup(const QString& key);
+
+  /** \brief Looks up all exporters supporting the given type key.
+   *
+   * An empty list is returned if no exporter supports the given type \c key.
+   *
+   * See also \ref mimeExporterLookup().
+   */
+  static QList<KLFMimeExporter*> mimeExporterFullLookup(const QString& key);
 
   /** Looks up exporter \c exporter and returns the exporter, or NULL if it was not found.
    *
    * If \c key is non-empty, a check to ensure that the exporter supports the given \c key is performed
    * with \ref supportsKey(). If the exporter does not support the given \c key, NULL is returned instead. */
   static KLFMimeExporter * mimeExporterLookupByName(const QString& exporter, const QString& key = QString());
-  
+
   static QList<KLFMimeExporter *> mimeExporterList();
   /** Adds the instance \c exporter to the internal list of exporters.
    *
@@ -125,11 +154,36 @@ public:
   /** Returns export type at position \c n. \c n MUST be in the valid range \c 0 ... exportTypesCount(). */
   inline ExportType exportType(int n) const { return p_exportTypes[n]; }
 
+  /** \brief Convience function that exports the data according to the type at the given index.
+   *
+   * Performs a lookup for all exporters that support the given type with \ref exporterFullLookupFor(), and
+   * then tries them one by one until an exporter successfully returns exported data. We then return that
+   * data.
+   *
+   * In case of failure, an empty QByteArray is returned.
+   */
+  QByteArray exportData(int n, const KLFBackend::klfOutput& output) const;
+
   /** Returns the KLFMimeExporter object that is responsible for exporting into the format
    * at index \c n in the exportTypes() list.
    *
-   * If \c warnNotFound is TRUE, then a warning is emitted if the exporter was not found. */
+   * If \c warnNotFound is TRUE, then a warning is emitted if the exporter was not found.
+   *
+   * See the warning in \ref KLFMimeExporert::mimeExporterLookup() and consider using the
+   * function \ref exporterFullLookupFor() instead.
+   */
   KLFMimeExporter * exporterLookupFor(int n, bool warnNotFound = true) const;
+
+  /** Returns the KLFMimeExporter object(s) that are responsible for exporting into the format
+   * at index \c n in the exportTypes() list. If several exporters provide the same type,
+   * then they are all returned provided a specific exporter has been requested in the
+   * ExportType.
+   *
+   * If \c warnNotFound is TRUE, then a warning is emitted if the exporter was not found.
+   *
+   * See also \ref exporterLookupFor().
+   */
+  QList<KLFMimeExporter*> exporterFullLookupFor(int n, bool warnNotFound = true) const;
 
   /** A list of mime types to export when using this profile.
    *

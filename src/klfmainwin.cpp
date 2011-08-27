@@ -584,6 +584,11 @@ bool KLFMainWin::loadNamedStyle(const QString& sty)
 
 void KLFMainWin::loadSettings()
 {
+  // start by filling _setting with defaults
+  KLFBackend::detectSettings(&_settings);
+
+  // then override those defaults with our specific settings
+
   _settings.tempdir = klfconfig.BackendSettings.tempDir;
   _settings.latexexec = klfconfig.BackendSettings.execLatex;
   _settings.dvipsexec = klfconfig.BackendSettings.execDvips;
@@ -2987,7 +2992,7 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 {
   // application-long persistent selectedfilter
   static QString selectedfilter;
-  
+
   QStringList formatlist, filterformatlist;
   QMap<QString,QString> formatsByFilterName;
   QList<QByteArray> formats = QImageWriter::supportedImageFormats();

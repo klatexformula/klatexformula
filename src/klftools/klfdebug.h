@@ -165,6 +165,11 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #endif // KLF_DEBUG
 
 
+KLF_EXPORT  QDebug
+/* */ __klf_warning_hdr(QDebug warnstr, const char * funcname, const char * shorttime);
+
+#define klfWarning(streamableItems) __klf_warning_hdr(qWarning(), KLF_FUNC_NAME, KLF_SHORT_TIME) << streamableItems
+
 
 /* Ensure a usable __func__ symbol */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ < 199901L
@@ -195,7 +200,7 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 
 #define KLF_ASSERT_CONDITION(expr, msg, failaction)		       \
   if ( !(expr) ) {						       \
-    qWarning().nospace()<<"In function "<<KLF_FUNC_NAME<<":\n\t"<<msg; \
+    klfWarning(msg);						       \
     failaction;							       \
   }
 #define KLF_ASSERT_CONDITION_ELSE(expr, msg, failaction)	\

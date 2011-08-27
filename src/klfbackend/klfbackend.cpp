@@ -27,15 +27,17 @@
 #include <sys/time.h>
 
 #include <QtGlobal>
-#include <qapplication.h>
-#include <qregexp.h>
-#include <qfile.h>
-#include <qdatetime.h>
-#include <qtextstream.h>
-#include <qbuffer.h>
-#include <qdir.h>
-#include <qcolor.h>
+#include <QSet>
+#include <QApplication>
+#include <QRegExp>
+#include <QFile>
+#include <QDateTime>
+#include <QTextStream>
+#include <QBuffer>
+#include <QDir>
+#include <QColor>
 #include <QTextDocument>
+#include <QImageWriter>
 
 #include <klfutil.h>
 
@@ -121,6 +123,26 @@ static const char * standard_extra_paths[] = {
 #endif
 
 
+// ---------------------------------
+
+static void cleanup(QString tempfname);
+
+static QMutex klf_mutex;
+
+struct GsInfo
+{
+  GsInfo() { }
+
+  QString version;
+  QString help;
+  QSet<QString> availdevices;
+};
+
+// cache gs version/help/etc. information (for each gs executable, in case there are several)
+static QMap<QString,GsInfo> gsInfo = QMap<QString,GsInfo>();
+
+static void initGsInfo(const KLFBackend::klfSettings *settings);
+
 
 // ---------------------------------
 
@@ -179,7 +201,7 @@ KLFBackend::KLFBackend()
 
 
 // Utility function
-QString progErrorMsg(QString progname, int exitstatus, QString stderrstr, QString stdoutstr)
+static QString progErrorMsg(QString progname, int exitstatus, QString stderrstr, QString stdoutstr)
 {
   QString stdouthtml = stdoutstr;
   QString stderrhtml = stderrstr;
@@ -217,11 +239,11 @@ struct cleanup_caller {
   QString tempfname;
   cleanup_caller(QString fn) : tempfname(fn) { }
   ~cleanup_caller() {
-    KLFBackend::cleanup(tempfname);
+    cleanup(tempfname);
   }
 };
 
-QString __klf_expand_env_vars(const QString& envexpr)
+static QString klf_expand_env_vars(const QString& envexpr)
 {
   QString s = envexpr;
   QRegExp rx("\\$(?:(\\$|(?:[A-Za-z0-9_]+))|\\{([A-Za-z0-9_]+)\\})");
@@ -244,7 +266,7 @@ QString __klf_expand_env_vars(const QString& envexpr)
   return s;
 }
 
-void __klf_append_replace_env_var(QStringList *list, const QString& var, const QString& line)
+static void klf_append_replace_env_var(QStringList *list, const QString& var, const QString& line)
 {
   // search for declaration of var in list
   int k;
@@ -449,7 +471,7 @@ KLF_EXPORT QString klfbackend_last_userscript_output;
 KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& usersettings)
 {
   // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
-  QMutexLocker mutexlocker(&__mutex);
+  QMutexLocker mutexlocker(&klf_mutex);
 
   klfSettings settings;
   settings = usersettings;
@@ -470,8 +492,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	continue;
       }
       QString varname = settings.execenv[k].mid(0, eqpos);
-      QString newenvdef = __klf_expand_env_vars(settings.execenv[k]);
-      __klf_append_replace_env_var(&execenv, varname, newenvdef);
+      QString newenvdef = klf_expand_env_vars(settings.execenv[k]);
+      klf_append_replace_env_var(&execenv, varname, newenvdef);
     }
     settings.execenv = execenv;
   }
@@ -496,16 +518,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
 
   // read GS version, will need later
-  initGsVersion(&settings);
-  if (!gsVersion.contains(settings.gsexec)) {
+  initGsInfo(&settings);
+  if (!gsInfo.contains(settings.gsexec)) {
     res.status = KLFERR_NOGSVERSION;
     res.errorstr = QObject::tr("Can't query version of ghostscript located at `%1'.").arg(settings.gsexec);
     return res;
   }
 
-  /** \todo .... query gs --help to see if we have SVG driver ... ! */
-
-  klfDebugf(("%s: queried ghostscript version: %s", KLF_FUNC_NAME, qPrintable(gsVersion[settings.gsexec]))) ;
+  klfDebugf(("%s: queried ghostscript version: %s", KLF_FUNC_NAME, qPrintable(gsInfo[settings.gsexec].version))) ;
 
   // force some rules on settings
 
@@ -671,7 +691,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       << "KLF_LATEX=" + settings.latexexec
       << "KLF_DVIPS=" + settings.dvipsexec
       << "KLF_GS=" + settings.gsexec
-      << "KLF_GS_VERSION=" + gsVersion.value(settings.gsexec)
+      << "KLF_GS_VERSION=" + gsInfo.value(settings.gsexec).version
+      << "KLF_GS_DEVICES=" + QStringList(gsInfo.value(settings.gsexec).availdevices.toList()).join(",")
       // input
       << "KLF_INPUT_LATEX=" + in.latex
       << "KLF_INPUT_MATHMODE=" + in.mathmode
@@ -1063,15 +1084,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   if (settings.wantSVG) {
 
-    QString thisgsversion = gsVersion[settings.gsexec];
-
-    if (klfVersionCompare(thisgsversion, "8.64") < 0) {
+    if (!gsInfo[settings.gsexec].availdevices.contains("svg")) {
       // not OK to get SVG...
-      qWarning("%s: ghostscript is too old (%s < 8.64). cannot create SVG", KLF_FUNC_NAME,
-	       qPrintable(thisgsversion));
+      klfWarning("ghostscript cannot create SVG");
       res.status = KLFERR_GSSVG_TOOOLD;
-      res.errorstr = QObject::tr("This ghostscript is too old (%1 < 8.64) to generate SVG.", "KLFBackend")
-	.arg(thisgsversion);
+      res.errorstr = QObject::tr("This ghostscript (%1) cannot generate SVG.", "KLFBackend").arg(settings.gsexec);
       return res;
     }
       
@@ -1137,7 +1154,7 @@ static void replace_svg_width_or_height(QByteArray *svgdata, const char * attreq
 
 
 
-void KLFBackend::cleanup(QString tempfname)
+static void cleanup(QString tempfname)
 {
   // remove any file that has this basename...
   QFileInfo fi(tempfname);
@@ -1154,8 +1171,6 @@ void KLFBackend::cleanup(QString tempfname)
 
 }
 
-// static private mutex object
-QMutex KLFBackend::__mutex;
 
 KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b)
 {
@@ -1191,6 +1206,27 @@ KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::k
 }
 
 
+
+QStringList KLFBackend::availableSaveFormats(const klfOutput& klfoutput)
+{
+  QSet<QString> formats;
+  if (!klfoutput.pngdata.isEmpty())
+    formats << "PNG";
+  if (!klfoutput.epsdata.isEmpty())
+    formats << "PS" << "EPS";
+  if (!klfoutput.dvidata.isEmpty())
+    formats << "DVI";
+  if (!klfoutput.pdfdata.isEmpty())
+    formats << "PDF";
+  if (!klfoutput.svgdata.isEmpty())
+    formats << "SVG";
+  // and, of course, all Qt-available image formats
+  QList<QByteArray> imgfmts = QImageWriter::supportedImageFormats();
+  foreach (QByteArray f, imgfmts) {
+    formats << QString::fromLatin1(f.trimmed()).toUpper();
+  }
+  return formats.toList();
+}
 
 bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *device,
 				    const QString& fmt, QString *errorStringPtr)
@@ -1314,7 +1350,7 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
   
   settings->epstopdfexec = QString(); // obsolete, no longer used
 
-  settings->wantSVG = false; // will be set to TRUE once we verify 'gs' version
+  settings->wantSVG = false; // will be set to TRUE once we verify 'gs' available devices information
 
   // find executables
   struct { QString * target_setting; QStringList prog_names; }  progs_to_find[] = {
@@ -1346,10 +1382,10 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
   klf_detect_execenv(settings);
 
   if (settings->gsexec.length()) {
-    initGsVersion(settings);
-    if (!gsVersion.contains(settings->gsexec)) {
-      qWarning("%s: cannot get 'gs' version with `%s --version'.", KLF_FUNC_NAME, qPrintable(settings->gsexec));
-    } else if (klfVersionCompare(gsVersion[settings->gsexec], "8.64") >= 0) {
+    initGsInfo(settings);
+    if (!gsInfo.contains(settings->gsexec)) {
+      klfWarning("Cannot get 'gs' devices information with "<<(settings->gsexec+" --version/--help"));
+    } else if (gsInfo[settings->gsexec].availdevices.contains("svg")) {
       settings->wantSVG = true;
     }
   }
@@ -1387,7 +1423,7 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
       + dir_native_separators(gsfi.fi_absolutePath()+"/../../ghostscript/base")
       + ";"
       + dir_native_separators(gsfi.fi_absolutePath()+"/../../fonts");
-    __klf_append_replace_env_var(& settings->execenv, "MIKTEX_GS_LIB", mgsenv);
+    klf_append_replace_env_var(& settings->execenv, "MIKTEX_GS_LIB", mgsenv);
     klfDbg("Adjusting environment for mgs.exe: `"+mgsenv+"'") ;
   }
 
@@ -1397,7 +1433,7 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
   if (!settings->epstopdfexec.isEmpty()) {
     QFileInfo epstopdf_fi(settings->epstopdfexec);
     QString execenvpath = QString("PATH=%1:$PATH").arg(epstopdf_fi.fi_absolutePath());
-    __klf_append_replace_env_var(& settings->execenv, "PATH", execenvpath);
+    klf_append_replace_env_var(& settings->execenv, "PATH", execenvpath);
   }
 #endif
 
@@ -1407,12 +1443,10 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
 
 
 
-QMap<QString,QString> KLFBackend::gsVersion = QMap<QString,QString>();
-
 // static 
-void KLFBackend::initGsVersion(const KLFBackend::klfSettings *settings)
+void initGsInfo(const KLFBackend::klfSettings *settings)
 {
-  if (gsVersion.contains(settings->gsexec)) // value already cached
+  if (gsInfo.contains(settings->gsexec)) // info already cached
     return;
 
   QString gsver;
@@ -1432,12 +1466,58 @@ void KLFBackend::initGsVersion(const KLFBackend::klfSettings *settings)
     bool ok = p.run(QString(), &ba_gsver, NULL);
     if (ok) {
       gsver = QString::fromLatin1(ba_gsver);
+      klfDbg("gs version text (untrimmed): "<<gsver) ;
+
       gsver = gsver.s_trimmed();
-      if (!gsver.isEmpty() && klfIsValidVersion(gsver)) {
-	gsVersion[settings->gsexec] = gsver;
+    }
+  }
+
+  QString gshelp;
+  QSet<QString> availdevices;
+  { // test 'gs' version, to see if we can provide SVG data
+    KLFFilterProgram p(QLatin1String("gs (query help)"), settings);
+    //    p.resErrCodes[KLFFP_NOSTART] = ;
+    //     p.resErrCodes[KLFFP_NOEXIT] = ;
+    //     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = ;
+    //     p.resErrCodes[KLFFP_NODATA] = ;
+    //     p.resErrCodes[KLFFP_DATAREADFAIL] = ;
+    
+    p.execEnviron = settings->execenv;
+    klf_append_replace_env_var(&p.execEnviron, QLatin1String("LANG"), QLatin1String("LANG=en_US.UTF-8"));
+    
+    p.argv << settings->gsexec << "--help";
+    
+    QByteArray ba_gshelp;
+    bool ok = p.run(QString(), &ba_gshelp, NULL);
+    if (ok) {
+      gshelp = QString::fromLatin1(ba_gshelp);
+
+      klfDbg("gs help text: "<<gshelp) ;
+      // parse available devices
+      const char * availdevstr = "Available devices:";
+      int k = gshelp.indexOf(availdevstr, 0, Qt::CaseInsensitive) ;
+      if (k == -1) {
+	klfWarning("Unable to parse gs' available devices.") ;
+      } else {
+	k += strlen(availdevstr); // point to after 'available devices:' string
+	// find end of available devices list, given by a line not starting with whitespace
+	int kend = gshelp.indexOf(QRegExp("\\n\\S"), k);
+	if (kend == -1)
+	  kend = gshelp.length();
+	// now split this large string into the devices list
+	QStringList devlist = gshelp.mid(k, kend-k).split(QRegExp("(\\s|[\r\n])+"), QString::SkipEmptyParts);
+	availdevices = QSet<QString>::fromList(devlist);
+	klfDbg("Detected devices: "<<availdevices) ;
       }
     }
   }
+
+  GsInfo i;
+  i.version = gsver;
+  i.help = gshelp;
+  i.availdevices = availdevices;
+
+  gsInfo[settings->gsexec] = i;
 }
 
 

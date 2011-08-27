@@ -442,6 +442,10 @@ public:
    */
   static klfOutput getLatexFormula(const klfInput& in, const klfSettings& settings);
 
+  /** \brief Get a list of available output formats for saveOutputToDevice()
+   */
+  static QStringList availableSaveFormats(const klfOutput& output) ;
+
   /** \brief Save the output to image file
    *
    * This function can be used to write output obtained with the \ref getLatexFormula() function,
@@ -511,15 +515,6 @@ public:
 
 private:
   KLFBackend();
-
-  friend struct cleanup_caller;
-  static void cleanup(QString tempfname);
-
-  static QMutex __mutex;
-
-  // cache gs version (for each gs executable, in case there are several)
-  static QMap<QString,QString> gsVersion;
-  static void initGsVersion(const KLFBackend::klfSettings *settings);
 };
 
 

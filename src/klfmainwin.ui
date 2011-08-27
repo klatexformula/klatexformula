@@ -273,7 +273,7 @@
          <property name="frameShadow">
           <enum>QFrame::Plain</enum>
          </property>
-         <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="1,0">
+         <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="99,0">
           <property name="horizontalSpacing">
            <number>6</number>
           </property>
@@ -286,7 +286,7 @@
           <item row="0" column="1">
            <widget class="QPushButton" name="btnDrag">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -299,7 +299,7 @@
           <item row="1" column="1">
            <widget class="QPushButton" name="btnCopy">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -315,7 +315,7 @@
           <item row="2" column="1">
            <widget class="QPushButton" name="btnSave">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -866,8 +866,8 @@
                <widget class="KLFColorChooser" name="colFg">
                 <property name="minimumSize">
                  <size>
-                  <width>45</width>
-                  <height>0</height>
+                  <width>46</width>
+                  <height>32</height>
                  </size>
                 </property>
                 <property name="showSize">
@@ -888,8 +888,8 @@
                <widget class="KLFColorChooser" name="colBg">
                 <property name="minimumSize">
                  <size>
-                  <width>45</width>
-                  <height>0</height>
+                  <width>46</width>
+                  <height>32</height>
                  </size>
                 </property>
                 <property name="showSize">
