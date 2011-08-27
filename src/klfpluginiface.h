@@ -67,7 +67,8 @@ public:
 
 };
 
+/* REMEMBER TO BUMB PLUGIN INTERFACE VERSION FOR NEW MAJOR VERSIONS WITH NON-BINARY-COMPATIBLE CHANGES */
 Q_DECLARE_INTERFACE(KLFPluginGenericInterface,
-		    "org.klatexformula.KLatexFormula.Plugin.GenericInterface/1.1");
+		    "org.klatexformula.KLatexFormula.Plugin.GenericInterface/1.2");
 
 #endif

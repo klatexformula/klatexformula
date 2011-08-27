@@ -2227,26 +2227,20 @@ void KLFMainWin::setMacBrushedMetalLook(bool metallook)
 {
 #ifdef Q_WS_MAC
 
-  /** \bug .... this does not work... :( */
-
-  // adjust main latex editor palette to correct bg
-  if (metallook) {
-    KLF_SET_LATEXEDIT_PALETTE(metallook, u->txtLatex) ;
-    if (u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
-      KLF_SET_LATEXEDIT_PALETTE(metallook, u->txtPreamble) ;
-    }
-  }
-
   setAttribute(Qt::WA_MacBrushedMetal, metallook);
-
-  if (!metallook) {
-    setPalette(property("defaultPalette").value<QPalette>());
-
-    KLF_SET_LATEXEDIT_PALETTE(metallook, u->txtLatex) ;
-    if (u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
-      KLF_SET_LATEXEDIT_PALETTE(metallook, u->txtPreamble) ;
-    }
+  const char * pn = metallook ? "paletteMacBrushedMetalLook" : "paletteDefault";
+  u->txtLatex->setPalette(u->txtLatex->property(pn).value<QPalette>());
+  u->txtLatex->setStyleSheet(u->txtLatex->styleSheet());
+  if (u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
+    u->txtPreamble->setPalette(u->txtPreamble->property(pn).value<QPalette>());
+    u->txtPreamble->setStyleSheet(u->txtPreamble->styleSheet());
+    u->cbxMathMode->setPalette(u->txtPreamble->property(pn).value<QPalette>());
+    u->cbxMathMode->setStyleSheet(u->cbxMathMode->styleSheet());
+    u->cbxMathMode->lineEdit()->setPalette(u->txtPreamble->property(pn).value<QPalette>());
+    u->cbxMathMode->lineEdit()->setStyleSheet(u->cbxMathMode->lineEdit()->styleSheet());
   }
+
+  /** \bug .... this does not work properly !!... :( */
 
 #else
   Q_UNUSED(metallook);
@@ -2993,60 +2987,74 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   // application-long persistent selectedfilter
   static QString selectedfilter;
 
-  QStringList formatlist, filterformatlist;
-  QMap<QString,QString> formatsByFilterName;
-  QList<QByteArray> formats = QImageWriter::supportedImageFormats();
+  static QMap<QString,QString> builtInTitles;
+  if (builtInTitles.isEmpty()) {
+    builtInTitles["PNG"] = tr("Standard PNG Image");
+    builtInTitles["JPG"] = tr("Standard JPEG Image");
+    builtInTitles["PS"] = tr("PostScript Document");
+    builtInTitles["EPS"] = tr("Encapsulated PostScript");
+    builtInTitles["PDF"] = tr("PDF Portable Document Format");
+    builtInTitles["DVI"] = tr("LaTeX DVI");
+    builtInTitles["SVG"] = tr("Scalable Vector Graphics SVG");
+  }
 
-  for (QList<QByteArray>::iterator it = formats.begin(); it != formats.end(); ++it) {
-    QString f = (*it).toLower();
-    if (f == "jpg" || f == "jpeg" || f == "png" || f == "pdf" || f == "eps")
-      continue;
-    QString s = tr("%1 Image (*.%2)").arg(f).arg(f);
-    filterformatlist << s;
-    formatlist.push_back(f);
-    formatsByFilterName[s] = f;
+  QStringList okbaseformatlist;
+  QStringList filterformatlist;
+  QStringList topfilterformatlist;
+  QMap<QString,QString> formatsByFilterName;
+
+  QStringList availFormats = KLFBackend::availableSaveFormats(_output);
+
+  int k;
+  for (k = 0; k < availFormats.size(); ++k) {
+    QString f = availFormats[k].toUpper();
+    klfDbg("Reported avail format: "<<f) ;
+    QStringList *fl = &filterformatlist;
+    if (f == "JPEG" || f == "PNG" || f == "PDF" || f == "EPS" || f == "PS" || f == "SVG") {
+      // save this format into the 'top' list
+      fl = &topfilterformatlist;
+    }
+    QString t;
+    if (builtInTitles.contains(f)) {
+      t = builtInTitles.value(f);
+    } else {
+      t = tr("%1 Format").arg(f);
+    }
+
+    QStringList extlist = QStringList()<<f.toLower();
+    if (f == "JPEG") {
+      extlist << "jpg";
+    }
+
+    t += QString(" (%1)").arg(klfMapStringList(extlist, QString("*.%1")).join(" "));
+
+    okbaseformatlist << extlist;
+    if (f == "PNG") // _really_ on top
+      fl->push_front(t);
+    else
+      fl->append(t);
+    formatsByFilterName[t] = f.toLower();
   }
 
   QMap<QString,QString> externFormatsByFilterName;
   QMap<QString,KLFAbstractOutputSaver*> externSaverByKey;
-  int k, j;
+  int j;
   for (k = 0; k < pOutputSavers.size(); ++k) {
     QStringList xoformats = pOutputSavers[k]->supportedMimeFormats();
     for (j = 0; j < xoformats.size(); ++j) {
       QString f = QString("%1 (%2)").arg(pOutputSavers[k]->formatTitle(xoformats[j]),
 					 pOutputSavers[k]->formatFilePatterns(xoformats[j]).join(" "));
-      filterformatlist << f;
+      filterformatlist.push_front(f);
       externFormatsByFilterName[f] = xoformats[j];
       externSaverByKey[xoformats[j]] = pOutputSavers[k];
     }
   }
 
-  QString s;
-  s = tr("LaTeX DVI (*.dvi)");
-  filterformatlist.push_front(s);
-  formatlist.push_front("dvi");
-  formatsByFilterName[s] = "dvi";
-  s = tr("EPS PostScript (*.eps)");
-  filterformatlist.push_front(s);
-  formatlist.push_front("eps");
-  formatsByFilterName[s] = "eps";
-  s = tr("Scalable Vector Graphics SVG (*.svg)");
-  filterformatlist.push_front(s);
-  formatlist.push_front("svg");
-  formatsByFilterName[s] = "svg";
-  s = tr("PDF Portable Document Format (*.pdf)");
-  filterformatlist.push_front(s);
-  formatlist.push_front("pdf");
-  formatsByFilterName[s] = "pdf";
-  s = tr("Standard JPEG Image (*.jpg *.jpeg)");
-  filterformatlist.push_front(s);
-  formatlist.push_front("jpeg");
-  formatlist.push_front("jpg");
-  formatsByFilterName[s] = "jpeg";
-  selectedfilter = s = tr("Standard PNG Image (*.png)");
-  filterformatlist.push_front(s);
-  formatlist.push_front("png");
-  formatsByFilterName[s] = "png";
+  // now add the 'top' formats, well, on top :)
+  topfilterformatlist << filterformatlist;
+  filterformatlist = topfilterformatlist; // Qt's implicit sharing makes this code reasonable...
+
+  // finally, join all filters together and show the file dialog.
 
   QString filterformat = filterformatlist.join(";;");
   QString fname, format;
@@ -3057,90 +3065,84 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   if (suggestion.isEmpty())
     suggestion = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
 
-  fname = QFileDialog::getSaveFileName(this, tr("Save Image Formula"), suggestion, filterformat,
+  fname = QFileDialog::getSaveFileName(this, tr("Save Formula Image"), suggestion, filterformat,
 				       &selectedfilter);
 
   if (fname.isEmpty())
     return;
+
+  QFileInfo fi(fname);
+  // save this path as default to suggest next time
+  klfconfig.UI.lastSaveDir = fi.absolutePath();
 
   // first test if it's an extern-format
   if ( externFormatsByFilterName.contains(selectedfilter) ) {
     // use an external output-saver
     QString key = externFormatsByFilterName[selectedfilter];
     if ( ! externSaverByKey.contains(key) ) {
-      qWarning()<<KLF_FUNC_NAME<<": Internal error: externSaverByKey() does not contain key="<<key
-		<<": "<<externSaverByKey;
+      klfWarning("Internal error: externSaverByKey() does not contain key="<<key
+		 <<": "<<externSaverByKey);
       return;
     }
     KLFAbstractOutputSaver *saver = externSaverByKey[key];
     if (saver == NULL) {
-      qWarning()<<KLF_FUNC_NAME<<": Internal error: saver is NULL!";
+      klfWarning("Internal error: saver is NULL!");
       return;
     }
     bool result = saver->saveToFile(key, fname, _output);
-    if (!result)
-      qWarning()<<KLF_FUNC_NAME<<": saver failed to save format "<<key<<".";
+    if (!result) {
+      klfWarning("saver failed to save format "<<key<<".");
+    }
     return;
   }
 
-  QFileInfo fi(fname);
-  klfconfig.UI.lastSaveDir = fi.absolutePath();
-  if ( fi.suffix().length() == 0 ) {
-    // get format and suffix from selected filter
-    if ( ! formatsByFilterName.contains(selectedfilter) && ! externFormatsByFilterName.contains(selectedfilter) ) {
-      qWarning("%s: ERROR: Unknown format filter selected: `%s'! Assuming PNG!\n", KLF_FUNC_NAME,
-	       qPrintable(selectedfilter));
-      format = "png";
-    } else {
-      format = formatsByFilterName[selectedfilter];
-    }
-    fname += "."+format;
-    // !! : fname has changed, potentially the file could exist, user would not have been warned.
-    if (QFile::exists(fname)) {
-      int r = QMessageBox::warning(this, tr("File Exists"),
-				   tr("The file <b>%1</b> already exists.\nOverwrite?").arg(fname),
-				   QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel, QMessageBox::No);
-      if (r == QMessageBox::Yes) {
-	// will continue in this function.
-      } else if (r == QMessageBox::No) {
+  QString selformat;
+  // get format and suffix from selected filter
+  if ( ! formatsByFilterName.contains(selectedfilter) ) {
+    klfDbg("Unknown format filter selected: "<<selectedfilter<<"! Assuming PNG!") ;
+    selformat = "png";
+  } else {
+    selformat = formatsByFilterName[selectedfilter];
+  }
+  if (!fi.suffix().isEmpty()) {
+    if ( ! okbaseformatlist.contains(fi.suffix().toLower()) ) {
+      // by default, if suffix is not recognized, use the selected filter after a warning.
+      QString sfU = selformat.toUpper();
+      QMessageBox msgbox(this);
+      msgbox.setIcon(QMessageBox::Warning);
+      msgbox.setWindowTitle(tr("Extension not recognized"));
+      msgbox.setText(tr("Extension <b>%1</b> not recognized.").arg(fi.suffix().toUpper()));
+      msgbox.setInformativeText(tr("You may choose to change the file name or to save to the given file "
+				   "as %1 format.").arg(sfU));
+      QPushButton *png = new QPushButton(tr("Use %1", "[[fallback file format button text]]").arg(sfU), &msgbox);
+      msgbox.addButton(png, QMessageBox::AcceptRole);
+      QPushButton *chg  = new QPushButton(tr("Change File Name ..."), &msgbox);
+      msgbox.addButton(chg, QMessageBox::ActionRole);
+      QPushButton *cancel = new QPushButton(tr("Cancel"), &msgbox);
+      msgbox.addButton(cancel, QMessageBox::RejectRole);
+      msgbox.setDefaultButton(chg);
+      msgbox.setEscapeButton(cancel);
+      msgbox.exec();
+      if (msgbox.clickedButton() == png) {
+	format = "png";
+      } else if (msgbox.clickedButton() == cancel) {
+	return;
+      } else {
 	// re-prompt for file name & save (by recursion), and return
 	slotSave(fname);
 	return;
-      } else {
-	// cancel
-	return;
       }
-    }
-  }
-  fi.setFile(fname);
-  int index = formatlist.indexOf(fi.suffix().toLower());
-  if ( index < 0 ) {
-    // select PNG by default if suffix is not recognized
-    QMessageBox msgbox(this);
-    msgbox.setIcon(QMessageBox::Warning);
-    msgbox.setWindowTitle(tr("Extension not recognized"));
-    msgbox.setText(tr("Extension <b>%1</b> not recognized.").arg(fi.suffix().toUpper()));
-    msgbox.setInformativeText(tr("Press \"Change\" to change the file name, or \"Use PNG\" to save as PNG."));
-    QPushButton *png = new QPushButton(tr("Use PNG"), &msgbox);
-    msgbox.addButton(png, QMessageBox::AcceptRole);
-    QPushButton *chg  = new QPushButton(tr("Change ..."), &msgbox);
-    msgbox.addButton(chg, QMessageBox::ActionRole);
-    QPushButton *cancel = new QPushButton(tr("Cancel"), &msgbox);
-    msgbox.addButton(cancel, QMessageBox::RejectRole);
-    msgbox.setDefaultButton(chg);
-    msgbox.setEscapeButton(cancel);
-    msgbox.exec();
-    if (msgbox.clickedButton() == png) {
-      format = "png";
-    } else if (msgbox.clickedButton() == cancel) {
-      return;
     } else {
-      // re-prompt for file name & save (by recursion), and return
-      slotSave(fname);
-      return;
+      format = fi.suffix().toLower();
     }
   } else {
-    format = formatlist[index];
+    // no file name suffix - use selected format filter
+    if (!formatsByFilterName.contains(selectedfilter)) {
+      // we only emitted a debug message before, this is a warning in this case!
+      klfWarning("Unknown selected format filter : "<<selectedfilter<<"; Assuming PNG!") ;
+      // selformat is already "png"
+    }
+    format = selformat;
   }
 
   // The Qt dialog, or us, already asked user to confirm overwriting existing files

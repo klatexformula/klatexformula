@@ -1209,7 +1209,7 @@ KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::k
 
 QStringList KLFBackend::availableSaveFormats(const klfOutput& klfoutput)
 {
-  QSet<QString> formats;
+  QStringList formats;
   if (!klfoutput.pngdata.isEmpty())
     formats << "PNG";
   if (!klfoutput.epsdata.isEmpty())
@@ -1223,9 +1223,14 @@ QStringList KLFBackend::availableSaveFormats(const klfOutput& klfoutput)
   // and, of course, all Qt-available image formats
   QList<QByteArray> imgfmts = QImageWriter::supportedImageFormats();
   foreach (QByteArray f, imgfmts) {
-    formats << QString::fromLatin1(f.trimmed()).toUpper();
+    f = f.trimmed().toUpper();
+    if (f == "JPG")
+      f = "JPEG"; // only report "JPEG", not both "JPG" and "JPEG"
+    if (formats.contains(f))
+      continue;
+    formats << QString::fromLatin1(f);
   }
-  return formats.toList();
+  return formats;
 }
 
 bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *device,
@@ -1234,10 +1239,10 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
   QString format = fmt.s_trimmed().s_toUpper();
 
   // now choose correct data source and write to fout
-  if (format == "EPS" || format == "PS") {
-    device->dev_write(klfoutput.epsdata);
-  } else if (format == "PNG") {
+  if (format == "PNG") {
     device->dev_write(klfoutput.pngdata);
+  } else if (format == "EPS" || format == "PS") {
+    device->dev_write(klfoutput.epsdata);
   } else if (format == "DVI") {
     device->dev_write(klfoutput.dvidata);
   } else if (format == "PDF") {

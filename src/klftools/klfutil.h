@@ -263,6 +263,33 @@ inline QList<T> klfListMap(const QList<T>& list, MapOp op)
   return l;
 }
 
+struct __klf_StrArg_MapOp
+{
+  __klf_StrArg_MapOp(const QString& t) : templ(t) { }
+  QString templ;
+  inline QString operator()(const QString& str)
+  {
+    return templ.arg(str);
+  }
+};
+
+/** Applies mapping string \c mapstr to each element in list and returns the resulting list.
+ * \c mapstr is a string that contains a \c "%1" that can be used with the \ref QString::arg()
+ * function.
+ *
+ * Example:
+ * \code
+ *   QStringList names = QStringList()<<"Jill"<<"Jenny"<<"Joe"<<"John";
+ *   QStringList greetings = klfMapStringList(names, "Hi, my name is %1!") ;
+ * \endcode
+ *
+ * See also \ref QStringList::replaceInStrings().
+ */
+inline QStringList klfMapStringList(const QStringList& list, const QString& mapstr)
+{
+  return klfListMap(list, __klf_StrArg_MapOp(mapstr));
+}
+
 template<class T> inline QList<T> klfMkList(const T& a) { return QList<T>()<<a; }
 template<class T> inline QList<T> klfMkList(const T& a, const T& b) { return QList<T>()<<a<<b; }
 template<class T> inline QList<T> klfMkList(const T& a, const T& b, const T& c) { return QList<T>()<<a<<b<<c; }

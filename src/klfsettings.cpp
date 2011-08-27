@@ -1225,6 +1225,9 @@ void KLFSettings::apply()
 
   klfconfig.UI.detailsSideWidgetType =
     u->cbxDetailsSideWidgetType->itemData(u->cbxDetailsSideWidgetType->currentIndex()).toString();
+  if (klfconfig.UI.macBrushedMetalLook != u->chkMacBrushedMetalLook->isChecked()) {
+    warnneedrestart = true;
+  }
   klfconfig.UI.macBrushedMetalLook = u->chkMacBrushedMetalLook->isChecked();
 
   klfconfig.ExportData.copyExportProfile = 

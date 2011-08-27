@@ -443,6 +443,8 @@ public:
   static klfOutput getLatexFormula(const klfInput& in, const klfSettings& settings);
 
   /** \brief Get a list of available output formats for saveOutputToDevice()
+   *
+   * \note If Jpeg format is available, only \c "JPEG" will be reported and not \c "JPG".
    */
   static QStringList availableSaveFormats(const klfOutput& output) ;
 
