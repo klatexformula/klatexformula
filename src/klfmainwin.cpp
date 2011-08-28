@@ -1503,6 +1503,7 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
 
     QAction *amenumod = new QAction(latexEdit);
     QAction *amenutyp = new QAction(latexEdit);
+    /** \bug here on Mac OS X "Ctrl" stays Ctrl and is not translated to "Cmd" */
     amenumod->setText(tr("Paren Modifier (%1) ...").arg(mShortcutNextParenModifierType->key().toString()));
     amenutyp->setText(tr("Change Paren (%1) ...").arg(mShortcutNextParenType->key().toString()));
     QMenu *changemenumod = new QMenu(latexEdit);
