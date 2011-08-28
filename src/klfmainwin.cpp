@@ -251,12 +251,14 @@ KLFMainWin::KLFMainWin()
 		SLOT(slotShowBigPreview()), Qt::WindowShortcut);
 
   // Shortcut for parens mod/type cycle
-  new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketLeft), this, SLOT(slotCycleParenTypes()),
-		SLOT(slotCycleParenTypes()), Qt::WindowShortcut);
+  mShortcutNextParenType =
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketLeft), this, SLOT(slotCycleParenTypes()),
+		  SLOT(slotCycleParenTypes()), Qt::WindowShortcut);
   new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketRight), this, SLOT(slotCycleParenTypesBack()),
 		SLOT(slotCycleParenTypesBack()), Qt::WindowShortcut);
-  new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketLeft), this, SLOT(slotCycleParenModifiers()),
-		SLOT(slotCycleParenModifiers()), Qt::WindowShortcut);
+  mShortcutNextParenModifierType =
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketLeft), this, SLOT(slotCycleParenModifiers()),
+		  SLOT(slotCycleParenModifiers()), Qt::WindowShortcut);
   new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketRight), this, SLOT(slotCycleParenModifiersBack()),
 		SLOT(slotCycleParenModifiersBack()), Qt::WindowShortcut);
 
@@ -1456,6 +1458,8 @@ QVariantMap KLFMainWin::parseLatexEditPosParenInfo(KLFLatexEdit *latexEdit, int 
 
 void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAction*> *actionList)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFLatexEdit *latexEdit = qobject_cast<KLFLatexEdit*>(sender());
   KLF_ASSERT_NOT_NULL( latexEdit, "KLFLatexEdit sender is NULL!", return ) ;
 
@@ -1499,8 +1503,8 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
 
     QAction *amenumod = new QAction(latexEdit);
     QAction *amenutyp = new QAction(latexEdit);
-    amenumod->setText(tr("Paren Modifier..."));
-    amenutyp->setText(tr("Change Paren..."));
+    amenumod->setText(tr("Paren Modifier (%1) ...").arg(mShortcutNextParenModifierType->key().toString()));
+    amenutyp->setText(tr("Change Paren (%1) ...").arg(mShortcutNextParenType->key().toString()));
     QMenu *changemenumod = new QMenu(latexEdit);
     QMenu *changemenutyp = new QMenu(latexEdit);
 
@@ -1539,11 +1543,45 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
     }
     amenumod->setMenu(changemenumod);
     amenutyp->setMenu(changemenutyp);
-    *actionList << amenumod << amenutyp;
+    *actionList << amenutyp << amenumod;
   }
 
   // suggest to wrap selection into a delimiter
-  /// \todo ...........
+
+  QTextCursor textcur = latexEdit->textCursor();
+  if (textcur.hasSelection()) {
+    QString s = textcur.selectedText();
+    klfDbg("has selection, will add an 'enclose in delimiter...' menu. Selected="<< s) ;
+    // get a list of possible delimiters
+    QAction *adelim = new QAction(latexEdit);
+    adelim->setText(tr("Enclose in delimiter"));
+    QMenu *menuDelim = new QMenu(latexEdit);
+
+    int pos = textcur.position();
+    int anc = textcur.anchor();
+    if (pos > anc) {
+      qSwap(pos, anc);
+    }
+    int len = anc - pos;
+
+    QMenu *parenDelimMenu = new QMenu(latexEdit);
+    QList<KLFLatexParenSpecs::ParenSpec> pspecs = KLFLatexSyntaxHighlighter::ParsedBlock::parenSpecs.parenSpecList();
+    foreach (KLFLatexParenSpecs::ParenSpec p, pspecs) {
+      QAction * a = parenDelimMenu->addAction(QString("%1 ... %2").arg(p.open, p.close),
+					      this, SLOT(slotEncloseRegionInDelimiterFromActionSender()));
+      QVariantMap v;
+      v["pos"] = pos;
+      v["len"] = len;
+      v["opendelim"] = p.open;
+      v["closedelim"] = p.close;
+      a->setData(QVariant(v));
+    }
+
+    QAction *aMenuParenDelim = menuDelim->addAction(tr("Parenthesis-like", "[[in paren menu delimiter type]]"));
+    aMenuParenDelim->setMenu(parenDelimMenu);
+    adelim->setMenu(menuDelim);
+    *actionList << adelim;
+  }
 }
 
 
@@ -1561,6 +1599,14 @@ void KLFMainWin::slotInsertMissingPackagesFromActionSender()
     slotEnsurePreambleCmd(cmds[k]);
   }
 }
+
+static inline bool latexGlueMaybeSpace(const QString& a, const QString& b)
+{
+  if (QRegExp("\\w$").indexIn(a) != -1 && QRegExp("^\\w").indexIn(b) != -1)
+    return true;
+  return false;
+}
+
 
 void KLFMainWin::slotChangeParenFromActionSender()
 {
@@ -1604,6 +1650,13 @@ void KLFMainWin::slotChangeParenFromVariantMap(const QVariantMap& data)
   }
 
   QString s = mod + str;
+
+  QString latextext = u->txtLatex->latex();
+  if (latexGlueMaybeSpace(s, latextext.mid(pos+len))) {
+    // need to separate the paren symbol (e.g. \langle) with the following text, i.e. make
+    // sure that we have "\langle x", not "\langlex"
+    s += " ";
+  }
   latexEditReplace(pos, len, s);
   // and correct the 'other' pos index by a delta, in case the 'other' pos index
   // is _after_ our first replacement... (yes, indexes have been shifted by our
@@ -1622,7 +1675,16 @@ void KLFMainWin::slotChangeParenFromVariantMap(const QVariantMap& data)
     if (str_index >= 0)
       ostr = otherstr;
 
-    latexEditReplace(opos, olen, omod+ostr);
+    QString os = omod + ostr;
+
+    QString latextext = u->txtLatex->latex();
+    if (latexGlueMaybeSpace(os, latextext.mid(opos+olen))) {
+      // need to separate the paren symbol (e.g. \langle) with the following text, i.e. make
+      // sure that we have "\rangle x", not "\ranglex"
+      os += " ";
+    }
+
+    latexEditReplace(opos, olen, os);
   }
 }
 
@@ -1686,6 +1748,35 @@ void KLFMainWin::slotCycleParenTypes(bool forward)
   data["newparenstr_index"] = str_index;
 
   slotChangeParenFromVariantMap(data);
+}
+
+void KLFMainWin::slotEncloseRegionInDelimiterFromActionSender()
+{
+  QAction * a = qobject_cast<QAction*>(sender());
+  if (a == NULL) {
+    qWarning()<<KLF_FUNC_NAME<<": NULL QAction sender!";
+    return;
+  }
+  QVariant v = a->data();
+  QVariantMap data = v.toMap();
+
+  slotEncloseRegionInDelimiter(data);
+}
+
+void KLFMainWin::slotEncloseRegionInDelimiter(const QVariantMap& vmap)
+{
+  int pos = vmap["pos"].toInt();
+  int len = vmap["len"].toInt();
+  QString opendelim = vmap["opendelim"].toString();
+  QString closedelim = vmap["closedelim"].toString();
+
+  QString text = u->txtLatex->latex().mid(pos, len);
+
+  if (latexGlueMaybeSpace(opendelim, text))
+    opendelim += " ";
+  if (latexGlueMaybeSpace(closedelim, u->txtLatex->latex().mid(pos+len)))
+    closedelim += " ";
+  latexEditReplace(pos, len, opendelim + text + closedelim);
 }
 
 void KLFMainWin::latexEditReplace(int pos, int len, const QString& text)

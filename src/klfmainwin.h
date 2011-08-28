@@ -37,6 +37,7 @@
 #include <QDialog>
 #include <QMainWindow>
 #include <QClipboard>
+#include <QShortcut>
 
 #include <klfbackend.h>
 
@@ -434,6 +435,9 @@ private slots:
   void slotCycleParenTypes(bool forward = true);
   void slotCycleParenTypesBack() { slotCycleParenTypes(false); }
 
+  void slotEncloseRegionInDelimiterFromActionSender();
+  void slotEncloseRegionInDelimiter(const QVariantMap& vmap);
+
   void latexEditReplace(int pos, int len, const QString& text);
 
 protected:
@@ -448,7 +452,8 @@ protected:
 
   KLFMainWinPopup *mPopup;
 
-  //  QWidget *mMacDetailsDrawer;
+  QShortcut * mShortcutNextParenType;
+  QShortcut * mShortcutNextParenModifierType;
 
   /** \internal */
   struct HelpLinkAction {
