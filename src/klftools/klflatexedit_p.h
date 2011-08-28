@@ -76,17 +76,12 @@ struct ParenItem {
   {
     QString trbmod = b_mod;
     // translate modifiers
-    int ind = ParsedBlock::closeParenModifiers.indexOf(trbmod);
+    int ind = ParsedBlock::parenSpecs.closeParenModifiers().indexOf(trbmod);
     if (ind >= 0) {
-      KLF_ASSERT_CONDITION_ELSE(ParsedBlock::closeParenModifiers.size()==ParsedBlock::openParenModifiers.size(),
-				"close paren modifier list size="<<ParsedBlock::closeParenModifiers.size()
-				<<" does not match the open paren modifier list size="
-				<<ParsedBlock::openParenModifiers.size()<<"!", ; ) {
-	trbmod = ParsedBlock::openParenModifiers[ind];
-      }
+      trbmod = ParsedBlock::parenSpecs.openParenModifiers()[ind];
     }
 
-    if (a_mod != trbmod)
+    if (a_mod != trbmod) // if modifiers do not match, this is a mismatch.
       return false;
 
     if ( a_mod == "\\left" && (a_ch == "." || b_ch == ".") ) {
@@ -94,12 +89,13 @@ struct ParenItem {
       // so report a match
       return true;
     }
+    QList<KLFLatexParenSpecs::ParenSpec> pslist = ParsedBlock::parenSpecs.parenSpecList();
     int k;
-    for (k = 0; k < ParsedBlock::openParenList.size() && k < ParsedBlock::closeParenList.size(); ++k) {
-      if (a_ch == ParsedBlock::openParenList[k])
-	return  (b_ch == ParsedBlock::closeParenList[k]);
-      if (b_ch == ParsedBlock::closeParenList[k])
-	return false; // because a_ch != ParsedBlock::openParenList[k]
+    for (k = 0; k < pslist.size() && k < pslist.size(); ++k) {
+      if (a_ch == pslist[k].open)
+	return  (b_ch == pslist[k].close);
+      if (b_ch == pslist[k].close)
+	return false; // because a_ch != openParenList[k]
     }
     if (a_ch == b_ch)
       return true;

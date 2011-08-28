@@ -429,8 +429,10 @@ private slots:
   void slotChangeParenFromActionSender();
   void slotChangeParenFromVariantMap(const QVariantMap& data);
 
-  void slotCycleParenModifiers();
-  void slotCycleParenTypes();
+  void slotCycleParenModifiers(bool forward = true);
+  void slotCycleParenModifiersBack() { slotCycleParenModifiers(false); }
+  void slotCycleParenTypes(bool forward = true);
+  void slotCycleParenTypesBack() { slotCycleParenTypes(false); }
 
   void latexEditReplace(int pos, int len, const QString& text);
 

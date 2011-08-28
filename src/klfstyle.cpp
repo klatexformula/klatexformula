@@ -126,7 +126,7 @@ static QString preamble_append_userscript(const QString& us)
 
 static void set_xtra_from_preamble(KLFStyle * style)
 {
-  QRegExp rx = QRegExp("\n%%%\\s*KLF_([a-zA-Z0-9_]*):\\s*(.*)\n");
+  QRegExp rx = QRegExp("\n%%%\\s*KLF_([a-zA-Z0-9_]*):\\s*(\\S[^\n]*)?");
   QString p = style->preamble;
   int pos = 0;
   while ((pos = rx.indexIn(p, pos)) != -1) {
@@ -135,6 +135,7 @@ static void set_xtra_from_preamble(KLFStyle * style)
     if (what == "overrideBBoxExpand") {
       KLFStyle::BBoxExpand bb;
       bool ok = klfLoad(value.toLatin1(), &bb);
+      klfDbg("bbox value string: "<<value) ;
       KLF_ASSERT_CONDITION(ok, "Failed to read bbox expand info: "<<value, pos += rx.matchedLength(); continue; ) ;
       style->overrideBBoxExpand = bb;
       p.replace(pos, rx.matchedLength(), "\n");
@@ -143,8 +144,8 @@ static void set_xtra_from_preamble(KLFStyle * style)
     }
     if (what == "userScript") {
       style->userScript = QString::fromUtf8(klfEscapedToData(value.toLatin1()));
-      p.replace(pos, rx.matchedLength(), "\n");
-      ++pos;
+      klfDbg("read user script: "<<style->userScript()) ;
+      p.replace(pos, rx.matchedLength(), "");
       continue;
     }
     qWarning()<<KLF_FUNC_NAME<<": Warning: ignoring unknown preamble-xtra-information "<<what ;

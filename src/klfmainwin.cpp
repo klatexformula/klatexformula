@@ -253,8 +253,12 @@ KLFMainWin::KLFMainWin()
   // Shortcut for parens mod/type cycle
   new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketLeft), this, SLOT(slotCycleParenTypes()),
 		SLOT(slotCycleParenTypes()), Qt::WindowShortcut);
+  new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketRight), this, SLOT(slotCycleParenTypesBack()),
+		SLOT(slotCycleParenTypesBack()), Qt::WindowShortcut);
   new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketLeft), this, SLOT(slotCycleParenModifiers()),
 		SLOT(slotCycleParenModifiers()), Qt::WindowShortcut);
+  new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketRight), this, SLOT(slotCycleParenModifiersBack()),
+		SLOT(slotCycleParenModifiersBack()), Qt::WindowShortcut);
 
   // Create our style manager
   mStyleManager = new KLFStyleManager(&_styles, this);
@@ -409,11 +413,11 @@ KLFMainWin::KLFMainWin()
   shortmenu->addAction(tr("Show Big Preview"), this, SLOT(slotShowBigPreview()), QKeySequence("Ctrl+P"));
 
   // Shortcut for parens mod/type cycle
-  new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketLeft), this, SLOT(slotCycleParenTypes()),
-		SLOT(slotCycleParenTypes()), Qt::WindowShortcut);
-  new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketLeft), this, SLOT(slotCycleParenModifiers()),
-		SLOT(slotCycleParenModifiers()), Qt::WindowShortcut);
-
+  //   new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_BracketLeft), this, SLOT(slotCycleParenTypes()),
+  // 		SLOT(slotCycleParenTypes()), Qt::WindowShortcut);
+  //   new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_BracketLeft), this, SLOT(slotCycleParenModifiers()),
+  // 		SLOT(slotCycleParenModifiers()), Qt::WindowShortcut);
+  
 
   // dock menu will be added once shown only, to avoid '...autoreleased without NSAutoreleasePool...'
   // annoying messages
@@ -1360,10 +1364,10 @@ static void init_paren_modifiers_and_types()
   if (!open_paren_modifiers.isEmpty())
     return;
 
-  open_paren_modifiers  = KLFLatexSyntaxHighlighter::ParsedBlock::openParenModifiers;
-  close_paren_modifiers = KLFLatexSyntaxHighlighter::ParsedBlock::closeParenModifiers;
-  open_paren_types  = KLFLatexSyntaxHighlighter::ParsedBlock::openParenList;
-  close_paren_types = KLFLatexSyntaxHighlighter::ParsedBlock::closeParenList;
+  open_paren_modifiers  = KLFLatexSyntaxHighlighter::ParsedBlock::parenSpecs.openParenModifiers();
+  close_paren_modifiers = KLFLatexSyntaxHighlighter::ParsedBlock::parenSpecs.closeParenModifiers();
+  open_paren_types  = KLFLatexSyntaxHighlighter::ParsedBlock::parenSpecs.openParenList();
+  close_paren_types = KLFLatexSyntaxHighlighter::ParsedBlock::parenSpecs.closeParenList();
   // add 'no modifier' possibility :
   open_paren_modifiers.prepend( QString() );
   close_paren_modifiers.prepend( QString() );
@@ -1461,7 +1465,10 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
   QString text = latexEdit->latex();
   int curpos = cur.position();
 
-  QRegExp rxSym("\\\\(\\w+|.)");
+  // matches a latex symbol like \symbol (backslash-word) or \; (backslash-anychar)
+  QRegExp rxSym("\\\\" // literal backslash
+		"(\\w+|.)" // word or character
+		);
   int i = text.lastIndexOf(rxSym, curpos); // search backwards from curpos
   if (i >= 0) {
     // matched somewhere before in text. See if we clicked on it
@@ -1534,6 +1541,9 @@ void KLFMainWin::slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAc
     amenutyp->setMenu(changemenutyp);
     *actionList << amenumod << amenutyp;
   }
+
+  // suggest to wrap selection into a delimiter
+  /// \todo ...........
 }
 
 
@@ -1616,7 +1626,7 @@ void KLFMainWin::slotChangeParenFromVariantMap(const QVariantMap& data)
   }
 }
 
-void KLFMainWin::slotCycleParenModifiers()
+void KLFMainWin::slotCycleParenModifiers(bool forward)
 {
   int curpos = u->txtLatex->textCursor().position();
   const QVariantMap vmap = parseLatexEditPosParenInfo(u->txtLatex, curpos);
@@ -1638,12 +1648,16 @@ void KLFMainWin::slotCycleParenModifiers()
   }
 
   QVariantMap data = vmap;
-  data["newparenmod_index"] = (mod_index + 1) % paren_mod_list.size();
+  mod_index += forward ? 1 : -1;
+  if (mod_index < 0)
+    mod_index += paren_mod_list.size();
+  mod_index %= paren_mod_list.size();
+  data["newparenmod_index"] = mod_index;
 
   slotChangeParenFromVariantMap(data);
 }
 
-void KLFMainWin::slotCycleParenTypes()
+void KLFMainWin::slotCycleParenTypes(bool forward)
 {
   int curpos = u->txtLatex->textCursor().position();
   const QVariantMap vmap = parseLatexEditPosParenInfo(u->txtLatex, curpos);
@@ -1665,7 +1679,11 @@ void KLFMainWin::slotCycleParenTypes()
   }
 
   QVariantMap data = vmap;
-  data["newparenstr_index"] = (str_index + 1) % paren_typ_list.size();
+  str_index += forward ? 1 : -1;
+  if (str_index < 0)
+    str_index += paren_typ_list.size();
+  str_index %= paren_typ_list.size();
+  data["newparenstr_index"] = str_index;
 
   slotChangeParenFromVariantMap(data);
 }

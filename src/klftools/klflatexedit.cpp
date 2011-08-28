@@ -37,17 +37,163 @@
 #include "klflatexedit_p.h"
 
 
-// declared in klflatexedit_p.h
-QStringList KLFLatexSyntaxHighlighter::ParsedBlock::openParenList =
-  QStringList() << "(" << "[" << "{" << "\\{";
-QStringList KLFLatexSyntaxHighlighter::ParsedBlock::closeParenList =
-  QStringList() << ")" << "]" << "}" << "\\}";
-QStringList KLFLatexSyntaxHighlighter::ParsedBlock::openParenModifiers =
-  QStringList() << "\\left"  << "\\bigl" << "\\Bigl";
-QStringList KLFLatexSyntaxHighlighter::ParsedBlock::closeParenModifiers =
-  QStringList() << "\\right" << "\\bigr" << "\\Bigr";
+
+// --------------------------
+
+struct KLFLatexParenSpecsPrivate
+{
+  typedef KLFLatexParenSpecs::ParenSpec ParenSpec;
+  typedef KLFLatexParenSpecs::ParenModifierSpec ParenModifierSpec;
+
+  KLF_PRIVATE_HEAD(KLFLatexParenSpecs)
+  {
+  }
+
+  QList<ParenSpec> parens;
+  QList<ParenModifierSpec> modifiers;
+
+  QStringList openParenListCache;
+  QStringList closeParenListCache;
+  QStringList openParenModifiersCache;
+  QStringList closeParenModifiersCache;
+
+  void load(const QList<ParenSpec>& pl, const QList<ParenModifierSpec>& ml)
+  {
+    openParenListCache.clear();
+    closeParenListCache.clear();
+    openParenModifiersCache.clear();
+    closeParenModifiersCache.clear();
+
+    parens = pl;
+    modifiers = ml;
+    foreach (ParenSpec p, pl) {
+      openParenListCache << p.open;
+      closeParenListCache << p.close;
+    }
+    foreach (ParenModifierSpec m, ml) {
+      openParenModifiersCache << m.openmod;
+      closeParenModifiersCache << m.closemod;
+    }
+  }
+};
+
+static QList<KLFLatexParenSpecs::ParenSpec> default_parens = QList<KLFLatexParenSpecs::ParenSpec>()
+  << KLFLatexParenSpecs::ParenSpec("(", ")")
+  << KLFLatexParenSpecs::ParenSpec("[", "]")
+  << KLFLatexParenSpecs::ParenSpec("{", "}", KLFLatexParenSpecs::ParenSpec::IsLaTeXBrace)
+  << KLFLatexParenSpecs::ParenSpec("\\{", "\\}")
+  << KLFLatexParenSpecs::ParenSpec("\\lfloor", "\\rfloor", KLFLatexParenSpecs::ParenSpec::AllowAlone)
+  << KLFLatexParenSpecs::ParenSpec("\\lceil", "\\rceil", KLFLatexParenSpecs::ParenSpec::AllowAlone)
+  << KLFLatexParenSpecs::ParenSpec("\\langle", "\\rangle", KLFLatexParenSpecs::ParenSpec::AllowAlone)
+  << KLFLatexParenSpecs::ParenSpec("\\lvert", "\\rvert", KLFLatexParenSpecs::ParenSpec::AllowAlone)
+  << KLFLatexParenSpecs::ParenSpec("\\lVert", "\\rVert", KLFLatexParenSpecs::ParenSpec::AllowAlone)
+  ;
+
+static QList<KLFLatexParenSpecs::ParenModifierSpec> default_mods = QList<KLFLatexParenSpecs::ParenModifierSpec>()
+  << KLFLatexParenSpecs::ParenModifierSpec("\\left", "\\right")
+  << KLFLatexParenSpecs::ParenModifierSpec("\\bigl", "\\bigr")
+  << KLFLatexParenSpecs::ParenModifierSpec("\\Bigl", "\\Bigr")
+  ;
+
+// loads the default paren & paren modifier specs
+KLFLatexParenSpecs::KLFLatexParenSpecs()
+{
+  KLF_INIT_PRIVATE(KLFLatexParenSpecs) ;
+  d->load(default_parens, default_mods);
+}
+// loads the given paren & paren modifier spec list
+KLFLatexParenSpecs::KLFLatexParenSpecs(const QList<ParenSpec>& parens, const QList<ParenModifierSpec>& modifiers)
+{
+  KLF_INIT_PRIVATE(KLFLatexParenSpecs) ;
+  d->load(parens, modifiers);
+}
+
+KLFLatexParenSpecs::KLFLatexParenSpecs(const KLFLatexParenSpecs& other)
+{
+  KLF_INIT_PRIVATE(KLFLatexParenSpecs) ;
+  d->load(other.d->parens, other.d->modifiers);
+}
+KLFLatexParenSpecs::~KLFLatexParenSpecs()
+{
+  KLF_DELETE_PRIVATE ;
+}
 
 
+QList<KLFLatexParenSpecs::ParenSpec> KLFLatexParenSpecs::parenSpecList() const
+{
+  return d->parens;
+}
+QList<KLFLatexParenSpecs::ParenModifierSpec> KLFLatexParenSpecs::parenModifierSpecList() const
+{
+  return d->modifiers;
+}
+
+QStringList KLFLatexParenSpecs::openParenList() const
+{
+  return d->openParenListCache;
+}
+QStringList KLFLatexParenSpecs::closeParenList() const
+{
+  return d->closeParenListCache;
+}
+QStringList KLFLatexParenSpecs::openParenModifiers() const
+{
+  return d->openParenModifiersCache;
+}
+QStringList KLFLatexParenSpecs::closeParenModifiers() const
+{
+  return d->closeParenModifiersCache;
+}
+
+int KLFLatexParenSpecs::identifyParen(const QString& parenstr, uint identflags)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("parenstr="<<parenstr<<", ifl="<<identflags) ;
+  int k;
+  for (k = 0; k < d->parens.size(); ++k) {
+    ParenSpec p = d->parens[k];
+    if ((identflags & IdentifyFlagOpen) && p.open == parenstr)
+      return k;
+    if ((identflags & IdentifyFlagClose) && p.close == parenstr)
+      return k;
+  }
+  klfWarning("Can't find paren "<<parenstr<<" (fl="<<identflags<<") in our specs!") ;
+  return -1;
+}
+
+int KLFLatexParenSpecs::identifyModifier(const QString& modstr, uint identflags)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("modstr="<<modstr<<", ifl="<<identflags) ;
+  int k;
+  for (k = 0; k < d->modifiers.size(); ++k) {
+    ParenModifierSpec p = d->modifiers[k];
+    if ((identflags & IdentifyFlagOpen) && p.openmod == modstr)
+      return k;
+    if ((identflags & IdentifyFlagClose) && p.closemod == modstr)
+      return k;
+  }
+  klfWarning("Can't find paren modifier "<<modstr<<" (fl="<<identflags<<") in our specs!") ;
+  return -1;
+}
+
+
+// --------------------------
+
+// static
+KLFLatexParenSpecs KLFLatexSyntaxHighlighter::ParsedBlock::parenSpecs; // load the default set
+
+bool KLFLatexSyntaxHighlighter::ParsedBlock::parenIsLatexBrace() const
+{
+  KLF_ASSERT_CONDITION(parenSpecIndex >= 0 && parenSpecIndex < parenSpecs.parenSpecList().size(),
+		       "parenSpecIndex is not valid! Using heuristic for parenIsLatexBrace().",
+		       return parenstr=="{" || parenstr=="}"; ) ;
+
+  return parenSpecs.parenSpecList()[parenSpecIndex].flags & KLFLatexParenSpecs::ParenSpec::IsLaTeXBrace;
+}
+
+
+// --------------------------
 
 KLFLatexEdit::KLFLatexEdit(QWidget *parent)
   : QTextEdit(parent), mDropHandler(NULL), pHeightHintLines(-1)
@@ -354,11 +500,11 @@ void KLFLatexSyntaxHighlighter::parseEverything()
   QTextBlock block = document()->firstBlock();
 
   QString sopenrx =
-    "^(?:("+QStringList(klfListMap(ParsedBlock::openParenModifiers, &QRegExp::escape)).join("|")+")\\s*)?"
-    "(" + QStringList(klfListMap(ParsedBlock::openParenList, &QRegExp::escape)).join("|")+")";
+    "^(?:("+QStringList(klfListMap(ParsedBlock::parenSpecs.openParenModifiers(), &QRegExp::escape)).join("|")+")\\s*)?"
+    "(" + QStringList(klfListMap(ParsedBlock::parenSpecs.openParenList(), &QRegExp::escape)).join("|")+")";
   QString scloserx =
-    "^(?:("+QStringList(klfListMap(ParsedBlock::closeParenModifiers, &QRegExp::escape)).join("|")+")\\s*)?"
-    "(" + QStringList(klfListMap(ParsedBlock::closeParenList, &QRegExp::escape)).join("|")+")";
+    "^(?:("+QStringList(klfListMap(ParsedBlock::parenSpecs.closeParenModifiers(), &QRegExp::escape)).join("|")+")\\s*)?"
+    "(" + QStringList(klfListMap(ParsedBlock::parenSpecs.closeParenList(), &QRegExp::escape)).join("|")+")";
   klfDbg("open-paren-rx string: "<<sopenrx<<"; close-paren-rx string: "<<scloserx);
   QRegExp rx_open(sopenrx);
   QRegExp rx_close(scloserx);
@@ -461,11 +607,15 @@ void KLFLatexSyntaxHighlighter::parseEverything()
 	ParsedBlock pblk2(ParsedBlock::Paren, cp.beginpos, cp.beginposlength());
 	pblk1.parenmatch = ((col == FParenMatch) ? ParsedBlock::Matched : ParsedBlock::Mismatched);
 	pblk1.parenisopening = true;
+	pblk1.parenSpecIndex =
+	  ParsedBlock::parenSpecs.identifyParen(p.parenstr, KLFLatexParenSpecs::IdentifyFlagOpen);
 	pblk1.parenstr = p.parenstr;
 	pblk1.parenmodifier = p.modifier;
 	pblk1.parenotherpos = cp.beginpos;
 	pblk2.parenmatch = pblk1.parenmatch;
 	pblk2.parenisopening = false;
+	pblk2.parenSpecIndex =
+	  ParsedBlock::parenSpecs.identifyParen(cp.parenstr, KLFLatexParenSpecs::IdentifyFlagClose);
 	pblk2.parenstr = cp.parenstr;
 	pblk2.parenmodifier = cp.modifier;
 	pblk2.parenotherpos = p.beginpos;
@@ -528,6 +678,28 @@ void KLFLatexSyntaxHighlighter::parseEverything()
   for (k = 0; k < lonelyparens.size(); ++k) {
     // for each unclosed paren
     LonelyParenItem p = lonelyparens[k];
+
+    ParsedBlock pblk(ParsedBlock::Paren, p.beginpos, p.beginposlength());
+    pblk.parenmatch = ParsedBlock::Lonely;
+    pblk.parenisopening = p.isopening;
+    uint iff = p.isopening ? KLFLatexParenSpecs::IdentifyFlagOpen : KLFLatexParenSpecs::IdentifyFlagClose;
+    pblk.parenSpecIndex =
+      ParsedBlock::parenSpecs.identifyParen(p.parenstr, iff);
+    pblk.parenstr = p.parenstr;
+    pblk.parenmodifier = p.modifier;
+    pblk.parenotherpos = -1;
+
+    pParsedBlocks.append(pblk);
+
+    // if the paren was marked with flag that it can be alone, do not report error
+    if (pblk.parenSpecIndex >= 0 &&
+	(ParsedBlock::parenSpecs.parenSpecList()[pblk.parenSpecIndex].flags &
+	 KLFLatexParenSpecs::ParenSpec::AllowAlone)) {
+      continue;
+    }
+
+    // otherwise, report the lonely paren
+
     int chp = p.caretHoverPos();
     if (chp == _caretpos) {
       if (pConf.highlightParensOnly) {
@@ -541,14 +713,6 @@ void KLFLatexSyntaxHighlighter::parseEverything()
     // highlight the lonely paren
     if (pConf.highlightLonelyParens)
       _rulestoapply.append(FormatRule(p.pos, p.poslength(), FLonelyParen));
-
-    ParsedBlock pblk(ParsedBlock::Paren, p.beginpos, p.beginposlength());
-    pblk.parenmatch = ParsedBlock::Lonely;
-    pblk.parenisopening = p.isopening;
-    pblk.parenstr = p.parenstr;
-    pblk.parenmodifier = p.modifier;
-    pblk.parenotherpos = -1;
-    pParsedBlocks.append(pblk);
   }
 
 }
@@ -679,8 +843,8 @@ QDebug operator<<(QDebug str, const KLFLatexSyntaxHighlighter::ParsedBlock& p)
   if (p.type == KLFLatexSyntaxHighlighter::ParsedBlock::Keyword) {
     str << ", "<<p.keyword;
   } else if (KLFLatexSyntaxHighlighter::ParsedBlock::Paren) {
-    str << ", "<<smatched.toLatin1()<<(p.parenisopening?"(opening)":"(closing)")<<p.parenmodifier<<p.parenstr
-	<<" otherpos="<<p.parenotherpos;
+    str << ", "<<smatched.toLatin1()<<(p.parenisopening?"(opening)":"(closing)")<<"#"<<p.parenSpecIndex<<" "
+	<<p.parenmodifier<<p.parenstr<<" otherpos="<<p.parenotherpos;
   }
   return str << "]";
 }

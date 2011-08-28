@@ -958,6 +958,7 @@ void KLFSideWidget::setSideWidgetManager(const QString& mtype)
   }
 
   if (d->manager != NULL) {
+    d->manager->hideSideWidget();
     klfDbg("deleting current manager") ;
     //    d->manager->setSideWidget(NULL) ; // re-take the side widget
     delete d->manager;

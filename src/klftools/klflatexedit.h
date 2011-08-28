@@ -122,7 +122,61 @@ private:
 };
 
 
+class KLFLatexParenSpecsPrivate;
 
+class KLF_EXPORT KLFLatexParenSpecs
+{
+public:
+  struct ParenSpec {
+    enum Flag { None = 0x00, IsLaTeXBrace = 0x01, AllowAlone = 0x02 };
+    ParenSpec(const QString& o, const QString& c, uint f = 0x00) : open(o), close(c), flags(f) { }
+    QString open;
+    QString close;
+    uint flags;
+  };
+  struct ParenModifierSpec {
+    ParenModifierSpec(const QString& o, const QString& c) : openmod(o), closemod(c) { }
+    QString openmod;
+    QString closemod;
+  };
+
+  // loads the default paren & paren modifier specs
+  KLFLatexParenSpecs();
+  // loads the given paren & paren modifier spec list
+  KLFLatexParenSpecs(const QList<ParenSpec>& parens, const QList<ParenModifierSpec>& modifiers);
+  // copy constructor
+  KLFLatexParenSpecs(const KLFLatexParenSpecs& other);
+  virtual ~KLFLatexParenSpecs();
+
+  QList<ParenSpec> parenSpecList() const;
+  QList<ParenModifierSpec> parenModifierSpecList() const;
+
+  QStringList openParenList() const;
+  QStringList closeParenList() const;
+  QStringList openParenModifiers() const;
+  QStringList closeParenModifiers() const;
+
+  enum {
+    IdentifyFlagOpen = 0x01, //!< Identify the paren as opening only
+    IdentifyFlagClose = 0x02, //!< Identify the paren as closing only
+    IdentifyFlagOpenClose = IdentifyFlagOpen|IdentifyFlagClose //!< Identify the paren as opening or closing
+  };
+
+  /** Returns an index in the parenSpecList() of the given parenstr interpreted as an opening paren, a closing
+   * paren, or either, depending on the \c identflags.
+   *
+   * Returns -1 if not found. */
+  int identifyParen(const QString& parenstr, uint identflags);
+
+  /** Returns an index in the parenModifierSpecList() of the given modstr interpreted as an opening
+   * paren modifier, a closing paren modifier, or either, depending on the \c identflags.
+   *
+   * Returns -1 if not found. */
+  int identifyModifier(const QString& modstr, uint identflags);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFLatexParenSpecs) ;
+};
 
 
 // ----------------------------------------------
@@ -167,16 +221,14 @@ public:
 
     ParenMatch parenmatch;
     bool parenisopening;
+    int parenSpecIndex;
     QString parenmodifier;
     QString parenstr;
     int parenotherpos;
-    bool parenIsLatexBrace() const { return parenstr=="{" || parenstr=="}"; }
+    bool parenIsLatexBrace() const;
 
-    // defined in klflatexedit.cpp
-    static QStringList openParenList;
-    static QStringList closeParenList;
-    static QStringList openParenModifiers;
-    static QStringList closeParenModifiers;
+    /** This contains the specifications for matching parens */
+    static KLFLatexParenSpecs parenSpecs;
   };
 
   QList<ParsedBlock> parsedContent() const { return pParsedBlocks; }
