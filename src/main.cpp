@@ -696,11 +696,27 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	}
 	if (plugin_already_loaded)
 	  continue;
+	// find to which add-on we belong, for error messages if any
+	int kk;
+	k = -1;
+	for (kk = 0; k < 0 && kk < klf_addons.size(); ++kk) {
+	  QStringList pl = klf_addons[kk].localPluginList();
+	  foreach (QString p, pl) {
+	    klfDbg("testing "<<pluginfnamebaserel<<" with "<<p<<"...") ;
+	    if (QFileInfo(thisplugdir.absoluteFilePath(pluginfname)).canonicalFilePath().endsWith(p)) {
+	      k = kk;
+	      break;
+	    }
+	  }
+	}
+	klfDbg("we belong to add-on # k="<<k<<", "<<(k>=0?klf_addons[k].fname():QString("(out of range)"))) ;
+
 	QString pluginpath = thisplugdir.absoluteFilePath(pluginfname);
 	QPluginLoader pluginLoader(pluginpath, app);
 	bool loaded = pluginLoader.load();
 	if (!loaded) {
-	  klf_addons[k].addError(QObject::tr("Failed to load plugin.", "[[plugin error message]]"));
+	  if (k >= 0)
+	    klf_addons[k].addError(QObject::tr("Failed to load plugin.", "[[plugin error message]]"));
 	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<". Skipping.");
 	  continue;
 	}
@@ -708,7 +724,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	pluginInstance = qobject_cast<KLFPluginGenericInterface *>(pluginInstObject);
 	klfDbg("pluginInstObject="<<pluginInstObject<<", pluginInst="<<pluginInstance) ;
 	if (pluginInstObject == NULL || pluginInstance == NULL) {
-	  klf_addons[k].addError(QObject::tr("Invalid plugin, failed to load correctly.", "[[plugin error message]]"));
+	  if (k >= 0)
+	    klf_addons[k].addError(QObject::tr("Incompatible plugin failed to load.", "[[plugin error message]]"));
 	  klfDbg("QPluginLoader failed to load plugin "<<pluginpath<<" (object or instance is NULL). Skipping.");
 	  continue;
 	}

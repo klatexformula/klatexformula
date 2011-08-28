@@ -740,21 +740,23 @@ void KLFSettings::removePlugin()
 void KLFSettings::removePlugin(const QString& fname)
 {
   int k;
+#ifdef KLF_DEBUG
   klfDbg("removing plugin "<<fname<<" from plugins. Dumping plugin list: ");
   for (k = 0; k < klf_plugins.size(); ++k) {
     klfDbg("  --> plugin: fname="<<klf_plugins[k].fname) ;
   }
+#endif
 
   for (k = 0; k < klf_plugins.size() && klf_plugins[k].fname != fname; ++k)
     ;
   if (k < 0 || k >= klf_plugins.size()) {
-    qWarning("KLFSettings::removePlugin: internal error: didn't find plugin name %s", qPrintable(fname));
-    return;
+    k = -1;
+    klfWarning("didn't find plugin named "<<fname<<" ... perhaps it's not loaded?");
   }
 
-  bool r = QFile::remove(klf_plugins[k].fpath);
+  bool r = QFile::remove(klfconfig.homeConfigDirPlugins + "/" + fname);
 
-  if ( r ) {
+  if ( k >= 0 && r ) {
     // find corresponding tree widget item
     QTreeWidgetItemIterator it(u->lstPlugins);
     while (*it) {
@@ -765,8 +767,8 @@ void KLFSettings::removePlugin(const QString& fname)
       }
       ++it;
     }
-  } else {
-    qWarning("Failed to remove plugin '%s'", qPrintable(klf_plugins[k].fpath));
+  } else if (!r) {
+    klfWarning("Failed to remove plugin "<<klf_plugins[k].fpath);
     QMessageBox::critical(this, tr("Error"), tr("Failed to remove Plugin %1.").arg(klf_plugins[k].title));
   }
 }
