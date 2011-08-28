@@ -36,7 +36,7 @@ if (sys.argv[1] == "--scriptinfo"):
     print "Name: FeynMF Wrapper";
     print "Version: 0.1";
     print "License: GPL v2+"
-    print "ScriptStage: latex";
+    #print "ScriptStage: latex";
     #print "ForceInputMathMode: \\begin{fmffile}{FMF_FEYNUSERSCRIPT_MFNAME} ... \\end{fmffile}";
     #print "ForceInputPreambleLine: \\usepackage{feynmf}";
     print "";
@@ -48,7 +48,7 @@ latexfname = sys.argv[1];
 latexinput = os.environ["KLF_INPUT_LATEX"];
 
 latexexe = os.environ["KLF_LATEX"];
-mfexe = os.path.dirname(latexexe) + "/mf";
+mfexe = os.path.dirname(latexexe) + "/mf"; # guess 'mf' exec location as same as latex exec location
 
 if (len(latexexe) == 0):
     sys.stderr.write("Error: latex executable not found.");
@@ -91,9 +91,7 @@ if (res != 0):
     exit(res>>8);
 
 # remove temp file -- NO it is needed in the further steps !!
-
-# ### TODO: find a way to clean up these files after PNG/PDF/... was generated,
-#     e.g. the script should report back to the main program some info (e.g. on STDOUT?)
+# Temp files are removed as long as their basename corresponds to the KLFBackend-generated base name
 #print "Running rm "+mfbasefname+".mf";
 #os.system("rm "+mfbasefname+".mf");
 
