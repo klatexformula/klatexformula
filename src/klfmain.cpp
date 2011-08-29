@@ -679,8 +679,8 @@ KLF_EXPORT QStringList klf_user_scripts;
 void klf_reload_user_scripts()
 {
   QStringList pathlist;
-  pathlist << klfconfig.homeConfigDirUserScripts + "/*"
-	   << klfconfig.globalShareDir+"/userscripts/*";
+  pathlist << klfconfig.homeConfigDirUserScripts
+	   << klfconfig.globalShareDir+"/userscripts";
 
   klfDbg("looking for user scripts in "<<pathlist) ;
 
@@ -697,6 +697,7 @@ void klf_reload_user_scripts()
       QString locfn = klfconfig.homeConfigDirUserScripts + "/" + uscripts[j];
       for (i = 0; i < pathlist.size(); ++i) {
 	QString s = pathlist[i]+"/"+uscripts[j];
+	klfDbg("testing "<<s) ;
 	if (QFile::exists(s)) { // found
 	  foundpath = s;
 	  break;
@@ -742,7 +743,7 @@ void klf_reload_user_scripts()
 
   klf_user_scripts.clear();
   for (int kkl = 0; kkl < pathlist.size(); ++kkl) {
-    QStringList l = klfSearchFind(pathlist[kkl]);
+    QStringList l = klfSearchFind(pathlist[kkl]+"/*");
     // filter out some unwanted entries
     for (int j = 0; j < l.size(); ++j) {
       if (l[j].endsWith("/.") || l[j].endsWith("/.."))
