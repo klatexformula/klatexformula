@@ -853,6 +853,11 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
   connect(u->btnInsertSearchCurrent, SIGNAL(clicked()),
 	  pSearchable, SLOT(slotInsertCurrentMatch()));
 
+#ifdef Q_WS_MAC
+  // Cmd+Space is used by spotlight, so use Ctrl+Space (on Qt/Mac, Ctrl key is mapped to Qt::META)
+  u->btnInsertSearchCurrent->setShortcut(QKeySequence(Qt::META+Qt::Key_Space));
+#endif
+
   slotKlfConfigChanged();
 }
 

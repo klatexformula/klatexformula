@@ -438,7 +438,7 @@ public:
 	// inside editor!! Simply put, only paste if the editor is empty!
 	return false;
       }
-      mainWin()->loadDefaultStyle();
+      //  mainWin()->loadDefaultStyle(); // this can be annoying if pasting into empty editor...
       mainWin()->slotSetLatex(QString::fromLocal8Bit(data));
       return true;
     }

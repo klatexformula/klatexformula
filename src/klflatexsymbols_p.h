@@ -120,6 +120,8 @@ public slots:
 
   void slotInsertCurrentMatch()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     SearchIterator cur = searchCurrentIterPos();
     if (cur == searchIterEnd())
       return;
