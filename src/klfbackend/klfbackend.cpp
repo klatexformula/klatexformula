@@ -342,6 +342,31 @@ struct KLFFilterProgram {
   bool run(const QByteArray& indata, const QString& outFileName, QByteArray *outdata,
 	   KLFBackend::klfOutput *resError)
   {
+    QMap<QString,QByteArray*> fout; fout[outFileName] = outdata;
+    return run(indata, fout, resError);
+  }
+
+  /** \internal
+   */
+  bool run(const QMap<QString, QByteArray*> outdata, KLFBackend::klfOutput *resError)
+  {
+    return run(QBtyeArray(), outdata, resError);
+  }
+
+  /**
+   * \internal
+   *
+   * \note multiple output files possible. Each data is retreived into a pointer given by outdata map.
+   *
+   * \param indata a QByteArray to write into the program's standard input
+   * \param outdata a QMap with keys being files that are created by the program. These files are read and
+   *   their contents stored in the QByteArray's pointed by the corresponding pointer.
+   * \param resError the klfOutput object is initialized to the corresponding error if an error occurred.
+   *
+   * \returns TRUE/FALSE for success/failure, respectively.
+   */
+  bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdata, KLFBackend::klfOutput *resError)
+  {
     KLFBlockProcess proc;
 
     exitCode = 0;
@@ -352,10 +377,10 @@ struct KLFFilterProgram {
 
     proc.setWorkingDirectory(programCwd);
 
-    qDebug("%s: %s:  about to exec %s...", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(progTitle)) ;
-    qDebug("\t%s", qPrintable(argv.join(" ")));
+    klfDbg("about to exec "<<progTitle<<" ...") ;
+    klfDbg("\t"<<qPrintable(argv.join(" "))) ;
     bool r = proc.startProcess(argv, indata, execEnviron);
-    qDebug("%s: %s:  %s returned.", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(progTitle)) ;
+    klfDbg(progTitle<<" returned.") ;
 
     if (!r) {
       qDebug("%s: cannot launch %s", KLF_FUNC_NAME, qPrintable(progTitle));
@@ -396,7 +421,39 @@ struct KLFFilterProgram {
     if (collectStderr != NULL)
       *collectStderr = proc.getAllStderr();
 
-    if ( ! outFileName.isEmpty() ) {
+    for (QMap<QString,QByteArray*>::iterator it = outdata.begin(); it != outdata.end(); ++it) {
+      QString outFileName = it.key();
+      QByteArray * outdata = it.value();
+
+      klfDbg("Will collect output in file "<<(outFileName.isEmpty()?QString("(stdout)"):outFileName)
+	     <<" to its corresponding QByteArray pointer="<<outdata) ;
+
+      if (outFileName.isEmpty()) {
+	// empty outFileName means to use standard output
+	*outdata = QByteArray();
+	if (outputStdout) {
+	  QByteArray stdoutdata = (collectStdout != NULL) ? *collectStdout : proc.getAllStdout();
+	  ba_cat(outdata, stdoutdata);
+	}
+	if (outputStderr) {
+	  QByteArray stderrdata = (collectStderr != NULL) ? *collectStderr : proc.getAllStderr();
+	  ba_cat(outdata, stderrdata);
+	}
+	if (outdata->isEmpty()) {
+	  // no data
+	  QString stderrstr = (!outputStderr) ? ("\n"+proc.readStderrString()) : QString();
+	  klfDbg(progTitle<<" did not provide any data. "<<stderrstr);
+	  if (resError != NULL) {
+	    resError->status = resErrCodes[KLFFP_NODATA];
+	    resError->errorstr = QObject::tr("Program %1 did not provide any output data.", "KLFBackend")
+	      .arg(progTitle) + stderrstr;
+	  }
+	  return false;
+	}
+	// read standard output to buffer, continue with other possible outputs
+	continue;
+      }
+
       if (!QFile::exists(outFileName)) {
 	qDebug("%s: File `%s' did not appear after running %s", KLF_FUNC_NAME, qPrintable(outFileName),
 	       qPrintable(progTitle));
@@ -410,7 +467,7 @@ struct KLFFilterProgram {
 
       // read output file into outdata
       QFile outfile(outFileName);
-      r = outfile.open(dev_READONLY);
+      r = outfile.open(QIODevice::ReadOnly);
       if ( ! r ) {
 	qDebug("%s: File `%s' cannot be read (after running %s)", KLF_FUNC_NAME, qPrintable(outFileName),
 	       qPrintable(progTitle));
@@ -420,35 +477,13 @@ struct KLFFilterProgram {
 	}
 	return false;
       }
+      
+      KLF_ASSERT_NOT_NULL(outdata, "Given NULL outdata pointer for file "<<outFileName<<" !", return false; ) ;
       *outdata = outfile.readAll();
-      qDebug("KLFBackend/%s: Read file `%s', got data, length=%d", KLF_FUNC_NAME, qPrintable(outfile.f_filename()),
-	     outdata->size());
-    } else {
-      // output file name is empty, read standard output
-      *outdata = QByteArray();
-      if (outputStdout) {
-	QByteArray stdoutdata = (collectStdout != NULL) ? *collectStdout : proc.getAllStdout();
-	ba_cat(outdata, stdoutdata);
-      }
-      if (outputStderr) {
-	QByteArray stderrdata = (collectStderr != NULL) ? *collectStderr : proc.getAllStderr();
-	ba_cat(outdata, stderrdata);
-      }
-
-      if (outdata->isEmpty()) {
-	// no data
-	QString stderrstr = (!outputStderr) ? ("\n"+proc.readStderrString()) : QString();
-	qDebug("%s: %s did not provide any data.%s", KLF_FUNC_NAME, qPrintable(progTitle), qPrintable(stderrstr));
-	if (resError != NULL) {
-	  resError->status = resErrCodes[KLFFP_NODATA];
-	  resError->errorstr = QObject::tr("Program %1 did not provide any output data.", "KLFBackend")
-	    .arg(progTitle) + stderrstr;
-	}
-	return false;
-      }
+      klfDbg("Read file "<<outFileName<<", got data, length="<<outdata->size());
     }
 
-    qDebug("%s: %s was successfully run and output retrieved.", KLF_FUNC_NAME, qPrintable(progTitle));
+    klfDbg(progTitle<<" was successfully run and output successfully retrieved.") ;
 
     // all OK
     exitStatus = 0;
@@ -735,7 +770,16 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       
       p.argv << in.userScript << dir_native_separators(fnTex);
       
-      ok = p.run(fnDvi, &res.dvidata, &res);
+      QMap<QString,QByteArray*> outdata;
+      QString outfmts = scriptinfo.spitsOut();
+      if (outfmts.contains("dvi"))
+	outdata[fnDvi] = &res.dvidata;
+      if (outfmts.contains("png"))
+	outdata[fnPng] = &res.pngdata;
+      if (outfmts.contains("pdf"))
+	outdata[fnPdf] = &res.pdfdata;
+
+      ok = p.run(outdata, &res);
 
       // for user script debugging
       klfbackend_last_userscript_output
@@ -1544,8 +1588,11 @@ struct KLFUserScriptInfo::Private
   QString scriptInfoErrorString;
   QString name;
   QString version;
-  QString klfminversion;
-  QString klfmaxversion;
+  QString license;
+  QString klfMinVersion;
+  QString klfMaxVersion;
+
+  QStringList spitsOut;
 
   void query_script_info()
   {
@@ -1592,7 +1639,13 @@ struct KLFUserScriptInfo::Private
       QString line = QString::fromLocal8Bit(lines[k]);
       if (line.trimmed().isEmpty())
 	continue;
-      QRegExp rx("(\\w+):\\s*(.*)");
+      //  Key: Value   or
+      //  Key[specifiers]: Value
+      //    Key is [-A-Za-z0-9_.]+
+      //    specifiers (optional) is [-A-Za-z0-9_.,]*, intendend to be a list of comma-separated options
+      //    value is anything until end of line. Use 'base64' specifier if you need to have newlines in the value
+      //        and encode the value as base64.
+      QRegExp rx("([-A-Za-z0-9_.]+)(?:\\[([-A-Za-z0-9_.,]*)\\])?:\\s*(.*)");
       QRegExp boolrxtrue("(t(rue)?|y(es)?|on|1)");
       if (!rx.exactMatch(line)) {
 	qWarning()<<KLF_FUNC_NAME<<": User script did not provide valid --scriptinfo.\nCannot parse line: "<<line;
@@ -1601,21 +1654,31 @@ struct KLFUserScriptInfo::Private
 	return;
       }
       QString key = rx.cap(1);
-      QString val = rx.cap(2).trimmed();
+      QString specstr = rx.cap(2);
+      QStringList specs = specstr.split(',');
+      QString val = rx.cap(3).trimmed();
       if (val.isEmpty())
 	val = QString(); // empty value is null string
+      if (specs.contains(QLatin1String("base64"))) {
+	val = QString::fromLocal8Bit(QByteArray::fromBase64(val.toLatin1()));
+      }
       if (key == QLatin1String("Name")) {
 	name = val;
 	klfDbg("Read name: "<<name) ;
       } else if (key == QLatin1String("Version")) {
 	version = val;
 	klfDbg("Read version: "<<version) ;
+      } else if (key == QLatin1String("License")) {
+	license = val;
       } else if (key == QLatin1String("KLFMinVersion")) {
-	klfminversion = val;
-	klfDbg("Read klfminversion: "<<klfminversion) ;
+	klfMinVersion = val;
+	klfDbg("Read klfMinVersion: "<<klfMinVersion) ;
       } else if (key == QLatin1String("KLFMaxVersion")) {
-	klfmaxversion = val;
-	klfDbg("Read klfmaxversion: "<<klfmaxversion) ;
+	klfMaxVersion = val;
+	klfDbg("Read klfMaxVersion: "<<klfMaxVersion) ;
+      } else if (key == QLatin1String("SpitsOut")) {
+	spitsOut = val.split(',');
+	/** \todo maybe check that all formats are recognized... ? */
       } else {
 	klfDbg("Unknown userscript info key: "<<key<<", in line:\n"<<line);
 	qWarning()<<KLF_FUNC_NAME<<": Ignoring unknown user script info key "<<key<<".";
@@ -1663,19 +1726,14 @@ QString KLFUserScriptInfo::scriptInfoErrorString() const
   return d->scriptInfoErrorString;
 }
 
-QString KLFUserScriptInfo::name() const
-{
-  return d->name;
-}
-QString KLFUserScriptInfo::version() const
-{
-  return d->version;
-}
-QString KLFUserScriptInfo::klfMinVersion() const
-{
-  return d->klfminversion;
-}
-QString KLFUserScriptInfo::klfMaxVersion() const
-{
-  return d->klfmaxversion;
-}
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, name);
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, version);
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, license);
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, klfMinVersion);
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, klfMaxVersion);
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, spitsOut);

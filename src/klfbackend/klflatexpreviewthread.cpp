@@ -88,9 +88,9 @@ KLFLatexPreviewThread::~KLFLatexPreviewThread()
   KLF_DELETE_PRIVATE ;
 }
 
-KLF_DEFINE_PROPERTY_GET(KLFLatexPreviewThread, QSize, previewSize, PreviewSize) ;
+KLF_DEFINE_PROPERTY_GET(KLFLatexPreviewThread, QSize, previewSize) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFLatexPreviewThread, QSize, largePreviewSize, PreviewSize) ;
+KLF_DEFINE_PROPERTY_GET(KLFLatexPreviewThread, QSize, largePreviewSize) ;
 
 
 void KLFLatexPreviewThread::stop()

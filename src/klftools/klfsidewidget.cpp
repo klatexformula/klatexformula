@@ -679,7 +679,7 @@ bool KLFDrawerSideWidgetManager::showHideIsAnimating()
 }
 
 
-KLF_DEFINE_PROPERTY_GET(KLFDrawerSideWidgetManager, Qt::DockWidgetArea, openEdge, OpenEdge) ;
+KLF_DEFINE_PROPERTY_GET(KLFDrawerSideWidgetManager, Qt::DockWidgetArea, openEdge) ;
 
 void KLFDrawerSideWidgetManager::setOpenEdge(Qt::DockWidgetArea edge)
 {

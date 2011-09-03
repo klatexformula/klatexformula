@@ -4,14 +4,18 @@
 # $Id$
 # ########################################## #
 
+
+## ---- THIS FILE IS NOT USED, IT IS IN A EARLY DRAFT FORM. -----
+
+
 # This CMake file should be used to compile external plugins for
 # KLatexFormula. This file is NOT used for main build.
 
 
-include(KLFUtil)
-
 # Find Qt 4 and Include it
 find_package(Qt4 4.4.0 COMPONENTS QtCore QtGui REQUIRED)
+
+include(KLFUtil)
 
 
 # We are NOT compiling KLF source ! Make sure this definition is removed.
@@ -25,7 +29,7 @@ remove_definitions(-DKLF_SRC_BUILD)
 
 # The subdir in which to put plugins
 if(NOT KLFPLUGIN_OSARCH)
-  set(KLFPLUGIN_OSARCH "plugin-osarch-dir_REPLACEME" CACHE STRING "KLF Plugin RCC archive sub-dir")
+  set(KLFPLUGIN_OSARCH "plugin-osarch-dir_TODO_CONFIGURE_ME" CACHE STRING "KLF Plugin RCC archive sub-dir")
 endif(NOT KLFPLUGIN_OSARCH)
 
 
@@ -45,6 +49,8 @@ macro(KLFPluginAddOnRule targetname plugin plugindir plugindirinfofile)
 
 endforeach(plugin)
 
+add_custom_target(klfaddon)
+
 macro(KLFMakeAddOn targetname filename info_file)
 
   set(klfaddon_name_${targetname} "${filename}")
@@ -58,13 +64,6 @@ macro(KLFMakeAddOn targetname filename info_file)
   set(klfaddon_qrc_tail_${targetname} "</RCC>")
   set(klfaddon_qrcfile_${targetname} "klfaddon_${targetname}.qrc")
 
-  add_custom_target(klfaddon_${targetname}
-    COMMAND "${QT_RCC_EXECUTABLE}" "-binary" "-o"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    COMMENT "Will create Add-On ${filename}"
-    VERBATIM
-    )
-
   file(WRITE "${klfaddon_qrcfile_${targetname}}"
     "${klfaddon_qrc_head_${targetname}} ${klfaddon_qrc_defs_${targetname}} ${klfaddon_qrc_tail_${targetname}}")
 
@@ -75,10 +74,10 @@ macro(KLFMakeAddOn targetname filename info_file)
     DEPENDS ${klfaddon_deps_${targetname}} ${info_file}
     VERBATIM
     )
-  add_custom_target(klfaddon ALL DEPENDS "${filename}")
+  add_custom_target(klfaddon_${targetname} DEPENDS "${filename}")
+  add_dependencies(klfaddon  klfaddon_${targetname})
 
 endmacro(KLFMakeAddOn)
-
 
 
 

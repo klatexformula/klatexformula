@@ -94,15 +94,15 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
   public: type_and_prop() const;
 
 
-#define KLF_DEFINE_PROPERTY_GET(ClassName, type, prop, Prop)	\
+#define KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)	\
   type ClassName::prop() const { return d->prop; }
 
 #define KLF_DEFINE_PROPERTY_GETSET(ClassName, type, prop, Prop)	\
-  KLF_DEFINE_PROPERTY_GET(ClassName, type, prop, Prop)		\
+  KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)		\
   void ClassName::set##Prop(type value) { d->prop = value; }
 
 #define KLF_DEFINE_PROPERTY_GETSET_C(ClassName, type, prop, Prop)	\
-  KLF_DEFINE_PROPERTY_GET(ClassName, type, prop, Prop)			\
+  KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)			\
   void ClassName::set##Prop(const type& value) { d->prop = value; }
 
 

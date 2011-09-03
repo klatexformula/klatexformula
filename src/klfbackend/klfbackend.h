@@ -534,8 +534,11 @@ public:
 
   QString name() const;
   QString version() const;
+  QString license() const;
   QString klfMinVersion() const;
   QString klfMaxVersion() const;
+
+  QStringList spitsOut() const;
 
 private:
   class Private;

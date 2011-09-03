@@ -36,7 +36,7 @@ if (sys.argv[1] == "--scriptinfo"):
     print "Name: FeynMF Wrapper";
     print "Version: 0.1";
     print "License: GPL v2+"
-    #print "ScriptStage: latex";
+    print "SpitsOut: dvi"
     #print "ForceInputMathMode: \\begin{fmffile}{FMF_FEYNUSERSCRIPT_MFNAME} ... \\end{fmffile}";
     #print "ForceInputPreambleLine: \\usepackage{feynmf}";
     print "";
