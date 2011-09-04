@@ -440,6 +440,8 @@ private slots:
 
   void latexEditReplace(int pos, int len, const QString& text);
 
+  void slotUserScriptSet(int index);
+
 protected:
   Ui::KLFMainWin *u;
 

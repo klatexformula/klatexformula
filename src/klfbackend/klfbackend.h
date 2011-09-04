@@ -24,8 +24,6 @@
 #ifndef KLFBACKEND_H
 #define KLFBACKEND_H
 
-#include <klfdefs.h>
-
 #include <QString>
 #include <QStringList>
 #include <QByteArray>
@@ -33,7 +31,8 @@
 #include <QMutex>
 #include <QMap>
 
-
+#include <klfdefs.h>
+#include <klfutil.h> // KLFRefPtr
 
 //! Definition of class \ref KLFBackend
 /** \file
@@ -120,8 +119,8 @@
 #define KLFERR_PDFREADFAIL KLFERR_GSPDF_OUTPUTREADFAIL //!< obsolete, same as \ref KLFERR_GSPDF_OUTPUTREADFAIL
 //! Failed to query \c gs version
 #define KLFERR_NOGSVERSION -32
-//! This version of \c gs is too old and cannot produce SVG
-#define KLFERR_GSSVG_TOOOLD -33
+//! This version of \c gs cannot produce SVG
+#define KLFERR_GSSVG_NOSVG -33
 //! Program 'gs' couldn't be executed to generate SVG
 #define KLFERR_GSSVG_NORUN -34
 //! Program 'gs' didn't exit noramally (crashed) while generating SVG (see also \ref KLFERR_PROGERR_GSSVG)
@@ -138,7 +137,8 @@
 #define KLFERR_USERSCRIPT_NOOUTPUT -42
 #define KLFERR_USERSCRIPT_OUTPUTREADFAIL -43
 #define KLFERR_USERSCRIPT_BADKLFVERSION -44
-// last error defined: -44
+#define KLFERR_USERSCRIPT_BADSKIPFORMATS -45
+// last error defined: -45
 
 
 
@@ -185,7 +185,8 @@ public:
    *
    * \note the \c klfclspath field was removed, because we no longer use klatexformula.cls.
    * */
-  struct klfSettings {
+  struct klfSettings
+  {
     /** A default constructor assigning default (empty) values to all fields */
     klfSettings() : tborderoffset(0), rborderoffset(0), bborderoffset(0), lborderoffset(0),
 		    calcEpsBoundingBox(true), outlineFonts(true),
@@ -266,7 +267,8 @@ public:
   //! Specific input to KLFBackend::getLatexFormula()
   /** This struct descibes the input of getLatexFormula(), ie. the LaTeX code, the mathmode to use,
    * the dpi for rendering png, colors etc. */
-  struct klfInput {
+  struct klfInput
+  {
     /** A default constructor assigning default values to all fields. */
     klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600), bypassTemplate(false) { }
     /** The latex code to render */
@@ -321,7 +323,8 @@ public:
   //! KLFBackend::getLatexFormula() result
   /** This struct contains data that is returned from getLatexFormula(). This includes error handling
    * information, the resulting image (as a QImage) as well as data for PNG, (E)PS and PDF files */
-  struct klfOutput {
+  struct klfOutput
+  {
     /** \brief A code describing the status of the request.
      *
      * A zero value means success for everything. A positive value means that a program (latex, dvips,
@@ -332,6 +335,7 @@ public:
      * In every case where status is non-zero, a suitable human-readable error string will be provided in
      * the \ref errorstr field. If status is zero, \ref errorstr will be empty.  */
     int status;
+
     /** \brief An explicit error string.
      *
      * If \ref status is positive (ie. latex/dvips/gs/epstopdf error) then this text is HTML-formatted
@@ -341,22 +345,24 @@ public:
      * This string is Qt-Translated with QObject::tr() using \c "KLFBackend" as comment. */
     QString errorstr;
 
-    /** The actual resulting image. */
+    /** \brief The actual resulting image. */
     QImage result;
 
-    /** The input parameters used to generate this output */
+    /** \brief The input parameters used to generate this output */
     klfInput input;
-    /** The settings that this output was generated with */
+    /** \brief The settings that this output was generated with */
     klfSettings settings;
 
-    /** The DVI file data outputted by latex executable */
+    /** \brief The DVI file data outputted by latex executable */
     QByteArray dvidata;
-    /** the data for a png file (exact \c gs output content)
+    /** \brief the data for a png file (exact \c gs output content)
      *
      * This image does NOT contain any meta-data. See also \ref pngdata.
+     *
+     * This field in output object is only initialized if klfSettings::wantRaw is TRUE.
      */
     QByteArray pngdata_raw;
-    /** the data for a png file (re-processed, with meta information on Qt4)
+    /** \brief the data for a png file (re-processed with meta information)
      *
      * The following metadata tags are set in the image:
      * - \c "AppVersion" set to <tt>&quot;KLatexFormula <i>&lt;version></i>&quot;</tt>
@@ -375,16 +381,31 @@ public:
      * - \c "SettingsOutlineFonts" set to \c "true" or \c "false" as given in \ref klfSettings::outlineFonts.
      */
     QByteArray pngdata;
-    /** data for an (eps-)postscript file. Data is exactly as output by <tt>dvips -E</tt>, without any
-     * further processing. */
+    /** \brief data for an (eps-)postscript file.
+     *
+     * Data is exactly as output by <tt>dvips -E</tt>, without any further processing.
+     *
+     * This field in output object is only initialized if klfSettings::wantRaw is TRUE. */
     QByteArray epsdata_raw;
-    /** data for an (eps-)postscript file. Fonts are outlined with paths if the setting
-     * \c klfSettings::outlineFonts is given. */
+    /** \brief data for an (eps-)postscript file.
+     *
+     * Data as output by <tt>dvips</tt>, with the corrected bounding box as specified in the settings
+     * object.
+     *
+     * This field in output object is only initialized if klfSettings::wantRaw is TRUE. */
+    QByteArray epsdata_bbox;
+    /** \brief data for an (eps-)postscript file.
+     *
+     * Fonts are outlined with paths if the setting \c klfSettings::outlineFonts is given. */
     QByteArray epsdata;
-    /** data for a pdf file */
+    /** \brief data for a pdf file */
     QByteArray pdfdata;
-    /** data for a SVG file, if ghostscript >= 8.64 */
+    /** \brief data for a SVG file, if ghostscript supports SVG */
     QByteArray svgdata;
+    /** \brief Width in points of the resulting equation */
+    double width_pt;
+    /** \brief Width in points of the resulting equation */
+    double height_pt;
   };
 
   /** \brief The function that processes everything.
@@ -520,6 +541,9 @@ private:
 };
 
 
+//! Summary of the info returned by a user script
+/** See also \ref pageUserScript .
+ */
 class KLFUserScriptInfo
 {
 public:
@@ -527,23 +551,47 @@ public:
   KLFUserScriptInfo(const KLFUserScriptInfo& copy);
   ~KLFUserScriptInfo();
 
+  static void clearCacheAll();
+
   int scriptInfoError() const;
   QString scriptInfoErrorString() const;
 
   QString fileName() const;
 
   QString name() const;
+  QString author() const;
   QString version() const;
   QString license() const;
   QString klfMinVersion() const;
   QString klfMaxVersion() const;
 
   QStringList spitsOut() const;
+  //! List of formats that klfbackend should not attempt to generate
+  /** The corresponding field(s) in KLFBackend::klfOutput will be set to empty QByteArray's.
+   *
+   * Same format list as 'spits-out'. */
+  QStringList skipFormats() const;
 
+  struct Param {
+    enum ParamType { String, Bool, Int, Enum };
+    Param() : type(String) { }
+
+    ParamType type;
+    QStringList type_enums;
+
+    QString name;
+    QString title;
+    QString description;
+  };
+
+  QList<Param> paramList() const;
+  
 private:
   class Private;
 
-  Private *d;
+  KLFRefPtr<Private> d;
+  inline Private * d_func() { return d(); }
+  inline const Private * d_func() const { return d(); }
 };
 
 

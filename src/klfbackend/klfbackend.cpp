@@ -40,6 +40,7 @@
 #include <QImageWriter>
 
 #include <klfutil.h>
+#include <klfdatautil.h>
 
 #include "klfblockprocess.h"
 #include "klfbackend.h"
@@ -76,6 +77,17 @@
  *</div>
  */
 
+
+
+/** \page pageUserScript User Scripts
+ *
+ * \todo ......... WRITE DOC................
+ *
+ * Format list (e.g. for 'spitsOut()' and 'skipFormats()':
+ * \todo FORMAT LIST
+ *
+ * \bug NEEDS TESTING: user script output formats, skipped formats, parameters, etc.
+ */
 
 
 
@@ -350,7 +362,7 @@ struct KLFFilterProgram {
    */
   bool run(const QMap<QString, QByteArray*> outdata, KLFBackend::klfOutput *resError)
   {
-    return run(QBtyeArray(), outdata, resError);
+    return run(QByteArray(), outdata, resError);
   }
 
   /**
@@ -365,7 +377,7 @@ struct KLFFilterProgram {
    *
    * \returns TRUE/FALSE for success/failure, respectively.
    */
-  bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdata, KLFBackend::klfOutput *resError)
+  bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist, KLFBackend::klfOutput *resError)
   {
     KLFBlockProcess proc;
 
@@ -373,7 +385,6 @@ struct KLFFilterProgram {
     exitStatus = 0;
 
     KLF_ASSERT_CONDITION(argv.size() > 0, "argv array is empty! No program is given!", return false; ) ;
-    KLF_ASSERT_NOT_NULL(outdata, "Please provide a valid QByteArray outdata pointer!", return false; ) ;
 
     proc.setWorkingDirectory(programCwd);
 
@@ -421,9 +432,11 @@ struct KLFFilterProgram {
     if (collectStderr != NULL)
       *collectStderr = proc.getAllStderr();
 
-    for (QMap<QString,QByteArray*>::iterator it = outdata.begin(); it != outdata.end(); ++it) {
+    for (QMap<QString,QByteArray*>::const_iterator it = outdatalist.begin(); it != outdatalist.end(); ++it) {
       QString outFileName = it.key();
       QByteArray * outdata = it.value();
+      
+      KLF_ASSERT_NOT_NULL(outdata, "Given NULL outdata pointer for file "<<outFileName<<" !", return false; ) ;
 
       klfDbg("Will collect output in file "<<(outFileName.isEmpty()?QString("(stdout)"):outFileName)
 	     <<" to its corresponding QByteArray pointer="<<outdata) ;
@@ -478,7 +491,6 @@ struct KLFFilterProgram {
 	return false;
       }
       
-      KLF_ASSERT_NOT_NULL(outdata, "Given NULL outdata pointer for file "<<outFileName<<" !", return false; ) ;
       *outdata = outfile.readAll();
       klfDbg("Read file "<<outFileName<<", got data, length="<<outdata->size());
     }
@@ -495,12 +507,114 @@ struct KLFFilterProgram {
 
 #define D_RX "([0-9eE.-]+)"
 
+// A Bounding Box
+struct klfbbox {
+  double x1, x2, y1, y2;
+};
+
+
+
+static bool calculate_gs_eps_bbox(const QByteArray& epsdata, const QString& epsFile, klfbbox *bbox,
+				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings);
+static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::klfOutput * resError);
+static void correct_eps_bbox(const QByteArray& epsdata, const klfbbox& bbox_corrected, const klfbbox& bbox_orig,
+			     QByteArray * epsdatacorrected);
 
 static void replace_svg_width_or_height(QByteArray *svgdata, const char * attr, double val);
 
 
+static inline bool has_userscript_output(const QSet<QString>& fmts, const QString& format)
+{
+  return fmts.contains(format);
+  //  if (!fmts.contains(format))
+  //    return false;
+  //  return fn.isEmpty() ? true : QFile::exists(fn);
+}
+
+
 // for user debugging...
 KLF_EXPORT QString klfbackend_last_userscript_output;
+
+
+typedef QSet<QString> KLFStringSet;
+
+KLF_EXPORT KLFStringSet klfbackend_fmts =
+  KLFStringSet()
+  /* */   << "tex" << "latex" << "dvi" << "eps-raw" << "eps-bbox" << "eps-processed"
+/*   */   << "png" << "pdf" << "svg-gs" << "svg" ;
+
+
+KLF_EXPORT KLFStringSet klfbackend_dependencies(const QString& fmt, bool recursive = true)
+{
+  static KLFStringSet fn_lock = KLFStringSet();
+
+  if (fn_lock.contains(fmt)) {
+    klfWarning("Dependency loop detected for format "<<fmt) ;
+    return KLFStringSet();
+  }
+  fn_lock << fmt;
+
+  KLFStringSet s;
+  if (fmt == QLatin1String("tex") || fmt == QLatin1String("latex")) {
+    // no dependency
+  } else if (fmt == QLatin1String("dvi")) {
+    s << "tex";
+  } else if (fmt == QLatin1String("eps-raw")) {
+    s << "dvi";
+  } else if (fmt == QLatin1String("eps-bbox")) {
+    s << "eps-raw";
+  } else if (fmt == QLatin1String("eps-processed")) {
+    s << "eps-bbox";
+  } else if (fmt == QLatin1String("png")) {
+    s << "eps-processed";
+  } else if (fmt == QLatin1String("pdf")) {
+    s << "eps-processed";
+  } else if (fmt == QLatin1String("svg-gs")) {
+    s << "eps-processed";
+  } else if (fmt == QLatin1String("svg")) {
+    s << "svg-gs";
+  } else {
+    klfWarning("Unknown format : "<<fmt) ;
+  }
+  if (!recursive) {
+    fn_lock.remove(fmt);
+    return s;
+  }
+  // explore dependencies recursively 
+  KLFStringSet basedeps = s;
+  foreach (QString str, basedeps) {
+    KLFStringSet subdeps = klfbackend_dependencies(str, true);
+    foreach (QString subdep, subdeps) {
+      s << subdep;
+    }
+  }
+
+  fn_lock.remove(fmt);
+  return s;
+}
+
+static inline bool assert_have_formats_for(const KLFStringSet& outputs, const KLFStringSet& skipfmts,
+					   const QString& forwhat)
+{
+  KLFStringSet fmtlist = klfbackend_dependencies(forwhat);
+  foreach (QString s, fmtlist) {
+    if (skipfmts.contains(s) && !outputs.contains(s)) {
+      klfWarning("User Script Skipped format "<<s<<" which is necessary for "<<forwhat) ;
+      return false;
+    }
+  }
+  return true;
+}
+
+#define ASSERT_HAVE_FORMATS_FOR(forwhat)				\
+  { if (!assert_have_formats_for(us_outputs, us_skipfmts, forwhat)) {	\
+      res.status = KLFERR_USERSCRIPT_BADSKIPFORMATS; 			\
+      res.errorstr = QObject::tr("User Script broke dependencies in skip-formats list", "KLFBackend"); \
+      return res;							\
+    }									\
+  }
+
+
 
 
 KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& usersettings)
@@ -556,7 +670,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   initGsInfo(&settings);
   if (!gsInfo.contains(settings.gsexec)) {
     res.status = KLFERR_NOGSVERSION;
-    res.errorstr = QObject::tr("Can't query version of ghostscript located at `%1'.").arg(settings.gsexec);
+    res.errorstr = QObject::tr("Can't query version of ghostscript located at `%1'.", "KLFBackend")
+      .arg(settings.gsexec);
     return res;
   }
 
@@ -620,22 +735,30 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   QString ver = KLF_VERSION_STRING;
   ver.replace(".", "x"); // make friendly names with chars in [a-zA-Z0-9]
   // the base name for all our temp files
-  QString tempfname = settings.tempdir + "/klftmp" + ver + "t" + QDateTime::currentDateTime().toString("hhmmss");
+  QString tempfname = settings.tempdir + "/klftmp" + ver + "T" + QDateTime::currentDateTime().toString("hhmmss");
 
   QString fnTex = tempfname + ".tex";
   QString fnDvi = tempfname + ".dvi";
-  QString fnRawEps = tempfname + "-dvips.eps";
-  QString fnProcessedEps = tempfname + "-dvips-bbcorr-gs.eps";
-  QString fnFinalEps = fnProcessedEps;
-  QString fnPng = tempfname + ".png";
+  QString fnRawEps = tempfname + ".eps";
+  QString fnBBoxEps = tempfname + "-bbox.eps";
+  QString fnProcessedEps = tempfname + "-processed.eps";
+  QString fnRawPng = tempfname + "-raw.png";
   QString fnPdf = tempfname + ".pdf";
-  QString fnRawSvg = tempfname + "-gssvg.svg";
+  QString fnGsSvg = tempfname + "-gs.svg";
+  // some user scripts may provide directly .svg (even though the default process chain
+  // processes raw svg in memory, not generating final svg file)
+  QString fnSvg = tempfname + ".svg";
+
+  // we need non-outlinedfont EPS data anyway.
+  QByteArray rawepsdata;
+  QByteArray bboxepsdata;
+  QByteArray gssvgdata;
 
   // upon destruction (on stack) of this object, cleanup() will be
   // automatically called as wanted
   cleanup_caller cleanupcallerinstance(tempfname);
 
-  QString latexsimplified = in.latex.s_trimmed();
+  QString latexsimplified = in.latex.trimmed();
   if (latexsimplified.isEmpty()) {
     res.errorstr = QObject::tr("You must specify a LaTeX formula!", "KLFBackend");
     res.status = KLFERR_MISSINGLATEXFORMULA;
@@ -650,13 +773,13 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
   }
 
-  { // prepare latex file
+  // prepare LaTeX file
+  {
     QFile file(fnTex);
-    bool r = file.open(dev_WRITEONLY);
+    bool r = file.open(QIODevice::WriteOnly);
     if ( ! r ) {
       res.status = KLFERR_TEXWRITEFAIL;
-      res.errorstr = QObject::tr("Can't open file for writing: '%1'!", "KLFBackend")
-	.arg(fnTex);
+      res.errorstr = QObject::tr("Can't open file for writing: '%1'!", "KLFBackend").arg(fnTex);
       return res;
     }
     QTextStream stream(&file);
@@ -676,23 +799,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
   }
 
-  if (in.userScript.isEmpty()) {
-    // execute latex
-    KLFFilterProgram p(QLatin1String("LaTeX"), &settings);
-    p.resErrCodes[KLFFP_NOSTART] = KLFERR_LATEX_NORUN;
-    p.resErrCodes[KLFFP_NOEXIT] = KLFERR_LATEX_NONORMALEXIT;
-    p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_LATEX;
-    p.resErrCodes[KLFFP_NODATA] = KLFERR_LATEX_NOOUTPUT;
-    p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_LATEX_OUTPUTREADFAIL;
+  KLFStringSet us_outputs;
+  KLFStringSet us_skipfmts;
+  KLFStringSet our_skipfmts;
 
-    p.argv << settings.latexexec << dir_native_separators(fnTex);
-
-    ok = p.run(fnDvi, &res.dvidata, &res);
-    if (!ok) {
-      return res;
-    }
-  } // end of 'latex' block
-  else {
+  if (!in.userScript.isEmpty()) {
     // user has provided us a wrapper script. Query it and use it
 
     KLFUserScriptInfo scriptinfo(in.userScript, &settings);
@@ -747,7 +858,18 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       << "KLF_SETTINGS_CALCEPSBOUNDINGBOX=" + QString::fromLatin1(settings.calcEpsBoundingBox ? "1" : "0")
       << "KLF_SETTINGS_WANT_RAW=" + QString::fromLatin1(settings.wantRaw ? "1" : "0")
       << "KLF_SETTINGS_WANT_PDF=" + QString::fromLatin1(settings.wantPDF ? "1" : "0")
-      << "KLF_SETTINGS_WANT_SVG=" + QString::fromLatin1(settings.wantSVG ? "1" : "0");
+      << "KLF_SETTINGS_WANT_SVG=" + QString::fromLatin1(settings.wantSVG ? "1" : "0")
+      // file names (all formed with same basename...) to access by the script
+      << "KLF_FN_TEX=" + fnTex
+      << "KLF_FN_LATEX=" + fnTex
+      << "KLF_FN_DVI=" + fnDvi
+      << "KLF_FN_EPS_RAW=" + fnRawEps
+      << "KLF_FN_EPS_PROCESSED=" + fnProcessedEps
+      << "KLF_FN_PNG=" + fnRawPng
+      << "KLF_FN_PDF=" + fnPdf
+      << "KLF_FN_SVG_GS=" + fnGsSvg
+      << "KLF_FN_SVG=" + fnSvg
+      ;
 
     // and add custom user parameters
     QMap<QString,QString>::const_iterator cit;
@@ -756,7 +878,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
 
     { // now run the script
-      KLFFilterProgram p("["+scriptinfo.name()+" user script]", &settings);
+      KLFFilterProgram p("[user script "+scriptinfo.name()+"]", &settings);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
@@ -768,16 +890,77 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       p.collectStderr = &stderr;
       p.collectStdout = &stdout;
       
-      p.argv << in.userScript << dir_native_separators(fnTex);
-      
+      p.argv << in.userScript << QDir::toNativeSeparators(fnTex);
+
       QMap<QString,QByteArray*> outdata;
-      QString outfmts = scriptinfo.spitsOut();
-      if (outfmts.contains("dvi"))
-	outdata[fnDvi] = &res.dvidata;
-      if (outfmts.contains("png"))
-	outdata[fnPng] = &res.pngdata;
-      if (outfmts.contains("pdf"))
-	outdata[fnPdf] = &res.pdfdata;
+      QStringList outfmts = scriptinfo.spitsOut();
+      foreach (QString fmt, outfmts) {
+	us_outputs << fmt;
+	if (fmt == QLatin1String("tex") || fmt == QLatin1String("latex")) {
+	  // user script overwrote the tex/latex file, don't collect the tex file data as it is not
+	  // needed (not considered as useful output!). This new tex file will be seen and accessed
+	  // by 'latex' in the next process block after userscript if needed.
+	} else if (fmt == QLatin1String("dvi")) {
+	  outdata[fnDvi] = &res.dvidata;
+	} else if (fmt == QLatin1String("eps-raw")) {
+	  // if we don't need this, it will be removed below from the list
+	  outdata[fnRawEps] = &rawepsdata;
+	} else if (fmt == QLatin1String("eps-bbox")) {
+	  outdata[fnBBoxEps] = &bboxepsdata;
+	} else if (fmt == QLatin1String("eps-processed")) {
+	  outdata[fnProcessedEps] = &res.epsdata;
+	} else if (fmt == QLatin1String("png")) {
+	  if (settings.wantRaw)
+	    outdata[fnRawPng] = &res.pngdata_raw;
+	} else if (fmt == QLatin1String("pdf")) {
+	  if (settings.wantPDF)
+	    outdata[fnPdf] = &res.pdfdata;
+	} else if (fmt == QLatin1String("svg-gs")) {
+	  // ignore this data, not returned in klfOutput but the created file is used to generate
+	  // the processed SVG
+	  outdata[fnGsSvg] = & gssvgdata;
+	} else if (fmt == QLatin1String("svg")) {
+	  if (settings.wantSVG)
+	    outdata[fnSvg] = &res.svgdata;
+	} else {
+	  klfWarning("Can't handle output format from user script: "<<fmt) ;
+	}
+      }
+      if (us_outputs.isEmpty())
+	us_outputs << "dvi"; // by default, the script is assumed to provide DVI.
+      if (us_outputs.contains("eps-bbox") && !settings.wantRaw) {
+	// don't need to fetch initial raw eps data
+	if (outdata.contains("eps-raw"))
+	  outdata.remove(fnRawEps);
+      }
+      if (us_outputs.contains("eps-processed") && !settings.wantRaw) {
+	// don't need to fetch bbox raw eps data
+	if (outdata.contains("eps-bbox"))
+	  outdata.remove(fnBBoxEps);
+      }
+
+      QStringList skipfmts = scriptinfo.spitsOut();
+      foreach (QString fmt, skipfmts) {
+	if (outdata.contains(fmt)) {
+	  klfWarning("User Script Info: If a format is provided by the script, don't mark it as to skip. fmt="<<fmt) ;
+	  continue;
+	}
+	if (!klfbackend_fmts.contains(fmt)) {
+	  klfWarning("User Script Info: Unknown format to skip: "<<fmt) ;
+	}
+	us_skipfmts << fmt;
+      }
+      our_skipfmts = us_skipfmts;
+
+      if ((us_outputs.contains("eps-processed") || our_skipfmts.contains("eps-processed")) && !settings.wantRaw) {
+	our_skipfmts << "eps-bbox";
+      }
+      if ((us_outputs.contains("eps-bbox") || our_skipfmts.contains("eps-bbox")) && !settings.wantRaw) {
+	our_skipfmts << "eps-raw";
+      }
+      if (us_outputs.contains("svg") || our_skipfmts.contains("svg")) {
+	our_skipfmts << "svg-gs"; // don't need svg-gs if we're not generating svg
+      }
 
       ok = p.run(outdata, &res);
 
@@ -792,9 +975,29 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
   }
 
-  QByteArray rawepsdata;
 
-  { // execute dvips -E
+  if (!has_userscript_output(us_outputs, "dvi") && !our_skipfmts.contains("dvi")) {
+    // execute latex
+    KLFFilterProgram p(QLatin1String("LaTeX"), &settings);
+    p.resErrCodes[KLFFP_NOSTART] = KLFERR_LATEX_NORUN;
+    p.resErrCodes[KLFFP_NOEXIT] = KLFERR_LATEX_NONORMALEXIT;
+    p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_LATEX;
+    p.resErrCodes[KLFFP_NODATA] = KLFERR_LATEX_NOOUTPUT;
+    p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_LATEX_OUTPUTREADFAIL;
+
+    p.argv << settings.latexexec << QDir::toNativeSeparators(fnTex);
+    
+    ok = p.run(fnDvi, &res.dvidata, &res);
+    if (!ok) {
+      return res;
+    }
+  }
+
+  if (!has_userscript_output(us_outputs, "eps-raw") && !our_skipfmts.contains("eps-raw")) {
+
+    ASSERT_HAVE_FORMATS_FOR("eps-raw") ;
+
+    // execute dvips -E
     KLFFilterProgram p(QLatin1String("dvips"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_DVIPS_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_DVIPS_NONORMALEXIT;
@@ -802,7 +1005,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     p.resErrCodes[KLFFP_NODATA] = KLFERR_DVIPS_NOOUTPUT;
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_DVIPS_OUTPUTREADFAIL;
 
-    p.argv << settings.dvipsexec << "-E" << dir_native_separators(fnDvi) << "-o" << dir_native_separators(fnRawEps);
+    p.argv << settings.dvipsexec << "-E" << QDir::toNativeSeparators(fnDvi)
+	   << "-o" << QDir::toNativeSeparators(fnRawEps);
 
     ok = p.run(fnRawEps, &rawepsdata, &res);
 
@@ -812,235 +1016,127 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     qDebug("%s: read raw EPS; rawepsdata/length=%d", KLF_FUNC_NAME, rawepsdata.size());
   } // end of 'dvips' block
 
-  // width and height of the (final) EPS bbox in postscript points
-  double width_pt = 0, height_pt = 0;
+  // the settings requires, save the intermediary data in to result output
+  if (settings.wantRaw)
+    res.epsdata_raw = rawepsdata;
 
-  { // find correct bounding box of EPS file, using ghostscript, and modify the EPS file manually
-    struct klfbbox {
-      double x1, x2, y1, y2;
-    }  bbox,  bbox_corrected;
-    double offx, offy;
+  // This now also returned in 'res', directly saved there.
+  //  // width and height of the (final) EPS bbox in postscript points
+  //  double width_pt = 0, height_pt = 0;
 
-    int i;
+  if (!has_userscript_output(us_outputs, "eps-bbox") && !our_skipfmts.contains("eps-bbox")) {
+    // find correct bounding box of EPS file, and modify EPS data manually to add boffset and
+    // translate to (0,0,width,height)
+
+    ASSERT_HAVE_FORMATS_FOR("eps-bbox") ;
+
+    klfbbox bbox, bbox_corrected;
 
     if (settings.calcEpsBoundingBox) {
+      bool ok = calculate_gs_eps_bbox(QByteArray(), fnRawEps, &bbox, &res, settings);
+      if (!ok)
+	return res; // res was set by the function
+    } else {
+      bool ok = read_eps_bbox(rawepsdata, &bbox, &res);
+      if (!ok)
+	return res; // res was set by the function
+    }
 
-      KLFFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings);
-      p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSBBOX_NORUN;
-      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSBBOX_NONORMALEXIT;
-      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSBBOX;
-      p.resErrCodes[KLFFP_NODATA] = KLFERR_GSBBOX_NOOUTPUT;
-      // p.resErrCodes[KLFFP_DATAREADFAIL]  unused
+    bbox.x1 -= settings.lborderoffset;
+    bbox.y1 -= settings.bborderoffset;
+    bbox.x2 += settings.rborderoffset;
+    bbox.y2 += settings.tborderoffset;
 
-      p.outputStdout = true;
-      p.outputStderr = true;
-    
-      QByteArray bboxdata;
+    res.width_pt = bbox.x2 - bbox.x1;
+    res.height_pt = bbox.y2 - bbox.y1;
 
-      p.argv << settings.gsexec << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=bbox" << "-q" << "-dBATCH"
-	     << fnRawEps;
+    // now correct the bbox to (0,0,width,height)
 
-      ok = p.run(QString(), &bboxdata, &res);
+    bbox_corrected.x1 = 0;
+    bbox_corrected.y1 = 0;
+    bbox_corrected.x2 = res.width_pt;
+    bbox_corrected.y2 = res.height_pt;
+
+    // and generate corrected raw EPS
+
+    correct_eps_bbox(rawepsdata, bbox_corrected, bbox, &bboxepsdata);
+  } else {
+    // userscript generated bbox-corrected EPS for us, but we still
+    // need to set width_pt and height_pt appropriately.
+
+    klfbbox bb;
+
+    // read from fnRawEps, fnBBoxEps or fnProcessedEps ?
+    QString fn;
+    QByteArray *dat;
+    if (us_outputs.contains("eps-processed")) {
+      fn = fnProcessedEps;
+      dat = & res.epsdata;
+    } else {
+      fn = fnBBoxEps;
+      dat = & bboxepsdata;
+    }
+
+    if (settings.calcEpsBoundingBox) {
+      bool ok = calculate_gs_eps_bbox(QByteArray(), fn, &bb, &res, settings);
+      if (!ok)
+	return res; // res was set by the function
+    } else {
+      bool ok = read_eps_bbox(bboxepsdata, &bb, &res);
+      if (!ok)
+	return res; // res was set by the function
+    }
+
+    res.width_pt = bb.x2 - bb.x1;
+    res.height_pt = bb.y2 - bb.y1;
+  } // end 'correct bbox in eps' block
+
+  // the settings requires, save the intermediary data in to result output
+  if (settings.wantRaw)
+    res.epsdata_bbox = bboxepsdata;
+  
+  if (!has_userscript_output(us_outputs, "eps-processed") && !our_skipfmts.contains("eps-processed")) {
+    // need to process EPS, i.e. outline fonts
+
+    ASSERT_HAVE_FORMATS_FOR("eps-processed") ;
+
+    if (settings.outlineFonts) {
+      // post-process EPS file to outline fonts if requested
+
+      KLFFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings);
+      p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPOSTPROC_NORUN;
+      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPOSTPROC_NONORMALEXIT;
+      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPOSTPROC;
+      p.resErrCodes[KLFFP_NODATA] = KLFERR_GSPOSTPROC_NOOUTPUT;
+      p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPOSTPROC_OUTPUTREADFAIL;
+
+      p.argv << settings.gsexec;
+      // The bad joke is that in gs' manpage '-dNOCACHE' is described as a debugging option.
+      // It is NOT. It outlines the fonts to paths. It cost me a few hours trying to understand
+      // what's going on ... :(
+      p.argv << "-dNOCACHE";
+      p.argv << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=pswrite";
+      p.argv << "-sOutputFile="+QDir::toNativeSeparators(fnProcessedEps)
+	     << "-q" << "-dBATCH" << "-";
+      
+      ok = p.run(bboxepsdata, fnProcessedEps, &res.epsdata, &res);
       if (!ok) {
 	return res;
       }
 
-      qDebug("%s: gs provided output:\n%s\n", KLF_FUNC_NAME, (const char*)bboxdata);
-
-      // parse gs' bbox data
-      QRegExp rx_gsbbox("%%HiResBoundingBox\\s*:\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
-      i = rx_gsbbox.rx_indexin(QString::fromLatin1(bboxdata));
-      if (i < 0) {
-	res.status = KLFERR_GSBBOX_NOBBOX;
-	res.errorstr = QObject::tr("Ghostscript did not provide parsable BBox output!", "KLFBackend");
-	return res;
-      }
-      bbox.x1 = rx_gsbbox.cap(1).toDouble()  -  settings.lborderoffset;
-      bbox.y1 = rx_gsbbox.cap(2).toDouble()  -  settings.bborderoffset;
-      bbox.x2 = rx_gsbbox.cap(3).toDouble()  +  settings.rborderoffset;
-      bbox.y2 = rx_gsbbox.cap(4).toDouble()  +  settings.tborderoffset;
+      klfDebugf(("%s: res.epsdata has length=%d", KLF_FUNC_NAME, res.epsdata.size())) ;
 
     } else {
-      qDebug("%s: reading EPS BoundingBox from dvips output", KLF_FUNC_NAME);
-
-      // Read dvips' bounding box.
-      buf_decl_ba(QBuffer buf, rawepsdata);
-      bool r = buf.open(dev_READONLY | dev_TEXTTRANSLATE);
-      if (!r) {
-	qWarning("%s: %s: What's going on!!?! can't open buffer for reading?", KLF_FUNC_NAME, KLF_SHORT_TIME) ;
-      }
-
-      bool havebbox = false;
-
-      QString nobboxerrstr =
-	QObject::tr("DVIPS did not provide parsable %%BoundingBox: in its output!", "KLFBackend");
-
-      char linebuffer[256];
-      int n;
-      while ((n = buf.readLine(linebuffer, 256)) > 0) {
-	static const char * bboxtag = "%%BoundingBox:";
-	static const int bboxtaglen = strlen(bboxtag);
-	if (!strncmp(linebuffer, bboxtag, bboxtaglen)) {
-	  // got bounding-box.
-	  // parse bbox values
-	  QRegExp rx_bbvalues("" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
-	  i = rx_bbvalues.rx_indexin(QString::fromLatin1(linebuffer + bboxtaglen));
-	  if (i < 0) {
-	    res.status = KLFERR_DVIPS_OUTPUTNOBBOX;
-	    res.errorstr = nobboxerrstr;
-	    return res;
-	  }
-	  bbox.x1 = rx_bbvalues.cap(1).toDouble()  -  settings.lborderoffset;
-	  bbox.y1 = rx_bbvalues.cap(2).toDouble()  -  settings.bborderoffset;
-	  bbox.x2 = rx_bbvalues.cap(3).toDouble()  +  settings.rborderoffset;
-	  bbox.y2 = rx_bbvalues.cap(4).toDouble()  +  settings.tborderoffset;
-	  havebbox = true;
-	  break;
-	}
-      }
-      if (!havebbox) {
-	res.status = KLFERR_DVIPS_OUTPUTNOBBOX;
-	res.errorstr = nobboxerrstr;
-	return res;
-      }
+      // no post-processed EPS, copy raw (bbox-corrected) EPS data:
+      res.epsdata = bboxepsdata;
     }
-
-    qDebug("%s: BoundingBox is %f %f %f %f", KLF_FUNC_NAME, bbox.x1, bbox.y1, bbox.x2, bbox.y2);
-
-    offx = -bbox.x1;
-    offy = -bbox.y1;
-    width_pt = bbox.x2 - bbox.x1;
-    height_pt = bbox.y2 - bbox.y1;
-    bbox_corrected.x1 = 0;
-    bbox_corrected.y1 = 0;
-    bbox_corrected.x2 = width_pt;
-    bbox_corrected.y2 = height_pt;
-
-    klfDebugf(("%s: Corrected BoundingBox to %f %f %f %f", KLF_FUNC_NAME, bbox_corrected.x1, bbox_corrected.y1,
-	       bbox_corrected.x2, bbox_corrected.y2)) ;
-
-    // in raw EPS data, find '%%BoundingBox:'
-    int len;
-    char nl[] = "\0\0\0";
-    i = ba_indexOf(rawepsdata, "%%BoundingBox:");
-    if (i < 0) {
-      i = 0;
-      len = 0;
-    } else {
-      int j = i+14; // 14==strlen("%%BoundingBox:")
-      while (j < (int)rawepsdata.size() && rawepsdata[j] != '\r' && rawepsdata[j] != '\n')
-	++j;
-      len = j-i;
-      if (rawepsdata[j] == '\r' && j < (int)rawepsdata.size()-1 && rawepsdata[j+1] == '\n') {
-	nl[0] = '\r', nl[1] = '\n';
-      } else {
-	nl[0] = rawepsdata[j];
-      }
-    }
-
-#ifdef KLF_DEBUG
-    {    // DUMP RAW EPS file
-      fprintf(stderr, "Raw EPS (dvips output) file contents is:\n");
-      for (int k = 0; k < (int)rawepsdata.size(); ++k)
-	fputc(rawepsdata[k], stderr);
-      fprintf(stderr, "\n");
-    }
-#endif
-
-    // recall that '%%' in printf is replaced by a single '%'...
-    int wi = (int)(bbox_corrected.x2 + 0.99999) ;
-    int hi = (int)(bbox_corrected.y2 + 0.99999) ;
-    char buffer[256];
-    int buffer_len;
-    snprintf(buffer, 255,
-	     "%%%%BoundingBox: 0 0 %d %d%s"
-	     "%%%%HiResBoundingBox: 0 0 %s %s%s",
-	     wi, hi, nl, klfFmtDoubleCC(bbox_corrected.x2, 'g', 6), klfFmtDoubleCC(bbox_corrected.y2, 'g', 6), nl);
-    buffer_len = strlen(buffer);
-
-    char buffer2[256];
-    int buffer2_len;
-    snprintf(buffer2, 255,
-	     "%s"
-	     "%%%%Page 1 1%s"
-	     "%%%%PageBoundingBox 0 0 %d %d%s"
-	     "<< /PageSize [%d %d] >> setpagedevice%s"
-	     "%s %s translate%s",
-	     nl,
-	     nl,
-	     wi, hi, nl,
-	     wi, hi, nl,
-	     klfFmtDoubleCC(offx, 'f'), klfFmtDoubleCC(offy, 'f'), nl);
-    buffer2_len = strlen(buffer2);
-
-    //    char buffer2[128];
-    //    snprintf(buffer2, 127, "%sgrestore%s", nl, nl);
-
-    qDebug("%s: buffer is '%s', length=%d", KLF_FUNC_NAME, buffer, buffer_len);
-
-    qDebug("%s: %s: rawepsdata has length=%d", KLF_FUNC_NAME, KLF_SHORT_TIME, rawepsdata.size());
-
-    // and modify the raw EPS data, to replace "%%BoundingBox:" instruction by our stuff...
-    ba_replace(&rawepsdata, i, len, buffer);
-
-    const char * endsetupstr = "%%EndSetup";
-    int i2 = ba_indexOf(rawepsdata, endsetupstr);
-    if (i2 < 0)
-      i2 = i + buffer_len; // add our info after modified %%BoundingBox'es instructions
-    else
-      i2 +=  strlen(endsetupstr);
-
-    ba_replace(&rawepsdata, i2, 0, buffer2);
-
-    qDebug("%s: %s: rawepsdata has now length=%d", KLF_FUNC_NAME, KLF_SHORT_TIME, rawepsdata.size());
-    qDebug("%s: %s: New eps bbox is [0 0 %.6g %.6g] with translate [%.6g %.6g].", KLF_FUNC_NAME, KLF_SHORT_TIME,
-	   bbox_corrected.x2, bbox_corrected.y2, offx, offy);
-
-#ifdef KLF_DEBUG
-    {    // DUMP EPS file
-      fprintf(stderr, "Corrected BBox EPS file contents is:\n");
-      for (int k = 0; k < (int)rawepsdata.size(); ++k)
-	fputc(rawepsdata[k], stderr);
-      fprintf(stderr, "\n");
-    }
-#endif
-
-    res.epsdata_raw = rawepsdata; // [Qt3: shallow copy is OK]
-
-  } // end of block "correct EPS BBox"
-
-  if (settings.outlineFonts) {
-    // post-process EPS file to outline fonts if requested
-
-    KLFFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings);
-    p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPOSTPROC_NORUN;
-    p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPOSTPROC_NONORMALEXIT;
-    p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPOSTPROC;
-    p.resErrCodes[KLFFP_NODATA] = KLFERR_GSPOSTPROC_NOOUTPUT;
-    p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPOSTPROC_OUTPUTREADFAIL;
-
-    p.argv << settings.gsexec;
-    // The bad joke is that in gs' manpage '-dNOCACHE' is described as a debugging option.
-    // It is NOT. It outlines the fonts to paths. It cost me a few hours trying to understand
-    // what's going on ...
-    p.argv << "-dNOCACHE";
-    p.argv << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=pswrite";
-    p.argv << "-sOutputFile="+dir_native_separators(fnProcessedEps)
-	   << "-q" << "-dBATCH" << "-";
-
-    ok = p.run(rawepsdata, fnProcessedEps, &res.epsdata, &res);
-    if (!ok) {
-      return res;
-    }
-
-    klfDebugf(("%s: res.epsdata has length=%d", KLF_FUNC_NAME, res.epsdata.size())) ;
-
-  } else {
-    // no post-processed EPS, copy raw (bbox-corrected) EPS data:
-    res.epsdata.ba_assign(rawepsdata);
   }
 
-  { // run 'gs' to get PNG data
+  if (!has_userscript_output(us_outputs, "png") && !our_skipfmts.contains("png")) {
+
+    ASSERT_HAVE_FORMATS_FOR("png") ;
+
+    // run 'gs' to get PNG data
     KLFFilterProgram p(QLatin1String("gs (PNG)"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPNG_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPNG_NONORMALEXIT;
@@ -1056,57 +1152,78 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     } else {
       p.argv << "-sDEVICE=pngalpha";
     }
-    p.argv << "-sOutputFile="+dir_native_separators(fnPng) << "-q" << "-dBATCH" << "-";
+    p.argv << "-sOutputFile="+QDir::toNativeSeparators(fnRawPng) << "-q" << "-dBATCH" << "-";
 
-    ok = p.run(rawepsdata, fnPng, &res.pngdata_raw, &res);
+    ok = p.run(bboxepsdata, fnRawPng, &res.pngdata_raw, &res);
     if (!ok) {
       return res;
     }
 
     res.result.loadFromData(res.pngdata_raw, "PNG");
+  } // raw PNG
+  else {
+    if (us_skipfmts.contains("png")) {
+      klfWarning("PNG format was skipped by user script. The QImage object will be invalid.") ;
+      res.result = QImage();
+      res.pngdata = QByteArray();
+      res.pngdata_raw = QByteArray();
+    }
+    if (!has_userscript_output(us_outputs, "png") || !QFile::exists(fnRawPng)) {
+      klfWarning("PNG format is required to initialize the QImage object, but was not generated by user script.") ;
+      res.result = QImage();
+    } else {
+      // load PNG into res.result
+      res.result.load(fnRawPng);
+    }
+  }
 
+  if (!our_skipfmts.contains("png")) { // generate tagged/labeled PNG
     QString boolstr[2] = { QLatin1String("true"), QLatin1String("false") } ;
 
     // store some meta-information into result
-    res.result.img_settext("AppVersion", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
-    res.result.img_settext("Application",
+    res.result.setText("AppVersion", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
+    res.result.setText("Application",
 			   QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile"));
-    res.result.img_settext("Software", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
-    res.result.img_settext("InputLatex", in.latex);
-    res.result.img_settext("InputMathMode", in.mathmode);
-    res.result.img_settext("InputPreamble", in.preamble);
-    res.result.img_settext("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(in.fg_color))
+    res.result.setText("Software", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
+    res.result.setText("InputLatex", in.latex);
+    res.result.setText("InputMathMode", in.mathmode);
+    res.result.setText("InputPreamble", in.preamble);
+    res.result.setText("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(in.fg_color))
 			   .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)));
-    res.result.img_settext("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(in.bg_color))
+    res.result.setText("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(in.bg_color))
 			   .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color))
 			   .arg(qAlpha(in.bg_color)));
-    res.result.img_settext("InputDPI", QString::number(in.dpi));
-    res.result.img_settext("SettingsTBorderOffset", QString::number(settings.tborderoffset));
-    res.result.img_settext("SettingsRBorderOffset", QString::number(settings.rborderoffset));
-    res.result.img_settext("SettingsBBorderOffset", QString::number(settings.bborderoffset));
-    res.result.img_settext("SettingsLBorderOffset", QString::number(settings.lborderoffset));
-    res.result.img_settext("SettingsOutlineFonts", boolstr[(int)settings.outlineFonts]);
-    res.result.img_settext("SettingsCalcEpsBoundingBox", boolstr[(int)settings.calcEpsBoundingBox]);
-    res.result.img_settext("SettingsWantPDF", boolstr[(int)settings.wantPDF]);
-    res.result.img_settext("SettingsWantSVG", boolstr[(int)settings.wantSVG]);
-
-    qDebug("%s: prepared QImage.", KLF_FUNC_NAME) ;
+    res.result.setText("InputDPI", QString::number(in.dpi));
+    res.result.setText("SettingsTBorderOffset", QString::number(settings.tborderoffset));
+    res.result.setText("SettingsRBorderOffset", QString::number(settings.rborderoffset));
+    res.result.setText("SettingsBBorderOffset", QString::number(settings.bborderoffset));
+    res.result.setText("SettingsLBorderOffset", QString::number(settings.lborderoffset));
+    res.result.setText("SettingsOutlineFonts", boolstr[(int)settings.outlineFonts]);
+    res.result.setText("SettingsCalcEpsBoundingBox", boolstr[(int)settings.calcEpsBoundingBox]);
+    res.result.setText("SettingsWantPDF", boolstr[(int)settings.wantPDF]);
+    res.result.setText("SettingsWantSVG", boolstr[(int)settings.wantSVG]);
+    
+    klfDbg("prepared QImage.") ;
     
     { // create "final" PNG data
-      buf_decl_ba(QBuffer buf, res.pngdata);
-      buf.open(dev_WRITEONLY);
+      QBuffer buf(&res.pngdata);
+      buf.open(QIODevice::WriteOnly);
 
       bool r = res.result.save(&buf, "PNG");
       if (!r) {
-	qWarning("%s: Error: Can't save \"final\" PNG data.", KLF_FUNC_NAME);
-	res.pngdata.ba_assign(res.pngdata_raw);
+	klfWarning("Can't save \"final\" PNG data.") ;
+	res.pngdata = res.pngdata_raw;
       }
     }
 
-    qDebug("%s: prepared final PNG data.", KLF_FUNC_NAME) ;
+    klfDbg("prepared final PNG data.") ;
   }
 
-  { // run 'gs' to get PDF data
+  if (!has_userscript_output(us_outputs, "pdf")) {
+
+    ASSERT_HAVE_FORMATS_FOR("pdf") ;
+
+    // run 'gs' to get PDF data
     KLFFilterProgram p(QLatin1String("gs (PDF)"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPDF_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPDF_NONORMALEXIT;
@@ -1116,7 +1233,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     p.argv << settings.gsexec
 	   << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=pdfwrite"
-	   << "-sOutputFile="+dir_native_separators(fnPdf)
+	   << "-sOutputFile="+QDir::toNativeSeparators(fnPdf)
 	   << "-q" << "-dBATCH" << "-";
 
     // input: res.epsdata is the processed EPS file, or the raw EPS + bbox/page correction if no post-processing
@@ -1128,17 +1245,20 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   if (settings.wantSVG) {
 
-    if (!gsInfo[settings.gsexec].availdevices.contains("svg")) {
-      // not OK to get SVG...
-      klfWarning("ghostscript cannot create SVG");
-      res.status = KLFERR_GSSVG_TOOOLD;
-      res.errorstr = QObject::tr("This ghostscript (%1) cannot generate SVG.", "KLFBackend").arg(settings.gsexec);
-      return res;
-    }
-      
-    QByteArray rawsvgdata;
+    if (!has_userscript_output(us_outputs, "svg-gs") &&
+	!our_skipfmts.contains("svg-gs")) {
 
-    { // run 'gs' to get SVG
+      ASSERT_HAVE_FORMATS_FOR("svg-gs") ;
+
+      // run 'gs' to get SVG (raw from gs)
+      if (!gsInfo[settings.gsexec].availdevices.contains("svg")) {
+	// not OK to get SVG...
+	klfWarning("ghostscript cannot create SVG");
+	res.status = KLFERR_GSSVG_NOSVG;
+	res.errorstr = QObject::tr("This ghostscript (%1) cannot generate SVG.", "KLFBackend").arg(settings.gsexec);
+	return res;
+      }
+
       KLFFilterProgram p(QLatin1String("gs (SVG)"), &settings);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSSVG_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSSVG_NONORMALEXIT;
@@ -1149,34 +1269,213 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       p.argv << settings.gsexec;
       // unconditionally outline fonts, otherwise output is horrible
       p.argv << "-dNOCACHE" << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=svg"
-	     << "-sOutputFile="+dir_native_separators(fnRawSvg)
+	     << "-sOutputFile="+QDir::toNativeSeparators(fnGsSvg)
 	     << "-q" << "-dBATCH" << "-";
 
       // input: res.epsdata is the processed EPS file, or the raw EPS file if no post-processing
-      ok = p.run(rawepsdata, fnRawSvg, &rawsvgdata, &res);
+      ok = p.run(bboxepsdata, fnGsSvg, &gssvgdata, &res);
       if (!ok) {
 	return res;
       }
     }
 
-    // and now re-touch SVG generated by ghostscript that is not very clean...
-    // find the first occurences of width='' and height='' and set them to the
-    // appropriate width and heights given by BBox read earlier
+    if (!has_userscript_output(us_outputs, "svg") && !our_skipfmts.contains("svg")) {
 
-    klfDebugf(("%s: rawsvgdata/length=%d", KLF_FUNC_NAME, rawsvgdata.size())) ;
+      ASSERT_HAVE_FORMATS_FOR("svg") ;
 
-    replace_svg_width_or_height(&rawsvgdata, "width=", width_pt);
-    replace_svg_width_or_height(&rawsvgdata, "height=", height_pt);
+      // and now re-touch SVG generated by ghostscript that is not very clean...
+      // find the first occurences of width='' and height='' and set them to the
+      // appropriate width and heights given by BBox read earlier
 
-    klfDebugf(("%s: now, rawsvgdata/length=%d", KLF_FUNC_NAME, rawsvgdata.size())) ;
+      klfDebugf(("%s: gssvgdata/length=%d", KLF_FUNC_NAME, gssvgdata.size())) ;
 
-    res.svgdata = rawsvgdata;
+      replace_svg_width_or_height(&gssvgdata, "width=", res.width_pt);
+      replace_svg_width_or_height(&gssvgdata, "height=", res.height_pt);
 
+      klfDebugf(("%s: now, gssvgdata/length=%d", KLF_FUNC_NAME, gssvgdata.size())) ;
+
+      res.svgdata = gssvgdata;
+    }
   } // end if(wantSVG)
 
-  qDebug("%s: %s:  end of function.", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+  klfDbg("end of function.") ;
 
   return res;
+}
+
+
+static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsFile, klfbbox *bbox,
+				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  // find correct bounding box of EPS file, using ghostscript
+
+  int i;
+
+  KLFFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings);
+  p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSBBOX_NORUN;
+  p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSBBOX_NONORMALEXIT;
+  p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSBBOX;
+  p.resErrCodes[KLFFP_NODATA] = KLFERR_GSBBOX_NOOUTPUT;
+  // p.resErrCodes[KLFFP_DATAREADFAIL]  unused (used only for reading output files)
+
+  p.outputStdout = true;
+  p.outputStderr = true;
+  
+  QByteArray bboxdata;
+
+  p.argv << settings.gsexec << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=bbox" << "-q" << "-dBATCH"
+	 << (epsFile.isEmpty() ? QString::fromLatin1("-") : epsFile);
+
+  bool ok = p.run(epsData /*stdin*/, QString() /*no output file*/, &bboxdata/*collect stdout*/, resError);
+  if (!ok) {
+    // resError is already set
+    return false;
+  }
+  
+  klfDbg("gs provided output:\n"<<bboxdata<<"\n");
+
+  // parse gs' bbox data
+  QRegExp rx_gsbbox("%%HiResBoundingBox\\s*:\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
+  i = rx_gsbbox.rx_indexin(QString::fromLatin1(bboxdata));
+  if (i < 0) {
+    resError->status = KLFERR_GSBBOX_NOBBOX;
+    resError->errorstr = QObject::tr("Ghostscript did not provide parsable BBox output!", "KLFBackend");
+    return false;
+  }
+  bbox->x1 = rx_gsbbox.cap(1).toDouble();
+  bbox->y1 = rx_gsbbox.cap(2).toDouble();
+  bbox->x2 = rx_gsbbox.cap(3).toDouble();
+  bbox->y2 = rx_gsbbox.cap(4).toDouble();
+
+  return true;
+}
+
+static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::klfOutput * resError)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  static const char * bboxtag = "%%BoundingBox:";
+  static const int bboxtaglen = strlen(bboxtag);
+
+  // Read dvips' bounding box.
+  QBuffer buf(const_cast<QByteArray*>(&epsdata));
+  bool r = buf.open(QIODevice::ReadOnly | QIODevice::Text);
+  if (!r) {
+    klfWarning("What's going on!!?! can't open buffer for reading? Will Fail!!!") ;
+  }
+
+  QString nobboxerrstr =
+    QObject::tr("DVIPS did not provide parsable %%BoundingBox: in its output!", "KLFBackend");
+
+  char linebuffer[512];
+  int n, i;
+  while ((n = buf.readLine(linebuffer, 512)) > 0) {
+    if (!strncmp(linebuffer, bboxtag, bboxtaglen)) {
+      // got bounding-box.
+      // parse bbox values
+      QRegExp rx_bbvalues("" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
+      i = rx_bbvalues.rx_indexin(QString::fromLatin1(linebuffer + bboxtaglen));
+      if (i < 0) {
+	resError->status = KLFERR_DVIPS_OUTPUTNOBBOX;
+	resError->errorstr = nobboxerrstr;
+	return false;
+      }
+      bbox->x1 = rx_bbvalues.cap(1).toDouble();
+      bbox->y1 = rx_bbvalues.cap(2).toDouble();
+      bbox->x2 = rx_bbvalues.cap(3).toDouble();
+      bbox->y2 = rx_bbvalues.cap(4).toDouble();
+      return true;
+    }
+  }
+
+  resError->status = KLFERR_DVIPS_OUTPUTNOBBOX;
+  resError->errorstr = nobboxerrstr;
+  return false;
+}
+static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_corrected,
+			     const klfbbox& bbox_orig, QByteArray * epsdatacorrected)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  static const char * bboxdecl = "%%BoundingBox:";
+  static int bboxdecl_len = strlen(bboxdecl);
+
+  double offx = bbox_corrected.x1 - bbox_orig.x1;
+  double offy = bbox_corrected.y1 - bbox_orig.y1;
+
+  // in raw EPS data, find '%%BoundingBox:' and length of the full BoundingBox instruction
+  int i, len;
+  char nl[] = "\0\0\0";
+  i = rawepsdata.indexOf(bboxdecl);
+  if (i < 0) {
+    i = 0;
+    len = 0;
+  } else {
+    int j = i+bboxdecl_len;
+    while (j < (int)rawepsdata.size() && rawepsdata[j] != '\r' && rawepsdata[j] != '\n')
+      ++j;
+    len = j-i;
+    if (rawepsdata[j] == '\r' && j < (int)rawepsdata.size()-1 && rawepsdata[j+1] == '\n') {
+      nl[0] = '\r', nl[1] = '\n';
+    } else {
+      nl[0] = rawepsdata[j];
+    }
+  }
+
+  int wi = (int)(bbox_corrected.x2 + 0.99999) ;
+  int hi = (int)(bbox_corrected.y2 + 0.99999) ;
+  char buffer[1024];
+  int buffer_len;
+  // recall that '%%' in printf is replaced by a single '%'...
+  klfWarning("TODO: CHECK THAT THIS IS CORRECT AND REMOVE THIS WARNING: sizeof-buffer="<<sizeof(buffer)) ;
+  snprintf(buffer, sizeof(buffer)-1,
+	   "%%%%BoundingBox: 0 0 %d %d%s"
+	   "%%%%HiResBoundingBox: 0 0 %s %s%s",
+	   wi, hi, nl,
+	   klfFmtDoubleCC(bbox_corrected.x2, 'g', 6), klfFmtDoubleCC(bbox_corrected.y2, 'g', 6), nl);
+  buffer_len = strlen(buffer);
+
+  char buffer2[1024];
+  int buffer2_len;
+  snprintf(buffer2, sizeof(buffer2),
+	   "%s"
+	   "%%%%Page 1 1%s"
+	   "%%%%PageBoundingBox 0 0 %d %d%s"
+	   "<< /PageSize [%d %d] >> setpagedevice%s"
+	   "%s %s translate%s",
+	   nl,
+	   nl,
+	   wi, hi, nl,
+	   wi, hi, nl,
+	   klfFmtDoubleCC(offx, 'f'), klfFmtDoubleCC(offy, 'f'), nl);
+  buffer2_len = strlen(buffer2);
+
+  //    char buffer2[128];
+  //    snprintf(buffer2, 127, "%sgrestore%s", nl, nl);
+
+  klfDbg("buffer is `"<<buffer<<"', length="<<buffer_len) ;
+  klfDbg("rawepsdata has length="<<rawepsdata.size()) ;
+
+  // and modify the raw EPS data, to replace "%%BoundingBox:" instruction by our stuff...
+  QByteArray neweps;
+  neweps = rawepsdata;
+  neweps.replace(i, len, buffer);
+
+  const char * endsetupstr = "%%EndSetup";
+  int i2 = neweps.indexOf(endsetupstr);
+  if (i2 < 0)
+    i2 = i + buffer_len; // add our info after modified %%BoundingBox'es instructions if %%EndSetup not found
+  else
+    i2 +=  strlen(endsetupstr);
+
+  neweps.replace(i2, 0, buffer2);
+  
+  klfDbg("neweps has now length="<<neweps.size());
+  klfDebugf(("New eps bbox is [0 0 %.6g %.6g] with translate [%.6g %.6g].",
+	     bbox_corrected.x2, bbox_corrected.y2, offx, offy));
+
+  *epsdatacorrected = neweps;
 }
 
 
@@ -1189,8 +1488,8 @@ static void replace_svg_width_or_height(QByteArray *svgdata, const char * attreq
   while (j < (int)svgdataref.size() && (!isspace(svgdataref[j]) && svgdataref[j] != '>'))
     ++j;
 
-  char buffer[256];
-  snprintf(buffer, 256, "%s'%s'", attreq, klfFmtDoubleCC(val, 'f', 3));
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer)-1, "%s'%s'", attreq, klfFmtDoubleCC(val, 'f', 3));
 
   ba_replace(svgdata, i, j-i, buffer);
 }
@@ -1469,9 +1768,9 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
   QFileInfo gsfi(settings->gsexec);
   if (gsfi.fileName() == "mgs.exe") {
     QString mgsenv = QString("MIKTEX_GS_LIB=")
-      + dir_native_separators(gsfi.fi_absolutePath()+"/../../ghostscript/base")
+      + QDir::toNativeSeparators(gsfi.fi_absolutePath()+"/../../ghostscript/base")
       + ";"
-      + dir_native_separators(gsfi.fi_absolutePath()+"/../../fonts");
+      + QDir::toNativeSeparators(gsfi.fi_absolutePath()+"/../../fonts");
     klf_append_replace_env_var(& settings->execenv, "MIKTEX_GS_LIB", mgsenv);
     klfDbg("Adjusting environment for mgs.exe: `"+mgsenv+"'") ;
   }
@@ -1522,7 +1821,7 @@ void initGsInfo(const KLFBackend::klfSettings *settings)
   }
 
   QString gshelp;
-  QSet<QString> availdevices;
+  KLFStringSet availdevices;
   { // test 'gs' version, to see if we can provide SVG data
     KLFFilterProgram p(QLatin1String("gs (query help)"), settings);
     //    p.resErrCodes[KLFFP_NOSTART] = ;
@@ -1555,7 +1854,7 @@ void initGsInfo(const KLFBackend::klfSettings *settings)
 	  kend = gshelp.length();
 	// now split this large string into the devices list
 	QStringList devlist = gshelp.mid(k, kend-k).split(QRegExp("(\\s|[\r\n])+"), QString::SkipEmptyParts);
-	availdevices = QSet<QString>::fromList(devlist);
+	availdevices = KLFStringSet::fromList(devlist);
 	klfDbg("Detected devices: "<<availdevices) ;
       }
     }
@@ -1570,6 +1869,35 @@ void initGsInfo(const KLFBackend::klfSettings *settings)
 }
 
 
+static int read_spec_section(const QString& str, int fromindex, const QChar& sep, QString * extractedPart)
+{
+  int i = fromindex;
+  bool in_quote = false;
+
+  QString s;
+
+  while (i < str.length() && (in_quote || str[i] != sep)) {
+    if (str[i] == '\\') {
+      s.append(str[i]);
+      if (i+1 < str.length())
+	s.append(str[i+1]);
+      i += 2; // skip next char, too. The actual escaping will be done with klfEscapedToData()
+      continue;
+    }
+    if (str[i] == '"') {
+      in_quote = !in_quote;
+      ++i;
+      continue;
+    }
+    s.append(str[i]);
+    ++i;
+  }
+
+  *extractedPart = QString::fromLocal8Bit(klfEscapedToData(s.toLocal8Bit()));
+
+  return i; // the position of the last char separator
+}
+
 struct KLFUserScriptInfo::Private
 {
   Private()
@@ -1580,6 +1908,8 @@ struct KLFUserScriptInfo::Private
   }
 
   int refcount;
+  inline int ref() { return ++refcount; }
+  inline int deref() { return --refcount; }
 
   KLFBackend::klfSettings *settings;
 
@@ -1587,12 +1917,16 @@ struct KLFUserScriptInfo::Private
   int scriptInfoError;
   QString scriptInfoErrorString;
   QString name;
+  QString author;
   QString version;
   QString license;
   QString klfMinVersion;
   QString klfMaxVersion;
 
   QStringList spitsOut;
+  QStringList skipFormats;
+
+  QList<KLFUserScriptInfo::Param> paramList;
 
   void query_script_info()
   {
@@ -1665,6 +1999,12 @@ struct KLFUserScriptInfo::Private
       if (key == QLatin1String("Name")) {
 	name = val;
 	klfDbg("Read name: "<<name) ;
+      } else if (key == QLatin1String("Author") || key == QLatin1String("Authors")) {
+	if (!author.isEmpty())
+	  author += ", " + val;
+	else
+	  author = val;
+	klfDbg("Read (cumulated) author: "<<author) ;
       } else if (key == QLatin1String("Version")) {
 	version = val;
 	klfDbg("Read version: "<<version) ;
@@ -1678,55 +2018,124 @@ struct KLFUserScriptInfo::Private
 	klfDbg("Read klfMaxVersion: "<<klfMaxVersion) ;
       } else if (key == QLatin1String("SpitsOut")) {
 	spitsOut = val.split(',');
-	/** \todo maybe check that all formats are recognized... ? */
+      } else if (key == QLatin1String("SkipFormats")) {
+	skipFormats = val.split(',');
+      } else if (key == QLatin1String("Param")) {
+	// parse a paramter request specification, eg.
+	// Param: USE_PDF;bool;"Use PDF?";"Generate PDF; or rather prefer old-fashioned PS?"
+	int k;
+	KLFUserScriptInfo::Param param;
+	// read name
+	k = read_spec_section(val, 0, ';', &param.name);
+	// now read type
+	QString typstring;
+	k = read_spec_section(val, k+1, ';', &typstring);
+	// read title
+	k = read_spec_section(val, k+1, ';', &param.title);
+	// and description
+	k = read_spec_section(val, k+1, ';', &param.description);
+
+	// decode type
+	QString typname;
+	int j;
+	j = read_spec_section(typstring, 0, ':', &typname);
+	typname = typname.trimmed().toLower();
+	if (typname == "enum") {
+	  param.type = KLFUserScriptInfo::Param::Enum;
+	  while (j < typstring.length()) {
+	    QString enumstr;
+	    j = read_spec_section(typstring, j+1, ',', &enumstr);
+	    if (!enumstr.isEmpty())
+	      param.type_enums << enumstr;
+	  }
+	} else if (typname == "bool") {
+	  param.type = KLFUserScriptInfo::Param::Bool;
+	} else if (typname == "int") {
+	  param.type = KLFUserScriptInfo::Param::Int;
+	} else {
+	  if (typname != "string") {
+	    klfWarning("interpreting unknown type name "<<typname<<" as 'string' type") ;
+	  }
+	  param.type = KLFUserScriptInfo::Param::String;
+	}
+
+	// and add this to our param list
+	paramList << param;
       } else {
 	klfDbg("Unknown userscript info key: "<<key<<", in line:\n"<<line);
 	qWarning()<<KLF_FUNC_NAME<<": Ignoring unknown user script info key "<<key<<".";
       }
     }
   }
+
+
+  static QMap<QString,KLFRefPtr<Private> > userScriptInfoCache;
+  
+private:
+  /* no copy constructor */
+  Private(const Private& other) { }
 };
+
+
+// static
+QMap<QString,KLFRefPtr<KLFUserScriptInfo::Private> > KLFUserScriptInfo::Private::userScriptInfoCache;
+
+// static
+void KLFUserScriptInfo::clearCacheAll()
+{
+  // will decrease the refcounts if needed automatically (KLFRefPtr)
+  Private::userScriptInfoCache.clear();
+}
 
 
 KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings)
 {
-  d = new KLFUserScriptInfo::Private;
-  d->refcount++;
+  QString normalizedfn = QFileInfo(scriptFileName).canonicalFilePath();
+  if (Private::userScriptInfoCache.contains(normalizedfn)) {
+    d = Private::userScriptInfoCache[normalizedfn];
+  } else {
+    d = new KLFUserScriptInfo::Private;
 
-  d->settings = settings;
-  d->fname = scriptFileName;
+    d()->settings = settings;
+    d()->fname = scriptFileName;
 
-  d->query_script_info();
+    KLF_ASSERT_NOT_NULL(settings, "Given NULL settings pointer! The KLFUserScript will not be initialized!", ; ) ;
+    
+    if (d()->settings != NULL) {
+      d()->query_script_info();
+      Private::userScriptInfoCache[normalizedfn] = d;
+    }
+  }
 }
 
 KLFUserScriptInfo::KLFUserScriptInfo(const KLFUserScriptInfo& copy)
 {
+  // will increase the refcount (thanks to KLFRefPtr)
   d = copy.d;
-  d->refcount++;
 }
 
 KLFUserScriptInfo::~KLFUserScriptInfo()
 {
-  d->refcount--;
-  if (d->refcount == 0)
-    delete d;
+  d = NULL; // will delete the data if refcount reaches zero (see KLFRefPtr)
 }
 
 QString KLFUserScriptInfo::fileName() const
 {
-  return d->fname;
+  return d()->fname;
 }
 
 int KLFUserScriptInfo::scriptInfoError() const
 {
-  return d->scriptInfoError;
+  return d()->scriptInfoError;
 }
 QString KLFUserScriptInfo::scriptInfoErrorString() const
 {
-  return d->scriptInfoErrorString;
+  return d()->scriptInfoErrorString;
 }
 
 KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, name);
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, author);
 
 KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, version);
 
@@ -1737,3 +2146,8 @@ KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, klfMinVersion);
 KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, klfMaxVersion);
 
 KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, spitsOut);
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, skipFormats);
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QList<KLFUserScriptInfo::Param>, paramList);
+

@@ -789,6 +789,7 @@
  *  - \c "RC"
  *  - \c "rc"
  *  - \c "" ( version number specified without prefix)
+ *  - \c "post"
  *  - \c "dev"
  *  - \c "devel"
  *
@@ -807,7 +808,6 @@
  * \code
  *  klfVersionCompare(v1, v2)  ==  - klfVersionCompare(v2, v1)
  * \endcode
- * Mathematically such a function would be called antisymmetric or skewsymmetric.
  */
 
 /** \namespace KLFSysInfo

@@ -438,6 +438,7 @@ public:
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(OtherPtr)") ;
     return this->operator=(static_cast<Pointer>(aptr));
   }
+
   KLFRefPtr<T>& operator=(Pointer newptr)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(Pointer)") ;
@@ -449,11 +450,24 @@ public:
     set();
     return *this;
   };
+
+  KLFRefPtr<T>& operator=(long int value)
+  {
+    if (value != static_cast<long int>(NULL)) {
+      klfWarning("ERROR: *** Cannot set non-NULL long int value "<<value) ;
+    }
+    return this->operator=(static_cast<Pointer>(NULL));
+  }
   
   inline operator T *()
   {  return p;  }
   inline operator const T *() const
   {  return p;  }
+
+  inline T * operator()()
+  { return p; }
+  inline const T * operator()() const
+  { return p; }
 
   /*  inline T & operator*()
       {  return *p; }

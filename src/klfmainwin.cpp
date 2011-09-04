@@ -322,6 +322,7 @@ KLFMainWin::KLFMainWin()
 
   connect(this, SIGNAL(klfConfigChanged()), mLatexSymbols, SLOT(slotKlfConfigChanged()));
 
+  connect(u->cbxUserScript, SIGNAL(activated(const QString&)), this, SLOT(slotUserScriptSet(const QString&)));
 
   // our help/about dialog
   connect(u->btnHelp, SIGNAL(clicked()), this, SLOT(showAbout()));
@@ -1805,6 +1806,56 @@ void KLFMainWin::latexEditReplace(int pos, int len, const QString& text)
 }
 
 
+void KLFMainWin::slotUserScriptSet(int index)
+{
+  // update user script info and settings widget
+  
+  KLFUserScriptInfo usinfo(u->cbxUserScript->itemData(index).toString(), & _settings);
+
+  int textpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 2;
+  QString textpointsize_s = QString::number(textpointsize);
+  int smallpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 3;
+  QString smallpointsize_s = QString::number(smallpointsize);
+
+  QString txt =
+    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+    "p, li { white-space: pre-wrap; }\n"
+    "</style></head>\n"
+    "<body style=\"font-size:" + textpointsize_s + "pt;\">\n"
+    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
+    // the name
+    "<tt>" + tr("Script Name:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.fileName()) + "</span><br />\n";
+
+  if (!usinfo.version().isEmpty()) {
+    // the version
+    txt += "<tt>" + tr("Version:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.version()) + "</span><br />\n";
+  }
+  if (!usinfo.author().isEmpty()) {
+    // the author
+    txt += "<tt>" + tr("Author:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.author()) + "</span><br />\n";
+  }
+  if (!usinfo.license().isEmpty()) {
+    // the license
+    txt += "<tt>" + tr("License:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.license()) + "</span><br />\n";
+  }
+  if (!usinfo.spitsOut().isEmpty()) {
+    // the output formats
+    txt += "<tt>" + tr("Provides Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.spitsOut().join(",")) + "</span><br />\n";
+  }
+  if (!usinfo.skipFormats().isEmpty()) {
+    // the skipped formats
+    txt += "<tt>" + tr("Skipped Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.skipFormats().join(",")) + "</span><br />\n";
+  }
+
+  u->lblUserScriptInfo->setText(txt);
+}
 
 
 

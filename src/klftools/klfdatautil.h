@@ -36,6 +36,8 @@
 KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& data);
 
 /** Performs the exact inverse of \ref klfDataToEscaped().
+ *
+ * Also understands standard short C escape sequences such as \c '\n', \c '\0', and \c '\t'
  */
 KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped);
 

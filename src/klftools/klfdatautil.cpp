@@ -158,8 +158,26 @@ KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& data)
     }
     // not at end of data
     if (data[k+1] != 'x') {
-      // backslash followed by something else than 'x', add that escaped 'something else'
-      value_ba += data[k+1];
+      // backslash followed by something else than 'x', so see if it is a standard escape sequence (e.g. '\n'),
+      // or add that escaped 'something else'
+      if (data[k+1] == 'n')
+	value_ba += '\n';
+      if (data[k+1] == '0')
+	value_ba += '\0';
+      if (data[k+1] == 't')
+	value_ba += '\t';
+      if (data[k+1] == 'a')
+	value_ba += '\a';
+      if (data[k+1] == 'b')
+	value_ba += '\b';
+      if (data[k+1] == 'f')
+	value_ba += '\f';
+      if (data[k+1] == 'r')
+	value_ba += '\r';
+      if (data[k+1] == 'v')
+	value_ba += '\v';
+      else
+	value_ba += data[k+1];
       k += 2; // had to skip the backslash
       continue;
     }

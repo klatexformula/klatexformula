@@ -71,9 +71,11 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
   { static bool first_run = true;  if ( ! first_run )  return; first_run = false; }
 
 
-#define KLF_DECLARE_PRIVATE(ClassName)	\
-  private:				\
-  ClassName##Private *d;
+#define KLF_DECLARE_PRIVATE(ClassName)					\
+  private:								\
+  ClassName##Private *d;						\
+  inline ClassName##Private * d_func() { return d; }			\
+  inline const ClassName##Private * d_func() const { return d; }
 
 #define KLF_PRIVATE_HEAD(ClassName)				\
   private: ClassName *K;					\
@@ -95,15 +97,15 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
 
 
 #define KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)	\
-  type ClassName::prop() const { return d->prop; }
+  type ClassName::prop() const { return d_func()->prop; }
 
 #define KLF_DEFINE_PROPERTY_GETSET(ClassName, type, prop, Prop)	\
   KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)		\
-  void ClassName::set##Prop(type value) { d->prop = value; }
+    void ClassName::set##Prop(type value) { d_func()->prop = value; }
 
 #define KLF_DEFINE_PROPERTY_GETSET_C(ClassName, type, prop, Prop)	\
   KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)			\
-  void ClassName::set##Prop(const type& value) { d->prop = value; }
+    void ClassName::set##Prop(const type& value) { d_func()->prop = value; }
 
 
 
