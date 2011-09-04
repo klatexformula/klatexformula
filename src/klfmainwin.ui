@@ -1007,7 +1007,7 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0">
+           <item row="4" column="0">
             <widget class="QTabWidget" name="tabsUserScript">
              <property name="currentIndex">
               <number>0</number>
@@ -1043,7 +1043,7 @@
                     <x>0</x>
                     <y>0</y>
                     <width>261</width>
-                    <height>110</height>
+                    <height>113</height>
                    </rect>
                   </property>
                   <layout class="QGridLayout" name="lyt_scrUserScriptInfo">
@@ -1057,6 +1057,9 @@
                      </property>
                      <property name="wordWrap">
                       <bool>true</bool>
+                     </property>
+                     <property name="margin">
+                      <number>6</number>
                      </property>
                      <property name="textInteractionFlags">
                       <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -1076,7 +1079,7 @@
              </widget>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="5" column="0">
             <widget class="QPushButton" name="btnShowLastUserScriptOutput">
              <property name="text">
               <string>View last script output ...</string>
@@ -1094,7 +1097,23 @@
              <property name="sizeHint" stdset="0">
               <size>
                <width>20</width>
-               <height>20</height>
+               <height>5</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="3" column="0">
+            <spacer name="vspc_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>10</width>
+               <height>2</height>
               </size>
              </property>
             </spacer>

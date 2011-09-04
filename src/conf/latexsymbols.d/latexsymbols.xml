@@ -277,7 +277,7 @@
     <sym><usepackage name="amssymb"/><latex>\varsupsetneqq</latex></sym>
     <sym><preambleline>\newcommand{\dotcup}{\ensuremath{\mathaccent\cdot\cup}}</preambleline><latex>\dotcup</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\baro</latex></sym>
-    <sym><usepackage name="stmaryrd"/><latex>\bbslash</latex></sym>
+    <sym><usepackage name="stmaryrd"/><latex>\bbslash</latex><keywords>double backslash slash</keywords></sym>
     <sym><usepackage name="stmaryrd"/><latex>\binampersand</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\bindnasrepma</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\boxast</latex></sym>
@@ -309,7 +309,7 @@
     <sym><usepackage name="stmaryrd"/><latex>\ovee</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\owedge</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\rightslice</latex></sym>
-    <sym><usepackage name="stmaryrd"/><latex>\sslash</latex></sym>
+    <sym><usepackage name="stmaryrd"/><latex>\sslash</latex><keywords>parallel double slash</keywords></sym>
     <sym><usepackage name="stmaryrd"/><latex>\talloblong</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\varbigcirc</latex></sym>
     <sym><usepackage name="stmaryrd"/><latex>\varcurlyvee</latex></sym>

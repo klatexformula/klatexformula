@@ -389,7 +389,7 @@ protected:
  *   static QStringList names
  *      = QStringList()<<"Marty"<<"Jane"<<"Don"<<"John"<<"Phoebe"<<"Matthew"<<"Melissa"<<"Jessica"
  *   KLFRefPtr<MyObj> o = new MyObj(names[rand()%names.size()]);
- *   // the pointer survives the `return' statement because of refcount increase in copy constructor
+ *   // the MyObj instance survives the `return' statement because of refcount increase in copy constructor
  *   return o;
  * }
  * void do_something(MyObj *object)  {  ...  }
@@ -453,7 +453,7 @@ public:
 
   KLFRefPtr<T>& operator=(long int value)
   {
-    if (value != static_cast<long int>(NULL)) {
+    if ((void*)value != (void*)NULL) {
       klfWarning("ERROR: *** Cannot set non-NULL long int value "<<value) ;
     }
     return this->operator=(static_cast<Pointer>(NULL));

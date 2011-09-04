@@ -748,10 +748,11 @@ void klf_reload_user_scripts()
     for (int j = 0; j < l.size(); ++j) {
       if (l[j].endsWith("/.") || l[j].endsWith("/.."))
 	continue;
-      if (!QFileInfo(l[j]).isFile())
+      if (!QFileInfo(l[j]).isFile()) {
 	continue;
+      }
       if (!QFileInfo(l[j]).isExecutable()) {
-	qWarning()<<KLF_FUNC_NAME<<": User script "<<l[j]<<" is not executable.";
+	klfWarning("File "<<l[j]<<" in userscripts/ is ignored as it is not executable.");
 	continue;
       }
       klf_user_scripts << l[j];

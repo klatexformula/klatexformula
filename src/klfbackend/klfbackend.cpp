@@ -544,7 +544,7 @@ KLF_EXPORT KLFStringSet klfbackend_fmts =
 /*   */   << "png" << "pdf" << "svg-gs" << "svg" ;
 
 
-KLF_EXPORT KLFStringSet klfbackend_dependencies(const QString& fmt, bool recursive = true)
+KLF_EXPORT KLFStringSet klfbackend_dependencies(const QString& fmt, bool recursive = false)
 {
   static KLFStringSet fn_lock = KLFStringSet();
 
@@ -939,16 +939,27 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	  outdata.remove(fnBBoxEps);
       }
 
-      QStringList skipfmts = scriptinfo.spitsOut();
+      QStringList skipfmts = scriptinfo.skipFormats();
+      bool invert = false;
+      int tempi;
+      if ((tempi = skipfmts.indexOf("ALL-EXCEPT")) >= 0) {
+	invert = true;
+	skipfmts.removeAt(tempi);
+	foreach (QString f, klfbackend_fmts) { us_skipfmts << f; }
+      }
       foreach (QString fmt, skipfmts) {
-	if (outdata.contains(fmt)) {
-	  klfWarning("User Script Info: If a format is provided by the script, don't mark it as to skip. fmt="<<fmt) ;
-	  continue;
-	}
 	if (!klfbackend_fmts.contains(fmt)) {
 	  klfWarning("User Script Info: Unknown format to skip: "<<fmt) ;
 	}
-	us_skipfmts << fmt;
+	if (!invert) {
+	  if (outdata.contains(fmt)) {
+	    klfWarning("User Script Info: If a format is provided by the script, don't mark it as to skip. fmt="<<fmt) ;
+	    continue;
+	  }
+	  us_skipfmts << fmt;
+	} else {
+	  us_skipfmts.remove(fmt);
+	}
       }
       our_skipfmts = us_skipfmts;
 
@@ -1060,7 +1071,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // and generate corrected raw EPS
 
     correct_eps_bbox(rawepsdata, bbox_corrected, bbox, &bboxepsdata);
-  } else {
+  } else if (!our_skipfmts.contains("eps-bbox")) {
     // userscript generated bbox-corrected EPS for us, but we still
     // need to set width_pt and height_pt appropriately.
 
@@ -1219,7 +1230,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     klfDbg("prepared final PNG data.") ;
   }
 
-  if (!has_userscript_output(us_outputs, "pdf")) {
+  if (!has_userscript_output(us_outputs, "pdf") && !our_skipfmts.contains("pdf")) {
 
     ASSERT_HAVE_FORMATS_FOR("pdf") ;
 
@@ -1428,7 +1439,6 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
   char buffer[1024];
   int buffer_len;
   // recall that '%%' in printf is replaced by a single '%'...
-  klfWarning("TODO: CHECK THAT THIS IS CORRECT AND REMOVE THIS WARNING: sizeof-buffer="<<sizeof(buffer)) ;
   snprintf(buffer, sizeof(buffer)-1,
 	   "%%%%BoundingBox: 0 0 %d %d%s"
 	   "%%%%HiResBoundingBox: 0 0 %s %s%s",
@@ -1869,14 +1879,14 @@ void initGsInfo(const KLFBackend::klfSettings *settings)
 }
 
 
-static int read_spec_section(const QString& str, int fromindex, const QChar& sep, QString * extractedPart)
+static int read_spec_section(const QString& str, int fromindex, const QRegExp& seprx, QString * extractedPart)
 {
   int i = fromindex;
   bool in_quote = false;
 
   QString s;
 
-  while (i < str.length() && (in_quote || str[i] != sep)) {
+  while (i < str.length() && (in_quote || seprx.indexIn(str, i) != i)) {
     if (str[i] == '\\') {
       s.append(str[i]);
       if (i+1 < str.length())
@@ -2017,34 +2027,36 @@ struct KLFUserScriptInfo::Private
 	klfMaxVersion = val;
 	klfDbg("Read klfMaxVersion: "<<klfMaxVersion) ;
       } else if (key == QLatin1String("SpitsOut")) {
-	spitsOut = val.split(',');
+	spitsOut = val.split(QRegExp("(,|\\s+)"));
       } else if (key == QLatin1String("SkipFormats")) {
-	skipFormats = val.split(',');
+	skipFormats = val.split(QRegExp("(,|\\s+)"));
       } else if (key == QLatin1String("Param")) {
 	// parse a paramter request specification, eg.
 	// Param: USE_PDF;bool;"Use PDF?";"Generate PDF; or rather prefer old-fashioned PS?"
 	int k;
 	KLFUserScriptInfo::Param param;
+	QRegExp seprx(";");
 	// read name
-	k = read_spec_section(val, 0, ';', &param.name);
+	k = read_spec_section(val, 0, seprx, &param.name);
 	// now read type
 	QString typstring;
-	k = read_spec_section(val, k+1, ';', &typstring);
+	k = read_spec_section(val, k+1, seprx, &typstring);
 	// read title
-	k = read_spec_section(val, k+1, ';', &param.title);
+	k = read_spec_section(val, k+1, seprx, &param.title);
 	// and description
-	k = read_spec_section(val, k+1, ';', &param.description);
+	k = read_spec_section(val, k+1, seprx, &param.description);
 
 	// decode type
 	QString typname;
 	int j;
-	j = read_spec_section(typstring, 0, ':', &typname);
+	QRegExp enumsep(":");
+	j = read_spec_section(typstring, 0, enumsep, &typname);
 	typname = typname.trimmed().toLower();
 	if (typname == "enum") {
 	  param.type = KLFUserScriptInfo::Param::Enum;
 	  while (j < typstring.length()) {
 	    QString enumstr;
-	    j = read_spec_section(typstring, j+1, ',', &enumstr);
+	    j = read_spec_section(typstring, j+1, enumsep, &enumstr);
 	    if (!enumstr.isEmpty())
 	      param.type_enums << enumstr;
 	  }

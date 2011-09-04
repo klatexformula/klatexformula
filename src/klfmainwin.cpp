@@ -322,7 +322,7 @@ KLFMainWin::KLFMainWin()
 
   connect(this, SIGNAL(klfConfigChanged()), mLatexSymbols, SLOT(slotKlfConfigChanged()));
 
-  connect(u->cbxUserScript, SIGNAL(activated(const QString&)), this, SLOT(slotUserScriptSet(const QString&)));
+  connect(u->cbxUserScript, SIGNAL(activated(int)), this, SLOT(slotUserScriptSet(int)));
 
   // our help/about dialog
   connect(u->btnHelp, SIGNAL(clicked()), this, SLOT(showAbout()));
@@ -1808,13 +1808,21 @@ void KLFMainWin::latexEditReplace(int pos, int len, const QString& text)
 
 void KLFMainWin::slotUserScriptSet(int index)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("index="<<index) ;
+
+  if (index == 0) {
+    // no user script
+    u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+  }
+
   // update user script info and settings widget
   
   KLFUserScriptInfo usinfo(u->cbxUserScript->itemData(index).toString(), & _settings);
 
-  int textpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 2;
+  int textpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 1;
   QString textpointsize_s = QString::number(textpointsize);
-  int smallpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 3;
+  int smallpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 2;
   QString smallpointsize_s = QString::number(smallpointsize);
 
   QString txt =
@@ -1826,7 +1834,7 @@ void KLFMainWin::slotUserScriptSet(int index)
     "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
     // the name
     "<tt>" + tr("Script Name:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.fileName()) + "</span><br />\n";
+    "<span style=\"font-weight:600;\">" + Qt::escape(QFileInfo(usinfo.fileName()).fileName()) + "</span><br />\n";
 
   if (!usinfo.version().isEmpty()) {
     // the version
@@ -2726,11 +2734,14 @@ void KLFMainWin::slotSetPreamble(const QString& preamble)
 
 void KLFMainWin::slotSetUserScript(const QString& userScript)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   int k = 0;
   while (k < u->cbxUserScript->count()) {
     if (QFileInfo(u->cbxUserScript->itemData(k).toString()) == QFileInfo(userScript)) {
       // set this item
       u->cbxUserScript->setCurrentIndex(k);
+      //      // slot doesn't seem to be called (?)
+      //      slotUserScriptSet(k);
       return;
     }
   }
@@ -2741,7 +2752,10 @@ void KLFMainWin::slotSetUserScript(const QString& userScript)
     return;
   }
   u->cbxUserScript->addItem(us.name(), QVariant(userScript));
-  u->cbxUserScript->setCurrentIndex(u->cbxUserScript->count()-1);
+  k = u->cbxUserScript->count()-1;
+  u->cbxUserScript->setCurrentIndex(k);
+  //  // slot doesn't seem to be called (?)
+  //  slotUserScriptSet(k);
 }
 
 void KLFMainWin::slotShowLastUserScriptOutput()
