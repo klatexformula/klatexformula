@@ -175,8 +175,8 @@ KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 		  << (quint16)style.dpi
 		  << style.overrideBBoxExpand();
   } else {
-    // use Binary Properties saver
     KLFStyle sty = style;
+    // use Binary Properties saver. XML is useless, we're saving to binary stream
     QByteArray props = klfSave(&sty, QLatin1String("Binary"));
     klfDbg("got data: "<<props) ;
     // and save the data as a QByteArray

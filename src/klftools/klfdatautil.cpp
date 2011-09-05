@@ -770,12 +770,14 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   klfDbg( "Will start loading a `"<<dataTypeName<<"' from data (len="<<data.size()<<") : "<<data ) ;
 
   // now, start reading.
-  int type = QVariant::nameToType(dataTypeName);
+  int type = QMetaType::type(dataTypeName);
+  klfDbg("Type is "<<type) ;
   bool convertOk = false; // in case we break; somewhere, it's (by default) because of failed convertion.
   int k;
   switch (type) {
   case QMetaType::Bool:
     {
+      klfDbg("bool!") ;
       QByteArray lowerdata = data.trimmed().toLower();
       QChar c = QChar(lowerdata[0]);
       // true, yes, on, 1
@@ -783,6 +785,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::Int:
     {
+      klfDbg("int!") ;
       int i = data.toInt(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<int>(i);
@@ -790,6 +793,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::UInt:
     {
+      klfDbg("uint!") ;
       uint i = data.toUInt(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<uint>(i);
@@ -797,6 +801,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::Short:
     {
+      klfDbg("short!") ;
       short i = data.toShort(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<short>(i);
@@ -804,6 +809,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::UShort:
     {
+      klfDbg("ushort!") ;
       ushort i = data.toUShort(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<ushort>(i);
@@ -811,6 +817,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::Long:
     {
+      klfDbg("long!") ;
       long i = data.toLong(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<long>(i);
@@ -818,6 +825,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::ULong:
     {
+      klfDbg("ulong!") ;
       ulong i = data.toULong(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<ulong>(i);
@@ -825,6 +833,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::LongLong:
     {
+      klfDbg("longlong!") ;
       qlonglong i = data.toLongLong(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<qlonglong>(i);
@@ -832,6 +841,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::ULongLong:
     {
+      klfDbg("ulonglong!") ;
       qulonglong i = data.toULongLong(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<qulonglong>(i);
@@ -839,6 +849,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::Double:
     {
+      klfDbg("double!") ;
       double val = data.toDouble(&convertOk);
       if (convertOk)
 	return QVariant::fromValue<double>(val);
@@ -846,6 +857,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::Char:
     {
+      klfDbg("char!") ;
       if (data[0] == '\\') {
 	if (data.size() < 2)
 	  break;
@@ -865,6 +877,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QChar:
     {
+      klfDbg("QChar!") ;
       if (data[0] == '\\') {
 	if (data.size() < 2)
 	  break;
@@ -884,6 +897,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QString:
     {
+      klfDbg("qstring!") ;
       QString s;
       QByteArray chunk;
       k = 0;
@@ -935,6 +949,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QStringList:
     {
+      klfDbg("qstringlist!") ;
       QList<QByteArray> sections = decaps_list(data);
 
       // now we separated into bytearray sections. now read those into values.
@@ -946,14 +961,19 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
       return QVariant::fromValue<QStringList>(list);
     }
   case QMetaType::QUrl:
-    return QVariant::fromValue<QUrl>(QUrl(QString::fromLocal8Bit(data), QUrl::TolerantMode));
+    {
+      klfDbg("url!") ;
+      return QVariant::fromValue<QUrl>(QUrl(QString::fromLocal8Bit(data), QUrl::TolerantMode));
+    }
   case QMetaType::QByteArray:
     {
+      klfDbg("qbytearray!") ;
       QByteArray value_ba = klfEscapedToData(data);
       return QVariant::fromValue<QByteArray>(value_ba);
     }
   case QMetaType::QDate:
     {
+      klfDbg("qdate!") ;
       QString s = QString::fromLocal8Bit(data);
       QDate date = QDate::fromString(s, Qt::SystemLocaleShortDate);
       if (!date.isValid()) date = QDate::fromString(s, Qt::ISODate);
@@ -973,6 +993,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QTime:
     {
+      klfDbg("qtime!") ;
       QString s = QString::fromLocal8Bit(data);
       QTime time = QTime::fromString(s, Qt::SystemLocaleShortDate);
       if (!time.isValid()) time = QTime::fromString(s, Qt::ISODate);
@@ -993,6 +1014,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QDateTime:
     {
+      klfDbg("qdatetime!") ;
       QString s = QString::fromLocal8Bit(data);
       QDateTime dt = QDateTime::fromString(s, Qt::SystemLocaleShortDate);
       if (!dt.isValid()) dt = QDateTime::fromString(s, Qt::ISODate);
@@ -1016,6 +1038,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QSize:
     {
+      klfDbg("qsize!") ;
       QString s = QString::fromLocal8Bit(data.trimmed());
       if (szrx.indexIn(s) < 0)
 	break;
@@ -1024,6 +1047,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QPoint:
     {
+      klfDbg("qpoint!") ;
       QString s = QString::fromLocal8Bit(data.trimmed());
       if (v2rx.indexIn(s) < 0)
 	break;
@@ -1032,6 +1056,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QRect:
     {
+      klfDbg("qrect!") ;
       QString s = QString::fromLocal8Bit(data.trimmed());
       if (rectrx.indexIn(s) < 0)
 	break;
@@ -1045,6 +1070,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QColor:
     {
+      klfDbg("qcolor!") ;
       QString colstr = QString::fromLocal8Bit(data.trimmed());
       // try our regexp
       if (colrx.indexIn(colstr) < 0) {
@@ -1065,6 +1091,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QFont:
     {
+      klfDbg("qfont!") ;
       if (fontrx.indexIn(QString::fromLocal8Bit(data.trimmed())) < 0) {
 	klfDbg("malformed font: "<<data);
 	break;
@@ -1102,6 +1129,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QBrush:
     {
+      klfDbg("qbrush!") ;
       if (brushrx.indexIn(QString::fromLocal8Bit(data.trimmed())) < 0) {
 	klfDbg("malformed brush text: "<<data) ;
 	break;
@@ -1131,6 +1159,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QTextFormat:
     {
+      klfDbg("qtextformat!") ;
       int k;
       QList<QPair<QByteArray,QByteArray> > sections = decaps_map(data, true);
       if (sections.isEmpty()) {
@@ -1212,6 +1241,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QVariantList:
     {
+      klfDbg("qvariantlist!") ;
       if (listOrMapDataTypeName == QLatin1String("XML")) {
 	QDomElement el = parse_xml_wrapper(data, "variant-list");
 	return klfLoadVariantListFromXML(el);
@@ -1230,6 +1260,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     }
   case QMetaType::QVariantMap:
     {
+      klfDbg("qvariantmap!") ;
       if (listOrMapDataTypeName == QLatin1String("XML")) {
 	QDomElement el = parse_xml_wrapper(data, "variant-map");
 	return klfLoadVariantMapFromXML(el);
@@ -1248,6 +1279,8 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   default:
     break;
   }
+
+  klfDbg("other type or failed to load the good type!") ;
 
   QByteArray tname = dataTypeName;
 
