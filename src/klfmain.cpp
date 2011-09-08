@@ -678,6 +678,8 @@ KLF_EXPORT QStringList klf_user_scripts;
 
 void klf_reload_user_scripts()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QStringList pathlist;
   pathlist << klfconfig.homeConfigDirUserScripts
 	   << klfconfig.globalShareDir+"/userscripts";
@@ -740,6 +742,8 @@ void klf_reload_user_scripts()
   } // loop over add-ons
 
   // now find all user scripts
+
+  KLFUserScriptInfo::clearCacheAll();
 
   klf_user_scripts.clear();
   for (int kkl = 0; kkl < pathlist.size(); ++kkl) {

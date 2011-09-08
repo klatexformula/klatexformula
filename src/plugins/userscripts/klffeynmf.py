@@ -34,9 +34,11 @@ if (sys.argv[1] == "--help"):
 if (sys.argv[1] == "--scriptinfo"):
     print "ScriptInfo";
     print "Name: FeynMF Wrapper";
-    print "Version: 0.1";
+    print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
+    print "Version: 0.2";
     print "License: GPL v2+"
     print "SpitsOut: dvi"
+    # ###TODO: implement in klfbackend  Force*: ...
     #print "ForceInputMathMode: \\begin{fmffile}{FMF_FEYNUSERSCRIPT_MFNAME} ... \\end{fmffile}";
     #print "ForceInputPreambleLine: \\usepackage{feynmf}";
     print "";
@@ -65,7 +67,9 @@ mfbasefname = os.path.basename(os.environ["KLF_TEMPFNAME"]) + "mf";
 print "mfbasename="+mfbasefname;
 
 f = open(latexfname, 'w');
-latexcontents = ("\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{feynmf}\n\\begin{document}\n" +
+latexcontents = ("\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{feynmf}\n"+
+                 os.environ["KLF_INPUT_PREAMBLE"]+
+                 "\\begin{document}\n" +
                  "\\thispagestyle{empty}\n" +
                  "\\begin{fmffile}{" + mfbasefname + "}\n"
                  + latexinput + "\n\\end{fmffile}\n\\end{document}\n");

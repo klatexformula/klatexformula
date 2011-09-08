@@ -983,8 +983,8 @@
           <attribute name="title">
            <string>Script</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="1" column="0">
+          <layout class="QGridLayout" name="gridLayout" columnstretch="99,0">
+           <item row="1" column="0" colspan="2">
             <widget class="QLabel" name="lblUserScript">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1007,7 +1007,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="4" column="0" colspan="2">
             <widget class="QTabWidget" name="tabsUserScript">
              <property name="currentIndex">
               <number>0</number>
@@ -1043,7 +1043,7 @@
                     <x>0</x>
                     <y>0</y>
                     <width>261</width>
-                    <height>113</height>
+                    <height>107</height>
                    </rect>
                   </property>
                   <layout class="QGridLayout" name="lyt_scrUserScriptInfo">
@@ -1079,7 +1079,7 @@
              </widget>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="5" column="0" colspan="2">
             <widget class="QPushButton" name="btnShowLastUserScriptOutput">
              <property name="text">
               <string>View last script output ...</string>
@@ -1117,6 +1117,26 @@
               </size>
              </property>
             </spacer>
+           </item>
+           <item row="2" column="1">
+            <widget class="QToolButton" name="btnUserScriptReload">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="icon">
+              <iconset resource="klfres.qrc">
+               <normaloff>:/pics/refresh.png</normaloff>:/pics/refresh.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>

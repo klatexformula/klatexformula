@@ -942,7 +942,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       QStringList skipfmts = scriptinfo.skipFormats();
       bool invert = false;
       int tempi;
-      if ((tempi = skipfmts.indexOf("ALL-EXCEPT")) >= 0) {
+      if ((tempi = skipfmts.indexOf("ALLEXCEPT")) >= 0) {
 	invert = true;
 	skipfmts.removeAt(tempi);
 	foreach (QString f, klfbackend_fmts) { us_skipfmts << f; }

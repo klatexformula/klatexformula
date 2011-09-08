@@ -352,6 +352,7 @@ KLFMainWin::KLFMainWin()
   connect(u->cbxUserScript, SIGNAL(activated(const QString&)), this, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
 
+  connect(u->btnUserScriptReload, SIGNAL(clicked()), this, SLOT(slotReloadUserScripts()));
   connect(u->btnShowLastUserScriptOutput, SIGNAL(clicked()), this, SLOT(slotShowLastUserScriptOutput()));
 
   connect(pLatexPreviewThread, SIGNAL(previewError(const QString&, int)),
@@ -379,14 +380,7 @@ KLFMainWin::KLFMainWin()
 
   // LOAD USER SCRIPTS
 
-  QStringList userscripts = klf_user_scripts;
-  u->cbxUserScript->clear();
-  u->cbxUserScript->addItem(tr("<none>", "[[no user script]]"), QVariant(QString()));
-  for (int kkl = 0; kkl < userscripts.size(); ++kkl) {
-    KLFUserScriptInfo scriptinfo(userscripts[kkl], &_settings);
-    u->cbxUserScript->addItem(scriptinfo.name(), QVariant(userscripts[kkl]));
-  }
-
+  slotReloadUserScripts();
 
   // ADDITIONAL SETUP
 
@@ -1814,6 +1808,7 @@ void KLFMainWin::slotUserScriptSet(int index)
   if (index == 0) {
     // no user script
     u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+    return;
   }
 
   // update user script info and settings widget
@@ -1854,12 +1849,12 @@ void KLFMainWin::slotUserScriptSet(int index)
   if (!usinfo.spitsOut().isEmpty()) {
     // the output formats
     txt += "<tt>" + tr("Provides Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.spitsOut().join(",")) + "</span><br />\n";
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.spitsOut().join(", ")) + "</span><br />\n";
   }
   if (!usinfo.skipFormats().isEmpty()) {
     // the skipped formats
     txt += "<tt>" + tr("Skipped Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.skipFormats().join(",")) + "</span><br />\n";
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.skipFormats().join(", ")) + "</span><br />\n";
   }
 
   u->lblUserScriptInfo->setText(txt);
@@ -2764,6 +2759,18 @@ void KLFMainWin::slotShowLastUserScriptOutput()
   KLFProgErr::showError(this, klfbackend_last_userscript_output);
 }
 
+void KLFMainWin::slotReloadUserScripts()
+{
+  klf_reload_user_scripts();
+
+  QStringList userscripts = klf_user_scripts;
+  u->cbxUserScript->clear();
+  u->cbxUserScript->addItem(tr("<none>", "[[no user script]]"), QVariant(QString()));
+  for (int kkl = 0; kkl < userscripts.size(); ++kkl) {
+    KLFUserScriptInfo scriptinfo(userscripts[kkl], &_settings);
+    u->cbxUserScript->addItem(scriptinfo.name(), QVariant(userscripts[kkl]));
+  }
+}
 
 void KLFMainWin::slotEnsurePreambleCmd(const QString& line)
 {
