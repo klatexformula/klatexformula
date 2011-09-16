@@ -544,7 +544,7 @@ private:
 //! Summary of the info returned by a user script
 /** See also \ref pageUserScript .
  */
-class KLFUserScriptInfo
+class KLF_EXPORT KLFUserScriptInfo
 {
 public:
   KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings);

@@ -593,16 +593,32 @@ macro(KLFGetTargetFileName var target)
 endmacro(KLFGetTargetFileName)
 
 
-macro(KLFNoShlibUndefined target)
-  if(APPLE)
-    get_target_property(lflags ${target} LINK_FLAGS)
-    if(lflags)
-      set(lflags "${lflags} ")
-    else(lflags)
-      set(lflags "")
-    endif(lflags)
+macro(KLFAppendToTargetProp target property addtext)
+  if(addtext)
+    get_target_property(val ${target} ${property})
+    if(val)
+      set(val "${lflags} ")
+    else(val)
+      set(val "")
+    endif(val)
     set_target_properties(${target} PROPERTIES
-      LINK_FLAGS "${lflags}-undefined dynamic_lookup"
+      ${property} "${val}${addtext}"
       )
+  endif(addtext)
+endmacro(KLFAppendToTargetProp)
+
+macro(KLFNoShlibUndefined target)
+
+  set(add_link_flags "")
+  if(APPLE)
+    set(add_link_flags "-undefined dynamic_lookup")
+  elseif(WIN32)
+    # DLL's don't allow undefined references (!!)
+    set(add_link_flags "")
+  else()
+    set(add_link_flags "-Wl,--allow-shlib-undefined")
   endif(APPLE)
+
+  KLFAppendToTargetProp(target LINK_FLAGS "${add_link_flags}")
+
 endmacro(KLFNoShlibUndefined)

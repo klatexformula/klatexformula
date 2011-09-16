@@ -426,39 +426,58 @@ public:
   bool autoDelete() const { return autodelete; }
   void setAutoDelete(bool on) { autodelete = on; }
 
+  void setPointer(Pointer newptr)
+  {
+    klfDbg("new pointer: "<<newptr<<"; old pointer was "<<p) ;
+    if (newptr == p) // no change
+      return;
+    unset();
+    p = newptr;
+    set();
+  }
+  void setNull()
+  {
+    setPointer(NULL);
+  }
+
   KLFRefPtr<T>& operator=(const KLFRefPtr<T>& other)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(KLFRefPtr<T*>)") ;
-    this->operator=(other.p);
+    setPointer(other.p);
     autodelete = other.autodelete;
     return *this;
   }
   template<class OtherPtr> KLFRefPtr<T>& operator=(OtherPtr aptr)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(OtherPtr)") ;
-    return this->operator=(static_cast<Pointer>(aptr));
+    setPointer(static_cast<Pointer>(aptr));
+    return *this;
   }
 
   KLFRefPtr<T>& operator=(Pointer newptr)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(Pointer)") ;
-    klfDbg("new pointer: "<<newptr<<"; old pointer was "<<p) ;
-    if (newptr == p) // no change
-      return *this;
-    unset();
-    p = newptr;
-    set();
+    setPointer(newptr);
     return *this;
-  };
+  }
 
   KLFRefPtr<T>& operator=(long int value)
   {
     if ((void*)value != (void*)NULL) {
       klfWarning("ERROR: *** Cannot set non-NULL long int value "<<value) ;
     }
-    return this->operator=(static_cast<Pointer>(NULL));
+    setPointer(NULL);
+    return *this;
   }
-  
+  KLFRefPtr<T>& operator=(int value)
+  {
+    if ((void*)value != (void*)NULL) {
+      klfWarning("ERROR: *** Cannot set non-NULL long int value "<<value) ;
+    }
+    setPointer(NULL);
+    return *this;
+  }
+
   inline operator T *()
   {  return p;  }
   inline operator const T *() const

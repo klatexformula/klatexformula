@@ -294,7 +294,7 @@ private:
 KLF_EXPORT QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos);
 
 
-class KLFPosSearchableProxy : public KLFPosSearchable, public KLFTargeter
+class KLF_EXPORT KLFPosSearchableProxy : public KLFPosSearchable, public KLFTargeter
 {
 public:
   KLFPosSearchableProxy() { }

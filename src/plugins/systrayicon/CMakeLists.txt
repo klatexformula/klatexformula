@@ -19,12 +19,4 @@ qt4_wrap_cpp(systrayicon_MOC_CPPS ${systrayicon_HEADERS})
 qt4_wrap_ui(systrayicon_UIS_H ${systrayicon_UIS})
 add_library(systrayicon MODULE ${systrayicon_SRCS} ${systrayicon_MOC_CPPS} ${systrayicon_UIS_H})
 
-KLFNoShlibUndefined(systrayicon)
-
-#target_link_libraries(systrayicon ${QT_LIBRARIES})
-#if(NOT KLF_LIBKLFTOOLS_STATIC)
-#  target_link_libraries(systrayicon klftools)
-#endif(NOT KLF_LIBKLFTOOLS_STATIC)
-#if(NOT KLF_LIBKLFAPP_STATIC)
-#  target_link_libraries(systrayicon klfapp)
-#endif(NOT KLF_LIBKLFAPP_STATIC)
+KLFPluginUndefOrLink(systrayicon  klftools klfbackend klfapp)

@@ -496,7 +496,7 @@ if(WIN32 AND KLF_INSTALL_QTLIBS)
   install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
 	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll" REGEX "/mingw.*\\.dll"
 	 )
-elsif(KLF_INSTALL_QTLIBS)
+elseif(KLF_INSTALL_QTLIBS)
   # Install Prereq libs
   message(ERROR "Not supported on non-windows system. TODO: write me. Actually, write a more general
     framework to import needed libraries, which could also replace the win32-specific code.")

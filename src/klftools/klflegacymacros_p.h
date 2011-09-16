@@ -24,7 +24,7 @@
 #ifndef KLFLEGACYMACROS_P_H
 #define KLFLEGACYMACROS_P_H
 
-#include <string.h>
+//#include <string.h>
 
 // This file used to contain some convenient #define's for Qt3/4 compatibility
 // Now, Qt3 dependency was dropped and I was too lazy to go through all the source

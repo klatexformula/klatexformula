@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <time.h>
 
 #include <signal.h>
 
@@ -610,7 +611,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	// create path to that plugin dir
 	if (!locsubdir.isEmpty() &&
 	    !QDir(klfconfig.homeConfigDirPlugins + "/plugins/" + locsubdir).exists())
-	  QDir(klfconfig.homeConfigDirPlugins).mkpath(locsubdir);
+          QDir(klfconfig.homeConfigDirPlugins).mkpath("/plugins/" + locsubdir);
 	// remove old version if exists
 	if (QFile::exists(locfn)) QFile::remove(locfn);
 	// copy plugin to local plugin dir
@@ -899,11 +900,12 @@ int main(int argc, char **argv)
     for (k = 0; k < qt_argc && qt_argv[k] != NULL; ++k)
       qtargvlist << QString::fromLocal8Bit(qt_argv[k]);
 
-    // Create the QApplication
 #ifdef Q_WS_MAC
     // this is needed to avoid having default app font set right after window activation :(
     QApplication::setDesktopSettingsAware(false);
 #endif
+
+    // Create the QApplication
     QApplication app(qt_argc, qt_argv);
 
 #ifdef Q_WS_MAC

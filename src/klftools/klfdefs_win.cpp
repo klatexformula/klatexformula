@@ -28,5 +28,22 @@
 
 #include <klfdefs.h>
 
+#include <windows.h>
 
-... to be written ...
+#if defined(_M_IX86)
+static const char * arch = "x86";
+#elif defined(_M_AMD64)
+static const char * arch = "x86_64";
+#elif defined(_WIN64)
+static const char * arch = "win64";
+#else
+static const char * arch = "unknown";
+#error "Unknown Processor Architecture."
+#endif
+
+KLF_EXPORT QString klf_defs_sysinfo_arch()
+{
+  return QString::fromLatin1(arch);
+}
+
+

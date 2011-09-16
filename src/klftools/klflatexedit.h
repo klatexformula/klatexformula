@@ -199,7 +199,7 @@ public:
   KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObject *parent);
   virtual ~KLFLatexSyntaxHighlighter();
 
-  struct ParsedBlock {
+  struct KLF_EXPORT ParsedBlock {
     enum Type { Normal = 0, Keyword, Comment, Paren };
     enum TypeMask { NoMask = 0,
 		    KeywordMask = 1 << Keyword,

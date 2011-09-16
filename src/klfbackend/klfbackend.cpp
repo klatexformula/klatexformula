@@ -27,6 +27,7 @@
 #include <sys/time.h>
 
 #include <QtGlobal>
+#include <QByteArray>
 #include <QSet>
 #include <QApplication>
 #include <QRegExp>
@@ -886,10 +887,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERSCRIPT_OUTPUTREADFAIL;
       p.execEnviron << addenv;
 
-      QByteArray stderr, stdout;
-      p.collectStderr = &stderr;
-      p.collectStdout = &stdout;
-      
+      QByteArray stderrdata;
+      QByteArray stdoutdata;
+      p.collectStderr = &stderrdata;
+      p.collectStdout = &stdoutdata;
+
       p.argv << in.userScript << QDir::toNativeSeparators(fnTex);
 
       QMap<QString,QByteArray*> outdata;
@@ -977,8 +979,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
       // for user script debugging
       klfbackend_last_userscript_output
-	= "<b>STDOUT</b>\n<pre>" + Qt::escape(stdout) + "</pre>\n<br/><b>STDERR</b>\n<pre>"
-	+ Qt::escape(stderr) + "</pre>";
+        = "<b>STDOUT</b>\n<pre>" + Qt::escape(stdoutdata) + "</pre>\n<br/><b>STDERR</b>\n<pre>"
+        + Qt::escape(stderrdata) + "</pre>";
 
       if (!ok) {
 	return res;

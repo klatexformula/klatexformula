@@ -181,7 +181,8 @@ int KLFLatexParenSpecs::identifyModifier(const QString& modstr, uint identflags)
 // --------------------------
 
 // static
-KLFLatexParenSpecs KLFLatexSyntaxHighlighter::ParsedBlock::parenSpecs; // load the default set
+// this will load the default set of paren specs
+KLF_EXPORT KLFLatexParenSpecs KLFLatexSyntaxHighlighter::ParsedBlock::parenSpecs;
 
 bool KLFLatexSyntaxHighlighter::ParsedBlock::parenIsLatexBrace() const
 {

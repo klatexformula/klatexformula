@@ -82,6 +82,7 @@ set(klf_valid_cache_variables
   KLF_INSTALL_QTPLUGINS
   KLF_INSTALL_QTPLUGINS_DIR
   KLF_INSTALL_QTPLUGINS_LIST
+  KLF_WIN_ICON
 )
 
 set(klf_obsolete_cache_variables

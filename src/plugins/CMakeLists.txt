@@ -19,6 +19,17 @@ set(KLF_LOCAL_PLUGINS skin systrayicon)
 
 add_custom_target(klfbaseplugins ALL)
 
+#
+# e.g. Usage: KLFPluginUndefOrLink(skin  libklftools libklfbackend libklfapp)
+#
+macro(KLFPluginUndefOrLink  plugin)
+  if(UNIX)  #includes Apple
+    KLFNoShlibUndefined("${plugin}")
+  else(UNIX)
+    target_link_libraries("${plugin}" ${ARGN})
+  endif(UNIX)
+endmacro(KLFPluginUndefOrLink)
+
 # Setup per plugin
 foreach(plugin ${KLF_LOCAL_PLUGINS})
 
