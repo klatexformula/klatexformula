@@ -119,8 +119,8 @@ public:
 
 
 
-/** Alien glow equations ;) */
-class KLFMimeExporterGlowImage : public QObject, public KLFMimeExporter
+/** \brief Alien glow equations ;) */
+class KLF_EXPORT KLFMimeExporterGlowImage : public QObject, public KLFMimeExporter
 {
   Q_OBJECT
 public:
@@ -132,6 +132,21 @@ public:
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
 };
+
+
+
+class KLF_EXPORT KLFMimeExporterUserScript : public QObject, public KLFMimeExporter
+{
+  Q_OBJECT
+public:
+  KLFMimeExporterUserScript(QObject *parent) : QObject(parent) { }
+
+  virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterUserScript"); }
+
+  virtual QStringList keys() const;
+  virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+};
+
 
 
 #endif

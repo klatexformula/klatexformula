@@ -33,6 +33,7 @@ if (sys.argv[1] == "--help"):
 
 if (sys.argv[1] == "--scriptinfo"):
     print "ScriptInfo";
+    print "Category: klf-backend-engine";
     print "Name: FeynMF Wrapper";
     print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
     print "Version: 0.2";

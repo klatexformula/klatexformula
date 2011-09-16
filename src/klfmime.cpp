@@ -201,6 +201,7 @@ void KLFMimeExporter::initMimeExporterList()
       << new KLFMimeExporterHTML(qApp)
       << new KLFMimeExporterLibFmts(qApp)
       << new KLFMimeExporterGlowImage(qApp)
+      << new KLFMimeExporterUserScript(qApp)
       ;
   }
 }
@@ -1244,4 +1245,19 @@ QByteArray KLFMimeExporterGlowImage::data(const QString& key, const KLFBackend::
 }
 
 
+// -----------------------------
+
+
+QStringList KLFMimeExporterUserScript::keys() const
+{
+  // read user script capabilities...
+  /// \bug write me.................
+  return QStringList();
+}
+
+QByteArray KLFMimeExporterUserScript::data(const QString& key, const KLFBackend::klfOutput& klfoutput)
+{
+  /// \bug write me..................
+  return QByteArray();
+}
 

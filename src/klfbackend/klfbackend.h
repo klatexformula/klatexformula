@@ -138,7 +138,8 @@
 #define KLFERR_USERSCRIPT_OUTPUTREADFAIL -43
 #define KLFERR_USERSCRIPT_BADKLFVERSION -44
 #define KLFERR_USERSCRIPT_BADSKIPFORMATS -45
-// last error defined: -45
+#define KLFERR_USERSCRIPT_BADCATEGORY -46
+// last error defined: -46
 
 
 
@@ -557,6 +558,8 @@ public:
   QString scriptInfoErrorString() const;
 
   QString fileName() const;
+
+  QString category() const;
 
   QString name() const;
   QString author() const;

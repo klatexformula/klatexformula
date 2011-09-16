@@ -820,8 +820,15 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	 (!scriptinfo.klfMaxVersion().isEmpty()
 	  && klfVersionCompare(scriptinfo.klfMaxVersion(), KLF_VERSION_STRING) < 0) ) {
       res.status = KLFERR_USERSCRIPT_BADKLFVERSION;
-      res.errorstr = QObject::tr("User Script is not compatible with current version of KLatexFormula.",
-				 "KLFBackend");
+      res.errorstr = QObject::tr("User Script `%1' is not compatible with current version of KLatexFormula.",
+				 "KLFBackend").arg(scriptinfo.name());
+      return res;
+    }
+
+    if (scriptinfo.category() != QLatin1String("klf-backend-engine")) {
+      res.status = KLFERR_USERSCRIPT_BADCATEGORY;
+      res.errorstr = QObject::tr("User Script `%1' is not usable as backend latex engine!",
+				 "KLFBackend").arg(scriptinfo.name());
       return res;
     }
 
@@ -1928,6 +1935,8 @@ struct KLFUserScriptInfo::Private
   QString fname;
   int scriptInfoError;
   QString scriptInfoErrorString;
+
+  QString category;
   QString name;
   QString author;
   QString version;
@@ -2008,7 +2017,10 @@ struct KLFUserScriptInfo::Private
       if (specs.contains(QLatin1String("base64"))) {
 	val = QString::fromLocal8Bit(QByteArray::fromBase64(val.toLatin1()));
       }
-      if (key == QLatin1String("Name")) {
+      if (key == QLatin1String("Category")) {
+	category = val;
+	klfDbg("Read category: "<<category) ;
+      } else if (key == QLatin1String("Name")) {
 	name = val;
 	klfDbg("Read name: "<<name) ;
       } else if (key == QLatin1String("Author") || key == QLatin1String("Authors")) {
@@ -2147,21 +2159,23 @@ QString KLFUserScriptInfo::scriptInfoErrorString() const
   return d()->scriptInfoErrorString;
 }
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, name);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, category) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, author);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, name) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, version);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, author) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, license);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, version) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, klfMinVersion);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, license) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, klfMaxVersion);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, klfMinVersion) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, spitsOut);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QString, klfMaxVersion) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, skipFormats);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, spitsOut) ;
 
-KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QList<KLFUserScriptInfo::Param>, paramList);
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, skipFormats) ;
+
+KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QList<KLFUserScriptInfo::Param>, paramList) ;
 
