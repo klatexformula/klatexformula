@@ -23,9 +23,12 @@ add_custom_target(klfbaseplugins ALL)
 # e.g. Usage: KLFPluginUndefOrLink(skin  libklftools libklfbackend libklfapp)
 #
 macro(KLFPluginUndefOrLink  plugin)
+  KLFCMakeDebug("KLFPluginUndefOrLink: plugin=${plugin}")
   if(UNIX)  #includes Apple
+    KLFCMakeDebug("UNIX.")
     KLFNoShlibUndefined("${plugin}")
   else(UNIX)
+    KLFCMakeDebug("NOT UNIX.")
     target_link_libraries("${plugin}" ${ARGN})
   endif(UNIX)
 endmacro(KLFPluginUndefOrLink)

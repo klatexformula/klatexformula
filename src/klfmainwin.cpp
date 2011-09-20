@@ -2768,7 +2768,8 @@ void KLFMainWin::slotReloadUserScripts()
   u->cbxUserScript->addItem(tr("<none>", "[[no user script]]"), QVariant(QString()));
   for (int kkl = 0; kkl < userscripts.size(); ++kkl) {
     KLFUserScriptInfo scriptinfo(userscripts[kkl], &_settings);
-    u->cbxUserScript->addItem(scriptinfo.name(), QVariant(userscripts[kkl]));
+    if (scriptinfo.category() == QLatin1String("klf-backend-engine"))
+      u->cbxUserScript->addItem(scriptinfo.name(), QVariant(userscripts[kkl]));
   }
 }
 

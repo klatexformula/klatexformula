@@ -594,17 +594,23 @@ endmacro(KLFGetTargetFileName)
 
 
 macro(KLFAppendToTargetProp target property addtext)
-  if(addtext)
-    get_target_property(val ${target} ${property})
+  
+  KLFCMakeDebug("Target is ${target}")
+  KLFCMakeDebug("Property is ${property}")
+  KLFCMakeDebug("addtext is ${addtext}")
+
+  if(NOT "${addtext}" STREQUAL "")
+    get_target_property(val "${target}" "${property}")
+    KLFCMakeDebug("Value is ${val}")
     if(val)
-      set(val "${lflags} ")
+      set(val "${val} ")
     else(val)
       set(val "")
     endif(val)
-    set_target_properties(${target} PROPERTIES
+    set_target_properties("${target}" PROPERTIES
       ${property} "${val}${addtext}"
       )
-  endif(addtext)
+  endif(NOT "${addtext}" STREQUAL "")
 endmacro(KLFAppendToTargetProp)
 
 macro(KLFNoShlibUndefined target)
@@ -619,6 +625,6 @@ macro(KLFNoShlibUndefined target)
     set(add_link_flags "-Wl,--allow-shlib-undefined")
   endif(APPLE)
 
-  KLFAppendToTargetProp(target LINK_FLAGS "${add_link_flags}")
+  KLFAppendToTargetProp("${target}" LINK_FLAGS "${add_link_flags}")
 
 endmacro(KLFNoShlibUndefined)
