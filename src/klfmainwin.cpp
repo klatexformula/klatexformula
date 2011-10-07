@@ -530,18 +530,43 @@ void KLFMainWin::startupFinished()
   QActionGroup *actionGroup = new QActionGroup(menu);
   actionGroup->setExclusive(true);
   QSignalMapper *smapper = new QSignalMapper(menu);
+  QMap<QString,QAction*> submenuacts;
+  QMap<QString,QMenu*> submenuactions;
   for (k = 0; k < eplist.size(); ++k) {
-    QAction *action = new QAction(actionGroup);
+    QString submenu = eplist[k].inSubMenu();
+    QWidget *parentmenu = NULL;
+    if (submenuactions.contains(submenu)) {
+      parentmenu = submenuactions[submenu];
+    } else if (submenu.isEmpty()) {
+      parentmenu = menu;
+    } else {
+      // create new submenu for this item
+      QAction *smact = new QAction(submenu, menu);
+      QMenu *smenu = new QMenu(menu);
+      smact->setMenu(smenu);
+      submenuacts[submenu] = smact;
+      submenuactions[submenu] = smenu;
+      parentmenu = smenu;
+    }
+    KLF_ASSERT_NOT_NULL(parentmenu, "?! Parent Menu is NULL for submenu="<<submenu<<" !?", continue; ) ;
+
+    QAction *action = new QAction(menu);
     action->setText(eplist[k].description());
     action->setData(eplist[k].profileName());
     action->setCheckable(true);
     action->setChecked( (klfconfig.ExportData.dragExportProfile()==klfconfig.ExportData.copyExportProfile()) &&
 			(klfconfig.ExportData.dragExportProfile()==eplist[k].profileName()) );
-    menu->addAction(action);
+    actionGroup->addAction(action);
+    parentmenu->addAction(action);
     smapper->setMapping(action, eplist[k].profileName());
     connect(action, SIGNAL(triggered()), smapper, SLOT(map()));
     pExportProfileQuickMenuActionList.append(action);
   }
+  // and add submenus at the end
+  for (QMap<QString,QAction*>::iterator it = submenuacts.begin(); it != submenuacts.end(); ++it) {
+    menu->addAction(*it);
+  }
+
   connect(smapper, SIGNAL(mapped(const QString&)), this, SLOT(slotSetExportProfile(const QString&)));
 
   u->btnSetExportProfile->setMenu(menu);

@@ -281,7 +281,7 @@ void signal_act(int sig)
 
 // DEBUG, WARNING AND FATAL MESSAGES HANDLER
 
-// redirect deboug output to this file (if non-NULL) instead of stderr
+// redirect debug output to this file (if non-NULL) instead of stderr
 static FILE *klf_qt_msg_fp = NULL;
 
 // in case we want to print messages directly into terminal
@@ -296,7 +296,7 @@ void klf_qt_message(QtMsgType type, const char *msg)
   FILE *fout = stderr;
   if (klf_qt_msg_fp != NULL)  fout = klf_qt_msg_fp;
 
-#ifdef Q_OS_LINUX
+#ifdef Q_OS_UNIX
   if (klf_fp_tty == NULL && !klf_fp_tty_failed)
     if ( !(klf_fp_tty = fopen("/dev/tty", "w")) )
       klf_fp_tty_failed = true;

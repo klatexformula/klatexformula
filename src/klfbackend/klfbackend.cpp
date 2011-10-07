@@ -1947,6 +1947,8 @@ struct KLFUserScriptInfo::Private
   QStringList spitsOut;
   QStringList skipFormats;
 
+  QMap<QString,QString> customInfos;
+
   QList<KLFUserScriptInfo::Param> paramList;
 
   void query_script_info()
@@ -2088,8 +2090,8 @@ struct KLFUserScriptInfo::Private
 	// and add this to our param list
 	paramList << param;
       } else {
-	klfDbg("Unknown userscript info key: "<<key<<", in line:\n"<<line);
-	qWarning()<<KLF_FUNC_NAME<<": Ignoring unknown user script info key "<<key<<".";
+	klfDbg("Custom userscript info key: "<<key<<", value="<<val);
+	customInfos[key] = val;
       }
     }
   }
@@ -2178,4 +2180,9 @@ KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, spitsOut) ;
 KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, skipFormats) ;
 
 KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QList<KLFUserScriptInfo::Param>, paramList) ;
+
+QString KLFUserScriptInfo::customInfo(const QString& x) const
+{
+  return d()->customInfos.value(x, QString());
+}
 

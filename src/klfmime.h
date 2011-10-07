@@ -140,12 +140,15 @@ public:
     QString exporter; //!< May be left empty
   };
 
-  KLFMimeExportProfile(const QString& pname, const QString& desc, const QList<ExportType>& exporttypes);
+  KLFMimeExportProfile(const QString& pname, const QString& desc, const QList<ExportType>& exporttypes,
+		       const QString& insubmenu = QString());
   KLFMimeExportProfile(const KLFMimeExportProfile& copy);
 
 
   QString profileName() const { return p_profileName; }
   QString description() const { return p_description; }
+
+  QString inSubMenu() const { return p_inSubMenu; }
 
   /** List of formats to export when using this export profile. */
   inline QList<ExportType> exportTypes() const { return p_exportTypes; }
@@ -224,6 +227,7 @@ private:
   QString p_profileName;
   QString p_description;
   QList<ExportType> p_exportTypes;
+  QString p_inSubMenu;
 
   static void ensureLoadedExportProfileList();
   static void loadFromXMLFile(const QString& fname);

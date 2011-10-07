@@ -212,14 +212,14 @@ QList<KLFMimeExporter*> KLFMimeExporter::p_mimeExporterList = QList<KLFMimeExpor
 // ---------------------------------------------------------------------
 
 KLFMimeExportProfile::KLFMimeExportProfile(const QString& pname, const QString& desc,
-					   const QList<ExportType>& exporttypes)
-  : p_profileName(pname), p_description(desc), p_exportTypes(exporttypes)
+					   const QList<ExportType>& exporttypes, const QString& inSubMenu)
+  : p_profileName(pname), p_description(desc), p_exportTypes(exporttypes), p_inSubMenu(inSubMenu)
 {
 }
 
 KLFMimeExportProfile::KLFMimeExportProfile(const KLFMimeExportProfile& o)
   : p_profileName(o.p_profileName), p_description(o.p_description),
-    p_exportTypes(o.p_exportTypes)
+    p_exportTypes(o.p_exportTypes), p_inSubMenu(o.p_inSubMenu)
 {
 }
 
@@ -486,6 +486,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     klfDbg("Reading profile "<<pname<<" ...") ;
     
     QString description;
+    QString inSubMenu;
     // xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
     QString curDescriptionLang;
     QList<ExportType> exporttypes;
@@ -522,6 +523,11 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	  }
 	  // otherwise skip this tag
 	}
+	continue;
+      }
+      if ( en.nodeName() == "in-submenu" ) {
+	inSubMenu = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
+				       "[[tag: <in-submenu>]]", QCoreApplication::UnicodeUTF8);
 	continue;
       }
       if ( en.nodeName() != "export-type" ) {
@@ -561,7 +567,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     }
 
     // add this profile
-    KLFMimeExportProfile profile(pname, description, exporttypes);
+    KLFMimeExportProfile profile(pname, description, exporttypes, inSubMenu);
 
     // check if a profile has not already been declared with same name
     int kp;
@@ -1247,9 +1253,16 @@ QByteArray KLFMimeExporterGlowImage::data(const QString& key, const KLFBackend::
 
 // -----------------------------
 
+static bool klfuserscripts_exportmimetype_initialized = false;
+static QStringList klfuserscripts_exportmimetype;
 
 QStringList KLFMimeExporterUserScript::keys() const
 {
+  if (!klfuserscripts_exportmimetype_initialized) {
+    // read user scripts capabilities
+    /// \todo WRITE ME...
+  }
+
   // read user script capabilities...
   /// \bug write me.................
   return QStringList();

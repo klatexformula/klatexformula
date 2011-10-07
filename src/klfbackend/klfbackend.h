@@ -575,6 +575,8 @@ public:
    * Same format list as 'spits-out'. */
   QStringList skipFormats() const;
 
+  QString customInfo(const QString& key) const;
+
   struct Param {
     enum ParamType { String, Bool, Int, Enum };
     Param() : type(String) { }
