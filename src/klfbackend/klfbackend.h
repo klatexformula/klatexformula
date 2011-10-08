@@ -30,8 +30,10 @@
 #include <QImage>
 #include <QMutex>
 #include <QMap>
+#include <QVariant>
 
 #include <klfdefs.h>
+#include <klfpobj.h>
 #include <klfutil.h> // KLFRefPtr
 
 //! Definition of class \ref KLFBackend
@@ -464,6 +466,22 @@ public:
    */
   static klfOutput getLatexFormula(const klfInput& in, const klfSettings& settings);
 
+  /** \brief Get a list of available output formats
+   *
+   * If \c output is non-NULL, then this function is an alias for
+   * availableSaveFormats(const klfOutput&).
+   *
+   * If \c output is NULL, then a list of in principle availble output formats is returned,
+   * such as
+   * \code QStringList() << "PNG" << "PS" << "EPS" << "DVI" << "PDF" << "SVG" << (qt-image-formats); \endcode
+   * In this case, not all the given formats are garanteed to be availble; there may be some klfOutput
+   * objects where for example a user script has not provided a way to generate some optional formats
+   * like PDF or SVG. Provide a valid pointer to \c output to get an exact list of available formats.
+   *
+   * \note If Jpeg format is available, only \c "JPEG" will be reported and not \c "JPG".
+   */
+  static QStringList availableSaveFormats(const klfOutput * output = NULL) ;
+
   /** \brief Get a list of available output formats for saveOutputToDevice()
    *
    * \note If Jpeg format is available, only \c "JPEG" will be reported and not \c "JPG".
@@ -545,12 +563,16 @@ private:
 //! Summary of the info returned by a user script
 /** See also \ref pageUserScript .
  */
-class KLF_EXPORT KLFUserScriptInfo
+class KLF_EXPORT KLFUserScriptInfo : public KLFAbstractPropertizedObject
 {
 public:
-  KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings);
+  /**
+   * \note \c settings may only be NULL if the user script info was already queried by another instance
+   *   of a KLFUserScriptInfo and the cache was not cleared.
+   */
+  KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings = NULL);
   KLFUserScriptInfo(const KLFUserScriptInfo& copy);
-  ~KLFUserScriptInfo();
+  virtual ~KLFUserScriptInfo();
 
   static void clearCacheAll();
 
@@ -575,8 +597,6 @@ public:
    * Same format list as 'spits-out'. */
   QStringList skipFormats() const;
 
-  QString customInfo(const QString& key) const;
-
   struct Param {
     enum ParamType { String, Bool, Int, Enum };
     Param() : type(String) { }
@@ -590,6 +610,17 @@ public:
   };
 
   QList<Param> paramList() const;
+
+  virtual QVariant info(const QString& key) const;
+  /** Returns a list of Keys (eg. "Name", "Author", ... including custom infos) that have been
+   * reported by the user script. */
+  virtual QStringList infosList() const;
+
+  // reimplemented from KLFAbstractPropertizedObject
+  virtual QString objectKind() const { return QLatin1String("KLFUserScriptInfo"); }
+  virtual QVariant property(const QString& propName) const { return info(propName); }
+  virtual QStringList propertyNameList() const { return infosList(); }
+  virtual bool setProperty(const QString&, const QVariant&) { return false; }
   
 private:
   class Private;

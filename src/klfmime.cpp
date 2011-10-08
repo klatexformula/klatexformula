@@ -33,9 +33,9 @@
 #include <QPainter>
 #include <QTextCodec>
 
-#include <klfbackend.h>
-
+#include <klfutil.h>
 #include <klfguiutil.h>
+#include <klfbackend.h>
 #include "klfconfig.h"
 #include "klflib.h"
 #include "klfmime.h"
@@ -47,17 +47,12 @@
 
 #define OPENOFFICE_DRAWING_MIMETYPE "application/x-openoffice-drawing;windows_formatname=\"Drawing Format\""
 
-#ifndef Q_WS_MAC
-// provide empty non-functional function so that it can be called in any
-// context (also on linux, win: don't need #ifdef Q_WS_MAC)
-inline void __klf_init_the_macpasteboardmime() { }
-#endif
 
 // ---------------------------------------------------------------------
 
-bool KLFMimeExporter::supportsKey(const QString& key) const
+bool KLFMimeExporter::supportsKey(const QString& key, const KLFBackend::klfOutput * output) const
 {
-  bool result =  (keys().indexOf(key) >= 0) ;
+  bool result =  (keys(output).indexOf(key) >= 0) ;
   klfDbg("key = "<<key<<" ; result="<<result) ;
   return result;
 }
@@ -90,7 +85,7 @@ QByteArray KLFMimeExporter::exportData(const QString& key, const KLFBackend::klf
 }
 
 // static
-KLFMimeExporter * KLFMimeExporter::mimeExporterLookup(const QString& key)
+KLFMimeExporter * KLFMimeExporter::mimeExporterLookup(const QString& key, const KLFBackend::klfOutput * output)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   initMimeExporterList();
@@ -99,7 +94,7 @@ KLFMimeExporter * KLFMimeExporter::mimeExporterLookup(const QString& key)
   for (k = 0; k < p_mimeExporterList.size(); ++k) {
     klfDbg("Testing exporter #"<<k<<": "<<p_mimeExporterList[k]);
     klfDbg("\t: "<<p_mimeExporterList[k]->exporterName()) ;
-    if (p_mimeExporterList[k]->supportsKey(key))
+    if (p_mimeExporterList[k]->supportsKey(key, output))
       return p_mimeExporterList[k];
   }
 
@@ -107,7 +102,8 @@ KLFMimeExporter * KLFMimeExporter::mimeExporterLookup(const QString& key)
   return NULL;
 }
 // static
-QList<KLFMimeExporter*> KLFMimeExporter::mimeExporterFullLookup(const QString& key)
+QList<KLFMimeExporter*> KLFMimeExporter::mimeExporterFullLookup(const QString& key,
+								const KLFBackend::klfOutput * output)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   initMimeExporterList();
@@ -118,7 +114,7 @@ QList<KLFMimeExporter*> KLFMimeExporter::mimeExporterFullLookup(const QString& k
   for (k = 0; k < p_mimeExporterList.size(); ++k) {
     klfDbg("Testing exporter #"<<k<<": "<<p_mimeExporterList[k]);
     klfDbg("\t: "<<p_mimeExporterList[k]->exporterName()) ;
-    if (p_mimeExporterList[k]->supportsKey(key))
+    if (p_mimeExporterList[k]->supportsKey(key, output))
       exporters << p_mimeExporterList[k];
   }
 
@@ -126,7 +122,8 @@ QList<KLFMimeExporter*> KLFMimeExporter::mimeExporterFullLookup(const QString& k
   return exporters;
 }
 // static
-KLFMimeExporter * KLFMimeExporter::mimeExporterLookupByName(const QString& exporter, const QString& key)
+KLFMimeExporter * KLFMimeExporter::mimeExporterLookupByName(const QString& exporter, const QString& key,
+							    const KLFBackend::klfOutput * output)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   initMimeExporterList();
@@ -134,7 +131,7 @@ KLFMimeExporter * KLFMimeExporter::mimeExporterLookupByName(const QString& expor
   int k;
   for (k = 0; k < p_mimeExporterList.size(); ++k)
     if (p_mimeExporterList[k]->exporterName() == exporter) // find the given 'exporter'
-      if (key.isEmpty() || p_mimeExporterList[k]->supportsKey(key)) // check for 'key' support
+      if (key.isEmpty() || p_mimeExporterList[k]->supportsKey(key, output)) // check for 'key' support
 	return p_mimeExporterList[k];
 
   // no exporter found.
@@ -188,21 +185,31 @@ void KLFMimeExporter::unregisterMimeExporter(KLFMimeExporter *exporter)
   p_mimeExporterList.removeAll(exporter);
 }
 
+
 // static
 void KLFMimeExporter::initMimeExporterList()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   if (p_mimeExporterList.isEmpty()) {
     // ensure an instance of KLFMacPasteboardMime object
+#ifdef Q_WS_MAC
     __klf_init_the_macpasteboardmime();
+#endif
     p_mimeExporterList
       << new KLFMimeExporterImage(qApp)
       << new KLFMimeExporterUrilist(qApp)
       << new KLFMimeExporterHTML(qApp)
       << new KLFMimeExporterLibFmts(qApp)
       << new KLFMimeExporterGlowImage(qApp)
-      << new KLFMimeExporterUserScript(qApp)
       ;
+    // now, create one instance of KLFMimeExporterUserScript per export type user script ...
+    extern QStringList klf_user_scripts;
+    for (int k = 0; k < klf_user_scripts.size(); ++k) {
+      if (KLFUserScriptInfo(klf_user_scripts[k]).category() == QLatin1String("klf-export-type")) {
+	p_mimeExporterList << new KLFMimeExporterUserScript(klf_user_scripts[k], qApp);
+      }
+    }
+
   }
 }
 
@@ -230,7 +237,8 @@ QByteArray KLFMimeExportProfile::exportData(int n, const KLFBackend::klfOutput& 
   return KLFMimeExporter::exportData(p_exportTypes[n].mimetype, output, p_exportTypes[n].exporter);
 }
 
-KLFMimeExporter * KLFMimeExportProfile::exporterLookupFor(int k, bool warnNotFound) const
+KLFMimeExporter * KLFMimeExportProfile::exporterLookupFor(int k, const KLFBackend::klfOutput * output,
+							  bool warnNotFound) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -241,10 +249,11 @@ KLFMimeExporter * KLFMimeExportProfile::exporterLookupFor(int k, bool warnNotFou
   KLFMimeExporter * exporter = NULL;
   if ( ! p_exportTypes[k].exporter.isEmpty() ) {
     // lookup the exporter by name, and make sure that it supports the 'mimetype' key
-    exporter = KLFMimeExporter::mimeExporterLookupByName(p_exportTypes[k].exporter, p_exportTypes[k].mimetype);
+    exporter = KLFMimeExporter::mimeExporterLookupByName(p_exportTypes[k].exporter, p_exportTypes[k].mimetype,
+							 output);
   } else {
     // lookup the exporter by mime-type
-    exporter = KLFMimeExporter::mimeExporterLookup(p_exportTypes[k].mimetype);
+    exporter = KLFMimeExporter::mimeExporterLookup(p_exportTypes[k].mimetype, output);
   }
 
   if (warnNotFound)
@@ -253,7 +262,8 @@ KLFMimeExporter * KLFMimeExportProfile::exporterLookupFor(int k, bool warnNotFou
 			<<"for key "<<p_exportTypes[k].mimetype,   return NULL ) ;
   return exporter;
 }
-QList<KLFMimeExporter*> KLFMimeExportProfile::exporterFullLookupFor(int k, bool warnNotFound) const
+QList<KLFMimeExporter*> KLFMimeExportProfile::exporterFullLookupFor(int k, const KLFBackend::klfOutput * output,
+								    bool warnNotFound) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -264,10 +274,11 @@ QList<KLFMimeExporter*> KLFMimeExportProfile::exporterFullLookupFor(int k, bool 
   QList<KLFMimeExporter*> exporters;
   if ( ! p_exportTypes[k].exporter.isEmpty() ) {
     // lookup the exporter by name, and make sure that it supports the 'mimetype' key
-    exporters << KLFMimeExporter::mimeExporterLookupByName(p_exportTypes[k].exporter, p_exportTypes[k].mimetype);
+    exporters << KLFMimeExporter::mimeExporterLookupByName(p_exportTypes[k].exporter, p_exportTypes[k].mimetype,
+							   output);
   } else {
     // lookup the exporter by mime-type
-    exporters = KLFMimeExporter::mimeExporterFullLookup(p_exportTypes[k].mimetype);
+    exporters = KLFMimeExporter::mimeExporterFullLookup(p_exportTypes[k].mimetype, output);
   }
 
   if (warnNotFound)
@@ -320,7 +331,7 @@ QString KLFMimeExportProfile::respectiveWinType(int k) const
   if ( ! p_exportTypes[k].wintype.isEmpty() )
     return p_exportTypes[k].wintype;
 
-  QList<KLFMimeExporter*> exporters = exporterFullLookupFor(k, true);
+  QList<KLFMimeExporter*> exporters = exporterFullLookupFor(k, NULL, true);
   foreach (KLFMimeExporter *e, exporters) {
     QString s = e->windowsFormatName(p_exportTypes[k].mimetype);
     if (!s.isEmpty())
@@ -329,14 +340,14 @@ QString KLFMimeExportProfile::respectiveWinType(int k) const
   return QString();
 }
 
-QStringList KLFMimeExportProfile::availableExporterMimeTypes() const
+QStringList KLFMimeExportProfile::availableExporterMimeTypes(const KLFBackend::klfOutput * output) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   QStringList oktypes;
   int k;
   for (k = 0; k < p_exportTypes.size(); ++k) {
-    if (exporterLookupFor(k, false) != NULL)
+    if (exporterLookupFor(k, output, false) != NULL)
       oktypes << p_exportTypes[k].mimetype;
   }
   return oktypes;
@@ -413,7 +424,7 @@ void KLFMimeExportProfile::ensureLoadedExportProfileList()
   // to an extra export profile
   QList<ExportType> exporttypes;
   KLFMimeExporterImage imgexporter(NULL);
-  QStringList mimetypes = imgexporter.keys();
+  QStringList mimetypes = imgexporter.keys(NULL);
   for (k = 0; k < mimetypes.size(); ++k) {
     if (mimetypes[k].startsWith("image/") || mimetypes[k] == "application/x-qt-image")
       exporttypes << ExportType(mimetypes[k], imgexporter.windowsFormatName(mimetypes[k]));
@@ -617,7 +628,9 @@ KLFMimeData::KLFMimeData(const QString& exportProfile, const KLFBackend::klfOutp
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   // ensure an instance of KLFMacPasteboardMime object
+#ifdef Q_WS_MAC
   __klf_init_the_macpasteboardmime();
+#endif
 
   pOutput = output;
 
@@ -694,7 +707,7 @@ QStringList KLFMimeData::formats() const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QStringList fmts = pExportProfile.availableExporterMimeTypes();
+  QStringList fmts = pExportProfile.availableExporterMimeTypes(&pOutput);
   if (true/*fmts.contains("application/x-qt-image")*/) {
     if (pQtOwnedFormats.size() == 0)
       pQtOwnedFormats = QMimeData::formats();
@@ -750,65 +763,57 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
 
 // ---------------------------------------------------------------------
 
-static QMap<QString,QByteArray> get_qt_image_formats()
+static KLFMapInitData<QString> datatypeformime_data[] = {
+  { "image/png", "PNG" },
+  { "image/x-win-png-office-art", "PNG" },
+  { "image/eps", "EPS" },
+  { "application/eps", "EPS" },
+  { "application/postscript", "PS" },
+  { "application/pdf", "PDF" },
+  { "image/svg+xml", "SVG" },
+  { "application/x-dvi", "DVI" },
+  { "image/jpeg", "JPEG" },
+  { "application/x-qt-image", "PNG" },
+  { NULL, QString() }
+};
+static QMap<QString,QString> datatypeformime = klfMakeMap(datatypeformime_data);
+
+
+QStringList KLFMimeExporterImage::keys(const KLFBackend::klfOutput * output) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QMap<QString,QByteArray> imageFormats;
-  // get qt's image formats
-  QList<QByteArray> qtimgfmts = QImageWriter::supportedImageFormats();
-  int k;
-  for (k = 0; k < qtimgfmts.size(); ++k) {
-    if ( imageFormats.key(qtimgfmts[k]).isEmpty() ) {
-      QString mime = QString::fromLatin1("image/")+QString::fromLatin1(qtimgfmts[k]).toLower();
-      imageFormats[mime] = qtimgfmts[k];
-    }
-  }
-  return imageFormats;
-}
+  QStringList backendformats = KLFBackend::availableSaveFormats(output);
 
-QMap<QString,QByteArray> KLFMimeExporterImage::imageFormats = QMap<QString,QByteArray>();
+  QSet<QString> keys;
 
-QStringList KLFMimeExporterImage::keys() const
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  // image formats that are always supported. Qt image formats are added too.
-  static QStringList staticKeys
-    = QStringList() << "image/png" << "image/eps" << "application/eps" << "application/postscript"
-		    << "application/pdf" << "image/svg+xml"
-		    << OPENOFFICE_DRAWING_MIMETYPE << "application/x-qt-image"
-		    // add duplicate for png, see below
-		    << "image/x-win-png-office-art";
-
-  if (imageFormats.isEmpty()) {
-    // populate qt's image formats
-    QMap<QString,QByteArray> ifmts = get_qt_image_formats();
-    QMap<QString,QByteArray>::iterator it;
-    for (it = ifmts.begin(); it != ifmts.end(); ++it) {
-      QString mime = it.key();
-      QByteArray qtfmt = it.value();
-      // add this image format, if not already provided by staticKeys
-      if (staticKeys.indexOf(mime) == -1)
-	imageFormats[mime] = qtfmt;
-      // add duplicate mime types for some formats, to be able to specify multiple windows format
-      // names for them, eg. "Bitmap" and "Windows Bitmap" :
-      if (mime == "image/bmp") {
-	imageFormats["image/x-win-bmp"] = qtfmt;
-      } else if (mime == "image/jpeg") {
-	imageFormats["image/x-win-jfif"] = qtfmt;
-	imageFormats["image/x-win-jfif-office-art"] = qtfmt;
-      } else if (mime == "image/png") {
-	imageFormats["image/x-win-png-office-art"] = qtfmt;
-      }
+  foreach (QString fmt, backendformats) {
+    if (fmt == "PNG") {
+      keys << "image/png"
+	// add duplicate for png, see below
+	   << "image/x-win-png-office-art";
+    } else if (fmt == "EPS") {
+      keys << "image/eps" << "application/eps";
+    } else if (fmt == "PS") {
+      keys << "application/postscript";
+    } else if (fmt == "PDF") {
+      keys << "application/pdf";
+    } else if (fmt == "SVG") {
+      keys << "image/svg+xml";
+    } else if (fmt == "DVI") {
+      keys << "application/x-dvi";
+    } else if (fmt == "JPEG") {
+      keys << "image/jpeg";
+    } else {
+      // other backend image format, probably from Qt's export image formats
+      keys << "image/"+fmt.toLower();
     }
   }
 
-  QStringList keys = staticKeys;
+  // always have these formats...
+  keys << "image/png" << OPENOFFICE_DRAWING_MIMETYPE << "application/x-qt-image";
 
-  keys << imageFormats.keys();
-
-  return keys;
+  return keys.toList();
 }
 
 QString KLFMimeExporterImage::windowsFormatName(const QString& mime) const
@@ -849,46 +854,35 @@ QByteArray KLFMimeExporterImage::data(const QString& keymime, const KLFBackend::
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QString key = keymime;
-  klfDbg("key="<<key);
-
-  if (key == "image/png")
-    return klfoutput.pngdata;
-  if (key == "image/eps" || key == "application/eps" || key == "application/postscript")
-    return klfoutput.epsdata;
-  if (key == "application/pdf") {
-#ifdef KLF_DEBUG
-    if (klfoutput.pdfdata.isEmpty())
-      klfDbg("---warning: don't have PDF data ---") ;
-#endif
-    return klfoutput.pdfdata;
-  }
-  if (key == "image/svg+xml") {
-#ifdef KLF_DEBUG
-    if (klfoutput.svgdata.isEmpty())
-      klfDbg("---warning: don't have SVG data ---") ;
-#endif
-    return klfoutput.svgdata;
-  }
-  if (key == OPENOFFICE_DRAWING_MIMETYPE)
+  // added by us, not klfbackend
+  if (keymime == OPENOFFICE_DRAWING_MIMETYPE)
     return klf_openoffice_drawing(klfoutput);
-  if (key == "application/x-qt-image")
-    return klfoutput.pngdata;
 
-  // rely on qt's image saving routines for other formats
-  klfDbg("Will use Qt's image format exporting");
-  
-  if ( ! imageFormats.contains(key) )
+  QString datatype = datatypeformime.value(keymime, QString());
+
+  if (datatype == QString() && keymime.startsWith("image/"))
+    datatype = keymime.mid(qstrlen("image/")).toUpper();
+
+  KLF_ASSERT_CONDITION( !datatype.isEmpty(), "Can't find corresponding datatype for "<<keymime<<" !",
+			return QByteArray(); ) ;
+
+  QByteArray data;
+  QString errorstring;
+  bool result;
+
+  { // separate block to ensure the buffer is destroyed before accessing the saved data.
+    QBuffer buf(&data);
+    buf.open(QIODevice::WriteOnly);
+
+    result = KLFBackend::saveOutputToDevice(klfoutput, &buf, datatype, &errorstring);
+  }
+
+  if (!result) { // error
+    klfWarning("Data export error ("<<datatype<<"): "<<errorstring) ;
     return QByteArray();
+  }
 
-  QByteArray imgdata;
-  QBuffer imgdatawriter(&imgdata);
-  imgdatawriter.open(QIODevice::WriteOnly);
-  klfoutput.result.save(&imgdatawriter, imageFormats[key]);
-  imgdatawriter.close();
-
-  klfDbg("got data: size="<<imgdata.size());
-  return imgdata;
+  return data;
 }
 
 
@@ -900,7 +894,7 @@ inline qint64 qHash(const QRegExp& rx) { return qHash(rx.pattern()); }
 QMap<qint64,QMap<int,QString> > KLFMimeExporterUrilist::tempFilesForImageCacheKey =
   QMap<qint64,QMap<int,QString> >();
 
-QStringList KLFMimeExporterUrilist::keys() const
+QStringList KLFMimeExporterUrilist::keys(const KLFBackend::klfOutput *) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   return QStringList() << "text/x-moz-url" << "text/uri-list" << "text/x-klf-mac-fileurl";
@@ -1012,7 +1006,7 @@ static QByteArray toAttrText(const QString& sbase)
   return toAttrTextS(sbase).toUtf8();
 }
 
-QStringList KLFMimeExporterHTML::keys() const
+QStringList KLFMimeExporterHTML::keys(const KLFBackend::klfOutput *) const
 {
   return QStringList() << QLatin1String("text/html");
 }
@@ -1176,7 +1170,7 @@ QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput)
 
 
 
-QStringList KLFMimeExporterLibFmts::keys() const
+QStringList KLFMimeExporterLibFmts::keys(const KLFBackend::klfOutput *) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -1215,7 +1209,7 @@ QByteArray KLFMimeExporterLibFmts::data(const QString& key, const KLFBackend::kl
 
 // -------------------------------
 
-QStringList KLFMimeExporterGlowImage::keys() const
+QStringList KLFMimeExporterGlowImage::keys(const KLFBackend::klfOutput *) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -1253,24 +1247,53 @@ QByteArray KLFMimeExporterGlowImage::data(const QString& key, const KLFBackend::
 
 // -----------------------------
 
-static bool klfuserscripts_exportmimetype_initialized = false;
-static QStringList klfuserscripts_exportmimetype;
 
-QStringList KLFMimeExporterUserScript::keys() const
+
+KLFExportTypeUserScriptInfo::KLFExportTypeUserScriptInfo(const QString& scriptFileName,
+							 KLFBackend::klfSettings * settings)
+  : KLFUserScriptInfo(scriptFileName, settings)
 {
-  if (!klfuserscripts_exportmimetype_initialized) {
-    // read user scripts capabilities
-    /// \todo WRITE ME...
-  }
+}
 
-  // read user script capabilities...
-  /// \bug write me.................
+KLFExportTypeUserScriptInfo::~KLFExportTypeUserScriptInfo()
+{
+}
+
+// ---
+
+
+KLFMimeExporterUserScript::KLFMimeExporterUserScript(const QString& uscript, QObject *parent)
+  : QObject(parent), pScriptInfo(uscript, NULL)
+{
+}
+
+QString KLFMimeExporterUserScript::exporterName() const
+{
+  return QString::fromLatin1("UserScript:") + QFileInfo(pScriptInfo.fileName()).fileName();
+}
+
+QStringList KLFMimeExporterUserScript::keys(const KLFBackend::klfOutput * output) const
+{
+  if (KLFBackend::availableSaveFormats(output).contains(pScriptInfo.inputDataType()))
+    return pScriptInfo.mimeTypes();
+
   return QStringList();
 }
 
 QByteArray KLFMimeExporterUserScript::data(const QString& key, const KLFBackend::klfOutput& klfoutput)
 {
-  /// \bug write me..................
+  // now actually call the script
+
+  /** \bug write me ! */
+
+//   KLFFilterProcess p;
+
+//   p.addArgv(pScriptInfo.fileName());
+//   if (!pScriptInfo.wantStdinInput()) {
+//     p.addArgv(...);
+// ....
+//   }
+
   return QByteArray();
 }
 

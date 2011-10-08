@@ -297,6 +297,21 @@ template<class T>
 inline QList<T> klfMkList(const T& a, const T& b, const T& c, const T& d) { return QList<T>()<<a<<b<<c<<d; }
 
 
+template<class Value>
+struct KLFMapInitData { const char * key; Value value; };
+
+template<class Value>
+inline QMap<QString, Value> klfMakeMap(KLFMapInitData<Value> x[])
+{
+  QMap<QString,Value> map;
+  int k;
+  for (k = 0; x[k].key != NULL; ++k) {
+    map[QString::fromUtf8(x[k].key)] = x[k].value;
+  }
+  return map;
+}
+
+
 class KLFTargeter;
 
 class KLF_EXPORT KLFTarget {

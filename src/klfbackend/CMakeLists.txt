@@ -24,6 +24,7 @@ include_directories(../klftools)
 set(klfbackend_SRCS
 	klfbackend.cpp
 	klfblockprocess.cpp
+	klffilterprocess.cpp
 	klflatexpreviewthread.cpp
 )
 set(klfbackend_MOCHEADERS
@@ -32,6 +33,7 @@ set(klfbackend_MOCHEADERS
 )
 set(klfbackend_HEADERS
 	klfbackend.h
+	klffilterprocess.h
 	${klfbackend_MOCHEADERS}
 )
 

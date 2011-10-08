@@ -44,6 +44,7 @@
 #include <klfdatautil.h>
 
 #include "klfblockprocess.h"
+#include "klffilterprocess.h"
 #include "klfbackend.h"
 
 // legacy macros that used to be universal for both Qt 3 and 4
@@ -213,38 +214,6 @@ KLFBackend::KLFBackend()
 }
 
 
-// Utility function
-static QString progErrorMsg(QString progname, int exitstatus, QString stderrstr, QString stdoutstr)
-{
-  QString stdouthtml = stdoutstr;
-  QString stderrhtml = stderrstr;
-  stdouthtml.replace("&", "&amp;");
-  stdouthtml.replace("<", "&lt;");
-  stdouthtml.replace(">", "&gt;");
-  stderrhtml.replace("&", "&amp;");
-  stderrhtml.replace("<", "&lt;");
-  stderrhtml.replace(">", "&gt;");
-
-  if (stderrstr.isEmpty() && stdoutstr.isEmpty())
-    return QObject::tr("<p><b>%1</b> reported an error (exit status %2). No Output was generated.</p>",
-		       "KLFBackend")
-	.arg(progname).arg(exitstatus);
-  if (stderrstr.isEmpty())
-    return
-      QObject::tr("<p><b>%1</b> reported an error (exit status %2). Here is full stdout output:</p>\n"
-		  "<pre>\n%3</pre>", "KLFBackend")
-      .arg(progname).arg(exitstatus).arg(stdouthtml);
-  if (stdoutstr.isEmpty())
-    return
-      QObject::tr("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
-		  "<pre>\n%3</pre>", "KLFBackend")
-      .arg(progname).arg(exitstatus).arg(stderrhtml);
-  
-  return QObject::tr("<p><b>%1</b> reported an error (exit status %2). Here is full stderr output:</p>\n"
-		     "<pre>\n%3</pre><p>And here is full stdout output:</p><pre>\n%4</pre>", "KLFBackend")
-    .arg(progname).arg(exitstatus).arg(stderrhtml).arg(stdouthtml);
-}
-
 
 /* * Internal.
  * \internal */
@@ -295,215 +264,30 @@ static void klf_append_replace_env_var(QStringList *list, const QString& var, co
 
 
 
-#define KLFFP_NOERR 0
-#define KLFFP_NOSTART 1
-#define KLFFP_NOEXIT 2
-#define KLFFP_NOSUCCESSEXIT 3
-#define KLFFP_NODATA 4
-#define KLFFP_DATAREADFAIL 5
-#define KLFFP_PAST_LAST_VALUE 6
+struct KLFBackendFilterProgram : public KLFFilterProcess
+{
+  int resErrCodes[KLFFP_PAST_LAST_VALUE];
 
-/** \internal */
-struct KLFFilterProgram {
-
-  KLFFilterProgram(const QString& pTitle = QString(), const KLFBackend::klfSettings *settings = NULL)
-    : progTitle(pTitle), outputStdout(true), outputStderr(false), exitStatus(-1), exitCode(-1)
+  KLFBackendFilterProgram(const QString& title, const KLFBackend::klfSettings * settings)
+    : KLFFilterProcess(title, settings)
   {
     for (int i = 0; i < KLFFP_PAST_LAST_VALUE; ++i) {
       resErrCodes[i] = i;
     }
-
-    if (settings != NULL) {
-      programCwd = settings->tempdir;
-      execEnviron = settings->execenv;
-    }
-
-    collectStdout = NULL;
-    collectStderr = NULL;
   }
 
-  QString progTitle;
-  int resErrCodes[KLFFP_PAST_LAST_VALUE];
-  QString programCwd;
-  QStringList execEnviron;
 
-  QStringList argv;
-
-  /** Set this to false to ignore output on stdout of the program. */
-  bool outputStdout;
-  /** Set this to true to also read stderr as part of the output. If false (the default), stderr
-   * output is only reported in the error message in case nothing came out on stdout. */
-  bool outputStderr;
-
-  QByteArray *collectStdout;
-  QByteArray *collectStderr;
-
-  // these fields are set after calling run()
-  int exitStatus;
-  int exitCode;
-
-  /** \internal
-   */
-  bool run(const QString& outFileName, QByteArray *outdata, KLFBackend::klfOutput *resError)
+  void errorToOutput(KLFBackend::klfOutput * resError)
   {
-    return run(QByteArray(), outFileName, outdata, resError);
-  }
-
-  /** \internal
-   *
-   */
-  bool run(const QByteArray& indata, const QString& outFileName, QByteArray *outdata,
-	   KLFBackend::klfOutput *resError)
-  {
-    QMap<QString,QByteArray*> fout; fout[outFileName] = outdata;
-    return run(indata, fout, resError);
-  }
-
-  /** \internal
-   */
-  bool run(const QMap<QString, QByteArray*> outdata, KLFBackend::klfOutput *resError)
-  {
-    return run(QByteArray(), outdata, resError);
-  }
-
-  /**
-   * \internal
-   *
-   * \note multiple output files possible. Each data is retreived into a pointer given by outdata map.
-   *
-   * \param indata a QByteArray to write into the program's standard input
-   * \param outdata a QMap with keys being files that are created by the program. These files are read and
-   *   their contents stored in the QByteArray's pointed by the corresponding pointer.
-   * \param resError the klfOutput object is initialized to the corresponding error if an error occurred.
-   *
-   * \returns TRUE/FALSE for success/failure, respectively.
-   */
-  bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist, KLFBackend::klfOutput *resError)
-  {
-    KLFBlockProcess proc;
-
-    exitCode = 0;
-    exitStatus = 0;
-
-    KLF_ASSERT_CONDITION(argv.size() > 0, "argv array is empty! No program is given!", return false; ) ;
-
-    proc.setWorkingDirectory(programCwd);
-
-    klfDbg("about to exec "<<progTitle<<" ...") ;
-    klfDbg("\t"<<qPrintable(argv.join(" "))) ;
-    bool r = proc.startProcess(argv, indata, execEnviron);
-    klfDbg(progTitle<<" returned.") ;
-
-    if (!r) {
-      qDebug("%s: cannot launch %s", KLF_FUNC_NAME, qPrintable(progTitle));
-      if (resError != NULL) {
-	resError->status = resErrCodes[KLFFP_NOSTART];
-	resError->errorstr = QObject::tr("Unable to start %1 program `%2'!", "KLFBackend").arg(progTitle, argv[0]);
-      }
-      return false;
+    if (resultStatus() == 0) {
+      klfDbg("No error.") ;
     }
-    if (!proc.processNormalExit()) {
-      qDebug("%s: %s did not exit normally (crashed)", KLF_FUNC_NAME, qPrintable(progTitle));
-#ifdef KLFBACKEND_QT4
-      exitStatus = proc.exitStatus();
-#else
-      exitStatus = 1;
-#endif
-      exitCode = -1;
-      if (resError != NULL) {
-	resError->status = resErrCodes[KLFFP_NOEXIT];
-	resError->errorstr = QObject::tr("Program %1 crashed!", "KLFBackend").arg(progTitle);
-      }
-      return false;
-    }
-    if (proc.processExitStatus() != 0) {
-      exitStatus = 0;
-      exitCode = proc.processExitStatus();
-      qDebug("%s: %s exited with code %d", KLF_FUNC_NAME, qPrintable(progTitle), exitCode);
-      if (resError != NULL) {
-	resError->status = resErrCodes[KLFFP_NOSUCCESSEXIT];
-	resError->errorstr = progErrorMsg(progTitle, proc.processExitStatus(), proc.readStderrString(),
-					  proc.readStdoutString());
-      }
-      return false;
-    }
-
-    if (collectStdout != NULL)
-      *collectStdout = proc.getAllStdout();
-    if (collectStderr != NULL)
-      *collectStderr = proc.getAllStderr();
-
-    for (QMap<QString,QByteArray*>::const_iterator it = outdatalist.begin(); it != outdatalist.end(); ++it) {
-      QString outFileName = it.key();
-      QByteArray * outdata = it.value();
-      
-      KLF_ASSERT_NOT_NULL(outdata, "Given NULL outdata pointer for file "<<outFileName<<" !", return false; ) ;
-
-      klfDbg("Will collect output in file "<<(outFileName.isEmpty()?QString("(stdout)"):outFileName)
-	     <<" to its corresponding QByteArray pointer="<<outdata) ;
-
-      if (outFileName.isEmpty()) {
-	// empty outFileName means to use standard output
-	*outdata = QByteArray();
-	if (outputStdout) {
-	  QByteArray stdoutdata = (collectStdout != NULL) ? *collectStdout : proc.getAllStdout();
-	  ba_cat(outdata, stdoutdata);
-	}
-	if (outputStderr) {
-	  QByteArray stderrdata = (collectStderr != NULL) ? *collectStderr : proc.getAllStderr();
-	  ba_cat(outdata, stderrdata);
-	}
-	if (outdata->isEmpty()) {
-	  // no data
-	  QString stderrstr = (!outputStderr) ? ("\n"+proc.readStderrString()) : QString();
-	  klfDbg(progTitle<<" did not provide any data. "<<stderrstr);
-	  if (resError != NULL) {
-	    resError->status = resErrCodes[KLFFP_NODATA];
-	    resError->errorstr = QObject::tr("Program %1 did not provide any output data.", "KLFBackend")
-	      .arg(progTitle) + stderrstr;
-	  }
-	  return false;
-	}
-	// read standard output to buffer, continue with other possible outputs
-	continue;
-      }
-
-      if (!QFile::exists(outFileName)) {
-	qDebug("%s: File `%s' did not appear after running %s", KLF_FUNC_NAME, qPrintable(outFileName),
-	       qPrintable(progTitle));
-	if (resError != NULL) {
-	  resError->status = resErrCodes[KLFFP_NODATA];
-	  resError->errorstr = QObject::tr("Output file didn't appear after having called %1!", "KLFBackend")
-	    .arg(progTitle);
-	}
-	return false;
-      }
-
-      // read output file into outdata
-      QFile outfile(outFileName);
-      r = outfile.open(QIODevice::ReadOnly);
-      if ( ! r ) {
-	qDebug("%s: File `%s' cannot be read (after running %s)", KLF_FUNC_NAME, qPrintable(outFileName),
-	       qPrintable(progTitle));
-	if (resError != NULL) {
-	  resError->status = resErrCodes[KLFFP_DATAREADFAIL];
-	  resError->errorstr = QObject::tr("Can't read file '%1'!\n", "KLFBackend").arg(outFileName);
-	}
-	return false;
-      }
-      
-      *outdata = outfile.readAll();
-      klfDbg("Read file "<<outFileName<<", got data, length="<<outdata->size());
-    }
-
-    klfDbg(progTitle<<" was successfully run and output successfully retrieved.") ;
-
-    // all OK
-    exitStatus = 0;
-    exitCode = 0;
-    return true;
+    resError->status = resErrCodes[resultStatus()];
+    resError->errorstr = resultErrorString();
   }
 };
+
+
 
 
 #define D_RX "([0-9eE.-]+)"
@@ -886,20 +670,20 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
 
     { // now run the script
-      KLFFilterProgram p("[user script "+scriptinfo.name()+"]", &settings);
+      KLFBackendFilterProgram p("[user script "+scriptinfo.name()+"]", &settings);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
       p.resErrCodes[KLFFP_NODATA] = KLFERR_USERSCRIPT_NOOUTPUT;
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERSCRIPT_OUTPUTREADFAIL;
-      p.execEnviron << addenv;
+      p.addExecEnviron(addenv);
 
       QByteArray stderrdata;
       QByteArray stdoutdata;
-      p.collectStderr = &stderrdata;
-      p.collectStdout = &stdoutdata;
+      p.collectStderrTo(&stderrdata);
+      p.collectStdoutTo(&stdoutdata);
 
-      p.argv << in.userScript << QDir::toNativeSeparators(fnTex);
+      p.setArgv(QStringList() << in.userScript << QDir::toNativeSeparators(fnTex));
 
       QMap<QString,QByteArray*> outdata;
       QStringList outfmts = scriptinfo.spitsOut();
@@ -982,7 +766,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	our_skipfmts << "svg-gs"; // don't need svg-gs if we're not generating svg
       }
 
-      ok = p.run(outdata, &res);
+      ok = p.run(outdata);
 
       // for user script debugging
       klfbackend_last_userscript_output
@@ -990,6 +774,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
         + Qt::escape(stderrdata) + "</pre>";
 
       if (!ok) {
+	p.errorToOutput(&res);
 	return res;
       }
     }
@@ -998,17 +783,18 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   if (!has_userscript_output(us_outputs, "dvi") && !our_skipfmts.contains("dvi")) {
     // execute latex
-    KLFFilterProgram p(QLatin1String("LaTeX"), &settings);
+    KLFBackendFilterProgram p(QLatin1String("LaTeX"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_LATEX_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_LATEX_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_LATEX;
     p.resErrCodes[KLFFP_NODATA] = KLFERR_LATEX_NOOUTPUT;
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_LATEX_OUTPUTREADFAIL;
 
-    p.argv << settings.latexexec << QDir::toNativeSeparators(fnTex);
+    p.setArgv(QStringList() << settings.latexexec << QDir::toNativeSeparators(fnTex));
     
-    ok = p.run(fnDvi, &res.dvidata, &res);
+    ok = p.run(fnDvi, &res.dvidata);
     if (!ok) {
+      p.errorToOutput(&res);
       return res;
     }
   }
@@ -1018,19 +804,20 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     ASSERT_HAVE_FORMATS_FOR("eps-raw") ;
 
     // execute dvips -E
-    KLFFilterProgram p(QLatin1String("dvips"), &settings);
+    KLFBackendFilterProgram p(QLatin1String("dvips"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_DVIPS_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_DVIPS_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_DVIPS;
     p.resErrCodes[KLFFP_NODATA] = KLFERR_DVIPS_NOOUTPUT;
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_DVIPS_OUTPUTREADFAIL;
 
-    p.argv << settings.dvipsexec << "-E" << QDir::toNativeSeparators(fnDvi)
-	   << "-o" << QDir::toNativeSeparators(fnRawEps);
+    p.setArgv(QStringList() << settings.dvipsexec << "-E" << QDir::toNativeSeparators(fnDvi)
+	      << "-o" << QDir::toNativeSeparators(fnRawEps));
 
-    ok = p.run(fnRawEps, &rawepsdata, &res);
+    ok = p.run(fnRawEps, &rawepsdata);
 
     if (!ok) {
+      p.errorToOutput(&res);
       return res;
     }
     qDebug("%s: read raw EPS; rawepsdata/length=%d", KLF_FUNC_NAME, rawepsdata.size());
@@ -1123,24 +910,25 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     if (settings.outlineFonts) {
       // post-process EPS file to outline fonts if requested
 
-      KLFFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings);
+      KLFBackendFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPOSTPROC_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPOSTPROC_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPOSTPROC;
       p.resErrCodes[KLFFP_NODATA] = KLFERR_GSPOSTPROC_NOOUTPUT;
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPOSTPROC_OUTPUTREADFAIL;
 
-      p.argv << settings.gsexec;
+      p.addArgv(settings.gsexec);
       // The bad joke is that in gs' manpage '-dNOCACHE' is described as a debugging option.
       // It is NOT. It outlines the fonts to paths. It cost me a few hours trying to understand
-      // what's going on ... :(
-      p.argv << "-dNOCACHE";
-      p.argv << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=pswrite";
-      p.argv << "-sOutputFile="+QDir::toNativeSeparators(fnProcessedEps)
-	     << "-q" << "-dBATCH" << "-";
+      // what's going on ... :(  Not Funny.
+      p.addArgv(QStringList() << "-dNOCACHE"
+		<< "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=pswrite"
+		<< "-sOutputFile="+QDir::toNativeSeparators(fnProcessedEps)
+		<< "-q" << "-dBATCH" << "-");
       
-      ok = p.run(bboxepsdata, fnProcessedEps, &res.epsdata, &res);
+      ok = p.run(bboxepsdata, fnProcessedEps, &res.epsdata);
       if (!ok) {
+	p.errorToOutput(&res);
 	return res;
       }
 
@@ -1157,25 +945,26 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     ASSERT_HAVE_FORMATS_FOR("png") ;
 
     // run 'gs' to get PNG data
-    KLFFilterProgram p(QLatin1String("gs (PNG)"), &settings);
+    KLFBackendFilterProgram p(QLatin1String("gs (PNG)"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPNG_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPNG_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPNG;
     p.resErrCodes[KLFFP_NODATA] = KLFERR_GSPNG_NOOUTPUT;
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPNG_OUTPUTREADFAIL;
 
-    p.argv << settings.gsexec
-	   << "-dNOPAUSE" << "-dSAFER" << "-dTextAlphaBits=4" << "-dGraphicsAlphaBits=4"
-	   << "-r"+QString::number(in.dpi) << "-dEPSCrop";
+    p.setArgv(QStringList() << settings.gsexec
+	      << "-dNOPAUSE" << "-dSAFER" << "-dTextAlphaBits=4" << "-dGraphicsAlphaBits=4"
+	      << "-r"+QString::number(in.dpi) << "-dEPSCrop");
     if (qAlpha(in.bg_color) > 0) { // we're forcing a background color
-      p.argv << "-sDEVICE=png16m";
+      p.addArgv("-sDEVICE=png16m");
     } else {
-      p.argv << "-sDEVICE=pngalpha";
+      p.addArgv("-sDEVICE=pngalpha");
     }
-    p.argv << "-sOutputFile="+QDir::toNativeSeparators(fnRawPng) << "-q" << "-dBATCH" << "-";
+    p.addArgv(QStringList() << "-sOutputFile="+QDir::toNativeSeparators(fnRawPng) << "-q" << "-dBATCH" << "-");
 
-    ok = p.run(bboxepsdata, fnRawPng, &res.pngdata_raw, &res);
+    ok = p.run(bboxepsdata, fnRawPng, &res.pngdata_raw);
     if (!ok) {
+      p.errorToOutput(&res);
       return res;
     }
 
@@ -1244,21 +1033,22 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     ASSERT_HAVE_FORMATS_FOR("pdf") ;
 
     // run 'gs' to get PDF data
-    KLFFilterProgram p(QLatin1String("gs (PDF)"), &settings);
+    KLFBackendFilterProgram p(QLatin1String("gs (PDF)"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPDF_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPDF_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPDF;
     p.resErrCodes[KLFFP_NODATA] = KLFERR_GSPDF_NOOUTPUT;
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPDF_OUTPUTREADFAIL;
 
-    p.argv << settings.gsexec
-	   << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=pdfwrite"
-	   << "-sOutputFile="+QDir::toNativeSeparators(fnPdf)
-	   << "-q" << "-dBATCH" << "-";
+    p.setArgv(QStringList() << settings.gsexec
+	      << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=pdfwrite"
+	      << "-sOutputFile="+QDir::toNativeSeparators(fnPdf)
+	      << "-q" << "-dBATCH" << "-");
 
     // input: res.epsdata is the processed EPS file, or the raw EPS + bbox/page correction if no post-processing
-    ok = p.run(res.epsdata, fnPdf, &res.pdfdata, &res);
+    ok = p.run(res.epsdata, fnPdf, &res.pdfdata);
     if (!ok) {
+      p.errorToOutput(&res);
       return res;
     }
   }
@@ -1279,22 +1069,23 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	return res;
       }
 
-      KLFFilterProgram p(QLatin1String("gs (SVG)"), &settings);
+      KLFBackendFilterProgram p(QLatin1String("gs (SVG)"), &settings);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSSVG_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSSVG_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSSVG;
       p.resErrCodes[KLFFP_NODATA] = KLFERR_GSSVG_NOOUTPUT;
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSSVG_OUTPUTREADFAIL;
       
-      p.argv << settings.gsexec;
+      p.addArgv(settings.gsexec);
       // unconditionally outline fonts, otherwise output is horrible
-      p.argv << "-dNOCACHE" << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=svg"
-	     << "-sOutputFile="+QDir::toNativeSeparators(fnGsSvg)
-	     << "-q" << "-dBATCH" << "-";
+      p.addArgv(QStringList() << "-dNOCACHE" << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=svg"
+		<< "-sOutputFile="+QDir::toNativeSeparators(fnGsSvg)
+		<< "-q" << "-dBATCH" << "-");
 
       // input: res.epsdata is the processed EPS file, or the raw EPS file if no post-processing
-      ok = p.run(bboxepsdata, fnGsSvg, &gssvgdata, &res);
+      ok = p.run(bboxepsdata, fnGsSvg, &gssvgdata);
       if (!ok) {
+	p.errorToOutput(&res);
 	return res;
       }
     }
@@ -1332,24 +1123,24 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsF
 
   int i;
 
-  KLFFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings);
+  KLFBackendFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings);
   p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSBBOX_NORUN;
   p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSBBOX_NONORMALEXIT;
   p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSBBOX;
   p.resErrCodes[KLFFP_NODATA] = KLFERR_GSBBOX_NOOUTPUT;
   // p.resErrCodes[KLFFP_DATAREADFAIL]  unused (used only for reading output files)
 
-  p.outputStdout = true;
-  p.outputStderr = true;
+  p.setOutputStdout(true);
+  p.setOutputStderr(true);
   
   QByteArray bboxdata;
 
-  p.argv << settings.gsexec << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=bbox" << "-q" << "-dBATCH"
-	 << (epsFile.isEmpty() ? QString::fromLatin1("-") : epsFile);
+  p.setArgv(QStringList() << settings.gsexec << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=bbox" << "-q" << "-dBATCH"
+	    << (epsFile.isEmpty() ? QString::fromLatin1("-") : epsFile));
 
-  bool ok = p.run(epsData /*stdin*/, QString() /*no output file*/, &bboxdata/*collect stdout*/, resError);
+  bool ok = p.run(epsData /*stdin*/, QString() /*no output file*/, &bboxdata/*collect stdout*/);
   if (!ok) {
-    // resError is already set
+    p.errorToOutput(resError);
     return false;
   }
   
@@ -1568,6 +1359,25 @@ KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::k
 }
 
 
+QStringList KLFBackend::availableSaveFormats(const klfOutput * output)
+{
+  if (output != NULL)
+    return availableSaveFormats(*output);
+
+  QStringList fmts;
+  fmts << "PNG" << "PS" << "EPS" << "DVI" << "PDF" << "SVG";
+
+  QList<QByteArray> imgfmts = QImageWriter::supportedImageFormats();
+  foreach (QByteArray f, imgfmts) {
+    f = f.trimmed().toUpper();
+    if (f == "JPG")
+      f = "JPEG"; // only report "JPEG", not both "JPG" and "JPEG"
+    if (fmts.contains(f))
+      continue;
+    fmts << QString::fromLatin1(f);
+  }
+  return fmts;
+}
 
 QStringList KLFBackend::availableSaveFormats(const klfOutput& klfoutput)
 {
@@ -1818,19 +1628,19 @@ void initGsInfo(const KLFBackend::klfSettings *settings)
 
   QString gsver;
   { // test 'gs' version, to see if we can provide SVG data
-    KLFFilterProgram p(QLatin1String("gs (test version)"), settings);
+    KLFBackendFilterProgram p(QLatin1String("gs (test version)"), settings);
     //    p.resErrCodes[KLFFP_NOSTART] = ;
     //     p.resErrCodes[KLFFP_NOEXIT] = ;
     //     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = ;
     //     p.resErrCodes[KLFFP_NODATA] = ;
     //     p.resErrCodes[KLFFP_DATAREADFAIL] = ;
     
-    p.execEnviron = settings->execenv;
+    p.setExecEnviron(settings->execenv);
     
-    p.argv << settings->gsexec << "--version";
+    p.setArgv(QStringList() << settings->gsexec << "--version");
     
     QByteArray ba_gsver;
-    bool ok = p.run(QString(), &ba_gsver, NULL);
+    bool ok = p.run(QString(), &ba_gsver);
     if (ok) {
       gsver = QString::fromLatin1(ba_gsver);
       klfDbg("gs version text (untrimmed): "<<gsver) ;
@@ -1842,20 +1652,21 @@ void initGsInfo(const KLFBackend::klfSettings *settings)
   QString gshelp;
   KLFStringSet availdevices;
   { // test 'gs' version, to see if we can provide SVG data
-    KLFFilterProgram p(QLatin1String("gs (query help)"), settings);
+    KLFBackendFilterProgram p(QLatin1String("gs (query help)"), settings);
     //    p.resErrCodes[KLFFP_NOSTART] = ;
     //     p.resErrCodes[KLFFP_NOEXIT] = ;
     //     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = ;
     //     p.resErrCodes[KLFFP_NODATA] = ;
     //     p.resErrCodes[KLFFP_DATAREADFAIL] = ;
     
-    p.execEnviron = settings->execenv;
-    klf_append_replace_env_var(&p.execEnviron, QLatin1String("LANG"), QLatin1String("LANG=en_US.UTF-8"));
+    QStringList ee = settings->execenv;
+    klf_append_replace_env_var(&ee, QLatin1String("LANG"), QLatin1String("LANG=en_US.UTF-8"));
+    p.setExecEnviron(ee);
     
-    p.argv << settings->gsexec << "--help";
+    p.setArgv(QStringList() << settings->gsexec << "--help");
     
     QByteArray ba_gshelp;
-    bool ok = p.run(QString(), &ba_gshelp, NULL);
+    bool ok = p.run(QString(), &ba_gshelp);
     if (ok) {
       gshelp = QString::fromLatin1(ba_gshelp);
 
@@ -1947,7 +1758,7 @@ struct KLFUserScriptInfo::Private
   QStringList spitsOut;
   QStringList skipFormats;
 
-  QMap<QString,QString> customInfos;
+  QMap<QString,QVariant> customInfos;
 
   QList<KLFUserScriptInfo::Param> paramList;
 
@@ -1959,21 +1770,19 @@ struct KLFUserScriptInfo::Private
     QByteArray scriptinfo;
     //    bool want_full_template = true;
     { // Query Script Info phase
-      KLFFilterProgram p(QObject::tr("User Script (ScriptInfo)"), settings);
+      KLFBackendFilterProgram p(QObject::tr("User Script (ScriptInfo)"), settings);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
       p.resErrCodes[KLFFP_NODATA] = KLFERR_USERSCRIPT_NOSCRIPTINFO;
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERSCRIPT_NOSCRIPTINFO;
       
-      p.argv << fname << "--scriptinfo";
+      p.setArgv(QStringList() << fname << "--scriptinfo" << KLF_VERSION_STRING);
       
-      KLFBackend::klfOutput res; // for error messages
-
-      bool ok = p.run(QString(), &scriptinfo, &res);
+      bool ok = p.run(QString(), &scriptinfo);
       if (!ok) {
-	scriptInfoError = res.status;
-	scriptInfoErrorString = res.errorstr;
+	scriptInfoError = p.resultStatus();
+	scriptInfoErrorString = p.resultErrorString();
 	return;
       }
     }
@@ -2043,9 +1852,9 @@ struct KLFUserScriptInfo::Private
 	klfMaxVersion = val;
 	klfDbg("Read klfMaxVersion: "<<klfMaxVersion) ;
       } else if (key == QLatin1String("SpitsOut")) {
-	spitsOut = val.split(QRegExp("(,|\\s+)"));
+	spitsOut << val.split(QRegExp("(,|\\s+)"));
       } else if (key == QLatin1String("SkipFormats")) {
-	skipFormats = val.split(QRegExp("(,|\\s+)"));
+	skipFormats << val.split(QRegExp("(,|\\s+)"));
       } else if (key == QLatin1String("Param")) {
 	// parse a paramter request specification, eg.
 	// Param: USE_PDF;bool;"Use PDF?";"Generate PDF; or rather prefer old-fashioned PS?"
@@ -2091,7 +1900,16 @@ struct KLFUserScriptInfo::Private
 	paramList << param;
       } else {
 	klfDbg("Custom userscript info key: "<<key<<", value="<<val);
-	customInfos[key] = val;
+	QVariant v = QVariant(val);
+	// if the key is already present, morph the stored value into the first item of a variantlist and append
+	// the new data.
+	if (customInfos.contains(key) && customInfos[key].type() == QVariant::List) {
+	  customInfos[key] = QVariantList() << customInfos[key].toList() << v;
+	} else if (customInfos.contains(key)) {
+	  customInfos[key] = QVariantList() << customInfos[key] << v;
+	} else {
+	  customInfos[key] = v;
+	}
       }
     }
   }
@@ -2181,8 +1999,37 @@ KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, skipFormats) ;
 
 KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QList<KLFUserScriptInfo::Param>, paramList) ;
 
-QString KLFUserScriptInfo::customInfo(const QString& x) const
+#define REDIRECT_INFO(x, str, func)		\
+  if ((x) == QLatin1String(str))  return QVariant(func());
+
+QVariant KLFUserScriptInfo::info(const QString& x) const
 {
-  return d()->customInfos.value(x, QString());
+  REDIRECT_INFO(x, "Category", category);
+  REDIRECT_INFO(x, "Name", name);
+  REDIRECT_INFO(x, "Author", author);
+  REDIRECT_INFO(x, "Authors", author);
+  REDIRECT_INFO(x, "Version", version);
+  REDIRECT_INFO(x, "License", license);
+  REDIRECT_INFO(x, "KLFMinVersion", klfMinVersion);
+  REDIRECT_INFO(x, "KLFMaxVersion", klfMaxVersion);
+  REDIRECT_INFO(x, "SpitsOut", spitsOut);
+  REDIRECT_INFO(x, "SkipFormats", skipFormats);
+  //  REDIRECT_INFO(x, "ParamList", paramList);
+  // else: "custom" info
+  return d()->customInfos.value(x, QVariant());
 }
 
+QStringList KLFUserScriptInfo::infosList() const
+{
+  QStringList try_builtin;
+  try_builtin << "Category" << "Name" << "Author" << "Version" << "License" << "KLFMinVersion" << "KLFMaxVersion"
+	      << "SpitsOut" << "SkipFormats";// << "ParamList";
+  QStringList list;
+  int k;
+  for (k = 0; k < try_builtin.size(); ++k) {
+    if (!info(try_builtin[k]).isNull())
+      list << try_builtin[k];
+  }
+  list << d()->customInfos.keys();
+  return list;
+}

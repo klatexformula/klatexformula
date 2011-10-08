@@ -60,7 +60,7 @@ public:
 
   virtual QString exporterName() const = 0;
 
-  virtual QStringList keys() const = 0;
+  virtual QStringList keys(const KLFBackend::klfOutput * output) const = 0;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput) = 0;
 
   /* \brief the MS Windows Format Name for the given mime-type \c key.
@@ -73,7 +73,7 @@ public:
   /** \brief Shortcut function (do not reimplement in subclasses)
    *
    * \returns true if key is in \ref keys() list. */
-  virtual bool supportsKey(const QString& key) const;
+  virtual bool supportsKey(const QString& key, const KLFBackend::klfOutput * output) const;
 
 
 
@@ -98,7 +98,7 @@ public:
    *   there may be another exporter with the providing the same key, which, for some other reason will
    *   succeed. For this purpose it may be better to try all the exporters supporting a given key, see
    *   also \ref mimeExporterFullLookup(). */
-  static KLFMimeExporter * mimeExporterLookup(const QString& key);
+  static KLFMimeExporter * mimeExporterLookup(const QString& key, const KLFBackend::klfOutput * output = NULL);
 
   /** \brief Looks up all exporters supporting the given type key.
    *
@@ -106,13 +106,15 @@ public:
    *
    * See also \ref mimeExporterLookup().
    */
-  static QList<KLFMimeExporter*> mimeExporterFullLookup(const QString& key);
+  static QList<KLFMimeExporter*> mimeExporterFullLookup(const QString& key,
+							const KLFBackend::klfOutput * output = NULL);
 
   /** Looks up exporter \c exporter and returns the exporter, or NULL if it was not found.
    *
    * If \c key is non-empty, a check to ensure that the exporter supports the given \c key is performed
    * with \ref supportsKey(). If the exporter does not support the given \c key, NULL is returned instead. */
-  static KLFMimeExporter * mimeExporterLookupByName(const QString& exporter, const QString& key = QString());
+  static KLFMimeExporter * mimeExporterLookupByName(const QString& exporter, const QString& key = QString(),
+						    const KLFBackend::klfOutput * output = NULL);
 
   static QList<KLFMimeExporter *> mimeExporterList();
   /** Adds the instance \c exporter to the internal list of exporters.
@@ -175,7 +177,8 @@ public:
    * See the warning in \ref KLFMimeExporert::mimeExporterLookup() and consider using the
    * function \ref exporterFullLookupFor() instead.
    */
-  KLFMimeExporter * exporterLookupFor(int n, bool warnNotFound = true) const;
+  KLFMimeExporter * exporterLookupFor(int n, const KLFBackend::klfOutput * output = NULL,
+				      bool warnNotFound = true) const;
 
   /** Returns the KLFMimeExporter object(s) that are responsible for exporting into the format
    * at index \c n in the exportTypes() list. If several exporters provide the same type,
@@ -186,7 +189,8 @@ public:
    *
    * See also \ref exporterLookupFor().
    */
-  QList<KLFMimeExporter*> exporterFullLookupFor(int n, bool warnNotFound = true) const;
+  QList<KLFMimeExporter*> exporterFullLookupFor(int n, const KLFBackend::klfOutput * output = NULL,
+						bool warnNotFound = true) const;
 
   /** A list of mime types to export when using this profile.
    *
@@ -214,7 +218,7 @@ public:
    * of calling this function), KLFMimeExporter::mimeExporterLookup(mimetype) will
    * not return NULL.
    */
-  QStringList availableExporterMimeTypes() const;
+  QStringList availableExporterMimeTypes(const KLFBackend::klfOutput * output = NULL) const;
 
 
   static QList<KLFMimeExportProfile> exportProfileList();
@@ -264,6 +268,21 @@ private:
   mutable QStringList pQtOwnedFormats;
 };
 
+
+
+class KLF_EXPORT KLFExportTypeUserScriptInfo : public KLFUserScriptInfo
+{
+public:
+  KLFExportTypeUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings);
+  virtual ~KLFExportTypeUserScriptInfo();
+
+  const QStringList mimeTypes() const { return info("MimeType").toStringList(); }
+  const QStringList filenameExtensions() const { return info("FilenameExtension").toStringList(); }
+  const QString inputDataType() const { return info("InputDataType").toString(); }
+
+  const bool wantStdinInput() const { return info("WantStdinInput").toBool(); }
+  const bool hasStdoutOutput() const { return info("HasStdoutOutput").toBool(); }
+};
 
 
 

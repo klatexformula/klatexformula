@@ -20,13 +20,14 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+#   $Id$
 
 import re;
 import os;
 import sys;
 
 if (sys.argv[1] == "--help"):
-    print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo";
+    print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
     print "       "+os.path.basename(sys.argv[0])+" <tex input file>";
     print "";
     exit(0);

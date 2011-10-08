@@ -50,7 +50,7 @@ public:
 
   virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterImage"); }
 
-  virtual QStringList keys() const;
+  virtual QStringList keys(const KLFBackend::klfOutput * output) const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
   virtual QString windowsFormatName(const QString& key) const;
@@ -71,7 +71,7 @@ public:
 
   virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterUrilist"); }
 
-  virtual QStringList keys() const;
+  virtual QStringList keys(const KLFBackend::klfOutput * output) const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
   virtual QString windowsFormatName(const QString& key) const;
@@ -92,7 +92,7 @@ public:
 
   virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterHTML"); }
 
-  virtual QStringList keys() const;
+  virtual QStringList keys(const KLFBackend::klfOutput * output) const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
   virtual QString windowsFormatName(const QString& key) const;
@@ -111,7 +111,7 @@ public:
 
   virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterLibFmts"); }
 
-  virtual QStringList keys() const;
+  virtual QStringList keys(const KLFBackend::klfOutput * output) const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
 };
@@ -128,7 +128,7 @@ public:
 
   virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterGlowImage"); }
 
-  virtual QStringList keys() const;
+  virtual QStringList keys(const KLFBackend::klfOutput * output) const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
 };
@@ -139,12 +139,15 @@ class KLF_EXPORT KLFMimeExporterUserScript : public QObject, public KLFMimeExpor
 {
   Q_OBJECT
 public:
-  KLFMimeExporterUserScript(QObject *parent) : QObject(parent) { }
+  KLFMimeExporterUserScript(const QString& scriptname, QObject *parent);
 
-  virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterUserScript"); }
+  virtual QString exporterName() const;
 
-  virtual QStringList keys() const;
+  virtual QStringList keys(const KLFBackend::klfOutput * output) const;
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+
+private:
+  KLFExportTypeUserScriptInfo pScriptInfo;
 };
 
 

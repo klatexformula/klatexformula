@@ -57,6 +57,7 @@
 
   <profile name="glow">
     <description>Alien Glow Image</description>
+    <in-submenu>More</in-submenu>
     <export-type><exporter-name>KLFMimeExporterGlowImage</exporter-name>
       <mime-type>application/x-qt-image</mime-type>
     </export-type>

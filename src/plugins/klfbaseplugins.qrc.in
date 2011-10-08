@@ -11,5 +11,6 @@
   </qresource>
   <qresource prefix="/">
     <file alias="userscripts/klffeynmf.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/klffeynmf.py</file>
+    <file alias="userscripts/svg-dvisvgm.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/svg-dvisvgm.py</file>
   </qresource>
 </RCC>
