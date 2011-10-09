@@ -604,7 +604,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // if we have epstopdf functionality, then we'll take advantage of it to generate pdf:
     KLFBlockProcess proc;
     QStringList args;
-    args << settings.epstopdfexec << dir_native_separators(fnFinalEps)
+    // pass through the shell because this seems to fail when epstopdf is a symlink to a Perl script
+    args << "sh" << settings.epstopdfexec << dir_native_separators(fnFinalEps)
 	 << ("--outfile="+dir_native_separators(fnPdf));
 
     qDebug("%s: %s:  about to epstopdf... %s", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(args.join(" "))) ;    
@@ -655,6 +656,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
 void KLFBackend::cleanup(QString tempfname)
 {
+  const char *skipcleanup = getenv("KLFBACKEND_LEAVE_TEMP_FILES");
+  if (skipcleanup != NULL && (*skipcleanup == '1' || *skipcleanup == 't' || *skipcleanup == 'T' ||
+			      *skipcleanup == 'y' || *skipcleanup == 'Y'))
+    return; // skip cleaning up temp files
+
   if (QFile::exists(tempfname+".tex")) QFile::remove(tempfname+".tex");
   if (QFile::exists(tempfname+".dvi")) QFile::remove(tempfname+".dvi");
   if (QFile::exists(tempfname+".aux")) QFile::remove(tempfname+".aux");
