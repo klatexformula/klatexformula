@@ -66,7 +66,7 @@ Options:
   -p, --preamble <code LaTeX>
       Du texte à insérer avant \begin{document}. Peut s'avérer utile pour des inclusions de paquets
       avec des instructions \usepackage{...}.
-  -q, --quiet
+  -q, --quiet [<ON|Y[ES]|T[RUE]|1 ou OFF|N[O]|F[ALSE]|0>]
       N'affiche pas les avertissements et les erreurs.
   --redirect-debug <fichier>
       Redirige les messages de debug vers le <fichier> donné. Si le nom de fichier ne se termine pas
