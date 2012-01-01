@@ -244,6 +244,7 @@ set(klatexformula_SRCS
 # Translations
 set(klatexformula_TSS
 	i18n/klf_fr.ts
+	i18n/klf_cs.ts
 )
 # Resources
 set(klatexformula_QRCS

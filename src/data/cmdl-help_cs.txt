@@ -1,0 +1,139 @@
+
+KLatexFormula od Philippa Faista
+
+Jednoduše použitelné obrazové rozhraní a rozhraní příkazového řádku pro vytváření obrázků z LaTeXových rovnic.
+
+Použití: klatexformula [OPTIONS] [filename1 [...]]
+
+Prováděcí režimy:
+  klatexformula [filename1 [...]]
+      Otevře klatexformula obrazové uživatelské rozhraní (GUI)
+  klatexformula [OPTIONS]
+      Provede činnosti požadované [VOLBAMI], a program ukončí
+  klatexformula --interactive [OPTIONS] [filename1 [...]]
+      Otevře GUI a provede činnosti požadované [VOLBAMI]
+
+  Pokud jsou v příkazovém řádku uvedeny dodatečné argumenty pro název souboru, jsou vyloženy jako knihovní soubory .klf, které se do knihovny mají nahrát v oddělených zdrojích (pouze v interaktivním režimu).
+
+Volby:
+  -I, --interactive
+      Spustí KLatexFormula v interaktivním režimu s obrazovým uživatelským rozhraním majícím všechny
+      funkce. Tato volba je zapnuta jako výchozí, kromě případu kdy je zadán --input nebo --latexinput
+  -i, --input <file|->
+      Určuje soubor, ze kterého se čte latexový vstup.
+  -l, --latexinput <expr>
+      Určuje kód rovnice v LaTeXu, který se má udělat.
+  -P, --paste-clipboard
+  -S, --paste-selection
+      Určuje, že se má LaTeXový kód vložit ze systémové schránky nebo
+      ze současného výběru myší. Pracuje pouze v interaktivním režimu.
+  -n, --noeval
+      Nevyhodnocovat zadanou LaTeXovou rovnici, nech na uživateli, aby klepnul na tlačítko
+      "Vyhodnotit". Tuto volbu lze použít jen v interaktivním režimu.
+  -B, --base64arg
+      Určuje, že argument k volbě, který ji bezprostředně následuje, je
+      kódován v base64. Například:
+        klatexformula --base64arg --latexinput="YV4yK2JeMj1jXjI="
+      použije latexový kód "a^2+b^2=c^2".
+      Tato volba může být stanovena více než jednou v příkazovém řádku.  Pokaždé
+      značí, že argument, který je okamžitě další volbou je kódován v
+      base64.
+      Tato volba může být užitečná při skriptování, kdy se tak dá vyhnout nepříjemnosti s opuštěním
+      latexového kódu ze shellu.
+  -o, --output <file|->
+      Určuje, že se má výstupní obrázek napsat (obdrženo z rovnice dané --input
+      nebo --latexinput) do <file> nebo běžného výstupu.
+  -F, --format <format>
+      Určuje formát, v němž se má výstup zapsat. Ve výchozím nastavení je formát
+      odhadnut z přípony za souborovým názvem a výchozím je PNG.
+  -f, --fgcolor <'#xxxxxx'>
+      Určuje barvu (v internetovém #RRGGBB šestnáctkovém formátu), která se použije pro barvu popředí.
+      Nezapomeňte se vyhnout '#', abyste shellu zabránil vyložit jej jako
+      poznámku.
+  -b, --bgcolor <-|'#xxxxxx'>
+      Určuje barvu (v internetovém #RRGGBB šestnáctkovém formátu, nebo '-' pro průhlednost), která se použije pro
+      barvu pozadí (výchozí je průhledná).
+  -X, --dpi <N>
+      Použít N teček na palec (DPI) při převodu latexového výstupu na obrázek. Výchozí je
+      1200 (obrázek ve vysokém rozlišení).
+  -m, --mathmode <expression containing '...'>
+      Určuje, který LaTeXový matematický režim se použije, pokud nějaký. Argumentem pro tuto volbu
+      je kterýkoli řetězec obsahující "...", který sám bude nahrazen rovnicí.
+      Výchozí je "\[ ... \]".
+  -p, --preamble <LaTeX code>
+     Jakýkoli LaTeXový kód, který bude vložen před \begin{document}. Užitečné pro
+      zařazení vlastních balíčků pomocí \usepackage{...}.
+  -q, --quiet [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Zakáže výstup pro varování a chyby v konzoli.
+  --redirect-debug <file>
+      Přesměruje výstup ladění do zadaného <souboru>. Pokud název souboru 
+       nekončí .klfdebug, je tato přípona vynucena. Pokud už soubor existuje, je potichu
+       přepsán.
+  -d, --daemonize
+      Spustí oddělený, samostatně stojící, proces klatexformula a vrátit okamžitě. Všechny ostatní
+      volby, jako --latexinput, lze stále zadávat. Budou přeposlány
+      procesu démona.
+
+  --outlinefonts [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Převede písma vložená v EPS a PDF na vektorové obrysy (gs s -dNOCACHE).
+      Užitečné pro vyvedení do např. Adobe Illustratoru.
+  --lborderoffset <N>
+  --tborderoffset <N>
+  --rborderoffset <N>
+  --bborderoffset <N>
+      Zahrnuje okraj z N postscriptových bodů u levého, horního, pravého nebo spodního okraje
+      v uvedeném pořadí
+  --tempdir </path/to/temp/dir>
+      Určuje adresář, do kterého bude KLatexFormula zapisovat dočasné soubory.
+      Ve výchozím nastavení do systémově zvláštního adresáře pro dočasné soubory "/tmp/".
+  --latex <latex spustitelný soubor>
+  --dvips <dvips spustitelný soubor>
+  --gs <gs spustitelný soubor>
+  --epstopdf <epstopdf spustitelný soubor>
+      Určuje spustitelný soubor pro latex, dvips, gs nebo epstopdf. Ve výchozím nastavení jsou
+      hledány v $PATH a/nebo v obvyklých systémových adresářích.
+
+  -Q, --qtoption <qt-option>
+      Určuje volbu zvláštní pro Qt. Například pro spuštění KLatexFormula ve stylu uživatelského rozhraní
+      Plastique použijte:
+        klatexformula  --qtoption='-style=Plastique'
+      Všimněte si, že pokud <qt-option> začíná '-', pak musí být připojena k
+      dlouhé skladbě '--qtoption=' se znaménkem rovnítka.
+
+  -h, --help [<filename|&N>]
+      Zobrazí text této nápovědy a program ukončí.
+      If a file name is provided, the help message is appended to that file. If
+      the argument is "&<N>", then the help message is printed in file descriptor
+      N. (Reminder: N=1 for standard output 'stdout', N=2 for standard error
+      output 'stderr')
+  -V, --version [<filename|&N>][:<format>]
+      Zobrazí informace o verzi programu KLatexFormula a program ukončí.
+      The optional output argument is handled as with --help, however it may contain
+      a version string format preceeded by a colon where %k, and %q and %% are
+      respectively replaced by klatexformula version, Qt version and a literal %.
+
+Příklady:
+  Vytvořit obrázek pojmenovaný názevsouboru.png z rovnice 'a^2+b^2=c^2':
+    klatexformula --latexinput 'a^2+b^2=c^2' --output názevsouboru.png
+
+  Otevřít okno klatexformula s rovnicí 'f(x)=-2\,x', ale tuto nevyhodnotit:
+    klatexformula -I --latexinput='f(x)=-2\,x' --noeval
+
+  Otevřít okno klatexformula a okamžitě se vrátit k příkazu v shellu:
+    klatexformula -I --daemonize
+
+  Vytisknout zprávu s nápovědou, ale udělat to v běžném výstupu, nikoli v běžném chybovém výstupu:
+    klatexformula --help='&1'
+
+Poznámky:
+  * Při provozování v interaktivním režimu je nově vyhodnocená rovnice přidána do
+    historie programu KLatexFormula.
+  * Pokud neběží v interaktivním režimu, není potřeba žádný X11 server.
+  * Dodatečné překladové soubory a/nebo data lze klatexformula poskytnout stanovením
+    seznamu souborů Qt rcc nebo adresářů obsahujících takové soubory pro zavedení do proměnné prostředí
+    KLF_RESOURCES. Oddělte názvy souborů pomocí ':' na unixu/macu, nebo ';' na windows. Výchozí
+    cesty lze zahrnout pomocí značky ('::') nebo dvojtečkou vlevo nebo vpravo ':'.
+  * Nahlašte, prosím, jakékoli chyby nebo závady autorovi.
+
+Pěkně si to užijte!
+

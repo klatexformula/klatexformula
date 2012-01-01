@@ -4487,13 +4487,13 @@ Version actuelle: %2</translation>
 </translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="335"/>
+        <location filename="../main.cpp" line="336"/>
         <source>Error</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog title]]</comment>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="336"/>
+        <location filename="../main.cpp" line="337"/>
         <source>KLatexFormula System Error:
 %1</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog text]]</comment>
@@ -4501,13 +4501,13 @@ Version actuelle: %2</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="347"/>
+        <location filename="../main.cpp" line="348"/>
         <source>FATAL ERROR</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog title]]</comment>
         <translation>ERREUR FATALE</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="349"/>
+        <location filename="../main.cpp" line="350"/>
         <source>KLatexFormula System FATAL ERROR:
 %1</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog text]]</comment>
@@ -4515,70 +4515,70 @@ Version actuelle: %2</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="429"/>
+        <location filename="../main.cpp" line="430"/>
         <source>--paste-{clipboard|selection} requires interactive mode. Ignoring option.</source>
         <translation>--paste-{clipboard|selection} ne fonctionne qu&apos;en mode interactif. Cette option sera ignorée.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="926"/>
+        <location filename="../main.cpp" line="927"/>
         <source>KLatexFormula Daemon Process successfully launched with pid %1
 </source>
         <translation>Processus démon KLatexFormula exécuté avec succès avec pid %1
 </translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="930"/>
+        <location filename="../main.cpp" line="931"/>
         <source>Failed to launch daemon process. Not daemonizing.</source>
         <translation>Echec d&apos;exécution du processus démon. Exécution en mode normal.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1053"/>
+        <location filename="../main.cpp" line="1054"/>
         <source>Can&apos;t use --output without any input</source>
         <translation>Il n&apos;est pas possible d&apos;utiliser --output sans saisie</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1169"/>
+        <location filename="../main.cpp" line="1170"/>
         <source>Damonize option can only be used in interactive mode!.</source>
         <translation>L&apos;option d&apos;exécution en mode démon ne peut être utilisé qu&apos;en mode interactif.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1174"/>
+        <location filename="../main.cpp" line="1175"/>
         <source>[Non-Interactive Mode] Ignoring additional command-line argument: %1</source>
         <translation>[Mode non interactif] Le paramètre supplémentaire donné ne sera pas pris en compte: %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1391"/>
+        <location filename="../main.cpp" line="1392"/>
         <source>--paste-clipboard requires interactive mode. Switching.</source>
         <translation>L&apos;option --paste-clipboard requiert le mode interactif. Changement de mode.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1399"/>
+        <location filename="../main.cpp" line="1400"/>
         <source>--paste-selection requires interactive mode. Switching.</source>
         <translation>L&apos;option --paste-selection requiert le mode interactif. Changement de mode.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1525"/>
+        <location filename="../main.cpp" line="1526"/>
         <source>--noeval is relevant only in interactive mode.</source>
         <translation>--noeval ne peut être utilisé qu&apos;en mode interactif.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1529"/>
+        <location filename="../main.cpp" line="1530"/>
         <source>--noeval may not be used when --output is present.</source>
         <translation>--noeval ne peut pas être utilisé quand --output est donné.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1533"/>
+        <location filename="../main.cpp" line="1534"/>
         <source>Ignoring --format without --output.</source>
         <translation>Option --format ignorée en l&apos;absence de --output.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="411"/>
+        <location filename="../main.cpp" line="412"/>
         <source>Can&apos;t read standard input (!)</source>
         <translation>Impossible de lire l&apos;entrée standard (!)
 </translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="417"/>
+        <location filename="../main.cpp" line="418"/>
         <source>Can&apos;t read input file `%1&apos;.</source>
         <translation>Impossible de lire le fichier `%1&apos;.</translation>
     </message>
@@ -4788,41 +4788,41 @@ Version actuelle: %2</translation>
     <message>
         <location filename="../klfbackend/klfbackend.cpp" line="505"/>
         <location filename="../klfbackend/klfbackend.cpp" line="559"/>
-        <location filename="../klfbackend/klfbackend.cpp" line="643"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="644"/>
         <source>Unable to read file %1!
 </source>
         <comment>KLFBackend</comment>
         <translation>La lecture du fichier « %1 » a échoué !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="616"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="617"/>
         <source>Unable to start epstopdf!
 </source>
         <comment>KLFBackend</comment>
         <translation>L&apos;exécution de epstopdf a échoué !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="621"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="622"/>
         <source>epstopdf died nastily!
 </source>
         <comment>KLFBackend</comment>
         <translation>epstopdf est mort anormalement !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="634"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="635"/>
         <source>PDF file didn&apos;t appear after call to epstopdf!
 </source>
         <comment>KLFBackend</comment>
         <translation>Le fichier PDF n&apos;est pas apparu après exécution de epstopdf !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="709"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="715"/>
         <source>Unable to save image in format `%1&apos;!</source>
         <comment>KLFBackend::saveOutputToDevice</comment>
         <translation>Impossible de sauvegarder l&apos;image dans le format &apos;%1&apos; !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="738"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="744"/>
         <source>Unable to open stderr for write! Error: %1
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
@@ -4830,7 +4830,7 @@ Version actuelle: %2</translation>
 </translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="748"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="754"/>
         <source>Unable to write to file `%1&apos;! Error: %2
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
@@ -4838,7 +4838,7 @@ Version actuelle: %2</translation>
 </translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="698"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="704"/>
         <source>PDF format is not available!
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
