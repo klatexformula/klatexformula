@@ -303,7 +303,7 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsdata, const QString& epsF
 				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings);
 static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::klfOutput * resError);
 static void correct_eps_bbox(const QByteArray& epsdata, const klfbbox& bbox_corrected, const klfbbox& bbox_orig,
-			     QByteArray * epsdatacorrected);
+			     double vectorscale, QByteArray * epsdatacorrected);
 
 static void replace_svg_width_or_height(QByteArray *svgdata, const char * attr, double val);
 
@@ -866,7 +866,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // and generate corrected raw EPS
 
-    correct_eps_bbox(rawepsdata, bbox_corrected, bbox, &bboxepsdata);
+    correct_eps_bbox(rawepsdata, bbox_corrected, bbox, in.vectorscale, &bboxepsdata);
   } else if (!our_skipfmts.contains("eps-bbox")) {
     // userscript generated bbox-corrected EPS for us, but we still
     // need to set width_pt and height_pt appropriately.
@@ -1204,8 +1204,14 @@ static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::
   resError->errorstr = nobboxerrstr;
   return false;
 }
+
+/** \internal
+ * Write the corrected bbox settings to the EPS data.
+ *
+ * If vectorscale is not 1.0, then the bbox is scaled by the given factor when written to the EPS data.
+ */
 static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_corrected,
-			     const klfbbox& bbox_orig, QByteArray * epsdatacorrected)
+			     const klfbbox& bbox_orig, double vectorscale, QByteArray * epsdatacorrected)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -1234,8 +1240,10 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
     }
   }
 
-  int wi = (int)(bbox_corrected.x2 + 0.99999) ;
-  int hi = (int)(bbox_corrected.y2 + 0.99999) ;
+  double dwi = bbox_corrected.x2 * vectorscale;
+  double dhi = bbox_corrected.x2 * vectorscale;
+  int wi = (int)(dwi + 0.99999) ;
+  int hi = (int)(dhi + 0.99999) ;
   char buffer[1024];
   int buffer_len;
   // recall that '%%' in printf is replaced by a single '%'...
@@ -1243,7 +1251,7 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
 	   "%%%%BoundingBox: 0 0 %d %d%s"
 	   "%%%%HiResBoundingBox: 0 0 %s %s%s",
 	   wi, hi, nl,
-	   klfFmtDoubleCC(bbox_corrected.x2, 'g', 6), klfFmtDoubleCC(bbox_corrected.y2, 'g', 6), nl);
+	   klfFmtDoubleCC(dwi, 'g', 6), klfFmtDoubleCC(dhi, 'g', 6), nl);
   buffer_len = strlen(buffer);
 
   char buffer2[1024];
@@ -1253,11 +1261,13 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
 	   "%%%%Page 1 1%s"
 	   "%%%%PageBoundingBox 0 0 %d %d%s"
 	   "<< /PageSize [%d %d] >> setpagedevice%s"
+	   "%s %s scale%s"
 	   "%s %s translate%s",
 	   nl,
 	   nl,
 	   wi, hi, nl,
 	   wi, hi, nl,
+	   klfFmtDoubleCC(vectorscale, 'f'), klfFmtDoubleCC(vectorscale, 'f'), nl,
 	   klfFmtDoubleCC(offx, 'f'), klfFmtDoubleCC(offy, 'f'), nl);
   buffer2_len = strlen(buffer2);
 
@@ -1282,8 +1292,8 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
   neweps.replace(i2, 0, buffer2);
   
   klfDbg("neweps has now length="<<neweps.size());
-  klfDebugf(("New eps bbox is [0 0 %.6g %.6g] with translate [%.6g %.6g].",
-	     bbox_corrected.x2, bbox_corrected.y2, offx, offy));
+  klfDebugf(("New eps bbox is [0 0 %.6g %.6g] with translate [%.6g %.6g] and scale %.6g.",
+	     dwi, dhi, offx, offy, vectorscale));
 
   *epsdatacorrected = neweps;
 }
@@ -1919,7 +1929,7 @@ struct KLFUserScriptInfo::Private
   
 private:
   /* no copy constructor */
-  Private(const Private& other) { }
+  Private(const Private& /*other*/) { }
 };
 
 
@@ -1955,6 +1965,7 @@ KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::
 }
 
 KLFUserScriptInfo::KLFUserScriptInfo(const KLFUserScriptInfo& copy)
+  : KLFAbstractPropertizedObject()
 {
   // will increase the refcount (thanks to KLFRefPtr)
   d = copy.d;

@@ -2483,6 +2483,9 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   // KLFBackend input
   KLFBackend::klfInput input;
 
+  /// \bug DEBUG.....
+  input.vectorscale = 1.2;
+
   input.latex = u->txtLatex->latex();
   klfDbg("latex="<<input.latex) ;
 

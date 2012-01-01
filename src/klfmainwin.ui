@@ -8,8 +8,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>791</width>
-    <height>395</height>
+    <width>752</width>
+    <height>382</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -546,20 +546,23 @@
           <attribute name="title">
            <string>LaTeX</string>
           </attribute>
-          <layout class="QGridLayout" name="lyt_gbxLatexImage">
+          <layout class="QGridLayout" name="lyt_tabLatexImage" columnstretch="2,5,0">
            <property name="leftMargin">
-            <number>10</number>
+            <number>11</number>
            </property>
            <property name="topMargin">
             <number>6</number>
            </property>
+           <property name="rightMargin">
+            <number>11</number>
+           </property>
            <property name="bottomMargin">
             <number>6</number>
            </property>
-           <property name="horizontalSpacing">
-            <number>12</number>
+           <property name="verticalSpacing">
+            <number>11</number>
            </property>
-           <item row="0" column="0" colspan="3">
+           <item row="1" column="0" colspan="3">
             <widget class="QCheckBox" name="chkMathMode">
              <property name="toolTip">
               <string>Check this to use a LaTeX math mode</string>
@@ -576,43 +579,6 @@
             </widget>
            </item>
            <item row="2" column="0" colspan="3">
-            <widget class="QLabel" name="lblPreamble">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>LaTeX preamble:</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-             </property>
-             <property name="wordWrap">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="3">
-            <widget class="KLFLatexEdit" name="txtPreamble">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>8</pointsize>
-              </font>
-             </property>
-             <property name="acceptRichText">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0" colspan="3">
             <widget class="QComboBox" name="cbxMathMode">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
@@ -643,6 +609,203 @@
                <string notr="true">\begin{eqnarray*} ... \end{eqnarray*}</string>
               </property>
              </item>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="4" column="1" colspan="2">
+            <widget class="QComboBox" name="cbxLatexFont"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="lblLatexFont">
+             <property name="text">
+              <string>Font:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="3">
+            <widget class="QGroupBox" name="gbxColors">
+             <property name="title">
+              <string>Colors</string>
+             </property>
+             <layout class="QGridLayout" name="lyt_gbxColors">
+              <property name="topMargin">
+               <number>4</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <property name="verticalSpacing">
+               <number>4</number>
+              </property>
+              <item row="0" column="0">
+               <widget class="QLabel" name="lblFg">
+                <property name="text">
+                 <string>Fore/Background:</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="KLFColorChooser" name="colFg">
+                <property name="minimumSize">
+                 <size>
+                  <width>56</width>
+                  <height>32</height>
+                 </size>
+                </property>
+                <property name="showSize">
+                 <size>
+                  <width>30</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="allowDefaultState">
+                 <bool>false</bool>
+                </property>
+                <property name="alphaEnabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="KLFColorChooser" name="colBg">
+                <property name="minimumSize">
+                 <size>
+                  <width>56</width>
+                  <height>32</height>
+                 </size>
+                </property>
+                <property name="showSize">
+                 <size>
+                  <width>30</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="allowDefaultState">
+                 <bool>true</bool>
+                </property>
+                <property name="defaultStateString">
+                 <string extracomment="background color selector">Transparent</string>
+                </property>
+                <property name="alphaEnabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <spacer name="hspc">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>3</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="lblLatexFontSize">
+             <property name="text">
+              <string>Font Size:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1" colspan="2">
+            <widget class="QSpinBox" name="spnLatexFontSize">
+             <property name="suffix">
+              <string notr="true"> pt</string>
+             </property>
+             <property name="maximum">
+              <number>120</number>
+             </property>
+             <property name="value">
+              <number>11</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="3">
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabPreamble">
+          <attribute name="title">
+           <string>Preamble</string>
+          </attribute>
+          <layout class="QGridLayout" name="lyt_tabPreamble">
+           <property name="leftMargin">
+            <number>11</number>
+           </property>
+           <property name="topMargin">
+            <number>6</number>
+           </property>
+           <property name="rightMargin">
+            <number>11</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="lblPreamble">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>LaTeX preamble:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+             </property>
+             <property name="wordWrap">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="KLFLatexEdit" name="txtPreamble">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
+             <property name="acceptRichText">
+              <bool>false</bool>
+             </property>
             </widget>
            </item>
           </layout>
@@ -837,97 +1000,6 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QGroupBox" name="gbxColors">
-             <property name="title">
-              <string>Colors</string>
-             </property>
-             <layout class="QGridLayout" name="lyt_gbxColors">
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>9</number>
-              </property>
-              <property name="verticalSpacing">
-               <number>4</number>
-              </property>
-              <item row="0" column="0">
-               <widget class="QLabel" name="lblFg">
-                <property name="text">
-                 <string>Fore/Background:</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="KLFColorChooser" name="colFg">
-                <property name="minimumSize">
-                 <size>
-                  <width>46</width>
-                  <height>32</height>
-                 </size>
-                </property>
-                <property name="showSize">
-                 <size>
-                  <width>20</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="allowDefaultState">
-                 <bool>false</bool>
-                </property>
-                <property name="alphaEnabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="KLFColorChooser" name="colBg">
-                <property name="minimumSize">
-                 <size>
-                  <width>46</width>
-                  <height>32</height>
-                 </size>
-                </property>
-                <property name="showSize">
-                 <size>
-                  <width>20</width>
-                  <height>20</height>
-                 </size>
-                </property>
-                <property name="allowDefaultState">
-                 <bool>true</bool>
-                </property>
-                <property name="defaultStateString">
-                 <string extracomment="background color selector">Transparent</string>
-                </property>
-                <property name="alphaEnabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <spacer name="hspc">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>3</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item row="0" column="0" colspan="2">
             <layout class="QHBoxLayout" name="lytDPIInput" stretch="1,0,0">
              <property name="spacing">
@@ -972,6 +1044,39 @@
                </property>
                <property name="value">
                 <number>1200</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
+             <item>
+              <widget class="QCheckBox" name="checkBox">
+               <property name="text">
+                <string>Scale Vector Formats:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="spnVectorScale">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="prefix">
+                <string/>
+               </property>
+               <property name="suffix">
+                <string notr="true"> %</string>
+               </property>
+               <property name="maximum">
+                <double>99999.990000000005239</double>
+               </property>
+               <property name="singleStep">
+                <double>20.000000000000000</double>
+               </property>
+               <property name="value">
+                <double>100.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -1042,8 +1147,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>261</width>
-                    <height>107</height>
+                    <width>234</width>
+                    <height>94</height>
                    </rect>
                   </property>
                   <layout class="QGridLayout" name="lyt_scrUserScriptInfo">
@@ -1368,10 +1473,8 @@
   <tabstop>btnShowBigPreview</tabstop>
   <tabstop>btnSetExportProfile</tabstop>
   <tabstop>btnQuit</tabstop>
-  <tabstop>colFg</tabstop>
   <tabstop>tabsOptions</tabstop>
   <tabstop>chkMathMode</tabstop>
-  <tabstop>txtPreamble</tabstop>
   <tabstop>btnDPIPresets</tabstop>
   <tabstop>spnDPI</tabstop>
   <tabstop>gbxOverrideMargins</tabstop>
@@ -1396,7 +1499,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>349</x>
-     <y>235</y>
+     <y>230</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1416,7 +1519,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>349</x>
-     <y>235</y>
+     <y>230</y>
     </hint>
    </hints>
   </connection>
@@ -1427,8 +1530,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>301</x>
-     <y>250</y>
+     <x>289</x>
+     <y>230</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1447,8 +1550,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>301</x>
-     <y>250</y>
+     <x>289</x>
+     <y>230</y>
     </hint>
    </hints>
   </connection>
@@ -1460,7 +1563,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>129</x>
-     <y>250</y>
+     <y>230</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1475,8 +1578,8 @@
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>27</x>
-     <y>235</y>
+     <x>35</x>
+     <y>230</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1491,12 +1594,12 @@
    <slot>showMenu()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>415</x>
-     <y>357</y>
+     <x>403</x>
+     <y>334</y>
     </hint>
     <hint type="destinationlabel">
-     <x>415</x>
-     <y>357</y>
+     <x>403</x>
+     <y>334</y>
     </hint>
    </hints>
   </connection>
@@ -1511,8 +1614,24 @@
      <y>110</y>
     </hint>
     <hint type="destinationlabel">
-     <x>629</x>
-     <y>107</y>
+     <x>735</x>
+     <y>151</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>spnVectorScale</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>583</x>
+     <y>95</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>676</x>
+     <y>98</y>
     </hint>
    </hints>
   </connection>

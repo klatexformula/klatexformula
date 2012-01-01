@@ -273,7 +273,7 @@ public:
   struct klfInput
   {
     /** A default constructor assigning default values to all fields. */
-    klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600), bypassTemplate(false) { }
+    klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600), vectorscale(1.0), bypassTemplate(false) { }
     /** The latex code to render */
     QString latex;
     /** The mathmode to use. You may pass an arbitrary string containing '...' . '...' will be replaced
@@ -297,6 +297,9 @@ public:
     /** The dots per inch resolution of the resulting image. This is directly passed to the
      * <tt>-r</tt> option of the \c gs program. */
     int dpi;
+
+    /** Scale factor for vector formats. This is size ratio, not in percent (i.e. original size is 1.0). */
+    double vectorscale;
 
     /** If TRUE, indicates that \c latex contains the whole of the latex code, it should not be included into
      * a default document template.
