@@ -104,12 +104,11 @@ private:
 };
 
 
+#ifdef KLFBACKEND_QT4
+#  include <QDebug>
+#endif
 
 #ifdef KLF_DEBUG
-
-#  ifdef KLFBACKEND_QT4
-#    include <QDebug>
-#  endif
 
 template<class T>
 inline const T& __klf_debug_tee(const T& expr)

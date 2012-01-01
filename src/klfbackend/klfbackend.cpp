@@ -604,8 +604,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // if we have epstopdf functionality, then we'll take advantage of it to generate pdf:
     KLFBlockProcess proc;
     QStringList args;
-    // pass through the shell because this seems to fail when epstopdf is a symlink to a Perl script
-    args << "sh" << settings.epstopdfexec << dir_native_separators(fnFinalEps)
+    args << settings.epstopdfexec << dir_native_separators(fnFinalEps)
 	 << ("--outfile="+dir_native_separators(fnPdf));
 
     qDebug("%s: %s:  about to epstopdf... %s", KLF_FUNC_NAME, KLF_SHORT_TIME, qPrintable(args.join(" "))) ;    
