@@ -55,6 +55,7 @@ class KLFSettings;
 class KLFLatexSyntaxHighlighter;
 class KLFLatexEdit;
 class KLFCmdIface;
+class KLFUserScriptSettings;
 
 
 namespace Ui {
@@ -495,6 +496,8 @@ protected:
   QLabel *mExportMsgLabel;
   void showExportMsgLabel(const QString& msg, int timeout = 3000);
   int pExportMsgLabelTimerId;
+
+  KLFUserScriptSettings * pUserScriptSettings;
 
   /** Returns the input corresponding to the current GUI state. If \c isFinal is TRUE, then
    * the input data may be "remembered" as used (the exact effect depends on the setting), eg.

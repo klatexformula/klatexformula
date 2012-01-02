@@ -8,8 +8,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>752</width>
-    <height>382</height>
+    <width>764</width>
+    <height>376</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -734,8 +734,14 @@
            </item>
            <item row="5" column="1" colspan="2">
             <widget class="QSpinBox" name="spnLatexFontSize">
+             <property name="specialValueText">
+              <string>(default)</string>
+             </property>
              <property name="suffix">
               <string notr="true"> pt</string>
+             </property>
+             <property name="minimum">
+              <number>0</number>
              </property>
              <property name="maximum">
               <number>120</number>
@@ -824,7 +830,7 @@
            <property name="bottomMargin">
             <number>6</number>
            </property>
-           <item row="4" column="0" colspan="2">
+           <item row="5" column="0" colspan="2">
             <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -837,7 +843,7 @@
              </property>
             </spacer>
            </item>
-           <item row="3" column="0" colspan="2">
+           <item row="4" column="0" colspan="2">
             <widget class="QGroupBox" name="gbxOverrideMargins">
              <property name="title">
               <string>Override settings margins</string>
@@ -1052,7 +1058,7 @@
            <item row="1" column="0" colspan="2">
             <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
              <item>
-              <widget class="QCheckBox" name="checkBox">
+              <widget class="QCheckBox" name="chkVectorScale">
                <property name="text">
                 <string>Scale Vector Formats:</string>
                </property>
@@ -1081,6 +1087,13 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="Line" name="line_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -1148,7 +1161,7 @@
                     <x>0</x>
                     <y>0</y>
                     <width>234</width>
-                    <height>94</height>
+                    <height>88</height>
                    </rect>
                   </property>
                   <layout class="QGridLayout" name="lyt_scrUserScriptInfo">
@@ -1181,6 +1194,23 @@
               <attribute name="title">
                <string>Settings</string>
               </attribute>
+              <layout class="QGridLayout" name="lyt_tabUserScriptSettings">
+               <property name="leftMargin">
+                <number>11</number>
+               </property>
+               <property name="topMargin">
+                <number>6</number>
+               </property>
+               <property name="rightMargin">
+                <number>11</number>
+               </property>
+               <property name="bottomMargin">
+                <number>6</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="KLFPObjEditWidget" name="treeUserScriptSettings"/>
+               </item>
+              </layout>
              </widget>
             </widget>
            </item>
@@ -1458,6 +1488,11 @@
     <signal>unitChanged(double)</signal>
    </slots>
   </customwidget>
+  <customwidget>
+   <class>KLFPObjEditWidget</class>
+   <extends>QTreeView</extends>
+   <header location="global">klfpobjeditwidget.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>txtLatex</tabstop>
@@ -1620,7 +1655,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>checkBox</sender>
+   <sender>chkVectorScale</sender>
    <signal>toggled(bool)</signal>
    <receiver>spnVectorScale</receiver>
    <slot>setEnabled(bool)</slot>

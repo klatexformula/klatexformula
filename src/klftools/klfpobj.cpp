@@ -57,6 +57,22 @@ bool KLFAbstractPropertizedObject::setAllProperties(const QMap<QString,QVariant>
 }
 
 
+// --------
+
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFEnumType& e)
+{
+  return stream << e.specification() << qint32(e.value());
+}
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFEnumType& e)
+{
+  QByteArray s;
+  qint32 x;
+  stream >> s >> x;
+  e.setSpecification(s);
+  e.setValue(x);
+  return stream;
+}
+
 
 // -------
 

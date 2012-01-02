@@ -130,7 +130,89 @@ public:
    * This function is only relevant if hasFixedTypes() returns TRUE.
    */
   virtual QByteArray typeNameFor(const QString& property) const { Q_UNUSED(property); return QByteArray(); }
+
+  /** \brief A type specification for the given property
+   *
+   * A type specification is some additional data that specifies further the type. For example,
+   * a type KLFEnumType has to be specified to which enum values are allowed.
+   *
+   * This is only used for types that derive KLFSpecifyableType.
+   */
+  virtual QByteArray typeSpecificationFor(const QString& property) const { Q_UNUSED(property); return QByteArray(); }
 };
+
+
+class KLF_EXPORT KLFSpecifyableType
+{
+public:
+  virtual QByteArray specification() const = 0;
+  virtual bool setSpecification(const QByteArray& data) = 0;
+};
+
+
+class KLF_EXPORT KLFEnumType : public KLFSpecifyableType
+{
+  int val;
+  QStringList enumVals;
+public:
+  KLFEnumType(int initvalue = 0) : val(initvalue), enumVals()
+  {
+  }
+  KLFEnumType(const KLFEnumType& copy) : KLFSpecifyableType(), val(copy.val), enumVals(copy.enumVals)
+  {
+  }
+  ~KLFEnumType() { }
+
+  inline int value() const
+  {
+    return val;
+  }
+  inline void setValue(int v)
+  {
+    val = v;
+  }
+
+  inline QString enumValue() const
+  {
+    if (val < 0 || val >= enumVals.size()) {
+      klfWarning("Invalid value: "<<val<<" for enum values "<<enumVals) ;
+      return QString();
+    }
+    return enumVals[val];
+  }
+
+
+  inline QStringList enumValues() const
+  {
+    return enumVals;
+  }
+  inline void setEnumValues(const QStringList& list)
+  {
+    enumVals = list;
+  }
+
+  QByteArray specification() const
+  {
+    return enumVals.join(":").toUtf8();
+  }
+
+  bool setSpecification(const QByteArray& data)
+  {
+    // parse enum values
+    setEnumValues(QString::fromUtf8(data).split(QRegExp(":")));
+    return true;
+  }
+
+};
+
+
+Q_DECLARE_METATYPE(KLFEnumType) ;
+
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFEnumType& e);
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFEnumType& e);
+// exact matches
+inline bool operator==(const KLFEnumType& a, const KLFEnumType& b)
+{ return a.value() == b.value(); }
 
 
 
@@ -744,35 +826,6 @@ private:
 
 // ----
 
-/*
-/ ** \internal * /
-template<class T>
-struct KLFPObjMetaTypeMarkerFor {
-  int dummy;
-};
-
-#define KLF_DECLARE_POBJ_METATYPE(TYPE)					\
-  typedef KLFPObjMetaTypeMarkerFor<TYPE > _KLFPObjMetaTypeMarkerFor_##TYPE \
-  Q_DECLARE_METATYPE(TYPE) ;						\
-  Q_DECLARE_METATYPE(_KLFPObjMetaTypeMarkerFor_##TYPE)
-
-
-template<class T>
-inline void klfRegisterPObjMetaType(const char * tname)
-{
-  qRegisterMetaType<T>(tname);
-  qRegisterMetaType<KLFPObjMetaTypeMarkerFor<TYPE > >((QByteArray("_KLFPObjMetaTypeMarkerFor_")+tname).constData());
-}
-
-template<class T>
-inline void klfRegisterPObjMetaType()
-{
-  qRegisterMetaType<T>();
-  qRegisterMetaType<KLFPObjMetaTypeMarkerFor<TYPE > >();
-}
-*/
-
-
 /** \internal */
 class KLFPObjRegisteredType {
 public:
@@ -810,6 +863,44 @@ private:
 /** Put this in the .cpp for the given type */
 #define KLF_DECLARE_POBJ_TYPE(TYPE)					\
   static KLFPObjRegisteredType __klf_pobj_regtype_##TYPE = KLFPObjRegisteredType(#TYPE) ;
+
+/** \internal */
+class KLFSpecifyableRegisteredType {
+public:
+  KLFSpecifyableRegisteredType(const char *name)
+  {
+    doregister(Register, name);
+  }
+
+  static bool isRegistered(const char *name)
+  {
+    return doregister(Query, name);
+  }
+
+private:
+  enum Action { Query, Register };
+  static int doregister(Action action, const char * name)
+  {
+    static QList<QByteArray> registered_types;
+    bool x;
+    switch (action) {
+    case Query: // is querying the existance of a registered type
+      x = registered_types.contains(QByteArray(name));
+      return x;
+    case Register: // want to register the given type
+      registered_types.append(QByteArray(name));
+      return 0;
+    default:
+      fprintf(stderr, "ERRORORROORORR: %s: what is your action?? `%d' for name `%s'\n",
+	      KLF_FUNC_NAME, (int)action, name);
+    }
+    return -1;
+  }
+};
+
+/** Put this in the .cpp for the given type */
+#define KLF_DECLARE_SPECIFYABLE_TYPE(TYPE)					\
+  static KLFSpecifyableRegisteredType __klf_specifyable_regtype_##TYPE = KLFSpecifyableRegisteredType(#TYPE) ;
 
 
 

@@ -379,7 +379,7 @@ static QDomElement parse_xml_wrapper(const QByteArray& xmldata, const QString& s
   return el;
 }
 
-KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML)
+KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML, QByteArray *savedType)
 {
   QTextCodec *tc = QTextCodec::codecForLocale();
 
@@ -387,8 +387,11 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
   QByteArray data;
   int k;
 
-  if (!value.isValid() || value.isNull())
+  if (!value.isValid() || value.isNull()) {
+    if (savedType != NULL)
+      *savedType = QByteArray();
     return QByteArray();
+  }
 
   // values of value.type() are QMetaType::Type enum entries. See qt's doc.
   switch ((int)value.type()) {
@@ -651,6 +654,26 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
 
   QByteArray typeName = value.typeName();
 
+  QByteArray typeSpec = QByteArray();
+  if (KLFSpecifyableRegisteredType::isRegistered(typeName)) {
+    KLFSpecifyableType * t =
+      const_cast<KLFSpecifyableType*>(static_cast<const KLFSpecifyableType*>(value.data()));
+
+    typeSpec = t->specification();
+    if (savedType != NULL) {
+      *savedType = typeName + "/" + typeSpec;
+    }
+  } else {
+    if (savedType != NULL)
+      *savedType = typeName;
+  }
+
+  if (typeName == "KLFEnumType") {
+    // just save the integer value!
+    KLFEnumType e = value.value<KLFEnumType>();
+    data = QByteArray::number(e.value());
+  }
+
   if (KLFPObjRegisteredType::isRegistered(typeName)) {
    KLFAbstractPropertizedObject * obj =
       const_cast<KLFAbstractPropertizedObject*>(static_cast<const KLFAbstractPropertizedObject*>(value.data()));
@@ -769,8 +792,19 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
 
   klfDbg( "Will start loading a `"<<dataTypeName<<"' from data (len="<<data.size()<<") : "<<data ) ;
 
+
+  QByteArray tname = dataTypeName;
+
+  int idslash;
+  QByteArray tspecification = QByteArray();
+  if ((idslash = tname.indexOf('/')) >= 0) {
+    tspecification = tname.mid(idslash+1); // extract the specification ...
+    tname = tname.left(idslash); // ... and truncate the type name at the slash.
+    klfDbg("tspecification="<<tspecification<<", tname="<<tname) ;
+  }
+
   // now, start reading.
-  int type = QMetaType::type(dataTypeName);
+  int type = QMetaType::type(tname);
   klfDbg("Type is "<<type) ;
   bool convertOk = false; // in case we break; somewhere, it's (by default) because of failed convertion.
   int k;
@@ -1280,9 +1314,15 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     break;
   }
 
-  klfDbg("other type or failed to load the good type!") ;
+  if (tname == "KLFEnumType") {
+    // just load the integer value!
+    KLFEnumType e;
+    e.setSpecification(tspecification);
+    e.setValue(data.toInt());
+    return QVariant::fromValue<KLFEnumType>(e);
+  }
 
-  QByteArray tname = dataTypeName;
+  klfDbg("other type or failed to load the good type!") ;
 
   // maybe load a propertized object.
   if (KLFPObjRegisteredType::isRegistered(tname)) {
@@ -1290,6 +1330,12 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     QVariant value(QMetaType::type(dataTypeName), (const void*)NULL);
     KLFAbstractPropertizedObject * obj =
       const_cast<KLFAbstractPropertizedObject*>(static_cast<const KLFAbstractPropertizedObject*>(value.data()));
+
+    if (tspecification.size()) {
+      KLFSpecifyableType * st =
+	const_cast<KLFSpecifyableType*>(static_cast<const KLFSpecifyableType*>(value.data()));
+      st->setSpecification(tspecification);
+    }
 
     bool hasfixedtypes = obj->hasFixedTypes();
 
@@ -1304,7 +1350,12 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     // if we have fixed types, convert them all back from text (this is human-readable)
     QVariantMap propsconverted;
     for (QVariantMap::const_iterator it = props.begin(); it != props.end(); ++it) {
-      propsconverted[it.key()] = klfLoadVariantFromText(it.value().toByteArray(), obj->typeNameFor(it.key()),
+      QByteArray tn = obj->typeNameFor(it.key());
+      // add type specification if needed
+      QByteArray ts = obj->typeSpecificationFor(it.key());
+      if (ts.size())
+	tn += "/"+ts;
+      propsconverted[it.key()] = klfLoadVariantFromText(it.value().toByteArray(), tn,
 							"XML"); // in case of list/map values, we have used XML
       klfDbg("Loading property "<<it.key()<<" from saved text, value = "<<propsconverted[it.key()]) ;
     }
@@ -1344,14 +1395,17 @@ KLF_EXPORT QDomElement klfSaveVariantMapToXML(const QVariantMap& vmap, QDomEleme
     // * value data
     QDomElement vdataNode = doc.createElement("value");
     QString vtype = QLatin1String(value.typeName());
-    vdataNode.setAttribute(QLatin1String("type"), vtype);
     if (vtype == "QVariantMap") {
+      vdataNode.setAttribute(QLatin1String("type"), vtype);
       vdataNode = klfSaveVariantMapToXML(value.toMap(), vdataNode);
     } else if (vtype == "QVariantList") {
+      vdataNode.setAttribute(QLatin1String("type"), vtype);
       vdataNode = klfSaveVariantListToXML(value.toList(), vdataNode);
     } else {
-      QDomText vdataText = doc.createTextNode(QString::fromLocal8Bit(klfSaveVariantToText(value)));
+      QByteArray savedvtype;
+      QDomText vdataText = doc.createTextNode(QString::fromLocal8Bit(klfSaveVariantToText(value, false, &savedvtype)));
       vdataNode.appendChild(vdataText);
+      vdataNode.setAttribute(QLatin1String("type"), QString::fromUtf8(savedvtype));
     }
     pairNode.appendChild(vdataNode);
     // now append this pair to our list
@@ -1362,9 +1416,6 @@ KLF_EXPORT QDomElement klfSaveVariantMapToXML(const QVariantMap& vmap, QDomEleme
 
 KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
 {
-  /** \bug ... TODO: Allow custom types to be saved as QVariantMap's
-   *    (<tt>dynamic_cast&lt;KLFAbstractPropertizedObject*>(variant.data())</tt> ?)
-   */
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   QVariantMap vmap;
@@ -1397,7 +1448,7 @@ KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
 	// "local 8-bit"  because klfLoadVariantFromText() assumes local 8-bit encoding
 	valueNode = ee;
 	valuedata = ee.text().toLocal8Bit();
-	valuetype = ee.attribute("type").toLatin1();
+	valuetype = ee.attribute("type").toUtf8();
 	continue;
       }
       qWarning("%s: ignoring unexpected tag `%s' in <pair>!\n", KLF_FUNC_NAME,
@@ -1428,14 +1479,17 @@ KLF_EXPORT QDomElement klfSaveVariantListToXML(const QVariantList& vlist, QDomEl
     QDomElement elNode = doc.createElement(QLatin1String("item"));
     QString vtype = QString::fromLatin1(value.typeName()); // "Latin1" encoding by convention
     //                                        because type names do not have any special chars
-    elNode.setAttribute(QLatin1String("type"), vtype);
     if (vtype == "QVariantMap") {
+      elNode.setAttribute(QLatin1String("type"), vtype);
       elNode = klfSaveVariantMapToXML(value.toMap(), elNode);
     } else if (vtype == "QVariantList") {
+      elNode.setAttribute(QLatin1String("type"), vtype);
       elNode = klfSaveVariantListToXML(value.toList(), elNode);
     } else {
-      QDomText vdataText = doc.createTextNode(QString::fromLocal8Bit(klfSaveVariantToText(value)));
+      QByteArray savedvtype;
+      QDomText vdataText = doc.createTextNode(QString::fromLocal8Bit(klfSaveVariantToText(value, false, &savedvtype)));
       elNode.appendChild(vdataText);
+      elNode.setAttribute(QLatin1String("type"), QString::fromUtf8(savedvtype));
     }
     // now append this pair to our list
     //klfDbg( "... appending node!" ) ;

@@ -72,7 +72,8 @@ struct KLF_EXPORT KLFStyle : public KLFPropertizedObject
     QByteArray typeNameFor(const QString&) const { return "double"; }
   };
 
-  enum { Name, FgColor, BgColor, MathMode, Preamble, DPI, OverrideBBoxExpand, UserScript };
+  enum { Name, FontName, FgColor, BgColor, MathMode, Preamble, FontSize, DPI, VectorScale,
+	 OverrideBBoxExpand, UserScript };
 
   KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
 	   unsigned long bgcol = qRgba(255,255,255,0), const QString& mmode = QString(),
@@ -84,17 +85,22 @@ struct KLF_EXPORT KLFStyle : public KLFPropertizedObject
   KLFStyle(const KLFStyle& copy);
 
   KLFPObjPropRef<QString> name; ///< this may not always be set, it's only important in saved style list.
+  KLFPObjPropRef<QString> fontname;
   KLFPObjPropRef<unsigned long> fg_color;
   KLFPObjPropRef<unsigned long> bg_color;
   KLFPObjPropRef<QString> mathmode;
   KLFPObjPropRef<QString> preamble;
+  KLFPObjPropRef<double> fontsize;
   KLFPObjPropRef<int> dpi;
+  KLFPObjPropRef<double> vectorscale;
   KLFPObjPropRef<BBoxExpand> overrideBBoxExpand;
   KLFPObjPropRef<QString> userScript;
 
   inline const KLFStyle& operator=(const KLFStyle& o) {
-    name = o.name; fg_color = o.fg_color; bg_color = o.bg_color; mathmode = o.mathmode;
-    preamble = o.preamble; dpi = o.dpi; overrideBBoxExpand = o.overrideBBoxExpand;
+    name = o.name; fontname = o.fontname; fg_color = o.fg_color; bg_color = o.bg_color;
+    mathmode = o.mathmode; preamble = o.preamble; fontsize = o.fontsize; dpi = o.dpi;
+    vectorscale = o.vectorscale;
+    overrideBBoxExpand = o.overrideBBoxExpand;
     userScript = o.userScript;
     return *this;
   }

@@ -58,8 +58,12 @@ KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped);
  *
  * \note Note however that the saved string does NOT save the type. The data type must be known
  *   when loading the value. See \ref klfLoadVariantFromText().
+ *
+ * If \c savedType is not NULL, then the exact type of the variant that was saved is reported, including
+ * a type specifier if the type is a registered KLFSpecifyableType subclass.
  * */
-KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML = false);
+KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML = false,
+					   QByteArray * savedType = NULL);
 
 /** Loads the value stored in \c string into a variant of data type \c dataTypeName. The string
  * is parsed and the returned variant will by of the given type name, or invalid if the string
@@ -76,6 +80,9 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
  * or klfLoadVariantMapFromXML(), which enables you to save arbitrary combination of types.
  *
  * See also \ref klfSaveVariantToText().
+ *
+ * If dataTypeName contains a '/' (ie is of the form "KLFEnumType/a:b:c", then the string after the
+ * slash is treated as a specification for the given KLFSpecifyableType.
  */
 KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& string, const char * dataTypeName,
 					   const char *listOrMapTypeName = NULL);

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file $FILENAME$
+ *   file klfpobjeditwidget.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2012 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,3 +21,34 @@
  ***************************************************************************/
 /* $Id$ */
 
+
+#ifndef KLFPOBJEDITWIDGET_H
+#define KLFPOBJEDITWIDGET_H
+
+#include <klfdefs.h>
+
+#include <QWidget>
+#include <QTreeView>
+
+class KLFAbstractPropertizedObject;
+class KLFPObjEditWidgetPrivate;
+
+
+class KLF_EXPORT KLFPObjEditWidget : public QTreeView
+{
+  Q_OBJECT
+public:
+  KLFPObjEditWidget(QWidget *parent = NULL);
+  KLFPObjEditWidget(KLFAbstractPropertizedObject *pobj, QWidget *parent = NULL);
+  virtual ~KLFPObjEditWidget();
+
+public slots:
+  virtual void setPObj(KLFAbstractPropertizedObject *pobj);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFPObjEditWidget) ;
+};
+
+
+
+#endif

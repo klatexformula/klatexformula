@@ -273,7 +273,8 @@ public:
   struct klfInput
   {
     /** A default constructor assigning default values to all fields. */
-    klfInput() : fg_color(0x00), bg_color(0xffffffff), dpi(600), vectorscale(1.0), bypassTemplate(false) { }
+    klfInput() : fontsize(-1), fg_color(0x00), bg_color(0xffffffff), dpi(600), vectorscale(1.0),
+		 bypassTemplate(false) { }
     /** The latex code to render */
     QString latex;
     /** The mathmode to use. You may pass an arbitrary string containing '...' . '...' will be replaced
@@ -287,6 +288,10 @@ public:
     QString preamble;
     /** The foreground color to use, in format given by <tt>qRgb(r, g, b)</tt>.
      * You may not specify an alpha value here, it will be ignored. */
+
+    /** The wanted font size in latex points. If negative, leaves the default font size. */
+    double fontsize;
+
     unsigned long fg_color;
     /** The background color to use, in format given by <tt>qRgba(r, g, b, alpha)</tt>.
      * \warning background alpha value can only be 0 or 255, not any arbitrary value. Any non-zero
@@ -594,6 +599,7 @@ public:
   QString klfMaxVersion() const;
 
   QStringList spitsOut() const;
+
   //! List of formats that klfbackend should not attempt to generate
   /** The corresponding field(s) in KLFBackend::klfOutput will be set to empty QByteArray's.
    *

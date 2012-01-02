@@ -822,6 +822,8 @@ void main_setup_app(QCoreApplication *a)
   qRegisterMetaType< KLFLibResourceEngine::KLFLibEntryWithId >();
   qRegisterMetaTypeStreamOperators< KLFLibResourceEngine::KLFLibEntryWithId >
     /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
+  qRegisterMetaType< KLFEnumType >();
+  qRegisterMetaTypeStreamOperators< KLFEnumType >("KLFEnumType");
 
   // for delayed calls in klflibview.cpp
   qRegisterMetaType< QItemSelection >("QItemSelection");

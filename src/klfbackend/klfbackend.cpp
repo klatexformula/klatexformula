@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <ctype.h> // isspace()
 #include <sys/time.h>
+#include <math.h> // fabs()
 
 #include <QtGlobal>
 #include <QByteArray>
@@ -190,6 +191,9 @@ QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& i
   s += "\n"
     "\\begin{document}\n"
     "\\thispagestyle{empty}\n";
+  if (in.fontsize > 0) {
+    s += QString("\\fontsize{%1}{%2}\\selectfont\n").arg(in.fontsize, 0, 'f', 2).arg(in.fontsize*1.2, 0, 'f', 2);
+  }
   s += QString("\\definecolor{klffgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.fg_color)/255.0)
     .arg(qGreen(in.fg_color)/255.0).arg(qBlue(in.fg_color)/255.0);
   s += QString("\\definecolor{klfbgcolor}{rgb}{%1,%2,%3}\n").arg(qRed(in.bg_color)/255.0)
@@ -1241,7 +1245,7 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
   }
 
   double dwi = bbox_corrected.x2 * vectorscale;
-  double dhi = bbox_corrected.x2 * vectorscale;
+  double dhi = bbox_corrected.y2 * vectorscale;
   int wi = (int)(dwi + 0.99999) ;
   int hi = (int)(dhi + 0.99999) ;
   char buffer[1024];
@@ -1340,9 +1344,11 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
   return a.latex == b.latex &&
     a.mathmode == b.mathmode &&
     a.preamble == b.preamble &&
+    fabs(a.fontsize - b.fontsize) < 0.001 &&
     a.fg_color == b.fg_color &&
     a.bg_color == b.bg_color &&
     a.dpi == b.dpi &&
+    fabs(a.vectorscale - b.vectorscale) < 0.001 &&
     a.bypassTemplate == b.bypassTemplate &&
     a.userScript == b.userScript;
 }

@@ -22,6 +22,7 @@
 /* $Id$ */
 
 #include <stdio.h>
+#include <math.h>
 
 #include <QtCore>
 #include <QtGui>
@@ -35,6 +36,7 @@
 #include <klfrelativefont.h>
 #include <klflatexedit.h>
 #include <klflatexpreviewthread.h>
+#include <klfpobjeditwidget.h>
 
 #include "klflibview.h"
 #include "klflibbrowser.h"
@@ -102,6 +104,179 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
 }
 
 
+// ------------------------------------------------------------------------
+
+
+class KLFUserScriptSettings : public KLFAbstractPropertizedObject, public QMap<QString,QString>
+{
+public:
+  KLFUserScriptSettings(const QString& userScript)
+    : KLFAbstractPropertizedObject(), usinfo(userScript), params(usinfo.paramList())
+  {
+  }
+
+  QString objectKind() const { return QString::fromLatin1("KLFUserScriptSettings"); }
+
+  QVariant property(const QString& propName) const
+  {
+    QString s = this->value(propName, QString());
+    int k = paramIndex(propName);
+    if (k < 0) {
+      klfWarning("Can't find property "<<propName) ;
+      return false;
+    }
+
+    // convert value to suitable type
+    switch (params[k].type) {
+    case KLFUserScriptInfo::Param::String:
+      return QVariant::fromValue<QString>(s);
+    case KLFUserScriptInfo::Param::Bool:
+      return QVariant::fromValue<bool>(s.toInt());
+    case KLFUserScriptInfo::Param::Int:
+      return QVariant::fromValue<int>(s.toInt());
+    case KLFUserScriptInfo::Param::Enum:
+      {
+	KLFEnumType e;
+	e.setEnumValues(params[k].type_enums);
+	e.setValue(s.toInt());
+	return QVariant::fromValue<KLFEnumType>(e);
+      }
+    default:
+      klfWarning("Unknown param type for param "<<params[k].name<<": "<<params[k].type<<" !") ;
+      return QVariant();
+    }
+  }
+
+  QStringList propertyNameList() const
+  {
+    int k;
+    QStringList sl;
+    for (k = 0; k < params.size(); ++k)
+      sl << params[k].name;
+    return sl;
+  }
+
+  bool setProperty(const QString& pname, const QVariant& value)
+  {
+    // check that this is a valid param
+    int k = paramIndex(pname);
+    if (k < 0) {
+      klfWarning("Can't find property "<<pname) ;
+      return false;
+    }
+
+    // convert value to suitable string
+    QString s;
+    switch (params[k].type) {
+    case KLFUserScriptInfo::Param::String:
+      s = value.toString();
+      break;
+    case KLFUserScriptInfo::Param::Bool:
+      s = value.toBool() ? "1" : "0";
+      break;
+    case KLFUserScriptInfo::Param::Int:
+      s = QString::number(value.toInt());
+      break;
+    case KLFUserScriptInfo::Param::Enum:
+      s = QString::number(value.toInt());
+      break;
+    default:
+      klfWarning("Unknown param type for param "<<params[k].name<<": "<<params[k].type<<" !") ;
+      return false;
+    }
+
+    this->insert(pname, s);
+    return true;
+  }
+
+  bool hasFixedTypes() const
+  {
+    return true;
+  }
+
+  QByteArray typeNameFor(const QString& property) const
+  {
+    int k = paramIndex(property);
+    if (k < 0) {
+      klfWarning("Can't find property "<<property) ;
+      return QByteArray();
+    }
+
+    switch (params[k].type) {
+    case KLFUserScriptInfo::Param::String:
+      return "QString";
+    case KLFUserScriptInfo::Param::Bool:
+      return "bool";
+    case KLFUserScriptInfo::Param::Int:
+      return "int";
+    case KLFUserScriptInfo::Param::Enum:
+      return "KLFEnumType";
+    default:
+      klfWarning("Unknown param type for param "<<params[k].name<<": "<<params[k].type<<" !") ;
+      return QByteArray();
+    }
+  }
+
+  QByteArray typeSpecifierFor(const QString& property) const
+  {
+    int k = paramIndex(property);
+    if (k < 0) {
+      klfWarning("Can't find property "<<property) ;
+      return QByteArray();
+    }
+
+    switch (params[k].type) {
+    case KLFUserScriptInfo::Param::String:
+    case KLFUserScriptInfo::Param::Bool:
+    case KLFUserScriptInfo::Param::Int:
+      return QByteArray();
+    case KLFUserScriptInfo::Param::Enum:
+      return params[k].type_enums.join(":").toUtf8();
+    default:
+      klfWarning("Unknown param type for param "<<params[k].name<<": "<<params[k].type<<" !") ;
+      return QByteArray();
+    }
+  }
+
+protected:
+  int paramIndex(const QString& name) const
+  {
+    int k;
+    for (k = 0; k < params.size(); ++k) {
+      if (params[k].name == name) {
+	return k;
+      }
+    }
+    return -1;
+  }
+
+
+private:
+
+  KLFUserScriptInfo usinfo;
+
+  QList<KLFUserScriptInfo::Param> params;
+};
+
+
+KLF_DECLARE_POBJ_TYPE(KLFUserScriptSettings) ;
+
+
+// ------------------------------------------------------------------------
+
+
+/** \bug move this to some more natural location, ideally in latexfonts.xml config file */
+static const char * latexfonts[][3] = {
+  { QT_TRANSLATE_NOOP("KLFMainWin", "Times"), "Times", "\\usepackage{txfonts}" },
+  { QT_TRANSLATE_NOOP("KLFMainWin", "Palatino"), "Palatino", "\\usepackage{pxfonts}" },
+  { QT_TRANSLATE_NOOP("KLFMainWin", "Charter BT"), "Charter BT", "\\usepackage[bitstream-charter]{mathdesign}" },
+  //  { QT_TRANSLATE_NOOP("KLFMainWin", "Garamond"), "Garamond", "\\usepackage[urw-garamond]{mathdesign}" },
+  { QT_TRANSLATE_NOOP("KLFMainWin", "New Century Schoolbook"), "New Century Schoolbook", "\\usepackage{fouriernc}" },
+  { QT_TRANSLATE_NOOP("KLFMainWin", "Utopia"), "Utopia", "\\usepackage{fourier}" },
+  { NULL, NULL, NULL }
+};
+
+
 
 // ----------------------------------------------------------------------------
 
@@ -160,6 +335,14 @@ KLFMainWin::KLFMainWin()
   DPIPresets->addAction(u->aDPI150);
   // set menu to the button
   u->btnDPIPresets->setMenu(DPIPresets);
+
+
+  // latex fonts
+  u->cbxLatexFont->addItem(tr("Computer Modern (default font)"), QVariant(QString()));
+  int k;
+  for (k = 0; latexfonts[k][0] != NULL; ++k) {
+    u->cbxLatexFont->addItem(tr(latexfonts[k][0]), QVariant(QString::fromUtf8(latexfonts[k][1])));
+  }
 
 
   connect(u->txtLatex->syntaxHighlighter(), SIGNAL(newSymbolTyped(const QString&)),
@@ -2483,8 +2666,10 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   // KLFBackend input
   KLFBackend::klfInput input;
 
-  /// \bug DEBUG.....
-  input.vectorscale = 1.2;
+  if (u->chkVectorScale->isChecked())
+    input.vectorscale = u->spnVectorScale->value() / 100.0;
+  else
+    input.vectorscale = 1.0;
 
   input.latex = u->txtLatex->latex();
   klfDbg("latex="<<input.latex) ;
@@ -2500,7 +2685,26 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
   } else {
     input.mathmode = "...";
   }
+  int fsval = u->spnLatexFontSize->value();
+  if (fsval <= 0)
+    input.fontsize = -1;
+  else
+    input.fontsize = fsval;
   input.preamble = u->txtPreamble->latex();
+  int idx = u->cbxLatexFont->currentIndex();
+  if (idx > 0) {
+    // find corresponding font in list
+    int k;
+    for (k = 0; latexfonts[k][0] != NULL; ++k) {
+      if (QString::fromUtf8(latexfonts[k][1]) == u->cbxLatexFont->itemData(idx).toString()) {
+	input.preamble += QString::fromUtf8(latexfonts[k][2]);
+	break;
+      }
+    }
+    if (latexfonts[k][0] == NULL) {
+      klfWarning("Couldn't find font "<<u->cbxLatexFont->currentText()<<" !");
+    }
+  }
   input.fg_color = u->colFg->color().rgb();
   QColor bgcolor = u->colBg->color();
   if (bgcolor.isValid())
@@ -3421,6 +3625,12 @@ KLFStyle KLFMainWin::currentStyle() const
   KLFStyle sty;
 
   sty.name = QString::null;
+  int idx = u->cbxLatexFont->currentIndex();
+  if (idx >= 0) {
+    sty.fontname = u->cbxLatexFont->itemData(idx).toString();
+  } else {
+    sty.fontname = QString();
+  }
   sty.fg_color = u->colFg->color().rgb();
   QColor bgc = u->colBg->color();
   if (bgc.isValid())
@@ -3429,7 +3639,12 @@ KLFStyle KLFMainWin::currentStyle() const
     sty.bg_color = qRgba(255, 255, 255, 0);
   sty.mathmode = (u->chkMathMode->isChecked() ? u->cbxMathMode->currentText() : "...");
   sty.preamble = u->txtPreamble->latex();
+  sty.fontsize = u->spnLatexFontSize->value();
+  if (sty.fontsize < 0.001) sty.fontsize = -1;
   sty.dpi = u->spnDPI->value();
+  sty.vectorscale = 1.0;
+  if (u->chkVectorScale->isChecked())
+    sty.vectorscale = u->spnVectorScale->value() / 100.0;
 
   if (u->gbxOverrideMargins->isChecked()) {
     sty.overrideBBoxExpand().top = u->spnMarginTop->valueInRefUnit();
@@ -3501,8 +3716,28 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
   u->chkMathMode->setChecked(style.mathmode().simplified() != "...");
   if (style.mathmode().simplified() != "...")
     u->cbxMathMode->setEditText(style.mathmode);
+  if (style.fontsize < 0.001) {
+    u->spnLatexFontSize->setValue(0);
+  } else {
+    u->spnLatexFontSize->setValue((int)(style.fontsize + 0.5));
+  }
   slotSetPreamble(style.preamble); // to preserve text edit undo/redo
   u->spnDPI->setValue(style.dpi);
+  u->spnVectorScale->setValue(style.vectorscale * 100.0);
+  u->chkVectorScale->setChecked(fabs(style.vectorscale - 1.0) > 0.00001);
+
+  int idx;
+  for (idx = 0; idx < u->cbxLatexFont->count(); ++idx) {
+    if (u->cbxLatexFont->itemData(idx).toString() == style.fontname) {
+      u->cbxLatexFont->setCurrentIndex(idx);
+      break;
+    }
+  }
+  if (idx == u->cbxLatexFont->count()) {
+    // didn't find font
+    QMessageBox::warning(this, tr("Can't find font"), tr("Sorry, I don't know about font `%1'.").arg(style.fontname));
+  }
+
 
   if (style.overrideBBoxExpand().valid()) {
     u->gbxOverrideMargins->setChecked(true);
