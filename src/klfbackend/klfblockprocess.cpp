@@ -87,8 +87,8 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 	  break;
       }
       if (!isbinary) {
-	// explicitely add the shell (we're on *nix, so OK)
-	cmd.prepend("sh");
+	// explicitely add a wrapper ('sh' only works for bash shell scripts, so use 'env') (we're on *nix, so OK)
+	cmd.prepend("/usr/bin/env");
       }
     }
   }

@@ -2993,15 +2993,20 @@ void KLFMainWin::slotShowLastUserScriptOutput()
 
 void KLFMainWin::slotReloadUserScripts()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klf_reload_user_scripts();
 
   QStringList userscripts = klf_user_scripts;
+  klfDbg("userscripts: "<<userscripts) ;
   u->cbxUserScript->clear();
   u->cbxUserScript->addItem(tr("<none>", "[[no user script]]"), QVariant(QString()));
   for (int kkl = 0; kkl < userscripts.size(); ++kkl) {
     KLFUserScriptInfo scriptinfo(userscripts[kkl], &_settings);
-    if (scriptinfo.category() == QLatin1String("klf-backend-engine"))
+    klfDbg("Considering userscript "<<userscripts[kkl]<<", category="<<scriptinfo.category()) ;
+    if (scriptinfo.category() == QLatin1String("klf-backend-engine")) {
       u->cbxUserScript->addItem(scriptinfo.name(), QVariant(userscripts[kkl]));
+    }
   }
 }
 

@@ -174,7 +174,7 @@ public:
       }
       if (insertPos == QList<N>::size()) {
 	pContainsNonAllocated = false;
-	append(n);
+	this->append(n);
 	return insertPos;
       }
       QList<N>::operator[](insertPos) = n;

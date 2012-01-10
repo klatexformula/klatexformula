@@ -59,6 +59,7 @@ set(klfapp_SRCS
 	klfstylemanager.cpp
 	klfmain.cpp
 	klfcmdiface.cpp
+	klfapp.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -83,6 +84,7 @@ set(klfapp_MOCHEADERS
 	klfsettings.h
 	klfstylemanager.h
 	klfcmdiface.h
+	klfapp.h
 )
 #  * all headers
 set(klfapp_HEADERS

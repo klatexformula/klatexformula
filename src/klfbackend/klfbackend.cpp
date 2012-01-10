@@ -1799,6 +1799,7 @@ struct KLFUserScriptInfo::Private
       if (!ok) {
 	scriptInfoError = p.resultStatus();
 	scriptInfoErrorString = p.resultErrorString();
+	klfDbg("Failed to query scriptinfo: "<<scriptInfoErrorString) ;
 	return;
       }
     }
@@ -1844,6 +1845,7 @@ struct KLFUserScriptInfo::Private
       if (specs.contains(QLatin1String("base64"))) {
 	val = QString::fromLocal8Bit(QByteArray::fromBase64(val.toLatin1()));
       }
+      klfDbg("key="<<key<<", value="<<val) ;
       if (key == QLatin1String("Category")) {
 	category = val;
 	klfDbg("Read category: "<<category) ;

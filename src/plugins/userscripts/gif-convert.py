@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-# svg-dvisvgm.py
+# gif-convert.py
 #   This file is part of the KLatexFormula Project.
-#   Copyright (C) 2011 by Philippe Faist
+#   Copyright (C) 2012 by Philippe Faist
 #   philippe.faist at bluewin.ch
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -28,20 +28,20 @@ import sys;
 
 if (sys.argv[1] == "--help"):
     print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
-    print "       "+os.path.basename(sys.argv[0])+" <file.dvi>";
+    print "       "+os.path.basename(sys.argv[0])+" <file.png>";
     print "";
     exit(0);
 
 if (sys.argv[1] == "--scriptinfo"):
     print "ScriptInfo";
     print "Category: klf-export-type";
-    print "Name: SVG/dvisvgm format provider";
+    print "Name: GIF output format provider";
     print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
     print "Version: 0.2";
     print "License: GPL v2+"
     print "MimeType: image/svg+xml"
-    print "InputDataType: DVI"
-    print "FilenameExtension: svg"
+    print "InputDataType: PNG"
+    print "FilenameExtension: gif"
     print "WantStdinInput: false"
     print "HasStdoutOutput: false"
     print "";

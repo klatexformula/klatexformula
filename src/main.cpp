@@ -57,6 +57,8 @@
 #include "klfdbus.h"
 #include "klfpluginiface.h"
 #include "klfcmdiface.h"
+#include "klfapp.h"
+
 
 /** \file
  * \brief main() function for klatexformula [NOT part of klfapp]
@@ -907,8 +909,8 @@ int main(int argc, char **argv)
     QApplication::setDesktopSettingsAware(false);
 #endif
 
-    // Create the QApplication
-    QApplication app(qt_argc, qt_argv);
+    // Create the application
+    KLFGuiApplication app(qt_argc, qt_argv);
 
 #ifdef Q_WS_MAC
     app.setFont(QFont("Lucida Grande", 13));

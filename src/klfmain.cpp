@@ -759,6 +759,7 @@ void klf_reload_user_scripts()
 	klfWarning("File "<<l[j]<<" in userscripts/ is ignored as it is not executable.");
 	continue;
       }
+      klfDbg("User script: "<<l[j]) ;
       klf_user_scripts << l[j];
     }
   }
