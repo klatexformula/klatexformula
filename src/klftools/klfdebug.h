@@ -213,7 +213,10 @@ KLF_EXPORT  QDebug
 
 #if defined(QT_NO_DEBUG_OUTPUT)
 // Qt fix: this line is needed in non-debug output mode (?)
-inline QDebug& operator<<(QDebug& str, const QVariant& v) { return str; }
+class QVariant;
+inline QDebug& operator<<(QDebug& str, const QVariant& ) { return str; }
+class QModelIndex;
+inline QDebug& operator<<(QDebug& str, const QModelIndex& ) { return str; }
 #endif
 
 

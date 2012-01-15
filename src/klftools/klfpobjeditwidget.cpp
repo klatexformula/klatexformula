@@ -25,6 +25,8 @@
 #include <QAbstractItemModel>
 #include <QItemDelegate>
 
+#include <klfdebug.h>
+
 #include "klfpobj.h"
 #include "klfdatautil.h"
 

@@ -331,6 +331,9 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   connect(u->btnHide, SIGNAL(clicked()), this, SLOT(hide()));
   setShowHideButton(false); // not shown by default
 
+  d->pResetTimeout = 10000;
+  connect(&d->pFocusOutResetTimer, SIGNAL(timeout()), this, SLOT(slotSearchReset()));
+
   d->pWaitLabel = new KLFWaitAnimationOverlay(u->txtSearch);
   d->pWaitLabel->setWaitMovie(":/pics/wait_anim.mng");
   /* // amusing test
@@ -401,6 +404,11 @@ bool KLFSearchBar::emacsStyleBackspace() const
   return d->pUseEsbs;
 }
 
+int KLFSearchBar::resetTimeout() const
+{
+  return d->pResetTimeout;
+}
+
 KLFPosSearchable::Pos KLFSearchBar::currentSearchPos() const
 {
   return d->pCurPos;
@@ -445,6 +453,11 @@ void KLFSearchBar::setEmacsStyleBackspace(bool on)
   if (d->pIsSearching)
     abortSearch();
   d->pUseEsbs = on;
+}
+
+void KLFSearchBar::setResetTimeout(int ms)
+{
+  d->pResetTimeout = ms;
 }
 
 
@@ -691,8 +704,10 @@ void KLFSearchBar::focusOrNext(bool forward)
 {
   d->pSearchForward = forward;
 
-  if (QApplication::focusWidget() == u->txtSearch) {
-    klfDbgT("already have focus") ;
+  if (d->pState != FocusOut) {
+    klfDbgT("already are in focus state") ;
+    if (QApplication::focusWidget() != u->txtSearch)
+      u->txtSearch->setFocus();
     // already has focus
     // -> either recall history (if empty search text)
     // -> or find next
@@ -882,6 +897,8 @@ void KLFSearchBar::abortSearch()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  /** \todo shouldn't the code to possibly hide the search bar be here instead of in slotSearchFocusOut() ? */
+
   d->pSearchText = QString();
   d->pIsSearching = false;
   d->pCurPos = KLFPosSearchable::Pos();
@@ -960,6 +977,10 @@ void KLFSearchBar::focus()
 void KLFSearchBar::slotSearchFocusIn()
 {
   klfDbgT("focus in") ;
+  if (d->pFocusOutResetTimer.isActive()) {
+    d->pFocusOutResetTimer.stop();
+    return;
+  }
   setCurrentState(Default);
   showSearchBarText("");
 }
@@ -967,6 +988,24 @@ void KLFSearchBar::slotSearchFocusIn()
 void KLFSearchBar::slotSearchFocusOut()
 {
   klfDbgT("focus out") ;
+
+  if (d->pResetTimeout == 0) {
+    slotSearchReset();
+    return;
+  }
+  if (d->pResetTimeout > 0) {
+    d->pFocusOutResetTimer.setInterval(d->pResetTimeout);
+    d->pFocusOutResetTimer.setSingleShot(true);
+    d->pFocusOutResetTimer.start();
+    return;
+  }
+  // if d->pResetTimeout < 0, do not abort search.
+}
+
+void KLFSearchBar::slotSearchReset()
+{
+  klfDbgT("search reset after focus out.");
+
   if (d->pAutoHide && !_isInQtDesigner)
     hide();
 

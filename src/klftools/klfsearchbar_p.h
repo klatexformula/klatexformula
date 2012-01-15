@@ -25,6 +25,7 @@
 #define KLFSEARCHBAR_P_H
 
 #include <QObject>
+#include <QTimer>
 
 #include "klfsearchbar.h"
 
@@ -58,6 +59,9 @@ struct KLFSearchBarPrivate
 
   bool pShowOverlayMode;
   QRect pShowOverlayRelativeGeometry;
+
+  int pResetTimeout;
+  QTimer pFocusOutResetTimer;
 
   QString pFocusOutText;
 

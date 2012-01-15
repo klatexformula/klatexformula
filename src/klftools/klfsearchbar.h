@@ -475,6 +475,7 @@ class KLF_EXPORT KLFSearchBar : public QFrame, public KLFTargeter
   Q_PROPERTY(bool showHideButton READ hideButtonShown WRITE setShowHideButton) ;
   Q_PROPERTY(bool showSearchLabel READ showSearchLabel WRITE setShowSearchLabel) ;
   Q_PROPERTY(bool emacsStyleBackspace READ emacsStyleBackspace WRITE setEmacsStyleBackspace) ;
+  Q_PROPERTY(int resetTimeout READ resetTimeout WRITE setResetTimeout) ;
 public:
 
   enum SearchState { Default, FocusOut, Found, NotFound, Aborted };
@@ -502,6 +503,7 @@ public:
   bool hideButtonShown() const;
   bool showSearchLabel() const;
   bool emacsStyleBackspace() const;
+  int resetTimeout() const;
 
   /** Returns the current position in the searched object. This is useful only if you
    * know how the searched object uses KLFPosSearchable::Pos structures. */
@@ -527,6 +529,11 @@ public:
   void setShowHideButton(bool showHideButton);
   void setShowSearchLabel(bool show);
   void setEmacsStyleBackspace(bool on);
+  /** Sets the timeout after which the search is reset when the search bar loses focus.
+   * Positive values specify a timeout in milliseconds; zero resets the search immediately when
+   * focus is lost, and a negative value never resets the search on focus lost.
+   */
+  void setResetTimeout(int ms);
 
   virtual bool eventFilter(QObject *obj, QEvent *ev);
 
@@ -577,8 +584,20 @@ public slots:
 protected:
   Ui::KLFSearchBar *u;
 
+  /** Little helper: returns TRUE if the search bar has focus, FALSE otherwise. */
+  bool searchBarHasFocus();
+
+  virtual bool event(QEvent *event);
+
+
+  bool _isInQtDesigner;
+  friend class KLFSearchBarDesPlugin;
+
+protected slots:
+
   virtual void slotSearchFocusIn();
   virtual void slotSearchFocusOut();
+  virtual void slotSearchReset();
   virtual void updateSearchFound(bool found);
 
   void promptEmptySearch();
@@ -594,15 +613,6 @@ protected:
   /** sets the given \c text in the search bar, ensuring that the search bar will NOT emit
    * any textChanged() signals. */
   void showSearchBarText(const QString& text);
-
-  /** Little helper: returns TRUE if the search bar has focus, FALSE otherwise. */
-  bool searchBarHasFocus();
-
-  virtual bool event(QEvent *event);
-
-
-  bool _isInQtDesigner;
-  friend class KLFSearchBarDesPlugin;
 
 private:
 
