@@ -108,6 +108,8 @@
 //! Failed to read PNG file produced by 'gs'
 #define KLFERR_GSPNG_OUTPUTREADFAIL -17
 #define KLFERR_PNGREADFAIL KLFERR_GSPNG_OUTPUTREADFAIL //!< obsolete, same as KLFERR_GSPNG_OUTPUTREADFAIL
+//! Error while opening pdfmarks file for writing
+#define KLFERR_PDFMARKSWRITEFAIL -47
 //! Program 'gs' couldn't be executed to generate PDF
 #define KLFERR_GSPDF_NORUN -31
 //! Program 'gs' didn't exit noramally (crashed) while generating PDF (see also \ref KLFERR_PROGERR_GSPDF)
@@ -141,7 +143,7 @@
 #define KLFERR_USERSCRIPT_BADKLFVERSION -44
 #define KLFERR_USERSCRIPT_BADSKIPFORMATS -45
 #define KLFERR_USERSCRIPT_BADCATEGORY -46
-// last error defined: -46
+// last error defined: -47
 
 
 
@@ -390,6 +392,7 @@ public:
      *   \c "SettingsLBorderOffset", are set to the border offsets in postscript points of the image
      *   (respectively top, right, bottom and left)
      * - \c "SettingsOutlineFonts" set to \c "true" or \c "false" as given in \ref klfSettings::outlineFonts.
+     * - ... along with more, see klfbackend.cpp.
      */
     QByteArray pngdata;
     /** \brief data for an (eps-)postscript file.
@@ -588,6 +591,7 @@ public:
   QString scriptInfoErrorString() const;
 
   QString fileName() const;
+  QString scriptName() const;
 
   QString category() const;
 
@@ -631,6 +635,9 @@ public:
   virtual QStringList propertyNameList() const { return infosList(); }
   virtual bool setProperty(const QString&, const QVariant&) { return false; }
   
+protected:
+  void internalSetCustomProperty(const QString& key, const QVariant &val);
+
 private:
   class Private;
 

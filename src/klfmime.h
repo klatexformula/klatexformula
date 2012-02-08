@@ -269,22 +269,52 @@ private:
 };
 
 
+class KLFExportTypeUserScriptInfoPrivate;
 
 class KLF_EXPORT KLFExportTypeUserScriptInfo : public KLFUserScriptInfo
 {
 public:
   KLFExportTypeUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings);
+  KLFExportTypeUserScriptInfo(const KLFExportTypeUserScriptInfo& copy);
   virtual ~KLFExportTypeUserScriptInfo();
 
-  const QStringList mimeTypes() const { return info("MimeType").toStringList(); }
-  const QStringList filenameExtensions() const { return info("FilenameExtension").toStringList(); }
-  const QString inputDataType() const { return info("InputDataType").toString(); }
+  QStringList mimeTypes() const;
+  QStringList outputFilenameExtensions() const;
+  QStringList outputFormatDescriptions() const;
+  QString inputDataType() const;
 
-  const bool wantStdinInput() const { return info("WantStdinInput").toBool(); }
-  const bool hasStdoutOutput() const { return info("HasStdoutOutput").toBool(); }
+  int count() const;
+  int findMimeType(const QString& mimeType) const;
+  QString mimeType(int index) const;
+  QString outputFilenameExtension(int index) const;
+  QString outputFormatDescription(int index) const;
+
+  bool wantStdinInput() const;
+  bool hasStdoutOutput() const;
+
+private:
+  KLF_DECLARE_PRIVATE(KLFExportTypeUserScriptInfo) ;
 };
 
 
+class KLFExportUserScriptPrivate;
+
+class KLF_EXPORT KLFExportUserScript
+{
+public:
+  KLFExportUserScript(const QString& scriptFileName, KLFBackend::klfSettings * settings);
+  ~KLFExportUserScript();
+
+  KLFExportTypeUserScriptInfo info() const;
+
+  QStringList availableMimeTypes(const KLFBackend::klfOutput * output = NULL) const;
+
+  QByteArray getData(const QString& mimeType, const KLFBackend::klfOutput& output);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFExportUserScript);
+};
 
 
 #endif
+

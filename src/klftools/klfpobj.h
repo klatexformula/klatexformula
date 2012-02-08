@@ -58,6 +58,9 @@
 class KLF_EXPORT KLFAbstractPropertizedObject
 {
 public:
+  KLFAbstractPropertizedObject();
+  virtual ~KLFAbstractPropertizedObject();
+
   /** \brief A string representing this object type
    *
    * The string should be short, and contain only alphanumeric characters (a good idea
@@ -145,6 +148,9 @@ public:
 class KLF_EXPORT KLFSpecifyableType
 {
 public:
+  KLFSpecifyableType();
+  virtual ~KLFSpecifyableType();
+
   virtual QByteArray specification() const = 0;
   virtual bool setSpecification(const QByteArray& data) = 0;
 };
@@ -161,7 +167,7 @@ public:
   KLFEnumType(const KLFEnumType& copy) : KLFSpecifyableType(), val(copy.val), enumVals(copy.enumVals)
   {
   }
-  ~KLFEnumType() { }
+  virtual ~KLFEnumType() { }
 
   inline int value() const
   {

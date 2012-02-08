@@ -74,6 +74,7 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
 #define KLF_DECLARE_PRIVATE(ClassName)					\
   private:								\
   ClassName##Private *d;						\
+  friend class ClassName##Private;					\
   inline ClassName##Private * d_func() { return d; }			\
   inline const ClassName##Private * d_func() const { return d; }
 

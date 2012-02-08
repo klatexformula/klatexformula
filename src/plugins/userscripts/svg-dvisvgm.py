@@ -39,16 +39,26 @@ if (sys.argv[1] == "--scriptinfo"):
     print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
     print "Version: 0.2";
     print "License: GPL v2+"
-    print "MimeType: image/svg+xml"
     print "InputDataType: DVI"
-    print "FilenameExtension: svg"
+    print "MimeType: image/svg+xml"
+    print "OutputFilenameExtension: svg"
+    print "OutputFormatDescription: SVG Vector Image (using dvisvgm)"
     print "WantStdinInput: false"
     print "HasStdoutOutput: false"
     print "";
     exit(0);
 
 
-#..............
+dvifile = sys.argv[1];
+
+sys.stderr.write("Converting file "+dvifile+"\n");
+
+dvifile = "'" + re.sub(r"\'", "'\"'\"'", dvifile) + "'";
+# TODO !!!: Needs Error handling/messages/....
+result = os.system("dvisvgm -an -b min "+dvifile);
+if (result != 0):
+    print "Error, result="+str(result)+"...";
+
 
 
 exit(0);

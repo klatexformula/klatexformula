@@ -755,6 +755,8 @@ void klf_reload_user_scripts()
       if (!QFileInfo(l[j]).isFile()) {
 	continue;
       }
+      if (l[j].endsWith("~") || l[j].endsWith(".bkp"))
+	continue; // skip any "old"/"backup" files
       if (!QFileInfo(l[j]).isExecutable()) {
 	klfWarning("File "<<l[j]<<" in userscripts/ is ignored as it is not executable.");
 	continue;

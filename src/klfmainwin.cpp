@@ -64,7 +64,7 @@
 static QString extract_latex_error(const QString& str)
 {
   // if it was LaTeX, attempt to parse the error...
-  QRegExp latexerr("\\n(\\!.*)\\?[^?]*");
+  QRegExp latexerr("\\n(\\!.*)\\n\\n");
   if (latexerr.indexIn(str)) {
     QString s = latexerr.cap(1);
     s.replace(QRegExp("^([^\\n]+)"), "<b>\\1</b>"); // make first line boldface
@@ -273,6 +273,7 @@ static const char * latexfonts[][3] = {
   //  { QT_TRANSLATE_NOOP("KLFMainWin", "Garamond"), "Garamond", "\\usepackage[urw-garamond]{mathdesign}" },
   { QT_TRANSLATE_NOOP("KLFMainWin", "New Century Schoolbook"), "New Century Schoolbook", "\\usepackage{fouriernc}" },
   { QT_TRANSLATE_NOOP("KLFMainWin", "Utopia"), "Utopia", "\\usepackage{fourier}" },
+  { QT_TRANSLATE_NOOP("KLFMainWin", "Helvetica"), "Helvetica", "\\usepackage[scaled]{helvet}\n\\renewcommand*\\familydefault{\\sfdefault}" },
   { NULL, NULL, NULL }
 };
 
@@ -564,6 +565,15 @@ KLFMainWin::KLFMainWin()
   // LOAD USER SCRIPTS
 
   slotReloadUserScripts();
+
+  // now, create one instance of KLFUserScriptOutputSaver per export type user script ...
+  extern QStringList klf_user_scripts;
+  for (int k = 0; k < klf_user_scripts.size(); ++k) {
+    if (KLFUserScriptInfo(klf_user_scripts[k]).category() == QLatin1String("klf-export-type")) {
+      registerOutputSaver(new KLFUserScriptOutputSaver(klf_user_scripts[k], this));
+    }
+  }
+
 
   // ADDITIONAL SETUP
 
@@ -2720,6 +2730,8 @@ KLFBackend::klfInput KLFMainWin::collectInput(bool final)
 
 void KLFMainWin::slotEvaluate()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   // KLFBackend input
   KLFBackend::klfInput input;
 
@@ -2762,7 +2774,7 @@ void KLFMainWin::slotEvaluate()
   if (_output.status > 0) {
     QString s = _output.errorstr;
     if (_output.status == KLFERR_PROGERR_LATEX) {
-      s = extract_latex_error(_output.errorstr);
+      s = extract_latex_error(_output.errorstr) + "<br/><br/>" + s;
     }
     KLFProgErr::showError(this, s);
     //    u->frmOutput->setEnabled(false);
@@ -3370,6 +3382,8 @@ void KLFMainWin::slotDrag()
 
 void KLFMainWin::slotCopy()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
 #ifdef Q_WS_WIN
   extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
 				  const QList<QByteArray>& datalist);
@@ -3467,7 +3481,7 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   QMap<QString,KLFAbstractOutputSaver*> externSaverByKey;
   int j;
   for (k = 0; k < pOutputSavers.size(); ++k) {
-    QStringList xoformats = pOutputSavers[k]->supportedMimeFormats();
+    QStringList xoformats = pOutputSavers[k]->supportedMimeFormats(&_output);
     for (j = 0; j < xoformats.size(); ++j) {
       QString f = QString("%1 (%2)").arg(pOutputSavers[k]->formatTitle(xoformats[j]),
 					 pOutputSavers[k]->formatFilePatterns(xoformats[j]).join(" "));

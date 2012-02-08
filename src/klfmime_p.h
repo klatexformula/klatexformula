@@ -147,7 +147,7 @@ public:
   virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
 
 private:
-  KLFExportTypeUserScriptInfo pScriptInfo;
+  KLFExportUserScript pUserScript;
 };
 
 

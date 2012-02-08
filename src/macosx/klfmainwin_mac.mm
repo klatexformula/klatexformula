@@ -57,12 +57,13 @@ void klf_mac_hide_application(const KLFMainWin *mw)
 bool klf_mac_unhide_application(const KLFMainWin *mw)
 {
   klf_mac_hide_application(mw, false);
+  return true;
 }
 
-bool klf_mac_application_hidden(const KLFMainWin *mw)
+bool klf_mac_application_hidden(const KLFMainWin */*mw*/)
 {
   NSApplication * a = [NSApplication sharedApplication];
-  NSView *mw_mac = reinterpret_cast<NSView *>(mw->window()->winId());
+  //NSView *mw_mac = reinterpret_cast<NSView *>(mw->window()->winId());
 
   return ([a isHidden] == YES);
 }

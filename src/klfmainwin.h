@@ -91,8 +91,10 @@ public:
   KLFAbstractOutputSaver() { }
   virtual ~KLFAbstractOutputSaver() { }
 
-  /** Returns a list of mime-types of supported file formats */
-  virtual QStringList supportedMimeFormats() = 0;
+  /** Returns a list of mime-types of supported file formats for the given output, which
+   * may be NULL. In the latter case, this function reports all formats that it can in
+   * principle provide. */
+  virtual QStringList supportedMimeFormats(KLFBackend::klfOutput * klfoutput) = 0;
 
   /** Returns the human-readable, (possibly translated,) label to display in save dialog that
    * the user can select to save in this format.

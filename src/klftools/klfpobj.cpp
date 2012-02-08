@@ -30,6 +30,24 @@
 #include "klfpobj.h"
 
 
+KLFAbstractPropertizedObject::KLFAbstractPropertizedObject()
+{
+}
+KLFAbstractPropertizedObject::~KLFAbstractPropertizedObject()
+{
+}
+
+KLFSpecifyableType::KLFSpecifyableType()
+{
+}
+KLFSpecifyableType::~KLFSpecifyableType()
+{
+}
+
+
+
+// -----------------------------
+
 
 QMap<QString,QVariant> KLFAbstractPropertizedObject::allProperties() const
 {

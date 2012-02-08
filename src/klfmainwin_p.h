@@ -44,6 +44,7 @@
 #include "klflibview.h"
 #include "klfmain.h"
 #include "klfsettings.h"
+#include "klfmime.h"
 
 #include "klfmainwin.h"
 
@@ -635,6 +636,68 @@ public:
     return false;
   }
 };
+
+
+
+class KLFUserScriptOutputSaver : public QObject, public KLFAbstractOutputSaver
+{
+  Q_OBJECT
+public:
+  KLFUserScriptOutputSaver(const QString& userscript, QObject *parent)
+    : QObject(parent), KLFAbstractOutputSaver(), pUserScript(userscript, NULL)
+  {
+  }
+
+  virtual ~KLFUserScriptOutputSaver()
+  {
+  }
+
+  virtual QStringList supportedMimeFormats(KLFBackend::klfOutput * output)
+  {
+    return pUserScript.availableMimeTypes(output);
+  }
+
+  /** Returns the human-readable, (possibly translated,) label to display in save dialog that
+   * the user can select to save in this format.
+   *
+   * \param key is a mime-type returned by \ref supportedMimeFormats().
+   */
+  virtual QString formatTitle(const QString& key)
+  {
+    int i = pUserScript.info().findMimeType(key);
+    return pUserScript.info().outputFormatDescription(i);
+  }
+
+  virtual QStringList formatFilePatterns(const QString& key)
+  {
+    int i = pUserScript.info().findMimeType(key);
+    return QStringList() << "*."+pUserScript.info().outputFilenameExtension(i);
+  }
+
+  virtual bool saveToFile(const QString& key, const QString& fileName, const KLFBackend::klfOutput& output)
+  {
+    QByteArray data = pUserScript.getData(key, output);
+    if (!data.size()) {
+      klfWarning("User Script "<<pUserScript.info().scriptName()<<": Error occurred while trying to get data.") ;
+      return false;
+    }
+
+    QFile f(fileName);
+    bool r = f.open(QIODevice::WriteOnly);
+    if (!r) {
+      QMessageBox::critical(NULL, tr("Error"), tr("Failed to write file %1").arg(fileName));
+      qWarning()<<KLF_FUNC_NAME<<": Failed to write to file "<<fileName;
+      return false;
+    }
+    f.write(data);
+    return true;
+  }
+
+private:
+  KLFExportUserScript pUserScript;
+};
+
+
 
 
 

@@ -32,8 +32,8 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>166</width>
-       <height>30</height>
+       <width>164</width>
+       <height>28</height>
       </size>
      </property>
      <property name="frameShape">
@@ -44,6 +44,9 @@
      </property>
      <property name="lineWidth">
       <number>0</number>
+     </property>
+     <property name="resetTimeout" stdset="0">
+      <number>-1</number>
      </property>
     </widget>
    </item>

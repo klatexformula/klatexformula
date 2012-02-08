@@ -27,6 +27,7 @@
 #include <sys/time.h>
 #include <math.h> // fabs()
 
+#include <Qt>
 #include <QtGlobal>
 #include <QByteArray>
 #include <QSet>
@@ -40,6 +41,7 @@
 #include <QColor>
 #include <QTextDocument>
 #include <QImageWriter>
+#include <QTextCodec>
 
 #include <klfutil.h>
 #include <klfdatautil.h>
@@ -136,6 +138,138 @@ static const char * standard_extra_paths[] = {
   NULL
 };
 #endif
+
+
+// ---------------------------------
+
+class KLFAbstractLatexMetaInfo
+{
+public:
+  virtual QString loadField(const QString& key) = 0;
+  virtual void saveField(const QString& key, const QString& value) = 0;
+};
+
+class KLFImageLatexMetaInfo : public KLFAbstractLatexMetaInfo
+{
+  QImage *_w;
+public:
+  KLFImageLatexMetaInfo(QImage *imgwrite) : _w(imgwrite) { }
+
+  void saveField(const QString& k, const QString& v) {
+    _w->setText(k, v);
+  }
+  QString loadField(const QString &k) {
+    return _w->text(k);
+  }
+};
+
+class KLFPdfmarksWriteLatexMetaInfo : public KLFAbstractLatexMetaInfo
+{
+  QString * _s;
+public:
+  KLFPdfmarksWriteLatexMetaInfo(QString * string) : _s(string) {
+    _s->append( // ensure pdfmark defined
+	       "/pdfmark where { pop } { /globaldict where { pop globaldict } { userdict } ifelse "
+	       "/pdfmark /cleartomark load put } ifelse\n"
+	       // now the proper PDFmarks dictionary
+	       "[ "
+	       );
+  }
+
+  QString loadField(const QString& ) {
+    KLF_ASSERT_CONDITION(false, "N/A.", return QString(); ) ;
+  }
+  void savePDFField(const QString& k, const QString& v) {
+    // write escape codes
+    int i;
+    // if v is just ascii, no need to encode it in unicode
+    bool isascii = true;
+    for (i = 0; i < v.length(); ++i) {
+      if (v[i] < 0 || v[i] > 126) {
+	isascii = false;
+	break;
+      }
+    }
+    QByteArray vdata;
+    if (isascii) {
+      vdata = v.toAscii();
+    } else {
+      QTextCodec *codec = QTextCodec::codecForName("UTF-16BE");
+      vdata = codec->fromUnicode(v);
+      klfDbg("vdata is "<<klfDataToEscaped(vdata));
+    }
+    QByteArray escaped;
+    for (i = 0; i < vdata.size(); ++i) {
+      char c = vdata[i];
+      klfDbg("Char: "<<c);
+      if (QChar(vdata[i]).isLetterOrNumber() || c == ' ')
+	escaped += vdata[i];
+      else if (c == '\n')
+	escaped += "\\n";
+      else if (c == '\r')
+	escaped += "\\r";
+      else if (c == '\t')
+	escaped += "\\t";
+      else if (c == '\\')
+	escaped += "\\";
+      else {
+	klfDbg("escaping writing char: (int)c="<<(int)c<<" (uint)c="<<uint(c)<<", octal="<<klfFmtCC("%03o", (uint)c));
+	escaped += QString("\\%1").arg((unsigned int)(unsigned char)c, 3, 8, QChar('0')).toLatin1();
+      }
+    }
+    
+    //: http://stackoverflow.com/questions/3010015/pdfmark-for-docinfo-metadata-in-pdf-is-not-accepting-accented-characters-in-keyw
+    _s->append( "/"+k+" (" + escaped + ")\n");
+  }
+  void saveField(const QString& k, const QString& v) {
+    savePDFField("KLF"+k, v);
+  }
+
+  void finish() {
+    _s->append("  /DOCINFO pdfmark\n");
+  }
+};
+
+
+
+void klf_save_meta_info(KLFAbstractLatexMetaInfo * m, const KLFBackend::klfInput& in,
+			const KLFBackend::klfSettings& settings)
+{
+  static QString boolstr[2] = { QLatin1String("true"), QLatin1String("false") } ;
+
+  m->saveField("AppVersion", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
+  m->saveField("Application",
+	       QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile")
+	       .arg(KLF_VERSION_STRING));
+  m->saveField("Software", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
+  m->saveField("InputLatex", in.latex);
+  m->saveField("InputMathMode", in.mathmode);
+  m->saveField("InputPreamble", in.preamble);
+  m->saveField("InputFontSize", QString::number(in.fontsize, 'g', 2));
+  m->saveField("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(in.fg_color))
+	       .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)));
+  m->saveField("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(in.bg_color))
+	       .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color))
+	       .arg(qAlpha(in.bg_color)));
+  m->saveField("InputDPI", QString::number(in.dpi));
+  m->saveField("InputVectorScale", QString::number(in.vectorscale, 'g', 4));
+  m->saveField("InputBypassTemplate", boolstr[(int)in.bypassTemplate]);
+  m->saveField("InputUserScript", in.userScript);
+  QString usparams;
+  klfSaveVariantToText(QVariant(klfMapToVariantMap(in.userScriptParam)), true);
+  m->saveField("InputUserScriptParams", usparams);
+  m->saveField("SettingsTBorderOffset", QString::number(settings.tborderoffset));
+  m->saveField("SettingsRBorderOffset", QString::number(settings.rborderoffset));
+  m->saveField("SettingsBBorderOffset", QString::number(settings.bborderoffset));
+  m->saveField("SettingsLBorderOffset", QString::number(settings.lborderoffset));
+  m->saveField("SettingsOutlineFonts", boolstr[(int)settings.outlineFonts]);
+  m->saveField("SettingsCalcEpsBoundingBox", boolstr[(int)settings.calcEpsBoundingBox]);
+  m->saveField("SettingsWantRaw", boolstr[(int)settings.wantRaw]);
+  m->saveField("SettingsWantPDF", boolstr[(int)settings.wantPDF]);
+  m->saveField("SettingsWantSVG", boolstr[(int)settings.wantSVG]);
+
+  klfDbg("saved meta-info.") ;
+}
 
 
 // ---------------------------------
@@ -510,6 +644,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   //       file-bbox.eps                --> generate post-processed (E)PS file
   //
   // - gs -dNOPAUSE -dSAFER -sDEVICE=pdfwrite -sOutputFile=file.pdf -q -dBATCH file-corrected.eps
+  //       with added pdfmarks..
   //
   // - if (version(gs) >= 8.64) {
   //
@@ -532,6 +667,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   QString fnBBoxEps = tempfname + "-bbox.eps";
   QString fnProcessedEps = tempfname + "-processed.eps";
   QString fnRawPng = tempfname + "-raw.png";
+  QString fnPdfMarks = tempfname + ".pdfmarks";
   QString fnPdf = tempfname + ".pdf";
   QString fnGsSvg = tempfname + "-gs.svg";
   // some user scripts may provide directly .svg (even though the default process chain
@@ -662,6 +798,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       << "KLF_FN_EPS_RAW=" + fnRawEps
       << "KLF_FN_EPS_PROCESSED=" + fnProcessedEps
       << "KLF_FN_PNG=" + fnRawPng
+      << "KLF_FN_PDFMARKS=" + fnPdfMarks
       << "KLF_FN_PDF=" + fnPdf
       << "KLF_FN_SVG_GS=" + fnGsSvg
       << "KLF_FN_SVG=" + fnSvg
@@ -795,8 +932,10 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_LATEX_OUTPUTREADFAIL;
 
     p.setArgv(QStringList() << settings.latexexec << QDir::toNativeSeparators(fnTex));
+
+    QByteArray userinputforerrors = "h\nr\n";
     
-    ok = p.run(fnDvi, &res.dvidata);
+    ok = p.run(userinputforerrors, fnDvi, &res.dvidata);
     if (!ok) {
       p.errorToOutput(&res);
       return res;
@@ -956,6 +1095,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     p.resErrCodes[KLFFP_NODATA] = KLFERR_GSPNG_NOOUTPUT;
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPNG_OUTPUTREADFAIL;
 
+    /** \bug .... CORRECT DPI FOR Vector Scale SETTING !!!!!!!!!!!!.............
+     *     but do that cleverly; ie. make sure that the EPS was indeed vector-scaled up. Possibly
+     *     run the EPS generator twice, once to scale it up, the other for PNG conversion reference.
+     */
+
     p.setArgv(QStringList() << settings.gsexec
 	      << "-dNOPAUSE" << "-dSAFER" << "-dTextAlphaBits=4" << "-dGraphicsAlphaBits=4"
 	      << "-r"+QString::number(in.dpi) << "-dEPSCrop");
@@ -991,32 +1135,10 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   }
 
   if (!our_skipfmts.contains("png")) { // generate tagged/labeled PNG
-    QString boolstr[2] = { QLatin1String("true"), QLatin1String("false") } ;
 
     // store some meta-information into result
-    res.result.setText("AppVersion", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
-    res.result.setText("Application",
-			   QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile"));
-    res.result.setText("Software", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
-    res.result.setText("InputLatex", in.latex);
-    res.result.setText("InputMathMode", in.mathmode);
-    res.result.setText("InputPreamble", in.preamble);
-    res.result.setText("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(in.fg_color))
-			   .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)));
-    res.result.setText("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(in.bg_color))
-			   .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color))
-			   .arg(qAlpha(in.bg_color)));
-    res.result.setText("InputDPI", QString::number(in.dpi));
-    res.result.setText("SettingsTBorderOffset", QString::number(settings.tborderoffset));
-    res.result.setText("SettingsRBorderOffset", QString::number(settings.rborderoffset));
-    res.result.setText("SettingsBBorderOffset", QString::number(settings.bborderoffset));
-    res.result.setText("SettingsLBorderOffset", QString::number(settings.lborderoffset));
-    res.result.setText("SettingsOutlineFonts", boolstr[(int)settings.outlineFonts]);
-    res.result.setText("SettingsCalcEpsBoundingBox", boolstr[(int)settings.calcEpsBoundingBox]);
-    res.result.setText("SettingsWantPDF", boolstr[(int)settings.wantPDF]);
-    res.result.setText("SettingsWantSVG", boolstr[(int)settings.wantSVG]);
-    
-    klfDbg("prepared QImage.") ;
+    KLFImageLatexMetaInfo metainfo(&res.result);
+    klf_save_meta_info(&metainfo, in, settings);
     
     { // create "final" PNG data
       QBuffer buf(&res.pngdata);
@@ -1036,6 +1158,26 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     ASSERT_HAVE_FORMATS_FOR("pdf") ;
 
+    // prepare PDFMarks
+    { QFile fpdfmarks(fnPdfMarks);
+      bool r = fpdfmarks.open(QIODevice::WriteOnly);
+      if ( ! r ) {
+	res.status = KLFERR_PDFMARKSWRITEFAIL;
+	res.errorstr = QObject::tr("Can't open file for writing: '%1'!", "KLFBackend").arg(fnPdfMarks);
+	return res;
+      }
+      QTextStream stream(&fpdfmarks);
+      QString pdfmarkstr;
+      KLFPdfmarksWriteLatexMetaInfo pdfmetainfo(&pdfmarkstr);
+      pdfmetainfo.savePDFField("Title", in.latex);
+      pdfmetainfo.savePDFField("Keywords", "KLatexFormula KLF LaTeX equation formula");
+      pdfmetainfo.savePDFField("Creator", "KLatexFormula " KLF_VERSION_STRING);
+      klf_save_meta_info(&pdfmetainfo, in, settings);
+      pdfmetainfo.finish();
+      stream << pdfmarkstr;
+      // file is ready.
+    }
+
     // run 'gs' to get PDF data
     KLFBackendFilterProgram p(QLatin1String("gs (PDF)"), &settings);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPDF_NORUN;
@@ -1047,7 +1189,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     p.setArgv(QStringList() << settings.gsexec
 	      << "-dNOPAUSE" << "-dSAFER" << "-sDEVICE=pdfwrite"
 	      << "-sOutputFile="+QDir::toNativeSeparators(fnPdf)
-	      << "-q" << "-dBATCH" << "-");
+	      << "-q" << "-dBATCH" << "-" << fnPdfMarks);
 
     // input: res.epsdata is the processed EPS file, or the raw EPS + bbox/page correction if no post-processing
     ok = p.run(res.epsdata, fnPdf, &res.pdfdata);
@@ -1333,7 +1475,8 @@ static void cleanup(QString tempfname)
   int k;
   for (k = 0; k < (int)l.size(); ++k) {
     QString f = dir.filePath(l[k]);
-    QFile::remove(f);
+    /// \bug DEBUG!!!!!!!!!!!!!!
+    //    QFile::remove(f);
   }
 
 }
@@ -1760,6 +1903,7 @@ struct KLFUserScriptInfo::Private
   KLFBackend::klfSettings *settings;
 
   QString fname;
+  QString sname;
   int scriptInfoError;
   QString scriptInfoErrorString;
 
@@ -1962,6 +2106,7 @@ KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::
 
     d()->settings = settings;
     d()->fname = scriptFileName;
+    d()->sname = QFileInfo(scriptFileName).fileName();
 
     KLF_ASSERT_NOT_NULL(settings, "Given NULL settings pointer! The KLFUserScript will not be initialized!", ; ) ;
     
@@ -1981,12 +2126,16 @@ KLFUserScriptInfo::KLFUserScriptInfo(const KLFUserScriptInfo& copy)
 
 KLFUserScriptInfo::~KLFUserScriptInfo()
 {
-  d = NULL; // will delete the data if refcount reaches zero (see KLFRefPtr)
+  d.setNull(); // will delete the data if refcount reaches zero (see KLFRefPtr)
 }
 
 QString KLFUserScriptInfo::fileName() const
 {
   return d()->fname;
+}
+QString KLFUserScriptInfo::scriptName() const
+{
+  return d()->sname;
 }
 
 int KLFUserScriptInfo::scriptInfoError() const
@@ -2023,6 +2172,8 @@ KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QList<KLFUserScriptInfo::Param>, para
 
 QVariant KLFUserScriptInfo::info(const QString& x) const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("x="<<x) ;
   REDIRECT_INFO(x, "Category", category);
   REDIRECT_INFO(x, "Name", name);
   REDIRECT_INFO(x, "Author", author);
@@ -2051,4 +2202,10 @@ QStringList KLFUserScriptInfo::infosList() const
   }
   list << d()->customInfos.keys();
   return list;
+}
+
+// protected. Used by eg. KLFExportTypeUserScriptInfo to normalize list property values.
+void KLFUserScriptInfo::internalSetCustomProperty(const QString& key, const QVariant &val)
+{
+  d()->customInfos[key] = val;
 }

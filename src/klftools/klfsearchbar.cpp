@@ -706,8 +706,9 @@ void KLFSearchBar::focusOrNext(bool forward)
 
   if (d->pState != FocusOut) {
     klfDbgT("already are in focus state") ;
-    if (QApplication::focusWidget() != u->txtSearch)
-      u->txtSearch->setFocus();
+    // focus search bar if not yet focused.
+    if (!searchBarHasFocus())
+      focus();
     // already has focus
     // -> either recall history (if empty search text)
     // -> or find next
@@ -977,8 +978,11 @@ void KLFSearchBar::focus()
 void KLFSearchBar::slotSearchFocusIn()
 {
   klfDbgT("focus in") ;
-  if (d->pFocusOutResetTimer.isActive()) {
-    d->pFocusOutResetTimer.stop();
+  if (d->pState != FocusOut) {
+    // don't have to reinitialize from focusout state.
+    if (d->pFocusOutResetTimer.isActive()) {
+      d->pFocusOutResetTimer.stop();
+    }
     return;
   }
   setCurrentState(Default);

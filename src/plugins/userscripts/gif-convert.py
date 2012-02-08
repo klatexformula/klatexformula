@@ -35,20 +35,28 @@ if (sys.argv[1] == "--help"):
 if (sys.argv[1] == "--scriptinfo"):
     print "ScriptInfo";
     print "Category: klf-export-type";
-    print "Name: GIF output format provider";
+    print "Name: GIF output format provider using convert utility";
     print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
-    print "Version: 0.2";
+    print "Version: 0.1";
     print "License: GPL v2+"
-    print "MimeType: image/svg+xml"
     print "InputDataType: PNG"
-    print "FilenameExtension: gif"
+    print "MimeType: image/gif"
+    print "OutputFilenameExtension: gif"
+    print "OutputFormatDescription: GIF Image"
     print "WantStdinInput: false"
     print "HasStdoutOutput: false"
     print "";
     exit(0);
 
 
-#..............
+pngfile = sys.argv[1];
+giffile = re.sub(r'\.png$', r'.gif', pngfile);
+
+pngfile = "'" + re.sub(r"\'", "'\"'\"'", pngfile) + "'";
+giffile = "'" + re.sub(r"\'", "'\"'\"'", giffile) + "'";
+
+# TODO !!!: Needs Error handling/messages/....
+os.system("convert "+pngfile+" "+giffile+"");
 
 
 exit(0);

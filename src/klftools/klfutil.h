@@ -191,6 +191,26 @@ inline QList<T> klfVariantListToList(const QVariantList& vlist)
   return list;
 }
 
+template<class T> inline QVariantMap klfMapToVariantMap(const QMap<QString, T>& map)
+{
+  QVariantMap vmap;
+  for (typename QMap<QString,T>::const_iterator it = map.begin(); it != map.end(); ++it) {
+    vmap[it.key()] = QVariant::fromValue<T>(it.value());
+  }
+  return vmap;
+}
+
+
+template<class T>
+  inline QMap<QString, T> klfVariantMapToMap(const QVariantMap& vmap)
+{
+  QMap<QString, T> map;
+  for (QVariantMap::const_iterator it = vmap.begin(); it != vmap.end(); ++it) {
+    map[it.key()] = it.value().value<T>();
+  }
+  return map;
+}
+
 
 
 /** \brief Find files matching a path with wildcards
@@ -476,22 +496,24 @@ public:
     return *this;
   }
 
-  KLFRefPtr<T>& operator=(long int value)
-  {
-    if ((void*)value != (void*)NULL) {
-      klfWarning("ERROR: *** Cannot set non-NULL long int value "<<value) ;
-    }
-    setPointer(NULL);
-    return *this;
-  }
-  KLFRefPtr<T>& operator=(int value)
-  {
-    if ((void*)value != (void*)NULL) {
-      klfWarning("ERROR: *** Cannot set non-NULL long int value "<<value) ;
-    }
-    setPointer(NULL);
-    return *this;
-  }
+  /*
+   KLFRefPtr<T>& operator=(long int value)
+   {
+   if ((void*)value != (void*)NULL) {
+   klfWarning("ERROR: *** Cannot set non-NULL long int value "<<value) ;
+   }
+   setPointer(NULL);
+   return *this;
+   }
+   KLFRefPtr<T>& operator=(int value)
+   {
+   if ((void*)value != (void*)NULL) {
+   klfWarning("ERROR: *** Cannot set non-NULL long int value "<<value) ;
+   }
+   setPointer(NULL);
+   return *this;
+   }
+  */
 
   inline operator T *()
   {  return p;  }
