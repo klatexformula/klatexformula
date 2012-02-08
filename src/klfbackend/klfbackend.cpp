@@ -198,6 +198,7 @@ public:
       vdata = codec->fromUnicode(v);
       klfDbg("vdata is "<<klfDataToEscaped(vdata));
     }
+    /** \bug .... in PDFmark encoding....... when need to encode in utf-16be. */
     QByteArray escaped;
     for (i = 0; i < vdata.size(); ++i) {
       char c = vdata[i];
@@ -211,7 +212,7 @@ public:
       else if (c == '\t')
 	escaped += "\\t";
       else if (c == '\\')
-	escaped += "\\";
+	escaped += "\\\\";
       else {
 	klfDbg("escaping writing char: (int)c="<<(int)c<<" (uint)c="<<uint(c)<<", octal="<<klfFmtCC("%03o", (uint)c));
 	escaped += QString("\\%1").arg((unsigned int)(unsigned char)c, 3, 8, QChar('0')).toLatin1();
