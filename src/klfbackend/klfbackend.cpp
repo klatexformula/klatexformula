@@ -165,9 +165,9 @@ public:
 
 class KLFPdfmarksWriteLatexMetaInfo : public KLFAbstractLatexMetaInfo
 {
-  QString * _s;
+  QByteArray * _s;
 public:
-  KLFPdfmarksWriteLatexMetaInfo(QString * string) : _s(string) {
+  KLFPdfmarksWriteLatexMetaInfo(QByteArray * string) : _s(string) {
     _s->append( // ensure pdfmark defined
 	       "/pdfmark where { pop } { /globaldict where { pop globaldict } { userdict } ifelse "
 	       "/pdfmark /cleartomark load put } ifelse\n"
@@ -190,37 +190,53 @@ public:
 	break;
       }
     }
-    QByteArray vdata;
+    QByteArray vdata, datavalue;
     if (isascii) {
       vdata = v.toAscii();
+
+      QByteArray escaped;
+      for (i = 0; i < vdata.size(); ++i) {
+	char c = vdata[i];
+	klfDbg("Char: "<<c);
+	if (QChar(vdata[i]).isLetterOrNumber() || c == ' ' || c == '.' || c == ',')
+	  escaped += c;
+	else if (c == '\n')
+	  escaped += "\\n";
+	else if (c == '\r')
+	  escaped += "\\r";
+	else if (c == '\t')
+	  escaped += "\\t";
+	else if (c == '\\')
+	  escaped += "\\\\";
+	else if (c == '(')
+	  escaped += "\\(";
+	else if (c == ')')
+	  escaped += "\\)";
+	else {
+	  klfDbg("escaping char: (int)c="<<(int)c<<" (uint)c="<<uint(c)<<", octal="<<klfFmtCC("%03o", (uint)c));
+	  escaped += QString("\\%1").arg((unsigned int)(unsigned char)c, 3, 8, QChar('0')).toLatin1();
+	}
+      }
+
+      datavalue = "("+escaped+")";
+
     } else {
       QTextCodec *codec = QTextCodec::codecForName("UTF-16BE");
       vdata = codec->fromUnicode(v);
       klfDbg("vdata is "<<klfDataToEscaped(vdata));
-    }
-    /** \bug .... in PDFmark encoding....... when need to encode in utf-16be. */
-    QByteArray escaped;
-    for (i = 0; i < vdata.size(); ++i) {
-      char c = vdata[i];
-      klfDbg("Char: "<<c);
-      if (QChar(vdata[i]).isLetterOrNumber() || c == ' ')
-	escaped += vdata[i];
-      else if (c == '\n')
-	escaped += "\\n";
-      else if (c == '\r')
-	escaped += "\\r";
-      else if (c == '\t')
-	escaped += "\\t";
-      else if (c == '\\')
-	escaped += "\\\\";
-      else {
-	klfDbg("escaping writing char: (int)c="<<(int)c<<" (uint)c="<<uint(c)<<", octal="<<klfFmtCC("%03o", (uint)c));
-	escaped += QString("\\%1").arg((unsigned int)(unsigned char)c, 3, 8, QChar('0')).toLatin1();
+
+      /** \bug .... in PDFmark encoding....... when need to encode in utf-16be. */
+      QByteArray hex;
+      for (i = 0; i < (vdata.size()-1); i += 2) {
+	hex += klfFmt("%02x%02x ", (unsigned int)(unsigned char)vdata[i], (unsigned int)(unsigned char)vdata[i+1]);
       }
+      datavalue = "<" + hex + ">";
     }
     
     //: http://stackoverflow.com/questions/3010015/pdfmark-for-docinfo-metadata-in-pdf-is-not-accepting-accented-characters-in-keyw
-    _s->append( "/"+k+" (" + escaped + ")\n");
+    //: http://www.justskins.com/forums/adding-metadata-to-pdf-68647.html
+
+    _s->append( "  /"+k+" " + datavalue + "\n");
   }
   void saveField(const QString& k, const QString& v) {
     savePDFField("KLF"+k, v);
@@ -1167,15 +1183,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	res.errorstr = QObject::tr("Can't open file for writing: '%1'!", "KLFBackend").arg(fnPdfMarks);
 	return res;
       }
-      QTextStream stream(&fpdfmarks);
-      QString pdfmarkstr;
+      QByteArray pdfmarkstr;
       KLFPdfmarksWriteLatexMetaInfo pdfmetainfo(&pdfmarkstr);
       pdfmetainfo.savePDFField("Title", in.latex);
       pdfmetainfo.savePDFField("Keywords", "KLatexFormula KLF LaTeX equation formula");
       pdfmetainfo.savePDFField("Creator", "KLatexFormula " KLF_VERSION_STRING);
       klf_save_meta_info(&pdfmetainfo, in, settings);
       pdfmetainfo.finish();
-      stream << pdfmarkstr;
+      fpdfmarks.write(pdfmarkstr);
       // file is ready.
     }
 
@@ -1466,6 +1481,11 @@ static void replace_svg_width_or_height(QByteArray *svgdata, const char * attreq
 
 static void cleanup(QString tempfname)
 {
+  const char *skipcleanup = getenv("KLFBACKEND_LEAVE_TEMP_FILES");
+  if (skipcleanup != NULL && (*skipcleanup == '1' || *skipcleanup == 't' || *skipcleanup == 'T' ||
+			      *skipcleanup == 'y' || *skipcleanup == 'Y'))
+    return; // skip cleaning up temp files
+
   // remove any file that has this basename...
   QFileInfo fi(tempfname);
   QDir dir = fi.dir();
@@ -1476,8 +1496,7 @@ static void cleanup(QString tempfname)
   int k;
   for (k = 0; k < (int)l.size(); ++k) {
     QString f = dir.filePath(l[k]);
-    /// \bug DEBUG!!!!!!!!!!!!!!
-    //    QFile::remove(f);
+    QFile::remove(f);
   }
 
 }
