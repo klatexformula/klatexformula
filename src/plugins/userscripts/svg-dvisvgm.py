@@ -26,6 +26,9 @@ import re;
 import os;
 import sys;
 
+dvisvgm = "/usr/texbin/dvisvgm";
+
+
 if (sys.argv[1] == "--help"):
     print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
     print "       "+os.path.basename(sys.argv[0])+" <file.dvi>";
@@ -45,6 +48,15 @@ if (sys.argv[1] == "--scriptinfo"):
     print "OutputFormatDescription: SVG Vector Image (using dvisvgm)"
     print "WantStdinInput: false"
     print "HasStdoutOutput: false"
+    if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
+        print "Warning: Can't find dvisvgm executable.";
+    # DEBUG:
+    print "Warning: test warning";
+    print "Error: test error";
+    print "Notice: Hi there!";
+    print "Error: 2nd Test Error!!! Really serious!!";
+    print "Notice: Hi there!";
+    print "Notice: Hi there!";
     print "";
     exit(0);
 
@@ -55,7 +67,7 @@ sys.stderr.write("Converting file "+dvifile+"\n");
 
 dvifile = "'" + re.sub(r"\'", "'\"'\"'", dvifile) + "'";
 # TODO !!!: Needs Error handling/messages/....
-result = os.system("dvisvgm -an -b min "+dvifile);
+result = os.system("'"+dvisvgm+"' -an -b min "+dvifile);
 if (result != 0):
     print "Error, result="+str(result)+"...";
 

@@ -35,6 +35,7 @@
 #include <QDateTime>
 
 #include <klfutil.h>
+#include <klfuserscript.h>
 #include "klfpluginiface.h"
 #include "klfconfig.h"
 #include "klfmain.h"

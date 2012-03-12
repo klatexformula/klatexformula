@@ -35,6 +35,7 @@
 #include <QTemporaryFile>
 
 #include <klfdefs.h>
+#include <klfuserscript.h>
 #include <klfbackend.h>
 
 

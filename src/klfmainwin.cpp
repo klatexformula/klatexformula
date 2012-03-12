@@ -106,7 +106,7 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
 
 // ------------------------------------------------------------------------
 
-
+/*
 class KLFUserScriptSettings : public KLFAbstractPropertizedObject, public QMap<QString,QString>
 {
 public:
@@ -257,9 +257,9 @@ private:
 
   QList<KLFUserScriptInfo::Param> params;
 };
+*/
 
-
-KLF_DECLARE_POBJ_TYPE(KLFUserScriptSettings) ;
+// KLF_DECLARE_POBJ_TYPE(KLFUserScriptSettings) ;
 
 
 // ------------------------------------------------------------------------
@@ -2018,6 +2018,15 @@ void KLFMainWin::latexEditReplace(int pos, int len, const QString& text)
 }
 
 
+static QString escapeListIntoTags(const QStringList& list, const QString& starttag, const QString& endtag)
+{
+  QString html;
+  foreach (QString s, list) {
+    html += starttag + Qt::escape(s) + endtag;
+  }
+  return html;
+}
+
 void KLFMainWin::slotUserScriptSet(int index)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -2042,6 +2051,9 @@ void KLFMainWin::slotUserScriptSet(int index)
     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
     "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
     "p, li { white-space: pre-wrap; }\n"
+    "p.msgnotice { color: blue; font-weight: bold; }\n"
+    "p.msgwarning { color: #a00000; font-weight: bold; }\n"
+    "p.msgerror { color: #a00000; font-weight: bold; }\n"
     "</style></head>\n"
     "<body style=\"font-size:" + textpointsize_s + "pt;\">\n"
     "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
@@ -2059,6 +2071,18 @@ void KLFMainWin::slotUserScriptSet(int index)
     txt += "<tt>" + tr("Author:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
       "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.author()) + "</span><br />\n";
   }
+
+  // any notices/warnings/errors
+  if (usinfo.hasNotices()) {
+    txt += escapeListIntoTags(usinfo.notices(), "<p style=\"msgnotice\">", "</p>\n");
+  }
+  if (usinfo.hasWarnings()) {
+    txt += escapeListIntoTags(usinfo.warnings(), "<p style=\"msgwarning\">", "</p>\n");
+  }
+  if (usinfo.hasErrors()) {
+    txt += escapeListIntoTags(usinfo.errors(), "<p style=\"msgerror\">", "</p>\n");
+  }
+
   if (!usinfo.license().isEmpty()) {
     // the license
     txt += "<tt>" + tr("License:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"

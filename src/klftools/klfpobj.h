@@ -302,6 +302,33 @@ public:
    * can happen is that an invalid QVariant() is returned.
    */
   virtual QVariant property(int propId) const;
+  /** \brief Get value of a property, with default value
+   *
+   * Returns the value of the property \c propName, if this property name has been registered and
+   * a value set.
+   *
+   * If the property name has not been registered, or if the property value is not valid
+   * (see \ref QVariant::isValid()), then the value \c defaultValue is returned as is.
+   *
+   * This function does not fail or emit warnings.
+   */
+  virtual QVariant property(const QString& propName, const QVariant& defaultValue) const;
+  /** \brief Tests if a property was set
+   *
+   * Returns TRUE if the property \c propName was registered and a non-invalid value set; returns
+   * FALSE otherwise.
+   *
+   * This function does not fail or emit warnings. This function calls property(const QString&, const QVariant&).
+   */
+  virtual bool hasPropertyValue(const QString& propName) const;
+  /** \brief Tests if a property was set
+   *
+   * Returns TRUE if the property \c propId was registered and a non-invalid value set; returns
+   * FALSE otherwise.
+   *
+   * This function does not fail or emit warnings. This function calls hasPropertyValue(const QString&).
+   */
+  virtual bool hasPropertyValue(int propId) const;
 
   /** \brief A list of properties that have been set.
    *
@@ -344,7 +371,7 @@ public:
   /** \brief Sets the given property to the given value
    *
    * Calls setProperty(const QString&, const QVariant&) with the relevant property
-   * name.
+   * name. Thus, in principle, subclasses only need to reimplement the other method.
    */
   virtual bool setProperty(int propId, const QVariant& value);
 
@@ -395,6 +422,35 @@ public:
    * For more advanced saving/loading techniques, see klfLoad() and klfSave().
    */
   void setAllPropertiesFromByteArray(const QByteArray& data);
+
+  /*
+  / ** \brief Parses a string representation of a property
+   *
+   * Subclasses should reimplement this function to parse the actual string into a value. Note
+   * that this function should NOT set the property, it should just parse the string in a way
+   * depending on what kind of information the property \c propId is supposed to store.
+   *
+   * The formatting is left to the implementation. It could be user input, for example.
+   *
+   * The default implementation calls \ref parsePropertyValue(const QString&, const QString&) .
+   * It is thus enough for subclasses to reimplement the other method.
+   * /
+   virtual QVariant parsePropertyValue(int propId, const QString& strvalue);
+
+   / ** \brief Parses a string representation of a property
+   *
+   * Subclasses should reimplement this function to parse the actual string into a value. Note
+   * that this function should NOT set the property, it should just parse the string in a way
+   * depending on what kind of information the property \c propName is supposed to store.
+   *
+   * The formatting is left to the implementation. It could be user input, for example.
+   *
+   * Since the base implementation has no idea what kind of information \c propId is supposed
+   * to store, the default implementation returns a null \c QVariant().
+   * /
+   virtual QVariant parsePropertyValue(const QString& propName, const QString& strvalue);
+  */
+
 
   /** \brief Flags for tuning the \ref toString() method.
    */
@@ -859,14 +915,17 @@ private:
       registered_types.append(QByteArray(name));
       return 0;
     default:
-      fprintf(stderr, "ERRORORROORORR: %s: what is your action?? `%d' for name `%s'\n",
+      fprintf(stderr, "ERRORORROOERROR: %s: what is your action?? `%d' for name `%s'\n",
 	      KLF_FUNC_NAME, (int)action, name);
     }
     return -1;
   }
 };
 
-/** Put this in the .cpp for the given type */
+/** Put this in the .cpp for the given type.
+ *
+ * \todo ###: Which type? any abstractobj or just klfproperitzedobject?
+ */
 #define KLF_DECLARE_POBJ_TYPE(TYPE)					\
   static KLFPObjRegisteredType __klf_pobj_regtype_##TYPE = KLFPObjRegisteredType(#TYPE) ;
 

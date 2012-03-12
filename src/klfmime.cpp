@@ -1302,10 +1302,10 @@ struct KLFExportTypeUserScriptInfoPrivate
       fdesc.append(QObject::tr("%1 File", "[[default file type description from file extension]]").arg(s));
     }
     klfDbg("normalized lists.") ;
-    K->internalSetCustomProperty("MimeType", QVariant(mtypes));
-    K->internalSetCustomProperty("OutputFilenameExtension", QVariant(fexts));
-    K->internalSetCustomProperty("OutputFormatDescription", QVariant(fdesc));
-    K->internalSetCustomProperty("__klf_exporttypeuserscriptinfo_normalizedlists", QVariant(true));
+    K->internalSetProperty("MimeType", QVariant(mtypes));
+    K->internalSetProperty("OutputFilenameExtension", QVariant(fexts));
+    K->internalSetProperty("OutputFormatDescription", QVariant(fdesc));
+    K->internalSetProperty("__klf_exporttypeuserscriptinfo_normalizedlists", QVariant(true));
     normalizedlists = true;
   }
 

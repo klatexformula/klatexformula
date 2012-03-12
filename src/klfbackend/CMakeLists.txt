@@ -26,6 +26,7 @@ set(klfbackend_SRCS
 	klfblockprocess.cpp
 	klffilterprocess.cpp
 	klflatexpreviewthread.cpp
+	klfuserscript.cpp
 )
 set(klfbackend_MOCHEADERS
 	klfblockprocess.h
@@ -33,6 +34,8 @@ set(klfbackend_MOCHEADERS
 )
 set(klfbackend_HEADERS
 	klfbackend.h
+	klfbackend_p.h
+	klfuserscript.h
 	klffilterprocess.h
 	${klfbackend_MOCHEADERS}
 )

@@ -69,8 +69,14 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
   _mainwin = mainWin;
   _config = rwconfig;
 
-  // set default settings: disable sys tray icon by default
+  // set default settings
+#ifdef Q_WS_MAC
+  // Mac: offer to hide application by default
+  _config->makeDefaultValue("systrayon", true);
+#else
+  // Win/Linux: disable sys tray icon by default
   _config->makeDefaultValue("systrayon", false);
+#endif
   _config->makeDefaultValue("replacequitbutton", true);
 #ifdef Q_WS_X11
   _config->makeDefaultValue("restoreonhover", true);

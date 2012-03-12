@@ -137,6 +137,31 @@ QVariant KLFPropertizedObject::property(int propId) const
   return QVariant();
 }
 
+QVariant KLFPropertizedObject::property(const QString& propname, const QVariant& defaultValue) const
+{
+  int propId = propertyIdForName(propname);
+  if (propId < 0) {
+    return defaultValue;
+  }
+  QVariant value = property(propId);
+  if (value.isValid())
+    return value;
+  return defaultValue;
+}
+
+bool KLFPropertizedObject::hasPropertyValue(const QString& propName) const
+{
+  return property(propName, QVariant()).isValid();
+}
+
+bool KLFPropertizedObject::hasPropertyValue(int propId) const
+{
+  if (!propertyIdRegistered(propId))
+    return false;
+
+  return hasPropertyValue(propertyNameForId(propId));
+}
+
 
 void KLFPropertizedObject::propertyValueChanged(int , const QVariant& ,
 						const QVariant& )
@@ -287,6 +312,23 @@ void KLFPropertizedObject::setAllPropertiesFromByteArray(const QByteArray& data)
   QDataStream stream(data);
   stream >> *this;
 }
+
+/*
+QVariant KLFPropertizedObject::parsePropertyValue(int propId, const QString& strvalue)
+{
+  KLF_ASSERT_CONDITION(propertyIdRegistered(propId), "Property ID="<<propId<<" is not registered!",
+		       return QVariant(); ) ;
+
+  return parsePropertyValue(propertyNameForId(propId), strvalue);
+}
+
+QVariant KLFPropertizedObject::parsePropertyValue(const QString& / *propName* /, const QString& / *strvalue* /)
+{
+  return QVariant();
+}
+*/
+
+
 
 
 

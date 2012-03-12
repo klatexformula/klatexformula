@@ -171,7 +171,6 @@ public:
     if (frmMain)
       setGeometry(QRect(mainwin->geometry().topLeft()+QPoint(25,mainwin->height()*2/3),
 			QSize(frmMain->width()+15, 0)));
-    setAttribute(Qt::WA_ShowWithoutActivating, true);
     setProperty("klfTopLevelWidget", QVariant(true));
     setAttribute(Qt::WA_StyledBackground, true);
     setStyleSheet(mainwin->window()->styleSheet());
@@ -180,6 +179,9 @@ public:
     f.setPointSize(QFontInfo(f).pointSize() - 1);
     setFont(f);
     setWordWrap(true);
+
+    setAttribute(Qt::WA_X11DoNotAcceptFocus, true);
+    setAttribute(Qt::WA_ShowWithoutActivating, true);
 
     connect(this, SIGNAL(linkActivated(const QString&)),
 	    this, SLOT(internalLinkActivated(const QString&)));
