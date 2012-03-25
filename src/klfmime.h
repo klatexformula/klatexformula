@@ -125,8 +125,11 @@ public:
   static void registerMimeExporter(KLFMimeExporter *exporter, bool overrides = true);
   static void unregisterMimeExporter(KLFMimeExporter *exporter);
 
-private:
+
+  static void reloadMimeExporterList();
+  /** \bug this also defines some export profiles.... */
   static void initMimeExporterList();
+private:
   static QList<KLFMimeExporter*> p_mimeExporterList;
 };
 
@@ -277,6 +280,7 @@ class KLF_EXPORT KLFExportTypeUserScriptInfo : public KLFUserScriptInfo
 public:
   KLFExportTypeUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings);
   KLFExportTypeUserScriptInfo(const KLFExportTypeUserScriptInfo& copy);
+  KLFExportTypeUserScriptInfo(const KLFUserScriptInfo& copy);
   virtual ~KLFExportTypeUserScriptInfo();
 
   QStringList mimeTypes() const;

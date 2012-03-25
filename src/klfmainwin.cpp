@@ -719,8 +719,13 @@ KLFMainWin::~KLFMainWin()
   delete u;
 }
 
-void KLFMainWin::startupFinished()
+
+void KLFMainWin::refreshExportTypesMenu()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLFMimeExporter::initMimeExporterList();
+
   // Export profiles selection list
 
   pExportProfileQuickMenuActionList.clear();
@@ -743,12 +748,15 @@ void KLFMainWin::startupFinished()
       // create new submenu for this item
       QAction *smact = new QAction(submenu, menu);
       QMenu *smenu = new QMenu(menu);
+      klfDbg("new submenu "<<submenu<<"; menuptr="<<smenu) ;
       smact->setMenu(smenu);
       submenuacts[submenu] = smact;
       submenuactions[submenu] = smenu;
       parentmenu = smenu;
     }
     KLF_ASSERT_NOT_NULL(parentmenu, "?! Parent Menu is NULL for submenu="<<submenu<<" !?", continue; ) ;
+
+    klfDbg("adding "<<eplist[k].description()<<"; profile="<<eplist[k].profileName()<<" in menu="<<menu);
 
     QAction *action = new QAction(menu);
     action->setText(eplist[k].description());
@@ -770,6 +778,11 @@ void KLFMainWin::startupFinished()
   connect(smapper, SIGNAL(mapped(const QString&)), this, SLOT(slotSetExportProfile(const QString&)));
 
   u->btnSetExportProfile->setMenu(menu);
+}
+
+void KLFMainWin::startupFinished()
+{
+  refreshExportTypesMenu();
 }
 
 

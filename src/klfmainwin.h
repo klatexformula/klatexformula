@@ -365,6 +365,7 @@ public slots:
 
   void refreshShowCorrectClearButton();
 
+  void refreshExportTypesMenu();
   void refreshStylePopupMenus();
   void loadStyles();
   void loadLibrary(); // load library stuff

@@ -197,9 +197,19 @@ void KLFMimeExporter::unregisterMimeExporter(KLFMimeExporter *exporter)
 
 
 // static
+void KLFMimeExporter::reloadMimeExporterList()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  p_mimeExporterList.clear();
+  initMimeExporterList();
+}
+
+// static
 void KLFMimeExporter::initMimeExporterList()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("initMimeExporterList");
+
   if (p_mimeExporterList.isEmpty()) {
     // ensure an instance of KLFMacPasteboardMime object
 #ifdef Q_WS_MAC
@@ -215,8 +225,27 @@ void KLFMimeExporter::initMimeExporterList()
     // now, create one instance of KLFMimeExporterUserScript per export type user script ...
     extern QStringList klf_user_scripts;
     for (int k = 0; k < klf_user_scripts.size(); ++k) {
-      if (KLFUserScriptInfo(klf_user_scripts[k]).category() == QLatin1String("klf-export-type")) {
-	p_mimeExporterList << new KLFMimeExporterUserScript(klf_user_scripts[k], qApp);
+      KLFExportTypeUserScriptInfo usinfo = KLFUserScriptInfo(klf_user_scripts[k]);
+      klfDbg("k="<<k<<" loading user script "<<usinfo.scriptName());
+      if (usinfo.category() == QLatin1String("klf-export-type")) {
+
+	// add the mime exporter
+	KLFMimeExporterUserScript * exporter = new KLFMimeExporterUserScript(klf_user_scripts[k], qApp);
+	p_mimeExporterList << exporter;
+
+	// and add corresponding export profile for this script
+	QList<KLFMimeExportProfile::ExportType> elist;
+	QStringList mimes = usinfo.mimeTypes();
+	int j;
+	for (j = 0; j < mimes.size(); ++j) {
+	  elist << KLFMimeExportProfile::ExportType(mimes[j], QString(), exporter->exporterName());
+	}
+	KLFMimeExportProfile profile("userscript-" + usinfo.scriptName(),
+				     usinfo.outputFilenameExtensions().join(",").toUpper()+" ("
+				     +usinfo.scriptName()+")",
+				     elist, QObject::tr("User scripts", "[[KLFMimeExporter; submenu title]]"));
+	KLFMimeExportProfile::addExportProfile(profile);
+
       }
     }
 
@@ -1334,6 +1363,11 @@ KLFExportTypeUserScriptInfo::KLFExportTypeUserScriptInfo(const KLFExportTypeUser
 {
   KLF_INIT_PRIVATE(KLFExportTypeUserScriptInfo) ;
   d->copy(copy.d);
+}
+KLFExportTypeUserScriptInfo::KLFExportTypeUserScriptInfo(const KLFUserScriptInfo& copy)
+  : KLFUserScriptInfo(copy)
+{
+  KLF_INIT_PRIVATE(KLFExportTypeUserScriptInfo) ;
 }
 
 KLFExportTypeUserScriptInfo::~KLFExportTypeUserScriptInfo()
