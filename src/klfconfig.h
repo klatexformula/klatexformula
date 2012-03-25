@@ -265,6 +265,7 @@ public:
     KLFConfigProp<QString> detailsSideWidgetType; //!< "ShowHide","Drawer", or "Float" (or any custom type!)
     KLFConfigProp<QString> lastSaveDir;
     KLFConfigProp<int> symbolsPerLine;
+    KLFConfigProp<bool> symbolIncludeWithPreambleDefs;
     KLFConfigProp<QList<QColor> > userColorList;
     KLFConfigProp<QList<QColor> > colorChooseWidgetRecent;
     KLFConfigProp<QList<QColor> > colorChooseWidgetCustom;
@@ -324,6 +325,7 @@ public:
     KLFConfigProp<double> bborderoffset;
     KLFConfigProp<bool> calcEpsBoundingBox;
     KLFConfigProp<bool> outlineFonts;
+    KLFConfigProp<QStringList> userScriptAddPath;
 
   } BackendSettings;
 

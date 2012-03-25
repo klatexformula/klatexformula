@@ -52,6 +52,7 @@ public:
   enum SettingsControl {
     AppLanguage = 1,
     AppFonts,
+    AppLookNFeel,
     Preview,
     TooltipPreview,
     SyntaxHighlighting,
@@ -59,6 +60,7 @@ public:
     ExpandEPSBBox,
     ExportProfiles,
     LibrarySettings,
+    UserScriptInfo,
     ManageAddOns,
     ManagePlugins,
     PluginsConfig
@@ -109,6 +111,10 @@ protected slots:
   void refreshPluginSelected();
   void refreshAddOnList();
   void refreshAddOnSelected();
+
+  void reloadUserScripts();
+  void refreshUserScriptList();
+  void refreshUserScriptSelected();
 
   virtual void accept();
 

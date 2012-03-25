@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>585</width>
-    <height>630</height>
+    <width>653</width>
+    <height>619</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -1565,6 +1565,76 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tabUserScripts">
+      <attribute name="title">
+       <string>Scripts</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="lyt_tabUserScripts">
+       <item>
+        <widget class="QSplitter" name="splitUserScripts">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <widget class="QWidget" name="layoutWidget">
+          <layout class="QGridLayout" name="lyt_UserScriptList">
+           <item row="0" column="0">
+            <widget class="QTreeWidget" name="lstUserScripts">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>3</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <column>
+              <property name="text">
+               <string>User Scripts</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="btnReloadUserScripts">
+             <property name="text">
+              <string>Reload</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QScrollArea" name="scrlUserScriptInfo">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="wUserScriptInfo">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>581</width>
+             <height>78</height>
+            </rect>
+           </property>
+           <layout class="QGridLayout" name="lyt_wUserScriptInfo">
+            <item row="0" column="0">
+             <widget class="QLabel" name="lblUserScriptInfo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>8</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>XYZ</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tabAddOns">
       <attribute name="title">
        <string>Add-Ons</string>
@@ -1651,8 +1721,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>98</width>
-                <height>40</height>
+                <width>375</width>
+                <height>145</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1818,8 +1888,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>98</width>
-                   <height>40</height>
+                   <width>355</width>
+                   <height>184</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1883,8 +1953,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>98</width>
-            <height>28</height>
+            <width>583</width>
+            <height>472</height>
            </rect>
           </property>
           <attribute name="label">

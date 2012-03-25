@@ -1539,7 +1539,8 @@ QByteArray KLFExportUserScript::getData(const QString& key, const KLFBackend::kl
   if (outfn.size() && QFile::exists(outfn)) {
     QFile::remove(outfn);
   }
-  delete f_in;
+  if (f_in != NULL)
+    delete f_in;
 
   if (!ok) {
     // error

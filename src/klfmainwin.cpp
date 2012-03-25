@@ -658,6 +658,13 @@ KLFMainWin::KLFMainWin()
 		       " Don't like it? <a href=\"%1\">Choose your preferred application font</a>.")
 		    .arg("klfaction:/settings?control=AppFonts") + "</p>");
   }
+#ifdef Q_WS_MAC
+  addWhatsNewText("<p>" +
+		  tr("The user interface was revised for Mac OS X. KLatexFormula now has a <b>dark metal look</b> "
+		     "and a drawer on the side. You can change to the previous behavior in the "
+		     "<a href=\"%1\">settings dialog</a>.").arg("klfaction:/settings?control=AppLookNFeel")
+		  + "</p>");
+#endif
 
   // and load the library
 

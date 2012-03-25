@@ -65,6 +65,8 @@
 
 #define KLFSETTINGS_ROLE_ADDONINDEX (Qt::UserRole + 5400)
 
+#define KLFSETTINGS_ROLE_USERSCRIPT (Qt::UserRole + 5500)
+
 
 #define REG_SH_TEXTFORMATENSEMBLE(x) \
   _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
@@ -248,6 +250,10 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   refreshAddOnSelected();
   refreshPluginSelected();
 
+  // user scripts
+
+  connect(u->lstUserScripts, SIGNAL(itemSelectionChanged()), this, SLOT(refreshUserScriptSelected()));
+  connect(u->btnReloadUserScripts, SIGNAL(clicked()), this, SLOT(reloadUserScripts()));
 
   // remove default Qt Designer Page
   QWidget * w = u->tbxPluginsConfig->widget(u->tbxPluginsConfig->currentIndex());
@@ -358,6 +364,9 @@ void KLFSettings::show()
   else
     resetPluginControls();
 
+  refreshUserScriptList();
+  refreshUserScriptSelected();
+
   QDialog::show();
 }
 
@@ -375,6 +384,9 @@ void KLFSettings::showControl(int control)
     break;
   case AppFonts:
     __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, btnAppFont) ;
+    break;
+  case AppLookNFeel:
+    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, chkMacBrushedMetalLook) ;
     break;
   case Preview:
     __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, chkEnableRealTimePreview) ;
@@ -396,6 +408,9 @@ void KLFSettings::showControl(int control)
     break;
   case LibrarySettings:
     __KLF_SHOW_SETTINGS_CONTROL(tabLibBrowser, chkLibRestoreURLs) ;
+    break;
+  case UserScriptInfo:
+    __KLF_SHOW_SETTINGS_CONTROL(tabUserScripts, lstUserScripts) ;
     break;
   case ManageAddOns:
     __KLF_SHOW_SETTINGS_CONTROL(tabAddOns, lstAddOns) ;
@@ -422,12 +437,14 @@ void KLFSettings::showControl(const QString& controlName)
 {
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppLanguage ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppFonts ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppLookNFeel ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, Preview ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, TooltipPreview ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, SyntaxHighlighting ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ExecutablePaths ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ExpandEPSBBox ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, LibrarySettings ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, UserScriptInfo ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ManageAddOns ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ManagePlugins ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, PluginsConfig ) ;
@@ -1066,6 +1083,180 @@ void KLFSettings::removeAddOn()
   refreshAddOnList();
   refreshAddOnSelected();
 }
+
+void KLFSettings::refreshUserScriptList()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  u->lstUserScripts->clear();
+
+  QMap<QString, QTreeWidgetItem*> dirs;
+
+  int k;
+  for (k = 0; k < klf_user_scripts.size(); ++k) {
+    QString userscript = klf_user_scripts[k];
+    KLFUserScriptInfo info(userscript);
+
+    klfDbg("loading "<<userscript) ;
+
+    QString d = QFileInfo(info.fileName()).canonicalPath(); // != canonicalFilePath which is _with_ file name
+
+    QTreeWidgetItem *diritem = dirs.value(d, NULL);
+    if (diritem == NULL) {
+      // create the directory node
+      diritem = new QTreeWidgetItem(u->lstUserScripts, QStringList()<<d);
+      dirs[d] = diritem;
+    }
+
+    // add the user script
+    QTreeWidgetItem *item = new QTreeWidgetItem(diritem, QStringList()<<info.scriptName());
+    item->setData(0, KLFSETTINGS_ROLE_USERSCRIPT, QVariant::fromValue<QString>(userscript));
+
+    if (!diritem->isExpanded())
+      diritem->setExpanded(true);
+  }
+
+  u->splitUserScripts->setSizes(QList<int>() << 100 << 100);
+}
+
+static QString escapeListIntoTags(const QStringList& list, const QString& starttag, const QString& endtag)
+{
+  QString html;
+  foreach (QString s, list) {
+    html += starttag + Qt::escape(s) + endtag;
+  }
+  return html;
+}
+
+void KLFSettings::refreshUserScriptSelected()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  QTreeWidgetItem * item = u->lstUserScripts->currentItem();
+  klfDbg("item="<<item) ;
+  if (item == NULL) {
+    // no user script
+    u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+    return;
+  }
+
+  QVariant v = item->data(0, KLFSETTINGS_ROLE_USERSCRIPT);
+  if (!v.isValid()) {
+    // no user script
+    klfDbg("v="<<v) ;
+    u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+    return;
+  }
+  QString s = v.toString();
+  if (!KLFUserScriptInfo::hasScriptInfoInCache(s)) {
+    // no user script
+    klfDbg("s="<<s) ;
+    u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+    return;
+  }
+
+  // update user script info and settings widget
+  
+  KLFUserScriptInfo usinfo(s);
+
+  int textpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 1;
+  QString textpointsize_s = QString::number(textpointsize);
+  int smallpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 2;
+  QString smallpointsize_s = QString::number(smallpointsize);
+
+  QString txt =
+    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+    "p, li { white-space: pre-wrap; }\n"
+    "p.msgnotice { color: blue; font-weight: bold; margin: 2px 0px; }\n"
+    "p.msgwarning { color: #a00000; font-weight: bold; margin: 2px 0px; }\n"
+    "p.msgerror { color: #ff0000; font-weight: bold; margin: 2px 0px; }\n"
+    "</style></head>\n"
+    "<body style=\"font-size:" + textpointsize_s + "pt;\">\n";
+
+  // any notices/warnings/errors go first
+  if (usinfo.hasNotices()) {
+    txt += escapeListIntoTags(usinfo.notices(), "<p class=\"msgnotice\">", "</p>\n");
+  }
+  if (usinfo.hasWarnings()) {
+    txt += escapeListIntoTags(usinfo.warnings(), "<p class=\"msgwarning\">", "</p>\n");
+  }
+  if (usinfo.hasErrors()) {
+    txt += escapeListIntoTags(usinfo.errors(), "<p class=\"msgerror\">", "</p>\n");
+  }
+
+  // the name
+  txt +=
+    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 8px; margin-bottom: 0px\">\n"
+    "<tt>" + tr("Script Name:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(QFileInfo(usinfo.fileName()).fileName()) + "</span><br />\n";
+
+  if (!usinfo.version().isEmpty()) {
+    // the version
+    txt += "<tt>" + tr("Version:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.version()) + "</span><br />\n";
+  }
+  if (!usinfo.author().isEmpty()) {
+    // the author
+    txt += "<tt>" + tr("Author:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.author()) + "</span><br />\n";
+  }
+  // the category
+  txt += "<tt>" + tr("Category:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.category()) + "</span><br />\n";
+
+  if (!usinfo.license().isEmpty()) {
+    // the license
+    txt += "<tt>" + tr("License:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.license()) + "</span><br />\n";
+  }
+  if (!usinfo.spitsOut().isEmpty()) {
+    // the output formats
+    txt += "<tt>" + tr("Provides Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.spitsOut().join(", ")) + "</span><br />\n";
+  }
+  if (!usinfo.skipFormats().isEmpty()) {
+    // the skipped formats
+    txt += "<tt>" + tr("Skipped Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.skipFormats().join(", ")) + "</span><br />\n";
+  }
+
+  u->lblUserScriptInfo->setText(txt);
+}
+
+
+void KLFSettings::reloadUserScripts()
+{
+  klf_reload_user_scripts();
+
+  // pre-cache KLFUserScriptInfo for each user script. this requires a valid KLFBackend::klfSettings object...
+  KLFBackend::klfSettings settings;
+
+  settings.tempdir = klfconfig.BackendSettings.tempDir;
+  settings.latexexec = klfconfig.BackendSettings.execLatex;
+  settings.dvipsexec = klfconfig.BackendSettings.execDvips;
+  settings.gsexec = klfconfig.BackendSettings.execGs;
+  settings.epstopdfexec = klfconfig.BackendSettings.execEpstopdf;
+  settings.execenv = klfconfig.BackendSettings.execenv;
+
+  settings.lborderoffset = klfconfig.BackendSettings.lborderoffset;
+  settings.tborderoffset = klfconfig.BackendSettings.tborderoffset;
+  settings.rborderoffset = klfconfig.BackendSettings.rborderoffset;
+  settings.bborderoffset = klfconfig.BackendSettings.bborderoffset;
+
+  settings.calcEpsBoundingBox = klfconfig.BackendSettings.calcEpsBoundingBox;
+  settings.outlineFonts = klfconfig.BackendSettings.outlineFonts;
+
+  int k;
+  for (k = 0; k < klf_user_scripts.size(); ++k) {
+    (void) KLFUserScriptInfo(klf_user_scripts[k], &settings);
+  }
+
+  // refresh GUI
+
+  refreshUserScriptList();
+}
+
 
 void KLFSettings::slotChangeFontPresetSender()
 {

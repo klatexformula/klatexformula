@@ -320,6 +320,13 @@ void KLFUserScriptInfo::clearCacheAll()
 }
 
 
+// static
+bool KLFUserScriptInfo::hasScriptInfoInCache(const QString& scriptFileName)
+{
+  QString normalizedfn = QFileInfo(scriptFileName).canonicalFilePath();
+  return Private::userScriptInfoCache.contains(normalizedfn);
+}
+
 KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings)
 {
   QString normalizedfn = QFileInfo(scriptFileName).canonicalFilePath();
@@ -440,5 +447,43 @@ void KLFUserScriptInfo::internalSetProperty(const QString& key, const QVariant &
 const KLFPropertizedObject * KLFUserScriptInfo::pobj()
 {
   return d();
+}
+
+
+
+
+
+
+// ----------------------------------------
+
+struct KLFUserScriptFilterProcessPrivate
+{
+  KLF_PRIVATE_HEAD(KLFUserScriptFilterProcess)
+  {
+    usinfo = NULL;
+  }
+
+  KLFUserScriptInfo * usinfo;
+};
+
+KLFUserScriptFilterProcess::KLFUserScriptFilterProcess(const QString& scriptFileName,
+						       KLFBackend::klfSettings * settings)
+  : KLFFilterProcess("User Script " + scriptFileName, settings)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
+  klfDbg("scriptFileName= "<<scriptFileName) ;
+
+  d = KLF_INIT_PRIVATE(KLFUserScriptFilterProcess) ;
+
+  d->usinfo = new KLFUserScriptInfo(scriptFileName, settings);
+
+  setArgv(QStringList() << d->usinfo->fileName());
+}
+
+
+KLFUserScriptFilterProcess::~KLFUserScriptFilterProcess()
+{
+  delete d->usinfo;
+  KLF_DELETE_PRIVATE ;
 }
 

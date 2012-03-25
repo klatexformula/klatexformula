@@ -683,13 +683,21 @@ void klf_reload_user_scripts()
 
   QStringList pathlist;
   pathlist << klfconfig.homeConfigDirUserScripts
-	   << klfconfig.globalShareDir+"/userscripts";
+	   << klfconfig.globalShareDir+"/userscripts"
+	   << klfconfig.BackendSettings.userScriptAddPath;
+
+  int i, j, k;
+
+  // replace ~/ by $HOME
+  for (k = 0; k < pathlist.size(); ++k) {
+    if (pathlist[k].startsWith("~/"))
+      pathlist[k] = QDir::homePath() + pathlist[k].mid(1);
+  }
 
   klfDbg("looking for user scripts in "<<pathlist) ;
 
   // First, look to see if there are any user scripts to install from add-on resources
 
-  int i, j, k;
   for (k = 0; k < klf_addons.size(); ++k) {
     QStringList uscripts = klf_addons[k].userScripts();
     for (j = 0; j < uscripts.size(); ++j) {

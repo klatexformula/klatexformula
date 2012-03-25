@@ -290,6 +290,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.detailsSideWidgetType, swtype) ;
   KLFCONFIGPROP_INIT(UI.lastSaveDir, QDir::homePath()) ;
   KLFCONFIGPROP_INIT(UI.symbolsPerLine, 6) ;
+  KLFCONFIGPROP_INIT(UI.symbolIncludeWithPreambleDefs, true) ;
   QList<QColor> colorlist;
   colorlist.append(QColor(0,0,0));
   colorlist.append(QColor(255,255,255));
@@ -376,6 +377,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(BackendSettings.bborderoffset, 0) ;
   KLFCONFIGPROP_INIT(BackendSettings.calcEpsBoundingBox, true) ;
   KLFCONFIGPROP_INIT(BackendSettings.outlineFonts, true) ;
+  KLFCONFIGPROP_INIT(BackendSettings.userScriptAddPath, QStringList() );
 
   KLFCONFIGPROP_INIT(LibraryBrowser.colorFound, QColor(128, 255, 128)) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.colorNotFound, QColor(255, 128, 128)) ;
@@ -523,6 +525,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "detailssidewidgettype", &UI.detailsSideWidgetType);
   klf_config_read(s, "lastsavedir", &UI.lastSaveDir);
   klf_config_read(s, "symbolsperline", &UI.symbolsPerLine);
+  klf_config_read(s, "symbolincludewithpreambledefs", &UI.symbolIncludeWithPreambleDefs);
   klf_config_read_list(s, "usercolorlist", &UI.userColorList);
   klf_config_read_list(s, "colorchoosewidgetrecent", &UI.colorChooseWidgetRecent);
   klf_config_read_list(s, "colorchoosewidgetcustom", &UI.colorChooseWidgetCustom);
@@ -585,6 +588,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "bborderoffset", &BackendSettings.bborderoffset);
   klf_config_read(s, "calcepsboundingbox", &BackendSettings.calcEpsBoundingBox);
   klf_config_read(s, "outlinefonts", &BackendSettings.outlineFonts);
+  klf_config_read(s, "userscriptaddpath", &BackendSettings.userScriptAddPath);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
@@ -666,6 +670,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "detailssidewidgettype", &UI.detailsSideWidgetType);
   klf_config_write(s, "lastsavedir", &UI.lastSaveDir);
   klf_config_write(s, "symbolsperline", &UI.symbolsPerLine);
+  klf_config_write(s, "symbolincludewithpreambledefs", &UI.symbolIncludeWithPreambleDefs);
   klf_config_write_list(s, "usercolorlist", &UI.userColorList);
   klf_config_write_list(s, "colorchoosewidgetrecent", &UI.colorChooseWidgetRecent);
   klf_config_write_list(s, "colorchoosewidgetcustom", &UI.colorChooseWidgetCustom);
@@ -719,6 +724,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "bborderoffset", &BackendSettings.bborderoffset); 
   klf_config_write(s, "calcepsboundingbox", &BackendSettings.calcEpsBoundingBox);
   klf_config_write(s, "outlinefonts", &BackendSettings.outlineFonts);
+  klf_config_write(s, "userscriptaddpath", &BackendSettings.userScriptAddPath);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");

@@ -53,31 +53,40 @@
 #define KLFERR_TEXWRITEFAIL -3
 //! Error while launching the given \c latex program
 #define KLFERR_LATEX_NORUN -4
-#define KLFERR_NOLATEXPROG KLFERR_LATEX_NORUN //!< obsolete, same as KLFERR_LATEX_NORUN
+//! obsolete, same as KLFERR_LATEX_NORUN
+#define KLFERR_NOLATEXPROG KLFERR_LATEX_NORUN
 //! \c latex program did not exit properly (program killed) (see also \ref KLFERR_PROGERR_LATEX)
 #define KLFERR_LATEX_NONORMALEXIT -5
-#define KLFERR_LATEXNONORMALEXIT KLFERR_LATEX_NONORMALEXIT //!< obsolete, same as KLFERR_LATEX_NONORMALEXIT
+//! obsolete, same as KLFERR_LATEX_NONORMALEXIT
+#define KLFERR_LATEXNONORMALEXIT KLFERR_LATEX_NONORMALEXIT
 //! No .dvi file appeared after runnig \c latex program
 #define KLFERR_LATEX_NOOUTPUT -6
-#define KLFERR_NODVIFILE KLFERR_LATEX_NOOUTPUT //!< obsolete, same as KLFERR_LATEX_NOOUTPUT
+//! obsolete, same as KLFERR_LATEX_NOOUTPUT
+#define KLFERR_NODVIFILE KLFERR_LATEX_NOOUTPUT
 //! Error while opening .dvi file for reading
 #define KLFERR_LATEX_OUTPUTREADFAIL -24
-#define KLFERR_DVIREADFAIL KLFERR_LATEX_OUTPUTREADFAIL //!< obsolete, same as KLFERR_LATEX_OUTPUTREADFAIL
+//! obsolete, same as KLFERR_LATEX_OUTPUTREADFAIL
+#define KLFERR_DVIREADFAIL KLFERR_LATEX_OUTPUTREADFAIL
 //! Error while launching the given \c dvips program
 #define KLFERR_DVIPS_NORUN -7
-#define KLFERR_NODVIPSPROG KLFERR_DVIPS_NORUN //!< obsolete, same as KLFERR_DVIPS_NORUN
+//! obsolete, same as KLFERR_DVIPS_NORUN
+#define KLFERR_NODVIPSPROG KLFERR_DVIPS_NORUN
 //! \c dvips program did not exit properly (program killed) (see also \ref KLFERR_PROGERR_DVIPS)
 #define KLFERR_DVIPS_NONORMALEXIT -8
-#define KLFERR_DVIPSNONORMALEXIT KLFERR_DVIPS_NONORMALEXIT //!< obsolete, same as KLFERR_DVIPS_NONORMALEXIT
+//! obsolete, same as KLFERR_DVIPS_NONORMALEXIT
+#define KLFERR_DVIPSNONORMALEXIT KLFERR_DVIPS_NONORMALEXIT
 //! no .eps file appeared after running \c dvips program
 #define KLFERR_DVIPS_NOOUTPUT -9
-#define KLFERR_NOEPSFILE KLFERR_DVIPS_NOOUTPUT //!< obsolete, same as KLFERR_DVIPS_NOOUTPUT
+//! obsolete, same as KLFERR_DVIPS_NOOUTPUT
+#define KLFERR_NOEPSFILE KLFERR_DVIPS_NOOUTPUT
 //! Error while opening .eps file for reading
 #define KLFERR_DVIPS_OUTPUTREADFAIL -10
-#define KLFERR_EPSREADFAIL KLFERR_DVIPS_OUTPUTREADFAIL //!< obsolete, same as KLFERR_DVIPS_OUTPUTREADFAIL
+//! obsolete, same as KLFERR_DVIPS_OUTPUTREADFAIL
+#define KLFERR_EPSREADFAIL KLFERR_DVIPS_OUTPUTREADFAIL
 //! Error while reading/parsing %%BoundingBox: in dvips output
 #define KLFERR_DVIPS_OUTPUTNOBBOX -11
-#define KLFERR_NOEPSBBOX KLFERR_DVIPS_OUTPUTNOBBOX //!< obsolete, same as \ref KLFERR_DVIPS_OUTPUTNOBBOX
+//! obsolete, same as \ref KLFERR_DVIPS_OUTPUTNOBBOX
+#define KLFERR_NOEPSBBOX KLFERR_DVIPS_OUTPUTNOBBOX
 //! Program 'gs' cannot be executed to calculate bounding box
 #define KLFERR_GSBBOX_NORUN -25
 //! Program 'gs' crashed while calculating bbox (see also \ref KLFERR_PROGERR_GSBBOX)
@@ -92,35 +101,44 @@
 #define KLFERR_GSPOSTPROC_NONORMALEXIT -30
 //! Program 'gs' didn't provide any data after post-processing EPS file
 #define KLFERR_GSPOSTPROC_NOOUTPUT -22
-#define KLFERR_NOEPSFILE_OF KLFERR_GSPOSTPROC_NOOUTPUT //!< obsolete, same as KLFERR_GSPOSTPROC_NOOUTPUT
+//! obsolete, same as KLFERR_GSPOSTPROC_NOOUTPUT
+#define KLFERR_NOEPSFILE_OF KLFERR_GSPOSTPROC_NOOUTPUT
 //! Couldn't read output provided by 'gs' program after post-processing EPS file
 #define KLFERR_GSPOSTPROC_OUTPUTREADFAIL -23
+//! obsolete, same as KLFERR_GSPOSTPROC_OUTPUTREADFAIL
 #define KLFERR_EPSREADFAIL_OF KLFERR_GSPOSTPROC_OUTPUTREADFAIL
 //! Program 'gs' couldn't be executed to generate PNG
 #define KLFERR_GSPNG_NORUN -14
-#define KLFERR_NOGSPROG KLFERR_GSPNG_NORUN //!< obsolete, same as \ref KLFERR_GSPNG_NORUN
+//! obsolete, same as \ref KLFERR_GSPNG_NORUN
+#define KLFERR_NOGSPROG KLFERR_GSPNG_NORUN
 //! Program 'gs' didn't exit noramally (crashed) while generating PNG (see also \ref KLFERR_PROGERR_GSPNG)
 #define KLFERR_GSPNG_NONORMALEXIT -15
+//! obsolete, same as KLFERR_GSPNG_NONORMALEXIT
 #define KLFERR_GSNONORMALEXIT KLFERR_GSPNG_NONORMALEXIT
 //! No PNG file appeared after running 'gs'
 #define KLFERR_GSPNG_NOOUTPUT -16
-#define KLFERR_NOPNGFILE KLFERR_GSPNG_NOOUTPUT //!< obsolete, same as KLFERR_GSPNG_NOOUTPUT
+//! obsolete, same as KLFERR_GSPNG_NOOUTPUT
+#define KLFERR_NOPNGFILE KLFERR_GSPNG_NOOUTPUT
 //! Failed to read PNG file produced by 'gs'
 #define KLFERR_GSPNG_OUTPUTREADFAIL -17
-#define KLFERR_PNGREADFAIL KLFERR_GSPNG_OUTPUTREADFAIL //!< obsolete, same as KLFERR_GSPNG_OUTPUTREADFAIL
+//! obsolete, same as KLFERR_GSPNG_OUTPUTREADFAIL
+#define KLFERR_PNGREADFAIL KLFERR_GSPNG_OUTPUTREADFAIL
 //! Error while opening pdfmarks file for writing
 #define KLFERR_PDFMARKSWRITEFAIL -47
 //! Program 'gs' couldn't be executed to generate PDF
 #define KLFERR_GSPDF_NORUN -31
 //! Program 'gs' didn't exit noramally (crashed) while generating PDF (see also \ref KLFERR_PROGERR_GSPDF)
 #define KLFERR_GSPDF_NONORMALEXIT -19
-#define KLFERR_EPSTOPDFNONORMALEXIT KLFERR_GSPDF_NONORMALEXIT //!< obsolete, same as \ref KLFERR_GSPDF_NONORMALEXIT
+//! obsolete, same as \ref KLFERR_GSPDF_NONORMALEXIT
+#define KLFERR_EPSTOPDFNONORMALEXIT KLFERR_GSPDF_NONORMALEXIT
 //! No PDF file appeared after running 'gs'
 #define KLFERR_GSPDF_NOOUTPUT -20
-#define KLFERR_NOPDFFILE KLFERR_GSPDF_NOOUTPUT //!< obsolete, same as \ref KLFERR_GSPDF_NOOUTPUT
+//! obsolete, same as \ref KLFERR_GSPDF_NOOUTPUT
+#define KLFERR_NOPDFFILE KLFERR_GSPDF_NOOUTPUT
 //! Failed to read PDF file produced by 'gs'
 #define KLFERR_GSPDF_OUTPUTREADFAIL -21
-#define KLFERR_PDFREADFAIL KLFERR_GSPDF_OUTPUTREADFAIL //!< obsolete, same as \ref KLFERR_GSPDF_OUTPUTREADFAIL
+//! obsolete, same as \ref KLFERR_GSPDF_OUTPUTREADFAIL
+#define KLFERR_PDFREADFAIL KLFERR_GSPDF_OUTPUTREADFAIL
 //! Failed to query \c gs version
 #define KLFERR_NOGSVERSION -32
 //! This version of \c gs cannot produce SVG
@@ -155,13 +173,16 @@
 #define KLFERR_PROGERR_GSBBOX 6
 //! \c gs exited with non-zero status while post-processing EPS file (page size, font outlines)
 #define KLFERR_PROGERR_GSPOSTPROC 5
-#define KLFERR_PROGERR_GS_OF KLFERR_PROGERR_GSPOSTPROC //!< obsolete, same as \ref KLFERR_PROGERR_GSPOSTPROC
+//! obsolete, same as \ref KLFERR_PROGERR_GSPOSTPROC
+#define KLFERR_PROGERR_GS_OF KLFERR_PROGERR_GSPOSTPROC
 //! \c gs exited with a non-zero status while producing PNG
 #define KLFERR_PROGERR_GSPNG 3
-#define KLFERR_PROGERR_GS KLFERR_PROGERR_GSPNG //!< obsolete, same as \ref KLFERR_PROGERR_GSPNG
+//! obsolete, same as \ref KLFERR_PROGERR_GSPNG
+#define KLFERR_PROGERR_GS KLFERR_PROGERR_GSPNG
 //! \c gs exited with non-zero status while producing PDF
 #define KLFERR_PROGERR_GSPDF 4
-#define KLFERR_PROGERR_EPSTOPDF KLFERR_PROGERR_GSPDF //!< obsolete, same as \ref KLFERR_PROGERR_GSPDF
+//! obsolete, same as \ref KLFERR_PROGERR_GSPDF
+#define KLFERR_PROGERR_EPSTOPDF KLFERR_PROGERR_GSPDF
 //! \c gs exited with non-zero status while producing SVG
 #define KLFERR_PROGERR_GSSVG 7
 //! user wrapper script exited with non-zero status

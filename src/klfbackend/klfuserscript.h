@@ -26,6 +26,7 @@
 
 #include <klfdefs.h>
 #include <klfbackend.h>
+#include <klffilterprocess.h>
 
 //! Summary of the info returned by a user script
 /** See also \ref pageUserScript .
@@ -41,6 +42,7 @@ public:
   KLFUserScriptInfo(const KLFUserScriptInfo& copy);
   virtual ~KLFUserScriptInfo();
 
+  static bool hasScriptInfoInCache(const QString& scriptFileName);
   static void clearCacheAll();
 
   int scriptInfoError() const;
@@ -129,6 +131,27 @@ private:
 
 
 KLF_DECLARE_POBJ_TYPE(KLFUserScriptInfo) ;
+
+
+
+
+
+class KLFUserScriptFilterProcessPrivate;
+
+class KLF_EXPORT KLFUserScriptFilterProcess : public KLFFilterProcess
+{
+public:
+  /** This will already prepare the KLFFilterProcess to run the user script.
+   *
+   * Use \ref addArgv() to add parameters to the command-line. the script itself is already
+   * added as first parameter automatically.
+   */
+  KLFUserScriptFilterProcess(const QString& scriptFileName, KLFBackend::klfSettings * settings = NULL);
+  ~KLFUserScriptFilterProcess();
+
+private:
+  KLF_DECLARE_PRIVATE(KLFUserScriptFilterProcess);
+};
 
 
 
