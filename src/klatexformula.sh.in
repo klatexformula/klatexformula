@@ -1,0 +1,11 @@
+#!/bin/bash
+
+install_bin="@KLF_ABS_INSTALL_BIN_DIR@"
+install_lib="@KLF_ABS_INSTALL_LIB_DIR@"
+
+script=`which "$0" || echo "$0"`
+file=`readlink -f "$script"`
+dir=`dirname "$file"`
+
+LD_LIBRARY_PATH="$dir/$install_lib:$LD_LIBRARY_PATH"  "$dir"/"$install_bin"/klatexformula "$@"
+exit $?

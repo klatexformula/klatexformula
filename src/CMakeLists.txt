@@ -600,3 +600,12 @@ if(KLF_INSTALL_DESKTOP)
   endif(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
 endif(KLF_INSTALL_DESKTOP)
 
+
+if(NOT KLF_MACOSX_BUNDLES AND KLF_USE_CPACK)
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/src/klatexformula.sh.in"
+    "${CMAKE_BINARY_DIR}/src/klatexformula.sh"
+    @ONLY)
+  install(PROGRAMS "${CMAKE_BINARY_DIR}/src/klatexformula.sh" DESTINATION /)
+endif(NOT KLF_MACOSX_BUNDLES AND KLF_USE_CPACK)
+
