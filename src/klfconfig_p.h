@@ -40,9 +40,12 @@
 
 #include <ui_klfadvancedconfigeditor.h>
 
+
 #define REGISTER_EDITOR(factory, type, editorclass)			\
   { QItemEditorCreatorBase *anEditor = new QStandardItemEditorCreator<editorclass>(); \
     factory->registerEditor(type, anEditor); }
+
+
 
 class KLFAdvancedConfigEditor : public QDialog
 {
