@@ -1292,6 +1292,12 @@ void KLFSettings::slotChangeFont(QPushButton *w, const QFont& fnt)
     pUserSetDefaultAppFont = false;
 }
 
+void KLFSettings::slotAdvancedConfigEditor()
+{
+  /** \todo ...... */
+}
+
+
 void KLFSettings::apply()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -1468,6 +1474,8 @@ void KLFSettings::apply()
   // in case eg. the plugins re-change klfconfig in some way (skin does this for syntax highlighting)
   // -> refresh
   reset();
+
+  emit settingsApplied();
 }
 
 void KLFSettings::accept()

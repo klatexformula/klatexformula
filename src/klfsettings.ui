@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>653</width>
-    <height>619</height>
+    <width>651</width>
+    <height>605</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -1363,6 +1363,26 @@
          </layout>
         </widget>
        </item>
+       <item row="5" column="1">
+        <widget class="QPushButton" name="btnAdvancedEditor">
+         <property name="text">
+          <string>Really Advanced ...</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <spacer name="hspc">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tabLibBrowser">
@@ -1610,8 +1630,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>581</width>
-             <height>78</height>
+             <width>579</width>
+             <height>76</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -1721,8 +1741,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>375</width>
-                <height>145</height>
+                <width>374</width>
+                <height>139</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1888,8 +1908,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>355</width>
-                   <height>184</height>
+                   <width>354</width>
+                   <height>176</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1953,8 +1973,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>583</width>
-            <height>472</height>
+            <width>581</width>
+            <height>458</height>
            </rect>
           </property>
           <attribute name="label">

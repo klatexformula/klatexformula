@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfapp.h
+ *   file klfadvancedconfigeditor.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2012 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,27 +21,10 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFAPP_H
-#define KLFAPP_H
+#include "klfadvancedconfigeditor.h"
 
-#include <QApplication>
-
-#include <klfdefs.h>
-
-
-class KLF_EXPORT KLFGuiApplication : public QApplication
-{
-  Q_OBJECT
-public:
-  KLFGuiApplication(int& argc, char** argv);
-  virtual ~KLFGuiApplication();
-
-  virtual void saveState(QSessionManager& sessionmanager);
-  virtual void commitData(QSessionManager& sessionmanager);
-};
+#include "klfadvancedconfigeditor_p.h"
 
 
 
 
-
-#endif

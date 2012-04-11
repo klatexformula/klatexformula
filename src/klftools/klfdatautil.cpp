@@ -379,7 +379,8 @@ static QDomElement parse_xml_wrapper(const QByteArray& xmldata, const QString& s
   return el;
 }
 
-KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML, QByteArray *savedType)
+KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML, QByteArray *savedType,
+					   QByteArray *savedListOrMapType)
 {
   QTextCodec *tc = QTextCodec::codecForLocale();
 
@@ -621,9 +622,18 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
 	data = el.ownerDocument().toByteArray(-1);
       } else {
 	QList<QByteArray> sections;
+	QByteArray innertype;
 	for (k = 0; k < list.size(); ++k) {
+	  if (k == 0)
+	    innertype = list[k].typeName();
+	  if (innertype != list[k].typeName()) {
+	    klfWarning("saving list: not all inner QVariants have same type. Found a "<<innertype
+		       <<" along with a "<<list[k].typeName());
+	  }
 	  sections << klfSaveVariantToText(list[k]);
 	}
+	if (savedListOrMapType != NULL)
+	  *savedListOrMapType = innertype;
 	data = encaps_list(sections);
       }
       break;
@@ -637,11 +647,24 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
 	data = el.ownerDocument().toByteArray(-1);
       } else {
 	QList<QPair<QByteArray, QByteArray> > sections;
+	QByteArray innertype, thistype;
+	bool firstround = true;
 	for (QMap<QString,QVariant>::const_iterator it = map.begin(); it != map.end(); ++it) {
 	  QByteArray k = klfSaveVariantToText(QVariant(it.key()));
 	  QByteArray v = klfSaveVariantToText(it.value());
+	  thistype = it.value().typeName();
+	  if (firstround) {
+	    innertype = thistype;
+	    firstround = false;
+	  }
+	  if (innertype != thistype) {
+	    klfWarning("saving map: not all inner QVariants have same type. Found a "<<innertype
+		       <<" along with a "<<thistype);
+	  }
 	  sections << QPair<QByteArray,QByteArray>(k, v);
 	}
+	if (savedListOrMapType != NULL)
+	  *savedListOrMapType = innertype;
 	data = encaps_map(sections);
       }
       break;

@@ -27,13 +27,23 @@
 KLFGuiApplication::KLFGuiApplication(int& argc, char **argv)
   : QApplication(argc, argv)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 }
 
 KLFGuiApplication::~KLFGuiApplication()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+}
+
+void KLFGuiApplication::saveState(QSessionManager& sm)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  /** \todo .... */
 }
 
 void KLFGuiApplication::commitData(QSessionManager& sm)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  /** \todo .... */
   // just don't cancel the app exit as the previous version did...
 }

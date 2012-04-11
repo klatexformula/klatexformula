@@ -71,6 +71,9 @@ public:
 
   bool eventFilter(QObject *object, QEvent *event);
 
+signals:
+  void settingsApplied();
+
 public slots:
 
   void reset();
@@ -121,6 +124,8 @@ protected slots:
   void slotChangeFontPresetSender();
   void slotChangeFontSender();
   void slotChangeFont(QPushButton *btn, const QFont& f);
+
+  void slotAdvancedConfigEditor();
 
 private:
   Ui::KLFSettings *u;

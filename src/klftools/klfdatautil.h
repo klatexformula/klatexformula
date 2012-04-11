@@ -61,9 +61,15 @@ KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped);
  *
  * If \c savedType is not NULL, then the exact type of the variant that was saved is reported, including
  * a type specifier if the type is a registered KLFSpecifyableType subclass.
+ *
+ * If \c savedListOrMapType is not NULL, then if the saved type is a QVariantList or QVariantMap, the exact
+ * type of the variants in the list or map is reported. We assume that all those types are the same and
+ * a warning is printed if this is not the case. If the saved type is not a QVariantList or a QVariantMap,
+ * then \c saveListOrMapType is left undefined.
  * */
 KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListAndMapsAsXML = false,
-					   QByteArray * savedType = NULL);
+					   QByteArray * savedType = NULL,
+					   QByteArray * savedListOrMapType = NULL);
 
 /** Loads the value stored in \c string into a variant of data type \c dataTypeName. The string
  * is parsed and the returned variant will by of the given type name, or invalid if the string

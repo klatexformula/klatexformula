@@ -3897,9 +3897,11 @@ void KLFMainWin::slotStyleManager()
 
 void KLFMainWin::slotSettings()
 {
-  //  /** \bug DEBUG...... */
-  //  extern void klf_show_advanced_config_editor();
-  //  klf_show_advanced_config_editor();
+#ifdef KLF_DEBUG
+  /** \bug DEBUG...... */
+  extern void klf_show_advanced_config_editor();
+  klf_show_advanced_config_editor();
+#endif
 
   mSettingsDialog->show();
 }

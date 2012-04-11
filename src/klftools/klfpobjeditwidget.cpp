@@ -57,6 +57,9 @@ KLFPObjModel::~KLFPObjModel()
 
 void KLFPObjModel::setPObj(KLFAbstractPropertizedObject *pobj)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
+  klfDbg("pobj="<<pobj) ;
+
   d->pObj = pobj;
   if (d->pObj != NULL)
     d->propertyNames = d->pObj->propertyNameList();
@@ -102,7 +105,7 @@ QVariant KLFPObjModel::data(const QModelIndex& index, int role) const
     if (role == Qt::ToolTipRole || role == Qt::DisplayRole) {
       return QVariant(klfSaveVariantToText(d->pObj->property(d->propertyNames[n])));
     }
-    if ( role == Qt::EditRole) {
+    if (role == Qt::EditRole) {
       // current contents
       return d->pObj->property(d->propertyNames[n]);
     }
