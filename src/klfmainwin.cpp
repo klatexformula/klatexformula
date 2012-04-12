@@ -562,6 +562,11 @@ KLFMainWin::KLFMainWin()
   mSettingsDialog->installEventFilter(this);
 
 
+  // ADDITIONAL OUTPUT SAVERS
+
+  registerOutputSaver(new KLFTexOutputSaver(this));
+
+
   // LOAD USER SCRIPTS
 
   slotReloadUserScripts();

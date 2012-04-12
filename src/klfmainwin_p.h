@@ -640,6 +640,94 @@ public:
 };
 
 
+/** \todo WRITEME!!!!!!!!! */
+class KLFKLFOutputSaver : public QObject, public KLFAbstractOutputSaver
+{
+  Q_OBJECT
+public:
+};
+
+/** \todo WRITEME!!!!!!!!!!! */
+class KLFTexDataOpener : public QObject, public KLFAbstractDataOpener
+{
+  Q_OBJECT
+public:
+}
+
+
+class KLFTexOutputSaver : public QObject, public KLFAbstractOutputSaver
+{
+  Q_OBJECT
+public:
+  KLFTexOutputSaver(QObject *parent)
+    : QObject(parent), KLFAbstractOutputSaver()
+  {
+  }
+
+  virtual ~KLFTexOutputSaver()
+  {
+  }
+
+  virtual QStringList supportedMimeFormats(KLFBackend::klfOutput * output)
+  {
+    Q_UNUSED(output);
+
+    KLF_ASSERT_NOT_NULL(output, "output pointer is NULL!", return QStringList() );
+
+    return QStringList() << QLatin1String("text/tex");
+  }
+
+  /** Returns the human-readable, (possibly translated,) label to display in save dialog that
+   * the user can select to save in this format.
+   *
+   * \param key is a mime-type returned by \ref supportedMimeFormats().
+   */
+  virtual QString formatTitle(const QString& key)
+  {
+    Q_UNUSED(key);
+    return tr("LaTeX source");
+  }
+
+  virtual QStringList formatFilePatterns(const QString& key)
+  {
+    Q_UNUSED(key);
+    return QStringList() << "*.klf.tex";
+  }
+
+  virtual bool saveToFile(const QString& key, const QString& fileName, const KLFBackend::klfOutput& output)
+  {
+    QByteArray data = "%%KLF:LaTeX-save\n";
+    data += "%%KLF:date: "+QDateTime::currentDateTime().toString(Qt::ISODate) + "\n\n";
+
+    data += output.input.latex.toUtf8();
+    data += "\n\n";
+
+    // save style now as a LaTeX comment
+    KLFStyle style(output.input);
+    QByteArray styledata = klfSave(&style, "XML");
+    styledata = "\n"+styledata;
+    styledata.replace("\n", "\n%%KLF:style: ");
+
+    data += styledata;
+
+
+    // and write to file:
+
+    QFile f(fileName);
+    bool r = f.open(QIODevice::WriteOnly);
+    if (!r) {
+      QMessageBox::critical(NULL, tr("Error"), tr("Failed to write file %1").arg(fileName));
+      qWarning()<<KLF_FUNC_NAME<<": Failed to write to file "<<fileName;
+      return false;
+    }
+    f.write(data);
+    return true;
+  }
+
+};
+
+
+
 
 class KLFUserScriptOutputSaver : public QObject, public KLFAbstractOutputSaver
 {
