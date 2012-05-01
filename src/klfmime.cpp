@@ -767,6 +767,8 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  const_cast<KLFMimeData*>(this)->emitDroppedData(mimetype);
+
   klfDbg("retrieveData: mimetype="<<mimetype<<"; type="<<type) ;
 
   if (mimetype == QLatin1String("application/x-qt-mime-type-name")) {

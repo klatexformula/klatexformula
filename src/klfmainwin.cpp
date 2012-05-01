@@ -508,6 +508,8 @@ KLFMainWin::KLFMainWin()
 
   connect(u->cbxUserScript, SIGNAL(activated(int)), this, SLOT(slotUserScriptSet(int)));
 
+  connect(this, SIGNAL(userInputChanged()), this, SIGNAL(userActivity()));
+
   // our help/about dialog
   connect(u->btnHelp, SIGNAL(clicked()), this, SLOT(showAbout()));
 
@@ -678,6 +680,7 @@ KLFMainWin::KLFMainWin()
 
   registerDataOpener(new KLFBasicDataOpener(this));
   registerDataOpener(new KLFAddOnDataOpener(this));
+  registerDataOpener(new KLFTexDataOpener(this));
 
   // and present a cool window size
   adjustSize();
@@ -1325,6 +1328,8 @@ void KLFMainWin::slotOpenHistoryLibraryResource()
 
 void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
 {
+  emit inputCleared();
+
   if (restoreFlags & KLFLib::RestoreStyle) {
     KLFStyle style = entry.style();
     slotLoadStyle(style);
@@ -1343,6 +1348,8 @@ void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
   activateWindow();
   raise();
   u->txtLatex->setFocus();
+
+  emit userActivity();
 }
 
 void KLFMainWin::slotLibraryButtonRefreshState(bool on)
@@ -2634,6 +2641,9 @@ void KLFMainWin::displayError(const QString& error)
 void KLFMainWin::updatePreviewThreadInput()
 {
   bool inputchanged = pLatexPreviewThread->setInput(collectInput(false));
+  if (inputchanged) {
+    emit userInputChanged();
+  }
   if (_evaloutput_uptodate && !inputchanged) {
     // if we are in 'evaluated' mode, with a displayed result, then don't allow a window resize
     // to invalidate evaluated contents
@@ -2949,11 +2959,13 @@ void KLFMainWin::slotEvaluate()
 
 void KLFMainWin::slotClearLatex()
 {
+  emit inputCleared();
   u->txtLatex->clearLatex();
   emit userActivity();
 }
 void KLFMainWin::slotClearAll()
 {
+  emit inputCleared();
   slotClearLatex();
   loadDefaultStyle();
   emit userActivity();
@@ -3173,9 +3185,11 @@ bool KLFMainWin::canOpenFile(const QString& fileName)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("file name="<<fileName) ;
   int k;
-  for (k = 0; k < pDataOpeners.size(); ++k)
-    if (pDataOpeners[k]->canOpenFile(fileName))
+  for (k = 0; k < pDataOpeners.size(); ++k) {
+    if (pDataOpeners[k]->canOpenFile(fileName)) {
       return true;
+    }
+  }
   klfDbg("cannot open file.") ;
   return false;
 }
@@ -3184,9 +3198,11 @@ bool KLFMainWin::canOpenData(const QByteArray& data)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("data. length="<<data.size()) ;
   int k;
-  for (k = 0; k < pDataOpeners.size(); ++k)
-    if (pDataOpeners[k]->canOpenData(data))
+  for (k = 0; k < pDataOpeners.size(); ++k) {
+    if (pDataOpeners[k]->canOpenData(data)) {
       return true;
+    }
+  }
   klfDbg("cannot open data.") ;
   return false;
 }
@@ -3212,12 +3228,20 @@ bool KLFMainWin::openFile(const QString& file)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("file="<<file) ;
+
+  emit inputCleared();
+
   int k;
-  for (k = 0; k < pDataOpeners.size(); ++k)
-    if (pDataOpeners[k]->openFile(file))
+  for (k = 0; k < pDataOpeners.size(); ++k) {
+    if (pDataOpeners[k]->openFile(file)) {
+      emit fileOpened(file, pDataOpeners[k]);
       return true;
+    }
+  }
 
   QMessageBox::critical(this, tr("Error"), tr("Failed to load file %1.").arg(file));
+
+  slotClearLatex();
 
   return false;
 }
@@ -3240,6 +3264,9 @@ int KLFMainWin::openDropData(const QMimeData *mimeData)
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("mime data, formats="<<mimeData->formats()) ;
   int k;
+
+  emit inputCleared();
+
   QString mimetype;
   QStringList fmts = mimeData->formats();
 
@@ -3249,8 +3276,10 @@ int KLFMainWin::openDropData(const QMimeData *mimeData)
       // mime types intersect.
       klfDbg("Opening mimetype "<<mimetype) ;
       QByteArray data = mimeData->data(mimetype);
-      if (pDataOpeners[k]->openData(data, mimetype))
+      if (pDataOpeners[k]->openData(data, mimetype)) {
+	emit dataOpened(mimetype, data, pDataOpeners[k]);
 	return OpenDataOk;
+      }
       return OpenDataFailed;
     }
   }
@@ -3280,10 +3309,19 @@ bool KLFMainWin::openData(const QByteArray& data)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("data, len="<<data.length()) ;
+
+  emit inputCleared();
+
   int k;
-  for (k = 0; k < pDataOpeners.size(); ++k)
-    if (pDataOpeners[k]->openData(data, QString()))
+  for (k = 0; k < pDataOpeners.size(); ++k) {
+    if (pDataOpeners[k]->openData(data, QString())) {
+      emit dataOpened(QString(), data, pDataOpeners[k]);
       return true;
+    }
+  }
+
+  klfWarning("failed to open data.") ;
+  slotClearLatex();
 
   return false;
 }
@@ -3391,8 +3429,12 @@ void KLFMainWin::slotDrag()
   if ( _output.result.isNull() )
     return;
 
+  void aboutToDragData();
+
   QDrag *drag = new QDrag(this);
   KLFMimeData *mime = new KLFMimeData(klfconfig.ExportData.dragExportProfile, _output);
+
+  connect(mime, SIGNAL(droppedData(const QString&)), this, SIGNAL(draggedDataWasDropped(const QString&)));
 
   drag->setMimeData(mime);
 
@@ -3433,6 +3475,8 @@ void KLFMainWin::slotCopy()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  emit aboutToCopyData();
+
 #ifdef Q_WS_WIN
   extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
 				  const QList<QByteArray>& datalist);
@@ -3470,10 +3514,15 @@ void KLFMainWin::slotCopy()
 
   KLFMimeExportProfile profile = KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.copyExportProfile);
   showExportMsgLabel(tr("Copied as <b>%1</b>").arg(profile.description()));
+
+  emit copiedData(profile.profileName());
 }
 
 void KLFMainWin::slotSave(const QString& suggestfname)
 {
+  // notify that we are about to save to file
+  emit aboutToSaveAs();
+
   // application-long persistent selectedfilter
   static QString selectedfilter;
 
@@ -3583,13 +3632,14 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     if (!result) {
       klfWarning("saver failed to save format "<<key<<".");
     }
+    emit savedToFile(fname, key, saver);
     return;
   }
 
   QString selformat;
   // get format and suffix from selected filter
   if ( ! formatsByFilterName.contains(selectedfilter) ) {
-    klfDbg("Unknown format filter selected: "<<selectedfilter<<"! Assuming PNG!") ;
+    klfWarning("Unknown format filter selected: "<<selectedfilter<<"! Assuming PNG!") ;
     selformat = "png";
   } else {
     selformat = formatsByFilterName[selectedfilter];
@@ -3642,6 +3692,65 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   if ( ! res ) {
     QMessageBox::critical(this, tr("Error"), error);
   }
+  emit savedToFile(fname, format, NULL);
+}
+
+bool KLFMainWin::saveOutputToFile(const KLFBackend::klfOutput& output, const QString& fname,
+				  const QString& format, KLFAbstractOutputSaver * saver)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("fname="<<fname<<", format="<<format<<", saver="<<saver) ;
+
+  if (saver != NULL) {
+    // use this saver to save data.
+    // first find the key
+    int n;
+    QStringList keys = saver->supportedMimeFormats(const_cast<KLFBackend::klfOutput*>(&output));
+    QString key;
+    for (n = 0; n < keys.size(); ++n) {
+      if (keys[n].contains(format, Qt::CaseInsensitive)) {
+	key = keys[n];
+	break;
+      }
+    }
+    if (key.isEmpty()) {
+      klfWarning("Couldn't find key for format "<<format<<" for saver "<<saver) ;
+    }
+
+    bool result = saver->saveToFile(key, fname, _output);
+    if (!result) {
+      klfWarning("saver failed to save format "<<key<<".");
+    }
+    return result;
+  }
+  // otherwise, see if it is a built-in format or check possible savers for a match.
+
+  // built-in format?
+  if (KLFBackend::availableSaveFormats(output).contains(format.toUpper())) {
+    // save using this format
+    return KLFBackend::saveOutputToFile(output, fname, format, NULL);
+  }
+
+  // or go through the list of possible savers
+  int k, j;
+  for (k = 0; k < pOutputSavers.size(); ++k) {
+    QStringList xoformats = pOutputSavers[k]->supportedMimeFormats(&_output);
+    for (j = 0; j < xoformats.size(); ++j) {
+      // test this format
+      if (pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains(format, Qt::CaseInsensitive)) {
+	// try saving in this format
+	bool ok = pOutputSavers[k]->saveToFile(xoformats[j], fname, output);
+	if (!ok) {
+	  klfWarning("Output saver "<<pOutputSavers[k]<<" was supposed to handle type "<<format<<" but failed.") ;
+	  // go on with the search
+	}
+	if (ok)
+	  return true;
+      }
+    }
+  }
+  klfDbg("didn't find any suitable saver. fail...");
+  return false;
 }
 
 
@@ -3789,7 +3898,7 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
   } else {
     u->spnLatexFontSize->setValue((int)(style.fontsize + 0.5));
   }
-  slotSetPreamble(style.preamble); // to preserve text edit undo/redo
+  slotSetPreamble(style.preamble); // to preserve text edit undo/redo, don't use txtPreamble->setText()
   u->spnDPI->setValue(style.dpi);
   u->spnVectorScale->setValue(style.vectorscale * 100.0);
   u->chkVectorScale->setChecked(fabs(style.vectorscale - 1.0) > 0.00001);

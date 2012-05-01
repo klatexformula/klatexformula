@@ -262,8 +262,15 @@ public:
   bool canOpenData(const QByteArray& data);
   bool canOpenData(const QMimeData *mimeData);
 
+  QList<KLFAbstractOutputSaver*> registeredOutputSavers() { return pOutputSavers; }
+  QList<KLFAbstractDataOpener*> registeredDataOpeners() { return pDataOpeners; }
+
   //! Reimplemented from KLFDropDataHandler
   bool canOpenDropData(const QMimeData * data) { return canOpenData(data); }
+
+  bool saveOutputToFile(const KLFBackend::klfOutput& output, const QString& fname, const QString& format,
+			KLFAbstractOutputSaver * saver = NULL);
+
 
   bool isApplicationVisible() const;
 
@@ -279,6 +286,24 @@ signals:
   void klfConfigChanged();
 
   void userActivity();
+
+  void userInputChanged();
+
+  /** emitted whenever the formula currently being edited is replaced by something else, like a restored
+   * formula from the library or a blank input from clear button, etc.
+   */
+  void inputCleared();
+
+  void aboutToCopyData();
+  void copiedData(const QString& profile);
+  void aboutToDragData();
+  void draggedDataWasDropped(const QString& mimeType);
+  void fileOpened(const QString& fname, KLFAbstractDataOpener * usingDataOpener);
+  void dataOpened(const QString& mimetype, const QByteArray& data, KLFAbstractDataOpener * usingDataOpener);
+
+  void aboutToSaveAs();
+  /** \note if \c usingSaver is NULL, the built-in klfbackend saver was used */
+  void savedToFile(const QString& fileName, const QString& format, KLFAbstractOutputSaver * usingSaver);
 
 public slots:
 
@@ -502,7 +527,10 @@ protected:
 
   KLFUserScriptSettings * pUserScriptSettings;
 
-  /** Returns the input corresponding to the current GUI state. If \c isFinal is TRUE, then
+  /**
+   * Use \ref currentInputState() instead for "public" use.
+   *
+   * Returns the input corresponding to the current GUI state. If \c isFinal is TRUE, then
    * the input data may be "remembered" as used (the exact effect depends on the setting), eg.
    * math mode is memorized into combo box choices. Typically \c isFinal is TRUE when called
    * from slotEvaluate() and FALSE when called to update the preview builder thread. */

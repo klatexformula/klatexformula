@@ -389,6 +389,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
   int k;
 
   if (!value.isValid() || value.isNull()) {
+    klfDbg("saving null variant.");
     if (savedType != NULL)
       *savedType = QByteArray();
     return QByteArray();
@@ -800,6 +801,12 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   // START DECODING TEXT
 
   QByteArray data = stringdata; // might need slight modifications before parsing
+
+  // first check: if the type string is empty, we're loading a Null variant... 
+  if (dataTypeName == NULL || *dataTypeName == 0) {
+    klfDbg("loading null variant.");
+    return QVariant();
+  }
 
   QVariant value;
   if (data.startsWith("[QVariant]")) {

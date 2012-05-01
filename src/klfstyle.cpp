@@ -51,7 +51,6 @@ KLFStyle::BBoxExpand::BBoxExpand(const BBoxExpand& c)
 
 // -----
 
-// enum { Name, FgColor, BgColor, MathMode, Preamble, DPI, OverrideBBoxExpand, UserScript }
 
 KLFStyle::KLFStyle(QString nm, unsigned long fgcol, unsigned long bgcol, const QString& mmode,
 		   const QString& pre, int dotsperinch, const BBoxExpand& bb, const QString& us)
@@ -91,7 +90,9 @@ KLFStyle::KLFStyle(const KLFStyle& o)
 
 QByteArray KLFStyle::typeNameFor(const QString& pname) const
 {
+  klfDbg("pname is "<<pname) ;
   if (pname == "name")  return "QString";
+  if (pname == "fontname") return "QString";
   if (pname == "fg_color")  return "uint";
   if (pname == "bg_color")  return "uint";
   if (pname == "mathmode")  return "QString";

@@ -641,18 +641,102 @@ public:
 
 
 /** \todo WRITEME!!!!!!!!! */
-class KLFKLFOutputSaver : public QObject, public KLFAbstractOutputSaver
+class KLFKLFOutputSaver : public QObject, public KLFAbstractOutputSaver
 {
   Q_OBJECT
 public:
 };
 
-/** \todo WRITEME!!!!!!!!!!! */
+
 class KLFTexDataOpener : public QObject, public KLFAbstractDataOpener
 {
   Q_OBJECT
 public:
-}
+  KLFTexDataOpener(KLFMainWin *mainwin)
+    : QObject(mainwin), KLFAbstractDataOpener(mainwin)
+  {
+  }
+
+  virtual ~KLFTexDataOpener()
+  {
+  }
+
+  virtual QStringList supportedMimeTypes()
+  {
+    return QStringList();
+  }
+
+  virtual bool canOpenFile(const QString& file)
+  {
+    QFileInfo fi(file);
+    if (fi.suffix() == "tex" || fi.suffix() == "latex" || fi.suffix() == "klftex")
+      return true;
+    // not a TeX file
+    return false;
+  }
+
+  virtual bool canOpenData(const QByteArray& /*data*/)
+  {
+    // Dropped files are opened by the basic data opener, which handles "text/uri-list"
+    // by calling the main window's openFiles()
+    return false;
+  }
+
+  virtual bool openFile(const QString& file)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg("file="<<file);
+
+    if (!canOpenFile(file)) {
+      klfDbg("file is not openable by us: "<<file);
+      return false;
+    }
+
+    // filter out and parse our special comments
+    // the rest is LaTeX code to paste
+
+    QFile f(file);
+    if (!f.open(QIODevice::ReadOnly)) {
+      QMessageBox::critical(mainWin(), tr("Error"), tr("Can't open file %1. Read Error.").arg(file));
+      return false;
+    }
+
+    QByteArray latexdata;
+    QByteArray styledata;
+    KLFStyle style;
+
+    QByteArray line;
+    while (!(line = f.readLine()).isNull()) {
+      // see if it is one of our special comments
+      if (line.startsWith("%%KLF:style: ")) {
+	// extract style data line
+	styledata += line.mid(strlen("%%KLF:style: "));
+      } else if (line.startsWith("%%KLF:")) {
+	// ignore this unused KLF comment
+      } else {
+	// LaTeX line
+	latexdata += line;
+      }
+    }
+
+    bool ok = klfLoad(styledata, &style); //,"XML");  ... format is guessed from data
+    if (!ok) {
+      klfWarning("Unable to load style from comment data: "<<styledata) ;
+    }
+
+    mainWin()->slotLoadStyle(style);
+    mainWin()->slotSetLatex(QString::fromLocal8Bit(latexdata));
+
+    return true;
+  }
+
+  virtual bool openData(const QByteArray& /*data*/, const QString& /*mimetype*/)
+  {
+    return false;
+  }
+
+  
+};
 
 
 class KLFTexOutputSaver : public QObject, public KLFAbstractOutputSaver
@@ -691,24 +775,30 @@ public:
   virtual QStringList formatFilePatterns(const QString& key)
   {
     Q_UNUSED(key);
-    return QStringList() << "*.klf.tex";
+    return QStringList() << "*.klftex" << "*.tex";
   }
 
   virtual bool saveToFile(const QString& key, const QString& fileName, const KLFBackend::klfOutput& output)
   {
+    Q_UNUSED(key);
+
     QByteArray data = "%%KLF:LaTeX-save\n";
-    data += "%%KLF:date: "+QDateTime::currentDateTime().toString(Qt::ISODate) + "\n\n";
+    data += "%%KLF:date: "+QDateTime::currentDateTime().toString(Qt::ISODate) + "\n%%KLF: \n";
 
     data += output.input.latex.toUtf8();
-    data += "\n\n";
+    if (!data.endsWith("\n"))
+      data += "\n";
+    data += "%%KLF: \n";
+    data += "%%KLF: ";
 
     // save style now as a LaTeX comment
     KLFStyle style(output.input);
+    style.userScript = QFileInfo(style.userScript).fileName(); // only save file name as script path may differ
     QByteArray styledata = klfSave(&style, "XML");
     styledata = "\n"+styledata;
     styledata.replace("\n", "\n%%KLF:style: ");
 
-    data += styledata;
+    data += styledata + "\n";
 
 
     // and write to file:

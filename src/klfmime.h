@@ -260,6 +260,10 @@ public:
 
   QStringList formats() const;
 
+signals:
+
+  void droppedData(const QString& mimetype);
+
 protected:
   QVariant retrieveData(const QString &mimetype, QVariant::Type type) const;
 
@@ -270,6 +274,9 @@ private:
   void set_possible_qt_handled_data();
 
   mutable QStringList pQtOwnedFormats;
+
+  void emitDroppedData(const QString& mimetype)
+  { emit droppedData(mimetype); }
 };
 
 

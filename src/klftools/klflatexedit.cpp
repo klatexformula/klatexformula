@@ -656,7 +656,7 @@ void KLFLatexSyntaxHighlighter::parseEverything()
       }
 
       if (!text[i].isPrint() && text[i] != '\n' && text[i] != '\t' && text[i] != '\r') {
-	/** \bug ..... TODO: DEBUG & IMPLEMENT !!!  HIGHLIGHT NONPRINT CHARS IN RED. ........ */
+	/** \bug ..... TODO: DEBUG & IMPLEMENT !!!  HIGHLIGHT NONPRINTABLE CHARS IN RED. ........ */
 	_rulestoapply.append(FormatRule(blockpos+i-1, blockpos+i+1, FParenMismatch));
       }
 
