@@ -80,6 +80,7 @@ public slots:
     pBufferList.append(newbuffer);
     lstBuffers->setBufferList(pBufferList, newbuffer);
     pActiveBuffer = newbuffer;
+    newbuffer->updateInputFromMainWin();
     newbuffer->forceUnmodified();
   }
   void mainwinFileSaved(const QString& file, const QString& format, KLFAbstractOutputSaver *saver)

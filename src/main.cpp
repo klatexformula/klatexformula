@@ -884,9 +884,13 @@ int main(int argc, char **argv)
     char fname[1024];
     const char * SUFFIX = ".klfdebug";
     strcpy(fname, opt_redirect_debug);
-    if (strncmp(fname+(strlen(fname)-strlen(SUFFIX)), SUFFIX, strlen(SUFFIX)) != 0) {
+    if (strlen(fname) < strlen(SUFFIX) ||
+	strncmp(fname+(strlen(fname)-strlen(SUFFIX)), SUFFIX, strlen(SUFFIX)) != 0) {
       // fname does not end with SUFFIX
-      strcat(fname, SUFFIX);
+      // append SUFFIX, except if we are redirecting to a /dev/* file
+      if (strncmp(fname, "/dev/", strlen("/dev/")) != 0) {
+	strcat(fname, SUFFIX);
+      }
     }
     // before performing the redirect...
     klfDbg("Redirecting debug output to file "<<QString::fromLocal8Bit(fname)) ;

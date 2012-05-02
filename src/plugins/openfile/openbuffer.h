@@ -83,8 +83,10 @@ public slots:
 
   void activate()
   {
+    bool modstate = pModified;
     pMainWin->slotSetLatex(pInput.latex);
     pMainWin->slotLoadStyle(KLFStyle(pInput));
+    pModified = modstate; // don't reset modified state
   }
 
   void evaluated(const KLFBackend::klfOutput& output)
