@@ -50,6 +50,7 @@ signals:
 public slots:
   void setBufferList(QList<OpenBuffer*> buffers, OpenBuffer * activeBuffer)
   {
+    blockSignals(true);
     int k;
     pItemsByBuffer.clear();
     clear();
@@ -64,6 +65,7 @@ public slots:
       refreshBuffer(buffers[k]);
     }
     pActiveBuffer = activeBuffer;
+    blockSignals(false);
   }
 
   void refreshBuffer(OpenBuffer * buffer)
@@ -74,7 +76,7 @@ public slots:
       return;
     }
     item->setIcon(buffer->pixmap());
-    QString s = buffer->file();
+    QString s = QFileInfo(buffer->file()).fileName();
     if (buffer->ismodified())
       s += " *";
     item->setText(s);
@@ -84,8 +86,11 @@ protected slots:
 
   void ourSelectionChanged()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     QList<QListWidgetItem*> selected = selectedItems();
     if (selected.size() < 1) {
+      // no item selected
       emit bufferSelected(NULL) ;
       return;
     }
@@ -99,6 +104,7 @@ protected slots:
       emit bufferSelected(NULL);
       return;
     }
+    klfDbg("Found buffer : "<<buffers.first()) ;
     emit bufferSelected(buffers.first());
   }
 

@@ -56,15 +56,27 @@ public slots:
 
   void save()
   {
+    if (pOutput.result.isNull()) { /// \bug: RE-EVAL ALSO IF output is out of date...
+      pMainWin->slotEvaluate();
+    }
+    /** \bug BUG: High risk of saving junk (eg. empty output) here, eg. if the latex evaluation
+     *    failed, or of evaluate() wasn't connected.......... (choose your favorite reason here)
+     */
+
     pOutput.input = pInput;
     // save our buffer
-    pMainWin->saveOutputToFile(pOutput, pFile, pFormat, pSaver);
+    bool ok = pMainWin->saveOutputToFile(pOutput, pFile, pFormat, pSaver);
+    if (!ok) {
+      QMessageBox::critical(pMainWin, tr("Error"), tr("Failed to save file %1.").arg(pFile));
+    }
+    pModified = false;
   }
 
   void updateInputFromMainWin()
   {
     pModified = true;
     pInput = pMainWin->currentInputState();
+    pInput.userScript = QFileInfo(pInput.userScript).fileName();
     // KLFBackend::klfOutput output = currentKLFBackendOutput();
     // ...
   }
@@ -79,6 +91,12 @@ public slots:
   {
     pOutput = output;
     pPixmap = QPixmap::fromImage(output.result);
+  }
+
+  /** used when loading a file */
+  void forceUnmodified()
+  {
+    pModified = false;
   }
 
 private:

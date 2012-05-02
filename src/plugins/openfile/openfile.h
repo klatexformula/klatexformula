@@ -45,15 +45,20 @@ public:
 
     connect(mainWin, SIGNAL(userInputChanged()), this, SLOT(updateInputFromMainWin()));
     connect(mainWin, SIGNAL(inputCleared()), this, SLOT(detachActiveBuffer()));
-    connect(mainWin, SIGNAL(fileOpened(const QString&, const QString&, KLFAbstractDataOpener *)),
-	    this, SLOT(mainwinFileOpened(const QString&, const QString&)));
+    connect(mainWin, SIGNAL(fileOpened(const QString&, KLFAbstractDataOpener *)),
+	    this, SLOT(mainwinFileOpened(const QString&)));
     connect(mainWin, SIGNAL(savedToFile(const QString&, const QString&, KLFAbstractOutputSaver *)),
 	    this, SLOT(mainwinFileSaved(const QString&, const QString&, KLFAbstractOutputSaver *)));
+    connect(mainWin, SIGNAL(evaluateFinished(const KLFBackend::klfOutput&)),
+	    this, SLOT(evaluated(const KLFBackend::klfOutput&)));
+
+    connect(lstBuffers, SIGNAL(bufferSelected(OpenBuffer *)), this, SLOT(setActiveBuffer(OpenBuffer *)));
   }
 
 public slots:
   void updateInputFromMainWin()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     if (pActiveBuffer != NULL) {
       pActiveBuffer->updateInputFromMainWin();
       lstBuffers->refreshBuffer(pActiveBuffer);
@@ -62,26 +67,42 @@ public slots:
 
   void detachActiveBuffer()
   {
-    setActiveBuffer(NULL);
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    lstBuffers->clearSelection();
+    // this will call the list's selectionChanged() which in turn will call our setActiveBuffer() and
+    // set pActiveBuffer correctly to NULL.
   }
 
-  void mainwinFileOpened(const QString& file, const QString& format)
+  void mainwinFileOpened(const QString& file)
   {
-    OpenBuffer * newbuffer = new OpenBuffer(pMainWin, file, format);
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    OpenBuffer * newbuffer = new OpenBuffer(pMainWin, file, QString());
     pBufferList.append(newbuffer);
     lstBuffers->setBufferList(pBufferList, newbuffer);
     pActiveBuffer = newbuffer;
+    newbuffer->forceUnmodified();
   }
   void mainwinFileSaved(const QString& file, const QString& format, KLFAbstractOutputSaver *saver)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     OpenBuffer * newbuffer = new OpenBuffer(pMainWin, file, format, saver);
     pBufferList.append(newbuffer);
     lstBuffers->setBufferList(pBufferList, newbuffer);
     pActiveBuffer = newbuffer;
   }
 
+  void evaluated(const KLFBackend::klfOutput& output)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    if (pActiveBuffer != NULL) {
+      pActiveBuffer->evaluated(output);
+      lstBuffers->refreshBuffer(pActiveBuffer);
+    }
+  }
+
   void on_btnSave_clicked()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     if (pActiveBuffer != NULL) {
       pActiveBuffer->save();
       lstBuffers->refreshBuffer(pActiveBuffer);
@@ -90,6 +111,7 @@ public slots:
 
   void on_btnClose_clicked()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     if (pActiveBuffer != NULL) {
       // TODO check for modifications etc....
       pBufferList.removeAll(pActiveBuffer);
@@ -99,6 +121,7 @@ public slots:
 
   void on_btnOpen_clicked()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     QString fn = QFileDialog::getOpenFileName(this, tr("Open a file"));
     bool ok = pMainWin->openFile(fn);
     if (!ok) {
@@ -108,7 +131,13 @@ public slots:
 
   void setActiveBuffer(OpenBuffer * buffer)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     pActiveBuffer = buffer;
+    if (pActiveBuffer != NULL) {
+      pActiveBuffer->activate();
+    } else {
+      pMainWin->slotClear();
+    }
   }
 
 private:

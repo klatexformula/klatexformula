@@ -3696,10 +3696,16 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 }
 
 bool KLFMainWin::saveOutputToFile(const KLFBackend::klfOutput& output, const QString& fname,
-				  const QString& format, KLFAbstractOutputSaver * saver)
+				  const QString& fmt, KLFAbstractOutputSaver * saver)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  QString format = fmt;
   klfDbg("fname="<<fname<<", format="<<format<<", saver="<<saver) ;
+
+  if (format.isEmpty()) {
+    format = QFileInfo(fname).suffix();
+    klfDbg("format="<<format) ;
+  }
 
   if (saver != NULL) {
     // use this saver to save data.
@@ -3727,25 +3733,29 @@ bool KLFMainWin::saveOutputToFile(const KLFBackend::klfOutput& output, const QSt
 
   // built-in format?
   if (KLFBackend::availableSaveFormats(output).contains(format.toUpper())) {
-    // save using this format
+    // save built-in format
+    klfDbg("saving "<<fname<<" with built-in format "<<format<<".") ;
     return KLFBackend::saveOutputToFile(output, fname, format, NULL);
   }
 
   // or go through the list of possible savers
   int k, j;
   for (k = 0; k < pOutputSavers.size(); ++k) {
+    klfDbg("trying klfabstractoutputsaver #"<<k<<" ...") ;
     QStringList xoformats = pOutputSavers[k]->supportedMimeFormats(&_output);
+    klfDbg("klfabstractoutputsaver #"<<k<<" supports formats "<<xoformats) ;
     for (j = 0; j < xoformats.size(); ++j) {
       // test this format
+      klfDbg("\t format "<<xoformats[j]<<" has patterns "<<pOutputSavers[k]->formatFilePatterns(xoformats[j])
+	     <<", we're looking for "<<format<<", RESULT="
+	     <<pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains(format, Qt::CaseInsensitive)) ;
       if (pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains(format, Qt::CaseInsensitive)) {
 	// try saving in this format
 	bool ok = pOutputSavers[k]->saveToFile(xoformats[j], fname, output);
-	if (!ok) {
-	  klfWarning("Output saver "<<pOutputSavers[k]<<" was supposed to handle type "<<format<<" but failed.") ;
-	  // go on with the search
-	}
 	if (ok)
 	  return true;
+	klfWarning("Output saver "<<pOutputSavers[k]<<" was supposed to handle type "<<format<<" but failed.") ;
+	// go on with the search
       }
     }
   }

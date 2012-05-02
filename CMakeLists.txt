@@ -272,7 +272,12 @@ endif(KLF_BUILD_GUI)
 if(APPLE)
   # These settings override on Mac OS X
   KLFGetCMakeVarChanged(CMAKE_OSX_ARCHITECTURES)
-  message(STATUS "Compiling for Mac OS X Architectures: ${CMAKE_OSX_ARCHITECTURES} (CMAKE_OSX_ARCHITECTURES)")
+  if(CMAKE_OSX_ARCHITECTURES)
+    set(display_CMAKE_OSX_ARCHITECTURES "${CMAKE_OSX_ARCHITECTURES}")
+  else(CMAKE_OSX_ARCHITECTURES)
+    set(display_CMAKE_OSX_ARCHITECTURES "(default)")
+  endif(CMAKE_OSX_ARCHITECTURES)
+  message(STATUS "Compiling for Mac OS X Architectures: ${display_CMAKE_OSX_ARCHITECTURES} (CMAKE_OSX_ARCHITECTURES)")
   if(KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
     KLFNote("Warning: KLF_TARGET_ARCH_64 ignored on Mac OS X. Use CMAKE_OSX_ARCHITECTURES instead.")
   endif(KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
@@ -459,14 +464,20 @@ if(APPLE AND CMAKE_OSX_ARCHITECTURES)
     "CMAKE_OSX_ARCHITECTURES"         # depvarlist
     )
 else(APPLE AND CMAKE_OSX_ARCHITECTURES)
-  # CMAKE_SYSTEM_PROCESSOR is the processor we're building _for_.
-  set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}") 
-  if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
-    set(internal_KLF_CMAKE_ARCH "x86")
-  endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
-  if(NOT APPLE AND NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
-    set(internal_KLF_CMAKE_ARCH "x86") # we are building for x86
-  endif(NOT APPLE AND NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
+  if (APPLE)
+    # best guess these days is that it's a x86_64. Change manually otherwise.
+    KLFNote("Guessing x86_64 processor architecture on Mac OS X. set KLF_CMAKE_ARCH to change.")
+    set(internal_KLF_CMAKE_ARCH "x86_64")
+  else(APPLE)
+    # CMAKE_SYSTEM_PROCESSOR is the processor we're building _for_.
+    set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}") 
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+      set(internal_KLF_CMAKE_ARCH "x86")
+    endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+    if(NOT APPLE AND NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
+      set(internal_KLF_CMAKE_ARCH "x86") # we are building for x86
+    endif(NOT APPLE AND NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
+  endif(APPLE)
   set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}"
     CACHE STRING "Build Target Processor Arch (Mac OS X universal: separated by commas)")
 endif(APPLE AND CMAKE_OSX_ARCHITECTURES)

@@ -610,10 +610,15 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
       if (  ! QFile::exists( locfn ) ||
 	    installedplugin_dt.isNull() || resourceplugin_dt.isNull() ||
 	    ( resourceplugin_dt > installedplugin_dt )  ) {
+	klfDbg("locsubdir="<<locsubdir) ;
 	// create path to that plugin dir
 	if (!locsubdir.isEmpty() &&
-	    !QDir(klfconfig.homeConfigDirPlugins + "/plugins/" + locsubdir).exists())
-          QDir(klfconfig.homeConfigDirPlugins).mkpath("/plugins/" + locsubdir);
+	    !QDir(klfconfig.homeConfigDirPlugins + "/plugins/" + locsubdir).exists()) {
+	  if (! QDir(klfconfig.homeConfigDirPlugins).mkpath(locsubdir) ) {
+	    klfWarning("Can't create local plugin directory "<<locsubdir
+		       <<" inside "<<klfconfig.homeConfigDirPlugins<<" !") ;
+	  }
+	}
 	// remove old version if exists
 	if (QFile::exists(locfn)) QFile::remove(locfn);
 	// copy plugin to local plugin dir

@@ -1615,7 +1615,7 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
   QFile fout;
   if (fileName.isEmpty() || fileName == "-") {
     if ( ! fout.f_open_fp(stdout) ) {
-      QString error = QObject::tr("Unable to open stderr for write! Error: %1\n",
+      QString error = QObject::tr("Unable to open stdout for write! Error: %1\n",
 				  "KLFBackend::saveOutputToFile").arg(fout.f_error());
       qWarning("%s", qPrintable(error));
       if (errorStringPtr != NULL)

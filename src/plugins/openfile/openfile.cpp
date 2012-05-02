@@ -45,6 +45,8 @@ void OpenFilePlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPlugi
 
   klfDbg("About to create buffers widget and show.") ;
 
+  klfWarning("!!!!!!!!!") ;
+
   _widget = new OpenBuffersWidget(mainWin);
   _widget->show();
 }
