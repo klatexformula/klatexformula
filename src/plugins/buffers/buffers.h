@@ -164,8 +164,8 @@ public:
     switch (which) {
     case PluginName: return QString("openfile");
     case PluginAuthor: return QString("Philippe Faist <philippe.faist")+QString("@bluewin.ch>");
-    case PluginTitle: return tr("Open Buffer");
-    case PluginDescription: return tr("Work on formula file");
+    case PluginTitle: return tr("Buffers");
+    case PluginDescription: return tr("Work in multiple buffers");
     case PluginDefaultEnable: return true;
     default:
       return QVariant();
