@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file plugins/openfile/openfile.h
+ *   file plugins/buffers/buffers.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2012 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,8 +21,8 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef PLUGINS_OPENFILE_H
-#define PLUGINS_OPENFILE_H
+#ifndef PLUGINS_BUFFERS_H
+#define PLUGINS_BUFFERS_H
 
 #include <QtCore>
 #include <QtGui>
@@ -152,17 +152,17 @@ private:
 
 
 
-class OpenFilePlugin : public QObject, public KLFPluginGenericInterface
+class BuffersPlugin : public QObject, public KLFPluginGenericInterface
 {
   Q_OBJECT
   Q_INTERFACES(KLFPluginGenericInterface)
 public:
-  OpenFilePlugin() : QObject(qApp) { }
-  virtual ~OpenFilePlugin() { }
+  BuffersPlugin() : QObject(qApp) { }
+  virtual ~BuffersPlugin() { }
 
   virtual QVariant pluginInfo(PluginInfo which) const {
     switch (which) {
-    case PluginName: return QString("openfile");
+    case PluginName: return QString("buffers");
     case PluginAuthor: return QString("Philippe Faist <philippe.faist")+QString("@bluewin.ch>");
     case PluginTitle: return tr("Buffers");
     case PluginDescription: return tr("Work in multiple buffers");

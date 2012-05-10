@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file plugins/openfile/openfile.cpp
+ *   file plugins/buffers/buffers.cpp
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2011 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -25,18 +25,18 @@
 #include <QtGui>
 
 
-#include "openfile.h"
+#include "buffers.h"
 
 // --------------------------------------------------------------------------------
 
 
-void OpenFilePlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
+void BuffersPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPluginConfigAccess *rwconfig)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("Initializing Openfile plugin (compiled for KLF version " KLF_VERSION_STRING ")");
+  klfDbg("Initializing Buffers plugin (compiled for KLF version " KLF_VERSION_STRING ")");
 
-  Q_INIT_RESOURCE(openfiledata);
-  klfDbg("initialized openfile resource data.") ;
+  Q_INIT_RESOURCE(buffersdata);
+  klfDbg("initialized buffers resource data.") ;
 
   _mainwin = mainWin;
   _app = app;
@@ -51,18 +51,18 @@ void OpenFilePlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPlugi
   _widget->show();
 }
 
-QWidget * OpenFilePlugin::createConfigWidget(QWidget *parent)
+QWidget * BuffersPlugin::createConfigWidget(QWidget *parent)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QWidget *w = new QWidget(parent);
   return w;
 }
 
-void OpenFilePlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
+void BuffersPlugin::loadFromConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 }
-void OpenFilePlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
+void BuffersPlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *config)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 }
@@ -73,6 +73,6 @@ void OpenFilePlugin::saveToConfig(QWidget *confwidget, KLFPluginConfigAccess *co
 
 
 // Export Plugin
-Q_EXPORT_PLUGIN2(openfile, OpenFilePlugin);
+Q_EXPORT_PLUGIN2(buffers, BuffersPlugin);
 
 

@@ -121,6 +121,17 @@ set(CMAKE_DEBUG_POSTFIX "${klf_default_debug_postfix}"
 mark_as_advanced(CMAKE_DEBUG_POSTFIX)
 
 
+# experimental features
+option(KLF_EXPERIMENTAL
+  "DEVELOPERS ONLY. Enable experimental unstable features (NOT recommended for regular use!)"
+  off)
+mark_as_advanced(KLF_EXPERIMENTAL)
+if(KLF_EXPERIMENTAL)
+  KLFNote("WARNING: Experimental features are unstable and are meant only for developers!! Use at your risk!!")
+  message(STATUS "Enabling experimental features (KLF_EXPERIMENTAL)")
+endif(KLF_EXPERIMENTAL)
+
+
 # see if user specified a QT_QMAKE_EXECUTABLE and set QT_QMAKE_EXECUTABLE_FINDQT too (FindQt4 bug?)
 if(QT_QMAKE_EXECUTABLE AND NOT QT_QMAKE_EXECUTABLE_FINDQT)
   set(QT_QMAKE_EXECUTABLE_FINDQT "${QT_QMAKE_EXECUTABLE}" CACHE STRING "Qt QMake executable path" FORCE)
@@ -586,6 +597,9 @@ else(KLF_DEBUG)
   # Instruct Qt to ignore qDebug() for RELEASE build configuration (if not KLF_DEBUG)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT")
 endif(KLF_DEBUG)
+if(KLF_EXPERIMENTAL)
+  add_definitions(-DKLF_EXPERIMENTAL)
+endif(KLF_EXPERIMENTAL)
 
 
 # Main subdirectory with all sources

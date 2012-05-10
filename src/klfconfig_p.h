@@ -39,6 +39,11 @@
 #include <klfcolorchooser.h>
 #include "klfconfig.h"
 
+
+
+// EXPERIMENTAL FEATURE: use  cmake -DKLF_EXPERIMENTAL=on  to enable
+#ifdef KLF_EXPERIMENTAL
+
 #include <ui_klfadvancedconfigeditor.h>
 
 
@@ -322,7 +327,7 @@ private:
   bool pCurrentInternalUpdate;
 };
 
-
+#endif // KLF_EXPERIMENTAL
 
 
 

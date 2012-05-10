@@ -46,11 +46,13 @@
 
 
 
+#ifdef KLF_EXPERIMENTAL
 void klf_show_advanced_config_editor()
 {
   KLFAdvancedConfigEditor *edit = new KLFAdvancedConfigEditor(NULL, &klfconfig);
   edit->show();
 }
+#endif
 
 
 static const char * __klf_fallback_share_dir =

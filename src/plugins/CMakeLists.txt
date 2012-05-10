@@ -15,7 +15,11 @@ set(KLF_CMAKE_BASEPLUGINSSUBDIR "${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}"
 
 # THE PLUGIN TARGET/BASE NAMES
 
-set(KLF_LOCAL_PLUGINS skin systrayicon openfile)
+set(KLF_LOCAL_PLUGINS skin systrayicon)
+if(KLF_EXPERIMENTAL)
+  set(KLF_LOCAL_PLUGINS ${KLF_LOCAL_PLUGINS} buffers)
+endif(KLF_EXPERIMENTAL)
+
 
 add_custom_target(klfbaseplugins ALL)
 

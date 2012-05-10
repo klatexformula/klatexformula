@@ -1,28 +1,28 @@
 # ######################################################### #
-# CMake project file for klatexformula/src/plugins/openfile #
+# CMake project file for klatexformula/src/plugins/buffers #
 # ######################################################### #
 # $Id: CMakeLists.txt 733 2011-09-16 15:41:13Z phfaist $
 # ######################################################### #
 
-set(openfile_SRCS
-  openfile.cpp
+set(buffers_SRCS
+  buffers.cpp
 )
-set(openfile_HEADERS
-  openfile.h
+set(buffers_HEADERS
+  buffers.h
   openbufferslistwidget.h
   openbuffer.h
 )
-set(openfile_QRCS
-  openfiledata.qrc
+set(buffers_QRCS
+  buffersdata.qrc
 )
-set(openfile_UIS
+set(buffers_UIS
   openbufferswidget.ui
 )
 
-qt4_wrap_cpp(openfile_MOC_CPPS ${openfile_HEADERS})
-qt4_wrap_ui(openfile_UIS_H ${openfile_UIS})
-qt4_add_resources(openfile_QRC_CPPS ${openfile_QRCS})
+qt4_wrap_cpp(buffers_MOC_CPPS ${buffers_HEADERS})
+qt4_wrap_ui(buffers_UIS_H ${buffers_UIS})
+qt4_add_resources(buffers_QRC_CPPS ${buffers_QRCS})
 
-add_library(openfile MODULE ${openfile_SRCS} ${openfile_MOC_CPPS} ${openfile_UIS_H} ${openfile_QRC_CPPS})
+add_library(buffers MODULE ${buffers_SRCS} ${buffers_MOC_CPPS} ${buffers_UIS_H} ${buffers_QRC_CPPS})
 
-KLFPluginUndefOrLink(openfile  klftools klfbackend klfapp)
+KLFPluginUndefOrLink(buffers  klftools klfbackend klfapp)

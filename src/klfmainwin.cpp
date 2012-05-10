@@ -4021,7 +4021,7 @@ void KLFMainWin::slotStyleManager()
 
 void KLFMainWin::slotSettings()
 {
-#ifdef KLF_DEBUG
+#ifdef KLF_EXPERIMENTAL
   /** \bug DEBUG...... */
   extern void klf_show_advanced_config_editor();
   klf_show_advanced_config_editor();
