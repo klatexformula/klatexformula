@@ -269,10 +269,10 @@ bool KLFLibLegacyFileDataPrivate::load(const QString& fnm)
 
 bool KLFLibLegacyFileDataPrivate::save(const QString& fnm)
 {
-  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"("+fnm+")") ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"('"+fnm+"')") ;
 
   if (flagForceReadOnly) {
-    qWarning()<<KLF_FUNC_NAME<<": attempt to save a forced-read-only file "<<fnm<<" !";
+    klfWarning("attempt to save a forced-read-only file! fnm="<<fnm<<"/fileName="<<fileName()<<" !");
     return false;
   }
 
@@ -437,18 +437,32 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fname, QStr
 
   QString lrname = legacyResourceName;
   if (QFile::exists(fileName)) {
+    klfWarning("File "<<fileName<<" already exists!") ;
     // fail; we want to _CREATE_ a .klf file. Erase file before calling this function to overwrite.
     return NULL;
   }
 
   if (fileName.isEmpty()) {
-    qWarning()<<KLF_FUNC_NAME<<": file name "<<fileName<<" is empty!";
+    klfWarning("file name "<<fileName<<" is empty!");
     return NULL;
   }
   //  if (!QFileInfo(QFileInfo(fileName).absolutePath()).isWritable()) {
   //    qWarning()<<KLF_FUNC_NAME<<": containing directory "<<QFileInfo(fileName).absolutePath()<<" is not writable.";
   //    return NULL;
   //  }
+
+  // create an empty .klf file
+  KLFLibLegacyFileDataPrivate * dd = KLFLibLegacyFileDataPrivate::instanceFor(fileName, false);
+  // initialize empty library
+  dd->legacyLibType = KLFLibLegacyFileDataPrivate::ExportLibraryType;
+  KLFLegacyData::KLFLibraryResource res = { KLFLegacyData::LibResourceUSERMIN, legacyResourceName };
+  dd->resources << res;
+  dd->library[res] = KLFLegacyData::KLFLibraryList();
+  // this will force a save
+  dd->flagForceReadOnly = false;
+  dd->haschanges = 1;
+  delete dd;
+  dd = NULL;
 
   QUrl url = QUrl::fromLocalFile(fileName);
   url.setScheme("klf+legacy");

@@ -27,6 +27,8 @@
 #include <QtCore>
 #include <QtGui>
 
+#include <klfrelativefont.h>
+
 #include <klfpluginiface.h>
 #include <klfconfig.h>
 
@@ -43,6 +45,12 @@ public:
   {
     setupUi(this);
 
+    pActiveBuffer = NULL;
+
+    KLFRelativeFont *rf = new KLFRelativeFont(this);
+    rf->setRelPointSize(-2);
+    rf->setThorough(true);
+
     connect(mainWin, SIGNAL(userInputChanged()), this, SLOT(updateInputFromMainWin()));
     connect(mainWin, SIGNAL(inputCleared()), this, SLOT(detachActiveBuffer()));
     connect(mainWin, SIGNAL(fileOpened(const QString&, KLFAbstractDataOpener *)),
@@ -53,6 +61,8 @@ public:
 	    this, SLOT(evaluated(const KLFBackend::klfOutput&)));
 
     connect(lstBuffers, SIGNAL(bufferSelected(OpenBuffer *)), this, SLOT(setActiveBuffer(OpenBuffer *)));
+
+    refreshButtonsState();
   }
 
 public slots:
@@ -63,14 +73,17 @@ public slots:
       pActiveBuffer->updateInputFromMainWin();
       lstBuffers->refreshBuffer(pActiveBuffer);
     }
+    refreshButtonsState();
   }
 
   void detachActiveBuffer()
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     lstBuffers->clearSelection();
+    //    pActiveBuffer = NULL;
     // this will call the list's selectionChanged() which in turn will call our setActiveBuffer() and
     // set pActiveBuffer correctly to NULL.
+    refreshButtonsState();
   }
 
   void mainwinFileOpened(const QString& file)
@@ -82,14 +95,23 @@ public slots:
     pActiveBuffer = newbuffer;
     newbuffer->updateInputFromMainWin();
     newbuffer->forceUnmodified();
+    refreshButtonsState();
+    if (pBufferList.size() > 1)
+      show();
   }
   void mainwinFileSaved(const QString& file, const QString& format, KLFAbstractOutputSaver *saver)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     OpenBuffer * newbuffer = new OpenBuffer(pMainWin, file, format, saver);
+    newbuffer->updateInputFromMainWin();
+    newbuffer->evaluated(pMainWin->currentKLFBackendOutput());
+    newbuffer->forceUnmodified();
     pBufferList.append(newbuffer);
     lstBuffers->setBufferList(pBufferList, newbuffer);
     pActiveBuffer = newbuffer;
+    refreshButtonsState();
+    if (pBufferList.size() > 1)
+      show();
   }
 
   void evaluated(const KLFBackend::klfOutput& output)
@@ -101,6 +123,12 @@ public slots:
     }
   }
 
+  void on_btnNew_clicked()
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    pMainWin->slotClearLatex();
+  }
+
   void on_btnSave_clicked()
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -108,6 +136,13 @@ public slots:
       pActiveBuffer->save();
       lstBuffers->refreshBuffer(pActiveBuffer);
     }
+    refreshButtonsState();
+  }
+
+  void on_btnSaveAs_clicked()
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    pMainWin->slotSave();
   }
 
   void on_btnClose_clicked()
@@ -124,10 +159,18 @@ public slots:
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     QString fn = QFileDialog::getOpenFileName(this, tr("Open a file"));
+    if (fn.isEmpty())
+      return; // cancelled by user
+
     bool ok = pMainWin->openFile(fn);
     if (!ok) {
       klfWarning("Failed to open file "<<fn) ;
     }
+  }
+
+  void on_btnSaveAll_clicked()
+  {
+    /** \todo ............ */
   }
 
   void setActiveBuffer(OpenBuffer * buffer)
@@ -138,6 +181,24 @@ public slots:
       pActiveBuffer->activate();
     } else {
       pMainWin->slotClear();
+    }
+    refreshButtonsState();
+  }
+
+  void refreshButtonsState()
+  {
+    btnSaveAll->setEnabled(false);
+    if (pActiveBuffer != NULL) {
+      // there is an active buffer
+      btnSave->show();
+      btnSave->setEnabled(pActiveBuffer->ismodified());
+      btnSaveAs->hide();
+      btnClose->setEnabled(true);
+    } else {
+      // no active buffer
+      btnSaveAs->show();
+      btnSave->hide();
+      btnClose->setEnabled(false);
     }
   }
 

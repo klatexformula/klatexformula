@@ -122,7 +122,7 @@ add_custom_target(klfbaseplugins_rcc ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${
 
 
 if(APPLE AND KLF_MACOSX_BUNDLES)
-  add_dependencies(klfbaseplugins_rcc klfbaseplugins_maclibpacked)
+  add_dependencies(klfbaseplugins_rcc klatexformula klfbaseplugins_maclibpacked)
   add_custom_command(TARGET klfbaseplugins_rcc POST_BUILD
       COMMAND cp "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
 		 "${klfbundlelocation_klatexformula}/Contents/Resources/rccresources/${KLF_BASEPLUGINS_FN_RCC}"

@@ -410,6 +410,9 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
   // set style sheet to whole application (doesn't work...)
   //  _app->setStyleSheet(stylesheet);
 
+  /** \bug BUG: if top-level widgets are added after plugin is loaded, it doesn't seem
+   * to work (eg. buffers box) */
+
   // set top-level widgets' klfTopLevelWidget property to TRUE, and
   // apply our style sheet to all top-level widgets
   QWidgetList toplevelwidgets = _app->topLevelWidgets();

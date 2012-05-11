@@ -2,5 +2,5 @@
 <rccinfo>
   <title>Base Plugins (@KLF_VERSION@)</title>
   <author>Philippe Faist</author>
-  <description>Provides plugins Skin and System Tray Icon for KLatexFormula @KLF_VERSION@</description>
+  <description>Provides Basic Plugins for KLatexFormula @KLF_VERSION@</description>
 </rccinfo>

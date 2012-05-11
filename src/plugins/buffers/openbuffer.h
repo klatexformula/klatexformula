@@ -36,6 +36,9 @@ class OpenBuffer : public QObject
 {
   Q_OBJECT
 public:
+  /**
+   * \warning doesn't initialize input! need to call updateInput...() at once!
+   */
   OpenBuffer(KLFMainWin * mainWin, const QString& file, const QString& format, KLFAbstractOutputSaver *saver = NULL)
     : pMainWin(mainWin), pFile(file), pFormat(format), pSaver(saver), pModified(false)
   {
@@ -74,11 +77,19 @@ public slots:
 
   void updateInputFromMainWin()
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+    KLFBackend::klfInput input;
+    input = pMainWin->currentInputState();
+    input.userScript = QFileInfo(input.userScript).fileName();
+    if (input == pInput) {
+      // no modification
+      klfDbg("ignoring update event, no modification");
+      return;
+    }
+
+    pInput = input;
     pModified = true;
-    pInput = pMainWin->currentInputState();
-    pInput.userScript = QFileInfo(pInput.userScript).fileName();
-    // KLFBackend::klfOutput output = currentKLFBackendOutput();
-    // ...
   }
 
   void activate()

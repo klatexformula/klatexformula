@@ -37,6 +37,7 @@ public:
   OpenBuffersListWidget(QWidget *parent)
     : QListWidget(parent)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     setIconSize(QSize(150,50));
 
     pActiveBuffer = NULL;
@@ -50,6 +51,7 @@ signals:
 public slots:
   void setBufferList(QList<OpenBuffer*> buffers, OpenBuffer * activeBuffer)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     blockSignals(true);
     int k;
     pItemsByBuffer.clear();
@@ -70,6 +72,7 @@ public slots:
 
   void refreshBuffer(OpenBuffer * buffer)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     QListWidgetItem *item = pItemsByBuffer.value(buffer, NULL);
     if (item == NULL) {
       klfWarning("Can't find buffer "<<buffer) ;

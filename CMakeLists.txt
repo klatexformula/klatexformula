@@ -477,7 +477,7 @@ if(APPLE AND CMAKE_OSX_ARCHITECTURES)
 else(APPLE AND CMAKE_OSX_ARCHITECTURES)
   if (APPLE)
     # best guess these days is that it's a x86_64. Change manually otherwise.
-    KLFNote("Guessing x86_64 processor architecture on Mac OS X. set KLF_CMAKE_ARCH to change.")
+    KLFNote("Guessing x86_64 processor architecture on Mac OS X. set CMAKE_OSX_ARCHITECTURES to change.")
     set(internal_KLF_CMAKE_ARCH "x86_64")
   else(APPLE)
     # CMAKE_SYSTEM_PROCESSOR is the processor we're building _for_.

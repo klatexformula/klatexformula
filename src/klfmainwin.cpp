@@ -456,12 +456,12 @@ KLFMainWin::KLFMainWin()
 
   loadDefaultStyle();
 
-  // For systematical syntax highlighting
-  // make sure syntax highlighting is up-to-date at all times
-  QTimer *synthighlighttimer = new QTimer(this);
-  connect(synthighlighttimer, SIGNAL(timeout()), u->txtLatex->syntaxHighlighter(), SLOT(refreshAll()));
-  connect(synthighlighttimer, SIGNAL(timeout()), u->txtPreamble->syntaxHighlighter(), SLOT(refreshAll()));
-  synthighlighttimer->start(250);
+  //  // For systematical syntax highlighting
+  //  // make sure syntax highlighting is up-to-date at all times
+  //  QTimer *synthighlighttimer = new QTimer(this);
+  //  connect(synthighlighttimer, SIGNAL(timeout()), u->txtLatex->syntaxHighlighter(), SLOT(refreshAll()));
+  //  connect(synthighlighttimer, SIGNAL(timeout()), u->txtPreamble->syntaxHighlighter(), SLOT(refreshAll()));
+  //  synthighlighttimer->start(250);
 
   // initialize the margin unit selector
   u->cbxMarginsUnit->setCurrentUnitAbbrev("pt");
@@ -520,6 +520,8 @@ KLFMainWin::KLFMainWin()
   klfconfig.UI.previewTooltipMaxSize.connectQObjectProperty(pLatexPreviewThread, "largePreviewSize");
   pLatexPreviewThread->setInput(collectInput(false));
   pLatexPreviewThread->setSettings(_settings);
+
+  pLatexPreviewThread->setPriority(QThread::LowestPriority);
 
   connect(u->txtLatex, SIGNAL(insertContextMenuActions(const QPoint&, QList<QAction*> *)),
 	  this, SLOT(slotEditorContextMenuInsertActions(const QPoint&, QList<QAction*> *)));
@@ -3747,9 +3749,9 @@ bool KLFMainWin::saveOutputToFile(const KLFBackend::klfOutput& output, const QSt
     for (j = 0; j < xoformats.size(); ++j) {
       // test this format
       klfDbg("\t format "<<xoformats[j]<<" has patterns "<<pOutputSavers[k]->formatFilePatterns(xoformats[j])
-	     <<", we're looking for "<<format<<", RESULT="
-	     <<pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains(format, Qt::CaseInsensitive)) ;
-      if (pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains(format, Qt::CaseInsensitive)) {
+	     <<", we're looking for "<<("*."+format)<<", RESULT="
+	     <<pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains("*."+format, Qt::CaseInsensitive)) ;
+      if (pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains("*."+format, Qt::CaseInsensitive)) {
 	// try saving in this format
 	bool ok = pOutputSavers[k]->saveToFile(xoformats[j], fname, output);
 	if (ok)
