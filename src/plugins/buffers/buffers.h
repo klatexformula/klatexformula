@@ -59,8 +59,17 @@ public:
 	    this, SLOT(mainwinFileSaved(const QString&, const QString&, KLFAbstractOutputSaver *)));
     connect(mainWin, SIGNAL(evaluateFinished(const KLFBackend::klfOutput&)),
 	    this, SLOT(evaluated(const KLFBackend::klfOutput&)));
+    connect(mainWin, SIGNAL(previewAvailable(const QImage&, const QImage&)),
+	    this, SLOT(previewAvailable(const QImage&)));
+
+
+    connect(mainWin, SIGNAL(userSaveControlsActive(bool)), btnSaveAs, SLOT(setEnabled(bool)));
 
     connect(lstBuffers, SIGNAL(bufferSelected(OpenBuffer *)), this, SLOT(setActiveBuffer(OpenBuffer *)));
+
+    /// \bug doesn't work?
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B), mainWin, SLOT(show()),
+		  SLOT(show()), Qt::ApplicationShortcut);
 
     refreshButtonsState();
   }
@@ -96,7 +105,7 @@ public slots:
     newbuffer->updateInputFromMainWin();
     newbuffer->forceUnmodified();
     refreshButtonsState();
-    if (pBufferList.size() > 1)
+    if (pBufferList.size() >= 1)
       show();
   }
   void mainwinFileSaved(const QString& file, const QString& format, KLFAbstractOutputSaver *saver)
@@ -110,7 +119,7 @@ public slots:
     lstBuffers->setBufferList(pBufferList, newbuffer);
     pActiveBuffer = newbuffer;
     refreshButtonsState();
-    if (pBufferList.size() > 1)
+    if (pBufferList.size() >= 1)
       show();
   }
 
@@ -119,6 +128,14 @@ public slots:
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     if (pActiveBuffer != NULL) {
       pActiveBuffer->evaluated(output);
+      lstBuffers->refreshBuffer(pActiveBuffer);
+    }
+  }
+  void previewAvailable(const QImage& preview)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    if (pActiveBuffer != NULL) {
+      pActiveBuffer->setPreview(preview);
       lstBuffers->refreshBuffer(pActiveBuffer);
     }
   }

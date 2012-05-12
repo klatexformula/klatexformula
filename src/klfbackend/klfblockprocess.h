@@ -127,10 +127,5 @@ private:
 };
 
 
-//! The current process environment
-/** Returns the current process environment, as a QStringList. */
-KLF_EXPORT QStringList klf_cur_environ();
-
-
 
 #endif

@@ -139,9 +139,3 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   return true;
 }
 
-
-
-KLF_EXPORT QStringList klf_cur_environ()
-{
-  return QProcess::systemEnvironment();
-}

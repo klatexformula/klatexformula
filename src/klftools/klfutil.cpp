@@ -31,6 +31,7 @@
 #include <QPushButton>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QProcess>
 
 #include "klfutil.h"
 
@@ -300,6 +301,156 @@ KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference
 
   return KLF_DEBUG_TEE( ref + path );
 }
+
+
+// -----------------------------------------------------
+
+
+QString klfGetEnvironmentVariable(const QStringList& env, const QString& var)
+{
+  QString vareq = var + QLatin1String("=");
+  // search for declaration of var in list
+  int k;
+  for (k = 0; k < env.size(); ++k) {
+    if (env[k].startsWith(vareq)) {
+      return env[k].mid(vareq.length());
+    }
+  }
+  // declaration not found. Return null QString().
+  return QString();
+}
+
+QStringList klfSetEnvironmentVariable(const QStringList& env, const QString& var,
+				      const QString& value)
+{
+  QStringList env2 = env;
+  QString vareq = var + QLatin1String("=");
+  // search for declaration of var in list
+  int k;
+  for (k = 0; k < env2.size(); ++k) {
+    if (env2[k].startsWith(vareq)) {
+      env2[k] = vareq+value;
+      return env2;
+    }
+  }
+  // declaration not found, just append
+  env2.append(vareq+value);
+  return env2;
+}
+QStringList klfGetEnvironmentPath(const QStringList& env, const QString& var)
+{
+  QString value = klfGetEnvironmentVariable(env, var);
+  // split value according to PATH_SEP
+  return value.split(KLF_PATH_SEP);
+}
+
+/*
+  enum KlfEnvPathAction {
+  KlfEnvPathPrepend      = 0x0001, //!< Prepend given value to list of path items
+  KlfEnvPathReplace      = 0x0002, //!< Replace current path items by given ones
+  KlfEnvPathAppend       = 0x0003, //!< Append given path items to current list
+  KlfEnvPathNoAction     = 0x0000, //!< Don't take any action, just apply flags
+  KlfEnvPathActionMask   = 0x00ff, //!< Mask out the requested action
+  KlfEnvPathNoDuplicates = 0x0100, //!< Remove duplicates from the variable
+  KlfEnvPathFlagsMask    = 0xff00, //!< Mask out the flags
+  };
+*/
+
+QStringList klfSetEnvironmentPath(const QStringList& env, const QStringList& items,
+				  const QString& var, uint action)
+{
+  QStringList newitems;
+  switch (action & KlfEnvPathActionMask) {
+  case KlfEnvPathPrepend:
+    newitems = QStringList() << items << klfGetEnvironmentPath(env, var);
+    break;
+  case KlfEnvPathAppend:
+    newitems = QStringList() << klfGetEnvironmentPath(env, var) << items;
+    break;
+  case KlfEnvPathReplace:
+    newitems = items;
+    break;
+  case KlfEnvPathNoAction:
+    newitems = klfGetEnvironmentPath(env, var);
+    break;
+  default:
+    klfWarning("No or unknown action specified! action="<<action) ;
+    break;
+  }
+  if (action & KlfEnvPathNoDuplicates) {
+    // remove duplicates from newitems
+    QStringList newitems2;
+    int k;
+    for (k = 1; k < newitems.size(); ++k) {
+      if (newitems2.contains(newitems[k]))
+	continue;
+      newitems2.append(newitems[k]);
+    }
+    newitems = newitems2;
+  }
+
+  return klfSetEnvironmentVariable(env, var, newitems.join(QString("")+KLF_PATH_SEP));
+}
+
+
+static QString __klf_expandenvironmentvariables(const QString& expression, const QStringList& env,
+						bool recursive, const QStringList& recstack)
+{
+  QString s = expression;
+  QRegExp rx("\\$(?:(\\$|(?:[A-Za-z0-9_]+))|\\{([A-Za-z0-9_]+)\\})");
+  int i = 0;
+  while ( (i = rx.indexIn(s, i)) != -1 ) {
+    // match found, replace it
+    QString envvarname = rx.cap(1);
+    if (envvarname.isEmpty() || envvarname == QLatin1String("$")) {
+      // note: empty variable name expands to a literal '$'
+      s.replace(i, rx.matchedLength(), QLatin1String("$"));
+      i += 1;
+      continue;
+    }
+    // if we're already expanding the value of this variable at some higher recursion level, abort
+    // this replacement and leave the variable name.
+    if (recstack.contains(envvarname)) {
+      klfWarning("Recursive definition detected for variable "<<envvarname<<"!") ;
+      i += rx.matchedLength();
+      continue;
+    }
+    // get the environment variable's value
+    QString val;
+    if (env.isEmpty()) {
+      const char *svalue = getenv(qPrintable(envvarname));
+      val = (svalue != NULL) ? QString::fromLocal8Bit(svalue) : QString();
+    } else {
+      val = klfGetEnvironmentVariable(env, envvarname);
+    }
+    // if recursive, perform replacements on its value
+    if (recursive) {
+      val = __klf_expandenvironmentvariables(val, env, true, QStringList()<<recstack<<envvarname) ;
+    }
+    klfDbg("Replaced value of "<<envvarname<<" is "<<val) ;
+    s.replace(i, rx.matchedLength(), val);
+    i += val.length();
+  }
+  // replacements performed
+  return s;
+}
+
+QString klfExpandEnvironmentVariables(const QString& expression, const QStringList& env,
+				      bool recursive)
+{
+  return __klf_expandenvironmentvariables(expression, env, recursive, QStringList());
+}
+
+
+KLF_EXPORT QStringList klfCurrentEnvironment()
+{
+  return QProcess::systemEnvironment();
+}
+
+
+
+
+
 
 
 // ----------------------------------------------------

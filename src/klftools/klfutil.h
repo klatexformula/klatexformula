@@ -251,6 +251,67 @@ KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path 
 
 
 
+/** \brief returns the value of an environment variable, defined in \c env.
+ *
+ * \c env is expected to be a list of strings, each starting with \c "VARNAME=", and the rest
+ *   being the value, like the output of \c 'env' in a terminal.
+ *
+ * A null QString() is returned if \c var is not defined in \c env.
+ */
+KLF_EXPORT QString klfGetEnvironmentVariable(const QStringList& env, const QString& var);
+
+/** \brief set the value of a variable in environment variables list, replacing existing definition if any.
+ *
+ * If variable \c var exists in \c env, then its definition is replaced. If it does not exist, a definition
+ * for \c var is appended to \c env.
+ *
+ * \c env is expected to be in the form described in \ref klfGetEnvironmentVariable().
+ *
+ * \returns the new environment variable list. The argument \c env itself is not changed.
+ */
+KLF_EXPORT QStringList klfSetEnvironmentVariable(const QStringList& env, const QString& var,
+						 const QString& value);
+/** \brief get the path items of an environment variable (commonly $PATH)
+ *
+ * Like klfGetEnvironmentVariable(), but splits the result at colons `:' for Unix/Mac and
+ * at semicolons for Windows.
+ */
+KLF_EXPORT QStringList klfGetEnvironmentPath(const QStringList& env, const QString& var = QLatin1String("PATH"));
+
+/** \brief Used in klfSetEnvironmentPath(). */
+enum KlfEnvPathAction { KlfEnvPathPrepend      = 0x0001, //!< Prepend given value to list of path items
+			KlfEnvPathReplace      = 0x0002, //!< Replace current path items by given ones
+			KlfEnvPathAppend       = 0x0003, //!< Append given path items to current list
+			KlfEnvPathNoAction     = 0x0000, //!< Don't take any action, just apply flags
+			KlfEnvPathActionMask   = 0x00ff, //!< Mask out the requested action
+			KlfEnvPathNoDuplicates = 0x0100, //!< Remove duplicates from the variable
+			KlfEnvPathFlagsMask    = 0xff00, //!< Mask out the flags
+};
+
+/** \brief set/add path items to an environment variable (commonly $PATH)
+ *
+ * \returns the new environment variable list. The argument \c env itself is not changed.
+ */
+KLF_EXPORT QStringList klfSetEnvironmentPath(const QStringList& env, const QStringList& items,
+					     const QString& var = QLatin1String("PATH"),
+					     uint action = KlfEnvPathAppend|KlfEnvPathNoDuplicates);
+
+/** \brief Expands references to environment variables to their values
+ *
+ * Examines \c expression, and replaces occurrences of \c "$VARNAME" by the value of VARNAME in the
+ * environment \c env. (\c env is expected to be like for klfGetEnvironmentVariable()). If \c env
+ * is empty, the current environment is queried.
+ */
+KLF_EXPORT QString klfExpandEnvironmentVariables(const QString& expression, const QStringList& env = QStringList(),
+						 bool recursive = true);
+
+/** \brief Returns the current system's environment.
+ *
+ * it is formatted like for klfGetEnvironmentVariable().
+ */
+KLF_EXPORT QStringList klfCurrentEnvironment();
+
+
 /** \brief Returns absolute path to \c path as seen from \c reference
  *
  * If \c path is absolute, then \c path is returned as is. Otherwise, an absolute

@@ -278,12 +278,20 @@ signals:
 
   void evaluateFinished(const KLFBackend::klfOutput& output);
 
+  void previewAvailable(const QImage& preview, const QImage& largePreview);
+  void previewRealTimeError(const QString& errmsg, int errcode);
+
   // dialogs (e.g. stylemanager) should connect to this in case styles change unexpectedly
   void stylesChanged();
 
   void applicationLocaleChanged(const QString& newLocale);
 
   void klfConfigChanged();
+
+  /** Emitted when view controls (eg. large preview button) are enabled/disabled */
+  void userViewControlsActive(bool active);
+  /** Emitted when save controls (eg. save button) are enabled/disabled */
+  void userSaveControlsActive(bool active);
 
   void userActivity();
 

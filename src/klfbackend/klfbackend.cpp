@@ -160,10 +160,10 @@ class KLFPdfmarksWriteLatexMetaInfo : public KLFAbstractLatexMetaInfo
   QByteArray * _s;
 public:
   KLFPdfmarksWriteLatexMetaInfo(QByteArray * string) : _s(string) {
-    _s->append( // ensure pdfmark defined
+    _s->append( // ensure pdfmark symbol defined in postscript
 	       "/pdfmark where { pop } { /globaldict where { pop globaldict } { userdict } ifelse "
 	       "/pdfmark /cleartomark load put } ifelse\n"
-	       // now the proper PDFmarks dictionary
+	       // now the proper PDFmarks DOCINFO dictionary
 	       "[ "
 	       );
   }
@@ -371,43 +371,6 @@ struct cleanup_caller {
   }
 };
 
-static QString klf_expand_env_vars(const QString& envexpr)
-{
-  QString s = envexpr;
-  QRegExp rx("\\$(?:(\\$|(?:[A-Za-z0-9_]+))|\\{([A-Za-z0-9_]+)\\})");
-  int i = 0;
-  while ( (i = rx.rx_indexin_i(s, i)) != -1 ) {
-    // match found, replace it
-    QString envvarname = rx.cap(1);
-    if (envvarname.isEmpty() || envvarname == QLatin1String("$")) {
-      // note: empty variable name expands to a literal '$'
-      s.replace(i, rx.matchedLength(), QLatin1String("$"));
-      i += 1;
-      continue;
-    }
-    const char *svalue = getenv(qPrintable(envvarname));
-    QString qsvalue = (svalue != NULL) ? QString::fromLocal8Bit(svalue) : QString();
-    s.replace(i, rx.matchedLength(), qsvalue);
-    i += qsvalue.length();
-  }
-  // replacements performed
-  return s;
-}
-
-static void klf_append_replace_env_var(QStringList *list, const QString& var, const QString& line)
-{
-  // search for declaration of var in list
-  int k;
-  for (k = 0; k < (int)list->size(); ++k) {
-    if (list->operator[](k).startsWith(var+QString("="))) {
-      list->operator[](k) = line;
-      return;
-    }
-  }
-  // declaration not found, just append
-  list->append(line);
-}
-
 
 
 
@@ -539,7 +502,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	 qPrintable(in.latex));
 
   { // get full, expanded exec environment
-    QStringList execenv = klf_cur_environ();
+    QStringList execenv = klfCurrentEnvironment();
     for (k = 0; k < (int)settings.execenv.size(); ++k) {
       int eqpos = settings.execenv[k].s_indexOf(QChar('='));
       if (eqpos == -1) {
@@ -548,8 +511,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	continue;
       }
       QString varname = settings.execenv[k].mid(0, eqpos);
-      QString newenvdef = klf_expand_env_vars(settings.execenv[k]);
-      klf_append_replace_env_var(&execenv, varname, newenvdef);
+      QString varvalue = settings.execenv[k].mid(eqpos+1);
+      QString newenvdef = klfExpandEnvironmentVariables(varvalue);
+      execenv = klfSetEnvironmentVariable(execenv, varname, newenvdef);
     }
     settings.execenv = execenv;
   }
@@ -1742,23 +1706,13 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
   // detect mgs.exe as ghostscript and setup its environment properly
   QFileInfo gsfi(settings->gsexec);
   if (gsfi.fileName() == "mgs.exe") {
-    QString mgsenv = QString("MIKTEX_GS_LIB=")
-      + QDir::toNativeSeparators(gsfi.fi_absolutePath()+"/../../ghostscript/base")
-      + ";"
-      + QDir::toNativeSeparators(gsfi.fi_absolutePath()+"/../../fonts");
-    klf_append_replace_env_var(& settings->execenv, "MIKTEX_GS_LIB", mgsenv);
-    klfDbg("Adjusting environment for mgs.exe: `"+mgsenv+"'") ;
+    QString mgsenv = QString("")
+      + QDir::toNativeSeparators(gsfi.absolutePath()+"/../../ghostscript/base")
+      + QString(KLF_PATH_SEP)
+      + QDir::toNativeSeparators(gsfi.absolutePath()+"/../../fonts");
+    settings->execenv = klfSetEnvironmentVariable(settings->execenv, "MIKTEX_GS_LIB", mgsenv);
+    klfDbg("Adjusting environment for mgs.exe: `MIKTEX_GS_LIB="+mgsenv+"'") ;
   }
-
-#ifdef Q_WS_MAC
-  // make sure that epstopdf's path is in PATH because it wants to all gs
-  // (eg fink distributions)
-  if (!settings->epstopdfexec.isEmpty()) {
-    QFileInfo epstopdf_fi(settings->epstopdfexec);
-    QString execenvpath = QString("PATH=%1:$PATH").arg(epstopdf_fi.fi_absolutePath());
-    klf_append_replace_env_var(& settings->execenv, "PATH", execenvpath);
-  }
-#endif
 
   return true;
 }
@@ -1806,7 +1760,8 @@ void initGsInfo(const KLFBackend::klfSettings *settings)
     //     p.resErrCodes[KLFFP_DATAREADFAIL] = ;
     
     QStringList ee = settings->execenv;
-    klf_append_replace_env_var(&ee, QLatin1String("LANG"), QLatin1String("LANG=en_US.UTF-8"));
+    // make sure we have gs' output in english
+    ee = klfSetEnvironmentVariable(ee, QLatin1String("LANG"), QLatin1String("en_US.UTF-8"));
     p.setExecEnviron(ee);
     
     p.setArgv(QStringList() << settings->gsexec << "--help");

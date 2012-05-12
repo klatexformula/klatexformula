@@ -2716,6 +2716,8 @@ void KLFMainWin::showRealTimePreview(const QImage& preview, const QImage& largeP
   u->lblOutput->display(preview, largePreview, false);
   slotSetViewControlsEnabled(true);
   slotSetSaveControlsEnabled(false);
+
+  emit previewAvailable(preview, largePreview);
 }
 
 void KLFMainWin::showRealTimeError(const QString& errmsg, int errcode)
@@ -2729,6 +2731,8 @@ void KLFMainWin::showRealTimeError(const QString& errmsg, int errcode)
   u->lblOutput->displayError(s, /*labelenabled:*/false);
   slotSetViewControlsEnabled(false);
   slotSetSaveControlsEnabled(false);
+
+  emit previewRealTimeError(errmsg, errcode);
 }
 
 
@@ -3522,6 +3526,13 @@ void KLFMainWin::slotCopy()
 
 void KLFMainWin::slotSave(const QString& suggestfname)
 {
+  // make sure we are allowed to save
+  if (!u->btnSave->isEnabled()) {
+    // we are not allowed to save!
+    klfWarning("There is nothing to save!") ;
+    return;
+  }
+
   // notify that we are about to save to file
   emit aboutToSaveAs();
 
@@ -4035,11 +4046,13 @@ void KLFMainWin::slotSettings()
 
 void KLFMainWin::slotSetViewControlsEnabled(bool enabled)
 {
+  emit userViewControlsActive(enabled);
   u->btnShowBigPreview->setEnabled(enabled);
 }
 
 void KLFMainWin::slotSetSaveControlsEnabled(bool enabled)
 {
+  emit userSaveControlsActive(enabled);
   u->btnSetExportProfile->setEnabled(enabled);
   u->btnDrag->setEnabled(enabled);
   u->btnCopy->setEnabled(enabled);

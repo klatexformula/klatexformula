@@ -48,7 +48,8 @@ void BuffersPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPlugin
   klfWarning("!!!!!!!!!") ;
 
   _widget = new OpenBuffersWidget(mainWin);
-  _widget->show();
+  // will show automatically once there's 1 open buffer
+  //  _widget->show();
 }
 
 QWidget * BuffersPlugin::createConfigWidget(QWidget *parent)

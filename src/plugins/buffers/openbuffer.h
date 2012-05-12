@@ -106,6 +106,11 @@ public slots:
     pPixmap = QPixmap::fromImage(output.result);
   }
 
+  void setPreview(const QImage& img)
+  {
+    pPixmap = QPixmap::fromImage(img);
+  }
+
   /** used when loading a file */
   void forceUnmodified()
   {
