@@ -283,6 +283,7 @@ public:
 	  << "image/jpeg"
 	  << "text/uri-list"
 	  << "text/plain"
+	  << "application/pdf" // new!
 	  << "application/x-klf-libentries"
 	  << "application/x-klatexformula"
 	  << "application/x-klatexformula-db" ;
@@ -308,6 +309,10 @@ public:
       return false;
     }
     if (file.endsWith(".klfcommands")) {
+      return true;
+    }
+    if (file.endsWith(".pdf")) {
+      /// \todo ONLY IF FILE HAS THE RELEVANT META-INFO. .....
       return true;
     }
     bool isimage = false;
@@ -336,6 +341,11 @@ public:
     buf.setData(data);
     buf.open(QIODevice::ReadOnly);
     bool isimg = false;
+    if (data.startsWith("%PDF")) {
+      if (data.contains("/KLFApplication("))
+	return true;
+      return false;
+    }
     if (isKlfImage(&buf, &isimg))
       return true;
     if (isimg) // no try going further, we can't otherwise read image ...
@@ -369,6 +379,16 @@ public:
     if (ext == "klfcommands") {
       // execute commands
       return mainWin()->executeURLCommandsFromFile(file);
+    }
+
+    if (ext == "pdf") {
+      // read from PDF
+      QFile f(file);
+      if (!f.open(QIODevice::ReadOnly)) {
+	klfWarning("Failed to open file "<<file) ;
+	return false;
+      }
+      return openPDF(&f);
     }
 
     { // try to open image
@@ -438,12 +458,17 @@ public:
     if (mimetype == "text/plain") {
       if (!mainWin()->currentInputLatex().isEmpty()) {
 	// do NOT overwrite current editing text with local copy/paste operations
-	// inside editor!! Simply put, only paste if the editor is empty!
+	// inside editor!! (i.e. normal editing inside editor will generate an event here)
+	// Simply put, only paste if the editor is empty!
 	return false;
       }
       //  mainWin()->loadDefaultStyle(); // this can be annoying if pasting into empty editor...
       mainWin()->slotSetLatex(QString::fromLocal8Bit(data));
       return true;
+    }
+
+    if (mimetype == "application/pdf") {
+      return openPDF(&buf);
     }
 
     bool isimage = false;
@@ -545,6 +570,35 @@ private:
     // try named color format
     QColor c(text);
     return c.rgba();
+  }
+
+  bool openPDF(QIODevice * dev)
+  {
+    /// \bug ............................
+    klfWarning("Not yet implemented!!") ;
+    QByteArray data = dev->readAll();
+    if (data.isEmpty()) {
+      klfWarning("No data!") ;
+      return false;
+    } /*
+    QString latex = read_from_pdf_metadata("KLFInputLatex", data);
+    QString mmode = read_from_pdf_metadata("KLFInputMathMode", data);
+    QString preamble = read_from_pdf_metadata("KLFInputPreamble", data);
+    int fontsize = read_from_pdf_metadata("KLFInputFontSize", data).toInt();
+    uint fgcol = ....;
+    uint bgcol = ....;
+    int dpi = ....;
+    double vectorscale = ....;
+    bool bypasstempl = ...;
+    userscript = ;
+    userscriptparams = ;
+    t,r,b,l,borderoffset=;
+    oulinefonts =;
+    calcepsbb =;
+    raw=;
+    pdf=;
+    svg=;*/
+    return false;
   }
 
   bool tryOpenKlfLibEntries(QIODevice *dev)
