@@ -1140,10 +1140,11 @@ KLF_EXPORT QDebug __klf_warning_hdr(QDebug warndbg, const char * funcname, const
 
 
 
+// declared in klfdefs_<OS>.cpp
+QString klf_defs_sysinfo_arch();
 
 KLF_EXPORT QString KLFSysInfo::arch()
 {
-  extern QString klf_defs_sysinfo_arch();
   return klf_defs_sysinfo_arch();
 }
 
