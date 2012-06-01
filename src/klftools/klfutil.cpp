@@ -247,7 +247,8 @@ KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int lim
   expr = QDir::fromNativeSeparators(wildcard_expression);
   QStringList pathlist = expr.split("/", QString::SkipEmptyParts);
   QString root = "/";
-  static QRegExp driveregexp("^[A-Za-z]:$");
+  // drive regular expression, or simply QResource :/path
+  static QRegExp driveregexp("^[A-Za-z]?:$");
   if (driveregexp.exactMatch(pathlist[0])) {
     // Windows System with X: drive letter
     root = pathlist[0]+"/";
@@ -258,8 +259,15 @@ KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int lim
 
 KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extra_path)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   static const QString PATH = getenv("PATH");
   static const QString pathsep = QString("")+KLF_PATH_SEP;
+
+  QFileInfo fi(programName);
+  if (fi.isAbsolute() && fi.exists() && fi.isExecutable())
+    return programName;
+
 
   QString path = PATH;
   if (!extra_path.isEmpty())
@@ -269,9 +277,9 @@ KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extr
   QString test;
   int k, j;
   for (k = 0; k < (int)paths.size(); ++k) {
-    klfDbg("searching in "+paths[k]) ;
+    klfDbg("searching for "<<programName<<" in "<<paths[k]) ;
     QStringList hits = klfSearchFind(paths[k]+"/"+programName);
-    klfDbg("\t...resulting in hits = "+hits.join(" ;; ")) ;
+    klfDbg("\t...resulting in hits = "<<hits) ;
     for (j = 0; j < (int)hits.size(); ++j) {
       if ( QFileInfo(hits[j]).isExecutable() ) {
 	klfDbg("\tFound definitive (executable) hit at "+hits[j]) ;
@@ -282,6 +290,27 @@ KLF_EXPORT QString klfSearchPath(const QString& programName, const QString& extr
   return QString::null;
 }
 
+KLF_EXPORT QString klfSearchPath(const QString& fname, const QStringList& paths)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  if (QFileInfo(fname).isAbsolute() && QFile::exists(fname))
+    return fname;
+
+  QString test;
+  int k;
+  QStringList hits;
+  for (k = 0; k < (int)paths.size(); ++k) {
+    klfDbg("searching for "<<fname<<" in "<<paths[k]) ;
+    hits = klfSearchFind(paths[k]+"/"+fname);
+    klfDbg("\t...resulting in hits = "<<hits) ;
+    if (hits.size() > 0) {
+      klfDbg("\t...returning "<<hits[0]);
+      return hits[0];
+    }
+  }
+  return QString::null;
+}
 
 KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference)
 {

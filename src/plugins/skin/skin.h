@@ -86,7 +86,7 @@ public:
   }
   */
 
-  static Skin loadSkin(const QString& fn, bool getStyleSheet = true);
+  static Skin loadSkin(KLFPluginConfigAccess *cfg, const QString& fn, bool getStyleSheet = true);
 
   bool getModifiedAndReset() { bool m = _modified; _modified = false; return m; }
 

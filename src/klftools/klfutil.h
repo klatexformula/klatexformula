@@ -249,6 +249,16 @@ KLF_EXPORT QStringList klfSearchFind(const QString& wildcard_expression, int lim
  */
 KLF_EXPORT QString klfSearchPath(const QString& prog, const QString& extra_path = "");
 
+/** \brief Search for a file withing a list of directories
+ *
+ * \todo doc......
+ *
+ * very much like klfSearchPath(const QString&, const QString&), except that it is not explicitely
+ * targeted at searching for executables. Just look for a file named 'fname' in the given path
+ * list. Both 'path' and 'fname' may contain klfSearchFind()-compatible wildcards.
+ */
+KLF_EXPORT QString klfSearchPath(const QString& fname, const QStringList& path);
+
 
 
 /** \brief returns the value of an environment variable, defined in \c env.

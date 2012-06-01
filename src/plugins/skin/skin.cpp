@@ -52,7 +52,7 @@ SkinConfigWidget::SkinConfigWidget(QWidget *parent, KLFPluginConfigAccess *conf)
 
 
 // static
-Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
+Skin SkinConfigWidget::loadSkin(KLFPluginConfigAccess * config, const QString& fn, bool getstylesheet)
 {
   Q_UNUSED(getstylesheet) ;
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -86,6 +86,10 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
 
   QMap<QString,QString> defines;
 
+  QStringList stylesheetpath = QStringList()
+    << QLatin1String(":/plugindata/skin/stylesheets")
+    << config->homeConfigPluginDataDir() + "/stylesheets";
+
   // read XML file
   QDomNode n;
   for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
@@ -111,10 +115,12 @@ Skin SkinConfigWidget::loadSkin(const QString& fn, bool getstylesheet)
 				  "[[tag: <description>]]", QCoreApplication::UnicodeUTF8);
       continue;
     } else if ( e.nodeName() == "stylesheet" ) {
-      QString fnqss = e.text().trimmed();
+      QString fnqssbase = e.text().trimmed();
+      QString fnqss = klfSearchPath(fnqssbase, stylesheetpath);
       QFile fqss(fnqss);
-      if (!fqss.exists() || !fqss.open(QIODevice::ReadOnly)) {
-	qWarning()<<KLF_FUNC_NAME<<"Can't open qss-stylesheet file "<<fnqss<<" while reading skin "<<fn<<".";
+      /// \bug Search style sheet in some PATH! search also .klatexformula/plugindata/skin/stylesheets/
+      if (fnqss.isEmpty() && !fqss.exists() || !fqss.open(QIODevice::ReadOnly)) {
+	qWarning()<<KLF_FUNC_NAME<<"Can't open qss-stylesheet file "<<fnqssbase<<" while reading skin "<<fn<<".";
 	continue;
       }
       QString ss = QString::fromUtf8(fqss.readAll());
@@ -195,7 +201,7 @@ void SkinConfigWidget::loadSkinList(QString skinfn)
     QStringList skinlist = skindir.entryList(QStringList() << "*.xml", QDir::Files);
     klfDbg("Skin list in dir "<<skindirs[j]<<": "<<skinlist) ;
     for (k = 0; k < skinlist.size(); ++k) {
-      Skin skin = loadSkin(skindir.absoluteFilePath(skinlist[k]), false);
+      Skin skin = loadSkin(config, skindir.absoluteFilePath(skinlist[k]), false);
       QString skintitle = skin.name;
       QString fn = skindir.absoluteFilePath(skinlist[k]);
       qDebug("\tgot skin: %s : %s", qPrintable(skintitle), qPrintable(fn));
@@ -383,7 +389,7 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
 #endif
   klfDbg("Applying skin!");
   QString ssfn = config->readValue("skinfilename").toString();
-  Skin skin =  SkinConfigWidget::loadSkin(ssfn);
+  Skin skin =  SkinConfigWidget::loadSkin(config, ssfn);
   QString stylesheet = skin.stylesheet;
 
   klfDbg("Applying skin "<<skin.name<<" (from file "<<ssfn<<")") ;
