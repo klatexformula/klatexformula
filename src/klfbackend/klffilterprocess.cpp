@@ -299,7 +299,7 @@ bool KLFFilterProcess::run(const QByteArray& indata, const QMap<QString, QByteAr
       if (outdata->isEmpty()) {
 	// no data
 	QString stderrstr = (!d->outputStderr) ? ("\n"+proc.readStderrString()) : QString();
-	klfDbg(d->progTitle<<" did not provide any data. "<<stderrstr);
+	klfDbg(d->progTitle<<" did not provide any data. Error message: "<<stderrstr);
 	d->res = KLFFP_NODATA;
 	d->resErrorString = QObject::tr("Program %1 did not provide any output data.", "KLFBackend")
 	  .arg(d->progTitle) + stderrstr;

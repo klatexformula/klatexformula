@@ -107,14 +107,21 @@ public:
     return run(QByteArray(), outdata);
   }
 
+  bool run(const QByteArray& indata = QByteArray())
+  {
+    return run(indata, QMap<QString, QByteArray*>());
+  }
+
   /**
    *
    * \note multiple output files possible. Each data is retreived into a pointer given by outdata map.
    *
    * \param indata a QByteArray to write into the program's standard input
-   * \param outdata a QMap with keys being files that are created by the program. These files are read and
-   *   their contents stored in the QByteArray's pointed by the corresponding pointer.
+   * \param outdatalist a QMap with keys being files that are created by the program. These files are
+   *   read and their contents stored in the QByteArray's pointed by the corresponding pointer.
    * \param resError the klfOutput object is initialized to the corresponding error if an error occurred.
+   *
+   * An empty file name in the list means to collect the standard output.
    *
    * \returns TRUE/FALSE for success/failure, respectively.
    */

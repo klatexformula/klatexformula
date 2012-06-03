@@ -39,6 +39,7 @@
 #include <QBuffer>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QTextCodec>
 
 #include <klfutil.h>
 #include "klflibview.h"
@@ -269,6 +270,10 @@ private:
 // -------------------------------------------------
 
 
+// from klfbackend.cpp
+QByteArray klf_escape_ps_string(const QString& v);
+
+
 class KLFBasicDataOpener : public QObject, public KLFAbstractDataOpener
 {
   Q_OBJECT
@@ -383,12 +388,7 @@ public:
 
     if (ext == "pdf") {
       // read from PDF
-      QFile f(file);
-      if (!f.open(QIODevice::ReadOnly)) {
-	klfWarning("Failed to open file "<<file) ;
-	return false;
-      }
-      return openPDF(&f);
+      return openPDF(file);
     }
 
     { // try to open image
@@ -468,7 +468,8 @@ public:
     }
 
     if (mimetype == "application/pdf") {
-      return openPDF(&buf);
+      // can only open file via GS
+      return false;
     }
 
     bool isimage = false;
@@ -572,33 +573,104 @@ private:
     return c.rgba();
   }
 
-  bool openPDF(QIODevice * dev)
+  bool openPDF(const QString& fname)
   {
-    /// \bug ............................
-    klfWarning("Not yet implemented!!") ;
-    QByteArray data = dev->readAll();
-    if (data.isEmpty()) {
-      klfWarning("No data!") ;
+    if (!QFile::exists(fname)) {
+      klfWarning("File "<<fname<<" does not exist!") ;
       return false;
-    } /*
-    QString latex = read_from_pdf_metadata("KLFInputLatex", data);
-    QString mmode = read_from_pdf_metadata("KLFInputMathMode", data);
-    QString preamble = read_from_pdf_metadata("KLFInputPreamble", data);
-    int fontsize = read_from_pdf_metadata("KLFInputFontSize", data).toInt();
-    uint fgcol = ....;
-    uint bgcol = ....;
-    int dpi = ....;
-    double vectorscale = ....;
-    bool bypasstempl = ...;
-    userscript = ;
-    userscriptparams = ;
-    t,r,b,l,borderoffset=;
-    oulinefonts =;
-    calcepsbb =;
-    raw=;
-    pdf=;
-    svg=;*/
-    return false;
+    }
+
+    // Execute gs to extract meta-info
+    KLFBackend::klfSettings s = mainWin()->backendSettings();
+    KLFFilterProcess p("gs PDF meta-info extraction", &s);
+
+    p.addArgv(s.gsexec);
+    p.setProgramCwd(".");
+    p.addArgv(QStringList() << "-q" << "-dNOPROMPT" << "-dNODISPLAY" << "-dNOPAUSE");
+    p.setOutputStdout(true);
+    //    p.setOutputStderr(true);
+    
+    QByteArray psmetacode =
+      klf_escape_ps_string(fname) + " (r) file runpdfbegin Trailer /Info knownoget_safe pop "
+      " {exch " // 'Name, Value' becomes 'Value, Name'
+      " 64 string cvs print (\\n) print " // print the name, converted to string, along with a newline
+      " dup " // twice the name
+      " length 16 string cvs print (\\n) print " // print the string length followed by a newline
+      " print (\\n) print }" // and print the string itself, followed by a newline.
+      " forall\n";
+    klfDbg("PS code is "<<QString::fromLatin1(psmetacode)) ;
+    QByteArray metaoutput;
+    bool ok = p.run(psmetacode, QString(), &metaoutput);
+    klfDbg("got output "<<metaoutput) ;
+    if (!ok) {
+      klfWarning("Failed to read PDF meta-information from file "<<fname<<".\n"
+		 "\tError message is "<<p.resultErrorString());
+      QMessageBox::critical(mainWin(), tr("Error"), tr("Can't read latex equation information from PDF file."));
+      return false;
+    }
+
+    // parse all info
+    QMap<QString,QString> pdfmeta;
+
+    QBuffer buf(&metaoutput);
+    if (!buf.open(QIODevice::ReadOnly)) {
+      klfWarning("Can't open internal buffer!");
+      return false;
+    }
+
+    QByteArray pdfmetaline;
+    while (!(pdfmetaline = buf.readLine()).isEmpty()) {
+      QByteArray key = pdfmetaline.trimmed();
+      if (key.isEmpty())
+	continue;
+      // now, read the value length
+      bool intok;
+      QByteArray vallenstr = buf.readLine().trimmed();
+      int vallen = vallenstr.toInt(&intok);
+      if (!intok) {
+	klfWarning("Internal error: expected value length information after key "<<key<<": "<<vallenstr) ;
+	continue;
+      }
+      QByteArray value = buf.read(vallen);
+      /*QByteArray discardline =*/
+      buf.readLine(); // discard the following newline.
+      /*klfDbg("discarding "<<discardline) ;*/
+      // now we got value.
+      klfDbg("key="<<key<<" value="<<value) ;
+      // get now the string value.
+      QString valstr;
+      klfDbg("Value[0]=="<<(uchar)value[0]<<" value[1]=="<<(uchar)value[1]<<" 0376="<<(int)(uchar)0376<<".");
+      if ((uchar)value[0] == (uchar)0376 && (uchar)value[1] == (uchar)0377) {
+	klfDbg("Unicode marks.");
+	// unicode marks
+	QTextCodec *codec = QTextCodec::codecForName("UTF-16BE");
+	valstr = codec->toUnicode(value);
+      } else {
+	valstr = QString::fromLocal8Bit(value);
+      }
+      klfDbg("valstr is "<<klfDataToEscaped(valstr.toLocal8Bit()));
+      
+      pdfmeta[QString::fromLatin1(key)] = valstr;
+    }
+
+    if (!pdfmeta.contains("KLFApplication")) {
+      klfWarning("The PDF file "<<fname<<" doesn't seem to have KLatexFormula meta-information.");
+      return false;
+    }
+
+    // now, act according to read meta-information
+
+    QString latex = pdfmeta.value("KLFInputLatex");
+    KLFStyle style;
+    style.fg_color = read_color(pdfmeta.value("KLFInputFgColor"));
+    style.bg_color = read_color(pdfmeta.value("KLFInputBgColor"));
+    style.mathmode = pdfmeta.value("KLFInputMathMode");
+    style.preamble = pdfmeta.value("KLFInputPreamble");
+    style.dpi = pdfmeta.value("KLFInputDPI").toInt();
+
+    mainWin()->slotLoadStyle(style);
+    mainWin()->slotSetLatex(latex);
+    return true;
   }
 
   bool tryOpenKlfLibEntries(QIODevice *dev)
