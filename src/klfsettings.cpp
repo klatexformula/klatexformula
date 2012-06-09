@@ -58,6 +58,19 @@
 #include "klfmime.h"
 #include "klfpluginiface.h"
 #include "klfsettings.h"
+#include "klfsettings_p.h"
+
+
+
+#ifdef KLF_EXPERIMENTAL
+void klf_show_advanced_config_editor()
+{
+  KLFAdvancedConfigEditor *edit = new KLFAdvancedConfigEditor(NULL, &klfconfig);
+  edit->show();
+}
+#endif
+
+
 
 
 #define KLFSETTINGS_ROLE_PLUGNAME (Qt::UserRole + 5300)
@@ -68,9 +81,11 @@
 #define KLFSETTINGS_ROLE_USERSCRIPT (Qt::UserRole + 5500)
 
 
-#define REG_SH_TEXTFORMATENSEMBLE(x) \
-  _textformats.append( TextFormatEnsemble( & klfconfig.SyntaxHighlighter.fmt##x , \
-					   u->colSH##x, u->colSH##x##Bg , u->chkSH##x##B , u->chkSH##x##I ) );
+#define REG_SH_TEXTFORMATENSEMBLE(x)					\
+  { KLFSettingsPrivate::TextFormatEnsemble tfe( & klfconfig.SyntaxHighlighter.fmt##x , \
+						u->colSH##x, u->colSH##x##Bg , \
+						u->chkSH##x##B , u->chkSH##x##I ); \
+    d->textformats.append(tfe); }
 
 
 
@@ -78,13 +93,15 @@
 KLFSettings::KLFSettings(KLFMainWin* parent)
   : QDialog(parent)
 {
+  KLF_INIT_PRIVATE(KLFSettings) ;
+
   u = new Ui::KLFSettings;
   u->setupUi(this);
   setObjectName("KLFSettings");
 
-  _mainwin = parent;
+  d->mainWin = parent;
 
-  pUserSetDefaultAppFont = false;
+  d->pUserSetDefaultAppFont = false;
 
   u->cbxLibIconViewFlow->setEnumValues(QList<int>()<<QListView::TopToBottom<<QListView::LeftToRight,
 				       QStringList()<<tr("Top to Bottom")<<tr("Left to Right"));
@@ -115,6 +132,8 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
   populateSettingsCombos();
+
+  connect(u->btnAdvancedEditor, SIGNAL(clicked()), this, SLOT(showAdvancedConfigEditor()));
 
   // set some smaller fonts for small titles
   KLFRelativeFont *relfontSHF = new KLFRelativeFont(this, u->lblSHForeground);
@@ -148,12 +167,12 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   // prepare some actions as shortcuts for standard fonts
   QFontDatabase fdb;
   u->aFontCMU->setEnabled( fdb.families().contains("CMU Sans Serif") );
-  pFontBasePresetActions["CMU"] = u->aFontCMU;
-  pFontBasePresetActions["TT"] = u->aFontTT;
-  pFontBasePresetActions["Std"] = u->aFontStd;
-  pFontButtons["AppFont"] = u->btnAppFont;
-  pFontButtons["EditorFont"] = u->btnEditorFont;
-  pFontButtons["PreambleFont"] = u->btnPreambleFont;
+  d->pFontBasePresetActions["CMU"] = u->aFontCMU;
+  d->pFontBasePresetActions["TT"] = u->aFontTT;
+  d->pFontBasePresetActions["Std"] = u->aFontStd;
+  d->pFontButtons["AppFont"] = u->btnAppFont;
+  d->pFontButtons["EditorFont"] = u->btnEditorFont;
+  d->pFontButtons["PreambleFont"] = u->btnPreambleFont;
   QAction *a = NULL;
   QMenu *fontPresetMenu = NULL;
   QVariantMap vmap;
@@ -168,7 +187,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   a->setEnabled(u->aFontCMU->isEnabled());
   fontPresetMenu->addAction(a);
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
-  pFontSetActions << a;
+  d->pFontSetActions << a;
   a = new QAction(this);
   vmap["Action"] = "Std";
   vmap["Font"] = klfconfig.defaultStdFont;
@@ -176,7 +195,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["isSystemDefaultAppFont"] = QVariant(true);
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
-  pFontSetActions << a;
+  d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   u->btnAppFontChoose->setMenu(fontPresetMenu);
   // -- EditorFont --
@@ -187,7 +206,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Button"] = QVariant("EditorFont");
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
-  pFontSetActions << a;
+  d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   a = new QAction(this);
   vmap["Action"] = "CMU";
@@ -196,7 +215,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   a->setData(QVariant(vmap));
   a->setEnabled(u->aFontCMU->isEnabled());
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
-  pFontSetActions << a;
+  d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   a = new QAction(this);
   vmap["Action"] = "Std";
@@ -204,7 +223,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Button"] = QVariant("EditorFont");
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
-  pFontSetActions << a;
+  d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   u->btnEditorFontChoose->setMenu(fontPresetMenu);
   // -- PreambleFont --
@@ -215,7 +234,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
-  pFontSetActions << a;
+  d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   a = new QAction(this);
   vmap["Action"] = "CMU";
@@ -224,7 +243,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   a->setData(QVariant(vmap));
   a->setEnabled(u->aFontCMU->isEnabled());
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
-  pFontSetActions << a;
+  d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   a = new QAction(this);
   vmap["Action"] = "Std";
@@ -232,10 +251,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
   connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
-  pFontSetActions << a;
+  d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   u->btnPreambleFontChoose->setMenu(fontPresetMenu);
-
 
   REG_SH_TEXTFORMATENSEMBLE(Keyword);
   REG_SH_TEXTFORMATENSEMBLE(Comment);
@@ -263,7 +281,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->lstPlugins->setColumnWidth(0, 185);
 
   // dont load plugin data here as this dialog is created BEFORE plugins are loaded
-  _pluginstuffloaded = false;
+  d->pluginstuffloaded = false;
 
   retranslateUi(false);
 }
@@ -275,14 +293,14 @@ void KLFSettings::retranslateUi(bool alsoBaseUi)
 
   // translate our preset actions
   int k;
-  for (k = 0; k < pFontSetActions.size(); ++k) {
-    QAction *a = pFontSetActions[k];
+  for (k = 0; k < d->pFontSetActions.size(); ++k) {
+    QAction *a = d->pFontSetActions[k];
     QVariantMap vmap = a->data().toMap();
     QString refAKey = vmap["Action"].toString();
-    KLF_ASSERT_CONDITION(pFontBasePresetActions.contains(refAKey),
+    KLF_ASSERT_CONDITION(d->pFontBasePresetActions.contains(refAKey),
 			 "Base Reference Preset Action not found: "<<refAKey<<" ?!?",
 			 continue ) ;
-    QAction *refA = pFontBasePresetActions[refAKey];
+    QAction *refA = d->pFontBasePresetActions[refAKey];
     a->setText(refA->text());
     a->setIcon(refA->icon());
     a->setToolTip(refA->toolTip());
@@ -294,6 +312,7 @@ void KLFSettings::retranslateUi(bool alsoBaseUi)
 
 KLFSettings::~KLFSettings()
 {
+  KLF_DELETE_PRIVATE ;
   delete u;
 }
 
@@ -359,7 +378,7 @@ void KLFSettings::show()
 
   reset();
 
-  if (!_pluginstuffloaded)
+  if (!d->pluginstuffloaded)
     initPluginControls();
   else
     resetPluginControls();
@@ -491,7 +510,7 @@ bool KLFSettings::eventFilter(QObject *object, QEvent *event)
 void KLFSettings::reset()
 {
   int k;
-  KLFBackend::klfSettings s = _mainwin->currentSettings();
+  KLFBackend::klfSettings s = d->mainWin->currentSettings();
 
   k = u->cbxLocale->findData(klfconfig.UI.locale.toVariant());
   if (k == -1) {
@@ -518,26 +537,26 @@ void KLFSettings::reset()
   u->chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.highlightLonelyParens);
   u->chkSHNoMatchParenTypes->setChecked( ! klfconfig.SyntaxHighlighter.matchParenTypes );
 
-  for (k = 0; k < _textformats.size(); ++k) {
-    if ((*_textformats[k].fmt)().hasProperty(QTextFormat::ForegroundBrush))
-      _textformats[k].fg->setColor((*_textformats[k].fmt)().foreground().color());
+  for (k = 0; k < d->textformats.size(); ++k) {
+    if ((*d->textformats[k].fmt)().hasProperty(QTextFormat::ForegroundBrush))
+      d->textformats[k].fg->setColor((*d->textformats[k].fmt)().foreground().color());
     else
-      _textformats[k].fg->setColor(QColor());
-    if ((*_textformats[k].fmt)().hasProperty(QTextFormat::BackgroundBrush))
-      _textformats[k].bg->setColor((*_textformats[k].fmt)().background().color());
+      d->textformats[k].fg->setColor(QColor());
+    if ((*d->textformats[k].fmt)().hasProperty(QTextFormat::BackgroundBrush))
+      d->textformats[k].bg->setColor((*d->textformats[k].fmt)().background().color());
     else
-      _textformats[k].bg->setColor(QColor());
-    if ((*_textformats[k].fmt)().hasProperty(QTextFormat::FontWeight))
-      _textformats[k].chkB->setChecked((*_textformats[k].fmt)().fontWeight() > 60);
+      d->textformats[k].bg->setColor(QColor());
+    if ((*d->textformats[k].fmt)().hasProperty(QTextFormat::FontWeight))
+      d->textformats[k].chkB->setChecked((*d->textformats[k].fmt)().fontWeight() > 60);
     else
-      _textformats[k].chkB->setCheckState(Qt::PartiallyChecked);
-    if ((*_textformats[k].fmt)().hasProperty(QTextFormat::FontItalic))
-      _textformats[k].chkI->setChecked((*_textformats[k].fmt)().fontItalic());
+      d->textformats[k].chkB->setCheckState(Qt::PartiallyChecked);
+    if ((*d->textformats[k].fmt)().hasProperty(QTextFormat::FontItalic))
+      d->textformats[k].chkI->setChecked((*d->textformats[k].fmt)().fontItalic());
     else
-      _textformats[k].chkI->setCheckState(Qt::PartiallyChecked);
+      d->textformats[k].chkI->setCheckState(Qt::PartiallyChecked);
   }
 
-  pUserSetDefaultAppFont = klfconfig.UI.useSystemAppFont;
+  d->pUserSetDefaultAppFont = klfconfig.UI.useSystemAppFont;
   u->btnAppFont->setFont(klfconfig.UI.applicationFont);
   u->btnAppFont->setProperty("selectedFont", klfconfig.UI.applicationFont.toVariant());
   u->btnEditorFont->setFont(klfconfig.UI.latexEditFont);
@@ -581,9 +600,9 @@ void KLFSettings::reset()
 
 void KLFSettings::initPluginControls()
 {
-  if (_pluginstuffloaded)
+  if (d->pluginstuffloaded)
     return;
-  _pluginstuffloaded = true;
+  d->pluginstuffloaded = true;
 
   int j;
   int n_pluginconfigpages = 0;
@@ -603,13 +622,13 @@ void KLFSettings::initPluginControls()
     litem->setData(0, KLFSETTINGS_ROLE_PLUGNAME, name);
     litem->setData(0, KLFSETTINGS_ROLE_PLUGINDEX, j);
 
-    mPluginListItems[name] = litem;
+    d->pluginListItems[name] = litem;
 
     if ( instance != NULL ) {
-      mPluginConfigWidgets[name] = instance->createConfigWidget( NULL );
-      u->tbxPluginsConfig->addItem( mPluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
+      d->pluginConfigWidgets[name] = instance->createConfigWidget( NULL );
+      u->tbxPluginsConfig->addItem( d->pluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
-      instance->loadFromConfig(mPluginConfigWidgets[name], &pconfa);
+      instance->loadFromConfig(d->pluginConfigWidgets[name], &pconfa);
       n_pluginconfigpages++;
     }
   }
@@ -633,20 +652,20 @@ void KLFSettings::resetPluginControls()
     QString name = klf_plugins[k].name;
     KLFPluginGenericInterface *instance = klf_plugins[k].instance;
 
-    KLF_ASSERT_CONDITION(mPluginListItems.contains(name),
+    KLF_ASSERT_CONDITION(d->pluginListItems.contains(name),
 			 "Plugin "<<name<<" does not have its corresponding check item!",
 			 continue ;) ;
 
-    mPluginListItems[name]->setCheckState(0,
+    d->pluginListItems[name]->setCheckState(0,
 					  klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
 					  Qt::Checked : Qt::Unchecked);
 
     if (instance != NULL) {
-      if (!mPluginConfigWidgets.contains(name)) {
+      if (!d->pluginConfigWidgets.contains(name)) {
 	qWarning()<<KLF_FUNC_NAME<<": Plugin "<<name<<" does not have its config widget !?!?!";
 	continue;
       }
-      QWidget *widget = mPluginConfigWidgets[name];
+      QWidget *widget = d->pluginConfigWidgets[name];
       // load the config into the widget
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
       instance->loadFromConfig(widget, &pconfa);
@@ -791,8 +810,8 @@ void KLFSettings::removePlugin(const QString& fname)
 }
 
 
-bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedprog, bool required,
-				KLFPathChooser *destination)
+bool KLFSettingsPrivate::setDefaultFor(const QString& progname, const QString& guessedprog, bool required,
+				       KLFPathChooser *destination)
 {
   QString progpath = guessedprog;
   if (progpath.isEmpty()) {
@@ -802,11 +821,11 @@ bool KLFSettings::setDefaultFor(const QString& progname, const QString& guessedp
     }
     if ( ! required )
       return false;
-    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find %1 executable !")
-		       .arg(progname),  QMessageBox::Ok);
-    msgbox.setInformativeText(tr("Please check your installation and specify the path"
-				 " to %1 executable manually if it is not installed"
-				 " in $PATH.").arg(progname));
+    QMessageBox msgbox(QMessageBox::Critical, K->tr("Error"), K->tr("Could not find %1 executable !")
+		       .arg(progname),  QMessageBox::Ok, K);
+    msgbox.setInformativeText(K->tr("Please check your installation and specify the path"
+				    " to %1 executable manually if it is not installed"
+				    " in $PATH.").arg(progname));
     msgbox.setDefaultButton(QMessageBox::Ok);
     msgbox.setEscapeButton(QMessageBox::Ok);
     msgbox.exec();
@@ -823,9 +842,9 @@ void KLFSettings::setDefaultPaths()
   KLFBackend::detectSettings(&defaultsettings);
   if ( ! QFileInfo(u->pathTempDir->path()).isDir() )
     u->pathTempDir->setPath(QDir::toNativeSeparators(defaultsettings.tempdir));
-  setDefaultFor("latex", defaultsettings.latexexec, true, u->pathLatex);
-  setDefaultFor("dvips", defaultsettings.dvipsexec, true, u->pathDvips);
-  setDefaultFor("gs", defaultsettings.gsexec, true, u->pathGs);
+  d->setDefaultFor("latex", defaultsettings.latexexec, true, u->pathLatex);
+  d->setDefaultFor("dvips", defaultsettings.dvipsexec, true, u->pathDvips);
+  d->setDefaultFor("gs", defaultsettings.gsexec, true, u->pathGs);
   //  bool r = setDefaultFor("epstopdf", defaultsettings.epstopdfexec, false, u->pathEpstopdf);
   //  u->chkEpstopdf->setChecked(r);
 }
@@ -1266,12 +1285,12 @@ void KLFSettings::slotChangeFontPresetSender()
   const QVariantMap vmap = a->data().toMap();
   klfDbg("Set font from action with data "<<vmap) ;
   QString btnkey = vmap["Button"].toString();
-  KLF_ASSERT_CONDITION(pFontButtons.contains(btnkey), "Unknown button "<<btnkey<<" !", return ) ;
+  KLF_ASSERT_CONDITION(d->pFontButtons.contains(btnkey), "Unknown button "<<btnkey<<" !", return ) ;
   QFont f = vmap["Font"].value<QFont>();
-  slotChangeFont(pFontButtons[btnkey], f);
+  slotChangeFont(d->pFontButtons[btnkey], f);
   if (vmap.contains("isSystemDefaultAppFont") && vmap["isSystemDefaultAppFont"].toBool()) {
     klfDbg("Set default application font.") ;
-    pUserSetDefaultAppFont = true;
+    d->pUserSetDefaultAppFont = true;
   }
 }
 void KLFSettings::slotChangeFontSender()
@@ -1289,12 +1308,25 @@ void KLFSettings::slotChangeFont(QPushButton *w, const QFont& fnt)
   w->setFont(fnt);
   w->setProperty("selectedFont", QVariant(fnt));
   if (w == u->btnAppFont)
-    pUserSetDefaultAppFont = false;
+    d->pUserSetDefaultAppFont = false;
 }
 
-void KLFSettings::slotAdvancedConfigEditor()
+void KLFSettings::showAdvancedConfigEditor()
 {
-  /** \todo ...... */
+#ifdef KLF_EXPERIMENTAL
+  if (d->advancedConfigEditor == NULL) {
+    d->advancedConfigEditor = new KLFAdvancedConfigEditor(this, &klfconfig);
+    connect(d->advancedConfigEditor, SIGNAL(configModified(const QString&)),
+	    this, SLOT(reset()));
+    connect(this, SIGNAL(settingsApplied()), d->advancedConfigEditor, SLOT(updateConfig()));
+  }
+  d->advancedConfigEditor->show();
+
+#else
+  QMessageBox::critical(this, tr("Not Yet Implemented"),
+			tr("This feature is not yet implemented. If you're daring, try compiling "
+			   "klatexformula with the experimental features on."));
+#endif
 }
 
 
@@ -1307,8 +1339,8 @@ void KLFSettings::apply()
 
   bool warnneedrestart = false;
 
-  // the settings object that we will fill, and set to _mainwin
-  KLFBackend::klfSettings s = _mainwin->currentSettings();
+  // the settings object that we will fill, and set to d->mainWin
+  KLFBackend::klfSettings s = d->mainWin->currentSettings();
 
   s.tempdir = QDir::fromNativeSeparators(u->pathTempDir->path());
   s.latexexec = u->pathLatex->path();
@@ -1328,7 +1360,7 @@ void KLFSettings::apply()
   s.bborderoffset = u->spnBBorderOffset->value();
   s.outlineFonts = u->chkOutlineFonts->isChecked();
 
-  _mainwin->applySettings(s);
+  d->mainWin->applySettings(s);
 
   klfconfig.SyntaxHighlighter.enabled = u->chkSHEnable->isChecked();
   klfconfig.SyntaxHighlighter.highlightParensOnly = u->chkSHHighlightParensOnly->isChecked();
@@ -1336,32 +1368,32 @@ void KLFSettings::apply()
   klfconfig.SyntaxHighlighter.matchParenTypes = ! u->chkSHNoMatchParenTypes->isChecked();
 
 
-  for (k = 0; k < _textformats.size(); ++k) {
-    QTextCharFormat fmt = *_textformats[k].fmt;
-    QColor c = _textformats[k].fg->color();
+  for (k = 0; k < d->textformats.size(); ++k) {
+    QTextCharFormat fmt = *d->textformats[k].fmt;
+    QColor c = d->textformats[k].fg->color();
     if (c.isValid())
       fmt.setForeground(c);
     else
       fmt.clearForeground();
-    c = _textformats[k].bg->color();
+    c = d->textformats[k].bg->color();
     if (c.isValid())
       fmt.setBackground(c);
     else
       fmt.clearBackground();
-    Qt::CheckState b = _textformats[k].chkB->checkState();
+    Qt::CheckState b = d->textformats[k].chkB->checkState();
     if (b == Qt::PartiallyChecked)
       fmt.clearProperty(QTextFormat::FontWeight);
     else if (b == Qt::Checked)
       fmt.setFontWeight(QFont::Bold);
     else
       fmt.setFontWeight(QFont::Normal);
-    Qt::CheckState it = _textformats[k].chkI->checkState();
+    Qt::CheckState it = d->textformats[k].chkI->checkState();
     if (it == Qt::PartiallyChecked)
       fmt.clearProperty(QTextFormat::FontItalic);
     else
       fmt.setFontItalic( it == Qt::Checked );
 
-    *_textformats[k].fmt = fmt;
+    *d->textformats[k].fmt = fmt;
   }
 
   // language settings
@@ -1375,7 +1407,7 @@ void KLFSettings::apply()
   }
   klfconfig.UI.locale = localename;
   QLocale::setDefault(klfconfig.UI.locale());
-  _mainwin->setApplicationLocale(localename);
+  d->mainWin->setApplicationLocale(localename);
   if (localechanged) {
     QMessageBox::information(this, tr("Language changed"),
 			     tr("You may need to restart KLatexFormula for your new language "
@@ -1383,8 +1415,8 @@ void KLFSettings::apply()
   }
   //  klf_main_do_the_change_of_locale_and_load_translators(...);
   //  QList<QWidget*> uilist;
-  //  uilist << _mainwin << _mainwin->libraryBrowserWidget() << _mainwin->latexSymbolsWidget()
-  //	 << _mainwin->styleManagerWidget() << this ;
+  //  uilist << d->mainWin << d->mainWin->libraryBrowserWidget() << d->mainWin->latexSymbolsWidget()
+  //	 << d->mainWin->styleManagerWidget() << this ;
   //  for (k = 0; k < uilist.size(); ++k) {
   //    uilist[k]->retranlsateUi(uilist[k]);
   //  }
@@ -1394,8 +1426,8 @@ void KLFSettings::apply()
   // font settings
   QFont curAppFont = klfconfig.UI.applicationFont;
   QFont newAppFont = u->btnAppFont->property("selectedFont").value<QFont>();
-  if (curAppFont != newAppFont || pUserSetDefaultAppFont != klfconfig.UI.useSystemAppFont) {
-    klfconfig.UI.useSystemAppFont = pUserSetDefaultAppFont;
+  if (curAppFont != newAppFont || d->pUserSetDefaultAppFont != klfconfig.UI.useSystemAppFont) {
+    klfconfig.UI.useSystemAppFont = d->pUserSetDefaultAppFont;
     klfconfig.UI.applicationFont = newAppFont;
     if (klfconfig.UI.useSystemAppFont) {
       qApp->setFont(klfconfig.defaultStdFont);
@@ -1405,12 +1437,12 @@ void KLFSettings::apply()
     }
     // Style sheet refresh is needed to force font (?)
     qApp->setStyleSheet(qApp->styleSheet());
-    _mainwin->refreshAllWindowStyleSheets();
+    d->mainWin->refreshAllWindowStyleSheets();
   }
   klfconfig.UI.latexEditFont = u->btnEditorFont->property("selectedFont").value<QFont>();
-  _mainwin->setTxtLatexFont(klfconfig.UI.latexEditFont);
+  d->mainWin->setTxtLatexFont(klfconfig.UI.latexEditFont);
   klfconfig.UI.preambleEditFont = u->btnPreambleFont->property("selectedFont").value<QFont>();
-  _mainwin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
+  d->mainWin->setTxtPreambleFont(klfconfig.UI.preambleEditFont);
 
   klfconfig.UI.smallPreviewSize = QSize(u->spnPreviewWidth->value(), u->spnPreviewHeight->value());
   klfconfig.UI.enableRealTimePreview = u->chkEnableRealTimePreview->isChecked();
@@ -1455,7 +1487,7 @@ void KLFSettings::apply()
 
     if (klf_plugins[j].instance != NULL) {
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
-      klf_plugins[j].instance->saveToConfig(mPluginConfigWidgets[name], &pconfa);
+      klf_plugins[j].instance->saveToConfig(d->pluginConfigWidgets[name], &pconfa);
     }
 
     ++it;
@@ -1465,11 +1497,11 @@ void KLFSettings::apply()
 			     tr("You need to restart KLatexFormula for your changes to take effect."));
   }
 
-  _mainwin->refreshShowCorrectClearButton();
-  _mainwin->saveSettings();
+  d->mainWin->refreshShowCorrectClearButton();
+  d->mainWin->saveSettings();
 
   //  // recalculate window sizes etc.
-  //  _mainwin->refreshWindowSizes();
+  //  d->mainWin->refreshWindowSizes();
 
   // in case eg. the plugins re-change klfconfig in some way (skin does this for syntax highlighting)
   // -> refresh

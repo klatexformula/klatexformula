@@ -618,6 +618,8 @@ private:
       return false;
     }
 
+    QTextCodec *u_codec = QTextCodec::codecForName("UTF-16BE");
+
     QByteArray pdfmetaline;
     while (!(pdfmetaline = buf.readLine()).isEmpty()) {
       QByteArray key = pdfmetaline.trimmed();
@@ -643,8 +645,7 @@ private:
       if ((uchar)value[0] == (uchar)0376 && (uchar)value[1] == (uchar)0377) {
 	klfDbg("Unicode marks.");
 	// unicode marks
-	QTextCodec *codec = QTextCodec::codecForName("UTF-16BE");
-	valstr = codec->toUnicode(value);
+	valstr = u_codec->toUnicode(value);
       } else {
 	valstr = QString::fromLocal8Bit(value);
       }

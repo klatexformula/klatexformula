@@ -46,15 +46,6 @@
 
 
 
-#ifdef KLF_EXPERIMENTAL
-void klf_show_advanced_config_editor()
-{
-  KLFAdvancedConfigEditor *edit = new KLFAdvancedConfigEditor(NULL, &klfconfig);
-  edit->show();
-}
-#endif
-
-
 static const char * __klf_fallback_share_dir =
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
 	"..";   // note: program is in a bin/ directory by default (this is for nsis-installer)

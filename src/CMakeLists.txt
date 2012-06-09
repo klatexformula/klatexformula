@@ -66,7 +66,6 @@ set(klfapp_SRCS
 set(klfapp_MOCHEADERS
 	klflatexsymbols.h
 	klflatexsymbols_p.h
-	klfconfig_p.h
 	klflibentryeditor.h
 	klflibbrowser.h
 	klflibbrowser_p.h
@@ -82,6 +81,7 @@ set(klfapp_MOCHEADERS
 	klfmainwin.h
 	klfmainwin_p.h
 	klfsettings.h
+	klfsettings_p.h
 	klfstylemanager.h
 	klfcmdiface.h
 	klfapp.h
@@ -90,6 +90,7 @@ set(klfapp_MOCHEADERS
 set(klfapp_HEADERS
 	klfmain.h
 	klfconfig.h
+	klfconfig_p.h
 	klfstyle.h
 	klfpluginiface.h
 	klflib_p.h

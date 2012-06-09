@@ -40,6 +40,8 @@ class KLFMainWin;
 
 namespace Ui { class KLFSettings; }
 
+class KLFSettingsPrivate;
+
 /** \brief A settings dialog
  *
  * See also \ref KLFConfig and \ref klfconfig.
@@ -97,6 +99,8 @@ public slots:
   /** \warning This method provides NO USER CONFIRMATION and NO AFTER-OPERATION REFRESH */
   void removePlugin(const QString& fname);
 
+  void showAdvancedConfigEditor();
+
   void retranslateUi(bool alsoBaseUi = true);
 
 protected:
@@ -125,38 +129,11 @@ protected slots:
   void slotChangeFontSender();
   void slotChangeFont(QPushButton *btn, const QFont& f);
 
-  void slotAdvancedConfigEditor();
-
 private:
   Ui::KLFSettings *u;
 
-  KLFMainWin *_mainwin;
+  KLF_DECLARE_PRIVATE(KLFSettings);
 
-  bool pUserSetDefaultAppFont;
-
-  QMap<QString,QPushButton*> pFontButtons;
-  QMap<QString,QAction*> pFontBasePresetActions;
-  QList<QAction*> pFontSetActions;
-
-  struct TextFormatEnsemble {
-    TextFormatEnsemble(KLFConfigProp<QTextCharFormat> *format,
-		       KLFColorChooser *foreground, KLFColorChooser *background,
-		       QCheckBox *chkBold, QCheckBox *chkItalic)
-      : fmt(format), fg(foreground), bg(background), chkB(chkBold), chkI(chkItalic) { }
-    KLFConfigProp<QTextCharFormat> *fmt;
-    KLFColorChooser *fg;
-    KLFColorChooser *bg;
-    QCheckBox *chkB;
-    QCheckBox *chkI;
-  };
-  QList<TextFormatEnsemble> _textformats;
-
-  bool _pluginstuffloaded;
-  QMap<QString,QWidget*> mPluginConfigWidgets;
-  QMap<QString,QTreeWidgetItem*> mPluginListItems;
-
-  bool setDefaultFor(const QString& progname, const QString& guessprog, bool required,
-		     KLFPathChooser *destination);
 };
 
 #endif
