@@ -82,7 +82,6 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
   private: ClassName *K;					\
   public:  ClassName##Private (ClassName * ptr) : K(ptr)
 #define KLF_PRIVATE_QOBJ_HEAD(ClassName, QObj)				\
-  Q_OBJECT								\
   private: ClassName *K;						\
   public:  ClassName##Private (ClassName * ptr) : QObj(ptr), K(ptr)
 

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfadvancedconfigeditor.cpp
+ *   file klfadvancedconfigeditor.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2012 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,10 +21,41 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include "klfadvancedconfigeditor.h"
-
-#include "klfadvancedconfigeditor_p.h"
-
+#ifndef KLFADVANCEDCONFIGEDITOR_H
+#define KLFADVANCEDCONFIGEDITOR_H
 
 
+#include <QDialog>
 
+#include <klfcolorchooser.h>
+#include <klfconfigbase.h>
+
+class KLFAdvancedConfigEditorPrivate;
+
+namespace Ui { class KLFAdvancedConfigEditor; };
+
+class KLFAdvancedConfigEditor : public QDialog
+{
+  Q_OBJECT
+public:
+  KLFAdvancedConfigEditor(QWidget *parent, KLFConfigBase *c);
+  virtual ~KLFAdvancedConfigEditor();
+
+  virtual void setVisible(bool visible);
+
+signals:
+  void configModified(const QString& propertyName);
+
+public slots:
+  void updateConfig();
+
+private:
+  KLF_DECLARE_PRIVATE(KLFAdvancedConfigEditor) ;
+
+  Ui::KLFAdvancedConfigEditor * u;
+};
+
+
+
+
+#endif

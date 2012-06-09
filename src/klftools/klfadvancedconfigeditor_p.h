@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfadvancedconfigeditor.h
+ *   file klfadvancedconfigeditor_p.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2012 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,26 +21,23 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFADVANCEDCONFIGEDITOR_H
-#define KLFADVANCEDCONFIGEDITOR_H
+/** \file
+ * This header contains (in principle private) auxiliary classes for
+ * library routines defined in klfadvancedconfigeditor.cpp */
 
-#include <QDialog>
-#include <QStandardItemModel>
+#ifndef KLFADVANCEDCONFIGEDITOR_P_H
+#define KLFADVANCEDCONFIGEDITOR_P_H
+
+#include <QAbstractItemModel>
 #include <QStyledItemDelegate>
-#include <QItemEditorFactory>
-#include <QStandardItemEditorCreator>
-#include <QMessageBox>
 #include <QLineEdit>
+#include <QStandardItemModel>
+#include <QMessageBox>
 
-#include <klfcolorchooser.h>
-#include <klfconfigbase.h>
+#include <klfdefs.h>
+#include <klfdatautil.h>
 
-
-
-
-// EXPERIMENTAL FEATURE: use  cmake -DKLF_EXPERIMENTAL=on  to enable
-#ifdef KLF_EXPERIMENTAL
-
+#include "klfadvancedconfigeditor.h"
 #include <ui_klfadvancedconfigeditor.h>
 
 
@@ -49,9 +46,7 @@
 #define CONFIG_VIEW_ROLE_INNERTYPENAME	(Qt::UserRole+2)
 
 
-#define REGISTER_EDITOR(factory, type, editorclass)			\
-  { QItemEditorCreatorBase *anEditor = new QStandardItemEditorCreator<editorclass>(); \
-    factory->registerEditor(type, anEditor); }
+// ---------------------------------------------
 
 class KLFAdvancedConfigItemDelegate : public QStyledItemDelegate
 {
@@ -107,65 +102,30 @@ public:
 };
 
 
-class KLFAdvancedConfigEditor : public QDialog
+// ---------------------------------------------------------------
+
+
+class KLFAdvancedConfigEditorPrivate : public QObject
 {
   Q_OBJECT
 public:
-  KLFAdvancedConfigEditor(QWidget *parent, KLFConfigBase *c)
-    : QDialog(parent), pConfigBase(c)
+  KLF_PRIVATE_QOBJ_HEAD(KLFAdvancedConfigEditor, QObject)
   {
-    u = new Ui::KLFAdvancedConfigEditor;
-    u->setupUi(this);
-
+    pConfigBase = NULL;
     pCurrentInternalUpdate = false;
-
-    QItemEditorFactory *factory = new QItemEditorFactory;
-    REGISTER_EDITOR(factory, QVariant::Color, KLFColorChooser);
-
-    pConfModel = new QStandardItemModel(this);
-    pConfModel->setColumnCount(3);
-    pConfModel->setHorizontalHeaderLabels(QStringList() << tr("Config Entry")
-					  << tr("Current Value") << tr("Encoded Value Entry"));
-    u->configView->setModel(pConfModel);
-    KLFAdvancedConfigItemDelegate *delegate = new KLFAdvancedConfigItemDelegate(this);
-    delegate->setItemEditorFactory(factory);
-    u->configView->setItemDelegate(delegate);
-    u->configView->setColumnWidth(0, 200);
-    u->configView->setColumnWidth(1, 200);
-    u->configView->setColumnWidth(2, 200);
-
-    _are_resetting_config = false;
-
-    connect(pConfModel, SIGNAL(itemChanged(QStandardItem *)),
-	    this, SLOT(configEntryEdited(QStandardItem *)));
-  }
-  virtual ~KLFAdvancedConfigEditor()
-  {
-    delete u;
-  }
-
-  virtual void setVisible(bool visible)
-  {
-    if (visible) {
-      updateConfigView();
-    } else {
-      //      unloadConfigView();
-    }
-    QDialog::setVisible(visible);
-  }
-
-signals:
-  void configModified(const QString& propertyName);
-
-public slots:
-  void updateConfig()
-  {
-    _are_resetting_config = true;
-    updateConfigView();
     _are_resetting_config = false;
   }
 
-private slots:
+  KLFConfigBase * pConfigBase;
+
+  bool _are_resetting_config;
+
+  QStandardItemModel *pConfModel;
+
+  bool pCurrentInternalUpdate;
+
+public slots: // public is just for us... still private :)
+
   void configEntryEdited(QStandardItem *item)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
@@ -202,21 +162,13 @@ private slots:
 
     r = p->setValue(value);
     if ( ! r ) {
-      QMessageBox::critical(this, tr("Error"),
+      QMessageBox::critical(K, tr("Error"),
 			    tr("Failed to set config entry `%1;.").arg(pname));
     }
     updateConfigEntry(item->row());
     if (!_are_resetting_config)
-      emit configModified(pname);
+      emit K->configModified(pname);
   }
-
-private:
-
-  KLFConfigBase * pConfigBase;
-
-  Ui::KLFAdvancedConfigEditor * u;
-
-  bool _are_resetting_config;
 
 #define EDITTYPE_TEST_FOR(t, x)  if ((t) == x) { return true; }
   static bool is_editable_type(int t)
@@ -238,7 +190,7 @@ private:
     pConfModel->setRowCount(0);
     int k;
     QStringList props = pConfigBase->propertyList();
-    QPalette pal = u->configView->palette();
+    QPalette pal = K->u->configView->palette();
     for (k = 0; k < props.size(); ++k) {
       QString pname = props[k];
       KLFConfigPropBase *p = pConfigBase->property(pname);
@@ -285,20 +237,7 @@ private:
     i3->setData(klfSaveVariantToText(val), Qt::DisplayRole);
     pCurrentInternalUpdate = false;
   }
-
-  QStandardItemModel *pConfModel;
-
-  bool pCurrentInternalUpdate;
 };
-
-#endif // KLF_EXPERIMENTAL
-
-
-
-
-
-
-
 
 
 #endif

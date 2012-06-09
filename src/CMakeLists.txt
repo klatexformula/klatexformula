@@ -81,7 +81,6 @@ set(klfapp_MOCHEADERS
 	klfmainwin.h
 	klfmainwin_p.h
 	klfsettings.h
-	klfsettings_p.h
 	klfstylemanager.h
 	klfcmdiface.h
 	klfapp.h
@@ -94,6 +93,7 @@ set(klfapp_HEADERS
 	klfstyle.h
 	klfpluginiface.h
 	klflib_p.h
+	klfsettings_p.h
 	${klfapp_MOCHEADERS}
 )
 # UI Forms
@@ -112,7 +112,6 @@ set(klfapp_UIS
 	klfaboutdialog.ui
 	klfwhatsnewdialog.ui
 	klflibexportdialog.ui
-	klfadvancedconfigeditor.ui
 )
 
 # Special adjustments for certain platforms and options

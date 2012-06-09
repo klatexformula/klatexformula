@@ -35,6 +35,7 @@ set(klftools_SRCS
 	klfflowlistwidget.cpp
 	klfsidewidget.cpp
 	klfpobjeditwidget.cpp
+	klfadvancedconfigeditor.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -58,6 +59,8 @@ set(klftools_MOCHEADERS
 	klfsidewidget.h
 	klfpobjeditwidget.h
 	klfpobjeditwidget_p.h
+	klfadvancedconfigeditor.h
+	klfadvancedconfigeditor_p.h
 )
 #  * all headers
 set(klftools_HEADERS
@@ -78,6 +81,7 @@ set(klftools_UIS
 	klfcolorchoosewidget.ui
 	klfcolordialog.ui
 	klfsearchbar.ui
+	klfadvancedconfigeditor.ui
 )
 # Resources
 set(klftools_QRCS

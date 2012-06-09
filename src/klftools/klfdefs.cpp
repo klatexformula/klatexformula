@@ -567,7 +567,7 @@
  *
  * Same as \ref KLF_PRIVATE_HEAD, except use this if your private class is a QObject subclass, and
  * you want to initialize it with the parent being the main class instance. The pointer <tt>K</tt>
- * is also initialized.
+ * is also initialized. You still have to manually include the Q_OBJECT macro into your definition.
  */
 
 /** \def KLF_INIT_PRIVATE
