@@ -50,7 +50,9 @@ struct KLFSettingsPrivate
     mainWin = NULL;
     pUserSetDefaultAppFont = false;
     pluginstuffloaded = false;
+#ifdef KLF_EXPERIMENTAL
     advancedConfigEditor = NULL;
+#endif
   }
 
 
