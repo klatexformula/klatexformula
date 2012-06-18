@@ -118,9 +118,9 @@ Skin SkinConfigWidget::loadSkin(KLFPluginConfigAccess * config, const QString& f
       QString fnqssbase = e.text().trimmed();
       QString fnqss = klfSearchPath(fnqssbase, stylesheetpath);
       QFile fqss(fnqss);
-      /// \bug Search style sheet in some PATH! search also .klatexformula/plugindata/skin/stylesheets/
-      if (fnqss.isEmpty() && !fqss.exists() || !fqss.open(QIODevice::ReadOnly)) {
-	qWarning()<<KLF_FUNC_NAME<<"Can't open qss-stylesheet file "<<fnqssbase<<" while reading skin "<<fn<<".";
+      if (fnqss.isEmpty() || !fqss.exists() || !fqss.open(QIODevice::ReadOnly)) {
+	qWarning()<<KLF_FUNC_NAME<<"Can't open qss-stylesheet file "<<fnqssbase
+		  <<" while reading skin "<<fn<<".";
 	continue;
       }
       QString ss = QString::fromUtf8(fqss.readAll());

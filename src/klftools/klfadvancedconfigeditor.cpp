@@ -28,6 +28,7 @@
 #include <QMessageBox>
 #include <QLineEdit>
 
+#include <klfitemviewsearchtarget.h>
 #include "klfadvancedconfigeditor.h"
 #include "klfadvancedconfigeditor_p.h"
 
@@ -63,6 +64,9 @@ KLFAdvancedConfigEditor::KLFAdvancedConfigEditor(QWidget *parent, KLFConfigBase 
   u->configView->setColumnWidth(1, 200);
   u->configView->setColumnWidth(2, 200);
   
+  KLFItemViewSearchTarget *searchtarget = new KLFItemViewSearchTarget(u->configView, this);
+  u->searchBar->setSearchTarget(searchtarget);
+
   connect(d->pConfModel, SIGNAL(itemChanged(QStandardItem *)),
 	  d, SLOT(configEntryEdited(QStandardItem *)));
 }

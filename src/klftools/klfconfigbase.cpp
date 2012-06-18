@@ -178,6 +178,10 @@ QStringList KLFConfigBase::propertyList() const
 
 KLFConfigPropBase * KLFConfigBase::property(const QString& name)
 {
+  if (name.isEmpty()) {
+    klfWarning("Requesting property instance for empty name !?! Program might crash!") ;
+    return NULL;
+  }
   foreach (KLFConfigPropBase *p, pProperties) {
     if (p->propName() == name)
       return p;

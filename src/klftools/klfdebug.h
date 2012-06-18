@@ -199,6 +199,7 @@ KLF_EXPORT  QDebug
 
 
 #define KLF_ASSERT_CONDITION(expr, msg, failaction)		       \
+  klfDbgSt("KLF_ASSERT_CONDITION(" #expr ")") ;			       \
   if ( !(expr) ) {						       \
     klfWarning(msg);						       \
     failaction;							       \

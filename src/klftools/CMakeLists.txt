@@ -36,6 +36,7 @@ set(klftools_SRCS
 	klfsidewidget.cpp
 	klfpobjeditwidget.cpp
 	klfadvancedconfigeditor.cpp
+	klfitemviewsearchtarget.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -61,6 +62,7 @@ set(klftools_MOCHEADERS
 	klfpobjeditwidget_p.h
 	klfadvancedconfigeditor.h
 	klfadvancedconfigeditor_p.h
+	klfitemviewsearchtarget.h
 )
 #  * all headers
 set(klftools_HEADERS

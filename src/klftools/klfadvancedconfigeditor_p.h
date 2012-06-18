@@ -99,6 +99,16 @@ public:
     klfDbg("value is "<<value) ;
     model->setData(index, value, Qt::EditRole);
   }
+
+protected:
+
+  virtual bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem& option,
+			   const QModelIndex& index)
+  {
+    /** \bug .......... editor closes and doesn't apply new value for colors, which open a separate popup
+     * widget... (MAC OS X ONLY) */
+    return QStyledItemDelegate::editorEvent(event, model, option, index);
+  }
 };
 
 
@@ -124,20 +134,26 @@ public:
 
   bool pCurrentInternalUpdate;
 
-public slots: // public is just for us... still private :)
+public slots: // public is just for us... the class is still private :)
 
   void configEntryEdited(QStandardItem *item)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
     klfDbg( "item="<<item<<"" ) ;
+    KLF_ASSERT_NOT_NULL(item, "item is NULL!", return; ) ;
+
     if (pCurrentInternalUpdate)
       return;
+
+    if (item->column() < 1 || item->column() > 2)
+      return; // false edit
 
     klfDbg("config entry edited...");
 
     QVariant value = item->data(Qt::EditRole);
     QString pname = item->data(CONFIG_VIEW_ROLE_PROPNAME).toString();
     KLFConfigPropBase *p = pConfigBase->property(pname);
+    KLF_ASSERT_NOT_NULL(p, "Property is NULL!", return; ) ;
     QVariant oldvalue = p->toVariant();
 
     if (value == oldvalue) {
