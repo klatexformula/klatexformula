@@ -98,6 +98,9 @@ public slots:
   void mainwinFileOpened(const QString& file)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+    /** \bug detect "*.klfcommands" files and treat them specially ! */
+
     OpenBuffer * newbuffer = new OpenBuffer(pMainWin, file, QString());
     pBufferList.append(newbuffer);
     lstBuffers->setBufferList(pBufferList, newbuffer);
