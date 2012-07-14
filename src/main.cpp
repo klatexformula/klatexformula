@@ -1189,8 +1189,6 @@ int main(int argc, char **argv)
     if (!klfconfig.UI.useSystemAppFont)
       app.setFont(klfconfig.UI.applicationFont);
 
-    mainWin.refreshWindowSizes();
-
     if (!opt_skip_plugins)
       main_load_plugins(&app, &mainWin);
 

@@ -599,4 +599,74 @@ KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::k
 
 KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings);
 
+
+
+/** \brief Reading and writing klfbackend meta-info
+ *
+ * \note Keys should not start with "KLF". The prefix will be added automatically (or inferred automatically
+ *   when reading) by the individual subclasses if applicable.
+ */
+class KLF_EXPORT KLFAbstractLatexMetaInfo
+{
+public:
+  KLFAbstractLatexMetaInfo();
+  virtual ~KLFAbstractLatexMetaInfo();
+
+  virtual QString loadField(const QString& key) = 0;
+  virtual void saveField(const QString& key, const QString& value) = 0;
+
+  virtual void saveMetaInfo(const KLFBackend::klfInput& in, const KLFBackend::klfSettings& settings) ;
+};
+
+class KLF_EXPORT KLFImageLatexMetaInfo : public KLFAbstractLatexMetaInfo
+{
+public:
+  KLFImageLatexMetaInfo(QImage *img);
+
+  QString loadField(const QString &k);
+  void saveField(const QString& k, const QString& v);
+
+private:
+  QImage *_w;
+};
+
+
+/** \brief Write metainfo to PDF files via pdfmarks for ghostscript.
+ *
+ * Example code
+ * \code
+ *   QString pdfmarkstr;
+ *   KLFPdfmarksWriteLatexMetaInfo pdfmetainfo(&pdfmarkstr);
+ *   pdfmetainfo.savePDFField("Title", in.latex);
+ *   pdfmetainfo.savePDFField("Keywords", "KLatexFormula KLF LaTeX equation formula");
+ *   pdfmetainfo.savePDFField("Creator", "KLatexFormula " KLF_VERSION_STRING);
+ *   pdfmetainfo.saveMetaInfo(in, settings);
+ *   pdfmetainfo.finish();
+ *   // now pdfmarkstr contains the pdfmarks string to pass to ghostscript.
+ * \endcode
+ *
+ * \bug integrate PDF meta-info reading here from klfmainwin_p.h
+ */
+class KLFPdfmarksWriteLatexMetaInfo : public KLFAbstractLatexMetaInfo
+{
+public:
+  KLFPdfmarksWriteLatexMetaInfo(QByteArray * string);
+
+  void saveField(const QString& k, const QString& v);
+  void finish();
+
+  //! Saves the field without prepending 'KLF' to the key
+  void savePDFField(const QString& k, const QString& v);
+
+  /** \warning NOT IMPLEMENTED. */
+  QString loadField(const QString& );
+
+private:
+  QByteArray * _s;
+};
+
+
+
+
+
 #endif

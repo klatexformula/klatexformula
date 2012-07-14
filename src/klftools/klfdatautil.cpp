@@ -120,39 +120,49 @@ static struct { const char * keyword; int propId; QVariant fixed_value; } klf_te
 
 
 
-KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& value_ba)
+KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& value_ba, char escapechar)
 {
-  qDebug("klfDataToEscaped: len=%d, data=`%s'", value_ba.size(), value_ba.constData());
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  klfDbg("len="<<value_ba.size()<<" , data=`"<<value_ba<<"' escapechar="<<klfFmtCC("'\\x%02X'", (int)escapechar));
+
   QByteArray data;
   int k;
   for (k = 0; k < value_ba.size(); ++k) {
     //    qDebug("\tdata[%d] = %x = %c", k, (uchar)value_ba[k], value_ba[k]);
-    if (value_ba[k] >= 32 && value_ba[k] <= 126 && value_ba[k] != '\\') {
+    if (value_ba[k] >= 32 && value_ba[k] <= 126 && value_ba[k] != escapechar) {
       // ascii-ok values, not backslash
       data += value_ba[k];
-    } else if (value_ba[k] == '\\') {
-      data += "\\\\";
+    } else if (value_ba[k] == escapechar) {
+      // double the escape char
+      data += escapechar;
+      data += escapechar;
     } else {
-      data += QString("\\x%1").arg((uint)(uchar)value_ba[k], 2, 16, QChar('0')).toAscii();
+      data += escapechar;
+      data += QString("x%1").arg((uint)(uchar)value_ba[k], 2, 16, QChar('0')).toAscii();
     }
   }
   return data;
 }
 
-KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& data)
+KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& data, char escapechar)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("data=`"<<data<<"', escapechar="<<klfFmtCC("'\\x%02X'", (int)escapechar));
+
   bool convertOk;
   int k;
   QByteArray value_ba;
   k = 0;
   while (k < data.size()) {
-    if (data[k] != '\\') {
+    if (data[k] != escapechar) {
       value_ba += data[k];
       ++k;
       continue;
     }
-    if (data[k] == '\\' && k+1 >= data.size()) {
-      value_ba += '\\'; // backslash at end of data
+    // we have an escapechar
+    if (data[k] == escapechar && k+1 >= data.size()) {
+      value_ba += escapechar; // backslash at end of data
       ++k;
       continue;
     }
@@ -184,6 +194,7 @@ KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& data)
     // pos k points on '\\', pos k+1 points on 'x'
     if (k+3 >= data.size() || !klf_is_hex_char(data[k+2]) || !klf_is_hex_char(data[k+3])) {
       // ignore invalid escape sequence
+      klfDbg("ignoring invalid escape sequence `"<<data.mid(k,4)<<"'") ;
       value_ba += data[k];
       ++k;
       continue;

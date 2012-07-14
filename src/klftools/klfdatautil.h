@@ -32,14 +32,18 @@
 
 /** Escapes every character in \c data that is not in the range 32-126 (included) as
  * \\xHH whith HH the hex code of the character. Backslashes are replaced by double-backslashes.
+ *
+ * If \c escapechar is specified, it replaces the backslash as escape character.
  */
-KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& data);
+KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& data, char escapechar = '\\');
 
 /** Performs the exact inverse of \ref klfDataToEscaped().
  *
  * Also understands standard short C escape sequences such as \c '\n', \c '\0', and \c '\t'
+ *
+ * If \c escapechar is specified, it replaces the backslash as escape character.
  */
-KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped);
+KLF_EXPORT QByteArray klfEscapedToData(const QByteArray& escaped, char escapechar = '\\');
 
 
 /** Saves the variant \c value into a string, stored in Local 8-bit encoding text in QByteArray.

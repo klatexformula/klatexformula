@@ -1497,11 +1497,7 @@ void KLFSettings::apply()
 			     tr("You need to restart KLatexFormula for your changes to take effect."));
   }
 
-  d->mainWin->refreshShowCorrectClearButton();
   d->mainWin->saveSettings();
-
-  //  // recalculate window sizes etc.
-  //  d->mainWin->refreshWindowSizes();
 
   // in case eg. the plugins re-change klfconfig in some way (skin does this for syntax highlighting)
   // -> refresh

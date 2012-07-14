@@ -544,13 +544,16 @@ private:
 	continue;
 
       // read meta-information
-      QString latex = img.text("InputLatex");
+      KLFImageLatexMetaInfo metainfo(&img);
+      
+      QString latex = metainfo.loadField("InputLatex");
+
       KLFStyle style;
-      style.fg_color = read_color(img.text("InputFgColor"));
-      style.bg_color = read_color(img.text("InputBgColor"));
-      style.mathmode = img.text("InputMathMode");
-      style.preamble = img.text("InputPreamble");
-      style.dpi = img.text("InputDPI").toInt();
+      style.fg_color = read_color(metainfo.loadField("InputFgColor"));
+      style.bg_color = read_color(metainfo.loadField("InputBgColor"));
+      style.mathmode = metainfo.loadField("InputMathMode");
+      style.preamble = metainfo.loadField("InputPreamble");
+      style.dpi = metainfo.loadField("InputDPI").toInt();
 
       mainWin()->slotLoadStyle(style);
       mainWin()->slotSetLatex(latex);
@@ -1004,6 +1007,164 @@ private:
   KLFExportUserScript pUserScript;
 };
 
+
+
+
+
+
+
+
+// --------------------------------------------------------------------------
+
+
+class KLFMainWinPrivate : public QObject
+{
+  Q_OBJECT
+public:
+  KLF_PRIVATE_QOBJ_HEAD(KLFMainWin, QObject)
+  {
+  }
+
+
+  KLFLibBrowser *mLibBrowser;
+  KLFLatexSymbols *mLatexSymbols;
+  KLFStyleManager *mStyleManager;
+  KLFSettings *mSettingsDialog;
+  KLFAboutDialog *mAboutDialog;
+  KLFWhatsNewDialog *mWhatsNewDialog;
+
+  KLFMainWinPopup *mPopup;
+
+  QShortcut * mShortcutNextParenType;
+  QShortcut * mShortcutNextParenModifierType;
+
+  /** \internal */
+  struct HelpLinkAction {
+    HelpLinkAction(const QString& p, QObject *obj, const char *func, bool param)
+      : path(p), reciever(obj), memberFunc(func), wantParam(param) { }
+    QString path;
+    QObject *reciever;
+    QByteArray memberFunc;
+    bool wantParam;
+  };
+  QList<HelpLinkAction> mHelpLinkActions;
+
+  KLFLibResourceEngine *mHistoryLibResource;
+
+  KLFStyleList styles;
+
+  bool try_load_style_list(const QString& fileName);
+
+  QMenu *mStyleMenu;
+
+  bool loadedlibrary;
+  bool firstshow;
+
+  KLFBackend::klfSettings settings; // settings we pass to KLFBackend
+  bool settings_altered;
+
+  KLFBackend::klfOutput output; // output from KLFBackend
+
+  /** If TRUE, then the output contained in _output is up-to-date, meaning that we favor displaying
+   * _output.result instead of the image given by mPreviewBuilderThread. */
+  bool evaloutput_uptodate;
+  /** The Thread that will create real-time previews of formulas. */
+  KLFLatexPreviewThread *pLatexPreviewThread;
+
+  QLabel *mExportMsgLabel;
+  void showExportMsgLabel(const QString& msg, int timeout = 3000);
+  int pExportMsgLabelTimerId;
+
+  KLFUserScriptSettings * pUserScriptSettings;
+
+  /**
+   * Use \ref currentInputState() instead for "public" use.
+   *
+   * Returns the input corresponding to the current GUI state. If \c isFinal is TRUE, then
+   * the input data may be "remembered" as used (the exact effect depends on the setting), eg.
+   * math mode is memorized into combo box choices. Typically \c isFinal is TRUE when called
+   * from slotEvaluate() and FALSE when called to update the preview builder thread. */
+  KLFBackend::klfInput collectInput(bool isFinal);
+
+  QList<QAction*> pExportProfileQuickMenuActionList;
+
+  bool ignore_close_event;
+
+  //   /** "last" window status flags are used in eventFilter() to detect individual dialog
+  //    * geometries resetting */
+  //   QHash<QWidget*,bool> pLastWindowShownStatus;
+  //   QHash<QWidget*,QRect> pLastWindowGeometries;
+  //   /** "saved" window status flags are used in hideEvent() to save the individual dialog visible
+  //    * states, as the "last" status flags will be overridden by all the windows hiding. */
+  //   QHash<QWidget*,bool> pSavedWindowShownStatus;
+
+  QString widgetstyle;
+
+  void getMissingCmdsFor(const QString& symbol, QStringList * missingCmds, QString *guiText,
+			 bool wantHtmlText = true);
+
+  QList<KLFAbstractOutputSaver*> pOutputSavers;
+  QList<KLFAbstractDataOpener*> pDataOpeners;
+
+  KLFCmdIface *pCmdIface;
+
+  QVariantMap parseLatexEditPosParenInfo(KLFLatexEdit *editor, int pos);
+
+
+public slots: // .. but in private API
+
+  // private : only as slot to an action containing the style # as user data
+  void slotLoadStyleAct();
+
+  void slotDetailsSideWidgetShown(bool shown);
+
+  /** controls the enabled state of the 'see larger preview button' widget */
+  void slotSetViewControlsEnabled(bool enabled);
+  /** controls the enabled state of the DRAG/COPY/SAVE & Format widgets */
+  void slotSetSaveControlsEnabled(bool enabled);
+
+  void slotOpenHistoryLibraryResource();
+
+  void refreshShowCorrectClearButton();
+
+  void refreshExportTypesMenu();
+
+  void refreshStylePopupMenus();
+
+  void slotLibraryButtonRefreshState(bool on);
+  void slotSymbolsButtonRefreshState(bool on);
+
+  void slotPresetDPISender();
+
+  void showRealTimeReset();
+  void showRealTimePreview(const QImage& preview, const QImage& largePreview);
+  void showRealTimeError(const QString& errorstr, int errcode);
+
+  void updatePreviewThreadInput();
+
+  void displayError(const QString& errormsg);
+
+  void slotNewSymbolTyped(const QString& symbol);
+  void slotPopupClose();
+  void slotPopupAction(const QUrl& helpLinkUrl);
+  void slotPopupAcceptAll();
+
+  void slotEditorContextMenuInsertActions(const QPoint& pos, QList<QAction*> *actionList);
+  void slotInsertMissingPackagesFromActionSender();
+  void slotChangeParenFromActionSender();
+  void slotChangeParenFromVariantMap(const QVariantMap& data);
+
+  void slotCycleParenModifiers(bool forward = true);
+  void slotCycleParenModifiersBack() { slotCycleParenModifiers(false); }
+  void slotCycleParenTypes(bool forward = true);
+  void slotCycleParenTypesBack() { slotCycleParenTypes(false); }
+
+  void slotEncloseRegionInDelimiterFromActionSender();
+  void slotEncloseRegionInDelimiter(const QVariantMap& vmap);
+
+  void latexEditReplace(int pos, int len, const QString& text);
+
+};
 
 
 

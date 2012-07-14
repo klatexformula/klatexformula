@@ -134,26 +134,64 @@ static const char * standard_extra_paths[] = {
 
 // ---------------------------------
 
-class KLFAbstractLatexMetaInfo
+KLFAbstractLatexMetaInfo::KLFAbstractLatexMetaInfo()
 {
-public:
-  virtual QString loadField(const QString& key) = 0;
-  virtual void saveField(const QString& key, const QString& value) = 0;
-};
-
-class KLFImageLatexMetaInfo : public KLFAbstractLatexMetaInfo
+}
+KLFAbstractLatexMetaInfo::~KLFAbstractLatexMetaInfo()
 {
-  QImage *_w;
-public:
-  KLFImageLatexMetaInfo(QImage *imgwrite) : _w(imgwrite) { }
+}
 
-  void saveField(const QString& k, const QString& v) {
-    _w->setText(k, v);
-  }
-  QString loadField(const QString &k) {
-    return _w->text(k);
-  }
-};
+void KLFAbstractLatexMetaInfo::saveMetaInfo(const KLFBackend::klfInput& in,
+					    const KLFBackend::klfSettings& settings)
+{
+  static QString boolstr[2] = { QLatin1String("true"), QLatin1String("false") } ;
+  
+  saveField("AppVersion", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
+  saveField("Application",
+	       QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile")
+	       .arg(KLF_VERSION_STRING));
+  saveField("Software", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
+  saveField("InputLatex", in.latex);
+  saveField("InputMathMode", in.mathmode);
+  saveField("InputPreamble", in.preamble);
+  saveField("InputFontSize", QString::number(in.fontsize, 'g', 2));
+  saveField("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(in.fg_color))
+	       .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)));
+  saveField("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(in.bg_color))
+	       .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color))
+	       .arg(qAlpha(in.bg_color)));
+  saveField("InputDPI", QString::number(in.dpi));
+  saveField("InputVectorScale", QString::number(in.vectorscale, 'g', 4));
+  saveField("InputBypassTemplate", boolstr[(int)in.bypassTemplate]);
+  saveField("InputUserScript", in.userScript);
+  QString usparams;
+  klfSaveVariantToText(QVariant(klfMapToVariantMap(in.userScriptParam)), true);
+  saveField("InputUserScriptParams", usparams);
+  saveField("SettingsTBorderOffset", QString::number(settings.tborderoffset));
+  saveField("SettingsRBorderOffset", QString::number(settings.rborderoffset));
+  saveField("SettingsBBorderOffset", QString::number(settings.bborderoffset));
+  saveField("SettingsLBorderOffset", QString::number(settings.lborderoffset));
+  saveField("SettingsOutlineFonts", boolstr[(int)settings.outlineFonts]);
+  saveField("SettingsCalcEpsBoundingBox", boolstr[(int)settings.calcEpsBoundingBox]);
+  saveField("SettingsWantRaw", boolstr[(int)settings.wantRaw]);
+  saveField("SettingsWantPDF", boolstr[(int)settings.wantPDF]);
+  saveField("SettingsWantSVG", boolstr[(int)settings.wantSVG]);
+
+  klfDbg("saved meta-info.") ;
+}
+
+
+KLFImageLatexMetaInfo::KLFImageLatexMetaInfo(QImage *imgwrite) : _w(imgwrite) { }
+
+void KLFImageLatexMetaInfo::saveField(const QString& k, const QString& v)
+{
+  // QImageWriter::setText() uses QString::simplified() and does not save whitespace properly :(
+  // so encode text in some appropriate way.
+  _w->setText(k, klfDataToEscaped(v.toUtf8(), '%'));
+}
+QString KLFImageLatexMetaInfo::loadField(const QString &k) {
+  return QString::fromUtf8(klfEscapedToData(_w->text(k).toAscii(), '%'));
+}
 
 
 KLF_EXPORT QByteArray klf_escape_ps_string(const QString& v)
@@ -214,80 +252,43 @@ KLF_EXPORT QByteArray klf_escape_ps_string(const QString& v)
 
 
 
-class KLFPdfmarksWriteLatexMetaInfo : public KLFAbstractLatexMetaInfo
+KLFPdfmarksWriteLatexMetaInfo::KLFPdfmarksWriteLatexMetaInfo(QByteArray * string)
+  : _s(string)
 {
-  QByteArray * _s;
-public:
-  KLFPdfmarksWriteLatexMetaInfo(QByteArray * string) : _s(string) {
-    _s->append( // ensure pdfmark symbol defined in postscript
-	       "/pdfmark where { pop } { /globaldict where { pop globaldict } { userdict } ifelse "
-	       "/pdfmark /cleartomark load put } ifelse\n"
-	       // now the proper PDFmarks DOCINFO dictionary
-	       "[ "
-	       );
-  }
-
-  QString loadField(const QString& ) {
-    KLF_ASSERT_CONDITION(false, "N/A.", return QString(); ) ;
-  }
-  void savePDFField(const QString& k, const QString& v) {
-
-    //: http://stackoverflow.com/questions/3010015/pdfmark-for-docinfo-metadata-in-pdf-is-not-accepting-accented-characters-in-keyw
-    //: http://www.justskins.com/forums/adding-metadata-to-pdf-68647.html
-
-    QByteArray datavalue = klf_escape_ps_string(v);
-
-    _s->append( "  /"+k+" " + datavalue + "\n");
-  }
-  void saveField(const QString& k, const QString& v) {
-    savePDFField("KLF"+k, v);
-  }
-
-  void finish() {
-    _s->append("  /DOCINFO pdfmark\n");
-  }
-};
-
-
-
-void klf_save_meta_info(KLFAbstractLatexMetaInfo * m, const KLFBackend::klfInput& in,
-			const KLFBackend::klfSettings& settings)
-{
-  static QString boolstr[2] = { QLatin1String("true"), QLatin1String("false") } ;
-
-  m->saveField("AppVersion", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
-  m->saveField("Application",
-	       QObject::tr("Created with KLatexFormula version %1", "KLFBackend::saveOutputToFile")
-	       .arg(KLF_VERSION_STRING));
-  m->saveField("Software", QString::fromLatin1("KLatexFormula " KLF_VERSION_STRING));
-  m->saveField("InputLatex", in.latex);
-  m->saveField("InputMathMode", in.mathmode);
-  m->saveField("InputPreamble", in.preamble);
-  m->saveField("InputFontSize", QString::number(in.fontsize, 'g', 2));
-  m->saveField("InputFgColor", QString("rgb(%1, %2, %3)").arg(qRed(in.fg_color))
-	       .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)));
-  m->saveField("InputBgColor", QString("rgba(%1, %2, %3, %4)").arg(qRed(in.bg_color))
-	       .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color))
-	       .arg(qAlpha(in.bg_color)));
-  m->saveField("InputDPI", QString::number(in.dpi));
-  m->saveField("InputVectorScale", QString::number(in.vectorscale, 'g', 4));
-  m->saveField("InputBypassTemplate", boolstr[(int)in.bypassTemplate]);
-  m->saveField("InputUserScript", in.userScript);
-  QString usparams;
-  klfSaveVariantToText(QVariant(klfMapToVariantMap(in.userScriptParam)), true);
-  m->saveField("InputUserScriptParams", usparams);
-  m->saveField("SettingsTBorderOffset", QString::number(settings.tborderoffset));
-  m->saveField("SettingsRBorderOffset", QString::number(settings.rborderoffset));
-  m->saveField("SettingsBBorderOffset", QString::number(settings.bborderoffset));
-  m->saveField("SettingsLBorderOffset", QString::number(settings.lborderoffset));
-  m->saveField("SettingsOutlineFonts", boolstr[(int)settings.outlineFonts]);
-  m->saveField("SettingsCalcEpsBoundingBox", boolstr[(int)settings.calcEpsBoundingBox]);
-  m->saveField("SettingsWantRaw", boolstr[(int)settings.wantRaw]);
-  m->saveField("SettingsWantPDF", boolstr[(int)settings.wantPDF]);
-  m->saveField("SettingsWantSVG", boolstr[(int)settings.wantSVG]);
-
-  klfDbg("saved meta-info.") ;
+  // See the following for more info:
+  // http://stackoverflow.com/questions/3010015/pdfmark-for-docinfo-metadata-in-pdf-is-not-accepting-accented-characters-in-keyw
+  // http://www.justskins.com/forums/adding-metadata-to-pdf-68647.html
+  
+  _s->append( // ensure pdfmark symbol defined in postscript
+	     "/pdfmark where { pop } { /globaldict where { pop globaldict } { userdict } ifelse "
+	     "/pdfmark /cleartomark load put } ifelse\n"
+	     // now the proper PDFmarks DOCINFO dictionary
+	     "[ "
+	     );
 }
+
+QString KLFPdfmarksWriteLatexMetaInfo::loadField(const QString& )
+{
+  KLF_ASSERT_CONDITION(false, "N/A.", return QString(); ) ;
+}
+void KLFPdfmarksWriteLatexMetaInfo::saveField(const QString& k, const QString& v)
+{
+  savePDFField("KLF"+k, v);
+}
+void KLFPdfmarksWriteLatexMetaInfo::finish()
+{
+  _s->append("  /DOCINFO pdfmark\n");
+}
+void KLFPdfmarksWriteLatexMetaInfo::savePDFField(const QString& k, const QString& v)
+{
+  QByteArray datavalue = klf_escape_ps_string(v);
+  
+  _s->append( "  /"+k+" " + datavalue + "\n");
+}
+
+
+
+
 
 
 // ---------------------------------
@@ -1096,7 +1097,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // store some meta-information into result
     KLFImageLatexMetaInfo metainfo(&res.result);
-    klf_save_meta_info(&metainfo, in, settings);
+    metainfo.saveMetaInfo(in, settings);
     
     { // create "final" PNG data
       QBuffer buf(&res.pngdata);
@@ -1129,7 +1130,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       pdfmetainfo.savePDFField("Title", in.latex);
       pdfmetainfo.savePDFField("Keywords", "KLatexFormula KLF LaTeX equation formula");
       pdfmetainfo.savePDFField("Creator", "KLatexFormula " KLF_VERSION_STRING);
-      klf_save_meta_info(&pdfmetainfo, in, settings);
+      pdfmetainfo.saveMetaInfo(in, settings);
       pdfmetainfo.finish();
       fpdfmarks.write(pdfmarkstr);
       // file is ready.
