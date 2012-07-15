@@ -353,6 +353,12 @@ public:
 
   } Plugins;
 
+  struct {
+    
+    QMap<QString, QMap<QString, QVariant> > userScriptConfig;
+
+  } UserScripts;
+
   /** Not a saved setting. This is set in loadDefaults() */
   QFont defaultCMUFont;
   /** Not a saved setting. This is set in loadDefaults() */

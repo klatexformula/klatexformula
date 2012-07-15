@@ -87,6 +87,12 @@ struct KLFSettingsPrivate
 
   bool setDefaultFor(const QString& progname, const QString& guessprog, bool required,
 		     KLFPathChooser *destination);
+
+
+  QHash<QString,QWidget*> userScriptConfigWidgets;
+  QWidget * getUserScriptConfigWidget(const KLFUserScriptInfo& usinfo, const QString& uifile);
+  QVariantMap getUserScriptConfig(QWidget *w);
+  void displayUserScriptConfig(QWidget *w, const QVariantMap& data);
 };
 
 

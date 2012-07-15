@@ -349,23 +349,89 @@ QString klfGetEnvironmentVariable(const QStringList& env, const QString& var)
   return QString();
 }
 
+KLF_EXPORT void klfSetEnvironmentVariable(QStringList * env, const QString& var,
+					  const QString& value)
+{
+  QString vareq = var + QLatin1String("=");
+  // search for declaration of var in list
+  int k;
+  for (k = 0; k < env->size(); ++k) {
+    if (env->operator[](k).startsWith(vareq)) {
+      env->operator[](k) = vareq+value;
+      return;
+    }
+  }
+  // declaration not found, just append
+  env->append(vareq+value);
+  return;
+}
+
 QStringList klfSetEnvironmentVariable(const QStringList& env, const QString& var,
 				      const QString& value)
 {
   QStringList env2 = env;
-  QString vareq = var + QLatin1String("=");
-  // search for declaration of var in list
-  int k;
-  for (k = 0; k < env2.size(); ++k) {
-    if (env2[k].startsWith(vareq)) {
-      env2[k] = vareq+value;
-      return env2;
-    }
-  }
-  // declaration not found, just append
-  env2.append(vareq+value);
+  klfSetEnvironmentVariable(&env2, var, value);
   return env2;
 }
+
+QStringList klfMapToEnvironmentList(const QMap<QString,QString>& map)
+{
+  QStringList list;
+  for (QMap<QString,QString>::const_iterator it = map.begin(); it != map.end(); ++it)
+    list << it.key() + "=" + it.value();
+  return list;
+}
+
+static bool parse_env_line(const QString& s, QString * var, QString * val)
+{
+  KLF_ASSERT_NOT_NULL(var, "var argument is NULL!", return false; ) ;
+  KLF_ASSERT_NOT_NULL(val, "val argument is NULL!", return false; ) ;
+  int i = s.indexOf('=');
+  if (i == -1) {
+    *var = *val = QString();
+    klfWarning("Line "<<s<<" is not an environment variable setting.") ;
+    return false;
+  }
+  *var = s.mid(0, i);
+  *val = s.mid(i+1);
+  return true;
+}
+
+QMap<QString,QString> klfEnvironmentListToMap(const QStringList& env)
+{
+  QMap<QString,QString> map;
+
+  foreach (QString s, env) {
+    QString var, val;
+    if (!parse_env_line(s, &var, &val))
+      continue; // warning already issued
+    if (map.contains(var))
+      klfWarning("Line "<<s<<" will overwrite previous value of variable "<<var) ;
+    map[var] = val;
+  }
+
+  return map;
+}
+
+
+void klfMergeEnvironment(QStringList * env, const QStringList& addvars)
+{
+  foreach (QString s, addvars) {
+    QString var, val;
+    if (!parse_env_line(s, &var, &val))
+      continue; // warning issued already
+    klfSetEnvironmentVariable(env, var, val);
+  }
+}
+
+QStringList klfMergeEnvironment(const QStringList& env, const QStringList& addvars)
+{
+  QStringList merged = env;
+  klfMergeEnvironment(merged, addvars);
+  return merged;
+}
+
+
 QStringList klfGetEnvironmentPath(const QStringList& env, const QString& var)
 {
   QString value = klfGetEnvironmentVariable(env, var);

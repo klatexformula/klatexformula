@@ -1509,7 +1509,10 @@ QByteArray KLFExportUserScript::getData(const QString& key, const KLFBackend::kl
 
   // now actually call the script
 
-  KLFFilterProcess p("User Script " + d->info->scriptName(), &klfoutput.settings);
+  KLFUserScriptFilterProcess p(d->info->fileName(), &klfoutput.settings);
+
+  if (klfconfig.UserScripts.userScriptConfig.contains(d->info->fileName()))
+    p.addUserScriptConfig(klfconfig.UserScripts.userScriptConfig.value(d->info->fileName()));
 
   QString infmt = d->info->inputDataType();
 

@@ -100,6 +100,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
     registerBuiltInProperty(License, QLatin1String("License"));
     registerBuiltInProperty(KLFMinVersion, QLatin1String("KLFMinVersion"));
     registerBuiltInProperty(KLFMaxVersion, QLatin1String("KLFMaxVersion"));
+    registerBuiltInProperty(SettingsFormUI, QLatin1String("SettingsFormUI"));
     registerBuiltInProperty(SpitsOut, QLatin1String("SpitsOut"));
     registerBuiltInProperty(SkipFormats, QLatin1String("SkipFormats"));
     registerBuiltInProperty(DisableInputs, QLatin1String("DisableInputs"));
@@ -110,7 +111,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
   inline int ref() { return ++refcount; }
   inline int deref() { return --refcount; }
 
-  KLFBackend::klfSettings *settings;
+  const KLFBackend::klfSettings *settings;
 
   QString fname;
   QString normalizedfname;
@@ -225,6 +226,16 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
       } else if (key == QLatin1String("KLFMaxVersion")) {
 	setProperty(KLFMaxVersion, val);
 	klfDbg("Read klfMaxVersion: "<<property(KLFMaxVersion)) ;
+      } else if (key == QLatin1String("SettingsFormUI")) {
+	if ( ! property(SettingsFormUI).toString().isEmpty() ) {
+	  klfWarning("A user script ("<<sname<<") may not specify multiple settings UI forms.") ;
+	}
+	QString uifn = val;
+	if (QFileInfo(uifn).isRelative()) {
+	  uifn = QFileInfo(normalizedfname).dir().filePath(uifn);
+	}
+	setProperty(SettingsFormUI, uifn);
+	klfDbg("Read SettingsFormUI: "<<property(SettingsFormUI)) ;
       } else if (key == QLatin1String("SpitsOut")) {
 	setProperty(SpitsOut, property(SpitsOut).toStringList() + val.split(QRegExp("(,|\\s+)")));
       } else if (key == QLatin1String("SkipFormats")) {
@@ -232,7 +243,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
       } else if (key == QLatin1String("DisableInputs")) {
 	setProperty(DisableInputs, property(DisableInputs).toStringList() + val.split(QRegExp("(,|\\s+)")));
       } else if (key == QLatin1String("InputFormUI")) {
-	if ( ! property(DisableInputs).toString().isEmpty() ) {
+	if ( ! property(InputFormUI).toString().isEmpty() ) {
 	  klfWarning("A user script ("<<sname<<") may not specify multiple input UI forms.") ;
 	}
 	QString uifn = val;
@@ -240,6 +251,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
 	  uifn = QFileInfo(normalizedfname).dir().filePath(uifn);
 	}
 	setProperty(InputFormUI, uifn);
+	klfDbg("Read InputFormUI: "<<property(SettingsFormUI)) ;
       } /*
 	  else if (key == QLatin1String("Param")) {
 	  // parse a paramter request specification, eg.
@@ -315,6 +327,17 @@ private:
 QMap<QString,KLFRefPtr<KLFUserScriptInfo::Private> > KLFUserScriptInfo::Private::userScriptInfoCache;
 
 // static
+void KLFUserScriptInfo::forceReloadScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings)
+{
+  QString normalizedfn = QFileInfo(scriptFileName).canonicalFilePath();
+  Private::userScriptInfoCache.remove(normalizedfn);
+  
+  KLFUserScriptInfo usinfo(scriptFileName, settings) ;
+  if (usinfo.scriptInfoError() != KLFERR_NOERROR) {
+    klfWarning(qPrintable(usinfo.scriptInfoErrorString()));
+  }
+}
+// static
 void KLFUserScriptInfo::clearCacheAll()
 {
   // will decrease the refcounts if needed automatically (KLFRefPtr)
@@ -329,7 +352,7 @@ bool KLFUserScriptInfo::hasScriptInfoInCache(const QString& scriptFileName)
   return Private::userScriptInfoCache.contains(normalizedfn);
 }
 
-KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings)
+KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, const KLFBackend::klfSettings * settings)
 {
   QString normalizedfn = QFileInfo(scriptFileName).canonicalFilePath();
   if (Private::userScriptInfoCache.contains(normalizedfn)) {
@@ -390,6 +413,7 @@ QString KLFUserScriptInfo::version() const { return info(Version).toString(); }
 QString KLFUserScriptInfo::license() const { return info(License).toString(); }
 QString KLFUserScriptInfo::klfMinVersion() const { return info(KLFMinVersion).toString(); }
 QString KLFUserScriptInfo::klfMaxVersion() const { return info(KLFMaxVersion).toString(); }
+QString KLFUserScriptInfo::settingsFormUI() const { return info(SettingsFormUI).toString(); }
 QStringList KLFUserScriptInfo::spitsOut() const { return info(SpitsOut).toStringList(); }
 QStringList KLFUserScriptInfo::skipFormats() const { return info(SkipFormats).toStringList(); }
 QStringList KLFUserScriptInfo::disableInputs() const { return info(DisableInputs).toStringList(); }
@@ -547,7 +571,7 @@ struct KLFUserScriptFilterProcessPrivate
 };
 
 KLFUserScriptFilterProcess::KLFUserScriptFilterProcess(const QString& scriptFileName,
-						       KLFBackend::klfSettings * settings)
+						       const KLFBackend::klfSettings * settings)
   : KLFFilterProcess("User Script " + scriptFileName, settings)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
@@ -567,3 +591,11 @@ KLFUserScriptFilterProcess::~KLFUserScriptFilterProcess()
   KLF_DELETE_PRIVATE ;
 }
 
+void KLFUserScriptFilterProcess::addUserScriptConfig(const QVariantMap& map)
+{
+  QMap<QString,QString> mdata;
+  for (QVariantMap::const_iterator it = map.begin(); it != map.end(); ++it)
+    mdata[QLatin1String("KLF_USCONFIG_") + it.key()] = klfSaveVariantToText(it.value(), true);
+
+  addExecEnviron(klfMapToEnvironmentList(mdata));
+}

@@ -59,6 +59,7 @@
 #include "klfpluginiface.h"
 #include "klfsettings.h"
 #include "klfsettings_p.h"
+#include "klfuiloader.h"
 
 
 
@@ -1139,30 +1140,49 @@ void KLFSettings::refreshUserScriptList()
 }
 
 
+#undef KLF_BLOCK
+#define KLF_BLOCK							\
+  int _klf_block_broken_by = 0;						\
+  for (bool _klf_block_first = true; _klf_block_first; _klf_block_first = false)
+
+// don't use value 0, it's used to mean 'not broken'
+#define KLF_BREAK_BECAUSE(why) { _klf_block_broken_by = why; break; }
+#define KLF_BREAK { _klf_block_broken_by = -1; break; }
+#define KLF_BROKEN_BECAUSE(whyvar)		\
+  if (int whyvar = _klf_block_broken_by)
+#define KLF_BROKEN				\
+  if (_klf_block_broken_by)
+
+
 void KLFSettings::refreshUserScriptSelected()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   QTreeWidgetItem * item = u->lstUserScripts->currentItem();
   klfDbg("item="<<item) ;
-  if (item == NULL) {
-    // no user script
-    u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
-    return;
-  }
 
-  QVariant v = item->data(0, KLFSETTINGS_ROLE_USERSCRIPT);
-  if (!v.isValid()) {
-    // no user script
-    klfDbg("v="<<v) ;
-    u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
-    return;
+  QVariant v;
+  QString s;
+
+  KLF_BLOCK {
+    if (item == NULL)
+      KLF_BREAK_BECAUSE(1);
+    v = item->data(0, KLFSETTINGS_ROLE_USERSCRIPT);
+    if (!v.isValid())
+      KLF_BREAK_BECAUSE(2);
+    s = v.toString();
+    if (!KLFUserScriptInfo::hasScriptInfoInCache(s)) {
+      klfDbg("s="<<s) ;
+      KLF_BREAK_BECAUSE(3);
+    }
   }
-  QString s = v.toString();
-  if (!KLFUserScriptInfo::hasScriptInfoInCache(s)) {
+  KLF_BROKEN_BECAUSE(reason) {
     // no user script
-    klfDbg("s="<<s) ;
     u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+    u->stkUserScriptSettings->setCurrentWidget(u->wStkUserScriptSettingsEmptyPage);
+    if (reason == 2) klfDbg("invalid variant") ;
+    if (reason == 3) klfDbg("variant is not string, v="<< v) ;
+
     return;
   }
 
@@ -1174,6 +1194,101 @@ void KLFSettings::refreshUserScriptSelected()
   QString txt = usinfo.htmlInfo(QString::fromLatin1("body { font-size: %1pt }").arg(textpointsize));
 
   u->lblUserScriptInfo->setText(txt);
+
+  // update config widget
+  QString uifile = usinfo.settingsFormUI();
+  if (!uifile.isEmpty()) {
+    QWidget * scriptconfigwidget = d->getUserScriptConfigWidget(usinfo, uifile);
+    u->stkUserScriptSettings->setCurrentWidget(scriptconfigwidget);
+    klfDbg("Set script config UI. uifile="<<uifile) ;
+  } else {
+    u->stkUserScriptSettings->setCurrentWidget(u->wStkUserScriptSettingsEmptyPage);
+  }
+}
+
+QWidget * KLFSettingsPrivate::getUserScriptConfigWidget(const KLFUserScriptInfo& usinfo, const QString& uifile)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("uifile = " << uifile) ;
+  if (userScriptConfigWidgets.contains(uifile)) {
+    klfDbg("widget from cache.") ;
+    return userScriptConfigWidgets[uifile];
+  }
+
+  QFile uif(uifile);
+  uif.open(QFile::ReadOnly);
+  QWidget * scriptconfigwidget = klfLoadUI(&uif, K->u->stkUserScriptSettings);
+  uif.close();
+  KLF_ASSERT_NOT_NULL(scriptconfigwidget, "Can't load script config widget "<<uifile<<".",
+		      return K->u->wStkUserScriptSettingsEmptyPage) ;
+
+  K->u->stkUserScriptSettings->addWidget(scriptconfigwidget);
+  userScriptConfigWidgets[uifile] = scriptconfigwidget;
+
+  // load current configuration
+  if (klfconfig.UserScripts.userScriptConfig.contains(usinfo.fileName()))
+    displayUserScriptConfig(scriptconfigwidget, klfconfig.UserScripts.userScriptConfig.value(usinfo.fileName()));
+
+  return scriptconfigwidget;
+}
+
+QVariantMap KLFSettingsPrivate::getUserScriptConfig(QWidget * w)
+{
+  if (w == NULL)
+    return QVariantMap();
+
+  QVariantMap data;
+
+  // there's config for the user script
+  QList<QWidget*> inwidgets = w->findChildren<QWidget*>(QRegExp("^INPUT_.*"));
+  Q_FOREACH (QWidget *inw, inwidgets) {
+    QString n = inw->objectName();
+    KLF_ASSERT_CONDITION(n.startsWith("INPUT_"), "?!? found child widget "<<n<<" that is not INPUT_*?",
+			 continue; ) ;
+    n = n.mid(strlen("INPUT_"));
+    // get the user property
+    QByteArray userPropName;
+    if (inw->inherits("KLFLatexEdit")) {
+      userPropName = "plainText";
+    } else {
+      QMetaProperty userProp = inw->metaObject()->userProperty();
+      KLF_ASSERT_CONDITION(userProp.isValid(), "user property of widget "<<n<<" invalid!", continue ; ) ;
+      userPropName = userProp.name();
+    }
+    QVariant value = inw->property(userPropName.constData());
+    data[n] = value;
+  }
+
+  klfDbg("userscript config is "<<data) ;
+  return data;
+}
+
+void KLFSettingsPrivate::displayUserScriptConfig(QWidget *w, const QVariantMap& data)
+{
+  if (w == NULL)
+    return;
+
+  // find the input widgets
+  QList<QWidget*> inwidgets = w->findChildren<QWidget*>(QRegExp("^INPUT_.*"));
+  Q_FOREACH (QWidget *inw, inwidgets) {
+    QString n = inw->objectName();
+    KLF_ASSERT_CONDITION(n.startsWith("INPUT_"), "?!? found child widget "<<n<<" that is not INPUT_*?",
+			 continue; ) ;
+    n = n.mid(strlen("INPUT_"));
+    // find the user property
+    QByteArray userPropName;
+    if (inw->inherits("KLFLatexEdit")) {
+      userPropName = "plainText";
+    } else {
+      QMetaProperty userProp = inw->metaObject()->userProperty();
+      KLF_ASSERT_CONDITION(userProp.isValid(), "user property of widget "<<n<<" invalid!", continue ; ) ;
+      userPropName = userProp.name();
+    }
+    // find this widget in our list of input values
+    KLF_ASSERT_CONDITION(data.contains(n), "No value given for config widget "<<n, continue ; );
+    QVariant value = data[n];
+    inw->setProperty(userPropName.constData(), value);
+  }
 }
 
 
@@ -1273,27 +1388,27 @@ void KLFSettings::apply()
   bool warnneedrestart = false;
 
   // the settings object that we will fill, and set to d->mainWin
-  KLFBackend::klfSettings s = d->mainWin->currentSettings();
+  KLFBackend::klfSettings backendsettings = d->mainWin->currentSettings();
 
-  s.tempdir = QDir::fromNativeSeparators(u->pathTempDir->path());
-  s.latexexec = u->pathLatex->path();
-  s.dvipsexec = u->pathDvips->path();
-  s.gsexec = u->pathGs->path();
-  //  s.epstopdfexec = QString();
+  backendsettings.tempdir = QDir::fromNativeSeparators(u->pathTempDir->path());
+  backendsettings.latexexec = u->pathLatex->path();
+  backendsettings.dvipsexec = u->pathDvips->path();
+  backendsettings.gsexec = u->pathGs->path();
+  //  backendsettings.epstopdfexec = QString();
   //  if (u->chkEpstopdf->isChecked()) {
-  //    s.epstopdfexec = u->pathEpstopdf->path();
+  //    backendsettings.epstopdfexec = u->pathEpstopdf->path();
   //  }
   // detect environment for those settings (in particular mgs.exe for ghostscript ...)
 
-  klf_detect_execenv(&s);
+  klf_detect_execenv(&backendsettings);
 
-  s.lborderoffset = u->spnLBorderOffset->value();
-  s.tborderoffset = u->spnTBorderOffset->value();
-  s.rborderoffset = u->spnRBorderOffset->value();
-  s.bborderoffset = u->spnBBorderOffset->value();
-  s.outlineFonts = u->chkOutlineFonts->isChecked();
+  backendsettings.lborderoffset = u->spnLBorderOffset->value();
+  backendsettings.tborderoffset = u->spnTBorderOffset->value();
+  backendsettings.rborderoffset = u->spnRBorderOffset->value();
+  backendsettings.bborderoffset = u->spnBBorderOffset->value();
+  backendsettings.outlineFonts = u->chkOutlineFonts->isChecked();
 
-  d->mainWin->applySettings(s);
+  d->mainWin->applySettings(backendsettings);
 
   klfconfig.SyntaxHighlighter.enabled = u->chkSHEnable->isChecked();
   klfconfig.SyntaxHighlighter.highlightParensOnly = u->chkSHHighlightParensOnly->isChecked();
@@ -1425,6 +1540,32 @@ void KLFSettings::apply()
 
     ++it;
   }
+
+  // save userscript config
+  klfDbg("saving userscript settings.") ;
+  for (k = 0; k < klf_user_scripts.size(); ++k) {
+    KLFUserScriptInfo usinfo(klf_user_scripts[k]);
+
+    QString formui = usinfo.settingsFormUI();
+    if (formui.isEmpty())
+      continue;
+
+    if (!d->userScriptConfigWidgets.contains(formui))
+      continue; // no config for them...
+
+    klfDbg("saving settings for "<<usinfo.scriptName()) ;
+
+    QWidget * w = d->userScriptConfigWidgets[formui];
+
+    QVariantMap data = d->getUserScriptConfig(w);
+
+    klfconfig.UserScripts.userScriptConfig[usinfo.fileName()] = data;
+
+    // idea: reload user script, for them to possibly update/show warning/errors w/r to their new config but:
+    // NO, klfuserscripts don't have access to their config when queried for scriptinfo.
+    //    KLFUserScriptInfo::forceReloadScriptInfo(usinfo.fileName(), &backendsettings);
+  }
+
   if (warnneedrestart) {
     QMessageBox::information(this, tr("Restart KLatexFormula"),
 			     tr("You need to restart KLatexFormula for your changes to take effect."));

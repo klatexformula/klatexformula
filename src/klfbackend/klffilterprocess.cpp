@@ -158,7 +158,7 @@ void KLFFilterProcess::setExecEnviron(const QStringList& env)
 }
 void KLFFilterProcess::addExecEnviron(const QStringList& env)
 {
-  d->execEnviron << env;
+  klfMergeEnvironment(& d->execEnviron, env);
 }
 
 QStringList KLFFilterProcess::argv() const

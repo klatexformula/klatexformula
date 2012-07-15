@@ -2895,8 +2895,22 @@ void KLFMainWin::slotEvaluate()
     settings.lborderoffset = u->spnMarginLeft->valueInRefUnit();
   }
 
-  // and GO !
+  // setup user script configuration
+  if (!input.userScript.isEmpty()) {
+    QString usfn = KLFUserScriptInfo(input.userScript).fileName();
+    if (klfconfig.UserScripts.userScriptConfig.contains(usfn)) {
+      QVariantMap data = klfconfig.UserScripts.userScriptConfig[usfn];
+      QMap<QString,QString> mdata;
+      for (QVariantMap::const_iterator it = data.begin(); it != data.end(); ++it)
+	mdata[QLatin1String("KLF_USCONFIG_") + it.key()] = klfSaveVariantToText(it.value(), true);
+      klfMergeEnvironment(&settings.execenv, klfMapToEnvironmentList(mdata));
+    }
+    klfDbg("Full environment (w/ userscript config) is "<<settings.execenv) ;
+  }
+
+  // ****  and GO !
   d->output = KLFBackend::getLatexFormula(input, settings);
+  // ****
 
   if (d->output.status < 0) {
     QString comment = "";

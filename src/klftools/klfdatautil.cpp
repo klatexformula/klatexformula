@@ -659,7 +659,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
 	QDomElement el = make_xml_wrapper("variant-map");
 	klfDbg("map="<<map) ;
 	el = klfSaveVariantMapToXML(map, el);
-	data = el.ownerDocument().toByteArray(1);
+	data = el.ownerDocument().toByteArray(-1);
 	klfDbg("saved XML: data="<<data) ;
       } else {
 	QList<QPair<QByteArray, QByteArray> > sections;

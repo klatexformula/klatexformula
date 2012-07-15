@@ -14,6 +14,7 @@
     <file alias="userscripts/customtemplate_input.ui">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/customtemplate_input.ui</file>
     <file alias="userscripts/klffeynmf.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/klffeynmf.py</file>
     <file alias="userscripts/svg-dvisvgm.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/svg-dvisvgm.py</file>
+    <file alias="userscripts/svg-dvisvgm_config.ui">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/svg-dvisvgm_config.ui</file>
     <file alias="userscripts/gif-convert.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/gif-convert.py</file>
   </qresource>
 </RCC>

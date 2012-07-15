@@ -276,11 +276,44 @@ KLF_EXPORT QString klfGetEnvironmentVariable(const QStringList& env, const QStri
  * for \c var is appended to \c env.
  *
  * \c env is expected to be in the form described in \ref klfGetEnvironmentVariable().
+ */
+KLF_EXPORT void klfSetEnvironmentVariable(QStringList * env, const QString& var,
+					  const QString& value);
+
+/** \brief set the value of a variable in environment variables list, replacing existing definition if any.
+ *
+ * Same as \ref klfSetEnvironmentVariable(QStringList *, const QString&, const QString&), except this function
+ * does not modify the original list and returns the new one.
  *
  * \returns the new environment variable list. The argument \c env itself is not changed.
  */
 KLF_EXPORT QStringList klfSetEnvironmentVariable(const QStringList& env, const QString& var,
 						 const QString& value);
+
+/** \brief convert a map of variable names to values to an environment list
+ */
+KLF_EXPORT QStringList klfMapToEnvironmentList(const QMap<QString,QString>& map);
+
+/** \brief convert environment list into a map of variable names to values
+ */
+KLF_EXPORT QMap<QString,QString> klfEnvironmentListToMap(const QStringList& env);
+
+/** \brief merge two environment definitions
+ *
+ * Addes the environment variables specified in \c addvars into env, overwriting previous entries for
+ * those variables if they already exist.
+ */
+KLF_EXPORT void klfMergeEnvironment(QStringList * env, const QStringList& addvars);
+
+/** \brief merge two environment definitions
+ *
+ * Addes the environment variables specified in \c addvars into env, overwriting previous entries for
+ * those variables if they already exist.
+ *
+ * \c env itself is not modified, and the merged list is retured.
+ */
+KLF_EXPORT QStringList klfMergeEnvironment(const QStringList& env, const QStringList& addvars);
+
 /** \brief get the path items of an environment variable (commonly $PATH)
  *
  * Like klfGetEnvironmentVariable(), but splits the result at colons `:' for Unix/Mac and

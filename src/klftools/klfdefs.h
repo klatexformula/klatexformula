@@ -91,6 +91,17 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
   delete d
 
 
+#define KLF_BLOCK							\
+  for (bool _klf_block_first = true; _klf_block_first; _klf_block_first = false)
+
+#define KLF_TRY(expr, msg, failaction)				       \
+  if ( !(expr) ) {						       \
+    klfWarning(msg);						       \
+    failaction;							       \
+  }
+
+
+
 
 #define KLF_PROPERTY_GET(type_and_prop)					\
   public: type_and_prop() const;

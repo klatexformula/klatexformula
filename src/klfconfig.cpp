@@ -36,6 +36,8 @@
 #include <QLocale>
 #include <QDesktopServices> // "My Documents" or "Documents" directory
 #include <QDesktopWidget>
+#include <QDomDocument>
+#include <QDomElement>
 
 #include <klfconfigbase.h>
 #include <klfutil.h>
@@ -386,6 +388,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(LibraryBrowser.iconPreviewSizePercent, 100) ;
 
   Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >() ;
+  UserScripts.userScriptConfig = QMap< QString, QMap<QString,QVariant> >() ;
 }
 
 void KLFConfig::detectMissingSettings()
@@ -622,6 +625,45 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
     Plugins.pluginConfig[plugindirs[k]] = pconfmap;
   }
 
+  // Special treatment for UserScripts.userScriptConfig
+  // save into a dedicated XML file
+  KLF_BLOCK {
+    QDomDocument xmldoc;
+    QFile usfile(homeConfigDir+"/userscripts.xml");
+    KLF_TRY( usfile.open(QIODevice::ReadOnly) ,
+			  "Can't open file "<<usfile.fileName()<<" for write access!", break; );
+    QString errorMsg;
+    int errorLine, errorColumn;
+    KLF_TRY( xmldoc.setContent(&usfile, &errorMsg, &errorLine, &errorColumn) ,
+	     "Error reading XML "<<usfile.fileName()<<": line "<<errorLine<<" column "<<errorColumn<<":\n"
+	     <<errorMsg,
+	     break ) ;
+    usfile.close();
+
+    QDomElement root = xmldoc.documentElement();
+    KLF_ASSERT_CONDITION(root.tagName() == QLatin1String("userscript-config"),
+			 "Error parsing userscript config XML", break; );
+
+    QDomNodeList nodelist = root.childNodes();
+    int k;
+    for (k = 0; k < nodelist.count(); ++k) {
+      QDomNode node = nodelist.at(k);
+      if (!node.isElement()) {
+	klfDbg("skipping non-element node "<<node.nodeName());
+	continue;
+      }
+      QDomElement usnode = node.toElement();
+
+      KLF_ASSERT_CONDITION(usnode.hasAttribute("name"),
+			   "Node <userscript> does not have 'name' attribute",
+			   continue; ) ;
+      QString usname = usnode.attribute("name");
+      QVariantMap usconfig = klfLoadVariantMapFromXML(usnode);
+
+      UserScripts.userScriptConfig[usname] = usconfig;
+    }
+  }
+
   // POST-CONFIG-READ SETUP
 
   // forbid empty locale
@@ -746,6 +788,35 @@ int KLFConfig::writeToConfig()
     }
     psettings.sync();
   }
+
+  // Special treatment for UserScripts.userScriptConfig
+  // save into a dedicated XML file
+  do { // do { ... } while (false);   is used to allow 'break' statement to skip to end of block
+    QDomDocument xmldoc("userscript-config");
+    QDomElement root = xmldoc.createElement("userscript-config");
+    xmldoc.appendChild(root);
+    for (QMap<QString, QMap<QString, QVariant> >::const_iterator it = UserScripts.userScriptConfig.begin();
+	 it != UserScripts.userScriptConfig.end(); ++it) {
+      QString usname = it.key();
+      QVariantMap usconfig = it.value();
+
+      klfDbg("saving config for user script "<< usname<< "; config="<<usconfig) ;
+
+      QDomElement scriptconfig = xmldoc.createElement("userscript");
+      scriptconfig.setAttribute("name", usname);
+
+      klfSaveVariantMapToXML(usconfig, scriptconfig);
+      root.appendChild(scriptconfig);
+    }
+    // now, save the document
+    QByteArray userscriptconfdata = xmldoc.toByteArray(4);
+    QFile usfile(homeConfigDir+"/userscripts.xml");
+    KLF_ASSERT_CONDITION( usfile.open(QIODevice::WriteOnly) ,
+			  "Can't open file "<<usfile.fileName()<<" for write access!", break; );
+    usfile.write(userscriptconfdata);
+    usfile.close();
+  } while (0);
+
 
   s.sync();
   return 0;

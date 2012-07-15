@@ -26,9 +26,6 @@ import re;
 import os;
 import sys;
 
-dvisvgm = "/usr/texbin/dvisvgm";
-
-
 if (sys.argv[1] == "--help"):
     print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
     print "       "+os.path.basename(sys.argv[0])+" <file.dvi>";
@@ -41,15 +38,16 @@ if (sys.argv[1] == "--scriptinfo"):
     print "Name: SVG/dvisvgm format provider";
     print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
     print "Version: 0.2";
-    print "License: GPL v2+"
-    print "InputDataType: DVI"
-    print "MimeType: image/svg+xml"
-    print "OutputFilenameExtension: svg"
-    print "OutputFormatDescription: SVG Vector Image (using dvisvgm)"
-    print "WantStdinInput: false"
-    print "HasStdoutOutput: false"
-    if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
-        print "Warning: Can't find dvisvgm executable.";
+    print "License: GPL v2+";
+    print "InputDataType: DVI";
+    print "MimeType: image/svg+xml";
+    print "OutputFilenameExtension: svg";
+    print "OutputFormatDescription: SVG Vector Image (using dvisvgm)";
+    print "WantStdinInput: false";
+    print "HasStdoutOutput: false";
+    print "SettingsFormUI: svg-dvisvgm_config.ui";
+    #    if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
+    #        print "Warning: Can't find dvisvgm executable.";
     # DEBUG:
     print "Warning: DEBUG: test warning";
     print "Error: DEBUG: test error";
@@ -61,6 +59,19 @@ if (sys.argv[1] == "--scriptinfo"):
     exit(0);
 
 
+#debug environment
+print repr(os.environ);
+
+dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"];
+if not dvisvgm:
+    dvisvgm = "/usr/bin/dvisvgm";
+
+print "dvisvgm: "+repr(dvisvgm);
+
+if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
+    print "Error: Can't find dvisvgm executable.";
+    exit(255);
+    
 dvifile = sys.argv[1];
 
 sys.stderr.write("Converting file "+dvifile+"\n");

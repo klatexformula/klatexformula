@@ -40,11 +40,12 @@ public:
    * \note there is no concept of "null" user script info. if you provide an invalid file name, this function
    *   will fail (undefined..?)
    */
-  KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings = NULL);
+  KLFUserScriptInfo(const QString& scriptFileName, const KLFBackend::klfSettings * settings = NULL);
   KLFUserScriptInfo(const KLFUserScriptInfo& copy);
   virtual ~KLFUserScriptInfo();
 
   static bool hasScriptInfoInCache(const QString& scriptFileName);
+  static void forceReloadScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings);
   static void clearCacheAll();
 
   int scriptInfoError() const;
@@ -80,6 +81,9 @@ public:
   QString license() const;
   QString klfMinVersion() const;
   QString klfMaxVersion() const;
+
+  //! A UI widget form file (Qt designer file) to display for setting up the user script
+  QString settingsFormUI() const;
 
   //! (klf-backend-engine:) List of formats that this script will generate
   QStringList spitsOut() const;
@@ -120,6 +124,7 @@ public:
 
   /** \brief Formats most (all?) properties in HTML, suitable for human-readable text display */
   QString htmlInfo(const QString& extra_css = QString()) const;
+
 
   virtual QVariant info(int propId) const;
   /** Calls info(propId) for the correct id. */
@@ -164,8 +169,10 @@ public:
    * Use \ref addArgv() to add parameters to the command-line. the script itself is already
    * added as first parameter automatically.
    */
-  KLFUserScriptFilterProcess(const QString& scriptFileName, KLFBackend::klfSettings * settings = NULL);
+  KLFUserScriptFilterProcess(const QString& scriptFileName, const KLFBackend::klfSettings * settings = NULL);
   ~KLFUserScriptFilterProcess();
+
+  void addUserScriptConfig(const QVariantMap& map);
 
 private:
   KLF_DECLARE_PRIVATE(KLFUserScriptFilterProcess);

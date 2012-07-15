@@ -568,6 +568,9 @@ public:
    */
   static bool detectSettings(klfSettings *settings, const QString& extraPath = QString());
 
+  /** \bug ........documentation ........ */
+  static QStringList userScriptSettingsToEnvironment(const QMap<QString,QString>& userScriptSettings);
+
 
   class TemplateGenerator {
   public:
