@@ -85,7 +85,6 @@ set(klfapp_MOCHEADERS
 	klfsettings.h
 	klfstylemanager.h
 	klfcmdiface.h
-	klfuiloader.h
 	klfuiloader_p.h
 	klfapp.h
 )
@@ -98,6 +97,7 @@ set(klfapp_HEADERS
 	klfpluginiface.h
 	klflib_p.h
 	klfsettings_p.h
+	klfuiloader.h
 	${klfapp_MOCHEADERS}
 )
 # UI Forms

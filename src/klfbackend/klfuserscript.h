@@ -62,6 +62,8 @@ public:
     KLFMinVersion,
     KLFMaxVersion,
 
+    SettingsFormUI,
+
     // for klf-backend-engine
     SpitsOut,
     SkipFormats,

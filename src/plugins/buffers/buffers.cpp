@@ -45,8 +45,6 @@ void BuffersPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPlugin
 
   klfDbg("About to create buffers widget and show.") ;
 
-  klfWarning("!!!!!!!!!") ;
-
   _widget = new OpenBuffersWidget(mainWin);
   // will show automatically once there's 1 open buffer
   //  _widget->show();

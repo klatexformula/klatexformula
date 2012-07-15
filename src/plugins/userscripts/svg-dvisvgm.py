@@ -51,12 +51,12 @@ if (sys.argv[1] == "--scriptinfo"):
     if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
         print "Warning: Can't find dvisvgm executable.";
     # DEBUG:
-    print "Warning: test warning";
-    print "Error: test error";
-    print "Notice: Hi there!";
-    print "Error: 2nd Test Error!!! Really serious!!";
-    print "Notice: Hi there!";
-    print "Notice: Hi there!";
+    print "Warning: DEBUG: test warning";
+    print "Error: DEBUG: test error";
+    print "Notice: DEBUG: Hi there!";
+    print "Error: DEBUG: 2nd Test Error!!! Really serious!!";
+    print "Notice: DEBUG: Hi there!";
+    print "Notice: DEBUG: Hi there!";
     print "";
     exit(0);
 

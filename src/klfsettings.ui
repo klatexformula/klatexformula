@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>651</width>
-    <height>605</height>
+    <width>646</width>
+    <height>653</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -34,7 +34,7 @@
    <item>
     <widget class="QTabWidget" name="tabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabAppearance">
       <attribute name="title">
@@ -1132,16 +1132,16 @@
           </item>
           <item row="0" column="1">
            <widget class="KLFPathChooser" name="pathTempDir">
-            <property name="caption" stdset="0">
-             <string>Choose temporary directory</string>
-            </property>
-            <property name="mode" stdset="0">
+            <property name="mode">
              <number>2</number>
             </property>
-            <property name="filter" stdset="0">
+            <property name="caption">
+             <string>Choose temporary directory</string>
+            </property>
+            <property name="filter">
              <string/>
             </property>
-            <property name="path" stdset="0">
+            <property name="path">
              <string notr="true">/tmp/</string>
             </property>
            </widget>
@@ -1161,16 +1161,16 @@
           </item>
           <item row="1" column="1">
            <widget class="KLFPathChooser" name="pathLatex">
-            <property name="mode" stdset="0">
+            <property name="mode">
              <number>0</number>
             </property>
-            <property name="caption" stdset="0">
+            <property name="caption">
              <string>Choose latex executable</string>
             </property>
-            <property name="filter" stdset="0">
+            <property name="filter">
              <string/>
             </property>
-            <property name="path" stdset="0">
+            <property name="path">
              <string notr="true">latex</string>
             </property>
            </widget>
@@ -1190,16 +1190,16 @@
           </item>
           <item row="2" column="1">
            <widget class="KLFPathChooser" name="pathDvips">
-            <property name="mode" stdset="0">
+            <property name="mode">
              <number>0</number>
             </property>
-            <property name="caption" stdset="0">
+            <property name="caption">
              <string>Choose dvips executable</string>
             </property>
-            <property name="filter" stdset="0">
+            <property name="filter">
              <string/>
             </property>
-            <property name="path" stdset="0">
+            <property name="path">
              <string notr="true">dvips</string>
             </property>
            </widget>
@@ -1219,16 +1219,16 @@
           </item>
           <item row="3" column="1">
            <widget class="KLFPathChooser" name="pathGs">
-            <property name="mode" stdset="0">
+            <property name="mode">
              <number>0</number>
             </property>
-            <property name="caption" stdset="0">
+            <property name="caption">
              <string>Choose ghostscript executable</string>
             </property>
-            <property name="filter" stdset="0">
+            <property name="filter">
              <string/>
             </property>
-            <property name="path" stdset="0">
+            <property name="path">
              <string notr="true">gs</string>
             </property>
            </widget>
@@ -1589,8 +1589,8 @@
       <attribute name="title">
        <string>Scripts</string>
       </attribute>
-      <layout class="QVBoxLayout" name="lyt_tabUserScripts">
-       <item>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
         <widget class="QSplitter" name="splitUserScripts">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -1621,31 +1621,116 @@
            </item>
           </layout>
          </widget>
-         <widget class="QScrollArea" name="scrlUserScriptInfo">
-          <property name="widgetResizable">
-           <bool>true</bool>
+         <widget class="QTabWidget" name="tabsUserScript">
+          <property name="currentIndex">
+           <number>0</number>
           </property>
-          <widget class="QWidget" name="wUserScriptInfo">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>579</width>
-             <height>76</height>
-            </rect>
-           </property>
-           <layout class="QGridLayout" name="lyt_wUserScriptInfo">
+          <widget class="QWidget" name="tabUserScriptInfo">
+           <attribute name="title">
+            <string>Script Informaton</string>
+           </attribute>
+           <layout class="QGridLayout" name="lyt_tabUserScriptInfo">
             <item row="0" column="0">
-             <widget class="QLabel" name="lblUserScriptInfo">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>8</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+             <widget class="QScrollArea" name="scrlUserScriptInfo">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
               </property>
-              <property name="text">
-               <string>XYZ</string>
+              <property name="widgetResizable">
+               <bool>true</bool>
               </property>
+              <widget class="QWidget" name="wUserScriptInfo">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>530</width>
+                 <height>133</height>
+                </rect>
+               </property>
+               <layout class="QGridLayout" name="lyt_wUserScriptInfo">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lblUserScriptInfo">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>8</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string notr="true">XYZ</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tabUserScriptSettings">
+           <attribute name="title">
+            <string>Settings</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_2">
+            <item row="0" column="0">
+             <widget class="QScrollArea" name="scrlUserScriptSettings">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
+              </property>
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>0</number>
+              </property>
+              <property name="widgetResizable">
+               <bool>true</bool>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+              </property>
+              <widget class="QWidget" name="wScrUserScriptSettings">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>530</width>
+                 <height>133</height>
+                </rect>
+               </property>
+               <layout class="QGridLayout" name="lyt_wUserScriptSettings">
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <item row="0" column="1">
+                 <widget class="QStackedWidget" name="stkUserScriptSettings">
+                  <widget class="QWidget" name="wStkUserScriptSettingsEmptyPage">
+                   <layout class="QGridLayout" name="lyt_wStkUserScriptSettingsEmptyPage">
+                    <item row="0" column="0">
+                     <widget class="QLabel" name="lblUserScriptSettingsEmptyPage">
+                      <property name="text">
+                       <string>&lt;no user script selected or no settings for script&gt;</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="wordWrap">
+                       <bool>true</bool>
+                      </property>
+                      <property name="margin">
+                       <number>5</number>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </widget>
             </item>
            </layout>
@@ -1741,8 +1826,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>374</width>
-                <height>139</height>
+                <width>370</width>
+                <height>159</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1908,8 +1993,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>354</width>
-                   <height>176</height>
+                   <width>351</width>
+                   <height>204</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1973,8 +2058,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>581</width>
-            <height>458</height>
+            <width>576</width>
+            <height>506</height>
            </rect>
           </property>
           <attribute name="label">
@@ -2020,7 +2105,7 @@
   </customwidget>
   <customwidget>
    <class>KLFPathChooser</class>
-   <extends>QLineEdit</extends>
+   <extends>QFrame</extends>
    <header>klfpathchooser.h</header>
   </customwidget>
   <customwidget>

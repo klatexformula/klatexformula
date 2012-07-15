@@ -24,7 +24,12 @@
 #include "klfuiloader.h"
 #include "klfuiloader_p.h"
 
+#include "klfsearchbar.h"
+#include "klfcolorchooser.h"
 #include "klflatexedit.h"
+#include "klfenumlistwidget.h"
+#include "klfsidewidget.h"
+#include "klfpathchooser.h"
 
 KLFUiLoader::~KLFUiLoader()
 {
@@ -33,13 +38,36 @@ KLFUiLoader::~KLFUiLoader()
 QWidget * KLFUiLoader::createWidget(const QString& className, QWidget * parent,
 				    const QString & name)
 {
-  if (className == QLatin1String("KLFLatexEdit")) {
-    QWidget * latexedit = new KLFLatexEdit(parent);
-    latexedit->setObjectName(name);
-    return latexedit;
-  } else {
-    return QUiLoader::createWidget(className, parent, name);
+  QWidget * w = NULL;
+
+  if (className == QLatin1String("KLFSearchBar")) {
+    w = new KLFSearchBar(parent);
+  } else if (className == QLatin1String("KLFColorChooseWidgetPane")) {
+    w = new KLFColorChooseWidgetPane(parent);
+  } else if (className == QLatin1String("KLFColorClickSquare")) {
+    w = new KLFColorClickSquare(parent);
+  } else if (className == QLatin1String("KLFColorChooseWidget")) {
+    w = new KLFColorChooseWidget(parent);
+  } else if (className == QLatin1String("KLFColorChooser")) {
+    w = new KLFColorChooser(parent);
+  } else if (className == QLatin1String("KLFLatexEdit")) {
+    w = new KLFLatexEdit(parent);
+  } else if (className == QLatin1String("KLFEnumListWidget")) {
+    w = new KLFEnumListWidget(parent);
+  } else if (className == QLatin1String("KLFSideWidget")) {
+    w = new KLFSideWidget(parent);
+  } else if (className == QLatin1String("KLFPathChooser")) {
+    w = new KLFPathChooser(parent);
   }
+
+  if (w != NULL) {
+    klfDbg("created a custom "<<className<<" (name "<<name<<")") ;
+    w->setObjectName(name);
+    return w;
+  }
+
+  klfDbg("using default QUiLoader::createWidget("<<className<<", "<<parent<<", "<<name<<")") ;
+  return QUiLoader::createWidget(className, parent, name);
 }
 
 
