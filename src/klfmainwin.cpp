@@ -47,6 +47,7 @@
 #include "klfstylemanager.h"
 #include "klfmime.h"
 #include "klfcmdiface.h"
+#include "klfuiloader.h"
 
 #include "klfmainwin.h"
 #include "klfmainwin_p.h"
@@ -2132,10 +2133,9 @@ QWidget * KLFMainWinPrivate::getUserScriptInputWidget(const QString& uifile)
     return userScriptInputWidgets[uifile];
   }
 
-  QUiLoader loader;
   QFile uif(uifile);
   uif.open(QFile::ReadOnly);
-  QWidget *scriptinputwidget = loader.load(&uif, K->u->stkScriptInput);
+  QWidget * scriptinputwidget = klfLoadUI(&uif, K->u->stkScriptInput);
   uif.close();
   KLF_ASSERT_NOT_NULL(scriptinputwidget, "Can't load script input widget "<<uifile<<".",
 		      return K->u->wScriptInputEmptyPage) ;
@@ -2210,11 +2210,11 @@ void KLFMainWin::helpLinkAction(const QUrl& link)
       }
     }
     if (!calledOne) {
-      klfWarning("no action found for link="<<link) ;
+      klfWarning("no action found for link="<<link.toString()) ;
     }
     return;
   }
-  klfWarning(link<<": Unrecognized link scheme!") ;
+  klfWarning(link.toString()<<": Unrecognized link scheme!") ;
 }
 
 void KLFMainWin::addWhatsNewText(const QString& htmlSnipplet)

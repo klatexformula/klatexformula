@@ -60,6 +60,7 @@ set(klfapp_SRCS
 	klfstylemanager.cpp
 	klfmain.cpp
 	klfcmdiface.cpp
+	klfuiloader.cpp
 	klfapp.cpp
 )
 # Headers
@@ -84,6 +85,8 @@ set(klfapp_MOCHEADERS
 	klfsettings.h
 	klfstylemanager.h
 	klfcmdiface.h
+	klfuiloader.h
+	klfuiloader_p.h
 	klfapp.h
 )
 #  * all headers
@@ -353,6 +356,14 @@ if(KLF_MACOSX_BUNDLES)
     KLFMInstallNameToolID(klatexformula "plugins/${plugin}")
     KLFMBundlePrivateLibUpdateQtDep(klatexformula "plugins/${plugin}"  "Core;Gui;Xml;Sql")
   endforeach()
+  #- # Import&Setup klftools_desplugin designer plugin, needed for QUiLoader to load user scripts' input widget UIs
+  #- KLFGetTargetLocation(klf_desplugin_target_path klftoolsdesplugin)
+  #- KLFGetTargetFileName(klf_desplugin_target_name klftoolsdesplugin)
+  #- KLFMBundlePrivateImport(klatexformula "designer/${klf_desplugin_target_name}"
+  #-   "${klf_desplugin_target_path}" "plugins")
+  #- KLFMInstallNameToolID(klatexformula "plugins/designer/${klf_desplugin_target_name}")
+  #- KLFMBundlePrivateLibUpdateQtDep(klatexformula "plugins/designer/${klf_desplugin_target_name}"  "Core;Gui;Xml;")
+  #- ...... but the plugin depends on libQtDesigner/libQtDesignerComponents (!???!)
   # Import&Setup klfbackend framework
   KLFMBundlePrivateImport(klatexformula "klfbackend.framework"
     "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework"  Frameworks)
@@ -517,6 +528,13 @@ if(KLF_INSTALL_QTPLUGINS)
     install(FILES "${QT_PLUGINS_DIR}/${qtplugin}"
 	    DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/${qtplugin_dir}")
   endforeach(qtplugin)
+
+  #- # install klftools_desplugin plugin too, in order to load user scripts' input widget with QUiLoader
+  #- # TODO: TEST!!!
+  #- KLFGetTargetLocation(klf_desplugin_target_path klftoolsdesplugin)
+  #- install(FILES "${klf_desplugin_target_path}"
+  #-   DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/designer/")
+
 endif(KLF_INSTALL_QTPLUGINS)
 
 
