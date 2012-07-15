@@ -140,8 +140,10 @@ KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);
 
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
 #  define KLF_PATH_SEP ';'
+#  define KLF_DIR_SEP '\\'
 #else
 #  define KLF_PATH_SEP ':'
+#  define KLF_DIR_SEP '/'
 #endif
 
 

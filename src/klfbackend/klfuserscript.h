@@ -116,6 +116,8 @@ public:
   bool hasErrors() const;
   QStringList errors() const;
 
+  /** \brief Formats most (all?) properties in HTML, suitable for human-readable text display */
+  QString htmlInfo(const QString& extra_css = QString()) const;
 
   virtual QVariant info(int propId) const;
   /** Calls info(propId) for the correct id. */

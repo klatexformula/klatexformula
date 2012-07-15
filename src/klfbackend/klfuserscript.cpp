@@ -23,6 +23,7 @@
 
 #include <QFileInfo>
 #include <QDir>
+#include <QTextDocument> // Qt::escape()
 
 #include <klfdefs.h>
 #include <klfdebug.h>
@@ -451,6 +452,81 @@ void KLFUserScriptInfo::internalSetProperty(const QString& key, const QVariant &
 const KLFPropertizedObject * KLFUserScriptInfo::pobj()
 {
   return d();
+}
+
+
+static QString escapeListIntoTags(const QStringList& list, const QString& starttag, const QString& endtag)
+{
+  QString html;
+  foreach (QString s, list) {
+    html += starttag + Qt::escape(s) + endtag;
+  }
+  return html;
+}
+
+QString KLFUserScriptInfo::htmlInfo(const QString& extra_css) const
+{
+  QString txt =
+    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+    "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+    "p, li { white-space: pre-wrap; }\n"
+    "p.msgnotice { color: blue; font-weight: bold; margin: 2px 0px; }\n"
+    "p.msgwarning { color: #a06000; font-weight: bold; margin: 2px 0px; }\n"
+    "p.msgerror { color: #a00000; font-weight: bold; margin: 2px 0px; }\n"
+    + extra_css + "\n"
+    "</style></head>\n"
+    "<body>\n";
+
+  // any notices/warnings/errors go first
+  if (hasNotices()) {
+    txt += escapeListIntoTags(notices(), "<p class=\"msgnotice\">", "</p>\n");
+  }
+  if (hasWarnings()) {
+    txt += escapeListIntoTags(warnings(), "<p class=\"msgwarning\">", "</p>\n");
+  }
+  if (hasErrors()) {
+    txt += escapeListIntoTags(errors(), "<p class=\"msgerror\">", "</p>\n");
+  }
+
+  // the name
+  txt +=
+    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 8px; margin-bottom: 0px\">\n"
+    "<tt>" + QObject::tr("Script Name:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(QFileInfo(fileName()).fileName()) + "</span><br />\n";
+
+  if (!version().isEmpty()) {
+    // the version
+    txt += "<tt>" + QObject::tr("Version:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(version()) + "</span><br />\n";
+  }
+  if (!author().isEmpty()) {
+    // the author
+    txt += "<tt>" + QObject::tr("Author:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(author()) + "</span><br />\n";
+  }
+  // the category
+  txt += "<tt>" + QObject::tr("Category:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+    "<span style=\"font-weight:600;\">" + Qt::escape(category()) + "</span><br />\n";
+
+  if (!license().isEmpty()) {
+    // the license
+    txt += "<tt>" + QObject::tr("License:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(license()) + "</span><br />\n";
+  }
+  if (!spitsOut().isEmpty()) {
+    // the output formats
+    txt += "<tt>" + QObject::tr("Provides Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(spitsOut().join(", ")) + "</span><br />\n";
+  }
+  if (!skipFormats().isEmpty()) {
+    // the skipped formats
+    txt += "<tt>" + QObject::tr("Skipped Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
+      "<span style=\"font-weight:600;\">" + Qt::escape(skipFormats().join(", ")) + "</span><br />\n";
+  }
+
+  /** \todo format extra non-standard properties */
+
+  return txt;
 }
 
 

@@ -1138,14 +1138,6 @@ void KLFSettings::refreshUserScriptList()
   u->splitUserScripts->setSizes(QList<int>() << 100 << 100);
 }
 
-static QString escapeListIntoTags(const QStringList& list, const QString& starttag, const QString& endtag)
-{
-  QString html;
-  foreach (QString s, list) {
-    html += starttag + Qt::escape(s) + endtag;
-  }
-  return html;
-}
 
 void KLFSettings::refreshUserScriptSelected()
 {
@@ -1179,66 +1171,7 @@ void KLFSettings::refreshUserScriptSelected()
   KLFUserScriptInfo usinfo(s);
 
   int textpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 1;
-  QString textpointsize_s = QString::number(textpointsize);
-  int smallpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 2;
-  QString smallpointsize_s = QString::number(smallpointsize);
-
-  QString txt =
-    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-    "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-    "p, li { white-space: pre-wrap; }\n"
-    "p.msgnotice { color: blue; font-weight: bold; margin: 2px 0px; }\n"
-    "p.msgwarning { color: #a00000; font-weight: bold; margin: 2px 0px; }\n"
-    "p.msgerror { color: #ff0000; font-weight: bold; margin: 2px 0px; }\n"
-    "</style></head>\n"
-    "<body style=\"font-size:" + textpointsize_s + "pt;\">\n";
-
-  // any notices/warnings/errors go first
-  if (usinfo.hasNotices()) {
-    txt += escapeListIntoTags(usinfo.notices(), "<p class=\"msgnotice\">", "</p>\n");
-  }
-  if (usinfo.hasWarnings()) {
-    txt += escapeListIntoTags(usinfo.warnings(), "<p class=\"msgwarning\">", "</p>\n");
-  }
-  if (usinfo.hasErrors()) {
-    txt += escapeListIntoTags(usinfo.errors(), "<p class=\"msgerror\">", "</p>\n");
-  }
-
-  // the name
-  txt +=
-    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 8px; margin-bottom: 0px\">\n"
-    "<tt>" + tr("Script Name:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(QFileInfo(usinfo.fileName()).fileName()) + "</span><br />\n";
-
-  if (!usinfo.version().isEmpty()) {
-    // the version
-    txt += "<tt>" + tr("Version:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.version()) + "</span><br />\n";
-  }
-  if (!usinfo.author().isEmpty()) {
-    // the author
-    txt += "<tt>" + tr("Author:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.author()) + "</span><br />\n";
-  }
-  // the category
-  txt += "<tt>" + tr("Category:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.category()) + "</span><br />\n";
-
-  if (!usinfo.license().isEmpty()) {
-    // the license
-    txt += "<tt>" + tr("License:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.license()) + "</span><br />\n";
-  }
-  if (!usinfo.spitsOut().isEmpty()) {
-    // the output formats
-    txt += "<tt>" + tr("Provides Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.spitsOut().join(", ")) + "</span><br />\n";
-  }
-  if (!usinfo.skipFormats().isEmpty()) {
-    // the skipped formats
-    txt += "<tt>" + tr("Skipped Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.skipFormats().join(", ")) + "</span><br />\n";
-  }
+  QString txt = usinfo.htmlInfo(QString::fromLatin1("body { font-size: %1pt }").arg(textpointsize));
 
   u->lblUserScriptInfo->setText(txt);
 }

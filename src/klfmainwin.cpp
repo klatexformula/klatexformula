@@ -2048,15 +2048,6 @@ void KLFMainWinPrivate::latexEditReplace(int pos, int len, const QString& text)
 }
 
 
-static QString escapeListIntoTags(const QStringList& list, const QString& starttag, const QString& endtag)
-{
-  QString html;
-  foreach (QString s, list) {
-    html += starttag + Qt::escape(s) + endtag;
-  }
-  return html;
-}
-
 
 void KLFMainWinPrivate::slotUserScriptDisableInputs(KLFUserScriptInfo * info)
 {
@@ -2093,69 +2084,27 @@ void KLFMainWinPrivate::slotUserScriptSet(int index)
     userScriptCurrentInfo = tr("<no user script selected>", "[[popup info]]");
     slotUserScriptDisableInputs(NULL);
     K->u->stkScriptInput->setCurrentWidget(K->u->wScriptInputEmptyPage);
+    K->u->btnUserScriptInfo->setIcon(QIcon(":/pics/info.png"));
+    K->u->btnUserScriptInfo->setEnabled(false);
     return;
   }
+
+  K->u->btnUserScriptInfo->setEnabled(true);
 
   // update user script info and settings widget
   
   KLFUserScriptInfo usinfo(K->u->cbxUserScript->itemData(index).toString(), & settings);
 
-  int textpointsize = QFontInfo(K->u->lblUserScript->font()).pointSize() - 1;
-  QString textpointsize_s = QString::number(textpointsize);
+  if (usinfo.hasWarnings() || usinfo.hasErrors())
+    K->u->btnUserScriptInfo->setIcon(QIcon(":/pics/infowarn.png"));
+  else
+    K->u->btnUserScriptInfo->setIcon(QIcon(":/pics/info.png"));
 
-  QString txt =
-    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-    "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-    "p, li { white-space: pre-wrap; }\n"
-    "p.msgnotice { color: blue; font-weight: bold; }\n"
-    "p.msgwarning { color: #a00000; font-weight: bold; }\n"
-    "p.msgerror { color: #a00000; font-weight: bold; }\n"
-    "</style></head>\n"
-    "<body style=\"font-size:" + textpointsize_s + "pt;\">\n"
-    "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
-    // the name
-    "<tt>" + tr("Script Name:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(QFileInfo(usinfo.fileName()).fileName()) + "</span><br />\n";
-
-  if (!usinfo.version().isEmpty()) {
-    // the version
-    txt += "<tt>" + tr("Version:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.version()) + "</span><br />\n";
-  }
-  if (!usinfo.author().isEmpty()) {
-    // the author
-    txt += "<tt>" + tr("Author:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.author()) + "</span><br />\n";
-  }
-
-  // any notices/warnings/errors
-  if (usinfo.hasNotices()) {
-    txt += escapeListIntoTags(usinfo.notices(), "<p style=\"msgnotice\">", "</p>\n");
-  }
-  if (usinfo.hasWarnings()) {
-    txt += escapeListIntoTags(usinfo.warnings(), "<p style=\"msgwarning\">", "</p>\n");
-  }
-  if (usinfo.hasErrors()) {
-    txt += escapeListIntoTags(usinfo.errors(), "<p style=\"msgerror\">", "</p>\n");
-  }
-
-  if (!usinfo.license().isEmpty()) {
-    // the license
-    txt += "<tt>" + tr("License:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.license()) + "</span><br />\n";
-  }
-  if (!usinfo.spitsOut().isEmpty()) {
-    // the output formats
-    txt += "<tt>" + tr("Provides Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.spitsOut().join(", ")) + "</span><br />\n";
-  }
-  if (!usinfo.skipFormats().isEmpty()) {
-    // the skipped formats
-    txt += "<tt>" + tr("Skipped Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.skipFormats().join(", ")) + "</span><br />\n";
-  }
-
-  userScriptCurrentInfo = txt;
+  int textpointsize = QFontInfo(K->u->lblUserScript->font()).pointSize();
+  QString extracss = QString::fromLatin1("body { font-size: %1pt; }\n").arg(textpointsize-1) +
+    QString::fromLatin1("p.msgerror { color: #a00000; font-size: %1pt;}\n").arg(textpointsize+1) +
+    QString::fromLatin1("p.msgwarning { color: #a04000; font-size: %1pt; }\n").arg(textpointsize+1);
+  userScriptCurrentInfo = usinfo.htmlInfo(extracss);
 
   slotUserScriptDisableInputs(&usinfo);
 
@@ -3166,25 +3115,50 @@ void KLFMainWin::slotSetPreamble(const QString& preamble)
 void KLFMainWin::slotSetUserScript(const QString& userScript)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  int k = 0;
-  while (k < u->cbxUserScript->count()) {
-    if (QFileInfo(u->cbxUserScript->itemData(k).toString()) == QFileInfo(userScript)) {
-      // set this item
-      u->cbxUserScript->setCurrentIndex(k);
+
+  if (userScript.isEmpty()) {
+    if (u->cbxUserScript->currentIndex() == 0)
       return;
-    }
-  }
-  // append our new item
-  KLFUserScriptInfo us(userScript, & d->settings);
-  if (us.scriptInfoError()) {
-    klfWarning("Can't get info for user script "<<userScript<<": "<<us.scriptInfoErrorString()) ;
+    u->cbxUserScript->setCurrentIndex(0);
+    d->slotUserScriptSet(0);
     return;
   }
-  u->cbxUserScript->addItem(us.name(), QVariant(userScript));
-  k = u->cbxUserScript->count()-1;
-  u->cbxUserScript->setCurrentIndex(k);
-  //  // called by the slot connected to the combo box
-  //  slotUserScriptSet(k);
+
+  bool isscriptname = !userScript.contains(QString()+KLF_DIR_SEP);
+  QString userscript = userScript;
+  if (!isscriptname)
+    userscript = QFileInfo(userScript).canonicalFilePath();
+  int k;
+  bool ok = false;
+  for (k = 0; k < u->cbxUserScript->count(); ++k) {
+    QFileInfo ufi(u->cbxUserScript->itemData(k).toString());
+    if ( (isscriptname && ufi.fileName() == userscript) ||
+	 (!isscriptname && ufi.canonicalFilePath() == userscript) ) {
+      // found
+      ok = true;
+      u->cbxUserScript->setCurrentIndex(k);
+      d->slotUserScriptSet(k);
+      break;
+    }
+  }
+  if (!ok) {
+    QMessageBox::warning(this, tr("User Script Not Available"),
+			 tr("The user script %1 is not available.")
+			 .arg(userScript));
+    klfWarning("Can't find user script "<<userScript);
+  }
+  
+  //   // append our new item
+  //   KLFUserScriptInfo us(userScript, & d->settings);
+  //   if (us.scriptInfoError()) {
+  //     klfWarning("Can't get info for user script "<<userScript<<": "<<us.scriptInfoErrorString()) ;
+  //     return;
+  //   }
+  //   u->cbxUserScript->addItem(us.name(), QVariant(userScript));
+  //   k = u->cbxUserScript->count()-1;
+  //   u->cbxUserScript->setCurrentIndex(k);
+  //   // not called by the slot connected to the combo box (??)
+  //   d->slotUserScriptSet(k);
 }
 
 void KLFMainWin::slotShowLastUserScriptOutput()
@@ -3196,6 +3170,8 @@ void KLFMainWin::slotShowLastUserScriptOutput()
 void KLFMainWin::slotReloadUserScripts()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  QString curUserScript = u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString();
 
   klf_reload_user_scripts();
 
@@ -3210,6 +3186,8 @@ void KLFMainWin::slotReloadUserScripts()
       u->cbxUserScript->addItem(scriptinfo.name(), QVariant(userscripts[kkl]));
     }
   }
+
+  slotSetUserScript(curUserScript);
 }
 
 void KLFMainWin::slotEnsurePreambleCmd(const QString& line)
@@ -4109,27 +4087,7 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
   }
 
   klfDbg("About to load us="<<style.userScript()) ;
-  if (style.userScript().isEmpty()) {
-    u->cbxUserScript->setCurrentIndex(0);
-  } else {
-    int k;
-    bool ok = false;
-    for (k = 0; k < u->cbxUserScript->count(); ++k) {
-      if (QFileInfo(u->cbxUserScript->itemData(k).toString()).fileName() == style.userScript) {
-	// found
-	ok = true;
-	u->cbxUserScript->setCurrentIndex(k);
-	// this will call the slot slotUserScriptSet()
-	break;
-      }
-    }
-    if (!ok) {
-      QMessageBox::warning(this, tr("User Script Not Available"),
-			   tr("The user script %1 is not available. The equation might not compile.")
-			   .arg(style.userScript));
-      qWarning()<<KLF_FUNC_NAME<<": Can't find user script "<<style.userScript();
-    }
-  }
+  slotSetUserScript(style.userScript());
 
   // initialize the user script input widget
   // check for user script input

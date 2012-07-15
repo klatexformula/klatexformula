@@ -42,6 +42,9 @@ if (sys.argv[1] == "--scriptinfo"):
     print "SpitsOut: latex";
     print "DisableInputs: FG_COLOR BG_COLOR MATHMODE FONT FONTSIZE PREAMBLE";
     print "InputFormUI: customtemplate_input.ui";
+    print "Error: Can't find executable foo."
+    print "Warning: random warning."
+    print "Notice: random notice."
     print "";
     exit(0);
 

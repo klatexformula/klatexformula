@@ -1,6 +1,7 @@
 <RCC>
   <qresource>
     <file>pics/info.png</file>
+    <file>pics/infowarn.png</file>
     <file>pics/exportprofile.png</file>
     <file>pics/clearedit.png</file>
     <file>pics/importexport.png</file>
