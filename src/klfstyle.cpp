@@ -53,7 +53,8 @@ KLFStyle::BBoxExpand::BBoxExpand(const BBoxExpand& c)
 
 
 KLFStyle::KLFStyle(QString nm, unsigned long fgcol, unsigned long bgcol, const QString& mmode,
-		   const QString& pre, int dotsperinch, const BBoxExpand& bb, const QString& us)
+		   const QString& pre, int dotsperinch, const BBoxExpand& bb, const QString& us,
+		   const QVariantMap& usinput)
   : KLFPropertizedObject("KLFStyle"),
     name(this, Name, "name", nm), fontname(this, FontName, "fontname", QString()),
     fg_color(this, FgColor, "fg_color", fgcol), bg_color(this, BgColor, "bg_color", bgcol),
@@ -61,7 +62,8 @@ KLFStyle::KLFStyle(QString nm, unsigned long fgcol, unsigned long bgcol, const Q
     fontsize(this, FontSize, "fontsize", -1),
     dpi(this, DPI, "dpi", dotsperinch), vectorscale(this, VectorScale, "vectorscale", 1.0),
     overrideBBoxExpand(this, OverrideBBoxExpand, "overrideBBoxExpand", bb),
-    userScript(this, UserScript, "userScript", us)
+    userScript(this, UserScript, "userScript", us),
+    userScriptInput(this, UserScriptInput, "userScriptInput", usinput)
 {
 }
 KLFStyle::KLFStyle(const KLFBackend::klfInput& input)
@@ -72,8 +74,10 @@ KLFStyle::KLFStyle(const KLFBackend::klfInput& input)
     fontsize(this, FontSize, "fontsize", input.fontsize),
     dpi(this, DPI, "dpi", input.dpi), vectorscale(this, VectorScale, "vectorscale", input.vectorscale),
     overrideBBoxExpand(this, OverrideBBoxExpand, "overrideBBoxExpand", BBoxExpand()),
-    userScript(this, UserScript, "userScript", input.userScript)
+    userScript(this, UserScript, "userScript", input.userScript),
+    userScriptInput(this, UserScriptInput, "userScriptInput", klfMapToVariantMap<QString>(input.userScriptParam))
 {
+  klfWarning("possible loss of information: KLFStyle(KLFBackend::klfInput)") ;
 }
 KLFStyle::KLFStyle(const KLFStyle& o)
   : KLFPropertizedObject("KLFStyle"),
@@ -83,7 +87,8 @@ KLFStyle::KLFStyle(const KLFStyle& o)
     fontsize(this, FontSize, "fontsize", o.fontsize),
     dpi(this, DPI, "dpi", o.dpi), vectorscale(this, VectorScale, "vectorscale", o.vectorscale),
     overrideBBoxExpand(this, OverrideBBoxExpand, "overrideBBoxExpand", o.overrideBBoxExpand),
-    userScript(this, UserScript, "userScript", o.userScript)
+    userScript(this, UserScript, "userScript", o.userScript),
+    userScriptInput(this, UserScriptInput, "userScriptInput", o.userScriptInput)
 {
 }
 
@@ -102,6 +107,7 @@ QByteArray KLFStyle::typeNameFor(const QString& pname) const
   if (pname == "vectorscale") return "double";
   if (pname == "overrideBBoxExpand")  return "KLFStyle::BBoxExpand";
   if (pname == "userScript")  return "QString";
+  if (pname == "userScriptInput")  return "QVariantMap";
   qWarning()<<KLF_FUNC_NAME<<": Unknown property name "<<pname;
   return QByteArray();
 }
@@ -134,6 +140,14 @@ static QString preamble_append_userscript(const QString& us)
     return QString();
   return "\n%%% KLF_userScript: " + QString::fromLatin1(klfDataToEscaped(us.toUtf8()));
 }
+static QString preamble_append_userscript_input(const QVariantMap& usinput)
+{
+  if (usinput.isEmpty())
+    return QString();
+  klfDbg("adding userscriptinput="<<usinput) ;
+  return "\n%%% KLF_userScriptInput: " +
+    QString::fromLatin1(klfSaveVariantToText(QVariant(usinput), true));
+}
 static QString preamble_append_font_fontsize_vscale(const QString& fontname, double fontsize, double vscale)
 {
   QString s;
@@ -154,6 +168,7 @@ static void set_xtra_from_preamble(KLFStyle * style)
   while ((pos = rx.indexIn(p, pos)) != -1) {
     QString what = rx.cap(1);
     QString value = rx.cap(2);
+    klfDbg("KLFStyle: reading xtras: what="<<what<<"; value="<<value) ;
     if (what == "overrideBBoxExpand") {
       KLFStyle::BBoxExpand bb;
       bool ok = klfLoad(value.toLatin1(), &bb);
@@ -167,6 +182,12 @@ static void set_xtra_from_preamble(KLFStyle * style)
     if (what == "userScript") {
       style->userScript = QString::fromUtf8(klfEscapedToData(value.toLatin1()));
       klfDbg("read user script: "<<style->userScript()) ;
+      p.replace(pos, rx.matchedLength(), "");
+      continue;
+    }
+    if (what == "userScriptInput") {
+      style->userScriptInput = klfLoadVariantFromText(value.toLatin1(), "QVariantMap", "XML").toMap();
+      klfDbg("user script input: "<<style->userScriptInput());
       p.replace(pos, rx.matchedLength(), "");
       continue;
     }
@@ -206,6 +227,7 @@ KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 		  << (style.preamble + "\n" +
 		      preamble_append_overridebboxexpand(style.overrideBBoxExpand) +
 		      preamble_append_userscript(style.userScript) +
+		      preamble_append_userscript_input(style.userScriptInput) +
 		      preamble_append_font_fontsize_vscale(style.fontname, style.fontsize, style.vectorscale))
 		  << (quint16)style.dpi;
   } else if (klfVersionCompare(compat_klfversion, "3.3") < 0) {
@@ -213,6 +235,7 @@ KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 		  << style.mathmode()
 		  << (style.preamble + "\n" +
 		      preamble_append_userscript(style.userScript) +
+		      preamble_append_userscript_input(style.userScriptInput) +
 		      preamble_append_font_fontsize_vscale(style.fontname, style.fontsize, style.vectorscale))
 		  << (quint16)style.dpi
 		  << style.overrideBBoxExpand();
@@ -245,6 +268,7 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
     style.vectorscale = 1.0;
     style.overrideBBoxExpand = KLFStyle::BBoxExpand();
     style.userScript = QString();
+    style.userScriptInput = QVariantMap();
     set_xtra_from_preamble(&style);
     return stream;
   } else if (klfVersionCompare(compat_klfversion, "3.3") < 0) {
@@ -265,6 +289,7 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
     style.vectorscale = 1.0;
     style.overrideBBoxExpand = bb;
     style.userScript = QString();
+    style.userScriptInput = QVariantMap();
     set_xtra_from_preamble(&style);
     return stream;
   } else {
@@ -289,7 +314,8 @@ KLF_EXPORT bool operator==(const KLFStyle& a, const KLFStyle& b)
     a.dpi == b.dpi &&
     fabs(a.vectorscale - b.vectorscale) < 0.001 &&
     a.overrideBBoxExpand == b.overrideBBoxExpand &&
-    a.userScript == b.userScript;
+    a.userScript == b.userScript &&
+    a.userScriptInput == b.userScriptInput ;
 }
 
 

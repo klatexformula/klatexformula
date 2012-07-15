@@ -1101,8 +1101,8 @@
           <attribute name="title">
            <string>Script</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout" columnstretch="99,0">
-           <item row="1" column="0" colspan="2">
+          <layout class="QGridLayout" name="gridLayout" columnstretch="99,0,0">
+           <item row="1" column="0" colspan="3">
             <widget class="QLabel" name="lblUserScript">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1125,18 +1125,18 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0" colspan="2">
+           <item row="4" column="0" colspan="3">
             <widget class="QTabWidget" name="tabsUserScript">
              <property name="currentIndex">
               <number>0</number>
              </property>
-             <widget class="QWidget" name="tabUserScriptInfo">
+             <widget class="QWidget" name="tabUserScriptInput">
               <attribute name="title">
-               <string>Info</string>
+               <string>Input</string>
               </attribute>
-              <layout class="QGridLayout" name="gridLayout_2">
+              <layout class="QGridLayout" name="lyt_tabUserScriptInput">
                <item row="0" column="0">
-                <widget class="QScrollArea" name="scrUserScriptInfo">
+                <widget class="QScrollArea" name="scrUserScriptInput">
                  <property name="frameShape">
                   <enum>QFrame::NoFrame</enum>
                  </property>
@@ -1155,7 +1155,7 @@
                  <property name="alignment">
                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                  </property>
-                 <widget class="QWidget" name="wScrUserScriptInfo">
+                 <widget class="QWidget" name="wScrUserScriptInput">
                   <property name="geometry">
                    <rect>
                     <x>0</x>
@@ -1164,24 +1164,32 @@
                     <height>88</height>
                    </rect>
                   </property>
-                  <layout class="QGridLayout" name="lyt_scrUserScriptInfo">
+                  <layout class="QGridLayout" name="lyt_scrUserScriptInput">
                    <property name="margin">
                     <number>0</number>
                    </property>
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="lblUserScriptInfo">
-                     <property name="alignment">
-                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-                     </property>
-                     <property name="wordWrap">
-                      <bool>true</bool>
-                     </property>
-                     <property name="margin">
-                      <number>6</number>
-                     </property>
-                     <property name="textInteractionFlags">
-                      <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
-                     </property>
+                   <item row="0" column="1">
+                    <widget class="QStackedWidget" name="stkScriptInput">
+                     <widget class="QWidget" name="wScriptInputEmptyPage">
+                      <layout class="QGridLayout" name="gridLayout_4">
+                       <item row="0" column="0">
+                        <widget class="QLabel" name="lblScriptInputEmptyPage">
+                         <property name="text">
+                          <string>&lt;no user script selected or no input to script&gt;</string>
+                         </property>
+                         <property name="alignment">
+                          <set>Qt::AlignCenter</set>
+                         </property>
+                         <property name="wordWrap">
+                          <bool>true</bool>
+                         </property>
+                         <property name="margin">
+                          <number>5</number>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </widget>
                     </widget>
                    </item>
                   </layout>
@@ -1214,7 +1222,7 @@
              </widget>
             </widget>
            </item>
-           <item row="5" column="0" colspan="2">
+           <item row="5" column="0" colspan="3">
             <widget class="QPushButton" name="btnShowLastUserScriptOutput">
              <property name="text">
               <string>View last script output ...</string>
@@ -1253,7 +1261,7 @@
              </property>
             </spacer>
            </item>
-           <item row="2" column="1">
+           <item row="2" column="2">
             <widget class="QToolButton" name="btnUserScriptReload">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -1264,6 +1272,26 @@
              <property name="icon">
               <iconset resource="klfres.qrc">
                <normaloff>:/pics/refresh.png</normaloff>:/pics/refresh.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QToolButton" name="btnUserScriptInfo">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="icon">
+              <iconset resource="klfres.qrc">
+               <normaloff>:/pics/info.png</normaloff>:/pics/info.png</iconset>
              </property>
              <property name="iconSize">
               <size>

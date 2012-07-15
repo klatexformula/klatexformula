@@ -33,6 +33,7 @@ set(QT_USE_QTSQL TRUE)
 if(KLF_USE_DBUS)
   set(QT_USE_QTDBUS TRUE)
 endif(KLF_USE_DBUS)
+set(QT_USE_QTUITOOLS TRUE)
 include(${QT_USE_FILE})
 
 

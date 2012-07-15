@@ -343,8 +343,6 @@ public slots:
   void slotSetBgColor(const QColor& bgcolor);
   void slotSetBgColor(const QString& bgcolor);
 
-  void slotUserScriptSet(int index);
-
   // will actually save only if output non empty.
   void slotEvaluateAndSave(const QString& output, const QString& format);
 

@@ -37,6 +37,8 @@ public:
   /**
    * \note \c settings may only be NULL if the user script info was already queried by another instance
    *   of a KLFUserScriptInfo and the cache was not cleared.
+   * \note there is no concept of "null" user script info. if you provide an invalid file name, this function
+   *   will fail (undefined..?)
    */
   KLFUserScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings = NULL);
   KLFUserScriptInfo(const KLFUserScriptInfo& copy);
@@ -59,8 +61,12 @@ public:
     License,
     KLFMinVersion,
     KLFMaxVersion,
+
+    // for klf-backend-engine
     SpitsOut,
-    SkipFormats
+    SkipFormats,
+    DisableInputs,
+    InputFormUI
   };
 
   QString category() const;
@@ -73,13 +79,21 @@ public:
   QString klfMinVersion() const;
   QString klfMaxVersion() const;
 
+  //! (klf-backend-engine:) List of formats that this script will generate
   QStringList spitsOut() const;
 
-  //! List of formats that klfbackend should not attempt to generate
+  //! (klf-backend-engine:) List of formats that klfbackend should not attempt to generate
   /** The corresponding field(s) in KLFBackend::klfOutput will be set to empty QByteArray's.
    *
    * Same format list as 'spits-out'. */
   QStringList skipFormats() const;
+
+  //! (klf-backend-engine:) List of user input fields that should be disabled
+  QStringList disableInputs() const;
+  
+  //! (klf-backend-engine:) A UI input form file (Qt designer file) for additional input
+  QString inputFormUI() const;
+
 
   //   struct Param {
   //     enum ParamType { String, Bool, Int, Enum };

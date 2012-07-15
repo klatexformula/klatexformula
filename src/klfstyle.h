@@ -73,12 +73,13 @@ struct KLF_EXPORT KLFStyle : public KLFPropertizedObject
   };
 
   enum { Name, FontName, FgColor, BgColor, MathMode, Preamble, FontSize, DPI, VectorScale,
-	 OverrideBBoxExpand, UserScript };
+	 OverrideBBoxExpand, UserScript, UserScriptInput };
 
   KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
 	   unsigned long bgcol = qRgba(255,255,255,0), const QString& mmode = QString(),
 	   const QString& pre = QString(), int dotsperinch = -1,
-	   const BBoxExpand& bb = BBoxExpand(), const QString& us = QString());
+	   const BBoxExpand& bb = BBoxExpand(), const QString& us = QString(),
+	   const QVariantMap& usinput = QVariantMap());
 
   KLFStyle(const KLFBackend::klfInput& input);
 
@@ -95,6 +96,7 @@ struct KLF_EXPORT KLFStyle : public KLFPropertizedObject
   KLFPObjPropRef<double> vectorscale;
   KLFPObjPropRef<BBoxExpand> overrideBBoxExpand;
   KLFPObjPropRef<QString> userScript;
+  KLFPObjPropRef<QVariantMap> userScriptInput;
 
   inline const KLFStyle& operator=(const KLFStyle& o) {
     name = o.name; fontname = o.fontname; fg_color = o.fg_color; bg_color = o.bg_color;
@@ -102,6 +104,7 @@ struct KLF_EXPORT KLFStyle : public KLFPropertizedObject
     vectorscale = o.vectorscale;
     overrideBBoxExpand = o.overrideBBoxExpand;
     userScript = o.userScript;
+    userScriptInput = o.userScriptInput;
     return *this;
   }
 

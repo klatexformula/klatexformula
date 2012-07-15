@@ -1077,6 +1077,11 @@ public:
 
   KLFUserScriptSettings * pUserScriptSettings;
 
+  QHash<QString,QWidget*> userScriptInputWidgets;
+  QString userScriptCurrentInfo;
+  QWidget * getUserScriptInputWidget(const QString& uifile);
+  QVariantMap collectUserScriptInput();
+
   /**
    * Use \ref currentInputState() instead for "public" use.
    *
@@ -1164,6 +1169,9 @@ public slots: // .. but in private API
 
   void latexEditReplace(int pos, int len, const QString& text);
 
+  void slotUserScriptSet(int index);
+  void slotUserScriptShowInfo();
+  void slotUserScriptDisableInputs(KLFUserScriptInfo * info);
 };
 
 

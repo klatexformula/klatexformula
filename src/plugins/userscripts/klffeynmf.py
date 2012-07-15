@@ -40,6 +40,7 @@ if (sys.argv[1] == "--scriptinfo"):
     print "Version: 0.2";
     print "License: GPL v2+"
     print "SpitsOut: dvi"
+    print "DisableInputs: ALL_input"
     # ###TODO: implement in klfbackend  Force*: ...
     #print "ForceInputMathMode: \\begin{fmffile}{FMF_FEYNUSERSCRIPT_MFNAME} ... \\end{fmffile}";
     #print "ForceInputPreambleLine: \\usepackage{feynmf}";

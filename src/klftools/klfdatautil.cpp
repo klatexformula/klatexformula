@@ -627,6 +627,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     }
   case QMetaType::QVariantList:
     {
+      klfDbg("Saving list!") ;
       const QList<QVariant>& list = value.toList();
       if (saveListAndMapsAsXML) {
 	QDomElement el = make_xml_wrapper("variant-list");
@@ -652,11 +653,13 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     }
   case QMetaType::QVariantMap:
     {
+      klfDbg("Saving Map!") ;
       const QMap<QString,QVariant>& map = value.toMap();
       if (saveListAndMapsAsXML) {
 	QDomElement el = make_xml_wrapper("variant-map");
 	el = klfSaveVariantMapToXML(map, el);
-	data = el.ownerDocument().toByteArray(-1);
+	data = el.ownerDocument().toByteArray(1);
+	klfDbg("saved XML: data="<<data) ;
       } else {
 	QList<QPair<QByteArray, QByteArray> > sections;
 	QByteArray innertype, thistype;
@@ -1421,6 +1424,8 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
 
 KLF_EXPORT QDomElement klfSaveVariantMapToXML(const QVariantMap& vmap, QDomElement baseNode)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QDomDocument doc = baseNode.ownerDocument();
 
   for (QVariantMap::const_iterator it = vmap.begin(); it != vmap.end(); ++it) {

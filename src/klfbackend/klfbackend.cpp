@@ -734,6 +734,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       << "KLF_INPUT_LATEX=" + in.latex
       << "KLF_INPUT_MATHMODE=" + in.mathmode
       << "KLF_INPUT_PREAMBLE=" + in.preamble
+      << "KLF_INPUT_FONTSIZE=" + QString::number(in.fontsize)
       << "KLF_INPUT_FG_COLOR_WEB=" + QColor(in.fg_color).name()
       << "KLF_INPUT_FG_COLOR_RGBA=" + fgcol
       << "KLF_INPUT_BG_COLOR_TRANSPARENT=" + QString::fromLatin1(qAlpha(in.bg_color) > 50 ? "1" : "0")

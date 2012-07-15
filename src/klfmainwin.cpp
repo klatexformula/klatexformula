@@ -26,6 +26,7 @@
 
 #include <QtCore>
 #include <QtGui>
+#include <QUiLoader>
 
 #include <klfbackend.h>
 
@@ -50,9 +51,6 @@
 #include "klfmainwin.h"
 #include "klfmainwin_p.h"
 
-
-
-#define DEBUG_GEOM_ARGS(g) (g).topLeft().x(), (g).topLeft().y(), (g).size().width(), (g).size().height()
 
 
 
@@ -495,7 +493,11 @@ KLFMainWin::KLFMainWin()
 
   connect(this, SIGNAL(klfConfigChanged()), d->mLatexSymbols, SLOT(slotKlfConfigChanged()));
 
-  connect(u->cbxUserScript, SIGNAL(activated(int)), this, SLOT(slotUserScriptSet(int)));
+  connect(u->cbxUserScript, SIGNAL(activated(int)), d, SLOT(slotUserScriptSet(int)));
+
+  connect(u->btnUserScriptReload, SIGNAL(clicked()), this, SLOT(slotReloadUserScripts()));
+  connect(u->btnShowLastUserScriptOutput, SIGNAL(clicked()), this, SLOT(slotShowLastUserScriptOutput()));
+  connect(u->btnUserScriptInfo, SIGNAL(clicked()), d, SLOT(slotUserScriptShowInfo()));
 
   connect(this, SIGNAL(userInputChanged()), this, SIGNAL(userActivity()));
 
@@ -526,9 +528,6 @@ KLFMainWin::KLFMainWin()
 	  Qt::QueuedConnection);
   connect(u->cbxUserScript, SIGNAL(activated(const QString&)), d, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
-
-  connect(u->btnUserScriptReload, SIGNAL(clicked()), this, SLOT(slotReloadUserScripts()));
-  connect(u->btnShowLastUserScriptOutput, SIGNAL(clicked()), this, SLOT(slotShowLastUserScriptOutput()));
 
   connect(d->pLatexPreviewThread, SIGNAL(previewError(const QString&, int)),
 	  d, SLOT(showRealTimeError(const QString&, int)));
@@ -2058,25 +2057,51 @@ static QString escapeListIntoTags(const QStringList& list, const QString& startt
   return html;
 }
 
-void KLFMainWin::slotUserScriptSet(int index)
+
+void KLFMainWinPrivate::slotUserScriptDisableInputs(KLFUserScriptInfo * info)
+{
+  QStringList disableInputs = QStringList();
+  if (info != NULL) {
+    disableInputs = info->disableInputs();
+  }
+  bool disableall = disableInputs.contains("ALL", Qt::CaseInsensitive);
+  bool disableallinput = disableInputs.contains("ALL_INPUT", Qt::CaseInsensitive);
+#define WANT_DISABLE(x)  disableall || disableInputs.contains(x, Qt::CaseInsensitive)
+
+  // names are the same as in klfbackend.cpp
+  K->u->colFg->setDisabled(WANT_DISABLE("FG_COLOR") || disableallinput);
+  K->u->colBg->setDisabled(WANT_DISABLE("BG_COLOR") || disableallinput);
+  K->u->chkMathMode->setDisabled(WANT_DISABLE("MATHMODE") || disableallinput);
+  K->u->cbxMathMode->setDisabled(WANT_DISABLE("MATHMODE") || disableallinput);
+  K->u->txtPreamble->setDisabled(WANT_DISABLE("PREAMBLE") || disableallinput);
+  K->u->cbxLatexFont->setDisabled(WANT_DISABLE("FONT") || disableallinput);
+  K->u->spnLatexFontSize->setDisabled(WANT_DISABLE("FONTSIZE") || disableallinput);
+  K->u->spnDPI->setDisabled(WANT_DISABLE("DPI"));
+  K->u->btnDPIPresets->setDisabled(WANT_DISABLE("DPI"));
+  K->u->chkVectorScale->setDisabled(WANT_DISABLE("VECTORSCALE"));
+  K->u->spnVectorScale->setDisabled(WANT_DISABLE("VECTORSCALE"));
+  K->u->gbxOverrideMargins->setDisabled(WANT_DISABLE("MARGINS"));
+}
+
+void KLFMainWinPrivate::slotUserScriptSet(int index)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("index="<<index) ;
 
   if (index == 0) {
     // no user script
-    u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+    userScriptCurrentInfo = tr("<no user script selected>", "[[popup info]]");
+    slotUserScriptDisableInputs(NULL);
+    K->u->stkScriptInput->setCurrentWidget(K->u->wScriptInputEmptyPage);
     return;
   }
 
   // update user script info and settings widget
   
-  KLFUserScriptInfo usinfo(u->cbxUserScript->itemData(index).toString(), & d->settings);
+  KLFUserScriptInfo usinfo(K->u->cbxUserScript->itemData(index).toString(), & settings);
 
-  int textpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 1;
+  int textpointsize = QFontInfo(K->u->lblUserScript->font()).pointSize() - 1;
   QString textpointsize_s = QString::number(textpointsize);
-  int smallpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 2;
-  QString smallpointsize_s = QString::number(smallpointsize);
 
   QString txt =
     "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
@@ -2130,7 +2155,46 @@ void KLFMainWin::slotUserScriptSet(int index)
       "<span style=\"font-weight:600;\">" + Qt::escape(usinfo.skipFormats().join(", ")) + "</span><br />\n";
   }
 
-  u->lblUserScriptInfo->setText(txt);
+  userScriptCurrentInfo = txt;
+
+  slotUserScriptDisableInputs(&usinfo);
+
+  QString uifile = usinfo.inputFormUI();
+  if (!uifile.isEmpty()) {
+    QWidget * scriptinputwidget = getUserScriptInputWidget(uifile);
+    K->u->stkScriptInput->setCurrentWidget(scriptinputwidget);
+    klfDbg("Set script input UI. uifile="<<uifile) ;
+  } else {
+    K->u->stkScriptInput->setCurrentWidget(K->u->wScriptInputEmptyPage);
+  }
+}
+
+QWidget * KLFMainWinPrivate::getUserScriptInputWidget(const QString& uifile)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("uifile = " << uifile) ;
+  if (userScriptInputWidgets.contains(uifile)) {
+    klfDbg("widget from cache.") ;
+    return userScriptInputWidgets[uifile];
+  }
+
+  QUiLoader loader;
+  QFile uif(uifile);
+  uif.open(QFile::ReadOnly);
+  QWidget *scriptinputwidget = loader.load(&uif, K->u->stkScriptInput);
+  uif.close();
+  KLF_ASSERT_NOT_NULL(scriptinputwidget, "Can't load script input widget "<<uifile<<".",
+		      return K->u->wScriptInputEmptyPage) ;
+
+  K->u->stkScriptInput->addWidget(scriptinputwidget);
+  userScriptInputWidgets[uifile] = scriptinputwidget;
+  return scriptinputwidget;
+}
+
+void KLFMainWinPrivate::slotUserScriptShowInfo()
+{
+  QWhatsThis::showText(K->u->btnUserScriptInfo->mapToGlobal(QPoint(10,10)), userScriptCurrentInfo,
+		       K->u->btnUserScriptInfo);
 }
 
 
@@ -2761,6 +2825,39 @@ void KLFMainWinPrivate::showRealTimeError(const QString& errmsg, int errcode)
 }
 
 
+QVariantMap KLFMainWinPrivate::collectUserScriptInput()
+{
+  // check for user script input
+  QWidget * scriptInputWidget = K->u->stkScriptInput->currentWidget();
+  if (scriptInputWidget == K->u->wScriptInputEmptyPage)
+    return QVariantMap();
+
+  QVariantMap data;
+  // there's input for the user script
+  QList<QWidget*> inwidgets = scriptInputWidget->findChildren<QWidget*>(QRegExp("^INPUT_.*"));
+  Q_FOREACH (QWidget *inw, inwidgets) {
+    QString n = inw->objectName();
+    KLF_ASSERT_CONDITION(n.startsWith("INPUT_"), "?!? found child widget "<<n<<" that is not INPUT_*?",
+			 continue; ) ;
+    n = n.mid(strlen("INPUT_"));
+    // get the user property
+    QByteArray userPropName;
+    if (inw->inherits("KLFLatexEdit")) {
+      userPropName = "plainText";
+    } else {
+      QMetaProperty userProp = inw->metaObject()->userProperty();
+      KLF_ASSERT_CONDITION(userProp.isValid(), "user property of widget "<<n<<" invalid!", continue ; ) ;
+      userPropName = userProp.name();
+    }
+    QVariant value = inw->property(userPropName.constData());
+    data[n] = value;
+  }
+
+  klfDbg("userscriptinput is "<<data) ;
+  return data;
+}
+
+
 KLFBackend::klfInput KLFMainWinPrivate::collectInput(bool final)
 {
   // KLFBackend input
@@ -2775,6 +2872,11 @@ KLFBackend::klfInput KLFMainWinPrivate::collectInput(bool final)
   klfDbg("latex="<<input.latex) ;
 
   input.userScript = K->u->cbxUserScript->itemData(K->u->cbxUserScript->currentIndex()).toString();
+
+  QVariantMap userScriptInput = collectUserScriptInput();
+  for (QVariantMap::iterator usparam = userScriptInput.begin(); usparam != userScriptInput.end(); ++usparam) {
+    input.userScriptParam[usparam.key()] = usparam.value().toString();
+  }
 
   if (K->u->chkMathMode->isChecked()) {
     input.mathmode = K->u->cbxMathMode->currentText();
@@ -3069,21 +3171,19 @@ void KLFMainWin::slotSetUserScript(const QString& userScript)
     if (QFileInfo(u->cbxUserScript->itemData(k).toString()) == QFileInfo(userScript)) {
       // set this item
       u->cbxUserScript->setCurrentIndex(k);
-      //      // slot doesn't seem to be called (?)
-      //      slotUserScriptSet(k);
       return;
     }
   }
   // append our new item
   KLFUserScriptInfo us(userScript, & d->settings);
   if (us.scriptInfoError()) {
-    qWarning()<<KLF_FUNC_NAME<<": Can't get info for user script "<<userScript<<": "<<us.scriptInfoErrorString();
+    klfWarning("Can't get info for user script "<<userScript<<": "<<us.scriptInfoErrorString()) ;
     return;
   }
   u->cbxUserScript->addItem(us.name(), QVariant(userScript));
   k = u->cbxUserScript->count()-1;
   u->cbxUserScript->setCurrentIndex(k);
-  //  // slot doesn't seem to be called (?)
+  //  // called by the slot connected to the combo box
   //  slotUserScriptSet(k);
 }
 
@@ -3891,6 +3991,7 @@ KLFStyle KLFMainWin::currentStyle() const
   }
 
   sty.userScript = QFileInfo(u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString()).fileName();
+  sty.userScriptInput = d->collectUserScriptInput();
 
   klfDbg("Returning style; bgcol="<<klfFmtCC("#%08lx", (ulong)sty.bg_color)<<": us="<<sty.userScript()) ;
 
@@ -4018,6 +4119,7 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
 	// found
 	ok = true;
 	u->cbxUserScript->setCurrentIndex(k);
+	// this will call the slot slotUserScriptSet()
 	break;
       }
     }
@@ -4028,6 +4130,35 @@ void KLFMainWin::slotLoadStyle(const KLFStyle& style)
       qWarning()<<KLF_FUNC_NAME<<": Can't find user script "<<style.userScript();
     }
   }
+
+  // initialize the user script input widget
+  // check for user script input
+  QWidget * scriptInputWidget = u->stkScriptInput->currentWidget();
+  if (scriptInputWidget != u->wScriptInputEmptyPage) {
+    QVariantMap data = style.userScriptInput();
+    // find the input widgets
+    QList<QWidget*> inwidgets = scriptInputWidget->findChildren<QWidget*>(QRegExp("^INPUT_.*"));
+    Q_FOREACH (QWidget *inw, inwidgets) {
+      QString n = inw->objectName();
+      KLF_ASSERT_CONDITION(n.startsWith("INPUT_"), "?!? found child widget "<<n<<" that is not INPUT_*?",
+			   continue; ) ;
+      n = n.mid(strlen("INPUT_"));
+      // find the user property
+      QByteArray userPropName;
+      if (inw->inherits("KLFLatexEdit")) {
+	userPropName = "plainText";
+      } else {
+	QMetaProperty userProp = inw->metaObject()->userProperty();
+	KLF_ASSERT_CONDITION(userProp.isValid(), "user property of widget "<<n<<" invalid!", continue ; ) ;
+	userPropName = userProp.name();
+      }
+      // find this widget in our list of input values
+      KLF_ASSERT_CONDITION(data.contains(n), "No value given for input widget "<<n, continue ; );
+      QVariant value = data[n];
+      inw->setProperty(userPropName.constData(), value);
+    }
+  }
+
 }
 
 void KLFMainWin::slotLoadStyle(int n)
