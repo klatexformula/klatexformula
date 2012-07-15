@@ -25,6 +25,10 @@
 
 #include "klftools_desplugin.h"
 
+/** \bug THIS FILE IS ACTUALLY NEEDED in the packaged version for QUiLoader to be able to access
+ *    these widgets when creating user scripts' input widgets */
+
+
 KLFSearchBarDesPlugin::KLFSearchBarDesPlugin(QObject *parent)
 {
   Q_UNUSED(parent) ;
@@ -591,6 +595,71 @@ void KLFSideWidgetDesPlugin::initialize(QDesignerFormEditorInterface *core)
 }
 
 
+// -----
+
+
+KLFPathChooserDesPlugin::KLFPathChooserDesPlugin(QObject *parent)
+{
+  Q_UNUSED(parent) ;
+}
+
+bool KLFPathChooserDesPlugin::isContainer() const
+{
+  return false;
+}
+bool KLFPathChooserDesPlugin::isInitialized() const
+{
+  return pInitialized;
+}
+QIcon KLFPathChooserDesPlugin::icon() const
+{
+  return QIcon();
+}
+QString KLFPathChooserDesPlugin::domXml() const
+{
+  // make sure sideWidgetManagerType is NON-translatable (so that it is not reset
+  // at language change time !)
+  return "<widget class=\"KLFPathChooser\" name=\"pathChooser\">\n"
+    "</widget>" ;
+}
+QString KLFPathChooserDesPlugin::group() const
+{
+  return "Utilities";
+}
+QString KLFPathChooserDesPlugin::includeFile() const
+{
+  return "klfpathchooser.h";
+}
+QString KLFPathChooserDesPlugin::name() const
+{
+  return "KLFPathChooser";
+}
+QString KLFPathChooserDesPlugin::toolTip() const
+{
+  return "A text field to input a path to a file or directory";
+}
+QString KLFPathChooserDesPlugin::whatsThis() const
+{
+  return "A text field to input a path to a file or directory";
+}
+QWidget *KLFPathChooserDesPlugin::createWidget(QWidget *parent)
+{
+  KLFPathChooser * w = new KLFPathChooser(parent);
+  //  w->_inqtdesigner = true;
+  return w;
+}
+void KLFPathChooserDesPlugin::initialize(QDesignerFormEditorInterface *core)
+{
+  Q_UNUSED(core) ;
+  if (pInitialized)
+    return;
+
+  // initialize ... :)
+
+  pInitialized = true;
+}
+
+
 
 
 
@@ -610,6 +679,7 @@ KLFToolsDesPlugin::KLFToolsDesPlugin(QObject* parent)
   _widgetPlugins.push_back(new KLFLatexEditDesPlugin(this));
   _widgetPlugins.push_back(new KLFEnumListWidgetDesPlugin(this));
   _widgetPlugins.push_back(new KLFSideWidgetDesPlugin(this));
+  _widgetPlugins.push_back(new KLFPathChooserDesPlugin(this));
 }
 
 KLFToolsDesPlugin::~KLFToolsDesPlugin()

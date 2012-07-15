@@ -2084,6 +2084,8 @@ void KLFMainWinPrivate::slotUserScriptSet(int index)
     userScriptCurrentInfo = tr("<no user script selected>", "[[popup info]]");
     slotUserScriptDisableInputs(NULL);
     K->u->stkScriptInput->setCurrentWidget(K->u->wScriptInputEmptyPage);
+    K->u->lblScriptInputEmptyPage->setText(tr("<no user script selected>",
+					      "[[space for user script custom input]]"));
     K->u->btnUserScriptInfo->setIcon(QIcon(":/pics/info.png"));
     K->u->btnUserScriptInfo->setEnabled(false);
     return;
@@ -2107,6 +2109,9 @@ void KLFMainWinPrivate::slotUserScriptSet(int index)
   userScriptCurrentInfo = usinfo.htmlInfo(extracss);
 
   slotUserScriptDisableInputs(&usinfo);
+
+  K->u->lblScriptInputEmptyPage->setText(tr("<user script has no custom input>",
+					    "[[space for user script custom input]]"));
 
   QString uifile = usinfo.inputFormUI();
   if (!uifile.isEmpty()) {
