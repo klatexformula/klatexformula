@@ -540,7 +540,7 @@
           <enum>QTabWidget::North</enum>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>3</number>
          </property>
          <widget class="QWidget" name="tabLatexImage">
           <attribute name="title">
@@ -1125,150 +1125,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0" colspan="3">
-            <widget class="QTabWidget" name="tabsUserScript">
-             <property name="currentIndex">
-              <number>0</number>
-             </property>
-             <widget class="QWidget" name="tabUserScriptInput">
-              <attribute name="title">
-               <string>Input</string>
-              </attribute>
-              <layout class="QGridLayout" name="lyt_tabUserScriptInput">
-               <item row="0" column="0">
-                <widget class="QScrollArea" name="scrUserScriptInput">
-                 <property name="frameShape">
-                  <enum>QFrame::NoFrame</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>0</number>
-                 </property>
-                 <property name="midLineWidth">
-                  <number>0</number>
-                 </property>
-                 <property name="widgetResizable">
-                  <bool>true</bool>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-                 </property>
-                 <widget class="QWidget" name="wScrUserScriptInput">
-                  <property name="geometry">
-                   <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>234</width>
-                    <height>88</height>
-                   </rect>
-                  </property>
-                  <layout class="QGridLayout" name="lyt_wScrUserScriptInput">
-                   <property name="margin">
-                    <number>0</number>
-                   </property>
-                   <item row="0" column="1">
-                    <widget class="QStackedWidget" name="stkScriptInput">
-                     <widget class="QWidget" name="wScriptInputEmptyPage">
-                      <layout class="QGridLayout" name="lyt_wScriptInputEmptyPage">
-                       <item row="0" column="0">
-                        <widget class="QLabel" name="lblScriptInputEmptyPage">
-                         <property name="text">
-                          <string>&lt;no user script selected or no input to script&gt;</string>
-                         </property>
-                         <property name="alignment">
-                          <set>Qt::AlignCenter</set>
-                         </property>
-                         <property name="wordWrap">
-                          <bool>true</bool>
-                         </property>
-                         <property name="margin">
-                          <number>5</number>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
-                     </widget>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="tabUserScriptSettings">
-              <attribute name="title">
-               <string>Settings</string>
-              </attribute>
-              <layout class="QGridLayout" name="lyt_tabUserScriptSettings">
-               <item row="0" column="0">
-                <widget class="QScrollArea" name="scrUserScriptSettings">
-                 <property name="frameShape">
-                  <enum>QFrame::NoFrame</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Plain</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>0</number>
-                 </property>
-                 <property name="midLineWidth">
-                  <number>0</number>
-                 </property>
-                 <property name="widgetResizable">
-                  <bool>true</bool>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-                 </property>
-                 <widget class="QWidget" name="wScrUserScriptSettings">
-                  <property name="geometry">
-                   <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>234</width>
-                    <height>88</height>
-                   </rect>
-                  </property>
-                  <layout class="QGridLayout" name="lyt_wUserScriptSettings">
-                   <property name="margin">
-                    <number>0</number>
-                   </property>
-                   <item row="0" column="1">
-                    <widget class="QStackedWidget" name="stkScriptSettings">
-                     <widget class="QWidget" name="wScriptSettingsEmptyPage">
-                      <layout class="QGridLayout" name="lyt_wScriptSettingsEmptyPage">
-                       <item row="0" column="0">
-                        <widget class="QLabel" name="lblScriptSettingsEmptyPage">
-                         <property name="text">
-                          <string>&lt;no user script selected or no settings for script&gt;</string>
-                         </property>
-                         <property name="alignment">
-                          <set>Qt::AlignCenter</set>
-                         </property>
-                         <property name="wordWrap">
-                          <bool>true</bool>
-                         </property>
-                         <property name="margin">
-                          <number>5</number>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
-                     </widget>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </widget>
-           </item>
-           <item row="5" column="0" colspan="3">
+           <item row="7" column="0" colspan="3">
             <widget class="QPushButton" name="btnShowLastUserScriptOutput">
              <property name="text">
               <string>View last script output ...</string>
@@ -1286,7 +1143,7 @@
              <property name="sizeHint" stdset="0">
               <size>
                <width>20</width>
-               <height>5</height>
+               <height>3</height>
               </size>
              </property>
             </spacer>
@@ -1344,6 +1201,78 @@
                <width>16</width>
                <height>16</height>
               </size>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="3">
+            <widget class="QScrollArea" name="scrUserScriptInput">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
+             <property name="midLineWidth">
+              <number>0</number>
+             </property>
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+             </property>
+             <widget class="QWidget" name="wScrUserScriptInput">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>280</width>
+                <height>123</height>
+               </rect>
+              </property>
+              <layout class="QGridLayout" name="lyt_wScrUserScriptInput">
+               <item row="0" column="0" colspan="2">
+                <widget class="QStackedWidget" name="stkScriptInput">
+                 <widget class="QWidget" name="wScriptInputEmptyPage">
+                  <layout class="QGridLayout" name="lyt_wScriptInputEmptyPage">
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="lblScriptInputEmptyPage">
+                     <property name="text">
+                      <string>&lt;no user script selected or no input to script&gt;</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                     <property name="margin">
+                      <number>5</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </item>
+           <item row="6" column="0" colspan="3">
+            <widget class="Line" name="line_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="3">
+            <widget class="Line" name="line_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
             </widget>
            </item>
