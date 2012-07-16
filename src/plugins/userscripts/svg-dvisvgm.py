@@ -62,7 +62,9 @@ if (sys.argv[1] == "--scriptinfo"):
 #debug environment
 print repr(os.environ);
 
-dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"];
+if "KLF_USCONFIG_dvisvgm" in os.environ:
+    dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"];
+
 if not dvisvgm:
     dvisvgm = "/usr/bin/dvisvgm";
 
