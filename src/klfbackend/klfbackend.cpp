@@ -355,7 +355,8 @@ QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& i
     s += "\\pagecolor{klfbgcolor}\n";
   s += "{\\color{klffgcolor} ";
   s += latexin;
-  s += "\n}\n"
+  s += "%\n"
+    "}\n"
     "\\end{document}\n";
 
   return s;
