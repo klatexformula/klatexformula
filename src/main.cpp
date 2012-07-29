@@ -46,6 +46,7 @@
 #include <klfbackend.h>
 
 #include <klfutil.h>
+#include <klfsysinfo.h>
 #include <klfcolorchooser.h>
 #include "klflib.h"
 #include "klflibdbengine.h"

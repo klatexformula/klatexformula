@@ -45,6 +45,7 @@
 
 #include <klfutil.h>
 #include <klfdatautil.h>
+#include <klfsysinfo.h>
 
 #include "klfblockprocess.h"
 #include "klffilterprocess.h"

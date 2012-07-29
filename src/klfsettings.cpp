@@ -40,6 +40,8 @@
 #include <QListView> // QListView::LeftToRight|TopToBottom
 #include <QMouseEvent>
 #include <QDesktopServices>
+#include <QToolBar>
+#include <QPlastiqueStyle>
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
@@ -100,6 +102,11 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->setupUi(this);
   setObjectName("KLFSettings");
 
+#ifdef Q_WS_MAC
+  setAttribute(Qt::WA_MacBrushedMetal, klfconfig.UI.macBrushedMetalLook);
+  setAutoFillBackground(true);
+#endif
+
   d->mainWin = parent;
 
   d->pUserSetDefaultAppFont = false;
@@ -132,7 +139,31 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   b->setIcon(QIcon(":/pics/ok.png"));
   connect(b, SIGNAL(clicked()), this, SLOT(accept()));
 
-  populateSettingsCombos();
+  // ---
+
+  //  QToolBar * toolBar = new QToolBar(wToolBar);
+#ifdef Q_WS_MAC
+  //  u->toolBar->setAttribute(Qt::WA_NoSystemBackground, true);
+  //  u->toolBar->setAttribute(Qt::WA_NativeWindow, false);
+  u->toolBar->setStyle(new QPlastiqueStyle());
+#endif
+
+#define SETTINGS_REGISTER_TAB(x)				\
+  u->actionTab##x->setData(QByteArray(#x));			\
+  d->settingsTabs[#x] = u->tab##x;
+
+  SETTINGS_REGISTER_TAB(Interface);
+  SETTINGS_REGISTER_TAB(Appearance);
+  SETTINGS_REGISTER_TAB(Latex);
+  SETTINGS_REGISTER_TAB(SyntaxHighlighting);
+  SETTINGS_REGISTER_TAB(Library);
+  SETTINGS_REGISTER_TAB(UserScripts);
+  SETTINGS_REGISTER_TAB(AddOnsPlugins);
+  SETTINGS_REGISTER_TAB(Advanced);
+
+  // ---
+
+  d->populateSettingsCombos();
 
   connect(u->btnAdvancedEditor, SIGNAL(clicked()), this, SLOT(showAdvancedConfigEditor()));
 
@@ -150,8 +181,8 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   
   connect(u->btnPathsReset, SIGNAL(clicked()), this, SLOT(setDefaultPaths()));
 
-  connect(u->lstPlugins, SIGNAL(itemSelectionChanged()), this, SLOT(refreshPluginSelected()));
-  connect(u->lstAddOns, SIGNAL(itemSelectionChanged()), this, SLOT(refreshAddOnSelected()));
+  connect(u->lstPlugins, SIGNAL(itemSelectionChanged()), d, SLOT(refreshPluginSelected()));
+  connect(u->lstAddOns, SIGNAL(itemSelectionChanged()), d, SLOT(refreshAddOnSelected()));
   connect(u->btnImportAddOn, SIGNAL(clicked()), this, SLOT(importAddOn()));
   connect(u->btnRemoveAddOn, SIGNAL(clicked()), this, SLOT(removeAddOn()));
   //  connect(u->btnRemovePlugin, SIGNAL(clicked()), this, SLOT(removePlugin()));
@@ -161,9 +192,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->lstAddOns->installEventFilter(this);
   u->lstAddOns->viewport()->installEventFilter(this);
 
-  connect(u->btnAppFont, SIGNAL(clicked()), this, SLOT(slotChangeFontSender()));
-  connect(u->btnEditorFont, SIGNAL(clicked()), this, SLOT(slotChangeFontSender()));
-  connect(u->btnPreambleFont, SIGNAL(clicked()), this, SLOT(slotChangeFontSender()));
+  connect(u->btnAppFont, SIGNAL(clicked()), d, SLOT(slotChangeFontSender()));
+  connect(u->btnEditorFont, SIGNAL(clicked()), d, SLOT(slotChangeFontSender()));
+  connect(u->btnPreambleFont, SIGNAL(clicked()), d, SLOT(slotChangeFontSender()));
 
   // prepare some actions as shortcuts for standard fonts
   QFontDatabase fdb;
@@ -187,7 +218,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   a->setData(QVariant(vmap));
   a->setEnabled(u->aFontCMU->isEnabled());
   fontPresetMenu->addAction(a);
-  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  connect(a, SIGNAL(triggered()), d, SLOT(slotChangeFontPresetSender()));
   d->pFontSetActions << a;
   a = new QAction(this);
   vmap["Action"] = "Std";
@@ -195,7 +226,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Button"] = QVariant("AppFont");
   vmap["isSystemDefaultAppFont"] = QVariant(true);
   a->setData(QVariant(vmap));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  connect(a, SIGNAL(triggered()), d, SLOT(slotChangeFontPresetSender()));
   d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   u->btnAppFontChoose->setMenu(fontPresetMenu);
@@ -206,7 +237,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Font"] = klfconfig.defaultTTFont;
   vmap["Button"] = QVariant("EditorFont");
   a->setData(QVariant(vmap));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  connect(a, SIGNAL(triggered()), d, SLOT(slotChangeFontPresetSender()));
   d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   a = new QAction(this);
@@ -215,7 +246,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Button"] = QVariant("EditorFont");
   a->setData(QVariant(vmap));
   a->setEnabled(u->aFontCMU->isEnabled());
-  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  connect(a, SIGNAL(triggered()), d, SLOT(slotChangeFontPresetSender()));
   d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   a = new QAction(this);
@@ -223,7 +254,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Font"] = klfconfig.defaultStdFont;
   vmap["Button"] = QVariant("EditorFont");
   a->setData(QVariant(vmap));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  connect(a, SIGNAL(triggered()), d, SLOT(slotChangeFontPresetSender()));
   d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   u->btnEditorFontChoose->setMenu(fontPresetMenu);
@@ -234,7 +265,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Font"] = klfconfig.defaultTTFont;
   vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  connect(a, SIGNAL(triggered()), d, SLOT(slotChangeFontPresetSender()));
   d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   a = new QAction(this);
@@ -243,7 +274,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
   a->setEnabled(u->aFontCMU->isEnabled());
-  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  connect(a, SIGNAL(triggered()), d, SLOT(slotChangeFontPresetSender()));
   d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   a = new QAction(this);
@@ -251,7 +282,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   vmap["Font"] = klfconfig.defaultStdFont;
   vmap["Button"] = QVariant("PreambleFont");
   a->setData(QVariant(vmap));
-  connect(a, SIGNAL(triggered()), this, SLOT(slotChangeFontPresetSender()));
+  connect(a, SIGNAL(triggered()), d, SLOT(slotChangeFontPresetSender()));
   d->pFontSetActions << a;
   fontPresetMenu->addAction(a);
   u->btnPreambleFontChoose->setMenu(fontPresetMenu);
@@ -265,14 +296,14 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->btnImportAddOn->setEnabled(klf_addons_canimport);
   u->btnRemoveAddOn->setEnabled(klf_addons_canimport);
 
-  refreshAddOnList();
-  refreshAddOnSelected();
-  refreshPluginSelected();
+  d->refreshAddOnList();
+  d->refreshAddOnSelected();
+  d->refreshPluginSelected();
 
   // user scripts
 
-  connect(u->lstUserScripts, SIGNAL(itemSelectionChanged()), this, SLOT(refreshUserScriptSelected()));
-  connect(u->btnReloadUserScripts, SIGNAL(clicked()), this, SLOT(reloadUserScripts()));
+  connect(u->lstUserScripts, SIGNAL(itemSelectionChanged()), d, SLOT(refreshUserScriptSelected()));
+  connect(u->btnReloadUserScripts, SIGNAL(clicked()), d, SLOT(reloadUserScripts()));
 
   // remove default Qt Designer Page
   QWidget * w = u->tbxPluginsConfig->widget(u->tbxPluginsConfig->currentIndex());
@@ -318,74 +349,86 @@ KLFSettings::~KLFSettings()
 }
 
 
-void KLFSettings::populateSettingsCombos()
+void KLFSettingsPrivate::showTabByName(const QByteArray& name)
+{
+  KLF_ASSERT_CONDITION(settingsTabs.contains(name), "Bad tab name : '"<<name<<"'", return; ) ;
+  K->u->tabs->setCurrentWidget(settingsTabs[name]);
+}
+void KLFSettingsPrivate::showTabByNameActionSender()
+{
+  QAction *actionsender = qobject_cast<QAction*>(sender());
+  KLF_ASSERT_NOT_NULL(actionsender, "sender is not a QAction or is NULL!", return;);
+  showTabByName(actionsender->data().toByteArray());
+}
+
+void KLFSettingsPrivate::populateSettingsCombos()
 {
   populateLocaleCombo();
   populateExportProfilesCombos();
   populateDetailsSideWidgetTypeCombo();
 }
 
-void KLFSettings::populateLocaleCombo()
+void KLFSettingsPrivate::populateLocaleCombo()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  u->cbxLocale->clear();
+  K->u->cbxLocale->clear();
   // application language : populate combo box
-  u->cbxLocale->addItem( QLatin1String("English Default"), QVariant::fromValue<QString>("en_US") );
+  K->u->cbxLocale->addItem( QLatin1String("English Default"), QVariant::fromValue<QString>("en_US") );
   int k;
   for (k = 0; k < klf_avail_translations.size(); ++k) {
     KLFTranslationInfo ti = klf_avail_translations[k];
-    u->cbxLocale->addItem( ti.translatedname, QVariant(ti.localename) );
+    K->u->cbxLocale->addItem( ti.translatedname, QVariant(ti.localename) );
     klfDbg("Added translation "<< ti.translatedname <<" ("<<ti.localename<<")") ;
   }
 
   // Select the current locale. This is also done in reset(), but these lines are needed here
   // for when this function is called within importAddOn().
-  k = u->cbxLocale->findData(klfconfig.UI.locale.value());
+  k = K->u->cbxLocale->findData(klfconfig.UI.locale.value());
   if (k == -1) {
     k = 0;
   }
-  u->cbxLocale->setCurrentIndex(k);
+  K->u->cbxLocale->setCurrentIndex(k);
 }
 
-void KLFSettings::populateExportProfilesCombos()
+void KLFSettingsPrivate::populateExportProfilesCombos()
 {
   QList<KLFMimeExportProfile> eplist = KLFMimeExportProfile::exportProfileList();
 
-  u->cbxCopyExportProfile->clear();
-  u->cbxDragExportProfile->clear();
+  K->u->cbxCopyExportProfile->clear();
+  K->u->cbxDragExportProfile->clear();
   int k;
   for (k = 0; k < eplist.size(); ++k) {
-    u->cbxCopyExportProfile->addItem(eplist[k].description(), QVariant(eplist[k].profileName()));
-    u->cbxDragExportProfile->addItem(eplist[k].description(), QVariant(eplist[k].profileName()));
+    K->u->cbxCopyExportProfile->addItem(eplist[k].description(), QVariant(eplist[k].profileName()));
+    K->u->cbxDragExportProfile->addItem(eplist[k].description(), QVariant(eplist[k].profileName()));
   }
 }
 
-void KLFSettings::populateDetailsSideWidgetTypeCombo()
+void KLFSettingsPrivate::populateDetailsSideWidgetTypeCombo()
 {
   QStringList tlist = KLFSideWidgetManagerFactory::allSupportedTypes();
-  u->cbxDetailsSideWidgetType->clear();
+  K->u->cbxDetailsSideWidgetType->clear();
   foreach (QString s, tlist) {
     KLFSideWidgetManagerFactory * factory = KLFSideWidgetManagerFactory::findFactoryFor(s);
     KLF_ASSERT_NOT_NULL(factory, "Factory is NULL!?!", continue; ) ;
-    u->cbxDetailsSideWidgetType->addItem(factory->getTitleFor(s), QVariant(s));
+    K->u->cbxDetailsSideWidgetType->addItem(factory->getTitleFor(s), QVariant(s));
   }
 }
 
 void KLFSettings::show()
 {
   klfDbg("show called.") ;
-  populateSettingsCombos();
+  d->populateSettingsCombos();
 
   reset();
 
   if (!d->pluginstuffloaded)
-    initPluginControls();
+    d->initPluginControls();
   else
-    resetPluginControls();
+    d->resetPluginControls();
 
-  refreshUserScriptList();
-  refreshUserScriptSelected();
+  d->refreshUserScriptList();
+  d->refreshUserScriptSelected();
 
   QDialog::show();
 }
@@ -398,6 +441,7 @@ void KLFSettings::show()
 
 void KLFSettings::showControl(int control)
 {
+  /** \bug setup here !!! */
   switch (control) {
   case AppLanguage:
     __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, cbxLocale) ;
@@ -427,7 +471,7 @@ void KLFSettings::showControl(int control)
     __KLF_SHOW_SETTINGS_CONTROL(tabAdvanced, cbxCopyExportProfile) ;
     break;
   case LibrarySettings:
-    __KLF_SHOW_SETTINGS_CONTROL(tabLibBrowser, chkLibRestoreURLs) ;
+    __KLF_SHOW_SETTINGS_CONTROL(tabLibrary, chkLibRestoreURLs) ;
     break;
   case UserScriptInfo:
     __KLF_SHOW_SETTINGS_CONTROL(tabUserScripts, lstUserScripts) ;
@@ -439,7 +483,7 @@ void KLFSettings::showControl(int control)
     __KLF_SHOW_SETTINGS_CONTROL(tabAddOns, lstPlugins) ;
     break;
   case PluginsConfig:
-    __KLF_SHOW_SETTINGS_CONTROL(tabPlugins, tbxPluginsConfig->currentWidget()) ;
+    __KLF_SHOW_SETTINGS_CONTROL(tabAddOnsPlugins, tbxPluginsConfig->currentWidget()) ;
     break;
   default:
     qWarning()<<KLF_FUNC_NAME<<": unknown control number requested : "<<control;
@@ -599,11 +643,11 @@ void KLFSettings::reset()
 }
 
 
-void KLFSettings::initPluginControls()
+void KLFSettingsPrivate::initPluginControls()
 {
-  if (d->pluginstuffloaded)
+  if (pluginstuffloaded)
     return;
-  d->pluginstuffloaded = true;
+  pluginstuffloaded = true;
 
   int j;
   int n_pluginconfigpages = 0;
@@ -614,7 +658,7 @@ void KLFSettings::initPluginControls()
     QString description = klf_plugins[j].description;
     KLFPluginGenericInterface *instance = klf_plugins[j].instance;
     
-    litem = new QTreeWidgetItem(u->lstPlugins);
+    litem = new QTreeWidgetItem(K->u->lstPlugins);
     litem->setCheckState(0,
 			 klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
 			 Qt::Checked : Qt::Unchecked);
@@ -623,28 +667,28 @@ void KLFSettings::initPluginControls()
     litem->setData(0, KLFSETTINGS_ROLE_PLUGNAME, name);
     litem->setData(0, KLFSETTINGS_ROLE_PLUGINDEX, j);
 
-    d->pluginListItems[name] = litem;
+    pluginListItems[name] = litem;
 
     if ( instance != NULL ) {
-      d->pluginConfigWidgets[name] = instance->createConfigWidget( NULL );
-      u->tbxPluginsConfig->addItem( d->pluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
+      pluginConfigWidgets[name] = instance->createConfigWidget( NULL );
+      K->u->tbxPluginsConfig->addItem( pluginConfigWidgets[name] , QIcon(":/pics/bullet22.png"), title );
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
-      instance->loadFromConfig(d->pluginConfigWidgets[name], &pconfa);
+      instance->loadFromConfig(pluginConfigWidgets[name], &pconfa);
       n_pluginconfigpages++;
     }
   }
   if (n_pluginconfigpages == 0) {
     QLabel * lbl;
     lbl = new QLabel(tr("No Plugins have been loaded. Please install and enable individual plugins "
-			"first, then come back to this page to configure them."), u->tbxPluginsConfig);
+			"first, then come back to this page to configure them."), K->u->tbxPluginsConfig);
     lbl->hide();
     lbl->setWordWrap(true);
     lbl->setMargin(20);
-    u->tbxPluginsConfig->addItem(lbl, tr("No Plugins Loaded"));
+    K->u->tbxPluginsConfig->addItem(lbl, tr("No Plugins Loaded"));
   }
 }
 
-void KLFSettings::resetPluginControls()
+void KLFSettingsPrivate::resetPluginControls()
 {
   // go through all plugins, and load their configs into their corresponding config widget
   // and see if they are loaded (corresponding checkbox)
@@ -653,20 +697,20 @@ void KLFSettings::resetPluginControls()
     QString name = klf_plugins[k].name;
     KLFPluginGenericInterface *instance = klf_plugins[k].instance;
 
-    KLF_ASSERT_CONDITION(d->pluginListItems.contains(name),
+    KLF_ASSERT_CONDITION(pluginListItems.contains(name),
 			 "Plugin "<<name<<" does not have its corresponding check item!",
 			 continue ;) ;
 
-    d->pluginListItems[name]->setCheckState(0,
-					  klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
-					  Qt::Checked : Qt::Unchecked);
+    pluginListItems[name]->setCheckState(0,
+					 klfconfig.Plugins.pluginConfig[name]["__loadenabled"].toBool() ?
+					 Qt::Checked : Qt::Unchecked);
 
     if (instance != NULL) {
-      if (!d->pluginConfigWidgets.contains(name)) {
+      if (!pluginConfigWidgets.contains(name)) {
 	qWarning()<<KLF_FUNC_NAME<<": Plugin "<<name<<" does not have its config widget !?!?!";
 	continue;
       }
-      QWidget *widget = d->pluginConfigWidgets[name];
+      QWidget *widget = pluginConfigWidgets[name];
       // load the config into the widget
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
       instance->loadFromConfig(widget, &pconfa);
@@ -674,24 +718,24 @@ void KLFSettings::resetPluginControls()
   }
 }
 
-void KLFSettings::refreshPluginSelected()
+void KLFSettingsPrivate::refreshPluginSelected()
 {
-  QList<QTreeWidgetItem*> sel = u->lstPlugins->selectedItems();
+  QList<QTreeWidgetItem*> sel = K->u->lstPlugins->selectedItems();
   if (sel.size() != 1) {
     //    u->btnRemovePlugin->setEnabled(false);
-    u->lblPluginInfo->setText("");
+    K->u->lblPluginInfo->setText("");
     return;
   }
   int k = sel[0]->data(0, KLFSETTINGS_ROLE_PLUGINDEX).toInt();
   if (k < 0 || k >= klf_plugins.size()) {
     //    u->btnRemovePlugin->setEnabled(false);
-    u->lblPluginInfo->setText("");
+    K->u->lblPluginInfo->setText("");
     return;
   }
 
-  int textpointsize = QFontInfo(font()).pointSize() - 2;
+  int textpointsize = QFontInfo(K->font()).pointSize() - 2;
   QString textpointsize_s = QString::number(textpointsize);
-  int smallpointsize = QFontInfo(font()).pointSize() - 3;
+  int smallpointsize = QFontInfo(K->font()).pointSize() - 3;
   QString smallpointsize_s = QString::number(smallpointsize);
   
   QString plugininfotext =
@@ -719,7 +763,7 @@ void KLFSettings::refreshPluginSelected()
     + "</span><br />\n"
     "</body></html>";
 
-  u->lblPluginInfo->setText(plugininfotext);
+  K->u->lblPluginInfo->setText(plugininfotext);
 }
 
 void KLFSettings::removePlugin()
@@ -770,8 +814,8 @@ void KLFSettings::removePlugin()
     QMessageBox::critical(this, tr("Error"), tr("Failed to remove Plugin."));
   }
 
-  refreshAddOnList();
-  refreshAddOnSelected();
+  d->refreshAddOnList();
+  d->refreshAddOnSelected();
 }
 
 void KLFSettings::removePlugin(const QString& fname)
@@ -851,15 +895,15 @@ void KLFSettings::setDefaultPaths()
 }
 
 
-void KLFSettings::refreshAddOnList()
+void KLFSettingsPrivate::refreshAddOnList()
 {
-  u->lstAddOns->clear();
-  u->lstAddOns->setColumnWidth(0, 160);
+  K->u->lstAddOns->clear();
+  K->u->lstAddOns->setColumnWidth(0, 160);
 
   // explore all addons
   int k;
   for (k = 0; k < klf_addons.size(); ++k) {
-    QTreeWidgetItem *item = new QTreeWidgetItem(u->lstAddOns);
+    QTreeWidgetItem *item = new QTreeWidgetItem(K->u->lstAddOns);
     item->setData(0, KLFSETTINGS_ROLE_ADDONINDEX, QVariant((int)k));
 
     item->setText(0, klf_addons[k].title());
@@ -878,27 +922,27 @@ void KLFSettings::refreshAddOnList()
   }
 }
 
-void KLFSettings::refreshAddOnSelected()
+void KLFSettingsPrivate::refreshAddOnSelected()
 {
-  QList<QTreeWidgetItem*> sel = u->lstAddOns->selectedItems();
+  QList<QTreeWidgetItem*> sel = K->u->lstAddOns->selectedItems();
   if (sel.size() != 1) {
-    u->lblAddOnInfo->setText("");
-    u->btnRemoveAddOn->setEnabled(false);
+    K->u->lblAddOnInfo->setText("");
+    K->u->btnRemoveAddOn->setEnabled(false);
     return;
   }
   int k = sel[0]->data(0, KLFSETTINGS_ROLE_ADDONINDEX).toInt();
   if (k < 0 || k >= klf_addons.size()) {
-    u->lblAddOnInfo->setText("");
-    u->btnRemoveAddOn->setEnabled(false);
+    K->u->lblAddOnInfo->setText("");
+    K->u->btnRemoveAddOn->setEnabled(false);
     return;
   }
 
   // enable remove button only if this addon is "local", i.e. precisely removable
-  u->btnRemoveAddOn->setEnabled(klf_addons[k].islocal());
+  K->u->btnRemoveAddOn->setEnabled(klf_addons[k].islocal());
 
-  int textpointsize = QFontInfo(font()).pointSize() - 2;
+  int textpointsize = QFontInfo(K->font()).pointSize() - 2;
   QString textpointsize_s = QString::number(textpointsize);
-  int smallpointsize = QFontInfo(font()).pointSize() - 3;
+  int smallpointsize = QFontInfo(K->font()).pointSize() - 3;
   QString smallpointsize_s = QString::number(smallpointsize);
 
   // prepare add-on load error messages
@@ -943,7 +987,7 @@ void KLFSettings::refreshAddOnSelected()
     + "</i></tt>"
     "</body></html>";
 
-  u->lblAddOnInfo->setText(addoninfotext);
+  K->u->lblAddOnInfo->setText(addoninfotext);
 }
 
 
@@ -1014,7 +1058,7 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
   if (detectedI18nFile != NULL) {
     klfDbg("translation(s) found. first one found was: "<<detectedI18nFile->locale) ;
     // update the translation list
-    populateLocaleCombo();
+    d->populateLocaleCombo();
     // find the translation
     for (k = 0; k < klf_avail_translations.size(); ++k) {
       if (klf_avail_translations[k].localename == detectedI18nFile->locale)
@@ -1036,7 +1080,7 @@ void KLFSettings::importAddOn(const QString& fileName, bool suggestRestart)
     detectedI18nFile = NULL;
   }
   klf_addons.append(addoninfo);
-  refreshAddOnList();
+  d->refreshAddOnList();
 
   if (suggestRestart) {
     QMessageBox::information(this, tr("Import"), tr("Please restart KLatexFormula for changes to take effect."));
@@ -1100,15 +1144,15 @@ void KLFSettings::removeAddOn()
 
   klf_addons.removeAt(k);
 
-  refreshAddOnList();
-  refreshAddOnSelected();
+  d->refreshAddOnList();
+  d->refreshAddOnSelected();
 }
 
-void KLFSettings::refreshUserScriptList()
+void KLFSettingsPrivate::refreshUserScriptList()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  u->lstUserScripts->clear();
+  K->u->lstUserScripts->clear();
 
   QMap<QString, QTreeWidgetItem*> dirs;
 
@@ -1119,13 +1163,13 @@ void KLFSettings::refreshUserScriptList()
 
     klfDbg("loading "<<userscript) ;
 
-    QString d = QFileInfo(info.fileName()).canonicalPath(); // != canonicalFilePath which is _with_ file name
+    QString dd = QFileInfo(info.fileName()).canonicalPath(); // != canonicalFilePath which is _with_ file name
 
-    QTreeWidgetItem *diritem = dirs.value(d, NULL);
+    QTreeWidgetItem *diritem = dirs.value(dd, NULL);
     if (diritem == NULL) {
       // create the directory node
-      diritem = new QTreeWidgetItem(u->lstUserScripts, QStringList()<<d);
-      dirs[d] = diritem;
+      diritem = new QTreeWidgetItem(K->u->lstUserScripts, QStringList()<<dd);
+      dirs[dd] = diritem;
     }
 
     // add the user script
@@ -1135,8 +1179,8 @@ void KLFSettings::refreshUserScriptList()
     if (!diritem->isExpanded())
       diritem->setExpanded(true);
   }
-
-  u->splitUserScripts->setSizes(QList<int>() << 100 << 100);
+  
+  K->u->splitUserScripts->setSizes(QList<int>() << 100 << 100);
 }
 
 
@@ -1154,11 +1198,11 @@ void KLFSettings::refreshUserScriptList()
   if (_klf_block_broken_by)
 
 
-void KLFSettings::refreshUserScriptSelected()
+void KLFSettingsPrivate::refreshUserScriptSelected()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QTreeWidgetItem * item = u->lstUserScripts->currentItem();
+  QTreeWidgetItem * item = K->u->lstUserScripts->currentItem();
   klfDbg("item="<<item) ;
 
   QVariant v;
@@ -1178,8 +1222,8 @@ void KLFSettings::refreshUserScriptSelected()
   }
   KLF_BROKEN_BECAUSE(reason) {
     // no user script
-    u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
-    u->stkUserScriptSettings->setCurrentWidget(u->wStkUserScriptSettingsEmptyPage);
+    K->u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+    K->u->stkUserScriptSettings->setCurrentWidget(K->u->wStkUserScriptSettingsEmptyPage);
     if (reason == 2) klfDbg("invalid variant") ;
     if (reason == 3) klfDbg("variant is not string, v="<< v) ;
 
@@ -1190,19 +1234,19 @@ void KLFSettings::refreshUserScriptSelected()
   
   KLFUserScriptInfo usinfo(s);
 
-  int textpointsize = QFontInfo(u->lblUserScriptInfo->font()).pointSize() - 1;
+  int textpointsize = QFontInfo(K->u->lblUserScriptInfo->font()).pointSize() - 1;
   QString txt = usinfo.htmlInfo(QString::fromLatin1("body { font-size: %1pt }").arg(textpointsize));
 
-  u->lblUserScriptInfo->setText(txt);
+  K->u->lblUserScriptInfo->setText(txt);
 
   // update config widget
   QString uifile = usinfo.settingsFormUI();
   if (!uifile.isEmpty()) {
-    QWidget * scriptconfigwidget = d->getUserScriptConfigWidget(usinfo, uifile);
-    u->stkUserScriptSettings->setCurrentWidget(scriptconfigwidget);
+    QWidget * scriptconfigwidget = getUserScriptConfigWidget(usinfo, uifile);
+    K->u->stkUserScriptSettings->setCurrentWidget(scriptconfigwidget);
     klfDbg("Set script config UI. uifile="<<uifile) ;
   } else {
-    u->stkUserScriptSettings->setCurrentWidget(u->wStkUserScriptSettingsEmptyPage);
+    K->u->stkUserScriptSettings->setCurrentWidget(K->u->wStkUserScriptSettingsEmptyPage);
   }
 }
 
@@ -1292,7 +1336,7 @@ void KLFSettingsPrivate::displayUserScriptConfig(QWidget *w, const QVariantMap& 
 }
 
 
-void KLFSettings::reloadUserScripts()
+void KLFSettingsPrivate::reloadUserScripts()
 {
   klf_reload_user_scripts();
 
@@ -1325,7 +1369,7 @@ void KLFSettings::reloadUserScripts()
 }
 
 
-void KLFSettings::slotChangeFontPresetSender()
+void KLFSettingsPrivate::slotChangeFontPresetSender()
 {
   QAction *a = qobject_cast<QAction*>(sender());
   if (a == 0)
@@ -1333,30 +1377,30 @@ void KLFSettings::slotChangeFontPresetSender()
   const QVariantMap vmap = a->data().toMap();
   klfDbg("Set font from action with data "<<vmap) ;
   QString btnkey = vmap["Button"].toString();
-  KLF_ASSERT_CONDITION(d->pFontButtons.contains(btnkey), "Unknown button "<<btnkey<<" !", return ) ;
+  KLF_ASSERT_CONDITION(pFontButtons.contains(btnkey), "Unknown button "<<btnkey<<" !", return ) ;
   QFont f = vmap["Font"].value<QFont>();
-  slotChangeFont(d->pFontButtons[btnkey], f);
+  slotChangeFont(pFontButtons[btnkey], f);
   if (vmap.contains("isSystemDefaultAppFont") && vmap["isSystemDefaultAppFont"].toBool()) {
     klfDbg("Set default application font.") ;
-    d->pUserSetDefaultAppFont = true;
+    pUserSetDefaultAppFont = true;
   }
 }
-void KLFSettings::slotChangeFontSender()
+void KLFSettingsPrivate::slotChangeFontSender()
 {
   QPushButton *w = qobject_cast<QPushButton*>(sender());
   if ( w == 0 )
     return;
-  QFont fnt = QFontDialog::getFont(0, w->property("selectedFont").value<QFont>(), this);
+  QFont fnt = QFontDialog::getFont(0, w->property("selectedFont").value<QFont>(), K);
   slotChangeFont(w, fnt);
 }
-void KLFSettings::slotChangeFont(QPushButton *w, const QFont& fnt)
+void KLFSettingsPrivate::slotChangeFont(QPushButton *w, const QFont& fnt)
 {
   if ( w == 0 )
     return;
   w->setFont(fnt);
   w->setProperty("selectedFont", QVariant(fnt));
-  if (w == u->btnAppFont)
-    d->pUserSetDefaultAppFont = false;
+  if (w == K->u->btnAppFont)
+    pUserSetDefaultAppFont = false;
 }
 
 void KLFSettings::showAdvancedConfigEditor()

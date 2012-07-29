@@ -61,7 +61,6 @@ set(klfapp_SRCS
 	klfmain.cpp
 	klfcmdiface.cpp
 	klfuiloader.cpp
-	klfapp.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -83,10 +82,10 @@ set(klfapp_MOCHEADERS
 	klfmainwin.h
 	klfmainwin_p.h
 	klfsettings.h
+	klfsettings_p.h
 	klfstylemanager.h
 	klfcmdiface.h
 	klfuiloader_p.h
-	klfapp.h
 )
 #  * all headers
 set(klfapp_HEADERS
@@ -96,7 +95,6 @@ set(klfapp_HEADERS
 	klfstyle.h
 	klfpluginiface.h
 	klflib_p.h
-	klfsettings_p.h
 	klfuiloader.h
 	${klfapp_MOCHEADERS}
 )
@@ -246,6 +244,13 @@ set_target_properties(klfapp PROPERTIES
 # Sources
 set(klatexformula_SRCS
 	main.cpp
+	klfapp.cpp
+)
+set(klatexformula_MOCHEADERS
+	klfapp.h
+)
+set(klatexformula_HEADERS
+        ${klatexformula_MOCHEADERS}
 )
 # Translations
 set(klatexformula_TSS
@@ -284,7 +289,8 @@ list(APPEND klatexformula_QRCS "${klf_xtradata_res}")
 
 
 qt4_add_resources(klatexformula_QRC_CPPS ${klatexformula_QRCS})
-set(klatexformula_ALLSRC ${klatexformula_SRCS} ${klatexformula_QRC_CPPS})
+qt4_wrap_cpp(klatexformula_MOC_CPPS ${klatexformula_MOCHEADERS})
+set(klatexformula_ALLSRC ${klatexformula_SRCS} ${klatexformula_QRC_CPPS} ${klatexformula_MOC_CPPS})
 set(klatexformula_winrc)
 if(MINGW)
   set(KLF_WIN_ICON "mswin\\\\klficon64.ico" CACHE STRING

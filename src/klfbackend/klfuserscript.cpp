@@ -577,7 +577,7 @@ KLFUserScriptFilterProcess::KLFUserScriptFilterProcess(const QString& scriptFile
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
   klfDbg("scriptFileName= "<<scriptFileName) ;
 
-  d = KLF_INIT_PRIVATE(KLFUserScriptFilterProcess) ;
+  KLF_INIT_PRIVATE(KLFUserScriptFilterProcess) ;
 
   d->usinfo = new KLFUserScriptInfo(scriptFileName, settings);
 

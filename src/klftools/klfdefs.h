@@ -120,27 +120,8 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
 
 
 
+
 // utility functions
-
-
-namespace KLFSysInfo
-{
-  enum Os { Linux, Win32, MacOsX, OtherOs };
-
-  inline int sizeofVoidStar() { return sizeof(void*); }
-
-  KLF_EXPORT QString arch();
-
-  KLF_EXPORT QString makeSysArch(const QString& os, const QString& arch);
-  KLF_EXPORT bool isCompatibleSysArch(const QString& sysarch);
-
-  KLF_EXPORT KLFSysInfo::Os os();
-
-  KLF_EXPORT QString osString(KLFSysInfo::Os sysos = os());
-};
-
-
-
 
 KLF_EXPORT bool klfIsValidVersion(const QString& v);
 
@@ -148,14 +129,6 @@ KLF_EXPORT int klfVersionCompare(const QString& v1, const QString& v2);
 
 KLF_EXPORT bool klfVersionCompareLessThan(const QString& v1, const QString& v2);
 
-
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
-#  define KLF_PATH_SEP ';'
-#  define KLF_DIR_SEP '\\'
-#else
-#  define KLF_PATH_SEP ':'
-#  define KLF_DIR_SEP '/'
-#endif
 
 
 // Import debugging utilities

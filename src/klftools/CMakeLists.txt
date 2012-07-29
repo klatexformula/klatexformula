@@ -68,6 +68,7 @@ set(klftools_MOCHEADERS
 set(klftools_HEADERS
 	klfdefs.h
 	klfutil.h
+	klfsysinfo.h
 	klfdatautil.h
 	klfdatautil_p.h
 	klfconfigbase.h

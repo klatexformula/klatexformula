@@ -1,5 +1,5 @@
 /***************************************************************************
- *   file klfapp.cpp
+ *   file klfsysinfo.h
  *   This file is part of the KLatexFormula Project.
  *   Copyright (C) 2012 by Philippe Faist
  *   philippe.faist at bluewin.ch
@@ -21,40 +21,41 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include <QSessionManager>
-#include <QMessageBox>
+#ifndef KLFSYSINFO_H
+#define KLFSYSINFO_H
 
-#include "klfapp.h"
+#include <klfdefs.h>
 
 
-KLFGuiApplication::KLFGuiApplication(int& argc, char **argv)
-  : QApplication(argc, argv)
+namespace KLFSysInfo
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-}
+  enum Os { Linux, Win32, MacOsX, OtherOs };
 
-KLFGuiApplication::~KLFGuiApplication()
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-}
+  inline int sizeofVoidStar() { return sizeof(void*); }
 
-void KLFGuiApplication::saveState(QSessionManager& sm)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  /** \todo .... */
-}
+  KLF_EXPORT QString arch();
 
-void KLFGuiApplication::commitData(QSessionManager& sm)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  /** \todo .... */
+  KLF_EXPORT QString makeSysArch(const QString& os, const QString& arch);
+  KLF_EXPORT bool isCompatibleSysArch(const QString& sysarch);
 
-  if (sm.allowsInteraction()) {
-    klfDbg("interaction allowed.") ;
-    QMessageBox::information(NULL, "info", "Shutting down.") ;
-    sm.release();
-  } else {
-    klfDbg("interaction NOT allowed.") ;
-  }
-  // just don't cancel the app exit as the previous version did...
-}
+  KLF_EXPORT KLFSysInfo::Os os();
+
+  KLF_EXPORT QString osString(KLFSysInfo::Os sysos = os());
+
+  //  KLF_EXPORT bool isLaptop();
+  //  KLF_EXPORT bool isOnBatteryPower();
+};
+
+
+
+#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+#  define KLF_PATH_SEP ';'
+#  define KLF_DIR_SEP '\\'
+#else
+#  define KLF_PATH_SEP ':'
+#  define KLF_DIR_SEP '/'
+#endif
+
+
+
+#endif // KLFSYSINFO_H

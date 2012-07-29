@@ -34,7 +34,7 @@
 #include <QProcess>
 
 #include "klfutil.h"
-
+#include "klfsysinfo.h"
 
 
 KLF_EXPORT bool klfEnsureDir(const QString& dir)

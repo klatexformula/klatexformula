@@ -35,6 +35,7 @@
 #include <QDebug>
 
 #include "klflegacymacros_p.h"
+#include "klfsysinfo.h"
 #include "klfdefs.h"
 
 /** \file klfdefs.h
@@ -1195,6 +1196,41 @@ KLF_EXPORT QString KLFSysInfo::osString(Os sysos)
   qWarning("KLFSysInfo::osString: unknown OS: %d", sysos);
   return QString();
 }
+
+/*
+#ifdef Q_OS_DARWIN
+bool _klf_is_laptop();
+bool _klf_is_on_battery_power();
+#endif
+
+KLF_EXPORT bool KLFSysInfo::isLaptop()
+{
+#ifdef Q_OS_DARWIN
+  return _klf_is_laptop();
+#elif Q_OS_LINUX
+  return false;
+#elif Q_OS_WIN32
+  return false;
+#endif
+  return false;
+}
+KLF_EXPORT bool KLFSysInfo::isOnBatteryPower()
+{
+#ifdef Q_OS_DARWIN
+  return _klf_is_on_battery_power();
+#elif Q_OS_LINUX
+  return false;
+#elif Q_OS_WIN32
+  return false;
+#endif
+  return false;
+}
+*/
+
+
+// ----------------------------------------
+
+
 
 
 QStringList klf_version_suffixes =

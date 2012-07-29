@@ -1116,6 +1116,13 @@ public:
   QVariantMap parseLatexEditPosParenInfo(KLFLatexEdit *editor, int pos);
 
 
+
+signals:
+
+  void saveApplicationState(QSettings * settings);
+
+
+
 public slots: // .. but in private API
 
   // private : only as slot to an action containing the style # as user data

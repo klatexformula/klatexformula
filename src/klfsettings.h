@@ -106,28 +106,7 @@ public slots:
 protected:
 
 protected slots:
-
-  void populateSettingsCombos();
-  // ... in particular:
-  void populateLocaleCombo();
-  void populateExportProfilesCombos();
-  void populateDetailsSideWidgetTypeCombo();
-
-  void initPluginControls();
-  void resetPluginControls();
-  void refreshPluginSelected();
-  void refreshAddOnList();
-  void refreshAddOnSelected();
-
-  void reloadUserScripts();
-  void refreshUserScriptList();
-  void refreshUserScriptSelected();
-
   virtual void accept();
-
-  void slotChangeFontPresetSender();
-  void slotChangeFontSender();
-  void slotChangeFont(QPushButton *btn, const QFont& f);
 
 private:
   Ui::KLFSettings *u;

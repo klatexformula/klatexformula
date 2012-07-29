@@ -29,7 +29,6 @@
 #define KLFSETTINGS_P_H
 
 
-
 #include <QDialog>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
@@ -37,15 +36,19 @@
 #include <QStandardItemEditorCreator>
 #include <QMessageBox>
 #include <QLineEdit>
+#include <QHash>
 
 #include <klfcolorchooser.h>
+#include <klfuserscript.h>
 #include "klfconfig.h"
 #include "klfsettings.h"
 #include "klfadvancedconfigeditor.h"
 
-struct KLFSettingsPrivate
+struct KLFSettingsPrivate : public QObject
 {
-  KLF_PRIVATE_HEAD(KLFSettings)
+  Q_OBJECT
+public:
+  KLF_PRIVATE_QOBJ_HEAD(KLFSettings, QObject)
   {
     mainWin = NULL;
     pUserSetDefaultAppFont = false;
@@ -57,6 +60,8 @@ struct KLFSettingsPrivate
 
 
   KLFMainWin *mainWin;
+
+  QHash<QByteArray,QWidget*> settingsTabs;
 
   bool pUserSetDefaultAppFont;
 
@@ -93,6 +98,34 @@ struct KLFSettingsPrivate
   QWidget * getUserScriptConfigWidget(const KLFUserScriptInfo& usinfo, const QString& uifile);
   QVariantMap getUserScriptConfig(QWidget *w);
   void displayUserScriptConfig(QWidget *w, const QVariantMap& data);
+
+
+
+public slots: // well "public" only for us... :)
+
+  void showTabByName(const QByteArray& name);
+  void showTabByNameActionSender();
+
+  void populateSettingsCombos();
+  // ... in particular:
+  void populateLocaleCombo();
+  void populateExportProfilesCombos();
+  void populateDetailsSideWidgetTypeCombo();
+
+  void initPluginControls();
+  void resetPluginControls();
+  void refreshPluginSelected();
+  void refreshAddOnList();
+  void refreshAddOnSelected();
+
+  void reloadUserScripts();
+  void refreshUserScriptList();
+  void refreshUserScriptSelected();
+
+  void slotChangeFontPresetSender();
+  void slotChangeFontSender();
+  void slotChangeFont(QPushButton *btn, const QFont& f);
+
 };
 
 

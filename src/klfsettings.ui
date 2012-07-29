@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>646</width>
-    <height>653</height>
+    <width>615</width>
+    <height>606</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -30,21 +30,15 @@
   <property name="sizeGripEnabled">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="lyt_KLFSettings">
-   <item>
-    <widget class="QTabWidget" name="tabs">
+  <layout class="QGridLayout" name="lyt_KLFSettings">
+   <item row="1" column="0" colspan="2">
+    <widget class="QStackedWidget" name="tabs">
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tabAppearance">
-      <attribute name="title">
-       <string>&amp;Appearance</string>
-      </attribute>
-      <layout class="QGridLayout" name="lyt_tabAppearance">
-       <property name="horizontalSpacing">
-        <number>2</number>
-       </property>
-       <item row="0" column="0" colspan="2">
+     <widget class="QWidget" name="tabInterface">
+      <layout class="QGridLayout" name="lyt_tabInterface">
+       <item row="0" column="0">
         <layout class="QHBoxLayout" name="lytLocale">
          <item>
           <widget class="QLabel" name="lblLocale">
@@ -71,32 +65,12 @@
          </item>
         </layout>
        </item>
-       <item row="2" column="0">
-        <widget class="QPushButton" name="btnAppFont">
-         <property name="text">
-          <string>Application Font - click to change</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0" colspan="2">
+       <item row="1" column="0">
         <widget class="QGroupBox" name="gbxToolTipSize">
          <property name="title">
           <string>Preview</string>
          </property>
-         <layout class="QGridLayout" name="lyt_gbxToolTipSize" columnstretch="4,6">
-          <item row="4" column="0">
-           <widget class="QLabel" name="lblToolTipPreviewSizePrompt">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>2</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Large preview max. size:</string>
-            </property>
-           </widget>
-          </item>
+         <layout class="QGridLayout" name="lyt_gbxToolTipSize" columnstretch="4,0">
           <item row="0" column="0" colspan="2">
            <widget class="QCheckBox" name="chkEnableRealTimePreview">
             <property name="text">
@@ -106,86 +80,6 @@
              <bool>true</bool>
             </property>
            </widget>
-          </item>
-          <item row="4" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QSpinBox" name="spnToolTipMaxWidth">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>2</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimum">
-               <number>10</number>
-              </property>
-              <property name="maximum">
-               <number>2000</number>
-              </property>
-              <property name="value">
-               <number>500</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="lblToolTipPreviewX">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string notr="true">x</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="wordWrap">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QSpinBox" name="spnToolTipMaxHeight">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>2</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimum">
-               <number>10</number>
-              </property>
-              <property name="maximum">
-               <number>2000</number>
-              </property>
-              <property name="value">
-               <number>350</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="lblToolTipPreviewPx">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string notr="true">px</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="wordWrap">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
           </item>
           <item row="2" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -233,20 +127,20 @@
          </layout>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
+       <item row="2" column="0">
         <widget class="QGroupBox" name="gbxInterfaceOptions">
          <property name="title">
           <string>Misc Interface Options</string>
          </property>
          <layout class="QGridLayout" name="lyt_gbxInterfaceOptions">
-          <item row="3" column="0" colspan="2">
+          <item row="1" column="0" colspan="2">
            <widget class="QCheckBox" name="chkShowHintPopups">
             <property name="text">
              <string>Suggest inclusion of detected missing packages</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="2">
+          <item row="2" column="0" colspan="2">
            <widget class="QCheckBox" name="chkClearLatexOnly">
             <property name="toolTip">
              <string extracomment="[[tooltip]]">&lt;p&gt;If this box is left unchecked, the clear button under to the LaTeX code editor clears the editor and resets the default style. By enabling this option, only the LaTeX field is cleared and the style is not modified.&lt;/p&gt;</string>
@@ -256,35 +150,11 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="0" colspan="2">
-           <widget class="QCheckBox" name="chkGlowEffect">
-            <property name="text">
-             <string>Display Equations Glow Effect</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblDetailsSideWidgetType">
-            <property name="text">
-             <string>Detailed LaTeX settings window type:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="cbxDetailsSideWidgetType"/>
-          </item>
-          <item row="2" column="0" colspan="2">
-           <widget class="QCheckBox" name="chkMacBrushedMetalLook">
-            <property name="text">
-             <string>Use Mac OS X &quot;Metal&quot; Look (Requires Restart)</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
-       <item row="6" column="0">
-        <spacer name="spcAppearance">
+       <item row="4" column="0">
+        <spacer name="spcInterface">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -293,38 +163,100 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>70</height>
+           <width>0</width>
+           <height>0</height>
           </size>
          </property>
         </spacer>
        </item>
-       <item row="2" column="1">
-        <widget class="QToolButton" name="btnAppFontChoose">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+       <item row="3" column="0">
+        <widget class="QGroupBox" name="gbxExportProfiles">
+         <property name="title">
+          <string>Data Export Profiles</string>
          </property>
-         <property name="text">
-          <string>Presets</string>
-         </property>
-         <property name="popupMode">
-          <enum>QToolButton::InstantPopup</enum>
-         </property>
+         <layout class="QGridLayout" name="lyt_gbxExportProfiles">
+          <property name="leftMargin">
+           <number>6</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
+          <item row="1" column="1" colspan="2">
+           <widget class="QComboBox" name="cbxDragExportProfile"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblDragExportProfile">
+            <property name="text">
+             <string>Drag export profile:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cbxDragExportProfile</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="lblCopyExportProfile">
+            <property name="text">
+             <string>Copy export profile:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cbxCopyExportProfile</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="lblMenuExportProfileAffects">
+            <property name="text">
+             <string>Menu Affects:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QCheckBox" name="chkMenuExportProfileAffectsDrag">
+            <property name="text">
+             <string>Drag</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QCheckBox" name="chkMenuExportProfileAffectsCopy">
+            <property name="text">
+             <string>Copy</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1" colspan="2">
+           <widget class="QComboBox" name="cbxCopyExportProfile"/>
+          </item>
+         </layout>
         </widget>
        </item>
-       <item row="3" column="0" colspan="2">
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabAppearance">
+      <layout class="QGridLayout" name="lyt_tabAppearance">
+       <property name="verticalSpacing">
+        <number>25</number>
+       </property>
+       <item row="0" column="0" colspan="2">
         <widget class="QGroupBox" name="gbxEditorFont">
          <property name="title">
-          <string>LaTeX editor fonts</string>
+          <string>Fonts</string>
          </property>
          <layout class="QGridLayout" name="lyt_gbxEditorFont">
           <property name="horizontalSpacing">
            <number>2</number>
           </property>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QPushButton" name="btnEditorFont">
             <property name="font">
              <font>
@@ -337,7 +269,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="3" column="0">
            <widget class="QPushButton" name="btnPreambleFont">
             <property name="font">
              <font>
@@ -350,7 +282,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="2" column="1">
            <widget class="QToolButton" name="btnEditorFontChoose">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -366,7 +298,7 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="3" column="1">
            <widget class="QToolButton" name="btnPreambleFontChoose">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -382,60 +314,544 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="1">
+           <widget class="QToolButton" name="btnAppFontChoose">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Presets</string>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="btnAppFont">
+            <property name="text">
+             <string>Application Font - click to change</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
+       </item>
+       <item row="1" column="0" colspan="2">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="4,3,0,3,0">
+         <item>
+          <widget class="QLabel" name="lblToolTipPreviewSizePrompt">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>2</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Popup preview maximum size:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spnToolTipMaxWidth">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>2</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimum">
+            <number>10</number>
+           </property>
+           <property name="maximum">
+            <number>2000</number>
+           </property>
+           <property name="value">
+            <number>500</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblToolTipPreviewX">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string notr="true">x</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spnToolTipMaxHeight">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>2</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimum">
+            <number>10</number>
+           </property>
+           <property name="maximum">
+            <number>2000</number>
+           </property>
+           <property name="value">
+            <number>350</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblToolTipPreviewPx">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string notr="true">px</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="lblDetailsSideWidgetType">
+         <property name="text">
+          <string>Detailed LaTeX settings window type:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="cbxDetailsSideWidgetType"/>
+       </item>
+       <item row="3" column="0" colspan="2">
+        <widget class="QCheckBox" name="chkMacBrushedMetalLook">
+         <property name="text">
+          <string>Use Mac OS X &quot;Metal&quot; Look (Requires Restart)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <widget class="QCheckBox" name="chkGlowEffect">
+         <property name="text">
+          <string>Display Equations Glow Effect</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <spacer name="spcAppearance">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>120</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabLatex">
+      <layout class="QGridLayout" name="lyt_tabLatex">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="gbxExecPaths">
+         <property name="title">
+          <string>System Executables And Paths</string>
+         </property>
+         <layout class="QGridLayout" name="lyt_gbxExecPaths">
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="lblTempDir">
+            <property name="text">
+             <string>Temporary directory:</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <property name="buddy">
+             <cstring>pathTempDir</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="KLFPathChooser" name="pathTempDir">
+            <property name="mode">
+             <number>2</number>
+            </property>
+            <property name="caption">
+             <string>Choose temporary directory</string>
+            </property>
+            <property name="filter">
+             <string/>
+            </property>
+            <property name="path">
+             <string notr="true">/tmp/</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblLatex">
+            <property name="text">
+             <string>latex :</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <property name="buddy">
+             <cstring>pathLatex</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="KLFPathChooser" name="pathLatex">
+            <property name="mode">
+             <number>0</number>
+            </property>
+            <property name="caption">
+             <string>Choose latex executable</string>
+            </property>
+            <property name="filter">
+             <string/>
+            </property>
+            <property name="path">
+             <string notr="true">latex</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lblDvips">
+            <property name="text">
+             <string>dvips :</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <property name="buddy">
+             <cstring>pathDvips</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="KLFPathChooser" name="pathDvips">
+            <property name="mode">
+             <number>0</number>
+            </property>
+            <property name="caption">
+             <string>Choose dvips executable</string>
+            </property>
+            <property name="filter">
+             <string/>
+            </property>
+            <property name="path">
+             <string notr="true">dvips</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="lblGs">
+            <property name="text">
+             <string>gs :</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <property name="buddy">
+             <cstring>pathGs</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="KLFPathChooser" name="pathGs">
+            <property name="mode">
+             <number>0</number>
+            </property>
+            <property name="caption">
+             <string>Choose ghostscript executable</string>
+            </property>
+            <property name="filter">
+             <string/>
+            </property>
+            <property name="path">
+             <string notr="true">gs</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <layout class="QHBoxLayout" name="lyt_resetdefaults">
+            <item>
+             <spacer name="spcHbtnresetdflts">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Expanding</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>357</width>
+                <height>28</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnPathsReset">
+              <property name="text">
+               <string>Detect Settings</string>
+              </property>
+              <property name="icon">
+               <iconset resource="klfres.qrc">
+                <normaloff>:/pics/resetdefaults.png</normaloff>:/pics/resetdefaults.png</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="gbxMoreOptions">
+         <property name="title">
+          <string>More options</string>
+         </property>
+         <layout class="QGridLayout" name="lyt_gbxMoreOptions">
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="chkOutlineFonts">
+            <property name="text">
+             <string>Outline embedded fonts (eg. for Adobe Illustrator)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QGroupBox" name="gbxEPSBoundingBox">
+         <property name="title">
+          <string>Expand EPS BoundingBox</string>
+         </property>
+         <layout class="QGridLayout" name="lyt_gbxEPSBoundingBox">
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
+          <item row="4" column="0">
+           <widget class="QLabel" name="lblBBorderOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>3</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Bottom (Postscript points):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <property name="buddy">
+             <cstring>spnBBorderOffset</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="lblRBorderOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>3</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Right (Postscript points):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <property name="buddy">
+             <cstring>spnRBorderOffset</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="lblLBorderOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>3</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Left (Postscript points):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <property name="buddy">
+             <cstring>spnLBorderOffset</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lblTBorderOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>3</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Top (Postscript points):</string>
+            </property>
+            <property name="wordWrap">
+             <bool>false</bool>
+            </property>
+            <property name="buddy">
+             <cstring>spnTBorderOffset</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="spnLBorderOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>-50</number>
+            </property>
+            <property name="maximum">
+             <number>50</number>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="spnTBorderOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>-50</number>
+            </property>
+            <property name="maximum">
+             <number>50</number>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="spnRBorderOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>-50</number>
+            </property>
+            <property name="maximum">
+             <number>50</number>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="spnBBorderOffset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>-50</number>
+            </property>
+            <property name="maximum">
+             <number>50</number>
+            </property>
+            <property name="value">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <spacer name="spcLatex">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>37</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tabSyntaxHighlighting">
-      <attribute name="title">
-       <string>&amp;Syntax Highlighting</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="lyt_tabSyntaxHighlighting">
-       <item>
-        <widget class="QCheckBox" name="chkSHEnable">
-         <property name="text">
-          <string>Globally enable syntax highlighting</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gbxSHOptions">
-         <property name="title">
-          <string>Options</string>
-         </property>
-         <layout class="QVBoxLayout" name="lyt_gbxSHOptions">
-          <item>
-           <widget class="QCheckBox" name="chkSHHighlightParensOnly">
-            <property name="text">
-             <string>Highlight parens only, not whole expression</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="chkSHHighlightLonelyParen">
-            <property name="text">
-             <string>Highlight parens that aren't closed</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="chkSHNoMatchParenTypes">
-            <property name="toolTip">
-             <string>Don't try to match similar parenthesis delimiter types, prefer reporting mismatching adjacent delimiters.</string>
-            </property>
-            <property name="text">
-             <string>Don't try to match parenthesis types</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
+      <layout class="QGridLayout" name="lyt_tabSyntaxHighlighting">
+       <item row="2" column="0" colspan="3">
         <widget class="QGroupBox" name="gbxSHColors">
          <property name="title">
           <string>Colors</string>
@@ -933,548 +1349,70 @@
          </layout>
         </widget>
        </item>
-       <item>
+       <item row="3" column="0" colspan="3">
         <spacer name="spc_SH">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>87</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tabAdvanced">
-      <attribute name="title">
-       <string>A&amp;dvanced</string>
-      </attribute>
-      <layout class="QGridLayout" name="lyt_tabAdvanced">
-       <item row="4" column="1">
-        <spacer name="spc_Advanced">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
+           <width>649</width>
            <height>100</height>
           </size>
          </property>
         </spacer>
        </item>
-       <item row="2" column="0" colspan="2">
-        <widget class="QGroupBox" name="gbxEPSBoundingBox">
-         <property name="title">
-          <string>Expand EPS BoundingBox</string>
-         </property>
-         <layout class="QGridLayout" name="lyt_gbxEPSBoundingBox">
-          <property name="topMargin">
-           <number>3</number>
-          </property>
-          <property name="bottomMargin">
-           <number>3</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>4</number>
-          </property>
-          <item row="4" column="0">
-           <widget class="QLabel" name="lblBBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>3</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Bottom (Postscript points):</string>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>spnBBorderOffset</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lblRBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>3</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Right (Postscript points):</string>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>spnRBorderOffset</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="lblLBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>3</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Left (Postscript points):</string>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>spnLBorderOffset</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lblTBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>3</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Top (Postscript points):</string>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>spnTBorderOffset</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="spnLBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>1</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimum">
-             <number>-50</number>
-            </property>
-            <property name="maximum">
-             <number>50</number>
-            </property>
-            <property name="value">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="spnTBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>1</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimum">
-             <number>-50</number>
-            </property>
-            <property name="maximum">
-             <number>50</number>
-            </property>
-            <property name="value">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QSpinBox" name="spnRBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>1</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimum">
-             <number>-50</number>
-            </property>
-            <property name="maximum">
-             <number>50</number>
-            </property>
-            <property name="value">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QSpinBox" name="spnBBorderOffset">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>1</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimum">
-             <number>-50</number>
-            </property>
-            <property name="maximum">
-             <number>50</number>
-            </property>
-            <property name="value">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QGroupBox" name="gbxExecPaths">
-         <property name="title">
-          <string>System Executables And Paths</string>
-         </property>
-         <layout class="QGridLayout" name="lyt_gbxExecPaths">
-          <property name="topMargin">
-           <number>3</number>
-          </property>
-          <property name="bottomMargin">
-           <number>3</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>4</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="lblTempDir">
-            <property name="text">
-             <string>Temporary directory:</string>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>pathTempDir</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="KLFPathChooser" name="pathTempDir">
-            <property name="mode">
-             <number>2</number>
-            </property>
-            <property name="caption">
-             <string>Choose temporary directory</string>
-            </property>
-            <property name="filter">
-             <string/>
-            </property>
-            <property name="path">
-             <string notr="true">/tmp/</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblLatex">
-            <property name="text">
-             <string>latex :</string>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>pathLatex</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="KLFPathChooser" name="pathLatex">
-            <property name="mode">
-             <number>0</number>
-            </property>
-            <property name="caption">
-             <string>Choose latex executable</string>
-            </property>
-            <property name="filter">
-             <string/>
-            </property>
-            <property name="path">
-             <string notr="true">latex</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="lblDvips">
-            <property name="text">
-             <string>dvips :</string>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>pathDvips</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="KLFPathChooser" name="pathDvips">
-            <property name="mode">
-             <number>0</number>
-            </property>
-            <property name="caption">
-             <string>Choose dvips executable</string>
-            </property>
-            <property name="filter">
-             <string/>
-            </property>
-            <property name="path">
-             <string notr="true">dvips</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lblGs">
-            <property name="text">
-             <string>gs :</string>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="buddy">
-             <cstring>pathGs</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="KLFPathChooser" name="pathGs">
-            <property name="mode">
-             <number>0</number>
-            </property>
-            <property name="caption">
-             <string>Choose ghostscript executable</string>
-            </property>
-            <property name="filter">
-             <string/>
-            </property>
-            <property name="path">
-             <string notr="true">gs</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <layout class="QHBoxLayout" name="lyt_resetdefaults">
-            <item>
-             <spacer name="spcHbtnresetdflts">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Expanding</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>357</width>
-                <height>28</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnPathsReset">
-              <property name="text">
-               <string>Detect Settings</string>
-              </property>
-              <property name="icon">
-               <iconset resource="klfres.qrc">
-                <normaloff>:/pics/resetdefaults.png</normaloff>:/pics/resetdefaults.png</iconset>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="1" column="0" colspan="2">
-        <widget class="QGroupBox" name="gbxMoreOptions">
-         <property name="title">
-          <string>More options</string>
-         </property>
-         <layout class="QGridLayout" name="lyt_gbxMoreOptions">
-          <property name="topMargin">
-           <number>3</number>
-          </property>
-          <property name="bottomMargin">
-           <number>3</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>4</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="chkOutlineFonts">
-            <property name="text">
-             <string>Outline embedded fonts (eg. for Adobe Illustrator)</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QGroupBox" name="gbxExportProfiles">
-         <property name="title">
-          <string>Data Export Profiles</string>
-         </property>
-         <layout class="QGridLayout" name="lyt_gbxExportProfiles">
-          <property name="leftMargin">
-           <number>6</number>
-          </property>
-          <property name="topMargin">
-           <number>3</number>
-          </property>
-          <property name="rightMargin">
-           <number>6</number>
-          </property>
-          <property name="bottomMargin">
-           <number>3</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>4</number>
-          </property>
-          <item row="1" column="1" colspan="2">
-           <widget class="QComboBox" name="cbxDragExportProfile"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="lblDragExportProfile">
-            <property name="text">
-             <string>Drag export profile:</string>
-            </property>
-            <property name="buddy">
-             <cstring>cbxDragExportProfile</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="lblCopyExportProfile">
-            <property name="text">
-             <string>Copy export profile:</string>
-            </property>
-            <property name="buddy">
-             <cstring>cbxCopyExportProfile</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="lblMenuExportProfileAffects">
-            <property name="text">
-             <string>Menu Affects:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QCheckBox" name="chkMenuExportProfileAffectsDrag">
-            <property name="text">
-             <string>Drag</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="2">
-           <widget class="QCheckBox" name="chkMenuExportProfileAffectsCopy">
-            <property name="text">
-             <string>Copy</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1" colspan="2">
-           <widget class="QComboBox" name="cbxCopyExportProfile"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QPushButton" name="btnAdvancedEditor">
+       <item row="0" column="0" colspan="3">
+        <widget class="QCheckBox" name="chkSHEnable">
          <property name="text">
-          <string>Really Advanced ...</string>
+          <string>Globally enable syntax highlighting</string>
          </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <spacer name="hspc">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tabLibBrowser">
-      <attribute name="title">
-       <string>Library</string>
-      </attribute>
-      <layout class="QGridLayout" name="lyt_tabLibBrowser">
-       <item row="4" column="0" colspan="2">
-        <widget class="QLabel" name="lblLibWarnSettingsAffect">
-         <property name="font">
-          <font>
-           <italic>true</italic>
-          </font>
-         </property>
-         <property name="text">
-          <string>Some settings may only affect newly opened resources.</string>
-         </property>
-         <property name="wordWrap">
+         <property name="checked">
           <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <spacer name="vspc">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="1" column="0" colspan="3">
+        <widget class="QGroupBox" name="gbxSHOptions">
+         <property name="title">
+          <string>Options</string>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>15</height>
-          </size>
-         </property>
-        </spacer>
+         <layout class="QVBoxLayout" name="lyt_gbxSHOptions">
+          <item>
+           <widget class="QCheckBox" name="chkSHHighlightParensOnly">
+            <property name="text">
+             <string>Highlight parens only, not whole expression</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chkSHHighlightLonelyParen">
+            <property name="text">
+             <string>Highlight parens that aren't closed</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chkSHNoMatchParenTypes">
+            <property name="toolTip">
+             <string>Don't try to match similar parenthesis delimiter types, prefer reporting mismatching adjacent delimiters.</string>
+            </property>
+            <property name="text">
+             <string>Don't try to match parenthesis types</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
-       <item row="5" column="0">
-        <spacer name="vspc_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>275</width>
-           <height>206</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="0" colspan="2">
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabLibrary">
+      <layout class="QGridLayout" name="lyt_tabLibrary">
+       <item row="0" column="0">
         <widget class="QGroupBox" name="gbxLibAppearBehave">
          <property name="title">
-          <string>Appearance and Behavior</string>
+          <string>Library Appearance and Behavior</string>
          </property>
          <layout class="QGridLayout" name="lyt_gbxLibAppearBehave" columnstretch="0,0,0">
           <item row="0" column="0" colspan="3">
@@ -1620,19 +1558,60 @@
          </layout>
         </widget>
        </item>
+       <item row="1" column="0">
+        <spacer name="vspc">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>280</width>
+           <height>12</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="lblLibWarnSettingsAffect">
+         <property name="font">
+          <font>
+           <italic>true</italic>
+          </font>
+         </property>
+         <property name="text">
+          <string>Some settings may only affect newly opened resources.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <spacer name="vspc_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>280</width>
+           <height>285</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tabUserScripts">
-      <attribute name="title">
-       <string>Scripts</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
+      <layout class="QGridLayout" name="lyt_tabUserScripts">
        <item row="0" column="0">
         <widget class="QSplitter" name="splitUserScripts">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
-         <widget class="QWidget" name="layoutWidget">
+         <widget class="QWidget" name="layoutWidget_4">
           <layout class="QGridLayout" name="lyt_UserScriptList">
            <item row="0" column="0">
             <widget class="QTreeWidget" name="lstUserScripts">
@@ -1680,8 +1659,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>49</width>
-                 <height>40</height>
+                 <width>606</width>
+                 <height>121</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -1734,8 +1713,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>530</width>
-                 <height>132</height>
+                 <width>606</width>
+                 <height>121</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -1777,278 +1756,289 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabAddOns">
-      <attribute name="title">
-       <string>Add-Ons</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="lyt_tabAddOns">
-       <item>
-        <widget class="QSplitter" name="splitterAddOns">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>7</verstretch>
-          </sizepolicy>
+     <widget class="QWidget" name="tabAddOnsPlugins">
+      <layout class="QGridLayout" name="lyt_tabAddOnsPlugins">
+       <item row="0" column="0">
+        <widget class="QTabWidget" name="tabsAddOnsPlugins">
+         <property name="currentIndex">
+          <number>0</number>
          </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="handleWidth">
-          <number>4</number>
-         </property>
-         <widget class="QTreeWidget" name="lstAddOns">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>1</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="indentation">
-           <number>0</number>
-          </property>
-          <column>
-           <property name="text">
-            <string>Installed Add-Ons</string>
-           </property>
-          </column>
-         </widget>
-         <widget class="QGroupBox" name="gbxAddOnInfo">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>6</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>200</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Add-On Information</string>
-          </property>
-          <layout class="QVBoxLayout" name="lyt_gbxAddOnInfo">
-           <property name="sizeConstraint">
-            <enum>QLayout::SetMinimumSize</enum>
-           </property>
-           <property name="margin">
-            <number>0</number>
-           </property>
+         <widget class="QWidget" name="tabAddOns">
+          <attribute name="title">
+           <string>Add-Ons</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="lyt_tabAddOns">
            <item>
-            <widget class="QScrollArea" name="scrAddOnInfo">
-             <property name="frameShape">
-              <enum>QFrame::NoFrame</enum>
+            <widget class="QSplitter" name="splitterAddOns">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>7</verstretch>
+              </sizepolicy>
              </property>
-             <property name="frameShadow">
-              <enum>QFrame::Plain</enum>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
-             <property name="lineWidth">
-              <number>0</number>
+             <property name="handleWidth">
+              <number>4</number>
              </property>
-             <property name="midLineWidth">
-              <number>0</number>
-             </property>
-             <property name="widgetResizable">
-              <bool>true</bool>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-             </property>
-             <widget class="QWidget" name="scrAddOnInfoContents">
-              <property name="geometry">
-               <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>370</width>
-                <height>159</height>
-               </rect>
+             <widget class="QTreeWidget" name="lstAddOns">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="indentation">
+               <number>0</number>
+              </property>
+              <column>
+               <property name="text">
+                <string>Installed Add-Ons</string>
+               </property>
+              </column>
+             </widget>
+             <widget class="QGroupBox" name="gbxAddOnInfo">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>6</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>200</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Add-On Information</string>
+              </property>
+              <layout class="QVBoxLayout" name="lyt_gbxAddOnInfo">
+               <property name="sizeConstraint">
+                <enum>QLayout::SetMinimumSize</enum>
+               </property>
+               <property name="margin">
+                <number>0</number>
+               </property>
                <item>
-                <widget class="QLabel" name="lblAddOnInfo">
-                 <property name="text">
-                  <string/>
+                <widget class="QScrollArea" name="scrAddOnInfo">
+                 <property name="frameShape">
+                  <enum>QFrame::NoFrame</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>0</number>
+                 </property>
+                 <property name="midLineWidth">
+                  <number>0</number>
+                 </property>
+                 <property name="widgetResizable">
+                  <bool>true</bool>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                  </property>
-                 <property name="wordWrap">
-                  <bool>true</bool>
-                 </property>
-                 <property name="textInteractionFlags">
-                  <set>Qt::TextBrowserInteraction</set>
-                 </property>
+                 <widget class="QWidget" name="scrAddOnInfoContents">
+                  <property name="geometry">
+                   <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>334</width>
+                    <height>90</height>
+                   </rect>
+                  </property>
+                  <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
+                   <item>
+                    <widget class="QLabel" name="lblAddOnInfo">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                     </property>
+                     <property name="wordWrap">
+                      <bool>true</bool>
+                     </property>
+                     <property name="textInteractionFlags">
+                      <set>Qt::TextBrowserInteraction</set>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
                 </widget>
                </item>
               </layout>
              </widget>
             </widget>
            </item>
-          </layout>
-         </widget>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="lytAddOnActions">
-         <item>
-          <widget class="QPushButton" name="btnImportAddOn">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Import Add-On File ...</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnRemoveAddOn">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Remove Add-On</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="gbxPlugins">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>10</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>Plugin Loading</string>
-         </property>
-         <layout class="QVBoxLayout" name="lyt_gbxPlugins">
-          <item>
-           <widget class="QSplitter" name="splitterPlugins">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="handleWidth">
-             <number>4</number>
-            </property>
-            <widget class="QTreeWidget" name="lstPlugins">
+           <item>
+            <layout class="QHBoxLayout" name="lytAddOnActions">
+             <item>
+              <widget class="QPushButton" name="btnImportAddOn">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Import Add-On File ...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRemoveAddOn">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Remove Add-On</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="gbxPlugins">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>1</horstretch>
-               <verstretch>0</verstretch>
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>10</verstretch>
               </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>80</height>
-              </size>
-             </property>
-             <property name="editTriggers">
-              <set>QAbstractItemView::NoEditTriggers</set>
-             </property>
-             <property name="showDropIndicator" stdset="0">
-              <bool>false</bool>
-             </property>
-             <property name="selectionMode">
-              <enum>QAbstractItemView::SingleSelection</enum>
-             </property>
-             <property name="indentation">
-              <number>10</number>
-             </property>
-             <property name="itemsExpandable">
-              <bool>false</bool>
-             </property>
-             <column>
-              <property name="text">
-               <string>Name</string>
-              </property>
-             </column>
-            </widget>
-            <widget class="QGroupBox" name="gbxPluginInfo">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>6</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>200</width>
-               <height>0</height>
-              </size>
              </property>
              <property name="title">
-              <string>Plugin Information</string>
+              <string>Plugin Loading</string>
              </property>
-             <layout class="QVBoxLayout" name="lyt_gbxPluginInfo">
-              <property name="sizeConstraint">
-               <enum>QLayout::SetMinimumSize</enum>
-              </property>
-              <property name="margin">
-               <number>0</number>
-              </property>
+             <layout class="QVBoxLayout" name="lyt_gbxPlugins">
               <item>
-               <widget class="QScrollArea" name="scrPluginInfo">
-                <property name="frameShape">
-                 <enum>QFrame::NoFrame</enum>
+               <widget class="QSplitter" name="splitterPlugins">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
                 </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
-                <property name="lineWidth">
-                 <number>0</number>
+                <property name="handleWidth">
+                 <number>4</number>
                 </property>
-                <property name="midLineWidth">
-                 <number>0</number>
-                </property>
-                <property name="widgetResizable">
-                 <bool>true</bool>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-                </property>
-                <widget class="QWidget" name="scrPluginInfoContents">
-                 <property name="geometry">
-                  <rect>
-                   <x>0</x>
-                   <y>0</y>
-                   <width>351</width>
-                   <height>204</height>
-                  </rect>
+                <widget class="QTreeWidget" name="lstPlugins">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>1</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
                  </property>
-                 <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>80</height>
+                  </size>
+                 </property>
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::NoEditTriggers</set>
+                 </property>
+                 <property name="showDropIndicator" stdset="0">
+                  <bool>false</bool>
+                 </property>
+                 <property name="selectionMode">
+                  <enum>QAbstractItemView::SingleSelection</enum>
+                 </property>
+                 <property name="indentation">
+                  <number>10</number>
+                 </property>
+                 <property name="itemsExpandable">
+                  <bool>false</bool>
+                 </property>
+                 <column>
+                  <property name="text">
+                   <string>Name</string>
+                  </property>
+                 </column>
+                </widget>
+                <widget class="QGroupBox" name="gbxPluginInfo">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>6</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>200</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="title">
+                  <string>Plugin Information</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="lyt_gbxPluginInfo">
+                  <property name="sizeConstraint">
+                   <enum>QLayout::SetMinimumSize</enum>
+                  </property>
+                  <property name="margin">
+                   <number>0</number>
+                  </property>
                   <item>
-                   <widget class="QLabel" name="lblPluginInfo">
-                    <property name="text">
-                     <string/>
+                   <widget class="QScrollArea" name="scrPluginInfo">
+                    <property name="frameShape">
+                     <enum>QFrame::NoFrame</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Plain</enum>
+                    </property>
+                    <property name="lineWidth">
+                     <number>0</number>
+                    </property>
+                    <property name="midLineWidth">
+                     <number>0</number>
+                    </property>
+                    <property name="widgetResizable">
+                     <bool>true</bool>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                     </property>
-                    <property name="wordWrap">
-                     <bool>true</bool>
-                    </property>
-                    <property name="textInteractionFlags">
-                     <set>Qt::TextBrowserInteraction</set>
-                    </property>
+                    <widget class="QWidget" name="scrPluginInfoContents">
+                     <property name="geometry">
+                      <rect>
+                       <x>0</x>
+                       <y>0</y>
+                       <width>314</width>
+                       <height>107</height>
+                      </rect>
+                     </property>
+                     <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
+                      <item>
+                       <widget class="QLabel" name="lblPluginInfo">
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                        </property>
+                        <property name="wordWrap">
+                         <bool>true</bool>
+                        </property>
+                        <property name="textInteractionFlags">
+                         <set>Qt::TextBrowserInteraction</set>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
                    </widget>
                   </item>
                  </layout>
@@ -2057,64 +2047,170 @@
               </item>
              </layout>
             </widget>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="lblNoteRestart">
-         <property name="text">
-          <string>Note: KLatexFormula needs to be restarted for changes to plugin loading or add-on importing/removing to be applied.</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblNoteRestart">
+             <property name="text">
+              <string>Note: KLatexFormula needs to be restarted for changes to plugin loading or add-on importing/removing to be applied.</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabPlugins">
+          <attribute name="title">
+           <string>Plugins</string>
+          </attribute>
+          <layout class="QGridLayout" name="lyt_tabPlugins">
+           <item row="0" column="0">
+            <widget class="QToolBox" name="tbxPluginsConfig">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>2</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="currentIndex">
+              <number>0</number>
+             </property>
+             <widget class="QWidget" name="pageDummy">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>521</width>
+                <height>340</height>
+               </rect>
+              </property>
+              <attribute name="label">
+               <string notr="true">Dummy Page</string>
+              </attribute>
+             </widget>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabPlugins">
-      <attribute name="title">
-       <string>Plugins</string>
-      </attribute>
-      <layout class="QGridLayout" name="lyt_tabPlugins">
-       <item row="0" column="0">
-        <widget class="QToolBox" name="tbxPluginsConfig">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>2</verstretch>
-          </sizepolicy>
+     <widget class="QWidget" name="tabAdvanced">
+      <layout class="QGridLayout" name="lyt_tabAdvanced">
+       <item row="0" column="1">
+        <spacer name="spc_Advanced">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="currentIndex">
-          <number>0</number>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
          </property>
-         <widget class="QWidget" name="pageDummy">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>576</width>
-            <height>506</height>
-           </rect>
-          </property>
-          <attribute name="label">
-           <string notr="true">Dummy Page</string>
-          </attribute>
-         </widget>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>17</width>
+           <height>392</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="0">
+        <spacer name="hspc">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>401</width>
+           <height>17</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="btnAdvancedEditor">
+         <property name="text">
+          <string>Really Advanced ...</string>
+         </property>
         </widget>
        </item>
       </layout>
      </widget>
     </widget>
    </item>
-   <item>
+   <item row="2" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="btns">
      <property name="standardButtons">
       <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Help|QDialogButtonBox::Ok</set>
      </property>
     </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="hlytMainToolBar">
+     <item>
+      <spacer name="hspcToolBarLeft">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Preferred</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>5</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QToolBar" name="toolBar">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>48</width>
+         <height>48</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextUnderIcon</enum>
+       </property>
+       <property name="floatable">
+        <bool>false</bool>
+       </property>
+       <addaction name="actionTabInterface"/>
+       <addaction name="actionTabAppearance"/>
+       <addaction name="actionTabLatex"/>
+       <addaction name="actionTabSyntaxHighlighting"/>
+       <addaction name="actionTabLibrary"/>
+       <addaction name="actionTabUserScripts"/>
+       <addaction name="actionTabAddOnsPlugins"/>
+       <addaction name="actionTabAdvanced"/>
+      </widget>
+     </item>
+     <item>
+      <spacer name="hspcToolBarRight">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Preferred</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>5</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
   </layout>
   <action name="aFontCMU">
@@ -2130,6 +2226,102 @@
   <action name="aFontTT">
    <property name="text">
     <string>Set Default Typewriter Font</string>
+   </property>
+  </action>
+  <action name="actionTabAdvanced">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+   </property>
+   <property name="text">
+    <string>Advanced</string>
+   </property>
+   <property name="toolTip">
+    <string>Advanced Settings</string>
+   </property>
+  </action>
+  <action name="actionTabAppearance">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+   </property>
+   <property name="text">
+    <string>Appearance</string>
+   </property>
+   <property name="toolTip">
+    <string>Appearance Settings</string>
+   </property>
+  </action>
+  <action name="actionTabInterface">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+   </property>
+   <property name="text">
+    <string>Interface</string>
+   </property>
+   <property name="toolTip">
+    <string>User Interface Settings</string>
+   </property>
+  </action>
+  <action name="actionTabLatex">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+   </property>
+   <property name="text">
+    <string>LaTeX</string>
+   </property>
+   <property name="toolTip">
+    <string>Latex Settings</string>
+   </property>
+  </action>
+  <action name="actionTabSyntaxHighlighting">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+   </property>
+   <property name="text">
+    <string>Highlighting</string>
+   </property>
+   <property name="toolTip">
+    <string>LaTeX Syntax Highlighting in editors</string>
+   </property>
+  </action>
+  <action name="actionTabLibrary">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+   </property>
+   <property name="text">
+    <string>Library</string>
+   </property>
+   <property name="toolTip">
+    <string>Library Settings</string>
+   </property>
+  </action>
+  <action name="actionTabUserScripts">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+   </property>
+   <property name="text">
+    <string>Scripts</string>
+   </property>
+   <property name="toolTip">
+    <string>User script settings</string>
+   </property>
+  </action>
+  <action name="actionTabAddOnsPlugins">
+   <property name="icon">
+    <iconset resource="klfres.qrc">
+     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add-Ons</string>
+   </property>
+   <property name="toolTip">
+    <string>Add-Ons &amp; Plugins settings</string>
    </property>
   </action>
  </widget>
@@ -2152,98 +2344,10 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>tabs</tabstop>
-  <tabstop>cbxLocale</tabstop>
-  <tabstop>btnAppFont</tabstop>
-  <tabstop>btnAppFontChoose</tabstop>
-  <tabstop>btnEditorFont</tabstop>
-  <tabstop>btnEditorFontChoose</tabstop>
-  <tabstop>btnPreambleFont</tabstop>
-  <tabstop>btnPreambleFontChoose</tabstop>
-  <tabstop>chkShowHintPopups</tabstop>
-  <tabstop>chkClearLatexOnly</tabstop>
-  <tabstop>chkGlowEffect</tabstop>
-  <tabstop>chkSHEnable</tabstop>
-  <tabstop>chkSHHighlightParensOnly</tabstop>
-  <tabstop>chkSHHighlightLonelyParen</tabstop>
-  <tabstop>colSHKeyword</tabstop>
-  <tabstop>colSHKeywordBg</tabstop>
-  <tabstop>chkSHKeywordB</tabstop>
-  <tabstop>chkSHKeywordI</tabstop>
-  <tabstop>colSHComment</tabstop>
-  <tabstop>colSHCommentBg</tabstop>
-  <tabstop>chkSHCommentB</tabstop>
-  <tabstop>chkSHCommentI</tabstop>
-  <tabstop>colSHParenMatch</tabstop>
-  <tabstop>colSHParenMatchBg</tabstop>
-  <tabstop>chkSHParenMatchB</tabstop>
-  <tabstop>chkSHParenMatchI</tabstop>
-  <tabstop>colSHParenMismatch</tabstop>
-  <tabstop>colSHParenMismatchBg</tabstop>
-  <tabstop>chkSHParenMismatchB</tabstop>
-  <tabstop>chkSHParenMismatchI</tabstop>
-  <tabstop>colSHLonelyParen</tabstop>
-  <tabstop>colSHLonelyParenBg</tabstop>
-  <tabstop>chkSHLonelyParenB</tabstop>
-  <tabstop>chkSHLonelyParenI</tabstop>
-  <tabstop>pathTempDir</tabstop>
-  <tabstop>pathLatex</tabstop>
-  <tabstop>pathDvips</tabstop>
-  <tabstop>pathGs</tabstop>
-  <tabstop>btnPathsReset</tabstop>
-  <tabstop>chkOutlineFonts</tabstop>
-  <tabstop>spnLBorderOffset</tabstop>
-  <tabstop>spnTBorderOffset</tabstop>
-  <tabstop>spnRBorderOffset</tabstop>
-  <tabstop>spnBBorderOffset</tabstop>
-  <tabstop>cbxDragExportProfile</tabstop>
-  <tabstop>chkLibRestoreURLs</tabstop>
-  <tabstop>chkLibConfirmClose</tabstop>
-  <tabstop>chkLibHistoryTagCopyToArchive</tabstop>
-  <tabstop>cbxLibIconViewFlow</tabstop>
-  <tabstop>lstAddOns</tabstop>
-  <tabstop>scrAddOnInfo</tabstop>
-  <tabstop>btnImportAddOn</tabstop>
-  <tabstop>btnRemoveAddOn</tabstop>
-  <tabstop>lstPlugins</tabstop>
-  <tabstop>scrPluginInfo</tabstop>
   <tabstop>btns</tabstop>
  </tabstops>
  <resources>
   <include location="klfres.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>chkSHEnable</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>gbxSHOptions</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>67</x>
-     <y>64</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>73</x>
-     <y>101</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chkSHEnable</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>gbxSHColors</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>107</x>
-     <y>65</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>99</x>
-     <y>207</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

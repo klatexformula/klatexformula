@@ -37,7 +37,8 @@
 #include <klfrelativefont.h>
 #include <klflatexedit.h>
 #include <klflatexpreviewthread.h>
-#include <klfpobjeditwidget.h>
+//#include <klfpobjeditwidget.h>
+#include <klfsysinfo.h>
 
 #include "klflibview.h"
 #include "klflibbrowser.h"
