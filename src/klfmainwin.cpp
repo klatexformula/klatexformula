@@ -635,8 +635,8 @@ KLFMainWin::KLFMainWin()
 
   d->mHelpLinkActions << KLFMainWinPrivate::HelpLinkAction("/whats_new", this, "showWhatsNew", false);
   d->mHelpLinkActions << KLFMainWinPrivate::HelpLinkAction("/about", this, "showAbout", false);
-  d->mHelpLinkActions << KLFMainWinPrivate::HelpLinkAction("/popup_close", this, "slotPopupClose", false);
-  d->mHelpLinkActions << KLFMainWinPrivate::HelpLinkAction("/popup", this, "slotPopupAction", true);
+  d->mHelpLinkActions << KLFMainWinPrivate::HelpLinkAction("/popup_close", d, "slotPopupClose", false);
+  d->mHelpLinkActions << KLFMainWinPrivate::HelpLinkAction("/popup", d, "slotPopupAction", true);
   d->mHelpLinkActions << KLFMainWinPrivate::HelpLinkAction("/settings", this, "showSettingsHelpLinkAction", true);
 
   if ( klfconfig.Core.thisVersionMajMinFirstRun && ! klfconfig.checkExePaths() ) {

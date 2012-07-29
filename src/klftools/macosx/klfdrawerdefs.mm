@@ -20,6 +20,10 @@
 #include <klfdefs.h>
 
 
+// ------------------------------------------
+// DEFINITIONS FOR DRAWER STUFF
+
+
 static OSWindowRef klf_qt_mac_window_for(OSViewRef view)
 {
 #ifdef QT_MAC_USE_COCOA
@@ -187,3 +191,4 @@ bool klf_qt_mac_drawer_is_still_animating(QWidget *w)
   return false;
 #endif
 }
+

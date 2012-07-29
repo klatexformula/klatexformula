@@ -157,6 +157,13 @@ private:
 
 
 
+// -------------------------------------------
+
+#ifdef Q_WS_MAC
+void klf_mac_win_show_without_activating(QWidget *w);
+#endif
+
+
 /** \internal */
 class KLFMainWinPopup : public QLabel
 {
@@ -164,7 +171,12 @@ class KLFMainWinPopup : public QLabel
 public:
   KLFMainWinPopup(KLFMainWin *mainwin)
     : QLabel(mainwin, Qt::Window|Qt::FramelessWindowHint|Qt::CustomizeWindowHint|
-	     Qt::WindowStaysOnTopHint|Qt::X11BypassWindowManagerHint)
+	     Qt::WindowStaysOnTopHint
+#ifdef Q_WS_X11
+	     |Qt::X11BypassWindowManagerHint
+#endif
+	     ),
+      _mainWin(mainwin)
   {
     setObjectName("KLFMainWinPopup");
     setFocusPolicy(Qt::NoFocus);
@@ -181,7 +193,9 @@ public:
     setFont(f);
     setWordWrap(true);
 
+#ifdef Q_WS_X11
     setAttribute(Qt::WA_X11DoNotAcceptFocus, true);
+#endif
     setAttribute(Qt::WA_ShowWithoutActivating, true);
 
     connect(this, SIGNAL(linkActivated(const QString&)),
@@ -226,6 +240,11 @@ public slots:
   {
     QLabel::show();
     setStyleSheet(styleSheet());
+
+#ifdef Q_WS_MAC
+    //    klf_mac_win_show_without_activating(this);
+    _mainWin->activateWindow();
+#endif
   }
 
 private slots:
@@ -259,6 +278,8 @@ private slots:
   }
 
 private:
+  KLFMainWin *_mainWin;
+
   QStringList msgKeys;
   QStringList messages;
 };

@@ -68,10 +68,31 @@ bool klf_mac_application_hidden(const KLFMainWin */*mw*/)
   return ([a isHidden] == YES);
 }
 
+// doesn't work ............???????????????
+void klf_mac_win_show_without_activating(QWidget *w)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  NSView *widgetView = reinterpret_cast<NSView *>(w->winId());
+  [[widgetView window] setLevel:kCGMaximumWindowLevel];
+
+  /*
+  NSView *widgetView = reinterpret_cast<NSView *>(w->window()->winId());
+  NSWindow * win = [widgetView window];
+  KLF_ASSERT_CONDITION(win != nil, "cocoa window for "<<w<<" is nil!", return ; ) ;
+  [win setLevel:NSScreenSaverWindowLevel]; */
+}
+
 #else // QT_MAC_USE_COCOA
 
 void klf_mac_hide_application(const KLFMainWin *mw)
 {
+  Q_UNUSED(mw);
+  klfDbg("Not implemented without Cocoa.") ;
+}
+
+void klf_mac_win_show_without_activating(QWidget *w)
+{
+  Q_UNUSED(w);
   klfDbg("Not implemented without Cocoa.") ;
 }
 
