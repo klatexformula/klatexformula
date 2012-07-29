@@ -212,6 +212,8 @@ KLFLatexEdit::KLFLatexEdit(QWidget *parent)
   QPalette pal = palette();
   pal.setColor(QPalette::Base, QColor(255, 255, 255, 80)); // quite transparent, but lighter
   setProperty("paletteMacBrushedMetalLook", QVariant::fromValue<QPalette>(pal));
+
+  setWordWrapMode(QTextOption::WrapAnywhere);
 }
 
 KLFLatexEdit::~KLFLatexEdit()

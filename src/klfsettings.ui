@@ -1464,7 +1464,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>88</width>
+                <width>73</width>
                 <height>16</height>
                </rect>
               </property>
@@ -1588,7 +1588,7 @@
              </layout>
             </widget>
            </item>
-           <item row="2" column="0">
+           <item row="3" column="0">
             <spacer name="vspcAppearance">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1601,7 +1601,83 @@
              </property>
             </spacer>
            </item>
+           <item row="2" column="0">
+            <widget class="QGroupBox" name="gbxGlowEffect">
+             <property name="title">
+              <string>Display Equations Glow Effect</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QLabel" name="lblGlowColor">
+                <property name="text">
+                 <string>Glow Color:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="KLFColorChooser" name="colGlowEffectColor">
+                <property name="showSize">
+                 <size>
+                  <width>60</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="hspcGlowEffect">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="lblGlowEffectRadius">
+                <property name="text">
+                 <string>radius:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spnGlowEffectRadius">
+                <property name="suffix">
+                 <string> px</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item row="1" column="0">
+            <widget class="QCheckBox" name="chkMacBrushedMetalLook">
+             <property name="text">
+              <string>Use Mac OS X &quot;Metal&quot; Look (Requires Restart)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tabAdvancedSyntaxHighlighting">
+          <attribute name="title">
+           <string>Syntax Highlighting</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="0" column="0">
             <widget class="QGroupBox" name="gbxSHColors">
              <property name="title">
               <string>Syntax Highlighting Colors</string>
@@ -2102,6 +2178,19 @@
              </layout>
             </widget>
            </item>
+           <item row="1" column="0">
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>174</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="tabAdvancedMiscAppearance">
@@ -2112,7 +2201,7 @@
            <property name="verticalSpacing">
             <number>16</number>
            </property>
-           <item row="3" column="0">
+           <item row="1" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout" stretch="4,3,0,3,0">
              <item>
               <widget class="QLabel" name="lblToolTipPreviewSizePrompt">
@@ -2205,7 +2294,7 @@
              </item>
             </layout>
            </item>
-           <item row="6" column="0">
+           <item row="4" column="0">
             <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -2235,20 +2324,6 @@
             </spacer>
            </item>
            <item row="2" column="0">
-            <widget class="QCheckBox" name="chkGlowEffect">
-             <property name="text">
-              <string>Display Equations Glow Effect</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="chkMacBrushedMetalLook">
-             <property name="text">
-              <string>Use Mac OS X &quot;Metal&quot; Look (Requires Restart)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
             <layout class="QHBoxLayout" name="hlytAdvancedEditor">
              <item>
               <spacer name="hspcAdvancedEditor">

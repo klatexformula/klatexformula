@@ -656,7 +656,9 @@ void KLFSettings::reset()
 
   u->chkShowHintPopups->setChecked(klfconfig.UI.showHintPopups);
   u->chkClearLatexOnly->setChecked(klfconfig.UI.clearLatexOnly);
-  u->chkGlowEffect->setChecked(klfconfig.UI.glowEffect);
+  u->gbxGlowEffect->setChecked(klfconfig.UI.glowEffect);
+  u->colGlowEffectColor->setColor(klfconfig.UI.glowEffectColor);
+  u->spnGlowEffectRadius->setValue(klfconfig.UI.glowEffectRadius);
   int sidewidgettypei = u->cbxDetailsSideWidgetType->findData(QVariant(klfconfig.UI.detailsSideWidgetType()));
   u->cbxDetailsSideWidgetType->setCurrentIndex(sidewidgettypei);
   u->chkMacBrushedMetalLook->setChecked(klfconfig.UI.macBrushedMetalLook);
@@ -1581,7 +1583,9 @@ void KLFSettings::apply()
 
   klfconfig.UI.showHintPopups = u->chkShowHintPopups->isChecked();
   klfconfig.UI.clearLatexOnly = u->chkClearLatexOnly->isChecked();
-  klfconfig.UI.glowEffect = u->chkGlowEffect->isChecked();
+  klfconfig.UI.glowEffect = u->gbxGlowEffect->isChecked();
+  klfconfig.UI.glowEffectColor = u->colGlowEffectColor->color();
+  klfconfig.UI.glowEffectRadius = u->spnGlowEffectRadius->value();
 
   klfconfig.UI.detailsSideWidgetType =
     u->cbxDetailsSideWidgetType->itemData(u->cbxDetailsSideWidgetType->currentIndex()).toString();
