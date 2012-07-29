@@ -51,7 +51,7 @@ void KLFGuiApplication::commitData(QSessionManager& sm)
 
   if (sm.allowsInteraction()) {
     klfDbg("interaction allowed.") ;
-    QMessageBox::information(NULL, "info", "Shutting down.") ;
+    //    QMessageBox::information(NULL, "info", "Shutting down.") ;
     sm.release();
   } else {
     klfDbg("interaction NOT allowed.") ;
