@@ -61,6 +61,7 @@ public:
 
   KLFMainWin *mainWin;
 
+  QList<QAction*> actionTabs;
   QHash<QByteArray,QWidget*> settingsTabs;
 
   bool pUserSetDefaultAppFont;
@@ -103,6 +104,7 @@ public:
 
 public slots: // well "public" only for us... :)
 
+  void showTab(QWidget * tabPage);
   void showTabByName(const QByteArray& name);
   void showTabByNameActionSender();
 

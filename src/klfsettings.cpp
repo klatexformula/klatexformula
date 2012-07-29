@@ -148,18 +148,23 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->toolBar->setStyle(new QPlastiqueStyle());
 #endif
 
-#define SETTINGS_REGISTER_TAB(x)				\
-  u->actionTab##x->setData(QByteArray(#x));			\
-  d->settingsTabs[#x] = u->tab##x;
+
+#define SETTINGS_REGISTER_TAB(x)					\
+  u->actionTab##x->setData(QByteArray(#x));				\
+  d->settingsTabs[#x] = u->tab##x;					\
+  d->actionTabs << u->actionTab##x;					\
+  connect(u->actionTab##x, SIGNAL(triggered(bool)), d, SLOT(showTabByNameActionSender()));
 
   SETTINGS_REGISTER_TAB(Interface);
-  SETTINGS_REGISTER_TAB(Appearance);
   SETTINGS_REGISTER_TAB(Latex);
-  SETTINGS_REGISTER_TAB(SyntaxHighlighting);
+  SETTINGS_REGISTER_TAB(Editor);
   SETTINGS_REGISTER_TAB(Library);
   SETTINGS_REGISTER_TAB(UserScripts);
   SETTINGS_REGISTER_TAB(AddOnsPlugins);
   SETTINGS_REGISTER_TAB(Advanced);
+
+  // and show the interface tab by default
+  d->showTabByName("Interface");
 
   // ---
 
@@ -352,13 +357,22 @@ KLFSettings::~KLFSettings()
 void KLFSettingsPrivate::showTabByName(const QByteArray& name)
 {
   KLF_ASSERT_CONDITION(settingsTabs.contains(name), "Bad tab name : '"<<name<<"'", return; ) ;
-  K->u->tabs->setCurrentWidget(settingsTabs[name]);
+  showTab(settingsTabs[name]);
 }
 void KLFSettingsPrivate::showTabByNameActionSender()
 {
   QAction *actionsender = qobject_cast<QAction*>(sender());
   KLF_ASSERT_NOT_NULL(actionsender, "sender is not a QAction or is NULL!", return;);
   showTabByName(actionsender->data().toByteArray());
+}
+void KLFSettingsPrivate::showTab(QWidget * tabPage)
+{
+  KLF_ASSERT_NOT_NULL(tabPage, "given tabPage is NULL!", return ; ) ;
+
+  K->u->tabs->setCurrentWidget(tabPage);
+  foreach (QAction *a, actionTabs) {
+    a->setChecked(settingsTabs[a->data().toByteArray()] == tabPage);
+  }  
 }
 
 void KLFSettingsPrivate::populateSettingsCombos()
@@ -417,7 +431,7 @@ void KLFSettingsPrivate::populateDetailsSideWidgetTypeCombo()
 
 void KLFSettings::show()
 {
-  klfDbg("show called.") ;
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   d->populateSettingsCombos();
 
   reset();
@@ -430,13 +444,31 @@ void KLFSettings::show()
   d->refreshUserScriptList();
   d->refreshUserScriptSelected();
 
+  KLF_BLOCK {
+    // calculate the minimum width of the main toolbar
+    QLayout *tLyt = u->toolBar->layout();
+    KLF_ASSERT_NOT_NULL(tLyt, "toolbar layout is NULL!!", break; ) ;
+    klfDbg("got toolbar layout: "<<tLyt) ;
+    int ml, mt, mr, mb;
+    tLyt->getContentsMargins(&ml, &mt, &mr, &mb);
+    klfDbg("margins left="<<ml<<" right="<<mr<<" spacing="<<tLyt->spacing()) ;
+    int minwidth = ml+mr + d->actionTabs.size()*tLyt->spacing();
+    foreach (QAction *a, d->actionTabs) {
+      int thiswidth = u->toolBar->widgetForAction(a)->sizeHint().width();
+      klfDbg("action "<<a<<"; w = "<<u->toolBar->widgetForAction(a)<<" width="<<thiswidth) ;
+      minwidth += thiswidth;
+    }
+    klfDbg("minwidth="<<minwidth) ;
+    u->toolBar->setMinimumWidth(minwidth);
+  }
+
   QDialog::show();
 }
 
 
 /** \internal */
-#define __KLF_SHOW_SETTINGS_CONTROL( tab , focuswidget )	\
-  u->tabs->setCurrentWidget( u->tab );				\
+#define __KLF_SHOW_SETTINGS_CONTROL( tabname , focuswidget )	\
+  d->showTab(u->tab##tabname);				\
   u->focuswidget->setFocus(Qt::OtherFocusReason);
 
 void KLFSettings::showControl(int control)
@@ -444,46 +476,51 @@ void KLFSettings::showControl(int control)
   /** \bug setup here !!! */
   switch (control) {
   case AppLanguage:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, cbxLocale) ;
+    __KLF_SHOW_SETTINGS_CONTROL(Interface, cbxLocale) ;
     break;
   case AppFonts:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, btnAppFont) ;
+    u->tabsAdvancedSettings->setCurrentWidget(u->tabAdvancedAppearance);
+    __KLF_SHOW_SETTINGS_CONTROL(Advanced, btnAppFont) ;
     break;
   case AppLookNFeel:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, chkMacBrushedMetalLook) ;
+    u->tabsAdvancedSettings->setCurrentWidget(u->tabAdvancedMiscAppearance);
+    __KLF_SHOW_SETTINGS_CONTROL(Advanced, chkMacBrushedMetalLook) ;
     break;
   case Preview:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, chkEnableRealTimePreview) ;
+    __KLF_SHOW_SETTINGS_CONTROL(Interface, chkEnableRealTimePreview) ;
     break;
   case TooltipPreview:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAppearance, chkEnableToolTipPreview) ;
+    __KLF_SHOW_SETTINGS_CONTROL(Interface, chkEnableToolTipPreview) ;
     break;
   case SyntaxHighlighting:
-    __KLF_SHOW_SETTINGS_CONTROL(tabSyntaxHighlighting, chkSHEnable) ;
+    __KLF_SHOW_SETTINGS_CONTROL(Editor, chkSHEnable) ;
     break;
   case ExecutablePaths:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAdvanced, pathTempDir) ;
+    __KLF_SHOW_SETTINGS_CONTROL(Latex, pathTempDir) ;
     break;
   case ExpandEPSBBox:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAdvanced, spnLBorderOffset) ;
+    __KLF_SHOW_SETTINGS_CONTROL(Latex, spnLBorderOffset) ;
     break;
   case ExportProfiles:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAdvanced, cbxCopyExportProfile) ;
+    __KLF_SHOW_SETTINGS_CONTROL(Interface, cbxCopyExportProfile) ;
     break;
   case LibrarySettings:
-    __KLF_SHOW_SETTINGS_CONTROL(tabLibrary, chkLibRestoreURLs) ;
+    __KLF_SHOW_SETTINGS_CONTROL(Library, chkLibRestoreURLs) ;
     break;
   case UserScriptInfo:
-    __KLF_SHOW_SETTINGS_CONTROL(tabUserScripts, lstUserScripts) ;
+    __KLF_SHOW_SETTINGS_CONTROL(UserScripts, lstUserScripts) ;
     break;
   case ManageAddOns:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAddOns, lstAddOns) ;
+    u->tabsAddOnsPlugins->setCurrentWidget(u->tabAddOns);
+    __KLF_SHOW_SETTINGS_CONTROL(AddOnsPlugins, lstAddOns) ;
     break;
   case ManagePlugins:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAddOns, lstPlugins) ;
+    u->tabsAddOnsPlugins->setCurrentWidget(u->tabAddOns);
+    __KLF_SHOW_SETTINGS_CONTROL(AddOnsPlugins, lstPlugins) ;
     break;
   case PluginsConfig:
-    __KLF_SHOW_SETTINGS_CONTROL(tabAddOnsPlugins, tbxPluginsConfig->currentWidget()) ;
+    u->tabsAddOnsPlugins->setCurrentWidget(u->tabPlugins);
+    __KLF_SHOW_SETTINGS_CONTROL(AddOnsPlugins, tbxPluginsConfig->currentWidget()) ;
     break;
   default:
     qWarning()<<KLF_FUNC_NAME<<": unknown control number requested : "<<control;

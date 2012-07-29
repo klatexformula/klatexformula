@@ -540,7 +540,7 @@
           <enum>QTabWidget::North</enum>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tabLatexImage">
           <attribute name="title">
@@ -663,8 +663,8 @@
                <widget class="KLFColorChooser" name="colFg">
                 <property name="minimumSize">
                  <size>
-                  <width>56</width>
-                  <height>32</height>
+                  <width>66</width>
+                  <height>33</height>
                  </size>
                 </property>
                 <property name="showSize">
@@ -685,8 +685,8 @@
                <widget class="KLFColorChooser" name="colBg">
                 <property name="minimumSize">
                  <size>
-                  <width>56</width>
-                  <height>32</height>
+                  <width>66</width>
+                  <height>33</height>
                  </size>
                 </property>
                 <property name="showSize">
@@ -1229,8 +1229,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>280</width>
-                <height>123</height>
+                <width>357</width>
+                <height>175</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="lyt_wScrUserScriptInput">

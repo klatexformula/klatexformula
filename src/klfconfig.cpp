@@ -630,8 +630,12 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   KLF_BLOCK {
     QDomDocument xmldoc;
     QFile usfile(homeConfigDir+"/userscripts.xml");
+    if (!usfile.exists()) {
+      // don't attempt to load user script settings if file does not exist
+      break;
+    }
     KLF_TRY( usfile.open(QIODevice::ReadOnly) ,
-			  "Can't open file "<<usfile.fileName()<<" for write access!", break; );
+			  "Can't open file "<<usfile.fileName()<<" for read access!", break; );
     QString errorMsg;
     int errorLine, errorColumn;
     KLF_TRY( xmldoc.setContent(&usfile, &errorMsg, &errorLine, &errorColumn) ,

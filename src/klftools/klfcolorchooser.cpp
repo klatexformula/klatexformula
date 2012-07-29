@@ -942,6 +942,8 @@ QColor KLFColorChooser::color() const
 
 QSize KLFColorChooser::sizeHint() const
 {
+  //KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   // inspired by QPushButton::sizeHint() in qpushbutton.cpp
 
   ensurePolished();
@@ -954,11 +956,18 @@ QSize KLFColorChooser::sizeHint() const
   w = _pix.width()+4;
   h = _pix.height()+2;
 
-  if (menu())
-    w += style()->pixelMetric(QStyle::PM_MenuButtonIndicator, &opt, this);
+  opt.rect.setSize(QSize(w,h));
 
-  return (style()->sizeFromContents(QStyle::CT_PushButton, &opt, QSize(w, h), this).
-	  expandedTo(QApplication::globalStrut()));
+  if (menu())
+    w += KLF_DEBUG_TEE( style()->pixelMetric(QStyle::PM_MenuButtonIndicator, &opt, this) );
+
+  //klfDbg("itermediate stage: w="<<w);
+
+  QSize hint = style()->sizeFromContents(QStyle::CT_PushButton, &opt, QSize(w, h), this);
+  //klfDbg("before expansion to app/globalstrut; hint="<<hint) ;
+  hint = hint.expandedTo(QApplication::globalStrut());
+  //klfDbg("mename="<<objectName()<<" _pix size="<<_pix.size()<<" _size="<<_size<<" color="<<_color<<"; sizeHint="<<hint) ;
+  return hint;
 }
 
 void KLFColorChooser::setColor(const QColor& col)
