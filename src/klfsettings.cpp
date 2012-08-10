@@ -170,6 +170,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 
   d->populateSettingsCombos();
 
+  // initialize the margin unit selector
+  u->cbxEPSBBoxUnits->setCurrentUnitAbbrev("pt");
+
   connect(u->btnAdvancedEditor, SIGNAL(clicked()), this, SLOT(showAdvancedConfigEditor()));
 
   // set some smaller fonts for small titles
@@ -483,7 +486,11 @@ void KLFSettings::showControl(int control)
     __KLF_SHOW_SETTINGS_CONTROL(Advanced, btnAppFont) ;
     break;
   case AppLookNFeel:
-    u->tabsAdvancedSettings->setCurrentWidget(u->tabAdvancedMiscAppearance);
+    u->tabsAdvancedSettings->setCurrentWidget(u->tabAdvancedAppearance);
+    __KLF_SHOW_SETTINGS_CONTROL(Advanced, btnAppFont) ;
+    break;
+  case AppMacOSXMetalLook:
+    u->tabsAdvancedSettings->setCurrentWidget(u->tabAdvancedAppearance);
     __KLF_SHOW_SETTINGS_CONTROL(Advanced, chkMacBrushedMetalLook) ;
     break;
   case Preview:
@@ -494,6 +501,10 @@ void KLFSettings::showControl(int control)
     break;
   case SyntaxHighlighting:
     __KLF_SHOW_SETTINGS_CONTROL(Editor, chkSHEnable) ;
+    break;
+  case SyntaxHighlightingColors:
+    u->tabsAdvancedSettings->setCurrentWidget(u->tabAdvancedSyntaxHighlighting);
+    __KLF_SHOW_SETTINGS_CONTROL(Editor, gbxSHColors) ;
     break;
   case ExecutablePaths:
     __KLF_SHOW_SETTINGS_CONTROL(Latex, pathTempDir) ;
@@ -539,9 +550,11 @@ void KLFSettings::showControl(const QString& controlName)
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppLanguage ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppFonts ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppLookNFeel ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, AppMacOSXMetalLook ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, Preview ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, TooltipPreview ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, SyntaxHighlighting ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, SyntaxHighlightingColors ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ExecutablePaths ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ExpandEPSBBox ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, LibrarySettings ) ;
@@ -549,6 +562,8 @@ void KLFSettings::showControl(const QString& controlName)
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ManageAddOns ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ManagePlugins ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, PluginsConfig ) ;
+
+  klfWarning("BUG: unknown control name: "<<controlName) ;
 }
 
 static bool treeMaybeUnselect(QTreeWidget *tree, QEvent *event)
@@ -604,14 +619,10 @@ void KLFSettings::reset()
   u->pathLatex->setPath(s.latexexec);
   u->pathDvips->setPath(s.dvipsexec);
   u->pathGs->setPath(s.gsexec);
-  //  u->pathEpstopdf->setPath(s.epstopdfexec);
-  //  u->chkEpstopdf->setChecked( ! s.epstopdfexec.isEmpty() );
-  /** \todo .... these settings should be shown in double when the corresponding
-   * functionality will be implemented in klfbackend. */
-  u->spnLBorderOffset->setValue( (int)(s.lborderoffset+0.5) );
-  u->spnTBorderOffset->setValue( (int)(s.tborderoffset+0.5) );
-  u->spnRBorderOffset->setValue( (int)(s.rborderoffset+0.5) );
-  u->spnBBorderOffset->setValue( (int)(s.bborderoffset+0.5) );
+  u->spnLBorderOffset->setValueInRefUnit(s.lborderoffset);
+  u->spnTBorderOffset->setValueInRefUnit(s.tborderoffset);
+  u->spnRBorderOffset->setValueInRefUnit(s.rborderoffset);
+  u->spnBBorderOffset->setValueInRefUnit(s.bborderoffset);
   u->chkOutlineFonts->setChecked( s.outlineFonts );
 
   u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.enabled);
@@ -1485,10 +1496,10 @@ void KLFSettings::apply()
 
   klf_detect_execenv(&backendsettings);
 
-  backendsettings.lborderoffset = u->spnLBorderOffset->value();
-  backendsettings.tborderoffset = u->spnTBorderOffset->value();
-  backendsettings.rborderoffset = u->spnRBorderOffset->value();
-  backendsettings.bborderoffset = u->spnBBorderOffset->value();
+  backendsettings.lborderoffset = u->spnLBorderOffset->valueInRefUnit();
+  backendsettings.tborderoffset = u->spnTBorderOffset->valueInRefUnit();
+  backendsettings.rborderoffset = u->spnRBorderOffset->valueInRefUnit();
+  backendsettings.bborderoffset = u->spnBBorderOffset->valueInRefUnit();
   backendsettings.outlineFonts = u->chkOutlineFonts->isChecked();
 
   d->mainWin->applySettings(backendsettings);

@@ -663,8 +663,8 @@
                <widget class="KLFColorChooser" name="colFg">
                 <property name="minimumSize">
                  <size>
-                  <width>66</width>
-                  <height>33</height>
+                  <width>56</width>
+                  <height>32</height>
                  </size>
                 </property>
                 <property name="showSize">
@@ -685,8 +685,8 @@
                <widget class="KLFColorChooser" name="colBg">
                 <property name="minimumSize">
                  <size>
-                  <width>66</width>
-                  <height>33</height>
+                  <width>56</width>
+                  <height>32</height>
                  </size>
                 </property>
                 <property name="showSize">
@@ -892,13 +892,13 @@
                  <item row="0" column="1">
                   <widget class="KLFUnitSpinBox" name="spnMarginTop">
                    <property name="decimals">
-                    <number>1</number>
+                    <number>2</number>
                    </property>
                    <property name="minimum">
-                    <double>0.000000000000000</double>
+                    <double>-9999.000000000000000</double>
                    </property>
                    <property name="maximum">
-                    <double>100.000000000000000</double>
+                    <double>9999.000000000000000</double>
                    </property>
                    <property name="singleStep">
                     <double>1.000000000000000</double>
@@ -918,13 +918,13 @@
                  <item row="3" column="1">
                   <widget class="KLFUnitSpinBox" name="spnMarginLeft">
                    <property name="decimals">
-                    <number>1</number>
+                    <number>2</number>
                    </property>
                    <property name="minimum">
-                    <double>0.000000000000000</double>
+                    <double>-9999.000000000000000</double>
                    </property>
                    <property name="maximum">
-                    <double>100.000000000000000</double>
+                    <double>9999.000000000000000</double>
                    </property>
                    <property name="singleStep">
                     <double>1.000000000000000</double>
@@ -944,13 +944,13 @@
                  <item row="1" column="1">
                   <widget class="KLFUnitSpinBox" name="spnMarginRight">
                    <property name="decimals">
-                    <number>1</number>
+                    <number>2</number>
                    </property>
                    <property name="minimum">
-                    <double>0.000000000000000</double>
+                    <double>-9999.000000000000000</double>
                    </property>
                    <property name="maximum">
-                    <double>100.000000000000000</double>
+                    <double>9999.000000000000000</double>
                    </property>
                    <property name="singleStep">
                     <double>1.000000000000000</double>
@@ -963,13 +963,13 @@
                  <item row="2" column="1">
                   <widget class="KLFUnitSpinBox" name="spnMarginBottom">
                    <property name="decimals">
-                    <number>1</number>
+                    <number>2</number>
                    </property>
                    <property name="minimum">
-                    <double>0.000000000000000</double>
+                    <double>-9999.000000000000000</double>
                    </property>
                    <property name="maximum">
-                    <double>100.000000000000000</double>
+                    <double>9999.000000000000000</double>
                    </property>
                    <property name="singleStep">
                     <double>1.000000000000000</double>
@@ -1229,8 +1229,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>357</width>
-                <height>175</height>
+                <width>280</width>
+                <height>123</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="lyt_wScrUserScriptInput">

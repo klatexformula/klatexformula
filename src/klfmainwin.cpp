@@ -661,7 +661,7 @@ KLFMainWin::KLFMainWin()
 		  tr("The user interface was revised for <b>Mac OS X</b>. KLatexFormula now has a "
 		     "<b>dark metal look</b> and a <b>drawer</b> on the side. You can change to the previous "
 		     "behavior in the <a href=\"%1\">settings dialog</a>.")
-		  .arg("klfaction:/settings?control=AppLookNFeel")
+		  .arg("klfaction:/settings?control=AppMacOSXMetalLook")
 		  + "</p>");
 #endif
 
