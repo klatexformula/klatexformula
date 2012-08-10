@@ -1531,8 +1531,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>349</x>
-     <y>230</y>
+     <x>361</x>
+     <y>224</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1551,8 +1551,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>349</x>
-     <y>230</y>
+     <x>361</x>
+     <y>224</y>
     </hint>
    </hints>
   </connection>
@@ -1563,8 +1563,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>289</x>
-     <y>230</y>
+     <x>301</x>
+     <y>224</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1583,8 +1583,8 @@
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>289</x>
-     <y>230</y>
+     <x>301</x>
+     <y>224</y>
     </hint>
    </hints>
   </connection>
@@ -1596,7 +1596,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>129</x>
-     <y>230</y>
+     <y>224</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1611,8 +1611,8 @@
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>35</x>
-     <y>230</y>
+     <x>43</x>
+     <y>224</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1627,12 +1627,12 @@
    <slot>showMenu()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>403</x>
-     <y>334</y>
+     <x>415</x>
+     <y>328</y>
     </hint>
     <hint type="destinationlabel">
-     <x>403</x>
-     <y>334</y>
+     <x>415</x>
+     <y>328</y>
     </hint>
    </hints>
   </connection>
@@ -1665,6 +1665,70 @@
     <hint type="destinationlabel">
      <x>676</x>
      <y>98</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxMarginsUnit</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnMarginTop</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>606</x>
+     <y>174</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>607</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxMarginsUnit</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnMarginRight</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>622</x>
+     <y>174</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>623</x>
+     <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxMarginsUnit</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnMarginBottom</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>638</x>
+     <y>175</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>641</x>
+     <y>261</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxMarginsUnit</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnMarginLeft</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>661</x>
+     <y>182</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>660</x>
+     <y>290</y>
     </hint>
    </hints>
   </connection>

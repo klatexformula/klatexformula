@@ -2515,12 +2515,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>86</x>
-     <y>233</y>
+     <x>98</x>
+     <y>130</y>
     </hint>
     <hint type="destinationlabel">
-     <x>89</x>
-     <y>254</y>
+     <x>101</x>
+     <y>130</y>
     </hint>
    </hints>
   </connection>
@@ -2531,12 +2531,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>121</x>
-     <y>233</y>
+     <x>111</x>
+     <y>130</y>
     </hint>
     <hint type="destinationlabel">
-     <x>127</x>
-     <y>275</y>
+     <x>111</x>
+     <y>130</y>
     </hint>
    </hints>
   </connection>
@@ -2547,12 +2547,76 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>162</x>
-     <y>233</y>
+     <x>111</x>
+     <y>130</y>
     </hint>
     <hint type="destinationlabel">
-     <x>156</x>
-     <y>296</y>
+     <x>111</x>
+     <y>130</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxEPSBBoxUnits</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnLBorderOffset</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>170</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>265</x>
+     <y>192</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxEPSBBoxUnits</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnTBorderOffset</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>289</x>
+     <y>177</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>289</x>
+     <y>229</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxEPSBBoxUnits</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnRBorderOffset</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>311</x>
+     <y>174</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>312</x>
+     <y>264</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxEPSBBoxUnits</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnBBorderOffset</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>342</x>
+     <y>171</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>339</x>
+     <y>291</y>
     </hint>
    </hints>
   </connection>
