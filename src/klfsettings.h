@@ -62,6 +62,7 @@ public:
     SyntaxHighlightingColors,
     ExecutablePaths,
     ExpandEPSBBox,
+    CalcEPSBoundingBox,
     ExportProfiles,
     LibrarySettings,
     UserScriptInfo,
@@ -102,6 +103,7 @@ public slots:
   void removePlugin(const QString& fname);
 
   void showAdvancedConfigEditor();
+  void showSystemMessages();
 
   void retranslateUi(bool alsoBaseUi = true);
 

@@ -1101,7 +1101,7 @@ public:
   QHash<QString,QWidget*> userScriptInputWidgets;
   QString userScriptCurrentInfo;
   QWidget * getUserScriptInputWidget(const QString& uifile);
-  QVariantMap collectUserScriptInput();
+  QVariantMap collectUserScriptInput() const;
 
   /**
    * Use \ref currentInputState() instead for "public" use.
@@ -1174,6 +1174,7 @@ public slots: // .. but in private API
   void showRealTimeError(const QString& errorstr, int errcode);
 
   void updatePreviewThreadInput();
+  void updatePreviewThreadSettings();
 
   void displayError(const QString& errormsg);
 

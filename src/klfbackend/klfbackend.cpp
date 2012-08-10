@@ -571,6 +571,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // bg not transparent AND bg not white
     klfDebugf(("%s: forcing calcEpsBoundingBox to FALSE because you have non-transparent/non-white bg",
 	       KLF_FUNC_NAME)) ;
+    klfWarning("Cannot use gs to calculate EPS bounding box with background color that is not white or transparent!");
     settings.calcEpsBoundingBox = false;
   }
 
@@ -1222,6 +1223,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 }
 
 
+
 static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsFile, klfbbox *bbox,
 				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings)
 {
@@ -1269,15 +1271,34 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsF
   return true;
 }
 
+
+static bool parse_bbox_values(const QString& str, klfbbox *bbox)
+{
+  // parse bbox values
+  QRegExp rx_bbvalues("" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
+  int i = rx_bbvalues.rx_indexin(str);
+  if (i < 0) {
+    return false;
+  }
+  bbox->x1 = rx_bbvalues.cap(1).toDouble();
+  bbox->y1 = rx_bbvalues.cap(2).toDouble();
+  bbox->x2 = rx_bbvalues.cap(3).toDouble();
+  bbox->y2 = rx_bbvalues.cap(4).toDouble();
+  return true;
+}
+
 static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::klfOutput * resError)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  static const char * hibboxtag = "%%HiResBoundingBox:";
   static const char * bboxtag = "%%BoundingBox:";
+  static const int hibboxtaglen = strlen(hibboxtag);
   static const int bboxtaglen = strlen(bboxtag);
 
   // Read dvips' bounding box.
-  QBuffer buf(const_cast<QByteArray*>(&epsdata));
+  QBuffer buf;
+  buf.setData(epsdata);
   bool r = buf.open(QIODevice::ReadOnly | QIODevice::Text);
   if (!r) {
     klfWarning("What's going on!!?! can't open buffer for reading? Will Fail!!!") ;
@@ -1287,24 +1308,45 @@ static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::
     QObject::tr("DVIPS did not provide parsable %%BoundingBox: in its output!", "KLFBackend");
 
   char linebuffer[512];
-  int n, i;
+  int n;
+  bool gotepsbbox = false;
+  int still_look_for_hiresbbox_lines = 5;
   while ((n = buf.readLine(linebuffer, 512)) > 0) {
-    if (!strncmp(linebuffer, bboxtag, bboxtaglen)) {
-      // got bounding-box.
-      // parse bbox values
-      QRegExp rx_bbvalues("" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
-      i = rx_bbvalues.rx_indexin(QString::fromLatin1(linebuffer + bboxtaglen));
-      if (i < 0) {
+    if (gotepsbbox && still_look_for_hiresbbox_lines-- < 0) {
+      // if we already got the %BoundingBox, and we've been looking at more than a certian number of lines
+      // after that, abort because usually %BoundingBox and %HiResBoundingBox are together...
+      klfDbg("stopped looking for hires-bbox.") ;
+      break;
+    }
+    if (!strncmp(linebuffer, hibboxtag, hibboxtaglen)) {
+      // got hi-res bounding-box
+      bool ok = parse_bbox_values(QString::fromLatin1(linebuffer+hibboxtaglen), bbox);
+      if (!ok) {
 	resError->status = KLFERR_DVIPS_OUTPUTNOBBOX;
 	resError->errorstr = nobboxerrstr;
 	return false;
       }
-      bbox->x1 = rx_bbvalues.cap(1).toDouble();
-      bbox->y1 = rx_bbvalues.cap(2).toDouble();
-      bbox->x2 = rx_bbvalues.cap(3).toDouble();
-      bbox->y2 = rx_bbvalues.cap(4).toDouble();
+      klfDbg("got hires-bbox.") ;
+      // all ok, got hi-res bbox
       return true;
     }
+    if (!strncmp(linebuffer, bboxtag, bboxtaglen)) {
+      // got bounding-box.
+      bool ok = parse_bbox_values(QString::fromLatin1(linebuffer+bboxtaglen), bbox);
+      if (!ok) {
+	continue;
+      }
+      // stand by, continue in case we have a hi-res bbox.
+      gotepsbbox = true;
+      klfDbg("got normal bbox.") ;
+      continue;
+    }
+  }
+
+  // didn't get a hi-res bbox. see if we still got a regular %BoundingBox: and return that.
+  if (gotepsbbox) {
+    // bbox pointer is already set
+    return true;
   }
 
   resError->status = KLFERR_DVIPS_OUTPUTNOBBOX;

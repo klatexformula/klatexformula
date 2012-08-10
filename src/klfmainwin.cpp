@@ -85,8 +85,15 @@ KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
 
   setWindowModality(Qt::WindowModal);
 
+  u->txtError->setWordWrapMode(QTextOption::WrapAnywhere);
   u->txtError->setText(errtext);
 }
+
+QTextEdit * KLFProgErr::textEditWidget()
+{
+  return u->txtError;
+}
+
 
 KLFProgErr::~KLFProgErr()
 {
@@ -512,7 +519,7 @@ KLFMainWin::KLFMainWin()
   //  klfconfig.UI.labelOutputFixedSize.connectQObjectProperty(pLatexPreviewThread, "previewSize");
   klfconfig.UI.previewTooltipMaxSize.connectQObjectProperty(d->pLatexPreviewThread, "largePreviewSize");
   d->pLatexPreviewThread->setInput(d->collectInput(false));
-  d->pLatexPreviewThread->setSettings(d->settings);
+  d->pLatexPreviewThread->setSettings(currentSettings());
 
   connect(u->txtLatex, SIGNAL(insertContextMenuActions(const QPoint&, QList<QAction*> *)),
 	  d, SLOT(slotEditorContextMenuInsertActions(const QPoint&, QList<QAction*> *)));
@@ -529,6 +536,19 @@ KLFMainWin::KLFMainWin()
   connect(u->colBg, SIGNAL(colorChanged(const QColor&)), d, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
   connect(u->cbxUserScript, SIGNAL(activated(const QString&)), d, SLOT(updatePreviewThreadInput()),
+	  Qt::QueuedConnection);
+
+  connect(u->gbxOverrideMargins, SIGNAL(toggled(bool)), d, SLOT(updatePreviewThreadSettings()),
+	  Qt::QueuedConnection);
+  connect(u->spnMarginTop, SIGNAL(valueChanged(double)), d, SLOT(updatePreviewThreadSettings()),
+	  Qt::QueuedConnection);
+  connect(u->spnMarginRight, SIGNAL(valueChanged(double)), d, SLOT(updatePreviewThreadSettings()),
+	  Qt::QueuedConnection);
+  connect(u->spnMarginBottom, SIGNAL(valueChanged(double)), d, SLOT(updatePreviewThreadSettings()),
+	  Qt::QueuedConnection);
+  connect(u->spnMarginLeft, SIGNAL(valueChanged(double)), d, SLOT(updatePreviewThreadSettings()),
+	  Qt::QueuedConnection);
+  connect(u->cbxUserScript, SIGNAL(activated(const QString&)), d, SLOT(updatePreviewThreadSettings()),
 	  Qt::QueuedConnection);
 
   connect(d->pLatexPreviewThread, SIGNAL(previewError(const QString&, int)),
@@ -872,8 +892,6 @@ void KLFMainWin::saveSettings()
   klfconfig.UI.colorChooseWidgetCustom = KLFColorChooseWidget::customColors();
 
   klfconfig.writeToConfig();
-
-  d->pLatexPreviewThread->setSettings(d->settings);
 
   //  u->lblOutput->setLabelFixedSize(klfconfig.UI.labelOutputFixedSize);
   u->lblOutput->setEnableToolTipPreview(klfconfig.UI.enableToolTipPreview);
@@ -2676,6 +2694,8 @@ void KLFMainWin::applySettings(const KLFBackend::klfSettings& s)
 {
   d->settings = s;
   d->settings_altered = false;
+
+  d->updatePreviewThreadSettings();
 }
 
 void KLFMainWinPrivate::displayError(const QString& error)
@@ -2699,6 +2719,11 @@ void KLFMainWinPrivate::updatePreviewThreadInput()
   if (inputchanged || sizechanged) {
     evaloutput_uptodate = false;
   }
+}
+
+void KLFMainWinPrivate::updatePreviewThreadSettings()
+{
+  pLatexPreviewThread->setSettings(K->currentSettings());
 }
 
 void KLFMainWin::setTxtLatexFont(const QFont& f)
@@ -2780,7 +2805,7 @@ void KLFMainWinPrivate::showRealTimeError(const QString& errmsg, int errcode)
 }
 
 
-QVariantMap KLFMainWinPrivate::collectUserScriptInput()
+QVariantMap KLFMainWinPrivate::collectUserScriptInput() const
 {
   // check for user script input
   QWidget * scriptInputWidget = K->u->stkScriptInput->currentWidget();
@@ -2815,62 +2840,13 @@ QVariantMap KLFMainWinPrivate::collectUserScriptInput()
 
 KLFBackend::klfInput KLFMainWinPrivate::collectInput(bool final)
 {
-  // KLFBackend input
-  KLFBackend::klfInput input;
+  KLFBackend::klfInput input = K->currentInputState();
 
-  if (K->u->chkVectorScale->isChecked())
-    input.vectorscale = K->u->spnVectorScale->value() / 100.0;
-  else
-    input.vectorscale = 1.0;
-
-  input.latex = K->u->txtLatex->latex();
-  klfDbg("latex="<<input.latex) ;
-
-  input.userScript = K->u->cbxUserScript->itemData(K->u->cbxUserScript->currentIndex()).toString();
-
-  QVariantMap userScriptInput = collectUserScriptInput();
-  for (QVariantMap::iterator usparam = userScriptInput.begin(); usparam != userScriptInput.end(); ++usparam) {
-    input.userScriptParam[usparam.key()] = usparam.value().toString();
+  // remember the math mode if the user clicked on 'Evaluate' (final==true)
+  if (final && K->u->cbxMathMode->findText(input.mathmode) == -1) {
+    K->u->cbxMathMode->addItem(input.mathmode);
+    klfconfig.UI.customMathModes = klfconfig.UI.customMathModes() << input.mathmode;
   }
-
-  if (K->u->chkMathMode->isChecked()) {
-    input.mathmode = K->u->cbxMathMode->currentText();
-    if (final && K->u->cbxMathMode->findText(input.mathmode) == -1) {
-      K->u->cbxMathMode->addItem(input.mathmode);
-      klfconfig.UI.customMathModes = klfconfig.UI.customMathModes() << input.mathmode;
-    }
-  } else {
-    input.mathmode = "...";
-  }
-  int fsval = K->u->spnLatexFontSize->value();
-  if (fsval <= 0)
-    input.fontsize = -1;
-  else
-    input.fontsize = fsval;
-  input.preamble = K->u->txtPreamble->latex();
-  int idx = K->u->cbxLatexFont->currentIndex();
-  if (idx > 0) {
-    // find corresponding font in list
-    int k;
-    for (k = 0; latexfonts[k][0] != NULL; ++k) {
-      if (QString::fromUtf8(latexfonts[k][1]) == K->u->cbxLatexFont->itemData(idx).toString()) {
-	input.preamble += QString::fromUtf8(latexfonts[k][2]);
-	break;
-      }
-    }
-    if (latexfonts[k][0] == NULL) {
-      klfWarning("Couldn't find font "<<K->u->cbxLatexFont->currentText()<<" !");
-    }
-  }
-  input.fg_color = K->u->colFg->color().rgb();
-  QColor bgcolor = K->u->colBg->color();
-  if (bgcolor.isValid())
-    input.bg_color = bgcolor.rgb();
-  else
-    input.bg_color = qRgba(255, 255, 255, 0);
-  klfDbg("input.bg_color="<<klfFmtCC("#%08lx", (ulong)input.bg_color)) ;
-
-  input.dpi = K->u->spnDPI->value();
 
   return input;
 }
@@ -2887,27 +2863,8 @@ void KLFMainWin::slotEvaluate()
 
   input = d->collectInput(true);
 
-  KLFBackend::klfSettings settings = d->settings;
-  // see if we need to override settings
-  if (u->gbxOverrideMargins->isChecked()) {
-    settings.tborderoffset = u->spnMarginTop->valueInRefUnit();
-    settings.rborderoffset = u->spnMarginRight->valueInRefUnit();
-    settings.bborderoffset = u->spnMarginBottom->valueInRefUnit();
-    settings.lborderoffset = u->spnMarginLeft->valueInRefUnit();
-  }
-
-  // setup user script configuration
-  if (!input.userScript.isEmpty()) {
-    QString usfn = KLFUserScriptInfo(input.userScript).fileName();
-    if (klfconfig.UserScripts.userScriptConfig.contains(usfn)) {
-      QVariantMap data = klfconfig.UserScripts.userScriptConfig[usfn];
-      QMap<QString,QString> mdata;
-      for (QVariantMap::const_iterator it = data.begin(); it != data.end(); ++it)
-	mdata[QLatin1String("KLF_USCONFIG_") + it.key()] = klfSaveVariantToText(it.value(), true);
-      klfMergeEnvironment(&settings.execenv, klfMapToEnvironmentList(mdata));
-    }
-    klfDbg("Full environment (w/ userscript config) is "<<settings.execenv) ;
-  }
+  // this accounts for both user script configuration and overriding of bbox margins
+  KLFBackend::klfSettings settings = currentSettings();
 
   // ****  and GO !
   d->output = KLFBackend::getLatexFormula(input, settings);
@@ -4003,16 +3960,94 @@ KLFBackend::klfSettings KLFMainWin::backendSettings() const
 
 KLFBackend::klfSettings KLFMainWin::currentSettings() const
 {
-  return d->settings;
+  KLFBackend::klfSettings settings = d->settings;
+  // see if we need to override settings
+  if (u->gbxOverrideMargins->isChecked()) {
+    klfDbg("overriding settings margins.") ;
+    settings.tborderoffset = u->spnMarginTop->valueInRefUnit();
+    settings.rborderoffset = u->spnMarginRight->valueInRefUnit();
+    settings.bborderoffset = u->spnMarginBottom->valueInRefUnit();
+    settings.lborderoffset = u->spnMarginLeft->valueInRefUnit();
+  }
+  return settings;
+
+  KLFBackend::klfInput input = currentInputState();
+  // setup user script configuration
+  if (!input.userScript.isEmpty()) {
+    QString usfn = KLFUserScriptInfo(input.userScript).fileName();
+    if (klfconfig.UserScripts.userScriptConfig.contains(usfn)) {
+      QVariantMap data = klfconfig.UserScripts.userScriptConfig[usfn];
+      QMap<QString,QString> mdata;
+      for (QVariantMap::const_iterator it = data.begin(); it != data.end(); ++it)
+	mdata[QLatin1String("KLF_USCONFIG_") + it.key()] = klfSaveVariantToText(it.value(), true);
+      klfMergeEnvironment(&settings.execenv, klfMapToEnvironmentList(mdata));
+    }
+    klfDbg("Full environment (w/ userscript config) is "<<settings.execenv) ;
+  }
+
 }
 
 KLFBackend::klfOutput KLFMainWin::currentKLFBackendOutput() const
 {
   return d->output;
 }
-KLFBackend::klfInput KLFMainWin::currentInputState()
+
+KLFBackend::klfInput KLFMainWin::currentInputState() const
 {
-  return d->collectInput(false);
+  // KLFBackend input
+  KLFBackend::klfInput input;
+
+  if (u->chkVectorScale->isChecked())
+    input.vectorscale = u->spnVectorScale->value() / 100.0;
+  else
+    input.vectorscale = 1.0;
+
+  input.latex = u->txtLatex->latex();
+  klfDbg("latex="<<input.latex) ;
+
+  input.userScript = u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString();
+
+  QVariantMap userScriptInput = d->collectUserScriptInput();
+  for (QVariantMap::const_iterator usparam = userScriptInput.begin(); usparam != userScriptInput.end(); ++usparam) {
+    input.userScriptParam[usparam.key()] = usparam.value().toString();
+  }
+
+  if (u->chkMathMode->isChecked()) {
+    input.mathmode = u->cbxMathMode->currentText();
+  } else {
+    input.mathmode = "...";
+  }
+  int fsval = u->spnLatexFontSize->value();
+  if (fsval <= 0)
+    input.fontsize = -1;
+  else
+    input.fontsize = fsval;
+  input.preamble = u->txtPreamble->latex();
+  int idx = u->cbxLatexFont->currentIndex();
+  if (idx > 0) {
+    // find corresponding font in list
+    int k;
+    for (k = 0; latexfonts[k][0] != NULL; ++k) {
+      if (QString::fromUtf8(latexfonts[k][1]) == u->cbxLatexFont->itemData(idx).toString()) {
+	input.preamble += QString::fromUtf8(latexfonts[k][2]);
+	break;
+      }
+    }
+    if (latexfonts[k][0] == NULL) {
+      klfWarning("Couldn't find font "<<u->cbxLatexFont->currentText()<<" !");
+    }
+  }
+  input.fg_color = u->colFg->color().rgb();
+  QColor bgcolor = u->colBg->color();
+  if (bgcolor.isValid())
+    input.bg_color = bgcolor.rgb();
+  else
+    input.bg_color = qRgba(255, 255, 255, 0);
+  klfDbg("input.bg_color="<<klfFmtCC("#%08lx", (ulong)input.bg_color)) ;
+
+  input.dpi = u->spnDPI->value();
+
+  return input;
 }
 
 

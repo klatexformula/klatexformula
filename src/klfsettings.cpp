@@ -174,6 +174,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->cbxEPSBBoxUnits->setCurrentUnitAbbrev("pt");
 
   connect(u->btnAdvancedEditor, SIGNAL(clicked()), this, SLOT(showAdvancedConfigEditor()));
+  connect(u->btnSystemMessages, SIGNAL(clicked()), this, SLOT(showSystemMessages()));
 
   // set some smaller fonts for small titles
   KLFRelativeFont *relfontSHF = new KLFRelativeFont(this, u->lblSHForeground);
@@ -512,6 +513,10 @@ void KLFSettings::showControl(int control)
   case ExpandEPSBBox:
     __KLF_SHOW_SETTINGS_CONTROL(Latex, spnLBorderOffset) ;
     break;
+  case CalcEPSBoundingBox:
+    u->tabsAdvancedSettings->setCurrentWidget(u->tabAdvancedLatex);
+    __KLF_SHOW_SETTINGS_CONTROL(Advanced, chkCalcEPSBoundingBox) ;
+    break;
   case ExportProfiles:
     __KLF_SHOW_SETTINGS_CONTROL(Interface, cbxCopyExportProfile) ;
     break;
@@ -557,6 +562,7 @@ void KLFSettings::showControl(const QString& controlName)
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, SyntaxHighlightingColors ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ExecutablePaths ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ExpandEPSBBox ) ;
+  __KLF_SETTINGS_TEST_STR_CONTROL( controlName, CalcEPSBoundingBox ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, LibrarySettings ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, UserScriptInfo ) ;
   __KLF_SETTINGS_TEST_STR_CONTROL( controlName, ManageAddOns ) ;
@@ -623,6 +629,7 @@ void KLFSettings::reset()
   u->spnTBorderOffset->setValueInRefUnit(s.tborderoffset);
   u->spnRBorderOffset->setValueInRefUnit(s.rborderoffset);
   u->spnBBorderOffset->setValueInRefUnit(s.bborderoffset);
+  u->chkCalcEPSBoundingBox->setChecked( s.calcEpsBoundingBox );
   u->chkOutlineFonts->setChecked( s.outlineFonts );
 
   u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.enabled);
@@ -1465,12 +1472,35 @@ void KLFSettings::showAdvancedConfigEditor()
   d->advancedConfigEditor->show();
 
 #else
-  QMessageBox::critical(this, tr("Not Yet Implemented"),
-			tr("This feature is not yet implemented. If you're daring, try compiling "
+  QMessageBox::critical(this, ("Not Yet Implemented"),
+			("This feature is not yet implemented. If you're daring, try compiling "
 			   "klatexformula with the experimental features on."));
 #endif
 }
 
+// klfdebug.cpp
+extern  QByteArray klf_qt_msg_get_warnings_buffer();
+
+void KLFSettings::showSystemMessages()
+{
+  QByteArray warnings_buffer = klf_qt_msg_get_warnings_buffer();
+
+  // create the dialog
+  KLFProgErr dlg(this, QString());
+
+  // setup the text widget and display the buffer
+  QTextEdit *w = dlg.textEditWidget();
+  w->setPlainText(warnings_buffer);
+  // scroll to end
+  QTextCursor curend(w->document());
+  curend.setPosition(warnings_buffer.size());
+  w->setTextCursor(curend);
+  w->ensureCursorVisible();
+  
+  // show dialog
+  dlg.resize(800,400);
+  dlg.exec();
+}
 
 void KLFSettings::apply()
 {
@@ -1500,6 +1530,7 @@ void KLFSettings::apply()
   backendsettings.tborderoffset = u->spnTBorderOffset->valueInRefUnit();
   backendsettings.rborderoffset = u->spnRBorderOffset->valueInRefUnit();
   backendsettings.bborderoffset = u->spnBBorderOffset->valueInRefUnit();
+  backendsettings.calcEpsBoundingBox = u->chkCalcEPSBoundingBox->isChecked();
   backendsettings.outlineFonts = u->chkOutlineFonts->isChecked();
 
   d->mainWin->applySettings(backendsettings);

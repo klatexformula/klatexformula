@@ -33,6 +33,7 @@
 #include <QApplication>
 #include <QMetaObject>
 #include <QDebug>
+#include <QDateTime>
 
 #include "klflegacymacros_p.h"
 #include "klfsysinfo.h"
@@ -1129,7 +1130,10 @@ KLF_EXPORT QDebug __klf_dbg_hdr(QDebug dbg, const char * funcname, const char *r
 KLF_EXPORT QDebug __klf_warning_hdr(QDebug warndbg, const char * funcname, const char * shorttime)
 {
   Q_UNUSED(shorttime) ; // maybe if I one day decide to change the format to include shorttime... (?)
-  return warndbg.nospace()<<"***** In function "<<qPrintable(func_name_w_parens(funcname))<<" *****"
+  return warndbg.nospace()<<"***** In function "<<qPrintable(func_name_w_parens(funcname))
+			  <<"  " // shorttime is too short:
+			  <<qPrintable(QDateTime::currentDateTime().toString(Qt::DefaultLocaleShortDate))
+			  <<" *****"
 			  <<"\n        ";
 
 }

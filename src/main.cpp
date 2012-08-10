@@ -284,96 +284,17 @@ void signal_act(int sig)
 
 // DEBUG, WARNING AND FATAL MESSAGES HANDLER
 
-// redirect debug output to this file (if non-NULL) instead of stderr
-static FILE *klf_qt_msg_fp = NULL;
+// klfdebug.cpp
+extern  void klf_qt_msg_handle(QtMsgType type, const char *msg);
+extern  void klf_qt_msg_set_fp(FILE * fp);
 
-// in case we want to print messages directly into terminal
-static FILE *klf_fp_tty = NULL;
-static bool klf_fp_tty_failed = false;
 
 void klf_qt_message(QtMsgType type, const char *msg)
 {
   if (opt_quiet)
     return;
 
-  FILE *fout = stderr;
-  if (klf_qt_msg_fp != NULL)  fout = klf_qt_msg_fp;
-
-#ifdef Q_OS_UNIX
-  if (klf_fp_tty == NULL && !klf_fp_tty_failed)
-    if ( !(klf_fp_tty = fopen("/dev/tty", "w")) )
-      klf_fp_tty_failed = true;
-#else
-  Q_UNUSED(klf_fp_tty_failed) ;
-#endif
-
-  switch (type) {
-  case QtDebugMsg:
-    // only with debugging enabled
-#ifdef KLF_DEBUG
-    fprintf(fout, "D: %s\n", msg);
-    fflush(fout);
-#endif
-    break;
-  case QtWarningMsg:
-    fprintf(fout, "Warning: %s\n", msg);
-    fflush(fout);
-#ifdef KLF_DEBUG
-    // in debug mode, also print warning messages to TTY (because they get lost in the debug messages!)
-    if (klf_fp_tty) fprintf(klf_fp_tty, "Warning: %s\n", msg);
-#endif
-
-#if defined Q_WS_WIN && defined KLF_DEBUG
-#  define   SAFECOUNTER_NUM   10
-    // only show dialog after having created a QApplication
-    if (qApp != NULL && qApp->inherits("QApplication")) {
-      static int safecounter = SAFECOUNTER_NUM;
-      if (safecounter-- >= 0) {
-	if (!QString::fromLocal8Bit(msg).startsWith("MNG error")) { // ignore these "MNG" errors...
-	  QMessageBox::warning(0, "Warning",
-			       QString("KLatexFormula System Warning:\n%1")
-			       .arg(QString::fromLocal8Bit(msg)));
-	}
-      }
-      if (safecounter == -1) {
-	QMessageBox::information(0, "Information",
-				 QString("Shown %1 system warnings. Will stop displaying them.").arg(SAFECOUNTER_NUM));
-	safecounter = -2;
-      }
-      if (safecounter < -2) safecounter = -2;
-    }
-#endif
-    break;
-  case QtCriticalMsg:
-    fprintf(fout, "Error: %s\n", msg);
-    fflush(fout);
-#ifdef Q_WS_WIN
-    if (qApp != NULL && qApp->inherits("QApplication")) {
-      QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
-			    QObject::tr("KLatexFormula System Error:\n%1",
-					"[[KLF's Qt Message Handler: dialog text]]")
-			    .arg(QString::fromLocal8Bit(msg)));
-    }
-#endif
-    break;
-  case QtFatalMsg:
-    fprintf(fout, "Fatal: %s\n", msg);
-    fflush(fout);
-#ifdef Q_WS_WIN
-    if (qApp != NULL && qApp->inherits("QApplication")) {
-      QMessageBox::critical(0, QObject::tr("FATAL ERROR",
-					   "[[KLF's Qt Message Handler: dialog title]]"),
-			    QObject::tr("KLatexFormula System FATAL ERROR:\n%1",
-					"[[KLF's Qt Message Handler: dialog text]]")
-			    .arg(QString::fromLocal8Bit(msg)));
-    }
-#endif
-    ::exit(255);
-  default:
-    fprintf(fout, "?????: %s\n", msg);
-    fflush(fout);
-    break;
-  }
+  klf_qt_msg_handle(type, msg);
 }
 
 
@@ -895,15 +816,10 @@ int main(int argc, char **argv)
     }
     // before performing the redirect...
     klfDbg("Redirecting debug output to file "<<QString::fromLocal8Bit(fname)) ;
-    klf_qt_msg_fp = fopen(fname, "w");
-    KLF_ASSERT_NOT_NULL( klf_qt_msg_fp, "debug output redirection failed." , /* no fail action */; ) ;
-    if (klf_qt_msg_fp != NULL) {
-      fprintf(klf_qt_msg_fp, "\n\n"
-	      "-------------------------------------------------\n"
-	      "  KLATEXFORMULA DEBUG OUTPUT\n"
-	      "-------------------------------------------------\n"
-	      "Started on %s\n\n",
-	      qPrintable(QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate)));
+    FILE * klffp = fopen(fname, "w");
+    KLF_ASSERT_NOT_NULL( klffp, "debug output redirection failed." , /* no fail action */; ) ;
+    if (klffp != NULL) {
+      klf_qt_msg_set_fp(klffp);
     }
   }
 

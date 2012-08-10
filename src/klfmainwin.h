@@ -73,6 +73,9 @@ public:
   KLFProgErr(QWidget *parent, QString errtext);
   virtual ~KLFProgErr();
 
+  QTextEdit *textEditWidget();
+
+  // convenience static function
   static void showError(QWidget *parent, QString text);
 
 protected:
@@ -211,19 +214,23 @@ public:
 
   KLFStyle currentStyle() const;
 
-  KLFBackend::klfSettings backendSettings() const;
-
   QFont txtLatexFont() const;
   QFont txtPreambleFont() const;
 
-  /** \bug this function is totally unnecessary. use backendSettings() instead. */
+  /** The current configuration of the KLFBackend. Does not account for corrections, eg. overriding
+   * bbox margins.
+   */
+  KLFBackend::klfSettings backendSettings() const;
+  /** This function accounts for corrections eg. overriding bbox margins. Use backendSettings() to get
+   * the raw backend settings themselves.
+   */
   KLFBackend::klfSettings currentSettings() const;
 
   void applySettings(const KLFBackend::klfSettings& s);
 
   KLFBackend::klfOutput currentKLFBackendOutput() const;
 
-  KLFBackend::klfInput currentInputState();
+  KLFBackend::klfInput currentInputState() const;
 
   QString currentInputLatex() const;
 
