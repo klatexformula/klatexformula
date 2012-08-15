@@ -84,7 +84,9 @@ signals:
   void previewError(const QString& errorString, int errorCode);
 
 public slots:
-  /** \returns TRUE if the input was set, FALSE if current input is already equal to \c input */
+  /** \returns TRUE if the input was set, FALSE if current input is already equal to \c input.
+   * The thread will then take care to generate the corresponding preview and emit the previewAvailable() etc.
+   * signals. */
   bool setInput(const KLFBackend::klfInput& input);
   /** \returns TRUE if the settings were set, FALSE if current settings are already equal to \c settings */
   bool setSettings(const KLFBackend::klfSettings& settings, bool disableExtraFormats = true);
