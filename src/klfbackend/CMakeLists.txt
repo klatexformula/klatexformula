@@ -31,6 +31,7 @@ set(klfbackend_SRCS
 set(klfbackend_MOCHEADERS
 	klfblockprocess.h
 	klflatexpreviewthread.h
+	klflatexpreviewthread_p.h
 )
 set(klfbackend_HEADERS
 	klfbackend.h

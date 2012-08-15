@@ -516,10 +516,11 @@ KLFMainWin::KLFMainWin()
   // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
 
   d->pLatexPreviewThread = new KLFLatexPreviewThread(this);
+  d->pContLatexPreview = new KLFContLatexPreview(d->pLatexPreviewThread);
   //  klfconfig.UI.labelOutputFixedSize.connectQObjectProperty(pLatexPreviewThread, "previewSize");
-  klfconfig.UI.previewTooltipMaxSize.connectQObjectProperty(d->pLatexPreviewThread, "largePreviewSize");
-  d->pLatexPreviewThread->setInput(d->collectInput(false));
-  d->pLatexPreviewThread->setSettings(currentSettings());
+  klfconfig.UI.previewTooltipMaxSize.connectQObjectProperty(d->pContLatexPreview, "largePreviewSize");
+  d->pContLatexPreview->setInput(d->collectInput(false));
+  d->pContLatexPreview->setSettings(currentSettings());
 
   connect(u->txtLatex, SIGNAL(insertContextMenuActions(const QPoint&, QList<QAction*> *)),
 	  d, SLOT(slotEditorContextMenuInsertActions(const QPoint&, QList<QAction*> *)));
@@ -551,14 +552,15 @@ KLFMainWin::KLFMainWin()
   connect(u->cbxUserScript, SIGNAL(activated(const QString&)), d, SLOT(updatePreviewThreadSettings()),
 	  Qt::QueuedConnection);
 
-  connect(d->pLatexPreviewThread, SIGNAL(previewError(const QString&, int)),
+  connect(d->pContLatexPreview, SIGNAL(previewError(const QString&, int)),
 	  d, SLOT(showRealTimeError(const QString&, int)));
-  connect(d->pLatexPreviewThread, SIGNAL(previewAvailable(const QImage&, const QImage&, const QImage&)),
+  connect(d->pContLatexPreview, SIGNAL(previewAvailable(const QImage&, const QImage&, const QImage&)),
 	  d, SLOT(showRealTimePreview(const QImage&, const QImage&)));
-  connect(d->pLatexPreviewThread, SIGNAL(previewReset()), d, SLOT(showRealTimeReset()));
+  connect(d->pContLatexPreview, SIGNAL(previewReset()), d, SLOT(showRealTimeReset()));
 
   if (klfconfig.UI.enableRealTimePreview) {
     d->pLatexPreviewThread->start();
+    d->pLatexPreviewThread->setPriority(QThread::LowestPriority);
   }
 
   // CREATE SETTINGS DIALOG
@@ -734,6 +736,8 @@ KLFMainWin::~KLFMainWin()
     delete d->mSettingsDialog;
 
   klfDbg("deleting latex preview thread...") ;
+  if (d->pContLatexPreview)
+    delete d->pContLatexPreview;
   if (d->pLatexPreviewThread)
     delete d->pLatexPreviewThread;
 
@@ -920,6 +924,7 @@ void KLFMainWin::saveSettings()
   if (klfconfig.UI.enableRealTimePreview) {
     if ( ! d->pLatexPreviewThread->isRunning() ) {
       d->pLatexPreviewThread->start();
+      d->pLatexPreviewThread->setPriority(QThread::LowestPriority);
     }
   } else {
     if ( d->pLatexPreviewThread->isRunning() ) {
@@ -2706,7 +2711,7 @@ void KLFMainWinPrivate::displayError(const QString& error)
 
 void KLFMainWinPrivate::updatePreviewThreadInput()
 {
-  bool inputchanged = pLatexPreviewThread->setInput(collectInput(false));
+  bool inputchanged = pContLatexPreview->setInput(collectInput(false));
   if (inputchanged) {
     emit K->userInputChanged();
   }
@@ -2715,7 +2720,7 @@ void KLFMainWinPrivate::updatePreviewThreadInput()
     // to invalidate evaluated contents
     return;
   }
-  bool sizechanged = pLatexPreviewThread->setPreviewSize(K->u->lblOutput->size());
+  bool sizechanged = pContLatexPreview->setPreviewSize(K->u->lblOutput->size());
   if (inputchanged || sizechanged) {
     evaloutput_uptodate = false;
   }
@@ -2723,7 +2728,7 @@ void KLFMainWinPrivate::updatePreviewThreadInput()
 
 void KLFMainWinPrivate::updatePreviewThreadSettings()
 {
-  pLatexPreviewThread->setSettings(K->currentSettings());
+  pContLatexPreview->setSettings(K->currentSettings());
 }
 
 void KLFMainWin::setTxtLatexFont(const QFont& f)

@@ -33,14 +33,37 @@
 
 class KLFLatexPreviewThreadPrivate;
 
-/**
- * A helper that runs in a different thread that generates previews in real-time as user types text,
- * without blocking the GUI.
- *
- * \note returns (max.) three different image sizes set by setPreviewSize(), setLargePreviewSize() and
- *   the original image size. Setting an invalid size disables image generation of that particular preview
- *   size (might save resources by not resizing the image to that size).
- */
+class KLF_EXPORT KLFLatexPreviewHandler : public QObject
+{
+  Q_OBJECT
+public:
+  KLFLatexPreviewHandler(QObject * parent = NULL) ;
+  virtual ~KLFLatexPreviewHandler();
+
+public slots:
+  /** Called whenever there is no preview to generate (input latex string empty) */
+  virtual void latexPreviewReset();
+
+  /** Called when a preview was successfully generated (i.e., <tt>output.status==0</tt>). The full
+   * KLFBackend::klfOutput object is given here. */
+  virtual void latexOutputAvailable(const KLFBackend::klfOutput& output) ;
+  /** Called when a preview was successfully generated. All three images are given here (preview
+   * size, large preview size, original image) */
+  virtual void latexPreviewAvailable(const QImage& preview, const QImage& largePreview, const QImage& fullPreview);
+  /** Called when a preview was successfully generated. Preview Size image. See also
+   * \ref setPreviewSize(). */
+  virtual void latexPreviewImageAvailable(const QImage& preview);
+  /** Called when a preview was successfully generated. Large preview size image. See also
+   * \ref setLargePreviewSize(). */
+  virtual void latexPreviewLargeImageAvailable(const QImage& largePreview);
+  /** Called when a preview was successfully generated. The original image is given. */
+  virtual void latexPreviewFullImageAvailable(const QImage& fullPreview);
+
+  /** Called when generation of the latex preview raised an error. See the error codes
+   * defined in klfbackend.h */
+  virtual void latexPreviewError(const QString& errorString, int errorCode);
+};
+
 class KLF_EXPORT KLFLatexPreviewThread : public QThread
 {
   Q_OBJECT
@@ -52,13 +75,66 @@ public:
   KLFLatexPreviewThread(QObject *parent = NULL);
   virtual ~KLFLatexPreviewThread();
 
+  KLF_PROPERTY_GET(QSize previewSize) ;
+  KLF_PROPERTY_GET(QSize largePreviewSize) ;
+
+  bool submitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
+			 KLFLatexPreviewHandler * outputhandler,
+			 const QSize& previewSize, const QSize& largePreviewSize);
+  bool submitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
+			 KLFLatexPreviewHandler * outputhandler);
+  bool clearAndSubmitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
+				 KLFLatexPreviewHandler * outputhandler,
+				 const QSize& previewSize, const QSize& largePreviewSize);
+  bool clearAndSubmitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
+				 KLFLatexPreviewHandler * outputhandler);
+  void clearPendingTasks();
+
+  void stop();
+
+  void setPreviewSize(const QSize& previewSize);
+  void setLargePreviewSize(const QSize& largePreviewSize);
+
+protected:
+  virtual void run();
+
+private:
+  KLF_DECLARE_PRIVATE(KLFLatexPreviewThread) ;
+
+  QMutex _mutex;
+};
+
+
+class KLFContLatexPreviewPrivate;
+
+/**
+ * A helper that runs in a different thread that generates previews in real-time as user types text,
+ * without blocking the GUI.
+ *
+ * .......... UPDATE DOC FOR NEW THREAD OBJECT STRUCTURE ........
+ *
+ * \note returns (max.) three different image sizes set by setPreviewSize(), setLargePreviewSize() and
+ *   the original image size. Setting an invalid size disables image generation of that particular preview
+ *   size (might save resources by not resizing the image to that size).
+ */
+class KLF_EXPORT KLFContLatexPreview : public QObject
+{
+  Q_OBJECT
+
+  Q_PROPERTY(QSize previewSize READ previewSize WRITE setPreviewSize) ;
+  Q_PROPERTY(QSize largePreviewSize READ largePreviewSize WRITE setLargePreviewSize) ;
+
+public:
+  KLFContLatexPreview(KLFLatexPreviewThread * thread = NULL);
+  virtual ~KLFContLatexPreview();
+
   KLFBackend::klfInput intput() const;
   KLFBackend::klfSettings settings() const;
 
   KLF_PROPERTY_GET(QSize previewSize) ;
   KLF_PROPERTY_GET(QSize largePreviewSize) ;
 
-  void stop();
+  void setThread(KLFLatexPreviewThread * thread);
 
 signals:
   /** Emitted whenever there is no preview to generate (input latex string empty) */
@@ -97,13 +173,8 @@ public slots:
    * \c largePreviewSize */
   bool setLargePreviewSize(const QSize& largePreviewSize);
 
-protected:
-  virtual void run();
-
 private:
-  KLF_DECLARE_PRIVATE(KLFLatexPreviewThread) ;
-
-  QMutex _mutex;
+  KLF_DECLARE_PRIVATE(KLFContLatexPreview) ;
 };
 
 

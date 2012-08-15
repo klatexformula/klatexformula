@@ -42,6 +42,7 @@
 #include <QTextCodec>
 
 #include <klfutil.h>
+#include <klflatexpreviewthread.h>
 #include "klflibview.h"
 #include "klfmain.h"
 #include "klfsettings.h"
@@ -1091,6 +1092,7 @@ public:
   bool evaloutput_uptodate;
   /** The Thread that will create real-time previews of formulas. */
   KLFLatexPreviewThread *pLatexPreviewThread;
+  KLFContLatexPreview *pContLatexPreview;
 
   QLabel *mExportMsgLabel;
   void showExportMsgLabel(const QString& msg, int timeout = 3000);
