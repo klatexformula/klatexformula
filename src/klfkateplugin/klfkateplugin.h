@@ -75,36 +75,6 @@ private:
 };
 
 
-class KLFKteLatexRunThread  :  public QThread
-{
-  Q_OBJECT
-public:
-  KLFKteLatexRunThread(QObject *parent = NULL);
-  virtual ~KLFKteLatexRunThread();
-  void run();
-
-signals:
-  void previewError(const QString& errorString, int errorCode);
-  void previewAvailable(const QImage& preview);
-
-public slots:
-  bool setNewInput(const KLFBackend::klfInput& input);
-  void reemitPreviewAvailable();
-  void setSettings(const KLFBackend::klfSettings& settings);
-
-protected:
-  KLFBackend::klfInput _input;
-  KLFBackend::klfSettings _settings;
-
-  KLFBackend::klfOutput _output;
-  QImage _popup_img;
-
-  QMutex _mutex;
-  QWaitCondition _condnewinfoavail;
-
-  bool _hasnewinfo;
-  bool _abort;
-};
 
 class KLFKtePixmapWidget : public QWidget
 {
@@ -176,7 +146,9 @@ private:
 
   KLFBackend::klfSettings klfsettings;
 
-  KLFKteLatexRunThread *pLatexRunThread;
+  static KLFLatexPreviewThread * staticLatexPreviewThread;
+  static KLFLatexPreviewThread * latexPreviewThreadInstance();
+  KLFContLatexPreview * pContLatexPreview;
   KLFKtePreviewWidget *pPreview;
 
   KAction *aPreviewSel;

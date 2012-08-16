@@ -99,115 +99,6 @@ void KLFKtePlugin::writeConfig()
 
 
 
-// ----------------------------------
-
-
-KLFKteLatexRunThread::KLFKteLatexRunThread(QObject *parent)
-  : QThread(parent),   _hasnewinfo(false), _abort(false)
-{
-}
-
-KLFKteLatexRunThread::~KLFKteLatexRunThread()
-{
-  _mutex.lock();
-  _abort = true;
-  _condnewinfoavail.wakeOne();
-  _mutex.unlock();
-  wait();
-}
-
-void KLFKteLatexRunThread::run()
-{
-  KLFBackend::klfInput input;
-  KLFBackend::klfSettings settings;
-  KLFBackend::klfOutput output;
-  QImage img;
-
-  for (;;) {
-    _mutex.lock();
-    bool abrt = _abort;
-    _mutex.unlock();
-    if (abrt)
-      return;
-
-    // fetch info
-    _mutex.lock();
-    input = _input;
-    settings = _settings;
-    settings.epstopdfexec = "";
-    _hasnewinfo = false;
-    _mutex.unlock();
-
-    // render equation
-    if ( input.latex.isEmpty() ) {
-      emit previewError(i18n("No Latex Equation"), -1000);
-    } else {
-      // and GO!
-      // fprintf(stderr, "KLFKteLatexRunThread::run(): running getLatexFormula ...\n");
-      output = KLFBackend::getLatexFormula(input, settings);
-      img = output.result;
-      // fprintf(stderr, "... status=%d\n", output.status);
-      if (output.status == 0) {
-	QSize popupMaxSize = KLFKteConfigData::inst()->popupMaxSize;
-	if (img.width() > popupMaxSize.width() || img.height() > popupMaxSize.height())
-	  img = img.scaled(popupMaxSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-      } else {
-	img = QImage();
-      }
-    }
-
-    _mutex.lock();
-    _output = output; // save output for possible future use
-    _popup_img = img; // same...
-    bool abort = _abort;
-    bool hasnewinfo = _hasnewinfo;
-    _mutex.unlock();
-
-    if (abort)
-      return;
-
-    // fprintf(stderr, "thread::run(): emitting signal. image size=(%d,%d)\n", img.width(), img.height());
-    if (!img.isNull())
-      emit previewAvailable(img);
-    else
-      emit previewError(output.errorstr, output.status);
-
-    if (hasnewinfo)
-      continue;
-
-    _mutex.lock();
-    _condnewinfoavail.wait(&_mutex);
-    _mutex.unlock();
-  }
-}
-bool KLFKteLatexRunThread::setNewInput(const KLFBackend::klfInput& input)
-{
-  QMutexLocker mutexlocker(&_mutex);
-  _input = input;
-  _hasnewinfo = true;
-  _condnewinfoavail.wakeOne();
-  _output = KLFBackend::klfOutput();
-  _popup_img = QImage();
-  return true;
-}
-void KLFKteLatexRunThread::reemitPreviewAvailable()
-{
-  QMutexLocker mutexlocker(&_mutex);
-  if (!_popup_img.isNull())
-    emit previewAvailable(_popup_img);
-  else
-    emit previewError(_output.errorstr, _output.status);
-}
-void KLFKteLatexRunThread::setSettings(const KLFBackend::klfSettings& settings)
-{
-  _mutex.lock();
-  _settings = settings;
-  _hasnewinfo = true;
-  _condnewinfoavail.wakeOne();
-  _mutex.unlock();
-}
-
-
 
 // --------------------------------
 
@@ -348,6 +239,22 @@ void KLFKtePreviewWidget::showPreview(const QImage& preview, QWidget *view, cons
 // ---------------------------------
 
 
+// static
+KLFLatexPreviewThread * KLFKtePluginView::staticLatexPreviewThread = NULL;
+// static
+KLFLatexPreviewThread * KLFKtePluginView::latexPreviewThreadInstance()
+{
+  if (staticLatexPreviewThread == NULL) {
+    staticLatexPreviewThread = new KLFLatexPreviewThread(NULL);
+    staticLatexPreviewThread->start();
+    staticLatexPreviewThread->setPriority(QThread::LowestPriority);
+  }
+
+  return staticLatexPreviewThread;
+}
+
+
+
 KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
   : QObject(view),
     KXMLGUIClient(view),
@@ -386,13 +293,12 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
 
   pPreview = new KLFKtePreviewWidget(pView);
 
-  pLatexRunThread = new KLFKteLatexRunThread(this);
-  pLatexRunThread->start();
-  pLatexRunThread->setSettings(klfsettings);
+  pContLatexPreview = new KLFContLatexPreview(latexPreviewThreadInstance());
+  pContLatexPreview->setSettings(klfsettings);
 
-  connect(pLatexRunThread, SIGNAL(previewAvailable(const QImage&)),
+  connect(pContLatexPreview, SIGNAL(previewAvailable(const QImage&)),
 	  this, SLOT(slotReadyPreview(const QImage&)), Qt::QueuedConnection);
-  //  connect(pLatexRunThread, SIGNAL(previewError(const QString&, int)),
+  //  connect(pContLatexPreview, SIGNAL(previewError(const QString&, int)),
   //	  this, SLOT(slotHidePreview()), Qt::QueuedConnection);
 
   connect(pPreview, SIGNAL(invokeKLF()), this, SLOT(slotInvokeKLF()));
@@ -574,10 +480,13 @@ void KLFKtePluginView::slotPreview()
 
 void KLFKtePluginView::slotSamePreview()
 {
-  if (pCurMathContext.isValid())
-    pLatexRunThread->reemitPreviewAvailable();
-  else
+  if (pCurMathContext.isValid()) {
+    //    pContLatexPreview->reemitPreviewAvailable();
+    /// \bug ....................
+    pContLatexPreview->slotReadyPreview(QImage());
+  } else {
     slotHidePreview();
+  }
 }
 
 void KLFKtePluginView::slotPreview(const MathModeContext& context)
@@ -597,7 +506,7 @@ void KLFKtePluginView::slotPreview(const MathModeContext& context)
   klfinput.bg_color = qRgba(255, 255, 255, 0); // transparent
   klfinput.dpi = 180;
 
-  pLatexRunThread->setNewInput(klfinput);
+  pContLatexPreview->setNewInput(klfinput);
 }
 
 void KLFKtePluginView::slotHidePreview()
