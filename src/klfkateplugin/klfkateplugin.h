@@ -43,6 +43,7 @@
 #include <kpluginfactory.h>
 
 #include <klfbackend.h>
+#include <klflatexpreviewthread.h>
 
 #include <klfkteparser.h>
 
@@ -150,6 +151,8 @@ private:
   static KLFLatexPreviewThread * latexPreviewThreadInstance();
   KLFContLatexPreview * pContLatexPreview;
   KLFKtePreviewWidget *pPreview;
+
+  QImage pLastPreview;
 
   KAction *aPreviewSel;
   KAction *aInvokeKLF;

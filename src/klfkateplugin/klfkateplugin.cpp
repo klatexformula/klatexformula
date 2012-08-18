@@ -267,6 +267,8 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
 
   KLFBackend::detectSettings(&klfsettings);
   
+  klfWarning("DEBUG: new view!") ;
+
   aPreviewSel = new KAction(i18n("Show Popup For Current Equation"), this);
   aInvokeKLF = new KAction(i18n("Invoke KLatexFormula"), this);
   aInvokeKLF->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_K);
@@ -294,9 +296,11 @@ KLFKtePluginView::KLFKtePluginView(KTextEditor::View *view)
   pPreview = new KLFKtePreviewWidget(pView);
 
   pContLatexPreview = new KLFContLatexPreview(latexPreviewThreadInstance());
+  pContLatexPreview->setPreviewSize(KLFKteConfigData::inst()->popupMaxSize);
+  klfWarning("preview size is "<<pContLatexPreview->previewSize());
   pContLatexPreview->setSettings(klfsettings);
 
-  connect(pContLatexPreview, SIGNAL(previewAvailable(const QImage&)),
+  connect(pContLatexPreview, SIGNAL(previewImageAvailable(const QImage&)),
 	  this, SLOT(slotReadyPreview(const QImage&)), Qt::QueuedConnection);
   //  connect(pContLatexPreview, SIGNAL(previewError(const QString&, int)),
   //	  this, SLOT(slotHidePreview()), Qt::QueuedConnection);
@@ -483,7 +487,7 @@ void KLFKtePluginView::slotSamePreview()
   if (pCurMathContext.isValid()) {
     //    pContLatexPreview->reemitPreviewAvailable();
     /// \bug ....................
-    pContLatexPreview->slotReadyPreview(QImage());
+    slotReadyPreview(pLastPreview);
   } else {
     slotHidePreview();
   }
@@ -506,7 +510,7 @@ void KLFKtePluginView::slotPreview(const MathModeContext& context)
   klfinput.bg_color = qRgba(255, 255, 255, 0); // transparent
   klfinput.dpi = 180;
 
-  pContLatexPreview->setNewInput(klfinput);
+  pContLatexPreview->setInput(klfinput);
 }
 
 void KLFKtePluginView::slotHidePreview()
@@ -516,6 +520,8 @@ void KLFKtePluginView::slotHidePreview()
 
 void KLFKtePluginView::slotReadyPreview(const QImage& preview)
 {
+  klfWarning("preview!! size="<<preview.size()) ;
+
   if (!pIsGoodHighlightingMode)
     return;
 
@@ -523,6 +529,8 @@ void KLFKtePluginView::slotReadyPreview(const QImage& preview)
     pPreventNextShow = false; // reset this flag
     return;
   }
+
+  pLastPreview = preview;
 
   pPreview->showPreview(preview, pView, pView->cursorPositionCoordinates());
 }
