@@ -21,6 +21,13 @@
  ***************************************************************************/
 /* $Id$ */
 
+
+
+/** \bug THIS IS A DESIGN FLAW.......... */
+
+
+
+
 #include <QStyledItemDelegate>
 #include <QTextDocument>
 #include <QTextCharFormat>

@@ -63,6 +63,7 @@ set(klftools_MOCHEADERS
 	klfadvancedconfigeditor.h
 	klfadvancedconfigeditor_p.h
 	klfitemviewsearchtarget.h
+	klfitemviewsearchtarget_p.h
 )
 #  * all headers
 set(klftools_HEADERS

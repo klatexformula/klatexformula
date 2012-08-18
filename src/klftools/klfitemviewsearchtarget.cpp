@@ -27,15 +27,23 @@
 #include <QAbstractItemModel>
 
 #include "klfitemviewsearchtarget.h"
+#include "klfitemviewsearchtarget_p.h"
 
 
 struct KLFItemViewSearchTargetPrivate {
   KLF_PRIVATE_HEAD(KLFItemViewSearchTarget)
   {
     view = NULL;
+    olddelegate = NULL;
+    klfdelegate = new KLFSearchItemDelegate(K);
   }
 
   QAbstractItemView * view;
+
+  QAbstractItemDelegate * olddelegate;
+  KLFSearchItemDelegate * klfdelegate;
+
+  void resetDelegate();
 
   QList<int> columnlist;
   QMap<int,int> nextcolumn;
@@ -162,26 +170,60 @@ bool KLFItemViewSearchTarget::searchIterMatches(const QModelIndex &pos, const QS
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  bool has_uppercase = queryString.contains(QRegExp("[A-Z]"));
-  if (pos.data().toString().contains(queryString, has_uppercase ? Qt::CaseSensitive : Qt::CaseInsensitive))
-    return true;
-  return false;
+  QList<KLFSearchItemDelegate::Match> mlist
+    = KLFSearchItemDelegate::matches(pos.data().toString(), queryString, false);
+  return mlist.size();
 }
 void KLFItemViewSearchTarget::searchPerformed(const QModelIndex& resultMatchPosition, bool found,
 					      const QString& queryString)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  //   KLF_ASSERT_NOT_NULL(d->view, "View is NULL!", return ; );
-  //   QAbstractItemModel * model = d->view->model();
-  //   KLF_ASSERT_NOT_NULL(model, "View has NULL model!!!", return ; ) ;
+  Q_UNUSED(resultMatchPosition);
+  Q_UNUSED(found);
 
-  /* * \warning When search results are displayed, some item properties are set in the model itself;
-   * this is seen by views/delegates as edits! */
-  /** \todo highlight all matches, leave info for the delegate etc. ..... */
+  // WARNING: If item properties are set in the model itself then this is seen by views/delegates as edits!
+  //    KLF_ASSERT_NOT_NULL(d->view, "View is NULL!", return ; );
+  //    QAbstractItemModel * model = d->view->model();
+  //    KLF_ASSERT_NOT_NULL(model, "View has NULL model!!!", return ; ) ;
+  //    model->setData(resultMatchPosition, QColor(128,255,255,128), Qt::BackgroundRole);
 
-  //  model->setData(resultMatchPosition, QColor(128,255,255,128), Qt::BackgroundRole);
+  KLF_ASSERT_NOT_NULL(d->view, "View is NULL!", return ; );
+  QAbstractItemDelegate *delegate = d->view->itemDelegate();
+  KLF_ASSERT_NOT_NULL(delegate, "Delegate is NULL!", return ; );
+  if (delegate != d->klfdelegate) {
+    d->olddelegate = delegate;
+    d->view->setItemDelegate(d->klfdelegate);
+  }
+
+  d->klfdelegate->setSearchString(queryString);
+  d->view->repaint();
 }
+void KLFItemViewSearchTargetPrivate::resetDelegate()
+{
+  KLF_ASSERT_NOT_NULL(view, "View is NULL!", return ; );
+  QAbstractItemDelegate *delegate = view->itemDelegate();
+  KLF_ASSERT_NOT_NULL(delegate, "Delegate is NULL!", return ; );
+  if (delegate == klfdelegate && olddelegate != NULL) {
+    view->setItemDelegate(olddelegate);
+  }
+  view->repaint();
+}
+void KLFItemViewSearchTarget::searchAborted()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLFIteratorSearchable<QModelIndex>::searchAborted();
+
+  d->resetDelegate();
+}
+void KLFItemViewSearchTarget::searchReinitialized()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLFIteratorSearchable<QModelIndex>::searchReinitialized();
+
+  d->resetDelegate();
+}
+
 void KLFItemViewSearchTarget::searchMoveToIterPos(const QModelIndex& pos)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;

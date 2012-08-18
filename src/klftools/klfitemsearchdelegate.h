@@ -22,6 +22,8 @@
 /* $Id$ */
 
 
+/** \bug THIS IS A DESIGN FLAW.......... */
+
 
 #ifndef KLFITEMSEARCHDELEGATE_H
 #define KLFITEMSEARCHDELEGATE_H

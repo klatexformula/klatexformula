@@ -66,6 +66,7 @@ KLFAdvancedConfigEditor::KLFAdvancedConfigEditor(QWidget *parent, KLFConfigBase 
   
   KLFItemViewSearchTarget *searchtarget = new KLFItemViewSearchTarget(u->configView, this);
   u->searchBar->setSearchTarget(searchtarget);
+  u->searchBar->registerShortcuts(this);
 
   connect(d->pConfModel, SIGNAL(itemChanged(QStandardItem *)),
 	  d, SLOT(configEntryEdited(QStandardItem *)));

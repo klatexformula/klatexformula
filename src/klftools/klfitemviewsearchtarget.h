@@ -52,6 +52,8 @@ public:
   virtual bool searchIterMatches(const QModelIndex &pos, const QString &queryString);
   virtual void searchPerformed(const QModelIndex& resultMatchPosition, bool found,
 			       const QString& queryString);
+  virtual void searchAborted();
+  virtual void searchReinitialized();
   virtual void searchMoveToIterPos(const QModelIndex& pos);
 
   void setSearchView(QAbstractItemView *view);
