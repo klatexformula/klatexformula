@@ -10,7 +10,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>487</width>
+    <width>501</width>
     <height>541</height>
    </rect>
   </property>
@@ -831,8 +831,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>49</width>
-                 <height>40</height>
+                 <width>100</width>
+                 <height>30</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -885,8 +885,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>86</width>
-                 <height>50</height>
+                 <width>94</width>
+                 <height>37</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -1021,8 +1021,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>179</width>
-                    <height>40</height>
+                    <width>100</width>
+                    <height>30</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1188,8 +1188,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>179</width>
-                       <height>40</height>
+                       <width>100</width>
+                       <height>30</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1253,8 +1253,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>45</width>
-                <height>16</height>
+                <width>94</width>
+                <height>24</height>
                </rect>
               </property>
               <attribute name="label">
@@ -2398,7 +2398,7 @@
    </property>
    <property name="icon">
     <iconset resource="klfres.qrc">
-     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+     <normaloff>:/pics/tab-advanced.png</normaloff>:/pics/tab-advanced.png</iconset>
    </property>
    <property name="text">
     <string>Advanced</string>
@@ -2413,7 +2413,7 @@
    </property>
    <property name="icon">
     <iconset resource="klfres.qrc">
-     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+     <normaloff>:/pics/tab-interface.png</normaloff>:/pics/tab-interface.png</iconset>
    </property>
    <property name="text">
     <string>Interface</string>
@@ -2428,7 +2428,7 @@
    </property>
    <property name="icon">
     <iconset resource="klfres.qrc">
-     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+     <normaloff>:/pics/tab-latex.png</normaloff>:/pics/tab-latex.png</iconset>
    </property>
    <property name="text">
     <string>LaTeX</string>
@@ -2443,7 +2443,7 @@
    </property>
    <property name="icon">
     <iconset resource="klfres.qrc">
-     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+     <normaloff>:/pics/tab-editor.png</normaloff>:/pics/tab-editor.png</iconset>
    </property>
    <property name="text">
     <string>Editor</string>
@@ -2458,7 +2458,7 @@
    </property>
    <property name="icon">
     <iconset resource="klfres.qrc">
-     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+     <normaloff>:/pics/tab-library.png</normaloff>:/pics/tab-library.png</iconset>
    </property>
    <property name="text">
     <string>Library</string>
@@ -2473,7 +2473,7 @@
    </property>
    <property name="icon">
     <iconset resource="klfres.qrc">
-     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+     <normaloff>:/pics/tab-scripts.png</normaloff>:/pics/tab-scripts.png</iconset>
    </property>
    <property name="text">
     <string>Scripts</string>
@@ -2488,7 +2488,7 @@
    </property>
    <property name="icon">
     <iconset resource="klfres.qrc">
-     <normaloff>:/pics/iconhere.png</normaloff>:/pics/iconhere.png</iconset>
+     <normaloff>:/pics/tab-addons.png</normaloff>:/pics/tab-addons.png</iconset>
    </property>
    <property name="text">
     <string>Add-Ons</string>

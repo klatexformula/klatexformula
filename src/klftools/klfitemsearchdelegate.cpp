@@ -112,6 +112,8 @@ struct KLFItemSearchDelegatePrivate
       // highlight the match positions
       // -----------------------------
 
+      /** \bug WRITE ME!!!!!!!!!!!! */
+
 ............... ........... . . . ..  .. .  . .. . .
 
       QTextDocument textDocument;

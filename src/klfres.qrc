@@ -1,5 +1,12 @@
 <RCC>
   <qresource>
+    <file>pics/tab-scripts.png</file>
+    <file>pics/tab-addons.png</file>
+    <file>pics/tab-advanced.png</file>
+    <file>pics/tab-latex.png</file>
+    <file>pics/tab-editor.png</file>
+    <file>pics/tab-library.png</file>
+    <file>pics/tab-interface.png</file>
     <file>pics/info.png</file>
     <file>pics/infowarn.png</file>
     <file>pics/exportprofile.png</file>
