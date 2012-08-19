@@ -103,9 +103,6 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
 
 
 
-#define KLF_PROPERTY_GET(type_and_prop)					\
-  public: type_and_prop() const;
-
 
 #define KLF_DEFINE_PROPERTY_GET(ClassName, type, prop)	\
   type ClassName::prop() const { return d_func()->prop; }

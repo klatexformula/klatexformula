@@ -321,6 +321,11 @@ KLFMainWin::KLFMainWin()
   u->txtLatex->setFont(klfconfig.UI.latexEditFont);
   u->txtPreamble->setFont(klfconfig.UI.preambleEditFont);
 
+  u->txtLatex->setWrapLines(klfconfig.UI.editorWrapLines);
+  u->txtLatex->setTabChangesFocus(!klfconfig.UI.editorTabInsertsTab);
+  u->txtPreamble->setWrapLines(klfconfig.UI.editorWrapLines);
+  u->txtPreamble->setTabChangesFocus(!klfconfig.UI.editorTabInsertsTab);
+
   d->slotSetViewControlsEnabled(false);
   d->slotSetSaveControlsEnabled(false);
 
@@ -931,6 +936,11 @@ void KLFMainWin::saveSettings()
       d->pLatexPreviewThread->stop();
     }
   }
+
+  u->txtLatex->setWrapLines(klfconfig.UI.editorWrapLines);
+  u->txtLatex->setTabChangesFocus(!klfconfig.UI.editorTabInsertsTab);
+  u->txtPreamble->setWrapLines(klfconfig.UI.editorWrapLines);
+  u->txtPreamble->setTabChangesFocus(!klfconfig.UI.editorTabInsertsTab);
 
   emit klfConfigChanged();
 }

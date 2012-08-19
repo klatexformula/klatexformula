@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>461</width>
-    <height>529</height>
+    <width>468</width>
+    <height>546</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -117,7 +117,7 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tabInterface">
+     <widget class="QGroupBox" name="tabInterface">
       <layout class="QGridLayout" name="lyt_tabInterface">
        <item row="0" column="0">
         <layout class="QHBoxLayout" name="lytLocale">
@@ -283,7 +283,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabLatex">
+     <widget class="QGroupBox" name="tabLatex">
       <layout class="QGridLayout" name="lyt_tabLatex">
        <item row="0" column="0">
         <widget class="QGroupBox" name="gbxExecPaths">
@@ -490,7 +490,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabEditor">
+     <widget class="QGroupBox" name="tabEditor">
       <layout class="QGridLayout" name="lyt_tabEditor">
        <item row="3" column="0" colspan="2">
         <spacer name="vspcEditor">
@@ -556,21 +556,15 @@
          <layout class="QGridLayout" name="lyt_gbxEditorOptions">
           <item row="0" column="0">
            <widget class="QCheckBox" name="chkEditorTabInsertsTab">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
             <property name="text">
-             <string>Tab key inserts tab instead of passing on focus to next widget (N/A)</string>
+             <string>Tab key inserts tab instead of passing on keyboard focus</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="chkEditorWordWrap">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
+           <widget class="QCheckBox" name="chkEditorWrapLines">
             <property name="text">
-             <string>Wrap long lines in LaTeX code editor (N/A)</string>
+             <string>Wrap long lines in LaTeX code editor</string>
             </property>
            </widget>
           </item>
@@ -579,7 +573,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabLibrary">
+     <widget class="QGroupBox" name="tabLibrary">
       <layout class="QGridLayout" name="lyt_tabLibrary">
        <item row="0" column="0">
         <widget class="QGroupBox" name="gbxLibAppearBehave">
@@ -614,24 +608,8 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="3" column="1" colspan="2">
            <widget class="KLFEnumComboBox" name="cbxLibIconViewFlow"/>
-          </item>
-          <item row="3" column="2">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
           <item row="2" column="0" colspan="3">
            <widget class="QCheckBox" name="chkLibHistoryTagCopyToArchive">
@@ -640,15 +618,15 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="3">
+          <item row="4" column="0">
+           <widget class="QLabel" name="lblPreviewSizePrompt">
+            <property name="text">
+             <string>Preview size:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1" colspan="2">
            <layout class="QHBoxLayout" name="lytLibraryPreviewSize">
-            <item>
-             <widget class="QLabel" name="lblPreviewSizePrompt">
-              <property name="text">
-               <string>Preview size:</string>
-              </property>
-             </widget>
-            </item>
             <item>
              <widget class="QSpinBox" name="spnPreviewWidth">
               <property name="sizePolicy">
@@ -656,6 +634,9 @@
                 <horstretch>3</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="suffix">
+               <string> px</string>
               </property>
               <property name="minimum">
                <number>10</number>
@@ -695,6 +676,9 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="suffix">
+               <string> px</string>
+              </property>
               <property name="minimum">
                <number>10</number>
               </property>
@@ -703,25 +687,6 @@
               </property>
               <property name="value">
                <number>80</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="lblPreviewPx">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string notr="true">px</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="wordWrap">
-               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -776,7 +741,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabUserScripts">
+     <widget class="QGroupBox" name="tabUserScripts">
       <layout class="QGridLayout" name="lyt_tabUserScripts">
        <item row="0" column="0">
         <widget class="QSplitter" name="splitUserScripts">
@@ -831,8 +796,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
-                 <height>40</height>
+                 <width>368</width>
+                 <height>72</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -885,8 +850,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
-                 <height>50</height>
+                 <width>366</width>
+                 <height>72</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -930,6 +895,9 @@
      </widget>
      <widget class="QWidget" name="tabAddOnsPlugins">
       <layout class="QGridLayout" name="lyt_tabAddOnsPlugins">
+       <property name="margin">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <widget class="QTabWidget" name="tabsAddOnsPlugins">
          <property name="currentIndex">
@@ -1021,8 +989,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>98</width>
-                    <height>40</height>
+                    <width>253</width>
+                    <height>78</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1188,8 +1156,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>98</width>
-                       <height>40</height>
+                       <width>233</width>
+                       <height>89</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1253,8 +1221,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>98</width>
-                <height>28</height>
+                <width>45</width>
+                <height>16</height>
                </rect>
               </property>
               <attribute name="label">
@@ -1271,6 +1239,9 @@
      </widget>
      <widget class="QWidget" name="tabAdvanced">
       <layout class="QGridLayout" name="lyt_tabAdvanced">
+       <property name="margin">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <widget class="QTabWidget" name="tabsAdvancedSettings">
          <property name="currentIndex">
@@ -2544,118 +2515,5 @@
  <resources>
   <include location="klfres.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>chkSHEnable</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>chkSHHighlightParensOnly</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>98</x>
-     <y>130</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>101</x>
-     <y>130</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chkSHEnable</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>chkSHHighlightLonelyParen</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>111</x>
-     <y>130</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>111</x>
-     <y>130</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chkSHEnable</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>chkSHNoMatchParenTypes</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>111</x>
-     <y>130</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>111</x>
-     <y>130</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbxEPSBBoxUnits</sender>
-   <signal>unitChanged(double,QString)</signal>
-   <receiver>spnLBorderOffset</receiver>
-   <slot>setUnitWithSuffix(double,QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>265</x>
-     <y>170</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>265</x>
-     <y>192</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbxEPSBBoxUnits</sender>
-   <signal>unitChanged(double,QString)</signal>
-   <receiver>spnTBorderOffset</receiver>
-   <slot>setUnitWithSuffix(double,QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>289</x>
-     <y>177</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>289</x>
-     <y>229</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbxEPSBBoxUnits</sender>
-   <signal>unitChanged(double,QString)</signal>
-   <receiver>spnRBorderOffset</receiver>
-   <slot>setUnitWithSuffix(double,QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>311</x>
-     <y>174</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>312</x>
-     <y>264</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbxEPSBBoxUnits</sender>
-   <signal>unitChanged(double,QString)</signal>
-   <receiver>spnBBorderOffset</receiver>
-   <slot>setUnitWithSuffix(double,QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>342</x>
-     <y>171</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>339</x>
-     <y>291</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

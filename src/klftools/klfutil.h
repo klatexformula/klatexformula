@@ -463,6 +463,9 @@ protected:
 
 
 
+
+
+
 /** \brief Stores a pointer to an object with refcount
  *
  * This class provides a normal datatype (with default constructor,
@@ -589,7 +592,7 @@ public:
   template<class OtherPtr> KLFRefPtr<T>& operator=(OtherPtr aptr)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(OtherPtr)") ;
-    setPointer(static_cast<Pointer>(aptr));
+    setPointer((T*)(aptr));
     return *this;
   }
 
@@ -676,6 +679,184 @@ private:
   }
 
 };
+
+
+
+
+
+
+
+
+
+
+/** \internal */
+struct KLFPointerGuard
+{
+  KLFPointerGuard() : ptr(NULL), refcount(0) {}
+
+  void * ptr;
+
+  int ref() { return ++refcount; }
+  int deref() { return --refcount; }
+private:
+  int refcount;
+};
+
+/** \brief Store a guarded pointer, synchronizing other copies of this pointer
+ *
+ * Stores a pointer to any object. Copies may be made of the KLFSyncGuardPtr<T> pointer
+ * and used normally. Once you destroy the pointed object using one of these pointers, then
+ * set that pointer to NULL and automatically all copies of that pointer will be set to 
+ * NULL too.
+ *
+ * Minimal example:
+ * \code
+ *  QString * a = new QString("string-A");
+ *
+ *  KLFSyncGuardPtr<QString> ptr3;
+ *  {
+ *    KLFSyncGuardPtr<QString> ptr1 = a;
+ *    KLFSyncGuardPtr<QString> ptr2 = ptr1;
+ *    ptr3 = ptr1;
+ *    printf("Pointer 2 is now %p\n", (QString*)ptr2);
+ *    printf("Pointer 2 = %s\n", qPrintable(*ptr2));
+ *    printf("Pointer 3 is now %p\n", (QString*)ptr3);
+ *    printf("Pointer 3 = %s\n", qPrintable(*ptr3));
+ *
+ *    ptr1 = NULL;
+ *    printf("Pointer 2 is now %p\n", (QString*)ptr2);
+ *  }
+ *  printf("Pointer 3 is now %p\n", (QString*)ptr3);
+ * \endcode
+ *
+ * Note that if you assign another KLFSyncGuardPtr-guarded pointed object to a KLFSyncGuardPtr which is
+ * already tracking a pointer, then a warning is emitted. This is to avoid design flaws where in that
+ * case, the assignment will cause the current KLFSyncGuardPtr to become a copy of the new KLFSyncGuardPtr
+ * and all copies of the original pointer will become independant and unaffected.
+ * Example:
+ * \code
+ *  KLFSyncGuardPtr<Obj> ptr1 = myobject;
+ *  KLFSyncGuardPtr<Obj> ptr2 = ptr1; // ptr2 is a copy of ptr1
+ *
+ *  KLFSyncGuardPtr<Obj> otherptr = otherobject; // another sync-guard-ptr object
+ *
+ *  ptr1 = otherptr; // this will result in a warning. Indeed, ptr1 now tracks otherobject pointer and
+ *  // leaves myobject. In particular, ptr2, which was a copy of ptr1, is not modified and still points
+ *  // to myobject.
+ * \endcode
+ *
+ * Use reset() to detach from other copies and start fresh again.
+ */
+template<class T>
+class KLFSyncGuardPtr
+{
+public:
+  typedef T* Pointer;
+
+  KLFSyncGuardPtr()
+  {
+    ptrguard = NULL;
+  }
+  ~KLFSyncGuardPtr()
+  {
+  }
+
+  KLFSyncGuardPtr(const KLFSyncGuardPtr& copy)
+  {
+    ptrguard = copy.ptrguard;
+  }
+  KLFSyncGuardPtr(T * obj)
+  {
+    *this = obj;
+  }
+
+  inline Pointer ptr()
+  {
+    if (ptrguard == NULL)
+      return NULL;
+    return (Pointer) ptrguard->ptr;
+  }
+  inline const Pointer ptr() const
+  {
+    if (ptrguard == NULL)
+      return NULL;
+    return (const Pointer) ptrguard->ptr;
+  }
+
+  inline operator T*()
+  { return ptr(); }
+  inline operator const T*()
+  { return ptr(); }
+
+  inline T* operator()()
+  { return ptr(); }
+  inline const T* operator()() const
+  { return ptr(); }
+
+  inline T& operator*()
+  { return *ptr(); }
+  inline const T& operator*() const
+  { return *ptr(); }
+
+  inline T* operator->()
+  { return ptr(); }
+  inline const T* operator->() const
+  { return ptr(); }
+  
+
+  Pointer operator=(Pointer p)
+  {
+    if (p == NULL) {
+      invalidate();
+      return NULL;
+    }
+    if (ptrguard != NULL) {
+      klfWarning("Leaving tracked pointer "<<ptrguard->ptr<<" for another pointer!") ;
+    } else {
+      ptrguard = new KLFPointerGuard;
+    }
+    ptrguard->ptr = (void*)p;
+    return p;
+  };
+
+  const KLFSyncGuardPtr& operator=(const KLFSyncGuardPtr& copy)
+  {
+    KLF_ASSERT_CONDITION(ptrguard == NULL, "Leaving tracked pointer "<<ptrguard->ptr<<" for a copy pointer!",
+			 ;) ;
+    ptrguard = copy.ptrguard;
+    return *this;
+  }
+  
+  void invalidate()
+  {
+    if (ptrguard != NULL)
+      ptrguard->ptr = NULL;
+  }
+
+  void reset()
+  {
+    ptrguard.setNull();
+  }
+
+private:
+  KLFRefPtr<KLFPointerGuard> ptrguard;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // -----

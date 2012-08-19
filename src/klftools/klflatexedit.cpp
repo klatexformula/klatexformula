@@ -197,12 +197,14 @@ bool KLFLatexSyntaxHighlighter::ParsedBlock::parenIsLatexBrace() const
 // --------------------------
 
 KLFLatexEdit::KLFLatexEdit(QWidget *parent)
-  : QTextEdit(parent), mDropHandler(NULL), pHeightHintLines(-1)
+  : QTextEdit(parent)
 {
-  mSyntaxHighlighter = new KLFLatexSyntaxHighlighter(this, this);
+  KLF_INIT_PRIVATE(KLFLatexEdit) ;
+
+  d->mSyntaxHighlighter = new KLFLatexSyntaxHighlighter(this, this);
 
   connect(this, SIGNAL(cursorPositionChanged()),
-	  mSyntaxHighlighter, SLOT(refreshAll()));
+	  d->mSyntaxHighlighter, SLOT(refreshAll()));
 
   setContextMenuPolicy(Qt::DefaultContextMenu);
 
@@ -218,13 +220,31 @@ KLFLatexEdit::KLFLatexEdit(QWidget *parent)
 
 KLFLatexEdit::~KLFLatexEdit()
 {
+  KLF_DELETE_PRIVATE ;
+}
+
+QString KLFLatexEdit::latex() const
+{
+  return toPlainText();
+}
+int KLFLatexEdit::heightHintLines() const
+{
+  return d->pHeightHintLines;
+}
+void KLFLatexEdit::setDropDataHandler(KLFDropDataHandler *handler)
+{
+  d->mDropHandler = handler;
+}
+KLFLatexSyntaxHighlighter *KLFLatexEdit::syntaxHighlighter()
+{
+  return d->mSyntaxHighlighter;
 }
 
 void KLFLatexEdit::clearLatex()
 {
   setLatex("");
   setFocus();
-  mSyntaxHighlighter->resetEditing();
+  d->mSyntaxHighlighter->resetEditing();
 }
 
 void KLFLatexEdit::setLatex(const QString& latex)
@@ -238,18 +258,28 @@ void KLFLatexEdit::setLatex(const QString& latex)
   cur.endEditBlock();
 }
 
+bool KLFLatexEdit::wrapLines() const
+{
+  return wordWrapMode() != QTextOption::NoWrap;
+}
+void KLFLatexEdit::setWrapLines(bool wrap)
+{
+  setWordWrapMode(wrap ? QTextOption::WrapAnywhere : QTextOption::NoWrap);
+}
+
+
 QSize KLFLatexEdit::sizeHint() const
 {
   QSize superSizeHint = QTextEdit::sizeHint();
-  if (pHeightHintLines >= 0) {
-    return QSize(superSizeHint.width(), 4 + QFontMetrics(font()).height()*pHeightHintLines);
+  if (d->pHeightHintLines >= 0) {
+    return QSize(superSizeHint.width(), 4 + QFontMetrics(font()).height()*d->pHeightHintLines);
   }
   return superSizeHint;
 }
 
 void KLFLatexEdit::setHeightHintLines(int lines)
 {
-  pHeightHintLines = lines;
+  d->pHeightHintLines = lines;
   updateGeometry();
 }
 
@@ -265,42 +295,6 @@ void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
   }
 
   QMenu * menu = createStandardContextMenu(mapToGlobal(pos));
-
-  /*
-  menu->addSeparator();
-
-  / ** \todo ....make this more flexible ..... ideally integrate into KLFLatexSymbolCache... with XML description,
-   *    "symbols" that would be delimiters would have a "display latex" and an "insert latex" with instructions
-   *    in if we need to go back spaces, etc.. * /
-  static const struct { const char * instext; int charsback; const char * iconsymb; } delimList[] = {
-    { "\\frac{}{}", 3, "\\frac{a}{b}" },
-    { "\\sqrt{}", 1, "\\sqrt{xyz}" },
-    { "\\sqrt[]{}", 3, "\\sqrt[n]{xyz}" },
-    { "\\textrm{}", 1, "\\textrm{A}" },
-    { "\\textit{}", 1, "\\textit{A}" },
-    { "\\textsl{}", 1, "\\textsl{A}" },
-    { "\\textbf{}", 1, "\\textbf{A}" },
-    { "\\mathrm{}", 1, "\\mathrm{A}" },
-    { "\\mathit{}", 1, "\\mathit{A}" },
-    { NULL, 0, NULL }
-  };
-
-  QMenu *delimmenu = new QMenu(menu);
-  for (k = 0; delimList[k].instext != NULL; ++k) {
-    QAction *a = new QAction(delimmenu);
-    a->setText(delimList[k].instext);
-    QVariantMap v;
-    v["delim"] = QVariant::fromValue<QString>(QLatin1String(delimList[k].instext));
-    v["charsBack"] = QVariant::fromValue<int>(delimList[k].charsback);
-    a->setData(QVariant(v));
-    a->setIcon(KLFLatexSymbolsCache::theCache()->findSymbolPixmap(QLatin1String(delimList[k].iconsymb)));
-    delimmenu->addAction(a);
-    connect(a, SIGNAL(triggered()), this, SLOT(slotInsertFromActionSender()));
-  }
-
-  QAction *delimaction = menu->addAction(tr("Insert Delimiter"));
-  delimaction->setMenu(delimmenu);
-  */
 
   QList<QAction*> actionList;
   emit insertContextMenuActions(pos, &actionList);
@@ -320,8 +314,8 @@ void KLFLatexEdit::contextMenuEvent(QContextMenuEvent *event)
 bool KLFLatexEdit::canInsertFromMimeData(const QMimeData *data) const
 {
   klfDbg("formats: "<<data->formats());
-  if (mDropHandler != NULL)
-    if (mDropHandler->canOpenDropData(data))
+  if (d->mDropHandler != NULL)
+    if (d->mDropHandler->canOpenDropData(data))
       return true; // data can be opened by main window
 
   // or check if we can insert the data ourselves
@@ -331,8 +325,8 @@ bool KLFLatexEdit::canInsertFromMimeData(const QMimeData *data) const
 void KLFLatexEdit::insertFromMimeData(const QMimeData *data)
 {
   klfDbg("formats: "<<data->formats());
-  if (mDropHandler != NULL) {
-    int res = mDropHandler->openDropData(data);
+  if (d->mDropHandler != NULL) {
+    int res = d->mDropHandler->openDropData(data);
     if (res == KLFDropDataHandler::OpenDataOk)
       return; // data was opened by main window
     if (res == KLFDropDataHandler::OpenDataFailed) {
@@ -342,7 +336,7 @@ void KLFLatexEdit::insertFromMimeData(const QMimeData *data)
     }
   }
 
-  klfDbg("mDropHandler="<<mDropHandler<<" did not handle the paste, doing it ourselves.") ;
+  klfDbg("mDropHandler="<<d->mDropHandler<<" did not handle the paste, doing it ourselves.") ;
 
   // insert the data ourselves
   QTextEdit::insertFromMimeData(data);
@@ -373,7 +367,7 @@ void KLFLatexEdit::setPalette(const QPalette& pal)
   QTextEdit::setPalette(pal);
 }
 
-void KLFLatexEdit::slotInsertFromActionSender()
+void KLFLatexEditPrivate::slotInsertFromActionSender()
 {
   QObject *obj = sender();
   if (obj == NULL || !obj->inherits("QAction")) {
@@ -382,7 +376,7 @@ void KLFLatexEdit::slotInsertFromActionSender()
   }
   QVariant v = qobject_cast<QAction*>(obj)->data();
   QVariantMap vdata = v.toMap();
-  insertDelimiter(vdata["delim"].toString(), vdata["charsBack"].toInt());
+  K->insertDelimiter(vdata["delim"].toString(), vdata["charsBack"].toInt());
 }
 
 
@@ -501,6 +495,8 @@ void KLFLatexSyntaxHighlighter::parseEverything()
   QList<LonelyParenItem> lonelyparens; // extra lonely parens that we can't close within the text
 
   QTextBlock block = document()->firstBlock();
+
+  /** \bug "DON'T TRY TO MATCH PAREN TYPES" IS NOT FUNCTIONAL. REMOVE THAT OPTION OR IMPLEMENT IT. */
 
   QString sopenrx =
     "^(?:("+QStringList(klfListMap(ParsedBlock::parenSpecs.openParenModifiers(), &QRegExp::escape)).join("|")+")\\s*)?"

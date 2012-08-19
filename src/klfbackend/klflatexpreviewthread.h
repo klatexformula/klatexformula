@@ -75,8 +75,8 @@ public:
   KLFLatexPreviewThread(QObject *parent = NULL);
   virtual ~KLFLatexPreviewThread();
 
-  KLF_PROPERTY_GET(QSize previewSize) ;
-  KLF_PROPERTY_GET(QSize largePreviewSize) ;
+  QSize previewSize() const;
+  QSize largePreviewSize() const;
 
   bool submitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
 			 KLFLatexPreviewHandler * outputhandler,
@@ -131,8 +131,8 @@ public:
   KLFBackend::klfInput intput() const;
   KLFBackend::klfSettings settings() const;
 
-  KLF_PROPERTY_GET(QSize previewSize) ;
-  KLF_PROPERTY_GET(QSize largePreviewSize) ;
+  QSize previewSize() const;
+  QSize largePreviewSize() const;
 
   void setThread(KLFLatexPreviewThread * thread);
 

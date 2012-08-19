@@ -258,6 +258,8 @@ public:
     KLFConfigProp<QFont> applicationFont;
     KLFConfigProp<QFont> latexEditFont;
     KLFConfigProp<QFont> preambleEditFont;
+    KLFConfigProp<bool> editorTabInsertsTab;
+    KLFConfigProp<bool> editorWrapLines;
     KLFConfigProp<QSize> previewTooltipMaxSize;
     KLFConfigProp<QSize> labelOutputFixedSize; //!< No Longer used (3.3.0alpha)
     KLFConfigProp<QSize> smallPreviewSize; //!< Size of preview to store e.g. in history/library items

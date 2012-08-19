@@ -117,3 +117,37 @@ struct LonelyParenItem : public ParenItem
   int unmatchedpos;
 
 };
+
+
+
+
+
+
+
+
+
+// -----------------------------
+
+
+
+class KLFLatexEditPrivate : public QObject
+{
+  Q_OBJECT
+public:
+  KLF_PRIVATE_QOBJ_HEAD(KLFLatexEdit, QObject)
+  {
+    mDropHandler = NULL;
+    pHeightHintLines = -1;
+  }
+
+  KLFLatexSyntaxHighlighter *mSyntaxHighlighter;
+
+  /** This is used to open data if needed */
+  KLFDropDataHandler *mDropHandler;
+
+  int pHeightHintLines;
+
+public slots:
+  void slotInsertFromActionSender();
+
+};

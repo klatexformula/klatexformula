@@ -632,6 +632,9 @@ void KLFSettings::reset()
   u->chkCalcEPSBoundingBox->setChecked( s.calcEpsBoundingBox );
   u->chkOutlineFonts->setChecked( s.outlineFonts );
 
+  u->chkEditorTabInsertsTab->setChecked( klfconfig.UI.editorTabInsertsTab );
+  u->chkEditorWrapLines->setChecked( klfconfig.UI.editorWrapLines );
+
   u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.enabled);
   u->chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.highlightParensOnly);
   u->chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.highlightLonelyParens);
@@ -1534,6 +1537,9 @@ void KLFSettings::apply()
   backendsettings.outlineFonts = u->chkOutlineFonts->isChecked();
 
   d->mainWin->applySettings(backendsettings);
+
+  klfconfig.UI.editorTabInsertsTab = u->chkEditorTabInsertsTab->isChecked();
+  klfconfig.UI.editorWrapLines = u->chkEditorWrapLines->isChecked();
 
   klfconfig.SyntaxHighlighter.enabled = u->chkSHEnable->isChecked();
   klfconfig.SyntaxHighlighter.highlightParensOnly = u->chkSHHighlightParensOnly->isChecked();

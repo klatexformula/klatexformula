@@ -52,6 +52,7 @@ set(klftools_MOCHEADERS
 	klfunitinput.h
 	klfsearchbar.h
 	klflatexedit.h
+	klflatexedit_p.h
 	klfrelativefont.h
 	klfenumlistwidget.h
 	klfflowlayout.h
@@ -77,7 +78,6 @@ set(klftools_HEADERS
 	klffactory.h
 	klfiteratorsearchable.h
 	klfsearchbar_p.h
-	klflatexedit_p.h
 	${klftools_MOCHEADERS}
 )
 # UI Forms

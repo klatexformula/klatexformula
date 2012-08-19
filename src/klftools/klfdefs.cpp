@@ -49,7 +49,7 @@
  *
  */
 
-/** \bug Remove Qt3 support w/ KLFBACKEND_QT4 in all files */
+/* * This is not a bug, it's cosmetic... \ bug Remove Qt3 support w/ KLFBACKEND_QT4 in all files */
 
 
 /** \fn int klfVersion()
@@ -590,26 +590,27 @@
  */
 
 
-/** \def KLF_PROPERTY_GET
- * \hideinitializer
- *
- * \bug DOES THIS MACRO PREVENT DOXYGEN DOCUMENTATION ?
- *
- * Declares a functions, one public designed to get a property value. This macro is to be used
- * within a class declaration.
- *
- * Useful in conjunction with Q_PROPERTY declarations.
- *
- * This macro expands to
- * \code 
- *   public: <type and propertyName>() const;
- * \endcode
- *
- * \param type_and_prop is the type and the name of the property, separated by space
- *
- * Possible definitions of this functions are provided with the macros \ref KLF_DEFINE_PROPERTY_GET
- * and \ref KLF_DEFINE_PROPERTY_GETSET.
- */
+/* -- * ------- NOT PROVIDED. NOT NICE. -------------------
+  \def KLF_PROPERTY_GET
+  \hideinitializer
+ 
+  \bug DOES THIS MACRO PREVENT DOXYGEN DOCUMENTATION ?
+ 
+  Declares a functions, one public designed to get a property value. This macro is to be used
+  within a class declaration.
+ 
+  Useful in conjunction with Q_PROPERTY declarations.
+ 
+  This macro expands to
+  \code 
+    public: <type and propertyName>() const;
+  \endcode
+ 
+  \param type_and_prop is the type and the name of the property, separated by space
+ 
+  Possible definitions of this functions are provided with the macros \ref KLF_DEFINE_PROPERTY_GET
+  and \ref KLF_DEFINE_PROPERTY_GETSET.
+*/
 
 /** \def KLF_DEFINE_PROPERTY_GET
  * \hideinitializer

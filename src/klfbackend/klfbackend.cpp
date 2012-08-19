@@ -62,26 +62,20 @@
  *
  * <div style="width: 60%; padding: 0 20%; text-align: justify; line-height: 150%">
  * This documentation is the API documentation for the KLatexFormula library backend that
- * you may want to use in your programs. It is a GPL-licensed library based on QT 3 or QT 4 that
+ * you may want to use in your programs. It is a GPL-licensed library based on QT 4 that
  * converts a LaTeX equation given as text into graphics, specifically PNG, EPS or PDF (and the
  * image is available as a QImage&mdash;so any format supported by Qt is available.
+ *
+ * Starting from version 3.3, KLFBackend NO LONGER COMPILES WITH QT 3. Only Qt 4 is supported from
+ * now on... Also, klfbackend now relies on klftools library and uses some of its functionality.
  *
  * Some utilities to save the output (in various formats) to a file or a QIODevice
  * are provided, see KLFBackend::saveOutputToFile() and KLFBackend::saveOutputToDevice().
  *
- * All the core functionality is based in the class \ref KLFBackend . Some extra general utilities are
- * available in \ref klfdefs.h , such as klfVersionCompare(), \ref KLFSysInfo, \ref klfDbg,
- * klfFmt(), klfSearchFind(), etc.
- *
- * This library will compile indifferently on QT 3 and QT 4 with the same source code.
- * The base API is the same, although some specific overloaded functions may differ or not be available
- * in either version for Qt 3 or Qt 4. Those members are documented as such.
- *
- * To compile with Qt 4, you may add \c KLFBACKEND_QT4 to your defines, ie. pass option \c -DKLFBACKEND_QT4
- * to gcc; however this is set automatically in \ref klfdefs.h if Qt 4 is detected.
+ * All the core functionality is based in the class \ref KLFBackend .
  *
  * This library has been tested to work in non-GUI applications (ie. FALSE in QApplication constructor,
- * or with QCoreApplication in Qt 4).
+ * or with QCoreApplication).
  *</div>
  */
 
@@ -1673,17 +1667,7 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
     extra_paths += KLF_PATH_SEP + extraPath;
 
   // temp dir
-#ifdef KLFBACKEND_QT4
   settings->tempdir = QDir::fromNativeSeparators(QDir::tempPath());
-#else
-# if defined(Q_OS_UNIX) || defined(Q_OS_LINUX) || defined(Q_OS_DARWIN) || defined(Q_OS_MACX)
-  settings->tempdir = "/tmp";
-# elif defined(Q_OS_WIN32)
-  settings->tempdir = getenv("TEMP");
-# else
-  settings->tempdir = QString();
-# endif
-#endif
 
   // sensible defaults
   settings->lborderoffset = 1;

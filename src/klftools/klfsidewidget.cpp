@@ -46,6 +46,9 @@ struct KLFSideWidgetManagerBasePrivate
     sideWidgetParentConsistency = false;
   }
 
+  QPointer<QWidget> pSideWidget;
+  QPointer<QWidget> pParentWidget;
+
   bool sideWidgetParentConsistency;
 };
 
@@ -61,10 +64,8 @@ KLFSideWidgetManagerBase::KLFSideWidgetManagerBase(QWidget *parentWidget, QWidge
   d->sideWidgetParentConsistency = consistency;
 
   // IMPORTANT: see dox doc of this constructor.
-  pSideWidget = NULL;
-  pParentWidget = NULL;
-  //  pSideWidget = sideWidget;
-  //  pParentWidget = parentWidget;
+  d->pSideWidget = NULL;
+  d->pParentWidget = NULL;
 
   Q_UNUSED(parentWidget);
   Q_UNUSED(sideWidget);
@@ -80,49 +81,58 @@ KLFSideWidgetManagerBase::~KLFSideWidgetManagerBase()
   KLF_DELETE_PRIVATE ;
 }
 
+QWidget * KLFSideWidgetManagerBase::sideWidget() const
+{
+  return d->pSideWidget;
+}
+QWidget * KLFSideWidgetManagerBase::ourParentWidget() const
+{
+  return d->pParentWidget;
+}
+
 void KLFSideWidgetManagerBase::setOurParentWidget(QWidget *p)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  if (pParentWidget == p) {
+  if (d->pParentWidget == p) {
     klfDbg("no-op.") ;
     return;
   }
 
-  klfDbg("old="<<pParentWidget<<", new parentWidget="<<p) ;
-  QWidget *oldpw = pParentWidget;
-  pParentWidget = p;
-  if (pSideWidget != NULL && d->sideWidgetParentConsistency) {
-    pSideWidget->setParent(pParentWidget);
+  klfDbg("old="<<d->pParentWidget<<", new parentWidget="<<p) ;
+  QWidget *oldpw = d->pParentWidget;
+  d->pParentWidget = p;
+  if (d->pSideWidget != NULL && d->sideWidgetParentConsistency) {
+    d->pSideWidget->setParent(d->pParentWidget);
   }
-  newParentWidgetSet(oldpw, pParentWidget);
+  newParentWidgetSet(oldpw, d->pParentWidget);
 }
 
 void KLFSideWidgetManagerBase::setSideWidget(QWidget *sideWidget)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  if (pSideWidget == sideWidget) {
+  if (d->pSideWidget == sideWidget) {
     klfDbg("no-op.") ;
     return;
   }
 
-  klfDbg("old="<<(void*)pSideWidget<<", new sideWidget="<<(void*)sideWidget) ;
-  klfDbg("old="<<pSideWidget<<", new sideWidget="<<sideWidget) ;
-  QWidget *oldw = pSideWidget;
+  klfDbg("old="<<(void*)d->pSideWidget<<", new sideWidget="<<(void*)sideWidget) ;
+  klfDbg("old="<<d->pSideWidget<<", new sideWidget="<<sideWidget) ;
+  QWidget *oldw = d->pSideWidget;
 
-  pSideWidget = sideWidget;
+  d->pSideWidget = sideWidget;
 
-  if (pSideWidget != NULL && d->sideWidgetParentConsistency) {
-    if (pSideWidget->parentWidget() != pParentWidget) {
+  if (d->pSideWidget != NULL && d->sideWidgetParentConsistency) {
+    if (d->pSideWidget->parentWidget() != d->pParentWidget) {
       klfDbg("Adjusting side widget's parent to satisfy parent consistency...") ;
-      pSideWidget->setParent(pParentWidget);
-      pSideWidget->show(); // subclasses may assume that this object is shown.
+      d->pSideWidget->setParent(d->pParentWidget);
+      d->pSideWidget->show(); // subclasses may assume that this object is shown.
     }
   }
 
   klfDbg("about to call virtual method.") ;
-  newSideWidgetSet(oldw, pSideWidget);
+  newSideWidgetSet(oldw, d->pSideWidget);
 }
 
 
@@ -737,7 +747,6 @@ bool KLFFloatSideWidgetManager::sideWidgetVisible() const
 
 QWidget * KLFFloatSideWidgetManager::createContainerWidget(QWidget *pw)
 {
-  /** \bug .... FIND OUT FROM WHICH QT_VERSION WE HAVE Qt::WindowCloseButtonHint */
   return  new QWidget(pw, Qt::Tool|Qt::CustomizeWindowHint|Qt::WindowTitleHint
 		      |Qt::WindowSystemMenuHint
 #if QT_VERSION >= 0x040500
@@ -933,13 +942,13 @@ void KLFSideWidget::setSideWidgetManager(SideWidgetManager mtype)
 {
   QString s;
   switch (mtype) {
-  case ShowHide: s = "ShowHide"; break;
-  case Float: s = "Float"; break;
-  case Drawer: s = "Drawer"; break;
+  case ShowHide: s = QLatin1String("ShowHide"); break;
+  case Float: s = QLatin1String("Float"); break;
+  case Drawer: s = QLatin1String("Drawer"); break;
   default: break;
   }
 
-  KLF_ASSERT_CONDITION(!s.isEmpty(), "Invalid mtype: "<<mtype<<"!", return;)
+  KLF_ASSERT_CONDITION(!s.isEmpty(), "Invalid mtype: "<<mtype<<"!", return; ) ;
   setSideWidgetManager(s);
 }
 void KLFSideWidget::setSideWidgetManager(const QString& mtype)

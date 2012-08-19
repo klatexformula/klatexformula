@@ -35,6 +35,28 @@
 
 class KLFItemViewSearchTargetPrivate;
 
+//! A search target (for KLFSearchBar) for standard item views
+/** Add search functionality to standard item views. Any item view you may have (QTreeView/QListView etc.)
+ * may be added search functionality with KLFSearchBar, using this class as search target.
+ *
+ * For basic usage, you should not need to interact more with this class than simply instantiating it and
+ * feeding it to KLFSearchBar as the search target with KLFSearchBar::setSearchTarget().
+ *
+ * Matches are displayed in highlighted red font, and current found item is displayed as selected.
+ *
+ * Minimal example:
+ * \code
+ *   QTableView * view = ...;
+ *   KLFSearchBar * searchBar = new KLFSearchBar(...);
+ *   KLFItemViewSearchTarget * searchTarget = new KLFItemViewSearchTarget(view, this);
+ *   searchBar->setSearchTarget(searchTarget);
+ * \endcode
+ *
+ * \todo Currently, to highlight search matches this class replaces the delegate with a custom delegate used
+ *   to highlight search matches, thus relying on the fact that the default delegate is close to a standard
+ *   QItemDelegate. TODO: define some "proxy" delegate, and just extend the delegate that is already set on
+ *   the view.
+ */
 class KLFItemViewSearchTarget : public QObject, public KLFIteratorSearchable<QModelIndex>
 {
   Q_OBJECT

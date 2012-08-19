@@ -42,6 +42,7 @@ class KLFDropDataHandler;
 // ------------------------------------------------
 
 
+class KLFLatexEditPrivate;
 
 /** \brief A text edit field that edits latex code.
  *
@@ -52,11 +53,13 @@ class KLF_EXPORT KLFLatexEdit : public QTextEdit
   Q_OBJECT
 
   Q_PROPERTY(int heightHintLines READ heightHintLines WRITE setHeightHintLines) ;
+  Q_PROPERTY(bool wrapLines READ wrapLines WRITE setWrapLines) ;
+
 public:
   KLFLatexEdit(QWidget *parent);
   virtual ~KLFLatexEdit();
 
-  KLFLatexSyntaxHighlighter *syntaxHighlighter() { return mSyntaxHighlighter; }
+  KLFLatexSyntaxHighlighter *syntaxHighlighter();
 
   /** This function may be used to give a pointer to a KLFDropDataHandler that we will call
    * to open data when we get a paste/drop. If they can open the data, then we consider
@@ -64,11 +67,11 @@ public:
    *
    * This pointer may also be NULL, in which case we will only rely on QTextEdit built-in
    * functionality. */
-  void setDropDataHandler(KLFDropDataHandler *handler) { mDropHandler = handler; }
+  void setDropDataHandler(KLFDropDataHandler *handler);
 
   /** See sizeHint(). This gets the preferred height of this widget in number of text lines,
    * as set by setHeightHintLints(). */
-  inline int heightHintLines() const { return pHeightHintLines; }
+  int heightHintLines() const;
 
   /** The size hint of the widget. If \c heightHintLines() is set to \c -1, this directly
    * calles the superclass function. Otherwise this returns the size in pixels this widget
@@ -76,7 +79,9 @@ public:
    */
   virtual QSize sizeHint() const;
 
-  QString latex() const { return toPlainText(); }
+  QString latex() const;
+
+  bool wrapLines() const;
 
 signals:
   /** This signal is emitted just before the context menu is shown. If someone wants
@@ -94,6 +99,11 @@ public slots:
   void setLatex(const QString& latex);
   void clearLatex();
 
+  /** Set to TRUE to wrap lines, false to have a horizontal scroll. This directly calls
+   *  QTextEdit::setWordWrapMode() with either QTextOption::NoWrap (FALSE) or QTextOption::WrapAnywhere.
+   */
+  void setWrapLines(bool wrap);
+
   /** See sizeHint(). This sets the preferred height of this widget in number of text lines. */
   void setHeightHintLines(int lines);
 
@@ -109,16 +119,8 @@ protected:
   virtual bool canInsertFromMimeData(const QMimeData *source) const;
   virtual void insertFromMimeData(const QMimeData *source);
 
-private slots:
-  void slotInsertFromActionSender();
-
 private:
-  KLFLatexSyntaxHighlighter *mSyntaxHighlighter;
-
-  /** This is used to open data if needed */
-  KLFDropDataHandler *mDropHandler;
-
-  int pHeightHintLines;
+  KLF_DECLARE_PRIVATE(KLFLatexEdit) ;
 };
 
 

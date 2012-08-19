@@ -272,6 +272,8 @@ void KLFConfig::loadDefaults()
 #endif
   KLFCONFIGPROP_INIT(UI.latexEditFont, fcodeMain) ;
   KLFCONFIGPROP_INIT(UI.preambleEditFont, fcodePreamble) ;
+  KLFCONFIGPROP_INIT(UI.editorTabInsertsTab, false) ;
+  KLFCONFIGPROP_INIT(UI.editorWrapLines, true) ;
   KLFCONFIGPROP_INIT(UI.previewTooltipMaxSize, QSize(800, 600)) ;
   KLFCONFIGPROP_INIT(UI.labelOutputFixedSize, QSize(280, 80)) ;
   KLFCONFIGPROP_INIT(UI.smallPreviewSize, QSize(280, 80));
@@ -514,6 +516,8 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "applicationfont", &UI.applicationFont);
   klf_config_read(s, "latexeditfont", &UI.latexEditFont);
   klf_config_read(s, "preambleeditfont", &UI.preambleEditFont);
+  klf_config_read(s, "editortabinsertstab", &UI.editorTabInsertsTab);
+  klf_config_read(s, "editorwraplines", &UI.editorWrapLines);
   klf_config_read(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
   klf_config_read(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
   klf_config_read(s, "smallpreviewsize", &UI.smallPreviewSize);
@@ -702,6 +706,8 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "applicationfont", &UI.applicationFont);
   klf_config_write(s, "latexeditfont", &UI.latexEditFont);
   klf_config_write(s, "preambleeditfont", &UI.preambleEditFont);
+  klf_config_write(s, "editortabinsertstab", &UI.editorTabInsertsTab);
+  klf_config_write(s, "editorwraplines", &UI.editorWrapLines);
   klf_config_write(s, "previewtooltipmaxsize", &UI.previewTooltipMaxSize);
   klf_config_write(s, "lbloutputfixedsize", &UI.labelOutputFixedSize);
   klf_config_write(s, "smallpreviewsize", &UI.smallPreviewSize);
