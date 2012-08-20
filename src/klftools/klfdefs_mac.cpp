@@ -30,8 +30,11 @@
 
 #include <CoreServices/CoreServices.h>
 
+#include <ps/IOPowerSources.h>
 
-KLF_EXPORT QString klf_defs_sysinfo_arch()
+
+
+QString klf_defs_sysinfo_arch()
 {
   static bool is_64 = (sizeof(void*) == 8);
 
@@ -44,3 +47,19 @@ KLF_EXPORT QString klf_defs_sysinfo_arch()
   }
   return QString::fromLatin1("unknown");
 }
+
+
+
+bool _klf_mac_is_laptop()
+{
+  return false;
+}
+bool _klf_mac_is_on_battery_power()
+{
+  return false;
+  /*
+    ...... #ifdef mac-os-version > 10.6
+    CFDictionaryRef d = IOPSCopyExternalPowerAdapterDetails();
+  */
+}
+

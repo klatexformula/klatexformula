@@ -42,8 +42,8 @@ namespace KLFSysInfo
 
   KLF_EXPORT QString osString(KLFSysInfo::Os sysos = os());
 
-  //  KLF_EXPORT bool isLaptop();
-  //  KLF_EXPORT bool isOnBatteryPower();
+  KLF_EXPORT bool isLaptop();
+  KLF_EXPORT bool isOnBatteryPower();
 };
 
 
