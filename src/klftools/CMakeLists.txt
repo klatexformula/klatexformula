@@ -133,8 +133,10 @@ else(KLF_LIBKLFTOOLS_STATIC)
 	    VERSION		${KLF_LIB_VERSION}
 	    SOVERSION		${KLF_LIB_VERSION}
   )
-  target_link_libraries(klftools "-framework IOKit")
-  add_definitions(-I/System/Library/Frameworks/IOKit.framework/Headers)
+  if (APPLE)
+    target_link_libraries(klftools "-framework IOKit")
+    add_definitions(-I/System/Library/Frameworks/IOKit.framework/Headers)
+  endif(APPLE)
   if(KLF_MACOSX_BUNDLES)
     set(klftools_FRAMEWORKS ${KLF_BUNDLE_QT_FRAMEWORKS})
     KLFMMakeFramework(klftools "${klftools_FRAMEWORKS}" "${klftools_INSTHEADERS}")

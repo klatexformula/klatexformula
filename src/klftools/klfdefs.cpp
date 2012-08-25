@@ -1210,22 +1210,22 @@ bool _klf_mac_is_on_battery_power();
 
 KLF_EXPORT bool KLFSysInfo::isLaptop()
 {
-#ifdef Q_OS_DARWIN
+#if defined(Q_OS_DARWIN)
   return _klf_mac_is_laptop();
-#elif Q_OS_LINUX
+#elif defined(Q_OS_LINUX)
   return false;
-#elif Q_OS_WIN32
+#elif defined(Q_OS_WIN32)
   return false;
 #endif
   return false;
 }
 KLF_EXPORT bool KLFSysInfo::isOnBatteryPower()
 {
-#ifdef Q_OS_DARWIN
+#if defined(Q_OS_DARWIN)
   return _klf_mac_is_on_battery_power();
-#elif Q_OS_LINUX
+#elif defined(Q_OS_LINUX)
   return false;
-#elif Q_OS_WIN32
+#elif defined(Q_OS_WIN32)
   return false;
 #endif
   return false;
