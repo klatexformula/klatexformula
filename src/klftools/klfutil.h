@@ -719,15 +719,13 @@ public:
   template<class OtherPtr>
   inline const OtherPtr dyn_cast() const { return dynamic_cast<const OtherPtr>(p); }
 
-  template<class OtherPtr>
-  inline bool operator==(const OtherPtr otherptr) const
-  { return (OtherPtr)p == otherptr; }
+  inline bool operator==(void * otherptr) const
+  { return (void *)p == otherptr; }
 
   inline bool operator==(const KLFRefPtr<T>& otherptr) const
   { return p == otherptr.p; }
 
-  template<class OtherPtr>
-  inline bool operator!=(const OtherPtr otherptr) const
+  inline bool operator!=(void * otherptr) const
   { return ! (this->operator==(otherptr)); }
 
   inline bool operator!=(const KLFRefPtr<T>& otherptr) const
