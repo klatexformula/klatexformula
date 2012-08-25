@@ -115,7 +115,7 @@
    <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="tabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QGroupBox" name="tabInterface">
       <layout class="QGridLayout" name="lyt_tabInterface">
@@ -450,32 +450,7 @@
          </layout>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QGroupBox" name="gbxMoreOptions">
-         <property name="title">
-          <string>More options</string>
-         </property>
-         <layout class="QGridLayout" name="lyt_gbxMoreOptions">
-          <property name="topMargin">
-           <number>3</number>
-          </property>
-          <property name="bottomMargin">
-           <number>3</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>4</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="chkOutlineFonts">
-            <property name="text">
-             <string>Outline embedded fonts (eg. for Adobe Illustrator)</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <spacer name="spcLatex">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -487,6 +462,29 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="2" column="0">
+        <widget class="QGroupBox" name="gbxSetTexInputs">
+         <property name="title">
+          <string>TEXINPUTS</string>
+         </property>
+         <layout class="QGridLayout" name="lyt_gbxSetTexInputs">
+          <item row="1" column="0">
+           <widget class="QLineEdit" name="txtSetTexInputs">
+            <property name="toolTip">
+             <string>You may specify additional search paths for LaTeX here. Separate paths with ':' on Unix/Mac and with ';' on Windows.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="lblSetTexInputs">
+            <property name="text">
+             <string>Specify additional TEXINPUTS paths:</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -850,8 +848,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>366</width>
-                 <height>72</height>
+                 <width>86</width>
+                 <height>50</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -1434,7 +1432,7 @@
          </widget>
          <widget class="QWidget" name="tabAdvancedLatex">
           <attribute name="title">
-           <string>LaTeX Image</string>
+           <string>LaTeX &amp;&amp; Image</string>
           </attribute>
           <layout class="QGridLayout" name="lyt_tabAdvancedLatex">
            <property name="verticalSpacing">
@@ -1443,7 +1441,7 @@
            <item row="0" column="0">
             <widget class="QGroupBox" name="gbxEPSBoundingBox">
              <property name="title">
-              <string>Expand EPS BoundingBox</string>
+              <string>EPS BoundingBox Margins</string>
              </property>
              <layout class="QGridLayout" name="lyt_gbxEPSBoundingBox">
               <property name="topMargin">
@@ -1592,7 +1590,7 @@
              </layout>
             </widget>
            </item>
-           <item row="2" column="0">
+           <item row="3" column="0">
             <spacer name="vspcAdvancedLatex">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -1606,10 +1604,26 @@
             </spacer>
            </item>
            <item row="1" column="0">
-            <widget class="QCheckBox" name="chkCalcEPSBoundingBox">
-             <property name="text">
-              <string>Recalculate Postscript bounding box with ghostscript</string>
+            <widget class="QGroupBox" name="gbxMoreOptions">
+             <property name="title">
+              <string>More options</string>
              </property>
+             <layout class="QGridLayout" name="lyt_gbxMoreOptions">
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="chkOutlineFonts">
+                <property name="text">
+                 <string>Outline embedded fonts (eg. for Adobe Illustrator)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="chkCalcEPSBoundingBox">
+                <property name="text">
+                 <string>Recalculate Postscript bounding box with ghostscript</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>

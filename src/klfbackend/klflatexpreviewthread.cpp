@@ -75,45 +75,6 @@ void KLFLatexPreviewHandler::latexPreviewError(const QString& errorString, int e
 
 // ---
 
-struct KLFLatexPreviewThreadPrivate
-{
-  KLF_PRIVATE_HEAD(KLFLatexPreviewThread)
-  {
-    previewSize = QSize(280, 80);
-    largePreviewSize = QSize(640, 480);
-
-    newTasks = QQueue<Task>();
-    abort = false;
-  }
-
-  QSize previewSize;
-  QSize largePreviewSize;
-
-  QWaitCondition condNewTaskAvailable;
-
-  bool abort;
-
-  struct Task {
-    KLFBackend::klfInput input;
-    KLFBackend::klfSettings settings;
-    QSize previewSize;
-    QSize largePreviewSize;
-
-    KLFLatexPreviewHandler * handler;
-  };
-
-  QQueue<Task> newTasks;
-
-  // main object's _mutex is already locked to access "d->" object
-  bool submitTask(const Task& task)
-  {
-    newTasks.enqueue(task);
-    condNewTaskAvailable.wakeOne();
-    return true;
-  }
-};
-
-
 
 KLFLatexPreviewThread::KLFLatexPreviewThread(QObject * parent)
   : QThread(parent)
@@ -168,6 +129,8 @@ void KLFLatexPreviewThread::run()
       // fetch task info
       _mutex.lock();
       task = d->newTasks.dequeue();
+      QMetaObject::invokeMethod(d, "setTaskRunning", Qt::QueuedConnection,
+				Q_ARG(void *, (void*)task.qtask));
       _mutex.unlock();
       // render equation
       //  no performance improvement noticed with lower DPI:
@@ -218,6 +181,8 @@ void KLFLatexPreviewThread::run()
     }
     
     _mutex.lock();
+    QMetaObject::invokeMethod(d, "setTaskFinished", Qt::QueuedConnection,
+			      Q_ARG(void *, (void*) task.qtask));
     abrt = d->abort;
     hastask = d->newTasks.size();
     _mutex.unlock();
@@ -234,11 +199,12 @@ void KLFLatexPreviewThread::run()
 }
 
 
-bool KLFLatexPreviewThread::submitPreviewTask(const KLFBackend::klfInput& input,
-					      const KLFBackend::klfSettings& settings,
-					      KLFLatexPreviewHandler * outputhandler,
-					      const QSize& previewSize,
-					      const QSize& largePreviewSize)
+KLFRefPtr<KLFLatexPreviewThread::QueuedTask>
+/* */  KLFLatexPreviewThread::submitPreviewTask(const KLFBackend::klfInput& input,
+						const KLFBackend::klfSettings& settings,
+						KLFLatexPreviewHandler * outputhandler,
+						const QSize& previewSize,
+						const QSize& largePreviewSize)
 {
   QMutexLocker mutexlocker(&_mutex);
 
@@ -252,9 +218,10 @@ bool KLFLatexPreviewThread::submitPreviewTask(const KLFBackend::klfInput& input,
   return d->submitTask(t);
 }
 
-bool KLFLatexPreviewThread::submitPreviewTask(const KLFBackend::klfInput& input,
-					      const KLFBackend::klfSettings& settings,
-					      KLFLatexPreviewHandler * outputhandler)
+KLFRefPtr<KLFLatexPreviewThread::QueuedTask>
+/* */  KLFLatexPreviewThread::submitPreviewTask(const KLFBackend::klfInput& input,
+						const KLFBackend::klfSettings& settings,
+						KLFLatexPreviewHandler * outputhandler)
 {
   QMutexLocker mutexlocker(&_mutex);
 
@@ -268,11 +235,12 @@ bool KLFLatexPreviewThread::submitPreviewTask(const KLFBackend::klfInput& input,
   return d->submitTask(t);
 }
 
-bool KLFLatexPreviewThread::clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
-						      const KLFBackend::klfSettings& settings,
-						      KLFLatexPreviewHandler * outputhandler,
-						      const QSize& previewSize,
-						      const QSize& largePreviewSize)
+KLFRefPtr<KLFLatexPreviewThread::QueuedTask>
+/* */  KLFLatexPreviewThread::clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
+							const KLFBackend::klfSettings& settings,
+							KLFLatexPreviewHandler * outputhandler,
+							const QSize& previewSize,
+							const QSize& largePreviewSize)
 {
   QMutexLocker mutexlocker(&_mutex);
 
@@ -290,9 +258,10 @@ bool KLFLatexPreviewThread::clearAndSubmitPreviewTask(const KLFBackend::klfInput
   return d->submitTask(t);
 }
 
-bool KLFLatexPreviewThread::clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
-						      const KLFBackend::klfSettings& settings,
-						      KLFLatexPreviewHandler * outputhandler)
+KLFRefPtr<KLFLatexPreviewThread::QueuedTask>
+/* */  KLFLatexPreviewThread::clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
+							const KLFBackend::klfSettings& settings,
+							KLFLatexPreviewHandler * outputhandler)
 {
   QMutexLocker mutexlocker(&_mutex);
   d->newTasks.clear();
@@ -313,6 +282,46 @@ void KLFLatexPreviewThread::clearPendingTasks()
 {
   QMutexLocker mutexlocker(&_mutex);
   d->newTasks.clear();
+}
+
+bool KLFLatexPreviewThread::cancelTask(KLFRefPtr<QueuedTask> task)
+{
+  KLF_ASSERT_CONDITION(!task->isfinished, "Cannot cancel a finished task!", return false; ) ;
+
+  QMutexLocker mutexlocker(&_mutex);
+
+  // find this task in list of queued tasks
+  for (QQueue<KLFLatexPreviewThreadPrivate::Task>::iterator it = d->newTasks.begin();
+       it != d->newTasks.end(); ++it) {
+    if ((*it).qtask == task) {
+      // found it. remove it from list and return.
+      d->newTasks.erase(it);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+bool KLFLatexPreviewThread::taskIsNew(KLFRefPtr<QueuedTask> task)
+{
+  // find this task in list of queued tasks
+  for (QQueue<KLFLatexPreviewThreadPrivate::Task>::iterator it = d->newTasks.begin();
+       it != d->newTasks.end(); ++it) {
+    if ((*it).qtask == task) {
+      return true;
+    }
+  }
+  return false;
+}
+bool KLFLatexPreviewThread::taskIsRunning(KLFRefPtr<QueuedTask> task)
+{
+  return task->isrunning;
+}
+bool KLFLatexPreviewThread::taskIsFinished(KLFRefPtr<QueuedTask> task)
+{
+  return task->isfinished;
 }
 
 void KLFLatexPreviewThread::setPreviewSize(const QSize& previewSize)

@@ -28,7 +28,87 @@
 #ifndef KLFLATEXPREVIEWTHREAD_P_H
 #define KLFLATEXPREVIEWTHREAD_P_H
 
+#include <QObject>
+#include <QThread>
+#include <QWaitCondition>
+#include <QQueue>
+
 #include "klflatexpreviewthread.h"
+
+
+
+
+class KLFLatexPreviewThreadPrivate : public QObject
+{
+  Q_OBJECT
+public:
+  KLF_PRIVATE_QOBJ_HEAD(KLFLatexPreviewThread, QObject)
+  {
+    previewSize = QSize(280, 80);
+    largePreviewSize = QSize(640, 480);
+
+    newTasks = QQueue<Task>();
+    abort = false;
+  }
+
+  QSize previewSize;
+  QSize largePreviewSize;
+
+  QWaitCondition condNewTaskAvailable;
+
+  bool abort;
+
+  typedef KLFLatexPreviewThread::QueuedTask QueuedTask;
+
+  struct Task {
+    Task() : isfresh(true), isrunning(false) { }
+
+    KLFBackend::klfInput input;
+    KLFBackend::klfSettings settings;
+    QSize previewSize;
+    QSize largePreviewSize;
+
+    KLFLatexPreviewHandler * handler;
+
+    bool isfresh;
+    bool isrunning;
+
+    KLFRefPtr<QueuedTask> qtask;
+  };
+
+  QQueue<Task> newTasks;
+
+  // main object's _mutex is already locked to access "d->" object
+  KLFRefPtr<KLFLatexPreviewThread::QueuedTask> submitTask(Task task)
+  {
+    if (task.qtask == NULL)
+      task.qtask = new KLFLatexPreviewThread::QueuedTask;
+
+    newTasks.enqueue(task);
+    condNewTaskAvailable.wakeOne();
+    return task.qtask;
+  }
+
+public slots:
+  void setTaskRunning(void * t)
+  {
+    ((QueuedTask*)t)->isrunning = true;
+  }
+  void setTaskFinished(void * t)
+  {
+    // doing this in the main thread ensures that no other object is currently accessing it.
+    // so we also don't need any mutex.
+    ((QueuedTask*)t)->isfinished = true;
+  }
+};
+
+
+
+
+
+// -----------------------------------
+
+
 
 
 
@@ -51,6 +131,8 @@ public:
 
   KLFLatexPreviewThread * thread;
 
+  KLFRefPtr<KLFLatexPreviewThread::QueuedTask> curTask;
+
   KLFBackend::klfInput input;
   KLFBackend::klfSettings settings;
   QSize previewSize;
@@ -62,8 +144,13 @@ public:
 
     KLF_ASSERT_NOT_NULL(thread, "Thread is NULL! Can't refresh preview!", return; ) ;
 
-    bool ok = thread->clearAndSubmitPreviewTask(input, settings, this, previewSize, largePreviewSize);
-    if (!ok) {
+    if (curTask != NULL) {
+      if (!thread->taskIsFinished(curTask))
+	thread->cancelTask(curTask);
+    }
+
+    curTask = thread->submitPreviewTask(input, settings, this, previewSize, largePreviewSize);
+    if (curTask == NULL) {
       klfWarning("Failed to submit preview task to thread.") ;
     }
   }

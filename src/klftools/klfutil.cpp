@@ -414,20 +414,32 @@ QMap<QString,QString> klfEnvironmentListToMap(const QStringList& env)
 }
 
 
-void klfMergeEnvironment(QStringList * env, const QStringList& addvars)
+void klfMergeEnvironment(QStringList * env, const QStringList& addvars, const QStringList& pathvars, uint actions)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   foreach (QString s, addvars) {
     QString var, val;
     if (!parse_env_line(s, &var, &val))
       continue; // warning issued already
+
+    if (actions & KlfEnvMergeExpandVars) {
+      val = klfExpandEnvironmentVariables(val, *env, !(actions & KlfEnvMergeExpandNotRecursive));
+    }
+    if (pathvars.contains(var)) {
+      // this variable is a PATH, special treatment: prepend new values to old ones
+      val = klfSetEnvironmentPath(klfGetEnvironmentVariable(*env, var), val, actions);
+    }
+
     klfSetEnvironmentVariable(env, var, val);
   }
 }
 
-QStringList klfMergeEnvironment(const QStringList& env, const QStringList& addvars)
+QStringList klfMergeEnvironment(const QStringList& env, const QStringList& addvars,
+				const QStringList& pathvars, uint actions)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QStringList merged = env;
-  klfMergeEnvironment(merged, addvars);
+  klfMergeEnvironment(&merged, addvars, pathvars, actions);
   return merged;
 }
 
@@ -436,7 +448,29 @@ QStringList klfGetEnvironmentPath(const QStringList& env, const QString& var)
 {
   QString value = klfGetEnvironmentVariable(env, var);
   // split value according to PATH_SEP
-  return value.split(KLF_PATH_SEP);
+  return klfSplitEnvironmentPath(value);
+}
+
+QStringList klfSplitEnvironmentPath(const QString& value)
+{
+  if (value.isEmpty())
+    return QStringList();
+  QStringList items = value.split(KLF_PATH_SEP, QString::KeepEmptyParts);
+
+  // with KeepEmptyParts, if there is a trailing or leading colon, then two empty parts
+  // will (probably) be generated. remove one of them.
+  if (items.size() >= 2) {
+    if (items[0].isEmpty() && items[1].isEmpty())
+      items.removeAt(0);
+    if (items[items.size()-1].isEmpty() && items[items.size()-2].isEmpty())
+      items.removeAt(items.size()-1);
+  }
+  return items;
+}
+
+QString klfJoinEnvironmentPath(const QStringList& paths)
+{
+  return paths.join(QString("")+KLF_PATH_SEP);
 }
 
 /*
@@ -451,22 +485,21 @@ QStringList klfGetEnvironmentPath(const QStringList& env, const QString& var)
   };
 */
 
-QStringList klfSetEnvironmentPath(const QStringList& env, const QStringList& items,
-				  const QString& var, uint action)
+QStringList klfSetEnvironmentPath(const QStringList& oldpaths, const QStringList& newpaths, uint action)
 {
   QStringList newitems;
   switch (action & KlfEnvPathActionMask) {
   case KlfEnvPathPrepend:
-    newitems = QStringList() << items << klfGetEnvironmentPath(env, var);
+    newitems = QStringList() << newpaths << oldpaths;
     break;
   case KlfEnvPathAppend:
-    newitems = QStringList() << klfGetEnvironmentPath(env, var) << items;
+    newitems = QStringList() << oldpaths << newpaths;
     break;
   case KlfEnvPathReplace:
-    newitems = items;
+    newitems = newpaths;
     break;
   case KlfEnvPathNoAction:
-    newitems = klfGetEnvironmentPath(env, var);
+    newitems = oldpaths;
     break;
   default:
     klfWarning("No or unknown action specified! action="<<action) ;
@@ -476,15 +509,37 @@ QStringList klfSetEnvironmentPath(const QStringList& env, const QStringList& ite
     // remove duplicates from newitems
     QStringList newitems2;
     int k;
-    for (k = 1; k < newitems.size(); ++k) {
+    for (k = 0; k < newitems.size(); ++k) {
       if (newitems2.contains(newitems[k]))
 	continue;
       newitems2.append(newitems[k]);
     }
     newitems = newitems2;
   }
+  return newitems;
+}
 
-  return klfSetEnvironmentVariable(env, var, newitems.join(QString("")+KLF_PATH_SEP));
+QString klfSetEnvironmentPath(const QString& oldpaths, const QString& newpaths, uint action)
+{
+  return klfSetEnvironmentPath(klfSplitEnvironmentPath(oldpaths),
+			       klfSplitEnvironmentPath(newpaths),
+			       action) . join(QString("")+KLF_PATH_SEP);
+}
+
+QStringList klfSetEnvironmentPath(const QStringList& env, const QStringList& newpaths,
+				  const QString& var, uint action)
+{
+  QStringList newval;
+  newval = klfSetEnvironmentPath(klfGetEnvironmentPath(env, var), newpaths, action);
+  return klfSetEnvironmentVariable(env, var, klfJoinEnvironmentPath(newval));
+}
+
+void klfSetEnvironmentPath(QStringList * env, const QStringList& newpaths,
+			   const QString& var, uint action)
+{
+  QStringList newval;
+  newval = klfSetEnvironmentPath(klfGetEnvironmentPath(*env, var), newpaths, action);
+  klfSetEnvironmentVariable(env, var, klfJoinEnvironmentPath(newval));
 }
 
 

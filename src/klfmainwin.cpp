@@ -3975,6 +3975,8 @@ KLFBackend::klfSettings KLFMainWin::backendSettings() const
 
 KLFBackend::klfSettings KLFMainWin::currentSettings() const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFBackend::klfSettings settings = d->settings;
   // see if we need to override settings
   if (u->gbxOverrideMargins->isChecked()) {
@@ -3984,7 +3986,17 @@ KLFBackend::klfSettings KLFMainWin::currentSettings() const
     settings.bborderoffset = u->spnMarginBottom->valueInRefUnit();
     settings.lborderoffset = u->spnMarginLeft->valueInRefUnit();
   }
-  return settings;
+
+  klfDbg("backendsettings.setTexInputs = "<<klfconfig.BackendSettings.setTexInputs());
+  if (!klfconfig.BackendSettings.setTexInputs().isEmpty()) {
+    klfDbg("old environment is"<<settings.execenv);
+    QStringList newitems = klfSplitEnvironmentPath(klfconfig.BackendSettings.setTexInputs);
+    klfSetEnvironmentPath(&settings.execenv,
+			  newitems,
+			  QLatin1String("TEXINPUTS"),
+			  KlfEnvPathPrepend|KlfEnvPathNoDuplicates);
+    klfDbg("added "<<newitems<<" to TEXINPUTS, new environment is "<<settings.execenv) ;
+  }
 
   KLFBackend::klfInput input = currentInputState();
   // setup user script configuration
@@ -3997,9 +4009,11 @@ KLFBackend::klfSettings KLFMainWin::currentSettings() const
 	mdata[QLatin1String("KLF_USCONFIG_") + it.key()] = klfSaveVariantToText(it.value(), true);
       klfMergeEnvironment(&settings.execenv, klfMapToEnvironmentList(mdata));
     }
-    klfDbg("Full environment (w/ userscript config) is "<<settings.execenv) ;
   }
+  
+  klfDbg("Full environment (w/ userscript config) is "<<settings.execenv) ;
 
+  return settings;
 }
 
 KLFBackend::klfOutput KLFMainWin::currentKLFBackendOutput() const

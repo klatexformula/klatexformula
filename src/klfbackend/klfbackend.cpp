@@ -499,34 +499,24 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
   QMutexLocker mutexlocker(&klf_mutex);
 
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   klfSettings settings;
   settings = usersettings;
 
-  int k;
   bool ok;
 
-  qDebug("%s: %s: KLFBackend::getLatexFormula() called. latex=%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
-	 qPrintable(in.latex));
+  klfDbg("called. latex="<<in.latex);
 
   { // get full, expanded exec environment
-    QStringList execenv = klfCurrentEnvironment();
-    for (k = 0; k < (int)settings.execenv.size(); ++k) {
-      int eqpos = settings.execenv[k].s_indexOf(QChar('='));
-      if (eqpos == -1) {
-	qWarning("%s: badly formed environment definition in `environ': %s", KLF_FUNC_NAME,
-		 qPrintable(settings.execenv[k]));
-	continue;
-      }
-      QString varname = settings.execenv[k].mid(0, eqpos);
-      QString varvalue = settings.execenv[k].mid(eqpos+1);
-      QString newenvdef = klfExpandEnvironmentVariables(varvalue);
-      execenv = klfSetEnvironmentVariable(execenv, varname, newenvdef);
-    }
-    settings.execenv = execenv;
+    QStringList curenv = klfCurrentEnvironment();
+    klfDbg("current environment is "<<curenv) ;
+    settings.execenv = klfMergeEnvironment(curenv, settings.execenv,
+					   QStringList() << "PATH" << "TEXINPUTS" << "BIBINPUTS",
+					   KlfEnvPathPrepend|KlfEnvMergeExpandVars);
   }
 
-  qDebug("%s: %s: execution environment for sub-processes:\n%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
-	 qPrintable(settings.execenv.join("\n")));
+  klfDbg("execution environment for sub-processes is "<<settings.execenv) ;
 
   
   klfOutput res;
@@ -920,7 +910,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       p.errorToOutput(&res);
       return res;
     }
-    qDebug("%s: read raw EPS; rawepsdata/length=%d", KLF_FUNC_NAME, rawepsdata.size());
+    klfDbg("read raw EPS; rawepsdata/length="<<rawepsdata.size()) ;
   } // end of 'dvips' block
 
   // the settings requires, save the intermediary data in to result output

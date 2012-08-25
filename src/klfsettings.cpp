@@ -632,6 +632,8 @@ void KLFSettings::reset()
   u->chkCalcEPSBoundingBox->setChecked( s.calcEpsBoundingBox );
   u->chkOutlineFonts->setChecked( s.outlineFonts );
 
+  u->txtSetTexInputs->setText( klfconfig.BackendSettings.setTexInputs );
+
   u->chkEditorTabInsertsTab->setChecked( klfconfig.UI.editorTabInsertsTab );
   u->chkEditorWrapLines->setChecked( klfconfig.UI.editorWrapLines );
 
@@ -1537,6 +1539,8 @@ void KLFSettings::apply()
   backendsettings.outlineFonts = u->chkOutlineFonts->isChecked();
 
   d->mainWin->applySettings(backendsettings);
+
+  klfconfig.BackendSettings.setTexInputs = u->txtSetTexInputs->text();
 
   klfconfig.UI.editorTabInsertsTab = u->chkEditorTabInsertsTab->isChecked();
   klfconfig.UI.editorWrapLines = u->chkEditorWrapLines->isChecked();

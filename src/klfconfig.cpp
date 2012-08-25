@@ -367,6 +367,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(BackendSettings.execGs, ".") ;
   KLFCONFIGPROP_INIT(BackendSettings.execEpstopdf, ".") ;
   KLFCONFIGPROP_INIT(BackendSettings.execenv, QStringList()) ;
+  KLFCONFIGPROP_INIT(BackendSettings.setTexInputs, QString());
 
   KLFCONFIGPROP_INIT(BackendSettings.lborderoffset, 0) ;
   KLFCONFIGPROP_INIT(BackendSettings.tborderoffset, 0) ;
@@ -582,6 +583,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "gsexec", &BackendSettings.execGs);
   klf_config_read(s, "epstopdfexec", &BackendSettings.execEpstopdf);
   klf_config_read(s, "execenv", &BackendSettings.execenv);
+  klf_config_read(s, "settexinputs", &BackendSettings.setTexInputs);
   klf_config_read(s, "lborderoffset", &BackendSettings.lborderoffset);
   klf_config_read(s, "tborderoffset", &BackendSettings.tborderoffset);
   klf_config_read(s, "rborderoffset", &BackendSettings.rborderoffset);
@@ -763,6 +765,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "gsexec", &BackendSettings.execGs);
   klf_config_write(s, "epstopdfexec", &BackendSettings.execEpstopdf);
   klf_config_write(s, "execenv", &BackendSettings.execenv);
+  klf_config_write(s, "settexinputs", &BackendSettings.setTexInputs);
   klf_config_write(s, "lborderoffset", &BackendSettings.lborderoffset);
   klf_config_write(s, "tborderoffset", &BackendSettings.tborderoffset);
   klf_config_write(s, "rborderoffset", &BackendSettings.rborderoffset);

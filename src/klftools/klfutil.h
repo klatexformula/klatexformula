@@ -298,21 +298,50 @@ KLF_EXPORT QStringList klfMapToEnvironmentList(const QMap<QString,QString>& map)
  */
 KLF_EXPORT QMap<QString,QString> klfEnvironmentListToMap(const QStringList& env);
 
-/** \brief merge two environment definitions
- *
- * Addes the environment variables specified in \c addvars into env, overwriting previous entries for
- * those variables if they already exist.
- */
-KLF_EXPORT void klfMergeEnvironment(QStringList * env, const QStringList& addvars);
+
+/** \brief Used in klfMergeEnvironment() and klfSetEnvironmentPath(). */
+enum KlfEnvAction {
+  KlfEnvPathPrepend      = 0x0001, //!< Prepend given value to list of path items
+  KlfEnvPathReplace      = 0x0002, //!< Replace current path items by given ones
+  KlfEnvPathAppend       = 0x0003, //!< Append given path items to current list
+  KlfEnvPathNoAction     = 0x0000, //!< Don't take any action, just apply flags
+  KlfEnvPathActionMask   = 0x00ff, //!< Mask out the requested action
+  KlfEnvPathNoDuplicates = 0x0100, //!< Remove duplicates from the variable
+  KlfEnvPathFlagsMask    = 0xff00, //!< Mask out the path flags
+
+  //! Merge environments by expanding new values according to current environment
+  KlfEnvMergeExpandVars          = 0x00010000,
+  //! If we're expanding new environment variables, don't expand them recursively
+  KlfEnvMergeExpandNotRecursive  = 0x00020000,
+  KlfEnvMergeFlagsMask           = 0x00ff0000 //!< Mask out the merge actions flags
+};
+
 
 /** \brief merge two environment definitions
  *
  * Addes the environment variables specified in \c addvars into env, overwriting previous entries for
  * those variables if they already exist.
  *
+ * If some variable names are specified in \c pathvars, then those variables will be treated as containing
+ * paths like PATH or TEXINPUTS, and the new values will be prepended to the old ones.
+ */
+KLF_EXPORT void klfMergeEnvironment(QStringList * env, const QStringList& addvars,
+				    const QStringList& pathvars = QStringList(),
+				    uint mergeaction = KlfEnvPathPrepend);
+
+/** \brief merge two environment definitions
+ *
+ * Addes the environment variables specified in \c addvars into env, overwriting previous entries for
+ * those variables if they already exist.
+ *
+ * If some variable names are specified in \c pathvars, then those variables will be treated as containing
+ * paths like PATH or TEXINPUTS, and the new values will be prepended to the old ones.
+ *
  * \c env itself is not modified, and the merged list is retured.
  */
-KLF_EXPORT QStringList klfMergeEnvironment(const QStringList& env, const QStringList& addvars);
+KLF_EXPORT QStringList klfMergeEnvironment(const QStringList& env, const QStringList& addvars,
+					   const QStringList& pathvars = QStringList(),
+					   uint mergeaction = KlfEnvPathPrepend);
 
 /** \brief get the path items of an environment variable (commonly $PATH)
  *
@@ -321,23 +350,65 @@ KLF_EXPORT QStringList klfMergeEnvironment(const QStringList& env, const QString
  */
 KLF_EXPORT QStringList klfGetEnvironmentPath(const QStringList& env, const QString& var = QLatin1String("PATH"));
 
-/** \brief Used in klfSetEnvironmentPath(). */
-enum KlfEnvPathAction { KlfEnvPathPrepend      = 0x0001, //!< Prepend given value to list of path items
-			KlfEnvPathReplace      = 0x0002, //!< Replace current path items by given ones
-			KlfEnvPathAppend       = 0x0003, //!< Append given path items to current list
-			KlfEnvPathNoAction     = 0x0000, //!< Don't take any action, just apply flags
-			KlfEnvPathActionMask   = 0x00ff, //!< Mask out the requested action
-			KlfEnvPathNoDuplicates = 0x0100, //!< Remove duplicates from the variable
-			KlfEnvPathFlagsMask    = 0xff00, //!< Mask out the flags
-};
+/** \brief split the value of a PATH-like environment variable into paths (common for $PATH)
+ *
+ * Do NOT specify the variable name (i.e. "VARNAME=") in the value.
+ */
+KLF_EXPORT QStringList klfSplitEnvironmentPath(const QString& value);
+
+/** \brief join several paths together to form a PATH-like environment variable value (common for $PATH)
+ *
+ * \return the value the corresponding environment variable should take, without the "VARNAME=" beginning
+ *   (obviously since this function doesn't have access to the variable name).
+ */
+KLF_EXPORT QString klfJoinEnvironmentPath(const QStringList& paths);
+
+
+/** \brief set/add path items to a PATH-like environment variable (commonly $PATH)
+ *
+ * This function only processes changes to the variable value. You will still need to use
+ * klfSetEnvironmentVariable() to apply that change to an environment.
+ *
+ * See \ref KlfEnvAction enum for possible actions.
+ *
+ * \param oldpaths  a colon-separated list of paths of "old" values. don't include the variable name.
+ * \param newpaths  a colon-separated list of paths of "new" values. don't include the variable name.
+ */
+KLF_EXPORT QString klfSetEnvironmentPath(const QString& oldpaths, const QString& newpaths,
+					 uint action = KlfEnvPathAppend|KlfEnvPathNoDuplicates);
+
+/** \brief set/add path items to a PATH-like environment variable (commonly $PATH)
+ *
+ * This function only processes changes to the variable value. You will still need to use
+ * klfSetEnvironmentVariable() to apply that change to an environment.
+ *
+ * See \ref KlfEnvAction enum for possible actions.
+ *
+ * \param oldpaths  a list of paths of "old" values.
+ * \param newpaths  a list of paths of "new" values.
+ */
+KLF_EXPORT QStringList klfSetEnvironmentPath(const QStringList& oldpaths, const QStringList& newpaths,
+					     uint action = KlfEnvPathAppend|KlfEnvPathNoDuplicates);
 
 /** \brief set/add path items to an environment variable (commonly $PATH)
  *
+ * See \ref KlfEnvPathAction enum for possible actions.
+ *
  * \returns the new environment variable list. The argument \c env itself is not changed.
  */
-KLF_EXPORT QStringList klfSetEnvironmentPath(const QStringList& env, const QStringList& items,
+KLF_EXPORT QStringList klfSetEnvironmentPath(const QStringList& env, const QStringList& newitems,
 					     const QString& var = QLatin1String("PATH"),
 					     uint action = KlfEnvPathAppend|KlfEnvPathNoDuplicates);
+
+/** \brief set/add path items to an environment variable (commonly $PATH)
+ *
+ * See \ref KlfEnvPathAction enum for possible actions.
+ *
+ * Modifies \c env directly.
+ */
+KLF_EXPORT void klfSetEnvironmentPath(QStringList * env, const QStringList& newitems,
+				      const QString& var = QLatin1String("PATH"),
+				      uint action = KlfEnvPathAppend|KlfEnvPathNoDuplicates);
 
 /** \brief Expands references to environment variables to their values
  *
@@ -647,6 +718,21 @@ public:
 
   template<class OtherPtr>
   inline const OtherPtr dyn_cast() const { return dynamic_cast<const OtherPtr>(p); }
+
+  template<class OtherPtr>
+  inline bool operator==(const OtherPtr otherptr) const
+  { return (OtherPtr)p == otherptr; }
+
+  inline bool operator==(const KLFRefPtr<T>& otherptr) const
+  { return p == otherptr.p; }
+
+  template<class OtherPtr>
+  inline bool operator!=(const OtherPtr otherptr) const
+  { return ! (this->operator==(otherptr)); }
+
+  inline bool operator!=(const KLFRefPtr<T>& otherptr) const
+  { return ! (this->operator==(otherptr)); }
+
 
 private:
   void operator+=(int n) { }

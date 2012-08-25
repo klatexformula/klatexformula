@@ -321,6 +321,7 @@ public:
     KLFConfigProp<QString> execGs;
     KLFConfigProp<QString> execEpstopdf;
     KLFConfigProp<QStringList> execenv;
+    KLFConfigProp<QString> setTexInputs;
     KLFConfigProp<double> lborderoffset;
     KLFConfigProp<double> tborderoffset;
     KLFConfigProp<double> rborderoffset;

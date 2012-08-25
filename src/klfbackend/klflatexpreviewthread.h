@@ -75,20 +75,44 @@ public:
   KLFLatexPreviewThread(QObject *parent = NULL);
   virtual ~KLFLatexPreviewThread();
 
+  struct QueuedTask
+  {
+    QueuedTask() : isrunning(false), isfinished(false) { }
+
+    inline int ref() { return ++refcount; }
+    inline int deref() { return --refcount; }
+  private:
+    int refcount;
+
+    friend class KLFLatexPreviewThread;
+    friend class KLFLatexPreviewThreadPrivate;
+    bool isrunning;
+    bool isfinished;
+  };
+
   QSize previewSize() const;
   QSize largePreviewSize() const;
 
-  bool submitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
-			 KLFLatexPreviewHandler * outputhandler,
-			 const QSize& previewSize, const QSize& largePreviewSize);
-  bool submitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
-			 KLFLatexPreviewHandler * outputhandler);
-  bool clearAndSubmitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
-				 KLFLatexPreviewHandler * outputhandler,
-				 const QSize& previewSize, const QSize& largePreviewSize);
-  bool clearAndSubmitPreviewTask(const KLFBackend::klfInput& input, const KLFBackend::klfSettings& settings,
-				 KLFLatexPreviewHandler * outputhandler);
+  KLFRefPtr<QueuedTask> submitPreviewTask(const KLFBackend::klfInput& input,
+					  const KLFBackend::klfSettings& settings,
+					  KLFLatexPreviewHandler * outputhandler,
+					  const QSize& previewSize, const QSize& largePreviewSize);
+  KLFRefPtr<QueuedTask> submitPreviewTask(const KLFBackend::klfInput& input,
+					  const KLFBackend::klfSettings& settings,
+					  KLFLatexPreviewHandler * outputhandler);
+  KLFRefPtr<QueuedTask> clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
+						  const KLFBackend::klfSettings& settings,
+						  KLFLatexPreviewHandler * outputhandler,
+						  const QSize& previewSize, const QSize& largePreviewSize);
+  KLFRefPtr<QueuedTask> clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
+						  const KLFBackend::klfSettings& settings,
+						  KLFLatexPreviewHandler * outputhandler);
+  bool cancelTask(KLFRefPtr<QueuedTask> task);
   void clearPendingTasks();
+
+  bool taskIsNew(KLFRefPtr<QueuedTask> task);
+  bool taskIsRunning(KLFRefPtr<QueuedTask> task);
+  bool taskIsFinished(KLFRefPtr<QueuedTask> task);
 
   void stop();
 
