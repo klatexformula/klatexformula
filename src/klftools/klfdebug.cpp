@@ -34,6 +34,8 @@
 #include <QDebug>
 #include <QByteArray>
 #include <QDateTime>
+#include <QApplication>
+#include <QMessageBox>
 
 #include <klfdefs.h>
 #include <klfdebug.h>
