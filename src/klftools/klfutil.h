@@ -860,12 +860,6 @@ public:
       return NULL;
     return (Pointer) ptrguard->ptr;
   }
-  inline const Pointer ptr() const
-  {
-    if (ptrguard == NULL)
-      return NULL;
-    return (const Pointer) ptrguard->ptr;
-  }
 
   inline operator T*()
   { return ptr(); }

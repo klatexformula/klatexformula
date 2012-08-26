@@ -543,7 +543,16 @@ KLFMainWin::KLFMainWin()
 	  Qt::QueuedConnection);
   connect(u->cbxUserScript, SIGNAL(activated(const QString&)), d, SLOT(updatePreviewThreadInput()),
 	  Qt::QueuedConnection);
-
+  connect(u->cbxLatexFont, SIGNAL(activated(const QString&)), d, SLOT(updatePreviewThreadInput()),
+	  Qt::QueuedConnection);
+  connect(u->spnLatexFontSize, SIGNAL(valueChanged(int)), d, SLOT(updatePreviewThreadInput()),
+	  Qt::QueuedConnection);
+  connect(u->txtPreamble, SIGNAL(textChanged()), d, SLOT(updatePreviewThreadInput()),
+	  Qt::QueuedConnection);
+  connect(u->spnDPI, SIGNAL(valueChanged(int)), d, SLOT(updatePreviewThreadInput()),
+	  Qt::QueuedConnection);
+  connect(u->spnVectorScale, SIGNAL(valueChanged(double)), d, SLOT(updatePreviewThreadInput()),
+	  Qt::QueuedConnection);
   connect(u->gbxOverrideMargins, SIGNAL(toggled(bool)), d, SLOT(updatePreviewThreadSettings()),
 	  Qt::QueuedConnection);
   connect(u->spnMarginTop, SIGNAL(valueChanged(double)), d, SLOT(updatePreviewThreadSettings()),
