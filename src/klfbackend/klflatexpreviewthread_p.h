@@ -37,6 +37,56 @@
 
 
 
+class KLFLatexPreviewThreadWorker : public QObject
+{
+  Q_OBJECT
+
+public:
+  KLFLatexPreviewThreadWorker()
+    : QObject(NULL)
+  {
+    _abort = 0;
+    newTasks = QQueue<Task>();
+  };
+
+  typedef KLFLatexPreviewThread::TaskId TaskId;
+
+  struct Task {
+    Task() { }
+
+    KLFBackend::klfInput input;
+    KLFBackend::klfSettings settings;
+    QSize previewSize;
+    QSize largePreviewSize;
+
+    KLFLatexPreviewHandler * handler;
+
+    TaskId taskid;
+  };
+
+
+signals:
+  void threadStartedProcessingJob(TaskId taskid);
+  void threadFinishedJob(TaskId taskid);
+
+public slots:
+  void threadSubmitTask(KLFLatexPreviewThreadWorker::Task task, bool clearOtherJobs = false,
+			KLFLatexPreviewThread::TaskId replaceJobId = -1);
+  void threadProcessJobs();
+  bool threadCancelTask(KLFLatexPreviewThread::TaskId task);
+  void threadClearPendingTasks();
+
+  // this slot may be called by direct connection, it is thread-safe.
+  inline void abort() { _abort.fetchAndStoreOrdered(1); }
+
+private:
+  // the thread will stop if it notices this has become 1
+  QAtomicInt _abort;
+
+  QQueue<Task> newTasks;
+};
+
+
 
 class KLFLatexPreviewThreadPrivate : public QObject
 {
@@ -47,61 +97,72 @@ public:
     previewSize = QSize(280, 80);
     largePreviewSize = QSize(640, 480);
 
-    newTasks = QQueue<Task>();
-    abort = false;
+    taskIdCounter = 1;
   }
 
   QSize previewSize;
   QSize largePreviewSize;
 
-  QWaitCondition condNewTaskAvailable;
 
-  bool abort;
+  KLFLatexPreviewThread::TaskId taskIdCounter;
 
-  typedef KLFLatexPreviewThread::QueuedTask QueuedTask;
-
-  struct Task {
-    Task() : isfresh(true), isrunning(false) { }
-
-    KLFBackend::klfInput input;
-    KLFBackend::klfSettings settings;
-    QSize previewSize;
-    QSize largePreviewSize;
-
-    KLFLatexPreviewHandler * handler;
-
-    bool isfresh;
-    bool isrunning;
-
-    KLFRefPtr<QueuedTask> qtask;
-  };
-
-  QQueue<Task> newTasks;
-
-  // main object's _mutex is already locked to access "d->" object
-  KLFRefPtr<KLFLatexPreviewThread::QueuedTask> submitTask(Task task)
+  KLFLatexPreviewThread::TaskId submitTask(KLFLatexPreviewThreadWorker::Task t, bool clear,
+					   KLFLatexPreviewThread::TaskId replaceId)
   {
-    if (task.qtask == NULL)
-      task.qtask = new KLFLatexPreviewThread::QueuedTask;
-
-    newTasks.enqueue(task);
-    condNewTaskAvailable.wakeOne();
-    return task.qtask;
+    KLFLatexPreviewThread::TaskId id;
+    if (replaceId >= 0) // if we're replacing a job, use the same ID
+      id = replaceId;
+    else
+      id = taskIdCounter++;
+    emit internalRequestSubmitNewTask(t, clear, replaceId);
+    klfDbg("new task submitted, id="<<id) ;
+    return id;
   }
 
-public slots:
-  void setTaskRunning(void * t)
-  {
-    ((QueuedTask*)t)->isrunning = true;
-  }
-  void setTaskFinished(void * t)
-  {
-    // doing this in the main thread ensures that no other object is currently accessing it.
-    // so we also don't need any mutex.
-    ((QueuedTask*)t)->isfinished = true;
-  }
+
+signals:
+  /** \internal
+   *
+   * This signal is meant to be received by the inner worker, but others can access it too. It
+   * is emitted _before_ the abort process has completed. */
+  void internalRequestAbort();
+
+  /** \internal
+   *
+   * This signal is meant to be only received by the inner worker. */
+  void internalRequestSubmitNewTask(const KLFLatexPreviewThreadWorker::Task& task, bool clearOtherJobs,
+				    KLFLatexPreviewThread::TaskId replaceTaskId);
+
+  /** \internal
+   *
+   * This signal is meant to be only received by the inner worker. */
+  void internalRequestClearPendingTasks();
+
+  /** \internal
+   *
+   * This signal is meant to be only received by the inner worker. */
+  void internalRequestCancelTask(KLFLatexPreviewThread::TaskId id);
+
+
+  friend class KLFLatexPreviewThread;
+
 };
 
+/* not needed
+QDataStream& operator<<(QDataStream& str, KLFLatexPreviewThreadPrivate::Task& task)
+{
+  return str << task.input << task.settings << task.previewSize << task.largePreviewSize
+	     << (int)task.handler << task.isfresh << task.isrunning << task.taskid;
+}
+QDataStream& operator>>(QDataStream& str, KLFLatexPreviewThreadPrivate::Task& task)
+{
+  int ptrhandler;
+  str >> task.input >> task.settings >> task.previewSize >> task.largePreviewSize
+      >> ptrhandler >> task.isfresh >> task.isrunning >> task.taskid;
+  task.handler = (void*)ptrhandler;
+  return str;
+}
+*/
 
 
 
@@ -120,6 +181,8 @@ public:
   {
     thread = NULL;
 
+    curTask = -1;
+
     input = KLFBackend::klfInput();
     settings = KLFBackend::klfSettings();
     previewSize = QSize(280, 80);
@@ -131,7 +194,7 @@ public:
 
   KLFLatexPreviewThread * thread;
 
-  KLFRefPtr<KLFLatexPreviewThread::QueuedTask> curTask;
+  KLFLatexPreviewThread::TaskId curTask;
 
   KLFBackend::klfInput input;
   KLFBackend::klfSettings settings;
@@ -144,13 +207,9 @@ public:
 
     KLF_ASSERT_NOT_NULL(thread, "Thread is NULL! Can't refresh preview!", return; ) ;
 
-    if (curTask != NULL) {
-      if (!thread->taskIsFinished(curTask))
-	thread->cancelTask(curTask);
-    }
-
-    curTask = thread->submitPreviewTask(input, settings, this, previewSize, largePreviewSize);
-    if (curTask == NULL) {
+    curTask = thread->replaceSubmitPreviewTask(curTask, input, settings, this,
+					       previewSize, largePreviewSize);
+    if (curTask == -1) {
       klfWarning("Failed to submit preview task to thread.") ;
     }
   }

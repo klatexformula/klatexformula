@@ -26,6 +26,7 @@
 
 #include <QThread>
 #include <QMutex>
+#include <QAtomicInt>
 
 #include <klfdefs.h>
 #include <klfbackend.h>
@@ -64,6 +65,72 @@ public slots:
   virtual void latexPreviewError(const QString& errorString, int errorCode);
 };
 
+
+
+class KLF_EXPORT KLFLatexPreviewThread : public QThread
+{
+  Q_OBJECT
+
+  Q_PROPERTY(QSize previewSize READ previewSize WRITE setPreviewSize) ;
+  Q_PROPERTY(QSize largePreviewSize READ largePreviewSize WRITE setLargePreviewSize) ;
+
+public:
+  KLFLatexPreviewThread(QObject *parent = NULL);
+  virtual ~KLFLatexPreviewThread();
+
+  typedef qint64 TaskId;
+
+  QSize previewSize() const;
+  QSize largePreviewSize() const;
+  void getPreviewSizes(QSize *previewsize, QSize *largepreviewsize) const;
+
+  void setPreviewSize(const QSize& previewSize);
+  void setLargePreviewSize(const QSize& largePreviewSize);
+  void setPreviewSizes(const QSize& previewsize, const QSize& largepreviewsize) const;
+
+  void cancelTask(TaskId task);
+  void clearPendingTasks();
+
+  void start(Priority priority = InheritPriority);
+  void stop();
+
+public slots:
+
+  TaskId submitPreviewTask(const KLFBackend::klfInput& input,
+			   const KLFBackend::klfSettings& settings,
+			   KLFLatexPreviewHandler * outputhandler,
+			   const QSize& previewSize, const QSize& largePreviewSize);
+  TaskId submitPreviewTask(const KLFBackend::klfInput& input,
+			   const KLFBackend::klfSettings& settings,
+			   KLFLatexPreviewHandler * outputhandler);
+  TaskId clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
+				   const KLFBackend::klfSettings& settings,
+				   KLFLatexPreviewHandler * outputhandler,
+				   const QSize& previewSize, const QSize& largePreviewSize);
+  TaskId clearAndSubmitPreviewTask(const KLFBackend::klfInput& input,
+				   const KLFBackend::klfSettings& settings,
+				   KLFLatexPreviewHandler * outputhandler); 
+  TaskId replaceSubmitPreviewTask(TaskId replaceId,
+				  const KLFBackend::klfInput& input,
+				  const KLFBackend::klfSettings& settings,
+				  KLFLatexPreviewHandler * outputhandler,
+				  const QSize& previewSize, const QSize& largePreviewSize);
+  TaskId replaceSubmitPreviewTask(TaskId replaceId,
+				  const KLFBackend::klfInput& input,
+				  const KLFBackend::klfSettings& settings,
+				  KLFLatexPreviewHandler * outputhandler); 
+
+protected:
+  virtual void run();
+
+private:
+  KLF_DECLARE_PRIVATE(KLFLatexPreviewThread) ;
+
+  QMutex _startupmutex;
+};
+
+
+/*
 class KLF_EXPORT KLFLatexPreviewThread : public QThread
 {
   Q_OBJECT
@@ -79,10 +146,10 @@ public:
   {
     QueuedTask() : isrunning(false), isfinished(false) { }
 
-    inline int ref() { return ++refcount; }
-    inline int deref() { return --refcount; }
+    inline int ref() { return refcount.ref(); }
+    inline int deref() { return refcount.deref(); }
   private:
-    int refcount;
+    QAtomicInt refcount;
 
     friend class KLFLatexPreviewThread;
     friend class KLFLatexPreviewThreadPrivate;
@@ -96,7 +163,7 @@ public:
   KLFRefPtr<QueuedTask> submitPreviewTask(const KLFBackend::klfInput& input,
 					  const KLFBackend::klfSettings& settings,
 					  KLFLatexPreviewHandler * outputhandler,
-					  const QSize& previewSize, const QSize& largePreviewSize);
+ 					  const QSize& previewSize, const QSize& largePreviewSize);
   KLFRefPtr<QueuedTask> submitPreviewTask(const KLFBackend::klfInput& input,
 					  const KLFBackend::klfSettings& settings,
 					  KLFLatexPreviewHandler * outputhandler);
@@ -127,6 +194,7 @@ private:
 
   QMutex _mutex;
 };
+*/
 
 
 class KLFContLatexPreviewPrivate;

@@ -127,6 +127,7 @@ static const char * standard_extra_paths[] = {
 #endif
 
 
+
 // ---------------------------------
 
 KLFAbstractLatexMetaInfo::KLFAbstractLatexMetaInfo()
@@ -305,6 +306,11 @@ struct GsInfo
 static QMap<QString,GsInfo> gsInfo = QMap<QString,GsInfo>();
 
 static void initGsInfo(const KLFBackend::klfSettings *settings);
+
+
+
+
+
 
 
 // ---------------------------------
