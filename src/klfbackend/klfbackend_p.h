@@ -31,12 +31,14 @@ struct KLFBackendFilterProgram : public KLFFilterProcess
 {
   int resErrCodes[KLFFP_PAST_LAST_VALUE];
 
-  KLFBackendFilterProgram(const QString& title, const KLFBackend::klfSettings * settings)
+  KLFBackendFilterProgram(const QString& title, const KLFBackend::klfSettings * settings, bool isMainThread)
     : KLFFilterProcess(title, settings)
   {
     for (int i = 0; i < KLFFP_PAST_LAST_VALUE; ++i) {
       resErrCodes[i] = i;
     }
+
+    setProcessAppEvents(isMainThread);
   }
 
 

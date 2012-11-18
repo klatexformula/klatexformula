@@ -79,6 +79,16 @@ public:
   /** Set a QByteArray where all stderr data will be stored */
   void collectStderrTo(QByteArray * stderrstore);
 
+
+
+  /** See \ref setProcessAppEvents() */
+  bool processAppEvents();
+  /** specify whether or not to call regularly qApp->processEvents() while executing.
+   * This will prevent the GUI to freeze. Enabled is the default. However you can choose to
+   * disable this behavior by passing FALSE here, e.g. if you're not in the GUI thread. */
+  void setProcessAppEvents(bool processEvents);
+
+
   /** After run(), this is set to the exit status of the process. See QProcess::exitStatus() */
   int exitStatus() const;
   /** After run(), this is set to the exit code of the process. See QProcess::exitCode() */

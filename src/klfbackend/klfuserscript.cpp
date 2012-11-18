@@ -132,7 +132,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
     QByteArray scriptinfo;
     //    bool want_full_template = true;
     { // Query Script Info phase
-      KLFBackendFilterProgram p(QObject::tr("User Script (ScriptInfo)"), settings);
+      KLFBackendFilterProgram p(QObject::tr("User Script (ScriptInfo)"), settings, false);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;

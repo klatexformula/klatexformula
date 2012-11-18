@@ -448,6 +448,11 @@ public:
    * Pass on a valid \ref klfInput input object, as well as a \ref klfSettings
    * object filled with your input and settings, and you will get output in \ref klfOutput.
    *
+   * If \c isMainThread is set to TRUE (the default), then we assume that we're called by the main
+   * application thread, and will call QApplication::processEvents() regularly during process
+   * executions to prevent the GUI from freezing. Make sure you set FALSE here if you're not in the
+   * GUI thread.
+   *
    * If an error occurs, klfOutput::status is non-zero and klfOutput::errorstr contains an explicit
    * error in human-readable form. The latter is Qt-Translated with QObject::tr() with "KLFBackend"
    * comment.
@@ -495,8 +500,12 @@ public:
    * \note This function is safe for threads; it locks a mutex at the beginning and unlocks
    *   it at the end; so if a call to this function is issued while a first call is already
    *   being processed in another thread, the second waits for the first call to finish.
+   *   However, if you are not running this from the main thread, you should be sure to pass
+   *   FALSE to \c isMainThread, in order to prevent this function from allowing the
+   *   application to process events during process executions.
    */
-  static klfOutput getLatexFormula(const klfInput& in, const klfSettings& settings);
+  static klfOutput getLatexFormula(const klfInput& in, const klfSettings& settings,
+				   bool isMainThread = true);
 
   /** \brief Get a list of available output formats
    *
@@ -565,8 +574,14 @@ public:
    * Detects gs version to see if SVG is supported, saved in \c wantSVG setting.
    *
    * The temporary directory is set to the system temporary directory.
+   *
+   * If \c isMainThread is set to TRUE (the default), then we assume that we're called by the main
+   * application thread, and will call QApplication::processEvents() regularly during process
+   * executions to prevent the GUI from freezing. Make sure you set FALSE here if you're not in the
+   * GUI thread.
    */
-  static bool detectSettings(klfSettings *settings, const QString& extraPath = QString());
+  static bool detectSettings(klfSettings *settings, const QString& extraPath = QString(),
+			     bool isMainThread = true);
 
   /** \bug ........documentation ........ */
   static QStringList userScriptSettingsToEnvironment(const QMap<QString,QString>& userScriptSettings);

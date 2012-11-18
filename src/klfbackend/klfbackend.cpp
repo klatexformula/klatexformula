@@ -305,7 +305,7 @@ struct GsInfo
 // cache gs version/help/etc. information (for each gs executable, in case there are several)
 static QMap<QString,GsInfo> gsInfo = QMap<QString,GsInfo>();
 
-static void initGsInfo(const KLFBackend::klfSettings *settings);
+static void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread);
 
 
 
@@ -398,7 +398,8 @@ struct klfbbox {
 
 
 static bool calculate_gs_eps_bbox(const QByteArray& epsdata, const QString& epsFile, klfbbox *bbox,
-				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings);
+				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings,
+				  bool isMainThread);
 static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::klfOutput * resError);
 static void correct_eps_bbox(const QByteArray& epsdata, const klfbbox& bbox_corrected, const klfbbox& bbox_orig,
 			     double vectorscale, QByteArray * epsdatacorrected);
@@ -500,7 +501,8 @@ static inline bool assert_have_formats_for(const KLFStringSet& outputs, const KL
 
 
 
-KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& usersettings)
+KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& usersettings,
+						  bool isMainThread)
 {
   // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
   QMutexLocker mutexlocker(&klf_mutex);
@@ -541,7 +543,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
 
   // read GS version, will need later
-  initGsInfo(&settings);
+  initGsInfo(&settings, isMainThread);
   if (!gsInfo.contains(settings.gsexec)) {
     res.status = KLFERR_NOGSVERSION;
     res.errorstr = QObject::tr("Can't query version of ghostscript located at `%1'.", "KLFBackend")
@@ -764,7 +766,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
 
     { // now run the script
-      KLFBackendFilterProgram p("[user script "+scriptinfo.name()+"]", &settings);
+      KLFBackendFilterProgram p("[user script "+scriptinfo.name()+"]", &settings, isMainThread);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
@@ -877,7 +879,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   if (!has_userscript_output(us_outputs, "dvi") && !our_skipfmts.contains("dvi")) {
     // execute latex
-    KLFBackendFilterProgram p(QLatin1String("LaTeX"), &settings);
+    klfDbg("preparing to launch latex.") ;
+
+    KLFBackendFilterProgram p(QLatin1String("LaTeX"), &settings, isMainThread);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_LATEX_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_LATEX_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_LATEX;
@@ -900,7 +904,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     ASSERT_HAVE_FORMATS_FOR("eps-raw") ;
 
     // execute dvips -E
-    KLFBackendFilterProgram p(QLatin1String("dvips"), &settings);
+    KLFBackendFilterProgram p(QLatin1String("dvips"), &settings, isMainThread);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_DVIPS_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_DVIPS_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_DVIPS;
@@ -936,7 +940,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     klfbbox bbox, bbox_corrected;
 
     if (settings.calcEpsBoundingBox) {
-      bool ok = calculate_gs_eps_bbox(QByteArray(), fnRawEps, &bbox, &res, settings);
+      bool ok = calculate_gs_eps_bbox(QByteArray(), fnRawEps, &bbox, &res, settings, isMainThread);
       if (!ok)
 	return res; // res was set by the function
     } else {
@@ -981,7 +985,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
 
     if (settings.calcEpsBoundingBox) {
-      bool ok = calculate_gs_eps_bbox(QByteArray(), fn, &bb, &res, settings);
+      bool ok = calculate_gs_eps_bbox(QByteArray(), fn, &bb, &res, settings, isMainThread);
       if (!ok)
 	return res; // res was set by the function
     } else {
@@ -1006,7 +1010,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     if (settings.outlineFonts) {
       // post-process EPS file to outline fonts if requested
 
-      KLFBackendFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings);
+      KLFBackendFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings, isMainThread);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPOSTPROC_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPOSTPROC_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPOSTPROC;
@@ -1041,7 +1045,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     ASSERT_HAVE_FORMATS_FOR("png") ;
 
     // run 'gs' to get PNG data
-    KLFBackendFilterProgram p(QLatin1String("gs (PNG)"), &settings);
+    KLFBackendFilterProgram p(QLatin1String("gs (PNG)"), &settings, isMainThread);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPNG_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPNG_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPNG;
@@ -1131,7 +1135,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     }
 
     // run 'gs' to get PDF data
-    KLFBackendFilterProgram p(QLatin1String("gs (PDF)"), &settings);
+    KLFBackendFilterProgram p(QLatin1String("gs (PDF)"), &settings, isMainThread);
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPDF_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPDF_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPDF;
@@ -1167,7 +1171,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 	return res;
       }
 
-      KLFBackendFilterProgram p(QLatin1String("gs (SVG)"), &settings);
+      KLFBackendFilterProgram p(QLatin1String("gs (SVG)"), &settings, isMainThread);
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSSVG_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSSVG_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSSVG;
@@ -1215,14 +1219,15 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
 
 static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsFile, klfbbox *bbox,
-				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings)
+				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings,
+				  bool isMainThread)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   // find correct bounding box of EPS file, using ghostscript
 
   int i;
 
-  KLFBackendFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings);
+  KLFBackendFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings, isMainThread);
   p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSBBOX_NORUN;
   p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSBBOX_NONORMALEXIT;
   p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSBBOX;
@@ -1649,7 +1654,7 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
 }
 
 
-bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
+bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath, bool isMainThread)
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
@@ -1705,7 +1710,7 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath)
   klf_detect_execenv(settings);
 
   if (settings->gsexec.length()) {
-    initGsInfo(settings);
+    initGsInfo(settings, isMainThread);
     if (!gsInfo.contains(settings->gsexec)) {
       klfWarning("Cannot get 'gs' devices information with "<<(settings->gsexec+" --version/--help"));
     } else if (gsInfo[settings->gsexec].availdevices.contains("svg")) {
@@ -1757,14 +1762,14 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
 
 
 // static 
-void initGsInfo(const KLFBackend::klfSettings *settings)
+void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
 {
   if (gsInfo.contains(settings->gsexec)) // info already cached
     return;
 
   QString gsver;
   { // test 'gs' version, to see if we can provide SVG data
-    KLFBackendFilterProgram p(QLatin1String("gs (test version)"), settings);
+    KLFBackendFilterProgram p(QLatin1String("gs (test version)"), settings, isMainThread);
     //    p.resErrCodes[KLFFP_NOSTART] = ;
     //     p.resErrCodes[KLFFP_NOEXIT] = ;
     //     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = ;
@@ -1788,7 +1793,7 @@ void initGsInfo(const KLFBackend::klfSettings *settings)
   QString gshelp;
   KLFStringSet availdevices;
   { // test 'gs' version, to see if we can provide SVG data
-    KLFBackendFilterProgram p(QLatin1String("gs (query help)"), settings);
+    KLFBackendFilterProgram p(QLatin1String("gs (query help)"), settings, isMainThread);
     //    p.resErrCodes[KLFFP_NOSTART] = ;
     //     p.resErrCodes[KLFFP_NOEXIT] = ;
     //     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = ;

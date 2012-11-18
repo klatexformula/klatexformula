@@ -120,6 +120,7 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   klfDbg("wrote input data (size="<<stdindata.size()<<")") ;
 
   if (mProcessAppEvents) {
+    klfDbg("letting app process events ...") ;
     while (_runstatus == 0) {
       qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
     }

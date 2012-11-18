@@ -120,11 +120,19 @@ void KLFLatexPreviewThread::setLargePreviewSize(const QSize& largePreviewSize)
 
 void KLFLatexPreviewThread::start(Priority priority)
 {
+  //  _startupmutex.lock();
+
+  // fire up the thread
   QThread::start(priority);
+
   // and wait for thread to startup; it needs to access d-> for connecting signal/slots. After
   // that we're fine.
-  _startupmutex.lock();
-  _startupmutex.unlock();
+  //  bool waitOk = _startupWaitCondition.wait(&_startupmutex);
+  //  KLF_ASSERT_CONDITION(waitOk, "Thread Start-Up Failed.", ; ) ;
+
+  //  _startupmutex.unlock();
+
+  klfDbg("Thread started, startup mutex unlocked.") ;
 }
 
 void KLFLatexPreviewThread::stop()
@@ -138,10 +146,12 @@ void KLFLatexPreviewThread::stop()
 
 void KLFLatexPreviewThread::run()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   // create a worker that will do all the job for us
   KLFLatexPreviewThreadWorker worker;
 
-  _startupmutex.lock();
+  //  _startupmutex.lock();
 
   // create a direct-connection abort signal; this is fine because worker.abort() is thread-safe.
   connect(d, SIGNAL(internalRequestAbort()), &worker, SLOT(abort()), Qt::DirectConnection);
@@ -160,7 +170,12 @@ void KLFLatexPreviewThread::run()
 	  &worker, SLOT(threadCancelTask(KLFLatexPreviewThread::TaskId)),
 	  Qt::QueuedConnection);
 
-  _startupmutex.unlock();
+  //  _startupmutex.unlock();
+
+  //  _startupWaitCondition.wakeAll();
+
+
+  klfDbg("Startup finished, entering event loop.") ;
 
   // and enter the main loop.
   exec();
@@ -284,6 +299,8 @@ void KLFLatexPreviewThread::clearPendingTasks()
 
 void KLFLatexPreviewThreadWorker::threadSubmitTask(Task task, bool clearOtherJobs, TaskId replaceTaskId)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if (clearOtherJobs)
     threadClearPendingTasks();
   if (replaceTaskId)
@@ -291,6 +308,8 @@ void KLFLatexPreviewThreadWorker::threadSubmitTask(Task task, bool clearOtherJob
 
   // enqueue the new task
   newTasks.enqueue(task);
+
+  klfDbg("enqueued task id="<<task.taskid) ;
 
   // and notify ourself in the event loop that there are more jobs to process
   QMetaObject::invokeMethod(this, "threadProcessJobs", Qt::QueuedConnection);
@@ -305,6 +324,10 @@ bool KLFLatexPreviewThreadWorker::threadCancelTask(TaskId taskid)
       return true;
     }
   }
+
+  // this might not be an error, it could be that the task completed before we had
+  // a chance to cancel it
+  klfDbg("No such task ID: "<<taskid) ;
   return false;
 }
 
@@ -315,6 +338,8 @@ void KLFLatexPreviewThreadWorker::threadClearPendingTasks()
 
 void KLFLatexPreviewThreadWorker::threadProcessJobs()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   Task task;
   KLFBackend::klfOutput ouroutput;
 
@@ -327,13 +352,18 @@ void KLFLatexPreviewThreadWorker::threadProcessJobs()
   // fetch task info
   task = newTasks.dequeue();
 
+  klfDbg("processing job ID="<<task.taskid) ;
+
   QImage img, prev, lprev;
   if ( task.input.latex.trimmed().isEmpty() ) {
     QMetaObject::invokeMethod(task.handler, "latexPreviewReset", Qt::QueuedConnection);
   } else {
     // and GO!
-    ouroutput = KLFBackend::getLatexFormula(task.input, task.settings);
+    klfDbg("worker: running KLFBackend::getLatexFormula()") ;
+    ouroutput = KLFBackend::getLatexFormula(task.input, task.settings, false);
     img = ouroutput.result;
+
+    klfDbg("got result: status="<<ouroutput.status) ;
 
     if (ouroutput.status != 0) {
       // error...
@@ -369,8 +399,12 @@ void KLFLatexPreviewThreadWorker::threadProcessJobs()
     }
   }
 
+  klfDbg("about to invoke delayed threadProcessJobs.") ;
+
   // continue processing jobs, but let the event loop have a chance to run a bit too.
   QMetaObject::invokeMethod(this, "threadProcessJobs", Qt::QueuedConnection);
+
+  klfDbg("threadProcessJobs: end") ;
 }
 
 

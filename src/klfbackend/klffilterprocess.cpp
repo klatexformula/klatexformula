@@ -89,6 +89,8 @@ class KLFFilterProcessPrivate {
   QByteArray *collectStdout;
   QByteArray *collectStderr;
 
+  bool processAppEvents;
+
   // these fields are set after calling run()
   int exitStatus;
   int exitCode;
@@ -116,6 +118,8 @@ KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfS
     d->programCwd = settings->tempdir;
     d->execEnviron = settings->execenv;
   }
+
+  d->processAppEvents = true;
 
   d->exitStatus = -1;
   d->exitCode = -1;
@@ -207,6 +211,16 @@ void KLFFilterProcess::collectStderrTo(QByteArray * stderrstore)
   d->collectStderr = stderrstore;
 }
 
+bool KLFFilterProcess::processAppEvents()
+{
+  return d->processAppEvents;
+}
+
+void KLFFilterProcess::setProcessAppEvents(bool on)
+{
+  d->processAppEvents = on;
+}
+
 int KLFFilterProcess::exitStatus() const
 {
   return d->exitStatus;
@@ -241,6 +255,8 @@ bool KLFFilterProcess::run(const QByteArray& indata, const QMap<QString, QByteAr
   KLF_ASSERT_CONDITION(d->argv.size() > 0, "argv array is empty! No program is given!", return false; ) ;
   
   proc.setWorkingDirectory(d->programCwd);
+
+  proc.setProcessAppEvents(d->processAppEvents);
 
   klfDbg("about to exec "<<d->progTitle<<" ...") ;
   klfDbg("\t"<<qPrintable(d->argv.join(" "))) ;

@@ -30,8 +30,8 @@
 
 #include <QObject>
 #include <QThread>
-#include <QWaitCondition>
 #include <QQueue>
+#include <QAtomicInt>
 
 #include "klflatexpreviewthread.h"
 
@@ -109,14 +109,15 @@ public:
   KLFLatexPreviewThread::TaskId submitTask(KLFLatexPreviewThreadWorker::Task t, bool clear,
 					   KLFLatexPreviewThread::TaskId replaceId)
   {
-    KLFLatexPreviewThread::TaskId id;
-    if (replaceId >= 0) // if we're replacing a job, use the same ID
-      id = replaceId;
-    else
-      id = taskIdCounter++;
+    //    if (replaceId >= 0) // if we're replacing a job, use the same ID
+    //      t.taskid = replaceId;
+    //    else
+    t.taskid = taskIdCounter++;
+
     emit internalRequestSubmitNewTask(t, clear, replaceId);
-    klfDbg("new task submitted, id="<<id) ;
-    return id;
+
+    klfDbg("new task submitted, id="<<t.taskid) ;
+    return t.taskid;
   }
 
 

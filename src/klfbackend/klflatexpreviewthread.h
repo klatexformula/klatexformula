@@ -26,7 +26,7 @@
 
 #include <QThread>
 #include <QMutex>
-#include <QAtomicInt>
+#include <QWaitCondition>
 
 #include <klfdefs.h>
 #include <klfbackend.h>
@@ -127,6 +127,7 @@ private:
   KLF_DECLARE_PRIVATE(KLFLatexPreviewThread) ;
 
   QMutex _startupmutex;
+  QWaitCondition _startupWaitCondition;
 };
 
 
