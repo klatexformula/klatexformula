@@ -1158,8 +1158,13 @@ KLF_EXPORT QString KLFSysInfo::makeSysArch(const QString& os, const QString& arc
 {
   return os+":"+arch;
 }
-KLF_EXPORT bool KLFSysInfo::isCompatibleSysArch(const QString& sysarch)
+KLF_EXPORT bool KLFSysInfo::isCompatibleSysArch(const QString& systemarch)
 {
+  QString sysarch = systemarch;
+
+  // on Windows, we use -- instead of ':' because ':' is an illegal char for a file name.
+  sysarch.replace("--", ":");
+
   int ic = sysarch.indexOf(':');
   if (ic == -1) {
     qWarning()<<KLF_FUNC_NAME<<": Invalid sysarch string "<<sysarch;

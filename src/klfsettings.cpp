@@ -142,7 +142,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   // ---
 
   //  QToolBar * toolBar = new QToolBar(wToolBar);
-#ifdef Q_WS_MAC
+#if defined(Q_WS_MAC) || defined(Q_WS_WIN32) || defined(Q_WS_WIN) || defined(Q_WS_WIN64)
   //  u->toolBar->setAttribute(Qt::WA_NoSystemBackground, true);
   //  u->toolBar->setAttribute(Qt::WA_NativeWindow, false);
   u->toolBar->setStyle(new QPlastiqueStyle());

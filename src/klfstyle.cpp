@@ -77,7 +77,7 @@ KLFStyle::KLFStyle(const KLFBackend::klfInput& input)
     userScript(this, UserScript, "userScript", input.userScript),
     userScriptInput(this, UserScriptInput, "userScriptInput", klfMapToVariantMap<QString>(input.userScriptParam))
 {
-  klfWarning("possible loss of information: KLFStyle(KLFBackend::klfInput)") ;
+  klfDbg("Note: Possible loss of information: KLFStyle(KLFBackend::klfInput)") ;
 }
 KLFStyle::KLFStyle(const KLFStyle& o)
   : KLFPropertizedObject("KLFStyle"),

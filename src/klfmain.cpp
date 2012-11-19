@@ -212,10 +212,16 @@ KLFAddOnInfo::PluginSysInfo KLFAddOnInfo::pluginSysInfo(const QString& plugin) c
 { return d->plugins[plugin]; }
 QString KLFAddOnInfo::pluginLocalSubDirName(const QString& plugin) const
 {
-  if ( ! d->plugins[plugin].klfminversion.isEmpty() )
-    return QString("%1/klf%2").arg(QLatin1String("sysarch_")+KLFSysInfo::makeSysArch(d->plugins[plugin].os,
-										     d->plugins[plugin].arch),
-				   d->plugins[plugin].klfminversion);
+  if ( ! d->plugins[plugin].klfminversion.isEmpty() ) {
+    QString s = QString("%1/klf%2").arg(QLatin1String("sysarch_")
+                                        +KLFSysInfo::makeSysArch(d->plugins[plugin].os,
+                                                                 d->plugins[plugin].arch),
+                                        d->plugins[plugin].klfminversion);
+#if defined(Q_OS_WIN) || defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
+    s = s.replace(':', "--");
+#endif
+    return s;
+  }
   return QString(".");
 }
 QStringList KLFAddOnInfo::userScripts() const { return d->userScripts; }
@@ -767,10 +773,14 @@ void klf_reload_user_scripts()
       }
       if (l[j].endsWith("~") || l[j].endsWith(".bkp"))
 	continue; // skip any "old"/"backup" files
+
+#if !defined(Q_OS_WIN) && !defined(Q_OS_WIN32) && !defined(Q_OS_WIN64)
       if (!QFileInfo(l[j]).isExecutable()) {
 	klfWarning("File "<<l[j]<<" in userscripts/ is ignored as it is not executable.");
 	continue;
       }
+#endif
+
       klfDbg("User script: "<<l[j]) ;
       klf_user_scripts << l[j];
     }

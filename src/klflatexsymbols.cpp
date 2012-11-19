@@ -960,7 +960,8 @@ void KLFLatexSymbols::read_symbols_create_ui()
     
     QDomElement root = doc.documentElement();
     if (root.nodeName() == "latexsymbollist") {
-      qWarning("%s: Ignoring old symbols definition file %s.", KLF_FUNC_NAME, qPrintable(fn));
+      if (!fn.endsWith("conf/latexsymbols.d/defaultlatexsymbols.xml"))
+        klfWarning("Ignoring old symbols definition file "<<fn<<".");
       continue;
     }
     if (root.nodeName() != "klf-symbol-list") {

@@ -590,7 +590,7 @@ KLFMainWin::KLFMainWin()
   d->mSettingsDialog->installEventFilter(this);
 
 
-  // ADDITIONAL OUTPUT SAVERS
+  // ADDITIONAL OUTPUT SAVERS
 
   registerOutputSaver(new KLFTexOutputSaver(this));
 
@@ -2107,14 +2107,16 @@ void KLFMainWinPrivate::slotUserScriptDisableInputs(KLFUserScriptInfo * info)
   K->u->colFg->setDisabled(WANT_DISABLE("FG_COLOR") || disableallinput);
   K->u->colBg->setDisabled(WANT_DISABLE("BG_COLOR") || disableallinput);
   K->u->chkMathMode->setDisabled(WANT_DISABLE("MATHMODE") || disableallinput);
-  K->u->cbxMathMode->setDisabled(WANT_DISABLE("MATHMODE") || disableallinput);
+  K->u->cbxMathMode->setDisabled(WANT_DISABLE("MATHMODE") || !K->u->chkMathMode->isChecked()
+                                 || disableallinput);
   K->u->txtPreamble->setDisabled(WANT_DISABLE("PREAMBLE") || disableallinput);
   K->u->cbxLatexFont->setDisabled(WANT_DISABLE("FONT") || disableallinput);
   K->u->spnLatexFontSize->setDisabled(WANT_DISABLE("FONTSIZE") || disableallinput);
   K->u->spnDPI->setDisabled(WANT_DISABLE("DPI"));
   K->u->btnDPIPresets->setDisabled(WANT_DISABLE("DPI"));
   K->u->chkVectorScale->setDisabled(WANT_DISABLE("VECTORSCALE"));
-  K->u->spnVectorScale->setDisabled(WANT_DISABLE("VECTORSCALE"));
+  K->u->spnVectorScale->setDisabled(WANT_DISABLE("VECTORSCALE")
+                                    || !K->u->chkVectorScale->isChecked());
   K->u->gbxOverrideMargins->setDisabled(WANT_DISABLE("MARGINS"));
 }
 

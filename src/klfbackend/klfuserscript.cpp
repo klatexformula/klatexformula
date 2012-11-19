@@ -129,6 +129,8 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
     scriptInfoError = 0;
     scriptInfoErrorString = QString();
 
+    klfDbg("querying script information for script "<<fname) ;
+
     QByteArray scriptinfo;
     //    bool want_full_template = true;
     { // Query Script Info phase
@@ -145,7 +147,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
       if (!ok) {
 	scriptInfoError = p.resultStatus();
 	scriptInfoErrorString = p.resultErrorString();
-	klfDbg("Failed to query scriptinfo: "<<scriptInfoErrorString) ;
+        klfWarning("Failed to query scriptinfo: "<<scriptInfoErrorString) ;
 	return;
       }
     }
