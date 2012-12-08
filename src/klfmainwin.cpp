@@ -1363,10 +1363,13 @@ void KLFMainWinPrivate::slotOpenHistoryLibraryResource()
 
 void KLFMainWin::restoreFromLibrary(const KLFLibEntry& entry, uint restoreFlags)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   emit inputCleared();
 
   if (restoreFlags & KLFLib::RestoreStyle) {
     KLFStyle style = entry.style();
+    klfDbg("restoring style :" <<style) ;
     slotLoadStyle(style);
   }
   // restore latex after style, so that the parser-hint-popup doesn't appear for packages
@@ -3940,6 +3943,8 @@ bool KLFMainWin::isExpandedMode() const
 
 KLFStyle KLFMainWin::currentStyle() const
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLFStyle sty;
 
   sty.name = QString::null;
@@ -3975,6 +3980,7 @@ KLFStyle KLFMainWin::currentStyle() const
   sty.userScriptInput = d->collectUserScriptInput();
 
   klfDbg("Returning style; bgcol="<<klfFmtCC("#%08lx", (ulong)sty.bg_color)<<": us="<<sty.userScript()) ;
+  klfDbg("full style="<< sty) ;
 
   return sty;
 }
@@ -4137,6 +4143,9 @@ void KLFMainWinPrivate::slotDetailsSideWidgetShown(bool shown)
 
 void KLFMainWin::slotLoadStyle(const KLFStyle& style)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("style: "<<style) ;
+
   QColor cfg, cbg;
   cfg.setRgba(style.fg_color);
   cbg.setRgba(style.bg_color);

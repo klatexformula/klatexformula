@@ -155,13 +155,16 @@ static QString preamble_append_font_fontsize_vscale(const QString& fontname, dou
     s += "\n%%% KLF_fontname: " + QString::fromLatin1(klfDataToEscaped(fontname.toUtf8()));
   if (fontsize > 0.001)
     s += "\n%%% KLF_fontsize: " + QString("%1").arg(fontsize, 0, 'f', 2);
-  if (fabs(vscale - 1.0) < 0.001)
+  if (fabs(vscale - 1.0) > 1e-5)
     s += "\n%%% KLF_vectorscale: " + QString("%1").arg(vscale, 0, 'f', 4);
   return s;
 }
 
 static void set_xtra_from_preamble(KLFStyle * style)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("style="<<*style) ;
+
   QRegExp rx = QRegExp("\n%%%\\s*KLF_([a-zA-Z0-9_]*):\\s*(\\S[^\n]*)?");
   QString p = style->preamble;
   int pos = 0;
@@ -222,13 +225,15 @@ KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
   // yes, QIODevice inherits QObject and we can use dynamic properties...
   QString compat_klfversion = stream.device()->property("klfDataStreamAppVersion").toString();
   if (klfVersionCompare(compat_klfversion, "3.1") <= 0) {
+    QString thepreamble = (style.preamble + "\n" +
+			   preamble_append_overridebboxexpand(style.overrideBBoxExpand) +
+			   preamble_append_userscript(style.userScript) +
+			   preamble_append_userscript_input(style.userScriptInput) +
+			   preamble_append_font_fontsize_vscale(style.fontname, style.fontsize, style.vectorscale));
+    klfDbg("saving style to stream: style="<<style<<"; thepreamble="<<thepreamble) ;
     return stream << style.name() << (quint32)style.fg_color << (quint32)style.bg_color
 		  << style.mathmode()
-		  << (style.preamble + "\n" +
-		      preamble_append_overridebboxexpand(style.overrideBBoxExpand) +
-		      preamble_append_userscript(style.userScript) +
-		      preamble_append_userscript_input(style.userScriptInput) +
-		      preamble_append_font_fontsize_vscale(style.fontname, style.fontsize, style.vectorscale))
+		  << thepreamble
 		  << (quint16)style.dpi;
   } else if (klfVersionCompare(compat_klfversion, "3.3") < 0) {
     return stream << style.name() << (quint32)style.fg_color << (quint32)style.bg_color

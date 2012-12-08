@@ -115,7 +115,7 @@
    <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="tabs">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QGroupBox" name="tabInterface">
       <layout class="QGridLayout" name="lyt_tabInterface">
@@ -794,8 +794,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>368</width>
-                 <height>72</height>
+                 <width>98</width>
+                 <height>40</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -848,7 +848,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>86</width>
+                 <width>98</width>
                  <height>50</height>
                 </rect>
                </property>
@@ -987,8 +987,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>253</width>
-                    <height>78</height>
+                    <width>98</width>
+                    <height>40</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1154,8 +1154,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>233</width>
-                       <height>89</height>
+                       <width>98</width>
+                       <height>40</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1219,8 +1219,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>45</width>
-                <height>16</height>
+                <width>98</width>
+                <height>28</height>
                </rect>
               </property>
               <attribute name="label">
@@ -2529,5 +2529,54 @@
  <resources>
   <include location="klfres.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>chkSHEnable</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>chkSHHighlightParensOnly</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>91</x>
+     <y>212</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>91</x>
+     <y>229</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkSHEnable</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>chkSHHighlightLonelyParen</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>157</x>
+     <y>215</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>119</x>
+     <y>256</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkSHEnable</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>chkSHNoMatchParenTypes</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>153</x>
+     <y>215</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>275</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
