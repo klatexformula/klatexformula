@@ -26,12 +26,13 @@
  * This file contains some Mac OS X specific code for klfdefs.cpp
  */
 
+#include <Cocoa/Cocoa.h>
+
+#import <IOKit/ps/IOPowerSources.h>
+#import <IOKit/ps/IOPSKeys.h>
+
 #include <klfdefs.h>
-
-#include <CoreServices/CoreServices.h>
-
-#include <ps/IOPowerSources.h>
-
+#include <klfsysinfo.h>
 
 
 QString klf_defs_sysinfo_arch()
@@ -49,17 +50,62 @@ QString klf_defs_sysinfo_arch()
 }
 
 
+static bool init_power_sources_info(CFTypeRef *blobptr, CFArrayRef *sourcesptr)
+{
+  *blobptr = IOPSCopyPowerSourcesInfo();
+  *sourcesptr = IOPSCopyPowerSourcesList(*blobptr);
+  if (CFArrayGetCount(*sourcesptr) == 0) {
+    klfDbg("Could not retrieve battery information. May be a system without battery.") ;
+    return false;  // Could not retrieve battery information.  System may not have a battery.
+  }
+  // we have a battery.
+  return true;
+}
+
+KLFSysInfo::BatteryInfo _klf_mac_battery_info()
+{
+  CFTypeRef blob;
+  CFArrayRef sources;
+
+  bool have_battery = init_power_sources_info(&blob, &sources);
+
+  KLFSysInfo::BatteryInfo info;
+
+  if(!have_battery) {
+    info.islaptop = false;
+    info.onbatterypower = false;
+    return info;
+  }
+
+  CFDictionaryRef pSource = IOPSGetPowerSourceDescription(blob, CFArrayGetValueAtIndex(sources, 0));
+
+  BOOL outputCharging = [[(NSDictionary*)pSource objectForKey:@kIOPSIsChargingKey] boolValue];
+
+  klfDbg("battery is charging: "<<(bool)outputCharging) ;
+
+  CFRelease(blob);
+  CFRelease(sources);
+
+  info.islaptop = true;
+  info.onbatterypower = !(bool)outputCharging;
+
+  return info;
+}
 
 bool _klf_mac_is_laptop()
 {
-  return false;
+  CFTypeRef blob;
+  CFArrayRef sources;
+
+  bool have_battery = init_power_sources_info(&blob, &sources);
+
+  CFRelease(blob);
+  CFRelease(sources);
+  return have_battery;
 }
 bool _klf_mac_is_on_battery_power()
 {
-  return false;
-  /*
-    ...... #ifdef mac-os-version > 10.6
-    CFDictionaryRef d = IOPSCopyExternalPowerAdapterDetails();
-  */
+  KLFSysInfo::BatteryInfo inf = _klf_mac_battery_info();
+  return inf.onbatterypower;
 }
 

@@ -305,6 +305,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.maxUserColors, 12) ;
   KLFCONFIGPROP_INIT(UI.enableToolTipPreview, false) ;
   KLFCONFIGPROP_INIT(UI.enableRealTimePreview, true) ;
+  KLFCONFIGPROP_INIT(UI.realTimePreviewExceptBattery, true) ;
   KLFCONFIGPROP_INIT(UI.autosaveLibraryMin, 5) ;
   KLFCONFIGPROP_INIT(UI.showHintPopups, true) ;
   KLFCONFIGPROP_INIT(UI.clearLatexOnly, false) ;
@@ -533,6 +534,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "maxusercolors", &UI.maxUserColors);
   klf_config_read(s, "enabletooltippreview", &UI.enableToolTipPreview);
   klf_config_read(s, "enablerealtimepreview", &UI.enableRealTimePreview);
+  klf_config_read(s, "realtimepreviewexceptbattery", &UI.realTimePreviewExceptBattery);
   klf_config_read(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
   klf_config_read(s, "showhintpopups", &UI.showHintPopups);
   klf_config_read(s, "clearlatexonly", &UI.clearLatexOnly);
@@ -724,6 +726,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "maxusercolors", &UI.maxUserColors);
   klf_config_write(s, "enabletooltippreview", &UI.enableToolTipPreview);
   klf_config_write(s, "enablerealtimepreview", &UI.enableRealTimePreview);
+  klf_config_write(s, "realtimepreviewexceptbattery", &UI.realTimePreviewExceptBattery);
   klf_config_write(s, "autosavelibrarymin", &UI.autosaveLibraryMin);
   klf_config_write(s, "showhintpopups", &UI.showHintPopups);
   klf_config_write(s, "clearlatexonly", &UI.clearLatexOnly);

@@ -96,7 +96,7 @@ set(klftools_QRCS
 if(APPLE)
   set(klftools_SRCS ${klftools_SRCS}
     macosx/klfdrawerdefs.mm
-    klfdefs_mac.cpp
+    klfdefs_mac.mm
     )
 elseif(UNIX)
   set(klftools_SRCS ${klftools_SRCS}

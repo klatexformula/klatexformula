@@ -2735,6 +2735,24 @@ void KLFMainWinPrivate::displayError(const QString& error)
 
 void KLFMainWinPrivate::updatePreviewThreadInput()
 {
+  // recheck battery status, in case we have the proper setting on
+  // TODO: write this & the setting
+  klfDbg("laptop?: "<<KLFSysInfo::isLaptop()<<"; on battery power?: "<<KLFSysInfo::isOnBatteryPower()) ;
+  if (klfconfig.UI.enableRealTimePreview && klfconfig.UI.realTimePreviewExceptBattery
+      && KLFSysInfo::isLaptop()) {
+    // update battery status
+    bool onbattery = KLFSysInfo::isOnBatteryPower();
+    bool running = pLatexPreviewThread->isRunning();
+    if (running && onbattery) {
+      // we need to stop the preview thread
+      pLatexPreviewThread->stop();
+    } else if (!running && !onbattery) {
+      // we can restart the preview thread, as we're back on power.
+      pLatexPreviewThread->start();
+      pLatexPreviewThread->setPriority(QThread::LowestPriority);
+    }
+  }
+
   bool inputchanged = pContLatexPreview->setInput(collectInput(false));
   if (inputchanged) {
     emit K->userInputChanged();

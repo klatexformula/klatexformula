@@ -670,6 +670,7 @@ void KLFSettings::reset()
   u->btnPreambleFont->setProperty("selectedFont", klfconfig.UI.preambleEditFont.toVariant());
 
   u->chkEnableRealTimePreview->setChecked(klfconfig.UI.enableRealTimePreview);
+  u->chkRealTimePreviewExceptBattery->setChecked(klfconfig.UI.realTimePreviewExceptBattery);
   u->spnPreviewWidth->setValue(klfconfig.UI.smallPreviewSize().width());
   u->spnPreviewHeight->setValue(klfconfig.UI.smallPreviewSize().height());
 
@@ -1629,6 +1630,7 @@ void KLFSettings::apply()
 
   klfconfig.UI.smallPreviewSize = QSize(u->spnPreviewWidth->value(), u->spnPreviewHeight->value());
   klfconfig.UI.enableRealTimePreview = u->chkEnableRealTimePreview->isChecked();
+  klfconfig.UI.realTimePreviewExceptBattery = u->chkRealTimePreviewExceptBattery->isChecked();
 
   klfconfig.UI.previewTooltipMaxSize = QSize(u->spnToolTipMaxWidth->value(), u->spnToolTipMaxHeight->value());
   klfconfig.UI.enableToolTipPreview = u->chkEnableToolTipPreview->isChecked();

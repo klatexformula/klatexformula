@@ -274,6 +274,7 @@ public:
     KLFConfigProp<int> maxUserColors;
     KLFConfigProp<bool> enableToolTipPreview;
     KLFConfigProp<bool> enableRealTimePreview;
+    KLFConfigProp<bool> realTimePreviewExceptBattery;
     KLFConfigProp<int> autosaveLibraryMin;
     KLFConfigProp<bool> showHintPopups;
     KLFConfigProp<bool> clearLatexOnly;

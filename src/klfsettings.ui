@@ -171,12 +171,12 @@
              </spacer>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkBox">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
+             <widget class="QCheckBox" name="chkRealTimePreviewExceptBattery">
               <property name="text">
-               <string>... except when on battery power (Not Yet Implemented)</string>
+               <string>... except when on battery power</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
