@@ -45,6 +45,7 @@
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
+#include <klfsysinfo.h>
 
 #include <klfbackend.h>
 
@@ -323,6 +324,16 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 
   // dont load plugin data here as this dialog is created BEFORE plugins are loaded
   d->pluginstuffloaded = false;
+
+  // --- 
+
+
+  // if we're on a laptop, show the corresponding setting for battery power. Otherwise,
+  // hide it.
+  u->wRealTimePreviewExceptBattery->setVisible(KLFSysInfo::isLaptop());
+
+
+  // ---
 
   retranslateUi(false);
 }

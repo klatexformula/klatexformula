@@ -1226,17 +1226,24 @@ KLF_EXPORT KLFSysInfo::BatteryInfo KLFSysInfo::batteryInfo()
   return BatteryInfo();
 }
 
+
+static int _klf_cached_islaptop = -1;
+
 KLF_EXPORT bool KLFSysInfo::isLaptop()
 {
+  if (_klf_cached_islaptop >= 0)
+    return (bool) _klf_cached_islaptop;
+
 #if defined(Q_OS_DARWIN)
-  return _klf_mac_is_laptop();
+  _klf_cached_islaptop = (int) _klf_mac_is_laptop();
 #elif defined(Q_OS_LINUX)
-  return false;
+  _klf_cached_islaptop = 0;
 #elif defined(Q_OS_WIN32)
-  return false;
+  _klf_cached_islaptop = 0;
 #endif
-  return false;
+  return (bool) _klf_cached_islaptop;
 }
+
 KLF_EXPORT bool KLFSysInfo::isOnBatteryPower()
 {
 #if defined(Q_OS_DARWIN)
