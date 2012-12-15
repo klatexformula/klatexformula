@@ -115,7 +115,7 @@
    <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="tabs">
      <property name="currentIndex">
-      <number>3</number>
+      <number>6</number>
      </property>
      <widget class="QGroupBox" name="tabInterface">
       <layout class="QGridLayout" name="lyt_tabInterface">
@@ -805,8 +805,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>368</width>
-                 <height>72</height>
+                 <width>366</width>
+                 <height>74</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -998,8 +998,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>253</width>
-                    <height>78</height>
+                    <width>252</width>
+                    <height>80</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1165,8 +1165,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>233</width>
-                       <height>89</height>
+                       <width>232</width>
+                       <height>93</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1254,7 +1254,7 @@
        <item row="0" column="0">
         <widget class="QTabWidget" name="tabsAdvancedSettings">
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tabAdvancedAppearance">
           <attribute name="title">
