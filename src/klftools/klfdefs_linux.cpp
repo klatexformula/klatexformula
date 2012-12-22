@@ -26,9 +26,13 @@
  * This file contains some Linux specific code for klfdefs.cpp
  */
 
-#include <klfdefs.h>
-
 #include <sys/utsname.h>
+
+#include <klfdefs.h>
+#include <klfsysinfo.h>
+
+#include <QFileInfo>
+#include <QFile>
 
 
 KLF_EXPORT QString klf_defs_sysinfo_arch()
@@ -55,20 +59,56 @@ KLF_EXPORT QString klf_defs_sysinfo_arch()
 
 
 
-// parse 
+// access sys info in /sys/class/power_supply/ADP0/online
+
+#define SYSINFO_FILE "/sys/class/power_supply/ADP0/online"
+
+KLF_EXPORT KLFSysInfo::BatteryInfo _klf_linux_battery_info(bool want_info_onbatterypower)
+{
+  KLFSysInfo::BatteryInfo info;
+
+  if (!QFile::exists(SYSINFO_FILE)) {
+    info.islaptop = false;
+    info.onbatterypower = false;
+    return info;
+  }
+
+  if (want_info_onbatterypower) {
+    QFile file(SYSINFO_FILE);
+    if (!file.open(QIODevice::ReadOnly)) {
+      klfWarning("Can't open file "<<SYSINFO_FILE);
+      return info;
+    }
+    QTextStream tstr(&file);
+
+    int val;
+    tstr >> val;
+    // val == 1 -> power online
+    // val == 0 -> on battery power
+    info.onbatterypower = ! (bool)val;
+  }
+
+  info.islaptop = true;
+
+  return info;
+}
 
 KLF_EXPORT KLFSysInfo::BatteryInfo _klf_linux_battery_info()
 {
-  return KLFSysInfo::BatteryInfo();
+  return _klf_linux_battery_info(true);
 }
 
 KLF_EXPORT bool _klf_linux_is_laptop()
 {
-  return false;
+  KLFSysInfo::BatteryInfo info;
+  info = _klf_linux_battery_info(false);
+  return info.islaptop;
 }
 
 KLF_EXPORT bool _klf_linux_is_on_battery_power()
 {
-  return false;
+  KLFSysInfo::BatteryInfo info;
+  info = _klf_linux_battery_info(true);
+  return info.onbatterypower;
 }
 

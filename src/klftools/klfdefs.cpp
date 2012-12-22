@@ -1227,7 +1227,7 @@ KLF_EXPORT KLFSysInfo::BatteryInfo KLFSysInfo::batteryInfo()
 #if defined(Q_OS_DARWIN)
   return _klf_mac_battery_info();
 #elif defined(Q_OS_LINUX)
-  return _klf_linux_bttery_info();
+  return _klf_linux_battery_info();
 #elif defined(Q_OS_WIN32)
   return _klf_win_battery_info();
 #endif
