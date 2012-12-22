@@ -35,7 +35,7 @@
 #include <klfsysinfo.h>
 
 
-QString klf_defs_sysinfo_arch()
+KLF_EXPORT QString klf_defs_sysinfo_arch()
 {
   static bool is_64 = (sizeof(void*) == 8);
 
@@ -62,7 +62,7 @@ static bool init_power_sources_info(CFTypeRef *blobptr, CFArrayRef *sourcesptr)
   return true;
 }
 
-KLFSysInfo::BatteryInfo _klf_mac_battery_info()
+KLF_EXPORT KLFSysInfo::BatteryInfo _klf_mac_battery_info()
 {
   CFTypeRef blob;
   CFArrayRef sources;
@@ -79,20 +79,32 @@ KLFSysInfo::BatteryInfo _klf_mac_battery_info()
 
   CFDictionaryRef pSource = IOPSGetPowerSourceDescription(blob, CFArrayGetValueAtIndex(sources, 0));
 
-  BOOL outputCharging = [[(NSDictionary*)pSource objectForKey:@kIOPSIsChargingKey] boolValue];
+  bool powerConnected = [(NSString*)[(NSDictionary*)pSource objectForKey:@kIOPSPowerSourceStateKey]
+				     isEqualToString:@kIOPSACPowerValue];
+  klfDbg("power is connected: "<<(bool)powerConnected) ;
 
-  klfDbg("battery is charging: "<<(bool)outputCharging) ;
+  //BOOL outputCharging = [[(NSDictionary*)pSource objectForKey:@kIOPSIsChargingKey] boolValue];
+
+  //   bool outputInstalled = [[(NSDictionary*)pSource objectForKey:@kIOPSIsPresentKey] boolValue];
+  //   bool outputConnected = [(NSString*)[(NSDictionary*)pSource objectForKey:@kIOPSPowerSourceStateKey] isEqualToString:@kIOPSACPowerValue];
+  //   //BOOL outputCharging = [[(NSDictionary*)pSource objectForKey:@kIOPSIsChargingKey] boolValue];
+  //   double outputCurrent = [[(NSDictionary*)pSource objectForKey:@kIOPSCurrentKey] doubleValue];
+  //   double outputVoltage = [[(NSDictionary*)pSource objectForKey:@kIOPSVoltageKey] doubleValue];
+  //   double outputCapacity = [[(NSDictionary*)pSource objectForKey:@kIOPSCurrentCapacityKey] doubleValue];
+  //   double outputMaxCapacity = [[(NSDictionary*)pSource objectForKey:@kIOPSMaxCapacityKey] doubleValue];
+  
+  //  klfDbg("battery status: installed="<<outputInstalled<<"; connected="<<outputConnected<<"; charging="<<outputCharging<<"; current="<<outputCurrent<<"; voltage="<<outputVoltage<<"; capacity="<<outputCapacity<<"; outputMaxCapacity="<<outputMaxCapacity);
 
   CFRelease(blob);
   CFRelease(sources);
 
   info.islaptop = true;
-  info.onbatterypower = !(bool)outputCharging;
+  info.onbatterypower = !powerConnected;
 
   return info;
 }
 
-bool _klf_mac_is_laptop()
+KLF_EXPORT bool _klf_mac_is_laptop()
 {
   CFTypeRef blob;
   CFArrayRef sources;
@@ -103,7 +115,8 @@ bool _klf_mac_is_laptop()
   CFRelease(sources);
   return have_battery;
 }
-bool _klf_mac_is_on_battery_power()
+
+KLF_EXPORT bool _klf_mac_is_on_battery_power()
 {
   KLFSysInfo::BatteryInfo inf = _klf_mac_battery_info();
   return inf.onbatterypower;
