@@ -41,6 +41,8 @@
 #include <klfdefs.h>
 #include "../klfmainwin.h"
 
+#include <klfmacdefs.h>
+
 
 static bool klf_has_other_app = false;
 static QString klf_otherinstance_app_path = QString();
@@ -48,6 +50,10 @@ static QString klf_otherinstance_app_path = QString();
 
 KLF_EXPORT bool klf_mac_find_open_klf()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  MAC_AUTORELEASE_BLOCK ;
+
   // Found no better way to do this!
 #if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED) || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1060
 
@@ -130,6 +136,8 @@ KLF_EXPORT bool klf_mac_find_open_klf()
 
 KLF_EXPORT bool klf_mac_dispatch_commands(const QList<QUrl>& commands)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if (klf_has_other_app == false) {
     qWarning()<<KLF_FUNC_NAME<<": Other KLatexFormula instance not found or not initialized!";
     return false;

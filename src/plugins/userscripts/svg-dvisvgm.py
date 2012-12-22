@@ -45,7 +45,7 @@ if (sys.argv[1] == "--scriptinfo"):
     print "OutputFormatDescription: SVG Vector Image (using dvisvgm)";
     print "WantStdinInput: false";
     print "HasStdoutOutput: false";
-    print "SettingsFormUI: svg-dvisvgm_config.ui";
+    print "SettingsFormUI: :/userscriptdata/svg-dvisvgm/svg-dvisvgm_config.ui";
     #    if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
     #        print "Warning: Can't find dvisvgm executable.";
     # DEBUG:

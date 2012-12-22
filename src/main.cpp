@@ -722,6 +722,8 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 // function to set up the Q[Core]Application correctly
 void main_setup_app(QCoreApplication *a)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   a->setApplicationName(QLatin1String("KLatexFormula"));
   a->setApplicationVersion(QLatin1String(KLF_VERSION_STRING));
   a->setOrganizationDomain(QLatin1String("klatexformula.org"));

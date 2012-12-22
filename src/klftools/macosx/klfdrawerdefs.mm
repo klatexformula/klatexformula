@@ -35,6 +35,8 @@ static OSWindowRef klf_qt_mac_window_for(OSViewRef view)
 #endif
 }
 
+
+
 #ifdef QT_MAC_USE_COCOA
 static NSDrawer * klf_qt_mac_drawer_for(const QWidget *widget)
 {
@@ -137,6 +139,9 @@ bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
 void klf_qt_mac_close_drawer_and_act(QWidget *w, QObject *obj, const char *member, int timeout_ms)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  Q_UNUSED(timeout_ms) ; // actually not used.
+
 
   if(!klf_qt_mac_is_macdrawer(w)) {
     klfDbg("Not a drawer.") ;

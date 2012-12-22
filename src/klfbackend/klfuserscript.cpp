@@ -254,52 +254,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
 	}
 	setProperty(InputFormUI, uifn);
 	klfDbg("Read InputFormUI: "<<property(SettingsFormUI)) ;
-      } /*
-	  else if (key == QLatin1String("Param")) {
-	  // parse a paramter request specification, eg.
-	  // Param: USE_PDF;bool;"Use PDF?";"Generate PDF; or rather prefer old-fashioned PS?"
-	  int k;
-	  KLFUserScriptInfo::Param param;
-	  QRegExp seprx(";");
-	  // read name
-	  k = read_spec_section(val, 0, seprx, &param.name);
-	  // now read type
-	  QString typstring;
-	  k = read_spec_section(val, k+1, seprx, &typstring);
-	  // read title
-	  k = read_spec_section(val, k+1, seprx, &param.title);
-	  // and description
-	  k = read_spec_section(val, k+1, seprx, &param.description);
-
-	  // decode type
-	  QString typname;
-	  int j;
-	  QRegExp enumsep(":");
-	  j = read_spec_section(typstring, 0, enumsep, &typname);
-	  typname = typname.trimmed().toLower();
-	  if (typname == "enum") {
-	  param.type = KLFUserScriptInfo::Param::Enum;
-	  while (j < typstring.length()) {
-	  QString enumstr;
-	  j = read_spec_section(typstring, j+1, enumsep, &enumstr);
-	  if (!enumstr.isEmpty())
-	  param.type_enums << enumstr;
-	  }
-	  } else if (typname == "bool") {
-	  param.type = KLFUserScriptInfo::Param::Bool;
-	  } else if (typname == "int") {
-	  param.type = KLFUserScriptInfo::Param::Int;
-	  } else {
-	  if (typname != "string") {
-	  klfWarning("interpreting unknown type name "<<typname<<" as 'string' type") ;
-	  }
-	  param.type = KLFUserScriptInfo::Param::String;
-	  }
-
-	  // and add this to our param list
-	  paramList << param;
-	  }
-	*/ 
+      }
       else {
 	klfDbg("Custom userscript info key: "<<key<<", value="<<val);
 	QVariant v = QVariant(val);
