@@ -27,6 +27,7 @@
  */
 
 #include <klfdefs.h>
+#include <klfsysinfo.h>
 
 #include <windows.h>
 
