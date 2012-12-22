@@ -53,3 +53,22 @@ KLF_EXPORT QString klf_defs_sysinfo_arch()
 }
 
 
+
+
+// parse 
+
+KLF_EXPORT KLFSysInfo::BatteryInfo _klf_linux_battery_info()
+{
+  return KLFSysInfo::BatteryInfo();
+}
+
+KLF_EXPORT bool _klf_linux_is_laptop()
+{
+  return false;
+}
+
+KLF_EXPORT bool _klf_linux_is_on_battery_power()
+{
+  return false;
+}
+

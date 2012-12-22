@@ -1209,13 +1209,17 @@ KLF_EXPORT QString KLFSysInfo::osString(Os sysos)
 
 
 #ifdef Q_OS_DARWIN
-bool _klf_mac_is_laptop();
-bool _klf_mac_is_on_battery_power();
-KLFSysInfo::BatteryInfo _klf_mac_battery_info();
+ bool _klf_mac_is_laptop();
+ bool _klf_mac_is_on_battery_power();
+ KLFSysInfo::BatteryInfo _klf_mac_battery_info();
+#elif defined(Q_OS_LINUX)
+ bool _klf_linux_is_laptop();
+ bool _klf_linux_is_on_battery_power();
+ KLFSysInfo::BatteryInfo _klf_linux_battery_info();
 #elif defined(Q_OS_WIN32)
-bool _klf_win_is_laptop();
-bool _klf_win_is_on_battery_power();
-KLFSysInfo::BatteryInfo _klf_win_battery_info();
+ bool _klf_win_is_laptop();
+ bool _klf_win_is_on_battery_power();
+ KLFSysInfo::BatteryInfo _klf_win_battery_info();
 #endif
 
 KLF_EXPORT KLFSysInfo::BatteryInfo KLFSysInfo::batteryInfo()
@@ -1223,7 +1227,7 @@ KLF_EXPORT KLFSysInfo::BatteryInfo KLFSysInfo::batteryInfo()
 #if defined(Q_OS_DARWIN)
   return _klf_mac_battery_info();
 #elif defined(Q_OS_LINUX)
-  return BatteryInfo();
+  return _klf_linux_bttery_info();
 #elif defined(Q_OS_WIN32)
   return _klf_win_battery_info();
 #endif
@@ -1241,7 +1245,7 @@ KLF_EXPORT bool KLFSysInfo::isLaptop()
 #if defined(Q_OS_DARWIN)
   _klf_cached_islaptop = (int) _klf_mac_is_laptop();
 #elif defined(Q_OS_LINUX)
-  _klf_cached_islaptop = 0;
+  _klf_cached_islaptop = (int) _klf_linux_is_laptop();
 #elif defined(Q_OS_WIN32)
   _klf_cached_islaptop = (int) _klf_win_is_laptop();
 #endif
@@ -1253,7 +1257,7 @@ KLF_EXPORT bool KLFSysInfo::isOnBatteryPower()
 #if defined(Q_OS_DARWIN)
   return _klf_mac_is_on_battery_power();
 #elif defined(Q_OS_LINUX)
-  return false;
+  return _klf_linux_is_on_battery_power();
 #elif defined(Q_OS_WIN32)
   return _klf_win_is_on_battery_power();
 #endif
