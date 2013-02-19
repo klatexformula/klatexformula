@@ -31,32 +31,44 @@
 
 
 
-/** Library Resource engine implementation for searching for formulas on wikipedia pages
+/** Library Resource engine implementation for accessing formulas on wikipedia pages
  *
+ *
+ * note:  "sub-resource" = wiki page name
  */
-class KLF_EXPORT KLFLibWikiScan : public KLFLibResourceEngine
+class KLF_EXPORT KLFLibWikiScanEngine : public KLFLibResourceEngine
 {
   Q_OBJECT
 
 public:
-  /** Use this function as a constructor. Creates a KLFLibWikiScan object,
-   * with QObject parent \c parent, opening the database at location \c url.
+  /** Use this function as a constructor. Creates a KLFLibWikiScanEngine object,
+   * with QObject parent \c parent, opening the wiki page \c url.
    * Returns NULL if opening the database failed.
    *
-   * A non-NULL returned object was successfully connected to database.
+   * \note the URL \c url is a klflib-url, it has to have the schema klf+wikiscan://
+   *   instead of the usual http:// prefix.
+   *
+   * A non-NULL returned object successfully requested the page. The reply may not
+   * have been received yet, though, in which case attepts to read will block.
    * */
-  static KLFLibWikiScan * openUrl(const QUrl& url, QObject *parent = NULL);
+  static KLFLibWikiScanEngine * openUrl(const QUrl& url, QObject *parent = NULL);
 
   /** Simple destructor. */
-  virtual ~KLFLibWikiScan();
+  virtual ~KLFLibWikiScanEngine();
 
   virtual uint compareUrlTo(const QUrl& other, uint interestFlags = 0xfffffff) const;
 
   virtual bool compareDefaultSubResourceEquals(const QString& subResourceName) const;
 
-  virtual bool canModifyData(const QString& subRes, ModifyType modifytype) const;
-  virtual bool canModifyProp(int propid) const;
-  virtual bool canRegisterProperty(const QString& propName) const;
+  virtual bool canModifyData(const QString& /*subRes*/, ModifyType /*modifytype*/) const
+  { return false; }
+  virtual bool canModifyProp(int /*propid*/) const
+  { return false; }
+  virtual bool canRegisterProperty(const QString& /*propName*/) const
+  { return false; }
+
+
+  //  virtual QByteArray contentHTML(const QString& subResource);
 
 
   virtual QList<KLFLib::entryId> allIds(const QString& subResource);
@@ -71,9 +83,9 @@ public:
   virtual QList<KLFLibEntryWithId> allEntries(const QString& subRes,
 					      const QList<int>& wantedEntryProperties = QList<int>());
 
-  virtual bool canCreateSubResource() const;
+  virtual bool canCreateSubResource() const { return false; }
   virtual bool canRenameSubResource() const { return false; }
-  virtual bool canDeleteSubResource(const QString& subResource) const;
+  virtual bool canDeleteSubResource(const QString& subResource) const { return false; }
 
   virtual QVariant subResourceProperty(const QString& subResource, int propId) const;
 
@@ -85,47 +97,31 @@ public:
 
 public slots:
 
-  virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle);
-  virtual bool deleteSubResource(const QString& subResource);
+  //   virtual bool createSubResource(const QString& subResource, const QString& subResourceTitle)
+  //   virtual bool deleteSubResource(const QString& subResource)
 
-  virtual QList<entryId> insertEntries(const QString& subRes, const KLFLibEntryList& entries);
-  virtual bool changeEntries(const QString& subRes, const QList<entryId>& idlist,
-			     const QList<int>& properties, const QList<QVariant>& values);
-  virtual bool deleteEntries(const QString& subRes, const QList<entryId>& idlist);
-
-  virtual bool saveTo(const QUrl& newPath);
-
-  virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
+  //   virtual QList<entryId> insertEntries(const QString& subRes, const KLFLibEntryList& entries)
+  //   virtual bool changeEntries(const QString& subRes, const QList<entryId>& idlist,
+  // 			     const QList<int>& properties, const QList<QVariant>& values)
+  //   virtual bool deleteEntries(const QString& subRes, const QList<entryId>& idlist);
+  
+  //   virtual bool saveTo(const QUrl& newPath);
+  
+  //   virtual bool setSubResourceProperty(const QString& subResource, int propId, const QVariant& value);
 
 protected:
-  virtual bool saveResourceProperty(int propId, const QVariant& value);
+  //  virtual bool saveResourceProperty(int propId, const QVariant& value);
 
 private:
-  KLFLibWikiScan(const QString& wikipageurl, const QUrl& url,
-		 bool accessshared, QObject *parent);
+  KLFLibWikiScanEngine(const QString& wikipageurl, const QUrl& url,
+		       bool accessshared, QObject *parent);
 
-  bool tableExists(const QString& subResource) const;
-
-  static QString dataTableName(const QString& subResource);
-  static QString quotedDataTableName(const QString& subResource);
-
-  static QMap<QString,KLFLibDBEnginePropertyChangeNotifier*> pDBPropertyNotifiers;
-  static KLFLibDBEnginePropertyChangeNotifier *dbPropertyNotifierInstance(const QString& dbname);
 };
 
 
 
-class KLF_EXPORT KLFLibDBLocalFileSchemeGuesser : public QObject, public KLFLibLocalFileSchemeGuesser
-{
-public:
-  KLFLibDBLocalFileSchemeGuesser(QObject *parent) : QObject(parent) { }
-
-  QString guessScheme(const QString& fileName) const;
-};
-
-
-/** The associated \ref KLFLibEngineFactory factory to the \ref KLFLibDBEngine resource engine. */
-class KLF_EXPORT KLFLibDBEngineFactory : public KLFLibEngineFactory
+/** The associated \ref KLFLibEngineFactory factory to the \ref KLFLibWikiScanEngine resource engine. */
+class KLF_EXPORT KLFLibWikiScanEngineFactory : public KLFLibEngineFactory
 {
   Q_OBJECT
 public:

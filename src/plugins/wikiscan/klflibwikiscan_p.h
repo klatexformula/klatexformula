@@ -33,21 +33,27 @@
 #include "klflibwikiscan.h"
 
 
+#define KLFWIKISCAN_USER_AGENT						\
+  "KLatexFormulaWikiScan/" KLF_VERSION_STRING " (KLatexFormula WikiScan plugin, klatexformula.sf.net)"
+
+
+
 
 class KLFLibWikiFetcher : public QObject
 {
   Q_OBJECT;
 public:
-  KLFLibWikiFetcher(QObject *parent)
+
+  KLFLibWikiFetcher(QObject *parent, const QUrl& url)
     : QObject(parent)
   {
     pNetAccess = new QNetworkAccessManager(this);
     connect(pNetAccess, SIGNAL(finished(QNetworkReply*)),
 	    this, SLOT(netReply(QNetworkReply*)));
+
+    // start by loading the HTML page.
+    loadWikiPage(url);
   }
-
-  QNetworkAccessManager *pNetAccess;
-
 
   struct WikiFormula
   {
@@ -58,44 +64,66 @@ public:
   };
 
   QList<WikiFormula> formulas;
-  
 
-signals:
 
-  void signalNewData();
-  void signalDataUpdated(int k);
-
-public slots:
 
   void loadWikiPage(const QUrl& url)
   {
+    pPageLoaded = false;
+
     QNetworkRequest request;
     request.setUrl(url);
-    request.setRawHeader("User-Agent", "KLatexFormula WikiScan (" KLF_VERSION_STRING ")");
+    request.setRawHeader("User-Agent", KLFWIKISCAN_USER_AGENT);
 
     // request the page
     pNetAccess->get();
   }
 
-  void requestImageFor(int k)
+  void ensureImageFor(int k)
   {
     if (k <= 0 || k > formulas.size()) {
       klfWarning("formula index "<<k<< " out of range.") ;
       return;
     }
     if (!formulas[k].image.isNull()) {
-      klfWarning("Image for formula #"<<k<<" is already loaded.") ;
+      klfDbg("Image for formula #"<<k<<" is already loaded.") ;
       return;
     }
 
     QNetworkRequest request;
     request.setUrl(formulas[k].imageref);
-    request.setRawHeader("User-Agent", "KLatexFormula WikiScan (" KLF_VERSION_STRING ")");
+    request.setRawHeader("User-Agent", KLFWIKISCAN_USER_AGENT);
 
     QNetworkReply * reply = pNetAccess->get();
     reply->setProperty("klfwikiscan_download_f_image", QVariant(true));
     reply->setProperty("klfwikiscan_formula_id", QVariant::fromValue<uint>(formulas[k].id));
   }
+
+  void waitForPageLoaded()
+  {
+    while (!pPageLoaded) {
+      // wait for the network answer
+      qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    }
+  }
+  /** Warning: no check is made that you actually did call ensureImageFor() for this
+   * formula. If you failed to do so, this will result in an infinite loop.
+   */
+  void waitForWikiFormulaLoaded(int k)
+  {
+    KLF_ASSERT_CONDITION(k >= 0 && k < formulas.size(), "k="<<k<<" out of range 0.."<<formulas.size(),
+			 return ; ) ;
+
+    while (formulas[k].image.isNull()) {
+      qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+    }
+  }
+
+signals:
+
+  void loadedWikiPage();
+  void loadedWikiFormula(int k);
+
 
 private slots:
 
@@ -124,7 +152,7 @@ private slots:
       }
       QImageReader imagereader(reply);
       formulas[k].image = imagereader.read();
-      emit signalDataUpdated(k);
+      emit loadedWikiFormula(k);
     }
 
     // parse a wiki page reply
@@ -162,9 +190,17 @@ private slots:
     // update all the formulas
     formulas = flist;
     reply->deleteLater();
+
+    pPageLoaded = true;
+
+    emit loadedWikiPage();
   }
 
 private:
+
+  QNetworkAccessManager *pNetAccess;
+  bool pPageLoaded;
+
 
   struct Attrib { QByteArray name; QByteArray value; } ;
 
