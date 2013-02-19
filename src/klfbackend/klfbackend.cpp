@@ -402,7 +402,7 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsdata, const QString& epsF
 				  bool isMainThread);
 static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::klfOutput * resError);
 static void correct_eps_bbox(const QByteArray& epsdata, const klfbbox& bbox_corrected, const klfbbox& bbox_orig,
-			     double vectorscale, QByteArray * epsdatacorrected);
+			     double vectorscale, QRgb bgcolor, QByteArray * epsdatacorrected);
 
 static void replace_svg_width_or_height(QByteArray *svgdata, const char * attr, double val);
 
@@ -501,7 +501,7 @@ static inline bool assert_have_formats_for(const KLFStringSet& outputs, const KL
 
 
 
-KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfSettings& usersettings,
+KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const klfSettings& usersettings,
 						  bool isMainThread)
 {
   // ALLOW ONLY ONE RUNNING getLatexFormula() AT A TIME 
@@ -511,6 +511,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   klfSettings settings;
   settings = usersettings;
+
+  klfInput in;
+  in = input;
 
   bool ok;
 
@@ -555,16 +558,16 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   // force some rules on settings
 
-  // calcEpsBoundingBox may not be used if the bg is not white or transparent
+  // if calcEpsBoundingBox is being used, we need to add bg color at "correcting bbox time"
+  QRgb bgcolor_when_correcting_bbox = qRgba(0,0,0,0);
   klfDebugf(("%s: settings.calcEpsBoundingBox=%d, in.bg_color=[RGBA %d,%d,%d,%d]", KLF_FUNC_NAME,
 	     settings.calcEpsBoundingBox, qRed(in.bg_color), qGreen(in.bg_color), qBlue(in.bg_color),
 	     qAlpha(in.bg_color)));
-  if (qAlpha(in.bg_color) != 0 && (in.bg_color & qRgb(255,255,255)) != qRgb(255,255,255)) {
-    // bg not transparent AND bg not white
-    klfDebugf(("%s: forcing calcEpsBoundingBox to FALSE because you have non-transparent/non-white bg",
-	       KLF_FUNC_NAME)) ;
-    klfWarning("Cannot use gs to calculate EPS bounding box with background color that is not white or transparent!");
-    settings.calcEpsBoundingBox = false;
+
+  if (settings.calcEpsBoundingBox &&
+      qAlpha(in.bg_color) != 0 && (in.bg_color & qRgb(255,255,255)) != qRgb(255,255,255)) {
+    bgcolor_when_correcting_bbox = in.bg_color;
+    in.bg_color = qRgba(0,0,0,0);
   }
 
 
@@ -966,7 +969,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     // and generate corrected raw EPS
 
-    correct_eps_bbox(rawepsdata, bbox_corrected, bbox, in.vectorscale, &bboxepsdata);
+    correct_eps_bbox(rawepsdata, bbox_corrected, bbox, in.vectorscale,
+		     bgcolor_when_correcting_bbox,  &bboxepsdata);
   } else if (!our_skipfmts.contains("eps-bbox")) {
     // userscript generated bbox-corrected EPS for us, but we still
     // need to set width_pt and height_pt appropriately.
@@ -1059,7 +1063,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
     p.setArgv(QStringList() << settings.gsexec
 	      << "-dNOPAUSE" << "-dSAFER" << "-dTextAlphaBits=4" << "-dGraphicsAlphaBits=4"
-	      << "-r"+QString::number(in.dpi) << "-dEPSCrop");
+	      << "-r"+QString::number(in.dpi) << "-dEPSCrop" << "-dMaxBitmap=2147483647");
     if (qAlpha(in.bg_color) > 0) { // we're forcing a background color
       p.addArgv("-sDEVICE=png16m");
     } else {
@@ -1355,7 +1359,8 @@ static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::
  * If vectorscale is not 1.0, then the bbox is scaled by the given factor when written to the EPS data.
  */
 static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_corrected,
-			     const klfbbox& bbox_orig, double vectorscale, QByteArray * epsdatacorrected)
+			     const klfbbox& bbox_orig, double vectorscale, QRgb bgcolor,
+			     QByteArray * epsdatacorrected)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -1398,6 +1403,31 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
 	   klfFmtDoubleCC(dwi, 'g', 6), klfFmtDoubleCC(dhi, 'g', 6), nl);
   buffer_len = strlen(buffer);
 
+  char backgroundfillps[1024] = "";
+  if (qAlpha(bgcolor) > 0) {
+    sprintf(backgroundfillps,
+	    // draw the background color, if any
+	    "newpath "
+	    "-2 -2 moveto "
+	    "%s -2 lineto "
+	    "%s %s lineto "
+	    "-2 %s lineto "
+	    "closepath "
+	    "gsave "
+	    "%s %s %s setrgbcolor "
+	    "fill "
+	    "grestore %s",
+	    klfFmtDoubleCC(dwi+1, 'g', 6),
+	    klfFmtDoubleCC(dwi+1, 'g', 6), klfFmtDoubleCC(dhi+1, 'g', 6),
+	    klfFmtDoubleCC(dhi+1, 'g', 6),
+	    // and the color, in RGB components:
+	    klfFmtDoubleCC(qRed(bgcolor)/255.0, 'f', 6),
+	    klfFmtDoubleCC(qGreen(bgcolor)/255.0, 'f', 6),
+	    klfFmtDoubleCC(qBlue(bgcolor)/255.0, 'f', 6),
+	    nl
+	  );
+  }
+
   char buffer2[1024];
   int buffer2_len;
   snprintf(buffer2, sizeof(buffer2),
@@ -1405,12 +1435,15 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
 	   "%%%%Page 1 1%s"
 	   "%%%%PageBoundingBox 0 0 %d %d%s"
 	   "<< /PageSize [%d %d] >> setpagedevice%s"
+	   "%s"
 	   "%s %s scale%s"
-	   "%s %s translate%s",
+	   "%s %s translate%s"
+	   ,
 	   nl,
 	   nl,
 	   wi, hi, nl,
 	   wi, hi, nl,
+	   backgroundfillps,
 	   klfFmtDoubleCC(vectorscale, 'f'), klfFmtDoubleCC(vectorscale, 'f'), nl,
 	   klfFmtDoubleCC(offx, 'f'), klfFmtDoubleCC(offy, 'f'), nl);
   buffer2_len = strlen(buffer2);
