@@ -2795,7 +2795,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
       //      klfDbg( "Processing char "<<text[i]<<"; i="<<i<<"; ci="<<ci ) ;
       if (ci >= c.size() && appliedfmts.size() == 0) {
 	// insert all remaining text (no more formatting needed)
-	cur.insertText(Qt::escape(text.mid(i)), QTextCharFormat());
+	cur.insertText(text.mid(i), QTextCharFormat());
 	break;
       }
       while (ci < c.size() && c[ci].start == i) {
@@ -2812,7 +2812,7 @@ void KLFLibViewDelegate::paintText(PaintPrivate *p, const QString& text, uint fl
 	}
 	f.merge(appliedfmts[j].fmt);
       }
-      cur.insertText(Qt::escape(text[i]), f);
+      cur.insertText(text[i], f);
     }
 
     QSizeF s = textDocument.size();

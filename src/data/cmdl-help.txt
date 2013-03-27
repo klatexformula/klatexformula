@@ -97,7 +97,7 @@ Options:
   --latex <latex executable>
   --dvips <dvips executable>
   --gs <gs executable>
-  --epstopdf <epstopdf executable>
+  --epstopdf <epstopdf executable>      [OBSOLETE: EPSTOPDF NO LONGER USED]
       Specifiy the executable for latex, dvips, gs or epstopdf. By default, they
       are searched for in $PATH and in common system directories.
 

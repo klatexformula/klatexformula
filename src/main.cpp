@@ -81,6 +81,11 @@
 #endif
 
 
+#define KLF_WELCOME                                             \
+  "KLatexFormula Version %s by Philippe Faist (c) 2005-2013\n"  \
+  "Licensed under the terms of the GNU Public License GPL\n\n"
+
+
 // Program Exit Error Codes
 #define EXIT_ERR_FILEINPUT 100
 #define EXIT_ERR_FILESAVE 101
@@ -123,6 +128,9 @@ char *opt_latex;
 char *opt_dvips;
 char *opt_gs;
 char *opt_epstopdf;
+
+int opt_wantpdf = -1;
+int opt_wantsvg = -1;
 
 bool opt_help_requested = false;
 FILE * opt_help_fp = stderr;
@@ -168,6 +176,9 @@ enum {
   OPT_VERSION = 'V',
 
   OPT_QTOPT = 'Q',
+
+  OPT_WANTSVG = 'W',
+  OPT_WANTPDF = 'D',
 
   OPT_CALCEPSBBOX = 127,
   OPT_NOCALCEPSBBOX,
@@ -216,6 +227,9 @@ static struct option klfcmdl_optlist[] = {
   { "dbus-export-mainwin", 0, NULL, OPT_DBUS_EXPORT_MAINWIN },
   { "skip-plugins", 2, NULL, OPT_SKIP_PLUGINS },
   // -----
+  { "want-svg", 2, NULL, OPT_WANTSVG },
+  { "want-pdf", 2, NULL, OPT_WANTPDF },
+  // ---
   { "calcepsbbox", 2, NULL, OPT_CALCEPSBBOX },
   { "nocalcepsbbox", 2, NULL, OPT_NOCALCEPSBBOX },
   { "outlinefonts", 2, NULL, OPT_OUTLINEFONTS },
@@ -812,7 +826,7 @@ int main(int argc, char **argv)
 	strncmp(fname+(strlen(fname)-strlen(SUFFIX)), SUFFIX, strlen(SUFFIX)) != 0) {
       // fname does not end with SUFFIX
       // append SUFFIX, except if we are redirecting to a /dev/* file
-      if (strncmp(fname, "/dev/", strlen("/dev/")) != 0) {
+      if (strlen(fname) < strlen("/dev/") || strncmp(fname, "/dev/", strlen("/dev/")) != 0) {
 	strcat(fname, SUFFIX);
       }
     }
@@ -894,6 +908,10 @@ int main(int argc, char **argv)
 	args << "--redirect-debug="+QString::fromLocal8Bit(opt_redirect_debug);
       if (opt_calcepsbbox >= 0)
 	args << "--calcepsbbox="+QString::fromLatin1(opt_calcepsbbox?"1":"0");
+      if (opt_wantsvg >= 0)
+	args << "--want-svg="+QString::fromLatin1(opt_wantsvg?"1":"0");
+      if (opt_wantpdf >= 0)
+	args << "--want-pdf="+QString::fromLatin1(opt_wantpdf?"1":"0");
       if (opt_outlinefonts >= 0)
 	args << "--outlinefonts="+QString::fromLatin1(opt_outlinefonts?"1":"0");
       const struct { char c; QString optval; } borderoffsets[] =
@@ -967,6 +985,10 @@ int main(int argc, char **argv)
 	cmds << CMDURL_MW(slotSetUserScript, QString::fromLocal8Bit(opt_userscript));
       if (opt_calcepsbbox >= 0)
 	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_CalcEpsBoundingBox<<(int)opt_calcepsbbox);
+      if (opt_wantsvg >= 0)
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_WantSVG<<(bool)opt_wantsvg);
+      if (opt_wantpdf >= 0)
+	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_WantPDF<<(bool)opt_wantpdf);
       if (opt_outlinefonts >= 0)
 	cmds << CMDURL_MW(alterSetting, (int)KLFMainWin::altersetting_OutlineFonts<<(int)opt_outlinefonts);
       if (opt_lborderoffset.length())
@@ -1033,6 +1055,10 @@ int main(int argc, char **argv)
 	iface->setInputData("latex", latexinput);
       if (opt_calcepsbbox >= 0)
 	iface->setAlterSetting_i(KLFMainWin::altersetting_CalcEpsBoundingBox, opt_calcepsbbox);
+      if (opt_wantsvg >= 0)
+	iface->setAlterSetting_i(KLFMainWin::altersetting_WantSVG, (bool)opt_wantsvg);
+      if (opt_wantpdf >= 0)
+	iface->setAlterSetting_i(KLFMainWin::altersetting_WantPDF, (bool)opt_wantpdf);
       if (opt_outlinefonts >= 0)
 	iface->setAlterSetting_i(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
       if (opt_lborderoffset.length())
@@ -1068,9 +1094,7 @@ int main(int argc, char **argv)
 #endif
 
     if ( ! opt_quiet )
-      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2012\n"
-	      "Licensed under the terms of the GNU Public License GPL\n\n",
-	      KLF_VERSION_STRING);
+      fprintf(stderr, KLF_WELCOME, KLF_VERSION_STRING);
 
     klfDbgT("$$About to load config$$");
   
@@ -1158,6 +1182,10 @@ int main(int argc, char **argv)
     }
     if (opt_calcepsbbox >= 0)
       mainWin.alterSetting(KLFMainWin::altersetting_CalcEpsBoundingBox, opt_calcepsbbox);
+    if (opt_wantsvg >= 0)
+      mainWin.alterSetting(KLFMainWin::altersetting_WantSVG, opt_wantsvg);
+    if (opt_wantpdf >= 0)
+      mainWin.alterSetting(KLFMainWin::altersetting_WantPDF, opt_wantpdf);
     if (opt_outlinefonts >= 0)
       mainWin.alterSetting(KLFMainWin::altersetting_OutlineFonts, opt_outlinefonts);
     if (opt_lborderoffset.length())
@@ -1247,24 +1275,30 @@ int main(int argc, char **argv)
     }
 
     if ( ! opt_quiet )
-      fprintf(stderr, "KLatexFormula Version %s by Philippe Faist (c) 2005-2012\n"
-	      "Licensed under the terms of the GNU Public License GPL\n\n",
-	      KLF_VERSION_STRING);
+      fprintf(stderr, KLF_WELCOME, KLF_VERSION_STRING);
 
     if ( opt_daemonize ) {
-      qWarning()<<qPrintable(QObject::tr("The option --daemonize can only be used in interactive mode."));
+      klfWarning(qPrintable(QObject::tr("The option --daemonize can only be used in interactive mode.")));
     }
   
     // warn for ignored arguments
     for (int kl = 0; klf_args[kl] != NULL; ++kl)
-      qWarning()<<qPrintable(QObject::tr("[Non-Interactive Mode] Ignoring additional command-line argument: %1")
-			     .arg(klf_args[kl]));
+      klfWarning(qPrintable(QObject::tr("[Non-Interactive Mode] Ignoring additional command-line argument: %1")
+                            .arg(klf_args[kl])));
 
 
     // now process required actions.
     KLFBackend::klfInput input;
     KLFBackend::klfSettings settings;
     KLFBackend::klfOutput klfoutput;
+
+
+    // detect settings
+    bool detectok = KLFBackend::detectSettings(&settings, QString(), true);
+    if (!detectok) {
+      if ( ! opt_quiet )
+        klfWarning(qPrintable(QObject::tr("Failed to detect local settings. You may have to provide some settings manually.")));
+    }
 
     if ( (opt_input == NULL || !strlen(opt_input)) &&
 	 (opt_latexinput == NULL || !strlen(opt_latexinput)) ) {
@@ -1278,7 +1312,7 @@ int main(int argc, char **argv)
     if (opt_mathmode != NULL) {
       input.mathmode = QString::fromLocal8Bit(opt_mathmode);
     } else {
-      input.mathmode = "\\[ ... \\]";
+      input.mathmode = QLatin1String("\\[ ... \\]");
     }
 
     if (opt_preamble != NULL) {
@@ -1313,12 +1347,20 @@ int main(int argc, char **argv)
 
     input.dpi = (opt_dpi > 0) ? opt_dpi : 1200;
 
+    // settings.calcEpsBoundingBox
     settings.calcEpsBoundingBox = true;
     if (opt_calcepsbbox >= 0)
       settings.calcEpsBoundingBox = (bool)opt_calcepsbbox;
     settings.outlineFonts = true;
+    // output formats
+    if (opt_wantsvg >= 0)
+      settings.wantSVG = (bool)opt_wantsvg;
+    if (opt_wantpdf >= 0)
+      settings.wantPDF = (bool)opt_wantpdf;
+    // outline fonts
     if (opt_outlinefonts >= 0)
       settings.outlineFonts = (bool)opt_outlinefonts;
+    // border offsets
     settings.lborderoffset = settings.tborderoffset
       = settings.rborderoffset = settings.bborderoffset = 1;
     if (opt_lborderoffset.length())
@@ -1329,12 +1371,13 @@ int main(int argc, char **argv)
       settings.rborderoffset = opt_rborderoffset.toDouble();
     if (opt_bborderoffset.length())
       settings.bborderoffset = opt_bborderoffset.toDouble();
+    // executables: defaults
     settings.latexexec = klfconfig.BackendSettings.execLatex;
     settings.dvipsexec = klfconfig.BackendSettings.execDvips;
     settings.gsexec = klfconfig.BackendSettings.execGs;
-    settings.epstopdfexec = klfconfig.BackendSettings.execEpstopdf;
+    settings.epstopdfexec = klfconfig.BackendSettings.execEpstopdf; // obsolete
     settings.tempdir = klfconfig.BackendSettings.tempDir;
-
+    // executables: overriden by options
     if (opt_tempdir != NULL)
       settings.tempdir = QString::fromLocal8Bit(opt_tempdir);
     if (opt_latex != NULL)
@@ -1346,6 +1389,9 @@ int main(int argc, char **argv)
     if (opt_epstopdf != NULL)
       settings.epstopdfexec = QString::fromLocal8Bit(opt_epstopdf);
 
+    
+
+    // Now, run it!
     klfoutput = KLFBackend::getLatexFormula(input, settings);
 
     if (klfoutput.status != 0) {
@@ -1620,6 +1666,12 @@ void main_parse_options(int argc, char *argv[])
       break;
     case OPT_NOOUTLINEFONTS:
       opt_outlinefonts = 0;
+      break;
+    case OPT_WANTSVG:
+      opt_wantsvg = __klf_parse_bool_arg(arg, true);
+      break;
+    case OPT_WANTPDF:
+      opt_wantpdf = __klf_parse_bool_arg(arg, true);
       break;
     case OPT_LBORDEROFFSET:
       opt_lborderoffset = atoi(arg);

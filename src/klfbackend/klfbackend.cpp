@@ -1115,7 +1115,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     klfDbg("prepared final PNG data.") ;
   }
 
-  if (!has_userscript_output(us_outputs, "pdf") && !our_skipfmts.contains("pdf")) {
+  if ( settings.wantPDF && !has_userscript_output(us_outputs, "pdf") && !our_skipfmts.contains("pdf") ) {
 
     ASSERT_HAVE_FORMATS_FOR("pdf") ;
 
@@ -1710,6 +1710,9 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath,
   settings->bborderoffset = 1;
   
   settings->epstopdfexec = QString(); // obsolete, no longer used
+
+  // you'll want PDF
+  settings->wantPDF = true;
 
   settings->wantSVG = false; // will be set to TRUE once we verify 'gs' available devices information
 

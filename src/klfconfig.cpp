@@ -362,12 +362,12 @@ void KLFConfig::loadDefaults()
 
   // invalid value, by convention ".". if the config is not read from file, then settings will
   // be detected in detectMissingSettings()
-  KLFCONFIGPROP_INIT(BackendSettings.tempDir, ".") ;
-  KLFCONFIGPROP_INIT(BackendSettings.execLatex, ".") ;
-  KLFCONFIGPROP_INIT(BackendSettings.execDvips, ".") ;
-  KLFCONFIGPROP_INIT(BackendSettings.execGs, ".") ;
-  KLFCONFIGPROP_INIT(BackendSettings.execEpstopdf, ".") ;
-  KLFCONFIGPROP_INIT(BackendSettings.execenv, QStringList()) ;
+  KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.tempDir, ".") ;
+  KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.execLatex, ".") ;
+  KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.execDvips, ".") ;
+  KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.execGs, ".") ;
+  KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.execEpstopdf, ".") ;
+  KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.execenv, QStringList()) ;
   KLFCONFIGPROP_INIT(BackendSettings.setTexInputs, QString());
 
   KLFCONFIGPROP_INIT(BackendSettings.lborderoffset, 0) ;
@@ -376,6 +376,8 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(BackendSettings.bborderoffset, 0) ;
   KLFCONFIGPROP_INIT(BackendSettings.calcEpsBoundingBox, true) ;
   KLFCONFIGPROP_INIT(BackendSettings.outlineFonts, true) ;
+  KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.wantPDF, true) ;
+  KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.wantSVG, true) ;
   KLFCONFIGPROP_INIT(BackendSettings.userScriptAddPath, QStringList() );
 
   KLFCONFIGPROP_INIT(LibraryBrowser.colorFound, QColor(128, 255, 128)) ;
@@ -398,26 +400,34 @@ void KLFConfig::loadDefaults()
 void KLFConfig::detectMissingSettings()
 {
   int neededsettings = 
-    !BackendSettings.tempDir().compare(".")      << 0 |
-    !BackendSettings.execLatex().compare(".")    << 1 |
-    !BackendSettings.execDvips().compare(".")    << 2 |
-    !BackendSettings.execGs().compare(".")       << 3 |
-    !BackendSettings.execEpstopdf().compare(".") << 4 ;
+    !BackendSettings.tempDir.defaultValueDefinite()      << 0 |
+    !BackendSettings.execLatex.defaultValueDefinite()    << 1 |
+    !BackendSettings.execDvips.defaultValueDefinite()    << 2 |
+    !BackendSettings.execGs.defaultValueDefinite()       << 3 |
+    !BackendSettings.execEpstopdf.defaultValueDefinite() << 4 |
+    !BackendSettings.execenv.defaultValueDefinite()      << 5 |
+    !BackendSettings.wantPDF.defaultValueDefinite()      << 6 |
+    !BackendSettings.wantSVG.defaultValueDefinite()      << 7 ;
 
   if (neededsettings) {
     KLFBackend::klfSettings defaultsettings;
     KLFBackend::detectSettings(&defaultsettings);
     if (neededsettings & (1<<0))
-      BackendSettings.tempDir = defaultsettings.tempdir;
+      BackendSettings.tempDir.setDefaultValue(defaultsettings.tempdir);
     if (neededsettings & (1<<1))
-      BackendSettings.execLatex = defaultsettings.latexexec;
+      BackendSettings.execLatex.setDefaultValue(defaultsettings.latexexec);
     if (neededsettings & (1<<2))
-      BackendSettings.execDvips = defaultsettings.dvipsexec;
+      BackendSettings.execDvips.setDefaultValue(defaultsettings.dvipsexec);
     if (neededsettings & (1<<3))
-      BackendSettings.execGs = defaultsettings.gsexec;
+      BackendSettings.execGs.setDefaultValue(defaultsettings.gsexec);
     if (neededsettings & (1<<4))
-      BackendSettings.execEpstopdf = defaultsettings.epstopdfexec;
-    BackendSettings.execenv = BackendSettings.execenv() << defaultsettings.execenv;
+      BackendSettings.execEpstopdf.setDefaultValue(defaultsettings.epstopdfexec);
+    if (neededsettings & (1<<5))
+      BackendSettings.execenv.setDefaultValue(BackendSettings.execenv() << defaultsettings.execenv);
+    if (neededsettings & (1<<6))
+      BackendSettings.wantPDF.setDefaultValue(defaultsettings.wantPDF);
+    if (neededsettings & (1<<7))
+      BackendSettings.wantSVG.setDefaultValue(defaultsettings.wantSVG);
   }
 
 }
@@ -592,6 +602,8 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "bborderoffset", &BackendSettings.bborderoffset);
   klf_config_read(s, "calcepsboundingbox", &BackendSettings.calcEpsBoundingBox);
   klf_config_read(s, "outlinefonts", &BackendSettings.outlineFonts);
+  klf_config_read(s, "wantpdf", &BackendSettings.wantPDF);
+  klf_config_read(s, "wantsvg", &BackendSettings.wantSVG);
   klf_config_read(s, "userscriptaddpath", &BackendSettings.userScriptAddPath);
   s.endGroup();
 
@@ -775,6 +787,8 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "bborderoffset", &BackendSettings.bborderoffset); 
   klf_config_write(s, "calcepsboundingbox", &BackendSettings.calcEpsBoundingBox);
   klf_config_write(s, "outlinefonts", &BackendSettings.outlineFonts);
+  klf_config_write(s, "wantpdf", &BackendSettings.wantPDF);
+  klf_config_write(s, "wantsvg", &BackendSettings.wantSVG);
   klf_config_write(s, "userscriptaddpath", &BackendSettings.userScriptAddPath);
   s.endGroup();
 

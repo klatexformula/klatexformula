@@ -115,7 +115,8 @@ class KLFConfigProp : public KLFConfigPropBase
 public:
   typedef T Type;
 
-  KLFConfigProp() : config(NULL), val(T()), defval(T()) { }
+  KLFConfigProp() : config(NULL), val(T()), defval(T()), isdefaultvaluedefinite(false) { }
+
 
   operator Type () const
   {
@@ -130,13 +131,13 @@ public:
     setValue(newvalue);
     return newvalue;
   };
-  bool operator==(const Type& compareValue)
+  bool operator==(const Type& compareValue) const
   {
-    return val == compareValue;
+    return value() == compareValue;
   }
-  bool operator!=(const Type& compareValue)
+  bool operator!=(const Type& compareValue) const
   {
-    return val != compareValue;
+    return value() != compareValue;
   }
 
   bool setValue(const QVariant& newvalue)
@@ -146,13 +147,14 @@ public:
 
   bool setValue(const Type& newvalue)
   {
-    Type oldvalue = val;
+    Type oldvalue = value();
     KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") have not been initialized!", return false; ) ;
     KLFVariantConverter<Type> vc;
     if (!config->okChangeProperty(this, vc.convert(oldvalue), vc.convert(newvalue))) {
       return false;
     }
     val = newvalue;
+    valisset = true;
     config->propertyChanged(this, vc.convert(oldvalue), vc.convert(newvalue));
     return true;
   }
@@ -161,26 +163,47 @@ public:
   {
     return defval;
   }
+  bool defaultValueDefinite() const
+  {
+    return isdefaultvaluedefinite;
+  }
   Type value() const
   {
     KLF_ASSERT_NOT_NULL(config, "we ("<<pname<<") have not been initialized!", return Type(); ) ;
     config->propertyValueRequested(this);
-    return val;
+
+    if (valisset)
+      return val;
+    return defval;
   }
+  bool hasValue() const
+  {
+    return valisset;
+  }
+
   virtual QVariant toVariant() const
   {
     KLFVariantConverter<Type> v;
     return v.convert(value());
   }
   
-  void initialize(KLFConfigBase *confptr, const QString& propName, const Type& defaultValue)
+  void initialize(KLFConfigBase *confptr, const QString& propName, const Type& defaultValue,
+                  bool isDefaultValueDefinite = true)
   {
     KLF_ASSERT_NOT_NULL(confptr, "Cannot use a NULL config pointer!!", ; );
     config = confptr;
     config->registerConfigProp(this);
     pname = propName;
     defval = defaultValue;
-    val = defaultValue;
+    valisset = false;
+    val = Type();
+    isdefaultvaluedefinite = isDefaultValueDefinite;
+  }
+
+  void setDefaultValue(const Type& defaultValue)
+  {
+    defval = defaultValue;
+    isdefaultvaluedefinite = true;
   }
 
   void connectQObjectProperty(QObject *object, const QByteArray& propName)
@@ -212,12 +235,19 @@ public:
 private:
   KLFConfigBase *config;
 
+  bool valisset;
   Type val;
   Type defval;
+  /** This flag is used for settings which are initialized to some generic default value, but
+   * then their default value needs to be reset to some detected value. For example,
+   * BackendSettings.execLatex in KLFConfig.
+   */
+  bool isdefaultvaluedefinite;
 };
 
 #define KLFCONFIGPROP_INIT_CONFIG(configptr)  KLFConfigBase *__klfconfigprop_configbase = (configptr) ;
 #define KLFCONFIGPROP_INIT(var, defval) (var).initialize(__klfconfigprop_configbase, #var, (defval))
+#define KLFCONFIGPROP_INIT_DEFNOTDEF(var, defval) (var).initialize(__klfconfigprop_configbase, #var, (defval), false)
 
 
 

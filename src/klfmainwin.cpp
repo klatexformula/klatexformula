@@ -880,6 +880,8 @@ void KLFMainWin::loadSettings()
 
   d->settings.calcEpsBoundingBox = klfconfig.BackendSettings.calcEpsBoundingBox;
   d->settings.outlineFonts = klfconfig.BackendSettings.outlineFonts;
+  d->settings.wantPDF = klfconfig.BackendSettings.wantPDF;
+  d->settings.wantSVG = klfconfig.BackendSettings.wantSVG;
 
   d->settings_altered = false;
 }
@@ -903,6 +905,8 @@ void KLFMainWin::saveSettings()
     klfconfig.BackendSettings.bborderoffset = d->settings.bborderoffset;
     klfconfig.BackendSettings.calcEpsBoundingBox = d->settings.calcEpsBoundingBox;
     klfconfig.BackendSettings.outlineFonts = d->settings.outlineFonts;
+    klfconfig.BackendSettings.wantPDF = d->settings.wantPDF;
+    klfconfig.BackendSettings.wantSVG = d->settings.wantSVG;
   }
 
   klfconfig.UI.userColorList = KLFColorChooser::colorList();
@@ -2637,6 +2641,10 @@ void KLFMainWin::alterSetting(int which, int ivalue)
     d->settings.calcEpsBoundingBox = (bool)ivalue; break;
   case altersetting_OutlineFonts:
     d->settings.outlineFonts = (bool)ivalue; break;
+  case altersetting_WantSVG:
+    d->settings.wantSVG = (bool)ivalue; break;
+  case altersetting_WantPDF:
+    d->settings.wantPDF = (bool)ivalue; break;
   default:
     qWarning()<<KLF_FUNC_NAME<<": Unknown setting to alter: "<<which<<", maybe you should give a string instead?";
     break;

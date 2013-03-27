@@ -244,7 +244,9 @@ public:
 			    altersetting_Gs,
 			    altersetting_Epstopdf,
 			    altersetting_OutlineFonts, //!< bool given as an int value
-			    altersetting_CalcEpsBoundingBox //!< bool given as an int value
+			    altersetting_CalcEpsBoundingBox, //!< bool given as an int value
+                            altersetting_WantSVG, //!< bool given as an int value
+                            altersetting_WantPDF //!< bool given as an int value
   };
 
   KLFLibBrowser * libBrowserWidget();

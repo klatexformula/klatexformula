@@ -94,7 +94,7 @@ Options:
   --latex <latex executable>
   --dvips <dvips executable>
   --gs <gs executable>
-  --epstopdf <epstopdf executable>
+  --epstopdf <epstopdf executable>              [OPTION OBSOLÈTE: EPSTOPDF N'EST PLUS UTILISÉ]
       Précise le chemin d'accès pour l'exécutable latex, dvips, gs ou epstopdf respectivement. Par
       défaut, ces programmes sont cherchés dans les chemins $PATH et dans des dossiers
       habituels.

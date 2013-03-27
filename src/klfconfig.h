@@ -329,6 +329,8 @@ public:
     KLFConfigProp<double> bborderoffset;
     KLFConfigProp<bool> calcEpsBoundingBox;
     KLFConfigProp<bool> outlineFonts;
+    KLFConfigProp<bool> wantPDF;
+    KLFConfigProp<bool> wantSVG;
     KLFConfigProp<QStringList> userScriptAddPath;
 
   } BackendSettings;
