@@ -79,7 +79,8 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   // ** epstopdf bug in ubuntu: peek into executable, see if it is script. if it is, run with 'sh' on *nix's.
   // this is a weird bug with QProcess that will not execute some script files like epstopdf.
 
-  { QString fn = cmd[0];
+  {
+    QString fn = cmd[0];
     if (!QFile::exists(fn))
       fn = klfSearchPath(cmd[0]);
     QFile fpeek(fn);
@@ -100,8 +101,8 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 	  break;
       }
       if (!isbinary) {
-	// explicitely add the shell (we're on *nix, so OK)
-	cmd.prepend("sh");
+	// explicitely run with /usr/bin/env (we're on *nix, so OK)
+	cmd.prepend("/usr/bin/env");
       }
     }
   }
