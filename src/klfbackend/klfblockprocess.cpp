@@ -21,6 +21,8 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <ctype.h>
+
 #include <qprocess.h>
 #include <qapplication.h>
 #include <qeventloop.h>
@@ -92,7 +94,7 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
       bool isbinary = false;
       while (n++ < 3 && (line = fpeek.readLine()).size()) {
 	for (j = 0; j < line.size(); ++j) {
-	  if ((int)line[j] > 127 || (int)line[j] < 0) {
+          if ( ! isascii(line[j]) ) {
 	    isbinary = true;
 	    break;
 	  }
