@@ -466,7 +466,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     KLFBlockProcess proc;
     QStringList args;
     args << settings.gsexec << "-dNOCACHE" << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop"
-	 << "-sDEVICE=pswrite" << "-sOutputFile="+dir_native_separators(fnOutlFontsEps)
+	 << "-sDEVICE=epswrite" << "-sOutputFile="+dir_native_separators(fnOutlFontsEps)
 	 << "-q" << "-dBATCH" << dir_native_separators(fnBBCorrEps);
 
     qDebug("%s: %s: about to gs (for outline fonts)...\n%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
