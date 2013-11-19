@@ -32,6 +32,7 @@
 #include <QByteArray>
 #include <QSet>
 #include <QApplication>
+#include <QCoreApplication>
 #include <QRegExp>
 #include <QFile>
 #include <QDateTime>
@@ -616,7 +617,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   QString ver = KLF_VERSION_STRING;
   ver.replace(".", "x"); // make friendly names with chars in [a-zA-Z0-9]
   // the base name for all our temp files
-  QString tempfname = settings.tempdir + "/klftmp" + ver + "T" + QDateTime::currentDateTime().toString("hhmmss");
+  QString tempfname = settings.tempdir + "/klftmp" + ver + "T" + QDateTime::currentDateTime().toString("hhmmss")
+    + "p"+ QString("%1").arg(QCoreApplication::applicationPid(), 0, 26);
 
   QString fnTex = tempfname + ".tex";
   QString fnDvi = tempfname + ".dvi";
