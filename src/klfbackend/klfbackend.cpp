@@ -1441,7 +1441,7 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
 
   char buffer2[1024];
   int buffer2_len;
-  snprintf(buffer2, sizeof(buffer2),
+  snprintf(buffer2, sizeof(buffer2)-1,
 	   "%s"
 	   "%%%%Page 1 1%s"
 	   "%%%%PageBoundingBox 0 0 %d %d%s"
@@ -1509,8 +1509,10 @@ static void cleanup(QString tempfname)
 {
   const char *skipcleanup = getenv("KLFBACKEND_LEAVE_TEMP_FILES");
   if (skipcleanup != NULL && (*skipcleanup == '1' || *skipcleanup == 't' || *skipcleanup == 'T' ||
-			      *skipcleanup == 'y' || *skipcleanup == 'Y'))
+			      *skipcleanup == 'y' || *skipcleanup == 'Y' ||
+                              QString::fromLatin1(skipcleanup).toLower() == QLatin1String("on"))) {
     return; // skip cleaning up temp files
+  }
 
   // remove any file that has this basename...
   QFileInfo fi(tempfname);
