@@ -595,6 +595,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   //   while of course taking into account manual corrections given by [lrtb]borderoffset settings/overrides
   //
   // EITHER (gs >= 9.01 && !outlinefonts)
+  //   ### PhF: update this doc!! it's wrong!!
   //  - gs -dNOPAUSE -dSAFER -dSetPageSize -sDEVICE=ps2write -dEPSCrop -sOutputFile=file-corrected.(e)ps
   //       -q -dBATCH  file-bbox.eps    --> generate (E)PS file w/ correct page size
   // OR
@@ -1023,12 +1024,20 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       p.resErrCodes[KLFFP_NODATA] = KLFERR_GSPOSTPROC_NOOUTPUT;
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPOSTPROC_OUTPUTREADFAIL;
 
+      // Very bad joke from ghostscript's guys: they deprecate pswrite device, which worked very well, and
+      // so now we have to make sure we use ps2write on newer systems but make sure we still use pswrite on
+      // old systems which don't support ps2write. THANKS A TON GS GUYS :(
+      QString psdevice = "ps2write";
+      if (!gsInfo[settings.gsexec].availdevices.contains("ps2write")) {
+        psdevice = "pswrite";
+      }
+
       p.addArgv(settings.gsexec);
       // The bad joke is that in gs' manpage '-dNOCACHE' is described as a debugging option.
       // It is NOT. It outlines the fonts to paths. It cost me a few hours trying to understand
       // what's going on ... :(  Not Funny.
       p.addArgv(QStringList() << "-dNOCACHE"
-		<< "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << "-sDEVICE=pswrite"
+		<< "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << QString::fromLatin1("-sDEVICE=%1").arg(psdevice)
 		<< "-sOutputFile="+QDir::toNativeSeparators(fnProcessedEps)
 		<< "-q" << "-dBATCH" << "-");
       
