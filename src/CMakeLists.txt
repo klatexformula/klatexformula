@@ -503,9 +503,12 @@ endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFAPP_FRAMEWORK)
 if(WIN32 AND KLF_INSTALL_QTLIBS)
   # Install Qt libs
   #  QT_BINARY_DIR and QT_PLUGINS_DIR are set by FindQt4 CMake module
-  install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
-	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll" REGEX "/mingw.*\\.dll"
-	 )
+  #message(STATUS "QT_BINARY_DIR is ${QT_BINARY_DIR}")
+  install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}" FILES_MATCHING
+    PATTERN "libgcc*.dll"
+    PATTERN "mingw*.dll"
+    REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$"
+  )
   set(qtplugin_list ${KLF_INSTALL_QTPLUGINS_LIST})
   set(qtplugin_list "dummyitem" ${qtplugin_list})
   string(REGEX REPLACE ";" ";${QT_PLUGINS_DIR}/" qtplugin_list_temp "${qtplugin_list}")
