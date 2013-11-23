@@ -33,7 +33,6 @@
 #include <qbuffer.h>
 #include <qdir.h>
 
-
 #include "klfblockprocess.h"
 #include "klfbackend.h"
 
@@ -549,22 +548,36 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // variable in case. KLFBACKEND_GS_PS_DEVICE="pswrite" or "epswrite" or "ps2write" (note: with epswrite
     // you can't expand the bbox)
 
-    const char * psdevice = "ps2write";
+    QStringList try_ps_devices;
     const char *env_gs_device = getenv("KLFBACKEND_GS_PS_DEVICE");
     if (env_gs_device != NULL) {
-      psdevice = env_gs_device;
+      try_ps_devices << QString::fromLatin1(env_gs_device);
+    } else {
+      try_ps_devices << QLatin1String("pswrite") << QLatin1String("ps2write");
     }
 
-    QStringList args;
-    args << settings.gsexec << "-dNOCACHE" << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop"
-	 << QString("-sDEVICE=%1").arg(psdevice)
-         << "-sOutputFile="+dir_native_separators(fnOutlFontsEps)
-	 << "-q" << "-dBATCH" << dir_native_separators(fnBBCorrEps);
+    bool r = false;
+    int try_ps_dev_i = 0;
+    for (try_ps_dev_i = 0; try_ps_dev_i < try_ps_devices.size(); try_ps_dev_i++) {
+      QString psdev = try_ps_devices[try_ps_dev_i];
+      qDebug("trying with gs device %s ...", qPrintable(psdev));
 
-    qDebug("%s: %s: about to gs (for outline fonts)...\n%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
-	   qPrintable(args.join(" ")));
-    bool r = proc.startProcess(args, execenv);
-    qDebug("%s: %s:  gs returned (for outline fonts).", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+      QStringList args;
+      args << settings.gsexec << "-dNOCACHE" << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop"
+           << QString("-sDEVICE=%1").arg(psdev)
+           << "-sOutputFile="+dir_native_separators(fnOutlFontsEps)
+           << "-q" << "-dBATCH" << dir_native_separators(fnBBCorrEps);
+
+      qDebug("%s: %s: about to gs (for outline fonts)...\n%s", KLF_FUNC_NAME, KLF_SHORT_TIME,
+             qPrintable(args.join(" ")));
+      r = proc.startProcess(args, execenv);
+      qDebug("%s: %s:  gs returned (for outline fonts).", KLF_FUNC_NAME, KLF_SHORT_TIME) ;    
+
+      if (r && proc.processNormalExit() && proc.processExitStatus() == 0) {
+        // successful run
+        break;
+      }
+    }
   
     if ( ! r ) {
       res.status = KLFERR_NOGSPROG;
