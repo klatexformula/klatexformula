@@ -70,7 +70,7 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QStringList env)
 
 bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStringList env)
 {
-  klfDbg("Running: "<<cmd<<", stdindata/size="<<stdindata.size());
+  //  klfDbg("Running: "<<cmd<<", stdindata/size="<<stdindata.size());
 
   _runstatus = 0;
 
@@ -87,7 +87,7 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
       fn = klfSearchPath(cmd[0]);
     QFile fpeek(fn);
     if (!fpeek.open(QIODevice::ReadOnly)) {
-      klfDbg("cmd[0]="<<cmd[0]<<", Can't peek into file "<<fn<<"!") ;
+      //klfDbg("cmd[0]="<<cmd[0]<<", Can't peek into file "<<fn<<"!") ;
     } else {
       QByteArray line;
       int n = 0, j;
@@ -114,8 +114,8 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 
   QString program = cmd[0];
 
-  klfDbg("Running cmd="<<cmd);
-  klfDbg("env="<<env<<", curenv="<<environment());
+  //klfDbg("Running cmd="<<cmd);
+  //klfDbg("env="<<env<<", curenv="<<environment());
 
 #ifdef KLFBACKEND_QT4
   if (env.size() > 0) {
@@ -124,17 +124,17 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 
   QStringList args = cmd;
   args.erase(args.begin());
-  klfDbg("Starting "<<program<<", "<<args) ;
+  //klfDbg("Starting "<<program<<", "<<args) ;
   start(program, args);
   if ( ! waitForStarted() ) {
-    klfDbg("Can't wait for started! Error="<<error()) ;
+    //klfDbg("Can't wait for started! Error="<<error()) ;
     return false;
   }
 
   write(stdindata.constData(), stdindata.size());
   closeWriteChannel();
 
-  klfDbg("wrote input data (size="<<stdindata.size()<<")") ;
+  //klfDbg("wrote input data (size="<<stdindata.size()<<")") ;
 
 #else
   setArguments(cmd);
@@ -168,7 +168,7 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 #endif
 
   if (_runstatus < 0) { // some error occurred somewhere
-    klfDbg("some error occurred, _runstatus="<<_runstatus) ;
+    klfDbg("some error occurred, _runstatus="+QString("%1").arg(_runstatus)) ;
     return false;
   }
 

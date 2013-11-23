@@ -235,7 +235,7 @@ inline QString __klf_debug_ref_instance() { return QString(); }
 #else
 #define KLF_ASSERT_CONDITION(expr, msg, failaction)			\
   if ( !(expr) ) {							\
-    qWarning("In function %s:\n\t%s", (QString("")+msg).local8Bit().data()); \
+    qWarning("In function %s:\n\t%s", KLF_FUNC_NAME, (QString("")+msg).local8Bit().data()); \
     failaction;								\
   }
 #endif

@@ -30,6 +30,7 @@
 #ifdef KLFBACKEND_QT4
 #define dir_native_separators(x) QDir::toNativeSeparators(x)
 #define ba_assign(otherba) operator=(otherba)
+#define buf_setdata(buf, ba_ref) buf.setData(ba_ref)
 #define dev_WRITEONLY QIODevice::WriteOnly
 #define dev_READONLY QIODevice::ReadOnly
 #define dev_write write
@@ -54,6 +55,7 @@
 #define QLatin1String QString::fromLatin1
 #define dir_native_separators(x) QDir::convertSeparators(x)
 #define ba_assign(otherba) duplicate((otherba).data(), (otherba).size())
+#define buf_setdata(buf, ba_ref) buf.setBuffer(ba_ref)
 #define dev_WRITEONLY IO_WriteOnly
 #define dev_READONLY IO_ReadOnly
 #define dev_write writeBlock
