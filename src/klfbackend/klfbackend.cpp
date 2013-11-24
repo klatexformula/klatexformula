@@ -290,7 +290,6 @@ void KLFPdfmarksWriteLatexMetaInfo::savePDFField(const QString& k, const QString
 
 // ---------------------------------
 
-static void cleanup(QString tempfname);
 
 static QMutex klf_mutex;
 
@@ -299,6 +298,8 @@ struct GsInfo
   GsInfo() { }
 
   QString version;
+  int version_maj;
+  int version_min;
   QString help;
   QSet<QString> availdevices;
 };
@@ -372,19 +373,6 @@ QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& i
 KLFBackend::KLFBackend()
 {
 }
-
-
-
-/* * Internal.
- * \internal */
-struct cleanup_caller {
-  QString tempfname;
-  cleanup_caller(QString fn) : tempfname(fn) { }
-  ~cleanup_caller() {
-    cleanup(tempfname);
-  }
-};
-
 
 
 
@@ -555,7 +543,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     return res;
   }
 
-  klfDebugf(("%s: queried ghostscript version: %s", KLF_FUNC_NAME, qPrintable(gsInfo[settings.gsexec].version))) ;
+  const GsInfo thisGsInfo = gsInfo.value(settings.gsexec);
+
+  klfDebugf(("%s: queried ghostscript version: %s", KLF_FUNC_NAME, qPrintable(thisGsInfo.version))) ;
 
   // force some rules on settings
 
@@ -618,8 +608,24 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   QString ver = KLF_VERSION_STRING;
   ver.replace(".", "x"); // make friendly names with chars in [a-zA-Z0-9]
   // the base name for all our temp files
-  QString tempfname = settings.tempdir + "/klftmp" + ver + "T" + QDateTime::currentDateTime().toString("hhmmss")
-    + "p"+ QString("%1").arg(QCoreApplication::applicationPid(), 0, 26);
+  //  QString tempfname = settings.tempdir + "/klftmp" + ver + "T" + QDateTime::currentDateTime().toString("hhmmss")
+  //    + "p"+ QString("%1").arg(QCoreApplication::applicationPid(), 0, 26);
+  QString temptemplate = settings.tempdir + "/klftmp"+ver+"-XXXXXX";
+
+  // create the temporary directory
+  KLFBackendTempDir tempdir(temptemplate);
+
+  if (!tempdir.path().size()) {
+    // failed to create temporary directory
+    res.errorstr = QObject::tr("Failed to create temporary directory inside `%1'",
+                               "KLFBackend").arg(settings.tempdir);
+    res.status = KLFERR_TEMPDIR_FAIL;
+    return res;
+  }
+
+  QString tempfname = tempdir.tempFileInDir("klftemp");
+
+  klfDbg("Temp location base name is "<<tempfname) ;
 
   QString fnTex = tempfname + ".tex";
   QString fnDvi = tempfname + ".dvi";
@@ -639,9 +645,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   QByteArray bboxepsdata;
   QByteArray gssvgdata;
 
-  // upon destruction (on stack) of this object, cleanup() will be
-  // automatically called as wanted
-  cleanup_caller cleanupcallerinstance(tempfname);
 
   QString latexsimplified = in.latex.trimmed();
   if (latexsimplified.isEmpty()) {
@@ -729,8 +732,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       << "KLF_LATEX=" + settings.latexexec
       << "KLF_DVIPS=" + settings.dvipsexec
       << "KLF_GS=" + settings.gsexec
-      << "KLF_GS_VERSION=" + gsInfo.value(settings.gsexec).version
-      << "KLF_GS_DEVICES=" + QStringList(gsInfo.value(settings.gsexec).availdevices.toList()).join(",")
+      << "KLF_GS_VERSION=" + thisGsInfo.version
+      << "KLF_GS_DEVICES=" + QStringList(thisGsInfo.availdevices.toList()).join(",")
       // input
       << "KLF_INPUT_LATEX=" + in.latex
       << "KLF_INPUT_MATHMODE=" + in.mathmode
@@ -772,7 +775,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     }
 
     { // now run the script
-      KLFBackendFilterProgram p("[user script "+scriptinfo.name()+"]", &settings, isMainThread);
+      KLFBackendFilterProgram p("[user script "+scriptinfo.name()+"]", &settings, isMainThread,
+                                tempdir.path());
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
@@ -887,7 +891,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     // execute latex
     klfDbg("preparing to launch latex.") ;
 
-    KLFBackendFilterProgram p(QLatin1String("LaTeX"), &settings, isMainThread);
+    KLFBackendFilterProgram p(QLatin1String("LaTeX"), &settings, isMainThread, tempdir.path());
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_LATEX_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_LATEX_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_LATEX;
@@ -910,7 +914,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     ASSERT_HAVE_FORMATS_FOR("eps-raw") ;
 
     // execute dvips -E
-    KLFBackendFilterProgram p(QLatin1String("dvips"), &settings, isMainThread);
+    KLFBackendFilterProgram p(QLatin1String("dvips"), &settings, isMainThread, tempdir.path());
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_DVIPS_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_DVIPS_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_DVIPS;
@@ -1017,7 +1021,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     if (settings.outlineFonts) {
       // post-process EPS file to outline fonts if requested
 
-      KLFBackendFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings, isMainThread);
+      KLFBackendFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings, isMainThread,
+                                tempdir.path());
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPOSTPROC_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPOSTPROC_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPOSTPROC;
@@ -1028,8 +1033,14 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       // so now we have to make sure we use ps2write on newer systems but make sure we still use pswrite on
       // old systems which don't support ps2write. THANKS A TON GS GUYS :(
       QString psdevice = "ps2write";
-      if (!gsInfo[settings.gsexec].availdevices.contains("ps2write")) {
-        psdevice = "pswrite";
+      const char *env_gs_device = getenv("KLFBACKEND_GS_PS_DEVICE");
+      if (env_gs_device != NULL) {
+        psdevice = QString::fromLatin1(env_gs_device);
+      } else if (thisGsInfo.version_maj > 9 ||
+                 (thisGsInfo.version_maj == 9 && thisGsInfo.version_min > 7)) {
+        // until 9.07, we can still use 'pswrite', after that we have to use ps2write.
+        // note: in the versions where both devices coexist, use pswrite because the early ps2write's seem buggy.
+        psdevice = QLatin1String("pswrite");
       }
 
       p.addArgv(settings.gsexec);
@@ -1060,7 +1071,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     ASSERT_HAVE_FORMATS_FOR("png") ;
 
     // run 'gs' to get PNG data
-    KLFBackendFilterProgram p(QLatin1String("gs (PNG)"), &settings, isMainThread);
+    KLFBackendFilterProgram p(QLatin1String("gs (PNG)"), &settings, isMainThread, tempdir.path());
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPNG_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPNG_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPNG;
@@ -1150,7 +1161,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     }
 
     // run 'gs' to get PDF data
-    KLFBackendFilterProgram p(QLatin1String("gs (PDF)"), &settings, isMainThread);
+    KLFBackendFilterProgram p(QLatin1String("gs (PDF)"), &settings, isMainThread, tempdir.path());
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPDF_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSPDF_NONORMALEXIT;
     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSPDF;
@@ -1178,7 +1189,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       ASSERT_HAVE_FORMATS_FOR("svg-gs") ;
 
       // run 'gs' to get SVG (raw from gs)
-      if (!gsInfo[settings.gsexec].availdevices.contains("svg")) {
+      if (!thisGsInfo.availdevices.contains("svg")) {
 	// not OK to get SVG...
 	klfWarning("ghostscript cannot create SVG");
 	res.status = KLFERR_GSSVG_NOSVG;
@@ -1186,7 +1197,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 	return res;
       }
 
-      KLFBackendFilterProgram p(QLatin1String("gs (SVG)"), &settings, isMainThread);
+      KLFBackendFilterProgram p(QLatin1String("gs (SVG)"), &settings, isMainThread, tempdir.path());
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSSVG_NORUN;
       p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSSVG_NONORMALEXIT;
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSSVG;
@@ -1242,7 +1253,7 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsF
 
   int i;
 
-  KLFBackendFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings, isMainThread);
+  KLFBackendFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings, isMainThread, settings.tempdir);
   p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSBBOX_NORUN;
   p.resErrCodes[KLFFP_NOEXIT] = KLFERR_GSBBOX_NONORMALEXIT;
   p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_GSBBOX;
@@ -1297,6 +1308,13 @@ static bool parse_bbox_values(const QString& str, klfbbox *bbox)
   return true;
 }
 
+static bool s_starts_with(const char * x, int len_x, const char *test, int len_test)
+{
+  if (len_x < len_test)
+    return false;
+  return !strncmp(x, test, len_test);
+}
+
 static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::klfOutput * resError)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -1321,14 +1339,14 @@ static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::
   int n;
   bool gotepsbbox = false;
   int still_look_for_hiresbbox_lines = 5;
-  while ((n = buf.readLine(linebuffer, 512)) > 0) {
+  while ((n = buf.readLine(linebuffer, sizeof(linebuffer)-1)) > 0) {
     if (gotepsbbox && still_look_for_hiresbbox_lines-- < 0) {
       // if we already got the %BoundingBox, and we've been looking at more than a certian number of lines
       // after that, abort because usually %BoundingBox and %HiResBoundingBox are together...
       klfDbg("stopped looking for hires-bbox.") ;
       break;
     }
-    if (!strncmp(linebuffer, hibboxtag, hibboxtaglen)) {
+    if (s_starts_with(linebuffer, n, hibboxtag, hibboxtaglen)) {
       // got hi-res bounding-box
       bool ok = parse_bbox_values(QString::fromLatin1(linebuffer+hibboxtaglen), bbox);
       if (!ok) {
@@ -1340,7 +1358,7 @@ static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::
       // all ok, got hi-res bbox
       return true;
     }
-    if (!strncmp(linebuffer, bboxtag, bboxtaglen)) {
+    if (s_starts_with(linebuffer, n, bboxtag, bboxtaglen)) {
       // got bounding-box.
       bool ok = parse_bbox_values(QString::fromLatin1(linebuffer+bboxtaglen), bbox);
       if (!ok) {
@@ -1504,30 +1522,6 @@ static void replace_svg_width_or_height(QByteArray *svgdata, const char * attreq
    
 
 
-
-static void cleanup(QString tempfname)
-{
-  const char *skipcleanup = getenv("KLFBACKEND_LEAVE_TEMP_FILES");
-  if (skipcleanup != NULL && (*skipcleanup == '1' || *skipcleanup == 't' || *skipcleanup == 'T' ||
-			      *skipcleanup == 'y' || *skipcleanup == 'Y' ||
-                              QString::fromLatin1(skipcleanup).toLower() == QLatin1String("on"))) {
-    return; // skip cleaning up temp files
-  }
-
-  // remove any file that has this basename...
-  QFileInfo fi(tempfname);
-  QDir dir = fi.dir();
-  QString pattern = fi.baseName() + "*";
-
-  QStringList l = dir.dir_entry_list(pattern);
-
-  int k;
-  for (k = 0; k < (int)l.size(); ++k) {
-    QString f = dir.filePath(l[k]);
-    QFile::remove(f);
-  }
-
-}
 
 
 KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b)
@@ -1818,7 +1812,7 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
 
   QString gsver;
   { // test 'gs' version, to see if we can provide SVG data
-    KLFBackendFilterProgram p(QLatin1String("gs (test version)"), settings, isMainThread);
+    KLFBackendFilterProgram p(QLatin1String("gs (test version)"), settings, isMainThread, settings->tempdir);
     //    p.resErrCodes[KLFFP_NOSTART] = ;
     //     p.resErrCodes[KLFFP_NOEXIT] = ;
     //     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = ;
@@ -1842,7 +1836,7 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
   QString gshelp;
   KLFStringSet availdevices;
   { // test 'gs' version, to see if we can provide SVG data
-    KLFBackendFilterProgram p(QLatin1String("gs (query help)"), settings, isMainThread);
+    KLFBackendFilterProgram p(QLatin1String("gs (query help)"), settings, isMainThread, settings->tempdir);
     //    p.resErrCodes[KLFFP_NOSTART] = ;
     //     p.resErrCodes[KLFFP_NOEXIT] = ;
     //     p.resErrCodes[KLFFP_NOSUCCESSEXIT] = ;
@@ -1881,8 +1875,19 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
     }
   }
 
+  int gsvermaj = -1;
+  int gsvermin = -1;
+  QRegExp rx_version("^(\\d+)\\.(\\d+)");
+  int foundver = rx_version.indexIn(gsver);
+  if (foundver >= 0) {
+    gsvermaj = rx_version.cap(1).toInt();
+    gsvermin = rx_version.cap(2).toInt();
+  }
+
   GsInfo i;
   i.version = gsver;
+  i.version_maj = gsvermaj;
+  i.version_min = gsvermin;
   i.help = gshelp;
   i.availdevices = availdevices;
 

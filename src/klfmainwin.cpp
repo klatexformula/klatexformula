@@ -990,6 +990,8 @@ void KLFMainWinPrivate::refreshStylePopupMenus()
   mStyleMenu->addSeparator();
   mStyleMenu->addAction(QIcon(":/pics/savestyle.png"), tr("Save Current Style"),
 			K, SLOT(slotSaveStyle()));
+  mStyleMenu->addAction(QIcon(":/pics/savestyle.png"), tr("Save Current Style As Default"),
+			K, SLOT(slotSaveStyleAsDefault()));
   mStyleMenu->addAction(QIcon(":/pics/managestyles.png"), tr("Manage Styles"),
 			K, SLOT(slotStyleManager()), 0 /* accel */);
 
@@ -1076,7 +1078,7 @@ void KLFMainWin::loadStyles()
 
   if (d->styles.isEmpty()) {
     // if stylelist is empty, populate with default style
-    KLFStyle s1(tr("Default"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0),
+    KLFStyle s1(tr("Default", "[[style name]]"), qRgb(0, 0, 0), qRgba(255, 255, 255, 0),
 		"\\begin{align*} ... \\end{align*}",
 		"\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\n",
 		600);
@@ -1407,8 +1409,10 @@ void KLFMainWin::insertSymbol(const KLFLatexSymbol& s)
   int k;
   QString preambletext = u->txtPreamble->latex();
   QString addtext;
-  for (k = 0; k < cmds.size(); ++k) {
-    slotEnsurePreambleCmd(cmds[k]);
+  if (klfconfig.UI.symbolIncludeWithPreambleDefs) {
+    for (k = 0; k < cmds.size(); ++k) {
+      slotEnsurePreambleCmd(cmds[k]);
+    }
   }
 
   // only after that actually insert the symbol, so as not to interfere with popup package suggestions.
@@ -4290,6 +4294,33 @@ void KLFMainWin::slotSaveStyle()
   sty = currentStyle();
   sty.name = name;
 
+  if (found_i == -1)
+    d->styles.append(sty);
+  else
+    d->styles[found_i] = sty;
+
+  d->refreshStylePopupMenus();
+
+  // auto-save our style list
+  saveStyles();
+
+  emit stylesChanged();
+}
+
+void KLFMainWin::slotSaveStyleAsDefault()
+{
+  KLFStyle sty;
+
+  sty = currentStyle();
+  QString defname = tr("Default", "[[style name]]");
+  sty.name = defname;
+
+  // check to see if style exists already (it should)
+  int found_i = -1;
+  for (int kl = 0; found_i == -1 && kl < d->styles.size(); ++kl) {
+    if (d->styles[kl].name().trimmed() == defname.trimmed())
+      found_i = kl;
+  }
   if (found_i == -1)
     d->styles.append(sty);
   else

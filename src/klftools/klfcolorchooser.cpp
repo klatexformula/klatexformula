@@ -74,8 +74,20 @@ QColor KLFColorDialog::getColor(QColor startwith, bool alphaenabled, QWidget *pa
   if ( r != QDialog::Accepted )
     return QColor();
   QColor color = dlg.u->mColorChooseWidget->color();
-  KLFColorChooseWidget::addRecentColor(color);
   return color;
+}
+
+QColor KLFColorDialog::color() const
+{
+  return u->mColorChooseWidget->color();
+}
+void KLFColorDialog::setColor(const QColor& color)
+{
+  u->mColorChooseWidget->setColor(color);
+}
+void KLFColorDialog::slotAccepted()
+{
+  KLFColorChooseWidget::addRecentColor(color());
 }
 
 // -------------------------------------------------------------------

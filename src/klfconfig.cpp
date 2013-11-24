@@ -341,7 +341,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(SyntaxHighlighter.enabled, true) ;
   KLFCONFIGPROP_INIT(SyntaxHighlighter.highlightParensOnly, false) ;
   KLFCONFIGPROP_INIT(SyntaxHighlighter.highlightLonelyParens, true) ;
-  KLFCONFIGPROP_INIT(SyntaxHighlighter.matchParenTypes, true) ;
+  //  KLFCONFIGPROP_INIT(SyntaxHighlighter.matchParenTypes, true) ;
   QTextCharFormat f_keyword;
   QTextCharFormat f_comment;
   QTextCharFormat f_parenmatch;
@@ -580,7 +580,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "enabled", &SyntaxHighlighter.enabled);
   klf_config_read(s, "highlightparensonly", &SyntaxHighlighter.highlightParensOnly);
   klf_config_read(s, "highlightlonelyparens", &SyntaxHighlighter.highlightLonelyParens);
-  klf_config_read(s, "matchparentypes", &SyntaxHighlighter.matchParenTypes);
+  //  klf_config_read(s, "matchparentypes", &SyntaxHighlighter.matchParenTypes);
   klf_config_read<QTextCharFormat>(s, "keyword", &SyntaxHighlighter.fmtKeyword);
   klf_config_read<QTextCharFormat>(s, "comment", &SyntaxHighlighter.fmtComment);
   klf_config_read<QTextCharFormat>(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);
@@ -765,7 +765,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "enabled", &SyntaxHighlighter.enabled);
   klf_config_write(s, "highlightparensonly", &SyntaxHighlighter.highlightParensOnly);
   klf_config_write(s, "highlightlonelyparens", &SyntaxHighlighter.highlightLonelyParens);
-  klf_config_write(s, "matchparentypes", &SyntaxHighlighter.matchParenTypes);
+  //  klf_config_write(s, "matchparentypes", &SyntaxHighlighter.matchParenTypes);
   klf_config_write(s, "keyword", &SyntaxHighlighter.fmtKeyword);
   klf_config_write(s, "comment", &SyntaxHighlighter.fmtComment);
   klf_config_write(s, "parenmatch", &SyntaxHighlighter.fmtParenMatch);

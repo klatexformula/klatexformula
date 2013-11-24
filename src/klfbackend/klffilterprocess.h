@@ -46,7 +46,8 @@ class KLFFilterProcessPrivate;
 class KLF_EXPORT KLFFilterProcess
 {
 public:
-  KLFFilterProcess(const QString& pTitle = QString(), const KLFBackend::klfSettings *settings = NULL);
+  KLFFilterProcess(const QString& pTitle = QString(), const KLFBackend::klfSettings *settings = NULL,
+                   const QString& rundir = QString());
   virtual ~KLFFilterProcess();
 
 

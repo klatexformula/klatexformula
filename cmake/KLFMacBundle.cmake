@@ -132,7 +132,7 @@ macro(KLFMBundlePrivateImportQtLib TGT QTLIBBASENAME DEPS)
   string(TOUPPER ${QTLIBBASENAME} QTLIBBASENAMEUPPER)
   set(QTLIBFULLPATH "${QT_QT${QTLIBBASENAMEUPPER}_LIBRARY}")
   KLFMBundlePrivateImport(${TGT} Qt${QTLIBBASENAME}.framework
-			 ${QTLIBFULLPATH} Frameworks)
+			 "${QTLIBFULLPATH}" Frameworks)
   KLFMInstallNameToolID(${TGT}
       Frameworks/Qt${QTLIBBASENAME}.framework/Versions/4/Qt${QTLIBBASENAME})
   KLFMInstallNameToolID(${TGT}

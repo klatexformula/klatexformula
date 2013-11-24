@@ -31,6 +31,7 @@
 #include <klfconfig.h>
 #include <klfguiutil.h>
 #include <klfutil.h>
+#include <klfdebug.h>
 
 #include "skin.h"
 
@@ -387,6 +388,7 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
 #else
   Q_UNUSED(isStartUp) ;
 #endif
+
   klfDbg("Applying skin!");
   QString ssfn = config->readValue("skinfilename").toString();
   Skin skin =  SkinConfigWidget::loadSkin(config, ssfn);
@@ -429,6 +431,8 @@ Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
     // save style sheets that are already defined on that widget (eg. Help/About dialog)
     if (!_baseStyleSheets.contains(objnm))
       _baseStyleSheets[objnm] = w->styleSheet();
+
+    KLF_DEBUG_BLOCK(QString("Set skin: top level widget %1").arg(objnm)) ;
 
     w->setProperty("klfTopLevelWidget", QVariant(true));
     w->setStyleSheet(_baseStyleSheets[objnm] + "\n" + stylesheet);

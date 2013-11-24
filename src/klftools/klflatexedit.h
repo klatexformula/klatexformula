@@ -310,7 +310,6 @@ private:
     bool enabled;
     bool highlightParensOnly;
     bool highlightLonelyParens;
-    bool matchParenTypes;
     QTextCharFormat fmtKeyword;
     QTextCharFormat fmtComment;
     QTextCharFormat fmtParenMatch;

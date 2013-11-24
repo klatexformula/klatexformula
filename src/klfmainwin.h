@@ -385,6 +385,7 @@ public slots:
   void slotLoadStyle(int stylenum);
   void slotLoadStyle(const KLFStyle& style);
   void slotSaveStyle();
+  void slotSaveStyleAsDefault();
   void slotStyleManager();
   void slotSettings();
 

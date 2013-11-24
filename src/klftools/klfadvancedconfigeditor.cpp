@@ -33,6 +33,10 @@
 #include "klfadvancedconfigeditor_p.h"
 
 
+
+// --------------
+
+
 #define REGISTER_EDITOR(factory, type, editorclass)			\
   { QItemEditorCreatorBase *anEditor = new QStandardItemEditorCreator<editorclass>(); \
     factory->registerEditor(type, anEditor); }
@@ -50,7 +54,9 @@ KLFAdvancedConfigEditor::KLFAdvancedConfigEditor(QWidget *parent, KLFConfigBase 
   u->setupUi(this);
   
   QItemEditorFactory *factory = new QItemEditorFactory;
-  REGISTER_EDITOR(factory, QVariant::Color, KLFColorChooser);
+
+  REGISTER_EDITOR(factory, QVariant::Color, KLFColorDialog);
+  REGISTER_EDITOR(factory, QVariant::Font, KLFFontDialog);
   
   d->pConfModel = new QStandardItemModel(this);
   d->pConfModel->setColumnCount(3);
@@ -70,6 +76,13 @@ KLFAdvancedConfigEditor::KLFAdvancedConfigEditor(QWidget *parent, KLFConfigBase 
 
   connect(d->pConfModel, SIGNAL(itemChanged(QStandardItem *)),
 	  d, SLOT(configEntryEdited(QStandardItem *)));
+
+  // add "reset default value" action
+  QAction *resetDefault = new QAction(tr("Reset Default Value"), this);
+  connect(resetDefault, SIGNAL(triggered()),
+          d, SLOT(resetDefault()));
+  u->configView->addAction(resetDefault);
+  u->configView->setContextMenuPolicy(Qt::ActionsContextMenu);
 }
 
 KLFAdvancedConfigEditor::~KLFAdvancedConfigEditor()

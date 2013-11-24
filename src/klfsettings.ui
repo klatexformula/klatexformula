@@ -14,12 +14,6 @@
     <height>552</height>
    </rect>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>350</width>
-    <height>0</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>KLatexFormula - Settings</string>
   </property>
@@ -115,7 +109,7 @@
    <item row="1" column="0" colspan="2">
     <widget class="QStackedWidget" name="tabs">
      <property name="currentIndex">
-      <number>6</number>
+      <number>0</number>
      </property>
      <widget class="QGroupBox" name="tabInterface">
       <layout class="QGridLayout" name="lyt_tabInterface">
@@ -501,7 +495,7 @@
      </widget>
      <widget class="QGroupBox" name="tabEditor">
       <layout class="QGridLayout" name="lyt_tabEditor">
-       <item row="3" column="0" colspan="2">
+       <item row="4" column="0" colspan="2">
         <spacer name="vspcEditor">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -544,16 +538,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="chkSHNoMatchParenTypes">
-            <property name="toolTip">
-             <string>Don't try to match similar parenthesis delimiter types, prefer reporting mismatching adjacent delimiters.</string>
-            </property>
-            <property name="text">
-             <string>Don't try to match parenthesis types</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -574,6 +558,22 @@
            <widget class="QCheckBox" name="chkEditorWrapLines">
             <property name="text">
              <string>Wrap long lines in LaTeX code editor</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="3" column="0" colspan="2">
+        <widget class="QGroupBox" name="gbxEditorSymbolsPalette">
+         <property name="title">
+          <string>Insert Symbol</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QCheckBox" name="chkEditorIncludePreambleDefs">
+            <property name="text">
+             <string>Include also necessary preamble definitions</string>
             </property>
            </widget>
           </item>
@@ -805,8 +805,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>366</width>
-                 <height>74</height>
+                 <width>98</width>
+                 <height>40</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -859,8 +859,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>368</width>
-                 <height>72</height>
+                 <width>98</width>
+                 <height>50</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -998,8 +998,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>252</width>
-                    <height>80</height>
+                    <width>98</width>
+                    <height>40</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1165,8 +1165,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>232</width>
-                       <height>93</height>
+                       <width>98</width>
+                       <height>40</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1230,8 +1230,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>396</width>
-                <height>316</height>
+                <width>98</width>
+                <height>28</height>
                </rect>
               </property>
               <attribute name="label">
@@ -2601,34 +2601,82 @@
    </hints>
   </connection>
   <connection>
-   <sender>chkSHEnable</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>chkSHNoMatchParenTypes</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>111</x>
-     <y>118</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>111</x>
-     <y>118</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>chkEnableRealTimePreview</sender>
    <signal>toggled(bool)</signal>
    <receiver>chkRealTimePreviewExceptBattery</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>135</x>
-     <y>211</y>
+     <x>126</x>
+     <y>125</y>
     </hint>
     <hint type="destinationlabel">
-     <x>133</x>
-     <y>229</y>
+     <x>126</x>
+     <y>125</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxEPSBBoxUnits</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnTBorderOffset</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>254</x>
+     <y>154</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>254</x>
+     <y>175</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxEPSBBoxUnits</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnRBorderOffset</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>276</x>
+     <y>157</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>275</x>
+     <y>208</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxEPSBBoxUnits</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnBBorderOffset</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>301</x>
+     <y>161</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>295</x>
+     <y>235</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cbxEPSBBoxUnits</sender>
+   <signal>unitChanged(double,QString)</signal>
+   <receiver>spnLBorderOffset</receiver>
+   <slot>setUnitWithSuffix(double,QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>153</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>313</x>
+     <y>267</y>
     </hint>
    </hints>
   </connection>

@@ -305,7 +305,7 @@ public:
     KLFConfigProp<bool> enabled;
     KLFConfigProp<bool> highlightParensOnly;
     KLFConfigProp<bool> highlightLonelyParens;
-    KLFConfigProp<bool> matchParenTypes;
+    //KLFConfigProp<bool> matchParenTypes;
     KLFConfigProp<QTextCharFormat> fmtKeyword;
     KLFConfigProp<QTextCharFormat> fmtComment;
     KLFConfigProp<QTextCharFormat> fmtParenMatch;

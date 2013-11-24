@@ -43,6 +43,8 @@ public:
 
   virtual bool setValue(const QVariant& newvalue) { Q_UNUSED(newvalue); return false; }
 
+  virtual QVariant defaultValueVariant() const { return QVariant(); }
+
 protected:
   QString pname;
 };
@@ -185,6 +187,12 @@ public:
   {
     KLFVariantConverter<Type> v;
     return v.convert(value());
+  }
+
+  virtual QVariant defaultValueVariant() const
+  {
+    KLFVariantConverter<Type> v;
+    return v.convert(defaultValue());
   }
   
   void initialize(KLFConfigBase *confptr, const QString& propName, const Type& defaultValue,

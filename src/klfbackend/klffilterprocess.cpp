@@ -102,7 +102,8 @@ class KLFFilterProcessPrivate {
 // ---------
 
 
-KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings)
+KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfSettings *settings,
+                                   const QString& rundir)
 {
   KLF_INIT_PRIVATE(KLFFilterProcess) ;
 
@@ -114,8 +115,13 @@ KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfS
   d->outputStdout = true;
   d->outputStderr = false;
 
+  if (rundir.size()) {
+    d->programCwd = rundir;
+  }
   if (settings != NULL) {
-    d->programCwd = settings->tempdir;
+    if (!rundir.size()) {
+      d->programCwd = settings->tempdir;
+    }
     d->execEnviron = settings->execenv;
   }
 

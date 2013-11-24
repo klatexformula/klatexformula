@@ -33,6 +33,8 @@
 #include <QLineEdit>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QFontDialog>
+
 
 #include <klfdefs.h>
 #include <klfdatautil.h>
@@ -90,7 +92,7 @@ public:
     }
     // else:
     QLineEdit * e = qobject_cast<QLineEdit*>(editor);
-    KLF_ASSERT_NOT_NULL(e, "Editor is NULL or not a KLFStringValueVariantEditor!", return ; ) ;
+    KLF_ASSERT_NOT_NULL(e, "Editor is NULL or not a QLineEdit!", return ; ) ;
     KLF_ASSERT_NOT_NULL(model, "Model is NULL!", return ; ) ;
     QByteArray datavalue = e->text().toAscii();
     QByteArray typname = model->data(index, CONFIG_VIEW_ROLE_TYPENAME).toByteArray();
@@ -105,8 +107,8 @@ protected:
   virtual bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem& option,
 			   const QModelIndex& index)
   {
-    /** \bug .......... editor closes and doesn't apply new value for colors, which open a separate popup
-     * widget... (MAC OS X ONLY) */
+    // Note: editor closes and doesn't apply new value for colors, which open a separate popup
+    // widget... (MAC OS X ONLY)   SOLUTION: use an actual dialog as the widget, this is handled nicely.
     return QStyledItemDelegate::editorEvent(event, model, option, index);
   }
 };
@@ -158,6 +160,8 @@ public slots: // public is just for us... the class is still private :)
 
     if (value == oldvalue) {
       // never mind, the user didn't change anything.
+      // but still update the row, because otherwise the wrong string representation is shown (why?)
+      updateConfigEntry(item->row());
       return;
     }
 
@@ -179,7 +183,7 @@ public slots: // public is just for us... the class is still private :)
     r = p->setValue(value);
     if ( ! r ) {
       QMessageBox::critical(K, tr("Error"),
-			    tr("Failed to set config entry `%1;.").arg(pname));
+			    tr("Failed to set config entry `%1'.").arg(pname));
     }
     updateConfigEntry(item->row());
     if (!_are_resetting_config)
@@ -198,6 +202,7 @@ public slots: // public is just for us... the class is still private :)
     EDITTYPE_TEST_FOR(t, QVariant::DateTime);
     EDITTYPE_TEST_FOR(t, QVariant::String);
     EDITTYPE_TEST_FOR(t, QVariant::Color);
+    EDITTYPE_TEST_FOR(t, QVariant::Font);
     return false;
   }
 
@@ -211,8 +216,10 @@ public slots: // public is just for us... the class is still private :)
       QString pname = props[k];
       KLFConfigPropBase *p = pConfigBase->property(pname);
       QVariant val = p->toVariant();
+      // Config Entry
       QStandardItem *i1 = new QStandardItem(pname);
       i1->setEditable(false);
+      // Config Value (edit type directly)
       QStandardItem *i2 = new QStandardItem(val.toString());
       bool editable = pConfigBase->okChangeProperty(p, QVariant(), QVariant());
       bool varianteditable = editable && is_editable_type(val.userType());
@@ -220,8 +227,11 @@ public slots: // public is just for us... the class is still private :)
       QPalette::ColorGroup cg = varianteditable ? QPalette::Active : QPalette::Disabled;
       i2->setForeground(pal.brush(cg, QPalette::Text));
       i2->setBackground(pal.brush(cg, QPalette::Base));
+      //      klfDbg("Adding value: val="<<val<<"; displaystring="<<displayString(val)) ;
       i2->setData(val, Qt::EditRole);
+      i2->setData(displayString(val), Qt::DisplayRole);
       i2->setData(pname, CONFIG_VIEW_ROLE_PROPNAME); // user data is property name
+      // Config Value (config text representation)
       QByteArray savedtype, savedinnertype;
       QByteArray datavalue = klfSaveVariantToText(val, false, &savedtype, &savedinnertype);
       klfDbg("i3: datavalue="<<datavalue) ;
@@ -249,9 +259,91 @@ public slots: // public is just for us... the class is still private :)
     QVariant val = pConfigBase->property(pname)->toVariant();
     i2->setText(val.toString());
     i2->setData(val, Qt::EditRole);
+    i2->setData(displayString(val), Qt::DisplayRole);
     i3->setData(val, Qt::EditRole);
     i3->setData(klfSaveVariantToText(val), Qt::DisplayRole);
     pCurrentInternalUpdate = false;
+  }
+
+  void resetDefault()
+  {
+    QModelIndex index = K->u->configView->currentIndex();
+    if (index == QModelIndex())
+      return;
+    int row = index.row();
+    QStandardItem *i2 = pConfModel->item(row, 1);
+    QStandardItem *i3 = pConfModel->item(row, 2);
+    QString pname = i2->data(CONFIG_VIEW_ROLE_PROPNAME).toString();
+    KLF_ASSERT_CONDITION(pname == i3->data(CONFIG_VIEW_ROLE_PROPNAME).toString(),
+			 "BUG?! pnames don't match for both config items",
+			 return ; );
+    KLFConfigPropBase *p = pConfigBase->property(pname);
+    KLF_ASSERT_NOT_NULL(p, "Property is NULL!", return; ) ;
+    QVariant oldvalue = p->toVariant();
+    QVariant defval = p->defaultValueVariant();
+
+    QMessageBox msgBox;
+    msgBox.setText(tr("You are resetting an advanced config setting to its factory default value. "
+                      "Please confirm your action."));
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setInformativeText(tr("Change config entry %1 from %2 to its factory default value %3?")
+			      .arg( "<b>"+pname+"</b>" ,
+				    "<b>"+klfSaveVariantToText(oldvalue)+"</b> <i>("+oldvalue.typeName()+")</i>" ,
+				    "<b>"+klfSaveVariantToText(defval)+"</b> <i>("+defval.typeName()+")</i>"));
+    msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Save);
+    int r = msgBox.exec();
+    if (r != QMessageBox::Save) {
+      updateConfigEntry(row);
+      return;
+    }
+
+    // save the default value
+    r = p->setValue(defval);
+    if ( ! r ) {
+      QMessageBox::critical(K, tr("Error"),
+			    tr("Failed to set config entry `%1'.").arg(pname));
+    }
+    updateConfigEntry(row);
+  }
+
+private:
+  //   QString displayString(QVariant val) {
+  //     if (val.type() == QVariant::Color) {
+  //       QColor c = val.value<QColor>();
+  //       if (c.alpha() == 255)
+  //         return c.name();
+  //       return c.name()+" ("+QString::number(c.alpha()*100/255)+"%)";
+  //     }
+  //     return val.toString();
+  //   }
+
+  // If a string DisplayRole is set, then the list pops up the wrong editor. (Bug in Qt?)
+  inline QVariant displayString(QVariant v) {
+    return v;
+  }
+};
+
+
+
+
+// ------------------------
+
+
+class KLFFontDialog : public QFontDialog
+{
+  Q_OBJECT
+
+  // just expose this property as the USER property, which is not done in QFontDialog.
+  Q_PROPERTY(QFont theFont READ currentFont WRITE setCurrentFont USER true);
+public:
+  KLFFontDialog(QWidget *parent = 0)
+    : QFontDialog(parent)
+  {
+  }
+  
+  virtual ~KLFFontDialog()
+  {
   }
 };
 

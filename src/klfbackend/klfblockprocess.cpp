@@ -21,6 +21,8 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <ctype.h>
+
 #include <QProcess>
 #include <QApplication>
 #include <QEventLoop>
@@ -63,7 +65,7 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 
 #if defined(Q_OS_UNIX)
 
-  // for epstopdf bug in ubuntu: peek into executable, see if it is script. if it is, run with 'sh' on *nix's.
+  // for epstopdf bug in ubuntu: peek into executable, see if it is script. if it is, run with 'env' on *nix's.
   // this is a weird bug with QProcess that will not execute some script files like epstopdf.
 
   { QString fn = cmd[0];
@@ -78,7 +80,7 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
       bool isbinary = false;
       while (n++ < 3 && (line = fpeek.readLine()).size()) {
 	for (j = 0; j < line.size(); ++j) {
-	  if ((int)line[j] >= 127 || (int)line[j] <= 0) {
+	  if ( ! isascii(line[j]) ) {
 	    isbinary = true;
 	    break;
 	  }
@@ -92,9 +94,9 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
       }
     }
   }
-    
 
 #endif
+
 
   QString program = cmd[0];
 

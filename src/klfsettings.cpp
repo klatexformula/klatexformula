@@ -624,7 +624,7 @@ bool KLFSettings::eventFilter(QObject *object, QEvent *event)
 void KLFSettings::reset()
 {
   int k;
-  KLFBackend::klfSettings s = d->mainWin->currentSettings();
+  KLFBackend::klfSettings s = d->mainWin->backendSettings();
 
   k = u->cbxLocale->findData(klfconfig.UI.locale.toVariant());
   if (k == -1) {
@@ -648,10 +648,12 @@ void KLFSettings::reset()
   u->chkEditorTabInsertsTab->setChecked( klfconfig.UI.editorTabInsertsTab );
   u->chkEditorWrapLines->setChecked( klfconfig.UI.editorWrapLines );
 
+  u->chkEditorIncludePreambleDefs->setChecked( klfconfig.UI.symbolIncludeWithPreambleDefs );
+
   u->chkSHEnable->setChecked(klfconfig.SyntaxHighlighter.enabled);
   u->chkSHHighlightParensOnly->setChecked(klfconfig.SyntaxHighlighter.highlightParensOnly);
   u->chkSHHighlightLonelyParen->setChecked(klfconfig.SyntaxHighlighter.highlightLonelyParens);
-  u->chkSHNoMatchParenTypes->setChecked( ! klfconfig.SyntaxHighlighter.matchParenTypes );
+  //u->chkSHNoMatchParenTypes->setChecked( ! klfconfig.SyntaxHighlighter.matchParenTypes );
 
   for (k = 0; k < d->textformats.size(); ++k) {
     if ((*d->textformats[k].fmt)().hasProperty(QTextFormat::ForegroundBrush))
@@ -1529,7 +1531,7 @@ void KLFSettings::apply()
   bool warnneedrestart = false;
 
   // the settings object that we will fill, and set to d->mainWin
-  KLFBackend::klfSettings backendsettings = d->mainWin->currentSettings();
+  KLFBackend::klfSettings backendsettings = d->mainWin->backendSettings();
 
   backendsettings.tempdir = QDir::fromNativeSeparators(u->pathTempDir->path());
   backendsettings.latexexec = u->pathLatex->path();
@@ -1557,10 +1559,12 @@ void KLFSettings::apply()
   klfconfig.UI.editorTabInsertsTab = u->chkEditorTabInsertsTab->isChecked();
   klfconfig.UI.editorWrapLines = u->chkEditorWrapLines->isChecked();
 
+  klfconfig.UI.symbolIncludeWithPreambleDefs = u->chkEditorIncludePreambleDefs->isChecked();
+
   klfconfig.SyntaxHighlighter.enabled = u->chkSHEnable->isChecked();
   klfconfig.SyntaxHighlighter.highlightParensOnly = u->chkSHHighlightParensOnly->isChecked();
   klfconfig.SyntaxHighlighter.highlightLonelyParens = u->chkSHHighlightLonelyParen->isChecked();
-  klfconfig.SyntaxHighlighter.matchParenTypes = ! u->chkSHNoMatchParenTypes->isChecked();
+  //  klfconfig.SyntaxHighlighter.matchParenTypes = ! u->chkSHNoMatchParenTypes->isChecked();
 
 
   for (k = 0; k < d->textformats.size(); ++k) {
@@ -1685,6 +1689,7 @@ void KLFSettings::apply()
 
     if (klf_plugins[j].instance != NULL) {
       KLFPluginConfigAccess pconfa = klfconfig.getPluginConfigAccess(name);
+      klfDbg("About to save config for plugin "<<j<<": "<<name);
       klf_plugins[j].instance->saveToConfig(d->pluginConfigWidgets[name], &pconfa);
     }
 

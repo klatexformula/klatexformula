@@ -392,7 +392,6 @@ KLFLatexSyntaxHighlighter::KLFLatexSyntaxHighlighter(QTextEdit *textedit, QObjec
   pConf.enabled = true;
   pConf.highlightParensOnly = false;
   pConf.highlightLonelyParens = true;
-  pConf.matchParenTypes = true;
 
   pConf.fmtKeyword.setForeground(QColor(0, 0, 128));
   pConf.fmtComment.setForeground(QColor(180, 0, 0));

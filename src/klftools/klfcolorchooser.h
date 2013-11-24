@@ -397,6 +397,8 @@ namespace Ui { class KLFColorDialog; }
 class KLF_EXPORT KLFColorDialog : public QDialog
 {
   Q_OBJECT
+
+  Q_PROPERTY(QColor color READ color WRITE setColor USER true)
 public:
   /** Constructor. If you build the dialog this way, you will have to initialize the \ref colorChooseWidget()
    * manually. Consider using \ref getColor() instead. */
@@ -406,6 +408,8 @@ public:
   /** Accessor to the KLFColorChooseWidget that is displayed in the dialog. */
   KLFColorChooseWidget *colorChooseWidget();
 
+  QColor color() const;
+
   /** static method to invoke a new instance of the dialog, display it to user with the given settings (starts
    * displaying the color \c startwith, and allows the user to select (semi-)transparent colors if \c alphaenabled
    * is set).
@@ -414,8 +418,15 @@ public:
    */
   static QColor getColor(QColor startwith = Qt::black, bool alphaenabled = true, QWidget *parent = 0);
 
+public slots:
+
+  void setColor(const QColor& color);
+
 private:
   Ui::KLFColorDialog *u;
+
+private slots:
+  void slotAccepted();
 };
 
 

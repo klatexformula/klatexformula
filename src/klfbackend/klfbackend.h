@@ -45,6 +45,8 @@
 //! No Error.
 #define KLFERR_NOERROR 0
 
+//! Failed to create the temporary directory
+#define KLFERR_TEMPDIR_FAIL -48
 //! No LaTeX formula is specified (empty string)
 #define KLFERR_MISSINGLATEXFORMULA -1
 //! The \c "..." is missing in math mode string
@@ -161,7 +163,7 @@
 #define KLFERR_USERSCRIPT_BADKLFVERSION -44
 #define KLFERR_USERSCRIPT_BADSKIPFORMATS -45
 #define KLFERR_USERSCRIPT_BADCATEGORY -46
-// last error defined: -47
+// last error defined: -48
 
 
 

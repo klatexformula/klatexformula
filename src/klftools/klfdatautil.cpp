@@ -22,6 +22,7 @@
 /* $Id$ */
 
 #include <qglobal.h>
+#include <QObject>
 #include <QByteArray>
 #include <QString>
 #include <QUrl>
