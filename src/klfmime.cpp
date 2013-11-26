@@ -53,9 +53,53 @@
 
 // ---------------------------------------------------------------------
 
+struct KLFMimeString
+{
+  KLFMimeString(const QString& key)
+  {
+    mime_full = key;
+    // see if we got any attributes to the mime-type
+    int i_semicolon = key.indexOf(';');
+    if (i_semicolon >= 0) {
+      mime_base = key.left(i_semicolon);
+      
+      QRegExp rx("(\\w+)=([^=;]*|\"(?:[^\"]|(?:\\\\.))*\")");
+      int pos = i_semicolon+1;
+      while ( (pos = rx.indexIn(key, pos)) >= 0 )  {
+        mime_attrs[rx.cap(1)] = rx.cap(2);
+      }
+    } else {
+      mime_base = key;
+    }
+  }
+
+  QString mime_full;
+  QString mime_base;
+
+  QMap<QString,QString> mime_attrs;
+};
+
+
+// ---------------------------------------------------------------------
+
+
+
+inline static bool matches_mimetype(const QString& key, const QString& test)
+{
+  // image/png  matches only image/png
+  // text/plain  and  text/plain;charset=UTF-8   both match  text/plain
+  return test.startsWith(key) && ( test.size() == key.size() || test[key.size()] == QLatin1Char(';') );
+}
+
 bool KLFMimeExporter::supportsKey(const QString& key, const KLFBackend::klfOutput * output) const
 {
-  bool result =  (keys(output).indexOf(key) >= 0) ;
+  QStringList mykeys = keys(output);
+  int k;
+  for (k = 0; k < mykeys.size(); ++k) {
+    if (matches_mimetype(mykeys[k], key))
+      break;
+  }
+  bool result = (k < mykeys.size()) ;
   klfDbg("key = "<<key<<" ; result="<<result) ;
   return result;
 }
@@ -218,6 +262,7 @@ void KLFMimeExporter::initMimeExporterList()
     p_mimeExporterList
       << new KLFMimeExporterImage(qApp)
       << new KLFMimeExporterUrilist(qApp)
+      << new KLFMimeExporterUrilistPDF(qApp)
       << new KLFMimeExporterHTML(qApp)
       << new KLFMimeExporterLibFmts(qApp)
       << new KLFMimeExporterGlowImage(qApp)
@@ -300,7 +345,7 @@ KLFMimeExporter * KLFMimeExportProfile::exporterLookupFor(int k, const KLFBacken
   if (warnNotFound)
     KLF_ASSERT_NOT_NULL(exporter,
 			"Can't find exporter "<<p_exportTypes[k].exporter<<" for export-type #"<<k
-			<<"for key "<<p_exportTypes[k].mimetype,   return NULL ) ;
+			<<" for key "<<p_exportTypes[k].mimetype,   return NULL ) ;
   return exporter;
 }
 QList<KLFMimeExporter*> KLFMimeExportProfile::exporterFullLookupFor(int k, const KLFBackend::klfOutput * output,
@@ -315,8 +360,13 @@ QList<KLFMimeExporter*> KLFMimeExportProfile::exporterFullLookupFor(int k, const
   QList<KLFMimeExporter*> exporters;
   if ( ! p_exportTypes[k].exporter.isEmpty() ) {
     // lookup the exporter by name, and make sure that it supports the 'mimetype' key
-    exporters << KLFMimeExporter::mimeExporterLookupByName(p_exportTypes[k].exporter, p_exportTypes[k].mimetype,
-							   output);
+    KLFMimeExporter *e = KLFMimeExporter::mimeExporterLookupByName(p_exportTypes[k].exporter,
+                                                                   p_exportTypes[k].mimetype,
+                                                                   output);
+    KLF_ASSERT_NOT_NULL(e, "Can't find exporter "<<p_exportTypes[k].exporter<<" for export-type #"<<k
+                        <<" and mime-type "<<p_exportTypes[k].mimetype,
+                        return QList<KLFMimeExporter*>() );
+    exporters << e;
   } else {
     // lookup the exporter by mime-type
     exporters = KLFMimeExporter::mimeExporterFullLookup(p_exportTypes[k].mimetype, output);
@@ -325,7 +375,19 @@ QList<KLFMimeExporter*> KLFMimeExportProfile::exporterFullLookupFor(int k, const
   if (warnNotFound)
     KLF_ASSERT_CONDITION(!exporters.isEmpty(),
 			 "Can't find exporter "<<p_exportTypes[k].exporter<<" for export-type #"<<k
-			 <<"for key "<<p_exportTypes[k].mimetype,   return QList<KLFMimeExporter*>() ) ;
+			 <<"for mime-type "<<p_exportTypes[k].mimetype,
+                         return QList<KLFMimeExporter*>()
+                         ) ;
+
+  klfDbg("Found "<<exporters.size()<<" exporters for mime type "<<p_exportTypes[k].mimetype
+         <<" with exporter named "<<p_exportTypes[k].exporter);
+#ifdef KLF_DEBUG
+  QStringList dbg_list;
+  for (int k = 0; k < exporters.size(); ++k)
+    dbg_list.append(exporters[k]->exporterName());
+  klfDbg("\texporter list is "<<dbg_list.join(","));
+#endif
+
   return exporters;
 }
 
@@ -695,6 +757,7 @@ void KLFMimeData::set_possible_qt_handled_data()
   // Handle platform-specific default image type with 'application/x-qt-image' and setImage()
   int index;
   if ( (index=pExportProfile.indexOfMimeType(QLatin1String("application/x-qt-image"))) >= 0) {
+    klfDbg("Will set image data with setImageData() from the data given by the exporter(s)...");
     // set the image data from the exporter
     QList<KLFMimeExporter*> exporters = pExportProfile.exporterFullLookupFor(index);
     QByteArray img_data;
@@ -721,10 +784,13 @@ void KLFMimeData::set_possible_qt_handled_data()
 
   // Also let Qt handle URLs
   if ( (index=pExportProfile.indexOfMimeType(QLatin1String("text/uri-list"))) >= 0) {
-    // set the image data from the exporter
+    klfDbg("Will set URL data with setUrls() from the data given by the exporter(s)...");
+    // set the URL data from the exporter
     QList<KLFMimeExporter*> exporters = pExportProfile.exporterFullLookupFor(index);
+    klfDbg("Got exporter list: len="<<exporters.size());
     QByteArray urls_data;
     foreach (KLFMimeExporter* e, exporters) {
+      klfDbg("Exporting URL: trying exporter "<<e->exporterName());
       urls_data = e->data(QLatin1String("text/uri-list"), pOutput);
       if (!urls_data.isEmpty())
 	break; // got data
@@ -894,6 +960,8 @@ QString KLFMimeExporterImage::windowsFormatName(const QString& mime) const
   return mime;
 }
 
+
+
 QByteArray klf_openoffice_drawing(const KLFBackend::klfOutput& klfoutput);
 
 QByteArray KLFMimeExporterImage::data(const QString& keymime, const KLFBackend::klfOutput& klfoutput)
@@ -904,12 +972,15 @@ QByteArray KLFMimeExporterImage::data(const QString& keymime, const KLFBackend::
   if (keymime == OPENOFFICE_DRAWING_MIMETYPE)
     return klf_openoffice_drawing(klfoutput);
 
-  QString datatype = datatypeformime.value(keymime, QString());
+  KLFMimeString mimestr(keymime);
+  QString keymime_base = mimestr.mime_base;
 
-  if (datatype == QString() && keymime.startsWith("image/"))
-    datatype = keymime.mid(qstrlen("image/")).toUpper();
+  QString datatype = datatypeformime.value(keymime_base, QString());
 
-  KLF_ASSERT_CONDITION( !datatype.isEmpty(), "Can't find corresponding datatype for "<<keymime<<" !",
+  if (datatype == QString() && keymime_base.startsWith("image/"))
+    datatype = keymime_base.mid(qstrlen("image/")).toUpper();
+
+  KLF_ASSERT_CONDITION( !datatype.isEmpty(), "Can't find corresponding datatype for "<<keymime_base<<" !",
 			return QByteArray(); ) ;
 
   QByteArray data;
@@ -999,10 +1070,21 @@ QByteArray KLFMimeExporterUrilist::data(const QString& key, const KLFBackend::kl
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  Q_UNUSED(key) ;
   klfDbg("key="<<key) ;
 
-  QString tempfilename = tempFileForOutput(output);
+  int req_dpi = -1;
+  KLFMimeString mimestr(key);
+  for (QMap<QString,QString>::const_iterator it = mimestr.mime_attrs.begin(); it != mimestr.mime_attrs.end(); ++it) {
+    const QString& attr_key = it.key();
+    const QString& attr_val = it.value();
+    if (attr_key == "dpi") {
+      req_dpi = attr_val.toInt();
+    } else {
+      klfWarning("Unrecognized attribute in mime-type: "<<attr_key<<" in "<<key);
+    }
+  }
+
+  QString tempfilename = tempFileForOutput(output, req_dpi);
   QUrl url = QUrl::fromLocalFile(tempfilename);
 #ifdef Q_WS_MAC
   //  if (key == "text/x-klf-mac-fileurl") {
@@ -1021,6 +1103,81 @@ QString KLFMimeExporterUrilist::windowsFormatName(const QString& mime) const
     return "FileName";
   return mime;
 }
+
+
+
+// ---------------------------------------------------------------------
+
+QMap<qint64,QString> KLFMimeExporterUrilistPDF::tempFilesForImageCacheKey = QMap<qint64,QString>();
+
+QStringList KLFMimeExporterUrilistPDF::keys(const KLFBackend::klfOutput *) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  return QStringList() << "text/x-moz-url" << "text/uri-list" << "text/x-klf-mac-fileurl";
+}
+
+// static
+QString KLFMimeExporterUrilistPDF::tempFileForOutput(const KLFBackend::klfOutput& output)
+{
+  qint64 cachekey = qHash(output.pdfdata);
+
+  if (output.pdfdata.isEmpty()) {
+    klfWarning("Request to export as PDF but we have no data!");
+    return QString();
+  }
+
+  if (tempFilesForImageCacheKey.contains(cachekey)) {
+    return tempFilesForImageCacheKey[cachekey];
+  }
+
+  QString templ = klfconfig.BackendSettings.tempDir +
+    QString::fromLatin1("/klf_%2_XXXXXX.pdf")
+    .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm"));
+  QTemporaryFile *tempfile = new QTemporaryFile(templ, qApp);
+  tempfile->setAutoRemove(true); // will be deleted when klatexformula exists (= qApp destroyed)
+  if (tempfile->open() == false) {
+    klfWarning("Can't open temp pdf file for mimetype text/uri-list: template is "<<templ);
+    return QString();
+  }
+
+  tempfile->write(output.pdfdata);
+
+  QString tempfilename = tempfile->fileName();
+  tempfile->close();
+
+  // cache this temp file for other formats' use or other QMimeData instantiation...
+  tempFilesForImageCacheKey[cachekey] = tempfilename;
+
+  return tempfilename;
+}
+
+QByteArray KLFMimeExporterUrilistPDF::data(const QString& key, const KLFBackend::klfOutput& output)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  Q_UNUSED(key) ;
+  klfDbg("key="<<key) ;
+
+  QString tempfilename = tempFileForOutput(output);
+  QUrl url = QUrl::fromLocalFile(tempfilename);
+#ifdef Q_WS_MAC
+  //  if (key == "text/x-klf-mac-fileurl") {
+  //  url.setHost("localhost");
+  //  }
+#endif
+  QByteArray urilist = (url.toString()+QLatin1String("\n")).toLatin1();
+  return urilist;
+}
+
+QString KLFMimeExporterUrilistPDF::windowsFormatName(const QString& mime) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  if (mime == "text/x-moz-url")
+    return "FileName";
+  return mime;
+}
+
 
 
 

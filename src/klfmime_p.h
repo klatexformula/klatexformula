@@ -82,6 +82,31 @@ private:
   static QMap<qint64,QMap<int,QString> > tempFilesForImageCacheKey;
 };
 
+
+/** KLFMimeExporter implementation for exporting \c "text/x-moz-url" and \c "text/uri-list"
+ * to a temporary PDF file
+ */
+class KLF_EXPORT KLFMimeExporterUrilistPDF : public QObject, public KLFMimeExporter
+{
+  Q_OBJECT
+public:
+  KLFMimeExporterUrilistPDF(QObject *parent) : QObject(parent) { }
+  virtual ~KLFMimeExporterUrilistPDF() { }
+
+  virtual QString exporterName() const { return QString::fromLatin1("KLFMimeExporterUrilistPDF"); }
+
+  virtual QStringList keys(const KLFBackend::klfOutput * output) const;
+  virtual QByteArray data(const QString& key, const KLFBackend::klfOutput& klfoutput);
+
+  virtual QString windowsFormatName(const QString& key) const;
+
+  static QString tempFileForOutput(const KLFBackend::klfOutput& klfoutput);
+
+private:
+  static QMap<qint64,QString> tempFilesForImageCacheKey;
+};
+
+
 /** Export HTML document with image and alt text ("text/html"). */
 class KLF_EXPORT KLFMimeExporterHTML : public QObject, public KLFMimeExporter
 {
