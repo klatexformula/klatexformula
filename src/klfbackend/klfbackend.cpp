@@ -1032,7 +1032,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       // Very bad joke from ghostscript's guys: they deprecate pswrite device, which worked very well, and
       // so now we have to make sure we use ps2write on newer systems but make sure we still use pswrite on
       // old systems which don't support ps2write. THANKS A TON GS GUYS :(
-      QString psdevice = "ps2write";
+      QString psdevice = "pswrite";
       const char *env_gs_device = getenv("KLFBACKEND_GS_PS_DEVICE");
       if (env_gs_device != NULL) {
         psdevice = QString::fromLatin1(env_gs_device);
@@ -1040,7 +1040,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
                  (thisGsInfo.version_maj == 9 && thisGsInfo.version_min > 7)) {
         // until 9.07, we can still use 'pswrite', after that we have to use ps2write.
         // note: in the versions where both devices coexist, use pswrite because the early ps2write's seem buggy.
-        psdevice = QLatin1String("pswrite");
+        psdevice = QLatin1String("ps2write");
       }
 
       p.addArgv(settings.gsexec);
@@ -1434,6 +1434,7 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
 
   char backgroundfillps[1024] = "";
   if (qAlpha(bgcolor) > 0) {
+    klfDbg("we have a bg color, so draw the background. bgcolor="<<klfFmt("%#10x", (uint)bgcolor));
     sprintf(backgroundfillps,
 	    // draw the background color, if any
 	    "newpath "
@@ -1883,6 +1884,8 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
     gsvermaj = rx_version.cap(1).toInt();
     gsvermin = rx_version.cap(2).toInt();
   }
+
+  klfDbg("GS Version: "<<gsver<<" = "<<gsvermaj<<"."<<gsvermin);
 
   GsInfo i;
   i.version = gsver;
