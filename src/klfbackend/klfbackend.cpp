@@ -978,6 +978,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 
     correct_eps_bbox(rawepsdata, bbox_corrected, bbox, in.vectorscale,
 		     bgcolor_when_correcting_bbox,  &bboxepsdata);
+
+    klfDbg("corrected bbox to "<<bbox.x1<<","<<bbox.y1<<","<<bbox.x2<<","<<bbox.y2);
   } else if (!our_skipfmts.contains("eps-bbox")) {
     // userscript generated bbox-corrected EPS for us, but we still
     // need to set width_pt and height_pt appropriately.
@@ -1033,14 +1035,20 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       // so now we have to make sure we use ps2write on newer systems but make sure we still use pswrite on
       // old systems which don't support ps2write. THANKS A TON GS GUYS :(
       QString psdevice = "pswrite";
+      bool needHackBBAgain = false;
       const char *env_gs_device = getenv("KLFBACKEND_GS_PS_DEVICE");
       if (env_gs_device != NULL) {
         psdevice = QString::fromLatin1(env_gs_device);
       } else if (thisGsInfo.version_maj > 9 ||
                  (thisGsInfo.version_maj == 9 && thisGsInfo.version_min > 7)) {
         // until 9.07, we can still use 'pswrite', after that we have to use ps2write.
-        // note: in the versions where both devices coexist, use pswrite because the early ps2write's seem buggy.
-        psdevice = QLatin1String("ps2write");
+        // note: in the versions where both devices coexist, use pswrite because ps2write is just
+        // not as good for our purposes.
+
+        // FIXME: BUG: ps2write does NOT outline fonts!!! WTF???!?!? Damn new ghostscript verisions!!!
+
+        psdevice = QLatin1String("epswrite");
+        needHackBBAgain = true;
       }
 
       p.addArgv(settings.gsexec);
@@ -1059,6 +1067,25 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       }
 
       klfDebugf(("%s: res.epsdata has length=%d", KLF_FUNC_NAME, res.epsdata.size())) ;
+
+      if (needHackBBAgain) {
+        klfbbox thebbox;
+        bool ok = read_eps_bbox(bboxepsdata, &thebbox, NULL);
+        if (ok) {
+          QRegExp rx_bb("%%BoundingBox:[^\r\n]*([\r\n])");
+          QRegExp rx_hiresbb("%%HiResBoundingBox:[^\r\n]*([\r\n])");
+          QString epsdata_str = QString::fromLatin1(res.epsdata);
+          epsdata_str.replace(rx_bb, klfFmt("%%%%BoundingBox: %d %d %d %d\\1",
+                                            (int)thebbox.x1, (int)thebbox.y1,
+                                            (int)(thebbox.x2+0.5), (int)(thebbox.y2+0.5)));
+          epsdata_str.replace(rx_hiresbb,
+                              klfFmt("%%%%HiResBoundingBox: %f %f %f %f\\1",
+                                     thebbox.x1, thebbox.y1, thebbox.x2, thebbox.y2));
+          res.epsdata = epsdata_str.toLatin1();
+          klfDbg("did bbox hack! bbox was "<<thebbox.x1<<","<<thebbox.y1<<","<<thebbox.x2<<","<<thebbox.y2
+                 <<":\n\nbboxepsdata="<<bboxepsdata);
+        }
+      }
 
     } else {
       // no post-processed EPS, copy raw (bbox-corrected) EPS data:
@@ -1350,8 +1377,10 @@ static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::
       // got hi-res bounding-box
       bool ok = parse_bbox_values(QString::fromLatin1(linebuffer+hibboxtaglen), bbox);
       if (!ok) {
-	resError->status = KLFERR_DVIPS_OUTPUTNOBBOX;
-	resError->errorstr = nobboxerrstr;
+        if (resError) {
+          resError->status = KLFERR_DVIPS_OUTPUTNOBBOX;
+          resError->errorstr = nobboxerrstr;
+        }
 	return false;
       }
       klfDbg("got hires-bbox.") ;
@@ -1377,8 +1406,10 @@ static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::
     return true;
   }
 
-  resError->status = KLFERR_DVIPS_OUTPUTNOBBOX;
-  resError->errorstr = nobboxerrstr;
+  if (resError) {
+    resError->status = KLFERR_DVIPS_OUTPUTNOBBOX;
+    resError->errorstr = nobboxerrstr;
+  }
   return false;
 }
 
