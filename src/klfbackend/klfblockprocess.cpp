@@ -21,8 +21,6 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include <ctype.h>
-
 #include <QProcess>
 #include <QApplication>
 #include <QEventLoop>
@@ -30,6 +28,56 @@
 
 #include <klfutil.h>
 #include "klfblockprocess.h"
+
+static bool is_binary_file(QString fn)
+{
+  if (!QFile::exists(fn)) {
+    fn = klfSearchPath(fn);
+  }
+  QFile fpeek(fn);
+  if (!fpeek.open(QIODevice::ReadOnly)) {
+    klfDbg("fn="<<fn<<", Can't peek into file "<<fn<<"!") ;
+  } else {
+    QByteArray line;
+    int n = 0, j;
+    while (n++ < 3 && (line = fpeek.readLine()).size()) {
+      for (j = 0; j < line.size(); ++j) {
+        if ((int)line[j] >= 127 || (int)line[j] <= 0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  return false;
+}
+
+
+static QByteArray get_script_process(QString fn)
+{
+  fn = fn.toLower();
+  if (fn.endsWith(".py")) {
+    QByteArray path = qgetenv("KLF_PYTHON_EXECUTABLE");
+    if (path.size() > 0)
+      return path;
+    return QByteArray();
+  }
+  if (fn.endsWith(".sh")) {
+    QByteArray path = qgetenv("KLF_BASH_EXECUTABLE");
+    if (path.size() > 0)
+      return path;
+    return QByteArray();
+  }
+  if (fn.endsWith(".pl")) {
+    QByteArray path = qgetenv("KLF_PERL_EXECUTABLE");
+    if (path.size() > 0)
+      return path;
+    return QByteArray();
+  }
+  return QByteArray();
+}
+
+
 
 KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)
 {
@@ -65,38 +113,28 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 
 #if defined(Q_OS_UNIX)
 
-  // for epstopdf bug in ubuntu: peek into executable, see if it is script. if it is, run with 'env' on *nix's.
+  // for epstopdf bug in ubuntu: peek into executable, see if it is script. if it is, run with 'sh' on *nix's.
   // this is a weird bug with QProcess that will not execute some script files like epstopdf.
 
-  { QString fn = cmd[0];
-    if (!QFile::exists(fn))
-      fn = klfSearchPath(cmd[0]);
-    QFile fpeek(fn);
-    if (!fpeek.open(QIODevice::ReadOnly)) {
-      klfDbg("cmd[0]="<<cmd[0]<<", Can't peek into file "<<fn<<"!") ;
-    } else {
-      QByteArray line;
-      int n = 0, j;
-      bool isbinary = false;
-      while (n++ < 3 && (line = fpeek.readLine()).size()) {
-	for (j = 0; j < line.size(); ++j) {
-	  if ( ! isascii(line[j]) ) {
-	    isbinary = true;
-	    break;
-	  }
-	}
-	if (isbinary)
-	  break;
-      }
-      if (!isbinary) {
-	// explicitely add a wrapper ('sh' only works for bash shell scripts, so use 'env') (we're on *nix, so OK)
-	cmd.prepend("/usr/bin/env");
-      }
-    }
+  if (!is_binary_file(cmd[0])) {
+    // explicitely add a wrapper ('sh' only works for bash shell scripts, so use 'env') (we're on *nix, so OK)
+    cmd.prepend("/usr/bin/env");
   }
 
 #endif
 
+#if defined(Q_OS_WIN32)
+
+  if (!is_binary_file(cmd[0])) {
+    // check what script type it is, and try to use pre-defined executables in shell variables (HACK!!)
+    /// FIXME: This is ugly! Need better solution!
+    QByteArray exec_proc = get_script_process(cmd[0]);
+    if (exec_proc.size()) {
+      cmd.prepend(exec_proc);
+    }
+  }
+
+#endif
 
   QString program = cmd[0];
 

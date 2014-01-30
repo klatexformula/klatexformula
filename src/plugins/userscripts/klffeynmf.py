@@ -25,6 +25,7 @@
 import re;
 import os;
 import sys;
+import subprocess;
 
 if (sys.argv[1] == "--help"):
     print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
@@ -48,22 +49,31 @@ if (sys.argv[1] == "--scriptinfo"):
     exit(0);
 
 
+mf_exe_name = 'mf';
+if (sys.platform.startswith('win')):
+    mf_exe_name = 'mf.exe';
+
+
 latexfname = sys.argv[1];
 
 latexinput = os.environ["KLF_INPUT_LATEX"];
 
 latexexe = os.environ["KLF_LATEX"];
-mfexe = os.path.dirname(latexexe) + "/mf"; # guess 'mf' exec location as same as latex exec location
+
+mfexe = os.path.join(os.path.dirname(latexexe),mf_exe_name); # guess 'mf' exec location as same as latex exec location
+
 
 if (len(latexexe) == 0):
-    sys.stderr.write("Error: latex executable not found.");
+    sys.stderr.write("Error: latex executable not found.\n");
     exit(1);
 if (len(mfexe) == 0):
-    sys.stderr.write("Error: mf executable not found.");
+    sys.stderr.write("Error: mf executable not found.\n");
     exit(1);
 
 # prepare LaTeX template with \begin{fmfile}
 # overwrite default-prepared template
+
+tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"]);
 
 # use the klfbackend basename so that it cleans up temp files at the end for us
 mfbasefname = os.path.basename(os.environ["KLF_TEMPFNAME"]) + "mf";
@@ -80,22 +90,35 @@ print latexcontents;
 f.write(latexcontents);
 f.close();
 
+
+
+def run_cmd(do_cmd, ignore_fail=False):
+    print "Running " + " ".join(["'%s'"%(x) for x in do_cmd]) + "  [ in %s ]..." %(tempdir) + "\n"
+    res = subprocess.call(do_cmd, cwd=tempdir);
+    if (not ignore_fail and res != 0):
+        print "%s failed, res=%d" %(do_cmd[0], res);
+        sys.exit(res>>8);
+
+
 # now, run latex first time
-print "Running "+latexexe+" "+latexfname+ "  ...";
-res = os.system(latexexe + ' ' + latexfname);
-#if (res != 0):
-#    print "latex failed, res="+str(res);
-#    exit(res>>8);
-print "Running "+mfexe + " '\\mode=localfont; input "+mfbasefname+".mf;'" + "  ...";
-res = os.system(mfexe + " '\\mode=localfont; input "+mfbasefname+".mf;'");
-if (res != 0):
-    print "mf failed, res="+str(res);
-    exit(res>>8);
-print "Re-Running "+latexexe+" "+latexfname+ "  ...";
-os.system(latexexe + ' ' + latexfname);
-if (res != 0):
-    print "re-latex failed, res="+str(res);
-    exit(res>>8);
+# -------------------------
+
+run_cmd([latexexe, os.path.basename(latexfname)], ignore_fail=True)
+
+
+# now, run METAFONT
+# -----------------
+
+run_cmd([mfexe, r'\mode=localfont; input %s.mf;'%(mfbasefname)])
+
+
+# now, run latex second time
+# --------------------------
+
+run_cmd([latexexe, os.path.basename(latexfname)])
+
+
+
 
 # remove temp file -- NO it is needed in the further steps !!
 # Temp files are removed as long as their basename corresponds to the KLFBackend-generated base name
@@ -103,6 +126,6 @@ if (res != 0):
 #os.system("rm "+mfbasefname+".mf");
 
 
-exit(0);
+sys.exit(0);
 
 

@@ -181,15 +181,14 @@ private:
       v /= 62;
       XXXXXX[5] = letters[v % 62];
       QString templateNameStr = QFile::decodeName(templateName);
-      QFileSystemEntry fileSystemEntry(templateNameStr);
-      if (QFileSystemEngine::createDirectory(fileSystemEntry, false)) {
-        QSystemError error;
-        QFileSystemEngine::setPermissions(fileSystemEntry,
-                                          QFile::ReadOwner |
-                                          QFile::WriteOwner |
-                                        QFile::ExeOwner, error);
-        if (error.error() != 0)
-        continue;
+      if (QDir().mkdir(templateNameStr)) {
+        if (!QFile::setPermissions(templateNameStr,
+                                   QFile::ReadOwner |
+                                   QFile::WriteOwner |
+                                   QFile::ExeOwner)) {
+          // failed to set permissions, so continue trying
+          continue;
+        }
         return templateName;
       }
     }
