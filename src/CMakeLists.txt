@@ -344,8 +344,10 @@ if(KLF_MACOSX_BUNDLES)
 	klatexformula_BUNDLEXTRA  Xml   Core)
   KLFBundlePrivateImportQtLib(klatexformula "${KLF_MACOSX_BUNDLE_PATH}"
 	klatexformula_BUNDLEXTRA  Sql   Core)
-  KLFBundlePrivateImportQtLib(klatexformula "${KLF_MACOSX_BUNDLE_PATH}"
-	klatexformula_BUNDLEXTRA  DBus  "Core;Xml")
+  if(KLF_USE_DBUS)
+    KLFBundlePrivateImportQtLib(klatexformula "${KLF_MACOSX_BUNDLE_PATH}"
+          klatexformula_BUNDLEXTRA  DBus  "Core;Xml")
+  endif(KLF_USE_DBUS)
   foreach(plugin ${KLF_BUNDLE_QT_PLUGINS})
     KLFBundlePrivateImport(klatexformula "${KLF_MACOSX_BUNDLE_PATH}" klatexformula_BUNDLEXTRA
 			"${plugin}" "${QT_PLUGINS_DIR}/${plugin}" plugins)

@@ -81,6 +81,8 @@ macro(KLFBundlePrivateImport TGT BUNDLE VAR_SRCS FILE FULLLOCATION LOCAL)
 	COMMAND rm -Rf "${BUNDLE}/Contents/${LOCAL}/${FILE}"
 	COMMAND cp -Rf "${FULLLOCATION}"
 		  "${BUNDLE}/Contents/${LOCAL}/${FILE}"
+        # needed for homebrew Qt with bad permissions
+	COMMAND chmod -R u+w "${BUNDLE}/Contents/${LOCAL}/${FILE}"
 	COMMENT "Importing ${FILE} into Mac OS X bundle"
 	VERBATIM
   )

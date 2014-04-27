@@ -24,6 +24,7 @@
 #ifndef KLFDEBUG_H
 #define KLFDEBUG_H
 
+#include <qobject.h>
 #include <qmap.h>
 
 #include <klfdefs.h>
