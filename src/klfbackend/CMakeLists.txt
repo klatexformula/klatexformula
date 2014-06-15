@@ -43,38 +43,39 @@ set(klfbackend_HEADERS
 
 KLFInstHeaders(klfbackend_INSTHEADERS "${klfbackend_HEADERS}")
 
-qt4_wrap_cpp(klfbackend_MOC_CPPS ${klfbackend_MOCHEADERS})
-set(klfbackend_allsrc ${klfbackend_SRCS} ${klfbackend_MOC_CPPS})
-
-if (KLF_LIBKLFBACKEND_STATIC)
-  add_library(klfbackend STATIC ${klfbackend_allsrc})
+if(KLF_BUILD_BACKEND)
+  qt4_wrap_cpp(klfbackend_MOC_CPPS ${klfbackend_MOCHEADERS})
+  set(klfbackend_allsrc ${klfbackend_SRCS} ${klfbackend_MOC_CPPS})
+  if (KLF_LIBKLFBACKEND_STATIC)
+    add_library(klfbackend STATIC ${klfbackend_allsrc})
+    set_target_properties(klfbackend PROPERTIES
+      VERSION		${KLF_LIB_VERSION}
+      )
+  else(KLF_LIBKLFBACKEND_STATIC)
+    add_library(klfbackend SHARED ${klfbackend_allsrc})
+    set_target_properties(klfbackend PROPERTIES
+      VERSION		${KLF_LIB_VERSION}
+      SOVERSION		${KLF_LIB_VERSION}
+      )
+    if(KLF_MACOSX_BUNDLES)
+      set(klfbackend_FRAMEWORKS ${KLF_BUNDLE_QT_FRAMEWORKS})
+      KLFMMakeFramework(klfbackend "${klfbackend_FRAMEWORKS}" "${klfbackend_INSTHEADERS}")
+    endif(KLF_MACOSX_BUNDLES)
+  endif(KLF_LIBKLFBACKEND_STATIC)
   set_target_properties(klfbackend PROPERTIES
-    VERSION		${KLF_LIB_VERSION}
+    #	      DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
+    PUBLIC_HEADER "${klfbackend_INSTHEADERS}"
     )
-else(KLF_LIBKLFBACKEND_STATIC)
-  add_library(klfbackend SHARED ${klfbackend_allsrc})
-  set_target_properties(klfbackend PROPERTIES
-    VERSION		${KLF_LIB_VERSION}
-    SOVERSION		${KLF_LIB_VERSION}
-    )
-  if(KLF_MACOSX_BUNDLES)
-    set(klfbackend_FRAMEWORKS ${KLF_BUNDLE_QT_FRAMEWORKS})
-    KLFMMakeFramework(klfbackend "${klfbackend_FRAMEWORKS}" "${klfbackend_INSTHEADERS}")
-  endif(KLF_MACOSX_BUNDLES)
-endif(KLF_LIBKLFBACKEND_STATIC)
-set_target_properties(klfbackend PROPERTIES
-  #	      DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
-  PUBLIC_HEADER "${klfbackend_INSTHEADERS}"
-  )
-# add dependency on klftools
-target_link_libraries(klfbackend ${QT_LIBRARIES} klftools)
-add_dependencies(klfbackend klftools)
+  # add dependency on klftools
+  target_link_libraries(klfbackend ${QT_LIBRARIES} klftools)
+  add_dependencies(klfbackend klftools)
+endif(KLF_BUILD_BACKEND)
 
 
 
 # ---- KLFBACKEND_AUTO library:
 
-if (KLF_LIBKLFBACKEND_AUTO)
+if (KLF_BUILD_BACKEND_AUTO)
 
   # -- import sources from klftools to build *klfbackend_auto* library --
   set(klfbackend_auto_ADDSRCS
@@ -100,9 +101,9 @@ if (KLF_LIBKLFBACKEND_AUTO)
   # --
   
   KLFInstHeaders(klfbackend_auto_INSTHEADERS "${klfbackend_HEADERS};${klfbackend_auto_ADDHEADERS}")
-  
-  qt4_wrap_cpp(klfbackend_auto_ADDMOC_CPPS ${klfbackend_auto_ADDMOCHEADERS})
-  set(klfbackend_auto_allsrc ${klfbackend_allsrc} ${klfbackend_auto_ADDSRCS} ${klfbackend_auto_ADDMOC_CPPS})
+
+  qt4_wrap_cpp(klfbackend_auto_MOC_CPPS ${klfbackend_MOCHEADERS} ${klfbackend_auto_ADDMOCHEADERS})
+  set(klfbackend_auto_allsrc ${klfbackend_SRCS} ${klfbackend_auto_ADDSRCS} ${klfbackend_auto_MOC_CPPS})
   
   if (KLF_LIBKLFBACKEND_AUTO_STATIC)
     add_library(klfbackend_auto STATIC ${klfbackend_auto_allsrc})
@@ -120,7 +121,7 @@ if (KLF_LIBKLFBACKEND_AUTO)
       KLFMMakeFramework(klfbackend_auto "${klfbackend_auto_FRAMEWORKS}" "${klfbackend_auto_INSTHEADERS}")
     endif(KLF_MACOSX_BUNDLES)
   endif(KLF_LIBKLFBACKEND_AUTO_STATIC)
-endif(KLF_LIBKLFBACKEND_AUTO)
+endif(KLF_BUILD_BACKEND_AUTO)
 
 set_target_properties(klfbackend_auto PROPERTIES
   #	      DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
@@ -134,21 +135,24 @@ target_link_libraries(klfbackend_auto ${QT_LIBRARIES})
 # Install Targets
 # ---------------
 
-KLFInstallLibrary(klfbackend KLF_INSTALL_KLFBACKEND_ "${KLF_INSTALL_LIB_DIR}" "include/klfbackend")
-if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
-  KLFMInstFrameworkUpdateId(
-    "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-    )
-  # Installed library's dependency on klftools should be updated
-  KLFMInstFrameworkUpdateLibChange(
-    "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-    "${CMAKE_CURRENT_BINARY_DIR}/klftools/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-    "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-  )
-endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
+if(KLF_BUILD_BACKEND)
+  KLFInstallLibrary(klfbackend KLF_INSTALL_KLFBACKEND_ "${KLF_INSTALL_LIB_DIR}" "include/klfbackend")
+  if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
+    KLFMInstFrameworkUpdateId(
+      "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+      )
+    # Installed library's dependency on klftools should be updated
+    KLFMInstFrameworkUpdateLibChange(
+      "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
+      "${CMAKE_CURRENT_BINARY_DIR}/klftools/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
+      "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
+      )
+  endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
+endif(KLF_BUILD_BACKEND)
+
 
 # --- and for klfbackend_auto :
-if(KLF_LIBKLFBACKEND_AUTO)
+if(KLF_BUILD_BACKEND_AUTO)
   KLFInstallLibrary(klfbackend_auto KLF_INSTALL_KLFBACKEND_ "${KLF_INSTALL_LIB_DIR}" "")
   if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
     KLFMInstFrameworkUpdateId(
@@ -156,4 +160,4 @@ if(KLF_LIBKLFBACKEND_AUTO)
       )
   endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
 
-endif(KLF_LIBKLFBACKEND_AUTO)
+endif(KLF_BUILD_BACKEND_AUTO)

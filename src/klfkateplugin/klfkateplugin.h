@@ -135,7 +135,7 @@ class KLFKtePluginView  :  public QObject, public KXMLGUIClient
   Q_OBJECT
 public:
   explicit KLFKtePluginView(KTextEditor::View *view = 0);
-  ~KLFKtePluginView();
+  virtual ~KLFKtePluginView();
 
 private:
   KTextEditor::View *pView;

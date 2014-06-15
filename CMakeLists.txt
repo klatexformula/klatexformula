@@ -270,16 +270,20 @@ else(KLF_LIBKLFBACKEND_STATIC)
 endif(KLF_LIBKLFBACKEND_STATIC)
 
 # Build or not a shared or static klfbackend_auto library
-option(KLF_LIBKLFBACKEND_AUTO "Compile autonomous libklfbackend_auto backend library without libklftools dependency."
+option(KLF_BUILD_BACKEND_AUTO "Compile autonomous libklfbackend_auto backend library without libklftools dependency."
        ON)
 option(KLF_LIBKLFBACKEND_AUTO_STATIC "Compile static libklfbackend_auto backend library instead of shared."
        ${default_library_static})
 # status message
-if(KLF_LIBKLFBACKEND_AUTO_STATIC)
-  message(STATUS "Building a static klfbackend_auto autonomous library (KLF_LIBKLFBACKEND_AUTO_STATIC)")
-else(KLF_LIBKLFBACKEND_AUTO_STATIC)
-  message(STATUS "Building a shared klfbackend_auto autonomous library (KLF_LIBKLFBACKEND_AUTO_STATIC)")
-endif(KLF_LIBKLFBACKEND_AUTO_STATIC)
+if(KLF_BUILD_BACKEND_AUTO)
+  if(KLF_LIBKLFBACKEND_AUTO_STATIC)
+    message(STATUS "Building a static klfbackend_auto autonomous library (KLF_LIBKLFBACKEND_AUTO_STATIC)")
+  else(KLF_LIBKLFBACKEND_AUTO_STATIC)
+    message(STATUS "Building a shared klfbackend_auto autonomous library (KLF_LIBKLFBACKEND_AUTO_STATIC)")
+  endif(KLF_LIBKLFBACKEND_AUTO_STATIC)
+else(KLF_BUILD_BACKEND_AUTO)
+  message(STATUS "Not building libklfbackend_auto autonomous library (KLF_BUILD_BACKEND_AUTO)")
+endif(KLF_BUILD_BACKEND_AUTO)
 
 # Build a shared or static source klfapp library (for plugins to link to)
 set(KLF_LIBKLFAPP_STATIC ${default_library_static} CACHE BOOL "Build a static klfapp library")

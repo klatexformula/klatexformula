@@ -23,9 +23,7 @@ if(KLF_BUILD_TOOLS)
   add_subdirectory(klftools)
 endif(KLF_BUILD_TOOLS)
 
-if(KLF_BUILD_BACKEND)
-  add_subdirectory(klfbackend)
-endif(KLF_BUILD_BACKEND)
+add_subdirectory(klfbackend)
 
 # Re-Include what we need from Qt for GUI KLF core+gui+xml+sql(+dbus)
 set(QT_USE_QTXML TRUE)
