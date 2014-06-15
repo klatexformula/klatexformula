@@ -17,6 +17,8 @@
   </qresource>
   <qresource prefix="/userscriptdata/customtemplate/">
     <file alias="customtemplate_input.ui">@CMAKE_CURRENT_SOURCE_DIR@/userscriptdata/customtemplate/customtemplate_input.ui</file>
+  </qresource>
+  <qresource prefix="/userscriptdata/svg-dvisvgm/">
     <file alias="svg-dvisvgm_config.ui">@CMAKE_CURRENT_SOURCE_DIR@/userscriptdata/svg-dvisvgm/svg-dvisvgm_config.ui</file>
   </qresource>
 </RCC>

@@ -481,7 +481,7 @@ bool KLFLibBrowser::openResource(KLFLibResourceEngine *resource, uint resourceRo
   KLFLibBrowserViewContainer * openview = findOpenResource(resource);
   if (openview != NULL) {
     qDebug("KLFLibBrowser::openResource(%p,%u): This resource is already open.",
-	   resource, resourceRoleFlags);
+	   (void*)resource, resourceRoleFlags);
     if ((resourceRoleFlags & OpenNoRaise) == 0)
       u->tabResources->setCurrentWidget(openview);
     updateResourceRoleFlags(openview, resourceRoleFlags);
@@ -848,7 +848,7 @@ bool KLFLibBrowser::slotResourceClose(KLFLibBrowserViewContainer *view, bool for
   int tabindex = u->tabResources->indexOf(view);
   if (tabindex < 0) {
     qWarning("KLFLibBrowser::closeResource(url): can't find view in tab widget?!?\n"
-	     "\turl=%s, viewwidget=%p", qPrintable(view->url().toString()), view);
+	     "\turl=%s, viewwidget=%p", qPrintable(view->url().toString()), (void*)view);
     return false;
   }
 

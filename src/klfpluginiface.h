@@ -47,7 +47,7 @@ public:
     PluginTitle,
     PluginAuthor,
     PluginDescription,
-    PluginDefaultEnable,
+    PluginDefaultEnable
   };
 
   virtual QVariant pluginInfo(PluginInfo which) const = 0;

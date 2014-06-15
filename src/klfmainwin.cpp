@@ -2969,7 +2969,7 @@ void KLFMainWin::slotEvaluate()
 
     sc = QPixmap::fromImage(scimg);
 
-    QSize goodsize = d->output.result.size();
+    //QSize goodsize = d->output.result.size();
     QImage tooltipimg = d->output.result;
     if ( klfconfig.UI.previewTooltipMaxSize != QSize(0, 0) && // QSize(0,0) meaning no resize
 	 ( tooltipimg.width() > klfconfig.UI.previewTooltipMaxSize().width() ||

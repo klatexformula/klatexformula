@@ -988,13 +988,13 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 
     // read from fnRawEps, fnBBoxEps or fnProcessedEps ?
     QString fn;
-    QByteArray *dat;
+    //QByteArray *dat;
     if (us_outputs.contains("eps-processed")) {
       fn = fnProcessedEps;
-      dat = & res.epsdata;
+      //dat = & res.epsdata;
     } else {
       fn = fnBBoxEps;
-      dat = & bboxepsdata;
+      //dat = & bboxepsdata;
     }
 
     if (settings.calcEpsBoundingBox) {
@@ -1490,7 +1490,7 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
   }
 
   char buffer2[1024];
-  int buffer2_len;
+  //int buffer2_len;
   snprintf(buffer2, sizeof(buffer2)-1,
 	   "%s"
 	   "%%%%Page 1 1%s"
@@ -1507,7 +1507,7 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
 	   backgroundfillps,
 	   klfFmtDoubleCC(vectorscale, 'f'), klfFmtDoubleCC(vectorscale, 'f'), nl,
 	   klfFmtDoubleCC(offx, 'f'), klfFmtDoubleCC(offy, 'f'), nl);
-  buffer2_len = strlen(buffer2);
+  //buffer2_len = strlen(buffer2);
 
   //    char buffer2[128];
   //    snprintf(buffer2, 127, "%sgrestore%s", nl, nl);

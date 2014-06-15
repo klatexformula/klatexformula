@@ -512,7 +512,7 @@ public:
      * Note that views may assume that implementing sub-resource properties means also providing
      * sensible values and/or loaded/stored values for the built-in sub-resource properties
      * described in the \ref SubResourceProperty enum. */
-    FeatureSubResourceProps	= 0x0010,
+    FeatureSubResourceProps	= 0x0010
   };
 
   /**
