@@ -18,6 +18,7 @@ set(klftools_SRCS
 	klfcolorchooser.cpp
 	klfpobj.cpp
 	klfutil.cpp
+        klfsysinfo.cpp
 	klfdatautil.cpp
 	klfconfigbase.cpp
 	klfguiutil.cpp

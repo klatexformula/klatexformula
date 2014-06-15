@@ -397,6 +397,34 @@ void main_save(KLFBackend::klfOutput klfoutput, const QString& f_output, QString
   KLFBackend::saveOutputToFile(klfoutput, f_output, format);
 }
 
+#ifdef KLF_DEBUG
+void dumpDir(const QDir& d, int indent = 0)
+{
+  char sindent[] = "                                                               ";
+  uint nindent = indent*2; // 2 spaces per indentation
+  if (nindent < strlen(sindent))
+    sindent[nindent] = '\0';
+
+  QStringList dchildren = d.entryList(QDir::Dirs);
+
+  int k;
+  for (k = 0; k < dchildren.size(); ++k) {
+    // skip system ":/trolltech"
+    if (indent == 0 && dchildren[k] == "trolltech")
+      continue;
+    qDebug("%s%s/", sindent, qPrintable(dchildren[k]));
+    dumpDir(QDir(d.absoluteFilePath(dchildren[k])), indent+1);
+  }
+
+  QStringList fchildren = d.entryList(QDir::Files);
+  for (k = 0; k < fchildren.size(); ++k) {
+    qDebug("%s%s", sindent, qPrintable(fchildren[k]));
+  }
+}
+#else
+inline void dumpDir(const QDir&, int = 0) { };
+#endif
+
 void main_load_extra_resources()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -469,35 +497,10 @@ void main_load_extra_resources()
   // set the global "can-import" flag
   klf_addons_canimport = klfsettings_can_import;
 
-  void dumpDir(const QDir&, int = 0);
   klfDbg( "dump of :/ :" ) ;
   dumpDir(QDir(":/"));
 }
 
-
-void dumpDir(const QDir& d, int indent = 0)
-{
-  char sindent[] = "                                                               ";
-  uint nindent = indent*2; // 2 spaces per indentation
-  if (nindent < strlen(sindent))
-    sindent[nindent] = '\0';
-
-  QStringList dchildren = d.entryList(QDir::Dirs);
-
-  int k;
-  for (k = 0; k < dchildren.size(); ++k) {
-    // skip system ":/trolltech"
-    if (indent == 0 && dchildren[k] == "trolltech")
-      continue;
-    qDebug("%s%s/", sindent, qPrintable(dchildren[k]));
-    dumpDir(QDir(d.absoluteFilePath(dchildren[k])), indent+1);
-  }
-
-  QStringList fchildren = d.entryList(QDir::Files);
-  for (k = 0; k < fchildren.size(); ++k) {
-    qDebug("%s%s", sindent, qPrintable(fchildren[k]));
-  }
-}
 
 /** \internal */
 class VersionCompareWithPrefixGreaterThan {

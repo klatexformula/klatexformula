@@ -85,6 +85,8 @@ macro(KLFMBundlePrivateImport TGT FILE FULLLOCATION LOCAL)
 	COMMAND rm -Rf "${klfbundlelocation_${TGT}}/Contents/${LOCAL}/${FILE}"
 	COMMAND cp -Rf "${FULLLOCATION}"
 		  "${klfbundlelocation_${TGT}}/Contents/${LOCAL}/${FILE}"
+        # needed for homebrew Qt with bad permissions
+	COMMAND chmod -R u+w "${klfbundlelocation_${TGT}}/Contents/${LOCAL}/${FILE}"
 	COMMENT "Importing ${FILE} into Mac OS X bundle"
 	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 	VERBATIM

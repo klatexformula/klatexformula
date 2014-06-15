@@ -32,7 +32,7 @@
 #include <QVariant>
 #include <QProgressDialog>
 #include <QLabel>
-#include <QDomElement>
+//#include <QDomElement>
 #include <QTextFormat>
 
 #include <klfdefs.h>

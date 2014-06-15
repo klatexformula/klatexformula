@@ -78,7 +78,7 @@ public slots:
 private:
 
   KLFDebugObjectWatcher();
-  virtual ~KLFDebugObjectWatcher();
+  ~KLFDebugObjectWatcher();
   static KLFDebugObjectWatcher *instance;
 
   KLFDebugObjectWatcherPrivate *p;

@@ -2,6 +2,13 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="fr">
 <context>
+    <name>Form</name>
+    <message>
+        <source>Form</source>
+        <translation type="obsolete">Form</translation>
+    </message>
+</context>
+<context>
     <name>KLFAboutDialog</name>
     <message>
         <location filename="../klfaboutdialog.ui" line="17"/>
@@ -101,22 +108,91 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
-    <name>KLFBasicDataOpener</name>
+    <name>KLFAdvancedConfigEditor</name>
     <message>
-        <location filename="../klfmainwin_p.h" line="541"/>
-        <location filename="../klfmainwin_p.h" line="547"/>
+        <location filename="../klftools/klfadvancedconfigeditor.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor.cpp" line="63"/>
+        <source>Config Entry</source>
+        <translation>Paramètre</translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor.cpp" line="64"/>
+        <source>Current Value</source>
+        <translation>Valeur actuelle</translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor.cpp" line="64"/>
+        <source>Encoded Value Entry</source>
+        <translation>Valeur actuelle (encodée)</translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor.cpp" line="81"/>
+        <source>Reset Default Value</source>
+        <translation>Rétablir valeur par défaut</translation>
+    </message>
+</context>
+<context>
+    <name>KLFAdvancedConfigEditorPrivate</name>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor_p.h" line="169"/>
+        <source>You are changing an advanced config setting. Please confirm your action.</source>
+        <translation>Vous allez changer un paramètre avancé. Veuillez confirmer le changement s&apos;il vous plaît.</translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor_p.h" line="171"/>
+        <source>Change config entry %1 from %2 to %3?</source>
+        <translation>Changement du paramètre %1 de %2 à %3?</translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor_p.h" line="185"/>
+        <location filename="../klftools/klfadvancedconfigeditor_p.h" line="304"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klfmainwin_p.h" line="542"/>
+        <location filename="../klftools/klfadvancedconfigeditor_p.h" line="186"/>
+        <location filename="../klftools/klfadvancedconfigeditor_p.h" line="305"/>
+        <source>Failed to set config entry `%1&apos;.</source>
+        <translation>Echec du changement de la valeur du paramètre `%1&apos;.</translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor_p.h" line="286"/>
+        <source>You are resetting an advanced config setting to its factory default value. Please confirm your action.</source>
+        <translation>Vous allez rétablir la valeur d&apos;un paramètre avancé à sa valeur par défaut. Veuillez confirmer le changement s&apos;il vous plaît.</translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfadvancedconfigeditor_p.h" line="289"/>
+        <source>Change config entry %1 from %2 to its factory default value %3?</source>
+        <translation>Changer la valeur du paramètre %1 de %2 à sa valeur par défaut %3?</translation>
+    </message>
+</context>
+<context>
+    <name>KLFBasicDataOpener</name>
+    <message>
+        <location filename="../klfmainwin_p.h" line="633"/>
+        <location filename="../klfmainwin_p.h" line="716"/>
+        <location filename="../klfmainwin_p.h" line="722"/>
+        <source>Error</source>
+        <translation>Erreur</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin_p.h" line="633"/>
+        <source>Can&apos;t read latex equation information from PDF file.</source>
+        <translation>Impossible de lire l&apos;information sur l&apos;équation depuis le fichier PDF.</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin_p.h" line="717"/>
         <source>The data you have request to open contains multiple formulas.
 You may only open one formula into the LaTeX code editor.</source>
         <translation>Les données que vous aimerez ouvrir contiennent plusieurs formules.
 Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin_p.h" line="548"/>
+        <location filename="../klfmainwin_p.h" line="723"/>
         <source>The data you have request to open contains no formulas.</source>
         <translation>Les données que vous aimerez ouvrir ne contiennent aucune formule.</translation>
     </message>
@@ -280,12 +356,12 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFColorChooser</name>
     <message>
-        <location filename="../klftools/klfcolorchooser.cpp" line="707"/>
+        <location filename="../klftools/klfcolorchooser.cpp" line="928"/>
         <source>[ Default ]</source>
         <translation>[ Par défaut ]</translation>
     </message>
     <message>
-        <location filename="../klftools/klfcolorchooser.cpp" line="849"/>
+        <location filename="../klftools/klfcolorchooser.cpp" line="1101"/>
         <source>Custom ...</source>
         <translation>Personalisée ...</translation>
     </message>
@@ -309,12 +385,12 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFDisplayLabel</name>
     <message>
-        <location filename="../klftools/klfdisplaylabel.cpp" line="118"/>
+        <location filename="../klftools/klfdisplaylabel.cpp" line="174"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klftools/klfdisplaylabel.cpp" line="118"/>
+        <location filename="../klftools/klfdisplaylabel.cpp" line="174"/>
         <source>Failed write to ToolTip Temp Image file %1!</source>
         <translation>Impossible d&apos;écrire dans le fichier temporaire pour le tooltip %1 !</translation>
     </message>
@@ -322,9 +398,8 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFLatexEdit</name>
     <message>
-        <location filename="../klflatexedit.cpp" line="131"/>
         <source>Insert Delimiter</source>
-        <translation>Insérer un délimiteur</translation>
+        <translation type="obsolete">Insérer un délimiteur</translation>
     </message>
 </context>
 <context>
@@ -355,30 +430,44 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
         <translation>KLatexFormula - Symboles LaTeX</translation>
     </message>
     <message>
-        <location filename="../klflatexsymbols.ui" line="71"/>
+        <location filename="../klflatexsymbols.ui" line="100"/>
         <source>Choose symbol category</source>
         <translation>Chosissez une catégorie de symboles</translation>
     </message>
     <message>
-        <location filename="../klflatexsymbols.ui" line="84"/>
-        <location filename="../klflatexsymbols.ui" line="113"/>
+        <location filename="../klflatexsymbols.ui" line="116"/>
         <source>Search for Symbols ...</source>
         <translation>Chercher un symbole ...</translation>
     </message>
     <message>
-        <location filename="../klflatexsymbols.ui" line="126"/>
+        <location filename="../klflatexsymbols.ui" line="132"/>
+        <source>&lt;p style=&quot;white-space: pre&quot;&gt;Search for Symbols ...  [&lt;strong&gt;Ctrl-F&lt;/strong&gt;, &lt;strong&gt;Ctrl-S&lt;/strong&gt; or &lt;strong&gt;/&lt;/strong&gt;]</source>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Recherche d&apos;un symbole ...  [&lt;strong&gt;Ctrl-F&lt;/strong&gt;, &lt;strong&gt;Ctrl-S&lt;/strong&gt; ou &lt;strong&gt;/&lt;/strong&gt;]</translation>
+    </message>
+    <message>
+        <location filename="../klflatexsymbols.ui" line="158"/>
+        <source>&lt;p style=&quot;white-space: pre&quot;&gt;Insert the current search result match  [&lt;strong&gt;Ctrl-Space&lt;/strong&gt;]&lt;/p&gt;</source>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Insérer le résultat actuel de la recherche  [&lt;strong&gt;Ctrl-Space&lt;/strong&gt;]&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../klflatexsymbols.ui" line="174"/>
+        <source>Ctrl+Space</source>
+        <translation>Ctrl+Espace</translation>
+    </message>
+    <message>
+        <location filename="../klflatexsymbols.ui" line="31"/>
         <source>Close this dialog</source>
         <translation>Fermer cette fenêtre</translation>
     </message>
     <message>
-        <location filename="../klflatexsymbols.ui" line="129"/>
+        <location filename="../klflatexsymbols.ui" line="34"/>
         <source>&amp;Close</source>
         <translation>&amp;Fermer</translation>
     </message>
     <message>
-        <location filename="../klflatexsymbols.ui" line="136"/>
+        <location filename="../klflatexsymbols.ui" line="41"/>
         <source>Alt+C</source>
-        <translation>Alt+F</translation>
+        <translation>Alt+C</translation>
     </message>
 </context>
 <context>
@@ -406,51 +495,56 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
     <message>
         <location filename="obsolete/klflatexsymbolsui.ui" line="87"/>
         <source>Alt+C</source>
-        <translation>Alt+F</translation>
+        <translation>Alt+C</translation>
     </message>
 </context>
 <context>
     <name>KLFLatexSymbolsView</name>
     <message>
-        <location filename="../klflatexsymbols.cpp" line="523"/>
+        <location filename="../klflatexsymbols.cpp" line="680"/>
         <source>LaTeX code:</source>
         <translation>Code LaTeX :</translation>
     </message>
     <message>
-        <location filename="../klflatexsymbols.cpp" line="524"/>
+        <location filename="../klflatexsymbols.cpp" line="681"/>
         <source> [in text mode]</source>
         <translation> [en mode texte]</translation>
     </message>
     <message>
-        <location filename="../klflatexsymbols.cpp" line="527"/>
+        <location filename="../klflatexsymbols.cpp" line="684"/>
         <source>Requires:</source>
         <translation>Requiert :</translation>
+    </message>
+    <message>
+        <location filename="../klflatexsymbols.cpp" line="687"/>
+        <source>Key Words:</source>
+        <translation>Mots-clefs:</translation>
     </message>
 </context>
 <context>
     <name>KLFLibBasicWidgetFactory</name>
     <message>
-        <location filename="../klflibview.cpp" line="4746"/>
+        <location filename="../klflibview.cpp" line="4749"/>
         <source>Local File</source>
         <translation>Fichier sur le disque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4804"/>
+        <location filename="../klflibview.cpp" line="4807"/>
         <source>Overwrite?</source>
         <translation>Ecraser ?</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4805"/>
+        <location filename="../klflibview.cpp" line="4808"/>
         <source>The specified file already exists. Overwrite it?</source>
         <translation>Le fichier existe déjà. L&apos;écraser ?</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4817"/>
+        <location filename="../klflibview.cpp" line="4820"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4817"/>
+        <location filename="../klflibview.cpp" line="4820"/>
         <source>Failed to overwrite the file %1.</source>
         <translation>Erreur : Impossible d&apos;écraser le fichier `%1&apos;.</translation>
     </message>
@@ -458,84 +552,84 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFLibBrowser</name>
     <message>
-        <location filename="../klflibbrowser.cpp" line="169"/>
+        <location filename="../klflibbrowser.cpp" line="170"/>
         <source>Resource Actions</source>
         <comment>[[menu title]]</comment>
         <translation>Actions pour cette ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="171"/>
+        <location filename="../klflibbrowser.cpp" line="172"/>
         <source>Resource</source>
         <translation>Ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="857"/>
+        <location filename="../klflibbrowser.cpp" line="858"/>
         <source>Close Resource</source>
         <translation>Fermer la ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="857"/>
+        <location filename="../klflibbrowser.cpp" line="858"/>
         <source>Do you want to close this resource?</source>
         <translation>Voulez-vous fermer cette ressource ?</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="193"/>
-        <location filename="../klflibbrowser.cpp" line="872"/>
+        <location filename="../klflibbrowser.ui" line="205"/>
+        <location filename="../klflibbrowser.cpp" line="873"/>
         <source>Library Browser</source>
         <translation>Navigateur de Bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="933"/>
-        <location filename="../klflibbrowser.cpp" line="983"/>
-        <location filename="../klflibbrowser.cpp" line="1350"/>
-        <location filename="../klflibbrowser.cpp" line="1382"/>
-        <location filename="../klflibbrowser.cpp" line="1441"/>
-        <location filename="../klflibbrowser.cpp" line="1495"/>
-        <location filename="../klflibbrowser.cpp" line="1502"/>
-        <location filename="../klflibbrowser.cpp" line="1541"/>
-        <location filename="../klflibbrowser.cpp" line="1545"/>
-        <location filename="../klflibbrowser.cpp" line="1557"/>
-        <location filename="../klflibbrowser.cpp" line="1642"/>
-        <location filename="../klflibbrowser.cpp" line="1686"/>
-        <location filename="../klflibbrowser.cpp" line="1705"/>
-        <location filename="../klflibbrowser.cpp" line="1711"/>
+        <location filename="../klflibbrowser.cpp" line="934"/>
+        <location filename="../klflibbrowser.cpp" line="984"/>
+        <location filename="../klflibbrowser.cpp" line="1351"/>
+        <location filename="../klflibbrowser.cpp" line="1383"/>
+        <location filename="../klflibbrowser.cpp" line="1442"/>
+        <location filename="../klflibbrowser.cpp" line="1505"/>
+        <location filename="../klflibbrowser.cpp" line="1512"/>
+        <location filename="../klflibbrowser.cpp" line="1551"/>
+        <location filename="../klflibbrowser.cpp" line="1555"/>
+        <location filename="../klflibbrowser.cpp" line="1567"/>
+        <location filename="../klflibbrowser.cpp" line="1652"/>
+        <location filename="../klflibbrowser.cpp" line="1696"/>
+        <location filename="../klflibbrowser.cpp" line="1715"/>
+        <location filename="../klflibbrowser.cpp" line="1721"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="934"/>
+        <location filename="../klflibbrowser.cpp" line="935"/>
         <source>You may not delete the last remaining sub-resource of this resource.</source>
         <translation>Vous ne pouvez pas effacer la dernière sous-ressource de cette ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="951"/>
-        <location filename="../klflibbrowser.cpp" line="964"/>
+        <location filename="../klflibbrowser.cpp" line="952"/>
+        <location filename="../klflibbrowser.cpp" line="965"/>
         <source>Delete Sub-Resource</source>
         <comment>[[msgbox title]]</comment>
         <translation>Effacer la sous-ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="952"/>
+        <location filename="../klflibbrowser.cpp" line="953"/>
         <source>Do you really want to delete the sub-resource &lt;b&gt;%1&lt;/b&gt;, with all its contents, from resource &lt;b&gt;%2&lt;/b&gt;?</source>
         <translation>Êtes-vous sûr de vouloir supprimer définitivement la sous-ressource &lt;b&gt;%1&lt;/b&gt;, avec tout son contenu, de la ressource &lt;b&gt;%2&lt;/b&gt; ?</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="965"/>
+        <location filename="../klflibbrowser.cpp" line="966"/>
         <source>Deleting sub-resource failed.</source>
         <translation>Impossible d&apos;effacer la sous-ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="983"/>
+        <location filename="../klflibbrowser.cpp" line="984"/>
         <source>Failed to open library resource `%1&apos;!</source>
         <translation>Impossible d&apos;ouvrir la ressource bibliothèque &quot;%1&quot; !</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1152"/>
+        <location filename="../klflibbrowser.cpp" line="1153"/>
         <source>Delete?</source>
         <translation>Supprimer ?</translation>
     </message>
     <message numerus="yes">
-        <location filename="../klflibbrowser.cpp" line="1153"/>
+        <location filename="../klflibbrowser.cpp" line="1154"/>
         <source>Delete %n selected item(s) from resource &quot;%1&quot;?</source>
         <translation>
             <numerusform>Supprimer %n élément de la ressource &quot;%1&quot; ?</numerusform>
@@ -543,144 +637,144 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
         </translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1244"/>
+        <location filename="../klflibbrowser.cpp" line="1245"/>
         <source>Restore latex formula and style</source>
         <translation>Restaurer la formule latex avec le style</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1246"/>
+        <location filename="../klflibbrowser.cpp" line="1247"/>
         <source>Restore latex formula only</source>
         <translation>Restaurer la formule latex (sans style)</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1253"/>
+        <location filename="../klflibbrowser.cpp" line="1254"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1255"/>
+        <location filename="../klflibbrowser.cpp" line="1256"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1257"/>
+        <location filename="../klflibbrowser.cpp" line="1258"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1260"/>
+        <location filename="../klflibbrowser.cpp" line="1261"/>
         <source>Delete from library</source>
         <translation>Supprimer de la bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1285"/>
+        <location filename="../klflibbrowser.cpp" line="1286"/>
         <source>Copy to</source>
         <translation>Copier vers</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1288"/>
+        <location filename="../klflibbrowser.cpp" line="1289"/>
         <source>Move to</source>
         <translation>Déplacer vers</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1351"/>
+        <location filename="../klflibbrowser.cpp" line="1352"/>
         <source>Failed to write meta-information!</source>
         <translation>Impossible d&apos;écrire les méta-informations !</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1382"/>
+        <location filename="../klflibbrowser.cpp" line="1383"/>
         <source>Error copying the given items to the archive!</source>
         <translation>Impossible de copier les éléments catégorisés vers l&apos;archive !</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1642"/>
-        <location filename="../klflibbrowser.cpp" line="1711"/>
+        <location filename="../klflibbrowser.cpp" line="1652"/>
+        <location filename="../klflibbrowser.cpp" line="1721"/>
         <source>Error exporting items!</source>
         <translation>Erreur lors de l&apos;exportation des élements !</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1676"/>
+        <location filename="../klflibbrowser.cpp" line="1686"/>
         <source>Export selection to file...</source>
         <translation>Exporter la selection vers fichier...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1686"/>
+        <location filename="../klflibbrowser.cpp" line="1696"/>
         <source>Failed to overwrite file %1</source>
         <translation>Impossible d&apos;écraser le fichier %1</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1701"/>
+        <location filename="../klflibbrowser.cpp" line="1711"/>
         <source>Export</source>
         <comment>[[export selection default sub-resource name]]</comment>
         <translation>Exportation</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1705"/>
+        <location filename="../klflibbrowser.cpp" line="1715"/>
         <source>Failed to create export file %1!</source>
         <translation>Impossible de créer le fichier d&apos;exportation %1 !</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1439"/>
+        <location filename="../klflibbrowser.cpp" line="1440"/>
         <source>Failed to move the selected items.</source>
         <translation>Impossible de déplacer les éléments sélectionnés.</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1440"/>
+        <location filename="../klflibbrowser.cpp" line="1441"/>
         <source>Failed to copy the selected items.</source>
         <translation>Impossible de copier les éléments sélectionnés.</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1495"/>
+        <location filename="../klflibbrowser.cpp" line="1505"/>
         <source>The clipboard doesn&apos;t contain any appropriate data.</source>
         <translation>Le presse-papiers ne contient pas de formule LaTeX.</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1502"/>
+        <location filename="../klflibbrowser.cpp" line="1512"/>
         <source>Error pasting items</source>
         <translation>Impossible de coller les éléments</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1520"/>
+        <location filename="../klflibbrowser.cpp" line="1530"/>
         <source>All Known Library Files (%1)</source>
         <translation>Tous les fichiers connus (%1)</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1521"/>
+        <location filename="../klflibbrowser.cpp" line="1531"/>
         <source>All Files (*)</source>
         <translation>Tous les fichiers (*)</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1525"/>
+        <location filename="../klflibbrowser.cpp" line="1535"/>
         <source>Open Library File</source>
         <translation>Ouvrir le fichier de bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1541"/>
+        <location filename="../klflibbrowser.cpp" line="1551"/>
         <source>The given file cannot be read: %1</source>
         <translation>Le fichier ne peut pas être lu: %1</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1545"/>
+        <location filename="../klflibbrowser.cpp" line="1555"/>
         <source>Unknown open file scheme!</source>
         <translation>Schéma d&apos;ouverture de fichier inconnu!</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1557"/>
+        <location filename="../klflibbrowser.cpp" line="1567"/>
         <source>Failed to open resource %1!</source>
         <translation>Impossible d&apos;ouvrir la ressource %1!</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1570"/>
+        <location filename="../klflibbrowser.cpp" line="1580"/>
         <source>Export %1</source>
         <translation>Exportation %1</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="1629"/>
+        <location filename="../klflibbrowser.cpp" line="1639"/>
         <source>Exporting ... %3 (%1/%2)</source>
         <translation>Exportation en cours ... %3 (%1/%2)</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.cpp" line="170"/>
+        <location filename="../klflibbrowser.cpp" line="171"/>
         <source>Hit Ctrl-F, Ctrl-S or / to search within the current resource</source>
         <translation>Tapez Ctrl-F, Ctrl-S ou / pour démarrer la recherche dans cette ressource</translation>
     </message>
@@ -690,244 +784,244 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
         <translation>Bibliothèque KLatexFormula</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="74"/>
+        <location filename="../klflibbrowser.ui" line="86"/>
         <source>Restore current selected formula to KLatexFormula editor, with style</source>
         <translation>Restaurer la formule séléctionnée dans l&apos;éditeur KLatexFormula, avec le style correspondant</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="77"/>
+        <location filename="../klflibbrowser.ui" line="89"/>
         <source>&amp;Restore Formula</source>
         <translation>&amp;Restaurer la formule</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="84"/>
+        <location filename="../klflibbrowser.ui" line="96"/>
         <source>Alt+U</source>
         <translation>Alt+U</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="100"/>
+        <location filename="../klflibbrowser.ui" line="112"/>
         <source>Delete de selected history items</source>
         <translation>Effacer les formule séléctionnées</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="103"/>
+        <location filename="../klflibbrowser.ui" line="115"/>
         <source>&amp;Delete item(s)</source>
         <translation>&amp;Supprimer</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="123"/>
+        <location filename="../klflibbrowser.ui" line="135"/>
         <source>&amp;Import/Export</source>
         <translation>&amp;Importer/Exporter</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="143"/>
+        <location filename="../klflibbrowser.ui" line="155"/>
         <source>Close this window</source>
         <translation>Fermer cette fenêtre</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="146"/>
-        <location filename="../klflibbrowser.ui" line="323"/>
+        <location filename="../klflibbrowser.ui" line="158"/>
+        <location filename="../klflibbrowser.ui" line="335"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="153"/>
+        <location filename="../klflibbrowser.ui" line="165"/>
         <source>Alt+O</source>
         <translation>Alt+O</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="221"/>
+        <location filename="../klflibbrowser.ui" line="233"/>
         <source>No Library Resource is currently loaded.</source>
         <translation>Aucune ressource de bibliothèque n&apos;est actuellement ouverte.</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="231"/>
+        <location filename="../klflibbrowser.ui" line="243"/>
         <source>Open a library resource ...</source>
         <translation>Ouvrir une ressource bibliothèque ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="238"/>
+        <location filename="../klflibbrowser.ui" line="250"/>
         <source>Create a new library resource ...</source>
         <translation>Créer une nouvelle ressource bibliothèque ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="270"/>
-        <location filename="../klflibbrowser.ui" line="382"/>
+        <location filename="../klflibbrowser.ui" line="282"/>
+        <location filename="../klflibbrowser.ui" line="394"/>
         <source>Rename this resource</source>
         <translation>Renommer cette ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="275"/>
+        <location filename="../klflibbrowser.ui" line="287"/>
         <source>Properties ...</source>
         <translation>Propriétés ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="278"/>
+        <location filename="../klflibbrowser.ui" line="290"/>
         <source>Edit properties for this resource</source>
         <translation>Modifier les propriétés de cette ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="283"/>
+        <location filename="../klflibbrowser.ui" line="295"/>
         <source>New Sub-Resource...</source>
         <translation>Nouvelle sous-ressource ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="286"/>
+        <location filename="../klflibbrowser.ui" line="298"/>
         <source>Create a new sub-resource in the current resource</source>
         <translation>Créer une nouvelle sous-ressource dans la ressource actuelle</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="291"/>
+        <location filename="../klflibbrowser.ui" line="303"/>
         <source>Save As Copy...</source>
         <translation>Enregistrer une copie ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="294"/>
+        <location filename="../klflibbrowser.ui" line="306"/>
         <source>Save the current resource under a different name</source>
         <translation>Enregistrer cette ressource bibliothèque sous un autre nom</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="299"/>
+        <location filename="../klflibbrowser.ui" line="311"/>
         <source>View Mode</source>
         <translation>Mode d&apos;affichage</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="403"/>
+        <location filename="../klflibbrowser.ui" line="415"/>
         <source>Open Sub-Resource</source>
         <translation>Ouvrir une sous-ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="406"/>
+        <location filename="../klflibbrowser.ui" line="418"/>
         <source>Open a sub-resource of an already open resource</source>
         <translation>Ouvrir une sous-ressource d&apos;une ressource déjà ouverte</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="267"/>
+        <location filename="../klflibbrowser.ui" line="279"/>
         <source>Rename Resource</source>
         <translation>Renommer la ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="302"/>
+        <location filename="../klflibbrowser.ui" line="314"/>
         <source>Select View Type</source>
         <translation>Choisissez le mode d&apos;affichage</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="307"/>
+        <location filename="../klflibbrowser.ui" line="319"/>
         <source>New Resource...</source>
         <translation>Nouvelle Ressource ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="310"/>
+        <location filename="../klflibbrowser.ui" line="322"/>
         <source>Create a new resource</source>
         <translation>Créer une nouvelle ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="315"/>
+        <location filename="../klflibbrowser.ui" line="327"/>
         <source>Open...</source>
         <translation>Ouvrir ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="318"/>
+        <location filename="../klflibbrowser.ui" line="330"/>
         <source>Open an existing resource</source>
         <translation>Ouvrir une ressource existante</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="326"/>
+        <location filename="../klflibbrowser.ui" line="338"/>
         <source>Close the current resource tab</source>
         <translation>Fermer la ressource ouverte dans cet onglet</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="329"/>
+        <location filename="../klflibbrowser.ui" line="341"/>
         <source>Ctrl+W</source>
         <translation>Ctrl+W</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="338"/>
+        <location filename="../klflibbrowser.ui" line="350"/>
         <source>Restore Formula with Style</source>
         <translation>Restaurer la formule, avec style</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="341"/>
+        <location filename="../klflibbrowser.ui" line="353"/>
         <source>Restore the selected formula with its corresponding style to the latex editor</source>
         <translation>Restaurer la formule séléctionnée dans l&apos;éditeur KLatexFormula, avec le style correspondant</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="344"/>
+        <location filename="../klflibbrowser.ui" line="356"/>
         <source>Ctrl+Return</source>
         <translation>Ctrl+Return</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="353"/>
+        <location filename="../klflibbrowser.ui" line="365"/>
         <source>Restore Formula Only</source>
         <translation>Restaurer la formule latex (sans style)</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="356"/>
+        <location filename="../klflibbrowser.ui" line="368"/>
         <source>Restore the latex code of the selected formula to the main latex editor.</source>
         <translation>Restaurer le code LaTeX de la formule séléctionnée dans l&apos;éditeur KLatexFormula, sans le style correspondant.</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="359"/>
+        <location filename="../klflibbrowser.ui" line="371"/>
         <source>Shift+Return</source>
         <translation>Shift+Return</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="368"/>
+        <location filename="../klflibbrowser.ui" line="380"/>
         <source>Delete</source>
         <translation>Effacer</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="371"/>
+        <location filename="../klflibbrowser.ui" line="383"/>
         <source>Delete the selected items</source>
         <translation>Supprimer l&apos;(les) élément(s) séléctionné(s)</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="374"/>
+        <location filename="../klflibbrowser.ui" line="386"/>
         <source>Del</source>
         <translation>Del</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="379"/>
+        <location filename="../klflibbrowser.ui" line="391"/>
         <source>Rename Sub-Resource</source>
         <translation>Renommer la sous-ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="387"/>
+        <location filename="../klflibbrowser.ui" line="399"/>
         <source>Open All</source>
         <translation>Ouvrir tous</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="390"/>
+        <location filename="../klflibbrowser.ui" line="402"/>
         <source>Open all a resource&apos;s sub-resources</source>
         <translation>Ouvrir toutes les sous-ressources d&apos;une ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="395"/>
+        <location filename="../klflibbrowser.ui" line="407"/>
         <source>Export ...</source>
         <translation>Exporter ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="398"/>
+        <location filename="../klflibbrowser.ui" line="410"/>
         <source>Export a selection of the currently open resources</source>
         <translation>Exporter une sélection de toutes les ressources actuellement ouvertes</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="411"/>
+        <location filename="../klflibbrowser.ui" line="423"/>
         <source>Delete Sub-Resource</source>
         <translation>Effacer la sous-ressource</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="414"/>
+        <location filename="../klflibbrowser.ui" line="426"/>
         <source>Permanently delete the current sub-resource</source>
         <translation>Supprimer définitivement la sous-ressource actuelle</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="419"/>
+        <location filename="../klflibbrowser.ui" line="431"/>
         <source>Export Selection ...</source>
         <translation>Exporter séléction ...</translation>
     </message>
     <message>
-        <location filename="../klflibbrowser.ui" line="422"/>
+        <location filename="../klflibbrowser.ui" line="434"/>
         <source>Export the current selection to a .klf file</source>
         <translation>Exporter la sélection actuelle vers un fichier .klf</translation>
     </message>
@@ -943,19 +1037,19 @@ Vous ne pouvez qu&apos;ouvrir une seule formule dans l&apos;éditeur LaTeX.</tra
 <context>
     <name>KLFLibCreateResourceDlg</name>
     <message>
-        <location filename="../klflibview.cpp" line="4080"/>
+        <location filename="../klflibview.cpp" line="4083"/>
         <source>Create New Library Resource</source>
         <comment>[[dialog label title]]</comment>
         <translation>Créer une nouvelle ressource bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4081"/>
+        <location filename="../klflibview.cpp" line="4084"/>
         <source>Create New Library Resource</source>
         <comment>[[dialog window title]]</comment>
         <translation>Créer une nouvelle ressource bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4086"/>
+        <location filename="../klflibview.cpp" line="4089"/>
         <source>SubResource1</source>
         <translation>SousRessource1</translation>
     </message>
@@ -995,28 +1089,28 @@ Erreur: %3</translation>
         <translation>Impossible d&apos;initialiser la base de données SQLITE dans le fichier %1 !</translation>
     </message>
     <message>
-        <location filename="../klflibdbengine.cpp" line="616"/>
-        <location filename="../klflibdbengine.cpp" line="1001"/>
+        <location filename="../klflibdbengine.cpp" line="617"/>
+        <location filename="../klflibdbengine.cpp" line="1002"/>
         <source>Fetching items from library database ...</source>
         <translation>Accès à la base de données bibliothèque ...</translation>
     </message>
     <message>
-        <location filename="../klflibdbengine.cpp" line="859"/>
+        <location filename="../klflibdbengine.cpp" line="860"/>
         <source>Querying items from library database ...</source>
         <translation>Requête d&apos;éléments de la base de données ...</translation>
     </message>
     <message>
-        <location filename="../klflibdbengine.cpp" line="1449"/>
+        <location filename="../klflibdbengine.cpp" line="1455"/>
         <source>Inserting items into library database ...</source>
         <translation>Insertion des nouveaux éléments dans la base de données bibliothèque ...</translation>
     </message>
     <message>
-        <location filename="../klflibdbengine.cpp" line="1532"/>
+        <location filename="../klflibdbengine.cpp" line="1538"/>
         <source>Changing entries in database ...</source>
         <translation>Modification des éléments dans la base de données bilbiothèque ...</translation>
     </message>
     <message>
-        <location filename="../klflibdbengine.cpp" line="1581"/>
+        <location filename="../klflibdbengine.cpp" line="1587"/>
         <source>Removing entries from database ...</source>
         <translation>Suppression d&apos;éléments de la base de données bibliothèque ...</translation>
     </message>
@@ -1024,12 +1118,12 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibDBEngineFactory</name>
     <message>
-        <location filename="../klflibdbengine.cpp" line="1771"/>
+        <location filename="../klflibdbengine.cpp" line="1777"/>
         <source>Local Library Database File</source>
         <translation>Fichier Base de Données Bibliothèque sur le disque</translation>
     </message>
     <message>
-        <location filename="../klflibdbengine.cpp" line="1806"/>
+        <location filename="../klflibdbengine.cpp" line="1812"/>
         <source>Default Table</source>
         <comment>[[default sub-resource title]]</comment>
         <translation>Table par défaut</translation>
@@ -1086,7 +1180,7 @@ Erreur: %3</translation>
         <translation>Colonnes Affichées</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3595"/>
+        <location filename="../klflibview.cpp" line="3598"/>
         <source>Fetching and selecting all, please wait ...</source>
         <translation>Requête et sélection en cours, veuillez patienter ...</translation>
     </message>
@@ -1094,17 +1188,17 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibDefaultViewFactory</name>
     <message>
-        <location filename="../klflibview.cpp" line="3899"/>
+        <location filename="../klflibview.cpp" line="3902"/>
         <source>Category Tree View</source>
         <translation>Arbre de catégories</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3901"/>
+        <location filename="../klflibview.cpp" line="3904"/>
         <source>List View</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="3903"/>
+        <location filename="../klflibview.cpp" line="3906"/>
         <source>Icon View</source>
         <translation>Icônes</translation>
     </message>
@@ -1112,16 +1206,16 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibEntryEditor</name>
     <message>
-        <location filename="../klflibentryeditor.cpp" line="134"/>
-        <location filename="../klflibentryeditor.cpp" line="135"/>
-        <location filename="../klflibentryeditor.cpp" line="136"/>
         <location filename="../klflibentryeditor.cpp" line="144"/>
         <location filename="../klflibentryeditor.cpp" line="145"/>
+        <location filename="../klflibentryeditor.cpp" line="146"/>
+        <location filename="../klflibentryeditor.cpp" line="154"/>
+        <location filename="../klflibentryeditor.cpp" line="155"/>
         <source>[ No Item Selected ]</source>
         <translation>[ Pas de formule séléctionnée ]</translation>
     </message>
     <message numerus="yes">
-        <location filename="../klflibentryeditor.cpp" line="168"/>
+        <location filename="../klflibentryeditor.cpp" line="178"/>
         <source>[ %n Items Selected ]</source>
         <translation>
             <numerusform>[ %n élément sélectionné ]</numerusform>
@@ -1129,13 +1223,13 @@ Erreur: %3</translation>
         </translation>
     </message>
     <message>
-        <location filename="../klflibentryeditor.cpp" line="169"/>
+        <location filename="../klflibentryeditor.cpp" line="179"/>
         <source>[ Multiple Items Selected ]</source>
         <translation>[ Plusieurs formules sélectionnées ]</translation>
     </message>
     <message>
-        <location filename="../klflibentryeditor.cpp" line="200"/>
-        <location filename="../klflibentryeditor.cpp" line="201"/>
+        <location filename="../klflibentryeditor.cpp" line="210"/>
+        <location filename="../klflibentryeditor.cpp" line="211"/>
         <source>[ Different Styles ]</source>
         <translation>[ Styles Différents ]</translation>
     </message>
@@ -1188,6 +1282,11 @@ Erreur: %3</translation>
         <location filename="../klflibentryeditor.ui" line="501"/>
         <source>DPI Res.:</source>
         <translation>Rés. DPI :</translation>
+    </message>
+    <message>
+        <location filename="../klflibentryeditor.ui" line="539"/>
+        <source>User Script:</source>
+        <translation>Script utilisateur:</translation>
     </message>
     <message>
         <location filename="../klflibentryeditor.ui" line="438"/>
@@ -1259,7 +1358,7 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibLegacyEngine</name>
     <message>
-        <location filename="../klfliblegacyengine.cpp" line="449"/>
+        <location filename="../klfliblegacyengine.cpp" line="471"/>
         <source>Default Resource</source>
         <translation>Ressource1</translation>
     </message>
@@ -1267,7 +1366,7 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibLegacyEngineFactory</name>
     <message>
-        <location filename="../klfliblegacyengine.cpp" line="1016"/>
+        <location filename="../klfliblegacyengine.cpp" line="1040"/>
         <source>KLatexFormula Library Export File</source>
         <translation>Fichiers Exportation de Bibliothèque KLatexFormula</translation>
     </message>
@@ -1275,27 +1374,27 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibLegacyFileDataPrivate</name>
     <message>
-        <location filename="../klfliblegacyengine.cpp" line="243"/>
+        <location filename="../klfliblegacyengine.cpp" line="245"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="../klfliblegacyengine.cpp" line="277"/>
+        <location filename="../klfliblegacyengine.cpp" line="285"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klfliblegacyengine.cpp" line="277"/>
+        <location filename="../klfliblegacyengine.cpp" line="285"/>
         <source>Can&apos;t write to file %1</source>
         <translation>Echec d&apos;écriture dans le fichier %1</translation>
     </message>
     <message>
-        <location filename="../klfliblegacyengine.cpp" line="316"/>
+        <location filename="../klfliblegacyengine.cpp" line="324"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="../klfliblegacyengine.cpp" line="317"/>
+        <location filename="../klfliblegacyengine.cpp" line="325"/>
         <source>Saving an old &quot;history&quot; resource. Only one resource can be saved, it will be the first: %1</source>
         <translation>Vous êtes en train d&apos;enregistrer un fichier au format &quot;history&quot; obsolète. Seule une sous-ressource peut être sauvegardée, ce sera la première: %1</translation>
     </message>
@@ -1334,14 +1433,14 @@ Erreur: %3</translation>
 <context>
     <name>KLFLibModel</name>
     <message>
-        <location filename="../klflibview.cpp" line="2058"/>
+        <location filename="../klflibview.cpp" line="2056"/>
         <source>Drop Error</source>
         <comment>[[message box title]]</comment>
         <translatorcomment>[NOT TRANSLATED]</translatorcomment>
         <translation>Drop Error</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="2059"/>
+        <location filename="../klflibview.cpp" line="2057"/>
         <source>Error dropping data.</source>
         <translation>Erreur lors du collage des données.</translation>
     </message>
@@ -1462,72 +1561,72 @@ Erreur: %3</translation>
         <translation>Appliquer les modifications</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4241"/>
-        <location filename="../klflibview.cpp" line="4250"/>
+        <location filename="../klflibview.cpp" line="4244"/>
+        <location filename="../klflibview.cpp" line="4253"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4241"/>
-        <location filename="../klflibview.cpp" line="4250"/>
+        <location filename="../klflibview.cpp" line="4244"/>
+        <location filename="../klflibview.cpp" line="4253"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4313"/>
-        <location filename="../klflibview.cpp" line="4322"/>
-        <location filename="../klflibview.cpp" line="4329"/>
-        <location filename="../klflibview.cpp" line="4339"/>
-        <location filename="../klflibview.cpp" line="4347"/>
-        <location filename="../klflibview.cpp" line="4354"/>
-        <location filename="../klflibview.cpp" line="4361"/>
-        <location filename="../klflibview.cpp" line="4454"/>
-        <location filename="../klflibview.cpp" line="4512"/>
+        <location filename="../klflibview.cpp" line="4316"/>
+        <location filename="../klflibview.cpp" line="4325"/>
+        <location filename="../klflibview.cpp" line="4332"/>
+        <location filename="../klflibview.cpp" line="4342"/>
+        <location filename="../klflibview.cpp" line="4350"/>
+        <location filename="../klflibview.cpp" line="4357"/>
+        <location filename="../klflibview.cpp" line="4364"/>
+        <location filename="../klflibview.cpp" line="4457"/>
+        <location filename="../klflibview.cpp" line="4515"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4313"/>
+        <location filename="../klflibview.cpp" line="4316"/>
         <source>Can&apos;t rename a locked resource!</source>
         <translation>Impossible de renommer une ressource verrouillée !</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4322"/>
+        <location filename="../klflibview.cpp" line="4325"/>
         <source>Failed to unlock resource.</source>
         <translation>Impossible de déverouiller la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4329"/>
+        <location filename="../klflibview.cpp" line="4332"/>
         <source>Failed to unlock sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de déverrouiller la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4339"/>
+        <location filename="../klflibview.cpp" line="4342"/>
         <source>Failed to rename resource.</source>
         <translation>Impossible de renommer la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4347"/>
+        <location filename="../klflibview.cpp" line="4350"/>
         <source>Failed to rename sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de renommer la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4354"/>
+        <location filename="../klflibview.cpp" line="4357"/>
         <source>Failed to lock resource.</source>
         <translation>Impossible de verrouiller la ressource.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4361"/>
+        <location filename="../klflibview.cpp" line="4364"/>
         <source>Failed to lock sub-resource &quot;%1&quot;.</source>
         <translation>Impossible de verrouiller la sous-ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4455"/>
+        <location filename="../klflibview.cpp" line="4458"/>
         <source>Failed to set resource property &quot;%1&quot;.</source>
         <translation>Impossible d&apos;attribuer la nouvelle valeur à la propriété de ressource &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="4513"/>
+        <location filename="../klflibview.cpp" line="4516"/>
         <source>Failed to set sub-resource &quot;%1&quot;&apos;s property &quot;%2&quot;.</source>
         <translation>Impossible d&apos;attribuer la nouvelle valeur à la propriété &quot;%2&quot; de la sous-ressource &quot;%1&quot;.</translation>
     </message>
@@ -1922,7 +2021,7 @@ Le chargement peut échouer.</translation>
 <context>
     <name>KLFMainWin</name>
     <message>
-        <location filename="../klfmainwin.cpp" line="490"/>
+        <location filename="../klfmainwin.cpp" line="725"/>
         <source>KLatexFormula %1</source>
         <translation>KLatexFormula %1</translation>
     </message>
@@ -1933,37 +2032,36 @@ Le chargement peut échouer.</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="55"/>
-        <location filename="../klfmainwin.cpp" line="805"/>
         <source>Default</source>
         <translation>Par Défaut</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="460"/>
+        <location filename="../klfmainwin.cpp" line="680"/>
         <source>Your executable paths (latex, dvips, gs) seem not to be detected properly. Please adjust the settings in the &lt;a href=&quot;klfaction:/settings?control=ExecutablePaths&quot;&gt;settings dialog&lt;/a&gt;.</source>
         <comment>[[additional text in what&apos;s-new-dialog in case of bad detected settings. this is HTML formatted text.]]</comment>
         <translation>Les exécutables (latex, dvips, gs) semblent ne pas avoir été détectés correctement. Veuillez ajuster la configuration dans le &lt;a href=&quot;klfaction:/settings?control=ExecutablePaths&quot;&gt;panneau de paramètres&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="470"/>
+        <location filename="../klfmainwin.cpp" line="691"/>
         <source>LaTeX&apos; Computer Modern Sans Serif font is used as the &lt;b&gt;default application font&lt;/b&gt;. Don&apos;t like it? &lt;a href=&quot;%1&quot;&gt;Choose your preferred application font&lt;/a&gt;.</source>
         <translation>La Police «&amp;nbsp;Computer Modern Sans Serif&amp;nbsp;» est a présent utilisée comme &lt;b&gt;police d&apos;application par défaut&lt;/b&gt;. Si elle ne vous convient pas, &lt;a href=&quot;%1&quot;&gt;vous pouvez la changer&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="578"/>
+        <location filename="../klfmainwin.cpp" line="844"/>
+        <location filename="../klfmainwin.cpp" line="1081"/>
+        <location filename="../klfmainwin.cpp" line="4315"/>
         <source>Default</source>
         <comment>[[style name]]</comment>
         <translation>Par Défaut</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="764"/>
-        <location filename="../klfmainwin.cpp" line="824"/>
-        <location filename="../klfmainwin.cpp" line="1827"/>
-        <location filename="../klfmainwin.cpp" line="1920"/>
-        <location filename="../klfmainwin.cpp" line="2010"/>
-        <location filename="../klfmainwin.cpp" line="2019"/>
-        <location filename="../klfmainwin.cpp" line="2164"/>
-        <location filename="../klfmainwin.cpp" line="2236"/>
-        <location filename="../klfmainwin.cpp" line="2627"/>
+        <location filename="../klfmainwin.cpp" line="1105"/>
+        <location filename="../klfmainwin.cpp" line="2941"/>
+        <location filename="../klfmainwin.cpp" line="3053"/>
+        <location filename="../klfmainwin.cpp" line="3062"/>
+        <location filename="../klfmainwin.cpp" line="3294"/>
+        <location filename="../klfmainwin.cpp" line="3394"/>
+        <location filename="../klfmainwin.cpp" line="3857"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
@@ -1973,9 +2071,8 @@ Le chargement peut échouer.</translation>
         <translation>Impossible d&apos;installer klatexformula.cls vers le dossier temporaire !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="721"/>
         <source>Manage Styles</source>
-        <translation>Gérer les styles</translation>
+        <translation type="obsolete">Gérer les styles</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="57"/>
@@ -1983,25 +2080,22 @@ Le chargement peut échouer.</translation>
         <translation>Erreur: Impossible de charger la liste de styles !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="764"/>
         <source>Error: Style file is incorrect or corrupt!
 </source>
-        <translation>Erreur: Le fichier de styles est corrompu !</translation>
+        <translation type="obsolete">Erreur: Le fichier de styles est corrompu !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="768"/>
         <source>Load Styles</source>
-        <translation>Chargement des styles</translation>
+        <translation type="obsolete">Chargement des styles</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="769"/>
         <source>The style file found was created by a more recent version of KLatexFormula.
 The process of style loading may fail.</source>
-        <translation>Le fichier de styles trouvé a été écrit avec une version plus récente de KLatexFormula.
+        <translation type="obsolete">Le fichier de styles trouvé a été écrit avec une version plus récente de KLatexFormula.
 Le chargement peut echouer.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="824"/>
+        <location filename="../klfmainwin.cpp" line="1105"/>
         <source>Error: Unable to write to styles file!
 %1</source>
         <translation>Erreur: Impossible d&apos;écrire le fichier de styles !
@@ -2009,17 +2103,17 @@ Le chargement peut echouer.</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="39"/>
-        <location filename="../klfliblegacyengine.cpp" line="368"/>
-        <location filename="../klfliblegacyengine.cpp" line="370"/>
-        <location filename="../klfmainwin.cpp" line="1000"/>
+        <location filename="../klfliblegacyengine.cpp" line="376"/>
+        <location filename="../klfliblegacyengine.cpp" line="378"/>
+        <location filename="../klfmainwin.cpp" line="1281"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="40"/>
-        <location filename="../klfliblegacyengine.cpp" line="373"/>
-        <location filename="../klfliblegacyengine.cpp" line="375"/>
-        <location filename="../klfmainwin.cpp" line="1002"/>
+        <location filename="../klfliblegacyengine.cpp" line="381"/>
+        <location filename="../klfliblegacyengine.cpp" line="383"/>
+        <location filename="../klfmainwin.cpp" line="1283"/>
         <source>Archive</source>
         <translation>Archives</translation>
     </message>
@@ -2054,393 +2148,471 @@ Le chargement peut echouer.</translation>
         <translation>Erreur: Impossible de charger l&apos;historique !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="62"/>
+        <location filename="../klfmainwin.ui" line="63"/>
         <source>Enter &amp;LaTeX expression:</source>
         <translation>Saisissez l&apos;expression &amp;LaTeX :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="133"/>
+        <location filename="../klfmainwin.ui" line="131"/>
         <source>Clear the above field</source>
         <comment>tooltip</comment>
         <translation>Effacer le champ ci-dessus</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="136"/>
-        <location filename="../klfmainwin.ui" line="156"/>
+        <location filename="../klfmainwin.ui" line="134"/>
+        <location filename="../klfmainwin.ui" line="154"/>
         <source>Clicking this button is a utility to clear the LaTeX code entry field above</source>
         <comment>whatsthis</comment>
         <translation>Efface le champ ci-dessus</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="173"/>
+        <location filename="../klfmainwin.ui" line="171"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</source>
         <comment>tooltip</comment>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Evaluer l&apos;expression LaTeX [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="176"/>
+        <location filename="../klfmainwin.ui" line="174"/>
         <source>Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</source>
         <comment>whatsthistext</comment>
         <translation>Crée une image à partir de la formule &lt;i&gt;LaTeX&lt;/i&gt; ci-dessus, qui sera affichée ci-dessous.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="179"/>
+        <location filename="../klfmainwin.ui" line="177"/>
         <source>&amp;Evaluate</source>
         <translation>&amp;Evaluer</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="205"/>
+        <location filename="../klfmainwin.ui" line="203"/>
         <source>Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</source>
         <comment>whatsthis text</comment>
         <translation>Ouvre une fenêtre affichant des palettes de symboles LaTeX dont vous ne connaîtriez pas forcément par coeur tous les codes.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1070"/>
+        <location filename="../klfmainwin.ui" line="502"/>
+        <source>&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</source>
+        <comment>tooltip</comment>
+        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Quitter KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="633"/>
+        <source>Font:</source>
+        <translation>Police:</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="655"/>
+        <source>Fore/Background:</source>
+        <translation>Avant/arrière-plan:</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="702"/>
+        <source>Transparent</source>
+        <extracomment>background color selector</extracomment>
+        <translation>sélection de la couleur d&apos;arrière-plan</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="731"/>
+        <source>Font Size:</source>
+        <translation>Taille:</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="738"/>
+        <source>(default)</source>
+        <translation>(par défaut)</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="765"/>
+        <source>Preamble</source>
+        <translation>Préambule</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="789"/>
+        <source>LaTeX preamble:</source>
+        <translation>Préambule LaTeX :</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="821"/>
+        <source>Image</source>
+        <translation>Image</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="1020"/>
+        <source>DPI Resolution:</source>
+        <translation>Résuolution DPI :</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="1063"/>
+        <source>Scale Vector Formats:</source>
+        <translation>Mise à l&apos;échelle :</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="1102"/>
+        <source>Script</source>
+        <translation>Script</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="1114"/>
+        <source>User Script:</source>
+        <translation>Script utilisateur:</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="1131"/>
+        <source>View last script output ...</source>
+        <translatorcomment>output=??? sortie??</translatorcomment>
+        <translation>Dernière sortie du script ...</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="1244"/>
+        <source>&lt;no user script selected or no input to script&gt;</source>
+        <translation>&lt;aucun script utilisateur seléctionné ou pas de paramètre ajustable pour ce script&gt;</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="1300"/>
+        <source>St&amp;yle</source>
+        <translation>St&amp;yle</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="1410"/>
         <source>Insert Symbol</source>
         <translation>Insérer un symbole</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1073"/>
+        <location filename="../klfmainwin.ui" line="1413"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</source>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher la palette de symboles LaTeX [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="212"/>
+        <location filename="../klfmainwin.ui" line="210"/>
         <source>F7</source>
         <translation>F7</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="231"/>
+        <location filename="../klfmainwin.ui" line="229"/>
         <source>Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</source>
         <comment>whatsthis text</comment>
         <translation>Ouvre une fênetre avec la bibliothèque de formules précédemment rendues (historique) et sauvegardées et organisées (archives).</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="614"/>
+        <location filename="../klfmainwin.ui" line="547"/>
         <source>LaTeX</source>
         <translation>LaTeX</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1081"/>
+        <location filename="../klfmainwin.ui" line="1421"/>
         <source>Show Library</source>
         <translation>Afficher la bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1084"/>
+        <location filename="../klfmainwin.ui" line="1424"/>
         <source>Show Library Browser Window</source>
         <translation>Afficher la fenêtre d&apos;exploration de la bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="238"/>
+        <location filename="../klfmainwin.ui" line="236"/>
         <source>F8</source>
         <translation>F8</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="257"/>
+        <location filename="../klfmainwin.ui" line="16"/>
+        <source>KLatexFormula</source>
+        <comment>window title</comment>
+        <translation>KLatexFormula</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.ui" line="255"/>
         <source>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</source>
         <translation>Bascule entre mode étendu et mode compact. En mode étendu plus d&apos;options s&apos;offrent à vous.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="291"/>
+        <location filename="../klfmainwin.ui" line="295"/>
         <source>&amp;DRAG</source>
         <translation>&amp;TRAINER</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="298"/>
+        <location filename="../klfmainwin.ui" line="308"/>
         <source>&amp;COPY</source>
         <translation>&amp;COPIER</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="301"/>
+        <location filename="../klfmainwin.ui" line="311"/>
         <source>Alt+Y</source>
         <translation>Alt+Y</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="308"/>
+        <location filename="../klfmainwin.ui" line="324"/>
         <source>Save formula to disk</source>
         <translation>Enregistrer sur le disque</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="311"/>
+        <location filename="../klfmainwin.ui" line="327"/>
         <source>&amp;SAVE</source>
         <translation>&amp;ENR.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="349"/>
+        <location filename="../klfmainwin.ui" line="365"/>
         <source>The resulting image will be displayed here</source>
         <comment>tooltip</comment>
         <translation>L&apos;image de la formule sera affichée ici</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="352"/>
+        <location filename="../klfmainwin.ui" line="368"/>
         <source>Here you can see the image you get after evaluating your LaTeX code.</source>
         <comment>whatsthis</comment>
         <translation>Ici s&apos;affiche l&apos;image rendue de la formula LaTeX saisie ci-dessus.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="414"/>
+        <location filename="../klfmainwin.ui" line="430"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</source>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher une fenêtre de prévisualisation plus grande [touche &lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="486"/>
+        <location filename="obsolete/obsoletetext.cpp" line="218"/>
         <source>Quit KLatexFormula</source>
         <comment>tooltip</comment>
         <translation>Quitter KLatexFormula</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="489"/>
+        <location filename="../klfmainwin.ui" line="505"/>
         <source>Exit KLatexFormula</source>
         <comment>whatsthis</comment>
         <translation>Quitter KLatexFormula</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="492"/>
+        <location filename="../klfmainwin.ui" line="508"/>
         <source>Quit</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="320"/>
+        <location filename="../klfmainwin.cpp" line="433"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="97"/>
+        <location filename="../klfmainwin.ui" line="98"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.&lt;/p&gt;</source>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Editez ou collez du code LaTeX ici. Revenez sur cet éditeur depuis n&apos;importe où avec la touche &lt;strong&gt;F4&lt;/strong&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="153"/>
+        <location filename="../klfmainwin.ui" line="151"/>
         <source>Clear the above field and set the default style</source>
         <comment>tooltip</comment>
         <translation>Effacer le champ ci-dessus, et appliquer le style par défaut</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="202"/>
+        <location filename="../klfmainwin.ui" line="200"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette  [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</source>
         <comment>tooltip</comment>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher la palette de symboles LaTeX  [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="228"/>
+        <location filename="../klfmainwin.ui" line="226"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show Library [&lt;strong&gt;F8&lt;/strong&gt;]&lt;/p&gt;</source>
         <comment>tooltip</comment>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher la bibliothèque [&lt;strong&gt;F8&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="254"/>
+        <location filename="../klfmainwin.ui" line="252"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</source>
         <comment>tooltip</comment>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Basculer mode étendu ou simple [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="264"/>
+        <location filename="../klfmainwin.ui" line="262"/>
         <source>F5</source>
         <translation>F5</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="450"/>
+        <location filename="../klfmainwin.ui" line="466"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Select the export profile to use for Copy and Drag operations&lt;/p&gt;</source>
         <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Choisissez le profil d&apos;exportation pour les opérations de traîner ou copier&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="527"/>
+        <location filename="../klfmainwin.ui" line="640"/>
         <source>Colors</source>
         <translation>Couleurs</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="542"/>
         <source>&amp;Foreground color:</source>
-        <translation>&amp;Couleur d&apos;avant-plan :</translation>
+        <translation type="obsolete">&amp;Couleur d&apos;avant-plan :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="562"/>
         <source>Check this if you want your formula to have a transparent background</source>
-        <translation>Cochez cette case pour un arrière-plan transparent</translation>
+        <translation type="obsolete">Cochez cette case pour un arrière-plan transparent</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="565"/>
         <source>Use &amp;transparent background</source>
-        <translation>Utiliser un fond &amp;transparent</translation>
+        <translation type="obsolete">Utiliser un fond &amp;transparent</translation>
+    </message>
+    <message>
+        <source>Alt+U</source>
+        <translation type="obsolete">Alt+U</translation>
+    </message>
+    <message>
+        <source>&amp;Background color:</source>
+        <translation type="obsolete">Couleur de &amp;fond :</translation>
     </message>
     <message>
         <location filename="../klfmainwin.ui" line="568"/>
-        <source>Alt+U</source>
-        <translation>Alt+U</translation>
-    </message>
-    <message>
-        <location filename="../klfmainwin.ui" line="581"/>
-        <source>&amp;Background color:</source>
-        <translation>Couleur de &amp;fond :</translation>
-    </message>
-    <message>
-        <location filename="../klfmainwin.ui" line="623"/>
         <source>Check this to use a LaTeX math mode</source>
         <translation>Cocher pour utiliser un mode Mathématique Latex</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="626"/>
+        <location filename="../klfmainwin.ui" line="571"/>
         <source>Use &amp;Math mode:</source>
         <translation>Utiliser le &amp;Mode :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="678"/>
         <source>Edit LaTeX &amp;preamble:</source>
-        <translation>Modifier le &amp;préambule LaTeX :</translation>
+        <translation type="obsolete">Modifier le &amp;préambule LaTeX :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="713"/>
         <source>Image &amp;&amp; Margins</source>
-        <translation>Image et marges</translation>
+        <translation type="obsolete">Image et marges</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="722"/>
         <source>DPI &amp;Resolution:</source>
-        <translation>&amp;Résuolution DPI :</translation>
+        <translation type="obsolete">&amp;Résuolution DPI :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="743"/>
+        <location filename="../klfmainwin.ui" line="1036"/>
         <source>Presets</source>
         <translation>Préréglages</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="781"/>
+        <location filename="../klfmainwin.ui" line="849"/>
         <source>Override settings margins</source>
         <translation>Marges personalisées</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="808"/>
+        <location filename="../klfmainwin.ui" line="888"/>
         <source>Top:</source>
         <translation>En haut :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="834"/>
+        <location filename="../klfmainwin.ui" line="914"/>
         <source>Left:</source>
         <translation>Gauche :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="860"/>
+        <location filename="../klfmainwin.ui" line="940"/>
         <source>Right:</source>
         <translation>Droite :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="905"/>
+        <location filename="../klfmainwin.ui" line="985"/>
         <source>Bottom:</source>
         <translation>En bas :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="915"/>
+        <location filename="../klfmainwin.ui" line="995"/>
         <source>Postscript Point=pt=1;Millimeter=mm=2.835;Centimeter=cm=28.35;1/8 th inch=1/8 in=9;Inch=in=72</source>
         <translation>Point Postscript=pt=1;Millimètre=mm=2.835;Centimètre=cm=28.35;1/8ème pouce=1/8 in=9;Pouce=in=72</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="922"/>
+        <location filename="../klfmainwin.ui" line="1002"/>
         <source>Units:</source>
         <translation>Unités :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="947"/>
+        <location filename="../klfmainwin.ui" line="1297"/>
         <source>Load a previously saved style</source>
         <translation>Charger un style préalablement sauvegardé</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="950"/>
         <source>Load St&amp;yle</source>
-        <translation>Charger St&amp;yle</translation>
+        <translation type="obsolete">Charger St&amp;yle</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="957"/>
+        <location filename="../klfmainwin.ui" line="1307"/>
         <source>Alt+L</source>
         <translation>Alt+L</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="970"/>
         <source>Save current style (colors, etc.)</source>
-        <translation>Enregistrer le style courant</translation>
+        <translation type="obsolete">Enregistrer le style courant</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="973"/>
         <source>Sa&amp;ve Style</source>
-        <translation>En&amp;registrer Style</translation>
+        <translation type="obsolete">En&amp;registrer Style</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="993"/>
-        <location filename="../klfmainwin.ui" line="1016"/>
+        <location filename="../klfmainwin.ui" line="1320"/>
+        <location filename="../klfmainwin.ui" line="1356"/>
         <source>Edit KLatexFormula settings</source>
         <translation>Modifier les paramètres KLatexFormula</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="996"/>
+        <location filename="../klfmainwin.ui" line="1323"/>
         <source>Settings...</source>
         <translation>Paramètres ...</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1003"/>
+        <location filename="../klfmainwin.ui" line="1330"/>
         <source>Alt+N</source>
         <translation>Alt+N</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1023"/>
+        <location filename="../klfmainwin.ui" line="1363"/>
         <source>F1</source>
         <translation>F1</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1035"/>
+        <location filename="../klfmainwin.ui" line="1375"/>
         <source>High Resolution (1200)</source>
         <translation>Haute Résolution (1200)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1038"/>
+        <location filename="../klfmainwin.ui" line="1378"/>
         <source>Very good resolution</source>
         <translation>Très bonne résolution</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1043"/>
+        <location filename="../klfmainwin.ui" line="1383"/>
         <source>Good Resolution (600)</source>
         <translation>Bonne Résolution (600)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1046"/>
+        <location filename="../klfmainwin.ui" line="1386"/>
         <source>Pretty good resolution</source>
         <translation>Assez bonne résolution</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1051"/>
+        <location filename="../klfmainwin.ui" line="1391"/>
         <source>Medium Resolution (300)</source>
         <translation>Résolution Moyenne (300)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1054"/>
+        <location filename="../klfmainwin.ui" line="1394"/>
         <source>Medium resolution</source>
         <translation>résolution moyenne</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1059"/>
+        <location filename="../klfmainwin.ui" line="1399"/>
         <source>Low Resolution (150)</source>
         <translation>Basse Résolution (150)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1062"/>
+        <location filename="../klfmainwin.ui" line="1402"/>
         <source>Low resolution</source>
         <translation>basse résolution</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1093"/>
+        <location filename="../klfmainwin.ui" line="1433"/>
         <source>Clear LaTeX</source>
         <translation>Effacer le code LaTeX</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1096"/>
+        <location filename="../klfmainwin.ui" line="1436"/>
         <source>Clear the LaTeX code field above</source>
         <translation>Effacer le champ de code LaTeX ci-dessus</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1105"/>
+        <location filename="../klfmainwin.ui" line="1445"/>
         <source>Clear LaTeX and reset default style</source>
         <translation>Effacer le champ de code LaTeX et appliquer le style par défaut</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.ui" line="1108"/>
+        <location filename="../klfmainwin.ui" line="1448"/>
         <source>Clear the LaTeX field above, and reset the style to the default style</source>
         <translation>Effacer le champ ci-dessus, et appliquer le style par défaut</translation>
     </message>
@@ -2469,7 +2641,7 @@ Le chargement peut echouer.</translation>
         <translation>Erreur: Impossible d&apos;écrire dans le fichier bibliothèque `%1&apos; !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1917"/>
+        <location filename="../klfmainwin.cpp" line="2938"/>
         <source>Are you sure you configured your system paths correctly in the settings dialog ?</source>
         <translation>Etes-vous sûr d&apos;avoir configuré correctement les chemins d&apos;accès aux programmes dans la fenêtre de paramètres ?</translation>
     </message>
@@ -2486,227 +2658,377 @@ Le chargement peut echouer.</translation>
         <translation>Impossible d&apos;écrire dans le fichier temporaire pour le tooltip %1 !</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="889"/>
+        <location filename="../klfmainwin.cpp" line="1170"/>
         <source>History</source>
         <comment>[[default sub-resource title for history]]</comment>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="897"/>
+        <location filename="../klfmainwin.cpp" line="1178"/>
         <source>Local Library</source>
         <translation>Bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="900"/>
+        <location filename="../klfmainwin.cpp" line="1181"/>
         <source>Archive</source>
         <comment>[[default sub-resource title for archive sub-resource]]</comment>
         <translation>Archives</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="957"/>
+        <location filename="../klfmainwin.cpp" line="1238"/>
         <source>Importing Library from previous version of KLatexFormula ... %3 (%1/%2)</source>
         <translation>Importation de la bibliothèque d&apos;une version antérieure de KLatexFormula ... %3 (%1 de %2)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1198"/>
         <source>package %1</source>
         <comment>[[part of popup text, if one package only]]</comment>
-        <translation>le paquet %1</translation>
+        <translation type="obsolete">le paquet %1</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1201"/>
         <source>packages %1</source>
         <comment>[[part of popup text, if multiple packages]]</comment>
-        <translation>les paquets %1</translation>
+        <translation type="obsolete">les paquets %1</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1206"/>
         <source> and &lt;i&gt;some more definitions&lt;/i&gt;</source>
         <comment>[[part of hint popup text, when packages also need to be included]]</comment>
-        <translation>et &lt;i&gt;des définitions supplémentaires&lt;/i&gt;</translation>
+        <translation type="obsolete">et &lt;i&gt;des définitions supplémentaires&lt;/i&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1208"/>
         <source>&lt;i&gt;some definitions&lt;/i&gt;</source>
         <comment>[[part of hint popup text, when no packages need to be included]]</comment>
-        <translation>&lt;i&gt;des définitions&lt;/i&gt;</translation>
+        <translation type="obsolete">&lt;i&gt;des définitions&lt;/i&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1243"/>
         <source>Symbol &lt;tt&gt;%3&lt;/tt&gt; may require &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</source>
-        <translation>Le symbole &lt;tt&gt;%3&lt;/tt&gt; semble requérir &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</translation>
+        <translation type="obsolete">Le symbole &lt;tt&gt;%3&lt;/tt&gt; semble requérir &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1338"/>
         <source>Include missing definitions for %1</source>
-        <translation>Insérer les définitions manquantes pour %1</translation>
+        <translation type="obsolete">Insérer les définitions manquantes pour %1</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1346"/>
         <source>Insert Symbol ...</source>
         <comment>[[context menu entry]]</comment>
-        <translation>Insérer un symbole ...</translation>
+        <translation type="obsolete">Insérer un symbole ...</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1646"/>
+        <location filename="../klfmainwin.cpp" line="2543"/>
         <source>Copy the formula to the clipboard. Current export profile: %1</source>
         <translation>Copier la formule sur le presse-papiers. Profil d&apos;exportation: %1</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1649"/>
+        <location filename="obsolete/obsoletetext.cpp" line="214"/>
         <source>Click and keep mouse button pressed to drag your formula to an other application. Current export profile: %1</source>
         <translation>Cliquez et en maintenant appuyé le bouton de souris traînez l&apos;image dans une autre application ou sur le bureau. Profil d&apos;exportation: %1</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1984"/>
-        <location filename="../klfmainwin.cpp" line="1998"/>
+        <location filename="../klfmainwin.cpp" line="277"/>
+        <source>Times</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="278"/>
+        <source>Palatino</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="279"/>
+        <source>Charter BT</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="281"/>
+        <source>New Century Schoolbook</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="282"/>
+        <source>Utopia</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="283"/>
+        <source>Helvetica</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="354"/>
+        <source>Computer Modern (default font)</source>
+        <translation>Computer Modern (par défaut)</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="631"/>
+        <source>LaTeX Symbols Palette</source>
+        <translation>Palette de symboles LaTeX</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="632"/>
+        <source>Equation Library Browser</source>
+        <translation>Navigateur de Bibliothèque d&apos;Equations</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="633"/>
+        <source>Show Details</source>
+        <translation>Afficher détails</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="634"/>
+        <source>Activate Editor</source>
+        <translation>Activer l&apos;éditeur</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="635"/>
+        <source>Activate Editor and Select All</source>
+        <translation>Activer l&apos;éditeur et tout sélectionner</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="637"/>
+        <source>Show Big Preview</source>
+        <translation>Afficher grande visualisation</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="697"/>
+        <source>The user interface was revised for &lt;b&gt;Mac OS X&lt;/b&gt;. KLatexFormula now has a &lt;b&gt;dark metal look&lt;/b&gt; and a &lt;b&gt;drawer&lt;/b&gt; on the side. You can change to the previous behavior in the &lt;a href=&quot;%1&quot;&gt;settings dialog&lt;/a&gt;.</source>
+        <translation>L&apos;interface utilisateur a été révisée pour &lt;b&gt;Mac OS X&lt;&amp;b&gt;. KLatexFormula se présente maintenant avec un &lt;b&gt;fond gris métallique&lt;/b&gt; et un &lt;b&gt;tiroir&lt;/b&gt; de côté. Vous pouvez rétablir l&apos;interface précédente dans la &lt;a href=&quot;%1&quot;&gt;fenêtre de paramètres&lt;/a&gt;.</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="2546"/>
+        <source>Click and keep mouse button pressed to drag your formula to another application. Current export profile: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="2589"/>
+        <source>Paste Clipboard Contents</source>
+        <comment>[[Dock Menu Entry on MacOSX]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3027"/>
+        <location filename="../klfmainwin.cpp" line="3041"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1985"/>
+        <location filename="../klfmainwin.cpp" line="3028"/>
         <source>Can&apos;t add the item to history library because the history resource is locked. Do you want to unlock it?</source>
         <translation>Il est impossible d&apos;ajouter la formule à l&apos;historique, parce que la ressource est verrouillée. Voulez-vous la déverrouiller ?</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="1999"/>
+        <location filename="../klfmainwin.cpp" line="3042"/>
         <source>Can&apos;t add the item to history library because the history sub-resource is locked. Do you want to unlock it?</source>
         <translation>Il est impossible d&apos;ajouter la formule à l&apos;historique, parce que la sous-ressource est verrouillée. Voulez-vous la déverrouiller ?</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2011"/>
+        <location filename="../klfmainwin.cpp" line="3054"/>
         <source>Can&apos;t add the item to history library because the history resource is opened in read-only mode. This should not happen! You will need to manually copy and paste your Latex code somewhere else to save it.</source>
         <translation>Impossible d&apos;ajouter la formule à l&apos;historique : la ressource historique est ouvert en mode lecture seule ! Ceci ne devrait pas arriver ! Pour sauvegarder votre code LaTeX, copiez-le et collez-le dans une autre application et enregistrez-le.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2020"/>
+        <location filename="../klfmainwin.cpp" line="3063"/>
         <source>An error occurred when trying to write the new entry into the history resource!You will need to manually copy and paste your Latex code somewhere else to save it.</source>
         <translation>Impossible d&apos;ajouter la formule à l&apos;historique pour une raison indéterminée. Pour sauvegarder votre code LaTeX, copiez-le et collez-le dans une autre application et enregistrez-le.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2164"/>
+        <location filename="../klfmainwin.cpp" line="3181"/>
+        <source>User Script Not Available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3182"/>
+        <source>The user script %1 is not available.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3217"/>
+        <source>&lt;none&gt;</source>
+        <comment>[[no user script]]</comment>
+        <translation type="unfinished">&lt;aucune&gt;</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3294"/>
         <source>There is no image to save.</source>
         <translation>Il n&apos;y a pas d&apos;image à enregistrer.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2236"/>
+        <location filename="../klfmainwin.cpp" line="3394"/>
         <source>Failed to load file %1.</source>
         <translation>Echec d&apos;ouverture du fichier %1.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2472"/>
+        <location filename="../klfmainwin.cpp" line="3673"/>
         <source>Copied as &lt;b&gt;%1&lt;/b&gt;</source>
         <translation>Copie : &lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2488"/>
+        <location filename="../klfmainwin.cpp" line="3695"/>
+        <source>Standard PNG Image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3696"/>
+        <source>Standard JPEG Image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3697"/>
+        <source>PostScript Document</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3698"/>
+        <source>Encapsulated PostScript</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3699"/>
+        <source>PDF Portable Document Format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3700"/>
+        <source>LaTeX DVI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3701"/>
+        <source>Scalable Vector Graphics SVG</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3724"/>
+        <source>%1 Format</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3771"/>
+        <source>Save Formula Image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3819"/>
+        <source>You may choose to change the file name or to save to the given file as %1 format.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3821"/>
+        <source>Use %1</source>
+        <comment>[[fallback file format button text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="3823"/>
+        <source>Change File Name ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>%1 Image (*.%2)</source>
-        <translation>Image %1 (*.%2)</translation>
+        <translation type="obsolete">Image %1 (*.%2)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2509"/>
         <source>EPS PostScript (*.eps)</source>
-        <translation>PostScript EPS (*.eps)</translation>
+        <translation type="obsolete">PostScript EPS (*.eps)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2513"/>
         <source>PDF Portable Document Format (*.pdf)</source>
-        <translation>Document PDF (*.pdf)</translation>
+        <translation type="obsolete">Document PDF (*.pdf)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2517"/>
         <source>Standard JPEG Image (*.jpg *.jpeg)</source>
-        <translation>Image JPEG Standard (*.jpg *.jpeg)</translation>
+        <translation type="obsolete">Image JPEG Standard (*.jpg *.jpeg)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2522"/>
         <source>Standard PNG Image (*.png)</source>
-        <translation>Image PNG Standard (*.png)</translation>
+        <translation type="obsolete">Image PNG Standard (*.png)</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2536"/>
         <source>Save Image Formula</source>
-        <translation>Enregistrer l&apos;image de la formule</translation>
+        <translation type="obsolete">Enregistrer l&apos;image de la formule</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2576"/>
         <source>File Exists</source>
-        <translation>Fichier Existe</translation>
+        <translation type="obsolete">Fichier Existe</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2577"/>
         <source>The file &lt;b&gt;%1&lt;/b&gt; already exists.
 Overwrite?</source>
-        <translation>Le fichier &lt;b&gt;%1&lt;/b&gt; existe déjà.
+        <translation type="obsolete">Le fichier &lt;b&gt;%1&lt;/b&gt; existe déjà.
 Ecraser ?</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2597"/>
+        <location filename="../klfmainwin.cpp" line="3817"/>
         <source>Extension not recognized</source>
         <translation>L&apos;extension n&apos;est pas reconnue</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2598"/>
+        <location filename="../klfmainwin.cpp" line="3818"/>
         <source>Extension &lt;b&gt;%1&lt;/b&gt; not recognized.</source>
         <translation>L&apos;extension &lt;b&gt;%1&lt;/b&gt; n&apos;est pas reconnue.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2599"/>
         <source>Press &quot;Change&quot; to change the file name, or &quot;Use PNG&quot; to save as PNG.</source>
-        <translation>Cliquez sur &quot;Changer&quot; pour changer le nom de fichier, ou sur &quot;Utilisation PNG&quot; pour enregistrer comme PNG.</translation>
+        <translation type="obsolete">Cliquez sur &quot;Changer&quot; pour changer le nom de fichier, ou sur &quot;Utilisation PNG&quot; pour enregistrer comme PNG.</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2600"/>
         <source>Use PNG</source>
-        <translation>Utilisation PNG</translation>
+        <translation type="obsolete">Utilisation PNG</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2602"/>
         <source>Change ...</source>
-        <translation>Changer ...</translation>
+        <translation type="obsolete">Changer ...</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2604"/>
+        <location filename="../klfmainwin.cpp" line="3825"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="52"/>
         <source>Sorry, format `%1&apos; is not available.</source>
-        <translation>Désolé, le format `%1&apos; n&apos;est pas disponible.</translation>
+        <translation type="unfinished">Désolé, le format `%1&apos; n&apos;est pas disponible.</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="53"/>
         <source>Error: Can&apos;t write to file %1!</source>
-        <translation>Erreur : Impossible d&apos;écrire dans le fichier `%1&apos; !</translation>
+        <translation type="unfinished">Erreur : Impossible d&apos;écrire dans le fichier `%1&apos; !</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="54"/>
         <source>Created with KLatexFormula version %1</source>
-        <translation>Créé par KLatexFormula version %1</translation>
+        <translation type="unfinished">Créé par KLatexFormula version %1</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2651"/>
+        <location filename="../klfmainwin.cpp" line="3950"/>
         <source>&lt;p&gt;%1&lt;/p&gt;&lt;p align=&quot;right&quot; style=&quot;font-size: %2pt; font-style: italic;&quot;&gt;This preview can be opened with the &lt;strong&gt;F2&lt;/strong&gt; key. Hit &lt;strong&gt;Esc&lt;/strong&gt; to close.&lt;/p&gt;</source>
         <translation>&lt;p&gt;%1&lt;/p&gt;&lt;p align=&quot;right&quot; style=&quot;font-size: %2pt; font-style: italic;&quot;&gt;Cette fenêtre de prévisualisation peut être ouverte en appuyant sur la touche &lt;strong&gt;F2&lt;/strong&gt;. Appuyez sur &lt;strong&gt;Échap&lt;/strong&gt; pour la fermer.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2745"/>
+        <location filename="../klfmainwin.cpp" line="4209"/>
+        <source>Can&apos;t find font</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="4209"/>
+        <source>Sorry, I don&apos;t know about font `%1&apos;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="4267"/>
         <source>Enter Style Name</source>
         <translation>Nom du style</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2746"/>
+        <location filename="../klfmainwin.cpp" line="4268"/>
         <source>Enter new style name:</source>
         <translation>Saisissez le nom du nouveau style :</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2757"/>
+        <location filename="../klfmainwin.cpp" line="4279"/>
         <source>Overwrite Style</source>
         <translation>Ecraser Style</translation>
     </message>
     <message>
-        <location filename="../klfmainwin.cpp" line="2758"/>
+        <location filename="../klfmainwin.cpp" line="4280"/>
         <source>Style name already exists. Do you want to overwrite?</source>
         <translation>Le Style existe déjà. L&apos;écraser ?</translation>
     </message>
@@ -2714,19 +3036,146 @@ Ecraser ?</translation>
 <context>
     <name>KLFMainWinPopup</name>
     <message>
-        <location filename="../klfmainwin_p.h" line="250"/>
+        <location filename="../klfmainwin_p.h" line="274"/>
         <source>Accept [&lt;b&gt;Alt-Enter&lt;/b&gt;]</source>
         <translation>Accepter [&lt;b&gt;Alt-Entrée&lt;/b&gt;]</translation>
     </message>
     <message>
-        <location filename="../klfmainwin_p.h" line="251"/>
+        <location filename="../klfmainwin_p.h" line="275"/>
         <source>Close [&lt;b&gt;Esc&lt;/b&gt;]</source>
         <translation>Fermer [&lt;b&gt;Échap&lt;/b&gt;]</translation>
     </message>
     <message>
-        <location filename="../klfmainwin_p.h" line="252"/>
+        <location filename="../klfmainwin_p.h" line="276"/>
         <source>Don&apos;t Show Again</source>
         <translation>Ne plus afficher</translation>
+    </message>
+</context>
+<context>
+    <name>KLFMainWinPrivate</name>
+    <message>
+        <location filename="../klfmainwin.cpp" line="991"/>
+        <source>Save Current Style</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="993"/>
+        <source>Save Current Style As Default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="995"/>
+        <source>Manage Styles</source>
+        <translation type="unfinished">Gérer les styles</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1038"/>
+        <location filename="../klfmainwin.cpp" line="2744"/>
+        <source>Error</source>
+        <translation type="unfinished">Erreur</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1038"/>
+        <source>Error: Style file is incorrect or corrupt!
+</source>
+        <translation type="unfinished">Erreur: Le fichier de styles est corrompu !</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1042"/>
+        <source>Load Styles</source>
+        <translation type="unfinished">Chargement des styles</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1043"/>
+        <source>The style file found was created by a more recent version of KLatexFormula.
+The process of style loading may fail.</source>
+        <translation type="unfinished">Le fichier de styles trouvé a été écrit avec une version plus récente de KLatexFormula.
+Le chargement peut echouer.</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1535"/>
+        <source>package %1</source>
+        <comment>[[part of popup text, if one package only]]</comment>
+        <translation type="unfinished">le paquet %1</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1538"/>
+        <source>packages %1</source>
+        <comment>[[part of popup text, if multiple packages]]</comment>
+        <translation type="unfinished">les paquets %1</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1543"/>
+        <source> and &lt;i&gt;some more definitions&lt;/i&gt;</source>
+        <comment>[[part of hint popup text, when packages also need to be included]]</comment>
+        <translation type="unfinished">et &lt;i&gt;des définitions supplémentaires&lt;/i&gt;</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1545"/>
+        <source>&lt;i&gt;some definitions&lt;/i&gt;</source>
+        <comment>[[part of hint popup text, when no packages need to be included]]</comment>
+        <translation type="unfinished">&lt;i&gt;des définitions&lt;/i&gt;</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1579"/>
+        <source>Symbol &lt;tt&gt;%3&lt;/tt&gt; may require &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</source>
+        <translation type="unfinished">Le symbole &lt;tt&gt;%3&lt;/tt&gt; semble requérir &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt;.</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1781"/>
+        <source>Include missing definitions for %1</source>
+        <translation type="unfinished">Insérer les définitions manquantes pour %1</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1802"/>
+        <source>Paren Modifier (%1) ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1804"/>
+        <source>Change Paren (%1) ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1819"/>
+        <source>&lt;no modifier&gt;</source>
+        <comment>[[in editor context menu]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1855"/>
+        <source>Enclose in delimiter</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="1878"/>
+        <source>Parenthesis-like</source>
+        <comment>[[in paren menu delimiter type]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="2141"/>
+        <source>&lt;no user script selected&gt;</source>
+        <comment>[[popup info]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="2144"/>
+        <source>&lt;no user script selected&gt;</source>
+        <comment>[[space for user script custom input]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="2170"/>
+        <source>&lt;user script has no custom input&gt;</source>
+        <comment>[[space for user script custom input]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin.cpp" line="2858"/>
+        <source>LaTeX error, click &apos;Evaluate&apos; to see error message.</source>
+        <comment>[[real-time preview tooltip]]</comment>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2735,349 +3184,362 @@ Ecraser ?</translation>
         <location filename="obsolete/obsoletetext.cpp" line="59"/>
         <source>KLatexFormula</source>
         <comment>window title</comment>
-        <translation>KLatexFormula</translation>
+        <translation type="unfinished">KLatexFormula</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="62"/>
         <source>Enter &amp;LaTeX expression:</source>
-        <translation>Saisissez l&apos;expression &amp;LaTeX :</translation>
+        <translation type="unfinished">Saisissez l&apos;expression &amp;LaTeX :</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="81"/>
         <source>Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.</source>
-        <translation>Editez ou coller le code LaTeX de votre formule ici. En tout temps, utilisez la touche &lt;strong&gt;F4&lt;/strong&gt; pour venir sur l&apos;éditeur.</translation>
+        <translation type="unfinished">Editez ou coller le code LaTeX de votre formule ici. En tout temps, utilisez la touche &lt;strong&gt;F4&lt;/strong&gt; pour venir sur l&apos;éditeur.</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="117"/>
         <source>Clear the above field</source>
         <comment>tooltip</comment>
-        <translation>Effacer le champ ci-dessus</translation>
+        <translation type="unfinished">Effacer le champ ci-dessus</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="120"/>
         <source>Clicking this button is a utility to clear the LaTeX code entry field above</source>
         <comment>whatsthis</comment>
-        <translation>Efface le champ ci-dessus</translation>
+        <translation type="unfinished">Efface le champ ci-dessus</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="127"/>
         <source>Ctrl+C</source>
-        <translation>Ctrl+C</translation>
+        <translation type="unfinished">Ctrl+C</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="60"/>
         <source>Evaluate LaTeX Expression [Shift-Enter]</source>
         <comment>tooltip</comment>
-        <translation>Evaluer l&apos;expression LaTeX [Shift-Enter]</translation>
+        <translation type="unfinished">Evaluer l&apos;expression LaTeX [Shift-Enter]</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="143"/>
         <source>Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</source>
         <comment>whatsthistext</comment>
-        <translation>Crée une image à partir de la formule &lt;i&gt;LaTeX&lt;/i&gt; ci-dessus, qui sera affichée ci-dessous.</translation>
+        <translation type="unfinished">Crée une image à partir de la formule &lt;i&gt;LaTeX&lt;/i&gt; ci-dessus, qui sera affichée ci-dessous.</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="146"/>
         <source>&amp;Evaluate</source>
-        <translation>&amp;Evaluer</translation>
+        <translation type="unfinished">&amp;Evaluer</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="61"/>
         <source>Show Latex Symbols palette</source>
         <comment>tooltip</comment>
-        <translation>Afficher la palette de symboles LaTeX</translation>
+        <translation type="unfinished">Afficher la palette de symboles LaTeX</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="172"/>
         <source>Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</source>
         <comment>whatsthis text</comment>
-        <translation>Ouvre une fenêtre affichant des palettes de symboles LaTeX dont vous ne connaîtriez pas forcément par coeur tous les codes.</translation>
+        <translation type="unfinished">Ouvre une fenêtre affichant des palettes de symboles LaTeX dont vous ne connaîtriez pas forcément par coeur tous les codes.</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="195"/>
         <location filename="obsolete/obsoletetext.cpp" line="63"/>
         <source>Show Library</source>
         <comment>tooltip</comment>
-        <translation>Afficher la bibliothèque</translation>
+        <translation type="unfinished">Afficher la bibliothèque</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="198"/>
         <source>Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</source>
         <comment>whatsthis text</comment>
-        <translation>Ouvre une fênetre avec la bibliothèque de formules précédemment rendues (historique) et sauvegardées et organisées (archives).</translation>
+        <translation type="unfinished">Ouvre une fênetre avec la bibliothèque de formules précédemment rendues (historique) et sauvegardées et organisées (archives).</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="62"/>
         <source>Toggle shrinked/expanded mode</source>
         <comment>tooltip</comment>
-        <translation>Basculer mode étendu ou simple</translation>
+        <translation type="unfinished">Basculer mode étendu ou simple</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="140"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Evaluer l&apos;expression LaTeX [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</translation>
+        <translation type="unfinished">&lt;p style=&quot;white-space: pre&quot;&gt;Evaluer l&apos;expression LaTeX [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="169"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher la palette de symboles LaTeX&lt;/p&gt;</translation>
+        <translation type="unfinished">&lt;p style=&quot;white-space: pre&quot;&gt;Afficher la palette de symboles LaTeX&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="221"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode&lt;/p&gt;</source>
         <comment>tooltip</comment>
-        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Basculer mode étendu ou simple&lt;/p&gt;</translation>
+        <translation type="unfinished">&lt;p style=&quot;white-space: pre&quot;&gt;Basculer mode étendu ou simple&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="224"/>
         <source>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</source>
-        <translation>Bascule entre mode étendu et mode compact. En mode étendu plus d&apos;options s&apos;offrent à vous.</translation>
+        <translation type="unfinished">Bascule entre mode étendu et mode compact. En mode étendu plus d&apos;options s&apos;offrent à vous.</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="231"/>
         <location filename="obsolete/obsoletetext.cpp" line="64"/>
         <source>Ctrl+E, Ctrl+Space</source>
-        <translation>Ctrl+E, Ctrl+Space</translation>
+        <translation type="unfinished">Ctrl+E, Ctrl+Space</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="258"/>
         <location filename="obsolete/obsoletetext.cpp" line="65"/>
         <source>Click and keep mouse button pressed to drag your formula to an other application</source>
-        <translation>Cliquez et en maintenant appuyé le bouton de souris traînez l&apos;image dans une autre application ou sur le bureau</translation>
+        <translation type="unfinished">Cliquez et en maintenant appuyé le bouton de souris traînez l&apos;image dans une autre application ou sur le bureau</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="261"/>
         <source>&amp;DRAG</source>
-        <translation>&amp;TRAINER</translation>
+        <translation type="unfinished">&amp;TRAINER</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="268"/>
         <location filename="obsolete/obsoletetext.cpp" line="66"/>
         <source>Copy formula to clipboard</source>
-        <translation>Copie l&apos;image sur le presse-papiers</translation>
+        <translation type="unfinished">Copie l&apos;image sur le presse-papiers</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="271"/>
         <source>&amp;COPY</source>
-        <translation>&amp;COPIER</translation>
+        <translation type="unfinished">&amp;COPIER</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="274"/>
         <source>Alt+Y</source>
-        <translation>Alt+Y</translation>
+        <translation type="unfinished">Alt+Y</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="281"/>
         <source>Save formula to disk</source>
-        <translation>Enregistrer sur le disque</translation>
+        <translation type="unfinished">Enregistrer sur le disque</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="284"/>
         <source>&amp;SAVE</source>
-        <translation>&amp;ENR.</translation>
+        <translation type="unfinished">&amp;ENR.</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="319"/>
         <source>The resulting image will be displayed here</source>
         <comment>tooltip</comment>
-        <translation>L&apos;image de la formule sera affichée ici</translation>
+        <translation type="unfinished">L&apos;image de la formule sera affichée ici</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="322"/>
         <source>Here you can see the image you get after evaluating your LaTeX code.</source>
         <comment>whatsthis</comment>
-        <translation>Ici s&apos;affiche l&apos;image rendue de la formula LaTeX saisie ci-dessus.</translation>
+        <translation type="unfinished">Ici s&apos;affiche l&apos;image rendue de la formula LaTeX saisie ci-dessus.</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="372"/>
         <source>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</source>
-        <translation>&lt;p style=&quot;white-space: pre&quot;&gt;Afficher une fenêtre de prévisualisation plus grande [touche &lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</translation>
+        <translation type="unfinished">&lt;p style=&quot;white-space: pre&quot;&gt;Afficher une fenêtre de prévisualisation plus grande [touche &lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="392"/>
         <source>Quit KLatexFormula</source>
         <comment>tooltip</comment>
-        <translation>Quitter KLatexFormula</translation>
+        <translation type="unfinished">Quitter KLatexFormula</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="395"/>
         <source>Exit KLatexFormula</source>
         <comment>whatsthis</comment>
-        <translation>Quitter KLatexFormula</translation>
+        <translation type="unfinished">Quitter KLatexFormula</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="398"/>
         <source>Quit</source>
-        <translation>Quitter</translation>
+        <translation type="unfinished">Quitter</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="405"/>
         <source>Ctrl+Q</source>
-        <translation>Ctrl+Q</translation>
+        <translation type="unfinished">Ctrl+Q</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="436"/>
         <source>Colors</source>
-        <translation>Couleurs</translation>
+        <translation type="unfinished">Couleurs</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="451"/>
         <source>&amp;Foreground color:</source>
-        <translation>&amp;Couleur d&apos;avant-plan :</translation>
+        <translation type="unfinished">&amp;Couleur d&apos;avant-plan :</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="471"/>
         <source>Check this if you want your formula to have a transparent background</source>
-        <translation>Cochez cette case pour un arrière-plan transparent</translation>
+        <translation type="unfinished">Cochez cette case pour un arrière-plan transparent</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="474"/>
         <source>Use &amp;transparent background</source>
-        <translation>Utiliser un fond &amp;transparent</translation>
+        <translation type="unfinished">Utiliser un fond &amp;transparent</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="477"/>
         <source>Alt+U</source>
-        <translation>Alt+U</translation>
+        <translation type="unfinished">Alt+U</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="490"/>
         <source>&amp;Background color:</source>
-        <translation>Couleur de &amp;fond :</translation>
+        <translation type="unfinished">Couleur de &amp;fond :</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="516"/>
         <location filename="obsolete/obsoletetext.cpp" line="67"/>
         <source>Latex &amp;&amp; Image Settings</source>
-        <translation>Latex &amp;&amp; Image</translation>
+        <translation type="unfinished">Latex &amp;&amp; Image</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="525"/>
         <source>Check this to use a LaTeX math mode</source>
-        <translation>Cocher pour utiliser un mode Mathématique Latex</translation>
+        <translation type="unfinished">Cocher pour utiliser un mode Mathématique Latex</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="528"/>
         <source>Use &amp;Math mode:</source>
-        <translation>Utiliser le &amp;Mode :</translation>
+        <translation type="unfinished">Utiliser le &amp;Mode :</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="545"/>
         <source>\[ ... \]</source>
-        <translation>\[ ... \]</translation>
+        <translation type="unfinished">\[ ... \]</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="550"/>
         <source>$ ... $</source>
-        <translation>$ ... $</translation>
+        <translation type="unfinished">$ ... $</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="555"/>
         <source>\begin{eqnarray*} ... \end{eqnarray*}</source>
-        <translation>\begin{eqnarray*} ... \end{eqnarray*}</translation>
+        <translation type="unfinished">\begin{eqnarray*} ... \end{eqnarray*}</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="563"/>
         <source>Edit LaTeX &amp;preamble:</source>
-        <translation>Modifier le &amp;préambule LaTeX :</translation>
+        <translation type="unfinished">Modifier le &amp;préambule LaTeX :</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="597"/>
         <source>DPI &amp;Resolution:</source>
-        <translation>&amp;Résuolution DPI :</translation>
+        <translation type="unfinished">&amp;Résuolution DPI :</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="618"/>
         <source>Presets</source>
-        <translation>Préréglages</translation>
+        <translation type="unfinished">Préréglages</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="657"/>
         <source>Load a previously saved style</source>
-        <translation>Charger un style préalablement sauvegardé</translation>
+        <translation type="unfinished">Charger un style préalablement sauvegardé</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="660"/>
         <source>Load St&amp;yle</source>
-        <translation>Charger St&amp;yle</translation>
+        <translation type="unfinished">Charger St&amp;yle</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="667"/>
         <source>Alt+L</source>
-        <translation>Alt+L</translation>
+        <translation type="unfinished">Alt+L</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="680"/>
         <source>Save current style (colors, etc.)</source>
-        <translation>Enregistrer le style courant</translation>
+        <translation type="unfinished">Enregistrer le style courant</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="683"/>
         <source>Sa&amp;ve Style</source>
-        <translation>En&amp;registrer Style</translation>
+        <translation type="unfinished">En&amp;registrer Style</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="703"/>
         <location filename="obsolete/klfmainwinui.ui" line="726"/>
         <source>Edit KLatexFormula settings</source>
-        <translation>Modifier les paramètres KLatexFormula</translation>
+        <translation type="unfinished">Modifier les paramètres KLatexFormula</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="706"/>
         <source>Settings...</source>
-        <translation>Paramètres ...</translation>
+        <translation type="unfinished">Paramètres ...</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="713"/>
         <source>Alt+N</source>
-        <translation>Alt+N</translation>
+        <translation type="unfinished">Alt+N</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="733"/>
         <source>F1</source>
-        <translation>F1</translation>
+        <translation type="unfinished">F1</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="745"/>
         <source>High Resolution (1200)</source>
-        <translation>Haute Résolution (1200)</translation>
+        <translation type="unfinished">Haute Résolution (1200)</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="748"/>
         <source>Very good resolution</source>
-        <translation>Très bonne résolution</translation>
+        <translation type="unfinished">Très bonne résolution</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="753"/>
         <source>Good Resolution (600)</source>
-        <translation>Bonne Résolution (600)</translation>
+        <translation type="unfinished">Bonne Résolution (600)</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="756"/>
         <source>Pretty good resolution</source>
-        <translation>Assez bonne résolution</translation>
+        <translation type="unfinished">Assez bonne résolution</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="761"/>
         <source>Medium Resolution (300)</source>
-        <translation>Résolution Moyenne (300)</translation>
+        <translation type="unfinished">Résolution Moyenne (300)</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="764"/>
         <source>Medium resolution</source>
-        <translation>résolution moyenne</translation>
+        <translation type="unfinished">résolution moyenne</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="769"/>
         <source>Low Resolution (150)</source>
-        <translation>Basse Résolution (150)</translation>
+        <translation type="unfinished">Basse Résolution (150)</translation>
     </message>
     <message>
         <location filename="obsolete/klfmainwinui.ui" line="772"/>
         <source>Low resolution</source>
-        <translation>basse résolution</translation>
+        <translation type="unfinished">basse résolution</translation>
+    </message>
+</context>
+<context>
+    <name>KLFPObjModel</name>
+    <message>
+        <location filename="../klftools/klfpobjeditwidget.cpp" line="167"/>
+        <source>Property</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfpobjeditwidget.cpp" line="169"/>
+        <source>Value</source>
+        <translation type="unfinished">Valeur</translation>
     </message>
 </context>
 <context>
@@ -3092,25 +3554,32 @@ Ecraser ?</translation>
 <context>
     <name>KLFProgErr</name>
     <message>
-        <location filename="../klfprogerr.ui" line="15"/>
         <source>Error</source>
-        <translation>Erreur</translation>
+        <translation type="obsolete">Erreur</translation>
     </message>
     <message>
-        <location filename="../klfprogerr.ui" line="61"/>
         <source>An error occured!</source>
-        <translation>Une erreur est survenue !</translation>
+        <translation type="obsolete">Une erreur est survenue !</translation>
     </message>
     <message>
+        <location filename="../klfprogerr.ui" line="15"/>
+        <source>Program Output</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfprogerr.ui" line="78"/>
         <location filename="../klfprogerr.ui" line="81"/>
-        <location filename="../klfprogerr.ui" line="84"/>
         <source>Close dialog</source>
         <translation>Fermer la fenêtre</translation>
     </message>
     <message>
-        <location filename="../klfprogerr.ui" line="87"/>
+        <location filename="../klfprogerr.ui" line="84"/>
+        <source>Dismiss</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Close</source>
-        <translation>Fermer</translation>
+        <translation type="obsolete">Fermer</translation>
     </message>
 </context>
 <context>
@@ -3118,23 +3587,23 @@ Ecraser ?</translation>
     <message>
         <location filename="obsolete/klfprogerrui.ui" line="14"/>
         <source>Error</source>
-        <translation>Erreur</translation>
+        <translation type="unfinished">Erreur</translation>
     </message>
     <message>
         <location filename="obsolete/klfprogerrui.ui" line="50"/>
         <source>An error occured!</source>
-        <translation>Une erreur est survenue !</translation>
+        <translation type="unfinished">Une erreur est survenue !</translation>
     </message>
     <message>
         <location filename="obsolete/klfprogerrui.ui" line="77"/>
         <location filename="obsolete/klfprogerrui.ui" line="80"/>
         <source>Close dialog</source>
-        <translation>Fermer la fenêtre</translation>
+        <translation type="unfinished">Fermer la fenêtre</translation>
     </message>
     <message>
         <location filename="obsolete/klfprogerrui.ui" line="83"/>
         <source>Close</source>
-        <translation>Fermer</translation>
+        <translation type="unfinished">Fermer</translation>
     </message>
     <message>
         <location filename="obsolete/klfprogerrui.ui" line="66"/>
@@ -3144,7 +3613,7 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Lucida Grande&apos;; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translatorcomment>[NOT TRANSLATED]</translatorcomment>
-        <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+        <translation type="unfinished">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Lucida Grande&apos;; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
@@ -3154,12 +3623,12 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>KLFProgressDialog</name>
     <message>
-        <location filename="../klftools/klfguiutil.cpp" line="97"/>
+        <location filename="../klftools/klfguiutil.cpp" line="98"/>
         <source>Progress</source>
         <translation>En cours ...</translation>
     </message>
     <message>
-        <location filename="../klftools/klfguiutil.cpp" line="98"/>
+        <location filename="../klftools/klfguiutil.cpp" line="99"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
@@ -3208,42 +3677,48 @@ p, li { white-space: pre-wrap; }
         <translation>Trouver l&apos;apparition suivante du critère de recherche</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="248"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="350"/>
         <source>Hit Ctrl-F, Ctrl-S or / to start searching</source>
         <translation>Appuyez sur Ctrl-F, Ctrl-S ou / pour démarrer une recherche</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="357"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="471"/>
         <source>Ctrl+F</source>
         <comment>[[find]]</comment>
         <translation>Ctrl+F</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="358"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="472"/>
         <source>Ctrl+S</source>
         <comment>[[find]]</comment>
         <translation>Ctrl+S</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="359"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="473"/>
+        <source>Ctrl+G</source>
+        <comment>[[find]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfsearchbar.cpp" line="474"/>
         <source>/</source>
         <comment>[[find]]</comment>
         <translation>/</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="360"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="475"/>
         <source>F3</source>
         <comment>[[find next]]</comment>
         <translation>F3</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="361"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="476"/>
         <source>Shift+F3</source>
         <comment>[[find prev]]</comment>
         <translation>Shift+F3</translation>
     </message>
     <message>
-        <location filename="../klftools/klfsearchbar.cpp" line="362"/>
+        <location filename="../klftools/klfsearchbar.cpp" line="477"/>
         <source>Ctrl+R</source>
         <comment>[[find rev]]</comment>
         <translation>Ctrl+R</translation>
@@ -3254,68 +3729,67 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="79"/>
         <source>Main editor font sample - click to change</source>
-        <translation>Police de l&apos;éditeur principal - cliquer pour changer</translation>
+        <translation type="unfinished">Police de l&apos;éditeur principal - cliquer pour changer</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="80"/>
         <source>Preamble editor font sample - click to change</source>
-        <translation>Police de l&apos;éditeur secondaire - cliquer pour changer</translation>
+        <translation type="unfinished">Police de l&apos;éditeur secondaire - cliquer pour changer</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="81"/>
         <source>Preview Size</source>
-        <translation>Taille de la prévisualisation</translation>
+        <translation type="unfinished">Taille de la prévisualisation</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="82"/>
         <source>Maximum Size of Preview Tooltip on LaTeX formula display</source>
-        <translation>Taille maximale de l&apos;info-bulle de prévisualisation</translation>
+        <translation type="unfinished">Taille maximale de l&apos;info-bulle de prévisualisation</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="83"/>
         <source>System E&amp;xecutables and paths</source>
-        <translation>Chemins d&apos;a&amp;ccès système</translation>
+        <translation type="unfinished">Chemins d&apos;a&amp;ccès système</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="84"/>
         <source>A&amp;dvanced settings</source>
-        <translation>&amp;Paramètres avancés</translation>
+        <translation type="unfinished">&amp;Paramètres avancés</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="69"/>
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation type="unfinished">Annuler</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="70"/>
         <source>Apply</source>
-        <translation>Appliquer</translation>
+        <translation type="unfinished">Appliquer</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="71"/>
         <source>OK</source>
-        <translation>OK</translation>
+        <translation type="unfinished">OK</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="73"/>
         <source>English Default</source>
         <comment>[[first item of language graphical choice box]]</comment>
-        <translation>Anglais par défaut</translation>
+        <translation type="unfinished">Anglais par défaut</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="74"/>
         <source>%1 (%2)</source>
         <comment>[[%1=Language (%2=Country)]]</comment>
-        <translation>%1 (%2)</translation>
+        <translation type="unfinished">%1 (%2)</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="75"/>
         <source>%1</source>
         <comment>[[%1=Language, no country is specified]]</comment>
-        <translation>%1</translation>
+        <translation type="unfinished">%1</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="627"/>
         <source>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;&quot;&gt;
 &lt;tt&gt;Name:&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%1&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Author:&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%2&lt;/span&gt;&lt;br /&gt;
@@ -3324,7 +3798,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;&quot;&gt;
 &lt;tt&gt;File Location:&lt;/tt&gt; &lt;span style=&quot;font-size: %4pt;&quot;&gt;%5&lt;/span&gt;
 </source>
-        <translation>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;&quot;&gt;
+        <translation type="obsolete">&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px;&quot;&gt;
 &lt;tt&gt;Nom :&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%1&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Auteur :&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%2&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Description :&lt;/tt&gt;&lt;/p&gt;
@@ -3334,50 +3808,47 @@ p, li { white-space: pre-wrap; }
 </translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="688"/>
-        <location filename="../klfsettings.cpp" line="725"/>
-        <location filename="../klfsettings.cpp" line="741"/>
-        <location filename="../klfsettings.cpp" line="862"/>
-        <location filename="../klfsettings.cpp" line="868"/>
-        <location filename="../klfsettings.cpp" line="874"/>
-        <location filename="../klfsettings.cpp" line="883"/>
-        <location filename="../klfsettings.cpp" line="981"/>
+        <location filename="../klfsettings.cpp" line="890"/>
+        <location filename="../klfsettings.cpp" line="929"/>
+        <location filename="../klfsettings.cpp" line="1093"/>
+        <location filename="../klfsettings.cpp" line="1099"/>
+        <location filename="../klfsettings.cpp" line="1105"/>
+        <location filename="../klfsettings.cpp" line="1114"/>
+        <location filename="../klfsettings.cpp" line="1212"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="725"/>
+        <location filename="../klfsettings.cpp" line="929"/>
         <source>Failed to remove Plugin %1.</source>
         <translation>Impossible d&apos;effacer le greffon %1.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="741"/>
         <source>Could not find %1 executable !</source>
-        <translation>Impossible de trouver l&apos;exécutable `%1&apos; !</translation>
+        <translation type="obsolete">Impossible de trouver l&apos;exécutable `%1&apos; !</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="743"/>
         <source>Please check your installation and specify the path to %1 executable manually if it is not installed in $PATH.</source>
-        <translation>Vérifiez votre installation et spécifiez le chemin à l&apos;exécutable `%1&apos; manuellement s&apos;il n&apos;est pas dans $PATH.</translation>
+        <translation type="obsolete">Vérifiez votre installation et spécifiez le chemin à l&apos;exécutable `%1&apos; manuellement s&apos;il n&apos;est pas dans $PATH.</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="76"/>
         <source>Could not find `%1&apos; executable !</source>
-        <translation>Impossible de trouver l&apos;exécutable `%1&apos; !</translation>
+        <translation type="unfinished">Impossible de trouver l&apos;exécutable `%1&apos; !</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="77"/>
         <source>Please check your installation and specify the path to `%1&apos; executable manually if it is not installed in $PATH.</source>
-        <translation>Vérifiez votre installation et spécifiez le chemin à l&apos;exécutable `%1&apos; manuellement s&apos;il n&apos;est pas dans $PATH.</translation>
+        <translation type="unfinished">Vérifiez votre installation et spécifiez le chemin à l&apos;exécutable `%1&apos; manuellement s&apos;il n&apos;est pas dans $PATH.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="85"/>
+        <location filename="../klfsettings.cpp" line="116"/>
         <source>Top to Bottom</source>
         <translatorcomment>not literally translated, kept idea though</translatorcomment>
         <translation>Défilement horizontal</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="85"/>
+        <location filename="../klfsettings.cpp" line="116"/>
         <source>Left to Right</source>
         <translatorcomment>not literally translated, kept idea though</translatorcomment>
         <translation>Défilement vertical</translation>
@@ -3385,40 +3856,38 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="86"/>
         <source>No Plugins have been loaded. Please install and enable individual plugins before trying to configure them.</source>
-        <translation>Aucun greffon n&apos;a été chargé. Installez puis activez d&apos;abord les greffons avant de les configurer.</translation>
+        <translation type="unfinished">Aucun greffon n&apos;a été chargé. Installez puis activez d&apos;abord les greffons avant de les configurer.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="571"/>
         <source>No Plugins have been loaded. Please install and enable individual plugins first, then come back to this page to configure them.</source>
-        <translation>Aucun greffon n&apos;a été chargé. Installez puis activez d&apos;abord les greffons, après quoi vous pouvez revenir dans cet onglet pour les configurer.</translation>
+        <translation type="obsolete">Aucun greffon n&apos;a été chargé. Installez puis activez d&apos;abord les greffons, après quoi vous pouvez revenir dans cet onglet pour les configurer.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="576"/>
         <source>No Plugins Loaded</source>
-        <translation>Aucun greffon chargé</translation>
+        <translation type="obsolete">Aucun greffon chargé</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="662"/>
+        <location filename="../klfsettings.cpp" line="864"/>
         <source>Remove Plugin?</source>
         <translation>Effacer le greffon ?</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="663"/>
+        <location filename="../klfsettings.cpp" line="865"/>
         <source>&lt;qt&gt;Are you sure you want to remove Plugin &lt;i&gt;%1&lt;/i&gt;?&lt;/qt&gt;</source>
         <translation>&lt;qt&gt;Êtes-vous sûr de vouloir supprimer le greffon &lt;i&gt;%1&lt;/i&gt; ?&lt;/qt&gt;</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="664"/>
+        <location filename="../klfsettings.cpp" line="866"/>
         <source>The Plugin File %1 will be removed from disk.</source>
         <translation>Le Fichier Greffon %1 sera effacé.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="678"/>
+        <location filename="../klfsettings.cpp" line="880"/>
         <source>Remove Plugin</source>
         <translation>Supprimer le Greffon</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="679"/>
+        <location filename="../klfsettings.cpp" line="881"/>
         <source>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px;&quot;&gt;Please note the following:&lt;br /&gt;
 &lt;ul&gt;&lt;li&gt;You need to restart KLatexFormula for changes to take effect
 &lt;li&gt;If this plugin was privided in an add-on, you need to remove the corresponding add-on too or the plugin will be automatically re-installed.&lt;/p&gt;</source>
@@ -3427,12 +3896,11 @@ p, li { white-space: pre-wrap; }
 &lt;li&gt;Si ce greffon a été installé par un module d&apos;extension, il faudra supprimer également ce dernier pour empêcher le greffon d&apos;être automatiquement réinstallé.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="688"/>
+        <location filename="../klfsettings.cpp" line="890"/>
         <source>Failed to remove Plugin.</source>
         <translation>Impossible de supprimer le greffon.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="816"/>
         <source>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px&quot;&gt;
 &lt;tt&gt;Name:&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%1&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Author:&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%2&lt;/span&gt;&lt;br /&gt;
@@ -3442,7 +3910,7 @@ p, li { white-space: pre-wrap; }
 &lt;tt&gt;File Name:&lt;/tt&gt; &lt;span style=&quot;font-size: %5pt;&quot;&gt;%4&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;File Location:&lt;/tt&gt; &lt;span style=&quot;font-size: %5pt;&quot;&gt;%6&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;&lt;i&gt;%7&lt;/i&gt;&lt;/tt&gt;</source>
-        <translation>&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px&quot;&gt;
+        <translation type="obsolete">&lt;p style=&quot;-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px&quot;&gt;
 &lt;tt&gt;Nom :&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%1&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Auteur :&lt;/tt&gt; &lt;span style=&quot;font-weight:600;&quot;&gt;%2&lt;/span&gt;&lt;br /&gt;
 &lt;tt&gt;Description :&lt;/tt&gt;&lt;/p&gt;
@@ -3453,32 +3921,30 @@ p, li { white-space: pre-wrap; }
 &lt;tt&gt;&lt;i&gt;%7&lt;/i&gt;&lt;/tt&gt;</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="832"/>
         <source>Add-On installed locally</source>
-        <translation>Extension installée localement</translation>
+        <translation type="obsolete">Extension installée localement</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="833"/>
         <source>Add-On installed globally on system</source>
-        <translation>Extension installée globalement sur le système</translation>
+        <translation type="obsolete">Extension installée globalement sur le système</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="842"/>
+        <location filename="../klfsettings.cpp" line="1073"/>
         <source>Please select add-on file(s) to import</source>
         <translation>Veuillez sélectionner les fichiers d&apos;extensions à installer</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="862"/>
+        <location filename="../klfsettings.cpp" line="1093"/>
         <source>File %1 cannot be accessed.</source>
         <translation>Le fichier %1 n&apos;est pas accessible.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="869"/>
+        <location filename="../klfsettings.cpp" line="1100"/>
         <source>An Add-On with the same file name has already been imported.</source>
         <translation>Un module d&apos;extension avec le même nom a déjà été installé.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="884"/>
+        <location filename="../klfsettings.cpp" line="1115"/>
         <source>This add-on requires a more recent version of KLatexFormula.
 Required version: %1
 This version: %2</source>
@@ -3487,499 +3953,862 @@ Version requise: %1
 Version actuelle: %2</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="874"/>
+        <location filename="../klfsettings.cpp" line="1105"/>
         <source>Import of add-on file %1 failed.</source>
         <translation>L&apos;importation de l&apos;extension %1 a échoué.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="851"/>
-        <location filename="../klfsettings.cpp" line="931"/>
+        <location filename="../klfsettings.cpp" line="1082"/>
+        <location filename="../klfsettings.cpp" line="1162"/>
         <source>Import</source>
         <translation>Importation</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="851"/>
-        <location filename="../klfsettings.cpp" line="931"/>
-        <location filename="../klfsettings.cpp" line="978"/>
+        <location filename="../klfsettings.cpp" line="1082"/>
+        <location filename="../klfsettings.cpp" line="1162"/>
+        <location filename="../klfsettings.cpp" line="1209"/>
         <source>Please restart KLatexFormula for changes to take effect.</source>
         <translation>Veuillez redémarrer KLatexFormula pour appliquer les modifications.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="914"/>
+        <location filename="obsolete/obsoletetext.cpp" line="215"/>
         <source>Change Langugage</source>
-        <translation>Changer la langue</translation>
+        <translation type="unfinished">Changer la langue</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="914"/>
+        <location filename="../klfsettings.cpp" line="1145"/>
         <source>Change application language to &lt;b&gt;%1&lt;/b&gt;?</source>
         <translation>Changer la langue de l&apos;application de Français à &lt;b&gt;%1&lt;/b&gt; ?</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="951"/>
+        <location filename="../klfsettings.cpp" line="1145"/>
+        <source>Change Language</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1182"/>
         <source>Remove Add-On?</source>
         <translation>Supprimer le module ?</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="952"/>
+        <location filename="../klfsettings.cpp" line="1183"/>
         <source>&lt;qt&gt;Are you sure you want to remove Add-On &lt;i&gt;%1&lt;/i&gt;?&lt;/qt&gt;</source>
         <translation>&lt;qt&gt;Êtes-vous sûr de vouloir supprimer le module d&apos;extension &lt;i&gt;%1&lt;/i&gt; ?&lt;/qt&gt;</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="957"/>
+        <location filename="../klfsettings.cpp" line="1188"/>
         <source>The Add-On File %1 will be removed from disk, along with plugin(s) %2.</source>
         <translation>Le Fichier de module %1 sera effacé, ainsi que le(s) greffon(s) %2.</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="87"/>
-        <location filename="../klfsettings.cpp" line="960"/>
+        <location filename="../klfsettings.cpp" line="1191"/>
         <source>The Add-On File %1 will be removed from disk.</source>
         <translation>Le fichier module %1 sera effacé.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1676"/>
-        <location filename="../klfsettings.cpp" line="977"/>
+        <location filename="../klfsettings.ui" line="1054"/>
+        <location filename="../klfsettings.cpp" line="1208"/>
         <source>Remove Add-On</source>
         <translation>Suppression du module</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="981"/>
+        <location filename="../klfsettings.cpp" line="1212"/>
         <source>Failed to remove Add-On.</source>
         <translation>La suppression du module a échoué.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="1109"/>
+        <location filename="../klfsettings.cpp" line="1611"/>
         <source>Language changed</source>
         <translation>Changement de langue</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="1110"/>
+        <location filename="../klfsettings.cpp" line="1612"/>
         <source>You may need to restart KLatexFormula for your new language settings to fully take effect.</source>
         <translation>Il sera peut-être nécessaire de redémarrer KLatexFormula pour complètement prendre en compte le changement de langue.</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="78"/>
         <source>You need to restart KLatexFormula for your new language settings to take effect.</source>
-        <translation>Veuillez redémarrer KLatexFormula pour prendre en compte le changement de langue.</translation>
+        <translation type="unfinished">Veuillez redémarrer KLatexFormula pour prendre en compte le changement de langue.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="1186"/>
+        <location filename="../klfsettings.cpp" line="1725"/>
         <source>Restart KLatexFormula</source>
         <translation>Redémarrez KLatexFormula</translation>
     </message>
     <message>
-        <location filename="../klfsettings.cpp" line="1187"/>
+        <location filename="../klfsettings.cpp" line="1726"/>
         <source>You need to restart KLatexFormula for your changes to take effect.</source>
         <translation>Veuillez redémarrer KLatexFormula pour appliquer les modifications.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="24"/>
+        <location filename="../klfsettings.ui" line="18"/>
         <source>KLatexFormula - Settings</source>
         <translation>KLatexFormula - Paramètres</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="41"/>
         <source>&amp;Appearance</source>
-        <translation>&amp;Apparence</translation>
+        <translation type="obsolete">&amp;Apparence</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="58"/>
+        <location filename="../klfsettings.ui" line="121"/>
         <source>Application language:</source>
         <translation>Langue de l&apos;application :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="77"/>
+        <location filename="../klfsettings.ui" line="1371"/>
         <source>Application Font - click to change</source>
         <translation>Police d&apos;application - cliquer pour changer</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="315"/>
         <source>LaTeX editor fonts</source>
-        <translation>Polices d&apos;édition de code LaTeX</translation>
+        <translation type="obsolete">Polices d&apos;édition de code LaTeX</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="330"/>
+        <location filename="../klfsettings.ui" line="1291"/>
         <source>Main editor font - click to change</source>
         <translation>Police de l&apos;éditeur principal - cliquer pour changer</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="343"/>
+        <location filename="../klfsettings.ui" line="1310"/>
         <source>Preamble editor font - click to change</source>
         <translation>Police de l&apos;éditeur secondaire - cliquer pour changer</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="84"/>
+        <location filename="../klfsettings.ui" line="133"/>
         <source>Preview</source>
         <translation>Prévisualisation</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="147"/>
+        <location filename="../klfsettings.ui" line="633"/>
         <source>Preview size:</source>
         <translation>Taille:</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="154"/>
+        <location filename="../klfsettings.ui" line="139"/>
         <source>Preview formulas as you type</source>
         <translation>Prévisualiser les formules pendant que vous les tapez</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="167"/>
         <source>Tooltip Preview</source>
-        <translation>Prévisualisation plus grande dans l&apos;info-bulle</translation>
+        <translation type="obsolete">Prévisualisation plus grande dans l&apos;info-bulle</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="173"/>
         <source>Max size:</source>
-        <translation>Taille max.:</translation>
+        <translation type="obsolete">Taille max.:</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="237"/>
+        <location filename="../klfsettings.ui" line="149"/>
         <source>Show bigger preview in a tooltip on mouse hover</source>
         <translation>Afficher une prévisualisation plus grande dans une info-bulle</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="250"/>
         <source>Interface Options</source>
-        <translation>Options de l&apos;interface</translation>
+        <translation type="obsolete">Options de l&apos;interface</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="256"/>
+        <location filename="../klfsettings.ui" line="2254"/>
         <source>Suggest inclusion of detected missing packages</source>
         <translation>Proposer d&apos;inclure les paquets détectés manquants</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="263"/>
+        <location filename="../klfsettings.ui" line="2261"/>
         <source>&lt;p&gt;If this box is left unchecked, the clear button under to the LaTeX code editor clears the editor and resets the default style. By enabling this option, only the LaTeX field is cleared and the style is not modified.&lt;/p&gt;</source>
         <extracomment>[[tooltip]]</extracomment>
         <translation>&lt;p&gt;Si cette boîte reste sans coche, le bouton &amp;quot;effacer&amp;quot; dans la fenêtre principale effacera le champ LaTeX et restaurera le style par défaut. En activant cette option, seul le champ LaTeX est effacé.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="266"/>
+        <location filename="../klfsettings.ui" line="2264"/>
         <source>Clear button clears LaTeX field only</source>
         <translation>Le bouton &quot;effacer&quot; n&apos;efface que le champ LaTeX</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="273"/>
+        <location filename="../klfsettings.ui" line="1394"/>
         <source>Display Equations Glow Effect</source>
         <translation>Faire reluire les équations</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="305"/>
-        <location filename="../klfsettings.ui" line="356"/>
-        <location filename="../klfsettings.ui" line="372"/>
+        <location filename="../klfsettings.ui" line="1323"/>
+        <location filename="../klfsettings.ui" line="1339"/>
+        <location filename="../klfsettings.ui" line="1355"/>
         <source>Presets</source>
         <translation>Préréglages</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="386"/>
         <source>&amp;Syntax Highlighting</source>
-        <translation>Coloration &amp;syntaxique</translation>
+        <translation type="obsolete">Coloration &amp;syntaxique</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="392"/>
+        <location filename="../klfsettings.ui" line="520"/>
         <source>Globally enable syntax highlighting</source>
         <translation>Activer la coloration syntaxique</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="402"/>
         <source>Options</source>
-        <translation>Options</translation>
+        <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="408"/>
+        <location filename="../klfsettings.ui" line="530"/>
         <source>Highlight parens only, not whole expression</source>
         <translation>Sous-ligner les parenthèses seulement, et non toute l&apos;expression</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="411"/>
-        <location filename="../klfsettings.ui" line="1269"/>
         <source>Alt+A</source>
-        <translation>Alt+A</translation>
+        <translation type="obsolete">Alt+A</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="418"/>
+        <location filename="../klfsettings.ui" line="537"/>
         <source>Highlight parens that aren&apos;t closed</source>
         <translation>Sous-ligner les parenthèses qui ne sont pas fermées</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="431"/>
         <source>Colors</source>
-        <translation>Couleurs</translation>
+        <translation type="obsolete">Couleurs</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="448"/>
+        <location filename="../klfsettings.ui" line="1691"/>
         <source>Foreground</source>
         <translation>Avant-plan</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="469"/>
+        <location filename="../klfsettings.ui" line="1712"/>
         <source>Background</source>
         <translation>Arrière-plan</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="479"/>
+        <location filename="../klfsettings.ui" line="1722"/>
         <source>Keyword color:</source>
         <translation>Mot-clef :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="561"/>
+        <location filename="../klfsettings.ui" line="1804"/>
         <source>Comment color:</source>
         <translation>Commentaire :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="643"/>
+        <location filename="../klfsettings.ui" line="1886"/>
         <source>Paren match color:</source>
         <translation>Parenthèse fermée :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="725"/>
+        <location filename="../klfsettings.ui" line="1968"/>
         <source>Paren mismatch color:</source>
         <translation>Parenthèse mal fermée :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="807"/>
+        <location filename="../klfsettings.ui" line="2050"/>
         <source>Lonely paren color:</source>
         <translation>Parenthèse non fermée :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="901"/>
+        <location filename="../klfsettings.ui" line="2144"/>
         <source>B</source>
         <translation>G</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="919"/>
+        <location filename="../klfsettings.ui" line="2162"/>
         <location filename="obsolete/obsoletetext.cpp" line="85"/>
         <source>I  </source>
         <translation>I  </translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="943"/>
         <source>A&amp;dvanced</source>
-        <translation>A&amp;vancé</translation>
+        <translation type="obsolete">A&amp;vancé</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="965"/>
         <source>Expand EPS BoundingBox</source>
-        <translation>Agrandir la boîte BoundingBox EPS</translation>
+        <translation type="obsolete">Agrandir la boîte BoundingBox EPS</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="986"/>
         <source>Bottom (Postscript points):</source>
-        <translation>En bas (en points postscript) :</translation>
+        <translation type="obsolete">En bas (en points postscript) :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1005"/>
         <source>Right (Postscript points):</source>
-        <translation>A droite (en points postscript) :</translation>
+        <translation type="obsolete">A droite (en points postscript) :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1024"/>
         <source>Left (Postscript points):</source>
-        <translation>A gauche (en points postscript) :</translation>
+        <translation type="obsolete">A gauche (en points postscript) :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1043"/>
         <source>Top (Postscript points):</source>
-        <translation>En haut (en points postscript) :</translation>
+        <translation type="obsolete">En haut (en points postscript) :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1135"/>
+        <location filename="../klfsettings.ui" line="296"/>
         <source>System Executables And Paths</source>
         <translation>Chemins d&apos;accès système</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1150"/>
+        <location filename="../klfsettings.ui" line="311"/>
         <source>Temporary directory:</source>
         <translation>Dossier temporaire :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1163"/>
+        <location filename="../klfsettings.ui" line="327"/>
         <source>Choose temporary directory</source>
         <translation>Choisissez le dossier temporaire</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1179"/>
+        <location filename="../klfsettings.ui" line="340"/>
         <source>latex :</source>
         <translation>latex :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1195"/>
+        <location filename="../klfsettings.ui" line="356"/>
         <source>Choose latex executable</source>
         <translation>Choisissez l&apos;exécutable latex</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1208"/>
+        <location filename="../klfsettings.ui" line="369"/>
         <source>dvips :</source>
         <translation>dvips :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1224"/>
+        <location filename="../klfsettings.ui" line="385"/>
         <source>Choose dvips executable</source>
         <translation>Choisissez l&apos;exécutable dvips</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1237"/>
+        <location filename="../klfsettings.ui" line="398"/>
         <source>gs :</source>
         <translation>gs :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1253"/>
+        <location filename="../klfsettings.ui" line="414"/>
         <source>Choose ghostscript executable</source>
         <translation>Choisissez l&apos;exécutable gs</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1266"/>
         <source>Have epstopdf :</source>
-        <translation>epstopdf est disponible :</translation>
+        <translation type="obsolete">epstopdf est disponible :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1282"/>
         <source>Choose epstopdf executable</source>
-        <translation>Choisissez l&apos;exécutable epstopdf</translation>
+        <translation type="obsolete">Choisissez l&apos;exécutable epstopdf</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="72"/>
         <source>Reset defaults</source>
-        <translation>Valeurs par défaut</translation>
+        <translation type="unfinished">Valeurs par défaut</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1329"/>
+        <location filename="../klfsettings.ui" line="1638"/>
         <source>More options</source>
         <translation>Options supplémentaires</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1344"/>
+        <location filename="../klfsettings.ui" line="1644"/>
         <source>Outline embedded fonts (eg. for Adobe Illustrator)</source>
         <translation>Convertir les polices en contours (p. ex. pour Adobe Illustrator)</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1354"/>
+        <location filename="../klfsettings.ui" line="222"/>
         <source>Data Export Profiles</source>
         <translation>Profils d&apos;exportation</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1388"/>
+        <location filename="../klfsettings.ui" line="241"/>
         <source>Copy export profile:</source>
         <translation>Profil d&apos;exportation pour l&apos;opération &quot;copier&quot;:</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1378"/>
+        <location filename="../klfsettings.ui" line="231"/>
         <source>Drag export profile:</source>
         <translation>Profil d&apos;exportation pour l&apos;opération &quot;traîner&quot;:</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1313"/>
+        <location filename="../klfsettings.ui" line="445"/>
         <source>Detect Settings</source>
         <translation>Détecter la configuration</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1398"/>
         <source>Menu Affects:</source>
-        <translation>Le menu affecte :</translation>
+        <translation type="obsolete">Le menu affecte :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1405"/>
+        <location filename="../klfsettings.ui" line="258"/>
         <source>Drag</source>
         <translation>Traîner-Déposer</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1412"/>
+        <location filename="../klfsettings.ui" line="265"/>
         <source>Copy</source>
         <translation>Copie</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1426"/>
+        <location filename="../klfsettings.ui" line="1214"/>
+        <source>Plugin Configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1261"/>
+        <source>Appearance</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1270"/>
+        <source>Fonts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1406"/>
+        <source>Glow Color:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1439"/>
+        <source>radius:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1456"/>
+        <source>Use Mac OS X &quot;Metal&quot; Look (Requires Restart)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1464"/>
+        <source>LaTeX &amp;&amp; Image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1473"/>
+        <source>EPS BoundingBox Margins</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1488"/>
+        <source>Bottom:</source>
+        <translation type="unfinished">En bas :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1498"/>
+        <source>Right:</source>
+        <translation type="unfinished">Droite :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1508"/>
+        <source>Top:</source>
+        <translation type="unfinished">En haut :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1577"/>
+        <source>Units:</source>
+        <translation type="unfinished">Unités :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1584"/>
+        <source>Postscript Point=pt=1;Millimeter=mm=2.835;Centimeter=cm=28.35;1/8 th inch=1/8 in=9;Inch=in=72</source>
+        <translation type="unfinished">Point Postscript=pt=1;Millimètre=mm=2.835;Centimètre=cm=28.35;1/8ème pouce=1/8 in=9;Pouce=in=72</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1593"/>
+        <source>Left:</source>
+        <translation type="unfinished">Gauche :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1651"/>
+        <source>Recalculate Postscript bounding box with ghostscript</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1662"/>
+        <source>Syntax Highlighting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="1668"/>
+        <source>Syntax Highlighting Colors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2186"/>
+        <source>Misc.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2239"/>
+        <source>Really Advanced Settings ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2248"/>
+        <source>Misc Interface Options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2289"/>
+        <source>System Messages ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2298"/>
+        <source>Popup preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2310"/>
+        <source>Maximum size:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2430"/>
+        <source>Advanced</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2433"/>
+        <source>Advanced Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2445"/>
+        <source>Interface</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2448"/>
+        <source>User Interface Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2460"/>
+        <source>LaTeX</source>
+        <translation type="unfinished">LaTeX</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2463"/>
+        <source>Latex and Image Generation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2475"/>
+        <source>Editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2478"/>
+        <source>LaTeX Editor Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2490"/>
         <source>Library</source>
         <translation>Bibliothèque</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1437"/>
+        <location filename="../klfsettings.ui" line="2523"/>
+        <source>Add-Ons &amp; Plugins settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="731"/>
         <source>Some settings may only affect newly opened resources.</source>
         <translation>Certains réglages n&apos;auront d&apos;effet que sur les ressources ouvertes à partir de maintenant.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1476"/>
         <source>Appearance and Behavior</source>
-        <translation>Apparence et comportement</translation>
+        <translation type="obsolete">Apparence et comportement</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1482"/>
+        <location filename="../klfsettings.ui" line="596"/>
         <source>Restore open resources at startup</source>
         <translation>Restaurer les ressources ouvertes lors du démarrage de KLatexFormula</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1489"/>
+        <location filename="../klfsettings.ui" line="603"/>
         <source>Confirm before closing resources</source>
         <translation>Demander confirmation avant de fermer des ressources</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1502"/>
+        <location filename="../klfsettings.ui" line="616"/>
         <source>Icon View Flow:</source>
         <translation>Disposition des icônes :</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1528"/>
         <source>When tagging a formula in History, automatically copy it to the Archive</source>
-        <translation>Lorsque une formule est catégorisée, la copier automatiquement vers l&apos;archive</translation>
+        <translation type="obsolete">Lorsque une formule est catégorisée, la copier automatiquement vers l&apos;archive</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1879"/>
+        <location filename="../klfsettings.ui" line="2408"/>
         <source>Set LaTeX Computer Modern Sans Serif Font</source>
         <translation>Mettre la police Computer Modern Sans Serif de LaTeX</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1884"/>
+        <location filename="../klfsettings.ui" line="2413"/>
         <source>Set Standard Application Font</source>
         <translation>Mettre la police d&apos;application standard</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1889"/>
+        <location filename="../klfsettings.ui" line="2418"/>
         <source>Set Default Typewriter Font</source>
         <translation>Mettre la police machine à écrire par défaut</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1539"/>
+        <location filename="../klfsettings.ui" line="2493"/>
+        <source>Library Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2505"/>
+        <source>Scripts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2508"/>
+        <source>User script settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="2520"/>
         <source>Add-Ons</source>
         <translation>Extensions</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1571"/>
+        <location filename="../klfsettings.ui" line="949"/>
         <source>Installed Add-Ons</source>
         <translation>Extensions installées</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1589"/>
+        <location filename="../klfsettings.ui" line="190"/>
+        <source>... except when on battery power</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="251"/>
+        <source>Quick Menu Affects:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="280"/>
+        <source>Show additional options as:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="474"/>
+        <source>TEXINPUTS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="480"/>
+        <source>You may specify additional search paths for LaTeX here. Separate paths with &apos;:&apos; on Unix/Mac and with &apos;;&apos; on Windows.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="487"/>
+        <source>Specify additional TEXINPUTS paths:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="514"/>
+        <source>Syntax Highlighting Options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="547"/>
+        <source>General Editor Options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="553"/>
+        <source>Tab key inserts tab instead of passing on keyboard focus</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="560"/>
+        <source>Wrap long lines in LaTeX code editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="570"/>
+        <source>Insert Symbol</source>
+        <translation type="unfinished">Insérer un symbole</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="576"/>
+        <source>Include also necessary preamble definitions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="590"/>
+        <source>Library Appearance and Behavior</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="626"/>
+        <source>Tagging a formula in History copies it to the Archive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="648"/>
+        <location filename="../klfsettings.ui" line="689"/>
+        <location filename="../klfsettings.ui" line="1446"/>
+        <source> px</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="772"/>
+        <source>User Scripts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="780"/>
+        <source>Reload</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="792"/>
+        <source>Script Informaton</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="834"/>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="877"/>
+        <source>&lt;no user script selected or no settings for script&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="917"/>
+        <source>Manage Add-Ons and Plugins</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.ui" line="967"/>
         <source>Add-On Information</source>
         <translation>Informations sur l&apos;extension</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1663"/>
+        <location filename="../klfsettings.ui" line="1041"/>
         <source>Import Add-On File ...</source>
         <translation>Installer une extension ...</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1691"/>
+        <location filename="../klfsettings.ui" line="1069"/>
         <source>Plugin Loading</source>
         <translation>Chargement des greffons</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1738"/>
+        <location filename="../klfsettings.ui" line="1116"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1756"/>
+        <location filename="../klfsettings.ui" line="1134"/>
         <source>Plugin Information</source>
         <translation>Informations sur le greffon</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1825"/>
+        <location filename="../klfsettings.ui" line="1203"/>
         <source>Note: KLatexFormula needs to be restarted for changes to plugin loading or add-on importing/removing to be applied.</source>
         <translation>Remarque : KLatexFormula a besoin d&apos;être redémarré pour que les modifications effectuées sur cette page soient appliquées.</translation>
     </message>
     <message>
-        <location filename="../klfsettings.ui" line="1836"/>
         <source>Plugins</source>
-        <translation>Greffons</translation>
+        <translation type="obsolete">Greffons</translation>
+    </message>
+</context>
+<context>
+    <name>KLFSettingsPrivate</name>
+    <message>
+        <location filename="../klfsettings.cpp" line="758"/>
+        <source>No Plugins have been loaded. Please install and enable individual plugins first, then come back to this page to configure them.</source>
+        <translation type="unfinished">Aucun greffon n&apos;a été chargé. Installez puis activez d&apos;abord les greffons, après quoi vous pouvez revenir dans cet onglet pour les configurer.</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="763"/>
+        <source>No Plugins Loaded</source>
+        <translation type="unfinished">Aucun greffon chargé</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="825"/>
+        <source>Name:</source>
+        <comment>[[settings dialog plugin info text]]</comment>
+        <translation type="unfinished">Nom :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="828"/>
+        <source>Author:</source>
+        <comment>[[settings dialog plugin info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="831"/>
+        <source>Description:</source>
+        <comment>[[settings dialog plugin info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="836"/>
+        <source>File Location:</source>
+        <comment>[[settings dialog plugin info text]]</comment>
+        <translation type="unfinished">Emplacement :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="945"/>
+        <source>Error</source>
+        <translation type="unfinished">Erreur</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="945"/>
+        <source>Could not find %1 executable !</source>
+        <translation type="unfinished">Impossible de trouver l&apos;exécutable `%1&apos; !</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="947"/>
+        <source>Please check your installation and specify the path to %1 executable manually if it is not installed in $PATH.</source>
+        <translation type="unfinished">Vérifiez votre installation et spécifiez le chemin à l&apos;exécutable `%1&apos; manuellement s&apos;il n&apos;est pas dans $PATH.</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1042"/>
+        <source>Name:</source>
+        <comment>[[settings dialog add-on info text]]</comment>
+        <translation type="unfinished">Nom :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1045"/>
+        <source>Author:</source>
+        <comment>[[settings dialog add-on info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1048"/>
+        <source>Description:</source>
+        <comment>[[settings dialog add-on info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1053"/>
+        <source>File Name:</source>
+        <comment>[[settings dialog add-on info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1056"/>
+        <source>File Location:</source>
+        <comment>[[settings dialog add-on info text]]</comment>
+        <translation type="unfinished">Emplacement :</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1062"/>
+        <source>Add-On installed locally</source>
+        <translation type="unfinished">Extension installée localement</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1062"/>
+        <source>Add-On installed globally on system</source>
+        <translation type="unfinished">Extension installée globalement sur le système</translation>
+    </message>
+    <message>
+        <location filename="../klfsettings.cpp" line="1301"/>
+        <source>No user script selected.</source>
+        <comment>[[user script info label]]</comment>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3987,331 +4816,331 @@ Version actuelle: %2</translation>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="24"/>
         <source>KLatexFormula - Settings</source>
-        <translation>KLatexFormula - Paramètres</translation>
+        <translation type="unfinished">KLatexFormula - Paramètres</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="41"/>
         <source>&amp;Appearance</source>
-        <translation>&amp;Apparence</translation>
+        <translation type="unfinished">&amp;Apparence</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="55"/>
         <source>Application language:</source>
-        <translation>Langue de l&apos;application :</translation>
+        <translation type="unfinished">Langue de l&apos;application :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="74"/>
         <source>Application Font - click to change</source>
-        <translation>Police d&apos;application - cliquer pour changer</translation>
+        <translation type="unfinished">Police d&apos;application - cliquer pour changer</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="81"/>
         <source>LaTeX editor fonts</source>
-        <translation>Polices d&apos;édition de code LaTeX</translation>
+        <translation type="unfinished">Polices d&apos;édition de code LaTeX</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="147"/>
         <location filename="obsolete/klfsettingsui.ui" line="237"/>
         <source>x</source>
-        <translation>x</translation>
+        <translation type="unfinished">x</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="93"/>
         <source>Main editor font - click to change</source>
-        <translation>Police de l&apos;éditeur principal - cliquer pour changer</translation>
+        <translation type="unfinished">Police de l&apos;éditeur principal - cliquer pour changer</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="106"/>
         <source>Preamble editor font - click to change</source>
-        <translation>Police de l&apos;éditeur secondaire - cliquer pour changer</translation>
+        <translation type="unfinished">Police de l&apos;éditeur secondaire - cliquer pour changer</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="116"/>
         <source>Preview</source>
-        <translation>Prévisualisation</translation>
+        <translation type="unfinished">Prévisualisation</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="179"/>
         <source>Preview formulas as you type</source>
-        <translation>Prévisualiser les formules pendant que vous les tapez</translation>
+        <translation type="unfinished">Prévisualiser les formules pendant que vous les tapez</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="189"/>
         <source>Preview size:</source>
-        <translation>Taille:</translation>
+        <translation type="unfinished">Taille:</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="199"/>
         <source>Tooltip Preview</source>
-        <translation>Prévisualisation plus grande dans l&apos;info-bulle</translation>
+        <translation type="unfinished">Prévisualisation plus grande dans l&apos;info-bulle</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="205"/>
         <source>Max size:</source>
-        <translation>Taille max.:</translation>
+        <translation type="unfinished">Taille max.:</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="269"/>
         <source>Show bigger preview in a tooltip on mouse hover</source>
-        <translation>Afficher une prévisualisation plus grande dans une info-bulle</translation>
+        <translation type="unfinished">Afficher une prévisualisation plus grande dans une info-bulle</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="299"/>
         <source>&amp;Syntax Highlighting</source>
-        <translation>Coloration &amp;syntaxique</translation>
+        <translation type="unfinished">Coloration &amp;syntaxique</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="305"/>
         <source>Globally enable syntax highlighting</source>
-        <translation>Activer la coloration syntaxique</translation>
+        <translation type="unfinished">Activer la coloration syntaxique</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="315"/>
         <source>Options</source>
-        <translation>Options</translation>
+        <translation type="unfinished">Options</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="321"/>
         <source>Highlight parens only, not whole expression</source>
-        <translation>Sous-ligner les parenthèses seulement, et non toute l&apos;expression</translation>
+        <translation type="unfinished">Sous-ligner les parenthèses seulement, et non toute l&apos;expression</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="324"/>
         <location filename="obsolete/klfsettingsui.ui" line="1164"/>
         <source>Alt+A</source>
-        <translation>Alt+A</translation>
+        <translation type="unfinished">Alt+A</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="331"/>
         <source>Highlight parens that aren&apos;t closed</source>
-        <translation>Sous-ligner les parenthèses qui ne sont pas fermées</translation>
+        <translation type="unfinished">Sous-ligner les parenthèses qui ne sont pas fermées</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="344"/>
         <source>Colors</source>
-        <translation>Couleurs</translation>
+        <translation type="unfinished">Couleurs</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="361"/>
         <source>Foreground</source>
-        <translation>Avant-plan</translation>
+        <translation type="unfinished">Avant-plan</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="382"/>
         <source>Background</source>
-        <translation>Arrière-plan</translation>
+        <translation type="unfinished">Arrière-plan</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="392"/>
         <source>Keyword color:</source>
-        <translation>Mot-clef :</translation>
+        <translation type="unfinished">Mot-clef :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="474"/>
         <source>Comment color:</source>
-        <translation>Commentaire :</translation>
+        <translation type="unfinished">Commentaire :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="556"/>
         <source>Paren match color:</source>
-        <translation>Parenthèse fermée :</translation>
+        <translation type="unfinished">Parenthèse fermée :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="638"/>
         <source>Paren mismatch color:</source>
-        <translation>Parenthèse mal fermée :</translation>
+        <translation type="unfinished">Parenthèse mal fermée :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="720"/>
         <source>Lonely paren color:</source>
-        <translation>Parenthèse non fermée :</translation>
+        <translation type="unfinished">Parenthèse non fermée :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="814"/>
         <source>B</source>
-        <translation>G</translation>
+        <translation type="unfinished">G</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="832"/>
         <source>I  </source>
-        <translation>I  </translation>
+        <translation type="unfinished">I  </translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="856"/>
         <source>A&amp;dvanced</source>
-        <translation>A&amp;vancé</translation>
+        <translation type="unfinished">A&amp;vancé</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1039"/>
         <source>System Executables And Paths</source>
-        <translation>Chemins d&apos;accès système</translation>
+        <translation type="unfinished">Chemins d&apos;accès système</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1045"/>
         <source>Temporary directory:</source>
-        <translation>Dossier temporaire :</translation>
+        <translation type="unfinished">Dossier temporaire :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1058"/>
         <source>Choose temporary directory</source>
-        <translation>Choisissez le dossier temporaire</translation>
+        <translation type="unfinished">Choisissez le dossier temporaire</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1074"/>
         <source>latex :</source>
-        <translation>latex :</translation>
+        <translation type="unfinished">latex :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1090"/>
         <source>Choose latex executable</source>
-        <translation>Choisissez l&apos;exécutable latex</translation>
+        <translation type="unfinished">Choisissez l&apos;exécutable latex</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1103"/>
         <source>dvips :</source>
-        <translation>dvips :</translation>
+        <translation type="unfinished">dvips :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1119"/>
         <source>Choose dvips executable</source>
-        <translation>Choisissez l&apos;exécutable dvips</translation>
+        <translation type="unfinished">Choisissez l&apos;exécutable dvips</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1132"/>
         <source>gs :</source>
-        <translation>gs :</translation>
+        <translation type="unfinished">gs :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1148"/>
         <source>Choose ghostscript executable</source>
-        <translation>Choisissez l&apos;exécutable gs</translation>
+        <translation type="unfinished">Choisissez l&apos;exécutable gs</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1161"/>
         <source>Have epstopdf :</source>
-        <translation>epstopdf est disponible :</translation>
+        <translation type="unfinished">epstopdf est disponible :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1177"/>
         <source>Choose epstopdf executable</source>
-        <translation>Choisissez l&apos;exécutable epstopdf</translation>
+        <translation type="unfinished">Choisissez l&apos;exécutable epstopdf</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1208"/>
         <source>Reset defaults</source>
-        <translation>Valeurs par défaut</translation>
+        <translation type="unfinished">Valeurs par défaut</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="878"/>
         <source>Expand EPS BoundingBox</source>
-        <translation>Agrandir la boîte BoundingBox EPS</translation>
+        <translation type="unfinished">Agrandir la boîte BoundingBox EPS</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="890"/>
         <source>Bottom (Postscript points):</source>
-        <translation>En bas (en points postscript) :</translation>
+        <translation type="unfinished">En bas (en points postscript) :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="909"/>
         <source>Right (Postscript points):</source>
-        <translation>A droite (en points postscript) :</translation>
+        <translation type="unfinished">A droite (en points postscript) :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="928"/>
         <source>Left (Postscript points):</source>
-        <translation>A gauche (en points postscript) :</translation>
+        <translation type="unfinished">A gauche (en points postscript) :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="947"/>
         <source>Top (Postscript points):</source>
-        <translation>En haut (en points postscript) :</translation>
+        <translation type="unfinished">En haut (en points postscript) :</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1225"/>
         <source>Add-Ons</source>
-        <translation>Extensions</translation>
+        <translation type="unfinished">Extensions</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1257"/>
         <source>Installed Add-Ons</source>
-        <translation>Extensions installées</translation>
+        <translation type="unfinished">Extensions installées</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1275"/>
         <source>Add-On Information</source>
-        <translation>Informations sur l&apos;extension</translation>
+        <translation type="unfinished">Informations sur l&apos;extension</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1349"/>
         <source>Import Add-On File ...</source>
-        <translation>Installer une extension ...</translation>
+        <translation type="unfinished">Installer une extension ...</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1362"/>
         <source>Remove Add-On</source>
-        <translation>Supprimer cette extension</translation>
+        <translation type="unfinished">Supprimer cette extension</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1377"/>
         <source>Plugin Loading</source>
-        <translation>Chargement des greffons</translation>
+        <translation type="unfinished">Chargement des greffons</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1424"/>
         <source>Name</source>
-        <translation>Nom</translation>
+        <translation type="unfinished">Nom</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1442"/>
         <source>Plugin Information</source>
-        <translation>Informations sur le greffon</translation>
+        <translation type="unfinished">Informations sur le greffon</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1511"/>
         <source>Note: KLatexFormula needs to be restarted for changes to plugin loading or add-on importing/removing to be applied.</source>
-        <translation>Remarque : KLatexFormula a besoin d&apos;être redémarré pour que les modifications effectuées sur cette page soient appliquées.</translation>
+        <translation type="unfinished">Remarque : KLatexFormula a besoin d&apos;être redémarré pour que les modifications effectuées sur cette page soient appliquées.</translation>
     </message>
     <message>
         <location filename="obsolete/klfsettingsui.ui" line="1522"/>
         <source>Plugins</source>
-        <translation>Greffons</translation>
+        <translation type="unfinished">Greffons</translation>
     </message>
 </context>
 <context>
     <name>KLFStyleManager</name>
     <message>
-        <location filename="../klfstylemanager.cpp" line="191"/>
+        <location filename="../klfstylemanager.cpp" line="197"/>
         <source>Delete Style</source>
         <translation>Effacer le style</translation>
     </message>
     <message>
-        <location filename="../klfstylemanager.cpp" line="192"/>
+        <location filename="../klfstylemanager.cpp" line="198"/>
         <source>Move up</source>
         <translation>Déplacer vers le haut</translation>
     </message>
     <message>
-        <location filename="../klfstylemanager.cpp" line="193"/>
+        <location filename="../klfstylemanager.cpp" line="199"/>
         <source>Move down</source>
         <translation>Déplacer vers le bas</translation>
     </message>
     <message>
-        <location filename="../klfstylemanager.cpp" line="194"/>
-        <location filename="../klfstylemanager.cpp" line="258"/>
+        <location filename="../klfstylemanager.cpp" line="200"/>
+        <location filename="../klfstylemanager.cpp" line="264"/>
         <source>Rename style</source>
         <translation>Renommer le style</translation>
     </message>
     <message>
-        <location filename="../klfstylemanager.cpp" line="242"/>
+        <location filename="../klfstylemanager.cpp" line="248"/>
         <source>Erase style?</source>
         <translation>Effacer le style ?</translation>
     </message>
     <message>
-        <location filename="../klfstylemanager.cpp" line="242"/>
+        <location filename="../klfstylemanager.cpp" line="248"/>
         <source>Are you sure you want to erase selected style?</source>
         <translation>Etes-vous sûr de vouloir effacer le style sélectionné ?</translation>
     </message>
     <message>
-        <location filename="../klfstylemanager.cpp" line="258"/>
+        <location filename="../klfstylemanager.cpp" line="264"/>
         <source>Enter new style name:</source>
         <translation>Saisissez le nouveau nom du style :</translation>
     </message>
@@ -4361,42 +5190,144 @@ Version actuelle: %2</translation>
     <message>
         <location filename="obsolete/klfstylemanagerui.ui" line="14"/>
         <source>KLatexFormula - Style Manager</source>
-        <translation>KLatexFormula - Gestionnaire de styles</translation>
+        <translation type="unfinished">KLatexFormula - Gestionnaire de styles</translation>
     </message>
     <message>
         <location filename="obsolete/klfstylemanagerui.ui" line="30"/>
         <source>Manage Styles</source>
-        <translation>Gérer les styles</translation>
+        <translation type="unfinished">Gérer les styles</translation>
     </message>
     <message>
         <location filename="obsolete/klfstylemanagerui.ui" line="49"/>
         <source>Drag and drop styles to move them. Right-click for actions menu.</source>
-        <translation>Traînez et déposez les styles pour les réordonner. Cliquez du bouton droit pour un menu.</translation>
+        <translation type="unfinished">Traînez et déposez les styles pour les réordonner. Cliquez du bouton droit pour un menu.</translation>
     </message>
     <message>
         <location filename="obsolete/klfstylemanagerui.ui" line="89"/>
         <source>Choose an action</source>
-        <translation>Choisissez une action</translation>
+        <translation type="unfinished">Choisissez une action</translation>
     </message>
     <message>
         <location filename="obsolete/klfstylemanagerui.ui" line="92"/>
         <source>&amp;Actions</source>
-        <translation>&amp;Actions</translation>
+        <translation type="unfinished">&amp;Actions</translation>
     </message>
     <message>
         <location filename="obsolete/klfstylemanagerui.ui" line="99"/>
         <source>Alt+A</source>
-        <translation>Alt+A</translation>
+        <translation type="unfinished">Alt+A</translation>
     </message>
     <message>
         <location filename="obsolete/klfstylemanagerui.ui" line="106"/>
         <source>Close window</source>
-        <translation>Fermer la fenêtre</translation>
+        <translation type="unfinished">Fermer la fenêtre</translation>
     </message>
     <message>
         <location filename="obsolete/klfstylemanagerui.ui" line="109"/>
         <source>Close</source>
-        <translation>Fermer</translation>
+        <translation type="unfinished">Fermer</translation>
+    </message>
+</context>
+<context>
+    <name>KLFSymbolEditor</name>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="14"/>
+        <source>Form</source>
+        <translation type="unfinished">Form</translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="26"/>
+        <source>Symbol Editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="40"/>
+        <source>Symbol</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="46"/>
+        <source>Symbol Latex Code:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="56"/>
+        <source>Has square-bracketed argument</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="63"/>
+        <source>Number of arguments:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="80"/>
+        <source>LaTeX code for preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="100"/>
+        <source>Preamble</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="150"/>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="202"/>
+        <source>Additional Preamble Definitions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfsymboleditor.ui" line="228"/>
+        <source>Preview:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>KLFTexDataOpener</name>
+    <message>
+        <location filename="../klfmainwin_p.h" line="852"/>
+        <source>Error</source>
+        <translation type="unfinished">Erreur</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin_p.h" line="852"/>
+        <source>Can&apos;t open file %1. Read Error.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>KLFTexOutputSaver</name>
+    <message>
+        <location filename="../klfmainwin_p.h" line="924"/>
+        <source>LaTeX source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin_p.h" line="961"/>
+        <source>Error</source>
+        <translation type="unfinished">Erreur</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin_p.h" line="961"/>
+        <source>Failed to write file %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>KLFUserScriptOutputSaver</name>
+    <message>
+        <location filename="../klfmainwin_p.h" line="1020"/>
+        <source>Error</source>
+        <translation type="unfinished">Erreur</translation>
+    </message>
+    <message>
+        <location filename="../klfmainwin_p.h" line="1020"/>
+        <source>Failed to write file %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4415,85 +5346,85 @@ Version actuelle: %2</translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../klflatexsymbols.cpp" line="330"/>
+        <location filename="../klflatexsymbols.cpp" line="450"/>
         <source>Skip</source>
         <translation>Annuler</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="89"/>
         <source>Error</source>
-        <translation>Erreur</translation>
+        <translation type="unfinished">Erreur</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="90"/>
         <source>Can&apos;t create local directory `%1&apos; !</source>
-        <translation>Impossible de créer le dossier %1 !</translation>
+        <translation type="unfinished">Impossible de créer le dossier %1 !</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="91"/>
         <source>Can&apos;t make local config directory `%1&apos; !</source>
-        <translation>Impossible de créer le dossier local de configuration %1 !</translation>
+        <translation type="unfinished">Impossible de créer le dossier local de configuration %1 !</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="103"/>
         <source>&lt;b&gt;Style Name&lt;/b&gt;: %1&lt;br&gt;</source>
-        <translation>&lt;b&gt;Nom du style&lt;/b&gt;: %1&lt;br&gt;</translation>
+        <translation type="unfinished">&lt;b&gt;Nom du style&lt;/b&gt;: %1&lt;br&gt;</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="104"/>
         <source>&lt;b&gt;Math Mode&lt;/b&gt;: %1&lt;br&gt;&lt;b&gt;DPI Resolution&lt;/b&gt;: %2&lt;br&gt;&lt;b&gt;Foreground Color&lt;/b&gt;: %3 &lt;font color=&quot;%4&quot;&gt;&lt;b&gt;[SAMPLE]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;Background is Transparent&lt;/b&gt;: %5&lt;br&gt;&lt;b&gt;Background Color&lt;/b&gt;: %6 &lt;font color=&quot;%7&quot;&gt;&lt;b&gt;[SAMPLE]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;LaTeX Preamble:&lt;/b&gt;&lt;br&gt;&lt;pre&gt;%8&lt;/pre&gt;</source>
-        <translation>&lt;b&gt;Mode Mathématique LaTeX&lt;/b&gt;: %1&lt;br&gt;&lt;b&gt;Résolution DPI&lt;/b&gt;: %2&lt;br&gt;&lt;b&gt;Couleur d&apos;avant-plan&lt;/b&gt;: %3 &lt;font color=&quot;%4&quot;&gt;&lt;b&gt;[EXEMPLE]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;Fond transparent&lt;/b&gt;: %5&lt;br&gt;&lt;b&gt;Couleur d&apos;arrière-plan&lt;/b&gt;: %6 &lt;font color=&quot;%7&quot;&gt;&lt;b&gt;[EXEMPLE]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;Preambule LaTeX :&lt;/b&gt;&lt;br&gt;&lt;pre&gt;%8&lt;/pre&gt;</translation>
+        <translation type="unfinished">&lt;b&gt;Mode Mathématique LaTeX&lt;/b&gt;: %1&lt;br&gt;&lt;b&gt;Résolution DPI&lt;/b&gt;: %2&lt;br&gt;&lt;b&gt;Couleur d&apos;avant-plan&lt;/b&gt;: %3 &lt;font color=&quot;%4&quot;&gt;&lt;b&gt;[EXEMPLE]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;Fond transparent&lt;/b&gt;: %5&lt;br&gt;&lt;b&gt;Couleur d&apos;arrière-plan&lt;/b&gt;: %6 &lt;font color=&quot;%7&quot;&gt;&lt;b&gt;[EXEMPLE]&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;b&gt;Preambule LaTeX :&lt;/b&gt;&lt;br&gt;&lt;pre&gt;%8&lt;/pre&gt;</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="106"/>
         <source>YES</source>
-        <translation>OUI</translation>
+        <translation type="unfinished">OUI</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="106"/>
         <source>NO</source>
-        <translation>NON</translation>
+        <translation type="unfinished">NON</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="105"/>
         <source>ERROR: Can&apos;t generate preview for symbol %1 : status %2 !
 	Error: %3
 </source>
-        <translation>ERREUR: Impossible de générer une prévisualisation du symbole %1 : code d&apos;erreur %2 !
+        <translation type="unfinished">ERREUR: Impossible de générer une prévisualisation du symbole %1 : code d&apos;erreur %2 !
 	Erreur : %3
 </translation>
     </message>
     <message>
-        <location filename="../klflatexsymbols.cpp" line="329"/>
+        <location filename="../klflatexsymbols.cpp" line="449"/>
         <source>Please wait while generating symbol previews ... </source>
         <translation>Veuillez patienter pendant le programme génère les prévisualisations de la palette de symboles ...</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="92"/>
         <source>Cancel</source>
-        <translation>Annuler</translation>
+        <translation type="unfinished">Annuler</translation>
     </message>
     <message>
         <location filename="obsolete/klflibrary.cpp" line="88"/>
         <location filename="obsolete/klflibrary.cpp" line="90"/>
         <source>[ No Category ]</source>
-        <translation>[ pas de catégorie ]</translation>
+        <translation type="unfinished">[ pas de catégorie ]</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="93"/>
         <source>Warning: Ignoring --input when --latexinput is given.
 </source>
-        <translation>Avertissement: l&apos;option --input n&apos;est pas prise en compte lorsque l&apos;option --latexinput est fournie.
+        <translation type="unfinished">Avertissement: l&apos;option --input n&apos;est pas prise en compte lorsque l&apos;option --latexinput est fournie.
 </translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="336"/>
+        <location filename="../klftools/klfdebug.cpp" line="187"/>
         <source>Error</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog title]]</comment>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="337"/>
+        <location filename="../klftools/klfdebug.cpp" line="188"/>
         <source>KLatexFormula System Error:
 %1</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog text]]</comment>
@@ -4501,13 +5432,13 @@ Version actuelle: %2</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="348"/>
+        <location filename="../klftools/klfdebug.cpp" line="199"/>
         <source>FATAL ERROR</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog title]]</comment>
         <translation>ERREUR FATALE</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="350"/>
+        <location filename="../klftools/klfdebug.cpp" line="201"/>
         <source>KLatexFormula System FATAL ERROR:
 %1</source>
         <comment>[[KLF&apos;s Qt Message Handler: dialog text]]</comment>
@@ -4515,70 +5446,119 @@ Version actuelle: %2</translation>
 %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="430"/>
+        <location filename="../main.cpp" line="381"/>
         <source>--paste-{clipboard|selection} requires interactive mode. Ignoring option.</source>
         <translation>--paste-{clipboard|selection} ne fonctionne qu&apos;en mode interactif. Cette option sera ignorée.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="927"/>
+        <location filename="../main.cpp" line="564"/>
+        <source>Failed to install plugin locally.</source>
+        <comment>[[plugin error message]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="576"/>
+        <source>Plugin not compatible with current system.</source>
+        <comment>[[plugin error message]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="663"/>
+        <source>Failed to load plugin.</source>
+        <comment>[[plugin error message]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="672"/>
+        <source>Incompatible plugin failed to load.</source>
+        <comment>[[plugin error message]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="949"/>
         <source>KLatexFormula Daemon Process successfully launched with pid %1
 </source>
         <translation>Processus démon KLatexFormula exécuté avec succès avec pid %1
 </translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="931"/>
+        <location filename="../main.cpp" line="953"/>
         <source>Failed to launch daemon process. Not daemonizing.</source>
         <translation>Echec d&apos;exécution du processus démon. Exécution en mode normal.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1054"/>
+        <location filename="../main.cpp" line="1158"/>
         <source>Can&apos;t use --output without any input</source>
         <translation>Il n&apos;est pas possible d&apos;utiliser --output sans saisie</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1170"/>
-        <source>Damonize option can only be used in interactive mode!.</source>
-        <translation>L&apos;option d&apos;exécution en mode démon ne peut être utilisé qu&apos;en mode interactif.</translation>
+        <location filename="../main.cpp" line="1281"/>
+        <source>The option --daemonize can only be used in interactive mode.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1175"/>
+        <location filename="obsolete/obsoletetext.cpp" line="107"/>
+        <source>Damonize option can only be used in interactive mode!.</source>
+        <translation type="unfinished">L&apos;option d&apos;exécution en mode démon ne peut être utilisé qu&apos;en mode interactif.</translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="1286"/>
         <source>[Non-Interactive Mode] Ignoring additional command-line argument: %1</source>
         <translation>[Mode non interactif] Le paramètre supplémentaire donné ne sera pas pris en compte: %1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1392"/>
+        <location filename="../main.cpp" line="1300"/>
+        <source>Failed to detect local settings. You may have to provide some settings manually.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="1460"/>
+        <source>Can&apos;t parse boolean argument: `%1&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="1475"/>
+        <source>Can&apos;t parse number argument: `%1&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="1487"/>
+        <source>Expected --borderoffsets=L[,T[,R[,B]]]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../main.cpp" line="1592"/>
         <source>--paste-clipboard requires interactive mode. Switching.</source>
         <translation>L&apos;option --paste-clipboard requiert le mode interactif. Changement de mode.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1400"/>
+        <location filename="../main.cpp" line="1600"/>
         <source>--paste-selection requires interactive mode. Switching.</source>
         <translation>L&apos;option --paste-selection requiert le mode interactif. Changement de mode.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1526"/>
+        <location filename="../main.cpp" line="1747"/>
         <source>--noeval is relevant only in interactive mode.</source>
         <translation>--noeval ne peut être utilisé qu&apos;en mode interactif.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1530"/>
+        <location filename="../main.cpp" line="1751"/>
         <source>--noeval may not be used when --output is present.</source>
         <translation>--noeval ne peut pas être utilisé quand --output est donné.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="1534"/>
+        <location filename="../main.cpp" line="1755"/>
         <source>Ignoring --format without --output.</source>
         <translation>Option --format ignorée en l&apos;absence de --output.</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="412"/>
+        <location filename="../main.cpp" line="363"/>
         <source>Can&apos;t read standard input (!)</source>
         <translation>Impossible de lire l&apos;entrée standard (!)
 </translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="418"/>
+        <location filename="../main.cpp" line="369"/>
         <source>Can&apos;t read input file `%1&apos;.</source>
         <translation>Impossible de lire le fichier `%1&apos;.</translation>
     </message>
@@ -4586,55 +5566,55 @@ Version actuelle: %2</translation>
         <location filename="obsolete/obsoletetext.cpp" line="94"/>
         <source>Error: Can&apos;t read standard input (!)
 </source>
-        <translation>Erreur: Impossible de lire l&apos;entrée standard (!)
+        <translation type="unfinished">Erreur: Impossible de lire l&apos;entrée standard (!)
 </translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="95"/>
         <source>Error: Can&apos;t read input file `%1&apos;.
 </source>
-        <translation>Erreur : Impossible de lire le fichier `%1&apos; .</translation>
+        <translation type="unfinished">Erreur : Impossible de lire le fichier `%1&apos; .</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="96"/>
         <source>Unable to open stderr for write! Error: %1
 </source>
-        <translation>Impossible d&apos;écrire dans stderr ! Erreur %1</translation>
+        <translation type="unfinished">Impossible d&apos;écrire dans stderr ! Erreur %1</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="97"/>
         <source>Unable to write to file `%1&apos;! Error: %2
 </source>
-        <translation>Erreur: Impossible d&apos;écrire dans le fichier %1 ! Erreur %2
+        <translation type="unfinished">Erreur: Impossible d&apos;écrire dans le fichier %1 ! Erreur %2
 </translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="98"/>
         <source>PDF format is not available!
 </source>
-        <translation>Le format PDF n&apos;est pas disponible !</translation>
+        <translation type="unfinished">Le format PDF n&apos;est pas disponible !</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="99"/>
         <source>Unable to save image to file `%1&apos; in format `%2&apos;!
 </source>
-        <translation>Impossible de savegarder l&apos;image `%1&apos; au format `%2&apos; !</translation>
+        <translation type="unfinished">Impossible de savegarder l&apos;image `%1&apos; au format `%2&apos; !</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="100"/>
         <source>Warning: Ignoring --input since --latexinput is given.
 </source>
-        <translation>Avertissement: l&apos;option --input n&apos;est pas prise en compte lorsque l&apos;option --latexinput est fournie.
+        <translation type="unfinished">Avertissement: l&apos;option --input n&apos;est pas prise en compte lorsque l&apos;option --latexinput est fournie.
 </translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="139"/>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="49"/>
         <source>&lt;p&gt;&lt;b&gt;%1&lt;/b&gt; reported an error (exit status %2). No Output was generated.&lt;/p&gt;</source>
         <comment>KLFBackend</comment>
         <translation>&lt;p&gt;&lt;b&gt;%1&lt;/b&gt; a terminé avec une erreur (code d&apos;erreur %2). Aucun texte n&apos;a été affiché.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="144"/>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="54"/>
         <source>&lt;p&gt;&lt;b&gt;%1&lt;/b&gt; reported an error (exit status %2). Here is full stdout output:&lt;/p&gt;
 &lt;pre&gt;
 %3&lt;/pre&gt;</source>
@@ -4644,7 +5624,7 @@ Version actuelle: %2</translation>
 %3&lt;/pre&gt;</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="149"/>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="59"/>
         <source>&lt;p&gt;&lt;b&gt;%1&lt;/b&gt; reported an error (exit status %2). Here is full stderr output:&lt;/p&gt;
 &lt;pre&gt;
 %3&lt;/pre&gt;</source>
@@ -4654,7 +5634,7 @@ Version actuelle: %2</translation>
 %3&lt;/pre&gt;</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="153"/>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="63"/>
         <source>&lt;p&gt;&lt;b&gt;%1&lt;/b&gt; reported an error (exit status %2). Here is full stderr output:&lt;/p&gt;
 &lt;pre&gt;
 %3&lt;/pre&gt;&lt;p&gt;And here is full stdout output:&lt;/p&gt;&lt;pre&gt;
@@ -4666,171 +5646,236 @@ Version actuelle: %2</translation>
 %4&lt;/pre&gt;</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="278"/>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="275"/>
+        <source>Unable to start %1 program `%2&apos;!</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="283"/>
+        <source>Program %1 crashed!</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="326"/>
+        <source>Program %1 did not provide any output data.</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="337"/>
+        <source>Output file didn&apos;t appear after having called %1!</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="485"/>
+        <source>User Script broke dependencies in skip-formats list</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="541"/>
+        <source>Can&apos;t query version of ghostscript located at `%1&apos;.</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="620"/>
+        <source>Failed to create temporary directory inside `%1&apos;</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="651"/>
         <source>You must specify a LaTeX formula!</source>
         <comment>KLFBackend</comment>
         <translation>Veuillez saisir une formule LaTeX !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="287"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="659"/>
         <source>The math mode string doesn&apos;t contain &apos;...&apos;!</source>
         <comment>KLFBackend</comment>
         <translation>Le mode mathématique LaTeX ne contient pas « ... » !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="299"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="670"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="1176"/>
         <source>Can&apos;t open file for writing: &apos;%1&apos;!</source>
         <comment>KLFBackend</comment>
         <translation>L&apos;ouverture du fichier « %1 » en écriture a échoué !</translation>
     </message>
     <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="710"/>
+        <source>User Script `%1&apos; is not compatible with current version of KLatexFormula.</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="717"/>
+        <source>User Script `%1&apos; is not usable as backend latex engine!</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="1223"/>
+        <source>This ghostscript (%1) cannot generate SVG.</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="1311"/>
+        <source>Ghostscript did not provide parsable BBox output!</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="1363"/>
+        <source>DVIPS did not provide parsable %%BoundingBox: in its output!</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="1665"/>
+        <source>SVG format is not available!
+</source>
+        <comment>KLFBackend::saveOutputToFile</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfbackend.cpp" line="1705"/>
+        <source>Unable to open stdout for write! Error: %1
+</source>
+        <comment>KLFBackend::saveOutputToFile</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="obsolete/obsoletetext.cpp" line="101"/>
         <source>Unable to start Latex program!</source>
         <comment>KLFBackend</comment>
-        <translation>L&apos;exécution du programme latex a échoué !</translation>
+        <translation type="unfinished">L&apos;exécution du programme latex a échoué !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="337"/>
         <source>Unable to start Latex program %1!</source>
         <comment>KLFBackend</comment>
-        <translation>L&apos;exécution du programme latex &quot;%1&quot; a échoué !</translation>
+        <translation type="obsolete">L&apos;exécution du programme latex &quot;%1&quot; a échoué !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="343"/>
         <source>Latex was killed!</source>
         <comment>KLFBackend</comment>
-        <translation>latex a été tué !</translation>
+        <translation type="obsolete">latex a été tué !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="355"/>
         <source>DVI file didn&apos;t appear after having called Latex!</source>
         <comment>KLFBackend</comment>
-        <translation>Le fichier DVI n&apos;est pas apparu après exécution de latex !</translation>
+        <translation type="obsolete">Le fichier DVI n&apos;est pas apparu après exécution de latex !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="374"/>
         <source>Unable to start dvips!
 </source>
         <comment>KLFBackend</comment>
-        <translation>L&apos;exécution de dvips a échoué !</translation>
+        <translation type="obsolete">L&apos;exécution de dvips a échoué !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="379"/>
         <source>Dvips was mercilessly killed!
 </source>
         <comment>KLFBackend</comment>
-        <translation>dvips a souffert d&apos;une mort atroce !</translation>
+        <translation type="obsolete">dvips a souffert d&apos;une mort atroce !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="390"/>
         <source>EPS file didn&apos;t appear after dvips call!
 </source>
         <comment>KLFBackend</comment>
-        <translation>Le fichier EPS n&apos;est pas apparu après l&apos;exécution de dvips !</translation>
+        <translation type="obsolete">Le fichier EPS n&apos;est pas apparu après l&apos;exécution de dvips !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="400"/>
+        <location filename="../klfbackend/klffilterprocess.cpp" line="348"/>
         <source>Can&apos;t read file &apos;%1&apos;!
 </source>
         <comment>KLFBackend</comment>
         <translation>Echec lors de la lecture du fichier « %1 » !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="416"/>
         <source>File &apos;%1&apos; does not contain line &quot;%%BoundingBox: ... &quot; !</source>
         <comment>KLFBackend</comment>
-        <translation>Le fichier « %1 » ne contient pas la ligne « %%BoundingBox: ... » !</translation>
+        <translation type="obsolete">Le fichier « %1 » ne contient pas la ligne « %%BoundingBox: ... » !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="427"/>
         <source>file %1: Line %%BoundingBox: can&apos;t read values!
 </source>
         <comment>KLFBackend</comment>
-        <translation>Fichier %1 : echec de lecture des valeurs du %%BoundingBox !</translation>
+        <translation type="obsolete">Fichier %1 : echec de lecture des valeurs du %%BoundingBox !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="449"/>
         <source>Can&apos;t write to file &apos;%1&apos;!
 </source>
         <comment>KLFBackend</comment>
-        <translation>Echec d&apos;écriture dans le fichier « %1 » !</translation>
+        <translation type="obsolete">Echec d&apos;écriture dans le fichier « %1 » !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="479"/>
-        <location filename="../klfbackend/klfbackend.cpp" line="534"/>
         <source>Unable to start gs!
 </source>
         <comment>KLFBackend</comment>
-        <translation>Echec lors de l&apos;exécution du programme gs !</translation>
+        <translation type="obsolete">Echec lors de l&apos;exécution du programme gs !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="484"/>
-        <location filename="../klfbackend/klfbackend.cpp" line="539"/>
         <source>gs died abnormally!
 </source>
         <comment>KLFBackend</comment>
-        <translation>gs est mort prématurément !</translation>
+        <translation type="obsolete">gs est mort prématurément !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="495"/>
         <source>EPS file (with outlined fonts) didn&apos;t appear after call to gs!
 </source>
         <comment>KLFBackend</comment>
-        <translation>Le fichier EPS n&apos;est pas apparu après l&apos;exécution de gs pour la conversion des polices en contours !</translation>
+        <translation type="obsolete">Le fichier EPS n&apos;est pas apparu après l&apos;exécution de gs pour la conversion des polices en contours !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="550"/>
         <source>PNG file didn&apos;t appear after call to gs!
 </source>
         <comment>KLFBackend</comment>
-        <translation>Le fichier PNG n&apos;est pas apparu après exécution de gs !</translation>
+        <translation type="obsolete">Le fichier PNG n&apos;est pas apparu après exécution de gs !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="505"/>
-        <location filename="../klfbackend/klfbackend.cpp" line="559"/>
-        <location filename="../klfbackend/klfbackend.cpp" line="644"/>
         <source>Unable to read file %1!
 </source>
         <comment>KLFBackend</comment>
-        <translation>La lecture du fichier « %1 » a échoué !</translation>
+        <translation type="obsolete">La lecture du fichier « %1 » a échoué !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="617"/>
         <source>Unable to start epstopdf!
 </source>
         <comment>KLFBackend</comment>
-        <translation>L&apos;exécution de epstopdf a échoué !</translation>
+        <translation type="obsolete">L&apos;exécution de epstopdf a échoué !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="622"/>
         <source>epstopdf died nastily!
 </source>
         <comment>KLFBackend</comment>
-        <translation>epstopdf est mort anormalement !</translation>
+        <translation type="obsolete">epstopdf est mort anormalement !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="635"/>
         <source>PDF file didn&apos;t appear after call to epstopdf!
 </source>
         <comment>KLFBackend</comment>
-        <translation>Le fichier PDF n&apos;est pas apparu après exécution de epstopdf !</translation>
+        <translation type="obsolete">Le fichier PDF n&apos;est pas apparu après exécution de epstopdf !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="715"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="1676"/>
         <source>Unable to save image in format `%1&apos;!</source>
         <comment>KLFBackend::saveOutputToDevice</comment>
         <translation>Impossible de sauvegarder l&apos;image dans le format &apos;%1&apos; !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="744"/>
         <source>Unable to open stderr for write! Error: %1
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation>Impossible d&apos;écrire dans stderr ! Erreur %1
+        <translation type="obsolete">Impossible d&apos;écrire dans stderr ! Erreur %1
 </translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="754"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="1715"/>
         <source>Unable to write to file `%1&apos;! Error: %2
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
@@ -4838,14 +5883,14 @@ Version actuelle: %2</translation>
 </translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="704"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="1655"/>
         <source>PDF format is not available!
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
         <translation>Le format PDF n&apos;est pas disponible !</translation>
     </message>
     <message>
-        <location filename="../klfbackend/klfbackend.cpp" line="571"/>
+        <location filename="../klfbackend/klfbackend.cpp" line="148"/>
         <source>Created with KLatexFormula version %1</source>
         <comment>KLFBackend::saveOutputToFile</comment>
         <translation>Créé avec KLatexFormula version %1</translation>
@@ -4855,34 +5900,40 @@ Version actuelle: %2</translation>
         <source>Unable to save image to file `%1&apos; in format `%2&apos;!
 </source>
         <comment>KLFBackend::saveOutputToFile</comment>
-        <translation>Impossible de savegarder l&apos;image `%1&apos; au format `%2&apos; !</translation>
+        <translation type="unfinished">Impossible de savegarder l&apos;image `%1&apos; au format `%2&apos; !</translation>
     </message>
     <message>
-        <location filename="../klfmain.cpp" line="105"/>
+        <location filename="../klfmain.cpp" line="138"/>
         <source>(Name Not Provided)</source>
         <comment>[KLFAddOnInfo: add-on information XML data is invalid]</comment>
         <translation>(Pas de nom précisé)</translation>
     </message>
     <message>
-        <location filename="../klfmain.cpp" line="106"/>
+        <location filename="../klfmain.cpp" line="139"/>
         <source>(Invalid XML Data Provided By Add-On)</source>
         <comment>[KLFAddOnInfo: add-on information XML data is invalid]</comment>
         <translation>(Les données XML fournies par l&apos;extension ne sont pas valables)</translation>
     </message>
     <message>
-        <location filename="../klfmain.cpp" line="109"/>
+        <location filename="../klfmain.cpp" line="142"/>
         <source>(No Author Provided)</source>
         <comment>[KLFAddOnInfo: add-on information XML data is invalid]</comment>
         <translation>(Pas d&apos;auteur précisé)</translation>
     </message>
     <message>
-        <location filename="../klfmain.cpp" line="372"/>
+        <location filename="../klfmain.cpp" line="452"/>
         <source>English (US)</source>
         <comment>[[The Language (possibly with Country) you are translating to, e.g. `Deutsch&apos;]]</comment>
         <translation>Français</translation>
     </message>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="107"/>
+        <location filename="../klfmain.cpp" line="744"/>
+        <source>Failed to install userscript &apos;%1&apos; locally.</source>
+        <comment>[[userscript error message]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="obsolete/obsoletetext.cpp" line="108"/>
         <source>
 KLatexFormula by Philippe Faist
 
@@ -4977,7 +6028,7 @@ Have a lot of fun!
 
 </source>
         <comment>Command-line help instructions</comment>
-        <translation>
+        <translation type="unfinished">
 KLatexFormula par Philippe Faist
 
 Utilisation:
@@ -5073,70 +6124,158 @@ NOTES
 </translation>
     </message>
     <message>
-        <location filename="../klflibview.cpp" line="435"/>
-        <location filename="../klflibview.cpp" line="881"/>
+        <location filename="../klflibview.cpp" line="433"/>
+        <location filename="../klflibview.cpp" line="879"/>
         <source>Updating View...</source>
         <comment>[[KLFLibModelCache, progress text]]</comment>
         <translation>Mise à jour de l&apos;affichage ...</translation>
     </message>
     <message>
-        <location filename="../klfmime.cpp" line="343"/>
+        <location filename="../klfmime.cpp" line="246"/>
+        <source>User scripts</source>
+        <comment>[[KLFMimeExporter; submenu title]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfmime.cpp" line="477"/>
         <source>All Available Image Formats</source>
         <translation>Tous les formats d&apos;images</translation>
+    </message>
+    <message>
+        <location filename="../klfmime.cpp" line="1333"/>
+        <source>%1 File</source>
+        <comment>[[default file type description from file extension]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="137"/>
+        <source>User Script (ScriptInfo)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="162"/>
+        <source>User script did not provide valid --scriptinfo output.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="184"/>
+        <source>User script provided invalid --scriptinfo output.</source>
+        <comment>KLFBackend</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="480"/>
+        <source>Script Name:</source>
+        <comment>[[user script info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="485"/>
+        <source>Version:</source>
+        <comment>[[user script info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="490"/>
+        <source>Author:</source>
+        <comment>[[user script info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="494"/>
+        <source>Category:</source>
+        <comment>[[user script info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="499"/>
+        <source>License:</source>
+        <comment>[[user script info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="504"/>
+        <source>Provides Formats:</source>
+        <comment>[[user script info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klfbackend/klfuserscript.cpp" line="509"/>
+        <source>Skipped Formats:</source>
+        <comment>[[user script info text]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfsidewidget.cpp" line="846"/>
+        <source>Expand/Shrink Window</source>
+        <comment>[[KLFSideWidgetManagerFactory]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfsidewidget.cpp" line="848"/>
+        <source>Floating Tool Window</source>
+        <comment>[[KLFSideWidgetManagerFactory]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../klftools/klfsidewidget.cpp" line="850"/>
+        <source>Side Drawer</source>
+        <comment>[[KLFSideWidgetManagerFactory]]</comment>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>SkinConfigWidget</name>
     <message>
-        <location filename="obsolete/obsoletetext.cpp" line="202"/>
-        <source>Custom ...</source>
-        <translation>Personalisé ...</translation>
-    </message>
-    <message>
         <location filename="obsolete/obsoletetext.cpp" line="203"/>
-        <source>Skin Name</source>
-        <translation>Nom du thème</translation>
+        <source>Custom ...</source>
+        <translation type="unfinished">Personalisé ...</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="204"/>
-        <source>Please enter skin name:</source>
-        <translation>Saisissez le nom du thème :</translation>
+        <source>Skin Name</source>
+        <translation type="unfinished">Nom du thème</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="205"/>
-        <source>[New Skin Name]</source>
-        <translation>[Nom du thème]</translation>
+        <source>Please enter skin name:</source>
+        <translation type="unfinished">Saisissez le nom du thème :</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="206"/>
-        <source>Error</source>
-        <translation>Erreur</translation>
+        <source>[New Skin Name]</source>
+        <translation type="unfinished">[Nom du thème]</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="207"/>
-        <source>Can&apos;t overwrite a built-in skin. Please choose another name.</source>
-        <translation>Impossible d&apos;écraser un thème prédéfini. Veuillez saisir un autre nom.</translation>
+        <source>Error</source>
+        <translation type="unfinished">Erreur</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="208"/>
-        <source>Overwrite skin?</source>
-        <translation>Ecraser le thème ?</translation>
+        <source>Can&apos;t overwrite a built-in skin. Please choose another name.</source>
+        <translation type="unfinished">Impossible d&apos;écraser un thème prédéfini. Veuillez saisir un autre nom.</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="209"/>
-        <source>You are about to overwrite skin %1. Are you sure?</source>
-        <translation>Vous êtes sur le point d&apos;écraser le thème %1. Continuer ?</translation>
+        <source>Overwrite skin?</source>
+        <translation type="unfinished">Ecraser le thème ?</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="210"/>
-        <source>Delete skin?</source>
-        <comment>[[confirmation messagebox title]]</comment>
-        <translation>Supprimer le thème ?</translation>
+        <source>You are about to overwrite skin %1. Are you sure?</source>
+        <translation type="unfinished">Vous êtes sur le point d&apos;écraser le thème %1. Continuer ?</translation>
     </message>
     <message>
         <location filename="obsolete/obsoletetext.cpp" line="211"/>
+        <source>Delete skin?</source>
+        <comment>[[confirmation messagebox title]]</comment>
+        <translation type="unfinished">Supprimer le thème ?</translation>
+    </message>
+    <message>
+        <location filename="obsolete/obsoletetext.cpp" line="212"/>
         <source>Are you sure you want to delete the skin named `%1&apos; ?</source>
-        <translation>Êtes-vous sûr de vouloir supprimer le thème nommé « %1 » ?</translation>
+        <translation type="unfinished">Êtes-vous sûr de vouloir supprimer le thème nommé « %1 » ?</translation>
     </message>
     <message>
         <location filename="../plugins/skin/skinconfigwidget.ui" line="38"/>
@@ -5174,32 +6313,32 @@ NOTES
         <translation>Form</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="258"/>
+        <location filename="../plugins/skin/skin.cpp" line="265"/>
         <source>DESCRIPTION</source>
         <translation>DESCRIPTION</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="262"/>
+        <location filename="../plugins/skin/skin.cpp" line="269"/>
         <source>(No description provided)</source>
         <translation>(Aucune description fournie)</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="264"/>
+        <location filename="../plugins/skin/skin.cpp" line="271"/>
         <source>AUTHOR</source>
         <translation>AUTEUR</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="268"/>
+        <location filename="../plugins/skin/skin.cpp" line="275"/>
         <source>(No author name provided)</source>
         <translation>(Pas de nom d&apos;auteur fourni)</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="271"/>
+        <location filename="../plugins/skin/skin.cpp" line="278"/>
         <source>This skin also provides a syntax highlighting color scheme</source>
         <translation>Ce thème fournit également un thème de coloration syntaxique</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="273"/>
+        <location filename="../plugins/skin/skin.cpp" line="280"/>
         <source>This skin will not alter syntax highlighting color scheme</source>
         <translation>Ce thème n&apos;altérera pas la coloration syntaxique</translation>
     </message>
@@ -5217,13 +6356,13 @@ NOTES
         <translation>Personalisez l&apos;apparence de KLatexFormula</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="311"/>
+        <location filename="../plugins/skin/skin.cpp" line="318"/>
         <source>&lt;p&gt;Some new &lt;b&gt;interface skins&lt;/b&gt; are available in this version. You may want to try the &lt;a href=&quot;%1&quot;&gt;papyrus skin&lt;/a&gt;, the &lt;a href=&quot;%2&quot;&gt;galaxy skin&lt;/a&gt;, the &lt;a href=&quot;%3&quot;&gt;flat skin&lt;/a&gt;, or fall back to the regular &lt;a href=&quot;%4&quot;&gt;default skin&lt;/a&gt;.&lt;/p&gt;</source>
         <comment>[[help new features additional text]]</comment>
         <translation>&lt;p&gt;Quelques nouveaux &lt;b&gt;thèmes d&apos;interface&lt;/b&gt; sont disponible dans cette version de klatexformula. Vous pouvez essayer les thèmes &lt;a href=&quot;%1&quot;&gt;papyrus&lt;/a&gt;, &lt;a href=&quot;%2&quot;&gt;galaxie&lt;/a&gt;, &lt;a href=&quot;%3&quot;&gt;plat&lt;/a&gt;, ou laisser le thème &lt;a href=&quot;%4&quot;&gt;par défaut&lt;/a&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../plugins/skin/skin.cpp" line="395"/>
+        <location filename="../plugins/skin/skin.cpp" line="405"/>
         <source>Applying skin &lt;i&gt;%1&lt;/i&gt;, please wait ...</source>
         <translation>Application du thème &lt;i&gt;%1&lt;/i&gt;, veuillez patienter ...</translation>
     </message>
@@ -5250,41 +6389,47 @@ NOTES
         <source>Minimize button sends the window to system tray</source>
         <translation>Le bouton &quot;-&quot; réduit la fenêtre dans la zone de notification système</translation>
     </message>
+    <message>
+        <location filename="../plugins/systrayicon/systrayicon.cpp" line="53"/>
+        <source>Offer to hide application</source>
+        <comment>[[systrayicon config setting on Mac OS X]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SysTrayIconPlugin</name>
     <message>
-        <location filename="../plugins/systrayicon/systrayicon.cpp" line="77"/>
+        <location filename="../plugins/systrayicon/systrayicon.cpp" line="99"/>
         <source>Quit</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="../plugins/systrayicon/systrayicon.cpp" line="69"/>
+        <location filename="../plugins/systrayicon/systrayicon.cpp" line="91"/>
         <source>Minimize</source>
         <translation>Réduire</translation>
     </message>
     <message>
-        <location filename="../plugins/systrayicon/systrayicon.cpp" line="70"/>
+        <location filename="../plugins/systrayicon/systrayicon.cpp" line="92"/>
         <source>Restore</source>
         <translation>Restaurer</translation>
     </message>
     <message>
-        <location filename="../plugins/systrayicon/systrayicon.cpp" line="71"/>
+        <location filename="../plugins/systrayicon/systrayicon.cpp" line="93"/>
         <source>Paste From Clipboard</source>
         <translation>Coller depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="../plugins/systrayicon/systrayicon.cpp" line="74"/>
+        <location filename="../plugins/systrayicon/systrayicon.cpp" line="96"/>
         <source>Paste From Mouse Selection</source>
         <translation>Coller depuis la séléction de la souris</translation>
     </message>
     <message>
-        <location filename="../plugins/systrayicon/systrayicon.h" line="66"/>
+        <location filename="../plugins/systrayicon/systrayicon.h" line="71"/>
         <source>System Tray Icon</source>
         <translation>Intégration Zone de Notification</translation>
     </message>
     <message>
-        <location filename="../plugins/systrayicon/systrayicon.h" line="67"/>
+        <location filename="../plugins/systrayicon/systrayicon.h" line="72"/>
         <source>Dock KLatexFormula into system tray</source>
         <translation>Intégration de KLatexFormula dans la zone de notification du système</translation>
     </message>
@@ -5292,10 +6437,16 @@ NOTES
 <context>
     <name>SysTrayMainIconifyButtons</name>
     <message>
-        <location filename="../plugins/systrayicon/systrayicon.cpp" line="38"/>
+        <location filename="../plugins/systrayicon/systrayicon.cpp" line="39"/>
         <source>Ctrl+Q</source>
         <comment>SysTrayMainIconifyButtons-&gt;Quit</comment>
         <translation>Ctrl+Q</translation>
+    </message>
+    <message>
+        <location filename="../plugins/systrayicon/systrayicon.cpp" line="42"/>
+        <source>Hide</source>
+        <comment>[[iconify button text on mac]]</comment>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../plugins/systrayicon/systraymainiconifybuttons.ui" line="74"/>
@@ -5303,9 +6454,9 @@ NOTES
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="../plugins/systrayicon/systraymainiconifybuttons.ui" line="61"/>
+        <location filename="obsolete/obsoletetext.cpp" line="217"/>
         <source>Quit KLatexFormula [Ctrl+Q]</source>
-        <translation>Quitter KLatexFormula [Ctrl+Q]</translation>
+        <translation type="unfinished">Quitter KLatexFormula [Ctrl+Q]</translation>
     </message>
     <message>
         <location filename="../plugins/systrayicon/systraymainiconifybuttons.ui" line="64"/>
@@ -5327,143 +6478,485 @@ NOTES
         <source>Iconify</source>
         <translation>Réduire</translation>
     </message>
+    <message>
+        <location filename="../plugins/systrayicon/systraymainiconifybuttons.ui" line="61"/>
+        <source>&lt;p style=&quot;white-space: pre&quot;&gt;Quit KLatexFormula [&lt;strong&gt;Ctrl-Q&lt;/strong&gt;]&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>xmltr_exportprofiles</name>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="21"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="13"/>
         <source>Default</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Par Défaut</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="22"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="14"/>
         <source>Vector Formats</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Formats Vectoriels</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="23"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="18"/>
+        <source>PDF</source>
+        <comment>[[tag: &lt;description&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="19"/>
+        <source>(E)PS</source>
+        <comment>[[tag: &lt;description&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="20"/>
+        <source>SVG</source>
+        <comment>[[tag: &lt;description&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="21"/>
         <source>PNG</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>PNG</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="24"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="22"/>
+        <source>JPEG</source>
+        <comment>[[tag: &lt;description&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="23"/>
         <source>PNG File</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Fichier PNG</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="25"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="15"/>
         <source>HTML</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>HTML</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="26"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="16"/>
         <source>OpenOffice.org format</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Format OpenOffice.org</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="27"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="17"/>
         <source>Alien Glow Image</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Image Luisante</translation>
     </message>
 </context>
 <context>
-    <name>xmltr_latexsymbols</name>
+    <name>xmltr_klfsymbollist</name>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="13"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="37"/>
+        <source>foo bar</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="38"/>
         <source>Relation Symbols</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation>Symboles relationnels</translation>
+        <translation type="unfinished">Symboles relationnels</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="14"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="39"/>
+        <source>plus minus error</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="40"/>
+        <source>set intersection</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="41"/>
+        <source>direct sum</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="42"/>
+        <source>set union</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="43"/>
+        <source>multiplication product</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="44"/>
+        <source>tensor product</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="45"/>
+        <source>operator adjoint</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="46"/>
+        <source>set exclude subtract complement</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="47"/>
+        <source>multiplication scalar product</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="48"/>
+        <source>less smaller than equals</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="49"/>
+        <source>greater more larger than equals</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="50"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="51"/>
+        <source>majorization</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="52"/>
+        <source>perpendicular orthogonal normal</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="53"/>
+        <source>much very smaller less order of magnitude</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="54"/>
+        <source>much very larger greater order of magnitude</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="55"/>
+        <source>set contained included</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="56"/>
+        <source>set contains includes</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="57"/>
+        <source>estimation about approximate approximation</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="58"/>
+        <source>set contained included equal</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="59"/>
+        <source>set contains includes equal</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="60"/>
+        <source>approximately equals</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="61"/>
+        <source>set element in</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="62"/>
+        <source>set element contains</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="63"/>
+        <source>proportional</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="64"/>
+        <source>integral</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="65"/>
+        <source>less smaller than equals slant</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="66"/>
+        <source>greater more larger than equals slant</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="67"/>
+        <source>double backslash slash</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="68"/>
+        <source>parallel double slash</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="69"/>
+        <source>trace</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="70"/>
+        <source>support</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="71"/>
+        <source>rank operator matrix</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="72"/>
         <source>Arrow Symbols</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation>Flèches</translation>
+        <translation type="unfinished">Flèches</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="15"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="73"/>
         <source>Miscellaneous Symbols</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation>Divers Symboles</translation>
+        <translation type="unfinished">Divers Symboles</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="16"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="74"/>
+        <source>definition</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="75"/>
+        <source>epsilon close approximately</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="76"/>
         <source>Delimiters and Accents</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation>Délimiteurs et accents</translation>
+        <translation type="unfinished">Délimiteurs et accents</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="17"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="77"/>
+        <source>square root</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="78"/>
+        <source>root</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="79"/>
+        <source>fraction bar over division</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="80"/>
+        <source>slanted fraction bar over division</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="81"/>
+        <source>absolute value magnitude modulus</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="82"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="83"/>
+        <source>quantum mechanics Dirac ket</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="84"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="85"/>
+        <source>quantum mechanics Dirac bra</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="86"/>
+        <source>quantum mechanics Dirac</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="87"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="88"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="89"/>
+        <source>quantum mechanics Dirac matrix element</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="90"/>
+        <source>Feynman slash quantum field theory QFT</source>
+        <comment>[[tag: &lt;keywords&gt;]]</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="91"/>
         <source>Greek Alphabet</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation>Alphabet grec</translation>
+        <translation type="unfinished">Alphabet grec</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="18"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="92"/>
         <source>Math Alphabets and Fonts</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation>Alphabets et polices mathématiques</translation>
+        <translation type="unfinished">Alphabets et polices mathématiques</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="19"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="93"/>
         <source>Text Mode LaTeX Special Characters</source>
         <comment>[[tag: &lt;category-title&gt;]]</comment>
-        <translation>Caractères spéciaux LaTeX en mode texte</translation>
+        <translation type="unfinished">Caractères spéciaux LaTeX en mode texte</translation>
+    </message>
+</context>
+<context>
+    <name>xmltr_latexsymbols</name>
+    <message>
+        <source>Relation Symbols</source>
+        <comment>[[tag: &lt;category-title&gt;]]</comment>
+        <translation type="obsolete">Symboles relationnels</translation>
+    </message>
+    <message>
+        <source>Arrow Symbols</source>
+        <comment>[[tag: &lt;category-title&gt;]]</comment>
+        <translation type="obsolete">Flèches</translation>
+    </message>
+    <message>
+        <source>Miscellaneous Symbols</source>
+        <comment>[[tag: &lt;category-title&gt;]]</comment>
+        <translation type="obsolete">Divers Symboles</translation>
+    </message>
+    <message>
+        <source>Delimiters and Accents</source>
+        <comment>[[tag: &lt;category-title&gt;]]</comment>
+        <translation type="obsolete">Délimiteurs et accents</translation>
+    </message>
+    <message>
+        <source>Greek Alphabet</source>
+        <comment>[[tag: &lt;category-title&gt;]]</comment>
+        <translation type="obsolete">Alphabet grec</translation>
+    </message>
+    <message>
+        <source>Math Alphabets and Fonts</source>
+        <comment>[[tag: &lt;category-title&gt;]]</comment>
+        <translation type="obsolete">Alphabets et polices mathématiques</translation>
+    </message>
+    <message>
+        <source>Text Mode LaTeX Special Characters</source>
+        <comment>[[tag: &lt;category-title&gt;]]</comment>
+        <translation type="obsolete">Caractères spéciaux LaTeX en mode texte</translation>
     </message>
 </context>
 <context>
     <name>xmltr_pluginskins</name>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="29"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="25"/>
         <source>Default</source>
         <comment>[[tag: &lt;name&gt;]]</comment>
         <translation>Par Défaut</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="30"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="26"/>
         <source>This skin provides the default appearance for your system.</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Ce thème fournit l&apos;apparence par défaut pour votre système.</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="32"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="28"/>
         <source>Flat</source>
         <comment>[[tag: &lt;name&gt;]]</comment>
         <translation>Plat</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="33"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="29"/>
         <source>A flat, gray-ish theme</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Un thème plat et grisâtre</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="35"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="31"/>
         <source>Galaxy</source>
         <comment>[[tag: &lt;name&gt;]]</comment>
         <translation>Galaxie</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="36"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="32"/>
         <source>A generally dark interspace nebula background</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Un thème plutôt sombre à fond de nébuleuse intergalactique</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="38"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="34"/>
         <source>Papyrus</source>
         <comment>[[tag: &lt;name&gt;]]</comment>
         <translation>Papyrus</translation>
     </message>
     <message>
-        <location filename="temp_xmltr_klf_fr.ts.cxx" line="39"/>
+        <location filename="temp_xmltr_klf_fr.ts.cxx" line="35"/>
         <source>Hieroglyphic characters are not (yet) supported in klatexformula...</source>
         <comment>[[tag: &lt;description&gt;]]</comment>
         <translation>Les caractères hiéroglyphiques ne sont pas (encore) disponibles dans klatexformula ...</translation>

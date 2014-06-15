@@ -451,8 +451,10 @@ macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
 	"${inst_lib_dir}"  "${klf_dummy_inst_dir}")
   KLFConditionalSet(inst_${targetlib}_framework_dir ${varOptBase}FRAMEWORK
 	"${inst_lib_dir}"  "${klf_dummy_inst_dir}")
-  KLFConditionalSet(inst_${targetlib}_pubheader_dir ${varOptBase}HEADERS
-	"${inst_pubheader_dir}"  "${klf_dummy_inst_dir}")
+  if (inst_pubheader_dir)
+    KLFConditionalSet(inst_${targetlib}_pubheader_dir ${varOptBase}HEADERS
+	  "${inst_pubheader_dir}"  "${klf_dummy_inst_dir}")
+  endif(inst_pubheader_dir)
 
   set(need_dummy_dir FALSE)
   if(NOT ${varOptBase}SO_LIBS OR NOT ${varOptBase}SO_LIBS OR NOT ${varOptBase}STATIC_LIBS
