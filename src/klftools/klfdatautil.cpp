@@ -387,7 +387,7 @@ static QDomElement parse_xml_wrapper(const QByteArray& xmldata, const QString& s
   QDomElement el = xmldoc.documentElement();
   KLF_ASSERT_CONDITION( el.nodeName() == shouldBeRootName,
 		        "Wrong XML root node in wrapper for klfLoadVariantFromText(): "
-			<<el.nodeName() ,  ) ;
+			<<el.nodeName() ,  ; ) ;
   return el;
 }
 

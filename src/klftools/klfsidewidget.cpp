@@ -209,13 +209,13 @@ void KLFShowHideSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  bool preserveshown = false;
-  bool shown = false;
+  //bool preserveshown = false;
+  //bool shown = false;
 
   if (oldw != NULL) {
     klfDbg("old="<<oldw) ;
-    preserveshown = true;
-    shown = oldw->isVisible();
+    //preserveshown = true;
+    //shown = oldw->isVisible();
     oldw->removeEventFilter(this);
     oldw->hide();
   }

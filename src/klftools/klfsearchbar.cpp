@@ -134,7 +134,7 @@
 QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos)
 {
   QString s;
-  s.sprintf("%p", (const KLFPosSearchable::Pos::PosData*)pos.posdata);
+  s.sprintf("%p", (void*)pos.posdata);
   str << "Pos("<<qPrintable(s);
   if (pos.posdata != NULL) {
     QString desc;

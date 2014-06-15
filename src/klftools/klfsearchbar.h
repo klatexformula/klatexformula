@@ -123,6 +123,7 @@ public:
      */
     struct PosData {
       PosData() : r(0) { }
+      virtual ~PosData() { }
 
       /** tests for equality with other position. */
       virtual bool equals(PosData *other) const = 0;

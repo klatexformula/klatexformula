@@ -962,11 +962,11 @@ void KLFDebugObjectWatcher::debugObjectDestroyed(QObject *object)
   if (p->refInfos.contains(obji)) {
     klfDbg(klfFmtCC("Object destroyed: (%s*)%p; object reference name is `%s'",
 		    (object ? object->metaObject()->className() : "void"),
-		    object, qPrintable(p->refInfos[obji])));
+		    (void*)object, qPrintable(p->refInfos[obji])));
   } else {
     klfDbg(klfFmtCC("Object destroyed: (%s*)%p",
 		    (object ? object->metaObject()->className() : "void"),
-		    object));
+		    (void*)object));
   }
 }
 
