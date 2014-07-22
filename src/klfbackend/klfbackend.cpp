@@ -549,7 +549,15 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       try_ps_devices << QString::fromLatin1(env_gs_device);
       try_gs_options << "-dNOCACHE -dNoOutputFonts";
     } else {
-      // try: pswrite with -dNOCACHE; then ps2write with -dNoOutputFonts
+      // try: 
+      //
+      //   1. "Traditional method" (gs <= 9.07): pswrite with -dNOCACHE
+      //
+      //   2. Ghostscript removed the pswrite device after that; The ghostscript
+      //      developers were very responsive and helpful to my feedback, and thanks to
+      //      their prompt reaction, starting from 9.15, we can use the ps2write device
+      //      with the option "-dNoOutputFonts".
+
       try_ps_devices << QLatin1String("pswrite") << QLatin1String("ps2write");
       try_gs_options << "-dNOCACHE" << "-dNoOutputFonts";
     }
