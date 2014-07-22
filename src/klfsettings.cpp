@@ -1543,7 +1543,7 @@ void KLFSettings::apply()
   //  }
   // detect environment for those settings (in particular mgs.exe for ghostscript ...)
 
-  klf_detect_execenv(&backendsettings);
+  KLFBackend::detectOptionSettings(&backendsettings);
 
   backendsettings.lborderoffset = u->spnLBorderOffset->valueInRefUnit();
   backendsettings.tborderoffset = u->spnTBorderOffset->valueInRefUnit();

@@ -103,6 +103,8 @@
 #define KLFERR_GSPOSTPROC_NONORMALEXIT -30
 //! Program 'gs' didn't provide any data after post-processing EPS file
 #define KLFERR_GSPOSTPROC_NOOUTPUT -22
+//! 'gs' cannot outline fonts: need version <= 9.07 (pswrite -dNOCACHE) or >= 9.15 (ps2write -dNoOutputFonts)
+#define KLFERR_GSPOSTPROC_NOOUTLINEFONTS -49
 //! obsolete, same as KLFERR_GSPOSTPROC_NOOUTPUT
 #define KLFERR_NOEPSFILE_OF KLFERR_GSPOSTPROC_NOOUTPUT
 //! Couldn't read output provided by 'gs' program after post-processing EPS file
@@ -163,7 +165,7 @@
 #define KLFERR_USERSCRIPT_BADKLFVERSION -44
 #define KLFERR_USERSCRIPT_BADSKIPFORMATS -45
 #define KLFERR_USERSCRIPT_BADCATEGORY -46
-// last error defined: -48
+// last error defined: -49
 
 
 
@@ -231,7 +233,7 @@ public:
     QString gsexec;
     /** \deprecated
      * <b>This setting is DEPRECATED and no longer used as of version 3.3.</b> PDF is generated
-     * by calling ghostscript directly.
+     * by calling ghostscript directly. This value will be ignored!
      *
      * the epstopdf executable, path incl. if not in $PATH. This isn't mandatory to get PNG so
      * you may leave this to Null or Empty string to instruct getLatexFormula() to NOT attempt to
@@ -283,7 +285,7 @@ public:
     bool wantSVG;
 
     /** Extra environment variables to set (list of <tt>"NAME=value"</tt>) when executing latex,
-     * dvips, gs and epstopdf. */
+     * dvips, gs. */
     QStringList execenv;
 
     /** The TemplateGenerator object that will be used to generate the base document template.
@@ -585,6 +587,30 @@ public:
   static bool detectSettings(klfSettings *settings, const QString& extraPath = QString(),
 			     bool isMainThread = true);
 
+  /** \brief Detects additional options (e.g. \ref klfSettings::wantSVG) that depend on
+   * specific program versions.
+   *
+   * \c settings is assumed to be a valid settings object with paths set. This function:
+   *
+   *   - queries \c gs for whether it has an SVG device and sets \ref klfSettings::wantSVG
+   *     accordingly;
+   *
+   *   - sees if additional environment variables are needed to run the given programs (in
+   *     particular for \c mgs.exe ghostscript in MikTeX) and stores those into
+   *     \ref klfSettings::execenv. Note that the environment settings already existing in
+   *     \c settings->execenv are kept; only those variables for which new values are
+   *     detected are updated, or if new declarations are needed they are appended.
+   *
+   * Possibly in the future it might fill in further optional fields in \ref klfSettings
+   * that rely on specific features or versions of the installed programs.
+   *
+   * \note detectSettings() already calls this function. You do not need to call it again
+   * if you're using \ref detectSettings().
+   *
+   * Returns TRUE or FALSE to indicate success or failure.
+   */
+  static bool detectOptionSettings(klfSettings *settings, bool isMainThread = true);
+
   /** \bug ........documentation ........ */
   static QStringList userScriptSettingsToEnvironment(const QMap<QString,QString>& userScriptSettings);
 
@@ -617,6 +643,25 @@ private:
 KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfInput& b);
 KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::klfSettings& b);
 
+/** \brief detects any additional settings to environment variables
+ * \deprecated
+ *
+ * \note Please use \ref KLFBackend::detectOptionSettings instead (starting from KLF 3.3).
+ *
+ * Detects whether the given values of latex, dvips, gs and epstopdf in the
+ * given (initialized) settings \c settings need extra environment set,
+ * and sets the \c execenv member of \c settings accordingly.
+ *
+ * Note that the environment settings already existing in \c settings->execenv are
+ * kept; only those variables for which new values are detected are updated, or if
+ * new declarations are needed they are appended.
+ *
+ * \note KLFBackend::detectSettings() already calls this function, you don't
+ *   have to call this function manually in that case.
+ *
+ * \return TRUE (success) or FALSE (failure). Currently there is no reason
+ * for failure, and returns always TRUE (as of 3.2.1).
+ */
 KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings);
 
 

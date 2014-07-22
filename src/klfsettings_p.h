@@ -127,7 +127,6 @@ public slots: // well "public" only for us... :)
   void slotChangeFontPresetSender();
   void slotChangeFontSender();
   void slotChangeFont(QPushButton *btn, const QFont& f);
-
 };
 
 

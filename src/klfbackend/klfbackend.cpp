@@ -589,13 +589,13 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   //  - gs -dNOPAUSE -dSAFER -dSetPageSize -sDEVICE=ps2write -dEPSCrop -sOutputFile=file-corrected.(e)ps
   //       -q -dBATCH  file-bbox.eps    --> generate (E)PS file w/ correct page size
   // OR
-  //  - gs -dNOCACHE -dNOPAUSE -dSAFER -sDEVICE=epswrite -dEPSCrop -sOutputFile=file-corrected.eps -q -dBATCH
+  //  - gs -dNOCACHE -dNOPAUSE -dSAFER -sDEVICE=pswrite -dEPSCrop -sOutputFile=file-corrected.eps -q -dBATCH
   //       file-bbox.eps                --> generate post-processed (E)PS file
   //
   // - gs -dNOPAUSE -dSAFER -sDEVICE=pdfwrite -sOutputFile=file.pdf -q -dBATCH file-corrected.eps
   //       with added pdfmarks..
   //
-  // - if (version(gs) >= 8.64) {
+  // - if (reports-has-device(svg)) {
   //
   //     - gs -dNOPAUSE -dSAFER -sDEVICE=svg -r72x72 -sOutputFile=file.svg -q -dBATCH file-corrected.eps
   //
@@ -1031,31 +1031,35 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       p.resErrCodes[KLFFP_NODATA] = KLFERR_GSPOSTPROC_NOOUTPUT;
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_GSPOSTPROC_OUTPUTREADFAIL;
 
-      // Very bad joke from ghostscript's guys: they deprecate pswrite device, which worked very well, and
-      // so now we have to make sure we use ps2write on newer systems but make sure we still use pswrite on
-      // old systems which don't support ps2write. THANKS A TON GS GUYS :(
-      QString psdevice = "pswrite";
-      bool needHackBBAgain = false;
+      QString psdevice;
+      QStringList gsoptions;
       const char *env_gs_device = getenv("KLFBACKEND_GS_PS_DEVICE");
       if (env_gs_device != NULL) {
         psdevice = QString::fromLatin1(env_gs_device);
+        gsoptions = QStringList() << "-dNOCACHE -dNoOutputFonts";
+      } else if (thisGsInfo.version_maj < 9 ||
+                 (thisGsInfo.version_maj == 9 && thisGsInfo.version_min <= 7)) {
+        // until 9.07, we can still use 'pswrite' with -dNOCACHE
+        psdevice = QLatin1String("pswrite");
+        gsoptions = QStringList() << "-dNOCACHE";
       } else if (thisGsInfo.version_maj > 9 ||
-                 (thisGsInfo.version_maj == 9 && thisGsInfo.version_min > 7)) {
-        // until 9.07, we can still use 'pswrite', after that we have to use ps2write.
-        // note: in the versions where both devices coexist, use pswrite because ps2write is just
-        // not as good for our purposes.
-
-        // FIXME: BUG: ps2write does NOT outline fonts!!! WTF???!?!? Damn new ghostscript verisions!!!
-
-        psdevice = QLatin1String("epswrite");
-        needHackBBAgain = true;
+                 (thisGsInfo.version_maj == 9 && thisGsInfo.version_min >= 15)) {
+        // Ghostscript removed the pswrite device after 9.07; The ghostscript developers
+        // were very responsive and helpful to my feedback, and thanks to their prompt
+        // reaction, starting from 9.15, we can use the ps2write device with the option
+        // "-dNoOutputFonts".
+        psdevice = QLatin1String("ps2write");
+        gsoptions = QStringList() << "-dNoOutputFonts";
+      } else {
+        res.status = KLFERR_GSPOSTPROC_NOOUTLINEFONTS;
+        res.errorstr = QObject::tr("Installed Ghostscript version %1 may not be used to create font outlines."
+                                   " Please upgrade to gs >= 9.15 (or downgrade to gs <= 9.07).",
+                                   "KLFBackend").arg(thisGsInfo.version);
+        return res;
       }
 
       p.addArgv(settings.gsexec);
-      // The bad joke is that in gs' manpage '-dNOCACHE' is described as a debugging option.
-      // It is NOT. It outlines the fonts to paths. It cost me a few hours trying to understand
-      // what's going on ... :(  Not Funny.
-      p.addArgv(QStringList() << "-dNOCACHE"
+      p.addArgv(QStringList() << gsoptions
 		<< "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << QString::fromLatin1("-sDEVICE=%1").arg(psdevice)
 		<< "-sOutputFile="+QDir::toNativeSeparators(fnProcessedEps)
 		<< "-q" << "-dBATCH" << "-");
@@ -1067,25 +1071,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       }
 
       klfDebugf(("%s: res.epsdata has length=%d", KLF_FUNC_NAME, res.epsdata.size())) ;
-
-      if (needHackBBAgain) {
-        klfbbox thebbox;
-        bool ok = read_eps_bbox(bboxepsdata, &thebbox, NULL);
-        if (ok) {
-          QRegExp rx_bb("%%BoundingBox:[^\r\n]*([\r\n])");
-          QRegExp rx_hiresbb("%%HiResBoundingBox:[^\r\n]*([\r\n])");
-          QString epsdata_str = QString::fromLatin1(res.epsdata);
-          epsdata_str.replace(rx_bb, klfFmt("%%%%BoundingBox: %d %d %d %d\\1",
-                                            (int)thebbox.x1, (int)thebbox.y1,
-                                            (int)(thebbox.x2+0.5), (int)(thebbox.y2+0.5)));
-          epsdata_str.replace(rx_hiresbb,
-                              klfFmt("%%%%HiResBoundingBox: %f %f %f %f\\1",
-                                     thebbox.x1, thebbox.y1, thebbox.x2, thebbox.y2));
-          res.epsdata = epsdata_str.toLatin1();
-          klfDbg("did bbox hack! bbox was "<<thebbox.x1<<","<<thebbox.y1<<","<<thebbox.x2<<","<<thebbox.y2
-                 <<":\n\nbboxepsdata="<<bboxepsdata);
-        }
-      }
 
     } else {
       // no post-processed EPS, copy raw (bbox-corrected) EPS data:
@@ -1782,41 +1767,39 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath,
     }
   }
 
-  klf_detect_execenv(settings);
+  bool r1 = detectOptionSettings(settings);
 
+  bool result_failure =
+    settings->tempdir.isEmpty() || settings->latexexec.isEmpty() || settings->dvipsexec.isEmpty() ||
+    settings->gsexec.isEmpty() || !r1;
+
+  return !result_failure;
+}
+
+KLF_EXPORT bool KLFBackend::detectOptionSettings(klfSettings * settings, bool isMainThread)
+{
+  bool r0 = klf_detect_execenv(settings);
+  if (!r0) {
+    return false;
+  }
+
+  settings->wantSVG = false;
+
+  bool ok = true;
   if (settings->gsexec.length()) {
     initGsInfo(settings, isMainThread);
     if (!gsInfo.contains(settings->gsexec)) {
       klfWarning("Cannot get 'gs' devices information with "<<(settings->gsexec+" --version/--help"));
+      ok = false;
     } else if (gsInfo[settings->gsexec].availdevices.contains("svg")) {
       settings->wantSVG = true;
     }
   }
 
-  bool result_failure =
-    settings->tempdir.isEmpty() || settings->latexexec.isEmpty() || settings->dvipsexec.isEmpty() ||
-    settings->gsexec.isEmpty();
-
-  return !result_failure;
+  return ok;
 }
 
 
-/** \brief detects any additional settings to environment variables
- *
- * Detects whether the given values of latex, dvips, gs and epstopdf in the
- * given (initialized) settings \c settings need extra environment set,
- * and sets the \c execenv member of \c settings accordingly.
- *
- * Note that the environment settings already existing in \c settings->execenv are
- * kept; only those variables for which new values are detected are updated, or if
- * new declarations are needed they are appended.
- *
- * \note KLFBackend::detectSettings() already calls this function, you don't
- *   have to call this function manually in that case.
- *
- * \return TRUE (success) or FALSE (failure). Currently there is no reason
- * for failure, and returns always TRUE (as of 3.2.1).
- */
 KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
 {
   // detect mgs.exe as ghostscript and setup its environment properly
