@@ -1,7 +1,7 @@
 /***************************************************************************
  *   file main.cpp
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2012 by Philippe Faist
+ *   Copyright (C) 2014 by Philippe Faist
  *   philippe.faist@bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -82,7 +82,7 @@
 
 
 #define KLF_WELCOME                                             \
-  "KLatexFormula Version %s by Philippe Faist (c) 2005-2013\n"  \
+  "KLatexFormula Version %s by Philippe Faist (c) 2005-2014\n"  \
   "Licensed under the terms of the GNU Public License GPL\n\n"
 
 
