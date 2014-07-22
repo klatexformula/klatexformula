@@ -537,23 +537,21 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     // run 'gs' to outline fonts
     KLFBlockProcess proc;
 
-    // Very bad joke from ghostscript's guys: they deprecate pswrite device, which worked very well, and
-    // so I had to adapt the code so that it works with the new ps2write device. The bounding boxes were
-    // going like hell. Hopefully a backport of the new system in 3.3 seemed to fix the issue.
-
-    // So now we have to make sure we use ps2write on newer systems but make sure we still use pswrite on
-    // old systems which don't support ps2write. THANKS A TON GS GUYS :(
-
     // In 3.2 we don't query gs version so we have no idea. So just let the user define an environment
     // variable in case. KLFBACKEND_GS_PS_DEVICE="pswrite" or "epswrite" or "ps2write" (note: with epswrite
     // you can't expand the bbox)
 
     QStringList try_ps_devices;
+    QStringList try_gs_options;
     const char *env_gs_device = getenv("KLFBACKEND_GS_PS_DEVICE");
     if (env_gs_device != NULL) {
+      // Use device given by environment variable
       try_ps_devices << QString::fromLatin1(env_gs_device);
+      try_gs_options << "-dNOCACHE -dNoOutputFonts";
     } else {
+      // try: pswrite with -dNOCACHE; then ps2write with -dNoOutputFonts
       try_ps_devices << QLatin1String("pswrite") << QLatin1String("ps2write");
+      try_gs_options << "-dNOCACHE" << "-dNoOutputFonts";
     }
 
     bool r = false;
@@ -563,7 +561,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       qDebug("trying with gs device %s ...", qPrintable(psdev));
 
       QStringList args;
-      args << settings.gsexec << "-dNOCACHE" << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop"
+      args << settings.gsexec << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << try_gs_options[try_ps_dev_i]
            << QString("-sDEVICE=%1").arg(psdev)
            << "-sOutputFile="+dir_native_separators(fnOutlFontsEps)
            << "-q" << "-dBATCH" << dir_native_separators(fnBBCorrEps);
