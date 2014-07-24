@@ -644,9 +644,9 @@ KLF_EXPORT bool operator==(const KLFBackend::klfInput& a, const KLFBackend::klfI
 KLF_EXPORT bool operator==(const KLFBackend::klfSettings& a, const KLFBackend::klfSettings& b);
 
 /** \brief detects any additional settings to environment variables
- * \deprecated
  *
- * \note Please use \ref KLFBackend::detectOptionSettings instead (starting from KLF 3.3).
+ * \deprecated Please use \ref KLFBackend::detectOptionSettings instead (starting from KLF
+ * 3.3).
  *
  * Detects whether the given values of latex, dvips, gs and epstopdf in the
  * given (initialized) settings \c settings need extra environment set,

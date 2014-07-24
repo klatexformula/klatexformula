@@ -564,10 +564,11 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 
   // PROCEDURE (V3.3)
   //
+  // EACH STEP MIGHT BE DONE BY A USER SCRIPT INSTEAD IF THAT IS REQUESTED.
+  //
   // - generate LaTeX file
   //
   // - latex                            --> get DVI file
-  //             EXCEPT: if a user wrapper script is given, run that instead.
   //
   // - dvips -E file.dvi -o file.eps    --> get (first) EPS file
   //

@@ -25,12 +25,21 @@
 import re;
 import os;
 import sys;
+import os.path;
 
 if (sys.argv[1] == "--help"):
     print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
     print "       "+os.path.basename(sys.argv[0])+" <file.png>";
     print "";
     exit(0);
+
+convert = ""
+if "KLF_USCONFIG_convert" in os.environ:
+    convert = os.environ["KLF_USCONFIG_convert"];
+if not convert:
+    if os.path.exists("/usr/bin/convert"):
+        convert = "/usr/bin/convert"
+
 
 if (sys.argv[1] == "--scriptinfo"):
     print "ScriptInfo";
@@ -45,6 +54,9 @@ if (sys.argv[1] == "--scriptinfo"):
     print "OutputFormatDescription: GIF Image"
     print "WantStdinInput: false"
     print "HasStdoutOutput: false"
+    print "SettingsFormUI: :/userscriptdata/gif-convert/gif-convert_config.ui";
+    if not convert:
+        print "Error: Can't find `convert' utility."
     print "";
     exit(0);
 
@@ -55,8 +67,10 @@ giffile = re.sub(r'\.png$', r'.gif', pngfile);
 pngfile = "'" + re.sub(r"\'", "'\"'\"'", pngfile) + "'";
 giffile = "'" + re.sub(r"\'", "'\"'\"'", giffile) + "'";
 
+convert = re.sub(r"\'", "\'\"'\"'", convert)
+
 # TODO !!!: Needs Error handling/messages/....
-os.system("convert "+pngfile+" "+giffile+"");
+os.system("'"+convert+"' "+pngfile+" "+giffile+"");
 
 
 exit(0);

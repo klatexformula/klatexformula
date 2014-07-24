@@ -21,4 +21,7 @@
   <qresource prefix="/userscriptdata/svg-dvisvgm/">
     <file alias="svg-dvisvgm_config.ui">@CMAKE_CURRENT_SOURCE_DIR@/userscriptdata/svg-dvisvgm/svg-dvisvgm_config.ui</file>
   </qresource>
+  <qresource prefix="/userscriptdata/gif-convert/">
+    <file alias="gif-convert_config.ui">@CMAKE_CURRENT_SOURCE_DIR@/userscriptdata/gif-convert/gif-convert_config.ui</file>
+  </qresource>
 </RCC>

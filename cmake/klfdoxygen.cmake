@@ -78,12 +78,12 @@ if(DOXYGEN)
     endforeach(dep)
   endmacro(KLFMakeDoxygenTarget)
 
-  KLFMakeDoxygenTarget("${KLF_APIDOC_DIR}" klfbackend "" ""  "")
-  KLFMakeDoxygenTarget("${KLF_APIDOC_DIR}" klftools "" ""  "klfbackend")
+  KLFMakeDoxygenTarget("${KLF_APIDOC_DIR}" klftools "" ""  "")
+  KLFMakeDoxygenTarget("${KLF_APIDOC_DIR}" klfbackend "" ""  "klftools")
   KLFMakeDoxygenTarget("${KLF_APIDOC_DIR}" klfapp "" ""  "klfbackend;klftools")
 
-  KLFMakeDoxygenTarget("${KLF_APIDOCSF_DIR}" klfbackend ".sfweb" "_sfweb"  "")
-  KLFMakeDoxygenTarget("${KLF_APIDOCSF_DIR}" klftools ".sfweb" "_sfweb"  "klfbackend")
+  KLFMakeDoxygenTarget("${KLF_APIDOCSF_DIR}" klftools ".sfweb" "_sfweb"  "")
+  KLFMakeDoxygenTarget("${KLF_APIDOCSF_DIR}" klfbackend ".sfweb" "_sfweb"  "klftools")
   KLFMakeDoxygenTarget("${KLF_APIDOCSF_DIR}" klfapp ".sfweb" "_sfweb"  "klfbackend;klftools")
 
 
@@ -100,15 +100,15 @@ if(DOXYGEN)
     VERBATIM
     )
 
-  add_dependencies(doc_klfapp  doc_klftools  doc_klfbackend) # depends on klfbackend.tag and klftools.tag
-  add_dependencies(doc_klftools  doc_klfbackend) # depends on klfbackend.tag
+  #add_dependencies(doc_klfapp  doc_klftools  doc_klfbackend) # depends on klfbackend.tag and klftools.tag
+  #add_dependencies(doc_klfbackend  doc_klftools) # depends on klftools.tag
 
   add_dependencies(doc  doc_klfbackend doc_klftools doc_klfapp)
 
   # and the sourceforge-hosted docs (internal...)
-  add_dependencies(doc_klfapp_sfweb
-		   doc_klftools_sfweb doc_klfbackend_sfweb) # depends on klfbackend.tag and klftools.tag
-  add_dependencies(doc_klftools_sfweb doc_klfbackend_sfweb) # depends on klfbackend.tag
+  #add_dependencies(doc_klfapp_sfweb
+  #		   doc_klftools_sfweb doc_klfbackend_sfweb) # depends on klfbackend.tag and klftools.tag
+  #add_dependencies(doc_klfbackend_sfweb doc_klftools_sfweb) # depends on klftools.tag
 
   message(STATUS "doxygen developer API documentation can be generated with 'make doc'")
 else(DOXYGEN)

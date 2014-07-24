@@ -1300,14 +1300,23 @@ void KLFSettingsPrivate::refreshUserScriptSelected()
     // no user script
     K->u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
     K->u->stkUserScriptSettings->setCurrentWidget(K->u->wStkUserScriptSettingsEmptyPage);
-    if (reason == 2) klfDbg("invalid variant") ;
-    if (reason == 3) klfDbg("variant is not string, v="<< v) ;
+    if (reason == 2) {
+      klfDbg("invalid variant") ;
+    }
+    if (reason == 3) {
+      klfDbg("variant is not string, v="<< v) ;
+    }
 
     return;
   }
 
   // update user script info and settings widget
   
+  // no need for full reload at this point
+  //KLFUserScriptInfo usinfo = KLFUserScriptInfo::forceReloadScriptInfo(
+  //    s, d->mainWin->backendSettings(),
+  //    klfconfig.UserScripts.userScriptConfig.value(s)
+  //    );
   KLFUserScriptInfo usinfo(s);
 
   int textpointsize = QFontInfo(K->u->lblUserScriptInfo->font()).pointSize() - 1;
@@ -1436,7 +1445,10 @@ void KLFSettingsPrivate::reloadUserScripts()
 
   int k;
   for (k = 0; k < klf_user_scripts.size(); ++k) {
-    (void) KLFUserScriptInfo(klf_user_scripts[k], &settings);
+    KLFUserScriptInfo::forceReloadScriptInfo(
+        klf_user_scripts[k], &settings,
+        klfconfig.UserScripts.userScriptConfig.value(klf_user_scripts[k])
+        );
   }
 
   // refresh GUI
@@ -1716,9 +1728,7 @@ void KLFSettings::apply()
 
     klfconfig.UserScripts.userScriptConfig[usinfo.fileName()] = data;
 
-    // idea: reload user script, for them to possibly update/show warning/errors w/r to their new config but:
-    // NO, klfuserscripts don't have access to their config when queried for scriptinfo.
-    //    KLFUserScriptInfo::forceReloadScriptInfo(usinfo.fileName(), &backendsettings);
+    KLFUserScriptInfo::forceReloadScriptInfo(usinfo.fileName(), &backendsettings, data);
   }
 
   if (warnneedrestart) {

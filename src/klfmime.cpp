@@ -1512,7 +1512,7 @@ struct KLFExportTypeUserScriptInfoPrivate
 
 KLFExportTypeUserScriptInfo::KLFExportTypeUserScriptInfo(const QString& scriptFileName,
 							 KLFBackend::klfSettings * settings)
-  : KLFUserScriptInfo(scriptFileName, settings)
+  : KLFUserScriptInfo(scriptFileName, settings, klfconfig.UserScripts.userScriptConfig.value(scriptFileName))
 {
   KLF_INIT_PRIVATE(KLFExportTypeUserScriptInfo) ;
 }

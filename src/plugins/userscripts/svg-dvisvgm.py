@@ -32,6 +32,22 @@ if (sys.argv[1] == "--help"):
     print "";
     exit(0);
 
+
+
+#debug environment
+#print repr(os.environ);
+
+dvisvgm = ""
+if "KLF_USCONFIG_dvisvgm" in os.environ:
+    dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"];
+
+if not dvisvgm:
+    dvisvgm = "/usr/bin/dvisvgm";
+
+#print "dvisvgm: "+repr(dvisvgm);
+
+
+
 if (sys.argv[1] == "--scriptinfo"):
     print "ScriptInfo";
     print "Category: klf-export-type";
@@ -46,29 +62,20 @@ if (sys.argv[1] == "--scriptinfo"):
     print "WantStdinInput: false";
     print "HasStdoutOutput: false";
     print "SettingsFormUI: :/userscriptdata/svg-dvisvgm/svg-dvisvgm_config.ui";
-    #    if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
-    #        print "Warning: Can't find dvisvgm executable.";
-    # DEBUG:
-    print "Warning: DEBUG: test warning";
-    print "Error: DEBUG: test error";
-    print "Notice: DEBUG: Hi there!";
-    print "Error: DEBUG: 2nd Test Error!!! Really serious!!";
-    print "Notice: DEBUG: Hi there!";
-    print "Notice: DEBUG: Hi there!";
+    if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
+        if (dvisvgm):
+            print "Error: Invalid dvisvgm path: %s" %(dvisvgm)
+        print "Error: Can't find dvisvgm executable.";
+    # # DEBUG:
+    #print "Warning: DEBUG: test warning";
+    #print "Error: DEBUG: test error";
+    #print "Notice: DEBUG: Hi there!";
+    #print "Error: DEBUG: 2nd Test Error!!! Really serious!!";
+    #print "Notice: DEBUG: Hi there!";
+    #print "Notice: DEBUG: Hi there!";
     print "";
     exit(0);
 
-
-#debug environment
-print repr(os.environ);
-
-if "KLF_USCONFIG_dvisvgm" in os.environ:
-    dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"];
-
-if not dvisvgm:
-    dvisvgm = "/usr/bin/dvisvgm";
-
-print "dvisvgm: "+repr(dvisvgm);
 
 if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
     print "Error: Can't find dvisvgm executable.";

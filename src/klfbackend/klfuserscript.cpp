@@ -124,8 +124,10 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
   QStringList errors;
 
 
-  void query_script_info()
+  void query_script_info(const QVariantMap& usconfig)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     scriptInfoError = 0;
     scriptInfoErrorString = QString();
 
@@ -140,6 +142,10 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
       p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
       p.resErrCodes[KLFFP_NODATA] = KLFERR_USERSCRIPT_NOSCRIPTINFO;
       p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERSCRIPT_NOSCRIPTINFO;
+
+      QStringList usConfigEnvList = KLFUserScriptInfo::usConfigToEnvList(usconfig);
+      klfDbg("Using config: "<< usConfigEnvList.join("; ")) ;
+      p.addExecEnviron(usConfigEnvList);
       
       p.setArgv(QStringList() << fname << "--scriptinfo" << KLF_VERSION_STRING);
       
@@ -284,15 +290,21 @@ private:
 QMap<QString,KLFRefPtr<KLFUserScriptInfo::Private> > KLFUserScriptInfo::Private::userScriptInfoCache;
 
 // static
-void KLFUserScriptInfo::forceReloadScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings)
+KLFUserScriptInfo
+KLFUserScriptInfo::forceReloadScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings,
+                                         const QVariantMap& usconfig)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QString normalizedfn = QFileInfo(scriptFileName).canonicalFilePath();
   Private::userScriptInfoCache.remove(normalizedfn);
-  
-  KLFUserScriptInfo usinfo(scriptFileName, settings) ;
+
+  KLFUserScriptInfo usinfo(scriptFileName, settings, usconfig) ;
   if (usinfo.scriptInfoError() != KLFERR_NOERROR) {
     klfWarning(qPrintable(usinfo.scriptInfoErrorString()));
   }
+
+  return usinfo;
 }
 // static
 void KLFUserScriptInfo::clearCacheAll()
@@ -309,8 +321,11 @@ bool KLFUserScriptInfo::hasScriptInfoInCache(const QString& scriptFileName)
   return Private::userScriptInfoCache.contains(normalizedfn);
 }
 
-KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, const KLFBackend::klfSettings * settings)
+KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, const KLFBackend::klfSettings * settings,
+                                     const QVariantMap& usconfig)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QString normalizedfn = QFileInfo(scriptFileName).canonicalFilePath();
   if (Private::userScriptInfoCache.contains(normalizedfn)) {
     d = Private::userScriptInfoCache[normalizedfn];
@@ -322,10 +337,11 @@ KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, const KLFBac
     d()->normalizedfname = normalizedfn;
     d()->sname = QFileInfo(scriptFileName).fileName();
 
-    KLF_ASSERT_NOT_NULL(settings, "Given NULL settings pointer! The KLFUserScript will not be initialized!", ; ) ;
-    
-    if (d()->settings != NULL) {
-      d()->query_script_info();
+    //KLF_ASSERT_NOT_NULL(settings, "Given NULL settings pointer! The KLFUserScript will not be initialized!", ; ) ;
+    if (settings == NULL) {
+      klfWarning("Given NULL settings pointer! The KLFUserScript will not be initialized!");
+    } else {
+      d()->query_script_info(usconfig);
       Private::userScriptInfoCache[normalizedfn] = d;
     }
   }
@@ -517,6 +533,22 @@ QString KLFUserScriptInfo::htmlInfo(const QString& extra_css) const
 
 
 
+// static
+QMap<QString,QString> KLFUserScriptInfo::usConfigToStrMap(const QVariantMap& usconfig)
+{
+  QMap<QString,QString> mdata;
+  for (QVariantMap::const_iterator it = usconfig.begin(); it != usconfig.end(); ++it)
+    mdata[QLatin1String("KLF_USCONFIG_") + it.key()] = klfSaveVariantToText(it.value(), true);
+  return mdata;
+}
+
+// static
+QStringList KLFUserScriptInfo::usConfigToEnvList(const QVariantMap& usconfig)
+{
+  return klfMapToEnvironmentList(KLFUserScriptInfo::usConfigToStrMap(usconfig));
+}
+
+
 
 
 
@@ -553,11 +585,8 @@ KLFUserScriptFilterProcess::~KLFUserScriptFilterProcess()
   KLF_DELETE_PRIVATE ;
 }
 
-void KLFUserScriptFilterProcess::addUserScriptConfig(const QVariantMap& map)
+void KLFUserScriptFilterProcess::addUserScriptConfig(const QVariantMap& usconfig)
 {
-  QMap<QString,QString> mdata;
-  for (QVariantMap::const_iterator it = map.begin(); it != map.end(); ++it)
-    mdata[QLatin1String("KLF_USCONFIG_") + it.key()] = klfSaveVariantToText(it.value(), true);
-
-  addExecEnviron(klfMapToEnvironmentList(mdata));
+  QStringList envlist = KLFUserScriptInfo::usConfigToEnvList(usconfig);
+  addExecEnviron(envlist);
 }

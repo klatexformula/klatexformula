@@ -40,13 +40,18 @@ public:
    * \note there is no concept of "null" user script info. if you provide an invalid file name, this function
    *   will fail (undefined..?)
    */
-  KLFUserScriptInfo(const QString& scriptFileName, const KLFBackend::klfSettings * settings = NULL);
+  KLFUserScriptInfo(const QString& scriptFileName, const KLFBackend::klfSettings * settings = NULL,
+                    const QVariantMap& usconfig = QVariantMap());
   KLFUserScriptInfo(const KLFUserScriptInfo& copy);
   virtual ~KLFUserScriptInfo();
 
   static bool hasScriptInfoInCache(const QString& scriptFileName);
-  static void forceReloadScriptInfo(const QString& scriptFileName, KLFBackend::klfSettings * settings);
+  static KLFUserScriptInfo forceReloadScriptInfo(const QString& scriptFileName,
+                                                 KLFBackend::klfSettings * settings,
+                                                 const QVariantMap& usconfig = QVariantMap());
   static void clearCacheAll();
+  static QMap<QString,QString> usConfigToStrMap(const QVariantMap& usconfig);
+  static QStringList usConfigToEnvList(const QVariantMap& usconfig);
 
   int scriptInfoError() const;
   QString scriptInfoErrorString() const;
@@ -172,7 +177,7 @@ public:
   KLFUserScriptFilterProcess(const QString& scriptFileName, const KLFBackend::klfSettings * settings = NULL);
   ~KLFUserScriptFilterProcess();
 
-  void addUserScriptConfig(const QVariantMap& map);
+  void addUserScriptConfig(const QVariantMap& usconfig);
 
 private:
   KLF_DECLARE_PRIVATE(KLFUserScriptFilterProcess);
