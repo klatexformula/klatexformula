@@ -113,180 +113,6 @@ void KLFProgErr::showError(QWidget *parent, QString errtext)
 
 // ------------------------------------------------------------------------
 
-/*
-class KLFUserScriptSettings : public KLFAbstractPropertizedObject, public QMap<QString,QString>
-{
-public:
-  KLFUserScriptSettings(const QString& userScript)
-    : KLFAbstractPropertizedObject(), usinfo(userScript), params(usinfo.paramList())
-  {
-  }
-
-  QString objectKind() const { return QString::fromLatin1("KLFUserScriptSettings"); }
-
-  QVariant property(const QString& propName) const
-  {
-    QString s = this->value(propName, QString());
-    int k = paramIndex(propName);
-    if (k < 0) {
-      klfWarning("Can't find property "<<propName) ;
-      return false;
-    }
-
-    // convert value to suitable type
-    switch (params[k].type) {
-    case KLFUserScriptInfo::Param::String:
-      return QVariant::fromValue<QString>(s);
-    case KLFUserScriptInfo::Param::Bool:
-      return QVariant::fromValue<bool>(s.toInt());
-    case KLFUserScriptInfo::Param::Int:
-      return QVariant::fromValue<int>(s.toInt());
-    case KLFUserScriptInfo::Param::Enum:
-      {
-	KLFEnumType e;
-	e.setEnumValues(params[k].type_enums);
-	e.setValue(s.toInt());
-	return QVariant::fromValue<KLFEnumType>(e);
-      }
-    default:
-      klfWarning("Unknown param type for param "<<params[k].name<<": "<<params[k].type<<" !") ;
-      return QVariant();
-    }
-  }
-
-  QStringList propertyNameList() const
-  {
-    int k;
-    QStringList sl;
-    for (k = 0; k < params.size(); ++k)
-      sl << params[k].name;
-    return sl;
-  }
-
-  bool setProperty(const QString& pname, const QVariant& value)
-  {
-    // check that this is a valid param
-    int k = paramIndex(pname);
-    if (k < 0) {
-      klfWarning("Can't find property "<<pname) ;
-      return false;
-    }
-
-    // convert value to suitable string
-    QString s;
-    switch (params[k].type) {
-    case KLFUserScriptInfo::Param::String:
-      s = value.toString();
-      break;
-    case KLFUserScriptInfo::Param::Bool:
-      s = value.toBool() ? "1" : "0";
-      break;
-    case KLFUserScriptInfo::Param::Int:
-      s = QString::number(value.toInt());
-      break;
-    case KLFUserScriptInfo::Param::Enum:
-      s = QString::number(value.toInt());
-      break;
-    default:
-      klfWarning("Unknown param type for param "<<params[k].name<<": "<<params[k].type<<" !") ;
-      return false;
-    }
-
-    this->insert(pname, s);
-    return true;
-  }
-
-  bool hasFixedTypes() const
-  {
-    return true;
-  }
-
-  QByteArray typeNameFor(const QString& property) const
-  {
-    int k = paramIndex(property);
-    if (k < 0) {
-      klfWarning("Can't find property "<<property) ;
-      return QByteArray();
-    }
-
-    switch (params[k].type) {
-    case KLFUserScriptInfo::Param::String:
-      return "QString";
-    case KLFUserScriptInfo::Param::Bool:
-      return "bool";
-    case KLFUserScriptInfo::Param::Int:
-      return "int";
-    case KLFUserScriptInfo::Param::Enum:
-      return "KLFEnumType";
-    default:
-      klfWarning("Unknown param type for param "<<params[k].name<<": "<<params[k].type<<" !") ;
-      return QByteArray();
-    }
-  }
-
-  QByteArray typeSpecifierFor(const QString& property) const
-  {
-    int k = paramIndex(property);
-    if (k < 0) {
-      klfWarning("Can't find property "<<property) ;
-      return QByteArray();
-    }
-
-    switch (params[k].type) {
-    case KLFUserScriptInfo::Param::String:
-    case KLFUserScriptInfo::Param::Bool:
-    case KLFUserScriptInfo::Param::Int:
-      return QByteArray();
-    case KLFUserScriptInfo::Param::Enum:
-      return params[k].type_enums.join(":").toUtf8();
-    default:
-      klfWarning("Unknown param type for param "<<params[k].name<<": "<<params[k].type<<" !") ;
-      return QByteArray();
-    }
-  }
-
-protected:
-  int paramIndex(const QString& name) const
-  {
-    int k;
-    for (k = 0; k < params.size(); ++k) {
-      if (params[k].name == name) {
-	return k;
-      }
-    }
-    return -1;
-  }
-
-
-private:
-
-  KLFUserScriptInfo usinfo;
-
-  QList<KLFUserScriptInfo::Param> params;
-};
-*/
-
-// KLF_DECLARE_POBJ_TYPE(KLFUserScriptSettings) ;
-
-
-// ------------------------------------------------------------------------
-
-
-/** \bug move this to some more natural location, ideally in latexfonts.xml config file */
-static const char * latexfonts[][3] = {
-  { QT_TRANSLATE_NOOP("KLFMainWin", "Times"), "Times", "\\usepackage{txfonts}" },
-  { QT_TRANSLATE_NOOP("KLFMainWin", "Palatino"), "Palatino", "\\usepackage{pxfonts}" },
-  { QT_TRANSLATE_NOOP("KLFMainWin", "Charter BT"), "Charter BT", "\\usepackage[bitstream-charter]{mathdesign}" },
-  //  { QT_TRANSLATE_NOOP("KLFMainWin", "Garamond"), "Garamond", "\\usepackage[urw-garamond]{mathdesign}" },
-  { QT_TRANSLATE_NOOP("KLFMainWin", "New Century Schoolbook"), "New Century Schoolbook", "\\usepackage{fouriernc}" },
-  { QT_TRANSLATE_NOOP("KLFMainWin", "Utopia"), "Utopia", "\\usepackage{fourier}" },
-  { QT_TRANSLATE_NOOP("KLFMainWin", "Helvetica"), "Helvetica", "\\usepackage[scaled]{helvet}\n\\renewcommand*\\familydefault{\\sfdefault}" },
-  { NULL, NULL, NULL }
-};
-
-
-
-// ----------------------------------------------------------------------------
 
 
 KLFMainWin::KLFMainWin()
@@ -351,10 +177,11 @@ KLFMainWin::KLFMainWin()
 
 
   // latex fonts
+  d->reloadLatexFontDefs();
   u->cbxLatexFont->addItem(tr("Computer Modern (default font)"), QVariant(QString()));
   int k;
-  for (k = 0; latexfonts[k][0] != NULL; ++k) {
-    u->cbxLatexFont->addItem(tr(latexfonts[k][0]), QVariant(QString::fromUtf8(latexfonts[k][1])));
+  for (k = 0; k < d->pLatexFontDefs.size(); ++k) {
+    u->cbxLatexFont->addItem(d->pLatexFontDefs[k].title, QVariant(d->pLatexFontDefs[k].identifier));
   }
 
 
@@ -2205,6 +2032,116 @@ void KLFMainWinPrivate::slotUserScriptShowInfo()
 {
   QWhatsThis::showText(K->u->btnUserScriptInfo->mapToGlobal(QPoint(10,10)), userScriptCurrentInfo,
 		       K->u->btnUserScriptInfo);
+}
+
+
+void KLFMainWinPrivate::reloadLatexFontDefs()
+{
+  // find collection of XML files
+  QStringList fxmllist;
+  // in the following directories
+  QStringList fxmldirs;
+  fxmldirs << klfconfig.homeConfigDir + "/conf/latexfontdefs.d/"
+	   << klfconfig.globalShareDir + "/conf/latexfontdefs.d/"
+	   << ":/conf/latexfontdefs.d/";
+
+  klfDbgT("starting to collect XML files from dirs "<<fxmldirs) ;
+
+  // collect all XML files
+  int k, j;
+  for (k = 0; k < fxmldirs.size(); ++k) {
+    QDir fxmldir(fxmldirs[k]);
+    QStringList xmllist = fxmldir.entryList(QStringList()<<"*.xml", QDir::Files);
+    for (j = 0; j < xmllist.size(); ++j)
+      fxmllist << fxmldir.absoluteFilePath(xmllist[j]);
+  }
+  klfDbgT("files collected: "<<fxmllist) ;
+
+  // clear our list of font definitions
+  pLatexFontDefs.clear();
+
+  // now read the file list
+  for (k = 0; k < fxmllist.size(); ++k) {
+    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"/fxmllist["+QString("%1").arg(k)+"]");
+    klfDbg("reading XML file="<<fxmllist[k]);
+
+    QString fn = fxmllist[k];
+    QFile file(fn);
+    if ( ! file.open(QIODevice::ReadOnly) ) {
+      klfWarning("Can't open latex font definitions XML file "<<fn<<": "
+                 <<file.errorString()<<"!");
+      continue;
+    }
+
+    QDomDocument doc("latex-font-defs-list");
+    QString errMsg; int errLine, errCol;
+    bool r = doc.setContent(&file, false, &errMsg, &errLine, &errCol);
+    if (!r) {
+      klfWarning("Error parsing file "<<fn<<": "<<errMsg<<" at line "<<errLine<<", col "<<errCol);
+      continue;
+    }
+    file.close();
+    
+    QDomElement root = doc.documentElement();
+    if (root.nodeName() != "latex-font-defs-list") {
+      klfWarning("Error parsing XML for latex font defs from file "<<fn<<": unexpected root tag `"
+                 <<root.nodeName()<<"'.");
+      continue;
+    }
+    QString minklfversion = root.attribute("minklfversion", "3.3.0a");
+    if (klfVersionCompare(minklfversion, KLF_VERSION_STRING) > 0) {
+      klfWarning("Ignoring XML latex font definition file " << fn << " which requires KLF version "
+                 << minklfversion << ".");
+      continue;
+    }
+
+    QDomNode n;
+    for (n = root.firstChild(); ! n.isNull(); n = n.nextSibling()) {
+      QDomElement e = n.toElement(); // try to convert the node to an element.
+      if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
+	continue;
+      if ( e.nodeName() != "font-def" ) {
+	klfWarning("Parsing XML file "<<fn<<": ignoring unexpected tag <"<<e.nodeName()<<">") ;
+	continue;
+      }
+
+      LatexFontDef thisfont;
+
+      QDomNode efdetails;
+      for (efdetails = e.firstChild(); ! efdetails.isNull(); efdetails = efdetails.nextSibling() ) {
+	if ( efdetails.isNull() || efdetails.nodeType() != QDomNode::ElementNode )
+	  continue;
+	QDomElement eefdetails = efdetails.toElement();
+
+	klfDbg("read element "<<efdetails.nodeName());
+
+	if ( eefdetails.nodeName() == "title" ) {
+          if (!thisfont.title.isEmpty()) {
+            klfWarning("File "<<fn<<": Second title for font definition: already has title "<<thisfont.title) ;
+          }
+          thisfont.title = qApp->translate("xmltr_latexfontdefs", eefdetails.text().toUtf8().constData(),
+                                           "[[tag: <category-title>]]", QCoreApplication::UnicodeUTF8);
+        } else if ( eefdetails.nodeName() == "identifier" ) {
+          if (!thisfont.identifier.isEmpty()) {
+            klfWarning("File "<<fn<<": Second identifier for font definition: already has identifier "
+                       <<thisfont.identifier) ;
+          }
+          thisfont.identifier = eefdetails.text();
+        } else if ( eefdetails.nodeName() == "latexdefs" ) {
+          if (!thisfont.latexdefs.isEmpty()) {
+            klfWarning("File "<<fn<<": Latex defs for "<<thisfont.identifier<<" already given") ;
+          }
+          thisfont.latexdefs += eefdetails.text();
+        } else {
+          klfWarning("File "<<fn<<": Ignoring unknown node "<<eefdetails.nodeName()) ;
+        }
+      } // font def details
+
+      // now, save the font def:
+      pLatexFontDefs.append(thisfont);
+
+    } // font defs in XML file
+  } // iterate over XML files
 }
 
 
@@ -4105,13 +4042,13 @@ KLFBackend::klfInput KLFMainWin::currentInputState() const
   if (idx > 0) {
     // find corresponding font in list
     int k;
-    for (k = 0; latexfonts[k][0] != NULL; ++k) {
-      if (QString::fromUtf8(latexfonts[k][1]) == u->cbxLatexFont->itemData(idx).toString()) {
-	input.preamble += QString::fromUtf8(latexfonts[k][2]);
+    for (k = 0; k < d->pLatexFontDefs.size(); ++k) {
+      if (d->pLatexFontDefs[k].identifier == u->cbxLatexFont->itemData(idx).toString()) {
+	input.preamble += d->pLatexFontDefs[k].latexdefs;
 	break;
       }
     }
-    if (latexfonts[k][0] == NULL) {
+    if (k == d->pLatexFontDefs.size()) {
       klfWarning("Couldn't find font "<<u->cbxLatexFont->currentText()<<" !");
     }
   }

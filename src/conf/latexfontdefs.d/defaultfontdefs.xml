@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Default Latex Font Selection Definitions for KLatexFormula -->
+<!-- $Id$ -->
+<latex-font-defs-list version="1.0" minklfversion="3.3.0alpha">
+
+  <font-def>
+    <identifier>Times</identifier>
+    <title>Times</title>
+    <latexdefs>\usepackage{txfonts}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Palatino</identifier>
+    <title>Palatino</title>
+    <latexdefs>\usepackage{pxfonts}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Charter BT</identifier>
+    <title>Charter BT</title>
+    <latexdefs>\usepackage[bitstream-charter]{mathdesign}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>New Century Schoolbook</identifier>
+    <title>New Century Schoolbook</title>
+    <latexdefs>\usepackage{fouriernc}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Utopia</identifier>
+    <title>Utopia</title>
+    <latexdefs>\usepackage{fourier}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Computer Modern Sans Serif</identifier>
+    <title>Computer Modern Sans Serif</title>
+    <latexdefs>\usepackage[EULERGREEK]{sansmath}\sansmath</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Helvetica</identifier>
+    <title>Helvetica</title>
+    <latexdefs>\usepackage[scaled]{helvet}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[EULERGREEK]{sansmath}\sansmath</latexdefs>
+  </font-def>
+
+</latex-font-defs-list>

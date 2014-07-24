@@ -315,6 +315,7 @@ KLF_EXPORT bool operator==(const KLFStyle& a, const KLFStyle& b)
     a.bg_color == b.bg_color &&
     a.mathmode == b.mathmode &&
     a.preamble == b.preamble &&
+    a.fontname == b.fontname &&
     fabs(a.fontsize - b.fontsize) < 0.001 &&
     a.dpi == b.dpi &&
     fabs(a.vectorscale - b.vectorscale) < 0.001 &&

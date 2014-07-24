@@ -1138,7 +1138,22 @@ public:
 
   QVariantMap parseLatexEditPosParenInfo(KLFLatexEdit *editor, int pos);
 
+  struct LatexFontDef
+  {
+    QString identifier;
+    QString title;
+    QString latexdefs;
 
+    LatexFontDef(const QString& identifier_ = QString(), const QString& title_ = QString(),
+                 const QString& latexdefs_ = QString())
+      : identifier(identifier_), title(title_), latexdefs(latexdefs_)
+    {
+    }
+  };
+
+  QList<LatexFontDef> pLatexFontDefs;
+
+  void reloadLatexFontDefs();
 
 signals:
 

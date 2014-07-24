@@ -973,6 +973,7 @@ void KLFLatexSymbols::read_symbols_create_ui()
     if (klfVersionCompare(minklfversion, KLF_VERSION_STRING) > 0) {
       qWarning("%s: ignoring XML latex symbols definition file `%s' which requires KLF version %s.",
 	       KLF_FUNC_NAME, qPrintable(fn), qPrintable(minklfversion));
+      continue;
     }
 
     QDomNode n;

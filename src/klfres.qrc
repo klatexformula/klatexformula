@@ -69,8 +69,11 @@
     <file>data/symbolspixmapcache_base</file>
     <file>data/defaultlibrary.klf</file>
     <file>data/ooodrawingtemplate</file>
+  </qresource>
+  <qresource>
     <file>conf/latexsymbols.d/latexsymbols.xml</file>
     <file>conf/export_mime_profiles.d/export_default.xml</file>
+    <file>conf/latexfontdefs.d/defaultfontdefs.xml</file>
   </qresource>
   <qresource>
     <file>data/cmdl-help_fr.txt</file>

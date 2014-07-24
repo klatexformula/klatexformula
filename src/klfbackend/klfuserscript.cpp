@@ -203,15 +203,15 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
       if (key == QLatin1String("Notice")) {
 	// emit a notice.
 	notices << val;
-	klfDbg("User script notice: "<< val) ;
+	klfDbg("User script notice: "<<fname<< ": "<< val) ;
       } else if (key == QLatin1String("Warning")) {
 	// emit a warning.
 	warnings << val;
-	klfWarning("User script warning: "<< val) ;
+	klfWarning("User script warning: "<<fname<< ": "<< val) ;
       } else if (key == QLatin1String("Error")) {
 	// emit an error.
 	errors << val;
-	klfWarning("User script error: "<<val) ;
+	klfWarning("User script error: "<<fname<< ": "<<val) ;
       }
       // now parse and set the property
       if (key == QLatin1String("Category")) {
