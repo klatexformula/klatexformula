@@ -942,11 +942,11 @@ bool KLFSettingsPrivate::setDefaultFor(const QString& progname, const QString& g
     }
     if ( ! required )
       return false;
-    QMessageBox msgbox(QMessageBox::Critical, K->tr("Error"), K->tr("Could not find %1 executable !")
+    QMessageBox msgbox(QMessageBox::Critical, tr("Error"), tr("Could not find %1 executable !")
 		       .arg(progname),  QMessageBox::Ok, K);
-    msgbox.setInformativeText(K->tr("Please check your installation and specify the path"
-				    " to %1 executable manually if it is not installed"
-				    " in $PATH.").arg(progname));
+    msgbox.setInformativeText(tr("Please check your installation and specify the path"
+                                 " to %1 executable manually if it is not installed"
+                                 " in $PATH.").arg(progname));
     msgbox.setDefaultButton(QMessageBox::Ok);
     msgbox.setEscapeButton(QMessageBox::Ok);
     msgbox.exec();

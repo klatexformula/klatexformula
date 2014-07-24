@@ -44,6 +44,8 @@ $xmltrrules =
    "../conf/latexsymbols.d/latexsymbols.xml" => { SCOPE => "klfsymbollist" ,
 						  TAGS => [ "category-title", "keywords" ]
 					   } ,
+   "../conf/latexfontdefs.d/*.xml" => { SCOPE => "latexfontdefs" ,
+				      TAGS => [ "title" ] } ,
    "../plugins/skin/skins/*.xml" => { SCOPE => "pluginskins" ,
 				      TAGS => [ "name", "description" ] }
   } ;
