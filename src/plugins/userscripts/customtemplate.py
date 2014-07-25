@@ -42,9 +42,9 @@ if (sys.argv[1] == "--scriptinfo"):
     print "SpitsOut: latex";
     print "DisableInputs: FG_COLOR BG_COLOR MATHMODE FONT FONTSIZE PREAMBLE";
     print "InputFormUI: :/userscriptdata/customtemplate/customtemplate_input.ui";
-    print "Error: Can't find executable foo. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
-    print "Warning: random warning. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
-    print "Notice: random notice. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
+    #print "Error: Can't find executable foo. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
+    #print "Warning: random warning. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
+    #print "Notice: random notice. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
     print "";
     exit(0);
 
@@ -77,7 +77,7 @@ if (not "%%INPUT" in template):
 fulllatex = re.sub(r'%%INPUT\b', latexinput, template);
 
 f = open(latexfname, 'w');
-print fulllatex;
+print "Full LaTeX is :\n", fulllatex;
 f.write(fulllatex);
 f.close();
 

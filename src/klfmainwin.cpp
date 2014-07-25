@@ -1939,23 +1939,30 @@ void KLFMainWinPrivate::slotUserScriptDisableInputs(KLFUserScriptInfo * info)
   }
   bool disableall = disableInputs.contains("ALL", Qt::CaseInsensitive);
   bool disableallinput = disableInputs.contains("ALL_INPUT", Qt::CaseInsensitive);
-#define WANT_DISABLE(x)  disableall || disableInputs.contains(x, Qt::CaseInsensitive)
-
+  bool disableall_except = disableInputs.contains("EXCEPT", Qt::CaseInsensitive);
+#define WANT_DISABLE_ALL(x, disableall)                                 \
+  ( (!disableall && disableInputs.contains(x, Qt::CaseInsensitive))     \
+    || (disableall && !disableall_except)                               \
+    || (disableall && disableall_except && !disableInputs.contains(x, Qt::CaseInsensitive)) )
+#define WANT_DISABLE_INPUT(x)                           \
+  WANT_DISABLE_ALL(x, (disableall || disableallinput))
+#define WANT_DISABLE_NORMAL(x)                  \
+  WANT_DISABLE_ALL(x, disableall)
+  
   // names are the same as in klfbackend.cpp
-  K->u->colFg->setDisabled(WANT_DISABLE("FG_COLOR") || disableallinput);
-  K->u->colBg->setDisabled(WANT_DISABLE("BG_COLOR") || disableallinput);
-  K->u->chkMathMode->setDisabled(WANT_DISABLE("MATHMODE") || disableallinput);
-  K->u->cbxMathMode->setDisabled(WANT_DISABLE("MATHMODE") || !K->u->chkMathMode->isChecked()
-                                 || disableallinput);
-  K->u->txtPreamble->setDisabled(WANT_DISABLE("PREAMBLE") || disableallinput);
-  K->u->cbxLatexFont->setDisabled(WANT_DISABLE("FONT") || disableallinput);
-  K->u->spnLatexFontSize->setDisabled(WANT_DISABLE("FONTSIZE") || disableallinput);
-  K->u->spnDPI->setDisabled(WANT_DISABLE("DPI"));
-  K->u->btnDPIPresets->setDisabled(WANT_DISABLE("DPI"));
-  K->u->chkVectorScale->setDisabled(WANT_DISABLE("VECTORSCALE"));
-  K->u->spnVectorScale->setDisabled(WANT_DISABLE("VECTORSCALE")
+  K->u->colFg->setDisabled(WANT_DISABLE_INPUT("FG_COLOR"));
+  K->u->colBg->setDisabled(WANT_DISABLE_INPUT("BG_COLOR"));
+  K->u->chkMathMode->setDisabled(WANT_DISABLE_INPUT("MATHMODE"));
+  K->u->cbxMathMode->setDisabled(WANT_DISABLE_INPUT("MATHMODE") || !K->u->chkMathMode->isChecked());
+  K->u->txtPreamble->setDisabled(WANT_DISABLE_INPUT("PREAMBLE"));
+  K->u->cbxLatexFont->setDisabled(WANT_DISABLE_INPUT("FONT"));
+  K->u->spnLatexFontSize->setDisabled(WANT_DISABLE_INPUT("FONTSIZE"));
+  K->u->spnDPI->setDisabled(WANT_DISABLE_NORMAL("DPI"));
+  K->u->btnDPIPresets->setDisabled(WANT_DISABLE_NORMAL("DPI"));
+  K->u->chkVectorScale->setDisabled(WANT_DISABLE_NORMAL("VECTORSCALE"));
+  K->u->spnVectorScale->setDisabled(WANT_DISABLE_NORMAL("VECTORSCALE")
                                     || !K->u->chkVectorScale->isChecked());
-  K->u->gbxOverrideMargins->setDisabled(WANT_DISABLE("MARGINS"));
+  K->u->gbxOverrideMargins->setDisabled(WANT_DISABLE_NORMAL("MARGINS"));
 }
 
 void KLFMainWinPrivate::slotUserScriptSet(int index)

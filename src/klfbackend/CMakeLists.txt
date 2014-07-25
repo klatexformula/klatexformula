@@ -118,14 +118,14 @@ if (KLF_BUILD_BACKEND_AUTO)
       )
     if(KLF_MACOSX_BUNDLES)
       set(klfbackend_auto_FRAMEWORKS ${KLF_BUNDLE_QT_FRAMEWORKS})
-      KLFMMakeFramework(klfbackend_auto "${klfbackend_auto_FRAMEWORKS}" "${klfbackend_auto_INSTHEADERS}")
+      KLFMMakeFramework(klfbackend_auto "${klfbackend_auto_FRAMEWORKS}" "") #"${klfbackend_auto_INSTHEADERS}")
     endif(KLF_MACOSX_BUNDLES)
   endif(KLF_LIBKLFBACKEND_AUTO_STATIC)
 endif(KLF_BUILD_BACKEND_AUTO)
 
 set_target_properties(klfbackend_auto PROPERTIES
   #	      DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
-  PUBLIC_HEADER "${klfbackend_auto_INSTHEADERS}"
+  PUBLIC_HEADER "" # no need for headers(?), they're in klftools&klfbackend; "${klfbackend_auto_INSTHEADERS}"
   )
 target_link_libraries(klfbackend_auto ${QT_LIBRARIES})
 
@@ -153,11 +153,11 @@ endif(KLF_BUILD_BACKEND)
 
 # --- and for klfbackend_auto :
 if(KLF_BUILD_BACKEND_AUTO)
-  KLFInstallLibrary(klfbackend_auto KLF_INSTALL_KLFBACKEND_ "${KLF_INSTALL_LIB_DIR}" "")
-  if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
+  KLFInstallLibrary(klfbackend_auto KLF_INSTALL_KLFBACKEND_AUTO_ "${KLF_INSTALL_LIB_DIR}" "")
+  if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_AUTO_FRAMEWORK)
     KLFMInstFrameworkUpdateId(
       "${KLF_INSTALL_LIB_DIR}/klfbackend_auto.framework/Versions/${KLF_LIB_VERSION}/klfbackend_auto"
       )
-  endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
+  endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_AUTO_FRAMEWORK)
 
 endif(KLF_BUILD_BACKEND_AUTO)

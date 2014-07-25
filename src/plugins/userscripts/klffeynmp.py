@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-# klffeynmf.py
+# klffeynmp.py
 #   This file is part of the KLatexFormula Project.
-#   Copyright (C) 2011 by Philippe Faist
+#   Copyright (C) 2014 by Philippe Faist
 #   philippe.faist at bluewin.ch
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -36,19 +36,19 @@ if (sys.argv[1] == "--help"):
 if (sys.argv[1] == "--scriptinfo"):
     print "ScriptInfo";
     print "Category: klf-backend-engine";
-    print "Name: FeynMF Wrapper";
+    print "Name: FeynMP Wrapper";
     print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
-    print "Version: 0.2";
+    print "Version: 1.0";
     print "License: GPL v2+"
     print "SpitsOut: dvi"
-    print "DisableInputs: ALL_input"
+    print "DisableInputs: ALL_INPUT EXCEPT PREAMBLE"
     print "";
     exit(0);
 
 
-mf_exe_name = 'mf';
+mpost_exe_name = 'mpost';
 if (sys.platform.startswith('win')):
-    mf_exe_name = 'mf.exe';
+    mpost_exe_name = 'mpost.exe';
 
 
 latexfname = sys.argv[1];
@@ -61,11 +61,11 @@ if (len(latexexe) == 0):
     sys.stderr.write("Error: latex executable not found.\n");
     exit(1);
 
-# guess 'mf' exec location as same as latex exec location
-mfexe = os.path.join(os.path.dirname(latexexe),mf_exe_name);
+# guess 'mpost' exec location as same as latex exec location
+mpostexe = os.path.join(os.path.dirname(latexexe),mpost_exe_name);
 
-if (len(mfexe) == 0):
-    sys.stderr.write("Error: mf executable not found.\n");
+if (len(mpostexe) == 0):
+    sys.stderr.write("Error: mpost executable not found.\n");
     exit(1);
 
 # prepare LaTeX template with \begin{fmfile}
@@ -76,7 +76,7 @@ tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"]);
 diagramname = 'klffeynmpdiagram';
 
 f = open(latexfname, 'w');
-latexcontents = ("\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{feynmf}\n"+
+latexcontents = ("\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{feynmp}\n"+
                  os.environ["KLF_INPUT_PREAMBLE"]+
                  "\\begin{document}\n" +
                  "\\thispagestyle{empty}\n" +
@@ -102,10 +102,10 @@ def run_cmd(do_cmd, ignore_fail=False):
 run_cmd([latexexe, os.path.basename(latexfname)], ignore_fail=True)
 
 
-# now, run METAFONT
+# now, run METAPOST
 # -----------------
 
-run_cmd([mfexe, r'\mode=localfont; input %s.mf;'%(diagramname)])
+run_cmd([mpostexe, diagramname])
 
 
 # now, run latex second time

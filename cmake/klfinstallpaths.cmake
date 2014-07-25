@@ -74,7 +74,7 @@ KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_BIN_DIR
 	"${install_bin_dir}"    # calculated value
 	DUMMY_DEPENDANCE_VARIABLE # dependance variable (as of now none!)
 )
-message(STATUS "Installing binary to \"${KLF_INSTALL_BIN_DIR}\" (KLF_INSTALL_BIN_DIR)")
+message(STATUS "Installing binaries to \"${KLF_INSTALL_BIN_DIR}\" (KLF_INSTALL_BIN_DIR)")
 KLFWarnAbsInstallPath(KLF_INSTALL_BIN_DIR)
 
 # Utility variable. Same as KLF_INSTALL_BIN_DIR, but garanteed to be absolute path.
@@ -155,16 +155,6 @@ KLFGetCMakeVarChanged(KLF_INSTALL_DEVEL)
 
 # fine-tuning
 # the OFF's at end of line is to turn off the KLFNotes() indicating the value changed
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_HEADERS     KLF_INSTALL_DEVEL   "Install klfbackend headers")
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_STATIC_LIBS KLF_INSTALL_DEVEL   "Install klfbackend static libraries")
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_SO_LIBS     KLF_INSTALL_RUNTIME "Install klfbackend so libraries")
-KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_FRAMEWORK   KLF_INSTALL_RUNTIME "Install klfbackend framework (Mac OS X)")
-mark_as_advanced( KLF_INSTALL_KLFBACKEND_HEADERS
-		  KLF_INSTALL_KLFBACKEND_STATIC_LIBS
-		  KLF_INSTALL_KLFBACKEND_SO_LIBS
-		  KLF_INSTALL_KLFBACKEND_FRAMEWORK
-)
-
 if(KLF_BUILD_TOOLS)
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFTOOLS_HEADERS      KLF_INSTALL_DEVEL   "Install klftools headers")
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFTOOLS_STATIC_LIBS  KLF_INSTALL_DEVEL   "Install klftools static libraries")
@@ -180,6 +170,30 @@ if(KLF_BUILD_TOOLSDESPLUGIN)
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFTOOLSDESPLUGIN  KLF_INSTALL_DEVEL "Install klftoolsdesplugin Qt Designer Plugin")
   mark_as_advanced( KLF_INSTALL_KLFTOOLSDESPLUGIN )
 endif(KLF_BUILD_TOOLSDESPLUGIN)
+
+if(KLF_BUILD_BACKEND)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_HEADERS     KLF_INSTALL_DEVEL   "Install klfbackend headers")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_STATIC_LIBS KLF_INSTALL_DEVEL   "Install klfbackend static libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_SO_LIBS     KLF_INSTALL_RUNTIME "Install klfbackend so libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_FRAMEWORK   KLF_INSTALL_RUNTIME "Install klfbackend framework (Mac OS X)")
+  mark_as_advanced( KLF_INSTALL_KLFBACKEND_HEADERS
+                    KLF_INSTALL_KLFBACKEND_STATIC_LIBS
+                    KLF_INSTALL_KLFBACKEND_SO_LIBS
+                    KLF_INSTALL_KLFBACKEND_FRAMEWORK
+  )
+endif(KLF_BUILD_BACKEND)
+
+if(KLF_BUILD_BACKEND_AUTO)
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_AUTO_STATIC_LIBS KLF_INSTALL_DEVEL   "Install klfbackend static libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_AUTO_SO_LIBS     KLF_INSTALL_RUNTIME "Install klfbackend so libraries")
+  KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFBACKEND_AUTO_FRAMEWORK   KLF_INSTALL_RUNTIME "Install klfbackend framework (Mac OS X)")
+  mark_as_advanced( KLF_INSTALL_KLFBACKEND_HEADERS
+                    KLF_INSTALL_KLFBACKEND_STATIC_LIBS
+                    KLF_INSTALL_KLFBACKEND_SO_LIBS
+                    KLF_INSTALL_KLFBACKEND_FRAMEWORK
+  )
+endif(KLF_BUILD_BACKEND_AUTO)
+
 
 if(KLF_BUILD_GUI)
   KLFDeclareCacheVarOptionFollow(KLF_INSTALL_KLFAPP_HEADERS      KLF_INSTALL_DEVEL   "Install klfapp headers")
@@ -212,18 +226,19 @@ endif(NOT KLF_MACOSX_BUNDLES)
 
 message(STATUS "Will install targets:
 
-               \theaders\t\tstatic,\t    shared libraries   \tframework
-   klfbackend: \t  ${KLF_INSTALL_KLFBACKEND_HEADERS}\t\t  ${KLF_INSTALL_KLFBACKEND_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_FRAMEWORK}
-   klftools:   \t  ${KLF_INSTALL_KLFTOOLS_HEADERS}\t\t  ${KLF_INSTALL_KLFTOOLS_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_SO_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_FRAMEWORK}
-   klftoolsdesplugin: --\t  --\t\t  ${KLF_INSTALL_KLFTOOLSDESPLUGIN}\t\t  --
-   klfapp:     \t  ${KLF_INSTALL_KLFAPP_HEADERS}\t\t  ${KLF_INSTALL_KLFAPP_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_SO_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_FRAMEWORK}
+                       \theaders\t\tstatic,\t    shared libraries   \tframework
+   klftools:           \t  ${KLF_INSTALL_KLFTOOLS_HEADERS}\t\t  ${KLF_INSTALL_KLFTOOLS_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_SO_LIBS}\t\t  ${KLF_INSTALL_KLFTOOLS_FRAMEWORK}
+   klfbackend:         \t  ${KLF_INSTALL_KLFBACKEND_HEADERS}\t\t  ${KLF_INSTALL_KLFBACKEND_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_FRAMEWORK}
+   klfbackend_auto:        --\t\t  ${KLF_INSTALL_KLFBACKEND_AUTO_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_AUTO_SO_LIBS}\t\t  ${KLF_INSTALL_KLFBACKEND_AUTO_FRAMEWORK}
+   klftoolsdesplugin:      --\t\t  --\t\t  ${KLF_INSTALL_KLFTOOLSDESPLUGIN}\t\t  --
+   klfapp:             \t  ${KLF_INSTALL_KLFAPP_HEADERS}\t\t  ${KLF_INSTALL_KLFAPP_STATIC_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_SO_LIBS}\t\t  ${KLF_INSTALL_KLFAPP_FRAMEWORK}
 
    klatexformula:        \t${KLF_INSTALL_KLATEXFORMULA_BIN}
    klatexformula_cmdl:   \t${KLF_INSTALL_KLATEXFORMULA_CMDL}
    klatexformula bundle: \t${KLF_INSTALL_KLATEXFORMULA_BUNDLE}
 
    individual installs can be fine-tuned with
-          KLF_INSTALL_KLF{BACKEND|TOOLS|APP}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK},
+          KLF_INSTALL_KLF{TOOLS|BACKEND|BACKEND_AUTO|APP}_{HEADERS|SO_LIBS|STATIC_LIBS|FRAMEWORK},
           KLF_INSTALL_KLFTOOLSDESPLUGIN,
    and    KLF_INSTALL_KLATEXFORMULA_{BIN|CMDL|BUNDLE}
 
@@ -454,6 +469,8 @@ macro(KLFInstallLibrary targetlib varOptBase inst_lib_dir inst_pubheader_dir)
   if (inst_pubheader_dir)
     KLFConditionalSet(inst_${targetlib}_pubheader_dir ${varOptBase}HEADERS
 	  "${inst_pubheader_dir}"  "${klf_dummy_inst_dir}")
+  else(inst_pubheader_dir)
+    set(inst_${targetlib}_pubheader_dir "${klf_dummy_inst_dir}")
   endif(inst_pubheader_dir)
 
   set(need_dummy_dir FALSE)
