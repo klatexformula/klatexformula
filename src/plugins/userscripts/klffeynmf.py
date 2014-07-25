@@ -41,7 +41,7 @@ if (sys.argv[1] == "--scriptinfo"):
     print "Version: 0.2";
     print "License: GPL v2+"
     print "SpitsOut: dvi"
-    print "DisableInputs: ALL_input"
+    print "DisableInputs: all_input except preamble"
     print "";
     exit(0);
 
