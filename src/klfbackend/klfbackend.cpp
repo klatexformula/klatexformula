@@ -1287,7 +1287,7 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsF
     return false;
   }
   
-  klfDbg("gs provided output:\n"<<bboxdata<<"\n");
+  klfDbg("gs provided output:\n"<<bboxdata);
 
   // parse gs' bbox data
   QRegExp rx_gsbbox("%%HiResBoundingBox\\s*:\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
@@ -1638,7 +1638,7 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
     device->dev_write(klfoutput.dvidata);
   } else if (format == "PDF") {
     if (klfoutput.pdfdata.isEmpty()) {
-      QString error = QObject::tr("PDF format is not available!\n",
+      QString error = QObject::tr("PDF format is not available!",
 				  "KLFBackend::saveOutputToFile");
       qWarning("%s", qPrintable(error));
       if (errorStringPtr != NULL)
@@ -1648,7 +1648,7 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
     device->dev_write(klfoutput.pdfdata);
   } else if (format == "SVG") {
     if (klfoutput.svgdata.isEmpty()) {
-      QString error = QObject::tr("SVG format is not available!\n",
+      QString error = QObject::tr("SVG format is not available!",
 				  "KLFBackend::saveOutputToFile");
       qWarning("%s", qPrintable(error));
       if (errorStringPtr != NULL)
@@ -1688,7 +1688,7 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
   QFile fout;
   if (fileName.isEmpty() || fileName == "-") {
     if ( ! fout.f_open_fp(stdout) ) {
-      QString error = QObject::tr("Unable to open stdout for write! Error: %1\n",
+      QString error = QObject::tr("Unable to open stdout for write! Error: %1",
 				  "KLFBackend::saveOutputToFile").arg(fout.f_error());
       qWarning("%s", qPrintable(error));
       if (errorStringPtr != NULL)
@@ -1698,7 +1698,7 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
   } else {
     fout.f_setFileName(fileName);
     if ( ! fout.open(dev_WRITEONLY) ) {
-      QString error = QObject::tr("Unable to write to file `%1'! Error: %2\n",
+      QString error = QObject::tr("Unable to write to file `%1'! Error: %2",
 				  "KLFBackend::saveOutputToFile")
 	.arg(fileName).arg(fout.f_error());
       qWarning("%s", qPrintable(error));
@@ -1768,7 +1768,7 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath,
     }
   }
 
-  bool r1 = detectOptionSettings(settings);
+  bool r1 = detectOptionSettings(settings, isMainThread);
 
   bool result_failure =
     settings->tempdir.isEmpty() || settings->latexexec.isEmpty() || settings->dvipsexec.isEmpty() ||

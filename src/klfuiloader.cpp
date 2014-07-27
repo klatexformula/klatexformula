@@ -24,6 +24,7 @@
 #include "klfuiloader.h"
 #include "klfuiloader_p.h"
 
+#include "klfconfig.h"
 #include "klfsearchbar.h"
 #include "klfcolorchooser.h"
 #include "klflatexedit.h"
@@ -52,6 +53,7 @@ QWidget * KLFUiLoader::createWidget(const QString& className, QWidget * parent,
     w = new KLFColorChooser(parent);
   } else if (className == QLatin1String("KLFLatexEdit")) {
     w = new KLFLatexEdit(parent);
+    w->setFont(klfconfig.UI.preambleEditFont);
   } else if (className == QLatin1String("KLFEnumListWidget")) {
     w = new KLFEnumListWidget(parent);
   } else if (className == QLatin1String("KLFSideWidget")) {

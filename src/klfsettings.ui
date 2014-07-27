@@ -805,8 +805,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
-                 <height>40</height>
+                 <width>366</width>
+                 <height>74</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -859,8 +859,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
-                 <height>50</height>
+                 <width>366</width>
+                 <height>74</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -998,8 +998,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>98</width>
-                    <height>40</height>
+                    <width>252</width>
+                    <height>80</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1165,8 +1165,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>98</width>
-                       <height>40</height>
+                       <width>232</width>
+                       <height>93</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1641,7 +1641,7 @@
               <item row="1" column="0">
                <widget class="QCheckBox" name="chkOutlineFonts">
                 <property name="text">
-                 <string>Outline embedded fonts (eg. for Adobe Illustrator)</string>
+                 <string>Outline all fonts (eg. for Inkscape, Adobe Illustrator)</string>
                 </property>
                </widget>
               </item>
