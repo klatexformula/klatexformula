@@ -182,11 +182,12 @@ void KLFConfig::loadDefaults()
     QFontDatabase fdb;
     QFont f = QApplication::font();
     int fps = QFontInfo(f).pointSize();
-#ifdef Q_WS_X11
+#if defined(Q_WS_X11)
     double cmuffactor = 1.4;
     double codeffactor = 1.4;
-#elif Q_WS_WIN
+#elif defined(Q_WS_WIN)
     double cmuffactor = 1.3;
+    double codeffactor = 1.3;
 #else // mac OS X
     double cmuffactor = 1.25;
     double codeffactor = 1.3;
