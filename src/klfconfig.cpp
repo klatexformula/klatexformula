@@ -142,11 +142,11 @@ KLFConfig::KLFConfig()
     found_fcode = true;							\
   }
 
-static int adjust_font_size(QFont f, int idealMXHeightPx)
+/*static int adjust_font_size(QFont f, int idealMXHeightPx)
 {
   // idealMXHeightPx is the ideal height of the string "MX" in pixels.
   int ps = QFontInfo(f).pointSize();
-  // start with a little bit smaller font
+  / *  // start with a little bit smaller font
   ps -= 3;
   const int cutoff = 20; //just a cutoff to be sure
   // and increase font size up to something "ideal"
@@ -156,9 +156,10 @@ static int adjust_font_size(QFont f, int idealMXHeightPx)
   }
   if (ps >= cutoff)
     ps = 10; // the default point size in bad case scenario
+  * /
 
   return ps;
-}
+}*/
 
 
 void KLFConfig::loadDefaults()
@@ -180,6 +181,12 @@ void KLFConfig::loadDefaults()
 
     QFontDatabase fdb;
     QFont f = QApplication::font();
+    int fps = QFontInfo(f).pointSize();
+#ifdef Q_WS_X11
+    double ffactor = 1.55;
+#else
+    double ffactor = 1.3;
+#endif
 
     //#ifdef Q_WS_X11
     //    // setting pixel size avoids bug with Qt/X11 of fonts having their metrics badly calculated (...?)
@@ -191,22 +198,12 @@ void KLFConfig::loadDefaults()
     QFont cmuappfont = f;
     if (fdb.families().contains("CMU Sans Serif")) {
       // CMU Sans Serif is available ;-)
-      int fps = QFontInfo(f).pointSize();
-      cmuappfont = QFont("CMU Sans Serif", fps);
-      // ideal height of the string "MX" in pixels. This value was CAREFULLY ADJUSTED.
-      // please change it only if you feel sure. (fonts have to look nice on most platforms)
-#ifdef Q_WS_X11
-      int fIdealHeight = 17;
-#else
-      int fIdealHeight = 15;
-#endif
-      fps = adjust_font_size(cmuappfont, fIdealHeight);
-      cmuappfont.setPointSize(fps);
+      cmuappfont = QFont("CMU Sans Serif", (int)(ffactor*fps+0.5));
     }
 
     QFont fcode;
     bool found_fcode = false;
-    int ps = 11;
+    int ps = fps;//11;
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier 10 Pitch", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "ETL Fixed", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier New", ps);
@@ -217,7 +214,7 @@ void KLFConfig::loadDefaults()
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace", ps);
     if ( ! found_fcode )
       fcode = f;
-    // guess good font size for code font
+    /*    // guess good font size for code font
 #ifdef Q_WS_X11
     int fcodeIdealHeight = 20; // the ideal height of the string "MX" in pixels
 #else
@@ -227,7 +224,7 @@ void KLFConfig::loadDefaults()
 //     fcodeIdealHeight += 2; // fix for Qt 4.4
 // #endif
     ps = adjust_font_size(fcode, fcodeIdealHeight);
-    fcode.setPointSize(ps);
+    fcode.setPointSize(ps);*/
     QFont fcodeMain = fcode;
     fcodeMain.setPointSize(ps+1);
 
