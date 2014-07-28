@@ -197,8 +197,8 @@ void KLFConfig::loadDefaults()
 
     defaultStdFont = f;
 
-    printf("CMU: %d * %f = %f --> %d\n", fps, cmuffactor, fps*cmuffactor, cmufpsfinal);
-    printf("Code: %d * %f = %f --> %d\n", fps, codeffactor, fps*codeffactor, codefpsfinal);
+    //printf("CMU: %d * %f = %f --> %d\n", fps, cmuffactor, fps*cmuffactor, cmufpsfinal);
+    //printf("Code: %d * %f = %f --> %d\n", fps, codeffactor, fps*codeffactor, codefpsfinal);
 
     QFont cmuappfont = f;
 #ifdef Q_WS_MAC
