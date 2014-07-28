@@ -411,7 +411,7 @@ endif(KLF_DEBUG_USE_MODELTEST)
 
 # Include some extra data files/fonts into KLatexFormula
 KLFGetCMakeVarChanged(KLF_INCLUDE_FONTS)
-set(KLF_INCLUDE_FONTS "data/cmunsi.otf;data/cmunso.otf;data/cmunss.otf;data/cmunsx.otf"
+set(KLF_INCLUDE_FONTS "data/cmunsi.otf;data/cmunso.otf;data/cmunss.otf;data/cmunsx.otf;data/cmunbmr.otf"
   CACHE STRING "Include some extra fonts into KLF's internal resources (absolute or relative to src/)")
 message(STATUS "Will include fonts into klatexformula's resources: \"${KLF_INCLUDE_FONTS}\" (KLF_INCLUDE_FONTS)")
 mark_as_advanced(KLF_INCLUDE_FONTS)
