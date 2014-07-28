@@ -1185,7 +1185,8 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
     QDir d(flpath);
     QStringList entries;
 #ifdef KLFBACKEND_QT4
-    entries = d.entryList(QStringList()<<pathlist[level]);
+    entries = d.entryList(QStringList()<<pathlist[level], QDir::Hidden|QDir::AllEntries|QDir::System);
+    klfDbg("level="<<level<<", pathlist="<<pathlist<<"; Entries of "<<flpath<<", which are filtered by "<<pathlist[level]<<", are "<<entries) ;
 #else
     entries = d.entryList(pathlist[level]);
 #endif

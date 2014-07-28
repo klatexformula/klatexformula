@@ -183,27 +183,38 @@ void KLFConfig::loadDefaults()
     QFont f = QApplication::font();
     int fps = QFontInfo(f).pointSize();
 #ifdef Q_WS_X11
-    double ffactor = 1.55;
-#else
-    double ffactor = 1.3;
+    double cmuffactor = 1.4;
+    double codeffactor = 1.4;
+#elif Q_WS_WIN
+    double cmuffactor = 1.3;
+#else // mac OS X
+    double cmuffactor = 1.25;
+    double codeffactor = 1.3;
 #endif
-
-    //#ifdef Q_WS_X11
-    //    // setting pixel size avoids bug with Qt/X11 of fonts having their metrics badly calculated (...?)
-    //    f.setPixelSize(15);
-    //#endif
+    int cmufpsfinal = (int)(fps*cmuffactor+0.5);
+    int codefpsfinal = (int)(fps*codeffactor+0.5);
 
     defaultStdFont = f;
 
+    printf("CMU: %d * %f = %f --> %d\n", fps, cmuffactor, fps*cmuffactor, cmufpsfinal);
+    printf("Code: %d * %f = %f --> %d\n", fps, codeffactor, fps*codeffactor, codefpsfinal);
+
     QFont cmuappfont = f;
+#ifdef Q_WS_MAC
+    if (fdb.families().contains("CMU Bright")) {
+      // CMU Sans Serif is available ;-)
+      cmuappfont = QFont("CMU Bright", cmufpsfinal);
+    }
+#else
     if (fdb.families().contains("CMU Sans Serif")) {
       // CMU Sans Serif is available ;-)
-      cmuappfont = QFont("CMU Sans Serif", (int)(ffactor*fps+0.5));
+      cmuappfont = QFont("CMU Sans Serif", cmufpsfinal);
     }
+#endif
 
     QFont fcode;
     bool found_fcode = false;
-    int ps = fps;//11;
+    int ps = codefpsfinal;
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier 10 Pitch", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "ETL Fixed", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier New", ps);

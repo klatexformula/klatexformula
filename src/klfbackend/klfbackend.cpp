@@ -342,6 +342,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
 
   { // execute latex
 
+    if (settings.latexexec.isEmpty()) {
+      res.status = KLFERR_NOLATEXPROG;
+      res.errorstr = QObject::tr("No latex executable given!\n", "KLFBackend");
+      return res;
+    }
+
     KLFBlockProcess proc;
     QStringList args;
 
@@ -380,6 +386,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
   } // end of 'latex' block
 
   { // execute dvips -E
+
+    if (settings.dvipsexec.isEmpty()) {
+      res.status = KLFERR_NODVIPSPROG;
+      res.errorstr = QObject::tr("No dvips executable given!\n", "KLFBackend");
+      return res;
+    }
 
     KLFBlockProcess proc;
     QStringList args;
@@ -568,6 +580,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
       QString psdev = try_ps_devices[try_ps_dev_i];
       qDebug("trying with gs device %s ...", qPrintable(psdev));
 
+      if (settings.gsexec.isEmpty()) {
+        res.status = KLFERR_NOGSPROG;
+        res.errorstr = QObject::tr("No gs executable given!\n", "KLFBackend");
+        return res;
+      }
+
       QStringList args;
       args << settings.gsexec << "-dNOPAUSE" << "-dSAFER" << "-dEPSCrop" << try_gs_options[try_ps_dev_i]
            << QString("-sDEVICE=%1").arg(psdev)
@@ -620,6 +638,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& in, const klfS
     res.epsdata = ofepsfile.readAll();
     ofepsfile.close();
     // res.epsdata is now set to the outlined-fonts version
+  }
+
+  if (settings.gsexec.isEmpty()) {
+    res.status = KLFERR_NOGSPROG;
+    res.errorstr = QObject::tr("No gs executable given!\n", "KLFBackend");
+    return res;
   }
 
   { // run 'gs' to get png
