@@ -53,6 +53,7 @@ static bool is_binary_file(QString fn)
 }
 
 
+#if defined(Q_OS_WIN32)
 static QByteArray get_script_process(QString fn)
 {
   fn = fn.toLower();
@@ -76,7 +77,7 @@ static QByteArray get_script_process(QString fn)
   }
   return QByteArray();
 }
-
+#endif
 
 
 KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)

@@ -170,19 +170,25 @@ void KLFConfig::loadDefaults()
 
     QFontDatabase fdb;
     QFont f = QApplication::font();
-    int fps = QFontInfo(f).pointSize();
 #if defined(Q_WS_X11)
+    int fps = QFontInfo(f).pointSize();
     double cmuffactor = 1.4;
     double codeffactor = 1.4;
-#elif defined(Q_WS_WIN)
-    double cmuffactor = 1.3;
-    double codeffactor = 1.3;
-#else // mac OS X
-    double cmuffactor = 1.25;
-    double codeffactor = 1.3;
-#endif
     int cmufpsfinal = (int)(fps*cmuffactor+0.5);
     int codefpsfinal = (int)(fps*codeffactor+0.5);
+#elif defined(Q_WS_WIN)
+    int fps = QFontInfo(f).pointSize();
+    double cmuffactor = 1.3;
+    double codeffactor = 1.3;
+    int cmufpsfinal = (int)(fps*cmuffactor+0.5);
+    int codefpsfinal = (int)(fps*codeffactor+0.5);
+#else // mac OS X
+    //int fps = QFontInfo(f).pointSize();
+    //double cmuffactor = 1.1;
+    //double codeffactor = 1.3;
+    int cmufpsfinal = 14;//(int)(fps*cmuffactor+0.5);
+    int codefpsfinal = 14;//(int)(fps*codeffactor+0.5);
+#endif
 
     defaultStdFont = f;
 

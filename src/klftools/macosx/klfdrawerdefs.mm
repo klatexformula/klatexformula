@@ -24,20 +24,40 @@
 // DEFINITIONS FOR DRAWER STUFF
 
 
+#if !defined(QT_MAC_USE_COCOA)
 static OSWindowRef klf_qt_mac_window_for(OSViewRef view)
 {
-#ifdef QT_MAC_USE_COCOA
-    if (view)
-        return [view window];
-    return 0;
-#else
-    return HIViewGetWindow(view);
-#endif
+  return HIViewGetWindow(view);
 }
+#endif
 
 
 
 #ifdef QT_MAC_USE_COCOA
+static bool contains_view(NSView * view, NSView * lookingForView, int levels = 4)
+{
+  klfDbg("("<<levels<<") Looking for view in "<<view) ;
+
+  if (view == lookingForView) {
+    return true;
+  }
+
+  NSArray * subviews = [view subviews];
+  for (NSView *subview in subviews) {
+    if (lookingForView == subview) {
+      return true;
+    }
+  }
+  if (levels > 0) {
+    for (NSView * subview in subviews) {
+      bool trysub = contains_view(subview, lookingForView, levels - 1);
+      if (trysub) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 static NSDrawer * klf_qt_mac_drawer_for(const QWidget *widget)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -50,13 +70,11 @@ static NSDrawer * klf_qt_mac_drawer_for(const QWidget *widget)
   for (NSWindow *window in windows) {
     NSArray *drawers = [window drawers];
     for (NSDrawer *drawer in drawers) {
-      NSArray *views = [[drawer contentView] subviews];
-      for (NSView *view in views) {
-	if (view == widgetView) {
-	  klfDbg("found drawer. ptr="<<drawer) ;
-	  //	  [autoreleasepool release];
-	  return drawer;
-	}
+      klfDbg("investigating drawer "<< drawer << "...") ;
+      if (contains_view([drawer contentView], widgetView)) {
+        klfDbg("found drawer. ptr="<<drawer) ;
+        //	  [autoreleasepool release];
+        return drawer;
       }
     }
   }
@@ -81,25 +99,32 @@ bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
     klfDbg("Not a drawer.") ;
     return false;
   }
-  
+
 #if QT_MAC_USE_COCOA
   NSDrawer *drawer = klf_qt_mac_drawer_for(w);
-  if (!drawer)
+  if (!drawer) {
+    klfDbg("Didn't find the drawer for "<<w<<" !!") ;
     return false;
+  }
   NSRectEdge edge;
-  if (where & Qt::LeftDockWidgetArea)
+  if (where & Qt::LeftDockWidgetArea) {
     edge = NSMinXEdge;
-  else if (where & Qt::RightDockWidgetArea)
+  } else if (where & Qt::RightDockWidgetArea) {
     edge = NSMaxXEdge;
-  else if (where & Qt::TopDockWidgetArea)
+  } else if (where & Qt::TopDockWidgetArea) {
     edge = NSMaxYEdge;
-  else if (where & Qt::BottomDockWidgetArea)
+  } else if (where & Qt::BottomDockWidgetArea) {
     edge = NSMinYEdge;
-  else
+  } else {
+    klfWarning("Where is not a valid edge (One of Qt::DockWidgetArea): "<<where);
     return false;
+  }
   
-  if (edge == [drawer preferredEdge]) //no-op
+  NSRectEdge curPrefEdge = [drawer preferredEdge];
+  if (edge == curPrefEdge) { //no-op
+    klfDbg("Already the right edge. preferredEdge="<<curPrefEdge);
     return false;
+  }
   
   if (w->isVisible()) {
     [drawer close];
