@@ -112,6 +112,7 @@ macro(KLFMInstallNameToolChange TGT CHANGEFILENAMEREL DEPRELPATH DEPFULLPATH)
   add_custom_command(TARGET ${TGT}_maclibpacked POST_BUILD
     COMMAND "install_name_tool" -change "${DEPFULLPATH}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
     COMMAND "install_name_tool" -change "${klfINTC_reltolibdir}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
+    COMMAND "install_name_tool" -change "${QT_HOMEBREW_ALT_LIB_DIR}${klfINTC_reltolibdir}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
     COMMENT "Updating ${CHANGEFILENAMEREL}'s dependency on ${DEPFULLPATH} to @executable_path/../${DEPRELPATH}"
     VERBATIM
   )
@@ -131,10 +132,16 @@ macro(KLFMBundlePrivateLibUpdateQtDep TGT LIBNAME QTDEPS)
 endmacro()
 
 macro(KLFMBundlePrivateImportQtLib TGT QTLIBBASENAME DEPS)
-  string(TOUPPER ${QTLIBBASENAME} QTLIBBASENAMEUPPER)
+  string(TOUPPER "${QTLIBBASENAME}" QTLIBBASENAMEUPPER)
   set(QTLIBFULLPATH "${QT_QT${QTLIBBASENAMEUPPER}_LIBRARY}")
+  if(IS_SYMLINK "${QTLIBFULLPATH}")
+    # needed for homebrew's Qt where QtCore.framework is a symlink
+    get_filename_component(thisQTLIBFULLPATH "${QTLIBFULLPATH}" REALPATH)
+  else(IS_SYMLINK "${QTLIBFULLPATH}")
+    set(thisQTLIBFULLPATH "${QTLIBFULLPATH}")
+  endif(IS_SYMLINK "${QTLIBFULLPATH}")
   KLFMBundlePrivateImport(${TGT} Qt${QTLIBBASENAME}.framework
-			 "${QTLIBFULLPATH}" Frameworks)
+			 "${thisQTLIBFULLPATH}" Frameworks)
   KLFMInstallNameToolID(${TGT}
       Frameworks/Qt${QTLIBBASENAME}.framework/Versions/4/Qt${QTLIBBASENAME})
   KLFMInstallNameToolID(${TGT}

@@ -892,6 +892,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     // execute latex
     klfDbg("preparing to launch latex.") ;
 
+    if (settings.latexexec.isEmpty()) {
+      res.status = KLFERR_NOLATEXPROG;
+      res.errorstr = QObject::tr("No latex executable given!\n", "KLFBackend");
+      return res;
+    }
+
     KLFBackendFilterProgram p(QLatin1String("LaTeX"), &settings, isMainThread, tempdir.path());
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_LATEX_NORUN;
     p.resErrCodes[KLFFP_NOEXIT] = KLFERR_LATEX_NONORMALEXIT;
@@ -913,6 +919,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   if (!has_userscript_output(us_outputs, "eps-raw") && !our_skipfmts.contains("eps-raw")) {
 
     ASSERT_HAVE_FORMATS_FOR("eps-raw") ;
+
+    if (settings.dvipsexec.isEmpty()) {
+      res.status = KLFERR_NODVIPSPROG;
+      res.errorstr = QObject::tr("No dvips executable given!\n", "KLFBackend");
+      return res;
+    }
 
     // execute dvips -E
     KLFBackendFilterProgram p(QLatin1String("dvips"), &settings, isMainThread, tempdir.path());
@@ -1024,6 +1036,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     if (settings.outlineFonts) {
       // post-process EPS file to outline fonts if requested
 
+      if (settings.gsexec.isEmpty()) {
+        res.status = KLFERR_NOGSPROG;
+        res.errorstr = QObject::tr("No gs executable given!\n", "KLFBackend");
+        return res;
+      }
+
       KLFBackendFilterProgram p(QLatin1String("gs (EPS Post-Processing Outline Fonts)"), &settings, isMainThread,
                                 tempdir.path());
       p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPOSTPROC_NORUN;
@@ -1082,6 +1100,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   if (!has_userscript_output(us_outputs, "png") && !our_skipfmts.contains("png")) {
 
     ASSERT_HAVE_FORMATS_FOR("png") ;
+
+    if (settings.gsexec.isEmpty()) {
+      res.status = KLFERR_NOGSPROG;
+      res.errorstr = QObject::tr("No gs executable given!\n", "KLFBackend");
+      return res;
+    }
 
     // run 'gs' to get PNG data
     KLFBackendFilterProgram p(QLatin1String("gs (PNG)"), &settings, isMainThread, tempdir.path());
@@ -1173,6 +1197,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       // file is ready.
     }
 
+    if (settings.gsexec.isEmpty()) {
+      res.status = KLFERR_NOGSPROG;
+      res.errorstr = QObject::tr("No gs executable given!\n", "KLFBackend");
+      return res;
+    }
+
     // run 'gs' to get PDF data
     KLFBackendFilterProgram p(QLatin1String("gs (PDF)"), &settings, isMainThread, tempdir.path());
     p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSPDF_NORUN;
@@ -1208,6 +1238,12 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 	res.status = KLFERR_GSSVG_NOSVG;
 	res.errorstr = QObject::tr("This ghostscript (%1) cannot generate SVG.", "KLFBackend").arg(settings.gsexec);
 	return res;
+      }
+
+      if (settings.gsexec.isEmpty()) {
+        res.status = KLFERR_NOGSPROG;
+        res.errorstr = QObject::tr("No gs executable given!\n", "KLFBackend");
+        return res;
       }
 
       KLFBackendFilterProgram p(QLatin1String("gs (SVG)"), &settings, isMainThread, tempdir.path());
@@ -1265,6 +1301,12 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsF
   // find correct bounding box of EPS file, using ghostscript
 
   int i;
+
+  if (settings.gsexec.isEmpty()) {
+    resError->status = KLFERR_NOGSPROG;
+    resError->errorstr = QObject::tr("No gs executable given!\n", "KLFBackend");
+    return false;
+  }
 
   KLFBackendFilterProgram p(QLatin1String("GhostScript (bbox)"), &settings, isMainThread, settings.tempdir);
   p.resErrCodes[KLFFP_NOSTART] = KLFERR_GSBBOX_NORUN;
@@ -1825,6 +1867,11 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
 {
   if (gsInfo.contains(settings->gsexec)) // info already cached
     return;
+
+  if (settings->gsexec.isEmpty()) {
+    // no GS executable given
+    return;
+  }
 
   QString gsver;
   { // test 'gs' version, to see if we can provide SVG data

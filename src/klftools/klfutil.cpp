@@ -211,7 +211,7 @@ static QStringList __search_find_test(const QString& root, const QStringList& pa
     klfDebugf(("... is dir.")) ;
     QDir d(flpath);
     QStringList entries;
-    entries = d.entryList(QStringList()<<pathlist[level], QDir::Drives|QDir::Files|QDir::Dirs|QDir::Hidden);
+    entries = d.entryList(QStringList()<<pathlist[level], QDir::AllEntries|QDir::System|QDir::Hidden);
     if (entries.size()) {
       klfDebugf(("got entry list: %s", qPrintable(entries.join("\t"))));
     }

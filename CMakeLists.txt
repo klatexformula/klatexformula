@@ -156,6 +156,21 @@ if(WIN32)
   mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE_FINDQT)
 endif(WIN32)
 
+# Bug: on Mac OS X, with homebrew, qt frameworks are symlinks and it's a hell of
+# install_name_tool's to get names and references right. This is an additional directory
+# which Qt libraries might report being in, although they might only be symlinks there.
+KLFCMakeDebug("QT_LIBRARY_DIR is ${QT_LIBRARY_DIR}")
+if(NOT QT_HOMEBREW_ALT_LIB_DIR AND QT_LIBRARY_DIR MATCHES "^/usr/local/Cellar/.*")
+  # homebrew
+  set(QT_HOMEBREW_ALT_LIB_DIR "/usr/local/lib" CACHE STRING
+    "Alternative directory where Qt libraries could report living in with otool -L QtCore.framework")
+  message(STATUS
+    "Detected homebrew Qt. Set QT_HOMEBREW_ALT_LIB_DIR for proper importing of Qt frameworks into final bundle."
+    )
+endif(NOT QT_HOMEBREW_ALT_LIB_DIR AND QT_LIBRARY_DIR MATCHES "^/usr/local/Cellar/.*")
+
+
+
 
 #KLFDeclareCacheVarOptionCondition(specificoption cachetype cachestring updatenoticestring condition forcedvalue defaultvalue)
 KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLS
