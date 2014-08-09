@@ -28,30 +28,8 @@
 
 namespace Ui { class KLFKatePluginConfigWidget; }
 
-class KLFKteConfigData : public QObject
-{
-  Q_OBJECT
-public:
-  static KLFKteConfigData *inst();
-  
-  void readConfig(KConfigGroup *cfg);
-  void writeConfig(KConfigGroup *cfg);
 
-  bool autopopup;
-  bool onlyLatexMode;
-  int transparencyPercent;
-  QString preamble;
-  QString klfpath;
-  QSize popupMaxSize;
-  bool popupLinks;
-
-private:
-  KLFKteConfigData(QObject *parent) : QObject(parent) { }
-
-  static KLFKteConfigData *instance;
-};
-
-
+class KLFKteConfigData;
 
 
 class KLFKteConfig  :  public KCModule
@@ -63,6 +41,7 @@ public:
   virtual ~KLFKteConfig();
   
   virtual void save();
+  virtual void saveViaConfigData(KLFKteConfigData * d);
   virtual void load();
   virtual void defaults();
   

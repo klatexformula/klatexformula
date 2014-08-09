@@ -25,15 +25,37 @@
 #ifndef KLFKTEPARSER_P_H
 #define KLFKTEPARSER_P_H
 
+#include <algorithm>
+
 #include "klfkteparser.h"
 
-// handy shorthand
 
+// --------------------------------------------------
+
+// handy shorthands
+
+
+/** Like \ref QString::replace(QRegExp, QString), except returns a copy without affecting
+ * the original string.
+ */
 inline QString my_str_replaced(const QString& s, const QRegExp& rx, const QString& replacement)
-{ QString copy = s; copy.replace(rx, replacement); return copy; }
+{
+  QString copy = s;
+  copy.replace(rx, replacement);
+  return copy;
+}
 
 
 
+/** Step the cursor one step left or right. If the cursor goes beyond the beginning or the
+ * end of the line, move at end of previous / at beginning of next line.
+ *
+ * If \c forward is \c true, steps the cursor one position forward (right), otherwise one
+ * position backwards (left).
+ *
+ * This function does not affect the original cursor \c c, but returns a new cursor
+ * corresponding to the new position.
+ */
 static Cur step_cur(KTextEditor::Document * doc, const Cur& c, bool forward)
 {
   int step = forward ? +1 : -1;
@@ -49,21 +71,12 @@ static Cur step_cur(KTextEditor::Document * doc, const Cur& c, bool forward)
 }
 
 
-QDebug operator<<(QDebug dbg, const MathModeContext& m)
-{
-  if (m.start.line() == m.end.line())
-    dbg.nospace() << "MathModeContext{l."<<m.start.line()<<" "<<m.start.column()<<"--"<<m.end.column();
-  else
-    dbg.nospace() << "MathModeContext{l."<<m.start.line()<<":"<<m.start.column()<<"--l."<<m.end.line()
-		  << ":"<<m.end.column();
-  return dbg << " "<<m.startcmd<<"--"<<m.endcmd<<" math="<<m.latexmath;
-}
 
-
-
-// -----------
-
-
+// =============================================================================
+//
+// DUMMY PARSER (do nothing)
+//
+// =============================================================================
 
 
 class KLFKteParser_Dummy : public KLFKteParser
@@ -78,71 +91,188 @@ public:
 };
 
 
-// -----------
 
 
 
 
+// =============================================================================
+//
+// FULL-BLOWN MATH MODE EXTRACTOR, USING KTEXTEDITOR'S LATEX HIGHLIGHTING ENGINE
+//
+// =============================================================================
 
 
 
-// -----------
-
+// See API:
+// http://api.kde.org/4.x-api/kdelibs-apidocs/interfaces/ktexteditor/html/classKTextEditor_1_1HighlightInterface.html
 
 
 #define KatePartAttrNameProperty KTextEditor::Attribute::AttributeInternalProperty
 
+//! Remember: "Attribute" \approx QTextCharFormat, i.e. character display format.
 typedef KTextEditor::Attribute HiAtt;
+//! "AttributeBlock": an "Attribute", with a given start position and length.
 typedef KTextEditor::HighlightInterface::AttributeBlock HiAttBlock;
 typedef QList<KTextEditor::HighlightInterface::AttributeBlock> HiAttList;
 
 
+/** compare to HiAttBlock's for sorting. Sorting is based on *start* positions of the
+ * blocks
+ */
+struct HiAttElem_cmp_start {
+  inline bool operator()(const HiAttBlock& a, const HiAttBlock& b) const
+  {
+    return a.start < b.start;
+  }
+};
+/** compare to HiAttBlock's for sorting. Sorting is based on *end* positions of the blocks
+ */
+struct HiAttElem_cmp_end {
+  inline bool operator()(const HiAttBlock& a, const HiAttBlock& b) const
+  {
+    return (a.start + a.length) < (b.start + b.length);
+  }
+};
+
+
 #define MATHENV  "(?:"  "equation|displaymath|eqnarray|subeqnarray|math|multline|gather|align|flalign"  ")"
 
+#define RX_STARTMATH "(\\$|\\$\\$|\\\\\\(|\\\\\\[|\\\\begin\\{(" MATHENV ")\\*?\\})"
+#define RX_ENDMATH "(\\$|\\$\\$|\\\\\\)|\\\\\\]|\\\\end\\{(" MATHENV ")\\*?\\})"
+
+#define RX_STARTORENDMATH "(?:" RX_STARTMATH "|" RX_ENDMATH ")"
 
 
-static bool att_is_math(const HiAttBlock& att)
+
+/** Returns the type name of the given attribute. Can be "LaTeX:Comment" for example.
+ */
+static inline QString att_type(const HiAttBlock& att)
 {
   const KTextEditor::Attribute * a = att.attribute.data();
-  KLF_ASSERT_NOT_NULL(a, "a is NULL!", return false; ) ;
+  KLF_ASSERT_NOT_NULL(a, "attribute data is NULL!", return QString(); ) ;
   if (!a->hasProperty(KatePartAttrNameProperty)) {
-    qWarning()<<KLF_FUNC_NAME
-	      <<": attribute does not have property KTextEditor::Attribute::AttributeInternalProperty="
-	      <<KTextEditor::Attribute::AttributeInternalProperty;
-    return false;
+    klfWarning("attribute does not have property KTextEditor::Attribute::AttributeInternalProperty="
+               <<KTextEditor::Attribute::AttributeInternalProperty);
+    return QString();
   }
-  return a->property(KatePartAttrNameProperty).toString().contains("math", Qt::CaseInsensitive);
+  return a->property(KatePartAttrNameProperty).toString();
 }
 
+/** Returns TRUE if the given attribute corresponds to the highlighing of a mathematical
+ * LaTeX section.
+ */
+static inline bool att_is_math(const HiAttBlock& att)
+{
+  return att_type(att).contains("math", Qt::CaseInsensitive);
+}
 
+static inline bool att_is_comment(const HiAttBlock& att)
+{
+  return att_type(att).contains("comment", Qt::CaseInsensitive);
+}
+
+/** A KTextEditor::HighlightInterface::AttributeBlock (alias HiAttBlock), but with the
+ * line information (the line number on which the attribution information corresponds to).
+ */
 struct HiAttElem : public HiAttBlock
 {
-  HiAttElem() : HiAttBlock(-1, -1, KTextEditor::Attribute::Ptr(NULL)), line(-1), cache_ismath(-1) { }
-  HiAttElem(const HiAttBlock& h, int l = -1) : HiAttBlock(h), line(l), cache_ismath(-1) { }
+  /** Construct a default, invalid, HiAttElem, with NULL attribute. */
+  HiAttElem()
+    : HiAttBlock(-1, -1, KTextEditor::Attribute::Ptr()),
+      line(-1), cache_ismath(-1)
+  {
+  }
+  /** Construct a HiAttElem by copying the given HiAttBlock. */
+  HiAttElem(const HiAttBlock& h, int l = -1)
+    : HiAttBlock(h),
+      line(l), cache_ismath(-1)
+  {
+  }
+  /** Construct a HiAttElem with an invalid attribute block, but a (most likely) valid
+   * line. */
+  HiAttElem(int l)
+    : HiAttBlock(-1, -1, KTextEditor::Attribute::Ptr()),
+      line(l), cache_ismath(-1)
+  {
+  }
+  /** copy constructor */
+  HiAttElem(const HiAttElem& copy)
+    : HiAttBlock(copy),
+      line(copy.line), cache_ismath(copy.cache_ismath)
+  {
+  }
   
   int line;
   
+  /** Create a Cursor object corresponding to the start of this HiAtt element */
   inline Cur startCur() const { return Cur(line, start); }
+  /** Create a Cursor object corresponding to the end of this HiAtt element */
   inline Cur endCur() const { return Cur(line, start+length); }
   
+  /** Returns TRUE if the current attribute is a math highlighting attribute.
+   *
+   * Note that an invalid attribute is not math mode. A warning is issued if the line
+   * number is also invalid.
+   */
   inline bool isMath() const
-  { return (cache_ismath!=-1) ? cache_ismath : (cache_ismath=att_is_math(*this)); }
+  {
+    // warning for invalid line number, but in fact nothing prevents us from continuing
+    KLF_ASSERT_CONDITION(line >= 0, "Invalid line number line="<<line, ; );
+
+    if (cache_ismath != -1) {
+      return cache_ismath;
+    }
+    if (start < 0 || length < 0 || attribute.data() == NULL) {
+      return false;
+    }
+    cache_ismath = (int)att_is_math(*this);
+    return cache_ismath;
+  }
   
 private:
+  /** Cache the answer to \ref isMath() (1/0, or -1 if not cached yet). */
   mutable int cache_ismath;
 };
 
+/** Store information about the boundary in a document between math mode and not math
+ * mode.
+ */
 struct MathModeBoundary
 {
   MathModeBoundary()
-    : cur(Cur::invalid()), istrue(false), isstart(true), boundarycommand() { }
-  MathModeBoundary(Cur c, bool t, bool st)
-    : cur(c), istrue(t), isstart(st), boundarycommand() { }
+    : cur(Cur::invalid()), istrue(false), isstart(true), boundarycommand()
+  {
+  }
+
+  MathModeBoundary(Cur c, bool t, bool st, const QString& bc)
+    : cur(c), istrue(t), isstart(st), boundarycommand(bc)
+  {
+  }
   
+  /** \brief Position in the document.
+   *
+   * If this is a start math mode, the position corresponds to the cursor position right
+   * *after* the command, otherwise, right *before* the command.
+   */
   Cur cur;
+
+  /** Whether this boundary is "true". A "true" boundary is one which we are interested
+   * for extracting an equation, and is recognized by matching to a known boundary command
+   * such as \c "\begin{equation}".
+   *
+   * A non-"true" boundary can arise, for example, if in the equation a command such as
+   * \c "\text{...}" is used, in which case we will ultimately want to extract the full
+   * equation.
+   */
   bool istrue;
+
+  //! TRUE if at this boundary math mode starts, FALSE if it ends.
   bool isstart;
   
+  /** The LaTeX command that causes change in LaTeX math mode.
+   *
+   * e.g. \c "\begin{equation}", or \c "$"
+   */
   QString boundarycommand;
 };
 
@@ -158,9 +288,23 @@ inline QDebug operator<<(QDebug dbg, const HiAttBlock& a)
 }
 inline QDebug operator<<(QDebug dbg, const HiAttElem& a)
 {
-  return dbg << "{l."<<a.line<<" "<<a.start<<"+"<<a.length
-	     <<" ("<<a.attribute->property(KatePartAttrNameProperty)<<")}" ;
+  dbg << "{l."<<a.line<<" "<<a.start<<"+"<<a.length;
+  if (a.attribute.data() != NULL) {
+    return dbg << " ("<<a.attribute->property(KatePartAttrNameProperty)<<")}" ;
+  } else {
+    return dbg << " (NULL)}";
+  }
 }
+
+
+
+// ---------------------
+
+
+/** While scanning forward/backward from a given position for beginning/ending of math
+ * mode block, stop at most after this number of lines.
+ */
+#define MAX_NUM_LINES_TO_SCAN 50
 
 
 
@@ -170,14 +314,16 @@ class KLFKteParser_KatePart : public KLFKteParser
 public:
 
   KLFKteParser_KatePart(Doc *doc, KTextEditor::HighlightInterface * hiface)
-    : KLFKteParser(doc)
+    : KLFKteParser(doc), pHiface(hiface)
   {
-    pHiface = hiface;
     KLF_ASSERT_NOT_NULL(pHiface, "highlight-interface is NULL!", ; ) ;
   }
 
 public:
 
+  /** The main function that parses the "math mode information" at the current cursor
+   * position
+   */
   MathModeContext parseContext(const Cur& cur)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -186,18 +332,18 @@ public:
 
     MathModeBoundary headm, tailm;
 
-    headm = find_mathmode_transition(cur, false /*backwards*/);
+    headm = find_true_mathmode_transition(cur, false /*backwards*/);
     if (!headm.cur.isValid()) {
       klfDbg("failed to parse head mathmode boundary: invalid headm returned.") ;
       return MathModeContext();
     }
 
     if (!headm.isstart) {
-      klfDbg("we are not in math mode.");
+      klfDbg("we are not in math mode. headm="<<headm);
       return MathModeContext();
     }
     
-    tailm = find_mathmode_transition(cur, true /*forward*/);
+    tailm = find_true_mathmode_transition(cur, true /*forward*/);
     if (!tailm.cur.isValid()) {
       klfDbg("failed to parse tail mathmode boundary: invalid tailm returned.") ;
       return MathModeContext();
@@ -224,232 +370,265 @@ public:
 
 private:
 
-  MathModeBoundary boundary_info(const HiAttElem& attmin, const HiAttElem& attmax)
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    klfDbg("attmin="<<attmin<<"; attmax="<<attmax) ;
-    
-    QRegExp startmath = QRegExp("(\\$|\\$\\$|\\\\\\(|\\\\\\[|\\\\begin\\{(" MATHENV ")\\*?\\})\\s*");
-    QRegExp endmath   = QRegExp("\\s*(\\$|\\$\\$|\\\\\\)|\\\\\\]|\\\\end\\{(" MATHENV ")\\*?\\})");
-    
-    klfDbg("rx patterns:\n\tstartmath: "<<qPrintable(startmath.pattern())<<"\n\tendmath: "
-	   <<qPrintable(endmath.pattern())) ;
-    
-    MathModeBoundary m;
-    
-    bool min_is_math = att_is_math(attmin);
-    bool max_is_math = att_is_math(attmax);
-    
-    KLF_ASSERT_CONDITION( (int)min_is_math ^ (int)max_is_math,
-			  "Assert Failed: min_is_math="<<min_is_math<<" XOR max_is_math="<<max_is_math<<" !",
-			  return MathModeBoundary(); ) ;
-    
-    QString contextlines;
-    contextlines = pDoc->line(attmin.endCur().line());
-    int maxlineoffset = 0;
-    if (attmax.startCur().line() != attmin.endCur().line()) {
-      maxlineoffset = contextlines.length() + 1; // +1 for \n
-      contextlines += "\n"+pDoc->line(attmax.startCur().line());
-    }
-    
-    klfDbg("contextlines=\n\t> "<<qPrintable(my_str_replaced(contextlines, QRegExp("\n"), "\n\t> "))<<"\n") ;
-    
-    if (!min_is_math && max_is_math) {
-      // need to match for  "start-math-mode"
-      Cur c = attmax.startCur();
-      int j = startmath.lastIndexIn(contextlines, maxlineoffset + c.column());
-      klfDbg("matching startmath rx reverse from "<<maxlineoffset+c.column()<<". result="<<j
-	     <<", matchedlen="<<startmath.matchedLength()) ;
-      // startmath match intersects with [attmin.endCur() , attmax.startCur()]
-      if (j != -1 && j <= maxlineoffset+attmax.startCur().column()
-	  && j+startmath.matchedLength() >= attmin.endCur().column()) {
-	// "True" boundary
-	// position: just after start-math-marker: convert j+matchedlen to cursor pos
-	m.cur = Cur(attmin.line, j+startmath.matchedLength());
-	if (m.cur.column() >= maxlineoffset)
-	  m.cur = Cur(attmax.line, m.cur.column() - maxlineoffset);
-	m.istrue = true;
-	m.isstart = true;
-	m.boundarycommand = startmath.cap(1);
-	return m;
-      }
-      m.cur = attmax.startCur();
-      m.istrue = false;
-      m.isstart = true;
-      return m;
-    }
-    // else: (att_is_math(attlist[kmin]) && !att_is_math(attlist[kmax]))
-    Cur c = attmax.startCur();
-    int ji = endmath.lastIndexIn(contextlines, maxlineoffset + c.column());
-    klfDbg("matching endmath rx reverse from "<<maxlineoffset + c.column()<<". "
-	   "result="<<ji<<", matchedlen="<<endmath.matchedLength()) ;
-    // endmath match intersects with [attmin.endCur() , attmax.startCur()]
-    if (ji != -1 && ji <= maxlineoffset+attmax.startCur().column()
-	&& ji+endmath.matchedLength() >= attmin.endCur().column()) {
-      // "true" boundary
-      // position: just before end-math-marker: convert ji to cursor pos
-      m.cur = Cur(attmin.line, ji);
-      if (m.cur.column() >= maxlineoffset)
-	m.cur = Cur(attmax.line, m.cur.column() - maxlineoffset);
-      m.istrue = true;
-      m.isstart = false;
-      m.boundarycommand = endmath.cap(1);
-      return m;
-    }
-    m.cur = attmin.endCur();
-    m.istrue = false;
-    m.isstart = false;
-    return m;
-  }
 
-
+  /** Scan backwards or forwards starting from a given position, while looking for a math
+   * mode boundary.
+   *
+   * \param pos: start looking from here.
+   * \param forward: scans forward if TRUE, otherwise backwards.
+   */
   MathModeBoundary
-  /* */ find_mathmode_transition(Cur pos, bool forward, bool wantTrueBoundary = true)
+  /* */ find_true_mathmode_transition(Cur pos, bool forward)
   {
     KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-    klfDbg("position=["<<pos<<"], forward="<<forward<<"; wantTrueBoundary="<<wantTrueBoundary) ;
+    klfDbg("position=["<<pos<<"], forward="<<forward) ;
+
+    KLF_ASSERT_NOT_NULL(pHiface, "pHiface is NULL !", return MathModeBoundary(); ) ;
 
     int line = pos.line();
     int col = pos.column();
 
     int step = forward ? +1 : -1;
 
-    int k;
+    int kpos = 0;
 
-    HiAttElem prevAtt;
-    prevAtt.line = -1; // invalid
+    int numscannedlines = 0;
 
-    do {
-      klfDbg("line iteration: line="<<line<<":\n\t> "<<qPrintable(pDoc->line(line))) ;
+    QRegExp mboundary = QRegExp(RX_STARTORENDMATH);
       
-      HiAttList attlist = pHiface->lineAttributes(line);
-      
-      klfDbg("attributes: "<<attlist) ;
-      
-      if (!attlist.size()) {
-	line += step;
-	continue;
+    while (line >= 0 && line < pDoc->lines()) {
+
+      ++numscannedlines;
+      if (numscannedlines > MAX_NUM_LINES_TO_SCAN) {
+        break;
       }
-      
-      ensure_attr_fill_order_start(line, &attlist);
 
-      klfDbg("start attr. parsing...") ;
+      klfDbg("line iteration: line="<<line<<":\n\t> "<<qPrintable(pDoc->line(line)));
       
-      if (col >= 0) {
-	// find the next/prev. attribute corresponding to this position
-	if (forward) {
-	  for (k = attlist.size()-1; k >= 0 && attlist[k].start >= col; --k)
-	    ;
-	  if (k < 0) k = 0;
-	} else {
-	  for (k = 0; k < attlist.size() && attlist[k].start+attlist[k].length < col; ++k)
-	    ;
-	}
-	klfDbg("forward="<<forward<<", k="<<k) ;
-	// initialize prevAtt
-	prevAtt = attlist[k];
-	prevAtt.line = line;
+      if (!forward && col == 0) {
+        // at start of line, scanning back -> go to prev line
+        col = -1;
+        --line;
+        continue;
+      }
+      if (forward && col == pDoc->lineLength(line)) {
+        // at end of line, scanning forward -> go to next line
+        col = -1;
+        ++line;
+        continue;
+      }
+
+      QString sline = pDoc->line(line);
+
+      // see if we can find a math mode boundary.
+      if (forward) {
+        kpos = mboundary.indexIn(sline, (col >= 0) ? col : 0);
       } else {
-	// initialize k
-	if (forward)
-	  k = 0;
-	else
-	  k = attlist.size() - 1;
-      }
-      klfDbg("starting to step attribute index iterations. k="<<k<<"; prevAtt/is-math="<<prevAtt.isMath()) ;
-      // now, step k to previous/next attributes until we reach a non-math mode element
-      while (k >= 0 && k < attlist.size()) {
-	HiAttElem att(attlist[k], line);
-	klfDbg("stepping k="<<k<<"; att="<<att) ;
-	if (att.isMath() != prevAtt.isMath()) {
-	  klfDbg("mathmode boundary canditate at k="<<k) ;
-	  // is this a true math mode boundary? (not eg. a \text{...} command)
-	  HiAttElem attmin = forward ? prevAtt : att;
-	  HiAttElem attmax = forward ? att : prevAtt;
-	  MathModeBoundary m = boundary_info(attmin, attmax);
-	  if (!wantTrueBoundary || m.istrue) {
-	    klfDbg("got true boundary: "<<m) ;
-	    return m;
-	  }
-	  // at this point, we have wantTrueBoundary && !istrue
-	  klfDbg("not true boundary but wantTrueBoundary=true. boundary-info="<<m) ;
-	  // continue stepping until we re-reach a boundary. Use recursion.
-	  MathModeBoundary m2;
-	  m2 = find_mathmode_transition(step_cur(pDoc, m.cur, forward), forward,
-					false); // don't want necessarily true boundary (!)
-	  if (!m2.cur.isValid()) {
-	    klfDbg("failed to find prev. boundary. returning fail.");
-	    return m2;
-	  }
-	  klfDbg("got boundary at m2="<<m2) ;
-	  // if we found a true boundary, this means that we are in a "non-true" region, ie. there is also
-	  // a non-true boundary AFTER our search start point. which means we found the final mathmode boundary
-	  // we are looking for.
-	  if (m2.istrue) {
-	    klfDbg("returning the found true boundary m2.") ;
-	    return m2;
-	  }
-	  // at which point we can continue our stepping search. Re-use recursion because
-	  // we have a column position rather than an attlist-index.
-	  Cur cc = step_cur(pDoc, m2.cur, forward);
-	  MathModeBoundary mfinal = find_mathmode_transition(cc, forward, wantTrueBoundary);
-	  klfDbg("got final boundary: mfinal="<<mfinal) ;
-	  return mfinal;
-	}
-	k += step;
-	prevAtt = att;
+        // make sure the pattern doesn't match past col position.
+        if (col >= 0) {
+          kpos = mboundary.lastIndexIn(sline.left(col));
+        } else {
+          kpos = mboundary.lastIndexIn(sline);
+        }
       }
 
-      line += step;
-      col = -1;
-    } while (line >= 0 && line < pDoc->lines());
+      if (kpos == -1) {
+        // pattern not found. so skip to prev/next line.
+        col = -1;
+        line += step;
+        continue;
+      }
 
+      int kposend = kpos + mboundary.matchedLength();
+
+      // we found a pattern. Now, try to determine, using the syntax highlighter
+      // interface, whether it is a starting or an ending of a math mode block.
+
+      HiAttElem attleft  = att_left_or_right_of(pDoc, pHiface, line, kpos, LeftOf);
+      HiAttElem attright = att_left_or_right_of(pDoc, pHiface, line, kposend, RightOf);
+
+      klfDbg("Inspecting "<<mboundary.cap()<<" @line="<<line<<",col="<<kpos<<"-"<<kposend
+             <<";  attleft="<<attleft<<"; attright="<<attright) ;
+
+      /* this should no longer be needed:
+
+      if (attleft.line == -1) {
+        // didn't find attribute for "just left" --> assume normal text, not math mode
+        // and we detected a boundary, so it should be a start math mode block.
+
+        // we should have detected a math mode on the "right", just check
+        KLF_ASSERT_CONDITION(attright.line != -1 && attright.isMath(), 
+                             "?!?? Detected boundary, no attribute left, but no math right?? "
+                             "attleft="<<attleft<<"; attright="<<attright ,
+                             ; );
+        return MathModeBoundary(Cur(line, kposend), true / * istrue * /, true / * isstart * /,
+                                mboundary.cap() );
+      }
+
+      if (attright.line == -1) {
+        // didn't find attribute for "just right" --> assume normal text
+        // and we detected a boundary, so it should be an end math mode block.
+        
+        // we should have detected a math mode on the "left", just check
+        KLF_ASSERT_CONDITION(attleft.line != -1 && attleft.isMath() ,
+                             "?!?? Detected boundary, no attribute right, but no math left?? "
+                             "attleft="<<attleft<<"; attright="<<attright ,
+                             ; );
+        return MathModeBoundary(Cur(line, kpos), true / * istrue * /, false / * isstart * /,
+                                mboundary.cap() );
+        }
+      */
+
+      // instead, the more simple check: indeed, this happens only if the scan went out of
+      // bounds, see `att_left_or_right_of()` below.
+      if (attleft.line == -1 || attright.line == -1) {
+        klfDbg("Didn't manage to find matching left/right attributes (even \"fake\" ones): "
+               << "attleft="<< attleft<< "; attright="<<attright) ;
+        return MathModeBoundary();
+      }
+
+
+      // we have both before and after attributes.
+
+      if (attleft.isMath()) {
+        // we have math on the left --> should be ending boundary
+
+        KLF_ASSERT_CONDITION(!attright.isMath(),
+                             "?!?? Detected boundary, math left, but math also right?? "
+                             "attleft="<<attleft<<"; attright="<<attright ,
+                             ; );
+
+        return MathModeBoundary(Cur(line, kpos), true /* istrue */, false /* isstart */,
+                                mboundary.cap() );
+      }
+
+      // we have no math on the left --> should be start boundary
+
+      KLF_ASSERT_CONDITION(attright.isMath(),
+                           "?!?? Detected boundary, no math left, but also no math right?? "
+                           "attleft="<<attleft<<"; attright="<<attright ,
+                           ; );
+
+      return MathModeBoundary(Cur(line, kposend), true /* istrue */, true /* isstart */,
+                              mboundary.cap() );
+
+
+    }
+
+      
     klfDbg("failed to find mathmode boundary..") ;
 
     // return invalid mathmodeboundary object
     return MathModeBoundary();
   }
 
-  HiAttBlock make_normal_text_att(int start, int length)
+
+
+  enum LeftOrRightOf { LeftOf = 0, RightOf };
+
+  HiAttElem att_left_or_right_of(KTextEditor::Document * doc, KTextEditor::HighlightInterface * hiface,
+                                 int line, int kpos, LeftOrRightOf direction)
   {
-    HiAtt *a = new HiAtt;
-    a->setProperty(KatePartAttrNameProperty, QString("LaTeX:Normal Text"));
-    return HiAttBlock(start, length, HiAtt::Ptr(a));
-  }
+    HiAttList attlist;
 
-  void ensure_attr_fill_order_start(int line, HiAttList * attlist)
-  {
-    int llen = pDoc->lineLength(line);
-    if (attlist->isEmpty()) {
-      if (llen == 0)
-	return;
-      attlist->insert(0, make_normal_text_att(0, llen));
-      return;
-    }
+    QRegExp mboundary = QRegExp(RX_STARTORENDMATH);
 
-    if (attlist->at(0).start != 0)
-      attlist->insert(0, make_normal_text_att(0, attlist->at(0).start));
+    int k;
 
-    klfDbg("starting iteration; attlist is "<<*attlist) ;
+    int numscannedlines = 0;
 
-    for (int k = 1; k < attlist->size(); ++k) {
-      //    klfDbg("k="<<k) ;
-      KLF_ASSERT_CONDITION(attlist->at(k).start >= attlist->at(k-1).start,
-			   "att list is not sorted!!", return; ) ;
-      int prevend = attlist->at(k-1).start + attlist->at(k-1).length;
-      if (attlist->at(k).start > prevend) {
-	// insert normal text attribute
-	attlist->insert(k, make_normal_text_att(prevend, attlist->at(k).start - prevend));
+    while (line >= 0 && line < doc->lines()) {
+
+      ++numscannedlines;
+      if (numscannedlines > MAX_NUM_LINES_TO_SCAN) {
+        break;
+      }
+
+      attlist = hiface->lineAttributes(line);
+
+      if (kpos == -1) {
+        kpos = doc->lineLength(line);
+      }
+
+      // find the attribute matching right after or and right before, this pattern match.
+      int a = -1;
+
+      int nextboundary = -1;
+      if (direction == RightOf) {
+        nextboundary = mboundary.indexIn(doc->line(line), (kpos >= 0) ? kpos+1 : 0);
+      } else {
+        if (kpos >= 0) {
+          nextboundary = mboundary.lastIndexIn(doc->line(line).left(kpos));
+        } else {
+          nextboundary = mboundary.lastIndexIn(doc->line(line));
+        }
+        if (nextboundary != -1) {
+          // point to end of match, to make sure the attribute doesn't overlap
+          nextboundary += mboundary.matchedLength();
+        }
+      }
+
+      for (k = 0; k < attlist.size(); ++k) {
+        // ignore comments
+        if (att_is_comment(attlist[k])) {
+          continue;
+        }
+        if (direction == LeftOf &&  attlist[k].start < kpos) {
+          // this attribute applies to a character *before* the match position.  Remember
+          // the rightmost such attribute, which will be the closest attribute just before
+          // the pattern match.
+          if ( a == -1 ||
+               ( (attlist[k].start + attlist[k].length) > (attlist[a].start + attlist[a].length) ) ) {
+            // keep this attribute, only if there is no math boundary in
+            // between. (Criterion: this attribute applies to at least one character
+            // before the boundary
+            if (nextboundary == -1 || attlist[k].start + attlist[k].length > nextboundary) {
+              a = k;
+            }
+          }
+        }
+        if (direction == RightOf &&  attlist[k].start >= kpos) {
+          // this attribute applies to a character *after* the match position.  Remember
+          // the leftmost such attribute, which will be the closest attribute just after
+          // the pattern match.
+          if ( a == -1 ||
+               ( attlist[k].start < attlist[a].start ) ) {
+            // keep this attribute, only if there is no math boundary in between.
+            if (nextboundary == -1 || attlist[k].start < nextboundary) {
+              a = k;
+            }
+          }
+        }
+      }
+
+      if (a != -1) {
+        // found a match, return it
+        return HiAttElem(attlist[a], line);
+      }
+
+      if (nextboundary != -1) {
+        // if we didn't find an attribute, but we have a boundary in our way, it's like
+        // normal text.
+        return HiAttElem(line);
+      }
+
+      // otherwise, scan next/previous line...
+      if (direction == LeftOf) {
+        --line;
+        kpos = -1;
+      } else {
+        ++line;
+        kpos = 0;
       }
     }
-    int n = attlist->size()-1;
-    int lastpos = attlist->at(n).start + attlist->at(n).length;
-    if (lastpos < llen)
-      attlist->insert(n+1, make_normal_text_att(lastpos, llen-lastpos));
-    
-    klfDbg("final attlist is now "<<*attlist) ;
+
+    // didn't find next/previous attribute...
+    return HiAttElem();
   }
-  
+
+
+
+
 };
 
 

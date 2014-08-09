@@ -94,7 +94,7 @@ endif()
 #				    "${CMAKE_SOURCE_DIR}/src/klfbackend/klfdebug.h")
 #endif(KLF_LIBKLFBACKEND_STATIC)
 
-kde4_add_ui_files(ktexteditor_klf_PART_SRCS klfkatepluginconfigwidget.ui)
+kde4_add_ui_files(ktexteditor_klf_PART_SRCS klfkatepluginconfigwidget.ui klfktepreviewwidget.ui)
 kde4_install_icons(${ICON_INSTALL_DIR})
 kde4_add_plugin(ktexteditor_klf ${ktexteditor_klf_PART_SRCS} )
 

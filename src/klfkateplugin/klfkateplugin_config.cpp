@@ -37,28 +37,20 @@
 #include "klfkateplugin.h"
 
 
-KLFKteConfigData *KLFKteConfigData::instance = NULL;
-
 
 const char *klfkteDefaultPreamble =
   "\\usepackage{amsmath}\n"
   "\\usepackage{amssymb}\n"
   "\\usepackage{amsfonts}\n";
 
-// static
-KLFKteConfigData * KLFKteConfigData::inst()
+
+KLFKteConfigData::KLFKteConfigData()
 {
-  if (instance == NULL) {
-    // create object
-    instance = new KLFKteConfigData(qApp);
-  }
-  return instance;
 }
 
 void KLFKteConfigData::readConfig(KConfigGroup *cg)
 {
   autopopup = cg->readEntry("autopopup", true);
-  onlyLatexMode = cg->readEntry("onlylatexmode", true);
   transparencyPercent = cg->readEntry("transparencyPercent", 20);
   preamble = cg->readEntry("preamble", klfkteDefaultPreamble);
   klfpath = cg->readEntry("klfpath", KStandardDirs::findExe("klatexformula"));
@@ -69,7 +61,6 @@ void KLFKteConfigData::readConfig(KConfigGroup *cg)
 void KLFKteConfigData::writeConfig(KConfigGroup *cg)
 {
   cg->writeEntry("autopopup", autopopup);
-  cg->writeEntry("onlylatexmode", onlyLatexMode);
   cg->writeEntry("transparencyPercent", transparencyPercent);
   cg->writeEntry("preamble", preamble);
   cg->writeEntry("klfpath", klfpath);
@@ -105,7 +96,6 @@ KLFKteConfig::KLFKteConfig(QWidget *parent, const QVariantList &args)
   u->sldMaxSize->setMaximum(maxsizesteps.size()-1);
 
   connect(u->chkAutoPopup, SIGNAL(stateChanged(int)), this, SLOT(slotChanged()));
-  connect(u->chkOnlyLatexMode, SIGNAL(stateChanged(int)), this, SLOT(slotChanged()));
   connect(u->spnTransparency, SIGNAL(valueChanged(int)), this, SLOT(slotChanged()));
   connect(u->txtPreamble, SIGNAL(textChanged()), this, SLOT(slotChanged()));
   connect(u->pathKLF, SIGNAL(textChanged(const QString&)), this, SLOT(slotChanged()));
@@ -121,11 +111,25 @@ KLFKteConfig::~KLFKteConfig()
 {
 }
 
+
 void KLFKteConfig::save()
 {
-  KLFKteConfigData * d = KLFKteConfigData::inst();
+  if (KLFKtePlugin::getStaticInstance() != NULL) {
+    // use the plugin's ConfigData structure, so that the running plugin immediately sees
+    // the changed config effects.
+    saveViaConfigData(KLFKtePlugin::getStaticInstance()->configData());
+  } else {
+    // use a dummy temporary object.
+    KLFKteConfigData d;
+    saveViaConfigData(&d);
+  }
+
+  emit changed(false);
+}
+
+void KLFKteConfig::saveViaConfigData(KLFKteConfigData * d)
+{
   d->autopopup = u->chkAutoPopup->isChecked();
-  d->onlyLatexMode = u->chkOnlyLatexMode->isChecked();
   d->transparencyPercent = u->spnTransparency->value();
   d->preamble = u->txtPreamble->toPlainText();
   d->klfpath = u->pathKLF->url().path();
@@ -134,27 +138,24 @@ void KLFKteConfig::save()
 
   KConfigGroup cg(KGlobal::config(), "KLatexFormula Plugin");
   d->writeConfig(&cg);
-
-  emit changed(false);
 }
 
 void KLFKteConfig::load()
 {
-  KLFKteConfigData * d = KLFKteConfigData::inst();
+  KLFKteConfigData d;
   
   KConfigGroup cg(KGlobal::config(), "KLatexFormula Plugin");
-  d->readConfig(&cg);
+  d.readConfig(&cg);
   
-  u->chkAutoPopup->setChecked(d->autopopup);
-  u->chkOnlyLatexMode->setChecked(d->onlyLatexMode);
-  u->spnTransparency->setValue(d->transparencyPercent);
-  u->txtPreamble->setPlainText(d->preamble);
-  u->pathKLF->setUrl(QUrl::fromLocalFile(d->klfpath));
+  u->chkAutoPopup->setChecked(d.autopopup);
+  u->spnTransparency->setValue(d.transparencyPercent);
+  u->txtPreamble->setPlainText(d.preamble);
+  u->pathKLF->setUrl(QUrl::fromLocalFile(d.klfpath));
   int k = 0;
-  while (k < maxsizesteps.size() && maxsizesteps[k].width() < d->popupMaxSize.width())
+  while (k < maxsizesteps.size() && maxsizesteps[k].width() < d.popupMaxSize.width())
     ++k;
   u->sldMaxSize->setValue(k);
-  u->chkPopupLinks->setChecked(d->popupLinks);
+  u->chkPopupLinks->setChecked(d.popupLinks);
 
   emit changed(false);
 }
@@ -162,7 +163,6 @@ void KLFKteConfig::load()
 void KLFKteConfig::defaults()
 {
   u->chkAutoPopup->setChecked(true);
-  u->chkOnlyLatexMode->setChecked(true);
   u->spnTransparency->setValue(20);
   u->txtPreamble->setPlainText(klfkteDefaultPreamble);
   u->pathKLF->setUrl(QUrl::fromLocalFile(KStandardDirs::findExe("klatexformula")));

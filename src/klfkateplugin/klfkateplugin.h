@@ -51,14 +51,36 @@
 class KLFKtePluginView;
 
 
+// defined in klfkateplugin_config.cpp
+
+class KLFKteConfigData
+{
+public:
+  KLFKteConfigData();
+
+  void readConfig(KConfigGroup *cfg);
+  void writeConfig(KConfigGroup *cfg);
+
+  bool autopopup;
+  bool onlyLatexMode;
+  int transparencyPercent;
+  QString preamble;
+  QString klfpath;
+  QSize popupMaxSize;
+  bool popupLinks;
+};
+
+
+
+
+
 class KLFKtePlugin  :  public KTextEditor::Plugin
 {
+  Q_OBJECT
 public:
   explicit KLFKtePlugin(QObject *parent = 0,
 			const QVariantList &args = QVariantList());
   virtual ~KLFKtePlugin();
-  
-  static KLFKtePlugin *self() { return plugin; }
   
   void addView(KTextEditor::View *view);
   void removeView(KTextEditor::View *view);
@@ -66,13 +88,26 @@ public:
   void readConfig();
   void writeConfig();
   
-  virtual void readConfig (KConfig *) {}
-  virtual void writeConfig (KConfig *) {}
+  virtual void readConfig(KConfig *) { }
+  virtual void writeConfig(KConfig *) { }
   
+  inline KLFKteConfigData * configData() { return pConfigData; }
+  KLFLatexPreviewThread * latexPreviewThread() { return pLatexPreviewThread; }
+  inline static KLFKtePlugin * getStaticInstance() { return staticInstance; }
+
+public slots:
+  void setDontPopupAutomatically();
+
 private:
-  static KLFKtePlugin *plugin;
-  
   QList<KLFKtePluginView*> pViews;
+
+  KLFKteConfigData * pConfigData;
+
+  KLFLatexPreviewThread * pLatexPreviewThread;
+
+  // only used by config module; if this is non-NULL, then this object will be notified if
+  // the configuration changes.
+  static KLFKtePlugin * staticInstance;
 };
 
 
@@ -91,28 +126,39 @@ public:
   
 public Q_SLOTS:
   virtual void setPix(const QPixmap& pix);
+  void setSemiTransparent(bool val);
   
 protected:
   virtual void paintEvent(QPaintEvent *e);
   
 private:
   QPixmap pPix;
+
+  bool pSemiTransparent;
 };
+
+
+
+
+class KLFKtePluginView;
+namespace Ui { class KLFKtePreviewWidget; };
 
 class KLFKtePreviewWidget : public QWidget
 {
   Q_OBJECT
 public:
-  KLFKtePreviewWidget(KTextEditor::View *viewparent);
+  KLFKtePreviewWidget(KLFKtePluginView * pluginView, KTextEditor::View *viewparent);
   virtual ~KLFKtePreviewWidget();
 
   bool eventFilter(QObject *obj, QEvent *event);
 
 signals:
+  void requestedDontPopupAutomatically();
   void invokeKLF();
 
 public Q_SLOTS:
   void showPreview(const QImage& img, QWidget *view, const QPoint& pos);
+  void showPreviewError(const QString& strerr);
 
 private Q_SLOTS:
   void linkActivated(const QString& url);
@@ -121,6 +167,10 @@ protected:
   void paintEvent(QPaintEvent *event);
 
 private:
+  Ui::KLFKtePreviewWidget *u;
+
+  KLFKtePluginView * pPluginView;
+
   KLFKtePixmapWidget *lbl;
   QLabel *klfLinks;
 };
@@ -134,10 +184,21 @@ class KLFKtePluginView  :  public QObject, public KXMLGUIClient
 {
   Q_OBJECT
 public:
-  explicit KLFKtePluginView(KTextEditor::View *view = 0);
+  explicit KLFKtePluginView(KLFKtePlugin * mainPlugin, KTextEditor::View *view);
   virtual ~KLFKtePluginView();
 
+
+  inline KLFKteConfigData * configData() {
+    KLF_ASSERT_NOT_NULL(pMainPlugin, "!?!? pMainPlugin is NULL!", return NULL; ) ;
+    return pMainPlugin->configData();
+  }
+
+signals:
+  void requestedDontPopupAutomatically();
+
 private:
+  KLFKtePlugin * pMainPlugin;
+
   KTextEditor::View *pView;
   bool pIsGoodHighlightingMode;
 
@@ -147,8 +208,6 @@ private:
 
   KLFBackend::klfSettings klfsettings;
 
-  static KLFLatexPreviewThread * staticLatexPreviewThread;
-  static KLFLatexPreviewThread * latexPreviewThreadInstance();
   KLFContLatexPreview * pContLatexPreview;
   KLFKtePreviewWidget *pPreview;
 
@@ -172,6 +231,7 @@ private Q_SLOTS:
   void slotInvokeKLF();
 
   void slotReadyPreview(const QImage& img);
+  void slotPreviewError(const QString& errorString, int errorCode);
 };
 
 

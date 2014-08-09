@@ -26,10 +26,17 @@
 #include <klfkteparser_p.h>
 
 
+// --------------------------------------------------------------------------------
+
+MathModeContext::MathModeContext()
+  : start(Cur::invalid()), end(Cur::invalid()), startcmd(), endcmd(), latexmath()
+{
+}
+
 
 QString MathModeContext::fullMathModeWithoutNumbering() const
 {
-  QRegExp rx = QRegExp("(\\\\begin|end)\\{(equation|eqnarray|align)\\}");
+  QRegExp rx = QRegExp("(\\\\begin|end)\\{(equation|eqnarray|align|gather|multline)\\}");
   const QString replacement = "\\1{\\2*}";
 
   QString bcmd = startcmd;
@@ -40,3 +47,32 @@ QString MathModeContext::fullMathModeWithoutNumbering() const
 
   return bcmd + " ... " + ecmd;
 }
+
+
+
+QDebug operator<<(QDebug dbg, const MathModeContext& m)
+{
+  if (m.start.line() == m.end.line())
+    dbg.nospace() << "MathModeContext{l."<<m.start.line()<<" "<<m.start.column()<<"--"<<m.end.column();
+  else
+    dbg.nospace() << "MathModeContext{l."<<m.start.line()<<":"<<m.start.column()<<"--l."<<m.end.line()
+		  << ":"<<m.end.column();
+  return dbg << " "<<m.startcmd<<"--"<<m.endcmd<<" math="<<m.latexmath;
+}
+
+
+
+// --------------------------------------------------------------------------------
+
+KLFKteParser::KLFKteParser(Doc *doc) : pDoc(doc)
+{
+  KLF_ASSERT_NOT_NULL(doc, "doc is NULL!", ; ) ;
+}
+
+KLFKteParser::~KLFKteParser()
+{
+}
+
+
+
+

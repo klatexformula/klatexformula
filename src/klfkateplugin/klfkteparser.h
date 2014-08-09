@@ -38,23 +38,41 @@ typedef KTextEditor::Document Doc;
 typedef KTextEditor::Cursor Cur;
 
 
-
+/** Information about a LaTeX Math Mode section ("context").
+ *
+ * This information contains:
+ *
+ *  - start/end position in document of the math mode
+ *
+ *  - start/end LaTeX command that starts/end the LaTeX math mode (e.g. \c "$" and \c "$",
+ *    or \c "\begin{equation}" and \c "\end{equation}" )
+ *
+ *  - the LaTeX contents of the math mode section
+ */
 struct MathModeContext
 {
-  MathModeContext()
-    : start(Cur::invalid()), end(Cur::invalid()), startcmd(), endcmd(), latexmath()
-  {  }
+  MathModeContext();
 
   inline bool isValid() const { return start.isValid() && end.isValid(); }
 
   Cur start;
   Cur end;
 
+  //! Math mode latex start command
   QString startcmd;
+  //! Math mode latex end command
   QString endcmd;
 
+  /** Returns all LaTeX code comprised between the start and end of this math mode.
+   *
+   * This does not include the start/end commands.
+   */
   QString latexmath;
 
+  /** Returns a "math mode" argument suitable for KLFBackend::getLatexFormula(), i.e. of
+   *  the form \c "\[ ... \]". Some environments such as \c "\begin{equation}" are
+   *  detected and replaced with their unnumbered equivalent, e.g. \c "\begin{equation*}".
+   */
   QString fullMathModeWithoutNumbering() const;
 };
 
@@ -70,11 +88,8 @@ QDebug operator<<(QDebug dbg, const MathModeContext& m);
 class KLFKteParser
 {
 public:
-  KLFKteParser(Doc *doc) : pDoc(doc)
-  {
-    KLF_ASSERT_NOT_NULL(doc, "doc is NULL!", ; ) ;
-  }
-  virtual ~KLFKteParser() { }
+  KLFKteParser(Doc *doc);
+  virtual ~KLFKteParser();
 
   virtual MathModeContext parseContext(const Cur& cur) = 0;
 
@@ -84,8 +99,8 @@ protected:
 
 
 
-extern KLFKteParser * createDummyParser(Doc * doc);
-extern KLFKteParser * createKatePartParser(Doc * doc, KTextEditor::HighlightInterface * hiface);
+KLFKteParser * createDummyParser(Doc * doc);
+KLFKteParser * createKatePartParser(Doc * doc, KTextEditor::HighlightInterface * hiface);
 
 
 
