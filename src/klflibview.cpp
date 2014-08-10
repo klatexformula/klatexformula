@@ -2051,8 +2051,8 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
   QVariantMap vprop;
   bool res = KLFAbstractLibEntryMimeEncoder::decodeMimeData(mimedata, &elist, &vprop);
   if ( ! res ) {
-    qWarning()<<KLF_FUNC_NAME<<": Drop: Can't decode mime data! provided types="
-	      <<mimedata->formats();
+    klfWarning("Drop: Can't decode mime data! provided types="
+               <<mimedata->formats());
     QMessageBox::warning(NULL, tr("Drop Error", "[[message box title]]"),
 			 tr("Error dropping data."));
     return false;
@@ -2060,6 +2060,13 @@ bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action,
 
   if ( elist.isEmpty() )
     return true; // nothing to drop
+
+  // debug
+#ifdef KLF_DEBUG
+  for (int klj = 0; klj < elist.size(); ++klj) {
+    klfDbg("\tGot Entry: latex="<<elist[klj].latex()<<"; style="<<elist[klj].style()) ;
+  }
+#endif
 
   // insert list, regardless of parent (no category change)
   QList<KLFLib::entryId> inserted = pResource->insertEntries(elist);

@@ -28,6 +28,7 @@
 #include <QDataStream>
 
 #include <klfdefs.h>
+#include <klfdebug.h>
 #include <klfbackend.h>
 #include <klfpobj.h>
 
@@ -45,8 +46,6 @@ struct KLF_EXPORT KLFStyle : public KLFPropertizedObject
    * BBox expansion is done in KLFBackend::getLatexFormula() to add margins on the sides of the
    * resulting image.
    *
-   * Type is stored as \c double for now, however the backend requires integer values. This is to
-   * allow for future improvement of klfbackend to accept float values.
    */
   struct KLF_EXPORT BBoxExpand : public KLFPropertizedObject
   {
@@ -110,6 +109,35 @@ struct KLF_EXPORT KLFStyle : public KLFPropertizedObject
 
   bool hasFixedTypes() const { return true; }
   QByteArray typeNameFor(const QString&) const;
+
+
+
+  /** Style structure, as was in KLF 3.1 (for which we are keeping backwards
+   * compatibility)
+   *
+   * This is simple and straightforward. The more sophisticated and advanced newer
+   * KLFStyle, when converted to a KLFLegacyStyle (see \ref fromNewStyle()), stores all the
+   * extra, newer, properties, as LaTeX comments in the preamble.
+   */
+  struct KLFLegacyStyle {
+    KLFLegacyStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
+	     unsigned long bgcol = qRgba(255,255,255,0),
+	     const QString& mmode = QString(),
+	     const QString& pre = QString(),
+	     int dotsperinch = -1)
+      : name(nm), fg_color(fgcol), bg_color(bgcol), mathmode(mmode), preamble(pre),
+	dpi(dotsperinch) { }
+    QString name; // this may not always be set, it's only important in saved style list.
+    unsigned long fg_color;
+    unsigned long bg_color;
+    QString mathmode;
+    QString preamble;
+    int dpi;
+
+    KLFStyle toNewStyle() const;
+    static KLFLegacyStyle fromNewStyle(const KLFStyle& s);
+  };
+
 };
 
 Q_DECLARE_METATYPE(KLFStyle) ;
@@ -122,6 +150,13 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style);
 // exact matches
 KLF_EXPORT bool operator==(const KLFStyle& a, const KLFStyle& b);
 
+
+// legacy style
+KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle::KLFLegacyStyle& style);
+KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle::KLFLegacyStyle& style);
+KLF_EXPORT bool operator==(const KLFStyle::KLFLegacyStyle& a, const KLFStyle::KLFLegacyStyle& b);
+
+KLF_EXPORT QDebug& operator<<(QDebug& stream, const KLFStyle::KLFLegacyStyle& style);
 
 
 

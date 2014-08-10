@@ -139,19 +139,21 @@ public:
   virtual bool decodeMime(const QByteArray& data, const QString& mimeType,
 			  KLFLibEntryList *entryList, QVariantMap *metaData) const
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
     if (mimeType == "application/x-klf-libentries") {
       QDataStream str(data);
       str.setVersion(QDataStream::Qt_4_4);
       QString header;
       str >> header;
       if (header != QLatin1String("KLF_LIBENTRIES")) {
-	qWarning()<<KLF_FUNC_NAME<<": data has invalid header: "<<header;
+	klfWarning(": data has invalid header: "<<header);
 	return false;
       }
       str >> *metaData >> *entryList;
       return true;
     }
-    qWarning()<<KLF_FUNC_NAME<<": Unsupported mime type: "<<mimeType;
+    klfWarning(": Unsupported mime type: "<<mimeType);
     return false;
   }
 

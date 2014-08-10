@@ -144,33 +144,6 @@ KLF_EXPORT bool resources_equal_for_import(const KLFLegacyData::KLFLibraryResour
 }
 
 
-KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFStyle& style)
-{
-  return stream << style.name << (quint32)style.fg_color << (quint32)style.bg_color
-		<< style.mathmode << style.preamble << (quint16)style.dpi;
-}
-KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style)
-{
-  quint32 fg, bg;
-  quint16 dpi;
-  stream >> style.name;
-  stream >> fg >> bg >> style.mathmode >> style.preamble >> dpi;
-  style.fg_color = fg;
-  style.bg_color = bg;
-  style.dpi = dpi;
-  return stream;
-}
-KLF_EXPORT bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle& b)
-{
-  return a.name == b.name &&
-    a.fg_color == b.fg_color &&
-    a.bg_color == b.bg_color &&
-    a.mathmode == b.mathmode &&
-    a.preamble == b.preamble &&
-    a.dpi == b.dpi;
-}
-
-
 
 // -------------------------------------------
 
@@ -859,7 +832,8 @@ bool KLFLibLegacyEngine::changeEntries(const QString& subResource, const QList<e
 	}
 	break;
       case KLFLibEntry::Style:
-	d->library[d->resources[index]][libindex].style = d->toLegacyStyle(values[j].value<KLFStyle>());
+	d->library[d->resources[index]][libindex].style =
+          KLFLegacyData::KLFLegacyStyle::fromNewStyle(values[j].value<KLFStyle>());
 	break;
       default:
 	qWarning()<<KLF_FUNC_NAME<<": Cannot set arbitrary property "<<propertyNameForId(properties[j])

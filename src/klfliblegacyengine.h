@@ -34,6 +34,7 @@
 #include <QFile>
 #include <QTimer>
 
+#include <klfstyle.h>
 #include <klflib.h>
 #include <klflibview.h> // scheme guesser
 
@@ -46,21 +47,8 @@
 class KLF_EXPORT KLFLegacyData {
 public:
 
-  struct KLFStyle {
-    KLFStyle(QString nm = QString(), unsigned long fgcol = qRgba(0,0,0,255),
-	     unsigned long bgcol = qRgba(255,255,255,0),
-	     const QString& mmode = QString(),
-	     const QString& pre = QString(),
-	     int dotsperinch = -1)
-      : name(nm), fg_color(fgcol), bg_color(bgcol), mathmode(mmode), preamble(pre),
-	dpi(dotsperinch) { }
-    QString name; // this may not always be set, it's only important in saved style list.
-    unsigned long fg_color;
-    unsigned long bg_color;
-    QString mathmode;
-    QString preamble;
-    int dpi;
-  };
+  typedef KLFStyle::KLFLegacyStyle KLFLegacyStyle;
+
 
   // THESE VALUES MUST NOT CHANGE FROM ONE VERSION TO ANOTHER OF KLATEXFORMULA :
   enum {
@@ -89,7 +77,7 @@ public:
     QString category;
     QString tags;
 
-    KLFLegacyData::KLFStyle style;
+    KLFLegacyData::KLFLegacyStyle style;
   };
 
   typedef QList<KLFLibraryItem> KLFLibraryList;
@@ -100,10 +88,6 @@ private:
 
   KLFLegacyData();
 };
-
-KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFStyle& style);
-KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFLegacyData::KLFStyle& style);
-KLF_EXPORT bool operator==(const KLFLegacyData::KLFStyle& a, const KLFLegacyData::KLFStyle& b);
 
 // it is important to note that the >> operator imports in a compatible way to KLF 2.0
 KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFLegacyData::KLFLibraryItem& item);

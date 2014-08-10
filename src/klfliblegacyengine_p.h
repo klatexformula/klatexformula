@@ -152,7 +152,7 @@ public:
   {
     return KLFLibEntry(KLFLibEntry::stripCategoryTagsFromLatex(item.latex), item.datetime,
 		       item.preview.toImage(), item.preview.size(), item.category,
-		       item.tags, toStyle(item.style));
+		       item.tags, item.style.toNewStyle());
   }
   static inline KLFLegacyData::KLFLibraryItem toLegacyLibItem(const KLFLibEntry& entry)
   {
@@ -165,30 +165,8 @@ public:
     item.tags = entry.tags();
     item.preview = QPixmap::fromImage(entry.preview());
     item.datetime = entry.dateTime();
-    item.style = toLegacyStyle(entry.style());
+    item.style = KLFLegacyData::KLFLegacyStyle::fromNewStyle(entry.style());
     return item;
-  }
-  static inline KLFLegacyData::KLFStyle toLegacyStyle(const KLFStyle& style)
-  {
-    KLFLegacyData::KLFStyle oldstyle;
-    oldstyle.name = style.name;
-    oldstyle.fg_color = style.fg_color;
-    oldstyle.bg_color = style.bg_color;
-    oldstyle.mathmode = style.mathmode;
-    oldstyle.preamble = style.preamble;
-    oldstyle.dpi = style.dpi;
-    return oldstyle;
-  }
-  static inline KLFStyle toStyle(const KLFLegacyData::KLFStyle& oldstyle)
-  {
-    KLFStyle style;
-    style.name = oldstyle.name;
-    style.fg_color = oldstyle.fg_color;
-    style.bg_color = oldstyle.bg_color;
-    style.mathmode = oldstyle.mathmode;
-    style.preamble = oldstyle.preamble;
-    style.dpi = oldstyle.dpi;
-    return style;
   }
 
 signals:
