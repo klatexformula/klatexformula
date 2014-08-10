@@ -30,9 +30,9 @@
 
 #include <klfbackend.h>
 
-#include <ui_klfprogerr.h>
 #include <ui_klfmainwin.h>
 
+#include <klfprogerr.h>
 #include <klfguiutil.h>
 #include <klfrelativefont.h>
 #include <klflatexedit.h>
@@ -55,63 +55,6 @@
 
 
 
-
-
-
-// ------------------------------------------------------------------------
-
-
-static QString extract_latex_error(const QString& str)
-{
-  // if it was LaTeX, attempt to parse the error...
-  QRegExp latexerr("\\n(\\!.*)\\n\\n");
-  if (latexerr.indexIn(str)) {
-    QString s = latexerr.cap(1);
-    s.replace(QRegExp("^([^\\n]+)"), "<b>\\1</b>"); // make first line boldface
-    return "<pre>"+s+"</pre>";
-  }
-  return str;
-}
-
-
-
-KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
-{
-  u = new Ui::KLFProgErr;
-  u->setupUi(this);
-  setObjectName("KLFProgErr");
-
-  setWindowFlags(Qt::Sheet);
-
-  setWindowModality(Qt::WindowModal);
-
-  u->txtError->setWordWrapMode(QTextOption::WrapAnywhere);
-  u->txtError->setText(errtext);
-}
-
-QTextEdit * KLFProgErr::textEditWidget()
-{
-  return u->txtError;
-}
-
-
-KLFProgErr::~KLFProgErr()
-{
-  delete u;
-}
-
-void KLFProgErr::showEvent(QShowEvent */*e*/)
-{
-}
-
-void KLFProgErr::showError(QWidget *parent, QString errtext)
-{
-  KLFProgErr dlg(parent, errtext);
-  dlg.exec();
-}
-
-
-// ------------------------------------------------------------------------
 
 
 
@@ -2797,7 +2740,7 @@ void KLFMainWinPrivate::showRealTimeError(const QString& errmsg, int errcode)
   klfDbg("errormsg[0..99]="<<errmsg.mid(0,99)<<", code="<<errcode) ;
   QString s = errmsg;
   if (errcode == KLFERR_PROGERR_LATEX)
-    s = extract_latex_error(errmsg);
+    s = KLFProgErr::extractLatexError(errmsg);
   if (s.length() > 800)
     s = tr("LaTeX error, click 'Evaluate' to see error message.", "[[real-time preview tooltip]]");
   K->u->lblOutput->displayError(s, /*labelenabled:*/false);
@@ -2894,7 +2837,7 @@ void KLFMainWin::slotEvaluate()
   if (d->output.status > 0) {
     QString s = d->output.errorstr;
     if (d->output.status == KLFERR_PROGERR_LATEX) {
-      s = extract_latex_error(d->output.errorstr) + "<br/><br/>" + s;
+      s = KLFProgErr::extractLatexError(d->output.errorstr) + "<br/><br/>" + s;
     }
     KLFProgErr::showError(this, s);
     d->slotSetViewControlsEnabled(false);

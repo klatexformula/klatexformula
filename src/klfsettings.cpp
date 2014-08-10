@@ -52,6 +52,7 @@
 #include <klfrelativefont.h>
 #include <klflatexedit.h>
 #include <klfsidewidget.h>
+#include <klfprogerr.h>
 
 #include <ui_klfsettings.h>
 

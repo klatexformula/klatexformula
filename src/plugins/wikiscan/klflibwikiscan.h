@@ -41,9 +41,9 @@ class KLF_EXPORT KLFLibWikiScanEngine : public KLFLibResourceEngine
   Q_OBJECT
 
 public:
-  /** Use this function as a constructor. Creates a KLFLibWikiScanEngine object,
-   * with QObject parent \c parent, opening the wiki page \c url.
-   * Returns NULL if opening the database failed.
+  /** Use this function as a constructor. Creates a KLFLibWikiScanEngine object, with
+   * QObject parent \c parent, opening the wiki page \c pageName in the wiki where the API
+   * access point is at \c wikiurl.  Returns NULL if opening the wiki page failed.
    *
    * \note the URL \c url is a klflib-url, it has to have the schema klf+wikiscan://
    *   instead of the usual http:// prefix.
@@ -51,7 +51,8 @@ public:
    * A non-NULL returned object successfully requested the page. The reply may not
    * have been received yet, though, in which case attepts to read will block.
    * */
-  static KLFLibWikiScanEngine * openUrl(const QUrl& url, QObject *parent = NULL);
+  static KLFLibWikiScanEngine * openUrl(const QUrl& wikiurl, const QString& pageName,
+                                        QObject *parent = NULL);
 
   /** Simple destructor. */
   virtual ~KLFLibWikiScanEngine();

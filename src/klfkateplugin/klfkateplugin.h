@@ -152,13 +152,17 @@ public:
 
   bool eventFilter(QObject *obj, QEvent *event);
 
+  bool isCompiling() const;
+
 signals:
   void requestedDontPopupAutomatically();
   void invokeKLF();
 
 public Q_SLOTS:
   void showPreview(const QImage& img, QWidget *view, const QPoint& pos);
+  void reshowPreview(QWidget *view, const QPoint& pos);
   void showPreviewError(const QString& strerr);
+  void setCompiling(bool compiling = true);
 
 private Q_SLOTS:
   void linkActivated(const QString& url);
@@ -215,6 +219,9 @@ private:
 
   KAction *aPreviewSel;
   KAction *aInvokeKLF;
+  KAction *aShowLastError;
+
+  QString pLastError;
 
   bool pPreventNextShow;
 
@@ -224,13 +231,15 @@ private Q_SLOTS:
   void slotSelectionChanged();
   void slotContextMenuAboutToShow(KTextEditor::View *view, QMenu * menu);
 
-  void slotPreview();
-  void slotSamePreview();
-  void slotPreview(const MathModeContext& context);
+  void slotPreparePreview();
+  void slotShowSamePreview();
+  void slotPreparePreview(const MathModeContext& context);
   void slotHidePreview();
   void slotInvokeKLF();
+  void slotShowLastError();
 
   void slotReadyPreview(const QImage& img);
+  void showPreview(const QImage& img);
   void slotPreviewError(const QString& errorString, int errorCode);
 };
 

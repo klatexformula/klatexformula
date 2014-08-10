@@ -8,6 +8,7 @@
       <text>&amp;KLatexFormula Tools</text>
       <Action name="klf_preview_selection"/>
       <Action name="klf_invoke_klf"/>
+      <Action name="klf_display_last_error"/>
     </Menu>
 
  </Menu>
@@ -18,6 +19,7 @@
     <text>&amp;KLatexFormula Tools</text>
     <Action name="klf_preview_selection"/>
     <Action name="klf_invoke_klf"/>
+    <Action name="klf_display_last_error"/>
   </Menu>
 </Menu>
 </gui>

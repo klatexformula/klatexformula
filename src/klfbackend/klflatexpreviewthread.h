@@ -46,7 +46,10 @@ public slots:
   virtual void latexPreviewReset();
 
   /** Called when a preview was successfully generated (i.e., <tt>output.status==0</tt>). The full
-   * KLFBackend::klfOutput object is given here. */
+   * KLFBackend::klfOutput object is given here.
+   *
+   * Note that this method is called before the other latexPreview***Available() functions.
+   */
   virtual void latexOutputAvailable(const KLFBackend::klfOutput& output) ;
   /** Called when a preview was successfully generated. All three images are given here (preview
    * size, large preview size, original image) */
@@ -234,7 +237,10 @@ signals:
   void previewReset();
 
   /** Emitted when a preview was successfully generated (i.e., <tt>output.status==0</tt>). The full
-   * KLFBackend::klfOutput object is given here. */
+   * KLFBackend::klfOutput object is given here.
+   *
+   * Note that this signal is emitted before the other preview***Available() functions.
+   */
   void outputAvailable(const KLFBackend::klfOutput& output) ;
   /** Emitted when a preview was successfully generated. All three images are given here (preview
    * size, large preview size, original image) */
@@ -251,6 +257,9 @@ signals:
   /** Emitted when generation of the latex preview raised an error. See the error codes
    * defined in klfbackend.h */
   void previewError(const QString& errorString, int errorCode);
+
+  /** Is emitted whenever there currently is a LaTeX formula compiling */
+  void compiling(bool isCompiling);
 
 public slots:
   /** \returns TRUE if the input was set, FALSE if current input is already equal to \c input.

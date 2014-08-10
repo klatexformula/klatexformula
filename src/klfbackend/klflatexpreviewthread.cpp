@@ -371,6 +371,7 @@ void KLFLatexPreviewThreadWorker::threadProcessJobs()
 				Q_ARG(QString, ouroutput.errorstr),
 				Q_ARG(int, ouroutput.status));
     } else {
+      // this method must be called first (by API design)
       QMetaObject::invokeMethod(task.handler, "latexOutputAvailable", Qt::QueuedConnection,
 				Q_ARG(KLFBackend::klfOutput, ouroutput));
       if (task.previewSize.isValid()) {

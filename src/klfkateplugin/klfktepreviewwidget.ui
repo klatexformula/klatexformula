@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>393</width>
-    <height>89</height>
+    <width>422</width>
+    <height>109</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,18 +24,58 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="Line" name="lblErrorNotice">
+       <widget class="QLabel" name="lblErrorNotice">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>10</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>10</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="styleSheet">
-         <string notr="true">color: rgb(255, 0, 0, 127);</string>
+         <string notr="true">background-color: rgb(255,0,0,127);</string>
         </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
+        <property name="text">
+         <string/>
         </property>
-        <property name="lineWidth">
-         <number>15</number>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblCompilingNotice">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
+        <property name="minimumSize">
+         <size>
+          <width>5</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>5</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(0,0,255,127);</string>
+        </property>
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </item>

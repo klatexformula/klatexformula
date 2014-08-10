@@ -106,7 +106,6 @@ set(klfapp_UIS
 	klfliblocalfilewidget.ui
 	klflibnewsubresdlg.ui
 	klfmainwin.ui
-	klfprogerr.ui
 	klfsettings.ui
 	klfstylemanager.ui
 	klfaboutdialog.ui

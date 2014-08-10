@@ -21,14 +21,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="0">
-       <widget class="QPlainTextEdit" name="txtPreamble">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
+       <widget class="KLFLatexEdit" name="txtPreamble"/>
       </item>
      </layout>
     </widget>
@@ -246,13 +239,17 @@
    <extends>QFrame</extends>
    <header>kurlrequester.h</header>
   </customwidget>
+  <customwidget>
+   <class>KLFLatexEdit</class>
+   <extends>QTextEdit</extends>
+   <header>klflatexedit.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>chkAutoPopup</tabstop>
   <tabstop>sldTransparency</tabstop>
   <tabstop>spnTransparency</tabstop>
   <tabstop>sldMaxSize</tabstop>
-  <tabstop>txtPreamble</tabstop>
   <tabstop>pathKLF</tabstop>
  </tabstops>
  <resources/>

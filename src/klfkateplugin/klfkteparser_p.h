@@ -46,8 +46,41 @@ inline QString my_str_replaced(const QString& s, const QRegExp& rx, const QStrin
 }
 
 
+/** An alternative implementation of QRegExp::lastIndexIn(), with better greedy matching.
+ *
+ * This first matches with indexIn() all matches in s in the forward direction, then
+ * returns the position of the last match.
+ *
+ * For example, matching "abc $$ def" with "($|$$)" will return the position of the
+ * double-$$ instead of the last $ only.
+ */
+static int my_last_index_in(QRegExp& rx, const QString& s)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-/** Step the cursor one step left or right. If the cursor goes beyond the beginning or the
+  int lasti = -1;
+  int lastlen = 0;
+  int i = 0;
+
+  while ( (i = rx.indexIn(s, i+lastlen)) != -1 ) {
+    klfDbg("   match at "<<i<<", len="<<rx.matchedLength()) ;
+    lasti = i;
+    lastlen = rx.matchedLength();
+  }
+
+  if (lasti != -1) {
+    // re-match, so that the rx object has the right matchedLength(), cap() etc.
+    rx.indexIn(s, lasti);
+  }
+
+  klfDbg("  last match was at "<<lasti<<": rx.cap()="<<rx.cap());
+
+  return lasti;
+}
+
+
+
+/* * Step the cursor one step left or right. If the cursor goes beyond the beginning or the
  * end of the line, move at end of previous / at beginning of next line.
  *
  * If \c forward is \c true, steps the cursor one position forward (right), otherwise one
@@ -56,7 +89,7 @@ inline QString my_str_replaced(const QString& s, const QRegExp& rx, const QStrin
  * This function does not affect the original cursor \c c, but returns a new cursor
  * corresponding to the new position.
  */
-static Cur step_cur(KTextEditor::Document * doc, const Cur& c, bool forward)
+/*static Cur step_cur(KTextEditor::Document * doc, const Cur& c, bool forward)
 {
   int step = forward ? +1 : -1;
 
@@ -69,7 +102,7 @@ static Cur step_cur(KTextEditor::Document * doc, const Cur& c, bool forward)
   // step > 0
   return Cur(c.line()+step, 0);
 }
-
+*/
 
 
 // =============================================================================
@@ -137,8 +170,9 @@ struct HiAttElem_cmp_end {
 
 #define MATHENV  "(?:"  "equation|displaymath|eqnarray|subeqnarray|math|multline|gather|align|flalign"  ")"
 
-#define RX_STARTMATH "(\\$|\\$\\$|\\\\\\(|\\\\\\[|\\\\begin\\{(" MATHENV ")\\*?\\})"
-#define RX_ENDMATH "(\\$|\\$\\$|\\\\\\)|\\\\\\]|\\\\end\\{(" MATHENV ")\\*?\\})"
+// note: weakness when looking for regexp's backwards: $$ will first match a single '$'...
+#define RX_STARTMATH "(\\${1,2}|\\\\\\(|\\\\\\[|\\\\begin\\{(" MATHENV ")\\*?\\})"
+#define RX_ENDMATH "(\\${1,2}|\\\\\\)|\\\\\\]|\\\\end\\{(" MATHENV ")\\*?\\})"
 
 #define RX_STARTORENDMATH "(?:" RX_STARTMATH "|" RX_ENDMATH ")"
 
@@ -426,9 +460,9 @@ private:
       } else {
         // make sure the pattern doesn't match past col position.
         if (col >= 0) {
-          kpos = mboundary.lastIndexIn(sline.left(col));
+          kpos = my_last_index_in(mboundary, sline.left(col));
         } else {
-          kpos = mboundary.lastIndexIn(sline);
+          kpos = my_last_index_in(mboundary, sline);
         }
       }
 
@@ -558,9 +592,9 @@ private:
         nextboundary = mboundary.indexIn(doc->line(line), (kpos >= 0) ? kpos+1 : 0);
       } else {
         if (kpos >= 0) {
-          nextboundary = mboundary.lastIndexIn(doc->line(line).left(kpos));
+          nextboundary = my_last_index_in(mboundary, doc->line(line).left(kpos));
         } else {
-          nextboundary = mboundary.lastIndexIn(doc->line(line));
+          nextboundary = my_last_index_in(mboundary, doc->line(line));
         }
         if (nextboundary != -1) {
           // point to end of match, to make sure the attribute doesn't overlap

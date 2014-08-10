@@ -212,6 +212,8 @@ public:
 					       previewSize, largePreviewSize);
     if (curTask == -1) {
       klfWarning("Failed to submit preview task to thread.") ;
+    } else {
+      emit K->compiling(true);
     }
   }
 
@@ -219,32 +221,39 @@ public slots:
 
   void latexPreviewReset()
   {
+    emit K->compiling(false);
     emit K->previewReset();
   }
 
   void latexOutputAvailable(const KLFBackend::klfOutput& output)
   {
+    emit K->compiling(false);
     emit K->outputAvailable(output);
   }
   void latexPreviewAvailable(const QImage& preview, const QImage& largePreview, const QImage& fullPreview)
   {
+    // compiling(false) emitted in latexOutputAvailable().
     emit K->previewAvailable(preview, largePreview, fullPreview);
   }
   void latexPreviewImageAvailable(const QImage& preview)
   {
+    // compiling(false) emitted in latexOutputAvailable().
     emit K->previewImageAvailable(preview);
   }
   void latexPreviewLargeImageAvailable(const QImage& largePreview)
   {
+    // compiling(false) emitted in latexOutputAvailable().
     emit K->previewLargeImageAvailable(largePreview);
   }
   void latexPreviewFullImageAvailable(const QImage& fullPreview)
   {
+    // compiling(false) emitted in latexOutputAvailable().
     emit K->previewFullImageAvailable(fullPreview);
   }
 
   void latexPreviewError(const QString& errorString, int errorCode)
   {
+    emit K->compiling(false);
     emit K->previewError(errorString, errorCode);
   }
 };

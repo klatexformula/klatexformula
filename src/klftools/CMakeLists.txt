@@ -38,6 +38,7 @@ set(klftools_SRCS
 	klfpobjeditwidget.cpp
 	klfadvancedconfigeditor.cpp
 	klfitemviewsearchtarget.cpp
+        klfprogerr.cpp
 )
 # Headers
 #  * with QObject classes (needs moc)
@@ -66,6 +67,7 @@ set(klftools_MOCHEADERS
 	klfadvancedconfigeditor_p.h
 	klfitemviewsearchtarget.h
 	klfitemviewsearchtarget_p.h
+        klfprogerr.h
 )
 #  * all headers
 set(klftools_HEADERS
@@ -87,6 +89,7 @@ set(klftools_UIS
 	klfcolordialog.ui
 	klfsearchbar.ui
 	klfadvancedconfigeditor.ui
+        klfprogerr.ui
 )
 # Resources
 set(klftools_QRCS

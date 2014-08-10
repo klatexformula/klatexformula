@@ -59,31 +59,11 @@ class KLFUserScriptSettings;
 
 
 namespace Ui {
-  class KLFProgErr;
   class KLFMainWin;
 }
 
 class KLFMainWin;
 
-
-class KLF_EXPORT KLFProgErr : public QDialog
-{
-  Q_OBJECT
-public:
-  KLFProgErr(QWidget *parent, QString errtext);
-  virtual ~KLFProgErr();
-
-  QTextEdit *textEditWidget();
-
-  // convenience static function
-  static void showError(QWidget *parent, QString text);
-
-protected:
-  virtual void showEvent(QShowEvent *e);
-
-private:
-  Ui::KLFProgErr *u;
-};
 
 
 /** A helper interface class to implement more export formats to save output (to file).
