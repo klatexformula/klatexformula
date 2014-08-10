@@ -1045,6 +1045,8 @@ class KLFMainWinPrivate : public QObject
 public:
   KLF_PRIVATE_QOBJ_HEAD(KLFMainWin, QObject)
   {
+    pMacOSXMenu = NULL;
+    pCheckForUpdatesAction = NULL;
   }
 
 
@@ -1056,6 +1058,9 @@ public:
   KLFWhatsNewDialog *mWhatsNewDialog;
 
   KLFMainWinPopup *mPopup;
+
+  QMenuBar *pMacOSXMenu;
+  QAction *pCheckForUpdatesAction;
 
   QShortcut * mShortcutNextParenType;
   QShortcut * mShortcutNextParenModifierType;

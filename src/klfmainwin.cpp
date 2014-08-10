@@ -40,6 +40,10 @@
 //#include <klfpobjeditwidget.h>
 #include <klfsysinfo.h>
 
+#ifdef KLF_USE_SPARKLE
+#include "macosx/klfsparkleupdater.h"
+#endif
+
 #include "klflibview.h"
 #include "klflibbrowser.h"
 #include "klflatexsymbols.h"
@@ -387,16 +391,19 @@ KLFMainWin::KLFMainWin()
   klfconfig.UI.macBrushedMetalLook.connectQObjectSlot(this, "setMacBrushedMetalLook");
 
   // And add a native Mac OS X menu bar
-  QMenuBar *macOSXMenu = new QMenuBar(0);
-  macOSXMenu->setNativeMenuBar(true);
+  d->pMacOSXMenu = new QMenuBar(0);
+  d->pMacOSXMenu->setNativeMenuBar(true);
   // this is a virtual menu...
-  QMenu *filemenu = macOSXMenu->addMenu("File");
+  QMenu *filemenu = d->pMacOSXMenu->addMenu("File");
   // ... because the 'Preferences' action is detected and is sent to the 'klatexformula' menu...
   // (and don't translate it, Qt will replace it by the default mac 'preferences' menu item)
   filemenu->addAction("Preferences", this, SLOT(slotSettings()));
   filemenu->addAction("About", this, SLOT(showAbout()));
+  d->pCheckForUpdatesAction = new QAction(tr("Check for Updates"), this);
+  d->pCheckForUpdatesAction->setMenuRole(QAction::ApplicationSpecificRole);
+  filemenu->addAction(d->pCheckForUpdatesAction);
 
-  QMenu *shortmenu = macOSXMenu->addMenu("Shortcuts");
+  QMenu *shortmenu = d->pMacOSXMenu->addMenu("Shortcuts");
   // remember, on Qt/Mac Ctrl key is mapped to Command
   shortmenu->addAction(tr("LaTeX Symbols Palette"), this, SLOT(slotToggleSymbols()), QKeySequence("Ctrl+1"));
   shortmenu->addAction(tr("Equation Library Browser"), this, SLOT(slotToggleLibrary()), QKeySequence("Ctrl+2"));
@@ -415,6 +422,9 @@ KLFMainWin::KLFMainWin()
 
   // dock menu will be added once shown only, to avoid '...autoreleased without NSAutoreleasePool...'
   // annoying messages
+#else
+  d->pMacOSXMenu = NULL;
+  d->pCheckForUpdatesAction = NULL;
 #endif
 
 
@@ -595,6 +605,16 @@ void KLFMainWinPrivate::refreshExportTypesMenu()
 void KLFMainWin::startupFinished()
 {
   d->refreshExportTypesMenu();
+
+#if defined(Q_WS_MAC) && defined(KLF_USE_SPARKLE)
+  // if we're on Mac, start the Sparkle updater
+  KLFSparkleAutoUpdater * updater = new KLFSparkleAutoUpdater(this, KLF_SPARKLE_FEED_URL);
+  updater->checkForUpdates(true);
+
+  if (d->pCheckForUpdatesAction != NULL) {
+    connect(d->pCheckForUpdatesAction, SIGNAL(triggered()), updater, SLOT(checkForUpdates()));
+  }
+#endif
 }
 
 

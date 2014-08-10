@@ -1225,6 +1225,7 @@ int main(int argc, char **argv)
     QMetaObject::invokeMethod(&mainWin, "openFiles", Qt::QueuedConnection, Q_ARG(QStringList, flist));
 
     app.setQuitOnLastWindowClosed(false);
+
     int r = app.exec();
     main_cleanup();
     klfDbg("application has quit; we have cleaned up main(), ready to return. code="<<r) ;

@@ -485,6 +485,24 @@ else(KLF_NO_CMU_FONT)
   message(STATUS "Will attempt to use Computer Modern unicode font (KLF_NO_CMU_FONT)")
 endif(KLF_NO_CMU_FONT)
 
+
+# Use Sparkle framework?
+if(APPLE)
+  option(KLF_USE_SPARKLE "Use Sparkle Framework for auto-updates on Mac OS X" OFF)
+  if(KLF_USE_SPARKLE)
+    set(KLF_SPARKLE_FEED_URL "http://klatexformula.sourceforge.net/sparklefeed.xml"
+      CACHE STRING "URL for Sparkle to check for updates")
+    set(KLF_SPARKLE_FRAMEWORK "Sparkle.framework"
+      CACHE STRING "Path to the Sparkle Framework")
+    set(KLF_SPARKLE_DSA_PUBKEY "" CACHE STRING "Path to the DSA public key for signing packages.")
+    if(NOT EXISTS "${KLF_SPARKLE_FRAMEWORK}")
+      message(FATAL_ERROR "Please specify the path to the Sparkle Framework in KLF_SPARKLE_FRAMEWORK, or disable the Sparkle framework with KLF_USE_SPARKLE=off.")
+    endif(NOT EXISTS "${KLF_SPARKLE_FRAMEWORK}")
+    message(STATUS "Using sparkle framework with update URL ${KLF_SPARKLE_FEED_URL}")
+  endif(KLF_USE_SPARKLE)
+endif(APPLE)
+
+
 # Current System OS
 if(APPLE)
 set(internal_KLF_CMAKE_OS "macosx")

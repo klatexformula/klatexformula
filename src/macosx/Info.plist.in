@@ -5,7 +5,7 @@
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleExecutable</key>
-    <string>klatexformula-@KLF_VERSION@</string>
+    <string>klatexformula</string>
     <key>CFBundleIdentifier</key>
     <string>org.klatexformula.klatexformula</string>
     <key>CFBundleName</key>
@@ -74,5 +74,7 @@
         <string>Viewer</string>
       </dict>
     </array>
+    <key>SUPublicDSAKeyFile</key>
+    <string>@KLF_SPARKLE_DSA_PUBKEY_BASENAME@</string>
   </dict>
 </plist>

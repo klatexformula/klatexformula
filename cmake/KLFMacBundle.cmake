@@ -118,6 +118,18 @@ macro(KLFMInstallNameToolChange TGT CHANGEFILENAMEREL DEPRELPATH DEPFULLPATH)
   )
 endmacro()
 
+macro(KLFMInstallNameToolChangeRaw TGT CHANGEFILENAMEREL NEWPATH OLDPATH)
+  set(klflibnamepath "${CHANGEFILENAMEREL}")
+  if(NOT IS_ABSOLUTE "${klflibnamepath}")
+    set(klflibnamepath "${klfbundlelocation_${TGT}}/Contents/${CHANGEFILENAMEREL}")
+  endif(NOT IS_ABSOLUTE "${klflibnamepath}")
+  add_custom_command(TARGET ${TGT}_maclibpacked POST_BUILD
+    COMMAND "install_name_tool" -change "${OLDPATH}" "${NEWPATH}" "${klflibnamepath}"
+    COMMENT "Updating ${CHANGEFILENAMEREL}'s dependency on ${OLDPATH} to ${NEWPATH}"
+    VERBATIM
+  )
+endmacro()
+
 macro(KLFMBundlePrivateLibUpdateQtDep TGT LIBNAME QTDEPS)
   foreach(dep ${QTDEPS})
     string(TOUPPER ${dep} dep_upper)

@@ -38,22 +38,37 @@ if (sys.argv[1] == "--scriptinfo"):
     print "Category: klf-backend-engine";
     print "Name: FeynMF Wrapper";
     print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
-    print "Version: 0.2";
+    print "Version: 0.3";
     print "License: GPL v2+"
     print "SpitsOut: dvi"
     print "DisableInputs: all_input except preamble"
+    print "InputFormUI: :/userscriptdata/klffeynmf/klffeynmf_input.ui";
     print "";
     exit(0);
 
 
 mf_exe_name = 'mf';
+mpost_exe_name = 'mpost';
 if (sys.platform.startswith('win')):
     mf_exe_name = 'mf.exe';
+    mpost_exe_name = 'mpost.exe';
 
+
+# user input
 
 latexfname = sys.argv[1];
-
 latexinput = os.environ["KLF_INPUT_LATEX"];
+
+rx_booltrue = re.compile(r'^\s*(t(rue)?|1|on|y(es)?)', flags=re.IGNORECASE)
+
+usefeynmf = (rx_booltrue.match(os.environ['KLF_ARG_UseFeynMF']) is not None);
+usefeynmp = (rx_booltrue.match(os.environ['KLF_ARG_UseFeynMP']) is not None);
+
+print "usefeynmf=%r, usefeynmp=%r"
+
+assert usefeynmf != usefeynmp, "Exactly one of usefeynmf or usefeynmp must be specified!"
+
+# run latex
 
 latexexe = os.environ["KLF_LATEX"];
 
@@ -61,12 +76,21 @@ if (len(latexexe) == 0):
     sys.stderr.write("Error: latex executable not found.\n");
     exit(1);
 
-# guess 'mf' exec location as same as latex exec location
-mfexe = os.path.join(os.path.dirname(latexexe),mf_exe_name);
 
-if (len(mfexe) == 0):
-    sys.stderr.write("Error: mf executable not found.\n");
-    exit(1);
+if usefeynmf:
+    # guess 'mf' exec location as same as latex exec location
+    mfexe = os.path.join(os.path.dirname(latexexe),mf_exe_name);
+    if (len(mfexe) == 0):
+        sys.stderr.write("Error: mf executable not found.\n");
+        exit(1);
+
+else:
+    # guess 'mpost' exec location as same as latex exec location
+    mpostexe = os.path.join(os.path.dirname(latexexe),mpost_exe_name);
+    if (len(mpostexe) == 0):
+        sys.stderr.write("Error: mpost executable not found.\n");
+        exit(1);
+
 
 # prepare LaTeX template with \begin{fmfile}
 # overwrite default-prepared template
@@ -76,8 +100,10 @@ tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"]);
 diagramname = 'klffeynmpdiagram';
 
 f = open(latexfname, 'w');
-latexcontents = ("\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{feynmf}\n"+
-                 os.environ["KLF_INPUT_PREAMBLE"]+
+latexcontents = ("\\documentclass{article}\n" +
+                 "\\usepackage{amsmath}\n" +
+                 ("\\usepackage{feynmf}\n" if usefeynmf else "\\usepackage{feynmp}\n") +
+                 os.environ["KLF_INPUT_PREAMBLE"] +
                  "\\begin{document}\n" +
                  "\\thispagestyle{empty}\n" +
                  "\\begin{fmffile}{" + diagramname + "}\n"
@@ -102,10 +128,15 @@ def run_cmd(do_cmd, ignore_fail=False):
 run_cmd([latexexe, os.path.basename(latexfname)], ignore_fail=True)
 
 
-# now, run METAFONT
-# -----------------
+# now, run METAFONT or METAPOST
+# -----------------------------
 
-run_cmd([mfexe, r'\mode=localfont; input %s.mf;'%(diagramname)])
+if usefeynmf:
+    
+    run_cmd([mfexe, r'\mode=localfont; input %s.mf;'%(diagramname)])
+    
+else:
+    run_cmd([mpostexe, diagramname])
 
 
 # now, run latex second time

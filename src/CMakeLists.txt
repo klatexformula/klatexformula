@@ -84,6 +84,7 @@ set(klfapp_MOCHEADERS
 	klfstylemanager.h
 	klfcmdiface.h
 	klfuiloader_p.h
+        klfautoupdater.h
 )
 #  * all headers
 set(klfapp_HEADERS
@@ -129,6 +130,19 @@ if(APPLE)
 	macosx/klfmainwin_mac.mm
 	macosx/klfcmdifacedispatch_mac.mm
   )
+  if(KLF_USE_SPARKLE)
+    add_definitions(-DKLF_USE_SPARKLE -DKLF_SPARKLE_FEED_URL=\"${KLF_SPARKLE_FEED_URL}\")
+    add_definitions(-I${KLF_SPARKLE_FRAMEWORK}/Headers)
+    set(klfapp_MOCHEADERS ${klfapp_MOCHEADERS}
+        macosx/klfsparkleupdater.h
+    )
+    set(klfapp_HEADERS ${klfapp_HEADERS}
+        macosx/klfsparkleupdater.h
+    )
+    set(klfapp_SRCS ${klfapp_SRCS}
+        macosx/klfsparkleupdater.mm
+    )
+  endif(KLF_USE_SPARKLE)
 endif(APPLE)
 # * X11
 if(Q_WS_X11)
@@ -229,6 +243,9 @@ else(KLF_LIBKLFAPP_STATIC)
 endif(KLF_LIBKLFAPP_STATIC)
 add_dependencies(klfapp klftools klfbackend)
 target_link_libraries(klfapp ${QT_LIBRARIES} klfbackend klftools)
+if(APPLE AND KLF_USE_SPARKLE)
+  target_link_libraries(klfapp ${KLF_SPARKLE_FRAMEWORK})
+endif(APPLE AND KLF_USE_SPARKLE)
 set_target_properties(klfapp PROPERTIES
 	#	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
 	PUBLIC_HEADER "${klfapp_INSTHEADERS}"
@@ -326,6 +343,11 @@ endif(WIN32)
 
 
 if(KLF_MACOSX_BUNDLES)
+  if (KLF_USE_SPARKLE)
+    # this is needed for inside the info.plist
+    get_filename_component(KLF_SPARKLE_DSA_PUBKEY_BASENAME "${KLF_SPARKLE_DSA_PUBKEY}" NAME)
+  endif (KLF_USE_SPARKLE)
+
   # Set up the application bundle under Mac OS X
   set(KLF_BUNDLE_ICON_FILE "klficon.icns")
   configure_file(
@@ -333,7 +355,7 @@ if(KLF_MACOSX_BUNDLES)
     "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
     @ONLY)
   set_target_properties(klatexformula PROPERTIES
-        OUTPUT_NAME               klatexformula-${KLF_VERSION}
+        OUTPUT_NAME               klatexformula
         MACOSX_BUNDLE_ICON_FILE   klficon.icns
 	MACOSX_BUNDLE_INFO_PLIST  "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
         MACOSX_BUNDLE_INFO_STRING "KLatexFormula version ${KLF_VERSION}"
@@ -341,7 +363,7 @@ if(KLF_MACOSX_BUNDLES)
         MACOSX_BUNDLE_LONG_VERSION_STRING "${KLF_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${KLF_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${KLF_VERSION}"
-        MACOSX_BUNDLE_BUNDLE_COPYRIGHT "Copyright (C) 2011 Philippe Faist"
+        MACOSX_BUNDLE_BUNDLE_COPYRIGHT "Copyright (C) 2014 Philippe Faist"
   )
   KLFMMakeBundle(klatexformula)
   KLFMBundleMkPrivateDir(klatexformula "Contents/Resources/rccresources")
@@ -395,22 +417,37 @@ if(KLF_MACOSX_BUNDLES)
 	"Frameworks/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
 	"${CMAKE_CURRENT_BINARY_DIR}/klftools/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools")
   # Setup klatexformula executable's lib dependencies
-  KLFMBundlePrivateLibUpdateQtDep(klatexformula "MacOS/klatexformula-${KLF_VERSION}" "Core;Gui;Xml;Sql;DBus")
+  KLFMBundlePrivateLibUpdateQtDep(klatexformula "MacOS/klatexformula" "Core;Gui;Xml;Sql;DBus")
   KLFMInstallNameToolChange(klatexformula
-	"MacOS/klatexformula-${KLF_VERSION}"
+	"MacOS/klatexformula"
 	"Frameworks/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
 	"${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend")
   KLFMInstallNameToolChange(klatexformula
-	"MacOS/klatexformula-${KLF_VERSION}"
+	"MacOS/klatexformula"
 	"Frameworks/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
 	"${CMAKE_CURRENT_BINARY_DIR}/klftools/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools")
   KLFMInstallNameToolChange(klatexformula
-	"MacOS/klatexformula-${KLF_VERSION}"
+	"MacOS/klatexformula"
 	"Frameworks/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp"
 	"${CMAKE_CURRENT_BINARY_DIR}/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp")
+
+  # Import the Sparkle framework, if applicable
+  if(KLF_USE_SPARKLE)
+    KLFMBundlePrivateImport(klatexformula "Sparkle.framework" "${KLF_SPARKLE_FRAMEWORK}" Frameworks)
+    KLFMInstallNameToolID(klatexformula "Frameworks/Sparkle.framework/Versions/A/Sparkle")
+    KLFMInstallNameToolChangeRaw(klatexformula
+        "Frameworks/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp"
+	"@executable_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle"
+	"@loader_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle")
+    # and the DSA pubkey
+    KLFMBundlePrivateImport(klatexformula "${KLF_SPARKLE_DSA_PUBKEY_BASENAME}"
+      "${KLF_SPARKLE_DSA_PUBKEY}" Resources)
+  endif(KLF_USE_SPARKLE)
+
   # Default Qt config stuff
   KLFMBundlePrivateImport(klatexformula
 			qt.conf "${CMAKE_CURRENT_SOURCE_DIR}/macosx/qt.conf" Resources)
+
   # Add a few icons for our app
   KLFMBundlePrivateImport(klatexformula
 	klficon.icns "${CMAKE_CURRENT_SOURCE_DIR}/macosx/klficon.icns" Resources)
@@ -422,6 +459,7 @@ if(KLF_MACOSX_BUNDLES)
 	klatexformula-32.png "${CMAKE_CURRENT_SOURCE_DIR}/klatexformula-32.png" Resources)
   KLFMBundlePrivateImport(klatexformula
 	klatexformula-16.png "${CMAKE_CURRENT_SOURCE_DIR}/klatexformula-16.png" Resources)
+
   KLFCMakeDebug("Extras to be bundled are ${klatexformula_BUNDLEXTRA}")
   KLFMBundlePackage(klatexformula)
 endif(KLF_MACOSX_BUNDLES)
@@ -560,17 +598,17 @@ if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLATEXFORMULA_BUNDLE)
   install(TARGETS klatexformula BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
   # Update klatexformula's dependency on the installed frameworks.
   KLFMInstFrameworkUpdateLibChange(
-  "${KLF_INSTALL_BIN_DIR}/klatexformula-${KLF_VERSION}/Contents/MacOS/klatexformula-${KLF_VERSION}"
+  "${KLF_INSTALL_BIN_DIR}/klatexformula/Contents/MacOS/klatexformula"
   "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
   "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
   )
   KLFMInstFrameworkUpdateLibChange(
-  "${KLF_INSTALL_BIN_DIR}/klatexformula-${KLF_VERSION}/Contents/MacOS/klatexformula-${KLF_VERSION}"
+  "${KLF_INSTALL_BIN_DIR}/klatexformula/Contents/MacOS/klatexformula"
   "${CMAKE_CURRENT_BINARY_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
   "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
   )
   KLFMInstFrameworkUpdateLibChange(
-  "${KLF_INSTALL_BIN_DIR}/klatexformula-${KLF_VERSION}/Contents/MacOS/klatexformula-${KLF_VERSION}"
+  "${KLF_INSTALL_BIN_DIR}/klatexformula/Contents/MacOS/klatexformula"
   "${CMAKE_CURRENT_BINARY_DIR}/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp"
   "${KLF_INSTALL_LIB_DIR}/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp"
   )
