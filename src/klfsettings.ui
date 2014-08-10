@@ -1230,8 +1230,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>98</width>
-                <height>28</height>
+                <width>396</width>
+                <height>316</height>
                </rect>
               </property>
               <attribute name="label">
@@ -2563,6 +2563,85 @@
  </customwidgets>
  <tabstops>
   <tabstop>btns</tabstop>
+  <tabstop>cbxLocale</tabstop>
+  <tabstop>cbxDetailsSideWidgetType</tabstop>
+  <tabstop>chkEnableRealTimePreview</tabstop>
+  <tabstop>chkRealTimePreviewExceptBattery</tabstop>
+  <tabstop>chkEnableToolTipPreview</tabstop>
+  <tabstop>cbxDragExportProfile</tabstop>
+  <tabstop>cbxCopyExportProfile</tabstop>
+  <tabstop>chkMenuExportProfileAffectsDrag</tabstop>
+  <tabstop>chkMenuExportProfileAffectsCopy</tabstop>
+  <tabstop>btnPathsReset</tabstop>
+  <tabstop>txtSetTexInputs</tabstop>
+  <tabstop>chkEditorTabInsertsTab</tabstop>
+  <tabstop>chkEditorWrapLines</tabstop>
+  <tabstop>chkSHEnable</tabstop>
+  <tabstop>chkSHHighlightParensOnly</tabstop>
+  <tabstop>chkSHHighlightLonelyParen</tabstop>
+  <tabstop>chkEditorIncludePreambleDefs</tabstop>
+  <tabstop>chkLibRestoreURLs</tabstop>
+  <tabstop>chkLibConfirmClose</tabstop>
+  <tabstop>chkLibHistoryTagCopyToArchive</tabstop>
+  <tabstop>cbxLibIconViewFlow</tabstop>
+  <tabstop>spnPreviewWidth</tabstop>
+  <tabstop>spnPreviewHeight</tabstop>
+  <tabstop>lstUserScripts</tabstop>
+  <tabstop>btnReloadUserScripts</tabstop>
+  <tabstop>tabsUserScript</tabstop>
+  <tabstop>scrlUserScriptInfo</tabstop>
+  <tabstop>scrlUserScriptSettings</tabstop>
+  <tabstop>tabsAddOnsPlugins</tabstop>
+  <tabstop>lstAddOns</tabstop>
+  <tabstop>scrAddOnInfo</tabstop>
+  <tabstop>btnImportAddOn</tabstop>
+  <tabstop>btnRemoveAddOn</tabstop>
+  <tabstop>lstPlugins</tabstop>
+  <tabstop>scrPluginInfo</tabstop>
+  <tabstop>tabsAdvancedSettings</tabstop>
+  <tabstop>btnAppFont</tabstop>
+  <tabstop>btnAppFontChoose</tabstop>
+  <tabstop>btnEditorFont</tabstop>
+  <tabstop>btnEditorFontChoose</tabstop>
+  <tabstop>btnPreambleFont</tabstop>
+  <tabstop>btnPreambleFontChoose</tabstop>
+  <tabstop>gbxGlowEffect</tabstop>
+  <tabstop>colGlowEffectColor</tabstop>
+  <tabstop>spnGlowEffectRadius</tabstop>
+  <tabstop>chkMacBrushedMetalLook</tabstop>
+  <tabstop>cbxEPSBBoxUnits</tabstop>
+  <tabstop>spnTBorderOffset</tabstop>
+  <tabstop>spnRBorderOffset</tabstop>
+  <tabstop>spnBBorderOffset</tabstop>
+  <tabstop>spnLBorderOffset</tabstop>
+  <tabstop>chkCalcEPSBoundingBox</tabstop>
+  <tabstop>chkOutlineFonts</tabstop>
+  <tabstop>colSHKeyword</tabstop>
+  <tabstop>colSHKeywordBg</tabstop>
+  <tabstop>chkSHKeywordB</tabstop>
+  <tabstop>chkSHKeywordI</tabstop>
+  <tabstop>colSHComment</tabstop>
+  <tabstop>colSHCommentBg</tabstop>
+  <tabstop>chkSHCommentB</tabstop>
+  <tabstop>chkSHCommentI</tabstop>
+  <tabstop>colSHParenMatch</tabstop>
+  <tabstop>colSHParenMatchBg</tabstop>
+  <tabstop>chkSHParenMatchB</tabstop>
+  <tabstop>chkSHParenMatchI</tabstop>
+  <tabstop>colSHParenMismatch</tabstop>
+  <tabstop>colSHParenMismatchBg</tabstop>
+  <tabstop>chkSHParenMismatchB</tabstop>
+  <tabstop>chkSHParenMismatchI</tabstop>
+  <tabstop>colSHLonelyParen</tabstop>
+  <tabstop>colSHLonelyParenBg</tabstop>
+  <tabstop>chkSHLonelyParenB</tabstop>
+  <tabstop>chkSHLonelyParenI</tabstop>
+  <tabstop>chkShowHintPopups</tabstop>
+  <tabstop>chkClearLatexOnly</tabstop>
+  <tabstop>spnToolTipMaxWidth</tabstop>
+  <tabstop>spnToolTipMaxHeight</tabstop>
+  <tabstop>btnAdvancedEditor</tabstop>
+  <tabstop>btnSystemMessages</tabstop>
  </tabstops>
  <resources>
   <include location="klfres.qrc"/>

@@ -1469,11 +1469,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>KLFDisplayLabel</class>
-   <extends>QLabel</extends>
-   <header location="global">klfdisplaylabel.h</header>
-  </customwidget>
-  <customwidget>
    <class>KLFUnitSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header location="global">klfunitinput.h</header>
@@ -1491,6 +1486,11 @@
     <signal>unitChanged(double)</signal>
    </slots>
   </customwidget>
+  <customwidget>
+   <class>KLFDisplayLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">klfdisplaylabel.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>txtLatex</tabstop>
@@ -1507,15 +1507,28 @@
   <tabstop>btnSetExportProfile</tabstop>
   <tabstop>btnQuit</tabstop>
   <tabstop>tabsOptions</tabstop>
+  <tabstop>colFg</tabstop>
+  <tabstop>colBg</tabstop>
   <tabstop>chkMathMode</tabstop>
+  <tabstop>cbxMathMode</tabstop>
+  <tabstop>cbxLatexFont</tabstop>
+  <tabstop>spnLatexFontSize</tabstop>
+  <tabstop>txtPreamble</tabstop>
   <tabstop>btnDPIPresets</tabstop>
   <tabstop>spnDPI</tabstop>
+  <tabstop>chkVectorScale</tabstop>
+  <tabstop>spnVectorScale</tabstop>
   <tabstop>gbxOverrideMargins</tabstop>
   <tabstop>cbxMarginsUnit</tabstop>
   <tabstop>spnMarginTop</tabstop>
   <tabstop>spnMarginRight</tabstop>
   <tabstop>spnMarginBottom</tabstop>
   <tabstop>spnMarginLeft</tabstop>
+  <tabstop>cbxUserScript</tabstop>
+  <tabstop>btnUserScriptInfo</tabstop>
+  <tabstop>btnUserScriptReload</tabstop>
+  <tabstop>scrUserScriptInput</tabstop>
+  <tabstop>btnShowLastUserScriptOutput</tabstop>
   <tabstop>btnLoadStyle</tabstop>
   <tabstop>btnSettings</tabstop>
   <tabstop>btnHelp</tabstop>
