@@ -15,6 +15,7 @@
     <!-- <file alias="klffeynmp.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/klffeynmp.py</file> -->
     <file alias="svg-dvisvgm.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/svg-dvisvgm.py</file>
     <file alias="gif-convert.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/gif-convert.py</file>
+    <file alias="html-data-export.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/html-data-export.py</file>
   </qresource>
   <qresource prefix="/userscriptdata/customtemplate/">
     <file alias="customtemplate_input.ui">@CMAKE_CURRENT_SOURCE_DIR@/userscriptdata/customtemplate/customtemplate_input.ui</file>
