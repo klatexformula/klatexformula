@@ -932,9 +932,8 @@ QString KLFMimeExporterImage::windowsFormatName(const QString& mime) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QString wtype;
   if (mime == "application/pdf")
-    return "PDF";
+    return "application/pdf"; // "PDF"; -- doesn't seem to work.
   else if (mime == "application/eps")
     return "Encapsulated PostScript";
   else if (mime == "image/png")
