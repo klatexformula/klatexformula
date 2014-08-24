@@ -43,6 +43,9 @@
 #ifdef KLF_USE_SPARKLE
 #include "macosx/klfsparkleupdater.h"
 #endif
+#ifdef KLF_USE_WINSPARKLE
+#include "mswin/klfwinsparkleupdater.h"
+#endif
 
 #include "klflibview.h"
 #include "klflibbrowser.h"
@@ -606,7 +609,7 @@ void KLFMainWin::startupFinished()
 {
   d->refreshExportTypesMenu();
 
-#if defined(Q_WS_MAC) && defined(KLF_USE_SPARKLE)
+#if defined(KLF_USE_SPARKLE)
   // if we're on Mac, start the Sparkle updater
   KLFSparkleAutoUpdater * updater = new KLFSparkleAutoUpdater(this, KLF_SPARKLE_FEED_URL);
   updater->checkForUpdates(true);
@@ -615,6 +618,14 @@ void KLFMainWin::startupFinished()
     connect(d->pCheckForUpdatesAction, SIGNAL(triggered()), updater, SLOT(checkForUpdates()));
   }
 #endif
+
+#if defined(KLF_USE_WINSPARKLE)
+  // start the winsparkle updater
+  KLFWinSparkleUpdater * updater = new KLFWinSparkleUpdater(this, KLF_WINSPARKLE_FEED_URL);
+  updater->checkForUpdates(true);
+#endif
+
+  /// \todo autoupdate: Add a UI item to enable/disable auto-check for updates, check now, etc.
 }
 
 

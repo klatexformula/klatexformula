@@ -120,6 +120,19 @@ if(WIN32)
   list(APPEND klfapp_SRCS
 	mswin/klfwinclipboard.cpp
   )
+  if(KLF_USE_WINSPARKLE)
+    add_definitions(-DKLF_USE_WINSPARKLE -DKLF_WINSPARKLE_FEED_URL=\"${KLF_WINSPARKLE_FEED_URL}\")
+    add_definitions(-I${KLF_WINSPARKLE_DIR})
+    set(klfapp_MOCHEADERS ${klfapp_MOCHEADERS}
+        mswin/klfwinsparkleupdater.h
+    )
+    set(klfapp_HEADERS ${klfapp_HEADERS}
+        mswin/klfwinsparkleupdater.h
+    )
+    set(klfapp_SRCS ${klfapp_SRCS}
+        mswin/klfwinsparkleupdater.cpp
+    )
+  endif(KLF_USE_WINSPARKLE)
 endif(WIN32)
 if(APPLE)
   set(klfapp_HEADERS ${klfapp_HEADERS}
@@ -246,6 +259,9 @@ target_link_libraries(klfapp ${QT_LIBRARIES} klfbackend klftools)
 if(APPLE AND KLF_USE_SPARKLE)
   target_link_libraries(klfapp ${KLF_SPARKLE_FRAMEWORK})
 endif(APPLE AND KLF_USE_SPARKLE)
+if(WIN32 AND KLF_USE_WINSPARKLE)
+  target_link_libraries(klfapp "${KLF_WINSPARKLE_DIR}/WinSparkle.dll")
+endif(WIN32 AND KLF_USE_WINSPARKLE)
 set_target_properties(klfapp PROPERTIES
 	#	DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
 	PUBLIC_HEADER "${klfapp_INSTHEADERS}"
@@ -549,14 +565,20 @@ endif(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFAPP_FRAMEWORK)
 if(WIN32 AND KLF_INSTALL_QTLIBS)
   # Install Qt libs
   #  QT_BINARY_DIR and QT_PLUGINS_DIR are set by FindQt4 CMake module
-  install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}"
-	    FILES_MATCHING REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$" REGEX "/libgcc.*\\.dll" REGEX "/mingw.*\\.dll"
-	 )
+  install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}" FILES_MATCHING
+    PATTERN "libgcc*.dll"
+    PATTERN "mingw*.dll"
+    REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$"
+  )
 elseif(KLF_INSTALL_QTLIBS)
   # Install Prereq libs
   message(ERROR "Not supported on non-windows system. TODO: write me. Actually, write a more general
     framework to import needed libraries, which could also replace the win32-specific code.")
 endif(WIN32 AND KLF_INSTALL_QTLIBS)
+if(WIN32 AND KLF_USE_WINSPARKLE)
+  install(FILES "${KLF_WINSPARKLE_DIR}/WinSparkle.dll"
+    DESTINATION "${KLF_INSTALL_LIB_DIR}")
+endif(WIN32 AND KLF_USE_WINSPARKLE)
 if(KLF_INSTALL_QTPLUGINS)
   set(qtplugin_list ${KLF_INSTALL_QTPLUGINS_LIST})
   set(qtplugin_list "dummyitem" ${qtplugin_list})

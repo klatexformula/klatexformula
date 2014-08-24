@@ -45,7 +45,7 @@ set(CPACK_MONOLITHIC_INSTALL TRUE)
 #set(CPACK_OUTPUT_CONFIG_FILE )
 set(CPACK_PACKAGE_EXECUTABLES "klatexformula;KLatexFormula")
 set(CPACK_STRIP_FILES TRUE)
-set(CPACK_PACKAGE_VENDOR "Philippe Faist <philippe.faist@bluewin.ch>")
+set(CPACK_PACKAGE_VENDOR "KLatexFormula Project")
 set(CPACK_SET_DESTDIR TRUE)  # use ENV{DESTDIR}=... instead of setting CMAKE_INSTALL_PREFIX
 set(CPACK_CREATE_DESKTOP_LINKS "klatexformula")
 
@@ -61,7 +61,7 @@ set(CPACK_SOURCE_IGNORE_FILES "/\\\\.svn/")
 # == Windows Installer ==
 
 if(WIN32)
-  set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "klatexformula-${KLF_VERSION}")
+  set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "klatexformula")
   set(cmake_CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/src/mswin/klficon64.ico")
   STRING(REPLACE "/" "\\\\" CPACK_NSIS_MUI_ICON "${cmake_CPACK_NSIS_MUI_ICON}")
   set(cmake_CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/src/mswin/klatexformula-nsis-header.bmp")
@@ -76,6 +76,8 @@ if(WIN32)
     "http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Home")
   set(CPACK_NSIS_URL_INFO_ABOUT "http://klatexformula.sourceforge.net/")
   set(CPACK_NSIS_CONTACT "philippe.faist@bluewin.ch")
+  set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL on) # ask user to uninstall previous version before installing
+  set(CPACK_NSIS_MUI_FINISHPAGE_RUN "klatexformula.exe")
   #set(CPACK_NSIS_CREATE_ICONS_EXTRA )
   #set(CPACK_NSIS_DELETE_ICONS_EXTRA )
 endif(WIN32)

@@ -174,7 +174,7 @@
             <string comment="whatsthistext">Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</string>
            </property>
            <property name="text">
-            <string>&amp;Evaluate</string>
+            <string>&amp;Go !</string>
            </property>
            <property name="icon">
             <iconset resource="klfres.qrc">
@@ -1229,7 +1229,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>280</width>
+                <width>314</width>
                 <height>123</height>
                </rect>
               </property>

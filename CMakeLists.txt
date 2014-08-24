@@ -486,7 +486,7 @@ else(KLF_NO_CMU_FONT)
 endif(KLF_NO_CMU_FONT)
 
 
-# Use Sparkle framework?
+# Use Sparkle framework under Mac OS X?
 if(APPLE)
   option(KLF_USE_SPARKLE "Use Sparkle Framework for auto-updates on Mac OS X" OFF)
   if(KLF_USE_SPARKLE)
@@ -501,6 +501,21 @@ if(APPLE)
     message(STATUS "Using sparkle framework with update URL ${KLF_SPARKLE_FEED_URL}")
   endif(KLF_USE_SPARKLE)
 endif(APPLE)
+
+# Use WinSparkle framework under Windows?
+if(WIN32)
+  option(KLF_USE_WINSPARKLE "Use WinSparkle for auto-updates on MS Windows" OFF)
+  if(KLF_USE_WINSPARKLE)
+    set(KLF_WINSPARKLE_FEED_URL "http://klatexformula.sourceforge.net/sparklefeed.xml"
+      CACHE STRING "URL for WinSparkle to check for updates")
+    set(KLF_WINSPARKLE_DIR ""
+      CACHE STRING "Path to the WinSparkle Directory (with .h files & WinSparkle.dll file)")
+    if(NOT EXISTS "${KLF_WINSPARKLE_DIR}")
+      message(FATAL_ERROR "Please specify the path to the WinSparkle directory in KLF_WINSPARKLE_DIR, or disable the Sparkle framework with KLF_USE_WINSPARKLE=off.")
+    endif(NOT EXISTS "${KLF_WINSPARKLE_DIR}")
+    message(STATUS "Using WinSparkle with update URL ${KLF_WINSPARKLE_FEED_URL}")
+  endif(KLF_USE_WINSPARKLE)
+endif(WIN32)
 
 
 # Current System OS
