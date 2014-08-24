@@ -1708,11 +1708,15 @@ QByteArray KLFExportUserScript::getData(const QString& key, const KLFBackend::kl
   }
   p.addArgv(QStringList() << "--mimetype="+key);
 
-  /** \todo provide more information to the script present in the klfOutput object,
-   * e.g. width_pt, height_pt etc. as environment variables.
-   *
-   * Should be easy!!
-   */
+  QStringList addenv;
+  addenv << QLatin1String("KLF_OUTPUT_WIDTH_PT=") + QString::number(klfoutput.width_pt)
+         << QLatin1String("KLF_OUTPUT_HEIGHT_PT=") + QString::number(klfoutput.height_pt)
+         << QLatin1String("KLF_OUTPUT_WIDTH_PX=") + QString::number(klfoutput.result.width())
+         << QLatin1String("KLF_OUTPUT_HEIGHT_PX=") + QString::number(klfoutput.result.height())
+         << klfInputToEnvironmentForUserScript(klfoutput.input)
+         << klfSettingsToEnvironmentForUserScript(klfoutput.settings);
+
+  p.addExecEnviron(addenv);
 
   // collect output
   QByteArray stdoutdata;

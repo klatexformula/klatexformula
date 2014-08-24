@@ -144,7 +144,7 @@ public:
   virtual QVariant property(const QString& propName) const { return info(propName); }
   virtual QStringList propertyNameList() const { return infosList(); }
   virtual bool setProperty(const QString&, const QVariant&) { return false; }
-  
+
 protected:
   void internalSetProperty(const QString& key, const QVariant &val);
   const KLFPropertizedObject * pobj();

@@ -721,10 +721,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     }
 
     // and run the script with the latex input
-    QString fgcol = QString("rgba(%1,%2,%3,%4)").arg(qRed(in.fg_color))
-      .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)).arg(qAlpha(in.fg_color));
-    QString bgcol = QString("rgba(%1,%2,%3,%4)").arg(qRed(in.bg_color))
-      .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color)).arg(qAlpha(in.bg_color));
     QStringList addenv;
     addenv
       // program executables
@@ -736,26 +732,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       << "KLF_GS_VERSION=" + thisGsInfo.version
       << "KLF_GS_DEVICES=" + QStringList(thisGsInfo.availdevices.toList()).join(",")
       // input
-      << "KLF_INPUT_LATEX=" + in.latex
-      << "KLF_INPUT_MATHMODE=" + in.mathmode
-      << "KLF_INPUT_PREAMBLE=" + in.preamble
-      << "KLF_INPUT_FONTSIZE=" + QString::number(in.fontsize)
-      << "KLF_INPUT_FG_COLOR_WEB=" + QColor(in.fg_color).name()
-      << "KLF_INPUT_FG_COLOR_RGBA=" + fgcol
-      << "KLF_INPUT_BG_COLOR_TRANSPARENT=" + QString::fromLatin1(qAlpha(in.bg_color) > 50 ? "1" : "0")
-      << "KLF_INPUT_BG_COLOR_WEB=" + QColor(in.bg_color).name()
-      << "KLF_INPUT_BG_COLOR_RGBA=" + bgcol
-      << "KLF_INPUT_DPI=" + QString::number(in.dpi)
-      << "KLF_INPUT_USERSCRIPT=" + in.userScript
-      << "KLF_INPUT_BYPASS_TEMPLATE=" + in.bypassTemplate
+      << klfInputToEnvironmentForUserScript(in)
       // more advanced settings
-      << "KLF_SETTINGS_BORDEROFFSET=" + klfFmt("%.3g,%.3g,%.3g,%.3g pt", settings.tborderoffset,
-					       settings.rborderoffset, settings.bborderoffset, settings.lborderoffset)
-      << "KLF_SETTINGS_OUTLINEFONTS=" + QString::fromLatin1(settings.outlineFonts ? "1" : "0")
-      << "KLF_SETTINGS_CALCEPSBOUNDINGBOX=" + QString::fromLatin1(settings.calcEpsBoundingBox ? "1" : "0")
-      << "KLF_SETTINGS_WANT_RAW=" + QString::fromLatin1(settings.wantRaw ? "1" : "0")
-      << "KLF_SETTINGS_WANT_PDF=" + QString::fromLatin1(settings.wantPDF ? "1" : "0")
-      << "KLF_SETTINGS_WANT_SVG=" + QString::fromLatin1(settings.wantSVG ? "1" : "0")
+      << klfSettingsToEnvironmentForUserScript(settings)
       // file names (all formed with same basename...) to access by the script
       << "KLF_FN_TEX=" + fnTex
       << "KLF_FN_LATEX=" + fnTex
@@ -768,12 +747,6 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       << "KLF_FN_SVG_GS=" + fnGsSvg
       << "KLF_FN_SVG=" + fnSvg
       ;
-
-    // and add custom user parameters
-    QMap<QString,QString>::const_iterator cit;
-    for (cit = in.userScriptParam.constBegin(); cit != in.userScriptParam.constEnd(); ++cit) {
-      addenv << "KLF_ARG_"+cit.key() + "=" + cit.value();
-    }
 
     { // now run the script
       KLFBackendFilterProgram p("[user script "+scriptinfo.name()+"]", &settings, isMainThread,
@@ -1961,3 +1934,46 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
 
 
 
+
+
+KLF_EXPORT QStringList klfSettingsToEnvironmentForUserScript(const KLFBackend::klfSettings& settings)
+{
+  QStringList env;
+  env << "KLF_SETTINGS_BORDEROFFSET=" + klfFmt("%.3g,%.3g,%.3g,%.3g pt", settings.tborderoffset,
+					       settings.rborderoffset, settings.bborderoffset, settings.lborderoffset)
+      << "KLF_SETTINGS_OUTLINEFONTS=" + QString::fromLatin1(settings.outlineFonts ? "1" : "0")
+      << "KLF_SETTINGS_CALCEPSBOUNDINGBOX=" + QString::fromLatin1(settings.calcEpsBoundingBox ? "1" : "0")
+      << "KLF_SETTINGS_WANT_RAW=" + QString::fromLatin1(settings.wantRaw ? "1" : "0")
+      << "KLF_SETTINGS_WANT_PDF=" + QString::fromLatin1(settings.wantPDF ? "1" : "0")
+      << "KLF_SETTINGS_WANT_SVG=" + QString::fromLatin1(settings.wantSVG ? "1" : "0");
+  return env;
+}
+
+KLF_EXPORT QStringList klfInputToEnvironmentForUserScript(const KLFBackend::klfInput& in)
+{
+  QStringList env;
+  QString fgcol = QString("rgba(%1,%2,%3,%4)").arg(qRed(in.fg_color))
+    .arg(qGreen(in.fg_color)).arg(qBlue(in.fg_color)).arg(qAlpha(in.fg_color));
+  QString bgcol = QString("rgba(%1,%2,%3,%4)").arg(qRed(in.bg_color))
+    .arg(qGreen(in.bg_color)).arg(qBlue(in.bg_color)).arg(qAlpha(in.bg_color));
+  env << "KLF_INPUT_LATEX=" + in.latex
+      << "KLF_INPUT_MATHMODE=" + in.mathmode
+      << "KLF_INPUT_PREAMBLE=" + in.preamble
+      << "KLF_INPUT_FONTSIZE=" + QString::number(in.fontsize)
+      << "KLF_INPUT_FG_COLOR_WEB=" + QColor(in.fg_color).name()
+      << "KLF_INPUT_FG_COLOR_RGBA=" + fgcol
+      << "KLF_INPUT_BG_COLOR_TRANSPARENT=" + QString::fromLatin1(qAlpha(in.bg_color) > 50 ? "1" : "0")
+      << "KLF_INPUT_BG_COLOR_WEB=" + QColor(in.bg_color).name()
+      << "KLF_INPUT_BG_COLOR_RGBA=" + bgcol
+      << "KLF_INPUT_DPI=" + QString::number(in.dpi)
+      << "KLF_INPUT_USERSCRIPT=" + in.userScript
+      << "KLF_INPUT_BYPASS_TEMPLATE=" + in.bypassTemplate;
+  
+  // and add custom user parameters
+  QMap<QString,QString>::const_iterator cit;
+  for (cit = in.userScriptParam.constBegin(); cit != in.userScriptParam.constEnd(); ++cit) {
+    env << "KLF_ARG_"+cit.key() + "=" + cit.value();
+  }
+
+  return env;
+}

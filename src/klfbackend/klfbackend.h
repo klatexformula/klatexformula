@@ -666,6 +666,13 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings);
 
 
 
+
+
+KLF_EXPORT QStringList klfSettingsToEnvironmentForUserScript(const KLFBackend::klfSettings& settings);
+KLF_EXPORT QStringList klfInputToEnvironmentForUserScript(const KLFBackend::klfInput& in);
+
+
+
 /** \brief Reading and writing klfbackend meta-info
  *
  * \note Keys should not start with "KLF". The prefix will be added automatically (or inferred automatically

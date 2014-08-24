@@ -22,11 +22,12 @@
 #
 #   $Id: gif-convert.py 887 2014-07-24 16:24:56Z phfaist $
 
-import re;
-import os;
-import sys;
-import os.path;
+import re
+import os
+import sys
+import os.path
 import base64
+import cgi
 
 if (sys.argv[1] == "--help"):
     print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
@@ -57,8 +58,29 @@ pngdata = None
 with open(sys.argv[1], 'rb') as f:
     pngdata = f.read()
 
-htmldata = ('<img src="%s" style="vertical-align: middle;">'
-            % ("data:image/png;base64,"+base64.b64encode(pngdata))
+latexinput = os.environ.get("KLF_INPUT_LATEX", "")
+dpi = float(os.environ.get("KLF_INPUT_DPI", "96"))
+width_px = float(os.environ.get("KLF_OUTPUT_WIDTH_PX", "100"))
+height_px = float(os.environ.get("KLF_OUTPUT_HEIGHT_PX", "100"))
+
+# in postscript, 1pt = 1/72 in
+magnify = 150.0 / 96
+width_in = magnify * width_px / dpi             #width_pt / 72.0  # works better the other way....
+height_in = magnify * height_px / dpi           #height_pt / 72.0
+
+
+# encode for HTML attribute
+latexinput = cgi.escape(latexinput, True)
+
+htmldata = (('<img src="%(src)s" alt="%(alt)s" title="%(title)s"'
+             '     style="width:%(width)sin; height: %(height)sin; vertical-align: middle;">')
+             %   {
+                 'src': "data:image/png;base64,"+base64.b64encode(pngdata),
+                 'alt': latexinput,
+                 'title': latexinput,
+                 'width': width_in,
+                 'height': height_in,
+                 }
             )
 
 print htmldata;
