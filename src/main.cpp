@@ -113,7 +113,7 @@ char *opt_userscript = NULL;
 bool opt_quiet = false;
 char *opt_redirect_debug = NULL;
 bool opt_daemonize = false;
-bool opt_dbus_export_mainwin = false;
+bool opt_dbus_export_mainwin = false; // undocumented debug option
 bool opt_skip_plugins = false;
 
 int opt_calcepsbbox = -1;

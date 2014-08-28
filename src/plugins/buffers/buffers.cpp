@@ -43,6 +43,12 @@ void BuffersPlugin::initialize(QApplication *app, KLFMainWin *mainWin, KLFPlugin
 
   _config = rwconfig;
 
+  // add what's new text
+  _mainwin->addWhatsNewText(
+      tr("<p>The <b>buffers</b> plug-in allows you to work on different equations at once, save "
+         "them to files, and switch between them.</p>")
+      );
+
   klfDbg("About to create buffers widget and show.") ;
 
   _widget = new OpenBuffersWidget(mainWin);
