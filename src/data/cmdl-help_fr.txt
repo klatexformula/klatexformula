@@ -57,8 +57,8 @@ Options:
       plan. N'oubliez pas d'échapper le caractère « # » du shell avec des guillements par ex.
       Si le caractère « - » est donné l'image aura un fond transparent. (par défaut: transparent).
   -X, --dpi <N>
-      Utilise N points par pouce (DPI) pour la pixélisation de la sortie latex. Par défaut: 1200 (haute
-      résolution)
+      Utilise N points par pouce (DPI) pour la pixélisation de la sortie latex. Par défaut: 1200
+      (haute résolution)
   -m, --mathmode <expression contenant « ... »>
       Précise quel mode mathématique de LaTeX utiliser. Cet argument peut être n'importe quelle
       chaîne de caractère contant « ... »; les trois points seront remplacés par l'expression LaTeX
@@ -70,6 +70,15 @@ Options:
       Appeler le script donné au lieu de l'exécutable 'latex'. Se référer à la documentation de
       libklfbackend pour plus de détails sur les scripts utilisateur. Le script doit comprendre
       et réagir à l'option « --scriptinfo ».
+  --want-pdf [<ON|Y[ES]|T[RUE]|1 ou OFF|N[O]|F[ALSE]|0>]
+      Si l'option est activée, klatexformula générera également du PDF à l'interne. Normalement,
+      cette option est détectée automatiquement. Vous pouvez l'ajuster si klatexformula devine
+      faux.
+  --want-svg [<ON|Y[ES]|T[RUE]|1 ou OFF|N[O]|F[ALSE]|0>]
+      Si l'option est activée, klatexformula générera également du SVG à l'interne, en utilisant
+      gs (ce n'est pas toujours possible). Normalement, cette option est détectée automatiquement.
+      Vous pouvez l'ajuster si klatexformula devine faux.
+
   -q, --quiet
       N'affiche pas les avertissements et les erreurs.
   --redirect-debug <fichier>
@@ -79,10 +88,20 @@ Options:
   -d, --daemonize
       Démarre un processus détaché comme un démon. Toutes les autres options (p. ex. --latexinput)
       sont transmises au démon et sont donc prises en compte.
+  --skip-plugins
+      Ne tente pas de charger les plug-ins. Essayez cette option si klatexformula crashe au
+      démarrage : cela peut être dû à un plugin problématique.
 
+  --calcepsbbox [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Corrige la bordure de l'image résultante, en vue de caractères qui ne rapportent pas la
+      taille de la bordure correctement. (Activé par défaut.)
+  --nocalcepsbbox [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Même chose que --calcepsbbox=<inverse de la valeur donnée>
   --outlinefonts [<ON|Y[ES]|T[RUE]|1 ou OFF|N[O]|F[ALSE]|0>]
       Convertit les polices dans le EPS et le PDF en contours (utilisant gs avec -dNOCACHE). Utile
-      pour exporter p. ex. vers Adobe Illustrator.
+      pour exporter p. ex. vers Inkscape ou Adobe Illustrator.
+  --nooutlinefonts [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Même chose que --outlinefonts=<inverse de la valeur donnée>
   --lborderoffset <N>
   --tborderoffset <N>
   --rborderoffset <N>

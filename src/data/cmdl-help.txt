@@ -68,9 +68,17 @@ Options:
       Any LaTeX code that will be inserted before \begin{document}. Useful for
       including custom packages with \usepackage{...}.
   -s, --userscript <user script>
-      Call a specific user script instead of regular 'latex' executable. See the
-      documentation in libklfbackend for more information. The script must understand
-      and respond to the "--scriptinfo" option.
+      Call a specific user script when running the backend. See the documentation
+      in libklfbackend for more information. The script must understand and
+      respond to the "--scriptinfo" option.
+  --want-pdf [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      If set, then PDF is also internally generated. This setting should be detected
+      automatically but you may adjust it if klatexformula guesses wrong.
+  --want-svg [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      If set, then SVG is also internally generated (via gs, note: not always
+      available). This setting should be detected automatically but you may adjust
+      it if klatexformula guesses wrong.
+      
   -q, --quiet [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
       Disable console output of warnings and errors.
   --redirect-debug <file>
@@ -81,10 +89,21 @@ Options:
       Run a separate, detached, klatexformula process and return immediately. All
       other options, like --latexinput, may still be given. They will be forwared
       to the daemon process.
+  --skip-plugins
+      Do not attempt to load plugins. Useful if klatexformula crashes at startup,
+      which might be due to problematic plugins installed.
 
+  --calcepsbbox [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Correct the bounding box of the output for characters that don't report a
+      complete or incorrect bounding box. (On by default.)
+  --nocalcepsbbox [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Same as --calcepsbbox=<inverse of value given>
   --outlinefonts [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
-      Convert embedded fonts in EPS and PDF to vector outlines (gs with -dNOCACHE).
-      Useful for exporting to eg. Adobe Illustrator.
+      Convert embedded fonts in EPS and PDF to vector outlines (previously, gs pswrite
+      device with option -dNOCACHE; more recently, gs ps2write with -dNoOutputFonts).
+      Useful for exporting to eg. Inkscape or Adobe Illustrator.
+  --nooutlinefonts [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Same as --outlinefonts=<inverse of value given>
   --lborderoffset <N>
   --tborderoffset <N>
   --rborderoffset <N>
