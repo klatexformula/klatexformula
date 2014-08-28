@@ -1470,6 +1470,18 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>txtLatex</tabstop>
+  <tabstop>btnClearLatex</tabstop>
+  <tabstop>btnClearAll</tabstop>
+  <tabstop>btnEvaluate</tabstop>
+  <tabstop>btnSymbols</tabstop>
+  <tabstop>btnLibrary</tabstop>
+  <tabstop>btnExpand</tabstop>
+  <tabstop>btnDrag</tabstop>
+  <tabstop>btnCopy</tabstop>
+  <tabstop>btnSave</tabstop>
+  <tabstop>btnShowBigPreview</tabstop>
+  <tabstop>btnSetExportProfile</tabstop>
   <tabstop>btnQuit</tabstop>
   <tabstop>tabsOptions</tabstop>
   <tabstop>colFg</tabstop>
