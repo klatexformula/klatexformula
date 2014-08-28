@@ -447,7 +447,7 @@ bool SkinPlugin::eventFilter(QObject *object, QEvent *event)
   if (object == _mainwin && event->type() == QEvent::Show) {
     // apply delayed style sheet, if required
     if (_applyDelayed) {
-      klfDbg("Applying delayed skin...")
+      klfDbg("Applying delayed skin...");
       _applyDelayed = false;
       _preventpleasewait = true;
       applySkin(_config, false);

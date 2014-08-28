@@ -8,7 +8,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>764</width>
+    <width>781</width>
     <height>376</height>
    </rect>
   </property>
@@ -45,9 +45,6 @@
        <number>0</number>
       </property>
       <layout class="QVBoxLayout" name="lyt_frmMain">
-       <property name="spacing">
-        <number>2</number>
-       </property>
        <property name="margin">
         <number>4</number>
        </property>
@@ -74,427 +71,407 @@
         </widget>
        </item>
        <item>
-        <spacer name="vspc2">
+        <widget class="QSplitter" name="splitMain">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>10</width>
-           <height>2</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="KLFLatexEdit" name="txtLatex">
-         <property name="acceptDrops">
-          <bool>true</bool>
-         </property>
-         <property name="toolTip">
-          <string>&lt;p style=&quot;white-space: pre&quot;&gt;Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.&lt;/p&gt;</string>
-         </property>
-         <property name="autoFormatting">
-          <set>QTextEdit::AutoNone</set>
-         </property>
-         <property name="tabChangesFocus">
-          <bool>true</bool>
-         </property>
-         <property name="undoRedoEnabled">
-          <bool>true</bool>
-         </property>
-         <property name="lineWrapMode">
-          <enum>QTextEdit::WidgetWidth</enum>
-         </property>
-         <property name="readOnly">
-          <bool>false</bool>
-         </property>
-         <property name="acceptRichText">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="lytMiddle">
-         <item>
-          <widget class="QPushButton" name="btnClearLatex">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string comment="tooltip">Clear the above field</string>
-           </property>
-           <property name="whatsThis">
-            <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
-           </property>
-           <property name="icon">
-            <iconset resource="klfres.qrc">
-             <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnClearAll">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string comment="tooltip">Clear the above field and set the default style</string>
-           </property>
-           <property name="whatsThis">
-            <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
-           </property>
-           <property name="icon">
-            <iconset resource="klfres.qrc">
-             <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnEvaluate">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</string>
-           </property>
-           <property name="whatsThis">
-            <string comment="whatsthistext">Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</string>
-           </property>
-           <property name="text">
-            <string>&amp;Go !</string>
-           </property>
-           <property name="icon">
-            <iconset resource="klfres.qrc">
-             <normaloff>:/pics/evaluate.png</normaloff>:/pics/evaluate.png</iconset>
-           </property>
-           <property name="shortcut">
-            <string notr="true">Shift+Return, Ctrl+Return</string>
-           </property>
-           <property name="default">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnSymbols">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette  [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
-           </property>
-           <property name="whatsThis">
-            <string comment="whatsthis text">Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</string>
-           </property>
-           <property name="icon">
-            <iconset resource="klfres.qrc">
-             <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
-           </property>
-           <property name="shortcut">
-            <string>F7</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnLibrary">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Library [&lt;strong&gt;F8&lt;/strong&gt;]&lt;/p&gt;</string>
-           </property>
-           <property name="whatsThis">
-            <string comment="whatsthis text">Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</string>
-           </property>
-           <property name="icon">
-            <iconset resource="klfres.qrc">
-             <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
-           </property>
-           <property name="shortcut">
-            <string>F8</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnExpand">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="toolTip">
-            <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</string>
-           </property>
-           <property name="whatsThis">
-            <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
-           </property>
-           <property name="icon">
-            <iconset resource="klfres.qrc">
-             <normaloff>:/pics/switchexpanded.png</normaloff>:/pics/switchexpanded.png</iconset>
-           </property>
-           <property name="shortcut">
-            <string>F5</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QFrame" name="frmOutput">
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Plain</enum>
-         </property>
-         <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="99,0">
-          <property name="horizontalSpacing">
-           <number>6</number>
+         <widget class="KLFLatexEdit" name="txtLatex">
+          <property name="acceptDrops">
+           <bool>true</bool>
           </property>
-          <property name="verticalSpacing">
-           <number>0</number>
+          <property name="toolTip">
+           <string>&lt;p style=&quot;white-space: pre&quot;&gt;Edit or paste LaTeX code here. Focus the editor with the &lt;strong&gt;F4&lt;/strong&gt; key.&lt;/p&gt;</string>
           </property>
-          <property name="margin">
-           <number>1</number>
+          <property name="autoFormatting">
+           <set>QTextEdit::AutoNone</set>
           </property>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="btnDrag">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>&amp;DRAG</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QPushButton" name="btnCopy">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>&amp;COPY</string>
-            </property>
-            <property name="shortcut">
-             <string>Alt+Y</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QPushButton" name="btnSave">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Save formula to disk</string>
-            </property>
-            <property name="text">
-             <string>&amp;SAVE</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <spacer name="spcOutputButtons">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>5</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="0" rowspan="5">
-           <widget class="KLFDisplayLabel" name="lblOutput">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-              <horstretch>99</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>280</width>
-              <height>75</height>
-             </size>
-            </property>
-            <property name="acceptDrops">
-             <bool>true</bool>
-            </property>
-            <property name="toolTip">
-             <string comment="tooltip">The resulting image will be displayed here</string>
-            </property>
-            <property name="whatsThis">
-             <string comment="whatsthis">Here you can see the image you get after evaluating your LaTeX code.</string>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Plain</enum>
-            </property>
-            <property name="lineWidth">
-             <number>0</number>
-            </property>
-            <property name="midLineWidth">
-             <number>0</number>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="wordWrap">
-             <bool>false</bool>
-            </property>
-            <property name="margin">
-             <number>0</number>
-            </property>
-            <property name="indent">
-             <number>0</number>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QWidget" name="wForBigPreviewButton" native="true">
-            <layout class="QHBoxLayout" name="lyt_wForBigPreviewButton">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="margin">
-              <number>0</number>
-             </property>
+          <property name="tabChangesFocus">
+           <bool>true</bool>
+          </property>
+          <property name="undoRedoEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="lineWrapMode">
+           <enum>QTextEdit::WidgetWidth</enum>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+          <property name="acceptRichText">
+           <bool>false</bool>
+          </property>
+         </widget>
+         <widget class="QWidget" name="layoutWidget">
+          <layout class="QVBoxLayout" name="vlyt_OutputFrame">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="lytMiddle">
              <item>
-              <spacer name="spcPreviewButton">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>5</width>
-                 <height>5</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btnShowBigPreview">
+              <widget class="QPushButton" name="btnClearLatex">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="toolTip">
-                <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</string>
+                <string comment="tooltip">Clear the above field</string>
                </property>
-               <property name="text">
-                <string notr="true"/>
+               <property name="whatsThis">
+                <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
                </property>
                <property name="icon">
                 <iconset resource="klfres.qrc">
-                 <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
+                 <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
                </property>
               </widget>
              </item>
              <item>
-              <spacer name="spcLeftExportProfile">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>6</width>
-                 <height>10</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QToolButton" name="btnSetExportProfile">
+              <widget class="QPushButton" name="btnClearAll">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="toolTip">
-                <string>&lt;p style=&quot;white-space: pre&quot;&gt;Select the export profile to use for Copy and Drag operations&lt;/p&gt;</string>
+                <string comment="tooltip">Clear the above field and set the default style</string>
                </property>
-               <property name="text">
-                <string notr="true"/>
+               <property name="whatsThis">
+                <string comment="whatsthis">Clicking this button is a utility to clear the LaTeX code entry field above</string>
                </property>
                <property name="icon">
                 <iconset resource="klfres.qrc">
-                 <normaloff>:/pics/exportprofile.png</normaloff>:/pics/exportprofile.png</iconset>
+                 <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnEvaluate">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Evaluate LaTeX Expression [&lt;strong&gt;Shift-Enter&lt;/strong&gt;]&lt;/p&gt;</string>
+               </property>
+               <property name="whatsThis">
+                <string comment="whatsthistext">Render the above &lt;i&gt;LaTeX&lt;/i&gt; formula as an image, which will be displayed in the label below.</string>
+               </property>
+               <property name="text">
+                <string>&amp;Run LaTeX</string>
+               </property>
+               <property name="icon">
+                <iconset resource="klfres.qrc">
+                 <normaloff>:/pics/evaluate.png</normaloff>:/pics/evaluate.png</iconset>
+               </property>
+               <property name="shortcut">
+                <string notr="true">Shift+Return, Ctrl+Return</string>
+               </property>
+               <property name="default">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnSymbols">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Latex Symbols palette  [&lt;strong&gt;F7&lt;/strong&gt;]&lt;/p&gt;</string>
+               </property>
+               <property name="whatsThis">
+                <string comment="whatsthis text">Clicking this button opens a dialog allowing you to view and select LaTeX symbols the codes of which you may not know by heart.</string>
+               </property>
+               <property name="icon">
+                <iconset resource="klfres.qrc">
+                 <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
+               </property>
+               <property name="shortcut">
+                <string>F7</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnLibrary">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Show Library [&lt;strong&gt;F8&lt;/strong&gt;]&lt;/p&gt;</string>
+               </property>
+               <property name="whatsThis">
+                <string comment="whatsthis text">Clicking this button opens the KLatexFormula Library which includes History (previously evaluated formulas) and Archive where you can store tagged equations.</string>
+               </property>
+               <property name="icon">
+                <iconset resource="klfres.qrc">
+                 <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
+               </property>
+               <property name="shortcut">
+                <string>F8</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnExpand">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string comment="tooltip">&lt;p style=&quot;white-space: pre&quot;&gt;Toggle shrinked/expanded mode [&lt;strong&gt;F5&lt;/strong&gt;]&lt;/p&gt;</string>
+               </property>
+               <property name="whatsThis">
+                <string>Switches to expanded mode or back to shrinked mode. In expanded mode you get to choose more options.</string>
+               </property>
+               <property name="icon">
+                <iconset resource="klfres.qrc">
+                 <normaloff>:/pics/switchexpanded.png</normaloff>:/pics/switchexpanded.png</iconset>
+               </property>
+               <property name="shortcut">
+                <string>F5</string>
                </property>
               </widget>
              </item>
             </layout>
-           </widget>
-          </item>
-         </layout>
+           </item>
+           <item>
+            <widget class="QFrame" name="frmOutput">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Plain</enum>
+             </property>
+             <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="99,0">
+              <property name="horizontalSpacing">
+               <number>6</number>
+              </property>
+              <property name="verticalSpacing">
+               <number>0</number>
+              </property>
+              <property name="margin">
+               <number>1</number>
+              </property>
+              <item row="0" column="1">
+               <widget class="QPushButton" name="btnDrag">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>&amp;DRAG</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QPushButton" name="btnCopy">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>&amp;COPY</string>
+                </property>
+                <property name="shortcut">
+                 <string>Alt+Y</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QPushButton" name="btnSave">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Save formula to disk</string>
+                </property>
+                <property name="text">
+                 <string>&amp;SAVE</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <spacer name="spcOutputButtons">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>5</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="0" rowspan="5">
+               <widget class="KLFDisplayLabel" name="lblOutput">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>99</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>280</width>
+                  <height>75</height>
+                 </size>
+                </property>
+                <property name="acceptDrops">
+                 <bool>true</bool>
+                </property>
+                <property name="toolTip">
+                 <string comment="tooltip">The resulting image will be displayed here</string>
+                </property>
+                <property name="whatsThis">
+                 <string comment="whatsthis">Here you can see the image you get after evaluating your LaTeX code.</string>
+                </property>
+                <property name="autoFillBackground">
+                 <bool>false</bool>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Plain</enum>
+                </property>
+                <property name="lineWidth">
+                 <number>0</number>
+                </property>
+                <property name="midLineWidth">
+                 <number>0</number>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="wordWrap">
+                 <bool>false</bool>
+                </property>
+                <property name="margin">
+                 <number>0</number>
+                </property>
+                <property name="indent">
+                 <number>0</number>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QWidget" name="wForBigPreviewButton" native="true">
+                <layout class="QHBoxLayout" name="lyt_wForBigPreviewButton">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="margin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <spacer name="spcPreviewButton">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>5</width>
+                     <height>5</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnShowBigPreview">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;p style=&quot;white-space: pre&quot;&gt;Show a larger preview [&lt;strong&gt;F2&lt;/strong&gt;]&lt;/p&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="klfres.qrc">
+                     <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spcLeftExportProfile">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>6</width>
+                     <height>10</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="btnSetExportProfile">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;p style=&quot;white-space: pre&quot;&gt;Select the export profile to use for Copy and Drag operations&lt;/p&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string notr="true"/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="klfres.qrc">
+                     <normaloff>:/pics/exportprofile.png</normaloff>:/pics/exportprofile.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <spacer name="vspc">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>10</width>
-           <height>2</height>
-          </size>
-         </property>
-        </spacer>
        </item>
        <item>
         <widget class="QPushButton" name="btnQuit">
@@ -1229,7 +1206,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>314</width>
+                <width>280</width>
                 <height>123</height>
                </rect>
               </property>
@@ -1493,18 +1470,6 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>txtLatex</tabstop>
-  <tabstop>btnClearLatex</tabstop>
-  <tabstop>btnClearAll</tabstop>
-  <tabstop>btnEvaluate</tabstop>
-  <tabstop>btnSymbols</tabstop>
-  <tabstop>btnLibrary</tabstop>
-  <tabstop>btnExpand</tabstop>
-  <tabstop>btnDrag</tabstop>
-  <tabstop>btnCopy</tabstop>
-  <tabstop>btnSave</tabstop>
-  <tabstop>btnShowBigPreview</tabstop>
-  <tabstop>btnSetExportProfile</tabstop>
   <tabstop>btnQuit</tabstop>
   <tabstop>tabsOptions</tabstop>
   <tabstop>colFg</tabstop>
@@ -1537,118 +1502,6 @@
   <include location="klfres.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>btnLibrary</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>aShowLibrary</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>361</x>
-     <y>224</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>aShowLibrary</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>btnLibrary</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>361</x>
-     <y>224</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnSymbols</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>aShowSymbols</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>301</x>
-     <y>224</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>aShowSymbols</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>btnSymbols</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>301</x>
-     <y>224</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnClearAll</sender>
-   <signal>clicked()</signal>
-   <receiver>aClearAll</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>129</x>
-     <y>224</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnClearLatex</sender>
-   <signal>clicked()</signal>
-   <receiver>aClearLatex</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>43</x>
-     <y>224</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btnSetExportProfile</sender>
-   <signal>clicked()</signal>
-   <receiver>btnSetExportProfile</receiver>
-   <slot>showMenu()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>415</x>
-     <y>328</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>415</x>
-     <y>328</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>chkMathMode</sender>
    <signal>toggled(bool)</signal>
@@ -1742,6 +1595,38 @@
     <hint type="destinationlabel">
      <x>660</x>
      <y>290</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnClearAll</sender>
+   <signal>clicked()</signal>
+   <receiver>aClearAll</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>99</x>
+     <y>201</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnClearLatex</sender>
+   <signal>clicked()</signal>
+   <receiver>aClearLatex</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>39</x>
+     <y>201</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>
