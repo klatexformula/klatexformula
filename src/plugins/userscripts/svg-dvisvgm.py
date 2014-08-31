@@ -66,13 +66,6 @@ if (sys.argv[1] == "--scriptinfo"):
         if (dvisvgm):
             print "Warning: Invalid dvisvgm path: %s" %(dvisvgm)
         print "Warning: Can't find dvisvgm executable.";
-    # # DEBUG:
-    #print "Warning: DEBUG: test warning";
-    #print "Error: DEBUG: test error";
-    #print "Notice: DEBUG: Hi there!";
-    #print "Error: DEBUG: 2nd Test Error!!! Really serious!!";
-    #print "Notice: DEBUG: Hi there!";
-    #print "Notice: DEBUG: Hi there!";
     print "";
     exit(0);
 

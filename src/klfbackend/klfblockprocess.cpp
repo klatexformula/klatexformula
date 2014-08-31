@@ -54,26 +54,34 @@ static bool is_binary_file(QString fn)
 
 
 #if defined(Q_OS_WIN32)
+static QByteArray get_script_process_type(const QString& name)
+{
+  // e.g. KLF_PYTHON_EXECUTABLE
+  QString envname = QString("KLF_%1_EXECUTABLE").arg(name.toUpper());
+  QByteArray path = qgetenv(envname.toLatin1().constData());
+  if (path.size() > 0)
+    return path;
+  // try to find the executable somewhere on the system
+  // allow suffixes to the executables, e.g. for python27
+  path = klfSearchPath(name+"*", QString());
+  if (path.size() > 0)
+    retun path;
+  return QByteArray();
+}
 static QByteArray get_script_process(QString fn)
 {
   fn = fn.toLower();
   if (fn.endsWith(".py")) {
-    QByteArray path = qgetenv("KLF_PYTHON_EXECUTABLE");
-    if (path.size() > 0)
-      return path;
-    return QByteArray();
+    return get_script_process_type(QLatin1String("python"));
+  }
+  if (fn.endsWith(".rb")) {
+    return get_script_process_type(QLatin1String("ruby"));
   }
   if (fn.endsWith(".sh")) {
-    QByteArray path = qgetenv("KLF_BASH_EXECUTABLE");
-    if (path.size() > 0)
-      return path;
-    return QByteArray();
+    return get_script_process_type(QLatin1String("bash"));
   }
   if (fn.endsWith(".pl")) {
-    QByteArray path = qgetenv("KLF_PERL_EXECUTABLE");
-    if (path.size() > 0)
-      return path;
-    return QByteArray();
+    return get_script_process_type(QLatin1String("perl"));
   }
   return QByteArray();
 }

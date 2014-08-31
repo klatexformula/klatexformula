@@ -55,8 +55,10 @@ if (sys.argv[1] == "--scriptinfo"):
     print "WantStdinInput: false"
     print "HasStdoutOutput: false"
     print "SettingsFormUI: :/userscriptdata/gif-convert/gif-convert_config.ui";
-    if not convert:
-        print "Error: Can't find `convert' utility."
+    if (not os.path.isfile(convert) or not os.access(convert, os.X_OK)):
+        if (convert):
+            print "Warning: Invalid `convert' path: %s" %(convert)
+        print "Warning: Can't find `convert' executable.";
     print "";
     exit(0);
 
