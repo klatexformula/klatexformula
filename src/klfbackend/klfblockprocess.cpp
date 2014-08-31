@@ -54,6 +54,7 @@ static bool is_binary_file(QString fn)
 
 
 #if defined(Q_OS_WIN32)
+const static QString script_extra_paths = QString("C:\\Python27");
 static QByteArray get_script_process_type(const QString& name)
 {
   // e.g. KLF_PYTHON_EXECUTABLE
@@ -63,9 +64,9 @@ static QByteArray get_script_process_type(const QString& name)
     return path;
   // try to find the executable somewhere on the system
   // allow suffixes to the executables, e.g. for python27
-  path = klfSearchPath(name+"*", QString());
+  path = klfSearchPath(name+"*.exe", script_extra_paths).toLocal8Bit();
   if (path.size() > 0)
-    retun path;
+    return path;
   return QByteArray();
 }
 static QByteArray get_script_process(QString fn)
