@@ -2700,7 +2700,9 @@ void KLFMainWinPrivate::updatePreviewThreadInput()
 
 void KLFMainWinPrivate::updatePreviewThreadSettings()
 {
-  pContLatexPreview->setSettings(K->currentSettings());
+  KLFBackend::klfSettings s = K->currentSettings();
+  klfDbg("Updating preview thread's settings. currentSettings().execenv="<<s.execenv);
+  pContLatexPreview->setSettings(s);
 }
 
 void KLFMainWin::setTxtLatexFont(const QFont& f)
@@ -2847,12 +2849,36 @@ void KLFMainWin::slotEvaluate()
   d->output = KLFBackend::getLatexFormula(input, settings);
   // ****
 
+  // for 9.08 <= gs <= 9.14
+  if (d->output.status == KLFERR_GSPOSTPROC_NOOUTLINEFONTS) {
+    QMessageBox mbox(this);
+    mbox.setIcon(QMessageBox::Warning);
+    mbox.setWindowTitle(tr("No Font Outlining"));
+    mbox.setText(tr("Your version of ghostscript does not allow fonts to be outlined."));
+    mbox.setInformativeText(
+        tr("This means that vector formats may not display well when pasted or dropped into other programs. "
+           "I'll continue now without font outlining. To get font outlining, update or downgrade your "
+           "ghostscript to gs <= 9.07 or gs >= 9.15. To suppress this warning, disable font outlining in "
+           "\"Settings->Advanced->LaTeX & Image\".")
+        );
+    mbox.addButton(QMessageBox::Ok);
+    mbox.exec();
+
+    // re-run without font outlines
+    settings.outlineFonts = false;
+    d->output = KLFBackend::getLatexFormula(input, settings);
+  }
+
   if (d->output.status < 0) {
     QString comment = "";
     bool showSettingsPaths = false;
     if (d->output.status == KLFERR_LATEX_NORUN ||
 	d->output.status == KLFERR_DVIPS_NORUN ||
-	d->output.status == KLFERR_GSBBOX_NORUN) {
+	d->output.status == KLFERR_GSBBOX_NORUN ||
+        d->output.status == KLFERR_GSPOSTPROC_NORUN ||
+        d->output.status == KLFERR_GSPNG_NORUN ||
+        d->output.status == KLFERR_GSPDF_NORUN ||
+        d->output.status == KLFERR_GSSVG_NORUN) {
       comment = "\n"+tr("Are you sure you configured your system paths correctly in the settings dialog ?");
       showSettingsPaths = true;
     }
@@ -3503,8 +3529,16 @@ QMimeData * KLFMainWin::resultToMimeData(const QString& exportProfileName)
 
 void KLFMainWin::slotDrag()
 {
+  // abort if we don't have anything to copy/drag. Use btnDrag's enabled status as a witness
+  // for that. (not the best idea, but whatever....)
+  if (!u->btnDrag->isEnabled()) {
+    klfDbg("Nothing to copy.") ;
+    return;
+  }
+
   if ( d->output.result.isNull() )
     return;
+
 
   void aboutToDragData();
 
@@ -3551,6 +3585,13 @@ void KLFMainWin::slotDrag()
 void KLFMainWin::slotCopy()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  // abort if we don't have anything to copy. Use btnCopy's enabled status as a witness
+  // for that. (not the best idea, but whatever....)
+  if (!u->btnCopy->isEnabled()) {
+    klfDbg("Nothing to copy.") ;
+    return;
+  }
 
   emit aboutToCopyData();
 

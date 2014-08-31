@@ -1565,9 +1565,11 @@ void KLFSettings::apply()
   backendsettings.calcEpsBoundingBox = u->chkCalcEPSBoundingBox->isChecked();
   backendsettings.outlineFonts = u->chkOutlineFonts->isChecked();
 
-  d->mainWin->applySettings(backendsettings);
-
   klfconfig.BackendSettings.setTexInputs = u->txtSetTexInputs->text();
+
+  // do this *after* setting 'setTexInputs', because we refer to it when adjusting the
+  // execenv setting with the required value of TEXINPUTS...
+  d->mainWin->applySettings(backendsettings);
 
   klfconfig.UI.editorTabInsertsTab = u->chkEditorTabInsertsTab->isChecked();
   klfconfig.UI.editorWrapLines = u->chkEditorWrapLines->isChecked();

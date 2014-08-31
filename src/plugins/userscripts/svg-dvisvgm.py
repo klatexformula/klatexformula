@@ -64,8 +64,8 @@ if (sys.argv[1] == "--scriptinfo"):
     print "SettingsFormUI: :/userscriptdata/svg-dvisvgm/svg-dvisvgm_config.ui";
     if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
         if (dvisvgm):
-            print "Error: Invalid dvisvgm path: %s" %(dvisvgm)
-        print "Error: Can't find dvisvgm executable.";
+            print "Warning: Invalid dvisvgm path: %s" %(dvisvgm)
+        print "Warning: Can't find dvisvgm executable.";
     # # DEBUG:
     #print "Warning: DEBUG: test warning";
     #print "Error: DEBUG: test error";

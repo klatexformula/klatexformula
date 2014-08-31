@@ -28,6 +28,7 @@ import sys
 import os.path
 import base64
 import cgi
+import textwrap
 
 if (sys.argv[1] == "--help"):
     print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
@@ -73,9 +74,9 @@ height_in = magnify * height_px / dpi           #height_pt / 72.0
 latexinput = cgi.escape(latexinput, True)
 
 htmldata = (('<img src="%(src)s" alt="%(alt)s" title="%(title)s"'
-             '     style="width:%(width)sin; height: %(height)sin; vertical-align: middle;">')
+             '     style="width:%(width).3fin; height: %(height).3fin; vertical-align: middle;">')
              %   {
-                 'src': "data:image/png;base64,"+base64.b64encode(pngdata),
+                 'src': textwrap.fill("data:image/png;base64,"+base64.b64encode(pngdata), width=64),
                  'alt': latexinput,
                  'title': latexinput,
                  'width': width_in,
@@ -83,7 +84,7 @@ htmldata = (('<img src="%(src)s" alt="%(alt)s" title="%(title)s"'
                  }
             )
 
-print htmldata;
+print htmldata
 
 
 exit(0);
