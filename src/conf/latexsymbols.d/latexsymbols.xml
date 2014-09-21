@@ -556,6 +556,12 @@
     <sym><usepackage name="amsmath"/><hidden/><latex>\lvert</latex></sym>
     <sym><usepackage name="amsmath"/><hidden/><latex>\rvert</latex></sym>
     <sym><usepackage name="slashed"/><latex numargs="1">\slashed</latex><preview-latex>\slashed{\gamma}</preview-latex><keywords>Feynman slash quantum field theory QFT</keywords></sym>
+    <sym><usepackage name="amsmath"/><latex>\begin{pmatrix} a &amp; b \\ c &amp; d\end{pmatrix}</latex><keywords>matrix, braces</keywords></sym>
+    <sym><usepackage name="amsmath"/><latex>\begin{bmatrix} a &amp; b \\ c &amp; d\end{bmatrix}</latex><keywords>matrix, braces</keywords></sym>
+    <sym><usepackage name="amsmath"/><latex>\begin{Bmatrix} a &amp; b \\ c &amp; d\end{Bmatrix}</latex><keywords>matrix, braces</keywords></sym>
+    <sym><usepackage name="amsmath"/><latex>\begin{vmatrix} a &amp; b \\ c &amp; d\end{vmatrix}</latex><keywords>matrix, braces</keywords></sym>
+    <sym><usepackage name="amsmath"/><latex>\begin{Vmatrix} a &amp; b \\ c &amp; d\end{Vmatrix}</latex><keywords>matrix, braces</keywords></sym>
+    <sym><usepackage name="amsmath"/><latex numargs="2">\binom</latex><preview-latex>\binom{n}{k}</preview-latex><keywords>binomial coefficient, n choose k</keywords></sym>
   </category>
   <category name="Greek Alphabet">
     <category-title>Greek Alphabet</category-title>
