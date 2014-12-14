@@ -170,7 +170,7 @@ private slots:
   void ourProcGotOurStdinData();
 
 private:
-  bool _runstatus;
+  int _runstatus;
 #ifdef KLFBACKEND_QT4
   bool mProcessAppEvents;
 #endif
