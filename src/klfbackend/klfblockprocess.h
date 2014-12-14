@@ -122,7 +122,7 @@ private slots:
   void ourProcGotOurStdinData();
 
 private:
-  bool _runstatus;
+  int _runstatus;
   bool mProcessAppEvents;
 };
 
