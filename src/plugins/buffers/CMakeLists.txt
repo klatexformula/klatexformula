@@ -26,3 +26,4 @@ qt4_add_resources(buffers_QRC_CPPS ${buffers_QRCS})
 add_library(buffers MODULE ${buffers_SRCS} ${buffers_MOC_CPPS} ${buffers_UIS_H} ${buffers_QRC_CPPS})
 
 KLFPluginUndefOrLink(buffers  klftools klfbackend klfapp)
+KLFInstallPlugin(buffers)

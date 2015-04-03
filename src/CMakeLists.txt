@@ -382,6 +382,7 @@ if(KLF_MACOSX_BUNDLES)
         MACOSX_BUNDLE_BUNDLE_COPYRIGHT "Copyright (C) 2014 Philippe Faist"
   )
   KLFMMakeBundle(klatexformula)
+  KLFMBundleMkPrivateDir(klatexformula "Contents/Resources/plugins")
   KLFMBundleMkPrivateDir(klatexformula "Contents/Resources/rccresources")
   
   # Add the frameworks to be included as private frameworks.
@@ -395,7 +396,7 @@ if(KLF_MACOSX_BUNDLES)
   foreach(plugin ${KLF_BUNDLE_QT_PLUGINS})
     KLFMBundlePrivateImport(klatexformula "${plugin}" "${QT_PLUGINS_DIR}/${plugin}" plugins)
     KLFMInstallNameToolID(klatexformula "plugins/${plugin}")
-    KLFMBundlePrivateLibUpdateQtDep(klatexformula "plugins/${plugin}"  "Core;Gui;Xml;Sql")
+    KLFMBundlePrivateLibUpdateQtDep(klatexformula "plugins/${plugin}"  "Core;Gui;Xml;Sql;DBus")
   endforeach()
   #- # Import&Setup klftools_desplugin designer plugin, needed for QUiLoader to load user scripts' input widget UIs
   #- KLFGetTargetLocation(klf_desplugin_target_path klftoolsdesplugin)

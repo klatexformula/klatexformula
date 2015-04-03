@@ -9,9 +9,9 @@
 remove_definitions(-DKLF_SRC_BUILD)
 
 
-# The subdir in which to put plugins
-set(KLF_CMAKE_BASEPLUGINSSUBDIR "${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}"
-					CACHE INTERNAL "(internal) Base Plugins RCC sub-dir")
+# The subdir in which to put plugins in RCC
+#set(KLF_CMAKE_BASEPLUGINSSUBDIR "${KLF_CMAKE_OS}-${KLF_CMAKE_ARCH}"
+#					CACHE INTERNAL "(internal) Base Plugins RCC sub-dir")
 
 # THE PLUGIN TARGET/BASE NAMES
 
@@ -37,6 +37,37 @@ macro(KLFPluginUndefOrLink  plugin)
   endif(UNIX)
 endmacro(KLFPluginUndefOrLink)
 
+# local for-developers-only compile-time install
+if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
+  file(MAKE_DIRECTORY
+    "$ENV{HOME}/.klatexformula/plugins/sysarch_${KLF_CMAKE_OS}:${KLF_CMAKE_ARCH}/klf${KLF_VERSION}/${plugin_libname}"
+    )
+endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
+
+macro(KLFInstallPlugin plugin)
+  add_dependencies(klfbaseplugins ${plugin})
+  KLFCMakeDebug("KLFInstallPlugin: plugin=${plugin}")
+  if(KLF_INSTALL_PLUGINS)
+    install(TARGETS ${plugin}
+      RUNTIME DESTINATION "${KLF_INSTALL_PLUGINS_DIR}"
+      LIBRARY DESTINATION "${KLF_INSTALL_PLUGINS_DIR}"
+      ARCHIVE DESTINATION "${KLF_INSTALL_PLUGINS_DIR}"
+      )
+  endif(KLF_INSTALL_PLUGINS)
+
+  # local for-developers-only compile-time install
+  if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
+    KLFGetTargetLocation(plugin_location ${plugin})
+    KLFGetTargetFileName(plugin_libname ${plugin})
+    add_custom_command(TARGET ${plugin}
+      POST_BUILD
+      COMMAND "${CMAKE_COMMAND}" -E copy "${plugin_location}" "$ENV{HOME}/.klatexformula/plugins/sysarch_${KLF_CMAKE_OS}:${KLF_CMAKE_ARCH}/klf${KLF_VERSION}/${plugin_libname}"
+      COMMENT "Installing plugin ${plugin} to ~/.klatexformula/plugins/ ... (as requested by KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)"
+      VERBATIM
+      )
+  endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
+endmacro(KLFInstallPlugin)
+
 # Setup per plugin
 foreach(plugin ${KLF_LOCAL_PLUGINS})
 
@@ -60,9 +91,9 @@ foreach(plugin ${KLF_LOCAL_PLUGINS})
   )
   set(KLF_LOCAL_PLUGIN_LIBNAMES ${KLF_LOCAL_PLUGIN_LIBNAMES} ${plugin_libname})
 
-  set(KLF_CMAKE_PLUGINS_QRC_DEFS
-    "${KLF_CMAKE_PLUGINS_QRC_DEFS} <file>${plugin_libname}</file>"
-  )
+#  set(KLF_CMAKE_PLUGINS_QRC_DEFS
+#    "${KLF_CMAKE_PLUGINS_QRC_DEFS} <file>${plugin_libname}</file>"
+#  )
 
 endforeach(plugin)
 
@@ -106,29 +137,31 @@ configure_file(
   @ONLY)
 
 
-set(KLF_BASEPLUGINS_FN_RCC "klfbaseplugins-${KLF_VERSION}.rcc")
+# We'll no longer bundle our plugins in an RCC, but install them directly.
 
-add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
-	COMMAND "${QT_RCC_EXECUTABLE}" -binary -o ${KLF_BASEPLUGINS_FN_RCC} klfbaseplugins.qrc
-	WORKING_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}"
-	COMMENT  "Archiving Base Plugins into Add-On File"
-	DEPENDS ${KLF_LOCAL_PLUGIN_LIBNAMES}
-	  "${CMAKE_CURRENT_BINARY_DIR}/info_baseplugins.xml"
-	  "${CMAKE_CURRENT_BINARY_DIR}/plugindirinfo.xml"
-	  "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.qrc"
-	VERBATIM
-)
-add_custom_target(klfbaseplugins_rcc ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}")
+#set(KLF_BASEPLUGINS_FN_RCC "klfbaseplugins-${KLF_VERSION}.rcc")
+
+#add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
+#	COMMAND "${QT_RCC_EXECUTABLE}" -binary -o ${KLF_BASEPLUGINS_FN_RCC} klfbaseplugins.qrc
+#	WORKING_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}"
+#	COMMENT  "Archiving Base Plugins into Add-On File"
+#	DEPENDS ${KLF_LOCAL_PLUGIN_LIBNAMES}
+#	  "${CMAKE_CURRENT_BINARY_DIR}/info_baseplugins.xml"
+#	  "${CMAKE_CURRENT_BINARY_DIR}/plugindirinfo.xml"
+#	  "${CMAKE_CURRENT_BINARY_DIR}/klfbaseplugins.qrc"
+#	VERBATIM
+#)
+#add_custom_target(klfbaseplugins_rcc ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}")
 
 
-if(APPLE AND KLF_MACOSX_BUNDLES)
-  add_dependencies(klfbaseplugins_rcc klatexformula klfbaseplugins_maclibpacked)
-  add_custom_command(TARGET klfbaseplugins_rcc POST_BUILD
-      COMMAND cp "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
-		 "${klfbundlelocation_klatexformula}/Contents/Resources/rccresources/${KLF_BASEPLUGINS_FN_RCC}"
-      COMMENT "Installing base plugins into application bundle"
-      VERBATIM)
-endif(APPLE AND KLF_MACOSX_BUNDLES)
+#if(APPLE AND KLF_MACOSX_BUNDLES)
+#  add_dependencies(klfbaseplugins_rcc klatexformula klfbaseplugins_maclibpacked)
+#  add_custom_command(TARGET klfbaseplugins_rcc POST_BUILD
+#      COMMAND cp "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
+#		 "${klfbundlelocation_klatexformula}/Contents/Resources/rccresources/${KLF_BASEPLUGINS_FN_RCC}"
+#      COMMENT "Installing base plugins into application bundle"
+#      VERBATIM)
+#endif(APPLE AND KLF_MACOSX_BUNDLES)
 
 
 if(WIN32)
@@ -136,24 +169,23 @@ if(WIN32)
 else(WIN32)
   set(homePath "$ENV{HOME}")
 endif(WIN32)
-# local for-developers-only compile-time install
-add_custom_target(klfbaseplugins_localinstall
-  COMMAND "${CMAKE_COMMAND}" -E copy "${KLF_BASEPLUGINS_FN_RCC}" "${homePath}/.klatexformula/rccresources/"
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-  COMMENT "Installing Base Plugins Add-On Locally in ~/.klatexformula/rccresources"
-  VERBATIM
-)
-add_dependencies(klfbaseplugins_localinstall klfbaseplugins_rcc)
-if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
-  add_custom_target(klfbaseplugins_localinstall_all ALL)
-  add_dependencies(klfbaseplugins_localinstall_all klfbaseplugins_localinstall)
-endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 
 
-if(KLF_INSTALL_PLUGINS)
-  # The install target
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
-	  DESTINATION "${KLF_INSTALL_RCCRESOURCES_DIR}")
-endif(KLF_INSTALL_PLUGINS)
 
+#add_custom_target(klfbaseplugins_localinstall
+#  COMMAND "${CMAKE_COMMAND}" -E copy_directory "${KLF_BASEPLUGINS_FN_RCC}" "${homePath}/.klatexformula/rccresources/"
+#  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+#  COMMENT "Installing Base Plugins Add-On Locally in ~/.klatexformula/rccresources"
+#  VERBATIM
+#)
+#add_dependencies(klfbaseplugins_localinstall klfbaseplugins)
+#if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
+#  add_custom_target(klfbaseplugins_localinstall_all ALL)
+#  add_dependencies(klfbaseplugins_localinstall_all klfbaseplugins_localinstall)
+#endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 
+#if(KLF_INSTALL_PLUGINS)
+#  # The install target
+#  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
+#   DESTINATION "${KLF_INSTALL_RCCRESOURCES_DIR}")
+#endif(KLF_INSTALL_PLUGINS)

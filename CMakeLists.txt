@@ -7,6 +7,8 @@ cmake_minimum_required(VERSION 2.6.4)
 
 PROJECT(klatexformula)
 
+cmake_policy(VERSION 2.8.0)
+
 # Set up CMAKE properly
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
@@ -127,7 +129,7 @@ option(KLF_EXPERIMENTAL
   off)
 mark_as_advanced(KLF_EXPERIMENTAL)
 if(KLF_EXPERIMENTAL)
-  KLFNote("WARNING: Experimental features are unstable and are meant only for developers!! Use at your risk!!")
+  KLFNote("WARNING: Experimental features are unstable and are meant only for developers!! Use at your own risk!!")
   message(STATUS "Enabling experimental features (KLF_EXPERIMENTAL)")
 endif(KLF_EXPERIMENTAL)
 
@@ -431,20 +433,20 @@ if(APPLE)
 endif(APPLE)
 
 # Build DBUS support ?
-if(NOT WIN32)
+if(UNIX AND NOT APPLE)
   set(KLF_USE_DBUS ON CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
-else(NOT WIN32)
+else(UNIX AND NOT APPLE)
   set(KLF_USE_DBUS OFF CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
-endif(NOT WIN32)
+endif(UNIX AND NOT APPLE)
 if(KLF_USE_DBUS)
   message(STATUS "Building with D-BUS support (KLF_USE_DBUS)")
 else(KLF_USE_DBUS)
   message(STATUS "Building without D-BUS support (KLF_USE_DBUS)")
 endif(KLF_USE_DBUS)
 
-# DEVELOPER OPTION to install klfbaseplugins.rcc in ~/.klatexformula/rccresources
+# DEVELOPER OPTION to install base plugins to ~/.klatexformula/plugins
 option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
- "FOR DEVELOPERS ONLY. Installs klfbaseplugins.rcc in ~/.klatexformula/rccresources AT COMPILE-TIME."
+ "FOR DEVELOPERS ONLY. Installs plugins in ~/.klatexformula/plugins/ AT COMPILE-TIME."
  FALSE)
 # DEVELOPER OPTION to test QAbstractItemModel-based models with ModelTest
 option(KLF_DEBUG_USE_MODELTEST
@@ -452,7 +454,7 @@ option(KLF_DEBUG_USE_MODELTEST
  FALSE)
 mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY KLF_DEBUG_USE_MODELTEST)
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
-  message(STATUS "Will install klfbaseplugins.rcc in ~/.klatexformula/rccresources at compile-time (KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)")
+  message(STATUS "Will install plugins in ~/.klatexformula/plugins/ at compile-time (KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)")
 endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 if(KLF_DEBUG_USE_MODELTEST)
   message(STATUS "Will compile with QtLab's ModelTest for KLFLibModel testing (KLF_DEBUG_USE_MODELTEST)")

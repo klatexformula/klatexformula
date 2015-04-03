@@ -656,7 +656,7 @@ void main_load_plugins(QApplication *app, KLFMainWin *mainWin)
 	    }
 	  }
 	}
-	klfDbg("we belong to add-on # k="<<k<<", "<<(k>=0?klf_addons[k].fname():QString("(out of range)"))) ;
+	klfDbg("we belong to add-on # k="<<k<<", "<<(k>=0?klf_addons[k].fname():QString("(no addon or out of range)"))) ;
 
 	QString pluginpath = thisplugdir.absoluteFilePath(pluginfname);
 	QPluginLoader pluginLoader(pluginpath, app);

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # customtemplate.py
 #   This file is part of the KLatexFormula Project.
@@ -74,7 +74,7 @@ if (not "%%INPUT" in template):
     print "\n";
     exit(1);
 
-fulllatex = re.sub(r'%%INPUT\b', latexinput, template);
+fulllatex = re.sub(r'%%INPUT\b', lambda m: latexinput, template);
 
 f = open(latexfname, 'w');
 print "Full LaTeX is :\n", fulllatex;
