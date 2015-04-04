@@ -2,6 +2,8 @@
 # ===========================
 # $Id$
 
+cmake_policy(VERSION 2.8.0)
+
 
 configure_file("${CMAKE_SOURCE_DIR}/cmake/welcome_installer.txt.in"
 	       "${CMAKE_BINARY_DIR}/welcome_installer.txt"

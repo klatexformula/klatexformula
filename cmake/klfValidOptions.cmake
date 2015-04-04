@@ -2,6 +2,8 @@
 # ========================================
 # $Id: klfinstallpaths.cmake 572 2010-11-27 12:52:43Z philippe $
 
+cmake_policy(VERSION 2.8.0)
+
 set(klf_valid_cache_variables
   KLF_WELCOME_MSG_SILENT
   KLF_QT_VERSION

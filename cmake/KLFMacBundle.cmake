@@ -4,6 +4,9 @@
 # $Id$
 # ##################################################### #
 
+cmake_policy(VERSION 2.8.0)
+
+
 macro(KLFMessageBundleExtraDeps var textname)
   if(${var})
     message(STATUS "Will bundle library and framework dependencies into ${textname} (${var})")
@@ -109,10 +112,16 @@ macro(KLFMInstallNameToolChange TGT CHANGEFILENAMEREL DEPRELPATH DEPFULLPATH)
   if(NOT IS_ABSOLUTE "${klflibnamepath}")
     set(klflibnamepath "${klfbundlelocation_${TGT}}/Contents/${CHANGEFILENAMEREL}")
   endif(NOT IS_ABSOLUTE "${klflibnamepath}")
+  if(NOT QT_HOMEBREW_ALT_LIB_DIR OR QT_HOMEBREW_ALT_LIB_DIR MATCHES "/$")
+    # ends with slash: ok
+    set(qt_homebrew_alt_lib_dir_ok "${QT_HOMEBREW_ALT_LIB_DIR}")
+  else(NOT QT_HOMEBREW_ALT_LIB_DIR OR QT_HOMEBREW_ALT_LIB_DIR MATCHES "/$")
+    set(qt_homebrew_alt_lib_dir_ok "${QT_HOMEBREW_ALT_LIB_DIR}/")
+  endif(NOT QT_HOMEBREW_ALT_LIB_DIR OR QT_HOMEBREW_ALT_LIB_DIR MATCHES "/$")
   add_custom_command(TARGET ${TGT}_maclibpacked POST_BUILD
     COMMAND "install_name_tool" -change "${DEPFULLPATH}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
     COMMAND "install_name_tool" -change "${klfINTC_reltolibdir}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
-    COMMAND "install_name_tool" -change "${QT_HOMEBREW_ALT_LIB_DIR}${klfINTC_reltolibdir}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
+    COMMAND "install_name_tool" -change "${qt_homebrew_alt_lib_dir_ok}${klfINTC_reltolibdir}" "@executable_path/../${DEPRELPATH}" "${klflibnamepath}"
     COMMENT "Updating ${CHANGEFILENAMEREL}'s dependency on ${DEPFULLPATH} to @executable_path/../${DEPRELPATH}"
     VERBATIM
   )

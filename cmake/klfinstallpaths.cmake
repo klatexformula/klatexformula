@@ -2,6 +2,8 @@
 # ==========================
 # $Id$
 
+cmake_policy(VERSION 2.8.0)
+
 
 KLFGetCMakeVarChanged(CMAKE_INSTALL_PREFIX)
 KLFGetCMakeVarChanged(KLF_INSTALL_RUN_POST_INSTALL)
@@ -229,8 +231,8 @@ if(NOT KLF_MACOSX_BUNDLES)
 else(NOT KLF_MACOSX_BUNDLES)
   if(KLF_INSTALL_PLUGINS)
     KLFNote("Not Installing plugins outside bundle. On mac, klatexformula looks for plugins by expecting to reside in a bundle.")
-    set(KLF_INSTALL_PLUGINS  OFF  CACHE BOOL "Not needed. plugins are incorporated into bundle instead." FORCE)
   endif(KLF_INSTALL_PLUGINS)
+  set(KLF_INSTALL_PLUGINS  OFF  CACHE BOOL "Not needed. plugins are incorporated into bundle instead." FORCE)
 endif(NOT KLF_MACOSX_BUNDLES)
 
 message(STATUS "Will install targets:

@@ -4,6 +4,8 @@
 # $Id$
 # ######################################### #
 
+cmake_policy(VERSION 2.8.0)
+
 
 #
 # Filters a list of C/C++ header files ".h" and keeps only those header files
