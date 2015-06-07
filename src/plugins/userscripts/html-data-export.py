@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # html-data-export.py
 #   This file is part of the KLatexFormula Project.

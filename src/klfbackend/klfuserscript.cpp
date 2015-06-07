@@ -116,6 +116,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
   QString fname;
   QString normalizedfname;
   QString sname;
+  QString basename;
   int scriptInfoError;
   QString scriptInfoErrorString;
 
@@ -238,11 +239,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
 	if ( ! property(SettingsFormUI).toString().isEmpty() ) {
 	  klfWarning("A user script ("<<sname<<") may not specify multiple settings UI forms.") ;
 	}
-	QString uifn = val;
-	if (QFileInfo(uifn).isRelative()) {
-	  uifn = QFileInfo(normalizedfname).dir().filePath(uifn);
-	}
-	setProperty(SettingsFormUI, uifn);
+	setProperty(SettingsFormUI, val);
 	klfDbg("Read SettingsFormUI: "<<property(SettingsFormUI)) ;
       } else if (key == QLatin1String("SpitsOut")) {
 	setProperty(SpitsOut, property(SpitsOut).toStringList() + val.split(QRegExp("(,|\\s+)")));
@@ -254,12 +251,8 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
 	if ( ! property(InputFormUI).toString().isEmpty() ) {
 	  klfWarning("A user script ("<<sname<<") may not specify multiple input UI forms.") ;
 	}
-	QString uifn = val;
-	if (QFileInfo(uifn).isRelative()) {
-	  uifn = QFileInfo(normalizedfname).dir().filePath(uifn);
-	}
-	setProperty(InputFormUI, uifn);
-	klfDbg("Read InputFormUI: "<<property(SettingsFormUI)) ;
+	setProperty(InputFormUI, val);
+	klfDbg("Read InputFormUI: "<<property(InputFormUI)) ;
       }
       else {
 	klfDbg("Custom userscript info key: "<<key<<", value="<<val);
@@ -335,7 +328,9 @@ KLFUserScriptInfo::KLFUserScriptInfo(const QString& scriptFileName, const KLFBac
     d()->settings = settings;
     d()->fname = scriptFileName;
     d()->normalizedfname = normalizedfn;
-    d()->sname = QFileInfo(scriptFileName).fileName();
+    QFileInfo fi(scriptFileName);
+    d()->sname = fi.fileName();
+    d()->basename = fi.baseName();
 
     //KLF_ASSERT_NOT_NULL(settings, "Given NULL settings pointer! The KLFUserScript will not be initialized!", ; ) ;
     if (settings == NULL) {
@@ -366,6 +361,10 @@ QString KLFUserScriptInfo::fileName() const
 QString KLFUserScriptInfo::scriptName() const
 {
   return d()->sname;
+}
+QString KLFUserScriptInfo::baseName() const
+{
+  return d()->basename;
 }
 
 int KLFUserScriptInfo::scriptInfoError() const

@@ -1057,7 +1057,7 @@ QString KLFMimeExporterUrilist::tempFileForOutput(const KLFBackend::klfOutput& o
     return QString();
   }
 
-  tempfilename = tempfile->fileName();
+  tempfilename = QFileInfo(tempfile->fileName()).absoluteFilePath();
   tempfile->close();
   // cache this temp file for other formats' use or other QMimeData instantiation...
   tempFilesForImageCacheKey[imgcachekey][targetDpi] = tempfilename;

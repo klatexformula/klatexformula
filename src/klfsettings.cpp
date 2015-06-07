@@ -1331,6 +1331,11 @@ void KLFSettingsPrivate::refreshUserScriptSelected()
   // update config widget
   QString uifile = usinfo.settingsFormUI();
   if (!uifile.isEmpty()) {
+    uifile = klfSearchPath(uifile,
+			   QStringList() << ":/userscriptdata/"+usinfo.baseName()
+			   << klfconfig.globalShareDir + "/userscriptdata/" + usinfo.baseName());
+  }
+  if (!uifile.isEmpty()) {
     QWidget * scriptconfigwidget = getUserScriptConfigWidget(usinfo, uifile);
     K->u->stkUserScriptSettings->setCurrentWidget(scriptconfigwidget);
     klfDbg("Set script config UI. uifile="<<uifile) ;
@@ -1343,9 +1348,9 @@ QWidget * KLFSettingsPrivate::getUserScriptConfigWidget(const KLFUserScriptInfo&
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("uifile = " << uifile) ;
-  if (userScriptConfigWidgets.contains(uifile)) {
+  if (userScriptConfigWidgets.contains(usinfo.baseName())) {
     klfDbg("widget from cache.") ;
-    return userScriptConfigWidgets[uifile];
+    return userScriptConfigWidgets[usinfo.baseName()];
   }
 
   QFile uif(uifile);
@@ -1356,7 +1361,7 @@ QWidget * KLFSettingsPrivate::getUserScriptConfigWidget(const KLFUserScriptInfo&
 		      return K->u->wStkUserScriptSettingsEmptyPage) ;
 
   K->u->stkUserScriptSettings->addWidget(scriptconfigwidget);
-  userScriptConfigWidgets[uifile] = scriptconfigwidget;
+  userScriptConfigWidgets[usinfo.baseName()] = scriptconfigwidget;
 
   // load current configuration
   if (klfconfig.UserScripts.userScriptConfig.contains(usinfo.fileName()))
@@ -1723,12 +1728,12 @@ void KLFSettings::apply()
     if (formui.isEmpty())
       continue;
 
-    if (!d->userScriptConfigWidgets.contains(formui))
+    if (!d->userScriptConfigWidgets.contains(usinfo.baseName()))
       continue; // no config for them...
 
     klfDbg("saving settings for "<<usinfo.scriptName()) ;
 
-    QWidget * w = d->userScriptConfigWidgets[formui];
+    QWidget * w = d->userScriptConfigWidgets[usinfo.baseName()];
 
     QVariantMap data = d->getUserScriptConfig(w);
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # svg-dvisvgm.py
 #   This file is part of the KLatexFormula Project.
@@ -61,7 +61,7 @@ if (sys.argv[1] == "--scriptinfo"):
     print "OutputFormatDescription: SVG Vector Image (using dvisvgm)";
     print "WantStdinInput: false";
     print "HasStdoutOutput: false";
-    print "SettingsFormUI: :/userscriptdata/svg-dvisvgm/svg-dvisvgm_config.ui";
+    print "SettingsFormUI: svg-dvisvgm_config.ui";
     if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
         if (dvisvgm):
             print "Warning: Invalid dvisvgm path: %s" %(dvisvgm)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # gif-convert.py
 #   This file is part of the KLatexFormula Project.
@@ -54,7 +54,7 @@ if (sys.argv[1] == "--scriptinfo"):
     print "OutputFormatDescription: GIF Image"
     print "WantStdinInput: false"
     print "HasStdoutOutput: false"
-    print "SettingsFormUI: :/userscriptdata/gif-convert/gif-convert_config.ui";
+    print "SettingsFormUI: gif-convert_config.ui";
     if (not os.path.isfile(convert) or not os.access(convert, os.X_OK)):
         if (convert):
             print "Warning: Invalid `convert' path: %s" %(convert)

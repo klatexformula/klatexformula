@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # klffeynmf.py
 #   This file is part of the KLatexFormula Project.
@@ -42,7 +42,7 @@ if (sys.argv[1] == "--scriptinfo"):
     print "License: GPL v2+"
     print "SpitsOut: dvi"
     print "DisableInputs: all_input except preamble"
-    print "InputFormUI: :/userscriptdata/klffeynmf/klffeynmf_input.ui";
+    print "InputFormUI: klffeynmf_input.ui";
     print "";
     exit(0);
 

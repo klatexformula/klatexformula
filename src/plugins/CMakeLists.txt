@@ -99,6 +99,7 @@ endforeach(plugin)
 
 
 
+
 if(APPLE AND KLF_MACOSX_BUNDLES)
   KLFMMakeMacExtraBundledTarget(klfbaseplugins klatexformula "${KLF_LOCAL_PLUGIN_LIBNAMES}")
 
@@ -148,24 +149,25 @@ if(APPLE AND KLF_MACOSX_BUNDLES)
     VERBATIM
     )
     
-
-endif(APPLE AND KLF_MACOSX_BUNDLES)
-
-
-
-
-#if(APPLE AND KLF_MACOSX_BUNDLES)
+#  # add klfbaseplugins.rcc because we need the config UI files for the user scripts
 #  add_dependencies(klfbaseplugins_rcc klatexformula klfbaseplugins_maclibpacked)
 #  add_custom_command(TARGET klfbaseplugins_rcc POST_BUILD
 #      COMMAND cp "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
 #		 "${klfbundlelocation_klatexformula}/Contents/Resources/rccresources/${KLF_BASEPLUGINS_FN_RCC}"
-#      COMMENT "Installing base plugins into application bundle"
+#      COMMENT "Installing base plugin UI files into application bundle"
 #      VERBATIM)
-#endif(APPLE AND KLF_MACOSX_BUNDLES)
+
+endif(APPLE AND KLF_MACOSX_BUNDLES)
 
 
-if(WIN32)
-  set(homePath "$ENV{USERPROFILE}")
-else(WIN32)
-  set(homePath "$ENV{HOME}")
-endif(WIN32)
+#if(WIN32)
+#  set(homePath "$ENV{USERPROFILE}")
+#else(WIN32)
+#  set(homePath "$ENV{HOME}")
+#endif(WIN32)
+
+#if(KLF_INSTALL_PLUGINS)
+#  # The install target
+#  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${KLF_BASEPLUGINS_FN_RCC}"
+#	  DESTINATION "${KLF_INSTALL_RCCRESOURCES_DIR}")
+#endif(KLF_INSTALL_PLUGINS)

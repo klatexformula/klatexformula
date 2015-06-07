@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <rccinfo>
-  <title>Base Plugins (@KLF_VERSION@)</title>
+  <title>Userscript data (@KLF_VERSION@)</title>
   <author>Philippe Faist</author>
-  <description>Provides Basic Plugins for KLatexFormula @KLF_VERSION@</description>
+  <description>Provides Basic Userscript data KLatexFormula @KLF_VERSION@</description>
 </rccinfo>

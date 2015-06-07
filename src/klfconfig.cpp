@@ -326,8 +326,8 @@ void KLFConfig::loadDefaults()
   f_keyword.setForeground(QColor(0, 0, 128));
   f_comment.setForeground(QColor(180, 0, 0));
   f_comment.setFontItalic(true);
-  f_parenmatch.setBackground(QColor(180, 238, 180));
-  f_parenmismatch.setBackground(QColor(255, 20, 147));
+  f_parenmatch.setBackground(QColor(180, 238, 180, 128));
+  f_parenmismatch.setBackground(QColor(255, 20, 147, 128));
   f_lonelyparen.setForeground(QColor(255, 0, 255));
   f_lonelyparen.setFontWeight(QFont::Bold);
   KLFCONFIGPROP_INIT(SyntaxHighlighter.fmtKeyword, f_keyword) ;

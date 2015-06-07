@@ -33,6 +33,7 @@
 #include <ui_klfmainwin.h>
 
 #include <klfprogerr.h>
+#include <klfutil.h>
 #include <klfguiutil.h>
 #include <klfrelativefont.h>
 #include <klflatexedit.h>
@@ -1979,6 +1980,11 @@ void KLFMainWinPrivate::slotUserScriptSet(int index)
 					    "[[space for user script custom input]]"));
 
   QString uifile = usinfo.inputFormUI();
+  if (!uifile.isEmpty()) {
+    uifile = klfSearchPath(uifile,
+			   QStringList() << ":/userscriptdata/"+usinfo.baseName()
+			   << klfconfig.globalShareDir + "/userscriptdata/" + usinfo.baseName());
+  }
   if (!uifile.isEmpty()) {
     QWidget * scriptinputwidget = getUserScriptInputWidget(uifile);
     K->u->stkScriptInput->setCurrentWidget(scriptinputwidget);

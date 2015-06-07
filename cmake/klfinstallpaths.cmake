@@ -108,10 +108,10 @@ set(klf_inst_plugin_subdir "sysarch_${KLF_CMAKE_OS}:${KLF_CMAKE_ARCH}/klf${KLF_V
 # rccresources dir
 if(WIN32)
 
-  #  set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
-  #			    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
-  #  mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
-  #  KLFWarnAbsInstallPath(KLF_INSTALL_RCCRESOURCES_DIR)
+  set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
+ 		    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
+  mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
+  KLFWarnAbsInstallPath(KLF_INSTALL_RCCRESOURCES_DIR)
 
   set(KLF_INSTALL_PLUGINS_DIR "plugins/${klf_inst_plugin_subdir}" CACHE STRING
     "Where to install lugins (see also KLF_INSTALL_PLUGINS)")
@@ -119,8 +119,8 @@ if(WIN32)
   KLFWarnAbsInstallPath(KLF_INSTALL_PLUGINS_DIR)
 
 else(WIN32)
-  #set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
-  #			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
+  set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
+  			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
   set(KLF_INSTALL_PLUGINS_DIR "share/klatexformula/plugins/${klf_inst_plugin_subdir}" CACHE STRING
   			      "Where to install plugins (see also KLF_INSTALL_PLUGINS)")
 endif(WIN32)

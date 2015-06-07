@@ -58,6 +58,7 @@ public:
 
   QString fileName() const;
   QString scriptName() const;
+  QString baseName() const;
 
   enum Properties {
     Category = 0,

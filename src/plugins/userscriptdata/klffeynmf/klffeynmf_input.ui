@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>klffeynmf_input</class>
+ <widget class="QWidget" name="klffeynmf_input">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -21,6 +21,34 @@
     <number>25</number>
    </property>
    <item>
+    <widget class="QRadioButton" name="INPUT_UseFeynMP">
+     <property name="toolTip">
+      <string>with metapost, creates vector output</string>
+     </property>
+     <property name="text">
+      <string>Use feynmp</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="lblFeynMPexpl">
+     <property name="font">
+      <font>
+       <italic>true</italic>
+      </font>
+     </property>
+     <property name="text">
+      <string>—generates vector graphics</string>
+     </property>
+     <property name="indent">
+      <number>30</number>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QRadioButton" name="INPUT_UseFeynMF">
      <property name="toolTip">
       <string>with metafont, creates bitmaps</string>
@@ -31,15 +59,17 @@
     </widget>
    </item>
    <item>
-    <widget class="QRadioButton" name="INPUT_UseFeynMP">
-     <property name="toolTip">
-      <string>with metapost, creates vector output</string>
+    <widget class="QLabel" name="lblFeynMFexpl">
+     <property name="font">
+      <font>
+       <italic>true</italic>
+      </font>
      </property>
      <property name="text">
-      <string>Use feynmp</string>
+      <string>—generates bitmaps</string>
      </property>
-     <property name="checked">
-      <bool>true</bool>
+     <property name="indent">
+      <number>30</number>
      </property>
     </widget>
    </item>

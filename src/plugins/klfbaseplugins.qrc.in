@@ -3,16 +3,9 @@
   <qresource prefix="rccinfo">
     <file alias="info.xml">info_baseplugins.xml</file>
   </qresource>
-  <qresource prefix="/plugins/">
-    <file>plugindirinfo.xml</file>
-  </qresource>
-  <qresource prefix="/plugins/@KLF_CMAKE_BASEPLUGINSSUBDIR@">
-@KLF_CMAKE_PLUGINS_QRC_DEFS@
-  </qresource>
   <qresource prefix="/userscripts">
     <file alias="customtemplate.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/customtemplate.py</file>
     <file alias="klffeynmf.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/klffeynmf.py</file>
-    <!-- <file alias="klffeynmp.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/klffeynmp.py</file> -->
     <file alias="svg-dvisvgm.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/svg-dvisvgm.py</file>
     <file alias="gif-convert.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/gif-convert.py</file>
     <file alias="html-data-export.py">@CMAKE_CURRENT_SOURCE_DIR@/userscripts/html-data-export.py</file>
