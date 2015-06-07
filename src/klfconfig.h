@@ -55,9 +55,11 @@ inline bool klf_config_read_value(QSettings &s, const QString& baseName, T * tar
   QString valstr = valstrv.toString();
   QVariant val = klfLoadVariantFromText(valstr.toLatin1(), defVal.typeName(), listOrMapType);
   if (val.isValid()) {
+    klfDbg("klf_config_read_value: read value for "<<baseName<<" : " << val) ;
     *target = val.value<T>();
     return true;
   }
+  klfDbg("klf_config_read_value: read empty or invalid value for "<<baseName) ;
   return false;
 }
 

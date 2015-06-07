@@ -121,14 +121,14 @@ if (KLF_BUILD_BACKEND_AUTO)
       KLFMMakeFramework(klfbackend_auto "${klfbackend_auto_FRAMEWORKS}" "") #"${klfbackend_auto_INSTHEADERS}")
     endif(KLF_MACOSX_BUNDLES)
   endif(KLF_LIBKLFBACKEND_AUTO_STATIC)
+
+  set_target_properties(klfbackend_auto PROPERTIES
+    #	      DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
+    PUBLIC_HEADER "" # no need for headers(?), they're in klftools&klfbackend; "${klfbackend_auto_INSTHEADERS}"
+    )
+  target_link_libraries(klfbackend_auto ${QT_LIBRARIES})
+
 endif(KLF_BUILD_BACKEND_AUTO)
-
-set_target_properties(klfbackend_auto PROPERTIES
-  #	      DEBUG_POSTFIX "${KLF_DEBUG_POSTFIX}"
-  PUBLIC_HEADER "" # no need for headers(?), they're in klftools&klfbackend; "${klfbackend_auto_INSTHEADERS}"
-  )
-target_link_libraries(klfbackend_auto ${QT_LIBRARIES})
-
 
 
 

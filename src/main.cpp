@@ -849,15 +849,17 @@ int main(int argc, char **argv)
     for (k = 0; k < qt_argc && qt_argv[k] != NULL; ++k)
       qtargvlist << QString::fromLocal8Bit(qt_argv[k]);
 
-#ifdef Q_WS_MAC
-    // this is needed to avoid having default app font set right after window activation :(
-    QApplication::setDesktopSettingsAware(false);
-#endif
+    // ### still not fixed (2015-06-07)
+    //
+    #ifdef Q_OS_MAC
+       // this is needed to avoid having default app font set right after window activation :(
+       QApplication::setDesktopSettingsAware(false);
+    #endif
 
     // Create the application
     KLFGuiApplication app(qt_argc, qt_argv);
 
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     app.setFont(QFont("Lucida Grande", 13));
 
     extern void __klf_init_the_macpasteboardmime();
@@ -867,7 +869,15 @@ int main(int argc, char **argv)
 #endif
 
     // add our default application font(s) ;-)
+    //
+    // from :/data/fonts ...
     QFileInfoList appFontsInfoList = QDir(":/data/fonts/").entryInfoList(QStringList()<<"*.otf"<<"*.ttf");
+    // ... and from share-dir/fonts/
+    extern QString klf_share_dir_abspath(); // klfconfig.cpp
+    QString our_share_dir = klf_share_dir_abspath();
+    if (QFileInfo(our_share_dir+"/fonts").isDir()) {
+      appFontsInfoList << QDir(our_share_dir+"/fonts/").entryInfoList(QStringList()<<"*.otf"<<"*.ttf");
+    }
     int k;
     for (k = 0; k < appFontsInfoList.size(); ++k) {
       QFontDatabase::addApplicationFont(appFontsInfoList[k].absoluteFilePath());
@@ -1132,8 +1142,9 @@ int main(int argc, char **argv)
 
     KLFMainWin mainWin;
 
-    if (!klfconfig.UI.useSystemAppFont)
+    if (!klfconfig.UI.useSystemAppFont) {
       app.setFont(klfconfig.UI.applicationFont);
+    }
 
     if (!opt_skip_plugins)
       main_load_plugins(&app, &mainWin);

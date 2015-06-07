@@ -320,16 +320,16 @@
           </item>
           <item row="0" column="1">
            <widget class="KLFPathChooser" name="pathTempDir">
-            <property name="mode">
+            <property name="mode" stdset="0">
              <number>2</number>
             </property>
-            <property name="caption">
+            <property name="caption" stdset="0">
              <string>Choose temporary directory</string>
             </property>
-            <property name="filter">
+            <property name="filter" stdset="0">
              <string/>
             </property>
-            <property name="path">
+            <property name="path" stdset="0">
              <string notr="true">/tmp/</string>
             </property>
            </widget>
@@ -349,16 +349,16 @@
           </item>
           <item row="1" column="1">
            <widget class="KLFPathChooser" name="pathLatex">
-            <property name="mode">
+            <property name="mode" stdset="0">
              <number>0</number>
             </property>
-            <property name="caption">
+            <property name="caption" stdset="0">
              <string>Choose latex executable</string>
             </property>
-            <property name="filter">
+            <property name="filter" stdset="0">
              <string/>
             </property>
-            <property name="path">
+            <property name="path" stdset="0">
              <string notr="true">latex</string>
             </property>
            </widget>
@@ -378,16 +378,16 @@
           </item>
           <item row="2" column="1">
            <widget class="KLFPathChooser" name="pathDvips">
-            <property name="mode">
+            <property name="mode" stdset="0">
              <number>0</number>
             </property>
-            <property name="caption">
+            <property name="caption" stdset="0">
              <string>Choose dvips executable</string>
             </property>
-            <property name="filter">
+            <property name="filter" stdset="0">
              <string/>
             </property>
-            <property name="path">
+            <property name="path" stdset="0">
              <string notr="true">dvips</string>
             </property>
            </widget>
@@ -407,16 +407,16 @@
           </item>
           <item row="3" column="1">
            <widget class="KLFPathChooser" name="pathGs">
-            <property name="mode">
+            <property name="mode" stdset="0">
              <number>0</number>
             </property>
-            <property name="caption">
+            <property name="caption" stdset="0">
              <string>Choose ghostscript executable</string>
             </property>
-            <property name="filter">
+            <property name="filter" stdset="0">
              <string/>
             </property>
-            <property name="path">
+            <property name="path" stdset="0">
              <string notr="true">gs</string>
             </property>
            </widget>
@@ -806,7 +806,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>366</width>
-                 <height>74</height>
+                 <height>78</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -859,8 +859,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>366</width>
-                 <height>74</height>
+                 <width>98</width>
+                 <height>146</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -1230,8 +1230,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>396</width>
-                <height>316</height>
+                <width>98</width>
+                <height>28</height>
                </rect>
               </property>
               <attribute name="label">
@@ -1409,7 +1409,7 @@
               </item>
               <item>
                <widget class="KLFColorChooser" name="colGlowEffectColor">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>60</width>
                   <height>20</height>
@@ -1731,26 +1731,26 @@
               </item>
               <item row="1" column="1">
                <widget class="KLFColorChooser" name="colSHKeyword">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item row="1" column="2">
                <widget class="KLFColorChooser" name="colSHKeywordBg">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
@@ -1813,26 +1813,26 @@
               </item>
               <item row="2" column="1">
                <widget class="KLFColorChooser" name="colSHComment">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item row="2" column="2">
                <widget class="KLFColorChooser" name="colSHCommentBg">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
@@ -1895,26 +1895,26 @@
               </item>
               <item row="4" column="1">
                <widget class="KLFColorChooser" name="colSHParenMatch">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item row="4" column="2">
                <widget class="KLFColorChooser" name="colSHParenMatchBg">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
@@ -1977,26 +1977,26 @@
               </item>
               <item row="5" column="1">
                <widget class="KLFColorChooser" name="colSHParenMismatch">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item row="5" column="2">
                <widget class="KLFColorChooser" name="colSHParenMismatchBg">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
@@ -2059,26 +2059,26 @@
               </item>
               <item row="7" column="1">
                <widget class="KLFColorChooser" name="colSHLonelyParen">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item row="7" column="2">
                <widget class="KLFColorChooser" name="colSHLonelyParenBg">
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>50</width>
                   <height>16</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
                </widget>

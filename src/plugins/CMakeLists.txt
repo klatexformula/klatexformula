@@ -130,7 +130,24 @@ if(APPLE AND KLF_MACOSX_BUNDLES)
       VERBATIM
       )
 
-  endforeach(plugin_libname)
+  endforeach(plugin)
+
+
+  # install user scripts
+  add_custom_command(TARGET klfbaseplugins POST_BUILD
+    COMMAND  mkdir -p
+    "${klfbundlelocation_klatexformula}/Contents/Resources/userscripts"
+    COMMAND  mkdir -p
+    "${klfbundlelocation_klatexformula}/Contents/Resources/userscriptdata"
+    COMMAND rsync -a "${CMAKE_CURRENT_SOURCE_DIR}/userscripts/"
+    "${klfbundlelocation_klatexformula}/Contents/Resources/userscripts/"
+    --exclude *~ --exclude .svn/
+    COMMAND rsync -a "${CMAKE_CURRENT_SOURCE_DIR}/userscriptdata/"
+    "${klfbundlelocation_klatexformula}/Contents/Resources/userscriptdata/"
+    --exclude *~ --exclude .svn/
+    VERBATIM
+    )
+    
 
 endif(APPLE AND KLF_MACOSX_BUNDLES)
 

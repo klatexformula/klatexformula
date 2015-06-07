@@ -31,24 +31,28 @@
 
 static bool is_binary_file(QString fn)
 {
+  klfDbg("is_binary_file("<<fn<<")") ;
   if (!QFile::exists(fn)) {
     fn = klfSearchPath(fn);
+    klfDbg("is_binary_file: file doesn't exist directly, path search gave "<<fn) ;
   }
   QFile fpeek(fn);
   if (!fpeek.open(QIODevice::ReadOnly)) {
     klfDbg("fn="<<fn<<", Can't peek into file "<<fn<<"!") ;
-  } else {
-    QByteArray line;
-    int n = 0, j;
-    while (n++ < 3 && (line = fpeek.readLine()).size()) {
-      for (j = 0; j < line.size(); ++j) {
-        if ((int)line[j] >= 127 || (int)line[j] <= 0) {
-          return true;
-        }
+    return true; // assumption by default
+  }
+  QByteArray line;
+  int n = 0, j;
+  while (n++ < 5 && (line = fpeek.readLine(1024)).size()) {
+    for (j = 0; j < line.size(); ++j) {
+      if ((int)line[j] >= 127 || (int)line[j] <= 0) {
+        klfDbg("fn="<<fn<<" found binary char '"<<(char)line[j]<<"'=="<<(int)line[j]
+               <<" on line "<<n<<", column "<< j) ;
+        return true;
       }
     }
-    return false;
   }
+  klfDbg("fn="<<fn<<", file seems to be ascii based on the first few lines") ;
   return false;
 }
 
@@ -127,8 +131,9 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   // this is a weird bug with QProcess that will not execute some script files like epstopdf.
 
   if (!is_binary_file(cmd[0])) {
-    // explicitely add a wrapper ('sh' only works for bash shell scripts, so use 'env') (we're on *nix, so OK)
+    // explicitly add a wrapper ('sh' only works for bash shell scripts, so use 'env') (we're on *nix, so OK)
     cmd.prepend("/usr/bin/env");
+    klfDbg("target "<<cmd[0]<<" is not binary, prepending /usr/bin/env to command. cmd = " <<cmd) ;
   }
 
 #endif

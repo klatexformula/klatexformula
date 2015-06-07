@@ -176,37 +176,35 @@ void KLFConfig::loadDefaults()
     double codeffactor = 1.4;
     int cmufpsfinal = (int)(fps*cmuffactor+0.5);
     int codefpsfinal = (int)(fps*codeffactor+0.5);
+    QString cmufamily = QString::fromUtf8("CMU Sans Serif");
 #elif defined(Q_WS_WIN)
     int fps = QFontInfo(f).pointSize();
     double cmuffactor = 1.3;
     double codeffactor = 1.3;
     int cmufpsfinal = (int)(fps*cmuffactor+0.5);
     int codefpsfinal = (int)(fps*codeffactor+0.5);
+    QString cmufamily = QString::fromUtf8("CMU Sans Serif");
 #else // mac OS X
     //int fps = QFontInfo(f).pointSize();
     //double cmuffactor = 1.1;
     //double codeffactor = 1.3;
     int cmufpsfinal = 14;//(int)(fps*cmuffactor+0.5);
-    int codefpsfinal = 14;//(int)(fps*codeffactor+0.5);
+    int codefpsfinal = 13;//(int)(fps*codeffactor+0.5);
+    QString cmufamily = QString::fromUtf8("CMU Bright");
 #endif
 
     defaultStdFont = f;
 
     cmuappfont = f;
-#ifdef Q_WS_MAC
-    if (fdb.families().contains("CMU Bright")) {
-      cmuappfont = QFont("CMU Bright", cmufpsfinal);
+    if (fdb.families().contains(cmufamily)) {
+      cmuappfont = QFont(cmufamily, cmufpsfinal);
     }
-#else
-    if (fdb.families().contains("CMU Sans Serif")) {
-      // CMU Sans Serif is available ;-)
-      cmuappfont = QFont("CMU Sans Serif", cmufpsfinal);
-    }
-#endif
 
     QFont fcode;
     bool found_fcode = false;
     int ps = codefpsfinal;
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Menlo", ps);
+    KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monaco", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier 10 Pitch", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "ETL Fixed", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier New", ps);

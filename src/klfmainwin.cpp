@@ -2775,7 +2775,7 @@ void KLFMainWinPrivate::showRealTimeError(const QString& errmsg, int errcode)
   if (errcode == KLFERR_PROGERR_LATEX)
     s = KLFProgErr::extractLatexError(errmsg);
   if (s.length() > 800)
-    s = tr("LaTeX error, click 'Evaluate' to see error message.", "[[real-time preview tooltip]]");
+    s = tr("LaTeX error, click 'Run LaTeX' to see error message.", "[[real-time preview tooltip]]");
   K->u->lblOutput->displayError(s, /*labelenabled:*/false);
   slotSetViewControlsEnabled(false);
   slotSetSaveControlsEnabled(false);

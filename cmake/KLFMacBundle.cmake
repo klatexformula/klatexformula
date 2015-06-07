@@ -70,7 +70,7 @@ add_custom_target(bundleclean
 
 
 # LOCAL/FILE will be the location inside the bundle.app/Contents/ directory
-#   the split of loca path between LOCAL and FILE is irrelevant except for messages
+#   the split of local path between LOCAL and FILE is irrelevant except for messages
 #   displayed during build.
 # FULLLOCATION is the source location.
 macro(KLFMBundlePrivateImport TGT FILE FULLLOCATION LOCAL)

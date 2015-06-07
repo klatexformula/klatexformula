@@ -76,5 +76,9 @@
     </array>
     <key>SUPublicDSAKeyFile</key>
     <string>@KLF_SPARKLE_DSA_PUBKEY_BASENAME@</string>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSHighResolutionCapable</key>
+    <string>True</string>
   </dict>
 </plist>

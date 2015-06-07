@@ -209,7 +209,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 
   // prepare some actions as shortcuts for standard fonts
   QFontDatabase fdb;
-  u->aFontCMU->setEnabled( fdb.families().contains("CMU Sans Serif") );
+  u->aFontCMU->setEnabled( fdb.families().contains(
+			       klfconfig.defaultCMUFont.family()
+			       ) );
   d->pFontBasePresetActions["CMU"] = u->aFontCMU;
   d->pFontBasePresetActions["TT"] = u->aFontTT;
   d->pFontBasePresetActions["Std"] = u->aFontStd;
@@ -1299,7 +1301,8 @@ void KLFSettingsPrivate::refreshUserScriptSelected()
   }
   KLF_BROKEN_BECAUSE(reason) {
     // no user script
-    K->u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
+    K->u->lblUserScriptInfo->setText(tr("No user script selected. [Python must be installed for user scripts to work]",
+					"[[user script info label]]"));
     K->u->stkUserScriptSettings->setCurrentWidget(K->u->wStkUserScriptSettingsEmptyPage);
     if (reason == 2) {
       klfDbg("invalid variant") ;

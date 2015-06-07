@@ -547,7 +547,7 @@ if(APPLE AND CMAKE_OSX_ARCHITECTURES)
     
   #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
   KLFDeclareCacheVarOptionFollowComplexN(KLF_CMAKE_ARCH
-    STRING "Target build processor architecture (Mac OS X universal: separated by commas)"
+    STRING "Target build processor architecture (Mac OS X universal: separated by commas), calculated from CMAKE_OSX_ARCHITECTURES"
     FALSE                             # updatenotice
     "${internal_KLF_CMAKE_ARCH}"      # calcoptvalue
     "CMAKE_OSX_ARCHITECTURES"         # depvarlist

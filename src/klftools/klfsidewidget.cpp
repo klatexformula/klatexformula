@@ -505,6 +505,7 @@ void KLFContainerSideWidgetManager::showSideWidget(bool show)
 
   // and actually show/hide the container widget
   d->dwidget->setVisible(show);
+  d->dwidget->setFocus();
   emit sideWidgetShown(show);
 }
 

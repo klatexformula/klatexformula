@@ -61,10 +61,7 @@ static bool contains_view(NSView * view, NSView * lookingForView, int levels = 4
 static NSDrawer * klf_qt_mac_drawer_for(const QWidget *widget)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  // This only goes one level below the content view so start with the window.
-  // This works fine for straight Qt stuff, but runs into problems if we are
-  // embedding, but if that's the case, they probably want to be using
-  // NSDrawer directly.
+
   NSView *widgetView = reinterpret_cast<NSView *>(widget->window()->winId());
   NSArray *windows = [NSApp windows];
   for (NSWindow *window in windows) {
@@ -73,14 +70,12 @@ static NSDrawer * klf_qt_mac_drawer_for(const QWidget *widget)
       klfDbg("investigating drawer "<< drawer << "...") ;
       if (contains_view([drawer contentView], widgetView)) {
         klfDbg("found drawer. ptr="<<drawer) ;
-        //	  [autoreleasepool release];
         return drawer;
       }
     }
   }
 
   klfDbg("not found.") ;
-  //  [autoreleasepool release];
   return 0;
 }
 #endif
