@@ -21,6 +21,7 @@ if(KLF_EXPERIMENTAL)
 endif(KLF_EXPERIMENTAL)
 
 
+
 add_custom_target(klfbaseplugins ALL)
 
 #
@@ -40,7 +41,7 @@ endmacro(KLFPluginUndefOrLink)
 # local for-developers-only compile-time install
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
   file(MAKE_DIRECTORY
-    "$ENV{HOME}/.klatexformula/plugins/sysarch_${KLF_CMAKE_OS}:${KLF_CMAKE_ARCH}/klf${KLF_VERSION}/${plugin_libname}"
+    "$ENV{HOME}/.klatexformula/plugins/${klfInstPluginDir}/${plugin_libname}"
     )
 endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 
@@ -61,7 +62,7 @@ macro(KLFInstallPlugin plugin)
     KLFGetTargetFileName(plugin_libname ${plugin})
     add_custom_command(TARGET ${plugin}
       POST_BUILD
-      COMMAND "${CMAKE_COMMAND}" -E copy "${plugin_location}" "$ENV{HOME}/.klatexformula/plugins/sysarch_${KLF_CMAKE_OS}:${KLF_CMAKE_ARCH}/klf${KLF_VERSION}/${plugin_libname}"
+      COMMAND "${CMAKE_COMMAND}" -E copy "${plugin_location}" "$ENV{HOME}/.klatexformula/plugins/${klfInstPluginDir}/${plugin_libname}"
       COMMENT "Installing plugin ${plugin} to ~/.klatexformula/plugins/ ... (as requested by KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)"
       VERBATIM
       )
@@ -125,9 +126,9 @@ if(APPLE AND KLF_MACOSX_BUNDLES)
     # install plugin into bundle
     add_custom_command(TARGET klfbaseplugins POST_BUILD
       COMMAND mkdir -p
-      "${klfbundlelocation_klatexformula}/Contents/Resources/plugins/sysarch_${KLF_CMAKE_OS}:${KLF_CMAKE_ARCH}/klf${KLF_VERSION}/"
+      "${klfbundlelocation_klatexformula}/Contents/Resources/plugins/${klfInstPluginDir}/"
       COMMAND cp "${plugin_location}"
-      "${klfbundlelocation_klatexformula}/Contents/Resources/plugins/sysarch_${KLF_CMAKE_OS}:${KLF_CMAKE_ARCH}/klf${KLF_VERSION}/${plugin_libname}"
+      "${klfbundlelocation_klatexformula}/Contents/Resources/plugins/${klfInstPluginDir}/${plugin_libname}"
       VERBATIM
       )
 

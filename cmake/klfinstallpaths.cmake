@@ -103,25 +103,35 @@ KLFWarnAbsInstallPath(KLF_INSTALL_DESPLUGIN_DIR)
 KLFMakeAbsInstallPath(KLF_ABS_INSTALL_DESPLUGIN_DIR KLF_INSTALL_DESPLUGIN_DIR)
 
 
-set(klf_inst_plugin_subdir "sysarch_${KLF_CMAKE_OS}:${KLF_CMAKE_ARCH}/klf${KLF_VERSION}")
+
+# find out the name of the subdirectory in which to install plugin.
+if(NOT WIN32)
+  set(klf_osarch_sep_chars ":")
+else(NOT WIN32)
+  set(klf_osarch_sep_chars "--") # qt will translate : to -- because ':' can't be used in file name on Windows
+endif(NOT WIN32)
+#
+set(klfPluginOsArchDir "sysarch_${KLF_CMAKE_OS}${klf_osarch_sep_chars}${KLF_CMAKE_ARCH}")
+#
+set(klfInstPluginDir "${klfPluginOsArchDir}/klf${KLF_VERSION}")
 
 # rccresources dir
 if(WIN32)
 
-  set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
- 		    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
-  mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
-  KLFWarnAbsInstallPath(KLF_INSTALL_RCCRESOURCES_DIR)
+  #set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
+  #		    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
+  #mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
+  #KLFWarnAbsInstallPath(KLF_INSTALL_RCCRESOURCES_DIR)
 
-  set(KLF_INSTALL_PLUGINS_DIR "plugins/${klf_inst_plugin_subdir}" CACHE STRING
-    "Where to install lugins (see also KLF_INSTALL_PLUGINS)")
+  set(KLF_INSTALL_PLUGINS_DIR "plugins/${klfInstPluginDir}" CACHE STRING
+    "Where to install plugins (see also KLF_INSTALL_PLUGINS)")
   mark_as_advanced(KLF_INSTALL_PLUGINS_DIR)
   KLFWarnAbsInstallPath(KLF_INSTALL_PLUGINS_DIR)
 
 else(WIN32)
-  set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
-  			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
-  set(KLF_INSTALL_PLUGINS_DIR "share/klatexformula/plugins/${klf_inst_plugin_subdir}" CACHE STRING
+  #set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
+  #			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
+  set(KLF_INSTALL_PLUGINS_DIR "share/klatexformula/plugins/${klfInstPluginDir}" CACHE STRING
   			      "Where to install plugins (see also KLF_INSTALL_PLUGINS)")
 endif(WIN32)
 KLFMakeAbsInstallPath(KLF_ABS_INSTALL_PLUGINS_DIR  KLF_INSTALL_PLUGINS_DIR)
