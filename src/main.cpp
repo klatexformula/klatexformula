@@ -83,7 +83,7 @@
 
 #define KLF_WELCOME                                             \
   "KLatexFormula Version %s by Philippe Faist (c) 2005-2014\n"  \
-  "Licensed under the terms of the GNU Public License GPL\n\n"
+  "Licensed under the terms of the GNU General Public License (GPLv2+)\n\n"
 
 
 // Program Exit Error Codes
