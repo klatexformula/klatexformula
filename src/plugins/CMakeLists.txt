@@ -144,7 +144,7 @@ if(APPLE AND KLF_MACOSX_BUNDLES)
     COMMAND rsync -a "${CMAKE_CURRENT_SOURCE_DIR}/userscripts/"
     "${klfbundlelocation_klatexformula}/Contents/Resources/userscripts/"
     --exclude *~ --exclude .svn/
-    COMMAND chmod +x "${klfbundlelocation_klatexformula}/Contents/Resources/userscripts/*"
+    COMMAND chmod -R +x "${klfbundlelocation_klatexformula}/Contents/Resources/userscripts/"
     COMMAND rsync -a "${CMAKE_CURRENT_SOURCE_DIR}/userscriptdata/"
     "${klfbundlelocation_klatexformula}/Contents/Resources/userscriptdata/"
     --exclude *~ --exclude .svn/
