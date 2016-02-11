@@ -5,8 +5,14 @@
 
   <font-def>
     <identifier>Times</identifier>
-    <title>Times</title>
+    <title>Times (txfonts)</title>
     <latexdefs>\usepackage{txfonts}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Times-mathptmx</identifier>
+    <title>Times (mathptmx)</title>
+    <latexdefs>\usepackage{mathptmx}</latexdefs>
   </font-def>
 
   <font-def>

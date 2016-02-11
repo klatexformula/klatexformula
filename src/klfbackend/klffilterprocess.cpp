@@ -121,8 +121,11 @@ KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfS
   if (settings != NULL) {
     if (!rundir.size()) {
       d->programCwd = settings->tempdir;
+      klfDbg("set programCwd to : "<<d->programCwd) ;
     }
-    d->execEnviron = settings->execenv;
+    d->execEnviron = klfMergeEnvironment(QStringList(), settings->execenv, QStringList(),
+                                         KlfEnvPathPrepend|KlfEnvMergeExpandVars);
+    klfDbg("set execution environment to : "<<d->execEnviron) ;
   }
 
   d->processAppEvents = true;
@@ -165,10 +168,12 @@ QStringList KLFFilterProcess::execEnviron() const
 void KLFFilterProcess::setExecEnviron(const QStringList& env)
 {
   d->execEnviron = env;
+  klfDbg("set exec environment: " << d->execEnviron);
 }
 void KLFFilterProcess::addExecEnviron(const QStringList& env)
 {
   klfMergeEnvironment(& d->execEnviron, env);
+  klfDbg("merged exec environment: " << d->execEnviron);
 }
 
 QStringList KLFFilterProcess::argv() const
