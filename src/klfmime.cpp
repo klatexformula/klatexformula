@@ -56,21 +56,33 @@
 struct KLFMimeString
 {
   KLFMimeString(const QString& key)
+    : mime_full(key), mime_base(), mime_attrs()
   {
-    mime_full = key;
     // see if we got any attributes to the mime-type
     int i_semicolon = key.indexOf(';');
     if (i_semicolon >= 0) {
       mime_base = key.left(i_semicolon);
       
-      QRegExp rx("(\\w+)=([^=;]*|\"(?:[^\"]|(?:\\\\.))*\")");
-      int pos = i_semicolon+1;
-      while ( (pos = rx.indexIn(key, pos)) >= 0 )  {
-        mime_attrs[rx.cap(1)] = rx.cap(2);
+      QString qs = key.mid(i_semicolon+1);
+      QUrl url;
+      url.setEncodedQuery(qs.toLatin1());
+
+      QList<QPair<QString,QString> > qitems = url.queryItems();
+      for (int i = 0; i < qitems.size(); ++i) {
+        klfDbg("got mime query item " << qitems[i].first << "=" << qitems[i].second) ;
+        mime_attrs[qitems[i].first] = qitems[i].second;
       }
+
+      // QRegExp rx("(\\w+)=([^=;]*|\"(?:[^\"]|(?:\\\\.))*\")");
+      // int pos = i_semicolon+1;
+      // while ( (pos = rx.indexIn(key, pos)) >= 0 )  {
+      //   mime_attrs[rx.cap(1)] = rx.cap(2);
+      // }
     } else {
       mime_base = key;
     }
+    klfDbg("KLFMimeString() constr complete, mime_full="<<mime_full<<", mime_base="
+           <<mime_base<<", mime_attrs="<<mime_attrs) ;
   }
 
   QString mime_full;
@@ -1019,6 +1031,8 @@ QStringList KLFMimeExporterUrilist::keys(const KLFBackend::klfOutput *) const
 // static
 QString KLFMimeExporterUrilist::tempFileForOutput(const KLFBackend::klfOutput& output, int targetDpi)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  
   qint64 imgcachekey = output.result.cacheKey();
 
   QString tempfilename;
@@ -1028,12 +1042,16 @@ QString KLFMimeExporterUrilist::tempFileForOutput(const KLFBackend::klfOutput& o
 
   if (tempFilesForImageCacheKey.contains(imgcachekey) &&
       tempFilesForImageCacheKey[imgcachekey].contains(targetDpi)) {
+    klfDbg("found cached image in cache, have DPIs: " << tempFilesForImageCacheKey[imgcachekey].values()) ;
     return tempFilesForImageCacheKey[imgcachekey][targetDpi];
   }
 
   QString templ = klfconfig.BackendSettings.tempDir +
     QString::fromLatin1("/klf_%2_XXXXXX.%1.png")
     .arg(targetDpi).arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm"));
+
+  klfDbg("Attempting to create temp file from template name " << templ) ;
+
   QTemporaryFile *tempfile = new QTemporaryFile(templ, qApp);
   tempfile->setAutoRemove(true); // will be deleted when klatexformula exists (= qApp destroyed)
   if (tempfile->open() == false) {
@@ -1062,6 +1080,8 @@ QString KLFMimeExporterUrilist::tempFileForOutput(const KLFBackend::klfOutput& o
   // cache this temp file for other formats' use or other QMimeData instantiation...
   tempFilesForImageCacheKey[imgcachekey][targetDpi] = tempfilename;
 
+  klfDbg("Wrote temp file with name " << tempfilename) ;
+
   return tempfilename;
 }
 
@@ -1073,15 +1093,19 @@ QByteArray KLFMimeExporterUrilist::data(const QString& key, const KLFBackend::kl
 
   int req_dpi = -1;
   KLFMimeString mimestr(key);
+  klfDbg("parsing mime attributes " << mimestr.mime_attrs) ;
   for (QMap<QString,QString>::const_iterator it = mimestr.mime_attrs.begin(); it != mimestr.mime_attrs.end(); ++it) {
     const QString& attr_key = it.key();
     const QString& attr_val = it.value();
+    klfDbg("parsing attr_key = " << attr_key << " ; attr_val = " << attr_val) ;
     if (attr_key == "dpi") {
       req_dpi = attr_val.toInt();
     } else {
       klfWarning("Unrecognized attribute in mime-type: "<<attr_key<<" in "<<key);
     }
   }
+
+  klfDbg("req_dpi = " << req_dpi) ;
 
   QString tempfilename = tempFileForOutput(output, req_dpi);
   QUrl url = QUrl::fromLocalFile(tempfilename);
@@ -1118,6 +1142,8 @@ QStringList KLFMimeExporterUrilistPDF::keys(const KLFBackend::klfOutput *) const
 // static
 QString KLFMimeExporterUrilistPDF::tempFileForOutput(const KLFBackend::klfOutput& output)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  
   qint64 cachekey = qHash(output.pdfdata);
 
   if (output.pdfdata.isEmpty()) {
@@ -1126,12 +1152,16 @@ QString KLFMimeExporterUrilistPDF::tempFileForOutput(const KLFBackend::klfOutput
   }
 
   if (tempFilesForImageCacheKey.contains(cachekey)) {
+    klfDbg("found cached image in " << tempFilesForImageCacheKey.values()) ;
     return tempFilesForImageCacheKey[cachekey];
   }
 
   QString templ = klfconfig.BackendSettings.tempDir +
     QString::fromLatin1("/klf_%2_XXXXXX.pdf")
     .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm"));
+
+  klfDbg("Attempting to create temp file from template name " << templ) ;
+
   QTemporaryFile *tempfile = new QTemporaryFile(templ, qApp);
   tempfile->setAutoRemove(true); // will be deleted when klatexformula exists (= qApp destroyed)
   if (tempfile->open() == false) {
@@ -1143,6 +1173,8 @@ QString KLFMimeExporterUrilistPDF::tempFileForOutput(const KLFBackend::klfOutput
 
   QString tempfilename = tempfile->fileName();
   tempfile->close();
+
+  klfDbg("Wrote temp file with name " << tempfilename) ;
 
   // cache this temp file for other formats' use or other QMimeData instantiation...
   tempFilesForImageCacheKey[cachekey] = tempfilename;
