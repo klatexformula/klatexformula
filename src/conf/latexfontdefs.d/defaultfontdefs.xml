@@ -46,6 +46,12 @@
   </font-def>
 
   <font-def>
+    <identifier>Computer Modern Bright</identifier>
+    <title>Computer Modern Bright</title>
+    <latexdefs>\usepackage{cmbright}</latexdefs>
+  </font-def>
+
+  <font-def>
     <identifier>Helvetica</identifier>
     <title>Helvetica</title>
     <latexdefs>\usepackage[scaled]{helvet}
