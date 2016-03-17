@@ -17,8 +17,14 @@
 
   <font-def>
     <identifier>Palatino</identifier>
-    <title>Palatino</title>
+    <title>Palatino (pxfonts)</title>
     <latexdefs>\usepackage{pxfonts}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Palatino-newpxmath</identifier>
+    <title>Palatino (newpxmath)</title>
+    <latexdefs>\usepackage{newpxmath}</latexdefs>
   </font-def>
 
   <font-def>
@@ -40,6 +46,37 @@
   </font-def>
 
   <font-def>
+    <identifier>Garamond-EB</identifier>
+    <title>Garamond</title>
+    <latexdefs>\usepackage[cmintegrals,cmbraces]{newtxmath}
+\usepackage{ebgaramond-maths}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Stix</identifier>
+    <title>Stix</title>
+    <latexdefs>\usepackage{stix}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Kerkis</identifier>
+    <title>Kerkis</title>
+    <latexdefs>\usepackage{kmath,kerkis}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>kp-fonts</identifier>
+    <title>kp-fonts</title>
+    <latexdefs>\usepackage{kpfonts}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>kp-fonts-sans</identifier>
+    <title>kp-fonts (sans serif)</title>
+    <latexdefs>\usepackage[sfmath]{kpfonts}</latexdefs>
+  </font-def>
+    
+  <font-def>
     <identifier>Computer Modern Sans Serif</identifier>
     <title>Computer Modern Sans Serif</title>
     <latexdefs>\usepackage[EULERGREEK]{sansmath}\sansmath</latexdefs>
@@ -49,6 +86,18 @@
     <identifier>Computer Modern Bright</identifier>
     <title>Computer Modern Bright</title>
     <latexdefs>\usepackage{cmbright}</latexdefs>
+  </font-def>
+
+  <font-def>
+    <identifier>Kurier</identifier>
+    <title>Kurier</title>
+    <latexdefs>\usepackage[math]{kurier}</latexdefs>
+  </font-def>
+    
+  <font-def>
+    <identifier>Iwona</identifier>
+    <title>Iwona</title>
+    <latexdefs>\usepackage[math]{iwona}</latexdefs>
   </font-def>
 
   <font-def>
