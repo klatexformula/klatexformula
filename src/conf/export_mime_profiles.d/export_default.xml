@@ -143,6 +143,14 @@
          Note that some translation rules are built-in, such as:
            PNG, JPEG, GIF, BMP, PDF, PostScript, EPS
       -->
+    <translate>
+      <mime-type>image/gif</mime-type>
+      <mac-flavor>com.compuserve.gif</mac-flavor>
+    </translate>
+    <translate>
+      <mime-type>application/x-aicb</mime-type>
+      <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
+    </translate>
   </add-macosx-type-rules>
 
 </export-profile-list>
