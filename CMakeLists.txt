@@ -141,9 +141,10 @@ endif(QT_QMAKE_EXECUTABLE AND NOT QT_QMAKE_EXECUTABLE_FINDQT)
 
 # Find Qt 4 and Include it
 find_package(Qt4 4.5.0 COMPONENTS QtCore QtGui REQUIRED)
+find_package(Qt5 5.1.0 COMPONENTS QtCore QtGui QtWidgets REQUIRED)
 
 if(NOT QT4_FOUND)
-  mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
+  #mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
   message(FATAL_ERROR
     "Didn't find Qt4. Try setting the QT_QMAKE_EXECUTABLE (and/or QT_QMAKE_EXECUTABLE_FINDQT) cache variable(s)." )
 endif(NOT QT4_FOUND)

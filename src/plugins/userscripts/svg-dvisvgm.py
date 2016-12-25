@@ -80,7 +80,7 @@ sys.stderr.write("Converting file "+dvifile+"\n");
 
 dvifile = "'" + re.sub(r"\'", "'\"'\"'", dvifile) + "'";
 # TODO !!!: Needs Error handling/messages/....
-result = os.system("'"+dvisvgm+"' -an -b min "+dvifile);
+result = os.system("'"+dvisvgm+"' -a -e -n -b min '"+dvifile+"'");
 if (result != 0):
     print "Error, result="+str(result)+"...";
 
