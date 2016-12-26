@@ -21,6 +21,8 @@
  ***************************************************************************/
 /* $Id$ */
 
+#include <QUrl>
+#include <QUrlQuery>
 #include <QGenericArgument>
 
 #include <klfdatautil.h>
@@ -68,13 +70,15 @@ QUrl KLFCmdIface::encodeCommand(const Command& command)
   url.setHost(command.object);
   url.setPath("/"+command.slot+"/");
   QVariantList args = command.args;
-  url.addQueryItem("klfUrlVersion", "3.3.0alpha"); // klf compatibility version
+  QUrlQuery urlq;
+  urlq.addQueryItem("klfUrlVersion", "3.3.0alpha"); // klf compatibility version
   for (int k = 0; k < args.size(); ++k) {
     QString key = QLatin1String("arg")+QString::number(k);
     QString val = QString::fromLatin1("[") + args[k].typeName() + "]"
       + QString::fromLatin1(klfSaveVariantToText(args[k]));
-    url.addQueryItem(key, val);
+    urlq.addQueryItem(key, val);
   }
+  url.setQuery(urlq);
   return url;
 }
 
@@ -93,13 +97,14 @@ KLFCmdIface::Command KLFCmdIface::decodeCommand(const QUrl& url)
   if (p.endsWith("/"))
     p = p.mid(0, p.length()-1);
   c.slot = p;
+  QUrlQuery urlq(url);
   // klf compat version
-  QString klfver = url.queryItemValue("klfUrlVersion");
+  QString klfver = urlq.queryItemValue("klfUrlVersion");
   // now decode args
   c.args = QVariantList();
   int k = 0;
-  while (url.hasQueryItem("arg"+QString::number(k))) {
-    QString val = url.queryItemValue("arg"+QString::number(k));
+  while (urlq.hasQueryItem("arg"+QString::number(k))) {
+    QString val = urlq.queryItemValue("arg"+QString::number(k));
     QByteArray data = val.toLatin1();
     if (data[0] != '[') {
       c.args << QString::fromLocal8Bit(data);

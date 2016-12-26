@@ -27,6 +27,7 @@
 #include <QDir>
 #include <QLibraryInfo>
 #include <QUrl>
+#include <QUrlQuery>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QApplication>
@@ -61,7 +62,7 @@ KLF_EXPORT bool klfEnsureDir(const QString& dir)
 static QMap<QString,QString> klf_url_query_items_map(const QUrl& url,
 						     const QStringList& interestQueryItems)
 {
-  QList<QPair<QString,QString> > qitems = url.queryItems();
+  QList<QPair<QString,QString> > qitems = QUrlQuery(url).queryItems();
   QMap<QString,QString> map;
   int k;
   for (k = 0; k < qitems.size(); ++k) {
@@ -91,8 +92,8 @@ KLF_EXPORT uint klfUrlCompare(const QUrl& url1, const QUrl& url2, uint interestF
 
   QUrl u1 = url1;
   QUrl u2 = url2;
-  u1.setQueryItems(QList<QPair<QString,QString> >());
-  u2.setQueryItems(QList<QPair<QString,QString> >());
+  u1.setQuery("");
+  u2.setQuery("");
 
   klfDbg( " after q-i-stripping: u1="<<u1<<"; u2="<<u2 ) ;
 

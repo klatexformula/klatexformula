@@ -10,13 +10,14 @@
 use Getopt::Long qw /:config bundling /;
 
 # If 1, obsolete texts are kept to be translated.
-$use_obsolete = 1;
+$use_obsolete = 0;
 
 sub print_usage {
-  print STDERR "Usage: $0 [--(no)obsolete] file.ts\n";
+  print STDERR "Usage: $0 file.ts\n";
 };
 
-GetOptions('obsolete!' => \$use_obsolete, 'help' => sub { print_usage; exit(0); } );
+GetOptions(#'obsolete!' => \$use_obsolete,
+           'help' => sub { print_usage; exit(0); } );
 
 $tsfile = $ARGV[0] if $#ARGV >= 0;
 if ($#ARGV < 0 || $tsfile eq "") {

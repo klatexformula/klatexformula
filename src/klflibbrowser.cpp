@@ -22,6 +22,8 @@
 /* $Id$ */
 
 #include <QDebug>
+#include <QUrl>
+#include <QUrlQuery>
 #include <QFile>
 #include <QMenu>
 #include <QAction>
@@ -904,8 +906,10 @@ bool KLFLibBrowser::slotResourceNewSubRes()
 
   // see remark in comment below
   QUrl url = res->url();
-  url.removeAllQueryItems("klfDefaultSubResource");
-  url.addQueryItem("klfDefaultSubResource", name);
+  QUrlQuery urlq(url);
+  urlq.removeAllQueryItems("klfDefaultSubResource");
+  urlq.addQueryItem("klfDefaultSubResource", name);
+  url.setQuery(urlq);
 
   klfDbg( "KLFLibBrowser::slotRes.New.S.Res(): Create sub-resource named "<<name<<", opening "<<url ) ;
 
@@ -1561,7 +1565,9 @@ void KLFLibBrowser::slotOpenAll()
   QStringList subreslist = KLFLibEngineFactory::listSubResources(baseUrl);
   for (k = 0; k < subreslist.size(); ++k) {
     QUrl url = baseUrl;
-    url.addQueryItem("klfDefaultSubResource", subreslist[k]);
+    QUrlQuery urlq(url);
+    urlq.addQueryItem("klfDefaultSubResource", subreslist[k]);
+    url.setQuery(urlq);
     bool r = openResource(url);
     if ( !r )
       QMessageBox::critical(this, tr("Error"), tr("Failed to open resource %1!").arg(url.toString()));
@@ -1596,8 +1602,9 @@ bool KLFLibBrowser::slotExport()
   for (k = 0; k < exportUrls.size(); ++k) {
     klfDbg("Exporting "<<exportUrls[k]<<" ...");
     QUrl u = exportUrls[k];
-    QString usr = u.hasQueryItem("klfDefaultSubResource")
-      ? u.queryItemValue("klfDefaultSubResource")
+    QUrlQuery uq(u);
+    QString usr = uq.hasQueryItem("klfDefaultSubResource")
+      ? uq.queryItemValue("klfDefaultSubResource")
       : QString();
     QString sr = usr;
     if (usr.isEmpty()) {

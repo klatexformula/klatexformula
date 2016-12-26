@@ -60,12 +60,15 @@ void KLFPObjModel::setPObj(KLFAbstractPropertizedObject *pobj)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME);
   klfDbg("pobj="<<pobj) ;
 
+  beginResetModel();
+
   d->pObj = pobj;
   if (d->pObj != NULL)
     d->propertyNames = d->pObj->propertyNameList();
   else
     d->propertyNames = QStringList();
-  reset();
+
+  endResetModel();
 }
 
 KLFAbstractPropertizedObject * KLFPObjModel::pObj()

@@ -25,6 +25,7 @@
 #include <QApplication>
 #include <QMap>
 #include <QUrl>
+#include <QUrlQuery>
 #include <QBuffer>
 #include <QDir>
 #include <QDomDocument>
@@ -65,9 +66,9 @@ struct KLFMimeString
       
       QString qs = key.mid(i_semicolon+1);
       QUrl url;
-      url.setEncodedQuery(qs.toLatin1());
+      url.setQuery(qs.toLatin1());
 
-      QList<QPair<QString,QString> > qitems = url.queryItems();
+      QList<QPair<QString,QString> > qitems = QUrlQuery(url).queryItems();
       for (int i = 0; i < qitems.size(); ++i) {
         klfDbg("got mime query item " << qitems[i].first << "=" << qitems[i].second) ;
         mime_attrs[qitems[i].first] = qitems[i].second;
@@ -635,7 +636,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
 	    // correct locale
 	    //	    klfDbg("remembering description tag with lang="<<lang);
 	    description = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
-					  "[[tag: <description>]]", QCoreApplication::UnicodeUTF8);
+					  "[[tag: <description>]]");
 	    // xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
 	    curDescriptionLang = lang;
 	  }
@@ -655,7 +656,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
       }
       if ( en.nodeName() == "in-submenu" ) {
 	inSubMenu = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
-				       "[[tag: <in-submenu>]]", QCoreApplication::UnicodeUTF8);
+				       "[[tag: <in-submenu>]]");
 	continue;
       }
       if ( en.nodeName() != "export-type" ) {
@@ -1788,8 +1789,8 @@ QByteArray KLFExportUserScript::getData(const QString& key, const KLFBackend::kl
 
   // for user script debugging
   klfbackend_last_userscript_output
-    = "<b>STDOUT</b>\n<pre>" + Qt::escape(stdoutdata) + "</pre>\n<br/><b>STDERR</b>\n<pre>"
-    + Qt::escape(stderrdata) + "</pre>";
+    = "<b>STDOUT</b>\n<pre>" + QString(stdoutdata).toHtmlEscaped() + "</pre>\n<br/><b>STDERR</b>\n<pre>"
+    + QString(stderrdata).toHtmlEscaped() + "</pre>";
   
   klfDbg("Ran script "<<d->info->fileName()<<": stdout="<<stdoutdata<<"\n\tstderr="<<stderrdata) ;
 

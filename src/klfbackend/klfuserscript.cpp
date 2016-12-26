@@ -460,7 +460,7 @@ static QString escapeListIntoTags(const QStringList& list, const QString& startt
 {
   QString html;
   foreach (QString s, list) {
-    html += starttag + Qt::escape(s) + endtag;
+    html += starttag + s.toHtmlEscaped() + endtag;
   }
   return html;
 }
@@ -493,36 +493,36 @@ QString KLFUserScriptInfo::htmlInfo(const QString& extra_css) const
   txt +=
     "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 8px; margin-bottom: 0px\">\n"
     "<tt>" + QObject::tr("Script Name:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(QFileInfo(fileName()).fileName()) + "</span><br />\n";
+    "<span style=\"font-weight:600;\">" + QFileInfo(fileName()).fileName().toHtmlEscaped() + "</span><br />\n";
 
   if (!version().isEmpty()) {
     // the version
     txt += "<tt>" + QObject::tr("Version:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(version()) + "</span><br />\n";
+      "<span style=\"font-weight:600;\">" + version().toHtmlEscaped() + "</span><br />\n";
   }
   if (!author().isEmpty()) {
     // the author
     txt += "<tt>" + QObject::tr("Author:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(author()) + "</span><br />\n";
+      "<span style=\"font-weight:600;\">" + author().toHtmlEscaped() + "</span><br />\n";
   }
   // the category
   txt += "<tt>" + QObject::tr("Category:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(category()) + "</span><br />\n";
+    "<span style=\"font-weight:600;\">" + category().toHtmlEscaped() + "</span><br />\n";
 
   if (!license().isEmpty()) {
     // the license
     txt += "<tt>" + QObject::tr("License:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(license()) + "</span><br />\n";
+      "<span style=\"font-weight:600;\">" + license().toHtmlEscaped() + "</span><br />\n";
   }
   if (!spitsOut().isEmpty()) {
     // the output formats
     txt += "<tt>" + QObject::tr("Provides Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(spitsOut().join(", ")) + "</span><br />\n";
+      "<span style=\"font-weight:600;\">" + spitsOut().join(", ").toHtmlEscaped() + "</span><br />\n";
   }
   if (!skipFormats().isEmpty()) {
     // the skipped formats
     txt += "<tt>" + QObject::tr("Skipped Formats:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + Qt::escape(skipFormats().join(", ")) + "</span><br />\n";
+      "<span style=\"font-weight:600;\">" + skipFormats().join(", ").toHtmlEscaped() + "</span><br />\n";
   }
 
   /** \todo format extra non-standard properties */

@@ -25,7 +25,6 @@
 #include <QByteArray>
 #include <QDataStream>
 #include <QTextStream>
-#include <QTextDocument>  // Qt::escape()
 
 #include "klfpobj.h"
 
@@ -351,11 +350,11 @@ QString KLFPropertizedObject::toString(uint toStringFlags) const
   if (html) {
     if (usehtmldiv) {
       s = QString("<div class=\"klfpobj_entry\">\n<div class=\"klfpobj_name\">%2</div>\n")
-	.arg(Qt::escape(pPropNameSpace));
+	.arg(pPropNameSpace.toHtmlEscaped());
     } else {
       s = QString("<table class=\"klfpobj_tentry\">\n"
 		  "<tr colspan=\"2\" class=\"klfpobj_tname\"><th>%1</th></tr>\n")
-	.arg(Qt::escape(pPropNameSpace));
+	.arg(pPropNameSpace.toHtmlEscaped());
     }
   } else {
     s = QString("%1\n").arg(pPropNameSpace);
@@ -371,11 +370,11 @@ QString KLFPropertizedObject::toString(uint toStringFlags) const
       if (usehtmldiv)
 	s += QString("<div class=\"klfpobj_prop_%1\"><div class=\"klfpobj_propname\">%2</div>: "
 		     "<div class=\"klfpobj_propvalue\">%3</div></div>\n")
-	  .arg(pname, pname, Qt::escape(value));
+	  .arg(pname, pname, value.toHtmlEscaped());
       else
 	s += QString("  <tr class=\"klfpobj_tprop_%1\"><td class=\"klfpobj_tpropname\">%2</td>"
 		     "<td class=\"klfpobj_tpropvalue\">%3</td></tr>\n")
-	  .arg(pname, pname, Qt::escape(value));
+	  .arg(pname, pname, value.toHtmlEscaped());
     } else {
       if (quote) {
 	if (!isnull && canstring) {

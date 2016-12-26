@@ -126,7 +126,7 @@ public:
 	}
       }
       data.append(textvariantmap_header);
-      data.append(obj->objectKind().toAscii());
+      data.append(obj->objectKind().toLatin1());
       if (typ == NULL) {
 	// empty variant map
 	data.append("{}");
@@ -192,7 +192,7 @@ public:
 	++okindidx;
       // object kind
       QByteArray okind = data.mid(k+1, okindidx-(k+1));
-      KLF_ASSERT_CONDITION(okind == obj->objectKind().toAscii(),
+      KLF_ASSERT_CONDITION(okind == obj->objectKind().toLatin1(),
 			   "Trying to load wrong object kind: "<<okind, return false; ) ;
       k = okindidx;
       if (k+1 < data.size() && data[k] == '{' && data[k+1] == '}') {

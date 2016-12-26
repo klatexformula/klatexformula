@@ -1055,7 +1055,7 @@ KLF_EXPORT QString klfTimeOfDay(bool shortfmt)
     sprintf(temp, "%03ld.%06ld", (ulong)tv.tv_sec % 1000, (ulong)tv.tv_usec);
   else
     sprintf(temp, "%ld.%06ld", (ulong)tv.tv_sec, (ulong)tv.tv_usec);
-  return QString::fromAscii(temp);
+  return QString::fromLatin1(temp);
 }
 
 

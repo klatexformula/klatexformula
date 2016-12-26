@@ -140,7 +140,7 @@ KLF_EXPORT QByteArray klfDataToEscaped(const QByteArray& value_ba, char escapech
       data += escapechar;
     } else {
       data += escapechar;
-      data += QString("x%1").arg((uint)(uchar)value_ba[k], 2, 16, QChar('0')).toAscii();
+      data += QString("x%1").arg((uint)(uchar)value_ba[k], 2, 16, QChar('0')).toLatin1();
     }
   }
   return data;
@@ -431,7 +431,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
       else if (c == '\\')
 	data = "\\\\";
       else
-	data = "\\" + QString::number(c, 16).toUpper().toAscii();
+	data = "\\" + QString::number(c, 16).toUpper().toLatin1();
     }
   case QMetaType::QChar:
     {
@@ -441,7 +441,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
       else if (c == '\\')
 	data = "\\\\";
       else
-	data = "\\" + QString::number(c.unicode(), 16).toUpper().toAscii();
+	data = "\\" + QString::number(c.unicode(), 16).toUpper().toLatin1();
       break;
     }
   case QMetaType::QString:
@@ -457,7 +457,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
 	  if (tc->canEncode(s[k]))
 	    data += tc->fromUnicode(s.mid(k,1));
 	  else
-	    data += QString("\\x%1").arg((uint)s[k].unicode(), 4, 16, QChar('0')).toAscii();
+	    data += QString("\\x%1").arg((uint)s[k].unicode(), 4, 16, QChar('0')).toLatin1();
 	}
       }
       break;
@@ -488,26 +488,26 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     data = value.value<QDateTime>().toString(Qt::SystemLocaleShortDate).toLocal8Bit(); break;
   case QMetaType::QSize:
     { QSize sz = value.toSize();
-      data = QString("(%1 %2)").arg(sz.width()).arg(sz.height()).toAscii();
+      data = QString("(%1 %2)").arg(sz.width()).arg(sz.height()).toLatin1();
       break;
     }
   case QMetaType::QPoint:
     { QPoint pt = value.toPoint();
-      data = QString("(%1 %2)").arg(pt.x()).arg(pt.y()).toAscii();
+      data = QString("(%1 %2)").arg(pt.x()).arg(pt.y()).toLatin1();
       break;
     }
   case QMetaType::QRect:
     { QRect r = value.toRect();
-      data = QString("(%1 %2 %3x%4)").arg(r.left()).arg(r.top()).arg(r.width()).arg(r.height()).toAscii();
+      data = QString("(%1 %2 %3x%4)").arg(r.left()).arg(r.top()).arg(r.width()).arg(r.height()).toLatin1();
       break;
     }
   case QMetaType::QColor:
     { QColor c = value.value<QColor>();
       klfDbg("Saving color "<<c<<": alpha="<<c.alpha()) ;
       if (c.alpha() == 255)
-	data = QString("(%1 %2 %3)").arg(c.red()).arg(c.green()).arg(c.blue()).toAscii();
+	data = QString("(%1 %2 %3)").arg(c.red()).arg(c.green()).arg(c.blue()).toLatin1();
       else
-	data = QString("(%1 %2 %3 %4)").arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()).toAscii();
+	data = QString("(%1 %2 %3 %4)").arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()).toLatin1();
       break;
     }
   case QMetaType::QFont:
@@ -528,7 +528,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
       default: break;
       }
       // QFontInfo is preferred, if  f  was set with a pixelSize().
-      data += " " + QString::number(QFontInfo(f).pointSize()).toAscii();
+      data += " " + QString::number(QFontInfo(f).pointSize()).toLatin1();
       break;
     }
   case QMetaType::QBrush:
@@ -786,8 +786,8 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
   QRegExp rectrx("^\\(?\\s*(" RX_INT ")" RX_COORD_SEP "(" RX_INT ")"
 		 //                       3
 		 "(?:" RX_COORD_SEP "|\\s*([+])\\s*)"
-		 //4                                5         6
-		 "(" RX_INT ")(?:"RX_COORD_SEP"|\\s*([x])\\s*)(" RX_INT ")\\s*\\)?");
+		 //4                                  5         6
+		 "(" RX_INT ")(?:" RX_COORD_SEP "|\\s*([x])\\s*)(" RX_INT ")\\s*\\)?");
   static const int RECTRX_X1 = 1, RECTRX_Y1 = 2, RECTRX_MIDDLESEP_PLUS = 3,
     RECTRX_X2orW = 4, RECTRX_LASTSEP_X = 5, RECTRX_Y2orH = 6;
 
@@ -799,8 +799,8 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
 
   //                                       1                                2                     3
   QRegExp brushrx("^(?:q?brush)?\\(?\\s*(?:([A-Za-z_]\\w*)" RX_COORD_SEP ")?(\\d+)" RX_COORD_SEP "(\\d+)"
-		  //            4         5               6
-		  RX_COORD_SEP "(\\d+)"  "("RX_COORD_SEP "(\\d+))?" "\\s*\\)?", Qt::CaseInsensitive);
+		  //            4         5                6
+		  RX_COORD_SEP "(\\d+)"  "(" RX_COORD_SEP "(\\d+))?" "\\s*\\)?", Qt::CaseInsensitive);
   static const int BRUSHRX_STYLE = 1, BRUSHRX_R = 2, BRUSHRX_G = 3, BRUSHRX_B = 4, BRUSHRX_A = 6;
 
   //               1           2

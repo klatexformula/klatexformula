@@ -26,6 +26,7 @@
 
 #include <QtCore>
 #include <QtGui>
+#include <QtWidgets>
 #include <QUiLoader>
 
 #include <klfbackend.h>
@@ -951,7 +952,9 @@ void KLFMainWin::loadLibrary()
 
   QUrl localliburl = QUrl::fromLocalFile(localfname);
   localliburl.setScheme(klfconfig.Core.libraryLibScheme);
-  localliburl.addQueryItem("klfDefaultSubResource", "History");
+  QUrlQuery localliburlq(localliburl);
+  localliburlq.addQueryItem("klfDefaultSubResource", "History");
+  localliburl.setQuery(localliburlq);
 
   // If the history is already open from library browser saved state, retrieve it
   // This is possibly NULL
@@ -1024,7 +1027,9 @@ void KLFMainWin::loadLibrary()
       scheme = "klf+legacy";
     }
     importliburl.setScheme(scheme);
-    importliburl.addQueryItem("klfReadOnly", "true");
+    QUrlQuery importliburlq(importliburl);
+    importliburlq.addQueryItem("klfReadOnly", "true");
+    importliburl.setQuery(importliburlq);
     // import library from an older version library file.
     KLFLibEngineFactory *factory = KLFLibEngineFactory::findFactoryFor(importliburl.scheme());
     if (factory == NULL) {
@@ -1075,8 +1080,10 @@ void KLFMainWin::loadLibrary()
     //      continue;
     // if a URL is already open, it won't open it a second time.
     QUrl url = localliburl;
-    url.removeAllQueryItems("klfDefaultSubResource");
-    url.addQueryItem("klfDefaultSubResource", subresources[k]);
+    QUrlQuery urlq(url);
+    urlq.removeAllQueryItems("klfDefaultSubResource");
+    urlq.addQueryItem("klfDefaultSubResource", subresources[k]);
+    url.setQuery(urlq);
 
     uint flags = KLFLibBrowser::NoCloseRoleFlag|KLFLibBrowser::OpenNoRaise;
     QString sr = subresources[k].toLower();
@@ -1375,8 +1382,12 @@ void KLFMainWinPrivate::slotNewSymbolTyped(const QString& symbol)
   urlaction.setScheme("klfaction");
   urlaction.setPath("/popup");
   QUrl urlactionClose = urlaction;
-  urlaction.addQueryItem("preambleCmdStringList", QString::fromLatin1(cmdsData));
-  urlactionClose.addQueryItem("removeMessageKey", msgkey);
+  QUrlQuery urlactionq(urlaction);
+  urlactionq.addQueryItem("preambleCmdStringList", QString::fromLatin1(cmdsData));
+  urlaction.setQuery(urlactionq);
+  QUrlQuery urlactionCloseq(urlactionClose);
+  urlactionCloseq.addQueryItem("removeMessageKey", msgkey);
+  urlactionClose.setQuery(urlactionCloseq);
   mPopup->addMessage(msgkey,
 			tr("Symbol <tt>%3</tt> may require <a href=\"%1\">%2</a>.")
 			.arg(urlaction.toEncoded(), requiredtext, symbol) );
@@ -1393,9 +1404,10 @@ void KLFMainWinPrivate::slotPopupClose()
 void KLFMainWinPrivate::slotPopupAction(const QUrl& url)
 {
   klfDbg("url="<<url.toEncoded());
-  if (url.hasQueryItem("preambleCmdStringList")) {
+  QUrlQuery urlq(url);
+  if (urlq.hasQueryItem("preambleCmdStringList")) {
     // include the given package
-    QByteArray data = url.queryItemValue("preambleCmdStringList").toLatin1();
+    QByteArray data = urlq.queryItemValue("preambleCmdStringList").toLatin1();
     klfDbg("data="<<data);
     QStringList cmds = klfLoadVariantFromText(data, "QStringList").toStringList();
     klfDbg("ensuring CMDS="<<cmds);
@@ -1408,18 +1420,18 @@ void KLFMainWinPrivate::slotPopupAction(const QUrl& url)
       slotPopupClose();
     return;
   }
-  if (url.hasQueryItem("acceptAll")) {
+  if (urlq.hasQueryItem("acceptAll")) {
     slotPopupAcceptAll();
     return;
   }
-  if (url.hasQueryItem("removeMessageKey")) {
-    QString key = url.queryItemValue("removeMessageKey");
+  if (urlq.hasQueryItem("removeMessageKey")) {
+    QString key = urlq.queryItemValue("removeMessageKey");
     mPopup->removeMessage(key);
     if (!mPopup->hasMessages())
       slotPopupClose();
     return;
   }
-  if (url.hasQueryItem("configDontShow")) {
+  if (urlq.hasQueryItem("configDontShow")) {
     // don't show popups
     slotPopupClose();
     klfconfig.UI.showHintPopups = false;
@@ -2107,7 +2119,7 @@ void KLFMainWinPrivate::reloadLatexFontDefs()
             klfWarning("File "<<fn<<": Second title for font definition: already has title "<<thisfont.title) ;
           }
           thisfont.title = qApp->translate("xmltr_latexfontdefs", eefdetails.text().toUtf8().constData(),
-                                           "[[tag: <category-title>]]", QCoreApplication::UnicodeUTF8);
+                                           "[[tag: <category-title>]]");
         } else if ( eefdetails.nodeName() == "identifier" ) {
           if (!thisfont.identifier.isEmpty()) {
             klfWarning("File "<<fn<<": Second identifier for font definition: already has identifier "
@@ -2157,13 +2169,13 @@ void KLFMainWin::showSettingsHelpLinkAction(const QUrl& link)
 {
   klfDbg( ": link="<<link ) ;
   d->mSettingsDialog->show();
-  d->mSettingsDialog->showControl(link.queryItemValue("control"));
+  d->mSettingsDialog->showControl(QUrlQuery(link).queryItemValue("control"));
 }
 
 void KLFMainWin::helpLinkAction(const QUrl& link)
 {
   klfDbg( ": Link is "<<link<<"; scheme="<<link.scheme()<<"; path="<<link.path()
-	  <<"; queryItems="<<link.queryItems() ) ;
+	  <<"; queryItems="<<QUrlQuery(link).queryItems() ) ;
 
   if (link.scheme() == "http") {
     // web link
@@ -3045,7 +3057,7 @@ void KLFMainWin::slotToggleLibrary()
 void KLFMainWin::slotLibrary(bool showlib)
 {
   klfDbg("showlib="<<showlib) ;
-  d->mLibBrowser->setShown(showlib);
+  d->mLibBrowser->setVisible(showlib);
   if (showlib) {
     // already shown, raise the window
     d->mLibBrowser->activateWindow();
@@ -3059,7 +3071,7 @@ void KLFMainWin::slotToggleSymbols()
 }
 void KLFMainWin::slotSymbols(bool showsymbs)
 {
-  d->mLatexSymbols->setShown(showsymbs);
+  d->mLatexSymbols->setVisible(showsymbs);
   d->slotSymbolsButtonRefreshState(showsymbs);
   d->mLatexSymbols->activateWindow();
   d->mLatexSymbols->raise();
@@ -3474,7 +3486,9 @@ bool KLFMainWin::openLibFile(const QString& fname, bool showLibrary)
   int k;
   for (k = 0; k < subreslist.size(); ++k) {
     QUrl url2 = url;
-    url2.addQueryItem("klfDefaultSubResource", subreslist[k]);
+    QUrlQuery url2q(url2);
+    url2q.addQueryItem("klfDefaultSubResource", subreslist[k]);
+    url2.setQuery(url2q);
     bool thisloaded =  d->mLibBrowser->openResource(url2);
     loaded = loaded || thisloaded;
   }
@@ -3730,10 +3744,17 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   QString fname, format;
 
   QString suggestion = suggestfname;
-  if (suggestion.isEmpty())
+  if (suggestion.isEmpty()) {
     suggestion = klfconfig.UI.lastSaveDir;
-  if (suggestion.isEmpty())
-    suggestion = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+  }
+  if (suggestion.isEmpty()) {
+    QStringList docpaths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    if (docpaths.isEmpty()) {
+      suggestion = "";
+    } else {
+      suggestion = docpaths[0];
+    }
+  }
 
   fname = QFileDialog::getSaveFileName(this, tr("Save Formula Image"), suggestion, filterformat,
 				       &selectedfilter);

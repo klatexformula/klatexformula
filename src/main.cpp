@@ -299,16 +299,16 @@ void signal_act(int sig)
 // DEBUG, WARNING AND FATAL MESSAGES HANDLER
 
 // klfdebug.cpp
-extern  void klf_qt_msg_handle(QtMsgType type, const char *msg);
+extern  void klf_qt_msg_handle(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 extern  void klf_qt_msg_set_fp(FILE * fp);
 
 
-void klf_qt_message(QtMsgType type, const char *msg)
+void klf_qt_message(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
   if (opt_quiet)
     return;
 
-  klf_qt_msg_handle(type, msg);
+  klf_qt_msg_handle(type, context, msg);
 }
 
 
@@ -794,7 +794,7 @@ int main(int argc, char **argv)
 //   MainStartEnd klf_mainstartendinstance;
 // #endif
 
-  qInstallMsgHandler(klf_qt_message);
+  qInstallMessageHandler(klf_qt_message);
 
   //  // DEBUG: command-line arguments
   //  for (int jjj = 0; jjj < argc; ++jjj)

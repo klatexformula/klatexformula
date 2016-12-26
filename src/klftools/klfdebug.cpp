@@ -129,13 +129,16 @@ KLF_EXPORT  void klf_qt_msg_clear_warnings_buffer()
  *
  * This function is suitable for use with \ref qInstallMsgHandler() .
  */
-KLF_EXPORT  void klf_qt_msg_handle(QtMsgType type, const char *msg)
+KLF_EXPORT  void klf_qt_msg_handle(QtMsgType type, const QMessageLogContext &/*context*/, const QString &msgstr)
 {
   FILE *fout = stderr;
-  if (klf_qt_msg_fp != NULL)
+  if (klf_qt_msg_fp != NULL) {
     fout = klf_qt_msg_fp;
-
+  }
   ensure_tty_fp();
+
+  QByteArray msgbytes(msgstr.toLatin1());
+  const char * msg = msgbytes.constData();
 
   switch (type) {
   case QtDebugMsg:

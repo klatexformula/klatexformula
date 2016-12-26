@@ -3,18 +3,20 @@
 # #################################### #
 # $Id$
 # #################################### #
-cmake_minimum_required(VERSION 2.6.4)
+cmake_minimum_required(VERSION 3.1)
 
 PROJECT(klatexformula)
 
-cmake_policy(VERSION 2.8.0)
-
 # Set up CMAKE properly
-set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-set(KLF_ROOT_CMAKE_READ TRUE CACHE INTERNAL "Can be queried to see if the root CMakeLists.txt was read")
+
+if(APPLE)
+  # find HomeBrew Qt5, if present
+  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt5/lib/cmake")
+endif(APPLE)
+
 
 # Read project version
 file(READ "VERSION" klf_ver)
@@ -68,15 +70,14 @@ string(REGEX REPLACE "${klfversion_regex}" "\\3" KLF_VERSION_REL "${KLF_VERSION}
 string(REGEX REPLACE "${klfversion_regex}" "\\4" KLF_VERSION_SUFFIX "${KLF_VERSION}")
 
 # The version that the libraries will be tagged with
-set(KLF_LIB_VERSION "${KLF_VERSION_MAJ}.${KLF_VERSION_MIN}")
+set(KLF_LIB_VERSION "${KLF_VERSION_MAJ}")
 
 include(KLFUtil)
 
 
 # Warn the user for defined cache variables that are not standard,
-# i.e. may be a user's typo
-include(klfValidOptions)
-
+# i.e. may be a user's typo -- recent CMake does that automatically
+#include(klfValidOptions)
 
 
 # Set some project settings
@@ -85,43 +86,9 @@ include(klfValidOptions)
 message(STATUS "")
 message(STATUS "[BUILD SETTINGS]")
 
-KLFGetCMakeVarChanged(CMAKE_BUILD_TYPE)
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "(FOR DEVELOPERS:) Build configuration (Debug|Release)")
-mark_as_advanced(CLEAR CMAKE_BUILD_TYPE)
-if(NOT CMAKE_BUILD_TYPE AND klf_first_CMAKE_BUILD_TYPE)
-  # force to "Release" the first time if empty
-  set(CMAKE_BUILD_TYPE "Release"
-		      CACHE STRING "(FOR DEVELOPERS:) Build configuration (Debug|Release)" FORCE)
-endif(NOT CMAKE_BUILD_TYPE AND klf_first_CMAKE_BUILD_TYPE)
-message(STATUS "Build Type: ${CMAKE_BUILD_TYPE} (CMAKE_BUILD_TYPE)")
-KLFCMakeSetVarChanged(CMAKE_BUILD_TYPE)
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "[For developers] Build configuration (Debug|Release|RelWithDebInfo)")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(default_klf_debug TRUE)
-else(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(default_klf_debug FALSE)
-endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-#KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice calcoptvalue depvar1)
-KLFDeclareCacheVarOptionFollowComplex1(KLF_DEBUG
-	BOOL "Enable debugging messages"  # cache
-	ON                                # updatenotice enabled
-	"${default_klf_debug}"            # (possibly new) calculated value
-	CMAKE_BUILD_TYPE                  # dependency variable
-)
-if(KLF_DEBUG)
-  message(STATUS "Enabling debugging messages (KLF_DEBUG)")
-endif(KLF_DEBUG)
-if(WIN32)
-  set(klf_default_debug_postfix "d")
-elseif(APPLE)
-  set(klf_default_debug_postfix "_debug")
-else(WIN32)
-  set(klf_default_debug_postfix "")  
-endif(WIN32)
-set(CMAKE_DEBUG_POSTFIX "${klf_default_debug_postfix}"
-	    CACHE STRING "Suffix to add to target names when built in 'Debug' build configuration")
-mark_as_advanced(CMAKE_DEBUG_POSTFIX)
-
+set(KLF_DEBUG "$<BOOL:$<Config:Release>>" CACHE BOOL "Enable klf debugging messages (boolean)")
 
 # experimental features
 option(KLF_EXPERIMENTAL
@@ -134,201 +101,92 @@ if(KLF_EXPERIMENTAL)
 endif(KLF_EXPERIMENTAL)
 
 
-# see if user specified a QT_QMAKE_EXECUTABLE and set QT_QMAKE_EXECUTABLE_FINDQT too (FindQt4 bug?)
-if(QT_QMAKE_EXECUTABLE AND NOT QT_QMAKE_EXECUTABLE_FINDQT)
-  set(QT_QMAKE_EXECUTABLE_FINDQT "${QT_QMAKE_EXECUTABLE}" CACHE STRING "Qt QMake executable path" FORCE)
-endif(QT_QMAKE_EXECUTABLE AND NOT QT_QMAKE_EXECUTABLE_FINDQT)
-
-# Find Qt 4 and Include it
-find_package(Qt4 4.5.0 COMPONENTS QtCore QtGui REQUIRED)
-find_package(Qt5 5.1.0 COMPONENTS QtCore QtGui QtWidgets REQUIRED)
-
-if(NOT QT4_FOUND)
-  #mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE)
-  message(FATAL_ERROR
-    "Didn't find Qt4. Try setting the QT_QMAKE_EXECUTABLE (and/or QT_QMAKE_EXECUTABLE_FINDQT) cache variable(s)." )
-endif(NOT QT4_FOUND)
-
-# Current Qt Version "MAJ.MIN"
-set(KLF_CMAKE_QTVERSION "${QT_VERSION_MAJOR}.${QT_VERSION_MINOR}" CACHE INTERNAL "Qt Version, Maj.Min")
+# Find Qt 5
+find_package(Qt5Widgets REQUIRED)
 
 
-# variables that FindQt obviously forgets to set to advanced
-mark_as_advanced(QT_QTMOTIF_INCLUDE_DIR QT_QTMOTIF_LIBRARY_DEBUG QT_QTMOTIF_LIBRARY_RELEASE)
-if(WIN32)
-  mark_as_advanced(CLEAR QT_QMAKE_EXECUTABLE_FINDQT)
-endif(WIN32)
+#
+# by default, libraries are dynamic unless overridden by user options
+#
+set(klf_default_libraries_static 0)
 
-# Bug: on Mac OS X, with homebrew, qt frameworks are symlinks and it's a hell of
-# install_name_tool's to get names and references right. This is an additional directory
-# which Qt libraries might report being in, although they might only be symlinks there.
-KLFCMakeDebug("QT_LIBRARY_DIR is ${QT_LIBRARY_DIR}")
-if(NOT QT_HOMEBREW_ALT_LIB_DIR AND QT_LIBRARY_DIR MATCHES "^/usr/local/Cellar/.*")
-  # homebrew
-  set(QT_HOMEBREW_ALT_LIB_DIR "/usr/local/lib" CACHE STRING
-    "Alternative directory where Qt libraries could report living in with otool -L QtCore.framework")
-  message(STATUS
-    "Detected homebrew Qt. Set QT_HOMEBREW_ALT_LIB_DIR for proper importing of Qt frameworks into final bundle."
-    )
-endif(NOT QT_HOMEBREW_ALT_LIB_DIR AND QT_LIBRARY_DIR MATCHES "^/usr/local/Cellar/.*")
+#
+# KLFTOOLS
+#
 
-
-
-
-#KLFDeclareCacheVarOptionCondition(specificoption cachetype cachestring updatenoticestring condition forcedvalue defaultvalue)
-KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLS
-	BOOL "Build klatexformula tools library (klftools)"          # cache info
-	"Not building klftools library... should never happen."  # update notify message
-	1              # the condition (1=no condition)
-	OFF            # the forced value if condition is not met
-	1              # the default value at beginning
-)
+# must be set to ON if you want to build anything at all.
+option(KLF_BUILD_TOOLS "Build klatexformula tools library (klftools). Necessary for everything else." 1)
+option(KLF_LIBKLFTOOLS_STATIC "Build a static klftools library" ${klf_default_libraries_static})
 if(KLF_BUILD_TOOLS)
   message(STATUS "Will build the klftools library (KLF_BUILD_TOOLS)")
-else(KLF_BUILD_TOOLS)
-  message(FATAL_ERROR "There is nothing to build. You must set at least KLF_BUILD_TOOLS.")
-endif(KLF_BUILD_TOOLS)
-
-set(KLF_BUILD_TOOLSDESPLUGIN TRUE CACHE BOOL "Build Qt Designer Plugin for klftools library widgets")
-mark_as_advanced(KLF_BUILD_TOOLSDESPLUGIN)
-# ...
-KLFTestCondition(_klf_allow_toolsdesplugin
-  "KLF_BUILD_TOOLS AND NOT KLF_LIBKLFBACKEND_STATIC AND NOT KLF_LIBKLFTOOLS_STATIC")
-KLFDeclareCacheVarOptionCondition(KLF_BUILD_TOOLSDESPLUGIN
-	BOOL "Build klatexformula tools designer plug-in; requires building dynamic libraries."          # cache info
-	"Build klatexformula tools designer plug-in requires building dynamic libraries.
-    Not building the klftools designer plug-in."  # update notify message
-	_klf_allow_toolsdesplugin  # the condition
-	OFF                        # the forced value if condition is not met
-	${KLF_BUILD_TOOLS}         # the default value at beginning
-)
-mark_as_advanced(KLF_BUILD_TOOLSDESPLUGIN) # advanced...
-if(KLF_BUILD_TOOLSDESPLUGIN)
-  message(STATUS "Will build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
-else(KLF_BUILD_TOOLSDESPLUGIN)
-  message(STATUS "Will not build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
-endif(KLF_BUILD_TOOLSDESPLUGIN)
-
-
-#KLFDeclareCacheVarOptionCondition(specificoption cachetype cachestring updatenoticestring condition forcedvalue defaultvalue)
-KLFDeclareCacheVarOptionCondition(KLF_BUILD_BACKEND
-	BOOL "Build klatexformula backend library (klfbackend)"                  # cache info
-	"Building klfbackend library requires klftools. Not building klfbackend library."  # update notify message
-	KLF_BUILD_TOOLS       # the condition
-	OFF                   # the forced value if condition is not met
-	TRUE                  # the default value at beginning
-)
-if(KLF_BUILD_BACKEND)
-  message(STATUS "Will build the klfbackend library (KLF_BUILD_BACKEND)")
-else(KLF_BUILD_BACKEND)
-  message(STATUS "Will not build the klfbackend library (KLF_BUILD_BACKEND)")
-endif(KLF_BUILD_BACKEND)
-
-#KLFDeclareCacheVarOptionCondition(specificoption cachetype cachestring updatenoticestring condition forcedvalue defaultvalue)
-KLFDeclareCacheVarOptionCondition(KLF_BUILD_BACKEND_AUTO
-	BOOL "Build klatexformula autonomous backend library (klfbackend_auto)"          # cache info
-	"Not building klfbackend_auto library... should never happen."  # update notify message
-	1              # the condition (1=no condition)
-	OFF            # the forced value if condition is not met
-	1              # the default value at beginning
-)
-if(KLF_BUILD_BACKEND)
-  message(STATUS "Will build autonomous klfbackend_auto without klftools dependency (KLF_BUILD_BACKEND_AUTO)")
-else(KLF_BUILD_BACKEND)
-  message(STATUS "Will not build autonomous klfbackend_auto without klftools dependency (KLF_BUILD_BACKEND_AUTO)")
-endif(KLF_BUILD_BACKEND)
-
-
-#KLFDeclareCacheVarOptionCondition(spec.option cachetype cachestr updatemsg cond. forceval def.val.)
-KLFDeclareCacheVarOptionCondition(KLF_BUILD_GUI
-	BOOL "Build klatexformula GUI (klfapp+klatexformula), requires klftools and klfbackend." # cache info
-	"Building klatexformula GUI requires klftools and klfbackend libraries. Not building GUI." # notify message
-	"KLF_BUILD_BACKEND AND KLF_BUILD_TOOLS"  # the condition
-	OFF                                      # the forced value if condition is not met
-	TRUE                                     # the default value at beginning (here this is a boolean)
-)
-if(KLF_BUILD_GUI)
-  message(STATUS "Will build the GUI interface (klatexformula, klfapp) (KLF_BUILD_GUI)")
-else(KLF_BUILD_GUI)
-  message(STATUS "Will not build the GUI interface (klatexformula, klfapp) (KLF_BUILD_GUI)")
-endif(KLF_BUILD_GUI)
-
-
-#KLFDeclareCacheVarOptionCondition(spec.option cachetype cachestr updatemsg cond. forceval def.val.)
-KLFDeclareCacheVarOptionCondition(KLF_BUILD_PLUGINS
-	BOOL "Build klatexformula plugins; requires klftools, klfbackend and GUI" # cache info
-	"Building klatexformula plugins requires klatexformula GUI. Not building plugins." # notify message
-	"KLF_BUILD_GUI"                    # the condition (GUI depends on klftools and Qt4)
-	OFF                                # the forced value if condition is not met
-	${KLF_BUILD_GUI}                   # the default value at beginning (here this is a boolean)
-)
-if(KLF_BUILD_PLUGINS)
-  message(STATUS "Will build klatexformula plugins (KLF_BUILD_PLUGINS)")
-else(KLF_BUILD_PLUGINS)
-  message(STATUS "Will not build klatexformula plugins (KLF_BUILD_PLUGINS)")
-endif(KLF_BUILD_PLUGINS)
-
-
-# Static/Shared libraries
-# In all cases we prefer shared libraries (also on linux, so we can build the
-# klfdesplugin and klfkateplugin objects). Set static by default only in debug
-# configurations.
-if(WIN32)
-  set(default_library_static FALSE)
-else(WIN32)
-  # unux systems.
-  KLFTestCondition(default_library_static "CMAKE_BUILD_TYPE STREQUAL \"Debug\"")
-endif(WIN32)
-
-# Build a shared or static klftools library
-set(KLF_LIBKLFTOOLS_STATIC ${default_library_static} CACHE BOOL "Build a static klftools library")
-# and status message
-if(KLF_BUILD_TOOLS)
   if(KLF_LIBKLFTOOLS_STATIC)
     message(STATUS "Building a static KLatexFormula tools library (klftools) (KLF_LIBKLFTOOLS_STATIC)")
-  else(KLF_LIBKLFTOOLS_STATIC)
+  else()
     message(STATUS "Building a shared KLatexFormula tools library (klftools) (KLF_LIBKLFTOOLS_STATIC)")
-  endif(KLF_LIBKLFTOOLS_STATIC)
-endif(KLF_BUILD_TOOLS)
+  endif()
+else()
+#  message(FATAL_ERROR "There is nothing to build. You must set at least KLF_BUILD_TOOLS.")
+endif()
 
-# Build a shared or static klfbackend library
+set(KLF_BUILD_TOOLSDESPLUGIN "$<NOT:$<KLF_LIBKLFTOOLS_STATIC>>" TRUE CACHE BOOL
+  "Build Qt Designer Plugin for klftools library widgets")
+if(KLF_BUILD_TOOLSDESPLUGIN)
+  if(KLF_LIBKLFTOOLS_STATIC)
+    message(FATAL_ERROR "Cannot build klftools designer plugin library with static klftools library (set KLF_BUILD_TOOLSDESPLUGIN=0 or KLF_LIBKLFTOOLS_STATIC=0)")
+  endif()
+  message(STATUS "Will build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
+else()
+  message(STATUS "Will not build the klftools designer plugin library (KLF_BUILD_TOOLSDESPLUGIN)")
+endif()
+
+#
+# KLFBACKEND
+#
+
+option(KLF_BUILD_BACKEND "Build klatexformula backend library (klfbackend)" 1)
 option(KLF_LIBKLFBACKEND_STATIC "Compile static libklfbackend backend library instead of shared."
-       ${default_library_static})
-# status message
+  ${klf_default_libraries_static})
 if(KLF_BUILD_BACKEND)
+  if (NOT KLF_BUILD_TOOLS)
+    message(FATAL_ERROR "Cannot build klfbackend without klftools (set KLF_BUILD_BACKEND=0 or KLF_BUILD_TOOLS=1)")
+  endif()
+  message(STATUS "Will build the klfbackend library (KLF_BUILD_BACKEND)")
   if(KLF_LIBKLFBACKEND_STATIC)
     message(STATUS "Building a static KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
-  else(KLF_LIBKLFBACKEND_STATIC)
+  else()
     message(STATUS "Building a shared KLFBackend library (KLF_LIBKLFBACKEND_STATIC)")
-  endif(KLF_LIBKLFBACKEND_STATIC)
-endif(KLF_BUILD_BACKEND)
+  endif()
+else()
+  message(STATUS "Will not build the klfbackend library (KLF_BUILD_BACKEND)")
+endif()
 
-# Build or not a shared or static klfbackend_auto library
+
+option(KLF_BUILD_BACKEND_AUTO "Build klatexformula autonomous backend library (klfbackend_auto)" 1)
 option(KLF_LIBKLFBACKEND_AUTO_STATIC "Compile static libklfbackend_auto backend library instead of shared."
        TRUE)
-# status message
 if(KLF_BUILD_BACKEND_AUTO)
+  message(STATUS "Will build autonomous klfbackend_auto without klftools dependency (KLF_BUILD_BACKEND_AUTO)")
   if(KLF_LIBKLFBACKEND_AUTO_STATIC)
     message(STATUS "Building a static klfbackend_auto autonomous library (KLF_LIBKLFBACKEND_AUTO_STATIC)")
-  else(KLF_LIBKLFBACKEND_AUTO_STATIC)
+  else()
     message(STATUS "Building a shared klfbackend_auto autonomous library (KLF_LIBKLFBACKEND_AUTO_STATIC)")
-  endif(KLF_LIBKLFBACKEND_AUTO_STATIC)
-endif(KLF_BUILD_BACKEND_AUTO)
+  endif()
+else()
+  message(STATUS "Will not build autonomous klfbackend_auto without klftools dependency (KLF_BUILD_BACKEND_AUTO)")
+endif()
 
-# Build a shared or static source klfapp library (for plugins to link to)
-set(KLF_LIBKLFAPP_STATIC ${default_library_static} CACHE BOOL "Build a static klfapp library")
-# and status message
+option(KLF_BUILD_GUI "Build klatexformula GUI application (klatexformula) [requires klftools and klfbackend]" 1)
 if(KLF_BUILD_GUI)
-  if(KLF_LIBKLFAPP_STATIC)
-    message(STATUS "Building a static KLatexFormula klfapp library (KLF_LIBKLFAPP_STATIC)")
-  else(KLF_LIBKLFAPP_STATIC)
-    message(STATUS "Building a shared KLatexFormula klfapp library (KLF_LIBKLFAPP_STATIC)")
-  endif(KLF_LIBKLFAPP_STATIC)
-endif(KLF_BUILD_GUI)
+  if (NOT KLF_BUILD_TOOLS OR NOT KLF_BUILD_BACKEND)
+    message(FATAL_ERROR "Cannot build the klatexformula GUI main application without klftools and klfbackend (set KLF_BUILD_BACKEND=1 and KLF_BUILD_TOOLS=1, or set KLF_BUILD_GUI=0)")
+  endif()
+  message(STATUS "Will build the GUI interface (klatexformula) (KLF_BUILD_GUI)")
+else()
+  message(STATUS "Will not build the GUI interface (klatexformula) (KLF_BUILD_GUI)")
+endif()
 
 if(APPLE)
   # These settings override on Mac OS X
-  KLFGetCMakeVarChanged(CMAKE_OSX_ARCHITECTURES)
   if(CMAKE_OSX_ARCHITECTURES)
     set(display_CMAKE_OSX_ARCHITECTURES "${CMAKE_OSX_ARCHITECTURES}")
   else(CMAKE_OSX_ARCHITECTURES)
@@ -338,122 +196,34 @@ if(APPLE)
   if(KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
     KLFNote("Warning: KLF_TARGET_ARCH_64 ignored on Mac OS X. Use CMAKE_OSX_ARCHITECTURES instead.")
   endif(KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64)
-else(APPLE)
-  # Target architecture (allows compile for 32-bit on 64-bit architectures)
-  KLFGetCMakeVarChanged(KLF_TARGET_ARCH_64)  # detect changes, for KLF_LIB_SUFFIX later on
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(klf_host_arch_64 TRUE)
-  else(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(klf_host_arch_64 FALSE)
-  endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(KLF_TARGET_ARCH_64 ${klf_host_arch_64} CACHE BOOL "Configure build for 64-bit arch")
-  KLFCMakeSetVarChanged(KLF_TARGET_ARCH_64)
-  if(KLF_TARGET_ARCH_64)
-    message(STATUS "Compiling for 64-bit architecture (KLF_TARGET_ARCH_64=ON/OFF)")
-  else(KLF_TARGET_ARCH_64)
-    message(STATUS "Compiling for 32-bit architecture (KLF_TARGET_ARCH_64=ON/OFF)")
-  endif(KLF_TARGET_ARCH_64)
-
-  KLFGetCMakeVarChanged(KLF_ARCH_FLAGS)
-  set(the_arch_flags "")
-  if(KLF_TARGET_ARCH_64)
-    if(klf_host_arch_64)
-      set(the_arch_flags "")
-    else(klf_host_arch_64)
-      set(the_arch_flags "-m64")
-    endif(klf_host_arch_64)
-  else(KLF_TARGET_ARCH_64)
-    if(klf_host_arch_64)
-      set(the_arch_flags "-m32")
-    else(klf_host_arch_64)
-      set(the_arch_flags "")
-    endif(klf_host_arch_64)
-  endif(KLF_TARGET_ARCH_64)
-  #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
-  KLFDeclareCacheVarOptionFollowComplexN(KLF_ARCH_FLAGS
-    STRING "Additional architecture flags for gcc"
-    TRUE                     # updatenotice
-    "${the_arch_flags}"      # calcoptvalue
-    "KLF_TARGET_ARCH_64"     # depvarlist
-    )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${KLF_ARCH_FLAGS}")
-endif(APPLE)
-if(KLF_ARCH_FLAGS)
-  message(STATUS "Additional architecture flags for gcc: ${KLF_ARCH_FLAGS} (KLF_ARCH_FLAGS)")
-endif(KLF_ARCH_FLAGS)
-
-
-KLFGetCMakeVarChanged(KLF_LIB_SUFFIX)  # Also used later in klfinstallpaths.cmake
-# Guess lib dir suffix on linux/unix
-if(UNIX)
-  execute_process(COMMAND test -d /lib64 -a ! -L /lib64 RESULT_VARIABLE nothavelib64)
-  if(NOT nothavelib64 AND KLF_TARGET_ARCH_64)
-    set(wantlib64 TRUE)
-  else(NOT nothavelib64 AND KLF_TARGET_ARCH_64)
-    set(wantlib64 FALSE)
-  endif(NOT nothavelib64 AND KLF_TARGET_ARCH_64)
-  execute_process(COMMAND test -d /lib32 -a ! -L /lib32 RESULT_VARIABLE nothavelib32)
-  if(NOT nothavelib32 AND NOT KLF_TARGET_ARCH_64)
-    set(wantlib32 TRUE)
-  else(NOT nothavelib32 AND NOT KLF_TARGET_ARCH_64)
-    set(wantlib32 FALSE)
-  endif(NOT nothavelib32 AND NOT KLF_TARGET_ARCH_64)
-  if(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64 OR klf_updated_KLF_TARGET_ARCH_64)
-    # KLF_TARGET_ARCH_64 changed, update KLF_LIB_SUFFIX
-    if(wantlib64)
-      set(NEW_KLF_LIB_SUFFIX "64")
-    elseif(wantlib32)
-      set(NEW_KLF_LIB_SUFFIX "32")
-    else(wantlib64)
-      set(NEW_KLF_LIB_SUFFIX "")
-    endif(wantlib64)
-    if(DEFINED KLF_LIB_SUFFIX)
-      set(klf_lib_suffix_redefined TRUE)
-    endif(DEFINED KLF_LIB_SUFFIX)
-    if(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
-    else(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
-      set(KLF_LIB_SUFFIX ${NEW_KLF_LIB_SUFFIX} CACHE STRING
-			      "Suffix to library directory (eg. '64' for '/usr/lib64')" FORCE)
-      set(klf_updated_KLF_LIB_SUFFIX TRUE) # we updated this variable's value
-      if(klf_lib_suffix_redefined)
-        KLFNote("The library suffix was detected and adjusted to \"${KLF_LIB_SUFFIX}\".")
-      endif(klf_lib_suffix_redefined)
-    endif(KLF_LIB_SUFFIX STREQUAL NEW_KLF_LIB_SUFFIX)
-  else(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64 OR klf_updated_KLF_TARGET_ARCH_64)
-    # no change
-  endif(klf_first_KLF_TARGET_ARCH_64 OR klf_changed_KLF_TARGET_ARCH_64 OR klf_updated_KLF_TARGET_ARCH_64)
-  message(STATUS "Using \"${KLF_LIB_SUFFIX}\" as library directory suffix (KLF_LIB_SUFFIX)")
-endif(UNIX)
-KLFCMakeSetVarChanged(KLF_LIB_SUFFIX)
+endif()
 
 
 # Mac OS X: building frameworks + bundles ?
 if(APPLE)
   option(KLF_MACOSX_BUNDLES
 	 "On Mac OS X: Build Bundles and Frameworks instead of UNIX-Style binaries" ON)
-endif(APPLE)
+  option(KLF_MACOSX_BUNDLE_EXTRAS
+	 "[Mac OS X Bundles] Copy dependent libraries & resources into bundle, ready to be copied anywhere else and on other systems" ON)
+endif()
 
 # Build DBUS support ?
 if(UNIX AND NOT APPLE)
   set(KLF_USE_DBUS ON CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
-else(UNIX AND NOT APPLE)
+else()
   set(KLF_USE_DBUS OFF CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
-endif(UNIX AND NOT APPLE)
+endif()
 if(KLF_USE_DBUS)
   message(STATUS "Building with D-BUS support (KLF_USE_DBUS)")
-else(KLF_USE_DBUS)
+else()
   message(STATUS "Building without D-BUS support (KLF_USE_DBUS)")
-endif(KLF_USE_DBUS)
+endif()
 
-# DEVELOPER OPTION to install base plugins to ~/.klatexformula/plugins
-option(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY
- "FOR DEVELOPERS ONLY. Installs plugins in ~/.klatexformula/plugins/ AT COMPILE-TIME."
- FALSE)
 # DEVELOPER OPTION to test QAbstractItemModel-based models with ModelTest
 option(KLF_DEBUG_USE_MODELTEST
  "DEVELOPERS ONLY. Uses ModelTest (Qt's Labs) to test QAbstractItemModel-based models. VERY slow."
  FALSE)
-mark_as_advanced(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY KLF_DEBUG_USE_MODELTEST)
+mark_as_advanced(KLF_DEBUG_USE_MODELTEST)
 if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
   message(STATUS "Will install plugins in ~/.klatexformula/plugins/ at compile-time (KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)")
 endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
@@ -462,7 +232,6 @@ if(KLF_DEBUG_USE_MODELTEST)
 endif(KLF_DEBUG_USE_MODELTEST)
 
 # Include some extra data files/fonts into KLatexFormula
-KLFGetCMakeVarChanged(KLF_INCLUDE_FONTS)
 set(klf_def_incl_fonts "data/cmunsi.otf;data/cmunso.otf;data/cmunss.otf;data/cmunsx.otf") # CMU Sans Serif
 if(APPLE)
   set(klf_def_incl_fonts
@@ -471,27 +240,28 @@ endif(APPLE)
 set(KLF_INCLUDE_FONTS "${klf_def_incl_fonts}"
   CACHE STRING "Include some extra fonts into KLF's internal resources (absolute or relative to src/)")
 message(STATUS "Will include fonts into klatexformula's resources: \"${KLF_INCLUDE_FONTS}\" (KLF_INCLUDE_FONTS)")
-mark_as_advanced(KLF_INCLUDE_FONTS)
-KLFCMakeSetVarChanged(KLF_INCLUDE_FONTS)
 
 # Use system font rather than CMU font if available
 #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
-KLFDeclareCacheVarOptionFollowComplexN(KLF_NO_CMU_FONT
-  BOOL "Tells klatexformula to use system font instead of Computer Modern font"
-  TRUE   # updatenotice
-  OFF    # calcoptvalue
-  ""     # depvarlist
+option(KLF_NO_CMU_FONT
+  "Tells klatexformula to use system font instead of Computer Modern font"
+  FALSE
   )
 if(KLF_NO_CMU_FONT)
   message(STATUS "Will use system font instead of CMU font (KLF_NO_CMU_FONT)")
-else(KLF_NO_CMU_FONT)
+else()
   message(STATUS "Will attempt to use Computer Modern unicode font (KLF_NO_CMU_FONT)")
-endif(KLF_NO_CMU_FONT)
+endif()
 
 
 # Use Sparkle framework under Mac OS X?
 if(APPLE)
   option(KLF_USE_SPARKLE "Use Sparkle Framework for auto-updates on Mac OS X" OFF)
+  # can only use if we are building a bundle
+  if (NOT KLF_MACOSX_BUNDLES)
+    message(FATAL_ERROR "Can only build with Sparkle framework when we are building a Mac OS X App bundle (use KLF_MACOSX_BUNDLES=1)")
+  endif()
+
   if(KLF_USE_SPARKLE)
     set(KLF_SPARKLE_FEED_URL "http://klatexformula.sourceforge.net/sparklefeed.xml"
       CACHE STRING "URL for Sparkle to check for updates")
@@ -500,9 +270,9 @@ if(APPLE)
     set(KLF_SPARKLE_DSA_PUBKEY "" CACHE STRING "Path to the DSA public key for signing packages.")
     if(NOT EXISTS "${KLF_SPARKLE_FRAMEWORK}")
       message(FATAL_ERROR "Please specify the path to the Sparkle Framework in KLF_SPARKLE_FRAMEWORK, or disable the Sparkle framework with KLF_USE_SPARKLE=off.")
-    endif(NOT EXISTS "${KLF_SPARKLE_FRAMEWORK}")
+    endif()
     message(STATUS "Using sparkle framework with update URL ${KLF_SPARKLE_FEED_URL}")
-  endif(KLF_USE_SPARKLE)
+  endif()
 endif(APPLE)
 
 # Use WinSparkle framework under Windows?
@@ -515,109 +285,36 @@ if(WIN32)
       CACHE STRING "Path to the WinSparkle Directory (with .h files & WinSparkle.dll file)")
     if(NOT EXISTS "${KLF_WINSPARKLE_DIR}")
       message(FATAL_ERROR "Please specify the path to the WinSparkle directory in KLF_WINSPARKLE_DIR, or disable the Sparkle framework with KLF_USE_WINSPARKLE=off.")
-    endif(NOT EXISTS "${KLF_WINSPARKLE_DIR}")
+    endif()
     message(STATUS "Using WinSparkle with update URL ${KLF_WINSPARKLE_FEED_URL}")
-  endif(KLF_USE_WINSPARKLE)
-endif(WIN32)
+  endif()
+endif()
 
-
-# Current System OS
-if(APPLE)
-set(internal_KLF_CMAKE_OS "macosx")
-elseif(WIN32)
-set(internal_KLF_CMAKE_OS "win32")
-elseif(UNIX)
-set(internal_KLF_CMAKE_OS "linux")
-else(APPLE)
-set(internal_KLF_CMAKE_OS "unknown")
-endif(APPLE)
-set(KLF_CMAKE_OS "${internal_KLF_CMAKE_OS}" CACHE INTERNAL "Current Build OS")
-# Current System Arch
-if(APPLE AND CMAKE_OSX_ARCHITECTURES)
-  set(internal_KLF_CMAKE_ARCHES "${CMAKE_OSX_ARCHITECTURES}")
-  set(internal_KLF_CMake_ARCH )
-  foreach(arch ${internal_KLF_CMAKE_ARCHES})
-    set(thisarch "${arch}")
-    if(thisarch MATCHES "^i.86$")
-      set(thisarch "x86")
-    endif(thisarch MATCHES "^i.86$")
-    set(internal_KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH},${thisarch}")
-  endforeach(arch)
-  # and remove initial comma
-  string(REGEX REPLACE "^," "" internal_KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}")
-    
-  #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
-  KLFDeclareCacheVarOptionFollowComplexN(KLF_CMAKE_ARCH
-    STRING "Target build processor architecture (Mac OS X universal: separated by commas), calculated from CMAKE_OSX_ARCHITECTURES"
-    FALSE                             # updatenotice
-    "${internal_KLF_CMAKE_ARCH}"      # calcoptvalue
-    "CMAKE_OSX_ARCHITECTURES"         # depvarlist
-    )
-else(APPLE AND CMAKE_OSX_ARCHITECTURES)
-  if (APPLE)
-    # best guess these days is that it's a x86_64. Change manually otherwise.
-    KLFNote("Guessing x86_64 processor architecture on Mac OS X. set CMAKE_OSX_ARCHITECTURES to change.")
-    set(internal_KLF_CMAKE_ARCH "x86_64")
-  else(APPLE)
-    # CMAKE_SYSTEM_PROCESSOR is the processor we're building _for_.
-    set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}") 
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
-      set(internal_KLF_CMAKE_ARCH "x86")
-    endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
-    if(NOT APPLE AND NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
-      set(internal_KLF_CMAKE_ARCH "x86") # we are building for x86
-    endif(NOT APPLE AND NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
-  endif(APPLE)
-  set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}"
-    CACHE STRING "Build Target Processor Arch (Mac OS X universal: separated by commas)")
-endif(APPLE AND CMAKE_OSX_ARCHITECTURES)
-mark_as_advanced(KLF_CMAKE_ARCH)
-
-# Find KDE4 for KTextEditor Plugin
-if(UNIX AND NOT APPLE)
-  set(KLF_BUILD_KTEXTEDITORPLUGIN ON CACHE BOOL "Build the KTextEditor plugin")
-else(UNIX AND NOT APPLE)
-  set(KLF_BUILD_KTEXTEDITORPLUGIN OFF CACHE BOOL "Build the KTextEditor Plugin")
-endif(UNIX AND NOT APPLE)
-if(KLF_BUILD_KTEXTEDITORPLUGIN)
-  message(STATUS "Will build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
-else(KLF_BUILD_KTEXTEDITORPLUGIN)
-  message(STATUS "Will NOT build KTextEditor plugin (KLF_BUILD_KTEXTEDITORPLUGIN)")
-endif(KLF_BUILD_KTEXTEDITORPLUGIN)
-
-
-# some additional variables that get shown in some versions of CMake that could be hidden
-mark_as_advanced(
-	EXECUTABLE_OUTPUT_PATH
-	LIBRARY_OUTPUT_PATH
-	CMAKE_BACKWARDS_COMPATIBILITY
-	LIB_SUFFIX
-	)
 
 # Manpage generation from --help and --version help text
 if(NOT KLF_MACOSX_BUNDLES)
   if(NOT DEFINED HELP2MAN OR HELP2MAN STREQUAL "")
     find_program(HELP2MAN "help2man")
-  endif(NOT DEFINED HELP2MAN OR HELP2MAN STREQUAL "")
-endif(NOT KLF_MACOSX_BUNDLES)
+  endif()
+endif()
 if(HELP2MAN)
   message(STATUS "Manpage will be generated from --help text with help2man (HELP2MAN=OFF or /path/to/help2man)")
 elseif(NOT KLF_MACOSX_BUNDLES AND NOT WIN32 AND HELP2MAN STREQUAL "")
   KLFNote("help2man was not found. Manpage will not be generated.
     set explicitely HELP2MAN to /path/.../to/help2man if needed.")
-endif(HELP2MAN)
+endif()
 if(NOT HELP2MAN)
   message(STATUS "Manpage will not be generated with help2man (HELP2MAN=OFF or /path/to/help2man)")
-endif(NOT HELP2MAN)
+endif()
 if(NOT DEFINED GZIP OR GZIP STREQUAL "")
   find_program(GZIP "gzip")
-endif(NOT DEFINED GZIP OR GZIP STREQUAL "")
+endif()
 if(HELP2MAN)
   if(GZIP)
     message(STATUS "Manpage will be gzip'ed (GZIP=OFF or /path/to/gzip)")
-  else(GZIP)
+  else()
     message(STATUS "Manpage will not be gzip'ed (GZIP=OFF or /path/to/gzip)")
-  endif(GZIP)
+  endif()
 endif(HELP2MAN)
 
 
@@ -640,8 +337,7 @@ if(KLF_MACOSX_BUNDLES)
 	codecs/libqjpcodecs.dylib
 	codecs/libqkrcodecs.dylib
 	codecs/libqtwcodecs.dylib
-	sqldrivers/libqsqlite.dylib
-	sqldrivers/libqsqlodbc.dylib)
+	sqldrivers/libqsqlite.dylib)
   set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}"
 					  CACHE STRING "Qt plugins to incorporate into Mac bundle")
   string(REGEX REPLACE ";" "
@@ -665,33 +361,23 @@ add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}"
 		-DKLF_VERSION_MAJ=${KLF_VERSION_MAJ}
 		-DKLF_VERSION_MIN=${KLF_VERSION_MIN}
 		-DKLF_VERSION_REL=${KLF_VERSION_REL}
-		-DKLF_SRC_BUILD
-		-DKLF_CMAKE_ARCH="${KLF_CMAKE_ARCH}")
-# Add flags for DEBUG build configuration
-set(CMAKE_CXX_FLAGS_DEBUG
-  "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wformat=2 -Wno-format-extra-args -Winit-self")
+		-DKLF_SRC_BUILD)
+# Add warning flags for DEBUG build configuration
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra")
 if(KLF_DEBUG)
   add_definitions(-DKLF_DEBUG)
-else(KLF_DEBUG)
+else()
   # Instruct Qt to ignore qDebug() for RELEASE build configuration (if not KLF_DEBUG)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DQT_NO_DEBUG_OUTPUT")
-endif(KLF_DEBUG)
+endif()
 if(KLF_EXPERIMENTAL)
   add_definitions(-DKLF_EXPERIMENTAL)
-endif(KLF_EXPERIMENTAL)
+endif()
 
 
 # Main subdirectory with all sources
 # ----------------------------------
 add_subdirectory(src)
-
-# Build KDE KTextEditor Plugin
-# This can't be called from src/CMakeLists.txt because the ktexteditor plugin can
-# be build with just klfbackend and no gui.
-if(KLF_BUILD_KTEXTEDITORPLUGIN)
-  add_subdirectory(src/klfkateplugin)
-endif(KLF_BUILD_KTEXTEDITORPLUGIN)
-
 
 
 message(STATUS "")

@@ -34,7 +34,7 @@
 #include <QString>
 #include <QListView> // icon view flow
 #include <QLocale>
-#include <QDesktopServices> // "My Documents" or "Documents" directory
+#include <QStandardPaths> // "My Documents" or "Documents" directory
 #include <QDesktopWidget>
 #include <QDomDocument>
 #include <QDomElement>
@@ -363,8 +363,15 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(LibraryBrowser.groupSubCategories, true) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.iconViewFlow, QListView::TopToBottom) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.historyTagCopyToArchive, true) ;
-  KLFCONFIGPROP_INIT(LibraryBrowser.lastFileDialogPath,
-		     QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation)) ; // "My Documents"
+  // "My Documents"
+  QStringList docpaths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+  QString docpath;
+  if (docpaths.isEmpty()) {
+    docpath = "";
+  } else {
+    docpath = docpaths[0];
+  }
+  KLFCONFIGPROP_INIT(LibraryBrowser.lastFileDialogPath, docpath) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.treePreviewSizePercent, 75) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.listPreviewSizePercent, 75) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.iconPreviewSizePercent, 100) ;

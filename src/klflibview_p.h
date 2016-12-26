@@ -688,7 +688,7 @@ protected:
   QPoint mousePressedContentsPos;
 
   virtual QModelIndexList commonSelectedIndexes() const = 0;
-  virtual void commonInternalDrag(Qt::DropActions a) = 0;
+  //  virtual void commonInternalDrag(Qt::DropActions a) = 0;
   virtual QAbstractItemView *thisView() = 0;
   virtual const QAbstractItemView *thisConstView() const = 0;
   virtual QPoint scrollOffset() const = 0;
@@ -792,7 +792,7 @@ public slots:
 
 protected:
   QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
-  void commonInternalDrag(Qt::DropActions) {  }
+  // void commonInternalDrag(Qt::DropActions) {  }
   QAbstractItemView *thisView() { return this; }
   const QAbstractItemView *thisConstView() const { return this; }
   QPoint scrollOffset() const { return QPoint(horizontalOffset(), verticalOffset()); }
@@ -875,7 +875,7 @@ public:
 
 protected:
   virtual QModelIndexList commonSelectedIndexes() const { return selectedIndexes(); }
-  virtual void commonInternalDrag(Qt::DropActions a) { internalDrag(a); }
+  //  virtual void commonInternalDrag(Qt::DropActions a) { internalDrag(a); }
   virtual QAbstractItemView *thisView() { return this; }
   virtual const QAbstractItemView *thisConstView() const { return this; }
   virtual QPoint scrollOffset() const { return QPoint(horizontalOffset(), verticalOffset()); }

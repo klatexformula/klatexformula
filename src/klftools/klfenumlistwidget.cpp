@@ -22,7 +22,7 @@
 /* $Id$ */
 
 #include <QUrl>
-#include <QTextDocument>
+#include <QUrlQuery>
 
 #include "klfenumlistwidget.h"
 
@@ -121,7 +121,7 @@ void KLFEnumListWidget::updateLabelText()
   int k;
   for (k = 0; k < pItems.size(); ++k) {
     t += "<span class=\"item\"><a class=\"itemtext\" href=\"klfenumlistwidgetaction:/itemClick?i="
-      +QString::number(k)+"\">" + Qt::escape(pItems[k].s) + "</a>&nbsp;";
+      +QString::number(k)+"\">" + (pItems[k].s).toHtmlEscaped() + "</a>&nbsp;";
     t += "<a class=\"actionlink\" href=\"klfenumlistwidgetaction:/removeAt?i="+QString::number(k)+"\">[-]</a>"
       + "&nbsp;&nbsp;</span> ";
   }
@@ -137,13 +137,14 @@ void KLFEnumListWidget::labelActionLink(const QString& link)
   klfDbg("link clicked="<<link<<" scheme="<<url.scheme()<<", path="<<url.path()) ;
 
   if (url.scheme() == "klfenumlistwidgetaction") {
+    QUrlQuery q(url);
     if (url.path() == "/removeAt") {
-      int i = url.queryItemValue("i").toInt();
+      int i = q.queryItemValue("i").toInt();
       removeItem(i);
       return;
     }
     if (url.path() == "/itemClick") {
-      int i = url.queryItemValue("i").toInt();
+      int i = q.queryItemValue("i").toInt();
       emit itemActivated(i, itemAt(i), itemDataAt(i));
       emit itemActivated(itemAt(i), itemDataAt(i));
       return;

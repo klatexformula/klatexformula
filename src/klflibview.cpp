@@ -26,6 +26,8 @@
 #include <QDebug>
 #include <QImage>
 #include <QString>
+#include <QUrl>
+#include <QUrlQuery>
 #include <QDataStream>
 #include <QMessageBox>
 #include <QAbstractItemModel>
@@ -440,6 +442,8 @@ void KLFLibModelCache::rebuildCache()
   QList<KLFLibModel::PersistentId> persistentIndexIds = pModel->persistentIdList(persistentIndexes);
   klfDbgT("... done saving persistent indexes.");
 
+  pModel->beginResetModel();
+
   // clear cache first
   pEntryCache.clear();
   pCategoryLabelCache.clear();
@@ -534,7 +538,7 @@ void KLFLibModelCache::rebuildCache()
 
   fullDump(); // DEBUG
 
-  pModel->reset();
+  pModel->endResetModel();
 
   klfDbg("restoring persistent indexes ...");
   QModelIndexList newPersistentIndexes = pModel->newPersistentIndexList(persistentIndexIds);
@@ -3103,6 +3107,8 @@ uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) cons
   bool baseequal = false;
   uint resultFlags = 0x0;
 
+  QUrlQuery otherq(other);
+
   // see if base resources are equal
   baseequal = resourceEngine()->compareUrlTo(other, KlfUrlCompareBaseEqual);
   if (baseequal)
@@ -3118,8 +3124,8 @@ uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) cons
       // --> they must support sub-resources if we do, and display one
       if ( ! (resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) ) {
 	resultFlags |= KlfUrlCompareLessSpecific;
-      } else if (other.hasQueryItem("klfDefaultSubResource")) {
-	if (resourceEngine()->compareDefaultSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+      } else if (otherq.hasQueryItem("klfDefaultSubResource")) {
+	if (resourceEngine()->compareDefaultSubResourceEquals(otherq.queryItemValue("klfDefaultSubResource")))
 	  resultFlags |= KlfUrlCompareLessSpecific;
       }
     }
@@ -3132,23 +3138,23 @@ uint KLFLibDefaultView::compareUrlTo(const QUrl& other, uint interestFlags) cons
       // more spec.
       // -> if other doesn't have sub-resource, we're fine
       // -> if does, if (we not) { fail; } else { compare equality }
-      if (!other.hasQueryItem("klfDefaultSubResource")) {
+      if (!otherq.hasQueryItem("klfDefaultSubResource")) {
 	resultFlags |= KlfUrlCompareMoreSpecific;
       } else if (! (resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources)) {
 	// fail
       } else {
 	// both support sub-resources, compare equality
-	if (resourceEngine()->compareDefaultSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+	if (resourceEngine()->compareDefaultSubResourceEquals(otherq.queryItemValue("klfDefaultSubResource")))
 	  resultFlags |= KlfUrlCompareMoreSpecific;
       }
     } 
   }
   if (interestFlags & KlfUrlCompareEqual) {
     bool wesupportsubres = (resourceEngine()->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources);
-    bool hesupportssubres = other.hasQueryItem("klfDefaultSubResource");
+    bool hesupportssubres = otherq.hasQueryItem("klfDefaultSubResource");
     if ( wesupportsubres && hesupportssubres ) {
       // both have sub-resources
-      if (baseequal && resourceEngine()->compareDefaultSubResourceEquals(other.queryItemValue("klfDefaultSubResource")))
+      if (baseequal && resourceEngine()->compareDefaultSubResourceEquals(otherq.queryItemValue("klfDefaultSubResource")))
 	resultFlags |= KlfUrlCompareEqual;
     } else if ( !wesupportsubres && ! hesupportssubres ) {
       // both don't have sub-resources, so we're "equal"
@@ -4010,11 +4016,13 @@ QUrl KLFLibOpenResourceDlg::url() const
     // empty url means cancel open
     return QUrl();
   }
+  QUrlQuery urlq(url);
   if (pUi->chkReadOnly->isChecked())
-    url.addQueryItem("klfReadOnly", "true");
+    urlq.addQueryItem("klfReadOnly", "true");
   if (pUi->cbxSubResource->count())
-    url.addQueryItem("klfDefaultSubResource",
-		     pUi->cbxSubResource->itemData(pUi->cbxSubResource->currentIndex()).toString());
+    urlq.addQueryItem("klfDefaultSubResource",
+                      pUi->cbxSubResource->itemData(pUi->cbxSubResource->currentIndex()).toString());
+  url.setQuery(urlq);
   klfDbg( "Got URL: "<<url ) ;
   return url;
 }
@@ -4264,7 +4272,7 @@ KLFLibResPropEditor::KLFLibResPropEditor(KLFLibResourceEngine *res, QWidget *par
   connect(pSubResPropModel, SIGNAL(itemChanged(QStandardItem *)),
 	  this, SLOT(advSubResPropEdited(QStandardItem *)));
 
-  U->frmAdvanced->setShown(U->btnAdvanced->isChecked());
+  U->frmAdvanced->setVisible(U->btnAdvanced->isChecked());
 
   // perform full refresh (resource properties)
   updateResourceProperties();
@@ -4379,7 +4387,7 @@ bool KLFLibResPropEditor::apply()
 void KLFLibResPropEditor::on_btnAdvanced_toggled(bool on)
 {
   // show/hide advanced controls
-  U->frmAdvanced->setShown(on);
+  U->frmAdvanced->setVisible(on);
   if (U->frmAdvanced->isVisible()) {
     // adjust size of columns
     int w = width() / 3;

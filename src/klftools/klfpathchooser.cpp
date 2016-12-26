@@ -26,7 +26,7 @@
 #include <QPushButton>
 #include <QFrame>
 #include <QFileDialog>
-#include <QDesktopServices>
+#include <QStandardPaths>
 #include <QDirModel>
 #include <QCompleter>
 
@@ -89,8 +89,14 @@ void KLFPathChooser::requestBrowse()
   QString path;
   if (!txtPath->text().isEmpty())
     path = txtPath->text();
-  else
-    path = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+  else {
+    QStringList docpaths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+    if (docpaths.isEmpty()) {
+      path = "";
+    } else {
+      path = docpaths[0];
+    }
+  }
 
   QString s;
   if (_mode == 1) {

@@ -318,12 +318,12 @@ KLFSearchBar::KLFSearchBar(QWidget *parent)
   connect(u->btnFindPrev, SIGNAL(clicked()), this, SLOT(findPrev()));
 
   QPalette defaultpal = u->txtSearch->palette();
-  u->txtSearch->setProperty(palettePropName(Default).toAscii(), QVariant::fromValue<QPalette>(defaultpal));
+  u->txtSearch->setProperty(palettePropName(Default).toLatin1(), QVariant::fromValue<QPalette>(defaultpal));
   QPalette pal0 = defaultpal;
   pal0.setColor(QPalette::Text, QColor(180,180,180));
   pal0.setColor(QPalette::WindowText, QColor(180,180,180));
   pal0.setColor(u->txtSearch->foregroundRole(), QColor(180,180,180));
-  u->txtSearch->setProperty(palettePropName(FocusOut).toAscii(), QVariant::fromValue<QPalette>(pal0));
+  u->txtSearch->setProperty(palettePropName(FocusOut).toLatin1(), QVariant::fromValue<QPalette>(pal0));
   // default found/not-found colors
   setColorFound(QColor(128,255,128));
   setColorNotFound(QColor(255,128,128));
@@ -380,12 +380,12 @@ QString KLFSearchBar::currentSearchText() const
 
 QColor KLFSearchBar::colorFound() const
 {
-  QPalette p = u->txtSearch->property(palettePropName(Found).toAscii()).value<QPalette>();
+  QPalette p = u->txtSearch->property(palettePropName(Found).toLatin1()).value<QPalette>();
   return p.color(QPalette::Base);
 }
 QColor KLFSearchBar::colorNotFound() const
 {
-  QPalette p = u->txtSearch->property(palettePropName(NotFound).toAscii()).value<QPalette>();
+  QPalette p = u->txtSearch->property(palettePropName(NotFound).toLatin1()).value<QPalette>();
   return p.color(QPalette::Base);
 }
 
@@ -422,30 +422,30 @@ KLFSearchBar::SearchState KLFSearchBar::currentState() const
 
 void KLFSearchBar::setColorFound(const QColor& color)
 {
-  QPalette pal1 = u->txtSearch->property(palettePropName(Default).toAscii()).value<QPalette>();
+  QPalette pal1 = u->txtSearch->property(palettePropName(Default).toLatin1()).value<QPalette>();
   pal1.setColor(QPalette::Base, color);
   pal1.setColor(QPalette::Window, color);
   pal1.setColor(u->txtSearch->backgroundRole(), color);
-  u->txtSearch->setProperty(palettePropName(Found).toAscii(), QVariant::fromValue<QPalette>(pal1));
+  u->txtSearch->setProperty(palettePropName(Found).toLatin1(), QVariant::fromValue<QPalette>(pal1));
 }
 
 void KLFSearchBar::setColorNotFound(const QColor& color)
 {
-  QPalette pal2 = u->txtSearch->property(palettePropName(Default).toAscii()).value<QPalette>();
+  QPalette pal2 = u->txtSearch->property(palettePropName(Default).toLatin1()).value<QPalette>();
   pal2.setColor(QPalette::Base, color);
   pal2.setColor(QPalette::Window, color);
   pal2.setColor(u->txtSearch->backgroundRole(), color);
-  u->txtSearch->setProperty(palettePropName(NotFound).toAscii(), QVariant::fromValue<QPalette>(pal2));
+  u->txtSearch->setProperty(palettePropName(NotFound).toLatin1(), QVariant::fromValue<QPalette>(pal2));
 }
 
 void KLFSearchBar::setShowHideButton(bool showHideButton)
 {
-  u->btnHide->setShown(showHideButton);
+  u->btnHide->setVisible(showHideButton);
 }
 
 void KLFSearchBar::setShowSearchLabel(bool on)
 {
-  u->lblSearch->setShown(on);
+  u->lblSearch->setVisible(on);
 }
 
 void KLFSearchBar::setEmacsStyleBackspace(bool on)
@@ -1064,7 +1064,7 @@ void KLFSearchBar::displayState(SearchState s)
 {
   klfDbg("Setting state: "<<statePropValue(s));
   u->txtSearch->setProperty("searchState", statePropValue(s));
-  QPalette pal = u->txtSearch->property(palettePropName(s).toAscii()).value<QPalette>();
+  QPalette pal = u->txtSearch->property(palettePropName(s).toLatin1()).value<QPalette>();
   /// \todo should these next two lines be inverted? (ie. first set palette, then style sheet)
   u->txtSearch->setStyleSheet(u->txtSearch->styleSheet());
   u->txtSearch->setPalette(pal);

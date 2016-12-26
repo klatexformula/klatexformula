@@ -39,9 +39,9 @@
 #include <QEvent>
 #include <QListView> // QListView::LeftToRight|TopToBottom
 #include <QMouseEvent>
-#include <QDesktopServices>
+#include <QStandardPaths>
 #include <QToolBar>
-#include <QPlastiqueStyle>
+#include <QStyleFactory>
 
 #include <klfcolorchooser.h>
 #include <klfpathchooser.h>
@@ -147,7 +147,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 #if defined(Q_WS_MAC) || defined(Q_WS_WIN32) || defined(Q_WS_WIN) || defined(Q_WS_WIN64)
   //  u->toolBar->setAttribute(Qt::WA_NoSystemBackground, true);
   //  u->toolBar->setAttribute(Qt::WA_NativeWindow, false);
-  u->toolBar->setStyle(new QPlastiqueStyle());
+  u->toolBar->setStyle(QStyleFactory::create("fusion"));
 #endif
 
 
@@ -826,19 +826,19 @@ void KLFSettingsPrivate::refreshPluginSelected()
     "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-bottom: 0px\">\n"
     // the name
     "<tt>" + tr("Name:", "[[settings dialog plugin info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(klf_plugins[k].title) + "</span><br />\n"
+    "<span style=\"font-weight:600;\">" + klf_plugins[k].title.toHtmlEscaped() + "</span><br />\n"
     // the author
     "<tt>" + tr("Author:", "[[settings dialog plugin info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(klf_plugins[k].author) + "</span><br />\n"
+    "<span style=\"font-weight:600;\">" + klf_plugins[k].author.toHtmlEscaped() + "</span><br />\n"
     // the description
     "<tt>" + tr("Description:", "[[settings dialog plugin info text]]") + "</tt></p>\n"
     "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;   margin-bottom: 0px;\">"
-    + Qt::escape(klf_plugins[k].description) + "</p>\n"
+    + klf_plugins[k].description.toHtmlEscaped() + "</p>\n"
     // file location
     "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
     "<tt>" + tr("File Location:", "[[settings dialog plugin info text]]") + "</tt><br />"
     "<span style=\"font-size: "+smallpointsize_s+"pt;\">"
-    + Qt::escape(QDir::toNativeSeparators(QFileInfo(klf_plugins[k].fpath).canonicalFilePath()))
+    + QDir::toNativeSeparators(QFileInfo(klf_plugins[k].fpath).canonicalFilePath()).toHtmlEscaped()
     + "</span><br />\n"
     "</body></html>";
 
@@ -1029,7 +1029,7 @@ void KLFSettingsPrivate::refreshAddOnSelected()
   QString errorshtml;
   for (int kkl = 0; kkl < elist.size(); ++kkl) {
     errorshtml += "<span style=\"color: #a00000; font-style=italic; font-weight: bold\">"
-      + Qt::escape(elist[kkl]) + "</span><br />";
+      + elist[kkl].toHtmlEscaped() + "</span><br />";
   }
   
   QString addoninfotext =
@@ -1043,14 +1043,14 @@ void KLFSettingsPrivate::refreshAddOnSelected()
     + errorshtml +
     // the name
     "<tt>" + tr("Name:", "[[settings dialog add-on info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(klf_addons[k].title()) + "</span><br />\n"
+    "<span style=\"font-weight:600;\">" + klf_addons[k].title().toHtmlEscaped() + "</span><br />\n"
     // the author
     "<tt>" + tr("Author:", "[[settings dialog add-on info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + Qt::escape(klf_addons[k].author()) + "</span><br />\n"
+    "<span style=\"font-weight:600;\">" + klf_addons[k].author().toHtmlEscaped() + "</span><br />\n"
     // the description
     "<tt>" + tr("Description:", "[[settings dialog add-on info text]]") + "</tt></p>\n"
     "<p style=\"font-weight: 600; margin-top: 2px; margin-left: 25px;   margin-bottom: 0px;\">"
-    + Qt::escape(klf_addons[k].description()) + "</p>\n"
+    + klf_addons[k].description().toHtmlEscaped() + "</p>\n"
     // file name
     "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 2px;\">\n"
     "<tt>" + tr("File Name:", "[[settings dialog add-on info text]]") + "</tt>&nbsp;&nbsp;"
@@ -1072,9 +1072,18 @@ void KLFSettingsPrivate::refreshAddOnSelected()
 
 void KLFSettings::importAddOn()
 {
+  // "My Documents"
+  QStringList docpaths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+  QString docpath;
+  if (docpaths.isEmpty()) {
+    docpath = "";
+  } else {
+    docpath = docpaths[0];
+  }
+
   QStringList efnames =
     QFileDialog::getOpenFileNames(this, tr("Please select add-on file(s) to import"),
-				  QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation),
+				  docpath,
 				  "Qt Resource Files (*.rcc)");
   int i;
   for (i = 0; i < efnames.size(); ++i) {

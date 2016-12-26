@@ -37,7 +37,8 @@
 #include <QDragMoveEvent>
 #include <QDialog>
 #include <QStackedLayout>
-#include <QDir>
+#include <QUrl>
+#include <QUrlQuery>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QAction>
@@ -229,8 +230,10 @@ public:
       else
 	t = subreslist[k];
 
+      QUrlQuery urlq(baseurl);
+      urlq.addQueryItem("klfDefaultSubResource", subreslist[k]);
       QUrl url = baseurl;
-      url.addQueryItem("klfDefaultSubResource", subreslist[k]);
+      url.setQuery(urlq);
       QString urlstr = url.toString();
 
       QAction *a = NULL;
@@ -772,7 +775,9 @@ public:
 	for (j = 0; j < resItem->rowCount(); ++j) {
 	  if (resItem->child(j)->checkState() != Qt::Unchecked) {
 	    QUrl url = resItem->data(DataRole).toString();
-	    url.addQueryItem("klfDefaultSubResource", resItem->child(j)->data(DataRole).toString());
+            QUrlQuery urlq(url);
+	    urlq.addQueryItem("klfDefaultSubResource", resItem->child(j)->data(DataRole).toString());
+            url.setQuery(urlq);
 	    urlList << url;
 	    continue;
 	  }
@@ -861,8 +866,9 @@ private:
       KLFLibResourceEngine *res = pLibBrowser->getOpenResource(openurls[k]);
       QStandardItem *parent = getResourceParentItem(res);
       QStringList subreslist;
-      if (openurls[k].hasQueryItem("klfDefaultSubResource")) {
-	subreslist = QStringList() << openurls[k].queryItemValue("klfDefaultSubResource");
+      QUrlQuery urlq(openurls[k]);
+      if (urlq.hasQueryItem("klfDefaultSubResource")) {
+	subreslist = QStringList() << urlq.queryItemValue("klfDefaultSubResource");
       } else if (res->supportedFeatureFlags() & KLFLibResourceEngine::FeatureSubResources) {
 	// no default sub-resource is specified, so add them all
 	subreslist = res->subResourceList();

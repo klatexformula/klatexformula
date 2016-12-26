@@ -27,7 +27,6 @@
 #include <sys/time.h>
 #include <math.h> // fabs()
 
-#include <Qt>
 #include <QtGlobal>
 #include <QByteArray>
 #include <QSet>
@@ -43,6 +42,7 @@
 #include <QTextDocument>
 #include <QImageWriter>
 #include <QTextCodec>
+#include <QTemporaryDir>
 
 #include <klfutil.h>
 #include <klfdatautil.h>
@@ -187,7 +187,7 @@ void KLFImageLatexMetaInfo::saveField(const QString& k, const QString& v)
   _w->setText(k, klfDataToEscaped(v.toUtf8(), '%'));
 }
 QString KLFImageLatexMetaInfo::loadField(const QString &k) {
-  return QString::fromUtf8(klfEscapedToData(_w->text(k).toAscii(), '%'));
+  return QString::fromUtf8(klfEscapedToData(_w->text(k).toLatin1(), '%'));
 }
 
 
@@ -205,7 +205,7 @@ KLF_EXPORT QByteArray klf_escape_ps_string(const QString& v)
   }
   QByteArray vdata;
   if (isascii) {
-    vdata = v.toAscii();
+    vdata = v.toLatin1();
     
     QByteArray escaped;
     for (i = 0; i < vdata.size(); ++i) {
@@ -614,9 +614,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   QString temptemplate = settings.tempdir + "/klftmp"+ver+"-XXXXXX";
 
   // create the temporary directory
-  KLFBackendTempDir tempdir(temptemplate);
+  QTemporaryDir tempdir(temptemplate);
 
-  if (!tempdir.path().size()) {
+  if (!tempdir.isValid()) {
     // failed to create temporary directory
     res.errorstr = QObject::tr("Failed to create temporary directory inside `%1'",
                                "KLFBackend").arg(settings.tempdir);
@@ -624,7 +624,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     return res;
   }
 
-  QString tempfname = tempdir.tempFileInDir("klftemp");
+  QString tempfname = tempdir.path() + "/klftemp";
 
   klfDbg("Temp location base name is "<<tempfname) ;
 
@@ -850,8 +850,9 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 
       // for user script debugging
       klfbackend_last_userscript_output
-        = "<b>STDOUT</b>\n<pre>" + Qt::escape(stdoutdata) + "</pre>\n<br/><b>STDERR</b>\n<pre>"
-        + Qt::escape(stderrdata) + "</pre>";
+        = "<b>STDOUT</b>\n<pre>" + QString::fromLocal8Bit(stdoutdata).toHtmlEscaped()
+        + "</pre>\n<br/><b>STDERR</b>\n<pre>"
+        + QString::fromLocal8Bit(stderrdata).toHtmlEscaped() + "</pre>";
 
       if (!ok) {
 	p.errorToOutput(&res);
@@ -1967,7 +1968,7 @@ KLF_EXPORT QStringList klfInputToEnvironmentForUserScript(const KLFBackend::klfI
       << "KLF_INPUT_BG_COLOR_RGBA=" + bgcol
       << "KLF_INPUT_DPI=" + QString::number(in.dpi)
       << "KLF_INPUT_USERSCRIPT=" + in.userScript
-      << "KLF_INPUT_BYPASS_TEMPLATE=" + in.bypassTemplate;
+      << "KLF_INPUT_BYPASS_TEMPLATE=" + QString::number(in.bypassTemplate);
   
   // and add custom user parameters
   QMap<QString,QString>::const_iterator cit;

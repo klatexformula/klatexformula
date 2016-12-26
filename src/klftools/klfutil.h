@@ -206,7 +206,7 @@ template<class T>
 {
   QMap<QString, T> map;
   for (QVariantMap::const_iterator it = vmap.begin(); it != vmap.end(); ++it) {
-    map[it.key()] = qVariantValue<T>(it.value());
+    map[it.key()] = it.value().value<T>();
   }
   return map;
 }

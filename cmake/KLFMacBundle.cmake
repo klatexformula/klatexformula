@@ -4,9 +4,6 @@
 # $Id$
 # ##################################################### #
 
-cmake_policy(VERSION 2.8.0)
-
-
 macro(KLFMessageBundleExtraDeps var textname)
   if(${var})
     message(STATUS "Will bundle library and framework dependencies into ${textname} (${var})")
@@ -14,6 +11,8 @@ macro(KLFMessageBundleExtraDeps var textname)
     message(STATUS "Will not bundle library and framework dependencies into ${textname} (${var})")
   endif(${var})
 endmacro(KLFMessageBundleExtraDeps var textname)
+
+
 
 if(APPLE AND KLF_MACOSX_BUNDLES)
   option(KLF_MACOSX_BUNDLE_EXTRAS
@@ -254,13 +253,6 @@ macro(KLFMMakeFramework TGT HEADERS)
   set_target_properties(${TGT} PROPERTIES
 	FRAMEWORK	TRUE
   )
-
-  KLFGetTargetLocation(klffwlibtarget ${TGT})
-  set(klffwlibtarget_${TGT} "${klffwlibtarget}" CACHE INTERNAL "${TGT} target name")
-  string(REGEX REPLACE "/Contents/MacOS/[^/]+$" "" klffwlocation "${klffwexetarget_${TGT}}")
-  set(klffwlocation_${TGT} "${klffwlocation}" CACHE INTERNAL "${TGT} fw location (path to incl. .app dir)")
-  KLFGetTargetFileName(klffwname ${TGT})
-  set(klffwname_${TGT} "${klffwname}" CACHE INTERNAL "${TGT} fw name (abc.app)")
 
   # Add Proper bundle clean target 
   add_custom_target(${TGT}_clean

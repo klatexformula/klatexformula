@@ -1,21 +1,16 @@
 // COPIED CODE FROM Qt 4.7.3 source: src/gui/kernel/qt_mac_p.h;qwidget_mac.mm
+// -- and then adapted when porting to Qt5
 
 #include <QtCore>
 #include <QtGui>
-
-#include <qmacdefines_mac.h>
+#include <QtWidgets>
 
 #ifdef __OBJC__
 #include <Cocoa/Cocoa.h>
-#ifdef QT_MAC_USE_COCOA
 #include <objc/runtime.h>
-#endif // QT_MAC_USE_COCOA
 #endif
 
 #include <CoreServices/CoreServices.h>
-
-#include <Carbon/Carbon.h>
-
 
 #include <klfdefs.h>
 
@@ -24,16 +19,6 @@
 // DEFINITIONS FOR DRAWER STUFF
 
 
-#if !defined(QT_MAC_USE_COCOA)
-static OSWindowRef klf_qt_mac_window_for(OSViewRef view)
-{
-  return HIViewGetWindow(view);
-}
-#endif
-
-
-
-#ifdef QT_MAC_USE_COCOA
 static bool contains_view(NSView * view, NSView * lookingForView, int levels = 4)
 {
   klfDbg("("<<levels<<") Looking for view in "<<view) ;
@@ -78,7 +63,6 @@ static NSDrawer * klf_qt_mac_drawer_for(const QWidget *widget)
   klfDbg("not found.") ;
   return 0;
 }
-#endif
 
 
 static bool klf_qt_mac_is_macdrawer(const QWidget *w)
@@ -95,7 +79,6 @@ bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
     return false;
   }
 
-#if QT_MAC_USE_COCOA
   NSDrawer *drawer = klf_qt_mac_drawer_for(w);
   if (!drawer) {
     klfDbg("Didn't find the drawer for "<<w<<" !!") ;
@@ -128,30 +111,6 @@ bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where)
   } else {
     [drawer setPreferredEdge:edge];
   }
-#else
-  OSWindowRef window = klf_qt_mac_window_for(w);
-  OptionBits edge;
-  if(where & Qt::LeftDockWidgetArea)
-    edge = kWindowEdgeLeft;
-  else if(where & Qt::RightDockWidgetArea)
-    edge = kWindowEdgeRight;
-  else if(where & Qt::TopDockWidgetArea)
-    edge = kWindowEdgeTop;
-  else if(where & Qt::BottomDockWidgetArea)
-    edge = kWindowEdgeBottom;
-  else
-    return false;
-  
-  if(edge == GetDrawerPreferredEdge(window)) //no-op
-    return false;
-  
-  //do it
-  SetDrawerPreferredEdge(window, edge);
-  if(w->isVisible()) {
-    CloseDrawer(window, false);
-    OpenDrawer(window, edge, true);
-  }
-#endif
   return true;
 }
 
@@ -168,7 +127,6 @@ void klf_qt_mac_close_drawer_and_act(QWidget *w, QObject *obj, const char *membe
     return;
   }
   
-#if QT_MAC_USE_COCOA
   NSDrawer *drawer = klf_qt_mac_drawer_for(w);
   if (!drawer) {
     qWarning()<<KLF_FUNC_NAME<<": Can't find drawer for widget "<<w;
@@ -182,12 +140,6 @@ void klf_qt_mac_close_drawer_and_act(QWidget *w, QObject *obj, const char *membe
   if (obj != NULL && member != NULL) {
     QMetaObject::invokeMethod(obj, member);
   }
-#else
-  OSWindowRef window = klf_qt_mac_window_for(w);
-  if(w->isVisible()) {
-    CloseDrawer(window, false);
-  }
-#endif
 }
 
 
@@ -200,7 +152,6 @@ bool klf_qt_mac_drawer_is_still_animating(QWidget *w)
     return false;
   }
   
-#if QT_MAC_USE_COCOA
   NSDrawer *drawer = klf_qt_mac_drawer_for(w);
   if (!drawer) {
     qWarning()<<KLF_FUNC_NAME<<": Can't find drawer for widget "<<w;
@@ -211,9 +162,5 @@ bool klf_qt_mac_drawer_is_still_animating(QWidget *w)
     [drawer state] != NSDrawerClosedState &&
     [drawer state] != NSDrawerOpenState ;
 
-#else
-  /** \todo ... CARBON IMPLEMENTATION .... */
-  return false;
-#endif
 }
 

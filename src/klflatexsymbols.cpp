@@ -42,7 +42,7 @@
 #include <QCloseEvent>
 #include <QDebug>
 #include <QPainter>
-#include <QPlastiqueStyle>
+#include <QStyleFactory>
 
 #include <QDomDocument>
 #include <QDomElement>
@@ -85,9 +85,9 @@ KLFLatexSymbol::KLFLatexSymbol(const QDomElement& e)
   for (k = 0; k < usepackagelist.size(); ++k) {
     QString package = usepackagelist.at(k).toElement().attribute("name");
     if (package[0] == '[' || package[0] == '{')
-      preamble.append(QString::fromAscii("\\usepackage%1").arg(package));
+      preamble.append(QString("\\usepackage%1").arg(package));
     else
-      preamble.append(QString::fromAscii("\\usepackage{%1}").arg(package));
+      preamble.append(QString("\\usepackage{%1}").arg(package));
   }
   QDomNodeList preamblelinelist = e.elementsByTagName("preambleline");
   for (k = 0; k < preamblelinelist.size(); ++k) {
@@ -641,7 +641,7 @@ void KLFLatexSymbolsView::buildDisplay()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 #ifdef Q_WS_MAC
-  QStyle *myStyle = new QPlastiqueStyle;
+  QStyle *myStyle = QStyleFactory::create("fusion");
   QPalette pal = palette();
   pal.setColor(QPalette::Window, QColor(206,207,233));
   pal.setColor(QPalette::Base, QColor(206,207,233));
@@ -1008,7 +1008,7 @@ void KLFLatexSymbols::read_symbols_create_ui()
 	    if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale().startsWith(lang)) {
 	      // correct locale
 	      categoryTitle = qApp->translate("xmltr_latexsymbols", eesym.text().toUtf8().constData(),
-					      "[[tag: <category-title>]]", QCoreApplication::UnicodeUTF8);
+					      "[[tag: <category-title>]]");
 	      curCategoryTitleLang = lang;
 	    }
 	    // otherwise skip this tag

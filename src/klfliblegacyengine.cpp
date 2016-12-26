@@ -23,6 +23,8 @@
 
 
 #include <QString>
+#include <QUrl>
+#include <QUrlQuery>
 #include <QObject>
 #include <QDataStream>
 #include <QDir>
@@ -396,8 +398,10 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::openUrl(const QUrl& url, QObject *paren
   }
 
   QString legresname;
-  if (url.hasQueryItem("klfDefaultSubResource"))
-    legresname = url.queryItemValue("klfDefaultSubResource");
+  QUrlQuery urlq(url);
+  if (urlq.hasQueryItem("klfDefaultSubResource")) {
+    legresname = urlq.queryItemValue("klfDefaultSubResource");
+  }
 
   return new KLFLibLegacyEngine(fname, legresname, url, parent);
 }
@@ -442,7 +446,9 @@ KLFLibLegacyEngine * KLFLibLegacyEngine::createDotKLF(const QString& fname, QStr
 
   if (lrname.isEmpty())
     lrname = tr("Default Resource"); // default name...?
-  url.addQueryItem("klfDefaultSubResource", lrname);
+  QUrlQuery urlq(url);
+  urlq.addQueryItem("klfDefaultSubResource", lrname);
+  url.setQuery(urlq);
 
   klfDbgSt("fileName="<<fileName<<"; canonical file path="<<QFileInfo(fileName).canonicalFilePath()
 	   <<"; legacyResourceName="<<legacyResourceName);

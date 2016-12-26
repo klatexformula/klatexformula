@@ -94,7 +94,7 @@ public:
     QLineEdit * e = qobject_cast<QLineEdit*>(editor);
     KLF_ASSERT_NOT_NULL(e, "Editor is NULL or not a QLineEdit!", return ; ) ;
     KLF_ASSERT_NOT_NULL(model, "Model is NULL!", return ; ) ;
-    QByteArray datavalue = e->text().toAscii();
+    QByteArray datavalue = e->text().toLatin1();
     QByteArray typname = model->data(index, CONFIG_VIEW_ROLE_TYPENAME).toByteArray();
     QByteArray innertypname = model->data(index, CONFIG_VIEW_ROLE_INNERTYPENAME).toByteArray();
     QVariant value = klfLoadVariantFromText(datavalue, typname, innertypname);
@@ -235,12 +235,12 @@ public slots: // public is just for us... the class is still private :)
       QByteArray savedtype, savedinnertype;
       QByteArray datavalue = klfSaveVariantToText(val, false, &savedtype, &savedinnertype);
       klfDbg("i3: datavalue="<<datavalue) ;
-      QStandardItem *i3 = new QStandardItem(QString::fromAscii(datavalue));
+      QStandardItem *i3 = new QStandardItem(QString::fromLatin1(datavalue));
       cg = editable ? QPalette::Active : QPalette::Disabled;
       i3->setForeground(pal.brush(cg, QPalette::Text));
       i3->setBackground(pal.brush(cg, QPalette::Base));
       i3->setData(val, Qt::EditRole);
-      i3->setData(QString::fromAscii(datavalue), Qt::DisplayRole);
+      i3->setData(QString::fromLatin1(datavalue), Qt::DisplayRole);
       i3->setData(pname, CONFIG_VIEW_ROLE_PROPNAME);
       i3->setData(savedtype, CONFIG_VIEW_ROLE_TYPENAME);
       i3->setData(savedinnertype, CONFIG_VIEW_ROLE_INNERTYPENAME);

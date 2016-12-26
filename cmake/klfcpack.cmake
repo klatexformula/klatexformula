@@ -2,7 +2,59 @@
 # ===========================
 # $Id$
 
-cmake_policy(VERSION 2.8.0)
+
+# Current System OS
+if(APPLE)
+set(internal_KLF_CMAKE_OS "macosx")
+elseif(WIN32)
+set(internal_KLF_CMAKE_OS "win32")
+elseif(UNIX)
+set(internal_KLF_CMAKE_OS "linux")
+else(APPLE)
+set(internal_KLF_CMAKE_OS "unknown")
+endif(APPLE)
+set(KLF_CMAKE_OS "${internal_KLF_CMAKE_OS}" CACHE INTERNAL "Current Build OS")
+# Current System Arch
+if(APPLE AND CMAKE_OSX_ARCHITECTURES)
+  set(internal_KLF_CMAKE_ARCHES "${CMAKE_OSX_ARCHITECTURES}")
+  set(internal_KLF_CMake_ARCH )
+  foreach(arch ${internal_KLF_CMAKE_ARCHES})
+    set(thisarch "${arch}")
+    if(thisarch MATCHES "^i.86$")
+      set(thisarch "x86")
+    endif(thisarch MATCHES "^i.86$")
+    set(internal_KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH},${thisarch}")
+  endforeach(arch)
+  # and remove initial comma
+  string(REGEX REPLACE "^," "" internal_KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}")
+    
+  #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
+  KLFDeclareCacheVarOptionFollowComplexN(KLF_CMAKE_ARCH
+    STRING "Target build processor architecture (Mac OS X universal: separated by commas), calculated from CMAKE_OSX_ARCHITECTURES"
+    FALSE                             # updatenotice
+    "${internal_KLF_CMAKE_ARCH}"      # calcoptvalue
+    "CMAKE_OSX_ARCHITECTURES"         # depvarlist
+    )
+else(APPLE AND CMAKE_OSX_ARCHITECTURES)
+  if (APPLE)
+    # best guess these days is that it's a x86_64. Change manually otherwise.
+    message(STATUS "Guessing x86_64 processor architecture on Mac OS X. set CMAKE_OSX_ARCHITECTURES to change.")
+    set(internal_KLF_CMAKE_ARCH "x86_64")
+  else(APPLE)
+    # CMAKE_SYSTEM_PROCESSOR is the processor we're building _for_.
+    set(internal_KLF_CMAKE_ARCH "${CMAKE_SYSTEM_PROCESSOR}") 
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+      set(internal_KLF_CMAKE_ARCH "x86")
+    endif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
+    if(NOT APPLE AND NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
+      set(internal_KLF_CMAKE_ARCH "x86") # we are building for x86
+    endif(NOT APPLE AND NOT KLF_TARGET_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR EQUAL "x86_64")
+  endif(APPLE)
+  set(KLF_CMAKE_ARCH "${internal_KLF_CMAKE_ARCH}"
+    CACHE STRING "Build Target Processor Arch (Mac OS X universal: separated by commas)")
+endif(APPLE AND CMAKE_OSX_ARCHITECTURES)
+mark_as_advanced(KLF_CMAKE_ARCH)
+
 
 
 configure_file("${CMAKE_SOURCE_DIR}/cmake/welcome_installer.txt.in"

@@ -26,11 +26,11 @@
 #include <QAction>
 #include <QMenu>
 #include <QDebug>
-#include <QStylePainter>
 #include <QColorDialog>
 #include <QPaintEvent>
 #include <QStyle>
-#include <QPlastiqueStyle>
+#include <QStylePainter>
+#include <QStyleFactory>
 #include <QStyleOptionButton>
 #include <QRegExp>
 
@@ -789,11 +789,11 @@ void KLFColorChooseWidget::setColor(const QColor& color)
 void KLFColorChooseWidget::setAlphaEnabled(bool enabled)
 {
   _alphaenabled = enabled;
-  u->spnAlpha->setShown(enabled);
-  u->lblAlpha->setShown(enabled);
-  u->mAlphaPane->setShown(enabled);
-  u->lblsAlpha->setShown(enabled);
-  u->mAlphaSlider->setShown(enabled);
+  u->spnAlpha->setVisible(enabled);
+  u->lblAlpha->setVisible(enabled);
+  u->mAlphaPane->setVisible(enabled);
+  u->lblsAlpha->setVisible(enabled);
+  u->mAlphaSlider->setVisible(enabled);
   if (!enabled) {
     _color.setAlpha(255);
     setColor(_color);
@@ -935,8 +935,9 @@ KLFColorChooser::KLFColorChooser(QWidget *parent)
   _setpix();
 
 #ifdef Q_WS_MAC
-  if ( mReplaceButtonStyle == NULL )
-    mReplaceButtonStyle = new QPlastiqueStyle;
+  if ( mReplaceButtonStyle == NULL ) {
+    mReplaceButtonStyle = QStyleFactory::create("fusion");//new QPlastiqueStyle; // deprecated in Qt5
+  }
   setStyle(mReplaceButtonStyle);
 #endif
 }
