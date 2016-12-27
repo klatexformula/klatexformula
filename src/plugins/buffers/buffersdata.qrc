@@ -1,5 +1,0 @@
-<RCC>
-  <qresource prefix="/plugindata/openfile">
-    <file>pics/nopreview.png</file>
-  </qresource>
-</RCC>
