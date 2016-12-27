@@ -19,7 +19,11 @@
     <key>CFBundleVersion</key>
     <string>@KLF_VERSION@</string>
     <key>CFBundleIconFile</key>
-    <string>klficon.icns</string>
+    <string>klatexformula.icns</string>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSHighResolutionCapable</key>
+    <string>True</string>
     <key>UTExportedTypeDeclarations</key>
     <array>
       <dict>
@@ -76,9 +80,5 @@
     </array>
     <key>SUPublicDSAKeyFile</key>
     <string>@KLF_SPARKLE_DSA_PUBKEY_BASENAME@</string>
-    <key>NSPrincipalClass</key>
-    <string>NSApplication</string>
-    <key>NSHighResolutionCapable</key>
-    <string>False</string>
   </dict>
 </plist>

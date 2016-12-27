@@ -354,24 +354,33 @@ message(STATUS "[INSTALLATION SETTINGS]")
 include(klfinstallpaths)
 
 if(KLF_MACOSX_BUNDLES)
+
   set(default_KLF_BUNDLE_QT_PLUGINS
-	imageformats/libqgif.dylib
-	imageformats/libqico.dylib
-	imageformats/libqjpeg.dylib
-	imageformats/libqmng.dylib
-	imageformats/libqtiff.dylib
-	codecs/libqcncodecs.dylib
-	codecs/libqjpcodecs.dylib
-	codecs/libqkrcodecs.dylib
-	codecs/libqtwcodecs.dylib
-	sqldrivers/libqsqlite.dylib)
+    Qt5::QCocoaIntegrationPlugin
+    Qt5::QGifPlugin
+    Qt5::QDDSPlugin
+    Qt5::QGifPlugin
+    Qt5::QICNSPlugin
+    Qt5::QICOPlugin
+    Qt5::QJpegPlugin
+    Qt5::QMacJp2Plugin
+    #Qt5::QMinimalIntegrationPlugin
+    #Qt5::QOffscreenIntegrationPlugin
+    Qt5::QTgaPlugin
+    Qt5::QTiffPlugin
+    #Qt5::QTuioTouchPlugin
+    #Qt5::QVirtualKeyboardPlugin
+    Qt5::QWbmpPlugin
+    Qt5::QWebpPlugin 
+    Qt5::QSQLiteDriverPlugin
+    Qt5::QSvgPlugin
+    )
   set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}"
-					  CACHE STRING "Qt plugins to incorporate into Mac bundle")
+					  CACHE STRING "Qt plugins (imported targets) to incorporate into Mac bundle")
   string(REGEX REPLACE ";" "
     * " klf_display_bundle_qt_plugins "${KLF_BUNDLE_QT_PLUGINS}")
-  message(STATUS "Will Package Qt Plugins in bundle
-    * ${klf_display_bundle_qt_plugins}
-    (KLF_BUNDLE_QT_PLUGINS)")
+  message(STATUS "Will Package Qt Plugins in bundle (KLF_BUNDLE_QT_PLUGINS):
+    * ${klf_display_bundle_qt_plugins}")
 endif(KLF_MACOSX_BUNDLES)
 
 

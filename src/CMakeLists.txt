@@ -49,6 +49,7 @@ if(KLF_BUILD_GUI)
   find_package(Qt5Sql REQUIRED)
   find_package(Qt5UiTools REQUIRED)
   find_package(Qt5LinguistTools REQUIRED)
+  find_package(Qt5Svg REQUIRED)
   if(KLF_USE_DBUS)
     find_package(Qt5DBus REQUIRED)
   endif()
@@ -145,7 +146,7 @@ if(KLF_BUILD_GUI)
   target_sources(klatexformula PRIVATE ${klatexformula_UIS_H} ${klatexformula_MOC_CPPS} ${klatexformula_QRC_CPPS})
 
   target_link_libraries(klatexformula
-    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Xml Qt5::Sql Qt5::UiTools klfbackend klftools)
+    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Xml Qt5::Sql Qt5::Svg Qt5::UiTools klfbackend klftools)
 
   # Translations
   qt5_add_translation(klatexformula_QMS ${klatexformula_TSS})
@@ -235,15 +236,35 @@ if(KLF_BUILD_GUI)
       klatexformula-1024.png
       PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
       )
+    set_source_files_properties(
+      macosx/klatexformula.icns
+      PROPERTIES MACOSX_PACKAGE_LOCATION "."
+      )
     if(KLF_INCLUDE_FONTS)
       set_source_files_properties(${KLF_INCLUDE_FONTS} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources/fonts"
         )
     endif()
     if(KLF_USE_SPARKLE)
-      set_source_file_properties("${KLF_SPARKLE_DSA_PUBKEY}" PROPERTIES
+      set_source_files_properties("${KLF_SPARKLE_DSA_PUBKEY}" PROPERTIES
         MACOSX_PACKAGE_LOCATION Resources
         )
+    endif()
+    if(KLF_BUNDLE_QT_PLUGINS)
+      foreach(qtplugintgt ${KLF_BUNDLE_QT_PLUGINS})
+        get_target_property(qtplugintgt_loc ${qtplugintgt} LOCATION)
+        get_filename_component(qtplugindirfull ${qtplugintgt_loc} DIRECTORY)
+        get_filename_component(qtplugindirname ${qtplugindirfull} NAME)
+        #message("${qtplugintgt}: ${qtplugintgt_loc} ${qtplugindirname}")
+        add_custom_command(TARGET klatexformula POST_BUILD
+          COMMAND "${CMAKE_COMMAND}" "-E" "make_directory"
+          "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
+          )
+        add_custom_command(TARGET klatexformula POST_BUILD
+          COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${qtplugintgt_loc}"
+          "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
+          )
+      endforeach()
     endif()
   endif()
   if(UNIX AND NOT APPLE)
@@ -341,7 +362,7 @@ if(KLF_BUILD_GUI)
     # window open.
     add_executable(klatexformula_cmdl ${klatexformula_ALLSRC})
     target_link_libraries(klatexformula_cmdl
-      Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Xml Qt5::Sql Qt5::UiTools klfbackend klftools)
+      Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Xml Qt5::Sql Qt5::Svg Qt5::UiTools klfbackend klftools)
     if(NOT KLF_DEBUG)
       set_target_properties(klatexformula  PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,windows")
       set_target_properties(klatexformula_cmdl  PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,console")

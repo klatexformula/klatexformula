@@ -488,7 +488,7 @@ KLF_EXPORT void klfDrawGlowedImage(QPainter *p, const QImage& foreground, const 
     }
   }
   // now draw that glowed image a few times moving around the interest point to do a glow effect
-  p->save();
+  //  p->save();
   //  p->setOpacity(std::log(-numoverlaps));
   //  p->setCompositionMode(QPainter::CompositionMode_Plus);
   int dx, dy;
@@ -499,7 +499,7 @@ KLF_EXPORT void klfDrawGlowedImage(QPainter *p, const QImage& foreground, const 
       p->drawImage(QRectF(QPointF(dx/dpr,dy/dpr), userspace_size), glow);
     }
   }
-  p->restore();
+  //  p->restore();
   if (also_draw_image) {
     p->drawImage(QRect(QPoint(0,0), userspace_size), fg);
   }

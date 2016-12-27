@@ -21,7 +21,7 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include <QDebug>
+#include <QtDebug>
 #include <QByteArray>
 #include <QDataStream>
 #include <QTextStream>
