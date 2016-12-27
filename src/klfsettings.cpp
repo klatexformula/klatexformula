@@ -105,7 +105,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   setObjectName("KLFSettings");
 
 #ifdef KLF_WS_MAC
-  setAttribute(Qt::WA_MacBrushedMetal, klfconfig.UI.macBrushedMetalLook);
+  //setAttribute(Qt::WA_MacBrushedMetal, klfconfig.UI.macBrushedMetalLook);
   setAutoFillBackground(true);
 #endif
 
@@ -702,9 +702,11 @@ void KLFSettings::reset()
   int sidewidgettypei = u->cbxDetailsSideWidgetType->findData(QVariant(klfconfig.UI.detailsSideWidgetType()));
   u->cbxDetailsSideWidgetType->setCurrentIndex(sidewidgettypei);
   u->chkMacBrushedMetalLook->setChecked(klfconfig.UI.macBrushedMetalLook);
-#ifndef KLF_WS_MAC
+//#ifndef KLF_WS_MAC
+// obsolete option, not used because I couldn't obtain a good look with Qt5 and had
+// painting bugs (all black widgets)
   u->chkMacBrushedMetalLook->hide();
-#endif
+//#endif
 
   int copyi = u->cbxCopyExportProfile->findData(QVariant(klfconfig.ExportData.copyExportProfile));
   u->cbxCopyExportProfile->setCurrentIndex(copyi);

@@ -250,17 +250,6 @@ if(KLF_DEBUG_USE_MODELTEST)
   message(STATUS "Will compile with QtLab's ModelTest for KLFLibModel testing (KLF_DEBUG_USE_MODELTEST)")
 endif(KLF_DEBUG_USE_MODELTEST)
 
-# Include some extra data files/fonts into KLatexFormula
-set(klf_def_incl_fonts "data/cmunsi.otf;data/cmunso.otf;data/cmunss.otf;data/cmunsx.otf") # CMU Sans Serif
-if(APPLE)
-  set(klf_def_incl_fonts
-    "data/cmunbbx.otf;data/cmunbmo.otf;data/cmunbmr.otf;data/cmunbso.otf;data/cmunbsr.otf;data/cmunbxo.otf") # CMU Bright
-endif(APPLE)
-set(KLF_INCLUDE_FONTS "${klf_def_incl_fonts}"
-  CACHE STRING "Include some extra fonts into KLF's internal resources (absolute or relative to src/)")
-string(REPLACE ";" "\n        " klf_include_fonts_msg_list "${KLF_INCLUDE_FONTS}")
-message(STATUS "Will include fonts into klatexformula's resources (KLF_INCLUDE_FONTS):\n        ${klf_include_fonts_msg_list}")
-
 # Use system font rather than CMU font if available
 #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)
 option(KLF_NO_CMU_FONT
@@ -271,6 +260,24 @@ if(KLF_NO_CMU_FONT)
   message(STATUS "Will use system font instead of CMU font (KLF_NO_CMU_FONT)")
 else()
   message(STATUS "Will attempt to use Computer Modern unicode font (KLF_NO_CMU_FONT)")
+endif()
+
+# Include some extra data files/fonts into KLatexFormula
+if(KLF_NO_CMU_FONT)
+  set(klf_def_incl_fonts "")
+elseif(APPLE)
+  set(klf_def_incl_fonts
+    "data/cmunbbx.otf;data/cmunbmo.otf;data/cmunbmr.otf;data/cmunbso.otf;data/cmunbsr.otf;data/cmunbxo.otf") # CMU Bright
+else()
+  set(klf_def_incl_fonts "data/cmunsi.otf;data/cmunso.otf;data/cmunss.otf;data/cmunsx.otf") # CMU Sans Serif
+endif()
+set(KLF_INCLUDE_FONTS "${klf_def_incl_fonts}"
+  CACHE STRING "Include some extra fonts into KLF's internal resources (absolute or relative to src/)")
+if(KLF_INCLUDE_FONTS)
+  string(REPLACE ";" "\n        " klf_include_fonts_msg_list "${KLF_INCLUDE_FONTS}")
+  message(STATUS "Will include fonts into klatexformula's resources (KLF_INCLUDE_FONTS):\n        ${klf_include_fonts_msg_list}")
+else()
+  message(STATUS "Will not include fonts into klatexformula's resources (KLF_INCLUDE_FONTS)")
 endif()
 
 
