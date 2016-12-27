@@ -732,64 +732,63 @@ private:
 
 
 
+// class KLFAddOnDataOpener : public QObject, public KLFAbstractDataOpener
+// {
+//   Q_OBJECT
+// public:
+//   KLFAddOnDataOpener(KLFMainWin *mainwin) : QObject(mainwin), KLFAbstractDataOpener(mainwin) { }
+//   virtual ~KLFAddOnDataOpener() { }
 
-class KLFAddOnDataOpener : public QObject, public KLFAbstractDataOpener
-{
-  Q_OBJECT
-public:
-  KLFAddOnDataOpener(KLFMainWin *mainwin) : QObject(mainwin), KLFAbstractDataOpener(mainwin) { }
-  virtual ~KLFAddOnDataOpener() { }
+//   virtual QStringList supportedMimeTypes()
+//   {
+//     return QStringList();
+//   }
 
-  virtual QStringList supportedMimeTypes()
-  {
-    return QStringList();
-  }
+//   virtual bool canOpenFile(const QString& file)
+//   {
+//     if (QFileInfo(file).suffix() == "rcc")
+//       return true;
+//     QFile f(file);
+//     bool r = f.open(QIODevice::ReadOnly);
+//     if (!r) { // can't open file
+//       return false;
+//     }
+//     // check if file is RCC file (begins with 'qres')
+//     if (f.read(4) == "qres")
+//       return true;
+//     // not a Qt RCC file
+//     return false;
+//   }
 
-  virtual bool canOpenFile(const QString& file)
-  {
-    if (QFileInfo(file).suffix() == "rcc")
-      return true;
-    QFile f(file);
-    bool r = f.open(QIODevice::ReadOnly);
-    if (!r) { // can't open file
-      return false;
-    }
-    // check if file is RCC file (begins with 'qres')
-    if (f.read(4) == "qres")
-      return true;
-    // not a Qt RCC file
-    return false;
-  }
+//   virtual bool canOpenData(const QByteArray& /*data*/)
+//   {
+//     // Dropped files are opened by the basic data opener, which handles "text/uri-list"
+//     // by calling the main window's openFiles()
+//     return false;
+//   }
 
-  virtual bool canOpenData(const QByteArray& /*data*/)
-  {
-    // Dropped files are opened by the basic data opener, which handles "text/uri-list"
-    // by calling the main window's openFiles()
-    return false;
-  }
+//   virtual bool openFile(const QString& file)
+//   {
+//     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+//     klfDbg("file="<<file);
 
-  virtual bool openFile(const QString& file)
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    klfDbg("file="<<file);
+//     if (!canOpenFile(file)) {
+//       klfDbg("file is not openable by us: "<<file);
+//       return false;
+//     }
 
-    if (!canOpenFile(file)) {
-      klfDbg("file is not openable by us: "<<file);
-      return false;
-    }
+//     mainWin()->settingsDialog()->show();
+//     mainWin()->settingsDialog()->showControl(KLFSettings::ManageAddOns);
+//     mainWin()->settingsDialog()->importAddOn(file, true);
 
-    mainWin()->settingsDialog()->show();
-    mainWin()->settingsDialog()->showControl(KLFSettings::ManageAddOns);
-    mainWin()->settingsDialog()->importAddOn(file, true);
+//     return true;
+//   }
 
-    return true;
-  }
-
-  virtual bool openData(const QByteArray& /*data*/, const QString& /*mimetype*/)
-  {
-    return false;
-  }
-};
+//   virtual bool openData(const QByteArray& /*data*/, const QString& /*mimetype*/)
+//   {
+//     return false;
+//   }
+// };
 
 
 /** \todo WRITEME!!!!!!!!! */
@@ -1221,6 +1220,7 @@ public slots: // .. but in private API
   void showRealTimePreview(const QImage& preview, const QImage& largePreview);
   void showRealTimeError(const QString& errorstr, int errcode);
 
+  QSize calcPreviewSize();
   void updatePreviewThreadInput();
   void updatePreviewThreadSettings();
 

@@ -87,10 +87,10 @@
 
 #ifdef KLF_EXTRA_SEARCH_PATHS
 #  define EXTRA_PATHS_PRE	KLF_EXTRA_SEARCH_PATHS ,
-#  define EXTRA_PATHS		KLF_EXTRA_SEARCH_PATHS
+//#  define EXTRA_PATHS		KLF_EXTRA_SEARCH_PATHS
 #else
 #  define EXTRA_PATHS_PRE
-#  define EXTRA_PATHS
+//#  define EXTRA_PATHS
 #endif
 
 
@@ -112,7 +112,7 @@ QStringList progGS = QStringList() << "gs";
 //QStringList progEPSTOPDF = QStringList() << "epstopdf";
 static const char * standard_extra_paths[] = {
   EXTRA_PATHS_PRE
-  "/usr/texbin:/usr/local/bin:/sw/bin:/sw/usr/bin",
+  "/usr/texbin:/Library/TeX/texbin:/usr/local/bin:/opt/local/bin:/sw/bin:/sw/usr/bin",
   NULL
 };
 #else

@@ -342,6 +342,19 @@ if(KLF_BUILD_GUI)
     endif(NOT KLF_DEBUG)
   endif(WIN32)
 
+  #
+  # User scripts
+  #
+  file(GLOB_RECURSE klf_userscriptfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" userscripts/* userscriptdata/*)
+  foreach(usfile ${klf_userscriptfiles})
+    target_sources(klatexformula PRIVATE
+      ${usfile}
+      )
+    get_filename_component(usfiledir "${usfile}" DIRECTORY)
+    set_source_files_properties(${usfile}
+      PROPERTIES MACOSX_PACKAGE_LOCATION Resources/${usfiledir}
+      )
+  endforeach()
 
   # Make man page
   if(HELP2MAN)

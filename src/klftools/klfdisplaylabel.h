@@ -25,7 +25,7 @@
 #define KLFDISPLAYLABEL_H
 
 #include <QLabel>
-#include <QPixmap>
+#include <QPicture>
 #include <QTemporaryFile>
 
 #include <klfdefs.h>
@@ -102,7 +102,7 @@ protected:
 
 private:
 
-  QPixmap calc_display_pixmap();
+  QPicture calc_display_picture();
   void display_state(DisplayState state);
 
   DisplayState pDisplayState;

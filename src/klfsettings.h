@@ -66,9 +66,9 @@ public:
     ExportProfiles,
     LibrarySettings,
     UserScriptInfo,
-    ManageAddOns,
-    ManagePlugins,
-    PluginsConfig
+//    ManageAddOns,
+//    ManagePlugins,
+//    PluginsConfig
   };
 
   KLFSettings(KLFMainWin* parent = 0);
@@ -95,12 +95,12 @@ public slots:
   void help();
 
   void setDefaultPaths();
-  void importAddOn();
-  void importAddOn(const QString& fileName, bool uiSuggestRestart = true);
-  void removeAddOn();
-  void removePlugin();
-  /** \warning This method provides NO USER CONFIRMATION and NO AFTER-OPERATION REFRESH */
-  void removePlugin(const QString& fname);
+  // void importAddOn();
+  // void importAddOn(const QString& fileName, bool uiSuggestRestart = true);
+  // void removeAddOn();
+  // void removePlugin();
+  // /** \warning This method provides NO USER CONFIRMATION and NO AFTER-OPERATION REFRESH */
+  // void removePlugin(const QString& fname);
 
   void showAdvancedConfigEditor();
   void showSystemMessages();

@@ -114,11 +114,11 @@ public slots: // well "public" only for us... :)
   void populateExportProfilesCombos();
   void populateDetailsSideWidgetTypeCombo();
 
-  void initPluginControls();
-  void resetPluginControls();
-  void refreshPluginSelected();
-  void refreshAddOnList();
-  void refreshAddOnSelected();
+  // void initPluginControls();
+  // void resetPluginControls();
+  // void refreshPluginSelected();
+  // void refreshAddOnList();
+  // void refreshAddOnSelected();
 
   void reloadUserScripts();
   void refreshUserScriptList();

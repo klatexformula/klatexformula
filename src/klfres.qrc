@@ -10,15 +10,19 @@
     <file>pics/info.png</file>
     <file>pics/infowarn.png</file>
     <file>pics/exportprofile.png</file>
+    <file>pics/exportprofile.svg</file>
     <file>pics/clearedit.png</file>
+    <file>pics/clearedit.svg</file>
     <file>pics/importexport.png</file>
     <file>pics/save.png</file>
     <file>pics/showpreview.png</file>
+    <file>pics/showpreview.svg</file>
     <file>pics/new.png</file>
     <file>pics/iconify.png</file>
     <file>pics/bullet22.png</file>
     <file>pics/helpdialogbg.png</file>
     <file>pics/symbols.png</file>
+    <file>pics/symbols.svg</file>
     <file>pics/actions.png</file>
     <file>pics/badsym.png</file>
     <file>pics/restoreall.png</file>
@@ -36,12 +40,17 @@
     <file>pics/managestyles.png</file>
     <file>pics/savestyle.png</file>
     <file>pics/clear.png</file>
+    <file>pics/clear.svg</file>
     <file>pics/evaluate.png</file>
+    <file>pics/evaluate.svg</file>
     <file>pics/library.png</file>
+    <file>pics/library.svg</file>
     <file>pics/switchshrinked.png</file>
     <file>pics/switchexpanded.png</file>
     <file>pics/switchshrinked_drawer.png</file>
+    <file>pics/switchshrinked_drawer.svg</file>
     <file>pics/switchexpanded_drawer.png</file>
+    <file>pics/switchexpanded_drawer.svg</file>
     <file>pics/cut.png</file>
     <file>pics/copy.png</file>
     <file>pics/paste.png</file>
@@ -57,6 +66,7 @@
     <file>klatexformula-32.png</file>
     <file>klatexformula-64.png</file>
     <file>klatexformula-128.png</file>
+    <file>klatexformula.svg</file>
   </qresource>
   <qresource>
     <file>data/cmunsi.otf</file>
@@ -65,7 +75,7 @@
     <file>data/cmunsx.otf</file>
     <file>data/cmdl-help.txt</file>
     <file>data/about.html</file>
-    <file>data/whats-new-3.3.html</file>
+    <file>data/whats-new-4.0.html</file>
     <file>data/symbolspixmapcache_base</file>
     <file>data/defaultlibrary.klf</file>
     <file>data/ooodrawingtemplate</file>

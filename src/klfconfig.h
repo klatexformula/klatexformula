@@ -123,98 +123,98 @@ inline void klf_config_write_list(QSettings &s, const QString& baseName, const K
 
 class KLFConfig;
 
-/** \brief Utility class for plugins to access their configuration space in KLFConfig
- *
- * KLatexFormula stores its configuration via KLFConfig and the global \c klfconfig object.
- * That structure relies on the config structure being known in advance and the named
- * fields to appear publicly in the KLFConfig class. This scheme is obviously NOT possible
- * for plugins, so a different approach is taken.
- *
- * Plugins are given a pointer to a \c KLFPluginConfigAccess object, which is an interface
- * to access a special part of KLFConfig that stores plugin-related configuration in the
- * form of QVariantMaps. (themselves written in an INI-based config file inside the plugin's
- * local directory, at <tt>~/.klatexformula/plugindata/&lt;plugin>/&lt;plugin>.conf</tt>)
- *
- * KLFConfig transparently takes care of reading the config for plugins at the beginning
- * when launching KLatexFormula and storing the plugin configurations in their respective
- * locations when quitting.
- *
- * Plugins can read values they have set in earlier sessions with readValue(). Default values
- * can be defined with \ref makeDefaultValue().
- *
- * Plugins can write changed settings with \ref writeValue().
- */
-class KLF_EXPORT KLFPluginConfigAccess
-{
-  KLFConfig *_config;
-  QString _pluginname;
-public:
-  KLFPluginConfigAccess();
-  KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName);
-  KLFPluginConfigAccess(const KLFPluginConfigAccess& other);
-  virtual ~KLFPluginConfigAccess();
+// /** \brief Utility class for plugins to access their configuration space in KLFConfig
+//  *
+//  * KLatexFormula stores its configuration via KLFConfig and the global \c klfconfig object.
+//  * That structure relies on the config structure being known in advance and the named
+//  * fields to appear publicly in the KLFConfig class. This scheme is obviously NOT possible
+//  * for plugins, so a different approach is taken.
+//  *
+//  * Plugins are given a pointer to a \c KLFPluginConfigAccess object, which is an interface
+//  * to access a special part of KLFConfig that stores plugin-related configuration in the
+//  * form of QVariantMaps. (themselves written in an INI-based config file inside the plugin's
+//  * local directory, at <tt>~/.klatexformula/plugindata/&lt;plugin>/&lt;plugin>.conf</tt>)
+//  *
+//  * KLFConfig transparently takes care of reading the config for plugins at the beginning
+//  * when launching KLatexFormula and storing the plugin configurations in their respective
+//  * locations when quitting.
+//  *
+//  * Plugins can read values they have set in earlier sessions with readValue(). Default values
+//  * can be defined with \ref makeDefaultValue().
+//  *
+//  * Plugins can write changed settings with \ref writeValue().
+//  */
+// class KLF_EXPORT KLFPluginConfigAccess
+// {
+//   KLFConfig *_config;
+//   QString _pluginname;
+// public:
+//   KLFPluginConfigAccess();
+//   KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName);
+//   KLFPluginConfigAccess(const KLFPluginConfigAccess& other);
+//   virtual ~KLFPluginConfigAccess();
 
-  /** Returns the root directory in which KLatexFormula stores its stuff, usually
-   * <tt>~/.klatexformula</tt>.
-   */
-  virtual QString homeConfigDir() const;
+//   /** Returns the root directory in which KLatexFormula stores its stuff, usually
+//    * <tt>~/.klatexformula</tt>.
+//    */
+//   virtual QString homeConfigDir() const;
 
-  /** Returns the directory (not necessarily existing) in which installed data that is
-   * shared among different users is stored.
-   * eg. system-wide installations of plugins/extensions can be placed in:
-   * <tt>share-dir/rccresources/<i>*</i>.rcc</tt>.
-   */
-  virtual QString globalShareDir() const;
+//   /** Returns the directory (not necessarily existing) in which installed data that is
+//    * shared among different users is stored.
+//    * eg. system-wide installations of plugins/extensions can be placed in:
+//    * <tt>share-dir/rccresources/<i>*</i>.rcc</tt>.
+//    */
+//   virtual QString globalShareDir() const;
 
-  /** Returns a directory in which we can read/write temporary files, eg. "/tmp".
-   *
-   * This is actually the value of <tt>klfconfig.BackendSettings.tempDir</tt> */
-  virtual QString tempDir() const;
+//   /** Returns a directory in which we can read/write temporary files, eg. "/tmp".
+//    *
+//    * This is actually the value of <tt>klfconfig.BackendSettings.tempDir</tt> */
+//   virtual QString tempDir() const;
 
-  /** Returns a path to a directory in which plugins can manage their data as they want.
-   *
-   * If the \c createIfNeeded argument is TRUE, then the directory is garanteed to exist,
-   * and an empty string is returned if, for whatever reason, the directory can't be
-   * created.
-   *
-   * If the \c createIfNeeded argument is FALSE, then the directory path is returned
-   * regardless of whether the directory exists or not.
-   *
-   * Note that a file named <tt><i>pluginName</i>.conf</tt> is created to store the plugin's
-   * settings in that directory (the settings are stored automatically).
-   */
-  virtual QString homeConfigPluginDataDir(bool createIfNeeded = true) const;
+//   /** Returns a path to a directory in which plugins can manage their data as they want.
+//    *
+//    * If the \c createIfNeeded argument is TRUE, then the directory is garanteed to exist,
+//    * and an empty string is returned if, for whatever reason, the directory can't be
+//    * created.
+//    *
+//    * If the \c createIfNeeded argument is FALSE, then the directory path is returned
+//    * regardless of whether the directory exists or not.
+//    *
+//    * Note that a file named <tt><i>pluginName</i>.conf</tt> is created to store the plugin's
+//    * settings in that directory (the settings are stored automatically).
+//    */
+//   virtual QString homeConfigPluginDataDir(bool createIfNeeded = true) const;
 
-  /** \brief read a value in the config
-   *
-   * Returns the value of the entry with key \c key. If no such entry exists,
-   * it is not created and an invalid QVariant() is returned.
-   */
-  virtual QVariant readValue(const QString& key) const;
+//   /** \brief read a value in the config
+//    *
+//    * Returns the value of the entry with key \c key. If no such entry exists,
+//    * it is not created and an invalid QVariant() is returned.
+//    */
+//   virtual QVariant readValue(const QString& key) const;
 
-  /** \brief write the value if inexistant in config
-   *
-   * equivalent to
-   * \code
-   *  if (readValue(key).isNull())
-   *    writeValue(key, defaultValue);
-   * \endcode
-   *
-   * \return the value this key has after this function call, ie. \c defaultValue if no
-   *   existing value was found, or the existing value if one already exists. A null QVariant
-   *   is returned upon error.
-   */
-  virtual QVariant makeDefaultValue(const QString& key, const QVariant& defaultValue);
+//   /** \brief write the value if inexistant in config
+//    *
+//    * equivalent to
+//    * \code
+//    *  if (readValue(key).isNull())
+//    *    writeValue(key, defaultValue);
+//    * \endcode
+//    *
+//    * \return the value this key has after this function call, ie. \c defaultValue if no
+//    *   existing value was found, or the existing value if one already exists. A null QVariant
+//    *   is returned upon error.
+//    */
+//   virtual QVariant makeDefaultValue(const QString& key, const QVariant& defaultValue);
 
-  /** \brief write a value to settings
-   *
-   * Saves the value of a setting, referenced by \c key, to the given \c value.
-   *
-   * If \c key hasn't been previously set, creates an entry for \c key with the
-   * given \c value.
-   */
-  virtual void writeValue(const QString& key, const QVariant& value);
-};
+//   /** \brief write a value to settings
+//    *
+//    * Saves the value of a setting, referenced by \c key, to the given \c value.
+//    *
+//    * If \c key hasn't been previously set, creates an entry for \c key with the
+//    * given \c value.
+//    */
+//   virtual void writeValue(const QString& key, const QVariant& value);
+// };
 
 
 //! Structure that stores klatexformula's configuration in memory
@@ -232,9 +232,9 @@ public:
   QString globalShareDir;
   QString homeConfigSettingsFile; //!< current (now, "new" klatexformula.conf) settings file
   QString homeConfigSettingsFileIni; //!< OLD config file
-  QString homeConfigDirRCCResources;
-  QString homeConfigDirPlugins;
-  QString homeConfigDirPluginData;
+  // QString homeConfigDirRCCResources;
+  // QString homeConfigDirPlugins;
+  // QString homeConfigDirPluginData;
   QString homeConfigDirI18n;
   QString homeConfigDirUserScripts;
 
@@ -355,11 +355,11 @@ public:
 
   } LibraryBrowser;
 
-  struct {
+  // struct {
 
-    QMap<QString, QMap<QString, QVariant> > pluginConfig;
+  //   QMap<QString, QMap<QString, QVariant> > pluginConfig;
 
-  } Plugins;
+  // } Plugins;
 
   struct {
     
@@ -374,7 +374,7 @@ public:
   /** Not a saved setting. This is set in loadDefaults() */
   QFont defaultTTFont;
 
-  KLFPluginConfigAccess getPluginConfigAccess(const QString& name);
+  //  KLFPluginConfigAccess getPluginConfigAccess(const QString& name);
 
   /** call loadDefaults() before anything, at the beginning, to ensure that the values
    * in this structure are not undefined. (the constructor doesn't set any values).

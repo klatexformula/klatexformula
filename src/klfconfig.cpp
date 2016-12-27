@@ -154,9 +154,9 @@ void KLFConfig::loadDefaults()
   globalShareDir = klf_share_dir_abspath();
   homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
   homeConfigSettingsFileIni = homeConfigDir + "/config";
-  homeConfigDirRCCResources = homeConfigDir + "/rccresources";
-  homeConfigDirPlugins = homeConfigDir + "/plugins";
-  homeConfigDirPluginData = homeConfigDir + "/plugindata";
+  //  homeConfigDirRCCResources = homeConfigDir + "/rccresources";
+  // homeConfigDirPlugins = homeConfigDir + "/plugins";
+  // homeConfigDirPluginData = homeConfigDir + "/plugindata";
   homeConfigDirI18n = homeConfigDir + "/i18n";
   homeConfigDirUserScripts = homeConfigDir + "/userscripts";
 
@@ -376,7 +376,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(LibraryBrowser.listPreviewSizePercent, 75) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.iconPreviewSizePercent, 100) ;
 
-  Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >() ;
+//  Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >() ;
   UserScripts.userScriptConfig = QMap< QString, QMap<QString,QVariant> >() ;
 }
 
@@ -421,12 +421,12 @@ int KLFConfig::ensureHomeConfigDir()
 {
   if ( !klfEnsureDir(homeConfigDir) )
     return -1;
-  if ( !klfEnsureDir(homeConfigDirRCCResources) )
-    return -1;
-  if ( !klfEnsureDir(homeConfigDirPlugins) )
-    return -1;
-  if ( !klfEnsureDir(homeConfigDirPluginData) )
-    return -1;
+  // if ( !klfEnsureDir(homeConfigDirRCCResources) )
+  //   return -1;
+  // if ( !klfEnsureDir(homeConfigDirPlugins) )
+  //   return -1;
+  // if ( !klfEnsureDir(homeConfigDirPluginData) )
+  //   return -1;
   if ( !klfEnsureDir(homeConfigDirI18n) )
     return -1;
   if ( !klfEnsureDir(homeConfigDirUserScripts) )
@@ -604,29 +604,29 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "iconpreviewsizepercent", &LibraryBrowser.iconPreviewSizePercent);
   s.endGroup();
 
-  // Special treatment for Plugins.pluginConfig
-  // for reading, we cannot rely on klf_plugins since we are called before plugins are loaded!
-  int k, j;
-  QDir plugindatadir = QDir(homeConfigDirPluginData);
-  QStringList plugindirs = plugindatadir.entryList(QDir::Dirs);
-  for (k = 0; k < plugindirs.size(); ++k) {
-    if (plugindirs[k] == "." || plugindirs[k] == "..")
-      continue;
-    qDebug("Reading config for plugin %s", qPrintable(plugindirs[k]));
-    QString fn = plugindatadir.absoluteFilePath(plugindirs[k])+"/"+plugindirs[k]+".conf";
-    if ( ! QFile::exists(fn) ) {
-      qDebug("\tskipping plugin %s since the file %s does not exist.",
-	     qPrintable(plugindirs[k]), qPrintable(fn));
-      continue;
-    }
-    QSettings psettings(fn, QSettings::IniFormat);
-    QVariantMap pconfmap;
-    QStringList keys = psettings.allKeys();
-    for (j = 0; j < keys.size(); ++j) {
-      pconfmap[keys[j]] = psettings.value(keys[j]);
-    }
-    Plugins.pluginConfig[plugindirs[k]] = pconfmap;
-  }
+  // // Special treatment for Plugins.pluginConfig
+  // // for reading, we cannot rely on klf_plugins since we are called before plugins are loaded!
+  // int k, j;
+  // QDir plugindatadir = QDir(homeConfigDirPluginData);
+  // QStringList plugindirs = plugindatadir.entryList(QDir::Dirs);
+  // for (k = 0; k < plugindirs.size(); ++k) {
+  //   if (plugindirs[k] == "." || plugindirs[k] == "..")
+  //     continue;
+  //   qDebug("Reading config for plugin %s", qPrintable(plugindirs[k]));
+  //   QString fn = plugindatadir.absoluteFilePath(plugindirs[k])+"/"+plugindirs[k]+".conf";
+  //   if ( ! QFile::exists(fn) ) {
+  //     qDebug("\tskipping plugin %s since the file %s does not exist.",
+  //            qPrintable(plugindirs[k]), qPrintable(fn));
+  //     continue;
+  //   }
+  //   QSettings psettings(fn, QSettings::IniFormat);
+  //   QVariantMap pconfmap;
+  //   QStringList keys = psettings.allKeys();
+  //   for (j = 0; j < keys.size(); ++j) {
+  //     pconfmap[keys[j]] = psettings.value(keys[j]);
+  //   }
+  //   Plugins.pluginConfig[plugindirs[k]] = pconfmap;
+  // }
 
   // Special treatment for UserScripts.userScriptConfig
   // save into a dedicated XML file
@@ -789,46 +789,46 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "iconpreviewsizepercent", &LibraryBrowser.iconPreviewSizePercent);
   s.endGroup();
 
-  // Special treatment for Plugins.pluginConfig
-  int k;
-  for (k = 0; k < klf_plugins.size(); ++k) {
-    QString fn = homeConfigDirPluginData+"/"+klf_plugins[k].name+"/"+klf_plugins[k].name+".conf";
-    QSettings psettings(fn, QSettings::IniFormat);
-    QVariantMap pconfmap = Plugins.pluginConfig[klf_plugins[k].name];
-    QVariantMap::const_iterator it;
-    for (it = pconfmap.begin(); it != pconfmap.end(); ++it) {
-      psettings.setValue(it.key(), it.value());
-    }
-    psettings.sync();
-  }
+  // // Special treatment for Plugins.pluginConfig
+  // int k;
+  // for (k = 0; k < klf_plugins.size(); ++k) {
+  //   QString fn = homeConfigDirPluginData+"/"+klf_plugins[k].name+"/"+klf_plugins[k].name+".conf";
+  //   QSettings psettings(fn, QSettings::IniFormat);
+  //   QVariantMap pconfmap = Plugins.pluginConfig[klf_plugins[k].name];
+  //   QVariantMap::const_iterator it;
+  //   for (it = pconfmap.begin(); it != pconfmap.end(); ++it) {
+  //     psettings.setValue(it.key(), it.value());
+  //   }
+  //   psettings.sync();
+  // }
 
-  // Special treatment for UserScripts.userScriptConfig
-  // save into a dedicated XML file
-  do { // do { ... } while (false);   is used to allow 'break' statement to skip to end of block
-    QDomDocument xmldoc("userscript-config");
-    QDomElement root = xmldoc.createElement("userscript-config");
-    xmldoc.appendChild(root);
-    for (QMap<QString, QMap<QString, QVariant> >::const_iterator it = UserScripts.userScriptConfig.begin();
-	 it != UserScripts.userScriptConfig.end(); ++it) {
-      QString usname = it.key();
-      QVariantMap usconfig = it.value();
+  // // Special treatment for UserScripts.userScriptConfig
+  // // save into a dedicated XML file
+  // do { // do { ... } while (false);   is used to allow 'break' statement to skip to end of block
+  //   QDomDocument xmldoc("userscript-config");
+  //   QDomElement root = xmldoc.createElement("userscript-config");
+  //   xmldoc.appendChild(root);
+  //   for (QMap<QString, QMap<QString, QVariant> >::const_iterator it = UserScripts.userScriptConfig.begin();
+  //        it != UserScripts.userScriptConfig.end(); ++it) {
+  //     QString usname = it.key();
+  //     QVariantMap usconfig = it.value();
 
-      klfDbg("saving config for user script "<< usname<< "; config="<<usconfig) ;
+  //     klfDbg("saving config for user script "<< usname<< "; config="<<usconfig) ;
 
-      QDomElement scriptconfig = xmldoc.createElement("userscript");
-      scriptconfig.setAttribute("name", usname);
+  //     QDomElement scriptconfig = xmldoc.createElement("userscript");
+  //     scriptconfig.setAttribute("name", usname);
 
-      klfSaveVariantMapToXML(usconfig, scriptconfig);
-      root.appendChild(scriptconfig);
-    }
-    // now, save the document
-    QByteArray userscriptconfdata = xmldoc.toByteArray(4);
-    QFile usfile(homeConfigDir+"/userscripts.xml");
-    KLF_ASSERT_CONDITION( usfile.open(QIODevice::WriteOnly) ,
-			  "Can't open file "<<usfile.fileName()<<" for write access!", break; );
-    usfile.write(userscriptconfdata);
-    usfile.close();
-  } while (0);
+  //     klfSaveVariantMapToXML(usconfig, scriptconfig);
+  //     root.appendChild(scriptconfig);
+  //   }
+  //   // now, save the document
+  //   QByteArray userscriptconfdata = xmldoc.toByteArray(4);
+  //   QFile usfile(homeConfigDir+"/userscripts.xml");
+  //   KLF_ASSERT_CONDITION( usfile.open(QIODevice::WriteOnly) ,
+  //       		  "Can't open file "<<usfile.fileName()<<" for write access!", break; );
+  //   usfile.write(userscriptconfdata);
+  //   usfile.close();
+  // } while (0);
 
 
   s.sync();
@@ -838,11 +838,11 @@ int KLFConfig::writeToConfig()
 
 
 
-KLFPluginConfigAccess KLFConfig::getPluginConfigAccess(const QString& name)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ; klfDbg("... for plugin: "<<name) ;
-  return KLFPluginConfigAccess(this, name);
-}
+// KLFPluginConfigAccess KLFConfig::getPluginConfigAccess(const QString& name)
+// {
+//   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ; klfDbg("... for plugin: "<<name) ;
+//   return KLFPluginConfigAccess(this, name);
+// }
 
 
 // --------------------------------------
@@ -850,118 +850,118 @@ KLFPluginConfigAccess KLFConfig::getPluginConfigAccess(const QString& name)
 
 
 
-KLFPluginConfigAccess::KLFPluginConfigAccess()
-{
-  _config = NULL;
-  _pluginname = QString::null;
-}
-KLFPluginConfigAccess::KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
-  : _config(other._config), _pluginname(other._pluginname)
-{
-  klfDbg("made copy. _config="<<_config<<"; _pluginname="<<_pluginname) ;
-  if (_config != NULL) {
-    klfDbg("_config->homeConfigDir: "<<_config->homeConfigDir) ;
-  }
-}
-KLFPluginConfigAccess::~KLFPluginConfigAccess()
-{
-}
+// KLFPluginConfigAccess::KLFPluginConfigAccess()
+// {
+//   _config = NULL;
+//   _pluginname = QString::null;
+// }
+// KLFPluginConfigAccess::KLFPluginConfigAccess(const KLFPluginConfigAccess& other)
+//   : _config(other._config), _pluginname(other._pluginname)
+// {
+//   klfDbg("made copy. _config="<<_config<<"; _pluginname="<<_pluginname) ;
+//   if (_config != NULL) {
+//     klfDbg("_config->homeConfigDir: "<<_config->homeConfigDir) ;
+//   }
+// }
+// KLFPluginConfigAccess::~KLFPluginConfigAccess()
+// {
+// }
 
-KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName)
-{
-  _config = configObject;
-  _pluginname = pluginName;
+// KLFPluginConfigAccess::KLFPluginConfigAccess(KLFConfig *configObject, const QString& pluginName)
+// {
+//   _config = configObject;
+//   _pluginname = pluginName;
 
-  klfDbg("_config="<<_config<<", _pluginname="<<_pluginname) ;
-  if (_config != NULL) {
-    klfDbg("_config->homeConfigDir: "<<_config->homeConfigDir) ;
-  }
-}
+//   klfDbg("_config="<<_config<<", _pluginname="<<_pluginname) ;
+//   if (_config != NULL) {
+//     klfDbg("_config->homeConfigDir: "<<_config->homeConfigDir) ;
+//   }
+// }
 
 
 
-QString KLFPluginConfigAccess::homeConfigDir() const
-{
-  if ( _config == NULL ) {
-    qWarning("KLFPluginConfigAccess::homeConfigDir: Invalid Config Pointer!\n");
-    return QString();
-  }
-  klfDbg("_config->homeConfigDir="<<_config->homeConfigDir) ;
-  return _config->homeConfigDir;
-}
+// QString KLFPluginConfigAccess::homeConfigDir() const
+// {
+//   if ( _config == NULL ) {
+//     qWarning("KLFPluginConfigAccess::homeConfigDir: Invalid Config Pointer!\n");
+//     return QString();
+//   }
+//   klfDbg("_config->homeConfigDir="<<_config->homeConfigDir) ;
+//   return _config->homeConfigDir;
+// }
 
-QString KLFPluginConfigAccess::globalShareDir() const
-{
-  if ( _config == NULL ) {
-    qWarning("KLFPluginConfigAccess::homeConfigDir: Invalid Config Pointer!\n");
-    return QString();
-  }
+// QString KLFPluginConfigAccess::globalShareDir() const
+// {
+//   if ( _config == NULL ) {
+//     qWarning("KLFPluginConfigAccess::homeConfigDir: Invalid Config Pointer!\n");
+//     return QString();
+//   }
 
-  return _config->globalShareDir;
-}
+//   return _config->globalShareDir;
+// }
 
-QString KLFPluginConfigAccess::tempDir() const
-{
-  if ( _config == NULL ) {
-    qWarning("KLFPluginConfigAccess::tempDir: Invalid Config Pointer!\n");
-    return QString();
-  }
+// QString KLFPluginConfigAccess::tempDir() const
+// {
+//   if ( _config == NULL ) {
+//     qWarning("KLFPluginConfigAccess::tempDir: Invalid Config Pointer!\n");
+//     return QString();
+//   }
 
-  return _config->BackendSettings.tempDir;
-}
+//   return _config->BackendSettings.tempDir;
+// }
 
-QString KLFPluginConfigAccess::homeConfigPluginDataDir(bool createIfNeeded) const
-{
-  if ( _config == NULL ) {
-    qWarning("KLFPluginConfigAccess::homeConfigPluginDataDir: Invalid Config Pointer!\n");
-    return QString();
-  }
-  klfDbg("_config->homeConfigDirPluginData is "<<_config->homeConfigDirPluginData) ;
+// QString KLFPluginConfigAccess::homeConfigPluginDataDir(bool createIfNeeded) const
+// {
+//   if ( _config == NULL ) {
+//     qWarning("KLFPluginConfigAccess::homeConfigPluginDataDir: Invalid Config Pointer!\n");
+//     return QString();
+//   }
+//   klfDbg("_config->homeConfigDirPluginData is "<<_config->homeConfigDirPluginData) ;
 
-  QString d = _config->homeConfigDirPluginData + "/" + _pluginname;
-  if ( createIfNeeded && ! klfEnsureDir(d) ) {
-    qWarning("KLFPluginConfigAccess::homeConfigPluginDataDir: Can't create directory: `%s'",
-	     qPrintable(d));
-    return QString();
-  }
-  return d;
-}
+//   QString d = _config->homeConfigDirPluginData + "/" + _pluginname;
+//   if ( createIfNeeded && ! klfEnsureDir(d) ) {
+//     qWarning("KLFPluginConfigAccess::homeConfigPluginDataDir: Can't create directory: `%s'",
+// 	     qPrintable(d));
+//     return QString();
+//   }
+//   return d;
+// }
 
-QVariant KLFPluginConfigAccess::readValue(const QString& key) const
-{
-  if ( _config == NULL ) {
-    qWarning("KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
-    return QVariant();
-  }
+// QVariant KLFPluginConfigAccess::readValue(const QString& key) const
+// {
+//   if ( _config == NULL ) {
+//     qWarning("KLFPluginConfigAccess::readValue: Invalid Config Pointer!\n");
+//     return QVariant();
+//   }
 
-  if ( ! _config->Plugins.pluginConfig[_pluginname].contains(key) )
-    return QVariant();
+//   if ( ! _config->Plugins.pluginConfig[_pluginname].contains(key) )
+//     return QVariant();
 
-  return _config->Plugins.pluginConfig[_pluginname][key];
-}
+//   return _config->Plugins.pluginConfig[_pluginname][key];
+// }
 
-QVariant KLFPluginConfigAccess::makeDefaultValue(const QString& key, const QVariant& defaultValue)
-{
-  if ( _config == NULL ) {
-    qWarning("KLFPluginConfigAccess::makeDefaultValue: Invalid Config Pointer!\n");
-    return QVariant();
-  }
+// QVariant KLFPluginConfigAccess::makeDefaultValue(const QString& key, const QVariant& defaultValue)
+// {
+//   if ( _config == NULL ) {
+//     qWarning("KLFPluginConfigAccess::makeDefaultValue: Invalid Config Pointer!\n");
+//     return QVariant();
+//   }
 
-  if (_config->Plugins.pluginConfig[_pluginname].contains(key))
-    return _config->Plugins.pluginConfig[_pluginname][key];
+//   if (_config->Plugins.pluginConfig[_pluginname].contains(key))
+//     return _config->Plugins.pluginConfig[_pluginname][key];
 
-  // assign the value into the plugin config, and return it
-  return ( _config->Plugins.pluginConfig[_pluginname][key] = defaultValue );
-}
-void KLFPluginConfigAccess::writeValue(const QString& key, const QVariant& value)
-{
-  if ( _config == NULL ) {
-    qWarning("KLFPluginConfigAccess::writeValue: Invalid Config Pointer!\n");
-    return;
-  }
+//   // assign the value into the plugin config, and return it
+//   return ( _config->Plugins.pluginConfig[_pluginname][key] = defaultValue );
+// }
+// void KLFPluginConfigAccess::writeValue(const QString& key, const QVariant& value)
+// {
+//   if ( _config == NULL ) {
+//     qWarning("KLFPluginConfigAccess::writeValue: Invalid Config Pointer!\n");
+//     return;
+//   }
 
-  _config->Plugins.pluginConfig[_pluginname][key] = value;
-}
+//   _config->Plugins.pluginConfig[_pluginname][key] = value;
+// }
 
 
 
@@ -1037,23 +1037,23 @@ int KLFConfig::readFromConfig_v1()
   LibraryBrowser.colorNotFound = s.value("colornotfound", LibraryBrowser.colorNotFound.toVariant()).value<QColor>();
   s.endGroup();
 
-  // Special treatment for Plugins.pluginConfig
-  s.beginGroup("Plugins/Config");
-  QStringList pluginList = s.childGroups();
-  s.endGroup();
-  int j;
-  for (j = 0; j < pluginList.size(); ++j) {
-    QString name = pluginList[j];
-    s.beginGroup( QString("Plugins/Config/%1").arg(name) );
-    QMap<QString,QVariant> thispluginconfig;
-    QStringList plconfkeys = s.childKeys();
-    int k;
-    for (k = 0; k < plconfkeys.size(); ++k) {
-      thispluginconfig[plconfkeys[k]] = s.value(plconfkeys[k]);
-    }
-    klfconfig.Plugins.pluginConfig[name] = thispluginconfig;
-    s.endGroup();
-  }
+  // // Special treatment for Plugins.pluginConfig
+  // s.beginGroup("Plugins/Config");
+  // QStringList pluginList = s.childGroups();
+  // s.endGroup();
+  // int j;
+  // for (j = 0; j < pluginList.size(); ++j) {
+  //   QString name = pluginList[j];
+  //   s.beginGroup( QString("Plugins/Config/%1").arg(name) );
+  //   QMap<QString,QVariant> thispluginconfig;
+  //   QStringList plconfkeys = s.childKeys();
+  //   int k;
+  //   for (k = 0; k < plconfkeys.size(); ++k) {
+  //     thispluginconfig[plconfkeys[k]] = s.value(plconfkeys[k]);
+  //   }
+  //   klfconfig.Plugins.pluginConfig[name] = thispluginconfig;
+  //   s.endGroup();
+  // }
 
   return 0;
 }

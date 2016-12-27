@@ -56,9 +56,21 @@ static bool is_binary_file(QString fn)
   return false;
 }
 
+#if defined(Q_OS_WIN)
+const static QString script_extra_paths = QString("C:\\Python27;C:\\Python*");
+const static QString exe_suffix = ".exe";
+#elif defined(Q_OS_MAC)
+const static QString script_extra_paths =
+                "/usr/bin:/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/local/sbin" // general unix
+                "/usr/local/opt/*/bin:/opt/local/bin:" // homebrew
+                "/opt/local/sbin"; // macports
+const static QString exe_suffix = "";
+#else
+const static QString script_extra_paths =
+                "/usr/bin:/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/local/sbin"; // general unix paths
+const static QString exe_suffix = "";
+#endif
 
-#if defined(Q_OS_WIN32)
-const static QString script_extra_paths = QString("C:\\Python27");
 static QByteArray get_script_process_type(const QString& name)
 {
   // e.g. KLF_PYTHON_EXECUTABLE
@@ -68,7 +80,7 @@ static QByteArray get_script_process_type(const QString& name)
     return path;
   // try to find the executable somewhere on the system
   // allow suffixes to the executables, e.g. for python27
-  path = klfSearchPath(name+"*.exe", script_extra_paths).toLocal8Bit();
+  path = klfSearchPath(name+"*"+exe_suffix, script_extra_paths).toLocal8Bit();
   if (path.size() > 0)
     return path;
   return QByteArray();
@@ -88,9 +100,10 @@ static QByteArray get_script_process(QString fn)
   if (fn.endsWith(".pl")) {
     return get_script_process_type(QLatin1String("perl"));
   }
-  return QByteArray();
+
+  qWarning() << KLF_FUNC_NAME << "Unknown script type: " << fn << "\n";
+  return get_script_process_type(QLatin1String("env"));
 }
-#endif
 
 
 KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)
@@ -125,31 +138,18 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 
   KLF_ASSERT_CONDITION(cmd.size(), "Empty command list given.", return false;) ;
 
-#if defined(Q_OS_UNIX)
-
-  // for epstopdf bug in ubuntu: peek into executable, see if it is script. if it is, run with 'sh' on *nix's.
-  // this is a weird bug with QProcess that will not execute some script files like epstopdf.
-
-  if (!is_binary_file(cmd[0])) {
-    // explicitly add a wrapper ('sh' only works for bash shell scripts, so use 'env') (we're on *nix, so OK)
-    cmd.prepend("/usr/bin/env");
-    klfDbg("target "<<cmd[0]<<" is not binary, prepending /usr/bin/env to command. cmd = " <<cmd) ;
-  }
-
-#endif
-
-#if defined(Q_OS_WIN32)
+  // For scripts, use the interpreter explicitly.  This so that the script doesn't have to
+  // be executable, and also for an old bug on Ubuntu with epstopdf.
+  //
+  // We peek into executable to see if it is script. If it is, use the correct interpreter.
 
   if (!is_binary_file(cmd[0])) {
-    // check what script type it is, and try to use pre-defined executables in shell variables (HACK!!)
-    /// FIXME: This is ugly! Need better solution!
+    // check what script type it is and invoke the corresponding interpreter.
     QByteArray exec_proc = get_script_process(cmd[0]);
     if (exec_proc.size()) {
       cmd.prepend(exec_proc);
     }
   }
-
-#endif
 
   QString program = cmd[0];
 

@@ -24,7 +24,16 @@
     <property name="spacing">
      <number>2</number>
     </property>
-    <property name="margin">
+    <property name="leftMargin">
+     <number>2</number>
+    </property>
+    <property name="topMargin">
+     <number>2</number>
+    </property>
+    <property name="rightMargin">
+     <number>2</number>
+    </property>
+    <property name="bottomMargin">
      <number>2</number>
     </property>
     <item>
@@ -45,7 +54,16 @@
        <number>0</number>
       </property>
       <layout class="QVBoxLayout" name="lyt_frmMain">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
         <number>4</number>
        </property>
        <item>
@@ -124,7 +142,7 @@
                </property>
                <property name="icon">
                 <iconset resource="klfres.qrc">
-                 <normaloff>:/pics/clearedit.png</normaloff>:/pics/clearedit.png</iconset>
+                 <normaloff>:/pics/clearedit.svg</normaloff>:/pics/clearedit.svg</iconset>
                </property>
               </widget>
              </item>
@@ -144,7 +162,7 @@
                </property>
                <property name="icon">
                 <iconset resource="klfres.qrc">
-                 <normaloff>:/pics/clear.png</normaloff>:/pics/clear.png</iconset>
+                 <normaloff>:/pics/clear.svg</normaloff>:/pics/clear.svg</iconset>
                </property>
               </widget>
              </item>
@@ -167,7 +185,7 @@
                </property>
                <property name="icon">
                 <iconset resource="klfres.qrc">
-                 <normaloff>:/pics/evaluate.png</normaloff>:/pics/evaluate.png</iconset>
+                 <normaloff>:/pics/evaluate.svg</normaloff>:/pics/evaluate.svg</iconset>
                </property>
                <property name="shortcut">
                 <string notr="true">Shift+Return, Ctrl+Return</string>
@@ -193,7 +211,7 @@
                </property>
                <property name="icon">
                 <iconset resource="klfres.qrc">
-                 <normaloff>:/pics/symbols.png</normaloff>:/pics/symbols.png</iconset>
+                 <normaloff>:/pics/symbols.svg</normaloff>:/pics/symbols.svg</iconset>
                </property>
                <property name="shortcut">
                 <string>F7</string>
@@ -219,7 +237,7 @@
                </property>
                <property name="icon">
                 <iconset resource="klfres.qrc">
-                 <normaloff>:/pics/library.png</normaloff>:/pics/library.png</iconset>
+                 <normaloff>:/pics/library.svg</normaloff>:/pics/library.svg</iconset>
                </property>
                <property name="shortcut">
                 <string>F8</string>
@@ -263,14 +281,23 @@
               <enum>QFrame::Plain</enum>
              </property>
              <layout class="QGridLayout" name="lyt_frmOutput" columnstretch="99,0">
+              <property name="leftMargin">
+               <number>1</number>
+              </property>
+              <property name="topMargin">
+               <number>1</number>
+              </property>
+              <property name="rightMargin">
+               <number>1</number>
+              </property>
+              <property name="bottomMargin">
+               <number>1</number>
+              </property>
               <property name="horizontalSpacing">
                <number>6</number>
               </property>
               <property name="verticalSpacing">
                <number>0</number>
-              </property>
-              <property name="margin">
-               <number>1</number>
               </property>
               <item row="0" column="1">
                <widget class="QPushButton" name="btnDrag">
@@ -391,7 +418,16 @@
                  <property name="spacing">
                   <number>0</number>
                  </property>
-                 <property name="margin">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
                   <number>0</number>
                  </property>
                  <item>
@@ -423,7 +459,7 @@
                    </property>
                    <property name="icon">
                     <iconset resource="klfres.qrc">
-                     <normaloff>:/pics/showpreview.png</normaloff>:/pics/showpreview.png</iconset>
+                     <normaloff>:/pics/showpreview.svg</normaloff>:/pics/showpreview.svg</iconset>
                    </property>
                   </widget>
                  </item>
@@ -459,7 +495,7 @@
                    </property>
                    <property name="icon">
                     <iconset resource="klfres.qrc">
-                     <normaloff>:/pics/exportprofile.png</normaloff>:/pics/exportprofile.png</iconset>
+                     <normaloff>:/pics/exportprofile.svg</normaloff>:/pics/exportprofile.svg</iconset>
                    </property>
                   </widget>
                  </item>
@@ -485,8 +521,8 @@
           <string>Quit</string>
          </property>
          <property name="icon">
-          <iconset>
-           <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
+          <iconset resource="klftoolsres.qrc">
+           <normaloff>:/pics/closehide.svg</normaloff>:/pics/closehide.svg</iconset>
          </property>
         </widget>
        </item>
@@ -494,7 +530,7 @@
      </widget>
     </item>
     <item>
-     <widget class="KLFSideWidget" name="frmDetails">
+     <widget class="KLFSideWidget" name="frmDetails" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>1</horstretch>
@@ -508,7 +544,16 @@
        <property name="spacing">
         <number>4</number>
        </property>
-       <property name="margin">
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
         <number>3</number>
        </property>
        <item>
@@ -644,16 +689,16 @@
                   <height>32</height>
                  </size>
                 </property>
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>30</width>
                   <height>20</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>false</bool>
                 </property>
-                <property name="alphaEnabled">
+                <property name="alphaEnabled" stdset="0">
                  <bool>false</bool>
                 </property>
                </widget>
@@ -666,19 +711,19 @@
                   <height>32</height>
                  </size>
                 </property>
-                <property name="showSize">
+                <property name="showSize" stdset="0">
                  <size>
                   <width>30</width>
                   <height>20</height>
                  </size>
                 </property>
-                <property name="allowDefaultState">
+                <property name="allowDefaultState" stdset="0">
                  <bool>true</bool>
                 </property>
-                <property name="defaultStateString">
+                <property name="defaultStateString" stdset="0">
                  <string extracomment="background color selector">Transparent</string>
                 </property>
-                <property name="alphaEnabled">
+                <property name="alphaEnabled" stdset="0">
                  <bool>false</bool>
                 </property>
                </widget>
@@ -850,14 +895,23 @@
                  <enum>QFrame::Plain</enum>
                 </property>
                 <layout class="QGridLayout" name="lyt_frmMargins" columnstretch="1,2">
+                 <property name="leftMargin">
+                  <number>3</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>3</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>3</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>3</number>
+                 </property>
                  <property name="horizontalSpacing">
                   <number>0</number>
                  </property>
                  <property name="verticalSpacing">
                   <number>2</number>
-                 </property>
-                 <property name="margin">
-                  <number>3</number>
                  </property>
                  <item row="0" column="0">
                   <widget class="QLabel" name="lblMarginTop">
@@ -1206,7 +1260,7 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>280</width>
+                <width>281</width>
                 <height>123</height>
                </rect>
               </property>
@@ -1276,10 +1330,6 @@
            <property name="text">
             <string>St&amp;yle</string>
            </property>
-           <property name="icon">
-            <iconset resource="klfres.qrc">
-             <normaloff>:/pics/loadstyle.png</normaloff>:/pics/loadstyle.png</iconset>
-           </property>
            <property name="shortcut">
             <string>Alt+L</string>
            </property>
@@ -1298,10 +1348,6 @@
            </property>
            <property name="text">
             <string>Settings...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="klfres.qrc">
-             <normaloff>:/pics/settings.png</normaloff>:/pics/settings.png</iconset>
            </property>
            <property name="shortcut">
             <string>Alt+N</string>
@@ -1435,17 +1481,6 @@
    <header>klfcolorchooser.h</header>
   </customwidget>
   <customwidget>
-   <class>KLFLatexEdit</class>
-   <extends>QTextEdit</extends>
-   <header>klflatexedit.h</header>
-  </customwidget>
-  <customwidget>
-   <class>KLFSideWidget</class>
-   <extends>QWidget</extends>
-   <header>klfsidewidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>KLFUnitSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header location="global">klfunitinput.h</header>
@@ -1462,6 +1497,17 @@
     <signal>unitChanged(double,QString)</signal>
     <signal>unitChanged(double)</signal>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>KLFLatexEdit</class>
+   <extends>QTextEdit</extends>
+   <header>klflatexedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KLFSideWidget</class>
+   <extends>QWidget</extends>
+   <header>klfsidewidget.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>KLFDisplayLabel</class>
@@ -1512,6 +1558,7 @@
  </tabstops>
  <resources>
   <include location="klfres.qrc"/>
+  <include location="klftoolsres.qrc"/>
  </resources>
  <connections>
   <connection>

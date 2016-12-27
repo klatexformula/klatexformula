@@ -485,7 +485,7 @@ KLFMainWin::KLFMainWin()
   loadLibrary();
 
   registerDataOpener(new KLFBasicDataOpener(this));
-  registerDataOpener(new KLFAddOnDataOpener(this));
+//  registerDataOpener(new KLFAddOnDataOpener(this));
   registerDataOpener(new KLFTexDataOpener(this));
 
   // and present a cool window size
@@ -2708,10 +2708,16 @@ void KLFMainWinPrivate::updatePreviewThreadInput()
     // to invalidate evaluated contents
     return;
   }
-  bool sizechanged = pContLatexPreview->setPreviewSize(K->u->lblOutput->size());
+  bool sizechanged =
+    pContLatexPreview->setPreviewSize(calcPreviewSize());
   if (inputchanged || sizechanged) {
     evaloutput_uptodate = false;
   }
+}
+
+QSize KLFMainWinPrivate::calcPreviewSize()
+{
+  return (QSizeF(K->u->lblOutput->size()) * K->devicePixelRatioF()).toSize();
 }
 
 void KLFMainWinPrivate::updatePreviewThreadSettings()
@@ -2920,26 +2926,26 @@ void KLFMainWin::slotEvaluate()
     // ALL OK
     d->evaloutput_uptodate = true;
 
-    QPixmap sc;
     // scale to view size (klfconfig.UI.labelOutputFixedSize)
-    QSize fsize = u->lblOutput->labelSize(); //klfconfig.UI.labelOutputFixedSize;
+    QSize fsize = d->calcPreviewSize();
     QImage scimg = d->output.result;
-    if (d->output.result.width() > fsize.width() || d->output.result.height() > fsize.height())
+    if (d->output.result.width() > fsize.width() ||
+        d->output.result.height() > fsize.height()) {
       scimg = d->output.result.scaled(fsize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-    sc = QPixmap::fromImage(scimg);
-
-    //QSize goodsize = d->output.result.size();
-    QImage tooltipimg = d->output.result;
-    if ( klfconfig.UI.previewTooltipMaxSize != QSize(0, 0) && // QSize(0,0) meaning no resize
-	 ( tooltipimg.width() > klfconfig.UI.previewTooltipMaxSize().width() ||
-	   tooltipimg.height() > klfconfig.UI.previewTooltipMaxSize().height() ) ) {
-      tooltipimg =
-	d->output.result.scaled(klfconfig.UI.previewTooltipMaxSize, Qt::KeepAspectRatio,
-			      Qt::SmoothTransformation);
     }
+    QImage tooltipimg = d->output.result;
+    if ( klfconfig.UI.previewTooltipMaxSize != QSize(0, 0) ) { // QSize(0,0) meaning no resize
+      QSize tooltipmaxsize = (QSizeF(klfconfig.UI.previewTooltipMaxSize) * devicePixelRatioF()).toSize();
+      if ( tooltipimg.width() > tooltipmaxsize.width() ||
+	   tooltipimg.height() > tooltipmaxsize.height() ) {
+        tooltipimg = d->output.result.scaled(tooltipmaxsize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      }
+    }
+
     emit evaluateFinished(d->output);
+
     u->lblOutput->display(scimg, tooltipimg, true);
+
     //    u->frmOutput->setEnabled(true);
     d->slotSetViewControlsEnabled(true);
     d->slotSetSaveControlsEnabled(true);
@@ -4145,9 +4151,9 @@ void KLFMainWinPrivate::slotDetailsSideWidgetShown(bool shown)
       K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded.png"));
   } else if (K->u->frmDetails->sideWidgetManagerType() == QLatin1String("Drawer")) {
     if (shown)
-      K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.png"));
+      K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.svg"));
     else
-      K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.png"));
+      K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded_drawer.svg"));
   } else {
     // "Float", or any possible custom side widget type
     if (shown)

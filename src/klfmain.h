@@ -54,138 +54,138 @@ class QApplication;
 
 // SOME DECLARATIONS FOR ADD-ONS
 
-class KLF_EXPORT KLFAddOnInfo
-{
-public:
-  /** Reads RCC file \c rccfpath and parses its rccinfo/info.xml, etc.
-   * sets all fields to correct values and \ref isfresh to \c isFresh . */
-  KLFAddOnInfo(QString rccfpath, bool isFresh = false);
+// class KLF_EXPORT KLFAddOnInfo
+// {
+// public:
+//   /** Reads RCC file \c rccfpath and parses its rccinfo/info.xml, etc.
+//    * sets all fields to correct values and \ref isfresh to \c isFresh . */
+//   KLFAddOnInfo(QString rccfpath, bool isFresh = false);
 
-  /** Create a copy of the add-on info structure \c other */
-  KLFAddOnInfo(const KLFAddOnInfo& o);
+//   /** Create a copy of the add-on info structure \c other */
+//   KLFAddOnInfo(const KLFAddOnInfo& o);
 
-  struct KLF_EXPORT PluginSysInfo {
-    /** The directory in question */
-    QString dir;
-    /** minimum Qt version required to load the plugin, in version string format (eg. "4.4"). An
-     * empty qtminversion disables version check. */
-    QString qtminversion;
-    /** minimum KLatexFormula version required to load the plugin, in version string format (eg.
-     * "4.4"). An empty qtminversion disables version check. */
-    QString klfminversion;
-    /** The required value of \ref KLFSysInfo::osString() */
-    QString os;
-    /** The architecture(s) on which this plugin can run \ref KLFSysInfo::arch(). For
-     * Mac OS X universal binaries this can be comma-separated list of architectures. */
-    QString arch;
+//   struct KLF_EXPORT PluginSysInfo {
+//     /** The directory in question */
+//     QString dir;
+//     /** minimum Qt version required to load the plugin, in version string format (eg. "4.4"). An
+//      * empty qtminversion disables version check. */
+//     QString qtminversion;
+//     /** minimum KLatexFormula version required to load the plugin, in version string format (eg.
+//      * "4.4"). An empty qtminversion disables version check. */
+//     QString klfminversion;
+//     /** The required value of \ref KLFSysInfo::osString() */
+//     QString os;
+//     /** The architecture(s) on which this plugin can run \ref KLFSysInfo::arch(). For
+//      * Mac OS X universal binaries this can be comma-separated list of architectures. */
+//     QString arch;
 
-    bool isCompatibleWithCurrentSystem() const;
-  };
+//     bool isCompatibleWithCurrentSystem() const;
+//   };
 
-  ~KLFAddOnInfo();
+//   ~KLFAddOnInfo();
 
-  /** Directory in which the RCC file resides */
-  QString dir() const;
-  /** Name of the RCC file (no path) */
-  QString fname() const;
-  /** in principle: <tt>absdir(dir()) + "/" + fname()</tt> */
-  QString fpath() const;
-  /** local file: can be removed (e.g. not in a global path /usr/share/... ) */
-  bool islocal() const;
+//   /** Directory in which the RCC file resides */
+//   QString dir() const;
+//   /** Name of the RCC file (no path) */
+//   QString fname() const;
+//   /** in principle: <tt>absdir(dir()) + "/" + fname()</tt> */
+//   QString fpath() const;
+//   /** local file: can be removed (e.g. not in a global path /usr/share/... ) */
+//   bool islocal() const;
 
-  /** the info in the add-on's info.xml file */
-  QString title() const;
-  /** the info in the add-on's info.xml file */
-  QString author() const;
-  /** the info in the add-on's info.xml file */
-  QString description() const;
-  /** the info in the add-on's info.xml file */
-  QString klfminversion() const;
+//   /** the info in the add-on's info.xml file */
+//   QString title() const;
+//   /** the info in the add-on's info.xml file */
+//   QString author() const;
+//   /** the info in the add-on's info.xml file */
+//   QString description() const;
+//   /** the info in the add-on's info.xml file */
+//   QString klfminversion() const;
 
-  //! where in the resource tree this rcc resource data is mounted
-  QString rccmountroot() const;
+//   //! where in the resource tree this rcc resource data is mounted
+//   QString rccmountroot() const;
     
-  /** The list of plugins provided by this add-on (list of files
-   * \c ":/plugins/[<dir>/]<plugin-name>*.so|dll").
-   *
-   * This list stores full file names relative to plugin dir in add-on (e.g. \c "libskin.so" or
-   * \c "linux-x86-klf3.1.1/libskin.so") .
-   *
-   * See also \ref localPluginList().
-   */
-  QStringList pluginList() const;
+//   /** The list of plugins provided by this add-on (list of files
+//    * \c ":/plugins/[<dir>/]<plugin-name>*.so|dll").
+//    *
+//    * This list stores full file names relative to plugin dir in add-on (e.g. \c "libskin.so" or
+//    * \c "linux-x86-klf3.1.1/libskin.so") .
+//    *
+//    * See also \ref localPluginList().
+//    */
+//   QStringList pluginList() const;
 
-  PluginSysInfo pluginSysInfo(const QString& plugin) const;
+//   PluginSysInfo pluginSysInfo(const QString& plugin) const;
 
-  QString pluginLocalSubDirName(const QString& plugin) const;
+//   QString pluginLocalSubDirName(const QString& plugin) const;
 
-  /** A list of locally (ie. in <tt>~/.klatexformula/plugins/</tt>) installed plugins coming
-   * from this add-on.
-   *
-   * The path is relative to <tt>~/.klatexformula/plugins/</tt>.
-   *
-   * \note Only plugins for the current os/architecture is returned. */
-  QStringList localPluginList() const;
-
-
-  /** The list of translation files provided by this add-on (list of files <tt>:/i18n/<b></b>*.qm</tt>)
-   * This list stores full file names without the path (e.g. \c "klf_fr.qm") */
-  QStringList translations() const;
-
-  /** The list of user scripts provided by the add-on. User scripts are located at
-   * <tt>:/userscripts/</tt>, and are installed to the main system (to be executable!).
-   * This lists the filenames only without the directory name. */
-  QStringList userScripts() const;
-
-  /** Fresh file: add-on imported during this execution; ie. KLatexFormula needs to be restarted
-   * for this add-on to take effect. The constructor sets this value to \c FALSE, set it manually
-   * to \c TRUE if needed (e.g. in KLFSettings). */
-  bool isfresh() const;
-
-  /** List of errors that occurred with this add-on (now only used for reporting plugin load errors) */
-  QStringList errors() const;
+//   /** A list of locally (ie. in <tt>~/.klatexformula/plugins/</tt>) installed plugins coming
+//    * from this add-on.
+//    *
+//    * The path is relative to <tt>~/.klatexformula/plugins/</tt>.
+//    *
+//    * \note Only plugins for the current os/architecture is returned. */
+//   QStringList localPluginList() const;
 
 
-  /** \internal
-   * */
-  void addError(const QString& s);
+//   /** The list of translation files provided by this add-on (list of files <tt>:/i18n/<b></b>*.qm</tt>)
+//    * This list stores full file names without the path (e.g. \c "klf_fr.qm") */
+//   QStringList translations() const;
 
-private:
+//   /** The list of user scripts provided by the add-on. User scripts are located at
+//    * <tt>:/userscripts/</tt>, and are installed to the main system (to be executable!).
+//    * This lists the filenames only without the directory name. */
+//   QStringList userScripts() const;
 
-  class Private;
-  Private *d;
+//   /** Fresh file: add-on imported during this execution; ie. KLatexFormula needs to be restarted
+//    * for this add-on to take effect. The constructor sets this value to \c FALSE, set it manually
+//    * to \c TRUE if needed (e.g. in KLFSettings). */
+//   bool isfresh() const;
 
-  //  friend void main_load_plugins(QApplication *app, KLFMainWin *mainWin);
-
-  void initPlugins();
-};
-
-KLF_EXPORT extern QList<KLFAddOnInfo> klf_addons;
-KLF_EXPORT extern bool klf_addons_canimport;
-
-KLF_EXPORT QDebug& operator<<(QDebug& str, const KLFAddOnInfo::PluginSysInfo& i);
+//   /** List of errors that occurred with this add-on (now only used for reporting plugin load errors) */
+//   QStringList errors() const;
 
 
+//   /** \internal
+//    * */
+//   void addError(const QString& s);
 
-// SOME DEFINITIONS FOR PLUGINS
+// private:
 
-class KLFPluginGenericInterface;
+//   class Private;
+//   Private *d;
 
-struct KLFPluginInfo
-{
-  QString name;
-  QString author;
-  QString title;
-  QString description;
+//   //  friend void main_load_plugins(QApplication *app, KLFMainWin *mainWin);
 
-  QString fpath;
-  QString fname;
+//   void initPlugins();
+// };
 
-  KLFPluginGenericInterface * instance;
-};
+// KLF_EXPORT extern QList<KLFAddOnInfo> klf_addons;
+// KLF_EXPORT extern bool klf_addons_canimport;
+
+// KLF_EXPORT QDebug& operator<<(QDebug& str, const KLFAddOnInfo::PluginSysInfo& i);
 
 
-KLF_EXPORT extern QList<KLFPluginInfo> klf_plugins;
+
+// // SOME DEFINITIONS FOR PLUGINS
+
+// class KLFPluginGenericInterface;
+
+// struct KLFPluginInfo
+// {
+//   QString name;
+//   QString author;
+//   QString title;
+//   QString description;
+
+//   QString fpath;
+//   QString fname;
+
+//   KLFPluginGenericInterface * instance;
+// };
+
+
+// KLF_EXPORT extern QList<KLFPluginInfo> klf_plugins;
 
 
 

@@ -40,6 +40,8 @@ KLFDisplayLabel::KLFDisplayLabel(QWidget *parent)
 
   setAlignment(Qt::AlignCenter);
 
+  setScaledContents(true);
+
   pDefaultPalette = palette();
   pErrorPalette = pDefaultPalette;
 
@@ -70,7 +72,7 @@ void KLFDisplayLabel::displayClear()
 {
   display_state(Clear);
   //  setEnabled(false);
-  setLabelEnabled(false);
+  pLabelEnabled = false;
 }
 
 void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool labelenabled)
@@ -80,53 +82,58 @@ void KLFDisplayLabel::display(QImage displayimg, QImage tooltipimage, bool label
   pDisplayImage = displayimg;
   pDisplayTooltip = tooltipimage;
 
+  pLabelEnabled = labelenabled;
   display_state(Ok);
-
-  //  setEnabled(labelenabled);
-  setLabelEnabled(labelenabled);
 }
 
 void KLFDisplayLabel::displayError(const QString& errorMessage, bool labelenabled)
 {
   pDisplayError = errorMessage;
+
+  pLabelEnabled = labelenabled;
   display_state(Error);
-  //  setEnabled(labelenabled);
-  setLabelEnabled(labelenabled);
 }
 
 
-QPixmap KLFDisplayLabel::calc_display_pixmap()
+QPicture KLFDisplayLabel::calc_display_picture()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+ 
   QImage img = pDisplayImage;
   QPixmap pix;
+  QSize mysize = (QSizeF(size()) * devicePixelRatioF()).toSize();
+  klfDbg("widget size()="<<size()<<", mysize="<<mysize) ;
   if (/*labelenabled && */ pGE) {
-    int r = pGEradius;
+    int r = pGEradius * devicePixelRatioF();
     QSize msz = QSize(2*r, 2*r);
     if (img.width()+msz.width() > width() || img.height()+msz.height() > height())
-      img = pDisplayImage.scaled(size()-msz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      img = pDisplayImage.scaled(mysize-msz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     pix = QPixmap(img.size()+msz);
     pix.fill(QColor(0,0,0,0));
     QPainter painter(&pix);
     painter.translate(QPoint(r, r));
     klfDrawGlowedImage(&painter, img, pGEcolor, r);
   } else {
-    if (img.width() > width() || img.height() > height())
-      img = pDisplayImage.scaled(size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    if (img.width() > mysize.width() || img.height() > mysize.height()) {
+      img = pDisplayImage.scaled(mysize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
     pix = QPixmap::fromImage(img);
   }
-  QPixmap labelpix(size());
-  labelpix.fill(QColor(255,255,255,0));
-  QPainter pp(&labelpix);
+  pix.setDevicePixelRatio(1.0);//devicePixelRatioF());
+
+  QPicture labelpic;
+  labelpic.setBoundingRect(QRect(QPoint(0,0), mysize));
+  QPainter pp(&labelpic);
   if (!pLabelEnabled) {
     pp.setOpacity(0.5f);
   }
-  pp.drawPixmap(QPoint((labelpix.width()-pix.width())/2, (labelpix.height()-pix.height())/2),
+  pp.drawPixmap(QPoint((mysize.width()-pix.width())/2, (mysize.height()-pix.height())/2),
 		pix);
   //  // desaturate/grayify the pixmap if we are label-disabled
   //  if (!pLabelEnabled) {
-  //    pp.fillRect(QRect(QPoint(0,0), labelpix.size()), QColor(255,255,255, 90));
+  //    pp.fillRect(QRect(QPoint(0,0), mysize), QColor(255,255,255, 90));
   //  }
-  return labelpix;
+  return labelpic;
 }
 
 void KLFDisplayLabel::display_state(DisplayState state)
@@ -134,19 +141,18 @@ void KLFDisplayLabel::display_state(DisplayState state)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   pDisplayState = state;
   if (state == Clear) {
-    setPixmap(QPixmap());
+    setPicture(QPicture());
     setText(QString());
     set_error(false);
   }
-  QPixmap pix = calc_display_pixmap();
   if (state == Error) {
     set_error(true);
     setToolTip(pDisplayError);
     _bigPreviewText = pDisplayError;
   }
   if (state == Ok) {
-    QPixmap labelpix = calc_display_pixmap();
-    setPixmap(labelpix);
+    QPicture labelpic = calc_display_picture();
+    setPicture(labelpic);
 
     // un-set any error
     set_error(false);
@@ -178,7 +184,11 @@ void KLFDisplayLabel::display_state(DisplayState state)
 	  delete mToolTipFile;
 	  mToolTipFile = 0;
 	} else {
-	  _bigPreviewText = QString("<img src=\"%1\">").arg(mToolTipFile->fileName());
+	  _bigPreviewText = QString("<img src=\"%1\" width=\"%2\" height=\"%3\" style=\"width:%2px; height:%3px;\">")
+            .arg(mToolTipFile->fileName())
+            .arg((int)(pDisplayTooltip.width() / devicePixelRatioF()))
+            .arg((int)(pDisplayTooltip.height() / devicePixelRatioF()));
+          klfDbg("big preview html = " << _bigPreviewText) ;
 	}
       }
     }

@@ -90,8 +90,8 @@ Options:
       other options, like --latexinput, may still be given. They will be forwared
       to the daemon process.
   --skip-plugins
-      Do not attempt to load plugins. Useful if klatexformula crashes at startup,
-      which might be due to problematic plugins installed.
+      Obsolete. Since Klatexformula 4, no plugin system is available and plugins
+      are never loaded.
 
   --calcepsbbox [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
       Correct the bounding box of the output for characters that don't report a
