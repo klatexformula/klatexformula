@@ -117,7 +117,7 @@ protected:
 // ---------------------------------------------------------------
 
 
-class KLFAdvancedConfigEditorPrivate : public QObject
+struct KLFAdvancedConfigEditorPrivate : public QObject
 {
   Q_OBJECT
 public:

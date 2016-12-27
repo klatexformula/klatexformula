@@ -104,7 +104,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   u->setupUi(this);
   setObjectName("KLFSettings");
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   setAttribute(Qt::WA_MacBrushedMetal, klfconfig.UI.macBrushedMetalLook);
   setAutoFillBackground(true);
 #endif
@@ -144,7 +144,7 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   // ---
 
   //  QToolBar * toolBar = new QToolBar(wToolBar);
-#if defined(Q_WS_MAC) || defined(Q_WS_WIN32) || defined(Q_WS_WIN) || defined(Q_WS_WIN64)
+#if defined(KLF_WS_MAC) || defined(KLF_WS_WIN)
   //  u->toolBar->setAttribute(Qt::WA_NoSystemBackground, true);
   //  u->toolBar->setAttribute(Qt::WA_NativeWindow, false);
   u->toolBar->setStyle(QStyleFactory::create("fusion"));
@@ -702,7 +702,7 @@ void KLFSettings::reset()
   int sidewidgettypei = u->cbxDetailsSideWidgetType->findData(QVariant(klfconfig.UI.detailsSideWidgetType()));
   u->cbxDetailsSideWidgetType->setCurrentIndex(sidewidgettypei);
   u->chkMacBrushedMetalLook->setChecked(klfconfig.UI.macBrushedMetalLook);
-#ifndef Q_WS_MAC
+#ifndef KLF_WS_MAC
   u->chkMacBrushedMetalLook->hide();
 #endif
 

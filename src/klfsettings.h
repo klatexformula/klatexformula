@@ -40,7 +40,7 @@ class KLFMainWin;
 
 namespace Ui { class KLFSettings; }
 
-class KLFSettingsPrivate;
+struct KLFSettingsPrivate;
 
 /** \brief A settings dialog
  *

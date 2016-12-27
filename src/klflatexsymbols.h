@@ -88,7 +88,7 @@ inline uint qHash(const KLFLatexSymbol& symb)
 
 
 
-class KLFLatexSymbolsCachePrivate;
+struct KLFLatexSymbolsCachePrivate;
 
 class KLF_EXPORT KLFLatexSymbolsCache
 {
@@ -191,6 +191,8 @@ public:
   ~KLFLatexSymbols();
 
   bool event(QEvent *event);
+
+  void load();
 
 signals:
 

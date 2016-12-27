@@ -151,7 +151,7 @@ protected:
   const KLFPropertizedObject * pobj();
 
 private:
-  class Private;
+  struct Private;
 
   KLFRefPtr<Private> d;
   inline Private * d_func() { return d(); }
@@ -165,7 +165,7 @@ KLF_DECLARE_POBJ_TYPE(KLFUserScriptInfo) ;
 
 
 
-class KLFUserScriptFilterProcessPrivate;
+struct KLFUserScriptFilterProcessPrivate;
 
 class KLF_EXPORT KLFUserScriptFilterProcess : public KLFFilterProcess
 {

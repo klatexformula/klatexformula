@@ -170,14 +170,14 @@ void KLFConfig::loadDefaults()
 
     QFontDatabase fdb;
     QFont f = QApplication::font();
-#if defined(Q_WS_X11)
+#if defined(KLF_WS_X11)
     int fps = QFontInfo(f).pointSize();
     double cmuffactor = 1.4;
     double codeffactor = 1.4;
     int cmufpsfinal = (int)(fps*cmuffactor+0.5);
     int codefpsfinal = (int)(fps*codeffactor+0.5);
     QString cmufamily = QString::fromUtf8("CMU Sans Serif");
-#elif defined(Q_WS_WIN)
+#elif defined(KLF_WS_WIN)
     int fps = QFontInfo(f).pointSize();
     double cmuffactor = 1.3;
     double codeffactor = 1.3;
@@ -255,7 +255,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.smallPreviewSize, QSize(280, 80));
   //  KLFCONFIGPROP_INIT(UI.savedWindowSize, QSize());
   QString swtype;
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   swtype = QLatin1String("Drawer");
 #else
   swtype = QLatin1String("ShowHide");
@@ -286,7 +286,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(UI.showHintPopups, true) ;
   KLFCONFIGPROP_INIT(UI.clearLatexOnly, false) ;
   KLFCONFIGPROP_INIT(UI.glowEffect, false) ;
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   QColor glowcolor = QColor(155, 207, 255, 62);
 #else
   QColor glowcolor = QColor(128, 255, 128, 12);

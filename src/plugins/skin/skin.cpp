@@ -380,7 +380,7 @@ void SkinPlugin::changeSkinHelpLinkAction(const QUrl& link)
 
 Skin SkinPlugin::applySkin(KLFPluginConfigAccess *config, bool isStartUp)
 {
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   if (isStartUp) {
     _applyDelayed = true;
     return Skin();

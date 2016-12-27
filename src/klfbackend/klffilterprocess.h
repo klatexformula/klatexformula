@@ -41,7 +41,7 @@
 
 
 
-class KLFFilterProcessPrivate;
+struct KLFFilterProcessPrivate;
 
 class KLF_EXPORT KLFFilterProcess
 {

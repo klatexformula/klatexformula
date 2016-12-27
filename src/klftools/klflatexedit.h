@@ -42,7 +42,7 @@ class KLFDropDataHandler;
 // ------------------------------------------------
 
 
-class KLFLatexEditPrivate;
+struct KLFLatexEditPrivate;
 
 /** \brief A text edit field that edits latex code.
  *
@@ -124,7 +124,7 @@ private:
 };
 
 
-class KLFLatexParenSpecsPrivate;
+struct KLFLatexParenSpecsPrivate;
 
 class KLF_EXPORT KLFLatexParenSpecs
 {

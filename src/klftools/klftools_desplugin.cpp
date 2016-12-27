@@ -696,6 +696,8 @@ KLFToolsDesPlugin::~KLFToolsDesPlugin()
 
 
 
+Q_PLUGIN_METADATA(IID "org.klatexformula.klftools.qtdesignerplugin")
+
 Q_EXPORT_PLUGIN2(klftoolsdesplugin, KLFToolsDesPlugin)
   ;
 

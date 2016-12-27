@@ -137,7 +137,7 @@ bool KLFStyleListModel::dropMimeData(const QMimeData *mdata, Qt::DropAction acti
 
 KLFStyleManager::KLFStyleManager(KLFStyleList *stydata, QWidget *parent)
   : QWidget(parent, 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
 	    Qt::Sheet
 #else
 	    Qt::Dialog

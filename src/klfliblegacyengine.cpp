@@ -527,7 +527,7 @@ bool KLFLibLegacyEngine::canModifyData(const QString& subResource, ModifyType mo
 
   KLF_ASSERT_NOT_NULL( d , "d is NULL!" , return false ) ;
 
-#ifndef Q_WS_WIN
+#ifndef KLF_WS_WIN
   // seems like windows doesn't like to test directories to be writable ...?
 
   if ( QFile::exists(d->fileName())  // depending on whether the file itself exists, check if

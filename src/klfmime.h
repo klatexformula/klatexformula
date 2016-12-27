@@ -280,7 +280,7 @@ private:
 };
 
 
-class KLFExportTypeUserScriptInfoPrivate;
+struct KLFExportTypeUserScriptInfoPrivate;
 
 class KLF_EXPORT KLFExportTypeUserScriptInfo : public KLFUserScriptInfo
 {
@@ -309,7 +309,7 @@ private:
 };
 
 
-class KLFExportUserScriptPrivate;
+struct KLFExportUserScriptPrivate;
 
 class KLF_EXPORT KLFExportUserScript
 {

@@ -30,7 +30,6 @@
 #include <QtGlobal>
 #include <QByteArray>
 #include <QSet>
-#include <QApplication>
 #include <QCoreApplication>
 #include <QRegExp>
 #include <QFile>
@@ -45,8 +44,8 @@
 #include <QTemporaryDir>
 
 #include <klfutil.h>
-#include <klfdatautil.h>
 #include <klfsysinfo.h>
+#include <klfdatautil.h>
 
 #include "klfblockprocess.h"
 #include "klffilterprocess.h"
@@ -106,7 +105,7 @@ static const char * standard_extra_paths[] = {
   "C:\\Program Files\\gs\\gs*\\bin",
   NULL
 };
-#elif defined(Q_WS_MAC)
+#elif defined(KLF_WS_MAC)
 QStringList progLATEX = QStringList() << "latex";
 QStringList progDVIPS = QStringList() << "dvips";
 QStringList progGS = QStringList() << "gs";
@@ -1795,6 +1794,8 @@ bool KLFBackend::detectSettings(klfSettings *settings, const QString& extraPath,
 
 KLF_EXPORT bool KLFBackend::detectOptionSettings(klfSettings * settings, bool isMainThread)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   bool r0 = klf_detect_execenv(settings);
   if (!r0) {
     return false;
@@ -1819,6 +1820,8 @@ KLF_EXPORT bool KLFBackend::detectOptionSettings(klfSettings * settings, bool is
 
 KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   // detect mgs.exe as ghostscript and setup its environment properly
   QFileInfo gsfi(settings->gsexec);
   if (gsfi.fileName() == "mgs.exe") {
@@ -1839,6 +1842,8 @@ KLF_EXPORT bool klf_detect_execenv(KLFBackend::klfSettings *settings)
 // static 
 void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   if (gsInfo.contains(settings->gsexec)) // info already cached
     return;
 
@@ -1858,6 +1863,9 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
     
     p.setExecEnviron(settings->execenv);
     
+    // I think there is a problem with app events processing if this is run during application start-up
+    p.setProcessAppEvents(false);
+
     p.setArgv(QStringList() << settings->gsexec << "--version");
     
     QByteArray ba_gsver;
@@ -1885,6 +1893,9 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
     ee = klfSetEnvironmentVariable(ee, QLatin1String("LANG"), QLatin1String("en_US.UTF-8"));
     p.setExecEnviron(ee);
     
+    // I think there is a problem with app events processing if this is run during application start-up
+    p.setProcessAppEvents(false);
+
     p.setArgv(QStringList() << settings->gsexec << "--help");
     
     QByteArray ba_gshelp;

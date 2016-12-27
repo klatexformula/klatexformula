@@ -22,6 +22,11 @@
 /* $Id$ */
 
 
+// Qt5 always uses Cocoa
+#define QT_MAC_USE_COCOA 1
+
+
+
 #include <Cocoa/Cocoa.h>
 
 #include <klfmainwin.h>
@@ -40,6 +45,8 @@ void DEBUG_test()
 
 void klf_mac_hide_application(const KLFMainWin *mw, bool hide)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   NSApplication * a = [NSApplication sharedApplication];
   NSView *mw_mac = reinterpret_cast<NSView *>(mw->window()->winId());
 
@@ -51,17 +58,23 @@ void klf_mac_hide_application(const KLFMainWin *mw, bool hide)
 
 void klf_mac_hide_application(const KLFMainWin *mw)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klf_mac_hide_application(mw, true);
 }
 
 bool klf_mac_unhide_application(const KLFMainWin *mw)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   klf_mac_hide_application(mw, false);
   return true;
 }
 
 bool klf_mac_application_hidden(const KLFMainWin */*mw*/)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   NSApplication * a = [NSApplication sharedApplication];
   //NSView *mw_mac = reinterpret_cast<NSView *>(mw->window()->winId());
 
@@ -72,6 +85,7 @@ bool klf_mac_application_hidden(const KLFMainWin */*mw*/)
 void klf_mac_win_show_without_activating(QWidget *w)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   NSView *widgetView = reinterpret_cast<NSView *>(w->winId());
   [[widgetView window] setLevel:kCGMaximumWindowLevel];
 
@@ -86,12 +100,16 @@ void klf_mac_win_show_without_activating(QWidget *w)
 
 void klf_mac_hide_application(const KLFMainWin *mw)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   Q_UNUSED(mw);
   klfDbg("Not implemented without Cocoa.") ;
 }
 
 void klf_mac_win_show_without_activating(QWidget *w)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   Q_UNUSED(w);
   klfDbg("Not implemented without Cocoa.") ;
 }

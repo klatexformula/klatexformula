@@ -160,7 +160,7 @@ private:
 
 // -------------------------------------------
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
 void klf_mac_win_show_without_activating(QWidget *w);
 #endif
 
@@ -173,7 +173,7 @@ public:
   KLFMainWinPopup(KLFMainWin *mainwin)
     : QLabel(mainwin, Qt::Window|Qt::FramelessWindowHint|Qt::CustomizeWindowHint|
 	     Qt::WindowStaysOnTopHint
-#ifdef Q_WS_X11
+#ifdef KLF_WS_X11
 	     |Qt::X11BypassWindowManagerHint
 #endif
 	     ),
@@ -194,7 +194,7 @@ public:
     setFont(f);
     setWordWrap(true);
 
-#ifdef Q_WS_X11
+#ifdef KLF_WS_X11
     setAttribute(Qt::WA_X11DoNotAcceptFocus, true);
 #endif
     setAttribute(Qt::WA_ShowWithoutActivating, true);
@@ -242,7 +242,7 @@ public slots:
     QLabel::show();
     setStyleSheet(styleSheet());
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
     //    klf_mac_win_show_without_activating(this);
     _mainWin->activateWindow();
 #endif
@@ -1039,7 +1039,7 @@ private:
 // --------------------------------------------------------------------------
 
 
-class KLFMainWinPrivate : public QObject
+struct KLFMainWinPrivate : public QObject
 {
   Q_OBJECT
 public:
@@ -1047,6 +1047,32 @@ public:
   {
     pMacOSXMenu = NULL;
     pCheckForUpdatesAction = NULL;
+
+    mLibBrowser = NULL;
+    mLatexSymbols = NULL;
+    mStyleManager = NULL;
+    mSettingsDialog = NULL;
+    mAboutDialog = NULL;
+    mWhatsNewDialog = NULL;
+
+    mPopup = NULL;
+
+    pMacOSXMenu = NULL;
+    pCheckForUpdatesAction = NULL;
+    
+    mShortcutNextParenType = NULL;
+    mShortcutNextParenModifierType = NULL;
+
+    mHistoryLibResource = NULL;
+
+    mStyleMenu = NULL;
+
+    pLatexPreviewThread = NULL;
+    pContLatexPreview = NULL;
+
+    pUserScriptSettings = NULL;
+
+    pCmdIface = NULL;
   }
 
 

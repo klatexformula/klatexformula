@@ -33,7 +33,7 @@
 #include <klfiteratorsearchable.h>
 
 
-class KLFItemViewSearchTargetPrivate;
+struct KLFItemViewSearchTargetPrivate;
 
 //! A search target (for KLFSearchBar) for standard item views
 /** Add search functionality to standard item views. Any item view you may have (QTreeView/QListView etc.)

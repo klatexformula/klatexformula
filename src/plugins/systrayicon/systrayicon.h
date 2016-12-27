@@ -34,7 +34,7 @@
 #include <ui_systraymainiconifybuttons.h>
 
 
-#if defined(Q_WS_MAC) && defined(QT_MAC_USE_COCOA)
+#if defined(KLF_WS_MAC)
 #define KLF_MAC_HIDE_INSTEAD
 #endif
 

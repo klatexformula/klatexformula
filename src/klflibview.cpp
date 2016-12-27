@@ -430,7 +430,7 @@ void KLFLibModelCache::rebuildCache()
   int k;
 
   // report progress
-#ifndef Q_WS_MAC
+#ifndef KLF_WS_MAC
   KLFProgressReporter progressReporter(0, 100, NULL);
   QString msg = QObject::tr("Updating View...", "[[KLFLibModelCache, progress text]]");
   emit pModel->operationStartReportingProgress(&progressReporter, msg);
@@ -492,7 +492,7 @@ void KLFLibModelCache::rebuildCache()
     e.entry = ewid.entry;
     treeInsertEntry(e, true); // rebuildingCache=TRUE
 
-#ifndef Q_WS_MAC
+#ifndef KLF_WS_MAC
     if (k % 10 == 0)
       progressReporter.doReportProgress((++k) * 100 / everything.size());
 #endif
@@ -876,7 +876,7 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
     return;
   }
 
-#ifndef Q_WS_MAC
+#ifndef KLF_WS_MAC
   // progress reporting [here, not above, because rebuildCache() has its own progress reporting]
   KLFProgressReporter progressReporter(0, entryIdList.size(), NULL);
   emit pModel->operationStartReportingProgress(&progressReporter,
@@ -898,7 +898,7 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	 * contiguous inserts to be notified once .... */
 	treeInsertEntry(en);
 	qDebug("%s: entry ID %d inserted", KLF_FUNC_NAME, entryIdList[k]);
-#ifndef Q_WS_MAC
+#ifndef KLF_WS_MAC
 	if (k % 20 == 0)
 	  progressReporter.doReportProgress(k+1);
 #endif
@@ -940,7 +940,7 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	  QModelIndex idx = createIndexFromId(n, -1, 0);
 	  emit pModel->dataChanged(idx, idx);
 	}
-#ifndef Q_WS_MAC
+#ifndef KLF_WS_MAC
 	if (k % 20 == 0)
 	  progressReporter.doReportProgress(k+1);
 #endif
@@ -959,7 +959,7 @@ void KLFLibModelCache::updateData(const QList<KLFLib::entryId>& entryIdList, int
 	  continue;
 	}
 	(void) treeTakeEntry(n);
-#ifndef Q_WS_MAC
+#ifndef KLF_WS_MAC
 	if (k % 20 == 0)
 	  progressReporter.doReportProgress(k+1);
 #endif
@@ -2552,7 +2552,7 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
   pp.innerRectImage = QRect(option.rect.topLeft()+QPoint(2,2), option.rect.size()-QSize(4,4));
   pp.innerRectText = QRect(option.rect.topLeft()+QPoint(4,2), option.rect.size()-QSize(8,3));
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   // block progress reporting on MAC to avoid repaint recursions
   KLFLibResourceEngine *rres = NULL;
   KLFLibModel *rmodel = qobject_cast<KLFLibModel*>(const_cast<QAbstractItemModel*>(index.model()));
@@ -3752,7 +3752,7 @@ void KLFLibDefaultView::updateDisplay()
 void KLFLibDefaultView::slotViewSelectionChanged(const QItemSelection& /*selected*/,
 						 const QItemSelection& /*deselected*/)
 {
-#ifndef Q_WS_WIN
+#ifndef KLF_WS_WIN
   // This line generates QPaint* warnings on Win32
   // This is needed to update the parent items selection indicator
   updateDisplay();

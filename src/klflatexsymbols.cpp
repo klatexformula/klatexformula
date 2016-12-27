@@ -457,9 +457,10 @@ int KLFLatexSymbolsCache::precacheList(const QList<KLFLatexSymbol>& list, bool u
   }
 
   for (int i = 0; i < list.size(); ++i) {
+    klfDbg("generating preview for symbol #"<<i<<": "<<list[i].symbol) ;
     if (userfeedback) {
       // get events for cancel button (for example)
-      qApp->processEvents();
+      //qApp->processEvents();
       if (pdlg->wasCanceled()) {
 	delete pdlg;
 	return 1;
@@ -640,7 +641,7 @@ void KLFLatexSymbolsView::appendSymbolList(const QList<KLFLatexSymbol>& symbols)
 void KLFLatexSymbolsView::buildDisplay()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   QStyle *myStyle = QStyleFactory::create("fusion");
   QPalette pal = palette();
   pal.setColor(QPalette::Window, QColor(206,207,233));
@@ -652,7 +653,7 @@ void KLFLatexSymbolsView::buildDisplay()
   for (i = 0; i < _symbols.size(); ++i) {
     QPixmap p = KLFLatexSymbolsCache::theCache()->getPixmap(_symbols[i]);
     KLFPixmapButton *btn = new KLFPixmapButton(p, mFrame);
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
     btn->setStyle(myStyle);
     btn->setPalette(pal);
 #endif
@@ -807,7 +808,7 @@ void KLFLatexSymbolsView::highlightSearchMatches(int currentMatch, const QString
 
 KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings& baseSettings)
   : QWidget(
-#if defined(Q_WS_WIN) || defined(Q_WS_MAC)
+#if defined(KLF_WS_WIN) || defined(KLF_WS_MAC)
 	    0 /* parent */
 #else
 	    parent /* 0 */
@@ -836,13 +837,6 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
 
   klfDbg("prepared search bar.") ;
 
-  KLFLatexSymbolsCache::theCache()->setBackendSettings(baseSettings);
-
-  // read our config and create the UI
-  read_symbols_create_ui();
-
-  slotShowCategory(0);
-
   KLFRelativeFont *relfont = new KLFRelativeFont(u->cbxCategory);
   relfont->setRelPointSize(+2);
 
@@ -853,12 +847,12 @@ KLFLatexSymbols::KLFLatexSymbols(QWidget *parent, const KLFBackend::klfSettings&
   connect(u->btnInsertSearchCurrent, SIGNAL(clicked()),
 	  pSearchable, SLOT(slotInsertCurrentMatch()));
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   // Cmd+Space is used by spotlight, so use Ctrl+Space (on Qt/Mac, Ctrl key is mapped to Qt::META)
   u->btnInsertSearchCurrent->setShortcut(QKeySequence(Qt::META+Qt::Key_Space));
 #endif
 
-  slotKlfConfigChanged();
+  KLFLatexSymbolsCache::theCache()->setBackendSettings(baseSettings);
 }
 
 void KLFLatexSymbols::retranslateUi(bool alsoBaseUi)
@@ -871,6 +865,18 @@ KLFLatexSymbols::~KLFLatexSymbols()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   KLFLatexSymbolsCache::saveTheCache();
+}
+
+void KLFLatexSymbols::load()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  // read our config and create the UI
+  read_symbols_create_ui();
+
+  slotShowCategory(0);
+
+  slotKlfConfigChanged();
 }
 
 void KLFLatexSymbols::emitInsertSymbol(const KLFLatexSymbol& symbol)
@@ -886,7 +892,7 @@ void KLFLatexSymbols::slotKlfConfigChanged()
 
 void KLFLatexSymbols::read_symbols_create_ui()
 {
-  klfDbgT("called.") ;
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
   // create our UI
   u->cbxCategory->clear();

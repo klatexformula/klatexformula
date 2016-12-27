@@ -21,6 +21,12 @@
  ***************************************************************************/
 /* $Id$ */
 
+
+// Qt5 always uses Cocoa
+#define QT_MAC_USE_COCOA 1
+
+
+
 #include <QWidget>
 
 #if !defined(QT_MAC_USE_COCOA)

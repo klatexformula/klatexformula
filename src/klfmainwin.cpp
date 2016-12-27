@@ -70,6 +70,8 @@
 KLFMainWin::KLFMainWin()
   : QMainWindow()
 {
+  KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
   KLF_INIT_PRIVATE(KLFMainWin) ;
 
   u = new Ui::KLFMainWin;
@@ -184,7 +186,7 @@ KLFMainWin::KLFMainWin()
   connect(u->frmDetails, SIGNAL(sideWidgetShown(bool)), d, SLOT(slotDetailsSideWidgetShown(bool)));
   klfDbg("setting up relative font...") ;
   KLFRelativeFont *rf = new KLFRelativeFont(this, u->frmDetails);
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   rf->setRelPointSize(-2);
   rf->setThorough(true);
 #else
@@ -253,7 +255,7 @@ KLFMainWin::KLFMainWin()
 
   // load library
   d->mLibBrowser = new KLFLibBrowser(this);
-  //#ifdef Q_WS_MAC
+  //#ifdef KLF_WS_MAC
   //   // library browser relative font
   //   KLFRelativeFont *rf_libbrowser = new KLFRelativeFont(this, mLibBrowser);
   //   rf_libbrowser->setRelPointSize(-2);
@@ -351,11 +353,6 @@ KLFMainWin::KLFMainWin()
 	  d, SLOT(showRealTimePreview(const QImage&, const QImage&)));
   connect(d->pContLatexPreview, SIGNAL(previewReset()), d, SLOT(showRealTimeReset()));
 
-  if (klfconfig.UI.enableRealTimePreview) {
-    d->pLatexPreviewThread->start();
-    d->pLatexPreviewThread->setPriority(QThread::LowestPriority);
-  }
-
   // CREATE SETTINGS DIALOG
 
   d->mSettingsDialog = new KLFSettings(this);
@@ -389,7 +386,9 @@ KLFMainWin::KLFMainWin()
 
   // ADDITIONAL SETUP
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
+  klfDbg("Mac OS X main win features setup") ;
+
   // watch for QFileOpenEvent s on mac
   QApplication::instance()->installEventFilter(this);
 
@@ -477,14 +476,6 @@ KLFMainWin::KLFMainWin()
 		       " Don't like it? <a href=\"%1\">Choose your preferred application font</a>.")
 		    .arg("klfaction:/settings?control=AppFonts") + "</p>");
   }
-#ifdef Q_WS_MAC
-  addWhatsNewText("<p>" +
-		  tr("The user interface was revised for <b>Mac OS X</b>. KLatexFormula now has a "
-		     "<b>dark metal look</b> and a <b>drawer</b> on the side. You can change to the previous "
-		     "behavior in the <a href=\"%1\">settings dialog</a>.")
-		  .arg("klfaction:/settings?control=AppMacOSXMetalLook")
-		  + "</p>");
-#endif
 
   // and load the library
 
@@ -540,10 +531,10 @@ KLFMainWin::~KLFMainWin()
   if (d->pLatexPreviewThread)
     delete d->pLatexPreviewThread;
 
+  KLF_DELETE_PRIVATE ;
+
   klfDbg("deleting interface...") ;
   delete u;
-
-  KLF_DELETE_PRIVATE ;
 }
 
 
@@ -609,6 +600,8 @@ void KLFMainWinPrivate::refreshExportTypesMenu()
 
 void KLFMainWin::startupFinished()
 {
+  d->mLatexSymbols->load();
+
   d->refreshExportTypesMenu();
 
 #if defined(KLF_USE_SPARKLE)
@@ -628,6 +621,11 @@ void KLFMainWin::startupFinished()
 #endif
 
   /// \todo autoupdate: Add a UI item to enable/disable auto-check for updates, check now, etc.
+
+  if (klfconfig.UI.enableRealTimePreview) {
+    d->pLatexPreviewThread->start();
+    d->pLatexPreviewThread->setPriority(QThread::LowestPriority);
+  }
 }
 
 
@@ -2336,7 +2334,7 @@ bool KLFMainWin::executeURLCommandsFromFile(const QString& fname)
 
 bool KLFMainWin::isApplicationVisible() const
 {
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   klfDbg("(mac version)") ;
   extern bool klf_mac_application_hidden(const KLFMainWin *);
   return KLF_DEBUG_TEE( ! klf_mac_application_hidden(this) ) ;
@@ -2348,7 +2346,7 @@ bool KLFMainWin::isApplicationVisible() const
 
 void KLFMainWin::hideApplication()
 {
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   extern void klf_mac_hide_application(const KLFMainWin *);
   klf_mac_hide_application(this);
 #else
@@ -2519,7 +2517,7 @@ void KLFMainWin::showEvent(QShowEvent *e)
       QMetaObject::invokeMethod(this, "showWhatsNew", Qt::QueuedConnection);
     }
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
     // add a menu item in dock to paste from clipboard
     QMenu *adddockmenu = new QMenu;
     adddockmenu->addAction(tr("Paste Clipboard Contents", "[[Dock Menu Entry on MacOSX]]"),
@@ -2741,9 +2739,9 @@ void KLFMainWin::setTxtPreambleFont(const QFont& f)
 // --------------------------------------
 void KLFMainWin::setMacBrushedMetalLook(bool metallook)
 {
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
 
-  setAttribute(Qt::WA_MacBrushedMetal, metallook);
+  //setAttribute(Qt::WA_MacBrushedMetal, metallook);
   const char * pn = metallook ? "paletteMacBrushedMetalLook" : "paletteDefault";
   u->txtLatex->setPalette(u->txtLatex->property(pn).value<QPalette>());
   u->txtLatex->setStyleSheet(u->txtLatex->styleSheet());
@@ -3615,7 +3613,7 @@ void KLFMainWin::slotCopy()
 
   emit aboutToCopyData();
 
-#ifdef Q_WS_WIN
+#ifdef KLF_WS_WIN
   extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
 				  const QList<QByteArray>& datalist);
 

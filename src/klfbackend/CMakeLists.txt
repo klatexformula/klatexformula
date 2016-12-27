@@ -66,7 +66,7 @@ if(KLF_BUILD_BACKEND)
   qt5_wrap_cpp(klfbackend_MOC_CPPS ${klfbackend_MOCHEADERS})
   target_sources(klfbackend PRIVATE ${klfbackend_MOC_CPPS})
 
-  target_link_libraries(klfbackend PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets klftools)
+  target_link_libraries(klfbackend PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Xml klftools)
 
   add_dependencies(klfbackend klftools)
 
@@ -115,7 +115,7 @@ if (KLF_BUILD_BACKEND_AUTO)
     SOVERSION		${KLF_LIB_VERSION}
     )
 
-  target_include_directories(klfbackend_auto PRIVATE "../klftools")
+  target_include_directories(klfbackend_auto PRIVATE "." "../klftools")
 
   # No need for headers -- this library is meant to be distributed along another binary
   #
@@ -127,7 +127,7 @@ if (KLF_BUILD_BACKEND_AUTO)
   qt5_wrap_cpp(klfbackend_auto_MOC_CPPS ${klfbackend_MOCHEADERS} ${klfbackend_auto_ADDMOCHEADERS})
   target_sources(klfbackend_auto PRIVATE ${klfbackend_auto_MOC_CPPS})
   
-  target_link_libraries(klfbackend_auto PUBLIC Qt5::Core Qt5::Gui)
+  target_link_libraries(klfbackend_auto PUBLIC Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Xml)
 
 endif(KLF_BUILD_BACKEND_AUTO)
 

@@ -22,6 +22,11 @@
 /* $Id$ */
 
 
+// Qt5 always uses Cocoa
+#define QT_MAC_USE_COCOA 1
+
+
+
 #include <QtGlobal>
 
 #ifdef QT_MAC_USE_COCOA

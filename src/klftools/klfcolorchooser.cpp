@@ -934,7 +934,7 @@ KLFColorChooser::KLFColorChooser(QWidget *parent)
   _makemenu();
   _setpix();
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   if ( mReplaceButtonStyle == NULL ) {
     mReplaceButtonStyle = QStyleFactory::create("fusion");//new QPlastiqueStyle; // deprecated in Qt5
   }

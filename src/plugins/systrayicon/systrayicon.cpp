@@ -38,7 +38,7 @@ SysTrayMainIconifyButtons::SysTrayMainIconifyButtons(QWidget *parent) : QWidget(
   setupUi(this);
   btnQuit->setShortcut(QKeySequence(tr("Ctrl+Q", "SysTrayMainIconifyButtons->Quit")));
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   btnIconify->setText(tr("Hide", "[[iconify button text on mac]]"));
 #endif
 }
@@ -56,7 +56,7 @@ SysTrayIconConfigWidget::SysTrayIconConfigWidget(QWidget *parent)
   chkMinToSysTray->hide();
 #endif
 
-#if !defined(Q_WS_X11)
+#if !defined(KLF_WS_X11)
   chkRestoreOnHover->hide();
 #endif
 }
@@ -70,7 +70,7 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
   _config = rwconfig;
 
   // set default settings
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   // Mac: offer to hide application by default
   _config->makeDefaultValue("systrayon", true);
 #else
@@ -78,7 +78,7 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
   _config->makeDefaultValue("systrayon", false);
 #endif
   _config->makeDefaultValue("replacequitbutton", true);
-#ifdef Q_WS_X11
+#ifdef KLF_WS_X11
   _config->makeDefaultValue("restoreonhover", true);
 #endif
 #ifndef KLF_MAC_HIDE_INSTEAD
@@ -92,7 +92,7 @@ void SysTrayIconPlugin::initialize(QApplication */*app*/, KLFMainWin *mainWin,
   menu->addAction(tr("Restore"), this, SLOT(restore()));
   menu->addAction(QIcon(":/pics/paste.png"), tr("Paste From Clipboard"),
 		  this, SLOT(latexFromClipboard()));
-#ifdef Q_WS_X11
+#ifdef KLF_WS_X11
   menu->addAction(QIcon(":/pics/paste.png"), tr("Paste From Mouse Selection"),
 		  this, SLOT(latexFromClipboardSelection()));
 #endif
@@ -262,7 +262,7 @@ void SysTrayIconPlugin::minimize()
 
 void SysTrayIconPlugin::slotSysTrayActivated(QSystemTrayIcon::ActivationReason reason)
 {
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   // on mac simple clic gives the menu; don't automatically activate window.
   if (reason == QSystemTrayIcon::Trigger)
     return;

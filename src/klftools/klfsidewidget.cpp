@@ -36,6 +36,7 @@
 
 #include "klfsidewidget.h"
 
+#include "klfsidewidget_p.h"
 
 
 
@@ -315,10 +316,11 @@ void KLFShowHideSideWidgetManager::showSideWidget(bool show)
   
   KLF_ASSERT_NOT_NULL(sideWidget(), "Side Widget is NULL!", return; ) ;
 
+  klfDbg("show="<<show<<", sideWidgetVisible()="<<sideWidgetVisible()) ;
+
   if (show == sideWidgetVisible())
     return;
 
-  klfDbg("show="<<show) ;
   QWidget *pw = sideWidget()->parentWidget();
 
   KLF_ASSERT_NOT_NULL(pw, "Parent Widget of Side Widget is NULL!", return; ) ;
@@ -406,11 +408,15 @@ struct KLFContainerSideWidgetManagerPrivate
 
   void restore_saved_parent(QWidget *oldw)
   {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     KLF_ASSERT_NOT_NULL(oldw, "oldw is NULL!", return; ) ;
     klfDbg("oldw="<<(void*)oldw<<"; saved_pw="<<(void*)saved_pw) ;
     klfDbg("oldw="<<oldw<<"; saved_pw="<<saved_pw) ;
+
     oldw->setParent(saved_pw);
+
     klfDbg("set parent.") ;
+
     if (saved_pw != NULL && saved_pw->layout() != NULL) {
       klfDbg("About to reinsert into layout "<<saved_pw->layout()) ;
       saved_pw->layout()->addWidget(oldw);
@@ -471,11 +477,14 @@ KLFContainerSideWidgetManager::~KLFContainerSideWidgetManager()
   klfDbg("d->dwidget="<<(void*)d->dwidget) ;
   klfDbg("d->dwidget="<<d->dwidget) ;
 
-  if (d->dwidget != NULL) {
-    klfDbg("deleting...") ;
-    delete d->dwidget;
-    klfDbg("...done") ;
-  }
+// d->dwidget should get deleted automatically when its parent widget dies.  Doing this
+// explicitly on the other hand, and in the destructor, may cause a segfault
+//
+//  if (d->dwidget != NULL) {
+//    klfDbg("deleting...") ;
+//    delete d->dwidget;
+//    klfDbg("...done") ;
+//  }
   KLF_DELETE_PRIVATE ;
 }
 
@@ -560,6 +569,7 @@ void KLFContainerSideWidgetManager::aWidgetDestroyed(QObject *w)
   if (w == d->saved_pw) {
     klfDbg("saved parent "<<d->saved_pw<<" or our own parent = "<<parent()<<" was destroyed!") ;
     d->want_restore_saved = false;
+    d->saved_pw = NULL;
   }
   // else if (w == d->dwidget) {
   //    d->dwidget = NULL;
@@ -575,141 +585,6 @@ void KLFContainerSideWidgetManager::aWidgetDestroyed(QObject *w)
 
 // ------------------
 
-
-
-
-struct KLFDrawerSideWidgetManagerPrivate
-{
-  KLF_PRIVATE_HEAD(KLFDrawerSideWidgetManager)
-  {
-    dsize = QSize();
-    openEdge = Qt::RightDockWidgetArea;
-  }
-
-  QSize dsize;
-
-  Qt::DockWidgetArea openEdge;
-};
-
-KLFDrawerSideWidgetManager::KLFDrawerSideWidgetManager(QWidget *pw, QWidget *sideWidget, QObject *parent)
-  : KLFContainerSideWidgetManager(pw, sideWidget, parent)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("parentW="<<pw<<", sidewidget="<<sideWidget) ;
-
-  KLF_INIT_PRIVATE(KLFDrawerSideWidgetManager) ;
-
-  init();
-}
-
-KLFDrawerSideWidgetManager::~KLFDrawerSideWidgetManager()
-{
-  KLF_DELETE_PRIVATE ;
-}
-
-// protected
-void KLFDrawerSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  KLFContainerSideWidgetManager::newSideWidgetSet(oldw, neww);
-  d->dsize = QSize();
-}
-
-// protected
-void KLFDrawerSideWidgetManager::newParentWidgetSet(QWidget *oldp, QWidget *newWidget)
-{
-  KLFContainerSideWidgetManager::newParentWidgetSet(oldp, newWidget);
-}
-
-bool KLFDrawerSideWidgetManager::sideWidgetVisible() const
-{
-  return KLFContainerSideWidgetManager::sideWidgetVisible();
-}
-
-QWidget * KLFDrawerSideWidgetManager::createContainerWidget(QWidget *pw)
-{
-  return  new QWidget(pw, Qt::Drawer);
-}
-
-
-
-void KLFDrawerSideWidgetManager::showSideWidget(bool show)
-{
-#ifdef Q_WS_MAC
-  extern bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea where);
-#endif
-
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  KLF_ASSERT_NOT_NULL(sideWidget(), "Side Widget is NULL!", return; ) ;
-  
-  klfDbg("show="<<show<<", sideWidgetVisible="<<sideWidgetVisible()) ;
-
-  QWidget * w = containerWidget();
-
-  if (show == sideWidgetVisible()) {
-    return;
-  }
-
-  if (sideWidgetVisible() && !show) {
-    klfDbg("about to maybe save size. d->openEdge="<<d->openEdge<<", _klf_openEdge="
-	   <<w->property("_klf_openEdge")) ;
-    if (w->property("_klf_openEdge").toInt() == d->openEdge) {
-      d->dsize = w->size();
-    } else {
-      d->dsize = QSize();
-    }
-  }
-  if (show) {
-    klfDbg("Will adjust widget size, d->dsize="<<d->dsize) ;
-    if (d->dsize.isValid())
-      w->resize(d->dsize);
-    //    else
-    //      w->resize(w->minimumSizeHint());
-  }
-    
-#ifdef Q_WS_MAC
-  if (show) {
-    klf_qt_mac_set_drawer_preferred_edge(w, d->openEdge);
-    w->setProperty("_klf_openEdge", QVariant((int)d->openEdge));
-  }
-#endif
-
-  KLFContainerSideWidgetManager::showSideWidget(show);
-}
-
-bool KLFDrawerSideWidgetManager::showHideIsAnimating()
-{
-  klfDbg("checking for drawer finished animating...") ;
-#ifdef Q_WS_MAC
-  extern bool klf_qt_mac_drawer_is_still_animating(QWidget *w);
-  return klf_qt_mac_drawer_is_still_animating(containerWidget());
-#else
-  return false;
-#endif
-}
-
-
-KLF_DEFINE_PROPERTY_GET(KLFDrawerSideWidgetManager, Qt::DockWidgetArea, openEdge) ;
-
-void KLFDrawerSideWidgetManager::setOpenEdge(Qt::DockWidgetArea edge)
-{
-  if (edge == d->openEdge)
-    return; // no-op
-
-  d->openEdge = edge;
-  d->dsize = QSize();
-#ifdef Q_WS_MAC
-  if (sideWidgetVisible()) {
-    extern bool klf_qt_mac_set_drawer_preferred_edge(QWidget *w, Qt::DockWidgetArea edge);
-    klf_qt_mac_set_drawer_preferred_edge(sideWidget(), edge);
-  }
-#endif
-}
-
-
-
-// --------------
 
 
 struct KLFFloatSideWidgetManagerPrivate
@@ -835,7 +710,7 @@ QStringList KLFSideWidgetManagerFactory::supportedTypes() const
   return QStringList()
     << QLatin1String("ShowHide")
     << QLatin1String("Float")
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
     << QLatin1String("Drawer")
 #endif
     ;
@@ -863,7 +738,7 @@ KLFSideWidgetManagerBase *
   if (type == QLatin1String("Float")) {
     return new KLFFloatSideWidgetManager(parentWidget, sideWidget, parent);
   }
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   if (type == QLatin1String("Drawer")) {
     return new KLFDrawerSideWidgetManager(parentWidget, sideWidget, parent);
   }

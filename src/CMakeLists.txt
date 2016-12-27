@@ -11,6 +11,27 @@ if(KLF_MACOSX_BUNDLES)
 #include(KLFMacBundle)
 endif(KLF_MACOSX_BUNDLES)
 
+
+
+# KLF_WS = "x11", "mac", "win" or "other",  telling us which window system specific features to enable
+if (APPLE)
+  set(klf_ws_dflt "mac")
+elseif(UNIX)
+  set(klf_ws_dflt "x11")
+elseif(WIN32)
+  set(klf_ws_dflt "win")
+else()
+  set(klf_ws_dflt "other")
+endif()
+set(KLF_WS "${klf_ws_dflt}" CACHE STRING
+  "Which window system to use (mac,x11,win,other) -- used to enable some additional platform-specific features")
+
+
+add_definitions("-DKLF_WS=\"${KLF_WS}\"")
+string(TOUPPER "${KLF_WS}" klf_ws_uc)
+add_definitions("-DKLF_WS_${klf_ws_uc}")
+
+
 # include these subprojects...
 
 add_subdirectory(klftools)
@@ -25,7 +46,6 @@ add_subdirectory(klfbackend)
 
 if(KLF_BUILD_GUI)
 
-  find_package(Qt5Xml REQUIRED)
   find_package(Qt5Sql REQUIRED)
   find_package(Qt5UiTools REQUIRED)
   find_package(Qt5LinguistTools REQUIRED)
@@ -154,6 +174,7 @@ if(KLF_BUILD_GUI)
       macosx/klfcmdifacedispatch_mac.mm
       )
     target_link_libraries(klatexformula Qt5::MacExtras)
+    target_link_libraries(klatexformula "-framework Cocoa")
   endif()
   if(KLF_USE_SPARKLE)
     target_compile_definitions(klatexformula PRIVATE
@@ -171,10 +192,10 @@ if(KLF_BUILD_GUI)
   endif()
   if(KLF_MACOSX_BUNDLES)
     target_sources(klatexformula PRIVATE
-      # more stuff we want to import/copy privately in the App bundle
+      # more stuff we may want to import/copy privately in the App bundle
+      macosx/qt.conf
       macosx/klficon.icns
       ${KLF_INCLUDE_FONTS}
-      macosx/qt.conf
       klatexformula-16.png
       klatexformula-32.png
       klatexformula-64.png
@@ -202,7 +223,6 @@ if(KLF_BUILD_GUI)
       MACOSX_BUNDLE_BUNDLE_COPYRIGHT "Copyright (C) 2016 Philippe Faist"
       )
     set_source_files_properties(
-      macosx/qt.conf
       klatexformula-16.png
       klatexformula-32.png
       klatexformula-64.png
@@ -420,6 +440,10 @@ if(KLF_BUILD_GUI)
   if(KLF_MACOSX_BUNDLES)
     install(TARGETS klatexformula BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
     if(KLF_MACOSX_BUNDLE_EXTRAS)
+      set_source_files_properties(
+        macosx/qt.conf
+        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+        )
 #      add_custom_command(TARGET klatexformula POST_BUILD
 #        COMMAND "${CMAKE_COMMAND}" "-DAPP_TO_FIXUP=${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app"
 #                -P "${CMAKE_SOURCE_DIR}/cmake/klf_fix_up_app_bundle.cmake"

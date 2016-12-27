@@ -72,7 +72,7 @@ static QString progErrorMsg(QString progname, int exitstatus, QString stderrstr,
 
 // ------------------
 
-class KLFFilterProcessPrivate {
+struct KLFFilterProcessPrivate {
   KLF_PRIVATE_HEAD(KLFFilterProcess)
   {
   }

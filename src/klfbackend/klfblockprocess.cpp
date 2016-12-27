@@ -22,7 +22,7 @@
 /* $Id$ */
 
 #include <QProcess>
-#include <QApplication>
+#include <QCoreApplication>
 #include <QEventLoop>
 #include <QFile>
 
@@ -177,7 +177,8 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   if (mProcessAppEvents) {
     klfDbg("letting app process events ...") ;
     while (_runstatus == 0) {
-      qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+      qApp->processEvents(QEventLoop::ExcludeUserInputEvents, 1000);
+      klfDbg("events processed, maybe more?") ;
     }
   } else {
     if (!waitForFinished()) {

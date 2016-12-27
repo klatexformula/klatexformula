@@ -88,7 +88,23 @@ message(STATUS "[BUILD SETTINGS]")
 
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "[For developers] Build configuration (Debug|Release|RelWithDebInfo)")
 
-set(KLF_DEBUG "$<BOOL:$<Config:Release>>" CACHE BOOL "Enable klf debugging messages (boolean)")
+if(NOT CMAKE_BUILD_TYPE)
+  message(FATAL_ERROR "Please set CMAKE_BUILD_TYPE, for example CMAKE_BUILD_TYPE=Release.")
+endif()
+message(STATUS "CMake build type: ${CMAKE_BUILD_TYPE}")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  set(klf_debug_dflt 1)
+else()
+  set(klf_debug_dflt 0)
+endif()
+set(KLF_DEBUG "${klf_debug_dflt}" CACHE BOOL "Enable klf debugging messages (boolean)")
+
+if(KLF_DEBUG)
+  message(STATUS "Debugging messages in KLF libraries and applciation are enabled (KLF_DEBUG)")
+else()
+  message(STATUS "Debugging messages in KLF libraries and applciation are disabled (KLF_DEBUG)")
+endif()
 
 # experimental features
 option(KLF_EXPERIMENTAL
@@ -102,7 +118,10 @@ endif(KLF_EXPERIMENTAL)
 
 
 # Find Qt 5
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Xml REQUIRED)
 
 
 #
@@ -239,7 +258,8 @@ if(APPLE)
 endif(APPLE)
 set(KLF_INCLUDE_FONTS "${klf_def_incl_fonts}"
   CACHE STRING "Include some extra fonts into KLF's internal resources (absolute or relative to src/)")
-message(STATUS "Will include fonts into klatexformula's resources: \"${KLF_INCLUDE_FONTS}\" (KLF_INCLUDE_FONTS)")
+string(REPLACE ";" "\n        " klf_include_fonts_msg_list "${KLF_INCLUDE_FONTS}")
+message(STATUS "Will include fonts into klatexformula's resources (KLF_INCLUDE_FONTS):\n        ${klf_include_fonts_msg_list}")
 
 # Use system font rather than CMU font if available
 #KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvarlist)

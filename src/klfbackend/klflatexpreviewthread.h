@@ -32,7 +32,7 @@
 #include <klfbackend.h>
 
 
-class KLFLatexPreviewThreadPrivate;
+struct KLFLatexPreviewThreadPrivate;
 
 class KLF_EXPORT KLFLatexPreviewHandler : public QObject
 {
@@ -201,7 +201,7 @@ private:
 */
 
 
-class KLFContLatexPreviewPrivate;
+struct KLFContLatexPreviewPrivate;
 
 /**
  * A helper that runs in a different thread that generates previews in real-time as user types text,

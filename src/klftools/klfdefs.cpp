@@ -927,8 +927,9 @@ KLF_EXPORT int klfVersionRelease()
 
 // declared in klfdebug.h
 
-struct KLFDebugObjectWatcherPrivate
+class KLFDebugObjectWatcherPrivate
 {
+public:
   QMap<quintptr, QString> refInfos;
 };
 

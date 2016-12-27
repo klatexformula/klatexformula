@@ -23,12 +23,11 @@
 
 #include <QFileInfo>
 #include <QDir>
-#include <QTextDocument> // Qt::escape()
 
 #include <klfdefs.h>
 #include <klfdebug.h>
-#include <klfdatautil.h>
 #include <klfpobj.h>
+#include <klfdatautil.h>
 
 #include "klfbackend.h"
 #include "klfbackend_p.h"

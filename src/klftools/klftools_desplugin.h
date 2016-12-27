@@ -30,6 +30,8 @@
 #include <QWidget>
 #include <QtDesigner/QDesignerCustomWidgetInterface>
 #include <QtDesigner/QDesignerContainerExtension>
+#include <QtUiPlugin/QDesignerCustomWidgetInterface>
+
 
 #include <klfsearchbar.h>
 #include <klfcolorchooser.h>

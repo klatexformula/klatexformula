@@ -45,7 +45,7 @@
 #include "klfmime.h"
 #include "klfmime_p.h"
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
 #include "macosx/klfmacclipboard.h"
 #endif
 
@@ -269,7 +269,7 @@ void KLFMimeExporter::initMimeExporterList()
 
   if (p_mimeExporterList.isEmpty()) {
     // ensure an instance of KLFMacPasteboardMime object
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
     __klf_init_the_macpasteboardmime();
 #endif
     p_mimeExporterList
@@ -595,7 +595,7 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
     if ( e.nodeName() == "add-macosx-type-rules" ) {
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
       __klf_add_macosx_type_rules(fname, e);
 #else
       klfDbg("Ignoring Mac OS X type rules on non-mac window system") ;
@@ -747,7 +747,7 @@ KLFMimeData::KLFMimeData(const QString& exportProfile, const KLFBackend::klfOutp
   klfDbg("export profile "<<exportProfile) ;
 
   // ensure an instance of KLFMacPasteboardMime object
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   __klf_init_the_macpasteboardmime();
 #endif
 
@@ -1110,7 +1110,7 @@ QByteArray KLFMimeExporterUrilist::data(const QString& key, const KLFBackend::kl
 
   QString tempfilename = tempFileForOutput(output, req_dpi);
   QUrl url = QUrl::fromLocalFile(tempfilename);
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   //  if (key == "text/x-klf-mac-fileurl") {
   //  url.setHost("localhost");
   //  }
@@ -1192,7 +1192,7 @@ QByteArray KLFMimeExporterUrilistPDF::data(const QString& key, const KLFBackend:
 
   QString tempfilename = tempFileForOutput(output);
   QUrl url = QUrl::fromLocalFile(tempfilename);
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   //  if (key == "text/x-klf-mac-fileurl") {
   //  url.setHost("localhost");
   //  }
@@ -1311,7 +1311,7 @@ QByteArray KLFMimeExporterHTML::data(const QString& key, const KLFBackend::klfOu
 	    " style=\"width: %4in; height: %5in; vertical-align: middle;\">")
     .arg(fn, l, l, win, hin);
 
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   return html.toUtf8();
 #else
   QTextCodec *codec = QTextCodec::codecForName("UTF-16");

@@ -511,7 +511,7 @@ QImage klfImageScaled(const QImage& source, const QSize& newSize)
 
 KLF_EXPORT QRect klf_get_window_geometry(QWidget *w)
 {
-#if defined(Q_WS_X11)
+#if defined(KLF_WS_X11)
   QRect g = w->frameGeometry();
 #else
   QRect g = w->geometry();

@@ -30,7 +30,7 @@
 #include <klfcolorchooser.h>
 #include <klfconfigbase.h>
 
-class KLFAdvancedConfigEditorPrivate;
+struct KLFAdvancedConfigEditorPrivate;
 
 namespace Ui { class KLFAdvancedConfigEditor; };
 

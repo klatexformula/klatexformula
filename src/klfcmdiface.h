@@ -31,7 +31,7 @@
 
 #include <klfdefs.h>
 
-class KLFCmdIfacePrivate;
+struct KLFCmdIfacePrivate;
 
 class KLF_EXPORT KLFCmdIface : public QObject
 {

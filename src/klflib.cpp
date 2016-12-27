@@ -852,7 +852,7 @@ KLF_EXPORT  QDebug& operator<<(QDebug& dbg, const KLFLib::EntryMatchCondition& c
 {
   //  KLF_DEBUG_BLOCK("operator<<(QDebug, KLFLib::EntryMatchCondition)") ;
   klfDbg("type="<<c.type()) ;
-#ifdef Q_WS_MAC
+#ifdef KLF_WS_MAC
   return dbg<<"EntryMatchCondition{...}";
 #endif
   dbg << "EntryMatchCondition{type=";

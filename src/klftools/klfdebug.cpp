@@ -159,7 +159,7 @@ KLF_EXPORT  void klf_qt_msg_handle(QtMsgType type, const QMessageLogContext &/*c
       fprintf(klf_fp_tty, "Warning: %s\n", msg);
 #endif
 
-#if defined Q_WS_WIN && defined KLF_DEBUG
+#if defined KLF_WS_WIN && defined KLF_DEBUG
 #  define   SAFECOUNTER_NUM   10
     // only show dialog after having created a QApplication
     if (qApp != NULL && qApp->inherits("QApplication")) {
@@ -185,7 +185,7 @@ KLF_EXPORT  void klf_qt_msg_handle(QtMsgType type, const QMessageLogContext &/*c
     fflush(fout);
     // add the message also to the warnings buffer.
     klf_qt_msg_warnings_buffer += QByteArray("Error: ") + msg + "\n";
-#ifdef Q_WS_WIN
+#ifdef KLF_WS_WIN
     if (qApp != NULL && qApp->inherits("QApplication")) {
       QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
 			    QObject::tr("KLatexFormula System Error:\n%1",
@@ -197,7 +197,7 @@ KLF_EXPORT  void klf_qt_msg_handle(QtMsgType type, const QMessageLogContext &/*c
   case QtFatalMsg:
     fprintf(fout, "Fatal: %s\n", msg);
     fflush(fout);
-#ifdef Q_WS_WIN
+#ifdef KLF_WS_WIN
     if (qApp != NULL && qApp->inherits("QApplication")) {
       QMessageBox::critical(0, QObject::tr("FATAL ERROR",
 					   "[[KLF's Qt Message Handler: dialog title]]"),

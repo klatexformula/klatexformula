@@ -285,6 +285,7 @@ void signal_act(int sig)
     }
   }
   if (sig == SIGSEGV) {
+    klfDbg("SEGMENTATION FAULT!");
     fprintf(ftty, "Segmentation Fault :-(\n");
     if (ftty != stderr)  fprintf(stderr, "** Segmentation Fault :-( **\n");
 
@@ -790,10 +791,6 @@ int main(int argc, char **argv)
   int k;
   klfDbgT("$$main()$$") ;
 
-// #ifdef QT_MAC_USE_COCOA
-//   MainStartEnd klf_mainstartendinstance;
-// #endif
-
   qInstallMessageHandler(klf_qt_message);
 
   //  // DEBUG: command-line arguments
@@ -851,7 +848,7 @@ int main(int argc, char **argv)
 
     // ### still not fixed (2015-06-07)
     //
-    #ifdef Q_OS_MAC
+    #ifdef KLF_WS_MAC
        // this is needed to avoid having default app font set right after window activation :(
        QApplication::setDesktopSettingsAware(false);
     #endif
@@ -859,7 +856,7 @@ int main(int argc, char **argv)
     // Create the application
     KLFGuiApplication app(qt_argc, qt_argv);
 
-#ifdef Q_OS_MAC
+#ifdef KLF_WS_MAC
     app.setFont(QFont("Lucida Grande", 13));
 
     extern void __klf_init_the_macpasteboardmime();
@@ -968,7 +965,7 @@ int main(int argc, char **argv)
 
     main_setup_app(&app);
 
-#if defined(Q_WS_MAC) && defined(QT_MAC_USE_COCOA)
+#if defined(KLF_WS_MAC)
     extern bool klf_mac_find_open_klf();
     extern bool klf_mac_dispatch_commands(const QList<QUrl>& urls);
     if (klf_mac_find_open_klf()) {
@@ -1138,6 +1135,7 @@ int main(int argc, char **argv)
     (void)new KLFLibLegacyEngineFactory(qApp);
     (void)new KLFLibDefaultViewFactory(qApp);
 
+
     klfDbgT( "$$START LOADING$$" ) ;
 
     KLFMainWin mainWin;
@@ -1146,8 +1144,9 @@ int main(int argc, char **argv)
       app.setFont(klfconfig.UI.applicationFont);
     }
 
-    if (!opt_skip_plugins)
+    if (!opt_skip_plugins) {
       main_load_plugins(&app, &mainWin);
+    }
 
     mainWin.show();
 
@@ -1642,7 +1641,7 @@ void main_parse_options(int argc, char *argv[])
       opt_mathmode = arg;
       break;
     case OPT_PREAMBLE:
-#if defined(Q_WS_MAC)
+#if defined(KLF_WS_MAC)
       // NASTY WORKAROUND FOR a mysterious -psn_**** option passed to the application
       // when opened using the apple 'open' command-line utility, and thus when the
       // application is launched via an icon..

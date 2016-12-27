@@ -74,21 +74,23 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
 #define KLF_DECLARE_PRIVATE(ClassName)					\
   private:								\
   ClassName##Private *d;						\
-  friend class ClassName##Private;					\
+  friend struct ClassName##Private;					\
   inline ClassName##Private * d_func() { return d; }			\
   inline const ClassName##Private * d_func() const { return d; }
 
 #define KLF_PRIVATE_HEAD(ClassName)				\
   private: ClassName *K;					\
+  public:  ClassName * parentClass() const { return K; }        \
   public:  ClassName##Private (ClassName * ptr) : K(ptr)
 #define KLF_PRIVATE_QOBJ_HEAD(ClassName, QObj)				\
   private: ClassName *K;						\
+  public:  ClassName * parentClass() const { return K; }                \
   public:  ClassName##Private (ClassName * ptr) : QObj(ptr), K(ptr)
 
 #define KLF_INIT_PRIVATE(ClassName)		\
   d = new ClassName##Private(this)
 #define KLF_DELETE_PRIVATE			\
-  delete d
+  do { if (d != NULL) { delete d; } } while(0)
 
 
 #define KLF_BLOCK							\

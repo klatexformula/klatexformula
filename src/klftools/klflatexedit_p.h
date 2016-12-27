@@ -130,7 +130,7 @@ struct LonelyParenItem : public ParenItem
 
 
 
-class KLFLatexEditPrivate : public QObject
+struct KLFLatexEditPrivate : public QObject
 {
   Q_OBJECT
 public:

@@ -40,9 +40,9 @@
 
 // SOME DEFINITIONS
 
-#if defined(Q_WS_WIN)
+#if defined(KLF_WS_WIN)
 #define KLF_DLL_EXT_LIST (QStringList()<<"*.dll")
-#elif defined(Q_WS_MAC)
+#elif defined(KLF_WS_MAC)
 #define KLF_DLL_EXT_LIST (QStringList()<<"*.so"<<"*.dylib")
 #else
 #define KLF_DLL_EXT_LIST (QStringList()<<"*.so")

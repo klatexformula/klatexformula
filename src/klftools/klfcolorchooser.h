@@ -55,7 +55,7 @@ public:
   KLFColorClickSquare(QColor color = Qt::white, int size = 16, bool removable = true, QWidget *parent = 0);
   explicit KLFColorClickSquare(QWidget *parent);
 
-  virtual QSize sizeHint() { return QSize(_size, _size); }
+  virtual QSize sizeHint() const { return QSize(_size, _size); }
 
   inline QColor color() const { return _color; }
   inline int sqSize() const { return _size; }

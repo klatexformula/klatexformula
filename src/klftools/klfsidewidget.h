@@ -33,7 +33,7 @@
 #include <klffactory.h>
 
 
-class KLFSideWidgetManagerBasePrivate;
+struct KLFSideWidgetManagerBasePrivate;
 
 //! Abstract core functionality of showing/hiding a KLFSideWidget
 /** This class provides the interface for writing show/hide side widget managers.
@@ -153,7 +153,7 @@ private:
 // -----
 
 
-class KLFShowHideSideWidgetManagerPrivate;
+struct KLFShowHideSideWidgetManagerPrivate;
 
 //! A show-widget/hide-widget side widget show/hide manager
 /** \warning NOTE: You do not have to instantiate this class yourself to use KLFSideWidget. This is automatically
@@ -204,7 +204,7 @@ private:
 
 // ------
 
-class KLFContainerSideWidgetManagerPrivate;
+struct KLFContainerSideWidgetManagerPrivate;
 
 //! A generic container side widget show/hide manager (mac only)
 /** \warning NOTE: You do not have to instantiate this class yourself to use KLFSideWidget. This is automatically
@@ -258,49 +258,9 @@ private:
 
 // ------
 
-class KLFDrawerSideWidgetManagerPrivate;
-
-//! A side drawer show/hide manager (mac only)
-/** \warning NOTE: You do not have to instantiate this class yourself to use KLFSideWidget. This is automatically
- * done in \ref KLFSideWidget::setSideWidgetManager().
- *
- * This class is provided in case you want to subclass it and use part of its functionality to write custom, more
- * advanced side widget managers. See also \ref KLFSideWidgetManagerBase.
- */
-class KLF_EXPORT KLFDrawerSideWidgetManager : public KLFContainerSideWidgetManager
-{
-  Q_OBJECT
-
-  Q_PROPERTY(Qt::DockWidgetArea openEdge READ openEdge WRITE setOpenEdge) ;
-public:
-  KLFDrawerSideWidgetManager(QWidget *parentWidget = NULL, QWidget *sideWidget = NULL,
-			     QObject *managerParent = NULL);
-  virtual ~KLFDrawerSideWidgetManager();
-
-  Qt::DockWidgetArea openEdge() const;
-
-  virtual bool sideWidgetVisible() const;
-
-public slots:
-  virtual void showSideWidget(bool show);
-  void setOpenEdge(Qt::DockWidgetArea edge);
-
-protected:
-  virtual QWidget * createContainerWidget(QWidget * pw);
-
-  virtual void newSideWidgetSet(QWidget *oldSideWidget, QWidget *newSideWidget);
-  virtual void newParentWidgetSet(QWidget *oldWidget, QWidget *newWidget);
-
-  virtual bool showHideIsAnimating();
-
-private:
-  KLF_DECLARE_PRIVATE(KLFDrawerSideWidgetManager) ;
-};
-
-
 // -------
 
-class KLFFloatSideWidgetManagerPrivate;
+struct KLFFloatSideWidgetManagerPrivate;
 
 //! A Floating window show/hide manager.
 /** \warning NOTE: You do not have to instantiate this class yourself to use KLFSideWidget. This is automatically
@@ -378,7 +338,7 @@ private:
 
 
 
-class KLFSideWidgetPrivate;
+struct KLFSideWidgetPrivate;
 
 //! A widget that can be shown or hidden, that expands a main widget, e.g. klatexformula expanded mode
 /** This container may be used to provide a widget that can be shown or hidden. This container makes

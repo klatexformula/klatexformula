@@ -88,7 +88,7 @@ private:
 
 
 
-class KLFLatexPreviewThreadPrivate : public QObject
+struct KLFLatexPreviewThreadPrivate : public QObject
 {
   Q_OBJECT
 public:
@@ -174,7 +174,7 @@ QDataStream& operator>>(QDataStream& str, KLFLatexPreviewThreadPrivate::Task& ta
 
 
 
-class KLFContLatexPreviewPrivate : public KLFLatexPreviewHandler
+struct KLFContLatexPreviewPrivate : public KLFLatexPreviewHandler
 {
   Q_OBJECT
 public:

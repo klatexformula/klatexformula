@@ -30,7 +30,7 @@
 #include <QUrl>
 #include <QMap>
 #include <QVariant>
-#include <QProgressDialog>
+//#include <QProgressDialog>
 #include <QLabel>
 //#include <QDomElement>
 #include <QTextFormat>
@@ -733,8 +733,8 @@ public:
 
 
 private:
-  void operator+=(int n) { }
-  void operator-=(int n) { }
+  void operator+=(int ) { }
+  void operator-=(int ) { }
 
   /** The pointer itself */
   Pointer p;

@@ -129,7 +129,7 @@ public:
 					      const QList<int>& wantedEntryProperties = QList<int>());
 
   virtual bool canCreateSubResource() const;
-  virtual bool canRenameSubResource() const { return false; }
+  virtual bool canRenameSubResource(const QString& ) const { return false; }
   virtual bool canDeleteSubResource(const QString& subResource) const;
 
   virtual QVariant subResourceProperty(const QString& subResource, int propId) const;

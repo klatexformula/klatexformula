@@ -59,6 +59,7 @@ if(KLF_BUILD_TOOLS)
     klfflowlistwidget.h
     klfflowlistwidget_p.h
     klfsidewidget.h
+    klfsidewidget_p.h
     klfpobjeditwidget.h
     klfpobjeditwidget_p.h
     klfadvancedconfigeditor.h
@@ -154,17 +155,16 @@ if(KLF_BUILD_TOOLS)
   # ------------------
   if(KLF_BUILD_TOOLSDESPLUGIN)
     find_package(Qt5Designer REQUIRED)
+    find_package(Qt5UiPlugin REQUIRED)
 
     qt5_wrap_cpp(klftoolsdesplugin_MOC_CPPS  klftools_desplugin.h)
     add_library(klftoolsdesplugin MODULE  klftools_desplugin.cpp ${klftoolsdesplugin_MOC_CPPS})
-    target_include_directories(klftoolsdesplugin PUBLIC "${QT_QTDESIGNER_INCLUDE_DIR}")
     set_target_properties(klftoolsdesplugin PROPERTIES
       COMPILE_DEFINITIONS "QT_PLUGIN;QT_NO_DEBUG;QDESIGNER_EXPORT_WIDGETS"
       SKIP_RPATH FALSE
       )
     target_link_libraries(klftoolsdesplugin  klftools Qt5::Core Qt5::Gui Qt5::Widgets
-      Qt5::Designer
-      #Qt5::DesignerComponents
+      Qt5::Designer Qt5::UiPlugin
       )
   endif()
 
