@@ -2621,12 +2621,17 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
   case KLFLibEntry::Preview:
     // paint Latex Equation
     {
+      // ### PhF: we must be careful to make a difference between device pixels and user
+      // ### space pixels (for retina displays for example).
+      qreal dpr = p->p->device()->devicePixelRatioF();
       QImage img = index.data(KLFLibModel::entryItemRole(KLFLibEntry::Preview)).value<QImage>();
-      QImage img2 = img.scaled(p->innerRectImage.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-      if (p->isselected)
+      // now these are actual device pixels...
+      QImage img2 = img.scaled(p->innerRectImage.size()*dpr, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      if (p->isselected) {
 	img2 = transparentify_image(img2, 0.85);
+      }
       QPoint pos = p->innerRectImage.topLeft()
-	+ QPoint(0, (p->innerRectImage.height()-img2.height()) / 2);
+	+ QPoint(0, (p->innerRectImage.height()-img2.height()/dpr) / 2);
       if (pAutoBackgroundItems) {
 	// draw image on different background if it can't be "distinguished" from default background
 	// (eg. a transparent white formula)
@@ -2662,14 +2667,15 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
 	}
 	// if the background color is not the default one, fill the background with that color
 	if (k > 0 && k < bglist.size())
-	  p->p->fillRect(QRect(pos, img2.size()), QBrush(bglist[k]));
+	  p->p->fillRect(QRect(pos, img2.size()/dpr), QBrush(bglist[k]));
       }
       // and draw the equation
       p->p->save();
       p->p->translate(pos);
-      if (klfconfig.UI.glowEffect)
+      if (klfconfig.UI.glowEffect) {
 	klfDrawGlowedImage(p->p, img2, klfconfig.UI.glowEffectColor, klfconfig.UI.glowEffectRadius, false);
-      p->p->drawImage(QPoint(0,0), img2);
+      }
+      p->p->drawImage(QRect(QPoint(0,0), img2.size()/dpr), img2);
       p->p->restore();
       break;
     }

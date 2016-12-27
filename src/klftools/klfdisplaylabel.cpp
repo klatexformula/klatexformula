@@ -40,7 +40,8 @@ KLFDisplayLabel::KLFDisplayLabel(QWidget *parent)
 
   setAlignment(Qt::AlignCenter);
 
-  setScaledContents(true);
+  //don't set this to true, because otherwise resizing the label distorts the image
+  //setScaledContents(true);
 
   pDefaultPalette = palette();
   pErrorPalette = pDefaultPalette;
@@ -99,12 +100,14 @@ QPicture KLFDisplayLabel::calc_display_picture()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
  
+  double dpr = devicePixelRatioF();
+
   QImage img = pDisplayImage;
   QPixmap pix;
-  QSize mysize = (QSizeF(size()) * devicePixelRatioF()).toSize();
+  QSize mysize = (QSizeF(size()) * dpr).toSize();
   klfDbg("widget size()="<<size()<<", mysize="<<mysize) ;
   if (/*labelenabled && */ pGE) {
-    int r = pGEradius * devicePixelRatioF();
+    int r = pGEradius * dpr;
     QSize msz = QSize(2*r, 2*r);
     if (img.width()+msz.width() > width() || img.height()+msz.height() > height())
       img = pDisplayImage.scaled(mysize-msz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -119,16 +122,17 @@ QPicture KLFDisplayLabel::calc_display_picture()
     }
     pix = QPixmap::fromImage(img);
   }
-  pix.setDevicePixelRatio(1.0);//devicePixelRatioF());
+  pix.setDevicePixelRatio(dpr);
 
   QPicture labelpic;
-  labelpic.setBoundingRect(QRect(QPoint(0,0), mysize));
+  labelpic.setBoundingRect(QRect(QPoint(0,0), size()));
   QPainter pp(&labelpic);
   if (!pLabelEnabled) {
     pp.setOpacity(0.5f);
   }
-  pp.drawPixmap(QPoint((mysize.width()-pix.width())/2, (mysize.height()-pix.height())/2),
-		pix);
+  QSize pixsizeuser = (QSizeF(pix.size())/dpr).toSize();
+  pp.drawPixmap(QRect(QPoint((width()-pixsizeuser.width())/2, (height()-pixsizeuser.height())/2),
+                      pixsizeuser), pix);
   //  // desaturate/grayify the pixmap if we are label-disabled
   //  if (!pLabelEnabled) {
   //    pp.fillRect(QRect(QPoint(0,0), mysize), QColor(255,255,255, 90));

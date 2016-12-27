@@ -469,6 +469,9 @@ KLF_EXPORT void klfDrawGlowedImage(QPainter *p, const QImage& foreground, const 
   QRgb glow_color = glowcol.rgba();
   int ga = qAlpha(glow_color);
 
+  qreal dpr = p->device()->devicePixelRatioF();
+  QSize userspace_size = fg.size() / dpr;
+
   QImage glow(fg.size(), QImage::Format_ARGB32_Premultiplied);
   int x, y;
   for (x = 0; x < fg.width(); ++x) {
@@ -479,15 +482,17 @@ KLF_EXPORT void klfDrawGlowedImage(QPainter *p, const QImage& foreground, const 
     }
   }
   // now draw that glowed image a few times moving around the interest point to do a glow effect
-  for (x = -r; x <= r; ++x) {
-    for (y = -r; y <= r; ++y) {
-      if (x*x+y*y > r*r) // don't go beyond r pixels from (0,0)
+  int r2 = r*dpr;
+  for (x = -r2; x <= r2; ++x) {
+    for (y = -r2; y <= r2; ++y) {
+      if (x*x+y*y > r2*r2) // don't go beyond r2 device pixels from (0,0)
 	continue;
-      p->drawImage(QPoint(x,y), glow);
+      p->drawImage(QRectF(QPointF(x/dpr,y/dpr), userspace_size), glow);
     }
   }
-  if (also_draw_image)
-    p->drawImage(QPoint(0,0), fg);
+  if (also_draw_image) {
+    p->drawImage(QRect(QPoint(0,0), userspace_size), fg);
+  }
 }
 
 

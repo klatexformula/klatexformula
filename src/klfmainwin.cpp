@@ -93,6 +93,9 @@ KLFMainWin::KLFMainWin()
 
   setProperty("defaultPalette", QVariant::fromValue<QPalette>(palette()));
 
+  // try hiding the prompt label -- it takes up space and isn't useful
+  u->lblPromptMain->setVisible(false);
+
   // load styless
   loadStyles();
 

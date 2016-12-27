@@ -857,6 +857,8 @@ int main(int argc, char **argv)
     app.setAttribute(Qt::AA_EnableHighDpiScaling);
     app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
+    app.setWindowIcon(QIcon(":/pics/klatexformula.svg"));
+
 #ifdef KLF_WS_MAC
     app.setFont(QFont("Lucida Grande", 13));
 
