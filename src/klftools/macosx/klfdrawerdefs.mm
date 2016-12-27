@@ -28,6 +28,14 @@ inline NSRectEdge nsEdgeForQtEdge(Qt::DockWidgetArea edge)
   return NSMaxXEdge; // by default
 }
 
+inline NSSize nsSizeForQSize(QSize sz)
+{
+  NSSize nsz;
+  nsz.width = sz.width();
+  nsz.height = sz.height();
+  return nsz;
+}
+
 
 
 struct KLFDrawerSideWidgetManagerPrivate
@@ -59,22 +67,23 @@ KLFDrawerSideWidgetManager::KLFDrawerSideWidgetManager(QWidget *parentWidget, QW
 
   NSView * nswinview = reinterpret_cast<NSView*>(parentWidget->window()->winId());
 
-  QSize sideWidgetSizeHint = sideWidget->sizeHint();
-  NSSize csz;
-  csz.width = sideWidgetSizeHint.width();
-  csz.height = sideWidgetSizeHint.height();
+  NSSize csz = nsSizeForQSize(sideWidget->sizeHint());
   d->nsdrawer = [[NSDrawer alloc] initWithContentSize:csz preferredEdge:NSRectEdgeMaxX];
   [d->nsdrawer setParentWindow:[nswinview window]];
   NSView *contentView = [d->nsdrawer contentView];
+
+  d->nsdrawer.minContentSize = nsSizeForQSize(sideWidget->minimumSizeHint());
+  d->nsdrawer.maxContentSize = nsSizeForQSize(QSize(32767,32767));
 
   // inspired by http://doc.qt.io/qt-5/qmacnativewidget.html
 
   d->nativeWidget = new QMacNativeWidget(contentView);
   d->nativeWidget->move(0, 0);
-  d->nativeWidget->setPalette(QPalette(Qt::red));
+  //d->nativeWidget->setPalette(QPalette(Qt::red));
   d->nativeWidget->setAutoFillBackground(true);
-  d->nativeWidget->setMinimumSize(sideWidget->minimumSizeHint());
+  //d->nativeWidget->setMinimumSize(sideWidget->minimumSizeHint());
   d->layout = new QVBoxLayout();
+  d->layout->setMargin(0);
   d->sideWidget = sideWidget;
   d->sideWidget->setParent(d->nativeWidget);
   d->sideWidget->setAttribute(Qt::WA_LayoutUsesWidgetRect);
@@ -91,7 +100,11 @@ KLFDrawerSideWidgetManager::KLFDrawerSideWidgetManager(QWidget *parentWidget, QW
   // Add the nativeWidget to the window.
   [contentView addSubview:nativeWidgetView positioned:NSWindowAbove relativeTo:nil];
   d->nativeWidget->show();
+
   d->sideWidget->show();
+
+  NSRect frame = [contentView frame];
+  d->nativeWidget->resize(QSize(frame.size.width, frame.size.height));
 
   setOurParentWidget(parentWidget);
   setSideWidget(sideWidget);
@@ -107,6 +120,8 @@ KLFDrawerSideWidgetManager::~KLFDrawerSideWidgetManager()
 // protected
 void KLFDrawerSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   if (oldw != NULL) {
     d->layout->removeWidget(oldw);
   }
@@ -118,6 +133,8 @@ void KLFDrawerSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *neww)
     NSView *sideWidgetView = reinterpret_cast<NSView *>(d->sideWidget->winId());
     [sideWidgetView setAutoresizingMask:NSViewWidthSizable];
     d->sideWidget->show();
+    NSRect frame = [[d->nsdrawer contentView] frame];
+    d->nativeWidget->resize(QSize(frame.size.width, frame.size.height));
   }
 }
 
