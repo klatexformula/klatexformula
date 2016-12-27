@@ -31,7 +31,7 @@
 #include <QTreeView>
 
 class KLFAbstractPropertizedObject;
-class KLFPObjEditWidgetPrivate;
+struct KLFPObjEditWidgetPrivate;
 
 
 class KLF_EXPORT KLFPObjEditWidget : public QTreeView

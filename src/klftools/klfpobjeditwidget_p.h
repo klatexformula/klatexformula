@@ -34,7 +34,7 @@
 #include "klfpobj.h"
 #include "klfpobjeditwidget.h"
 
-class KLFPObjModelPrivate;
+struct KLFPObjModelPrivate;
 
 class /*KLF_EXPORT*/ KLFPObjModel : public QAbstractItemModel
 {

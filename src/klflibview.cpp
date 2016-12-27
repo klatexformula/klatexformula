@@ -2595,9 +2595,7 @@ void KLFLibViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem& op
                               ? QPalette::Normal : QPalette::Disabled;
     o.backgroundColor = option.palette.color(cg, (option.state & QStyle::State_Selected)
                                              ? QPalette::Highlight : QPalette::Window);
-    const QWidget *w = 0;
-    if (const QStyleOptionViewItemV3 *v3 = qstyleoption_cast<const QStyleOptionViewItemV3 *>(&option))
-      w = v3->widget;
+    const QWidget *w = option.widget;
     QStyle *style = w ? w->style() : QApplication::style();
     style->drawPrimitive(QStyle::PE_FrameFocusRect, &o, painter, w);
   }

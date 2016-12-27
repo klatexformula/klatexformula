@@ -106,18 +106,16 @@ protected:
       painter->restore();
     }
 
-    const QStyleOptionViewItemV4 opt = option;
-
     const QWidget *widget = NULL;
     QStyle * style = QApplication::style();
-    if (const QStyleOptionViewItemV3 *v3 = qstyleoption_cast<const QStyleOptionViewItemV3 *>(&option)) {
-      widget = v3->widget;
-      style = widget->style();
-    }
+    //    if (const QStyleOptionViewItemV3 *v3 = qstyleoption_cast<const QStyleOptionViewItemV3 *>(&option)) {
+    widget = option.widget;
+    style = widget->style();
+    //}
 
     const int textMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, 0, widget) + 1;
     QRect textRect = rect.adjusted(textMargin, 0, -textMargin, 0); // remove width padding
-    const bool wrapText = opt.features & QStyleOptionViewItemV2::WrapText;
+    const bool wrapText = option.features & QStyleOptionViewItem::WrapText;
     textOption.setWrapMode(wrapText ? QTextOption::WordWrap : QTextOption::ManualWrap);
     textOption.setTextDirection(option.direction);
     textOption.setAlignment(QStyle::visualAlignment(option.direction, option.displayAlignment));

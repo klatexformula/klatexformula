@@ -140,6 +140,10 @@ KLFMainWin::KLFMainWin()
   for (k = 0; k < d->pLatexFontDefs.size(); ++k) {
     u->cbxLatexFont->addItem(d->pLatexFontDefs[k].title, QVariant(d->pLatexFontDefs[k].identifier));
   }
+  // no idea why this seems to be needed to get text on combo box to display:
+  u->cbxLatexFont->setPalette(QPalette(Qt::white));
+  u->cbxUserScript->setPalette(QPalette(Qt::white));
+  u->cbxMarginsUnit->setPalette(QPalette(Qt::white));
 
 
   connect(u->txtLatex->syntaxHighlighter(), SIGNAL(newSymbolTyped(const QString&)),
@@ -792,11 +796,14 @@ void KLFMainWinPrivate::refreshStylePopupMenus()
   }
 
   mStyleMenu->addSeparator();
-  mStyleMenu->addAction(QIcon(":/pics/savestyle.png"), tr("Save Current Style"),
+  mStyleMenu->addAction(//QIcon(":/pics/savestyle.png"),
+                        tr("Save Current Style"),
 			K, SLOT(slotSaveStyle()));
-  mStyleMenu->addAction(QIcon(":/pics/savestyle.png"), tr("Save Current Style As Default"),
+  mStyleMenu->addAction(//QIcon(":/pics/savestyle.png"),
+                        tr("Save Current Style As Default"),
 			K, SLOT(slotSaveStyleAsDefault()));
-  mStyleMenu->addAction(QIcon(":/pics/managestyles.png"), tr("Manage Styles"),
+  mStyleMenu->addAction(//QIcon(":/pics/managestyles.png"),
+                        tr("Manage Styles"),
 			K, SLOT(slotStyleManager()), 0 /* accel */);
 
 }
@@ -2739,13 +2746,6 @@ void KLFMainWin::setTxtPreambleFont(const QFont& f)
   u->txtPreamble->setFont(f);
 }
 
-// --------------------------------------
-#define KLF_SET_LATEXEDIT_PALETTE(cond, w)				\
-  QMetaObject::invokeMethod((w), "setPalette", Qt::QueuedConnection,	\
-			    Q_ARG(QPalette, (cond)			\
-				  ? (w)->property("paletteMacBrushedMetalLook").value<QPalette>() \
-				  : (w)->property("paletteDefault").value<QPalette>()) );
-// --------------------------------------
 void KLFMainWin::setMacBrushedMetalLook(bool metallook)
 {
 #ifdef KLF_WS_MAC

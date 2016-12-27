@@ -860,7 +860,7 @@ int main(int argc, char **argv)
     app.setWindowIcon(QIcon(":/pics/klatexformula.svg"));
 
 #ifdef KLF_WS_MAC
-    app.setFont(QFont("Lucida Grande", 13));
+    //app.setFont(QFont("Lucida Grande", 13));
 
     extern void __klf_init_the_macpasteboardmime();
     __klf_init_the_macpasteboardmime();
@@ -1106,8 +1106,9 @@ int main(int argc, char **argv)
     }
 #endif
 
-    if ( ! opt_quiet )
+    if ( ! opt_quiet ) {
       fprintf(stderr, KLF_WELCOME, KLF_VERSION_STRING);
+    }
 
     klfDbgT("$$About to load config$$");
   

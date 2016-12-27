@@ -429,7 +429,7 @@ protected:
 
 
 
-class KLFSearchBarPrivate;
+struct KLFSearchBarPrivate;
 
 //! An Search Bar for Incremental Search
 /** This widget provides a set of controls an incremental search. This includes a line edit to input

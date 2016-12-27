@@ -29,7 +29,7 @@
 #include <QLayoutItem>
 
 
-class KLFFlowLayoutPrivate;
+struct KLFFlowLayoutPrivate;
 
 
 /** \brief A Layout that places widgets left to right, top to bottom.

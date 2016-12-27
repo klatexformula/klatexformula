@@ -21,7 +21,7 @@
  ***************************************************************************/
 /* $Id$ */
 
-#include <math.h>
+#include <cmath>
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -461,35 +461,45 @@ QRect KLFWaitAnimationOverlay::calcAnimationLabelGeometry()
 KLF_EXPORT void klfDrawGlowedImage(QPainter *p, const QImage& foreground, const QColor& glowcol,
 				   int r, bool also_draw_image)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   QImage fg = foreground;
   if (fg.format() != QImage::Format_ARGB32_Premultiplied &&
       fg.format() != QImage::Format_ARGB32)
     fg = fg.convertToFormat(QImage::Format_ARGB32);
 
   QRgb glow_color = glowcol.rgba();
-  int ga = qAlpha(glow_color);
 
   qreal dpr = p->device()->devicePixelRatioF();
   QSize userspace_size = fg.size() / dpr;
 
+  int r2 = r*dpr;
+
   QImage glow(fg.size(), QImage::Format_ARGB32_Premultiplied);
   int x, y;
+  qreal ga = qAlpha(glow_color) / qreal(255);
+  ga /= r*r; // heuristic scaling of alpha
   for (x = 0; x < fg.width(); ++x) {
     for (y = 0; y < fg.height(); ++y) {
-      int a = qAlpha(fg.pixel(x,y)) * ga / 255;
+      qreal ai = qAlpha(fg.pixel(x,y)) * ga;
+      qreal a = ai / 255;
       // glow format is argb32_premultiplied
-      glow.setPixel(x,y, qRgba(qRed(glow_color)*a/255, qGreen(glow_color)*a/255, qBlue(glow_color)*a/255, a));
+      glow.setPixel(x,y, qRgba(qRed(glow_color)*a, qGreen(glow_color)*a, qBlue(glow_color)*a, ai));
     }
   }
   // now draw that glowed image a few times moving around the interest point to do a glow effect
-  int r2 = r*dpr;
-  for (x = -r2; x <= r2; ++x) {
-    for (y = -r2; y <= r2; ++y) {
-      if (x*x+y*y > r2*r2) // don't go beyond r2 device pixels from (0,0)
+  p->save();
+  //  p->setOpacity(std::log(-numoverlaps));
+  //  p->setCompositionMode(QPainter::CompositionMode_Plus);
+  int dx, dy;
+  for (dx = -r2; dx <= r2; dx += dpr) {
+    for (dy = -r2; dy <= r2; dy += dpr) {
+      if (dx*dx+dy*dy > r2*r2) // don't go beyond r2 device pixels from (0,0)
 	continue;
-      p->drawImage(QRectF(QPointF(x/dpr,y/dpr), userspace_size), glow);
+      p->drawImage(QRectF(QPointF(dx/dpr,dy/dpr), userspace_size), glow);
     }
   }
+  p->restore();
   if (also_draw_image) {
     p->drawImage(QRect(QPoint(0,0), userspace_size), fg);
   }

@@ -694,7 +694,7 @@ protected:
   virtual QPoint scrollOffset() const = 0;
 
   /** Returns contents position */
-  virtual QPoint eventPos(QObject *object, QDragEnterEvent *event, int horoffset, int veroffset) {
+  QPoint eventPosBase(QObject *object, QDragEnterEvent *event, int horoffset, int veroffset) {
     if (object == thisView()->viewport())
       return event->pos() + QPoint(horoffset, veroffset);
     if (object == thisView())
@@ -798,7 +798,7 @@ protected:
   QPoint scrollOffset() const { return QPoint(horizontalOffset(), verticalOffset()); }
 
   QPoint eventPos(QObject *object, QDragEnterEvent *event) {
-    return KLFLibDefViewCommon::eventPos(object, event, horizontalOffset(), verticalOffset());
+    return eventPosBase(object, event, horizontalOffset(), verticalOffset());
   }
 
   void startDrag(Qt::DropActions supportedActions) {
@@ -880,8 +880,8 @@ protected:
   virtual const QAbstractItemView *thisConstView() const { return this; }
   virtual QPoint scrollOffset() const { return QPoint(horizontalOffset(), verticalOffset()); }
 
-  virtual QPoint eventPos(QObject *object, QDragEnterEvent *event) {
-    return KLFLibDefViewCommon::eventPos(object, event, horizontalOffset(), verticalOffset());
+  QPoint eventPos(QObject *object, QDragEnterEvent *event) {
+    return eventPosBase(object, event, horizontalOffset(), verticalOffset());
   }
 
   bool inPaintEvent;
