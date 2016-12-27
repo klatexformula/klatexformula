@@ -82,7 +82,7 @@
 
 
 #define KLF_WELCOME                                             \
-  "KLatexFormula Version %s by Philippe Faist (c) 2005-2014\n"  \
+  "KLatexFormula Version %s by Philippe Faist (c) 2005-2016\n"  \
   "Licensed under the terms of the GNU General Public License (GPLv2+)\n\n"
 
 
@@ -791,6 +791,10 @@ int main(int argc, char **argv)
   int k;
   klfDbgT("$$main()$$") ;
 
+  // allow smooth icons on retina displays
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
+  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+
   qInstallMessageHandler(klf_qt_message);
 
   //  // DEBUG: command-line arguments
@@ -853,9 +857,6 @@ int main(int argc, char **argv)
 
     // Create the application
     KLFGuiApplication app(qt_argc, qt_argv);
-
-    app.setAttribute(Qt::AA_EnableHighDpiScaling);
-    app.setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     app.setWindowIcon(QIcon(":/pics/klatexformula.svg"));
 

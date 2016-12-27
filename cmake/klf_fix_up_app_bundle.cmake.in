@@ -1,0 +1,5 @@
+#
+# CONFIGURE VARIABLES: @APP_TO_FIXUP@ @LIBS@ @DIRS@
+#
+include(BundleUtilities)
+fixup_bundle("@APP_TO_FIXUP@" "@LIBS@" "@DIRS@")

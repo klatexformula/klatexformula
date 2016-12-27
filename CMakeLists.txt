@@ -374,6 +374,7 @@ if(KLF_MACOSX_BUNDLES)
     Qt5::QWebpPlugin 
     Qt5::QSQLiteDriverPlugin
     Qt5::QSvgPlugin
+    Qt5::QSvgIconPlugin
     )
   set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}"
 					  CACHE STRING "Qt plugins (imported targets) to incorporate into Mac bundle")
@@ -381,6 +382,10 @@ if(KLF_MACOSX_BUNDLES)
     * " klf_display_bundle_qt_plugins "${KLF_BUNDLE_QT_PLUGINS}")
   message(STATUS "Will Package Qt Plugins in bundle (KLF_BUNDLE_QT_PLUGINS):
     * ${klf_display_bundle_qt_plugins}")
+  if(NOT "${KLF_BUNDLE_QT_PLUGINS}" STREQUAL "${default_KLF_BUNDLE_QT_PLUGINS}")
+    KLFNote("You are bundling a list of qt plugins which differs from the default list. In case the default list
+    has changed and want to restore the defaults, run \"cmake .. -UKLF_BUNDLE_QT_PLUGINS\".")
+  endif()
 endif(KLF_MACOSX_BUNDLES)
 
 

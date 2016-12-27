@@ -151,6 +151,9 @@ if(KLF_BUILD_GUI)
   # Translations
   qt5_add_translation(klatexformula_QMS ${klatexformula_TSS})
 
+  set(klatexformula_post_build_commands )
+  set(klatexformula_bundle_include_libs )
+
   # Adjustments for certain platforms and options -- special features
   if(WIN32)
     target_sources(klatexformula PRIVATE
@@ -254,16 +257,23 @@ if(KLF_BUILD_GUI)
       foreach(qtplugintgt ${KLF_BUNDLE_QT_PLUGINS})
         get_target_property(qtplugintgt_loc ${qtplugintgt} LOCATION)
         get_filename_component(qtplugindirfull ${qtplugintgt_loc} DIRECTORY)
+        get_filename_component(qtplugintgt_fname ${qtplugintgt_loc} NAME)
         get_filename_component(qtplugindirname ${qtplugindirfull} NAME)
         #message("${qtplugintgt}: ${qtplugintgt_loc} ${qtplugindirname}")
-        add_custom_command(TARGET klatexformula POST_BUILD
-          COMMAND "${CMAKE_COMMAND}" "-E" "make_directory"
-          "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
+         set(klatexformula_post_build_commands ${klatexformula_post_build_commands}
+           COMMAND "${CMAKE_COMMAND}" "-E" "make_directory"
+           "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
+           COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${qtplugintgt_loc}"
+           "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
+           )
+        set(klatexformula_bundle_include_libs ${klatexformula_bundle_include_libs}
+          "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}/${qtplugintgt_fname}"
           )
-        add_custom_command(TARGET klatexformula POST_BUILD
-          COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${qtplugintgt_loc}"
-          "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
-          )
+        # insert @executable_path/../plugins/<qt-plugin-dir-name> if not already in dirs list
+        if(NOT ";${klatexformula_bundle_include_dirs};" MATCHES ";@executable_path/../plugins/${qtplugindirname};")
+          set(klatexformula_bundle_include_dirs ${klatexformula_bundle_include_dirs}
+            "@executable_path/../plugins/${qtplugindirname}")
+        endif()
       endforeach()
     endif()
   endif()
@@ -349,7 +359,7 @@ if(KLF_BUILD_GUI)
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc"
       "IDI_ICON1               ICON    DISCARDABLE     \"${KLF_WIN_ICON}\"\n")
     # windows .rc resource compilation for windows
-    ADD_CUSTOM_COMMAND(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc.o"
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc.o"
       COMMAND windres.exe -I"${CMAKE_CURRENT_SOURCE_DIR}"
       -i"${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc"
       -o "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.rc.o"
@@ -484,10 +494,15 @@ if(KLF_BUILD_GUI)
         macosx/qt.conf
         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
         )
-#      add_custom_command(TARGET klatexformula POST_BUILD
-#        COMMAND "${CMAKE_COMMAND}" "-DAPP_TO_FIXUP=${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app"
-#                -P "${CMAKE_SOURCE_DIR}/cmake/klf_fix_up_app_bundle.cmake"
-#        )
+      set(APP_TO_FIXUP "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app")
+      set(LIBS "${klatexformula_bundle_include_libs}")
+      set(DIRS "${klatexformula_bundle_include_dirs}")
+      configure_file("${CMAKE_SOURCE_DIR}/cmake/klf_fix_up_app_bundle.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/fix_up_klatexformula_app_bundle.cmake"
+        @ONLY)
+      set(klatexformula_post_build_commands ${klatexformula_post_build_commands}
+        COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/fix_up_klatexformula_app_bundle.cmake"
+        )
     endif()
     # # Update klatexformula's dependency on the installed frameworks.
     # KLFMInstFrameworkUpdateLibChange(
@@ -505,6 +520,13 @@ if(KLF_BUILD_GUI)
     #   "${CMAKE_CURRENT_BINARY_DIR}/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp"
     #   "${KLF_INSTALL_LIB_DIR}/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp"
     #   )
+  endif()
+
+  # --- execute all post-build commands, in order ---
+  if(klatexformula_post_build_commands)
+    add_custom_command(TARGET klatexformula POST_BUILD
+      ${klatexformula_post_build_commands}
+      )
   endif()
 
   # --- LINUX DESKTOP FILES ---
