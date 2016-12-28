@@ -125,6 +125,36 @@ find_package(Qt5Xml REQUIRED)
 
 
 #
+# Decide which window system to use. This is independent of OS, say, theoretically we
+# could compile an X11 version on a Mac (though not sure why we'd do it).
+#
+# This setting KLF_WS actually defines which additional features are included.  You can
+# use make a fully ws-portable build with KLF_WS=other (disable all extra features).
+#
+if (APPLE)
+  set(klf_ws_dflt "mac")
+elseif(UNIX)
+  set(klf_ws_dflt "x11")
+elseif(WIN32)
+  set(klf_ws_dflt "win")
+else()
+  set(klf_ws_dflt "other")
+endif()
+set(KLF_WS "${klf_ws_dflt}" CACHE STRING
+  "Which window system to use (mac,x11,win,other) -- used to enable some additional platform-specific features")
+if(KLF_WS STREQUAL "mac")
+  message(STATUS "Enabling mac-specific features (KLF_WS)")
+elseif(KLF_WS STREQUAL "x11")
+  message(STATUS "Enabling X11-specific features (KLF_WS)")
+elseif(KLF_WS STREQUAL "win")
+  message(STATUS "Enabling windows-specific features (KLF_WS)")
+elseif(KLF_WS STREQUAL "other")
+  message(STATUS "Not enabling any window system specific feature (KLF_WS)")
+else()
+  message(FATAL_ERROR "Invalid setting for KLF_WS=${KLF_WS}.  Please Select one of \"mac\", \"win\", \"x11\" or \"other\".")
+endif()
+
+#
 # by default, libraries are dynamic unless overridden by user options
 #
 set(klf_default_libraries_static 0)
@@ -228,10 +258,11 @@ endif()
 
 # Build DBUS support ?
 if(UNIX AND NOT APPLE)
-  set(KLF_USE_DBUS ON CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
+  set(klf_use_dbus_dflt 1)
 else()
-  set(KLF_USE_DBUS OFF CACHE BOOL "Compiles D-Bus support into KLatexFormula GUI")
+  set(klf_use_dbus_dflt 0)
 endif()
+option(KLF_USE_DBUS "Compiles D-Bus support into KLatexFormula GUI" ${klf_use_dbus_dflt})
 if(KLF_USE_DBUS)
   message(STATUS "Building with D-BUS support (KLF_USE_DBUS)")
 else()
@@ -265,7 +296,7 @@ endif()
 # Include some extra data files/fonts into KLatexFormula
 if(KLF_NO_CMU_FONT)
   set(klf_def_incl_fonts "")
-elseif(APPLE)
+elseif(KLF_WS STREQUAL "mac")
   set(klf_def_incl_fonts
     "data/cmunbbx.otf;data/cmunbmo.otf;data/cmunbmr.otf;data/cmunbso.otf;data/cmunbsr.otf;data/cmunbxo.otf") # CMU Bright
 else()
@@ -282,7 +313,7 @@ endif()
 
 
 # Use Sparkle framework under Mac OS X?
-if(APPLE)
+if(KLF_WS STREQUAL "mac")
   option(KLF_USE_SPARKLE "Use Sparkle Framework for auto-updates on Mac OS X" OFF)
   # can only use if we are building a bundle
   if (NOT KLF_MACOSX_BUNDLES)
@@ -300,7 +331,7 @@ if(APPLE)
     endif()
     message(STATUS "Using sparkle framework with update URL ${KLF_SPARKLE_FEED_URL}")
   endif()
-endif(APPLE)
+endif()
 
 # Use WinSparkle framework under Windows?
 if(WIN32)
@@ -377,11 +408,11 @@ if(KLF_MACOSX_BUNDLES)
     Qt5::QSvgIconPlugin
     )
   set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}"
-					  CACHE STRING "Qt plugins (imported targets) to incorporate into Mac bundle")
+    CACHE STRING "Qt plugin list (imported targets e.g. Qt5::QJpegPlugin) to package into app bundle")
   string(REGEX REPLACE ";" "
-    * " klf_display_bundle_qt_plugins "${KLF_BUNDLE_QT_PLUGINS}")
+      " klf_display_bundle_qt_plugins "${KLF_BUNDLE_QT_PLUGINS}")
   message(STATUS "Will Package Qt Plugins in bundle (KLF_BUNDLE_QT_PLUGINS):
-    * ${klf_display_bundle_qt_plugins}")
+      ${klf_display_bundle_qt_plugins}")
   if(NOT "${KLF_BUNDLE_QT_PLUGINS}" STREQUAL "${default_KLF_BUNDLE_QT_PLUGINS}")
     KLFNote("You are bundling a list of qt plugins which differs from the default list. In case the default list
     has changed and want to restore the defaults, run \"cmake .. -UKLF_BUNDLE_QT_PLUGINS\".")

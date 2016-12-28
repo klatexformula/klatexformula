@@ -13,20 +13,6 @@ endif(KLF_MACOSX_BUNDLES)
 
 
 
-# KLF_WS = "x11", "mac", "win" or "other",  telling us which window system specific features to enable
-if (APPLE)
-  set(klf_ws_dflt "mac")
-elseif(UNIX)
-  set(klf_ws_dflt "x11")
-elseif(WIN32)
-  set(klf_ws_dflt "win")
-else()
-  set(klf_ws_dflt "other")
-endif()
-set(KLF_WS "${klf_ws_dflt}" CACHE STRING
-  "Which window system to use (mac,x11,win,other) -- used to enable some additional platform-specific features")
-
-
 add_definitions("-DKLF_WS=\"${KLF_WS}\"")
 string(TOUPPER "${KLF_WS}" klf_ws_uc)
 add_definitions("-DKLF_WS_${klf_ws_uc}")
@@ -53,10 +39,10 @@ if(KLF_BUILD_GUI)
   if(KLF_USE_DBUS)
     find_package(Qt5DBus REQUIRED)
   endif()
-  if(UNIX AND NOT APPLE)
+  if(KLF_WS STREQUAL "x11")
     find_package(Qt5X11Extras REQUIRED)
   endif()
-  if(APPLE)
+  if(KLF_WS STREQUAL "mac")
     find_package(Qt5MacExtras REQUIRED)
   endif()
 
@@ -158,11 +144,11 @@ if(KLF_BUILD_GUI)
   set(klatexformula_bundle_include_libs )
 
   # Adjustments for certain platforms and options -- special features
-  if(WIN32)
+  if(KLF_WS STREQUAL "win")
     target_sources(klatexformula PRIVATE
       mswin/klfwinclipboard.cpp
       )
-  endif(WIN32)
+  endif()
   if(KLF_USE_WINSPARKLE)
     target_compile_definitions(klatexformula PUBLIC
       -DKLF_USE_WINSPARKLE -DKLF_WINSPARKLE_FEED_URL=\"${KLF_WINSPARKLE_FEED_URL}\")
@@ -174,7 +160,7 @@ if(KLF_BUILD_GUI)
       )
     target_link_libraries(klatexformula "${KLF_WINSPARKLE_DIR}/WinSparkle.dll")
   endif()
-  if(APPLE)
+  if(KLF_WS STREQUAL "mac")
     target_sources(klatexformula PRIVATE
       macosx/klfmacclipboard.cpp
       macosx/klfmainwin_mac.mm
@@ -280,12 +266,12 @@ if(KLF_BUILD_GUI)
       endforeach()
     endif()
   endif()
-  if(UNIX AND NOT APPLE) # X11
+  if(KLF_WS STREQUAL "x11")
     target_link_libraries(klatexformula Qt5::X11Extras)
     target_sources(klatexformula PRIVATE
       x11/klfx11.cpp
       )
-  endif(UNIX AND NOT APPLE)
+  endif()
   if(KLF_USE_DBUS)
     target_compile_definitions(klatexformula PUBLIC -DKLF_USE_DBUS)
     qt5_wrap_cpp(klatexformula_MOC_CPPS_dbus klfdbus.h)
@@ -302,11 +288,11 @@ if(KLF_BUILD_GUI)
       modeltest.cpp
       ${klatexformula_MOC_CPPS_modeltest}
       )
-  endif(KLF_DEBUG_USE_MODELTEST)
+  endif()
 
   if(KLF_NO_CMU_FONT)
     target_compile_definitions(klatexformula PRIVATE -DKLF_NO_CMU_FONT)
-  endif(KLF_NO_CMU_FONT)
+  endif()
 
   # Don't use CMAKE_INSTALL_PREFIX itself, as it is irrelevant for windows installers
   # we need relative path
@@ -318,16 +304,10 @@ if(KLF_BUILD_GUI)
   KLFRelativePath(klf_share_rccresources_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${KLF_ABS_INSTALL_RCCRESOURCES_DIR}")
   if(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_dir}")
     set(klf_share_dir "") # let the program find out
-  endif(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_dir}")
-  if(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_rccresources_dir}")
-    set(klf_share_rccresources_dir "") # let the program find out
-  endif(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_rccresources_dir}")
+  endif()
   if(klf_share_dir)
     target_compile_definitions(klatexformula PRIVATE -DKLF_SHARE_DIR="${klf_share_dir}")
   endif(klf_share_dir)
-  if(klf_share_rccresources_dir)
-    target_compile_definitions(klatexformula PRIVATE -DKLF_SHARE_RCCRESOURCES_DIR="${klf_share_rccresources_dir}")
-  endif(klf_share_rccresources_dir)
 
   #
   # extra data: create and include the klf_xtradata.qrc file
@@ -342,7 +322,8 @@ if(KLF_BUILD_GUI)
   file(APPEND "${klf_xtradata_res}" "  </qresource>\n")
   #  - add fonts
   file(APPEND "${klf_xtradata_res}" "  <qresource prefix=\"data/fonts\">\n")
-  if(NOT KLF_MACOSX_BUNDLES) # with bundles, we include the file itself in the bundle, not in qrc (see QTBUG-30917)
+  # with bundles, we include the file itself in the bundle, not in qrc (see QTBUG-30917):
+  if(NOT KLF_MACOSX_BUNDLES)
     foreach(fnt ${KLF_INCLUDE_FONTS})
       get_filename_component(basefntname "${fnt}" NAME)
       if(NOT IS_ABSOLUTE "${fnt}")
@@ -395,6 +376,8 @@ if(KLF_BUILD_GUI)
     set_source_files_properties(${usfile}
       PROPERTIES MACOSX_PACKAGE_LOCATION Resources/${usfiledir}
       )
+    # add install target
+    # .....
   endforeach()
 
   # Make man page
@@ -445,17 +428,17 @@ if(KLF_BUILD_GUI)
 
   endif(HELP2MAN)
 
-  if(WIN32 AND KLF_INSTALL_QTLIBS)
+  if(KLF_INSTALL_QTLIBS)
+    if(NOT WIN32)
+      message(FATAL_ERROR "Not supported on non-windows system.")
+    endif()
     # Install Qt libs
     install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}" FILES_MATCHING
       PATTERN "libgcc*.dll"
       PATTERN "mingw*.dll"
       REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$"
       )
-  elseif(KLF_INSTALL_QTLIBS)
-    # Install Prereq libs
-    message(ERROR "Not supported on non-windows system.")
-  endif(WIN32 AND KLF_INSTALL_QTLIBS)
+  endif()
 
   if(WIN32 AND KLF_USE_WINSPARKLE)
     install(FILES "${KLF_WINSPARKLE_DIR}/WinSparkle.dll"
@@ -474,7 +457,6 @@ if(KLF_BUILD_GUI)
       install(FILES "${QT_PLUGINS_DIR}/${qtplugin}"
 	DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/${qtplugin_dir}")
     endforeach(qtplugin)
-
   endif(KLF_INSTALL_QTPLUGINS)
 
   if(NOT KLF_MACOSX_BUNDLES)
@@ -489,6 +471,8 @@ if(KLF_BUILD_GUI)
     elseif(WIN32 AND KLF_INSTALL_KLATEXFORMULA_CMDL)
       install(TARGETS klatexformula_cmdl RUNTIME DESTINATION "${KLF_INSTALL_BIN_DIR}")
     endif()
+    # install targets for user scripts
+    # .........
   endif()
 
   if(KLF_MACOSX_BUNDLES)
@@ -508,22 +492,6 @@ if(KLF_BUILD_GUI)
         COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/fix_up_klatexformula_app_bundle.cmake"
         )
     endif()
-    # # Update klatexformula's dependency on the installed frameworks.
-    # KLFMInstFrameworkUpdateLibChange(
-    #   "${KLF_INSTALL_BIN_DIR}/klatexformula/Contents/MacOS/klatexformula"
-    #   "${CMAKE_CURRENT_BINARY_DIR}/klfbackend/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-    #   "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-    #   )
-    # KLFMInstFrameworkUpdateLibChange(
-    #   "${KLF_INSTALL_BIN_DIR}/klatexformula/Contents/MacOS/klatexformula"
-    #   "${CMAKE_CURRENT_BINARY_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-    #   "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-    #   )
-    # KLFMInstFrameworkUpdateLibChange(
-    #   "${KLF_INSTALL_BIN_DIR}/klatexformula/Contents/MacOS/klatexformula"
-    #   "${CMAKE_CURRENT_BINARY_DIR}/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp"
-    #   "${KLF_INSTALL_LIB_DIR}/klfapp.framework/Versions/${KLF_LIB_VERSION}/klfapp"
-    #   )
   endif()
 
   # --- execute all post-build commands, in order ---
@@ -545,7 +513,7 @@ if(KLF_BUILD_GUI)
       install(FILES "${CMAKE_BINARY_DIR}/src/klatexformula.desktop"
         DESTINATION "${KLF_INSTALL_SHARE_APPLICATIONS_DIR}"
         )
-    endif(KLF_INSTALL_SHARE_APPLICATIONS_DIR)
+    endif()
     if(KLF_INSTALL_SHARE_PIXMAPS_DIR)
       install(FILES
         klatexformula-128.png
@@ -554,7 +522,7 @@ if(KLF_BUILD_GUI)
         klatexformula-16.png
         DESTINATION "${KLF_INSTALL_SHARE_PIXMAPS_DIR}"
         )
-    endif(KLF_INSTALL_SHARE_PIXMAPS_DIR)
+    endif()
     if(KLF_INSTALL_ICON_THEME)
       install(FILES klatexformula-128.png
         DESTINATION "${KLF_INSTALL_ICON_THEME}/128x128/apps/" RENAME "klatexformula.png")
@@ -564,20 +532,19 @@ if(KLF_BUILD_GUI)
         DESTINATION "${KLF_INSTALL_ICON_THEME}/32x32/apps/" RENAME "klatexformula.png")
       install(FILES klatexformula-16.png
         DESTINATION "${KLF_INSTALL_ICON_THEME}/16x16/apps/" RENAME "klatexformula.png")
-    endif(KLF_INSTALL_ICON_THEME)
+    endif()
     if(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
       install(FILES "${CMAKE_SOURCE_DIR}/src/klatexformula-mime.xml"
         DESTINATION "${KLF_INSTALL_SHARE_MIME_PACKAGES_DIR}")
-    endif(KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
+    endif()
 
     if(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
       install(CODE
         "message(STATUS \"Updating Mime Types Database (update-mime-database)\")
 	execute_process(COMMAND update-mime-database \"${CMAKE_INSTALL_PREFIX}/share/mime\")"
         )
-    endif(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
-  endif(KLF_INSTALL_DESKTOP)
-
+    endif()
+  endif()
 
   if(UNIX AND NOT KLF_MACOSX_BUNDLES AND KLF_USE_CPACK)
     configure_file(
@@ -585,7 +552,7 @@ if(KLF_BUILD_GUI)
       "${CMAKE_BINARY_DIR}/src/klatexformula.sh"
       @ONLY)
     install(PROGRAMS "${CMAKE_BINARY_DIR}/src/klatexformula.sh" DESTINATION "/")
-  endif(UNIX AND NOT KLF_MACOSX_BUNDLES AND KLF_USE_CPACK)
+  endif()
 
 
 endif(KLF_BUILD_GUI)

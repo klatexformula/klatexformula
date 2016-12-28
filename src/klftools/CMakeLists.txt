@@ -95,21 +95,6 @@ if(KLF_BUILD_TOOLS)
     ../klftoolsres.qrc
     )
 
-  if(APPLE)
-    set(klftools_SRCS ${klftools_SRCS}
-      macosx/klfdrawerdefs.mm
-      klfdefs_mac.mm
-      )
-  elseif(UNIX)
-    set(klftools_SRCS ${klftools_SRCS}
-      klfdefs_linux.cpp
-      )
-  elseif(WIN32)
-    set(klftools_SRCS ${klftools_SRCS}
-      klfdefs_win.cpp
-      )
-  endif(APPLE)
-
   if (KLF_LIBKLFTOOLS_STATIC)
     add_library(klftools STATIC ${klftools_SRCS})
   else()
@@ -122,10 +107,6 @@ if(KLF_BUILD_TOOLS)
   endif()
     
   target_link_libraries(klftools PUBLIC Qt5::Widgets Qt5::Gui Qt5::Core Qt5::Xml)
-  if (APPLE)
-    target_link_libraries(klftools PUBLIC "-framework IOKit")
-    target_include_directories(klftools PRIVATE /System/Library/Frameworks/IOKit.framework/Headers)
-  endif()
 
   # determine which headers are public and should be installed, and set the target property
   KLFInstHeaders(klftools_INSTHEADERS "${klftools_HEADERS}")
@@ -145,10 +126,26 @@ if(KLF_BUILD_TOOLS)
   target_sources(klftools PRIVATE ${klftools_SRCS} ${klftools_QRC_CPPS} ${klftools_UIS_H} ${klftools_MOC_CPPS})
 
   if(APPLE)
+    target_sources(klftools PRIVATE
+      macosx/klfdrawerdefs.mm
+      klfdefs_mac.mm
+      )
+    target_link_libraries(klftools PUBLIC "-framework IOKit")
+    target_include_directories(klftools PRIVATE /System/Library/Frameworks/IOKit.framework/Headers)
     set(KLF_APPKIT "-framework AppKit" CACHE FILEPATH "Link to AppKit framework (path to library or link flags)")
     mark_as_advanced(KLF_APPKIT)
     target_link_libraries(klftools PRIVATE "${KLF_APPKIT}")
-  endif(APPLE)
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_sources(klftools PRIVATE
+      klfdefs_linux.cpp
+      )
+  elseif(WIN32)
+    target_sources(klftools PRIVATE
+      klfdefs_win.cpp
+      )
+  else()
+    # no platform-specific definitions
+  endif()
 
 
   # Qt Designer Plugin

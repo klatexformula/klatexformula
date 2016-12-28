@@ -55,7 +55,9 @@
 #include "klfmain.h"
 #include "klfconfig.h"
 #include "klfmainwin.h"
+#ifdef KLF_USE_DBUS
 #include "klfdbus.h"
+#endif
 //#include "klfpluginiface.h"
 #include "klfcmdiface.h"
 #include "klfapp.h"
