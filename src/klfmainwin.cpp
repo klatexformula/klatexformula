@@ -382,6 +382,7 @@ KLFMainWin::KLFMainWin()
 
   slotReloadUserScripts();
 
+/* ..........
   // now, create one instance of KLFUserScriptOutputSaver per export type user script ...
   extern QStringList klf_user_scripts;
   for (int k = 0; k < klf_user_scripts.size(); ++k) {
@@ -389,7 +390,7 @@ KLFMainWin::KLFMainWin()
       registerOutputSaver(new KLFUserScriptOutputSaver(klf_user_scripts[k], this));
     }
   }
-
+*/
 
   // ADDITIONAL SETUP
 
@@ -1926,11 +1927,11 @@ void KLFMainWinPrivate::latexEditReplace(int pos, int len, const QString& text)
 
 
 
-void KLFMainWinPrivate::slotUserScriptDisableInputs(KLFUserScriptInfo * info)
+void KLFMainWinPrivate::slotUserScriptDisableInputs(KLFUserScriptInfo * infobase)
 {
   QStringList disableInputs = QStringList();
-  if (info != NULL) {
-    disableInputs = info->disableInputs();
+  if (infobase != NULL) {
+    disableInputs = KLFBackendEngineUserScriptInfo(infobase->userScriptPath()).disableInputs();
   }
   bool disableall = disableInputs.contains("ALL", Qt::CaseInsensitive);
   bool disableallinput = disableInputs.contains("ALL_INPUT", Qt::CaseInsensitive);
@@ -1981,7 +1982,7 @@ void KLFMainWinPrivate::slotUserScriptSet(int index)
 
   // update user script info and settings widget
   
-  KLFUserScriptInfo usinfo(K->u->cbxUserScript->itemData(index).toString(), & settings);
+  KLFBackendEngineUserScriptInfo usinfo(K->u->cbxUserScript->itemData(index).toString());
 
   if (usinfo.hasWarnings() || usinfo.hasErrors())
     K->u->btnUserScriptInfo->setIcon(QIcon(":/pics/infowarn.png"));
@@ -2002,8 +2003,8 @@ void KLFMainWinPrivate::slotUserScriptSet(int index)
   QString uifile = usinfo.inputFormUI();
   if (!uifile.isEmpty()) {
     uifile = klfSearchPath(uifile,
-			   QStringList() << ":/userscriptdata/"+usinfo.baseName()
-			   << klfconfig.globalShareDir + "/userscriptdata/" + usinfo.baseName());
+			   QStringList() << ":/userscriptdata/"+usinfo.userScriptBaseName()
+			   << klfconfig.globalShareDir + "/userscriptdata/" + usinfo.userScriptBaseName());
   }
   if (!uifile.isEmpty()) {
     QWidget * scriptinputwidget = getUserScriptInputWidget(uifile);
@@ -3161,7 +3162,7 @@ void KLFMainWin::slotSetUserScript(const QString& userScript)
   }
   
   //   // append our new item
-  //   KLFUserScriptInfo us(userScript, & d->settings);
+  //   KLFUserScriptInfo us(userScript);
   //   if (us.scriptInfoError()) {
   //     klfWarning("Can't get info for user script "<<userScript<<": "<<us.scriptInfoErrorString()) ;
   //     return;
@@ -3192,9 +3193,7 @@ void KLFMainWin::slotReloadUserScripts()
   u->cbxUserScript->clear();
   u->cbxUserScript->addItem(tr("<none>", "[[no user script]]"), QVariant(QString()));
   for (int kkl = 0; kkl < userscripts.size(); ++kkl) {
-    KLFUserScriptInfo scriptinfo = KLFUserScriptInfo::forceReloadScriptInfo(
-        userscripts[kkl], & d->settings, klfconfig.UserScripts.userScriptConfig.value(userscripts[kkl])
-        );
+    KLFUserScriptInfo scriptinfo = KLFUserScriptInfo::forceReloadScriptInfo( userscripts[kkl] );
     klfDbg("Considering userscript "<<userscripts[kkl]<<", category="<<scriptinfo.category()) ;
     if (scriptinfo.category() == QLatin1String("klf-backend-engine")) {
       u->cbxUserScript->addItem(scriptinfo.name(), QVariant(userscripts[kkl]));
@@ -4050,7 +4049,7 @@ KLFBackend::klfSettings KLFMainWin::currentSettings() const
   KLFBackend::klfInput input = currentInputState();
   // setup user script configuration
   if (!input.userScript.isEmpty()) {
-    QString usfn = KLFUserScriptInfo(input.userScript).fileName();
+    QString usfn = KLFUserScriptInfo(input.userScript).userScriptPath();
     if (klfconfig.UserScripts.userScriptConfig.contains(usfn)) {
       QVariantMap data = klfconfig.UserScripts.userScriptConfig[usfn];
       QMap<QString,QString> mdata;

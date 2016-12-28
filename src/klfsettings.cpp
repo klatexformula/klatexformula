@@ -1252,7 +1252,8 @@ void KLFSettingsPrivate::refreshUserScriptList()
 
     klfDbg("loading "<<userscript) ;
 
-    QString dd = QFileInfo(info.fileName()).canonicalPath(); // != canonicalFilePath which is _with_ file name
+    // this is != canonicalFilePath which is _with_ file name
+    QString dd = QFileInfo(info.userScriptPath()).canonicalPath();
 
     QTreeWidgetItem *diritem = dirs.value(dd, NULL);
     if (diritem == NULL) {
@@ -1262,7 +1263,7 @@ void KLFSettingsPrivate::refreshUserScriptList()
     }
 
     // add the user script
-    QTreeWidgetItem *item = new QTreeWidgetItem(diritem, QStringList()<<info.scriptName());
+    QTreeWidgetItem *item = new QTreeWidgetItem(diritem, QStringList()<<info.userScriptName());
     item->setData(0, KLFSETTINGS_ROLE_USERSCRIPT, QVariant::fromValue<QString>(userscript));
 
     if (!diritem->isExpanded())
@@ -1342,8 +1343,8 @@ void KLFSettingsPrivate::refreshUserScriptSelected()
   QString uifile = usinfo.settingsFormUI();
   if (!uifile.isEmpty()) {
     uifile = klfSearchPath(uifile,
-			   QStringList() << ":/userscriptdata/"+usinfo.baseName()
-			   << klfconfig.globalShareDir + "/userscriptdata/" + usinfo.baseName());
+			   QStringList() << ":/userscriptdata/"+usinfo.userScriptBaseName()
+			   << klfconfig.globalShareDir + "/userscriptdata/" + usinfo.userScriptBaseName());
   }
   if (!uifile.isEmpty()) {
     QWidget * scriptconfigwidget = getUserScriptConfigWidget(usinfo, uifile);
@@ -1358,9 +1359,9 @@ QWidget * KLFSettingsPrivate::getUserScriptConfigWidget(const KLFUserScriptInfo&
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("uifile = " << uifile) ;
-  if (userScriptConfigWidgets.contains(usinfo.baseName())) {
+  if (userScriptConfigWidgets.contains(usinfo.userScriptBaseName())) {
     klfDbg("widget from cache.") ;
-    return userScriptConfigWidgets[usinfo.baseName()];
+    return userScriptConfigWidgets[usinfo.userScriptBaseName()];
   }
 
   QFile uif(uifile);
@@ -1371,11 +1372,11 @@ QWidget * KLFSettingsPrivate::getUserScriptConfigWidget(const KLFUserScriptInfo&
 		      return K->u->wStkUserScriptSettingsEmptyPage) ;
 
   K->u->stkUserScriptSettings->addWidget(scriptconfigwidget);
-  userScriptConfigWidgets[usinfo.baseName()] = scriptconfigwidget;
+  userScriptConfigWidgets[usinfo.userScriptBaseName()] = scriptconfigwidget;
 
   // load current configuration
-  if (klfconfig.UserScripts.userScriptConfig.contains(usinfo.fileName()))
-    displayUserScriptConfig(scriptconfigwidget, klfconfig.UserScripts.userScriptConfig.value(usinfo.fileName()));
+  if (klfconfig.UserScripts.userScriptConfig.contains(usinfo.userScriptPath()))
+    displayUserScriptConfig(scriptconfigwidget, klfconfig.UserScripts.userScriptConfig.value(usinfo.userScriptPath()));
 
   return scriptconfigwidget;
 }
@@ -1464,10 +1465,7 @@ void KLFSettingsPrivate::reloadUserScripts()
 
   int k;
   for (k = 0; k < klf_user_scripts.size(); ++k) {
-    KLFUserScriptInfo::forceReloadScriptInfo(
-        klf_user_scripts[k], &settings,
-        klfconfig.UserScripts.userScriptConfig.value(klf_user_scripts[k])
-        );
+    KLFUserScriptInfo::forceReloadScriptInfo( klf_user_scripts[k] );
   }
 
   // refresh GUI
@@ -1738,18 +1736,18 @@ void KLFSettings::apply()
     if (formui.isEmpty())
       continue;
 
-    if (!d->userScriptConfigWidgets.contains(usinfo.baseName()))
+    if (!d->userScriptConfigWidgets.contains(usinfo.userScriptBaseName()))
       continue; // no config for them...
 
-    klfDbg("saving settings for "<<usinfo.scriptName()) ;
+    klfDbg("saving settings for "<<usinfo.userScriptName()) ;
 
-    QWidget * w = d->userScriptConfigWidgets[usinfo.baseName()];
+    QWidget * w = d->userScriptConfigWidgets[usinfo.userScriptBaseName()];
 
     QVariantMap data = d->getUserScriptConfig(w);
 
-    klfconfig.UserScripts.userScriptConfig[usinfo.fileName()] = data;
+    klfconfig.UserScripts.userScriptConfig[usinfo.userScriptPath()] = data;
 
-    KLFUserScriptInfo::forceReloadScriptInfo(usinfo.fileName(), &backendsettings, data);
+    KLFUserScriptInfo::forceReloadScriptInfo(usinfo.userScriptPath());
   }
 
   if (warnneedrestart) {

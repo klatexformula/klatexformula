@@ -694,7 +694,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
   if (!in.userScript.isEmpty()) {
     // user has provided us a wrapper script. Query it and use it
 
-    KLFUserScriptInfo scriptinfo(in.userScript, &settings);
+    KLFBackendEngineUserScriptInfo scriptinfo(in.userScript);
 
     if (scriptinfo.scriptInfoError() != KLFERR_NOERROR) {
       res.status = scriptinfo.scriptInfoError();

@@ -280,6 +280,7 @@ void KLFMimeExporter::initMimeExporterList()
       << new KLFMimeExporterLibFmts(qApp)
       << new KLFMimeExporterGlowImage(qApp)
       ;
+/*
     // now, create one instance of KLFMimeExporterUserScript per export type user script ...
     extern QStringList klf_user_scripts;
     for (int k = 0; k < klf_user_scripts.size(); ++k) {
@@ -306,7 +307,7 @@ void KLFMimeExporter::initMimeExporterList()
 
       }
     }
-
+*/
   }
 }
 
@@ -1482,6 +1483,7 @@ QByteArray KLFMimeExporterGlowImage::data(const QString& key, const KLFBackend::
 
 // -----------------------------
 
+/*
 struct KLFExportTypeUserScriptInfoPrivate
 {
   KLF_PRIVATE_HEAD(KLFExportTypeUserScriptInfo)
@@ -1831,3 +1833,4 @@ QByteArray KLFMimeExporterUserScript::data(const QString& key, const KLFBackend:
   return pUserScript.getData(key, klfoutput);
 }
 
+*/

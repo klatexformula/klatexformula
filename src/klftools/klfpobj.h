@@ -925,6 +925,7 @@ private:
 /** Put this in the .cpp for the given type.
  *
  * \todo ###: Which type? any abstractobj or just klfproperitzedobject?
+ *       ###:                 ^^^^^^^^^^^ this one it seems (see klfuserscript.h)
  */
 #define KLF_DECLARE_POBJ_TYPE(TYPE)					\
   static KLFPObjRegisteredType __klf_pobj_regtype_##TYPE = KLFPObjRegisteredType(#TYPE) ;

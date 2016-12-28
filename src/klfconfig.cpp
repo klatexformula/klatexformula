@@ -154,9 +154,6 @@ void KLFConfig::loadDefaults()
   globalShareDir = klf_share_dir_abspath();
   homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
   homeConfigSettingsFileIni = homeConfigDir + "/config";
-  //  homeConfigDirRCCResources = homeConfigDir + "/rccresources";
-  // homeConfigDirPlugins = homeConfigDir + "/plugins";
-  // homeConfigDirPluginData = homeConfigDir + "/plugindata";
   homeConfigDirI18n = homeConfigDir + "/i18n";
   homeConfigDirUserScripts = homeConfigDir + "/userscripts";
 

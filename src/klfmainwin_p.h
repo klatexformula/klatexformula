@@ -969,7 +969,7 @@ public:
 
 
 
-
+/*
 class KLFUserScriptOutputSaver : public QObject, public KLFAbstractOutputSaver
 {
   Q_OBJECT
@@ -988,11 +988,11 @@ public:
     return pUserScript.availableMimeTypes(output);
   }
 
-  /** Returns the human-readable, (possibly translated,) label to display in save dialog that
+  / ** Returns the human-readable, (possibly translated,) label to display in save dialog that
    * the user can select to save in this format.
    *
    * \param key is a mime-type returned by \ref supportedMimeFormats().
-   */
+   * /
   virtual QString formatTitle(const QString& key)
   {
     int i = pUserScript.info().findMimeType(key);
@@ -1027,7 +1027,7 @@ public:
 private:
   KLFExportUserScript pUserScript;
 };
-
+*/
 
 
 

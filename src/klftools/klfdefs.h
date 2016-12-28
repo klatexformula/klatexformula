@@ -82,6 +82,10 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
   private: ClassName *K;					\
   public:  ClassName * parentClass() const { return K; }        \
   public:  ClassName##Private (ClassName * ptr) : K(ptr)
+#define KLF_PRIVATE_INHERIT_HEAD(ClassName, BaseInit)                   \
+  private: ClassName *K;						\
+  public:  ClassName * parentClass() const { return K; }                  \
+  public:  ClassName##Private (ClassName * ptr) BaseInit, K(ptr)
 #define KLF_PRIVATE_QOBJ_HEAD(ClassName, QObj)				\
   private: ClassName *K;						\
   public:  ClassName * parentClass() const { return K; }                \

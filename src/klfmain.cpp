@@ -434,28 +434,19 @@ void klf_reload_user_scripts()
 
   klf_user_scripts.clear();
   for (int kkl = 0; kkl < pathlist.size(); ++kkl) {
-    QStringList l = klfSearchFind(pathlist[kkl]+"/*");
+
+    QFileInfoList flist = QDir(pathlist[kkl]).entryInfoList(QStringList()<<"*.klfuserscript", QDir::Dirs);
     // filter out some unwanted entries
-    for (int j = 0; j < l.size(); ++j) {
-      if (l[j].endsWith("/.") || l[j].endsWith("/.."))
-	continue;
-      if (!QFileInfo(l[j]).isFile()) {
-	continue;
+    for (int j = 0; j < flist.size(); ++j) {
+      QFileInfo fi = flist[j];
+      QString fn = fi.fileName();
+      if (!fn.endsWith(".klfuserscript")) {
+        // should not happen, we already set a name filter in .entryInfoList(...)
+        klfDbg("Ignoring item in user script directory (not *.klfuserscript): " << fn) ;
+        continue;
       }
-      if (l[j].endsWith("~") || l[j].endsWith(".bkp"))
-	continue; // skip any "old"/"backup" files
-
-// we should ignore whether they are executable files, as we can run them with the
-// interpreter explicitly.
-// #if !defined(Q_OS_WIN) && !defined(Q_OS_WIN32) && !defined(Q_OS_WIN64)
-//       if (!QFileInfo(l[j]).isExecutable()) {
-// 	klfWarning("File "<<l[j]<<" in userscripts/ is ignored as it is not executable.");
-// 	continue;
-//       }
-// #endif
-
-      klfDbg("User script: "<<l[j]) ;
-      klf_user_scripts << l[j];
+      klfDbg("User script: "<<fn) ;
+      klf_user_scripts << fi.filePath();
     }
   }
   klfDbg("Searched in path="<<pathlist<<"; scripts="<<klf_user_scripts) ;

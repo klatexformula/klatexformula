@@ -160,6 +160,7 @@ public:
 
 
 
+/*
 class KLF_EXPORT KLFMimeExporterUserScript : public QObject, public KLFMimeExporter
 {
   Q_OBJECT
@@ -174,7 +175,7 @@ public:
 private:
   KLFExportUserScript pUserScript;
 };
-
+*/
 
 
 #endif

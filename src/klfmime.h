@@ -279,7 +279,7 @@ private:
   { emit droppedData(mimetype); }
 };
 
-
+/*
 struct KLFExportTypeUserScriptInfoPrivate;
 
 class KLF_EXPORT KLFExportTypeUserScriptInfo : public KLFUserScriptInfo
@@ -326,6 +326,8 @@ public:
 private:
   KLF_DECLARE_PRIVATE(KLFExportUserScript);
 };
+*/
+
 
 
 #endif
