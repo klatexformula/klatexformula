@@ -48,7 +48,6 @@
 #include <klflatexsymbols.h>
 
 
-
 class KLFLibBrowser;
 class KLFStyleManager;
 class KLFSettings;
@@ -424,9 +423,7 @@ public slots:
 protected:
 
   bool event(QEvent *e);
-#ifdef KLF_WS_X11
-  bool x11Event(XEvent *event);
-#endif
+  bool nativeEvent(const QByteArray & eventType, void * message, long * result);
   void childEvent(QChildEvent *e);
   void closeEvent(QCloseEvent *e);
   void hideEvent(QHideEvent *e);

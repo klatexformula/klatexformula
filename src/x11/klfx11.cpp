@@ -29,7 +29,7 @@
 #include <X11/Xatom.h>
 
 
-
+/*
 bool KLFMainWin::x11Event(XEvent *event)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -75,4 +75,4 @@ bool KLFMainWin::x11Event(XEvent *event)
 
   return false;
 }
-
+*/

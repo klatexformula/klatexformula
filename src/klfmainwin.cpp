@@ -2398,6 +2398,13 @@ bool KLFMainWin::event(QEvent *e)
   return QWidget::event(e);
 }
 
+bool KLFMainWin::nativeEvent(const QByteArray & , void * , long * )
+{
+  // if we need to process native X11/Mac/Win events, do it here.
+  return false;
+}
+
+
 void KLFMainWin::childEvent(QChildEvent *e)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;

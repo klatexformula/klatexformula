@@ -24,8 +24,6 @@
 #ifndef KLFDBUS_H
 #define KLFDBUS_H
 
-#if defined(KLF_USE_DBUS)
-
 #include <QDBusConnection>
 #include <QDBusAbstractAdaptor>
 #include <QDBusAbstractInterface>
@@ -68,7 +66,7 @@ public slots:
 };
 
 
-class KLF_EXPORT KLFDBusAppInterface: public QDBusAbstractInterface
+class KLF_EXPORT KLFDBusAppInterface : public QDBusAbstractInterface
 {
   Q_OBJECT
 public:
@@ -80,7 +78,7 @@ public:
 public:
   KLFDBusAppInterface(const QString &service, const QString &path, const QDBusConnection &connection,
 		      QObject *parent = 0);
-  ~KLFDBusAppInterface();
+  virtual ~KLFDBusAppInterface();
 
 public slots: // METHODS
 
@@ -97,7 +95,5 @@ public slots: // METHODS
 
 };
 
-
-#endif
 
 #endif
