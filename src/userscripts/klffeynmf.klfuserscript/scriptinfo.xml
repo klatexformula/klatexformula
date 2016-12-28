@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>klffeynmf.py</exe-script>
+  <category>klf-backend-engine</category>
+  <name>FeynMF Wrapper</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.3</version>
+  <license>GPL v2+</license>
+  <klf-backend-engine>
+    <spits-out>dvi</spits-out>
+    <disable-inputs selector="all-except">preamble</disable-inputs>
+    <input-form-ui>inputform.ui</input-form-ui>
+  </klf-backend-engine>
+</klfuserscript-info>

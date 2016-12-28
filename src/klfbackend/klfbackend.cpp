@@ -762,7 +762,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       p.collectStderrTo(&stderrdata);
       p.collectStdoutTo(&stdoutdata);
 
-      p.setArgv(QStringList() << in.userScript << QDir::toNativeSeparators(fnTex));
+      p.setArgv(QStringList() << scriptinfo.exeScriptFullPath() << QDir::toNativeSeparators(fnTex));
 
       QMap<QString,QByteArray*> outdata;
       QStringList outfmts = scriptinfo.spitsOut();

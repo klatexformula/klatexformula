@@ -92,6 +92,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
     refcount = 0;
     scriptInfoError = KLFERR_NOERROR;
 
+    registerBuiltInProperty(ExeScript, QLatin1String("ExeScript"));
     registerBuiltInProperty(Category, QLatin1String("Category"));
     registerBuiltInProperty(Name, QLatin1String("Name"));
     registerBuiltInProperty(Author, QLatin1String("Author"));
@@ -100,6 +101,16 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
     registerBuiltInProperty(KLFMinVersion, QLatin1String("KLFMinVersion"));
     registerBuiltInProperty(KLFMaxVersion, QLatin1String("KLFMaxVersion"));
     registerBuiltInProperty(SettingsFormUI, QLatin1String("SettingsFormUI"));
+    registerBuiltInProperty(CategorySpecificXmlConfig, QLatin1String("CategorySpecificXmlConfig"));
+  }
+
+  void clear()
+  {
+    // clear all properties
+    QList<int> idlist = registeredPropertyIdList();
+    for (int k = 0; k < idlist.size(); ++k) {
+      setProperty(idlist[k], QVariant());
+    }
   }
 
   int refcount;
@@ -159,7 +170,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
     }
     
     // clear all properties
-    setAllProperties(QMap<QString,QVariant>());
+    clear();
 
     // read XML contents
     QDomNode n;
@@ -177,12 +188,12 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
       if (val.isEmpty()) {
 	val = QString(); // empty value is null string
       }
-      if (e.nodeName() == "script") {
-        if (!property(Script).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <script> element"));
+      if (e.nodeName() == "exe-script") {
+        if (!property(ExeScript).toString().isEmpty()) {
+          _set_xml_parsing_error(xmlfname, QString("duplicate <exe-script> element"));
           return;
         }
-        setProperty(Script, val);
+        setProperty(ExeScript, val);
       } else if (e.nodeName() == "name") {
         if (!property(Name).toString().isEmpty()) {
           _set_xml_parsing_error(xmlfname, QString("duplicate <name> element"));
@@ -215,6 +226,12 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
           return;
         }
         setProperty(KLFMaxVersion, val);
+      } else if (e.nodeName() == "category") {
+        if (!property(Category).toString().isEmpty()) {
+          _set_xml_parsing_error(xmlfname, QString("duplicate <category> element"));
+          return;
+        }
+        setProperty(Category, val);
       } else if (e.nodeName() == "settings-form-ui") {
         if (!property(SettingsFormUI).toString().isEmpty()) {
           _set_xml_parsing_error(xmlfname, QString("duplicate <settings-form-ui> element"));
@@ -233,6 +250,8 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
         return;
       }
     } // for all elements
+
+    klfDbg("All properties read: \n" << qPrintable(toString()));
   } // read_script_info()
 
 
@@ -339,19 +358,29 @@ void KLFUserScriptInfo::setScriptInfoError(int code, const QString & msg)
   d()->scriptInfoErrorString = msg;
 }
 
-QString KLFUserScriptInfo::script() const { return info(Script).toString(); }
-QString KLFUserScriptInfo::category() const { return info(Category).toString(); }
-QString KLFUserScriptInfo::name() const { return info(Name).toString(); }
-QString KLFUserScriptInfo::author() const { return info(Author).toStringList().join("; "); }
-QStringList KLFUserScriptInfo::authorList() const { return info(Author).toStringList(); }
-QString KLFUserScriptInfo::version() const { return info(Version).toString(); }
-QString KLFUserScriptInfo::license() const { return info(License).toString(); }
-QString KLFUserScriptInfo::klfMinVersion() const { return info(KLFMinVersion).toString(); }
-QString KLFUserScriptInfo::klfMaxVersion() const { return info(KLFMaxVersion).toString(); }
-QString KLFUserScriptInfo::settingsFormUI() const { return info(SettingsFormUI).toString(); }
+QString KLFUserScriptInfo::relativeFile(const QString& fname) const
+{
+  return QDir::toNativeSeparators(userScriptPath()+"/"+fname);
+}
+
+QString KLFUserScriptInfo::exeScript() const { return scriptInfo(ExeScript).toString(); }
+QString KLFUserScriptInfo::exeScriptFullPath() const
+{
+  return relativeFile(exeScript());
+}
+
+QString KLFUserScriptInfo::category() const { return scriptInfo(Category).toString(); }
+QString KLFUserScriptInfo::name() const { return scriptInfo(Name).toString(); }
+QString KLFUserScriptInfo::author() const { return scriptInfo(Author).toStringList().join("; "); }
+QStringList KLFUserScriptInfo::authorList() const { return scriptInfo(Author).toStringList(); }
+QString KLFUserScriptInfo::version() const { return scriptInfo(Version).toString(); }
+QString KLFUserScriptInfo::license() const { return scriptInfo(License).toString(); }
+QString KLFUserScriptInfo::klfMinVersion() const { return scriptInfo(KLFMinVersion).toString(); }
+QString KLFUserScriptInfo::klfMaxVersion() const { return scriptInfo(KLFMaxVersion).toString(); }
+QString KLFUserScriptInfo::settingsFormUI() const { return scriptInfo(SettingsFormUI).toString(); }
 
 QByteArray KLFUserScriptInfo::categorySpecificXmlConfig() const
-{ return info(CategorySpecificXmlConfig).toByteArray(); }
+{ return scriptInfo(CategorySpecificXmlConfig).toByteArray(); }
 
 
 bool KLFUserScriptInfo::hasNotices() const
@@ -375,12 +404,12 @@ KLF_DEFINE_PROPERTY_GET(KLFUserScriptInfo, QStringList, errors) ;
 
 
 
-QVariant KLFUserScriptInfo::info(int propId) const
+QVariant KLFUserScriptInfo::scriptInfo(int propId) const
 {
   return d()->property(propId);
 }
 
-QVariant KLFUserScriptInfo::info(const QString& field) const
+QVariant KLFUserScriptInfo::scriptInfo(const QString& field) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QString x = field;
@@ -396,10 +425,10 @@ QVariant KLFUserScriptInfo::info(const QString& field) const
            <<field<<" ("<<x<<")") ;
     return QVariant();
   }
-  return info(id);
+  return scriptInfo(id);
 }
 
-QStringList KLFUserScriptInfo::infosList() const
+QStringList KLFUserScriptInfo::scriptInfosList() const
 {
   return d()->propertyNameList();
 }
@@ -513,6 +542,14 @@ struct KLFBackendEngineUserScriptInfoPrivate : public KLFPropertizedObject
     registerBuiltInProperty(KLFBackendEngineUserScriptInfo::DisableInputs, QLatin1String("DisableInputs"));
     registerBuiltInProperty(KLFBackendEngineUserScriptInfo::InputFormUI, QLatin1String("InputFormUI"));
   }
+  void clear()
+  {
+    // clear all properties
+    QList<int> idlist = registeredPropertyIdList();
+    for (int k = 0; k < idlist.size(); ++k) {
+      setProperty(idlist[k], QVariant());
+    }
+  }
 
   void _set_xml_parsing_error(const QString& errmsg)
   {
@@ -539,7 +576,7 @@ struct KLFBackendEngineUserScriptInfoPrivate : public KLFPropertizedObject
     }
     
     // clear all properties
-    setAllProperties(QMap<QString,QVariant>());
+    clear();
 
     // read XML contents
     QDomNode n;
@@ -563,6 +600,12 @@ struct KLFBackendEngineUserScriptInfoPrivate : public KLFPropertizedObject
           return;
         }
         setProperty(KLFBackendEngineUserScriptInfo::SpitsOut, val);
+      } else if (e.nodeName() == "skip-formats") {
+        if (!property(KLFBackendEngineUserScriptInfo::SkipFormats).toString().isEmpty()) {
+          _set_xml_parsing_error(QString("duplicate <skip-formats> element"));
+          return;
+        }
+        setProperty(KLFBackendEngineUserScriptInfo::SkipFormats, val.split(' '));
       } else if (e.nodeName() == "disable-inputs") {
         if (!property(KLFBackendEngineUserScriptInfo::DisableInputs).toStringList().isEmpty()) {
           _set_xml_parsing_error(QString("duplicate <disable-inputs> element"));
@@ -576,8 +619,19 @@ struct KLFBackendEngineUserScriptInfoPrivate : public KLFPropertizedObject
         }
         lst << val.split(' ', QString::SkipEmptyParts);
         setProperty(KLFBackendEngineUserScriptInfo::DisableInputs, lst);
+      } else if (e.nodeName() == "input-form-ui") {
+        if (!property(KLFBackendEngineUserScriptInfo::InputFormUI).toStringList().isEmpty()) {
+          _set_xml_parsing_error(QString("duplicate <input-form-ui> element"));
+          return;
+        }
+        setProperty(KLFBackendEngineUserScriptInfo::InputFormUI, val);
+      } else {
+        _set_xml_parsing_error(QString("Found unexpected element: %1").arg(e.nodeName()));
+        return;
       }
     }
+
+    klfDbg("Read all klfbackend-engine properties:\n" << qPrintable(toString()));
   }
 };
 
@@ -605,21 +659,46 @@ KLFBackendEngineUserScriptInfo::~KLFBackendEngineUserScriptInfo()
 
 QStringList KLFBackendEngineUserScriptInfo::spitsOut() const
 {
-  return info(SpitsOut).toStringList();
+  return klfBackendEngineInfo(SpitsOut).toStringList();
 }
 QStringList KLFBackendEngineUserScriptInfo::skipFormats() const
 {
-  return info(SkipFormats).toStringList();
+  return klfBackendEngineInfo(SkipFormats).toStringList();
 }
 QStringList KLFBackendEngineUserScriptInfo::disableInputs() const
 {
-  return info(DisableInputs).toStringList();
+  return klfBackendEngineInfo(DisableInputs).toStringList();
 }
 QString KLFBackendEngineUserScriptInfo::inputFormUI() const
 {
-  return info(InputFormUI).toString();
+  return klfBackendEngineInfo(InputFormUI).toString();
 }
 
+
+QVariant KLFBackendEngineUserScriptInfo::klfBackendEngineInfo(int propId) const
+{
+  return d->property(propId);
+}
+
+QVariant KLFBackendEngineUserScriptInfo::klfBackendEngineInfo(const QString& field) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  QString x = field;
+
+  klfDbg("x="<<x) ;
+  int id = d->propertyIdForName(x);
+  if (id < 0) {
+    klfDbg("KLFBackendEngineUserScriptInfo for "<<userScriptName()<<" does not have any information about "
+           <<field<<" ("<<x<<")") ;
+    return QVariant();
+  }
+  return scriptInfo(id);
+}
+
+QStringList KLFBackendEngineUserScriptInfo::klfBackendEngineInfosList() const
+{
+  return d->propertyNameList();
+}
 
 
 
@@ -642,6 +721,7 @@ struct KLFUserScriptFilterProcessPrivate
   KLFUserScriptInfo * usinfo;
 };
 
+
 KLFUserScriptFilterProcess::KLFUserScriptFilterProcess(const QString& userScriptFileName,
 						       const KLFBackend::klfSettings * settings)
   : KLFFilterProcess("User Script " + userScriptFileName, settings)
@@ -653,8 +733,9 @@ KLFUserScriptFilterProcess::KLFUserScriptFilterProcess(const QString& userScript
 
   d->usinfo = new KLFUserScriptInfo(userScriptFileName);
 
-  setArgv(QStringList()
-          << QDir::toNativeSeparators(d->usinfo->userScriptPath()+"/"+d->usinfo->script()) );
+  QString exescript = d->usinfo->exeScriptFullPath();
+  klfDbg("exescript = " << exescript) ;
+  setArgv(QStringList() << exescript);
 }
 
 

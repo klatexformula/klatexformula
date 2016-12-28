@@ -2000,12 +2000,7 @@ void KLFMainWinPrivate::slotUserScriptSet(int index)
   K->u->lblScriptInputEmptyPage->setText(tr("<user script has no custom input>",
 					    "[[space for user script custom input]]"));
 
-  QString uifile = usinfo.inputFormUI();
-  if (!uifile.isEmpty()) {
-    uifile = klfSearchPath(uifile,
-			   QStringList() << ":/userscriptdata/"+usinfo.userScriptBaseName()
-			   << klfconfig.globalShareDir + "/userscriptdata/" + usinfo.userScriptBaseName());
-  }
+  QString uifile = usinfo.relativeFile(usinfo.inputFormUI());
   if (!uifile.isEmpty()) {
     QWidget * scriptinputwidget = getUserScriptInputWidget(uifile);
     K->u->stkScriptInput->setCurrentWidget(scriptinputwidget);

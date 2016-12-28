@@ -61,7 +61,7 @@ public:
   QString userScriptBaseName() const;
 
   enum Properties {
-    Script = 0,
+    ExeScript = 0,
     Category,
     Name,
     Author,
@@ -75,7 +75,10 @@ public:
     CategorySpecificXmlConfig
   };
 
-  QString script() const;
+  QString relativeFile(const QString& fname) const;
+
+  QString exeScript() const;
+  QString exeScriptFullPath() const;
 
   QString category() const;
 
@@ -101,19 +104,19 @@ public:
   QString htmlInfo(const QString& extra_css = QString()) const;
 
 
-  virtual QVariant info(int propId) const;
-  /** Calls info(propId) for the correct id. */
-  virtual QVariant info(const QString& key) const;
+  QVariant scriptInfo(int propId) const;
+  /** Calls scriptInfo(propId) for the correct id. */
+  QVariant scriptInfo(const QString& key) const;
 
   /** \brief A list of Keys (eg. "Name", "Author", ... including custom infos) found in
    *         the scriptinfo
    */
-  virtual QStringList infosList() const;
+  QStringList scriptInfosList() const;
 
   // reimplemented from KLFAbstractPropertizedObject
   virtual QString objectKind() const;
-  virtual QVariant property(const QString& propName) const { return info(propName); }
-  virtual QStringList propertyNameList() const { return infosList(); }
+  virtual QVariant property(const QString& propName) const { return scriptInfo(propName); }
+  virtual QStringList propertyNameList() const { return scriptInfosList(); }
   virtual bool setProperty(const QString&, const QVariant&) { return false; }
 
 protected:
@@ -151,20 +154,24 @@ public:
     InputFormUI
   };
 
-  //! (klf-backend-engine:) List of formats that this script will generate
+  //! List of formats that this script will generate
   QStringList spitsOut() const;
 
-  //! (klf-backend-engine:) List of formats that klfbackend should not attempt to generate
+  //! List of formats that klfbackend should not attempt to generate
   /** The corresponding field(s) in KLFBackend::klfOutput will be set to empty QByteArray's.
    *
    * Same format list as 'spits-out'. */
   QStringList skipFormats() const;
 
-  //! (klf-backend-engine:) List of user input fields that should be disabled
+  //! List of user input fields that should be disabled
   QStringList disableInputs() const;
   
-  //! (klf-backend-engine:) A UI input form file (Qt designer file) for additional input
+  //! A UI input form file (Qt designer file) for additional input
   QString inputFormUI() const;
+
+  QVariant klfBackendEngineInfo(int propId) const;
+  QVariant klfBackendEngineInfo(const QString& key) const;
+  QStringList klfBackendEngineInfosList() const;
 
 private:
   KLF_DECLARE_PRIVATE(KLFBackendEngineUserScriptInfo) ;
