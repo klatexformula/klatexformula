@@ -41,6 +41,7 @@
 
 #include <klfconfigbase.h>
 #include <klfutil.h>
+#include <klfblockprocess.h>
 #include "klfmain.h"
 #include "klfmainwin.h"
 #include "klfconfig.h"
@@ -352,6 +353,7 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.wantPDF, true) ;
   KLFCONFIGPROP_INIT_DEFNOTDEF(BackendSettings.wantSVG, true) ;
   KLFCONFIGPROP_INIT(BackendSettings.userScriptAddPath, QStringList() );
+  KLFCONFIGPROP_INIT(BackendSettings.userScriptInterpreters, QVariantMap());
 
   KLFCONFIGPROP_INIT(LibraryBrowser.colorFound, QColor(128, 255, 128)) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.colorNotFound, QColor(255, 128, 128)) ;
@@ -376,6 +378,25 @@ void KLFConfig::loadDefaults()
 //  Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >() ;
   UserScripts.userScriptConfig = QMap< QString, QMap<QString,QVariant> >() ;
 }
+
+
+static inline void ensure_interp_exe(KLFConfigProp<QVariantMap> & userScriptInterpreters,
+                                     const QString& ext,
+                                     const QString& program)
+{
+  const QString & curval = userScriptInterpreters().value(ext, QString()).toString();
+  if (curval.isEmpty() || curval == ".") {
+    QVariantMap map = userScriptInterpreters;
+    map[ext] = KLFBlockProcess::detectInterpreterPath(program);
+    userScriptInterpreters = map; // can't use "userScriptInterpreters[ext] = .." because of KLFConfigProp<> API
+  } else if (!QFile::exists(curval)) {
+    klfWarning("Path "<<curval<<" (for executing "<<("."+ext)<<" script files) does not exist") ;
+  }
+  if (userScriptInterpreters()[ext].toString().isEmpty()) {
+    klfWarning("Could not detect a suitable interpreter for executing "<<("."+ext)<<" script files") ;
+  }
+}
+
 
 void KLFConfig::detectMissingSettings()
 {
@@ -410,6 +431,8 @@ void KLFConfig::detectMissingSettings()
       BackendSettings.wantSVG.setDefaultValue(defaultsettings.wantSVG);
   }
 
+  ensure_interp_exe(BackendSettings.userScriptInterpreters, "py", "python");
+  ensure_interp_exe(BackendSettings.userScriptInterpreters, "sh", "bash");
 }
 
 
@@ -585,6 +608,7 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "wantpdf", &BackendSettings.wantPDF);
   klf_config_read(s, "wantsvg", &BackendSettings.wantSVG);
   klf_config_read(s, "userscriptaddpath", &BackendSettings.userScriptAddPath);
+  klf_config_read(s, "userscriptinterpreters", &BackendSettings.userScriptInterpreters);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
@@ -601,35 +625,11 @@ int KLFConfig::readFromConfig_v2(const QString& fname)
   klf_config_read(s, "iconpreviewsizepercent", &LibraryBrowser.iconPreviewSizePercent);
   s.endGroup();
 
-  // // Special treatment for Plugins.pluginConfig
-  // // for reading, we cannot rely on klf_plugins since we are called before plugins are loaded!
-  // int k, j;
-  // QDir plugindatadir = QDir(homeConfigDirPluginData);
-  // QStringList plugindirs = plugindatadir.entryList(QDir::Dirs);
-  // for (k = 0; k < plugindirs.size(); ++k) {
-  //   if (plugindirs[k] == "." || plugindirs[k] == "..")
-  //     continue;
-  //   qDebug("Reading config for plugin %s", qPrintable(plugindirs[k]));
-  //   QString fn = plugindatadir.absoluteFilePath(plugindirs[k])+"/"+plugindirs[k]+".conf";
-  //   if ( ! QFile::exists(fn) ) {
-  //     qDebug("\tskipping plugin %s since the file %s does not exist.",
-  //            qPrintable(plugindirs[k]), qPrintable(fn));
-  //     continue;
-  //   }
-  //   QSettings psettings(fn, QSettings::IniFormat);
-  //   QVariantMap pconfmap;
-  //   QStringList keys = psettings.allKeys();
-  //   for (j = 0; j < keys.size(); ++j) {
-  //     pconfmap[keys[j]] = psettings.value(keys[j]);
-  //   }
-  //   Plugins.pluginConfig[plugindirs[k]] = pconfmap;
-  // }
-
   // Special treatment for UserScripts.userScriptConfig
   // save into a dedicated XML file
   KLF_BLOCK {
     QDomDocument xmldoc;
-    QFile usfile(homeConfigDir+"/userscripts.xml");
+    QFile usfile(homeConfigDir+"/userscriptconfig.xml");
     if (!usfile.exists()) {
       // don't attempt to load user script settings if file does not exist
       break;
@@ -770,6 +770,7 @@ int KLFConfig::writeToConfig()
   klf_config_write(s, "wantpdf", &BackendSettings.wantPDF);
   klf_config_write(s, "wantsvg", &BackendSettings.wantSVG);
   klf_config_write(s, "userscriptaddpath", &BackendSettings.userScriptAddPath);
+  klf_config_write(s, "userscriptinterpreters", &BackendSettings.userScriptInterpreters);
   s.endGroup();
 
   s.beginGroup("LibraryBrowser");
@@ -799,33 +800,33 @@ int KLFConfig::writeToConfig()
   //   psettings.sync();
   // }
 
-  // // Special treatment for UserScripts.userScriptConfig
-  // // save into a dedicated XML file
-  // do { // do { ... } while (false);   is used to allow 'break' statement to skip to end of block
-  //   QDomDocument xmldoc("userscript-config");
-  //   QDomElement root = xmldoc.createElement("userscript-config");
-  //   xmldoc.appendChild(root);
-  //   for (QMap<QString, QMap<QString, QVariant> >::const_iterator it = UserScripts.userScriptConfig.begin();
-  //        it != UserScripts.userScriptConfig.end(); ++it) {
-  //     QString usname = it.key();
-  //     QVariantMap usconfig = it.value();
+  // Special treatment for UserScripts.userScriptConfig
+  // save into a dedicated XML file
+  do { // do { ... } while (false);   is used to allow 'break' statement to skip to end of block
+    QDomDocument xmldoc("userscript-config");
+    QDomElement root = xmldoc.createElement("userscript-config");
+    xmldoc.appendChild(root);
+    for (QMap<QString, QMap<QString, QVariant> >::const_iterator it = UserScripts.userScriptConfig.begin();
+         it != UserScripts.userScriptConfig.end(); ++it) {
+      QString usname = it.key();
+      QVariantMap usconfig = it.value();
 
-  //     klfDbg("saving config for user script "<< usname<< "; config="<<usconfig) ;
+      klfDbg("saving config for user script "<< usname<< "; config="<<usconfig) ;
 
-  //     QDomElement scriptconfig = xmldoc.createElement("userscript");
-  //     scriptconfig.setAttribute("name", usname);
+      QDomElement scriptconfig = xmldoc.createElement("userscript");
+      scriptconfig.setAttribute("name", usname);
 
-  //     klfSaveVariantMapToXML(usconfig, scriptconfig);
-  //     root.appendChild(scriptconfig);
-  //   }
-  //   // now, save the document
-  //   QByteArray userscriptconfdata = xmldoc.toByteArray(4);
-  //   QFile usfile(homeConfigDir+"/userscripts.xml");
-  //   KLF_ASSERT_CONDITION( usfile.open(QIODevice::WriteOnly) ,
-  //       		  "Can't open file "<<usfile.fileName()<<" for write access!", break; );
-  //   usfile.write(userscriptconfdata);
-  //   usfile.close();
-  // } while (0);
+      klfSaveVariantMapToXML(usconfig, scriptconfig);
+      root.appendChild(scriptconfig);
+    }
+    // now, save the document
+    QByteArray userscriptconfdata = xmldoc.toByteArray(4);
+    QFile usfile(homeConfigDir+"/userscriptconfig.xml");
+    KLF_ASSERT_CONDITION( usfile.open(QIODevice::WriteOnly) ,
+        		  "Can't open file "<<usfile.fileName()<<" for write access!", break; );
+    usfile.write(userscriptconfdata);
+    usfile.close();
+  } while (0);
 
 
   s.sync();

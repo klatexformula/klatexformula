@@ -39,7 +39,6 @@
 #include <klfrelativefont.h>
 #include <klflatexedit.h>
 #include <klflatexpreviewthread.h>
-//#include <klfpobjeditwidget.h>
 #include <klfsysinfo.h>
 
 #ifdef KLF_USE_SPARKLE
@@ -58,6 +57,8 @@
 #include "klfmime.h"
 #include "klfcmdiface.h"
 #include "klfuiloader.h"
+#include "klfexporter.h"
+#include "klfexporter_p.h"
 
 #include "klfmainwin.h"
 #include "klfmainwin_p.h"
@@ -373,24 +374,24 @@ KLFMainWin::KLFMainWin()
   d->mSettingsDialog->installEventFilter(this);
 
 
-  // ADDITIONAL OUTPUT SAVERS
+  // REGISTER OUR EXPORTERS
 
-  registerOutputSaver(new KLFTexOutputSaver(this));
+  registerExporter(new KLFBackendOutputFormatsExporter(this));
+  registerExporter(new KLFTexExporter(this));
 
 
   // LOAD USER SCRIPTS
 
   slotReloadUserScripts();
 
-/* ..........
-  // now, create one instance of KLFUserScriptOutputSaver per export type user script ...
+  // now, create one instance of KLFUserScriptExporter per export type user script ...
   extern QStringList klf_user_scripts;
   for (int k = 0; k < klf_user_scripts.size(); ++k) {
     if (KLFUserScriptInfo(klf_user_scripts[k]).category() == QLatin1String("klf-export-type")) {
-      registerOutputSaver(new KLFUserScriptOutputSaver(klf_user_scripts[k], this));
+      registerExporter(new KLFUserScriptExporter(klf_user_scripts[k], this));
     }
   }
-*/
+
 
   // ADDITIONAL SETUP
 
@@ -692,6 +693,13 @@ void KLFMainWin::loadSettings()
   d->settings.wantPDF = klfconfig.BackendSettings.wantPDF;
   d->settings.wantSVG = klfconfig.BackendSettings.wantSVG;
 
+  klfDbg("klfconfig.BackendSettings.userScriptInterpreters="
+         << klfconfig.BackendSettings.userScriptInterpreters()) ;
+  QVariantMap userScriptInterpreters = klfconfig.BackendSettings.userScriptInterpreters;
+  for (QVariantMap::iterator it = userScriptInterpreters.begin(); it != userScriptInterpreters.end(); ++it) {
+    d->settings.userScriptInterpreters[it.key()] = it.value().toString();
+  }
+
   d->settings_altered = false;
 }
 
@@ -716,6 +724,14 @@ void KLFMainWin::saveSettings()
     klfconfig.BackendSettings.outlineFonts = d->settings.outlineFonts;
     klfconfig.BackendSettings.wantPDF = d->settings.wantPDF;
     klfconfig.BackendSettings.wantSVG = d->settings.wantSVG;
+    QVariantMap map;
+    for ( QMap<QString,QString>::iterator it = d->settings.userScriptInterpreters.begin();
+          it != d->settings.userScriptInterpreters.end(); ++it ) {
+      map[it.key()] = it.value();
+    }
+    klfconfig.BackendSettings.userScriptInterpreters = map;
+    klfDbg("klfconfig.BackendSettings.userScriptInterpreters="
+           << klfconfig.BackendSettings.userScriptInterpreters()) ;
   }
 
   klfconfig.UI.userColorList = KLFColorChooser::colorList();
@@ -2226,16 +2242,16 @@ void KLFMainWin::registerHelpLinkAction(const QString& path, QObject *object, co
 }
 
 
-void KLFMainWin::registerOutputSaver(KLFAbstractOutputSaver *outputsaver)
+void KLFMainWin::registerExporter(KLFExporter *exporter)
 {
-  KLF_ASSERT_NOT_NULL( outputsaver, "Refusing to register NULL Output Saver object!",  return ) ;
+  KLF_ASSERT_NOT_NULL( exporter, "Refusing to register NULL exporter object!",  return ) ;
 
-  d->pOutputSavers.append(outputsaver);
+  d->pExporters.append(exporter);
 }
 
-void KLFMainWin::unregisterOutputSaver(KLFAbstractOutputSaver *outputsaver)
+void KLFMainWin::unregisterExporter(KLFExporter *exporter)
 {
-  d->pOutputSavers.removeAll(outputsaver);
+  d->pExporters.removeAll(exporter);
 }
 
 void KLFMainWin::registerDataOpener(KLFAbstractDataOpener *dataopener)
@@ -3283,9 +3299,9 @@ void KLFMainWin::pasteLatexFromClipboard(QClipboard::Mode mode)
 
 
 
-QList<KLFAbstractOutputSaver*> KLFMainWin::registeredOutputSavers()
+QList<KLFExporter*> KLFMainWin::registeredExporters()
 {
-  return d->pOutputSavers;
+  return d->pExporters;
 }
 QList<KLFAbstractDataOpener*> KLFMainWin::registeredDataOpeners()
 {
@@ -3679,72 +3695,34 @@ void KLFMainWin::slotSave(const QString& suggestfname)
   // application-long persistent selectedfilter
   static QString selectedfilter;
 
-  static QMap<QString,QString> builtInTitles;
-  if (builtInTitles.isEmpty()) {
-    builtInTitles["PNG"] = tr("Standard PNG Image");
-    builtInTitles["JPG"] = tr("Standard JPEG Image");
-    builtInTitles["PS"] = tr("PostScript Document");
-    builtInTitles["EPS"] = tr("Encapsulated PostScript");
-    builtInTitles["PDF"] = tr("PDF Portable Document Format");
-    builtInTitles["DVI"] = tr("LaTeX DVI");
-    builtInTitles["SVG"] = tr("Scalable Vector Graphics SVG");
-  }
 
-  QStringList okbaseformatlist;
+  // prepare list of filters & available formats
+
   QStringList filterformatlist;
-  QStringList topfilterformatlist;
   QMap<QString,QString> formatsByFilterName;
+  QMap<QString,KLFExporter*> exporterByFilterName;
 
-  QStringList availFormats = KLFBackend::availableSaveFormats(d->output);
+  int k, j, ll;
 
-  int k;
-  for (k = 0; k < availFormats.size(); ++k) {
-    QString f = availFormats[k].toUpper();
-    klfDbg("Reported avail format: "<<f) ;
-    QStringList *fl = &filterformatlist;
-    if (f == "JPEG" || f == "PNG" || f == "PDF" || f == "EPS" || f == "PS" || f == "SVG") {
-      // save this format into the 'top' list
-      fl = &topfilterformatlist;
-    }
-    QString t;
-    if (builtInTitles.contains(f)) {
-      t = builtInTitles.value(f);
-    } else {
-      t = tr("%1 Format").arg(f);
-    }
-
-    QStringList extlist = QStringList()<<f.toLower();
-    if (f == "JPEG") {
-      extlist << "jpg";
-    }
-
-    t += QString(" (%1)").arg(klfMapStringList(extlist, QString("*.%1")).join(" "));
-
-    okbaseformatlist << extlist;
-    if (f == "PNG") // _really_ on top
-      fl->push_front(t);
-    else
-      fl->append(t);
-    formatsByFilterName[t] = f.toLower();
-  }
-
-  QMap<QString,QString> externFormatsByFilterName;
-  QMap<QString,KLFAbstractOutputSaver*> externSaverByKey;
-  int j;
-  for (k = 0; k < d->pOutputSavers.size(); ++k) {
-    QStringList xoformats = d->pOutputSavers[k]->supportedMimeFormats(& d->output);
+  for (k = 0; k < d->pExporters.size(); ++k) {
+    KLFExporter * exporter = d->pExporters[k];
+    QStringList xoformats = exporter->supportedFormats(d->output);
     for (j = 0; j < xoformats.size(); ++j) {
-      QString f = QString("%1 (%2)").arg(d->pOutputSavers[k]->formatTitle(xoformats[j]),
-					 d->pOutputSavers[k]->formatFilePatterns(xoformats[j]).join(" "));
-      filterformatlist.push_front(f);
-      externFormatsByFilterName[f] = xoformats[j];
-      externSaverByKey[xoformats[j]] = d->pOutputSavers[k];
+      QString fmt = xoformats[j];
+      QStringList exts = exporter->fileNameExtensionsFor(fmt);
+      QString patterns;
+      for (ll = 0; ll < exts.size(); ++ll) {
+        if (ll > 0) {
+          patterns += " ";
+        }
+        patterns += "*." + exts[ll].toLower();
+      }
+      QString f = QString("%1 (%2)").arg(exporter->titleFor(fmt)).arg(patterns);
+      filterformatlist.push_back(f);
+      formatsByFilterName[f] = fmt;
+      exporterByFilterName[f] = exporter;
     }
   }
-
-  // now add the 'top' formats, well, on top :)
-  topfilterformatlist << filterformatlist;
-  filterformatlist = topfilterformatlist; // Qt's implicit sharing makes this code reasonable...
 
   // finally, join all filters together and show the file dialog.
 
@@ -3764,165 +3742,54 @@ void KLFMainWin::slotSave(const QString& suggestfname)
     }
   }
 
-  fname = QFileDialog::getSaveFileName(this, tr("Save Formula Image"), suggestion, filterformat,
+  fname = QFileDialog::getSaveFileName(this, tr("Save Latex Output"), suggestion, filterformat,
 				       &selectedfilter);
 
-  if (fname.isEmpty())
+  if (fname.isEmpty()) {
     return;
+  }
 
   QFileInfo fi(fname);
   // save this path as default to suggest next time
   klfconfig.UI.lastSaveDir = fi.absolutePath();
 
   // first test if it's an extern-format
-  if ( externFormatsByFilterName.contains(selectedfilter) ) {
+  if ( exporterByFilterName.contains(selectedfilter) ) {
     // use an external output-saver
-    QString key = externFormatsByFilterName[selectedfilter];
-    if ( ! externSaverByKey.contains(key) ) {
-      klfWarning("Internal error: externSaverByKey() does not contain key="<<key
-		 <<": "<<externSaverByKey);
+    QString formatname = formatsByFilterName[selectedfilter];
+    KLFExporter * exporter = exporterByFilterName[selectedfilter];
+
+    if (exporter == NULL) {
+      klfWarning("Internal error: exporter is NULL!");
       return;
     }
-    KLFAbstractOutputSaver *saver = externSaverByKey[key];
-    if (saver == NULL) {
-      klfWarning("Internal error: saver is NULL!");
+
+    QByteArray data = exporter->getData(formatname, d->output);
+    if (data.isEmpty()) {
+      QMessageBox::critical(this, tr("Error saving file"),
+                            tr("Error exporting the data: %1").arg(exporter->errorString()));
       return;
     }
-    bool result = saver->saveToFile(key, fname, d->output);
-    if (!result) {
-      klfWarning("saver failed to save format "<<key<<".");
+    {
+      QFile fout(fname);
+      bool ok = fout.open(QIODevice::WriteOnly);
+      if (!ok) {
+        QMessageBox::critical(this, tr("Error saving file"),
+                              tr("Can't write to file %1: %2").arg(fname).arg(fout.errorString()));
+        return;
+      }
+      fout.write(data);
+      fout.close();
     }
-    emit savedToFile(fname, key, saver);
+    
+    emit savedToFile(fname, formatname, exporter);
     return;
   }
 
-  QString selformat;
-  // get format and suffix from selected filter
-  if ( ! formatsByFilterName.contains(selectedfilter) ) {
-    klfWarning("Unknown format filter selected: "<<selectedfilter<<"! Assuming PNG!") ;
-    selformat = "png";
-  } else {
-    selformat = formatsByFilterName[selectedfilter];
-  }
-  if (!fi.suffix().isEmpty()) {
-    if ( ! okbaseformatlist.contains(fi.suffix().toLower()) ) {
-      // by default, if suffix is not recognized, use the selected filter after a warning.
-      QString sfU = selformat.toUpper();
-      QMessageBox msgbox(this);
-      msgbox.setIcon(QMessageBox::Warning);
-      msgbox.setWindowTitle(tr("Extension not recognized"));
-      msgbox.setText(tr("Extension <b>%1</b> not recognized.").arg(fi.suffix().toUpper()));
-      msgbox.setInformativeText(tr("You may choose to change the file name or to save to the given file "
-				   "as %1 format.").arg(sfU));
-      QPushButton *png = new QPushButton(tr("Use %1", "[[fallback file format button text]]").arg(sfU), &msgbox);
-      msgbox.addButton(png, QMessageBox::AcceptRole);
-      QPushButton *chg  = new QPushButton(tr("Change File Name ..."), &msgbox);
-      msgbox.addButton(chg, QMessageBox::ActionRole);
-      QPushButton *cancel = new QPushButton(tr("Cancel"), &msgbox);
-      msgbox.addButton(cancel, QMessageBox::RejectRole);
-      msgbox.setDefaultButton(chg);
-      msgbox.setEscapeButton(cancel);
-      msgbox.exec();
-      if (msgbox.clickedButton() == png) {
-	format = "png";
-      } else if (msgbox.clickedButton() == cancel) {
-	return;
-      } else {
-	// re-prompt for file name & save (by recursion), and return
-	slotSave(fname);
-	return;
-      }
-    } else {
-      format = fi.suffix().toLower();
-    }
-  } else {
-    // no file name suffix - use selected format filter
-    if (!formatsByFilterName.contains(selectedfilter)) {
-      // we only emitted a debug message before, this is a warning in this case!
-      klfWarning("Unknown selected format filter : "<<selectedfilter<<"; Assuming PNG!") ;
-      // selformat is already "png"
-    }
-    format = selformat;
-  }
-
-  // The Qt dialog, or us, already asked user to confirm overwriting existing files
-
-  QString error;
-  bool res = KLFBackend::saveOutputToFile(d->output, fname, format, &error);
-  if ( ! res ) {
-    QMessageBox::critical(this, tr("Error"), error);
-  }
-  emit savedToFile(fname, format, NULL);
+  klfWarning("Invalid selected filter: " << selectedfilter << "!") ;
+  QMessageBox::critical(this, tr("Error saving file"),
+                        tr("Internal error: can't determine save format"));
 }
-
-bool KLFMainWin::saveOutputToFile(const KLFBackend::klfOutput& output, const QString& fname,
-				  const QString& fmt, KLFAbstractOutputSaver * saver)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  QString format = fmt;
-  klfDbg("fname="<<fname<<", format="<<format<<", saver="<<saver) ;
-
-  if (format.isEmpty()) {
-    format = QFileInfo(fname).suffix();
-    klfDbg("format="<<format) ;
-  }
-
-  if (saver != NULL) {
-    // use this saver to save data.
-    // first find the key
-    int n;
-    QStringList keys = saver->supportedMimeFormats(const_cast<KLFBackend::klfOutput*>(&output));
-    QString key;
-    for (n = 0; n < keys.size(); ++n) {
-      if (keys[n].contains(format, Qt::CaseInsensitive)) {
-	key = keys[n];
-	break;
-      }
-    }
-    if (key.isEmpty()) {
-      klfWarning("Couldn't find key for format "<<format<<" for saver "<<saver) ;
-    }
-
-    bool result = saver->saveToFile(key, fname, d->output);
-    if (!result) {
-      klfWarning("saver failed to save format "<<key<<".");
-    }
-    return result;
-  }
-  // otherwise, see if it is a built-in format or check possible savers for a match.
-
-  // built-in format?
-  if (KLFBackend::availableSaveFormats(output).contains(format.toUpper())) {
-    // save built-in format
-    klfDbg("saving "<<fname<<" with built-in format "<<format<<".") ;
-    return KLFBackend::saveOutputToFile(output, fname, format, NULL);
-  }
-
-  // or go through the list of possible savers
-  int k, j;
-  for (k = 0; k < d->pOutputSavers.size(); ++k) {
-    klfDbg("trying klfabstractoutputsaver #"<<k<<" ...") ;
-    QStringList xoformats = d->pOutputSavers[k]->supportedMimeFormats(& d->output);
-    klfDbg("klfabstractoutputsaver #"<<k<<" supports formats "<<xoformats) ;
-    for (j = 0; j < xoformats.size(); ++j) {
-      // test this format
-      klfDbg("\t format "<<xoformats[j]<<" has patterns "<<d->pOutputSavers[k]->formatFilePatterns(xoformats[j])
-	     <<", we're looking for "<<("*."+format)<<", RESULT="
-	     <<d->pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains("*."+format, Qt::CaseInsensitive)) ;
-      if (d->pOutputSavers[k]->formatFilePatterns(xoformats[j]).contains("*."+format, Qt::CaseInsensitive)) {
-	// try saving in this format
-	bool ok = d->pOutputSavers[k]->saveToFile(xoformats[j], fname, output);
-	if (ok)
-	  return true;
-	klfWarning("Output saver "<<d->pOutputSavers[k]<<" was supposed to handle type "<<format<<" but failed.") ;
-	// go on with the search
-      }
-    }
-  }
-  klfDbg("didn't find any suitable saver. fail...");
-  return false;
-}
-
 
 void KLFMainWin::slotActivateEditor()
 {

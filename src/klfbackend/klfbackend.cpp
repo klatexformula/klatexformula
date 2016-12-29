@@ -331,7 +331,8 @@ KLFBackend::DefaultTemplateGenerator::~DefaultTemplateGenerator()
 {
 }
 
-QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& in, const klfSettings& /*settings*/)
+QString KLFBackend::DefaultTemplateGenerator::generateTemplate(const klfInput& in,
+                                                               const klfSettings& /*settings*/)
 {
   QString latexin;
   QString s;
@@ -389,7 +390,8 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsdata, const QString& epsF
 				  KLFBackend::klfOutput * resError, const KLFBackend::klfSettings& settings,
 				  bool isMainThread);
 static bool read_eps_bbox(const QByteArray& epsdata, klfbbox *bbox, KLFBackend::klfOutput * resError);
-static void correct_eps_bbox(const QByteArray& epsdata, const klfbbox& bbox_corrected, const klfbbox& bbox_orig,
+static void correct_eps_bbox(const QByteArray& epsdata,
+                             const klfbbox& bbox_corrected, const klfbbox& bbox_orig,
 			     double vectorscale, QRgb bgcolor, QByteArray * epsdatacorrected);
 
 static void replace_svg_width_or_height(QByteArray *svgdata, const char * attr, double val);
@@ -1616,16 +1618,17 @@ QStringList KLFBackend::availableSaveFormats(const klfOutput * output)
 QStringList KLFBackend::availableSaveFormats(const klfOutput& klfoutput)
 {
   QStringList formats;
+  // Most popular formats on top of list (pdf, png)
+  if (!klfoutput.pdfdata.isEmpty())
+    formats << "PDF";
   if (!klfoutput.pngdata.isEmpty())
     formats << "PNG";
+  if (!klfoutput.svgdata.isEmpty())
+    formats << "SVG";
   if (!klfoutput.epsdata.isEmpty())
     formats << "PS" << "EPS";
   if (!klfoutput.dvidata.isEmpty())
     formats << "DVI";
-  if (!klfoutput.pdfdata.isEmpty())
-    formats << "PDF";
-  if (!klfoutput.svgdata.isEmpty())
-    formats << "SVG";
   // and, of course, all Qt-available image formats
   QList<QByteArray> imgfmts = QImageWriter::supportedImageFormats();
   foreach (QByteArray f, imgfmts) {

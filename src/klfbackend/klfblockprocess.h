@@ -89,6 +89,23 @@ public:
     return exitCode();
   }
 
+  // detect python, shell, etc. interpreters using some standard paths
+  static QString detectInterpreterPath(const QString& interp,
+                                       const QStringList & addpaths = QStringList());
+
+
+  /** \brief The interpter path to use for the given extension.
+   *
+   * This function will be queried by \ref startProcess() when we have to execute a
+   * script.
+   *
+   * Subclasses may reimplement to e.g. query user settings etc. Subclasses may of course
+   * also make use of \ref detectInterpreterPath().
+   *
+   * The default implementation treats some common script extensions ("py", "rb", "sh")
+   * and tries to find the interpreter using \ref detectInterpreterPath().
+   */
+  virtual QString getInterpreterPath(const QString& ext);
 
 public slots:
   /** Starts cmd (which is a list of arguments, the first being the

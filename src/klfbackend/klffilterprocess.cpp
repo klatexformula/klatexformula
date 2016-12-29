@@ -31,6 +31,8 @@
 #include "klfblockprocess.h"
 #include "klffilterprocess.h"
 
+#include "klffilterprocess_p.h"
+
 // -----------------
 
 // Utility function
@@ -72,6 +74,29 @@ static QString progErrorMsg(QString progname, int exitstatus, QString stderrstr,
 
 // ------------------
 
+KLFFilterProcessBlockProcess::KLFFilterProcessBlockProcess(KLFFilterProcess * fproc)
+  : KLFBlockProcess(), pFproc(fproc)
+{
+}
+KLFFilterProcessBlockProcess::~KLFFilterProcessBlockProcess()
+{
+}
+QString KLFFilterProcessBlockProcess::getInterpreterPath(const QString& ext)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("ext = " << ext) ;
+  QMap<QString,QString> interpreters = pFproc->interpreters();
+  QMap<QString,QString>::Iterator it = interpreters.find(ext);
+  if (it != interpreters.end()) {
+    return *it;
+  }
+  return KLFBlockProcess::getInterpreterPath(ext);
+}
+
+
+// -----------------
+
+
 struct KLFFilterProcessPrivate {
   KLF_PRIVATE_HEAD(KLFFilterProcess)
   {
@@ -82,6 +107,8 @@ struct KLFFilterProcessPrivate {
   QStringList execEnviron;
 
   QStringList argv;
+
+  QMap<QString,QString> interpreters;
 
   bool outputStdout;
   bool outputStderr;
@@ -115,6 +142,8 @@ KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfS
   d->outputStdout = true;
   d->outputStderr = false;
 
+  d->interpreters = QMap<QString,QString>();
+
   if (rundir.size()) {
     d->programCwd = rundir;
   }
@@ -126,6 +155,8 @@ KLFFilterProcess::KLFFilterProcess(const QString& pTitle, const KLFBackend::klfS
     d->execEnviron = klfMergeEnvironment(QStringList(), settings->execenv, QStringList(),
                                          KlfEnvPathPrepend|KlfEnvMergeExpandVars);
     klfDbg("set execution environment to : "<<d->execEnviron) ;
+    
+    d->interpreters = settings->userScriptInterpreters;
   }
 
   d->processAppEvents = true;
@@ -250,8 +281,10 @@ QString KLFFilterProcess::resultErrorString() const
   return d->resErrorString;
 }
 
-
-
+QMap<QString,QString> KLFFilterProcess::interpreters() const
+{
+  return d->interpreters;
+}
 
 
 bool KLFFilterProcess::run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist)

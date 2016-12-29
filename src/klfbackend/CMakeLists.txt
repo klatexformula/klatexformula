@@ -30,6 +30,7 @@ set(klfbackend_MOCHEADERS
   klfblockprocess.h
   klflatexpreviewthread.h
   klflatexpreviewthread_p.h
+  klffilterprocess_p.h
   )
 set(klfbackend_HEADERS
   klfbackend.h

@@ -80,7 +80,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
  * could not be parsed.
  *
  * \note The data type must be known when loading the value. It can in general not be guessed by
- * looking at \c string.
+ *       looking at \c string.
  *
  * Example use: to save/store settings values in QSettings in a human-read/writable format.
  *
@@ -146,7 +146,8 @@ KLF_EXPORT QByteArray klfSave(const KLFAbstractPropertizedObject * obj, const QS
 /**
  * If \c format is an empty string, then the format will be guessed from data.
  */
-KLF_EXPORT bool klfLoad(const QByteArray& data, KLFAbstractPropertizedObject * obj, const QString& format = QString());
+KLF_EXPORT bool klfLoad(const QByteArray& data, KLFAbstractPropertizedObject * obj,
+                        const QString& format = QString());
 
 
 

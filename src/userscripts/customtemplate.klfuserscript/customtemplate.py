@@ -22,31 +22,15 @@
 #
 #   $Id$
 
+from __future__ import print_function
+
 import re;
 import os;
 import sys;
 
 if (sys.argv[1] == "--help"):
-    print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
-    print "       "+os.path.basename(sys.argv[0])+" <tex input file>";
-    print "";
-    exit(0);
-
-if (sys.argv[1] == "--scriptinfo"):
-    print "ScriptInfo";
-    print "Category: klf-backend-engine";
-    print "Name: Custom Template";
-    print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
-    print "Version: 0.2";
-    print "License: GPL v2+";
-    print "SpitsOut: latex";
-    print "DisableInputs: FG_COLOR BG_COLOR MATHMODE FONT FONTSIZE PREAMBLE";
-    print "InputFormUI: customtemplate_input.ui";
-    #print "Error: Can't find executable foo. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
-    #print "Warning: random warning. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
-    #print "Notice: random notice. DEBUG: REMOVE THIS MESSAGE IN RELEASE VERSION"
-    print "";
-    exit(0);
+    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n");
+    sys.exit(0);
 
 latexfname = sys.argv[1];
 
@@ -56,10 +40,12 @@ template = os.environ["KLF_ARG_Template"];
 
 
 if (not "%%INPUT" in template):
-    print "Error: expected '%%INPUT' in template.";
-    print "";
-    print "You might want to try out the following template for example:";
-    print """\\documentclass[12pt]{article}
+    print("""\
+Error: expected '%%INPUT' in template.
+
+You might want to try out the following template for example:
+
+\\documentclass[12pt]{article}
 
 \\usepackage{amsmath}
 \\usepackage{amssymb}
@@ -70,19 +56,21 @@ if (not "%%INPUT" in template):
 %%INPUT
 \\]
 \\end{document}
-"""
-    print "\n";
+
+""")
     exit(1);
+
+
 
 fulllatex = re.sub(r'%%INPUT\b', lambda m: latexinput, template);
 
 f = open(latexfname, 'w');
-print "Full LaTeX is :\n", fulllatex;
+print("Full LaTeX is :\n"+fulllatex);
 f.write(fulllatex);
 f.close();
 
 # latex ready.
 
-exit(0);
+sys.exit(0);
 
 

@@ -57,6 +57,7 @@ if(KLF_BUILD_GUI)
     klflibview.cpp
     klflibdbengine.cpp
     klfliblegacyengine.cpp
+    klfexporter.cpp
     klfmime.cpp
     klfmainwin.cpp
     klfsettings.cpp
@@ -67,8 +68,7 @@ if(KLF_BUILD_GUI)
     main.cpp
     klfapp.cpp
     )
-  # Headers
-  #  * with QObject classes (needs moc)
+  # Headers with QObject classes (needs moc)
   set(klatexformula_MOCHEADERS
     klflatexsymbols.h
     klflatexsymbols_p.h
@@ -84,6 +84,7 @@ if(KLF_BUILD_GUI)
     klfliblegacyengine_p.h
     klfmime.h
     klfmime_p.h
+    klfexporter_p.h
     klfmainwin.h
     klfmainwin_p.h
     klfsettings.h
@@ -367,7 +368,7 @@ if(KLF_BUILD_GUI)
   #
   # User scripts
   #
-  file(GLOB_RECURSE klf_userscriptfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" userscripts/* userscriptdata/*)
+  file(GLOB_RECURSE klf_userscriptfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" userscripts/*)
   foreach(usfile ${klf_userscriptfiles})
     target_sources(klatexformula PRIVATE
       ${usfile}

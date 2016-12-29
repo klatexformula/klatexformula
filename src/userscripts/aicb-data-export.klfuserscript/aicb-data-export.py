@@ -40,7 +40,7 @@ if (sys.argv[1] == "--help"):
 if (sys.argv[1] == "--scriptinfo"):
     print "ScriptInfo";
     print "Category: klf-export-type";
-    print "Name: AICB export for Adobe Illustrator/InDesign (experimental)";
+    print "Name: AICB export for Adobe InDesign";
     print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
     print "Version: 0.1";
     print "License: GPL v2+"

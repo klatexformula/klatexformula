@@ -27,6 +27,7 @@
 #include <QFile>
 
 #include <klfutil.h>
+#include <klfsysinfo.h>
 #include "klfblockprocess.h"
 
 static bool is_binary_file(QString fn)
@@ -63,7 +64,8 @@ const static QString exe_suffix = ".exe";
 const static QString script_extra_paths =
                 "/usr/bin:/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/local/sbin" // general unix
                 "/usr/local/opt/*/bin:/opt/local/bin:" // homebrew
-                "/opt/local/sbin"; // macports
+                "/opt/local/sbin" // macports
+                "/Library/TeX/texbin:/usr/texbin"; // mactex binaries
 const static QString exe_suffix = "";
 #else
 const static QString script_extra_paths =
@@ -71,6 +73,7 @@ const static QString script_extra_paths =
 const static QString exe_suffix = "";
 #endif
 
+/*
 static QByteArray get_script_process_type(const QString& name)
 {
   // e.g. KLF_PYTHON_EXECUTABLE
@@ -104,6 +107,26 @@ static QByteArray get_script_process(QString fn)
   qWarning() << KLF_FUNC_NAME << "Unknown script type: " << fn << "\n";
   return get_script_process_type(QLatin1String("env"));
 }
+*/
+
+
+// static
+QString KLFBlockProcess::detectInterpreterPath(const QString& interp, const QStringList & addpaths)
+{
+  QString search_paths = script_extra_paths;
+  search_paths += addpaths.join(KLF_PATH_SEP);
+  // first, try exact name (python.exe, bash.exe)
+  QString s = klfSearchPath(interp+exe_suffix, script_extra_paths);
+  if (!s.isEmpty()) {
+    return s;
+  }
+  // otherwise, try name with some suffix (e.g. python2.exe) -- dont directly try with
+  // wildcard, because we want the exact name if it exists (and not some other program,
+  // such as 'bashbug', which happened to be found first)
+  return klfSearchPath(interp+"*"+exe_suffix, script_extra_paths);
+}
+
+
 
 
 KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)
@@ -125,6 +148,21 @@ void KLFBlockProcess::ourProcExited()
 {
   _runstatus = 1; // exited
 }
+
+QString KLFBlockProcess::getInterpreterPath(const QString & ext)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("ext = " << ext) ;
+  if (ext == "py") {
+    return detectInterpreterPath("python");
+  } else if (ext == "sh") {
+    return detectInterpreterPath("bash");
+  } else if (ext == "rb") {
+    return detectInterpreterPath("ruby");
+  }
+  return QString();
+}
+
 bool KLFBlockProcess::startProcess(QStringList cmd, QStringList env)
 {
   return startProcess(cmd, QByteArray(), env);
@@ -145,7 +183,8 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
 
   if (!is_binary_file(cmd[0])) {
     // check what script type it is and invoke the corresponding interpreter.
-    QByteArray exec_proc = get_script_process(cmd[0]);
+    QString ext = cmd[0].split('.').last();
+    QByteArray exec_proc = getInterpreterPath(ext).toLocal8Bit();
     if (exec_proc.size()) {
       cmd.prepend(exec_proc);
     }

@@ -143,7 +143,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
 
   void read_script_info()
   {
-    scriptInfoError = 0;
+    scriptInfoError = KLFERR_NOERROR;
     scriptInfoErrorString = QString();
 
     QString xmlfname = QDir::toNativeSeparators(uspath + "/scriptinfo.xml");
@@ -266,13 +266,17 @@ private:
 // static
 QMap<QString,KLFRefPtr<KLFUserScriptInfo::Private> > KLFUserScriptInfo::Private::userScriptInfoCache;
 
+static QString normalizedFn(const QString& userScriptFileName)
+{
+  return QFileInfo(userScriptFileName).canonicalFilePath();
+}
+
 // static
-KLFUserScriptInfo
-KLFUserScriptInfo::forceReloadScriptInfo(const QString& userScriptFileName)
+KLFUserScriptInfo KLFUserScriptInfo::forceReloadScriptInfo(const QString& userScriptFileName)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QString normalizedfn = QFileInfo(userScriptFileName).canonicalFilePath();
+  QString normalizedfn = normalizedFn(userScriptFileName);
   Private::userScriptInfoCache.remove(normalizedfn);
 
   KLFUserScriptInfo usinfo(userScriptFileName) ;
@@ -293,7 +297,9 @@ void KLFUserScriptInfo::clearCacheAll()
 // static
 bool KLFUserScriptInfo::hasScriptInfoInCache(const QString& userScriptFileName)
 {
-  QString normalizedfn = QFileInfo(userScriptFileName).canonicalFilePath();
+  QString normalizedfn = normalizedFn(userScriptFileName);
+  klfDbg("userScriptFileName = " << userScriptFileName << "; normalizedfn = " << normalizedfn) ;
+  klfDbg("cache: " << Private::userScriptInfoCache) ;
   return Private::userScriptInfoCache.contains(normalizedfn);
 }
 
@@ -308,12 +314,16 @@ KLFUserScriptInfo::KLFUserScriptInfo(const QString& userScriptFileName)
   } else {
     d = new KLFUserScriptInfo::Private;
 
-    d()->uspath = userScriptFileName;
+    d()->uspath = normalizedfn;//userScriptFileName;
     d()->normalizedfname = normalizedfn;
     d()->sname = fi.fileName();
     d()->basename = fi.baseName();
 
     d()->read_script_info();
+
+    if (d()->scriptInfoError == KLFERR_NOERROR) {
+      Private::userScriptInfoCache[normalizedfn] = d();
+    }
   }
 }
 
@@ -466,6 +476,8 @@ QString KLFUserScriptInfo::htmlInfo(const QString& extra_css) const
     "p.msgnotice { color: blue; font-weight: bold; margin: 2px 0px; }\n"
     "p.msgwarning { color: #a06000; font-weight: bold; margin: 2px 0px; }\n"
     "p.msgerror { color: #a00000; font-weight: bold; margin: 2px 0px; }\n"
+    ".scriptinfokey { }\n"
+    ".scriptinfovalue { font-weight: bold; }\n"
     + extra_css + "\n"
     "</style></head>\n"
     "<body>\n";
@@ -484,28 +496,33 @@ QString KLFUserScriptInfo::htmlInfo(const QString& extra_css) const
   // the user script name (incl ".klfuserscript")
   txt +=
     "<p style=\"-qt-block-indent: 0; text-indent: 0px; margin-top: 8px; margin-bottom: 0px\">\n"
-    "<tt>" + QObject::tr("Script Name:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + userScriptName().toHtmlEscaped() + "</span><br />\n";
+    "<span class=\"scriptinfokey\">" + QObject::tr("Script Name:", "[[user script info text]]")
+    + "</span>&nbsp;&nbsp;"
+    "<span class=\"scriptinfovalue\">" + userScriptName().toHtmlEscaped() + "</span><br />\n";
 
   // the category
-  txt += "<tt>" + QObject::tr("Category:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-    "<span style=\"font-weight:600;\">" + category().toHtmlEscaped() + "</span><br />\n";
+  txt += "<span class=\"scriptinfokey\">" + QObject::tr("Category:", "[[user script info text]]")
+    + "</span>&nbsp;&nbsp;"
+    "<span class=\"scriptinfovalue\">" + category().toHtmlEscaped() + "</span><br />\n";
 
   if (!version().isEmpty()) {
     // the version
-    txt += "<tt>" + QObject::tr("Version:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + version().toHtmlEscaped() + "</span><br />\n";
+    txt += "<span class=\"scriptinfokey\">" + QObject::tr("Version:", "[[user script info text]]")
+      + "</span>&nbsp;&nbsp;"
+      "<span class=\"scriptinfovalue\">" + version().toHtmlEscaped() + "</span><br />\n";
   }
   if (!author().isEmpty()) {
     // the author
-    txt += "<tt>" + QObject::tr("Author:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + author().toHtmlEscaped() + "</span><br />\n";
+    txt += "<span class=\"scriptinfokey\">" + QObject::tr("Author:", "[[user script info text]]")
+      + "</span>&nbsp;&nbsp;"
+      "<span class=\"scriptinfovalue\">" + author().toHtmlEscaped() + "</span><br />\n";
   }
 
   if (!license().isEmpty()) {
     // the license
-    txt += "<tt>" + QObject::tr("License:", "[[user script info text]]") + "</tt>&nbsp;&nbsp;"
-      "<span style=\"font-weight:600;\">" + license().toHtmlEscaped() + "</span><br />\n";
+    txt += "<span class=\"scriptinfokey\">" + QObject::tr("License:", "[[user script info text]]")
+      + "</span>&nbsp;&nbsp;"
+      "<span class=\"scriptinfovalue\">" + license().toHtmlEscaped() + "</span><br />\n";
   }
 
   return txt;

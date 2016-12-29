@@ -42,6 +42,7 @@
 
 
 struct KLFFilterProcessPrivate;
+class KLFFilterProcessBlockProcess;
 
 class KLF_EXPORT KLFFilterProcess
 {
@@ -80,8 +81,6 @@ public:
   /** Set a QByteArray where all stderr data will be stored */
   void collectStderrTo(QByteArray * stderrstore);
 
-
-
   /** See \ref setProcessAppEvents() */
   bool processAppEvents();
   /** specify whether or not to call regularly qApp->processEvents() while executing.
@@ -99,7 +98,6 @@ public:
   int resultStatus() const;
   /** An explicit error string in case the resultStatus() indicated an error. */
   QString resultErrorString() const;
-
 
 
   bool run(const QString& outFileName, QByteArray *outdata)
@@ -138,6 +136,11 @@ public:
    */
   bool run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist);
 
+
+protected:
+
+  friend class KLFFilterProcessBlockProcess;
+  QMap<QString,QString> interpreters() const;
 
 private:
   KLF_DECLARE_PRIVATE(KLFFilterProcess) ;

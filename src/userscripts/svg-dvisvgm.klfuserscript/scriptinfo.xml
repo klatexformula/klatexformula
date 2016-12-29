@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>svg-dvisvgm.py</exe-script>
+  <category>klf-export-type</category>
+  <name>SVG/dvisvgm format provider</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.2</version>
+  <license>GPL v2+</license>
+  <settings-form-ui>config.ui</settings-form-ui>
+  <klf-export-type>
+    <input-data-type>DVI</input-data-type>
+    <has-stdout-output>false</has-stdout-output>
+    <format name="svg">
+      <title>SVG Vector Graphics (using dvisvgm)</title>
+      <file-name-extension>svg</file-name-extension>
+    </format>
+    <format name="svgz">
+      <title>SVG Vector Graphics (using dvisvgm; compressed)</title>
+      <file-name-extension>svgz</file-name-extension>
+    </format>
+  </klf-export-type>
+</klfuserscript-info>

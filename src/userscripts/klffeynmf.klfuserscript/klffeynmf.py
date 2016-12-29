@@ -22,14 +22,15 @@
 #
 #   $Id: klffeynmf.py 941 2015-06-07 19:38:11Z phfaist $
 
+from __future__ import print_function
+
 import re;
 import os;
 import sys;
 import subprocess;
 
 if (sys.argv[1] == "--help"):
-    print "       "+os.path.basename(sys.argv[0])+" <tex input file>";
-    print "";
+    print("       "+os.path.basename(sys.argv[0])+" <tex input file>\n");
     exit(0);
 
 
@@ -50,7 +51,7 @@ rx_booltrue = re.compile(r'^\s*(t(rue)?|1|on|y(es)?)', flags=re.IGNORECASE)
 usefeynmf = (rx_booltrue.match(os.environ['KLF_ARG_UseFeynMF']) is not None);
 usefeynmp = (rx_booltrue.match(os.environ['KLF_ARG_UseFeynMP']) is not None);
 
-print "usefeynmf=%r, usefeynmp=%r"
+print("usefeynmf=%r, usefeynmp=%r"%(usefeynmf,usefeynmp))
 
 assert usefeynmf != usefeynmp, "Exactly one of usefeynmf or usefeynmp must be specified!"
 
@@ -94,17 +95,17 @@ latexcontents = ("\\documentclass{article}\n" +
                  "\\thispagestyle{empty}\n" +
                  "\\begin{fmffile}{" + diagramname + "}\n"
                  + latexinput + "\n\\end{fmffile}\n\\end{document}\n");
-print "LaTeX template is: \n", latexcontents;
+print("LaTeX template is: \n" + latexcontents);
 f.write(latexcontents);
 f.close();
 
 
 
 def run_cmd(do_cmd, ignore_fail=False):
-    print "Running " + " ".join(["'%s'"%(x) for x in do_cmd]) + "  [ in %s ]..." %(tempdir) + "\n"
+    print("Running " + " ".join(["'%s'"%(x) for x in do_cmd]) + "  [ in %s ]..." %(tempdir) + "\n")
     res = subprocess.call(do_cmd, cwd=tempdir);
     if (not ignore_fail and res != 0):
-        print "%s failed, res=%d" %(do_cmd[0], res);
+        print("%s failed, res=%d" %(do_cmd[0], res));
         sys.exit(res>>8);
 
 

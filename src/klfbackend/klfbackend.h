@@ -292,6 +292,12 @@ public:
      * Can be \c NULL, in which case the default generator is used, see
      * \ref DefaultTemplateGenerator. */
     TemplateGenerator *templateGenerator;
+
+    /** Path to interpreters to use for different script formats. The key is the filename
+     *  extension of the script (e.g. "py"), and the value is the path to the
+     *  corresponding interpreter (e.g. "/usr/bin/python")
+     */
+    QMap<QString,QString> userScriptInterpreters;
   };
 
   //! Specific input to KLFBackend::getLatexFormula()

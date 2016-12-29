@@ -55,7 +55,7 @@ class KLFLatexSyntaxHighlighter;
 class KLFLatexEdit;
 class KLFCmdIface;
 class KLFUserScriptSettings;
-
+class KLFExporter;
 
 namespace Ui {
   class KLFMainWin;
@@ -65,41 +65,7 @@ class KLFMainWin;
 
 
 
-/** A helper interface class to implement more export formats to save output (to file).
- */
-class KLFAbstractOutputSaver
-{
-public:
-  KLFAbstractOutputSaver() { }
-  virtual ~KLFAbstractOutputSaver() { }
 
-  /** Returns a list of mime-types of supported file formats for the given output, which
-   * may be NULL. In the latter case, this function reports all formats that it can in
-   * principle provide. */
-  virtual QStringList supportedMimeFormats(KLFBackend::klfOutput * klfoutput) = 0;
-
-  /** Returns the human-readable, (possibly translated,) label to display in save dialog that
-   * the user can select to save in this format.
-   *
-   * \param key is a mime-type returned by \ref supportedMimeFormats().
-   */
-  virtual QString formatTitle(const QString& key) = 0;
-
-  /** Returns the file pattern(s) that the files of this format (normally) match.
-   * syntax is simple pattern eg. \c "*.png".
-   *
-   * The patterns are joined to spaces to form a filter that is given to QFileDialog.
-   */
-  virtual QStringList formatFilePatterns(const QString& key) = 0;
-
-  /** Actually save to the file \c fileName, using the format \c key.
-   *
-   * The subclass is responsible for notifying the user of possible errors that have occurred.
-   *
-   * Overwrite confirmation has already been required (if applicable).
-   */
-  virtual bool saveToFile(const QString& key, const QString& fileName, const KLFBackend::klfOutput& output) = 0;
-};
 
 /** A helper interface class to open old PNG files, library files or abstract data, to fill in
  * the main window controls (latex and style), or possibly open a resource into library.
@@ -243,8 +209,8 @@ public:
 
   void registerHelpLinkAction(const QString& path, QObject *object, const char * member, bool wantUrlParam);
 
-  void registerOutputSaver(KLFAbstractOutputSaver *outputsaver);
-  void unregisterOutputSaver(KLFAbstractOutputSaver *outputsaver);
+  void registerExporter(KLFExporter *outputsaver);
+  void unregisterExporter(KLFExporter *outputsaver);
 
   void registerDataOpener(KLFAbstractDataOpener *dataopener);
   void unregisterDataOpener(KLFAbstractDataOpener *dataopener);
@@ -253,14 +219,14 @@ public:
   bool canOpenData(const QByteArray& data);
   bool canOpenData(const QMimeData *mimeData);
 
-  QList<KLFAbstractOutputSaver*> registeredOutputSavers();
+  QList<KLFExporter*> registeredExporters();
   QList<KLFAbstractDataOpener*> registeredDataOpeners();
 
   //! Reimplemented from KLFDropDataHandler
   bool canOpenDropData(const QMimeData * data);
 
-  bool saveOutputToFile(const KLFBackend::klfOutput& output, const QString& fname, const QString& format,
-			KLFAbstractOutputSaver * saver = NULL);
+//  bool saveOutputToFile(const KLFBackend::klfOutput& output, const QString& fname,
+//                        const QString& exporterName);
 
 
   bool isApplicationVisible() const;
@@ -301,8 +267,8 @@ signals:
   void dataOpened(const QString& mimetype, const QByteArray& data, KLFAbstractDataOpener * usingDataOpener);
 
   void aboutToSaveAs();
-  /** \note if \c usingSaver is NULL, the built-in klfbackend saver was used */
-  void savedToFile(const QString& fileName, const QString& format, KLFAbstractOutputSaver * usingSaver);
+  /** \note if \c usingExporter is NULL, the built-in klfbackend saver was used */
+  void savedToFile(const QString& fileName, const QString& format, KLFExporter * usingExporter);
 
 public slots:
 

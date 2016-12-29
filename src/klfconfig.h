@@ -334,6 +334,7 @@ public:
     KLFConfigProp<bool> wantPDF;
     KLFConfigProp<bool> wantSVG;
     KLFConfigProp<QStringList> userScriptAddPath;
+    KLFConfigProp<QVariantMap> userScriptInterpreters;
 
   } BackendSettings;
 

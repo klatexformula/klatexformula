@@ -1,0 +1,161 @@
+/***************************************************************************
+ *   file klfexporter.h
+ *   This file is part of the KLatexFormula Project.
+ *   Copyright (C) 2016 by Philippe Faist
+ *   philippe.faist at bluewin.ch
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+/* $Id$ */
+
+#ifndef KLFEXPORTER_H
+#define KLFEXPORTER_H
+
+#include <QString>
+#include <QList>
+#include <QStringList>
+#include <QByteArray>
+#include <QMap>
+#include <QImage>
+#include <QImageWriter>
+#include <QMimeData>
+#include <QTemporaryFile>
+#include <QTemporaryDir>
+
+#include <klfdefs.h>
+#include <klfpobj.h>
+#include <klfuserscript.h>
+#include <klfbackend.h>
+
+
+struct KLFExporterPrivate;
+
+/** \brief Abstract exporter of KLF output to some given format
+ *
+ * This helper class can be subclassed to implement exporting klatexformula output in a given
+ * data format.
+ *
+ * Formats are given internal names which can be chosen arbitrarily.
+ * Exporters know nothing of mime types, 
+ */
+class KLF_EXPORT KLFExporter
+{
+public:
+  KLFExporter();
+  virtual ~KLFExporter();
+
+  //! Name of the exporter (e.g. "pdf")
+  virtual QString exporterName() const = 0;
+
+  /** \brief List of formats this exporter can export to (e.g. "pdf", "svg", "eps", "png@150dpi")
+   *
+   * The format name can be chosen freely, and does not have to coincide with a mime type
+   * and/or filename extension(s).
+   */
+  virtual QStringList supportedFormats(const KLFBackend::klfOutput& klfoutput) const = 0;
+
+  /** \brief A huaman-readable title for this exporter and format (e.g. "PDF Vector Graphic")
+   */
+  virtual QString titleFor(const QString & format) = 0;
+
+  /** \brief The filename extension suitable to save this format from this exporter (e.g. ["jpg","jpeg"])
+   */
+  virtual QStringList fileNameExtensionsFor(const QString & format) = 0;
+
+  /** \brief Get the data corresponding to the given klf output
+   *
+   * The \a param argument may be used to specify additional parameters to the exporter.
+   *
+   * Subclasses should not forget to call \ref clearErrorString() to clear any previously
+   * set error.
+   */
+  virtual QByteArray getData(const QString& format, const KLFBackend::klfOutput& klfoutput,
+                             const QVariantMap& param = QVariantMap()) = 0;
+
+
+  //! Returns an error string describing the last error.
+  QString errorString() const;
+
+protected:
+
+  //! Subclasses should call this method at the beginning of getData()
+  void clearErrorString();
+  //! Subclasses should use this method in getData() to signify that an error occurred
+  void setErrorString(const QString & errorString);
+
+private:
+  KLF_DECLARE_PRIVATE(KLFExporter) ;
+};
+
+
+
+
+
+
+// -----------------------------------------------------------------------------
+// user script definitions:
+
+
+struct KLFExportTypeUserScriptInfoPrivate;
+
+class KLF_EXPORT KLFExportTypeUserScriptInfo : public KLFUserScriptInfo
+{
+public:
+  KLFExportTypeUserScriptInfo(const QString& userScriptPath);
+  virtual ~KLFExportTypeUserScriptInfo();
+    
+  struct Format : public KLFPropertizedObject
+  {
+    Format();
+    Format(const QString& formatName_, const QString& formatTitle_, const QStringList& fileNameExtensions_);
+    virtual ~Format();
+    enum { FormatName = 0, FormatTitle, FileNameExtensions };
+    QString formatName() const;
+    QString formatTitle() const;
+    QStringList fileNameExtensions() const;
+  };
+
+  enum ExportTypeProperties {
+    Formats = 0,
+    InputDataType,
+    HasStdoutOutput,
+  };
+
+  QStringList formats() const;
+
+  QString inputDataType() const;
+
+  bool hasStdoutOutput() const;
+
+  QList<Format> formatList() const;
+
+  Format getFormat(const QString & formatName) const;
+
+  QVariant klfExportTypeInfo(int propId) const;
+  QVariant klfExportTypeInfo(const QString& key) const;
+  QStringList klfExportTypeInfosList() const;
+
+private:
+  KLF_DECLARE_PRIVATE(KLFExportTypeUserScriptInfo) ;
+};
+
+
+
+
+
+
+#endif
+

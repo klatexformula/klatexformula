@@ -813,8 +813,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
-                 <height>40</height>
+                 <width>366</width>
+                 <height>79</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptInfo">
@@ -842,7 +842,7 @@
           </widget>
           <widget class="QWidget" name="tabUserScriptSettings">
            <attribute name="title">
-            <string>Settings</string>
+            <string>Script Settings</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_2">
             <item row="0" column="0">
@@ -870,8 +870,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>98</width>
-                 <height>130</height>
+                 <width>366</width>
+                 <height>79</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="lyt_wUserScriptSettings">
@@ -914,6 +914,46 @@
                </layout>
               </widget>
              </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>Interpreters</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="0" column="0">
+             <widget class="QLabel" name="lblScriptInterpreterPython">
+              <property name="text">
+               <string>Python:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLineEdit" name="txtScriptInterpreterPython"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lblScriptInterpreterShell">
+              <property name="text">
+               <string>Shell:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="txtScriptInterpreterShell"/>
+            </item>
+            <item row="2" column="1">
+             <spacer name="vspc_scriptinterpreters">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>14</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>
@@ -1036,8 +1076,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>98</width>
-                    <height>40</height>
+                    <width>253</width>
+                    <height>81</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="lyt_scrAddOnInfoContents">
@@ -1212,8 +1252,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>98</width>
-                       <height>40</height>
+                       <width>233</width>
+                       <height>93</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="lyt_scrPluginInfoContents">
@@ -1277,8 +1317,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>98</width>
-                <height>28</height>
+                <width>60</width>
+                <height>16</height>
                </rect>
               </property>
               <attribute name="label">
