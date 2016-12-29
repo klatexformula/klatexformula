@@ -34,8 +34,9 @@
 #include <klfuserscript.h>
 #include <klfbackend.h>
 
-#include <klfconfig.h>
-#include <klfstyle.h>
+#include "klfconfig.h"
+#include "klfstyle.h"
+#include "klflib.h"
 
 #include "klfexporter.h"
 
@@ -43,6 +44,8 @@
 extern QString klfbackend_last_userscript_output;
 
 
+
+// ==============================================================================
 
 
 class KLFBackendOutputFormatsExporter : public QObject, public KLFExporter
@@ -59,7 +62,7 @@ public:
 
   virtual QString exporterName() const
   {
-    return "backend";
+    return QLatin1String("backend");
   }
 
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& output) const
@@ -109,9 +112,7 @@ public:
 
 
 
-
-
-
+// ==============================================================================
 
 
 
@@ -129,7 +130,7 @@ public:
 
   virtual QString exporterName() const
   {
-    return "tex-source";
+    return QLatin1String("tex-source");
   }
 
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const
@@ -194,6 +195,12 @@ public:
 
 
 
+
+// =============================================================================
+// USER SCRIPT EXPORTS
+// =============================================================================
+
+
 class KLFUserScriptExporter : public QObject, public KLFExporter
 {
   Q_OBJECT
@@ -209,7 +216,7 @@ public:
 
   virtual QString exporterName() const
   {
-    return "UserScript:" + pUserScript.userScriptBaseName();
+    return QLatin1String("UserScript:") + pUserScript.userScriptBaseName();
   }
 
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const
@@ -342,6 +349,126 @@ private:
 
 
 
+// =============================================================================
+// "Temporary" export types specifically designed for drag&drop or copy&paste
+// =============================================================================
+
+
+
+/** KLFExporter implementation for exporting \c "text/x-moz-url" and \c "text/uri-list" to
+ * a temporary file of a given type
+ */
+class KLF_EXPORT KLFTempFileUriExporter : public QObject, public KLFExporter
+{
+  Q_OBJECT
+public:
+  KLFTempFileUriExporter(QObject *parent) : QObject(parent) { }
+  virtual ~KLFTempFileUriExporter() { }
+
+  virtual QString exporterName() const
+  {
+    return QString::fromLatin1("KLFTempFileUriExporter");
+  }
+
+  virtual bool isSuitableForFileSave() const { return false; }
+
+  virtual QStringList supportedFormats(const KLFBackend::klfOutput & output) const
+  {
+    return KLFBackend::availableSaveFormats(output);
+  }
+
+  virtual QString titleFor(const QString & format) { return tr("Uri of temporary %1 file").arg(format); }
+
+  virtual QByteArray getData(const QString& format, const KLFBackend::klfOutput& klfoutput,
+                             const QVariantMap& params = QVariantMap())
+  {
+    int req_dpi = params.value("dpi", QVariant(-1));
+
+    QString tempfilename = tempFileForOutput(format, output, req_dpi);
+    QUrl url = QUrl::fromLocalFile(tempfilename);
+
+    QByteArray urilist = (url.toString()+QLatin1String("\n")).toUtf8();
+    return urilist;    
+  }
+
+  static QString tempFileForOutput(const QString & reqfmt, const KLFBackend::klfOutput& klfoutput,
+                                   int targetDpi = -1)
+  {
+    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+    QString format = reqfmt.toLower();
+  
+    if (targetDpi <= 0) {
+      targetDpi = output.input.dpi;
+    }
+
+    // a hash value of the output's result and the target dpi
+    qint64 hashkey = output.result.cacheKey() ^ targetDpi;
+
+    if (tempFilesCache[format].contains(hashkey)) {
+      klfDbg("found cached temporary file: " << tempFilesCache[format][hashkey]) ;
+      return tempFilesForImageCacheKey[imgcachekey][hashkey];
+    }
+
+    QString templ = klfconfig.BackendSettings.tempDir +
+      QString::fromLatin1("/klf_%2_XXXXXX.%1.%3")
+      .arg(targetDpi).arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm")).arg(format);
+
+    klfDbg("Attempting to create temp file from template name " << templ) ;
+
+    QTemporaryFile *tempfile = new QTemporaryFile(templ, qApp);
+    tempfile->setAutoRemove(true); // will be deleted when klatexformula exists (= qApp destroyed)
+    if (tempfile->open() == false) {
+      klfWarning("Can't create or open temp file for KLFTempFileUriExporter: template is " << templ) ;
+      return QString();
+    }
+
+    QString tempfilename = QFileInfo(tempfile->fileName()).absoluteFilePath();
+
+    if (isVectorFormat(format) || targetDpi <= 0 || targetDpi == output.input.dpi) {
+      QString errStr;
+      bool res = KLFBackend::saveOutputToDevice(klfoutput, &tempfile, format, &errStr);
+      if (!res) {
+        klfWarning("Can't save to temp file " << tempfilename << ": " << errStr) ;
+        tempfile->close();
+        return QString();
+      }
+    } else { // need to rescale image to given DPI
+      QImage img = output.result;
+      QSize targetSize = img.size();
+      targetSize *= (double) targetDpi / output.input.dpi;
+      klfDbg("scaling to "<<targetDpi<<" DPI from "<<output.input.dpi<<" DPI... targetSize="<<targetSize) ;
+      img = klfImageScaled(img, targetSize);
+      bool res = img.save(tempfile, "PNG");
+      if (!res) {
+        klfWarning("Can't save dpi-rescaled image to temp file " << tempfile->fileName());
+        tempfile->close();
+        return QString();
+      }
+    }
+
+    tempfile->close();
+
+    // cache this temp file for other formats' use or other QMimeData instantiation...
+    tempFilesCache[format][hashkey] = tempfilename;
+
+    klfDbg("Wrote temp file with name " << tempfilename) ;
+
+    return tempfilename;
+  }
+
+private:
+
+  static bool isVectorFormat(const QString fmt) // fmt must be lower-case
+  {
+    if (fmt == "pdf" || fmt == "eps" || fmt == "ps" || fmt == "svg" || fmt == "dvi") {
+      return true;
+    }
+    return false;
+  }
+
+  static QMap<QString,QMap<qint64,QString> > tempFilesCache;
+};
 
 
 

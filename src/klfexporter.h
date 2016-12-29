@@ -60,6 +60,14 @@ public:
   //! Name of the exporter (e.g. "pdf")
   virtual QString exporterName() const = 0;
 
+  /** \brief Whether this exporter is suitable for saving to data file.
+   *
+   * Most exporters are suitable because they export the data itself in some particular
+   * format.  Other exporters however may be designed only for copy-paste or drag-drop,
+   * for example if they refer to a temporary file (e.g. text/uri-list).
+   */
+  virtual bool isSuitableForFileSave() const { return true; }
+
   /** \brief List of formats this exporter can export to (e.g. "pdf", "svg", "eps", "png@150dpi")
    *
    * The format name can be chosen freely, and does not have to coincide with a mime type
@@ -71,9 +79,14 @@ public:
    */
   virtual QString titleFor(const QString & format) = 0;
 
-  /** \brief The filename extension suitable to save this format from this exporter (e.g. ["jpg","jpeg"])
+  /** \brief The filename extension suitable to save this format from this exporter
+   *         (e.g. ["jpg","jpeg"])
+   *
+   * Subclasses should reimplement.  The base implementation returns an empty string list
+   * and is only suitable for exporters which are not suitable for file saving (\ref
+   * isSuitableForFileSave()).
    */
-  virtual QStringList fileNameExtensionsFor(const QString & format) = 0;
+  virtual QStringList fileNameExtensionsFor(const QString & format);
 
   /** \brief Get the data corresponding to the given klf output
    *

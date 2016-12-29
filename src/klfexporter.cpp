@@ -30,7 +30,7 @@
 #include <klfdatautil.h>
 
 #include <klfexporter.h>
-#include <klfexporter_p.h>
+//#include <klfexporter_p.h> -- included in klfmainwin.cpp where the exporters are actually needed
 
 
 struct KLFExporterPrivate
@@ -54,6 +54,12 @@ KLFExporter::~KLFExporter()
 }
 
 
+QStringList KLFExporter::fileNameExtensionsFor(const QString & )
+{
+  return QStringList();
+}
+
+
 QString KLFExporter::errorString() const
 {
   return d->errorString;
@@ -67,6 +73,19 @@ void KLFExporter::setErrorString(const QString & errorString)
 {
   d->errorString = errorString;
 }
+
+
+// =============================================================================
+// =============================================================================
+
+
+// static members for specific exporters
+
+
+// static
+QMap<QString,QMap<qint64,QString> > KLFUriExporter::tempFilesCache = QMap<QString,QMap<qint64,QString> >();
+
+
 
 
 

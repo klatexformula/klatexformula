@@ -3706,6 +3706,9 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 
   for (k = 0; k < d->pExporters.size(); ++k) {
     KLFExporter * exporter = d->pExporters[k];
+    if (!exporter->isSuitableForFileSave()) {
+      continue;
+    }
     QStringList xoformats = exporter->supportedFormats(d->output);
     for (j = 0; j < xoformats.size(); ++j) {
       QString fmt = xoformats[j];
