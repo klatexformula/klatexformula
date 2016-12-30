@@ -229,100 +229,8 @@ int KLFMimeExportProfile::indexOfAvailableMacFlavor(const QString& macFlavor,
 }
 
 
-// -----------------------------------------------------------------------------
-
-
-struct KLFMimeExportProfileManagerPrivate
-{
-  KLF_PRIVATE_HEAD(KLFMimeExportProfileManager)
-  {
-  }
-
-  static QList<KLFMimeExportProfile> loadProfilesFromXMLFile(const QString& fname);
-  
-  QList<KLFMimeExportProfile> exportProfileList;
-};
-
-
-KLFMimeExportProfileManager::KLFMimeExportProfileManager()
-{
-  KLF_INIT_PRIVATE(KLFMimeExportProfileManager) ;
-}
-KLFMimeExportProfileManager::~KLFMimeExportProfileManager()
-{
-  KLF_DELETE_PRIVATE ;
-}
-
-QList<KLFMimeExportProfile> KLFMimeExportProfileManager::exportProfileList()
-{
-  return d->exportProfileList;
-}
-void KLFMimeExportProfileManager::addExportProfile(const KLFMimeExportProfile& exportProfile)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  d->exportProfileList << exportProfile;
-}
-void KLFMimeExportProfileManager::addExportProfiles(const QList<KLFMimeExportProfile>& exportProfiles)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  d->exportProfileList << exportProfiles;
-}
-KLFMimeExportProfile KLFMimeExportProfileManager::findExportProfile(const QString& pname)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  int k;
-  for (k = 0; k < d->exportProfileList.size(); ++k) {
-    if (d->exportProfileList[k].profileName() == pname) {
-      return d->exportProfileList[k];
-    }
-  }
-
-  // not found, return first (ie. default) export profile
-  klfWarning("Export profile not found: " << pname) ;
-  return d->exportProfileList.first();
-}
-
 // static
-QList<KLFMimeExportProfile> KLFMimeExportProfileManager::loadKlfExportProfileList()
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  QList<KLFMimeExportProfile> profiles;
-
-  // read export profiles from KLF XML files
-  
-  // find XML files
-  QStringList fcandidates;
-
-  QStringList dirs;
-  dirs << klfconfig.homeConfigDir  + "/conf/export_mime_profiles.d"
-       << klfconfig.globalShareDir + "/conf/export_mime_profiles.d"
-       << ":/conf/export_mime_profiles.d";
-
-  int j, k;
-  for (j = 0; j < dirs.size(); ++j) {
-    // add all files in ...dirs[j].../*.xml
-    QDir d(dirs[j]);
-    QStringList entrylist;
-    entrylist = d.entryList(QStringList()<<QLatin1String("*.xml"), QDir::Files|QDir::Readable, QDir::Name);
-    for (k = 0; k < entrylist.size(); ++k) {
-      fcandidates << d.filePath(entrylist[k]);
-    }
-  }
-
-  for (k = 0; k < fcandidates.size(); ++k) {
-    if (QFile::exists(fcandidates[k])) {
-      profiles << KLFMimeExportProfileManagerPrivate::loadProfilesFromXMLFile(fcandidates[k]);
-    }
-  }
-
-  return profiles;
-}
-
-
-// static
-QList<KLFMimeExportProfile> KLFMimeExportProfileManagerPrivate::loadProfilesFromXMLFile(const QString& fname)
+QList<KLFMimeExportProfile> KLFMimeExportProfile::loadProfilesFromXmlFile(const QString & fname)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -428,7 +336,7 @@ QList<KLFMimeExportProfile> KLFMimeExportProfileManagerPrivate::loadProfilesFrom
       }
       if ( ee.nodeName() == "in-submenu" ) {
 	inSubMenu = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
-				       "[[tag: <in-submenu>]]");
+                                    "[[tag: <in-submenu>]]");
 	continue;
       }
       if ( ee.nodeName() == "export-type" ) {
@@ -503,11 +411,16 @@ QList<KLFMimeExportProfile> KLFMimeExportProfileManagerPrivate::loadProfilesFrom
 
     // check if a profile has not already been declared with same name
     int kp;
+    bool is_duplicate = false;
     for (kp = 0; kp < profiles.size(); ++kp) {
       if (profiles[kp].profileName() == pname) {
         klfWarning("Ignoring duplicate definition of export profile " << pname );
-	return QList<KLFMimeExportProfile>();
+        is_duplicate = true;
+        break;
       }
+    }
+    if (is_duplicate) {
+      continue;
     }
     // the profile is new
     klfDbg("Adding profile "<<pname<<" to mime export profiles") ;
@@ -523,6 +436,104 @@ QList<KLFMimeExportProfile> KLFMimeExportProfileManagerPrivate::loadProfilesFrom
 }
 
 
+
+
+
+
+
+// -----------------------------------------------------------------------------
+
+
+struct KLFMimeExportProfileManagerPrivate
+{
+  KLF_PRIVATE_HEAD(KLFMimeExportProfileManager)
+  {
+  }
+
+  QList<KLFMimeExportProfile> exportProfileList;
+};
+
+
+KLFMimeExportProfileManager::KLFMimeExportProfileManager()
+{
+  KLF_INIT_PRIVATE(KLFMimeExportProfileManager) ;
+}
+KLFMimeExportProfileManager::~KLFMimeExportProfileManager()
+{
+  KLF_DELETE_PRIVATE ;
+}
+
+QList<KLFMimeExportProfile> KLFMimeExportProfileManager::exportProfileList()
+{
+  return d->exportProfileList;
+}
+void KLFMimeExportProfileManager::addExportProfile(const KLFMimeExportProfile& exportProfile)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  d->exportProfileList << exportProfile;
+}
+void KLFMimeExportProfileManager::addExportProfiles(const QList<KLFMimeExportProfile>& exportProfiles)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  d->exportProfileList << exportProfiles;
+}
+KLFMimeExportProfile KLFMimeExportProfileManager::findExportProfile(const QString& pname)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  int k;
+  for (k = 0; k < d->exportProfileList.size(); ++k) {
+    if (d->exportProfileList[k].profileName() == pname) {
+      return d->exportProfileList[k];
+    }
+  }
+
+  if (d->exportProfileList.size() == 0) {
+    klfWarning("Export profile list is empty!!") ;
+    return KLFMimeExportProfile();
+  }
+
+  // not found, return first (ie. default) export profile
+  klfWarning("Export profile not found: " << pname) ;
+  return d->exportProfileList.first();
+}
+
+// static
+QList<KLFMimeExportProfile> KLFMimeExportProfileManager::loadKlfExportProfileList()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  QList<KLFMimeExportProfile> profiles;
+
+  // read export profiles from KLF XML files
+  
+  // find XML files
+  QStringList fcandidates;
+
+  QStringList dirs;
+  dirs << klfconfig.homeConfigDir  + "/conf/export_mime_profiles.d"
+       << klfconfig.globalShareDir + "/conf/export_mime_profiles.d"
+       << ":/conf/export_mime_profiles.d";
+
+  int j, k;
+  for (j = 0; j < dirs.size(); ++j) {
+    // add all files in ...dirs[j].../*.xml
+    QDir d(dirs[j]);
+    QStringList entrylist;
+    entrylist = d.entryList(QStringList()<<QLatin1String("*.xml"), QDir::Files|QDir::Readable, QDir::Name);
+    for (k = 0; k < entrylist.size(); ++k) {
+      fcandidates << d.filePath(entrylist[k]);
+    }
+  }
+
+  for (k = 0; k < fcandidates.size(); ++k) {
+    if (QFile::exists(fcandidates[k])) {
+      profiles << KLFMimeExportProfile::loadProfilesFromXmlFile(fcandidates[k]);
+    }
+  }
+
+  return profiles;
+}
 
 
 

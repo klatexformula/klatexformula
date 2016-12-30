@@ -370,6 +370,16 @@ KLFMainWin::KLFMainWin()
   connect(d->pContLatexPreview, SIGNAL(previewReset()), d, SLOT(showRealTimeReset()));
 
 
+  // MIME EXPORT PROFILES
+
+  klfDbg("Loading mime export profiles") ;
+
+  // the KLFMimeExportProfileManager is also responsible for instantiating appropriate
+  // QMacPasteboardMime, QWinClipboard classes
+  d->pMimeExportProfileManager.addExportProfiles(
+      KLFMimeExportProfileManager::loadKlfExportProfileList()
+      );
+
   // LOAD USER SCRIPTS
 
   klfDbg("Loading user scripts") ;
@@ -390,20 +400,22 @@ KLFMainWin::KLFMainWin()
   extern QStringList klf_user_scripts;
   for (int k = 0; k < klf_user_scripts.size(); ++k) {
     if (KLFUserScriptInfo(klf_user_scripts[k]).category() == QLatin1String("klf-export-type")) {
-      registerExporter(new KLFUserScriptExporter(klf_user_scripts[k], this));
+      QString usname = klf_user_scripts[k];
+      klfDbg("Loading exporter for user script " << usname) ;
+      KLFExportTypeUserScriptInfo usinfo(usname);
+      registerExporter(new KLFUserScriptExporter(usname, this));
+      // add any corresponding export profiles, as well.
+      QString profilesXmlFile = usinfo.mimeExportProfilesXmlFile();
+      klfDbg("profilesXmlFile = " << profilesXmlFile) ;
+      if (profilesXmlFile.size()) {
+        klfDbg("Loading profiles from XML file " << profilesXmlFile) ;
+        d->pMimeExportProfileManager.addExportProfiles(
+            KLFMimeExportProfile::loadProfilesFromXmlFile(usinfo.relativeFile(profilesXmlFile))
+            );
+      }
     }
   }
 
-
-  // MIME EXPORT PROFILES
-
-  klfDbg("Loading mime export profiles") ;
-
-  // the KLFMimeExportProfileManager is also responsible for instantiating appropriate
-  // QMacPasteboardMime, QWinClipboard classes
-  d->pMimeExportProfileManager.addExportProfiles(
-      KLFMimeExportProfileManager::loadKlfExportProfileList()
-      );
 
   // REGISTER PLATFORM-SPECIFIC CLIPBOARD CONVERTERS
 

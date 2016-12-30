@@ -10,6 +10,7 @@
   <klf-export-type>
     <input-data-type>DVI</input-data-type>
     <has-stdout-output>false</has-stdout-output>
+    <mime-export-profiles-xml-file>export-profiles.xml</mime-export-profiles-xml-file>
     <format name="svg">
       <title>SVG Vector Graphics (using dvisvgm)</title>
       <file-name-extension>svg</file-name-extension>

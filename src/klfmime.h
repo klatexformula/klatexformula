@@ -158,6 +158,13 @@ public:
                                const KLFBackend::klfOutput & klfoutput) const;
 
 
+  /** \brief Load profiles from an XML description file
+   *
+   * The file should be an XML file of the format found in the \c
+   * "conf/mime_export_profiles.d/xxx.xml" directory.
+   */
+  static QList<KLFMimeExportProfile> loadProfilesFromXmlFile(const QString & xmlFile);
+
 private:
 
   QString p_profileName;

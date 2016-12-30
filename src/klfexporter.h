@@ -182,16 +182,15 @@ public:
     Formats = 0,
     InputDataType,
     HasStdoutOutput,
+    MimeExportProfilesXmlFile,
   };
 
   QStringList formats() const;
-
   QString inputDataType() const;
-
   bool hasStdoutOutput() const;
+  QString mimeExportProfilesXmlFile() const;
 
   QList<Format> formatList() const;
-
   Format getFormat(const QString & formatName) const;
 
   QVariant klfExportTypeInfo(int propId) const;

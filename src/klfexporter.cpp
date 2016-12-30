@@ -172,6 +172,8 @@ struct KLFExportTypeUserScriptInfoPrivate : public KLFPropertizedObject
     registerBuiltInProperty(KLFExportTypeUserScriptInfo::Formats, QLatin1String("Formats"));
     registerBuiltInProperty(KLFExportTypeUserScriptInfo::InputDataType, QLatin1String("InputDataType"));
     registerBuiltInProperty(KLFExportTypeUserScriptInfo::HasStdoutOutput, QLatin1String("HasStdoutOutput"));
+    registerBuiltInProperty(KLFExportTypeUserScriptInfo::MimeExportProfilesXmlFile,
+                            QLatin1String("MimeExportProfilesXmlFile"));
   }
 
   // cache formatnames and format specifications for quick lookup
@@ -248,6 +250,12 @@ struct KLFExportTypeUserScriptInfoPrivate : public KLFPropertizedObject
         }
         setProperty(KLFExportTypeUserScriptInfo::HasStdoutOutput,
                     klfLoadVariantFromText(val.toLatin1(), "bool").toBool());
+      } else if (e.nodeName() == "mime-export-profiles-xml-file") {
+        if (!property(KLFExportTypeUserScriptInfo::MimeExportProfilesXmlFile).toString().isEmpty()) {
+          _set_xml_parsing_error(QString("duplicate <mime-export-profiles-xml-file> element"));
+          return;
+        }
+        setProperty(KLFExportTypeUserScriptInfo::MimeExportProfilesXmlFile, val);
       } else if (e.nodeName() == "format") {
         // parse a new supported format
         if (!e.hasAttribute("name")) {
@@ -363,6 +371,11 @@ bool KLFExportTypeUserScriptInfo::hasStdoutOutput() const
 {
   return klfExportTypeInfo(HasStdoutOutput).toBool();
 }
+QString KLFExportTypeUserScriptInfo::mimeExportProfilesXmlFile() const
+{
+  return klfExportTypeInfo(MimeExportProfilesXmlFile).toString();
+}
+
 QList<KLFExportTypeUserScriptInfo::Format> KLFExportTypeUserScriptInfo::formatList() const
 {
   return d->formatlist;

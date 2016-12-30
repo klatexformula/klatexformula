@@ -14,9 +14,6 @@
        You may specify several MIME types, mac identifiers and Windows format names for
        each data export type, in which case the data is exposed for all the given names.
        
-       A MIME type may only appear once per profile (same for mac UTIs and windows
-       formats).
-
        Note that QT already translates a certain number of standard types, so there is no
        need to declare the mac identifiers for PNG or PDF, for example.  Experiment a
        little.
@@ -33,7 +30,7 @@
       <win-format>PNG+Office Art</win-format>
       <!-- don't provide PNG by default on Mac, as most applications understand PDF but seem
            to prefer png when pasting -->
-      <!--<mac-flavor>public.png</mac-flavor>-->
+      <mac-flavor>public.png</mac-flavor>
     </export-type>
 
     <!-- PDF is always nice -->
@@ -48,12 +45,14 @@
     <export-type exporter="backend" format="SVG">
       <mime-type>image/svg+xml</mime-type>
       <win-format>SVG</win-format>
+      <win-format>image/svg+xml</win-format>
       <mac-flavor>public.svg-image</mac-flavor>
     </export-type>
     <!-- ... or from the user script -->
     <export-type exporter="UserScript:svg-dvisvgm" format="svg">
       <mime-type>image/svg+xml</mime-type>
       <win-format>SVG</win-format>
+      <win-format>image/svg+xml</win-format>
       <mac-flavor>public.svg-image</mac-flavor>
     </export-type>
 
@@ -78,6 +77,7 @@
       <mime-type>application/pdf</mime-type>
       <win-format>PDF</win-format>
       <win-format>application/pdf</win-format>
+      <mac-flavor>com.adobe.pdf</mac-flavor>
     </export-type>
 
     <!-- EPS / PS -->
@@ -87,6 +87,8 @@
       <mime-type>image/eps</mime-type>
       <win-format>Encapsulated PostScript</win-format>
       <win-format>PostScript</win-format>
+      <mac-flavor>com.adobe.postscript</mac-flavor>
+      <mac-flavor>com.adobe.encapsulated-postscript</mac-flavor>
     </export-type>
 
     <!-- SVG is useful, if we have it from ghostscript ... -->
@@ -106,7 +108,8 @@
 
   <!-- A special format for InDesign - AICB - allows to change color etc. inside InDesign -->
   <profile name="for_adobe_indesign">
-    <description>Vector format for Adobe InDesign</description>
+    <in-submenu>Specific Applications</in-submenu>
+    <description>AICB for Adobe InDesign</description>
     <!-- AICB: just use the EPS data and advertize it as AICB (for Adobe Indesign) -->
     <export-type exporter="backend" format="EPS">
       <win-format>AICB????</win-format>
@@ -120,6 +123,41 @@
     <!-- HTML fragment for Thunderbird, GMail, ... -->
     <export-type exporter="html-data" format="html">
       <default-qt-formats type="html" />
+    </export-type>
+  </profile>
+
+
+  <!-- Specific formats -->
+  <profile name="pdf">
+    <in-submenu>Specific Formats</in-submenu>
+    <description>PDF</description>
+    <export-type exporter="backend" format="PDF">
+      <mime-type>application/pdf</mime-type>
+      <win-format>PDF</win-format>
+      <win-format>application/pdf</win-format>
+      <mac-flavor>com.adobe.pdf</mac-flavor>
+    </export-type>
+  </profile>
+  <profile name="png">
+    <in-submenu>Specific Formats</in-submenu>
+    <description>PNG</description>
+    <export-type exporter="backend" format="PNG">
+      <mime-type>image/png</mime-type>
+      <win-format>PNG</win-format>
+      <mac-flavor>public.png</mac-flavor>
+    </export-type>
+  </profile>
+  <profile name="eps">
+    <in-submenu>Specific Formats</in-submenu>
+    <description>EPS</description>
+    <export-type exporter="backend" format="EPS">
+      <mime-type>application/eps</mime-type>
+      <mime-type>application/postscript</mime-type>
+      <mime-type>image/eps</mime-type>
+      <win-format>Encapsulated PostScript</win-format>
+      <win-format>PostScript</win-format>
+      <mac-flavor>com.adobe.postscript</mac-flavor>
+      <mac-flavor>com.adobe.encapsulated-postscript</mac-flavor>
     </export-type>
   </profile>
 
