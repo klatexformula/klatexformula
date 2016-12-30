@@ -244,7 +244,8 @@ void KLFColorChooseWidgetPane::paintEvent(QPaintEvent */*e*/)
   if ( _colorcomponent != "fix" ) {
     p.setPen(QPen(hairscol, 1.f, Qt::DotLine));
     x = (int)(valueA()/xfac);
-    if (x < 0) x = 0; if (x >= width()) x = width()-1;
+    if (x < 0) { x = 0; }
+    if (x >= width()) { x = width()-1; }
     p.drawLine(x, 0, x, height());
   }
   if ( _colorcomponent_b != "fix" ) {
@@ -276,8 +277,9 @@ void KLFColorChooseWidgetPane::mouseMoveEvent(QMouseEvent *e)
   double yfac = (double)valueBMax() / (_img.height()-1);
   int x = e->pos().x();
   int y = height() - e->pos().y() - 1;
-  if (x < 0) x = 0; if (x >= width()) x = width()-1;
-  if (y < 0) y = 0; if (y >= height()) y = height()-1;
+  if (x < 0) { x = 0; }
+  if (x >= width()) { x = width()-1; }
+  if (y < 0) { y = 0; } if (y >= height()) { y = height()-1; }
 
   setColor(colorFromValues(_color, (int)(x*xfac), (int)(y*yfac)));
 }
