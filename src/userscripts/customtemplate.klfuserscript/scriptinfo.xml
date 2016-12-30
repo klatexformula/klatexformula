@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>customtemplate.py</exe-script>
+  <category>klf-backend-engine</category>
+  <name>Custom Template</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.2</version>
+  <license>GPL v2+</license>
+  <klf-backend-engine>
+    <spits-out>latex</spits-out>
+    <disable-inputs>FG_COLOR BG_COLOR MATHMODE FONT FONTSIZE PREAMBLE</disable-inputs>
+    <input-form-ui>customtemplate_input.ui</input-form-ui>
+  </klf-backend-engine>
+</klfuserscript-info>

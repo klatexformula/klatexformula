@@ -64,7 +64,8 @@
 
     <!-- OpenOffice.org format -->
     <export-type exporter="open-office-draw" format="XXXXXXXXX">
-      <mime-type>application/x-openoffice-drawing;windows_formatname="Drawing Format"</mime-type>
+      <mime-type>application/x-openoffice-drawing</mime-type>
+      <win-format>Drawing Format</win-format>
     </export-type>
 
   </profile>
@@ -83,21 +84,42 @@
     <export-type exporter="backend" format="EPS">
       <mime-type>application/eps</mime-type>
       <mime-type>application/postscript</mime-type>
+      <mime-type>image/eps</mime-type>
       <win-format>Encapsulated PostScript</win-format>
       <win-format>PostScript</win-format>
     </export-type>
 
-    <export-type><mime-type>application/eps</mime-type></export-type>
-    <export-type><mime-type>image/svg+xml</mime-type></export-type>
-    <export-type><mime-type>image/eps</mime-type></export-type>
-    <export-type><mime-type>application/postscript</mime-type></export-type> </profile>
+    <!-- SVG is useful, if we have it from ghostscript ... -->
+    <export-type exporter="backend" format="SVG">
+      <mime-type>image/svg+xml</mime-type>
+      <win-format>SVG</win-format>
+      <mac-flavor>public.svg-image</mac-flavor>
+    </export-type>
+    <!-- ... or from the user script -->
+    <export-type exporter="UserScript:svg-dvisvgm" format="svg">
+      <mime-type>image/svg+xml</mime-type>
+      <win-format>SVG</win-format>
+      <mac-flavor>public.svg-image</mac-flavor>
+    </export-type>
 
+  </profile>
+
+  <!-- A special format for InDesign - AICB - allows to change color etc. inside InDesign -->
   <profile name="for_adobe_indesign">
     <description>Vector format for Adobe InDesign</description>
     <!-- AICB: just use the EPS data and advertize it as AICB (for Adobe Indesign) -->
     <export-type exporter="backend" format="EPS">
       <win-format>AICB????</win-format>
       <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
+    </export-type>
+  </profile>
+
+  <!-- An HTML fragment for pasting into gmail or thunderbird -->
+  <profile name="html-fragment">
+    <description>HTML fragment</description>
+    <!-- HTML fragment for Thunderbird, GMail, ... -->
+    <export-type exporter="html-data" format="html">
+      <default-qt-formats type="html" />
     </export-type>
   </profile>
 

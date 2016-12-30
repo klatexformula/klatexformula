@@ -410,7 +410,39 @@ QStringList KLFExportTypeUserScriptInfo::klfExportTypeInfosList() const
 // -----------------------------------------------------------------------------
 
 
+typedef QPair<QRegExp, QString> ReplPair;
 
+static const QList<ReplPair > replace_display_latex = QList<ReplPair >()
+  // LaTeX fine-tuning spacing commands \, \; \: \!
+  << ReplPair(QRegExp("\\\\[,;:!]"), QLatin1String(""))
+  // {\text{...}} and {\mathrm{...}}  -->  ...
+  << ReplPair(QRegExp("\\{\\\\(?:text|mathrm)\\{((?:\\w|\\s|[._-])*)\\}\\}"),
+                             QLatin1String("{\\1}"))
+  // \text{...} and \mathrm{...}  -->  ...
+  << ReplPair(QRegExp("\\\\(?:text|mathrm)\\{((?:\\w|\\s|[._-])*)\\}"), QLatin1String("{\\1}"))
+  // \var(epsilon|phi|...)   -->  \epsilon, \phi
+  << ReplPair(QRegExp("\\\\var([a-zA-Z]+)"), QLatin1String("\\\\1"))
+     ;
+
+
+QString klfLatexToPseudoTex(QString latex)
+{
+  // remove initial comments from latex code...
+  QStringList latexlines = latex.split("\n");
+  while (latexlines.size() && QRegExp("\\s*\\%.*").exactMatch(latexlines[0])) {
+    latexlines.removeAt(0);
+  }
+  latex = latexlines.join("\n");
+
+  // and simplify the LaTeX code a bit
+
+  // format LaTeX code nicely to be displayed
+  foreach (ReplPair rpl, replace_display_latex) {
+    latex.replace(rpl.first, rpl.second);
+  }
+
+  return latex;  
+}
 
 
 

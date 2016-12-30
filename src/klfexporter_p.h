@@ -47,6 +47,10 @@ extern QString klfbackend_last_userscript_output;
 
 
 
+
+
+
+
 // ==============================================================================
 
 
@@ -199,6 +203,28 @@ public:
 
 
 
+
+
+
+// escape the value of an HTML attribute
+static inline QString toHtmlAttrText(QString s)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("s="<<s);
+  QRegExp replaceCharsRX("([^a-zA-Z0-9/ ._-])");
+  int pos = 0;
+  while ((pos = replaceCharsRX.indexIn(s, pos)) != -1) {
+    QString entity = "&#x"+QString::number(replaceCharsRX.cap(1)[0].unicode(), 16).toUpper()+";" ;
+    klfDbg("replacing char at pos="<<pos<<" by entity="<<entity<<": s(pos...pos+5)="<<s.mid(pos,5));
+    s.replace(pos, replaceCharsRX.matchedLength(), entity);
+    pos += entity.length();
+  }
+  klfDbg("final string: "<<s);
+  return s;
+}
+
+
+
 class KLFHtmlDataExporter : public QObject, public KLFExporter
 {
   Q_OBJECT
@@ -224,7 +250,7 @@ public:
   virtual QString titleFor(const QString & format)
   {
     if (format == "html") {
-      return tr("HTML with embedded image data");
+      return tr("HTML fragment with embedded image data");
     }
     klfWarning("Invalid format: " << format) ;
     return QString();
@@ -239,15 +265,60 @@ public:
     return QStringList();
   }
 
-  virtual QByteArray getData(const QString& /*format*/, const KLFBackend::klfOutput& /*output*/,
-                             const QVariantMap&  = QVariantMap())
+  virtual QByteArray getData(const QString& format, const KLFBackend::klfOutput& output,
+                             const QVariantMap& params = QVariantMap())
   {
     clearErrorString();
-    
-    return QString::fromLatin1("<html><h1>TODO: HTML DATA EXPORT NEEDS TO BE IMPLEMENTED</h1></html>").toUtf8();
 
-    //klfWarning("Invalid format: " << format) ;
-    //return QByteArray();
+    if (format != "html") {
+      klfWarning("Invalid format: " << format) ;
+      return QByteArray();
+    }
+
+    int html_export_dpi = params.value("html_export_dpi", (int)klfconfig.ExportData.htmlExportDpi).toInt();
+    int html_export_display_dpi = params.value("html_export_display_dpi",
+                                               (int)klfconfig.ExportData.htmlExportDisplayDpi).toInt();
+
+    if (output.input.dpi < html_export_dpi * 1.25f) {
+      html_export_dpi = output.input.dpi;
+    } 
+
+    QImage img = output.result;
+    if (html_export_dpi > 0 && html_export_dpi != output.input.dpi) {
+      // needs to be rescaled
+      QSize targetSize = img.size();
+      targetSize *= (double) html_export_dpi / output.input.dpi;
+      klfDbg("scaling to "<<html_export_dpi<<" DPI from "<<output.input.dpi<<" DPI... targetSize="<<targetSize) ;
+      img = klfImageScaled(img, targetSize);
+    }
+
+    QSize imgsize = output.result.size();
+    imgsize *= (float) html_export_dpi / output.input.dpi;
+
+    QString latexattr = toHtmlAttrText(klfLatexToPseudoTex(output.input.latex));
+
+    QString w_in = QString::number((float)imgsize.width() / html_export_display_dpi, 'f', 3);
+    QString h_in = QString::number((float)imgsize.height() / html_export_display_dpi, 'f', 3);
+
+    QByteArray png;
+    {
+      QBuffer buffer(&png);
+      buffer.open(QIODevice::WriteOnly);
+      img.save(&buffer, "PNG"); // writes image into ba in PNG format
+    }
+    QByteArray base64imgdata = png.toBase64();
+    
+    klfDbg("origimg/size="<<output.result.size()<<"; origDPI="<<output.input.dpi
+           <<"; html_export_dpi="<<html_export_dpi
+           <<"; html_export_display_dpi="<<html_export_display_dpi<<"; imgsize="<<imgsize
+           <<"; w_in="<<w_in<<"; h_in="<<h_in) ;
+    
+    QString html =
+      QString::fromLatin1("<img src=\"data:image/png;base64,%1\" alt=\"%2\" title=\"%3\" "
+                          "style=\"width: %4in; height: %5in; vertical-align: middle;\">")
+      .arg(base64imgdata, latexattr, latexattr, w_in, h_in);
+
+    return html.toUtf8();
   }
 };
 

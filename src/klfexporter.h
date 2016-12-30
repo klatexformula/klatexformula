@@ -206,6 +206,17 @@ private:
 
 
 
+/** \brief A stripped-down version of the latex string, suitable as a human-readable
+ *         expression in plain text
+ *
+ * For example, \c "\vec{a}_\mathrm{xyz} = -\frac{1}{2}" becomes e.g.
+ * \c "\vec{a}_{xyz} = -(1/2)".
+ */
+QString klfLatexToPseudoTex(QString latex);
+
+
+
+
 
 #endif
 
