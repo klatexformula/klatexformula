@@ -498,10 +498,10 @@ endmacro(KLFDeclareCacheVarOptionCondition)
 macro(KLFMakeAbsInstallPath abs_dir_var dir_var)
   if(IS_ABSOLUTE "${${dir_var}}")
     set(${abs_dir_var} "${${dir_var}}")
-  else(IS_ABSOLUTE "${${dir_var}}")
+  else()
     set(${abs_dir_var} "${CMAKE_INSTALL_PREFIX}/${${dir_var}}")
-  endif(IS_ABSOLUTE "${${dir_var}}")
-endmacro(KLFMakeAbsInstallPath)
+  endif()
+endmacro()
 
 #
 # Returns first element in list 'list' (variable name), but does not complain if list is empty.

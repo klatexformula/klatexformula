@@ -2,56 +2,36 @@
 # ==========================
 # $Id$
 
-cmake_policy(VERSION 2.8.0)
-
-
-KLFGetCMakeVarChanged(CMAKE_INSTALL_PREFIX)
-KLFGetCMakeVarChanged(KLF_INSTALL_RUN_POST_INSTALL)
 
 
 # Installation destination
 # ------------------------
 
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFormula." FORCE)
-endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-KLFCMakeSetVarChanged(CMAKE_INSTALL_PREFIX)
+set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "The installation prefix for KLatexFormula.")
 mark_as_advanced(CLEAR CMAKE_INSTALL_PREFIX)
-message(STATUS "'make install' will install to \"${CMAKE_INSTALL_PREFIX}\" (CMAKE_INSTALL_PREFIX)")
+message(STATUS "Install prefix for 'make install': \"${CMAKE_INSTALL_PREFIX}\" (CMAKE_INSTALL_PREFIX)")
 
 
 # Installation Paths
 # ------------------
 
-macro(KLFWarnAbsInstallPath var)
-  if(klf_changed_CMAKE_INSTALL_PREFIX AND IS_ABSOLUTE "${${var}}")
-    KLFNote("You have chosen an absolute ${var} path. The change
-    to CMAKE_INSTALL_PREFIX will NOT be reflected there; you may have to change
-    the variable manually.")
-  endif(klf_changed_CMAKE_INSTALL_PREFIX AND IS_ABSOLUTE "${${var}}")
-endmacro(KLFWarnAbsInstallPath)
+include(GNUInstallDirs)
+
 
 # Lib Dir
-set(install_lib_dir "lib${KLF_LIB_SUFFIX}")
-if(WIN32)
-  # install all in binary directory on MS Windows
-  set(install_lib_dir "bin") # yes, install to "bin"!
-endif(WIN32)
-if(APPLE AND KLF_MACOSX_BUNDLES)
-  # install to /Library/Frameworks on mac OS X
-  set(install_lib_dir "/Library/Frameworks")
-endif(APPLE AND KLF_MACOSX_BUNDLES)
+if(NOT DEFINED KLF_INSTALL_LIB_DIR)
+  set(KLF_INSTALL_LIB_DIR "${CMAKE_INSTALL_LIBDIR}")
+  if(WIN32)
+    # install all in binary directory on MS Windows
+    set(KLF_INSTALL_LIB_DIR "bin") # yes, install to "bin"!
+  endif()
+  if(APPLE AND KLF_MACOSX_BUNDLES)
+    # install to /Library/Frameworks on mac OS X
+    set(KLF_INSTALL_LIB_DIR "/Library/Frameworks")
+  endif()
+endif()
 
-#KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice
-#                                       calcoptvalue depvar1)
-KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_LIB_DIR
-	STRING "Library installation directory (relative to install prefix, or absolute)"
-	ON                               # updatenotice
-	"${install_lib_dir}"             # calculated value
-	KLF_LIB_SUFFIX                   # dependance variables
-)
 message(STATUS "Installing libraries to \"${KLF_INSTALL_LIB_DIR}\" (KLF_INSTALL_LIB_DIR)")
-KLFWarnAbsInstallPath(KLF_INSTALL_LIB_DIR)
 
 # Utility variable. Same as KLF_INSTALL_LIB_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
@@ -59,25 +39,19 @@ KLFMakeAbsInstallPath(KLF_ABS_INSTALL_LIB_DIR  KLF_INSTALL_LIB_DIR)
 KLFCMakeDebug("KLF_ABS_INSTALL_LIB_DIR is ${KLF_ABS_INSTALL_LIB_DIR}; lib-dir is ${KLF_INSTALL_LIB_DIR}")
 
 # Bin Dir
-set(install_bin_dir "bin")
-if(WIN32)
-  # install binary in "bin/" also on Ms Windows
-  set(install_bin_dir "bin")
-endif(WIN32)
-if(APPLE AND KLF_MACOSX_BUNDLES)
-  # install to /Applications on mac OS X
-  set(install_bin_dir "/Applications")
-endif(APPLE AND KLF_MACOSX_BUNDLES)
+if(NOT DEFINED KLF_INSTALL_BIN_DIR)
+  set(KLF_INSTALL_BIN_DIR "bin")
+  if(WIN32)
+    # install binary in "bin/" also on Ms Windows
+    set(KLF_INSTALL_BIN_DIR "bin")
+  endif()
+  if(APPLE AND KLF_MACOSX_BUNDLES)
+    # install to /Applications on mac OS X
+    set(KLF_INSTALL_BIN_DIR "/Applications")
+  endif()
+endif()
 
-#KLFDeclareCacheVarOptionFollowComplex1(specificoption cachetype cachestring updatenotice calcoptvalue depvar1)
-KLFDeclareCacheVarOptionFollowComplex1(KLF_INSTALL_BIN_DIR
-	STRING "Binaries installation directory (relative to install prefix, or absolute)" # cache info
-	ON                      # updatenotice
-	"${install_bin_dir}"    # calculated value
-	DUMMY_DEPENDANCE_VARIABLE # dependance variable (as of now none!)
-)
 message(STATUS "Installing binaries to \"${KLF_INSTALL_BIN_DIR}\" (KLF_INSTALL_BIN_DIR)")
-KLFWarnAbsInstallPath(KLF_INSTALL_BIN_DIR)
 
 # Utility variable. Same as KLF_INSTALL_BIN_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
@@ -86,17 +60,12 @@ KLFMakeAbsInstallPath(KLF_ABS_INSTALL_BIN_DIR KLF_INSTALL_BIN_DIR)
 
 # Designer Plugin Library Dir
 # ...
-#KLFDeclareCacheVarOptionFollowComplexN(specificoption cachetype cachestring updatenotice calcoptvalue depvars)
-KLFDeclareCacheVarOptionFollowComplexN(KLF_INSTALL_DESPLUGIN_DIR
-	STRING "Qt Designer Plugin installation directory (relative to install prefix, or absolute)" # cache info
-	ON                            # updatenotice
-	"${QT_PLUGINS_DIR}/designer"  # calculated value
-	""     # dependance variables
-)
+if(NOT DEFINED KLF_INSTALL_DESPLUGIN_DIR)
+  set(KLF_INSTALL_DESPLUGIN_DIR "${QT_PLUGINS_DIR}/designer")
+endif()
 if(KLF_BUILD_TOOLSDESPLUGIN)
   message(STATUS "Installing klftools designer plugin to \"${KLF_INSTALL_DESPLUGIN_DIR}\" (KLF_INSTALL_DESPLUGIN_DIR)")
-endif(KLF_BUILD_TOOLSDESPLUGIN)
-KLFWarnAbsInstallPath(KLF_INSTALL_DESPLUGIN_DIR)
+endif()
 
 # Utility variable. Same as KLF_INSTALL_DESPLUGIN_DIR, but garanteed to be absolute path.
 # Not kept in cache, it is (trivially) computed here
@@ -104,75 +73,38 @@ KLFMakeAbsInstallPath(KLF_ABS_INSTALL_DESPLUGIN_DIR KLF_INSTALL_DESPLUGIN_DIR)
 
 
 
-# find out the name of the subdirectory in which to install plugin.
-if(NOT WIN32)
-  set(klf_osarch_sep_chars ":")
-else(NOT WIN32)
-  set(klf_osarch_sep_chars "--") # qt will translate : to -- because ':' can't be used in file name on Windows
-endif(NOT WIN32)
-#
-set(klfPluginOsArchDir "sysarch_${KLF_CMAKE_OS}${klf_osarch_sep_chars}${KLF_CMAKE_ARCH}")
-#
-set(klfInstPluginDir "${klfPluginOsArchDir}/klf${KLF_VERSION}")
-
-# rccresources dir
-if(WIN32)
-
-  #set(KLF_INSTALL_RCCRESOURCES_DIR "rccresources/" CACHE STRING
-  #		    "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
-  #mark_as_advanced(KLF_INSTALL_RCCRESOURCES_DIR)
-  #KLFWarnAbsInstallPath(KLF_INSTALL_RCCRESOURCES_DIR)
-
-  set(KLF_INSTALL_PLUGINS_DIR "plugins/${klfInstPluginDir}" CACHE STRING
-    "Where to install plugins (see also KLF_INSTALL_PLUGINS)")
-  mark_as_advanced(KLF_INSTALL_PLUGINS_DIR)
-  KLFWarnAbsInstallPath(KLF_INSTALL_PLUGINS_DIR)
-
-else(WIN32)
-  #set(KLF_INSTALL_RCCRESOURCES_DIR "share/klatexformula/rccresources/" CACHE STRING
-  #			      "Where to install rccresources files (see also KLF_INSTALL_PLUGINS)")
-  set(KLF_INSTALL_PLUGINS_DIR "share/klatexformula/plugins/${klfInstPluginDir}" CACHE STRING
-  			      "Where to install plugins (see also KLF_INSTALL_PLUGINS)")
-endif(WIN32)
-KLFMakeAbsInstallPath(KLF_ABS_INSTALL_PLUGINS_DIR  KLF_INSTALL_PLUGINS_DIR)
-
-
 # Installed RPATH
 # ---------------
 
-# option skip RPATH completely
-set(CMAKE_SKIP_RPATH FALSE CACHE BOOL "Don't set RPATH on executables and libraries")
-mark_as_advanced(CLEAR CMAKE_SKIP_RPATH)
-# option to specify RPATH, only if not skipping
-if(NOT CMAKE_SKIP_RPATH)
-  
-  #KLFDeclareCacheVarOptionFollowComplex2(specificoption cachetype cachestring updatenotice calcoptvalue depvar1 depvar2)
-  KLFDeclareCacheVarOptionFollowComplex2(CMAKE_INSTALL_RPATH
-	PATH "RPATH for installed libraries and executables"
-	ON
-	"${KLF_ABS_INSTALL_LIB_DIR}"
-	CMAKE_INSTALL_PREFIX
-	KLF_INSTALL_LIB_DIR
-  )
-  mark_as_advanced(CLEAR CMAKE_INSTALL_RPATH)
-  message(STATUS "RPATH for installed libraries and executables: \"${CMAKE_INSTALL_RPATH}\" (CMAKE_SKIP_RPATH,CMAKE_INSTALL_RPATH)")
+# # option skip RPATH completely
+# if(NOT CMAKE_SKIP_RPATH)
 
-else(NOT CMAKE_SKIP_RPATH)
-
-  message(STATUS "Skipping RPATH on executables and libraries (CMAKE_SKIP_RPATH,CMAKE_INSTALL_RPATH)")
-
-endif(NOT CMAKE_SKIP_RPATH)
+#   if(NOT 
+#   #KLFDeclareCacheVarOptionFollowComplex2(specificoption cachetype cachestring updatenotice calcoptvalue depvar1 depvar2)
+#   KLFDeclareCacheVarOptionFollowComplex2(CMAKE_INSTALL_RPATH
+# 	PATH "RPATH for installed libraries and executables"
+# 	ON
+# 	"${KLF_ABS_INSTALL_LIB_DIR}"
+# 	CMAKE_INSTALL_PREFIX
+# 	KLF_INSTALL_LIB_DIR
+#   )
+#   mark_as_advanced(CLEAR CMAKE_INSTALL_RPATH)
+#   message(STATUS "RPATH for installed libraries and executables: \"${CMAKE_INSTALL_RPATH}\" (CMAKE_SKIP_RPATH,CMAKE_INSTALL_RPATH)")
+# else(NOT CMAKE_SKIP_RPATH)
+#   message(STATUS "Skipping RPATH on executables and libraries (CMAKE_SKIP_RPATH,CMAKE_INSTALL_RPATH)")
+# endif(NOT CMAKE_SKIP_RPATH)
 
 
 # What to Install?
 # ----------------
 
 # general options
-option(KLF_INSTALL_RUNTIME "Install run-time files (binaries, so libraries, plugins)" YES)
-option(KLF_INSTALL_DEVEL "Install development files (headers, static libraries)" YES)
-
-KLFGetCMakeVarChanged(KLF_INSTALL_RUNTIME)
-KLFGetCMakeVarChanged(KLF_INSTALL_DEVEL)
+if(NOT DEFINED KLF_INSTALL_RUNTIME)
+  set(KLF_INSTALL_RUNTIME YES)
+endif()
+if(NOT DEFINED KLF_INSTALL_DEVEL)
+  set(KLF_INSTALL_DEVEL YES)
+endif()
 
 # fine-tuning
 # the OFF's at end of line is to turn off the KLFNotes() indicating the value changed

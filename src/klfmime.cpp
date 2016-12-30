@@ -725,7 +725,8 @@ QStringList KLFMimeData::formats() const
                                        d->output
                                        ));
 #else // by default, do X11  [#if defined(KLF_WS_X11)]
-  fmts = pExportProfile.collectedMimeTypes(& d->output);
+  fmts = d->exportProfile.collectedAvailableMimeTypes( d->exporterManager,
+						       d->output );
 #endif
 
   klfDbg("our mime formats: " << fmts) ;
