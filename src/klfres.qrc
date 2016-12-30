@@ -78,7 +78,7 @@
   </qresource>
   <qresource>
     <file>conf/latexsymbols.d/latexsymbols.xml</file>
-    <file>conf/export_mime_profiles.d/export_default.xml</file>
+    <file>conf/export_mime_profiles.d/export_default_4.0.xml</file>
     <file>conf/latexfontdefs.d/defaultfontdefs.xml</file>
   </qresource>
   <qresource>

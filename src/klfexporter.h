@@ -75,6 +75,22 @@ public:
    */
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& klfoutput) const = 0;
 
+  /** \brief Return TRUE if the given format is supported
+   *
+   *
+   * The default implementation simply returns
+   * <code>supportedFormats(klfoutput).contains(format)</code>, and should suffice in most
+   * cases; you don't need to reimplement this function.
+   *
+   * However, in case you have many formats and depending on your use case, there may be a
+   * more clever way of finding out whether a given format is supported than going through
+   * the list of all supported formats.  In such a case you can reimplement this function.
+   */
+  virtual bool supports(const QString & format, const KLFBackend::klfOutput& klfoutput) const
+  {
+    return supportedFormats(klfoutput).contains(format);
+  }
+
   /** \brief A huaman-readable title for this exporter and format (e.g. "PDF Vector Graphic")
    */
   virtual QString titleFor(const QString & format) = 0;
@@ -113,6 +129,27 @@ private:
   KLF_DECLARE_PRIVATE(KLFExporter) ;
 };
 
+
+
+struct KLFExporterManagerPrivate;
+
+class KLFExporterManager
+{
+public:
+  KLFExporterManager();
+  virtual ~KLFExporterManager();
+
+  //! The manager takes ownership of \a exporter and will delete it once the manager is destroyed.
+  void registerExporter(KLFExporter *exporter);
+  void unregisterExporter(KLFExporter *exporter);
+
+  KLFExporter* exporterByName(const QString & exporterName);
+
+  QList<KLFExporter*> exporterList();
+
+private:
+  KLF_DECLARE_PRIVATE( KLFExporterManager ) ;
+};
 
 
 

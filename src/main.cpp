@@ -852,24 +852,10 @@ int main(int argc, char **argv)
     for (k = 0; k < qt_argc && qt_argv[k] != NULL; ++k)
       qtargvlist << QString::fromLocal8Bit(qt_argv[k]);
 
-// #if defined(KLF_WS_MAC) && !defined(KLF_NO_CMU_FONT)
-//        // this is needed to avoid having default app font set right after window activation :( --????
-//        QApplication::setDesktopSettingsAware(false);
-// #endif
-
     // Create the application
     KLFGuiApplication app(qt_argc, qt_argv);
 
     app.setWindowIcon(QIcon(":/pics/klatexformula.svg"));
-
-#ifdef KLF_WS_MAC
-    //app.setFont(QFont("Lucida Grande", 13));
-
-    extern void __klf_init_the_macpasteboardmime();
-    __klf_init_the_macpasteboardmime();
-    //    extern void qt_set_sequence_auto_mnemonic(bool b);
-    //    qt_set_sequence_auto_mnemonic(true);
-#endif
 
     // add our default application font(s) ;-)
     //

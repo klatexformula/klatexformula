@@ -100,6 +100,7 @@ KLFMainWin::KLFMainWin()
   // load styless
   loadStyles();
 
+  klfDbg("Instantiating LaTeX symbols") ;
   d->mLatexSymbols = new KLFLatexSymbols(this, d->settings);
 
   u->txtLatex->setFont(klfconfig.UI.latexEditFont);
@@ -134,6 +135,7 @@ KLFMainWin::KLFMainWin()
   u->btnDPIPresets->setMenu(DPIPresets);
 
 
+  klfDbg("Setting up LaTeX fonts") ;
   // latex fonts
   d->reloadLatexFontDefs();
   u->cbxLatexFont->addItem(tr("Computer Modern (default font)"), QVariant(QString()));
@@ -274,6 +276,8 @@ KLFMainWin::KLFMainWin()
 
   // -- MAJOR SIGNAL/SLOT CONNECTIONS --
 
+  klfDbg("Setting up some major signal/slot connections") ;
+
   connect(u->aClearLatex, SIGNAL(triggered()), this, SLOT(slotClearLatex()));
   connect(u->aClearAll, SIGNAL(triggered()), this, SLOT(slotClearAll()));
   connect(u->btnEvaluate, SIGNAL(clicked()), this, SLOT(slotEvaluate()));
@@ -307,14 +311,18 @@ KLFMainWin::KLFMainWin()
   // our help/about dialog
   connect(u->btnHelp, SIGNAL(clicked()), this, SLOT(showAbout()));
 
-  // -- SMALL REAL-TIME PREVIEW GENERATOR THREAD --
 
+  // SMALL REAL-TIME PREVIEW GENERATOR THREAD
+
+  klfDbg("Setting up real-time preview generator thread") ;
   d->pLatexPreviewThread = new KLFLatexPreviewThread(this);
   d->pContLatexPreview = new KLFContLatexPreview(d->pLatexPreviewThread);
   //  klfconfig.UI.labelOutputFixedSize.connectQObjectProperty(pLatexPreviewThread, "previewSize");
   klfconfig.UI.previewTooltipMaxSize.connectQObjectProperty(d->pContLatexPreview, "largePreviewSize");
   d->pContLatexPreview->setInput(d->collectInput(false));
   d->pContLatexPreview->setSettings(currentSettings());
+
+  klfDbg("about to set up more connections ...") ;
 
   connect(u->txtLatex, SIGNAL(insertContextMenuActions(const QPoint&, QList<QAction*> *)),
 	  d, SLOT(slotEditorContextMenuInsertActions(const QPoint&, QList<QAction*> *)));
@@ -361,28 +369,22 @@ KLFMainWin::KLFMainWin()
 	  d, SLOT(showRealTimePreview(const QImage&, const QImage&)));
   connect(d->pContLatexPreview, SIGNAL(previewReset()), d, SLOT(showRealTimeReset()));
 
-  // CREATE SETTINGS DIALOG
 
-  d->mSettingsDialog = new KLFSettings(this);
+  // LOAD USER SCRIPTS
 
+  klfDbg("Loading user scripts") ;
 
-  // INSTALL SOME EVENT FILTERS... FOR show/hide EVENTS
-
-  d->mLibBrowser->installEventFilter(this);
-  d->mLatexSymbols->installEventFilter(this);
-  d->mStyleManager->installEventFilter(this);
-  d->mSettingsDialog->installEventFilter(this);
+  slotReloadUserScripts();
 
 
   // REGISTER OUR EXPORTERS
 
+  klfDbg("Registering exporters") ;
+
   registerExporter(new KLFBackendOutputFormatsExporter(this));
   registerExporter(new KLFTexExporter(this));
-
-
-  // LOAD USER SCRIPTS
-
-  slotReloadUserScripts();
+  registerExporter(new KLFHtmlDataExporter(this));
+  registerExporter(new KLFTempFileUriExporter(this));
 
   // now, create one instance of KLFUserScriptExporter per export type user script ...
   extern QStringList klf_user_scripts;
@@ -391,6 +393,41 @@ KLFMainWin::KLFMainWin()
       registerExporter(new KLFUserScriptExporter(klf_user_scripts[k], this));
     }
   }
+
+
+  // MIME EXPORT PROFILES
+
+  klfDbg("Loading mime export profiles") ;
+
+  // the KLFMimeExportProfileManager is also responsible for instantiating appropriate
+  // QMacPasteboardMime, QWinClipboard classes
+  d->pMimeExportProfileManager.addExportProfiles(
+      KLFMimeExportProfileManager::loadKlfExportProfileList()
+      );
+
+  // REGISTER PLATFORM-SPECIFIC CLIPBOARD CONVERTERS
+
+#if defined(KLF_WS_MAC)
+  d->macFlavorsConverter = new KLFMacPasteboardMime;
+#elif defined(KLF_WS_WIN)
+  d->winFormatsConverter = new KLFWinClipboard;
+#else
+  // no special needs on X11
+#endif
+
+  // CREATE SETTINGS DIALOG
+
+  d->mSettingsDialog = new KLFSettings(this);
+
+
+  // INSTALL SOME EVENT FILTERS... FOR show/hide EVENTS
+
+  klfDbg("Installing some event filters") ;
+
+  d->mLibBrowser->installEventFilter(this);
+  d->mLatexSymbols->installEventFilter(this);
+  d->mStyleManager->installEventFilter(this);
+  d->mSettingsDialog->installEventFilter(this);
 
 
   // ADDITIONAL SETUP
@@ -517,6 +554,18 @@ KLFMainWin::~KLFMainWin()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+#if defined(KLF_WS_MAC)
+  if (d->macFlavorsConverter) {
+    delete d->macFlavorsConverter;
+  }
+#elif defined(KLF_WS_WIN)
+  if (d->winFormatsConverter) {
+    delete d->winFormatsConverter;
+  }
+#else
+  // no special needs on X11
+#endif
+
   saveLibraryState();
   saveSettings();
   saveStyles();
@@ -551,13 +600,11 @@ void KLFMainWinPrivate::refreshExportTypesMenu()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  KLFMimeExporter::initMimeExporterList();
-
   // Export profiles selection list
 
   pExportProfileQuickMenuActionList.clear();
   int k;
-  QList<KLFMimeExportProfile> eplist = KLFMimeExportProfile::exportProfileList();
+  QList<KLFMimeExportProfile> eplist = pMimeExportProfileManager.exportProfileList();
   QMenu *menu = new QMenu(K->u->btnSetExportProfile);
   QActionGroup *actionGroup = new QActionGroup(menu);
   actionGroup->setExclusive(true);
@@ -659,6 +706,8 @@ bool KLFMainWin::loadDefaultStyle()
 
 bool KLFMainWin::loadNamedStyle(const QString& sty)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg( "style name = " << sty ) ;
   // find style with name sty (if existant) and set it
   for (int kl = 0; kl < d->styles.size(); ++kl) {
     if (d->styles[kl].name == sty) {
@@ -2244,14 +2293,12 @@ void KLFMainWin::registerHelpLinkAction(const QString& path, QObject *object, co
 
 void KLFMainWin::registerExporter(KLFExporter *exporter)
 {
-  KLF_ASSERT_NOT_NULL( exporter, "Refusing to register NULL exporter object!",  return ) ;
-
-  d->pExporters.append(exporter);
+  d->pExporterManager.registerExporter(exporter) ;
 }
 
 void KLFMainWin::unregisterExporter(KLFExporter *exporter)
 {
-  d->pExporters.removeAll(exporter);
+  d->pExporterManager.unregisterExporter(exporter);
 }
 
 void KLFMainWin::registerDataOpener(KLFAbstractDataOpener *dataopener)
@@ -2504,11 +2551,13 @@ bool KLFMainWin::eventFilter(QObject *obj, QEvent *e)
     QString tooltipText;
     if (obj == u->btnCopy) {
       tooltipText = tr("Copy the formula to the clipboard. Current export profile: %1")
-	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.copyExportProfile).description());
+	.arg(d->pMimeExportProfileManager.findExportProfile(klfconfig.ExportData.copyExportProfile)
+             .description());
     } else if (obj == u->btnDrag) {
       tooltipText = tr("Click and keep mouse button pressed to drag your formula to another application. "
 		       "Current export profile: %1")
-	.arg(KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.dragExportProfile).description());
+	.arg(d->pMimeExportProfileManager.findExportProfile(klfconfig.ExportData.dragExportProfile)
+             .description());
     }
     QToolTip::showText(((QHelpEvent*)e)->globalPos(), tooltipText, qobject_cast<QWidget*>(obj));
     return true;
@@ -3301,12 +3350,18 @@ void KLFMainWin::pasteLatexFromClipboard(QClipboard::Mode mode)
 
 QList<KLFExporter*> KLFMainWin::registeredExporters()
 {
-  return d->pExporters;
+  return d->pExporterManager.exporterList();
 }
 QList<KLFAbstractDataOpener*> KLFMainWin::registeredDataOpeners()
 {
   return d->pDataOpeners;
 }
+
+QList<KLFMimeExportProfile> KLFMainWin::mimeExportProfileList()
+{
+  return d->pMimeExportProfileManager.exportProfileList();
+}
+
 
 static QString find_list_agreement(const QStringList& a, const QStringList& b)
 {
@@ -3540,36 +3595,6 @@ void KLFMainWin::slotSetExportProfile(const QString& exportProfile)
   saveSettings();
 }
 
-/*
-QMimeData * KLFMainWin::resultToMimeData(const QString& exportProfileName)
-{
-  klfDbg("export profile: "<<exportProfileName);
-  if ( _output.result.isNull() )
-    return NULL;
-
-  KLFMimeExportProfile p = KLFMimeExportProfile::findExportProfile(exportProfileName);
-  QStringList mimetypes = p.mimeTypes();
-
-  QMimeData *mimedata = new QMimeData;
-  int k;
-  for (k = 0; k < mimetypes.size(); ++k) {
-    klfDbg("exporting "<<mimetypes[k]<<" ...");
-    QString mimetype = mimetypes[k];
-    KLFMimeExporter *exporter = KLFMimeExporter::mimeExporterLookup(mimetype);
-    if (exporter == NULL) {
-      qWarning()<<KLF_FUNC_NAME<<": Can't find an exporter for mime-type "<<mimetype<<".";
-      continue;
-    }
-    QByteArray data = exporter->data(mimetype, _output);
-    mimedata->setData(mimetype, data);
-    klfDbg("exporting mimetype done");
-  }
-
-  klfDbg("got mime data.");
-  return mimedata;
-}
-*/
-
 
 void KLFMainWin::slotDrag()
 {
@@ -3587,9 +3612,13 @@ void KLFMainWin::slotDrag()
   void aboutToDragData();
 
   QDrag *drag = new QDrag(this);
-  KLFMimeData *mime = new KLFMimeData(klfconfig.ExportData.dragExportProfile, d->output);
+  KLFMimeData *mime = new KLFMimeData(
+      d->pMimeExportProfileManager.findExportProfile(klfconfig.ExportData.dragExportProfile),
+      & d->pExporterManager,
+      d->output
+      );
 
-  connect(mime, SIGNAL(droppedData(const QString&)), this, SIGNAL(draggedDataWasDropped(const QString&)));
+//  connect(mime, SIGNAL(droppedData(const QString&)), this, SIGNAL(draggedDataWasDropped(const QString&)));
 
   drag->setMimeData(mime);
 
@@ -3598,7 +3627,9 @@ void KLFMainWin::slotDrag()
   if (img.width() > sz.width() || img.height() > sz.height())
     img = img.scaled(sz, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   // imprint the export type on the drag pixmap
-  QString exportProfileText = KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.dragExportProfile).description();
+  QString exportProfileText = d->pMimeExportProfileManager.findExportProfile(
+      klfconfig.ExportData.dragExportProfile
+      ).description();
   { QPainter painter(&img);
     QFont smallfont = QFont("Helvetica", 6);
     smallfont.setPixelSize(11);
@@ -3639,42 +3670,16 @@ void KLFMainWin::slotCopy()
 
   emit aboutToCopyData();
 
-#ifdef KLF_WS_WIN
-  extern void klfWinClipboardCopy(HWND h, const QStringList& wintypes,
-				  const QList<QByteArray>& datalist);
-
-  QString profilename = klfconfig.ExportData.copyExportProfile;
-  KLFMimeExportProfile p = KLFMimeExportProfile::findExportProfile(profilename);
-
-  QStringList mimetypes = p.mimeTypes();
-  QStringList wintypes;
-  QList<QByteArray> datalist;
-
-  int k;
-  for (k = 0; k < mimetypes.size(); ++k) {
-    QString mimetype = mimetypes[k];
-    QString wintype = p.respectiveWinType(k); // queries the exporter if needed
-    if (wintype.isEmpty())
-      wintype = mimetype;
-    KLFMimeExporter *exporter = KLFMimeExporter::mimeExporterLookup(mimetype);
-    if (exporter == NULL) {
-      qWarning()<<KLF_FUNC_NAME<<": Can't find exporter for type "<<mimetype
-	        <<", winformat="<<wintype<<".";
-      continue;
-    }
-    QByteArray data = exporter->data(mimetype, d->output);
-    wintypes << wintype;
-    datalist << data;
-  }
-
-  klfWinClipboardCopy(winId(), wintypes, datalist);
-
-#else
-  KLFMimeData *mimedata = new KLFMimeData(klfconfig.ExportData.copyExportProfile, d->output);
+  KLFMimeData *mimedata = new KLFMimeData(
+      d->pMimeExportProfileManager.findExportProfile(klfconfig.ExportData.copyExportProfile),
+      & d->pExporterManager,
+      d->output
+      );
   QApplication::clipboard()->setMimeData(mimedata, QClipboard::Clipboard);
-#endif
 
-  KLFMimeExportProfile profile = KLFMimeExportProfile::findExportProfile(klfconfig.ExportData.copyExportProfile);
+  KLFMimeExportProfile profile = d->pMimeExportProfileManager.findExportProfile(
+      klfconfig.ExportData.copyExportProfile
+      );
   d->showExportMsgLabel(tr("Copied as <b>%1</b>").arg(profile.description()));
 
   emit copiedData(profile.profileName());
@@ -3704,8 +3709,10 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 
   int k, j, ll;
 
-  for (k = 0; k < d->pExporters.size(); ++k) {
-    KLFExporter * exporter = d->pExporters[k];
+  QList<KLFExporter*> exporters = d->pExporterManager.exporterList();
+
+  for (k = 0; k < exporters.size(); ++k) {
+    KLFExporter * exporter = exporters[k];
     if (!exporter->isSuitableForFileSave()) {
       continue;
     }

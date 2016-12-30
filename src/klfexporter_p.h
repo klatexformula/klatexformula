@@ -30,6 +30,8 @@
 #include <QBuffer>
 
 #include <klfdefs.h>
+#include <klfutil.h>
+#include <klfguiutil.h>
 
 #include <klfuserscript.h>
 #include <klfbackend.h>
@@ -189,6 +191,67 @@ public:
     return QByteArray();
   }
 };
+
+
+
+
+// ==============================================================================
+
+
+
+class KLFHtmlDataExporter : public QObject, public KLFExporter
+{
+  Q_OBJECT
+public:
+  KLFHtmlDataExporter(QObject *parent)
+    : QObject(parent), KLFExporter()
+  {
+  }
+  virtual ~KLFHtmlDataExporter()
+  {
+  }
+
+  virtual QString exporterName() const
+  {
+    return QLatin1String("html-data");
+  }
+
+  virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const
+  {
+    return QStringList() << "html";
+  }
+
+  virtual QString titleFor(const QString & format)
+  {
+    if (format == "html") {
+      return tr("HTML with embedded image data");
+    }
+    klfWarning("Invalid format: " << format) ;
+    return QString();
+  }
+
+  virtual QStringList fileNameExtensionsFor(const QString & format)
+  {
+    if (format == "html") {
+      return QStringList() << "html";
+    }
+    klfWarning("Invalid format: " << format) ;
+    return QStringList();
+  }
+
+  virtual QByteArray getData(const QString& /*format*/, const KLFBackend::klfOutput& /*output*/,
+                             const QVariantMap&  = QVariantMap())
+  {
+    clearErrorString();
+    
+    return QString::fromLatin1("<html><h1>TODO: HTML DATA EXPORT NEEDS TO BE IMPLEMENTED</h1></html>").toUtf8();
+
+    //klfWarning("Invalid format: " << format) ;
+    //return QByteArray();
+  }
+};
+
+
 
 
 
@@ -382,16 +445,16 @@ public:
   virtual QByteArray getData(const QString& format, const KLFBackend::klfOutput& klfoutput,
                              const QVariantMap& params = QVariantMap())
   {
-    int req_dpi = params.value("dpi", QVariant(-1));
+    int req_dpi = params.value("dpi", QVariant(-1)).toInt();
 
-    QString tempfilename = tempFileForOutput(format, output, req_dpi);
+    QString tempfilename = tempFileForOutput(format, klfoutput, req_dpi);
     QUrl url = QUrl::fromLocalFile(tempfilename);
 
     QByteArray urilist = (url.toString()+QLatin1String("\n")).toUtf8();
     return urilist;    
   }
 
-  static QString tempFileForOutput(const QString & reqfmt, const KLFBackend::klfOutput& klfoutput,
+  static QString tempFileForOutput(const QString & reqfmt, const KLFBackend::klfOutput& output,
                                    int targetDpi = -1)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -407,7 +470,7 @@ public:
 
     if (tempFilesCache[format].contains(hashkey)) {
       klfDbg("found cached temporary file: " << tempFilesCache[format][hashkey]) ;
-      return tempFilesForImageCacheKey[imgcachekey][hashkey];
+      return tempFilesCache[format][hashkey];
     }
 
     QString templ = klfconfig.BackendSettings.tempDir +
@@ -427,7 +490,7 @@ public:
 
     if (isVectorFormat(format) || targetDpi <= 0 || targetDpi == output.input.dpi) {
       QString errStr;
-      bool res = KLFBackend::saveOutputToDevice(klfoutput, &tempfile, format, &errStr);
+      bool res = KLFBackend::saveOutputToDevice(output, tempfile, format, &errStr);
       if (!res) {
         klfWarning("Can't save to temp file " << tempfilename << ": " << errStr) ;
         tempfile->close();

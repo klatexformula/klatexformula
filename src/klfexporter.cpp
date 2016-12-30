@@ -30,7 +30,7 @@
 #include <klfdatautil.h>
 
 #include <klfexporter.h>
-//#include <klfexporter_p.h> -- included in klfmainwin.cpp where the exporters are actually needed
+#include <klfexporter_p.h>
 
 
 struct KLFExporterPrivate
@@ -76,6 +76,70 @@ void KLFExporter::setErrorString(const QString & errorString)
 
 
 // =============================================================================
+
+struct KLFExporterManagerPrivate
+{
+  KLF_PRIVATE_HEAD( KLFExporterManager )
+  {
+  }
+
+  QList<KLFExporter*> pExporters;
+};
+
+KLFExporterManager::KLFExporterManager()
+{
+  KLF_INIT_PRIVATE( KLFExporterManager ) ;
+}
+KLFExporterManager::~KLFExporterManager()
+{
+  foreach (KLFExporter * exporter, d->pExporters) {
+    if (exporter != NULL) {
+      delete exporter;
+    }
+  }
+
+  KLF_DELETE_PRIVATE ;
+}
+
+void KLFExporterManager::registerExporter(KLFExporter *exporter)
+{
+  KLF_ASSERT_NOT_NULL( exporter, "Refusing to register NULL exporter object!",  return ) ;
+
+  d->pExporters.append(exporter);
+
+#ifdef KLF_DEBUG
+  klfDbg("Exporter list is now :");
+  foreach (KLFExporter * exporter, d->pExporters) {
+    klfDbg("        - " << qPrintable(exporter->exporterName())) ;
+  }
+#endif
+}
+void KLFExporterManager::unregisterExporter(KLFExporter *exporter)
+{
+  d->pExporters.removeAll(exporter);
+}
+
+
+KLFExporter* KLFExporterManager::exporterByName(const QString & exporterName)
+{
+  int k;
+  for (k = 0; k < d->pExporters.size(); ++k) {
+    if (d->pExporters[k]->exporterName() == exporterName) {
+      return d->pExporters[k];
+    }
+  }
+  return NULL;
+}
+
+QList<KLFExporter*> KLFExporterManager::exporterList()
+{
+  return d->pExporters;
+}
+
+
+
+
+// =============================================================================
 // =============================================================================
 
 
@@ -83,7 +147,8 @@ void KLFExporter::setErrorString(const QString & errorString)
 
 
 // static
-QMap<QString,QMap<qint64,QString> > KLFUriExporter::tempFilesCache = QMap<QString,QMap<qint64,QString> >();
+QMap<QString,QMap<qint64,QString> > KLFTempFileUriExporter::tempFilesCache
+   = QMap<QString,QMap<qint64,QString> >();
 
 
 

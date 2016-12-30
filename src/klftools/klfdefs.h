@@ -92,9 +92,9 @@ KLF_EXPORT QByteArray klfFmtDouble(double num, char fmt = 'g', int precision = 6
   public:  ClassName##Private (ClassName * ptr) : QObj(ptr), K(ptr)
 
 #define KLF_INIT_PRIVATE(ClassName)		\
-  d = new ClassName##Private(this)
+  do { d = new ClassName##Private(this); } while (0)
 #define KLF_DELETE_PRIVATE			\
-  do { if (d != NULL) { delete d; } } while(0)
+  do { if (d != NULL) { delete d; } } while (0)
 
 
 #define KLF_BLOCK							\

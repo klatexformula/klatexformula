@@ -1,7 +1,7 @@
 /***************************************************************************
- *   file klfmime_p.h
+ *   file klfwinclipboard.h
  *   This file is part of the KLatexFormula Project.
- *   Copyright (C) 2011 by Philippe Faist
+ *   Copyright (C) 2016 by Philippe Faist
  *   philippe.faist at bluewin.ch
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -21,11 +21,16 @@
  ***************************************************************************/
 /* $Id$ */
 
-#ifndef KLFMIME_P_H
-#define KLFMIME_P_H
+
+#ifndef KLFWINCLIPBOARD_H
+#define KLFWINCLIPBOARD_H
+
+#include <QWinClipboard>
 
 
-// nothing needed.
+
+....................... WRITE ME ...........................
+
 
 
 #endif

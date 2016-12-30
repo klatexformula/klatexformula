@@ -21,6 +21,7 @@
  ***************************************************************************/
 /* $Id$ */
 
+
 #ifndef KLFMAINWIN_H
 #define KLFMAINWIN_H
 
@@ -56,14 +57,13 @@ class KLFLatexEdit;
 class KLFCmdIface;
 class KLFUserScriptSettings;
 class KLFExporter;
+class KLFMimeExportProfile;
 
 namespace Ui {
   class KLFMainWin;
 }
 
 class KLFMainWin;
-
-
 
 
 
@@ -209,8 +209,8 @@ public:
 
   void registerHelpLinkAction(const QString& path, QObject *object, const char * member, bool wantUrlParam);
 
-  void registerExporter(KLFExporter *outputsaver);
-  void unregisterExporter(KLFExporter *outputsaver);
+  void registerExporter(KLFExporter *exporter);
+  void unregisterExporter(KLFExporter *exporter);
 
   void registerDataOpener(KLFAbstractDataOpener *dataopener);
   void unregisterDataOpener(KLFAbstractDataOpener *dataopener);
@@ -221,6 +221,8 @@ public:
 
   QList<KLFExporter*> registeredExporters();
   QList<KLFAbstractDataOpener*> registeredDataOpeners();
+
+  QList<KLFMimeExportProfile> mimeExportProfileList();
 
   //! Reimplemented from KLFDropDataHandler
   bool canOpenDropData(const QMimeData * data);
@@ -262,7 +264,7 @@ signals:
   void aboutToCopyData();
   void copiedData(const QString& profile);
   void aboutToDragData();
-  void draggedDataWasDropped(const QString& mimeType);
+//  void draggedDataWasDropped(const QString& mimeType);
   void fileOpened(const QString& fname, KLFAbstractDataOpener * usingDataOpener);
   void dataOpened(const QString& mimetype, const QByteArray& data, KLFAbstractDataOpener * usingDataOpener);
 

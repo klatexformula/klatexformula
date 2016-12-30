@@ -79,6 +79,8 @@ void KLFLatexPreviewHandler::latexPreviewError(const QString& errorString, int e
 KLFLatexPreviewThread::KLFLatexPreviewThread(QObject * parent)
   : QThread(parent)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLF_INIT_PRIVATE(KLFLatexPreviewThread) ;
 
   // we need to register meta-type KLFBackend::klfOutput/klfInput/klfSettings for our
@@ -420,6 +422,8 @@ void KLFLatexPreviewThreadWorker::threadProcessJobs()
 KLFContLatexPreview::KLFContLatexPreview(KLFLatexPreviewThread *thread)
   : QObject(thread)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLF_INIT_PRIVATE(KLFContLatexPreview) ;
 
   setThread(thread);

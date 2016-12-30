@@ -35,6 +35,12 @@
 #include <QTextCodec>
 #include <QTextDocument>
 
+#if defined(KLF_WS_MAC)
+#include <QMacPasteboardMime> // qRegisterDraggedTypes()
+#elif defined(KLF_WS_WIN)
+#else // X11 -- nothing required
+#endif
+
 #include <klfutil.h>
 #include <klfguiutil.h>
 #include <klfbackend.h>
@@ -45,276 +51,68 @@
 #include "klfmime.h"
 #include "klfmime_p.h"
 
-#ifdef KLF_WS_MAC
-#include "macosx/klfmacclipboard.h"
-#endif
-
-#define OPENOFFICE_DRAWING_MIMETYPE "application/x-openoffice-drawing;windows_formatname=\"Drawing Format\""
+// #define OPENOFFICE_DRAWING_MIMETYPE "application/x-openoffice-drawing;windows_formatname=\"Drawing Format\""
 
 
 // ---------------------------------------------------------------------
 
-struct KLFMimeString
-{
-  KLFMimeString(const QString& key)
-    : mime_full(key), mime_base(), mime_attrs()
-  {
-    // see if we got any attributes to the mime-type
-    int i_semicolon = key.indexOf(';');
-    if (i_semicolon >= 0) {
-      mime_base = key.left(i_semicolon);
+// struct KLFMimeString
+// {
+//   KLFMimeString(const QString& key)
+//     : mime_full(key), mime_base(), mime_attrs()
+//   {
+//     // see if we got any attributes to the mime-type
+//     int i_semicolon = key.indexOf(';');
+//     if (i_semicolon >= 0) {
+//       mime_base = key.left(i_semicolon);
       
-      QString qs = key.mid(i_semicolon+1);
-      QUrl url;
-      url.setQuery(qs.toLatin1());
+//       QString qs = key.mid(i_semicolon+1);
+//       QUrl url;
+//       url.setQuery(qs.toLatin1());
 
-      QList<QPair<QString,QString> > qitems = QUrlQuery(url).queryItems();
-      for (int i = 0; i < qitems.size(); ++i) {
-        klfDbg("got mime query item " << qitems[i].first << "=" << qitems[i].second) ;
-        mime_attrs[qitems[i].first] = qitems[i].second;
-      }
+//       QList<QPair<QString,QString> > qitems = QUrlQuery(url).queryItems();
+//       for (int i = 0; i < qitems.size(); ++i) {
+//         klfDbg("got mime query item " << qitems[i].first << "=" << qitems[i].second) ;
+//         mime_attrs[qitems[i].first] = qitems[i].second;
+//       }
 
-      // QRegExp rx("(\\w+)=([^=;]*|\"(?:[^\"]|(?:\\\\.))*\")");
-      // int pos = i_semicolon+1;
-      // while ( (pos = rx.indexIn(key, pos)) >= 0 )  {
-      //   mime_attrs[rx.cap(1)] = rx.cap(2);
-      // }
-    } else {
-      mime_base = key;
-    }
-    klfDbg("KLFMimeString() constr complete, mime_full="<<mime_full<<", mime_base="
-           <<mime_base<<", mime_attrs="<<mime_attrs) ;
-  }
+//       // QRegExp rx("(\\w+)=([^=;]*|\"(?:[^\"]|(?:\\\\.))*\")");
+//       // int pos = i_semicolon+1;
+//       // while ( (pos = rx.indexIn(key, pos)) >= 0 )  {
+//       //   mime_attrs[rx.cap(1)] = rx.cap(2);
+//       // }
+//     } else {
+//       mime_base = key;
+//     }
+//     klfDbg("KLFMimeString() constr complete, mime_full="<<mime_full<<", mime_base="
+//            <<mime_base<<", mime_attrs="<<mime_attrs) ;
+//   }
 
-  QString mime_full;
-  QString mime_base;
+//   QString mime_full;
+//   QString mime_base;
 
-  QMap<QString,QString> mime_attrs;
-};
+//   QMap<QString,QString> mime_attrs;
+// };
 
 
 // ---------------------------------------------------------------------
 
 
-
-inline static bool matches_mimetype(const QString& key, const QString& test)
-{
-  // image/png  matches only image/png
-  // text/plain  and  text/plain;charset=UTF-8   both match  text/plain
-  return test.startsWith(key) && ( test.size() == key.size() || test[key.size()] == QLatin1Char(';') );
-}
-
-bool KLFMimeExporter::supportsKey(const QString& key, const KLFBackend::klfOutput * output) const
-{
-  QStringList mykeys = keys(output);
-  int k;
-  for (k = 0; k < mykeys.size(); ++k) {
-    if (matches_mimetype(mykeys[k], key))
-      break;
-  }
-  bool result = (k < mykeys.size()) ;
-  klfDbg("key = "<<key<<" ; result="<<result) ;
-  return result;
-}
-
-// static
-QByteArray KLFMimeExporter::exportData(const QString& key, const KLFBackend::klfOutput& klfoutput,
-				       const QString& exportername)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("key="<<key<<"; exporername="<<exportername) ;
-
-  if (!exportername.isEmpty()) {
-    klfDbg("looking up exporter name "<<exportername) ;
-    KLFMimeExporter *exporter = mimeExporterLookupByName(exportername, key);
-    KLF_ASSERT_NOT_NULL(exporter, "Can't find exporter "<<exportername<<" responsible for "<<key<<"!",
-			return QByteArray(); ) ;
-    return exporter->data(key, klfoutput) ;
-  }
-  // find all exporters that can provide export type \c key
-  QList<KLFMimeExporter*> exporters = mimeExporterFullLookup(key);
-  foreach (KLFMimeExporter *e, exporters) {
-    klfDbg("Try to export "<<key<<" with exporter "<<e->exporterName()<<"...") ;
-    QByteArray data = e->data(key, klfoutput);
-    if (!data.isEmpty()) {
-      klfDbg("... success") ;
-      // successfully exported data
-      return data;
-    }
-  }
-  // failed to export data
-  klfDbg("Failed to export data as "<<key<<".") ;
-  return QByteArray();
-}
-
-// static
-KLFMimeExporter * KLFMimeExporter::mimeExporterLookup(const QString& key, const KLFBackend::klfOutput * output)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("key="<<key) ;
-
-  initMimeExporterList();
-
-  int k;
-  for (k = 0; k < p_mimeExporterList.size(); ++k) {
-    klfDbg("Testing exporter #"<<k<<": "<<p_mimeExporterList[k]);
-    klfDbg("\t: "<<p_mimeExporterList[k]->exporterName()) ;
-    if (p_mimeExporterList[k]->supportsKey(key, output))
-      return p_mimeExporterList[k];
-  }
-
-  // no exporter found.
-  return NULL;
-}
-// static
-QList<KLFMimeExporter*> KLFMimeExporter::mimeExporterFullLookup(const QString& key,
-								const KLFBackend::klfOutput * output)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  initMimeExporterList();
-
-  QList<KLFMimeExporter*> exporters;
-
-  int k;
-  for (k = 0; k < p_mimeExporterList.size(); ++k) {
-    klfDbg("Testing exporter #"<<k<<": "<<p_mimeExporterList[k]);
-    klfDbg("\t: "<<p_mimeExporterList[k]->exporterName()) ;
-    if (p_mimeExporterList[k]->supportsKey(key, output))
-      exporters << p_mimeExporterList[k];
-  }
-
-  // if no exporter was found, an empty list is returned
-  return exporters;
-}
-// static
-KLFMimeExporter * KLFMimeExporter::mimeExporterLookupByName(const QString& exporter, const QString& key,
-							    const KLFBackend::klfOutput * output)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("exporter="<<exporter<<"; key="<<key) ;
-
-  initMimeExporterList();
-
-  int k;
-  for (k = 0; k < p_mimeExporterList.size(); ++k)
-    if (p_mimeExporterList[k]->exporterName() == exporter) // find the given 'exporter'
-      if (key.isEmpty() || p_mimeExporterList[k]->supportsKey(key, output)) // check for 'key' support
-	return p_mimeExporterList[k];
-
-  // no exporter found.
-  return NULL;
-}
-
-  
-// static
-QList<KLFMimeExporter *> KLFMimeExporter::mimeExporterList()
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  initMimeExporterList();
-  return p_mimeExporterList;
-}
-
-// static
-void KLFMimeExporter::registerMimeExporter(KLFMimeExporter *exporter, bool overrides)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  initMimeExporterList();
-
-  KLF_ASSERT_NOT_NULL( exporter ,
-		       "Cannot register a NULL exporter!",
-		       return )  ;
-
-  QString ename = exporter->exporterName();
-  klfDbg("want to register exporter "<<ename<<", making sure no duplicate names...") ;
-
-  // make sure there are no duplicate names
-  int k;
-  for (k = 0; k < p_mimeExporterList.size(); ++k) {
-    klfDbg("making sure p_mimeExporterList["<<k<<"]->exporterName() [="<<p_mimeExporterList[k]->exporterName()<<"]"
-	   <<"  !=  ename [="<<ename<<"]") ;
-    KLF_ASSERT_CONDITION(p_mimeExporterList[k]->exporterName() != ename,
-			 "An exporter with same name "<<ename<<" is already registered!",
-			 return ) ;
-  }
-
-  klfDbg("registering exporter "<<ename<<", overrides="<<overrides) ;
-
-  if (overrides)
-    p_mimeExporterList.push_front(exporter);
-  else
-    p_mimeExporterList.push_back(exporter);
-}
-// static
-void KLFMimeExporter::unregisterMimeExporter(KLFMimeExporter *exporter)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  p_mimeExporterList.removeAll(exporter);
-}
-
-
-// static
-void KLFMimeExporter::reloadMimeExporterList()
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  p_mimeExporterList.clear();
-  initMimeExporterList();
-}
-
-// static
-void KLFMimeExporter::initMimeExporterList()
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("initMimeExporterList");
-
-  if (p_mimeExporterList.isEmpty()) {
-    // ensure an instance of KLFMacPasteboardMime object
-#ifdef KLF_WS_MAC
-    __klf_init_the_macpasteboardmime();
-#endif
-    p_mimeExporterList
-      << new KLFMimeExporterImage(qApp)
-      << new KLFMimeExporterUrilist(qApp)
-      << new KLFMimeExporterUrilistPDF(qApp)
-      << new KLFMimeExporterHTML(qApp)
-      << new KLFMimeExporterLibFmts(qApp)
-      << new KLFMimeExporterGlowImage(qApp)
-      ;
-/*
-    // now, create one instance of KLFMimeExporterUserScript per export type user script ...
-    extern QStringList klf_user_scripts;
-    for (int k = 0; k < klf_user_scripts.size(); ++k) {
-      KLFExportTypeUserScriptInfo usinfo = KLFUserScriptInfo(klf_user_scripts[k]);
-      klfDbg("k="<<k<<" loading user script "<<usinfo.scriptName());
-      if (usinfo.category() == QLatin1String("klf-export-type")) {
-
-	// add the mime exporter
-	KLFMimeExporterUserScript * exporter = new KLFMimeExporterUserScript(klf_user_scripts[k], qApp);
-	p_mimeExporterList << exporter;
-
-	// and add corresponding export profile for this script
-	QList<KLFMimeExportProfile::ExportType> elist;
-	QStringList mimes = usinfo.mimeTypes();
-	int j;
-	for (j = 0; j < mimes.size(); ++j) {
-	  elist << KLFMimeExportProfile::ExportType(mimes[j], QString(), exporter->exporterName());
-	}
-	KLFMimeExportProfile profile("userscript-" + usinfo.scriptName(),
-				     usinfo.outputFilenameExtensions().join(",").toUpper()+" ("
-				     +usinfo.scriptName()+")",
-				     elist, QObject::tr("User scripts", "[[KLFMimeExporter; submenu title]]"));
-	KLFMimeExportProfile::addExportProfile(profile);
-
-      }
-    }
-*/
-  }
-}
-
-// static
-QList<KLFMimeExporter*> KLFMimeExporter::p_mimeExporterList = QList<KLFMimeExporter*>();
-
 // ---------------------------------------------------------------------
+
+QList<KLFMimeExportProfile::ExportType::DefaultQtFormat>
+KLFMimeExportProfile::ExportType::defaultQtFormatsOnThisWs() const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  QList<DefaultQtFormat> qtfmtlist;
+  for (int kk = 0; kk < defaultQtFormats.size(); ++kk) {
+    if (!defaultQtFormats[kk].onlyOnWs.size() || defaultQtFormats[kk].onlyOnWs.contains(KLF_WS)) {
+      qtfmtlist << defaultQtFormats[kk];
+    }
+  }
+  return qtfmtlist;
+}
+
 
 KLFMimeExportProfile::KLFMimeExportProfile(const QString& pname, const QString& desc,
 					   const QList<ExportType>& exporttypes, const QString& inSubMenu)
@@ -322,261 +120,228 @@ KLFMimeExportProfile::KLFMimeExportProfile(const QString& pname, const QString& 
 {
 }
 
-KLFMimeExportProfile::KLFMimeExportProfile(const KLFMimeExportProfile& o)
-  : p_profileName(o.p_profileName), p_description(o.p_description),
-    p_exportTypes(o.p_exportTypes), p_inSubMenu(o.p_inSubMenu)
+KLFMimeExportProfile::KLFMimeExportProfile()
+  : p_profileName(), p_description(), p_exportTypes(), p_inSubMenu()
 {
 }
 
-QByteArray KLFMimeExportProfile::exportData(int n, const KLFBackend::klfOutput& output) const
+QStringList KLFMimeExportProfile::collectedAvailableMimeTypes(KLFExporterManager * exporterManager,
+                                                              const KLFBackend::klfOutput & klfoutput) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  return KLFMimeExporter::exportData(p_exportTypes[n].mimetype, output, p_exportTypes[n].exporter);
-}
-
-KLFMimeExporter * KLFMimeExportProfile::exporterLookupFor(int k, const KLFBackend::klfOutput * output,
-							  bool warnNotFound) const
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("k="<<k<<" mimetype[k]="<<p_exportTypes[k].mimetype) ;
-
-  KLF_ASSERT_CONDITION(k >= 0 && k < p_exportTypes.size(),
-		       "Index "<<k<<" out of bounds (size="<<p_exportTypes.size()<<")",
-		       return NULL ) ;
-
-  KLFMimeExporter * exporter = NULL;
-  if ( ! p_exportTypes[k].exporter.isEmpty() ) {
-    klfDbg("looking up the exporter by name "<<p_exportTypes[k].exporter) ;
-    // lookup the exporter by name, and make sure that it supports the 'mimetype' key
-    exporter = KLFMimeExporter::mimeExporterLookupByName(p_exportTypes[k].exporter, p_exportTypes[k].mimetype,
-							 output);
-  } else {
-    // lookup the exporter by mime-type
-    exporter = KLFMimeExporter::mimeExporterLookup(p_exportTypes[k].mimetype, output);
-  }
-
-  if (warnNotFound)
-    KLF_ASSERT_NOT_NULL(exporter,
-			"Can't find exporter "<<p_exportTypes[k].exporter<<" for export-type #"<<k
-			<<" for key "<<p_exportTypes[k].mimetype,   return NULL ) ;
-  return exporter;
-}
-QList<KLFMimeExporter*> KLFMimeExportProfile::exporterFullLookupFor(int k, const KLFBackend::klfOutput * output,
-								    bool warnNotFound) const
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  KLF_ASSERT_CONDITION(k >= 0 && k < p_exportTypes.size(),
-		       "Index "<<k<<" out of bounds (size="<<p_exportTypes.size()<<")",
-		       return QList<KLFMimeExporter*>() ) ;
-
-  QList<KLFMimeExporter*> exporters;
-  if ( ! p_exportTypes[k].exporter.isEmpty() ) {
-    // lookup the exporter by name, and make sure that it supports the 'mimetype' key
-    KLFMimeExporter *e = KLFMimeExporter::mimeExporterLookupByName(p_exportTypes[k].exporter,
-                                                                   p_exportTypes[k].mimetype,
-                                                                   output);
-    KLF_ASSERT_NOT_NULL(e, "Can't find exporter "<<p_exportTypes[k].exporter<<" for export-type #"<<k
-                        <<" and mime-type "<<p_exportTypes[k].mimetype,
-                        return QList<KLFMimeExporter*>() );
-    exporters << e;
-  } else {
-    // lookup the exporter by mime-type
-    exporters = KLFMimeExporter::mimeExporterFullLookup(p_exportTypes[k].mimetype, output);
-  }
-
-  if (warnNotFound)
-    KLF_ASSERT_CONDITION(!exporters.isEmpty(),
-			 "Can't find exporter "<<p_exportTypes[k].exporter<<" for export-type #"<<k
-			 <<"for mime-type "<<p_exportTypes[k].mimetype,
-                         return QList<KLFMimeExporter*>()
-                         ) ;
-
-  klfDbg("Found "<<exporters.size()<<" exporters for mime type "<<p_exportTypes[k].mimetype
-         <<" with exporter named "<<p_exportTypes[k].exporter);
-#ifdef KLF_DEBUG
-  QStringList dbg_list;
-  for (int k = 0; k < exporters.size(); ++k)
-    dbg_list.append(exporters[k]->exporterName());
-  klfDbg("\texporter list is "<<dbg_list.join(","));
-#endif
-
-  return exporters;
-}
-
-QStringList KLFMimeExportProfile::mimeTypes() const
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  QStringList mimetypes;
+  QStringList mimeTypes;
   int k;
-  for (k = 0; k < p_exportTypes.size(); ++k)
-    mimetypes << p_exportTypes[k].mimetype;
-  return mimetypes;
+  for (k = 0; k < p_exportTypes.size(); ++k) {
+    // try to resolve exporter, and query whether it can produce data from the given output
+    KLFExporter * exporter = exporterManager->exporterByName(p_exportTypes[k].exporterName) ;
+    if (exporter != NULL && exporter->supports(p_exportTypes[k].exporterFormat, klfoutput)) {
+      mimeTypes << p_exportTypes[k].mimeTypes;
+    }
+  }
+  klfDbg("mime types: " << mimeTypes) ;
+  return mimeTypes;
 }
-
-int KLFMimeExportProfile::indexOfMimeType(const QString& mimeType) const
+QStringList KLFMimeExportProfile::collectedAvailableMacFlavors(KLFExporterManager * exporterManager,
+                                                               const KLFBackend::klfOutput & klfoutput) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
+  QStringList macFlavors;
   int k;
-  for (k = 0; k < p_exportTypes.size(); ++k)
-    if (p_exportTypes[k].mimetype == mimeType)
-      return k;
+  for (k = 0; k < p_exportTypes.size(); ++k) {
+    // try to resolve exporter, and query whether it can produce data from the given output
+    KLFExporter * exporter = exporterManager->exporterByName(p_exportTypes[k].exporterName) ;
+    if (exporter != NULL && exporter->supports(p_exportTypes[k].exporterFormat, klfoutput)) {
+      macFlavors << p_exportTypes[k].macFlavors;
+    } else {
+      klfDbg("Ignoring exporter " << p_exportTypes[k].exporterName << "; exporter = " << exporter);
+    }
+  }
+  klfDbg("mac flavors: " << macFlavors) ;
+  return macFlavors;
+}
+QStringList KLFMimeExportProfile::collectedAvailableWinFormats(KLFExporterManager * exporterManager,
+                                                               const KLFBackend::klfOutput & klfoutput) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  QStringList winFormats;
+  int k;
+  for (k = 0; k < p_exportTypes.size(); ++k) {
+    // try to resolve exporter, and query whether it can produce data from the given output
+    KLFExporter * exporter = exporterManager->exporterByName(p_exportTypes[k].exporterName) ;
+    if (exporter != NULL && exporter->supports(p_exportTypes[k].exporterFormat, klfoutput)) {
+      winFormats << p_exportTypes[k].winFormats;
+    }
+  }
+  klfDbg("win formats: " << winFormats) ;
+  return winFormats;
+}
+
+int KLFMimeExportProfile::indexOfAvailableMimeType(const QString& mimeType,
+                                                   KLFExporterManager * exporterManager,
+                                                   const KLFBackend::klfOutput & klfoutput) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  int k;
+  for (k = 0; k < p_exportTypes.size(); ++k) {
+    if (p_exportTypes[k].mimeTypes.contains(mimeType)) {
+      // try to resolve exporter, and query whether it can produce data from the given output
+      KLFExporter * exporter = exporterManager->exporterByName(p_exportTypes[k].exporterName) ;
+      if (exporter != NULL && exporter->supports(p_exportTypes[k].exporterFormat, klfoutput)) {
+        return k;
+      }
+    }
+  }
+  return -1;
+}
+int KLFMimeExportProfile::indexOfAvailableWinFormat(const QString& winFormat,
+                                                    KLFExporterManager * exporterManager,
+                                                    const KLFBackend::klfOutput & klfoutput) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  int k;
+  for (k = 0; k < p_exportTypes.size(); ++k) {
+    if (p_exportTypes[k].winFormats.contains(winFormat)) {
+      // try to resolve exporter, and query whether it can produce data from the given output
+      KLFExporter * exporter = exporterManager->exporterByName(p_exportTypes[k].exporterName) ;
+      if (exporter != NULL && exporter->supports(p_exportTypes[k].exporterFormat, klfoutput)) {
+        return k;
+      }
+    }
+  }
+  return -1;
+}
+int KLFMimeExportProfile::indexOfAvailableMacFlavor(const QString& macFlavor,
+                                                    KLFExporterManager * exporterManager,
+                                                    const KLFBackend::klfOutput & klfoutput) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  int k;
+  for (k = 0; k < p_exportTypes.size(); ++k) {
+    if (p_exportTypes[k].macFlavors.contains(macFlavor)) {
+      KLFExporter * exporter = exporterManager->exporterByName(p_exportTypes[k].exporterName) ;
+      if (exporter != NULL && exporter->supports(p_exportTypes[k].exporterFormat, klfoutput)) {
+        return k;
+      }
+      klfDbg("Ignoring exporter " << p_exportTypes[k].exporterName << "; exporter = " << exporter);
+    }
+  }
   return -1;
 }
 
-QStringList KLFMimeExportProfile::respectiveWinTypes() const
+
+// -----------------------------------------------------------------------------
+
+
+struct KLFMimeExportProfileManagerPrivate
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  QStringList wintypes;
-  int k;
-  for (k = 0; k < p_exportTypes.size(); ++k)
-    wintypes << respectiveWinType(k);
-  return wintypes;
-}
-QString KLFMimeExportProfile::respectiveWinType(int k) const
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ; klfDbg("k="<<k) ;
-
-  KLF_ASSERT_CONDITION(k >= 0 && k < p_exportTypes.size(),
-		       "Index "<<k<<" out of bounds (size="<<p_exportTypes.size()<<")",
-		       return QString() ) ;
-
-  if ( ! p_exportTypes[k].wintype.isEmpty() )
-    return p_exportTypes[k].wintype;
-
-  QList<KLFMimeExporter*> exporters = exporterFullLookupFor(k, NULL, true);
-  foreach (KLFMimeExporter *e, exporters) {
-    QString s = e->windowsFormatName(p_exportTypes[k].mimetype);
-    if (!s.isEmpty())
-      return s;
+  KLF_PRIVATE_HEAD(KLFMimeExportProfileManager)
+  {
   }
-  return QString();
+
+  static QList<KLFMimeExportProfile> loadProfilesFromXMLFile(const QString& fname);
+  
+  QList<KLFMimeExportProfile> exportProfileList;
+};
+
+
+KLFMimeExportProfileManager::KLFMimeExportProfileManager()
+{
+  KLF_INIT_PRIVATE(KLFMimeExportProfileManager) ;
+}
+KLFMimeExportProfileManager::~KLFMimeExportProfileManager()
+{
+  KLF_DELETE_PRIVATE ;
 }
 
-QStringList KLFMimeExportProfile::availableExporterMimeTypes(const KLFBackend::klfOutput * output) const
+QList<KLFMimeExportProfile> KLFMimeExportProfileManager::exportProfileList()
+{
+  return d->exportProfileList;
+}
+void KLFMimeExportProfileManager::addExportProfile(const KLFMimeExportProfile& exportProfile)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  d->exportProfileList << exportProfile;
+}
+void KLFMimeExportProfileManager::addExportProfiles(const QList<KLFMimeExportProfile>& exportProfiles)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  d->exportProfileList << exportProfiles;
+}
+KLFMimeExportProfile KLFMimeExportProfileManager::findExportProfile(const QString& pname)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QStringList oktypes;
   int k;
-  for (k = 0; k < p_exportTypes.size(); ++k) {
-    if (exporterLookupFor(k, output, false) != NULL) {
-      klfDbg("found ok type: "<<p_exportTypes[k].mimetype) ;
-      oktypes << p_exportTypes[k].mimetype;
+  for (k = 0; k < d->exportProfileList.size(); ++k) {
+    if (d->exportProfileList[k].profileName() == pname) {
+      return d->exportProfileList[k];
     }
   }
-  return oktypes;
-}
-
-
-// static
-QList<KLFMimeExportProfile> KLFMimeExportProfile::p_exportProfileList = QList<KLFMimeExportProfile>();
-
-// static
-QList<KLFMimeExportProfile> KLFMimeExportProfile::exportProfileList()
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  ensureLoadedExportProfileList();
-  return p_exportProfileList;
-}
-// static
-void KLFMimeExportProfile::addExportProfile(const KLFMimeExportProfile& exportProfile)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  ensureLoadedExportProfileList();
-  p_exportProfileList.push_front(exportProfile);
-}
-// static
-KLFMimeExportProfile KLFMimeExportProfile::findExportProfile(const QString& pname)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  ensureLoadedExportProfileList();
-
-  int k;
-  for (k = 0; k < p_exportProfileList.size(); ++k)
-    if (p_exportProfileList[k].profileName() == pname)
-      return p_exportProfileList[k];
 
   // not found, return first (ie. default) export profile
-  return p_exportProfileList[0];
+  klfWarning("Export profile not found: " << pname) ;
+  return d->exportProfileList.first();
 }
 
-void KLFMimeExportProfile::ensureLoadedExportProfileList()
+// static
+QList<KLFMimeExportProfile> KLFMimeExportProfileManager::loadKlfExportProfileList()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  if ( ! p_exportProfileList.isEmpty())
-    return;
+  QList<KLFMimeExportProfile> profiles;
 
-  // read export profile list from XML
+  // read export profiles from KLF XML files
   
-  // find correct XML file
+  // find XML files
   QStringList fcandidates;
 
   QStringList dirs;
   dirs << klfconfig.homeConfigDir  + "/conf/export_mime_profiles.d"
        << klfconfig.globalShareDir + "/conf/export_mime_profiles.d"
        << ":/conf/export_mime_profiles.d";
+
   int j, k;
   for (j = 0; j < dirs.size(); ++j) {
     // add all files in ...dirs[j].../*.xml
     QDir d(dirs[j]);
     QStringList entrylist;
     entrylist = d.entryList(QStringList()<<QLatin1String("*.xml"), QDir::Files|QDir::Readable, QDir::Name);
-    for (k = 0; k < entrylist.size(); ++k)
+    for (k = 0; k < entrylist.size(); ++k) {
       fcandidates << d.filePath(entrylist[k]);
+    }
   }
 
   for (k = 0; k < fcandidates.size(); ++k) {
-    if (QFile::exists(fcandidates[k]))
-      loadFromXMLFile(fcandidates[k]);
+    if (QFile::exists(fcandidates[k])) {
+      profiles << KLFMimeExportProfileManagerPrivate::loadProfilesFromXMLFile(fcandidates[k]);
+    }
   }
 
-  // create a temp exporter on the stack to see which keys it supports, and add all avail formats
-  // to an extra export profile
-  QList<ExportType> exporttypes;
-  KLFMimeExporterImage imgexporter(NULL);
-  QStringList mimetypes = imgexporter.keys(NULL);
-  for (k = 0; k < mimetypes.size(); ++k) {
-    if (mimetypes[k].startsWith("image/") || mimetypes[k] == "application/x-qt-image")
-      exporttypes << ExportType(mimetypes[k], imgexporter.windowsFormatName(mimetypes[k]));
-  }
-  KLFMimeExportProfile allimgfmts
-    = KLFMimeExportProfile("all_image_formats",
-			   QObject::tr("All Available Image Formats"),
-			   exporttypes);
-  p_exportProfileList << allimgfmts;
-
+  return profiles;
 }
 
 
-// static, private
-void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
+// static
+QList<KLFMimeExportProfile> KLFMimeExportProfileManagerPrivate::loadProfilesFromXMLFile(const QString& fname)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  klfDbg("Loading from file "<<fname<<"; our locale is "<<klfconfig.UI.locale) ;
+  QList<KLFMimeExportProfile> profiles;
+
+  klfDbg("Loading from file "<<fname) ;
 
   QFile file(fname);
   if ( ! file.open(QIODevice::ReadOnly) ) {
-    qWarning()<<KLF_FUNC_NAME<<": Error: Can't open export mime profiles XML file "<<fname<<": "
-	      <<file.errorString()<<"!";
-    return;
+    klfWarning("Can't open export mime profiles XML file "<<fname<<": " <<file.errorString()<<"");
+    return QList<KLFMimeExportProfile>();
   }
 
   QDomDocument doc("export-profile-list");
   QString errMsg; int errLine, errCol;
   bool r = doc.setContent(&file, false, &errMsg, &errLine, &errCol);
   if (!r) {
-    qWarning()<<KLF_FUNC_NAME<<": Error parsing file "<<fname<<": "<<errMsg<<" at line "<<errLine<<", col "<<errCol;
-    return;
+    klfWarning("Error parsing file "<<fname<<": "<<errMsg<<" at line "<<errLine<<", col "<<errCol) ;
+    return QList<KLFMimeExportProfile>();
   }
   file.close();
 
@@ -584,10 +349,21 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
   if (root.nodeName() != "export-profile-list") {
     qWarning("%s: Error parsing XML for export mime profiles from file `%s': Bad root node `%s'.\n",
 	     KLF_FUNC_NAME, qPrintable(fname), qPrintable(root.nodeName()));
-    return;
+    return QList<KLFMimeExportProfile>();
   }
 
-  QStringList descriptionLangs;
+  QString klfprofilesxmlversion = root.attribute("version", QString("1"));
+
+  // we can only read files which are version == 4.0
+  //
+  // The version string is the KLF version at which the given XML format is introduced
+  // (e.g. if a new profile type is introduced in KLF 4.1, then it keeps the compatibility
+  // "4.0" except if 4.1 introduces a new XML structure.
+  if (klfprofilesxmlversion != QString("4.0")) {
+    klfWarning("XML profile list XML description " << fname << " is not compatible with the current "
+               "XML version " << klfprofilesxmlversion) ;
+    return QList<KLFMimeExportProfile>();
+  }
 
   // read XML file
   QDomNode n;
@@ -595,14 +371,6 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     QDomElement e = n.toElement(); // try to convert the node to an element.
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
-    if ( e.nodeName() == "add-macosx-type-rules" ) {
-#ifdef KLF_WS_MAC
-      __klf_add_macosx_type_rules(fname, e);
-#else
-      klfDbg("Ignoring Mac OS X type rules on non-mac window system") ;
-#endif
-      continue;
-    }
     if ( e.nodeName() != "profile" ) {
       qWarning("%s: WARNING in parsing XML \"%s\" : ignoring unexpected tag `%s', expected <profile>.\n",
 	       KLF_FUNC_NAME, qPrintable(fname), qPrintable(e.nodeName()));
@@ -612,234 +380,350 @@ void KLFMimeExportProfile::loadFromXMLFile(const QString& fname)
     QString pname = e.attribute("name");
 
     // note: profile may already exist, we will check for that later.
-
     klfDbg("Reading profile "<<pname<<" ...") ;
     
     QString description;
     QString inSubMenu;
-    // xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
-    QString curDescriptionLang;
-    QList<ExportType> exporttypes;
+    QList<KLFMimeExportProfile::ExportType> exportTypes;
 
     QDomNode en;
     for (en = e.firstChild(); ! en.isNull(); en = en.nextSibling() ) {
-      if ( en.isNull() || en.nodeType() != QDomNode::ElementNode )
-	continue;
-      QDomElement ee = en.toElement();
-      if ( en.nodeName() == "description" ) {
-	// xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
-	QString lang = ee.hasAttribute("xml:lang") ? ee.attribute("xml:lang") : QString() ;
-	klfDbg("<description>: lang="<<lang<<"; hasAttribute(xml:lang)="<<ee.hasAttribute("xml:lang")
-	       <<"; current description="<<description<<",lang="<<curDescriptionLang) ;
-	if (description.isEmpty()) {
-	  // no description yet
-	  if (lang.isEmpty() || lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale().startsWith(lang)) {
-	    // correct locale
-	    //	    klfDbg("remembering description tag with lang="<<lang);
-	    description = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
-					  "[[tag: <description>]]");
-	    // xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
-	    curDescriptionLang = lang;
-	  }
-	  // otherwise skip this tag
-	} else {
-	  // see if this locale is correct and more specific
-	  if ( (lang.startsWith(klfconfig.UI.locale) || klfconfig.UI.locale().startsWith(lang)) &&
-	       (curDescriptionLang.isEmpty() || lang.startsWith(curDescriptionLang) ) ) {
-	    // then keep it and replace the other
-	    //	    klfDbg("remembering description tag with lang="<<lang);
-	    description = ee.text();
-	    curDescriptionLang = lang;
-	  }
-	  // otherwise skip this tag
-	}
+      if ( en.isNull() || en.nodeType() != QDomNode::ElementNode ) {
 	continue;
       }
-      if ( en.nodeName() == "in-submenu" ) {
+      QDomElement ee = en.toElement();
+      if ( ee.nodeName() == "description" ) {
+	if (!description.isEmpty()) {
+          klfWarning("Ignoring duplicate <description> tag in profile " << pname) ;
+          continue;
+        } else {
+          description = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
+                                        "[[tag: <description>]]");
+        }
+	continue;
+      }
+      if ( ee.nodeName() == "include-export-types-from" ) {
+        QString includeProfile = ee.attribute("profile", QString()) ;
+        if (includeProfile.isEmpty()) {
+          klfWarning("In XML file " << fname << ", profile " << pname << ": You need to "
+                     << "specify a profile to include (with the syntax "
+                     << "<include-export-types-from profile=\"other-profile\">)") ;
+          continue;
+        }
+        // find profile in current profile list
+        int k;
+        for (k = 0; k < profiles.size(); ++k) {
+          if (profiles[k].profileName() == includeProfile) {
+            break; // found
+          }
+        }
+        if (k == profiles.size()) {
+          klfWarning("In XML file " << fname << ", profile " << pname << ": include-export-types-from tag"
+                       << "refers to inexistant profile " << includeProfile ) ;
+        } else {
+          klfDbg("Adding all export types from profile " << includeProfile << ", index " << k << " in list") ;
+          exportTypes << profiles[k].exportTypes() ;
+        }
+	continue;
+      }
+      if ( ee.nodeName() == "in-submenu" ) {
 	inSubMenu = qApp->translate("xmltr_exportprofiles", ee.text().toUtf8().constData(),
 				       "[[tag: <in-submenu>]]");
 	continue;
       }
-      if ( en.nodeName() != "export-type" ) {
-	qWarning("%s: WARNING in parsing XML '%s': ignoring unexpected tag `%s' in profile `%s'!\n",
-		 KLF_FUNC_NAME, qPrintable(fname), qPrintable(en.nodeName()), qPrintable(pname));
-	continue;
-      }
-      QDomNodeList mimetypetags = ee.elementsByTagName("mime-type");
-      if (mimetypetags.size() != 1) {
-	qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<", profile "<<pname
-		  <<": exactly ONE <mime-type> tag must be present in each <export-type>...</export-type>.";
-	continue;
-      }
-      QDomNodeList wintypetags = ee.elementsByTagName("windows-type");
-      if (wintypetags.size() > 1) {
-	qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<", profile "<<pname
-		  <<": expecting at most ONE <windows-type> tag in each <export-type>...</export-type>.";
-	continue;
-      }
-      QDomNodeList exporternametags = ee.elementsByTagName("exporter-name");
-      if (exporternametags.size() > 1) {
-	qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<", profile "<<pname
-		  <<": expected at most ONE <exporter-name> tag in each <export-type>...</export-type>.";
-	continue;
-      }
-      QString mimetype = mimetypetags.at(0).toElement().text().trimmed();
-      QString wintype = QString();
-      if (wintypetags.size() == 1) {
-	wintype = wintypetags.at(0).toElement().text().trimmed();
-      }
-      QString exportername = QString();
-      if (exporternametags.size() == 1) {
-	exportername = exporternametags.at(0).toElement().text().trimmed();
+      if ( ee.nodeName() == "export-type" ) {
+
+        if ( ! ee.hasAttribute("exporter") ) {
+          klfWarning("<export-type> does not have mandatory attribute exporter=\"...\", ignoring.") ;
+          continue;
+        }
+        if ( ! ee.hasAttribute("format") ) {
+          klfWarning("<export-type> does not have mandatory attribute format=\"...\", ignoring.") ;
+          continue;
+        }
+
+        KLFMimeExportProfile::ExportType exportType(ee.attribute("exporter", QString()),
+                                                    ee.attribute("format", QString()));
+
+        klfDbg("Reading <export-type exporter=" << exportType.exporterName
+               << " format=" << exportType.exporterFormat << "> ...") ;
+
+        QDomNode n2;
+        for (n2 = ee.firstChild(); !n2.isNull(); n2 = n2.nextSibling()) {
+          if ( n2.isNull() || n2.nodeType() != QDomNode::ElementNode ) {
+            continue;
+          }
+          QDomElement ee2 = n2.toElement();
+          if ( ee2.nodeName() == "default-qt-formats" ) {
+            QString qttype = ee2.attribute("type");
+            if (qttype != "color" && qttype != "html" && qttype != "image" &&
+                qttype != "text" && qttype != "urls") {
+              klfWarning("In XML file " << fname << ", profile " << pname << ", export-type "
+                         << "(exporter="<<exportType.exporterName<<",format="<<exportType.exporterFormat<<")"
+                         << ": ignoring invalid default qt format " << qttype ) ;
+              continue;
+            }
+            QStringList only_on_list = ee2.attribute("only-on", QString("")).split(',', QString::SkipEmptyParts);
+            exportType.defaultQtFormats
+              << KLFMimeExportProfile::ExportType::DefaultQtFormat(qttype, only_on_list);
+            klfDbg("added default-qt-format qttype="<<qttype<<", only_on_list="<<only_on_list) ;
+            continue;
+          }
+          if ( ee2.nodeName() == "mime-type" ) {
+            QString mimeType = ee2.text().trimmed();
+            exportType.mimeTypes << mimeType;
+            continue;
+          }
+          if ( ee2.nodeName() == "win-format" ) {
+            QString winFormat = ee2.text().trimmed();
+            exportType.winFormats << winFormat;
+            continue;
+          }
+          if ( ee2.nodeName() == "mac-flavor" ) {
+            QString macFlavor = ee2.text().trimmed();
+            exportType.macFlavors << macFlavor;
+            continue;
+          }
+          klfWarning("In XML file " << fname << ", profile " << pname << ", export-type "
+                     << "(exporter="<<exportType.exporterName<<",format="<<exportType.exporterFormat<<")"
+                     << ": ignoring unexpected tag " << ee2.nodeName() ) ;
+        }
+
+        exportTypes << exportType;
+
+        continue;
       }
 
-      exporttypes << ExportType(mimetype,  wintype,  exportername);
-    }
+      klfWarning( "Parsing XML file " << fname << ": ignoring unexpected tag " << en.nodeName()
+                  << " in profile " << pname ) ;
+    } // for
 
     // add this profile
-    KLFMimeExportProfile profile(pname, description, exporttypes, inSubMenu);
+    KLFMimeExportProfile profile(pname, description, exportTypes, inSubMenu);
 
     // check if a profile has not already been declared with same name
     int kp;
-    for (kp = 0; kp < p_exportProfileList.size(); ++kp) {
-      if (p_exportProfileList[kp].profileName() == pname) {
-	break;
+    for (kp = 0; kp < profiles.size(); ++kp) {
+      if (profiles[kp].profileName() == pname) {
+        klfWarning("Ignoring duplicate definition of export profile " << pname );
+	return QList<KLFMimeExportProfile>();
       }
     }
-    if (kp == p_exportProfileList.size()) {
-      // the profile is new
-      klfDbg("Adding profile "<<pname<<" to mime export profiles") ;
-      if (pname == "default") {
-	// prepend default profile, so it's at beginning
-	p_exportProfileList.prepend(profile);
-      } else {
-	p_exportProfileList << profile;
-	// xml:lang attribute for profile description is obsolete, we use now Qt-linguist translated value...
-	descriptionLangs << curDescriptionLang;
-      }
+    // the profile is new
+    klfDbg("Adding profile "<<pname<<" to mime export profiles") ;
+    if (pname == "default") {
+      // prepend default profile, so it's at beginning
+      profiles.prepend(profile);
     } else {
-      // profile already exists, append data to it
-      KLFMimeExportProfile oldp = p_exportProfileList[kp];
-      // see if this description provides a better translation
-      if (!description.isEmpty() &&
-	  (descriptionLangs[kp].isEmpty() || curDescriptionLang.startsWith(descriptionLangs[kp]))) {
-	// keep this description
-      } else {
-	description = oldp.description();
-      }
-      KLFMimeExportProfile finalp(pname, description,
-				  oldp.exportTypes()+exporttypes // concatenate lists
-				  );
-      p_exportProfileList[kp] = finalp;
+      profiles << profile;
     }
-  }
+  } // for
+
+  return profiles;
 }
 
 
-// ---------------------------------------------------------------------
 
 
 
 
-KLFMimeData::KLFMimeData(const QString& exportProfile, const KLFBackend::klfOutput& output)
-  : QMimeData(), pExportProfile(KLFMimeExportProfile::findExportProfile(exportProfile))
+
+
+
+
+
+
+
+
+
+// -----------------------------------------------------------------------------
+
+struct KLFMimeDataPrivate
+{
+  KLF_PRIVATE_HEAD(KLFMimeData)
+  {
+  }
+  
+  KLFMimeExportProfile exportProfile;
+  KLFExporterManager * exporterManager;
+  KLFBackend::klfOutput output;
+
+  QStringList qtManagedMimeTypes;
+
+  QByteArray getDataFor(KLFMimeExportProfile::ExportType exportType, const QVariantMap & params)
+  {
+    KLFExporter * exporter = exporterManager->exporterByName(exportType.exporterName);
+    if (exporter == NULL) {
+      klfWarning("Can't find exporter name = " << exportType.exporterName << "!") ;
+      return QByteArray();
+    }
+  
+    // get the data
+    return exporter->getData(exportType.exporterFormat, output, params);
+  }
+
+  void setDefaultQtFormats();
+
+  QStringList macFlavorsToProxyMimes(const QStringList & flavlist) const;
+  QString macFlavorFromProxyMime(const QString & mimeType) const;
+
+  void ensureAllPlatformTypesRegistered();
+};
+
+KLFMimeData::KLFMimeData(const KLFMimeExportProfile& exportProfile,
+                         KLFExporterManager * exporterManager,
+                         const KLFBackend::klfOutput& output)
+  : QMimeData()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("export profile "<<exportProfile) ;
 
-  // ensure an instance of KLFMacPasteboardMime object
-#ifdef KLF_WS_MAC
-  __klf_init_the_macpasteboardmime();
-#endif
+  KLF_INIT_PRIVATE(KLFMimeData) ;
 
-  pOutput = output;
+  klfDbg("Using export profile "<<exportProfile.profileName()) ;
 
-  set_possible_qt_handled_data();
+  d->exporterManager = exporterManager;
+  d->output = output;
+
+  KLF_ASSERT_NOT_NULL(d->exporterManager, "Exporter Manager is NULL!!!", std::terminate()) ;
+
+  d->exportProfile = exportProfile;
+
+  d->setDefaultQtFormats();
+
+  d->ensureAllPlatformTypesRegistered();
 
   klfDbg("have formats: "<<formats()) ;
 }
 KLFMimeData::~KLFMimeData()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLF_DELETE_PRIVATE ;
 }
 
-// private
-void KLFMimeData::set_possible_qt_handled_data()
+void KLFMimeDataPrivate::setDefaultQtFormats()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  // Handle platform-specific default image type with 'application/x-qt-image' and setImage()
-  int index;
-  if ( (index=pExportProfile.indexOfMimeType(QLatin1String("application/x-qt-image"))) >= 0) {
-    klfDbg("Will set image data with setImageData() from the data given by the exporter(s)...");
-    // set the image data from the exporter
-    QList<KLFMimeExporter*> exporters = pExportProfile.exporterFullLookupFor(index);
-    QByteArray img_data;
-    foreach (KLFMimeExporter* e, exporters) {
-      img_data = e->data(QLatin1String("application/x-qt-image"), pOutput);
-      if (!img_data.isEmpty())
-	break; // got data
+  QList<KLFMimeExportProfile::ExportType> exportTypes = exportProfile.exportTypes();
+  int k;
+  for (k = 0; k < exportTypes.size(); ++k) {
+    KLFMimeExportProfile::ExportType exportType = exportTypes[k];
+    QList<KLFMimeExportProfile::ExportType::DefaultQtFormat> qtformats
+      = exportType.defaultQtFormatsOnThisWs();
+    klfDbg("Qt formats on this window-system for export type "<<k<<" ("<<exportType.exporterName<<") ; list size="
+           << qtformats.size() ) ;
+
+    if (!qtformats.size()) {
+      continue;
     }
-    if (!img_data.isEmpty()) {
-      QImage img;
-      QList<QByteArray> try_formats = QList<QByteArray>() << "PNG" << "JPEG" << "BMP";
-      int k;
-      for (k = 0; k < try_formats.size() && img.isNull(); ++k)
-	img.loadFromData(img_data, try_formats[k].constData());
-      KLF_ASSERT_CONDITION( ! img.isNull() ,
-			    "Can't get image for application/x-qt-image for profile "<<pExportProfile.profileName(),
-			    return; )  ;
-      setImageData(img);
-    } else {
-      klfWarning("Can't set image data for profile "<<pExportProfile.profileName()
-		 <<": all eligible exporters failed to provide an image.") ;
+
+    // maybe we should think of a way of querying the user for export params? but this
+    // should not be done here interactively, because this is called on "copy" or "drag
+    // start", not upon dropped (as in retrievedData()) .... just think about this .....
+    QVariantMap params;
+
+    // this export type needs to be exported via QMimeData::setXXX(...), so we need to
+    // prepare the data to set
+    QByteArray data = getDataFor(exportType, params);
+    int j;
+    for (j = 0; j < qtformats.size(); ++j) {
+      KLFMimeExportProfile::ExportType::DefaultQtFormat qtformat = qtformats[j];
+      if (qtformat.qtType == "color") {
+        klfWarning("Qt default format \"color\" NOT YET IMPLEMENTED!!! FIXME!! ..........") ;
+        K->setColorData(QColor(0,0,0)); // dummy, there's not much to do anyway...
+      } else if (qtformat.qtType == "html") {
+        klfDbg("adding html data, data = " << QString::fromUtf8(data)) ;
+        K->setHtml(QString::fromUtf8(data));
+      } else if (qtformat.qtType == "image") {
+        QImage img;
+        img.loadFromData(data);
+        klfDbg("adding image size="<<img.size()) ;
+        K->setImageData(img);
+      } else if (qtformat.qtType == "text") {
+        klfDbg("adding text="<<QString::fromUtf8(data)) ;
+        K->setText(QString::fromUtf8(data));
+      } else if (qtformat.qtType == "urls") {
+        QList<QUrl> urllist;
+        QStringList urls = QString::fromUtf8(data).split('\n');
+        for (int kk = 0; kk < urls.size(); ++kk) {
+          urllist << QUrl(urls[kk]);
+        }
+        klfDbg("adding URLs = " << urllist) ;
+        K->setUrls(urllist) ;
+      } else {
+        klfWarning("Ignoring invalid default Qt format " << qtformat.qtType) ;
+      }
     }
   }
 
-  // Also let Qt handle URLs
-  if ( (index=pExportProfile.indexOfMimeType(QLatin1String("text/uri-list"))) >= 0) {
-    klfDbg("Will set URL data with setUrls() from the data given by the exporter(s)...");
-    // set the URL data from the exporter
-    QList<KLFMimeExporter*> exporters = pExportProfile.exporterFullLookupFor(index);
-    klfDbg("Got exporter list: len="<<exporters.size());
-    QByteArray urls_data;
-    foreach (KLFMimeExporter* e, exporters) {
-      klfDbg("Exporting URL: trying exporter "<<e->exporterName());
-      urls_data = e->data(QLatin1String("text/uri-list"), pOutput);
-      if (!urls_data.isEmpty())
-	break; // got data
-    }
-    if (!urls_data.isEmpty()) {
-      QList<QUrl> urls;
-      QList<QByteArray> urlsdatalist = urls_data.split('\n');
-      int k;
-      for (k = 0; k < urlsdatalist.size(); ++k) {
-	if (urlsdatalist[k].trimmed().isEmpty())
-	  continue;
-	urls << QUrl::fromEncoded(urlsdatalist[k]);
-      }
-      klfDbg("setting qt-handled url list: "<<urls) ;
-      setUrls(urls);
-    } else {
-      klfWarning("Can't set URLs data for profile "<<pExportProfile.profileName()
-		 <<": all eligible exporters failed to provide a URL list.") ;
-    }
-  }
+  qtManagedMimeTypes = K->QMimeData::formats();
+  klfDbg("Qt managed mime types = " << qtManagedMimeTypes) ;
 }
+
+QStringList KLFMimeDataPrivate::macFlavorsToProxyMimes(const QStringList & flavlist) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  QStringList mimes;
+  foreach (QString f, flavlist) {
+    mimes << QString::fromUtf8(KLF_MIME_PROXY_MAC_FLAVOR_PREFIX "%1").arg(f);
+  }
+  return mimes;
+}
+QString KLFMimeDataPrivate::macFlavorFromProxyMime(const QString& proxyMime) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  const QString prefix = QLatin1String(KLF_MIME_PROXY_MAC_FLAVOR_PREFIX);
+  if (proxyMime.startsWith(prefix)) {
+    return proxyMime.mid(prefix.size());
+  }
+  klfWarning(proxyMime << " is not a mac flavor proxy mime type !") ;
+  return QString();
+}
+
+void KLFMimeDataPrivate::ensureAllPlatformTypesRegistered()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+#if defined(KLF_WS_MAC)
+  QStringList allMacFlavors;
+  QList<KLFMimeExportProfile::ExportType> exportTypes = exportProfile.exportTypes();
+  for (int k = 0; k < exportTypes.size(); ++k) {
+    allMacFlavors << exportTypes[k].macFlavors;
+  }
+  klfDbg("Regstering mac flavors: " << allMacFlavors) ;
+  qRegisterDraggedTypes(QStringList() << allMacFlavors);
+#elif defined(KLF_WS_WIN)
+  ....
+#endif
+}
+
 
 QStringList KLFMimeData::formats() const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QStringList fmts = pExportProfile.availableExporterMimeTypes(&pOutput);
-  if (true/*fmts.contains("application/x-qt-image")*/) {
-    if (pQtOwnedFormats.size() == 0)
-      pQtOwnedFormats = QMimeData::formats();
-    klfDbg("Formats added by qt: "<<pQtOwnedFormats) ;
-    fmts << pQtOwnedFormats;
-  }
+  QStringList fmts;
+#if defined(KLF_WS_MAC)
+  fmts = d->macFlavorsToProxyMimes(d->exportProfile.collectedAvailableMacFlavors(
+                                       d->exporterManager,
+                                       d->output
+                                       ));
+#elif defined(KLF_WS_WIN)
+  fmts = d->winFormatsToProxyMimes(d->exportProfile.collectedAvailableWinFormats(
+                                       d->exporterManager,
+                                       d->output
+                                       ));
+#else // by default, do X11  [#if defined(KLF_WS_X11)]
+  fmts = pExportProfile.collectedMimeTypes(& d->output);
+#endif
 
-  klfDbg("format list: "<<fmts) ;
+  klfDbg("our mime formats: " << fmts) ;
+
+  QStringList qtfmts = QMimeData::formats();
+  klfDbg("Formats added by qt: " << qtfmts) ;
+  fmts << qtfmts;
+
+  klfDbg("full format list: " << fmts) ;
   return fmts;
 }
 
@@ -847,42 +731,95 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  const_cast<KLFMimeData*>(this)->emitDroppedData(mimetype);
-
   klfDbg("retrieveData: mimetype="<<mimetype<<"; type="<<type) ;
 
-  if (mimetype == QLatin1String("application/x-qt-mime-type-name")) {
-    // looks like this is some Qt-specific thing that returns the handcrafted
-    // wrapper mime type name; let qt do the job
+  if (d->qtManagedMimeTypes.contains(mimetype) || mimetype.startsWith("application/x-qt-")) {
+    // this mime type is handled by Qt
     klfDbg("Letting Qt handle "<<mimetype<<" w/ type="<<type) ;
     return QMimeData::retrieveData(mimetype, type);
   }
 
-  if (mimetype == QLatin1String("application/x-qt-image") ||
-      pQtOwnedFormats.contains(mimetype)) {
-    // these types are handled directly by QMimeData
-    klfDbg("Letting Qt handle "<<mimetype<<" w/ type="<<type) ;
-    return QMimeData::retrieveData(mimetype, type);
-  }
-
-  int index = pExportProfile.indexOfMimeType(mimetype);
+  int index;
+#if defined(KLF_WS_MAC)
+  index = d->exportProfile.indexOfAvailableMacFlavor(
+      d->macFlavorFromProxyMime(mimetype),
+      d->exporterManager,
+      d->output
+      );
+#elif defined(KLF_WS_WIN)
+  index = d->exportProfile.indexOfAvailableWinFormat(
+      d->winFormatFromProxyMime(mimetype)
+      d->exporterManager,
+      d->output
+      );
+#else // by default, do X11  [#if defined(KLF_WS_X11)]
+  index = d->exportProfile.indexOfAvailableMimeType(
+      mimetype,
+      d->exporterManager,
+      d->output
+      );
+#endif
   if (index < 0) {
     // do not treat this as an error since on windows we seem to have requests for 'text/uri-list' even
     // if that mime type is not returned by formats()
-    klfDbg("Can't find mime-type "<<mimetype<<" in export profile "<<pExportProfile.profileName()
+    klfDbg("Can't find mime-type "<<mimetype<<" in export profile "<<d->exportProfile.profileName()
 	   <<" ?!?");
     return QMimeData::retrieveData(mimetype, type);
   }
 
   klfDbg("exporting "<<mimetype<<" ... index="<<index);
 
-  // get the data
-  QByteArray data = pExportProfile.exportData(index, pOutput);
+  KLFMimeExportProfile::ExportType etype = d->exportProfile.exportType(index);
+
+  /// \todo TODO: add the query-string part of the MIME type into parameters in params for
+  ///       the exporter ............... or query the user .... .......
+  QVariantMap params;
+
+  QByteArray data = d->getDataFor(etype, params);
   
-  klfDbg("exporting mimetype "<<mimetype<<": data length is "<<data.size());
+  klfDbg("exported mimetype "<<mimetype<<": data length is "<<data.size());
   
   return QVariant::fromValue<QByteArray>(data);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
+
+
+
+
+
 
 
 
@@ -1481,356 +1418,10 @@ QByteArray KLFMimeExporterGlowImage::data(const QString& key, const KLFBackend::
 }
 
 
-// -----------------------------
-
-/*
-struct KLFExportTypeUserScriptInfoPrivate
-{
-  KLF_PRIVATE_HEAD(KLFExportTypeUserScriptInfo)
-  {
-    klfDbg("Initializing 'private': ptr="<<ptr<<", K="<<K) ;
-    normalizedlists = false;
-  }
-  void copy(KLFExportTypeUserScriptInfoPrivate *other)
-  {
-    normalizedlists = other->normalizedlists;
-  }
-
-  bool normalizedlists;
-
-  void normalizeLists()
-  {
-    KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-    klfDbg("K="<<K) ;
-    klfDbg("K->scriptname="<<K->scriptName()) ;
-    if (K->info("__klf_exporttypeuserscriptinfo_normalizedlists").toBool()) {
-      normalizedlists = true;
-      return;
-    }
-    QStringList mtypes = K->info("MimeType").toStringList();
-    QStringList fexts = K->info("OutputFilenameExtension").toStringList();
-    QStringList fdesc = K->info("OutputFormatDescription").toStringList();
-    klfDbg("lists before normalization: mtypes="<<mtypes<<";  fexts="<<fexts<<";  fdesc="<<fdesc) ;
-    int sz = qMax(mtypes.size(), qMax(fexts.size(), fdesc.size()));
-    while (mtypes.size() < sz)
-      mtypes.append(QString());
-    while (fexts.size() < sz)
-      fexts.append(QString());
-    while (fdesc.size() < sz) {
-      QString s = fexts[fdesc.size()].toUpper();
-      if (s.isEmpty()) {
-	s = mtypes[fdesc.size()];
-      }
-      fdesc.append(QObject::tr("%1 File", "[[default file type description from file extension]]").arg(s));
-    }
-    klfDbg("normalized lists.") ;
-    K->internalSetProperty("MimeType", QVariant(mtypes));
-    K->internalSetProperty("OutputFilenameExtension", QVariant(fexts));
-    K->internalSetProperty("OutputFormatDescription", QVariant(fdesc));
-    K->internalSetProperty("__klf_exporttypeuserscriptinfo_normalizedlists", QVariant(true));
-    normalizedlists = true;
-  }
-
-  QString listrangecheck(const QString& prop, int index)
-  {
-    QStringList l = K->info(prop).toStringList();
-    if (index < 0 || index >= l.size()) {
-      klfWarning("User Script "<<K->scriptName()<<": index "<<index<<" out of range for property "<<prop) ;
-      return QString();
-    }
-    return l[index];
-  }
-
-  friend class KLFExportTypeUserScriptInfo;
-};
-
-KLFExportTypeUserScriptInfo::KLFExportTypeUserScriptInfo(const QString& scriptFileName,
-							 KLFBackend::klfSettings * settings)
-  : KLFUserScriptInfo(scriptFileName, settings, klfconfig.UserScripts.userScriptConfig.value(scriptFileName))
-{
-  KLF_INIT_PRIVATE(KLFExportTypeUserScriptInfo) ;
-}
-
-KLFExportTypeUserScriptInfo::KLFExportTypeUserScriptInfo(const KLFExportTypeUserScriptInfo& copy)
-  : KLFUserScriptInfo(copy)
-{
-  KLF_INIT_PRIVATE(KLFExportTypeUserScriptInfo) ;
-  d->copy(copy.d);
-}
-KLFExportTypeUserScriptInfo::KLFExportTypeUserScriptInfo(const KLFUserScriptInfo& copy)
-  : KLFUserScriptInfo(copy)
-{
-  KLF_INIT_PRIVATE(KLFExportTypeUserScriptInfo) ;
-}
-
-KLFExportTypeUserScriptInfo::~KLFExportTypeUserScriptInfo()
-{
-  KLF_DELETE_PRIVATE ;
-}
-
-
-QStringList KLFExportTypeUserScriptInfo::mimeTypes() const
-{
-  d->normalizeLists();
-  return info("MimeType").toStringList();
-}
-QStringList KLFExportTypeUserScriptInfo::outputFilenameExtensions() const
-{
-  d->normalizeLists();
-  return info("OutputFilenameExtension").toStringList();
-}
-QStringList KLFExportTypeUserScriptInfo::outputFormatDescriptions() const
-{
-  d->normalizeLists();
-  return info("OutputFormatDescription").toStringList();
-}
-QString KLFExportTypeUserScriptInfo::inputDataType() const
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("this="<<this<<"; info('mimetype') is "<<info("MimeType") );
-  d->normalizeLists();
-  return info("InputDataType").toString();
-}
-
-int KLFExportTypeUserScriptInfo::count() const
-{
-  d->normalizeLists();
-  return info("MimeType").toStringList().size();
-}
-int KLFExportTypeUserScriptInfo::findMimeType(const QString& mimeType) const
-{
-  d->normalizeLists();
-  return info("MimeType").toStringList().indexOf(mimeType);
-}
-
-QString KLFExportTypeUserScriptInfo::mimeType(int index) const
-{
-  d->normalizeLists();
-  return d->listrangecheck("MimeType", index);
-}
-QString KLFExportTypeUserScriptInfo::outputFilenameExtension(int index) const
-{
-  d->normalizeLists();
-  return d->listrangecheck("OutputFilenameExtension", index);
-}
-QString KLFExportTypeUserScriptInfo::outputFormatDescription(int index) const
-{
-  d->normalizeLists();
-  return d->listrangecheck("OutputFormatDescription", index);
-}
-
-bool KLFExportTypeUserScriptInfo::wantStdinInput() const
-{
-  return info("WantStdinInput").toBool();
-}
-bool KLFExportTypeUserScriptInfo::hasStdoutOutput() const
-{
-  return info("HasStdoutOutput").toBool();
-}
-
-
-// --------------------------
-
-struct KLFExportUserScriptPrivate {
-  KLF_PRIVATE_HEAD(KLFExportUserScript)
-  {
-    info = NULL;
-  }
-
-  KLFExportTypeUserScriptInfo * info;
-};
-
-KLFExportUserScript::KLFExportUserScript(const QString& scriptFileName, KLFBackend::klfSettings * settings)
-{
-  KLF_INIT_PRIVATE(KLFExportUserScript) ;
-
-  d->info = new KLFExportTypeUserScriptInfo(scriptFileName, settings);
-}
-KLFExportUserScript::~KLFExportUserScript()
-{
-  delete d->info;
-  KLF_DELETE_PRIVATE ;
-}
-
-
-KLFExportTypeUserScriptInfo KLFExportUserScript::info() const
-{
-  return *d->info;
-}
-
-QStringList KLFExportUserScript::availableMimeTypes(const KLFBackend::klfOutput * output) const
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  QStringList availbackendsave = KLFBackend::availableSaveFormats(output);
-  klfDbg("availbackendsave="<<availbackendsave) ;
-  if (availbackendsave.contains(d->info->inputDataType(), Qt::CaseInsensitive)) {
-    QStringList mlist = d->info->mimeTypes();
-    klfDbg("keys: "<<mlist) ;
-    return mlist;
-  }
-
-  klfDbg("The output does not provide format "<<d->info->inputDataType()<<", needed to feed as input "
-	 "to user script "<<d->info->scriptName()) ;
-  return QStringList();
-}
-
-// klfbackend.cpp
-extern QString klfbackend_last_userscript_output;
-
-QByteArray KLFExportUserScript::getData(const QString& key, const KLFBackend::klfOutput& klfoutput)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("key="<<key) ;
-
-  int mtypeindex = d->info->mimeTypes().indexOf(key);
-  if (mtypeindex < 0) {
-    klfWarning("User Script "<<d->info->scriptName()<<" does not support key "<<key<<" !") ;
-    return QByteArray();
-  }
-  QString outfext;
-  if (!d->info->hasStdoutOutput()) {
-    if (mtypeindex >= d->info->outputFilenameExtensions().size()) {
-      klfWarning("User Script "<<d->info->scriptName()
-		 <<" does not provide matching output filename extension for "<<key<<" !") ;
-      return QByteArray();
-    }
-    outfext = d->info->outputFilenameExtensions() [mtypeindex];
-  }
-
-  // now actually call the script
-
-  KLFUserScriptFilterProcess p(d->info->fileName(), &klfoutput.settings);
-
-  if (klfconfig.UserScripts.userScriptConfig.contains(d->info->fileName()))
-    p.addUserScriptConfig(klfconfig.UserScripts.userScriptConfig.value(d->info->fileName()));
-
-  QString infmt = d->info->inputDataType();
-
-  QTemporaryFile *f_in = NULL;
-  if (!d->info->wantStdinInput()) {
-    QString ver = KLF_VERSION_STRING;
-    ver.replace(".", "x"); // make friendly names with chars in [a-zA-Z0-9]
-    QString ext = infmt.toLower();
-    QString tempinfname = klfoutput.settings.tempdir + "/klftmpmime" + ver + "xXXXXXX" + "."+ext;
-    
-    f_in = new QTemporaryFile(tempinfname);
-    f_in->setAutoRemove(true);
-    f_in->open();
-  }
-
-  QString errstr;
-  QIODevice *where = NULL;
-  QBuffer buf;
-  QByteArray indata;
-  if (f_in)
-    where = f_in;
-  else {
-    buf.setBuffer(&indata);
-    buf.open(QIODevice::WriteOnly);
-    where = &buf;
-  }
-  KLFBackend::saveOutputToDevice(klfoutput, where, infmt, &errstr);
-  if (!errstr.isEmpty()) {
-    klfWarning("Can't save output to format "<<infmt<<": "<<errstr) ;
-    return QByteArray();
-  }
-  where->close();
-
-  p.setArgv(QStringList() << d->info->fileName());
-  if (f_in != NULL) {
-    p.addArgv(QStringList() << f_in->fileName());
-  }
-  p.addArgv(QStringList() << "--mimetype="+key);
-
-  QStringList addenv;
-  addenv << QLatin1String("KLF_OUTPUT_WIDTH_PT=") + QString::number(klfoutput.width_pt)
-         << QLatin1String("KLF_OUTPUT_HEIGHT_PT=") + QString::number(klfoutput.height_pt)
-         << QLatin1String("KLF_OUTPUT_WIDTH_PX=") + QString::number(klfoutput.result.width())
-         << QLatin1String("KLF_OUTPUT_HEIGHT_PX=") + QString::number(klfoutput.result.height())
-         << klfInputToEnvironmentForUserScript(klfoutput.input)
-         << klfSettingsToEnvironmentForUserScript(klfoutput.settings);
-
-  p.addExecEnviron(addenv);
-
-  // collect output
-  QByteArray stdoutdata;
-  QByteArray stderrdata;
-  p.collectStdoutTo(&stdoutdata);
-  p.collectStderrTo(&stderrdata);
-
-  QByteArray foutdata;
-  QMap<QString,QByteArray*> outdatamap;
-  QString outfn;
-  if (!d->info->hasStdoutOutput()) {
-    if (f_in == NULL) {
-      klfWarning(d->info->fileName()<<": if you take stdin input, you have to provide stdout output, sorry.") ;
-      return QByteArray();
-    }
-    QFileInfo infi(f_in->fileName());
-    outfn = infi.absolutePath() + "/" + infi.completeBaseName() + "." + outfext;
-    outdatamap[outfn] = &foutdata;
-    klfDbg("outfn="<<outfn) ;
-  }
-
-  // now, run the user script
-  bool ok = p.run(indata, outdatamap);
-
-  if (outfn.size() && QFile::exists(outfn)) {
-    QFile::remove(outfn);
-  }
-  if (f_in != NULL)
-    delete f_in;
-
-  if (!ok) {
-    // error
-    klfWarning("Can't run userscript "<<d->info->fileName()<<": "<<p.resultErrorString()) ;
-    klfbackend_last_userscript_output = p.resultErrorString();
-    return QByteArray();
-  }
-
-  // for user script debugging
-  klfbackend_last_userscript_output
-    = "<b>STDOUT</b>\n<pre>" + QString(stdoutdata).toHtmlEscaped() + "</pre>\n<br/><b>STDERR</b>\n<pre>"
-    + QString(stderrdata).toHtmlEscaped() + "</pre>";
-  
-  klfDbg("Ran script "<<d->info->fileName()<<": stdout="<<stdoutdata<<"\n\tstderr="<<stderrdata) ;
-
-  // and retreive the output data
-  if (!foutdata.isEmpty()) {
-    klfDbg("Got file output data: size="<<foutdata.size()) ;
-    return foutdata;
-  }
-
-  return stdoutdata;
-}
 
 
 
-// -------------------
+#endif // cut out implementations of KLF****MimeExporters
 
 
-KLFMimeExporterUserScript::KLFMimeExporterUserScript(const QString& uscript, QObject *parent)
-  : QObject(parent), pUserScript(uscript, NULL)
-{
-}
 
-QString KLFMimeExporterUserScript::exporterName() const
-{
-  return QString::fromLatin1("UserScript:") + QFileInfo(pUserScript.info().fileName()).fileName();
-}
-
-QStringList KLFMimeExporterUserScript::keys(const KLFBackend::klfOutput * output) const
-{
-  return pUserScript.availableMimeTypes(output);
-}
-
-
-QByteArray KLFMimeExporterUserScript::data(const QString& key, const KLFBackend::klfOutput& klfoutput)
-{
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-
-  return pUserScript.getData(key, klfoutput);
-}
-
-*/

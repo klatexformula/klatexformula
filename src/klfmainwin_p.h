@@ -50,6 +50,14 @@
 
 #include "klfmainwin.h"
 
+#if defined(KLF_WS_MAC)
+#include "macosx/klfmacclipboard.h"
+#elif defined(KLF_WS_WIN)
+#include "mswin/klfwinclipboard.h"
+#else
+// nothing to do on X11
+#endif
+
 #include <ui_klfaboutdialog.h>
 #include <ui_klfwhatsnewdialog.h>
 
@@ -731,74 +739,6 @@ private:
 
 
 
-
-// class KLFAddOnDataOpener : public QObject, public KLFAbstractDataOpener
-// {
-//   Q_OBJECT
-// public:
-//   KLFAddOnDataOpener(KLFMainWin *mainwin) : QObject(mainwin), KLFAbstractDataOpener(mainwin) { }
-//   virtual ~KLFAddOnDataOpener() { }
-
-//   virtual QStringList supportedMimeTypes()
-//   {
-//     return QStringList();
-//   }
-
-//   virtual bool canOpenFile(const QString& file)
-//   {
-//     if (QFileInfo(file).suffix() == "rcc")
-//       return true;
-//     QFile f(file);
-//     bool r = f.open(QIODevice::ReadOnly);
-//     if (!r) { // can't open file
-//       return false;
-//     }
-//     // check if file is RCC file (begins with 'qres')
-//     if (f.read(4) == "qres")
-//       return true;
-//     // not a Qt RCC file
-//     return false;
-//   }
-
-//   virtual bool canOpenData(const QByteArray& /*data*/)
-//   {
-//     // Dropped files are opened by the basic data opener, which handles "text/uri-list"
-//     // by calling the main window's openFiles()
-//     return false;
-//   }
-
-//   virtual bool openFile(const QString& file)
-//   {
-//     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-//     klfDbg("file="<<file);
-
-//     if (!canOpenFile(file)) {
-//       klfDbg("file is not openable by us: "<<file);
-//       return false;
-//     }
-
-//     mainWin()->settingsDialog()->show();
-//     mainWin()->settingsDialog()->showControl(KLFSettings::ManageAddOns);
-//     mainWin()->settingsDialog()->importAddOn(file, true);
-
-//     return true;
-//   }
-
-//   virtual bool openData(const QByteArray& /*data*/, const QString& /*mimetype*/)
-//   {
-//     return false;
-//   }
-// };
-
-
-// /** \todo WRITEME!!!!!!!!! */
-// class KLFKLFOutputSaver : public QObject, public KLFAbstractOutputSaver
-// {
-//   Q_OBJECT
-// public:
-// };
-
-
 class KLFTexDataOpener : public QObject, public KLFAbstractDataOpener
 {
   Q_OBJECT
@@ -931,6 +871,14 @@ public:
 
     pUserScriptSettings = NULL;
 
+#if defined(KLF_WS_MAC)
+    macFlavorsConverter = NULL;
+#elif defined(KLF_WS_WIN)
+    winFormatsConverter = NULL;
+#else
+  // no special needs on X11
+#endif
+
     pCmdIface = NULL;
   }
 
@@ -1021,8 +969,18 @@ public:
   void getMissingCmdsFor(const QString& symbol, QStringList * missingCmds, QString *guiText,
 			 bool wantHtmlText = true);
 
-  QList<KLFExporter*> pExporters;
+  KLFExporterManager pExporterManager;
   QList<KLFAbstractDataOpener*> pDataOpeners;
+
+  KLFMimeExportProfileManager pMimeExportProfileManager;
+
+#if defined(KLF_WS_MAC)
+  KLFMacPasteboardMime * macFlavorsConverter;
+#elif defined(KLF_WS_WIN)
+  KLFWinClipboard * winFormatsConverter;
+#else
+  // no special needs on X11
+#endif
 
   KLFCmdIface *pCmdIface;
 

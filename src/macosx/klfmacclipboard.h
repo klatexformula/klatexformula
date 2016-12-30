@@ -36,7 +36,9 @@ public:
   KLFMacPasteboardMime();
   virtual ~KLFMacPasteboardMime();
 
-  QString convertorName() { return QLatin1String("KLFMacPasteboardMime"); }
+  QString convertorName() {
+    return QLatin1String("KLFMacPasteboardMime");
+  }
 
   bool canConvert(const QString& mime, QString flav);
   QList<QByteArray> convertFromMime(const QString& mime, QVariant data, QString flav);
@@ -44,28 +46,7 @@ public:
   QString flavorFor(const QString& mime);
   QString mimeFor(QString flav);
 
-
-  struct TranslateRule
-  {
-    TranslateRule(QString mime, QString flav) : mimetype(mime), macflavor(flav) { }
-    QString mimetype;
-    QString macflavor;
-  };
-
-
-  static void addTranslateTypeRule(const TranslateRule& rule);
-
-private:
-  static QList<TranslateRule> staticTranslateTypeRules;
-
 };
-
-
-
-void __klf_init_the_macpasteboardmime();
-
-
-void __klf_add_macosx_type_rules(const QString& xmlfname, const QDomElement& element);
 
 
 #endif

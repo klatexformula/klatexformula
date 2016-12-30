@@ -83,7 +83,8 @@ if(KLF_BUILD_GUI)
     klfliblegacyengine.h
     klfliblegacyengine_p.h
     klfmime.h
-    klfmime_p.h
+#    klfmime_p.h
+#    klfexporter.h
     klfexporter_p.h
     klfmainwin.h
     klfmainwin_p.h

@@ -94,6 +94,8 @@ void klf_show_advanced_config_editor()
 KLFSettings::KLFSettings(KLFMainWin* parent)
   : QDialog(parent)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   KLF_INIT_PRIVATE(KLFSettings) ;
 
   u = new Ui::KLFSettings;
@@ -391,7 +393,7 @@ void KLFSettingsPrivate::populateLocaleCombo()
 
 void KLFSettingsPrivate::populateExportProfilesCombos()
 {
-  QList<KLFMimeExportProfile> eplist = KLFMimeExportProfile::exportProfileList();
+  QList<KLFMimeExportProfile> eplist = mainWin->mimeExportProfileList();
 
   K->u->cbxCopyExportProfile->clear();
   K->u->cbxDragExportProfile->clear();

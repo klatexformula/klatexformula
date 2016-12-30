@@ -1,0 +1,137 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- Default MimeType Export Profiles for KLatexFormula
+     $Id$
+  -->
+
+<!-- version: specifies klf compatibility version, currently "4.0" -->
+<export-profile-list version="4.0">
+
+  <!-- List profile definitions here.  A profile is a list of data export types,
+       associated to MIME types (x11), Mac OS X identifiers and MS Windows clipboard
+       format names.
+       
+       You may specify several MIME types, mac identifiers and Windows format names for
+       each data export type, in which case the data is exposed for all the given names.
+       
+       A MIME type may only appear once per profile (same for mac UTIs and windows
+       formats).
+
+       Note that QT already translates a certain number of standard types, so there is no
+       need to declare the mac identifiers for PNG or PDF, for example.  Experiment a
+       little.
+    -->
+  <profile name="default">
+    <description>Default</description>
+
+    <!-- Of course, PNG -->
+    <export-type exporter="backend" format="PNG">
+      <default-qt-formats type="image" only-on="mac,win,x11" />
+      <mime-type>image/png</mime-type>
+      <win-format>PNG</win-format>
+      <!-- for MS office: [old; test if still needed?] -->
+      <win-format>PNG+Office Art</win-format>
+      <!-- don't provide PNG by default on Mac, as most applications understand PDF but seem
+           to prefer png when pasting -->
+      <!--<mac-flavor>public.png</mac-flavor>-->
+    </export-type>
+
+    <!-- PDF is always nice -->
+    <export-type exporter="backend" format="PDF">
+      <mime-type>application/pdf</mime-type>
+      <win-format>PDF</win-format>
+      <win-format>application/pdf</win-format>
+      <mac-flavor>com.adobe.pdf</mac-flavor>
+    </export-type>
+
+    <!-- SVG is useful, if we have it from ghostscript ... -->
+    <export-type exporter="backend" format="SVG">
+      <mime-type>image/svg+xml</mime-type>
+      <win-format>SVG</win-format>
+      <mac-flavor>public.svg-image</mac-flavor>
+    </export-type>
+    <!-- ... or from the user script -->
+    <export-type exporter="UserScript:svg-dvisvgm" format="svg">
+      <mime-type>image/svg+xml</mime-type>
+      <win-format>SVG</win-format>
+      <mac-flavor>public.svg-image</mac-flavor>
+    </export-type>
+
+    <!-- Never hurts to include HTML (eg. for Thunderbird, GMail, ...) -->
+    <export-type exporter="html-data" format="html">
+      <default-qt-formats type="html" />
+    </export-type>
+
+    <!-- OpenOffice.org format -->
+    <export-type exporter="open-office-draw" format="XXXXXXXXX">
+      <mime-type>application/x-openoffice-drawing;windows_formatname="Drawing Format"</mime-type>
+    </export-type>
+
+  </profile>
+
+  <profile name="vector_formats">
+    <description>Vector Formats</description>
+
+    <!-- PDF -->
+    <export-type exporter="backend" format="PDF">
+      <mime-type>application/pdf</mime-type>
+      <win-format>PDF</win-format>
+      <win-format>application/pdf</win-format>
+    </export-type>
+
+    <!-- EPS / PS -->
+    <export-type exporter="backend" format="EPS">
+      <mime-type>application/eps</mime-type>
+      <mime-type>application/postscript</mime-type>
+      <win-format>Encapsulated PostScript</win-format>
+      <win-format>PostScript</win-format>
+    </export-type>
+
+    <export-type><mime-type>application/eps</mime-type></export-type>
+    <export-type><mime-type>image/svg+xml</mime-type></export-type>
+    <export-type><mime-type>image/eps</mime-type></export-type>
+    <export-type><mime-type>application/postscript</mime-type></export-type> </profile>
+
+  <profile name="for_adobe_indesign">
+    <description>Vector format for Adobe InDesign</description>
+    <!-- AICB: just use the EPS data and advertize it as AICB (for Adobe Indesign) -->
+    <export-type exporter="backend" format="EPS">
+      <win-format>AICB????</win-format>
+      <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
+    </export-type>
+  </profile>
+
+</export-profile-list>
+
+
+<!-- NOTES
+
+  Test:
+   - Copy & Paste
+   - Drag & Drop
+
+  On MAC OS X:
+   - to Apple Pages / Keynote
+   - to Adobe Illustrator
+   - to Adobe InDesign
+   - to MS Office Word / Powerpoint
+   - to Thunderbird email composer
+   - to LibreOffice/OpenOffice
+   - to Gmail in firefox/chrome
+   - to GIMP
+
+  On Windows:
+   - to Adobe Illustrator
+   - to Adobe InDesign
+   - to MS Office Word / Powerpoint
+   - to LibreOffice/OpenOffice
+   - to Thunderbird
+   - to gmail in firefox/chrome
+   - to GIMP
+
+  On Linux:
+   - to LibreOffice/OpenOffice
+   - to GIMP
+   - to Thunderbird
+
+  -->

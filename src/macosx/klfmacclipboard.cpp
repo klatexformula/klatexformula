@@ -32,82 +32,6 @@
 
 
 
-static KLFMacPasteboardMime *__klf_the_macpasteboardmime = NULL;
-
-void __klf_init_the_macpasteboardmime()
-{
-  if (__klf_the_macpasteboardmime == NULL) {
-    __klf_the_macpasteboardmime = new KLFMacPasteboardMime();
-  }
-}
-
-
-void __klf_add_macosx_type_rules(const QString& fname, const QDomElement& e)
-{
-  QDomNode en;
-  for (en = e.firstChild(); ! en.isNull(); en = en.nextSibling() ) {
-    if ( en.isNull() || en.nodeType() != QDomNode::ElementNode )
-      continue;
-    QDomElement ee = en.toElement();
-    if ( en.nodeName() == "translate" ) {
-      QDomNodeList mimetypetags = ee.elementsByTagName("mime-type");
-      if (mimetypetags.size() != 1) {
-	qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<", macosx type translate rule:"
-	  " exactly ONE <mime-type> tag must be present.";
-	continue;
-      }
-      QDomNodeList macflavortags = ee.elementsByTagName("mac-flavor");
-      if (macflavortags.size() != 1) {
-	qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<", macosx type translate rule:"
-	  " exactly ONE <mac-flavor> tag must be present.";
-	continue;
-      }
-      QString mimetype = mimetypetags.at(0).toElement().text().trimmed();
-      QString macflavortype = macflavortags.at(0).toElement().text().trimmed();
-      // and register this rule
-      KLFMacPasteboardMime::TranslateRule rule(mimetype, macflavortype);
-      KLFMacPasteboardMime::addTranslateTypeRule(rule);
-      continue;
-    }
-    qWarning()<<KLF_FUNC_NAME<<": in XML file "<<fname<<": bad node "<<en.nodeName()
-	      <<" in <add-macosx-type-rules>";
-    continue;
-  }
-}
-
-
-
-// See the following URL for some mime types:
-//   http://developer.apple.com/library/mac/#documentation/Miscellaneous/Reference/UTIRef/Articles/System-DeclaredUniformTypeIdentifiers.html
-
-// static
-QList<KLFMacPasteboardMime::TranslateRule> KLFMacPasteboardMime::staticTranslateTypeRules =
-  QList<KLFMacPasteboardMime::TranslateRule>()
-//       a few built-in translation rules
-  << KLFMacPasteboardMime::TranslateRule("image/png", "public.png")
-  << KLFMacPasteboardMime::TranslateRule("image/jpeg", "public.jpeg")
-  << KLFMacPasteboardMime::TranslateRule("image/gif", "com.compuserve.gif")
-  << KLFMacPasteboardMime::TranslateRule("image/bmp", "com.microsoft.bmp")
-  << KLFMacPasteboardMime::TranslateRule("application/pdf", "com.adobe.pdf")
-  << KLFMacPasteboardMime::TranslateRule("application/postscript", "com.adobe.postscript")
-  << KLFMacPasteboardMime::TranslateRule("application/eps", "com.adobe.encapsulated-postscript")
-  << KLFMacPasteboardMime::TranslateRule("image/eps", "com.adobe.encapsulated-postscript")
-  << KLFMacPasteboardMime::TranslateRule("text/html", "public.html")
-//  << KLFMacPasteboardMime::TranslateRule("text/uri-list", "public.file-url")
-  << KLFMacPasteboardMime::TranslateRule("text/x-klf-mac-fileurl", "public.file-url")
-//  << KLFMacPasteboardMime::TranslateRule("text/x-moz-url", "public.file-url")
-  << KLFMacPasteboardMime::TranslateRule("text/plain", "public.plain-text")
-  ;
-
-// static
-void KLFMacPasteboardMime::addTranslateTypeRule(const TranslateRule& rule)
-{
-  klfDbg("adding rule "<<rule.mimetype<<" <-> "<<rule.macflavor) ;
-  staticTranslateTypeRules.prepend(rule);
-}
-
-
-
 KLFMacPasteboardMime::KLFMacPasteboardMime()
   : QMacPasteboardMime(MIME_ALL)
 {
@@ -123,9 +47,16 @@ KLFMacPasteboardMime::~KLFMacPasteboardMime()
 bool KLFMacPasteboardMime::canConvert(const QString& mime, QString flav)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  Q_UNUSED(flav);
   klfDbg("mime="<<mime<<" flav="<<flav) ;
 
-  return KLF_DEBUG_TEE( mimeFor(flav) == mime ) ;
+  if (flav.startsWith("com.trolltech.anymime.")) {
+    // Qt internal mac UTI (flavor)
+    return false;
+  }
+
+  const QString prefix = QLatin1String(KLF_MIME_PROXY_MAC_FLAVOR_PREFIX) ;
+  return mime.startsWith(prefix) && (mime.mid(prefix.size()) == flav);
 }
 
 QList<QByteArray> KLFMacPasteboardMime::convertFromMime(const QString& mime, QVariant data,
@@ -135,7 +66,7 @@ QList<QByteArray> KLFMacPasteboardMime::convertFromMime(const QString& mime, QVa
   klfDbg("mime="<<mime<<" flav="<<flav) ;
 
   if (!canConvert(mime, flav)) {
-    klfDbg("can't convert.") ;
+    klfDbg("Can't convert!") ;
     return QList<QByteArray>();
   }
 
@@ -151,13 +82,20 @@ QVariant KLFMacPasteboardMime::convertToMime(const QString& mime, QList<QByteArr
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("mime="<<mime<<" flav="<<flav) ;
+
+  if (!canConvert(mime, flav)) {
+    klfDbg("Can't convert!") ;
+    return QVariant();
+  }
+
   if (data.count() > 1) {
-    qWarning()<<KLF_FUNC_NAME<<": Can't handle data.size()>1, in conversion from "<<mime
-	      <<" to "<<flav;
+    klfWarning("Can't handle data.size()>1 (data.size()="<<data.size()<<"), in conversion from "
+               << mime << " to " << flav) ;
+    return QVariant();
   }
   if (data.count() <= 0) {
     klfDbg("no data.");
-    return QByteArray();
+    return QVariant();
   }
 
   klfDbg("data size="<<data[0].length()) ;
@@ -169,14 +107,11 @@ QString KLFMacPasteboardMime::flavorFor(const QString& mime)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("mime="<<mime) ;
 
-  // query our translation rules
-  int k;
-  for (k = 0; k < staticTranslateTypeRules.size(); ++k) {
-    if (mime == staticTranslateTypeRules[k].mimetype)
-      return KLF_DEBUG_TEE( staticTranslateTypeRules[k].macflavor );
+  if (mime.startsWith(KLF_MIME_PROXY_MAC_FLAVOR_PREFIX)) {
+    return mime.mid(QLatin1String(KLF_MIME_PROXY_MAC_FLAVOR_PREFIX).size());
   }
 
-  klfDbg("unknown...") ;
+  klfDbg("Mime type is not a KLF mac flavor proxy.") ;
   return QString();
 }
 
@@ -185,15 +120,12 @@ QString KLFMacPasteboardMime::mimeFor(QString flav)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("flav="<<flav) ;
 
-  // query our translation rules
-  int k;
-  for (k = 0; k < staticTranslateTypeRules.size(); ++k) {
-    if (flav == staticTranslateTypeRules[k].macflavor)
-      return KLF_DEBUG_TEE( staticTranslateTypeRules[k].mimetype );
+  if (flav.startsWith("com.trolltech.anymime.")) {
+    // Qt internal UTI (flavor)
+    return QString();
   }
 
-  klfDbg("unknown...") ;
-  return QString();
+  return QString::fromLatin1(KLF_MIME_PROXY_MAC_FLAVOR_PREFIX) + flav;
 }
 
 
