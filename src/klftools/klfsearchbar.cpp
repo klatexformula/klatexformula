@@ -149,6 +149,7 @@ QDebug& operator<<(QDebug& str, const KLFPosSearchable::Pos& pos)
 KLFPosSearchable::Pos KLFPosSearchable::searchStartFrom(bool forward)
 {
   klfDbg("start from: base implementation, will return invalid. forward="<<forward) ;
+  Q_UNUSED(forward) ;
   return Pos();
 }
 

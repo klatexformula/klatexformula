@@ -543,6 +543,7 @@ void KLFContainerSideWidgetManager::newSideWidgetSet(QWidget *oldw, QWidget *new
     d->saved_pw = neww->parentWidget(); // save its parent widget so that we can restore it
     if (d->saved_pw != NULL) {
       bool connected = connect(d->saved_pw, SIGNAL(destroyed(QObject*)), this, SLOT(aWidgetDestroyed(QObject*)));
+      Q_UNUSED(connected) ;
       klfDbg("saving pw : "<<d->saved_pw<<" and connected to destroyed(QObject*) signal?="<<connected) ;
     }
     d->want_restore_saved = true;

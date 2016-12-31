@@ -201,6 +201,7 @@ public:
   virtual SearchIterator searchIterFind(const SearchIterator& startPos, const QString& queryString, bool forward)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    Q_UNUSED(queryString) ;
     klfDbg( " s="<<queryString<<" from "<<startPos<<" forward="<<forward
 	    <<"; searchQueryString()="<<searchQueryString() ) ;
     pCurPos = startPos;

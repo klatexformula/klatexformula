@@ -549,6 +549,7 @@ public:
 
   /** \warning Caller eventFilter() must ensure not to recurse with fake events ! */  
   virtual bool evDragMove(QDragMoveEvent *de, const QPoint& pos) {
+    Q_UNUSED(pos) ;
     uint fl = pModel->dropFlags(de, thisView());
     klfDbg( "KLFLibDefViewCommon::evDragMove: flags are "<<fl<<"; pos is "<<pos ) ;
     // decide whether to accept the drop or to ignore it
@@ -580,6 +581,7 @@ public:
       //	qApp->sendEvent(object, event);
       // move the objects ourselves because of bug (?) in Qt's handling?
       QPoint delta = pos - mousePressedContentsPos;
+      Q_UNUSED( delta ) ;
       klfDbg( "Delta is "<<delta ) ;
       // and fake a QDragLeaveEvent
       QDragLeaveEvent fakeevent;
@@ -652,6 +654,7 @@ public:
     */
     QModelIndex index;
     QPoint offset = scrollOffset();
+    Q_UNUSED( offset ) ;
     klfDbg( " offset="<<offset ) ;
     int xStart, yStart;
     int xStep, yStep;

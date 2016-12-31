@@ -467,8 +467,10 @@ add_definitions(-DKLF_VERSION_STRING="${KLF_VERSION}"
 		-DKLF_VERSION_MIN=${KLF_VERSION_MIN}
 		-DKLF_VERSION_REL=${KLF_VERSION_REL}
 		-DKLF_SRC_BUILD)
-# Add warning flags for DEBUG build configuration
+# Add warning flags for all build configurations
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wextra")
 if(KLF_DEBUG)
   add_definitions(-DKLF_DEBUG)
 else()

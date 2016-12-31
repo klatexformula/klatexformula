@@ -1484,6 +1484,8 @@ void KLFLibModelCache::fullDump()
 
 void KLFLibModelCache::dumpNodeTree(NodeId node, int indent)
 {
+  Q_UNUSED( node ) ;
+  Q_UNUSED( indent ) ;
 #ifdef KLF_DEBUG
 
   if (indent == 0) {
@@ -1989,6 +1991,7 @@ bool KLFLibModel::dropCanInternal(const QMimeData *mimedata)
 bool KLFLibModel::dropMimeData(const QMimeData *mimedata, Qt::DropAction action, int row,
 			       int column, const QModelIndex& parent)
 {
+  Q_UNUSED( row ) ;
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
   klfDbg(  "Drop data: action="<<action<<" row="<<row<<" col="<<column
 	   << " parent="<<parent ) ;
@@ -3501,6 +3504,7 @@ void KLFLibDefaultView::updateResourceOwnData(const QList<KLFLib::entryId>& /*en
 }
 void KLFLibDefaultView::updateResourceProp(int propId)
 {
+  Q_UNUSED( propId ) ;
   klfDbg( "propId="<<propId ) ;
 
   KLF_ASSERT_NOT_NULL( resourceEngine() , "Resource Engine is NULL, skipping !" , return ) ;

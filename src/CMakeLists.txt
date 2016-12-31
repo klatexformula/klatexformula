@@ -391,7 +391,9 @@ if(KLF_BUILD_GUI)
       set_source_files_properties(${usfile}
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources/${usfiledir}
         )
-      install(FILES ${usfile} DESTINATION "${KLF_INSTALL_SHARE_KLF_DATA_DIR}/${usfiledir}")
+      if(NOT KLF_MACOSX_BUNDLES)
+        install(FILES ${usfile} DESTINATION "${KLF_INSTALL_SHARE_KLF_DATA_DIR}/${usfiledir}")
+      endif()
     endif()
   endforeach()
 

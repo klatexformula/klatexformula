@@ -156,6 +156,7 @@ void KLFConfigBase::disconnectQObject(QObject * object)
   QHash<QString,QList<ObjConnection> >::iterator pit;
   for (pit = pObjConnections.begin(); pit != pObjConnections.end(); ++pit) {
     const QString& pname = pit.key();
+    Q_UNUSED(pname) ;
     QList<ObjConnection> & clistref = pit.value();
     for (QList<ObjConnection>::iterator it = clistref.begin(); it != clistref.end(); ++it) {
       if ((*it).object == object) {

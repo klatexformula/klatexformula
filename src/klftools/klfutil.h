@@ -758,6 +758,7 @@ private:
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     if (p != NULL) {
       int n = p->ref();
+      Q_UNUSED(n) ;
       klfDbg(p<<": ref()! n="<<n) ;
     }
   }

@@ -69,7 +69,7 @@ KLFMakeAbsInstallPath(KLF_ABS_INSTALL_HEADER_DIR  KLF_INSTALL_HEADER_DIR)
 # Designer Plugin Library Dir
 # ...
 if(KLF_BUILD_TOOLSDESPLUGIN)
-  if(NOT DEFINED KLF_INSTALL_DESPLUGIN_DIR)
+  if(KLF_INSTALL_KLFTOOLSDESPLUGIN AND NOT DEFINED KLF_INSTALL_DESPLUGIN_DIR)
     # I haven't found the "official" way to find out where to install the
     # plugin; I didn't find any CMake variable or any indication in the official
     # documentation on where to install the plugin. So leave it up to the user.
