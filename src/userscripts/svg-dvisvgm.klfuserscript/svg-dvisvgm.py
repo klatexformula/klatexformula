@@ -28,6 +28,7 @@ import re
 import os
 import sys
 import argparse
+import subprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--format", help='output format to use ("svg" or "svgz")')
@@ -60,22 +61,18 @@ if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
 
 sys.stderr.write("Converting file "+dvifile+"\n");
 
-dvifile = "'" + re.sub(r"\'", "'\"'\"'", dvifile) + "'";
-svgfile = "'" + re.sub(r"\'", "'\"'\"'", re.sub(r'\.dvi$', '.svg', dvifile)) + "'";
+svgfile = re.sub(r'\.dvi$', '.svg', dvifile)
 
-# TODO !!!: Needs Error handling/messages/....
-# ... and use subprocess.check_output() !!!!
-
-result = os.system("'"+dvisvgm+"' -a -e -n -b min '"+dvifile+"'")
-
-if (result != 0):
-    print("Error, result="+str(result)+"...");
+# CalledProcessError is raised if an error occurs.
+output = subprocess.check_output(args=[dvisvgm, '-a', '-e', '-n', '-b', 'min', dvifile], shell=False)
+print("Output from {}: \n{}".format(dvisvgm, output.decode('utf-8')))
 
 if format == 'svgz':
     # compress the svg file
-    res2 = os.system("/usr/bin/gzip -Sz '"+svgfile+"'")
-    if (res2 != 0):
-        print("Error for gzip: result="+str(res2)+"...");
+    gzip = '/usr/bin/gzip'
+    # CalledProcessError is raised if an error occurs.
+    output2 = subprocess.check_output(args=[gzip, '-Sz', svgfile], shell=False)
+    print("Output from {}: \n{}".format(gzip, output2.decode('utf-8')))
 
 sys.exit(0);
 

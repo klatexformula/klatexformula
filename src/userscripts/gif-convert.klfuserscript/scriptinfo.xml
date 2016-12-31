@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>gif-convert.py</exe-script>
+  <category>klf-export-type</category>
+  <name>GIF output via ImageMagick's convert</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.3</version>
+  <license>GPL v2+</license>
+  <settings-form-ui>gif-convert_config.ui</settings-form-ui>
+  <klf-export-type>
+    <input-data-type>PNG</input-data-type>
+    <has-stdout-output>false</has-stdout-output>
+    <mime-export-profiles-xml-file>gif-convert-export-profiles.xml</mime-export-profiles-xml-file>
+    <format name="gif">
+      <title>GIF (using ImageMagick's convert)</title>
+      <file-name-extension>gif</file-name-extension>
+    </format>
+  </klf-export-type>
+</klfuserscript-info>

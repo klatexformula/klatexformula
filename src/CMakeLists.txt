@@ -388,15 +388,18 @@ if(KLF_BUILD_GUI)
   #
   file(GLOB_RECURSE klf_userscriptfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" userscripts/*)
   foreach(usfile ${klf_userscriptfiles})
-    target_sources(klatexformula PRIVATE
-      ${usfile}
-      )
-    get_filename_component(usfiledir "${usfile}" DIRECTORY)
-    set_source_files_properties(${usfile}
-      PROPERTIES MACOSX_PACKAGE_LOCATION Resources/${usfiledir}
-      )
-    # add install target
-    # .....
+    if(usfile MATCHES "\\.(py|rb|sh|pl|bat|xml|ui)$")
+      # backup file -- ignore
+      target_sources(klatexformula PRIVATE
+        ${usfile}
+        )
+      get_filename_component(usfiledir "${usfile}" DIRECTORY)
+      set_source_files_properties(${usfile}
+        PROPERTIES MACOSX_PACKAGE_LOCATION Resources/${usfiledir}
+        )
+      # add install target!!!!!
+      # .....
+    endif()
   endforeach()
 
   # Make man page
@@ -438,12 +441,12 @@ if(KLF_BUILD_GUI)
     add_custom_target(klatexformula_manpage ALL
       DEPENDS "${klatexformula_manpage_file}" "${klatexformula_cmdl_manpage_file}")
 
-    if(KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MAN1_DIR)
+    if(KLF_INSTALL_SHARE_MAN1_DIR)
       install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/${klatexformula_manpage_file}"
         "${CMAKE_CURRENT_BINARY_DIR}/${klatexformula_cmdl_manpage_file}"
         DESTINATION "${KLF_INSTALL_SHARE_MAN1_DIR}")
-    endif(KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MAN1_DIR)
+    endif(KLF_INSTALL_SHARE_MAN1_DIR)
 
   endif(HELP2MAN)
 

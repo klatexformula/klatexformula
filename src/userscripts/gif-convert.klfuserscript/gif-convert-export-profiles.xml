@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- Export Profile for GIF via ImageMagick's convert
+     $Id$
+  -->
+
+<!-- version: specifies klf compatibility version, currently "4.0" -->
+<export-profile-list version="4.0">
+
+  <!-- List profile definitions here.  A profile is a list of data export types,
+       associated to MIME types (x11), Mac OS X identifiers and MS Windows clipboard
+       format names.
+       
+       You may specify several MIME types, mac identifiers and Windows format names for
+       each data export type, in which case the data is exposed for all the given names.
+       
+       Note that QT already translates a certain number of standard types, so there is no
+       need to declare the mac identifiers for PNG or PDF, for example.  Experiment a
+       little.
+    -->
+
+  <profile name="gif_via_ImageMagick">
+    <description>GIF via ImageMagick's convert</description>
+    <in-submenu>Specific Formats</in-submenu>
+
+    <export-type exporter="UserScript:gif-convert" format="gif">
+      <mime-type>image/gif</mime-type>
+      <win-format>image/gif</win-format>
+      <win-format>GIF</win-format>
+      <mac-flavor>com.compuserve.gif</mac-flavor>
+    </export-type>
+  </profile>
+
+</export-profile-list>

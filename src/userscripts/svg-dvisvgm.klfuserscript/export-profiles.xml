@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- Export Profile for SVG via dvi-svgm
+     $Id$
+  -->
+
+<!-- version: specifies klf compatibility version, currently "4.0" -->
+<export-profile-list version="4.0">
+
+  <!-- List profile definitions here.  A profile is a list of data export types,
+       associated to MIME types (x11), Mac OS X identifiers and MS Windows clipboard
+       format names.
+       
+       You may specify several MIME types, mac identifiers and Windows format names for
+       each data export type, in which case the data is exposed for all the given names.
+       
+       Note that QT already translates a certain number of standard types, so there is no
+       need to declare the mac identifiers for PNG or PDF, for example.  Experiment a
+       little.
+    -->
+
+  <profile name="svg_via_dvisvgm">
+    <description>SVG via dvisvgm</description>
+    <in-submenu>Specific Formats</in-submenu>
+
+    <export-type exporter="UserScript:svg-dvisvgm" format="svg">
+      <mime-type>image/svg+xml</mime-type>
+      <win-format>image/svg+xml</win-format>
+      <win-format>SVG</win-format>
+      <mac-flavor>public.svg-image</mac-flavor>
+    </export-type>
+  </profile>
+
+</export-profile-list>

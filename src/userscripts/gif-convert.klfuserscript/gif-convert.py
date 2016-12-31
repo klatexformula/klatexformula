@@ -2,7 +2,7 @@
 
 # gif-convert.py
 #   This file is part of the KLatexFormula Project.
-#   Copyright (C) 2012 by Philippe Faist
+#   Copyright (C) 2016 by Philippe Faist
 #   philippe.faist at bluewin.ch
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -22,16 +22,27 @@
 #
 #   $Id$
 
-import re;
-import os;
-import sys;
-import os.path;
+from __future__ import print_function
 
-if (sys.argv[1] == "--help"):
-    print "Usage: "+os.path.basename(sys.argv[0])+" --scriptinfo [KLF-VERSION]";
-    print "       "+os.path.basename(sys.argv[0])+" <file.png>";
-    print "";
-    exit(0);
+import re
+import os
+import sys
+import os.path
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--format", help='output format to use (only valid value is "gif")')
+parser.add_argument("pngfile", help='the PNG input file')
+
+args = parser.parse_args()
+
+format = args.format
+pngfile = args.pngfile
+
+if format != 'gif':
+    print("Invalid format: ", format)
+    sys.exit(1);
 
 convert = ""
 if "KLF_USCONFIG_convert" in os.environ:
@@ -39,41 +50,16 @@ if "KLF_USCONFIG_convert" in os.environ:
 if not convert:
     if os.path.exists("/usr/bin/convert"):
         convert = "/usr/bin/convert"
+    elif os.path.exists("/usr/local/bin/convert"):
+        convert = "/usr/local/bin/convert"
 
 
-if (sys.argv[1] == "--scriptinfo"):
-    print "ScriptInfo";
-    print "Category: klf-export-type";
-    print "Name: GIF output format provider using convert utility";
-    print "Author: Philippe Faist <philippe.fai"+"st@b"+"luewin.ch>"
-    print "Version: 0.1";
-    print "License: GPL v2+"
-    print "InputDataType: PNG"
-    print "MimeType: image/gif"
-    print "OutputFilenameExtension: gif"
-    print "OutputFormatDescription: GIF Image"
-    print "WantStdinInput: false"
-    print "HasStdoutOutput: false"
-    print "SettingsFormUI: gif-convert_config.ui";
-    if (not os.path.isfile(convert) or not os.access(convert, os.X_OK)):
-        if (convert):
-            print "Warning: Invalid `convert' path: %s" %(convert)
-        print "Warning: Can't find `convert' executable.";
-    print "";
-    exit(0);
-
-
-pngfile = sys.argv[1];
 giffile = re.sub(r'\.png$', r'.gif', pngfile);
 
-pngfile = "'" + re.sub(r"\'", "'\"'\"'", pngfile) + "'";
-giffile = "'" + re.sub(r"\'", "'\"'\"'", giffile) + "'";
+# CalledProcessError is raised if an error occurs.
+output = subprocess.check_output(args=[convert, pngfile, giffile], shell=False)
 
-convert = re.sub(r"\'", "\'\"'\"'", convert)
-
-# TODO !!!: Needs Error handling/messages/....
-os.system("'"+convert+"' "+pngfile+" "+giffile+"");
-
+print("Output from {}: \n{}".format(convert, output.decode('utf-8')))
 
 exit(0);
 
