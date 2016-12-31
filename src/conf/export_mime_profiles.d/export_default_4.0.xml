@@ -160,6 +160,15 @@
       <mac-flavor>com.adobe.encapsulated-postscript</mac-flavor>
     </export-type>
   </profile>
+  <profile name="latex">
+    <in-submenu>Specific Formats</in-submenu>
+    <description>LaTeX source</description>
+    <export-type exporter="tex-source" format="tex">
+      <default-qt-formats type="text" />
+      <mime-type>application/x-latex</mime-type>
+      <mime-type>application/x-tex</mime-type>
+    </export-type>
+  </profile>
 
 </export-profile-list>
 

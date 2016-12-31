@@ -141,13 +141,15 @@ public:
 
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const
   {
-    return QStringList() << "latex-source";
+    return QStringList() << "tex-with-klf-metainfo" << "tex";
   }
 
   virtual QString titleFor(const QString & format)
   {
-    if (format == "latex-source") {
-      return tr("LaTeX source", "[[human-readable format name for latex source exporter]]");
+    if (format == "tex") {
+      return tr("LaTeX source");
+    } else if (format == "tex-with-klf-metainfo") {
+      return tr("LaTeX source (with KLF metainfo)");
     }
     klfWarning("Invalid format: " << format) ;
     return QString();
@@ -155,7 +157,9 @@ public:
 
   virtual QStringList fileNameExtensionsFor(const QString & format)
   {
-    if (format == "latex-source") {
+    if (format == "tex") {
+      return QStringList() << "tex" << "latex";
+    } else if (format == "tex-with-klf-metainfo") {
       return QStringList() << "klftex" << "tex" << "latex";
     }
     klfWarning("Invalid format: " << format) ;
@@ -167,26 +171,35 @@ public:
   {
     clearErrorString();
 
-    if (format == "latex-source") {
+    if (format == "tex" || format == "tex-with-klf-metainfo") {
+      
+      bool include_meta = (format == "tex-with-klf-metainfo");
 
-      QByteArray data = "%%KLF:LaTeX-save\n";
-      data += "%%KLF:date: "+QDateTime::currentDateTime().toString(Qt::ISODate) + "\n%%KLF: \n";
-
+      QByteArray data;
+      if (include_meta) {
+        data = "%%KLF:LaTeX-save\n";
+        data += "%%KLF:date: "+QDateTime::currentDateTime().toString(Qt::ISODate) + "\n%%KLF: \n";
+      }
+        
       data += output.input.latex.toUtf8();
       if (!data.endsWith("\n")) {
         data += "\n";
       }
-      data += "%%KLF: \n";
-      data += "%%KLF: ";
+      
+      if (include_meta) {
+        data += "%%KLF: \n";
+        data += "%%KLF: ";
 
-      // save style now as a LaTeX comment
-      KLFStyle style(output.input);
-      style.userScript = QFileInfo(style.userScript).fileName(); // only save file name as script path may differ
-      QByteArray styledata = klfSave(&style, "XML");
-      styledata = "\n"+styledata;
-      styledata.replace("\n", "\n%%KLF:style: ");
+        // save style now as a LaTeX comment
+        KLFStyle style(output.input);
+        // only save file name as script path may differ:
+        style.userScript = QFileInfo(style.userScript).fileName();
+        QByteArray styledata = klfSave(&style, "XML");
+        styledata = "\n"+styledata;
+        styledata.replace("\n", "\n%%KLF:style: ");
 
-      data += styledata + "\n";
+        data += styledata + "\n";
+      }
 
       return data;
     }
