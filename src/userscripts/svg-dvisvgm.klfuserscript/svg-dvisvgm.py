@@ -56,7 +56,8 @@ if not dvisvgm:
 #print("dvisvgm: "+repr(dvisvgm))
 
 if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
-    print("Error: Can't find dvisvgm executable.");
+    print("Error: Can't find dvisvgm executable. Please set the path to `dvisvgm` in\n"
+          "Settings -> Scripts -> svg-dvisvgm -> Script Settings");
     sys.exit(255);
 
 sys.stderr.write("Converting file "+dvifile+"\n");
