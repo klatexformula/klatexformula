@@ -53,9 +53,7 @@ public:
     mainWin = NULL;
     pUserSetDefaultAppFont = false;
     pluginstuffloaded = false;
-#ifdef KLF_EXPERIMENTAL
     advancedConfigEditor = NULL;
-#endif
   }
 
 
@@ -87,9 +85,7 @@ public:
   QMap<QString,QWidget*> pluginConfigWidgets;
   QMap<QString,QTreeWidgetItem*> pluginListItems;
 
-#ifdef KLF_EXPERIMENTAL
   KLFAdvancedConfigEditor *advancedConfigEditor;
-#endif
 
   bool setDefaultFor(const QString& progname, const QString& guessprog, bool required,
 		     KLFPathChooser *destination);

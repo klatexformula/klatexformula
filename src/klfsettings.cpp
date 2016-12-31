@@ -66,13 +66,11 @@
 
 
 
-#ifdef KLF_EXPERIMENTAL
-void klf_show_advanced_config_editor()
-{
-  KLFAdvancedConfigEditor *edit = new KLFAdvancedConfigEditor(NULL, &klfconfig);
-  edit->show();
-}
-#endif
+// void klf_show_advanced_config_editor()
+// {
+//   KLFAdvancedConfigEditor *edit = new KLFAdvancedConfigEditor(NULL, &klfconfig);
+//   edit->show();
+// }
 
 
 
@@ -940,7 +938,6 @@ void KLFSettingsPrivate::slotChangeFont(QPushButton *w, const QFont& fnt)
 
 void KLFSettings::showAdvancedConfigEditor()
 {
-#ifdef KLF_EXPERIMENTAL
   if (d->advancedConfigEditor == NULL) {
     d->advancedConfigEditor = new KLFAdvancedConfigEditor(this, &klfconfig);
     connect(d->advancedConfigEditor, SIGNAL(configModified(const QString&)),
@@ -948,12 +945,6 @@ void KLFSettings::showAdvancedConfigEditor()
     connect(this, SIGNAL(settingsApplied()), d->advancedConfigEditor, SLOT(updateConfig()));
   }
   d->advancedConfigEditor->show();
-
-#else
-  QMessageBox::critical(this, ("Not Yet Implemented"),
-			("This feature is not yet implemented. If you're daring, try compiling "
-			   "klatexformula with the experimental features on."));
-#endif
 }
 
 // klfdebug.cpp

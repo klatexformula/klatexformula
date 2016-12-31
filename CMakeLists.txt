@@ -110,15 +110,17 @@ else()
   message(STATUS "Debugging messages in KLF libraries and applciation are disabled (KLF_DEBUG)")
 endif()
 
-# experimental features
-option(KLF_EXPERIMENTAL
-  "DEVELOPERS ONLY. Enable experimental unstable features (NOT recommended for regular use!)"
-  off)
-mark_as_advanced(KLF_EXPERIMENTAL)
-if(KLF_EXPERIMENTAL)
-  KLFNote("WARNING: Experimental features are unstable and are meant only for developers!! Use at your own risk!!")
-  message(STATUS "Enabling experimental features (KLF_EXPERIMENTAL)")
-endif(KLF_EXPERIMENTAL)
+# experimental features -- currently no experimental features to enable
+#
+#option(KLF_EXPERIMENTAL
+#  "DEVELOPERS ONLY. Enable experimental unstable features (NOT recommended for regular use!)"
+#  off)
+#mark_as_advanced(KLF_EXPERIMENTAL)
+#if(KLF_EXPERIMENTAL)
+#  KLFNote("WARNING: Experimental features are unstable and are meant only for developers!! Use at your own risk!!")
+#  message(STATUS "Enabling experimental features (KLF_EXPERIMENTAL)")
+#endif(KLF_EXPERIMENTAL)
+set(KLF_EXPERIMENTAL 0)
 
 
 # Find Qt 5
