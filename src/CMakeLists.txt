@@ -386,12 +386,12 @@ if(KLF_BUILD_GUI)
       target_sources(klatexformula PRIVATE
         ${usfile}
         )
+      # e.g. usfiledir = userscripts/xxx.klfuserscript
       get_filename_component(usfiledir "${usfile}" DIRECTORY)
       set_source_files_properties(${usfile}
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources/${usfiledir}
         )
-      # add install target!!!!!
-      # .....
+      install(FILES ${usfile} DESTINATION "${KLF_INSTALL_SHARE_KLF_DATA_DIR}/${usfiledir}")
     endif()
   endforeach()
 

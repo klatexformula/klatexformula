@@ -79,7 +79,7 @@ if(KLF_BUILD_TOOLSDESPLUGIN)
     KLFNote("The klftools qt designer plugin will not be installed. If you want to install
     it, please specify the final installation location in
     KLF_INSTALL_DESPLUGIN_DIR (or set to an empty value to silence this
-    message) [see also KLF_INSTALL_KLFTOOLSDESPLUGIN=YES].
+    message) [see also KLF_INSTALL_KLFTOOLSDESPLUGIN=YES|NO].
 ")
     set(KLF_INSTALL_DESPLUGIN_DIR "")
     # and change the default to "don't install"

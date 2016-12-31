@@ -129,6 +129,7 @@ QStringList KLFMimeExportProfile::collectedAvailableMimeTypes(KLFExporterManager
                                                               const KLFBackend::klfOutput & klfoutput) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_ASSERT_NOT_NULL(exporterManager, "NULL exporterManager !", return QStringList() ) ;
   QStringList mimeTypes;
   int k;
   for (k = 0; k < p_exportTypes.size(); ++k) {
@@ -145,6 +146,7 @@ QStringList KLFMimeExportProfile::collectedAvailableMacFlavors(KLFExporterManage
                                                                const KLFBackend::klfOutput & klfoutput) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_ASSERT_NOT_NULL(exporterManager, "NULL exporterManager !", return QStringList() ) ;
   QStringList macFlavors;
   int k;
   for (k = 0; k < p_exportTypes.size(); ++k) {
@@ -163,6 +165,7 @@ QStringList KLFMimeExportProfile::collectedAvailableWinFormats(KLFExporterManage
                                                                const KLFBackend::klfOutput & klfoutput) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_ASSERT_NOT_NULL(exporterManager, "NULL exporterManager !", return QStringList() ) ;
   QStringList winFormats;
   int k;
   for (k = 0; k < p_exportTypes.size(); ++k) {
@@ -181,6 +184,7 @@ int KLFMimeExportProfile::indexOfAvailableMimeType(const QString& mimeType,
                                                    const KLFBackend::klfOutput & klfoutput) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_ASSERT_NOT_NULL(exporterManager, "NULL exporterManager !", return -1 ) ;
   int k;
   for (k = 0; k < p_exportTypes.size(); ++k) {
     if (p_exportTypes[k].mimeTypes.contains(mimeType)) {
@@ -198,6 +202,7 @@ int KLFMimeExportProfile::indexOfAvailableWinFormat(const QString& winFormat,
                                                     const KLFBackend::klfOutput & klfoutput) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_ASSERT_NOT_NULL(exporterManager, "NULL exporterManager !", return -1 ) ;
   int k;
   for (k = 0; k < p_exportTypes.size(); ++k) {
     if (p_exportTypes[k].winFormats.contains(winFormat)) {
@@ -215,6 +220,7 @@ int KLFMimeExportProfile::indexOfAvailableMacFlavor(const QString& macFlavor,
                                                     const KLFBackend::klfOutput & klfoutput) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  KLF_ASSERT_NOT_NULL(exporterManager, "NULL exporterManager !", return -1 ) ;
   int k;
   for (k = 0; k < p_exportTypes.size(); ++k) {
     if (p_exportTypes[k].macFlavors.contains(macFlavor)) {
@@ -566,6 +572,8 @@ struct KLFMimeDataPrivate
 
   QByteArray getDataFor(KLFMimeExportProfile::ExportType exportType, const QVariantMap & params)
   {
+    KLF_ASSERT_NOT_NULL(exporterManager, "We don't have any exporter manager ! It's NULL !",
+			return QByteArray()) ;
     KLFExporter * exporter = exporterManager->exporterByName(exportType.exporterName);
     if (exporter == NULL) {
       klfWarning("Can't find exporter name = " << exportType.exporterName << "!") ;
@@ -760,6 +768,12 @@ QStringList KLFMimeData::formats() const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+  if (d->allDataTransmitted) {
+    // all the data was transmitted to the QMimeData via setData(), so we should no longer
+    // attempt any deferred data retrieval.
+    return QMimeData::formats();
+  }
+
   QStringList fmts = d->collectedFormatsAsProxyMimes();
 
   klfDbg("our mime formats: " << fmts) ;
@@ -853,6 +867,7 @@ void KLFMimeData::transmitAllData()
 
   }
   d->allDataTransmitted = true;
+  d->exporterManager = NULL; // and don't allow any more access to the exporter manager
 }
 
 // static

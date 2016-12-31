@@ -37,8 +37,12 @@ if(NOT KLF_WELCOME_MSG_SILENT)
    capital letters is given the corresponding CMake cache variable name, in case
    you want to change the setting. With command-line cmake, you can set a
    variable with:
+
      cmake <source-dir> -D<VARIABLE_NAME>=<VALUE>
-   In most cases values are just 'ON' or 'OFF'. In some other cases they are paths.
+
+   In most cases values are just 'ON' or 'OFF'. In some other cases they are
+   paths. Non-absolute installation paths are understood as relative to
+   CMAKE_INSTALL_PREFIX.
 
    But don't worry, most default values should be fine. Unless an error was
    reported during this script, you can type

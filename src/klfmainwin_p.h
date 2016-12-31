@@ -871,6 +871,8 @@ public:
 
     pUserScriptSettings = NULL;
 
+    pExporterManager = NULL;
+    
 #if defined(KLF_WS_MAC)
     macFlavorsConverter = NULL;
 #elif defined(KLF_WS_WIN)
@@ -969,7 +971,7 @@ public:
   void getMissingCmdsFor(const QString& symbol, QStringList * missingCmds, QString *guiText,
 			 bool wantHtmlText = true);
 
-  KLFExporterManager pExporterManager;
+  KLFExporterManager * pExporterManager;
   QList<KLFAbstractDataOpener*> pDataOpeners;
 
   KLFMimeExportProfileManager pMimeExportProfileManager;

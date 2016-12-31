@@ -389,6 +389,8 @@ KLFMainWin::KLFMainWin()
 
   // REGISTER OUR EXPORTERS
 
+  d->pExporterManager = new KLFExporterManager;
+
   klfDbg("Registering exporters") ;
 
   registerExporter(new KLFBackendOutputFormatsExporter(this));
@@ -615,6 +617,7 @@ KLFMainWin::~KLFMainWin()
 //   // no special needs on X11
 // #endif
 
+  delete d->pExporterManager;
 
   KLF_DELETE_PRIVATE ;
 
@@ -2320,12 +2323,12 @@ void KLFMainWin::registerHelpLinkAction(const QString& path, QObject *object, co
 
 void KLFMainWin::registerExporter(KLFExporter *exporter)
 {
-  d->pExporterManager.registerExporter(exporter) ;
+  d->pExporterManager->registerExporter(exporter) ;
 }
 
 void KLFMainWin::unregisterExporter(KLFExporter *exporter)
 {
-  d->pExporterManager.unregisterExporter(exporter);
+  d->pExporterManager->registerExporter(exporter);
 }
 
 void KLFMainWin::registerDataOpener(KLFAbstractDataOpener *dataopener)
@@ -3377,7 +3380,7 @@ void KLFMainWin::pasteLatexFromClipboard(QClipboard::Mode mode)
 
 QList<KLFExporter*> KLFMainWin::registeredExporters()
 {
-  return d->pExporterManager.exporterList();
+  return d->pExporterManager->exporterList();
 }
 QList<KLFAbstractDataOpener*> KLFMainWin::registeredDataOpeners()
 {
@@ -3641,7 +3644,7 @@ void KLFMainWin::slotDrag()
   QDrag *drag = new QDrag(this);
   KLFMimeData *mime = new KLFMimeData(
       d->pMimeExportProfileManager.findExportProfile(klfconfig.ExportData.dragExportProfile),
-      & d->pExporterManager,
+      d->pExporterManager,
       d->output
       );
 
@@ -3699,7 +3702,7 @@ void KLFMainWin::slotCopy()
 
   KLFMimeData *mimedata = new KLFMimeData(
       d->pMimeExportProfileManager.findExportProfile(klfconfig.ExportData.copyExportProfile),
-      & d->pExporterManager,
+      d->pExporterManager,
       d->output
       );
   QApplication::clipboard()->setMimeData(mimedata, QClipboard::Clipboard);
@@ -3736,7 +3739,7 @@ void KLFMainWin::slotSave(const QString& suggestfname)
 
   int k, j, ll;
 
-  QList<KLFExporter*> exporters = d->pExporterManager.exporterList();
+  QList<KLFExporter*> exporters = d->pExporterManager->exporterList();
 
   for (k = 0; k < exporters.size(); ++k) {
     KLFExporter * exporter = exporters[k];
