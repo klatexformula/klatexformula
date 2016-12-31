@@ -28,7 +28,6 @@
 
 #include <QString>
 #include <QWidget>
-#include <QtUiPlugin/QDesignerCustomWidgetCollectionInterface>
 #include <QtUiPlugin/QDesignerCustomWidgetInterface>
 #include <QtDesigner/QDesignerContainerExtension>
 
@@ -41,7 +40,6 @@
 #include <klfpathchooser.h>
 
 
-/** \bug **** PROPER CMAKE VARIABLES FOR KLFSEARCHBAR_DESPLUGIN CMAKE TARGET ******  */
 
 class KLFSearchBarDesPlugin : public QObject, public QDesignerCustomWidgetInterface
 {
@@ -303,28 +301,6 @@ private:
 };
 
 
-
-
-// -----------------------
-
-
-class KLFToolsDesPlugin : public QObject, public QDesignerCustomWidgetCollectionInterface
-{
-  Q_OBJECT
-  Q_INTERFACES(QDesignerCustomWidgetCollectionInterface)
-
-public:
-  KLFToolsDesPlugin(QObject* parent = NULL);
-  virtual ~KLFToolsDesPlugin();
-
-  QList<QDesignerCustomWidgetInterface*> customWidgets() const
-  {
-    return _widgetPlugins;
-  }
-
-private:
-   QList<QDesignerCustomWidgetInterface*> _widgetPlugins;
-};
 
 
 #endif

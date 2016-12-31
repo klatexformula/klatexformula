@@ -154,7 +154,7 @@ if(KLF_BUILD_TOOLS)
     find_package(Qt5Designer REQUIRED)
     find_package(Qt5UiPlugin REQUIRED)
 
-    add_library(klftoolsdesplugin MODULE  klftools_desplugin.cpp)
+    add_library(klftoolsdesplugin MODULE  klftools_desplugin.cpp klftools_desplugin_collection.cpp)
     target_include_directories(klftoolsdesplugin PUBLIC ${Qt5Designer_INCLUDE_DIRS} ".")
     set_target_properties(klftoolsdesplugin PROPERTIES
       SKIP_RPATH FALSE
