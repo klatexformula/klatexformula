@@ -4,8 +4,6 @@
 # $Id$
 # ######################################### #
 
-cmake_policy(VERSION 2.8.0)
-
 
 #
 # Filters a list of C/C++ header files ".h" and keeps only those header files
@@ -20,23 +18,24 @@ cmake_policy(VERSION 2.8.0)
 #   KLFInstHeaders(instheaders "${allheaders}")
 #   # instheaders is the list  (header1.h otherheader.h)
 #
-macro(KLFInstHeaders varInstHeaders varAllHeaders)
+macro(KLFInstHeaders varInstHeaders varAllHeaders sourceDir)
 
-  string(REGEX REPLACE "[A-Za-z0-9_-]+_p\\.h" "" ${varInstHeaders} "${varAllHeaders}")
+  set(${varInstHeaders} )
+  foreach(header ${varAllHeaders})
+    if (header MATCHES "^[A-Za-z0-9_-]+_p\\.h$")
+      # private -- skip header
+    else()
+      set(${varInstHeaders} ${${varInstHeaders}} "${sourceDir}/${header}")
+    endif()
+  endforeach()
+      
+  #  string(REGEX REPLACE "[A-Za-z0-9_-]+_p\\.h" "" ${varInstHeaders} "${varAllHeaders}")
 
 endmacro(KLFInstHeaders)
 
 
 # internal cache variable
 set(_klf_notices "" CACHE INTERNAL "no notices shown via KLFNote().")
-
-if(NOT WIN32)
-  set(_klf_path_sep ":")
-else(NOT WIN32)
-  set(_klf_path_sep ";")
-endif(NOT WIN32)
-set(KLF_CMAKE_PATH_SEP "${_klf_path_sep}"
-  CACHE INTERNAL "PATH entry separator character (':' on unix and ';' on win32)")
 
 #
 # Prints a note on the screen in such a way that the user will probably not miss it.
@@ -129,7 +128,7 @@ endmacro(KLFTestCondition var condition)
 
 #
 # An implemenation of the ?: operator in C. Example:
-#   KLFConditionalSet(menu  "NOT IS_VEGETARIAN"  "Steak with Café de Paris"  "String beans")
+#   KLFSetConditional(menu "Steak with Café de Paris"  "String beans" DEPENDING_IF  NOT IS_VEGETARIAN)
 # will set menu to either "Steak..." or "String beans" depending on the value of the variable
 # IS_VEGETARIAN.
 #
@@ -137,14 +136,16 @@ endmacro(KLFTestCondition var condition)
 #  - 'condition' can by any string suitable for usage in an if(...) clause.
 #  - 'var' is not set in the cache
 #
-macro(KLFConditionalSet var condition valueTrue valueFalse)
-  KLFTestCondition(_klf_conditiontest "${condition}")
-  if(_klf_conditiontest)
-    set(${var} "${valueTrue}")
-  else(_klf_conditiontest)
-    set(${var} "${valueFalse}")
-  endif(_klf_conditiontest)
-endmacro(KLFConditionalSet)
+macro(KLFSetConditional varname val1 val2 DEPENDING_IF)
+  if(NOT DEPENDING_IF STREQUAL "DEPENDING_IF")
+    message(FATAL_ERROR "SetIfCondition: synatax: SetIfCondition(varname val1 val2 DEPENDING_IF <condition>)")
+  endif()
+  if(${ARGN})
+    set(${varname} ${val1})
+  else()
+    set(${varname} ${val2})
+  endif()
+endmacro()
 
 
 #
@@ -216,29 +217,6 @@ macro(KLFCMakeSetVarChanged varname)
   set(klf_internal_${varname} "${${varname}}" CACHE INTERNAL "Stored previous value of ${varname}")
 
 endmacro(KLFCMakeSetVarChanged)
-
-
-#
-# A shortcut for marking a variable as advanced, on condition. Useful for making specific fine-tuning
-# options visible to user when necessary.
-#
-# Example:
-#   include(FindQt4)
-#   KLFMarkVarAdvancedIf(QT_QMAKE_EXECUTABLE "NOT QT_QMAKE_EXECUTABLE")
-# invites the user to enter a reasonable value for QT_QMAKE_EXECUTABLE by making that variable
-# visible in cmake-gui's simple view, while maintaining it as "advanced" if the cmake script
-# found Qt4 correctly.
-#
-# 'condition' is used in a if(...) clause.
-#
-macro(KLFMarkVarAdvancedIf varname condition)
-  KLFTestCondition(_klf_conditiontest ${condition})
-  if(_klf_conditiontest)
-    mark_as_advanced(FORCE ${varname})
-  else(_klf_conditiontest)
-    mark_as_advanced(CLEAR ${varname})
-  endif(_klf_conditiontest)
-endmacro(KLFMarkVarAdvancedIf)
 
 
 #
@@ -501,6 +479,7 @@ macro(KLFMakeAbsInstallPath abs_dir_var dir_var)
   else()
     set(${abs_dir_var} "${CMAKE_INSTALL_PREFIX}/${${dir_var}}")
   endif()
+  KLFCMakeDebug("${abs_dir_var} is ${${abs_dir_var}}; ${dir_var} is ${${dir_var}}")
 endmacro()
 
 #
@@ -579,6 +558,19 @@ macro(KLFRelativePath var from_path to_path)
   KLFCMakeDebug("Result is : ${klfRP_relpath}, saved in ${var}")
 
 endmacro(KLFRelativePath)
+
+
+
+macro(KLFSetIfNotDefined var value)
+  if(NOT DEFINED ${var})
+    KLFCMakeDebug("Setting ${var} to default value ${value}")
+    set(${var} ${value})
+  else()
+    KLFCMakeDebug("${var} is already defined as ${${var}}")
+  endif()
+endmacro()
+
+
 
 
 macro(KLFGetTargetLocation var target)

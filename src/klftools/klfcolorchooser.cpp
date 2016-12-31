@@ -251,7 +251,8 @@ void KLFColorChooseWidgetPane::paintEvent(QPaintEvent */*e*/)
   if ( _colorcomponent_b != "fix" ) {
     p.setPen(QPen(hairscol, 1.f, Qt::DotLine));
     y = (int)(valueB()/yfac);
-    if (y < 0) y = 0; if (y >= height()) y = height()-1;
+    if (y < 0) { y = 0; }
+    if (y >= height()) { y = height()-1; }
     p.drawLine(0, height()-y-1, width(), height()-y-1);
   }
   // draw a focus rectangle if we have focus

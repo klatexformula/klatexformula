@@ -57,7 +57,7 @@ if(KLF_BUILD_BACKEND)
   target_include_directories(klfbackend PRIVATE "." "../klftools")
 
   # determine which headers are public and should be installed, and set the target property
-  KLFInstHeaders(klfbackend_INSTHEADERS "${klfbackend_HEADERS}")
+  KLFInstHeaders(klfbackend_INSTHEADERS "${klfbackend_HEADERS}" "${CMAKE_CURRENT_SOURCE_DIR}")
   set_target_properties(klfbackend PROPERTIES
     VERSION		${KLF_LIB_VERSION}
     SOVERSION		${KLF_LIB_VERSION}
@@ -118,8 +118,7 @@ if (KLF_BUILD_BACKEND_AUTO)
 
   target_include_directories(klfbackend_auto PRIVATE "." "../klftools")
 
-  # No need for headers -- this library is meant to be distributed along another binary
-  #
+  # No need for public headers -- this library is meant to be distributed along another binary
   #  KLFInstHeaders(klfbackend_auto_INSTHEADERS "${klfbackend_HEADERS};${klfbackend_auto_ADDHEADERS}")
   #  set_target_properties(klfbackend_auto PROPERTIES
   #    PUBLIC_HEADER ""
@@ -138,31 +137,13 @@ endif(KLF_BUILD_BACKEND_AUTO)
 # ---------------
 
 if(KLF_BUILD_BACKEND)
-  KLFInstallLibrary(klfbackend KLF_INSTALL_KLFBACKEND_ "${KLF_INSTALL_LIB_DIR}" "include/klfbackend")
-  # No support for fixing up frameworks installed by "make install".
-  #
-  # if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_FRAMEWORK)
-  #   KLFMInstFrameworkUpdateId(
-  #     "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-  #     )
-  #   # Installed library's dependency on klftools should be updated
-  #   KLFMInstFrameworkUpdateLibChange(
-  #     "${KLF_INSTALL_LIB_DIR}/klfbackend.framework/Versions/${KLF_LIB_VERSION}/klfbackend"
-  #     "${CMAKE_CURRENT_BINARY_DIR}/klftools/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-  #     "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-  #     )
-  # endif()
+  KLFInstallLibrary(klfbackend KLF_INSTALL_KLFBACKEND_ "klfbackend")
+  # Note: No support for fixing up frameworks installed by "make install".
 endif()
 
 
 # --- and for klfbackend_auto :
 if(KLF_BUILD_BACKEND_AUTO)
-  KLFInstallLibrary(klfbackend_auto KLF_INSTALL_KLFBACKEND_AUTO_ "${KLF_INSTALL_LIB_DIR}" "")
-  # No support for fixing up frameworks installed by "make install".
-  #
-  # if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFBACKEND_AUTO_FRAMEWORK)
-  #   KLFMInstFrameworkUpdateId(
-  #     "${KLF_INSTALL_LIB_DIR}/klfbackend_auto.framework/Versions/${KLF_LIB_VERSION}/klfbackend_auto"
-  #     )
-  # endif()
+  KLFInstallLibrary(klfbackend_auto KLF_INSTALL_KLFBACKEND_AUTO_ "")
+  # Note: No support for fixing up frameworks installed by "make install".
 endif()

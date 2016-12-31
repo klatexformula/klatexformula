@@ -28,9 +28,9 @@
 
 #include <QString>
 #include <QWidget>
-#include <QtDesigner/QDesignerCustomWidgetInterface>
-#include <QtDesigner/QDesignerContainerExtension>
+#include <QtUiPlugin/QDesignerCustomWidgetCollectionInterface>
 #include <QtUiPlugin/QDesignerCustomWidgetInterface>
+#include <QtDesigner/QDesignerContainerExtension>
 
 
 #include <klfsearchbar.h>

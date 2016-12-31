@@ -4,7 +4,8 @@
 # $Id$
 # ######################################## #
 
-# Rely on CMake utilities only
+
+# Rely on CMake utilities for fixing up bundle dependencies
 #
 if(KLF_MACOSX_BUNDLES)
   include(BundleUtilities)
@@ -12,7 +13,7 @@ if(KLF_MACOSX_BUNDLES)
 endif(KLF_MACOSX_BUNDLES)
 
 
-
+# Set up -DKLF_WS_<window-system-name> -DKLF_WS="..." to indicate window system in use
 add_definitions("-DKLF_WS=\"${KLF_WS}\"")
 string(TOUPPER "${KLF_WS}" klf_ws_uc)
 add_definitions("-DKLF_WS_${klf_ws_uc}")
@@ -41,6 +42,9 @@ if(KLF_BUILD_GUI)
   endif()
   if(KLF_WS STREQUAL "x11")
     find_package(Qt5X11Extras REQUIRED)
+  endif()
+  if(KLF_WS STREQUAL "win")
+    find_package(Qt5WinExtras REQUIRED)
   endif()
   if(KLF_WS STREQUAL "mac")
     find_package(Qt5MacExtras REQUIRED)
@@ -150,6 +154,7 @@ if(KLF_BUILD_GUI)
     target_sources(klatexformula PRIVATE
       mswin/klfwinclipboard.cpp
       )
+    target_link_libraries(klatexformula Qt5::WinExtras)
   endif()
   if(KLF_USE_WINSPARKLE)
     target_compile_definitions(klatexformula PUBLIC
@@ -244,30 +249,45 @@ if(KLF_BUILD_GUI)
         MACOSX_PACKAGE_LOCATION Resources
         )
     endif()
-    if(KLF_BUNDLE_QT_PLUGINS)
-      foreach(qtplugintgt ${KLF_BUNDLE_QT_PLUGINS})
-        get_target_property(qtplugintgt_loc ${qtplugintgt} LOCATION)
-        get_filename_component(qtplugindirfull ${qtplugintgt_loc} DIRECTORY)
-        get_filename_component(qtplugintgt_fname ${qtplugintgt_loc} NAME)
-        get_filename_component(qtplugindirname ${qtplugindirfull} NAME)
-        #message("${qtplugintgt}: ${qtplugintgt_loc} ${qtplugindirname}")
-         set(klatexformula_post_build_commands ${klatexformula_post_build_commands}
-           COMMAND "${CMAKE_COMMAND}" "-E" "make_directory"
-           "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
-           COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${qtplugintgt_loc}"
-           "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
-           )
-        set(klatexformula_bundle_include_libs ${klatexformula_bundle_include_libs}
-          "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}/${qtplugintgt_fname}"
-          )
-        # insert @executable_path/../plugins/<qt-plugin-dir-name> if not already in dirs list
-        if(NOT ";${klatexformula_bundle_include_dirs};" MATCHES ";@executable_path/../plugins/${qtplugindirname};")
-          set(klatexformula_bundle_include_dirs ${klatexformula_bundle_include_dirs}
-            "@executable_path/../plugins/${qtplugindirname}")
-        endif()
-      endforeach()
-    endif()
-  endif()
+    if(KLF_MACOSX_BUNDLE_EXTRAS)
+      if(KLF_BUNDLE_QT_PLUGINS)
+	foreach(qtplugintgt ${KLF_BUNDLE_QT_PLUGINS})
+          get_target_property(qtplugintgt_loc ${qtplugintgt} LOCATION)
+          get_filename_component(qtplugindirfull ${qtplugintgt_loc} DIRECTORY)
+          get_filename_component(qtplugintgt_fname ${qtplugintgt_loc} NAME)
+          get_filename_component(qtplugindirname ${qtplugindirfull} NAME)
+          #message("${qtplugintgt}: ${qtplugintgt_loc} ${qtplugindirname}")
+          set(klatexformula_post_build_commands ${klatexformula_post_build_commands}
+            COMMAND "${CMAKE_COMMAND}" "-E" "make_directory"
+            "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
+            COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${qtplugintgt_loc}"
+            "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}"
+            )
+          set(klatexformula_bundle_include_libs ${klatexformula_bundle_include_libs}
+            "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app/Contents/plugins/${qtplugindirname}/${qtplugintgt_fname}"
+            )
+          # insert @executable_path/../plugins/<qt-plugin-dir-name> if not already in dirs list
+          if(NOT ";${klatexformula_bundle_include_dirs};" MATCHES ";@executable_path/../plugins/${qtplugindirname};")
+            set(klatexformula_bundle_include_dirs ${klatexformula_bundle_include_dirs}
+              "@executable_path/../plugins/${qtplugindirname}")
+          endif()
+	endforeach()
+      endif(KLF_BUNDLE_QT_PLUGINS)
+      set_source_files_properties(
+        macosx/qt.conf
+        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+        )
+      set(APP_TO_FIXUP "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app")
+      set(LIBS "${klatexformula_bundle_include_libs}")
+      set(DIRS "${klatexformula_bundle_include_dirs}")
+      configure_file("${CMAKE_SOURCE_DIR}/cmake/klf_fix_up_app_bundle.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/fix_up_klatexformula_app_bundle.cmake"
+        @ONLY)
+      set(klatexformula_post_build_commands ${klatexformula_post_build_commands}
+        COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/fix_up_klatexformula_app_bundle.cmake"
+        )
+    endif(KLF_MACOSX_BUNDLE_EXTRAS)
+  endif(KLF_MACOSX_BUNDLES)
   if(KLF_WS STREQUAL "x11")
     target_link_libraries(klatexformula Qt5::X11Extras)
     target_sources(klatexformula PRIVATE
@@ -298,16 +318,13 @@ if(KLF_BUILD_GUI)
 
   # Don't use CMAKE_INSTALL_PREFIX itself, as it is irrelevant for windows installers
   # we need relative path
-  set(klf_share_dir_abs "${CMAKE_INSTALL_PREFIX}")
-  if(UNIX AND NOT KLF_MACOSX_BUNDLES)
-    set(klf_share_dir_abs "${klf_share_dir_abs}/share/klatexformula")
-  endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
-  KLFRelativePath(klf_share_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${klf_share_dir_abs}")
-  KLFRelativePath(klf_share_rccresources_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${KLF_ABS_INSTALL_RCCRESOURCES_DIR}")
+  KLFMakeAbsInstallPath(abs_share_klf_data_dir KLF_INSTALL_SHARE_KLF_DATA_DIR)
+  KLFRelativePath(klf_share_dir "${KLF_ABS_INSTALL_BIN_DIR}" "${abs_share_klf_data_dir}")
   if(KLF_MACOSX_BUNDLES OR IS_ABSOLUTE "${klf_share_dir}")
     set(klf_share_dir "") # let the program find out
   endif()
   if(klf_share_dir)
+    KLFCMakeDebug("setting -DKLF_SHARE_DIR=\"${klf_share_dir}\"")
     target_compile_definitions(klatexformula PRIVATE -DKLF_SHARE_DIR="${klf_share_dir}")
   endif(klf_share_dir)
 
@@ -388,9 +405,9 @@ if(KLF_BUILD_GUI)
     set(LDPATHDEFS "export LD_LIBRARY_PATH='${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_BINARY_DIR}/klfbackend:${CMAKE_CURRENT_BINARY_DIR}/klftools':\"$LD_LIBRARY_PATH\" ")
     add_custom_command(OUTPUT "klatexformula.1"
       COMMAND
-      "sh" "-c" "${LDPATHDEFS}; ${HELP2MAN} -h --help='\"&1\"' -v --version='\"&1:klatexformula %k\"' --no-info $<TARGET_FILE:klatexformula_binary> -o '${CMAKE_CURRENT_BINARY_DIR}/klatexformula.1'"
+      "sh" "-c" "${LDPATHDEFS}; ${HELP2MAN} -h --help='\"&1\"' -v --version='\"&1:klatexformula %k\"' --no-info $<TARGET_FILE:klatexformula> -o '${CMAKE_CURRENT_BINARY_DIR}/klatexformula.1'"
       COMMENT "Generating man page for klatexformula"
-      DEPENDS "${klatexformula_binary}"
+      DEPENDS "${klatexformula}"
       VERBATIM
       )
     if(GZIP)
@@ -479,21 +496,6 @@ if(KLF_BUILD_GUI)
 
   if(KLF_MACOSX_BUNDLES)
     install(TARGETS klatexformula BUNDLE DESTINATION "${KLF_INSTALL_BIN_DIR}")
-    if(KLF_MACOSX_BUNDLE_EXTRAS)
-      set_source_files_properties(
-        macosx/qt.conf
-        PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
-        )
-      set(APP_TO_FIXUP "${CMAKE_CURRENT_BINARY_DIR}/klatexformula.app")
-      set(LIBS "${klatexformula_bundle_include_libs}")
-      set(DIRS "${klatexformula_bundle_include_dirs}")
-      configure_file("${CMAKE_SOURCE_DIR}/cmake/klf_fix_up_app_bundle.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/fix_up_klatexformula_app_bundle.cmake"
-        @ONLY)
-      set(klatexformula_post_build_commands ${klatexformula_post_build_commands}
-        COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/fix_up_klatexformula_app_bundle.cmake"
-        )
-    endif()
   endif()
 
   # --- execute all post-build commands, in order ---

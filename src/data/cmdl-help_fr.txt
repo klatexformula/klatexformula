@@ -89,8 +89,8 @@ Options:
       Démarre un processus détaché comme un démon. Toutes les autres options (p. ex. --latexinput)
       sont transmises au démon et sont donc prises en compte.
   --skip-plugins
-      Ne tente pas de charger les plug-ins. Essayez cette option si klatexformula crashe au
-      démarrage : cela peut être dû à un plugin problématique.
+      Option obsolète. A partir de la version 4.0, klatexformula ne charge plus de plug-in
+      (greffons).  Ne tente pas de charger les plug-ins.
 
   --calcepsbbox [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
       Corrige la bordure de l'image résultante, en vue de caractères qui ne rapportent pas la
@@ -155,12 +155,6 @@ Remarques:
   
   Quand KLatexFormula n'est pas exécuté en mode interactif, un serveur X11 n'est pas nécessaire.
   
-  Des fichiers de traduction et/ou de greffons peuvent être précisés à klatexformula en précisant
-  une liste de fichiers RCC et de dossiers contenant de tels fichiers à charger dans la variable
-  d'environnement KLF_RESOURCES. Séparez les noms de fichier avec « : » sous unix/mac
-  et « ; » sous windows. Les chemins par défaut peuvent être introduits dans KLF_RESOURCES
-  en rajoutant une section vide (« :: ») ou un caractère « : » en début ou en fin de chaîne.
-
   Merci d'annoncer à l'auteur les éventuels bugs et dysfonctionnements du programme.
 
 Plus d'informations sont disponibles sur http://klatexformula.sourceforge.net/.

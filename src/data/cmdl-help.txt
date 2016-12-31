@@ -159,12 +159,6 @@ Notes:
   
   When not run in interactive mode, no X11 server is needed.
   
-  Additional translation files and/or data can be provided to klatexformula by
-  specifying a list of Qt rcc files or directories containing such files to
-  import in the KLF_RESOURCES environment variable. Separate the file names with
-  ':' on unix/mac, or ';' on windows. The default paths can be included with an
-  empty section ('::') or leading or trailing ':'.
-    
   Please report any bugs and malfunctions to the author.
 
 More information is available on http://klatexformula.sourceforge.net/.

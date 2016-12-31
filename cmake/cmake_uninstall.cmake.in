@@ -14,10 +14,8 @@ ENDIF(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
 FILE(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
 STRING(REGEX REPLACE "\n" ";" files "${files}")
 
-
-message(STATUS "NOTE: If you have some error messages like \".... does not exist.\" ignore them, it's a bug 
-   in the build system")
-
+#message(STATUS "NOTE: If you have some error messages like \".... does not exist.\" ignore them,
+#   it's a harmless bug in the build system")
 
 ## KLatexFormula: Some extra files to uninstall
 
@@ -29,26 +27,57 @@ if(UNIX AND NOT KLF_MACOSX_BUNDLES)
       ${files}
   )
   set(files
+      "@KLF_ABS_INSTALL_LIB_DIR@/libklftools.so"
       "@KLF_ABS_INSTALL_LIB_DIR@/libklfbackend.so"
-      "@KLF_ABS_INSTALL_LIB_DIR@/libklflib.so"
       ${files}
   )
-endif(UNIX AND NOT KLF_MACOSX_BUNDLES)
+endif()
 
+macro(remove_possibly_empty_directory file)
+  # see if we are leaving a directory empty; if so, remove it
+  get_filename_component(thedir "${file}" DIRECTORY)
+  file(GLOB files_in_thedir "${thedir}/*")
+  list(LENGTH files_in_thedir files_in_thedir_len)
+  #message("CONSIDERING DIR ${thedir} IN WHICH THERE WAS ${file} ... # of items = ${files_in_thedir_len}: items = ${files_in_thedir}")
+  if(files_in_thedir_len EQUAL 0)
+    # directory is empty, removing it
+    if (EXISTS "${thedir}")
+      message(STATUS "Removing directory \"${thedir}\"")
+      exec_program(
+	"@CMAKE_COMMAND@" ARGS "-E remove_directory \"${thedir}\""
+	OUTPUT_VARIABLE rmdir_out
+	RETURN_VALUE rmdir_retval
+	)
+    else()
+      set(rmdir_retval 0)
+    endif()
+    if(NOT "${rmdir_retval}" STREQUAL 0)
+      message(FATAL_ERROR "Error uninstalling \"${thedir}\"")
+    else()
+      # and recurse, because the directory we just removed might have been the
+      # last item in its parent directory.
+      remove_possibly_empty_directory("${thedir}")
+    endif()
+  endif()
+endmacro()
 
-FOREACH(file ${files})
-  MESSAGE(STATUS "Uninstalling \"$ENV{DESTDIR}${file}\"")
-  IF(EXISTS "$ENV{DESTDIR}${file}")
-    EXEC_PROGRAM(
-      "@CMAKE_COMMAND@" ARGS "-E remove -f \"$ENV{DESTDIR}${file}\""
+foreach(file ${files})
+  set(file "$ENV{DESTDIR}${file}") # honor $DESTDIR
+  if(EXISTS "${file}")
+    message(STATUS "Uninstalling \"${file}\"")
+    exec_program(
+      "@CMAKE_COMMAND@" ARGS "-E remove -f \"${file}\""
       OUTPUT_VARIABLE rm_out
       RETURN_VALUE rm_retval
       )
-    IF(NOT "${rm_retval}" STREQUAL 0)
-      MESSAGE(FATAL_ERROR "Error uninstalling \"$ENV{DESTDIR}${file}\"")
-    ENDIF(NOT "${rm_retval}" STREQUAL 0)
-  ELSE(EXISTS "$ENV{DESTDIR}${file}")
-    MESSAGE(STATUS "File \"$ENV{DESTDIR}${file}\" is not installed.")
-  ENDIF(EXISTS "$ENV{DESTDIR}${file}")
-ENDFOREACH(file)
+    if(NOT "${rm_retval}" STREQUAL 0)
+      message(FATAL_ERROR "Error uninstalling \"${file}\"")
+    endif()
+  else()
+    if(NOT file MATCHES "__klf_dummy_install_directory__")
+      message(STATUS "File \"${file}\" is not installed.")
+    endif()
+  endif()
+  remove_possibly_empty_directory("${file}")
+endforeach(file)
 

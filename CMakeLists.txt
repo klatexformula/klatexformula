@@ -224,14 +224,24 @@ else()
   message(STATUS "Will not build autonomous klfbackend_auto without klftools dependency (KLF_BUILD_BACKEND_AUTO)")
 endif()
 
+# Extra search paths 
+if(KLF_BUILD_BACKEND OR KLF_BUILD_BACKEND_AUTO)
+  set(KLF_EXTRA_SEARCH_PATHS "" CACHE STRING
+    "Extra paths in which klfbackend (and klatexformula) will search for latex/dvips/etc. executables. Separate paths with ';' on all platforms")
+
+  message(STATUS "Will prepend \"${KLF_EXTRA_SEARCH_PATHS}\" to klfbackend/klatexformula's
+    latex/dvips/gs search paths (KLF_EXTRA_SEARCH_PATHS)")
+endif()
+
+
 option(KLF_BUILD_GUI "Build klatexformula GUI application (klatexformula) [requires klftools and klfbackend]" 1)
 if(KLF_BUILD_GUI)
   if (NOT KLF_BUILD_TOOLS OR NOT KLF_BUILD_BACKEND)
     message(FATAL_ERROR "Cannot build the klatexformula GUI main application without klftools and klfbackend (set KLF_BUILD_BACKEND=1 and KLF_BUILD_TOOLS=1, or set KLF_BUILD_GUI=0)")
   endif()
-  message(STATUS "Will build the GUI interface (klatexformula) (KLF_BUILD_GUI)")
+  message(STATUS "Will build the main klatexformula program (GUI) (KLF_BUILD_GUI)")
 else()
-  message(STATUS "Will not build the GUI interface (klatexformula) (KLF_BUILD_GUI)")
+  message(STATUS "Will not build the main klatexformula program (GUI) (KLF_BUILD_GUI)")
 endif()
 
 if(APPLE)
@@ -251,10 +261,63 @@ endif()
 # Mac OS X: building frameworks + bundles ?
 if(APPLE)
   option(KLF_MACOSX_BUNDLES
-	 "On Mac OS X: Build Bundles and Frameworks instead of UNIX-Style binaries" ON)
+    "On Mac OS X: Build Bundles and Frameworks instead of UNIX-Style binaries" ON)
   option(KLF_MACOSX_BUNDLE_EXTRAS
-	 "[Mac OS X Bundles] Copy dependent libraries & resources into bundle, ready to be copied anywhere else and on other systems" ON)
+    "[Mac OS X Bundles] Copy dependent libraries & resources into bundle, ready to be copied anywhere else and on other systems" ON)
+else()
+  # no need to put these in cache, it's irrelevant
+  #
+  # However let's keep the KLF_MACOSX_BUNDLES setting independent from
+  # APPLE.  There may be systems on which we can create bundles, that
+  # are not APPLE ??? not sure, but keep the possibility open.
+  KLFSetIfNotDefined(KLF_MACOSX_BUNDLES OFF)
+  KLFSetIfNotDefined(KLF_MACOSX_BUNDLE_EXTRAS OFF)
 endif()
+
+if(KLF_MACOSX_BUNDLES)
+
+  if (KLF_MACOSX_BUNDLE_EXTRAS)
+    message(STATUS
+      "Will package library and framework dependencies into klatexformula app bundle (KLF_MACOSX_BUNDLE_EXTRAS)")
+  else()
+    message(STATUS
+      "Will NOT package library and framework dependencies into klatexformula app bundle (KLF_MACOSX_BUNDLE_EXTRAS)")
+  endif()
+
+  set(default_KLF_BUNDLE_QT_PLUGINS
+    Qt5::QCocoaIntegrationPlugin
+    Qt5::QGifPlugin
+    Qt5::QDDSPlugin
+    Qt5::QGifPlugin
+    Qt5::QICNSPlugin
+    Qt5::QICOPlugin
+    Qt5::QJpegPlugin
+    Qt5::QMacJp2Plugin
+    #Qt5::QMinimalIntegrationPlugin
+    #Qt5::QOffscreenIntegrationPlugin
+    Qt5::QTgaPlugin
+    Qt5::QTiffPlugin
+    #Qt5::QTuioTouchPlugin
+    #Qt5::QVirtualKeyboardPlugin
+    Qt5::QWbmpPlugin
+    Qt5::QWebpPlugin 
+    Qt5::QSQLiteDriverPlugin
+    Qt5::QSvgPlugin
+    Qt5::QSvgIconPlugin
+    )
+  set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}"
+    CACHE STRING "Qt plugin list (imported targets e.g. Qt5::QJpegPlugin) to package into app bundle")
+  string(REGEX REPLACE ";" "
+      " klf_display_bundle_qt_plugins "${KLF_BUNDLE_QT_PLUGINS}")
+  message(STATUS "Will Package Qt Plugins in bundle (KLF_BUNDLE_QT_PLUGINS):
+      ${klf_display_bundle_qt_plugins}")
+  if(NOT "${KLF_BUNDLE_QT_PLUGINS}" STREQUAL "${default_KLF_BUNDLE_QT_PLUGINS}")
+    KLFNote("You are bundling a list of qt plugins which differs from the default list. In case the default list
+    has changed and want to restore the defaults, run \"cmake .. -UKLF_BUNDLE_QT_PLUGINS\".")
+  endif()
+
+endif(KLF_MACOSX_BUNDLES)
+     
 
 # Build DBUS support ?
 if(UNIX AND NOT APPLE)
@@ -384,40 +447,6 @@ message(STATUS "[INSTALLATION SETTINGS]")
 
 include(klfinstallpaths)
 
-if(KLF_MACOSX_BUNDLES)
-
-  set(default_KLF_BUNDLE_QT_PLUGINS
-    Qt5::QCocoaIntegrationPlugin
-    Qt5::QGifPlugin
-    Qt5::QDDSPlugin
-    Qt5::QGifPlugin
-    Qt5::QICNSPlugin
-    Qt5::QICOPlugin
-    Qt5::QJpegPlugin
-    Qt5::QMacJp2Plugin
-    #Qt5::QMinimalIntegrationPlugin
-    #Qt5::QOffscreenIntegrationPlugin
-    Qt5::QTgaPlugin
-    Qt5::QTiffPlugin
-    #Qt5::QTuioTouchPlugin
-    #Qt5::QVirtualKeyboardPlugin
-    Qt5::QWbmpPlugin
-    Qt5::QWebpPlugin 
-    Qt5::QSQLiteDriverPlugin
-    Qt5::QSvgPlugin
-    Qt5::QSvgIconPlugin
-    )
-  set(KLF_BUNDLE_QT_PLUGINS "${default_KLF_BUNDLE_QT_PLUGINS}"
-    CACHE STRING "Qt plugin list (imported targets e.g. Qt5::QJpegPlugin) to package into app bundle")
-  string(REGEX REPLACE ";" "
-      " klf_display_bundle_qt_plugins "${KLF_BUNDLE_QT_PLUGINS}")
-  message(STATUS "Will Package Qt Plugins in bundle (KLF_BUNDLE_QT_PLUGINS):
-      ${klf_display_bundle_qt_plugins}")
-  if(NOT "${KLF_BUNDLE_QT_PLUGINS}" STREQUAL "${default_KLF_BUNDLE_QT_PLUGINS}")
-    KLFNote("You are bundling a list of qt plugins which differs from the default list. In case the default list
-    has changed and want to restore the defaults, run \"cmake .. -UKLF_BUNDLE_QT_PLUGINS\".")
-  endif()
-endif(KLF_MACOSX_BUNDLES)
 
 
 # CPack

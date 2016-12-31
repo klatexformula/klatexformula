@@ -109,7 +109,7 @@ if(KLF_BUILD_TOOLS)
   target_link_libraries(klftools PUBLIC Qt5::Widgets Qt5::Gui Qt5::Core Qt5::Xml)
 
   # determine which headers are public and should be installed, and set the target property
-  KLFInstHeaders(klftools_INSTHEADERS "${klftools_HEADERS}")
+  KLFInstHeaders(klftools_INSTHEADERS "${klftools_HEADERS}" "${CMAKE_CURRENT_SOURCE_DIR}")
   set_target_properties(klftools PROPERTIES
     VERSION		${KLF_LIB_VERSION}
     SOVERSION		${KLF_LIB_VERSION}
@@ -154,11 +154,11 @@ if(KLF_BUILD_TOOLS)
     find_package(Qt5Designer REQUIRED)
     find_package(Qt5UiPlugin REQUIRED)
 
-    qt5_wrap_cpp(klftoolsdesplugin_MOC_CPPS  klftools_desplugin.h)
-    add_library(klftoolsdesplugin MODULE  klftools_desplugin.cpp ${klftoolsdesplugin_MOC_CPPS})
+    add_library(klftoolsdesplugin MODULE  klftools_desplugin.cpp)
+    target_include_directories(klftoolsdesplugin PUBLIC ${Qt5Designer_INCLUDE_DIRS} ".")
     set_target_properties(klftoolsdesplugin PROPERTIES
-      COMPILE_DEFINITIONS "QT_PLUGIN;QT_NO_DEBUG;QDESIGNER_EXPORT_WIDGETS"
       SKIP_RPATH FALSE
+      AUTOMOC 1
       )
     target_link_libraries(klftoolsdesplugin  klftools Qt5::Core Qt5::Gui Qt5::Widgets
       Qt5::Designer Qt5::UiPlugin
@@ -169,14 +169,8 @@ if(KLF_BUILD_TOOLS)
   # Install Targets
   # ---------------
 
-  KLFInstallLibrary(klftools KLF_INSTALL_KLFTOOLS_ "${KLF_INSTALL_LIB_DIR}" "include/klftools")
+  KLFInstallLibrary(klftools KLF_INSTALL_KLFTOOLS_ "klftools")
   # No support for fixing up frameworks installed by "make install".
-  #
-  #if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_KLFTOOLS_FRAMEWORK)
-  #  KLFMInstFrameworkUpdateId(
-  #    "${KLF_INSTALL_LIB_DIR}/klftools.framework/Versions/${KLF_LIB_VERSION}/klftools"
-  #    )
-  #endif()
 
   if(KLF_BUILD_TOOLSDESPLUGIN AND KLF_INSTALL_KLFTOOLSDESPLUGIN)
     install(TARGETS klftoolsdesplugin  LIBRARY DESTINATION "${KLF_INSTALL_DESPLUGIN_DIR}")
