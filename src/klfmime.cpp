@@ -553,6 +553,8 @@ struct KLFMimeDataPrivate
 {
   KLF_PRIVATE_HEAD(KLFMimeData)
   {
+    exporterManager = NULL;
+    allDataTransmitted = false;
   }
   
   KLFMimeExportProfile exportProfile;
@@ -560,6 +562,7 @@ struct KLFMimeDataPrivate
   KLFBackend::klfOutput output;
 
   QStringList qtManagedMimeTypes;
+  bool allDataTransmitted;
 
   QByteArray getDataFor(KLFMimeExportProfile::ExportType exportType, const QVariantMap & params)
   {
@@ -573,13 +576,22 @@ struct KLFMimeDataPrivate
     return exporter->getData(exportType.exporterFormat, output, params);
   }
 
+  QStringList collectedFormatsAsProxyMimes() const;
+  QStringList formatsAsProxyMimes(int index) const;
+
   void setDefaultQtFormats();
 
   QStringList macFlavorsToProxyMimes(const QStringList & flavlist) const;
   QString macFlavorFromProxyMime(const QString & mimeType) const;
 
   void ensureAllPlatformTypesRegistered();
+
+  static QList<KLFMimeData*> activeMimeDataInstances;
 };
+
+// static
+QList<KLFMimeData*> KLFMimeDataPrivate::activeMimeDataInstances = QList<KLFMimeData*>();
+
 
 KLFMimeData::KLFMimeData(const KLFMimeExportProfile& exportProfile,
                          KLFExporterManager * exporterManager,
@@ -604,10 +616,14 @@ KLFMimeData::KLFMimeData(const KLFMimeExportProfile& exportProfile,
   d->ensureAllPlatformTypesRegistered();
 
   klfDbg("have formats: "<<formats()) ;
+
+  KLFMimeDataPrivate::activeMimeDataInstances.append(this);
 }
 KLFMimeData::~KLFMimeData()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLFMimeDataPrivate::activeMimeDataInstances.removeAll(this);
 
   KLF_DELETE_PRIVATE ;
 }
@@ -708,26 +724,43 @@ void KLFMimeDataPrivate::ensureAllPlatformTypesRegistered()
 #endif
 }
 
+QStringList KLFMimeDataPrivate::collectedFormatsAsProxyMimes() const
+{
+#if defined(KLF_WS_MAC)
+  return macFlavorsToProxyMimes(exportProfile.collectedAvailableMacFlavors(
+                                    exporterManager,
+                                    output
+                                    ));
+#elif defined(KLF_WS_WIN)
+  return winFormatsToProxyMimes(exportProfile.collectedAvailableWinFormats(
+                                    exporterManager,
+                                    output
+                                    ));
+#else // by default, do X11  [#if defined(KLF_WS_X11)]
+  return exportProfile.collectedAvailableMimeTypes( exporterManager,
+                                                    output );
+#endif
+}
+
+QStringList KLFMimeDataPrivate::formatsAsProxyMimes(int index) const
+{
+  KLF_ASSERT_CONDITION(index >= 0 && index < exportProfile.exportTypesCount(),
+                       "Index "<<index<<" out of range [0,"<<exportProfile.exportTypesCount()<<"!!",
+                       return QStringList() ) ;
+#if defined(KLF_WS_MAC)
+  return macFlavorsToProxyMimes(exportProfile.exportType(index).macFlavors);
+#elif defined(KLF_WS_WIN)
+  return winFormatsToProxyMimes(exportProfile.exportType(index).winFormats);
+#else // by default, do X11  [#if defined(KLF_WS_X11)]
+  return exportProfile.exportType(index).mimeTypes;
+#endif
+}
 
 QStringList KLFMimeData::formats() const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-  QStringList fmts;
-#if defined(KLF_WS_MAC)
-  fmts = d->macFlavorsToProxyMimes(d->exportProfile.collectedAvailableMacFlavors(
-                                       d->exporterManager,
-                                       d->output
-                                       ));
-#elif defined(KLF_WS_WIN)
-  fmts = d->winFormatsToProxyMimes(d->exportProfile.collectedAvailableWinFormats(
-                                       d->exporterManager,
-                                       d->output
-                                       ));
-#else // by default, do X11  [#if defined(KLF_WS_X11)]
-  fmts = d->exportProfile.collectedAvailableMimeTypes( d->exporterManager,
-						       d->output );
-#endif
+  QStringList fmts = d->collectedFormatsAsProxyMimes();
 
   klfDbg("our mime formats: " << fmts) ;
 
@@ -744,6 +777,13 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
   klfDbg("retrieveData: mimetype="<<mimetype<<"; type="<<type) ;
+
+  if (d->allDataTransmitted) {
+    // all the data was transmitted to the QMimeData via setData(), so we should no longer
+    // attempt any deferred data retrieval.
+    klfDbg("All data already transmitted to the base QMimeData, letting the QMimeData handle this.");
+    return QMimeData::retrieveData(mimetype, type);
+  }
 
   if (d->qtManagedMimeTypes.contains(mimetype) || mimetype.startsWith("application/x-qt-")) {
     // this mime type is handled by Qt
@@ -796,9 +836,30 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
 
 
 
+void KLFMimeData::transmitAllData()
+{
+  QList<KLFMimeExportProfile::ExportType> exportTypes = d->exportProfile.exportTypes();
+  int k;
+  for (k = 0; k < exportTypes.size(); ++k) {
 
+    KLFMimeExportProfile::ExportType etype = exportTypes[k];
+    QByteArray data = d->getDataFor(etype, QVariantMap());
 
+    QStringList proxyMimes = d->formatsAsProxyMimes(k);
 
+    foreach(QString fmt, proxyMimes) {
+      setData(fmt, data);
+    }
+
+  }
+  d->allDataTransmitted = true;
+}
+
+// static
+QList<KLFMimeData*> KLFMimeData::activeMimeDataInstances()
+{
+  return KLFMimeDataPrivate::activeMimeDataInstances;
+}
 
 
 

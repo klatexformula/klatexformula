@@ -125,7 +125,11 @@ QString KLFMacPasteboardMime::mimeFor(QString flav)
     return QString();
   }
 
-  return QString::fromLatin1(KLF_MIME_PROXY_MAC_FLAVOR_PREFIX) + flav;
+  // don't allow any conversion from mac types -- it intefers with data dropped on the
+  // main latex editor widget
+  return QString();
+
+  //  return QString::fromLatin1(KLF_MIME_PROXY_MAC_FLAVOR_PREFIX) + flav;
 }
 
 

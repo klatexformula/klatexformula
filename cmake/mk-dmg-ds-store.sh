@@ -21,7 +21,8 @@
 # Based on http://stackoverflow.com/a/1513578/1694896 . Check Step #1 there on your system!!
 #
 
-source=KLatexFormula-${1-VERSIONMISSING}
+VERSION=${1-VERSIONMISSING}
+source=KLatexFormula-${VERSION}
 title=${source}
 
 applicationName=klatexformula.app
@@ -43,8 +44,41 @@ if [ -e "/Volumes/${title}" ]; then
 fi
 
 
-mkdir -p ${source}
-mkdir -p ${source}/${applicationName}
+#
+# Create a dummy klatexformula.app, but with correct icon etc., so that it can
+# be placed and everything.
+#
+mkdir -p ${source}/${applicationName}/Contents/MacOS
+mkdir -p ${source}/${applicationName}/Contents/Resources
+# valid binary file
+cp -a /bin/echo ${source}/${applicationName}/Contents/MacOS/klatexformula
+chmod +x ${source}/${applicationName}/Contents/MacOS/klatexformula
+echo '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleExecutable</key>
+    <string>klatexformula</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.klatexformula.klatexformula</string>
+    <key>CFBundleName</key>
+    <string>klatexformula</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>'"${VERSION}"'</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>'"${VERSION}"'</string>
+    <key>CFBundleIconFile</key>
+    <string>klatexformula.icns</string>
+  </dict>
+</plist>
+' >${source}/${applicationName}/Contents/Info.plist
+cp -a ../src/macosx/klatexformula.icns ${source}/${applicationName}/Contents/Resources
 
 hdiutil create -srcfolder "${source}" -volname "${title}" -fs HFS+ \
       -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${size}k ${tempdmg}
@@ -58,7 +92,8 @@ echo "Device is ${device}"
 
 sleep 5
 
-cp installer_dragndrop_bg.png /Volumes/"${title}"/background.png
+mkdir -p /Volumes/"${title}"/.background
+cp installer_dragndrop_bg.png /Volumes/"${title}"/.background/background.png
 
 echo '
    tell application "Finder"
@@ -67,17 +102,17 @@ echo '
            set current view of container window to icon view
            set toolbar visible of container window to false
            set statusbar visible of container window to false
-           set the bounds of container window to {400, 100, 934, 390}
+           set the bounds of container window to {400, 100, 1007, 455}
            set theViewOptions to the icon view options of container window
            set arrangement of theViewOptions to not arranged
            set icon size of theViewOptions to 120
-           set background picture of theViewOptions to file "background.png"
+           set background picture of theViewOptions to file ".background:background.png"
            make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
            close
            open
-           set position of item "background.png" of container window to {1000, 1000}
-           set position of item "Applications" of container window to {430, 110}
-           set position of item "'"${applicationName}"'" of container window to {80, 110}
+           -- set position of item "background.png" of container window to {1000, 1000}
+           set position of item "'"${applicationName}"'" of container window to {170, 150}
+           set position of item "Applications" of container window to {450, 150}
            close
            open
            update without registering applications
@@ -87,6 +122,8 @@ echo '
      end tell
    end tell
 ' | osascript
+
+
 
 #chmod -Rf go-w /Volumes/"${title}"
 sync
@@ -98,6 +135,7 @@ hdiutil detach ${device}
 #hdiutil convert "/${tempdmg}" -format UDZO -imagekey zlib-level=9 -o "${finalDMGName}"
 #rm -f /${tempdmg}
 
+sleep 2
 
 # re-mount the device to get the .DS_Store file
 
@@ -107,3 +145,5 @@ device=$(hdiutil attach -readwrite -noverify -noautoopen "${tempdmg}" | \
 cp /Volumes/"${title}"/.DS_Store "`pwd`/DS_Store.created"
 
 hdiutil detach ${device}
+
+echo "Done, your DS_Store is ready and saved as DS_Store.created"

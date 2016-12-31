@@ -566,17 +566,16 @@ KLFMainWin::~KLFMainWin()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
-#if defined(KLF_WS_MAC)
-  if (d->macFlavorsConverter) {
-    delete d->macFlavorsConverter;
+  // flush data on all pending KLFMimeData instances
+  klfDbg("flushing any data on any KLFMimeData instances so that no more delayed retrieval is required.");
+  foreach (KLFMimeData * mimedata, KLFMimeData::activeMimeDataInstances()) {
+    klfDbg("transmitting all data on mimedata with formats="<<mimedata->formats()) ;
+    mimedata->transmitAllData();
   }
-#elif defined(KLF_WS_WIN)
-  if (d->winFormatsConverter) {
-    delete d->winFormatsConverter;
-  }
-#else
-  // no special needs on X11
-#endif
+  klfDbg("mime datas flushed.");
+
+
+  klfDbg("about to save settings etc.");
 
   saveLibraryState();
   saveSettings();
@@ -600,6 +599,22 @@ KLFMainWin::~KLFMainWin()
     delete d->pContLatexPreview;
   if (d->pLatexPreviewThread)
     delete d->pLatexPreviewThread;
+
+
+// Do not delete these -- segfault??
+//
+// #if defined(KLF_WS_MAC)
+//   if (d->macFlavorsConverter) {
+//     delete d->macFlavorsConverter;
+//   }
+// #elif defined(KLF_WS_WIN)
+//   if (d->winFormatsConverter) {
+//     delete d->winFormatsConverter;
+//   }
+// #else
+//   // no special needs on X11
+// #endif
+
 
   KLF_DELETE_PRIVATE ;
 

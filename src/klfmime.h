@@ -215,6 +215,10 @@ public:
 
   QStringList formats() const;
 
+  void transmitAllData();
+
+  static QList<KLFMimeData*> activeMimeDataInstances();
+
 protected:
   QVariant retrieveData(const QString &mimetype, QVariant::Type type) const;
 

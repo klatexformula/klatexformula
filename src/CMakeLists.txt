@@ -209,21 +209,17 @@ if(KLF_BUILD_GUI)
       get_filename_component(KLF_SPARKLE_DSA_PUBKEY_BASENAME "${KLF_SPARKLE_DSA_PUBKEY}" NAME)
     endif ()
     # Set up the application bundle under Mac OS X
-    configure_file(
-      "${CMAKE_SOURCE_DIR}/src/macosx/Info.plist.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
-      @ONLY)
     set_target_properties(klatexformula PROPERTIES
-      MACOSX_BUNDLE             true
-      OUTPUT_NAME               klatexformula
-      MACOSX_BUNDLE_ICON_FILE   macosx/klatexformula.icns
-      MACOSX_BUNDLE_INFO_PLIST  "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
-      MACOSX_BUNDLE_INFO_STRING "KLatexFormula version ${KLF_VERSION}"
-      MACOSX_BUNDLE_GUI_IDENTIFIER "org.klatexformula.klatexformula"
-      MACOSX_BUNDLE_LONG_VERSION_STRING "${KLF_VERSION}"
+      MACOSX_BUNDLE                      true
+      OUTPUT_NAME                        klatexformula
+      MACOSX_BUNDLE_ICON_FILE            klatexformula.icns
+      MACOSX_BUNDLE_INFO_PLIST           "${CMAKE_CURRENT_SOURCE_DIR}/macosx/Info.plist.in"
+      MACOSX_BUNDLE_INFO_STRING          "KLatexFormula version ${KLF_VERSION}"
+      MACOSX_BUNDLE_GUI_IDENTIFIER       "org.klatexformula.klatexformula"
+      MACOSX_BUNDLE_LONG_VERSION_STRING  "${KLF_VERSION}"
       MACOSX_BUNDLE_SHORT_VERSION_STRING "${KLF_VERSION}"
-      MACOSX_BUNDLE_BUNDLE_VERSION "${KLF_VERSION}"
-      MACOSX_BUNDLE_BUNDLE_COPYRIGHT "Copyright (C) 2016 Philippe Faist"
+      MACOSX_BUNDLE_BUNDLE_VERSION       "${KLF_VERSION}"
+      MACOSX_BUNDLE_BUNDLE_COPYRIGHT     "Copyright (C) 2016 Philippe Faist"
       )
     set_source_files_properties(
       klatexformula-16.png
@@ -233,11 +229,8 @@ if(KLF_BUILD_GUI)
       klatexformula-256.png
       klatexformula-512.png
       klatexformula-1024.png
-      PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
-      )
-    set_source_files_properties(
       macosx/klatexformula.icns
-      PROPERTIES MACOSX_PACKAGE_LOCATION "."
+      PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
       )
     if(KLF_INCLUDE_FONTS)
       set_source_files_properties(${KLF_INCLUDE_FONTS} PROPERTIES
