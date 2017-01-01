@@ -548,14 +548,5 @@ if(KLF_BUILD_GUI)
     endif()
   endif()
 
-  if(UNIX AND NOT KLF_MACOSX_BUNDLES AND KLF_USE_CPACK)
-    configure_file(
-      "${CMAKE_SOURCE_DIR}/src/klatexformula.sh.in"
-      "${CMAKE_BINARY_DIR}/src/klatexformula.sh"
-      @ONLY)
-    install(PROGRAMS "${CMAKE_BINARY_DIR}/src/klatexformula.sh" DESTINATION "/")
-  endif()
-
-
 endif(KLF_BUILD_GUI)
 

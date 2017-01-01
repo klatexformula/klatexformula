@@ -191,6 +191,18 @@ if(KLF_USE_CPACK)
     set(CPACK_GENERATOR "TGZ")
   endif(UNIX AND NOT APPLE)
 
+  #
+  # Add klatexformula.sh script in root of TGZ package for convenience
+  #
+  if(UNIX AND NOT KLF_MACOSX_BUNDLES AND KLF_USE_CPACK)
+    configure_file(
+      "${CMAKE_SOURCE_DIR}/src/klatexformula.sh.in"
+      "${CMAKE_BINARY_DIR}/src/klatexformula.sh"
+      @ONLY)
+    install(PROGRAMS "${CMAKE_BINARY_DIR}/src/klatexformula.sh" DESTINATION "/")
+  endif()
+
+  
 
   set(ForceValueForCPack_set 0)
   macro(ForceValueForCPack var value)
