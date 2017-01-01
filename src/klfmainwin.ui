@@ -263,7 +263,7 @@
                </property>
                <property name="icon">
                 <iconset resource="klfres.qrc">
-                 <normaloff>:/pics/switchexpanded.png</normaloff>:/pics/switchexpanded.png</iconset>
+                 <normaloff>:/pics/switchexpanded.svg</normaloff>:/pics/switchexpanded.svg</iconset>
                </property>
                <property name="shortcut">
                 <string>F5</string>

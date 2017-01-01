@@ -1139,6 +1139,7 @@ void KLFColorChooser::_setpix()
 QPixmap KLFColorChooser::colorPixmap(const QColor& color, const QSize& size)
 {
   QPixmap pix = QPixmap(size);
+  pix.fill(Qt::transparent);
   if (color.isValid()) {
     pix.fill(Qt::black);
     QPainter p(&pix);
@@ -1158,15 +1159,15 @@ QPixmap KLFColorChooser::colorPixmap(const QColor& color, const QSize& size)
     // draw "default"/"transparent" pixmap
     QPainter p(&pix);
     p.setRenderHint(QPainter::Antialiasing);
-    QLinearGradient pgrad(0, 0, 0, 1);
-    pgrad.setColorAt(0, QColor(160,160,185));
-    pgrad.setColorAt(1, QColor(220,220,230));
-    pgrad.setCoordinateMode(QGradient::StretchToDeviceMode);
-    p.fillRect(0, 0, pix.width(), pix.height(), pgrad);
+    //    QLinearGradient pgrad(0, 0, 0, 1);
+    //    pgrad.setColorAt(0, QColor(160,160,185));
+    //    pgrad.setColorAt(1, QColor(220,220,230));
+    //    pgrad.setCoordinateMode(QGradient::StretchToDeviceMode);
+    //    p.fillRect(0, 0, pix.width(), pix.height(), pgrad);
 
-    QPen pen(QColor(127,0,0), 0.5f, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen pen(QColor(127,0,0), 2.f, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
     p.setPen(pen);
-    p.drawLine(QPointF(0,0), QPointF(pix.width(), pix.height()));
+    //    p.drawLine(QPointF(0,0), QPointF(pix.width(), pix.height()));
     p.drawLine(QPointF(0,pix.height()), QPointF(pix.width(), 0));
 
     /*

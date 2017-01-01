@@ -4057,9 +4057,9 @@ void KLFMainWinPrivate::slotDetailsSideWidgetShown(bool shown)
 {
   if (K->u->frmDetails->sideWidgetManagerType() == QLatin1String("ShowHide")) {
     if (shown)
-      K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.png"));
+      K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked.svg"));
     else
-      K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded.png"));
+      K->u->btnExpand->setIcon(QIcon(":/pics/switchexpanded.svg"));
   } else if (K->u->frmDetails->sideWidgetManagerType() == QLatin1String("Drawer")) {
     if (shown)
       K->u->btnExpand->setIcon(QIcon(":/pics/switchshrinked_drawer.svg"));
