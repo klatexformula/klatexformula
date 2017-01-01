@@ -267,7 +267,7 @@ KLF_EXPORT QString klfFindTranslatedDataFile(const QString& baseFileName, const 
  *
  * \note This does NOT affect legacy \c ".klf" library files
  */
-#define KLF_DATA_STREAM_APP_VERSION  "3.3"
+#define KLF_DATA_STREAM_APP_VERSION  "4.0"
 //                                --- don't forget to update below too! ---
 
 /** \brief 'Major' version part of \ref KLF_DATA_STREAM_APP_VERSION. */

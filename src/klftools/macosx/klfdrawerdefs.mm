@@ -68,7 +68,7 @@ KLFDrawerSideWidgetManager::KLFDrawerSideWidgetManager(QWidget *parentWidget, QW
   NSView * nswinview = reinterpret_cast<NSView*>(parentWidget->window()->winId());
 
   NSSize csz = nsSizeForQSize(sideWidget->sizeHint());
-  d->nsdrawer = [[NSDrawer alloc] initWithContentSize:csz preferredEdge:NSRectEdgeMaxX];
+  d->nsdrawer = [[NSDrawer alloc] initWithContentSize:csz preferredEdge:NSMaxXEdge];
   [d->nsdrawer setParentWindow:[nswinview window]];
   NSView *contentView = [d->nsdrawer contentView];
 

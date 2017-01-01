@@ -127,6 +127,22 @@
   </profile>
 
 
+  <!-- Temporary files -->
+  <profile name="temp-pdf-file">
+    <in-submenu>Temporary File</in-submenu>
+    <description>PDF</description>
+    <export-type exporter="KLFTempFileUriExporter" format="PDF">
+      <default-qt-formats type="urls" />
+    </export-type>
+  </profile>
+  <profile name="temp-png-file">
+    <in-submenu>Temporary File</in-submenu>
+    <description>PNG</description>
+    <export-type exporter="KLFTempFileUriExporter" format="PNG">
+      <default-qt-formats type="urls" />
+    </export-type>
+  </profile>
+
   <!-- Specific formats -->
   <profile name="pdf">
     <in-submenu>Specific Formats</in-submenu>

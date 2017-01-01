@@ -123,11 +123,23 @@ endif()
 set(KLF_EXPERIMENTAL 0)
 
 
+#
 # Find Qt 5
+#
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Xml REQUIRED)
+
+get_target_property(Qt5Core_location Qt5::Core LOCATION)
+get_target_property(Qt5Gui_location Qt5::Gui LOCATION)
+get_target_property(Qt5Widgets_location Qt5::Widgets LOCATION)
+get_target_property(Qt5Xml_location Qt5::Xml LOCATION)
+message(STATUS "Found minimal Qt5 components (use CMAKE_PREFIX_PATH=/path/to/qt/lib/cmake):
+      - ${Qt5Core_location}
+      - ${Qt5Gui_location}
+      - ${Qt5Widgets_location}
+      - ${Qt5Xml_location}")
 
 
 #
