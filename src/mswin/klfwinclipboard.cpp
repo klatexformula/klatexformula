@@ -163,51 +163,48 @@ QVariant KLFWinClipboard::convertToMime(const QString &, IDataObject *,
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   return QVariant(); // don't convert anything from the Windows clipboard.
 }
-QVector<FORMATETC> KLFWinClipboard::formatsForMime(const QString &mimeType, const QMimeData *mimeData) const
+QVector<FORMATETC> KLFWinClipboard::formatsForMime(const QString &mimeType, const QMimeData */*mimeData*/) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   QVector<FORMATETC> formats;
 
   const QString prefix = KLF_MIME_PROXY_WIN_FORMAT_PREFIX;
 
-  foreach (QString mime, mimeData->formats()) {
-
-    // only continue if this is a proxy mime for a windows format
-    if (!mime.startsWith(prefix)) {
-      continue;
-    }
-    QString wfmt = mime.mid(prefix.length());
-
-    // see if this format is registered, and if necessary, register it.
-    int k;
-    int fmt_id = -1;
-    for (k = 0; k < KLFWinClipboardPrivate::registeredWinFormats.size(); ++k) {
-      const FmtWithId wfmtid = KLFWinClipboardPrivate::registeredWinFormats[k];
-      if (wfmtid.fmt == wfmt) {
-        // found
-        fmt_id = wfmtid.id;
-        break;
-      }
-    }
-    if (fmt_id == -1) {
-      // not found, needs to be registered
-      //
-      // ???: what's the argument of registerMimeType()?? QWinMime docs are unclear. I
-      // imagine it's supposed to be the windows format name.
-      fmt_id = QWinMime::registerMimeType(wfmt);
-      KLFWinClipboardPrivate::registeredWinFormats.append(FmtWithId(wfmt, fmt_id));
-    }
-    
-    // and add this format to our list
-    FORMATETC winformat;
-    winformat.cfFormat = fmt_id;
-    winformat.ptd = NULL;
-    winformat.dwAspect = DVASPECT_CONTENT;
-    winformat.lindex = -1;
-    winformat.tymed = TYMED_HGLOBAL;
-
-    formats.append(winformat);
+  // only continue if this is a proxy mime for a windows format
+  if (!mimeType.startsWith(prefix)) {
+    return formats;
   }
+  QString wfmt = mimeType.mid(prefix.length());
+
+  // see if this format is registered, and if necessary, register it.
+  int k;
+  int fmt_id = -1;
+  for (k = 0; k < KLFWinClipboardPrivate::registeredWinFormats.size(); ++k) {
+    const FmtWithId wfmtid = KLFWinClipboardPrivate::registeredWinFormats[k];
+    if (wfmtid.fmt == wfmt) {
+      // found
+      fmt_id = wfmtid.id;
+      break;
+    }
+  }
+  if (fmt_id == -1) {
+    // not found, needs to be registered
+    //
+    // ???: what's the argument of registerMimeType()?? QWinMime docs are unclear. I
+    // imagine it's supposed to be the windows format name.
+    fmt_id = QWinMime::registerMimeType(wfmt);
+    KLFWinClipboardPrivate::registeredWinFormats.append(FmtWithId(wfmt, fmt_id));
+  }
+    
+  // and add this format to our list
+  FORMATETC winformat;
+  winformat.cfFormat = fmt_id;
+  winformat.ptd = NULL;
+  winformat.dwAspect = DVASPECT_CONTENT;
+  winformat.lindex = -1;
+  winformat.tymed = TYMED_HGLOBAL;
+
+  formats.append(winformat);
 
   return formats;
 }

@@ -534,8 +534,10 @@ public:
     QString tempfilename = tempFileForOutput(format, klfoutput, req_dpi);
     QUrl url = QUrl::fromLocalFile(tempfilename);
 
-    QByteArray urilist = (url.toString()+QLatin1String("\n")).toUtf8();
-    return urilist;    
+    const QString sep = params.value("separator", QString::fromLatin1("\n")).toString();
+
+    QByteArray urilist = (url.toString() + sep).toUtf8();
+    return urilist;
   }
 
   static QString tempFileForOutput(const QString & reqfmt, const KLFBackend::klfOutput& output,

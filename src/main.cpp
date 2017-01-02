@@ -845,21 +845,28 @@ int main(int argc, char **argv)
     for (k = 0; k < qt_argc && qt_argv[k] != NULL; ++k)
       qtargvlist << QString::fromLocal8Bit(qt_argv[k]);
 
-
-    // Add [share dir]/qt-plugins to library path.  Under windows, that is were plugins
-    // are packaged with the executable
-    //
-    // Be sure to do this *before* instantiating QApplication, because it needs to load
-    // the platform plugin.
-    extern QString klf_share_dir_abspath();
-    QCoreApplication::addLibraryPath(klf_share_dir_abspath()+"/qt-plugins");
-
-    klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
-
     // Create the application
     KLFGuiApplication app(qt_argc, qt_argv);
 
     app.setWindowIcon(QIcon(":/pics/klatexformula.svg"));
+
+
+    // We now package plugins on Windows at the location of the klf executable, so no
+    // longer need to set the plugin path.  (I didn't manage to get it to work otherwise.)
+    // Pitfalls: QApplication needs to load the platform plugin and
+    // klf_share_dir_abspath() relies on QCoreApplication::applicationDirPath() which only
+    // seems to work after the QCoreApplication has been constructed.
+    // 
+    // // Add [share dir]/qt-plugins to library path.  Under windows, that is were plugins
+    // // are packaged with the executable
+    // //
+    // // Be sure to do this *before* instantiating QApplication, because it needs to load
+    // // the platform plugin.
+    // extern QString klf_share_dir_abspath();
+    // QCoreApplication::addLibraryPath(klf_share_dir_abspath()+"/qt-plugins");
+
+    klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
+
 
     // add our default application font(s) ;-)
     //

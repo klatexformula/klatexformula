@@ -86,6 +86,9 @@ KLF_EXPORT QString klf_share_dir_abspath()
 
   _klf_share_dir_cached = klfPrefixedPath(sharedir); // prefixed by app-dir-path
 
+  //DEBUG:
+  //klfWarning("SHARE DIR IS " << _klf_share_dir_cached) ;
+
   klfDbg("share dir is "<<_klf_share_dir_cached) ;
   return _klf_share_dir_cached;
 }
@@ -161,7 +164,8 @@ void KLFConfig::loadDefaults()
   homeConfigDirI18n = homeConfigDir + "/i18n";
   homeConfigDirUserScripts = homeConfigDir + "/userscripts";
 
-  //debug: QMessageBox::information(0, "", QString("global share dir=")+globalShareDir);
+  //DEBUG:
+  //QMessageBox::information(0, "", QString("global share dir=")+globalShareDir);
 
   QFont cmuappfont = QFont();
   QFont fcodeMain = QFont();
