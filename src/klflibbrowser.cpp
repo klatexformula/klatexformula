@@ -1212,8 +1212,9 @@ void KLFLibBrowser::slotEntriesSelected(const KLFLibEntryList& entries)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg( "(): "<<entries ) ;
-  if (entries.size()>=1)
+  if (entries.size() >= 1) {
     klfDbg( "Tag of first selected entry="<<entries[0].property(KLFLibEntry::Tags) ) ;
+  }
 
   KLFAbstractLibView *view = curLibView();
   if (view != NULL) {

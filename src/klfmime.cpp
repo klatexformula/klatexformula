@@ -591,6 +591,8 @@ struct KLFMimeDataPrivate
 
   QStringList macFlavorsToProxyMimes(const QStringList & flavlist) const;
   QString macFlavorFromProxyMime(const QString & mimeType) const;
+  QStringList winFormatsToProxyMimes(const QStringList & flavlist) const;
+  QString winFormatFromProxyMime(const QString & mimeType) const;
 
   void ensureAllPlatformTypesRegistered();
 
@@ -716,6 +718,26 @@ QString KLFMimeDataPrivate::macFlavorFromProxyMime(const QString& proxyMime) con
   return QString();
 }
 
+QStringList KLFMimeDataPrivate::winFormatsToProxyMimes(const QStringList & wfmtlist) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  QStringList mimes;
+  foreach (QString f, wfmtlist) {
+    mimes << QString::fromUtf8(KLF_MIME_PROXY_WIN_FORMAT_PREFIX "%1").arg(f);
+  }
+  return mimes;
+}
+QString KLFMimeDataPrivate::winFormatFromProxyMime(const QString& proxyMime) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  const QString prefix = QLatin1String(KLF_MIME_PROXY_WIN_FORMAT_PREFIX);
+  if (proxyMime.startsWith(prefix)) {
+    return proxyMime.mid(prefix.size());
+  }
+  klfWarning(proxyMime << " is not a mac flavor proxy mime type !") ;
+  return QString();
+}
+
 void KLFMimeDataPrivate::ensureAllPlatformTypesRegistered()
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -728,7 +750,7 @@ void KLFMimeDataPrivate::ensureAllPlatformTypesRegistered()
   klfDbg("Regstering mac flavors: " << allMacFlavors) ;
   qRegisterDraggedTypes(QStringList() << allMacFlavors);
 #elif defined(KLF_WS_WIN)
-  ....
+  //  ....
 #endif
 }
 
@@ -814,7 +836,7 @@ QVariant KLFMimeData::retrieveData(const QString& mimetype, QVariant::Type type)
       );
 #elif defined(KLF_WS_WIN)
   index = d->exportProfile.indexOfAvailableWinFormat(
-      d->winFormatFromProxyMime(mimetype)
+      d->winFormatFromProxyMime(mimetype),
       d->exporterManager,
       d->output
       );

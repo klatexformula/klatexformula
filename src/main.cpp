@@ -756,13 +756,6 @@ void main_setup_app(QCoreApplication *a)
 //  Q_INIT_RESOURCE(klfres) ;
 //#endif
 
-  // add [share dir]/qt-plugins to library path.
-  // under windows, that is were plugins are packaged with the executable
-  extern QString klf_share_dir_abspath();
-  QCoreApplication::addLibraryPath(klf_share_dir_abspath()+"/qt-plugins");
-
-  klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
-
   qRegisterMetaType< QImage >("QImage");
   qRegisterMetaType< KLFStyle >();
   qRegisterMetaType< KLFStyle::BBoxExpand >();
@@ -851,6 +844,17 @@ int main(int argc, char **argv)
     QStringList qtargvlist;
     for (k = 0; k < qt_argc && qt_argv[k] != NULL; ++k)
       qtargvlist << QString::fromLocal8Bit(qt_argv[k]);
+
+
+    // Add [share dir]/qt-plugins to library path.  Under windows, that is were plugins
+    // are packaged with the executable
+    //
+    // Be sure to do this *before* instantiating QApplication, because it needs to load
+    // the platform plugin.
+    extern QString klf_share_dir_abspath();
+    QCoreApplication::addLibraryPath(klf_share_dir_abspath()+"/qt-plugins");
+
+    klfDbg("Library paths are:\n"<<qPrintable(QCoreApplication::libraryPaths().join("\n")));
 
     // Create the application
     KLFGuiApplication app(qt_argc, qt_argv);

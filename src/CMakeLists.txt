@@ -367,11 +367,19 @@ if(KLF_BUILD_GUI)
     # Add the -mwindows only if we are not compiling in debug mode.
     # Add also a separate target klatexformula_cmdl to build the cmdl version, keeping the shell
     # window open.
-    add_executable(klatexformula_cmdl ${klatexformula_ALLSRC})
+    get_target_property(klatexformula_ALL_SRCS klatexformula SOURCES)
+    add_executable(klatexformula_cmdl "${klatexformula_ALL_SRCS}")
+    get_target_property(klatexformula_CFLAGS klatexformula COMPILE_DEFINITIONS)
+    target_compile_definitions(klatexformula_cmdl PRIVATE "${klatexformula_CFLAGS}")
+    target_include_directories(klatexformula_cmdl PUBLIC
+      "${CMAKE_CURRENT_BINARY_DIR}"
+      "${CMAKE_CURRENT_SOURCE_DIR}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/klftools"
+      "${CMAKE_CURRENT_SOURCE_DIR}/klfbackend")
     target_link_libraries(klatexformula_cmdl
-      Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Xml Qt5::Sql Qt5::Svg Qt5::UiTools klfbackend klftools)
+      Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Xml Qt5::Sql Qt5::Svg Qt5::UiTools Qt5::WinExtras klfbackend klftools)
     if(NOT KLF_DEBUG)
-      set_target_properties(klatexformula  PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,windows")
+      set_target_properties(klatexformula       PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,windows")
       set_target_properties(klatexformula_cmdl  PROPERTIES LINK_FLAGS_RELEASE  "-Wl,-subsystem,console")
     endif(NOT KLF_DEBUG)
   endif(WIN32)
@@ -450,10 +458,18 @@ if(KLF_BUILD_GUI)
       message(FATAL_ERROR "Not supported on non-windows system.")
     endif()
     # Install Qt libs
-    install(DIRECTORY "${QT_BINARY_DIR}/" DESTINATION "${KLF_INSTALL_LIB_DIR}" FILES_MATCHING
-      PATTERN "libgcc*.dll"
-      PATTERN "mingw*.dll"
-      REGEX "/Qt(Core|Gui|Sql|Xml)4?\\.dll$"
+    get_target_property(Qt5CoreDllPath Qt5::Core LOCATION)
+    get_target_property(Qt5GuiDllPath Qt5::Gui LOCATION)
+    get_target_property(Qt5WidgetsDllPath Qt5::Widgets LOCATION)
+    get_target_property(Qt5XmlDllPath Qt5::Xml LOCATION)
+    get_target_property(Qt5WinExtrasDllPath Qt5::WinExtras LOCATION)
+    get_target_property(Qt5SvgDllPath Qt5::Svg LOCATION)
+    get_target_property(Qt5SqlDllPath Qt5::Sql LOCATION)
+    install(FILES
+      "${Qt5CoreDllPath}" "${Qt5GuiDllPath}" "${Qt5WidgetsDllPath}" "${Qt5XmlDllPath}"
+      "${Qt5WinExtrasDllPath}" "${Qt5SvgDllPath}" "${Qt5SqlDllPath}"
+      ${KLF_INSTALL_QTLIBS_EXTRADEPS}
+      DESTINATION "${KLF_INSTALL_LIB_DIR}"
       )
   endif()
 
@@ -463,17 +479,14 @@ if(KLF_BUILD_GUI)
   endif(WIN32 AND KLF_USE_WINSPARKLE)
 
   if(KLF_INSTALL_QTPLUGINS)
-    set(qtplugin_list ${KLF_INSTALL_QTPLUGINS_LIST})
-    set(qtplugin_list "dummyitem" ${qtplugin_list})
-    string(REGEX REPLACE ";" ";${QT_PLUGINS_DIR}/" qtplugin_list_temp "${qtplugin_list}")
-    string(REGEX REPLACE "^dummyitem;" "" abs_qtplugin_list "${qtplugin_list_temp}")
-
-    #install(FILES ${abs_qtplugin_list} DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}")
-    foreach(qtplugin ${KLF_INSTALL_QTPLUGINS_LIST})
-      get_filename_component(qtplugin_dir "${qtplugin}" PATH)
-      install(FILES "${QT_PLUGINS_DIR}/${qtplugin}"
-	DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/${qtplugin_dir}")
-    endforeach(qtplugin)
+    foreach(qtplugintgt ${KLF_INSTALL_QTPLUGINS_LIST})
+      get_target_property(qtplugintgt_loc ${qtplugintgt} LOCATION)
+      get_filename_component(qtplugindirfull ${qtplugintgt_loc} DIRECTORY)
+      get_filename_component(qtplugintgt_fname ${qtplugintgt_loc} NAME)
+      get_filename_component(qtplugindirname ${qtplugindirfull} NAME)
+      install(FILES "${qtplugintgt_loc}"
+	DESTINATION "${KLF_INSTALL_QTPLUGINS_DIR}/${qtplugindirname}")
+    endforeach()
   endif(KLF_INSTALL_QTPLUGINS)
 
   if(NOT KLF_MACOSX_BUNDLES)

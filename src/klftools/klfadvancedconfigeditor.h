@@ -34,7 +34,7 @@ struct KLFAdvancedConfigEditorPrivate;
 
 namespace Ui { class KLFAdvancedConfigEditor; };
 
-class KLFAdvancedConfigEditor : public QDialog
+class KLF_EXPORT KLFAdvancedConfigEditor : public QDialog
 {
   Q_OBJECT
 public:

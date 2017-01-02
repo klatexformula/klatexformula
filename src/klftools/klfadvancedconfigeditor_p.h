@@ -58,7 +58,8 @@ public:
   {
   }
 
-  virtual QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
+  virtual QWidget * createEditor(QWidget *parent, const QStyleOptionViewItem& option,
+                                 const QModelIndex& index) const
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     if (index.column() < 2)

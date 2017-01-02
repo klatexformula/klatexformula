@@ -275,7 +275,8 @@ endif()
 
 
 if(WIN32)
-  set(default_install_qtlibs ON)
+  set(default_install_qtlibs OFF) # let the user specify this explicitly -- not sure which
+                                  # exact library deps to install
   set(default_install_qtplugins ON)
 else(WIN32)
   set(default_install_qtlibs OFF)
@@ -303,23 +304,29 @@ if(KLF_MACOSX_BUNDLES AND KLF_INSTALL_QTLIBS)
 endif()
 
 if(KLF_INSTALL_QTLIBS)
-  message(STATUS "Will install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
+  set(KLF_INSTALL_QTLIBS_EXTRADEPS "" CACHE STRING
+    "List of additional dlls (full paths) to include alonside installed executable")
+  message(STATUS "Will install Qt libs next to installed executable (KLF_INSTALL_QTLIBS,KLF_INSTALL_QTLIBS_EXTRADEPS)")
 elseif(default_install_qtlibs)
-  message(STATUS "Will NOT install Qt libs next to installed executable (KLF_INSTALL_QTLIBS)")
+  message(STATUS "Will NOT install Qt libs next to installed executable (KLF_INSTALL_QTLIBS,KLF_INSTALL_QTLIBS_EXTRADEPS)")
 else()
   # no message required on unix-like systems -- don't confuse user
 endif()
 #
 if(KLF_INSTALL_QTPLUGINS)
-  KLFSetIfNotDefined(KLF_INSTALL_QTPLUGINS_DIR "qt-plugins/")
-  set(default_KLF_INSTALL_QTPLUGINS_LIST ${Qt5Core_PLUGINS})
-  KLFSetIfNotDefined(KLF_INSTALL_QTPLUGINS_LIST ${default_KLF_INSTALL_QTPLUGINS_LIST})
+  # put qt plugins in same directory as executable -- I couldn't otherwise get
+  # addLibraryPath() to work.. :( why??
+  KLFSetIfNotDefined(KLF_INSTALL_QTPLUGINS_DIR "${KLF_INSTALL_BIN_DIR}")
+  set(default_KLF_INSTALL_QTPLUGINS_LIST
+    ${Qt5Core_PLUGINS} ${Qt5Gui_PLUGINS} ${Qt5Widgets_PLUGINS} ${Qt5WinExtras_PLUGINS}
+    Qt5::QSQLiteDriverPlugin Qt5::QSvgIconPlugin)
+  KLFSetIfNotDefined(KLF_INSTALL_QTPLUGINS_LIST "${default_KLF_INSTALL_QTPLUGINS_LIST}")
   message(STATUS "Will install given Qt plugins next to installed executable, in
     ${KLF_INSTALL_QTPLUGINS_DIR}
     (KLF_INSTALL_QTPLUGINS_DIR=<BOOL>,KLF_INSTALL_QTPLUGINS_LIST=<list of qt5
     plugin targets e.g. Qt5::SvgIconEnginePlugin>)")
 elseif(WIN32)
-  message(STATUS "Will NOT install Qt plugins next to installed executable (QT_INSTALL_QTPLUGINS)")
+  message(STATUS "Will NOT install Qt plugins next to installed executable (KLF_INSTALL_QTPLUGINS)")
 endif(KLF_INSTALL_QTPLUGINS)
 
 
@@ -333,7 +340,7 @@ if(KLF_BUILD_GUI)
   if(KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
     set(default_KLF_INSTALL_POST_UPDATEMIMEDATABASE ON)
   endif(KLF_INSTALL_DESKTOP AND KLF_INSTALL_SHARE_MIME_PACKAGES_DIR)
-  KLFSetIfNotDefined(KLF_INSTALL_POST_UPDATEMIMEDATABASE ${default_KLF_INSTALL_POST_UPDATEMIMEDATABASE})
+  KLFSetIfNotDefined(KLF_INSTALL_POST_UPDATEMIMEDATABASE "${default_KLF_INSTALL_POST_UPDATEMIMEDATABASE}")
 
   if(KLF_INSTALL_POST_UPDATEMIMEDATABASE)
     message(STATUS "Will update the mime database after installing (KLF_INSTALL_POST_UPDATEMIMEDATABASE)")

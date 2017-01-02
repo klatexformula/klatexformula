@@ -25,12 +25,29 @@
 #ifndef KLFWINCLIPBOARD_H
 #define KLFWINCLIPBOARD_H
 
-#include <QWinClipboard>
+#include <QWinMime>
+
+#include <klfdefs.h>
 
 
+struct KLFWinClipboardPrivate;
 
-....................... WRITE ME ...........................
-
+class KLFWinClipboard : public QWinMime
+{
+public:
+  KLFWinClipboard();
+  virtual ~KLFWinClipboard();
+  virtual bool canConvertFromMime(const FORMATETC &formatetc, const QMimeData *mimeData) const;
+  virtual bool canConvertToMime(const QString &mimeType, IDataObject *pDataObj) const;
+  virtual bool convertFromMime(const FORMATETC &formatetc, const QMimeData *mimeData,
+                               STGMEDIUM *pmedium) const;
+  virtual QVariant convertToMime(const QString &mimeType, IDataObject *pDataObj,
+                                 QVariant::Type preferredType) const;
+  virtual QVector<FORMATETC> formatsForMime(const QString &mimeType, const QMimeData *mimeData) const;
+  virtual QString mimeForFormat(const FORMATETC &formatetc) const;
+private:
+  KLF_DECLARE_PRIVATE(KLFWinClipboard) ;
+};
 
 
 #endif

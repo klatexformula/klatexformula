@@ -355,9 +355,6 @@ option(KLF_DEBUG_USE_MODELTEST
  "DEVELOPERS ONLY. Uses ModelTest (Qt's Labs) to test QAbstractItemModel-based models. VERY slow."
  FALSE)
 mark_as_advanced(KLF_DEBUG_USE_MODELTEST)
-if(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
-  message(STATUS "Will install plugins in ~/.klatexformula/plugins/ at compile-time (KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)")
-endif(KLF_DEVEL_LOCAL_BASEPLUGINS_COPY)
 if(KLF_DEBUG_USE_MODELTEST)
   message(STATUS "Will compile with QtLab's ModelTest for KLFLibModel testing (KLF_DEBUG_USE_MODELTEST)")
 endif(KLF_DEBUG_USE_MODELTEST)
