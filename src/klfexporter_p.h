@@ -49,6 +49,33 @@ extern QString klfbackend_last_userscript_output;
 
 
 
+//
+// Utility: escape the value of an HTML attribute
+//
+static inline QString toHtmlAttrText(QString s)
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("s="<<s);
+  QRegExp replaceCharsRX("([^a-zA-Z0-9/ ._-])");
+  int pos = 0;
+  while ((pos = replaceCharsRX.indexIn(s, pos)) != -1) {
+    QString entity = "&#x"+QString::number(replaceCharsRX.cap(1)[0].unicode(), 16).toUpper()+";" ;
+    klfDbg("replacing char at pos="<<pos<<" by entity="<<entity<<": s(pos...pos+5)="<<s.mid(pos,5));
+    s.replace(pos, replaceCharsRX.matchedLength(), entity);
+    pos += entity.length();
+  }
+  klfDbg("final string: "<<s);
+  return s;
+}
+
+static inline QByteArray toHtmlAttrTextAscii(QString s)
+{
+  // there are only ascii chars in the output of toHtmlAttrText()
+  return toHtmlAttrText(s).toLatin1();
+}
+
+
+
 
 
 // ==============================================================================
@@ -211,30 +238,138 @@ public:
 
 
 
-
-// ==============================================================================
-
+// =============================================================================
 
 
 
 
-
-// escape the value of an HTML attribute
-static inline QString toHtmlAttrText(QString s)
+class KLFOpenOfficeDrawExporter : public QObject, public KLFExporter
 {
-  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("s="<<s);
-  QRegExp replaceCharsRX("([^a-zA-Z0-9/ ._-])");
-  int pos = 0;
-  while ((pos = replaceCharsRX.indexIn(s, pos)) != -1) {
-    QString entity = "&#x"+QString::number(replaceCharsRX.cap(1)[0].unicode(), 16).toUpper()+";" ;
-    klfDbg("replacing char at pos="<<pos<<" by entity="<<entity<<": s(pos...pos+5)="<<s.mid(pos,5));
-    s.replace(pos, replaceCharsRX.matchedLength(), entity);
-    pos += entity.length();
+  Q_OBJECT
+public:
+  KLFOpenOfficeDrawExporter(QObject *parent)
+    : QObject(parent), KLFExporter()
+  {
   }
-  klfDbg("final string: "<<s);
-  return s;
-}
+  virtual ~KLFOpenOfficeDrawExporter()
+  {
+  }
+
+  virtual QString exporterName() const
+  {
+    return QLatin1String("open-office-draw");
+  }
+
+  virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const
+  {
+    return QStringList() << "odg";
+  }
+
+  virtual QString titleFor(const QString & format)
+  {
+    if (format == "odg") {
+      return tr("OpenOffice Draw");
+    }
+    klfWarning("Invalid format: " << format) ;
+    return QString();
+  }
+
+  virtual QStringList fileNameExtensionsFor(const QString & format)
+  {
+    if (format == "odg") {
+      return QStringList() << "odg";
+    }
+    klfWarning("Invalid format: " << format) ;
+    return QStringList();
+  }
+
+  virtual QByteArray getData(const QString& format, const KLFBackend::klfOutput& klfoutput,
+                             const QVariantMap&  = QVariantMap())
+  {
+    clearErrorString();
+
+    if (format != "odg") {
+      klfWarning("Invalid format: " << format) ;
+      return QByteArray();
+    }
+
+    QByteArray pngdata = klfoutput.pngdata;
+    
+    QByteArray templ;
+    {
+      QFile templfile(":/data/ooodrawingtemplate");
+      templfile.open(QIODevice::ReadOnly);
+      templ = templfile.readAll();
+    }
+    
+    QString fgcols = QColor(klfoutput.input.fg_color).name();
+    QString bgcols;
+    if (qAlpha(klfoutput.input.bg_color) > 0) {
+      bgcols = QColor(klfoutput.input.fg_color).name();
+    } else {
+      bgcols = "-";
+    }
+
+    templ.replace("<!--KLF_PNG_BASE64_DATA-->", pngdata.toBase64());
+
+    templ.replace("<!--KLF_INPUT_LATEX-->", toHtmlAttrTextAscii(klfoutput.input.latex));
+    templ.replace("<!--KLF_INPUT_MATHMODE-->", toHtmlAttrTextAscii(klfoutput.input.mathmode));
+    templ.replace("<!--KLF_INPUT_PREAMBLE-->", toHtmlAttrTextAscii(klfoutput.input.preamble));
+    templ.replace("<!--KLF_INPUT_FGCOLOR-->", toHtmlAttrTextAscii(fgcols));
+    templ.replace("<!--KLF_INPUT_BGCOLOR-->",	toHtmlAttrTextAscii(bgcols));
+    templ.replace("<!--KLF_INPUT_DPI-->", toHtmlAttrTextAscii(QString::number(klfoutput.input.dpi)));
+    templ.replace("<!--KLF_SETTINGS_TBORDEROFFSET_PSPT-->",
+                  toHtmlAttrTextAscii(QString::number(klfoutput.settings.tborderoffset)));
+    templ.replace("<!--KLF_SETTINGS_RBORDEROFFSET_PSPT-->",
+                  toHtmlAttrTextAscii(QString::number(klfoutput.settings.rborderoffset)));
+    templ.replace("<!--KLF_SETTINGS_BBORDEROFFSET_PSPT-->",
+                  toHtmlAttrTextAscii(QString::number(klfoutput.settings.bborderoffset)));
+    templ.replace("<!--KLF_SETTINGS_LBORDEROFFSET_PSPT-->",
+                  toHtmlAttrTextAscii(QString::number(klfoutput.settings.lborderoffset)));
+
+    templ.replace("<!--KLF_INPUT_LATEX_BASE64-->", klfoutput.input.latex.toLocal8Bit().toBase64());
+    templ.replace("<!--KLF_INPUT_MATHMODE_BASE64-->", klfoutput.input.mathmode.toLocal8Bit().toBase64());
+    templ.replace("<!--KLF_INPUT_PREAMBLE_BASE64-->", klfoutput.input.preamble.toLocal8Bit().toBase64());
+    templ.replace("<!--KLF_INPUT_FGCOLOR_BASE64-->", fgcols.toLocal8Bit().toBase64());
+    templ.replace("<!--KLF_INPUT_BGCOLOR_BASE64-->", bgcols.toLocal8Bit().toBase64());
+
+    templ.replace("<!--KLF_OOOLATEX_ARGS-->", toHtmlAttrTextAscii("12§display§"+klfoutput.input.latex));
+
+    // scale equation (eg. make them larger, so it is not too cramped up)
+    const double DPI_FACTOR = klfconfig.ExportData.oooExportScale;
+
+    // cm/inch = 2.54
+    // include an elargment factor in these tags
+    templ.replace("<!--KLF_IMAGE_WIDTH_CM-->",
+                  QString::number(DPI_FACTOR * 2.54 * klfoutput.result.width()/klfoutput.input.dpi, 'f', 2).toUtf8());
+    templ.replace("<!--KLF_IMAGE_HEIGHT_CM-->",
+                  QString::number(DPI_FACTOR * 2.54 * klfoutput.result.height()/klfoutput.input.dpi, 'f', 2).toUtf8());
+    // same, without the enlargment factor
+    templ.replace("<!--KLF_IMAGE_ORIG_WIDTH_CM-->",
+                  QString::number(2.54 * klfoutput.result.width()/klfoutput.input.dpi, 'f', 2).toUtf8());
+    templ.replace("<!--KLF_IMAGE_ORIG_HEIGHT_CM-->",
+                  QString::number(2.54 * klfoutput.result.height()/klfoutput.input.dpi, 'f', 2).toUtf8());
+
+    templ.replace("<!--KLF_IMAGE_WIDTH_PX-->", QString::number(klfoutput.result.width()).toUtf8());
+    templ.replace("<!--KLF_IMAGE_HEIGHT_PX-->", QString::number(klfoutput.result.height()).toUtf8());
+    templ.replace("<!--KLF_IMAGE_ASPECT_RATIO-->",
+                  QString::number((double)klfoutput.result.width()/klfoutput.result.height(), 'f', 3).toUtf8());
+
+    klfDbg("final templ: "<<templ);
+
+    return templ;
+  }
+
+};
+
+
+
+
+
+// =============================================================================
+
+
+
 
 
 

@@ -7,6 +7,7 @@
   <version>0.3</version>
   <license>GPL v2+</license>
   <settings-form-ui>gif-convert_config.ui</settings-form-ui>
+  <can-provide-default-settings>true</can-provide-default-settings>
   <klf-export-type>
     <input-data-type>PNG</input-data-type>
     <has-stdout-output>false</has-stdout-output>

@@ -1,0 +1,25 @@
+%%KLF:LaTeX-save
+%%KLF:date: 2016-12-30T23:08:01
+%%KLF: 
+\fbox{\begin{minipage}{8in}%
+\makebox[8in][c]{%
+Welcome to KLatexFormula.}%
+\vspace{1.5in}
+\makebox[8in][c]{$\rightarrow$}%
+\vspace{1.5in}
+\parbox{8in}{\fontsize{18}{22}\selectfont Drag klatexformula.app to Applications to complete installation. Launch klatexformula.app the first time by selecting \emph{Control}\,+\,\emph{click} $\rangle$ \emph{open} and confirm.}%
+\end{minipage}}
+%%KLF: 
+%%KLF: 
+%%KLF:style: <!DOCTYPE KLFStyle>
+%%KLF:style: <KLFStyle><pair><key>bg_color</key><value type="ulong">16777215</value></pair><pair><key>dpi</key><value type="int">240</value></pair><pair><key>fg_color</key><value type="ulong">4278190080</value></pair><pair><key>fontname</key><value type=""></value></pair><pair><key>fontsize</key><value type="double">24</value></pair><pair><key>mathmode</key><value type="QString">...</value></pair><pair><key>name</key><value type=""></value></pair><pair><key>overrideBBoxExpand</key><value type="KLFStyle::BBoxExpand">[QVariant]\x00\x00\x04\x00\x00\x00\x00\x00\x15KLFStyle::BBoxExpand\x00\x00\x00\x00\x04\x00\x00\x00\x06\x00t\x00o\x00p\x00\x00\x00\x06\x00\xbf\xf0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0a\x00r\x00i\x00g\x00h\x00t\x00\x00\x00\x06\x00\xbf\xf0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00l\x00e\x00f\x00t\x00\x00\x00\x06\x00\xbf\xf0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0c\x00b\x00o\x00t\x00t\x00o\x00m\x00\x00\x00\x06\x00\xbf\xf0\x00\x00\x00\x00\x00\x00</value></pair><pair><key>preamble</key><value type="QString">\\\usepackage{amsmath}
+%%KLF:style: \\usepackage{amssymb}
+%%KLF:style: \\usepackage{amsfonts}
+%%KLF:style: \\usepackage{microtype}
+%%KLF:style: 
+%%KLF:style: \\fboxsep=1.5em
+%%KLF:style: \\parskip=0pt
+%%KLF:style: \\parindent=0pt
+%%KLF:style: \\hyphenpenalty=10000
+%%KLF:style: \\frenchspacing
+%%KLF:style: \\usepackage{cmbright}</value></pair><pair><key>userScript</key><value type=""></value></pair><pair><key>userScriptInput</key><value type="QVariantMap"/></pair><pair><key>vectorscale</key><value type="double">1</value></pair></KLFStyle>

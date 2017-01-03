@@ -48,6 +48,8 @@ struct KLFWinClipboardPrivate {
   KLF_PRIVATE_HEAD(KLFWinClipboard) {
   }
 
+  static int getStdWinFormatConstant(const QString & wfmtname);
+
   static QList<FmtWithId> registeredWinFormats;
 };
 
@@ -67,6 +69,35 @@ KLFWinClipboard::~KLFWinClipboard()
 
   KLF_DELETE_PRIVATE ;
 }
+//static
+int KLFWinClipboardPrivate::getStdWinFormatConstant(const QString & wfmtname)
+{
+  if (!wfmtname.startsWith("CF_")) {
+    return -1;
+  }
+  if (wfmtname == QLatin1String("CF_BITMAP")) {
+    return CF_BITMAP;
+  } else if (wfmtname == QLatin1String("CF_BITMAP")) {
+    return CF_BITMAP;
+  } else if (wfmtname == QLatin1String("CF_DIB")) {
+    return CF_DIB;
+  } else if (wfmtname == QLatin1String("CF_DIBV5")) {
+    return CF_DIBV5;
+  } else if (wfmtname == QLatin1String("CF_ENHMETAFILE")) {
+    return CF_ENHMETAFILE;
+  } else if (wfmtname == QLatin1String("CF_METAFILEPICT")) {
+    return CF_METAFILEPICT;
+  } else if (wfmtname == QLatin1String("CF_OEMTEXT")) {
+    return CF_OEMTEXT;
+  } else if (wfmtname == QLatin1String("CF_TEXT")) {
+    return CF_TEXT;
+  } else if (wfmtname == QLatin1String("CF_UNICODETEXT")) {
+    return CF_UNICODETEXT;
+  }
+  klfWarning("Format "<<wfmtname<<" looks like a predefined windows constant format type but "
+             "it doesn't match those we know about! Is it a typo?")
+  return -1;
+}
 bool KLFWinClipboard::canConvertFromMime(const FORMATETC &formatetc, const QMimeData *mimeData) const
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
@@ -78,6 +109,10 @@ bool KLFWinClipboard::canConvertFromMime(const FORMATETC &formatetc, const QMime
     if (mime.startsWith(prefix)) {
       QString wfmt = mime.mid(prefix.length());
       klfDbg("wfmt = " << wfmt) ;
+      if (KLFWinClipboardPrivate::getStdWinFormatConstant(wfmt) == formatetc.cfFormat) {
+        // wfmt is a predefined 
+        return true;
+      }
       // find wfmt in registeredWinFormats and see if IDs match.
       foreach (FmtWithId rf, KLFWinClipboardPrivate::registeredWinFormats) {
         if (wfmt == rf.fmt && rf.id == formatetc.cfFormat) {
@@ -119,19 +154,26 @@ bool KLFWinClipboard::convertFromMime(const FORMATETC &formatetc, const QMimeDat
     }
     QString wfmt = mime.mid(prefix.length());
 
-    // get the windows ID of this format.  It must have been previously registered because
-    // it was (I hope!!!) obtained by formatsForMime()
-    int k;
+    // Get the windows ID of this format.  
     int fmt_id = -1;
-    for (k = 0; k < KLFWinClipboardPrivate::registeredWinFormats.size(); ++k) {
-      const FmtWithId wfmtid = KLFWinClipboardPrivate::registeredWinFormats[k];
-      if (wfmtid.fmt == wfmt) {
-        // found
-        fmt_id = wfmtid.id;
-        break;
+
+    // First, see if it is a built-in windows format
+    fmt_id = KLFWinClipboardPrivate::getStdWinFormatConstant(wfmt);
+
+    if (fmt_id == -1) {
+      // If it isn't a built-in windows format, it must have been previously registered
+      // because it was (I hope!!!) obtained by formatsForMime()
+      int k;
+      for (k = 0; k < KLFWinClipboardPrivate::registeredWinFormats.size(); ++k) {
+        const FmtWithId wfmtid = KLFWinClipboardPrivate::registeredWinFormats[k];
+        if (wfmtid.fmt == wfmt) {
+          // found
+          fmt_id = wfmtid.id;
+          break;
+        }
       }
     }
-    KLF_ASSERT_CONDITION(fmt_id != -1, "format not registered!!!!", return false; ) ;
+    KLF_ASSERT_CONDITION(fmt_id != -1, "windows format " << wfmt << " not registered!!!!", return false; ) ;
 
     // get the data
     QByteArray data = mimeData->data(mime);

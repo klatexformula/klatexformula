@@ -41,6 +41,8 @@
 
 #include <klfconfigbase.h>
 #include <klfutil.h>
+#include <klfuserscript.h>
+#include <klfbackend.h>
 #include <klfblockprocess.h>
 #include "klfmain.h"
 #include "klfmainwin.h"
@@ -382,8 +384,10 @@ void KLFConfig::loadDefaults()
   KLFCONFIGPROP_INIT(LibraryBrowser.listPreviewSizePercent, 75) ;
   KLFCONFIGPROP_INIT(LibraryBrowser.iconPreviewSizePercent, 100) ;
 
-//  Plugins.pluginConfig = QMap< QString, QMap<QString,QVariant> >() ;
+  // User Scripts
   UserScripts.userScriptConfig = QMap< QString, QMap<QString,QVariant> >() ;
+  // can't query user script config here yet, because this function is called before user
+  // scripts are loaded
 }
 
 

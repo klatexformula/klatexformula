@@ -386,6 +386,23 @@ KLFMainWin::KLFMainWin()
 
   slotReloadUserScripts();
 
+  // and set up the default config, if the user script can provide a default config
+  klfDbg("About to load default settings for user scripts, if necessary.  Currently user script config = "
+         << klfconfig.UserScripts.userScriptConfig) ;
+  foreach( QString us, klf_user_scripts) {
+    klfDbg("Considering user script " << us) ;
+    if (!klfconfig.UserScripts.userScriptConfig.contains(us) ||
+        klfconfig.UserScripts.userScriptConfig.value(us).isEmpty()) {
+      KLFUserScriptInfo usinfo(us);
+      if (usinfo.canProvideDefaultSettings()) {
+        // set defaults
+        klfDbg("setting default config for user script " << us) ;
+        klfconfig.UserScripts.userScriptConfig[usinfo.userScriptPath()] = usinfo.queryDefaultSettings(&d->settings);
+        klfDbg("user script config is now " << klfconfig.UserScripts.userScriptConfig[usinfo.userScriptPath()]) ;
+      }
+    }
+  }
+
 
   // REGISTER OUR EXPORTERS
 
@@ -396,6 +413,7 @@ KLFMainWin::KLFMainWin()
   registerExporter(new KLFBackendOutputFormatsExporter(this));
   registerExporter(new KLFTexExporter(this));
   registerExporter(new KLFHtmlDataExporter(this));
+  registerExporter(new KLFOpenOfficeDrawExporter(this));
   registerExporter(new KLFTempFileUriExporter(this));
 
   // now, create one instance of KLFUserScriptExporter per export type user script ...

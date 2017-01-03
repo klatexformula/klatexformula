@@ -28,8 +28,9 @@
       <win-format>PNG</win-format>
       <!-- for MS office: [old; test if still needed?] -->
       <win-format>PNG+Office Art</win-format>
-      <!-- don't provide PNG by default on Mac, as most applications understand PDF but seem
-           to prefer png when pasting -->
+      <!-- don't provide PNG by default on Mac, as most applications understand PDF but
+           seem to prefer png when pasting ....??? but it does make sense here as some
+           apps don't understand pdf -->
       <mac-flavor>public.png</mac-flavor>
     </export-type>
 
@@ -61,10 +62,22 @@
       <default-qt-formats type="html" />
     </export-type>
 
+    <!-- EMF metafile for windows apps -->
+    <export-type exporter="UserScript:inkscapeformats" format="emf">
+      <mime-type>image/x-emf</mime-type>
+      <mime-type>application/emf</mime-type>
+      <mime-type>application/x-emf</mime-type>
+      <mime-type>image/x-emf</mime-type>
+      <win-format>CF_ENHMETAFILE</win-format>
+      <!-- no known mac flavor?? anyone?? -->
+    </export-type>
+
     <!-- OpenOffice.org format -->
-    <export-type exporter="open-office-draw" format="XXXXXXXXX">
+    <export-type exporter="open-office-draw" format="odg">
       <mime-type>application/x-openoffice-drawing</mime-type>
       <win-format>Drawing Format</win-format>
+      <!-- see "open-office-draw" profile below for notes on dynamic UTIs -->
+      <mac-flavor>dyn.ah62d4rv4gu80c6durvy0g2pyrf106p52fz11a3psr7xgq4pdqy00k6xbs7y06335s7y063dts73z83xtsm00c7dsqf00n1b7emche2p1rf1gskcgr73g42pyek</mac-flavor>
     </export-type>
 
   </profile>
@@ -130,15 +143,22 @@
   <!-- Temporary files -->
   <profile name="temp-pdf-file">
     <in-submenu>Temporary File</in-submenu>
-    <description>PDF</description>
+    <description>Temp PDF File</description>
     <export-type exporter="KLFTempFileUriExporter" format="PDF">
       <default-qt-formats type="urls" />
     </export-type>
   </profile>
   <profile name="temp-png-file">
     <in-submenu>Temporary File</in-submenu>
-    <description>PNG</description>
+    <description>Temp PNG File</description>
     <export-type exporter="KLFTempFileUriExporter" format="PNG">
+      <default-qt-formats type="urls" />
+    </export-type>
+  </profile>
+  <profile name="temp-ps-file">
+    <in-submenu>Temporary File</in-submenu>
+    <description>Temp PS File</description>
+    <export-type exporter="KLFTempFileUriExporter" format="PS">
       <default-qt-formats type="urls" />
     </export-type>
   </profile>
@@ -185,11 +205,33 @@
       <mime-type>application/x-tex</mime-type>
     </export-type>
   </profile>
+  <profile name="open-office-draw">
+    <in-submenu>Specific Formats</in-submenu>
+    <description>OpenOffice Draw</description>
+    <export-type exporter="open-office-draw" format="odg">
+      <mime-type>application/x-openoffice-drawing</mime-type>
+      <win-format>Drawing Format</win-format>
+
+      <!-- Notes: read https://alastairs-place.net/blog/2012/06/06/utis-are-better-than-you-think-and-heres-why/
+           to get how these dynamic UTIs are encoded.  In python, decode them as:
+
+           import string
+           import base64
+           v2 = 'abcdefghkmnpqrstuvwxyz0123456789' # vector used by mac UTIs-base32
+           v  = 'abcdefghijklmnopqrstuvwxyz234567' # vector used by python's base64.b32*** and the RFC standard
+           transv = string.maketrans(v2, v)
+           base64.b32decode(s.translate(transv)+'='*(-len(s)%8), True)
+           -->
+      <mac-flavor>dyn.ah62d4rv4gu80c6durvy0g2pyrf106p52fz11a3psr7xgq4pdqy00k6xbs7y06335s7y063dts73z83xtsm00c7dsqf00n1b7emche2p1rf1gskcgr73g42pyek</mac-flavor>
+    </export-type>
+  </profile>
 
 </export-profile-list>
 
 
 <!-- NOTES
+
+  Ideally we should be able to cover all of the following cases: (I stress, *ideally*.)
 
   Test:
    - Copy & Paste

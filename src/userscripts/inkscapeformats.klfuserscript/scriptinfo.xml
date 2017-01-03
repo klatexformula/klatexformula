@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<klfuserscript-info klf-compat-version="4">
+  <exe-script>inkscapeformats.py</exe-script>
+  <category>klf-export-type</category>
+  <name>Export formats using Inkscape</name>
+  <author>Philippe Faist, philippe.faist@bluewin.ch</author>
+  <version>0.2</version>
+  <license>GPL v2+</license>
+  <settings-form-ui>config.ui</settings-form-ui>
+  <can-provide-default-settings>1</can-provide-default-settings>
+  <klf-export-type>
+    <input-data-type>PDF</input-data-type>
+    <has-stdout-output>false</has-stdout-output>
+    <mime-export-profiles-xml-file>inkscape-export-profiles.xml</mime-export-profiles-xml-file>
+    <format name="emf">
+      <title>EMF Windows Metafile (via Inkscape)</title>
+      <file-name-extension>emf</file-name-extension>
+    </format>
+    <format name="wmf">
+      <title>WMF Windows Metafile (via Inkscape)</title>
+      <file-name-extension>wmf</file-name-extension>
+    </format>
+  </klf-export-type>
+</klfuserscript-info>

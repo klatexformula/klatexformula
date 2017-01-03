@@ -446,7 +446,7 @@ void klf_reload_user_scripts()
         continue;
       }
       klfDbg("User script: "<<fn) ;
-      klf_user_scripts << fi.filePath();
+      klf_user_scripts << fi.canonicalFilePath();
     }
   }
   klfDbg("Searched in path="<<pathlist<<"; scripts="<<klf_user_scripts) ;

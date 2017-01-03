@@ -70,8 +70,8 @@ public:
     KLFMinVersion,
     KLFMaxVersion,
     SettingsFormUI,
-
-    // xml representation of the category-specific configuration (QByteArray)
+    CanProvideDefaultSettings,
+    //! XML representation of the category-specific configuration (QByteArray)
     CategorySpecificXmlConfig
   };
 
@@ -92,6 +92,10 @@ public:
 
   //! A UI widget form file (Qt designer file) to display for setting up the user script
   QString settingsFormUI() const;
+
+  bool canProvideDefaultSettings() const;
+
+  QMap<QString,QVariant> queryDefaultSettings(const KLFBackend::klfSettings * settings = NULL) const;
 
   bool hasNotices() const;
   QStringList notices() const;
@@ -124,7 +128,13 @@ protected:
   void internalSetProperty(const QString& key, const QVariant &val);
   const KLFPropertizedObject * pobj();
 
+  /** \brief The XML for the category-specific config.
+   *
+   * This class is meant to be accessed by subclasses who parse this XML and expose a
+   *  higher level API.
+   */
   QByteArray categorySpecificXmlConfig() const;
+  
   void setScriptInfoError(int code, const QString & msg);
 
 private:
@@ -160,7 +170,8 @@ public:
   //! List of formats that klfbackend should not attempt to generate
   /** The corresponding field(s) in KLFBackend::klfOutput will be set to empty QByteArray's.
    *
-   * Same format list as 'spits-out'. */
+   * Same format list as 'spits-out'.
+   */
   QStringList skipFormats() const;
 
   //! List of user input fields that should be disabled

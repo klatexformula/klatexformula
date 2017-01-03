@@ -65,7 +65,8 @@ sys.stderr.write("Converting file "+dvifile+"\n");
 svgfile = re.sub(r'\.dvi$', '.svg', dvifile)
 
 # CalledProcessError is raised if an error occurs.
-output = subprocess.check_output(args=[dvisvgm, '-a', '-e', '-n', '-b', 'min', dvifile], shell=False)
+output = subprocess.check_output(args=[dvisvgm, '-a', '-e', '-n', '-b', 'min', dvifile],
+                                 shell=False, stderr=subprocess.STDOUT)
 print("Output from {}: \n{}".format(dvisvgm, output.decode('utf-8')))
 
 if format == 'svgz':

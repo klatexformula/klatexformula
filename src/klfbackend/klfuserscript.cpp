@@ -101,6 +101,7 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
     registerBuiltInProperty(KLFMinVersion, QLatin1String("KLFMinVersion"));
     registerBuiltInProperty(KLFMaxVersion, QLatin1String("KLFMaxVersion"));
     registerBuiltInProperty(SettingsFormUI, QLatin1String("SettingsFormUI"));
+    registerBuiltInProperty(CanProvideDefaultSettings, QLatin1String("CanProvideDefaultSettings"));
     registerBuiltInProperty(CategorySpecificXmlConfig, QLatin1String("CategorySpecificXmlConfig"));
   }
 
@@ -172,6 +173,8 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
     // clear all properties
     clear();
 
+    setProperty(CanProvideDefaultSettings, false);
+
     // read XML contents
     QDomNode n;
     for (n = root.firstChild(); !n.isNull(); n = n.nextSibling()) {
@@ -190,13 +193,13 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
       }
       if (e.nodeName() == "exe-script") {
         if (!property(ExeScript).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <exe-script> element"));
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <exe-script> element"));
           return;
         }
         setProperty(ExeScript, val);
       } else if (e.nodeName() == "name") {
         if (!property(Name).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <name> element"));
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <name> element"));
           return;
         }
         setProperty(Name, val);
@@ -204,50 +207,60 @@ struct KLFUserScriptInfo::Private : public KLFPropertizedObject
         setProperty(Author, property(Author).toStringList() + (QStringList()<<val));
       } else if (e.nodeName() == "version") {
         if (!property(Version).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <version> element"));
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <version> element"));
           return;
         }
         setProperty(Version, val);
       } else if (e.nodeName() == "license") {
         if (!property(License).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <license> element"));
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <license> element"));
           return;
         }
         setProperty(License, val);
       } else if (e.nodeName() == "klf-min-version") {
         if (!property(KLFMinVersion).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <klf-min-version> element"));
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <klf-min-version> element"));
           return;
         }
         setProperty(KLFMinVersion, val);
       } else if (e.nodeName() == "klf-max-version") {
         if (!property(KLFMaxVersion).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <klf-max-version> element"));
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <klf-max-version> element"));
           return;
         }
         setProperty(KLFMaxVersion, val);
       } else if (e.nodeName() == "category") {
         if (!property(Category).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <category> element"));
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <category> element"));
           return;
         }
         setProperty(Category, val);
       } else if (e.nodeName() == "settings-form-ui") {
         if (!property(SettingsFormUI).toString().isEmpty()) {
-          _set_xml_parsing_error(xmlfname, QString("duplicate <settings-form-ui> element"));
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <settings-form-ui> element"));
           return;
         }
         setProperty(SettingsFormUI, val);
-      } else if (e.nodeName() == property(Category).toString()) {
-        // element node matching the category -- keep category-specific config as XML
-        QByteArray xmlrepr;
-        { QTextStream tstream(&xmlrepr);
-          e.save(tstream, 2); }
-        klfDbg("Read category-specific XML: " << xmlrepr);
-        setProperty(CategorySpecificXmlConfig, xmlrepr);
+      } else if (e.nodeName() == "can-provide-default-settings") {
+        setProperty(CanProvideDefaultSettings, klfLoadVariantFromText(val.toUtf8(), "bool").toBool());
       } else {
-        _set_xml_parsing_error(xmlfname, QString("Unexpected element: %1").arg(e.nodeName()));
-        return;
+        const QString category = property(Category).toString();
+        if (e.nodeName() == category) {
+          if (!property(CategorySpecificXmlConfig).toByteArray().isEmpty()) {
+            _set_xml_parsing_error(xmlfname, QString::fromLatin1("duplicate <%1> element")
+                                   .arg(category));
+            return;
+          }
+          // element node matching the category -- keep category-specific config as XML
+          QByteArray xmlrepr;
+          { QTextStream tstream(&xmlrepr);
+            e.save(tstream, 2); }
+          klfDbg("Read category-specific XML: " << xmlrepr);
+          setProperty(CategorySpecificXmlConfig, xmlrepr);
+        } else {
+          _set_xml_parsing_error(xmlfname, QString::fromLatin1("Unexpected element: %1").arg(e.nodeName()));
+          return;
+        }
       }
     } // for all elements
 
@@ -389,8 +402,67 @@ QString KLFUserScriptInfo::klfMinVersion() const { return scriptInfo(KLFMinVersi
 QString KLFUserScriptInfo::klfMaxVersion() const { return scriptInfo(KLFMaxVersion).toString(); }
 QString KLFUserScriptInfo::settingsFormUI() const { return scriptInfo(SettingsFormUI).toString(); }
 
+bool KLFUserScriptInfo::canProvideDefaultSettings() const { return scriptInfo(CanProvideDefaultSettings).toBool(); }
+
+QMap<QString,QVariant> KLFUserScriptInfo::queryDefaultSettings(const KLFBackend::klfSettings * settings) const
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  KLFUserScriptFilterProcess proc(userScriptPath(), settings);
+
+  // since this may be called on start-up, processing app events may lead to process
+  // hanging on mac os x (why???)
+  proc.setProcessAppEvents(false);
+
+  proc.addArgv(QStringList() << QLatin1String("--query-default-settings"));
+
+  // buffers to collect output
+  QByteArray stdoutdata;
+  QByteArray stderrdata;
+  proc.collectStdoutTo(&stdoutdata);
+  proc.collectStderrTo(&stderrdata);
+
+  bool ok = proc.run();
+  if (!ok) {
+    klfWarning("Error querying default config for user script "<<userScriptBaseName()<<": "
+               << proc.resultErrorString()) ;
+    return QMap<QString,QVariant>();
+  }
+
+  klfDbg("stdoutdata = " << stdoutdata) ;
+  klfDbg("stderrdata = " << stderrdata) ;
+
+  // for user script debugging
+  extern QString klfbackend_last_userscript_output;
+  klfbackend_last_userscript_output
+    = "<b>STDOUT</b>\n<pre>" + QString(stdoutdata).toHtmlEscaped() + "</pre>\n<br/><b>STDERR</b>\n<pre>"
+    + QString(stderrdata).toHtmlEscaped() + "</pre>";
+  
+  klfDbg("Ran script "<<userScriptPath()<<": stdout="<<stdoutdata<<"\n\tstderr="<<stderrdata) ;
+
+  // get variables
+  QMap<QString,QVariant> config;
+  foreach (QByteArray line, stdoutdata.split('\n')) {
+    if (!line.size()) {
+      continue;
+    }
+    int idxeq = line.indexOf('=');
+    if (idxeq == -1) {
+      klfWarning("Invalid line in reported userscript default config: " << line) ;
+      continue;
+    }
+    config[QString::fromUtf8(line.left(idxeq))] = line.mid(idxeq+1);
+  }
+
+  return config;
+}
+
+
+
 QByteArray KLFUserScriptInfo::categorySpecificXmlConfig() const
-{ return scriptInfo(CategorySpecificXmlConfig).toByteArray(); }
+{
+  return scriptInfo(CategorySpecificXmlConfig).toByteArray();
+}
 
 
 bool KLFUserScriptInfo::hasNotices() const

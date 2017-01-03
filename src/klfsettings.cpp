@@ -423,6 +423,7 @@ void KLFSettings::show()
   d->refreshUserScriptList();
   d->refreshUserScriptSelected();
 
+
   KLF_BLOCK {
     // calculate the minimum width of the main toolbar
     QLayout *tLyt = u->toolBar->layout();
@@ -688,6 +689,8 @@ void KLFSettingsPrivate::refreshUserScriptList()
 
   K->u->lstUserScripts->clear();
 
+  klfDbg("User script config is " << klfconfig.UserScripts.userScriptConfig) ;
+
   QMap<QString, QTreeWidgetItem*> dirs;
 
   int k;
@@ -711,8 +714,23 @@ void KLFSettingsPrivate::refreshUserScriptList()
     QTreeWidgetItem *item = new QTreeWidgetItem(diritem, QStringList()<<info.userScriptName());
     item->setData(0, KLFSETTINGS_ROLE_USERSCRIPT, QVariant::fromValue<QString>(userscript));
 
-    if (!diritem->isExpanded())
+    if (!diritem->isExpanded()) {
       diritem->setExpanded(true);
+    }
+
+    // load user script configuration into the respective config widget
+    QString uifile = info.settingsFormUI();
+    if (!uifile.isEmpty()) {
+      klfDbg("populating settings widget for user script " << userscript) ;
+      QWidget * scriptconfigwidget = getUserScriptConfigWidget(info, info.relativeFile(uifile));
+      // load current configuration
+      klfDbg("the corresponding config is "
+             << klfconfig.UserScripts.userScriptConfig.value(info.userScriptPath())) ;
+      if (klfconfig.UserScripts.userScriptConfig.contains(info.userScriptPath())) {
+        displayUserScriptConfig(scriptconfigwidget,
+                                klfconfig.UserScripts.userScriptConfig.value(info.userScriptPath()));
+      }
+    }
   }
   
   K->u->splitUserScripts->setSizes(QList<int>() << 100 << 100);
@@ -789,8 +807,6 @@ void KLFSettingsPrivate::refreshUserScriptSelected()
   QString uifile = usinfo.settingsFormUI();
   if (!uifile.isEmpty()) {
     uifile = usinfo.relativeFile(uifile);
-  }
-  if (!uifile.isEmpty()) {
     QWidget * scriptconfigwidget = getUserScriptConfigWidget(usinfo, uifile);
     K->u->stkUserScriptSettings->setCurrentWidget(scriptconfigwidget);
     klfDbg("Set script config UI. uifile="<<uifile) ;
@@ -818,19 +834,16 @@ QWidget * KLFSettingsPrivate::getUserScriptConfigWidget(const KLFUserScriptInfo&
   K->u->stkUserScriptSettings->addWidget(scriptconfigwidget);
   userScriptConfigWidgets[usinfo.userScriptPath()] = scriptconfigwidget;
 
-  // load current configuration
-  if (klfconfig.UserScripts.userScriptConfig.contains(usinfo.userScriptPath())) {
-    displayUserScriptConfig(scriptconfigwidget,
-                            klfconfig.UserScripts.userScriptConfig.value(usinfo.userScriptPath()));
-  }
-
   return scriptconfigwidget;
 }
 
 QVariantMap KLFSettingsPrivate::getUserScriptConfig(QWidget * w)
 {
-  if (w == NULL)
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  
+  if (w == NULL) {
     return QVariantMap();
+  }
 
   QVariantMap data;
 
@@ -860,8 +873,11 @@ QVariantMap KLFSettingsPrivate::getUserScriptConfig(QWidget * w)
 
 void KLFSettingsPrivate::displayUserScriptConfig(QWidget *w, const QVariantMap& data)
 {
-  if (w == NULL)
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  if (w == NULL) {
     return;
+  }
 
   // find the input widgets
   QList<QWidget*> inwidgets = w->findChildren<QWidget*>(QRegExp("^INPUT_.*"));
@@ -883,6 +899,7 @@ void KLFSettingsPrivate::displayUserScriptConfig(QWidget *w, const QVariantMap& 
     KLF_ASSERT_CONDITION(data.contains(n), "No value given for config widget "<<n, continue ; );
     QVariant value = data[n];
     inw->setProperty(userPropName.constData(), value);
+    klfDbg("Set config widget for " << n << " to " << value);
   }
 }
 
@@ -1004,6 +1021,9 @@ void KLFSettings::apply()
 
   klfconfig.BackendSettings.setTexInputs = u->txtSetTexInputs->text();
 
+  backendsettings.userScriptInterpreters["py"] = u->txtScriptInterpreterPython->text();
+  backendsettings.userScriptInterpreters["sh"] = u->txtScriptInterpreterShell->text();
+
   // do this *after* setting 'setTexInputs', because we refer to it when adjusting the
   // execenv setting with the required value of TEXINPUTS...
   d->mainWin->applySettings(backendsettings);
@@ -1046,13 +1066,6 @@ void KLFSettings::apply()
 
     *d->textformats[k].fmt = fmt;
   }
-
-  // can't use "klfconfig.BackendSettings.userScriptInterpreters[ext] = ..." directly
-  // because of the KLFConfigProp<> API.
-  QVariantMap map = klfconfig.BackendSettings.userScriptInterpreters;
-  map["py"] = u->txtScriptInterpreterPython->text();
-  map["shell"] = u->txtScriptInterpreterShell->text();
-  klfconfig.BackendSettings.userScriptInterpreters = map;
 
   // language settings
   QString localename = u->cbxLocale->itemData(u->cbxLocale->currentIndex()).toString();
