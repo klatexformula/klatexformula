@@ -953,6 +953,7 @@ bool KLFMainWinPrivate::try_load_style_list(const QString& styfname)
     return false;
 
   QDataStream str(&fsty);
+  // data stream version is set in klfDataStreamReadHeader()
 
   QString readHeader;
   QString readCompatKLFVersion;
@@ -1031,7 +1032,7 @@ void KLFMainWin::saveStyles()
     return;
   }
   QDataStream stream(&f);
-
+  // stream version is set by klfDataStreamWriteHeader():
   klfDataStreamWriteHeader(stream, "KLATEXFORMULA_STYLE_LIST");
 
   stream << d->styles;
@@ -2965,7 +2966,7 @@ KLFBackend::klfInput KLFMainWinPrivate::collectInput(bool final)
   // remember the math mode if the user clicked on 'Evaluate' (final==true)
   if (final && K->u->cbxMathMode->findText(input.mathmode) == -1) {
     K->u->cbxMathMode->addItem(input.mathmode);
-    klfconfig.UI.customMathModes = klfconfig.UI.customMathModes() << input.mathmode;
+    klfconfig.UI.customMathModes = QStringList() << klfconfig.UI.customMathModes() << input.mathmode;
   }
 
   return input;
@@ -3921,17 +3922,20 @@ KLFStyle KLFMainWin::currentStyle() const
     sty.vectorscale = u->spnVectorScale->value() / 100.0;
 
   if (u->gbxOverrideMargins->isChecked()) {
-    sty.overrideBBoxExpand().top = u->spnMarginTop->valueInRefUnit();
-    sty.overrideBBoxExpand().right = u->spnMarginRight->valueInRefUnit();
-    sty.overrideBBoxExpand().bottom = u->spnMarginBottom->valueInRefUnit();
-    sty.overrideBBoxExpand().left = u->spnMarginLeft->valueInRefUnit();
+    KLFStyle::BBoxExpand bbox(
+        u->spnMarginTop->valueInRefUnit(),
+        u->spnMarginRight->valueInRefUnit(),
+        u->spnMarginBottom->valueInRefUnit(),
+        u->spnMarginLeft->valueInRefUnit()
+        );
+    sty.overrideBBoxExpand = bbox;
   }
 
   sty.userScript = QFileInfo(u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString()).fileName();
   sty.userScriptInput = d->collectUserScriptInput();
 
   klfDbg("Returning style; bgcol="<<klfFmtCC("#%08lx", (ulong)sty.bg_color)<<": us="<<sty.userScript()) ;
-  klfDbg("full style="<< sty) ;
+  klfDbg("full style="<< sty << "; override bbox expand = " << sty.overrideBBoxExpand) ;
 
   return sty;
 }

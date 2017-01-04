@@ -801,7 +801,7 @@ public:
   {
     return value<T>();
   }
-  T operator ()() const
+  const T operator ()() const
   {
     return value<T>();
   }
@@ -826,13 +826,13 @@ public:
     return pPObj->property(pPropId);
   }
 
-  T value() const
+  const T value() const
   {
     return value<T>();
   }
 
   template<class VariantType>
-  T value() const
+  const T value() const
   {
     QVariant v = pPObj->property(pPropId);
     return T(v.value<VariantType>());
@@ -883,6 +883,12 @@ private:
   }
 
 };
+
+template<typename T>
+inline QDebug & operator<<(QDebug & str, const KLFPObjPropRef<T> & p)
+{
+  return str << p();
+}
 
 
 

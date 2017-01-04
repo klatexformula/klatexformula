@@ -35,7 +35,6 @@
 #include <QDebug>
 #include <QDateTime>
 
-#include "klflegacymacros_p.h"
 #include "klfdefs.h"
 
 /** \file klfdefs.h
@@ -1156,11 +1155,11 @@ static int __klf_version_compare_suffix_words(QString w1, QString w2)
   // a list of known words
   const QStringList& words = klf_version_suffixes;
   // now compare the words
-  int borderBeforeAfter = words.list_indexOf("");
+  int borderBeforeAfter = words.indexOf("");
   if (borderBeforeAfter < 0)
     qWarning("klfVersionCompare: suffix words list doesn't contain \"\"!");
-  int i1 = words.list_indexOf(w1);
-  int i2 = words.list_indexOf(w2);
+  int i1 = words.indexOf(w1);
+  int i2 = words.indexOf(w2);
   if (i1 == -1 && i2 == -1)
     return QString::compare(w1, w2);
   if (i2 == -1)

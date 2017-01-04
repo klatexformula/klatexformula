@@ -28,6 +28,9 @@
 #ifndef KLFDATAUTIL_P_H
 #define KLFDATAUTIL_P_H
 
+#include <QByteArray>
+#include <QBuffer>
+
 #include <string.h>
 #include <klfutil.h>
 
@@ -71,14 +74,17 @@ public:
     }
     { // try to recognize Binary
       QDataStream stream(data);
+      stream.setVersion(QDataStream::Qt_4_4);
       QByteArray header;
       stream >> header;
-      if (header == binary_magic)
+      if (header == binary_magic) {
 	return KLF_DEBUG_TEE( QLatin1String("Binary") );
+      }
     }
     { // try to recognize TextVariantMap
-      if (data.startsWith(textvariantmap_header))
+      if (data.startsWith(textvariantmap_header)) {
 	return KLF_DEBUG_TEE( QLatin1String("TextVariantMap") );
+      }
     }
     // failed to recognize type
     return QString();
@@ -87,6 +93,8 @@ public:
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
     QVariantMap propdata = obj->allProperties();
+    klfDbg("saving object of kind " << obj->objectKind() << " with properties = "
+           << propdata << " using format " << format );
     if (format == QLatin1String("XML")) {
       QString s = obj->objectKind();
       QDomDocument xmldoc(s);
@@ -100,11 +108,14 @@ public:
       return data;
     } else if (format == QLatin1String("Binary")) {
       QByteArray b;
-      QBuffer buf(&b);
-      buf.open(QIODevice::WriteOnly);
-      QDataStream stream(&buf);
-      //klfDbg("saving binary... typeName(259)="<<QMetaType::typeName(259));
-      stream << binary_magic << propdata;
+      {
+        QBuffer buf(&b);
+        buf.open(QIODevice::WriteOnly);
+        QDataStream stream(&buf);
+        stream.setVersion(QDataStream::Qt_4_4);
+        stream << binary_magic << propdata;
+      }
+      klfDbg("binary data is " << b) ;
       return b;
     } else if (format == QLatin1String("TextVariantMap")) {
       QByteArray data;
@@ -152,6 +163,7 @@ public:
   bool load(const QByteArray& data, KLFAbstractPropertizedObject * obj, const QString& format)
   {
     KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+    klfDbg("Loading object properties from data " << data << " in format " << format) ;
     if (format == QLatin1String("XML")) {
       QString s = obj->objectKind();
       QDomDocument xmldoc(s);
@@ -172,14 +184,17 @@ public:
 		  obj, QLatin1String("XML"));
     } else if (format == QLatin1String("Binary")) {
       QDataStream stream(data);
+      stream.setVersion(QDataStream::Qt_4_4);
       QByteArray header;
       stream >> header;
       KLF_ASSERT_CONDITION(header == binary_magic, "Data is not 'Binary' format! Bad header!", return false; ) ;
       QVariantMap vmap;
       stream >> vmap;
+      klfDbg("read variant map: " << vmap) ;
       // now set all the properties
       return obj->setAllProperties(vmap);
     } else if (format == QLatin1String("TextVariantMap")) {
+      klfDbg("Reading a TextVariantMap encoded variant map.") ;
       QVariantMap props;
       // determine which method we used (empty, inline, xml)
       int k = 0;
@@ -188,15 +203,17 @@ public:
       k = textvariantmap_header.size();
       // read object kind
       int okindidx = k+1;
-      while (okindidx < data.size() && data[okindidx] != '[' && data[okindidx] != '{')
+      while (okindidx < data.size() && data[okindidx] != '[' && data[okindidx] != '{') {
 	++okindidx;
+      }
       // object kind
-      QByteArray okind = data.mid(k+1, okindidx-(k+1));
+      QByteArray okind = data.mid(k, okindidx-k);
       KLF_ASSERT_CONDITION(okind == obj->objectKind().toLatin1(),
 			   "Trying to load wrong object kind: "<<okind, return false; ) ;
       k = okindidx;
       if (k+1 < data.size() && data[k] == '{' && data[k+1] == '}') {
 	// empty property map
+        klfDbg("Empty variant map.") ;
 	props = QVariantMap();
       } else {
 	KLF_ASSERT_CONDITION(k < data.size() && (data[k] == '['),
@@ -210,6 +227,7 @@ public:
 	} else {
 	  props = klfLoadVariantFromText(data.mid(k2+1), "QVariantMap", typ.constData()).toMap();
 	}
+        klfDbg("variant map: okind="<<okind<<", typ="<<typ<<", props="<<props) ;
       }
       // now set these properties
       return obj->setAllProperties(props);

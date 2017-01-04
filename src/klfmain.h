@@ -267,8 +267,7 @@ KLF_EXPORT QString klfFindTranslatedDataFile(const QString& baseFileName, const 
  *
  * \note This does NOT affect legacy \c ".klf" library files
  */
-#define KLF_DATA_STREAM_APP_VERSION  "4.0"
-//                                --- don't forget to update below too! ---
+#define KLF_DATA_STREAM_APP_VERSION  "3.3" /* don't forget to update below too! */
 
 /** \brief 'Major' version part of \ref KLF_DATA_STREAM_APP_VERSION. */
 #define KLF_DATA_STREAM_APP_VERSION_MAJ  3
@@ -294,6 +293,9 @@ inline QString klfDataStreamAppVersion(const QDataStream& d)
 KLF_EXPORT void klfDataStreamWriteHeader(QDataStream& stream, const QString headermagic);
 
 /** Reads a stream in which a header was prepared with klfDataStreamWriteHeader().
+ *
+ * The data stream is automatically set to the correct version according to the header
+ * which we have read.
  */
 KLF_EXPORT bool klfDataStreamReadHeader(QDataStream& stream, const QStringList possibleHeaders,
 					QString * readHeader = NULL, QString * readCompatKLFVersion = NULL) ;

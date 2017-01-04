@@ -150,6 +150,15 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style);
 // exact matches
 KLF_EXPORT bool operator==(const KLFStyle& a, const KLFStyle& b);
 
+// for debugging
+#ifdef KLF_DEBUG
+KLF_EXPORT QDebug& operator<<(QDebug& stream, const KLFStyle& style);
+KLF_EXPORT QDebug& operator<<(QDebug& stream, const KLFStyle::BBoxExpand& bbox);
+#else
+inline QDebug& operator<<(QDebug& stream, const KLFStyle & ) { return stream; }
+inline QDebug& operator<<(QDebug& stream, const KLFStyle::BBoxExpand & ) { return stream; }
+#endif
+
 
 // legacy style
 KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle::KLFLegacyStyle& style);

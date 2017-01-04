@@ -90,10 +90,12 @@
 static QByteArray image_data(const QImage& img, const char *format)
 {
   QByteArray data;
-  QBuffer buf(&data);
-  buf.open(QIODevice::WriteOnly);
-  img.save(&buf, format);
-  buf.close();
+  {
+    QBuffer buf(&data);
+    buf.open(QIODevice::WriteOnly);
+    img.save(&buf, format);
+    buf.close();
+  }
   return data;
 }
 
@@ -103,6 +105,7 @@ static QByteArray metatype_to_data(const T& object)
   QByteArray data;
   {
     QDataStream stream(&data, QIODevice::WriteOnly);
+    stream.setVersion(QDataStream::Qt_4_4) ;
     stream << object;
     // force close of buffer in destroying stream
   }
@@ -114,6 +117,7 @@ static T metatype_from_data(const QByteArray& data)
 {
   T object;
   QDataStream stream(data);
+  stream.setVersion(QDataStream::Qt_4_4) ;
   stream >> object;
   return object;
 }

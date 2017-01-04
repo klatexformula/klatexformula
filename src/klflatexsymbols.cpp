@@ -561,8 +561,9 @@ int KLFLatexSymbolsCache::loadCacheFrom(const QString& fname, int version)
     return -1;
   }
   QDataStream ds(&f);
-  if (version >= 0)
+  if (version >= 0) {
     ds.setVersion(version);
+  }
   int r = loadCacheStream(ds);
   return r;
 }

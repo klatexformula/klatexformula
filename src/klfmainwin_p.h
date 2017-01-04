@@ -381,18 +381,21 @@ public:
 	return true;
       return false;
     }
-    if (isKlfImage(&buf, &isimg))
+    if (isKlfImage(&buf, &isimg)) {
       return true;
-    if (isimg) // no try going further, we can't otherwise read image ...
+    }
+    if (isimg) { // no try going further, we can't otherwise read image ...
       return false;
+    }
 
     // try to read beginning with a QDataStream to look for a known x-klf-libentries header
     QDataStream stream(&buf);
     stream.setVersion(QDataStream::Qt_4_4);
     QString headerstr;
     stream >> headerstr;
-    if (headerstr == QLatin1String("KLF_LIBENTRIES"))
+    if (headerstr == QLatin1String("KLF_LIBENTRIES")) {
       return true;
+    }
     // *** see note in openData() for library formats. ***
     // don't try to open .klf or .klf.db formats.
 

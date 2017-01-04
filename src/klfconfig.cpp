@@ -435,7 +435,7 @@ void KLFConfig::detectMissingSettings()
     if (neededsettings & (1<<4))
       BackendSettings.execEpstopdf.setDefaultValue(defaultsettings.epstopdfexec);
     if (neededsettings & (1<<5))
-      BackendSettings.execenv.setDefaultValue(BackendSettings.execenv() << defaultsettings.execenv);
+      BackendSettings.execenv.setDefaultValue(QStringList() << BackendSettings.execenv() << defaultsettings.execenv);
     if (neededsettings & (1<<6))
       BackendSettings.wantPDF.setDefaultValue(defaultsettings.wantPDF);
     if (neededsettings & (1<<7))

@@ -37,15 +37,19 @@ KLF_DECLARE_POBJ_TYPE(KLFStyle);
 
 KLFStyle::BBoxExpand::BBoxExpand(double t, double r, double b, double l)
   : KLFPropertizedObject("KLFStyle::BBoxExpand"),
-    top(this, Top, "top", t), right(this, Right, "right", r),
-    bottom(this, Bottom, "bottom", b), left(this, Left, "left", l)
+    top(this, Top, "top", t),
+    right(this, Right, "right", r),
+    bottom(this, Bottom, "bottom", b),
+    left(this, Left, "left", l)
 {
 }
 
 KLFStyle::BBoxExpand::BBoxExpand(const BBoxExpand& c)
   : KLFPropertizedObject("KLFStyle::BBoxExpand"),
-    top(this, Top, "top", c.top), right(this, Right, "right", c.right),
-    bottom(this, Bottom, "bottom", c.bottom), left(this, Left, "left", c.left)
+    top(this, Top, "top", c.top),
+    right(this, Right, "right", c.right),
+    bottom(this, Bottom, "bottom", c.bottom),
+    left(this, Left, "left", c.left)
 {
 }
 
@@ -56,11 +60,15 @@ KLFStyle::KLFStyle(QString nm, unsigned long fgcol, unsigned long bgcol, const Q
 		   const QString& pre, int dotsperinch, const BBoxExpand& bb, const QString& us,
 		   const QVariantMap& usinput)
   : KLFPropertizedObject("KLFStyle"),
-    name(this, Name, "name", nm), fontname(this, FontName, "fontname", QString()),
-    fg_color(this, FgColor, "fg_color", fgcol), bg_color(this, BgColor, "bg_color", bgcol),
-    mathmode(this, MathMode, "mathmode", mmode), preamble(this, Preamble, "preamble", pre),
+    name(this, Name, "name", nm),
+    fontname(this, FontName, "fontname", QString()),
+    fg_color(this, FgColor, "fg_color", fgcol),
+    bg_color(this, BgColor, "bg_color", bgcol),
+    mathmode(this, MathMode, "mathmode", mmode),
+    preamble(this, Preamble, "preamble", pre),
     fontsize(this, FontSize, "fontsize", -1),
-    dpi(this, DPI, "dpi", dotsperinch), vectorscale(this, VectorScale, "vectorscale", 1.0),
+    dpi(this, DPI, "dpi", dotsperinch),
+    vectorscale(this, VectorScale, "vectorscale", 1.0),
     overrideBBoxExpand(this, OverrideBBoxExpand, "overrideBBoxExpand", bb),
     userScript(this, UserScript, "userScript", us),
     userScriptInput(this, UserScriptInput, "userScriptInput", usinput)
@@ -68,11 +76,15 @@ KLFStyle::KLFStyle(QString nm, unsigned long fgcol, unsigned long bgcol, const Q
 }
 KLFStyle::KLFStyle(const KLFBackend::klfInput& input)
   : KLFPropertizedObject("KLFStyle"),
-    name(this, Name, "name", QString()), fontname(this, FontName, "fontname", QString()),
-    fg_color(this, FgColor, "fg_color", input.fg_color), bg_color(this, BgColor, "bg_color", input.bg_color),
-    mathmode(this, MathMode, "mathmode", input.mathmode), preamble(this, Preamble, "preamble", input.preamble),
+    name(this, Name, "name", QString()),
+    fontname(this, FontName, "fontname", QString()),
+    fg_color(this, FgColor, "fg_color", input.fg_color),
+    bg_color(this, BgColor, "bg_color", input.bg_color),
+    mathmode(this, MathMode, "mathmode", input.mathmode),
+    preamble(this, Preamble, "preamble", input.preamble),
     fontsize(this, FontSize, "fontsize", input.fontsize),
-    dpi(this, DPI, "dpi", input.dpi), vectorscale(this, VectorScale, "vectorscale", input.vectorscale),
+    dpi(this, DPI, "dpi", input.dpi),
+    vectorscale(this, VectorScale, "vectorscale", input.vectorscale),
     overrideBBoxExpand(this, OverrideBBoxExpand, "overrideBBoxExpand", BBoxExpand()),
     userScript(this, UserScript, "userScript", input.userScript),
     userScriptInput(this, UserScriptInput, "userScriptInput", klfMapToVariantMap<QString>(input.userScriptParam))
@@ -81,11 +93,15 @@ KLFStyle::KLFStyle(const KLFBackend::klfInput& input)
 }
 KLFStyle::KLFStyle(const KLFStyle& o)
   : KLFPropertizedObject("KLFStyle"),
-    name(this, Name, "name", o.name), fontname(this, FontName, "fontname", o.fontname),
-    fg_color(this, FgColor, "fg_color", o.fg_color), bg_color(this, BgColor, "bg_color", o.bg_color),
-    mathmode(this, MathMode, "mathmode", o.mathmode), preamble(this, Preamble, "preamble", o.preamble),
+    name(this, Name, "name", o.name),
+    fontname(this, FontName, "fontname", o.fontname),
+    fg_color(this, FgColor, "fg_color", o.fg_color),
+    bg_color(this, BgColor, "bg_color", o.bg_color),
+    mathmode(this, MathMode, "mathmode", o.mathmode),
+    preamble(this, Preamble, "preamble", o.preamble),
     fontsize(this, FontSize, "fontsize", o.fontsize),
-    dpi(this, DPI, "dpi", o.dpi), vectorscale(this, VectorScale, "vectorscale", o.vectorscale),
+    dpi(this, DPI, "dpi", o.dpi),
+    vectorscale(this, VectorScale, "vectorscale", o.vectorscale),
     overrideBBoxExpand(this, OverrideBBoxExpand, "overrideBBoxExpand", o.overrideBBoxExpand),
     userScript(this, UserScript, "userScript", o.userScript),
     userScriptInput(this, UserScriptInput, "userScriptInput", o.userScriptInput)
@@ -108,7 +124,7 @@ QByteArray KLFStyle::typeNameFor(const QString& pname) const
   if (pname == "overrideBBoxExpand")  return "KLFStyle::BBoxExpand";
   if (pname == "userScript")  return "QString";
   if (pname == "userScriptInput")  return "QVariantMap";
-  qWarning()<<KLF_FUNC_NAME<<": Unknown property name "<<pname;
+  klfWarning("Unknown property name "<<pname) ;
   return QByteArray();
 }
 
@@ -121,29 +137,35 @@ KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle::BBoxExpa
 
 KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle::BBoxExpand& x)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   double t, r, b, l;
   stream >> t >> r >> b >> l;
   x.top = t; x.right = r; x.bottom = b; x.left = l;
+  klfDbg("Read BBoxExpand from QDataStream: "<<t<<","<<r<<","<<b<<","<<l<<" -> "
+         <<x.top()<<","<<x.right()<<","<<x.bottom()<<","<<x.left()) ;
   return stream;
 }
 
 
 static QString preamble_append_overridebboxexpand(const KLFStyle::BBoxExpand& bb)
 {
-  if (!bb.valid())
+  if (!bb.valid()) {
     return QString();
+  }
   return "\n%%% KLF_overrideBBoxExpand: " + QString::fromLatin1(klfSave(&bb, QLatin1String("TextVariantMap")));
 }
 static QString preamble_append_userscript(const QString& us)
 {
-  if (us.isEmpty())
+  if (us.isEmpty()) {
     return QString();
+  }
   return "\n%%% KLF_userScript: " + QString::fromLatin1(klfDataToEscaped(us.toUtf8()));
 }
 static QString preamble_append_userscript_input(const QVariantMap& usinput)
 {
-  if (usinput.isEmpty())
+  if (usinput.isEmpty()) {
     return QString();
+  }
   klfDbg("adding userscriptinput="<<usinput) ;
   return "\n%%% KLF_userScriptInput: " +
     QString::fromLatin1(klfSaveVariantToText(QVariant(usinput), true));
@@ -151,12 +173,15 @@ static QString preamble_append_userscript_input(const QVariantMap& usinput)
 static QString preamble_append_font_fontsize_vscale(const QString& fontname, double fontsize, double vscale)
 {
   QString s;
-  if (!fontname.isEmpty())
+  if (!fontname.isEmpty()) {
     s += "\n%%% KLF_fontname: " + QString::fromLatin1(klfDataToEscaped(fontname.toUtf8()));
-  if (fontsize > 0.001)
-    s += "\n%%% KLF_fontsize: " + QString("%1").arg(fontsize, 0, 'f', 2);
-  if (fabs(vscale - 1.0) > 1e-5)
-    s += "\n%%% KLF_vectorscale: " + QString("%1").arg(vscale, 0, 'f', 4);
+  }
+  if (fontsize > 0.001) {
+    s += "\n%%% KLF_fontsize: " + QString::fromLatin1("%1").arg(fontsize, 0, 'f', 2);
+  }
+  if (fabs(vscale - 1.0) > 1e-5) {
+    s += "\n%%% KLF_vectorscale: " + QString::fromLatin1("%1").arg(vscale, 0, 'f', 4);
+  }
   return s;
 }
 
@@ -196,23 +221,23 @@ static void set_xtra_from_preamble(KLFStyle * style)
     }
     if (what == "fontname") {
       style->fontname = QString::fromUtf8(klfEscapedToData(value.toLatin1()));
-      klfDbg("font name: "<<(QString)style->fontname) ;
+      klfDbg("font name: "<<style->fontname) ;
       p.replace(pos, rx.matchedLength(), "");
       continue;
     }
     if (what == "fontsize") {
       style->fontsize = value.toDouble();
-      klfDbg("font size: "<<(double)style->fontsize) ;
+      klfDbg("font size: "<<style->fontsize) ;
       p.replace(pos, rx.matchedLength(), "");
       continue;
     }
     if (what == "vectorscale") {
       style->vectorscale = value.toDouble();
-      klfDbg("vector scale: "<<(double)style->vectorscale) ;
+      klfDbg("vector scale: "<<style->vectorscale) ;
       p.replace(pos, rx.matchedLength(), "");
       continue;
     }
-    qWarning()<<KLF_FUNC_NAME<<": Warning: ignoring unknown preamble-xtra-information "<<what ;
+    klfWarning("Ignoring unknown preamble-xtra-information "<<what) ;
     pos += rx.matchedLength();
   }
   style->preamble = p; // with the xtra info removed
@@ -222,11 +247,13 @@ static void set_xtra_from_preamble(KLFStyle * style)
 KLF_EXPORT QDataStream& operator<<(QDataStream& stream, const KLFStyle& style)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("style name = " << style.name() << "; by the way, style.overrideBBoxExpand is "
+         << style.overrideBBoxExpand()) ;
   // yes, QIODevice inherits QObject and we can use dynamic properties...
   QString compat_klfversion = stream.device()->property("klfDataStreamAppVersion").toString();
   if (klfVersionCompare(compat_klfversion, "3.1") <= 0) {
     KLFStyle::KLFLegacyStyle oldstyle = KLFStyle::KLFLegacyStyle::fromNewStyle(style);
-    klfDbg("saving style to stream: style="<<style<<"; thepreamble="<<oldstyle.preamble) ;
+    klfDbg("saving legacy style to stream: style="<<style<<"; thepreamble="<<oldstyle.preamble) ;
     return stream << oldstyle;
   } else if (klfVersionCompare(compat_klfversion, "3.3") < 0) {
     return stream << style.name() << (quint32)style.fg_color << (quint32)style.bg_color
@@ -251,11 +278,13 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME+"(QDataStream,KLFStyle&)") ;
   QString compat_klfversion = stream.device()->property("klfDataStreamAppVersion").toString();
   if (klfVersionCompare(compat_klfversion, "3.1") <= 0) {
+    klfDbg("using klf compat version 3.1") ;
     KLFStyle::KLFLegacyStyle oldstyle;
     stream >> oldstyle;
     style = oldstyle.toNewStyle();
     return stream;
   } else if (klfVersionCompare(compat_klfversion, "3.3") < 0) {
+    klfDbg("using 3.1 < klf compat version < 3.3") ;
     quint32 fg, bg;
     quint16 dpi;
     QString name, mathmode, preamble;
@@ -278,6 +307,7 @@ KLF_EXPORT QDataStream& operator>>(QDataStream& stream, KLFStyle& style)
     return stream;
   } else {
     // use Compressed XML
+    klfDbg("using klf compat version 3.3") ;
     QByteArray data;
     stream >> data;
     klfDbg("loading from data="<<data) ;
@@ -303,6 +333,20 @@ KLF_EXPORT bool operator==(const KLFStyle& a, const KLFStyle& b)
     a.userScriptInput == b.userScriptInput ;
 }
 
+
+
+
+
+
+#ifdef KLF_DEBUG
+KLF_EXPORT QDebug& operator<<(QDebug& stream, const KLFStyle& style)
+{
+  return stream << "KLFStyle(" << klfSave(&style, QLatin1String("XML")).constData() << ")";
+}
+KLF_EXPORT QDebug& operator<<(QDebug& stream, const KLFStyle::BBoxExpand& bbox) {
+  return stream << "KLFStyle::BBoxExpand(" << klfSave(&bbox, QLatin1String("XML")).constData() << ")";
+}
+#endif
 
 
 
@@ -384,6 +428,8 @@ KLF_EXPORT bool operator==(const KLFStyle::KLFLegacyStyle& a, const KLFStyle::KL
     a.preamble == b.preamble &&
     a.dpi == b.dpi;
 }
+
+
 
 KLF_EXPORT QDebug& operator<<(QDebug& stream, const KLFStyle::KLFLegacyStyle& ostyle)
 {

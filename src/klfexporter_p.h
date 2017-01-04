@@ -126,11 +126,13 @@ public:
 
     QString error;
     QByteArray data;
-
-    QBuffer buffer(&data);
-    buffer.open(QIODevice::WriteOnly);
-    bool res = KLFBackend::saveOutputToDevice(output, &buffer, format, &error);
-    buffer.close();
+    bool res = false;
+    {
+      QBuffer buffer(&data);
+      buffer.open(QIODevice::WriteOnly);
+      res = KLFBackend::saveOutputToDevice(output, &buffer, format, &error);
+      buffer.close();
+    }
 
     if ( ! res ) {
       setErrorString(error);

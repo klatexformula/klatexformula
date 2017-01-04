@@ -551,6 +551,9 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
 						   const QString& propName,
 						   int propId)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("propNameSpace = " << propNameSpace << ", propName = " << propName << ", propId = " << propId) ;
+  
   const QMap<QString, int> propList = pRegisteredProperties[propNameSpace];
   int propMaxId = -1;
   if (pRegisteredPropertiesMaxId.contains(propNameSpace)) {
@@ -563,13 +566,15 @@ int KLFPropertizedObject::internalRegisterProperty(const QString& propNameSpace,
     propMaxId = propId;
   } else {
     // used the fixed propId. Update propMaxId if necessary.
-    if (propId > propMaxId)
+    if (propId > propMaxId) {
       propMaxId = propId;
+    }
   }
   if ( propList.keys(propId).size() > 0 ) {
     QString oldPropName = propList.keys(propId).at(0);
-    if (propName == oldPropName)
+    if (propName == oldPropName) {
       return propId; // already registered, return that property ID
+    }
     qWarning("%s[%s]: Property ID `%d' is already registered with conflicting names!\n"
 	     "\told name is `%s', new is `%s'",
 	     KLF_FUNC_NAME, qPrintable(propNameSpace), propId, qPrintable(oldPropName),

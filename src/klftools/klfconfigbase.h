@@ -124,7 +124,7 @@ public:
   {
     return value();
   }
-  Type operator()() const
+  const Type operator()() const
   {
     return value();
   }

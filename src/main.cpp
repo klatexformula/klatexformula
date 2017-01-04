@@ -756,6 +756,7 @@ void main_setup_app(QCoreApplication *a)
 //  Q_INIT_RESOURCE(klfres) ;
 //#endif
 
+  klfDbg("Registering metatypes ...") ;
   qRegisterMetaType< QImage >("QImage");
   qRegisterMetaType< KLFStyle >();
   qRegisterMetaType< KLFStyle::BBoxExpand >();
@@ -772,6 +773,7 @@ void main_setup_app(QCoreApplication *a)
   // for delayed calls in klflibview.cpp
   qRegisterMetaType< QItemSelection >("QItemSelection");
   qRegisterMetaType< QItemSelectionModel::SelectionFlags >("QItemSelectionModel::SelectionFlags");
+  klfDbg("Registering metatype done.") ;
 }
 
 

@@ -53,9 +53,6 @@
 #include "klfbackend.h"
 #include "klfbackend_p.h"
 
-// legacy macros that used to be universal for both Qt 3 and 4
-// but qt3 support was dropped as of klf 3.3
-#include "../klftools/klflegacymacros_p.h"
 
 
 /** \mainpage
@@ -1308,7 +1305,7 @@ static bool calculate_gs_eps_bbox(const QByteArray& epsData, const QString& epsF
 
   // parse gs' bbox data
   QRegExp rx_gsbbox("%%HiResBoundingBox\\s*:\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
-  i = rx_gsbbox.rx_indexin(QString::fromLatin1(bboxdata));
+  i = rx_gsbbox.indexIn(QString::fromLatin1(bboxdata));
   if (i < 0) {
     resError->status = KLFERR_GSBBOX_NOBBOX;
     resError->errorstr = QObject::tr("Ghostscript did not provide parsable BBox output!", "KLFBackend");
@@ -1327,7 +1324,7 @@ static bool parse_bbox_values(const QString& str, klfbbox *bbox)
 {
   // parse bbox values
   QRegExp rx_bbvalues("" D_RX "\\s+" D_RX "\\s+" D_RX "\\s+" D_RX "");
-  int i = rx_bbvalues.rx_indexin(str);
+  int i = rx_bbvalues.indexIn(str);
   if (i < 0) {
     return false;
   }
@@ -1544,7 +1541,7 @@ static void replace_svg_width_or_height(QByteArray *svgdata, const char * attreq
 {
   QByteArray & svgdataref = * svgdata;
 
-  int i = ba_indexOf(svgdataref, attreq);
+  int i = svgdataref.indexOf(attreq);
   int j = i;
   while (j < (int)svgdataref.size() && (!isspace(svgdataref[j]) && svgdataref[j] != '>'))
     ++j;
@@ -1552,7 +1549,7 @@ static void replace_svg_width_or_height(QByteArray *svgdata, const char * attreq
   char buffer[1024];
   snprintf(buffer, sizeof(buffer)-1, "%s'%s'", attreq, klfFmtDoubleCC(val, 'f', 3));
 
-  ba_replace(svgdata, i, j-i, buffer);
+  svgdata->replace(i, j-i, buffer);
 }
    
 
@@ -1645,15 +1642,15 @@ QStringList KLFBackend::availableSaveFormats(const klfOutput& klfoutput)
 bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *device,
 				    const QString& fmt, QString *errorStringPtr)
 {
-  QString format = fmt.s_trimmed().s_toUpper();
+  QString format = fmt.trimmed().toUpper();
 
   // now choose correct data source and write to fout
   if (format == "PNG") {
-    device->dev_write(klfoutput.pngdata);
+    device->write(klfoutput.pngdata);
   } else if (format == "EPS" || format == "PS") {
-    device->dev_write(klfoutput.epsdata);
+    device->write(klfoutput.epsdata);
   } else if (format == "DVI") {
-    device->dev_write(klfoutput.dvidata);
+    device->write(klfoutput.dvidata);
   } else if (format == "PDF") {
     if (klfoutput.pdfdata.isEmpty()) {
       QString error = QObject::tr("PDF format is not available!",
@@ -1663,7 +1660,7 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
 	errorStringPtr->operator=(error);
       return false;
     }
-    device->dev_write(klfoutput.pdfdata);
+    device->write(klfoutput.pdfdata);
   } else if (format == "SVG") {
     if (klfoutput.svgdata.isEmpty()) {
       QString error = QObject::tr("SVG format is not available!",
@@ -1673,9 +1670,9 @@ bool KLFBackend::saveOutputToDevice(const klfOutput& klfoutput, QIODevice *devic
 	errorStringPtr->operator=(error);
       return false;
     }
-    device->dev_write(klfoutput.svgdata);
+    device->write(klfoutput.svgdata);
  } else {
-    bool res = klfoutput.result.save(device, format.s_toLatin1());
+    bool res = klfoutput.result.save(device, format.toLatin1());
     if ( ! res ) {
       QString errstr = QObject::tr("Unable to save image in format `%1'!",
 				   "KLFBackend::saveOutputToDevice").arg(format);
@@ -1696,29 +1693,29 @@ bool KLFBackend::saveOutputToFile(const klfOutput& klfoutput, const QString& fil
   // determine format first
   if (format.isEmpty() && !fileName.isEmpty()) {
     QFileInfo fi(fileName);
-    if ( ! fi.fi_suffix().isEmpty() )
-      format = fi.fi_suffix();
+    if ( ! fi.suffix().isEmpty() )
+      format = fi.suffix();
   }
   if (format.isEmpty())
     format = QLatin1String("PNG");
-  format = format.s_trimmed().s_toUpper();
+  format = format.trimmed().toUpper();
   // got format. choose output now and prepare write
   QFile fout;
   if (fileName.isEmpty() || fileName == "-") {
-    if ( ! fout.f_open_fp(stdout) ) {
+    if ( ! fout.open(stdout, QIODevice::WriteOnly) ) {
       QString error = QObject::tr("Unable to open stdout for write! Error: %1",
-				  "KLFBackend::saveOutputToFile").arg(fout.f_error());
+				  "KLFBackend::saveOutputToFile").arg(fout.error());
       qWarning("%s", qPrintable(error));
       if (errorStringPtr != NULL)
 	*errorStringPtr = error;
       return false;
     }
   } else {
-    fout.f_setFileName(fileName);
-    if ( ! fout.open(dev_WRITEONLY) ) {
+    fout.setFileName(fileName);
+    if ( ! fout.open(QIODevice::WriteOnly) ) {
       QString error = QObject::tr("Unable to write to file `%1'! Error: %2",
 				  "KLFBackend::saveOutputToFile")
-	.arg(fileName).arg(fout.f_error());
+	.arg(fileName).arg(fout.error());
       qWarning("%s", qPrintable(error));
       if (errorStringPtr != NULL)
 	*errorStringPtr = error;
@@ -1877,7 +1874,7 @@ void initGsInfo(const KLFBackend::klfSettings *settings, bool isMainThread)
       gsver = QString::fromLatin1(ba_gsver);
       klfDbg("gs version text (untrimmed): "<<gsver) ;
 
-      gsver = gsver.s_trimmed();
+      gsver = gsver.trimmed();
     }
   }
 

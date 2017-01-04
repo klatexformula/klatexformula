@@ -34,7 +34,6 @@
 #include <QBrush>
 #include <QDomDocument>
 #include <QTextFormat>
-#include <QBuffer>
 
 #include "klfdefs.h"
 #include "klfpobj.h"
@@ -738,8 +737,9 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
 
   // protect data from some special sequences
 
-  if (data.startsWith("[QVariant]") || data.startsWith("\\")) // protect this special sequence
+  if (data.startsWith("[QVariant]") || data.startsWith("\\")) { // protect this special sequence
     data = "\\"+data;
+  }
 
   // and provide a default encoding scheme in case no one up to now was able to
   // format the data (this format is only machine-readable ...)
@@ -748,6 +748,7 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
     QByteArray vdata;
     {
       QDataStream stream(&vdata, QIODevice::WriteOnly);
+      stream.setVersion(QDataStream::Qt_4_4);
       stream << value;
     }
     QByteArray vdata_esc = klfDataToEscaped(vdata);
@@ -830,6 +831,7 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
     QByteArray vdata = klfEscapedToData(vdata_esc);
     klfDbg( "\tAbout to read raw variant from datastr="<<vdata_esc<<", ie. from data len="<<vdata.size() ) ;
     QDataStream stream(vdata);
+    stream.setVersion(QDataStream::Qt_4_4);
     stream >> value;
     return value;
   }
@@ -1474,7 +1476,7 @@ KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
     if ( e.isNull() || n.nodeType() != QDomNode::ElementNode )
       continue;
     if ( e.nodeName() != "pair" ) {
-      qWarning("%s: ignoring unexpected tag `%s'!\n", KLF_FUNC_NAME, qPrintable(e.nodeName()));
+      klfWarning("Ignoring unexpected tag "<<e.nodeName()) ;
       continue;
     }
     // read this pair
