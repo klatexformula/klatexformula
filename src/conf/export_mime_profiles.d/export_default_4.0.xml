@@ -57,6 +57,15 @@
       <mac-flavor>public.svg-image</mac-flavor>
     </export-type>
 
+    <!-- AICB: just use the EPS data and advertize it as AICB (for Adobe Indesign)
+         Note: to use the "default" export profile with InDesign & AICB, you have to
+         go into InDesign's Preferences -> Clipboard Handling -> uncheck "prefer PDF"
+      -->
+    <export-type exporter="backend" format="EPS">
+      <win-format>AICB????</win-format>
+      <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
+    </export-type>
+
     <!-- Never hurts to include HTML (eg. for Thunderbird, GMail, ...) -->
     <export-type exporter="html-data" format="html">
       <default-qt-formats type="html" />
