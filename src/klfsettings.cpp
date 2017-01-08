@@ -305,6 +305,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
   // ---
 
   retranslateUi(false);
+
+  // shrink to minimal horizontal size, that's more aesthetic with the main buttons on top
+  resize(minimumSizeHint()+QSize(0,50));
 }
 
 void KLFSettings::retranslateUi(bool alsoBaseUi)

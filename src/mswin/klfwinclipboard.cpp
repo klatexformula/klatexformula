@@ -95,7 +95,7 @@ int KLFWinClipboardPrivate::getStdWinFormatConstant(const QString & wfmtname)
     return CF_UNICODETEXT;
   }
   klfWarning("Format "<<wfmtname<<" looks like a predefined windows constant format type but "
-             "it doesn't match those we know about! Is it a typo?")
+             "it doesn't match those we know about! Is it a typo?") ;
   return -1;
 }
 bool KLFWinClipboard::canConvertFromMime(const FORMATETC &formatetc, const QMimeData *mimeData) const

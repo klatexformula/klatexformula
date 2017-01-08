@@ -20,7 +20,7 @@
 #   Free Software Foundation, Inc.,
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-#   $Id: svg-dvisvgm.py 980 2016-12-31 05:45:29Z phfaist $
+#   $Id$
 
 from __future__ import print_function
 
@@ -43,6 +43,8 @@ if args.query_default_settings:
 
     inkscape = pyklfuserscript.find_executable(['inkscape'], [
         "/Applications/Inkscape.app/Contents/Resources/bin/",
+        "C:/Program Files/Inkscape/",
+        "C:/Program Files (x86)/Inkscape/",
         # add more non-trivial paths here (but not necessary to include /usr/bin/
         # because we do a PATH search anyway
     ])
@@ -69,7 +71,7 @@ else:
 
 print("Using inkscape path: {}".format(inkscape), file=sys.stderr)
 
-pyklfuserscript.ensure_configured_executable(inkscape, userscript=__name__)
+pyklfuserscript.ensure_configured_executable(inkscape, exename='inkscape', userscript=__name__)
 
 print("Converting file {}\n".format(pdffile), file=sys.stderr)
 

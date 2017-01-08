@@ -451,7 +451,7 @@ QMap<QString,QVariant> KLFUserScriptInfo::queryDefaultSettings(const KLFBackend:
       klfWarning("Invalid line in reported userscript default config: " << line) ;
       continue;
     }
-    config[QString::fromUtf8(line.left(idxeq))] = line.mid(idxeq+1);
+    config[QString::fromUtf8(line.left(idxeq))] = line.mid(idxeq+1).trimmed();
   }
 
   return config;
