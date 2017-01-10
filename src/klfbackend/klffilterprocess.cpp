@@ -286,8 +286,7 @@ QMap<QString,QString> KLFFilterProcess::interpreters() const
   return d->interpreters;
 }
 
-
-bool KLFFilterProcess::run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist)
+bool KLFFilterProcess::do_run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
@@ -400,4 +399,20 @@ bool KLFFilterProcess::run(const QByteArray& indata, const QMap<QString, QByteAr
   d->resErrorString = QString();
 
   return true;
+}
+
+
+QByteArray KLFFilterProcess::collectedStdout() const
+{
+  if (!d->outputStdout || d->collectStdout == NULL) {
+    return QByteArray();
+  }
+  return *d->collectStdout;
+}
+QByteArray KLFFilterProcess::collectedStderr() const
+{
+  if (!d->outputStderr || d->collectStderr == NULL) {
+    return QByteArray();
+  }
+  return *d->collectStderr;
 }

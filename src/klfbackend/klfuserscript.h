@@ -210,6 +210,22 @@ public:
 
   void addUserScriptConfig(const QVariantMap& usconfig);
 
+  /** \brief Return the user script log, formatted in human-readable HTML
+   *
+   * Unless \a include_head=false, a full HTML document is included with a default style
+   * set.
+   */
+  static QString getUserScriptLogHtml(bool include_head=true) ;
+
+protected:
+  /**
+   * This method is overriden to do some book-keeping, e.g. update the global user script
+   * log.  You may call any of the other \a run() methods of KLFFilterProcess, they will
+   * all redirect to this call.
+   *
+   */
+  virtual bool do_run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist);
+
 private:
   KLF_DECLARE_PRIVATE(KLFUserScriptFilterProcess);
 };

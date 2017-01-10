@@ -43,9 +43,6 @@
 #include "klfexporter.h"
 
 
-extern QString klfbackend_last_userscript_output;
-
-
 
 
 
@@ -605,15 +602,9 @@ public:
       setErrorString(tr("Error running user script %1: %2").arg(pUserScript.userScriptName())
                      .arg(p.resultErrorString()));
       klfWarning("Error: " << qPrintable(errorString())) ;
-      klfbackend_last_userscript_output = p.resultErrorString();
       return QByteArray();
     }
 
-    // for user script debugging
-    klfbackend_last_userscript_output
-      = "<b>STDOUT</b>\n<pre>" + QString(stdoutdata).toHtmlEscaped() + "</pre>\n<br/><b>STDERR</b>\n<pre>"
-      + QString(stderrdata).toHtmlEscaped() + "</pre>";
-  
     klfDbg("Ran script "<<pUserScript.userScriptPath()<<": stdout="<<stdoutdata<<"\n\tstderr="<<stderrdata) ;
 
     // and retreive the output data

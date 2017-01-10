@@ -403,9 +403,6 @@ static inline bool has_userscript_output(const QSet<QString>& fmts, const QStrin
 }
 
 
-// for user debugging...
-KLF_EXPORT QString klfbackend_last_userscript_output;
-
 
 typedef QSet<QString> KLFStringSet;
 
@@ -747,13 +744,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       ;
 
     { // now run the script
-      KLFBackendFilterProgram p("[user script "+scriptinfo.name()+"]", &settings, isMainThread,
-                                tempdir.path());
-      p.resErrCodes[KLFFP_NOSTART] = KLFERR_USERSCRIPT_NORUN;
-      p.resErrCodes[KLFFP_NOEXIT] = KLFERR_USERSCRIPT_NONORMALEXIT;
-      p.resErrCodes[KLFFP_NOSUCCESSEXIT] = KLFERR_PROGERR_USERSCRIPT;
-      p.resErrCodes[KLFFP_NODATA] = KLFERR_USERSCRIPT_NOOUTPUT;
-      p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_USERSCRIPT_OUTPUTREADFAIL;
+      KLFUserScriptFilterProcess p(scriptinfo.userScriptPath(), &settings);
+
       p.addExecEnviron(addenv);
 
       QByteArray stderrdata;
@@ -761,7 +753,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       p.collectStderrTo(&stderrdata);
       p.collectStdoutTo(&stdoutdata);
 
-      p.setArgv(QStringList() << scriptinfo.exeScriptFullPath() << QDir::toNativeSeparators(fnTex));
+      p.addArgv(QDir::toNativeSeparators(fnTex));
 
       QMap<QString,QByteArray*> outdata;
       QStringList outfmts = scriptinfo.spitsOut();
@@ -846,14 +838,17 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 
       ok = p.run(outdata);
 
-      // for user script debugging
-      klfbackend_last_userscript_output
-        = "<b>STDOUT</b>\n<pre>" + QString::fromLocal8Bit(stdoutdata).toHtmlEscaped()
-        + "</pre>\n<br/><b>STDERR</b>\n<pre>"
-        + QString::fromLocal8Bit(stderrdata).toHtmlEscaped() + "</pre>";
-
       if (!ok) {
-	p.errorToOutput(&res);
+        res.errorstr = p.resultErrorString();
+        switch (p.resultStatus()) {
+        case KLFFP_NOSTART:       res.status = KLFERR_USERSCRIPT_NORUN; break;
+        case KLFFP_NOEXIT:        res.status = KLFERR_USERSCRIPT_NONORMALEXIT; break;
+        case KLFFP_NOSUCCESSEXIT: res.status = KLFERR_PROGERR_USERSCRIPT; break;
+        case KLFFP_NODATA:        res.status = KLFERR_USERSCRIPT_NOOUTPUT; break;
+        case KLFFP_DATAREADFAIL:  res.status = KLFERR_USERSCRIPT_OUTPUTREADFAIL; break;
+        default:
+          res.status = p.resultStatus();
+        }
 	return res;
       }
     }

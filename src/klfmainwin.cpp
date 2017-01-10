@@ -29,8 +29,6 @@
 #include <QtWidgets>
 #include <QUiLoader>
 
-#include <klfbackend.h>
-
 #include <ui_klfmainwin.h>
 
 #include <klfprogerr.h>
@@ -40,6 +38,9 @@
 #include <klflatexedit.h>
 #include <klflatexpreviewthread.h>
 #include <klfsysinfo.h>
+
+#include <klfuserscript.h>
+#include <klfbackend.h>
 
 #ifdef KLF_USE_SPARKLE
 #include "macosx/klfsparkleupdater.h"
@@ -303,7 +304,7 @@ KLFMainWin::KLFMainWin()
   connect(u->cbxUserScript, SIGNAL(activated(int)), d, SLOT(slotUserScriptSet(int)));
 
   connect(u->btnUserScriptReload, SIGNAL(clicked()), this, SLOT(slotReloadUserScripts()));
-  connect(u->btnShowLastUserScriptOutput, SIGNAL(clicked()), this, SLOT(slotShowLastUserScriptOutput()));
+  connect(u->btnShowUserScriptLog, SIGNAL(clicked()), this, SLOT(slotShowUserScriptLog()));
   connect(u->btnUserScriptInfo, SIGNAL(clicked()), d, SLOT(slotUserScriptShowInfo()));
 
   connect(this, SIGNAL(userInputChanged()), this, SIGNAL(userActivity()));
@@ -3283,10 +3284,9 @@ void KLFMainWin::slotSetUserScript(const QString& userScript)
   //   d->slotUserScriptSet(k);
 }
 
-void KLFMainWin::slotShowLastUserScriptOutput()
+void KLFMainWin::slotShowUserScriptLog()
 {
-  extern QString klfbackend_last_userscript_output;
-  KLFProgErr::showError(this, klfbackend_last_userscript_output);
+  KLFProgErr::showError(this, KLFUserScriptFilterProcess::getUserScriptLogHtml());
 }
 
 void KLFMainWin::slotReloadUserScripts()

@@ -11,6 +11,18 @@ import subprocess
 
 
 
+rx_xml_escape = re.compile(r"([^ 0-9A-Za-z\!\@\#\$\%\^\*\(\)\_\+\=\{\}\[\]\|\:\'\,\.\/\?\`\~\-])")
+
+def saveStringForKlfVariantText(x):
+    if isinstance(x, bytes):
+        x = x.decode('utf-8')
+    return rx_xml_escape.sub(lambda m: u'\\x{:04x}'.format(ord(m.group(0))), x)
+
+def escapexml(x):
+    return rx_xml_escape.sub(lambda m: '&#x{:04x};'.format(ord(m.group(0))), x)
+
+
+
 def export_type_args_parser(can_query_default_settings=True):
     parser = argparse.ArgumentParser()
     if can_query_default_settings:

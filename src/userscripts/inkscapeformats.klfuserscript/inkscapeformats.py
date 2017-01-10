@@ -50,8 +50,18 @@ if args.query_default_settings:
     ])
     if inkscape is not None:
         # found
-        print("inkscape={}".format(inkscape));
+        print("""\
+<?xml version='1.0' encoding='UTF-8'?>
+<klfuserscript-default-settings>
+   <pair>
+      <key>inkscape</key>
+      <value type="QString">{}</value>
+   </pair>
+</klfuserscript-default-settings>
+""".format(pyklfuserscript.escapexml(pyklfuserscript.saveStringForKlfVariantText(inkscape))))
     sys.exit(0)
+
+
 
 format = args.format
 pdffile = args.inputfile

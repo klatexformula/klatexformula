@@ -1157,9 +1157,9 @@
             </widget>
            </item>
            <item row="7" column="0" colspan="3">
-            <widget class="QPushButton" name="btnShowLastUserScriptOutput">
+            <widget class="QPushButton" name="btnShowUserScriptLog">
              <property name="text">
-              <string>View last script output ...</string>
+              <string>View user script log ...</string>
              </property>
             </widget>
            </item>
@@ -1539,7 +1539,7 @@
   <tabstop>btnUserScriptInfo</tabstop>
   <tabstop>btnUserScriptReload</tabstop>
   <tabstop>scrUserScriptInput</tabstop>
-  <tabstop>btnShowLastUserScriptOutput</tabstop>
+  <tabstop>btnShowUserScriptLog</tabstop>
   <tabstop>btnLoadStyle</tabstop>
   <tabstop>btnSettings</tabstop>
   <tabstop>btnHelp</tabstop>

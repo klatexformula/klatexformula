@@ -425,22 +425,25 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
   case QMetaType::Char:
     {
       char c = value.value<char>();
-      if (c >= 32 && c <= 126 && c != '\\')
+      if (c >= 32 && c <= 126 && c != '\\') {
 	data = QByteArray(1, c);
-      else if (c == '\\')
+      } else if (c == '\\') {
 	data = "\\\\";
-      else
+      } else {
 	data = "\\" + QString::number(c, 16).toUpper().toLatin1();
+      }
+      break;
     }
   case QMetaType::QChar:
     {
       QChar c = value.toChar();
-      if (tc->canEncode(c) && c != '\\')
+      if (tc->canEncode(c) && c != '\\') {
 	data = tc->fromUnicode(QString(c));
-      else if (c == '\\')
+      } else if (c == '\\') {
 	data = "\\\\";
-      else
+      } else {
 	data = "\\" + QString::number(c.unicode(), 16).toUpper().toLatin1();
+      }
       break;
     }
   case QMetaType::QString:
@@ -453,10 +456,11 @@ KLF_EXPORT QByteArray klfSaveVariantToText(const QVariant& value, bool saveListA
 	// encode char by char, escaping as needed
 	data = QByteArray("");
 	for (k = 0; k < s.length(); ++k) {
-	  if (tc->canEncode(s[k]))
+	  if (tc->canEncode(s[k])) {
 	    data += tc->fromUnicode(s.mid(k,1));
-	  else
+          } else {
 	    data += QString("\\x%1").arg((uint)s[k].unicode(), 4, 16, QChar('0')).toLatin1();
+          }
 	}
       }
       break;
@@ -1004,10 +1008,12 @@ KLF_EXPORT QVariant klfLoadVariantFromText(const QByteArray& stringdata, const c
 	// pos k points on '\\', pos k+1 points on 'x'
 	int nlen = -1;
 	if (k+5 < data.size() && klf_is_hex_char(data[k+2]) && klf_is_hex_char(data[k+3])
-	    && klf_is_hex_char(data[k+4]) && klf_is_hex_char(data[k+5]))
+	    && klf_is_hex_char(data[k+4]) && klf_is_hex_char(data[k+5])) {
 	  nlen = 4; // 4-digit Unicode char
-	if (k+3 < data.size() && klf_is_hex_char(data[k+2]) && klf_is_hex_char(data[k+3]))
+        }
+	if (k+3 < data.size() && klf_is_hex_char(data[k+2]) && klf_is_hex_char(data[k+3])) {
 	  nlen = 2; // 2 last digits of 4-digit unicode char
+        }
 	if (nlen < 0) {
 	  // bad format, ignore the escape sequence.
 	  chunk += data[k];
@@ -1501,8 +1507,7 @@ KLF_EXPORT QVariantMap klfLoadVariantMapFromXML(const QDomElement& xmlNode)
 	valuetype = ee.attribute("type").toUtf8();
 	continue;
       }
-      qWarning("%s: ignoring unexpected tag `%s' in <pair>!\n", KLF_FUNC_NAME,
-	       qPrintable(ee.nodeName()));
+      klfWarning("Ignoring unexpected tag "<<ee.nodeName()<<" in <pair>!") ;
     }
     QVariant value;
     if (valuetype == "QVariantMap") {

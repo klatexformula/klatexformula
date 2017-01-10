@@ -23,6 +23,8 @@
 
 #include <QFileInfo>
 #include <QDir>
+#include <QDateTime>
+#include <QByteArray>
 
 #include <klfdefs.h>
 #include <klfdebug.h>
@@ -425,24 +427,49 @@ QMap<QString,QVariant> KLFUserScriptInfo::queryDefaultSettings(const KLFBackend:
   bool ok = proc.run();
   if (!ok) {
     klfWarning("Error querying default config for user script "<<userScriptBaseName()<<": "
-               << proc.resultErrorString()) ;
+               << qPrintable(proc.resultErrorString())) ;
     return QMap<QString,QVariant>();
   }
 
   klfDbg("stdoutdata = " << stdoutdata) ;
   klfDbg("stderrdata = " << stderrdata) ;
 
-  // for user script debugging
-  extern QString klfbackend_last_userscript_output;
-  klfbackend_last_userscript_output
-    = "<b>STDOUT</b>\n<pre>" + QString(stdoutdata).toHtmlEscaped() + "</pre>\n<br/><b>STDERR</b>\n<pre>"
-    + QString(stderrdata).toHtmlEscaped() + "</pre>";
-  
   klfDbg("Ran script "<<userScriptPath()<<": stdout="<<stdoutdata<<"\n\tstderr="<<stderrdata) ;
+
+
+  // the output may be one of two formats:
+  //  - XML compatible with klf{Save|Load}VariantMap{To|From}XML()
+  //  - simple key=value pairs on separate lines
+  // If the output starts with <?xml then we go for XML, otherwise we try to parse
+  // key=value pairs.
+
+  QByteArray trimmedstdoutdata = stdoutdata.trimmed();
+  if (trimmedstdoutdata.startsWith("<?xml")) {
+    QDomDocument doc("klfuserscript-default-settings");
+    QString errMsg; int errLine, errCol;
+    bool r = doc.setContent(trimmedstdoutdata, false, &errMsg, &errLine, &errCol);
+    if (!r) {
+      klfWarning("XML parse error: "<<qPrintable(errMsg)
+                 <<" ("<<qPrintable(userScriptBaseName())<<" default-settings, line "
+                 <<errLine<<" col "<<errCol<<")") ;
+      return QVariantMap();
+    }
+
+    QDomElement root = doc.documentElement();
+    if (root.nodeName() != "klfuserscript-default-settings") {
+      klfWarning("expected <klfuserscript-default-settings> as root document element");
+      return QVariantMap();
+    }
+    
+    QVariantMap config = klfLoadVariantMapFromXML(root);
+    return config;
+  }
+
+  // otherwise, parse key=value pairs
 
   // get variables
   QMap<QString,QVariant> config;
-  foreach (QByteArray line, stdoutdata.split('\n')) {
+  foreach (QByteArray line, trimmedstdoutdata.split('\n')) {
     if (!line.size()) {
       continue;
     }
@@ -451,7 +478,7 @@ QMap<QString,QVariant> KLFUserScriptInfo::queryDefaultSettings(const KLFBackend:
       klfWarning("Invalid line in reported userscript default config: " << line) ;
       continue;
     }
-    config[QString::fromUtf8(line.left(idxeq))] = line.mid(idxeq+1).trimmed();
+    config[QString::fromUtf8(line.left(idxeq)).trimmed()] = line.mid(idxeq+1).trimmed();
   }
 
   return config;
@@ -808,7 +835,12 @@ struct KLFUserScriptFilterProcessPrivate
   }
 
   KLFUserScriptInfo * usinfo;
+
+  static QStringList log;
 };
+
+// static
+QStringList KLFUserScriptFilterProcessPrivate::log = QStringList();
 
 
 KLFUserScriptFilterProcess::KLFUserScriptFilterProcess(const QString& userScriptFileName,
@@ -838,4 +870,65 @@ void KLFUserScriptFilterProcess::addUserScriptConfig(const QVariantMap& usconfig
 {
   QStringList envlist = KLFUserScriptInfo::usConfigToEnvList(usconfig);
   addExecEnviron(envlist);
+}
+
+
+bool KLFUserScriptFilterProcess::do_run(const QByteArray& indata, const QMap<QString, QByteArray*> outdatalist)
+{
+  bool ret = KLFFilterProcess::do_run(indata, outdatalist);
+
+  // for user script debugging
+  QString thislog = QString::fromLatin1("<h1 class=\"userscript-run\">")
+    + QObject::tr("Output from %1", "KLFUserScriptFilterProcess").arg(QLatin1String("<span class=\"userscriptname\">")
+                                                                      +d->usinfo->userScriptBaseName().toHtmlEscaped()
+                                                                      +QLatin1String("</span>")) +
+    QLatin1String("</h1>\n") +
+    QLatin1String("<p class=\"userscript-run-datetime\">") +
+    QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate).toHtmlEscaped()
+    + QLatin1String("</p>") ;
+  
+  QString templ = QString::fromLatin1("<p><span class=\"output-type\">%1</span>\n"
+                                      "<pre class=\"output\">%2</pre></p>\n") ;
+
+  QByteArray bstdout = collectedStdout();
+  if (bstdout.size()) {
+    thislog += templ.arg("STDOUT").arg(QString::fromLocal8Bit(bstdout).toHtmlEscaped());
+  }
+  QByteArray bstderr = collectedStderr();
+  if (bstderr.size()) {
+    thislog += templ.arg("STDERR").arg(QString::fromLocal8Bit(bstderr).toHtmlEscaped());
+  }
+
+  // start discarding old logs after 255 entries
+  if (KLFUserScriptFilterProcessPrivate::log.size() > 255) {
+    KLFUserScriptFilterProcessPrivate::log.erase(KLFUserScriptFilterProcessPrivate::log.begin());
+  }
+
+  KLFUserScriptFilterProcessPrivate::log << thislog;
+
+  return ret;
+}
+
+
+QString KLFUserScriptFilterProcess::getUserScriptLogHtml(bool include_head)
+{
+  QString loghtml;
+  QStringList::const_iterator it = KLFUserScriptFilterProcessPrivate::log.cend();
+  while (it != KLFUserScriptFilterProcessPrivate::log.cbegin()) {
+    --it;
+    loghtml += *it;
+  }
+  if (!include_head) {
+    return loghtml;
+  }
+  return QLatin1String("<html><head>"
+                       "<meta charset=\"utf-8\">"
+                       "<title>User Script Log</title>"
+                       "<style type=\"text/css\">"
+                       ".userscript-run { font-weight: bold; font-size: 2em; } "
+                       ".userscriptname { font: monospace; } "
+                       ".output-type { font-weight: bold; } "
+                       "</style>"
+                       "</head>"
+                       "<body>") + loghtml + QLatin1String("</body></html>") ;
 }
