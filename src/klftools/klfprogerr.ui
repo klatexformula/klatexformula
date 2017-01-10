@@ -7,15 +7,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>559</width>
-    <height>192</height>
+    <width>631</width>
+    <height>251</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Program Output</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="klfres.qrc">
+   <iconset resource="../klfres.qrc">
     <normaloff>:/pics/klatexformula-128.png</normaloff>:/pics/klatexformula-128.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="lyt_KLFProgErr">
@@ -84,7 +84,7 @@
       <string>Dismiss</string>
      </property>
      <property name="icon">
-      <iconset resource="klftoolsres.qrc">
+      <iconset resource="../klftoolsres.qrc">
        <normaloff>:/pics/closehide.png</normaloff>:/pics/closehide.png</iconset>
      </property>
      <property name="default">
@@ -96,8 +96,8 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="klfres.qrc"/>
-  <include location="klftoolsres.qrc"/>
+  <include location="../klfres.qrc"/>
+  <include location="../klftoolsres.qrc"/>
  </resources>
  <connections>
   <connection>

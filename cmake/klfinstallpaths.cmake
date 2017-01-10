@@ -66,30 +66,6 @@ KLFMakeAbsInstallPath(KLF_ABS_INSTALL_HEADER_DIR  KLF_INSTALL_HEADER_DIR)
 
 
 
-# Designer Plugin Library Dir
-# ...
-if(KLF_BUILD_TOOLSDESPLUGIN)
-  if(KLF_INSTALL_KLFTOOLSDESPLUGIN AND NOT DEFINED KLF_INSTALL_DESPLUGIN_DIR)
-    # I haven't found the "official" way to find out where to install the
-    # plugin; I didn't find any CMake variable or any indication in the official
-    # documentation on where to install the plugin. So leave it up to the user.
-    # In any case, the users who will want this installed know what this is
-    # about and will know the final location better than what a script can
-    # guess.
-    KLFNote("The klftools qt designer plugin will not be installed. If you want to install
-    it, please specify the final installation location in
-    KLF_INSTALL_DESPLUGIN_DIR (or set to an empty value to silence this
-    message) [see also KLF_INSTALL_KLFTOOLSDESPLUGIN=YES|NO].
-")
-    set(KLF_INSTALL_DESPLUGIN_DIR "")
-    # and change the default to "don't install"
-    KLFSetIfNotDefined(KLF_INSTALL_KLFTOOLSDESPLUGIN NO)
-  endif()
-  if(KLF_INSTALL_DESPLUGIN_DIR)
-    message(STATUS "Klftools designer plugin install directory set to \"${KLF_INSTALL_DESPLUGIN_DIR}\" (KLF_INSTALL_DESPLUGIN_DIR)")
-  endif()
-endif()
-
 
 # Installed RPATH -- may be useful
 # --------------------------------
@@ -121,6 +97,28 @@ if(KLF_BUILD_TOOLS)
 endif()
 if(KLF_BUILD_TOOLSDESPLUGIN)
   KLFSetIfNotDefined(KLF_INSTALL_KLFTOOLSDESPLUGIN     ${KLF_INSTALL_DEVEL})
+
+  # Designer Plugin Library Dir
+  # ...
+  if(KLF_INSTALL_KLFTOOLSDESPLUGIN AND NOT KLF_INSTALL_DESPLUGIN_DIR)
+    # I haven't found the "official" way to find out where to install the
+    # plugin; I didn't find any CMake variable or any indication in the official
+    # documentation on where to install the plugin. So leave it up to the user.
+    # In any case, the users who will want this installed know what this is
+    # about and will know the final location better than what a script can
+    # guess.
+    KLFNote("The klftools qt designer plugin will not be installed. If you want to install
+    it, please specify the final installation location in
+    KLF_INSTALL_DESPLUGIN_DIR (or set to an empty value to silence this
+    message) [see also KLF_INSTALL_KLFTOOLSDESPLUGIN=YES|NO].
+")
+    set(KLF_INSTALL_DESPLUGIN_DIR "")
+    # and change the default to "don't install"
+    set(KLF_INSTALL_KLFTOOLSDESPLUGIN NO)
+  endif()
+  if(KLF_INSTALL_DESPLUGIN_DIR)
+    message(STATUS "Klftools designer plugin install directory set to \"${KLF_INSTALL_DESPLUGIN_DIR}\" (KLF_INSTALL_DESPLUGIN_DIR)")
+  endif()
 endif()
 
 if(KLF_BUILD_BACKEND)

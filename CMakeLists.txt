@@ -195,7 +195,12 @@ else()
 #  message(FATAL_ERROR "There is nothing to build. You must set at least KLF_BUILD_TOOLS.")
 endif()
 
-set(KLF_BUILD_TOOLSDESPLUGIN "$<NOT:$<KLF_LIBKLFTOOLS_STATIC>>" TRUE CACHE BOOL
+if(KLF_LIBKLFTOOLS_STATIC)
+  set(default_KLF_BUILD_TOOLSDESPLUGIN FALSE)
+else()
+  set(default_KLF_BUILD_TOOLSDESPLUGIN TRUE)
+endif()
+set(KLF_BUILD_TOOLSDESPLUGIN "${default_KLF_BUILD_TOOLSDESPLUGIN}" CACHE BOOL
   "Build Qt Designer Plugin for klftools library widgets")
 if(KLF_BUILD_TOOLSDESPLUGIN)
   if(KLF_LIBKLFTOOLS_STATIC)

@@ -53,6 +53,13 @@
   </font-def>
 
   <font-def>
+    <identifier>Linux Libertine</identifier>
+    <title>Linux Libertine</title>
+    <latexdefs>\usepackage{libertine}
+\usepackage[libertine]{newtxmath}</latexdefs>
+  </font-def>
+
+  <font-def>
     <identifier>Stix</identifier>
     <title>Stix</title>
     <latexdefs>\usepackage{stix}</latexdefs>

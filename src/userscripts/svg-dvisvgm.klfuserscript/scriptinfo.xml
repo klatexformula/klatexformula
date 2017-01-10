@@ -7,6 +7,7 @@
   <version>0.2</version>
   <license>GPL v2+</license>
   <settings-form-ui>config.ui</settings-form-ui>
+  <can-provide-default-settings>true</can-provide-default-settings>
   <klf-export-type>
     <input-data-type>DVI</input-data-type>
     <has-stdout-output>false</has-stdout-output>

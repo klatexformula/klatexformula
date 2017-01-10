@@ -2866,8 +2866,13 @@ void KLFMainWin::setTxtPreambleFont(const QFont& f)
 
 void KLFMainWin::setMacBrushedMetalLook(bool metallook)
 {
-#ifdef KLF_WS_MAC
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 
+#ifdef KLF_WS_MAC
+  klfDbg("On mac. metallook = " << metallook) ;
+
+  // doesn't work ... :(
+  //setUnifiedTitleAndToolBarOnMac(metallook);
   //setAttribute(Qt::WA_MacBrushedMetal, metallook);
   const char * pn = metallook ? "paletteMacBrushedMetalLook" : "paletteDefault";
   u->txtLatex->setPalette(u->txtLatex->property(pn).value<QPalette>());
@@ -2881,11 +2886,9 @@ void KLFMainWin::setMacBrushedMetalLook(bool metallook)
     u->cbxMathMode->lineEdit()->setStyleSheet(u->cbxMathMode->lineEdit()->styleSheet());
   }
 
-  /** \bug .... this does not work properly !!... :( */
-
 #else
   Q_UNUSED(metallook);
-  qWarning()<<KLF_FUNC_NAME<<": Only implemented under Mac OS X !";
+  klfWarning("Mac brushed metal look is only implemented under Mac OS X !";
 #endif
 }
 

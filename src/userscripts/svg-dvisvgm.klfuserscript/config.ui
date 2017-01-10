@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>svg_dvisvgm_config</class>
+ <widget class="QWidget" name="svg_dvisvgm_config">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>530</width>
-    <height>291</height>
+    <width>445</width>
+    <height>161</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
-  </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QFormLayout" name="formLayout">
    <item row="0" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
@@ -21,10 +18,30 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="0" column="1">
     <widget class="KLFPathChooser" name="INPUT_dvisvgm">
+     <property name="dialogConfirmOverwrite">
+      <bool>false</bool>
+     </property>
      <property name="path">
       <string>dvisvgm</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Path to gzip (for svgz):</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="KLFPathChooser" name="INPUT_gzip">
+     <property name="dialogConfirmOverwrite">
+      <bool>false</bool>
+     </property>
+     <property name="path">
+      <string>gzip</string>
      </property>
     </widget>
    </item>

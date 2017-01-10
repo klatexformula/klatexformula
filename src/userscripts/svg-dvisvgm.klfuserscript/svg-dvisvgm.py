@@ -30,18 +30,41 @@ import sys
 import argparse
 import subprocess
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--format", help='output format to use ("svg" or "svgz")')
-parser.add_argument("dvifile", help='the DVI input file')
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import pyklfuserscript
 
-args = parser.parse_args()
+
+args = pyklfuserscript.export_type_args_parser().parse_args()
 
 format = args.format
-dvifile = args.dvifile
+dvifile = args.inputfile
+
+if args.query_default_settings:
+
+    dvisvgm = pyklfuserscript.find_executable(['dvisvgm'], [
+        "/usr/texbin/",
+        "/usr/local/texbin/",
+        "/Library/TeX/texbin/",
+        # add more non-trivial paths here (but not necessary to include /usr/bin/
+        # because we do a PATH search anyway
+    ])
+    if dvisvgm is not None:
+        # found
+        print("dvisvgm={}".format(dvisvgm))
+    gzip = pyklfuserscript.find_executable(['gzip'], [
+        "/usr/bin", "/bin", "/usr/local/bin"
+    ])
+    if gzip is not None:
+        print("gzip={}".format(gzip))
+
+    sys.exit(0)
+
+
 
 if format not in ('svg', 'svgz'):
-    print("Invalid format: "+format);
-    sys.exit(255);
+    print("Invalid format: "+format, file=sys.stderr)
+    sys.exit(255)
+
 
 #debug environment
 #print(repr(os.environ))
@@ -51,16 +74,14 @@ if "KLF_USCONFIG_dvisvgm" in os.environ:
     dvisvgm = os.environ["KLF_USCONFIG_dvisvgm"];
 
 if not dvisvgm:
+    print("Warning: dvisvgm config not set", file=sys.stderr)
     dvisvgm = "/usr/bin/dvisvgm";
 
-#print("dvisvgm: "+repr(dvisvgm))
+print("Using dvisvgm path: {}".format(dvisvgm), file=sys.stderr)
 
-if (not os.path.isfile(dvisvgm) or not os.access(dvisvgm, os.X_OK)):
-    print("Error: Can't find dvisvgm executable. Please set the path to `dvisvgm` in\n"
-          "Settings -> Scripts -> svg-dvisvgm -> Script Settings");
-    sys.exit(255);
+pyklfuserscript.ensure_configured_executable(dvisvgm, exename='dvisvgm', userscript=__name__)
 
-sys.stderr.write("Converting file "+dvifile+"\n");
+print("Converting file {}\n".format(dvifile), file=sys.stderr)
 
 svgfile = re.sub(r'\.dvi$', '.svg', dvifile)
 
@@ -70,8 +91,16 @@ output = subprocess.check_output(args=[dvisvgm, '-a', '-e', '-n', '-b', 'min', d
 print("Output from {}: \n{}".format(dvisvgm, output.decode('utf-8')))
 
 if format == 'svgz':
-    # compress the svg file
-    gzip = '/usr/bin/gzip'
+
+    gzip = ""
+    if "KLF_USCONFIG_gzip" in os.environ:
+        gzip = os.environ["KLF_USCONFIG_gzip"];
+    if not gzip:
+        print("Warning: gzip config not set", file=sys.stderr)
+        gzip = "/usr/bin/gzip";
+
+    pyklfuserscript.ensure_configured_executable(gzip, exename='gzip', userscript=__name__)
+
     # CalledProcessError is raised if an error occurs.
     output2 = subprocess.check_output(args=[gzip, '-Sz', svgfile], shell=False)
     print("Output from {}: \n{}".format(gzip, output2.decode('utf-8')))

@@ -22,21 +22,22 @@
 /* $Id$ */
 
 #include <QRegExp>
+#include <QSizePolicy>
 
 #include "klfprogerr.h"
 
 #include "ui_klfprogerr.h"
 
 
-KLFProgErr::KLFProgErr(QWidget *parent, QString errtext) : QDialog(parent)
+KLFProgErr::KLFProgErr(QWidget *parent, QString errtext)
+  : QDialog(parent, Qt::Sheet)
 {
   u = new Ui::KLFProgErr;
   u->setupUi(this);
   setObjectName("KLFProgErr");
 
-  setWindowFlags(Qt::Sheet);
-
   setWindowModality(Qt::WindowModal);
+  setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred));
 
   u->txtError->setWordWrapMode(QTextOption::WrapAnywhere);
   u->txtError->setText(errtext);
