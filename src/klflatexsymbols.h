@@ -91,7 +91,7 @@ KLF_EXPORT QDebug operator<<(QDebug str, const KLFLatexSymbol& symbol);
 //! A Hash function for a KLFLatexSymbol
 inline uint qHash(const KLFLatexSymbol& symb)
 {
-  return qHash(symb.symbol) ^ qHash(symb.preamble);
+  return qHash(symb.symbol + symb.preamble.join("\n"));
 }
 
 

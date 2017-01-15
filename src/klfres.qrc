@@ -75,6 +75,7 @@
     <file>data/about.html</file>
     <file>data/whats-new-4.0.html</file>
     <file>data/base_symbolspixmapcache-klf3.3</file>
+    <file>data/base_symbolspixmapcache@2x-klf3.3</file>
     <file>data/defaultlibrary.klf</file>
     <file>data/ooodrawingtemplate</file>
   </qresource>

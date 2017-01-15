@@ -334,7 +334,7 @@ void KLFLatexSymbolsCache::setSymbolPixmap(const KLFLatexSymbol & sym, const QPi
     while (it != d->cache.end()) {
       klfDbg("Testing symbol "<<it.key().symbol<<",preamble="<<it.key().preamble.join(",")
 	     << "for being a duplicate of "<<sym.symbol);
-      if (it.key().symbol == sym.symbol && !it.value().confirmed) {
+      if (it.key() == sym && !it.value().confirmed) {
 	klfDbg("erasing duplicate marked unconfirmed.");
 	it = d->cache.erase(it); // erase old symbol entry
       } else {
@@ -583,8 +583,9 @@ void KLFLatexSymbolsView::buildDisplay(KLFLatexSymbolsCache * cache)
     btn->setProperty("gridcolspan", -1);
     btn->setProperty("myWidth", p.width() + 4);
     QString symcode = _symbols[i].symbol;
-    if (_symbols[i].symbol_option)
+    if (_symbols[i].symbol_option) {
       symcode += "[]";
+    }
     for (k = 0; _symbols[i].symbol_numargs > 0 && k < _symbols[i].symbol_numargs; ++k) {
       symcode += "{}";
     }
@@ -601,12 +602,14 @@ void KLFLatexSymbolsView::buildDisplay(KLFLatexSymbolsCache * cache)
       "<p style=\"white-space: pre\">"+tr("LaTeX code:")+" <b><tt>"+symcode+"</tt></b>"+
       (_symbols[i].textmode?tr(" [in text mode]"):QString(""))+
       +"</p>";
-    if (_symbols[i].preamble.size())
+    if (_symbols[i].preamble.size()) {
       tooltiptext += "<p>"+tr("Requires:")+"<b><pre>" +
 	_symbols[i].preamble.join("\n")+"</pre></b></p>";
-    if (_symbols[i].keywords.size())
+    }
+    if (_symbols[i].keywords.size()) {
       tooltiptext += "<p>"+tr("Key Words:")+"<pre><b>" +
 	_symbols[i].keywords.join("</b>, <b>")+"</b></pre></p>";
+    }
     tooltiptext += "</body></html>";
     btn->setToolTip(tooltiptext);
     //klfDbg("tooltip text is "<<tooltiptext);
@@ -1000,6 +1003,7 @@ void KLFLatexSymbolsPrivate::read_symbols_create_ui()
 	KLFLatexSymbol sym(eesym);
 	l.append(sym);
         if (!pCache->contains(sym)) {
+          klfDbg("Adding symbol " << sym << " to generate-pixmap-list") ;
           allsymbols.append(sym);
         }
       }
