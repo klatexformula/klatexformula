@@ -31,6 +31,7 @@
 #define KLFLATEXSYMBOLS_P_H
 
 #include <QTimer>
+#include <QThread>
 #include <QToolTip>
 #include <QScrollBar>
 
@@ -39,6 +40,7 @@
 #include <ui_klflatexsymbols.h>
 #include "klflatexsymbols.h"
 
+#include "klfmain.h"
 
 
 struct SymbolInfo
@@ -46,14 +48,38 @@ struct SymbolInfo
   SymbolInfo() : pix(), confirmed(false) { }
   
   QPixmap pix;
+  //! Whether this symbol was specified in the config (true) or was only in cache previously (false)
   bool confirmed;
 };
 
 struct KLFLatexSymbolsCachePrivate
 {
+  KLF_PRIVATE_HEAD(KLFLatexSymbolsCache)
+  {
+    flag_modified = false;
+    device_pixel_ratio = 1.0;
+  }
+
   QHash<KLFLatexSymbol,SymbolInfo> cache;
   bool flag_modified;
   KLFBackend::klfSettings backendsettings;
+
+  qreal device_pixel_ratio;
+
+  QString klf_cache_file_name() const
+  {
+    QString variant;
+    int device_pixel_ratio_i = (int)(device_pixel_ratio + 0.5);
+    if (device_pixel_ratio_i == 1) {
+      variant = "";
+    } else if (device_pixel_ratio_i == 2) {
+      variant = "@2x";
+    } else {
+      klfWarning("unknown device pixel ratio: " << device_pixel_ratio) ;
+      variant = "";
+    }
+    return QString::fromLatin1("symbolspixmapcache%1-klf%2").arg(variant).arg(KLF_DATA_STREAM_APP_VERSION) ;
+  }
 };
 
 // WARNING: Does NOT write s.confirmed (!)
@@ -138,12 +164,16 @@ public:
 
   virtual SearchIterator searchIterBegin() {
     int iview = 0;
-    while (iview < s->mViews.size() && s->mViews[iview]->mSymbols.isEmpty())
+    QList<KLFLatexSymbolsView*> views = s->categoryViews();
+    while (iview < views.size() && views[iview]->mSymbols.isEmpty()) {
       ++iview;
+    }
     return KLFLatexSymbolsSearchIterator(iview, 0);
   }
-  virtual SearchIterator searchIterEnd() {
-    return KLFLatexSymbolsSearchIterator(s->mViews.size(), 0);
+  virtual SearchIterator searchIterEnd()
+  {
+    QList<KLFLatexSymbolsView*> views = s->categoryViews();
+    return KLFLatexSymbolsSearchIterator(views.size(), 0);
   }
   virtual SearchIterator searchIterAdvance(const SearchIterator& pos, bool forward)
   {
@@ -179,13 +209,16 @@ public:
   virtual SearchIterator searchIterStartFrom(bool forward)
   {
     // current symbols page
-    int i = s->u->cbxCategory->currentIndex();
+    int i = s->currentCategoryIndex();
     KLFLatexSymbolsSearchIterator it(i, 0);
-    while (it.iview < s->mViews.size() && s->mViews[it.iview]->mSymbols.isEmpty())
+
+    QList<KLFLatexSymbolsView*> views = s->categoryViews();
+    while (it.iview < views.size() && views[it.iview]->mSymbols.isEmpty()) {
       ++it.iview;
+    }
     // if reverse, set on last symbol of page
-    if (!forward && it.iview < s->mViews.size()) {
-      it.isymb = s->mViews[it.iview]->mSymbols.size();
+    if (!forward && it.iview < views.size()) {
+      it.isymb = views[it.iview]->mSymbols.size();
     }
     it = searchAdvanceIteratorCycle(it, forward ? -1 : 1);
     klfDbg("Starting search from "<<it) ;
@@ -206,8 +239,9 @@ public:
     if (!(pos == searchIterEnd())) {
       KLFLatexSymbolsView *v = view(pos);
       KLF_ASSERT_NOT_NULL(v, "View for "<<pos<<" is NULL!", return ; ) ;
-      s->u->cbxCategory->setCurrentIndex(pos.iview);
-      s->stkViews->setCurrentWidget(v);
+      s->slotShowCategory(pos.iview);
+      //s->u->cbxCategory->setCurrentIndex(pos.iview);
+      //s->stkViews->setCurrentWidget(v);
       QWidget *w = v->mSymbols[pos.isymb];
       KLF_ASSERT_CONDITION_ELSE(pos.isymb >= 0 && pos.isymb < v->mSymbols.size(),
 				"Invalid pos object:"<<pos<<"; symb list size="<<v->mSymbols.size(),
@@ -234,9 +268,10 @@ public:
       KLF_ASSERT_NOT_NULL(v, "View for "<<pos<<" is NULL!", return ; ) ;
       v->highlightSearchMatches(pos.isymb, searchQueryString());
     } else {
-      int i = s->u->cbxCategory->currentIndex();
-      KLF_ASSERT_CONDITION_ELSE(i>=0 && i<s->mViews.size(), "bad current view index "<<i<<"!", ;) {
-	KLFLatexSymbolsView *v = s->mViews[i];
+      int i = s->currentCategoryIndex();
+      QList<KLFLatexSymbolsView*> views = s->categoryViews();
+      KLF_ASSERT_CONDITION_ELSE(i>=0 && i<views.size(), "bad current view index "<<i<<"!", ;) {
+	KLFLatexSymbolsView *v = views[i];
 	// `current match' at 1 past end, so as to highlight all other matches, too
 	v->highlightSearchMatches(v->mSymbols.size(), searchQueryString());
       }
@@ -246,31 +281,175 @@ public:
   }
   virtual void searchAborted()
   {
-    int i = s->u->cbxCategory->currentIndex();
-    KLF_ASSERT_CONDITION_ELSE(i>=0 && i<s->mViews.size(), "bad current view index "<<i<<"!", ;) {
-      KLFLatexSymbolsView *v = s->mViews[i];
+    int i = s->currentCategoryIndex();
+    QList<KLFLatexSymbolsView*> views = s->categoryViews();
+    KLF_ASSERT_CONDITION_ELSE(i>=0 && i<views.size(), "bad current view index "<<i<<"!", ;) {
+      KLFLatexSymbolsView *v = views[i];
       v->highlightSearchMatches(-1, searchQueryString());
     }
     KLFIteratorSearchable<KLFLatexSymbolsSearchIterator>::searchAborted();
   }
   virtual void searchReinitialized()
   {
-    int i = s->u->cbxCategory->currentIndex();
-    KLF_ASSERT_CONDITION_ELSE(i>=0 && i<s->mViews.size(), "bad current view index "<<i<<"!", ;) {
-      KLFLatexSymbolsView *v = s->mViews[i];
+    int i = s->currentCategoryIndex();
+    QList<KLFLatexSymbolsView*> views = s->categoryViews();
+    KLF_ASSERT_CONDITION_ELSE(i>=0 && i<views.size(), "bad current view index "<<i<<"!", ;) {
+      KLFLatexSymbolsView *v = views[i];
       v->highlightSearchMatches(-1, searchQueryString());
     }
     KLFIteratorSearchable<KLFLatexSymbolsSearchIterator>::searchReinitialized();
   }
 
 
-  KLFLatexSymbolsView *view(SearchIterator it) {
-    if (it.iview < 0 || it.iview >= s->mViews.size())
+  KLFLatexSymbolsView * view(SearchIterator it)
+  {
+    QList<KLFLatexSymbolsView*> views = s->categoryViews();
+    if (it.iview < 0 || it.iview >= views.size()) {
       return NULL;
-    return s->mViews[it.iview];
+    }
+    return views[it.iview];
   }
 
 };
+
+
+
+
+
+
+class KLFLatexSymbolPreviewsGenerator : public QObject
+{
+  Q_OBJECT
+public:
+  KLFLatexSymbolPreviewsGenerator(QObject * parent = NULL)
+    : QObject(parent), pBackendSettings(), pDevicePixelRatio(1.0)
+  {
+  }
+
+  void setBackendSettings(const KLFBackend::klfSettings & settings)
+  {
+    pBackendSettings = settings;
+  }
+
+  void setDevicePixelRatio(qreal ratio)
+  {
+    pDevicePixelRatio = ratio;
+  }
+
+private:
+  KLFBackend::klfSettings pBackendSettings;
+  qreal pDevicePixelRatio;
+
+signals:
+  void progress(int percent) ;
+
+  void previewGenerated(const KLFLatexSymbol& symbol, const QPixmap & pixmap);
+
+  void started();
+  void finished();
+
+public slots:
+  void generatePreviewList(const QList<KLFLatexSymbol> & list)
+  {
+    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
+
+    emit started();
+
+    for (int i = 0; i < list.size(); ++i) {
+
+      klfDbg("generating preview for symbol #"<<i<<": "<<list[i].symbol) ;
+
+      if ( QThread::currentThread()->isInterruptionRequested() ) {
+        klfDbg("thread was interrupted, returning") ; 
+        QThread::currentThread()->quit();
+        return;
+      }
+
+      emit progress(i * 100 / list.size()) ;
+
+      const KLFLatexSymbol & sym = list[i];
+
+      if (sym.hidden) {
+        // special treatment for hidden symbols
+        // insert a QPixmap() into cache and return it
+        klfDbg("symbol is hidden. Assigning NULL pixmap.") ;
+        emit previewGenerated(sym, QPixmap());
+        continue;
+      }
+
+      const double mag = 8.0;
+      
+      KLFBackend::klfInput in;
+      in.latex = sym.latexCodeForPreview();
+      in.mathmode = sym.textmode ? "..." : "\\[ ... \\]";
+      in.preamble = sym.preamble.join("\n")+"\n";
+      in.fg_color = qRgb(0,0,0);
+      in.bg_color = qRgba(255,255,255,0); // transparent Bg
+      in.dpi = (int)(mag * 150 * pDevicePixelRatio);
+      
+      pBackendSettings.epstopdfexec = ""; // don't waste time making PDF, we don't need it
+      pBackendSettings.tborderoffset = sym.bbexpand.t;
+      pBackendSettings.rborderoffset = sym.bbexpand.r;
+      pBackendSettings.bborderoffset = sym.bbexpand.b;
+      pBackendSettings.lborderoffset = sym.bbexpand.l;
+      
+      KLFBackend::klfOutput out = KLFBackend::getLatexFormula(in, pBackendSettings);
+
+      if (out.status != 0) {
+        klfWarning("Can't generate preview for symbol " << sym.symbol << " : status " << out.status << "!"
+                   << "\n\tError: " << out.errorstr) ;
+        continue;
+      }
+      klfDbg("successfully got pixmap for symbol "<<sym.symbol<<".") ;
+
+      QImage scaled = out.result.scaled((int)(out.result.width() / mag),
+                                        (int)(out.result.height() / mag),
+                                        Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+      QPixmap pix = QPixmap::fromImage(scaled);
+      klfDbg("Ran getLatexFormula() to get the pixmap, adding to list.") ;
+
+      emit previewGenerated(sym, pix);
+
+    }
+
+    emit finished();
+  }
+};
+
+
+
+
+
+struct KLFLatexSymbolsPrivate : public QObject
+{
+  Q_OBJECT
+public:
+  KLF_PRIVATE_QOBJ_HEAD(KLFLatexSymbols, QObject)
+  {
+    pCache = NULL;
+    pSearchable = NULL;
+    pPreviewsGenerator = NULL;
+  }
+
+  KLFLatexSymbolsCache * pCache;
+
+  KLFLatexSymbolsSearchable * pSearchable;
+
+  QList<KLFLatexSymbolsView *> mViews;
+
+  QThread workerThread;
+  KLFLatexSymbolPreviewsGenerator *pPreviewsGenerator;
+
+  void read_symbols_create_ui();
+
+public slots:
+  void previewGenerated(const KLFLatexSymbol & symbol, const QPixmap & pixmap);
+  void generatePreviewsFinished();
+  void skipGenPreviews();
+};
+
+
+
 
 
 #endif

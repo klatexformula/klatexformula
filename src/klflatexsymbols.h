@@ -35,6 +35,8 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QDomElement>
+#include <QMetaObject>
+#include <QMetaType>
 #include <QHash>
 
 #include <klfbackend.h>
@@ -78,55 +80,66 @@ struct KLF_EXPORT KLFLatexSymbol
   QStringList keywords; //!< "<keywords>"---add symbol search terms or alternative denomination
 };
 
+Q_DECLARE_METATYPE(KLFLatexSymbol) ;
+
+
+KLF_EXPORT bool operator==(const KLFLatexSymbol& a, const KLFLatexSymbol& b);
+
 KLF_EXPORT QDebug operator<<(QDebug str, const KLFLatexSymbol& symbol);
+
 
 //! A Hash function for a KLFLatexSymbol
 inline uint qHash(const KLFLatexSymbol& symb)
 {
-  return qHash(symb.symbol);
+  return qHash(symb.symbol) ^ qHash(symb.preamble);
 }
 
 
 
 struct KLFLatexSymbolsCachePrivate;
 
-class KLF_EXPORT KLFLatexSymbolsCache
+class KLF_EXPORT KLFLatexSymbolsCache : public QObject
 {
+  Q_OBJECT
 public:
+  KLFLatexSymbolsCache(QObject * parent);
+
   enum { Ok = 0, BadHeader, BadVersion };
 
   ~KLFLatexSymbolsCache();
 
-  bool cacheNeedsSave() const;
-
-  QPixmap getPixmap(const KLFLatexSymbol& sym, bool fromCache = true);
-
-  int precacheList(const QList<KLFLatexSymbol>& list, bool userfeedback, QWidget *parent = NULL);
-
   void setBackendSettings(const KLFBackend::klfSettings& settings);
+
+  void setDevicePixelRatio(qreal ratio);
+
+  bool contains(const KLFLatexSymbol & sym);
 
   KLFLatexSymbol findSymbol(const QString& symbolCode);
   QList<KLFLatexSymbol> findSymbols(const QString& symbolCode);
   QStringList symbolCodeList();
+
   QPixmap findSymbolPixmap(const QString& symbolCode);
+  QPixmap getSymbolPixmap(const KLFLatexSymbol& sym);
+
+  bool cacheNeedsSave() const;
+
+public slots:
+
+  void setSymbolPixmap(const KLFLatexSymbol& sym, const QPixmap& pixmap);
+  void setSymbolPixmaps(const QHash<KLFLatexSymbol,QPixmap>& sympixmaps);
+
+  void loadKlfCache();
+
+  void saveCache(const QString & fname);
+  void saveToKlfCache();
 
   void debugDump();
 
-  static KLFLatexSymbolsCache * theCache();
-  static void saveTheCache();
-
 private:
-  /** Private constructor */
-  KLFLatexSymbolsCache();
-  /** No copy constructor */
-  KLFLatexSymbolsCache(const KLFLatexSymbolsCache& /*other*/) { }
-
-  KLFLatexSymbolsCachePrivate *d;
+  KLF_DECLARE_PRIVATE(KLFLatexSymbolsCache) ;
 
   int loadCacheStream(QDataStream& stream);
   int saveCacheStream(QDataStream& stream);
-
-  static KLFLatexSymbolsCache * staticCache;
 
   /** returns -1 if file open read or the code returned by loadCache(),
    * that is KLFLatexSymbolsCache::{Ok,BadHeader,BadVersion} */
@@ -153,7 +166,7 @@ signals:
   void symbolActivated(const KLFLatexSymbol& symb);
 
 public slots:
-  void buildDisplay();
+  void buildDisplay(KLFLatexSymbolsCache * cache);
   void recalcLayout();
 
 protected slots:
@@ -181,6 +194,10 @@ namespace Ui {
 }
 
 
+
+struct KLFLatexSymbolsPrivate;
+class KLFLatexSymbolsView;
+
 /** \brief Dialog that presents a selection of latex symbols to user
  */
 class KLF_EXPORT KLFLatexSymbols : public QWidget
@@ -193,6 +210,11 @@ public:
   bool event(QEvent *event);
 
   void load();
+
+  KLFLatexSymbolsCache * cache() ;
+
+  QList<KLFLatexSymbolsView *> categoryViews();
+  int currentCategoryIndex() const;
 
 signals:
 
@@ -207,9 +229,6 @@ public slots:
   void emitInsertSymbol(const KLFLatexSymbol& symbol);
 
 protected:
-  QStackedWidget *stkViews;
-
-  QList<KLFLatexSymbolsView *> mViews;
 
   void closeEvent(QCloseEvent *ev);
   void showEvent(QShowEvent *ev);
@@ -217,16 +236,9 @@ protected:
 private:
   Ui::KLFLatexSymbols *u;
 
-  KLFSearchBar * pSearchBar;
-
-  KLFLatexSymbolsSearchable * pSearchable;
-  friend class KLFLatexSymbolsSearchable;
-
-  void read_symbols_create_ui();
+  KLF_DECLARE_PRIVATE(KLFLatexSymbols) ;
 };
 
-
-KLF_EXPORT bool operator==(const KLFLatexSymbol& a, const KLFLatexSymbol& b);
 
 
 

@@ -25,6 +25,7 @@
 #include <QCoreApplication>
 #include <QEventLoop>
 #include <QFile>
+#include <QThread>
 
 #include <klfutil.h>
 #include <klfsysinfo.h>
@@ -129,7 +130,8 @@ QString KLFBlockProcess::detectInterpreterPath(const QString& interp, const QStr
 
 
 
-KLFBlockProcess::KLFBlockProcess(QObject *p)  : QProcess(p)
+KLFBlockProcess::KLFBlockProcess(QObject *p)
+  : QProcess(p)
 {
   mProcessAppEvents = true;
   connect(this, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(ourProcExited()));
@@ -214,9 +216,9 @@ bool KLFBlockProcess::startProcess(QStringList cmd, QByteArray stdindata, QStrin
   klfDbg("wrote input data (size="<<stdindata.size()<<")") ;
 
   if (mProcessAppEvents) {
-    klfDbg("letting app process events ...") ;
+    klfDbg("letting current thread (="<<QThread::currentThread()<<") process events ...") ;
     while (_runstatus == 0) {
-      qApp->processEvents(QEventLoop::ExcludeUserInputEvents, 1000);
+      QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 1000);
       klfDbg("events processed, maybe more?") ;
     }
   } else {

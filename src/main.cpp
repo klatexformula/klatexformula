@@ -52,6 +52,7 @@
 #include "klflibdbengine.h"
 #include "klfliblegacyengine.h"
 #include "klflibview.h"
+#include "klflatexsymbols.h"
 #include "klfmain.h"
 #include "klfconfig.h"
 #include "klfmainwin.h"
@@ -769,6 +770,11 @@ void main_setup_app(QCoreApplication *a)
     /* */  ("KLFLibResourceEngine::KLFLibEntryWithId");
   qRegisterMetaType< KLFEnumType >();
   qRegisterMetaTypeStreamOperators< KLFEnumType >("KLFEnumType");
+
+  // for inter-thread calls in klflatexsymbols_p.h/klflatexsymbols.cpp
+  qRegisterMetaType< KLFLatexSymbol >("KLFLatexSymbol");
+  qRegisterMetaType< QList<KLFLatexSymbol> >("QList<KLFLatexSymbol>");
+  //qRegisterMetaType< QHash<KLFLatexSymbol,QPixmap> >("QHash<KLFLatexSymbol,QPixmap>");
 
   // for delayed calls in klflibview.cpp
   qRegisterMetaType< QItemSelection >("QItemSelection");

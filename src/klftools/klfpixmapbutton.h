@@ -38,6 +38,7 @@ public:
   Q_PROPERTY(int pixmapMargin READ pixmapMargin WRITE setPixmapMargin)
   Q_PROPERTY(float pixXAlignFactor READ pixXAlignFactor WRITE setPixXAlignFactor)
   Q_PROPERTY(float pixYAlignFactor READ pixYAlignFactor WRITE setPixYAlignFactor)
+  Q_PROPERTY(float pixmapScale READ pixmapScale WRITE setPixmapScale)
 
   KLFPixmapButton(const QPixmap& pix, QWidget *parent = 0);
   virtual ~KLFPixmapButton() { }
@@ -49,12 +50,14 @@ public:
   virtual int pixmapMargin() const { return _pixmargin; }
   virtual float pixXAlignFactor() const { return _xalignfactor; }
   virtual float pixYAlignFactor() const { return _yalignfactor; }
+  virtual float pixmapScale() const { return _pixscale; }
 
 public slots:
   virtual void setPixmap(const QPixmap& pix) { _pix = pix; }
   virtual void setPixmapMargin(int pixels) { _pixmargin = pixels; }
   virtual void setPixXAlignFactor(float xalignfactor) { _xalignfactor = xalignfactor; }
   virtual void setPixYAlignFactor(float yalignfactor) { _yalignfactor = yalignfactor; }
+  virtual void setPixmapScale(float x) { _pixscale = x; }
 
 protected:
   virtual void paintEvent(QPaintEvent *event);
@@ -63,6 +66,7 @@ private:
   QPixmap _pix;
   int _pixmargin;
   float _xalignfactor, _yalignfactor;
+  float _pixscale;
 };
 
 

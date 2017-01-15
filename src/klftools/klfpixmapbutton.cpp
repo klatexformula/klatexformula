@@ -35,10 +35,13 @@
 
 
 KLFPixmapButton::KLFPixmapButton(const QPixmap& pix, QWidget *parent)
-  : QPushButton(parent), _pix(pix), _pixmargin(2), _xalignfactor(0.5f), _yalignfactor(0.5f)
+  : QPushButton(parent), _pix(pix), _pixmargin(2), _xalignfactor(0.5f), _yalignfactor(0.5f), _pixscale(1.f)
 {
   setText(QString());
   setIcon(QIcon());
+  if (parent != NULL) {
+    _pixscale = parent->devicePixelRatio();
+  }
 }
 
 QSize KLFPixmapButton::minimumSizeHint() const
@@ -57,11 +60,12 @@ QSize KLFPixmapButton::sizeHint() const
   initStyleOption(&opt);
 
   // calculate contents size...
-  w = _pix.width() + _pixmargin;
-  h = _pix.height() + _pixmargin;
+  w = _pix.width() / _pixscale + _pixmargin;
+  h = _pix.height() / _pixscale + _pixmargin;
 
-  if (menu())
+  if (menu()) {
     w += style()->pixelMetric(QStyle::PM_MenuButtonIndicator, &opt, this);
+  }
 
   return (style()->sizeFromContents(QStyle::CT_PushButton, &opt, QSize(w, h), this).
 	  expandedTo(QApplication::globalStrut()).expandedTo(QSize(50, 30)));
@@ -73,9 +77,12 @@ void KLFPixmapButton::paintEvent(QPaintEvent *event)
   QPushButton::paintEvent(event);
   QPainter p(this);
   p.setClipRect(event->rect());
-  p.drawPixmap(QPointF( _xalignfactor*(width()-(2*_pixmargin+_pix.width())) + _pixmargin,
-			_yalignfactor*(height()-(2*_pixmargin+_pix.height())) + _pixmargin ),
-	       _pix);
+  QSizeF pixsz = _pix.size(); pixsz /= _pixscale;
+  p.drawPixmap(QRectF(QPointF( _xalignfactor*(width()-(2*_pixmargin+pixsz.width())) + _pixmargin,
+                               _yalignfactor*(height()-(2*_pixmargin+pixsz.height())) + _pixmargin ),
+                      pixsz),
+	       _pix,
+               QRectF(QPointF(0,0), _pix.size()));
 }
 
 

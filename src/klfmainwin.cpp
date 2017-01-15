@@ -1423,7 +1423,7 @@ void KLFMainWinPrivate::getMissingCmdsFor(const QString& symbol, QStringList * m
   if (symbol.isEmpty())
     return;
 
-  QList<KLFLatexSymbol> syms = KLFLatexSymbolsCache::theCache()->findSymbols(symbol);
+  QList<KLFLatexSymbol> syms = mLatexSymbols->cache()->findSymbols(symbol);
   if (syms.isEmpty())
     return;
 
