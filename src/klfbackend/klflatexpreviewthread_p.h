@@ -94,11 +94,15 @@ struct KLFLatexPreviewThreadPrivate : public QObject
 public:
   KLF_PRIVATE_QOBJ_HEAD(KLFLatexPreviewThread, QObject)
   {
+    worker = NULL;
+
     previewSize = QSize(280, 80);
     largePreviewSize = QSize(640, 480);
 
     taskIdCounter = 1;
   }
+
+  KLFLatexPreviewThreadWorker * worker;
 
   QSize previewSize;
   QSize largePreviewSize;

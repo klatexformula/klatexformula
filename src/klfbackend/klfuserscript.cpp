@@ -645,6 +645,11 @@ QStringList KLFUserScriptInfo::usConfigToEnvList(const QVariantMap& usconfig)
 }
 
 
+inline QStringList space_sep_values(const QString& val)
+{
+  return val.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+}
+
 
 
 
@@ -711,17 +716,24 @@ struct KLFBackendEngineUserScriptInfoPrivate : public KLFPropertizedObject
 	val = QString(); // empty value is null string
       }
       if (e.nodeName() == "spits-out") {
-        if (!property(KLFBackendEngineUserScriptInfo::SpitsOut).toString().isEmpty()) {
+        if (!property(KLFBackendEngineUserScriptInfo::SpitsOut).toStringList().isEmpty()) {
           _set_xml_parsing_error(QString("duplicate <spits-out> element"));
           return;
         }
-        setProperty(KLFBackendEngineUserScriptInfo::SpitsOut, val);
+        setProperty(KLFBackendEngineUserScriptInfo::SpitsOut, space_sep_values(val));
       } else if (e.nodeName() == "skip-formats") {
         if (!property(KLFBackendEngineUserScriptInfo::SkipFormats).toString().isEmpty()) {
           _set_xml_parsing_error(QString("duplicate <skip-formats> element"));
           return;
         }
-        setProperty(KLFBackendEngineUserScriptInfo::SkipFormats, val.split(' '));
+        QStringList lst;
+        if (e.hasAttribute("selector")) {
+          // all-except -> ALL_EXCEPT
+          QString s = e.attribute("selector").toUpper();
+          lst << space_sep_values(s.replace('-', '_'));
+        }
+        lst << space_sep_values(val);
+        setProperty(KLFBackendEngineUserScriptInfo::SkipFormats, lst);
       } else if (e.nodeName() == "disable-inputs") {
         if (!property(KLFBackendEngineUserScriptInfo::DisableInputs).toStringList().isEmpty()) {
           _set_xml_parsing_error(QString("duplicate <disable-inputs> element"));
@@ -731,9 +743,9 @@ struct KLFBackendEngineUserScriptInfoPrivate : public KLFPropertizedObject
         if (e.hasAttribute("selector")) {
           // all-except -> ALL_EXCEPT
           QString s = e.attribute("selector").toUpper();
-          lst << s.replace('-', '_');
+          lst << space_sep_values(s.replace('-', '_'));
         }
-        lst << val.split(' ', QString::SkipEmptyParts);
+        lst << space_sep_values(val);
         setProperty(KLFBackendEngineUserScriptInfo::DisableInputs, lst);
       } else if (e.nodeName() == "input-form-ui") {
         if (!property(KLFBackendEngineUserScriptInfo::InputFormUI).toStringList().isEmpty()) {
@@ -887,6 +899,12 @@ bool KLFUserScriptFilterProcess::do_run(const QByteArray& indata, const QMap<QSt
     QDateTime::currentDateTime().toString(Qt::DefaultLocaleLongDate).toHtmlEscaped()
     + QLatin1String("</p>") ;
   
+  // error message, if any
+  QString errstr = resultErrorString();
+  if (errstr.size()) {
+    thislog += QString::fromLatin1("<div class=\"userscript-error\">%1</div>").arg(errstr); // errstr is already HTML
+  }
+
   QString templ = QString::fromLatin1("<p><span class=\"output-type\">%1</span>\n"
                                       "<pre class=\"output\">%2</pre></p>\n") ;
 

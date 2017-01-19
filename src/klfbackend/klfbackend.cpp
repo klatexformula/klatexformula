@@ -408,7 +408,7 @@ typedef QSet<QString> KLFStringSet;
 
 KLF_EXPORT KLFStringSet klfbackend_fmts =
   KLFStringSet()
-  /* */   << "tex" << "latex" << "dvi" << "eps-raw" << "eps-bbox" << "eps-processed"
+  /* */   << "latex" << "dvi" << "eps-raw" << "eps-bbox" << "eps-processed"
 /*   */   << "png" << "pdf" << "svg-gs" << "svg" ;
 
 
@@ -748,6 +748,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 
       p.addExecEnviron(addenv);
 
+      p.setProcessAppEvents(false);
+
       QByteArray stderrdata;
       QByteArray stdoutdata;
       p.collectStderrTo(&stderrdata);
@@ -759,7 +761,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       QStringList outfmts = scriptinfo.spitsOut();
       foreach (QString fmt, outfmts) {
 	us_outputs << fmt;
-	if (fmt == QLatin1String("tex") || fmt == QLatin1String("latex")) {
+	if (fmt == QLatin1String("latex")) {
 	  // user script overwrote the tex/latex file, don't collect the tex file data as it is not
 	  // needed (not considered as useful output!). This new tex file will be seen and accessed
 	  // by 'latex' in the next process block after userscript if needed.
@@ -773,24 +775,28 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 	} else if (fmt == QLatin1String("eps-processed")) {
 	  outdata[fnProcessedEps] = &res.epsdata;
 	} else if (fmt == QLatin1String("png")) {
-	  if (settings.wantRaw)
+	  if (settings.wantRaw) {
 	    outdata[fnRawPng] = &res.pngdata_raw;
+          }
 	} else if (fmt == QLatin1String("pdf")) {
-	  if (settings.wantPDF)
+	  if (settings.wantPDF) {
 	    outdata[fnPdf] = &res.pdfdata;
+          }
 	} else if (fmt == QLatin1String("svg-gs")) {
 	  // ignore this data, not returned in klfOutput but the created file is used to generate
 	  // the processed SVG
 	  outdata[fnGsSvg] = & gssvgdata;
 	} else if (fmt == QLatin1String("svg")) {
-	  if (settings.wantSVG)
+	  if (settings.wantSVG) {
 	    outdata[fnSvg] = &res.svgdata;
+          }
 	} else {
 	  klfWarning("Can't handle output format from user script: "<<fmt) ;
 	}
       }
-      if (us_outputs.isEmpty())
+      if (us_outputs.isEmpty()) {
 	us_outputs << "dvi"; // by default, the script is assumed to provide DVI.
+      }
       if (us_outputs.contains("eps-bbox") && !settings.wantRaw) {
 	// don't need to fetch initial raw eps data
 	if (outdata.contains("eps-raw"))
@@ -805,7 +811,7 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       QStringList skipfmts = scriptinfo.skipFormats();
       bool invert = false;
       int tempi;
-      if ((tempi = skipfmts.indexOf("ALLEXCEPT")) >= 0) {
+      if ((tempi = skipfmts.indexOf("ALL_EXCEPT")) >= 0) {
 	invert = true;
 	skipfmts.removeAt(tempi);
 	foreach (QString f, klfbackend_fmts) { us_skipfmts << f; }
@@ -815,16 +821,18 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
 	  klfWarning("User Script Info: Unknown format to skip: "<<fmt) ;
 	}
 	if (!invert) {
-	  if (outdata.contains(fmt)) {
-	    klfWarning("User Script Info: If a format is provided by the script, don't mark it as to skip. fmt="<<fmt) ;
-	    continue;
-	  }
 	  us_skipfmts << fmt;
 	} else {
 	  us_skipfmts.remove(fmt);
 	}
       }
       our_skipfmts = us_skipfmts;
+      foreach (QString fmt, outfmts) {
+        if (our_skipfmts.contains(fmt)) {
+          klfWarning("User Script Info: format " << fmt << " provided by script is also marked "
+                     "as to be skipped!") ;
+        }
+      }
 
       if ((us_outputs.contains("eps-processed") || our_skipfmts.contains("eps-processed")) && !settings.wantRaw) {
 	our_skipfmts << "eps-bbox";
@@ -835,6 +843,8 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
       if (us_outputs.contains("svg") || our_skipfmts.contains("svg")) {
 	our_skipfmts << "svg-gs"; // don't need svg-gs if we're not generating svg
       }
+
+      klfDbg("us_skipfmts = " << us_skipfmts) ;
 
       ok = p.run(outdata);
 
@@ -851,8 +861,40 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
         }
 	return res;
       }
+
+      // make sure all promised files have appeared
+      foreach (QString fmt, outfmts) {
+        QString corrfname;
+	if (fmt == QLatin1String("latex")) {
+          corrfname = fnTex;
+	} else if (fmt == QLatin1String("dvi")) {
+          corrfname = fnDvi;
+	} else if (fmt == QLatin1String("eps-raw")) {
+          corrfname = fnRawEps;
+	} else if (fmt == QLatin1String("eps-bbox")) {
+          corrfname = fnBBoxEps;
+	} else if (fmt == QLatin1String("eps-processed")) {
+          corrfname = fnProcessedEps;
+	} else if (fmt == QLatin1String("png")) {
+          corrfname = fnRawPng;
+	} else if (fmt == QLatin1String("pdf")) {
+          corrfname = fnPdf;
+	} else if (fmt == QLatin1String("svg-gs")) {
+          corrfname = fnGsSvg;
+	} else if (fmt == QLatin1String("svg")) {
+          corrfname = fnSvg;
+        } else {
+          klfWarning("Unknown format: " << fmt) ;
+          continue;
+        }
+        if (!QFile::exists(corrfname)) {
+          klfWarning("Promised format " << fmt << " did not appear after calling user script.") ;
+        }
+      }
     }
   }
+
+  klfDbg("our_skipfmts = " << our_skipfmts) ;
 
 
   if (!has_userscript_output(us_outputs, "dvi") && !our_skipfmts.contains("dvi")) {
@@ -1969,7 +2011,7 @@ KLF_EXPORT QStringList klfInputToEnvironmentForUserScript(const KLFBackend::klfI
       << "KLF_INPUT_FONTSIZE=" + QString::number(in.fontsize)
       << "KLF_INPUT_FG_COLOR_WEB=" + QColor(in.fg_color).name()
       << "KLF_INPUT_FG_COLOR_RGBA=" + fgcol
-      << "KLF_INPUT_BG_COLOR_TRANSPARENT=" + QString::fromLatin1(qAlpha(in.bg_color) > 50 ? "1" : "0")
+      << "KLF_INPUT_BG_COLOR_TRANSPARENT=" + QString::fromLatin1(qAlpha(in.bg_color) > 50 ? "0" : "1")
       << "KLF_INPUT_BG_COLOR_WEB=" + QColor(in.bg_color).name()
       << "KLF_INPUT_BG_COLOR_RGBA=" + bgcol
       << "KLF_INPUT_DPI=" + QString::number(in.dpi)

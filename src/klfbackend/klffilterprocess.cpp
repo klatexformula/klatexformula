@@ -330,10 +330,12 @@ bool KLFFilterProcess::do_run(const QByteArray& indata, const QMap<QString, QByt
     return false;
   }
 
-  if (d->collectStdout != NULL)
+  if (d->collectStdout != NULL) {
     *d->collectStdout = proc.getAllStdout();
-  if (d->collectStderr != NULL)
+  }
+  if (d->collectStderr != NULL) {
     *d->collectStderr = proc.getAllStderr();
+  }
 
   for (QMap<QString,QByteArray*>::const_iterator it = outdatalist.begin(); it != outdatalist.end(); ++it) {
     QString outFileName = it.key();
