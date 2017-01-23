@@ -411,7 +411,7 @@ KLFMainWin::KLFMainWin()
 
   klfDbg("Registering exporters") ;
 
-  registerExporter(new KLFBackendOutputFormatsExporter(this));
+  registerExporter(new KLFBackendFormatsExporter(this));
   registerExporter(new KLFTexExporter(this));
   registerExporter(new KLFHtmlDataExporter(this));
   registerExporter(new KLFOpenOfficeDrawExporter(this));
@@ -2812,7 +2812,8 @@ void KLFMainWinPrivate::updatePreviewThreadInput()
 {
   // recheck battery status, in case we have the proper setting on
   // TODO: write this & the setting
-  klfDbg("laptop?: "<<KLFSysInfo::isLaptop()<<"; on battery power?: "<<KLFSysInfo::isOnBatteryPower()) ;
+  klfDbg("laptop?: "<<KLFSysInfo::isLaptop()<<"; on battery power?: "<<KLFSysInfo::isOnBatteryPower()
+         <<"; no previews on battery power?: " << klfconfig.UI.realTimePreviewExceptBattery) ;
   if (klfconfig.UI.enableRealTimePreview && klfconfig.UI.realTimePreviewExceptBattery
       && KLFSysInfo::isLaptop()) {
     // update battery status
@@ -2820,9 +2821,11 @@ void KLFMainWinPrivate::updatePreviewThreadInput()
     bool running = pLatexPreviewThread->isRunning();
     if (running && onbattery) {
       // we need to stop the preview thread
+      klfDbg("Stopping preview thread because we're on battery power") ;
       pLatexPreviewThread->stop();
     } else if (!running && !onbattery) {
       // we can restart the preview thread, as we're back on power.
+      klfDbg("Restarting preview thread because we're no longer on battery power") ;
       pLatexPreviewThread->start();
       pLatexPreviewThread->setPriority(QThread::LowestPriority);
     }

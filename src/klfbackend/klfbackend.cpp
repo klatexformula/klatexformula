@@ -63,8 +63,7 @@
  * converts a LaTeX equation given as text into graphics, specifically PNG, EPS or PDF (and the
  * image is available as a QImage&mdash;so any format supported by Qt is available.
  *
- * Starting from version 3.3, KLFBackend NO LONGER COMPILES WITH QT 3. Only Qt 4 is supported from
- * now on... Also, klfbackend now relies on klftools library and uses some of its functionality.
+ * Starting KLFBackend version 4.0, this library uses Qt5.
  *
  * Some utilities to save the output (in various formats) to a file or a QIODevice
  * are provided, see KLFBackend::saveOutputToFile() and KLFBackend::saveOutputToDevice().

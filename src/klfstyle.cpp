@@ -203,7 +203,7 @@ static void set_xtra_from_preamble(KLFStyle * style)
       klfDbg("bbox value string: "<<value) ;
       KLF_ASSERT_CONDITION(ok, "Failed to read bbox expand info: "<<value, pos += rx.matchedLength(); continue; ) ;
       style->overrideBBoxExpand = bb;
-      p.replace(pos, rx.matchedLength(), "\n");
+      p.replace(pos, rx.matchedLength(), "");
       ++pos;
       continue;
     }

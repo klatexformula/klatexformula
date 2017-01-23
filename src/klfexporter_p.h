@@ -78,21 +78,21 @@ static inline QByteArray toHtmlAttrTextAscii(QString s)
 // ==============================================================================
 
 
-class KLFBackendOutputFormatsExporter : public QObject, public KLFExporter
+class KLFBackendFormatsExporter : public QObject, public KLFExporter
 {
   Q_OBJECT
 public:
-  KLFBackendOutputFormatsExporter(QObject *parent)
+  KLFBackendFormatsExporter(QObject *parent)
     : QObject(parent), KLFExporter()
   {
   }
-  virtual ~KLFBackendOutputFormatsExporter()
+  virtual ~KLFBackendFormatsExporter()
   {
   }
 
   virtual QString exporterName() const
   {
-    return QLatin1String("backend");
+    return QLatin1String("KLFBackendFormatsExporter");
   }
 
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& output) const
@@ -162,7 +162,7 @@ public:
 
   virtual QString exporterName() const
   {
-    return QLatin1String("tex-source");
+    return QLatin1String("KLFTexExporter");
   }
 
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const
@@ -256,7 +256,7 @@ public:
 
   virtual QString exporterName() const
   {
-    return QLatin1String("open-office-draw");
+    return QLatin1String("KLFOpenOfficeDrawExporter");
   }
 
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const
@@ -386,7 +386,7 @@ public:
 
   virtual QString exporterName() const
   {
-    return QLatin1String("html-data");
+    return QLatin1String("KLFHtmlDataExporter");
   }
 
   virtual QStringList supportedFormats(const KLFBackend::klfOutput& ) const

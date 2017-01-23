@@ -109,7 +109,8 @@ def dump_env_vars(varlists):
         for varname in varlist:
             dump_env_var(varname)
         print('---')
-    for varname in [ x for x in os.environ.keys() if x.startswith('KLF_') and x not in varlist ]:
+    allvarlist = sum(varlists, [])
+    for varname in [ x for x in os.environ.keys() if x.startswith('KLF_') and x not in allvarlist ]:
         dump_env_var(varname)
     print('========')
 
