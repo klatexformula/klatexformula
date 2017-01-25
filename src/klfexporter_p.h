@@ -750,6 +750,81 @@ private:
 
 
 
+/** KLFExporter implementation for exporting \c "text/x-moz-url" and \c "text/uri-list" to
+ * a temporary file of a given type
+ */
+class KLF_EXPORT KLFTempImgRefHtmlExporter : public QObject, public KLFExporter
+{
+  Q_OBJECT
+public:
+  KLFTempImgRefHtmlExporter(QObject *parent) : QObject(parent) { }
+  virtual ~KLFTempImgRefHtmlExporter() { }
+
+  virtual QString exporterName() const
+  {
+    return QString::fromLatin1("KLFTempImgRefHtmlExporter");
+  }
+
+  virtual bool isSuitableForFileSave() const { return false; }
+
+  virtual QStringList supportedFormats(const KLFBackend::klfOutput & ) const
+  {
+    return QStringList() << "html";
+  }
+
+  virtual QString titleFor(const QString & format) {
+    if (format == "html") {
+      return tr("HTML (with reference to temporary image file)");
+    }
+    klfWarning("Invalid format: " << format) ;
+    return QString();
+  }
+
+  virtual QByteArray getData(const QString& format, const KLFBackend::klfOutput& output,
+                             const QVariantMap& params = QVariantMap())
+  {
+    clearErrorString();
+
+    if (format != "html") {
+      klfWarning("Invalid format: " << format) ;
+      return QByteArray();
+    }
+
+    int html_export_dpi = params.value("html_export_dpi", (int)klfconfig.ExportData.htmlExportDpi).toInt();
+    int html_export_display_dpi = params.value("html_export_display_dpi",
+                                               (int)klfconfig.ExportData.htmlExportDisplayDpi).toInt();
+
+    if (output.input.dpi < html_export_dpi * 1.25f) {
+      html_export_dpi = output.input.dpi;
+    } 
+
+    QString tempfilename = KLFTempFileUriExporter::tempFileForOutput("PNG", output, html_export_dpi);
+
+    QSize imgsize = output.result.size();
+    imgsize *= (float) html_export_dpi / output.input.dpi;
+
+    QString w_in = QString::number((float)imgsize.width() / html_export_display_dpi, 'f', 3);
+    QString h_in = QString::number((float)imgsize.height() / html_export_display_dpi, 'f', 3);
+
+    QString latexattr = toHtmlAttrText(klfLatexToPseudoTex(output.input.latex));
+
+    klfDbg("origimg/size="<<output.result.size()<<"; origDPI="<<output.input.dpi
+           <<"; html_export_dpi="<<html_export_dpi
+           <<"; html_export_display_dpi="<<html_export_display_dpi<<"; imgsize="<<imgsize
+           <<"; w_in="<<w_in<<"; h_in="<<h_in) ;
+    
+    QString html =
+      QString::fromLatin1("<img src=\"file://%1\" alt=\"%2\" title=\"%3\" "
+                          "style=\"width: %4in; height: %5in; vertical-align: middle;\">")
+      .arg(QFileInfo(tempfilename).absoluteFilePath(), latexattr, latexattr, w_in, h_in);
+
+    return html.toUtf8();
+  }
+
+
+};
+
+
 
 
 

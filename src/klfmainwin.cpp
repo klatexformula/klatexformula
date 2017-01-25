@@ -416,6 +416,7 @@ KLFMainWin::KLFMainWin()
   registerExporter(new KLFHtmlDataExporter(this));
   registerExporter(new KLFOpenOfficeDrawExporter(this));
   registerExporter(new KLFTempFileUriExporter(this));
+  registerExporter(new KLFTempImgRefHtmlExporter(this));
 
   // now, create one instance of KLFUserScriptExporter per export type user script ...
   extern QStringList klf_user_scripts;

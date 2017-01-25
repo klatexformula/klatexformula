@@ -22,8 +22,8 @@
     <description>Default</description>
 
     <!-- Of course, PNG -->
-    <export-type exporter="backend" format="PNG">
-      <default-qt-formats type="image" only-on="mac,win,x11" />
+    <export-type exporter="KLFBackendFormatsExporter" format="PNG">
+      <default-qt-formats type="image" />
       <mime-type>image/png</mime-type>
       <win-format>PNG</win-format>
       <!-- for MS office: [old; test if still needed?] -->
@@ -35,7 +35,7 @@
     </export-type>
 
     <!-- PDF is always nice -->
-    <export-type exporter="backend" format="PDF">
+    <export-type exporter="KLFBackendFormatsExporter" format="PDF">
       <mime-type>application/pdf</mime-type>
       <win-format>PDF</win-format>
       <win-format>application/pdf</win-format>
@@ -43,7 +43,7 @@
     </export-type>
 
     <!-- SVG is useful, if we have it from ghostscript ... -->
-    <export-type exporter="backend" format="SVG">
+    <export-type exporter="KLFBackendFormatsExporter" format="SVG">
       <mime-type>image/svg+xml</mime-type>
       <win-format>SVG</win-format>
       <win-format>image/svg+xml</win-format>
@@ -61,13 +61,13 @@
          Note: to use the "default" export profile with InDesign & AICB, you have to
          go into InDesign's Preferences -> Clipboard Handling -> uncheck "prefer PDF"
       -->
-    <export-type exporter="backend" format="EPS">
-      <win-format>AICB????</win-format>
+    <export-type exporter="KLFBackendFormatsExporter" format="EPS">
+      <win-format>AICB</win-format>
       <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
     </export-type>
 
     <!-- Never hurts to include HTML (eg. for Thunderbird, GMail, ...) -->
-    <export-type exporter="html-data" format="html">
+    <export-type exporter="KLFHtmlDataExporter" format="html">
       <default-qt-formats type="html" />
     </export-type>
 
@@ -82,10 +82,10 @@
     </export-type>
 
     <!-- OpenOffice.org format -->
-    <export-type exporter="open-office-draw" format="odg">
+    <export-type exporter="KLFOpenOfficeDrawExporter" format="odg">
       <mime-type>application/x-openoffice-drawing</mime-type>
       <win-format>Drawing Format</win-format>
-      <!-- see "open-office-draw" profile below for notes on dynamic UTIs -->
+      <!-- see "KLFOpenOfficeDrawExporter" profile below for notes on dynamic UTIs -->
       <mac-flavor>dyn.ah62d4rv4gu80c6durvy0g2pyrf106p52fz11a3psr7xgq4pdqy00k6xbs7y06335s7y063dts73z83xtsm00c7dsqf00n1b7emche2p1rf1gskcgr73g42pyek</mac-flavor>
     </export-type>
 
@@ -95,7 +95,7 @@
     <description>Vector Formats</description>
 
     <!-- PDF -->
-    <export-type exporter="backend" format="PDF">
+    <export-type exporter="KLFBackendFormatsExporter" format="PDF">
       <mime-type>application/pdf</mime-type>
       <win-format>PDF</win-format>
       <win-format>application/pdf</win-format>
@@ -103,7 +103,7 @@
     </export-type>
 
     <!-- EPS / PS -->
-    <export-type exporter="backend" format="EPS">
+    <export-type exporter="KLFBackendFormatsExporter" format="EPS">
       <mime-type>application/eps</mime-type>
       <mime-type>application/postscript</mime-type>
       <mime-type>image/eps</mime-type>
@@ -114,7 +114,7 @@
     </export-type>
 
     <!-- SVG is useful, if we have it from ghostscript ... -->
-    <export-type exporter="backend" format="SVG">
+    <export-type exporter="KLFBackendFormatsExporter" format="SVG">
       <mime-type>image/svg+xml</mime-type>
       <win-format>SVG</win-format>
       <mac-flavor>public.svg-image</mac-flavor>
@@ -133,7 +133,7 @@
     <in-submenu>Specific Applications</in-submenu>
     <description>AICB for Adobe InDesign</description>
     <!-- AICB: just use the EPS data and advertize it as AICB (for Adobe Indesign) -->
-    <export-type exporter="backend" format="EPS">
+    <export-type exporter="KLFBackendFormatsExporter" format="EPS">
       <win-format>AICB????</win-format>
       <mac-flavor>com.adobe.illustrator.aicb</mac-flavor>
     </export-type>
@@ -143,8 +143,18 @@
   <profile name="html-fragment">
     <description>HTML fragment</description>
     <!-- HTML fragment for Thunderbird, GMail, ... -->
-    <export-type exporter="html-data" format="html">
+    <export-type exporter="KLFHtmlDataExporter" format="html">
       <default-qt-formats type="html" />
+    </export-type>
+  </profile>
+
+  <!-- Just plain simple PNG -->
+  <profile name="png">
+    <description>PNG</description>
+    <export-type exporter="KLFBackendFormatsExporter" format="PNG">
+      <mime-type>image/png</mime-type>
+      <win-format>PNG</win-format>
+      <mac-flavor>public.png</mac-flavor>
     </export-type>
   </profile>
 
@@ -173,29 +183,29 @@
   </profile>
 
   <!-- Specific formats -->
-  <profile name="pdf">
+  <profile name="KLFBackendFormatsExporter-pdf">
     <in-submenu>Specific Formats</in-submenu>
     <description>PDF</description>
-    <export-type exporter="backend" format="PDF">
+    <export-type exporter="KLFBackendFormatsExporter" format="PDF">
       <mime-type>application/pdf</mime-type>
       <win-format>PDF</win-format>
       <win-format>application/pdf</win-format>
       <mac-flavor>com.adobe.pdf</mac-flavor>
     </export-type>
   </profile>
-  <profile name="png">
+  <profile name="KLFBackendFormatsExporter-png">
     <in-submenu>Specific Formats</in-submenu>
     <description>PNG</description>
-    <export-type exporter="backend" format="PNG">
+    <export-type exporter="KLFBackendFormatsExporter" format="PNG">
       <mime-type>image/png</mime-type>
       <win-format>PNG</win-format>
       <mac-flavor>public.png</mac-flavor>
     </export-type>
   </profile>
-  <profile name="eps">
+  <profile name="KLFBackendFormatsExporter-eps">
     <in-submenu>Specific Formats</in-submenu>
     <description>EPS</description>
-    <export-type exporter="backend" format="EPS">
+    <export-type exporter="KLFBackendFormatsExporter" format="EPS">
       <mime-type>application/eps</mime-type>
       <mime-type>application/postscript</mime-type>
       <mime-type>image/eps</mime-type>
@@ -205,19 +215,26 @@
       <mac-flavor>com.adobe.encapsulated-postscript</mac-flavor>
     </export-type>
   </profile>
-  <profile name="latex">
+  <profile name="KLFTexExporter-tex">
     <in-submenu>Specific Formats</in-submenu>
     <description>LaTeX source</description>
-    <export-type exporter="tex-source" format="tex">
+    <export-type exporter="KLFTexExporter" format="tex">
       <default-qt-formats type="text" />
       <mime-type>application/x-latex</mime-type>
       <mime-type>application/x-tex</mime-type>
     </export-type>
   </profile>
-  <profile name="open-office-draw">
+  <profile name="KLFTempImgRefHtmlExporter-html">
+    <in-submenu>Specific Formats</in-submenu>
+    <description>HTML with ref. to temp. image file</description>
+    <export-type exporter="KLFTempImgRefHtmlExporter" format="html">
+      <default-qt-formats type="html" />
+    </export-type>
+  </profile>
+  <profile name="KLFOpenOfficeDrawExporter-odg">
     <in-submenu>Specific Formats</in-submenu>
     <description>OpenOffice Draw</description>
-    <export-type exporter="open-office-draw" format="odg">
+    <export-type exporter="KLFOpenOfficeDrawExporter" format="odg">
       <mime-type>application/x-openoffice-drawing</mime-type>
       <win-format>Drawing Format</win-format>
 
