@@ -2182,7 +2182,7 @@ void KLFMainWinPrivate::reloadLatexFontDefs()
 
   // now read the file list
   for (k = 0; k < fxmllist.size(); ++k) {
-    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"/fxmllist["+QString("%1").arg(k)+"]");
+    KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME+"/fxmllist["+QString::number(k)+"]");
     klfDbg("reading XML file="<<fxmllist[k]);
 
     QString fn = fxmllist[k];
@@ -4017,7 +4017,9 @@ KLFBackend::klfInput KLFMainWin::currentInputState() const
   input.userScript = u->cbxUserScript->itemData(u->cbxUserScript->currentIndex()).toString();
 
   QVariantMap userScriptInput = d->collectUserScriptInput();
-  for (QVariantMap::const_iterator usparam = userScriptInput.begin(); usparam != userScriptInput.end(); ++usparam) {
+  for (QVariantMap::const_iterator usparam = userScriptInput.begin();
+       usparam != userScriptInput.end();
+       ++usparam) {
     input.userScriptParam[usparam.key()] = usparam.value().toString();
   }
 
