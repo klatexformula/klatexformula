@@ -155,7 +155,7 @@ void KLFAbstractLatexMetaInfo::saveMetaInfo(const KLFBackend::klfInput& in,
   saveField("InputDPI", QString::number(in.dpi));
   saveField("InputVectorScale", QString::number(in.vectorscale, 'g', 4));
   saveField("InputBypassTemplate", boolstr[(int)in.bypassTemplate]);
-  saveField("InputUserScript", in.userScript);
+  saveField("InputUserScript", QFileInfo(in.userScript).fileName());
   QString usparams;
   klfSaveVariantToText(QVariant(klfMapToVariantMap(in.userScriptParam)), true);
   saveField("InputUserScriptParams", usparams);

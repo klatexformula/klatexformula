@@ -42,6 +42,7 @@
 #include <QTextCodec>
 
 #include <klfutil.h>
+#include <klfdatautil.h>
 #include <klflatexpreviewthread.h>
 #include "klflibview.h"
 #include "klfmain.h"
@@ -704,6 +705,11 @@ private:
     style.mathmode = pdfmeta.value("KLFInputMathMode");
     style.preamble = pdfmeta.value("KLFInputPreamble");
     style.dpi = pdfmeta.value("KLFInputDPI").toInt();
+    //style.fontname = pdfmeta.value("KLFFontName");// font name not saved, but instructions in preamble
+    style.fontsize = pdfmeta.value("KLFInputFontSize").toInt();
+    style.vectorscale = pdfmeta.value("KLFInputVectorScale").toDouble();
+    style.userScript = pdfmeta.value("KLFInputUserScript");
+    style.userScriptInput = klfLoadVariantFromText(pdfmeta.value("KLFInputUserScriptParams").toLocal8Bit(), "QVariantMap").toMap();
 
     mainWin()->slotLoadStyle(style);
     mainWin()->slotSetLatex(latex);

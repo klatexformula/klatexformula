@@ -49,15 +49,15 @@
       <win-format>image/svg+xml</win-format>
       <mac-flavor>public.svg-image</mac-flavor>
     </export-type>
-    <!-- ... or from the svg-dvisvgm user script ... -->
-    <export-type exporter="UserScript:svg-dvisvgm" format="svg">
+    <!-- ... or from the inkscapeformats user script ... -->
+    <export-type exporter="UserScript:inkscapeformats" format="svg">
       <mime-type>image/svg+xml</mime-type>
       <win-format>SVG</win-format>
       <win-format>image/svg+xml</win-format>
       <mac-flavor>public.svg-image</mac-flavor>
     </export-type>
-    <!-- ... or from the inkscapeformats user script -->
-    <export-type exporter="UserScript:inkscapeformats" format="svg">
+    <!-- ... or from the svg-dvisvgm user script. -->
+    <export-type exporter="UserScript:svg-dvisvgm" format="svg">
       <mime-type>image/svg+xml</mime-type>
       <win-format>SVG</win-format>
       <win-format>image/svg+xml</win-format>
