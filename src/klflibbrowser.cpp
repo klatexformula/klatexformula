@@ -79,6 +79,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   connect(u->aSaveTo, SIGNAL(triggered()), this, SLOT(slotResourceSaveTo()));
   connect(u->aNew, SIGNAL(triggered()), this, SLOT(slotResourceNew()));
   connect(u->aOpen, SIGNAL(triggered()), this, SLOT(slotResourceOpen()));
+  connect(u->aOpenExampleLibrary, SIGNAL(triggered()), this, SLOT(slotResourceOpenExampleLibrary()));
   connect(u->aClose, SIGNAL(triggered()), this, SLOT(slotResourceClose()));
   // and add them to menu
   pResourceMenu->addAction((new KLFLibBrowserTabMenu(u->tabResources))->menuAction());
@@ -95,6 +96,7 @@ KLFLibBrowser::KLFLibBrowser(QWidget *parent)
   pResourceMenu->addSeparator();
   pResourceMenu->addAction(u->aNew);
   pResourceMenu->addAction(u->aOpen);
+  pResourceMenu->addAction(u->aOpenExampleLibrary);
   /// \todo .......... save as copy action ............
   //  pResourceMenu->addAction(u->aSaveTo);
   pResourceMenu->addAction(u->aClose);
@@ -360,7 +362,7 @@ QString KLFLibBrowser::displayTitle(KLFLibResourceEngine *resource)
     basestr = resource->title();
   }
   if (!resource->canModifyData(KLFLibResourceEngine::AllActionsData)) {
-    basestr = "# "+basestr;
+    // basestr = "# "+basestr; // this is confusing
   }
   return basestr;
 }
@@ -987,6 +989,31 @@ bool KLFLibBrowser::slotResourceOpen()
   if ( ! r ) {
     QMessageBox::critical(this, tr("Error"), tr("Failed to open library resource `%1'!")
 			  .arg(url.toString()));
+  }
+  return r;
+}
+
+bool KLFLibBrowser::slotResourceOpenExampleLibrary()
+{
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
+  QString importfname = QLatin1String(":/data/defaultlibrary.klf");
+  QUrl importliburl = QUrl::fromLocalFile(importfname);
+  QString scheme = KLFLibBasicWidgetFactory::guessLocalFileScheme(importfname);
+  if (scheme.isEmpty()) {
+    // assume .klf if not able to guess
+    scheme = "klf+legacy";
+  }
+  importliburl.setScheme(scheme);
+  QUrlQuery importliburlq(importliburl);
+  importliburlq.addQueryItem("klfReadOnly", "true");
+  importliburlq.addQueryItem("klfDefaultSubResource", "Archive");
+  importliburl.setQuery(importliburlq);
+
+  bool r = openResource(importliburl, NoChangeFlag, "default");
+  if (! r ) {
+    QMessageBox::critical(this, tr("Error"), tr("Failed to open library resource `%1'!")
+			  .arg(importliburl.toString()));
   }
   return r;
 }

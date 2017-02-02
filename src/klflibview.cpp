@@ -2692,8 +2692,8 @@ void KLFLibViewDelegate::paintEntry(PaintPrivate *p, const QModelIndex& index) c
   case KLFLibEntry::DateTime:
     // paint DateTime String
     { QLocale loc; // use the default locale, which was set to the value of klfconfig.UI.locale in main app.
-      paintText(p, loc.toString(index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime))
-				.toDateTime(), QLocale::LongFormat), fl);
+      paintText(p, loc.toString(index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime(),
+                                QLocale::ShortFormat), fl);
       break;
     }
   default:
@@ -2913,8 +2913,8 @@ QSize KLFLibViewDelegate::sizeHint(const QStyleOptionViewItem& option, const QMo
     case KLFLibEntry::DateTime:
       { QLocale loc; // use default locale, which was set to the value of klfconfig.UI.locale;
 	return QFontMetrics(option.font)
-	  .size(0, loc.toString(index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime))
-				.toDateTime(), QLocale::LongFormat) )+QSize(4,2);
+	  .size(0, loc.toString(index.data(KLFLibModel::entryItemRole(KLFLibEntry::DateTime)).toDateTime(),
+                                QLocale::ShortFormat) )+QSize(4,2);
       }
     case KLFLibEntry::Preview:
       {

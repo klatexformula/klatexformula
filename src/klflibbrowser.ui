@@ -32,7 +32,7 @@
      </property>
      <property name="minimumSize">
       <size>
-       <width>164</width>
+       <width>176</width>
        <height>28</height>
       </size>
      </property>
@@ -45,7 +45,7 @@
      <property name="lineWidth">
       <number>0</number>
      </property>
-     <property name="resetTimeout" stdset="0">
+     <property name="resetTimeout">
       <number>-1</number>
      </property>
     </widget>
@@ -68,7 +68,16 @@
       <number>0</number>
      </property>
      <layout class="QHBoxLayout" name="lyt_frmButtons">
-      <property name="margin">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
        <number>0</number>
       </property>
       <item>
@@ -188,7 +197,16 @@
        <enum>QFrame::Plain</enum>
       </property>
       <layout class="QVBoxLayout" name="lyt_frmViews">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
        <item>
@@ -432,6 +450,14 @@
    </property>
    <property name="toolTip">
     <string>Export the current selection to a .klf file</string>
+   </property>
+  </action>
+  <action name="aOpenExampleLibrary">
+   <property name="text">
+    <string>Open Example Library</string>
+   </property>
+   <property name="toolTip">
+    <string>Open library with examples</string>
    </property>
   </action>
  </widget>

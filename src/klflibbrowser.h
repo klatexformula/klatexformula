@@ -169,6 +169,7 @@ protected slots:
   bool slotResourceNewSubRes();
   bool slotResourceDelSubRes();
   bool slotResourceOpen();
+  bool slotResourceOpenExampleLibrary();
   bool slotResourceNew();
   bool slotResourceSaveTo();
 
