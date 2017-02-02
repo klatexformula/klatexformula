@@ -12,6 +12,10 @@
     <input-data-type>PDF</input-data-type>
     <has-stdout-output>false</has-stdout-output>
     <mime-export-profiles-xml-file>inkscape-export-profiles.xml</mime-export-profiles-xml-file>
+    <format name="svg">
+      <title>SVG Vector Graphics (via Inkscape)</title>
+      <file-name-extension>svg</file-name-extension>
+    </format>
     <format name="emf">
       <title>EMF Windows Metafile (via Inkscape)</title>
       <file-name-extension>emf</file-name-extension>

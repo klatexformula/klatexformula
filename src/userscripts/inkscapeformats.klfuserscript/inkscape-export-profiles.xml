@@ -19,6 +19,18 @@
        little.
     -->
 
+  <profile name="svg_via_inkscape">
+    <description>SVG via Inkscape</description>
+    <in-submenu>Specific Formats</in-submenu>
+
+    <export-type exporter="UserScript:inkscapeformats" format="svg">
+      <mime-type>image/svg+xml</mime-type>
+      <win-format>SVG</win-format>
+      <win-format>image/svg+xml</win-format>
+      <mac-flavor>public.svg-image</mac-flavor>
+    </export-type>
+  </profile>
+
   <profile name="wmf_via_inkscape">
     <description>WMF via inkscape</description>
     <in-submenu>Specific Formats</in-submenu>

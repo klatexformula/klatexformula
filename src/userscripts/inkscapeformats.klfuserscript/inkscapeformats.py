@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import pyklfuserscript
 
 
-FORMATS = ('emf', 'wmf',)
+FORMATS = ('svg', 'emf', 'wmf', )
 
 args = pyklfuserscript.export_type_args_parser().parse_args()
 
@@ -87,9 +87,14 @@ print("Converting file {}\n".format(pdffile), file=sys.stderr)
 
 outfile = re.sub(r'\.pdf$', '.'+format, pdffile)
 
+if format == 'svg':
+    exportarg_outfile = "--export-plain-svg="+outfile
+else:
+    exportarg_outfile = "--export-"+format+"="+outfile
+
 # CalledProcessError is raised if an error occurs.
 output = subprocess.check_output(args=[
-    inkscape, pdffile, '--export-'+format+'='+outfile
+    inkscape, pdffile, exportarg_outfile
 ], shell=False, stderr=subprocess.STDOUT)
 
 print("Output from {}: \n{}".format(inkscape, output.decode('utf-8')))
