@@ -2893,7 +2893,9 @@ void KLFMainWin::setMacBrushedMetalLook(bool metallook)
 
 #else
   Q_UNUSED(metallook);
-  klfWarning("Mac brushed metal look is only implemented under Mac OS X !";
+  if (metallook) {
+    klfWarning("Mac brushed metal look is only implemented under Mac OS X !");
+  }
 #endif
 }
 
