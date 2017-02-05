@@ -185,14 +185,18 @@ KLF_EXPORT  void klf_qt_msg_handle(QtMsgType type, const QMessageLogContext &/*c
     fflush(fout);
     // add the message also to the warnings buffer.
     klf_qt_msg_warnings_buffer += QByteArray("Error: ") + msg + "\n";
-#ifdef KLF_WS_WIN
-    if (qApp != NULL && qApp->inherits("QApplication")) {
-      QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
-			    QObject::tr("KLatexFormula System Error:\n%1",
-					"[[KLF's Qt Message Handler: dialog text]]")
-			    .arg(QString::fromLocal8Bit(msg)));
-    }
-#endif
+    //
+    // These messages can be seen in the "system messages" (Settings -> Advanced
+    // -> System Messages); no need for error dialog
+    //
+    // #ifdef KLF_WS_WIN
+    //     if (qApp != NULL && qApp->inherits("QApplication")) {
+    //       QMessageBox::critical(0, QObject::tr("Error", "[[KLF's Qt Message Handler: dialog title]]"),
+    // 			    QObject::tr("KLatexFormula System Error:\n%1",
+    // 					"[[KLF's Qt Message Handler: dialog text]]")
+    // 			    .arg(QString::fromLocal8Bit(msg)));
+    //     }
+    // #endif
     break;
   case QtFatalMsg:
     fprintf(fout, "Fatal: %s\n", msg);
