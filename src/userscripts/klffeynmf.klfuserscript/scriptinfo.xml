@@ -8,7 +8,7 @@
   <license>GPL v2+</license>
   <klf-backend-engine>
     <spits-out>dvi</spits-out>
-    <disable-inputs selector="all-except">preamble</disable-inputs>
+    <disable-inputs selector="">MATHMODE</disable-inputs>
     <input-form-ui>inputform.ui</input-form-ui>
   </klf-backend-engine>
 </klfuserscript-info>

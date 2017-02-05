@@ -3916,6 +3916,7 @@ KLFStyle KLFMainWin::currentStyle() const
   } else {
     sty.fontname = QString();
   }
+
   sty.fg_color = u->colFg->color().rgb();
   QColor bgc = u->colBg->color();
   if (bgc.isValid())
@@ -4036,18 +4037,20 @@ KLFBackend::klfInput KLFMainWin::currentInputState() const
   else
     input.fontsize = fsval;
   input.preamble = u->txtPreamble->latex();
-  int idx = u->cbxLatexFont->currentIndex();
-  if (idx > 0) {
-    // find corresponding font in list
-    int k;
-    for (k = 0; k < d->pLatexFontDefs.size(); ++k) {
-      if (d->pLatexFontDefs[k].identifier == u->cbxLatexFont->itemData(idx).toString()) {
-	input.preamble += d->pLatexFontDefs[k].latexdefs;
-	break;
+  if (u->cbxLatexFont->isEnabled()) {
+    int idx = u->cbxLatexFont->currentIndex();
+    if (idx > 0) {
+      // find corresponding font in list
+      int k;
+      for (k = 0; k < d->pLatexFontDefs.size(); ++k) {
+        if (d->pLatexFontDefs[k].identifier == u->cbxLatexFont->itemData(idx).toString()) {
+          input.preamble += d->pLatexFontDefs[k].latexdefs;
+          break;
+        }
       }
-    }
-    if (k == d->pLatexFontDefs.size()) {
-      klfWarning("Couldn't find font "<<u->cbxLatexFont->currentText()<<" !");
+      if (k == d->pLatexFontDefs.size()) {
+        klfWarning("Couldn't find font "<<u->cbxLatexFont->currentText()<<" !");
+      }
     }
   }
   input.fg_color = u->colFg->color().rgb();

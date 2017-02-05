@@ -86,15 +86,63 @@ tempdir = os.path.dirname(os.environ["KLF_TEMPFNAME"]);
 
 diagramname = 'klffeynmpdiagram';
 
+
+def rgba(r, g, b, a):
+    return (r, g, b, a)
+
+fg_rgba = eval(os.environ["KLF_INPUT_FG_COLOR_RGBA"])
+fg_latexdefs = ""
+fg_latexuse = ""
+if fg_rgba[:3] != (0, 0, 0):
+    # custom fg color
+    fg_latexdefs = "\\definecolor{klffgcolor}{rgb}{%.3f,%.3f,%.3f}\n"%(fg_rgba[0]/255.0, fg_rgba[1]/255.0, fg_rgba[2]/255.0)
+    fg_latexuse = "\\color{klffgcolor}"
+
+bg_latexdefs = ""
+bg_latexuse = ""    
+if not eval(os.environ["KLF_INPUT_BG_COLOR_TRANSPARENT"]):
+    bg_rgba = eval(os.environ["KLF_INPUT_BG_COLOR_RGBA"])
+    bg_latexdefs = "\\definecolor{klfbgcolor}{rgb}{%.3f,%.3f,%.3f}\n"%(bg_rgba[0]/255.0, bg_rgba[1]/255.0, bg_rgba[2]/255.0)
+    bg_latexuse = "\\pagecolor{klfbgcolor}\n"
+
+
 f = open(latexfname, 'w');
-latexcontents = ("\\documentclass{article}\n" +
-                 "\\usepackage{amsmath}\n" +
-                 ("\\usepackage{feynmf}\n" if usefeynmf else "\\usepackage{feynmp}\n") +
-                 os.environ["KLF_INPUT_PREAMBLE"] +
-                 "\\begin{document}\n" +
-                 "\\thispagestyle{empty}\n" +
-                 "\\begin{fmffile}{" + diagramname + "}\n"
-                 + latexinput + "\n\\end{fmffile}\n\\end{document}\n");
+latexcontents = """\
+\\documentclass{article}
+\\usepackage{amsmath}
+"""
+if usefeynmf:
+    latexcontents += "\\usepackage{feynmf}\n"
+else:
+    latexcontents += "\\usepackage{feynmp}\n"
+
+latexcontents += os.environ["KLF_INPUT_PREAMBLE"]
+
+if fg_latexdefs or bg_latexdefs:
+    latexcontents += "\\usepackage[dvips]{color}\n" + fg_latexdefs + bg_latexdefs
+
+latexcontents += """\
+\\begin{document}
+\\thispagestyle{empty}
+"""
+
+latexcontents += bg_latexuse
+
+if float(os.environ["KLF_INPUT_FONTSIZE"]) > 0:
+    latexcontents += ("\\fontsize{" + str(os.environ["KLF_INPUT_FONTSIZE"]) + "}{"
+                     + str(1.2*float(os.environ["KLF_INPUT_FONTSIZE"])) + "}\\selectfont\n")
+
+latexcontents += fg_latexuse
+
+latexcontents += ("""\
+\\begin{fmffile}{""" + diagramname + "}\n"
++ latexinput +
+# include newline in case last line of latexinput is a comment and does not end with newline:
+"""
+\\end{fmffile}
+\\end{document}
+""")
+
 print("LaTeX template is: \n" + latexcontents);
 f.write(latexcontents);
 f.close();

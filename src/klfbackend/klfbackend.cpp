@@ -1502,7 +1502,7 @@ static void correct_eps_bbox(const QByteArray& rawepsdata, const klfbbox& bbox_c
   char backgroundfillps[1024] = "";
   if (qAlpha(bgcolor) > 0) {
     klfDbg("we have a bg color, so draw the background. bgcolor="<<klfFmt("%#10x", (uint)bgcolor));
-    sprintf(backgroundfillps,
+    snprintf(backgroundfillps, sizeof(backgroundfillps)-1,
 	    // draw the background color, if any
 	    "newpath "
 	    "-2 -2 moveto "
