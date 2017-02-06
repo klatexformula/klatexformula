@@ -22,23 +22,14 @@
 /* $Id$ */
 
 
-// Qt5 always uses Cocoa
-#define QT_MAC_USE_COCOA 1
-
-
-
 #include <QWidget>
 
-#if !defined(QT_MAC_USE_COCOA)
-#error Sparkle framework can only be used with Qt/Cocoa.
-#endif
-
-#include <qmacdefines_mac.h>
 
 #include <objc/runtime.h>
 #include <Cocoa/Cocoa.h>
 #include <Foundation/NSAutoreleasePool.h>
 
+#include <klfdebug.h>
 #include "klfsparkleupdater.h"
 
 #include <SUUpdater.h>
@@ -59,6 +50,9 @@ public:
 KLFSparkleAutoUpdater::KLFSparkleAutoUpdater(QObject * parent, const QString& aUrl)
   : KLFAutoUpdater(parent)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("Url = " << aUrl) ;
+
   d = new Private;
 
   d->arpool = [[NSAutoreleasePool alloc] init];
@@ -72,6 +66,8 @@ KLFSparkleAutoUpdater::KLFSparkleAutoUpdater(QObject * parent, const QString& aU
 
 KLFSparkleAutoUpdater::~KLFSparkleAutoUpdater()
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+
   [d->updater release];
   [d->arpool release];
   delete d;
@@ -79,6 +75,9 @@ KLFSparkleAutoUpdater::~KLFSparkleAutoUpdater()
 
 void KLFSparkleAutoUpdater::checkForUpdates(bool inBackground)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
+  klfDbg("inBackground = " << inBackground) ;
+  
   if (inBackground) {
     [d->updater checkForUpdatesInBackground];
   } else {

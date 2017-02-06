@@ -30,6 +30,10 @@
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSAppTransportSecurity</key>  
+    <dict>
+      <key>NSAllowsArbitraryLoads</key><true/>  
+    </dict>
     <key>UTExportedTypeDeclarations</key>
     <array>
       <dict>

@@ -26,6 +26,9 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <time.h>
+#ifdef KLF_WS_MAC
+#  include <unistd.h>
+#endif
 
 #include <signal.h>
 
@@ -85,7 +88,7 @@
 
 
 #define KLF_WELCOME                                             \
-  "KLatexFormula Version %s by Philippe Faist (c) 2005-2016\n"  \
+  "KLatexFormula Version %s by Philippe Faist (c) 2005-2017\n"  \
   "Licensed under the terms of the GNU General Public License (GPLv2+)\n\n"
 
 
@@ -979,9 +982,16 @@ int main(int argc, char **argv)
 #if defined(KLF_WS_MAC)
     extern bool klf_mac_find_open_klf();
     extern bool klf_mac_dispatch_commands(const QList<QUrl>& urls);
+//QMessageBox::information(0,"STARTUP","KLF PROCESS STARTED") ;
+    if (klf_mac_find_open_klf()) {
+      // make sure it's not a process which is exiting (DIRTY FIX FOR SPARKLE UPDATE)
+      sleep(2);
+    }
     if (klf_mac_find_open_klf()) {
       // there is another instance of KLF running, dispatch commands to it.
       QList<QUrl> cmds;
+
+//QMessageBox::information(0,"STARTUP","ANOTHER KLF PROCESS IS RUNNING, DISPATCHING COMMANDS.") ;
 
       // convenience #define:
 #define CMDURL_MW(slot, argstream)					\
