@@ -1509,8 +1509,12 @@ SKIP_FUNCTION_MACROS   = YES
 # If a tag file is not located in the directory in which doxygen 
 # is run, you must also specify the path to the tagfile here.
 
-TAGFILES               = apidoc/qt4.tag=http://doc.trolltech.com/4.6 \
-                         @KLF_APIDOC_DIR@/klftools.tag=../../klftools/html
+TAGFILES = apidoc/qtcore.tags=http://qt-project.org/doc/qt-5/ \
+           apidoc/qtgui.tags=http://qt-project.org/doc/qt-5/ \
+           apidoc/qtxml.tags=http://qt-project.org/doc/qt-5/ \
+           apidoc/qtsql.tags=http://qt-project.org/doc/qt-5/ \
+           @KLF_APIDOC_DIR@/klftools.tag=../../klftools/html
+
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create 
 # a tag file that is based on the input files it reads.

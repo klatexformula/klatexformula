@@ -89,6 +89,13 @@ if(DOXYGEN)
     COMMENT "Creating API doc archive"
     VERBATIM
     )
+  add_custom_target(doc_sfweb
+    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/index.html" "${KLF_APIDOCSF_DIR}/index.html"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/f.gif" "${KLF_APIDOCSF_DIR}/f.gif"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_SOURCE_DIR}/apidoc/headerbg.jpg" "${KLF_APIDOCSF_DIR}/headerbg.jpg"
+    COMMENT "Creating API for web hosting on sourceforge.net"
+    VERBATIM
+    )
 
   add_dependencies(doc_klfbackend  doc_klftools) # depends on klftools.tag
 
@@ -96,6 +103,8 @@ if(DOXYGEN)
 
   # and the sourceforge-hosted docs (internal...)
   add_dependencies(doc_klfbackend_sfweb doc_klftools_sfweb) # depends on klftools.tag
+
+  add_dependencies(doc_sfweb  doc_klfbackend_sfweb doc_klftools_sfweb)
 
   message(STATUS "doxygen developer API documentation can be generated with 'make doc'")
 else(DOXYGEN)

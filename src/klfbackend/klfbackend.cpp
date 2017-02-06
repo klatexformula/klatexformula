@@ -59,11 +59,11 @@
  *
  * <div style="width: 60%; padding: 0 20%; text-align: justify; line-height: 150%">
  * This documentation is the API documentation for the KLatexFormula library backend that
- * you may want to use in your programs. It is a GPL-licensed library based on QT 4 that
+ * you may want to use in your programs. It is a GPL-licensed library based on QT 5 that
  * converts a LaTeX equation given as text into graphics, specifically PNG, EPS or PDF (and the
- * image is available as a QImage&mdash;so any format supported by Qt is available.
+ * image is available as a QImage&mdash;so any format supported by %Qt is available.
  *
- * Starting KLFBackend version 4.0, this library uses Qt5.
+ * Starting %KLFBackend version 4.0, this library uses Qt5.
  *
  * Some utilities to save the output (in various formats) to a file or a QIODevice
  * are provided, see KLFBackend::saveOutputToFile() and KLFBackend::saveOutputToDevice().
