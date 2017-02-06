@@ -193,9 +193,9 @@ KLFSettings::KLFSettings(KLFMainWin* parent)
 
   // prepare some actions as shortcuts for standard fonts
   QFontDatabase fdb;
-  u->aFontCMU->setEnabled( fdb.families().contains(
+  u->aFontCMU->setEnabled( fdb.families().filter(
 			       klfconfig.defaultCMUFont.family()
-			       ) );
+			       ).size() );
   d->pFontBasePresetActions["CMU"] = u->aFontCMU;
   d->pFontBasePresetActions["TT"] = u->aFontTT;
   d->pFontBasePresetActions["Std"] = u->aFontStd;
@@ -1104,10 +1104,10 @@ void KLFSettings::apply()
     klfconfig.UI.useSystemAppFont = d->pUserSetDefaultAppFont;
     klfconfig.UI.applicationFont = newAppFont;
     if (klfconfig.UI.useSystemAppFont) {
-      qApp->setFont(klfconfig.defaultStdFont);
-      qApp->setFont(QFont());
+      QApplication::setFont(klfconfig.defaultStdFont);
+      QApplication::setFont(QFont());
     } else {
-      qApp->setFont(klfconfig.UI.applicationFont);
+      QApplication::setFont(klfconfig.UI.applicationFont);
     }
     // Style sheet refresh is needed to force font (?)
     qApp->setStyleSheet(qApp->styleSheet());

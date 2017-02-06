@@ -891,6 +891,7 @@ int main(int argc, char **argv)
     }
     int k;
     for (k = 0; k < appFontsInfoList.size(); ++k) {
+      klfDbg("Adding application font " << appFontsInfoList[k].absoluteFilePath());
       QFontDatabase::addApplicationFont(appFontsInfoList[k].absoluteFilePath());
     }
 
@@ -1160,11 +1161,13 @@ int main(int argc, char **argv)
 
     klfDbgT( "$$START LOADING$$" ) ;
 
-    KLFMainWin mainWin;
-
+    klfDbg("klfconfig.UI.useSystemAppFont = " << klfconfig.UI.useSystemAppFont
+           << " ; klfconfig.UI.applicationFont = " << klfconfig.UI.applicationFont) ;
     if (!klfconfig.UI.useSystemAppFont) {
-      app.setFont(klfconfig.UI.applicationFont);
+      QApplication::setFont(klfconfig.UI.applicationFont);
     }
+
+    KLFMainWin mainWin;
 
     if (!opt_skip_plugins) {
       klfDbg("Plugins are obsolete and won't be loaded.") ;

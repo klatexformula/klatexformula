@@ -179,8 +179,8 @@ void KLFConfig::loadDefaults()
     QFont f = QApplication::font();
 #if defined(KLF_WS_X11)
     int fps = QFontInfo(f).pointSize();
-    double cmuffactor = 1.4;
-    double codeffactor = 1.4;
+    double cmuffactor = 1.15;
+    double codeffactor = 1.2;
     int cmufpsfinal = (int)(fps*cmuffactor+0.5);
     int codefpsfinal = (int)(fps*codeffactor+0.5);
     QString cmufamily = QString::fromUtf8("CMU Sans Serif");
@@ -203,7 +203,9 @@ void KLFConfig::loadDefaults()
     defaultStdFont = f;
 
     cmuappfont = f;
-    if (fdb.families().contains(cmufamily)) {
+    //    klfDbg("fdb.families() = " << fdb.families()) ;
+    if (fdb.families().filter(cmufamily, Qt::CaseInsensitive).size()) {
+      klfDbg("Found CMU Font with name = " << cmufamily) ;
       cmuappfont = QFont(cmufamily, cmufpsfinal);
     }
 
@@ -220,8 +222,9 @@ void KLFConfig::loadDefaults()
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Courier", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Misc Fixed", ps);
     KLFCONFIG_TEST_FIXED_FONT(found_fcode, fdb, fcode, "Monospace", ps);
-    if ( ! found_fcode )
+    if ( ! found_fcode ) {
       fcode = f;
+    }
 
     fcodeMain = fcode;
     fcodeMain.setPointSize(ps+1);

@@ -38,7 +38,7 @@ KLFGuiApplication::~KLFGuiApplication()
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
 }
 
-void KLFGuiApplication::saveState(QSessionManager& sm)
+void KLFGuiApplication::saveState(QSessionManager& )
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   /** \todo .... */
