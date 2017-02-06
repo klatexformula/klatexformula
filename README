@@ -24,44 +24,42 @@ INSTALLATION
 ------------
 
 Installation instructions can be found at
-  http://klatexformula.sourceforge.net/klfwiki/index.php/User_Manual:Downloading_%26_Installing
+
+  http://klatexformula.sourceforge.net/doc/install
 
 
 HELP & DOCUMENTATION
 --------------------
 
-Documentation can be found on the KLatexFormula Wiki at
-  http://klatexformula.sourceforge.net/klfwiki/
+Documentation can be found at
+
+  http://klatexformula.sourceforge.net/doc/
 
 
 REPORTING BUGS AND PROVIDING FEEDBACK
 -------------------------------------
 
-Please report bugs and suggest features and improvements on the "Feedback"
-page of the wiki at
-  http://klatexformula.sourceforge.net/klfwiki/index.php/Feedback
+Please report bugs and wishes at
+
+  https://sourceforge.net/p/klatexformula/bugs/
 
 
 LEGAL INFORMATION
 -----------------
 
-KLatexFormula is licensed under the GPL license, a copy of which is provided
-in the COPYING file.
+KLatexFormula is licensed under the GPL license (version 2 or at your option any later
+version), a copy of which is provided in the COPYING file.
 
 * This source tarball contains fonts (Computer Modern Unicode Fonts in otf
   format) provided by Andrey V. Panov. The original copyright notice is
   provided in the file CMUFONTS_COPYRIGHT.
-* This source tarball contains code from Qt/Trolltech:
-  * src/modeltest.h
-  * src/modeltest.cpp
-  The original copyright notice is included in the first lines of those files.
-* This source tarball contains code from Qt/Nokia slightly modified by myself:
-  * src/klftools/qtcolortriangle.h
-  * src/klftools/qtcolortriangle.cpp
-  The original copyright notice is included in the first lines of those files.
-* The background picture used in the `Galaxy' skin comes from NASA's "image of
-  the day" at
-    http://www.nasa.gov/images/content/190590main_GPN-2000-000895.jpg
-  Image usage guidelines:
-    http://www.nasa.gov/audience/formedia/features/MP_Photo_Guidelines.html
 
+* This source tarball contains code from Qt/Trolltech:
+    - src/modeltest.h
+    - src/modeltest.cpp
+  The original copyright notice is included in the first lines of those files.
+
+* This source tarball contains code from Qt/Nokia slightly modified by myself:
+    - src/klftools/qtcolortriangle.h
+    - src/klftools/qtcolortriangle.cpp
+  The original copyright notice is included in the first lines of those files.
