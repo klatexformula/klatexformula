@@ -315,21 +315,31 @@ KLF_EXPORT QString klfSearchPath(const QString& fname, const QStringList& paths)
 
 KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference)
 {
+  KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
   klfDbg("path="<<path<<"; reference="<<reference) ;
-  if (QFileInfo(path).isAbsolute())
-    return path;
 
-  QString ref = reference;
-  if (ref.isEmpty())
+  QFileInfo fi(path);
+  
+  if (fi.isAbsolute()) {
+    return fi.absoluteFilePath(); // potentially interpolate '~/...' etc.
+  }
+
+  QString ref;
+  if (!reference.isEmpty()) {
+    ref = QFileInfo(reference).absoluteFilePath();
+  } else {
     ref = QCoreApplication::applicationDirPath();
-
-  klfDbg("reference is "<<ref) ;
+  }
 
   // return path relative to reference
-  if (!ref.endsWith("/"))
+  if (!ref.endsWith("/")) {
     ref += "/";
+  }
+  klfDbg("reference is "<<ref) ;
 
-  return KLF_DEBUG_TEE( ref + path );
+  QString result = QFileInfo(ref + path).absoluteFilePath();
+  klfDbg("result = " << result) ;
+  return result;
 }
 
 

@@ -74,42 +74,6 @@ const static QString script_extra_paths =
 const static QString exe_suffix = "";
 #endif
 
-/*
-static QByteArray get_script_process_type(const QString& name)
-{
-  // e.g. KLF_PYTHON_EXECUTABLE
-  QString envname = QString("KLF_%1_EXECUTABLE").arg(name.toUpper());
-  QByteArray path = qgetenv(envname.toLatin1().constData());
-  if (path.size() > 0)
-    return path;
-  // try to find the executable somewhere on the system
-  // allow suffixes to the executables, e.g. for python27
-  path = klfSearchPath(name+"*"+exe_suffix, script_extra_paths).toLocal8Bit();
-  if (path.size() > 0)
-    return path;
-  return QByteArray();
-}
-static QByteArray get_script_process(QString fn)
-{
-  fn = fn.toLower();
-  if (fn.endsWith(".py")) {
-    return get_script_process_type(QLatin1String("python"));
-  }
-  if (fn.endsWith(".rb")) {
-    return get_script_process_type(QLatin1String("ruby"));
-  }
-  if (fn.endsWith(".sh")) {
-    return get_script_process_type(QLatin1String("bash"));
-  }
-  if (fn.endsWith(".pl")) {
-    return get_script_process_type(QLatin1String("perl"));
-  }
-
-  qWarning() << KLF_FUNC_NAME << "Unknown script type: " << fn << "\n";
-  return get_script_process_type(QLatin1String("env"));
-}
-*/
-
 
 // static
 QString KLFBlockProcess::detectInterpreterPath(const QString& interp, const QStringList & addpaths)

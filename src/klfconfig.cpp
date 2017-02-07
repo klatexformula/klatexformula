@@ -51,7 +51,7 @@
 
 
 
-static const char * _klf_fallback_share_dir =
+static const char * klf_fallback_share_dir =
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
 	"..";   // note: program is in a bin/ directory by default (this is for nsis-installer)
 #elif defined(Q_OS_MAC) || defined(Q_OS_DARWIN) // Mac OS X
@@ -61,39 +61,58 @@ static const char * _klf_fallback_share_dir =
 #endif
 
 
-static const char * _klf_share_dir =
-#ifdef KLF_SHARE_DIR  // defined by the build system
-	KLF_SHARE_DIR;
-#else
-        NULL;
-#endif
+// in the future this variable may be set by main.cpp by a cmd line option?
+QString klf_override_share_dir = QString();
 
-static QString _klf_share_dir_cached;
 
-KLF_EXPORT QString klf_share_dir_abspath()
+static QString klf_share_dir_abspath()
 {
-  if (!_klf_share_dir_cached.isEmpty()) {
-    return _klf_share_dir_cached;
+  // Note: klfPrefixedPath() expands ~/ into the user's home directory, and considers
+  // relative paths as relative with respec to the application executable location.
+
+  klfDbg("klf_override_share_dir="<<klf_override_share_dir<<"; "
+         <<"klf_fallback_share_dir="<<QString::fromUtf8(klf_fallback_share_dir)) ;
+
+  if (klf_override_share_dir.size()) {
+    return klfPrefixedPath(klf_override_share_dir);
   }
-
-  klfDbg(klfFmtCC("cmake-share-dir=%s; fallback-share-dir=%s\n", _klf_share_dir,
-		  _klf_fallback_share_dir)) ;
-
-  QString sharedir;
-  if (_klf_share_dir != NULL) {
-    sharedir = QLatin1String(_klf_share_dir);
-  } else {
-    sharedir = QLatin1String(_klf_fallback_share_dir);
+  QByteArray val = qgetenv("KLF_SHARE_DIR");
+  if (!val.isEmpty()) {
+    return klfPrefixedPath(QString::fromLocal8Bit(val));
   }
-
-  _klf_share_dir_cached = klfPrefixedPath(sharedir); // prefixed by app-dir-path
-
-  //DEBUG:
-  //klfWarning("SHARE DIR IS " << _klf_share_dir_cached) ;
-
-  klfDbg("share dir is "<<_klf_share_dir_cached) ;
-  return _klf_share_dir_cached;
+#ifdef KLF_SHARE_DIR  // defined by the CMake build system
+  return klfPrefixedPath(QString::fromUtf8(KLF_SHARE_DIR));
+#else
+  return klfPrefixedPath(klf_fallback_share_dir);
+#endif
 }
+
+
+
+// in the future this variable may be set by main.cpp by a cmd line option?
+QString klf_override_home_config_dir = QString();
+
+static QString klf_home_config_dir_abspath()
+{
+  // Note: klfPrefixedPath() expands ~/ into the user's home directory, and considers
+  // relative paths as relative with respec to the application executable location.
+
+  klfDbg("klf_override_home_config_dir="<<klf_override_home_config_dir) ;
+  if (klf_override_home_config_dir.size()) {
+    return klfPrefixedPath(klf_override_home_config_dir);
+  }
+  QByteArray val = qgetenv("KLF_HOME_CONFIG_DIR");
+  if (!val.isEmpty()) {
+    return klfPrefixedPath(QString::fromLocal8Bit(val));
+  }
+#ifdef KLF_HOME_CONFIG_DIR // maybe a CMake option in the future -- FIXME -- use CMAKE_CXX_FLAGS for now
+  return klfPrefixedPath(QString::fromUtf8(KLF_HOME_CONFIG_DIR));
+#else
+  return QDir::homePath() + QLatin1String("/.klatexformula");
+#endif
+}
+
+
 
 
 
@@ -152,22 +171,24 @@ static QList<T> settings_read_list(QSettings& s, const QString& basename, const 
     found_fcode = true;							\
   }
 
-
 void KLFConfig::loadDefaults()
 {
   KLF_DEBUG_TIME_BLOCK(KLF_FUNC_NAME) ;
 
   KLFCONFIGPROP_INIT_CONFIG(this) ;
 
-  homeConfigDir = QDir::homePath() + "/.klatexformula";
-  globalShareDir = klf_share_dir_abspath();
-  homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
-  homeConfigSettingsFileIni = homeConfigDir + "/config";
-  homeConfigDirI18n = homeConfigDir + "/i18n";
-  homeConfigDirUserScripts = homeConfigDir + "/userscripts";
+  homeConfigDir = klf_home_config_dir_abspath();
+  klfDbg("Home config dir = " << homeConfigDir) ;
 
+  globalShareDir = klf_share_dir_abspath();
+  klfDbg("Global share dir = " << globalShareDir) ;
   //DEBUG:
   //QMessageBox::information(0, "", QString("global share dir=")+globalShareDir);
+
+  homeConfigSettingsFile = homeConfigDir + "/klatexformula.conf";
+  homeConfigSettingsFileIni = homeConfigDir + "/config";// config from a really old version of klf .... 
+  homeConfigDirI18n = homeConfigDir + "/i18n";
+  homeConfigDirUserScripts = homeConfigDir + "/userscripts";
 
   QFont cmuappfont = QFont();
   QFont fcodeMain = QFont();
@@ -455,12 +476,6 @@ int KLFConfig::ensureHomeConfigDir()
 {
   if ( !klfEnsureDir(homeConfigDir) )
     return -1;
-  // if ( !klfEnsureDir(homeConfigDirRCCResources) )
-  //   return -1;
-  // if ( !klfEnsureDir(homeConfigDirPlugins) )
-  //   return -1;
-  // if ( !klfEnsureDir(homeConfigDirPluginData) )
-  //   return -1;
   if ( !klfEnsureDir(homeConfigDirI18n) )
     return -1;
   if ( !klfEnsureDir(homeConfigDirUserScripts) )
