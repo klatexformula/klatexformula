@@ -63,6 +63,18 @@ Volby:
   -p, --preamble <LaTeX code>
      Jakýkoli LaTeXový kód, který bude vložen před \begin{document}. Užitečné pro
       zařazení vlastních balíčků pomocí \usepackage{...}.
+  -s, --userscript <user script>
+      Call a specific user script when running the backend. See the documentation
+      in libklfbackend for more information. The script must understand and
+      respond to the "--scriptinfo" option.
+  --want-pdf [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      If set, then PDF is also internally generated. This setting should be detected
+      automatically but you may adjust it if klatexformula guesses wrong.
+  --want-svg [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      If set, then SVG is also internally generated (via gs, note: not always
+      available). This setting should be detected automatically but you may adjust
+      it if klatexformula guesses wrong.
+
   -q, --quiet [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
       Zakáže výstup pro varování a chyby v konzoli.
   --redirect-debug <file>
@@ -74,9 +86,20 @@ Volby:
       volby, jako --latexinput, lze stále zadávat. Budou přeposlány
       procesu démona.
 
+  --skip-plugins
+      Obsolete. Since Klatexformula 4, no plugin system is available and plugins
+      are never loaded.
+
+  --calcepsbbox [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Correct the bounding box of the output for characters that don't report a
+      complete or incorrect bounding box. (On by default.)
+  --nocalcepsbbox [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Same as --calcepsbbox=<inverse of value given>
   --outlinefonts [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
       Převede písma vložená v EPS a PDF na vektorové obrysy (gs s -dNOCACHE).
       Užitečné pro vyvedení do např. Adobe Illustratoru.
+  --nooutlinefonts [<ON|Y[ES]|T[RUE]|1 or OFF|N[O]|F[ALSE]|0>]
+      Same as --outlinefonts=<inverse of value given>
   --lborderoffset <N>
   --tborderoffset <N>
   --rborderoffset <N>
@@ -90,6 +113,7 @@ Volby:
   --dvips <dvips spustitelný soubor>
   --gs <gs spustitelný soubor>
   --epstopdf <epstopdf spustitelný soubor>
+      [OBSOLETE: EPSTOPDF NO LONGER USED]
       Určuje spustitelný soubor pro latex, dvips, gs nebo epstopdf. Ve výchozím nastavení jsou
       hledány v $PATH a/nebo v obvyklých systémových adresářích.
 
@@ -129,10 +153,6 @@ Poznámky:
   * Při provozování v interaktivním režimu je nově vyhodnocená rovnice přidána do
     historie programu KLatexFormula.
   * Pokud neběží v interaktivním režimu, není potřeba žádný X11 server.
-  * Dodatečné překladové soubory a/nebo data lze klatexformula poskytnout stanovením
-    seznamu souborů Qt rcc nebo adresářů obsahujících takové soubory pro zavedení do proměnné prostředí
-    KLF_RESOURCES. Oddělte názvy souborů pomocí ':' na unixu/macu, nebo ';' na windows. Výchozí
-    cesty lze zahrnout pomocí značky ('::') nebo dvojtečkou vlevo nebo vpravo ':'.
   * Nahlašte, prosím, jakékoli chyby nebo závady autorovi.
 
 Pěkně si to užijte!

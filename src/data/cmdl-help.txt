@@ -89,6 +89,7 @@ Options:
       Run a separate, detached, klatexformula process and return immediately. All
       other options, like --latexinput, may still be given. They will be forwared
       to the daemon process.
+
   --skip-plugins
       Obsolete. Since Klatexformula 4, no plugin system is available and plugins
       are never loaded.
@@ -116,7 +117,8 @@ Options:
   --latex <latex executable>
   --dvips <dvips executable>
   --gs <gs executable>
-  --epstopdf <epstopdf executable>      [OBSOLETE: EPSTOPDF NO LONGER USED]
+  --epstopdf <epstopdf executable>
+      [OBSOLETE: EPSTOPDF NO LONGER USED]
       Specifiy the executable for latex, dvips, gs or epstopdf. By default, they
       are searched for in $PATH and in common system directories.
 

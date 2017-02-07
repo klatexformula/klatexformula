@@ -88,6 +88,7 @@ Options:
   -d, --daemonize
       Démarre un processus détaché comme un démon. Toutes les autres options (p. ex. --latexinput)
       sont transmises au démon et sont donc prises en compte.
+
   --skip-plugins
       Option obsolète. A partir de la version 4.0, klatexformula ne charge plus de plug-in
       (greffons).  Ne tente pas de charger les plug-ins.

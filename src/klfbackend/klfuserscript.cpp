@@ -38,12 +38,8 @@
 
 /** \page pageUserScript User Scripts
  *
- * \todo ......... WRITE DOC................
+ * Doc here: http://klatexformula.sourceforge.net/doc/user-scripts-devel
  *
- * Format list (e.g. for 'spitsOut()' and 'skipFormats()':
- * \todo FORMAT LIST
- *
- * \bug NEEDS TESTING: user script output formats, skipped formats, parameters, etc.
  */
 
 

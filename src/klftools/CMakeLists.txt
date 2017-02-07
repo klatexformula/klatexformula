@@ -125,9 +125,13 @@ if(KLF_BUILD_TOOLS)
   qt5_add_resources(klftools_QRC_CPPS ${klftools_QRCS})
   target_sources(klftools PRIVATE ${klftools_SRCS} ${klftools_QRC_CPPS} ${klftools_UIS_H} ${klftools_MOC_CPPS})
 
+  # window system specific code
+  if(KLF_WS STREQUAL "mac")
+    target_sources(klftools PRIVATE macosx/klfdrawerdefs.mm)
+  endif()
+  # OS specific code (not window system specific):
   if(APPLE)
     target_sources(klftools PRIVATE
-      macosx/klfdrawerdefs.mm
       klfdefs_mac.mm
       )
     target_link_libraries(klftools PUBLIC "-framework IOKit")
