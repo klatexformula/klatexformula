@@ -90,10 +90,10 @@ include(KLFUtil)
 message(STATUS "")
 message(STATUS "[BUILD SETTINGS]")
 
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "[For developers] Build configuration (Debug|Release|RelWithDebInfo)")
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build configuration (Debug|Release|RelWithDebInfo)")
 
 if(NOT CMAKE_BUILD_TYPE)
-  message(FATAL_ERROR "Please set CMAKE_BUILD_TYPE, for example CMAKE_BUILD_TYPE=Release.")
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build configuration (Debug|Release|RelWithDebInfo)" FORCE)
 endif()
 message(STATUS "CMake build type: ${CMAKE_BUILD_TYPE}")
 
