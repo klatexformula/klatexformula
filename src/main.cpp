@@ -81,11 +81,6 @@
  */
 
 
-// Name of the environment variable to check for paths to extra resources
-#ifndef KLF_RESOURCES_ENVNAM
-#define KLF_RESOURCES_ENVNAM "KLF_RESOURCES"
-#endif
-
 
 #define KLF_WELCOME                                             \
   "KLatexFormula Version %s by Philippe Faist (c) 2005-2017\n"  \
@@ -447,9 +442,6 @@ void main_setup_app(QCoreApplication *a)
 #ifdef KLF_LIBKLFTOOLS_STATIC
   Q_INIT_RESOURCE(klftoolsres) ;
 #endif
-//#ifdef KLF_LIBKLFAPP_STATIC
-//  Q_INIT_RESOURCE(klfres) ;
-//#endif
 
   klfDbg("Registering metatypes ...") ;
   qRegisterMetaType< QImage >("QImage");

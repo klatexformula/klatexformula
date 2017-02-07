@@ -146,6 +146,11 @@ if(KLF_BUILD_GUI)
   # Translations
   qt5_add_translation(klatexformula_QMS ${klatexformula_TSS})
 
+  if (KLF_LIBKLFTOOLS_STATIC)
+    # so that main.cpp knows that it has to initialize klftools' resource "klftools.qrc" manually
+    target_compile_definitions(klatexformula PRIVATE -DKLF_LIBKLFTOOLS_STATIC)
+  endif()
+
   set(klatexformula_post_build_commands )
   set(klatexformula_bundle_include_libs )
 
