@@ -51,8 +51,10 @@
 
 
 
-static const char * klf_fallback_share_dir =
-#if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
+static const char * klf_compiletime_share_dir =
+#if defined(KLF_SHARE_DIR)  // defined by the CMake build system
+        KLF_SHARE_DIR;
+#elif defined(Q_OS_WIN32) || defined(Q_OS_WIN64)  // windows
 	"..";   // note: program is in a bin/ directory by default (this is for nsis-installer)
 #elif defined(Q_OS_MAC) || defined(Q_OS_DARWIN) // Mac OS X
 	"../Resources";
@@ -71,7 +73,7 @@ static QString klf_share_dir_abspath()
   // relative paths as relative with respec to the application executable location.
 
   klfDbg("klf_override_share_dir="<<klf_override_share_dir<<"; "
-         <<"klf_fallback_share_dir="<<QString::fromUtf8(klf_fallback_share_dir)) ;
+         <<"klf_compiletime_share_dir="<<QString::fromUtf8(klf_compiletime_share_dir)) ;
 
   if (klf_override_share_dir.size()) {
     return klfPrefixedPath(klf_override_share_dir);
@@ -80,14 +82,16 @@ static QString klf_share_dir_abspath()
   if (!val.isEmpty()) {
     return klfPrefixedPath(QString::fromLocal8Bit(val));
   }
-#ifdef KLF_SHARE_DIR  // defined by the CMake build system
-  return klfPrefixedPath(QString::fromUtf8(KLF_SHARE_DIR));
-#else
-  return klfPrefixedPath(klf_fallback_share_dir);
-#endif
+  return klfPrefixedPath(QString::fromLocal8Bit(klf_compiletime_share_dir));
 }
 
 
+static const char * klf_compiletime_home_config_dir =
+#if defined(KLF_HOME_CONFIG_DIR) // maybe a CMake option in the future -- FIXME -- use CMAKE_CXX_FLAGS for now
+           KLF_HOME_CONFIG_DIR ;
+#else
+           "~/.klatexformula" ;
+#endif
 
 // in the future this variable may be set by main.cpp by a cmd line option?
 QString klf_override_home_config_dir = QString();
@@ -105,11 +109,8 @@ static QString klf_home_config_dir_abspath()
   if (!val.isEmpty()) {
     return klfPrefixedPath(QString::fromLocal8Bit(val));
   }
-#ifdef KLF_HOME_CONFIG_DIR // maybe a CMake option in the future -- FIXME -- use CMAKE_CXX_FLAGS for now
-  return klfPrefixedPath(QString::fromUtf8(KLF_HOME_CONFIG_DIR));
-#else
-  return QDir::homePath() + QLatin1String("/.klatexformula");
-#endif
+
+  return klfPrefixedPath(QString::fromLocal8Bit(klf_compiletime_home_config_dir));
 }
 
 

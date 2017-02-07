@@ -313,20 +313,35 @@ KLF_EXPORT QString klfSearchPath(const QString& fname, const QStringList& paths)
   return QString::null;
 }
 
-KLF_EXPORT QString klfPrefixedPath(const QString& path, const QString& reference)
+KLF_EXPORT QString klfPrefixedPath(const QString& path_, const QString& ref_)
 {
   KLF_DEBUG_BLOCK(KLF_FUNC_NAME) ;
-  klfDbg("path="<<path<<"; reference="<<reference) ;
+
+  QString path = path_;
+  QString ref = ref_;
+
+  klfDbg("path="<<path<<"; reference="<<ref) ;
+
+  if (path == "~") {
+    return QDir::homePath();
+  }
+  if (path.startsWith("~/")) {
+    path = QDir::homePath() + "/" + path.mid(2);
+  }
 
   QFileInfo fi(path);
   
   if (fi.isAbsolute()) {
-    return fi.absoluteFilePath(); // potentially interpolate '~/...' etc.
+    return fi.absoluteFilePath();
   }
 
-  QString ref;
-  if (!reference.isEmpty()) {
-    ref = QFileInfo(reference).absoluteFilePath();
+  if (!ref.isEmpty()) {
+    if (ref == "~") {
+      ref = QDir::homePath();
+    } else if (ref.startsWith("~/")) {
+      ref = QDir::homePath() + "/" + path.mid(2);
+    }
+    ref = QFileInfo(ref).absoluteFilePath();
   } else {
     ref = QCoreApplication::applicationDirPath();
   }
