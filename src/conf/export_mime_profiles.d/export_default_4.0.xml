@@ -90,7 +90,7 @@
 
     <!-- OpenOffice.org format -->
     <export-type exporter="KLFOpenOfficeDrawExporter" format="odg">
-      <mime-type>application/x-openoffice-drawing</mime-type>
+      <mime-type>application/x-openoffice-drawing;windows_formatname="Drawing Format"</mime-type>
       <win-format>Drawing Format</win-format>
       <!-- see "KLFOpenOfficeDrawExporter" profile below for notes on dynamic UTIs -->
       <mac-flavor>dyn.ah62d4rv4gu80c6durvy0g2pyrf106p52fz11a3psr7xgq4pdqy00k6xbs7y06335s7y063dts73z83xtsm00c7dsqf00n1b7emche2p1rf1gskcgr73g42pyek</mac-flavor>
@@ -242,7 +242,7 @@
     <in-submenu>Specific Formats</in-submenu>
     <description>OpenOffice Draw</description>
     <export-type exporter="KLFOpenOfficeDrawExporter" format="odg">
-      <mime-type>application/x-openoffice-drawing</mime-type>
+      <mime-type>application/x-openoffice-drawing;windows_formatname="Drawing Format"</mime-type>
       <win-format>Drawing Format</win-format>
 
       <!-- Notes: read https://alastairs-place.net/blog/2012/06/06/utis-are-better-than-you-think-and-heres-why/

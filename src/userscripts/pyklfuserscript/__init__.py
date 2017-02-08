@@ -60,6 +60,6 @@ def ensure_configured_executable(exe, exename, userscript):
     if not exists_and_is_executable(exe):
         print("Error: Can't find {exename} executable. Please set the path to `{exename}` in\n"
               "Settings -> Scripts -> {userscriptname} -> Script Settings"
-              .format({'exename':exename,'userscriptname':userscript}), file=sys.stderr)
+              .format(exename=exename, userscriptname=userscript}), file=sys.stderr)
         sys.exit(255)
     
