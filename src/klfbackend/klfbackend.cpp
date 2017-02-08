@@ -93,12 +93,13 @@
 #if defined(Q_OS_WIN32) || defined(Q_OS_WIN64)
 QStringList progLATEX = QStringList() << "latex.exe";
 QStringList progDVIPS = QStringList() << "dvips.exe";
-QStringList progGS = QStringList() << "gswin32c.exe" << "mgs.exe";
+QStringList progGS = QStringList() << "gswin32c.exe" << "gswin64c.exe" << "mgs.exe";
 //QStringList progEPSTOPDF = QStringList() << "epstopdf.exe";
 static const char * standard_extra_paths[] = {
   EXTRA_PATHS_PRE
   "C:\\Program Files*\\MiKTeX*\\miktex\\bin",
-  "C:\\Program Files*\\gs\\gs*\\bin",
+  "C:\\texlive\\*\\bin\\win*",
+  "C:\\Program Files*\\gs*\\gs*\\bin",
   NULL
 };
 #elif defined(KLF_WS_MAC)

@@ -255,6 +255,7 @@
            transv = string.maketrans(v2, v)
            base64.b32decode(s.translate(transv)+'='*(-len(s)%8), True)
            -->
+      <!-- this decodes to '?0=6:4=application/x-openoffice-drawing;windows_formatname\\="Drawing Format"'
       <mac-flavor>dyn.ah62d4rv4gu80c6durvy0g2pyrf106p52fz11a3psr7xgq4pdqy00k6xbs7y06335s7y063dts73z83xtsm00c7dsqf00n1b7emche2p1rf1gskcgr73g42pyek</mac-flavor>
     </export-type>
   </profile>
