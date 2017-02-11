@@ -767,7 +767,6 @@ void KLFSettingsPrivate::refreshUserScriptSelected()
 
   if (item == NULL) {
     K->u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
-    K->u->lblUserScriptInfo->setText(tr("No user script selected.", "[[user script info label]]"));
     ok = false;
   } else {
     QVariant v = item->data(0, KLFSETTINGS_ROLE_USERSCRIPT);

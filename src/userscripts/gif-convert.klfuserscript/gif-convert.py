@@ -39,6 +39,7 @@ args = pyklfuserscript.export_type_args_parser().parse_args()
 
 if args.query_default_settings:
     convert = pyklfuserscript.find_executable(['convert'], [
+        '/usr/local/bin',
         '/opt/local/bin',
         os.path.join(os.environ.get('MAGICK_HOME',''), 'bin')
         # add more non-trivial paths here (but not necessary to include /usr/bin/
