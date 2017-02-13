@@ -987,7 +987,7 @@ int main(int argc, char **argv)
 
     // show program help ?
     if ( opt_help_requested ) {
-      QFile cmdlHelpFile(klfFindTranslatedDataFile(":/data/cmdl-help", ".txt"));
+      QFile cmdlHelpFile(klfFindTranslatedDataFile("cmdl-help", ".txt"));
       if (!cmdlHelpFile.open(QIODevice::ReadOnly)) {
 	qWarning()<<KLF_FUNC_NAME<<": Can't access command-line-help file :/data/cmdl-help.txt!";
 	main_exit(-1);

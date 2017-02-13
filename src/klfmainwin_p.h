@@ -77,7 +77,7 @@ public:
   virtual QString getFullHtml()
   {
     QString html;
-    QString fn = klfFindTranslatedDataFile(":/data/"+pBaseFName, ".html");
+    QString fn = klfFindTranslatedDataFile(pBaseFName, ".html");
 
     QFile f(fn);
     f.open(QIODevice::ReadOnly);
