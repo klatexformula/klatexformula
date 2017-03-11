@@ -60,6 +60,13 @@
   </font-def>
 
   <font-def>
+    <identifier>Cochineal</identifier>
+    <title>Cochineal</title>
+    <latexdefs>\usepackage[p,osf]{cochineal}
+\usepackage[cochineal]{newtxmath}</latexdefs>
+  </font-def>
+
+  <font-def>
     <identifier>Stix</identifier>
     <title>Stix</title>
     <latexdefs>\usepackage{stix}</latexdefs>
