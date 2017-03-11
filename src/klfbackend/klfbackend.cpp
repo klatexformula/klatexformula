@@ -943,6 +943,16 @@ KLFBackend::klfOutput KLFBackend::getLatexFormula(const klfInput& input, const k
     p.resErrCodes[KLFFP_NODATA] = KLFERR_DVIPS_NOOUTPUT;
     p.resErrCodes[KLFFP_DATAREADFAIL] = KLFERR_DVIPS_OUTPUTREADFAIL;
 
+    QFileInfo dvipsinf(settings.dvipsexec);
+    if (!dvipsinf.filePath().isEmpty()) {
+      // add the explicit dvips path to the PATH environment, in case dvips needs to
+      // execute helpers such as mktexpk
+      p.addExecEnviron(QStringList() << (
+                           QLatin1String("PATH=") + dvipsinf.absoluteFilePath() + QLatin1String(":") +
+                           QProcessEnvironment::systemEnvironment().value("PATH")
+                           )) ;
+    }
+
     p.setArgv(QStringList() << settings.dvipsexec << "-E" << QDir::toNativeSeparators(fnDvi)
 	      << "-o" << QDir::toNativeSeparators(fnRawEps));
 
